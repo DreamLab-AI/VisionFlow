@@ -4,9 +4,9 @@ description: **Complete REST API Reference for VisionFlow Knowledge Graph Platfo
 category: reference
 tags:
   - api
-  - rest
-  - websocket
-  - react
+  - api
+  - api
+  - frontend
 updated-date: 2025-12-18
 difficulty-level: intermediate
 ---

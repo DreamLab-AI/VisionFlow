@@ -2,10 +2,12 @@
 title: "Documentation Contribution Guide"
 description: "Guidelines for contributing to the unified documentation corpus"
 category: reference
-tags: [contribution, standards, workflow]
-version: 2.0.0
-last_updated: 2025-12-18
+tags:
+  - documentation
+updated-date: 2025-12-19
+difficulty-level: intermediate
 ---
+
 
 # Documentation Contribution Guide
 

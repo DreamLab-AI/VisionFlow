@@ -4,7 +4,7 @@ description: 1. [Overview](#overview) 2. [Multi-Agent Integration](#multi-agent-
 category: explanation
 tags:
   - architecture
-  - rest
+  - api
   - documentation
   - reference
   - visionflow

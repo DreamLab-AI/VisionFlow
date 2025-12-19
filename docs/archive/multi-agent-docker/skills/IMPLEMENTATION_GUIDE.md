@@ -4,7 +4,7 @@ description: ```bash
 category: explanation
 tags:
   - docker
-  - react
+  - frontend
   - documentation
   - reference
   - visionflow

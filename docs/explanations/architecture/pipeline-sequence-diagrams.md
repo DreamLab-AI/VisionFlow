@@ -4,7 +4,7 @@ description: ```mermaid sequenceDiagram participant GitHub
 category: explanation
 tags:
   - architecture
-  - websocket
+  - api
   - documentation
   - reference
   - visionflow

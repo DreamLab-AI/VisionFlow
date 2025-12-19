@@ -359,8 +359,8 @@ dependencies:
 | **[Neo4j Integration](explanations/ontology/neo4j-integration.md)** | Graph database integration |
 | **[Ontology Pipeline Integration](explanations/ontology/ontology-pipeline-integration.md)** | End-to-end OWL processing |
 | **[Ontology Typed System](explanations/ontology/ontology-typed-system.md)** | Type system design |
-| **[Client-Side Hierarchical LOD](explanations/ontology/client-side-hierarchical-lod.md)** | Level-of-detail optimization |
-| **[Hierarchical Visualization](explanations/ontology/hierarchical-visualization.md)** | Tree and DAG layouts |
+| **[Client-Side Hierarchical LOD](explanations/ontology/client-side-hierarchical-lod.md)** | Level-of-detail optimisation |
+| **[Hierarchical Visualisation](explanations/ontology/hierarchical-visualization.md)** | Tree and DAG layouts |
 | **[Intelligent Pathfinding System](explanations/ontology/intelligent-pathfinding-system.md)** | Graph traversal theory |
 | **[Enhanced Parser](explanations/ontology/enhanced-parser.md)** | OWL parser v2 design |
 
@@ -388,7 +388,7 @@ dependencies:
 | Document | Description |
 |----------|-------------|
 | **[GPU Communication Flow](explanations/architecture/gpu/communication-flow.md)** | CPU-GPU data transfer |
-| **[GPU Optimizations](explanations/architecture/gpu/optimizations.md)** | Performance tuning strategies |
+| **[GPU Optimisations](explanations/architecture/gpu/optimizations.md)** | Performance tuning strategies |
 | **[GPU README](explanations/architecture/gpu/readme.md)** | GPU subsystem overview |
 
 </details>
@@ -510,7 +510,7 @@ dependencies:
 | **Use the REST API** | [REST API Complete](reference/api/rest-api-complete.md) |
 | **Use WebSocket API** | [WebSocket API Reference](reference/api/03-websocket.md) |
 | **Understand hexagonal architecture** | [Hexagonal CQRS](explanations/architecture/hexagonal-cqrs.md) |
-| **Optimize performance** | [GPU Optimizations](explanations/architecture/gpu/optimizations.md) |
+| **Optimise performance** | [GPU Optimisations](explanations/architecture/gpu/optimizations.md) |
 | **Secure the application** | [Security Guide](guides/security.md) |
 | **Contribute code** | [Contributing Guide](guides/developer/06-contributing.md) |
 
@@ -557,7 +557,7 @@ dependencies:
 
 - [GPU Semantic Forces](explanations/architecture/gpu-semantic-forces.md)
 - [GPU Communication Flow](explanations/architecture/gpu/communication-flow.md)
-- [GPU Optimizations](explanations/architecture/gpu/optimizations.md)
+- [GPU Optimisations](explanations/architecture/gpu/optimizations.md)
 - [GPU README](explanations/architecture/gpu/readme.md)
 - [Performance Benchmarks](reference/performance-benchmarks.md)
 - [Physics Implementation](reference/physics-implementation.md)

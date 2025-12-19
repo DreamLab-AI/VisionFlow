@@ -1,10 +1,10 @@
 ---
 title: Semantic Forces User Guide
 description: Semantic forces enable GPU-accelerated physics where forces convey semantic meaning about relationships, hierarchies, and node types.
-category: howto
+category: guide
 tags:
-  - guide
-  - rest
+  - tutorial
+  - api
   - documentation
   - reference
   - visionflow

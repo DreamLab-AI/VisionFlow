@@ -3,11 +3,11 @@ title: VisionFlow GPU Feature Integration & Compilation Repair
 description: Check if the following have been accomplished using cargo check only, you're in a docker container
 category: explanation
 tags:
-  - rest
-  - websocket
+  - api
+  - api
   - docker
-  - neo4j
-  - rust
+  - database
+  - backend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

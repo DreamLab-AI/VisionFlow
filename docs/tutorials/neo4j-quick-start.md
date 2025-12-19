@@ -4,8 +4,8 @@ description: Added dual persistence to Neo4j graph database for advanced graph a
 category: tutorial
 tags:
   - docker
-  - neo4j
-  - rust
+  - database
+  - backend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

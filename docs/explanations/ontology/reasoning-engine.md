@@ -3,7 +3,7 @@ title: Reasoning Module - Week 2 Deliverable
 description: Complete OWL reasoner implementation with inference caching for VisionFlow's unified ontology architecture.
 category: explanation
 tags:
-  - rust
+  - backend
   - documentation
   - reference
   - visionflow

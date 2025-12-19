@@ -7,7 +7,7 @@ tags:
   - patterns
   - structure
   - api
-  - rest
+  - api
 related-docs:
   - ASCII_DEPRECATION_COMPLETE.md
   - diagrams/README.md
@@ -65,7 +65,7 @@ graph TB
     subgraph "Support Actors"
         GSS --> WS[WorkspaceActor<br/>Workspace CRUD<br/>Multi-tenant]
         GSS --> SA[SettingsActor<br/>Config Management<br/>Persistence]
-        GSS --> OSA[OptimizedSettingsActor<br/>Hot-path Settings<br/>Cache Layer]
+        GSS --> OSA[OptimisedSettingsActor<br/>Hot-path Settings<br/>Cache Layer]
     end
 
     style GSS fill:#ff6b6b,stroke:#333,stroke-width:4px,color:#fff
@@ -1822,7 +1822,7 @@ impl GraphStateActor {
    - GPUResourceActor
 17. **WorkspaceActor** - Multi-tenant workspace management
 18. **SettingsActor** - Configuration persistence
-19. **OptimizedSettingsActor** - Hot-path settings cache
+19. **OptimisedSettingsActor** - Hot-path settings cache
 20-21. **Support Actors** (telemetry, logging, etc.)
 
 ### Message Types: 100+

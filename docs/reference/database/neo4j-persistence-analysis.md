@@ -4,9 +4,9 @@ description: **Agent**: Neo4j Persistence Agent **Date**: 2025-11-28 **Working D
 category: reference
 tags:
   - database
-  - rest
-  - neo4j
-  - rust
+  - api
+  - database
+  - backend
 updated-date: 2025-12-18
 difficulty-level: intermediate
 ---

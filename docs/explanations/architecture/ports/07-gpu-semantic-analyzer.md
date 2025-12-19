@@ -4,7 +4,7 @@ description: The **GpuSemanticAnalyzer** port provides GPU-accelerated semantic 
 category: explanation
 tags:
   - architecture
-  - rust
+  - backend
   - documentation
   - reference
   - visionflow

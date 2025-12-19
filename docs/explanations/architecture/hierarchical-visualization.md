@@ -4,8 +4,8 @@ description: **Complete Guide to Semantic Zoom and Class Grouping**
 category: explanation
 tags:
   - architecture
-  - rest
-  - react
+  - api
+  - frontend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

@@ -3,11 +3,11 @@ title: VisionFlow Hive Mind Integration - COMPLETE ✅
 description: **Branch**: `claude/setup-hive-mind-integration-01DQJdmGw3c1R1P7vKEBStA6` **Commit**: `6dca6ac` **Date**: 2025-11-22
 category: explanation
 tags:
-  - websocket
+  - api
   - docker
-  - neo4j
-  - rust
-  - react
+  - database
+  - backend
+  - frontend
 updated-date: 2025-12-18
 difficulty-level: intermediate
 ---

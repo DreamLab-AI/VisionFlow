@@ -4,9 +4,9 @@ description: **Date**: 2025-11-30 **Scope**: Backend API endpoints for feature t
 category: explanation
 tags:
   - api
-  - rest
-  - websocket
-  - rust
+  - api
+  - api
+  - backend
 updated-date: 2025-12-18
 difficulty-level: intermediate
 ---

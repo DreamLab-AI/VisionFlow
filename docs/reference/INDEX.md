@@ -1,11 +1,13 @@
 ---
-title: Reference Documentation Index
-description: Master index for all VisionFlow reference documentation with quick lookup tables and cross-references
-type: reference
-status: stable
-version: 2.0
-last_updated: 2025-12-18
+title: "Reference Documentation Index"
+description: "Master index for all VisionFlow reference documentation with quick lookup tables and cross-references"
+category: reference
+tags:
+  - documentation
+updated-date: 2025-12-19
+difficulty-level: intermediate
 ---
+
 
 # Reference Documentation Index
 

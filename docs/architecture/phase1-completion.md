@@ -6,7 +6,7 @@ tags:
   - architecture
   - design
   - api
-  - rest
+  - api
   - docker
 related-docs:
   - architecture/HEXAGONAL_ARCHITECTURE_STATUS.md

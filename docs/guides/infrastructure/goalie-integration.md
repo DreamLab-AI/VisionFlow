@@ -1,10 +1,10 @@
 ---
 title: Goalie Integration - Goal-Oriented AI Research
 description: Goalie is integrated as an MCP service providing goal-oriented AI research with anti-hallucination features using the Perplexity API.
-category: howto
+category: guide
 tags:
-  - guide
-  - rest
+  - tutorial
+  - api
   - documentation
   - reference
   - visionflow
@@ -251,4 +251,3 @@ Set `GOAP-CACHE-TTL` higher (default: 3600 seconds) to cache results longer.
 For issues or questions:
 - Check logs: `/app/mcp-logs/goalie-mcp.log`
 - Supervisord status: `supervisorctl status goalie-mcp`
-- Test connection: `echo '{"jsonrpc":"2.0","id":"test","method":"tools/list","params":{}}' | nc localhost 9504`

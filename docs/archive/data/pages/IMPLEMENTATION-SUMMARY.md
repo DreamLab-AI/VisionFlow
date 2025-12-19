@@ -3,7 +3,7 @@ title: Implementation Summary
 description: - ### OntologyBlock id:: implementation-summary-ontology collapsed:: true
 category: explanation
 tags:
-  - rest
+  - api
   - documentation
   - reference
   - visionflow

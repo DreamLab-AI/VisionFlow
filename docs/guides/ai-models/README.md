@@ -1,13 +1,13 @@
 ---
 title: AI Models & Services Integration
 description: This system integrates multiple AI models and services for diverse use cases: real-time research, reasoning, knowledge management, and document processing.  Each service is isolated for security an...
-category: howto
+category: guide
 tags:
   - architecture
   - patterns
   - structure
   - api
-  - rest
+  - api
 related-docs:
   - guides/ai-models/deepseek-verification.md
   - guides/ai-models/deepseek-deployment.md

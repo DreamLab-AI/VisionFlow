@@ -1,7 +1,7 @@
 ---
 title: AI Models Integration Summary
 description: ✅ **Perplexity AI** - Status: Production - MCP Skill: Active - Rust Service: Integrated - Recommendation: Implement response caching
-category: howto
+category: guide
 tags:
   - architecture
   - design

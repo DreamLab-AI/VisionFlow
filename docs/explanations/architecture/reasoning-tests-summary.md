@@ -4,8 +4,8 @@ description: Complete test coverage for the ontology reasoning pipeline includin
 category: explanation
 tags:
   - architecture
-  - websocket
-  - rust
+  - api
+  - backend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

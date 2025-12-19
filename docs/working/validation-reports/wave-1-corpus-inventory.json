@@ -1,0 +1,68 @@
+{
+  "agent": "corpus-analyzer",
+  "wave": 1,
+  "timestamp": "2025-12-19T18:00:14Z",
+  "corpus_statistics": {
+    "total_markdown_files": 304,
+    "total_lines": 185409,
+    "total_directories": 94,
+    "corpus_size_mb": 7.9,
+    "average_file_size_lines": 609,
+    "large_files_over_100kb": 2
+  },
+  "directory_distribution": {
+    "archive": 75,
+    "guides": 68,
+    "explanations": 56,
+    "reference": 26,
+    "diagrams": 19,
+    "multi-agent-docker": 12,
+    "working": 7,
+    "architecture": 6,
+    "audits": 5,
+    "tutorials": 3,
+    "concepts": 2,
+    "analysis": 2,
+    "scripts": 1,
+    "assets": 1,
+    "root_level": 20
+  },
+  "large_files": [
+    {
+      "file": "docs/explanations/architecture/services-architecture.md",
+      "size_kb": 105
+    },
+    {
+      "file": "docs/guides/infrastructure/docker-environment.md",
+      "size_kb": 111
+    }
+  ],
+  "structure_analysis": {
+    "max_depth_levels": 5,
+    "recommended_max_depth": 3,
+    "depth_violations": true,
+    "total_root_level_docs": 20,
+    "recommended_root_level_docs": 5
+  },
+  "quality_indicators": {
+    "developer_markers_found": 119,
+    "likely_orphaned_docs": "pending_link_analysis",
+    "duplicate_candidates": "pending_content_analysis",
+    "naming_convention_violations": "pending_detailed_scan"
+  },
+  "recommendations": [
+    "Reduce directory depth from 5 to 3 levels maximum",
+    "Move 15 root-level docs into appropriate subdirectories",
+    "Archive contains 75 files - verify these are truly historical",
+    "Working directory (7 files) should be excluded from production docs",
+    "Multi-agent-docker (12 files) appears misplaced in main docs",
+    "Remove 119 developer markers (TODO/FIXME/WIP)",
+    "Review large files (>100KB) for potential splitting"
+  ],
+  "next_steps": [
+    "Complete link validation to identify orphaned documents",
+    "Scan for duplicate content and naming violations",
+    "Design Diataxis-compliant reorganization plan",
+    "Create navigation hierarchy for 304 documents"
+  ]
+}

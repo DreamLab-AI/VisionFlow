@@ -3,8 +3,8 @@ title: Type Corrections - Final Summary
 description: **File**: `src/utils/unified_gpu_compute.rs:879` **Fix**: Removed duplicate definition **Approach**: Kept the better implementation at line 3534 that returns actual buffer size
 category: explanation
 tags:
-  - rest
-  - rust
+  - api
+  - backend
   - documentation
   - reference
   - visionflow

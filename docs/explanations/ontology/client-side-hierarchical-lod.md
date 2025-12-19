@@ -3,8 +3,8 @@ title: Client-Side Hierarchical LOD (Level of Detail)
 description: **Date:** November 2, 2025 **Task:** Task 2.2 - Hierarchical Expansion/Collapse (Client-Side Only) **Status:** Planning
 category: explanation
 tags:
-  - client
-  - react
+  - frontend
+  - frontend
   - documentation
   - reference
   - visionflow

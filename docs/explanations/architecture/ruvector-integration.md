@@ -4,9 +4,9 @@ description: **Date**: 2025-11-28 **Agent**: RuVector Integration Researcher **W
 category: explanation
 tags:
   - architecture
-  - rest
-  - neo4j
-  - rust
+  - api
+  - database
+  - backend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

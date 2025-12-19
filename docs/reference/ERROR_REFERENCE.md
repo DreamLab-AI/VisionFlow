@@ -3,8 +3,8 @@ title: Error Reference and Troubleshooting
 description: Complete error code reference with solutions, troubleshooting guides, and diagnostic procedures
 category: reference
 tags:
-  - rest
-  - websocket
+  - api
+  - api
   - docker
 updated-date: 2025-12-18
 difficulty-level: intermediate
@@ -336,7 +336,7 @@ docker exec postgres psql -U visionflow -c \
 **Solution**:
 - Automatic retry implemented in application
 - If persistent, check for long-running transactions
-- Optimize query order to acquire locks consistently
+- Optimise query order to acquire locks consistently
 
 **Diagnostic Query**:
 ```sql

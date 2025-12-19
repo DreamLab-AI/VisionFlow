@@ -4,7 +4,7 @@ description: The GPU semantic force system implements ontology-aware physics for
 category: explanation
 tags:
   - architecture
-  - rust
+  - backend
   - documentation
   - reference
   - visionflow

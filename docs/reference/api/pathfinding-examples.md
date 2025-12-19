@@ -4,7 +4,7 @@ description: The Pathfinding API provides GPU-accelerated graph analytics for sh
 category: reference
 tags:
   - api
-  - rest
+  - api
   - documentation
   - reference
   - visionflow

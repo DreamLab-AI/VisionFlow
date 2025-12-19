@@ -3,11 +3,11 @@ title: Installation Guide
 description: **
 category: tutorial
 tags:
-  - rest
-  - websocket
+  - api
+  - api
   - docker
-  - rust
-  - react
+  - backend
+  - frontend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

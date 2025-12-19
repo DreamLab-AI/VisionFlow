@@ -1,13 +1,13 @@
 ---
 title: Configuration Guide
 description: *[Guides](readme.md)*
-category: howto
+category: guide
 tags:
-  - guide
-  - rest
-  - websocket
+  - tutorial
+  - api
+  - api
   - docker
-  - rust
+  - backend
 updated-date: 2025-12-18
 difficulty-level: intermediate
 ---
@@ -730,4 +730,3 @@ This guide covers the most common configuration scenarios for VisionFlow. For ad
 
 -  - Comprehensive technical reference
 - [Deployment Guide](./deployment.md) - Production deployment strategies
-- [Development Workflow](./development-workflow.md) - Development best practices

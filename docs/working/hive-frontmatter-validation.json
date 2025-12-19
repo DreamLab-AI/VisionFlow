@@ -1,0 +1,2047 @@
+{
+  "total_files": 299,
+  "files_with_frontmatter": 145,
+  "files_missing_frontmatter": [
+    "GETTING_STARTED_WITH_UNIFIED_DOCS.md",
+    "working/QUICK_REFERENCE.md",
+    "diagrams/mermaid-library/README.md",
+    "diagrams/mermaid-library/00-mermaid-style-guide.md",
+    "archive/analysis/analysis-summary-2025-12.md"
+  ],
+  "missing_required_fields": [
+    {
+      "file": "reference/README.md",
+      "issue": "Missing required field: category"
+    },
+    {
+      "file": "reference/README.md",
+      "issue": "Missing required field: tags"
+    },
+    {
+      "file": "reference/PROTOCOL_REFERENCE.md",
+      "issue": "Missing required field: category"
+    },
+    {
+      "file": "reference/PROTOCOL_REFERENCE.md",
+      "issue": "Missing required field: tags"
+    },
+    {
+      "file": "reference/INDEX.md",
+      "issue": "Missing required field: category"
+    },
+    {
+      "file": "reference/INDEX.md",
+      "issue": "Missing required field: tags"
+    }
+  ],
+  "invalid_categories": [],
+  "invalid_tags": [
+    {
+      "file": "DOCUMENTATION_MODERNIZATION_COMPLETE.md",
+      "tags": [
+        "patterns",
+        "structure",
+        "rest"
+      ]
+    },
+    {
+      "file": "CONTRIBUTION.md",
+      "tags": [
+        "contribution",
+        "standards",
+        "workflow"
+      ]
+    },
+    {
+      "file": "OVERVIEW.md",
+      "tags": [
+        "design",
+        "patterns",
+        "structure"
+      ]
+    },
+    {
+      "file": "gpu-fix-summary.md",
+      "tags": [
+        "http",
+        "ai"
+      ]
+    },
+    {
+      "file": "MAINTENANCE.md",
+      "tags": [
+        "maintenance",
+        "procedures",
+        "quality"
+      ]
+    },
+    {
+      "file": "ARCHITECTURE_COMPLETE.md",
+      "tags": [
+        "design",
+        "patterns",
+        "structure"
+      ]
+    },
+    {
+      "file": "VALIDATION_CHECKLIST.md",
+      "tags": [
+        "validation",
+        "quality",
+        "checklist",
+        "standards"
+      ]
+    },
+    {
+      "file": "NAVIGATION.md",
+      "tags": [
+        "navigation",
+        "search",
+        "documentation",
+        "guide"
+      ]
+    },
+    {
+      "file": "visionflow-architecture-analysis.md",
+      "tags": [
+        "design",
+        "patterns",
+        "structure"
+      ]
+    },
+    {
+      "file": "comfyui-integration-design.md",
+      "tags": [
+        "design",
+        "structure"
+      ]
+    },
+    {
+      "file": "INDEX.md",
+      "tags": [
+        "index",
+        "navigation",
+        "documentation",
+        "search"
+      ]
+    },
+    {
+      "file": "01-GETTING_STARTED.md",
+      "tags": [
+        "getting-started",
+        "quickstart",
+        "onboarding"
+      ]
+    },
+    {
+      "file": "comfyui-management-api-integration-summary.md",
+      "tags": [
+        "patterns",
+        "structure",
+        "rest"
+      ]
+    },
+    {
+      "file": "comfyui-service-integration.md",
+      "tags": [
+        "rest",
+        "endpoints",
+        "http"
+      ]
+    },
+    {
+      "file": "ASCII_DEPRECATION_COMPLETE.md",
+      "tags": [
+        "structure",
+        "rest"
+      ]
+    },
+    {
+      "file": "audits/README.md",
+      "tags": [
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "audits/ascii-diagram-deprecation-audit.md",
+      "tags": [
+        "structure",
+        "rest"
+      ]
+    },
+    {
+      "file": "reference/websocket-protocol.md",
+      "tags": [
+        "rest",
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "reference/API_REFERENCE.md",
+      "tags": [
+        "rest"
+      ]
+    },
+    {
+      "file": "reference/DATABASE_SCHEMA_REFERENCE.md",
+      "tags": [
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "reference/CONFIGURATION_REFERENCE.md",
+      "tags": [
+        "rest"
+      ]
+    },
+    {
+      "file": "reference/ERROR_REFERENCE.md",
+      "tags": [
+        "rest"
+      ]
+    },
+    {
+      "file": "multi-agent-docker/x-fluxagent-adaptation-plan.md",
+      "tags": [
+        "patterns",
+        "structure",
+        "rest"
+      ]
+    },
+    {
+      "file": "multi-agent-docker/TERMINAL_GRID.md",
+      "tags": [
+        "rest",
+        "http"
+      ]
+    },
+    {
+      "file": "multi-agent-docker/upstream-analysis.md",
+      "tags": [
+        "design",
+        "rest",
+        "http"
+      ]
+    },
+    {
+      "file": "multi-agent-docker/SKILLS.md",
+      "tags": [
+        "design",
+        "patterns",
+        "structure"
+      ]
+    },
+    {
+      "file": "multi-agent-docker/comfyui-sam3d-setup.md",
+      "tags": [
+        "structure",
+        "rest",
+        "http"
+      ]
+    },
+    {
+      "file": "multi-agent-docker/ANTIGRAVITY.md",
+      "tags": [
+        "ai",
+        "ide"
+      ]
+    },
+    {
+      "file": "multi-agent-docker/hyprland-migration-summary.md",
+      "tags": [
+        "rest",
+        "playwright"
+      ]
+    },
+    {
+      "file": "analysis/ontology-knowledge-skills-analysis.md",
+      "tags": [
+        "design",
+        "structure",
+        "http"
+      ]
+    },
+    {
+      "file": "analysis/ontology-skills-cluster-analysis.md",
+      "tags": [
+        "patterns",
+        "structure"
+      ]
+    },
+    {
+      "file": "archive/README.md",
+      "tags": [
+        "structure",
+        "rest",
+        "ai",
+        "guide"
+      ]
+    },
+    {
+      "file": "explanations/system-overview.md",
+      "tags": [
+        "rest"
+      ]
+    },
+    {
+      "file": "diagrams/README.md",
+      "tags": [
+        "design",
+        "patterns",
+        "structure"
+      ]
+    },
+    {
+      "file": "diagrams/cross-reference-matrix.md",
+      "tags": [
+        "structure",
+        "rest"
+      ]
+    },
+    {
+      "file": "scripts/README.md",
+      "tags": [
+        "scripts",
+        "automation",
+        "validation",
+        "ci-cd"
+      ]
+    },
+    {
+      "file": "guides/vircadia-multi-user-guide.md",
+      "tags": [
+        "guide",
+        "rest"
+      ]
+    },
+    {
+      "file": "guides/ontology-reasoning-integration.md",
+      "tags": [
+        "guide",
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "guides/graphserviceactor-migration.md",
+      "tags": [
+        "guide",
+        "rest"
+      ]
+    },
+    {
+      "file": "guides/agent-orchestration.md",
+      "tags": [
+        "guide",
+        "rest"
+      ]
+    },
+    {
+      "file": "guides/docker-compose-guide.md",
+      "tags": [
+        "guide"
+      ]
+    },
+    {
+      "file": "guides/contributing.md",
+      "tags": [
+        "guide",
+        "rest",
+        "react"
+      ]
+    },
+    {
+      "file": "guides/ontology-storage-guide.md",
+      "tags": [
+        "guide",
+        "rest"
+      ]
+    },
+    {
+      "file": "guides/index.md",
+      "tags": [
+        "guide",
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "architecture/visionflow-distributed-systems-assessment.md",
+      "tags": [
+        "rest"
+      ]
+    },
+    {
+      "file": "architecture/blender-mcp-unified-architecture.md",
+      "tags": [
+        "design",
+        "patterns",
+        "structure"
+      ]
+    },
+    {
+      "file": "architecture/HEXAGONAL_ARCHITECTURE_STATUS.md",
+      "tags": [
+        "design",
+        "structure",
+        "rest"
+      ]
+    },
+    {
+      "file": "concepts/architecture/core/client.md",
+      "tags": [
+        "design",
+        "rest"
+      ]
+    },
+    {
+      "file": "concepts/architecture/core/server.md",
+      "tags": [
+        "patterns",
+        "structure",
+        "rest"
+      ]
+    },
+    {
+      "file": "guides/infrastructure/goalie-integration.md",
+      "tags": [
+        "guide",
+        "rest",
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "guides/infrastructure/docker-environment.md",
+      "tags": [
+        "guide",
+        "rest"
+      ]
+    },
+    {
+      "file": "guides/infrastructure/architecture.md",
+      "tags": [
+        "guide",
+        "rest"
+      ]
+    },
+    {
+      "file": "guides/infrastructure/troubleshooting.md",
+      "tags": [
+        "guide",
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "guides/infrastructure/port-configuration.md",
+      "tags": [
+        "guide"
+      ]
+    },
+    {
+      "file": "guides/operations/pipeline-operator-runbook.md",
+      "tags": [
+        "guide",
+        "rest"
+      ]
+    },
+    {
+      "file": "guides/features/filtering-nodes.md",
+      "tags": [
+        "guide"
+      ]
+    },
+    {
+      "file": "guides/features/ontology-sync-enhancement.md",
+      "tags": [
+        "guide",
+        "rest"
+      ]
+    },
+    {
+      "file": "guides/features/settings-authentication.md",
+      "tags": [
+        "guide",
+        "react"
+      ]
+    },
+    {
+      "file": "guides/features/natural-language-queries.md",
+      "tags": [
+        "guide",
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "guides/features/intelligent-pathfinding.md",
+      "tags": [
+        "guide",
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "guides/features/semantic-forces.md",
+      "tags": [
+        "guide",
+        "rest",
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "guides/features/auth-user-settings.md",
+      "tags": [
+        "guide"
+      ]
+    },
+    {
+      "file": "guides/features/nostr-auth.md",
+      "tags": [
+        "guide",
+        "rest",
+        "react"
+      ]
+    },
+    {
+      "file": "guides/developer/06-contributing.md",
+      "tags": [
+        "guide",
+        "rest",
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "guides/developer/02-project-structure.md",
+      "tags": [
+        "guide",
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "guides/developer/04-adding-features.md",
+      "tags": [
+        "design",
+        "patterns",
+        "rest"
+      ]
+    },
+    {
+      "file": "guides/developer/01-development-setup.md",
+      "tags": [
+        "guide",
+        "rest"
+      ]
+    },
+    {
+      "file": "guides/developer/readme.md",
+      "tags": [
+        "guide",
+        "react"
+      ]
+    },
+    {
+      "file": "guides/client/three-js-rendering.md",
+      "tags": [
+        "rest",
+        "http"
+      ]
+    },
+    {
+      "file": "guides/client/state-management.md",
+      "tags": [
+        "design",
+        "rest"
+      ]
+    },
+    {
+      "file": "guides/client/xr-integration.md",
+      "tags": [
+        "design",
+        "http"
+      ]
+    },
+    {
+      "file": "guides/ai-models/ragflow-integration.md",
+      "tags": [
+        "patterns",
+        "rest",
+        "endpoints"
+      ]
+    },
+    {
+      "file": "guides/ai-models/perplexity-integration.md",
+      "tags": [
+        "structure",
+        "endpoints",
+        "http"
+      ]
+    },
+    {
+      "file": "guides/architecture/actor-system.md",
+      "tags": [
+        "design",
+        "patterns",
+        "rest"
+      ]
+    },
+    {
+      "file": "diagrams/mermaid-library/04-agent-orchestration.md",
+      "tags": [
+        "design",
+        "patterns",
+        "structure"
+      ]
+    },
+    {
+      "file": "diagrams/mermaid-library/03-deployment-infrastructure.md",
+      "tags": [
+        "structure",
+        "rest"
+      ]
+    },
+    {
+      "file": "diagrams/mermaid-library/01-system-architecture-overview.md",
+      "tags": [
+        "structure",
+        "rest"
+      ]
+    },
+    {
+      "file": "diagrams/data-flow/complete-data-flows.md",
+      "tags": [
+        "structure",
+        "rest"
+      ]
+    },
+    {
+      "file": "diagrams/client/xr/xr-architecture-complete.md",
+      "tags": [
+        "design",
+        "structure",
+        "rest"
+      ]
+    },
+    {
+      "file": "diagrams/client/state/state-management-complete.md",
+      "tags": [
+        "patterns",
+        "structure",
+        "rest"
+      ]
+    },
+    {
+      "file": "diagrams/client/rendering/threejs-pipeline-complete.md",
+      "tags": [
+        "patterns",
+        "structure"
+      ]
+    },
+    {
+      "file": "diagrams/server/actors/actor-system-complete.md",
+      "tags": [
+        "patterns",
+        "structure",
+        "rest"
+      ]
+    },
+    {
+      "file": "diagrams/server/agents/agent-system-architecture.md",
+      "tags": [
+        "design",
+        "patterns",
+        "structure"
+      ]
+    },
+    {
+      "file": "diagrams/server/api/rest-api-architecture.md",
+      "tags": [
+        "design",
+        "patterns",
+        "structure"
+      ]
+    },
+    {
+      "file": "diagrams/infrastructure/websocket/binary-protocol-complete.md",
+      "tags": [
+        "structure",
+        "rest"
+      ]
+    },
+    {
+      "file": "diagrams/infrastructure/gpu/cuda-architecture-complete.md",
+      "tags": [
+        "patterns",
+        "structure",
+        "rest"
+      ]
+    },
+    {
+      "file": "diagrams/infrastructure/testing/test-architecture.md",
+      "tags": [
+        "patterns",
+        "structure"
+      ]
+    },
+    {
+      "file": "explanations/physics/semantic-forces.md",
+      "tags": [
+        "rest",
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "explanations/ontology/reasoning-engine.md",
+      "tags": [
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "explanations/architecture/README.md",
+      "tags": [
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "explanations/architecture/pipeline-integration.md",
+      "tags": [
+        "rest"
+      ]
+    },
+    {
+      "file": "explanations/architecture/adapter-patterns.md",
+      "tags": [
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "explanations/architecture/hexagonal-cqrs.md",
+      "tags": [
+        "rest"
+      ]
+    },
+    {
+      "file": "explanations/architecture/stress-majorization.md",
+      "tags": [
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "explanations/architecture/xr-immersive-system.md",
+      "tags": [
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "explanations/architecture/ontology-storage-architecture.md",
+      "tags": [
+        "rest"
+      ]
+    },
+    {
+      "file": "explanations/architecture/integration-patterns.md",
+      "tags": [
+        "rest",
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "explanations/architecture/services-layer.md",
+      "tags": [
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "explanations/architecture/database-architecture.md",
+      "tags": [
+        "design",
+        "patterns",
+        "structure",
+        "rest"
+      ]
+    },
+    {
+      "file": "explanations/architecture/semantic-physics.md",
+      "tags": [
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "explanations/architecture/ports/07-gpu-semantic-analyzer.md",
+      "tags": [
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "explanations/architecture/ports/06-gpu-physics-adapter.md",
+      "tags": [
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "explanations/architecture/ports/05-inference-engine.md",
+      "tags": [
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "explanations/architecture/ports/04-ontology-repository.md",
+      "tags": [
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "explanations/architecture/core/visualization.md",
+      "tags": [
+        "rest"
+      ]
+    },
+    {
+      "file": "explanations/architecture/gpu/README.md",
+      "tags": [
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "archive/fixes/README.md",
+      "tags": [
+        "rest",
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "archive/fixes/borrow-checker-summary.md",
+      "tags": [
+        "rest",
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "archive/fixes/rust-type-correction-guide.md",
+      "tags": [
+        "guide",
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "archive/fixes/borrow-checker.md",
+      "tags": [
+        "rest",
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "archive/deprecated-patterns/README.md",
+      "tags": [
+        "react"
+      ]
+    },
+    {
+      "file": "archive/deprecated-patterns/03-architecture-WRONG-STACK.md",
+      "tags": [
+        "react"
+      ]
+    },
+    {
+      "file": "archive/analysis/client-architecture-analysis-2025-12.md",
+      "tags": [
+        "design",
+        "structure",
+        "rest"
+      ]
+    },
+    {
+      "file": "archive/tests/test_README.md",
+      "tags": [
+        "rest",
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "archive/working/README.md",
+      "tags": [
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "archive/working/task.md",
+      "tags": [
+        "rest"
+      ]
+    },
+    {
+      "file": "archive/reports/README.md",
+      "tags": [
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "archive/reports/ARCHIVE_INDEX.md",
+      "tags": [
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "archive/reports/2025-12-02-restructuring-complete.md",
+      "tags": [
+        "rest"
+      ]
+    },
+    {
+      "file": "archive/specialized/extension-guide.md",
+      "tags": [
+        "guide",
+        "rest",
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "archive/reports/documentation-alignment-2025-12-02/DEEPSEEK_SETUP_COMPLETE.md",
+      "tags": [
+        "rest",
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "archive/reports/documentation-alignment-2025-12-02/DOCUMENTATION_ALIGNMENT_COMPLETE.md",
+      "tags": [
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "archive/reports/consolidation/link-analysis-summary-2025-12.md",
+      "tags": [
+        "patterns",
+        "structure",
+        "rest"
+      ]
+    },
+    {
+      "file": "archive/docs/guides/developer/05-testing-guide.md",
+      "tags": [
+        "design",
+        "structure",
+        "rest"
+      ]
+    },
+    {
+      "file": "archive/docs/guides/user/xr-setup.md",
+      "tags": [
+        "design",
+        "rest",
+        "http"
+      ]
+    },
+    {
+      "file": "archive/docs/guides/user/working-with-agents.md",
+      "tags": [
+        "design",
+        "patterns",
+        "structure"
+      ]
+    },
+    {
+      "file": "multi-agent-docker/fixes/GPU_BUILD_STATUS.md",
+      "tags": [
+        "rest",
+        "http"
+      ]
+    },
+    {
+      "file": "multi-agent-docker/fixes/gpu-only-fixes.md",
+      "tags": [
+        "rest"
+      ]
+    },
+    {
+      "file": "multi-agent-docker/fixes/SUMMARY.md",
+      "tags": [
+        "ai"
+      ]
+    },
+    {
+      "file": "multi-agent-docker/development-notes/SESSION_2025-11-15.md",
+      "tags": [
+        "design",
+        "rest",
+        "http"
+      ]
+    },
+    {
+      "file": "reference/protocols/binary-websocket.md",
+      "tags": [
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "reference/api/pathfinding-examples.md",
+      "tags": [
+        "rest",
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "reference/api/01-authentication.md",
+      "tags": [
+        "documentation",
+        "visionflow"
+      ]
+    },
+    {
+      "file": "reference/api/semantic-features-api.md",
+      "tags": [
+        "documentation",
+        "visionflow"
+      ]
+    }
+  ],
+  "malformed_yaml": [
+    {
+      "file": "README.md",
+      "error": "YAML parse error: while scanning a block scalar\n  in \"<unicode string>\", line 2, column 14:\n    description: > **226 documents** organized us ... \n                 ^\nexpected a comment or a line break, but found '*'\n  in \"<unicode string>\", line 2, column 16:\n    description: > **226 documents** organized usin ... \n                   ^"
+    },
+    {
+      "file": "ARCHITECTURE_OVERVIEW.md",
+      "error": "YAML parse error: mapping values are not allowed here\n  in \"<unicode string>\", line 2, column 72:\n     ... ee core architectural principles:\n                                         ^"
+    },
+    {
+      "file": "TECHNOLOGY_CHOICES.md",
+      "error": "YAML parse error: mapping values are not allowed here\n  in \"<unicode string>\", line 1, column 37:\n    title: VisionFlow Technology Choices: Design Rationale\n                                        ^"
+    },
+    {
+      "file": "DEVELOPER_JOURNEY.md",
+      "error": "YAML parse error: mapping values are not allowed here\n  in \"<unicode string>\", line 1, column 36:\n    title: VisionFlow Developer Journey: Navigating the Codebase\n                                       ^"
+    },
+    {
+      "file": "QUICK_NAVIGATION.md",
+      "error": "YAML parse error: while scanning a block scalar\n  in \"<unicode string>\", line 2, column 14:\n    description: > **Search tip**: Use Ctrl+F to  ... \n                 ^\nexpected a comment or a line break, but found '*'\n  in \"<unicode string>\", line 2, column 16:\n    description: > **Search tip**: Use Ctrl+F to fi ... \n                   ^"
+    },
+    {
+      "file": "audits/neo4j-settings-migration-audit.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Date**: 2025-11-06 **Auditor** ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Date**: 2025-11-06 **Auditor**: ... \n                  ^"
+    },
+    {
+      "file": "audits/neo4j-migration-action-plan.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Date**: 2025-11-06 **Priority* ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Date**: 2025-11-06 **Priority** ... \n                  ^"
+    },
+    {
+      "file": "audits/neo4j-migration-summary.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Date**: 2025-11-06 **Status**: ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Date**: 2025-11-06 **Status**:  ... \n                  ^"
+    },
+    {
+      "file": "reference/physics-implementation.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Agent**: Semantic Physics Spec ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Agent**: Semantic Physics Speci ... \n                  ^"
+    },
+    {
+      "file": "reference/error-codes.md",
+      "error": "YAML parse error: mapping values are not allowed here\n  in \"<unicode string>\", line 2, column 168:\n     ... low a hierarchical naming scheme: `[SYSTEM]-[SEVERITY]-[NUMBER]`.\n                                         ^"
+    },
+    {
+      "file": "reference/implementation-status.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Last Updated:** 2025-11-06 **V ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Last Updated:** 2025-11-06 **Ve ... \n                  ^"
+    },
+    {
+      "file": "reference/api-complete-reference.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Version**: 1.0.0 **Base URL**: ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Version**: 1.0.0 **Base URL**:  ... \n                  ^"
+    },
+    {
+      "file": "reference/code-quality-status.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Last Updated:** 2025-11-05 **S ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Last Updated:** 2025-11-05 **St ... \n                  ^"
+    },
+    {
+      "file": "reference/performance-benchmarks.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Last Updated:** November 5, 20 ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Last Updated:** November 5, 202 ... \n                  ^"
+    },
+    {
+      "file": "archive/ARCHIVE_REPORT.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Date**: 2025-12-02 **Task**: A ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Date**: 2025-12-02 **Task**: Ar ... \n                  ^"
+    },
+    {
+      "file": "archive/INDEX-QUICK-START-old.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Navigation shortcuts for the V ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Navigation shortcuts for the Vi ... \n                  ^"
+    },
+    {
+      "file": "guides/vircadia-xr-complete-guide.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Multi-User Extended Reality wi ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Multi-User Extended Reality wit ... \n                  ^"
+    },
+    {
+      "file": "guides/neo4j-integration.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Status**: \u2705 Production (Primar ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Status**: \u2705 Production (Primary ... \n                  ^"
+    },
+    {
+      "file": "guides/configuration.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: *[Guides](readme.md)*\n                 ^\nexpected alphabetic or numeric character, but found '['\n  in \"<unicode string>\", line 2, column 15:\n    description: *[Guides](readme.md)*\n                  ^"
+    },
+    {
+      "file": "guides/ontology-semantic-forces.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Status:** Implemented **Versio ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Status:** Implemented **Version ... \n                  ^"
+    },
+    {
+      "file": "guides/semantic-features-implementation.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Version:** 1.0 **Last Updated: ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Version:** 1.0 **Last Updated:* ... \n                  ^"
+    },
+    {
+      "file": "guides/ontology-parser.md",
+      "error": "YAML parse error: mapping values are not allowed here\n  in \"<unicode string>\", line 1, column 13:\n    title: Guide: Ontology Parser\n                ^"
+    },
+    {
+      "file": "guides/docker-environment-setup.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Last Updated:** November 5, 20 ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Last Updated:** November 5, 202 ... \n                  ^"
+    },
+    {
+      "file": "guides/testing-guide.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Last Updated**: 2025-10-03 **P ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Last Updated**: 2025-10-03 **Pu ... \n                  ^"
+    },
+    {
+      "file": "guides/orchestrating-agents.md",
+      "error": "YAML parse error: while scanning a block scalar\n  in \"<unicode string>\", line 2, column 14:\n    description: > [Guides](./index.md) > Orchest ... \n                 ^\nexpected a comment or a line break, but found '['\n  in \"<unicode string>\", line 2, column 16:\n    description: > [Guides](./index.md) > Orchestra ... \n                   ^"
+    },
+    {
+      "file": "guides/neo4j-migration.md",
+      "error": "YAML parse error: while scanning a block scalar\n  in \"<unicode string>\", line 2, column 14:\n    description: > \u2705 **MIGRATION STATUS: COMPLETE ... \n                 ^\nexpected a comment or a line break, but found '\u2705'\n  in \"<unicode string>\", line 2, column 16:\n    description: > \u2705 **MIGRATION STATUS: COMPLETE ( ... \n                   ^"
+    },
+    {
+      "file": "guides/pipeline-admin-api.md",
+      "error": "YAML parse error: while scanning a block scalar\n  in \"<unicode string>\", line 2, column 14:\n    description: > \u26a0\ufe0f **DEPRECATION NOTICE** \u26a0\ufe0f > ... \n                 ^\nexpected a comment or a line break, but found '\u26a0'\n  in \"<unicode string>\", line 2, column 16:\n    description: > \u26a0\ufe0f **DEPRECATION NOTICE** \u26a0\ufe0f > * ... \n                   ^"
+    },
+    {
+      "file": "guides/telemetry-logging.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: *[Guides](../guides/readme.md) > ... \n                 ^\nexpected alphabetic or numeric character, but found '['\n  in \"<unicode string>\", line 2, column 15:\n    description: *[Guides](../guides/readme.md) >  ... \n                  ^"
+    },
+    {
+      "file": "guides/neo4j-implementation-roadmap.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Version:** 1.0 **Last Updated: ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Version:** 1.0 **Last Updated:* ... \n                  ^"
+    },
+    {
+      "file": "guides/deployment.md",
+      "error": "YAML parse error: while scanning a block scalar\n  in \"<unicode string>\", line 2, column 14:\n    description: > [Guides](./index.md) > Deployment\n                 ^\nexpected a comment or a line break, but found '['\n  in \"<unicode string>\", line 2, column 16:\n    description: > [Guides](./index.md) > Deployment\n                   ^"
+    },
+    {
+      "file": "guides/security.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: *[Guides](../guides/readme.md) > ... \n                 ^\nexpected alphabetic or numeric character, but found '['\n  in \"<unicode string>\", line 2, column 15:\n    description: *[Guides](../guides/readme.md) >  ... \n                  ^"
+    },
+    {
+      "file": "guides/navigation-guide.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Fast access to essential Visio ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Fast access to essential Vision ... \n                  ^"
+    },
+    {
+      "file": "guides/troubleshooting.md",
+      "error": "YAML parse error: while scanning a block scalar\n  in \"<unicode string>\", line 2, column 14:\n    description: > [Guides](./index.md) > Trouble ... \n                 ^\nexpected a comment or a line break, but found '['\n  in \"<unicode string>\", line 2, column 16:\n    description: > [Guides](./index.md) > Troublesh ... \n                   ^"
+    },
+    {
+      "file": "guides/development-workflow.md",
+      "error": "YAML parse error: while scanning a block scalar\n  in \"<unicode string>\", line 2, column 14:\n    description: > [Guides](./index.md) > Develop ... \n                 ^\nexpected a comment or a line break, but found '['\n  in \"<unicode string>\", line 2, column 16:\n    description: > [Guides](./index.md) > Developme ... \n                   ^"
+    },
+    {
+      "file": "guides/hierarchy-integration.md",
+      "error": "YAML parse error: mapping values are not allowed here\n  in \"<unicode string>\", line 1, column 31:\n    title: Quick Integration Guide: Hierarchical Visualization\n                                  ^"
+    },
+    {
+      "file": "guides/extending-the-system.md",
+      "error": "YAML parse error: while scanning a block scalar\n  in \"<unicode string>\", line 2, column 14:\n    description: > [Guides](./index.md) > Extendi ... \n                 ^\nexpected a comment or a line break, but found '['\n  in \"<unicode string>\", line 2, column 16:\n    description: > [Guides](./index.md) > Extending ... \n                   ^"
+    },
+    {
+      "file": "guides/multi-agent-skills.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Last Updated:** November 5, 20 ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Last Updated:** November 5, 202 ... \n                  ^"
+    },
+    {
+      "file": "guides/stress-majorization-guide.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Status**: \u2705 Code complete, wir ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Status**: \u2705 Code complete, wiri ... \n                  ^"
+    },
+    {
+      "file": "architecture/skills-refactoring-plan.md",
+      "error": "YAML parse error: while scanning a block scalar\n  in \"<unicode string>\", line 2, column 14:\n    description: | Skill | Type | Status | Action | |\n                 ^\nexpected a comment or a line break, but found 'S'\n  in \"<unicode string>\", line 2, column 16:\n    description: | Skill | Type | Status | Action | |\n                   ^"
+    },
+    {
+      "file": "architecture/phase1-completion.md",
+      "error": "YAML parse error: while scanning a block scalar\n  in \"<unicode string>\", line 2, column 14:\n    description: | Change | Status | Impact | |\n                 ^\nexpected a comment or a line break, but found 'C'\n  in \"<unicode string>\", line 2, column 16:\n    description: | Change | Status | Impact | |\n                   ^"
+    },
+    {
+      "file": "architecture/skill-mcp-classification.md",
+      "error": "YAML parse error: mapping values are not allowed here\n  in \"<unicode string>\", line 2, column 93:\n     ... ction of 6 representative skills:\n                                         ^"
+    },
+    {
+      "file": "tutorials/01-installation.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **\n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **\n                  ^"
+    },
+    {
+      "file": "tutorials/02-first-graph.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: * > [Installation](01-installati ... \n                 ^\nexpected alphabetic or numeric character, but found ' '\n  in \"<unicode string>\", line 2, column 15:\n    description: * > [Installation](01-installatio ... \n                  ^"
+    },
+    {
+      "file": "tutorials/neo4j-quick-start.md",
+      "error": "YAML parse error: mapping values are not allowed here\n  in \"<unicode string>\", line 2, column 89:\n     ... ase for advanced graph analytics:\n                                         ^"
+    },
+    {
+      "file": "assets/diagrams/sparc-turboflow-architecture.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Version:** 1.0.0 **Last Update ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Version:** 1.0.0 **Last Updated ... \n                  ^"
+    },
+    {
+      "file": "guides/infrastructure/tools.md",
+      "error": "YAML parse error: mapping values are not allowed here\n  in \"<unicode string>\", line 2, column 148:\n     ... s divided into two main sections: 1.  **Integrated Development E ... \n                                         ^"
+    },
+    {
+      "file": "guides/infrastructure/readme.md",
+      "error": "YAML parse error: while parsing a flow sequence\n  in \"<unicode string>\", line 2, column 14:\n    description: [![Docker](https://img.shields.i ... \n                 ^\nexpected ',' or ']', but got '<scalar>'\n  in \"<unicode string>\", line 2, column 158:\n     ... www.docker.com/) [![Claude Flow](https://img.shields.io/badge/Cl ... \n                                         ^"
+    },
+    {
+      "file": "guides/features/MOVED.md",
+      "error": "YAML parse error: mapping values are not allowed here\n  in \"<unicode string>\", line 2, column 85:\n     ... ved to better reflect its nature:\n                                         ^"
+    },
+    {
+      "file": "guides/features/github-pagination-fix.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Root Cause**: The GitHub sync  ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Root Cause**: The GitHub sync s ... \n                  ^"
+    },
+    {
+      "file": "guides/features/local-file-sync-strategy.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **GitHub Repository**: 250,000+  ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **GitHub Repository**: 250,000+ m ... \n                  ^"
+    },
+    {
+      "file": "guides/developer/websocket-best-practices.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Version:** 1.0 **Last Updated: ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Version:** 1.0 **Last Updated:* ... \n                  ^"
+    },
+    {
+      "file": "guides/developer/json-serialization-patterns.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Version:** 1.0 **Last Updated: ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Version:** 1.0 **Last Updated:* ... \n                  ^"
+    },
+    {
+      "file": "guides/developer/test-execution.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Quick reference for running th ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Quick reference for running the ... \n                  ^"
+    },
+    {
+      "file": "guides/migration/json-to-binary-protocol.md",
+      "error": "YAML parse error: mapping values are not allowed here\n  in \"<unicode string>\", line 1, column 23:\n    title: Migration Guide: JSON to Binary WebSocket Protocol\n                          ^"
+    },
+    {
+      "file": "guides/ai-models/README.md",
+      "error": "YAML parse error: mapping values are not allowed here\n  in \"<unicode string>\", line 2, column 90:\n     ... d services for diverse use cases: real-time research, reasoning, ... \n                                         ^"
+    },
+    {
+      "file": "guides/ai-models/deepseek-verification.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **URL:** `https://api.deepseek.c ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **URL:** `https://api.deepseek.co ... \n                  ^"
+    },
+    {
+      "file": "guides/ai-models/deepseek-deployment.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **New MCP Skill:** `deepseek-rea ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **New MCP Skill:** `deepseek-reas ... \n                  ^"
+    },
+    {
+      "file": "guides/ai-models/INTEGRATION_SUMMARY.md",
+      "error": "YAML parse error: mapping values are not allowed here\n  in \"<unicode string>\", line 2, column 42:\n     ... on: \u2705 **Perplexity AI** - Status: Production - MCP Skill: Active ... \n                                         ^"
+    },
+    {
+      "file": "diagrams/mermaid-library/02-data-flow-diagrams.md",
+      "error": "YAML parse error: mapping values are not allowed here\n  in \"<unicode string>\", line 2, column 25:\n    description: User->>REST: POST /api/admin/sync/streaming ... \n                            ^"
+    },
+    {
+      "file": "diagrams/architecture/backend-api-architecture-complete.md",
+      "error": "YAML parse error: mapping values are not allowed here\n  in \"<unicode string>\", line 2, column 91:\n     ...   DBUS[dbus Service<br/>Priority: 10<br/>User: root]         SSH ... \n                                         ^"
+    },
+    {
+      "file": "explanations/physics/semantic-forces-actor.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Author**: Semantic Forces Agen ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Author**: Semantic Forces Agent ... \n                  ^"
+    },
+    {
+      "file": "explanations/ontology/client-side-hierarchical-lod.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Date:** November 2, 2025 **Tas ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Date:** November 2, 2025 **Task ... \n                  ^"
+    },
+    {
+      "file": "explanations/ontology/neo4j-integration.md",
+      "error": "YAML parse error: mapping values are not allowed here\n  in \"<unicode string>\", line 2, column 126:\n     ... d Neo4j graph database, enabling:\n                                         ^"
+    },
+    {
+      "file": "explanations/ontology/intelligent-pathfinding-system.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Status:** Implementation Ready ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Status:** Implementation Ready  ... \n                  ^"
+    },
+    {
+      "file": "explanations/ontology/ontology-pipeline-integration.md",
+      "error": "YAML parse error: while scanning a block scalar\n  in \"<unicode string>\", line 2, column 14:\n    description: > \u26a0\ufe0f **DEPRECATION NOTICE** \u26a0\ufe0f > ... \n                 ^\nexpected a comment or a line break, but found '\u26a0'\n  in \"<unicode string>\", line 2, column 16:\n    description: > \u26a0\ufe0f **DEPRECATION NOTICE** \u26a0\ufe0f > * ... \n                   ^"
+    },
+    {
+      "file": "explanations/ontology/enhanced-parser.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Date**: 2025-11-22 **Version** ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Date**: 2025-11-22 **Version**: ... \n                  ^"
+    },
+    {
+      "file": "explanations/ontology/ontology-typed-system.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Status:** Implementation Ready ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Status:** Implementation Ready  ... \n                  ^"
+    },
+    {
+      "file": "explanations/ontology/hierarchical-visualization.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Agent 6: Hierarchical Visualiz ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Agent 6: Hierarchical Visualiza ... \n                  ^"
+    },
+    {
+      "file": "explanations/architecture/ontology-reasoning-pipeline.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Complete Guide to OWL Reasonin ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Complete Guide to OWL Reasoning ... \n                  ^"
+    },
+    {
+      "file": "explanations/architecture/ontology-physics-integration.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Date**: 2025-11-28 **Task**: W ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Date**: 2025-11-28 **Task**: Wi ... \n                  ^"
+    },
+    {
+      "file": "explanations/architecture/ruvector-integration.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Date**: 2025-11-28 **Agent**:  ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Date**: 2025-11-28 **Agent**: R ... \n                  ^"
+    },
+    {
+      "file": "explanations/architecture/quick-reference.md",
+      "error": "YAML parse error: while scanning a block scalar\n  in \"<unicode string>\", line 2, column 14:\n    description: > \u26a0\ufe0f **PARTIAL DEPRECATION** \u26a0\ufe0f  ... \n                 ^\nexpected a comment or a line break, but found '\u26a0'\n  in \"<unicode string>\", line 2, column 16:\n    description: > \u26a0\ufe0f **PARTIAL DEPRECATION** \u26a0\ufe0f >  ... \n                   ^"
+    },
+    {
+      "file": "explanations/architecture/gpu-semantic-forces.md",
+      "error": "YAML parse error: mapping values are not allowed here\n  in \"<unicode string>\", line 2, column 188:\n     ... ntic relationships between nodes:\n                                         ^"
+    },
+    {
+      "file": "explanations/architecture/cqrs-directive-template.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Copy-Paste Template for Creati ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Copy-Paste Template for Creatin ... \n                  ^"
+    },
+    {
+      "file": "explanations/architecture/ontology-analysis.md",
+      "error": "YAML parse error: while scanning for the next token\nfound character '`' that cannot start any token\n  in \"<unicode string>\", line 2, column 14:\n    description: ```cypher Neo4j Contains: - 529  ... \n                 ^"
+    },
+    {
+      "file": "explanations/architecture/pipeline-sequence-diagrams.md",
+      "error": "YAML parse error: while scanning for the next token\nfound character '`' that cannot start any token\n  in \"<unicode string>\", line 2, column 14:\n    description: ```mermaid sequenceDiagram parti ... \n                 ^"
+    },
+    {
+      "file": "explanations/architecture/semantic-physics-system.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Complete Guide to OWL-to-GPU C ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Complete Guide to OWL-to-GPU Co ... \n                  ^"
+    },
+    {
+      "file": "explanations/architecture/github-sync-service-design.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Version**: 2.0 **Date**: Novem ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Version**: 2.0 **Date**: Novemb ... \n                  ^"
+    },
+    {
+      "file": "explanations/architecture/api-handlers-reference.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Version:** 1.0.0 **Last Update ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Version:** 1.0.0 **Last Updated ... \n                  ^"
+    },
+    {
+      "file": "explanations/architecture/semantic-forces-system.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Status:** Implementation Ready ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Status:** Implementation Ready  ... \n                  ^"
+    },
+    {
+      "file": "explanations/architecture/services-architecture.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Version:** 1.0.0 **Last Update ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Version:** 1.0.0 **Last Updated ... \n                  ^"
+    },
+    {
+      "file": "explanations/architecture/analytics-visualization.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Agent**: Analytics Visualizati ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Agent**: Analytics Visualizatio ... \n                  ^"
+    },
+    {
+      "file": "explanations/architecture/data-flow-complete.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **VisionFlow End-to-End Pipeline**\n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **VisionFlow End-to-End Pipeline**\n                  ^"
+    },
+    {
+      "file": "explanations/architecture/multi-agent-system.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Version:** 1.0 **Last Updated: ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Version:** 1.0 **Last Updated:* ... \n                  ^"
+    },
+    {
+      "file": "explanations/architecture/hierarchical-visualization.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Complete Guide to Semantic Zoo ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Complete Guide to Semantic Zoom ... \n                  ^"
+    },
+    {
+      "file": "explanations/architecture/decisions/0001-neo4j-persistent-with-filesystem-sync.md",
+      "error": "YAML parse error: mapping values are not allowed here\n  in \"<unicode string>\", line 1, column 15:\n    title: ADR-001: Neo4j Persistent with Filesyst ... \n                  ^"
+    },
+    {
+      "file": "explanations/architecture/ports/02-settings-repository.md",
+      "error": "YAML parse error: while scanning a block scalar\n  in \"<unicode string>\", line 2, column 14:\n    description: > \u26a0\ufe0f **MIGRATION NOTICE (Novembe ... \n                 ^\nexpected a comment or a line break, but found '\u26a0'\n  in \"<unicode string>\", line 2, column 16:\n    description: > \u26a0\ufe0f **MIGRATION NOTICE (November  ... \n                   ^"
+    },
+    {
+      "file": "explanations/architecture/core/client.md",
+      "error": "YAML parse error: while scanning a block scalar\n  in \"<unicode string>\", line 2, column 14:\n    description: > \u26a0\ufe0f **DEPRECATION NOTICE** \u26a0\ufe0f > ... \n                 ^\nexpected a comment or a line break, but found '\u26a0'\n  in \"<unicode string>\", line 2, column 16:\n    description: > \u26a0\ufe0f **DEPRECATION NOTICE** \u26a0\ufe0f > * ... \n                   ^"
+    },
+    {
+      "file": "explanations/architecture/core/server.md",
+      "error": "YAML parse error: while scanning a block scalar\n  in \"<unicode string>\", line 2, column 14:\n    description: > \u26a0\ufe0f **DEPRECATION NOTICE** \u26a0\ufe0f > ... \n                 ^\nexpected a comment or a line break, but found '\u26a0'\n  in \"<unicode string>\", line 2, column 16:\n    description: > \u26a0\ufe0f **DEPRECATION NOTICE** \u26a0\ufe0f > * ... \n                   ^"
+    },
+    {
+      "file": "explanations/architecture/components/websocket-protocol.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Version**: 2.0 (Binary Protoco ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Version**: 2.0 (Binary Protocol ... \n                  ^"
+    },
+    {
+      "file": "explanations/architecture/gpu/communication-flow.md",
+      "error": "YAML parse error: while scanning a block scalar\n  in \"<unicode string>\", line 2, column 14:\n    description: > \u26a0\ufe0f **DEPRECATION NOTICE** \u26a0\ufe0f > ... \n                 ^\nexpected a comment or a line break, but found '\u26a0'\n  in \"<unicode string>\", line 2, column 16:\n    description: > \u26a0\ufe0f **DEPRECATION NOTICE** \u26a0\ufe0f > * ... \n                   ^"
+    },
+    {
+      "file": "explanations/architecture/gpu/optimizations.md",
+      "error": "YAML parse error: while scanning a block scalar\n  in \"<unicode string>\", line 2, column 14:\n    description: > \u26a0\ufe0f **DEPRECATION NOTICE** \u26a0\ufe0f > ... \n                 ^\nexpected a comment or a line break, but found '\u26a0'\n  in \"<unicode string>\", line 2, column 16:\n    description: > \u26a0\ufe0f **DEPRECATION NOTICE** \u26a0\ufe0f > * ... \n                   ^"
+    },
+    {
+      "file": "archive/audits/quality-gates-api.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Date**: 2025-11-30 **Scope**:  ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Date**: 2025-11-30 **Scope**: B ... \n                  ^"
+    },
+    {
+      "file": "archive/fixes/quick-reference.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **When to use**: Operations are  ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **When to use**: Operations are i ... \n                  ^"
+    },
+    {
+      "file": "archive/fixes/before-after-comparison.md",
+      "error": "YAML parse error: while scanning for the next token\nfound character '`' that cannot start any token\n  in \"<unicode string>\", line 2, column 14:\n    description: ```rust let shared_context = mat ... \n                 ^"
+    },
+    {
+      "file": "archive/fixes/type-corrections.md",
+      "error": "YAML parse error: mapping values are not allowed here\n  in \"<unicode string>\", line 2, column 85:\n     ... rrors that need systematic fixes:\n                                         ^"
+    },
+    {
+      "file": "archive/fixes/pagerank-fix.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Date**: 2025-11-08 **Component ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Date**: 2025-11-08 **Component* ... \n                  ^"
+    },
+    {
+      "file": "archive/fixes/actor-handlers.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Date**: 2025-11-08 **Status**: ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Date**: 2025-11-08 **Status**:  ... \n                  ^"
+    },
+    {
+      "file": "archive/fixes/technical-details.md",
+      "error": "YAML parse error: while scanning for the next token\nfound character '`' that cannot start any token\n  in \"<unicode string>\", line 2, column 14:\n    description: ``` error[E0502]: cannot borrow  ... \n                 ^"
+    },
+    {
+      "file": "archive/fixes/type-corrections-final-summary.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **File**: `src/utils/unified_gpu ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **File**: `src/utils/unified_gpu_ ... \n                  ^"
+    },
+    {
+      "file": "archive/fixes/type-corrections-progress.md",
+      "error": "YAML parse error: sequence entries are not allowed here\n  in \"<unicode string>\", line 2, column 14:\n    description: - **File**: `src/utils/unified_g ... \n                 ^"
+    },
+    {
+      "file": "archive/analysis/client-docs-summary-2025-12.md",
+      "error": "YAML parse error: mapping values are not allowed here\n  in \"<unicode string>\", line 2, column 46:\n     ... \u2705 **Accurate Technical Details**: All code examples verified aga ... \n                                         ^"
+    },
+    {
+      "file": "archive/analysis/historical-context-recovery-2025-12.md",
+      "error": "YAML parse error: mapping values are not allowed here\n  in \"<unicode string>\", line 2, column 66:\n     ... ndering Pipeline Documentation**: Deleted between Sept-Nov 2025  ... \n                                         ^"
+    },
+    {
+      "file": "archive/sprint-logs/p1-1-summary.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Status**: \u2705 **COMPLETE**\n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Status**: \u2705 **COMPLETE**\n                  ^"
+    },
+    {
+      "file": "archive/sprint-logs/p1-1-checklist.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Specification**: P1-1 **Implem ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Specification**: P1-1 **Impleme ... \n                  ^"
+    },
+    {
+      "file": "archive/sprint-logs/p1-1-configure-complete.md",
+      "error": "YAML parse error: mapping values are not allowed here\n  in \"<unicode string>\", line 1, column 12:\n    title: P1-1: Stress Majorization Configurat ... \n               ^"
+    },
+    {
+      "file": "archive/sprint-logs/p0-3-semantic-forces.md",
+      "error": "YAML parse error: mapping values are not allowed here\n  in \"<unicode string>\", line 1, column 12:\n    title: P0-3: Semantic Forces Integration\n               ^"
+    },
+    {
+      "file": "archive/sprint-logs/p2-complete.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Date:** 2025-11-08 **Status:** ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Date:** 2025-11-08 **Status:**  ... \n                  ^"
+    },
+    {
+      "file": "archive/sprint-logs/p1-2-pagerank.md",
+      "error": "YAML parse error: mapping values are not allowed here\n  in \"<unicode string>\", line 1, column 12:\n    title: P1-2: PageRank Centrality Implementation\n               ^"
+    },
+    {
+      "file": "archive/sprint-logs/p2-features.md",
+      "error": "YAML parse error: mapping values are not allowed here\n  in \"<unicode string>\", line 1, column 34:\n    title: P2 Features Implementation: SSSP, APSP, and Connected Comp ... \n                                     ^"
+    },
+    {
+      "file": "archive/reports/ascii-to-mermaid-conversion.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Date**: 2025-12-02 **Task**: C ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Date**: 2025-12-02 **Task**: Co ... \n                  ^"
+    },
+    {
+      "file": "archive/reports/mermaid-fixes-report.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Date**: 2025-12-02 **Agent**:  ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Date**: 2025-12-02 **Agent**: M ... \n                  ^"
+    },
+    {
+      "file": "archive/reports/mermaid-validation-complete.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Agent**: Mermaid Validation Ag ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Agent**: Mermaid Validation Age ... \n                  ^"
+    },
+    {
+      "file": "archive/reports/2025-12-02-stub-implementation.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Date**: 2025-12-02 **Agent**:  ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Date**: 2025-12-02 **Agent**: S ... \n                  ^"
+    },
+    {
+      "file": "archive/reports/link-fixes-report.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Date:** 2025-12-02 **Agent:**  ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Date:** 2025-12-02 **Agent:** L ... \n                  ^"
+    },
+    {
+      "file": "archive/reports/implementation-complete.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Date**: 2025-11-22 **Status**: ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Date**: 2025-11-22 **Status**:  ... \n                  ^"
+    },
+    {
+      "file": "archive/reports/documentation-index-report.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Date**: 2025-12-02 **Task**: C ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Date**: 2025-12-02 **Task**: Cr ... \n                  ^"
+    },
+    {
+      "file": "archive/reports/implementation-report-stubs.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Date**: 2025-12-02 **Task**: I ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Date**: 2025-12-02 **Task**: Im ... \n                  ^"
+    },
+    {
+      "file": "archive/reports/CLEANUP_SUMMARY.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Date:** 2025-12-02 **Agent:**  ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Date:** 2025-12-02 **Agent:** A ... \n                  ^"
+    },
+    {
+      "file": "archive/reports/hive-mind-integration.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Branch**: `claude/setup-hive-m ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Branch**: `claude/setup-hive-mi ... \n                  ^"
+    },
+    {
+      "file": "archive/reports/documentation-issues.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Generated:** 2025-12-02 09:29: ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Generated:** 2025-12-02 09:29:2 ... \n                  ^"
+    },
+    {
+      "file": "archive/reports/link-audit-summary.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Date**: 2025-12-02 **Total Bro ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Date**: 2025-12-02 **Total Brok ... \n                  ^"
+    },
+    {
+      "file": "archive/reports/documentation-audit-final.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Date**: 2025-12-02 **Status**: ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Date**: 2025-12-02 **Status**:  ... \n                  ^"
+    },
+    {
+      "file": "archive/reports/ascii-conversion-report.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Agent**: ASCII Conversion Agen ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Agent**: ASCII Conversion Agent ... \n                  ^"
+    },
+    {
+      "file": "archive/specialized/client-typescript-architecture.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **VisionFlow Client Architecture ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **VisionFlow Client Architecture  ... \n                  ^"
+    },
+    {
+      "file": "archive/specialized/client-components-reference.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **VisionFlow Client Component Li ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **VisionFlow Client Component Lib ... \n                  ^"
+    },
+    {
+      "file": "archive/implementation-logs/stress-majorization-implementation.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Agent:** Layout Optimization S ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Agent:** Layout Optimization Sp ... \n                  ^"
+    },
+    {
+      "file": "archive/data/markdown/implementation-examples.md",
+      "error": "YAML parse error: sequence entries are not allowed here\n  in \"<unicode string>\", line 2, column 14:\n    description: - ### OntologyBlock id:: impleme ... \n                 ^"
+    },
+    {
+      "file": "archive/data/markdown/IMPLEMENTATION-SUMMARY.md",
+      "error": "YAML parse error: sequence entries are not allowed here\n  in \"<unicode string>\", line 2, column 14:\n    description: - ### OntologyBlock id:: impleme ... \n                 ^"
+    },
+    {
+      "file": "archive/data/markdown/OntologyDefinition.md",
+      "error": "YAML parse error: sequence entries are not allowed here\n  in \"<unicode string>\", line 2, column 14:\n    description: - ### OntologyBlock id:: ontolog ... \n                 ^"
+    },
+    {
+      "file": "archive/data/pages/implementation-examples.md",
+      "error": "YAML parse error: sequence entries are not allowed here\n  in \"<unicode string>\", line 2, column 14:\n    description: - ### OntologyBlock id:: impleme ... \n                 ^"
+    },
+    {
+      "file": "archive/data/pages/IMPLEMENTATION-SUMMARY.md",
+      "error": "YAML parse error: sequence entries are not allowed here\n  in \"<unicode string>\", line 2, column 14:\n    description: - ### OntologyBlock id:: impleme ... \n                 ^"
+    },
+    {
+      "file": "archive/data/pages/ComfyWorkFlows.md",
+      "error": "YAML parse error: while scanning a block scalar\n  in \"<unicode string>\", line 2, column 14:\n    description: > **Note**: This is an archived  ... \n                 ^\nexpected a comment or a line break, but found '*'\n  in \"<unicode string>\", line 2, column 16:\n    description: > **Note**: This is an archived li ... \n                   ^"
+    },
+    {
+      "file": "archive/data/pages/OntologyDefinition.md",
+      "error": "YAML parse error: sequence entries are not allowed here\n  in \"<unicode string>\", line 2, column 14:\n    description: - ### OntologyBlock id:: ontolog ... \n                 ^"
+    },
+    {
+      "file": "archive/reports/documentation-alignment-2025-12-02/SWARM_EXECUTION_REPORT.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Date**: 2025-12-02 **Status**: ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Date**: 2025-12-02 **Status**:  ... \n                  ^"
+    },
+    {
+      "file": "archive/reports/documentation-alignment-2025-12-02/DOCUMENTATION_ALIGNMENT_SUMMARY.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Date**: 2025-12-02 **Status**: ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Date**: 2025-12-02 **Status**:  ... \n                  ^"
+    },
+    {
+      "file": "archive/reports/consolidation/link-validation-report-2025-12.md",
+      "error": "YAML parse error: mapping values are not allowed here\n  in \"<unicode string>\", line 2, column 23:\n    description: Generated: 2025-12-18T21:11:37.\n                          ^"
+    },
+    {
+      "file": "archive/reports/consolidation/link-fix-suggestions-2025-12.md",
+      "error": "YAML parse error: mapping values are not allowed here\n  in \"<unicode string>\", line 2, column 23:\n    description: Generated: 2025-12-18T21:13:09.\n                          ^"
+    },
+    {
+      "file": "archive/docs/guides/working-with-gui-sandbox.md",
+      "error": "YAML parse error: while parsing a block mapping\n  in \"<unicode string>\", line 1, column 1:\n    title: Working with the GUI Sandbox\n    ^\nexpected <block end>, but found '<scalar>'\n  in \"<unicode string>\", line 2, column 36:\n    description: [\u2190 Documentation Home](../../../README.md) > Working w ... \n                                       ^"
+    },
+    {
+      "file": "archive/docs/guides/xr-setup.md",
+      "error": "YAML parse error: while scanning a block scalar\n  in \"<unicode string>\", line 2, column 14:\n    description: > **\ud83d\udccb Role**: Technical implemen ... \n                 ^\nexpected a comment or a line break, but found '*'\n  in \"<unicode string>\", line 2, column 16:\n    description: > **\ud83d\udccb Role**: Technical implementa ... \n                   ^"
+    },
+    {
+      "file": "archive/multi-agent-docker/skills/IMPLEMENTATION_GUIDE.md",
+      "error": "YAML parse error: while scanning for the next token\nfound character '`' that cannot start any token\n  in \"<unicode string>\", line 2, column 14:\n    description: ```bash\n                 ^"
+    },
+    {
+      "file": "multi-agent-docker/development-notes/MIGRATION_PLAN_EXECUTED.md",
+      "error": "YAML parse error: mapping values are not allowed here\n  in \"<unicode string>\", line 2, column 44:\n     ... : This document describes how to: - Sync our CachyOS based unifi ... \n                                         ^"
+    },
+    {
+      "file": "reference/api/README.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Complete REST API Reference fo ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Complete REST API Reference for ... \n                  ^"
+    },
+    {
+      "file": "reference/api/rest-api-reference.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **VisionFlow Ontology and Graph  ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **VisionFlow Ontology and Graph A ... \n                  ^"
+    },
+    {
+      "file": "reference/api/03-websocket.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Version**: 2.0 (Binary Protoco ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Version**: 2.0 (Binary Protocol ... \n                  ^"
+    },
+    {
+      "file": "reference/api/rest-api-complete.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Version**: 1.0 **Base URL**: ` ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Version**: 1.0 **Base URL**: `h ... \n                  ^"
+    },
+    {
+      "file": "reference/database/schemas.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **UPDATED: November 2, 2025** -  ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **UPDATED: November 2, 2025** - C ... \n                  ^"
+    },
+    {
+      "file": "reference/database/neo4j-persistence-analysis.md",
+      "error": "YAML parse error: while scanning an alias\n  in \"<unicode string>\", line 2, column 14:\n    description: **Agent**: Neo4j Persistence Age ... \n                 ^\nexpected alphabetic or numeric character, but found '*'\n  in \"<unicode string>\", line 2, column 15:\n    description: **Agent**: Neo4j Persistence Agen ... \n                  ^"
+    },
+    {
+      "file": "reference/database/user-settings-schema.md",
+      "error": "YAML parse error: mapping values are not allowed here\n  in \"<unicode string>\", line 2, column 111:\n     ... -user settings support, enabling: - User-specific settings stora ... \n                                         ^"
+    }
+  ],
+  "all_issues": {
+    "DOCUMENTATION_MODERNIZATION_COMPLETE.md": [
+      "Non-standard tags: ['patterns', 'structure', 'rest']"
+    ],
+    "CONTRIBUTION.md": [
+      "Non-standard tags: ['contribution', 'standards', 'workflow']"
+    ],
+    "OVERVIEW.md": [
+      "Non-standard tags: ['design', 'patterns', 'structure']"
+    ],
+    "gpu-fix-summary.md": [
+      "Non-standard tags: ['http', 'ai']"
+    ],
+    "MAINTENANCE.md": [
+      "Non-standard tags: ['maintenance', 'procedures', 'quality']"
+    ],
+    "ARCHITECTURE_COMPLETE.md": [
+      "Non-standard tags: ['design', 'patterns', 'structure']"
+    ],
+    "VALIDATION_CHECKLIST.md": [
+      "Non-standard tags: ['validation', 'quality', 'checklist', 'standards']"
+    ],
+    "NAVIGATION.md": [
+      "Non-standard tags: ['navigation', 'search', 'documentation', 'guide']"
+    ],
+    "visionflow-architecture-analysis.md": [
+      "Non-standard tags: ['design', 'patterns', 'structure']"
+    ],
+    "comfyui-integration-design.md": [
+      "Non-standard tags: ['design', 'structure']"
+    ],
+    "INDEX.md": [
+      "Non-standard tags: ['index', 'navigation', 'documentation', 'search']"
+    ],
+    "01-GETTING_STARTED.md": [
+      "Non-standard tags: ['getting-started', 'quickstart', 'onboarding']"
+    ],
+    "comfyui-management-api-integration-summary.md": [
+      "Non-standard tags: ['patterns', 'structure', 'rest']"
+    ],
+    "comfyui-service-integration.md": [
+      "Non-standard tags: ['rest', 'endpoints', 'http']"
+    ],
+    "ASCII_DEPRECATION_COMPLETE.md": [
+      "Non-standard tags: ['structure', 'rest']"
+    ],
+    "audits/README.md": [
+      "Non-standard tags: ['documentation', 'visionflow']"
+    ],
+    "audits/ascii-diagram-deprecation-audit.md": [
+      "Non-standard tags: ['structure', 'rest']"
+    ],
+    "reference/README.md": [
+      "Missing required field: category",
+      "Missing required field: tags"
+    ],
+    "reference/websocket-protocol.md": [
+      "Non-standard tags: ['rest', 'documentation', 'visionflow']"
+    ],
+    "reference/API_REFERENCE.md": [
+      "Non-standard tags: ['rest']"
+    ],
+    "reference/PROTOCOL_REFERENCE.md": [
+      "Missing required field: category",
+      "Missing required field: tags"
+    ],
+    "reference/DATABASE_SCHEMA_REFERENCE.md": [
+      "Non-standard tags: ['documentation', 'visionflow']"
+    ],
+    "reference/CONFIGURATION_REFERENCE.md": [
+      "Non-standard tags: ['rest']"
+    ],
+    "reference/INDEX.md": [
+      "Missing required field: category",
+      "Missing required field: tags"
+    ],
+    "reference/ERROR_REFERENCE.md": [
+      "Non-standard tags: ['rest']"
+    ],
+    "multi-agent-docker/x-fluxagent-adaptation-plan.md": [
+      "Non-standard tags: ['patterns', 'structure', 'rest']"
+    ],
+    "multi-agent-docker/TERMINAL_GRID.md": [
+      "Non-standard tags: ['rest', 'http']"
+    ],
+    "multi-agent-docker/upstream-analysis.md": [
+      "Non-standard tags: ['design', 'rest', 'http']"
+    ],
+    "multi-agent-docker/SKILLS.md": [
+      "Non-standard tags: ['design', 'patterns', 'structure']"
+    ],
+    "multi-agent-docker/comfyui-sam3d-setup.md": [
+      "Non-standard tags: ['structure', 'rest', 'http']"
+    ],
+    "multi-agent-docker/ANTIGRAVITY.md": [
+      "Non-standard tags: ['ai', 'ide']"
+    ],
+    "multi-agent-docker/hyprland-migration-summary.md": [
+      "Non-standard tags: ['rest', 'playwright']"
+    ],
+    "analysis/ontology-knowledge-skills-analysis.md": [
+      "Non-standard tags: ['design', 'structure', 'http']"
+    ],
+    "analysis/ontology-skills-cluster-analysis.md": [
+      "Non-standard tags: ['patterns', 'structure']"
+    ],
+    "archive/README.md": [
+      "Non-standard tags: ['structure', 'rest', 'ai', 'guide']"
+    ],
+    "explanations/system-overview.md": [
+      "Non-standard tags: ['rest']"
+    ],
+    "diagrams/README.md": [
+      "Non-standard tags: ['design', 'patterns', 'structure']"
+    ],
+    "diagrams/cross-reference-matrix.md": [
+      "Non-standard tags: ['structure', 'rest']"
+    ],
+    "scripts/README.md": [
+      "Non-standard tags: ['scripts', 'automation', 'validation', 'ci-cd']"
+    ],
+    "guides/vircadia-multi-user-guide.md": [
+      "Non-standard tags: ['guide', 'rest']"
+    ],
+    "guides/ontology-reasoning-integration.md": [
+      "Non-standard tags: ['guide', 'documentation', 'visionflow']"
+    ],
+    "guides/graphserviceactor-migration.md": [
+      "Non-standard tags: ['guide', 'rest']"
+    ],
+    "guides/agent-orchestration.md": [
+      "Non-standard tags: ['guide', 'rest']"
+    ],
+    "guides/docker-compose-guide.md": [
+      "Non-standard tags: ['guide']"
+    ],
+    "guides/contributing.md": [
+      "Non-standard tags: ['guide', 'rest', 'react']"
+    ],
+    "guides/ontology-storage-guide.md": [
+      "Non-standard tags: ['guide', 'rest']"
+    ],
+    "guides/index.md": [
+      "Non-standard tags: ['guide', 'documentation', 'visionflow']"
+    ],
+    "architecture/visionflow-distributed-systems-assessment.md": [
+      "Non-standard tags: ['rest']"
+    ],
+    "architecture/blender-mcp-unified-architecture.md": [
+      "Non-standard tags: ['design', 'patterns', 'structure']"
+    ],
+    "architecture/HEXAGONAL_ARCHITECTURE_STATUS.md": [
+      "Non-standard tags: ['design', 'structure', 'rest']"
+    ],
+    "concepts/architecture/core/client.md": [
+      "Non-standard tags: ['design', 'rest']"
+    ],
+    "concepts/architecture/core/server.md": [
+      "Non-standard tags: ['patterns', 'structure', 'rest']"
+    ],
+    "guides/infrastructure/goalie-integration.md": [
+      "Non-standard tags: ['guide', 'rest', 'documentation', 'visionflow']"
+    ],
+    "guides/infrastructure/docker-environment.md": [
+      "Non-standard tags: ['guide', 'rest']"
+    ],
+    "guides/infrastructure/architecture.md": [
+      "Non-standard tags: ['guide', 'rest']"
+    ],
+    "guides/infrastructure/troubleshooting.md": [
+      "Non-standard tags: ['guide', 'documentation', 'visionflow']"
+    ],
+    "guides/infrastructure/port-configuration.md": [
+      "Non-standard tags: ['guide']"
+    ],
+    "guides/operations/pipeline-operator-runbook.md": [
+      "Non-standard tags: ['guide', 'rest']"
+    ],
+    "guides/features/filtering-nodes.md": [
+      "Non-standard tags: ['guide']"
+    ],
+    "guides/features/ontology-sync-enhancement.md": [
+      "Non-standard tags: ['guide', 'rest']"
+    ],
+    "guides/features/settings-authentication.md": [
+      "Non-standard tags: ['guide', 'react']"
+    ],
+    "guides/features/natural-language-queries.md": [
+      "Non-standard tags: ['guide', 'documentation', 'visionflow']"
+    ],
+    "guides/features/intelligent-pathfinding.md": [
+      "Non-standard tags: ['guide', 'documentation', 'visionflow']"
+    ],
+    "guides/features/semantic-forces.md": [
+      "Non-standard tags: ['guide', 'rest', 'documentation', 'visionflow']"
+    ],
+    "guides/features/auth-user-settings.md": [
+      "Non-standard tags: ['guide']"
+    ],
+    "guides/features/nostr-auth.md": [
+      "Non-standard tags: ['guide', 'rest', 'react']"
+    ],
+    "guides/developer/06-contributing.md": [
+      "Non-standard tags: ['guide', 'rest', 'documentation', 'visionflow']"
+    ],
+    "guides/developer/02-project-structure.md": [
+      "Non-standard tags: ['guide', 'documentation', 'visionflow']"
+    ],
+    "guides/developer/04-adding-features.md": [
+      "Non-standard tags: ['design', 'patterns', 'rest']"
+    ],
+    "guides/developer/01-development-setup.md": [
+      "Non-standard tags: ['guide', 'rest']"
+    ],
+    "guides/developer/readme.md": [
+      "Non-standard tags: ['guide', 'react']"
+    ],
+    "guides/client/three-js-rendering.md": [
+      "Non-standard tags: ['rest', 'http']"
+    ],
+    "guides/client/state-management.md": [
+      "Non-standard tags: ['design', 'rest']"
+    ],
+    "guides/client/xr-integration.md": [
+      "Non-standard tags: ['design', 'http']"
+    ],
+    "guides/ai-models/ragflow-integration.md": [
+      "Non-standard tags: ['patterns', 'rest', 'endpoints']"
+    ],
+    "guides/ai-models/perplexity-integration.md": [
+      "Non-standard tags: ['structure', 'endpoints', 'http']"
+    ],
+    "guides/architecture/actor-system.md": [
+      "Non-standard tags: ['design', 'patterns', 'rest']"
+    ],
+    "diagrams/mermaid-library/04-agent-orchestration.md": [
+      "Non-standard tags: ['design', 'patterns', 'structure']"
+    ],
+    "diagrams/mermaid-library/03-deployment-infrastructure.md": [
+      "Non-standard tags: ['structure', 'rest']"
+    ],
+    "diagrams/mermaid-library/01-system-architecture-overview.md": [
+      "Non-standard tags: ['structure', 'rest']"
+    ],
+    "diagrams/data-flow/complete-data-flows.md": [
+      "Non-standard tags: ['structure', 'rest']"
+    ],
+    "diagrams/client/xr/xr-architecture-complete.md": [
+      "Non-standard tags: ['design', 'structure', 'rest']"
+    ],
+    "diagrams/client/state/state-management-complete.md": [
+      "Non-standard tags: ['patterns', 'structure', 'rest']"
+    ],
+    "diagrams/client/rendering/threejs-pipeline-complete.md": [
+      "Non-standard tags: ['patterns', 'structure']"
+    ],
+    "diagrams/server/actors/actor-system-complete.md": [
+      "Non-standard tags: ['patterns', 'structure', 'rest']"
+    ],
+    "diagrams/server/agents/agent-system-architecture.md": [
+      "Non-standard tags: ['design', 'patterns', 'structure']"
+    ],
+    "diagrams/server/api/rest-api-architecture.md": [
+      "Non-standard tags: ['design', 'patterns', 'structure']"
+    ],
+    "diagrams/infrastructure/websocket/binary-protocol-complete.md": [
+      "Non-standard tags: ['structure', 'rest']"
+    ],
+    "diagrams/infrastructure/gpu/cuda-architecture-complete.md": [
+      "Non-standard tags: ['patterns', 'structure', 'rest']"
+    ],
+    "diagrams/infrastructure/testing/test-architecture.md": [
+      "Non-standard tags: ['patterns', 'structure']"
+    ],
+    "explanations/physics/semantic-forces.md": [
+      "Non-standard tags: ['rest', 'documentation', 'visionflow']"
+    ],
+    "explanations/ontology/reasoning-engine.md": [
+      "Non-standard tags: ['documentation', 'visionflow']"
+    ],
+    "explanations/architecture/README.md": [
+      "Non-standard tags: ['documentation', 'visionflow']"
+    ],
+    "explanations/architecture/pipeline-integration.md": [
+      "Non-standard tags: ['rest']"
+    ],
+    "explanations/architecture/adapter-patterns.md": [
+      "Non-standard tags: ['documentation', 'visionflow']"
+    ],
+    "explanations/architecture/hexagonal-cqrs.md": [
+      "Non-standard tags: ['rest']"
+    ],
+    "explanations/architecture/stress-majorization.md": [
+      "Non-standard tags: ['documentation', 'visionflow']"
+    ],
+    "explanations/architecture/xr-immersive-system.md": [
+      "Non-standard tags: ['documentation', 'visionflow']"
+    ],
+    "explanations/architecture/ontology-storage-architecture.md": [
+      "Non-standard tags: ['rest']"
+    ],
+    "explanations/architecture/integration-patterns.md": [
+      "Non-standard tags: ['rest', 'documentation', 'visionflow']"
+    ],
+    "explanations/architecture/services-layer.md": [
+      "Non-standard tags: ['documentation', 'visionflow']"
+    ],
+    "explanations/architecture/database-architecture.md": [
+      "Non-standard tags: ['design', 'patterns', 'structure', 'rest']"
+    ],
+    "explanations/architecture/semantic-physics.md": [
+      "Non-standard tags: ['documentation', 'visionflow']"
+    ],
+    "explanations/architecture/ports/07-gpu-semantic-analyzer.md": [
+      "Non-standard tags: ['documentation', 'visionflow']"
+    ],
+    "explanations/architecture/ports/06-gpu-physics-adapter.md": [
+      "Non-standard tags: ['documentation', 'visionflow']"
+    ],
+    "explanations/architecture/ports/05-inference-engine.md": [
+      "Non-standard tags: ['documentation', 'visionflow']"
+    ],
+    "explanations/architecture/ports/04-ontology-repository.md": [
+      "Non-standard tags: ['documentation', 'visionflow']"
+    ],
+    "explanations/architecture/core/visualization.md": [
+      "Non-standard tags: ['rest']"
+    ],
+    "explanations/architecture/gpu/README.md": [
+      "Non-standard tags: ['documentation', 'visionflow']"
+    ],
+    "archive/fixes/README.md": [
+      "Non-standard tags: ['rest', 'documentation', 'visionflow']"
+    ],
+    "archive/fixes/borrow-checker-summary.md": [
+      "Non-standard tags: ['rest', 'documentation', 'visionflow']"
+    ],
+    "archive/fixes/rust-type-correction-guide.md": [
+      "Non-standard tags: ['guide', 'documentation', 'visionflow']"
+    ],
+    "archive/fixes/borrow-checker.md": [
+      "Non-standard tags: ['rest', 'documentation', 'visionflow']"
+    ],
+    "archive/deprecated-patterns/README.md": [
+      "Non-standard tags: ['react']"
+    ],
+    "archive/deprecated-patterns/03-architecture-WRONG-STACK.md": [
+      "Non-standard tags: ['react']"
+    ],
+    "archive/analysis/client-architecture-analysis-2025-12.md": [
+      "Non-standard tags: ['design', 'structure', 'rest']"
+    ],
+    "archive/tests/test_README.md": [
+      "Non-standard tags: ['rest', 'documentation', 'visionflow']"
+    ],
+    "archive/working/README.md": [
+      "Non-standard tags: ['documentation', 'visionflow']"
+    ],
+    "archive/working/task.md": [
+      "Non-standard tags: ['rest']"
+    ],
+    "archive/reports/README.md": [
+      "Non-standard tags: ['documentation', 'visionflow']"
+    ],
+    "archive/reports/ARCHIVE_INDEX.md": [
+      "Non-standard tags: ['documentation', 'visionflow']"
+    ],
+    "archive/reports/2025-12-02-restructuring-complete.md": [
+      "Non-standard tags: ['rest']"
+    ],
+    "archive/specialized/extension-guide.md": [
+      "Non-standard tags: ['guide', 'rest', 'documentation', 'visionflow']"
+    ],
+    "archive/reports/documentation-alignment-2025-12-02/DEEPSEEK_SETUP_COMPLETE.md": [
+      "Non-standard tags: ['rest', 'documentation', 'visionflow']"
+    ],
+    "archive/reports/documentation-alignment-2025-12-02/DOCUMENTATION_ALIGNMENT_COMPLETE.md": [
+      "Non-standard tags: ['documentation', 'visionflow']"
+    ],
+    "archive/reports/consolidation/link-analysis-summary-2025-12.md": [
+      "Non-standard tags: ['patterns', 'structure', 'rest']"
+    ],
+    "archive/docs/guides/developer/05-testing-guide.md": [
+      "Non-standard tags: ['design', 'structure', 'rest']"
+    ],
+    "archive/docs/guides/user/xr-setup.md": [
+      "Non-standard tags: ['design', 'rest', 'http']"
+    ],
+    "archive/docs/guides/user/working-with-agents.md": [
+      "Non-standard tags: ['design', 'patterns', 'structure']"
+    ],
+    "multi-agent-docker/fixes/GPU_BUILD_STATUS.md": [
+      "Non-standard tags: ['rest', 'http']"
+    ],
+    "multi-agent-docker/fixes/gpu-only-fixes.md": [
+      "Non-standard tags: ['rest']"
+    ],
+    "multi-agent-docker/fixes/SUMMARY.md": [
+      "Non-standard tags: ['ai']"
+    ],
+    "multi-agent-docker/development-notes/SESSION_2025-11-15.md": [
+      "Non-standard tags: ['design', 'rest', 'http']"
+    ],
+    "reference/protocols/binary-websocket.md": [
+      "Non-standard tags: ['documentation', 'visionflow']"
+    ],
+    "reference/api/pathfinding-examples.md": [
+      "Non-standard tags: ['rest', 'documentation', 'visionflow']"
+    ],
+    "reference/api/01-authentication.md": [
+      "Non-standard tags: ['documentation', 'visionflow']"
+    ],
+    "reference/api/semantic-features-api.md": [
+      "Non-standard tags: ['documentation', 'visionflow']"
+    ]
+  },
+  "frontmatter_compliance_percentage": 48.49
+}

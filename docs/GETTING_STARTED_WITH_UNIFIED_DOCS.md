@@ -1,3 +1,14 @@
+---
+title: "Getting Started with the Unified Documentation Corpus"
+description: "Welcome! This documentation has been completely modernized and reorganized for maximum discoverability and clarity."
+category: guide
+tags:
+  - getting-started
+  - documentation
+updated-date: 2025-12-19
+difficulty-level: beginner
+---
+
 # Getting Started with the Unified Documentation Corpus
 
 Welcome! This documentation has been completely modernized and reorganized for maximum discoverability and clarity.

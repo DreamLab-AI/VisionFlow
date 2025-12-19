@@ -3,9 +3,9 @@ title: Documentation Restructuring Complete
 description: Summary of Diátaxis framework migration
 category: explanation
 tags:
-  - rest
-  - websocket
-  - neo4j
+  - api
+  - api
+  - database
 updated-date: 2025-12-18
 difficulty-level: intermediate
 date: 2025-12-02

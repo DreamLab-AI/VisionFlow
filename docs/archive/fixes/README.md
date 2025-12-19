@@ -3,8 +3,8 @@ title: Borrow Checker Error Fixes - Documentation
 description: All Rust borrow checker errors (E0502 and E0382) have been successfully resolved through proper code restructuring **without unnecessary clones**.
 category: explanation
 tags:
-  - rest
-  - rust
+  - api
+  - backend
   - documentation
   - reference
   - visionflow

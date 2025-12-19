@@ -3,8 +3,8 @@ title: VisionFlow Error Codes Reference
 description: This document provides a comprehensive reference of all error codes used throughout the VisionFlow system. Error codes follow a hierarchical naming scheme: `[SYSTEM]-[SEVERITY]-[NUMBER]`.
 category: reference
 tags:
-  - rest
-  - websocket
+  - api
+  - api
   - documentation
   - reference
   - visionflow

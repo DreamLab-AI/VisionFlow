@@ -7,7 +7,7 @@ tags:
   - design
   - structure
   - api
-  - websocket
+  - api
 related-docs:
   - ARCHITECTURE_COMPLETE.md
   - ARCHITECTURE_OVERVIEW.md

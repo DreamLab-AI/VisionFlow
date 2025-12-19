@@ -4,8 +4,8 @@ description: This document provides an overview of VisionFlow's **Hexagonal Arch
 category: explanation
 tags:
   - architecture
-  - neo4j
-  - rust
+  - database
+  - backend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

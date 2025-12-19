@@ -3,8 +3,8 @@ title: Borrow Checker Error Fixes - Summary
 description: All E0502 (conflicting borrows) and E0382 (use after move) errors have been resolved through proper code restructuring.
 category: explanation
 tags:
-  - rest
-  - rust
+  - api
+  - backend
   - documentation
   - reference
   - visionflow

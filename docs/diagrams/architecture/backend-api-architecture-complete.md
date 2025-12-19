@@ -7,7 +7,7 @@ tags:
   - patterns
   - structure
   - api
-  - rest
+  - api
 related-docs:
   - diagrams/README.md
 updated-date: 2025-12-18

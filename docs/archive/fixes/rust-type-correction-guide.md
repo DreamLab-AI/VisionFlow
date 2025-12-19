@@ -3,8 +3,8 @@ title: Rust Type Correction Guide
 description: The Rust compiler's type errors are **design feedback**, not obstacles to work around. When you see a type error, it's telling you that your mental model doesn't match the actual structure of the c...
 category: explanation
 tags:
-  - guide
-  - rust
+  - tutorial
+  - backend
   - documentation
   - reference
   - visionflow

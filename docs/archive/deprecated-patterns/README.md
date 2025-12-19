@@ -1,14 +1,15 @@
 ---
-title: Deprecated Patterns Archive
-description: Historical reference for deprecated architectural patterns and implementation approaches
+title: "Deprecated Patterns Archive"
+description: "Historical reference for deprecated architectural patterns and implementation approaches"
 category: explanation
 tags:
-  - neo4j
-  - rust
-  - react
-updated-date: 2025-12-18
+  - database
+  - backend
+  - frontend
+updated-date: 2025-12-19
 difficulty-level: advanced
 ---
+
 
 
 # Deprecated Patterns Archive

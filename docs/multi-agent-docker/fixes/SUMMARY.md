@@ -4,7 +4,7 @@ description: Documentation for SUMMARY
 category: explanation
 tags:
   - api
-  - neo4j
+  - database
   - docker
   - actors
   - ai

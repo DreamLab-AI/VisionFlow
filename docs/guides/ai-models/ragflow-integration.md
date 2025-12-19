@@ -1,12 +1,12 @@
 ---
 title: RAGFlow Knowledge Management Integration
 description: RAGFlow provides document ingestion, vector storage, and semantic search capabilities for building knowledge bases and RAG (Retrieval-Augmented Generation) applications.  It runs as a separate Dock...
-category: howto
+category: guide
 tags:
   - architecture
   - patterns
   - api
-  - rest
+  - api
   - endpoints
 related-docs:
   - guides/ai-models/README.md

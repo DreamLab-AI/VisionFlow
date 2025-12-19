@@ -1,11 +1,11 @@
 ---
 title: Stress Majorization Layout Optimization Guide
 description: **Status**: ✅ Code complete, wiring needed **Last Updated**: November 3, 2025
-category: howto
+category: guide
 tags:
-  - guide
-  - rest
-  - rust
+  - tutorial
+  - api
+  - backend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

@@ -2,10 +2,12 @@
 title: "Documentation Maintenance Guide"
 description: "Procedures for maintaining the unified documentation corpus"
 category: reference
-tags: [maintenance, procedures, quality]
-version: 2.0.0
-last_updated: 2025-12-18
+tags:
+  - documentation
+updated-date: 2025-12-19
+difficulty-level: intermediate
 ---
+
 
 # Documentation Maintenance Guide
 

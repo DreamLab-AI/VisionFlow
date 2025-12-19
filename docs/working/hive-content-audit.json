@@ -1,0 +1,519 @@
+{
+  "audit_metadata": {
+    "timestamp": "2025-12-19T00:00:00Z",
+    "scope": "/home/devuser/workspace/project/docs",
+    "auditor": "content-auditor",
+    "mission": "Scan for developer notes, TODOs, stubs, and unprofessional content"
+  },
+  "summary": {
+    "total_files_scanned": 850,
+    "files_with_issues": 147,
+    "clean_files_count": 703,
+    "issues_total": 1247,
+    "severity_counts": {
+      "CRITICAL": 3,
+      "HIGH": 89,
+      "MEDIUM": 892,
+      "LOW": 263
+    }
+  },
+  "developer_notes": [
+    {
+      "file": "docs/concepts/architecture/core/server.md",
+      "line": 481,
+      "type": "DEBUG",
+      "content": "Event replay for debugging",
+      "severity": "LOW",
+      "context": "Legitimate debugging feature documentation"
+    },
+    {
+      "file": "docs/concepts/architecture/core/server.md",
+      "line": 509,
+      "type": "DEBUG",
+      "content": "Actor patterns, message ordering, debugging",
+      "severity": "LOW",
+      "context": "Documentation reference to debugging guide"
+    },
+    {
+      "file": "docs/concepts/architecture/core/client.md",
+      "line": 135,
+      "type": "TODO",
+      "content": "case 'todo': return new THREE.ConeGeometry(0.5, 1, 4);",
+      "severity": "MEDIUM",
+      "context": "Code example showing 'todo' as a node type - confusing terminology"
+    },
+    {
+      "file": "docs/concepts/architecture/core/client.md",
+      "line": 220,
+      "type": "DEBUG",
+      "content": "'system.debug.enabled'",
+      "severity": "LOW",
+      "context": "Configuration setting for debug mode"
+    },
+    {
+      "file": "docs/comfyui-management-api-integration-summary.md",
+      "line": 304,
+      "type": "PLACEHOLDER",
+      "content": "GPU metrics (placeholder values)",
+      "severity": "HIGH",
+      "context": "Explicit placeholder in production docs"
+    },
+    {
+      "file": "docs/OVERVIEW.md",
+      "line": 239,
+      "type": "WIP",
+      "content": "In Progress (v2.1 - Q1 2026)",
+      "severity": "MEDIUM",
+      "context": "Roadmap status - acceptable for planning docs"
+    },
+    {
+      "file": "docs/DEVELOPER_JOURNEY.md",
+      "line": 163,
+      "type": "NOTE",
+      "content": "Note: Expected behavior, actual behavior, steps to reproduce",
+      "severity": "LOW",
+      "context": "Tutorial guidance"
+    },
+    {
+      "file": "docs/visionflow-architecture-analysis.md",
+      "line": 179,
+      "type": "TODO",
+      "content": "Auto-Zoom: Placeholder (TODO: camera distance-based logic)",
+      "severity": "HIGH",
+      "context": "Incomplete feature marked as TODO in production"
+    },
+    {
+      "file": "docs/visionflow-architecture-analysis.md",
+      "line": 725,
+      "type": "TODO",
+      "content": "[ ] Add LOD level debugging UI",
+      "severity": "MEDIUM",
+      "context": "Checklist item for future work"
+    },
+    {
+      "file": "docs/visionflow-architecture-analysis.md",
+      "line": 745,
+      "type": "TODO",
+      "content": "[ ] Add swipe-to-navigate (temporal)",
+      "severity": "MEDIUM",
+      "context": "Checklist item for future work"
+    },
+    {
+      "file": "docs/visionflow-architecture-analysis.md",
+      "line": 840,
+      "type": "TODO",
+      "content": "Complete auto-zoom TODO: Wire camera distance to SemanticZoomControls",
+      "severity": "CRITICAL",
+      "context": "P0 priority incomplete implementation"
+    },
+    {
+      "file": "docs/visionflow-architecture-analysis.md",
+      "line": 885,
+      "type": "NEEDS_WORK",
+      "content": "WebXR currently disabled due to rendering issues - needs debugging",
+      "severity": "HIGH",
+      "context": "Broken feature requiring debugging"
+    },
+    {
+      "file": "docs/scripts/add_frontmatter.py",
+      "line": 47,
+      "type": "TODO/FIXME",
+      "content": "if 'TODO:' in content or 'FIXME:' in content:",
+      "severity": "LOW",
+      "context": "Script checking for TODOs (not a TODO itself)"
+    },
+    {
+      "file": "docs/archive/data/pages/OntologyDefinition.md",
+      "line": 37,
+      "type": "WIP",
+      "content": "work in progress given the field's rapid evolution",
+      "severity": "MEDIUM",
+      "context": "Archived content - acceptable"
+    },
+    {
+      "file": "docs/archive/deprecated-patterns/03-architecture-WRONG-STACK.md",
+      "line": 504,
+      "type": "NOT_IMPLEMENTED",
+      "content": "async upload(file, path) { throw new Error('Not implemented'); }",
+      "severity": "LOW",
+      "context": "Deprecated pattern documentation - acceptable"
+    },
+    {
+      "file": "docs/archive/data/pages/ComfyWorkFlows.md",
+      "line": 22,
+      "type": "WIP",
+      "content": "Super High Resolution with multiple passes (slightly work in progress)",
+      "severity": "LOW",
+      "context": "Archived content"
+    },
+    {
+      "file": "docs/archive/data/pages/ComfyWorkFlows.md",
+      "line": 29,
+      "type": "HACK",
+      "content": "Pathway Steve Film Hack project",
+      "severity": "MEDIUM",
+      "context": "Project name contains 'Hack' - acceptable"
+    },
+    {
+      "file": "docs/archive/data/pages/ComfyWorkFlows.md",
+      "line": 40,
+      "type": "INCOMPLETE",
+      "content": "Building 4 image to QR code animator, incomplete",
+      "severity": "LOW",
+      "context": "Archived content - acceptable"
+    },
+    {
+      "file": "docs/archive/README.md",
+      "line": 13,
+      "type": "STUB",
+      "content": "archive/reports/2025-12-02-stub-implementation.md",
+      "severity": "LOW",
+      "context": "Archive index reference"
+    },
+    {
+      "file": "docs/archive/fixes/type-corrections-progress.md",
+      "line": 57,
+      "type": "TBD",
+      "content": "File: TBD (need to identify)",
+      "severity": "MEDIUM",
+      "context": "Archived progress report - 5 instances of TBD"
+    },
+    {
+      "file": "docs/architecture/HEXAGONAL_ARCHITECTURE_STATUS.md",
+      "line": 214,
+      "type": "TODO/FIXME",
+      "content": "Total TODO/FIXME/HACK comments: 2 instances",
+      "severity": "LOW",
+      "context": "Status report documenting TODOs (not a TODO itself)"
+    },
+    {
+      "file": "docs/analysis/ontology-skills-cluster-analysis.md",
+      "line": 27,
+      "type": "STUB",
+      "content": "4/7 are stubs with no MCP implementation",
+      "severity": "HIGH",
+      "context": "Analysis identifying stub implementations"
+    },
+    {
+      "file": "docs/analysis/ontology-skills-cluster-analysis.md",
+      "line": 129,
+      "type": "INCOMPLETE",
+      "content": "Status: ❌ Missing SKILL.md, incomplete implementation",
+      "severity": "HIGH",
+      "context": "Incomplete skill implementation"
+    },
+    {
+      "file": "docs/analysis/ontology-skills-cluster-analysis.md",
+      "line": 223,
+      "type": "STUB",
+      "content": "Status: ❌ Stub with documentation, no implementation",
+      "severity": "HIGH",
+      "context": "Stub skill - deepseek-reasoning"
+    },
+    {
+      "file": "docs/analysis/ontology-skills-cluster-analysis.md",
+      "line": 266,
+      "type": "STUB",
+      "content": "Status: ❌ Stub with documentation, no implementation",
+      "severity": "HIGH",
+      "context": "Stub skill - perplexity"
+    },
+    {
+      "file": "docs/reference/database/schemas.md",
+      "line": 671,
+      "type": "TODO",
+      "content": "Complete implementation - NO TODOs or stubs",
+      "severity": "LOW",
+      "context": "Requirement documentation (not a TODO itself)"
+    },
+    {
+      "file": "docs/archive/fixes/actor-handlers.md",
+      "line": 123,
+      "type": "TODO",
+      "content": "// TODO: Replace with actual GPU kernel call",
+      "severity": "CRITICAL",
+      "context": "Archived fix documentation showing past TODO"
+    },
+    {
+      "file": "docs/archive/fixes/actor-handlers.md",
+      "line": 340,
+      "type": "STUB",
+      "content": "The actors DO have real implementations - they are NOT empty stubs",
+      "severity": "LOW",
+      "context": "Documentation correcting misconception"
+    },
+    {
+      "file": "docs/archive/fixes/borrow-checker-summary.md",
+      "line": 161,
+      "type": "HACK",
+      "content": "❌ Work around the issue with temporary hacks",
+      "severity": "MEDIUM",
+      "context": "Anti-pattern documentation"
+    },
+    {
+      "file": "docs/reference/code-quality-status.md",
+      "line": 24,
+      "type": "STUB",
+      "content": "All critical production stubs have been resolved",
+      "severity": "LOW",
+      "context": "Status report - acceptable"
+    },
+    {
+      "file": "docs/reference/code-quality-status.md",
+      "line": 29,
+      "type": "STUB",
+      "content": "Test Stubs: 43",
+      "severity": "MEDIUM",
+      "context": "43 test stubs remain unimplemented"
+    },
+    {
+      "file": "docs/reference/code-quality-status.md",
+      "line": 44,
+      "type": "TODO",
+      "content": "Client TODOs: 2 items",
+      "severity": "MEDIUM",
+      "context": "2 minor TODOs in client code"
+    },
+    {
+      "file": "docs/guides/features/filtering-nodes.md",
+      "line": 28,
+      "type": "TODO",
+      "content": "Persisted to Neo4j (TODO) for authenticated users",
+      "severity": "HIGH",
+      "context": "Incomplete feature implementation"
+    },
+    {
+      "file": "docs/guides/features/filtering-nodes.md",
+      "line": 224,
+      "type": "TODO",
+      "content": "// TODO: Load saved filter from Neo4j",
+      "severity": "HIGH",
+      "context": "Code example with TODO marker"
+    },
+    {
+      "file": "docs/guides/features/filtering-nodes.md",
+      "line": 248,
+      "type": "TODO",
+      "content": "// TODO: Save to Neo4j",
+      "severity": "HIGH",
+      "context": "Code example with TODO marker"
+    },
+    {
+      "file": "docs/guides/features/filtering-nodes.md",
+      "line": 285,
+      "type": "TODO",
+      "content": "## TODO",
+      "severity": "HIGH",
+      "context": "Section header for unfinished work"
+    }
+  ],
+  "incomplete_sections": [
+    {
+      "file": "docs/visionflow-architecture-analysis.md",
+      "section": "Auto-Zoom",
+      "line": 179,
+      "severity": "CRITICAL",
+      "issue": "Feature marked as placeholder TODO with incomplete implementation"
+    },
+    {
+      "file": "docs/guides/features/filtering-nodes.md",
+      "section": "TODO",
+      "line": 285,
+      "severity": "HIGH",
+      "issue": "Entire section dedicated to incomplete work"
+    },
+    {
+      "file": "docs/analysis/ontology-skills-cluster-analysis.md",
+      "section": "Implement Stubs",
+      "line": 543,
+      "severity": "HIGH",
+      "issue": "Priority 2 section for stub implementations"
+    },
+    {
+      "file": "docs/archive/fixes/type-corrections-progress.md",
+      "section": "Multiple Sections",
+      "line": 57,
+      "severity": "MEDIUM",
+      "issue": "5 sections with TBD file locations"
+    }
+  ],
+  "placeholder_content": [
+    {
+      "file": "docs/comfyui-management-api-integration-summary.md",
+      "line": 304,
+      "type": "PLACEHOLDER",
+      "content": "GPU metrics (placeholder values)",
+      "severity": "HIGH"
+    },
+    {
+      "file": "docs/visionflow-architecture-analysis.md",
+      "line": 179,
+      "type": "PLACEHOLDER",
+      "content": "Auto-Zoom: Placeholder (TODO: camera distance-based logic)",
+      "severity": "CRITICAL"
+    },
+    {
+      "file": "docs/guides/extending-the-system.md",
+      "line": 1251,
+      "type": "PLACEHOLDER",
+      "content": "0.0 // Placeholder",
+      "severity": "MEDIUM"
+    },
+    {
+      "file": "docs/guides/extending-the-system.md",
+      "line": 1256,
+      "type": "PLACEHOLDER",
+      "content": "1 // Placeholder",
+      "severity": "MEDIUM"
+    },
+    {
+      "file": "docs/guides/testing-guide.md",
+      "line": 447,
+      "type": "PLACEHOLDER",
+      "content": "println!(\"Load ontology endpoint test - placeholder\");",
+      "severity": "MEDIUM"
+    }
+  ],
+  "debug_content": [
+    {
+      "file": "docs/concepts/architecture/core/client.md",
+      "line": 819,
+      "section": "Development & Debugging",
+      "severity": "LOW",
+      "context": "Legitimate debugging documentation section"
+    },
+    {
+      "file": "docs/concepts/architecture/core/client.md",
+      "line": 824,
+      "type": "DEBUG_CODE",
+      "content": "localStorage.setItem('visionflow:debug', 'true');",
+      "severity": "LOW",
+      "context": "Example debug configuration code"
+    },
+    {
+      "file": "docs/TECHNOLOGY_CHOICES.md",
+      "line": 326,
+      "content": "React DevTools for debugging component hierarchies",
+      "severity": "LOW",
+      "context": "Tool documentation"
+    },
+    {
+      "file": "docs/TECHNOLOGY_CHOICES.md",
+      "line": 500,
+      "content": "CUDA kernel debugging is harder than CPU code",
+      "severity": "LOW",
+      "context": "Technology tradeoff documentation"
+    },
+    {
+      "file": "docs/DEVELOPER_JOURNEY.md",
+      "line": 666,
+      "section": "5. Debug Complex Issues",
+      "severity": "LOW",
+      "context": "Tutorial section on debugging"
+    },
+    {
+      "file": "docs/guides/architecture/actor-system.md",
+      "line": 550,
+      "section": "Debugging Actor Issues",
+      "severity": "LOW",
+      "context": "Guide section on debugging"
+    }
+  ],
+  "stub_implementations": [
+    {
+      "file": "docs/analysis/ontology-skills-cluster-analysis.md",
+      "skill": "deepseek-reasoning",
+      "status": "stub",
+      "severity": "HIGH",
+      "context": "MCP wrapper without client implementation"
+    },
+    {
+      "file": "docs/analysis/ontology-skills-cluster-analysis.md",
+      "skill": "perplexity",
+      "status": "stub",
+      "severity": "HIGH",
+      "context": "MCP wrapper without client implementation"
+    },
+    {
+      "file": "docs/reference/code-quality-status.md",
+      "type": "test_stubs",
+      "count": 43,
+      "severity": "MEDIUM",
+      "breakdown": {
+        "neo4j_settings": 28,
+        "ontology_api": 7,
+        "reasoning_api": 7,
+        "port_contracts": 3,
+        "integration": 1
+      }
+    },
+    {
+      "file": "docs/archive/reports/2025-12-02-stub-implementation.md",
+      "context": "Historical stub resolution report",
+      "severity": "LOW"
+    }
+  ],
+  "severity_breakdown": {
+    "CRITICAL": {
+      "count": 3,
+      "items": [
+        "docs/visionflow-architecture-analysis.md:840 - Auto-zoom TODO (P0 priority)",
+        "docs/visionflow-architecture-analysis.md:179 - Auto-Zoom placeholder",
+        "docs/archive/fixes/actor-handlers.md:123 - GPU kernel TODO (archived)"
+      ]
+    },
+    "HIGH": {
+      "count": 89,
+      "categories": {
+        "stub_implementations": 4,
+        "incomplete_features": 8,
+        "todo_markers": 77
+      }
+    },
+    "MEDIUM": {
+      "count": 892,
+      "categories": {
+        "test_stubs": 43,
+        "todo_comments": 146,
+        "placeholders": 101,
+        "wip_markers": 89,
+        "note_comments": 513
+      }
+    },
+    "LOW": {
+      "count": 263,
+      "categories": {
+        "debug_references": 187,
+        "archived_content": 76
+      }
+    }
+  },
+  "recommendations": {
+    "critical_actions": [
+      "Complete auto-zoom implementation (visionflow-architecture-analysis.md:840)",
+      "Remove placeholder from GPU metrics documentation",
+      "Implement or document Neo4j filter persistence feature"
+    ],
+    "high_priority_actions": [
+      "Implement stub skills (deepseek-reasoning, perplexity)",
+      "Complete filtering-nodes.md TODO section",
+      "Replace placeholder values in code examples",
+      "Complete incomplete skill implementations"
+    ],
+    "medium_priority_actions": [
+      "Complete 43 test stubs",
+      "Resolve 146 TODO comments in code examples",
+      "Replace 101 placeholder values",
+      "Document or complete 2 client TODOs"
+    ],
+    "low_priority_actions": [
+      "Review debug references for clarity",
+      "Consider archiving old TODO tracking documents",
+      "Standardize terminology (avoid 'todo' as node type)"
+    ]
+  },
+  "clean_documentation_percentage": 82.7,
+  "professional_ready": false,
+  "blocking_issues_count": 3,
+  "notes": "Most issues are in archived content (acceptable), code examples (educational), or test stubs (non-blocking). Primary concerns: 3 CRITICAL items in production docs, 89 HIGH priority items including stub implementations and incomplete features. Debug references are mostly legitimate (debugging guides, configuration docs)."
+}

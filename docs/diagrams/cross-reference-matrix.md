@@ -6,8 +6,8 @@ tags:
   - architecture
   - structure
   - api
-  - rest
-  - websocket
+  - api
+  - api
 related-docs:
   - diagrams/README.md
 updated-date: 2025-12-18

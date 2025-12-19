@@ -1,11 +1,11 @@
 ---
 title: Developer Guides
 description: Welcome to the VisionFlow developer guides. These how-to guides help developers accomplish specific tasks and solve problems.
-category: howto
+category: guide
 tags:
-  - guide
-  - rust
-  - react
+  - tutorial
+  - backend
+  - frontend
 updated-date: 2025-12-18
 difficulty-level: intermediate
 ---

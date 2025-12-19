@@ -7,7 +7,7 @@ tags:
   - patterns
   - structure
   - api
-  - rest
+  - api
 related-docs:
   - ARCHITECTURE_COMPLETE.md
   - ARCHITECTURE_OVERVIEW.md

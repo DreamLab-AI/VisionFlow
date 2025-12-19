@@ -1,13 +1,13 @@
 ---
 title: Multi-Agent Skills - Natural Language Reference
 description: **Last Updated:** November 5, 2025 **Status:** Production **VisionFlow Integration:** Agent Control Interface
-category: howto
+category: guide
 tags:
-  - guide
-  - rest
-  - websocket
+  - tutorial
+  - api
+  - api
   - docker
-  - neo4j
+  - database
 updated-date: 2025-12-18
 difficulty-level: intermediate
 ---

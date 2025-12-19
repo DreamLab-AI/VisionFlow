@@ -5,9 +5,9 @@ category: explanation
 tags:
   - api
   - architecture
-  - rest
-  - websocket
-  - neo4j
+  - api
+  - api
+  - database
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

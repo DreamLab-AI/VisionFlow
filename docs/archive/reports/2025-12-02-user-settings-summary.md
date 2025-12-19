@@ -3,9 +3,9 @@ title: User Settings Implementation Summary
 description: Extended Neo4j settings repository with per-user settings support for VisionFlow, enabling Nostr pubkey-based user authentication and personalized graph filtering.
 category: explanation
 tags:
-  - websocket
-  - neo4j
-  - rust
+  - api
+  - database
+  - backend
 updated-date: 2025-12-18
 difficulty-level: intermediate
 ---

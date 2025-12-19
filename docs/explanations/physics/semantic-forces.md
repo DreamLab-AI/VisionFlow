@@ -3,8 +3,8 @@ title: Semantic Forces
 description: Based on the comprehensive CUDA and Rust codebase provided, combined with the current state-of-the-art in ontology visualization research (e.g., works involving VOWL, OntoTrix, or 3D hyperbolic lay...
 category: explanation
 tags:
-  - rest
-  - rust
+  - api
+  - backend
   - documentation
   - reference
   - visionflow

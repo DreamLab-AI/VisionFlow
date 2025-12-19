@@ -4,7 +4,7 @@ description: VisionFlow's XR immersive system provides comprehensive extended re
 category: explanation
 tags:
   - architecture
-  - websocket
+  - api
   - documentation
   - reference
   - visionflow

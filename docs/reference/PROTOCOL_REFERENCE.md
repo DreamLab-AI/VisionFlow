@@ -1,11 +1,13 @@
 ---
-title: Protocol Reference
-description: Complete specification for all VisionFlow communication protocols including binary WebSocket, REST, and MCP
-type: reference
-status: stable
-version: 2.0
-last_updated: 2025-12-18
+title: "Protocol Reference"
+description: "Complete specification for all VisionFlow communication protocols including binary WebSocket, REST, and MCP"
+category: reference
+tags:
+  - documentation
+updated-date: 2025-12-19
+difficulty-level: intermediate
 ---
+
 
 # Protocol Reference
 

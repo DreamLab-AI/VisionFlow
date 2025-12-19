@@ -1,37 +1,14 @@
 ---
-title: Adding Features
-description: Documentation for 04-adding-features
-category: howto
+title: "Adding Features"
+description: "Comprehensive guide for adding new features to VisionFlow with examples and best practices"
+category: guide
 tags:
-  - architecture
-  - design
-  - patterns
-  - api
-  - rest
-related-docs:
-  - guides/testing-guide.md
-  - guides/developer/06-contributing.md
-  - DEVELOPER_JOURNEY.md
-  - QUICK_NAVIGATION.md
-  - README.md
-updated-date: 2025-12-18
+  - development
+  - features
+  - workflow
+  - testing
+updated-date: 2025-12-19
 difficulty-level: intermediate
-dependencies:
-  - Node.js runtime
----
-
----
-title: Adding Features
-description: Comprehensive guide for adding new features to VisionFlow with examples and best practices
-category: developer-guide
-tags: [development, features, workflow, tdd, implementation]
-difficulty: intermediate
-last-updated: 2025-11-04
-related:
-  - /docs/guides/developer/01-development-setup.md
-  - /docs/guides/developer/05-testing-guide.md
-  - /docs/guides/developer/05-testing-guide.md
-  - /docs/reference/readme.md
 ---
 
 # Adding Features

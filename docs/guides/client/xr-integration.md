@@ -1,12 +1,12 @@
 ---
 title: XR/AR Integration Guide
 description: VisionFlow supports **Quest 3 VR/AR** through Babylon. js and WebXR.
-category: howto
+category: guide
 tags:
   - architecture
   - design
   - api
-  - websocket
+  - api
   - http
 related-docs:
   - guides/client/three-js-rendering.md

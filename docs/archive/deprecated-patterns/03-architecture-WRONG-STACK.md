@@ -4,9 +4,9 @@ description: ❌ OBSOLETE - This described a PostgreSQL/Redis/Vue.js architectur
 category: explanation
 tags:
   - architecture
-  - neo4j
-  - rust
-  - react
+  - database
+  - backend
+  - frontend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

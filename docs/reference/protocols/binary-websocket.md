@@ -3,8 +3,8 @@ title: VisionFlow Binary WebSocket Protocol
 description: Real-time graph position streaming protocol with multiple versions
 category: reference
 tags:
-  - websocket
-  - rust
+  - api
+  - backend
   - documentation
   - reference
   - visionflow

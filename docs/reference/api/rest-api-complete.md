@@ -4,8 +4,8 @@ description: **Version**: 1.0 **Base URL**: `http://localhost:9090/api` **Last U
 category: reference
 tags:
   - api
-  - rest
-  - websocket
+  - api
+  - api
 updated-date: 2025-12-18
 difficulty-level: intermediate
 ---

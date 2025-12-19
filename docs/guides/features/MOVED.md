@@ -1,13 +1,13 @@
 ---
 title: Feature Documentation Moved
 description: The following documentation has been moved to better reflect its nature:
-category: howto
+category: guide
 tags:
   - patterns
   - deployment
   - ai
   - performance
-  - guide
+  - tutorial
 related-docs:
   - guides/ai-models/README.md
   - guides/ai-models/perplexity-integration.md

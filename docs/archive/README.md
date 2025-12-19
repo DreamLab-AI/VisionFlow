@@ -1,24 +1,15 @@
 ---
-title: Documentation Archive
-description: Historical documentation, completion reports, and deprecated content.
+title: "Documentation Archive"
+description: "Historical documentation, completion reports, and deprecated content."
 category: explanation
 tags:
-  - structure
-  - rest
-  - neo4j
-  - ai
-  - guide
-related-docs:
-  - archive/reports/2025-12-02-restructuring-complete.md
-  - archive/reports/2025-12-02-stub-implementation.md
-  - archive/reports/2025-12-02-user-settings-summary.md
-  - QUICK_NAVIGATION.md
-  - README.md
-updated-date: 2025-12-18
+  - architecture
+  - api
+  - database
+updated-date: 2025-12-19
 difficulty-level: intermediate
-dependencies:
-  - Neo4j database
 ---
+
 
 # Documentation Archive
 

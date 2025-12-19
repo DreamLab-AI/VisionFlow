@@ -3,10 +3,10 @@ title: Configuration Reference
 description: Complete reference for all VisionFlow configuration options across environment variables, YAML files, and runtime settings
 category: reference
 tags:
-  - rest
-  - websocket
+  - api
+  - api
   - docker
-  - rust
+  - backend
 updated-date: 2025-12-18
 difficulty-level: advanced
 version: 2.0

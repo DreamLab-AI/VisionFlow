@@ -1,9 +1,9 @@
 ---
 title: VisionFlow Guides
 description: Welcome to the VisionFlow guides section. These practical, task-oriented guides will help you deploy, develop, and extend the VisionFlow system effectively.
-category: howto
+category: guide
 tags:
-  - guide
+  - tutorial
   - docker
   - documentation
   - reference
@@ -122,4 +122,3 @@ See our [Contributing Guide](./contributing.md) for details.
 
 ---
 
-Ready to get started? Begin with the [Deployment Guide](deployment.md) →

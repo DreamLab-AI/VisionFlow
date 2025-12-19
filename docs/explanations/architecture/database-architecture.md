@@ -7,7 +7,7 @@ tags:
   - design
   - patterns
   - structure
-  - rest
+  - api
 related-docs:
   - concepts/architecture/core/server.md
   - explanations/architecture/hexagonal-cqrs.md

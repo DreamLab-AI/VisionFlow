@@ -4,8 +4,8 @@ description: **Version**: 2.0 (Binary Protocol V2) **Status**: Production Ready 
 category: explanation
 tags:
   - architecture
-  - websocket
-  - rust
+  - api
+  - backend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---
@@ -48,7 +48,6 @@ stateDiagram-v2
 All WebSocket messages follow this binary frame structure:
 
 ```mermaid
-%%{init: {'theme':'base', 'themeVariables': {'fontSize':'14px'}}}%%
 graph TB
     subgraph Frame["WebSocket Message Frame"]
         Header["Frame Header (8 bytes)"]

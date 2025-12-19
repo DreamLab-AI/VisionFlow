@@ -7,7 +7,7 @@ tags:
   - patterns
   - structure
   - api
-  - rest
+  - api
 related-docs:
   - explanations/architecture/hexagonal-cqrs.md
   - guides/architecture/actor-system.md

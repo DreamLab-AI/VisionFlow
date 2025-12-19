@@ -1,9 +1,9 @@
 ---
 title: Troubleshooting Guide
 description: This guide provides solutions to common issues you might encounter while using the Multi-Agent Docker Environment.
-category: howto
+category: guide
 tags:
-  - guide
+  - tutorial
   - docker
   - documentation
   - reference
@@ -148,4 +148,3 @@ If `claude-flow` or the `mcp-helper.sh` script reports that a tool is not found:
     Look for messages indicating services have started (Blender on 9876, QGIS on 9877, etc.)
 4.  **Services auto-recover**: Once the GUI container is ready, the MCP proxies will automatically reconnect and become available.
 
-**When to worry**: If timeout warnings persist for more than 2 minutes after both containers are running, check the GUI container logs for errors.

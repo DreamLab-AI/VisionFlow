@@ -1,10 +1,10 @@
 ---
 title: Guide: Ontology Parser
 description: **Version:** 1.0 **Date:** 2025-10-27
-category: howto
+category: guide
 tags:
-  - guide
-  - rust
+  - tutorial
+  - backend
   - documentation
   - reference
   - visionflow
@@ -194,4 +194,3 @@ The test suite covers:
 -   Handling of multiple IRI formats
 -   Error handling for missing `OntologyBlock`
 
-This guide provides a solid foundation for working with the `OntologyParser`. For more advanced use cases or to extend its functionality, refer to the source code at `src/services/parsers/ontology-parser.rs`.

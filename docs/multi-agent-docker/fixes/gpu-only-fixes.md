@@ -4,8 +4,8 @@ description: Documentation for gpu-only-fixes
 category: explanation
 tags:
   - api
-  - rest
-  - neo4j
+  - api
+  - database
   - docker
   - actors
 related-docs:

@@ -1,13 +1,13 @@
 ---
 title: WebSocket Best Practices for VisionFlow
 description: **Version:** 1.0 **Last Updated:** 2025-11-05 **Audience:** Frontend & Backend Developers
-category: howto
+category: guide
 tags:
-  - guide
-  - rest
-  - websocket
-  - rust
-  - react
+  - tutorial
+  - api
+  - api
+  - backend
+  - frontend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

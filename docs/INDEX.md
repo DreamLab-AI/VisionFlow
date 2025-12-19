@@ -1,14 +1,13 @@
 ---
-title: VisionFlow Documentation - Master Index
-description: Complete index of all 226+ documentation files with role-based navigation
+title: "VisionFlow Documentation - Master Index"
+description: "Complete index of all 226+ documentation files with role-based navigation"
 category: reference
 tags:
-  - index
-  - navigation
   - documentation
-  - search
-updated-date: 2025-12-18
+updated-date: 2025-12-19
+difficulty-level: intermediate
 ---
+
 
 # VisionFlow Documentation - Master Index
 

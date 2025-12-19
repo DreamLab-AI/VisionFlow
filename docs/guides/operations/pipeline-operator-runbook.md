@@ -1,11 +1,11 @@
 ---
 title: Pipeline Operator Runbook
 description: 1. [System Overview](#system-overview) 2. [Monitoring](#monitoring) 3. [Common Issues](#common-issues)
-category: howto
+category: guide
 tags:
-  - guide
-  - rest
-  - websocket
+  - tutorial
+  - api
+  - api
   - docker
 updated-date: 2025-12-18
 difficulty-level: advanced

@@ -3,9 +3,9 @@ title: Mermaid Diagram Fix Examples
 description: This document shows the specific fixes applied to mermaid diagrams.
 category: explanation
 tags:
-  - websocket
+  - api
   - docker
-  - neo4j
+  - database
 updated-date: 2025-12-18
 difficulty-level: intermediate
 ---

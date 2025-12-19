@@ -4,7 +4,7 @@ description: **Date**: 2025-12-02 **Status**: ✅ Scan Complete **Project**: Vis
 category: explanation
 tags:
   - docker
-  - rust
+  - backend
   - documentation
   - reference
   - visionflow
@@ -110,7 +110,6 @@ A comprehensive documentation alignment scan was performed using the new Documen
 
 **Examples**:
 ```mermaid
-# ❌ WRONG
 Note left of Actor1: This is a note
 
 # ✅ CORRECT

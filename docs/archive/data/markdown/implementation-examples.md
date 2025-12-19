@@ -3,7 +3,7 @@ title: Smart Contract Implementation Examples
 description: - ### OntologyBlock id:: implementation-examples-ontology collapsed:: true
 category: explanation
 tags:
-  - rest
+  - api
   - documentation
   - reference
   - visionflow

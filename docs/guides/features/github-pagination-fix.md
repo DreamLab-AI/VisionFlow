@@ -1,12 +1,12 @@
 ---
 title: GitHub API Pagination Bug Fix
 description: **Root Cause**: The GitHub sync service was only loading the first 1000 files from the repository due to missing pagination logic.
-category: howto
+category: guide
 tags:
-  - guide
+  - tutorial
   - docker
-  - neo4j
-  - rust
+  - database
+  - backend
 updated-date: 2025-12-18
 difficulty-level: intermediate
 ---

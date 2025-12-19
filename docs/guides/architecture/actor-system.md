@@ -1,13 +1,13 @@
 ---
 title: Actor System Guide
 description: VisionFlow uses **Actix actors** for concurrent, fault-tolerant processing of graph operations, physics simulation, and real-time client coordination.  This guide covers actor patterns, best practi...
-category: howto
+category: guide
 tags:
   - architecture
   - design
   - patterns
-  - rest
-  - websocket
+  - api
+  - api
 related-docs:
   - concepts/architecture/core/server.md
   - explanations/architecture/hexagonal-cqrs.md

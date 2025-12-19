@@ -2,9 +2,13 @@
 title: "Documentation Scripts Reference"
 description: "Reference guide for documentation validation and automation scripts"
 category: reference
-tags: [scripts, automation, validation, ci-cd]
-version: 2.0.0
-last_updated: 2025-12-18
+tags:
+  - automation
+  - validation
+  - ci-cd
+  - tools
+updated-date: 2025-12-19
+difficulty-level: intermediate
 ---
 
 # Documentation Scripts Reference

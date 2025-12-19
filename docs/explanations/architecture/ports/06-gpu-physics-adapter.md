@@ -4,7 +4,7 @@ description: The **GpuPhysicsAdapter** port provides GPU-accelerated physics sim
 category: explanation
 tags:
   - architecture
-  - rust
+  - backend
   - documentation
   - reference
   - visionflow

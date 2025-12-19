@@ -1,11 +1,11 @@
 ---
 title: Ontology Storage Guide
 description: The ontology system uses a **lossless storage architecture** that preserves complete OWL semantics by storing raw markdown content in the database and parsing downstream with horned-owl.
-category: howto
+category: guide
 tags:
-  - guide
-  - rest
-  - rust
+  - tutorial
+  - api
+  - backend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

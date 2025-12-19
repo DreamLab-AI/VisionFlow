@@ -4,9 +4,9 @@ description: This document describes the end-to-end event-driven data pipeline t
 category: explanation
 tags:
   - architecture
-  - rest
-  - websocket
-  - rust
+  - api
+  - api
+  - backend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

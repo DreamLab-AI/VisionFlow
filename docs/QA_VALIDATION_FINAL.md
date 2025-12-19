@@ -3,10 +3,10 @@ title: QA Validation Final Report
 description: Comprehensive quality assurance validation of VisionFlow documentation corpus for production readiness
 category: explanation
 tags:
-  - websocket
+  - api
   - docker
-  - neo4j
-  - rust
+  - database
+  - backend
 updated-date: 2025-12-18
 difficulty-level: intermediate
 date: 2025-12-02

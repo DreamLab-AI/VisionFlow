@@ -1,12 +1,12 @@
 ---
 title: Client-Side Filtering Implementation
 description: The client-side filtering feature allows authenticated clients to filter which graph nodes are visible based on quality and authority scores stored in node metadata.
-category: howto
+category: guide
 tags:
-  - guide
-  - websocket
-  - neo4j
-  - rust
+  - tutorial
+  - api
+  - database
+  - backend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

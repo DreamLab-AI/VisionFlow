@@ -3,9 +3,9 @@ title: Documentation Issues Report
 description: **Generated:** 2025-12-02 09:29:22 **Project:** project
 category: explanation
 tags:
-  - websocket
+  - api
   - docker
-  - neo4j
+  - database
 updated-date: 2025-12-18
 difficulty-level: intermediate
 ---

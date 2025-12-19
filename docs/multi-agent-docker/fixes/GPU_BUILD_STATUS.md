@@ -4,9 +4,9 @@ description: Documentation for GPU_BUILD_STATUS
 category: explanation
 tags:
   - api
-  - rest
+  - api
   - http
-  - neo4j
+  - database
   - docker
 related-docs:
   - multi-agent-docker/fixes/SUMMARY.md

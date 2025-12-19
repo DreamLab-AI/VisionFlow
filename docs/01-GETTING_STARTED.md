@@ -1,13 +1,13 @@
 ---
-title: Getting Started with VisionFlow
-description: Entry points for new users, developers, architects, and operators
+title: "Getting Started with VisionFlow"
+description: "Entry points for new users, developers, architects, and operators"
 category: tutorial
 tags:
   - getting-started
-  - quickstart
-  - onboarding
-updated-date: 2025-12-18
+updated-date: 2025-12-19
+difficulty-level: intermediate
 ---
+
 
 # Getting Started with VisionFlow
 

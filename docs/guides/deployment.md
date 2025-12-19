@@ -1,12 +1,12 @@
 ---
 title: Deployment Guide
 description: > [Guides](./index.md) > Deployment
-category: howto
+category: guide
 tags:
-  - guide
+  - tutorial
   - deployment
-  - rest
-  - websocket
+  - api
+  - api
   - docker
 updated-date: 2025-12-18
 difficulty-level: intermediate

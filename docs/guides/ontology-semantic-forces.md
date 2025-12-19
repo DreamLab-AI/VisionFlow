@@ -1,11 +1,11 @@
 ---
 title: Ontology-Driven Semantic Forces
 description: **Status:** Implemented **Version:** 2.0.0 **Last Updated:** 2025-11-22
-category: howto
+category: guide
 tags:
-  - guide
-  - rest
-  - rust
+  - tutorial
+  - api
+  - backend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

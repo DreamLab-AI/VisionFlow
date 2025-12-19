@@ -4,9 +4,9 @@ description: VisionFlow's ontology storage architecture provides a production-re
 category: explanation
 tags:
   - architecture
-  - rest
-  - neo4j
-  - rust
+  - api
+  - database
+  - backend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

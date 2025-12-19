@@ -1,13 +1,13 @@
 ---
 title: Testing Guide
 description: Documentation for 05-testing-guide
-category: howto
+category: guide
 tags:
   - architecture
   - design
   - structure
   - api
-  - rest
+  - api
 updated-date: 2025-12-18
 difficulty-level: intermediate
 dependencies:

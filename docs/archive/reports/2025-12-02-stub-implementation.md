@@ -3,8 +3,8 @@ title: Stub Implementation Report
 description: **Date**: 2025-12-02 **Agent**: Stub Implementation Agent **Task**: Fix critical error-level stubs in the codebase
 category: explanation
 tags:
-  - websocket
-  - neo4j
+  - api
+  - database
   - documentation
   - reference
   - visionflow

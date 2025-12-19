@@ -3,8 +3,8 @@ title: P2 Features Implementation - Completion Status
 description: **Date:** 2025-11-08 **Status:** ✅ **COMPLETE** **Features:** SSSP, APSP, Connected Components
 category: explanation
 tags:
-  - websocket
-  - rust
+  - api
+  - backend
   - documentation
   - reference
   - visionflow

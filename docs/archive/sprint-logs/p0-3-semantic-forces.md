@@ -3,8 +3,8 @@ title: P0-3: Semantic Forces Integration
 description: **Status**: Implementation Complete (GPU Kernel Integration Pending) **Date**: 2025-11-08 **Effort**: 6 days equivalent
 category: explanation
 tags:
-  - rest
-  - rust
+  - api
+  - backend
   - documentation
   - reference
   - visionflow

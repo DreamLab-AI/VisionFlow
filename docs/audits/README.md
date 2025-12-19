@@ -4,7 +4,7 @@ description: This directory contains comprehensive audit reports for codebase mi
 category: explanation
 tags:
   - docker
-  - neo4j
+  - database
   - documentation
   - reference
   - visionflow

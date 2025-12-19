@@ -4,10 +4,10 @@ description: **Version**: 2.0 (Binary Protocol) **Last Updated**: November 3, 20
 category: reference
 tags:
   - api
-  - rest
-  - websocket
-  - rust
-  - react
+  - api
+  - api
+  - backend
+  - frontend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

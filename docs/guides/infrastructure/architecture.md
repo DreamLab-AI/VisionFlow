@@ -1,12 +1,12 @@
 ---
 title: Multi-Agent Docker Environment Architecture
 description: This document describes the architecture of the Multi-Agent Docker Environment, a sophisticated containerized development platform that integrates Claude Flow, MCP (Model Context Protocol) tools, a...
-category: howto
+category: guide
 tags:
   - architecture
-  - guide
-  - rest
-  - websocket
+  - tutorial
+  - api
+  - api
   - docker
 updated-date: 2025-12-18
 difficulty-level: advanced
@@ -480,4 +480,3 @@ The WebSocket bridge provides a crucial link for external systems to interact wi
     3. It then relays messages between the WebSocket client and the `claude-flow` process's `stdio` streams.
 - **Process Management**: This script is managed by `supervisord` to ensure it is always running.
 
-This architecture allows external controllers to seamlessly execute MCP commands without needing direct access to the container's shell, effectively turning any tool into a remotely accessible service.

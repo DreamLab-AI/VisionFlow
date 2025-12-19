@@ -4,10 +4,10 @@ description: > ⚠️ **DEPRECATION NOTICE** ⚠️ > **GraphServiceActor** is d
 category: explanation
 tags:
   - architecture
-  - client
-  - rest
-  - websocket
-  - rust
+  - frontend
+  - api
+  - api
+  - backend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

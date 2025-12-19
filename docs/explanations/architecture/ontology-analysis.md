@@ -4,8 +4,8 @@ description: ```cypher Neo4j Contains: - 529 GraphNode nodes (markdown pages)
 category: explanation
 tags:
   - architecture
-  - neo4j
-  - rust
+  - database
+  - backend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

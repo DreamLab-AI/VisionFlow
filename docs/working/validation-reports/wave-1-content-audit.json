@@ -1,0 +1,1012 @@
+{
+  "files_scanned": 315,
+  "total_markers": 117,
+  "by_type": {
+    "REVIEW": 7,
+    "NOTE": 18,
+    "BUG": 4,
+    "PLACEHOLDER": 59,
+    "TODO": 16,
+    "IDEA": 2,
+    "TEMP": 9,
+    "XXX": 1,
+    "FIXME": 1
+  },
+  "by_severity": {
+    "info": 86,
+    "error": 6,
+    "warning": 25
+  },
+  "top_files": [
+    [
+      "reference/physics-implementation.md",
+      8
+    ],
+    [
+      "guides/ontology-reasoning-integration.md",
+      8
+    ],
+    [
+      "diagrams/infrastructure/gpu/cuda-architecture-complete.md",
+      6
+    ],
+    [
+      "explanations/architecture/cqrs-directive-template.md",
+      6
+    ],
+    [
+      "archive/fixes/before-after-comparison.md",
+      6
+    ],
+    [
+      "working/hive-content-audit.md",
+      5
+    ],
+    [
+      "guides/development-workflow.md",
+      5
+    ],
+    [
+      "explanations/architecture/ruvector-integration.md",
+      5
+    ],
+    [
+      "diagrams/mermaid-library/00-mermaid-style-guide.md",
+      4
+    ],
+    [
+      "guides/neo4j-migration.md",
+      3
+    ]
+  ],
+  "todos": [
+    {
+      "file": "reference/code-quality-status.md",
+      "line_number": 270,
+      "marker_type": "TODO",
+      "content": "Implement auto-zoom logic based on camera distance",
+      "context": "268: **File:** `client/src/features/visualisation/components/ControlPanel/SemanticZoomControls.tsx:46`\n269: ```typescript\n270: // TODO: Implement auto-zoom logic based on camera distance\n271: ```\n272: **Impact:** LOW",
+      "severity": "warning"
+    },
+    {
+      "file": "reference/code-quality-status.md",
+      "line_number": 280,
+      "marker_type": "TODO",
+      "content": "Map these hardcoded values to settings system",
+      "context": "278: **File:** `client/src/features/visualisation/components/HolographicDataSphere.tsx:27`\n279: ```typescript\n280: // TODO: Map these hardcoded values to settings system\n281: ```\n282: **Impact:** LOW",
+      "severity": "warning"
+    },
+    {
+      "file": "working/hive-content-audit.md",
+      "line_number": 67,
+      "marker_type": "TODO",
+      "content": "Markers in Production Code (77 instances)",
+      "context": "65: 5. Swipe-to-navigate - Checklist TODO (visionflow-architecture-analysis.md:745)\n66: \n67: ### TODO Markers in Production Code (77 instances)\n68: Most are in:\n69: - Code examples (acceptable for tutorials)",
+      "severity": "warning"
+    },
+    {
+      "file": "working/hive-content-audit.md",
+      "line_number": 91,
+      "marker_type": "TODO",
+      "content": "Comments (146 instances)",
+      "context": "89: **Status**: Documented as non-blocking (test infrastructure work)\n90: \n91: ### TODO Comments (146 instances)\n92: Distribution:\n93: - Rust code examples: 85",
+      "severity": "warning"
+    },
+    {
+      "file": "working/hive-content-audit.md",
+      "line_number": 143,
+      "marker_type": "TODO",
+      "content": "\" section",
+      "context": "141: \n142: ### Sections Explicitly Marked Incomplete\n143: 1. **filtering-nodes.md** - \"## TODO\" section\n144: 2. **type-corrections-progress.md** - 5 sections with \"TBD\" file locations (archived)\n145: 3. **ontology-skills-cluster-analysis.md** - \"Priority 2: Implement Stubs\" section",
+      "severity": "warning"
+    },
+    {
+      "file": "guides/ontology-reasoning-integration.md",
+      "line_number": 80,
+      "marker_type": "TODO",
+      "content": "Add OntologyReasoningService to OntologyActor state",
+      "context": "78: ```rust\n79: impl Handler<TriggerReasoning> for OntologyActor {\n80:     // TODO: Add OntologyReasoningService to OntologyActor state\n81:     // TODO: Call reasoning-service.infer-axioms(&ontology-id).await\n82:     // TODO: Broadcast OntologyUpdated event to EventBus",
+      "severity": "warning"
+    },
+    {
+      "file": "guides/ontology-reasoning-integration.md",
+      "line_number": 81,
+      "marker_type": "TODO",
+      "content": "Call reasoning-service.infer-axioms(&ontology-id).await",
+      "context": "79: impl Handler<TriggerReasoning> for OntologyActor {\n80:     // TODO: Add OntologyReasoningService to OntologyActor state\n81:     // TODO: Call reasoning-service.infer-axioms(&ontology-id).await\n82:     // TODO: Broadcast OntologyUpdated event to EventBus\n83:     // TODO: Store inferred axioms with user-defined=false",
+      "severity": "warning"
+    },
+    {
+      "file": "guides/ontology-reasoning-integration.md",
+      "line_number": 82,
+      "marker_type": "TODO",
+      "content": "Broadcast OntologyUpdated event to EventBus",
+      "context": "80:     // TODO: Add OntologyReasoningService to OntologyActor state\n81:     // TODO: Call reasoning-service.infer-axioms(&ontology-id).await\n82:     // TODO: Broadcast OntologyUpdated event to EventBus\n83:     // TODO: Store inferred axioms with user-defined=false\n84: }",
+      "severity": "warning"
+    },
+    {
+      "file": "guides/ontology-reasoning-integration.md",
+      "line_number": 83,
+      "marker_type": "TODO",
+      "content": "Store inferred axioms with user-defined=false",
+      "context": "81:     // TODO: Call reasoning-service.infer-axioms(&ontology-id).await\n82:     // TODO: Broadcast OntologyUpdated event to EventBus\n83:     // TODO: Store inferred axioms with user-defined=false\n84: }\n85: ```",
+      "severity": "warning"
+    },
+    {
+      "file": "guides/ontology-reasoning-integration.md",
+      "line_number": 125,
+      "marker_type": "TODO",
+      "content": "Broadcast OntologyUpdated event",
+      "context": "123:                 info!(\"Inferred {} new axioms\", inferred.len());\n124: \n125:                 // TODO: Broadcast OntologyUpdated event\n126: \n127:                 Ok(format!(\"Inferred {} axioms\", inferred.len()))",
+      "severity": "warning"
+    },
+    {
+      "file": "guides/features/filtering-nodes.md",
+      "line_number": 224,
+      "marker_type": "TODO",
+      "content": "Load saved filter from Neo4j",
+      "context": "222:         // ... set client.pubkey, client.is_power_user\n223: \n224:         // TODO: Load saved filter from Neo4j\n225: \n226:         // Recompute if filter enabled",
+      "severity": "warning"
+    },
+    {
+      "file": "guides/features/filtering-nodes.md",
+      "line_number": 248,
+      "marker_type": "TODO",
+      "content": "Save to Neo4j",
+      "context": "246:         recompute_filtered_nodes(&mut client.filter, &graph_data);\n247: \n248:         // TODO: Save to Neo4j\n249:     }\n250: }",
+      "severity": "warning"
+    },
+    {
+      "file": "guides/features/filtering-nodes.md",
+      "line_number": 285,
+      "marker_type": "TODO",
+      "content": "",
+      "context": "283: This ensures nodes without explicit scores are treated neutrally.\n284: \n285: ## TODO\n286: \n287: ### Neo4j Persistence",
+      "severity": "warning"
+    },
+    {
+      "file": "explanations/architecture/services-architecture.md",
+      "line_number": 3533,
+      "marker_type": "TODO",
+      "content": "Actually send notification (email, webhook, etc.)",
+      "context": "3531:                 sync_event.total_nodes);\n3532: \n3533:             // TODO: Actually send notification (email, webhook, etc.)\n3534: \n3535:             Ok(())",
+      "severity": "warning"
+    },
+    {
+      "file": "archive/fixes/actor-handlers.md",
+      "line_number": 123,
+      "marker_type": "TODO",
+      "content": "Replace with actual GPU kernel call",
+      "context": "121:             // Power iteration method\n122:             while iterations < max_iterations && !converged {\n123:                 // TODO: Replace with actual GPU kernel call\n124:                 // For now, use CPU fallback\n125:                 std::mem::swap(&mut pagerank_values, &mut prev_values);",
+      "severity": "warning"
+    },
+    {
+      "file": "archive/reports/documentation-issues.md",
+      "line_number": 177,
+      "marker_type": "TODO",
+      "content": "s",
+      "context": "175: | docs/guides/developer/01-development-setup.md                       | 415  | BUG   | fixes                                    |\n176: \n177: ### TODOs\n178: \n179: | File                                          | Line | Content                                            |",
+      "severity": "warning"
+    }
+  ],
+  "fixmes": [
+    {
+      "file": "DEVELOPER_JOURNEY.md",
+      "line_number": 154,
+      "marker_type": "BUG",
+      "content": "Fixing Workflow",
+      "context": "152: - \"Add keyboard shortcut for zoom reset\"\n153: \n154: ### Bug Fixing Workflow\n155: \n156: #### Step 1: Reproduce the Bug Locally",
+      "severity": "error"
+    },
+    {
+      "file": "archive/README.md",
+      "line_number": 33,
+      "marker_type": "BUG",
+      "content": "fix documentation",
+      "context": "31: \u251c\u2500\u2500 reports/              # Completion reports and summaries\n32: \u251c\u2500\u2500 sprint-logs/          # Sprint-related logs\n33: \u251c\u2500\u2500 fixes/                # Bug fix documentation\n34: \u2514\u2500\u2500 implementation-logs/  # Implementation tracking\n35: ```",
+      "severity": "error"
+    },
+    {
+      "file": "guides/development-workflow.md",
+      "line_number": 200,
+      "marker_type": "BUG",
+      "content": "fix",
+      "context": "198: # Types\n199: feat:      # New feature\n200: fix:       # Bug fix\n201: docs:      # Documentation changes\n202: style:     # Formatting, missing semicolons, etc",
+      "severity": "error"
+    },
+    {
+      "file": "guides/developer/01-development-setup.md",
+      "line_number": 426,
+      "marker_type": "BUG",
+      "content": "fixes",
+      "context": "424: git checkout -b feature/add-user-authentication\n425: \n426: # Bug fixes\n427: git checkout -b fix/resolve-upload-timeout\n428: ",
+      "severity": "error"
+    },
+    {
+      "file": "archive/reports/documentation-issues.md",
+      "line_number": 163,
+      "marker_type": "FIXME",
+      "content": "s and Bugs",
+      "context": "161: | multi-agent-docker/skills/docs-alignment/scripts/scan_stubs.py | 62   | ... # ellipsis | (re.compile(r'\\.{3}\\s*#'), 'info', '...  |\n162: \n163: ### FIXMEs and Bugs\n164: \n165: | File                                                                | Line | Type  | Content                                  |",
+      "severity": "error"
+    }
+  ],
+  "stubs": [],
+  "placeholders": [
+    {
+      "file": "reference/physics-implementation.md",
+      "line_number": 331,
+      "marker_type": "PLACEHOLDER:// ... placeholder",
+      "content": "// ...",
+      "context": "329:     axioms: &[crate::reasoning::custom-reasoner::InferredAxiom],\n330: ) -> Result<ConstraintSet, String> {\n331:     // ...\n332:     for axiom in axioms {\n333:         match axiom.axiom-type {",
+      "severity": "info"
+    },
+    {
+      "file": "reference/physics-implementation.md",
+      "line_number": 554,
+      "marker_type": "PLACEHOLDER:// ... placeholder",
+      "content": "// ...",
+      "context": "552:         // Step 3: Generate constraints WITH graph data\n553:         match self.generate-constraints-from-axioms(&axioms, &graph-data).await {\n554:             // ...\n555:         }\n556:     }",
+      "severity": "info"
+    },
+    {
+      "file": "reference/physics-implementation.md",
+      "line_number": 658,
+      "marker_type": "PLACEHOLDER:// ... placeholder",
+      "content": "// ...",
+      "context": "656: pub struct AdvancedParams {\n657:     pub semantic-force-weight: f32,  // Global multiplier (default: 0.6)\n658:     // ...\n659: }\n660: ",
+      "severity": "info"
+    },
+    {
+      "file": "reference/physics-implementation.md",
+      "line_number": 839,
+      "marker_type": "PLACEHOLDER:/* ... */ placeholder",
+      "content": "void launch-disjoint-classes-kernel(/*...*/);      // Line 427",
+      "context": "837: ```c\n838: extern \"C\" {\n839:     void launch-disjoint-classes-kernel(/*...*/);      // Line 427\n840:     void launch-subclass-hierarchy-kernel(/*...*/);    // Line 439\n841:     void launch-sameas-colocate-kernel(/*...*/);       // Line 451",
+      "severity": "info"
+    },
+    {
+      "file": "reference/physics-implementation.md",
+      "line_number": 840,
+      "marker_type": "PLACEHOLDER:/* ... */ placeholder",
+      "content": "void launch-subclass-hierarchy-kernel(/*...*/);    // Line 439",
+      "context": "838: extern \"C\" {\n839:     void launch-disjoint-classes-kernel(/*...*/);      // Line 427\n840:     void launch-subclass-hierarchy-kernel(/*...*/);    // Line 439\n841:     void launch-sameas-colocate-kernel(/*...*/);       // Line 451\n842:     void launch-inverse-symmetry-kernel(/*...*/);      // Line 463",
+      "severity": "info"
+    },
+    {
+      "file": "reference/physics-implementation.md",
+      "line_number": 841,
+      "marker_type": "PLACEHOLDER:/* ... */ placeholder",
+      "content": "void launch-sameas-colocate-kernel(/*...*/);       // Line 451",
+      "context": "839:     void launch-disjoint-classes-kernel(/*...*/);      // Line 427\n840:     void launch-subclass-hierarchy-kernel(/*...*/);    // Line 439\n841:     void launch-sameas-colocate-kernel(/*...*/);       // Line 451\n842:     void launch-inverse-symmetry-kernel(/*...*/);      // Line 463\n843:     void launch-functional-cardinality-kernel(/*...*/);// Line 475",
+      "severity": "info"
+    },
+    {
+      "file": "reference/physics-implementation.md",
+      "line_number": 842,
+      "marker_type": "PLACEHOLDER:/* ... */ placeholder",
+      "content": "void launch-inverse-symmetry-kernel(/*...*/);      // Line 463",
+      "context": "840:     void launch-subclass-hierarchy-kernel(/*...*/);    // Line 439\n841:     void launch-sameas-colocate-kernel(/*...*/);       // Line 451\n842:     void launch-inverse-symmetry-kernel(/*...*/);      // Line 463\n843:     void launch-functional-cardinality-kernel(/*...*/);// Line 475\n844: }",
+      "severity": "info"
+    },
+    {
+      "file": "reference/physics-implementation.md",
+      "line_number": 843,
+      "marker_type": "PLACEHOLDER:/* ... */ placeholder",
+      "content": "void launch-functional-cardinality-kernel(/*...*/);// Line 475",
+      "context": "841:     void launch-sameas-colocate-kernel(/*...*/);       // Line 451\n842:     void launch-inverse-symmetry-kernel(/*...*/);      // Line 463\n843:     void launch-functional-cardinality-kernel(/*...*/);// Line 475\n844: }\n845: ```",
+      "severity": "info"
+    },
+    {
+      "file": "working/hive-content-audit.md",
+      "line_number": 159,
+      "marker_type": "PLACEHOLDER:/* ... */ placeholder",
+      "content": "- `/* ... */` pattern: 32",
+      "context": "157: ### Comment Placeholders (101 instances)\n158: - `// ...` pattern: 48\n159: - `/* ... */` pattern: 32\n160: - `# ...` pattern: 21\n161: ",
+      "severity": "info"
+    },
+    {
+      "file": "guides/ontology-reasoning-integration.md",
+      "line_number": 305,
+      "marker_type": "PLACEHOLDER:// ... placeholder",
+      "content": "// ...",
+      "context": "303:         label: Some(\"Person\".to-string()),\n304:         parent-classes: vec![],\n305:         // ...\n306:     },\n307:     OwlClass {",
+      "severity": "info"
+    },
+    {
+      "file": "guides/ontology-reasoning-integration.md",
+      "line_number": 311,
+      "marker_type": "PLACEHOLDER:// ... placeholder",
+      "content": "// ...",
+      "context": "309:         label: Some(\"Employee\".to-string()),\n310:         parent-classes: vec![\"http://example.org/Person\".to-string()],\n311:         // ...\n312:     },\n313: ];",
+      "severity": "info"
+    },
+    {
+      "file": "guides/ontology-reasoning-integration.md",
+      "line_number": 320,
+      "marker_type": "PLACEHOLDER:// ... placeholder",
+      "content": "// ...",
+      "context": "318:         subject: \"http://example.org/Employee\".to-string(),\n319:         object: \"http://example.org/Person\".to-string(),\n320:         // ...\n321:     },\n322: ];",
+      "severity": "info"
+    },
+    {
+      "file": "guides/neo4j-migration.md",
+      "line_number": 124,
+      "marker_type": "PLACEHOLDER:# ... placeholder",
+      "content": "# ...",
+      "context": "122: # INFO  Neo4j URI: bolt://localhost:7687\n123: # INFO  Dry run: true\n124: # ...\n125: # [DRY RUN] Would migrate: visualisation.theme = \"dark\"\n126: # [DRY RUN] Would migrate: system.port = 8080",
+      "severity": "info"
+    },
+    {
+      "file": "guides/neo4j-migration.md",
+      "line_number": 127,
+      "marker_type": "PLACEHOLDER:# ... placeholder",
+      "content": "# ...",
+      "context": "125: # [DRY RUN] Would migrate: visualisation.theme = \"dark\"\n126: # [DRY RUN] Would migrate: system.port = 8080\n127: # ...\n128: # DRY RUN COMPLETE - No changes were made\n129: ```",
+      "severity": "info"
+    },
+    {
+      "file": "guides/neo4j-migration.md",
+      "line_number": 149,
+      "marker_type": "PLACEHOLDER:# ... placeholder",
+      "content": "# ...",
+      "context": "147: # DEBUG \u2705 Migrated: visualisation.theme\n148: # DEBUG \u2705 Migrated: system.port\n149: # ...\n150: # INFO  \u2705 MIGRATION COMPLETE\n151: ```",
+      "severity": "info"
+    },
+    {
+      "file": "guides/neo4j-implementation-roadmap.md",
+      "line_number": 549,
+      "marker_type": "PLACEHOLDER:// ... placeholder",
+      "content": "// ...",
+      "context": "547:    ```rust\n548:    pub struct AppState {\n549:        // ...\n550:        pub settings_repository: Arc<Neo4jSettingsRepository>,  // Updated type\n551:        // ...",
+      "severity": "info"
+    },
+    {
+      "file": "guides/neo4j-implementation-roadmap.md",
+      "line_number": 551,
+      "marker_type": "PLACEHOLDER:// ... placeholder",
+      "content": "// ...",
+      "context": "549:        // ...\n550:        pub settings_repository: Arc<Neo4jSettingsRepository>,  // Updated type\n551:        // ...\n552:    }\n553:    ```",
+      "severity": "info"
+    },
+    {
+      "file": "guides/development-workflow.md",
+      "line_number": 581,
+      "marker_type": "PLACEHOLDER:// ... placeholder",
+      "content": "// ...",
+      "context": "579: // \u274c Bad: Implicit any, no proper typing\n580: export const AgentNode = ({ agent, onSelect }) => {\n581:   // ...\n582: };\n583: ```",
+      "severity": "info"
+    },
+    {
+      "file": "guides/features/github-pagination-fix.md",
+      "line_number": 86,
+      "marker_type": "PLACEHOLDER:/* ... */ placeholder",
+      "content": "all_markdown_files.push(/* ... */);",
+      "context": "84:         for file in files {\n85:             if file[\"type\"] == \"file\" && file[\"name\"].ends_with(\".md\") {\n86:                 all_markdown_files.push(/* ... */);\n87:             }\n88:         }",
+      "severity": "info"
+    },
+    {
+      "file": "guides/features/settings-authentication.md",
+      "line_number": 342,
+      "marker_type": "PLACEHOLDER:/* ... */ placeholder",
+      "content": "let app = test::init_service(/* ... */).await;",
+      "context": "340:     #[actix_rt::test]\n341:     async fn test_authenticated_write_requires_token() {\n342:         let app = test::init_service(/* ... */).await;\n343: \n344:         // Without auth headers - should fail",
+      "severity": "info"
+    },
+    {
+      "file": "guides/features/settings-authentication.md",
+      "line_number": 356,
+      "marker_type": "PLACEHOLDER:/* ... */ placeholder",
+      "content": "let app = test::init_service(/* ... */).await;",
+      "context": "354:     #[actix_rt::test]\n355:     async fn test_anonymous_read_allowed() {\n356:         let app = test::init_service(/* ... */).await;\n357: \n358:         let req = test::TestRequest::get()",
+      "severity": "info"
+    },
+    {
+      "file": "guides/developer/json-serialization-patterns.md",
+      "line_number": 375,
+      "marker_type": "PLACEHOLDER:/* ... */ placeholder",
+      "content": "rendering: { /* ... */ },",
+      "context": "373:     }\n374:   },\n375:   rendering: { /* ... */ },\n376:   interaction: { /* ... */ }\n377: };",
+      "severity": "info"
+    },
+    {
+      "file": "guides/developer/json-serialization-patterns.md",
+      "line_number": 376,
+      "marker_type": "PLACEHOLDER:/* ... */ placeholder",
+      "content": "interaction: { /* ... */ }",
+      "context": "374:   },\n375:   rendering: { /* ... */ },\n376:   interaction: { /* ... */ }\n377: };\n378: ",
+      "severity": "info"
+    },
+    {
+      "file": "diagrams/client/state/state-management-complete.md",
+      "line_number": 1256,
+      "marker_type": "PLACEHOLDER:// ... placeholder",
+      "content": "// ...",
+      "context": "1254:     partialSettings: v1State.settings || {},\n1255:     // Remove deprecated fields\n1256:     // ...\n1257:   };\n1258: };",
+      "severity": "info"
+    },
+    {
+      "file": "diagrams/server/api/rest-api-architecture.md",
+      "line_number": 1553,
+      "marker_type": "PLACEHOLDER:// ... placeholder",
+      "content": "// ...",
+      "context": "1551:   // Request body is already validated\n1552:   const { agent, task, provider } = request.body;\n1553:   // ...\n1554: });\n1555: ```",
+      "severity": "info"
+    },
+    {
+      "file": "diagrams/infrastructure/gpu/cuda-architecture-complete.md",
+      "line_number": 1277,
+      "marker_type": "PLACEHOLDER:/* ... */ placeholder",
+      "content": "let other_x = _mm256_loadu_ps(/* ... */);",
+      "context": "1275:         for chunk in nodes.chunks_exact(8) {\n1276:             // Load 8 positions (SoA layout)\n1277:             let other_x = _mm256_loadu_ps(/* ... */);\n1278:             let other_y = _mm256_loadu_ps(/* ... */);\n1279:             let other_z = _mm256_loadu_ps(/* ... */);",
+      "severity": "info"
+    },
+    {
+      "file": "diagrams/infrastructure/gpu/cuda-architecture-complete.md",
+      "line_number": 1278,
+      "marker_type": "PLACEHOLDER:/* ... */ placeholder",
+      "content": "let other_y = _mm256_loadu_ps(/* ... */);",
+      "context": "1276:             // Load 8 positions (SoA layout)\n1277:             let other_x = _mm256_loadu_ps(/* ... */);\n1278:             let other_y = _mm256_loadu_ps(/* ... */);\n1279:             let other_z = _mm256_loadu_ps(/* ... */);\n1280: ",
+      "severity": "info"
+    },
+    {
+      "file": "diagrams/infrastructure/gpu/cuda-architecture-complete.md",
+      "line_number": 1279,
+      "marker_type": "PLACEHOLDER:/* ... */ placeholder",
+      "content": "let other_z = _mm256_loadu_ps(/* ... */);",
+      "context": "1277:             let other_x = _mm256_loadu_ps(/* ... */);\n1278:             let other_y = _mm256_loadu_ps(/* ... */);\n1279:             let other_z = _mm256_loadu_ps(/* ... */);\n1280: \n1281:             // Compute 8 repulsion forces simultaneously",
+      "severity": "info"
+    },
+    {
+      "file": "diagrams/infrastructure/gpu/cuda-architecture-complete.md",
+      "line_number": 1475,
+      "marker_type": "PLACEHOLDER:/* ... */ placeholder",
+      "content": "__global__ void compute_distances(float* pos, float* dist) { /* ... */ }",
+      "context": "1473: ```cpp\n1474: // \u2717 BAD: Multiple kernel launches (3x memory bandwidth)\n1475: __global__ void compute_distances(float* pos, float* dist) { /* ... */ }\n1476: __global__ void apply_forces(float* dist, float* force) { /* ... */ }\n1477: __global__ void integrate(float* force, float* vel, float* pos) { /* ... */ }",
+      "severity": "info"
+    },
+    {
+      "file": "diagrams/infrastructure/gpu/cuda-architecture-complete.md",
+      "line_number": 1476,
+      "marker_type": "PLACEHOLDER:/* ... */ placeholder",
+      "content": "__global__ void apply_forces(float* dist, float* force) { /* ... */ }",
+      "context": "1474: // \u2717 BAD: Multiple kernel launches (3x memory bandwidth)\n1475: __global__ void compute_distances(float* pos, float* dist) { /* ... */ }\n1476: __global__ void apply_forces(float* dist, float* force) { /* ... */ }\n1477: __global__ void integrate(float* force, float* vel, float* pos) { /* ... */ }\n1478: ",
+      "severity": "info"
+    },
+    {
+      "file": "diagrams/infrastructure/gpu/cuda-architecture-complete.md",
+      "line_number": 1477,
+      "marker_type": "PLACEHOLDER:/* ... */ placeholder",
+      "content": "__global__ void integrate(float* force, float* vel, float* pos) { /* ... */ }",
+      "context": "1475: __global__ void compute_distances(float* pos, float* dist) { /* ... */ }\n1476: __global__ void apply_forces(float* dist, float* force) { /* ... */ }\n1477: __global__ void integrate(float* force, float* vel, float* pos) { /* ... */ }\n1478: \n1479: // \u2713 GOOD: Fused kernel (1x memory bandwidth)",
+      "severity": "info"
+    },
+    {
+      "file": "explanations/ontology/ontology-typed-system.md",
+      "line_number": 216,
+      "marker_type": "PLACEHOLDER:// ... placeholder",
+      "content": "// ...",
+      "context": "214: \n215:         // Process results into NodeTypeSchema\n216:         // ...\n217:     }\n218: ",
+      "severity": "info"
+    },
+    {
+      "file": "explanations/ontology/ontology-typed-system.md",
+      "line_number": 229,
+      "marker_type": "PLACEHOLDER:// ... placeholder",
+      "content": "// ...",
+      "context": "227: \n228:         // Process results\n229:         // ...\n230:     }\n231: }",
+      "severity": "info"
+    },
+    {
+      "file": "explanations/ontology/hierarchical-visualization.md",
+      "line_number": 574,
+      "marker_type": "PLACEHOLDER:// ... placeholder",
+      "content": "// ...",
+      "context": "572:   depth0: 0xff00ff, // Purple roots\n573:   depth1: 0xff33ff,\n574:   // ...\n575: };\n576: ",
+      "severity": "info"
+    },
+    {
+      "file": "explanations/architecture/ruvector-integration.md",
+      "line_number": 328,
+      "marker_type": "PLACEHOLDER:// ... placeholder",
+      "content": "// ...",
+      "context": "326:     // Generate constraints (clustering, separation, alignment, boundary)\n327:     let clustering_constraints = self.generate_clustering_constraints(&clusters)?;\n328:     // ...\n329: }\n330: ",
+      "severity": "info"
+    },
+    {
+      "file": "explanations/architecture/ruvector-integration.md",
+      "line_number": 401,
+      "marker_type": "PLACEHOLDER:// ... placeholder",
+      "content": "// ...",
+      "context": "399:                     node_ids: cluster_nodes.clone(),\n400:                     coherence: /* GNN-enhanced coherence */,\n401:                     // ...\n402:                 });\n403:                 processed.extend(cluster_nodes);",
+      "severity": "info"
+    },
+    {
+      "file": "explanations/architecture/ruvector-integration.md",
+      "line_number": 409,
+      "marker_type": "PLACEHOLDER:// ... placeholder",
+      "content": "// ...",
+      "context": "407:         // 4. Generate constraints with GNN-learned weights\n408:         let clustering_constraints = self.generate_gnn_clustering_constraints(&clusters, &gnn_embeddings)?;\n409:         // ...\n410:     }\n411: ",
+      "severity": "info"
+    },
+    {
+      "file": "explanations/architecture/ruvector-integration.md",
+      "line_number": 475,
+      "marker_type": "PLACEHOLDER:/* ... */ placeholder",
+      "content": "let features = /* ... */;",
+      "context": "473:     pub fn analyze_metadata(&mut self, metadata: &Metadata) -> SemanticFeatures {\n474:         // Extract semantic features (same as current implementation)\n475:         let features = /* ... */;\n476: \n477:         // Store in HNSW index",
+      "severity": "info"
+    },
+    {
+      "file": "explanations/architecture/ruvector-integration.md",
+      "line_number": 1022,
+      "marker_type": "PLACEHOLDER:/* ... */ placeholder",
+      "content": "pub struct GraphCacheService { /* ... */ }",
+      "context": "1020: ```rust\n1021: #[cfg(feature = \"ruvector\")]\n1022: pub struct GraphCacheService { /* ... */ }\n1023: ```\n1024: ",
+      "severity": "info"
+    },
+    {
+      "file": "explanations/architecture/cqrs-directive-template.md",
+      "line_number": 712,
+      "marker_type": "PLACEHOLDER:// ... placeholder",
+      "content": "// ...",
+      "context": "710: pub async fn upload-and-process(\n711:     state: web::Data<AppState>,\n712:     // ...\n713: ) -> impl Responder {\n714:     // \u274c Old way: Send actor message",
+      "severity": "info"
+    },
+    {
+      "file": "explanations/architecture/cqrs-directive-template.md",
+      "line_number": 726,
+      "marker_type": "PLACEHOLDER:// ... placeholder",
+      "content": "// ...",
+      "context": "724: pub async fn upload-and-process(\n725:     state: web::Data<AppState>,\n726:     // ...\n727: ) -> impl Responder {\n728:     // \u2705 New way: Use directive handler",
+      "severity": "info"
+    },
+    {
+      "file": "explanations/architecture/cqrs-directive-template.md",
+      "line_number": 774,
+      "marker_type": "PLACEHOLDER:// ... placeholder",
+      "content": "// ...",
+      "context": "772:     pub graph-query-handlers: GraphQueryHandlers,  // \u2705 Already exists\n773:     pub graph-directive-handlers: GraphDirectiveHandlers,  // \ud83d\udd27 Add this\n774:     // ...\n775: }\n776: ",
+      "severity": "info"
+    },
+    {
+      "file": "explanations/architecture/analytics-visualization.md",
+      "line_number": 490,
+      "marker_type": "PLACEHOLDER:/* ... */ placeholder",
+      "content": "const bloomPass = new UnrealBloomPass(/* ... */);",
+      "context": "488:     bloomComposer.renderToScreen = false;\n489: \n490:     const bloomPass = new UnrealBloomPass(/* ... */);\n491:     bloomComposer.addPass(new RenderPass(scene, camera));\n492:     bloomComposer.addPass(bloomPass);",
+      "severity": "info"
+    },
+    {
+      "file": "explanations/architecture/ports/04-ontology-repository.md",
+      "line_number": 280,
+      "marker_type": "PLACEHOLDER:/* ... */ placeholder",
+      "content": "inferred-axioms: vec![/* ... */],",
+      "context": "278: let results = InferenceResults {\n279:     timestamp: Utc::now(),\n280:     inferred-axioms: vec![/* ... */],\n281:     inference-time-ms: 1500,\n282:     reasoner-version: \"whelk-0.1.0\".to-string(),",
+      "severity": "info"
+    },
+    {
+      "file": "archive/fixes/before-after-comparison.md",
+      "line_number": 48,
+      "marker_type": "PLACEHOLDER:// ... placeholder",
+      "content": "// ...",
+      "context": "46: let gpu_result = unified_compute.execute_physics_step(sim_params);\n47: \n48: // ...\n49: \n50: if let Err(e) = shared_context.update_utilization(gpu_utilization) {  // \u2190 immutable borrow still used",
+      "severity": "info"
+    },
+    {
+      "file": "archive/fixes/before-after-comparison.md",
+      "line_number": 85,
+      "marker_type": "PLACEHOLDER:// ... placeholder",
+      "content": "// ...",
+      "context": "83: let gpu_result = unified_compute.execute_physics_step(sim_params);\n84: \n85: // ...\n86: \n87: if let Err(e) = shared_context.update_utilization(gpu_utilization) {  // \u2705 No conflict",
+      "severity": "info"
+    },
+    {
+      "file": "archive/fixes/before-after-comparison.md",
+      "line_number": 376,
+      "marker_type": "PLACEHOLDER:// ... placeholder",
+      "content": "// ...",
+      "context": "374: \n375:     let mut unified_compute = match &self.shared_context {  // \u2190 Lock acquired\n376:         // ...\n377:     };\n378: ",
+      "severity": "info"
+    },
+    {
+      "file": "archive/fixes/before-after-comparison.md",
+      "line_number": 384,
+      "marker_type": "PLACEHOLDER:// ... placeholder",
+      "content": "// ...",
+      "context": "382:     self.update_stats(false, computation_time);  // \u274c ERROR: lock still held\n383: \n384:     // ...\n385: }  // \u2190 Lock dropped here\n386: ```",
+      "severity": "info"
+    },
+    {
+      "file": "archive/fixes/before-after-comparison.md",
+      "line_number": 396,
+      "marker_type": "PLACEHOLDER:// ... placeholder",
+      "content": "// ...",
+      "context": "394:     let (apsp_distances, num_nodes, landmarks, computation_time) = {\n395:         let mut unified_compute = match &self.shared_context {\n396:             // ...\n397:         };\n398: ",
+      "severity": "info"
+    },
+    {
+      "file": "archive/fixes/before-after-comparison.md",
+      "line_number": 409,
+      "marker_type": "PLACEHOLDER:// ... placeholder",
+      "content": "// ...",
+      "context": "407:     self.update_stats(false, computation_time);\n408: \n409:     // ...\n410: }\n411: ```",
+      "severity": "info"
+    },
+    {
+      "file": "archive/fixes/technical-details.md",
+      "line_number": 64,
+      "marker_type": "PLACEHOLDER:// ... placeholder",
+      "content": "// ...",
+      "context": "62: \n63: // 3. Use shared context\n64: // ...\n65: shared_context.update_utilization(gpu_utilization);\n66: ```",
+      "severity": "info"
+    },
+    {
+      "file": "archive/analysis/client-architecture-analysis-2025-12.md",
+      "line_number": 296,
+      "marker_type": "PLACEHOLDER:/* ... */ placeholder",
+      "content": "}, [graphData.nodes, hierarchyMap, expansionState, filterEnabled, /* ... */]);",
+      "context": "294:     return true;\n295:   });\n296: }, [graphData.nodes, hierarchyMap, expansionState, filterEnabled, /* ... */]);\n297: ```\n298: ",
+      "severity": "info"
+    },
+    {
+      "file": "archive/working/task.md",
+      "line_number": 173,
+      "marker_type": "PLACEHOLDER:// ... placeholder",
+      "content": "// ...",
+      "context": "171: \n172: pub struct GraphStateActor {\n173:     // ...\n174:     local_graph_db: GraphDB, // In-memory RuVector graph\n175: }",
+      "severity": "info"
+    },
+    {
+      "file": "archive/specialized/client-typescript-architecture.md",
+      "line_number": 108,
+      "marker_type": "PLACEHOLDER:/* ... */ placeholder",
+      "content": "export const useSettingsStore = create<SettingsState>()(/*...*/);",
+      "context": "106: \n107: // Stores use Zustand\n108: export const useSettingsStore = create<SettingsState>()(/*...*/);\n109: ```\n110: ",
+      "severity": "info"
+    },
+    {
+      "file": "archive/specialized/client-typescript-architecture.md",
+      "line_number": 289,
+      "marker_type": "PLACEHOLDER:/* ... */ placeholder",
+      "content": "class ErrorBoundary extends React.Component {/*...*/}",
+      "context": "287: \n288: // Error boundaries\n289: class ErrorBoundary extends React.Component {/*...*/}\n290: ```\n291: ",
+      "severity": "info"
+    },
+    {
+      "file": "archive/specialized/client-typescript-architecture.md",
+      "line_number": 948,
+      "marker_type": "PLACEHOLDER:/* ... */ placeholder",
+      "content": "return <Slider value={ambientLight} onChange={/*...*/} />;",
+      "context": "946:   const ambientLight = settingsStore.get('visualisation.rendering.ambientLightIntensity');\n947: \n948:   return <Slider value={ambientLight} onChange={/*...*/} />;\n949: }\n950: ```",
+      "severity": "info"
+    },
+    {
+      "file": "archive/data/markdown/implementation-examples.md",
+      "line_number": 524,
+      "marker_type": "PLACEHOLDER:// ... placeholder",
+      "content": "// ...",
+      "context": "522: \t\t      // Only treasurers can withdraw\n523: \t\t      function withdraw(uint256 amount) external onlyRole(TREASURER_ROLE) {\n524: \t\t          // ...\n525: \t\t      }\n526: \t\t  ",
+      "severity": "info"
+    },
+    {
+      "file": "archive/data/markdown/implementation-examples.md",
+      "line_number": 529,
+      "marker_type": "PLACEHOLDER:// ... placeholder",
+      "content": "// ...",
+      "context": "527: \t\t      // Only auditors can view sensitive data\n528: \t\t      function getAuditLog() external view onlyRole(AUDITOR_ROLE) returns (bytes32[] memory) {\n529: \t\t          // ...\n530: \t\t      }\n531: \t\t  }",
+      "severity": "info"
+    },
+    {
+      "file": "archive/multi-agent-docker/skills/IMPLEMENTATION_GUIDE.md",
+      "line_number": 203,
+      "marker_type": "PLACEHOLDER:# ... placeholder",
+      "content": "#   ...",
+      "context": "201: #   'INNOVATION LEADERSHIP: Accelerate development...',\n202: #   'COMPETITIVE MOAT: Protect custom differentiators...',\n203: #   ...\n204: # ]\n205: ",
+      "severity": "info"
+    }
+  ],
+  "other": [
+    {
+      "file": "CONTRIBUTION.md",
+      "line_number": 537,
+      "marker_type": "REVIEW",
+      "content": "Process",
+      "context": "535: ---\n536: \n537: ## Review Process\n538: \n539: ### Reviewer Checklist",
+      "severity": "info"
+    },
+    {
+      "file": "CONTRIBUTION.md",
+      "line_number": 539,
+      "marker_type": "REVIEW",
+      "content": "er Checklist",
+      "context": "537: ## Review Process\n538: \n539: ### Reviewer Checklist\n540: \n541: Reviewers will check:",
+      "severity": "info"
+    },
+    {
+      "file": "gpu-fix-summary.md",
+      "line_number": 255,
+      "marker_type": "NOTE",
+      "content": "s",
+      "context": "253: 4. `/home/devuser/workspace/project/multi-agent-docker/build-unified.sh`\n254: \n255: ## Notes\n256: \n257: - **CUDA Compatibility**: System has CUDA 13.0, PyTorch cu124 works via forward compatibility",
+      "severity": "info"
+    },
+    {
+      "file": "DEVELOPER_JOURNEY.md",
+      "line_number": 163,
+      "marker_type": "NOTE",
+      "content": "Expected behavior, actual behavior, steps to reproduce",
+      "context": "161: \n162: # 2. Read the issue description carefully\n163: # Note: Expected behavior, actual behavior, steps to reproduce\n164: \n165: # 3. Reproduce locally",
+      "severity": "info"
+    },
+    {
+      "file": "audits/neo4j-migration-action-plan.md",
+      "line_number": 449,
+      "marker_type": "NOTE",
+      "content": "This won't work because sqlite_settings_repository.rs is deleted",
+      "context": "447: \n448: # Verify old tests pass (requires SQLite setup)\n449: # Note: This won't work because sqlite_settings_repository.rs is deleted\n450: ```\n451: ",
+      "severity": "info"
+    },
+    {
+      "file": "multi-agent-docker/TERMINAL_GRID.md",
+      "line_number": 171,
+      "marker_type": "NOTE",
+      "content": "on tmux",
+      "context": "169: - [X-FluxAgent Integration Plan for ComfyUI MCP Skill](x-fluxagent-adaptation-plan.md)\n170: \n171: ## Note on tmux\n172: \n173: VNC terminals do NOT use tmux - they are independent shell sessions. This prevents the confusing behavior of multiple terminals showing the same tmux session.",
+      "severity": "info"
+    },
+    {
+      "file": "archive/ARCHIVE_REPORT.md",
+      "line_number": 87,
+      "marker_type": "NOTE",
+      "content": "s",
+      "context": "85: - **File integrity verified**: \u2705\n86: \n87: ## Notes\n88: \n89: - All file contents preserved intact",
+      "severity": "info"
+    },
+    {
+      "file": "working/hive-content-audit.md",
+      "line_number": 110,
+      "marker_type": "NOTE",
+      "content": "Comments (513 instances)",
+      "context": "108: - \"WIP\" prefixes - None found (good!)\n109: \n110: ### Note Comments (513 instances)\n111: Mostly legitimate:\n112: - Technical notes in code examples",
+      "severity": "info"
+    },
+    {
+      "file": "guides/vircadia-xr-complete-guide.md",
+      "line_number": 324,
+      "marker_type": "IDEA",
+      "content": "l edge length (meters)",
+      "context": "322:   private readonly REPULSION-STRENGTH = 1000;\n323:   private readonly SPRING-STRENGTH = 0.1;\n324:   private readonly SPRING-LENGTH = 5.0;      // Ideal edge length (meters)\n325:   private readonly DAMPING = 0.9;\n326:   private readonly CENTERING-STRENGTH = 0.01;",
+      "severity": "info"
+    },
+    {
+      "file": "guides/orchestrating-agents.md",
+      "line_number": 354,
+      "marker_type": "REVIEW",
+      "content": "best practices",
+      "context": "352:         security-issues = await self.check-security(code-submission)\n353: \n354:         # Review best practices\n355:         practice-issues = await self.check-best-practices(code-submission)\n356: ",
+      "severity": "info"
+    },
+    {
+      "file": "guides/troubleshooting.md",
+      "line_number": 113,
+      "marker_type": "TEMP",
+      "content": "orary fix (session only)",
+      "context": "111: **Solution**:\n112: ```bash\n113: # Temporary fix (session only)\n114: sudo chmod 666 /var/run/docker.sock\n115: ",
+      "severity": "warning"
+    },
+    {
+      "file": "guides/development-workflow.md",
+      "line_number": 1090,
+      "marker_type": "REVIEW",
+      "content": "Checklist",
+      "context": "1088: ## Code Review Process\n1089: \n1090: ### Review Checklist\n1091: \n1092: **For Reviewers**:",
+      "severity": "info"
+    },
+    {
+      "file": "guides/development-workflow.md",
+      "line_number": 1135,
+      "marker_type": "REVIEW",
+      "content": "Process",
+      "context": "1133: - \u2705 Dependencies secure\n1134: \n1135: ### Review Process\n1136: \n1137: 1. **Automated Checks**",
+      "severity": "info"
+    },
+    {
+      "file": "guides/development-workflow.md",
+      "line_number": 1150,
+      "marker_type": "REVIEW",
+      "content": "Comments",
+      "context": "1148: 3. **Provide Feedback**\n1149:    ```markdown\n1150:    ## Review Comments\n1151: \n1152:    ### Must Fix (Blocking)",
+      "severity": "info"
+    },
+    {
+      "file": "architecture/skills-refactoring-plan.md",
+      "line_number": 127,
+      "marker_type": "NOTE",
+      "content": "book_path -> KernelManager",
+      "context": "125: \n126: # Fixed (PERSISTENT):\n127: kernel_managers = {}  # notebook_path -> KernelManager\n128: \n129: @mcp.tool()",
+      "severity": "info"
+    },
+    {
+      "file": "guides/infrastructure/docker-environment.md",
+      "line_number": 136,
+      "marker_type": "TEMP",
+      "content": "late for .env",
+      "context": "134: \u251c\u2500\u2500 Dockerfile                  # Main container build definition\n135: \u251c\u2500\u2500 .env                        # Environment configuration (user-created)\n136: \u251c\u2500\u2500 .env.example                # Template for .env\n137: \u251c\u2500\u2500 entrypoint.sh               # Container init (simplified)\n138: \u251c\u2500\u2500 entrypoint-wrapper.sh       # Full init with security checks",
+      "severity": "warning"
+    },
+    {
+      "file": "guides/features/nostr-auth.md",
+      "line_number": 188,
+      "marker_type": "NOTE",
+      "content": "s",
+      "context": "186: - [Semantic Forces User Guide](semantic-forces.md)\n187: \n188: ## Notes\n189: \n190: - Authentication uses existing `nostrAuthService.ts` singleton",
+      "severity": "info"
+    },
+    {
+      "file": "guides/developer/01-development-setup.md",
+      "line_number": 592,
+      "marker_type": "TEMP",
+      "content": "late",
+      "context": "590: \n591: ```\n592: .env.example         # Template\n593: .env                 # Local development (gitignored)\n594: .env.test           # Test environment",
+      "severity": "warning"
+    },
+    {
+      "file": "diagrams/mermaid-library/README.md",
+      "line_number": 238,
+      "marker_type": "REVIEW",
+      "content": "Process",
+      "context": "236: - **Version Control**: Git-tracked with clear commit messages\n237: \n238: ### Review Process\n239: 1. Technical accuracy verification\n240: 2. Syntax validation (automated)",
+      "severity": "info"
+    },
+    {
+      "file": "diagrams/mermaid-library/00-mermaid-style-guide.md",
+      "line_number": 205,
+      "marker_type": "TEMP",
+      "content": "late 1: Three-Layer Architecture",
+      "context": "203: ## 7. Reusable Diagram Templates\n204: \n205: ### Template 1: Three-Layer Architecture\n206: ```mermaid\n207: graph TB",
+      "severity": "warning"
+    },
+    {
+      "file": "diagrams/mermaid-library/00-mermaid-style-guide.md",
+      "line_number": 224,
+      "marker_type": "TEMP",
+      "content": "late 2: Request/Response Flow",
+      "context": "222: ```\n223: \n224: ### Template 2: Request/Response Flow\n225: ```mermaid\n226: sequenceDiagram",
+      "severity": "warning"
+    },
+    {
+      "file": "diagrams/mermaid-library/00-mermaid-style-guide.md",
+      "line_number": 240,
+      "marker_type": "TEMP",
+      "content": "late 3: State Machine",
+      "context": "238: ```\n239: \n240: ### Template 3: State Machine\n241: ```mermaid\n242: stateDiagram-v2",
+      "severity": "warning"
+    },
+    {
+      "file": "diagrams/mermaid-library/00-mermaid-style-guide.md",
+      "line_number": 253,
+      "marker_type": "TEMP",
+      "content": "late 4: Actor Supervision",
+      "context": "251: ```\n252: \n253: ### Template 4: Actor Supervision\n254: ```mermaid\n255: graph TB",
+      "severity": "warning"
+    },
+    {
+      "file": "explanations/ontology/neo4j-integration.md",
+      "line_number": 424,
+      "marker_type": "XXX",
+      "content": "xx.databases.neo4j.io",
+      "context": "422: ```bash\n423: # Use managed Neo4j (AuraDB, EC2, etc.)\n424: NEO4J-URI=neo4j+s://xxxxx.databases.neo4j.io\n425: \n426: # Enable TLS",
+      "severity": "error"
+    },
+    {
+      "file": "explanations/ontology/reasoning-engine.md",
+      "line_number": 348,
+      "marker_type": "NOTE",
+      "content": "Other codebase errors exist but are unrelated to this deliverable",
+      "context": "346: cargo check --lib --features ontology\n347: # Result: \u2705 Reasoning module compiles successfully\n348: # Note: Other codebase errors exist but are unrelated to this deliverable\n349: ```\n350: ",
+      "severity": "info"
+    },
+    {
+      "file": "explanations/architecture/cqrs-directive-template.md",
+      "line_number": 21,
+      "marker_type": "TEMP",
+      "content": "late Structure",
+      "context": "19: ---\n20: \n21: ## Template Structure\n22: \n23: ### File: `src/application/graph/directives.rs`",
+      "severity": "warning"
+    },
+    {
+      "file": "explanations/architecture/cqrs-directive-template.md",
+      "line_number": 494,
+      "marker_type": "NOTE",
+      "content": "Repository needs delete-node method",
+      "context": "492: \n493:         tokio::runtime::Handle::current().block-on(async move {\n494:             // Note: Repository needs delete-node method\n495:             // This is a placeholder - actual implementation depends on repository trait\n496:             // repository.delete-node(node-id).await.map-err(|e| {",
+      "severity": "info"
+    },
+    {
+      "file": "explanations/architecture/cqrs-directive-template.md",
+      "line_number": 574,
+      "marker_type": "NOTE",
+      "content": "Repository needs delete-edge method",
+      "context": "572: \n573:         tokio::runtime::Handle::current().block-on(async move {\n574:             // Note: Repository needs delete-edge method\n575:             // repository.delete-edge(&edge-id).await.map-err(|e| {\n576:             //     Hexserror::adapter(",
+      "severity": "info"
+    },
+    {
+      "file": "explanations/architecture/ontology-analysis.md",
+      "line_number": 397,
+      "marker_type": "NOTE",
+      "content": "s",
+      "context": "395: - Foundation for semantic reasoning\n396: \n397: ## Notes\n398: \n399: - **Backward compatibility**: Default mode remains \"all\" (no breaking changes)",
+      "severity": "info"
+    },
+    {
+      "file": "explanations/architecture/semantic-physics-system.md",
+      "line_number": 105,
+      "marker_type": "IDEA",
+      "content": "l distance",
+      "context": "103:     pub node-a: String,\n104:     pub node-b: String,\n105:     pub distance: f32,         // Ideal distance\n106:     pub strength: f32,         // Symmetrical force\n107:     pub priority: u8,",
+      "severity": "info"
+    },
+    {
+      "file": "explanations/architecture/semantic-forces-system.md",
+      "line_number": 122,
+      "marker_type": "TEMP",
+      "content": "oral or ordered",
+      "context": "120:     Hierarchy,   // Parent-child\n121:     Association,\n122:     Sequence,    // Temporal or ordered\n123:     SubClassOf,  // Ontology\n124:     InstanceOf,  // Ontology",
+      "severity": "warning"
+    },
+    {
+      "file": "archive/sprint-logs/p1-1-summary.md",
+      "line_number": 184,
+      "marker_type": "NOTE",
+      "content": "s",
+      "context": "182: 6. Monitor logs for configuration update messages\n183: \n184: ## Notes\n185: \n186: - Implementation follows existing patterns in the codebase",
+      "severity": "info"
+    },
+    {
+      "file": "archive/reports/mermaid-fixes-examples.md",
+      "line_number": 275,
+      "marker_type": "NOTE",
+      "content": "Will show false positives until validator is fixed",
+      "context": "273:         run: |\n274:           python scripts/check_mermaid.py --root docs/ --output report.json\n275:           # Note: Will show false positives until validator is fixed\n276: ```\n277: ",
+      "severity": "info"
+    },
+    {
+      "file": "archive/reports/mermaid-validation-complete.md",
+      "line_number": 193,
+      "marker_type": "NOTE",
+      "content": "Will still show 8 false positives until validator is fixed",
+      "context": "191:   --output .doc-alignment-reports/mermaid-report-scoped.json\n192: \n193: # Note: Will still show 8 false positives until validator is fixed\n194: ```\n195: ",
+      "severity": "info"
+    },
+    {
+      "file": "archive/reports/implementation-report-stubs.md",
+      "line_number": 134,
+      "marker_type": "NOTE",
+      "content": "s on Test Compilation",
+      "context": "132: - \u2705 Example compiles after crate name fixes (`visionflow` \u2192 `webxr`)\n133: \n134: ### Notes on Test Compilation\n135: The test harness implementation is complete and correct. Minor compilation issues relate to:\n136: 1. API changes in `GitHubConfig` visibility",
+      "severity": "info"
+    },
+    {
+      "file": "archive/data/markdown/OntologyDefinition.md",
+      "line_number": 217,
+      "marker_type": "NOTE",
+      "content": "Hardware and Software are kept disjoint. Firmware is a type of Software with a specific relation to Hardware.",
+      "context": "215: \t\t        )\n216: \t\t      )\n217: \t\t      # Note: Hardware and Software are kept disjoint. Firmware is a type of Software with a specific relation to Hardware.\n218: \t\t      DisjointClasses(mv:Hardware mv:Software)\n219: \t\t    )",
+      "severity": "info"
+    },
+    {
+      "file": "multi-agent-docker/fixes/GPU_BUILD_STATUS.md",
+      "line_number": 224,
+      "marker_type": "NOTE",
+      "content": "s",
+      "context": "222: - [Upstream Turbo-Flow-Claude Analysis](../upstream-analysis.md)\n223: \n224: ## Notes\n225: \n226: - Many errors were auto-fixed by the Rust linter during development",
+      "severity": "info"
+    }
+  ],
+  "summary": {
+    "error_count": 6,
+    "warning_count": 25,
+    "info_count": 86
+  }
+}

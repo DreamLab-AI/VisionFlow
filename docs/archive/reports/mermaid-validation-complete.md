@@ -3,7 +3,7 @@ title: Mermaid Diagram Validation - Task Complete ✅
 description: **Agent**: Mermaid Validation Agent **Date**: 2025-12-02 **Status**: **COMPLETE**
 category: explanation
 tags:
-  - websocket
+  - api
   - docker
   - documentation
   - reference

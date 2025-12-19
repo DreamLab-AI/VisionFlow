@@ -4,10 +4,10 @@ description: **Date:** 2025-11-05 **Status:** Accepted **Decision Maker:** Visio
 category: explanation
 tags:
   - architecture
-  - rest
+  - api
   - docker
-  - neo4j
-  - rust
+  - database
+  - backend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

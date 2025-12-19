@@ -3,8 +3,8 @@ title: Stress Majorization Implementation Report
 description: **Agent:** Layout Optimization Specialist (Agent 5) **Date:** 2025-11-03 **Status:** ✅ Core Implementation Complete
 category: explanation
 tags:
-  - rest
-  - rust
+  - api
+  - backend
   - documentation
   - reference
   - visionflow

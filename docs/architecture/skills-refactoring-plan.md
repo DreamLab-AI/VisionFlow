@@ -5,8 +5,8 @@ category: explanation
 tags:
   - architecture
   - design
-  - rest
-  - websocket
+  - api
+  - api
   - http
 related-docs:
   - architecture/HEXAGONAL_ARCHITECTURE_STATUS.md

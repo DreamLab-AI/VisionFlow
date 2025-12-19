@@ -3,7 +3,7 @@ title: Mermaid Diagram Fixes Report
 description: **Date**: 2025-12-02 **Agent**: Mermaid Validation Agent **Task**: Fix invalid mermaid diagrams in documentation
 category: explanation
 tags:
-  - websocket
+  - api
   - docker
   - documentation
   - reference

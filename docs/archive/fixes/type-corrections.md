@@ -3,8 +3,8 @@ title: Type Corrections Analysis and Fixes
 description: Found **multiple categories** of type errors that need systematic fixes:
 category: explanation
 tags:
-  - neo4j
-  - rust
+  - database
+  - backend
   - documentation
   - reference
   - visionflow

@@ -1,0 +1,958 @@
+{
+  "category_distribution": {
+    "tutorial": 5,
+    "explanation": 100,
+    "reference": 41,
+    "uncategorized": 6,
+    "guide": 71
+  },
+  "category_mismatches": [
+    {
+      "file": "README.md",
+      "declared_category": "tutorial",
+      "suggested_category": "guide",
+      "reason": "Content markers suggest guide (score: 203) vs tutorial (score: 46)"
+    },
+    {
+      "file": "ARCHITECTURE_OVERVIEW.md",
+      "declared_category": "guide",
+      "suggested_category": "reference",
+      "reason": "Content markers suggest reference (score: 154) vs howto (score: 0)"
+    },
+    {
+      "file": "gpu-fix-summary.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 27) vs explanation (score: 2)"
+    },
+    {
+      "file": "MAINTENANCE.md",
+      "declared_category": "reference",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 25) vs reference (score: 9)"
+    },
+    {
+      "file": "QA_VALIDATION_FINAL.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 91) vs explanation (score: 23)"
+    },
+    {
+      "file": "VALIDATION_CHECKLIST.md",
+      "declared_category": "reference",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 48) vs reference (score: 20)"
+    },
+    {
+      "file": "NAVIGATION.md",
+      "declared_category": "reference",
+      "suggested_category": "guide",
+      "reason": "Content markers suggest guide (score: 156) vs reference (score: 68)"
+    },
+    {
+      "file": "TECHNOLOGY_CHOICES.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 89) vs explanation (score: 42)"
+    },
+    {
+      "file": "DEVELOPER_JOURNEY.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 84) vs howto (score: 0)"
+    },
+    {
+      "file": "comfyui-service-integration.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 28) vs howto (score: 0)"
+    },
+    {
+      "file": "audits/README.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 59) vs explanation (score: 16)"
+    },
+    {
+      "file": "audits/neo4j-settings-migration-audit.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 92) vs explanation (score: 17)"
+    },
+    {
+      "file": "audits/neo4j-migration-action-plan.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 49) vs explanation (score: 2)"
+    },
+    {
+      "file": "audits/neo4j-migration-summary.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 48) vs explanation (score: 11)"
+    },
+    {
+      "file": "reference/physics-implementation.md",
+      "declared_category": "reference",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 44) vs reference (score: 7)"
+    },
+    {
+      "file": "multi-agent-docker/x-fluxagent-adaptation-plan.md",
+      "declared_category": "explanation",
+      "suggested_category": "reference",
+      "reason": "Content markers suggest reference (score: 113) vs explanation (score: 40)"
+    },
+    {
+      "file": "multi-agent-docker/TERMINAL_GRID.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 19) vs explanation (score: 0)"
+    },
+    {
+      "file": "multi-agent-docker/upstream-analysis.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 30) vs explanation (score: 8)"
+    },
+    {
+      "file": "multi-agent-docker/SKILLS.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 45) vs howto (score: 0)"
+    },
+    {
+      "file": "multi-agent-docker/comfyui-sam3d-setup.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 24) vs howto (score: 0)"
+    },
+    {
+      "file": "multi-agent-docker/ANTIGRAVITY.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 10) vs explanation (score: 1)"
+    },
+    {
+      "file": "multi-agent-docker/hyprland-migration-summary.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 43) vs explanation (score: 1)"
+    },
+    {
+      "file": "analysis/ontology-knowledge-skills-analysis.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 68) vs explanation (score: 15)"
+    },
+    {
+      "file": "scripts/README.md",
+      "declared_category": "reference",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 47) vs reference (score: 5)"
+    },
+    {
+      "file": "guides/vircadia-xr-complete-guide.md",
+      "declared_category": "guide",
+      "suggested_category": "reference",
+      "reason": "Content markers suggest reference (score: 41) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/vircadia-multi-user-guide.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 35) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/neo4j-integration.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 46) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/configuration.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 42) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/ontology-semantic-forces.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 43) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/ontology-reasoning-integration.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 31) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/graphserviceactor-migration.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 50) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/semantic-features-implementation.md",
+      "declared_category": "guide",
+      "suggested_category": "reference",
+      "reason": "Content markers suggest reference (score: 86) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/agent-orchestration.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 50) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/docker-compose-guide.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 39) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/ontology-parser.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 13) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/docker-environment-setup.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 82) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/testing-guide.md",
+      "declared_category": "guide",
+      "suggested_category": "reference",
+      "reason": "Content markers suggest reference (score: 40) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/contributing.md",
+      "declared_category": "guide",
+      "suggested_category": "guide",
+      "reason": "Content markers suggest guide (score: 34) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/orchestrating-agents.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 89) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/neo4j-migration.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 44) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/ontology-storage-guide.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 37) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/pipeline-admin-api.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 37) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/telemetry-logging.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 136) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/neo4j-implementation-roadmap.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 45) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/deployment.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 42) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/index.md",
+      "declared_category": "guide",
+      "suggested_category": "guide",
+      "reason": "Content markers suggest guide (score: 33) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/security.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 35) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/navigation-guide.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 38) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/troubleshooting.md",
+      "declared_category": "guide",
+      "suggested_category": "guide",
+      "reason": "Content markers suggest guide (score: 92) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/development-workflow.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 97) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/hierarchy-integration.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 29) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/extending-the-system.md",
+      "declared_category": "guide",
+      "suggested_category": "reference",
+      "reason": "Content markers suggest reference (score: 139) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/multi-agent-skills.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 43) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/stress-majorization-guide.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 36) vs howto (score: 0)"
+    },
+    {
+      "file": "architecture/skills-refactoring-plan.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 48) vs explanation (score: 10)"
+    },
+    {
+      "file": "architecture/blender-mcp-unified-architecture.md",
+      "declared_category": "explanation",
+      "suggested_category": "reference",
+      "reason": "Content markers suggest reference (score: 114) vs explanation (score: 44)"
+    },
+    {
+      "file": "guides/infrastructure/goalie-integration.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 30) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/infrastructure/tools.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 47) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/infrastructure/docker-environment.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 228) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/infrastructure/architecture.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 36) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/infrastructure/readme.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 65) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/infrastructure/troubleshooting.md",
+      "declared_category": "guide",
+      "suggested_category": "guide",
+      "reason": "Content markers suggest guide (score: 12) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/infrastructure/port-configuration.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 21) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/operations/pipeline-operator-runbook.md",
+      "declared_category": "guide",
+      "suggested_category": "reference",
+      "reason": "Content markers suggest reference (score: 63) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/features/MOVED.md",
+      "declared_category": "guide",
+      "suggested_category": "guide",
+      "reason": "Content markers suggest guide (score: 14) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/features/filtering-nodes.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 27) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/features/github-pagination-fix.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 17) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/features/ontology-sync-enhancement.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 40) vs explanation (score: 7)"
+    },
+    {
+      "file": "guides/features/local-file-sync-strategy.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 27) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/features/settings-authentication.md",
+      "declared_category": "explanation",
+      "suggested_category": "reference",
+      "reason": "Content markers suggest reference (score: 54) vs explanation (score: 5)"
+    },
+    {
+      "file": "guides/features/natural-language-queries.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 15) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/features/intelligent-pathfinding.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 15) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/features/semantic-forces.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 12) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/features/auth-user-settings.md",
+      "declared_category": "guide",
+      "suggested_category": "reference",
+      "reason": "Content markers suggest reference (score: 27) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/features/nostr-auth.md",
+      "declared_category": "guide",
+      "suggested_category": "reference",
+      "reason": "Content markers suggest reference (score: 27) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/developer/websocket-best-practices.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 30) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/developer/06-contributing.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 18) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/developer/02-project-structure.md",
+      "declared_category": "guide",
+      "suggested_category": "reference",
+      "reason": "Content markers suggest reference (score: 45) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/developer/json-serialization-patterns.md",
+      "declared_category": "guide",
+      "suggested_category": "reference",
+      "reason": "Content markers suggest reference (score: 98) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/developer/04-adding-features.md",
+      "declared_category": "guide",
+      "suggested_category": "reference",
+      "reason": "Content markers suggest reference (score: 109) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/developer/test-execution.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 34) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/developer/01-development-setup.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 59) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/developer/readme.md",
+      "declared_category": "guide",
+      "suggested_category": "guide",
+      "reason": "Content markers suggest guide (score: 26) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/migration/json-to-binary-protocol.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 40) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/client/three-js-rendering.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 40) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/client/state-management.md",
+      "declared_category": "guide",
+      "suggested_category": "reference",
+      "reason": "Content markers suggest reference (score: 54) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/client/xr-integration.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 36) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/ai-models/README.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 103) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/ai-models/deepseek-verification.md",
+      "declared_category": "guide",
+      "suggested_category": "reference",
+      "reason": "Content markers suggest reference (score: 36) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/ai-models/deepseek-deployment.md",
+      "declared_category": "guide",
+      "suggested_category": "reference",
+      "reason": "Content markers suggest reference (score: 26) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/ai-models/ragflow-integration.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 60) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/ai-models/perplexity-integration.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 63) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/ai-models/INTEGRATION_SUMMARY.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 33) vs howto (score: 0)"
+    },
+    {
+      "file": "guides/architecture/actor-system.md",
+      "declared_category": "guide",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 62) vs howto (score: 0)"
+    },
+    {
+      "file": "diagrams/client/state/state-management-complete.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 115) vs explanation (score: 29)"
+    },
+    {
+      "file": "diagrams/server/agents/agent-system-architecture.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 49) vs explanation (score: 16)"
+    },
+    {
+      "file": "diagrams/infrastructure/websocket/binary-protocol-complete.md",
+      "declared_category": "reference",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 50) vs reference (score: 6)"
+    },
+    {
+      "file": "diagrams/infrastructure/gpu/cuda-architecture-complete.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 50) vs explanation (score: 14)"
+    },
+    {
+      "file": "explanations/physics/semantic-forces-actor.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 76) vs explanation (score: 13)"
+    },
+    {
+      "file": "explanations/ontology/client-side-hierarchical-lod.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 17) vs explanation (score: 5)"
+    },
+    {
+      "file": "explanations/ontology/neo4j-integration.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 42) vs explanation (score: 1)"
+    },
+    {
+      "file": "explanations/ontology/intelligent-pathfinding-system.md",
+      "declared_category": "explanation",
+      "suggested_category": "guide",
+      "reason": "Content markers suggest guide (score: 40) vs explanation (score: 12)"
+    },
+    {
+      "file": "explanations/ontology/ontology-pipeline-integration.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 56) vs explanation (score: 5)"
+    },
+    {
+      "file": "explanations/ontology/enhanced-parser.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 50) vs explanation (score: 1)"
+    },
+    {
+      "file": "explanations/ontology/reasoning-engine.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 72) vs explanation (score: 14)"
+    },
+    {
+      "file": "explanations/ontology/ontology-typed-system.md",
+      "declared_category": "explanation",
+      "suggested_category": "reference",
+      "reason": "Content markers suggest reference (score: 101) vs explanation (score: 17)"
+    },
+    {
+      "file": "explanations/ontology/hierarchical-visualization.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 59) vs explanation (score: 2)"
+    },
+    {
+      "file": "explanations/architecture/ontology-reasoning-pipeline.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 54) vs explanation (score: 6)"
+    },
+    {
+      "file": "explanations/architecture/pipeline-integration.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 55) vs explanation (score: 10)"
+    },
+    {
+      "file": "explanations/architecture/ontology-physics-integration.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 36) vs explanation (score: 10)"
+    },
+    {
+      "file": "explanations/architecture/ruvector-integration.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 66) vs explanation (score: 27)"
+    },
+    {
+      "file": "explanations/architecture/quick-reference.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 26) vs explanation (score: 9)"
+    },
+    {
+      "file": "explanations/architecture/gpu-semantic-forces.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 23) vs explanation (score: 2)"
+    },
+    {
+      "file": "explanations/architecture/cqrs-directive-template.md",
+      "declared_category": "explanation",
+      "suggested_category": "reference",
+      "reason": "Content markers suggest reference (score: 15) vs explanation (score: 2)"
+    },
+    {
+      "file": "explanations/architecture/ontology-analysis.md",
+      "declared_category": "explanation",
+      "suggested_category": "reference",
+      "reason": "Content markers suggest reference (score: 26) vs explanation (score: 11)"
+    },
+    {
+      "file": "explanations/architecture/pipeline-sequence-diagrams.md",
+      "declared_category": "explanation",
+      "suggested_category": "reference",
+      "reason": "Content markers suggest reference (score: 29) vs explanation (score: 1)"
+    },
+    {
+      "file": "explanations/architecture/reasoning-tests-summary.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 45) vs explanation (score: 6)"
+    },
+    {
+      "file": "explanations/architecture/reasoning-data-flow.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 25) vs explanation (score: 6)"
+    },
+    {
+      "file": "explanations/architecture/semantic-physics-system.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 68) vs explanation (score: 6)"
+    },
+    {
+      "file": "explanations/architecture/github-sync-service-design.md",
+      "declared_category": "explanation",
+      "suggested_category": "reference",
+      "reason": "Content markers suggest reference (score: 27) vs explanation (score: 8)"
+    },
+    {
+      "file": "explanations/architecture/adapter-patterns.md",
+      "declared_category": "explanation",
+      "suggested_category": "reference",
+      "reason": "Content markers suggest reference (score: 132) vs explanation (score: 7)"
+    },
+    {
+      "file": "explanations/architecture/api-handlers-reference.md",
+      "declared_category": "explanation",
+      "suggested_category": "reference",
+      "reason": "Content markers suggest reference (score: 334) vs explanation (score: 14)"
+    },
+    {
+      "file": "explanations/architecture/semantic-forces-system.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 32) vs explanation (score: 10)"
+    },
+    {
+      "file": "explanations/architecture/hexagonal-cqrs.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 114) vs explanation (score: 40)"
+    },
+    {
+      "file": "explanations/architecture/analytics-visualization.md",
+      "declared_category": "explanation",
+      "suggested_category": "reference",
+      "reason": "Content markers suggest reference (score: 39) vs explanation (score: 1)"
+    },
+    {
+      "file": "explanations/architecture/stress-majorization.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 66) vs explanation (score: 5)"
+    },
+    {
+      "file": "explanations/architecture/xr-immersive-system.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 34) vs explanation (score: 11)"
+    },
+    {
+      "file": "explanations/architecture/ontology-storage-architecture.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 40) vs explanation (score: 11)"
+    },
+    {
+      "file": "explanations/architecture/integration-patterns.md",
+      "declared_category": "explanation",
+      "suggested_category": "reference",
+      "reason": "Content markers suggest reference (score: 48) vs explanation (score: 5)"
+    },
+    {
+      "file": "explanations/architecture/data-flow-complete.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 30) vs explanation (score: 6)"
+    },
+    {
+      "file": "explanations/architecture/database-architecture.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 65) vs explanation (score: 27)"
+    },
+    {
+      "file": "explanations/architecture/semantic-physics.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 23) vs explanation (score: 8)"
+    },
+    {
+      "file": "explanations/architecture/hierarchical-visualization.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 34) vs explanation (score: 5)"
+    },
+    {
+      "file": "explanations/architecture/decisions/0001-neo4j-persistent-with-filesystem-sync.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 38) vs explanation (score: 16)"
+    },
+    {
+      "file": "explanations/architecture/ports/07-gpu-semantic-analyzer.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 25) vs explanation (score: 3)"
+    },
+    {
+      "file": "explanations/architecture/ports/03-knowledge-graph-repository.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 29) vs explanation (score: 7)"
+    },
+    {
+      "file": "explanations/architecture/ports/06-gpu-physics-adapter.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 23) vs explanation (score: 3)"
+    },
+    {
+      "file": "explanations/architecture/ports/02-settings-repository.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 33) vs explanation (score: 2)"
+    },
+    {
+      "file": "explanations/architecture/ports/05-inference-engine.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 20) vs explanation (score: 4)"
+    },
+    {
+      "file": "explanations/architecture/ports/04-ontology-repository.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 26) vs explanation (score: 6)"
+    },
+    {
+      "file": "explanations/architecture/core/client.md",
+      "declared_category": "explanation",
+      "suggested_category": "reference",
+      "reason": "Content markers suggest reference (score: 124) vs explanation (score: 49)"
+    },
+    {
+      "file": "explanations/architecture/core/server.md",
+      "declared_category": "explanation",
+      "suggested_category": "reference",
+      "reason": "Content markers suggest reference (score: 66) vs explanation (score: 31)"
+    },
+    {
+      "file": "explanations/architecture/components/websocket-protocol.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 60) vs explanation (score: 6)"
+    },
+    {
+      "file": "explanations/architecture/gpu/optimizations.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 33) vs explanation (score: 1)"
+    },
+    {
+      "file": "multi-agent-docker/fixes/GPU_BUILD_STATUS.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 53) vs explanation (score: 1)"
+    },
+    {
+      "file": "multi-agent-docker/fixes/gpu-only-fixes.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 23) vs explanation (score: 5)"
+    },
+    {
+      "file": "multi-agent-docker/fixes/SUMMARY.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 18) vs explanation (score: 1)"
+    },
+    {
+      "file": "multi-agent-docker/development-notes/MIGRATION_PLAN_EXECUTED.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 19) vs explanation (score: 4)"
+    },
+    {
+      "file": "multi-agent-docker/development-notes/SESSION_2025-11-15.md",
+      "declared_category": "explanation",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 34) vs explanation (score: 1)"
+    },
+    {
+      "file": "reference/protocols/binary-websocket.md",
+      "declared_category": "reference",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 52) vs reference (score: 19)"
+    },
+    {
+      "file": "reference/api/03-websocket.md",
+      "declared_category": "reference",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 32) vs reference (score: 15)"
+    },
+    {
+      "file": "reference/database/ontology-schema-v2.md",
+      "declared_category": "reference",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 66) vs reference (score: 23)"
+    },
+    {
+      "file": "reference/database/user-settings-schema.md",
+      "declared_category": "reference",
+      "suggested_category": "tutorial",
+      "reason": "Content markers suggest tutorial (score: 39) vs reference (score: 15)"
+    }
+  ],
+  "structure_violations": [],
+  "deep_nesting_violations": [],
+  "invalid_directories": [],
+  "naming_violations": [],
+  "total_files": 303,
+  "active_files": 223,
+  "category_percentages": {
+    "tutorial": {
+      "count": 5,
+      "percentage": 2.24
+    },
+    "explanation": {
+      "count": 100,
+      "percentage": 44.84
+    },
+    "reference": {
+      "count": 41,
+      "percentage": 18.39
+    },
+    "uncategorized": {
+      "count": 6,
+      "percentage": 2.69
+    },
+    "guide": {
+      "count": 71,
+      "percentage": 31.84
+    }
+  },
+  "diataxis_compliance_percentage": 55
+}

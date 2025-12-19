@@ -6,8 +6,8 @@ tags:
   - architecture
   - structure
   - api
-  - rest
-  - websocket
+  - api
+  - api
 related-docs:
   - diagrams/mermaid-library/01-system-architecture-overview.md
   - diagrams/mermaid-library/02-data-flow-diagrams.md

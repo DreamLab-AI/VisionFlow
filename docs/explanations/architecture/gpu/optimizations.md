@@ -4,7 +4,7 @@ description: > ⚠️ **DEPRECATION NOTICE** ⚠️ > **GraphServiceActor** is d
 category: explanation
 tags:
   - architecture
-  - rust
+  - backend
   - documentation
   - reference
   - visionflow

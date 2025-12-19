@@ -1,13 +1,13 @@
 ---
 title: Three.js Rendering Pipeline
 description: VisionFlow uses **instanced rendering** to display 10,000+ nodes with a single draw call.  This guide explains how the Three.
-category: howto
+category: guide
 tags:
   - architecture
-  - rest
-  - websocket
+  - api
+  - api
   - http
-  - client
+  - frontend
 related-docs:
   - guides/client/state-management.md
   - guides/client/xr-integration.md

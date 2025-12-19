@@ -7,7 +7,7 @@ tags:
   - patterns
   - structure
   - api
-  - rest
+  - api
 related-docs:
   - multi-agent-docker/ANTIGRAVITY.md
   - multi-agent-docker/SKILLS.md

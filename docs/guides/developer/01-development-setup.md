@@ -1,10 +1,10 @@
 ---
 title: Development Setup Guide
 description: This guide will help you set up a complete development environment for VisionFlow. Follow these steps to start contributing to the project.
-category: howto
+category: guide
 tags:
-  - guide
-  - rest
+  - tutorial
+  - api
   - docker
 updated-date: 2025-12-18
 difficulty-level: beginner

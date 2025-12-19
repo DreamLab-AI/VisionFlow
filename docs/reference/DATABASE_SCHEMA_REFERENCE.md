@@ -3,7 +3,7 @@ title: Database Schema Reference
 description: Complete unified database schema documentation for VisionFlow including tables, relationships, indexes, and query patterns
 category: reference
 tags:
-  - neo4j
+  - database
   - documentation
   - reference
   - visionflow

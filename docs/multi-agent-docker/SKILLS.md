@@ -1,7 +1,7 @@
 ---
 title: Skills Documentation
 description: The Turbo Flow Claude multi-agent environment includes **54 specialized skills** that extend Claude Code's capabilities across AI/ML, DevOps, graphics, system administration, and development workfl...
-category: howto
+category: guide
 tags:
   - architecture
   - design

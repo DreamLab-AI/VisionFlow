@@ -4,7 +4,7 @@ description: The VNC desktop automatically launches 9 color-coded terminal windo
 category: explanation
 tags:
   - api
-  - rest
+  - api
   - http
   - docker
   - testing

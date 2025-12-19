@@ -1,3 +1,15 @@
+---
+title: "Mermaid Diagram Style Guide & Standards"
+description: "Comprehensive style guide establishing consistent notation, colors, themes, and complexity guidelines for all Mermaid diagrams"
+category: reference
+tags:
+  - documentation
+  - ui
+  - reference
+updated-date: 2025-12-19
+difficulty-level: intermediate
+---
+
 # Mermaid Diagram Style Guide & Standards
 
 ## Purpose

@@ -7,7 +7,7 @@ tags:
   - patterns
   - structure
   - api
-  - websocket
+  - api
 related-docs:
   - analysis/ontology-knowledge-skills-analysis.md
 updated-date: 2025-12-18

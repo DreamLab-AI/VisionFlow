@@ -1,7 +1,7 @@
 ---
 title: Working with Agents
 description: Documentation for working-with-agents
-category: howto
+category: guide
 tags:
   - architecture
   - design

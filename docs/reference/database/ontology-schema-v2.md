@@ -4,8 +4,8 @@ description: The Neo4j ontology adapter has been updated to support rich metadat
 category: reference
 tags:
   - database
-  - neo4j
-  - rust
+  - database
+  - backend
 updated-date: 2025-12-18
 difficulty-level: intermediate
 ---

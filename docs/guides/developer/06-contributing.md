@@ -1,10 +1,10 @@
 ---
 title: Contributing Guidelines
 description: We appreciate your interest in contributing to VisionFlow. This guide will help you get started.
-category: howto
+category: guide
 tags:
-  - guide
-  - rest
+  - tutorial
+  - api
   - documentation
   - reference
   - visionflow

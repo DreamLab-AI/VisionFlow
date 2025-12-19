@@ -3,7 +3,7 @@ title: ASCII Diagram Conversion Report
 description: **Agent**: ASCII Conversion Agent **Date**: 2025-12-02 **Source**: `.doc-alignment-reports/ascii-report-scoped.json`
 category: explanation
 tags:
-  - rest
+  - api
   - documentation
   - reference
   - visionflow

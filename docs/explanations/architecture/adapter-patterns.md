@@ -4,7 +4,7 @@ description: 1. [Overview](#overview) 2. [Core Adapter Pattern](#core-adapter-pa
 category: explanation
 tags:
   - architecture
-  - neo4j
+  - database
   - documentation
   - reference
   - visionflow

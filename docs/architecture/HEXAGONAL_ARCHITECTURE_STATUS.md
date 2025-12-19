@@ -7,7 +7,7 @@ tags:
   - design
   - structure
   - api
-  - rest
+  - api
 related-docs:
   - QUICK_NAVIGATION.md
   - architecture/blender-mcp-unified-architecture.md

@@ -4,10 +4,10 @@ description: **Agent**: Analytics Visualization Agent **Date**: 2025-11-28 **Tas
 category: explanation
 tags:
   - architecture
-  - rest
-  - websocket
-  - neo4j
-  - rust
+  - api
+  - api
+  - database
+  - backend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

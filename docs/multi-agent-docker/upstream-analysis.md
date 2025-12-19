@@ -6,7 +6,7 @@ tags:
   - architecture
   - design
   - api
-  - rest
+  - api
   - http
 related-docs:
   - multi-agent-docker/ANTIGRAVITY.md

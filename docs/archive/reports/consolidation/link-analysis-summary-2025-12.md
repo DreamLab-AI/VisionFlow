@@ -7,7 +7,7 @@ tags:
   - patterns
   - structure
   - api
-  - rest
+  - api
 related-docs:
   - working/ASSET_RESTORATION.md
   - working/CLIENT_ARCHITECTURE_ANALYSIS.md

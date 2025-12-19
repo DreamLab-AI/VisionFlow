@@ -3,8 +3,8 @@ title: WebSocket Binary Protocol Reference
 description: VisionFlow uses a custom binary WebSocket protocol optimized for real-time XR collaboration, semantic graph synchronization, and low-latency node updates. The protocol achieves 36 bytes per node up...
 category: reference
 tags:
-  - rest
-  - websocket
+  - api
+  - api
   - documentation
   - reference
   - visionflow

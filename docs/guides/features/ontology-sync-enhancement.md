@@ -1,12 +1,12 @@
 ---
 title: Ontology Sync Service Enhancement
 description: Enhanced GitHub sync service with intelligent ontology file filtering, caching, and metadata extraction.
-category: explanation
+category: guide
 tags:
-  - guide
-  - rest
-  - neo4j
-  - rust
+  - tutorial
+  - api
+  - database
+  - backend
 updated-date: 2025-12-18
 difficulty-level: intermediate
 ---

@@ -1,7 +1,7 @@
 ---
 title: Perplexity AI Integration
 description: Perplexity AI provides real-time web search and research capabilities with source citations.  This integration allows Claude Code to access current information, perform market research, and generat...
-category: howto
+category: guide
 tags:
   - architecture
   - structure

@@ -1,9 +1,9 @@
 ---
 title: Intelligent Pathfinding Guide
 description: Semantic pathfinding finds paths that are not just shortest, but most relevant to your query and graph semantics.
-category: howto
+category: guide
 tags:
-  - guide
+  - tutorial
   - documentation
   - reference
   - visionflow

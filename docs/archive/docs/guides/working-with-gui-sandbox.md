@@ -1,10 +1,10 @@
 ---
 title: Working with the GUI Sandbox
 description: [← Documentation Home](../../../README.md) > Working with GUI Sandbox
-category: howto
+category: guide
 tags:
-  - guide
-  - rest
+  - tutorial
+  - api
   - docker
 updated-date: 2025-12-18
 difficulty-level: intermediate

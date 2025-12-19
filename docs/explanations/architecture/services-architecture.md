@@ -4,10 +4,10 @@ description: **Version:** 1.0.0 **Last Updated:** 2025-11-04 **Status:** Product
 category: explanation
 tags:
   - architecture
-  - rest
-  - websocket
-  - neo4j
-  - rust
+  - api
+  - api
+  - database
+  - backend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---
@@ -2309,10 +2309,10 @@ impl ClientCoordinatorActor {
 }
 ```
 
-#### 3. OptimizedSettingsActor
+#### 3. OptimisedSettingsActor
 
 **Purpose:** Manage application settings with Neo4j persistence
-**Location:** `src/actors/optimized_settings_actor.rs`
+**Location:** `src/actors/optimised_settings_actor.rs`
 
 **State:**
 
@@ -3252,7 +3252,7 @@ CREATE (n:Node {
 })
 ```
 
-**Optimization Strategies:**
+**Optimisation Strategies:**
 - Index on `Node.metadata_id`
 - Connection pooling (10 connections)
 - Batch inserts (1000 per transaction)
@@ -3275,7 +3275,7 @@ ON CONFLICT(iri) DO UPDATE SET
     description = excluded.description
 ```
 
-**Optimization Strategies:**
+**Optimisation Strategies:**
 - Index on `iri` (UNIQUE)
 - Index on `parent_iri` (foreign key)
 - Single-threaded (Mutex) to avoid WAL conflicts

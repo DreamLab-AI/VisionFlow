@@ -4,10 +4,10 @@ description: User->>REST: POST /api/admin/sync/streaming     REST->>GitHub: trig
 category: reference
 tags:
   - api
-  - rest
-  - websocket
+  - api
+  - api
   - database
-  - neo4j
+  - database
 related-docs:
   - diagrams/mermaid-library/01-system-architecture-overview.md
 updated-date: 2025-12-18

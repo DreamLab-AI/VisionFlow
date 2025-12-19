@@ -1,13 +1,13 @@
 ---
 title: Vircadia Multi-User XR Integration - User Guide
 description: VisionFlow now supports **multi-user collaborative visualization** through Vircadia World Server integration. Multiple users can simultaneously view and interact with the same agent swarm and knowl...
-category: howto
+category: guide
 tags:
-  - guide
-  - rest
-  - websocket
+  - tutorial
+  - api
+  - api
   - docker
-  - rust
+  - backend
 updated-date: 2025-12-18
 difficulty-level: intermediate
 ---

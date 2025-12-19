@@ -3,8 +3,8 @@ title: VisionFlow Test Suite
 description: Comprehensive test suite for the VisionFlow migration project covering integration, performance, and load testing.
 category: explanation
 tags:
-  - rest
-  - rust
+  - api
+  - backend
   - documentation
   - reference
   - visionflow

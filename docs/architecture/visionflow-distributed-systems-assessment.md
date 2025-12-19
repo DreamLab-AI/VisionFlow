@@ -4,10 +4,10 @@ description: Technical assessment of VisionFlow's existing distributed infrastru
 category: explanation
 tags:
   - architecture
-  - rest
-  - websocket
+  - api
+  - api
   - docker
-  - neo4j
+  - database
 updated-date: 2025-12-18
 difficulty-level: advanced
 date: 2025-12-16

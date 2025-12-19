@@ -3,7 +3,7 @@ title: PageRank GPU Context Fix Analysis
 description: **Date**: 2025-11-08 **Component**: PageRank Actor GPU Integration **Status**: ✅ **RESOLVED** - No actual compilation errors
 category: explanation
 tags:
-  - rust
+  - backend
   - documentation
   - reference
   - visionflow

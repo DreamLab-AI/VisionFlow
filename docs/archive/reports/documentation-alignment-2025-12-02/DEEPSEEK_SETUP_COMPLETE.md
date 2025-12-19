@@ -3,7 +3,7 @@ title: DeepSeek User Setup - Complete
 description: Successfully configured `deepseek-user` (UID 1004) in the unified docker container with full agentic-flow integration and DeepSeek API credentials.
 category: explanation
 tags:
-  - rest
+  - api
   - docker
   - documentation
   - reference

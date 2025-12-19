@@ -3,8 +3,8 @@ title: Enhanced Rust Ontology Parser Implementation
 description: **Date**: 2025-11-22 **Version**: 2.0.0 **Status**: Complete
 category: explanation
 tags:
-  - neo4j
-  - rust
+  - database
+  - backend
   - documentation
   - reference
   - visionflow

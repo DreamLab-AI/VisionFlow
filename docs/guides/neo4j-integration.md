@@ -1,13 +1,13 @@
 ---
 title: Neo4j Integration Guide
 description: **Status**: ✅ Production (Primary Database) **Last Updated**: November 6, 2025
-category: howto
+category: guide
 tags:
-  - guide
-  - rest
-  - websocket
+  - tutorial
+  - api
+  - api
   - docker
-  - neo4j
+  - database
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

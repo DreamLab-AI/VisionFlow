@@ -1,7 +1,7 @@
 ---
 title: VisionFlow Architecture Overview
 description: VisionFlow is built on three core architectural principles:
-category: howto
+category: reference
 tags:
   - architecture
   - design

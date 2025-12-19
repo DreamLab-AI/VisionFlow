@@ -1,13 +1,13 @@
 ---
 title: Documentation Contributing Guidelines
 description: This document explains how to contribute to VisionFlow documentation using the **Diátaxis** framework.
-category: howto
+category: guide
 tags:
-  - guide
-  - rest
-  - websocket
+  - tutorial
+  - api
+  - api
   - docker
-  - react
+  - frontend
 updated-date: 2025-12-18
 difficulty-level: intermediate
 ---

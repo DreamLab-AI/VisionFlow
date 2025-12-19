@@ -1,13 +1,13 @@
 ---
 title: GraphServiceActor Migration Guide (HISTORICAL REFERENCE)
 description: ✅ MIGRATION COMPLETE - Historical reference for the completed GraphServiceActor replacement
-category: howto
+category: guide
 tags:
-  - guide
-  - rest
-  - websocket
-  - neo4j
-  - rust
+  - tutorial
+  - api
+  - api
+  - database
+  - backend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

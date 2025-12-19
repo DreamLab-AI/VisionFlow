@@ -3,8 +3,8 @@ title: Actor Handler Trait Implementations - Fix Report
 description: **Date**: 2025-11-08 **Status**: ✅ ANALYSIS COMPLETE - Implementation Roadmap Provided
 category: explanation
 tags:
-  - rest
-  - rust
+  - api
+  - backend
   - documentation
   - reference
   - visionflow

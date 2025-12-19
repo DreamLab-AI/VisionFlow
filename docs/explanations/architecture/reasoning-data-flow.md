@@ -4,8 +4,8 @@ description: Complete ontology reasoning pipeline from GitHub markdown to inferr
 category: explanation
 tags:
   - architecture
-  - websocket
-  - rust
+  - api
+  - backend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

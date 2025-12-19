@@ -1,11 +1,11 @@
 ---
 title: Docker Compose Unified Configuration - Usage Guide
 description: The unified `docker-compose.unified.yml` replaces three separate compose files with a single, profile-based configuration that supports both development and production environments.
-category: howto
+category: guide
 tags:
-  - guide
+  - tutorial
   - docker
-  - rust
+  - backend
 updated-date: 2025-12-18
 difficulty-level: intermediate
 ---

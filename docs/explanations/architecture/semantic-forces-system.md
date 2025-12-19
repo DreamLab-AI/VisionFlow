@@ -4,9 +4,9 @@ description: **Status:** Implementation Ready **Version:** 1.0 **Last Updated:**
 category: explanation
 tags:
   - architecture
-  - rest
-  - rust
-  - react
+  - api
+  - backend
+  - frontend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

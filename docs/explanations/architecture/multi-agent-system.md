@@ -4,10 +4,10 @@ description: **Version:** 1.0 **Last Updated:** November 5, 2025 **Status:** Pro
 category: explanation
 tags:
   - architecture
-  - rest
-  - websocket
+  - api
+  - api
   - docker
-  - neo4j
+  - database
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

@@ -1,0 +1,53 @@
+{
+  "scan_date": "2025-12-19",
+  "status": "COMPLETE",
+  "critical_findings": {
+    "total_files": 301,
+    "total_directories": 96,
+    "orphaned_files_count": 59,
+    "duplicate_filenames_count": 15,
+    "naming_violations_count": 32,
+    "deep_nested_count": 3,
+    "reference_rate": 83.33
+  },
+  "top_issues": [
+    {
+      "issue": "Orphaned Files",
+      "count": 59,
+      "severity": "HIGH",
+      "action": "Review for archival or link from navigation"
+    },
+    {
+      "issue": "Naming Violations",
+      "count": 32,
+      "severity": "MEDIUM",
+      "action": "Rename to kebab-case convention"
+    },
+    {
+      "issue": "README.md Duplicates",
+      "count": 15,
+      "severity": "LOW",
+      "action": "Expected - one per directory"
+    }
+  ],
+  "largest_directories": [
+    {
+      "path": "explanations/architecture",
+      "files": 30
+    },
+    {
+      "path": "guides",
+      "files": 30
+    },
+    {
+      "path": "archive/reports",
+      "files": 19
+    }
+  ],
+  "ready_for": [
+    "link-validator",
+    "mermaid-validator",
+    "ontology-mapper",
+    "archive-manager"
+  ]
+}

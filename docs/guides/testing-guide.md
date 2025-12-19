@@ -1,11 +1,11 @@
 ---
 title: VisionFlow Testing Guide
 description: **Last Updated**: 2025-10-03 **Purpose**: Comprehensive manual testing guide for VisionFlow control panel functionality and API endpoints **Testing Approach**: Manual testing only (automated tests ...
-category: howto
+category: guide
 tags:
-  - guide
+  - tutorial
   - testing
-  - websocket
+  - api
 updated-date: 2025-12-18
 difficulty-level: intermediate
 ---
@@ -369,4 +369,3 @@ The control panel should include:
 
 ---
 
-**Testing Status**: All major endpoints verified operational. Control panel functionality requires runtime validation in browser with WebGL support.

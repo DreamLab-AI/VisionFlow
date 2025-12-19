@@ -3,8 +3,8 @@ title: VisionFlow Extension Guide
 description: 1. [Overview](#overview) 2. [Extension Architecture](#extension-architecture) 3. [Custom Handlers](#custom-handlers)
 category: explanation
 tags:
-  - guide
-  - rest
+  - tutorial
+  - api
   - documentation
   - reference
   - visionflow

@@ -3,8 +3,8 @@ title: Borrow Checker Quick Reference Guide
 description: **When to use**: Operations are independent and can be reordered
 category: explanation
 tags:
-  - rest
-  - rust
+  - api
+  - backend
   - documentation
   - reference
   - visionflow

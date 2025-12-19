@@ -6,8 +6,8 @@ tags:
   - architecture
   - design
   - api
-  - rest
-  - websocket
+  - api
+  - api
 related-docs:
   - guides/client/three-js-rendering.md
   - guides/client/state-management.md

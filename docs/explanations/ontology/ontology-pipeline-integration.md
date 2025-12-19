@@ -3,8 +3,8 @@ title: Ontology Pipeline Integration
 description: > ⚠️ **DEPRECATION NOTICE** ⚠️ > **GraphServiceActor** is deprecated. See `/docs/guides/graphserviceactor-migration.md` for current patterns.
 category: explanation
 tags:
-  - websocket
-  - rust
+  - api
+  - backend
   - documentation
   - reference
   - visionflow

@@ -1,11 +1,11 @@
 ---
 title: Test Execution Guide - Semantic Intelligence Validation
 description: **Quick reference for running the comprehensive test suite**
-category: howto
+category: guide
 tags:
-  - guide
-  - websocket
-  - rust
+  - tutorial
+  - api
+  - backend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

@@ -1,13 +1,13 @@
 ---
 title: Telemetry and Logging Guide
 description: *[Guides](../guides/readme.md) > Telemetry and Logging*
-category: howto
+category: guide
 tags:
-  - guide
-  - rest
-  - websocket
+  - tutorial
+  - api
+  - api
   - docker
-  - rust
+  - backend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---
@@ -1048,4 +1048,3 @@ For additional support or feature requests, please refer to the main project doc
 
 **Last Updated**: 2025-09-17
 **Guide Version**: 1.0.0
-**System Compatibility**: VisionFlow WebXR v2.0.0+

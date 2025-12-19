@@ -3,8 +3,8 @@ title: P1-1 Implementation Checklist
 description: **Specification**: P1-1 **Implementation Date**: 2025-11-08 **Status**: ✅ COMPLETE
 category: explanation
 tags:
-  - rest
-  - rust
+  - api
+  - backend
   - documentation
   - reference
   - visionflow

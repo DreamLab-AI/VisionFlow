@@ -3,11 +3,11 @@ title: Documentation Index - Quick Start Guide
 description: **Navigation shortcuts for the VisionFlow documentation hub**
 category: explanation
 tags:
-  - rest
-  - websocket
+  - api
+  - api
   - docker
-  - neo4j
-  - rust
+  - database
+  - backend
 updated-date: 2025-12-18
 difficulty-level: beginner
 ---

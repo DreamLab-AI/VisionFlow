@@ -3,8 +3,8 @@ title: SemanticForcesActor Design Document
 description: **Author**: Semantic Forces Agent **Date**: 2025-11-28 **Status**: Implementation Ready
 category: explanation
 tags:
-  - rest
-  - rust
+  - api
+  - backend
   - documentation
   - reference
   - visionflow

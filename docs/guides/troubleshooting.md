@@ -1,13 +1,13 @@
 ---
 title: Troubleshooting Guide
 description: > [Guides](./index.md) > Troubleshooting
-category: howto
+category: guide
 tags:
-  - guide
-  - rest
-  - websocket
+  - tutorial
+  - api
+  - api
   - docker
-  - rust
+  - backend
 updated-date: 2025-12-18
 difficulty-level: intermediate
 ---

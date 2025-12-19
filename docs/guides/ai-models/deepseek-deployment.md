@@ -1,11 +1,11 @@
 ---
 title: DeepSeek Reasoning Skill - Deployment Summary
 description: **New MCP Skill:** `deepseek-reasoning` - **Location:** `/home/devuser/.claude/skills/deepseek-reasoning/` - **Purpose:** Bridge Claude Code (devuser) to DeepSeek reasoning models via isolated deep...
-category: howto
+category: guide
 tags:
-  - guide
+  - tutorial
   - deployment
-  - rest
+  - api
   - docker
 updated-date: 2025-12-18
 difficulty-level: advanced

@@ -3,8 +3,8 @@ title: Neo4j Settings Migration - Executive Summary
 description: **Date**: 2025-11-06 **Status**: 🟢 Production Complete | 🔴 Tests Blocked **Impact**: Test compilation failures blocking CI/CD
 category: explanation
 tags:
-  - neo4j
-  - rust
+  - database
+  - backend
   - documentation
   - reference
   - visionflow

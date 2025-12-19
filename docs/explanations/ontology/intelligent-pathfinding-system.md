@@ -3,10 +3,10 @@ title: Intelligent Pathfinding System
 description: **Status:** Implementation Ready **Version:** 1.0 **Last Updated:** 2025-11-05
 category: explanation
 tags:
-  - rest
-  - neo4j
-  - rust
-  - react
+  - api
+  - database
+  - backend
+  - frontend
 updated-date: 2025-12-18
 difficulty-level: intermediate
 ---

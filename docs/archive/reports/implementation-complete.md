@@ -3,8 +3,8 @@ title: ✅ Enhanced Ontology Parser - Implementation Complete
 description: **Date**: 2025-11-22 **Status**: Production Ready **Developer**: Claude Code Agent
 category: explanation
 tags:
-  - neo4j
-  - rust
+  - database
+  - backend
   - documentation
   - reference
   - visionflow

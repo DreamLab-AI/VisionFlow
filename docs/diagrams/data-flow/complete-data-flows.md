@@ -6,8 +6,8 @@ tags:
   - architecture
   - structure
   - api
-  - rest
-  - websocket
+  - api
+  - api
 related-docs:
   - ASCII_DEPRECATION_COMPLETE.md
   - audits/ascii-diagram-deprecation-audit.md

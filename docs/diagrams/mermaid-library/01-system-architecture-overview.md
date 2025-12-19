@@ -6,8 +6,8 @@ tags:
   - architecture
   - structure
   - api
-  - rest
-  - websocket
+  - api
+  - api
 updated-date: 2025-12-18
 difficulty-level: advanced
 dependencies:

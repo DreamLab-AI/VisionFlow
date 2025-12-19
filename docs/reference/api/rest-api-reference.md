@@ -4,9 +4,9 @@ description: **VisionFlow Ontology and Graph API Documentation**
 category: reference
 tags:
   - api
-  - rest
-  - websocket
-  - rust
+  - api
+  - api
+  - backend
 updated-date: 2025-12-18
 difficulty-level: intermediate
 ---

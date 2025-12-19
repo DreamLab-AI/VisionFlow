@@ -1,13 +1,13 @@
 ---
 title: Link Fix Suggestions
 description: Generated: 2025-12-18T21:13:09.
-category: howto
+category: guide
 tags:
   - architecture
   - patterns
   - structure
   - api
-  - rest
+  - api
 related-docs:
   - working/ASSET_RESTORATION.md
   - working/CLIENT_ARCHITECTURE_ANALYSIS.md

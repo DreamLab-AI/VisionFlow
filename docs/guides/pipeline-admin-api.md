@@ -1,13 +1,13 @@
 ---
 title: Pipeline Admin API Guide
 description: > ⚠️ **DEPRECATION NOTICE** ⚠️ > **GraphServiceActor** is deprecated. See `/docs/guides/graphserviceactor-migration.md` for current patterns.
-category: howto
+category: guide
 tags:
   - api
-  - guide
-  - rest
-  - websocket
-  - rust
+  - tutorial
+  - api
+  - api
+  - backend
 updated-date: 2025-12-18
 difficulty-level: intermediate
 ---

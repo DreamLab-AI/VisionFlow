@@ -4,7 +4,7 @@ description: The **OntologyRepository** port manages the ontology graph structur
 category: explanation
 tags:
   - architecture
-  - rust
+  - backend
   - documentation
   - reference
   - visionflow

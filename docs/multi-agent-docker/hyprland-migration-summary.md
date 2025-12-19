@@ -4,7 +4,7 @@ description: Successfully migrated the Turbo Flow Unified Container from XFCE4 +
 category: explanation
 tags:
   - api
-  - rest
+  - api
   - docker
   - testing
   - playwright

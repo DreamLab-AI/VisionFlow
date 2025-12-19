@@ -3,7 +3,7 @@ title: ASCII to Mermaid Conversion Report
 description: **Date**: 2025-12-02 **Task**: Convert 4 ASCII diagrams to mermaid format **Priority**: LOW - Visual improvement
 category: explanation
 tags:
-  - rest
+  - api
   - documentation
   - reference
   - visionflow
@@ -322,7 +322,6 @@ All conversions followed this pattern:
 **Original Context**
 
 ```mermaid
-[DIAGRAM]
 ```
 
 [ORIGINAL ASCII LIST PRESERVED]

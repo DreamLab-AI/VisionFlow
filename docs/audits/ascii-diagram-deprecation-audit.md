@@ -6,8 +6,8 @@ tags:
   - architecture
   - structure
   - api
-  - rest
-  - websocket
+  - api
+  - api
 related-docs:
   - diagrams/infrastructure/websocket/binary-protocol-complete.md
   - diagrams/data-flow/complete-data-flows.md

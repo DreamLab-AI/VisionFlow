@@ -3,7 +3,7 @@ title: Hierarchical Visualization System - Implementation Report
 description: **Agent 6: Hierarchical Visualization Specialist** **Date:** 2025-11-03 **Status:** ✅ COMPLETE
 category: explanation
 tags:
-  - react
+  - frontend
   - documentation
   - reference
   - visionflow

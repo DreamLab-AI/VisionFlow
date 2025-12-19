@@ -2,10 +2,12 @@
 title: "Documentation Validation Checklist"
 description: "Quality assurance checklist for documentation contributions"
 category: reference
-tags: [validation, quality, checklist, standards]
-version: 2.0.0
-last_updated: 2025-12-18
+tags:
+  - documentation
+updated-date: 2025-12-19
+difficulty-level: intermediate
 ---
+
 
 # Documentation Validation Checklist
 

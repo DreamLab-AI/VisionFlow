@@ -1,11 +1,11 @@
 ---
 title: ComfyUI SAM3D Docker Setup
 description: Documentation for comfyui-sam3d-setup
-category: howto
+category: guide
 tags:
   - architecture
   - structure
-  - rest
+  - api
   - http
   - docker
 related-docs:

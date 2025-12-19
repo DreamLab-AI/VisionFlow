@@ -4,10 +4,10 @@ description: Production hexagonal architecture with CQRS patterns, 21 actors, 9 
 category: explanation
 tags:
   - architecture
-  - rest
-  - websocket
-  - neo4j
-  - rust
+  - api
+  - api
+  - database
+  - backend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

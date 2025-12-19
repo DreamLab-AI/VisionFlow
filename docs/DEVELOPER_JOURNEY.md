@@ -1,7 +1,7 @@
 ---
 title: VisionFlow Developer Journey: Navigating the Codebase
 description: This guide maps your journey from first-time contributor to expert developer.  Whether you're fixing a bug, adding a feature, or exploring the architecture, this document shows you **where to start...
-category: howto
+category: guide
 tags:
   - architecture
   - design

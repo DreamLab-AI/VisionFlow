@@ -4,9 +4,9 @@ description: **VisionFlow Client Architecture Documentation** **Version:** 0.1.0
 category: explanation
 tags:
   - architecture
-  - client
-  - rest
-  - websocket
+  - frontend
+  - api
+  - api
   - docker
 updated-date: 2025-12-18
 difficulty-level: advanced

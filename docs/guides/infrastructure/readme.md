@@ -1,13 +1,13 @@
 ---
 title: Multi-Agent Docker Environment
 description: [![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/) [![Claude Flow](https://img.shields.io/badge/Claude-Flow-alpha-purpl...
-category: howto
+category: guide
 tags:
-  - guide
-  - rest
-  - websocket
+  - tutorial
+  - api
+  - api
   - docker
-  - rust
+  - backend
 updated-date: 2025-12-18
 difficulty-level: intermediate
 ---
@@ -551,4 +551,3 @@ For detailed security information, see:
 
 ## 📜 License
 
-This project is released into the public domain under the .

@@ -1,11 +1,13 @@
 ---
-title: Reference Documentation
-description: Comprehensive unified reference documentation for VisionFlow extracted from 306-file corpus
-type: reference
-status: stable
-version: 2.0
-last_updated: 2025-12-18
+title: "Reference Documentation"
+description: "Comprehensive unified reference documentation for VisionFlow extracted from 306-file corpus"
+category: reference
+tags:
+  - documentation
+updated-date: 2025-12-19
+difficulty-level: intermediate
 ---
+
 
 # VisionFlow Reference Documentation
 

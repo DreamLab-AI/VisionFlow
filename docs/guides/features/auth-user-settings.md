@@ -1,11 +1,11 @@
 ---
 title: Per-User Settings Implementation
 description: Implemented server-side authentication middleware and per-user settings lookup for VisionFlow.
-category: howto
+category: guide
 tags:
-  - guide
-  - neo4j
-  - rust
+  - tutorial
+  - database
+  - backend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

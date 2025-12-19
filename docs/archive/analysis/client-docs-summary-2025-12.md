@@ -7,7 +7,7 @@ tags:
   - design
   - structure
   - api
-  - websocket
+  - api
 related-docs:
   - QUICK_NAVIGATION.md
   - working/ASSET_RESTORATION.md

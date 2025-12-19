@@ -1,15 +1,14 @@
 ---
-title: Complete API Reference
-description: Unified reference for all VisionFlow APIs including REST, WebSocket, and binary protocols
+title: "Complete API Reference"
+description: "Unified reference for all VisionFlow APIs including REST, WebSocket, and binary protocols"
 category: reference
 tags:
-  - rest
-  - websocket
-  - rust
-updated-date: 2025-12-18
+  - api
+  - backend
+updated-date: 2025-12-19
 difficulty-level: intermediate
-version: 2.0
 ---
+
 
 
 # Complete API Reference

@@ -1,0 +1,2485 @@
+{
+  "sanitized": 160,
+  "total": 324,
+  "results": [
+    {
+      "success": true,
+      "file": "README.md",
+      "before": [
+        "architecture",
+        "design",
+        "patterns",
+        "structure",
+        "api"
+      ],
+      "after": [
+        "architecture",
+        "api"
+      ]
+    },
+    {
+      "success": true,
+      "file": "ARCHITECTURE_OVERVIEW.md",
+      "before": [
+        "architecture",
+        "design",
+        "patterns",
+        "structure",
+        "api"
+      ],
+      "after": [
+        "architecture",
+        "api"
+      ]
+    },
+    {
+      "success": true,
+      "file": "audits/neo4j-settings-migration-audit.md",
+      "before": [
+        "neo4j",
+        "rust",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "database",
+        "backend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "audits/neo4j-migration-action-plan.md",
+      "before": [
+        "rest",
+        "docker",
+        "neo4j",
+        "rust"
+      ],
+      "after": [
+        "api",
+        "docker",
+        "database",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "audits/neo4j-migration-summary.md",
+      "before": [
+        "neo4j",
+        "rust",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "database",
+        "backend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "reference/physics-implementation.md",
+      "before": [
+        "rust",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "backend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "reference/error-codes.md",
+      "before": [
+        "rest",
+        "websocket",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "api",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "reference/implementation-status.md",
+      "before": [
+        "websocket",
+        "neo4j",
+        "rust"
+      ],
+      "after": [
+        "api",
+        "database",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "reference/api/README.md",
+      "before": [
+        "api",
+        "rest",
+        "websocket",
+        "react"
+      ],
+      "after": [
+        "api",
+        "frontend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "reference/api/rest-api-reference.md",
+      "before": [
+        "api",
+        "rest",
+        "websocket",
+        "rust"
+      ],
+      "after": [
+        "api",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "reference/api/03-websocket.md",
+      "before": [
+        "api",
+        "rest",
+        "websocket",
+        "rust",
+        "react"
+      ],
+      "after": [
+        "api",
+        "backend",
+        "frontend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "reference/api/rest-api-complete.md",
+      "before": [
+        "api",
+        "rest",
+        "websocket"
+      ],
+      "after": [
+        "api"
+      ]
+    },
+    {
+      "success": true,
+      "file": "reference/api-complete-reference.md",
+      "before": [
+        "api",
+        "rest",
+        "websocket"
+      ],
+      "after": [
+        "api"
+      ]
+    },
+    {
+      "success": true,
+      "file": "reference/code-quality-status.md",
+      "before": [
+        "websocket",
+        "neo4j",
+        "rust"
+      ],
+      "after": [
+        "api",
+        "database",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "reference/performance-benchmarks.md",
+      "before": [
+        "rest",
+        "websocket",
+        "neo4j",
+        "rust",
+        "react"
+      ],
+      "after": [
+        "api",
+        "database",
+        "backend",
+        "frontend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "reference/database/schemas.md",
+      "before": [
+        "database",
+        "rust",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "database",
+        "backend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "reference/database/ontology-schema-v2.md",
+      "before": [
+        "database",
+        "neo4j",
+        "rust"
+      ],
+      "after": [
+        "database",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "reference/database/neo4j-persistence-analysis.md",
+      "before": [
+        "database",
+        "rest",
+        "neo4j",
+        "rust"
+      ],
+      "after": [
+        "database",
+        "api",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "reference/database/user-settings-schema.md",
+      "before": [
+        "database",
+        "neo4j",
+        "rust"
+      ],
+      "after": [
+        "database",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "multi-agent-docker/development-notes/MIGRATION_PLAN_EXECUTED.md",
+      "before": [
+        "architecture",
+        "design",
+        "api",
+        "docker",
+        "playwright"
+      ],
+      "after": [
+        "architecture",
+        "api",
+        "docker"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/audits/quality-gates-api.md",
+      "before": [
+        "api",
+        "rest",
+        "websocket",
+        "rust"
+      ],
+      "after": [
+        "api",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/fixes/quick-reference.md",
+      "before": [
+        "rest",
+        "rust",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "api",
+        "backend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/fixes/before-after-comparison.md",
+      "before": [
+        "rust",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "backend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/fixes/type-corrections.md",
+      "before": [
+        "neo4j",
+        "rust",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "database",
+        "backend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/fixes/pagerank-fix.md",
+      "before": [
+        "rust",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "backend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/fixes/actor-handlers.md",
+      "before": [
+        "rest",
+        "rust",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "api",
+        "backend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/fixes/technical-details.md",
+      "before": [
+        "rust",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "backend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/fixes/type-corrections-final-summary.md",
+      "before": [
+        "rest",
+        "rust",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "api",
+        "backend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/fixes/type-corrections-progress.md",
+      "before": [
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/multi-agent-docker/skills/IMPLEMENTATION_GUIDE.md",
+      "before": [
+        "docker",
+        "react",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "docker",
+        "frontend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/analysis/client-docs-summary-2025-12.md",
+      "before": [
+        "architecture",
+        "design",
+        "structure",
+        "api",
+        "websocket"
+      ],
+      "after": [
+        "architecture",
+        "api"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/analysis/historical-context-recovery-2025-12.md",
+      "before": [
+        "architecture",
+        "design",
+        "patterns",
+        "structure",
+        "api"
+      ],
+      "after": [
+        "architecture",
+        "api"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/ARCHIVE_REPORT.md",
+      "before": [
+        "docker",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "docker",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/sprint-logs/p1-1-summary.md",
+      "before": [
+        "rest",
+        "neo4j",
+        "rust"
+      ],
+      "after": [
+        "api",
+        "database",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/sprint-logs/p1-1-checklist.md",
+      "before": [
+        "rest",
+        "rust",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "api",
+        "backend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/sprint-logs/p1-1-configure-complete.md",
+      "before": [
+        "rest",
+        "rust",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "api",
+        "backend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/sprint-logs/p0-3-semantic-forces.md",
+      "before": [
+        "rest",
+        "rust",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "api",
+        "backend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/sprint-logs/p2-complete.md",
+      "before": [
+        "websocket",
+        "rust",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "api",
+        "backend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/sprint-logs/p1-2-pagerank.md",
+      "before": [
+        "rest",
+        "websocket",
+        "rust"
+      ],
+      "after": [
+        "api",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/sprint-logs/p2-features.md",
+      "before": [
+        "rest",
+        "rust",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "api",
+        "backend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/INDEX-QUICK-START-old.md",
+      "before": [
+        "rest",
+        "websocket",
+        "docker",
+        "neo4j",
+        "rust"
+      ],
+      "after": [
+        "api",
+        "docker",
+        "database",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/docs/guides/working-with-gui-sandbox.md",
+      "before": [
+        "guide",
+        "rest",
+        "docker"
+      ],
+      "after": [
+        "tutorial",
+        "api",
+        "docker"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/docs/guides/xr-setup.md",
+      "before": [
+        "guide",
+        "rest",
+        "websocket",
+        "rust"
+      ],
+      "after": [
+        "tutorial",
+        "api",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/reports/mermaid-fixes-examples.md",
+      "before": [
+        "websocket",
+        "docker",
+        "neo4j"
+      ],
+      "after": [
+        "api",
+        "docker",
+        "database"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/reports/ascii-to-mermaid-conversion.md",
+      "before": [
+        "rest",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "api",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/reports/mermaid-fixes-report.md",
+      "before": [
+        "websocket",
+        "docker",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "api",
+        "docker",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/reports/mermaid-validation-complete.md",
+      "before": [
+        "websocket",
+        "docker",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "api",
+        "docker",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/reports/2025-12-02-stub-implementation.md",
+      "before": [
+        "websocket",
+        "neo4j",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "api",
+        "database",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/reports/documentation-alignment-2025-12-02/SWARM_EXECUTION_REPORT.md",
+      "before": [
+        "rest",
+        "docker",
+        "neo4j",
+        "rust",
+        "react"
+      ],
+      "after": [
+        "api",
+        "docker",
+        "database",
+        "backend",
+        "frontend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/reports/documentation-alignment-2025-12-02/DOCUMENTATION_ALIGNMENT_SUMMARY.md",
+      "before": [
+        "docker",
+        "rust",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "docker",
+        "backend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/reports/link-fixes-report.md",
+      "before": [
+        "docker",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "docker",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/reports/implementation-complete.md",
+      "before": [
+        "neo4j",
+        "rust",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "database",
+        "backend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/reports/documentation-index-report.md",
+      "before": [
+        "docker",
+        "neo4j",
+        "rust"
+      ],
+      "after": [
+        "docker",
+        "database",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/reports/implementation-report-stubs.md",
+      "before": [
+        "neo4j",
+        "rust",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "database",
+        "backend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/reports/CLEANUP_SUMMARY.md",
+      "before": [
+        "docker",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "docker",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/reports/hive-mind-integration.md",
+      "before": [
+        "websocket",
+        "docker",
+        "neo4j",
+        "rust",
+        "react"
+      ],
+      "after": [
+        "api",
+        "docker",
+        "database",
+        "backend",
+        "frontend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/reports/consolidation/link-validation-report-2025-12.md",
+      "before": [
+        "architecture",
+        "design",
+        "patterns",
+        "structure",
+        "api"
+      ],
+      "after": [
+        "architecture",
+        "api"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/reports/consolidation/link-fix-suggestions-2025-12.md",
+      "before": [
+        "architecture",
+        "patterns",
+        "structure",
+        "api",
+        "rest"
+      ],
+      "after": [
+        "architecture",
+        "api"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/reports/documentation-issues.md",
+      "before": [
+        "websocket",
+        "docker",
+        "neo4j"
+      ],
+      "after": [
+        "api",
+        "docker",
+        "database"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/reports/link-audit-summary.md",
+      "before": [
+        "docker",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "docker",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/reports/documentation-audit-final.md",
+      "before": [
+        "websocket",
+        "docker",
+        "neo4j"
+      ],
+      "after": [
+        "api",
+        "docker",
+        "database"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/reports/2025-12-02-user-settings-summary.md",
+      "before": [
+        "websocket",
+        "neo4j",
+        "rust"
+      ],
+      "after": [
+        "api",
+        "database",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/reports/ascii-conversion-report.md",
+      "before": [
+        "rest",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "api",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/specialized/client-typescript-architecture.md",
+      "before": [
+        "architecture",
+        "client",
+        "rest",
+        "websocket",
+        "docker"
+      ],
+      "after": [
+        "architecture",
+        "frontend",
+        "api",
+        "docker"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/specialized/client-components-reference.md",
+      "before": [
+        "client",
+        "rest",
+        "websocket",
+        "rust",
+        "react"
+      ],
+      "after": [
+        "frontend",
+        "api",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/implementation-logs/stress-majorization-implementation.md",
+      "before": [
+        "rest",
+        "rust",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "api",
+        "backend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/data/markdown/implementation-examples.md",
+      "before": [
+        "rest",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "api",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/data/markdown/IMPLEMENTATION-SUMMARY.md",
+      "before": [
+        "rust",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "backend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/data/markdown/OntologyDefinition.md",
+      "before": [
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/data/pages/implementation-examples.md",
+      "before": [
+        "rust",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "backend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/data/pages/IMPLEMENTATION-SUMMARY.md",
+      "before": [
+        "rest",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "api",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/data/pages/ComfyWorkFlows.md",
+      "before": [
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "archive/data/pages/OntologyDefinition.md",
+      "before": [
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/physics/semantic-forces-actor.md",
+      "before": [
+        "rest",
+        "rust",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "api",
+        "backend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/ontology/client-side-hierarchical-lod.md",
+      "before": [
+        "client",
+        "react",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "frontend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/ontology/neo4j-integration.md",
+      "before": [
+        "rest",
+        "docker",
+        "neo4j",
+        "rust"
+      ],
+      "after": [
+        "api",
+        "docker",
+        "database",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/ontology/intelligent-pathfinding-system.md",
+      "before": [
+        "rest",
+        "neo4j",
+        "rust",
+        "react"
+      ],
+      "after": [
+        "api",
+        "database",
+        "backend",
+        "frontend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/ontology/ontology-pipeline-integration.md",
+      "before": [
+        "websocket",
+        "rust",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "api",
+        "backend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/ontology/enhanced-parser.md",
+      "before": [
+        "neo4j",
+        "rust",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "database",
+        "backend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/ontology/ontology-typed-system.md",
+      "before": [
+        "rest",
+        "neo4j",
+        "rust",
+        "react"
+      ],
+      "after": [
+        "api",
+        "database",
+        "backend",
+        "frontend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/ontology/hierarchical-visualization.md",
+      "before": [
+        "react",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "frontend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/architecture/ontology-reasoning-pipeline.md",
+      "before": [
+        "architecture",
+        "rest",
+        "rust"
+      ],
+      "after": [
+        "architecture",
+        "api",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/architecture/decisions/0001-neo4j-persistent-with-filesystem-sync.md",
+      "before": [
+        "architecture",
+        "rest",
+        "docker",
+        "neo4j",
+        "rust"
+      ],
+      "after": [
+        "architecture",
+        "api",
+        "docker",
+        "database",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/architecture/ontology-physics-integration.md",
+      "before": [
+        "architecture",
+        "rest",
+        "rust"
+      ],
+      "after": [
+        "architecture",
+        "api",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/architecture/ports/03-knowledge-graph-repository.md",
+      "before": [
+        "architecture",
+        "neo4j",
+        "rust"
+      ],
+      "after": [
+        "architecture",
+        "database",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/architecture/ports/02-settings-repository.md",
+      "before": [
+        "architecture",
+        "docker",
+        "neo4j",
+        "rust"
+      ],
+      "after": [
+        "architecture",
+        "docker",
+        "database",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/architecture/ports/01-overview.md",
+      "before": [
+        "architecture",
+        "neo4j",
+        "rust"
+      ],
+      "after": [
+        "architecture",
+        "database",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/architecture/ruvector-integration.md",
+      "before": [
+        "architecture",
+        "rest",
+        "neo4j",
+        "rust"
+      ],
+      "after": [
+        "architecture",
+        "api",
+        "database",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/architecture/quick-reference.md",
+      "before": [
+        "architecture",
+        "rest",
+        "websocket",
+        "rust"
+      ],
+      "after": [
+        "architecture",
+        "api",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/architecture/gpu-semantic-forces.md",
+      "before": [
+        "architecture",
+        "rust",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "architecture",
+        "backend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/architecture/cqrs-directive-template.md",
+      "before": [
+        "architecture",
+        "rust",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "architecture",
+        "backend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/architecture/ontology-analysis.md",
+      "before": [
+        "architecture",
+        "neo4j",
+        "rust"
+      ],
+      "after": [
+        "architecture",
+        "database",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/architecture/pipeline-sequence-diagrams.md",
+      "before": [
+        "architecture",
+        "websocket",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "architecture",
+        "api",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/architecture/reasoning-tests-summary.md",
+      "before": [
+        "architecture",
+        "websocket",
+        "rust"
+      ],
+      "after": [
+        "architecture",
+        "api",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/architecture/reasoning-data-flow.md",
+      "before": [
+        "architecture",
+        "websocket",
+        "rust"
+      ],
+      "after": [
+        "architecture",
+        "api",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/architecture/semantic-physics-system.md",
+      "before": [
+        "architecture",
+        "rest",
+        "rust"
+      ],
+      "after": [
+        "architecture",
+        "api",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/architecture/github-sync-service-design.md",
+      "before": [
+        "architecture",
+        "websocket",
+        "rust"
+      ],
+      "after": [
+        "architecture",
+        "api",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/architecture/api-handlers-reference.md",
+      "before": [
+        "api",
+        "architecture",
+        "rest",
+        "websocket",
+        "neo4j"
+      ],
+      "after": [
+        "api",
+        "architecture",
+        "database"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/architecture/semantic-forces-system.md",
+      "before": [
+        "architecture",
+        "rest",
+        "rust",
+        "react"
+      ],
+      "after": [
+        "architecture",
+        "api",
+        "backend",
+        "frontend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/architecture/services-architecture.md",
+      "before": [
+        "architecture",
+        "rest",
+        "websocket",
+        "neo4j",
+        "rust"
+      ],
+      "after": [
+        "architecture",
+        "api",
+        "database",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/architecture/core/client.md",
+      "before": [
+        "architecture",
+        "client",
+        "rest",
+        "websocket",
+        "rust"
+      ],
+      "after": [
+        "architecture",
+        "frontend",
+        "api",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/architecture/core/server.md",
+      "before": [
+        "architecture",
+        "server",
+        "rest",
+        "websocket",
+        "docker"
+      ],
+      "after": [
+        "architecture",
+        "backend",
+        "api",
+        "docker"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/architecture/analytics-visualization.md",
+      "before": [
+        "architecture",
+        "rest",
+        "websocket",
+        "neo4j",
+        "rust"
+      ],
+      "after": [
+        "architecture",
+        "api",
+        "database",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/architecture/data-flow-complete.md",
+      "before": [
+        "architecture",
+        "websocket",
+        "rust"
+      ],
+      "after": [
+        "architecture",
+        "api",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/architecture/components/websocket-protocol.md",
+      "before": [
+        "architecture",
+        "websocket",
+        "rust"
+      ],
+      "after": [
+        "architecture",
+        "api",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/architecture/gpu/communication-flow.md",
+      "before": [
+        "architecture",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "architecture",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/architecture/gpu/optimizations.md",
+      "before": [
+        "architecture",
+        "rust",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "architecture",
+        "backend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/architecture/multi-agent-system.md",
+      "before": [
+        "architecture",
+        "rest",
+        "websocket",
+        "docker",
+        "neo4j"
+      ],
+      "after": [
+        "architecture",
+        "api",
+        "docker",
+        "database"
+      ]
+    },
+    {
+      "success": true,
+      "file": "explanations/architecture/hierarchical-visualization.md",
+      "before": [
+        "architecture",
+        "rest",
+        "react"
+      ],
+      "after": [
+        "architecture",
+        "api",
+        "frontend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "QA_VALIDATION_FINAL.md",
+      "before": [
+        "websocket",
+        "docker",
+        "neo4j",
+        "rust"
+      ],
+      "after": [
+        "api",
+        "docker",
+        "database",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "diagrams/mermaid-library/02-data-flow-diagrams.md",
+      "before": [
+        "api",
+        "rest",
+        "websocket",
+        "database",
+        "neo4j"
+      ],
+      "after": [
+        "api",
+        "database"
+      ]
+    },
+    {
+      "success": true,
+      "file": "diagrams/architecture/backend-api-architecture-complete.md",
+      "before": [
+        "architecture",
+        "patterns",
+        "structure",
+        "api",
+        "rest"
+      ],
+      "after": [
+        "architecture",
+        "api"
+      ]
+    },
+    {
+      "success": true,
+      "file": "reports/ascii-conversion-archive-batch-report.md",
+      "before": [
+        "documentation",
+        "mermaid",
+        "archive"
+      ],
+      "after": [
+        "documentation"
+      ]
+    },
+    {
+      "success": true,
+      "file": "TECHNOLOGY_CHOICES.md",
+      "before": [
+        "architecture",
+        "design",
+        "patterns",
+        "structure",
+        "api"
+      ],
+      "after": [
+        "architecture",
+        "api"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/README.md",
+      "before": [
+        "guides",
+        "how-to",
+        "documentation"
+      ],
+      "after": [
+        "documentation"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/vircadia-xr-complete-guide.md",
+      "before": [
+        "guide",
+        "rest",
+        "websocket",
+        "docker"
+      ],
+      "after": [
+        "tutorial",
+        "api",
+        "docker"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/neo4j-integration.md",
+      "before": [
+        "guide",
+        "rest",
+        "websocket",
+        "docker",
+        "neo4j"
+      ],
+      "after": [
+        "tutorial",
+        "api",
+        "docker",
+        "database"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/configuration.md",
+      "before": [
+        "guide",
+        "rest",
+        "websocket",
+        "docker",
+        "rust"
+      ],
+      "after": [
+        "tutorial",
+        "api",
+        "docker",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/ontology-semantic-forces.md",
+      "before": [
+        "guide",
+        "rest",
+        "rust"
+      ],
+      "after": [
+        "tutorial",
+        "api",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/infrastructure/tools.md",
+      "before": [
+        "guide",
+        "docker",
+        "rust"
+      ],
+      "after": [
+        "tutorial",
+        "docker",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/infrastructure/readme.md",
+      "before": [
+        "guide",
+        "rest",
+        "websocket",
+        "docker",
+        "rust"
+      ],
+      "after": [
+        "tutorial",
+        "api",
+        "docker",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/semantic-features-implementation.md",
+      "before": [
+        "guide",
+        "neo4j",
+        "rust"
+      ],
+      "after": [
+        "tutorial",
+        "database",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/ontology-parser.md",
+      "before": [
+        "guide",
+        "rust",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "tutorial",
+        "backend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/docker-environment-setup.md",
+      "before": [
+        "guide",
+        "rest",
+        "websocket",
+        "docker",
+        "neo4j"
+      ],
+      "after": [
+        "tutorial",
+        "api",
+        "docker",
+        "database"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/testing-guide.md",
+      "before": [
+        "guide",
+        "testing",
+        "websocket"
+      ],
+      "after": [
+        "tutorial",
+        "testing",
+        "api"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/orchestrating-agents.md",
+      "before": [
+        "guide",
+        "rest",
+        "websocket",
+        "docker",
+        "rust"
+      ],
+      "after": [
+        "tutorial",
+        "api",
+        "docker",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/features/MOVED.md",
+      "before": [
+        "patterns",
+        "deployment",
+        "ai",
+        "performance",
+        "guide"
+      ],
+      "after": [
+        "architecture",
+        "deployment",
+        "agents",
+        "performance",
+        "tutorial"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/features/github-pagination-fix.md",
+      "before": [
+        "guide",
+        "docker",
+        "neo4j",
+        "rust"
+      ],
+      "after": [
+        "tutorial",
+        "docker",
+        "database",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/features/local-file-sync-strategy.md",
+      "before": [
+        "guide",
+        "rest",
+        "docker",
+        "neo4j",
+        "rust"
+      ],
+      "after": [
+        "tutorial",
+        "api",
+        "docker",
+        "database",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/neo4j-migration.md",
+      "before": [
+        "guide",
+        "rest",
+        "docker",
+        "neo4j",
+        "rust"
+      ],
+      "after": [
+        "tutorial",
+        "api",
+        "docker",
+        "database",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/pipeline-admin-api.md",
+      "before": [
+        "api",
+        "guide",
+        "rest",
+        "websocket",
+        "rust"
+      ],
+      "after": [
+        "api",
+        "tutorial",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/developer/README.md",
+      "before": [
+        "development",
+        "guides",
+        "developer"
+      ],
+      "after": [
+        "development"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/developer/websocket-best-practices.md",
+      "before": [
+        "guide",
+        "rest",
+        "websocket",
+        "rust",
+        "react"
+      ],
+      "after": [
+        "tutorial",
+        "api",
+        "backend",
+        "frontend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/developer/json-serialization-patterns.md",
+      "before": [
+        "guide",
+        "rest",
+        "websocket",
+        "rust"
+      ],
+      "after": [
+        "tutorial",
+        "api",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/developer/test-execution.md",
+      "before": [
+        "guide",
+        "websocket",
+        "rust"
+      ],
+      "after": [
+        "tutorial",
+        "api",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/telemetry-logging.md",
+      "before": [
+        "guide",
+        "rest",
+        "websocket",
+        "docker",
+        "rust"
+      ],
+      "after": [
+        "tutorial",
+        "api",
+        "docker",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/neo4j-implementation-roadmap.md",
+      "before": [
+        "guide",
+        "rest",
+        "websocket",
+        "docker",
+        "neo4j"
+      ],
+      "after": [
+        "tutorial",
+        "api",
+        "docker",
+        "database"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/migration/json-to-binary-protocol.md",
+      "before": [
+        "guide",
+        "rest",
+        "websocket",
+        "react"
+      ],
+      "after": [
+        "tutorial",
+        "api",
+        "frontend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/deployment.md",
+      "before": [
+        "guide",
+        "deployment",
+        "rest",
+        "websocket",
+        "docker"
+      ],
+      "after": [
+        "tutorial",
+        "deployment",
+        "api",
+        "docker"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/security.md",
+      "before": [
+        "guide",
+        "rest",
+        "websocket",
+        "docker"
+      ],
+      "after": [
+        "tutorial",
+        "api",
+        "docker"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/navigation-guide.md",
+      "before": [
+        "guide",
+        "rest",
+        "websocket",
+        "docker"
+      ],
+      "after": [
+        "tutorial",
+        "api",
+        "docker"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/troubleshooting.md",
+      "before": [
+        "guide",
+        "rest",
+        "websocket",
+        "docker",
+        "rust"
+      ],
+      "after": [
+        "tutorial",
+        "api",
+        "docker",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/ai-models/README.md",
+      "before": [
+        "architecture",
+        "patterns",
+        "structure",
+        "api",
+        "rest"
+      ],
+      "after": [
+        "architecture",
+        "api"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/ai-models/deepseek-verification.md",
+      "before": [
+        "guide",
+        "docker",
+        "rust"
+      ],
+      "after": [
+        "tutorial",
+        "docker",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/ai-models/deepseek-deployment.md",
+      "before": [
+        "guide",
+        "deployment",
+        "rest",
+        "docker"
+      ],
+      "after": [
+        "tutorial",
+        "deployment",
+        "api",
+        "docker"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/ai-models/INTEGRATION_SUMMARY.md",
+      "before": [
+        "architecture",
+        "design",
+        "patterns",
+        "structure",
+        "api"
+      ],
+      "after": [
+        "architecture",
+        "api"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/development-workflow.md",
+      "before": [
+        "guide",
+        "rest",
+        "websocket",
+        "docker",
+        "rust"
+      ],
+      "after": [
+        "tutorial",
+        "api",
+        "docker",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/hierarchy-integration.md",
+      "before": [
+        "guide",
+        "rust",
+        "documentation",
+        "reference",
+        "visionflow"
+      ],
+      "after": [
+        "tutorial",
+        "backend",
+        "documentation",
+        "reference"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/extending-the-system.md",
+      "before": [
+        "guide",
+        "rest",
+        "websocket",
+        "docker",
+        "rust"
+      ],
+      "after": [
+        "tutorial",
+        "api",
+        "docker",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/multi-agent-skills.md",
+      "before": [
+        "guide",
+        "rest",
+        "websocket",
+        "docker",
+        "neo4j"
+      ],
+      "after": [
+        "tutorial",
+        "api",
+        "docker",
+        "database"
+      ]
+    },
+    {
+      "success": true,
+      "file": "guides/stress-majorization-guide.md",
+      "before": [
+        "guide",
+        "rest",
+        "rust"
+      ],
+      "after": [
+        "tutorial",
+        "api",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "DEVELOPER_JOURNEY.md",
+      "before": [
+        "architecture",
+        "design",
+        "patterns",
+        "structure",
+        "api"
+      ],
+      "after": [
+        "architecture",
+        "api"
+      ]
+    },
+    {
+      "success": true,
+      "file": "architecture/skills-refactoring-plan.md",
+      "before": [
+        "architecture",
+        "design",
+        "rest",
+        "websocket",
+        "http"
+      ],
+      "after": [
+        "architecture",
+        "api"
+      ]
+    },
+    {
+      "success": true,
+      "file": "architecture/phase1-completion.md",
+      "before": [
+        "architecture",
+        "design",
+        "api",
+        "rest",
+        "docker"
+      ],
+      "after": [
+        "architecture",
+        "api",
+        "docker"
+      ]
+    },
+    {
+      "success": true,
+      "file": "architecture/skill-mcp-classification.md",
+      "before": [
+        "architecture",
+        "design",
+        "patterns",
+        "structure",
+        "api"
+      ],
+      "after": [
+        "architecture",
+        "api"
+      ]
+    },
+    {
+      "success": true,
+      "file": "assets/diagrams/sparc-turboflow-architecture.md",
+      "before": [
+        "architecture",
+        "rest",
+        "websocket",
+        "docker",
+        "rust"
+      ],
+      "after": [
+        "architecture",
+        "api",
+        "docker",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "tutorials/01-installation.md",
+      "before": [
+        "rest",
+        "websocket",
+        "docker",
+        "rust",
+        "react"
+      ],
+      "after": [
+        "api",
+        "docker",
+        "backend",
+        "frontend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "tutorials/02-first-graph.md",
+      "before": [
+        "rest",
+        "websocket",
+        "docker",
+        "react"
+      ],
+      "after": [
+        "api",
+        "docker",
+        "frontend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "tutorials/neo4j-quick-start.md",
+      "before": [
+        "docker",
+        "neo4j",
+        "rust"
+      ],
+      "after": [
+        "docker",
+        "database",
+        "backend"
+      ]
+    },
+    {
+      "success": true,
+      "file": "QUICK_NAVIGATION.md",
+      "before": [
+        "architecture",
+        "design",
+        "patterns",
+        "structure",
+        "api"
+      ],
+      "after": [
+        "architecture",
+        "api"
+      ]
+    }
+  ]
+}

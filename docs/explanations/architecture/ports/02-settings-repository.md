@@ -5,8 +5,8 @@ category: explanation
 tags:
   - architecture
   - docker
-  - neo4j
-  - rust
+  - database
+  - backend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

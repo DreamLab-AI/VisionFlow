@@ -3,8 +3,8 @@ title: Neo4j Settings Migration Audit
 description: **Date**: 2025-11-06 **Auditor**: System Architecture Designer **Status**: ✅ Migration Complete - Cleanup Required
 category: explanation
 tags:
-  - neo4j
-  - rust
+  - database
+  - backend
   - documentation
   - reference
   - visionflow

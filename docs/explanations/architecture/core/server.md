@@ -5,8 +5,8 @@ category: explanation
 tags:
   - architecture
   - server
-  - rest
-  - websocket
+  - api
+  - api
   - docker
 updated-date: 2025-12-18
 difficulty-level: advanced

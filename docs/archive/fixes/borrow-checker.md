@@ -3,8 +3,8 @@ title: Borrow Checker Error Fixes
 description: This document explains the borrow checker errors found in the codebase and the proper fixes applied - **without unnecessary clones**.
 category: explanation
 tags:
-  - rest
-  - rust
+  - api
+  - backend
   - documentation
   - reference
   - visionflow

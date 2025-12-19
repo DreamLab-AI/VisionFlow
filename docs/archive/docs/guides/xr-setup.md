@@ -1,12 +1,12 @@
 ---
 title: WebXR Setup Guide - VisionFlow Implementation
 description: > **📋 Role**: Technical implementation reference for developers building WebXR features into VisionFlow. > For setting up your XR development environment with Turbo Flow Claude, see [XR Setup - Dev...
-category: howto
+category: guide
 tags:
-  - guide
-  - rest
-  - websocket
-  - rust
+  - tutorial
+  - api
+  - api
+  - backend
 updated-date: 2025-12-18
 difficulty-level: intermediate
 ---

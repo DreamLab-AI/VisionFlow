@@ -4,8 +4,8 @@ description: **Version**: 2.0 **Date**: November 3, 2025 **Status**: Production 
 category: explanation
 tags:
   - architecture
-  - websocket
-  - rust
+  - api
+  - backend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

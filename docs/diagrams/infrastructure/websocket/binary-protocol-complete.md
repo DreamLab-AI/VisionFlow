@@ -5,8 +5,8 @@ category: reference
 tags:
   - architecture
   - structure
-  - rest
-  - websocket
+  - api
+  - api
   - database
 related-docs:
   - ASCII_DEPRECATION_COMPLETE.md

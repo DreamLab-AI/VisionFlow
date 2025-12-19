@@ -4,8 +4,8 @@ description: **Complete Guide to OWL Reasoning Integration with whelk-rs**
 category: explanation
 tags:
   - architecture
-  - rest
-  - rust
+  - api
+  - backend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---

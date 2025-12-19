@@ -4,7 +4,7 @@ description: Stress majorization is a global layout optimization algorithm that 
 category: explanation
 tags:
   - architecture
-  - rust
+  - backend
   - documentation
   - reference
   - visionflow

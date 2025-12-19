@@ -4,8 +4,8 @@ description: VisionFlow's Neo4j settings repository has been extended with per-u
 category: reference
 tags:
   - database
-  - neo4j
-  - rust
+  - database
+  - backend
 updated-date: 2025-12-18
 difficulty-level: intermediate
 ---

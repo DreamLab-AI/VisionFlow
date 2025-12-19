@@ -4,10 +4,10 @@ description: **Version:** 1.0.0 **Last Updated:** 2025-10-27 **Focus:** SPARC de
 category: explanation
 tags:
   - architecture
-  - rest
-  - websocket
+  - api
+  - api
   - docker
-  - rust
+  - backend
 updated-date: 2025-12-18
 difficulty-level: advanced
 ---
