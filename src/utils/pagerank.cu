@@ -46,7 +46,7 @@ __global__ void pagerank_iteration_kernel(
     const float damping,                        // Damping factor (0.85)
     const float teleport)                       // Teleport probability (1-d)/N
 {
-    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    const int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (tid < num_nodes) {
         float rank_sum = 0.0f;
@@ -54,26 +54,30 @@ __global__ void pagerank_iteration_kernel(
         // Sum contributions from all incoming edges
         // For each node, check all other nodes to see if they link to this one
         // Note: This is the "reverse" approach - we iterate over potential sources
+        #pragma unroll 8
         for (int src = 0; src < num_nodes; src++) {
-            int edge_start = row_offsets[src];
-            int edge_end = row_offsets[src + 1];
-            int degree = out_degree[src];
+            const int edge_start = row_offsets[src];
+            const int edge_end = row_offsets[src + 1];
+            const int degree = out_degree[src];
 
             // Skip nodes with no outgoing edges (dangling nodes)
             if (degree == 0) continue;
 
+            // Precompute contribution factor
+            const float contribution = pagerank_old[src] / (float)degree;
+
             // Check if src has an edge to tid
             for (int e = edge_start; e < edge_end; e++) {
                 if (col_indices[e] == tid) {
-                    // Add contribution: PR(src) / out_degree(src)
-                    rank_sum += pagerank_old[src] / (float)degree;
+                    // Add contribution using FMA
+                    rank_sum = fmaf(damping, contribution, rank_sum);
                     break;
                 }
             }
         }
 
-        // Apply PageRank formula: (1-d)/N + d * sum
-        pagerank_new[tid] = teleport + damping * rank_sum;
+        // Apply PageRank formula: (1-d)/N + d * sum (already applied damping in loop)
+        pagerank_new[tid] = teleport + rank_sum;
     }
 }
 
@@ -153,12 +157,24 @@ __global__ void pagerank_convergence_kernel(
     shared_diff[local_tid] = local_diff;
     __syncthreads();
 
-    // Parallel reduction in shared memory
-    for (int stride = blockDim.x / 2; stride > 0; stride >>= 1) {
+    // Parallel reduction in shared memory with unrolling
+    #pragma unroll
+    for (int stride = blockDim.x / 2; stride > 32; stride >>= 1) {
         if (local_tid < stride) {
             shared_diff[local_tid] += shared_diff[local_tid + stride];
         }
         __syncthreads();
+    }
+
+    // Final warp reduction without synchronization
+    if (local_tid < 32) {
+        volatile float* smem = shared_diff;
+        if (blockDim.x >= 64) smem[local_tid] += smem[local_tid + 32];
+        if (blockDim.x >= 32) smem[local_tid] += smem[local_tid + 16];
+        if (blockDim.x >= 16) smem[local_tid] += smem[local_tid + 8];
+        if (blockDim.x >= 8)  smem[local_tid] += smem[local_tid + 4];
+        if (blockDim.x >= 4)  smem[local_tid] += smem[local_tid + 2];
+        if (blockDim.x >= 2)  smem[local_tid] += smem[local_tid + 1];
     }
 
     // First thread writes block result
@@ -219,12 +235,24 @@ __global__ void pagerank_normalize_kernel(
     shared_sum[local_tid] = local_val;
     __syncthreads();
 
-    // Reduction
-    for (int stride = blockDim.x / 2; stride > 0; stride >>= 1) {
+    // Reduction with unrolling
+    #pragma unroll
+    for (int stride = blockDim.x / 2; stride > 32; stride >>= 1) {
         if (local_tid < stride) {
             shared_sum[local_tid] += shared_sum[local_tid + stride];
         }
         __syncthreads();
+    }
+
+    // Final warp reduction without synchronization
+    if (local_tid < 32) {
+        volatile float* smem = shared_sum;
+        if (blockDim.x >= 64) smem[local_tid] += smem[local_tid + 32];
+        if (blockDim.x >= 32) smem[local_tid] += smem[local_tid + 16];
+        if (blockDim.x >= 16) smem[local_tid] += smem[local_tid + 8];
+        if (blockDim.x >= 8)  smem[local_tid] += smem[local_tid + 4];
+        if (blockDim.x >= 4)  smem[local_tid] += smem[local_tid + 2];
+        if (blockDim.x >= 2)  smem[local_tid] += smem[local_tid + 1];
     }
 
     // First thread of first block normalizes

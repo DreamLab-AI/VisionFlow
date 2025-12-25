@@ -38,6 +38,8 @@ use webxr::{
 
 use actix_cors::Cors;
 use actix_web::{middleware, web, App, HttpServer};
+use utoipa::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
 // DEPRECATED: std::future imports removed (were for ErrorRecoveryMiddleware)
 // DEPRECATED: Actix dev imports removed (were for ErrorRecoveryMiddleware)
 // DEPRECATED: LocalBoxFuture import removed (was for ErrorRecoveryMiddleware)
@@ -440,13 +442,41 @@ async fn main() -> std::io::Result<()> {
     info!("main: All services and actors initialized. Configuring HTTP server.");
     let server =
         HttpServer::new(move || {
-            // CORS configuration for local development
-            // Allows any origin for local network access (no credentials requirement)
-            let cors = Cors::default()
-                .allow_any_origin()
-                .allow_any_method()
-                .allow_any_header()
-                .max_age(3600);
+            // CORS configuration with security-aware origin handling
+            // Production: Uses CORS_ALLOWED_ORIGINS environment variable
+            // Development: Falls back to localhost origins with ALLOW_INSECURE_DEFAULTS
+            let cors = {
+                let allowed_origins = std::env::var("CORS_ALLOWED_ORIGINS")
+                    .unwrap_or_else(|_| {
+                        if std::env::var("ALLOW_INSECURE_DEFAULTS").is_ok() {
+                            // Development mode: allow common local origins
+                            "http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000,http://localhost:5173".to_string()
+                        } else {
+                            // Production: require explicit configuration
+                            log::warn!("⚠️  CORS_ALLOWED_ORIGINS not set - using restrictive defaults");
+                            "http://localhost:3000".to_string()
+                        }
+                    });
+
+                let mut cors_builder = Cors::default();
+
+                for origin in allowed_origins.split(',').map(|s| s.trim()) {
+                    if !origin.is_empty() {
+                        cors_builder = cors_builder.allowed_origin(origin);
+                    }
+                }
+
+                cors_builder
+                    .allowed_methods(vec!["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"])
+                    .allowed_headers(vec![
+                        actix_web::http::header::AUTHORIZATION,
+                        actix_web::http::header::CONTENT_TYPE,
+                        actix_web::http::header::ACCEPT,
+                        actix_web::http::header::ORIGIN,
+                    ])
+                    .supports_credentials()
+                    .max_age(3600)
+            };
 
             let app = App::new()
             .wrap(middleware::Logger::default())
@@ -480,7 +510,12 @@ async fn main() -> std::io::Result<()> {
             .route("/ws/speech", web::get().to(speech_socket_handler))
             .route("/ws/mcp-relay", web::get().to(mcp_relay_handler)) 
             
-            .route("/ws/client-messages", web::get().to(client_messages_handler::websocket_client_messages)) 
+            .route("/ws/client-messages", web::get().to(client_messages_handler::websocket_client_messages))
+            // OpenAPI/Swagger documentation
+            .service(
+                SwaggerUi::new("/swagger-ui/{_:.*}")
+                    .url("/api-docs/openapi.json", webxr::openapi::ApiDoc::openapi())
+            )
             .service(
                 web::scope("/api")
                     // Client logs route - registered early to avoid scope conflicts

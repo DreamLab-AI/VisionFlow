@@ -29,7 +29,11 @@ struct OntologyConstraint {
     uint32_t graph_id;
     float strength;
     float distance;
-    float padding[10];           // Align to 64 bytes
+    // PERF: Pre-computed indices eliminate O(N) lookup per constraint
+    // These are populated on host before kernel launch, converting O(N²) to O(N)
+    int32_t source_idx;          // Pre-computed index into nodes array (-1 if not found)
+    int32_t target_idx;          // Pre-computed index into nodes array (-1 if not found)
+    float padding[8];            // Align to 64 bytes
 };
 
 // Constraint type constants
@@ -63,7 +67,8 @@ __device__ inline float3 operator*(const float3& a, float s) {
 }
 
 __device__ inline float dot(const float3& a, const float3& b) {
-    return a.x * b.x + a.y * b.y + a.z * b.z;
+    // Use FMA for better performance and accuracy
+    return fmaf(a.x, b.x, fmaf(a.y, b.y, a.z * b.z));
 }
 
 __device__ inline float length(const float3& v) {
@@ -92,6 +97,7 @@ __device__ inline void atomic_add_float3(float3* addr, const float3& val) {
 }
 
 // Kernel 1: DisjointClasses - Apply separation forces between disjoint class instances
+// PERF: Uses pre-computed indices (O(1) lookup vs O(N) linear search)
 __global__ void apply_disjoint_classes_kernel(
     OntologyNode* nodes,
     int num_nodes,
@@ -108,23 +114,14 @@ __global__ void apply_disjoint_classes_kernel(
 
     if (constraint.type != CONSTRAINT_DISJOINT_CLASSES) return;
 
-    // Find source and target nodes
-    int source_idx = -1;
-    int target_idx = -1;
+    // PERF: Use pre-computed indices instead of O(N) linear search
+    // Indices are computed on host before kernel launch
+    int source_idx = constraint.source_idx;
+    int target_idx = constraint.target_idx;
 
-    for (int i = 0; i < num_nodes; i++) {
-        if (nodes[i].node_id == constraint.source_id &&
-            nodes[i].graph_id == constraint.graph_id) {
-            source_idx = i;
-        }
-        if (nodes[i].node_id == constraint.target_id &&
-            nodes[i].graph_id == constraint.graph_id) {
-            target_idx = i;
-        }
-        if (source_idx >= 0 && target_idx >= 0) break;
-    }
-
-    if (source_idx < 0 || target_idx < 0) return;
+    // Validate pre-computed indices
+    if (source_idx < 0 || source_idx >= num_nodes ||
+        target_idx < 0 || target_idx >= num_nodes) return;
 
     OntologyNode source = nodes[source_idx];
     OntologyNode target = nodes[target_idx];
@@ -154,6 +151,7 @@ __global__ void apply_disjoint_classes_kernel(
 }
 
 // Kernel 2: SubClassOf - Apply hierarchical alignment forces
+// PERF: Uses pre-computed indices (O(1) lookup vs O(N) linear search)
 __global__ void apply_subclass_hierarchy_kernel(
     OntologyNode* nodes,
     int num_nodes,
@@ -170,23 +168,13 @@ __global__ void apply_subclass_hierarchy_kernel(
 
     if (constraint.type != CONSTRAINT_SUBCLASS_OF) return;
 
-    // Find source (subclass) and target (superclass) nodes
-    int source_idx = -1;
-    int target_idx = -1;
+    // PERF: Use pre-computed indices instead of O(N) linear search
+    int source_idx = constraint.source_idx;
+    int target_idx = constraint.target_idx;
 
-    for (int i = 0; i < num_nodes; i++) {
-        if (nodes[i].node_id == constraint.source_id &&
-            nodes[i].graph_id == constraint.graph_id) {
-            source_idx = i;
-        }
-        if (nodes[i].node_id == constraint.target_id &&
-            nodes[i].graph_id == constraint.graph_id) {
-            target_idx = i;
-        }
-        if (source_idx >= 0 && target_idx >= 0) break;
-    }
-
-    if (source_idx < 0 || target_idx < 0) return;
+    // Validate pre-computed indices
+    if (source_idx < 0 || source_idx >= num_nodes ||
+        target_idx < 0 || target_idx >= num_nodes) return;
 
     OntologyNode source = nodes[source_idx];
     OntologyNode target = nodes[target_idx];
@@ -216,6 +204,7 @@ __global__ void apply_subclass_hierarchy_kernel(
 }
 
 // Kernel 3: SameAs - Apply co-location forces
+// PERF: Uses pre-computed indices (O(1) lookup vs O(N) linear search)
 __global__ void apply_sameas_colocate_kernel(
     OntologyNode* nodes,
     int num_nodes,
@@ -232,23 +221,13 @@ __global__ void apply_sameas_colocate_kernel(
 
     if (constraint.type != CONSTRAINT_SAMEAS) return;
 
-    // Find source and target nodes
-    int source_idx = -1;
-    int target_idx = -1;
+    // PERF: Use pre-computed indices instead of O(N) linear search
+    int source_idx = constraint.source_idx;
+    int target_idx = constraint.target_idx;
 
-    for (int i = 0; i < num_nodes; i++) {
-        if (nodes[i].node_id == constraint.source_id &&
-            nodes[i].graph_id == constraint.graph_id) {
-            source_idx = i;
-        }
-        if (nodes[i].node_id == constraint.target_id &&
-            nodes[i].graph_id == constraint.graph_id) {
-            target_idx = i;
-        }
-        if (source_idx >= 0 && target_idx >= 0) break;
-    }
-
-    if (source_idx < 0 || target_idx < 0) return;
+    // Validate pre-computed indices
+    if (source_idx < 0 || source_idx >= num_nodes ||
+        target_idx < 0 || target_idx >= num_nodes) return;
 
     OntologyNode source = nodes[source_idx];
     OntologyNode target = nodes[target_idx];
@@ -281,6 +260,7 @@ __global__ void apply_sameas_colocate_kernel(
 }
 
 // Kernel 4: InverseOf - Apply symmetry enforcement
+// PERF: Uses pre-computed indices (O(1) lookup vs O(N) linear search)
 __global__ void apply_inverse_symmetry_kernel(
     OntologyNode* nodes,
     int num_nodes,
@@ -297,25 +277,17 @@ __global__ void apply_inverse_symmetry_kernel(
 
     if (constraint.type != CONSTRAINT_INVERSE_OF) return;
 
-    // Find source and target property nodes
-    int source_idx = -1;
-    int target_idx = -1;
+    // PERF: Use pre-computed indices instead of O(N) linear search
+    int source_idx = constraint.source_idx;
+    int target_idx = constraint.target_idx;
 
-    for (int i = 0; i < num_nodes; i++) {
-        if (nodes[i].node_id == constraint.source_id &&
-            nodes[i].graph_id == constraint.graph_id &&
-            (nodes[i].ontology_type & ONTOLOGY_PROPERTY)) {
-            source_idx = i;
-        }
-        if (nodes[i].node_id == constraint.target_id &&
-            nodes[i].graph_id == constraint.graph_id &&
-            (nodes[i].ontology_type & ONTOLOGY_PROPERTY)) {
-            target_idx = i;
-        }
-        if (source_idx >= 0 && target_idx >= 0) break;
-    }
+    // Validate pre-computed indices and property type
+    if (source_idx < 0 || source_idx >= num_nodes ||
+        target_idx < 0 || target_idx >= num_nodes) return;
 
-    if (source_idx < 0 || target_idx < 0) return;
+    // Verify they are property nodes
+    if (!(nodes[source_idx].ontology_type & ONTOLOGY_PROPERTY) ||
+        !(nodes[target_idx].ontology_type & ONTOLOGY_PROPERTY)) return;
 
     OntologyNode source = nodes[source_idx];
     OntologyNode target = nodes[target_idx];
@@ -423,6 +395,76 @@ __global__ void apply_functional_cardinality_kernel(
 
 // Host functions for kernel launch
 extern "C" {
+
+// PERF: Pre-compute constraint indices on host (O(N+M) instead of O(N*M) on GPU)
+// This is called once before kernel launches and dramatically improves performance
+// by converting O(N²) GPU lookups to O(1) indexed access
+void precompute_constraint_indices(
+    OntologyNode* h_nodes, int num_nodes,
+    OntologyConstraint* h_constraints, int num_constraints
+) {
+    // Build node_id -> index lookup table (O(N))
+    // Using simple array - could use hash map for very large node counts
+    // Assumes node_ids are reasonably dense (< 10x num_nodes)
+
+    // Find max node_id to size lookup table
+    uint32_t max_node_id = 0;
+    uint32_t max_graph_id = 0;
+    for (int i = 0; i < num_nodes; i++) {
+        if (h_nodes[i].node_id > max_node_id) max_node_id = h_nodes[i].node_id;
+        if (h_nodes[i].graph_id > max_graph_id) max_graph_id = h_nodes[i].graph_id;
+    }
+
+    // Create lookup table: index = graph_id * (max_node_id+1) + node_id
+    // This handles multi-graph scenarios where same node_id exists in different graphs
+    size_t table_size = (size_t)(max_graph_id + 1) * (max_node_id + 1);
+
+    // Limit table size to prevent excessive memory usage
+    // For very sparse or large ID spaces, fall back to linear search
+    if (table_size > 10000000) {
+        // Fallback: O(N) per constraint on host (still better than O(N) per constraint on GPU)
+        for (int c = 0; c < num_constraints; c++) {
+            h_constraints[c].source_idx = -1;
+            h_constraints[c].target_idx = -1;
+
+            for (int n = 0; n < num_nodes; n++) {
+                if (h_nodes[n].node_id == h_constraints[c].source_id &&
+                    h_nodes[n].graph_id == h_constraints[c].graph_id) {
+                    h_constraints[c].source_idx = n;
+                }
+                if (h_nodes[n].node_id == h_constraints[c].target_id &&
+                    h_nodes[n].graph_id == h_constraints[c].graph_id) {
+                    h_constraints[c].target_idx = n;
+                }
+                if (h_constraints[c].source_idx >= 0 && h_constraints[c].target_idx >= 0) break;
+            }
+        }
+        return;
+    }
+
+    // Allocate and initialize lookup table
+    int* lookup = (int*)malloc(table_size * sizeof(int));
+    for (size_t i = 0; i < table_size; i++) {
+        lookup[i] = -1;
+    }
+
+    // Populate lookup table (O(N))
+    for (int i = 0; i < num_nodes; i++) {
+        size_t key = (size_t)h_nodes[i].graph_id * (max_node_id + 1) + h_nodes[i].node_id;
+        lookup[key] = i;
+    }
+
+    // Resolve all constraint indices (O(M))
+    for (int c = 0; c < num_constraints; c++) {
+        size_t source_key = (size_t)h_constraints[c].graph_id * (max_node_id + 1) + h_constraints[c].source_id;
+        size_t target_key = (size_t)h_constraints[c].graph_id * (max_node_id + 1) + h_constraints[c].target_id;
+
+        h_constraints[c].source_idx = lookup[source_key];
+        h_constraints[c].target_idx = lookup[target_key];
+    }
+
+    free(lookup);
+}
 
 void launch_disjoint_classes_kernel(
     OntologyNode* d_nodes, int num_nodes,

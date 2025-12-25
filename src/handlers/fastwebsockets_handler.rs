@@ -53,7 +53,7 @@ pub struct FastWebSocketConfig {
 impl Default for FastWebSocketConfig {
     fn default() -> Self {
         Self {
-            bind_addr: "0.0.0.0:9001".parse().unwrap(),
+            bind_addr: "0.0.0.0:9001".parse().expect("valid default WebSocket bind address"),
             max_connections: 1000,
             max_message_size: 16 * 1024 * 1024, // 16 MB
             ping_interval_ms: 5000,
@@ -258,15 +258,10 @@ impl FastWebSocketServer {
             .map(|(_, data)| PostcardNodeUpdate::from(data))
             .collect();
 
+        let now_ms = current_timestamp_ms();
         let batch = PostcardBatchUpdate {
-            frame_id: std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .unwrap()
-                .as_millis() as u64,
-            timestamp_ms: std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .unwrap()
-                .as_millis() as u64,
+            frame_id: now_ms,
+            timestamp_ms: now_ms,
             nodes: updates,
         };
 
@@ -279,13 +274,15 @@ impl FastWebSocketServer {
     pub async fn active_sessions(&self) -> usize {
         self.sessions.read().await.len()
     }
+}
 
-    /// Shutdown the server
-    pub async fn shutdown(&mut self) {
-        if let Some(tx) = self.shutdown_tx.take() {
-            let _ = tx.send(()).await;
-        }
-    }
+/// Get current timestamp in milliseconds since UNIX epoch (safe, no panics)
+#[inline]
+fn current_timestamp_ms() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis() as u64
 }
 
 // ============================================================================

@@ -187,8 +187,8 @@ def ansible_inventory(inventory: str, graph: bool = False) -> Dict[str, Any]:
     if result['success'] and not graph:
         try:
             result['inventory_data'] = json.loads(result['output'])
-        except json.JSONDecodeError:
-            pass
+        except json.JSONDecodeError as e:
+            result['inventory_parse_error'] = f"Failed to parse inventory JSON: {str(e)}"
 
     return result
 
@@ -216,8 +216,8 @@ def ansible_facts(inventory: str, host: str) -> Dict[str, Any]:
             if json_start != -1:
                 facts_json = output[json_start:]
                 result['facts'] = json.loads(facts_json)
-        except Exception:
-            pass
+        except Exception as e:
+            result['facts_parse_error'] = f"Failed to parse facts JSON: {str(e)}"
 
     return result
 
@@ -401,8 +401,8 @@ def tf_output(path: str, name: Optional[str] = None) -> Dict[str, Any]:
     if result['success']:
         try:
             result['outputs'] = json.loads(result['output'])
-        except json.JSONDecodeError:
-            pass
+        except json.JSONDecodeError as e:
+            result['outputs_parse_error'] = f"Failed to parse outputs JSON: {str(e)}"
 
     return result
 
@@ -425,8 +425,8 @@ def tf_validate(path: str) -> Dict[str, Any]:
             validation = json.loads(result['output'])
             result['valid'] = validation.get('valid', False)
             result['diagnostics'] = validation.get('diagnostics', [])
-        except json.JSONDecodeError:
-            pass
+        except json.JSONDecodeError as e:
+            result['diagnostics_parse_error'] = f"Failed to parse diagnostics JSON: {str(e)}"
 
     return result
 

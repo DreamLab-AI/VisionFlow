@@ -211,8 +211,9 @@ def smart_diff(
                 diff_text = diff.diff.decode('utf-8', errors='ignore')
                 stats["additions"] = diff_text.count('\n+') - diff_text.count('\n+++')
                 stats["deletions"] = diff_text.count('\n-') - diff_text.count('\n---')
-        except:
-            pass
+        except (AttributeError, UnicodeDecodeError) as e:
+            import logging
+            logging.warning(f"Failed to parse diff stats: {e}")
 
         filtered_changes["total_additions"] += stats["additions"]
         filtered_changes["total_deletions"] += stats["deletions"]
@@ -275,8 +276,9 @@ def file_history(
                     diff = diffs[0]
                     entry["additions"] = diff.diff.decode('utf-8', errors='ignore').count('\n+')
                     entry["deletions"] = diff.diff.decode('utf-8', errors='ignore').count('\n-')
-            except:
-                pass
+            except (AttributeError, UnicodeDecodeError) as e:
+                import logging
+                logging.warning(f"Failed to decode diff for {entry.get('file', 'unknown')}: {e}")
 
         history.append(entry)
 

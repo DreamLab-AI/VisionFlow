@@ -80,6 +80,10 @@ cust_core = { version = "0.1.1" }
 reqwest = { version = "0.12.23", features = ["json", "stream", "multipart"] }
 nostr-sdk = "0.43.0"
 
+# OpenAPI/Swagger documentation
+utoipa = { version = "5", features = ["actix_extras", "chrono", "uuid"] }
+utoipa-swagger-ui = { version = "9", features = ["actix-web"] }
+
 # High-Performance Networking (QUIC/WebTransport)
 quinn = "0.11"
 rustls = { version = "0.23", default-features = false, features = ["ring", "std"] }

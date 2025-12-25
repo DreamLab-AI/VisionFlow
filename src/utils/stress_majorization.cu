@@ -84,10 +84,11 @@ __device__ inline float compute_distance_3d(
     float x1, float y1, float z1,
     float x2, float y2, float z2
 ) {
-    float dx = x1 - x2;
-    float dy = y1 - y2;
-    float dz = z1 - z2;
-    return safe_sqrt(dx * dx + dy * dy + dz * dz);
+    const float dx = x1 - x2;
+    const float dy = y1 - y2;
+    const float dz = z1 - z2;
+    // Use FMA for better performance and accuracy
+    return safe_sqrt(fmaf(dx, dx, fmaf(dy, dy, dz * dz)));
 }
 
 // =============================================================================
@@ -157,29 +158,33 @@ __global__ void compute_stress_gradient_kernel(
     float gy = 0.0f;
     float gz = 0.0f;
 
+    // Loop unrolling hint for small fixed-size graphs
+    #pragma unroll 8
     for (int j = 0; j < num_nodes; j++) {
         if (i == j) continue;
 
         // Current position difference
-        float dx = pos_x[i] - pos_x[j];
-        float dy = pos_y[i] - pos_y[j];
-        float dz = pos_z[i] - pos_z[j];
+        const float dx = pos_x[i] - pos_x[j];
+        const float dy = pos_y[i] - pos_y[j];
+        const float dz = pos_z[i] - pos_z[j];
 
-        float current_dist = safe_sqrt(dx * dx + dy * dy + dz * dz);
+        // Use FMA for distance calculation
+        const float current_dist = safe_sqrt(fmaf(dx, dx, fmaf(dy, dy, dz * dz)));
 
         // Avoid division by zero
         if (current_dist < 1e-6f) continue;
 
-        int idx = i * num_nodes + j;
-        float ideal_dist = ideal_distances[idx];
-        float weight = weights[idx];
+        const int idx = i * num_nodes + j;
+        const float ideal_dist = ideal_distances[idx];
+        const float weight = weights[idx];
 
         // Gradient factor: w_ij * (1 - d_ij / ||p_i - p_j||)
-        float factor = weight * (1.0f - ideal_dist / current_dist);
+        const float factor = weight * (1.0f - ideal_dist / current_dist);
 
-        gx += factor * dx;
-        gy += factor * dy;
-        gz += factor * dz;
+        // Use FMA for gradient accumulation
+        gx = fmaf(factor, dx, gx);
+        gy = fmaf(factor, dy, gy);
+        gz = fmaf(factor, dz, gz);
     }
 
     grad_x[i] = gx;
@@ -394,12 +399,24 @@ __global__ void reduce_max_kernel(
     sdata[tid] = (i < n) ? input[i] : -FLT_MAX;
     __syncthreads();
 
-    // Reduction in shared memory
-    for (unsigned int s = blockDim.x / 2; s > 0; s >>= 1) {
+    // Reduction in shared memory with unrolling
+    #pragma unroll
+    for (unsigned int s = blockDim.x / 2; s > 32; s >>= 1) {
         if (tid < s) {
             sdata[tid] = fmaxf(sdata[tid], sdata[tid + s]);
         }
         __syncthreads();
+    }
+
+    // Final warp reduction without synchronization
+    if (tid < 32) {
+        volatile float* smem = sdata;
+        if (blockDim.x >= 64) smem[tid] = fmaxf(smem[tid], smem[tid + 32]);
+        if (blockDim.x >= 32) smem[tid] = fmaxf(smem[tid], smem[tid + 16]);
+        if (blockDim.x >= 16) smem[tid] = fmaxf(smem[tid], smem[tid + 8]);
+        if (blockDim.x >= 8)  smem[tid] = fmaxf(smem[tid], smem[tid + 4]);
+        if (blockDim.x >= 4)  smem[tid] = fmaxf(smem[tid], smem[tid + 2]);
+        if (blockDim.x >= 2)  smem[tid] = fmaxf(smem[tid], smem[tid + 1]);
     }
 
     // Write result for this block to global memory
@@ -425,12 +442,24 @@ __global__ void reduce_sum_kernel(
     sdata[tid] = (i < n) ? input[i] : 0.0f;
     __syncthreads();
 
-    // Reduction in shared memory
-    for (unsigned int s = blockDim.x / 2; s > 0; s >>= 1) {
+    // Reduction in shared memory with unrolling
+    #pragma unroll
+    for (unsigned int s = blockDim.x / 2; s > 32; s >>= 1) {
         if (tid < s) {
             sdata[tid] += sdata[tid + s];
         }
         __syncthreads();
+    }
+
+    // Final warp reduction without synchronization
+    if (tid < 32) {
+        volatile float* smem = sdata;
+        if (blockDim.x >= 64) smem[tid] += smem[tid + 32];
+        if (blockDim.x >= 32) smem[tid] += smem[tid + 16];
+        if (blockDim.x >= 16) smem[tid] += smem[tid + 8];
+        if (blockDim.x >= 8)  smem[tid] += smem[tid + 4];
+        if (blockDim.x >= 4)  smem[tid] += smem[tid + 2];
+        if (blockDim.x >= 2)  smem[tid] += smem[tid + 1];
     }
 
     // Write result for this block to global memory

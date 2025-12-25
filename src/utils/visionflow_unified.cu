@@ -124,7 +124,10 @@ __device__ inline float3 vec3_add(float3 a, float3 b) { return make_float3(a.x +
 __device__ inline float3 vec3_sub(float3 a, float3 b) { return make_float3(a.x - b.x, a.y - b.y, a.z - b.z); }
 __device__ inline float3 vec3_scale(float3 v, float s) { return make_float3(v.x * s, v.y * s, v.z * s); }
 __device__ inline float vec3_dot(float3 a, float3 b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
-__device__ inline float vec3_length_sq(float3 v) { return vec3_dot(v, v); }
+__device__ inline float vec3_length_sq(float3 v) {
+    // Use FMA for better performance
+    return fmaf(v.x, v.x, fmaf(v.y, v.y, v.z * v.z));
+}
 __device__ inline float vec3_length(float3 v) { return sqrtf(vec3_length_sq(v)); }
 
 __device__ inline int clamp_int(int x, int min, int max) {
@@ -275,46 +278,51 @@ __global__ void force_pass_kernel(
         int grid_y = (my_cell_key / grid_dims.x) % grid_dims.y;
         int grid_z = my_cell_key / (grid_dims.x * grid_dims.y);
 
+        // Unroll 3x3x3 neighbor cell iteration for better performance
+        #pragma unroll 3
         for (int z = -1; z <= 1; ++z) {
+            #pragma unroll 3
             for (int y = -1; y <= 1; ++y) {
+                #pragma unroll 3
                 for (int x = -1; x <= 1; ++x) {
-                    int neighbor_grid_x = grid_x + x;
-                    int neighbor_grid_y = grid_y + y;
-                    int neighbor_grid_z = grid_z + z;
+                    const int neighbor_grid_x = grid_x + x;
+                    const int neighbor_grid_y = grid_y + y;
+                    const int neighbor_grid_z = grid_z + z;
 
                     if (neighbor_grid_x >= 0 && neighbor_grid_x < grid_dims.x &&
                         neighbor_grid_y >= 0 && neighbor_grid_y < grid_dims.y &&
                         neighbor_grid_z >= 0 && neighbor_grid_z < grid_dims.z) {
-                        
-                        int neighbor_cell_key = neighbor_grid_z * grid_dims.y * grid_dims.x + neighbor_grid_y * grid_dims.x + neighbor_grid_x;
-                        int start = cell_start[neighbor_cell_key];
-                        int end = cell_end[neighbor_cell_key];
+
+                        const int neighbor_cell_key = neighbor_grid_z * grid_dims.y * grid_dims.x + neighbor_grid_y * grid_dims.x + neighbor_grid_x;
+                        const int start = cell_start[neighbor_cell_key];
+                        const int end = cell_end[neighbor_cell_key];
 
                         for (int j = start; j < end; ++j) {
-                            int neighbor_idx = sorted_node_indices[j];
+                            const int neighbor_idx = sorted_node_indices[j];
                             if (idx == neighbor_idx) continue;
 
-                            float3 neighbor_pos = make_vec3(pos_in_x[neighbor_idx], pos_in_y[neighbor_idx], pos_in_z[neighbor_idx]);
-                            float3 diff = vec3_sub(my_pos, neighbor_pos);
-                            float dist_sq = vec3_length_sq(diff);
+                            const float3 neighbor_pos = make_vec3(pos_in_x[neighbor_idx], pos_in_y[neighbor_idx], pos_in_z[neighbor_idx]);
+                            const float3 diff = vec3_sub(my_pos, neighbor_pos);
+                            const float dist_sq = vec3_length_sq(diff);
 
                             if (dist_sq < c_params.repulsion_cutoff * c_params.repulsion_cutoff && dist_sq > 1e-6f) {
-                                float dist = sqrtf(dist_sq);
+                                const float dist = sqrtf(dist_sq);
                                 float repulsion = c_params.repel_k / (dist_sq + c_params.repulsion_softening_epsilon);
 
                                 // Apply class-based charge modifiers (default 1.0 if nullptr)
-                                float my_charge = (class_charge != nullptr) ? class_charge[idx] : 1.0f;
-                                float neighbor_charge = (class_charge != nullptr) ? class_charge[neighbor_idx] : 1.0f;
+                                const float my_charge = (class_charge != nullptr) ? class_charge[idx] : 1.0f;
+                                const float neighbor_charge = (class_charge != nullptr) ? class_charge[neighbor_idx] : 1.0f;
                                 repulsion *= my_charge * neighbor_charge;
 
                                 // Prevent repulsion force overflow when nodes are too close
-                                // Use full max_force instead of arbitrary 0.5 multiplier
-                                float max_repulsion = c_params.max_force;
-                                repulsion = fminf(repulsion, max_repulsion);
+                                repulsion = fminf(repulsion, c_params.max_force);
 
-                                // Safety check for NaN/Inf
-                                if (isfinite(repulsion) && isfinite(dist) && dist > 0.0f) {
-                                    total_force = vec3_add(total_force, vec3_scale(diff, repulsion / dist));
+                                // Safety check for NaN/Inf - use FMA for force accumulation
+                                if (isfinite(repulsion) && dist > 0.0f) {
+                                    const float force_scale = repulsion / dist;
+                                    total_force.x = fmaf(diff.x, force_scale, total_force.x);
+                                    total_force.y = fmaf(diff.y, force_scale, total_force.y);
+                                    total_force.z = fmaf(diff.z, force_scale, total_force.z);
                                 }
                             }
                         }
@@ -335,27 +343,34 @@ __global__ void force_pass_kernel(
             du = d_sssp_dist[idx];
         }
         
+        // Unroll edge iteration for better instruction-level parallelism
+        #pragma unroll 4
         for (int i = start_edge; i < end_edge; ++i) {
-            int neighbor_idx = edge_col_indices[i];
-            float3 neighbor_pos = make_vec3(pos_in_x[neighbor_idx], pos_in_y[neighbor_idx], pos_in_z[neighbor_idx]);
-            
-            float3 diff = vec3_sub(neighbor_pos, my_pos);
-            float dist = vec3_length(diff);
-            
+            const int neighbor_idx = edge_col_indices[i];
+            const float3 neighbor_pos = make_vec3(pos_in_x[neighbor_idx], pos_in_y[neighbor_idx], pos_in_z[neighbor_idx]);
+
+            const float3 diff = vec3_sub(neighbor_pos, my_pos);
+            const float dist = vec3_length(diff);
+
             if (dist > 1e-6f) {
                 float ideal = c_params.rest_length;
                 if (use_sssp) {
-                    float dv = d_sssp_dist[neighbor_idx];
+                    const float dv = d_sssp_dist[neighbor_idx];
                     // Handle disconnected components gracefully
                     if (isfinite(du) && isfinite(dv)) {
-                        float delta = fabsf(du - dv);
-                        float norm_delta = fminf(delta, c_params.norm_delta_cap); // Cap for stability
-                        ideal = c_params.rest_length + c_params.sssp_alpha * norm_delta;
+                        const float delta = fabsf(du - dv);
+                        const float norm_delta = fminf(delta, c_params.norm_delta_cap);
+                        // Use FMA for ideal distance calculation
+                        ideal = fmaf(c_params.sssp_alpha, norm_delta, c_params.rest_length);
                     }
                 }
-                float displacement = dist - ideal;
-                float spring_force_mag = c_params.spring_k * displacement * edge_weights[i];
-                total_force = vec3_add(total_force, vec3_scale(diff, spring_force_mag / dist));
+                const float displacement = dist - ideal;
+                // Use FMA for spring force calculation
+                const float spring_force_mag = c_params.spring_k * displacement * edge_weights[i];
+                const float force_scale = spring_force_mag / dist;
+                total_force.x = fmaf(diff.x, force_scale, total_force.x);
+                total_force.y = fmaf(diff.y, force_scale, total_force.y);
+                total_force.z = fmaf(diff.z, force_scale, total_force.z);
             }
         }
     }
@@ -584,11 +599,16 @@ __global__ void integrate_pass_kernel(
         effective_damping = c_params.damping + (c_params.cooling_rate - c_params.damping) * (1.0f - warmup_factor);
     }
 
-    // Apply integration with settings-based damping
-    vel = vec3_add(vel, vec3_scale(force, c_params.dt / node_mass));
-    vel = vec3_scale(vel, effective_damping);
+    // Apply integration with settings-based damping using FMA
+    const float dt_over_mass = c_params.dt / node_mass;
+    vel.x = fmaf(force.x, dt_over_mass, vel.x) * effective_damping;
+    vel.y = fmaf(force.y, dt_over_mass, vel.y) * effective_damping;
+    vel.z = fmaf(force.z, dt_over_mass, vel.z) * effective_damping;
     vel = vec3_clamp(vel, c_params.max_velocity);
-    pos = vec3_add(pos, vec3_scale(vel, c_params.dt));
+    // Position update using FMA
+    pos.x = fmaf(vel.x, c_params.dt, pos.x);
+    pos.y = fmaf(vel.y, c_params.dt, pos.y);
+    pos.z = fmaf(vel.z, c_params.dt, pos.z);
 
     // Apply enhanced boundary constraints with progressive repulsion
     float boundary_limit = c_params.viewport_bounds;

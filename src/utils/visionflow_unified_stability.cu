@@ -43,15 +43,16 @@ __global__ void calculate_kinetic_energy_kernel(
     shared_active[tid] = 0;
     
     // Calculate kinetic energy for this thread's node
+    // Use FMA (fused multiply-add) for better performance
     if (idx < num_nodes) {
-        float vx = vel_x[idx];
-        float vy = vel_y[idx];
-        float vz = vel_z[idx];
-        float vel_sq = vx * vx + vy * vy + vz * vz;
-        
+        const float vx = vel_x[idx];
+        const float vy = vel_y[idx];
+        const float vz = vel_z[idx];
+        const float vel_sq = fmaf(vx, vx, fmaf(vy, vy, vz * vz));
+
         // Check if node is actively moving
         if (vel_sq > min_velocity_threshold_sq) {
-            float node_mass = (mass != nullptr && mass[idx] > 0.0f) ? mass[idx] : 1.0f;
+            const float node_mass = (mass != nullptr && mass[idx] > 0.0f) ? mass[idx] : 1.0f;
             shared_ke[tid] = 0.5f * node_mass * vel_sq;
             shared_active[tid] = 1;
         }
@@ -60,12 +61,26 @@ __global__ void calculate_kinetic_energy_kernel(
     __syncthreads();
     
     // Block-level reduction for both kinetic energy and active count
-    for (int s = block_size / 2; s > 0; s >>= 1) {
+    // Unroll final warp for better performance
+    #pragma unroll
+    for (int s = block_size / 2; s > 32; s >>= 1) {
         if (tid < s) {
             shared_ke[tid] += shared_ke[tid + s];
             shared_active[tid] += shared_active[tid + s];
         }
         __syncthreads();
+    }
+
+    // Final warp reduction without synchronization
+    if (tid < 32) {
+        volatile float* smem_ke = shared_ke;
+        volatile int* smem_active = shared_active;
+        if (block_size >= 64) { smem_ke[tid] += smem_ke[tid + 32]; smem_active[tid] += smem_active[tid + 32]; }
+        if (block_size >= 32) { smem_ke[tid] += smem_ke[tid + 16]; smem_active[tid] += smem_active[tid + 16]; }
+        if (block_size >= 16) { smem_ke[tid] += smem_ke[tid + 8];  smem_active[tid] += smem_active[tid + 8]; }
+        if (block_size >= 8)  { smem_ke[tid] += smem_ke[tid + 4];  smem_active[tid] += smem_active[tid + 4]; }
+        if (block_size >= 4)  { smem_ke[tid] += smem_ke[tid + 2];  smem_active[tid] += smem_active[tid + 2]; }
+        if (block_size >= 2)  { smem_ke[tid] += smem_ke[tid + 1];  smem_active[tid] += smem_active[tid + 1]; }
     }
     
     // Store block results
@@ -102,12 +117,24 @@ __global__ void reduce_kinetic_energy_kernel(
     
     __syncthreads();
     
-    // Final reduction
-    for (int s = block_size / 2; s > 0; s >>= 1) {
+    // Final reduction with warp-level optimizations
+    #pragma unroll
+    for (int s = block_size / 2; s > 32; s >>= 1) {
         if (tid < s) {
             shared_ke[tid] += shared_ke[tid + s];
         }
         __syncthreads();
+    }
+
+    // Final warp reduction without synchronization
+    if (tid < 32) {
+        volatile float* smem = shared_ke;
+        if (block_size >= 64) smem[tid] += smem[tid + 32];
+        if (block_size >= 32) smem[tid] += smem[tid + 16];
+        if (block_size >= 16) smem[tid] += smem[tid + 8];
+        if (block_size >= 8)  smem[tid] += smem[tid + 4];
+        if (block_size >= 4)  smem[tid] += smem[tid + 2];
+        if (block_size >= 2)  smem[tid] += smem[tid + 1];
     }
     
     // Store final results
@@ -250,14 +277,14 @@ __host__ bool check_system_stability(
     err = cudaMalloc(&d_partial_ke, num_blocks * sizeof(float));
     if (err != cudaSuccess) {
         printf("Failed to allocate d_partial_ke: %s\n", cudaGetErrorString(err));
-        return -1;
+        return false;
     }
 
     err = cudaMalloc(&d_total_ke, sizeof(float));
     if (err != cudaSuccess) {
         printf("Failed to allocate d_total_ke: %s\n", cudaGetErrorString(err));
         cudaFree(d_partial_ke);
-        return -1;
+        return false;
     }
 
     err = cudaMalloc(&d_avg_ke, sizeof(float));
@@ -265,7 +292,7 @@ __host__ bool check_system_stability(
         printf("Failed to allocate d_avg_ke: %s\n", cudaGetErrorString(err));
         cudaFree(d_partial_ke);
         cudaFree(d_total_ke);
-        return -1;
+        return false;
     }
 
     err = cudaMalloc(&d_active_count, sizeof(int));
@@ -274,7 +301,7 @@ __host__ bool check_system_stability(
         cudaFree(d_partial_ke);
         cudaFree(d_total_ke);
         cudaFree(d_avg_ke);
-        return -1;
+        return false;
     }
 
     err = cudaMalloc(&d_should_skip, sizeof(int));
@@ -284,7 +311,7 @@ __host__ bool check_system_stability(
         cudaFree(d_total_ke);
         cudaFree(d_avg_ke);
         cudaFree(d_active_count);
-        return -1;
+        return false;
     }
     
     // Initialize counters

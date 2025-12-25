@@ -72,7 +72,8 @@ graph LR
 <td width="50%">
 
 ### Autonomous AI Analysis
-- **50+ concurrent AI agents** with specialized roles
+- **50+ concurrent MCP/business agents** with specialized roles
+- **21 system actors** for core server coordination
 - **Microsoft GraphRAG** for hierarchical reasoning
 - **Leiden clustering** for community detection
 - **Multi-hop reasoning** across knowledge domains
@@ -83,7 +84,7 @@ graph LR
 ### GPU-Accelerated Performance
 - **39 CUDA kernels** for 100x speedup
 - **60 FPS** rendering at 100,000+ nodes
-- **36-byte binary protocol** (80% bandwidth reduction)
+- **36-byte binary protocol V2** (80% bandwidth reduction vs JSON)
 - **Sub-10ms** WebSocket latency
 
 </td>
@@ -285,7 +286,7 @@ flowchart TB
         CUDA["39 CUDA Kernels"]
     end
 
-    Client <-->|"36-byte Binary Protocol"| Server
+    Client <-->|"36-byte Binary Protocol V2"| Server
     Server <--> Data
     Server <--> GPU
 
@@ -298,9 +299,10 @@ flowchart TB
 ### Core Design Principles
 
 - **Server-Authoritative State** — Neo4j is the single source of truth
-- **Binary Protocol** — 36-byte WebSocket messages (80% bandwidth reduction vs JSON)
+- **Binary Protocol V2** — 36-byte WebSocket messages (80% bandwidth reduction vs JSON)
 - **GPU Offloading** — Physics, clustering, pathfinding accelerated 100x
-- **Actor Isolation** — Specialized actors for graph state, physics, semantics, and coordination
+- **Actor System** — 21 specialized actors for graph state, physics, semantics, and coordination
+- **Event-Driven Architecture** — Domain events with pub/sub pattern for loose coupling
 
 **Deep Dive:** [Architecture Overview](docs/concepts/architecture/00-architecture-overview.md) · [Hexagonal CQRS](docs/concepts/architecture/hexagonal-cqrs-architecture.md) · [Actor System](docs/guides/graphserviceactor-migration.md)
 
@@ -330,7 +332,7 @@ flowchart LR
 - **Streaming processing** — No batching bottlenecks
 - **Real-time persistence** — Immediate Neo4j writes
 - **GPU-accelerated physics** — 100x faster than CPU
-- **Binary efficiency** — 36 bytes per node update
+- **Binary Protocol V2** — 36 bytes per node update (supports full 32-bit node IDs)
 
 **Complete documentation:** [Pipeline Integration](docs/concepts/architecture/pipeline-integration.md)
 
@@ -388,7 +390,8 @@ flowchart LR
 |:---|---:|
 | WebSocket Latency | **<10ms** |
 | Bandwidth Reduction | **80%** vs JSON |
-| Message Size | **36 bytes**/node |
+| Protocol V2 Message Size | **36 bytes**/node |
+| Protocol V3 Message Size | **48 bytes**/node (with analytics) |
 
 <details>
 <summary><strong>Click to expand: Detailed Performance Benchmarks</strong></summary>
@@ -401,18 +404,20 @@ flowchart LR
 
 ### Binary Protocol V2 (36-byte format)
 ```
-| Field        | Bytes | Description           |
-|--------------|-------|-----------------------|
-| Node ID      | 4     | Unique identifier     |
-| Position X   | 4     | Float32               |
-| Position Y   | 4     | Float32               |
-| Position Z   | 4     | Float32               |
-| Velocity X   | 4     | Float32               |
-| Velocity Y   | 4     | Float32               |
-| Velocity Z   | 4     | Float32               |
-| Flags        | 4     | State flags           |
-| Reserved     | 4     | Future use            |
+| Field         | Bytes | Description                    |
+|---------------|-------|--------------------------------|
+| Node ID       | 4     | u32 with type flags (30 bits)  |
+| Position X    | 4     | Float32                        |
+| Position Y    | 4     | Float32                        |
+| Position Z    | 4     | Float32                        |
+| Velocity X    | 4     | Float32                        |
+| Velocity Y    | 4     | Float32                        |
+| Velocity Z    | 4     | Float32                        |
+| SSSP Distance | 4     | Float32 (pathfinding)          |
+| SSSP Parent   | 4     | i32 (pathfinding)              |
 ```
+
+**Note:** Protocol V1 (34 bytes) is deprecated due to node ID truncation bug. V2 fixes this with full 32-bit node IDs.
 
 **Full benchmarks:** [Performance Benchmarks](docs/reference/performance-benchmarks.md)
 
@@ -582,8 +587,12 @@ VisionFlow/
 │   │   └── reasoner.rs              # Whelk-rs integration
 │   ├── gpu/                      # CUDA kernel integration
 │   │   └── kernels/                 # 39 CUDA kernels
-│   └── protocols/                # Binary WebSocket protocol
-│       └── binary_protocol.rs       # 36-byte message format
+│   ├── protocols/                # Binary WebSocket protocol
+│   │   └── binary_protocol.rs       # 36-byte V2 message format
+│   └── events/                   # Event-driven architecture
+│       ├── domain_events.rs         # Domain event definitions
+│       ├── bus.rs                   # Event bus (pub/sub)
+│       └── handlers/                # Event handlers
 │
 ├── client/src/                   # Client code (React + Three.js)
 │   ├── components/               # React UI components
@@ -628,7 +637,7 @@ VisionFlow/
 
 - Modular actor architecture
 - Neo4j as primary database
-- Binary WebSocket protocol (36 bytes, 80% reduction)
+- Binary WebSocket protocol V2 (36 bytes, 80% reduction)
 - 39 CUDA kernels (100x speedup)
 - 50+ concurrent AI agents
 - OWL 2 EL reasoning with Whelk-rs
@@ -852,8 +861,9 @@ VisionFlow/
 - [x] Modular actor architecture (GraphServiceActor → 4 specialised actors)
 - [x] Neo4j 5.13 as primary database
 - [x] Hexagonal architecture with ports & adapters
-- [x] Binary WebSocket protocol (36 bytes, 80% bandwidth reduction)
+- [x] Binary WebSocket protocol V2 (36 bytes, 80% bandwidth reduction)
 - [x] Server-authoritative state management
+- [x] Event-driven architecture with domain events
 
 **GPU Acceleration**
 - [x] 39 production CUDA kernels
@@ -862,7 +872,8 @@ VisionFlow/
 - [x] Shortest path computation (SSSP)
 
 **AI Agent System**
-- [x] 50+ concurrent AI agents
+- [x] 21 specialized system actors for core coordination
+- [x] 50+ concurrent MCP/business agents for AI analysis
 - [x] Microsoft GraphRAG integration
 - [x] Multi-hop reasoning
 - [x] Whelk-rs OWL 2 DL reasoning (10-100x speedup)

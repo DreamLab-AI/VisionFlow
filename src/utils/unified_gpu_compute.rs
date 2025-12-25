@@ -2815,13 +2815,64 @@ impl UnifiedGPUCompute {
 
         self.stream.synchronize()?;
 
-        
+        // Phase 3: Propagate cluster labels until convergence
+        let propagate_kernel = self
+            ._module
+            .get_function("dbscan_propagate_labels_kernel")?;
+
+        let mut changed = vec![0i32; 1];
+        let mut d_changed = DeviceBuffer::from_slice(&changed)?;
+
+        const MAX_ITERATIONS: usize = 100;
+        for _iter in 0..MAX_ITERATIONS {
+            // Reset changed flag
+            changed[0] = 0;
+            d_changed.copy_from(&changed)?;
+
+            unsafe {
+                let stream = &self.stream;
+                launch!(
+                propagate_kernel<<<grid_size, block_size, 0, stream>>>(
+                    d_neighbors.as_device_ptr(),
+                    d_neighbor_counts.as_device_ptr(),
+                    d_neighbor_offsets.as_device_ptr(),
+                    d_labels.as_device_ptr(),
+                    d_changed.as_device_ptr(),
+                    self.num_nodes as i32
+                ))?;
+            }
+
+            self.stream.synchronize()?;
+            d_changed.copy_to(&mut changed)?;
+
+            if changed[0] == 0 {
+                break;
+            }
+        }
+
+        // Phase 4: Finalize noise points
+        let finalize_kernel = self
+            ._module
+            .get_function("dbscan_finalize_noise_kernel")?;
+
+        unsafe {
+            let stream = &self.stream;
+            launch!(
+            finalize_kernel<<<grid_size, block_size, 0, stream>>>(
+                d_labels.as_device_ptr(),
+                self.num_nodes as i32
+            ))?;
+        }
+
+        self.stream.synchronize()?;
+
+        // Copy final labels back to host
         d_labels.copy_to(&mut labels)?;
 
         Ok(labels)
     }
 
-    
+
     pub fn get_kernel_statistics(&self) -> HashMap<String, serde_json::Value> {
         let mut stats = HashMap::new();
 

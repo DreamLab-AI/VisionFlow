@@ -6,14 +6,16 @@ struct AABB {
     float3 max;
 };
 
-// Warp-level primitives for min/max reduction
+// Warp-level primitives for min/max reduction with unrolling
 __device__ __forceinline__ float warpReduceMin(float val) {
+    #pragma unroll
     for (int offset = 16; offset > 0; offset /= 2)
         val = fminf(val, __shfl_down_sync(0xffffffff, val, offset));
     return val;
 }
 
 __device__ __forceinline__ float warpReduceMax(float val) {
+    #pragma unroll
     for (int offset = 16; offset > 0; offset /= 2)
         val = fmaxf(val, __shfl_down_sync(0xffffffff, val, offset));
     return val;
@@ -43,11 +45,12 @@ __global__ void compute_aabb_reduction_kernel(
     float min_x = FLT_MAX, min_y = FLT_MAX, min_z = FLT_MAX;
     float max_x = -FLT_MAX, max_y = -FLT_MAX, max_z = -FLT_MAX;
 
-    // Grid-stride loop for coalesced memory access
+    // Grid-stride loop for coalesced memory access with unrolling
+    #pragma unroll 4
     for (int i = idx; i < num_nodes; i += blockDim.x * gridDim.x) {
-        float x = pos_x[i];
-        float y = pos_y[i];
-        float z = pos_z[i];
+        const float x = pos_x[i];
+        const float y = pos_y[i];
+        const float z = pos_z[i];
 
         min_x = fminf(min_x, x);
         min_y = fminf(min_y, y);

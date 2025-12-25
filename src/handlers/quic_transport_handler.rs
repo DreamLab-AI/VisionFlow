@@ -185,7 +185,7 @@ pub enum CongestionController {
 impl Default for QuicServerConfig {
     fn default() -> Self {
         Self {
-            bind_addr: "0.0.0.0:4433".parse().unwrap(),
+            bind_addr: "0.0.0.0:4433".parse().expect("valid default QUIC bind address"),
             max_connections: 1000,
             idle_timeout_ms: 30_000,
             max_udp_payload_size: 1472, // Standard MTU - headers
@@ -579,15 +579,10 @@ impl QuicTransportServer {
             .map(|(_, data)| PostcardNodeUpdate::from(data))
             .collect();
 
+        let now_ms = current_timestamp_ms();
         let batch = PostcardBatchUpdate {
-            frame_id: std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .unwrap()
-                .as_millis() as u64,
-            timestamp_ms: std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .unwrap()
-                .as_millis() as u64,
+            frame_id: now_ms,
+            timestamp_ms: now_ms,
             nodes: updates,
         };
 
@@ -613,6 +608,19 @@ impl QuicTransportServer {
 }
 
 // ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
+/// Get current timestamp in milliseconds since UNIX epoch (safe, no panics)
+#[inline]
+fn current_timestamp_ms() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis() as u64
+}
+
+// ============================================================================
 // POSTCARD SERIALIZATION UTILITIES
 // ============================================================================
 
@@ -625,10 +633,7 @@ pub fn encode_postcard_batch(nodes: &[(u32, BinaryNodeData)]) -> Result<Vec<u8>,
 
     let batch = PostcardBatchUpdate {
         frame_id: 0,
-        timestamp_ms: std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_millis() as u64,
+        timestamp_ms: current_timestamp_ms(),
         nodes: updates,
     };
 

@@ -83,8 +83,8 @@ pub fn effective_cuda_arch() -> String {
     std::env::var(CUDA_ARCH_ENV).unwrap_or_else(|_| DEFAULT_CUDA_ARCH.to_string())
 }
 
-///
-fn validate_ptx(ptx: &str) -> Result<(), String> {
+/// Validates PTX assembly code structure
+pub fn validate_ptx(ptx: &str) -> Result<(), String> {
     if !ptx.contains(".version") {
         return Err("PTX validation failed: missing .version directive".into());
     }

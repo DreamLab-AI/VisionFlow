@@ -28,13 +28,14 @@ __global__ void label_propagation_kernel(
     int row_start = edge_row_offsets[node];
     int row_end = edge_row_offsets[node + 1];
 
+    // Unroll neighbor iteration for better performance
+    #pragma unroll 8
     for (int edge_idx = row_start; edge_idx < row_end; edge_idx++) {
-        int neighbor = edge_col_indices[edge_idx];
-        int neighbor_label = labels[neighbor];
+        const int neighbor = edge_col_indices[edge_idx];
+        const int neighbor_label = labels[neighbor];
 
-        if (neighbor_label < min_label) {
-            min_label = neighbor_label;
-        }
+        // Use min() intrinsic for branchless comparison
+        min_label = min(min_label, neighbor_label);
     }
 
     // Update label if a smaller one was found

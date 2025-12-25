@@ -29,8 +29,8 @@ def quick_parse_input(text):
                 components = data.get('components', [])
                 dependencies = data.get('dependencies', [])
             return components, dependencies
-        except:
-            pass
+        except json.JSONDecodeError as e:
+            print(f"Warning: Failed to parse JSON input: {e}", file=sys.stderr)
     
     # Check for CSV-like format
     if '\t' in text or ',' in text:
@@ -44,8 +44,9 @@ def quick_parse_input(text):
                         'visibility': float(parts),
                         'evolution': float(parts)
                     })
-                except:
-                    pass
+                except (ValueError, IndexError) as e:
+                    print(f"Warning: Failed to parse component line '{line}': {e}", file=sys.stderr)
+                    continue
     
     # Parse natural language with enhanced patterns
     if not components:

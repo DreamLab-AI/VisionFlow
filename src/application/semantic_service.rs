@@ -236,6 +236,7 @@ impl SemanticService {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use async_trait::async_trait;
     use crate::events::event_bus::EventBus;
     use std::sync::Arc;
     use tokio::sync::RwLock;

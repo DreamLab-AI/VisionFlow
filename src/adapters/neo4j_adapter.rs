@@ -16,7 +16,7 @@
 
 use async_trait::async_trait;
 use log::{debug, info, warn};
-use neo4rs::{Graph, Query, Node as Neo4jNode};
+use neo4rs::{Graph, Query, Node as Neo4jNode, ConfigBuilder};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tracing::instrument;
@@ -48,11 +48,27 @@ pub struct Neo4jConfig {
 
 impl Default for Neo4jConfig {
     fn default() -> Self {
-        // SECURITY: Ensure NEO4J_PASSWORD is set in production
+        // SECURITY: NEO4J_PASSWORD is REQUIRED - no insecure defaults
         let password = std::env::var("NEO4J_PASSWORD").unwrap_or_else(|_| {
-            log::warn!("⚠️  NEO4J_PASSWORD not set - using insecure default! Set NEO4J_PASSWORD in production.");
-            "password".to_string()
+            // In development/test mode, allow default only if explicitly set
+            if std::env::var("ALLOW_INSECURE_DEFAULTS").is_ok() {
+                log::warn!("⚠️  NEO4J_PASSWORD not set - using insecure default (ALLOW_INSECURE_DEFAULTS=1)");
+                "password".to_string()
+            } else {
+                log::error!("🚨 CRITICAL: NEO4J_PASSWORD environment variable is REQUIRED!");
+                log::error!("   Set NEO4J_PASSWORD=<your-secure-password> or");
+                log::error!("   Set ALLOW_INSECURE_DEFAULTS=1 for development only");
+                panic!("NEO4J_PASSWORD must be set. See logs for details.");
+            }
         });
+
+        // Reject obviously insecure passwords in production
+        if password == "password" || password == "neo4j" || password.len() < 8 {
+            if std::env::var("ALLOW_INSECURE_DEFAULTS").is_err() {
+                log::error!("🚨 CRITICAL: NEO4J_PASSWORD is too weak or uses a default value!");
+                panic!("NEO4J_PASSWORD must be at least 8 characters and not a default value");
+            }
+        }
 
         Self {
             uri: std::env::var("NEO4J_URI").unwrap_or_else(|_| "bolt://localhost:7687".to_string()),
@@ -114,7 +130,21 @@ impl Neo4jAdapter {
         info!("Connecting to Neo4j at {} (max_connections: {}, query_timeout: {}s)",
               config.uri, config.max_connections, config.query_timeout_secs);
 
-        let graph = Graph::new(&config.uri, &config.user, &config.password)
+        // PERF: Configure connection pool for high-throughput graph operations
+        let neo4j_config = ConfigBuilder::default()
+            .uri(&config.uri)
+            .user(&config.user)
+            .password(&config.password)
+            .max_connections(config.max_connections)
+            .build()
+            .map_err(|e| {
+                KnowledgeGraphRepositoryError::DatabaseError(format!(
+                    "Failed to build Neo4j config: {}",
+                    e
+                ))
+            })?;
+
+        let graph = Graph::connect(neo4j_config)
             .map_err(|e| {
                 KnowledgeGraphRepositoryError::DatabaseError(format!(
                     "Failed to connect to Neo4j: {}",
@@ -122,7 +152,7 @@ impl Neo4jAdapter {
                 ))
             })?;
 
-        info!("Connected to Neo4j successfully");
+        info!("Connected to Neo4j successfully with {} connection pool", config.max_connections);
 
         let adapter = Self {
             graph: Arc::new(graph),

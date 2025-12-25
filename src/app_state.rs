@@ -514,8 +514,17 @@ impl AppState {
             .parse::<u16>()
             .unwrap_or(9090);
         let mgmt_api_key = std::env::var("MANAGEMENT_API_KEY").unwrap_or_else(|_| {
-            warn!("[AppState] MANAGEMENT_API_KEY not set, using default");
-            "change-this-secret-key".to_string()
+            // Generate a secure random key if not set, but warn loudly
+            if std::env::var("ALLOW_INSECURE_DEFAULTS").is_ok() {
+                warn!("[AppState] MANAGEMENT_API_KEY not set, using insecure default (dev mode)");
+                "change-this-secret-key".to_string()
+            } else {
+                // Generate a secure random API key for this session
+                let random_key = format!("auto-{}", uuid::Uuid::new_v4());
+                warn!("[AppState] MANAGEMENT_API_KEY not set - generated session key: {}...", &random_key[..16]);
+                warn!("[AppState] Set MANAGEMENT_API_KEY in production for consistent key across restarts");
+                random_key
+            }
         });
 
         let mgmt_client = ManagementApiClient::new(mgmt_api_host, mgmt_api_port, mgmt_api_key);

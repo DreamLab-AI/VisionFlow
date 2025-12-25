@@ -30,12 +30,14 @@ __global__ void approximate_apsp_kernel(
     // Approximate using landmarks: d(i,j) ≈ min_k(d(k,i) + d(k,j))
     float min_dist = FLT_MAX;
 
+    // Unroll for better performance with typical landmark counts
+    #pragma unroll 8
     for (int k = 0; k < num_landmarks; k++) {
-        float dist_ki = landmark_distances[k * num_nodes + i];
-        float dist_kj = landmark_distances[k * num_nodes + j];
+        const float dist_ki = landmark_distances[k * num_nodes + i];
+        const float dist_kj = landmark_distances[k * num_nodes + j];
 
         if (dist_ki < FLT_MAX && dist_kj < FLT_MAX) {
-            float estimate = dist_ki + dist_kj;
+            const float estimate = dist_ki + dist_kj;
             min_dist = fminf(min_dist, estimate);
         }
     }
@@ -97,8 +99,10 @@ __global__ void stress_majorization_barneshut_kernel(
     int row_start = edge_row_offsets[i];
     int row_end = edge_row_offsets[i + 1];
 
+    // Unroll for better performance
+    #pragma unroll 8
     for (int edge_idx = row_start; edge_idx < row_end; edge_idx++) {
-        int j = edge_col_indices[edge_idx];
+        const int j = edge_col_indices[edge_idx];
 
         float3 pos_j = make_float3(pos_x[j], pos_y[j], pos_z[j]);
         float weight = weights[i * num_nodes + j];
@@ -111,7 +115,8 @@ __global__ void stress_majorization_barneshut_kernel(
                 pos_i.z - pos_j.z
             );
 
-            float actual_dist = sqrtf(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
+            // Use FMA for better performance
+            const float actual_dist = sqrtf(fmaf(diff.x, diff.x, fmaf(diff.y, diff.y, diff.z * diff.z)));
 
             if (actual_dist > force_epsilon) {
                 float scale = target_dist / actual_dist;

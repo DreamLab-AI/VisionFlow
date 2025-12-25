@@ -602,7 +602,7 @@ impl SettingsRepository for Neo4jSettingsRepository {
         description: Option<&str>,
     ) -> RepoResult<()> {
         let value_param = self.setting_value_to_param(&value);
-        let value_type = value_param["type"].as_str().unwrap();
+        let value_type = value_param["type"].as_str().unwrap_or("unknown");
         let value_data = &value_param["value"];
 
         let query_str =
@@ -691,7 +691,7 @@ impl SettingsRepository for Neo4jSettingsRepository {
 
         for (key, value) in &updates {
             let value_param = self.setting_value_to_param(value);
-            let value_type = value_param["type"].as_str().unwrap();
+            let value_type = value_param["type"].as_str().unwrap_or("unknown");
             let value_data = &value_param["value"];
 
             let query_str =

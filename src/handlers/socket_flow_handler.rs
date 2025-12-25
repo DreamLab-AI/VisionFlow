@@ -1659,10 +1659,38 @@ pub async fn socket_flow_handler(
     
     let client_ip = extract_client_id(&req);
 
-    
+
     if !WEBSOCKET_RATE_LIMITER.is_allowed(&client_ip) {
         warn!("WebSocket rate limit exceeded for client: {}", client_ip);
         return create_rate_limit_response(&client_ip, &WEBSOCKET_RATE_LIMITER);
+    }
+
+    // SECURITY: Validate Origin header to prevent cross-site WebSocket hijacking
+    if let Some(origin_header) = req.headers().get("Origin") {
+        let origin = origin_header.to_str().unwrap_or("");
+        let allowed_origins = std::env::var("CORS_ALLOWED_ORIGINS")
+            .unwrap_or_else(|_| {
+                if std::env::var("ALLOW_INSECURE_DEFAULTS").is_ok() {
+                    "http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000,http://localhost:5173".to_string()
+                } else {
+                    "http://localhost:3000".to_string()
+                }
+            });
+
+        let is_allowed = allowed_origins.split(',')
+            .map(|s| s.trim())
+            .any(|allowed| allowed == origin);
+
+        if !is_allowed {
+            warn!("WebSocket connection rejected - invalid origin: {} (allowed: {})", origin, allowed_origins);
+            return Ok(HttpResponse::Forbidden()
+                .body(format!("Origin '{}' not allowed for WebSocket connections", origin)));
+        }
+    } else if std::env::var("ALLOW_INSECURE_DEFAULTS").is_err() {
+        // In production, require Origin header for WebSocket connections
+        warn!("WebSocket connection rejected - missing Origin header from {}", client_ip);
+        return Ok(HttpResponse::BadRequest()
+            .body("Origin header required for WebSocket connections"));
     }
 
     let app_state_arc = app_state_data.into_inner(); 

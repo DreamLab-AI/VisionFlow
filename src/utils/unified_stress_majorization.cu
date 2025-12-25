@@ -33,10 +33,11 @@ __device__ inline float compute_distance_3d(
     float x1, float y1, float z1,
     float x2, float y2, float z2
 ) {
-    float dx = x1 - x2;
-    float dy = y1 - y2;
-    float dz = z1 - z2;
-    return safe_sqrt(dx * dx + dy * dy + dz * dz);
+    const float dx = x1 - x2;
+    const float dy = y1 - y2;
+    const float dz = z1 - z2;
+    // Use FMA for better performance and accuracy
+    return safe_sqrt(fmaf(dx, dx, fmaf(dy, dy, dz * dz)));
 }
 
 // =============================================================================
@@ -62,23 +63,26 @@ __global__ void compute_stress_kernel(
 
     float local_stress = 0.0f;
 
+    // Loop unrolling hint for better performance
+    #pragma unroll 8
     for (int j = 0; j < num_nodes; j++) {
         if (i == j) continue;
 
         // Current distance
-        float current_dist = compute_distance_3d(
+        const float current_dist = compute_distance_3d(
             pos_x[i], pos_y[i], pos_z[i],
             pos_x[j], pos_y[j], pos_z[j]
         );
 
         // Ideal distance from matrix
-        int idx = i * num_nodes + j;
-        float ideal_dist = ideal_distances[idx];
-        float weight = weights[idx];
+        const int idx = i * num_nodes + j;
+        const float ideal_dist = ideal_distances[idx];
+        const float weight = weights[idx];
 
         // Stress contribution: w_ij * (d_ij - ||p_i - p_j||)^2
-        float diff = ideal_dist - current_dist;
-        local_stress += weight * diff * diff;
+        // Use FMA for accumulation
+        const float diff = ideal_dist - current_dist;
+        local_stress = fmaf(weight, diff * diff, local_stress);
     }
 
     stress_values[i] = local_stress;
@@ -106,29 +110,33 @@ __global__ void compute_stress_gradient_kernel(
     float gy = 0.0f;
     float gz = 0.0f;
 
+    // Loop unrolling hint for better performance
+    #pragma unroll 8
     for (int j = 0; j < num_nodes; j++) {
         if (i == j) continue;
 
         // Current position difference
-        float dx = pos_x[i] - pos_x[j];
-        float dy = pos_y[i] - pos_y[j];
-        float dz = pos_z[i] - pos_z[j];
+        const float dx = pos_x[i] - pos_x[j];
+        const float dy = pos_y[i] - pos_y[j];
+        const float dz = pos_z[i] - pos_z[j];
 
-        float current_dist = safe_sqrt(dx * dx + dy * dy + dz * dz);
+        // Use FMA for distance calculation
+        const float current_dist = safe_sqrt(fmaf(dx, dx, fmaf(dy, dy, dz * dz)));
 
         // Avoid division by zero
         if (current_dist < 1e-6f) continue;
 
-        int idx = i * num_nodes + j;
-        float ideal_dist = ideal_distances[idx];
-        float weight = weights[idx];
+        const int idx = i * num_nodes + j;
+        const float ideal_dist = ideal_distances[idx];
+        const float weight = weights[idx];
 
         // Gradient factor: w_ij * (1 - d_ij / ||p_i - p_j||)
-        float factor = weight * (1.0f - ideal_dist / current_dist);
+        const float factor = weight * (1.0f - ideal_dist / current_dist);
 
-        gx += factor * dx;
-        gy += factor * dy;
-        gz += factor * dz;
+        // Use FMA for gradient accumulation
+        gx = fmaf(factor, dx, gx);
+        gy = fmaf(factor, dy, gy);
+        gz = fmaf(factor, dz, gz);
     }
 
     grad_x[i] = gx;
@@ -158,13 +166,13 @@ __global__ void update_positions_kernel(
     const int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i >= num_nodes) return;
 
-    // Update velocity with momentum
-    float vx = momentum * vel_x[i] - learning_rate * grad_x[i];
-    float vy = momentum * vel_y[i] - learning_rate * grad_y[i];
-    float vz = momentum * vel_z[i] - learning_rate * grad_z[i];
+    // Update velocity with momentum using FMA
+    float vx = fmaf(momentum, vel_x[i], -learning_rate * grad_x[i]);
+    float vy = fmaf(momentum, vel_y[i], -learning_rate * grad_y[i]);
+    float vz = fmaf(momentum, vel_z[i], -learning_rate * grad_z[i]);
 
-    // Clamp displacement magnitude
-    float displacement_sq = vx * vx + vy * vy + vz * vz;
+    // Clamp displacement magnitude using FMA
+    const float displacement_sq = fmaf(vx, vx, fmaf(vy, vy, vz * vz));
     if (displacement_sq > max_displacement * max_displacement) {
         float scale = max_displacement / safe_sqrt(displacement_sq);
         vx *= scale;
@@ -213,33 +221,36 @@ __global__ void stress_majorization_step_kernel(
     int row_start = edge_row_offsets[i];
     int row_end = edge_row_offsets[i + 1];
 
+    // Unroll for better performance
+    #pragma unroll 8
     for (int edge_idx = row_start; edge_idx < row_end; edge_idx++) {
-        int j = edge_col_indices[edge_idx];
+        const int j = edge_col_indices[edge_idx];
 
-        float3 pos_j = make_float3(pos_x[j], pos_y[j], pos_z[j]);
-        float weight = weights[i * num_nodes + j];
-        float target_dist = target_distances[i * num_nodes + j];
+        const float3 pos_j = make_float3(pos_x[j], pos_y[j], pos_z[j]);
+        const float weight = weights[i * num_nodes + j];
+        const float target_dist = target_distances[i * num_nodes + j];
 
         if (weight > 0.0f && target_dist > 0.0f) {
-            float3 diff = make_float3(
-                pos_i.x - pos_j.x,
-                pos_i.y - pos_j.y,
-                pos_i.z - pos_j.z
-            );
+            const float dx = pos_i.x - pos_j.x;
+            const float dy = pos_i.y - pos_j.y;
+            const float dz = pos_i.z - pos_j.z;
 
-            float actual_dist = sqrtf(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
+            // Use FMA for distance calculation
+            const float actual_dist = sqrtf(fmaf(dx, dx, fmaf(dy, dy, dz * dz)));
 
             if (actual_dist > force_epsilon) {
-                float scale = target_dist / actual_dist;
-                float3 target_pos = make_float3(
-                    pos_i.x - diff.x * (1.0f - scale),
-                    pos_i.y - diff.y * (1.0f - scale),
-                    pos_i.z - diff.z * (1.0f - scale)
+                const float scale = target_dist / actual_dist;
+                const float one_minus_scale = 1.0f - scale;
+                const float3 target_pos = make_float3(
+                    fmaf(-dx, one_minus_scale, pos_i.x),
+                    fmaf(-dy, one_minus_scale, pos_i.y),
+                    fmaf(-dz, one_minus_scale, pos_i.z)
                 );
 
-                weighted_sum.x += weight * target_pos.x;
-                weighted_sum.y += weight * target_pos.y;
-                weighted_sum.z += weight * target_pos.z;
+                // Use FMA for weighted sum accumulation
+                weighted_sum.x = fmaf(weight, target_pos.x, weighted_sum.x);
+                weighted_sum.y = fmaf(weight, target_pos.y, weighted_sum.y);
+                weighted_sum.z = fmaf(weight, target_pos.z, weighted_sum.z);
                 weight_sum += weight;
             }
         }
@@ -389,12 +400,24 @@ __global__ void reduce_max_kernel(
     sdata[tid] = (i < n) ? input[i] : -FLT_MAX;
     __syncthreads();
 
-    // Reduction in shared memory
-    for (unsigned int s = blockDim.x / 2; s > 0; s >>= 1) {
+    // Reduction in shared memory with unrolling
+    #pragma unroll
+    for (unsigned int s = blockDim.x / 2; s > 32; s >>= 1) {
         if (tid < s) {
             sdata[tid] = fmaxf(sdata[tid], sdata[tid + s]);
         }
         __syncthreads();
+    }
+
+    // Final warp reduction without synchronization
+    if (tid < 32) {
+        volatile float* smem = sdata;
+        if (blockDim.x >= 64) smem[tid] = fmaxf(smem[tid], smem[tid + 32]);
+        if (blockDim.x >= 32) smem[tid] = fmaxf(smem[tid], smem[tid + 16]);
+        if (blockDim.x >= 16) smem[tid] = fmaxf(smem[tid], smem[tid + 8]);
+        if (blockDim.x >= 8)  smem[tid] = fmaxf(smem[tid], smem[tid + 4]);
+        if (blockDim.x >= 4)  smem[tid] = fmaxf(smem[tid], smem[tid + 2]);
+        if (blockDim.x >= 2)  smem[tid] = fmaxf(smem[tid], smem[tid + 1]);
     }
 
     // Write result for this block to global memory
@@ -420,12 +443,24 @@ __global__ void reduce_sum_kernel(
     sdata[tid] = (i < n) ? input[i] : 0.0f;
     __syncthreads();
 
-    // Reduction in shared memory
-    for (unsigned int s = blockDim.x / 2; s > 0; s >>= 1) {
+    // Reduction in shared memory with unrolling
+    #pragma unroll
+    for (unsigned int s = blockDim.x / 2; s > 32; s >>= 1) {
         if (tid < s) {
             sdata[tid] += sdata[tid + s];
         }
         __syncthreads();
+    }
+
+    // Final warp reduction without synchronization
+    if (tid < 32) {
+        volatile float* smem = sdata;
+        if (blockDim.x >= 64) smem[tid] += smem[tid + 32];
+        if (blockDim.x >= 32) smem[tid] += smem[tid + 16];
+        if (blockDim.x >= 16) smem[tid] += smem[tid + 8];
+        if (blockDim.x >= 8)  smem[tid] += smem[tid + 4];
+        if (blockDim.x >= 4)  smem[tid] += smem[tid + 2];
+        if (blockDim.x >= 2)  smem[tid] += smem[tid + 1];
     }
 
     // Write result for this block to global memory

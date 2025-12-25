@@ -54,8 +54,10 @@ def _calculate_cpu_percent(stats: Dict) -> float:
         if system_delta > 0 and cpu_delta > 0:
             num_cpus = len(stats['cpu_stats']['cpu_usage'].get('percpu_usage', [1]))
             return (cpu_delta / system_delta) * num_cpus * 100.0
-    except (KeyError, ZeroDivisionError):
-        pass
+    except (KeyError, ZeroDivisionError) as e:
+        import logging
+        logging.debug(f"Could not calculate CPU percentage: {e}")
+        return 0.0
     return 0.0
 
 
@@ -522,8 +524,9 @@ def volume_files(name: str, path: str = "/") -> str:
         if temp_container:
             try:
                 docker_client.containers.get(temp_container.id).remove(force=True)
-            except:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Failed to remove temporary container {temp_container.id}: {e}")
 
 
 @mcp.tool()

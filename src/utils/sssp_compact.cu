@@ -21,9 +21,10 @@ __global__ void compact_frontier_kernel(
     shared_data[tid] = flag;
     __syncthreads();
     
-    // Parallel prefix sum in shared memory (up-sweep)
+    // Parallel prefix sum in shared memory (up-sweep) with unrolling
+    #pragma unroll
     for (int stride = 1; stride < blockDim.x; stride *= 2) {
-        int index = (tid + 1) * stride * 2 - 1;
+        const int index = (tid + 1) * stride * 2 - 1;
         if (index < blockDim.x) {
             shared_data[index] += shared_data[index - stride];
         }
@@ -37,11 +38,12 @@ __global__ void compact_frontier_kernel(
     }
     __syncthreads();
     
-    // Down-sweep
+    // Down-sweep with unrolling
+    #pragma unroll
     for (int stride = blockDim.x / 2; stride > 0; stride /= 2) {
-        int index = (tid + 1) * stride * 2 - 1;
+        const int index = (tid + 1) * stride * 2 - 1;
         if (index < blockDim.x) {
-            int temp = shared_data[index - stride];
+            const int temp = shared_data[index - stride];
             shared_data[index - stride] = shared_data[index];
             shared_data[index] += temp;
         }

@@ -408,8 +408,10 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
 
                     # Use grep to filter by timestamp (simplified)
                     cmd_parts.append(f"grep -E '{start_ts[:10]}'")
-                except:
-                    pass
+                except (ValueError, AttributeError) as e:
+                    # Invalid timestamp format, skip filtering
+                    import logging
+                    logging.debug(f"Could not parse start_timestamp: {e}")
 
             # Pattern filtering
             if pattern:
@@ -482,8 +484,9 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
             if delimiter:
                 cmd = ["cut", f"-d{delimiter}", f"-f{columns}", file_path]
             else:
-                # Auto-detect delimiter
-                cmd = ["awk", f"{{print {','.join(['$' + c for c in columns.split(',')])}}}}", file_path]
+                # Auto-detect delimiter - build awk command without f-string brace issues
+                awk_cols = ','.join(['$' + c for c in columns.split(',')])
+                cmd = ["awk", "{print " + awk_cols + "}", file_path]
 
             stdout, stderr, code = await run_command(cmd)
 

@@ -833,9 +833,9 @@ impl OntologyRepository for Neo4jOntologyRepository {
         let mut result = self.graph.execute(branching_query).await
             .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))?;
 
-        let average_branching_factor: f64 = if let Some(row) = result.next().await
+        let average_branching_factor: f32 = if let Some(row) = result.next().await
             .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))? {
-            row.get::<f64>("avg_branching").unwrap_or(0.0)
+            row.get::<f64>("avg_branching").unwrap_or(0.0) as f32
         } else {
             0.0
         };

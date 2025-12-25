@@ -43,7 +43,7 @@ graph TB
     subgraph "Client Layer (React + Three.js)"
         Browser["Web Browser<br/>(Chrome, Edge, Firefox)"]
         ThreeJS["Three.js WebGL Renderer<br/>60 FPS @ 100k+ nodes"]
-        WSClient["WebSocket Client<br/>Binary Protocol (36 bytes/node)"]
+        WSClient["WebSocket Client<br/>Binary Protocol V2 (36 bytes/node)"]
         VoiceUI["Voice UI (WebRTC)<br/>Spatial Audio"]
         XRUI["XR/VR Interface<br/>(Meta Quest 3)"]
     end
@@ -63,7 +63,7 @@ graph TB
             Adapters["Adapters (Implementations)<br/>- Neo4jGraphRepository<br/>- Neo4jOntologyRepository<br/>- Neo4jSettingsRepository<br/>- WhelkInferenceEngine<br/>- CUDAPhysicsAdapter"]
         end
 
-        subgraph "Actor System (21 Actors - Actix)"
+        subgraph "Actor System (21 System Actors - Actix)"
             Supervisor["GraphServiceSupervisor<br/>(Actor lifecycle & supervision)"]
             GSA["GraphStateActor<br/>(Graph state & Neo4j sync)"]
             POA["PhysicsOrchestratorActor<br/>(GPU coordination + 11 GPU actors)"]
@@ -153,7 +153,7 @@ graph TB
 **Key Features:**
 - **60 FPS Rendering** - Maintains performance even with 100k+ nodes using GPU-based force-directed layout
 - **WebGL 3D Graphics** - Hardware-accelerated rendering with Three.js
-- **Binary Protocol** - Receives graph updates via 36-byte binary WebSocket messages (80% bandwidth reduction)
+- **Binary Protocol V2** - Receives graph updates via 36-byte binary WebSocket messages (80% bandwidth reduction vs JSON)
 - **Multi-User Sync** - Independent camera controls with shared graph state
 - **Voice Interface** - WebRTC integration for natural language interaction
 - **XR Support** - WebXR implementation for Meta Quest 3 with hand tracking
@@ -237,7 +237,7 @@ GraphServiceSupervisor (lifecycle manager)
 
 **ClientCoordinatorActor** (`src/actors/client_coordinator_actor.rs`):
 - Manages WebSocket connections for multiple clients
-- Broadcasts graph updates using binary protocol
+- Broadcasts graph updates using binary protocol V2
 - Handles client-specific filtering and subscriptions
 - Coordinates multi-user state synchronization
 
@@ -475,7 +475,7 @@ sequenceDiagram
         PhysicsOrchestratorActor->>GPU: Execute force calculation kernels
         GPU-->>PhysicsOrchestratorActor: Updated positions
         PhysicsOrchestratorActor->>ClientCoordinatorActor: BroadcastPositions
-        ClientCoordinatorActor->>WebSocket: Binary protocol (36 bytes/node)
+        ClientCoordinatorActor->>WebSocket: Binary protocol V2 (36 bytes/node)
         WebSocket->>Browser: WebSocket frame
         Browser->>Browser: Update Three.js scene
     end
@@ -550,7 +550,7 @@ struct BinaryNodeData {
 
 ### 3. Why Binary WebSocket Protocol Instead of JSON?
 
-**Decision:** Custom 36-byte binary protocol over JSON
+**Decision:** Custom 36-byte binary protocol V2 over JSON
 
 **Rationale:**
 - **Bandwidth** - 80% reduction (180 bytes → 36 bytes per node update)
@@ -1127,7 +1127,7 @@ graph TB
 ### 4. Agent System Architecture
 
 **Major Fix Applied**: Eliminated duplicate data fetching that caused race conditions. The system now uses:
-- **WebSocket binary protocol**: Real-time position/velocity updates only
+- **WebSocket binary protocol V2**: Real-time position/velocity updates only
 - **REST polling**: Conservative metadata polling (3s active, 15s idle)
 - **Single source strategy**: No more triple polling conflicts
 
@@ -1723,7 +1723,7 @@ This client architecture integrates with the Rust backend through:
 4. **MCP Integration**: Multi-agent system coordination (backend-handled)
 
 The client maintains clear separation between:
-- **Real-time data** (WebSocket binary protocol)
+- **Real-time data** (WebSocket binary protocol V2)
 - **Configuration data** (REST APIs with persistence)
 - **Control operations** (REST APIs with immediate response)
 

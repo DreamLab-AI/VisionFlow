@@ -125,7 +125,8 @@ __device__ inline float3 operator*(const float3& a, float s) {
 }
 
 __device__ inline float length(const float3& v) {
-    return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
+    // Use FMA for better performance and accuracy
+    return sqrtf(fmaf(v.x, v.x, fmaf(v.y, v.y, v.z * v.z)));
 }
 
 __device__ inline float3 normalize(const float3& v) {
