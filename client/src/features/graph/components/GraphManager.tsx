@@ -50,21 +50,28 @@ const getPositionForNode = (node: GraphNode, index: number, totalNodes: number):
   return [node.position.x, node.position.y, node.position.z]
 }
 
-// Get geometry for node type
+// LOD geometries - 3 levels based on distance
+const LOD_GEOMETRIES = {
+  high: new THREE.SphereGeometry(0.5, 32, 32),    // Close: 32 segments
+  medium: new THREE.SphereGeometry(0.5, 16, 16),  // Mid: 16 segments
+  low: new THREE.SphereGeometry(0.5, 8, 8),       // Far: 8 segments
+};
+
+// Get geometry for node type (kept for metadata shapes)
 const getGeometryForNodeType = (type?: string): THREE.BufferGeometry => {
   switch (type?.toLowerCase()) {
     case 'folder':
-      return new THREE.OctahedronGeometry(0.6, 0); 
+      return new THREE.OctahedronGeometry(0.6, 0);
     case 'file':
-      return new THREE.BoxGeometry(0.8, 0.8, 0.8); 
+      return new THREE.BoxGeometry(0.8, 0.8, 0.8);
     case 'concept':
-      return new THREE.IcosahedronGeometry(0.5, 0); 
+      return new THREE.IcosahedronGeometry(0.5, 0);
     case 'todo':
-      return new THREE.ConeGeometry(0.5, 1, 4); 
+      return new THREE.ConeGeometry(0.5, 1, 4);
     case 'reference':
-      return new THREE.TorusGeometry(0.5, 0.2, 8, 16); 
+      return new THREE.TorusGeometry(0.5, 0.2, 8, 16);
     default:
-      return new THREE.SphereGeometry(0.5, 32, 32); 
+      return LOD_GEOMETRIES.high; // Use LOD for default spheres
   }
 };
 
@@ -168,11 +175,30 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   const particleSystemRef = useRef<THREE.Points>(null)
 
   
+  // Pre-allocated reusable objects to eliminate GC churn
   const tempMatrix = useMemo(() => new THREE.Matrix4(), [])
   const tempPosition = useMemo(() => new THREE.Vector3(), [])
   const tempScale = useMemo(() => new THREE.Vector3(), [])
   const tempQuaternion = useMemo(() => new THREE.Quaternion(), [])
   const tempColor = useMemo(() => new THREE.Color(), [])
+  const tempVec3 = useMemo(() => new THREE.Vector3(), [])
+  const tempDirection = useMemo(() => new THREE.Vector3(), [])
+  const tempSourceOffset = useMemo(() => new THREE.Vector3(), [])
+  const tempTargetOffset = useMemo(() => new THREE.Vector3(), [])
+
+  // O(n) lookup maps to replace O(n²) findIndex calls
+  const nodeIdToIndexMap = useMemo(() =>
+    new Map(graphData.nodes.map((n, i) => [n.id, i])),
+    [graphData.nodes]
+  )
+
+  // Frustum for label culling
+  const frustum = useMemo(() => new THREE.Frustum(), [])
+  const cameraViewProjectionMatrix = useMemo(() => new THREE.Matrix4(), [])
+
+  // LOD state - track current geometry level
+  const [currentLODLevel, setCurrentLODLevel] = useState<'high' | 'medium' | 'low'>('high')
+  const lodCheckIntervalRef = useRef(0)
 
   const [graphData, setGraphData] = useState<GraphData>({ nodes: [], edges: [] })
   const nodePositionsRef = useRef<Float32Array | null>(null)
@@ -407,22 +433,39 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
     }
   }, [ssspResult, normalizeDistances]);
 
-  
+  // Pre-allocate color array and attribute for zero-allocation updates
+  const colorArrayRef = useRef<Float32Array | null>(null)
+  const colorAttributeRef = useRef<THREE.InstancedBufferAttribute | null>(null)
+
+  // Initialize color array when node count changes
+  useEffect(() => {
+    if (graphData.nodes.length > 0) {
+      const nodeCount = graphData.nodes.length
+      colorArrayRef.current = new Float32Array(nodeCount * 3)
+      colorAttributeRef.current = new THREE.InstancedBufferAttribute(colorArrayRef.current, 3)
+    }
+  }, [graphData.nodes.length])
+
+
   const updateNodeColors = useCallback(() => {
     if (!meshRef.current || graphData.nodes.length === 0) return;
+    if (!colorArrayRef.current || !colorAttributeRef.current) return;
 
     const mesh = meshRef.current;
-    const colors = new Float32Array(graphData.nodes.length * 3);
+    const colors = colorArrayRef.current;
 
+    // Direct Float32Array writes - no allocation, reuse tempColor
     graphData.nodes.forEach((node, i) => {
       const color = getNodeColor(node, normalizedSSSPResult);
-      colors[i * 3] = color.r;
-      colors[i * 3 + 1] = color.g;
-      colors[i * 3 + 2] = color.b;
+      const idx = i * 3;
+      colors[idx] = color.r;
+      colors[idx + 1] = color.g;
+      colors[idx + 2] = color.b;
     });
 
-    mesh.geometry.setAttribute('instanceColor', new THREE.InstancedBufferAttribute(colors, 3));
-    mesh.geometry.attributes.instanceColor.needsUpdate = true;
+    // Reuse existing attribute, just mark dirty
+    mesh.geometry.setAttribute('instanceColor', colorAttributeRef.current);
+    colorAttributeRef.current.needsUpdate = true;
   }, [graphData.nodes, normalizedSSSPResult]);
 
   
@@ -492,25 +535,65 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
     graphWorkerProxy.updateSettings(settings);
   }, [settings]);
 
-  
+
   useFrame(async (state, delta) => {
     animationStateRef.current.time = state.clock.elapsedTime
-    
-    
+
+    // LOD System: Check every 15 frames (~250ms at 60fps)
+    lodCheckIntervalRef.current += 1;
+    if (lodCheckIntervalRef.current >= 15 && meshRef.current && nodePositionsRef.current) {
+      lodCheckIntervalRef.current = 0;
+
+      // Calculate average distance of visible nodes from camera
+      let totalDistance = 0;
+      let nodeCount = 0;
+
+      for (let i = 0; i < Math.min(visibleNodes.length, 100); i++) { // Sample up to 100 nodes
+        const i3 = i * 3;
+        if (i3 + 2 < nodePositionsRef.current.length) {
+          tempVec3.set(
+            nodePositionsRef.current[i3],
+            nodePositionsRef.current[i3 + 1],
+            nodePositionsRef.current[i3 + 2]
+          );
+          totalDistance += tempVec3.distanceTo(camera.position);
+          nodeCount++;
+        }
+      }
+
+      const avgDistance = nodeCount > 0 ? totalDistance / nodeCount : 0;
+
+      // Determine LOD level based on average distance
+      let newLODLevel: 'high' | 'medium' | 'low' = 'high';
+      if (avgDistance > 40) {
+        newLODLevel = 'low';
+      } else if (avgDistance > 20) {
+        newLODLevel = 'medium';
+      }
+
+      // Update geometry if LOD level changed
+      if (newLODLevel !== currentLODLevel) {
+        setCurrentLODLevel(newLODLevel);
+        meshRef.current.geometry = LOD_GEOMETRIES[newLODLevel];
+      }
+    }
+
+
     const debugSettings = settings?.system?.debug;
     if (debugSettings?.enablePhysicsDebug && debugState.isEnabled()) {
       const frameCount = Math.floor(state.clock.elapsedTime * 60);
-      if (frameCount === 1 || frameCount % 300 === 0) { 
+      if (frameCount === 1 || frameCount % 300 === 0) {
         logger.debug('Physics frame update', {
           time: state.clock.elapsedTime,
           delta,
           nodeCount: graphData.nodes.length,
-          hasPositions: !!nodePositionsRef.current
+          hasPositions: !!nodePositionsRef.current,
+          lodLevel: currentLODLevel
         });
       }
     }
 
-    
+
     if (materialRef.current) {
       materialRef.current.updateTime(animationStateRef.current.time)
     }
@@ -559,44 +642,46 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
           meshRef.current.computeBoundingSphere();
         }
 
-        
+        // OPTIMIZED: O(n) edge rendering using nodeIdToIndexMap
         const newEdgePoints: number[] = [];
+
         graphData.edges.forEach(edge => {
-          const sourceNodeIndex = graphData.nodes.findIndex(n => n.id === edge.source);
-          const targetNodeIndex = graphData.nodes.findIndex(n => n.id === edge.target);
-          if (sourceNodeIndex !== -1 && targetNodeIndex !== -1) {
+          // O(1) lookup instead of O(n) findIndex
+          const sourceNodeIndex = nodeIdToIndexMap.get(edge.source);
+          const targetNodeIndex = nodeIdToIndexMap.get(edge.target);
+
+          if (sourceNodeIndex !== undefined && targetNodeIndex !== undefined) {
             const i3s = sourceNodeIndex * 3;
             const i3t = targetNodeIndex * 3;
 
             // Bounds check for edge positions
             if (i3s + 2 >= positions.length || i3t + 2 >= positions.length) return;
 
-            const sourcePos = new THREE.Vector3(positions[i3s], positions[i3s + 1], positions[i3s + 2]);
-            const targetPos = new THREE.Vector3(positions[i3t], positions[i3t + 1], positions[i3t + 2]);
+            // Reuse temp vectors - zero allocation
+            tempVec3.set(positions[i3s], positions[i3s + 1], positions[i3s + 2]);
+            const sourcePos = tempVec3;
+            tempPosition.set(positions[i3t], positions[i3t + 1], positions[i3t + 2]);
+            const targetPos = tempPosition;
 
-            
-            const direction = new THREE.Vector3().subVectors(targetPos, sourcePos);
-            const edgeLength = direction.length();
+            // Reuse direction vector
+            tempDirection.subVectors(targetPos, sourcePos);
+            const edgeLength = tempDirection.length();
 
             if (edgeLength > 0) {
-              direction.normalize();
+              tempDirection.normalize();
 
-              
               const sourceNode = graphData.nodes[sourceNodeIndex];
               const targetNode = graphData.nodes[targetNodeIndex];
-              const logseqSettings = settings?.visualisation?.graphs?.logseq;
-              const nodeSettings = logseqSettings?.nodes || settings?.visualisation?.nodes;
               const sourceRadius = getNodeScale(sourceNode, graphData.edges) * (nodeSettings?.nodeSize || 0.5);
               const targetRadius = getNodeScale(targetNode, graphData.edges) * (nodeSettings?.nodeSize || 0.5);
 
-              
-              const offsetSource = new THREE.Vector3().addVectors(sourcePos, direction.clone().multiplyScalar(sourceRadius + 0.1));
-              const offsetTarget = new THREE.Vector3().subVectors(targetPos, direction.clone().multiplyScalar(targetRadius + 0.1));
+              // Reuse offset vectors - zero allocation
+              tempSourceOffset.copy(sourcePos).addScaledVector(tempDirection, sourceRadius + 0.1);
+              tempTargetOffset.copy(targetPos).addScaledVector(tempDirection, -(targetRadius + 0.1));
 
-              
-              if (offsetSource.distanceTo(offsetTarget) > 0.2) {
-                newEdgePoints.push(offsetSource.x, offsetSource.y, offsetSource.z);
-                newEdgePoints.push(offsetTarget.x, offsetTarget.y, offsetTarget.z);
+              if (tempSourceOffset.distanceTo(tempTargetOffset) > 0.2) {
+                newEdgePoints.push(tempSourceOffset.x, tempSourceOffset.y, tempSourceOffset.z);
+                newEdgePoints.push(tempTargetOffset.x, tempTargetOffset.y, tempTargetOffset.z);
               }
             }
           }
@@ -813,11 +898,31 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       // CLIENT-SIDE HIERARCHICAL LOD: Only render labels for visible nodes
       if (!labelSettings?.enableLabels || visibleNodes.length === 0) return null;
 
-    return visibleNodes.map((node) => {
-      // CLIENT-SIDE HIERARCHICAL LOD: Find original index in graphData.nodes for position lookup
-      const originalIndex = graphData.nodes.findIndex(n => n.id === node.id);
-      const physicsPos = originalIndex !== -1 ? labelPositions[originalIndex] : undefined;
-      const position = physicsPos || node.position || { x: 0, y: 0, z: 0 }
+      // Update frustum from camera for culling
+      cameraViewProjectionMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+      frustum.setFromProjectionMatrix(cameraViewProjectionMatrix);
+
+      // Distance threshold for label rendering (units)
+      const LABEL_DISTANCE_THRESHOLD = 50;
+
+      return visibleNodes.map((node) => {
+        // CLIENT-SIDE HIERARCHICAL LOD: Find original index in graphData.nodes for position lookup
+        const originalIndex = graphData.nodes.findIndex(n => n.id === node.id);
+        const physicsPos = originalIndex !== -1 ? labelPositions[originalIndex] : undefined;
+        const position = physicsPos || node.position || { x: 0, y: 0, z: 0 };
+
+        // FRUSTUM CULLING: Check if node is within camera view
+        tempVec3.set(position.x, position.y, position.z);
+        if (!frustum.containsPoint(tempVec3)) {
+          return null; // Node outside frustum, skip label
+        }
+
+        // DISTANCE CULLING: Check distance from camera
+        const distanceToCamera = tempVec3.distanceTo(camera.position);
+        if (distanceToCamera > LABEL_DISTANCE_THRESHOLD) {
+          return null; // Too far, skip label
+        }
+
       const scale = getNodeScale(node, graphData.edges)
       const textPadding = labelSettings.textPadding ?? 0.6;
       const labelOffsetY = scale * 1.5 + textPadding; 
@@ -924,9 +1029,9 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
           )}
         </Billboard>
       )
-    })
-    // CLIENT-SIDE HIERARCHICAL LOD: Updated dependencies to use visibleNodes
-  }, [visibleNodes, graphData.nodes, graphData.edges, labelPositions, settings?.visualisation?.graphs?.logseq?.labels, settings?.visualisation?.labels, normalizedSSSPResult])
+    }).filter(Boolean) // Remove null entries from culled labels
+    // CLIENT-SIDE HIERARCHICAL LOD + FRUSTUM CULLING: Updated dependencies
+  }, [visibleNodes, graphData.nodes, graphData.edges, labelPositions, settings?.visualisation?.graphs?.logseq?.labels, settings?.visualisation?.labels, normalizedSSSPResult, camera.position, camera.projectionMatrix, camera.matrixWorldInverse])
 
   
   useEffect(() => {
@@ -1001,7 +1106,8 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
             }
           }}
         >
-          <sphereGeometry args={[0.5, 32, 32]} />
+          {/* LOD-aware geometry: starts at high detail, dynamically switches */}
+          <primitive object={LOD_GEOMETRIES[currentLODLevel]} attach="geometry" />
           {materialRef.current ? (
             <primitive object={materialRef.current} attach="material" />
           ) : (

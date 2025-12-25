@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { BabylonScene } from '../babylon/BabylonScene';
+import React, { useEffect, useState } from 'react';
+import { VRGraphCanvas } from '../threejs/VRGraphCanvas';
 import { useImmersiveData } from '../hooks/useImmersiveData';
 import { createLogger } from '../../utils/loggerConfig';
 import { createRemoteLogger, remoteLogger } from '../../services/remoteLogger';
@@ -13,12 +13,10 @@ export interface ImmersiveAppProps {
 }
 
 export const ImmersiveApp: React.FC<ImmersiveAppProps> = ({ onExit, initialData }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [babylonScene, setBabylonScene] = useState<BabylonScene | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
-  
   const {
     graphData,
     nodePositions,
@@ -32,33 +30,18 @@ export const ImmersiveApp: React.FC<ImmersiveAppProps> = ({ onExit, initialData 
   useEffect(() => {
     const initializeImmersiveEnvironment = () => {
       try {
-        if (!canvasRef.current) {
-          throw new Error('Canvas reference not available');
-        }
+        logger.info('Initializing Three.js XR environment...');
+        remoteLog.info('Initializing Three.js XR environment on ' + navigator.userAgent);
 
-        logger.info('Initializing immersive environment...');
-        remoteLog.info('Initializing immersive environment on ' + navigator.userAgent);
-
-        
         const isQuest = /OculusBrowser|Quest/i.test(navigator.userAgent);
         if (isQuest) {
-          remoteLog.info('🎮 Quest device detected!');
-          remoteLogger.logXRInfo(); 
+          remoteLog.info('Quest device detected!');
+          remoteLogger.logXRInfo();
         }
 
-        
-        const scene = new BabylonScene(canvasRef.current);
-        setBabylonScene(scene);
-
-        
-        
-
-        
-        scene.run();
-
         setIsInitialized(true);
-        logger.info('Immersive environment initialized successfully');
-        remoteLog.info('✅ Immersive environment initialized successfully');
+        logger.info('Three.js XR environment initialized successfully');
+        remoteLog.info('Three.js XR environment initialized successfully');
 
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown initialization error';
@@ -70,45 +53,20 @@ export const ImmersiveApp: React.FC<ImmersiveAppProps> = ({ onExit, initialData 
 
     initializeImmersiveEnvironment();
 
-    
     return () => {
-      cleanup();
+      logger.info('Cleaning up immersive environment...');
+      setIsInitialized(false);
     };
   }, []);
-
-  
-  useEffect(() => {
-    if (babylonScene && graphData && !dataLoading) {
-      babylonScene.setBotsData({
-        graphData: graphData, 
-        nodePositions: nodePositions,
-        nodes: graphData.nodes || [],
-        edges: graphData.edges || []
-      });
-    }
-  }, [babylonScene, graphData, nodePositions, dataLoading]);
-
-  const cleanup = () => {
-    logger.info('Cleaning up immersive environment...');
-
-    babylonScene?.dispose();
-
-    setBabylonScene(null);
-    setIsInitialized(false);
-  };
 
   const handleRetry = () => {
     setError(null);
     setIsInitialized(false);
-    
-    if (canvasRef.current) {
-      
-      const canvas = canvasRef.current;
-      canvas.style.display = 'none';
-      setTimeout(() => {
-        canvas.style.display = 'block';
-      }, 100);
-    }
+    setTimeout(() => setIsInitialized(true), 100);
+  };
+
+  const handleDragStateChange = (dragging: boolean) => {
+    setIsDragging(dragging);
   };
 
   if (error) {
@@ -138,30 +96,28 @@ export const ImmersiveApp: React.FC<ImmersiveAppProps> = ({ onExit, initialData 
   }
 
   return (
-    <div className="immersive-app">
-      <canvas
-        ref={canvasRef}
-        className="immersive-canvas"
-        style={{
-          width: '100vw',
-          height: '100vh',
-          display: 'block',
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          zIndex: 1000
-        }}
-      />
-
-      {!isInitialized && (
+    <div className="immersive-app" style={{
+      width: '100vw',
+      height: '100vh',
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      zIndex: 1000
+    }}>
+      {!isInitialized || dataLoading ? (
         <div className="immersive-loading">
           <div className="loading-content">
             <h2>Initializing Immersive Environment</h2>
-            <p>Setting up Babylon.js, XR, and graph visualization...</p>
+            <p>Setting up Three.js XR and graph visualization...</p>
             <div className="loading-spinner" />
           </div>
         </div>
-      )}
+      ) : graphData ? (
+        <VRGraphCanvas
+          graphData={graphData}
+          onDragStateChange={handleDragStateChange}
+        />
+      ) : null}
 
       {isInitialized && (
         <div className="immersive-overlay" style={{
@@ -171,8 +127,6 @@ export const ImmersiveApp: React.FC<ImmersiveAppProps> = ({ onExit, initialData 
           zIndex: 1001
         }}>
           <div className="immersive-controls">
-            {}
-            {}
             {onExit && (
               <button
                 className="exit-button"
@@ -201,6 +155,18 @@ export const ImmersiveApp: React.FC<ImmersiveAppProps> = ({ onExit, initialData 
               borderRadius: '4px'
             }}>
               <h3>Selected: {selectedNode}</h3>
+            </div>
+          )}
+
+          {isDragging && (
+            <div style={{
+              marginTop: '10px',
+              padding: '5px 10px',
+              background: 'rgba(33, 150, 243, 0.8)',
+              color: 'white',
+              borderRadius: '4px'
+            }}>
+              Dragging node...
             </div>
           )}
         </div>

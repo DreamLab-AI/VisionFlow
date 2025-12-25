@@ -31,56 +31,57 @@ use crate::models::constraints::ConstraintSet;
 use crate::models::graph::GraphData;
 use crate::models::simulation_params::SimulationParams;
 use crate::utils::socket_flow_messages::BinaryNodeData;
+use crate::utils::socket_flow_messages::BinaryNodeDataClient;
 
 ///
 ///
 pub struct PhysicsOrchestratorActor {
-    
+
     simulation_running: AtomicBool,
 
-    
+
     simulation_params: SimulationParams,
 
-    
+
     target_params: SimulationParams,
 
-    
+
     gpu_compute_addr: Option<Addr<ForceComputeActor>>,
 
-    
+
     ontology_actor_addr: Option<Addr<crate::actors::ontology_actor::OntologyActor>>,
 
-    
+
     graph_data_ref: Option<Arc<GraphData>>,
 
-    
+
     gpu_initialized: bool,
 
-    
+
     gpu_init_in_progress: bool,
 
-    
+
     last_step_time: Option<Instant>,
 
-    
+
     physics_stats: Option<PhysicsStats>,
 
-    
+
     param_interpolation_rate: f32,
 
-    
+
     auto_balance_last_check: Option<Instant>,
 
-    
+
     force_resume_timer: Option<Instant>,
 
-    
+
     last_node_count: usize,
 
-    
+
     current_iteration: u64,
 
-    
+
     performance_metrics: PhysicsPerformanceMetrics,
 
 
@@ -91,6 +92,15 @@ pub struct PhysicsOrchestratorActor {
 
 
     message_tracker: MessageTracker,
+
+
+    client_coordinator_addr: Option<Addr<crate::actors::client_coordinator_actor::ClientCoordinatorActor>>,
+
+
+    user_pinned_nodes: HashMap<u32, (f32, f32, f32)>,
+
+
+    last_broadcast_time: Instant,
 }
 
 ///
@@ -137,6 +147,9 @@ impl PhysicsOrchestratorActor {
             ontology_constraints: None,
             user_constraints: None,
             message_tracker: tracker,
+            client_coordinator_addr: None,
+            user_pinned_nodes: HashMap::new(),
+            last_broadcast_time: Instant::now(),
         }
     }
 
@@ -319,22 +332,45 @@ impl PhysicsOrchestratorActor {
         self.last_node_count = graph_data.nodes.len();
     }
 
-    
+
     fn execute_gpu_physics_step(
         &mut self,
         gpu_addr: &Addr<ForceComputeActor>,
-        _ctx: &mut Context<Self>,
+        ctx: &mut Context<Self>,
     ) {
         if !self.gpu_initialized {
             return;
         }
 
-        
+
         self.current_iteration += 1;
         self.performance_metrics.total_steps = self.current_iteration;
 
-        
-        
+        // Collect current positions from graph data for broadcasting
+        if let Some(ref graph_data) = self.graph_data_ref {
+            let positions: Vec<(u32, BinaryNodeData)> = graph_data
+                .nodes
+                .iter()
+                .map(|node| {
+                    (
+                        node.id,
+                        BinaryNodeData {
+                            node_id: node.id,
+                            x: node.data.x,
+                            y: node.data.y,
+                            z: node.data.z,
+                            vx: node.data.vx,
+                            vy: node.data.vy,
+                            vz: node.data.vz,
+                        },
+                    )
+                })
+                .collect();
+
+            // Broadcast positions to clients
+            self.broadcast_position_updates(positions, ctx);
+        }
+
         debug!("Physics step {} executed", self.current_iteration);
     }
 
@@ -351,14 +387,66 @@ impl PhysicsOrchestratorActor {
         warn!("CPU physics fallback not fully implemented - using GPU compute");
     }
 
-    
+
     fn broadcast_position_updates(
-        &self,
-        _positions: Vec<(u32, BinaryNodeData)>,
+        &mut self,
+        positions: Vec<(u32, BinaryNodeData)>,
         _ctx: &mut Context<Self>,
     ) {
-        
-        
+        // Throttle broadcasts to 60 FPS max
+        let now = Instant::now();
+        let broadcast_interval = Duration::from_millis(16); // 60 FPS
+        if now.duration_since(self.last_broadcast_time) < broadcast_interval {
+            return;
+        }
+        self.last_broadcast_time = now;
+
+        // Check if client coordinator is available
+        if let Some(ref client_coord_addr) = self.client_coordinator_addr {
+            // Apply user pinning - override server physics for nodes being dragged
+            let mut final_positions = Vec::with_capacity(positions.len());
+            for (node_id, mut node_data) in positions {
+                if let Some(&(pin_x, pin_y, pin_z)) = self.user_pinned_nodes.get(&node_id) {
+                    // User is dragging this node - use client-specified position
+                    node_data.x = pin_x;
+                    node_data.y = pin_y;
+                    node_data.z = pin_z;
+                    // Zero out velocity while pinned
+                    node_data.vx = 0.0;
+                    node_data.vy = 0.0;
+                    node_data.vz = 0.0;
+                }
+                final_positions.push((node_id, node_data));
+            }
+
+            // Convert to client format (BinaryNodeDataClient has same layout)
+            let client_positions: Vec<BinaryNodeDataClient> = final_positions
+                .iter()
+                .map(|(node_id, data)| BinaryNodeDataClient {
+                    node_id: *node_id,
+                    x: data.x,
+                    y: data.y,
+                    z: data.z,
+                    vx: data.vx,
+                    vy: data.vy,
+                    vz: data.vz,
+                })
+                .collect();
+
+            // Send broadcast message to client coordinator
+            use crate::actors::messages::BroadcastPositions;
+            client_coord_addr.do_send(BroadcastPositions {
+                positions: client_positions,
+            });
+
+            debug!(
+                "Broadcasted {} node positions to clients ({} pinned by users)",
+                final_positions.len(),
+                self.user_pinned_nodes.len()
+            );
+        } else {
+            debug!("No client coordinator available for broadcasting positions");
+        }
     }
 
     
@@ -1166,5 +1254,48 @@ impl Handler<crate::actors::messages::GPUInitialized> for PhysicsOrchestratorAct
         self.gpu_init_in_progress = false;
 
         info!("Physics simulation GPU initialization complete - ready for simulation with non-zero velocities");
+    }
+}
+
+/// Set client coordinator address for broadcasting
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct SetClientCoordinator {
+    pub addr: Addr<crate::actors::client_coordinator_actor::ClientCoordinatorActor>,
+}
+
+impl Handler<SetClientCoordinator> for PhysicsOrchestratorActor {
+    type Result = ();
+
+    fn handle(&mut self, msg: SetClientCoordinator, _ctx: &mut Self::Context) -> Self::Result {
+        self.client_coordinator_addr = Some(msg.addr);
+        info!("Client coordinator address set for physics orchestrator");
+    }
+}
+
+/// Handle user node interaction (dragging)
+#[derive(Message, Clone)]
+#[rtype(result = "()")]
+pub struct UserNodeInteraction {
+    pub node_id: u32,
+    pub is_dragging: bool,
+    pub position: Option<(f32, f32, f32)>,
+}
+
+impl Handler<UserNodeInteraction> for PhysicsOrchestratorActor {
+    type Result = ();
+
+    fn handle(&mut self, msg: UserNodeInteraction, _ctx: &mut Self::Context) -> Self::Result {
+        if msg.is_dragging {
+            if let Some(pos) = msg.position {
+                // Pin node at user-specified position
+                self.user_pinned_nodes.insert(msg.node_id, pos);
+                debug!("Node {} pinned at ({:.2}, {:.2}, {:.2})", msg.node_id, pos.0, pos.1, pos.2);
+            }
+        } else {
+            // Release pin when user stops dragging
+            self.user_pinned_nodes.remove(&msg.node_id);
+            debug!("Node {} unpinned", msg.node_id);
+        }
     }
 }

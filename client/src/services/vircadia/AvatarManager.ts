@@ -1,7 +1,12 @@
+/**
+ * AvatarManager - Multi-user avatar synchronization via Vircadia
+ *
+ * TODO: This service was migrated from Babylon.js to Three.js.
+ * Avatar loading and mesh creation need full Three.js implementation.
+ * Current implementation provides type stubs and position sync only.
+ */
 
-
-import * as BABYLON from '@babylonjs/core';
-import '@babylonjs/loaders/glTF';
+import * as THREE from 'three';
 import { ClientCore } from './VircadiaClientCore';
 import { createLogger } from '../../utils/loggerConfig';
 
@@ -18,11 +23,10 @@ export interface AvatarConfig {
 export interface UserAvatar {
     agentId: string;
     username: string;
-    position: BABYLON.Vector3;
-    rotation: BABYLON.Quaternion;
-    mesh?: BABYLON.AbstractMesh;
-    nameplate?: BABYLON.Mesh;
-    animationGroups?: BABYLON.AnimationGroup[];
+    position: THREE.Vector3;
+    rotation: THREE.Quaternion;
+    mesh?: THREE.Object3D;
+    nameplate?: THREE.Mesh;
 }
 
 export class AvatarManager {
@@ -39,18 +43,17 @@ export class AvatarManager {
     };
 
     constructor(
-        private scene: BABYLON.Scene,
+        private scene: THREE.Scene,
         private client: ClientCore,
-        private camera: BABYLON.Camera,
+        private camera: THREE.Camera,
         config?: Partial<AvatarConfig>
     ) {
         this.defaultConfig = { ...this.defaultConfig, ...config };
         this.setupConnectionListeners();
+        logger.info('AvatarManager initialized (Three.js mode)');
     }
 
-    
     private setupConnectionListeners(): void {
-        
         this.client.Utilities.Connection.addEventListener('statusChange', () => {
             const info = this.client.Utilities.Connection.getConnectionInfo();
             if (info.isConnected && info.agentId) {
@@ -59,13 +62,11 @@ export class AvatarManager {
             }
         });
 
-        
         this.client.Utilities.Connection.addEventListener('syncUpdate', async () => {
             await this.fetchRemoteAvatars();
         });
     }
 
-    
     async createLocalAvatar(username: string): Promise<void> {
         if (!this.localAgentId) {
             logger.warn('Cannot create local avatar: no agent ID');
@@ -78,146 +79,61 @@ export class AvatarManager {
             agentId: this.localAgentId,
             username,
             position: this.camera.position.clone(),
-            rotation: BABYLON.Quaternion.RotationYawPitchRoll(0, 0, 0)
+            rotation: new THREE.Quaternion()
         };
 
-        
-        
-
         this.avatars.set(this.localAgentId, avatar);
-
-        
         this.startPositionBroadcast();
-
-        
         await this.syncAvatarToVircadia(avatar);
     }
 
-    
     async loadRemoteAvatar(agentId: string, username: string): Promise<void> {
         if (this.avatars.has(agentId)) {
-            return; 
+            return;
         }
 
         logger.info(`Loading remote avatar for ${username} (${agentId})`);
 
-        try {
-            
-            const result = await BABYLON.SceneLoader.ImportMeshAsync(
-                '',
-                '',
-                this.defaultConfig.modelUrl,
-                this.scene
-            );
+        // TODO: Implement GLTFLoader for Three.js avatar loading
+        // For now, create a simple placeholder
+        const geometry = new THREE.SphereGeometry(0.3, 16, 16);
+        const material = new THREE.MeshBasicMaterial({ color: 0x4488ff });
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.name = `avatar_${agentId}`;
+        this.scene.add(mesh);
 
-            const rootMesh = result.meshes[0];
-            rootMesh.name = `avatar_${agentId}`;
-            rootMesh.scaling = new BABYLON.Vector3(
-                this.defaultConfig.scale,
-                this.defaultConfig.scale,
-                this.defaultConfig.scale
-            );
+        const avatar: UserAvatar = {
+            agentId,
+            username,
+            position: new THREE.Vector3(),
+            rotation: new THREE.Quaternion(),
+            mesh
+        };
 
-            
-            let nameplate: BABYLON.Mesh | undefined;
-            if (this.defaultConfig.showNameplate) {
-                nameplate = this.createNameplate(rootMesh, username);
-            }
-
-            const avatar: UserAvatar = {
-                agentId,
-                username,
-                position: BABYLON.Vector3.Zero(),
-                rotation: BABYLON.Quaternion.Identity(),
-                mesh: rootMesh,
-                nameplate,
-                animationGroups: result.animationGroups
-            };
-
-            this.avatars.set(agentId, avatar);
-            logger.info(`Remote avatar loaded: ${username}`);
-
-            
-            if (this.defaultConfig.enableAnimations && result.animationGroups.length > 0) {
-                const idleAnim = result.animationGroups.find(a => a.name.toLowerCase().includes('idle'));
-                if (idleAnim) {
-                    idleAnim.start(true);
-                }
-            }
-
-        } catch (error) {
-            logger.error(`Failed to load avatar for ${username}:`, error);
-        }
+        this.avatars.set(agentId, avatar);
+        logger.info(`Remote avatar loaded: ${username} (placeholder mesh)`);
     }
 
-    
-    private createNameplate(parentMesh: BABYLON.AbstractMesh, username: string): BABYLON.Mesh {
-        const plane = BABYLON.MeshBuilder.CreatePlane(
-            `${parentMesh.name}_nameplate`,
-            { width: 1, height: 0.3 },
-            this.scene
-        );
-
-        plane.parent = parentMesh;
-        plane.position.y = 2.2; 
-        plane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
-
-        
-        const dynamicTexture = new BABYLON.DynamicTexture(
-            `${parentMesh.name}_nameplate_texture`,
-            { width: 512, height: 128 },
-            this.scene
-        );
-
-        const ctx = dynamicTexture.getContext();
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillRect(0, 0, 512, 128);
-        ctx.fillStyle = 'white';
-        ctx.font = 'bold 56px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(username, 256, 80);
-        dynamicTexture.update();
-
-        const material = new BABYLON.StandardMaterial(`${parentMesh.name}_nameplate_mat`, this.scene);
-        material.diffuseTexture = dynamicTexture;
-        material.emissiveTexture = dynamicTexture;
-        material.opacityTexture = dynamicTexture;
-        material.backFaceCulling = false;
-
-        plane.material = material;
-
-        return plane;
-    }
-
-    
-    updateAvatarPosition(agentId: string, position: BABYLON.Vector3, rotation?: BABYLON.Quaternion): void {
+    updateAvatarPosition(agentId: string, position: THREE.Vector3, rotation?: THREE.Quaternion): void {
         const avatar = this.avatars.get(agentId);
         if (!avatar) {
             logger.warn(`Cannot update avatar: ${agentId} not found`);
             return;
         }
 
-        avatar.position = position;
+        avatar.position.copy(position);
         if (rotation) {
-            avatar.rotation = rotation;
+            avatar.rotation.copy(rotation);
         }
 
-        
         if (avatar.mesh) {
-            avatar.mesh.position = position;
+            avatar.mesh.position.copy(position);
             if (rotation) {
-                avatar.mesh.rotationQuaternion = rotation;
+                avatar.mesh.quaternion.copy(rotation);
             }
-        }
-
-        
-        if (avatar.nameplate && this.camera) {
-            const distance = BABYLON.Vector3.Distance(this.camera.position, position);
-            avatar.nameplate.isVisible = distance <= this.defaultConfig.nameplateDistance;
         }
     }
 
-    
     private startPositionBroadcast(): void {
         if (this.updateInterval) {
             return;
@@ -235,20 +151,13 @@ export class AvatarManager {
                 return;
             }
 
-            
-            localAvatar.position = this.camera.position.clone();
-
-            
-            const cameraRotation = this.camera.absoluteRotation;
-
-            
+            localAvatar.position.copy(this.camera.position);
+            const cameraRotation = this.camera.quaternion.clone();
             await this.broadcastAvatarUpdate(localAvatar, cameraRotation);
-
-        }, 100); 
+        }, 100);
     }
 
-    
-    private async broadcastAvatarUpdate(avatar: UserAvatar, rotation: BABYLON.Quaternion): Promise<void> {
+    private async broadcastAvatarUpdate(avatar: UserAvatar, rotation: THREE.Quaternion): Promise<void> {
         try {
             const query = `
                 UPDATE entity.entities
@@ -279,12 +188,10 @@ export class AvatarManager {
             });
 
         } catch (error) {
-            
             logger.debug('Failed to broadcast avatar update:', error);
         }
     }
 
-    
     private async fetchRemoteAvatars(): Promise<void> {
         try {
             const query = `
@@ -312,22 +219,20 @@ export class AvatarManager {
                     continue;
                 }
 
-                
                 if (!this.avatars.has(agentId)) {
                     await this.loadRemoteAvatar(agentId, metadata.username);
                 }
 
-                
                 if (metadata.position) {
-                    const position = new BABYLON.Vector3(
+                    const position = new THREE.Vector3(
                         metadata.position.x,
                         metadata.position.y,
                         metadata.position.z
                     );
 
-                    let rotation: BABYLON.Quaternion | undefined;
+                    let rotation: THREE.Quaternion | undefined;
                     if (metadata.rotation) {
-                        rotation = new BABYLON.Quaternion(
+                        rotation = new THREE.Quaternion(
                             metadata.rotation.x,
                             metadata.rotation.y,
                             metadata.rotation.z,
@@ -344,7 +249,6 @@ export class AvatarManager {
         }
     }
 
-    
     private async syncAvatarToVircadia(avatar: UserAvatar): Promise<void> {
         try {
             const query = `
@@ -393,7 +297,6 @@ export class AvatarManager {
         }
     }
 
-    
     removeAvatar(agentId: string): void {
         const avatar = this.avatars.get(agentId);
         if (!avatar) {
@@ -402,30 +305,35 @@ export class AvatarManager {
 
         logger.info(`Removing avatar: ${avatar.username}`);
 
-        
         if (avatar.mesh) {
-            avatar.mesh.dispose();
+            this.scene.remove(avatar.mesh);
+            if (avatar.mesh instanceof THREE.Mesh) {
+                avatar.mesh.geometry.dispose();
+                if (avatar.mesh.material instanceof THREE.Material) {
+                    avatar.mesh.material.dispose();
+                }
+            }
         }
 
-        
         if (avatar.nameplate) {
-            avatar.nameplate.dispose();
+            this.scene.remove(avatar.nameplate);
+            avatar.nameplate.geometry.dispose();
+            if (avatar.nameplate.material instanceof THREE.Material) {
+                avatar.nameplate.material.dispose();
+            }
         }
 
         this.avatars.delete(agentId);
     }
 
-    
     getAvatars(): UserAvatar[] {
         return Array.from(this.avatars.values());
     }
 
-    
     getAvatarCount(): number {
         return this.avatars.size;
     }
 
-    
     private stopPositionBroadcast(): void {
         if (this.updateInterval) {
             clearInterval(this.updateInterval);
@@ -434,17 +342,12 @@ export class AvatarManager {
         }
     }
 
-    
     dispose(): void {
         logger.info('Disposing AvatarManager');
-
         this.stopPositionBroadcast();
-
-        
         this.avatars.forEach((_, agentId) => {
             this.removeAvatar(agentId);
         });
-
         this.avatars.clear();
     }
 }

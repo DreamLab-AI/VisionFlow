@@ -30,15 +30,14 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          // Separate heavy 3D libraries
-          'babylon': ['@babylonjs/core', '@babylonjs/gui', '@babylonjs/loaders'],
+          // Separate heavy 3D libraries (Three.js only - Babylon.js removed)
           'three': ['three', '@react-three/fiber', '@react-three/drei'],
           // UI libraries
           'ui': ['react', 'react-dom', 'framer-motion'],
           // Icons - load separately
           'icons': ['lucide-react'],
           // State management
-          'state': ['zustand', 'immer'],
+          'state': ['immer'],
         },
       },
     },

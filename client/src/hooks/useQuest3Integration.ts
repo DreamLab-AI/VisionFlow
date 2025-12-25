@@ -43,7 +43,7 @@ export const useQuest3Integration = (options: Quest3IntegrationOptions = {}) => 
   const isSessionActive = false;
   const sessionType = null;
   const startSession = async (mode: string) => {
-    logger.info(`Starting session: ${mode} (Babylon.js implementation)`);
+    logger.info(`Starting session: ${mode} (Three.js XR implementation)`);
     
     return true;
   };

@@ -1061,6 +1061,39 @@ impl Handler<BroadcastNodePositions> for ClientCoordinatorActor {
     }
 }
 
+/// Handler for BroadcastPositions - modern position broadcasting
+impl Handler<BroadcastPositions> for ClientCoordinatorActor {
+    type Result = ();
+
+    fn handle(&mut self, msg: BroadcastPositions, _ctx: &mut Self::Context) -> Self::Result {
+        let client_count = {
+            let manager = match handle_rwlock_error(self.client_manager.read()) {
+                Ok(manager) => manager,
+                Err(e) => {
+                    error!("RwLock error in BroadcastPositions: {}", e);
+                    return;
+                }
+            };
+            manager.broadcast_with_filter(&msg.positions)
+        };
+
+        if client_count > 0 {
+            self.broadcast_count += 1;
+            // Approximate byte size (28 bytes per node in binary format)
+            let approx_bytes = msg.positions.len() * 28;
+            self.bytes_sent += approx_bytes as u64;
+            self.last_broadcast = Instant::now();
+
+            debug!(
+                "Broadcasted {} node positions to {} clients (~{} bytes)",
+                msg.positions.len(),
+                client_count,
+                approx_bytes
+            );
+        }
+    }
+}
+
 ///
 impl Handler<BroadcastMessage> for ClientCoordinatorActor {
     type Result = Result<(), String>;

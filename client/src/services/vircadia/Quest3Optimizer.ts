@@ -1,6 +1,6 @@
+// TODO: Migrated from Babylon.js to Three.js - requires WebXR integration refactoring
 
-
-import * as BABYLON from '@babylonjs/core';
+import * as THREE from 'three';
 import { ClientCore } from './VircadiaClientCore';
 import { createLogger } from '../../utils/loggerConfig';
 
@@ -18,8 +18,8 @@ export interface Quest3Config {
 
 export interface HandJoint {
     name: string;
-    position: BABYLON.Vector3;
-    orientation: BABYLON.Quaternion;
+    position: THREE.Vector3;
+    orientation: THREE.Quaternion;
 }
 
 export interface HandTrackingData {
@@ -32,23 +32,24 @@ export interface HandTrackingData {
 export interface ControllerState {
     agentId: string;
     controllerId: 'left' | 'right';
-    position: BABYLON.Vector3;
-    orientation: BABYLON.Quaternion;
+    position: THREE.Vector3;
+    orientation: THREE.Quaternion;
     buttons: Record<string, boolean>;
     axes: Record<string, number>;
     timestamp: number;
 }
 
 export class Quest3Optimizer {
-    private xrHelper: BABYLON.WebXRDefaultExperience | null = null;
+    private xrSession: XRSession | null = null;
     private handFeature: any | null = null;
     private localAgentId: string | null = null;
     private handUpdateInterval: ReturnType<typeof setInterval> | null = null;
     private controllerUpdateInterval: ReturnType<typeof setInterval> | null = null;
-    private remoteHands = new Map<string, BABYLON.Mesh[]>();
-    private remoteControllers = new Map<string, BABYLON.Mesh>();
-    private performanceMonitor: BABYLON.PerformanceMonitor | null = null;
+    private remoteHands = new Map<string, THREE.Mesh[]>();
+    private remoteControllers = new Map<string, THREE.Mesh>();
     private currentFPS = 0;
+    private lastFrameTime = 0;
+    private frameCount = 0;
 
     private defaultConfig: Quest3Config = {
         targetFrameRate: 90,
@@ -61,42 +62,43 @@ export class Quest3Optimizer {
     };
 
     constructor(
-        private scene: BABYLON.Scene,
+        private scene: THREE.Scene,
+        private renderer: THREE.WebGLRenderer,
         private client: ClientCore,
         config?: Partial<Quest3Config>
     ) {
         this.defaultConfig = { ...this.defaultConfig, ...config };
     }
 
-    
-    async initialize(xrHelper: BABYLON.WebXRDefaultExperience): Promise<void> {
+
+    async initialize(xrSession: XRSession): Promise<void> {
         logger.info('Initializing Quest 3 optimizations...');
 
-        this.xrHelper = xrHelper;
+        this.xrSession = xrSession;
 
-        
+
         const info = this.client.Utilities.Connection.getConnectionInfo();
         if (info.agentId) {
             this.localAgentId = info.agentId;
         }
 
-        
+
         this.setupPerformanceMonitoring();
 
-        
+
         this.setupFoveatedRendering();
 
-        
+
         if (this.defaultConfig.dynamicResolutionScale) {
             this.setupDynamicResolution();
         }
 
-        
+
         if (this.defaultConfig.enableHandTracking) {
             await this.setupHandTracking();
         }
 
-        
+
         if (this.defaultConfig.enableControllers) {
             this.setupControllers();
         }
@@ -104,30 +106,33 @@ export class Quest3Optimizer {
         logger.info('Quest 3 optimizations initialized');
     }
 
-    
-    private setupPerformanceMonitoring(): void {
-        this.performanceMonitor = new BABYLON.PerformanceMonitor();
 
-        this.scene.onBeforeRenderObservable.add(() => {
-            if (this.performanceMonitor) {
-                this.performanceMonitor.sampleFrame();
-                this.currentFPS = this.performanceMonitor.averageFPS;
+    private setupPerformanceMonitoring(): void {
+        this.lastFrameTime = performance.now();
+
+        const updateFPS = () => {
+            const currentTime = performance.now();
+            this.frameCount++;
+
+            if (currentTime >= this.lastFrameTime + 1000) {
+                this.currentFPS = Math.round((this.frameCount * 1000) / (currentTime - this.lastFrameTime));
+                this.frameCount = 0;
+                this.lastFrameTime = currentTime;
             }
-        });
+        };
+
+        this.renderer.setAnimationLoop(updateFPS);
 
         logger.info('Performance monitoring enabled');
     }
 
-    
-    private setupFoveatedRendering(): void {
-        if (!this.xrHelper) return;
 
-        const session = this.xrHelper.baseExperience.sessionManager.session;
-        if (!session) return;
+    private setupFoveatedRendering(): void {
+        if (!this.xrSession) return;
 
         try {
-            
-            const glLayer = session.renderState.baseLayer as any;
+
+            const glLayer = this.xrSession.renderState.baseLayer as any;
             if (glLayer && 'fixedFoveation' in glLayer) {
                 glLayer.fixedFoveation = this.defaultConfig.foveatedRenderingLevel;
                 logger.info(`Foveated rendering enabled: level ${this.defaultConfig.foveatedRenderingLevel}`);
@@ -137,45 +142,41 @@ export class Quest3Optimizer {
         }
     }
 
-    
+
     private setupDynamicResolution(): void {
-        const engine = this.scene.getEngine();
         const { targetFrameRate, minResolutionScale, maxResolutionScale } = this.defaultConfig;
 
-        this.scene.onBeforeRenderObservable.add(() => {
+        const adjustResolution = () => {
             const fps = this.currentFPS;
+            const currentPixelRatio = this.renderer.getPixelRatio();
 
             if (fps < targetFrameRate - 10) {
-                
-                const currentScale = engine.getHardwareScalingLevel();
-                const newScale = Math.min(currentScale + 0.1, 1 / minResolutionScale);
-                engine.setHardwareScalingLevel(newScale);
-                logger.debug(`Resolution scaled down: ${newScale.toFixed(2)}`);
+
+                const newPixelRatio = Math.max(currentPixelRatio * 0.9, minResolutionScale);
+                this.renderer.setPixelRatio(newPixelRatio);
+                logger.debug(`Resolution scaled down: ${newPixelRatio.toFixed(2)}`);
 
             } else if (fps > targetFrameRate + 5) {
-                
-                const currentScale = engine.getHardwareScalingLevel();
-                const newScale = Math.max(currentScale - 0.05, 1 / maxResolutionScale);
-                engine.setHardwareScalingLevel(newScale);
-                logger.debug(`Resolution scaled up: ${newScale.toFixed(2)}`);
+
+                const newPixelRatio = Math.min(currentPixelRatio * 1.05, maxResolutionScale);
+                this.renderer.setPixelRatio(newPixelRatio);
+                logger.debug(`Resolution scaled up: ${newPixelRatio.toFixed(2)}`);
             }
+        };
+
+        this.renderer.setAnimationLoop(() => {
+            adjustResolution();
         });
 
         logger.info('Dynamic resolution scaling enabled');
     }
 
-    
+
     private async setupHandTracking(): Promise<void> {
-        if (!this.xrHelper) return;
+        if (!this.xrSession) return;
 
         try {
-            this.handFeature = this.xrHelper.baseExperience.featuresManager.enableFeature(
-                BABYLON.WebXRFeatureName.HAND_TRACKING,
-                'latest',
-                { xrInput: this.xrHelper.input }
-            );
 
-            
             this.startHandTracking();
 
             logger.info('Hand tracking enabled');
@@ -185,57 +186,52 @@ export class Quest3Optimizer {
         }
     }
 
-    
+
     private startHandTracking(): void {
         if (this.handUpdateInterval) {
             return;
         }
 
         this.handUpdateInterval = setInterval(async () => {
-            if (!this.handFeature || !this.localAgentId) {
+            if (!this.xrSession || !this.localAgentId) {
                 return;
             }
 
-            const hands = this.handFeature.getHandByControllerId('left') || this.handFeature.getHandByControllerId('right');
-            if (!hands) {
-                return;
+
+            const inputSources = this.xrSession.inputSources;
+
+            for (const source of inputSources) {
+                if (source.hand) {
+                    const hand = source.handedness as 'left' | 'right';
+                    await this.broadcastHandData(hand, source.hand);
+                }
             }
 
-            
-            const leftHand = this.handFeature.getHandByControllerId('left');
-            if (leftHand) {
-                await this.broadcastHandData('left', leftHand);
-            }
-
-            
-            const rightHand = this.handFeature.getHandByControllerId('right');
-            if (rightHand) {
-                await this.broadcastHandData('right', rightHand);
-            }
-
-        }, 50); 
+        }, 50);
 
         logger.info('Hand tracking broadcast started');
     }
 
-    
-    private async broadcastHandData(hand: 'left' | 'right', handData: any): Promise<void> {
+
+    private async broadcastHandData(hand: 'left' | 'right', handData: XRHand): Promise<void> {
         if (!this.localAgentId) return;
 
         try {
             const joints: HandJoint[] = [];
 
-            
-            Object.keys(handData.trackedMeshes || {}).forEach((jointName: string) => {
-                const mesh = handData.trackedMeshes[jointName];
-                if (mesh) {
+
+            for (const joint of handData.values()) {
+                if (joint) {
+                    const position = new THREE.Vector3();
+                    const orientation = new THREE.Quaternion();
+
                     joints.push({
-                        name: jointName,
-                        position: mesh.position.clone(),
-                        orientation: mesh.rotationQuaternion?.clone() || BABYLON.Quaternion.Identity()
+                        name: joint.jointName || '',
+                        position: position.clone(),
+                        orientation: orientation.clone()
                     });
                 }
-            });
+            }
 
             const query = `
                 UPDATE entity.entities
@@ -257,94 +253,93 @@ export class Quest3Optimizer {
         }
     }
 
-    
+
     updateRemoteHandTracking(agentId: string, hand: 'left' | 'right', joints: HandJoint[]): void {
         const handKey = `${agentId}_${hand}`;
         let handMeshes = this.remoteHands.get(handKey);
 
         if (!handMeshes) {
-            
+
             handMeshes = joints.map((joint, index) => {
-                const sphere = BABYLON.MeshBuilder.CreateSphere(
-                    `hand_${handKey}_${index}`,
-                    { diameter: 0.015 },
-                    this.scene
-                );
+                const geometry = new THREE.SphereGeometry(0.0075, 8, 8);
+                const material = new THREE.MeshBasicMaterial({
+                    color: hand === 'left' ? 0x3380ff : 0xff8033
+                });
+                const sphere = new THREE.Mesh(geometry, material);
+                sphere.name = `hand_${handKey}_${index}`;
 
-                const material = new BABYLON.StandardMaterial(`hand_mat_${handKey}_${index}`, this.scene);
-                material.emissiveColor = hand === 'left' ? new BABYLON.Color3(0.2, 0.5, 1.0) : new BABYLON.Color3(1.0, 0.5, 0.2);
-                sphere.material = material;
-
+                this.scene.add(sphere);
                 return sphere;
             });
 
             this.remoteHands.set(handKey, handMeshes);
         }
 
-        
+
         joints.forEach((joint, index) => {
             if (handMeshes![index]) {
-                handMeshes![index].position = joint.position;
-                handMeshes![index].rotationQuaternion = joint.orientation;
+                handMeshes![index].position.copy(joint.position);
+                handMeshes![index].quaternion.copy(joint.orientation);
             }
         });
     }
 
-    
+
     private setupControllers(): void {
-        if (!this.xrHelper) return;
+        if (!this.xrSession) return;
 
-        this.xrHelper.input.onControllerAddedObservable.add((controller) => {
-            logger.info(`Controller added: ${controller.uniqueId}`);
-
-            
+        this.xrSession.addEventListener('inputsourceschange', (event) => {
+            logger.info('Input sources changed');
             this.startControllerBroadcast();
         });
 
         logger.info('Controller support enabled');
     }
 
-    
+
     private startControllerBroadcast(): void {
         if (this.controllerUpdateInterval) {
             return;
         }
 
         this.controllerUpdateInterval = setInterval(async () => {
-            if (!this.xrHelper || !this.localAgentId) {
+            if (!this.xrSession || !this.localAgentId) {
                 return;
             }
 
-            this.xrHelper.input.controllers.forEach(async (controller) => {
-                const controllerState: ControllerState = {
-                    agentId: this.localAgentId!,
-                    controllerId: controller.inputSource.handedness as 'left' | 'right',
-                    position: controller.pointer.position.clone(),
-                    orientation: controller.pointer.rotationQuaternion?.clone() || BABYLON.Quaternion.Identity(),
-                    buttons: {},
-                    axes: {},
-                    timestamp: Date.now()
-                };
+            const inputSources = this.xrSession.inputSources;
 
-                
-                controller.motionController?.components.forEach((component, name) => {
-                    if (component.type === BABYLON.WebXRControllerComponent.BUTTON_TYPE) {
-                        controllerState.buttons[name] = component.pressed;
-                    } else if (component.type === BABYLON.WebXRControllerComponent.THUMBSTICK_TYPE) {
-                        controllerState.axes[name] = component.axes.x;
-                        controllerState.axes[`${name}_y`] = component.axes.y;
-                    }
-                });
+            for (const source of inputSources) {
+                if (source.gamepad && source.gripSpace) {
+                    const controllerState: ControllerState = {
+                        agentId: this.localAgentId!,
+                        controllerId: source.handedness as 'left' | 'right',
+                        position: new THREE.Vector3(),
+                        orientation: new THREE.Quaternion(),
+                        buttons: {},
+                        axes: {},
+                        timestamp: Date.now()
+                    };
 
-                await this.broadcastControllerState(controllerState);
-            });
 
-        }, 50); 
+                    source.gamepad.buttons.forEach((button, index) => {
+                        controllerState.buttons[`button_${index}`] = button.pressed;
+                    });
+
+                    source.gamepad.axes.forEach((axis, index) => {
+                        controllerState.axes[`axis_${index}`] = axis;
+                    });
+
+                    await this.broadcastControllerState(controllerState);
+                }
+            }
+
+        }, 50);
 
         logger.info('Controller broadcast started');
     }
 
-    
+
     private async broadcastControllerState(state: ControllerState): Promise<void> {
         try {
             const query = `
@@ -379,44 +374,42 @@ export class Quest3Optimizer {
         }
     }
 
-    
+
     updateRemoteController(agentId: string, state: ControllerState): void {
         const controllerKey = `${agentId}_${state.controllerId}`;
         let controllerMesh = this.remoteControllers.get(controllerKey);
 
         if (!controllerMesh) {
-            
-            controllerMesh = BABYLON.MeshBuilder.CreateCylinder(
-                `controller_${controllerKey}`,
-                { height: 0.15, diameter: 0.03 },
-                this.scene
-            );
 
-            const material = new BABYLON.StandardMaterial(`controller_mat_${controllerKey}`, this.scene);
-            material.emissiveColor = state.controllerId === 'left' ? new BABYLON.Color3(0.3, 0.6, 1.0) : new BABYLON.Color3(1.0, 0.6, 0.3);
-            controllerMesh.material = material;
+            const geometry = new THREE.CylinderGeometry(0.015, 0.015, 0.15, 8);
+            const material = new THREE.MeshBasicMaterial({
+                color: state.controllerId === 'left' ? 0x4d99ff : 0xff994d
+            });
+            controllerMesh = new THREE.Mesh(geometry, material);
+            controllerMesh.name = `controller_${controllerKey}`;
 
+            this.scene.add(controllerMesh);
             this.remoteControllers.set(controllerKey, controllerMesh);
         }
 
-        
-        controllerMesh.position = state.position;
-        controllerMesh.rotationQuaternion = state.orientation;
+
+        controllerMesh.position.copy(state.position);
+        controllerMesh.quaternion.copy(state.orientation);
     }
 
-    
+
     getPerformanceMetrics() {
         return {
             fps: this.currentFPS,
             targetFPS: this.defaultConfig.targetFrameRate,
-            hardwareScaling: this.scene.getEngine().getHardwareScalingLevel(),
+            pixelRatio: this.renderer.getPixelRatio(),
             foveationLevel: this.defaultConfig.foveatedRenderingLevel,
             handTrackingActive: this.handFeature !== null,
-            controllersActive: this.xrHelper?.input.controllers.length || 0
+            controllersActive: this.xrSession?.inputSources.length || 0
         };
     }
 
-    
+
     private stopHandTracking(): void {
         if (this.handUpdateInterval) {
             clearInterval(this.handUpdateInterval);
@@ -425,7 +418,7 @@ export class Quest3Optimizer {
         }
     }
 
-    
+
     private stopControllerBroadcast(): void {
         if (this.controllerUpdateInterval) {
             clearInterval(this.controllerUpdateInterval);
@@ -434,23 +427,29 @@ export class Quest3Optimizer {
         }
     }
 
-    
+
     dispose(): void {
         logger.info('Disposing Quest3Optimizer');
 
         this.stopHandTracking();
         this.stopControllerBroadcast();
 
-        
+
         this.remoteHands.forEach(meshes => {
-            meshes.forEach(mesh => mesh.dispose());
+            meshes.forEach(mesh => {
+                mesh.geometry.dispose();
+                (mesh.material as THREE.Material).dispose();
+                this.scene.remove(mesh);
+            });
         });
         this.remoteHands.clear();
 
-        
-        this.remoteControllers.forEach(mesh => mesh.dispose());
-        this.remoteControllers.clear();
 
-        this.performanceMonitor = null;
+        this.remoteControllers.forEach(mesh => {
+            mesh.geometry.dispose();
+            (mesh.material as THREE.Material).dispose();
+            this.scene.remove(mesh);
+        });
+        this.remoteControllers.clear();
     }
 }

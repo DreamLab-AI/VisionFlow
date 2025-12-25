@@ -1,6 +1,9 @@
+// TODO: Migrated from Babylon.js to Three.js
+// - Replaced BABYLON.Vector3 with THREE.Vector3
+// - Replaced BABYLON.Scene with THREE.Scene
+// - Spatial audio uses Web Audio API PannerNode (same as before)
 
-
-import * as BABYLON from '@babylonjs/core';
+import * as THREE from 'three';
 import { ClientCore } from './VircadiaClientCore';
 import { createLogger } from '../../utils/loggerConfig';
 
@@ -47,23 +50,23 @@ export class SpatialAudioManager {
 
     constructor(
         private client: ClientCore,
-        private scene: BABYLON.Scene,
+        private scene: THREE.Scene,
         config?: Partial<SpatialAudioConfig>
     ) {
         this.defaultConfig = { ...this.defaultConfig, ...config };
         this.setupConnectionListeners();
     }
 
-    
+
     async initialize(): Promise<void> {
         logger.info('Initializing spatial audio...');
 
         try {
-            
+
             this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
             logger.info(`Audio context created: ${this.audioContext.state}`);
 
-            
+
             this.localStream = await navigator.mediaDevices.getUserMedia({
                 audio: this.defaultConfig.audioConstraints,
                 video: false
@@ -71,7 +74,7 @@ export class SpatialAudioManager {
 
             logger.info('Local audio stream acquired');
 
-            
+
             const info = this.client.Utilities.Connection.getConnectionInfo();
             if (info.agentId) {
                 this.localAgentId = info.agentId;
@@ -83,14 +86,14 @@ export class SpatialAudioManager {
         }
     }
 
-    
+
     private setupConnectionListeners(): void {
-        
+
         this.client.Utilities.Connection.addEventListener('syncUpdate', async () => {
             await this.handleSignalingMessages();
         });
 
-        
+
         this.client.Utilities.Connection.addEventListener('statusChange', () => {
             const info = this.client.Utilities.Connection.getConnectionInfo();
             if (info.isConnected && info.agentId) {
@@ -99,7 +102,7 @@ export class SpatialAudioManager {
         });
     }
 
-    
+
     async connectToPeer(agentId: string, username: string): Promise<void> {
         if (this.peerConnections.has(agentId)) {
             logger.warn(`Already connected to peer: ${agentId}`);
@@ -114,29 +117,29 @@ export class SpatialAudioManager {
         logger.info(`Connecting to peer: ${username} (${agentId})`);
 
         try {
-            
+
             const pc = new RTCPeerConnection({
                 iceServers: this.defaultConfig.iceServers
             });
 
-            
+
             this.localStream.getTracks().forEach(track => {
                 pc.addTrack(track, this.localStream!);
             });
 
-            
+
             pc.ontrack = (event) => {
                 this.handleRemoteTrack(agentId, username, event);
             };
 
-            
+
             pc.onicecandidate = (event) => {
                 if (event.candidate) {
                     this.sendICECandidate(agentId, event.candidate);
                 }
             };
 
-            
+
             pc.onconnectionstatechange = () => {
                 logger.debug(`Peer connection state: ${pc.connectionState} (${username})`);
                 if (pc.connectionState === 'failed' || pc.connectionState === 'closed') {
@@ -144,7 +147,7 @@ export class SpatialAudioManager {
                 }
             };
 
-            
+
             const peerConn: PeerConnection = {
                 agentId,
                 username,
@@ -152,7 +155,7 @@ export class SpatialAudioManager {
             };
             this.peerConnections.set(agentId, peerConn);
 
-            
+
             const offer = await pc.createOffer();
             await pc.setLocalDescription(offer);
             await this.sendOffer(agentId, offer);
@@ -164,7 +167,7 @@ export class SpatialAudioManager {
         }
     }
 
-    
+
     private handleRemoteTrack(agentId: string, username: string, event: RTCTrackEvent): void {
         logger.info(`Received remote track from ${username}`);
 
@@ -173,51 +176,51 @@ export class SpatialAudioManager {
             return;
         }
 
-        
+
         const audioElement = new Audio();
         audioElement.srcObject = event.streams[0];
         audioElement.autoplay = true;
-        audioElement.muted = true; 
+        audioElement.muted = true;
 
-        
+
         const source = this.audioContext.createMediaStreamSource(event.streams[0]);
         const panner = this.audioContext.createPanner();
 
-        
+
         panner.panningModel = 'HRTF';
         panner.distanceModel = 'inverse';
         panner.refDistance = this.defaultConfig.refDistance;
         panner.maxDistance = this.defaultConfig.maxDistance;
         panner.rolloffFactor = this.defaultConfig.rolloffFactor;
 
-        
+
         source.connect(panner);
         panner.connect(this.audioContext.destination);
 
-        
+
         peerConn.audioElement = audioElement;
         peerConn.pannerNode = panner;
 
         logger.info(`Spatial audio configured for ${username}`);
     }
 
-    
-    updateListenerPosition(position: BABYLON.Vector3, forward: BABYLON.Vector3, up: BABYLON.Vector3): void {
+
+    updateListenerPosition(position: THREE.Vector3, forward: THREE.Vector3, up: THREE.Vector3): void {
         if (!this.audioContext?.listener) {
             return;
         }
 
-        
+
         if (this.audioContext.listener.positionX) {
             this.audioContext.listener.positionX.value = position.x;
             this.audioContext.listener.positionY.value = position.y;
             this.audioContext.listener.positionZ.value = position.z;
         } else {
-            
+
             (this.audioContext.listener as any).setPosition(position.x, position.y, position.z);
         }
 
-        
+
         if (this.audioContext.listener.forwardX) {
             this.audioContext.listener.forwardX.value = forward.x;
             this.audioContext.listener.forwardY.value = forward.y;
@@ -226,7 +229,7 @@ export class SpatialAudioManager {
             this.audioContext.listener.upY.value = up.y;
             this.audioContext.listener.upZ.value = up.z;
         } else {
-            
+
             (this.audioContext.listener as any).setOrientation(
                 forward.x, forward.y, forward.z,
                 up.x, up.y, up.z
@@ -234,25 +237,25 @@ export class SpatialAudioManager {
         }
     }
 
-    
-    updatePeerPosition(agentId: string, position: BABYLON.Vector3): void {
+
+    updatePeerPosition(agentId: string, position: THREE.Vector3): void {
         const peerConn = this.peerConnections.get(agentId);
         if (!peerConn?.pannerNode) {
             return;
         }
 
-        
+
         if (peerConn.pannerNode.positionX) {
             peerConn.pannerNode.positionX.value = position.x;
             peerConn.pannerNode.positionY.value = position.y;
             peerConn.pannerNode.positionZ.value = position.z;
         } else {
-            
+
             (peerConn.pannerNode as any).setPosition(position.x, position.y, position.z);
         }
     }
 
-    
+
     setMuted(muted: boolean): void {
         if (!this.localStream) {
             return;
@@ -266,13 +269,13 @@ export class SpatialAudioManager {
         logger.info(`Microphone ${muted ? 'muted' : 'unmuted'}`);
     }
 
-    
+
     toggleMute(): boolean {
         this.setMuted(!this.isMuted);
         return this.isMuted;
     }
 
-    
+
     private async sendOffer(targetAgentId: string, offer: RTCSessionDescriptionInit): Promise<void> {
         try {
             const query = `
@@ -302,7 +305,7 @@ export class SpatialAudioManager {
         }
     }
 
-    
+
     private async sendICECandidate(targetAgentId: string, candidate: RTCIceCandidate): Promise<void> {
         try {
             const query = `
@@ -332,7 +335,7 @@ export class SpatialAudioManager {
         }
     }
 
-    
+
     private async handleSignalingMessages(): Promise<void> {
         try {
             const query = `
@@ -371,7 +374,7 @@ export class SpatialAudioManager {
         }
     }
 
-    
+
     private async handleOffer(fromAgentId: string, offer: RTCSessionDescriptionInit): Promise<void> {
         logger.info(`Received offer from ${fromAgentId}`);
 
@@ -385,11 +388,11 @@ export class SpatialAudioManager {
         const answer = await peerConn.pc.createAnswer();
         await peerConn.pc.setLocalDescription(answer);
 
-        
+
         await this.sendAnswer(fromAgentId, answer);
     }
 
-    
+
     private async sendAnswer(targetAgentId: string, answer: RTCSessionDescriptionInit): Promise<void> {
         try {
             const query = `
@@ -419,7 +422,7 @@ export class SpatialAudioManager {
         }
     }
 
-    
+
     private async handleAnswer(fromAgentId: string, answer: RTCSessionDescriptionInit): Promise<void> {
         const peerConn = this.peerConnections.get(fromAgentId);
         if (peerConn) {
@@ -428,7 +431,7 @@ export class SpatialAudioManager {
         }
     }
 
-    
+
     private async handleICECandidate(fromAgentId: string, candidate: RTCIceCandidateInit): Promise<void> {
         const peerConn = this.peerConnections.get(fromAgentId);
         if (peerConn) {
@@ -436,7 +439,7 @@ export class SpatialAudioManager {
         }
     }
 
-    
+
     private removePeer(agentId: string): void {
         const peerConn = this.peerConnections.get(agentId);
         if (!peerConn) {
@@ -453,28 +456,28 @@ export class SpatialAudioManager {
         this.peerConnections.delete(agentId);
     }
 
-    
+
     getPeerCount(): number {
         return this.peerConnections.size;
     }
 
-    
+
     dispose(): void {
         logger.info('Disposing SpatialAudioManager');
 
-        
+
         if (this.localStream) {
             this.localStream.getTracks().forEach(track => track.stop());
             this.localStream = null;
         }
 
-        
+
         this.peerConnections.forEach((_, agentId) => {
             this.removePeer(agentId);
         });
         this.peerConnections.clear();
 
-        
+
         if (this.audioContext) {
             this.audioContext.close();
             this.audioContext = null;

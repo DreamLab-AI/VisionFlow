@@ -76,24 +76,31 @@ class GraphWorker {
   private graphData: GraphData = { nodes: [], edges: [] };
   private nodeIdMap: Map<string, number> = new Map();
   private reverseNodeIdMap: Map<number, string> = new Map();
-  private graphType: 'logseq' | 'visionflow' = 'logseq'; 
+  private graphType: 'logseq' | 'visionflow' = 'logseq';
 
-  
+
+  private nodeIndexMap: Map<string, number> = new Map();
+
   private currentPositions: Float32Array | null = null;
   private targetPositions: Float32Array | null = null;
   private velocities: Float32Array | null = null;
-  private pinnedNodeIds: Set<number> = new Set(); 
+  private pinnedNodeIds: Set<number> = new Set();
   private physicsSettings = {
     springStrength: 0.001,
     damping: 0.98,
     maxVelocity: 0.5,
     updateThreshold: 0.05,
   };
-  
-  
-  private useServerPhysics: boolean = true;  
+
+
+  private useServerPhysics: boolean = true;
   private positionBuffer: SharedArrayBuffer | null = null;
   private positionView: Float32Array | null = null;
+
+
+  private frameCount: number = 0;
+  private binaryUpdateCount: number = 0;
+  private lastBinaryUpdate: number = 0;
 
   
   async initialize(): Promise<void> {
@@ -107,16 +114,17 @@ class GraphWorker {
     console.log(`GraphWorker: Graph type set to ${type}`);
   }
 
-  
+
   async setGraphData(data: GraphData): Promise<void> {
     this.graphData = {
       nodes: data.nodes.map(node => this.ensureNodeHasValidPosition(node)),
       edges: data.edges
     };
 
-    
+
     this.nodeIdMap.clear();
     this.reverseNodeIdMap.clear();
+    this.nodeIndexMap.clear();
     this.graphData.nodes.forEach((node, index) => {
         const numericId = parseInt(node.id, 10);
         if (!isNaN(numericId) && numericId >= 0 && numericId <= 0xFFFFFFFF) {
@@ -127,6 +135,7 @@ class GraphWorker {
             this.nodeIdMap.set(node.id, mappedId);
             this.reverseNodeIdMap.set(mappedId, node.id);
         }
+        this.nodeIndexMap.set(node.id, index);
     });
 
     
@@ -201,14 +210,14 @@ class GraphWorker {
     nodeUpdates.forEach((update, index) => {
       const stringNodeId = this.reverseNodeIdMap.get(update.nodeId);
       if (stringNodeId) {
-        const nodeIndex = this.graphData.nodes.findIndex(n => n.id === stringNodeId);
-        if (nodeIndex !== -1 && !this.pinnedNodeIds.has(update.nodeId)) {
-          
+        const nodeIndex = this.nodeIndexMap.get(stringNodeId);
+        if (nodeIndex !== undefined && !this.pinnedNodeIds.has(update.nodeId)) {
+
           const i3 = nodeIndex * 3;
           this.targetPositions![i3] = update.position.x;
           this.targetPositions![i3 + 1] = update.position.y;
           this.targetPositions![i3 + 2] = update.position.z;
-          
+
         }
       }
 
@@ -228,29 +237,31 @@ class GraphWorker {
     return this.graphData;
   }
 
-  
-  async updateNode(node: Node): Promise<void> {
-    const existingIndex = this.graphData.nodes.findIndex(n => n.id === node.id);
 
-    if (existingIndex >= 0) {
+  async updateNode(node: Node): Promise<void> {
+    const existingIndex = this.nodeIndexMap.get(node.id);
+
+    if (existingIndex !== undefined) {
       this.graphData.nodes[existingIndex] = { ...this.graphData.nodes[existingIndex], ...node };
     } else {
+      const newIndex = this.graphData.nodes.length;
       this.graphData.nodes.push(this.ensureNodeHasValidPosition(node));
 
-      
+
       const numericId = parseInt(node.id, 10);
       if (!isNaN(numericId)) {
         this.nodeIdMap.set(node.id, numericId);
         this.reverseNodeIdMap.set(numericId, node.id);
       } else {
-        const mappedId = this.graphData.nodes.length;
+        const mappedId = newIndex + 1;
         this.nodeIdMap.set(node.id, mappedId);
         this.reverseNodeIdMap.set(mappedId, node.id);
       }
+      this.nodeIndexMap.set(node.id, newIndex);
     }
   }
 
-  
+
   async removeNode(nodeId: string): Promise<void> {
     const numericId = this.nodeIdMap.get(nodeId);
 
@@ -263,6 +274,12 @@ class GraphWorker {
       this.nodeIdMap.delete(nodeId);
       this.reverseNodeIdMap.delete(numericId);
     }
+    this.nodeIndexMap.delete(nodeId);
+
+    this.nodeIndexMap.clear();
+    this.graphData.nodes.forEach((node, index) => {
+      this.nodeIndexMap.set(node.id, index);
+    });
   }
 
   
@@ -303,17 +320,17 @@ class GraphWorker {
   async updateUserDrivenNodePosition(nodeId: number, position: Vec3): Promise<void> {
     const stringNodeId = this.reverseNodeIdMap.get(nodeId);
     if (stringNodeId) {
-      const nodeIndex = this.graphData.nodes.findIndex(n => n.id === stringNodeId);
-      if (nodeIndex !== -1) {
+      const nodeIndex = this.nodeIndexMap.get(stringNodeId);
+      if (nodeIndex !== undefined) {
         const i3 = nodeIndex * 3;
-        
+
         this.currentPositions![i3] = position.x;
         this.currentPositions![i3 + 1] = position.y;
         this.currentPositions![i3 + 2] = position.z;
         this.targetPositions![i3] = position.x;
         this.targetPositions![i3 + 1] = position.y;
         this.targetPositions![i3 + 2] = position.z;
-        
+
         this.velocities!.fill(0, i3, i3 + 3);
       }
     }
@@ -359,9 +376,11 @@ class GraphWorker {
         return this.currentPositions;
       }
       
-      
-      
-      const lerpFactor = 0.05; 
+
+
+
+      const dtSeconds = deltaTime / 1000;
+      const lerpFactor = 1 - Math.pow(0.001, dtSeconds); 
       
       
       let totalMovement = 0;
@@ -457,8 +476,7 @@ class GraphWorker {
       return this.currentPositions;
     }
 
-    
-    
+
     const { springStrength, damping, maxVelocity, updateThreshold } = this.physicsSettings;
 
     for (let i = 0; i < this.graphData.nodes.length; i++) {

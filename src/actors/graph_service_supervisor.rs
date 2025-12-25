@@ -267,7 +267,19 @@ impl GraphServiceSupervisor {
         supervisor
     }
 
-    
+
+    /// Wire physics and client coordinator together for position broadcasting
+    fn wire_physics_and_client(&mut self) {
+        if let (Some(ref physics_addr), Some(ref client_addr)) = (&self.physics, &self.client) {
+            use crate::actors::SetClientCoordinator;
+            physics_addr.do_send(SetClientCoordinator {
+                addr: client_addr.clone(),
+            });
+            info!("Wired PhysicsOrchestrator and ClientCoordinator for position broadcasting");
+        }
+    }
+
+
     fn initialize_actors(&mut self, ctx: &mut Context<Self>) {
         info!("Initializing supervised actors");
 
@@ -381,7 +393,12 @@ impl GraphServiceSupervisor {
             }
         }
 
-        
+        // Wire actors together after starting
+        if actor_type == ActorType::ClientCoordinator || actor_type == ActorType::PhysicsOrchestrator {
+            self.wire_physics_and_client();
+        }
+
+
         if let Some(info) = self.actor_info.get_mut(&actor_type) {
             info.health = ActorHealth::Healthy;
             info.last_heartbeat = Some(Instant::now());

@@ -15,6 +15,7 @@ use crate::telemetry::agent_telemetry::{
 use crate::utils::socket_flow_messages::{glam_to_vec3data, BinaryNodeDataClient};
 use crate::utils::unified_gpu_compute::ComputeMode;
 use crate::utils::unified_gpu_compute::SimParams;
+use crate::gpu::broadcast_optimizer::{BroadcastConfig, BroadcastOptimizer};
 use glam::Vec3;
 
 ///
@@ -86,10 +87,21 @@ pub struct ForceComputeActor {
 
     /// Semantic forces actor for DAG layout, type clustering, and collision
     semantic_forces_addr: Option<Addr<super::semantic_forces_actor::SemanticForcesActor>>,
+
+    /// Broadcast optimizer for delta compression and spatial culling
+    broadcast_optimizer: BroadcastOptimizer,
 }
 
 impl ForceComputeActor {
     pub fn new() -> Self {
+        // Initialize broadcast optimizer with default config
+        let broadcast_config = BroadcastConfig {
+            target_fps: 25, // 25fps broadcast, 60fps physics
+            delta_threshold: 0.01, // 1cm movement threshold
+            enable_spatial_culling: false, // Disabled by default, can be enabled via API
+            camera_bounds: None,
+        };
+
         Self {
             gpu_state: GPUState::default(),
             shared_context: None,
@@ -106,6 +118,7 @@ impl ForceComputeActor {
             ontology_constraint_addr: None,
             cached_constraint_buffer: Vec::new(),
             semantic_forces_addr: None,
+            broadcast_optimizer: BroadcastOptimizer::new(broadcast_config),
         }
     }
 
@@ -343,39 +356,40 @@ impl ForceComputeActor {
                     }
                 }
 
-                
-                
-                
-                let stable = self.stability_iterations > 600 && self.reheat_factor == 0.0;
 
-                let download_interval = if stable {
-                    
-                    30  
-                } else if self.gpu_state.num_nodes > 10000 {
-                    
-                    10  
-                } else if self.gpu_state.num_nodes > 1000 {
-                    
-                    5   
-                } else {
-                    
-                    2   
-                };
+                // Download positions from GPU and apply broadcast optimization
+                // The broadcast optimizer handles:
+                // - Adaptive broadcast frequency (25fps instead of 60fps)
+                // - Delta compression (only send nodes that moved > threshold)
+                // - Spatial culling (if enabled)
 
-                if iteration % download_interval == 0 {
-                    
-                    let positions_result = unified_compute.get_node_positions();
-                    let velocities_result = unified_compute.get_node_velocities();
+                let positions_result = unified_compute.get_node_positions();
+                let velocities_result = unified_compute.get_node_velocities();
 
-                    if let (Ok((pos_x, pos_y, pos_z)), Ok((vel_x, vel_y, vel_z))) =
-                        (positions_result, velocities_result) {
+                if let (Ok((pos_x, pos_y, pos_z)), Ok((vel_x, vel_y, vel_z))) =
+                    (positions_result, velocities_result) {
 
-                        
-                        let mut node_updates = Vec::new();
-                        for i in 0..pos_x.len() {
-                            let node_id = i as u32;
-                            let position = Vec3::new(pos_x[i], pos_y[i], pos_z[i]);
-                            let velocity = Vec3::new(vel_x[i], vel_y[i], vel_z[i]);
+                    // Prepare position/velocity data for optimizer
+                    let mut positions_velocities = Vec::with_capacity(pos_x.len());
+                    let mut node_ids = Vec::with_capacity(pos_x.len());
+
+                    for i in 0..pos_x.len() {
+                        let position = Vec3::new(pos_x[i], pos_y[i], pos_z[i]);
+                        let velocity = Vec3::new(vel_x[i], vel_y[i], vel_z[i]);
+                        positions_velocities.push((position, velocity));
+                        node_ids.push(i as u32);
+                    }
+
+                    // Apply broadcast optimization
+                    let (should_broadcast, filtered_indices) =
+                        self.broadcast_optimizer.process_frame(&positions_velocities, &node_ids);
+
+                    if should_broadcast && !filtered_indices.is_empty() {
+                        // Build node updates for only the filtered indices
+                        let mut node_updates = Vec::with_capacity(filtered_indices.len());
+                        for &idx in &filtered_indices {
+                            let node_id = node_ids[idx];
+                            let (position, velocity) = positions_velocities[idx];
 
                             node_updates.push((node_id, BinaryNodeDataClient::new(
                                 node_id,
@@ -384,23 +398,27 @@ impl ForceComputeActor {
                             )));
                         }
 
-
                         if let Some(ref graph_addr) = self.graph_service_addr {
                             graph_addr.do_send(crate::actors::messages::UpdateNodePositions {
                                 positions: node_updates,
                                 correlation_id: None,
                             });
 
-                            if iteration % 60 == 0 {
-                                info!("ForceComputeActor: Download interval: {}ms, Nodes: {}, Stable: {}",
-                                      download_interval * 16, self.gpu_state.num_nodes, stable);
+                            // Log bandwidth savings every 5 seconds
+                            if iteration % 300 == 0 {
+                                let stats = self.broadcast_optimizer.get_performance_stats();
+                                info!("ForceComputeActor: Broadcast stats - Total nodes: {}, Sent: {}, Reduction: {:.1}%",
+                                      pos_x.len(), filtered_indices.len(), stats.average_bandwidth_reduction);
                             }
                         } else if iteration % 60 == 0 {
                             log::warn!("ForceComputeActor: No GraphServiceActor address - positions not being sent to clients!");
                         }
-                    } else {
-                        error!("ForceComputeActor: Failed to download positions/velocities from GPU");
+                    } else if should_broadcast && iteration % 300 == 0 {
+                        // Log when no updates needed (high compression)
+                        debug!("ForceComputeActor: No position updates needed (all nodes stable)");
                     }
+                } else {
+                    error!("ForceComputeActor: Failed to download positions/velocities from GPU");
                 }
 
                 Ok(())
@@ -1227,5 +1245,82 @@ impl Handler<GetStressMajorizationConfig> for ForceComputeActor {
               config.learning_rate, config.momentum);
 
         Ok(config)
+    }
+}
+
+// =============================================================================
+// Phase 7: Broadcast Optimization Message Handlers
+// =============================================================================
+
+/// Handler for ConfigureBroadcastOptimization
+impl Handler<crate::actors::messages::ConfigureBroadcastOptimization> for ForceComputeActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: crate::actors::messages::ConfigureBroadcastOptimization, _ctx: &mut Self::Context) -> Self::Result {
+        info!("ForceComputeActor: ConfigureBroadcastOptimization received");
+
+        // Get current stats before update
+        let old_stats = self.broadcast_optimizer.get_performance_stats();
+
+        // Build new config from current + updates
+        let mut new_config = BroadcastConfig {
+            target_fps: msg.target_fps.unwrap_or(old_stats.target_fps),
+            delta_threshold: msg.delta_threshold.unwrap_or(old_stats.delta_threshold),
+            enable_spatial_culling: msg.enable_spatial_culling.unwrap_or(false),
+            camera_bounds: None, // Updated separately via UpdateCameraFrustum
+        };
+
+        // Validate parameters
+        if new_config.target_fps == 0 || new_config.target_fps > 60 {
+            return Err(format!("Invalid target_fps: {} (must be 1-60)", new_config.target_fps));
+        }
+
+        if new_config.delta_threshold < 0.0 {
+            return Err(format!("Invalid delta_threshold: {} (must be >= 0.0)", new_config.delta_threshold));
+        }
+
+        info!("  Target FPS: {} -> {}", old_stats.target_fps, new_config.target_fps);
+        info!("  Delta threshold: {:.4} -> {:.4}", old_stats.delta_threshold, new_config.delta_threshold);
+        info!("  Spatial culling: {}", new_config.enable_spatial_culling);
+
+        // Apply new configuration
+        self.broadcast_optimizer.update_config(new_config);
+
+        Ok(())
+    }
+}
+
+/// Handler for UpdateCameraFrustum
+impl Handler<crate::actors::messages::UpdateCameraFrustum> for ForceComputeActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: crate::actors::messages::UpdateCameraFrustum, _ctx: &mut Self::Context) -> Self::Result {
+        debug!("ForceComputeActor: UpdateCameraFrustum received - min: {:?}, max: {:?}",
+               msg.min, msg.max);
+
+        let min = Vec3::new(msg.min.0, msg.min.1, msg.min.2);
+        let max = Vec3::new(msg.max.0, msg.max.1, msg.max.2);
+        self.broadcast_optimizer.update_camera_bounds(min, max);
+        Ok(())
+    }
+}
+
+/// Handler for GetBroadcastStats
+impl Handler<crate::actors::messages::GetBroadcastStats> for ForceComputeActor {
+    type Result = Result<crate::actors::messages::BroadcastPerformanceStats, String>;
+
+    fn handle(&mut self, _msg: crate::actors::messages::GetBroadcastStats, _ctx: &mut Self::Context) -> Self::Result {
+        let stats = self.broadcast_optimizer.get_performance_stats();
+
+        // Convert from gpu::broadcast_optimizer::BroadcastPerformanceStats
+        // to actors::messages::BroadcastPerformanceStats
+        Ok(crate::actors::messages::BroadcastPerformanceStats {
+            total_frames_processed: stats.total_frames_processed,
+            total_nodes_sent: stats.total_nodes_sent,
+            total_nodes_processed: stats.total_nodes_processed,
+            average_bandwidth_reduction: stats.average_bandwidth_reduction,
+            target_fps: stats.target_fps,
+            delta_threshold: stats.delta_threshold,
+        })
     }
 }

@@ -1,6 +1,6 @@
+// TODO: Migrated from Babylon.js to Three.js - verify all THREE.Scene usage patterns
 
-
-import * as BABYLON from '@babylonjs/core';
+import * as THREE from 'three';
 import { ClientCore } from '../vircadia/VircadiaClientCore';
 import { CollaborativeGraphSync } from '../vircadia/CollaborativeGraphSync';
 import { createLogger } from '../../utils/loggerConfig';
@@ -37,19 +37,19 @@ export interface AnnotationEvent {
 }
 
 export class GraphVircadiaBridge {
-  private nodeEntityMap = new Map<string, string>(); 
+  private nodeEntityMap = new Map<string, string>();
   private localSelectionCallback?: (nodeIds: string[]) => void;
   private remoteSelectionCallback?: (event: UserSelectionEvent) => void;
   private annotationCallback?: (event: AnnotationEvent) => void;
   private isActive = false;
 
   constructor(
-    private scene: BABYLON.Scene,
+    private scene: THREE.Scene,
     private client: ClientCore,
     private collab: CollaborativeGraphSync
   ) {}
 
-  
+
   async initialize(): Promise<void> {
     logger.info('Initializing GraphVircadiaBridge...');
 
@@ -59,31 +59,31 @@ export class GraphVircadiaBridge {
 
     await this.collab.initialize();
 
-    
+
     this.collab.on('user-selection', this.handleRemoteSelection.bind(this));
 
-    
+
     this.collab.on('annotation-added', this.handleRemoteAnnotation.bind(this));
     this.collab.on('annotation-removed', this.handleAnnotationRemoved.bind(this));
 
-    
+
     this.collab.on('filter-state-changed', this.handleFilterStateChanged.bind(this));
 
     this.isActive = true;
     logger.info('GraphVircadiaBridge initialized successfully');
   }
 
-  
+
   syncGraphToVircadia(nodes: GraphNode[], edges: GraphEdge[]): void {
     if (!this.isActive) return;
 
     try {
-      
+
       nodes.forEach(node => {
         this.syncNodeToEntity(node);
       });
 
-      
+
       edges.forEach(edge => {
         this.syncEdgeToEntity(edge);
       });
@@ -94,29 +94,29 @@ export class GraphVircadiaBridge {
     }
   }
 
-  
+
   private syncNodeToEntity(node: GraphNode): void {
     const entityId = `graph-node-${node.id}`;
 
-    
+
     this.nodeEntityMap.set(node.id, entityId);
 
-    
-    
+
+
   }
 
-  
+
   private syncEdgeToEntity(edge: GraphEdge): void {
     const sourceEntityId = this.nodeEntityMap.get(edge.source);
     const targetEntityId = this.nodeEntityMap.get(edge.target);
 
     if (sourceEntityId && targetEntityId) {
-      
-      
+
+
     }
   }
 
-  
+
   broadcastLocalSelection(nodeIds: string[]): void {
     if (!this.isActive) return;
 
@@ -128,7 +128,7 @@ export class GraphVircadiaBridge {
     }
   }
 
-  
+
   async addAnnotation(
     nodeId: string,
     text: string,
@@ -153,7 +153,7 @@ export class GraphVircadiaBridge {
     }
   }
 
-  
+
   async removeAnnotation(annotationId: string): Promise<void> {
     if (!this.isActive) return;
 
@@ -165,7 +165,7 @@ export class GraphVircadiaBridge {
     }
   }
 
-  
+
   broadcastFilterState(filterState: {
     searchQuery?: string;
     categoryFilter?: string[];
@@ -182,7 +182,7 @@ export class GraphVircadiaBridge {
     }
   }
 
-  
+
   private handleRemoteSelection(event: {
     agentId: string;
     username: string;
@@ -199,7 +199,7 @@ export class GraphVircadiaBridge {
     }
   }
 
-  
+
   private handleRemoteAnnotation(annotation: {
     id: string;
     agentId: string;
@@ -222,37 +222,37 @@ export class GraphVircadiaBridge {
     }
   }
 
-  
+
   private handleAnnotationRemoved(annotationId: string): void {
     logger.debug(`Annotation ${annotationId} removed`);
   }
 
-  
+
   private handleFilterStateChanged(event: {
     agentId: string;
     username: string;
     filterState: any;
   }): void {
     logger.debug(`Remote user ${event.username} changed filter state`);
-    
+
   }
 
-  
+
   onLocalSelection(callback: (nodeIds: string[]) => void): void {
     this.localSelectionCallback = callback;
   }
 
-  
+
   onRemoteSelection(callback: (event: UserSelectionEvent) => void): void {
     this.remoteSelectionCallback = callback;
   }
 
-  
+
   onAnnotation(callback: (event: AnnotationEvent) => void): void {
     this.annotationCallback = callback;
   }
 
-  
+
   getActiveUsers(): Array<{
     userId: string;
     username: string;
@@ -267,7 +267,7 @@ export class GraphVircadiaBridge {
     }));
   }
 
-  
+
   getAnnotations(): AnnotationEvent[] {
     if (!this.isActive) return [];
 
@@ -281,7 +281,7 @@ export class GraphVircadiaBridge {
     }));
   }
 
-  
+
   dispose(): void {
     this.isActive = false;
     this.nodeEntityMap.clear();

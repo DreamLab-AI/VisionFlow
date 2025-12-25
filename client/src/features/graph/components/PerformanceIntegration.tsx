@@ -2,8 +2,8 @@
 
 import { useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { dualGraphPerformanceMonitor } from '../../../utils/dualGraphPerformanceMonitor';
-import { dualGraphOptimizer } from '../../../utils/dualGraphOptimizations';
+import { graphPerformanceMonitor } from "../../../utils/graphPerformanceMonitor';
+import { graphOptimizer } from "../../../utils/graphOptimizations';
 import { debugState } from '../../../utils/clientDebugState';
 
 interface PerformanceIntegrationProps {
@@ -26,28 +26,28 @@ export const PerformanceIntegration: React.FC<PerformanceIntegrationProps> = ({
   
   useEffect(() => {
     if (debugState.isEnabled()) {
-      dualGraphPerformanceMonitor.initializeWebGL(gl);
-      dualGraphOptimizer.initializeOptimizations(camera, gl);
+      graphPerformanceMonitor.initializeWebGL(gl);
+      graphOptimizer.initializeOptimizations(camera, gl);
     }
   }, [camera, gl]);
 
   
   useEffect(() => {
-    dualGraphPerformanceMonitor.mark('logseq-update');
-    dualGraphPerformanceMonitor.updateGraphMetrics('logseq', {
+    graphPerformanceMonitor.mark('logseq-update');
+    graphPerformanceMonitor.updateGraphMetrics('logseq', {
       nodeCount: logseqNodeCount,
       edgeCount: logseqEdgeCount,
-      updateTime: dualGraphPerformanceMonitor.measure('logseq-update'),
+      updateTime: graphPerformanceMonitor.measure('logseq-update'),
       instancedRendering: true
     });
   }, [logseqNodeCount, logseqEdgeCount]);
 
   useEffect(() => {
-    dualGraphPerformanceMonitor.mark('visionflow-update');
-    dualGraphPerformanceMonitor.updateGraphMetrics('visionflow', {
+    graphPerformanceMonitor.mark('visionflow-update');
+    graphPerformanceMonitor.updateGraphMetrics('visionflow', {
       nodeCount: visionflowNodeCount,
       edgeCount: visionflowEdgeCount,
-      updateTime: dualGraphPerformanceMonitor.measure('visionflow-update'),
+      updateTime: graphPerformanceMonitor.measure('visionflow-update'),
       instancedRendering: visionflowNodeCount > 50
     });
   }, [visionflowNodeCount, visionflowEdgeCount]);
@@ -57,17 +57,17 @@ export const PerformanceIntegration: React.FC<PerformanceIntegrationProps> = ({
     if (!debugState.isEnabled()) return;
 
     
-    dualGraphPerformanceMonitor.beginFrame();
+    graphPerformanceMonitor.beginFrame();
     
     
-    dualGraphOptimizer.optimizeFrame(camera);
+    graphOptimizer.optimizeFrame(camera);
     
     
-    dualGraphPerformanceMonitor.endFrame(gl);
+    graphPerformanceMonitor.endFrame(gl);
     
     
     if (onPerformanceUpdate) {
-      const metrics = dualGraphPerformanceMonitor.getMetrics();
+      const metrics = graphPerformanceMonitor.getMetrics();
       onPerformanceUpdate(metrics);
     }
   });

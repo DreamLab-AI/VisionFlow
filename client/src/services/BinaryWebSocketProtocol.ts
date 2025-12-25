@@ -12,35 +12,42 @@ export const PROTOCOL_VERSION = PROTOCOL_V2;
 
 // Message types (1 byte header)
 export enum MessageType {
-  
-  GRAPH_UPDATE = 0x01,        
 
-  
-  VOICE_DATA = 0x02,          
+  GRAPH_UPDATE = 0x01,
 
-  
-  POSITION_UPDATE = 0x10,     
-  AGENT_POSITIONS = 0x11,     
-  VELOCITY_UPDATE = 0x12,     
 
-  
-  AGENT_STATE_FULL = 0x20,    
-  AGENT_STATE_DELTA = 0x21,   
-  AGENT_HEALTH = 0x22,        
+  VOICE_DATA = 0x02,
 
-  
-  CONTROL_BITS = 0x30,        
-  SSSP_DATA = 0x31,          
-  HANDSHAKE = 0x32,          
-  HEARTBEAT = 0x33,          
 
-  
-  VOICE_CHUNK = 0x40,        
-  VOICE_START = 0x41,        
-  VOICE_END = 0x42,          
+  POSITION_UPDATE = 0x10,
+  AGENT_POSITIONS = 0x11,
+  VELOCITY_UPDATE = 0x12,
 
-  
-  ERROR = 0xFF               
+
+  AGENT_STATE_FULL = 0x20,
+  AGENT_STATE_DELTA = 0x21,
+  AGENT_HEALTH = 0x22,
+
+
+  CONTROL_BITS = 0x30,
+  SSSP_DATA = 0x31,
+  HANDSHAKE = 0x32,
+  HEARTBEAT = 0x33,
+
+
+  VOICE_CHUNK = 0x40,
+  VOICE_START = 0x41,
+  VOICE_END = 0x42,
+
+  // Multi-user sync messages (Phase 6)
+  SYNC_UPDATE = 0x50,        // Graph operation sync
+  ANNOTATION_UPDATE = 0x51,  // Annotation sync
+  SELECTION_UPDATE = 0x52,   // Selection sync
+  USER_POSITION = 0x53,      // User cursor/avatar position
+  VR_PRESENCE = 0x54,        // VR head + hand tracking
+
+
+  ERROR = 0xFF
 }
 
 // Graph type flags for GRAPH_UPDATE messages

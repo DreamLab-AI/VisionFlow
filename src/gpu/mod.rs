@@ -55,3 +55,10 @@ pub use semantic_forces::{
     AttributeSpringConfig, CollisionConfig, DAGConfig, SemanticConfig,
     SemanticForcesEngine, TypeClusterConfig,
 };
+
+// Broadcast optimization module
+pub mod broadcast_optimizer;
+pub use broadcast_optimizer::{
+    BroadcastConfig, BroadcastOptimizer, BroadcastPerformanceStats,
+    CompressionStats, SpatialCuller,
+};

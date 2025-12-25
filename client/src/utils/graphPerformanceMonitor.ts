@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { createLogger } from './loggerConfig';
 
-const logger = createLogger('DualGraphPerformanceMonitor');
+const logger = createLogger('GraphPerformanceMonitor');
 
 export interface GraphPerformanceMetrics {
   nodeCount: number;
@@ -48,7 +48,7 @@ export interface PerformanceMetrics {
   };
 }
 
-class DualGraphPerformanceMonitor {
+class GraphPerformanceMonitor {
   private metrics: PerformanceMetrics;
   private frameCount = 0;
   private frameStartTime = 0;
@@ -266,7 +266,7 @@ class DualGraphPerformanceMonitor {
   public generateReport(): string {
     const m = this.metrics;
     const report = [
-      '=== Dual Graph Performance Report ===',
+      '=== Graph Performance Report ===',
       `FPS: ${m.fps} | Frame: ${m.frameTime}ms (${m.frameTimeMin.toFixed(1)}-${m.frameTimeMax.toFixed(1)}ms)`,
       `Memory: ${m.memory.used}MB / ${m.memory.limit}MB (${m.memory.percent}%)`,
       '',
@@ -428,9 +428,9 @@ class DualGraphPerformanceMonitor {
 }
 
 // Singleton instance
-export const dualGraphPerformanceMonitor = new DualGraphPerformanceMonitor();
+export const graphPerformanceMonitor = new GraphPerformanceMonitor();
 
 // Export to window for debugging
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-  (window as any).dualGraphPerformanceMonitor = dualGraphPerformanceMonitor;
+  (window as any).graphPerformanceMonitor = graphPerformanceMonitor;
 }

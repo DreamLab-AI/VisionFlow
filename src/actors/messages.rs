@@ -609,6 +609,12 @@ pub struct BroadcastNodePositions {
 }
 
 #[derive(Message)]
+#[rtype(result = "()")]
+pub struct BroadcastPositions {
+    pub positions: Vec<crate::utils::socket_flow_messages::BinaryNodeDataClient>,
+}
+
+#[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct BroadcastMessage {
     pub message: String,
@@ -1654,3 +1660,48 @@ pub struct GetHierarchyLevels;
 #[derive(Message, Debug, Clone, Serialize, Deserialize)]
 #[rtype(result = "Result<(), String>")]
 pub struct RecalculateHierarchy;
+
+// =============================================================================
+// Broadcast Optimization Messages (Phase 7)
+// =============================================================================
+
+/// Configure broadcast optimization parameters
+#[derive(Message, Debug, Clone, Serialize, Deserialize)]
+#[rtype(result = "Result<(), String>")]
+pub struct ConfigureBroadcastOptimization {
+    /// Target broadcast frequency in Hz (recommended: 20-30)
+    pub target_fps: Option<u32>,
+
+    /// Delta threshold in world units (nodes must move > this to broadcast)
+    pub delta_threshold: Option<f32>,
+
+    /// Enable spatial visibility culling
+    pub enable_spatial_culling: Option<bool>,
+}
+
+/// Update camera frustum for spatial culling
+#[derive(Message, Debug, Clone, Serialize, Deserialize)]
+#[rtype(result = "Result<(), String>")]
+pub struct UpdateCameraFrustum {
+    /// Minimum bounds (x, y, z)
+    pub min: (f32, f32, f32),
+
+    /// Maximum bounds (x, y, z)
+    pub max: (f32, f32, f32),
+}
+
+/// Get current broadcast performance statistics
+#[derive(Message, Debug, Clone, Serialize, Deserialize)]
+#[rtype(result = "Result<BroadcastPerformanceStats, String>")]
+pub struct GetBroadcastStats;
+
+/// Broadcast performance statistics
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BroadcastPerformanceStats {
+    pub total_frames_processed: u64,
+    pub total_nodes_sent: u64,
+    pub total_nodes_processed: u64,
+    pub average_bandwidth_reduction: f32,
+    pub target_fps: u32,
+    pub delta_threshold: f32,
+}

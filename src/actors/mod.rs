@@ -64,7 +64,7 @@ pub use ontology_actor::{
     OntologyActorConfig, ValidationJob,
 };
 pub use optimized_settings_actor::OptimizedSettingsActor;
-pub use physics_orchestrator_actor::PhysicsOrchestratorActor;
+pub use physics_orchestrator_actor::{PhysicsOrchestratorActor, SetClientCoordinator, UserNodeInteraction};
 pub use protected_settings_actor::ProtectedSettingsActor;
 pub use semantic_processor_actor::{
     AISemanticFeatures, SemanticProcessorActor, SemanticProcessorConfig, SemanticStats,

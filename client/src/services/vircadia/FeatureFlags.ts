@@ -45,7 +45,7 @@ export class FeatureFlags {
 
         
         deltaCompressionEnabled: true,
-        instancedRenderingEnabled: import.meta.env.VITE_BABYLON_INSTANCED_RENDERING === 'true',
+        instancedRenderingEnabled: import.meta.env.VITE_INSTANCED_RENDERING === 'true',
         dynamicResolutionEnabled: true,
         foveatedRenderingEnabled: true,
 

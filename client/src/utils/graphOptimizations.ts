@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { createLogger } from './loggerConfig';
 
-const logger = createLogger('DualGraphOptimizations');
+const logger = createLogger('GraphOptimizations');
 
 // Frustum culling helper
 export class FrustumCuller {
@@ -389,7 +389,7 @@ class OctreeNode {
 }
 
 // Performance optimization helper
-export class DualGraphOptimizer {
+export class GraphOptimizer {
   private frustumCuller = new FrustumCuller();
   private lodManager = new LODManager();
   private instancedManager = new InstancedRenderingManager();
@@ -406,7 +406,7 @@ export class DualGraphOptimizer {
     );
     this.octree = new SpatialOctree(bounds);
     
-    logger.info('Dual graph optimizations initialized', {
+    logger.info('Graph optimizations initialized', {
       sharedBufferSupported: this.sharedBuffer.isSupported(),
       rendererCapabilities: {
         maxTextures: renderer.capabilities.maxTextures,
@@ -449,4 +449,4 @@ export class DualGraphOptimizer {
 }
 
 // Singleton instance
-export const dualGraphOptimizer = new DualGraphOptimizer();
+export const graphOptimizer = new GraphOptimizer();
