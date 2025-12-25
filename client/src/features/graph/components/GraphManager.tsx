@@ -186,12 +186,6 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   const tempSourceOffset = useMemo(() => new THREE.Vector3(), [])
   const tempTargetOffset = useMemo(() => new THREE.Vector3(), [])
 
-  // O(n) lookup maps to replace O(n²) findIndex calls
-  const nodeIdToIndexMap = useMemo(() =>
-    new Map(graphData.nodes.map((n, i) => [n.id, i])),
-    [graphData.nodes]
-  )
-
   // Frustum for label culling
   const frustum = useMemo(() => new THREE.Frustum(), [])
   const cameraViewProjectionMatrix = useMemo(() => new THREE.Matrix4(), [])
@@ -201,6 +195,12 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   const lodCheckIntervalRef = useRef(0)
 
   const [graphData, setGraphData] = useState<GraphData>({ nodes: [], edges: [] })
+
+  // O(n) lookup maps to replace O(n²) findIndex calls (must be after graphData declaration)
+  const nodeIdToIndexMap = useMemo(() =>
+    new Map(graphData.nodes.map((n, i) => [n.id, i])),
+    [graphData.nodes]
+  )
   const nodePositionsRef = useRef<Float32Array | null>(null)
   const [edgePoints, setEdgePoints] = useState<number[]>([])
   const [nodesAreAtOrigin, setNodesAreAtOrigin] = useState(false)

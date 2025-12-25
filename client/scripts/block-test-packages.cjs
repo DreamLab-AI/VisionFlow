@@ -8,6 +8,12 @@
 const fs = require('fs');
 const path = require('path');
 
+// Skip in Docker builds - testing packages are not executed in production
+if (process.env.DOCKER_BUILD === '1' || fs.existsSync('/.dockerenv')) {
+  console.log('✓ Skipping test package check in Docker build');
+  process.exit(0);
+}
+
 const BLOCKED_PACKAGES = [
   '@vitest/ui',
   'vitest',

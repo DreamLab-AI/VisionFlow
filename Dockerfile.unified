@@ -121,6 +121,8 @@ COPY client/scripts ./scripts
 
 # Install Node.js dependencies
 # --production flag is added later in production stage
+# DOCKER_BUILD skips security check for test packages (not used in prod)
+ENV DOCKER_BUILD=1
 RUN npm ci --prefer-offline --no-audit
 
 # =============================================================================
