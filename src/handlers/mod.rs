@@ -52,3 +52,21 @@ pub use inference_handler::configure_routes as configure_inference_routes;
 pub mod tests;
 pub mod semantic_pathfinding_handler;
 pub use semantic_pathfinding_handler::configure_pathfinding_routes;
+
+// High-Performance Networking (QUIC/WebTransport + fastwebsockets)
+pub mod quic_transport_handler;
+pub mod fastwebsockets_handler;
+
+pub use quic_transport_handler::{
+    QuicTransportServer, QuicServerConfig,
+    PostcardNodeUpdate, PostcardBatchUpdate, PostcardDeltaUpdate,
+    ControlMessage, TopologyNode, TopologyEdge,
+    encode_postcard_batch, decode_postcard_batch, calculate_deltas,
+};
+
+pub use fastwebsockets_handler::{
+    FastWebSocketServer, FastWebSocketConfig,
+    StandaloneFastWsHandler,
+    TransportProtocol, SerializationFormat, NegotiatedProtocol,
+    negotiate_protocol,
+};
