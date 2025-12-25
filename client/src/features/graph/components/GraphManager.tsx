@@ -520,33 +520,42 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       const positions = await graphWorkerProxy.tick(delta);
       nodePositionsRef.current = positions;
 
-      if (positions) {
-        
+      if (positions && positions.length > 0) {
+        // Validate positions array has enough data for all nodes
+        const expectedLength = graphData.nodes.length * 3;
+        if (positions.length < expectedLength) {
+          // Positions array is stale/incomplete - skip this frame to avoid crash
+          return;
+        }
+
         const logseqSettings = settings?.visualisation?.graphs?.logseq;
         const nodeSettings = logseqSettings?.nodes || settings?.visualisation?.nodes;
         const nodeSize = nodeSettings?.nodeSize || 0.5;
         const BASE_SPHERE_RADIUS = 0.5;
         const baseScale = nodeSize / BASE_SPHERE_RADIUS;
 
-        
+
         if (meshRef.current && !enableMetadataShape) {
           for (let i = 0; i < graphData.nodes.length; i++) {
             const i3 = i * 3;
+            // Bounds check for safety
+            if (i3 + 2 >= positions.length) break;
+
             const node = graphData.nodes[i];
             let nodeScale = getNodeScale(node, graphData.edges) * baseScale;
-            
-            
+
+
             if (normalizedSSSPResult && node.id === normalizedSSSPResult.sourceNodeId) {
               const pulseScale = 1 + Math.sin(animationStateRef.current.time * 2) * 0.3;
               nodeScale *= pulseScale;
             }
-            
+
             tempMatrix.makeScale(nodeScale, nodeScale, nodeScale);
             tempMatrix.setPosition(positions[i3], positions[i3 + 1], positions[i3 + 2]);
             meshRef.current.setMatrixAt(i, tempMatrix);
           }
           meshRef.current.instanceMatrix.needsUpdate = true;
-          
+
           meshRef.current.computeBoundingSphere();
         }
 
@@ -559,7 +568,9 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
             const i3s = sourceNodeIndex * 3;
             const i3t = targetNodeIndex * 3;
 
-            
+            // Bounds check for edge positions
+            if (i3s + 2 >= positions.length || i3t + 2 >= positions.length) return;
+
             const sourcePos = new THREE.Vector3(positions[i3s], positions[i3s + 1], positions[i3s + 2]);
             const targetPos = new THREE.Vector3(positions[i3t], positions[i3t + 1], positions[i3t + 2]);
 
