@@ -134,37 +134,43 @@ fi
 
 echo "[3/10] Verifying GPU access..."
 
-# Fix NVML library version mismatch (container vs host driver)
-# The host kernel module version must match the NVML library
+# nvidia-container-toolkit injects host driver at runtime
+# Check if driver was properly injected
 if [ -f /proc/driver/nvidia/version ]; then
     HOST_DRIVER_VERSION=$(grep -oP 'Module\s+\K[0-9.]+' /proc/driver/nvidia/version | head -1)
-    if [ -n "$HOST_DRIVER_VERSION" ]; then
-        NVML_LIB="/usr/lib/libnvidia-ml.so.${HOST_DRIVER_VERSION}"
-        if [ -f "$NVML_LIB" ]; then
-            ln -sf "$NVML_LIB" /usr/lib/libnvidia-ml.so.1
-            echo "✓ NVML library symlinked to match host driver: $HOST_DRIVER_VERSION"
-        else
-            echo "⚠️  NVML library for driver $HOST_DRIVER_VERSION not found"
-        fi
-    fi
+    echo "✓ Host NVIDIA driver detected: $HOST_DRIVER_VERSION"
+else
+    echo "⚠️  NVIDIA driver not detected in /proc - check nvidia-container-toolkit"
 fi
 
-# Check nvidia-smi
+# Check nvidia-smi (injected by nvidia-container-toolkit from host)
 if command -v nvidia-smi &> /dev/null; then
     if nvidia-smi &> /dev/null; then
         GPU_COUNT=$(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null | wc -l)
-        echo "✓ NVIDIA driver accessible: $GPU_COUNT GPU(s) detected"
+        DRIVER_VER=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader 2>/dev/null | head -1)
+        echo "✓ nvidia-smi working (driver: $DRIVER_VER) - $GPU_COUNT GPU(s) detected"
         nvidia-smi --query-gpu=index,name,memory.total --format=csv,noheader | \
             awk -F', ' '{printf "  GPU %s: %s (%s)\n", $1, $2, $3}'
     else
-        echo "⚠️  nvidia-smi failed - GPU may not be accessible"
+        echo "⚠️  nvidia-smi failed - check container runtime configuration"
+        echo "   Ensure docker-compose has: runtime: nvidia"
     fi
 else
-    echo "⚠️  nvidia-smi not found"
+    echo "⚠️  nvidia-smi not found - nvidia-container-toolkit may not be injecting drivers"
+fi
+
+# Check CUDA toolkit installation
+if command -v nvcc &> /dev/null; then
+    NVCC_VER=$(nvcc --version | grep "release" | sed 's/.*release \([0-9.]*\).*/\1/')
+    echo "✓ CUDA Toolkit installed: nvcc $NVCC_VER"
+    echo "  Tools available: nvcc, ptxas, cuda-gdb, cuobjdump, nvprof"
+else
+    echo "⚠️  nvcc not found - CUDA toolkit may not be installed"
 fi
 
 # Test PyTorch CUDA detection
 echo "Testing PyTorch CUDA support..."
+set +e
 PYTORCH_TEST=$(/opt/venv/bin/python3 -c "
 import torch
 print(f'PyTorch: {torch.__version__}')
@@ -177,6 +183,7 @@ if torch.cuda.is_available():
 else:
     print('WARNING: PyTorch cannot access CUDA')
 " 2>&1)
+set -e
 
 echo "$PYTORCH_TEST"
 
@@ -184,7 +191,6 @@ if echo "$PYTORCH_TEST" | grep -q "CUDA available: True"; then
     echo "✓ PyTorch GPU acceleration ready"
 else
     echo "⚠️  PyTorch GPU acceleration not available - will fallback to CPU"
-    echo "   This may significantly impact performance for AI workloads"
 fi
 
 # ============================================================================

@@ -64,35 +64,42 @@ RUN curl -fsSL https://nodejs.org/dist/v23.11.1/node-v23.11.1-linux-x64.tar.xz |
 # ============================================================================
 # PHASE 2: NVIDIA Driver Interface + Full CUDA Development Toolkit
 # ============================================================================
+# NOTE: We do NOT install nvidia-utils here. The nvidia-container-toolkit
+# injects host driver libraries at runtime, ensuring version alignment with
+# host driver (e.g., 580.105.08). Installing nvidia-utils would cause mismatch.
 
-RUN pacman -S --noconfirm \
-        # NVIDIA driver utilities (nvidia-smi, etc.)
-        nvidia-utils \
+# Refresh package database and install CUDA stack
+# Note: -Syu ensures mirrors are synced before installing
+RUN pacman -Syu --noconfirm \
+        # OpenGL/Vulkan libraries (driver-agnostic)
         libglvnd \
-        # Core CUDA toolkit (nvcc, ptxas, cuda-gdb, etc.)
+        vulkan-icd-loader \
+        # Core CUDA toolkit (nvcc, ptxas, cuda-gdb, cuobjdump, nvprof, etc.)
         cuda \
         # Deep Neural Network library
         cudnn \
         # Tensor primitives for high-performance computing
         cutensor \
-        # Python CUDA bindings
-        python-cuda \
         # NVIDIA profiler
         nsight-compute \
     && rm -rf /var/cache/pacman/pkg/*
 
 # Configure NVIDIA/CUDA environment
+# These enable proper GPU detection via nvidia-container-toolkit
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics,display
 ENV __GLX_VENDOR_LIBRARY_NAME=nvidia
 ENV CUDA_HOME=/opt/cuda
 ENV CUDA_PATH=/opt/cuda
+ENV CUDA_VERSION=13.0
 ENV NVCC_PREPEND_FLAGS='-ccbin /usr/bin/g++'
 ENV __NV_PRIME_RENDER_OFFLOAD=1
 ENV __VK_LAYER_NV_optimus=NVIDIA_only
 ENV LIBGL_ALWAYS_INDIRECT=0
 
-# Global PATH for CUDA (available to all users and processes)
-ENV PATH="/opt/cuda/bin:/usr/lib/rustup/bin:${PATH}"
-ENV LD_LIBRARY_PATH="/opt/cuda/lib64:/opt/cuda/extras/CUPTI/lib64:${LD_LIBRARY_PATH}"
+# Global PATH for CUDA and Rust (available to all users and processes)
+ENV PATH="/opt/cuda/bin:/usr/lib/rustup/bin:/usr/local/bin:/usr/bin:${PATH}"
+ENV LD_LIBRARY_PATH="/opt/cuda/lib64:/opt/cuda/extras/CUPTI/lib64:/usr/lib"
 
 # Ensure GLX uses NVIDIA
 RUN mkdir -p /usr/share/glvnd/egl_vendor.d && \
