@@ -62,7 +62,7 @@ class DeepSeekClient {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${API_KEY}`,
-          'Content-Length': data.length
+          'Content-Length': Buffer.byteLength(data)
         }
       };
 

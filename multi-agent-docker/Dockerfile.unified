@@ -152,8 +152,13 @@ RUN useradd -m -u 1002 -s /usr/bin/zsh openai-user && \
 RUN useradd -m -u 1003 -s /usr/bin/zsh zai-user && \
     mkdir -p /home/zai-user/{workspace,.config,.cache}
 
-# Configure sudo for devuser to switch to other users
-RUN echo "devuser ALL=(gemini-user,openai-user,zai-user) NOPASSWD: ALL" >> /etc/sudoers
+# Create deepseek-user (DeepSeek reasoning API isolation)
+RUN useradd -m -u 1004 -s /usr/bin/zsh deepseek-user && \
+    mkdir -p /home/deepseek-user/{workspace,.config/deepseek,.cache} && \
+    chown -R deepseek-user:deepseek-user /home/deepseek-user
+
+# Configure sudo for devuser to switch to other users (including deepseek-user for MCP bridges)
+RUN echo "devuser ALL=(gemini-user,openai-user,zai-user,deepseek-user) NOPASSWD: ALL" >> /etc/sudoers
 
 # ============================================================================
 # PHASE 5: Node.js Global Packages (as root)
@@ -504,7 +509,8 @@ RUN chmod +x /home/devuser/.config/terminal-init/*.sh && \
     ln -sf /home/devuser/.config/terminal-init/init-git.sh /home/devuser/.config/init-git.sh && \
     ln -sf /home/devuser/.config/terminal-init/init-gemini.sh /home/devuser/.config/init-gemini.sh && \
     ln -sf /home/devuser/.config/terminal-init/init-openai.sh /home/devuser/.config/init-openai.sh && \
-    ln -sf /home/devuser/.config/terminal-init/init-zai.sh /home/devuser/.config/init-zai.sh
+    ln -sf /home/devuser/.config/terminal-init/init-zai.sh /home/devuser/.config/init-zai.sh && \
+    ln -sf /home/devuser/.config/terminal-init/init-deepseek.sh /home/devuser/.config/init-deepseek.sh
 
 # Copy Xorg headless configuration
 COPY --chown=root:root unified-config/10-headless.conf /etc/X11/xorg.conf.d/10-headless.conf

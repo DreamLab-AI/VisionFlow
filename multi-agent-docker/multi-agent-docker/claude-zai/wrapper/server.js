@@ -1,11 +1,40 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const { spawn } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 const PORT = 9600;
-const WORKER_POOL_SIZE = parseInt(process.env.CLAUDE_WORKER_POOL_SIZE || '4', 10);
-const MAX_QUEUE_SIZE = parseInt(process.env.CLAUDE_MAX_QUEUE_SIZE || '50', 10);
+
+// Configuration loading from file or environment
+const ZAI_CONFIG_DIR = process.env.ZAI_CONFIG_DIR || '/home/zai-user/.config/zai';
+const CLAUDE_CONFIG_DIR = process.env.CLAUDE_CONFIG_DIR || '/home/zai-user/.claude';
+
+function loadZaiConfig() {
+    const configPath = path.join(ZAI_CONFIG_DIR, 'config.json');
+    try {
+        if (fs.existsSync(configPath)) {
+            const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+            return config;
+        }
+    } catch (err) {
+        console.error('Failed to load config from file:', err.message);
+    }
+    // Fallback to environment variables
+    return {
+        apiKey: process.env.ZAI_ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY,
+        baseUrl: process.env.ZAI_BASE_URL || 'https://api.z.ai/api/anthropic',
+        workerPoolSize: parseInt(process.env.CLAUDE_WORKER_POOL_SIZE || '4', 10),
+        maxQueueSize: parseInt(process.env.CLAUDE_MAX_QUEUE_SIZE || '50', 10)
+    };
+}
+
+const config = loadZaiConfig();
+const WORKER_POOL_SIZE = config.workerPoolSize || parseInt(process.env.CLAUDE_WORKER_POOL_SIZE || '4', 10);
+const MAX_QUEUE_SIZE = config.maxQueueSize || parseInt(process.env.CLAUDE_MAX_QUEUE_SIZE || '50', 10);
+const ZAI_BASE_URL = config.baseUrl || 'https://api.z.ai/api/anthropic';
+const ZAI_API_KEY = config.apiKey;
 
 app.use(bodyParser.json({ limit: '10mb' }));
 
@@ -60,15 +89,16 @@ class ClaudeWorkerPool {
         const BASE_DELAY = 1000; // 1 second
 
         return new Promise((resolve, reject) => {
+            // GLM-4.7 is default model when using Z.AI, no --model flag needed
             const claudeProcess = spawn('claude', [
                 '--dangerously-skip-permissions',
                 '--print'
             ], {
                 env: {
                     ...process.env,
-                    CLAUDE_CONFIG_DIR: '/home/claude/.claude',
-                    ANTHROPIC_API_KEY: process.env.ZAI_ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY,
-                    ANTHROPIC_BASE_URL: process.env.ZAI_BASE_URL || 'https://api.z.ai/api/anthropic',
+                    CLAUDE_CONFIG_DIR: CLAUDE_CONFIG_DIR,
+                    ANTHROPIC_API_KEY: ZAI_API_KEY || process.env.ZAI_ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY,
+                    ANTHROPIC_BASE_URL: ZAI_BASE_URL,
                     ANTHROPIC_AUTH_TOKEN: process.env.ANTHROPIC_AUTH_TOKEN
                 }
             });
@@ -175,13 +205,49 @@ const pool = new ClaudeWorkerPool(WORKER_POOL_SIZE);
 app.get('/health', (req, res) => {
     res.json({
         status: 'ok',
-        service: 'claude-zai-wrapper',
+        service: 'z.ai-glm-4.7-wrapper',
+        backend: 'Z.AI GLM Coding Plan',
+        defaultModel: 'glm-4.7',
+        baseUrl: ZAI_BASE_URL,
+        configLoaded: !!config.apiKey,
         ...pool.getStats()
     });
 });
 
 // Main prompt endpoint
 app.post('/prompt', async (req, res) => {
+    const { prompt, timeout = 30000 } = req.body;
+
+    if (!prompt) {
+        return res.status(400).json({ error: 'prompt is required' });
+    }
+
+    try {
+        const result = await pool.execute(prompt, timeout);
+        res.json(result);
+    } catch (error) {
+        if (error.message && error.message.includes('Queue full')) {
+            return res.status(503).json({
+                success: false,
+                error: error.message,
+                ...pool.getStats()
+            });
+        }
+        if (error.message && error.message.includes('timeout')) {
+            return res.status(408).json({
+                success: false,
+                error: error.message
+            });
+        }
+        res.status(500).json(error.success !== undefined ? error : {
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// Chat endpoint (alias for /prompt, used by web-summary and other skills)
+app.post('/chat', async (req, res) => {
     const { prompt, timeout = 30000 } = req.body;
 
     if (!prompt) {

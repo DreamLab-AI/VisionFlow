@@ -20,6 +20,7 @@ mkdir -p /home/devuser/{workspace,models,agents,.claude/skills,.config,.cache,lo
 mkdir -p /home/gemini-user/{workspace,.config,.cache,.gemini-flow}
 mkdir -p /home/openai-user/{workspace,.config,.cache}
 mkdir -p /home/zai-user/{workspace,.config,.cache}
+mkdir -p /home/deepseek-user/{workspace,.config/deepseek,.cache}
 mkdir -p /var/log /var/log/supervisor /run/dbus /run/user/1000 /tmp/.X11-unix /tmp/.ICE-unix
 chmod 1777 /tmp/.X11-unix /tmp/.ICE-unix
 chmod 700 /run/user/1000
@@ -38,6 +39,7 @@ chown -R devuser:devuser /home/devuser/.local 2>/dev/null
 chown -R gemini-user:gemini-user /home/gemini-user 2>/dev/null
 chown -R openai-user:openai-user /home/openai-user 2>/dev/null
 chown -R zai-user:zai-user /home/zai-user 2>/dev/null
+chown -R deepseek-user:deepseek-user /home/deepseek-user 2>/dev/null
 set -e
 
 # Configure Docker socket permissions for docker-manager skill
@@ -111,7 +113,28 @@ if [ -n "$ANTHROPIC_API_KEY" ] && [ -n "$ANTHROPIC_BASE_URL" ]; then
   "maxQueueSize": ${CLAUDE_MAX_QUEUE_SIZE:-50}
 }
 EOF
+    # Also create api.json for backwards compatibility
+    sudo -u zai-user bash -c "cat > ~/.config/zai/api.json" <<EOF
+{
+  "apiKey": "$ANTHROPIC_API_KEY"
+}
+EOF
     echo "✓ Z.AI configuration created for zai-user"
+fi
+
+# deepseek-user - DeepSeek reasoning API configuration
+if [ -n "$DEEPSEEK_API_KEY" ]; then
+    sudo -u deepseek-user bash -c "mkdir -p ~/.config/deepseek && cat > ~/.config/deepseek/config.json" <<EOF
+{
+  "apiKey": "$DEEPSEEK_API_KEY",
+  "baseUrl": "${DEEPSEEK_BASE_URL:-https://api.deepseek.com}",
+  "maxTokens": 4096,
+  "model": "deepseek-reasoner"
+}
+EOF
+    chmod 600 /home/deepseek-user/.config/deepseek/config.json
+    chown deepseek-user:deepseek-user /home/deepseek-user/.config/deepseek/config.json
+    echo "✓ DeepSeek credentials configured for deepseek-user"
 fi
 
 # GitHub token for all users
