@@ -25,6 +25,7 @@ import { VircadiaBridgesProvider } from '../contexts/VircadiaBridgesContext';
 import { useNostrAuth } from '../hooks/useNostrAuth';
 import { NostrLoginScreen } from '../components/NostrLoginScreen';
 import { LoadingScreen } from '../components/LoadingScreen';
+import solidPodService from '../services/SolidPodService';
 
 const logger = createLogger('App');
 
@@ -52,7 +53,7 @@ function App() {
 
   useAutoBalanceNotifications();
 
-  // Update settings store with auth state
+  // Update settings store with auth state and connect Solid WebSocket
   useEffect(() => {
     if (authenticated && user) {
       const settingsStore = useSettingsStore.getState();
@@ -61,11 +62,22 @@ function App() {
         isPowerUser: user.isPowerUser,
         pubkey: user.pubkey
       });
+
+      // Connect Solid WebSocket for real-time pod notifications
+      solidPodService.connectWebSocket();
     } else {
       const settingsStore = useSettingsStore.getState();
       settingsStore.setAuthenticated(false);
       settingsStore.setUser(null);
+
+      // Disconnect Solid WebSocket when user logs out
+      solidPodService.disconnect();
     }
+
+    // Cleanup on unmount
+    return () => {
+      solidPodService.disconnect();
+    };
   }, [authenticated, user]);
 
   

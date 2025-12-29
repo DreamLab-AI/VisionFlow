@@ -57,6 +57,10 @@ pub use semantic_pathfinding_handler::configure_pathfinding_routes;
 pub mod quic_transport_handler;
 pub mod fastwebsockets_handler;
 
+// Solid Server (JSS) integration
+pub mod solid_proxy_handler;
+pub use solid_proxy_handler::configure_routes as configure_solid_routes;
+
 pub use quic_transport_handler::{
     QuicTransportServer, QuicServerConfig,
     PostcardNodeUpdate, PostcardBatchUpdate, PostcardDeltaUpdate,

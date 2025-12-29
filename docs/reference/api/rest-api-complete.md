@@ -1343,7 +1343,243 @@ GET /api/resource?page=1&page-size=50
 
 ---
 
+## Solid Integration Endpoints
+
+VisionFlow integrates with Solid pods via the JSON Solid Server (JSS) sidecar for decentralized data storage and Linked Data Platform (LDP) compliance.
+
+### GET /solid/pods
+
+List available Solid pods for the authenticated user.
+
+**Request**:
+```http
+GET /api/solid/pods
+Authorization: Bearer <jwt_token>
+```
+
+**Response** (200 OK):
+```json
+{
+  "pods": [
+    {
+      "id": "pod-user123",
+      "webId": "https://visionflow.example.com/pods/user123/profile/card#me",
+      "storage": "https://visionflow.example.com/pods/user123/",
+      "createdAt": "2025-11-03T10:00:00Z",
+      "quota": {
+        "used": 52428800,
+        "total": 1073741824
+      }
+    }
+  ]
+}
+```
+
+### GET /solid/pods/{podId}/graph
+
+Retrieve graph data from a Solid pod in RDF format.
+
+**Request**:
+```http
+GET /api/solid/pods/user123/graph
+Accept: text/turtle
+Authorization: Bearer <jwt_token>
+```
+
+**Query Parameters**:
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `format` | string | No | `turtle` | Output format: `turtle`, `jsonld`, `ntriples` |
+| `container` | string | No | `/` | Container path within pod |
+
+**Response** (200 OK):
+```turtle
+@prefix vf: <https://visionflow.example.com/ontology#> .
+@prefix ldp: <http://www.w3.org/ns/ldp#> .
+
+<> a ldp:BasicContainer ;
+   ldp:contains <node-1.ttl>, <node-2.ttl> .
+
+<node-1.ttl> a vf:GraphNode ;
+   vf:label "Example Node" ;
+   vf:position "0.0,0.0,0.0" .
+```
+
+### POST /solid/pods/{podId}/graph
+
+Create a new resource in the pod's graph container.
+
+**Request**:
+```http
+POST /api/solid/pods/user123/graph
+Content-Type: text/turtle
+Slug: new-node
+Authorization: Bearer <jwt_token>
+
+@prefix vf: <https://visionflow.example.com/ontology#> .
+
+<> a vf:GraphNode ;
+   vf:label "New Node" ;
+   vf:type "concept" .
+```
+
+**Response** (201 Created):
+```http
+HTTP/1.1 201 Created
+Location: /pods/user123/graph/new-node.ttl
+```
+
+### PUT /solid/pods/{podId}/graph/{resource}
+
+Replace an existing resource.
+
+**Request**:
+```http
+PUT /api/solid/pods/user123/graph/node-1.ttl
+Content-Type: text/turtle
+Authorization: Bearer <jwt_token>
+
+@prefix vf: <https://visionflow.example.com/ontology#> .
+
+<> a vf:GraphNode ;
+   vf:label "Updated Node" ;
+   vf:type "concept" ;
+   vf:position "1.0,2.0,3.0" .
+```
+
+### PATCH /solid/pods/{podId}/graph/{resource}
+
+Partially update a resource using SPARQL Update or N3 Patch.
+
+**Request** (SPARQL Update):
+```http
+PATCH /api/solid/pods/user123/graph/node-1.ttl
+Content-Type: application/sparql-update
+Authorization: Bearer <jwt_token>
+
+PREFIX vf: <https://visionflow.example.com/ontology#>
+DELETE { <> vf:label ?old }
+INSERT { <> vf:label "Patched Node" }
+WHERE { <> vf:label ?old }
+```
+
+### DELETE /solid/pods/{podId}/graph/{resource}
+
+Delete a resource from the pod.
+
+**Request**:
+```http
+DELETE /api/solid/pods/user123/graph/node-1.ttl
+Authorization: Bearer <jwt_token>
+```
+
+**Response** (204 No Content)
+
+### GET /solid/ws
+
+WebSocket endpoint for real-time Solid notifications.
+
+**Connection**:
+```javascript
+const ws = new WebSocket('wss://visionflow.example.com/api/solid/ws');
+ws.onopen = () => {
+  // Subscribe to container changes
+  ws.send(JSON.stringify({
+    type: 'subscribe',
+    data: { resource: '/pods/user123/graph/' }
+  }));
+};
+
+ws.onmessage = (event) => {
+  const notification = JSON.parse(event.data);
+  // { type: 'notification', data: { resource: '...', action: 'update' } }
+};
+```
+
+**Protocol**: `solid-0.1` (see [Protocol Reference](../PROTOCOL_REFERENCE.md#solid-websocket-protocol-solid-01))
+
+### POST /solid/sync
+
+Trigger synchronization between Neo4j graph and Solid pod.
+
+**Request**:
+```http
+POST /api/solid/sync
+Content-Type: application/json
+Authorization: Bearer <jwt_token>
+
+{
+  "podId": "user123",
+  "direction": "neo4j-to-solid",
+  "options": {
+    "fullSync": false,
+    "includeMetadata": true
+  }
+}
+```
+
+**Sync Directions**:
+| Direction | Description |
+|-----------|-------------|
+| `neo4j-to-solid` | Export graph data to Solid pod |
+| `solid-to-neo4j` | Import pod data into graph |
+| `bidirectional` | Two-way sync with conflict resolution |
+
+**Response** (202 Accepted):
+```json
+{
+  "jobId": "sync-550e8400-e29b-41d4-a716-446655440000",
+  "status": "in_progress",
+  "estimatedCompletion": "2025-11-03T12:00:30Z"
+}
+```
+
+### GET /solid/sync/{jobId}
+
+Check synchronization job status.
+
+**Response**:
+```json
+{
+  "jobId": "sync-550e8400-e29b-41d4-a716-446655440000",
+  "status": "completed",
+  "progress": 100,
+  "results": {
+    "nodesCreated": 45,
+    "nodesUpdated": 12,
+    "nodesDeleted": 3,
+    "errors": []
+  },
+  "completedAt": "2025-11-03T12:00:25Z"
+}
+```
+
+### Authentication for Solid Endpoints
+
+Solid endpoints support two authentication methods:
+
+**1. JWT Bearer Token** (VisionFlow session):
+```http
+Authorization: Bearer <visionflow_jwt>
+```
+
+**2. NIP-98 Nostr Authentication**:
+```http
+Authorization: Nostr <base64_encoded_event>
+```
+
+See [NIP-98 Authentication Flow](../PROTOCOL_REFERENCE.md#nostr-nip-98) for details.
+
+---
+
 ## Changelog
+
+### v0.2.0 (2025-12-29)
+- Added Solid/LDP integration endpoints
+- Solid pod management (CRUD operations)
+- WebSocket notifications for Solid resources
+- Neo4j to Solid synchronization
+- NIP-98 authentication support for Solid endpoints
 
 ### v0.1.0 (2025-11-03)
 - Initial unified API documentation

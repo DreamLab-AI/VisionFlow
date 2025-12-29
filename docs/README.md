@@ -1,6 +1,6 @@
 ---
 title: VisionFlow Documentation
-description: > **226 documents** organized using the **Diátaxis Framework** for maximum discoverability
+description: > **228 documents** organized using the **Diátaxis Framework** for maximum discoverability
 category: tutorial
 tags:
   - architecture
@@ -25,7 +25,7 @@ dependencies:
 
 **Complete documentation for VisionFlow's enterprise-grade multi-agent knowledge graphing system.**
 
-> **226 documents** organized using the **Diátaxis Framework** for maximum discoverability
+> **228 documents** organized using the **Diátaxis Framework** for maximum discoverability
 
 ---
 
@@ -149,6 +149,16 @@ dependencies:
 | **[Auth & User Settings](guides/features/auth-user-settings.md)** | User authentication system implementation |
 | **[Nostr Authentication](guides/features/nostr-auth.md)** | Decentralized identity with Nostr protocol |
 | **[Settings Authentication](guides/features/settings-authentication.md)** | Secure settings API with JWT |
+
+</details>
+
+<details>
+<summary><b>🔗 Solid Pod Integration (2 guides)</b></summary>
+
+| Guide | Task |
+|-------|------|
+| **[Solid Integration](guides/solid-integration.md)** | Decentralized user data storage with Solid Pods |
+| **[Solid API Reference](reference/api/solid-api.md)** | Complete API for Pod management and LDP operations |
 
 </details>
 
@@ -435,7 +445,7 @@ dependencies:
 *Technical specifications, APIs, and detailed references*
 
 <details>
-<summary><b>🌐 API Documentation (8 references)</b></summary>
+<summary><b>🌐 API Documentation (9 references)</b></summary>
 
 | Reference | Type |
 |-----------|------|
@@ -444,6 +454,7 @@ dependencies:
 | **[REST API Reference](reference/api/rest-api-reference.md)** | OpenAPI/Swagger format |
 | **[Authentication](reference/api/01-authentication.md)** | JWT, sessions, Nostr auth |
 | **[WebSocket API](reference/api/03-websocket.md)** | Real-time binary protocol |
+| **[Solid API Reference](reference/api/solid-api.md)** | Pod management, LDP, agent memory |
 | **[Semantic Features API](reference/api/semantic-features-api.md)** | Natural language queries |
 | **[Pathfinding Examples](reference/api/pathfinding-examples.md)** | Graph traversal examples |
 | **[API README](reference/api/readme.md)** | API documentation index |
@@ -491,7 +502,7 @@ dependencies:
 
 ### Common Tasks (20+ Quick Links)
 
-| I want to... | Go here → |
+| I want to... | Go here |
 |-------------|----------|
 | **Install VisionFlow** | [Installation Tutorial](tutorials/01-installation.md) |
 | **Create my first graph** | [First Graph Tutorial](tutorials/02-first-graph.md) |
@@ -499,6 +510,7 @@ dependencies:
 | **Query Neo4j database** | [Neo4j Integration Guide](guides/neo4j-integration.md) |
 | **Add a new feature** | [Adding Features Guide](guides/developer/04-adding-features.md) |
 | **Set up XR/VR** | [Vircadia XR Guide](guides/vircadia-xr-complete-guide.md) |
+| **Integrate Solid Pods** | [Solid Integration Guide](guides/solid-integration.md) |
 | **Understand the architecture** | [Architecture Overview](ARCHITECTURE_OVERVIEW.md) |
 | **Learn the codebase** | [Developer Journey](DEVELOPER_JOURNEY.md) |
 | **Deploy to production** | [Deployment Guide](guides/deployment.md) |
@@ -509,6 +521,7 @@ dependencies:
 | **Enable ontology physics** | [Ontology Physics Integration](explanations/architecture/ontology-physics-integration.md) |
 | **Use the REST API** | [REST API Complete](reference/api/rest-api-complete.md) |
 | **Use WebSocket API** | [WebSocket API Reference](reference/api/03-websocket.md) |
+| **Use Solid API** | [Solid API Reference](reference/api/solid-api.md) |
 | **Understand hexagonal architecture** | [Hexagonal CQRS](explanations/architecture/hexagonal-cqrs.md) |
 | **Optimise performance** | [GPU Optimisations](explanations/architecture/gpu/optimizations.md) |
 | **Secure the application** | [Security Guide](guides/security.md) |
@@ -616,6 +629,16 @@ dependencies:
 - [WebSocket API Reference](reference/api/03-websocket.md)
 - [WebSocket Best Practices](guides/developer/websocket-best-practices.md)
 - [JSON to Binary Migration](guides/migration/json-to-binary-protocol.md)
+
+</details>
+
+<details>
+<summary><b>🔗 Solid / Decentralized Data</b></summary>
+
+- [Solid Integration Guide](guides/solid-integration.md) - Pod setup and management
+- [Solid API Reference](reference/api/solid-api.md) - Complete API documentation
+- [Nostr Authentication](guides/features/nostr-auth.md) - NIP-98 for Solid auth
+- [Agent Memory Patterns](guides/solid-integration.md#agent-memory) - Persistent agent memories
 
 </details>
 
@@ -739,7 +762,7 @@ See **[Contributing Guide](guides/developer/06-contributing.md)** for complete d
 
 ## 📊 Documentation Stats
 
-- **Total Documents**: 226 markdown files
+- **Total Documents**: 228 markdown files
 - **Framework**: Diátaxis (Tutorials, How-To, Explanations, Reference)
 - **Last Full Audit**: 2025-12-02
 - **Documentation Coverage**: 95%+ (all major features documented)

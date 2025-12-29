@@ -1,0 +1,319 @@
+{
+  "@context": {
+    "@version": 1.1,
+    "@vocab": "https://visionflow.local/ontology/agent#",
+    "@base": "https://visionflow.local/ontology/agent-memory/",
+
+    "agent": "https://visionflow.local/ontology/agent#",
+    "memory": "https://visionflow.local/ontology/memory#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "schema": "http://schema.org/",
+    "prov": "http://www.w3.org/ns/prov#",
+
+    "EpisodicMemory": {
+      "@id": "agent:EpisodicMemory",
+      "@context": {
+        "@vocab": "agent:",
+        "description": "Memory of specific experiences and events with temporal context"
+      }
+    },
+
+    "SemanticMemory": {
+      "@id": "agent:SemanticMemory",
+      "@context": {
+        "@vocab": "agent:",
+        "description": "Factual knowledge and relationships without temporal binding"
+      }
+    },
+
+    "ProceduralMemory": {
+      "@id": "agent:ProceduralMemory",
+      "@context": {
+        "@vocab": "agent:",
+        "description": "Learned patterns, skills, and workflows"
+      }
+    },
+
+    "SessionSummary": {
+      "@id": "agent:SessionSummary",
+      "@context": {
+        "@vocab": "agent:",
+        "description": "Summary of an agent work session with collected memories and metrics"
+      }
+    },
+
+    "WorkingMemory": {
+      "@id": "agent:WorkingMemory",
+      "@context": {
+        "@vocab": "agent:",
+        "description": "Active short-term memory for current task context"
+      }
+    },
+
+    "agentId": {
+      "@id": "agent:agentId",
+      "@type": "@id",
+      "description": "Unique identifier for the agent that owns this memory"
+    },
+
+    "sessionId": {
+      "@id": "agent:sessionId",
+      "@type": "xsd:string",
+      "description": "Identifier for the work session this memory belongs to"
+    },
+
+    "taskId": {
+      "@id": "agent:taskId",
+      "@type": "xsd:string",
+      "description": "Identifier for the task associated with this memory"
+    },
+
+    "content": {
+      "@id": "agent:memoryContent",
+      "@type": "@json",
+      "description": "The actual content of the memory (JSON object)"
+    },
+
+    "confidence": {
+      "@id": "agent:confidence",
+      "@type": "xsd:decimal",
+      "description": "Confidence score for this memory (0.0 to 1.0)"
+    },
+
+    "embedding": {
+      "@id": "agent:embedding",
+      "@type": "xsd:float",
+      "@container": "@list",
+      "description": "Vector embedding for semantic similarity search"
+    },
+
+    "timestamp": {
+      "@id": "dcterms:created",
+      "@type": "xsd:dateTime",
+      "description": "When this memory was created"
+    },
+
+    "modifiedAt": {
+      "@id": "dcterms:modified",
+      "@type": "xsd:dateTime",
+      "description": "When this memory was last modified"
+    },
+
+    "expiresAt": {
+      "@id": "agent:expiresAt",
+      "@type": "xsd:dateTime",
+      "description": "Optional expiration time for temporary memories"
+    },
+
+    "relatedMemories": {
+      "@id": "agent:relatedMemories",
+      "@type": "@id",
+      "@container": "@set",
+      "description": "Set of related memory identifiers"
+    },
+
+    "derivedFrom": {
+      "@id": "prov:wasDerivedFrom",
+      "@type": "@id",
+      "description": "Source memory this was derived from"
+    },
+
+    "generatedBy": {
+      "@id": "prov:wasGeneratedBy",
+      "@type": "@id",
+      "description": "Activity or agent that generated this memory"
+    },
+
+    "memoryType": {
+      "@id": "agent:memoryType",
+      "@type": "@vocab",
+      "description": "Classification of memory type"
+    },
+
+    "importance": {
+      "@id": "agent:importance",
+      "@type": "xsd:decimal",
+      "description": "Importance score for memory retention (0.0 to 1.0)"
+    },
+
+    "accessCount": {
+      "@id": "agent:accessCount",
+      "@type": "xsd:integer",
+      "description": "Number of times this memory has been accessed"
+    },
+
+    "lastAccessed": {
+      "@id": "agent:lastAccessed",
+      "@type": "xsd:dateTime",
+      "description": "When this memory was last accessed"
+    },
+
+    "domain": {
+      "@id": "agent:domain",
+      "@type": "xsd:string",
+      "description": "Knowledge domain for semantic memories"
+    },
+
+    "pattern": {
+      "@id": "agent:pattern",
+      "@type": "xsd:string",
+      "description": "Pattern identifier for procedural memories"
+    },
+
+    "steps": {
+      "@id": "agent:steps",
+      "@container": "@list",
+      "description": "Ordered list of steps for procedural memory"
+    },
+
+    "applicability": {
+      "@id": "agent:applicability",
+      "@type": "xsd:string",
+      "description": "Context where this pattern is applicable"
+    },
+
+    "successRate": {
+      "@id": "agent:successRate",
+      "@type": "xsd:decimal",
+      "description": "Historical success rate for procedural patterns"
+    },
+
+    "metadata": {
+      "@id": "agent:metadata",
+      "@type": "@json",
+      "description": "Additional metadata as JSON object"
+    },
+
+    "version": {
+      "@id": "dcterms:hasVersion",
+      "@type": "xsd:string",
+      "description": "Version of the memory schema"
+    },
+
+    "createdBy": {
+      "@id": "dcterms:creator",
+      "@type": "xsd:string",
+      "description": "System or process that created this memory"
+    },
+
+    "source": {
+      "@id": "dcterms:source",
+      "@type": "xsd:string",
+      "description": "Source of the memory content"
+    },
+
+    "tags": {
+      "@id": "agent:tags",
+      "@container": "@set",
+      "@type": "xsd:string",
+      "description": "Set of tags for categorization"
+    },
+
+    "contextWindow": {
+      "@id": "agent:contextWindow",
+      "@type": "@json",
+      "description": "Surrounding context at time of memory creation"
+    },
+
+    "emotionalValence": {
+      "@id": "agent:emotionalValence",
+      "@type": "xsd:decimal",
+      "description": "Emotional context score (-1.0 negative to 1.0 positive)"
+    },
+
+    "consolidationStatus": {
+      "@id": "agent:consolidationStatus",
+      "@type": "xsd:string",
+      "description": "Memory consolidation status (working, short-term, long-term)"
+    },
+
+    "linkedKnowledge": {
+      "@id": "agent:linkedKnowledge",
+      "@type": "@id",
+      "@container": "@set",
+      "description": "Links to external knowledge resources"
+    },
+
+    "startTime": {
+      "@id": "prov:startedAtTime",
+      "@type": "xsd:dateTime",
+      "description": "Start time for session or activity"
+    },
+
+    "endTime": {
+      "@id": "prov:endedAtTime",
+      "@type": "xsd:dateTime",
+      "description": "End time for session or activity"
+    },
+
+    "memories": {
+      "@id": "agent:memories",
+      "@type": "@id",
+      "@container": "@set",
+      "description": "Collection of memory references"
+    },
+
+    "metrics": {
+      "@id": "agent:metrics",
+      "@type": "@json",
+      "description": "Performance and usage metrics"
+    },
+
+    "state": {
+      "@id": "agent:state",
+      "@type": "xsd:string",
+      "description": "Current state or status"
+    }
+  },
+
+  "@graph": [
+    {
+      "@id": "agent:EpisodicMemory",
+      "@type": "rdfs:Class",
+      "rdfs:label": "Episodic Memory",
+      "rdfs:comment": "Memory of specific experiences and events with temporal context. Includes task executions, interactions, and outcomes.",
+      "rdfs:subClassOf": "agent:AgentMemory"
+    },
+    {
+      "@id": "agent:SemanticMemory",
+      "@type": "rdfs:Class",
+      "rdfs:label": "Semantic Memory",
+      "rdfs:comment": "Factual knowledge and relationships without temporal binding. Includes domain knowledge, entity relationships, and learned facts.",
+      "rdfs:subClassOf": "agent:AgentMemory"
+    },
+    {
+      "@id": "agent:ProceduralMemory",
+      "@type": "rdfs:Class",
+      "rdfs:label": "Procedural Memory",
+      "rdfs:comment": "Learned patterns, skills, and workflows. Includes successful task patterns, optimization strategies, and best practices.",
+      "rdfs:subClassOf": "agent:AgentMemory"
+    },
+    {
+      "@id": "agent:SessionSummary",
+      "@type": "rdfs:Class",
+      "rdfs:label": "Session Summary",
+      "rdfs:comment": "Aggregated summary of an agent work session including all memories created and performance metrics.",
+      "rdfs:subClassOf": "agent:AgentArtifact"
+    },
+    {
+      "@id": "agent:WorkingMemory",
+      "@type": "rdfs:Class",
+      "rdfs:label": "Working Memory",
+      "rdfs:comment": "Active short-term memory holding current task context, intermediate results, and immediate goals.",
+      "rdfs:subClassOf": "agent:AgentMemory"
+    },
+    {
+      "@id": "agent:AgentMemory",
+      "@type": "rdfs:Class",
+      "rdfs:label": "Agent Memory",
+      "rdfs:comment": "Base class for all agent memory types"
+    },
+    {
+      "@id": "agent:AgentArtifact",
+      "@type": "rdfs:Class",
+      "rdfs:label": "Agent Artifact",
+      "rdfs:comment": "Base class for agent-generated artifacts"
+    }
+  ]
+}

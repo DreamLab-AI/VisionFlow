@@ -222,7 +222,8 @@ use lazy_static::lazy_static;
 use tokio::sync::Mutex;
 
 lazy_static! {
-    static ref CONNECTION_MANAGER: Mutex<ConnectionManager> = Mutex::new(ConnectionManager::new());
+    /// Global connection manager for WebSocket broadcasting
+    pub static ref CONNECTION_MANAGER: Mutex<ConnectionManager> = Mutex::new(ConnectionManager::new());
 }
 
 impl RealtimeWebSocketHandler {

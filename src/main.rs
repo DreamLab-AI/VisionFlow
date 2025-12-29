@@ -547,6 +547,9 @@ async fn main() -> std::io::Result<()> {
                     .configure(bots_visualization_handler::configure_routes)
                     .configure(graph_export_handler::configure_routes)
 
+                    // JavaScript Solid Server (JSS) integration
+                    .configure(webxr::handlers::configure_solid_routes)
+
             );
 
             app

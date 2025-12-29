@@ -523,6 +523,169 @@ Orchestrate task across swarm.
 
 ---
 
+## Solid/LDP Protocol
+
+### Overview
+
+VisionFlow integrates with Solid (Social Linked Data) pods via the JSON Solid Server (JSS) sidecar, enabling decentralized data ownership and Linked Data Platform (LDP) compliance.
+
+### Protocol Version
+
+| Version | Status | Transport | Use Case |
+|---------|--------|-----------|----------|
+| **solid-0.1** | **Current** | WebSocket | Real-time notifications |
+| HTTP/LDP | Stable | REST | Resource CRUD operations |
+
+---
+
+### Solid WebSocket Protocol (solid-0.1)
+
+#### Connection Handshake
+
+```
+WebSocket Upgrade Request:
+GET /solid/ws HTTP/1.1
+Host: localhost:3000
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Protocol: solid-0.1
+```
+
+#### Wire Format
+
+All messages are JSON-formatted text frames:
+
+```json
+{
+  "type": "message_type",
+  "data": { ... },
+  "timestamp": 1702915200000
+}
+```
+
+#### Message Types
+
+##### Client to Server
+
+**Subscribe to Resource Changes**:
+```json
+{
+  "type": "subscribe",
+  "data": {
+    "resource": "/pods/user123/graph/",
+    "recursive": true
+  }
+}
+```
+
+**Unsubscribe**:
+```json
+{
+  "type": "unsubscribe",
+  "data": {
+    "resource": "/pods/user123/graph/"
+  }
+}
+```
+
+##### Server to Client
+
+**Subscription Confirmed**:
+```json
+{
+  "type": "subscribed",
+  "data": {
+    "resource": "/pods/user123/graph/",
+    "id": "sub-550e8400-e29b-41d4-a716-446655440000"
+  }
+}
+```
+
+**Resource Notification**:
+```json
+{
+  "type": "notification",
+  "data": {
+    "resource": "/pods/user123/graph/node-123.ttl",
+    "action": "update",
+    "actor": "npub1abc...",
+    "timestamp": 1702915200000
+  }
+}
+```
+
+**Notification Actions**:
+| Action | Description |
+|--------|-------------|
+| `create` | New resource created |
+| `update` | Resource modified |
+| `delete` | Resource removed |
+| `move` | Resource relocated |
+
+---
+
+### LDP Container Operations
+
+#### Container Types
+
+| Type | Content-Type | Description |
+|------|--------------|-------------|
+| Basic Container | `text/turtle` | RDF resources |
+| Direct Container | `text/turtle` | Member resources |
+| Indirect Container | `text/turtle` | Derived membership |
+
+#### Request Headers
+
+```http
+GET /pods/user123/graph/ HTTP/1.1
+Host: localhost:3000
+Accept: text/turtle, application/ld+json
+Authorization: DPoP <access_token>
+DPoP: <dpop_proof>
+```
+
+#### Response Headers
+
+```http
+HTTP/1.1 200 OK
+Content-Type: text/turtle
+Link: <http://www.w3.org/ns/ldp#BasicContainer>; rel="type"
+Link: <http://www.w3.org/ns/ldp#Resource>; rel="type"
+Accept-Post: text/turtle, application/ld+json
+Allow: GET, HEAD, POST, PUT, PATCH, DELETE
+```
+
+---
+
+### Data Flow: Neo4j to JSS to Client
+
+```mermaid
+sequenceDiagram
+    participant N as Neo4j
+    participant B as Backend (Rust)
+    participant J as JSS (Solid)
+    participant C as Client
+
+    Note over N,C: Initial Data Sync
+    B->>N: Query graph data (Cypher)
+    N-->>B: Return nodes/edges
+    B->>J: PUT /pods/{user}/graph/node-{id}.ttl
+    J-->>B: 201 Created
+
+    Note over N,C: Real-time Updates
+    C->>J: WebSocket: subscribe /pods/{user}/graph/
+    J-->>C: subscribed confirmation
+
+    B->>N: Update node
+    N-->>B: Confirm update
+    B->>J: PATCH /pods/{user}/graph/node-{id}.ttl
+    J->>C: WebSocket: notification (update)
+    C->>J: GET /pods/{user}/graph/node-{id}.ttl
+    J-->>C: Return updated RDF
+```
+
+---
+
 ## Authentication Protocols
 
 ### JWT (JSON Web Token)
@@ -565,6 +728,8 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 **Protocol**: Nostr Event Signing (kind 27235)
 
+NIP-98 provides HTTP authentication using Nostr event signatures, enabling decentralized identity verification.
+
 **Event Structure**:
 ```json
 {
@@ -572,13 +737,41 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
   "created_at": 1702915200,
   "tags": [
     ["u", "https://visionflow.example.com/api/auth/nostr"],
-    ["method", "POST"]
+    ["method", "POST"],
+    ["payload", "sha256_hash_of_body"]
   ],
   "content": "",
   "pubkey": "3bf0c63fcb93463407af97a5e5ee64fa883d107ef9e558472c4eb9aaaefa459d",
   "id": "d42069d...",
   "sig": "908a15e..."
 }
+```
+
+**Required Tags**:
+
+| Tag | Description | Required |
+|-----|-------------|----------|
+| `u` | Full URL of the request | Yes |
+| `method` | HTTP method (GET, POST, etc.) | Yes |
+| `payload` | SHA-256 hash of request body | For POST/PUT |
+
+**Authentication Flow**:
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant S as VisionFlow Server
+    participant R as Nostr Relay
+
+    C->>C: Create NIP-98 event (kind 27235)
+    C->>C: Sign event with private key
+    C->>S: Request with Authorization header
+    Note over C,S: Authorization: Nostr base64(event)
+    S->>S: Decode and verify event signature
+    S->>S: Validate URL, method, timestamp
+    S->>R: (Optional) Verify pubkey reputation
+    R-->>S: Pubkey metadata
+    S-->>C: 200 OK + JWT session token
 ```
 
 **Client Implementation**:
@@ -598,12 +791,35 @@ const authEvent = finishEvent({
   content: ''
 }, sk);
 
+// Base64 encode the event for HTTP header
+const authHeader = `Nostr ${btoa(JSON.stringify(authEvent))}`;
+
 const response = await fetch('/api/auth/nostr', {
   method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(authEvent)
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': authHeader
+  },
+  body: JSON.stringify({ pubkey: pk })
 });
 ```
+
+**Server Validation Requirements**:
+
+1. **Signature Verification**: Validate Schnorr signature against pubkey
+2. **Timestamp Check**: Event `created_at` within 60 seconds of current time
+3. **URL Match**: Tag `u` must match request URL exactly
+4. **Method Match**: Tag `method` must match HTTP method
+5. **Payload Hash**: For POST/PUT, verify payload hash if present
+
+**Error Responses**:
+
+| Code | Reason |
+|------|--------|
+| 401 | Invalid or missing Authorization header |
+| 401 | Signature verification failed |
+| 401 | Event timestamp expired |
+| 403 | Pubkey not authorized |
 
 ---
 
@@ -654,6 +870,8 @@ const response = await fetch('/api/auth/nostr', {
 | Binary Protocol | Detailed Specification | [protocols/binary-websocket.md](./protocols/binary-websocket.md) |
 | WebSocket API | WebSocket Guide | [api/03-websocket.md](./api/03-websocket.md) |
 | Error Codes | Error Reference | [ERROR_REFERENCE.md](./ERROR_REFERENCE.md) |
+| Solid Architecture | Sidecar Design | [architecture/solid-sidecar-architecture.md](../architecture/solid-sidecar-architecture.md) |
+| Configuration | JSS Settings | [CONFIGURATION_REFERENCE.md](./CONFIGURATION_REFERENCE.md#solid-integration) |
 
 ---
 

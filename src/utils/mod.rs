@@ -43,6 +43,7 @@ pub mod unified_gpu_compute;
 pub mod time;
 pub mod validation;
 pub mod websocket_heartbeat;
+pub mod nip98; // NIP-98 HTTP authentication for Solid Server integration
 pub mod result_helpers;
 // REMOVED: result_mappers module - no longer exists
 pub mod neo4j_helpers;

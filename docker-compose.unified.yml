@@ -17,6 +17,9 @@ x-common-environment: &common-environment
   BOTS_ORCHESTRATOR_URL: ${BOTS_ORCHESTRATOR_URL:-ws://agentic-workstation:3002}
   MANAGEMENT_API_HOST: ${MANAGEMENT_API_HOST:-agentic-workstation}
   MANAGEMENT_API_PORT: ${MANAGEMENT_API_PORT:-9090}
+  # JavaScript Solid Server (JSS) configuration
+  JSS_URL: ${JSS_URL:-http://jss:3030}
+  JSS_WS_URL: ${JSS_WS_URL:-ws://jss:3030/.notifications}
 
 x-common-healthcheck: &common-healthcheck
   test: ["CMD", "curl", "-f", "http://localhost:4000/"]
@@ -69,6 +72,43 @@ services:
     restart: unless-stopped
     logging:
       <<: *common-logging
+
+  # JavaScript Solid Server (JSS) - Federated Solid Pods
+  # Provides: LDP CRUD, JSON-LD native storage, WebSocket notifications,
+  # Nostr NIP-98 auth, Web Access Control (WAC), content negotiation
+  jss:
+    container_name: visionflow-jss
+    build:
+      context: ./JavaScriptSolidServer
+      dockerfile: Dockerfile.jss
+    environment:
+      - JSS_PORT=3030
+      - JSS_HOST=0.0.0.0
+      - JSS_ROOT=/data
+      - JSS_NOTIFICATIONS=true
+      - JSS_CONNEG=true
+      - JSS_MULTIUSER=true
+      - JSS_IDP=false
+    volumes:
+      - jss-data:/data
+    ports:
+      - "${JSS_PORT:-3030}:3030"
+    networks:
+      - docker_ragflow
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3030/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    logging:
+      <<: *common-logging
+    profiles:
+      - development
+      - dev
+      - production
+      - prod
 
   # Unified VisionFlow service with profile-based configuration
   visionflow:
@@ -249,4 +289,8 @@ volumes:
     driver: local
   neo4j-plugins:
     name: ${NEO4J_PLUGINS_VOLUME:-visionflow-neo4j-plugins}
+    driver: local
+  # JavaScript Solid Server data volume
+  jss-data:
+    name: ${JSS_DATA_VOLUME:-visionflow-jss-data}
     driver: local

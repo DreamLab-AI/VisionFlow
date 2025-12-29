@@ -3,6 +3,7 @@ import { useSettingsStore } from '../../../../store/settingsStore';
 import { SETTINGS_CONFIG } from './settingsConfig';
 import type { SettingField } from './types';
 import { SemanticAnalysisPanel } from '../../../analytics/components/SemanticAnalysisPanel';
+import { SolidTabContent } from '../../../solid/components/SolidTabContent';
 
 interface SettingsTabContentProps {
   sectionId: string;
@@ -314,6 +315,11 @@ export const SettingsTabContent: React.FC<SettingsTabContentProps> = ({ sectionI
   // Custom panel for analytics - render SemanticAnalysisPanel
   if (sectionId === 'analytics') {
     return <SemanticAnalysisPanel />;
+  }
+
+  // Custom panel for solid pod
+  if (sectionId === 'solid') {
+    return <SolidTabContent />;
   }
 
   const sectionConfig = SETTINGS_CONFIG[sectionId];

@@ -657,6 +657,145 @@ const WRITE-CONNECTION-TIMEOUT-MS: u64 = 5000;
 
 ---
 
+---
+
+## Solid Pod Structure Schema
+
+VisionFlow supports Solid pods for decentralized user data storage and ontology contributions.
+
+### Pod Directory Structure
+
+```
+/pods/{npub}/
+  ├── profile/
+  │   └── card                    # WebID document (Turtle/JSON-LD)
+  ├── ontology/
+  │   ├── contributions/          # User-submitted ontology additions
+  │   │   └── {term-id}.jsonld    # Individual term contributions
+  │   ├── proposals/              # Pending proposals for review
+  │   │   └── {proposal-id}.jsonld
+  │   └── annotations/            # Comments and annotations
+  │       └── {annotation-id}.jsonld
+  ├── preferences/                # Application settings
+  │   ├── graph-settings.jsonld   # Graph visualization preferences
+  │   └── filter-settings.jsonld  # Filter configurations
+  ├── agent-memory/               # AI agent memory storage
+  │   ├── sessions/               # Session-based memory
+  │   │   └── {session-id}.jsonld
+  │   └── long-term/              # Persistent agent memory
+  │       └── {memory-id}.jsonld
+  └── inbox/                      # Notifications and messages
+      └── {message-id}.jsonld
+```
+
+### JSON-LD Contexts
+
+VisionFlow uses the following JSON-LD contexts for Solid pod data:
+
+#### agent-memory.jsonld
+
+```json
+{
+  "@context": {
+    "@vocab": "https://visionflow.io/vocab/",
+    "memory": "https://visionflow.io/vocab/memory#",
+    "agent": "https://visionflow.io/vocab/agent#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "sessionId": {"@id": "memory:sessionId", "@type": "xsd:string"},
+    "agentType": {"@id": "agent:type", "@type": "xsd:string"},
+    "content": {"@id": "memory:content", "@type": "xsd:string"},
+    "embedding": {"@id": "memory:embedding", "@container": "@list"},
+    "createdAt": {"@id": "memory:createdAt", "@type": "xsd:dateTime"},
+    "expiresAt": {"@id": "memory:expiresAt", "@type": "xsd:dateTime"},
+    "priority": {"@id": "memory:priority", "@type": "xsd:float"}
+  }
+}
+```
+
+#### ontology-contribution.jsonld
+
+```json
+{
+  "@context": {
+    "@vocab": "https://visionflow.io/vocab/",
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "foaf": "http://xmlns.com/foaf/0.1/",
+    "termId": {"@id": "dcterms:identifier", "@type": "xsd:string"},
+    "preferredTerm": {"@id": "skos:prefLabel", "@language": "en"},
+    "definition": {"@id": "skos:definition", "@language": "en"},
+    "sourceDomain": {"@id": "dcterms:subject", "@type": "@id"},
+    "contributor": {"@id": "dcterms:contributor", "@type": "@id"},
+    "status": {"@id": "dcterms:status", "@type": "xsd:string"},
+    "submittedAt": {"@id": "dcterms:created", "@type": "xsd:dateTime"}
+  }
+}
+```
+
+#### user-preferences.jsonld
+
+```json
+{
+  "@context": {
+    "@vocab": "https://visionflow.io/vocab/",
+    "prefs": "https://visionflow.io/vocab/preferences#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "graphLayout": {"@id": "prefs:graphLayout", "@type": "xsd:string"},
+    "filterQualityThreshold": {"@id": "prefs:qualityThreshold", "@type": "xsd:float"},
+    "filterAuthorityThreshold": {"@id": "prefs:authorityThreshold", "@type": "xsd:float"},
+    "theme": {"@id": "prefs:theme", "@type": "xsd:string"},
+    "defaultView": {"@id": "prefs:defaultView", "@type": "xsd:string"}
+  }
+}
+```
+
+### Agent Memory Schema Reference
+
+Agent memory stored in Solid pods follows this structure:
+
+```sql
+-- Equivalent relational structure for reference
+CREATE TABLE IF NOT EXISTS agent_memory (
+    id TEXT PRIMARY KEY,
+    session_id TEXT NOT NULL,
+    agent_type TEXT NOT NULL,
+    memory_type TEXT NOT NULL CHECK (memory_type IN (
+        'short_term',
+        'long_term',
+        'episodic',
+        'semantic'
+    )),
+    content TEXT NOT NULL,
+    embedding TEXT,  -- JSON array of floats
+    priority REAL DEFAULT 0.5,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    expires_at DATETIME,
+    metadata TEXT DEFAULT '{}'
+);
+```
+
+**JSON-LD Example**:
+
+```json
+{
+  "@context": "https://visionflow.io/contexts/agent-memory.jsonld",
+  "@id": "urn:uuid:550e8400-e29b-41d4-a716-446655440000",
+  "@type": "memory:AgentMemory",
+  "sessionId": "session-2024-12-29-001",
+  "agentType": "researcher",
+  "memory:memoryType": "episodic",
+  "content": "User requested analysis of blockchain ontology terms",
+  "embedding": [0.123, -0.456, 0.789],
+  "priority": 0.8,
+  "createdAt": "2024-12-29T10:30:00Z",
+  "expiresAt": "2025-01-29T10:30:00Z"
+}
+```
+
+---
+
 ## Summary
 
 The unified database architecture provides:
@@ -669,6 +808,7 @@ The unified database architecture provides:
 6. **Better performance** - Reduced connection overhead
 7. **Easier development** - Simpler schema management
 8. **Complete implementation** - NO TODOs or stubs
+9. **Solid pod integration** - Decentralized user data via JSON-LD
 
 **Database File**: `data/unified.db`
 **Size Estimate**: 50-500 MB typical

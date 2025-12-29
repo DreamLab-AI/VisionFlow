@@ -42,6 +42,13 @@ difficulty-level: intermediate
   - Real-time physics updates
   - Client implementation examples
 
+- **[solid-api.md](./solid-api.md)** - Solid Pod Integration
+  - Pod creation and management
+  - LDP resource operations (CRUD)
+  - Agent memory persistence
+  - WebSocket notifications for Pods
+  - Nostr NIP-98 authentication
+
 ### Quick References
 
 - **** - Fast lookup guide
@@ -134,9 +141,10 @@ ws.onmessage = (event) => {
 | **Analytics** | 12 | Communities, centrality, clustering |
 | **Workspace** | 8 | CRUD operations |
 | **Auth** | 6 | Login, tokens, API keys |
+| **Solid** | 10 | Pod management, LDP operations |
 | **Advanced** | 20+ | Export, constraints, RAGFlow |
 
-**Total**: 100+ documented endpoints
+**Total**: 110+ documented endpoints
 
 ---
 
@@ -310,10 +318,11 @@ The following endpoints have been consolidated:
 
 - **Full Documentation**: [rest-api-complete.md](./rest-api-complete.md)
 - **WebSocket Protocol**: [03-websocket.md](./03-websocket.md)
-- **Architecture**: 
+- **Solid API**: [solid-api.md](./solid-api.md)
+- **Integration Guide**: [../../guides/solid-integration.md](../../guides/solid-integration.md)
 
 ---
 
-**Last Updated**: November 3, 2025
-**Version**: 1.0.0
+**Last Updated**: December 29, 2025
+**Version**: 1.1.0
 **Maintainer**: VisionFlow API Documentation Team

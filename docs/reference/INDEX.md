@@ -23,6 +23,7 @@ Master index for comprehensive VisionFlow reference documentation extracted and 
 | Reference Guide | Topics Covered | Link |
 |-----------------|----------------|------|
 | **API Reference** | REST endpoints, WebSocket, Binary protocol | [API_REFERENCE.md](./API_REFERENCE.md) |
+| **Solid API Reference** | Pod management, LDP operations, Agent memory | [api/solid-api.md](./api/solid-api.md) |
 | **Configuration Reference** | Environment variables, YAML config, Runtime settings | [CONFIGURATION_REFERENCE.md](./CONFIGURATION_REFERENCE.md) |
 | **Database Schema Reference** | SQLite tables, Neo4j schema, Relationships | [DATABASE_SCHEMA_REFERENCE.md](./DATABASE_SCHEMA_REFERENCE.md) |
 | **Error Reference** | Error codes, Solutions, Troubleshooting | [ERROR_REFERENCE.md](./ERROR_REFERENCE.md) |
@@ -177,6 +178,33 @@ Master index for comprehensive VisionFlow reference documentation extracted and 
 - **Validation** → [API_REFERENCE.md](./API_REFERENCE.md#validate-ontology)
 - **Versioning** → [API_REFERENCE.md](./API_REFERENCE.md#versioning)
 
+### S
+
+- **Solid API** → [api/solid-api.md](./api/solid-api.md)
+- **Solid Pods** → [api/solid-api.md](./api/solid-api.md#pod-management)
+- **Solid WebSocket** → [api/solid-api.md](./api/solid-api.md#websocket-protocol)
+- **Solid Authentication** → [api/solid-api.md](./api/solid-api.md#authentication)
+- **Schema Version** → [DATABASE_SCHEMA_REFERENCE.md](./DATABASE_SCHEMA_REFERENCE.md#schema-version)
+- **Security Configuration** → [CONFIGURATION_REFERENCE.md](./CONFIGURATION_REFERENCE.md#security-configuration)
+- **SQLite Schema** → [DATABASE_SCHEMA_REFERENCE.md](./DATABASE_SCHEMA_REFERENCE.md#sqlite-schema-unifieddb)
+- **Status Codes** → [API_REFERENCE.md](./API_REFERENCE.md#http-status-codes)
+
+### T
+
+- **Tables** → [DATABASE_SCHEMA_REFERENCE.md](./DATABASE_SCHEMA_REFERENCE.md#core-tables)
+- **Token Expiration** → [API_REFERENCE.md](./API_REFERENCE.md#token-expiration)
+- **Troubleshooting** → [ERROR_REFERENCE.md](./ERROR_REFERENCE.md#common-issues--solutions)
+- **Type Flags** → [PROTOCOL_REFERENCE.md](./PROTOCOL_REFERENCE.md#type-flags-encoding)
+
+### U
+
+- **Unified Database** → [DATABASE_SCHEMA_REFERENCE.md](./DATABASE_SCHEMA_REFERENCE.md)
+
+### V
+
+- **Validation** → [API_REFERENCE.md](./API_REFERENCE.md#validate-ontology)
+- **Versioning** → [API_REFERENCE.md](./API_REFERENCE.md#versioning)
+
 ### W
 
 - **WebSocket Protocol** → [PROTOCOL_REFERENCE.md](./PROTOCOL_REFERENCE.md#binary-websocket-protocol)
@@ -248,6 +276,12 @@ Master index for comprehensive VisionFlow reference documentation extracted and 
   - Ontology Endpoints
   - Physics Endpoints
   - Analytics Endpoints
+
+- **Solid API**: [api/solid-api.md](./api/solid-api.md)
+  - Pod Management
+  - LDP Resource Operations
+  - WebSocket Notifications
+  - Agent Memory Persistence
 
 - **WebSocket API**: [API_REFERENCE.md](./API_REFERENCE.md#websocket-protocols)
   - Connection Establishment
@@ -345,12 +379,28 @@ Master index for comprehensive VisionFlow reference documentation extracted and 
 | `/api/semantic/communities` | POST | Community detection | [Link](./API_REFERENCE.md#detect-communities) |
 | `/api/semantic/centrality` | POST | Centrality computation | [Link](./API_REFERENCE.md#compute-centrality) |
 
+### Solid API Endpoints
+
+| Endpoint | Method | Description | Reference |
+|----------|--------|-------------|-----------|
+| `/solid/pods` | POST | Create new Pod | [Link](./api/solid-api.md#post-solidpods---create-pod) |
+| `/solid/pods` | GET | List user Pods | [Link](./api/solid-api.md#get-solidpods---list-user-pods) |
+| `/solid/pods/check` | GET | Check Pod exists | [Link](./api/solid-api.md#get-solidpodscheck---check-pod-exists) |
+| `/solid/pods/{name}` | DELETE | Delete Pod | [Link](./api/solid-api.md#delete-solidpodsname---delete-pod) |
+| `/solid/{path}` | GET | Read resource | [Link](./api/solid-api.md#get-solidpath---read-resource) |
+| `/solid/{path}` | PUT | Update resource | [Link](./api/solid-api.md#put-solidpath---update-resource) |
+| `/solid/{path}` | POST | Create resource | [Link](./api/solid-api.md#post-solidpath---create-resource) |
+| `/solid/{path}` | DELETE | Delete resource | [Link](./api/solid-api.md#delete-solidpath---delete-resource) |
+| `/solid/{path}` | PATCH | Partial update | [Link](./api/solid-api.md#patch-solidpath---partial-update) |
+| `/solid/ws` | WebSocket | Real-time notifications | [Link](./api/solid-api.md#websocket-protocol) |
+
 ### WebSocket Endpoints
 
 | Endpoint | Protocol | Description | Reference |
 |----------|----------|-------------|-----------|
 | `/ws` | Binary V2 | Real-time position updates | [Link](./PROTOCOL_REFERENCE.md#binary-websocket-protocol) |
 | `/ws` | JSON | Control messages | [Link](./PROTOCOL_REFERENCE.md#json-control-messages) |
+| `/solid/ws` | solid-0.1 | Solid Pod notifications | [Link](./api/solid-api.md#websocket-protocol) |
 
 ### MCP Endpoints
 

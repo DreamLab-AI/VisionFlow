@@ -15,6 +15,7 @@ import {
   Download,
   Lock,
   ShieldCheck,
+  Database,
 } from 'lucide-react';
 import type { TabConfig } from './types';
 
@@ -37,6 +38,7 @@ export const TAB_CONFIGS: TabConfig[] = [
   { id: 'graph-export', label: 'Export', icon: Download, description: 'Export and sharing options', buttonKey: 'E' },
   { id: 'xr', label: 'XR/AR', icon: Glasses, description: 'Extended reality settings', buttonKey: 'F' },
   { id: 'auth', label: 'Auth/Nostr', icon: Lock, description: 'Authentication & Nostr', buttonKey: 'G' },
+  { id: 'solid', label: 'Solid Pod', icon: Database, description: 'Decentralized data storage', buttonKey: 'H' },
 ];
 
 // Group tabs by row for rendering

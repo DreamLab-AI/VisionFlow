@@ -40,8 +40,8 @@ export interface WebSocketErrorFrame {
   category: 'validation' | 'server' | 'protocol' | 'auth' | 'rate_limit';
   details?: any;
   retryable: boolean;
-  retryAfter?: number; 
-  affectedPaths?: string[]; 
+  retryAfter?: number;
+  affectedPaths?: string[];
   timestamp: number;
 }
 
@@ -60,6 +60,14 @@ export interface ConnectionState {
   reconnectAttempts: number;
 }
 
+// Solid notification types (solid-0.1 protocol)
+export interface SolidNotification {
+  type: 'pub' | 'ack';
+  url: string;
+}
+
+export type SolidNotificationCallback = (notification: SolidNotification) => void;
+
 // Legacy types for backward compatibility
 type LegacyMessageHandler = (message: LegacyWebSocketMessage) => void;
 type BinaryMessageHandler = (data: ArrayBuffer) => void;
@@ -75,15 +83,15 @@ class WebSocketService {
   private connectionStatusHandlers: ConnectionStatusHandler[] = [];
   private eventHandlers: Map<string, EventHandler[]> = new Map();
 
-  
+
   private subscriptions: Map<string, Subscription> = new Map();
   private subscriptionCounter: number = 0;
   private statistics: WebSocketStatistics;
   private config: WebSocketConfig;
-  private reconnectInterval: number = 1000; 
+  private reconnectInterval: number = 1000;
   private maxReconnectAttempts: number = 10;
   private reconnectAttempts: number = 0;
-  private maxReconnectDelay: number = 30000; 
+  private maxReconnectDelay: number = 30000;
   private reconnectTimeout: number | null = null;
   private isConnected: boolean = false;
   private isServerReady: boolean = false;
@@ -92,8 +100,8 @@ class WebSocketService {
   private maxQueueSize: number = 100;
   private heartbeatInterval: number | null = null;
   private heartbeatTimeout: number | null = null;
-  private heartbeatIntervalMs: number = 30000; 
-  private heartbeatTimeoutMs: number = 10000; 
+  private heartbeatIntervalMs: number = 30000;
+  private heartbeatTimeoutMs: number = 10000;
   private connectionState: ConnectionState = {
     status: 'disconnected',
     reconnectAttempts: 0
@@ -102,7 +110,16 @@ class WebSocketService {
   private positionBatchQueue: NodePositionBatchQueue | null = null;
   private binaryMessageCount: number = 0;
 
-  
+  // JSS/Solid WebSocket for notifications (solid-0.1 protocol)
+  private solidSocket: WebSocket | null = null;
+  private solidSubscriptions: Map<string, Set<SolidNotificationCallback>> = new Map();
+  private solidReconnectAttempts: number = 0;
+  private solidMaxReconnectAttempts: number = 5;
+  private solidReconnectDelay: number = 1000;
+  private solidReconnectTimeout: number | null = null;
+  private isSolidConnected: boolean = false;
+
+
   private enhancedConnectionState: WebSocketConnectionState = {
     status: 'disconnected',
     reconnectAttempts: 0,
@@ -110,7 +127,7 @@ class WebSocketService {
   };
 
   private constructor() {
-    
+
     this.statistics = {
       messagesReceived: 0,
       messagesSent: 0,
@@ -124,7 +141,7 @@ class WebSocketService {
       lastActivity: Date.now()
     };
 
-    
+
     this.config = {
       reconnect: {
         maxAttempts: 10,
@@ -140,13 +157,13 @@ class WebSocketService {
       binaryProtocol: true
     };
 
-    
+
     this.url = this.determineWebSocketUrl();
 
-    
+
     this.updateFromSettings();
 
-    
+
     let previousCustomBackendUrl = useSettingsStore.getState().settings?.system?.customBackendUrl;
     useSettingsStore.subscribe((state) => {
       const newCustomBackendUrl = state.settings?.system?.customBackendUrl;
@@ -154,8 +171,8 @@ class WebSocketService {
         if (debugState.isEnabled()) {
           logger.info(`customBackendUrl setting changed from "${previousCustomBackendUrl}" to "${newCustomBackendUrl}", re-evaluating WebSocket URL.`);
         }
-        previousCustomBackendUrl = newCustomBackendUrl; 
-        this.updateFromSettings(); 
+        previousCustomBackendUrl = newCustomBackendUrl;
+        this.updateFromSettings();
         if (this.isConnected || (this.socket && this.socket.readyState === WebSocket.CONNECTING)) {
           logger.info('Reconnecting WebSocket due to customBackendUrl change.');
           this.close();
@@ -172,20 +189,20 @@ class WebSocketService {
   private updateFromSettings(): void {
     const state = useSettingsStore.getState();
     const settings = state.settings;
-    let newUrl = this.determineWebSocketUrl(); 
+    let newUrl = this.determineWebSocketUrl();
 
     if (settings?.system?.websocket) {
       this.reconnectInterval = settings?.system?.websocket?.reconnectDelay || 2000;
       this.maxReconnectAttempts = settings.system.websocket.reconnectAttempts || 10;
     }
 
-    
+
     if (settings?.system?.customBackendUrl &&
         settings.system.customBackendUrl.trim() !== '') {
       const customUrl = settings.system.customBackendUrl.trim();
       const protocol = customUrl.startsWith('https://') ? 'wss://' : 'ws://';
       const hostAndPath = customUrl.replace(/^(https?:\/\/)?/, '');
-      newUrl = `${protocol}${hostAndPath.replace(/\/$/, '')}/wss`; 
+      newUrl = `${protocol}${hostAndPath.replace(/\/$/, '')}/wss`;
       if (debugState.isEnabled()) {
         logger.info(`Using custom backend WebSocket URL: ${newUrl}`);
       }
@@ -216,18 +233,18 @@ class WebSocketService {
 
     const baseUrl = `${protocol}//${host}:${port}`;
     const wsUrl = `${baseUrl}/wss`;
-  
+
     if (debugState.isEnabled()) {
       logger.info(`Determined WebSocket URL (${isDev ? 'dev' : 'prod'}): ${wsUrl}`);
     }
-  
+
     return wsUrl;
   }
 
-  
+
   public setCustomBackendUrl(backendUrl: string | null): void {
     if (!backendUrl) {
-      
+
       this.url = this.determineWebSocketUrl();
       if (debugState.isEnabled()) {
         logger.info(`Reset to default WebSocket URL: ${this.url}`);
@@ -235,18 +252,18 @@ class WebSocketService {
       return;
     }
 
-    
+
     const protocol = backendUrl.startsWith('https://') ? 'wss://' : 'ws://';
-    
+
     const hostWithProtocol = backendUrl.replace(/^(https?:\/\/)?/, '');
-    
-    this.url = `${protocol}${hostWithProtocol}/wss`; 
+
+    this.url = `${protocol}${hostWithProtocol}/wss`;
 
     if (debugState.isEnabled()) {
       logger.info(`Set custom WebSocket URL: ${this.url}`);
     }
 
-    
+
     if (this.isConnected && this.socket) {
       if (debugState.isEnabled()) {
         logger.info('Reconnecting with new WebSocket URL');
@@ -275,25 +292,25 @@ class WebSocketService {
 
       this.socket = new WebSocket(wsUrl);
 
-      
+
       this.socket.onopen = this.handleOpen.bind(this);
       this.socket.onmessage = this.handleMessage.bind(this);
       this.socket.onclose = this.handleClose.bind(this);
       this.socket.onerror = this.handleError.bind(this);
 
-      
+
       return new Promise<void>((resolve, reject) => {
         if (!this.socket) {
           reject(new Error('Socket initialization failed'));
           return;
         }
 
-        
+
         this.socket.addEventListener('open', () => resolve(), { once: true });
 
-        
+
         this.socket.addEventListener('error', (event) => {
-          
+
           if (this.socket && this.socket.readyState !== WebSocket.OPEN) {
             reject(new Error('WebSocket connection failed'));
           }
@@ -351,18 +368,18 @@ class WebSocketService {
   }
 
   private handleMessage(event: MessageEvent): void {
-    
+
     if (event.data === 'pong') {
       this.handleHeartbeatResponse();
       return;
     }
 
-    
+
     if (event.data instanceof Blob) {
       if (debugState.isDataDebugEnabled()) {
         logger.debug('Received binary blob data');
       }
-      
+
       event.data.arrayBuffer().then(buffer => {
         if (this.validateBinaryData(buffer)) {
           this.processBinaryData(buffer);
@@ -387,9 +404,9 @@ class WebSocketService {
       return;
     }
 
-    
+
     try {
-      
+
       if (typeof event.data !== 'string' || event.data.trim() === '') {
         logger.warn('Received empty or invalid message data');
         return;
@@ -397,7 +414,7 @@ class WebSocketService {
 
       const message = JSON.parse(event.data) as WebSocketMessage;
 
-      
+
       if (!this.validateMessage(message)) {
         logger.warn('Received malformed message, skipping processing');
         return;
@@ -407,14 +424,14 @@ class WebSocketService {
         logger.debug(`Received WebSocket message: ${message.type}`, message.data);
       }
 
-      
+
       if (message.type === 'connection_established') {
         this.isServerReady = true;
         if (debugState.isEnabled()) {
           logger.info('Server connection established and ready');
         }
       }
-      
+
 
       if (message.type === 'error' && message.error) {
         this.handleErrorFrame(message.error);
@@ -488,21 +505,21 @@ class WebSocketService {
     }
   }
 
-  
+
   private async processBinaryData(data: ArrayBuffer): Promise<void> {
     try {
       if (debugState.isDataDebugEnabled()) {
         logger.debug(`Processing binary data: ${data.byteLength} bytes`);
       }
 
-      
+
       const header = binaryProtocol.parseHeader(data);
       if (!header) {
         logger.error('Failed to parse binary message header');
         return;
       }
 
-      
+
       switch (header.type) {
         case MessageType.GRAPH_UPDATE:
           await this.handleGraphUpdate(data, header);
@@ -518,12 +535,12 @@ class WebSocketService {
           break;
 
         default:
-          
+
           await this.handleLegacyBinaryData(data);
           break;
       }
 
-      
+
       this.binaryMessageHandlers.forEach(handler => {
         try {
           handler(data);
@@ -540,7 +557,7 @@ class WebSocketService {
     const graphTypeFlag = header.graphTypeFlag as GraphTypeFlag;
     const currentMode = useSettingsStore.getState().get<'knowledge_graph' | 'ontology'>('visualisation.graphs.mode') || 'knowledge_graph';
 
-    
+
     const shouldProcess =
       (currentMode === 'knowledge_graph' && graphTypeFlag === GraphTypeFlag.KNOWLEDGE_GRAPH) ||
       (currentMode === 'ontology' && graphTypeFlag === GraphTypeFlag.ONTOLOGY);
@@ -554,7 +571,7 @@ class WebSocketService {
 
     const payload = binaryProtocol.extractPayload(data, header);
 
-    
+
     this.emit('graph-update', {
       graphType: graphTypeFlag === GraphTypeFlag.ONTOLOGY ? 'ontology' : 'knowledge_graph',
       data: payload
@@ -568,7 +585,7 @@ class WebSocketService {
   private async handleVoiceData(data: ArrayBuffer, header: any): Promise<void> {
     const payload = binaryProtocol.extractPayload(data, header);
 
-    
+
     this.emit('voice-data', payload);
 
     if (debugState.isDataDebugEnabled()) {
@@ -579,23 +596,23 @@ class WebSocketService {
   private async handlePositionUpdate(data: ArrayBuffer, header: any): Promise<void> {
     const payload = binaryProtocol.extractPayload(data, header);
 
-    
+
     const hasBotsData = this.detectBotsData(payload);
 
     if (hasBotsData) {
-      
+
       this.emit('bots-position-update', payload);
       if (debugState.isDataDebugEnabled()) {
         logger.debug('Emitted bots-position-update event');
       }
     }
 
-    
+
     const graphType = graphDataManager.getGraphType();
 
-    
+
     this.binaryMessageCount = (this.binaryMessageCount || 0) + 1;
-    if (this.binaryMessageCount % 100 === 1) { 
+    if (this.binaryMessageCount % 100 === 1) {
       logger.debug('Position update received', { graphType, dataSize: payload.byteLength, msgCount: this.binaryMessageCount });
     }
 
@@ -618,7 +635,7 @@ class WebSocketService {
   }
 
   private async handleLegacyBinaryData(data: ArrayBuffer): Promise<void> {
-    
+
     const hasBotsData = this.detectBotsData(data);
 
     if (hasBotsData) {
@@ -649,7 +666,7 @@ class WebSocketService {
 
   private detectBotsData(data: ArrayBuffer): boolean {
     try {
-      
+
       const allNodes = parseBinaryNodeData(data);
       return allNodes.some(node => isAgentNode(node.nodeId));
     } catch (error) {
@@ -669,7 +686,7 @@ class WebSocketService {
 
     this.notifyConnectionStatusHandlers(false);
 
-    
+
     const isNormalClosure = event.code === 1000 || event.code === 1001;
     const wasCleanShutdown = event.wasClean;
 
@@ -685,11 +702,11 @@ class WebSocketService {
     const errorMessage = event instanceof ErrorEvent ? event.message : 'Unknown WebSocket error';
     logger.error('WebSocket error:', { event, message: errorMessage });
     this.updateConnectionState('failed', errorMessage);
-    
+
   }
 
   private attemptReconnect(): void {
-    
+
     if (this.reconnectTimeout) {
       window.clearTimeout(this.reconnectTimeout);
       this.reconnectTimeout = null;
@@ -697,9 +714,9 @@ class WebSocketService {
 
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
-      
-      
-      const baseDelay = 1000; 
+
+
+      const baseDelay = 1000;
       const exponentialDelay = baseDelay * Math.pow(2, this.reconnectAttempts - 1);
       const delay = Math.min(exponentialDelay, this.maxReconnectDelay);
 
@@ -712,7 +729,7 @@ class WebSocketService {
       this.reconnectTimeout = window.setTimeout(() => {
         this.connect().catch(error => {
           logger.error('Reconnect attempt failed:', createErrorMetadata(error));
-          
+
           this.attemptReconnect();
         });
       }, delay);
@@ -727,7 +744,7 @@ class WebSocketService {
     const messageStr = JSON.stringify(message);
 
     if (!this.isConnected || !this.socket) {
-      
+
       this.queueMessage('text', messageStr);
       logger.warn(`Message queued: ${type} (WebSocket not connected)`);
       return;
@@ -741,14 +758,14 @@ class WebSocketService {
       }
     } catch (error) {
       logger.error('Error sending WebSocket message:', createErrorMetadata(error));
-      
+
       this.queueMessage('text', messageStr);
     }
   }
 
   public sendRawBinaryData(data: ArrayBuffer): void {
     if (!this.isConnected || !this.socket) {
-      
+
       this.queueMessage('binary', data);
       logger.warn(`Binary data queued: ${data.byteLength} bytes (WebSocket not connected)`);
       return;
@@ -762,7 +779,7 @@ class WebSocketService {
       }
     } catch (error) {
       logger.error('Error sending binary data:', createErrorMetadata(error));
-      
+
       this.queueMessage('binary', data);
     }
   }
@@ -905,7 +922,7 @@ class WebSocketService {
       this.positionBatchQueue.destroy();
     }
 
-    
+
     const validationMiddleware = createValidationMiddleware({
       maxNodes: 10000,
       maxCoordinate: 10000,
@@ -913,31 +930,31 @@ class WebSocketService {
       maxVelocity: 1000
     });
 
-    
+
     const batchProcessor = createWebSocketBatchProcessor((data: ArrayBuffer) => {
       if (!this.isConnected || !this.socket) {
         logger.warn('Cannot send batch: WebSocket not connected');
         return;
       }
-      
+
       try {
         this.socket.send(data);
-        
+
         if (debugState.isDataDebugEnabled()) {
           logger.debug(`Sent binary batch: ${data.byteLength} bytes`);
         }
       } catch (error) {
         logger.error('Error sending batch:', createErrorMetadata(error));
-        throw error; 
+        throw error;
       }
     });
 
-    
+
     this.positionBatchQueue = new NodePositionBatchQueue({
       processBatch: async (batch: BinaryNodeData[]) => {
-        
+
         const validatedBatch = validationMiddleware(batch);
-        
+
         if (validatedBatch.length === 0) {
           logger.warn('All nodes in batch failed validation');
           return;
@@ -952,7 +969,7 @@ class WebSocketService {
     logger.info('Position batch queue initialized');
   }
 
-  
+
   public sendNodePositionUpdates(updates: Array<{nodeId: number, position: {x: number, y: number, z: number}, velocity?: {x: number, y: number, z: number}}>): void {
     if (!this.positionBatchQueue) {
       logger.warn('Position batch queue not initialized');
@@ -960,16 +977,16 @@ class WebSocketService {
     }
 
     try {
-      
+
       const binaryNodes: BinaryNodeData[] = updates.map(update => ({
         nodeId: update.nodeId,
         position: update.position,
         velocity: update.velocity || {x: 0, y: 0, z: 0}
       }));
 
-      
+
       const validation = validateNodePositions(binaryNodes, {
-        maxNodes: updates.length + 100 
+        maxNodes: updates.length + 100
       });
 
       if (!validation.valid) {
@@ -977,12 +994,12 @@ class WebSocketService {
         return;
       }
 
-      
+
       binaryNodes.forEach(node => {
-        const priority = isAgentNode(node.nodeId) ? 10 : 0; 
+        const priority = isAgentNode(node.nodeId) ? 10 : 0;
         this.positionBatchQueue!.enqueuePositionUpdate(node, priority);
       });
-      
+
       if (debugState.isDataDebugEnabled()) {
         logger.debug(`Queued ${updates.length} position updates for batching`);
       }
@@ -991,7 +1008,7 @@ class WebSocketService {
     }
   }
 
-  
+
   public flushPositionUpdates(): Promise<void> {
     if (this.positionBatchQueue) {
       return this.positionBatchQueue.flush();
@@ -999,7 +1016,7 @@ class WebSocketService {
     return Promise.resolve();
   }
 
-  
+
   public getPositionQueueMetrics() {
     if (this.positionBatchQueue) {
       return this.positionBatchQueue.getMetrics();
@@ -1023,7 +1040,7 @@ class WebSocketService {
 
   public onConnectionStatusChange(handler: ConnectionStatusHandler): () => void {
     this.connectionStatusHandlers.push(handler);
-    
+
     handler(this.isConnected);
     return () => {
       this.connectionStatusHandlers = this.connectionStatusHandlers.filter(h => h !== handler);
@@ -1032,7 +1049,7 @@ class WebSocketService {
 
   public onConnectionStateChange(handler: ConnectionStateHandler): () => void {
     this.connectionStateHandlers.push(handler);
-    
+
     handler(this.connectionState);
     return () => {
       this.connectionStateHandlers = this.connectionStateHandlers.filter(h => h !== handler);
@@ -1060,8 +1077,8 @@ class WebSocketService {
   }
 
   private updateConnectionState(
-    status: ConnectionState['status'], 
-    lastError?: string, 
+    status: ConnectionState['status'],
+    lastError?: string,
     lastConnected?: number
   ): void {
     this.connectionState = {
@@ -1104,7 +1121,7 @@ class WebSocketService {
       this.eventHandlers.set(eventName, []);
     }
     this.eventHandlers.get(eventName)!.push(handler);
-    
+
     return () => {
       const handlers = this.eventHandlers.get(eventName);
       if (handlers) {
@@ -1118,7 +1135,7 @@ class WebSocketService {
 
   public close(): void {
     if (this.socket) {
-      
+
       if (this.reconnectTimeout) {
         window.clearTimeout(this.reconnectTimeout);
         this.reconnectTimeout = null;
@@ -1126,14 +1143,14 @@ class WebSocketService {
 
       this.stopHeartbeat();
 
-      
+
       if (this.positionBatchQueue) {
         this.positionBatchQueue.destroy();
         this.positionBatchQueue = null;
       }
 
       try {
-        
+
         this.socket.close(1000, 'Normal closure');
         if (debugState.isEnabled()) {
           logger.info('WebSocket connection closed by client');
@@ -1145,48 +1162,49 @@ class WebSocketService {
         this.isConnected = false;
         this.isServerReady = false;
         this.reconnectAttempts = 0;
-        this.messageQueue = []; 
+        this.messageQueue = [];
         this.updateConnectionState('disconnected');
         this.notifyConnectionStatusHandlers(false);
       }
     }
   }
 
-  
+
   public disconnect(): void {
     this.close();
+    this.disconnectSolid();
   }
 
-  
+
   private validateMessage(message: any): message is WebSocketMessage {
     return (
       message &&
       typeof message === 'object' &&
       typeof message.type === 'string' &&
       message.type.length > 0 &&
-      message.type.length <= 100 
+      message.type.length <= 100
     );
   }
 
   private validateBinaryData(data: ArrayBuffer): boolean {
     try {
-      
+
       if (!data || data.byteLength === 0) {
         return false;
       }
 
-      
+
       if (data.byteLength > 50 * 1024 * 1024) {
         logger.warn(`Binary data too large: ${data.byteLength} bytes`);
         return false;
       }
 
-      
+
       try {
         parseBinaryNodeData(data);
         return true;
       } catch (error) {
-        
+
         logger.warn('Binary data parsing validation failed, but allowing through:', createErrorMetadata(error));
         return true;
       }
@@ -1196,11 +1214,11 @@ class WebSocketService {
     }
   }
 
-  
+
   private queueMessage(type: 'text' | 'binary', data: string | ArrayBuffer): void {
-    
+
     if (this.messageQueue.length >= this.maxQueueSize) {
-      
+
       const removed = this.messageQueue.shift();
       logger.warn('Message queue full, removed oldest message');
     }
@@ -1235,7 +1253,7 @@ class WebSocketService {
           logger.debug(`Processed queued ${queuedMessage.type} message`);
         }
       } catch (error) {
-        
+
         queuedMessage.retries++;
         if (queuedMessage.retries < 3) {
           this.messageQueue.push(queuedMessage);
@@ -1247,9 +1265,9 @@ class WebSocketService {
     }
   }
 
-  
+
   private startHeartbeat(): void {
-    this.stopHeartbeat(); 
+    this.stopHeartbeat();
 
     this.heartbeatInterval = window.setInterval(() => {
       this.sendHeartbeat();
@@ -1274,8 +1292,8 @@ class WebSocketService {
 
     try {
       this.socket.send('ping');
-      
-      
+
+
       this.heartbeatTimeout = window.setTimeout(() => {
         logger.warn('Heartbeat timeout - server not responding');
         this.handleHeartbeatTimeout();
@@ -1303,23 +1321,23 @@ class WebSocketService {
 
   private handleHeartbeatTimeout(): void {
     logger.warn('Heartbeat timeout detected, connection may be dead');
-    
-    
+
+
     if (this.socket) {
       this.socket.close(4000, 'Heartbeat timeout');
     }
   }
 
-  
+
   public forceReconnect(): void {
     logger.info('Forcing WebSocket reconnection');
     if (this.socket) {
       this.socket.close(4001, 'Forced reconnection');
     }
-    
+
   }
 
-  
+
   public clearMessageQueue(): void {
     const queueSize = this.messageQueue.length;
     this.messageQueue = [];
@@ -1327,18 +1345,18 @@ class WebSocketService {
       logger.info(`Cleared ${queueSize} messages from queue`);
     }
   }
-  
-  
+
+
   private handleErrorFrame(error: WebSocketErrorFrame): void {
     logger.error('Received error frame from server:', error);
-    
-    
+
+
     this.emit('error-frame', error);
-    
-    
+
+
     switch (error.category) {
       case 'validation':
-        
+
         if (error.affectedPaths && error.affectedPaths.length > 0) {
           this.emit('validation-error', {
             paths: error.affectedPaths,
@@ -1346,9 +1364,9 @@ class WebSocketService {
           });
         }
         break;
-        
+
       case 'rate_limit':
-        
+
         if (error.retryAfter) {
           logger.warn(`Rate limited. Retry after ${error.retryAfter}ms`);
           this.emit('rate-limit', {
@@ -1357,26 +1375,26 @@ class WebSocketService {
           });
         }
         break;
-        
+
       case 'auth':
-        
+
         this.emit('auth-error', {
           code: error.code,
           message: error.message
         });
         break;
-        
+
       case 'server':
-        
+
         if (error.retryable && error.retryAfter) {
           setTimeout(() => {
             this.processMessageQueue();
           }, error.retryAfter);
         }
         break;
-        
+
       case 'protocol':
-        
+
         logger.error('Protocol error - considering reconnection');
         if (error.code === 'PROTOCOL_VERSION_MISMATCH') {
           this.forceReconnect();
@@ -1384,8 +1402,8 @@ class WebSocketService {
         break;
     }
   }
-  
-  
+
+
   public sendErrorFrame(error: Partial<WebSocketErrorFrame>): void {
     const errorFrame: WebSocketErrorFrame = {
       code: error.code || 'CLIENT_ERROR',
@@ -1395,8 +1413,254 @@ class WebSocketService {
       timestamp: Date.now(),
       ...error
     };
-    
+
     this.sendMessage('error', { error: errorFrame });
+  }
+
+  // ============================================
+  // JSS/Solid WebSocket Notifications (solid-0.1)
+  // ============================================
+
+  /**
+   * Get the JSS WebSocket URL from environment
+   */
+  private getSolidWebSocketUrl(): string | null {
+    return import.meta.env.VITE_JSS_WS_URL || null;
+  }
+
+  /**
+   * Connect to JSS WebSocket for real-time Solid notifications
+   * Uses solid-0.1 protocol for resource change notifications
+   */
+  public connectSolid(): void {
+    const wsUrl = this.getSolidWebSocketUrl();
+
+    if (!wsUrl) {
+      logger.warn('JSS WebSocket URL not configured (VITE_JSS_WS_URL)');
+      return;
+    }
+
+    if (this.solidSocket?.readyState === WebSocket.OPEN) {
+      logger.debug('Solid WebSocket already connected');
+      return;
+    }
+
+    try {
+      logger.info(`Connecting to JSS WebSocket at ${wsUrl}`);
+      this.solidSocket = new WebSocket(wsUrl);
+
+      this.solidSocket.onopen = () => {
+        logger.info('JSS WebSocket connected');
+        this.isSolidConnected = true;
+        this.solidReconnectAttempts = 0;
+
+        // Emit connection event
+        this.emit('solid-connected', { url: wsUrl });
+      };
+
+      this.solidSocket.onmessage = (event) => {
+        const msg = event.data.toString().trim();
+        this.handleSolidMessage(msg);
+      };
+
+      this.solidSocket.onerror = (error) => {
+        logger.error('JSS WebSocket error', { error });
+        this.emit('solid-error', { error });
+      };
+
+      this.solidSocket.onclose = (event) => {
+        logger.info('JSS WebSocket disconnected', { code: event.code, reason: event.reason });
+        this.isSolidConnected = false;
+        this.emit('solid-disconnected', { code: event.code, reason: event.reason });
+        this.attemptSolidReconnect();
+      };
+    } catch (error) {
+      logger.error('Failed to connect Solid WebSocket', { error });
+    }
+  }
+
+  /**
+   * Handle incoming solid-0.1 protocol messages
+   */
+  private handleSolidMessage(msg: string): void {
+    if (msg.startsWith('protocol ')) {
+      // Protocol handshake complete (e.g., "protocol solid-0.1")
+      const protocol = msg.slice(9);
+      logger.debug('Solid WebSocket protocol handshake complete', { protocol });
+
+      // Resubscribe to all tracked resources
+      for (const url of this.solidSubscriptions.keys()) {
+        this.solidSocket?.send(`sub ${url}`);
+        logger.debug('Resubscribed to Solid resource', { url });
+      }
+
+      this.emit('solid-protocol', { protocol });
+    } else if (msg.startsWith('ack ')) {
+      // Subscription acknowledged
+      const url = msg.slice(4);
+      logger.debug('Solid subscription acknowledged', { url });
+      this.notifySolidSubscribers(url, { type: 'ack', url });
+    } else if (msg.startsWith('pub ')) {
+      // Resource changed notification
+      const url = msg.slice(4);
+      logger.debug('Solid resource changed', { url });
+      this.notifySolidSubscribers(url, { type: 'pub', url });
+
+      // Also emit as general event for components to listen
+      this.emit('solid-resource-changed', { url });
+    } else if (msg.startsWith('error ')) {
+      // Error from server
+      const errorMsg = msg.slice(6);
+      logger.error('Solid WebSocket error message', { error: errorMsg });
+      this.emit('solid-error', { message: errorMsg });
+    }
+  }
+
+  /**
+   * Notify all subscribers for a given resource URL
+   */
+  private notifySolidSubscribers(url: string, notification: SolidNotification): void {
+    // Notify exact URL subscribers
+    const callbacks = this.solidSubscriptions.get(url);
+    callbacks?.forEach((cb) => {
+      try {
+        cb(notification);
+      } catch (error) {
+        logger.error('Error in Solid notification callback', { url, error });
+      }
+    });
+
+    // Also notify container subscribers (parent directory)
+    const containerUrl = url.substring(0, url.lastIndexOf('/') + 1);
+    if (containerUrl !== url) {
+      const containerCallbacks = this.solidSubscriptions.get(containerUrl);
+      containerCallbacks?.forEach((cb) => {
+        try {
+          cb(notification);
+        } catch (error) {
+          logger.error('Error in Solid container notification callback', { containerUrl, error });
+        }
+      });
+    }
+  }
+
+  /**
+   * Attempt to reconnect Solid WebSocket with exponential backoff
+   */
+  private attemptSolidReconnect(): void {
+    if (this.solidReconnectTimeout) {
+      window.clearTimeout(this.solidReconnectTimeout);
+      this.solidReconnectTimeout = null;
+    }
+
+    if (this.solidReconnectAttempts >= this.solidMaxReconnectAttempts) {
+      logger.warn('Max Solid WebSocket reconnect attempts reached');
+      return;
+    }
+
+    this.solidReconnectAttempts++;
+    const delay = this.solidReconnectDelay * Math.pow(2, this.solidReconnectAttempts - 1);
+
+    logger.info(`Solid WebSocket reconnecting in ${delay}ms (attempt ${this.solidReconnectAttempts})`);
+
+    this.solidReconnectTimeout = window.setTimeout(() => {
+      this.connectSolid();
+    }, delay);
+  }
+
+  /**
+   * Subscribe to notifications for a Solid resource
+   * @param resourceUrl The URL of the resource to subscribe to
+   * @param callback Callback function called when resource changes
+   * @returns Unsubscribe function
+   */
+  public subscribeSolidResource(resourceUrl: string, callback: SolidNotificationCallback): () => void {
+    if (!this.solidSubscriptions.has(resourceUrl)) {
+      this.solidSubscriptions.set(resourceUrl, new Set());
+
+      // Send subscription if already connected
+      if (this.solidSocket?.readyState === WebSocket.OPEN) {
+        this.solidSocket.send(`sub ${resourceUrl}`);
+        logger.debug('Subscribed to Solid resource', { url: resourceUrl });
+      }
+    }
+
+    this.solidSubscriptions.get(resourceUrl)!.add(callback);
+
+    // Return unsubscribe function
+    return () => {
+      this.unsubscribeSolidResourceCallback(resourceUrl, callback);
+    };
+  }
+
+  /**
+   * Unsubscribe a specific callback from a Solid resource
+   */
+  private unsubscribeSolidResourceCallback(resourceUrl: string, callback: SolidNotificationCallback): void {
+    const callbacks = this.solidSubscriptions.get(resourceUrl);
+    if (callbacks) {
+      callbacks.delete(callback);
+
+      // If no more callbacks for this URL, unsubscribe from server
+      if (callbacks.size === 0) {
+        if (this.solidSocket?.readyState === WebSocket.OPEN) {
+          this.solidSocket.send(`unsub ${resourceUrl}`);
+          logger.debug('Unsubscribed from Solid resource', { url: resourceUrl });
+        }
+        this.solidSubscriptions.delete(resourceUrl);
+      }
+    }
+  }
+
+  /**
+   * Unsubscribe from all callbacks for a Solid resource
+   */
+  public unsubscribeSolidResource(resourceUrl: string): void {
+    if (this.solidSubscriptions.has(resourceUrl)) {
+      if (this.solidSocket?.readyState === WebSocket.OPEN) {
+        this.solidSocket.send(`unsub ${resourceUrl}`);
+        logger.debug('Unsubscribed from Solid resource (all callbacks)', { url: resourceUrl });
+      }
+      this.solidSubscriptions.delete(resourceUrl);
+    }
+  }
+
+  /**
+   * Disconnect Solid WebSocket and clear subscriptions
+   */
+  public disconnectSolid(): void {
+    if (this.solidReconnectTimeout) {
+      window.clearTimeout(this.solidReconnectTimeout);
+      this.solidReconnectTimeout = null;
+    }
+
+    if (this.solidSocket) {
+      try {
+        this.solidSocket.close(1000, 'Normal closure');
+        logger.info('Solid WebSocket disconnected by client');
+      } catch (error) {
+        logger.error('Error closing Solid WebSocket:', createErrorMetadata(error));
+      }
+      this.solidSocket = null;
+    }
+
+    this.solidSubscriptions.clear();
+    this.isSolidConnected = false;
+    this.solidReconnectAttempts = 0;
+  }
+
+  /**
+   * Check if Solid WebSocket is connected
+   */
+  public isSolidWebSocketConnected(): boolean {
+    return this.isSolidConnected && this.solidSocket?.readyState === WebSocket.OPEN;
+  }
+
+  /**
+   * Get list of currently subscribed Solid resources
+   */
+  public getSolidSubscriptions(): string[] {
+    return Array.from(this.solidSubscriptions.keys());
   }
 }
 

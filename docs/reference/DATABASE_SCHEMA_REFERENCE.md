@@ -798,12 +798,59 @@ FOR (n:GraphNode) ON (n.quality_score);
 | Schema Overview | Database Architecture | [schemas.md](./database/schemas.md) |
 | Ontology Schema | Ontology Schema V2 | [ontology-schema-v2.md](./database/ontology-schema-v2.md) |
 | User Settings | User Settings Schema | [user-settings-schema.md](./database/user-settings-schema.md) |
+| Solid Pod Schema | Decentralized Data Storage | [solid-pod-schema.md](./database/solid-pod-schema.md) |
 | API Queries | API Reference | [API_REFERENCE.md](./API_REFERENCE.md) |
 | Performance | Performance Benchmarks | [performance-benchmarks.md](./performance-benchmarks.md) |
 
 ---
 
-**Schema Reference Version**: 2.0
+## Solid Pod Integration
+
+VisionFlow supports decentralized data storage via Solid pods for user-owned data.
+
+### Pod Structure Overview
+
+```
+/pods/{npub}/
+  ├── profile/card          # WebID document
+  ├── ontology/
+  │   ├── contributions/    # User additions
+  │   ├── proposals/        # Pending proposals
+  │   └── annotations/      # Comments
+  ├── preferences/          # App settings
+  ├── agent-memory/         # AI agent storage
+  └── inbox/                # Notifications
+```
+
+### JSON-LD Contexts
+
+VisionFlow defines three JSON-LD contexts for Solid pod data:
+
+| Context | Purpose | Location |
+|---------|---------|----------|
+| `agent-memory.jsonld` | AI agent memory storage | Session and long-term memory |
+| `ontology-contribution.jsonld` | User ontology additions | Contributions and proposals |
+| `user-preferences.jsonld` | Application settings | Graph and filter preferences |
+
+### ACL Patterns
+
+| Container | Owner | Public | Reviewers | VisionFlow App |
+|-----------|-------|--------|-----------|----------------|
+| `profile/card` | RWC | R | - | R |
+| `ontology/contributions/` | RWC | - | - | R |
+| `ontology/proposals/` | RWC | - | R | R |
+| `ontology/annotations/` | RWC | R | R | R |
+| `preferences/` | RWC | - | - | R |
+| `agent-memory/` | RWC | - | - | RW |
+| `inbox/` | RWC | - | - | Append |
+
+**Legend**: R = Read, W = Write, C = Control, Append = Append-only
+
+For complete Solid pod documentation, see [solid-pod-schema.md](./database/solid-pod-schema.md).
+
+---
+
+**Schema Reference Version**: 2.1
 **VisionFlow Version**: v0.1.0
 **Maintainer**: VisionFlow Database Team
-**Last Updated**: December 18, 2025
+**Last Updated**: December 29, 2025

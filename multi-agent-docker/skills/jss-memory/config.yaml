@@ -1,0 +1,272 @@
+# JSS Memory Skill Configuration
+# Solid Pod memory persistence for AI agents with claude-flow integration
+
+name: jss-memory
+version: 1.0.0
+description: Solid Pod memory persistence for AI agents with JSON-LD semantic structure
+
+# Skill metadata
+metadata:
+  author: VisionFlow
+  license: MIT
+  repository: https://github.com/visionflow/jss-memory
+  documentation: https://visionflow.local/docs/skills/jss-memory
+  tags:
+    - memory
+    - persistence
+    - solid-pod
+    - claude-flow
+    - semantic
+    - json-ld
+
+# Claude-flow hooks integration
+hooks:
+  pre-task:
+    handler: hooks/jss-memory-sync.js
+    export: pre-task
+    description: Load agent memory from pod before task execution
+    timeout: 30000
+
+  post-task:
+    handler: hooks/jss-memory-sync.js
+    export: post-task
+    description: Save task results to pod as episodic memory
+    timeout: 30000
+
+  session-restore:
+    handler: hooks/jss-memory-sync.js
+    export: session-restore
+    description: Load previous session state from pod
+    timeout: 60000
+
+  session-end:
+    handler: hooks/jss-memory-sync.js
+    export: session-end
+    description: Save session summary and metrics to pod
+    timeout: 60000
+
+# Required environment variables
+requires:
+  - name: SOLID_POD_URL
+    description: URL of the Solid Pod server
+    default: http://localhost:3000
+    required: true
+
+  - name: NOSTR_SESSION_TOKEN
+    description: Nostr session token for authentication
+    required: false
+    sensitive: true
+
+  - name: JSS_CACHE_DIR
+    description: Local cache directory for offline operation
+    default: /tmp/jss-memory-cache
+    required: false
+
+  - name: JSS_DEBUG
+    description: Enable debug logging
+    default: "false"
+    required: false
+
+# Optional configuration
+optional:
+  - name: JSS_MAX_RETRIES
+    description: Maximum retry attempts for pod operations
+    default: 3
+
+  - name: JSS_RETRY_DELAY
+    description: Delay between retries in milliseconds
+    default: 1000
+
+  - name: JSS_MEMORY_TTL
+    description: Default TTL for episodic memories in seconds
+    default: 86400
+
+  - name: JSS_EMBEDDING_MODEL
+    description: Model to use for generating embeddings
+    default: text-embedding-3-small
+
+# Memory types supported
+memory_types:
+  episodic:
+    description: Task-specific memories with temporal context
+    path_template: /agent-{type}/memories/episodic/
+    retention: 30d
+
+  semantic:
+    description: Factual knowledge and relationships
+    path_template: /agent-{type}/memories/semantic/
+    retention: permanent
+
+  procedural:
+    description: Learned patterns and workflows
+    path_template: /agent-{type}/memories/procedural/
+    retention: permanent
+
+  session:
+    description: Session state and summaries
+    path_template: /agent-{type}/sessions/
+    retention: 7d
+
+# Agent type configurations
+agent_types:
+  coder:
+    memory_capacity: 1000
+    consolidation_threshold: 0.7
+    default_confidence: 0.85
+
+  tester:
+    memory_capacity: 500
+    consolidation_threshold: 0.8
+    default_confidence: 0.9
+
+  researcher:
+    memory_capacity: 2000
+    consolidation_threshold: 0.6
+    default_confidence: 0.75
+
+  reviewer:
+    memory_capacity: 500
+    consolidation_threshold: 0.85
+    default_confidence: 0.95
+
+  architect:
+    memory_capacity: 1000
+    consolidation_threshold: 0.75
+    default_confidence: 0.8
+
+  coordinator:
+    memory_capacity: 1500
+    consolidation_threshold: 0.7
+    default_confidence: 0.85
+
+  default:
+    memory_capacity: 500
+    consolidation_threshold: 0.7
+    default_confidence: 0.8
+
+# Schema configuration
+schema:
+  context_url: https://visionflow.local/ontology/agent-memory.jsonld
+  local_path: ../schemas/agent-memory.jsonld
+  version: "1.1"
+
+# Pod storage structure
+pod_structure:
+  base_path: /
+  containers:
+    - name: agent-{type}
+      description: Container for agent-specific data
+      children:
+        - name: memories
+          description: Agent memory storage
+          children:
+            - name: episodic
+              description: Episodic memories
+            - name: semantic
+              description: Semantic knowledge
+            - name: procedural
+              description: Procedural patterns
+        - name: sessions
+          description: Session state and summaries
+        - name: config
+          description: Agent configuration
+
+# Claude-flow coordination
+coordination:
+  namespace: coordination
+  key_prefix: swarm
+  sync_interval: 5000
+  broadcast_events:
+    - memory_stored
+    - session_started
+    - session_ended
+    - pattern_learned
+
+# Performance settings
+performance:
+  cache_enabled: true
+  cache_ttl: 300
+  batch_writes: true
+  batch_size: 10
+  batch_interval: 5000
+  compression: true
+  compression_threshold: 1024
+
+# Logging configuration
+logging:
+  level: info
+  format: json
+  include_timestamps: true
+  log_memory_access: false
+  log_pod_operations: true
+
+# Health check
+health:
+  enabled: true
+  interval: 60000
+  pod_connectivity_check: true
+  cache_size_threshold: 100mb
+
+# Feature flags
+features:
+  embedding_generation: false
+  similarity_search: false
+  memory_consolidation: true
+  cross_agent_sharing: true
+  automatic_cleanup: true
+  metrics_collection: true
+
+# MCP tool definitions (for future integration)
+tools:
+  - name: jss_store_memory
+    description: Store a memory to the agent's pod
+    parameters:
+      - name: agentType
+        type: string
+        required: true
+      - name: memoryType
+        type: string
+        enum: [episodic, semantic, procedural]
+        default: episodic
+      - name: content
+        type: object
+        required: true
+      - name: confidence
+        type: number
+        default: 0.8
+
+  - name: jss_retrieve_memory
+    description: Retrieve a specific memory from the pod
+    parameters:
+      - name: memoryId
+        type: string
+        required: true
+      - name: agentType
+        type: string
+        required: true
+
+  - name: jss_search_memories
+    description: Search agent memories by query
+    parameters:
+      - name: agentType
+        type: string
+        required: true
+      - name: query
+        type: string
+        required: true
+      - name: memoryType
+        type: string
+        default: episodic
+      - name: limit
+        type: integer
+        default: 10
+
+  - name: jss_get_session
+    description: Get current or previous session data
+    parameters:
+      - name: sessionId
+        type: string
+        required: true
+      - name: agentType
+        type: string
+        required: true

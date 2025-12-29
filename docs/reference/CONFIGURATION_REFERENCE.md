@@ -43,8 +43,10 @@ This comprehensive reference documents all configuration options for VisionFlow 
 | `.env` | Project root | Environment variables |
 | `data/settings.yaml` | Data directory | Application settings |
 | `docker-compose.yml` | Project root | Container configuration |
+| `docker-compose.solid.yml` | Project root | Solid sidecar configuration |
 | `config/database.yaml` | Config directory | Database settings |
 | `config/security.yaml` | Config directory | Security policies |
+| `config/solid.yaml` | Config directory | Solid/JSS settings |
 
 ### Configuration Precedence
 
@@ -221,6 +223,7 @@ GPU_MEMORY_LIMIT=16g
 | `ENABLE_WASM_ACCELERATION` | boolean | `false` | Enable WASM acceleration |
 | `ENABLE_GITHUB_SYNC` | boolean | `true` | Enable GitHub synchronization |
 | `ENABLE_METRICS` | boolean | `true` | Enable Prometheus metrics |
+| `ENABLE_SOLID` | boolean | `false` | Enable Solid/LDP integration |
 
 **Example**:
 ```bash
@@ -228,6 +231,7 @@ ENABLE_GPU=true
 ENABLE_XR=true
 ENABLE_NEURAL_ENHANCEMENT=true
 ENABLE_METRICS=true
+ENABLE_SOLID=true
 ```
 
 ### AI Service Configuration
@@ -274,6 +278,89 @@ LLM_MAX_TOKENS=8192
 | `TTS_PROVIDER` | string | `kokoro` | Text-to-speech provider |
 | `KOKORO_DEFAULT_VOICE` | string | `af-heart` | Kokoro voice ID |
 | `WHISPER_MODEL` | string | `base` | Whisper model size |
+
+### Solid Integration (JSS Sidecar)
+
+VisionFlow integrates with Solid pods via the JSON Solid Server (JSS) sidecar for decentralized data storage.
+
+#### JSS Server Configuration
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `JSS_ENABLED` | boolean | `false` | Enable Solid/JSS integration |
+| `JSS_HOST` | string | `jss` | JSS container hostname |
+| `JSS_PORT` | integer | `3000` | JSS HTTP port |
+| `JSS_BASE_URL` | string | `http://localhost:3000` | Public JSS base URL |
+| `JSS_ROOT_PATH` | string | `/data/pods` | Root path for pod storage |
+| `JSS_LOG_LEVEL` | string | `info` | JSS log level |
+
+**Example**:
+```bash
+JSS_ENABLED=true
+JSS_HOST=jss
+JSS_PORT=3000
+JSS_BASE_URL=https://solid.visionflow.example.com
+JSS_ROOT_PATH=/data/pods
+JSS_LOG_LEVEL=warn
+```
+
+#### Solid Authentication
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `SOLID_OIDC_ISSUER` | string | `""` | OIDC issuer URL for Solid auth |
+| `SOLID_ALLOW_NOSTR_AUTH` | boolean | `true` | Allow NIP-98 authentication |
+| `SOLID_DPOP_ENABLED` | boolean | `true` | Enable DPoP token binding |
+| `SOLID_SESSION_TIMEOUT` | integer | `3600` | Session timeout in seconds |
+
+#### Pod Management
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `SOLID_AUTO_PROVISION_PODS` | boolean | `true` | Auto-create pods for new users |
+| `SOLID_DEFAULT_QUOTA` | string | `1GB` | Default pod storage quota |
+| `SOLID_MAX_POD_SIZE` | string | `10GB` | Maximum pod storage size |
+| `SOLID_BACKUP_ENABLED` | boolean | `true` | Enable pod backups |
+| `SOLID_BACKUP_INTERVAL` | integer | `86400` | Backup interval in seconds |
+
+#### WebSocket Notifications
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `SOLID_WS_ENABLED` | boolean | `true` | Enable WebSocket notifications |
+| `SOLID_WS_PORT` | integer | `3001` | WebSocket notification port |
+| `SOLID_WS_HEARTBEAT` | integer | `30` | WebSocket heartbeat interval |
+| `SOLID_NOTIFY_ON_CREATE` | boolean | `true` | Notify on resource creation |
+| `SOLID_NOTIFY_ON_UPDATE` | boolean | `true` | Notify on resource update |
+| `SOLID_NOTIFY_ON_DELETE` | boolean | `true` | Notify on resource deletion |
+
+**Example**:
+```bash
+SOLID_WS_ENABLED=true
+SOLID_WS_PORT=3001
+SOLID_WS_HEARTBEAT=30
+SOLID_NOTIFY_ON_CREATE=true
+SOLID_NOTIFY_ON_UPDATE=true
+SOLID_NOTIFY_ON_DELETE=true
+```
+
+#### Neo4j to Solid Sync
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `SOLID_SYNC_ENABLED` | boolean | `true` | Enable Neo4j-Solid sync |
+| `SOLID_SYNC_INTERVAL` | integer | `60` | Sync check interval in seconds |
+| `SOLID_SYNC_BATCH_SIZE` | integer | `100` | Nodes per sync batch |
+| `SOLID_SYNC_FORMAT` | string | `turtle` | RDF serialization format |
+| `SOLID_SYNC_INCLUDE_METADATA` | boolean | `true` | Include node metadata |
+
+**Example**:
+```bash
+SOLID_SYNC_ENABLED=true
+SOLID_SYNC_INTERVAL=60
+SOLID_SYNC_BATCH_SIZE=100
+SOLID_SYNC_FORMAT=turtle
+```
 
 ### Logging & Monitoring
 
@@ -511,6 +598,8 @@ Content-Type: application/json
 | `delta-encoding` | `false` | WebSocket delta encoding (V4) |
 | `quantum-resistant-auth` | `false` | Post-quantum cryptography |
 | `distributed-reasoning` | `false` | Multi-node reasoning |
+| `solid-integration` | `false` | Solid/LDP pod integration |
+| `nostr-solid-auth` | `false` | NIP-98 auth for Solid endpoints |
 
 ---
 

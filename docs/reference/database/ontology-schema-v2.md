@@ -449,6 +449,168 @@ let config = Neo4jOntologyConfig {
 - [Complete API Reference](../API_REFERENCE.md)
 - [Database Schema Reference](../DATABASE_SCHEMA_REFERENCE.md)
 
+---
+
+## Solid-Based Ontology Distribution
+
+VisionFlow supports decentralized ontology distribution via Solid pods, enabling community contributions and federated ontology management.
+
+### Architecture Overview
+
+```mermaid
+flowchart TD
+    A[User Solid Pod] --> B[Contribution Container]
+    B --> C[Proposal Queue]
+    C --> D{Review Process}
+    D -->|Approved| E[Central Ontology]
+    D -->|Rejected| F[Feedback to User]
+    E --> G[GitHub Sync]
+    E --> H[Neo4j Graph]
+    E --> I[SQLite Cache]
+```
+
+### User Contribution Workflow
+
+1. **Submission**: User creates ontology contribution in their Solid pod
+2. **Proposal**: Contribution is submitted as a proposal to the review queue
+3. **Review**: Power users review and vote on proposals
+4. **Approval**: Approved contributions are merged into the central ontology
+5. **Distribution**: Changes propagate to all connected systems
+
+#### Contribution Lifecycle
+
+| Status | Description | Location |
+|--------|-------------|----------|
+| `draft` | User working on contribution | `/pods/{npub}/ontology/contributions/` |
+| `proposed` | Submitted for review | `/pods/{npub}/ontology/proposals/` |
+| `under_review` | Being evaluated by reviewers | Central review queue |
+| `approved` | Accepted into ontology | Central ontology + GitHub |
+| `rejected` | Not accepted (with feedback) | User inbox |
+| `deprecated` | Previously approved, now superseded | Archive |
+
+### Proposal Schema
+
+Proposals for ontology additions follow this JSON-LD structure:
+
+```json
+{
+  "@context": {
+    "@vocab": "https://visionflow.io/vocab/",
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "proposal": "https://visionflow.io/vocab/proposal#"
+  },
+  "@id": "urn:proposal:BC-0500-draft",
+  "@type": "proposal:OntologyProposal",
+  "proposal:status": "proposed",
+  "proposal:submittedBy": "npub1abc123...",
+  "proposal:submittedAt": "2024-12-29T10:00:00Z",
+  "proposal:reviewDeadline": "2025-01-05T10:00:00Z",
+  "proposal:votes": {
+    "approve": 3,
+    "reject": 1,
+    "abstain": 0
+  },
+  "proposal:proposedTerm": {
+    "@type": "owl:Class",
+    "@id": "https://visionflow.io/ontology/blockchain#ZeroKnowledgeProof",
+    "rdfs:label": "Zero-Knowledge Proof",
+    "rdfs:comment": "A cryptographic method by which one party can prove to another that a statement is true without revealing any additional information.",
+    "skos:prefLabel": "Zero-Knowledge Proof",
+    "skos:altLabel": ["ZKP", "ZK Proof"],
+    "dcterms:identifier": "BC-0500",
+    "rdfs:subClassOf": "https://visionflow.io/ontology/blockchain#CryptographicPrimitive"
+  },
+  "proposal:justification": "ZKPs are fundamental to privacy-preserving blockchain protocols and need formal ontological representation.",
+  "proposal:references": [
+    "https://doi.org/10.1007/3-540-47721-7_11",
+    "https://ethereum.org/en/zero-knowledge-proofs/"
+  ]
+}
+```
+
+### SQL Schema for Proposal Tracking
+
+```sql
+CREATE TABLE IF NOT EXISTS ontology_proposals (
+    id TEXT PRIMARY KEY,
+    submitter_npub TEXT NOT NULL,
+    proposed_iri TEXT NOT NULL,
+    proposal_json TEXT NOT NULL,  -- Full JSON-LD proposal
+    status TEXT NOT NULL DEFAULT 'proposed' CHECK (status IN (
+        'draft',
+        'proposed',
+        'under_review',
+        'approved',
+        'rejected',
+        'deprecated'
+    )),
+    votes_approve INTEGER DEFAULT 0,
+    votes_reject INTEGER DEFAULT 0,
+    votes_abstain INTEGER DEFAULT 0,
+    review_deadline DATETIME,
+    reviewer_comments TEXT,  -- JSON array of reviewer comments
+    submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    resolved_at DATETIME,
+    resolved_by TEXT,
+
+    FOREIGN KEY (submitter_npub) REFERENCES users(npub)
+);
+
+CREATE INDEX idx_proposals_status ON ontology_proposals(status);
+CREATE INDEX idx_proposals_submitter ON ontology_proposals(submitter_npub);
+CREATE INDEX idx_proposals_deadline ON ontology_proposals(review_deadline);
+```
+
+### Review Process Cypher Queries
+
+#### Get Pending Proposals
+
+```cypher
+MATCH (p:OntologyProposal)
+WHERE p.status = 'proposed'
+  AND p.reviewDeadline > datetime()
+RETURN p
+ORDER BY p.submittedAt ASC
+LIMIT 50
+```
+
+#### Record Vote
+
+```cypher
+MATCH (p:OntologyProposal {id: $proposalId})
+MATCH (u:User {pubkey: $voterPubkey})
+WHERE u.is_power_user = true
+  AND NOT (u)-[:VOTED_ON]->(p)
+CREATE (u)-[:VOTED_ON {vote: $vote, votedAt: datetime()}]->(p)
+SET p[$vote + '_count'] = coalesce(p[$vote + '_count'], 0) + 1
+RETURN p
+```
+
+#### Approve Proposal
+
+```cypher
+MATCH (p:OntologyProposal {id: $proposalId})
+WHERE p.votes_approve >= 3
+  AND p.votes_approve > p.votes_reject
+SET p.status = 'approved',
+    p.resolvedAt = datetime(),
+    p.resolvedBy = $approverPubkey
+
+WITH p
+CALL apoc.convert.fromJsonMap(p.proposalJson) YIELD value
+CREATE (c:OwlClass)
+SET c = value.proposedTerm,
+    c.approvedFromProposal = p.id,
+    c.createdAt = datetime()
+
+RETURN c
+```
+
+---
+
 ## Summary
 
 The Neo4j Rich Ontology Schema V2 provides:
@@ -463,5 +625,8 @@ The Neo4j Rich Ontology Schema V2 provides:
 - ✅ Full backward compatibility
 - ✅ Comprehensive error handling
 - ✅ Dual-write consistency with SQLite
+- ✅ Solid-based ontology distribution
+- ✅ Community contribution workflow
+- ✅ Proposal review and voting system
 
 The adapter is production-ready and fully tested.
