@@ -88,10 +88,12 @@ class NostrAuthService {
     logger.debug('Initializing NostrAuthService...');
 
     // DEV MODE: Auto-login as power user when in development
-    const isDev = import.meta.env.DEV || window.location.hostname === '192.168.0.51' || window.location.port === '5173';
-    if (isDev) {
+    // SECURITY: Controlled via VITE_DEV_MODE_AUTH env var (default: false)
+    const isDev = import.meta.env.DEV;
+    const devModeAuthEnabled = import.meta.env.VITE_DEV_MODE_AUTH === 'true';
+    if (isDev && devModeAuthEnabled) {
       logger.info('[DEV MODE] Auto-authenticating as power user');
-      const devPowerUserPubkey = 'bfcf20d472f0fb143b23cb5be3fa0a040d42176b71f73ca272f6912b1d62a452';
+      const devPowerUserPubkey = import.meta.env.VITE_DEV_POWER_USER_PUBKEY || 'bfcf20d472f0fb143b23cb5be3fa0a040d42176b71f73ca272f6912b1d62a452';
       this.sessionToken = 'dev-session-token';
       this.currentUser = {
         pubkey: devPowerUserPubkey,

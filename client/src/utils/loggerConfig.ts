@@ -1,10 +1,12 @@
 
 
-import { createLogger as createBaseLogger, createErrorMetadata, createDataMetadata, LoggerOptions, DEFAULT_LOG_LEVEL, LogEntry } from './baseLogger';
+import { createLogger as createBaseLogger, createErrorMetadata, createDataMetadata, DEFAULT_LOG_LEVEL } from './baseLogger';
+import type { LoggerOptions, LogEntry } from './baseLogger';
 import { clientDebugState } from './clientDebugState';
 
 // Re-export utility functions and types for backward compatibility
-export { createErrorMetadata, createDataMetadata, LogEntry };
+export { createErrorMetadata, createDataMetadata };
+export type { LogEntry };
 
 // Agent-specific telemetry types
 export interface AgentTelemetryData {

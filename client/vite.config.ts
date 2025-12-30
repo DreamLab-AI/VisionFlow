@@ -53,22 +53,17 @@ export default defineConfig({
     port: parseInt(process.env.VITE_DEV_SERVER_PORT || '5173'),
     strictPort: true,
 
-    // Allow Cloudflare Tunnel hostname
+    // Allow hosts from environment (comma-separated) + local dev IP
     allowedHosts: [
-      'www.visionflow.info',
-      'visionflow.info',
-      'localhost',
-      '192.168.0.51'
-    ],
+      ...(process.env.VITE_ALLOWED_HOSTS?.split(',') || ['localhost']),
+      process.env.VITE_LOCAL_DEV_IP,
+    ].filter(Boolean) as string[],
 
-    // HMR configuration for development
+    // HMR configuration for development (configurable via env)
     hmr: {
-      // This is the crucial part for Docker environments.
-      // It tells Vite's HMR client to connect to the Nginx proxy port (3001)
-      // on the host machine, which then forwards the request to Vite's actual HMR port.
-      // The path must match the location block in nginx.dev.conf.
-      clientPort: 3001,
-      path: '/vite-hmr',
+      // Client port for Docker/proxy environments (Nginx forwards to Vite)
+      clientPort: parseInt(process.env.VITE_HMR_CLIENT_PORT || '3001'),
+      path: process.env.VITE_HMR_PATH || '/vite-hmr',
     },
 
     // File watching for Docker environments

@@ -52,17 +52,14 @@ const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
 };
 
 const LOG_COLORS = {
-  debug: '#8c8c8c', 
-  info: '#4c9aff',  
-  warn: '#ffab00',  
-  error: '#ff5630', 
+  debug: '#8c8c8c',
+  info: '#4c9aff',
+  warn: '#ffab00',
+  error: '#ff5630',
 };
 
-// Central log storage
-const logStorage: LogEntry[] = [];
-const DEFAULT_MAX_LOG_ENTRIES = 1000;
-
-export interface LogEntry {
+// Interface definitions
+interface LogEntryType {
   timestamp: string;
   level: LogLevel;
   namespace: string;
@@ -70,12 +67,20 @@ export interface LogEntry {
   args: any[];
 }
 
-export interface LoggerOptions {
+interface LoggerOptionsType {
   disabled?: boolean;
   level?: LogLevel;
   maxLogEntries?: number;
   respectRuntimeSettings?: boolean;
 }
+
+// Export type aliases for external use
+export type LogEntry = LogEntryType;
+export type LoggerOptions = LoggerOptionsType;
+
+// Central log storage (uses LogEntry interface)
+const logStorage: LogEntry[] = [];
+const DEFAULT_MAX_LOG_ENTRIES = 1000;
 
 
 function getEnvironmentLogLevel(): LogLevel {
