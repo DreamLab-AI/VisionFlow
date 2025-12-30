@@ -15,7 +15,8 @@ class GeodesicPolyhedronGeometry extends THREE.PolyhedronGeometry {
       4, 9, 5,  2, 4, 11,  6, 2, 10,  8, 6, 7,  9, 8, 1
     ];
     super(vertices, indices, radius, detail);
-    this.type = 'GeodesicPolyhedronGeometry';
+    // Use Object.defineProperty to set the type as it's readonly on the parent
+    Object.defineProperty(this, 'type', { value: 'GeodesicPolyhedronGeometry', writable: false });
   }
 }
 

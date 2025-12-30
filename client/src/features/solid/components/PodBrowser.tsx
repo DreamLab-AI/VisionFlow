@@ -4,20 +4,18 @@
  */
 
 import React, { useState, useCallback, useMemo } from 'react';
-import {
-  Folder,
-  FolderOpen,
-  File,
-  FileJson,
-  ChevronRight,
-  ChevronDown,
-  RefreshCw,
-  Trash2,
-  Copy,
-  Plus,
-  Home,
-  MoreVertical,
-} from 'lucide-react';
+import Folder from 'lucide-react/dist/esm/icons/folder';
+import FolderOpen from 'lucide-react/dist/esm/icons/folder-open';
+import File from 'lucide-react/dist/esm/icons/file';
+import FileJson from 'lucide-react/dist/esm/icons/file-json';
+import ChevronRight from 'lucide-react/dist/esm/icons/chevron-right';
+import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down';
+import RefreshCw from 'lucide-react/dist/esm/icons/refresh-cw';
+import Trash2 from 'lucide-react/dist/esm/icons/trash-2';
+import Copy from 'lucide-react/dist/esm/icons/copy';
+import Plus from 'lucide-react/dist/esm/icons/plus';
+import Home from 'lucide-react/dist/esm/icons/home';
+import MoreVertical from 'lucide-react/dist/esm/icons/more-vertical';
 import { Button } from '@/features/design-system/components/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/features/design-system/components/Card';
 import { ScrollArea } from '@/features/design-system/components/ScrollArea';

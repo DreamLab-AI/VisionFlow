@@ -16,13 +16,13 @@ export type {
   SolidNotificationCallback
 } from './WebSocketService';
 
-export { default as VoiceWebSocketService } from './VoiceWebSocketService';
+export { VoiceWebSocketService } from './VoiceWebSocketService';
 
 // Binary Protocol
 export { binaryProtocol, MessageType, GraphTypeFlag } from './BinaryWebSocketProtocol';
 
 // Authentication
-export { nostrAuth, default as nostrAuthService } from './nostrAuthService';
+export { nostrAuth } from './nostrAuthService';
 
 // Solid/JSS Pod Service
 export { default as solidPodService } from './SolidPodService';
@@ -34,15 +34,15 @@ export type {
 } from './SolidPodService';
 
 // Audio Services
-export { default as AudioContextManager } from './AudioContextManager';
-export { default as AudioInputService } from './AudioInputService';
-export { default as AudioOutputService } from './AudioOutputService';
+export { AudioContextManager } from './AudioContextManager';
+export { AudioInputService } from './AudioInputService';
+export { AudioOutputService } from './AudioOutputService';
 
 // Platform & Hardware
-export { default as platformManager } from './platformManager';
-export { default as Quest3AutoDetector } from './quest3AutoDetector';
-export { default as SpaceDriverService } from './SpaceDriverService';
+export { platformManager } from './platformManager';
+export { quest3AutoDetector, Quest3AutoDetector } from './quest3AutoDetector';
+export { SpaceDriver } from './SpaceDriverService';
 
 // API Services
-export { default as interactionApi } from './interactionApi';
-export { default as remoteLogger } from './remoteLogger';
+export { interactionApi } from './interactionApi';
+export { remoteLogger, createRemoteLogger } from './remoteLogger';

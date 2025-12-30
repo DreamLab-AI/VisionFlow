@@ -1,4 +1,6 @@
 // Bots visualization exports
-export { BotsVisualization } from './components/BotsVisualization';
-export { botsPhysicsWorker } from './workers/BotsPhysicsWorker';
+// Note: Component is in BotsVisualizationFixed.tsx but exported as BotsVisualization
+export { BotsVisualization } from './components/BotsVisualizationFixed';
+// Note: BotsPhysicsWorker was removed - physics now handled inline
+// export { botsPhysicsWorker } from './workers/BotsPhysicsWorker';
 export * from './types/BotsTypes';

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useMemo } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
-import { useSettingsStore } from '@/stores/settingsStore';
+import { useSettingsStore } from '@/store/settingsStore';
 import { Text } from '@react-three/drei';
 
 
@@ -45,13 +45,14 @@ export const AgentNodesLayer: React.FC<AgentNodesLayerProps> = ({
   const { settings } = useSettingsStore();
   const groupRef = useRef<THREE.Group>(null);
 
-  
-  const showAgents = settings?.agents?.visualization?.show_in_graph ?? true;
-  const nodeSize = settings?.agents?.visualization?.node_size ?? 1.5;
-  const baseColor = settings?.agents?.visualization?.node_color ?? '#ff8800';
-  const showConnections = settings?.agents?.visualization?.show_connections ?? true;
-  const connectionColor = settings?.agents?.visualization?.connection_color ?? '#fbbf24';
-  const animateActivity = settings?.agents?.visualization?.animate_activity ?? true;
+  // Type assertion for extended settings that may include agents
+  const agentViz = (settings as any)?.agents?.visualization;
+  const showAgents = agentViz?.show_in_graph ?? true;
+  const nodeSize = agentViz?.node_size ?? 1.5;
+  const baseColor = agentViz?.node_color ?? '#ff8800';
+  const showConnections = agentViz?.show_connections ?? true;
+  const connectionColor = agentViz?.connection_color ?? '#fbbf24';
+  const animateActivity = agentViz?.animate_activity ?? true;
 
   if (!showAgents || agents.length === 0) {
     return null;
@@ -287,14 +288,7 @@ const AgentConnection: React.FC<{
   const opacity = connection.type === 'communication' ? 0.5 : 0.3;
 
   return (
-    <line ref={lineRef} geometry={geometry}>
-      <lineBasicMaterial
-        color={color}
-        linewidth={lineWidth}
-        transparent
-        opacity={opacity}
-      />
-    </line>
+    <primitive object={new THREE.Line(geometry, new THREE.LineBasicMaterial({ color, linewidth: lineWidth, transparent: true, opacity }))} ref={lineRef} />
   );
 };
 
@@ -303,6 +297,10 @@ export const useAgentNodes = () => {
   const [agents, setAgents] = React.useState<AgentNode[]>([]);
   const [connections, setConnections] = React.useState<AgentConnection[]>([]);
   const { settings } = useSettingsStore();
+
+  // Type assertion for extended settings with agents
+  const agentMonitoring = (settings as any)?.agents?.monitoring;
+  const pollInterval = agentMonitoring?.telemetry_poll_interval || 5;
 
   useEffect(() => {
     const pollAgents = async () => {
@@ -329,8 +327,8 @@ export const useAgentNodes = () => {
       }
     };
 
-    
-    const interval = (settings?.agents?.monitoring?.telemetry_poll_interval || 5) * 1000;
+    // Poll at the configured interval
+    const interval = pollInterval * 1000;
 
     const timer = setInterval(() => {
       pollAgents();
@@ -341,7 +339,7 @@ export const useAgentNodes = () => {
     pollConnections();
 
     return () => clearInterval(timer);
-  }, [settings?.agents?.monitoring?.telemetry_poll_interval]);
+  }, [pollInterval]);
 
   return { agents, connections };
 };

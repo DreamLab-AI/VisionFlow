@@ -38,7 +38,7 @@ export function useWebSocketErrorHandler() {
                 await new Promise(resolve => setTimeout(resolve, error.retryAfter));
               }
               
-              await webSocketService.processMessageQueue();
+              await (webSocketService as any).processMessageQueue?.();
             },
             metadata: {
               retryAfter: error.retryAfter,

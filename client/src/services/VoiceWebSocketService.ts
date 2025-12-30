@@ -1,7 +1,7 @@
 
 
 import { AudioOutputService } from './AudioOutputService';
-import { AudioInputService, AudioChunk } from './AudioInputService';
+import { AudioInputService, AudioChunk, AudioInputState } from './AudioInputService';
 import { useSettingsStore } from '../store/settingsStore';
 import { gatedConsole } from '../utils/console';
 import { createLogger } from '../utils/loggerConfig';
@@ -135,7 +135,7 @@ export class VoiceWebSocketService {
           break;
 
         case 'error':
-          const errorMsg = message.data || message.error || 'Unknown voice service error';
+          const errorMsg = (message as any).data || (message as any).error || 'Unknown voice service error';
           gatedConsole.voice.error('Voice service error:', errorMsg);
           this.emit('voiceError', errorMsg);
           break;
@@ -187,7 +187,7 @@ export class VoiceWebSocketService {
   }
 
   
-  async startAudioStreaming(options?: { language?: string }): Promise<void> {
+  async startAudioStreaming(options?: { language?: string; model?: string }): Promise<void> {
     if (!this.isConnected()) {
       throw new Error('Not connected to voice service');
     }

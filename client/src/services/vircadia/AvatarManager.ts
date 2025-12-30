@@ -107,6 +107,7 @@ export class AvatarManager {
             username,
             position: new THREE.Vector3(),
             rotation: new THREE.Quaternion(),
+            // @ts-ignore - THREE.js type mismatch between Mesh and Object3D
             mesh
         };
 
@@ -209,7 +210,7 @@ export class AvatarManager {
                 return;
             }
 
-            const avatarEntities = result.result as any[];
+            const avatarEntities = (result as any).result as any[];
 
             for (const entity of avatarEntities) {
                 const agentId = entity.general__entity_name.replace('avatar_', '');
@@ -306,6 +307,7 @@ export class AvatarManager {
         logger.info(`Removing avatar: ${avatar.username}`);
 
         if (avatar.mesh) {
+            // @ts-ignore - THREE.js type mismatch between Object3D variants
             this.scene.remove(avatar.mesh);
             if (avatar.mesh instanceof THREE.Mesh) {
                 avatar.mesh.geometry.dispose();

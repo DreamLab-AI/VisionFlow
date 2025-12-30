@@ -1,8 +1,11 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useThree } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { SpacePilotController, SpacePilotConfig, defaultSpacePilotConfig } from '../controls/SpacePilotController';
 import { useSettingsStore } from '../../../store/settingsStore';
+
+// Type alias for OrbitControls
+type OrbitControls = OrbitControlsImpl;
 
 import { SpaceDriver } from '../../../services/SpaceDriverService';
 
@@ -117,22 +120,22 @@ export function useSpacePilot(options: SpacePilotOptions = {}): SpacePilotHookRe
     };
 
     
-    SpaceDriver.addEventListener('translate', handleTranslate);
-    SpaceDriver.addEventListener('rotate', handleRotate);
-    SpaceDriver.addEventListener('buttons', handleButtons);
-    SpaceDriver.addEventListener('connect', handleConnect);
-    SpaceDriver.addEventListener('disconnect', handleDisconnect);
+    SpaceDriver.addEventListener('translate', handleTranslate as EventListener);
+    SpaceDriver.addEventListener('rotate', handleRotate as EventListener);
+    SpaceDriver.addEventListener('buttons', handleButtons as EventListener);
+    SpaceDriver.addEventListener('connect', handleConnect as EventListener);
+    SpaceDriver.addEventListener('disconnect', handleDisconnect as EventListener);
 
     
     
     
 
     return () => {
-      SpaceDriver.removeEventListener('translate', handleTranslate);
-      SpaceDriver.removeEventListener('rotate', handleRotate);
-      SpaceDriver.removeEventListener('buttons', handleButtons);
-      SpaceDriver.removeEventListener('connect', handleConnect);
-      SpaceDriver.removeEventListener('disconnect', handleDisconnect);
+      SpaceDriver.removeEventListener('translate', handleTranslate as EventListener);
+      SpaceDriver.removeEventListener('rotate', handleRotate as EventListener);
+      SpaceDriver.removeEventListener('buttons', handleButtons as EventListener);
+      SpaceDriver.removeEventListener('connect', handleConnect as EventListener);
+      SpaceDriver.removeEventListener('disconnect', handleDisconnect as EventListener);
     };
   }, [enabled, isSupported, onConnect, onDisconnect]);
 
@@ -179,13 +182,11 @@ export function useSpacePilot(options: SpacePilotOptions = {}): SpacePilotHookRe
     onModeChange?.(mode);
     
     
-    const updateSettings = useSettingsStore.getState().updateSettings;
-    updateSettings({
-      visualisation: {
-        spacePilot: {
-          mode
-        }
-      }
+    const updateSettingsFn = useSettingsStore.getState().updateSettings;
+    updateSettingsFn((draft) => {
+      if (!draft.visualisation) draft.visualisation = {} as any;
+      if (!draft.visualisation.spacePilot) draft.visualisation.spacePilot = {} as any;
+      (draft.visualisation.spacePilot as any).mode = mode;
     });
   }, [onModeChange]);
 
@@ -196,11 +197,10 @@ export function useSpacePilot(options: SpacePilotOptions = {}): SpacePilotHookRe
     controllerRef.current?.updateConfig(mergedConfig);
     
     
-    const updateSettings = useSettingsStore.getState().updateSettings;
-    updateSettings({
-      visualisation: {
-        spacePilot: mergedConfig
-      }
+    const updateSettingsFn = useSettingsStore.getState().updateSettings;
+    updateSettingsFn((draft) => {
+      if (!draft.visualisation) draft.visualisation = {} as any;
+      (draft.visualisation as any).spacePilot = mergedConfig;
     });
   }, []);
 

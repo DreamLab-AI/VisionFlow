@@ -354,7 +354,7 @@ class CoreConnectionManager {
                 reject(new Error("Query timeout"));
             }, timeoutMs);
 
-            this.pendingRequests.set(requestId, { resolve, reject, timeout });
+            this.pendingRequests.set(requestId, { resolve: resolve as (value: unknown) => void, reject, timeout });
 
             const request: QueryRequest = {
                 type: MessageType.QUERY_REQUEST,

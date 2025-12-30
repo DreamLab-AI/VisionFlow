@@ -34,9 +34,9 @@ const GraphCanvas: React.FC = () => {
     const { settings } = useSettingsStore();
     const showStats = settings?.system?.debug?.enablePerformanceDebug ?? false;
     const xrEnabled = settings?.xr?.enabled !== false;
-    const enableBloom = settings?.visualisation?.bloom?.enabled ?? false;
+    // Note: bloom was merged into glow settings
     const enableGlow = settings?.visualisation?.glow?.enabled ?? false;
-    const useMultiLayerBloom = enableBloom || enableGlow; 
+    const useMultiLayerBloom = enableGlow; 
     const enableHologram = settings?.visualisation?.graphs?.logseq?.nodes?.enableHologram ?? false;
     
     
@@ -131,7 +131,7 @@ const GraphCanvas: React.FC = () => {
                 
                 {}
                 {canvasReady && graphData.nodes.length > 0 && (
-                    <GraphManager graphData={graphData} />
+                    <GraphManager />
                 )}
                 
                 {}
@@ -160,7 +160,7 @@ const GraphCanvas: React.FC = () => {
                 {}
                 
                 {}
-                <SelectiveBloom enabled={enableBloom || enableGlow} />
+                <SelectiveBloom enabled={enableGlow} />
                 
                 {}
                 {showStats && <Stats />}

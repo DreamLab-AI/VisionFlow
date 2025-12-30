@@ -421,7 +421,7 @@ class WebSocketService {
       }
 
       if (debugState.isDataDebugEnabled()) {
-        logger.debug(`Received WebSocket message: ${message.type}`, message.data);
+        logger.debug(`Received WebSocket message: ${message.type}`, (message as any).data);
       }
 
 
@@ -433,8 +433,8 @@ class WebSocketService {
       }
 
 
-      if (message.type === 'error' && message.error) {
-        this.handleErrorFrame(message.error);
+      if (message.type === 'error' && (message as any).error) {
+        this.handleErrorFrame((message as any).error as WebSocketErrorFrame);
         return;
       }
 
@@ -495,7 +495,7 @@ class WebSocketService {
 
       this.messageHandlers.forEach(handler => {
         try {
-          handler(message);
+          handler(message as any);
         } catch (error) {
           logger.error('Error in message handler:', createErrorMetadata(error));
         }
@@ -740,7 +740,7 @@ class WebSocketService {
   }
 
   public sendMessage(type: string, data?: any): void {
-    const message: WebSocketMessage = { type, data };
+    const message = { type, data } as any;
     const messageStr = JSON.stringify(message);
 
     if (!this.isConnected || !this.socket) {
@@ -981,7 +981,9 @@ class WebSocketService {
       const binaryNodes: BinaryNodeData[] = updates.map(update => ({
         nodeId: update.nodeId,
         position: update.position,
-        velocity: update.velocity || {x: 0, y: 0, z: 0}
+        velocity: update.velocity || {x: 0, y: 0, z: 0},
+        ssspDistance: 0,
+        ssspParent: -1
       }));
 
 
@@ -1025,7 +1027,7 @@ class WebSocketService {
   }
 
   public onMessage(handler: MessageHandler): () => void {
-    this.messageHandlers.push(handler);
+    this.messageHandlers.push(handler as any);
     return () => {
       this.messageHandlers = this.messageHandlers.filter(h => h !== handler);
     };

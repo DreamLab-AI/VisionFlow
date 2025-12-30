@@ -13,6 +13,9 @@ const logger = createLogger('GraphDataManager');
 // Re-export types from worker proxy for compatibility
 export type { Node, Edge, GraphData } from './graphWorkerProxy';
 
+// Alias for backward compatibility
+export type GraphNode = Node;
+
 type GraphDataChangeListener = (data: GraphData) => void;
 type PositionUpdateListener = (positions: Float32Array) => void;
 
@@ -158,8 +161,9 @@ class GraphDataManager {
 
         
         
-        const enrichedNodes = nodes.map(node => {
-          const nodeMetadata = metadata[node.metadata_id || node.metadataId];
+        const enrichedNodes = nodes.map((node: Node) => {
+          const nodeAny = node as any;
+          const nodeMetadata = metadata[nodeAny.metadata_id || nodeAny.metadataId];
           if (nodeMetadata) {
             return { ...node, metadata: { ...node.metadata, ...nodeMetadata } };
           }

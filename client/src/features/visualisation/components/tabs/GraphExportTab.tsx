@@ -4,6 +4,7 @@ import React, { useState, useCallback } from 'react';
 import {
   Download,
   Share,
+  // @ts-ignore - Icon exists in lucide-react but types may be outdated
   FileImage,
   FileText,
   Database,
@@ -103,10 +104,7 @@ export const GraphExportTab: React.FC<GraphExportTabProps> = ({
         toast({
           title: "Export Complete",
           description: `Graph exported as ${options.format.toUpperCase()} successfully`,
-          action: result.downloadUrl ? {
-            label: "Download",
-            onClick: () => window.open(result.downloadUrl, '_blank')
-          } : undefined
+          // Note: toast action would go here if needed
         });
         onExport?.(options.format, options);
       } else {
@@ -154,17 +152,7 @@ export const GraphExportTab: React.FC<GraphExportTabProps> = ({
 
         toast({
           title: "Share Link Created",
-          description: copied ? "Link copied to clipboard automatically" : "Share link created successfully",
-          action: {
-            label: copied ? "Copy Again" : "Copy Link",
-            onClick: async () => {
-              const success = await copyToClipboard(result.shareUrl!);
-              toast({
-                title: success ? "Link copied to clipboard" : "Copy failed",
-                variant: success ? "default" : "destructive"
-              });
-            }
-          }
+          description: copied ? "Link copied to clipboard automatically" : "Share link created successfully"
         });
       } else {
         throw new Error(result.message || 'Share failed');
@@ -206,10 +194,7 @@ export const GraphExportTab: React.FC<GraphExportTabProps> = ({
         toast({
           title: "Graph Published",
           description: "Your graph is now available in the public repository",
-          action: result.publishUrl ? {
-            label: "View Published",
-            onClick: () => window.open(result.publishUrl, '_blank')
-          } : undefined
+          // Note: toast action would go here if needed
         });
       } else {
         throw new Error(result.message || 'Publish failed');

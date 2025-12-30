@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import Bug from 'lucide-react/dist/esm/icons/bug';
-import X from 'lucide-react/dist/esm/icons/x';
+import { Bug, X } from 'lucide-react';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { debugControl, DebugCategory } from '@/utils/console';
 import { clientDebugState, debugState } from '@/utils/clientDebugState';

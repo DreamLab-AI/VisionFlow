@@ -2,7 +2,7 @@ import { useCallback, useEffect } from 'react';
 import { ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { throttle } from 'lodash';
-import { graphDataManager } from '../managers/graphDataManager';
+import { graphDataManager, type GraphData, type Node } from '../managers/graphDataManager';
 import { graphWorkerProxy } from '../managers/graphWorkerProxy';
 import { createBinaryNodeData, BinaryNodeData } from '../../../types/binaryProtocol';
 import { createLogger } from '../../../utils/loggerConfig';
@@ -54,12 +54,14 @@ export const createEventHandlers = (
       if (shouldSendPositionUpdates()) {
         const numericId = graphDataManager.nodeIdMap.get(nodeId);
         if (numericId !== undefined && graphDataManager.webSocketService?.isReady()) {
-          const update: BinaryNodeData = {
+          const update = {
             nodeId: numericId,
             position,
             velocity: { x: 0, y: 0, z: 0 }
           };
-          graphDataManager.webSocketService.sendNodePositionUpdates([update]);
+          if ('sendNodePositionUpdates' in graphDataManager.webSocketService) {
+            (graphDataManager.webSocketService as any).sendNodePositionUpdates([update]);
+          }
 
           if (debugState.isEnabled()) {
             logger.debug(`Throttled WebSocket update for node ${nodeId}`, position);
@@ -170,9 +172,9 @@ export const createEventHandlers = (
         }
 
         
-        setGraphData(prev => ({
+        setGraphData((prev: GraphData) => ({
           ...prev,
-          nodes: prev.nodes.map((node, idx) =>
+          nodes: prev.nodes.map((node: Node, idx: number) =>
             idx === drag.instanceId
               ? { ...node, position: { x: drag.currentNodePos3D.x, y: drag.currentNodePos3D.y, z: drag.currentNodePos3D.z } }
               : node
@@ -215,7 +217,7 @@ export const createEventHandlers = (
       }
     } else {
       
-      const node = graphData.nodes.find(n => n.id === drag.nodeId);
+      const node = graphData.nodes.find((n: Node) => n.id === drag.nodeId);
       if (node?.label) {
         if (debugState.isEnabled()) logger.debug(`Click action on node ${node.id}`);
 

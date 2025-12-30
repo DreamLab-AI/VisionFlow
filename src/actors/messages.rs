@@ -1705,3 +1705,18 @@ pub struct BroadcastPerformanceStats {
     pub target_fps: u32,
     pub delta_threshold: f32,
 }
+
+// =============================================================================
+// GPU Backpressure Messages (Phase 5)
+// =============================================================================
+
+/// Acknowledgment from network layer that position broadcast was delivered
+/// Used for credit-based flow control between GPU and network
+#[derive(Message, Debug, Clone)]
+#[rtype(result = "()")]
+pub struct PositionBroadcastAck {
+    /// Correlation ID matching the broadcast iteration
+    pub correlation_id: u64,
+    /// Number of clients that received the update
+    pub clients_delivered: u32,
+}

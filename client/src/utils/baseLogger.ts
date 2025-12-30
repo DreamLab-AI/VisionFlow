@@ -62,7 +62,7 @@ const LOG_COLORS = {
 const logStorage: LogEntry[] = [];
 const DEFAULT_MAX_LOG_ENTRIES = 1000;
 
-interface LogEntry {
+export interface LogEntry {
   timestamp: string;
   level: LogLevel;
   namespace: string;

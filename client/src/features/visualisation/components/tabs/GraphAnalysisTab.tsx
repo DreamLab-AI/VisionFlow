@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import {
+  // @ts-ignore - Icon exists in lucide-react but types may be outdated
   GitCompare,
   Brain,
   TrendingUp,

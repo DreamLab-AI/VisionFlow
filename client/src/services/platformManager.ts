@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { createLogger } from '../utils/loggerConfig';
-import { XRSessionState } from '../features/xr/types/xr';
+
+// XR session state type (defined locally since xr types module doesn't exist)
+export type XRSessionState = 'inactive' | 'starting' | 'active' | 'ending' | 'error';
 
 const logger = createLogger('PlatformManager');
 

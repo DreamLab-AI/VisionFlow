@@ -322,7 +322,7 @@ export class NetworkOptimizer {
 
     
     private adjustQuality(): void {
-        const { currentBandwidthKbps, bandwidthTargetKbps } = this.defaultConfig;
+        const { bandwidthTargetKbps } = this.defaultConfig;
 
         if (this.stats.currentBandwidthKbps > bandwidthTargetKbps * 1.2) {
             

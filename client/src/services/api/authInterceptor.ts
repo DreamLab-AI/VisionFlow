@@ -16,14 +16,16 @@ export function generateRequestId(): string {
 export function authRequestInterceptor(config: RequestConfig, url: string): RequestConfig {
   const finalConfig = { ...config };
 
-  
+  // Ensure headers is a mutable object
   if (!finalConfig.headers) {
-    finalConfig.headers = {};
+    finalConfig.headers = {} as Record<string, string>;
   }
 
-  
+  // Cast to Record for property access
+  const headers = finalConfig.headers as Record<string, string>;
+
   const requestId = generateRequestId();
-  finalConfig.headers['X-Request-ID'] = requestId;
+  headers['X-Request-ID'] = requestId;
 
   
   if (nostrAuth.isAuthenticated()) {
@@ -31,20 +33,21 @@ export function authRequestInterceptor(config: RequestConfig, url: string): Requ
     const token = nostrAuth.getSessionToken();
 
     if (user?.pubkey) {
-      finalConfig.headers['X-Nostr-Pubkey'] = user.pubkey;
+      headers['X-Nostr-Pubkey'] = user.pubkey;
       logger.debug(`[${requestId}] Added Nostr pubkey header for ${url}`, {
         pubkey: user.pubkey.slice(0, 8) + '...',
       });
     }
 
     if (token) {
-      finalConfig.headers['X-Nostr-Token'] = token;
+      headers['X-Nostr-Token'] = token;
       logger.debug(`[${requestId}] Added Nostr token header for ${url}`);
     }
   } else {
     logger.debug(`[${requestId}] No Nostr auth headers added (not authenticated) for ${url}`);
   }
 
+  finalConfig.headers = headers;
   return finalConfig;
 }
 

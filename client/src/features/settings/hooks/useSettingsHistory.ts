@@ -1,9 +1,9 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useSettingsStore } from '../../../store/settingsStore';
-import { SettingsState } from '../types/settingsTypes';
+import type { Settings } from '../../../features/settings/config/settings';
 
 interface HistoryEntry {
-  settings: SettingsState;
+  settings: any; // Stored settings snapshot
   timestamp: number;
   description?: string;
 }
@@ -86,8 +86,11 @@ export function useSettingsHistory() {
       const targetEntry = historyState.history[targetIndex];
       
       if (targetEntry) {
-        await useSettingsStore.getState().updateSettings(targetEntry.settings);
-        
+        // Apply the stored settings by merging into draft
+        useSettingsStore.getState().updateSettings((draft) => {
+          Object.assign(draft, targetEntry.settings);
+        });
+
         setHistoryState(prev => ({
           ...prev,
           currentIndex: targetIndex,
@@ -96,25 +99,28 @@ export function useSettingsHistory() {
         }));
       }
     } finally {
-      
+      // Reset flag after delay
       setTimeout(() => {
         isUndoingRef.current = false;
       }, 100);
     }
   }, [historyState.canUndo, historyState.currentIndex, historyState.history]);
 
-  
+  // Redo to next state
   const redo = useCallback(async () => {
     if (!historyState.canRedo) return;
 
     isUndoingRef.current = true;
-    
+
     try {
       const targetIndex = historyState.currentIndex + 1;
       const targetEntry = historyState.history[targetIndex];
-      
+
       if (targetEntry) {
-        await useSettingsStore.getState().updateSettings(targetEntry.settings);
+        // Apply the stored settings by merging into draft
+        useSettingsStore.getState().updateSettings((draft) => {
+          Object.assign(draft, targetEntry.settings);
+        });
         
         setHistoryState(prev => ({
           ...prev,

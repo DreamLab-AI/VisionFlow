@@ -39,10 +39,10 @@ export class BatchQueue<T> {
 
   constructor(config: BatchQueueConfig, processor: BatchProcessor<T>) {
     this.config = {
-      batchSize: 50,
-      flushIntervalMs: 200,
-      maxQueueSize: 1000,
-      ...config
+      batchSize: config.batchSize,
+      flushIntervalMs: config.flushIntervalMs,
+      maxQueueSize: config.maxQueueSize,
+      priorityField: config.priorityField
     };
     this.processor = processor;
     

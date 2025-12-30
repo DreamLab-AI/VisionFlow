@@ -5,10 +5,11 @@ import type { Vec3 } from '../types/binaryProtocol';
 
 const logger = createLogger('BinaryWebSocketProtocol');
 
-// Protocol versions
-export const PROTOCOL_V1 = 1;  
-export const PROTOCOL_V2 = 2;  
-export const PROTOCOL_VERSION = PROTOCOL_V2;  
+// Protocol versions (V1 removed - no backward compatibility)
+export const PROTOCOL_V2 = 2;  // Supported
+export const PROTOCOL_V3 = 3;  // CURRENT: Analytics extension (48 bytes/node)
+export const PROTOCOL_VERSION = PROTOCOL_V3;  // Default to V3
+export const SUPPORTED_PROTOCOLS = [PROTOCOL_V2, PROTOCOL_V3];  
 
 // Message types (1 byte header)
 export enum MessageType {
@@ -133,19 +134,14 @@ export interface GraphUpdateHeader extends MessageHeader {
   graphTypeFlag: GraphTypeFlag; 
 }
 
-// Constants for binary layout (V1 - Legacy)
+// Constants for binary layout (V2+ only - V1 removed)
 export const MESSAGE_HEADER_SIZE = 4;
-export const GRAPH_UPDATE_HEADER_SIZE = 5; 
-export const AGENT_POSITION_SIZE_V1 = 19;  
-export const AGENT_STATE_SIZE_V1 = 47;     
-export const SSSP_DATA_SIZE_V1 = 10;       
+export const GRAPH_UPDATE_HEADER_SIZE = 5;
+export const AGENT_POSITION_SIZE_V2 = 21;  // 4 (u32 id) + 12 (pos) + 4 (timestamp) + 1 (flags)
+export const AGENT_STATE_SIZE_V2 = 49;     // Full agent state with u32 IDs
+export const SSSP_DATA_SIZE_V2 = 12;       // SSSP with u32 IDs
 
-// Constants for binary layout (V2 - Fixed)
-export const AGENT_POSITION_SIZE_V2 = 21;  
-export const AGENT_STATE_SIZE_V2 = 49;     
-export const SSSP_DATA_SIZE_V2 = 12;       
-
-// Default to V2 sizes
+// Canonical sizes (V1 removed)
 export const AGENT_POSITION_SIZE = AGENT_POSITION_SIZE_V2;
 export const AGENT_STATE_SIZE = AGENT_STATE_SIZE_V2;
 export const SSSP_DATA_SIZE = SSSP_DATA_SIZE_V2;
@@ -267,62 +263,51 @@ export class BinaryWebSocketProtocol {
     return this.createMessage(MessageType.POSITION_UPDATE, payload);
   }
 
-  
+
   public decodePositionUpdates(payload: ArrayBuffer): AgentPositionUpdate[] {
     const updates: AgentPositionUpdate[] = [];
+
+    // V2+ only - version byte detection
+    if (payload.byteLength < 1) {
+      logger.error('Empty position update payload');
+      return updates;
+    }
+
     const view = new DataView(payload);
+    const version = view.getUint8(0);
+    if (!SUPPORTED_PROTOCOLS.includes(version)) {
+      logger.error(`Unsupported protocol version: ${version}. Only V2 and V3 are supported.`);
+      return updates;
+    }
 
-    
-    
-    const isV2 = (payload.byteLength % AGENT_POSITION_SIZE_V2) === 0;
-    const isV1 = (payload.byteLength % AGENT_POSITION_SIZE_V1) === 0;
+    // Decode V2 format (V1 removed)
+    const dataPayload = payload.byteLength > 1 ? payload.slice(1) : new ArrayBuffer(0);
+    const dataView = new DataView(dataPayload);
 
-    if (isV2) {
-      const updateCount = payload.byteLength / AGENT_POSITION_SIZE_V2;
-      for (let i = 0; i < updateCount; i++) {
-        const offset = i * AGENT_POSITION_SIZE_V2;
+    if ((dataPayload.byteLength % AGENT_POSITION_SIZE_V2) !== 0) {
+      logger.error(`Invalid position update payload size: ${dataPayload.byteLength}`);
+      return updates;
+    }
 
-        if (offset + AGENT_POSITION_SIZE_V2 > payload.byteLength) {
-          logger.warn('Truncated V2 position update data');
-          break;
-        }
+    const updateCount = dataPayload.byteLength / AGENT_POSITION_SIZE_V2;
+    for (let i = 0; i < updateCount; i++) {
+      const offset = i * AGENT_POSITION_SIZE_V2;
 
-        updates.push({
-          agentId: view.getUint32(offset, true),  
-          position: {
-            x: view.getFloat32(offset + 4, true),
-            y: view.getFloat32(offset + 8, true),
-            z: view.getFloat32(offset + 12, true)
-          },
-          timestamp: view.getUint32(offset + 16, true),
-          flags: view.getUint8(offset + 20)
-        });
+      if (offset + AGENT_POSITION_SIZE_V2 > dataPayload.byteLength) {
+        logger.warn('Truncated position update data');
+        break;
       }
-    } else if (isV1) {
-      const updateCount = payload.byteLength / AGENT_POSITION_SIZE_V1;
-      logger.warn('Decoding legacy V1 position updates (u16 IDs)');
 
-      for (let i = 0; i < updateCount; i++) {
-        const offset = i * AGENT_POSITION_SIZE_V1;
-
-        if (offset + AGENT_POSITION_SIZE_V1 > payload.byteLength) {
-          logger.warn('Truncated V1 position update data');
-          break;
-        }
-
-        updates.push({
-          agentId: view.getUint16(offset, true),  
-          position: {
-            x: view.getFloat32(offset + 2, true),
-            y: view.getFloat32(offset + 6, true),
-            z: view.getFloat32(offset + 10, true)
-          },
-          timestamp: view.getUint32(offset + 14, true),
-          flags: view.getUint8(offset + 18)
-        });
-      }
-    } else {
-      logger.error(`Invalid position update payload size: ${payload.byteLength}`);
+      updates.push({
+        agentId: dataView.getUint32(offset, true),
+        position: {
+          x: dataView.getFloat32(offset + 4, true),
+          y: dataView.getFloat32(offset + 8, true),
+          z: dataView.getFloat32(offset + 12, true)
+        },
+        timestamp: dataView.getUint32(offset + 16, true),
+        flags: dataView.getUint8(offset + 20)
+      });
     }
 
     return updates;
@@ -355,79 +340,60 @@ export class BinaryWebSocketProtocol {
     return this.createMessage(MessageType.AGENT_STATE_FULL, payload);
   }
 
-  
+
   public decodeAgentState(payload: ArrayBuffer): AgentStateData[] {
     const agents: AgentStateData[] = [];
+
+    // V2+ only - version byte detection
+    if (payload.byteLength < 1) {
+      logger.error('Empty agent state payload');
+      return agents;
+    }
+
     const view = new DataView(payload);
+    const version = view.getUint8(0);
+    if (!SUPPORTED_PROTOCOLS.includes(version)) {
+      logger.error(`Unsupported protocol version: ${version}. Only V2 and V3 are supported.`);
+      return agents;
+    }
 
-    
-    const isV2 = (payload.byteLength % AGENT_STATE_SIZE_V2) === 0;
-    const isV1 = (payload.byteLength % AGENT_STATE_SIZE_V1) === 0;
+    // Decode V2 format (V1 removed)
+    const dataPayload = payload.byteLength > 1 ? payload.slice(1) : new ArrayBuffer(0);
+    const dataView = new DataView(dataPayload);
 
-    if (isV2) {
-      const agentCount = payload.byteLength / AGENT_STATE_SIZE_V2;
-      for (let i = 0; i < agentCount; i++) {
-        const offset = i * AGENT_STATE_SIZE_V2;
+    if ((dataPayload.byteLength % AGENT_STATE_SIZE_V2) !== 0) {
+      logger.error(`Invalid agent state payload size: ${dataPayload.byteLength}`);
+      return agents;
+    }
 
-        if (offset + AGENT_STATE_SIZE_V2 > payload.byteLength) {
-          logger.warn('Truncated V2 agent state data');
-          break;
-        }
+    const agentCount = dataPayload.byteLength / AGENT_STATE_SIZE_V2;
+    for (let i = 0; i < agentCount; i++) {
+      const offset = i * AGENT_STATE_SIZE_V2;
 
-        agents.push({
-          agentId: view.getUint32(offset, true),  
-          position: {
-            x: view.getFloat32(offset + 4, true),
-            y: view.getFloat32(offset + 8, true),
-            z: view.getFloat32(offset + 12, true)
-          },
-          velocity: {
-            x: view.getFloat32(offset + 16, true),
-            y: view.getFloat32(offset + 20, true),
-            z: view.getFloat32(offset + 24, true)
-          },
-          health: view.getFloat32(offset + 28, true),
-          cpuUsage: view.getFloat32(offset + 32, true),
-          memoryUsage: view.getFloat32(offset + 36, true),
-          workload: view.getFloat32(offset + 40, true),
-          tokens: view.getUint32(offset + 44, true),
-          flags: view.getUint8(offset + 48)
-        });
+      if (offset + AGENT_STATE_SIZE_V2 > dataPayload.byteLength) {
+        logger.warn('Truncated agent state data');
+        break;
       }
-    } else if (isV1) {
-      const agentCount = payload.byteLength / AGENT_STATE_SIZE_V1;
-      logger.warn('Decoding legacy V1 agent state (u16 IDs)');
 
-      for (let i = 0; i < agentCount; i++) {
-        const offset = i * AGENT_STATE_SIZE_V1;
-
-        if (offset + AGENT_STATE_SIZE_V1 > payload.byteLength) {
-          logger.warn('Truncated V1 agent state data');
-          break;
-        }
-
-        agents.push({
-          agentId: view.getUint16(offset, true),  
-          position: {
-            x: view.getFloat32(offset + 2, true),
-            y: view.getFloat32(offset + 6, true),
-            z: view.getFloat32(offset + 10, true)
-          },
-          velocity: {
-            x: view.getFloat32(offset + 14, true),
-            y: view.getFloat32(offset + 18, true),
-            z: view.getFloat32(offset + 22, true)
-          },
-          health: view.getFloat32(offset + 26, true),
-          cpuUsage: view.getFloat32(offset + 30, true),
-          memoryUsage: view.getFloat32(offset + 34, true),
-          workload: view.getFloat32(offset + 38, true),
-          tokens: view.getUint32(offset + 42, true),
-          flags: view.getUint8(offset + 46)
-        });
-      }
-    } else {
-      logger.error(`Invalid agent state payload size: ${payload.byteLength}`);
+      agents.push({
+        agentId: dataView.getUint32(offset, true),
+        position: {
+          x: dataView.getFloat32(offset + 4, true),
+          y: dataView.getFloat32(offset + 8, true),
+          z: dataView.getFloat32(offset + 12, true)
+        },
+        velocity: {
+          x: dataView.getFloat32(offset + 16, true),
+          y: dataView.getFloat32(offset + 20, true),
+          z: dataView.getFloat32(offset + 24, true)
+        },
+        health: dataView.getFloat32(offset + 28, true),
+        cpuUsage: dataView.getFloat32(offset + 32, true),
+        memoryUsage: dataView.getFloat32(offset + 36, true),
+        workload: dataView.getFloat32(offset + 40, true),
+        tokens: dataView.getUint32(offset + 44, true),
+        flags: dataView.getUint8(offset + 48)
+      });
     }
 
     return agents;

@@ -3,19 +3,18 @@ import { agentTelemetry } from './AgentTelemetry';
 
 
 export function useTelemetry(componentName: string) {
-  const renderStartTime = useRef<number>();
-  const componentMountTime = useRef<number>();
+  const renderStartTime = useRef<number | undefined>(undefined);
+  const componentMountTime = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     componentMountTime.current = performance.now();
-    agentTelemetry.logAgentAction('react', 'component', 'mount', { componentName });
+    agentTelemetry.logAgentSpawn('react-component', componentName, { action: 'mount' });
 
     return () => {
       const lifetime = componentMountTime.current ?
         performance.now() - componentMountTime.current : 0;
 
-      agentTelemetry.logAgentAction('react', 'component', 'unmount', {
-        componentName,
+      agentTelemetry.logAgentAction('react-component', componentName, 'unmount', {
         lifetime
       });
     };

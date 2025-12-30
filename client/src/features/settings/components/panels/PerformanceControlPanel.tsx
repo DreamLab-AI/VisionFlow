@@ -1,15 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Zap, Cpu, MemoryStick, Gauge, TrendingUp, Activity, Settings as SettingsIcon } from 'lucide-react';
-import { useSettingsStore } from '@/stores/settingsStore';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import Zap from 'lucide-react/dist/esm/icons/zap';
+import Cpu from 'lucide-react/dist/esm/icons/cpu';
+import MemoryStick from 'lucide-react/dist/esm/icons/memory-stick';
+import Gauge from 'lucide-react/dist/esm/icons/gauge';
+import TrendingUp from 'lucide-react/dist/esm/icons/trending-up';
+import Activity from 'lucide-react/dist/esm/icons/activity';
+import SettingsIcon from 'lucide-react/dist/esm/icons/settings';
+import { useSettingsStore } from '@/store/settingsStore';
+import { Button } from '@/features/design-system/components/Button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/features/design-system/components/Card';
+import { Switch } from '@/features/design-system/components/Switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/features/design-system/components/Select';
+import { Slider } from '@/features/design-system/components/Slider';
+import { Badge } from '@/features/design-system/components/Badge';
+import { Separator } from '@/features/design-system/components/Separator';
+import { Label } from '@/features/design-system/components/Label';
+import { Alert, AlertDescription } from '@/features/design-system/components/Alert';
 
 
 
@@ -32,7 +38,23 @@ const LOD_LEVELS = [
 const GPU_BLOCK_SIZES = ['64', '128', '256', '512'];
 
 export const PerformanceControlPanel: React.FC = () => {
-  const { settings, updateSetting } = useSettingsStore();
+  const settings = useSettingsStore(state => state.settings);
+  const updateSettings = useSettingsStore(state => state.updateSettings);
+
+  // Type assertion for extended performance settings that may not be in base type
+  const perfSettings = (settings?.performance ?? {}) as any;
+
+  const updateSetting = (path: string, value: any) => {
+    updateSettings((draft: any) => {
+      const parts = path.split('.');
+      let current = draft;
+      for (let i = 0; i < parts.length - 1; i++) {
+        if (!current[parts[i]]) current[parts[i]] = {};
+        current = current[parts[i]];
+      }
+      current[parts[parts.length - 1]] = value;
+    });
+  };
   const [metrics, setMetrics] = useState<PerformanceMetrics>({
     currentFPS: 0,
     gpuUsage: 0,
@@ -126,8 +148,8 @@ export const PerformanceControlPanel: React.FC = () => {
         </p>
       </div>
 
-      {}
-      {settings?.performance?.showFPS && (
+      {/* Live metrics display when FPS counter is enabled */}
+      {perfSettings?.showFPS && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -139,18 +161,18 @@ export const PerformanceControlPanel: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {}
+            {/* Current FPS display */}
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Current FPS:</span>
-              <span className={`text-3xl font-mono font-bold ${getFPSColor(metrics.currentFPS, settings?.performance?.targetFPS || 60)}`}>
+              <span className={`text-3xl font-mono font-bold ${getFPSColor(metrics.currentFPS, perfSettings?.targetFPS || 60)}`}>
                 {metrics.currentFPS.toFixed(1)}
               </span>
             </div>
 
-            {}
+            {/* Target FPS display */}
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Target:</span>
-              <span className="font-mono">{settings?.performance?.targetFPS || 60} FPS</span>
+              <span className="font-mono">{perfSettings?.targetFPS || 60} FPS</span>
             </div>
 
             <Separator />
@@ -219,7 +241,7 @@ export const PerformanceControlPanel: React.FC = () => {
             {LOD_LEVELS.map(level => (
               <Button
                 key={level.value}
-                variant={settings?.performance?.levelOfDetail === level.value ? 'default' : 'outline'}
+                variant={perfSettings?.levelOfDetail === level.value ? 'default' : 'outline'}
                 onClick={() => applyQualityPreset(level.value)}
                 className="h-auto py-3 flex-col items-start"
               >
@@ -258,7 +280,7 @@ export const PerformanceControlPanel: React.FC = () => {
             </div>
             <Switch
               id="show-fps"
-              checked={settings?.performance?.showFPS ?? true}
+              checked={perfSettings?.showFPS ?? true}
               onCheckedChange={(checked) => updateSetting('performance.showFPS', checked)}
             />
           </div>
@@ -267,14 +289,14 @@ export const PerformanceControlPanel: React.FC = () => {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="target-fps">Target FPS</Label>
-              <span className="text-sm font-mono">{settings?.performance?.targetFPS || 60}</span>
+              <span className="text-sm font-mono">{perfSettings?.targetFPS || 60}</span>
             </div>
             <Slider
               id="target-fps"
               min={30}
               max={144}
               step={15}
-              value={[settings?.performance?.targetFPS || 60]}
+              value={[perfSettings?.targetFPS || 60]}
               onValueChange={([value]) => updateSetting('performance.targetFPS', value)}
               className="w-full"
             />
@@ -305,14 +327,14 @@ export const PerformanceControlPanel: React.FC = () => {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="gpu-memory">Memory Limit</Label>
-              <span className="text-sm font-mono">{settings?.performance?.gpuMemoryLimit || 4096} MB</span>
+              <span className="text-sm font-mono">{perfSettings?.gpuMemoryLimit || 4096} MB</span>
             </div>
             <Slider
               id="gpu-memory"
               min={512}
               max={16384}
               step={512}
-              value={[settings?.performance?.gpuMemoryLimit || 4096]}
+              value={[perfSettings?.gpuMemoryLimit || 4096]}
               onValueChange={([value]) => updateSetting('performance.gpuMemoryLimit', value)}
               className="w-full"
             />
@@ -325,7 +347,7 @@ export const PerformanceControlPanel: React.FC = () => {
           <div className="space-y-2">
             <Label htmlFor="block-size">CUDA Block Size</Label>
             <Select
-              value={settings?.performance?.gpuBlockSize || '256'}
+              value={perfSettings?.gpuBlockSize || '256'}
               onValueChange={(value) => updateSetting('performance.gpuBlockSize', value)}
             >
               <SelectTrigger id="block-size">
@@ -354,7 +376,7 @@ export const PerformanceControlPanel: React.FC = () => {
             </div>
             <Switch
               id="memory-coalescing"
-              checked={settings?.performance?.enableMemoryCoalescing ?? true}
+              checked={perfSettings?.enableMemoryCoalescing ?? true}
               onCheckedChange={(checked) => updateSetting('performance.enableMemoryCoalescing', checked)}
             />
           </div>
@@ -379,14 +401,14 @@ export const PerformanceControlPanel: React.FC = () => {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="iteration-limit">Iteration Limit</Label>
-              <span className="text-sm font-mono">{settings?.performance?.iterationLimit || 500}</span>
+              <span className="text-sm font-mono">{perfSettings?.iterationLimit || 500}</span>
             </div>
             <Slider
               id="iteration-limit"
               min={50}
               max={2000}
               step={50}
-              value={[settings?.performance?.iterationLimit || 500]}
+              value={[perfSettings?.iterationLimit || 500]}
               onValueChange={([value]) => updateSetting('performance.iterationLimit', value)}
               className="w-full"
             />
@@ -399,14 +421,14 @@ export const PerformanceControlPanel: React.FC = () => {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="warmup">Warmup Duration</Label>
-              <span className="text-sm font-mono">{settings?.performance?.warmupDuration || 1000} ms</span>
+              <span className="text-sm font-mono">{perfSettings?.warmupDuration || 1000} ms</span>
             </div>
             <Slider
               id="warmup"
               min={500}
               max={5000}
               step={500}
-              value={[settings?.performance?.warmupDuration || 1000]}
+              value={[perfSettings?.warmupDuration || 1000]}
               onValueChange={([value]) => updateSetting('performance.warmupDuration', value)}
               className="w-full"
             />
@@ -419,14 +441,14 @@ export const PerformanceControlPanel: React.FC = () => {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="convergence">Convergence Threshold</Label>
-              <span className="text-sm font-mono">{settings?.performance?.convergenceThreshold || 0.001}</span>
+              <span className="text-sm font-mono">{perfSettings?.convergenceThreshold || 0.001}</span>
             </div>
             <Slider
               id="convergence"
               min={0.0001}
               max={0.01}
               step={0.0001}
-              value={[settings?.performance?.convergenceThreshold || 0.001]}
+              value={[perfSettings?.convergenceThreshold || 0.001]}
               onValueChange={([value]) => updateSetting('performance.convergenceThreshold', value)}
               className="w-full"
             />
@@ -461,7 +483,7 @@ export const PerformanceControlPanel: React.FC = () => {
             </div>
             <Switch
               id="adaptive-quality"
-              checked={settings?.performance?.enableAdaptiveQuality ?? true}
+              checked={perfSettings?.enableAdaptiveQuality ?? true}
               onCheckedChange={(checked) => updateSetting('performance.enableAdaptiveQuality', checked)}
             />
           </div>
@@ -476,7 +498,7 @@ export const PerformanceControlPanel: React.FC = () => {
             </div>
             <Switch
               id="adaptive-cooling"
-              checked={settings?.performance?.enableAdaptiveCooling ?? true}
+              checked={perfSettings?.enableAdaptiveCooling ?? true}
               onCheckedChange={(checked) => updateSetting('performance.enableAdaptiveCooling', checked)}
             />
           </div>

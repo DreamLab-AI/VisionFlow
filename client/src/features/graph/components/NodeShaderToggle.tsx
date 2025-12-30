@@ -66,7 +66,7 @@ export const NodeShaderToggle: React.FC<NodeShaderToggleProps> = ({ materialRef 
   const nodeSettings = settings?.visualisation?.graphs?.logseq?.nodes || settings?.visualisation?.nodes;
   
   const enableHologram = nodeSettings?.enableHologram !== false;
-  const nodeBloom = settings?.visualisation?.bloom?.nodeBloomStrength ?? 1;
+  const nodeBloom = settings?.visualisation?.bloom?.nodeGlowStrength ?? 1;
   
   useEffect(() => {
     if (!materialRef.current) return;

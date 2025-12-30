@@ -38,7 +38,7 @@ export function useVoiceInteraction(options: UseVoiceInteractionOptions = {}): U
   const [partialTranscription, setPartialTranscription] = useState('');
 
   
-  const voiceServiceRef = useRef<VoiceWebSocketService>();
+  const voiceServiceRef = useRef<VoiceWebSocketService | undefined>(undefined);
   const autoConnectAttemptedRef = useRef(false);
   const onTranscriptionRef = useRef(onTranscription);
   const onErrorRef = useRef(onError);

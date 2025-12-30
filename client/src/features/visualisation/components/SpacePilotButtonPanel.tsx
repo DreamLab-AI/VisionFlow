@@ -91,19 +91,19 @@ export const SpacePilotButtonPanel: React.FC<SpacePilotButtonPanelProps> = ({
       setButtonStates(resetStates);
     };
 
-    
-    SpaceDriver.addEventListener('buttons', handleButtons);
-    SpaceDriver.addEventListener('connect', handleConnect);
-    SpaceDriver.addEventListener('disconnect', handleDisconnect);
+
+    SpaceDriver.addEventListener('buttons', handleButtons as EventListener);
+    SpaceDriver.addEventListener('connect', handleConnect as EventListener);
+    SpaceDriver.addEventListener('disconnect', handleDisconnect as EventListener);
 
     
     
     
 
     return () => {
-      SpaceDriver.removeEventListener('buttons', handleButtons);
-      SpaceDriver.removeEventListener('connect', handleConnect);
-      SpaceDriver.removeEventListener('disconnect', handleDisconnect);
+      SpaceDriver.removeEventListener('buttons', handleButtons as EventListener);
+      SpaceDriver.removeEventListener('connect', handleConnect as EventListener);
+      SpaceDriver.removeEventListener('disconnect', handleDisconnect as EventListener);
     };
   }, [buttonStates, onButtonPress, buttonLabels]);
 
@@ -210,9 +210,9 @@ export const SpacePilotButtonIndicator: React.FC<{
       setIsPressed(buttons.includes(buttonString));
     };
 
-    SpaceDriver.addEventListener('buttons', handleButtons);
+    SpaceDriver.addEventListener('buttons', handleButtons as EventListener);
     return () => {
-      SpaceDriver.removeEventListener('buttons', handleButtons);
+      SpaceDriver.removeEventListener('buttons', handleButtons as EventListener);
     };
   }, [buttonNumber]);
 

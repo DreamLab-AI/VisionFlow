@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useSettingsStore } from '@/store/settingsStore';
-import { Button } from '@/ui/Button';
-import { Input } from '@/ui/Input';
-import { Label } from '@/ui/Label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/ui/Card';
+import { Button } from '@/features/design-system/components/Button';
+import { Input } from '@/features/design-system/components/Input';
+import { Label } from '@/features/design-system/components/Label';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/features/design-system/components/Card';
 import WebSocketService from '@/services/WebSocketService';
 import { createLogger } from '@/utils/loggerConfig';
 
@@ -76,7 +76,7 @@ export function BackendUrlSetting() {
               id="backendUrl"
               placeholder="e.g., http://192.168.0.51:8000"
               value={backendUrl}
-              onChange={(e) => setBackendUrl(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBackendUrl(e.target.value)}
             />
             <p className="text-sm text-muted-foreground">
               Leave empty to use the default backend URL. Changes require reconnection.

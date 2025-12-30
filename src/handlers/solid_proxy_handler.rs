@@ -143,7 +143,7 @@ pub async fn handle_solid_proxy(
         }
     }
 
-    // Generate NIP-98 auth if server keys are available
+    // Dual-header auth: Server identity for proxy authorization + User identity passthrough
     if let Some(keys) = &state.server_keys {
         let config = Nip98Config {
             url: target_url.clone(),
@@ -155,18 +155,26 @@ pub async fn handle_solid_proxy(
             },
         };
 
+        // Server identity for proxy authorization (JSS trusts this proxy)
         match generate_nip98_token(keys, &config) {
             Ok(token) => {
-                proxy_req = proxy_req.header("Authorization", build_auth_header(&token));
-                debug!("Added NIP-98 auth header for proxied request");
+                proxy_req = proxy_req.header("X-Proxy-Authorization", build_auth_header(&token));
+                debug!("Added X-Proxy-Authorization header for server identity");
             }
             Err(e) => {
-                warn!("Failed to generate NIP-98 token: {}", e);
-                // Continue without auth header
+                warn!("Failed to generate NIP-98 token for proxy: {}", e);
+            }
+        }
+
+        // Pass through user's original NIP-98 for identity (ACL checks use this)
+        if let Some(user_auth) = req.headers().get("Authorization") {
+            if let Ok(val) = user_auth.to_str() {
+                proxy_req = proxy_req.header("X-User-Authorization", val);
+                debug!("Forwarded user auth as X-User-Authorization");
             }
         }
     } else {
-        // Pass through the client's authorization header if present
+        // Passthrough mode: forward Authorization directly
         if let Some(auth) = req.headers().get("Authorization") {
             if let Ok(val) = auth.to_str() {
                 proxy_req = proxy_req.header("Authorization", val);

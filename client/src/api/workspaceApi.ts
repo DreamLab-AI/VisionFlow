@@ -81,16 +81,17 @@ const createRequest = async <T>(url: string, method: string = 'GET', data?: any)
       headers: { 'Accept': 'application/json' },
     });
 
-    let responseData = response.data;
+    // Use any for responseData to handle various response shapes
+    let responseData: any = response.data;
 
-    
+    // Transform dates in nested data property or array responses
     if (responseData?.data) {
       responseData.data = transformDates(responseData.data);
     } else if (Array.isArray(responseData)) {
       responseData = responseData.map(transformDates);
     }
 
-    return responseData;
+    return responseData as T;
   } catch (error) {
     if (isApiError(error)) {
       logger.error('API request failed', {
@@ -103,9 +104,10 @@ const createRequest = async <T>(url: string, method: string = 'GET', data?: any)
       throw WorkspaceApiError.fromApiError(error);
     }
 
-    logger.error('Network error in workspace API', { url, error: error.message });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    logger.error('Network error in workspace API', { url, error: errorMessage });
     throw new WorkspaceApiError(
-      `Network error: ${error.message}`,
+      `Network error: ${errorMessage}`,
       0,
       error
     );

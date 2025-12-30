@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { useSettingsStore } from '@/stores/settingsStore';
-import { toast } from '@/hooks/use-toast';
+import { useSettingsStore } from '../store/settingsStore';
+
+// Mock toast function for notifications
+const toast = (options: { title: string; description: string; duration?: number }) => {
+  console.log(`[Toast] ${options.title}: ${options.description}`);
+};
 
 
 
@@ -49,7 +53,9 @@ export const useSettingsWebSocket = (
     showNotifications = true
   } = options;
 
-  const { updateSetting, bulkUpdateSettings } = useSettingsStore();
+  // Use the store's set and batchUpdate methods
+  const setByPath = useSettingsStore(state => state.setByPath);
+  const batchUpdate = useSettingsStore(state => state.batchUpdate);
 
   const [connected, setConnected] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
@@ -65,7 +71,7 @@ export const useSettingsWebSocket = (
     
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.host;
-    const wsUrl = `${protocol}
+    const wsUrl = `${protocol}//${host}/ws/settings`;
 
     try {
       const ws = new WebSocket(wsUrl);
@@ -128,7 +134,7 @@ export const useSettingsWebSocket = (
       case 'SettingChanged':
         if (message.key && message.value !== undefined) {
           console.log(`[SettingsWS] Setting changed: ${message.key}`);
-          updateSetting(message.key, message.value);
+          setByPath(message.key as any, message.value);
 
           if (showNotifications) {
             toast({
@@ -144,12 +150,12 @@ export const useSettingsWebSocket = (
         if (message.changes && message.changes.length > 0) {
           console.log(`[SettingsWS] Batch update: ${message.changes.length} settings`);
 
-          const updates: Record<string, unknown> = {};
-          message.changes.forEach(change => {
-            updates[change.key] = change.value;
-          });
+          const updates = message.changes.map(change => ({
+            path: change.key as any,
+            value: change.value
+          }));
 
-          bulkUpdateSettings(updates);
+          batchUpdate(updates);
 
           if (showNotifications) {
             toast({
@@ -245,25 +251,4 @@ export const useSettingsWebSocket = (
     reconnect,
     disconnect
   };
-};
-
-
-export const SettingsWebSocketStatus: React.FC<{
-  className?: string;
-}> = ({ className }) => {
-  const { connected, lastUpdate, messageCount } = useSettingsWebSocket();
-
-  return (
-    <div className={`flex items-center gap-2 text-xs ${className}`}>
-      <div className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
-      <span className="text-muted-foreground">
-        {connected ? 'Live' : 'Offline'}
-      </span>
-      {lastUpdate && (
-        <span className="text-muted-foreground">
-          • {messageCount} updates
-        </span>
-      )}
-    </div>
-  );
 };

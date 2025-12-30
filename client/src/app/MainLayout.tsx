@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import GraphCanvasWrapper from '../features/graph/components/GraphCanvasWrapper';
-import SimpleThreeTest from '../features/graph/components/SimpleThreeTest';
-import GraphCanvasSimple from '../features/graph/components/GraphCanvasSimple';
+// Note: SimpleThreeTest and GraphCanvasSimple are unused dev components
+// import SimpleThreeTest from '../features/graph/components/SimpleThreeTest';
+// import GraphCanvasSimple from '../features/graph/components/GraphCanvasSimple';
 import { IntegratedControlPanel } from '../features/visualisation/components/IntegratedControlPanel';
 import { useSettingsStore } from '../store/settingsStore';
 import { BotsDataProvider, useBotsData } from '../features/bots/contexts/BotsDataContext';
@@ -78,7 +79,7 @@ const MainLayoutContent: React.FC = () => {
           showStats={showStats}
           enableBloom={enableBloom}
           onOrbitControlsToggle={() => {}}
-          botsData={botsData}
+          botsData={botsData ?? undefined}
           graphData={graphData}
           otherGraphData={otherGraphData}
         />

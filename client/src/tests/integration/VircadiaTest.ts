@@ -84,8 +84,8 @@ export class VircadiaIntegrationTest {
     // Add lighting
     const light = new THREE.DirectionalLight(0xffffff, 1);
     light.position.set(5, 10, 5);
-    this.scene.add(light);
-    this.scene.add(new THREE.AmbientLight(0x404040));
+    this.scene.add(light as any);
+    this.scene.add(new THREE.AmbientLight(0x404040) as any);
   }
 
   /**

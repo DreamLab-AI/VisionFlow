@@ -2,7 +2,7 @@ import { useCallback, useRef } from 'react';
 import { ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { throttle } from 'lodash';
-import { graphDataManager } from '../managers/graphDataManager';
+import { graphDataManager, type GraphData, type Node } from '../managers/graphDataManager';
 import { graphWorkerProxy } from '../managers/graphWorkerProxy';
 import { createBinaryNodeData, BinaryNodeData } from '../../../types/binaryProtocol';
 import { createLogger } from '../../../utils/loggerConfig';
@@ -169,9 +169,9 @@ export const useGraphEventHandlers = (
         }
 
         
-        setGraphData(prev => ({
+        setGraphData((prev: GraphData) => ({
           ...prev,
-          nodes: prev.nodes.map((node, idx) =>
+          nodes: prev.nodes.map((node: Node, idx: number) =>
             idx === drag.instanceId
               ? { ...node, position: { x: drag.currentNodePos3D.x, y: drag.currentNodePos3D.y, z: drag.currentNodePos3D.z } }
               : node
@@ -214,7 +214,7 @@ export const useGraphEventHandlers = (
       }
     } else {
       
-      const node = graphData.nodes.find(n => n.id === drag.nodeId);
+      const node = graphData.nodes.find((n: Node) => n.id === drag.nodeId);
       if (node?.label) {
         if (debugState.isEnabled()) logger.debug(`Click action on node ${node.id}`);
 

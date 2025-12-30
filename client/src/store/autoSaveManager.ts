@@ -1,6 +1,11 @@
 import { createLogger } from '../utils/loggerConfig';
 import { toast } from '../features/design-system/components/Toast';
-import { settingsApi, BatchOperation } from '../api/settingsApi';
+import { settingsApi } from '../api/settingsApi';
+
+interface BatchOperation {
+  path: string;
+  value: any;
+}
 
 const logger = createLogger('AutoSaveManager');
 
@@ -139,8 +144,14 @@ export class AutoSaveManager {
         logger.error(`Auto-save: Max retries exceeded for path ${path}`, { error, maxRetries: this.MAX_RETRIES });
         
         
-        if (toast?.error) {
-          toast.error(`Failed to save setting: ${path.split('.').pop()}. Changes are queued for retry.`);
+        try {
+          if (typeof toast === 'function') {
+            (toast as any).error?.(`Failed to save setting: ${path.split('.').pop()}. Changes are queued for retry.`);
+          } else if (toast && typeof (toast as any).error === 'function') {
+            (toast as any).error(`Failed to save setting: ${path.split('.').pop()}. Changes are queued for retry.`);
+          }
+        } catch {
+          // Silently ignore toast errors
         }
       }
     }

@@ -1,6 +1,6 @@
 
 
-import { Camera, Vector3 } from 'three';
+import { Camera, Vector3, OrthographicCamera, PerspectiveCamera } from 'three';
 import { createLogger } from '../../../utils/loggerConfig';
 
 const logger = createLogger('GraphSynchronization');
@@ -93,7 +93,7 @@ export class GraphSynchronization {
       camera: {
         position: camera.position.clone(),
         target: target ? target.clone() : this.syncState.camera.target,
-        zoom: this.syncOptions.enableZoomSync ? camera.zoom : this.syncState.camera.zoom
+        zoom: this.syncOptions.enableZoomSync ? (camera as OrthographicCamera | PerspectiveCamera).zoom : this.syncState.camera.zoom
       },
       interaction: {
         ...this.syncState.interaction,

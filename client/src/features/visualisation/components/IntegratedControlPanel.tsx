@@ -275,7 +275,7 @@ const IntegratedControlPanelInner: React.FC<ControlPanelProps> = ({
             graphData={graphData}
             mcpConnected={false}
             websocketStatus="connected"
-            metadataStatus={graphData?.nodes?.length > 0 ? 'loaded' : 'loading'}
+            metadataStatus={(graphData?.nodes?.length ?? 0) > 0 ? 'loaded' : 'loading'}
           />
         </div>
         <div style={{ flex: 1 }}>

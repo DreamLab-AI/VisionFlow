@@ -5,7 +5,7 @@ import { Slider } from '../../design-system/components/Slider';
 import { Label } from '../../design-system/components/Label';
 import { Badge } from '../../design-system/components/Badge';
 import { useOntologyStore, ConstraintGroup } from '../store/useOntologyStore';
-import { Tooltip, TooltipContent, TooltipTrigger } from '../../design-system/components/Tooltip';
+import { TooltipRoot, TooltipContent, TooltipTrigger, TooltipProvider } from '../../design-system/components/Tooltip';
 import { Info } from 'lucide-react';
 
 interface ConstraintGroupControlProps {
@@ -30,14 +30,14 @@ export function ConstraintGroupControl({ group }: ConstraintGroupControlProps) {
                 <Label htmlFor={`constraint-${group.id}`} className="text-base font-medium">
                   {group.name}
                 </Label>
-                <Tooltip>
+                <TooltipRoot>
                   <TooltipTrigger>
                     <Info className="w-4 h-4 text-gray-400" />
                   </TooltipTrigger>
                   <TooltipContent>
                     <p className="max-w-xs">{group.description}</p>
                   </TooltipContent>
-                </Tooltip>
+                </TooltipRoot>
               </div>
               <p className="text-sm text-gray-500">{group.description}</p>
             </div>

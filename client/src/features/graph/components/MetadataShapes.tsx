@@ -59,7 +59,7 @@ const getVisualsForNode = (node: GraphNode, settingsBaseColor?: string, ssspResu
   
   
   
-  if (typeof window !== 'undefined' && window.debugState?.isEnabled?.() && Math.random() < 0.05) { 
+  if (typeof window !== 'undefined' && (window as any).debugState?.isEnabled?.() && Math.random() < 0.05) { 
     console.log('MetadataShapes: Node metadata sample:', {
       id: node.id,
       label: node.label,
@@ -278,7 +278,7 @@ export const MetadataShapes: React.FC<MetadataShapesProps> = ({ nodes, nodePosit
               ref.layers.disable(2); 
             }
           }}
-          args={[geometries[geometryType], material, group.nodes.length]}
+          args={[(geometries as Record<string, THREE.BufferGeometry>)[geometryType], material, group.nodes.length]}
           frustumCulled={false}
           onClick={(e) => {
             if (e.instanceId !== undefined && onNodeClick) {

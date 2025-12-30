@@ -5,6 +5,7 @@
 
 use crate::models::graph::GraphData;
 use crate::models::graph_types::{NodeType, EdgeType};
+use crate::services::semantic_type_registry::{SemanticTypeRegistry, RelationshipForceConfig};
 use log::{debug, info, warn};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -303,6 +304,8 @@ pub struct SemanticForcesEngine {
     node_maturity: Vec<i32>, // 0=None, 1=emerging, 2=mature, 3=declining
     node_cross_domain_count: Vec<i32>, // Count of cross-domain links per node
     initialized: bool,
+    /// Dynamic semantic type registry for ontology-code decoupling
+    registry: Arc<SemanticTypeRegistry>,
 }
 
 impl SemanticForcesEngine {
@@ -321,7 +324,37 @@ impl SemanticForcesEngine {
             node_maturity: Vec::new(),
             node_cross_domain_count: Vec::new(),
             initialized: false,
+            registry: Arc::new(SemanticTypeRegistry::new()),
         }
+    }
+
+    /// Create a new semantic forces engine with custom registry
+    pub fn with_registry(config: SemanticConfig, registry: Arc<SemanticTypeRegistry>) -> Self {
+        Self {
+            config,
+            node_hierarchy_levels: Vec::new(),
+            node_types: Vec::new(),
+            type_centroids: HashMap::new(),
+            edge_types: Vec::new(),
+            node_physicality: Vec::new(),
+            physicality_centroids: HashMap::new(),
+            node_role: Vec::new(),
+            role_centroids: HashMap::new(),
+            node_maturity: Vec::new(),
+            node_cross_domain_count: Vec::new(),
+            initialized: false,
+            registry,
+        }
+    }
+
+    /// Get a reference to the semantic type registry
+    pub fn registry(&self) -> &SemanticTypeRegistry {
+        &self.registry
+    }
+
+    /// Build GPU buffer of relationship force configurations
+    pub fn build_relationship_gpu_buffer(&self) -> Vec<RelationshipForceConfig> {
+        self.registry.build_gpu_buffer()
     }
 
     /// Initialize engine with graph data
@@ -427,21 +460,15 @@ impl SemanticForcesEngine {
         }
     }
 
+    /// Convert edge type to integer using dynamic registry lookup
+    /// Decouples ontology from CUDA compilation - new types are registered at runtime
     fn edge_type_to_int(&self, edge_type: &Option<String>) -> i32 {
-        match edge_type.as_deref() {
-            None | Some("generic") => 0,
-            Some("dependency") => 1,
-            Some("hierarchy") => 2,
-            Some("association") => 3,
-            Some("sequence") => 4,
-            Some("subClassOf") => 5,
-            Some("instanceOf") => 6,
-            Some("requires") => 7,      // Directional dependency spring
-            Some("enables") => 8,        // Capability attraction (weaker)
-            Some("has-part") => 9,       // Strong clustering (parts orbit whole)
-            Some("bridges-to") => 10,    // Cross-domain long-range spring
-            Some(_) => 11,               // Custom types
-        }
+        self.registry.edge_type_to_int(edge_type)
+    }
+
+    /// Get force configuration for an edge type
+    fn get_edge_force_config(&self, edge_type_id: i32) -> Option<RelationshipForceConfig> {
+        self.registry.get_config(edge_type_id as u32)
     }
 
     /// Extract physicality classification from node metadata
@@ -848,7 +875,18 @@ impl SemanticForcesEngine {
             .collect();
 
         for (edge_idx, edge) in graph.edges.iter().enumerate() {
-            let edge_type = self.edge_types[edge_idx];
+            let edge_type_id = self.edge_types[edge_idx];
+
+            // Get force configuration from registry (dynamic lookup)
+            let force_config = match self.get_edge_force_config(edge_type_id) {
+                Some(config) => config,
+                None => continue, // Skip edges with unknown types
+            };
+
+            // Skip generic type (id=0) unless it has meaningful config
+            if edge_type_id == 0 && force_config.strength < 0.1 {
+                continue;
+            }
 
             let (src_idx, tgt_idx) = match (
                 node_id_to_idx.get(&edge.source),
@@ -867,28 +905,17 @@ impl SemanticForcesEngine {
                 continue;
             }
 
-            let (strength, rest_length, is_directional) = match edge_type {
-                7 => (self.config.ontology_relationship.requires_strength,
-                      self.config.ontology_relationship.requires_rest_length,
-                      true),  // requires - directional
-                8 => (self.config.ontology_relationship.enables_strength,
-                      self.config.ontology_relationship.enables_rest_length,
-                      false), // enables - bidirectional
-                9 => (self.config.ontology_relationship.has_part_strength,
-                      self.config.ontology_relationship.has_part_orbit_radius,
-                      false), // has-part - orbit clustering
-                10 => (self.config.ontology_relationship.bridges_to_strength,
-                       self.config.ontology_relationship.bridges_to_rest_length,
-                       false), // bridges-to - long-range spring
-                _ => continue,
-            };
+            // Use registry-based force configuration
+            let strength = force_config.strength;
+            let rest_length = force_config.rest_length;
+            let is_directional = force_config.is_directional;
 
             // Hooke's law: F = -k * (x - x0)
             let displacement = dist - rest_length;
             let force_mag = strength * displacement / dist * 0.01;
 
             if is_directional {
-                // For "requires": target attracts source (dependency pulls toward prerequisite)
+                // For directional edges: target attracts source (dependency pulls toward prerequisite)
                 graph.nodes[src_idx].data.vx += dx * force_mag;
                 graph.nodes[src_idx].data.vy += dy * force_mag;
                 graph.nodes[src_idx].data.vz += dz * force_mag;

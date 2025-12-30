@@ -5,23 +5,21 @@ import { Badge } from '@/features/design-system/components/Badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/features/design-system/components/Select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/features/design-system/components/Collapsible';
 import { useToast } from '@/features/design-system/components/Toast';
-import {
-  FileText,
-  ChevronDown,
-  ChevronRight,
-  Send,
-  Trash2,
-  RotateCcw,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Edit,
-  GitMerge,
-  AlertCircle,
-  FileCode,
-  Plus,
-  Minus
-} from 'lucide-react';
+import FileText from 'lucide-react/dist/esm/icons/file-text';
+import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down';
+import ChevronRight from 'lucide-react/dist/esm/icons/chevron-right';
+import Send from 'lucide-react/dist/esm/icons/send';
+import Trash2 from 'lucide-react/dist/esm/icons/trash-2';
+import RotateCcw from 'lucide-react/dist/esm/icons/rotate-ccw';
+import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
+import XCircle from 'lucide-react/dist/esm/icons/x-circle';
+import Clock from 'lucide-react/dist/esm/icons/clock';
+import Edit from 'lucide-react/dist/esm/icons/edit';
+import GitMerge from 'lucide-react/dist/esm/icons/git-merge';
+import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
+import FileCode from 'lucide-react/dist/esm/icons/file-code';
+import Plus from 'lucide-react/dist/esm/icons/plus';
+import Minus from 'lucide-react/dist/esm/icons/minus';
 import {
   useOntologyContributionStore,
   OntologyProposal,
@@ -235,7 +233,8 @@ function ProposalCard({
                 </div>
               </div>
             </div>
-            <Badge variant={status.variant} className="flex items-center gap-1">
+            <Badge variant={status.variant as 'default' | 'secondary' | 'destructive' | 'outline'} className="flex items-center gap-1">
+              {/* @ts-ignore - StatusIcon is dynamically assigned from lucide-react */}
               <StatusIcon className="h-3 w-3" />
               {status.label}
             </Badge>

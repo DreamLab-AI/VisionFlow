@@ -18,7 +18,7 @@ import { Button } from '@/features/design-system/components/Button';
 import { Badge } from '@/features/design-system/components/Badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/features/design-system/components/Tabs';
 import { useToast } from '@/features/design-system/components/Toast';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/features/design-system/components/Tooltip';
+import { TooltipRoot, TooltipContent, TooltipProvider, TooltipTrigger } from '@/features/design-system/components/Tooltip';
 import Play from 'lucide-react/dist/esm/icons/play';
 import Square from 'lucide-react/dist/esm/icons/square';
 import RefreshCw from 'lucide-react/dist/esm/icons/refresh-cw';
@@ -246,7 +246,7 @@ export function PhysicsControlPanel({ className }: PhysicsControlPanelProps) {
 
             <div className="grid grid-cols-2 gap-3">
               <TooltipProvider>
-                <Tooltip>
+                <TooltipRoot>
                   <TooltipTrigger asChild>
                     <Button
                       onClick={handleStep}
@@ -261,11 +261,11 @@ export function PhysicsControlPanel({ className }: PhysicsControlPanelProps) {
                   <TooltipContent>
                     <p>Perform single simulation step for debugging</p>
                   </TooltipContent>
-                </Tooltip>
+                </TooltipRoot>
               </TooltipProvider>
 
               <TooltipProvider>
-                <Tooltip>
+                <TooltipRoot>
                   <TooltipTrigger asChild>
                     <Button
                       onClick={handleReset}
@@ -280,7 +280,7 @@ export function PhysicsControlPanel({ className }: PhysicsControlPanelProps) {
                   <TooltipContent>
                     <p>Reset simulation to initial state</p>
                   </TooltipContent>
-                </Tooltip>
+                </TooltipRoot>
               </TooltipProvider>
             </div>
 

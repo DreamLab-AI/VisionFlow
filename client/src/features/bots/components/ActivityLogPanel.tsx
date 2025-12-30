@@ -28,7 +28,7 @@ export const ActivityLogPanel: React.FC<ActivityLogPanelProps> = ({
   const [logEntries, setLogEntries] = useState<ActivityLogEntry[]>([]);
   const [autoScroll, setAutoScroll] = useState(true);
   const logContainerRef = useRef<HTMLDivElement>(null);
-  const lastUpdateRef = useRef<string | undefined>();
+  const lastUpdateRef = useRef<string | undefined>(undefined);
 
   
   useEffect(() => {

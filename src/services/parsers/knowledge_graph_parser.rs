@@ -14,11 +14,47 @@ use crate::utils::socket_flow_messages::BinaryNodeData;
 use log::{debug, info};
 use std::collections::HashMap;
 
-pub struct KnowledgeGraphParser;
+/// Knowledge graph parser with position preservation support
+pub struct KnowledgeGraphParser {
+    /// Existing positions from database (node_id -> (x, y, z))
+    existing_positions: Option<HashMap<u32, (f32, f32, f32)>>,
+}
 
 impl KnowledgeGraphParser {
     pub fn new() -> Self {
-        Self
+        Self {
+            existing_positions: None,
+        }
+    }
+
+    /// Create parser with existing positions from database
+    /// These positions will be used instead of generating random ones
+    pub fn with_positions(existing_positions: HashMap<u32, (f32, f32, f32)>) -> Self {
+        Self {
+            existing_positions: Some(existing_positions),
+        }
+    }
+
+    /// Set existing positions for position preservation
+    pub fn set_positions(&mut self, positions: HashMap<u32, (f32, f32, f32)>) {
+        self.existing_positions = Some(positions);
+    }
+
+    /// Get position for a node ID, using existing position or generating random
+    fn get_position(&self, node_id: u32) -> (f32, f32, f32) {
+        if let Some(ref positions) = self.existing_positions {
+            if let Some(&(x, y, z)) = positions.get(&node_id) {
+                return (x, y, z);
+            }
+        }
+        // Generate random position only if no existing position found
+        use rand::Rng;
+        let mut rng = rand::thread_rng();
+        (
+            rng.gen_range(-100.0..100.0),
+            rng.gen_range(-100.0..100.0),
+            rng.gen_range(-100.0..100.0),
+        )
     }
 
     
@@ -60,30 +96,27 @@ impl KnowledgeGraphParser {
         })
     }
 
-    
+    /// Create a page node, preserving existing position if available
     fn create_page_node(&self, page_name: &str, content: &str) -> Node {
         let mut metadata = HashMap::new();
         metadata.insert("type".to_string(), "page".to_string());
         metadata.insert("source_file".to_string(), format!("{}.md", page_name));
-        metadata.insert("public".to_string(), "true".to_string()); 
+        metadata.insert("public".to_string(), "true".to_string());
 
-        
         let tags = self.extract_tags(content);
         if !tags.is_empty() {
             metadata.insert("tags".to_string(), tags.join(", "));
         }
 
-        
         let id = self.page_name_to_id(page_name);
 
-        
-        use rand::Rng;
-        let mut rng = rand::thread_rng();
+        // Use existing position or generate random (position preservation)
+        let (x, y, z) = self.get_position(id);
         let data = BinaryNodeData {
             node_id: id,
-            x: rng.gen_range(-100.0..100.0),
-            y: rng.gen_range(-100.0..100.0),
-            z: rng.gen_range(-100.0..100.0),
+            x,
+            y,
+            z,
             vx: 0.0,
             vy: 0.0,
             vz: 0.0,
@@ -97,7 +130,7 @@ impl KnowledgeGraphParser {
             metadata,
             file_size: 0,
             node_type: Some("page".to_string()),
-            color: Some("#4A90E2".to_string()), 
+            color: Some("#4A90E2".to_string()),
             size: Some(1.0),
             weight: Some(1.0),
             group: None,
@@ -113,12 +146,11 @@ impl KnowledgeGraphParser {
         }
     }
 
-    
+    /// Extract links from content, preserving existing positions
     fn extract_links(&self, content: &str, source_id: &u32) -> (Vec<Node>, Vec<Edge>) {
         let mut nodes = Vec::new();
         let mut edges = Vec::new();
 
-        
         let link_pattern = regex::Regex::new(r"\[\[([^\]|]+)(?:\|[^\]]+)?\]\]").expect("Invalid regex pattern");
 
         for cap in link_pattern.captures_iter(content) {
@@ -126,17 +158,16 @@ impl KnowledgeGraphParser {
                 let target_page = link_match.as_str().trim().to_string();
                 let target_id = self.page_name_to_id(&target_page);
 
-                
                 let mut metadata = HashMap::new();
                 metadata.insert("type".to_string(), "linked_page".to_string());
 
-                use rand::Rng;
-                let mut rng = rand::thread_rng();
+                // Use existing position or generate random (position preservation)
+                let (x, y, z) = self.get_position(target_id);
                 let data = BinaryNodeData {
                     node_id: target_id,
-                    x: rng.gen_range(-100.0..100.0),
-                    y: rng.gen_range(-100.0..100.0),
-                    z: rng.gen_range(-100.0..100.0),
+                    x,
+                    y,
+                    z,
                     vx: 0.0,
                     vy: 0.0,
                     vz: 0.0,
@@ -150,7 +181,7 @@ impl KnowledgeGraphParser {
                     metadata,
                     file_size: 0,
                     node_type: Some("linked_page".to_string()),
-                    color: Some("#7C3AED".to_string()), 
+                    color: Some("#7C3AED".to_string()),
                     size: Some(0.8),
                     weight: Some(0.8),
                     group: None,
@@ -165,7 +196,6 @@ impl KnowledgeGraphParser {
                     owl_class_iri: None,
                 });
 
-                
                 edges.push(Edge {
                     id: format!("{}_{}", source_id, target_id),
                     source: *source_id,
@@ -239,5 +269,32 @@ impl KnowledgeGraphParser {
 impl Default for KnowledgeGraphParser {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_position_preservation() {
+        let mut positions = HashMap::new();
+        positions.insert(12345u32, (10.0f32, 20.0f32, 30.0f32));
+
+        let parser = KnowledgeGraphParser::with_positions(positions);
+        let pos = parser.get_position(12345);
+
+        assert_eq!(pos, (10.0, 20.0, 30.0));
+    }
+
+    #[test]
+    fn test_fallback_to_random() {
+        let parser = KnowledgeGraphParser::new();
+        let pos = parser.get_position(99999);
+
+        // Should be within random range
+        assert!(pos.0 >= -100.0 && pos.0 <= 100.0);
+        assert!(pos.1 >= -100.0 && pos.1 <= 100.0);
+        assert!(pos.2 >= -100.0 && pos.2 <= 100.0);
     }
 }

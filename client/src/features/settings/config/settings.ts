@@ -103,10 +103,14 @@ export interface PhysicsSettings {
   coolingRate: number;
   
   
-  clusteringAlgorithm?: string; 
-  clusterCount?: number; 
-  clusteringResolution?: number; 
-  clusteringIterations?: number; 
+  clusteringAlgorithm?: string;
+  clusterCount?: number;
+  clusteringResolution?: number;
+  clusteringIterations?: number;
+
+  // SSSP (Single Source Shortest Path) integration
+  useSsspDistances?: boolean;
+  ssspAlpha?: number;
 }
 
 // Rendering settings
@@ -350,7 +354,7 @@ export interface GraphsSettings {
 }
 
 export interface VisualisationSettings {
-  
+
   rendering: RenderingSettings;
   animations: AnimationSettings;
   glow: GlowSettings;
@@ -359,8 +363,15 @@ export interface VisualisationSettings {
   camera?: CameraSettings;
   interaction?: InteractionSettings;
 
-  
+
   graphs: GraphsSettings;
+
+  // Legacy alias for glow settings (bloom was renamed to glow)
+  bloom?: GlowSettings;
+  // Direct access shortcuts (alias to graphs.logseq.*)
+  nodes?: NodeSettings;
+  edges?: EdgeSettings;
+  labels?: LabelSettings;
 }
 
 // System settings
@@ -520,6 +531,27 @@ export interface XRGPUSettings {
   };
 }
 
+// Vircadia integration settings
+export interface VircadiaSettings {
+  enabled: boolean;
+  serverUrl: string;
+  autoConnect: boolean;
+}
+
+// Node filter settings for graph visualization
+export interface NodeFilterSettings {
+  enabled: boolean;
+  minConnections?: number;
+  maxConnections?: number;
+  nodeTypes?: string[];
+  searchQuery?: string;
+  qualityThreshold?: number;
+  authorityThreshold?: number;
+  filterByQuality?: boolean;
+  filterByAuthority?: boolean;
+  filterMode?: 'and' | 'or';
+}
+
 // Main settings interface - Single source of truth matching server AppFullSettings
 export interface Settings {
   visualisation: VisualisationSettings;
@@ -536,6 +568,9 @@ export interface Settings {
   performance?: PerformanceSettings;
   developer?: DeveloperSettings;
   qualityGates?: QualityGatesSettings;
+  vircadia?: VircadiaSettings;
+  // Node filter settings for graph visualization
+  nodeFilter?: NodeFilterSettings;
 }
 
 // Partial update types for settings mutations

@@ -163,8 +163,8 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   }, []);
   const settings = useSettingsStore((state) => state.settings);
   
-  const nodeBloomStrength = settings?.visualisation?.bloom?.node_bloom_strength ?? settings?.visualisation?.bloom?.nodeBloomStrength ?? 0.5;
-  const edgeBloomStrength = settings?.visualisation?.bloom?.edge_bloom_strength ?? settings?.visualisation?.bloom?.edgeBloomStrength ?? 0.5;
+  const nodeBloomStrength = settings?.visualisation?.glow?.nodeGlowStrength ?? 0.5;
+  const edgeBloomStrength = settings?.visualisation?.glow?.edgeGlowStrength ?? 0.5;
   
   
   const ssspResult = useCurrentSSSPResult();
@@ -840,7 +840,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
 
   
   const { handlePointerDown, handlePointerMove, handlePointerUp } = useGraphEventHandlers(
-    meshRef,
+    meshRef as any,
     dragDataRef,
     setDragState,
     graphData,
@@ -1120,15 +1120,15 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       {edgePoints.length > 0 && (
         <FlowingEdges
           points={edgePoints}
-          settings={settings?.visualisation?.graphs?.logseq?.edges || settings?.visualisation?.edges || defaultEdgeSettings}
+          settings={(settings?.visualisation?.graphs?.logseq?.edges || settings?.visualisation?.edges || defaultEdgeSettings) as any}
           edgeData={graphData.edges}
         />
       )}
 
       {}
       {particleGeometry && (
-        <points 
-          ref={(points) => {
+        <points
+          ref={(points: any) => {
             particleSystemRef.current = points;
             
             if (points) {

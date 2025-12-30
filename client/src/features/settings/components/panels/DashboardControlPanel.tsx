@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, RefreshCw, Gauge, Layers, TrendingUp, Settings as SettingsIcon } from 'lucide-react';
-import { useSettingsStore } from '@/stores/settingsStore';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Label } from '@/components/ui/label';
+import Activity from 'lucide-react/dist/esm/icons/activity';
+import RefreshCw from 'lucide-react/dist/esm/icons/refresh-cw';
+import Gauge from 'lucide-react/dist/esm/icons/gauge';
+import Layers from 'lucide-react/dist/esm/icons/layers';
+import TrendingUp from 'lucide-react/dist/esm/icons/trending-up';
+import SettingsIcon from 'lucide-react/dist/esm/icons/settings';
+import { useSettingsStore } from '../../../../store/settingsStore';
+import { Button } from '@/features/design-system/components/Button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/features/design-system/components/Card';
+import { Switch } from '@/features/design-system/components/Switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/features/design-system/components/Select';
+import { Slider } from '@/features/design-system/components/Slider';
+import { Badge } from '@/features/design-system/components/Badge';
+import { Separator } from '@/features/design-system/components/Separator';
+import { Label } from '@/features/design-system/components/Label';
 
 
 
@@ -30,7 +35,20 @@ const COMPUTE_MODES = [
 ];
 
 export const DashboardControlPanel: React.FC = () => {
-  const { settings, updateSetting } = useSettingsStore();
+  const settings = useSettingsStore(state => state.settings);
+  const updateSettings = useSettingsStore(state => state.updateSettings);
+
+  const updateSetting = (path: string, value: any) => {
+    updateSettings((draft: any) => {
+      const parts = path.split('.');
+      let current = draft;
+      for (let i = 0; i < parts.length - 1; i++) {
+        if (!current[parts[i]]) current[parts[i]] = {};
+        current = current[parts[i]];
+      }
+      current[parts[parts.length - 1]] = value;
+    });
+  };
   const [systemStatus, setSystemStatus] = useState<SystemStatus>({
     graphStatus: 'idle',
     currentIteration: 0,
@@ -103,7 +121,7 @@ export const DashboardControlPanel: React.FC = () => {
       </div>
 
       {}
-      {settings?.dashboard?.showStatus && (
+      {(settings?.dashboard as any)?.showStatus && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -256,7 +274,7 @@ export const DashboardControlPanel: React.FC = () => {
             </div>
             <Switch
               id="show-status"
-              checked={settings?.dashboard?.showStatus ?? true}
+              checked={(settings?.dashboard as any)?.showStatus ?? true}
               onCheckedChange={(checked) => updateSetting('dashboard.showStatus', checked)}
             />
           </div>
@@ -286,7 +304,7 @@ export const DashboardControlPanel: React.FC = () => {
             </div>
             <Switch
               id="show-constraints"
-              checked={settings?.dashboard?.activeConstraints ?? true}
+              checked={Boolean(settings?.dashboard?.activeConstraints) ?? true}
               onCheckedChange={(checked) => updateSetting('dashboard.activeConstraints', checked)}
             />
           </div>

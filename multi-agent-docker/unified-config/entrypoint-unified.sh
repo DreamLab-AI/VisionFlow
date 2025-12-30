@@ -16,11 +16,15 @@ echo ""
 echo "[1/10] Setting up directories and Docker socket..."
 
 # Ensure all required directories exist
-mkdir -p /home/devuser/{workspace,models,agents,.claude/skills,.config,.cache,logs,.local/share}
+mkdir -p /home/devuser/{workspace,models,agents,.claude/skills,.config,.cache,logs,.local/share,.ssh}
 mkdir -p /home/gemini-user/{workspace,.config,.cache,.gemini-flow}
 mkdir -p /home/openai-user/{workspace,.config,.cache}
 mkdir -p /home/zai-user/{workspace,.config,.cache}
 mkdir -p /home/deepseek-user/{workspace,.config/deepseek,.cache}
+
+# Set SSH directory permissions (required for SSH to work)
+chmod 700 /home/devuser/.ssh
+chown devuser:devuser /home/devuser/.ssh
 mkdir -p /var/log /var/log/supervisor /run/dbus /run/user/1000 /tmp/.X11-unix /tmp/.ICE-unix
 chmod 1777 /tmp/.X11-unix /tmp/.ICE-unix
 chmod 700 /run/user/1000
@@ -482,12 +486,25 @@ fi
 
 echo "[7.3/10] Configuring SSH credentials..."
 
-# Check if SSH mount exists (host's ~/.ssh mounted read-only)
+# Check if SSH mount exists (individual key files mounted)
 if [ -d "/home/devuser/.ssh" ] && [ "$(ls -A /home/devuser/.ssh 2>/dev/null)" ]; then
     echo "✓ SSH credentials detected from host mount"
 
-    # Since mount is read-only, SSH will work directly - no ownership changes needed
-    # Skip any chown operations on SSH directory (mounted read-only from host)
+    # Ensure SSH directory has correct permissions
+    chmod 700 /home/devuser/.ssh 2>/dev/null || true
+
+    # Set key file permissions (read-only mounts may fail silently, which is fine)
+    chmod 600 /home/devuser/.ssh/id_* 2>/dev/null || true
+    chmod 644 /home/devuser/.ssh/*.pub 2>/dev/null || true
+    chmod 644 /home/devuser/.ssh/known_hosts 2>/dev/null || true
+
+    # Add GitHub to known_hosts if not present (prevents first-connect prompt)
+    if [ -f /home/devuser/.ssh/known_hosts ]; then
+        if ! grep -q "github.com" /home/devuser/.ssh/known_hosts 2>/dev/null; then
+            ssh-keyscan -t ed25519 github.com >> /home/devuser/.ssh/known_hosts 2>/dev/null || true
+            echo "  - Added github.com to known_hosts"
+        fi
+    fi
 
     # Verify key files
     KEY_COUNT=$(find /home/devuser/.ssh -type f -name "id_*" ! -name "*.pub" 2>/dev/null | wc -l)

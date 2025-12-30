@@ -82,8 +82,8 @@ export class VRPerformanceTest {
     // Add lighting
     const light = new THREE.DirectionalLight(0xffffff, 1);
     light.position.set(1, 1, 1);
-    this.scene.add(light);
-    this.scene.add(new THREE.AmbientLight(0x404040));
+    this.scene.add(light as any);
+    this.scene.add(new THREE.AmbientLight(0x404040) as any);
 
     // Add test geometry
     this.createTestScene();
@@ -184,7 +184,7 @@ export class VRPerformanceTest {
 
     // Update hand mesh visualization
     for (const joint of hand.values()) {
-      const jointPose = frame.getJointPose(joint, referenceSpace);
+      const jointPose = frame.getJointPose?.(joint, referenceSpace);
       if (jointPose) {
         // Joint is tracked - visualize it
         const key = `${handId}-${joint.jointName}`;

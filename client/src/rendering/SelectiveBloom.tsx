@@ -1,11 +1,8 @@
 import React, { useMemo, useRef, useEffect } from 'react';
 import { useThree } from '@react-three/fiber';
-import { 
-  EffectComposer, 
-  Bloom, 
-  EffectPass,
-  RenderPass,
-  SelectiveBloomEffect
+import {
+  EffectComposer,
+  Bloom
 } from '@react-three/postprocessing';
 import { BlendFunction, KernelSize, Resolution } from 'postprocessing';
 import * as THREE from 'three';
@@ -75,7 +72,7 @@ export const SelectiveBloom: React.FC<SelectiveBloomProps> = ({ enabled = true }
     }
     
     const params = {
-      intensity: activeSettings.strength ?? activeSettings.intensity ?? 1.5,
+      intensity: (activeSettings as { strength?: number }).strength ?? activeSettings.intensity ?? 1.5,
       luminanceThreshold: activeSettings.threshold ?? 0.1, 
       luminanceSmoothing: 0.025,
       kernelSize: activeSettings.radius ? 
@@ -129,10 +126,10 @@ export const useBloom = (
     
     if (enabled) {
       obj.layers.enable(layer);
-      
-      
-      if ((obj as THREE.Mesh).isMesh) {
-        const mesh = obj as THREE.Mesh;
+
+
+      if ((obj as unknown as THREE.Mesh).isMesh) {
+        const mesh = obj as unknown as THREE.Mesh;
         const material = mesh.material as THREE.MeshStandardMaterial;
         if (material?.isMeshStandardMaterial) {
           
@@ -149,10 +146,10 @@ export const useBloom = (
       }
     } else {
       obj.layers.disable(layer);
-      
-      
-      if ((obj as THREE.Mesh).isMesh) {
-        const mesh = obj as THREE.Mesh;
+
+
+      if ((obj as unknown as THREE.Mesh).isMesh) {
+        const mesh = obj as unknown as THREE.Mesh;
         const material = mesh.material as THREE.MeshStandardMaterial;
         if (material?.isMeshStandardMaterial && (material as any).__originalEmissive) {
           material.emissive.copy((material as any).__originalEmissive);
@@ -163,9 +160,9 @@ export const useBloom = (
     }
     
     return () => {
-      
-      if ((obj as THREE.Mesh).isMesh) {
-        const mesh = obj as THREE.Mesh;
+
+      if ((obj as unknown as THREE.Mesh).isMesh) {
+        const mesh = obj as unknown as THREE.Mesh;
         const material = mesh.material as THREE.MeshStandardMaterial;
         if (material?.isMeshStandardMaterial && (material as any).__originalEmissive) {
           material.emissive.copy((material as any).__originalEmissive);

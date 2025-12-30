@@ -68,10 +68,10 @@ services:
       # Docker socket for Docker Manager skill (inter-container control)
       - /var/run/docker.sock:/var/run/docker.sock:rw
 
-      # SSH credentials (runtime mount - no rebuild needed)
-      # NOTE: Disabled due to read-only mount issues with ssh-agent sockets
-      # Use SSH keys by copying them into the container or use SSH agent forwarding
-      # - ${HOME}/.ssh:/home/devuser/.ssh:ro
+      # SSH credentials (individual key files - avoids socket issues)
+      - ${HOME}/.ssh/id_ed25519:/home/devuser/.ssh/id_ed25519:ro
+      - ${HOME}/.ssh/id_ed25519.pub:/home/devuser/.ssh/id_ed25519.pub:ro
+      - ${HOME}/.ssh/known_hosts:/home/devuser/.ssh/known_hosts:rw
 
     # Environment variables from .env
     environment:

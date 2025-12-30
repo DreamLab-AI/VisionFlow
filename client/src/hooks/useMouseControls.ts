@@ -1,12 +1,14 @@
 import { useEffect } from 'react';
-import { OrbitControls } from '@react-three/drei';
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { SpaceDriver } from '../services/SpaceDriverService';
 import { createLogger } from '../utils/loggerConfig';
 
 const logger = createLogger('useMouseControls');
 
+// Type alias for OrbitControls
+type OrbitControls = OrbitControlsImpl;
 
-export function useMouseControls(orbitControlsRef: React.RefObject<OrbitControls>) {
+export function useMouseControls(orbitControlsRef: React.RefObject<OrbitControls | null>) {
   useEffect(() => {
     
     const ensureControlsEnabled = () => {

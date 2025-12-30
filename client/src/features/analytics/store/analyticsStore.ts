@@ -352,13 +352,13 @@ export const useAnalyticsStore = create<AnalyticsState>()(
           }))
           
           
-          get().updateMetrics(computationTime, false)
-          
+          get().updateMetrics(result.computationTime, false)
+
           if (debugState.isEnabled()) {
             logger.info('SSSP computation completed', {
               sourceNodeId,
               algorithm,
-              computationTime: `${computationTime.toFixed(2)}ms`,
+              computationTime: `${result.computationTime.toFixed(2)}ms`,
               unreachableCount: result.unreachableCount,
               totalNodes: nodes.length
             })

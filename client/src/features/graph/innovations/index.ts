@@ -233,31 +233,34 @@ export class InnovationManager {
   
   private applyPerformanceSettings(mode: 'high' | 'balanced' | 'low'): void {
     console.log(`⚡ Applying ${mode} performance mode...`);
-    
+
+    // Cast to any to access optional updateSettings method
+    const animations = graphAnimations as any;
+
     switch (mode) {
       case 'high':
-        
-        graphAnimations.updateSettings?.({
+
+        animations.updateSettings?.({
           maxConcurrentAnimations: 50,
           enableParticleEffects: true,
           enableAdvancedEasing: true,
           enablePhysicsSimulation: true
         });
         break;
-        
+
       case 'balanced':
-        
-        graphAnimations.updateSettings?.({
+
+        animations.updateSettings?.({
           maxConcurrentAnimations: 25,
           enableParticleEffects: true,
           enableAdvancedEasing: true,
           enablePhysicsSimulation: false
         });
         break;
-        
+
       case 'low':
-        
-        graphAnimations.updateSettings?.({
+
+        animations.updateSettings?.({
           maxConcurrentAnimations: 10,
           enableParticleEffects: false,
           enableAdvancedEasing: false,

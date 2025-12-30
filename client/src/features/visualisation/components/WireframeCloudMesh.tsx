@@ -37,7 +37,7 @@ export const WireframeCloudMesh: React.FC<WireframeCloudMeshProps> = ({
   rotationAxis = [0, 1, 0]
 }) => {
   const meshRef = useRef<THREE.Mesh>(null);
-  const materialRef = useRef<THREE.MeshBasicMaterial>();
+  const materialRef = useRef<THREE.MeshBasicMaterial>(null);
 
   
   const geometryObj = useMemo(() => {
@@ -63,12 +63,11 @@ export const WireframeCloudMesh: React.FC<WireframeCloudMeshProps> = ({
   
   const material = useMemo(() => {
     const c = new THREE.Color(color);
+    // MeshBasicMaterial doesn't support emissive - using color only
     return new THREE.MeshBasicMaterial({
       color: c,
-      emissive: c,
-      emissiveIntensity: glowIntensity * 0.3,
       transparent: true,
-      opacity: opacity,
+      opacity: opacity * (1 + glowIntensity * 0.3),
       wireframe: true,
       toneMapped: false
     });

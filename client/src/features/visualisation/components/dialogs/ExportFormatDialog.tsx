@@ -22,12 +22,14 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/features/design-system/components/Card';
 import { Separator } from '@/features/design-system/components/Separator';
 import {
+  // @ts-ignore - Icon exists in lucide-react but types may be outdated
   FileImage,
   FileText,
   Database,
   Code,
   Download,
   Zap,
+  // @ts-ignore - Icon exists in lucide-react but types may be outdated
   HardDrive,
   Clock,
   Info

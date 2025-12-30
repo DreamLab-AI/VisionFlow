@@ -48,8 +48,8 @@ export class BotsWebSocketIntegration {
     });
 
     
-    webSocketService.onMessage((message) => {
-      
+    // Cast to any to handle Bots-specific message types not in standard WS types
+    webSocketService.onMessage((message: any) => {
       agentTelemetry.logWebSocketMessage(message.type || 'unknown', 'incoming', message.data);
 
       if (message.type === 'graph-update') {

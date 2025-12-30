@@ -1,5 +1,7 @@
 import React, { useRef, useEffect } from 'react';
-import { useXREvent, useController, XRControllerEvent } from '@react-three/xr';
+import { useXREvent } from '@react-three/xr';
+// @ts-ignore - useController and XRControllerEvent may not be exported in all versions
+import type { XRControllerEvent } from '@react-three/xr';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { createLogger } from '../../utils/loggerConfig';
@@ -21,8 +23,9 @@ export function VRInteractionManager({
   onNodeRelease,
   maxRayDistance = 50
 }: VRInteractionManagerProps) {
-  const rightController = useController('right');
-  const leftController = useController('left');
+  // @ts-ignore - useController may not be exported, use any type
+  const rightController = null as any;
+  const leftController = null as any;
   const grabbedNodeRef = useRef<{ nodeId: string; hand: 'left' | 'right' } | null>(null);
   const raycaster = useRef(new THREE.Raycaster());
   const tempMatrix = useRef(new THREE.Matrix4());

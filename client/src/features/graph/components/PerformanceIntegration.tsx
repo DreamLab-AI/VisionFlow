@@ -2,8 +2,8 @@
 
 import { useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { graphPerformanceMonitor } from "../../../utils/graphPerformanceMonitor';
-import { graphOptimizer } from "../../../utils/graphOptimizations';
+import { graphPerformanceMonitor } from '../../../utils/graphPerformanceMonitor';
+import { graphOptimizer } from '../../../utils/graphOptimizations';
 import { debugState } from '../../../utils/clientDebugState';
 
 interface PerformanceIntegrationProps {

@@ -1,5 +1,9 @@
 import { BotsVisualConfig } from '../types/BotsTypes';
 
+// Deep partial utility type for nested partial objects
+type DeepPartial<T> = T extends object ? {
+  [P in keyof T]?: DeepPartial<T[P]>;
+} : T;
 
 export interface VisualizationConfig {
   colors: {
@@ -84,20 +88,31 @@ export class ConfigurationMapper {
     return {
       colors: {
         agents: {
-          
-          coder: '#2ECC71',       
-          tester: '#27AE60',      
-          researcher: '#1ABC9C',  
-          reviewer: '#16A085',    
-          documenter: '#229954',  
-          specialist: '#239B56',  
-          
-          
-          coordinator: '#F1C40F', 
-          analyst: '#F39C12',     
-          architect: '#E67E22',   
-          optimizer: '#D68910',   
-          monitor: '#D4AC0D',     
+          // Core development agents
+          coder: '#2ECC71',
+          tester: '#27AE60',
+          researcher: '#1ABC9C',
+          reviewer: '#16A085',
+          documenter: '#229954',
+          specialist: '#239B56',
+
+          // Coordination and analysis agents
+          coordinator: '#F1C40F',
+          analyst: '#F39C12',
+          architect: '#E67E22',
+          optimizer: '#D68910',
+          monitor: '#D4AC0D',
+
+          // Maestro specs-driven agents
+          requirements_analyst: '#9B59B6',
+          design_architect: '#8E44AD',
+          task_planner: '#7D3C98',
+          implementation_coder: '#6C3483',
+          quality_reviewer: '#5B2C6F',
+          steering_documenter: '#4A235A',
+
+          // Hive mind queen
+          queen: '#FFD700',
         },
         health: {
           excellent: '#2ECC71',   
@@ -138,6 +153,10 @@ export class ConfigurationMapper {
         nodeRepulsion: 15,
         gravityStrength: 0.1,
         maxVelocity: 0.5,
+        // Hive mind hierarchical physics
+        queenGravity: 0.15,
+        multiAgentCohesion: 0.2,
+        hierarchicalForce: 0.1,
       },
       camera: {
         defaultPosition: [0, 20, 40],
@@ -172,7 +191,7 @@ export class ConfigurationMapper {
   }
 
   
-  updateConfig(updates: Partial<VisualizationConfig>): void {
+  updateConfig(updates: DeepPartial<VisualizationConfig>): void {
     this.config = this.deepMerge(this.config, updates);
     this.notifyListeners();
   }
@@ -260,7 +279,7 @@ export class ConfigurationMapper {
   }
 
   
-  getPresets(): { [key: string]: Partial<VisualizationConfig> } {
+  getPresets(): { [key: string]: DeepPartial<VisualizationConfig> } {
     return {
       default: {},
       highPerformance: {

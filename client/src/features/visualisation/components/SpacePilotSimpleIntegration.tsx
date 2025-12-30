@@ -140,18 +140,18 @@ export const SpacePilotSimpleIntegration: React.FC<SpacePilotSimpleIntegrationPr
       }
     };
 
-    SpaceDriver.addEventListener('connect', handleConnect);
-    SpaceDriver.addEventListener('disconnect', handleDisconnect);
-    SpaceDriver.addEventListener('translate', handleTranslate);
-    SpaceDriver.addEventListener('rotate', handleRotate);
-    SpaceDriver.addEventListener('buttons', handleButtons);
+    SpaceDriver.addEventListener('connect', handleConnect as EventListener);
+    SpaceDriver.addEventListener('disconnect', handleDisconnect as EventListener);
+    SpaceDriver.addEventListener('translate', handleTranslate as EventListener);
+    SpaceDriver.addEventListener('rotate', handleRotate as EventListener);
+    SpaceDriver.addEventListener('buttons', handleButtons as EventListener);
 
     return () => {
-      SpaceDriver.removeEventListener('connect', handleConnect);
-      SpaceDriver.removeEventListener('disconnect', handleDisconnect);
-      SpaceDriver.removeEventListener('translate', handleTranslate);
-      SpaceDriver.removeEventListener('rotate', handleRotate);
-      SpaceDriver.removeEventListener('buttons', handleButtons);
+      SpaceDriver.removeEventListener('connect', handleConnect as EventListener);
+      SpaceDriver.removeEventListener('disconnect', handleDisconnect as EventListener);
+      SpaceDriver.removeEventListener('translate', handleTranslate as EventListener);
+      SpaceDriver.removeEventListener('rotate', handleRotate as EventListener);
+      SpaceDriver.removeEventListener('buttons', handleButtons as EventListener);
     };
   }, [orbitControlsRef]);
 

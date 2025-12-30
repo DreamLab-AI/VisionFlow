@@ -1,6 +1,7 @@
 
 
 export { AgentTelemetryService, agentTelemetry } from './AgentTelemetry';
+import { agentTelemetry } from './AgentTelemetry';
 import { createLogger } from '../utils/loggerConfig';
 
 const logger = createLogger('telemetry');
@@ -29,29 +30,28 @@ export type {
 
 export {
   createAgentLogger,
-  agentTelemetryLogger
+  dynamicAgentTelemetryLogger
 } from '../utils/loggerConfig';
 
 
-export function setupTelemetry(componentName: string) {
-  const telemetry = useTelemetry(componentName);
-
-  
+export function setupTelemetry(_componentName: string) {
+  // Note: useTelemetry is a React hook and cannot be called outside of React components
+  // This function provides a stub interface for non-React usage
   return {
-    ...telemetry,
-    logStart: () => telemetry.startRender(),
-    logEnd: () => telemetry.endRender(),
-    logClick: (metadata?: Record<string, any>) =>
-      telemetry.logInteraction('click', metadata),
-    logHover: (metadata?: Record<string, any>) =>
-      telemetry.logInteraction('hover', metadata)
+    startRender: () => {},
+    endRender: () => {},
+    logInteraction: (_type: string, _metadata?: Record<string, any>) => {},
+    logError: (_error: Error, _context?: string) => {},
+    logStart: () => {},
+    logEnd: () => {},
+    logClick: (_metadata?: Record<string, any>) => {},
+    logHover: (_metadata?: Record<string, any>) => {}
   };
 }
 
 
 export function initializeTelemetry() {
-  
-  agentTelemetry.logAgentAction('system', 'telemetry', 'initialized', {
+  agentTelemetry.logAgentSpawn('system', 'telemetry', {
     timestamp: new Date().toISOString(),
     userAgent: navigator.userAgent,
     viewport: {

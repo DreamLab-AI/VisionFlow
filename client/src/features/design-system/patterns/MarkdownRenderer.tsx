@@ -13,7 +13,7 @@ import Terminal from 'lucide-react/dist/esm/icons/terminal';
 import Anchor from 'lucide-react/dist/esm/icons/anchor';
 
 // Interactive code block component
-const InteractiveCodeBlock = ({ language, code, className }) => {
+const InteractiveCodeBlock = ({ language, code, className }: { language: string; code: string; className?: string }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -63,7 +63,7 @@ const InteractiveLink = ({ href, children, ...props }: { href?: string, children
   );
 };
 
-const MarkdownRenderer = ({ content, className }) => {
+const MarkdownRenderer = ({ content, className }: { content: string; className?: string }) => {
   return (
     <div className={cn("prose prose-sm prose-invert max-w-none", className)}>
       <ReactMarkdown

@@ -1,4 +1,5 @@
 import React, { useMemo, useCallback, memo } from 'react';
+// @ts-ignore - react-window types may not match exactly
 import { FixedSizeList as List } from 'react-window';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/features/design-system/components/Card';
 import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down';
@@ -83,7 +84,7 @@ const SettingRow = memo(({
             path={item.path}
             settingDef={item.definition}
             value={value}
-            onChange={onSettingChange}
+            onChange={(newValue: any) => onSettingChange(item.path, newValue)}
           />
         </div>
         {isSaved && !isLoading && (

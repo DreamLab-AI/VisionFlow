@@ -79,13 +79,14 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
           
           await graphWorkerProxy.initialize();
           console.log('[AppInitializer] Step 2: graphWorkerProxy initialized, calling settings initialize');
-          const settings = await initialize();
-          console.log('[AppInitializer] Step 3: Settings initialized:', settings ? 'success' : 'null');
+          await initialize();
+          console.log('[AppInitializer] Step 3: Settings initialized');
 
-          
-          if (settings?.system?.debug) {
+          // Access settings from the store after initialization
+          const currentSettings = useSettingsStore.getState().settings as any;
+          if (currentSettings?.system?.debug) {
             try {
-              const debugSettings = settings.system.debug;
+              const debugSettings = currentSettings.system.debug;
               debugState.enableDebug(debugSettings.enabled);
               if (debugSettings.enabled) {
                 debugState.enableDataDebug(debugSettings.enableDataDebug);
@@ -246,7 +247,7 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
 
               
               const unsubscribe = websocketService.onMessage((message) => {
-                if (message.type === 'connection_established') {
+                if ((message as any).type === 'connection_established') {
                   
                   logger.info('Connection established message received, sending subscribe_position_updates');
                   websocketService.sendMessage('subscribe_position_updates', {

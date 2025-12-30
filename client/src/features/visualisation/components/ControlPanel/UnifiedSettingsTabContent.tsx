@@ -162,7 +162,7 @@ export const UnifiedSettingsTabContent: React.FC<UnifiedSettingsTabContentProps>
             </div>
             <button
               id={field.key}
-              onClick={() => isWritable && updateSettingByPath(field.path, !value, field)}
+              onClick={() => isWritable && field.path && updateSettingByPath(field.path, !value, field)}
               disabled={!isWritable || isSaving}
               style={{
                 width: '36px',
@@ -223,7 +223,7 @@ export const UnifiedSettingsTabContent: React.FC<UnifiedSettingsTabContentProps>
               type="range"
               id={field.key}
               value={Number(value) || 0}
-              onChange={(e) => isWritable && updateSettingByPath(field.path, Number(e.target.value), field)}
+              onChange={(e) => isWritable && field.path && updateSettingByPath(field.path, Number(e.target.value), field)}
               disabled={!isWritable || isSaving}
               min={field.min || 0}
               max={field.max || 100}
@@ -261,7 +261,7 @@ export const UnifiedSettingsTabContent: React.FC<UnifiedSettingsTabContentProps>
               id={field.key}
               type="color"
               value={value || '#ffffff'}
-              onChange={(e) => isWritable && updateSettingByPath(field.path, e.target.value, field)}
+              onChange={(e) => isWritable && field.path && updateSettingByPath(field.path, e.target.value, field)}
               disabled={!isWritable || isSaving}
               style={{
                 width: '36px',
@@ -288,7 +288,7 @@ export const UnifiedSettingsTabContent: React.FC<UnifiedSettingsTabContentProps>
             <select
               id={field.key}
               value={value || field.options?.[0] || ''}
-              onChange={(e) => isWritable && updateSettingByPath(field.path, e.target.value, field)}
+              onChange={(e) => isWritable && field.path && updateSettingByPath(field.path, e.target.value, field)}
               disabled={!isWritable || isSaving}
               style={{
                 width: '100%',
@@ -332,7 +332,7 @@ export const UnifiedSettingsTabContent: React.FC<UnifiedSettingsTabContentProps>
               id={field.key}
               type="text"
               value={value || ''}
-              onChange={(e) => isWritable && updateSettingByPath(field.path, e.target.value, field)}
+              onChange={(e) => isWritable && field.path && updateSettingByPath(field.path, e.target.value, field)}
               disabled={!isWritable || isSaving}
               style={{
                 padding: '3px 6px',

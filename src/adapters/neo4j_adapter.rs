@@ -937,6 +937,31 @@ impl KnowledgeGraphRepository for Neo4jAdapter {
         }
     }
 
+    async fn get_all_positions(&self) -> RepoResult<HashMap<u32, (f32, f32, f32)>> {
+        let query = Query::new(
+            "MATCH (n:GraphNode)
+             WHERE n.x IS NOT NULL AND n.y IS NOT NULL AND n.z IS NOT NULL
+             RETURN n.id AS id, n.x AS x, n.y AS y, n.z AS z".to_string()
+        );
+
+        let mut positions = HashMap::new();
+        let mut result = self.graph.execute(query).await.map_err(|e| {
+            KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to get all positions: {}", e))
+        })?;
+
+        while let Ok(Some(row)) = result.next().await {
+            let id: i64 = row.get("id").unwrap_or(0);
+            let x: f64 = row.get("x").unwrap_or(0.0);
+            let y: f64 = row.get("y").unwrap_or(0.0);
+            let z: f64 = row.get("z").unwrap_or(0.0);
+
+            positions.insert(id as u32, (x as f32, y as f32, z as f32));
+        }
+
+        debug!("Retrieved {} node positions from Neo4j", positions.len());
+        Ok(positions)
+    }
+
     async fn get_nodes_by_owl_class_iri(&self, owl_class_iri: &str) -> RepoResult<Vec<Node>> {
         let query = Query::new("MATCH (n:GraphNode) WHERE n.owl_class_iri = $iri RETURN n".to_string()).param("iri", owl_class_iri);
 

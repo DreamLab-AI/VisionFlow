@@ -202,7 +202,7 @@ export class InteractionManager {
     y: number,
     nodes: Array<{ id: string; position: THREE.Vector3 }>
   ): { id: string; position: THREE.Vector3 } | null {
-    this.raycaster.setFromCamera({ x, y }, camera);
+    this.raycaster.setFromCamera(new THREE.Vector2(x, y), camera);
 
     let closestNode: { id: string; position: THREE.Vector3 } | null = null;
     let minDistance = Infinity;

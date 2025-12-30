@@ -237,7 +237,7 @@ export const DebugOverlay: React.FC<DebugOverlayProps> = ({ visible, onToggle })
       }}>
         <button
           onClick={() => {
-            agentTelemetry.uploadTelemetry();
+            (agentTelemetry as any).uploadTelemetry?.() ?? agentTelemetry.fetchAgentTelemetry();
           }}
           style={{
             padding: '5px 10px',

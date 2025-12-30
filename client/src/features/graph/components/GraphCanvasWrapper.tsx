@@ -47,9 +47,10 @@ const detectTestMode = (): boolean => {
             }
 
             
-            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+            const glContext = gl as WebGL2RenderingContext;
+            const debugInfo = glContext.getExtension('WEBGL_debug_renderer_info');
             if (debugInfo) {
-                const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                const renderer = glContext.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
                 if (renderer && typeof renderer === 'string') {
                     const rendererLower = renderer.toLowerCase();
                     if (rendererLower.includes('swiftshader') ||

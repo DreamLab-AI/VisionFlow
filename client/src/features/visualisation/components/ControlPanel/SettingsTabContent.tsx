@@ -18,7 +18,7 @@ export const SettingsTabContent: React.FC<SettingsTabContentProps> = ({ sectionI
   
   const getValueFromPath = useCallback((path: string): any => {
     const keys = path.split('.');
-    let value = settings;
+    let value: any = settings;
     for (const key of keys) {
       value = value?.[key];
     }
@@ -71,7 +71,7 @@ export const SettingsTabContent: React.FC<SettingsTabContentProps> = ({ sectionI
 
   
   const renderField = (field: SettingField) => {
-    const value = getValueFromPath(field.path);
+    const value = field.path ? getValueFromPath(field.path) : undefined;
 
     switch (field.type) {
       case 'toggle':
@@ -91,7 +91,7 @@ export const SettingsTabContent: React.FC<SettingsTabContentProps> = ({ sectionI
             </label>
             <button
               id={field.key}
-              onClick={() => updateSettingByPath(field.path, !value)}
+              onClick={() => field.path && updateSettingByPath(field.path, !value)}
               style={{
                 width: '36px',
                 height: '18px',
@@ -138,7 +138,7 @@ export const SettingsTabContent: React.FC<SettingsTabContentProps> = ({ sectionI
               type="range"
               id={field.key}
               value={Number(value) || 0}
-              onChange={(e) => updateSettingByPath(field.path, Number(e.target.value))}
+              onChange={(e) => field.path && updateSettingByPath(field.path, Number(e.target.value))}
               min={field.min || 0}
               max={field.max || 100}
               step={field.step || 0.1}
@@ -169,7 +169,7 @@ export const SettingsTabContent: React.FC<SettingsTabContentProps> = ({ sectionI
               id={field.key}
               type="color"
               value={value || '#ffffff'}
-              onChange={(e) => updateSettingByPath(field.path, e.target.value)}
+              onChange={(e) => field.path && updateSettingByPath(field.path, e.target.value)}
               style={{
                 width: '36px',
                 height: '20px',
@@ -195,7 +195,7 @@ export const SettingsTabContent: React.FC<SettingsTabContentProps> = ({ sectionI
             <select
               id={field.key}
               value={value || field.options?.[0] || ''}
-              onChange={(e) => updateSettingByPath(field.path, e.target.value)}
+              onChange={(e) => field.path && updateSettingByPath(field.path, e.target.value)}
               style={{
                 width: '100%',
                 background: 'rgba(255,255,255,0.05)',
@@ -232,7 +232,7 @@ export const SettingsTabContent: React.FC<SettingsTabContentProps> = ({ sectionI
               id={field.key}
               type="text"
               value={value || ''}
-              onChange={(e) => updateSettingByPath(field.path, e.target.value)}
+              onChange={(e) => field.path && updateSettingByPath(field.path, e.target.value)}
               style={{
                 padding: '3px 6px',
                 fontSize: '10px',

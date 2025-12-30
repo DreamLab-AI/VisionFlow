@@ -18,7 +18,7 @@ export function useAutoBalanceNotifications() {
     
     const checkAndPoll = async () => {
       const settings = useSettingsStore.getState().settings;
-      const autoBalanceEnabled = settings?.visualisation?.graphs?.logseq?.physics?.autoBalance;
+      const autoBalanceEnabled = (settings?.visualisation?.graphs?.logseq?.physics as Record<string, unknown> | undefined)?.autoBalance;
       
       if (!autoBalanceEnabled) {
         

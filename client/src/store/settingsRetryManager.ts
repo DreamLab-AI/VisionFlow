@@ -1,6 +1,11 @@
 import { createLogger } from '../utils/loggerConfig';
-import { settingsApi, BatchOperation } from '../api/settingsApi';
+import { settingsApi } from '../api/settingsApi';
 import { SettingsPath } from '../features/settings/config/settings';
+
+interface BatchOperation {
+  path: SettingsPath;
+  value: any;
+}
 
 const logger = createLogger('SettingsRetryManager');
 
@@ -71,24 +76,16 @@ export class SettingsRetryManager {
       }));
       
       try {
-        const result = await settingsApi.batchUpdateSettings(batchOps);
-        
-        
-        result.successful.forEach(path => {
+        // Use updateSettingsByPaths instead of non-existent batchUpdateSettings
+        await settingsApi.updateSettingsByPaths(batchOps.map(op => ({ path: op.path, value: op.value })));
+
+        // On success, remove all paths from retry queue
+        batchOps.forEach(({ path }: { path: SettingsPath }) => {
           this.retryQueue.delete(path);
           logger.info(`Successfully retried update for path: ${path}`);
         });
-        
-        
-        result.failed.forEach(({ path, error }) => {
-          const update = this.retryQueue.get(path);
-          if (update) {
-            update.lastAttempt = Date.now();
-            update.error = error;
-          }
-        });
-        
-      } catch (error) {
+
+      } catch (error: any) {
         logger.error('Batch retry failed:', error);
         
         updates.forEach(update => {

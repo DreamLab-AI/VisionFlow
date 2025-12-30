@@ -177,7 +177,7 @@ export function useHierarchyData(
       let currentIri: string | null = iri;
 
       while (currentIri) {
-        const node = hierarchy.hierarchy[currentIri];
+        const node: ClassNode | undefined = hierarchy.hierarchy[currentIri];
         if (!node || !node.parentIri) break;
 
         const parent = hierarchy.hierarchy[node.parentIri];
@@ -234,7 +234,7 @@ export function useHierarchyData(
 
   // Computed properties
   const maxDepthValue = hierarchy
-    ? Math.max(...Object.values(hierarchy.hierarchy).map((n) => n.depth))
+    ? Math.max(...Object.values(hierarchy.hierarchy).map((n: ClassNode) => n.depth))
     : 0;
 
   const rootCount = hierarchy?.rootClasses.length || 0;

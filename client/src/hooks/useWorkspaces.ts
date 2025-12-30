@@ -134,7 +134,7 @@ export const useWorkspaces = (options: UseWorkspacesOptions = {}) => {
       });
 
     } catch (error) {
-      if (error.name === 'AbortError') return; 
+      if ((error as Error).name === 'AbortError') return;
 
       const errorMessage = error instanceof WorkspaceApiError
         ? error.message
@@ -177,22 +177,22 @@ export const useWorkspaces = (options: UseWorkspacesOptions = {}) => {
   
   const optimisticallyUpdateWorkspace = useCallback((
     workspaceId: string,
-    updates: Partial<Workspace>
+    updates: Partial<Workspace> | UpdateWorkspaceRequest
   ) => {
     setState(prev => ({
       ...prev,
       workspaces: prev.workspaces.map(workspace =>
         workspace.id === workspaceId
-          ? { ...workspace, ...updates }
+          ? { ...workspace, ...updates } as Workspace
           : workspace
       ),
     }));
 
-    
+
     if (cacheRef.current) {
       cacheRef.current.data = cacheRef.current.data.map(workspace =>
         workspace.id === workspaceId
-          ? { ...workspace, ...updates }
+          ? { ...workspace, ...updates } as Workspace
           : workspace
       );
     }
@@ -359,7 +359,7 @@ export const useWorkspaces = (options: UseWorkspacesOptions = {}) => {
     const connectWebSocket = () => {
       try {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}
+        const wsUrl = `${protocol}//${window.location.host}/ws/workspaces`;
 
         logger.info('Connecting to workspace WebSocket', { url: wsUrl });
 
@@ -396,14 +396,14 @@ export const useWorkspaces = (options: UseWorkspacesOptions = {}) => {
                 logger.warn('Unknown workspace update type', { type: message.type });
             }
           } catch (error) {
-            logger.error('Failed to parse WebSocket message', { error: error.message });
+            logger.error('Failed to parse WebSocket message', { error: (error as Error).message });
           }
         };
 
         wsRef.current.onclose = (event) => {
           logger.info('Workspace WebSocket disconnected', { code: event.code, reason: event.reason });
 
-          
+
           if (event.code !== 1000) {
             setTimeout(connectWebSocket, 5000);
           }
@@ -414,7 +414,7 @@ export const useWorkspaces = (options: UseWorkspacesOptions = {}) => {
         };
 
       } catch (error) {
-        logger.error('Failed to connect workspace WebSocket', { error: error.message });
+        logger.error('Failed to connect workspace WebSocket', { error: (error as Error).message });
       }
     };
 

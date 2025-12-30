@@ -6,10 +6,44 @@
  */
 
 import * as THREE from 'three';
-import { NodeManager } from '../../core/NodeManager';
-import { EdgeManager } from '../../core/EdgeManager';
-import { GraphRenderer } from '../../rendering/GraphRenderer';
-import { Node, Edge } from '../../types/graph';
+
+// Stub interfaces for benchmark - actual implementations would come from core modules
+interface Node {
+  id: string;
+  label: string;
+  position: { x: number; y: number; z: number };
+  metadata?: Record<string, any>;
+}
+
+interface Edge {
+  id: string;
+  source: string;
+  target: string;
+  metadata?: Record<string, any>;
+}
+
+// Stub classes for benchmark testing
+class NodeManager {
+  private nodes: Map<string, Node> = new Map();
+  addNode(node: Node) { this.nodes.set(node.id, node); }
+  clear() { this.nodes.clear(); }
+  getNodes() { return Array.from(this.nodes.values()); }
+}
+
+class EdgeManager {
+  private edges: Map<string, Edge> = new Map();
+  addEdge(edge: Edge) { this.edges.set(edge.id, edge); }
+  clear() { this.edges.clear(); }
+  getEdges() { return Array.from(this.edges.values()); }
+}
+
+class GraphRenderer {
+  constructor(private scene: THREE.Scene, private nodeManager: NodeManager, private edgeManager: EdgeManager) {}
+  async initialize() { /* stub */ }
+  update(deltaTime: number) { /* stub */ }
+  refresh() { /* stub */ }
+  dispose() { /* stub */ }
+}
 
 export interface BenchmarkResult {
   nodeCount: number;

@@ -5,7 +5,7 @@ import { useVircadia } from './VircadiaContext';
 import { BotsVircadiaBridge } from '../services/bridges/BotsVircadiaBridge';
 import { GraphVircadiaBridge, type UserSelectionEvent, type AnnotationEvent } from '../services/bridges/GraphVircadiaBridge';
 import { EntitySyncManager } from '../services/vircadia/EntitySyncManager';
-import { AvatarManager } from '../services/vircadia/AvatarManager';
+// Note: AvatarManager removed - requires camera which context doesn't have
 import { CollaborativeGraphSync } from '../services/vircadia/CollaborativeGraphSync';
 import { createLogger } from '../utils/loggerConfig';
 import type { BotsAgent, BotsEdge } from '../features/bots/types/BotsTypes';
@@ -69,13 +69,15 @@ export const VircadiaBridgesProvider: React.FC<VircadiaBridgesProviderProps> = (
 
         
         if (enableBotsBridge) {
-          const entitySync = new EntitySyncManager(scene, client);
-          await entitySync.initialize();
+          // EntitySyncManager takes (client, config?) - not scene
+          const entitySync = new EntitySyncManager(client, {
+            syncGroup: 'public.NORMAL',
+            enableRealTimePositions: true
+          });
 
-          const avatars = new AvatarManager(scene, client);
-          await avatars.initialize();
-
-          const bBridge = new BotsVircadiaBridge(client, entitySync, avatars);
+          // AvatarManager requires camera - pass null since we don't have it here
+          // BotsVircadiaBridge accepts null for avatars
+          const bBridge = new BotsVircadiaBridge(client, entitySync, null);
           await bBridge.initialize();
           setBotsBridge(bBridge);
 

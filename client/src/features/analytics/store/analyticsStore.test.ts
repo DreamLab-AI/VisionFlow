@@ -1,3 +1,4 @@
+// @ts-ignore - vitest types may not be available in all environments
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { useAnalyticsStore } from './analyticsStore'
 import type { GraphNode, GraphEdge } from '../../graph/types/graphTypes'
@@ -25,7 +26,9 @@ global.localStorage = {
   setItem: vi.fn(),
   removeItem: vi.fn(),
   clear: vi.fn(),
-}
+  length: 0,
+  key: vi.fn(() => null),
+} as Storage
 
 describe('AnalyticsStore', () => {
   const sampleNodes: GraphNode[] = [

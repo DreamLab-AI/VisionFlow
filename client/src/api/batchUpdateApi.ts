@@ -74,10 +74,10 @@ export const batchUpdateApi = {
   
   async deleteNodes(nodeIds: number[]): Promise<BatchUpdateResult> {
     try {
-      const result = await unifiedApiClient.request('DELETE', `${API_BASE}/graph/nodes/batch-delete`, { nodeIds });
-      logger.info(`Batch deleted ${result.processed} nodes`);
-      
-      return result;
+      const result = await unifiedApiClient.request<BatchUpdateResult>('DELETE', `${API_BASE}/graph/nodes/batch-delete`, { nodeIds });
+      logger.info(`Batch deleted ${(result as any).processed || 0} nodes`);
+
+      return result as unknown as BatchUpdateResult;
     } catch (error) {
       logger.error('Batch delete error:', error);
       throw error;

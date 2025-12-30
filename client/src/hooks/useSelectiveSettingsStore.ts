@@ -161,9 +161,9 @@ export function useSelectiveSetting<T>(
     fallbackToStore = true
   } = options;
 
-  
-  const selector = useCallback((state: any) => state.get<T>(path), [path]);
-  const storeValue = useSettingsStore(selector, shallowEqual);
+
+  const selector = useCallback((state: any) => state.get(path) as T, [path]);
+  const storeValue = useSettingsStore(selector) as T;
   
   const [apiValue, setApiValue] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
@@ -201,7 +201,7 @@ export function useSelectiveSetting<T>(
       fetchValue
         .then(value => {
           if (mounted) {
-            setApiValue(value);
+            setApiValue(value as T);
           }
         })
         .catch(error => {
@@ -258,7 +258,7 @@ export function useSelectiveSettings<T extends Record<string, any>>(
     return sels;
   }, [stablePaths]);
   
-  
+
   const storeValues = useSettingsStore(
     state => {
       const values = {} as T;
@@ -266,8 +266,7 @@ export function useSelectiveSettings<T extends Record<string, any>>(
         values[key as keyof T] = selector(state);
       }
       return values;
-    },
-    shallowEqual
+    }
   );
   
   const [apiValues, setApiValues] = useState<Partial<T>>({});
@@ -478,27 +477,26 @@ export function useSettingsSelector<T>(
     cacheTTL = CACHE_TTL
   } = options;
 
-  
+
   const memoizedSelector = useCallback(selector, [selector.toString()]);
-  
-  
+
+
   const value = useSettingsStore(
-    state => memoizedSelector(state.settings),
-    equalityFn
-  );
-  
-  
+    state => memoizedSelector(state.settings)
+  ) as T;
+
+
   const cacheKey = useMemo(() => {
     if (!enableCache) return null;
     return `selector_${memoizedSelector.toString()}_${JSON.stringify(value)}`;
   }, [enableCache, memoizedSelector, value]);
-  
+
   useEffect(() => {
     if (cacheKey && enableCache) {
       setCachedResponse(cacheKey, value, cacheTTL);
     }
   }, [cacheKey, enableCache, value, cacheTTL]);
-  
+
   return value;
 }
 

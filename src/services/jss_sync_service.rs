@@ -459,20 +459,20 @@ impl JssSyncService {
         // Generate resource slug from IRI
         let slug = Self::iri_to_slug(&resource.iri);
         let resource_path = format!(
-            "{}/{}.ttl",
+            "{}/{}.jsonld",
             self.config.public_ontology_path,
             slug
         );
         let url = format!("{}{}", self.config.jss_config.base_url, resource_path);
 
-        // Serialize resource to Turtle
-        let turtle = self.resource_to_turtle(resource)?;
+        // Serialize resource to JSON-LD (native format for JSS)
+        let jsonld = self.resource_to_jsonld(resource)?;
 
-        // PUT to JSS
+        // PUT to JSS with JSON-LD content type
         let response = self.http_client
             .put(&url)
-            .header("Content-Type", "text/turtle")
-            .body(turtle)
+            .header("Content-Type", "application/ld+json")
+            .body(serde_json::to_string(&jsonld).map_err(|e| JssSyncError::SerializationError(e.to_string()))?)
             .send()
             .await?;
 
@@ -525,6 +525,29 @@ impl JssSyncService {
         }
         // Fallback: URL-encode the whole IRI
         urlencoding::encode(iri).to_string()
+    }
+
+    /// Convert ontology resource to JSON-LD format (native for JSS)
+    fn resource_to_jsonld(&self, resource: &OntologyResource) -> Result<serde_json::Value> {
+        Ok(serde_json::json!({
+            "@context": "https://visionflow.io/contexts/ontology.jsonld",
+            "@id": &resource.iri,
+            "@type": match &resource.resource_type {
+                OntologyResourceType::Class => "owl:Class",
+                OntologyResourceType::Property => "owl:ObjectProperty",
+                OntologyResourceType::Individual => "owl:NamedIndividual",
+                OntologyResourceType::Axiom => "owl:Axiom",
+            },
+            "rdfs:label": &resource.label,
+            "rdfs:comment": &resource.description,
+            "rdfs:subClassOf": resource.parent_iris.iter()
+                .map(|p| serde_json::json!({"@id": p}))
+                .collect::<Vec<_>>(),
+            "vf:qualityScore": resource.quality_score,
+            "vf:sourceDomain": &resource.source_domain,
+            "vf:properties": &resource.properties,
+            "vf:lastModified": resource.last_modified.map(|dt| dt.to_rfc3339()),
+        }))
     }
 
     fn resource_to_turtle(&self, resource: &OntologyResource) -> Result<String> {
@@ -687,5 +710,36 @@ mod tests {
         assert!(turtle.contains("a owl:Class"));
         assert!(turtle.contains("rdfs:label \"Person\""));
         assert!(turtle.contains("rdfs:subClassOf <http://example.org/ontology#Agent>"));
+    }
+
+    #[test]
+    fn test_resource_to_jsonld() {
+        let service = JssSyncService::from_env();
+
+        let resource = OntologyResource {
+            iri: "http://example.org/ontology#Person".to_string(),
+            label: Some("Person".to_string()),
+            description: Some("A human being".to_string()),
+            resource_type: OntologyResourceType::Class,
+            parent_iris: vec!["http://example.org/ontology#Agent".to_string()],
+            properties: HashMap::new(),
+            source_domain: Some("core".to_string()),
+            quality_score: Some(0.95),
+            last_modified: None,
+        };
+
+        let jsonld = service.resource_to_jsonld(&resource).unwrap();
+
+        assert_eq!(jsonld["@context"], "https://visionflow.io/contexts/ontology.jsonld");
+        assert_eq!(jsonld["@id"], "http://example.org/ontology#Person");
+        assert_eq!(jsonld["@type"], "owl:Class");
+        assert_eq!(jsonld["rdfs:label"], "Person");
+        assert_eq!(jsonld["rdfs:comment"], "A human being");
+        assert_eq!(jsonld["vf:qualityScore"], 0.95);
+        assert_eq!(jsonld["vf:sourceDomain"], "core");
+
+        let subclass_of = jsonld["rdfs:subClassOf"].as_array().unwrap();
+        assert_eq!(subclass_of.len(), 1);
+        assert_eq!(subclass_of[0]["@id"], "http://example.org/ontology#Agent");
     }
 }

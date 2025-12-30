@@ -30,14 +30,12 @@ export const VircadiaSettings: React.FC = () => {
 
   
   const saveSettings = () => {
-    const currentSettings = useSettingsStore.getState().settings;
-    useSettingsStore.getState().updateSettings({
-      ...currentSettings,
-      vircadia: {
+    useSettingsStore.getState().updateSettings((draft) => {
+      draft.vircadia = {
         enabled: vircadiaEnabled,
         serverUrl,
         autoConnect
-      }
+      };
     });
   };
 

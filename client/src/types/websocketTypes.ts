@@ -386,6 +386,54 @@ export interface ExplorationTourMessage extends BaseWebSocketMessage {
   };
 }
 
+// Connection and protocol messages
+export interface ConnectionEstablishedMessage extends BaseWebSocketMessage {
+  type: 'connection_established';
+  data?: {
+    serverVersion?: string;
+    features?: string[];
+  };
+}
+
+export interface ErrorMessage extends BaseWebSocketMessage {
+  type: 'error';
+  error: string;
+  data?: Record<string, unknown>;
+}
+
+export interface FilterConfirmedMessage extends BaseWebSocketMessage {
+  type: 'filter_confirmed';
+  data: {
+    visible_nodes: number;
+    total_nodes: number;
+  };
+}
+
+export interface InitialGraphLoadMessage extends BaseWebSocketMessage {
+  type: 'initialGraphLoad';
+  nodes: Array<{
+    id: string | number;
+    label?: string;
+    name?: string;
+    position?: { x: number; y: number; z: number };
+    x?: number;
+    y?: number;
+    z?: number;
+    metadata?: Record<string, unknown>;
+    quality_score?: number;
+    authority_score?: number;
+    color?: string;
+    size?: number;
+  }>;
+  edges: Array<{
+    id?: string;
+    source: string | number;
+    target: string | number;
+    weight?: number;
+    label?: string;
+  }>;
+}
+
 // Union type of all possible WebSocket messages
 export type WebSocketMessage =
   | WorkspaceUpdateMessage
@@ -412,7 +460,11 @@ export type WebSocketMessage =
   | TimeTraverseCompleteMessage
   | CollaborationSessionMessage
   | VRARModeMessage
-  | ExplorationTourMessage;
+  | ExplorationTourMessage
+  | ConnectionEstablishedMessage
+  | ErrorMessage
+  | FilterConfirmedMessage
+  | InitialGraphLoadMessage;
 
 // Event handler types
 export type MessageHandler<T extends WebSocketMessage = WebSocketMessage> = (message: T) => void;

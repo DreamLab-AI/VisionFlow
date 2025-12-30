@@ -1,12 +1,19 @@
 // Comprehensive settings UI definitions merging current implementation with codestore features
 
-// Re-export types from separate file for better organization
-export type {
+// Import and re-export types from separate file for better organization
+import type {
   SettingWidgetType,
   UISettingDefinition,
   UISubsectionDefinition,
   UICategoryDefinition
 } from './widgetTypes';
+
+export type {
+  SettingWidgetType,
+  UISettingDefinition,
+  UISubsectionDefinition,
+  UICategoryDefinition
+};
 
 // Helper function to create graph-specific settings for a given graph name
 const createGraphSettingsSubsections = (graphName: 'logseq' | 'visionflow') => ({
@@ -450,31 +457,6 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
           twoFactorAuth: { label: 'Two-Factor Auth', type: 'toggle', path: 'auth.twoFactorAuth', description: 'Require two-factor authentication.' },
         },
       },
-    },
-  },
-  system: {
-    label: 'System',
-    icon: 'Settings',
-    subsections: {
-      general: {
-        label: 'General',
-        settings: {
-          persistSettings: { label: 'Persist Settings on Server', type: 'toggle', path: 'system.persistSettings', description: 'Save settings to your user profile on the server (if authenticated).'},
-          customBackendUrl: { label: 'Custom Backend URL', type: 'textInput', path: 'system.customBackendUrl', description: 'Overrides the default backend URL. Requires app reload. Leave empty for default.', isPowerUserOnly: true },
-        }
-      },
-      websocket: {
-        label: 'WebSocket',
-        settings: {
-          updateRate: { label: 'Update Rate', type: 'slider', min: 1, max: 120, step: 1, unit: 'Hz', path: 'system.websocket.updateRate', description: 'Network update frequency (higher = smoother, more bandwidth).' },
-          reconnectAttempts: { label: 'Reconnect Attempts', type: 'slider', min: 0, max: 20, step: 1, path: 'system.websocket.reconnectAttempts', description: 'Max reconnection attempts before giving up.' },
-          reconnectDelay: { label: 'Reconnect Delay', type: 'slider', min: 100, max: 30000, step: 100, unit: 'ms', path: 'system.websocket.reconnectDelay', description: 'Wait time between reconnection attempts.' },
-          binaryChunkSize: { label: 'Binary Chunk Size', type: 'slider', min: 512, max: 16384, step: 512, unit: 'bytes', path: 'system.websocket.binaryChunkSize', description: 'Binary data packet size (larger = fewer packets, more memory).' },
-          compressionEnabled: { label: 'Compression Enabled', type: 'toggle', path: 'system.websocket.compressionEnabled', description: 'Enable WebSocket message compression.' },
-          compressionThreshold: { label: 'Compression Threshold', type: 'slider', min: 128, max: 8192, step: 128, unit: 'bytes', path: 'system.websocket.compressionThreshold', description: 'Minimum message size to trigger compression.' },
-        },
-      },
-      
     },
   },
   xr: {

@@ -297,7 +297,7 @@ const AgentStatusBadges: React.FC<AgentStatusBadgesProps> = ({ agent, logs = [] 
       )}
 
       {}
-      {(agent.tasksActive > 0 || agent.tasksCompleted > 0) && (
+      {((agent.tasksActive ?? 0) > 0 || (agent.tasksCompleted ?? 0) > 0) && (
         <div style={{
           fontSize: '10px',
           color: '#666',
@@ -416,7 +416,7 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
   const [displayMode, setDisplayMode] = useState<'overview' | 'performance' | 'tasks' | 'network' | 'resources'>('overview');
   const telemetry = useTelemetry(`BotsNode-${agent.id}`);
   const threeJSTelemetry = useThreeJSTelemetry(agent.id);
-  const lastPositionRef = useRef<THREE.Vector3>();
+  const lastPositionRef = useRef<THREE.Vector3 | undefined>(undefined);
   const currentPositionRef = useRef<THREE.Vector3>(position.clone());
   const targetPositionRef = useRef<THREE.Vector3>(position.clone());
   const settings = useSettingsStore(state => state.settings);
@@ -666,7 +666,7 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
       )}
 
       {}
-      {(agent.tokenRate > 30 || agent.cpuUsage > 80) && (
+      {((agent.tokenRate ?? 0) > 30 || agent.cpuUsage > 80) && (
         <group>
           {}
           <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, clampedSize + 0.2, 0]}>
@@ -680,8 +680,8 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
           </mesh>
 
           {}
-          {agent.tokenRate > 50 && [
-            ...Array(Math.min(Math.floor(agent.tokenRate / 10), 8))
+          {(agent.tokenRate ?? 0) > 50 && [
+            ...Array(Math.min(Math.floor((agent.tokenRate ?? 0) / 10), 8))
           ].map((_, i) => {
             const angle = (i / 8) * Math.PI * 2;
             const radius = clampedSize * 2;
@@ -800,7 +800,7 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
             <Text
               position={[0, -clampedSize - 1.7, 0]}
               fontSize={0.18}
-              color={agent.tokenRate > 20 ? '#E67E22' : '#3498DB'}
+              color={(agent.tokenRate ?? 0) > 20 ? '#E67E22' : '#3498DB'}
               anchorX="center"
               anchorY="middle"
               outlineWidth={0.02}
@@ -935,7 +935,7 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
               outlineWidth={0.02}
               outlineColor="black"
             >
-              Workload: {(agent.workload * 100 || 0).toFixed(0)}%
+              Workload: {((agent.workload ?? 0) * 100).toFixed(0)}%
             </Text>
             <Text
               position={[0, -clampedSize - 1.4, 0]}
@@ -946,7 +946,7 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
               outlineWidth={0.02}
               outlineColor="black"
             >
-              Activity: {(agent.activity * 100 || 0).toFixed(0)}%
+              Activity: {((agent.activity ?? 0) * 100).toFixed(0)}%
             </Text>
             {agent.capabilities && agent.capabilities.length > 0 && (
               <Text
@@ -1292,7 +1292,9 @@ export const BotsVisualization: React.FC = () => {
         if (!position) return null; 
 
         
-        const nodeColor = colors.getAgentColor ? colors.getAgentColor(node.type) : (colors[node.type] || colors.coordinator);
+        const nodeColor = colors.getAgentColor
+          ? colors.getAgentColor(node.type)
+          : ((colors as unknown as Record<string, string>)[node.type] || colors.coordinator);
 
         return (
           <BotsNode

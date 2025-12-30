@@ -26,10 +26,10 @@ export function parseDebugConfig(): DebugConfig {
     preset: env.VITE_DEBUG_PRESET as any,
   };
 
-  
+
   if (env.VITE_DEBUG_CATEGORIES) {
     const cats = env.VITE_DEBUG_CATEGORIES.split(',').map((c: string) => c.trim());
-    config.categories = cats.filter(c => Object.values(DebugCategory).includes(c as any)) as DebugCategory[];
+    config.categories = cats.filter((c: string) => Object.values(DebugCategory).includes(c as any)) as DebugCategory[];
   }
 
   return config;
@@ -49,9 +49,12 @@ export function initializeDebugSystem(): void {
     
     debugControl.enable();
     
-    
+
     if (config.categories.length > 0) {
-      debugControl.disableAllCategories();
+      // Clear existing categories by disabling each one
+      Object.values(DebugCategory).forEach(cat => {
+        debugControl.disableCategory(cat);
+      });
       config.categories.forEach(cat => {
         debugControl.enableCategory(cat);
       });
@@ -59,9 +62,9 @@ export function initializeDebugSystem(): void {
     }
   }
 
-  
+
   if (config.replaceConsole && process.env.NODE_ENV === 'development') {
-    replaceGlobalConsole(true);
+    replaceGlobalConsole();
   }
 
   

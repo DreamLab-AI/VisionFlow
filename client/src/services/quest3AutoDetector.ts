@@ -195,8 +195,8 @@ export class Quest3AutoDetector {
     };
 
     
-    settingsStore.updateSettings((draft) => {
-      
+    settingsStore.updateSettings((draft: any) => {
+
       Object.assign(draft.xr, quest3Settings.xr);
       Object.assign(draft.auth, quest3Settings.auth);
       Object.assign(draft.visualisation.rendering, quest3Settings.visualisation.rendering);

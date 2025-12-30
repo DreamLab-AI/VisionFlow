@@ -14,7 +14,7 @@ export const AutoBalanceIndicator: React.FC<AutoBalanceIndicatorProps> = ({ styl
     
     const checkAutoBalance = () => {
       const settings = useSettingsStore.getState().settings;
-      const autoBalanceEnabled = settings?.visualisation?.graphs?.logseq?.physics?.autoBalance;
+      const autoBalanceEnabled = (settings?.visualisation?.graphs?.logseq?.physics as any)?.autoBalance;
       
       if (!autoBalanceEnabled) {
         setIsActive(false);

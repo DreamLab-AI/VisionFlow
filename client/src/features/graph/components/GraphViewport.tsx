@@ -198,7 +198,7 @@ const GraphViewport: React.FC = () => {
           if (debugState.isEnabled()) {
             logger.info('Canvas created', {
               cameraPosition: camera.position.toArray(),
-              cameraFov: camera.fov,
+              cameraFov: 'fov' in camera ? (camera as THREE.PerspectiveCamera).fov : undefined,
               sceneChildren: scene.children.length,
             });
           }
@@ -224,22 +224,14 @@ const GraphViewport: React.FC = () => {
         <ambientLight ref={setAmbientRef} intensity={renderingSettings?.ambientLightIntensity ?? 0.6} />
         <directionalLight
           ref={setDirRef}
-          position={[
-            renderingSettings?.directionalLightPosition?.[0] ?? 10,
-            renderingSettings?.directionalLightPosition?.[1] ?? 10,
-            renderingSettings?.directionalLightPosition?.[2] ?? 5
-          ]}
+          position={[10, 10, 5]}
           intensity={renderingSettings?.directionalLightIntensity ?? 1}
           castShadow
         />
         <pointLight
           ref={setPointRef}
-          position={[
-            renderingSettings?.pointLightPosition?.[0] ?? -10,
-            renderingSettings?.pointLightPosition?.[1] ?? -10,
-            renderingSettings?.pointLightPosition?.[2] ?? -5
-          ]}
-          intensity={renderingSettings?.pointLightIntensity ?? 0.5}
+          position={[-10, -10, -5]}
+          intensity={renderingSettings?.ambientLightIntensity ?? 0.5}
         />
 
         <OrbitControls
@@ -295,23 +287,25 @@ const GraphViewport: React.FC = () => {
               )}
             </>
           )}
-          
+
           {}
-          {debugSettings?.enableNodeDebug && debugState.isEnabled() && 
-            logger.info('Node debug enabled - Graph state:', { 
-              graphSize, 
-              graphCenter, 
-              nodeCount: graphDataManager.getGraphData().then(d => d.nodes.length) 
-            })
-          }
-          
-          {debugSettings?.enableShaderDebug && debugState.isEnabled() &&
+          {debugSettings?.enableNodeDebug && debugState.isEnabled() && (() => {
+            logger.info('Node debug enabled - Graph state:', {
+              graphSize,
+              graphCenter,
+              nodeCount: graphDataManager.getGraphData().then(d => d.nodes.length)
+            });
+            return null;
+          })()}
+
+          {debugSettings?.enableShaderDebug && debugState.isEnabled() && (() => {
             logger.info('Shader debug enabled - Rendering state:', {
               enableGlow,
-              hologramEnabled,
+              enableHologram,
               renderingSettings
-            })
-          }
+            });
+            return null;
+          })()}
 
           {enableGlow && (
             <EffectComposer

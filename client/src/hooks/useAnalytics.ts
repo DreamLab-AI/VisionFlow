@@ -184,12 +184,14 @@ export function useAnalytics(options: UseAnalyticsOptions = {}) {
         case 'structural':
           taskId = await analyticsAPI.runStructuralAnalysis({
             graph_data: {
-              nodes: request.graphData.nodes.map(n => ({ id: n.id, ...n })),
-              edges: request.graphData.edges.map(e => ({
-                source: e.source,
-                target: e.target,
-                ...e
-              }))
+              nodes: request.graphData.nodes.map(n => {
+                const { id, ...rest } = n;
+                return { id, ...rest };
+              }),
+              edges: request.graphData.edges.map(e => {
+                const { source, target, ...rest } = e;
+                return { source, target, ...rest };
+              })
             },
             analysis_type: 'comprehensive',
             options: request.options

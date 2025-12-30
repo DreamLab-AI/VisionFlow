@@ -77,8 +77,7 @@ const flowFragmentShader = `
 export const FlowingEdges: React.FC<FlowingEdgesProps> = ({ points, settings: propSettings, edgeData }) => {
   const globalSettings = useSettingsStore((state) => state.settings);
   
-  const edgeBloomStrength = (globalSettings?.visualisation?.bloom as any)?.edge_bloom_strength ?? 
-                           globalSettings?.visualisation?.bloom?.edgeBloomStrength ?? 0.5;
+  const edgeBloomStrength = globalSettings?.visualisation?.glow?.edgeGlowStrength ?? 0.5;
   const lineRef = useRef<THREE.LineSegments>(null);
   const materialRef = useRef<THREE.LineBasicMaterial>(null);
   

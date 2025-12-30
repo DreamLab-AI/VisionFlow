@@ -40,14 +40,10 @@ export const ClassGroupTooltip: React.FC<ClassGroupTooltipProps> = ({
         </div>
 
         <div style={styles.content}>
-          {classNode.description && (
-            <p style={styles.description}>{classNode.description}</p>
-          )}
-
           <div style={styles.metadataGrid}>
             <div style={styles.metadataItem}>
-              <span style={styles.metadataLabel}>IRI:</span>
-              <span style={styles.metadataValue}>{classNode.iri}</span>
+              <span style={styles.metadataLabel}>ID:</span>
+              <span style={styles.metadataValue}>{classNode.id}</span>
             </div>
 
             <div style={styles.metadataItem}>
@@ -55,16 +51,16 @@ export const ClassGroupTooltip: React.FC<ClassGroupTooltipProps> = ({
               <span style={styles.metadataValue}>{classNode.depth}</span>
             </div>
 
-            {classNode.parentIri && (
+            {classNode.parentId && (
               <div style={styles.metadataItem}>
                 <span style={styles.metadataLabel}>Parent:</span>
                 <span style={styles.metadataValue}>
-                  {classNode.parentIri.split('/').pop()}
+                  {classNode.parentId.split('/').pop()}
                 </span>
               </div>
             )}
 
-            {classNode.childIris.length > 0 && (
+            {classNode.childIris && classNode.childIris.length > 0 && (
               <div style={styles.metadataItem}>
                 <span style={styles.metadataLabel}>Children:</span>
                 <span style={styles.metadataValue}>

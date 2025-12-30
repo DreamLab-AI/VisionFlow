@@ -2,15 +2,16 @@
 
 import {
   BinaryWebSocketProtocol,
-  PROTOCOL_V1,
   PROTOCOL_V2,
-  AGENT_POSITION_SIZE_V1,
   AGENT_POSITION_SIZE_V2,
-  AGENT_STATE_SIZE_V1,
   AGENT_STATE_SIZE_V2,
   type AgentPositionUpdate,
   type AgentStateData,
 } from '../BinaryWebSocketProtocol';
+
+// V1 constants for backward compatibility tests
+const AGENT_POSITION_SIZE_V1 = 19; // 2 (u16 id) + 12 (3 floats) + 4 (timestamp) + 1 (flags)
+const AGENT_STATE_SIZE_V1 = 47; // 2 (u16 id) + 24 (6 floats) + 16 (4 floats) + 4 (tokens) + 1 (flags)
 
 describe('BinaryWebSocketProtocol - Node ID Truncation Fix', () => {
   let protocol: BinaryWebSocketProtocol;

@@ -6,6 +6,7 @@
 
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use crate::models::edge::Edge;
@@ -113,11 +114,14 @@ pub trait KnowledgeGraphRepository: Send + Sync {
     
     async fn get_edges_between(&self, source_id: u32, target_id: u32) -> Result<Vec<Edge>>;
 
-    
-    
+    /// Batch update positions for multiple nodes (simulation -> database)
+    /// Used to persist simulation results back to source of truth
     async fn batch_update_positions(&self, positions: Vec<(u32, f32, f32, f32)>) -> Result<()>;
 
-    
+    /// Get all node positions from database (database -> simulation)
+    /// Returns HashMap<node_id, (x, y, z)> for position preservation during reload
+    async fn get_all_positions(&self) -> Result<HashMap<u32, (f32, f32, f32)>>;
+
     async fn query_nodes(&self, query: &str) -> Result<Vec<Node>>;
 
     

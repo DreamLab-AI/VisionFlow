@@ -7,7 +7,7 @@ import { debugState } from '../utils/clientDebugState'
 import { produce } from 'immer';
 import { toast } from '../features/design-system/components/Toast';
 import { isViewportSetting } from '../features/settings/config/viewportSettings';
-import { settingsApi, BatchOperation } from '../api/settingsApi';
+import { settingsApi } from '../api/settingsApi';
 import { nostrAuth } from '../services/nostrAuthService';
 import { autoSaveManager } from './autoSaveManager';
 
@@ -118,7 +118,7 @@ function findChangedPaths(oldObj: any, newObj: any, path: string = ''): string[]
   return changedPaths;
 }
 
-interface SettingsState {
+export interface SettingsState {
   
   partialSettings: DeepPartial<Settings>
   loadedPaths: Set<string> 
@@ -137,7 +137,7 @@ interface SettingsState {
   initialize: () => Promise<void>
   setAuthenticated: (authenticated: boolean) => void
   setUser: (user: { isPowerUser: boolean; pubkey: string } | null) => void
-  get: <T>(path: SettingsPath) => T
+  get: <T>(path: SettingsPath) => T | undefined
   set: <T>(path: SettingsPath, value: T) => void
   subscribe: (path: SettingsPath, callback: () => void, immediate?: boolean) => () => void;
   unsubscribe: (path: SettingsPath, callback: () => void) => void;
@@ -517,7 +517,7 @@ export const useSettingsStore = create<SettingsState>()(
       },
 
       
-      updateSettings: (updater: (draft: DeepPartial<Settings>) => void): void => {
+      updateSettings: (updater: (draft: any) => void): void => {
         const { partialSettings } = get();
         
         
@@ -591,11 +591,11 @@ export const useSettingsStore = create<SettingsState>()(
       
       updateComputeMode: (mode: string) => {
         const state = get();
-        state.updateSettings((draft) => {
+        state.updateSettings((draft: any) => {
           if (!draft.dashboard) {
-            draft.dashboard = {};
+            draft.dashboard = { computeMode: '' };
           }
-          (draft.dashboard as any).computeMode = mode;
+          draft.dashboard.computeMode = mode;
         });
       },
 
@@ -652,17 +652,17 @@ export const useSettingsStore = create<SettingsState>()(
         }
         
         
-        if (validatedParams.arrow_size !== undefined) {
-          validatedParams.arrow_size = Math.max(0.01, Math.min(5.0, validatedParams.arrow_size));
+        if ((validatedParams as any).arrow_size !== undefined) {
+          (validatedParams as any).arrow_size = Math.max(0.01, Math.min(5.0, (validatedParams as any).arrow_size));
         }
-        if (validatedParams.arrowSize !== undefined) {
-          validatedParams.arrowSize = Math.max(0.01, Math.min(5.0, validatedParams.arrowSize));
+        if ((validatedParams as any).arrowSize !== undefined) {
+          (validatedParams as any).arrowSize = Math.max(0.01, Math.min(5.0, (validatedParams as any).arrowSize));
         }
-        if (validatedParams.base_width !== undefined) {
-          validatedParams.base_width = Math.max(0.01, Math.min(5.0, validatedParams.base_width));
+        if ((validatedParams as any).base_width !== undefined) {
+          (validatedParams as any).base_width = Math.max(0.01, Math.min(5.0, (validatedParams as any).base_width));
         }
-        if (validatedParams.baseWidth !== undefined) {
-          validatedParams.baseWidth = Math.max(0.01, Math.min(5.0, validatedParams.baseWidth));
+        if ((validatedParams as any).baseWidth !== undefined) {
+          (validatedParams as any).baseWidth = Math.max(0.01, Math.min(5.0, (validatedParams as any).baseWidth));
         }
         
         
@@ -685,8 +685,8 @@ export const useSettingsStore = create<SettingsState>()(
           validatedParams.coolingRate = Math.max(0.0001, Math.min(1.0, validatedParams.coolingRate));
         }
         
-        state.updateSettings((draft) => {
-          if (!draft.visualisation) draft.visualisation = {};
+        state.updateSettings((draft: any) => {
+          if (!draft.visualisation) draft.visualisation = { graphs: {} };
           if (!draft.visualisation.graphs) draft.visualisation.graphs = {};
           
           const graphs = draft.visualisation.graphs as any;
@@ -766,11 +766,11 @@ export const useSettingsStore = create<SettingsState>()(
       getByPath: async <T>(path: SettingsPath): Promise<T> => {
         try {
           const value = await settingsApi.getSettingByPath(path);
-          return value;
+          return value as T;
         } catch (error) {
           logger.error(`Failed to get setting by path ${path}:`, createErrorMetadata(error));
-          
-          return get().get(path);
+          const localValue = get().get<T>(path);
+          return localValue as T;
         }
       },
       
@@ -887,7 +887,7 @@ export const useSettingsStore = create<SettingsState>()(
         isPowerUser: state.isPowerUser,
         
         essentialPaths: ESSENTIAL_PATHS.reduce((acc, path) => {
-          const value = state.partialSettings[path];
+          const value = (state.partialSettings as Record<string, unknown>)[path];
           if (value !== undefined) {
             acc[path] = value;
           }

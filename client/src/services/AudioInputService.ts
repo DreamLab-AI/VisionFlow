@@ -87,15 +87,16 @@ export class AudioInputService {
         }
       };
 
-      
-      if (navigator.mediaDevices.getUserMedia) {
+      // Use modern API
+      if (navigator.mediaDevices?.getUserMedia) {
         this.stream = await navigator.mediaDevices.getUserMedia(defaultConstraints);
-      } else {
-        
+      } else if (getUserMedia) {
+        // Fallback to legacy API with callback style
         this.stream = await new Promise<MediaStream>((resolve, reject) => {
-          const legacyGetUserMedia = getUserMedia.bind(navigator);
-          legacyGetUserMedia(defaultConstraints, resolve, reject);
+          (getUserMedia as any).call(navigator, defaultConstraints, resolve, reject);
         });
+      } else {
+        throw new Error('getUserMedia is not supported');
       }
 
       await this.setupAudioNodes();
@@ -368,10 +369,10 @@ export class AudioInputService {
 
   
   static isSupported(): boolean {
-    return !!(navigator.mediaDevices &&
-             navigator.mediaDevices.getUserMedia &&
-             window.MediaRecorder &&
-             (window.AudioContext || (window as any).webkitAudioContext));
+    const hasGetUserMedia = !!(navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function');
+    const hasMediaRecorder = typeof MediaRecorder !== 'undefined';
+    const hasAudioContext = typeof AudioContext !== 'undefined' || typeof (window as any).webkitAudioContext !== 'undefined';
+    return hasGetUserMedia && hasMediaRecorder && hasAudioContext;
   }
 
   

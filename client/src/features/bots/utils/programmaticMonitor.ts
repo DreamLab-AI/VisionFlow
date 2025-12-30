@@ -2,7 +2,7 @@
 
 import { unifiedApiClient } from '../../../services/api/UnifiedApiClient';
 import { createLogger } from '../../../utils/loggerConfig';
-import type { BotsAgent, BotsEdge } from '../types/botsTypes';
+import type { BotsAgent, BotsEdge } from '../types/BotsTypes';
 
 const logger = createLogger('ProgrammaticMonitor');
 
@@ -29,8 +29,7 @@ export async function sendBotsUpdate(data: BotsUpdatePayload): Promise<void> {
       edgeCount: data.edges.length,
       timestamp: payload.timestamp
     });
-
-    return response;
+    // Response is void for this API call
   } catch (error) {
     logger.error('Failed to send bots update:', error);
     throw error;
@@ -38,7 +37,7 @@ export async function sendBotsUpdate(data: BotsUpdatePayload): Promise<void> {
 }
 
 
-export function generateMockAgent(id: string, type: string, name: string): BotsAgent {
+export function generateMockAgent(id: string, type: BotsAgent['type'], name: string): BotsAgent {
   return {
     id,
     type,
@@ -107,15 +106,16 @@ export class ProgrammaticMonitor {
       agent.cpuUsage + (Math.random() - 0.5) * 20));
 
     
-    if (agent.workload > 0.8) {
+    const currentWorkload = agent.workload ?? 0;
+    if (currentWorkload > 0.8) {
       agent.health = Math.max(0, agent.health - Math.random() * 2);
     } else {
       agent.health = Math.min(100, agent.health + Math.random());
     }
 
-    
+    // Update workload with optional chaining
     agent.workload = Math.max(0, Math.min(1.0,
-      agent.workload + (Math.random() - 0.5) * 0.2));
+      currentWorkload + (Math.random() - 0.5) * 0.2));
 
     
     agent.age = (agent.age || 0) + 2; 

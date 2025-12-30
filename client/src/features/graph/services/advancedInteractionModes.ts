@@ -180,13 +180,13 @@ export interface SpatialWorkspace {
 
 export class AdvancedInteractionModes {
   private static instance: AdvancedInteractionModes;
-  
-  private timeTravelState: TimeTravelState;
-  private explorationState: ExplorationState;
-  private collaborationState: CollaborationState;
-  private vrArState: VRARState;
-  private spatialUI: SpatialUI;
-  
+
+  private timeTravelState!: TimeTravelState;
+  private explorationState!: ExplorationState;
+  private collaborationState!: CollaborationState;
+  private vrArState!: VRARState;
+  private spatialUI!: SpatialUI;
+
   private tours: Map<string, ExplorationWaypoint[]> = new Map();
   private activeAnimations: Map<string, any> = new Map();
   private eventListeners: Map<string, Set<Function>> = new Map();

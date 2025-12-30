@@ -73,7 +73,7 @@ export const groupNodesByClass = (
         scale,
         color,
         isCollapsed: true,
-        childIris: classNode.childIris,
+        childIris: classNode.childIris ?? [],
         depth: classNode.depth,
       });
     }

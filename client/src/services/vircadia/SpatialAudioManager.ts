@@ -354,7 +354,7 @@ export class SpatialAudioManager {
                 return;
             }
 
-            const messages = result.result as any[];
+            const messages = (result as any).result as any[];
 
             for (const msg of messages) {
                 const data = msg.meta__data;

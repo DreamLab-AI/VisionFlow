@@ -23,7 +23,8 @@ export const LazySystemSettings = lazy(() =>
 
 // Wrapper component for lazy loading with fallback
 import React from 'react';
-import { LoadingSpinner } from '@/ui/LoadingSpinner';
+// Simple inline loading spinner
+const LoadingSpinner = () => <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />;
 
 interface LazySettingSectionProps {
   component: React.LazyExoticComponent<React.ComponentType<any>>;

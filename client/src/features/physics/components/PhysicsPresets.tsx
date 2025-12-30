@@ -2,21 +2,19 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/features/design-system/components/Card';
 import { Button } from '@/features/design-system/components/Button';
 import { Badge } from '@/features/design-system/components/Badge';
-import { 
-  Sparkles, 
-  Zap, 
-  Target, 
-  Trees, 
-  Network, 
-  Globe,
-  Layers,
-  Save,
-  Upload,
-  Download,
-  Info
-} from 'lucide-react';
+import Sparkles from 'lucide-react/dist/esm/icons/sparkles';
+import Zap from 'lucide-react/dist/esm/icons/zap';
+import Target from 'lucide-react/dist/esm/icons/target';
+import TreePine from 'lucide-react/dist/esm/icons/tree-pine';
+import Network from 'lucide-react/dist/esm/icons/network';
+import Globe from 'lucide-react/dist/esm/icons/globe';
+import Layers from 'lucide-react/dist/esm/icons/layers';
+import Save from 'lucide-react/dist/esm/icons/save';
+import Upload from 'lucide-react/dist/esm/icons/upload';
+import Download from 'lucide-react/dist/esm/icons/download';
+import Info from 'lucide-react/dist/esm/icons/info';
 import { useToast } from '@/features/design-system/components/Toast';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/features/design-system/components/Tooltip';
+import { TooltipRoot, TooltipContent, TooltipProvider, TooltipTrigger } from '@/features/design-system/components/Tooltip';
 import {
   Dialog,
   DialogContent,
@@ -112,7 +110,7 @@ export function PhysicsPresets() {
       id: 'hierarchical',
       name: 'Tree Layout',
       description: 'Hierarchical tree structure for organizational data',
-      icon: <Trees className="h-4 w-4" />,
+      icon: <TreePine className="h-4 w-4" />,
       config: {
         kernelMode: 'visual_analytics',
         forceParams: {
@@ -269,7 +267,7 @@ export function PhysicsPresets() {
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{preset.name}</span>
                         <TooltipProvider>
-                          <Tooltip>
+                          <TooltipRoot>
                             <TooltipTrigger asChild>
                               <Info className="h-3 w-3 text-muted-foreground" />
                             </TooltipTrigger>
@@ -284,7 +282,7 @@ export function PhysicsPresets() {
                                 </ul>
                               </div>
                             </TooltipContent>
-                          </Tooltip>
+                          </TooltipRoot>
                         </TooltipProvider>
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">

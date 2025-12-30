@@ -112,7 +112,7 @@ export function useAgentPolling(options: UseAgentPollingOptions = {}) {
   }, []);
 
   
-  const updateStateRef = useRef<(data: AgentSwarmData) => void>();
+  const updateStateRef = useRef<(data: AgentSwarmData) => void>(undefined);
   updateStateRef.current = (data: AgentSwarmData) => {
     const { agents, edges } = transformAgentData(data);
     const now = Date.now();
@@ -122,9 +122,9 @@ export function useAgentPolling(options: UseAgentPollingOptions = {}) {
     agents.forEach(agent => {
       const existing = agentsMapRef.current.get(agent.id);
       if (!existing ||
-          existing.position.x !== agent.position.x ||
-          existing.position.y !== agent.position.y ||
-          existing.position.z !== agent.position.z ||
+          existing.position?.x !== agent.position?.x ||
+          existing.position?.y !== agent.position?.y ||
+          existing.position?.z !== agent.position?.z ||
           existing.status !== agent.status ||
           existing.health !== agent.health) {
         hasAgentChanges = true;
@@ -190,7 +190,7 @@ export function useAgentPolling(options: UseAgentPollingOptions = {}) {
   }, []);
 
   
-  const handleErrorRef = useRef<(error: Error) => void>();
+  const handleErrorRef = useRef<(error: Error) => void>(undefined);
   handleErrorRef.current = (error: Error) => {
     logger.error('Polling error:', error);
     setState(prev => ({ ...prev, error }));

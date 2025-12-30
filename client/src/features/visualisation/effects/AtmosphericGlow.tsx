@@ -59,6 +59,16 @@ class AtmosphericGlowEffect extends Effect {
     volumetricIntensity = 1.0,
     camera,
     resolution,
+  }: {
+    glowColor?: THREE.Color | string | number[];
+    intensity?: number;
+    radius?: number;
+    threshold?: number;
+    diffuseStrength?: number;
+    atmosphericDensity?: number;
+    volumetricIntensity?: number;
+    camera?: THREE.Camera;
+    resolution?: THREE.Vector2 | { width: number; height: number };
   } = {}) {
     
     let colorUniform;
@@ -88,12 +98,24 @@ class AtmosphericGlowEffect extends Effect {
         ['projectionMatrix', new Uniform(camera?.projectionMatrix)],
         ['viewMatrix', new Uniform(camera?.matrixWorldInverse)],
         ['resolution', new Uniform(resolution)],
-      ]),
+      ] as any),
     });
   }
 }
 
-export const AtmosphericGlow = forwardRef(({ ...props }, ref) => {
+interface AtmosphericGlowProps {
+  glowColor?: THREE.Color | string | number[];
+  intensity?: number;
+  radius?: number;
+  threshold?: number;
+  diffuseStrength?: number;
+  atmosphericDensity?: number;
+  volumetricIntensity?: number;
+  camera?: THREE.Camera;
+  resolution?: THREE.Vector2 | { width: number; height: number };
+}
+
+export const AtmosphericGlow = forwardRef<unknown, AtmosphericGlowProps>(({ ...props }, ref) => {
   const effect = useMemo(() => new AtmosphericGlowEffect(props), [props]);
   return <primitive ref={ref} object={effect} dispose={null} />;
 });

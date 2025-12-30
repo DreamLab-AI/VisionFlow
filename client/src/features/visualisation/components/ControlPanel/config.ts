@@ -8,15 +8,13 @@ import {
   Gauge,
   Palette,
   Code,
-  Glasses,
   Network,
-  Wrench,
-  Hand,
   Download,
   Lock,
-  ShieldCheck,
   Database,
 } from 'lucide-react';
+// @ts-ignore - These icons exist in lucide-react but types may be outdated
+import { Glasses, Wrench, Hand, ShieldCheck } from 'lucide-react';
 import type { TabConfig } from './types';
 
 export const TAB_CONFIGS: TabConfig[] = [

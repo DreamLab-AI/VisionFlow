@@ -186,7 +186,8 @@ export function SemanticClusteringControls() {
     setAnomalyDetection(prev => ({ ...prev, enabled }));
 
     try {
-      await unifiedApiClient.post('/api/analytics/anomaly/toggle', { enabled, ...anomalyDetection });
+      const { enabled: _existingEnabled, ...restAnomalyDetection } = anomalyDetection;
+      await unifiedApiClient.post('/api/analytics/anomaly/toggle', { enabled, ...restAnomalyDetection });
 
       if (enabled) {
         toast({

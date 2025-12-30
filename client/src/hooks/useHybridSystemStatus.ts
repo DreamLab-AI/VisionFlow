@@ -52,7 +52,7 @@ export interface UseHybridSystemStatusOptions {
   pollingInterval?: number;
   enableWebSocket?: boolean;
   enablePerformanceMetrics?: boolean;
-  enableHealthChecks?: bool;
+  enableHealthChecks?: boolean;
   autoReconnect?: boolean;
   reconnectDelay?: number;
   maxReconnectAttempts?: number;
@@ -128,7 +128,7 @@ export const useHybridSystemStatus = (options: UseHybridSystemStatusOptions = {}
 
     try {
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}
+      const wsUrl = `${protocol}//${window.location.host}/ws/hybrid-status`;
 
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;

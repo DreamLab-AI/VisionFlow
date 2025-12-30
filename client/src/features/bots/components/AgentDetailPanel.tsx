@@ -95,10 +95,10 @@ export const AgentDetailPanel: React.FC<AgentDetailPanelProps> = ({
       <div className="p-4">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">Agent Details</h3>
+          <div className="w-48">
           <Select
             value={selectedAgent?.id || ''}
             onValueChange={handleAgentChange}
-            className="w-48"
           >
             <option value="">Select Agent</option>
             {botsData.agents.map(agent => (
@@ -107,6 +107,7 @@ export const AgentDetailPanel: React.FC<AgentDetailPanelProps> = ({
               </option>
             ))}
           </Select>
+          </div>
         </div>
 
         {selectedAgent ? (
@@ -202,13 +203,13 @@ export const AgentDetailPanel: React.FC<AgentDetailPanelProps> = ({
             )}
 
             {}
-            {selectedAgent.multi-agentId && (
+            {(selectedAgent as any).multiAgentId && (
               <div>
-                <h5 className="font-semibold text-sm mb-2">multi-agent Information</h5>
+                <h5 className="font-semibold text-sm mb-2">Multi-Agent Information</h5>
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">multi-agent ID:</span>
-                    <span className="font-mono text-xs">{selectedAgent.multi-agentId}</span>
+                    <span className="text-gray-600">Multi-Agent ID:</span>
+                    <span className="font-mono text-xs">{(selectedAgent as any).multiAgentId}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Mode:</span>

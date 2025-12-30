@@ -229,23 +229,22 @@ export class AgentTelemetryService {
     }
   }
 
-  
+
   private processAgentTelemetry(agents: any[]) {
     agents.forEach(agent => {
-      
-      this.logger.logAgentMessage({
-        type: 'telemetry-update',
-        agentId: agent.id,
-        agentType: agent.type,
-        status: agent.status,
-        metrics: {
+
+      this.logger.logAgentAction(
+        agent.id,
+        agent.type,
+        'telemetry-update',
+        {
+          status: agent.status,
           cpuUsage: agent.cpuUsage,
           memoryUsage: agent.memoryUsage,
           health: agent.health,
           workload: agent.workload
-        },
-        timestamp: new Date()
-      });
+        }
+      );
     });
   }
 
@@ -266,9 +265,10 @@ export class AgentTelemetryService {
       const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
       if (!gl) return undefined;
 
-      const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+      const webglContext = gl as WebGLRenderingContext;
+      const debugInfo = webglContext.getExtension('WEBGL_debug_renderer_info');
       if (debugInfo) {
-        return gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+        return webglContext.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
       }
       return undefined;
     } catch (e) {

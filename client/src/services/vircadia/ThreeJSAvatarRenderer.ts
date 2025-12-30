@@ -122,6 +122,7 @@ export class ThreeJSAvatarRenderer {
         username,
         position: new THREE.Vector3(),
         rotation: new THREE.Quaternion(),
+        // @ts-ignore - THREE.js type mismatch between Group and Object3D
         mesh: model,
         nameplate,
         mixer,
@@ -256,7 +257,7 @@ export class ThreeJSAvatarRenderer {
 
       if (!result?.result) return;
 
-      for (const entity of result.result) {
+      for (const entity of (result as any).result) {
         const agentId = entity.general__entity_name.replace('avatar_', '');
         const metadata = entity.meta__data;
 
@@ -354,6 +355,7 @@ export class ThreeJSAvatarRenderer {
     logger.info(`Removing avatar: ${avatar.username}`);
 
     if (avatar.mesh) {
+      // @ts-ignore - THREE.js type mismatch between Object3D variants
       this.scene.remove(avatar.mesh);
       avatar.mesh.traverse(child => {
         if ((child as THREE.Mesh).geometry) {

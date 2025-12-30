@@ -78,22 +78,23 @@ class GlobalFadeEffect extends Effect {
   }
 }
 
-function GlobalFade({ alpha }) {
+function GlobalFade({ alpha }: { alpha: number }) {
   const effect = useMemo(() => new GlobalFadeEffect({ alpha }), []);
   useEffect(() => {
-    effect.uniforms.get('uAlpha').value = alpha;
+    const uniform = effect.uniforms.get('uAlpha');
+    if (uniform) uniform.value = alpha;
   }, [alpha, effect]);
   return <primitive object={effect} />;
 }
 
 const TEMP_WORLD_POSITION = new THREE.Vector3();
 
-function useLayerAssignment(ref, layer, renderOrder) {
+function useLayerAssignment(ref: React.RefObject<THREE.Object3D | THREE.Group | null>, layer: number | undefined, renderOrder: number | undefined) {
   useEffect(() => {
     const root = ref.current;
     if (!root) return;
 
-    const assign = (object) => {
+    const assign = (object: THREE.Object3D) => {
       if (layer !== undefined && object.layers) {
         object.layers.enable(layer);
       }
@@ -102,12 +103,13 @@ function useLayerAssignment(ref, layer, renderOrder) {
       }
     };
 
-    root.traverse(assign);
-    assign(root);
+    // @ts-ignore - traverse callback typing mismatch
+    (root as any).traverse(assign);
+    assign(root as THREE.Object3D);
   }, [layer, renderOrder, ref]);
 }
 
-function useDepthFade(ref, { baseOpacity, fadeStart, fadeEnd }) {
+function useDepthFade(ref: React.RefObject<THREE.Object3D | THREE.Group | null>, { baseOpacity, fadeStart, fadeEnd }: { baseOpacity: number; fadeStart: number; fadeEnd: number }) {
   const { camera } = useThree();
   const fadeRange = Math.max(0.0001, fadeEnd - fadeStart);
 
@@ -115,8 +117,9 @@ function useDepthFade(ref, { baseOpacity, fadeStart, fadeEnd }) {
     const root = ref.current;
     if (!root) return;
 
-    root.traverse((object) => {
-      const material = object.material;
+    // @ts-ignore - traverse callback typing mismatch
+    root.traverse((object: THREE.Object3D) => {
+      const material = (object as unknown as THREE.Mesh).material as THREE.Material | undefined;
       if (!material) return;
 
       const materials = Array.isArray(material) ? material : [material];
@@ -143,7 +146,7 @@ function useDepthFade(ref, { baseOpacity, fadeStart, fadeEnd }) {
   });
 }
 
-function registerMaterialForFade(material, baseOpacity) {
+function registerMaterialForFade(material: THREE.Material & { opacity?: number; transparent?: boolean; depthWrite?: boolean }, baseOpacity: number) {
   if (!material.userData) {
     material.userData = {};
   }
@@ -158,7 +161,7 @@ function registerMaterialForFade(material, baseOpacity) {
 }
 
 function ParticleCore({ count = 5200, radius = 170, color = '#02f0ff', opacity = 0.3 }) {
-  const pointsRef = useRef();
+  const pointsRef = useRef<THREE.Points>(null);
 
   const positions = useMemo(() => {
     const buffer = new Float32Array(count * 3);
@@ -183,7 +186,7 @@ function ParticleCore({ count = 5200, radius = 170, color = '#02f0ff', opacity =
   });
 
   return (
-    <Points ref={pointsRef} positions={positions} stride={3}>
+    <Points ref={pointsRef as React.RefObject<THREE.Points>} positions={positions} stride={3}>
       <PointMaterial
         size={2.4}
         color={color}
@@ -206,8 +209,8 @@ function HolographicShell({
   surfaceOpacity = 0.3,
   spikeOpacity = 0.3,
 }) {
-  const groupRef = useRef();
-  const spikesRef = useRef();
+  const groupRef = useRef<THREE.Group>(null);
+  const spikesRef = useRef<THREE.InstancedMesh>(null);
 
   const baseGeometry = useMemo(
     () => new THREE.IcosahedronGeometry(radius, detail),
@@ -217,8 +220,8 @@ function HolographicShell({
   const spikeGeometry = useMemo(() => new THREE.ConeGeometry(2.2, 18.4, 10, 1, true), []);
 
   const vertexData = useMemo(() => {
-    const positions = [];
-    const normals = [];
+    const positions: THREE.Vector3[] = [];
+    const normals: THREE.Vector3[] = [];
     const positionAttr = baseGeometry.attributes.position;
     const normalAttr = baseGeometry.attributes.normal;
 
@@ -273,10 +276,10 @@ function HolographicShell({
       scale.y = 1 * pulse;
 
       matrix.compose(spikeOffset, quaternion, scale);
-      spikesRef.current.setMatrixAt(index, matrix);
+      spikesRef.current!.setMatrixAt(index, matrix);
     });
 
-    spikesRef.current.instanceMatrix.needsUpdate = true;
+    spikesRef.current!.instanceMatrix.needsUpdate = true;
   });
 
   return (
@@ -293,7 +296,7 @@ function HolographicShell({
       </mesh>
       <instancedMesh
         ref={spikesRef}
-        args={[null, null, vertexData.length]}
+        args={[undefined, undefined, vertexData.length]}
         frustumCulled={false}
       >
         <primitive attach="geometry" object={spikeGeometry} />
@@ -311,7 +314,7 @@ function HolographicShell({
 }
 
 function TechnicalGrid({ count = 240, radius = 410, opacity = 0.3 }) {
-  const groupRef = useRef();
+  const groupRef = useRef<THREE.Group>(null);
 
   const points = useMemo(() => {
     const data = [];
@@ -372,9 +375,9 @@ function TechnicalGrid({ count = 240, radius = 410, opacity = 0.3 }) {
 }
 
 function OrbitalRings({ radius = 470, color = '#00faff', opacity = 0.3 }) {
-  const ringRef0 = useRef();
-  const ringRef1 = useRef();
-  const ringRef2 = useRef();
+  const ringRef0 = useRef<THREE.Mesh>(null);
+  const ringRef1 = useRef<THREE.Mesh>(null);
+  const ringRef2 = useRef<THREE.Mesh>(null);
 
   useFrame((state) => {
     const elapsed = state.clock.elapsedTime;
@@ -431,7 +434,7 @@ function TextRing({
   color = '#7fe8ff',
   opacity = 0.3,
 }) {
-  const groupRef = useRef();
+  const groupRef = useRef<THREE.Group>(null);
 
   
   
@@ -445,12 +448,13 @@ function TextRing({
 
   return (
     <group ref={groupRef}>
+      {/* @ts-ignore - curveRadius is a valid prop in @react-three/drei Text but not typed */}
       <Text
         fontSize={fontSize}
         color={color}
         anchorX="center"
         anchorY="middle"
-        curveRadius={radius}
+        {...({ curveRadius: radius } as any)}
         letterSpacing={adjustedLetterSpacing}
         fillOpacity={opacity}
         outlineWidth={1.6}
@@ -464,11 +468,11 @@ function TextRing({
 }
 
 function EnergyArcs({ innerRadius = 1.28, outerRadius = 1.95, opacity = 0.3 }) {
-  const [arcPoints, setArcPoints] = useState(null);
+  const [arcPoints, setArcPoints] = useState<THREE.Vector3[] | null>(null);
 
   useEffect(() => {
-    let timeoutId;
-    const randomPointOnSphere = (radius) => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const randomPointOnSphere = (radius: number) => {
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(2 * Math.random() - 1);
       return new THREE.Vector3(
@@ -517,7 +521,7 @@ function EnergyArcs({ innerRadius = 1.28, outerRadius = 1.95, opacity = 0.3 }) {
 }
 
 function SurroundingSwarm({ count = 9000, radius = 6800, opacity = 0.3 }) {
-  const meshRef = useRef();
+  const meshRef = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const particles = useMemo(() => {
     const data = [];
@@ -536,7 +540,7 @@ function SurroundingSwarm({ count = 9000, radius = 6800, opacity = 0.3 }) {
 
   useEffect(() => {
     if (!meshRef.current) return;
-    const material = meshRef.current.material;
+    const material = meshRef.current.material as THREE.MeshStandardMaterial | undefined;
     if (material) {
       registerMaterialForFade(material, opacity);
       material.emissiveIntensity = 0.7 * opacity * (1 / 0.3);
@@ -565,14 +569,14 @@ function SurroundingSwarm({ count = 9000, radius = 6800, opacity = 0.3 }) {
       dummy.scale.setScalar(Math.max(scale, 0.1));
       dummy.rotation.set(t * 0.02, t * 0.03, t * 0.025);
       dummy.updateMatrix();
-      meshRef.current.setMatrixAt(index, dummy.matrix);
+      meshRef.current!.setMatrixAt(index, dummy.matrix);
     });
 
-    meshRef.current.instanceMatrix.needsUpdate = true;
+    meshRef.current!.instanceMatrix.needsUpdate = true;
   });
 
   return (
-    <instancedMesh ref={meshRef} args={[null, null, count]} frustumCulled={false}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, count]} frustumCulled={false}>
       <dodecahedronGeometry args={[72, 0]} />
       <meshStandardMaterial
         color="#06111f"
@@ -642,21 +646,22 @@ export function HologramContent({
   fadeStart = FADE_DEFAULTS.fadeStart,
   fadeEnd = FADE_DEFAULTS.fadeEnd,
 }) {
-  const rootRef = useRef();
+  const rootRef = useRef<THREE.Group>(null);
 
   useLayerAssignment(rootRef, layer, renderOrder);
 
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
-    
+
     const timeoutId = setTimeout(() => {
-      root.traverse((object) => {
-        const material = object.material;
+      // @ts-ignore - traverse callback typing mismatch
+      root.traverse((object: THREE.Object3D) => {
+        const material = (object as unknown as THREE.Mesh).material as THREE.Material | THREE.Material[] | undefined;
         if (!material) return;
         const materials = Array.isArray(material) ? material : [material];
         materials.forEach((mat) => {
-          
+
           registerMaterialForFade(mat, opacity);
         });
       });
@@ -667,17 +672,18 @@ export function HologramContent({
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
-    const opacityTargets = [];
-    root.traverse((object) => {
-      const material = object.material;
+    const opacityTargets: THREE.Object3D[] = [];
+    // @ts-ignore - traverse callback typing mismatch
+    root.traverse((object: THREE.Object3D) => {
+      const material = (object as unknown as THREE.Mesh).material as THREE.Material | THREE.Material[] | undefined;
       if (!material) return;
       const materials = Array.isArray(material) ? material : [material];
-      materials.forEach((mat) => {
+      materials.forEach((mat: THREE.Material & { opacity?: number; transparent?: boolean; depthWrite?: boolean }) => {
         if (mat.userData && mat.userData.__isDepthFaded) {
           mat.userData.__baseOpacity = opacity;
           mat.opacity = opacity;
           mat.transparent = opacity < 1;
-          
+
           mat.depthWrite = opacity >= 0.99;
           mat.needsUpdate = true;
         }
@@ -711,7 +717,21 @@ export function HologramEffects({
   vignetteDarkness = POSTPROCESS_DEFAULTS.vignetteDarkness,
   multisampling = 4,
   selectionLayer = 0,
-  renderPriority,
+  renderPriority = 1,
+}: {
+  globalAlpha?: number;
+  bloomIntensity?: number;
+  bloomThreshold?: number;
+  bloomSmoothing?: number;
+  aoRadius?: number;
+  aoIntensity?: number;
+  dofFocusDistance?: number;
+  dofFocalLength?: number;
+  dofBokehScale?: number;
+  vignetteDarkness?: number;
+  multisampling?: number;
+  selectionLayer?: number;
+  renderPriority?: number;
 }) {
   
   const settings = useSettingsStore(state => state.settings);
@@ -766,6 +786,15 @@ export function HologramEnvironment({
     fade: true,
     speed: 0.25,
   },
+}: {
+  background?: string;
+  fogNear?: number;
+  fogFar?: number;
+  ambientIntensity?: number;
+  keyLight?: { position: number[]; intensity: number; color: string };
+  rimLight?: { position: number[]; intensity: number; color: string };
+  fillLight?: { position: number[]; intensity: number; color: string };
+  starField?: { radius: number; depth: number; count: number; factor: number; saturation: number; fade: boolean; speed: number };
 }) {
   
   const settings = useSettingsStore(state => state.settings);
@@ -780,17 +809,17 @@ export function HologramEnvironment({
 
       <ambientLight intensity={ambientIntensity} />
       <pointLight
-        position={keyLight.position}
+        position={keyLight.position as [number, number, number]}
         intensity={keyLight.intensity}
         color={keyLight.color}
       />
       <pointLight
-        position={rimLight.position}
+        position={rimLight.position as [number, number, number]}
         intensity={rimLight.intensity}
         color={rimLight.color}
       />
       <spotLight
-        position={fillLight.position}
+        position={fillLight.position as [number, number, number]}
         intensity={fillLight.intensity}
         color={fillLight.color}
         angle={0.42}
@@ -821,7 +850,18 @@ export function HologramLayer({
   fadeEnd = FADE_DEFAULTS.fadeEnd,
   enableEffects = true,
   effectsConfig = {},
-  renderPriority,
+  renderPriority = 1,
+}: {
+  opacity?: number;
+  layer?: number;
+  renderOrder?: number;
+  includeSwarm?: boolean;
+  enableDepthFade?: boolean;
+  fadeStart?: number;
+  fadeEnd?: number;
+  enableEffects?: boolean;
+  effectsConfig?: Partial<Parameters<typeof HologramEffects>[0]>;
+  renderPriority?: number;
 }) {
   return (
     <Selection>
@@ -838,6 +878,8 @@ export function HologramLayer({
         <HologramEffects
           selectionLayer={layer}
           renderPriority={renderPriority}
+          bloomIntensity={effectsConfig.bloomIntensity ?? POSTPROCESS_DEFAULTS.bloomIntensity}
+          bloomThreshold={effectsConfig.bloomThreshold ?? POSTPROCESS_DEFAULTS.bloomThreshold}
           {...effectsConfig}
         />
       )}
@@ -865,7 +907,7 @@ export default function HolographicDataSphereApp() {
           powerPreference: 'high-performance',
         }}
       >
-        <HologramEnvironment />
+        <HologramEnvironment ambientIntensity={LIGHTING_CONFIG.ambient} />
         <HologramLayer
           opacity={0.3}
           layer={0}

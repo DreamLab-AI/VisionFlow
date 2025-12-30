@@ -140,6 +140,30 @@ class DebugControl {
     none: () => {
       this.disable();
       logger.info('All debug features disabled');
+    },
+
+    // Alias presets for UI consistency
+    off: () => {
+      this.disable();
+      logger.info('All debug features disabled');
+    },
+
+    standard: () => {
+      this.enable();
+      this.enableCategory(DebugCategory.GENERAL);
+      this.enableCategory(DebugCategory.ERROR);
+      this.enableCategory(DebugCategory.DATA);
+      this.disableData();
+      this.disablePerformance();
+      logger.info('Standard debug features enabled');
+    },
+
+    verbose: () => {
+      this.enable();
+      Object.values(DebugCategory).forEach(cat => this.enableCategory(cat));
+      this.enableData();
+      this.enablePerformance();
+      logger.info('Verbose debug features enabled');
     }
   };
 

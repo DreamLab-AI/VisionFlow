@@ -85,9 +85,10 @@ export const useGraphInteraction = (options: UseGraphInteractionOptions = {}) =>
           }
         }
 
-        
+
         if (updates.length > 0 && graphDataManager.webSocketService) {
-          graphDataManager.webSocketService.sendNodePositionUpdates(updates);
+          // @ts-ignore - sendNodePositionUpdates may not be in WebSocketAdapter interface
+          graphDataManager.webSocketService.sendNodePositionUpdates?.(updates);
 
           if (debugState.isEnabled()) {
             logger.debug(`Sent position updates for ${updates.length} nodes during interaction`);
@@ -209,9 +210,10 @@ export const useGraphInteraction = (options: UseGraphInteractionOptions = {}) =>
     if (activeInteractionsRef.current.size > 0) {
       throttledSendPositions.flush();
 
-      
+
       if (graphDataManager.webSocketService) {
-        await graphDataManager.webSocketService.flushPositionUpdates();
+        // @ts-ignore - flushPositionUpdates may not be in WebSocketAdapter interface
+        await graphDataManager.webSocketService.flushPositionUpdates?.();
       }
     }
   }, [throttledSendPositions]);

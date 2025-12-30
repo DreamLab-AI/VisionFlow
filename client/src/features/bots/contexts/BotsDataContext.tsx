@@ -152,8 +152,8 @@ export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         
         swarmId: node.metadata?.swarm_id,
         parentQueenId: node.metadata?.parent_queen_id,
-        capabilities: node.metadata?.capabilities ? 
-          node.metadata.capabilities.split(',').map(cap => cap.trim()).filter(cap => cap) : 
+        capabilities: node.metadata?.capabilities ?
+          node.metadata.capabilities.split(',').map((cap: string) => cap.trim()).filter((cap: string) => cap) :
           undefined,
         connections: [],
       };

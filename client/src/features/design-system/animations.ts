@@ -1,14 +1,14 @@
 export const animations = {
   transitions: {
     spring: {
-      snappy: { type: 'spring', stiffness: 300, damping: 30 },
-      smooth: { type: 'spring', stiffness: 100, damping: 20 },
-      bounce: { type: 'spring', stiffness: 150, damping: 15 },
+      snappy: { type: 'spring' as const, stiffness: 300, damping: 30 },
+      smooth: { type: 'spring' as const, stiffness: 100, damping: 20 },
+      bounce: { type: 'spring' as const, stiffness: 150, damping: 15 },
     },
     easing: {
-      easeIn: { ease: 'easeIn', duration: 0.2 },
-      easeOut: { ease: 'easeOut', duration: 0.2 },
-      easeInOut: { ease: 'easeInOut', duration: 0.2 },
+      easeIn: { ease: 'easeIn' as const, duration: 0.2 },
+      easeOut: { ease: 'easeOut' as const, duration: 0.2 },
+      easeInOut: { ease: 'easeInOut' as const, duration: 0.2 },
     },
   },
   variants: {

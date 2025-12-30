@@ -7,9 +7,11 @@
 
 import type { SectionConfig } from './types';
 import {
-  Eye, Atom, Sparkles, BarChart3, Gauge, Settings,
-  Glasses, Bot, Code, Network, Shield
+  Eye, Sparkles, BarChart3, Gauge, Settings,
+  Bot, Code, Network, Shield
 } from 'lucide-react';
+// @ts-ignore - These icons exist in lucide-react but types may be outdated
+import { Atom, Glasses } from 'lucide-react';
 
 export interface UnifiedTabConfig {
   id: string;

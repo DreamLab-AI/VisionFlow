@@ -1,11 +1,16 @@
 
 
 import React, { useState } from 'react';
-import { Zap, Battery, Cpu, Rocket, Info, Check } from 'lucide-react';
+import Zap from 'lucide-react/dist/esm/icons/zap';
+import Battery from 'lucide-react/dist/esm/icons/battery';
+import Cpu from 'lucide-react/dist/esm/icons/cpu';
+import Rocket from 'lucide-react/dist/esm/icons/rocket';
+import Info from 'lucide-react/dist/esm/icons/info';
+import Check from 'lucide-react/dist/esm/icons/check';
 import { Button } from '../../design-system/components/Button';
 import { QUALITY_PRESETS, type QualityPreset } from '../presets/qualityPresets';
 import { useSettingsStore } from '../../../store/settingsStore';
-import { cn } from '../../../lib/utils';
+import { cn } from '../../../utils/classNameUtils';
 
 interface PresetSelectorProps {
   className?: string;
@@ -18,7 +23,7 @@ export const PresetSelector: React.FC<PresetSelectorProps> = ({
   compact = false,
   showDescription = true
 }) => {
-  const { settings, updateSettings } = useSettingsStore();
+  const updateSettings = useSettingsStore(state => state.updateSettings);
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
   const [isApplying, setIsApplying] = useState(false);
   const [showInfo, setShowInfo] = useState<string | null>(null);
@@ -28,8 +33,16 @@ export const PresetSelector: React.FC<PresetSelectorProps> = ({
     setSelectedPreset(preset.id);
 
     try {
-      
-      await updateSettings(preset.settings);
+      // Apply preset settings using immer updater
+      updateSettings((draft: any) => {
+        Object.entries(preset.settings).forEach(([key, value]) => {
+          if (value && typeof value === 'object') {
+            draft[key] = { ...draft[key], ...value };
+          } else {
+            draft[key] = value;
+          }
+        });
+      });
 
       
       console.log(`Applied ${preset.name} preset successfully`);

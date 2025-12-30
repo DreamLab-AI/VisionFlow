@@ -607,12 +607,16 @@ impl Actor for SocketFlowServer {
         self.send_full_state_sync(ctx);
         self.state_synced = true;
 
-        
+
         let response = serde_json::json!({
             "type": "connection_established",
             "timestamp": chrono::Utc::now().timestamp_millis(),
             "is_reconnection": is_reconnection,
-            "state_sync_sent": true
+            "state_sync_sent": true,
+            "protocol": {
+                "supported": [2, 3],
+                "preferred": 3
+            }
         });
 
         if let Ok(msg_str) = serde_json::to_string(&response) {

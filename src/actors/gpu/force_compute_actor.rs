@@ -90,6 +90,15 @@ pub struct ForceComputeActor {
 
     /// Broadcast optimizer for delta compression and spatial culling
     broadcast_optimizer: BroadcastOptimizer,
+
+    /// Credit-based backpressure: available broadcast credits
+    broadcast_credits: std::sync::atomic::AtomicU32,
+
+    /// Maximum credits for broadcast backpressure
+    max_credits: u32,
+
+    /// Counter for frames skipped due to backpressure
+    skipped_due_to_backpressure: u64,
 }
 
 impl ForceComputeActor {
@@ -119,6 +128,9 @@ impl ForceComputeActor {
             cached_constraint_buffer: Vec::new(),
             semantic_forces_addr: None,
             broadcast_optimizer: BroadcastOptimizer::new(broadcast_config),
+            broadcast_credits: std::sync::atomic::AtomicU32::new(100),
+            max_credits: 100,
+            skipped_due_to_backpressure: 0,
         }
     }
 
@@ -385,33 +397,50 @@ impl ForceComputeActor {
                         self.broadcast_optimizer.process_frame(&positions_velocities, &node_ids);
 
                     if should_broadcast && !filtered_indices.is_empty() {
-                        // Build node updates for only the filtered indices
-                        let mut node_updates = Vec::with_capacity(filtered_indices.len());
-                        for &idx in &filtered_indices {
-                            let node_id = node_ids[idx];
-                            let (position, velocity) = positions_velocities[idx];
+                        // Credit-based backpressure check
+                        use std::sync::atomic::Ordering;
+                        let available_credits = self.broadcast_credits.load(Ordering::Acquire);
 
-                            node_updates.push((node_id, BinaryNodeDataClient::new(
-                                node_id,
-                                glam_to_vec3data(position),
-                                glam_to_vec3data(velocity),
-                            )));
-                        }
+                        if available_credits > 0 {
+                            // Consume a credit for this broadcast
+                            self.broadcast_credits.fetch_sub(1, Ordering::Release);
 
-                        if let Some(ref graph_addr) = self.graph_service_addr {
-                            graph_addr.do_send(crate::actors::messages::UpdateNodePositions {
-                                positions: node_updates,
-                                correlation_id: None,
-                            });
+                            // Build node updates for only the filtered indices
+                            let mut node_updates = Vec::with_capacity(filtered_indices.len());
+                            for &idx in &filtered_indices {
+                                let node_id = node_ids[idx];
+                                let (position, velocity) = positions_velocities[idx];
 
-                            // Log bandwidth savings every 5 seconds
-                            if iteration % 300 == 0 {
-                                let stats = self.broadcast_optimizer.get_performance_stats();
-                                info!("ForceComputeActor: Broadcast stats - Total nodes: {}, Sent: {}, Reduction: {:.1}%",
-                                      pos_x.len(), filtered_indices.len(), stats.average_bandwidth_reduction);
+                                node_updates.push((node_id, BinaryNodeDataClient::new(
+                                    node_id,
+                                    glam_to_vec3data(position),
+                                    glam_to_vec3data(velocity),
+                                )));
                             }
-                        } else if iteration % 60 == 0 {
-                            log::warn!("ForceComputeActor: No GraphServiceActor address - positions not being sent to clients!");
+
+                            if let Some(ref graph_addr) = self.graph_service_addr {
+                                graph_addr.do_send(crate::actors::messages::UpdateNodePositions {
+                                    positions: node_updates,
+                                    correlation_id: None, // Backpressure uses credit system, not per-message tracking
+                                });
+
+                                // Log bandwidth savings every 5 seconds
+                                if iteration % 300 == 0 {
+                                    let stats = self.broadcast_optimizer.get_performance_stats();
+                                    info!("ForceComputeActor: Broadcast stats - Total nodes: {}, Sent: {}, Reduction: {:.1}%, Credits: {}/{}",
+                                          pos_x.len(), filtered_indices.len(), stats.average_bandwidth_reduction,
+                                          available_credits - 1, self.max_credits);
+                                }
+                            } else if iteration % 60 == 0 {
+                                log::warn!("ForceComputeActor: No GraphServiceActor address - positions not being sent to clients!");
+                            }
+                        } else {
+                            // No credits available - backpressure active
+                            self.skipped_due_to_backpressure += 1;
+                            if self.skipped_due_to_backpressure % 60 == 0 {
+                                warn!("ForceComputeActor: Backpressure active - skipped {} broadcasts (network congestion)",
+                                      self.skipped_due_to_backpressure);
+                            }
                         }
                     } else if should_broadcast && iteration % 300 == 0 {
                         // Log when no updates needed (high compression)
@@ -1322,5 +1351,30 @@ impl Handler<crate::actors::messages::GetBroadcastStats> for ForceComputeActor {
             target_fps: stats.target_fps,
             delta_threshold: stats.delta_threshold,
         })
+    }
+}
+
+// =============================================================================
+// Phase 5: GPU Backpressure - Credit-based Flow Control Handler
+// =============================================================================
+
+/// Handler for PositionBroadcastAck - replenishes broadcast credits when network confirms delivery
+/// This implements credit-based flow control between GPU producer and network consumer
+impl Handler<crate::actors::messages::PositionBroadcastAck> for ForceComputeActor {
+    type Result = ();
+
+    fn handle(&mut self, msg: crate::actors::messages::PositionBroadcastAck, _ctx: &mut Self::Context) -> Self::Result {
+        use std::sync::atomic::Ordering;
+
+        // Replenish credit (up to max_credits)
+        let current = self.broadcast_credits.load(Ordering::Acquire);
+        let new_credits = (current + 1).min(self.max_credits);
+        self.broadcast_credits.store(new_credits, Ordering::Release);
+
+        // Log credit restoration at debug level (every 300 acks to avoid spam)
+        if msg.correlation_id % 300 == 0 {
+            debug!("ForceComputeActor: Broadcast ack received (correlation_id: {}, clients: {}), credits: {}/{}",
+                   msg.correlation_id, msg.clients_delivered, new_credits, self.max_credits);
+        }
     }
 }

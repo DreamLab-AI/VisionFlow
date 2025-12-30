@@ -28,12 +28,34 @@ export interface OntologyMetrics {
   lastValidated?: number;
 }
 
-interface OntologyState {
+export interface ClassNode {
+  id: string;
+  label: string;
+  parentId?: string;
+  level: number;
+  depth: number;  // Alias for level, for compatibility
+  childIds?: string[];
+  childIris?: string[];  // Legacy alias for childIds
+  instanceCount?: number;
+}
+
+export interface OntologyHierarchy {
+  classes: Map<string, ClassNode>;
+  roots: string[];
+}
+
+export interface OntologyState {
   loaded: boolean;
   validating: boolean;
   violations: Violation[];
   constraintGroups: ConstraintGroup[];
   metrics: OntologyMetrics;
+
+  // Hierarchical visualization state
+  hierarchy: OntologyHierarchy | null;
+  semanticZoomLevel: number;
+  expandedClasses: Set<string>;
+  highlightedClass: string | null;
 
   setLoaded: (loaded: boolean) => void;
   setValidating: (validating: boolean) => void;
@@ -42,6 +64,12 @@ interface OntologyState {
 
   toggleConstraintGroup: (id: string) => void;
   updateStrength: (id: string, strength: number) => void;
+
+  // Hierarchical navigation
+  toggleClass: (classId: string) => void;
+  setSemanticZoomLevel: (level: number) => void;
+  setHighlightedClass: (classId: string | null) => void;
+  setHierarchy: (hierarchy: OntologyHierarchy | null) => void;
 
   loadOntology: (fileUrl: string) => Promise<void>;
   validateOntology: () => Promise<void>;
@@ -108,6 +136,12 @@ export const useOntologyStore = create<OntologyState>((set, get) => ({
     validationTimeMs: 0
   },
 
+  // Hierarchical visualization state
+  hierarchy: null,
+  semanticZoomLevel: 0,
+  expandedClasses: new Set<string>(),
+  highlightedClass: null,
+
   setLoaded: (loaded) => set({ loaded }),
   setValidating: (validating) => set({ validating }),
   setViolations: (violations) => set({ violations }),
@@ -124,6 +158,23 @@ export const useOntologyStore = create<OntologyState>((set, get) => ({
       group.id === id ? { ...group, strength } : group
     )
   })),
+
+  // Hierarchical navigation methods
+  toggleClass: (classId) => set((state) => {
+    const newExpanded = new Set(state.expandedClasses);
+    if (newExpanded.has(classId)) {
+      newExpanded.delete(classId);
+    } else {
+      newExpanded.add(classId);
+    }
+    return { expandedClasses: newExpanded };
+  }),
+
+  setSemanticZoomLevel: (level) => set({ semanticZoomLevel: level }),
+
+  setHighlightedClass: (classId) => set({ highlightedClass: classId }),
+
+  setHierarchy: (hierarchy) => set({ hierarchy }),
 
   loadOntology: async (fileUrl: string) => {
     set({ validating: true, violations: [] });

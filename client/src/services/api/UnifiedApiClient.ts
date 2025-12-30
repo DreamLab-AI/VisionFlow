@@ -189,13 +189,13 @@ export class UnifiedApiClient {
       finalConfig = await this.interceptors.onRequest(finalConfig, fullUrl);
     }
 
-    
-    const headers = {
+    // Merge headers
+    const headers: Record<string, string> = {
       ...this.defaultHeaders,
-      ...finalConfig.headers,
+      ...(finalConfig.headers as Record<string, string>),
     };
 
-    
+    // Remove auth header if skipAuth is set
     if (finalConfig.skipAuth && headers.Authorization) {
       delete headers.Authorization;
     }
@@ -411,10 +411,12 @@ export class UnifiedApiClient {
       formData.append('file', file);
     }
 
-    
+    // Remove Content-Type to let browser set multipart boundary
     const uploadConfig = { ...config };
     if (uploadConfig.headers) {
-      delete uploadConfig.headers['Content-Type'];
+      const headers = uploadConfig.headers as Record<string, string>;
+      delete headers['Content-Type'];
+      uploadConfig.headers = headers;
     }
 
     

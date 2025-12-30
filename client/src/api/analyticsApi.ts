@@ -236,13 +236,14 @@ export class AnalyticsAPI {
     try {
       logger.info('Starting semantic analysis');
       
+      // Note: request already contains analysis_type, override it for semantic analysis
       const response = await unifiedApiClient.postData<{
         success: boolean;
         task_id: string;
         error?: string;
       }>('/analytics/insights', {
-        analysis_type: 'semantic',
-        ...request
+        ...request,
+        analysis_type: 'semantic' as const
       });
 
       if (!response.success) {
@@ -431,7 +432,7 @@ export class AnalyticsAPI {
     }
 
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${wsProtocol}
+    const wsUrl = `${wsProtocol}//${window.location.host}/ws/analytics`;
 
     logger.debug('Connecting to analytics WebSocket:', wsUrl);
 

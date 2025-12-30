@@ -111,7 +111,7 @@ export class GraphEntityMapper {
             general__created_by: this.defaultOptions.createdBy,
             group__sync: this.defaultOptions.syncGroup,
             group__load_priority: this.defaultOptions.loadPriority,
-            meta__data: metadata
+            meta__data: metadata as unknown as Record<string, unknown>
         };
 
         logger.debug(`Mapped node ${node.id} to entity ${entityName}`, entity);
@@ -154,8 +154,8 @@ export class GraphEntityMapper {
             general__semantic_version: '1.0.0',
             general__created_by: this.defaultOptions.createdBy,
             group__sync: this.defaultOptions.syncGroup,
-            group__load_priority: this.defaultOptions.loadPriority + 1, 
-            meta__data: metadata
+            group__load_priority: this.defaultOptions.loadPriority + 1,
+            meta__data: metadata as unknown as Record<string, unknown>
         };
 
         logger.debug(`Mapped edge ${edge.id} to entity ${entityName}`, entity);
@@ -235,7 +235,7 @@ DO UPDATE SET
         if (!entity.meta__data) {
             return null;
         }
-        return entity.meta__data as VircadiaEntityMetadata;
+        return entity.meta__data as unknown as VircadiaEntityMetadata;
     }
 
     
@@ -318,7 +318,7 @@ DO UPDATE SET
 
         return {
             ...entity,
-            meta__data: metadata
+            meta__data: metadata as unknown as Record<string, unknown>
         };
     }
 

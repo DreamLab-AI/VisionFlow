@@ -18,7 +18,7 @@ import Activity from 'lucide-react/dist/esm/icons/activity';
 import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
 import Plus from 'lucide-react/dist/esm/icons/plus';
 import { useToast } from '@/features/design-system/components/Toast';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/features/design-system/components/Tooltip';
+import { TooltipRoot, TooltipContent, TooltipProvider, TooltipTrigger } from '@/features/design-system/components/Tooltip';
 import { SemanticClusteringControls } from '@/features/analytics/components/SemanticClusteringControls';
 import { ConstraintBuilderDialog } from './ConstraintBuilderDialog';
 import { PhysicsPresets } from './PhysicsPresets';
@@ -529,7 +529,7 @@ export function PhysicsEngineControls() {
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <TooltipProvider>
-                    <Tooltip>
+                    <TooltipRoot>
                       <TooltipTrigger asChild>
                         <Label htmlFor="boundaryExtremeMultiplier" className="flex items-center gap-1">
                           Extreme Multiplier
@@ -539,7 +539,7 @@ export function PhysicsEngineControls() {
                       <TooltipContent>
                         <p>Controls how aggressively boundary forces are applied (1.0-5.0)</p>
                       </TooltipContent>
-                    </Tooltip>
+                    </TooltipRoot>
                   </TooltipProvider>
                   <span className="text-sm text-muted-foreground">{(physicsSettings?.boundaryExtremeMultiplier || 2.0).toFixed(1)}</span>
                 </div>
@@ -556,7 +556,7 @@ export function PhysicsEngineControls() {
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <TooltipProvider>
-                    <Tooltip>
+                    <TooltipRoot>
                       <TooltipTrigger asChild>
                         <Label htmlFor="boundaryExtremeForceMultiplier" className="flex items-center gap-1">
                           Force Strength
@@ -566,7 +566,7 @@ export function PhysicsEngineControls() {
                       <TooltipContent>
                         <p>Controls the intensity of extreme boundary forces (1.0-20.0)</p>
                       </TooltipContent>
-                    </Tooltip>
+                    </TooltipRoot>
                   </TooltipProvider>
                   <span className="text-sm text-muted-foreground">{(physicsSettings?.boundaryExtremeForceMultiplier || 5.0).toFixed(1)}</span>
                 </div>
@@ -583,7 +583,7 @@ export function PhysicsEngineControls() {
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <TooltipProvider>
-                    <Tooltip>
+                    <TooltipRoot>
                       <TooltipTrigger asChild>
                         <Label htmlFor="boundaryVelocityDamping" className="flex items-center gap-1">
                           Velocity Damping
@@ -593,7 +593,7 @@ export function PhysicsEngineControls() {
                       <TooltipContent>
                         <p>Reduces velocity near boundaries to prevent edge oscillation (0.0-1.0)</p>
                       </TooltipContent>
-                    </Tooltip>
+                    </TooltipRoot>
                   </TooltipProvider>
                   <span className="text-sm text-muted-foreground">{(physicsSettings?.boundaryVelocityDamping || 0.8).toFixed(2)}</span>
                 </div>
@@ -698,7 +698,7 @@ export function PhysicsEngineControls() {
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
                     <TooltipProvider>
-                      <Tooltip>
+                      <TooltipRoot>
                         <TooltipTrigger asChild>
                           <Label htmlFor="ssspAlpha" className="flex items-center gap-1">
                             SSSP Influence
@@ -708,7 +708,7 @@ export function PhysicsEngineControls() {
                         <TooltipContent>
                           <p>Weight factor for SSSP distances (0.0 = no effect, 1.0 = full effect)</p>
                         </TooltipContent>
-                      </Tooltip>
+                      </TooltipRoot>
                     </TooltipProvider>
                     <span className="text-sm text-muted-foreground">
                       {(physicsSettings?.ssspAlpha || 0.5).toFixed(2)}

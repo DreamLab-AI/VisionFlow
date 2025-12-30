@@ -217,13 +217,13 @@ export function useRovingTabIndex<T extends HTMLElement>(
 }
 
 
-export function useId(prefix = 'id') {
-  const ref = useRef<string>();
-  
+export function useId(prefix = 'id'): string {
+  const ref = useRef<string | undefined>(undefined);
+
   if (!ref.current) {
     ref.current = `${prefix}-${Math.random().toString(36).substr(2, 9)}`;
   }
-  
+
   return ref.current;
 }
 

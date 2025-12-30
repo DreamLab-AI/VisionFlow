@@ -1,0 +1,218 @@
+{
+  "metadata": {
+    "date": "2025-12-30T13:27:59Z",
+    "validator": "EnhancedLinkValidator",
+    "documentation_root": "/home/devuser/workspace/project/docs",
+    "total_files_scanned": 375,
+    "report_location": "/docs/reports/link-validation.md"
+  },
+  "summary": {
+    "total_links": 3646,
+    "valid_links": 3038,
+    "broken_links": 608,
+    "health_percentage": 83.3,
+    "link_health_status": "WARNING"
+  },
+  "link_distribution": {
+    "by_type": {
+      "internal": {
+        "count": 2982,
+        "percentage": 81.8,
+        "status": "primary"
+      },
+      "external": {
+        "count": 189,
+        "percentage": 5.2,
+        "status": "healthy"
+      },
+      "anchors": {
+        "count": 475,
+        "percentage": 13.0,
+        "status": "healthy"
+      }
+    },
+    "by_status": {
+      "valid": {
+        "count": 3038,
+        "percentage": 83.3
+      },
+      "broken": {
+        "count": 608,
+        "percentage": 16.7
+      }
+    }
+  },
+  "broken_links_analysis": {
+    "missing_internal_files": {
+      "count": 241,
+      "percentage": 39.6,
+      "priority": "high",
+      "categories": {
+        "missing_docs_files": 241,
+        "description": "References to docs/ prefixed paths indicating old hierarchy"
+      }
+    },
+    "missing_subdirectories": {
+      "count": 327,
+      "percentage": 53.8,
+      "priority": "high",
+      "categories": {
+        "guides_missing": "guides/getting-started/, guides/features/, etc",
+        "explanations_missing": "explanations/architecture/, explanations/ontology/",
+        "reference_missing": "reference/api/, reference/database/"
+      }
+    },
+    "wrong_relative_paths": {
+      "count": 40,
+      "percentage": 6.6,
+      "priority": "medium",
+      "common_patterns": [
+        "../deployment/",
+        "../api/",
+        "../reference/",
+        "../../diagrams/"
+      ]
+    }
+  },
+  "orphaned_files": {
+    "total": 185,
+    "percentage_of_corpus": 49.3,
+    "priority": "medium",
+    "breakdown": {
+      "root_level": 41,
+      "archive": 23,
+      "analysis": 17,
+      "working": 32,
+      "other": 72
+    },
+    "status": "ACTION_REQUIRED"
+  },
+  "unlinked_files": {
+    "total": 150,
+    "percentage_of_corpus": 40.0,
+    "priority": "low",
+    "description": "Files with no outbound links to other documentation",
+    "status": "REVIEW"
+  },
+  "directory_analysis": {
+    "most_linked": [
+      {
+        "path": "root/",
+        "files": 41,
+        "total_links": 1218,
+        "avg_links_per_file": 29.7
+      },
+      {
+        "path": "reference/",
+        "files": 14,
+        "total_links": 347,
+        "avg_links_per_file": 24.8
+      },
+      {
+        "path": "guides/",
+        "files": 32,
+        "total_links": 272,
+        "avg_links_per_file": 8.5
+      }
+    ],
+    "least_linked": [
+      {
+        "path": "archive/audits/",
+        "files": 1,
+        "total_links": 0
+      },
+      {
+        "path": "archive/data/markdown/",
+        "files": 3,
+        "total_links": 0
+      },
+      {
+        "path": "testing/",
+        "files": 2,
+        "total_links": 0
+      }
+    ]
+  },
+  "external_links": {
+    "total_external": 189,
+    "unique_domains": 25,
+    "top_sources": [
+      {
+        "domain": "github.com",
+        "count": 32,
+        "percentage": 16.9
+      },
+      {
+        "domain": "docs.rs",
+        "count": 23,
+        "percentage": 12.2
+      },
+      {
+        "domain": "doc.rust-lang.org",
+        "count": 11,
+        "percentage": 5.8
+      }
+    ],
+    "assessment": "HEALTHY - Well distributed across authoritative sources"
+  },
+  "anchor_links": {
+    "total": 475,
+    "broken": 0,
+    "health": 100.0,
+    "status": "EXCELLENT"
+  },
+  "recommendations": {
+    "priority_1_high": {
+      "description": "Address 608 broken internal links",
+      "effort_hours": 8,
+      "actions": [
+        "Fix 40 relative path issues",
+        "Create 9 missing standard documents",
+        "Resolve 327 missing subdirectories"
+      ]
+    },
+    "priority_2_medium": {
+      "description": "Resolve 185 orphaned files",
+      "effort_hours": 12,
+      "actions": [
+        "Link high-value orphaned files",
+        "Archive/delete low-value files",
+        "Consolidate duplicates"
+      ]
+    },
+    "priority_3_low": {
+      "description": "Improve navigation for 150 unlinked files",
+      "effort_hours": 10,
+      "actions": [
+        "Add contextual cross-references",
+        "Create topic clusters",
+        "Implement breadcrumb navigation"
+      ]
+    }
+  },
+  "timeline": {
+    "phase_1_quick_wins": {
+      "duration": "1-2 days",
+      "target_health": "85-88%",
+      "estimated_links_fixed": 50
+    },
+    "phase_2_medium_effort": {
+      "duration": "3-5 days",
+      "target_health": "92-95%",
+      "estimated_links_fixed": 200
+    },
+    "phase_3_long_term": {
+      "duration": "1-2 weeks",
+      "target_health": "98%+",
+      "estimated_links_fixed": 350
+    }
+  },
+  "success_criteria": {
+    "link_health_target": 98.0,
+    "max_broken_links": 10,
+    "orphaned_files_linked": 150,
+    "unlinked_files_improved": 100,
+    "external_links_verified": true,
+    "navigation_tested": true
+  }
+}

@@ -19,6 +19,7 @@ use crate::cqrs::{CommandBus, QueryBus};
 use crate::events::EventBus;
 
 use crate::actors::gpu;
+use crate::actors::gpu::GPUContextBus;
 use crate::actors::graph_service_supervisor::GraphServiceSupervisor;
 use crate::actors::ontology_actor::OntologyActor;
 use crate::actors::GPUManagerActor;
@@ -61,6 +62,114 @@ pub struct GraphQueryHandlers {
     pub compute_shortest_paths: Arc<ComputeShortestPathsHandler>,
 }
 
+// Phase 7: GPU Subsystem Decomposition
+// Independent subsystems that receive GPU context via event bus
+
+/// Physics simulation subsystem actors
+#[derive(Clone)]
+pub struct PhysicsSubsystem {
+    pub force_compute: Option<Addr<gpu::ForceComputeActor>>,
+    pub stress_major: Option<Addr<gpu::StressMajorizationActor>>,
+    pub constraint: Option<Addr<gpu::ConstraintActor>>,
+}
+
+/// Analytics and ML subsystem actors
+#[derive(Clone)]
+pub struct AnalyticsSubsystem {
+    pub clustering: Option<Addr<gpu::ClusteringActor>>,
+    pub anomaly: Option<Addr<gpu::AnomalyDetectionActor>>,
+    pub pagerank: Option<Addr<gpu::PageRankActor>>,
+}
+
+/// Graph algorithm subsystem actors
+#[derive(Clone)]
+pub struct GraphSubsystem {
+    pub shortest_path: Option<Addr<gpu::ShortestPathActor>>,
+    pub components: Option<Addr<gpu::ConnectedComponentsActor>>,
+}
+
+impl Default for PhysicsSubsystem {
+    fn default() -> Self {
+        Self {
+            force_compute: None,
+            stress_major: None,
+            constraint: None,
+        }
+    }
+}
+
+impl Default for AnalyticsSubsystem {
+    fn default() -> Self {
+        Self {
+            clustering: None,
+            anomaly: None,
+            pagerank: None,
+        }
+    }
+}
+
+impl Default for GraphSubsystem {
+    fn default() -> Self {
+        Self {
+            shortest_path: None,
+            components: None,
+        }
+    }
+}
+
+impl PhysicsSubsystem {
+    /// Check if any physics actors are initialized
+    pub fn is_initialized(&self) -> bool {
+        self.force_compute.is_some() || self.stress_major.is_some() || self.constraint.is_some()
+    }
+
+    /// Get count of active actors
+    pub fn active_count(&self) -> usize {
+        [
+            self.force_compute.is_some(),
+            self.stress_major.is_some(),
+            self.constraint.is_some(),
+        ]
+        .iter()
+        .filter(|&&x| x)
+        .count()
+    }
+}
+
+impl AnalyticsSubsystem {
+    /// Check if any analytics actors are initialized
+    pub fn is_initialized(&self) -> bool {
+        self.clustering.is_some() || self.anomaly.is_some() || self.pagerank.is_some()
+    }
+
+    /// Get count of active actors
+    pub fn active_count(&self) -> usize {
+        [
+            self.clustering.is_some(),
+            self.anomaly.is_some(),
+            self.pagerank.is_some(),
+        ]
+        .iter()
+        .filter(|&&x| x)
+        .count()
+    }
+}
+
+impl GraphSubsystem {
+    /// Check if any graph algorithm actors are initialized
+    pub fn is_initialized(&self) -> bool {
+        self.shortest_path.is_some() || self.components.is_some()
+    }
+
+    /// Get count of active actors
+    pub fn active_count(&self) -> usize {
+        [self.shortest_path.is_some(), self.components.is_some()]
+            .iter()
+            .filter(|&&x| x)
+            .count()
+    }
+}
+
 #[derive(Clone)]
 pub struct AppState {
     pub graph_service_addr: Addr<GraphServiceSupervisor>,
@@ -69,6 +178,14 @@ pub struct AppState {
     pub stress_majorization_addr: Option<Addr<gpu::StressMajorizationActor>>,
     pub shortest_path_actor: Option<Addr<gpu::ShortestPathActor>>,
     pub connected_components_actor: Option<Addr<gpu::ConnectedComponentsActor>>,
+
+    // Phase 7: Decomposed GPU subsystems (direct access, bypassing GPUManagerActor)
+    pub physics: PhysicsSubsystem,
+    pub analytics: AnalyticsSubsystem,
+    pub graph_ops: GraphSubsystem,
+
+    // Event bus for GPU context distribution to independent subsystems
+    pub gpu_context_bus: Arc<GPUContextBus>,
 
     pub settings_repository: Arc<dyn SettingsRepository>,
 
@@ -546,6 +663,33 @@ impl AppState {
         let (client_message_tx, client_message_rx) = mpsc::unbounded_channel::<ClientMessage>();
         info!("[AppState::new] Client message channel created");
 
+        // Phase 7: Initialize GPU context bus for event-based distribution
+        info!("[AppState::new] Creating GPU context bus for subsystem distribution");
+        let gpu_context_bus = Arc::new(GPUContextBus::new());
+
+        // Phase 7: Initialize decomposed GPU subsystems
+        // These will receive GPU context via the event bus when GPUManagerActor initializes
+        let physics = PhysicsSubsystem {
+            force_compute: None,
+            stress_major: None,
+            constraint: None,
+        };
+
+        let analytics = AnalyticsSubsystem {
+            clustering: None,
+            anomaly: None,
+            pagerank: None,
+        };
+
+        // Graph ops subsystem initialized with the actors we already created
+        let graph_ops = GraphSubsystem {
+            shortest_path: shortest_path_actor.clone(),
+            components: connected_components_actor.clone(),
+        };
+
+        info!("[AppState::new] GPU subsystems initialized (physics={}, analytics={}, graph_ops={})",
+            physics.active_count(), analytics.active_count(), graph_ops.active_count());
+
         let state = Self {
             graph_service_addr,
             gpu_manager_addr,
@@ -553,6 +697,12 @@ impl AppState {
             stress_majorization_addr,
             shortest_path_actor,
             connected_components_actor,
+
+            // Phase 7: Decomposed subsystems
+            physics,
+            analytics,
+            graph_ops,
+            gpu_context_bus,
 
             settings_repository,
             neo4j_settings_repository,

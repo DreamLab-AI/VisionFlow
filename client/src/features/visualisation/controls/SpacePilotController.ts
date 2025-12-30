@@ -1,5 +1,8 @@
 import * as THREE from 'three';
-import { OrbitControls } from '@react-three/drei';
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
+
+// Type alias for OrbitControls from drei
+type OrbitControls = OrbitControlsImpl;
 
 
 export interface SpacePilotConfig {

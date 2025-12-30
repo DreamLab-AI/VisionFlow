@@ -198,7 +198,9 @@ export function sanitizeNodeData(
   return {
     nodeId: Math.max(0, node.nodeId),
     position: clampVec3(node.position),
-    velocity: clampVelocity(node.velocity)
+    velocity: clampVelocity(node.velocity),
+    ssspDistance: node.ssspDistance ?? Infinity,
+    ssspParent: node.ssspParent ?? -1
   };
 }
 
