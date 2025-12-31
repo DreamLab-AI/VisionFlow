@@ -390,6 +390,72 @@ class NostrAuthService {
       return undefined;
     }
   }
+
+  /**
+   * Dev mode login - bypasses NIP-07 and logs in as power user
+   * Only available in development mode on local network
+   */
+  public async devLogin(): Promise<AuthState> {
+    // Security: Only allow in dev mode
+    if (!import.meta.env.DEV) {
+      throw new Error('Dev login is only available in development mode');
+    }
+
+    // Security: Only allow from local network IPs
+    const hostname = window.location.hostname;
+    const isLocalNetwork =
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname.startsWith('192.168.') ||
+      hostname.startsWith('10.') ||
+      hostname.startsWith('172.16.') ||
+      hostname.startsWith('172.17.') ||
+      hostname.startsWith('172.18.') ||
+      hostname.startsWith('172.19.') ||
+      hostname.startsWith('172.2') ||
+      hostname.startsWith('172.30.') ||
+      hostname.startsWith('172.31.');
+
+    if (!isLocalNetwork) {
+      throw new Error('Dev login is only available on local network');
+    }
+
+    logger.info('[DEV MODE] Manual dev login triggered');
+    const devPowerUserPubkey = import.meta.env.VITE_DEV_POWER_USER_PUBKEY ||
+      'bfcf20d472f0fb143b23cb5be3fa0a040d42176b71f73ca272f6912b1d62a452';
+
+    this.sessionToken = 'dev-session-token';
+    this.currentUser = {
+      pubkey: devPowerUserPubkey,
+      npub: this.hexToNpub(devPowerUserPubkey),
+      isPowerUser: true,
+    };
+
+    // Store in localStorage for persistence
+    this.storeSessionToken(this.sessionToken);
+    this.storeCurrentUser();
+
+    const newState = this.getCurrentAuthState();
+    this.notifyListeners(newState);
+    logger.info(`[DEV MODE] Logged in as power user: ${devPowerUserPubkey}`);
+    return newState;
+  }
+
+  /**
+   * Check if dev login button should be shown
+   */
+  public isDevLoginAvailable(): boolean {
+    if (!import.meta.env.DEV) return false;
+
+    const hostname = window.location.hostname;
+    return (
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname.startsWith('192.168.') ||
+      hostname.startsWith('10.') ||
+      hostname.startsWith('172.')
+    );
+  }
 }
 
 // Export a singleton instance

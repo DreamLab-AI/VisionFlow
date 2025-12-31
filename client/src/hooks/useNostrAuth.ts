@@ -69,11 +69,28 @@ export function useNostrAuth() {
     }
   };
 
+  const devLogin = async () => {
+    try {
+      const newState = await nostrAuth.devLogin();
+      setAuthState(newState);
+      return newState;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Dev login failed';
+      setAuthState({
+        authenticated: false,
+        error: errorMessage
+      });
+      throw error;
+    }
+  };
+
   return {
     ...authState,
     isLoading,
     login,
     logout,
-    hasNip07: nostrAuth.hasNip07Provider()
+    devLogin,
+    hasNip07: nostrAuth.hasNip07Provider(),
+    isDevLoginAvailable: nostrAuth.isDevLoginAvailable()
   };
 }

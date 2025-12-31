@@ -3,8 +3,9 @@ import { useNostrAuth } from '../hooks/useNostrAuth';
 import './NostrLoginScreen.css';
 
 export const NostrLoginScreen: React.FC = () => {
-  const { login, hasNip07, error } = useNostrAuth();
+  const { login, devLogin, hasNip07, error, isDevLoginAvailable } = useNostrAuth();
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isDevLoggingIn, setIsDevLoggingIn] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
 
   const handleLogin = async () => {
@@ -18,6 +19,20 @@ export const NostrLoginScreen: React.FC = () => {
       setLoginError(errorMessage);
     } finally {
       setIsLoggingIn(false);
+    }
+  };
+
+  const handleDevLogin = async () => {
+    setIsDevLoggingIn(true);
+    setLoginError(null);
+
+    try {
+      await devLogin();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Dev login failed';
+      setLoginError(errorMessage);
+    } finally {
+      setIsDevLoggingIn(false);
     }
   };
 
@@ -76,7 +91,7 @@ export const NostrLoginScreen: React.FC = () => {
               <button
                 className="nostr-login-button"
                 onClick={handleLogin}
-                disabled={isLoggingIn}
+                disabled={isLoggingIn || isDevLoggingIn}
               >
                 {isLoggingIn ? (
                   <>
@@ -87,6 +102,34 @@ export const NostrLoginScreen: React.FC = () => {
                   'Login with Nostr'
                 )}
               </button>
+
+              {isDevLoginAvailable && (
+                <div className="dev-login-section">
+                  <div className="dev-login-divider">
+                    <span>Development Mode</span>
+                  </div>
+                  <button
+                    className="dev-login-button"
+                    onClick={handleDevLogin}
+                    disabled={isLoggingIn || isDevLoggingIn}
+                  >
+                    {isDevLoggingIn ? (
+                      <>
+                        <span className="spinner"></span>
+                        Logging in...
+                      </>
+                    ) : (
+                      <>
+                        <span className="dev-icon">🔧</span>
+                        Dev Login (Power User)
+                      </>
+                    )}
+                  </button>
+                  <p className="dev-login-warning">
+                    ⚠️ Development only - bypasses NIP-07 authentication
+                  </p>
+                </div>
+              )}
 
               <div className="nostr-login-info">
                 <p>

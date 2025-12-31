@@ -200,6 +200,71 @@
   text-decoration: underline;
 }
 
+/* Dev Login Section */
+.dev-login-section {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.dev-login-divider {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.dev-login-divider span {
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dev-login-button {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 14px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.dev-login-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(245, 158, 11, 0.4);
+}
+
+.dev-login-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.dev-icon {
+  font-size: 18px;
+}
+
+.dev-login-warning {
+  margin-top: 12px;
+  font-size: 12px;
+  color: #92400e;
+  background: #fef3c7;
+  padding: 8px 12px;
+  border-radius: 6px;
+  text-align: center;
+}
+
 @media (max-width: 600px) {
   .nostr-login-container {
     border-radius: 0;
