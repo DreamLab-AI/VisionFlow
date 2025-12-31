@@ -422,6 +422,7 @@ mod tests {
             context: None,
             respond_via_voice: true,
             session_id: "test_session".to_string(),
+            voice_tag: None,
         };
 
         let tagged_cmd = manager
@@ -445,6 +446,7 @@ mod tests {
             context: None,
             respond_via_voice: true,
             session_id: "test_session".to_string(),
+            voice_tag: None,
         };
 
         let tagged_cmd = manager
@@ -484,6 +486,7 @@ mod tests {
             context: None,
             respond_via_voice: true,
             session_id: "test_session".to_string(),
+            voice_tag: None,
         };
 
         

@@ -118,25 +118,30 @@ impl Default for AttributeSpringConfig {
 }
 
 /// Ontology relationship forces configuration
+///
+/// NOTE: The `enabled` field is used as a feature toggle for the CPU fallback.
+/// Force parameters in this struct are legacy defaults - actual force configs
+/// are now loaded dynamically from SemanticTypeRegistry at runtime.
+/// GPU uses DynamicRelationshipBuffer for ontology-to-code decoupling.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OntologyRelationshipConfig {
-    /// "requires" relationship - directional spring strength (dependency → prerequisite)
+    /// Legacy: "requires" strength (actual config from SemanticTypeRegistry)
     pub requires_strength: f32,
-    /// "requires" relationship - rest length
+    /// Legacy: "requires" rest length
     pub requires_rest_length: f32,
-    /// "enables" relationship - capability attraction strength (weaker than requires)
+    /// Legacy: "enables" strength
     pub enables_strength: f32,
-    /// "enables" relationship - rest length
+    /// Legacy: "enables" rest length
     pub enables_rest_length: f32,
-    /// "has-part" relationship - strong clustering strength (parts orbit whole)
+    /// Legacy: "has-part" strength
     pub has_part_strength: f32,
-    /// "has-part" relationship - orbit radius
+    /// Legacy: "has-part" orbit radius
     pub has_part_orbit_radius: f32,
-    /// "bridges-to" relationship - long-range cross-domain spring strength
+    /// Legacy: "bridges-to" strength
     pub bridges_to_strength: f32,
-    /// "bridges-to" relationship - rest length (longer for cross-domain)
+    /// Legacy: "bridges-to" rest length
     pub bridges_to_rest_length: f32,
-    /// Enable ontology relationship forces
+    /// Enable ontology relationship forces (feature toggle for CPU fallback)
     pub enabled: bool,
 }
 
@@ -867,6 +872,9 @@ impl SemanticForcesEngine {
         }
     }
 
+    /// Apply ontology relationship forces using CPU fallback.
+    /// Uses SemanticTypeRegistry for dynamic force configuration lookup.
+    /// Gated by `config.ontology_relationship.enabled` feature toggle.
     fn apply_ontology_relationship_forces_cpu(&self, graph: &mut GraphData) {
         // Build node ID to index map
         let node_id_to_idx: HashMap<u32, usize> = graph.nodes.iter()
@@ -1133,6 +1141,206 @@ impl Default for SemanticForcesEngine {
     }
 }
 
+// =============================================================================
+// Dynamic GPU Buffer Management for Schema-Code Decoupling
+// =============================================================================
+
+/// GPU-compatible dynamic force configuration
+/// Matches DynamicForceConfig struct in semantic_forces.cu
+#[repr(C)]
+#[derive(Clone, Copy, Debug)]
+pub struct DynamicForceConfigGPU {
+    pub strength: f32,
+    pub rest_length: f32,
+    pub is_directional: i32,
+    pub force_type: u32,
+}
+
+impl Default for DynamicForceConfigGPU {
+    fn default() -> Self {
+        Self {
+            strength: 0.5,
+            rest_length: 100.0,
+            is_directional: 0,
+            force_type: 0,
+        }
+    }
+}
+
+impl From<&RelationshipForceConfig> for DynamicForceConfigGPU {
+    fn from(config: &RelationshipForceConfig) -> Self {
+        Self {
+            strength: config.strength,
+            rest_length: config.rest_length,
+            is_directional: if config.is_directional { 1 } else { 0 },
+            force_type: config.force_type,
+        }
+    }
+}
+
+// FFI declarations for dynamic relationship buffer management
+extern "C" {
+    fn set_dynamic_relationship_buffer(
+        configs: *const DynamicForceConfigGPU,
+        num_types: i32,
+        enabled: bool,
+    ) -> i32;
+
+    fn update_dynamic_relationship_config(
+        type_id: i32,
+        config: *const DynamicForceConfigGPU,
+    ) -> i32;
+
+    fn set_dynamic_relationships_enabled(enabled: bool) -> i32;
+
+    fn get_dynamic_relationship_buffer_version() -> i32;
+
+    fn get_max_relationship_types() -> i32;
+}
+
+/// Manager for dynamic relationship buffer on GPU
+/// Enables hot-reload of ontology force configurations without CUDA recompilation
+pub struct DynamicRelationshipBufferManager {
+    /// Current buffer version (for change detection)
+    current_version: i32,
+    /// Whether dynamic mode is enabled
+    enabled: bool,
+    /// Last uploaded configuration count
+    last_type_count: usize,
+}
+
+impl DynamicRelationshipBufferManager {
+    /// Create a new buffer manager
+    pub fn new() -> Self {
+        Self {
+            current_version: 0,
+            enabled: false,
+            last_type_count: 0,
+        }
+    }
+
+    /// Upload relationship configurations from registry to GPU
+    /// Call this whenever ontology changes to enable new relationship types
+    pub fn upload_from_registry(&mut self, registry: &SemanticTypeRegistry) -> Result<(), String> {
+        let buffer = registry.build_gpu_buffer();
+        let gpu_buffer: Vec<DynamicForceConfigGPU> = buffer
+            .iter()
+            .map(|c| DynamicForceConfigGPU::from(c))
+            .collect();
+
+        self.upload_buffer(&gpu_buffer)
+    }
+
+    /// Upload a raw buffer of configurations to GPU
+    pub fn upload_buffer(&mut self, configs: &[DynamicForceConfigGPU]) -> Result<(), String> {
+        let max_types = unsafe { get_max_relationship_types() } as usize;
+
+        if configs.len() > max_types {
+            return Err(format!(
+                "Too many relationship types: {} (max: {})",
+                configs.len(),
+                max_types
+            ));
+        }
+
+        let result = unsafe {
+            set_dynamic_relationship_buffer(
+                if configs.is_empty() { std::ptr::null() } else { configs.as_ptr() },
+                configs.len() as i32,
+                true,
+            )
+        };
+
+        if result != 0 {
+            return Err(format!("CUDA error uploading relationship buffer: {}", result));
+        }
+
+        self.current_version = unsafe { get_dynamic_relationship_buffer_version() };
+        self.enabled = true;
+        self.last_type_count = configs.len();
+
+        info!(
+            "Uploaded {} relationship types to GPU (version {})",
+            configs.len(),
+            self.current_version
+        );
+
+        Ok(())
+    }
+
+    /// Hot-reload a single relationship type configuration
+    /// More efficient than full buffer upload for single changes
+    pub fn update_single_type(
+        &mut self,
+        type_id: u32,
+        config: &DynamicForceConfigGPU,
+    ) -> Result<(), String> {
+        let max_types = unsafe { get_max_relationship_types() } as usize;
+
+        if type_id as usize >= max_types {
+            return Err(format!(
+                "Type ID {} exceeds maximum ({})",
+                type_id, max_types
+            ));
+        }
+
+        let result = unsafe { update_dynamic_relationship_config(type_id as i32, config) };
+
+        if result != 0 {
+            return Err(format!("CUDA error updating relationship config: {}", result));
+        }
+
+        self.current_version = unsafe { get_dynamic_relationship_buffer_version() };
+
+        debug!(
+            "Hot-reloaded relationship type {} (version {})",
+            type_id, self.current_version
+        );
+
+        Ok(())
+    }
+
+    /// Enable or disable dynamic relationship forces on GPU
+    pub fn set_enabled(&mut self, enabled: bool) -> Result<(), String> {
+        let result = unsafe { set_dynamic_relationships_enabled(enabled) };
+
+        if result != 0 {
+            return Err(format!("CUDA error setting dynamic relationships enabled: {}", result));
+        }
+
+        self.enabled = enabled;
+        info!("Dynamic relationship forces {}", if enabled { "enabled" } else { "disabled" });
+
+        Ok(())
+    }
+
+    /// Check if dynamic mode is enabled
+    pub fn is_enabled(&self) -> bool {
+        self.enabled
+    }
+
+    /// Get current buffer version
+    pub fn version(&self) -> i32 {
+        self.current_version
+    }
+
+    /// Get last uploaded type count
+    pub fn type_count(&self) -> usize {
+        self.last_type_count
+    }
+
+    /// Get maximum supported relationship types
+    pub fn max_types(&self) -> usize {
+        unsafe { get_max_relationship_types() as usize }
+    }
+}
+
+impl Default for DynamicRelationshipBufferManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1221,5 +1429,50 @@ mod tests {
         let centroids = engine.type_centroids();
         assert_eq!(centroids.len(), 1); // Only one type
         assert!(centroids.contains_key(&1)); // person type
+    }
+
+    // ==========================================================================
+    // Dynamic GPU Buffer Tests
+    // ==========================================================================
+
+    #[test]
+    fn test_dynamic_force_config_default() {
+        let config = DynamicForceConfigGPU::default();
+        assert_eq!(config.strength, 0.5);
+        assert_eq!(config.rest_length, 100.0);
+        assert_eq!(config.is_directional, 0);
+        assert_eq!(config.force_type, 0);
+    }
+
+    #[test]
+    fn test_dynamic_force_config_from_relationship_config() {
+        let relationship_config = RelationshipForceConfig {
+            strength: 0.8,
+            rest_length: 75.0,
+            is_directional: true,
+            force_type: 2,
+        };
+
+        let gpu_config = DynamicForceConfigGPU::from(&relationship_config);
+
+        assert_eq!(gpu_config.strength, 0.8);
+        assert_eq!(gpu_config.rest_length, 75.0);
+        assert_eq!(gpu_config.is_directional, 1);
+        assert_eq!(gpu_config.force_type, 2);
+    }
+
+    #[test]
+    fn test_dynamic_buffer_manager_creation() {
+        let manager = DynamicRelationshipBufferManager::new();
+        assert!(!manager.is_enabled());
+        assert_eq!(manager.version(), 0);
+        assert_eq!(manager.type_count(), 0);
+    }
+
+    #[test]
+    fn test_dynamic_force_config_struct_size() {
+        // Verify the struct layout matches CUDA expectations
+        assert_eq!(std::mem::size_of::<DynamicForceConfigGPU>(), 16);
+        assert_eq!(std::mem::align_of::<DynamicForceConfigGPU>(), 4);
     }
 }

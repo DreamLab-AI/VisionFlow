@@ -10,10 +10,7 @@ fn create_test_class(iri: &str, label: &str) -> OwlClass {
     OwlClass {
         iri: iri.to_string(),
         label: Some(label.to_string()),
-        description: None,
-        parent_classes: Vec::new(),
-        properties: HashMap::new(),
-        source_file: None,
+        ..Default::default()
     }
 }
 

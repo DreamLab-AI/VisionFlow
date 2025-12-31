@@ -1,7 +1,15 @@
 // tests/test_ontology_schema_fixes.rs
 //! Tests to verify ontology database schema fixes
 //! Tests that INSERT operations work with correct column names
+//!
+//! NOTE: These tests are disabled because UnifiedOntologyRepository has been
+//! deprecated and removed as part of the SQL deprecation effort (see ADR-001).
+//! The repository module now uses Neo4j-based repositories.
 
+// UnifiedOntologyRepository does not exist - deprecated per repositories/mod.rs
+// Commenting out all tests until Neo4j repository tests are created
+
+/*
 use webxr::repositories::UnifiedOntologyRepository;
 use webxr::ports::ontology_repository::{OntologyRepository, OwlClass, OwlProperty, PropertyType};
 
@@ -180,3 +188,4 @@ async fn test_save_ontology_bulk() {
     assert_eq!(metrics.class_count, 2, "Should have 2 classes");
     assert_eq!(metrics.property_count, 1, "Should have 1 property");
 }
+*/

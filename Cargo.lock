@@ -3324,18 +3324,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "35fb2e5f958ec131621fdd531e9fc186ed768cbe395337403ae56c17a74c68ec"
 
 [[package]]
-name = "path_abs"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "05ef02f6342ac01d8a93b65f96db53fe68a92a15f41144f97fb00a9e669633c3"
-dependencies = [
- "serde",
- "serde_derive",
- "std_prelude",
- "stfu8",
-]
-
-[[package]]
 name = "pathdiff"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4605,18 +4593,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
 
 [[package]]
-name = "std_prelude"
-version = "0.2.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8207e78455ffdf55661170876f88daf85356e4edd54e0a3dbc79586ca1e50cbe"
-
-[[package]]
-name = "stfu8"
-version = "0.2.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e51f1e89f093f99e7432c491c382b88a6860a5adbe6bf02574bf0a08efff1978"
-
-[[package]]
 name = "strsim"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5025,9 +5001,9 @@ dependencies = [
 
 [[package]]
 name = "toml_writer"
-version = "1.0.2"
+version = "1.0.6+spec-1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fcc842091f2def52017664b53082ecbbeb5c7731092bad69d2c63050401dfd64"
+checksum = "ab16f14aed21ee8bfd8ec22513f7287cd4a91aa92e44edfe2c17ddd004e92607"
 
 [[package]]
 name = "tower"
@@ -5669,7 +5645,6 @@ dependencies = [
  "futures",
  "futures-util",
  "glam 0.30.5",
- "heck",
  "hexser",
  "horned-functional",
  "horned-owl 1.2.0",
@@ -5688,7 +5663,6 @@ dependencies = [
  "notify",
  "once_cell",
  "ordered-float",
- "path_abs",
  "pollster",
  "postcard",
  "pretty_assertions",
@@ -5700,7 +5674,6 @@ dependencies = [
  "regex",
  "reqwest",
  "rustls",
- "scopeguard",
  "serde",
  "serde_json",
  "serde_yaml",
@@ -5729,7 +5702,6 @@ dependencies = [
  "utoipa-swagger-ui",
  "uuid",
  "validator",
- "walkdir",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",

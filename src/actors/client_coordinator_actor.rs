@@ -275,6 +275,12 @@ pub struct ClientCoordinatorActor {
 
     graph_service_addr: Option<Addr<crate::actors::GraphServiceSupervisor>>,
 
+    /// GPU compute actor address for backpressure acknowledgements
+    gpu_compute_addr: Option<Addr<crate::actors::gpu::force_compute_actor::ForceComputeActor>>,
+
+    /// Broadcast sequence counter for acknowledgement correlation
+    broadcast_sequence: u64,
+
     // Neo4j settings repository for loading/saving user filters
     neo4j_settings_repository: Option<Arc<crate::adapters::neo4j_settings_repository::Neo4jSettingsRepository>>,
 
@@ -315,23 +321,31 @@ impl ClientCoordinatorActor {
         Self {
             client_manager: Arc::new(RwLock::new(ClientManager::new())),
             last_broadcast: Instant::now(),
-            broadcast_interval: Duration::from_millis(50), 
-            active_broadcast_interval: Duration::from_millis(50), 
-            stable_broadcast_interval: Duration::from_millis(1000), 
+            broadcast_interval: Duration::from_millis(50),
+            active_broadcast_interval: Duration::from_millis(50),
+            stable_broadcast_interval: Duration::from_millis(1000),
             initial_positions_sent: false,
             graph_service_addr: None,
+            gpu_compute_addr: None,
+            broadcast_sequence: 0,
             neo4j_settings_repository: None,
             position_cache: HashMap::new(),
             broadcast_count: 0,
             bytes_sent: 0,
             force_broadcast_requests: 0,
             connection_stats: ConnectionStats::default(),
-            bandwidth_limit_bytes_per_sec: 1_000_000, 
+            bandwidth_limit_bytes_per_sec: 1_000_000,
             bytes_sent_this_second: 0,
             last_bandwidth_check: Instant::now(),
             pending_voice_data: Vec::new(),
             voice_data_queued_bytes: 0,
         }
+    }
+
+    /// Set the GPU compute actor address for backpressure acknowledgements
+    pub fn set_gpu_compute_addr(&mut self, addr: Addr<crate::actors::gpu::force_compute_actor::ForceComputeActor>) {
+        self.gpu_compute_addr = Some(addr);
+        info!("GPU compute address configured for ClientCoordinatorActor backpressure acks");
     }
 
 
@@ -1061,7 +1075,7 @@ impl Handler<BroadcastNodePositions> for ClientCoordinatorActor {
     }
 }
 
-/// Handler for BroadcastPositions - modern position broadcasting
+/// Handler for BroadcastPositions - modern position broadcasting with backpressure ack
 impl Handler<BroadcastPositions> for ClientCoordinatorActor {
     type Result = ();
 
@@ -1079,16 +1093,26 @@ impl Handler<BroadcastPositions> for ClientCoordinatorActor {
 
         if client_count > 0 {
             self.broadcast_count += 1;
+            self.broadcast_sequence += 1;
             // Approximate byte size (28 bytes per node in binary format)
             let approx_bytes = msg.positions.len() * 28;
             self.bytes_sent += approx_bytes as u64;
             self.last_broadcast = Instant::now();
 
+            // Send acknowledgement to GPU actor for backpressure flow control
+            if let Some(ref gpu_addr) = self.gpu_compute_addr {
+                gpu_addr.do_send(PositionBroadcastAck {
+                    correlation_id: self.broadcast_sequence,
+                    clients_delivered: client_count as u32,
+                });
+            }
+
             debug!(
-                "Broadcasted {} node positions to {} clients (~{} bytes)",
+                "Broadcasted {} node positions to {} clients (~{} bytes), seq: {}",
                 msg.positions.len(),
                 client_count,
-                approx_bytes
+                approx_bytes,
+                self.broadcast_sequence
             );
         }
     }
@@ -1279,6 +1303,45 @@ impl Handler<SetGraphServiceAddress> for ClientCoordinatorActor {
     fn handle(&mut self, msg: SetGraphServiceAddress, _ctx: &mut Self::Context) -> Self::Result {
         debug!("Setting graph service address in client coordinator");
         self.set_graph_service_addr(msg.addr);
+    }
+}
+
+/// Handler for SetGpuComputeAddress - enables backpressure acknowledgements
+impl Handler<SetGpuComputeAddress> for ClientCoordinatorActor {
+    type Result = ();
+
+    fn handle(&mut self, msg: SetGpuComputeAddress, _ctx: &mut Self::Context) -> Self::Result {
+        self.set_gpu_compute_addr(msg.addr);
+    }
+}
+
+/// Handler for ClientBroadcastAck - true end-to-end backpressure flow control
+/// Forwards client ACKs to GPU actor to replenish tokens based on actual client receipt
+/// This replaces queue-only ACKs with application-level acknowledgements
+impl Handler<ClientBroadcastAck> for ClientCoordinatorActor {
+    type Result = ();
+
+    fn handle(&mut self, msg: ClientBroadcastAck, _ctx: &mut Self::Context) -> Self::Result {
+        // Forward the acknowledgement to GPU actor for backpressure token restoration
+        if let Some(ref gpu_addr) = self.gpu_compute_addr {
+            gpu_addr.do_send(PositionBroadcastAck {
+                correlation_id: msg.sequence_id,
+                clients_delivered: 1, // Each client ACK counts as 1 delivery
+            });
+
+            // Log at trace level to avoid spam (every 100th ACK at debug)
+            if msg.sequence_id % 100 == 0 {
+                debug!(
+                    "ClientBroadcastAck: seq={}, nodes={}, client_timestamp={}ms, client_id={:?}",
+                    msg.sequence_id, msg.nodes_received, msg.timestamp, msg.client_id
+                );
+            }
+        } else {
+            // GPU address not set, log warning once per 1000 ACKs
+            if msg.sequence_id % 1000 == 0 {
+                warn!("ClientBroadcastAck: GPU compute address not set, cannot forward ACK");
+            }
+        }
     }
 }
 

@@ -4,6 +4,7 @@ pub mod app_state;
 pub mod application;
 pub mod client;
 pub mod config;
+pub mod constraints;
 pub mod cqrs;
 pub mod errors;
 pub mod events;

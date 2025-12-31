@@ -1,116 +1,136 @@
-//! GPU Manager Actor - Supervisor for specialized GPU computation actors
+//! GPU Manager Actor - Lightweight Coordinator for GPU Subsystem Supervisors
+//!
+//! ## Architecture
+//!
+//! GPUManagerActor has been refactored from a "God Actor" pattern to a lightweight
+//! coordinator that delegates to specialized subsystem supervisors:
+//!
+//! - **ResourceSupervisor**: GPU initialization with timeout handling
+//! - **PhysicsSupervisor**: Force computation, stress majorization, constraints
+//! - **AnalyticsSupervisor**: Clustering, anomaly detection, PageRank
+//! - **GraphAnalyticsSupervisor**: Shortest path, connected components
+//!
+//! ## Error Isolation
+//!
+//! Each subsystem operates independently. If one subsystem hangs or fails:
+//! - Other subsystems continue operating normally
+//! - The failed subsystem's supervisor handles restart with backoff
+//! - Health status is reported per-subsystem
 
 use actix::prelude::*;
-use log::{debug, error, info};
+use log::{debug, error, info, warn};
 use std::sync::Arc;
+use std::time::Duration;
 
-use super::shared::{ChildActorAddresses, GPUState, SharedGPUContext};
-use super::{
-    AnomalyDetectionActor, ClusteringActor, ConnectedComponentsActor, ConstraintActor,
-    ForceComputeActor, GPUResourceActor, PageRankActor, ShortestPathActor,
-    StressMajorizationActor,
-};
+use super::supervisor_messages::*;
+use super::shared::{GPUState, SharedGPUContext};
+use super::physics_supervisor::PhysicsSupervisor;
+use super::analytics_supervisor::AnalyticsSupervisor;
+use super::graph_analytics_supervisor::GraphAnalyticsSupervisor;
+use super::resource_supervisor::{ResourceSupervisor, SetSubsystemSupervisors};
+use super::ForceComputeActor;
+use super::force_compute_actor::PhysicsStats;
+use super::pagerank_actor::PageRankResult;
 use crate::actors::messages::*;
 use crate::telemetry::agent_telemetry::{
     get_telemetry_logger, CorrelationId, LogLevel, TelemetryEvent,
 };
 use crate::utils::socket_flow_messages::BinaryNodeData;
 
-///
-pub struct GPUManagerActor {
-    
-    child_actors: Option<ChildActorAddresses>,
+/// Addresses for subsystem supervisors
+#[derive(Clone)]
+struct SubsystemSupervisors {
+    resource: Addr<ResourceSupervisor>,
+    physics: Addr<PhysicsSupervisor>,
+    analytics: Addr<AnalyticsSupervisor>,
+    graph_analytics: Addr<GraphAnalyticsSupervisor>,
+}
 
-    
+/// GPU Manager Actor - Lightweight Coordinator
+///
+/// Coordinates between subsystem supervisors rather than managing
+/// individual child actors directly. This provides:
+/// - Better error isolation
+/// - Independent subsystem lifecycle
+/// - Timeout handling for GPU initialization
+/// - Health monitoring per subsystem
+pub struct GPUManagerActor {
+    /// Subsystem supervisor addresses
+    supervisors: Option<SubsystemSupervisors>,
+
+    /// GPU state for status reporting
     gpu_state: GPUState,
 
-    
+    /// Shared GPU context (cached for status queries)
     shared_context: Option<Arc<SharedGPUContext>>,
 
-    
-    children_spawned: bool,
+    /// Whether supervisors have been spawned
+    supervisors_spawned: bool,
 }
 
 impl GPUManagerActor {
     pub fn new() -> Self {
         Self {
-            child_actors: None,
+            supervisors: None,
             gpu_state: GPUState::default(),
             shared_context: None,
-            children_spawned: false,
+            supervisors_spawned: false,
         }
     }
 
-    
-    fn spawn_child_actors(&mut self, _ctx: &mut Context<Self>) -> Result<(), String> {
-        if self.children_spawned {
-            debug!("Child actors already spawned, skipping");
-            return Ok(()); 
+    /// Spawn all subsystem supervisors
+    fn spawn_supervisors(&mut self, _ctx: &mut Context<Self>) -> Result<(), String> {
+        if self.supervisors_spawned {
+            debug!("Subsystem supervisors already spawned, skipping");
+            return Ok(());
         }
 
-        info!("GPU Manager: Spawning specialized child actors");
+        info!("GPUManagerActor: Spawning subsystem supervisors");
 
-        
-        debug!("Creating GPUResourceActor...");
-        let resource_actor = GPUResourceActor::new().start();
-        debug!("GPUResourceActor created: {:?}", resource_actor);
+        // Spawn supervisors - each manages its own child actors
+        let physics_supervisor = PhysicsSupervisor::new().start();
+        debug!("PhysicsSupervisor spawned");
 
-        debug!("Creating ForceComputeActor...");
-        
-        
-        let force_compute_actor = actix::Actor::create(|ctx| {
-            ctx.set_mailbox_capacity(2048); 
-            ForceComputeActor::new()
-        });
-        debug!("Creating ClusteringActor...");
-        let clustering_actor = ClusteringActor::new().start();
-        debug!("Creating AnomalyDetectionActor...");
-        let anomaly_detection_actor = AnomalyDetectionActor::new().start();
-        debug!("Creating StressMajorizationActor...");
-        let stress_majorization_actor = StressMajorizationActor::new().start();
-        debug!("Creating ConstraintActor...");
-        let constraint_actor = ConstraintActor::new().start();
-        debug!("Creating OntologyConstraintActor...");
-        let ontology_constraint_actor = super::OntologyConstraintActor::new().start();
+        let analytics_supervisor = AnalyticsSupervisor::new().start();
+        debug!("AnalyticsSupervisor spawned");
 
-        // P2 GPU Analytics Actors
-        debug!("Creating PageRankActor...");
-        let pagerank_actor = PageRankActor::new().start();
-        debug!("Creating ShortestPathActor...");
-        let shortest_path_actor = ShortestPathActor::new().start();
-        debug!("Creating ConnectedComponentsActor...");
-        let connected_components_actor = ConnectedComponentsActor::new().start();
+        let graph_analytics_supervisor = GraphAnalyticsSupervisor::new().start();
+        debug!("GraphAnalyticsSupervisor spawned");
 
-        self.child_actors = Some(ChildActorAddresses {
-            resource_actor,
-            force_compute_actor,
-            clustering_actor,
-            anomaly_detection_actor,
-            stress_majorization_actor,
-            constraint_actor,
-            ontology_constraint_actor,
-            pagerank_actor,
-            shortest_path_actor,
-            connected_components_actor,
+        // ResourceSupervisor is spawned last and configured with other supervisor addresses
+        let resource_supervisor = ResourceSupervisor::new().start();
+        debug!("ResourceSupervisor spawned");
+
+        // Register subsystem supervisors with ResourceSupervisor for context distribution
+        if let Err(e) = resource_supervisor.try_send(SetSubsystemSupervisors {
+            physics: Some(physics_supervisor.clone()),
+            analytics: Some(analytics_supervisor.clone()),
+            graph_analytics: Some(graph_analytics_supervisor.clone()),
+        }) {
+            warn!("Failed to register subsystem supervisors: {}", e);
+        }
+
+        self.supervisors = Some(SubsystemSupervisors {
+            resource: resource_supervisor,
+            physics: physics_supervisor,
+            analytics: analytics_supervisor,
+            graph_analytics: graph_analytics_supervisor,
         });
 
-        self.children_spawned = true;
-        info!("GPU Manager: All child actors spawned successfully");
+        self.supervisors_spawned = true;
+        info!("GPUManagerActor: All subsystem supervisors spawned successfully");
         Ok(())
     }
 
-    
-    fn get_child_actors(
-        &mut self,
-        ctx: &mut Context<Self>,
-    ) -> Result<&ChildActorAddresses, String> {
-        if !self.children_spawned {
-            self.spawn_child_actors(ctx)?;
+    /// Get subsystem supervisors, spawning if needed
+    fn get_supervisors(&mut self, ctx: &mut Context<Self>) -> Result<&SubsystemSupervisors, String> {
+        if !self.supervisors_spawned {
+            self.spawn_supervisors(ctx)?;
         }
 
-        self.child_actors
+        self.supervisors
             .as_ref()
-            .ok_or_else(|| "Failed to get child actor addresses".to_string())
+            .ok_or_else(|| "Failed to get subsystem supervisors".to_string())
     }
 }
 
@@ -118,9 +138,8 @@ impl Actor for GPUManagerActor {
     type Context = Context<Self>;
 
     fn started(&mut self, _ctx: &mut Self::Context) {
-        info!("GPU Manager Actor started");
+        info!("GPU Manager Actor started (supervisor coordinator mode)");
 
-        
         if let Some(logger) = get_telemetry_logger() {
             let correlation_id = CorrelationId::new();
             let event = TelemetryEvent::new(
@@ -128,14 +147,11 @@ impl Actor for GPUManagerActor {
                 LogLevel::INFO,
                 "gpu_system",
                 "manager_startup",
-                "GPU Manager Actor started - child actors will be spawned on first message",
+                "GPU Manager Actor started - subsystem supervisors will be spawned on first message",
                 "gpu_manager_actor",
             );
             logger.log_event(event);
         }
-
-        
-        
     }
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
@@ -143,181 +159,222 @@ impl Actor for GPUManagerActor {
     }
 }
 
-// === Message Routing Handlers ===
+// ============================================================================
+// Health Monitoring
+// ============================================================================
 
-///
+/// Get aggregated health status from all subsystems
+#[derive(Message)]
+#[rtype(result = "GPUSystemHealth")]
+pub struct GetGPUSystemHealth;
+
+/// Aggregated health status
+#[derive(Debug, Clone)]
+pub struct GPUSystemHealth {
+    pub overall_status: SubsystemStatus,
+    pub subsystems: Vec<SubsystemHealth>,
+}
+
+impl Handler<GetGPUSystemHealth> for GPUManagerActor {
+    type Result = ResponseActFuture<Self, GPUSystemHealth>;
+
+    fn handle(&mut self, _msg: GetGPUSystemHealth, ctx: &mut Self::Context) -> Self::Result {
+        let supervisors = match self.get_supervisors(ctx) {
+            Ok(s) => s.clone(),
+            Err(_) => {
+                return Box::pin(async {
+                    GPUSystemHealth {
+                        overall_status: SubsystemStatus::Failed,
+                        subsystems: vec![],
+                    }
+                }.into_actor(self));
+            }
+        };
+
+        Box::pin(
+            async move {
+                let mut subsystems = Vec::new();
+
+                // Query each subsystem supervisor for health
+                if let Ok(health) = supervisors.resource.send(GetSubsystemHealth).await {
+                    subsystems.push(health);
+                }
+                if let Ok(health) = supervisors.physics.send(GetSubsystemHealth).await {
+                    subsystems.push(health);
+                }
+                if let Ok(health) = supervisors.analytics.send(GetSubsystemHealth).await {
+                    subsystems.push(health);
+                }
+                if let Ok(health) = supervisors.graph_analytics.send(GetSubsystemHealth).await {
+                    subsystems.push(health);
+                }
+
+                // Determine overall status
+                let overall_status = if subsystems.iter().all(|s| s.status == SubsystemStatus::Healthy) {
+                    SubsystemStatus::Healthy
+                } else if subsystems.iter().any(|s| s.status == SubsystemStatus::Failed) {
+                    SubsystemStatus::Degraded
+                } else if subsystems.iter().any(|s| s.status == SubsystemStatus::Initializing) {
+                    SubsystemStatus::Initializing
+                } else {
+                    SubsystemStatus::Degraded
+                };
+
+                GPUSystemHealth {
+                    overall_status,
+                    subsystems,
+                }
+            }
+            .into_actor(self)
+        )
+    }
+}
+
+// ============================================================================
+// Message Routing to Subsystem Supervisors
+// ============================================================================
+
+/// Initialize GPU - routes to ResourceSupervisor with timeout handling
 impl Handler<InitializeGPU> for GPUManagerActor {
     type Result = ResponseActFuture<Self, Result<(), String>>;
 
     fn handle(&mut self, msg: InitializeGPU, ctx: &mut Self::Context) -> Self::Result {
-        debug!("GPUManagerActor::handle(InitializeGPU) - Message received");
+        debug!("GPUManagerActor::handle(InitializeGPU) - delegating to ResourceSupervisor");
         info!(
             "GPU Manager: InitializeGPU received with {} nodes",
             msg.graph.nodes.len()
         );
-        debug!(
-            "Graph service address present: {}",
-            msg.graph_service_addr.is_some()
-        );
 
-        let child_actors = match self.get_child_actors(ctx) {
-            Ok(actors) => {
-                debug!("Child actors retrieved successfully");
-                actors.clone()
-            }
+        let supervisors = match self.get_supervisors(ctx) {
+            Ok(s) => s.clone(),
             Err(e) => {
-                error!("Failed to get child actors: {}", e);
+                error!("Failed to get supervisors: {}", e);
                 return Box::pin(async move { Err(e) }.into_actor(self));
             }
         };
 
-        
-        let mut msg_with_manager = msg;
-        msg_with_manager.gpu_manager_addr = Some(ctx.address());
-
-        
-        debug!("Delegating InitializeGPU to ResourceActor with manager address");
-        let fut = child_actors
-            .resource_actor
-            .send(msg_with_manager)
-            .into_actor(self)
-            .map(|res, _actor, _ctx| match res {
-                Ok(result) => result,
-                Err(e) => {
-                    error!("GPU Manager: ResourceActor communication failed: {}", e);
-                    Err(format!("ResourceActor communication failed: {}", e))
+        // Delegate to ResourceSupervisor which handles timeout
+        Box::pin(
+            async move {
+                match tokio::time::timeout(
+                    Duration::from_secs(60),
+                    supervisors.resource.send(msg)
+                ).await {
+                    Ok(Ok(result)) => result,
+                    Ok(Err(e)) => Err(format!("ResourceSupervisor communication failed: {}", e)),
+                    Err(_) => Err("GPU initialization timed out at coordinator level".to_string()),
                 }
-            });
-
-        Box::pin(fut)
+            }
+            .into_actor(self)
+            .map(|result, actor, _ctx| {
+                if result.is_ok() {
+                    info!("GPUManagerActor: GPU initialization completed successfully");
+                }
+                result
+            })
+        )
     }
 }
 
-///
+/// Update GPU graph data - routes to ResourceSupervisor and PhysicsSupervisor
 impl Handler<UpdateGPUGraphData> for GPUManagerActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: UpdateGPUGraphData, ctx: &mut Self::Context) -> Self::Result {
-        let child_actors = self.get_child_actors(ctx)?;
+        let supervisors = self.get_supervisors(ctx)?;
 
-        
-        
-        
-        let graph = msg.graph.clone();
-
-
-        if let Err(e) = child_actors.resource_actor.try_send(UpdateGPUGraphData {
-            graph: graph.clone(),
-            correlation_id: None,
-        }) {
-            error!("Failed to send UpdateGPUGraphData to ResourceActor: {}", e);
-            return Err("Failed to delegate graph update to ResourceActor".to_string());
+        // Send to ResourceSupervisor (forwards to GPUResourceActor)
+        if let Err(e) = supervisors.resource.try_send(msg.clone()) {
+            error!("Failed to send UpdateGPUGraphData to ResourceSupervisor: {}", e);
         }
 
-
-        if let Err(e) = child_actors
-            .force_compute_actor
-            .try_send(UpdateGPUGraphData { graph: graph, correlation_id: None })
-        {
-            error!(
-                "Failed to send UpdateGPUGraphData to ForceComputeActor: {}",
-                e
-            );
-            return Err("Failed to delegate graph update to ForceComputeActor".to_string());
+        // Send to PhysicsSupervisor (forwards to ForceComputeActor)
+        if let Err(e) = supervisors.physics.try_send(msg) {
+            error!("Failed to send UpdateGPUGraphData to PhysicsSupervisor: {}", e);
         }
 
-        debug!("UpdateGPUGraphData sent to both ResourceActor and ForceComputeActor");
         Ok(())
     }
 }
 
-///
+/// Compute forces - routes to PhysicsSupervisor
 impl Handler<ComputeForces> for GPUManagerActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: ComputeForces, ctx: &mut Self::Context) -> Self::Result {
-        let child_actors = self.get_child_actors(ctx)?;
+        let supervisors = self.get_supervisors(ctx)?;
 
-        match child_actors.force_compute_actor.try_send(msg) {
+        match supervisors.physics.try_send(msg) {
             Ok(_) => Ok(()),
             Err(e) => {
-                error!("Failed to send ComputeForces to ForceComputeActor: {}", e);
+                error!("Failed to send ComputeForces to PhysicsSupervisor: {}", e);
                 Err("Failed to delegate force computation".to_string())
             }
         }
     }
 }
 
-///
+/// K-means clustering - routes to AnalyticsSupervisor
 impl Handler<RunKMeans> for GPUManagerActor {
     type Result = ResponseActFuture<Self, Result<KMeansResult, String>>;
 
     fn handle(&mut self, msg: RunKMeans, ctx: &mut Self::Context) -> Self::Result {
-        let child_actors = match self.get_child_actors(ctx) {
-            Ok(actors) => actors.clone(),
+        let supervisors = match self.get_supervisors(ctx) {
+            Ok(s) => s.clone(),
             Err(e) => return Box::pin(async move { Err(e) }.into_actor(self)),
         };
 
-        let fut = child_actors
-            .clustering_actor
-            .send(msg)
+        Box::pin(
+            async move {
+                supervisors.analytics.send(msg).await
+                    .map_err(|e| format!("AnalyticsSupervisor communication failed: {}", e))?
+            }
             .into_actor(self)
-            .map(|res, _actor, _ctx| match res {
-                Ok(result) => result,
-                Err(e) => Err(format!("ClusteringActor communication failed: {}", e)),
-            });
-
-        Box::pin(fut)
+        )
     }
 }
 
-///
+/// Community detection - routes to AnalyticsSupervisor
 impl Handler<RunCommunityDetection> for GPUManagerActor {
     type Result = ResponseActFuture<Self, Result<CommunityDetectionResult, String>>;
 
     fn handle(&mut self, msg: RunCommunityDetection, ctx: &mut Self::Context) -> Self::Result {
-        let child_actors = match self.get_child_actors(ctx) {
-            Ok(actors) => actors.clone(),
+        let supervisors = match self.get_supervisors(ctx) {
+            Ok(s) => s.clone(),
             Err(e) => return Box::pin(async move { Err(e) }.into_actor(self)),
         };
 
-        let fut = child_actors
-            .clustering_actor
-            .send(msg)
+        Box::pin(
+            async move {
+                supervisors.analytics.send(msg).await
+                    .map_err(|e| format!("AnalyticsSupervisor communication failed: {}", e))?
+            }
             .into_actor(self)
-            .map(|res, _actor, _ctx| match res {
-                Ok(result) => result,
-                Err(e) => Err(format!("ClusteringActor communication failed: {}", e)),
-            });
-
-        Box::pin(fut)
+        )
     }
 }
 
-///
+/// Anomaly detection - routes to AnalyticsSupervisor
 impl Handler<RunAnomalyDetection> for GPUManagerActor {
     type Result = ResponseActFuture<Self, Result<AnomalyResult, String>>;
 
     fn handle(&mut self, msg: RunAnomalyDetection, ctx: &mut Self::Context) -> Self::Result {
-        let child_actors = match self.get_child_actors(ctx) {
-            Ok(actors) => actors.clone(),
+        let supervisors = match self.get_supervisors(ctx) {
+            Ok(s) => s.clone(),
             Err(e) => return Box::pin(async move { Err(e) }.into_actor(self)),
         };
 
-        let fut = child_actors
-            .anomaly_detection_actor
-            .send(msg)
+        Box::pin(
+            async move {
+                supervisors.analytics.send(msg).await
+                    .map_err(|e| format!("AnalyticsSupervisor communication failed: {}", e))?
+            }
             .into_actor(self)
-            .map(|res, _actor, _ctx| match res {
-                Ok(result) => result,
-                Err(e) => Err(format!("AnomalyDetectionActor communication failed: {}", e)),
-            });
-
-        Box::pin(fut)
+        )
     }
 }
 
-///
+/// GPU clustering - routes to AnalyticsSupervisor
 impl Handler<PerformGPUClustering> for GPUManagerActor {
     type Result = ResponseActFuture<
         Self,
@@ -330,129 +387,54 @@ impl Handler<PerformGPUClustering> for GPUManagerActor {
             msg.method
         );
 
-        let child_actors = match self.get_child_actors(ctx) {
-            Ok(actors) => actors.clone(),
+        let supervisors = match self.get_supervisors(ctx) {
+            Ok(s) => s.clone(),
             Err(e) => return Box::pin(async move { Err(e) }.into_actor(self)),
         };
 
-        
-        match msg.method.as_str() {
-            "kmeans" => {
-                let kmeans_msg = RunKMeans {
-                    params: KMeansParams {
-                        num_clusters: msg.params.num_clusters.unwrap_or(8) as usize,
-                        max_iterations: Some(msg.params.max_iterations.unwrap_or(100)),
-                        tolerance: Some(msg.params.tolerance.unwrap_or(0.001) as f32),
-                        seed: msg.params.seed.map(|s| s as u32),
-                    },
-                };
-
-                Box::pin(
-                    child_actors
-                        .clustering_actor
-                        .send(kmeans_msg)
-                        .into_actor(self)
-                        .map(|res, _actor, _ctx| match res {
-                            Ok(Ok(kmeans_result)) => Ok(kmeans_result.clusters),
-                            Ok(Err(e)) => Err(format!("K-means clustering failed: {}", e)),
-                            Err(e) => Err(format!("ClusteringActor communication failed: {}", e)),
-                        }),
-                )
+        Box::pin(
+            async move {
+                supervisors.analytics.send(msg).await
+                    .map_err(|e| format!("AnalyticsSupervisor communication failed: {}", e))?
             }
-            "spectral" | "louvain" | _ => {
-                
-                let community_msg = RunCommunityDetection {
-                    params: CommunityDetectionParams {
-                        algorithm: if msg.method == "louvain" {
-                            CommunityDetectionAlgorithm::Louvain
-                        } else {
-                            CommunityDetectionAlgorithm::LabelPropagation
-                        },
-                        max_iterations: Some(msg.params.max_iterations.unwrap_or(100)),
-                        convergence_tolerance: Some(0.001), 
-                        synchronous: Some(true),            
-                        seed: None,                         
-                    },
-                };
-
-                Box::pin(
-                    child_actors
-                        .clustering_actor
-                        .send(community_msg)
-                        .into_actor(self)
-                        .map(|res, _actor, _ctx| {
-                            match res {
-                                Ok(Ok(community_result)) => {
-                                    
-                                    let clusters = community_result
-                                        .communities
-                                        .into_iter()
-                                        .map(|c| {
-                                            let node_count = c.nodes.len() as u32;
-                                            let label = format!("Community {}", c.id);
-                                            crate::handlers::api_handler::analytics::Cluster {
-                                                id: c.id,
-                                                nodes: c.nodes,
-                                                label,
-                                                node_count,
-                                                coherence: 0.8, 
-                                                color: "#4ECDC4".to_string(),
-                                                keywords: vec![],
-                                                centroid: None,
-                                            }
-                                        })
-                                        .collect();
-
-                                    Ok(clusters)
-                                }
-                                Ok(Err(e)) => Err(format!("Community detection failed: {}", e)),
-                                Err(e) => {
-                                    Err(format!("ClusteringActor communication failed: {}", e))
-                                }
-                            }
-                        }),
-                )
-            }
-        }
+            .into_actor(self)
+        )
     }
 }
 
-///
+/// Stress majorization - routes to PhysicsSupervisor
 impl Handler<TriggerStressMajorization> for GPUManagerActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: TriggerStressMajorization, ctx: &mut Self::Context) -> Self::Result {
-        let child_actors = self.get_child_actors(ctx)?;
+        let supervisors = self.get_supervisors(ctx)?;
 
-        match child_actors.stress_majorization_actor.try_send(msg) {
+        match supervisors.physics.try_send(msg) {
             Ok(_) => Ok(()),
             Err(e) => Err(format!("Failed to delegate stress majorization: {}", e)),
         }
     }
 }
 
-///
+/// Update constraints - routes to PhysicsSupervisor
 impl Handler<UpdateConstraints> for GPUManagerActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: UpdateConstraints, ctx: &mut Self::Context) -> Self::Result {
-        let child_actors = self.get_child_actors(ctx)?;
+        let supervisors = self.get_supervisors(ctx)?;
 
-        match child_actors.constraint_actor.try_send(msg) {
+        match supervisors.physics.try_send(msg) {
             Ok(_) => Ok(()),
             Err(e) => Err(format!("Failed to delegate constraint update: {}", e)),
         }
     }
 }
 
-///
+/// Get GPU status
 impl Handler<GetGPUStatus> for GPUManagerActor {
     type Result = MessageResult<GetGPUStatus>;
 
     fn handle(&mut self, _msg: GetGPUStatus, _ctx: &mut Self::Context) -> Self::Result {
-        
-        
-
         MessageResult(GPUStatus {
             is_initialized: self.shared_context.is_some(),
             failure_count: self.gpu_state.gpu_failure_count,
@@ -462,244 +444,122 @@ impl Handler<GetGPUStatus> for GPUManagerActor {
     }
 }
 
-///
+/// Get ForceComputeActor address - routes to PhysicsSupervisor
 impl Handler<GetForceComputeActor> for GPUManagerActor {
-    type Result = Result<Addr<ForceComputeActor>, String>;
+    type Result = ResponseActFuture<Self, Result<Addr<ForceComputeActor>, String>>;
 
-    fn handle(&mut self, _msg: GetForceComputeActor, ctx: &mut Self::Context) -> Self::Result {
-        let child_actors = self.get_child_actors(ctx)?;
-        Ok(child_actors.force_compute_actor.clone())
+    fn handle(&mut self, msg: GetForceComputeActor, ctx: &mut Self::Context) -> Self::Result {
+        let supervisors = match self.get_supervisors(ctx) {
+            Ok(s) => s.clone(),
+            Err(e) => return Box::pin(async move { Err(e) }.into_actor(self)),
+        };
+
+        Box::pin(
+            async move {
+                supervisors.physics.send(msg).await
+                    .map_err(|e| format!("PhysicsSupervisor communication failed: {}", e))?
+            }
+            .into_actor(self)
+        )
     }
 }
 
-// Additional handlers for messages that need delegation
-
-///
+/// Upload constraints to GPU - routes to PhysicsSupervisor
 impl Handler<UploadConstraintsToGPU> for GPUManagerActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: UploadConstraintsToGPU, ctx: &mut Self::Context) -> Self::Result {
-        let child_actors = self.get_child_actors(ctx)?;
+        let supervisors = self.get_supervisors(ctx)?;
 
-        
-        match child_actors.constraint_actor.try_send(msg) {
+        match supervisors.physics.try_send(msg) {
             Ok(_) => Ok(()),
             Err(e) => Err(format!("Failed to delegate UploadConstraintsToGPU: {}", e)),
         }
     }
 }
 
-///
+/// Get node data - routes to PhysicsSupervisor
 impl Handler<GetNodeData> for GPUManagerActor {
     type Result = ResponseActFuture<Self, Result<Vec<BinaryNodeData>, String>>;
 
     fn handle(&mut self, msg: GetNodeData, ctx: &mut Self::Context) -> Self::Result {
-        let child_actors = match self.get_child_actors(ctx) {
-            Ok(actors) => actors.clone(),
-            Err(e) => {
-                return Box::pin(async move { Err(e) }.into_actor(self));
-            }
+        let supervisors = match self.get_supervisors(ctx) {
+            Ok(s) => s.clone(),
+            Err(e) => return Box::pin(async move { Err(e) }.into_actor(self)),
         };
 
-        
-        let fut = child_actors
-            .force_compute_actor
-            .send(msg)
+        Box::pin(
+            async move {
+                supervisors.physics.send(msg).await
+                    .map_err(|e| format!("PhysicsSupervisor communication failed: {}", e))?
+            }
             .into_actor(self)
-            .map(|res, _actor, _ctx| match res {
-                Ok(result) => result,
-                Err(e) => {
-                    error!("GPU Manager: ForceComputeActor communication failed: {}", e);
-                    Err(format!("ForceComputeActor communication failed: {}", e))
-                }
-            });
-
-        Box::pin(fut)
+        )
     }
 }
 
-///
+/// Update simulation params - routes to PhysicsSupervisor
 impl Handler<UpdateSimulationParams> for GPUManagerActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: UpdateSimulationParams, ctx: &mut Self::Context) -> Self::Result {
-        let child_actors = self.get_child_actors(ctx)?;
+        let supervisors = self.get_supervisors(ctx)?;
 
-        
-        match child_actors.force_compute_actor.try_send(msg) {
+        match supervisors.physics.try_send(msg) {
             Ok(_) => Ok(()),
             Err(e) => Err(format!("Failed to delegate UpdateSimulationParams: {}", e)),
         }
     }
 }
 
-///
+/// Update advanced params - routes to PhysicsSupervisor
 impl Handler<UpdateAdvancedParams> for GPUManagerActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: UpdateAdvancedParams, ctx: &mut Self::Context) -> Self::Result {
-        let child_actors = self.get_child_actors(ctx)?;
+        let supervisors = self.get_supervisors(ctx)?;
 
-        
-        match child_actors.force_compute_actor.try_send(msg) {
+        match supervisors.physics.try_send(msg) {
             Ok(_) => Ok(()),
             Err(e) => Err(format!("Failed to delegate UpdateAdvancedParams: {}", e)),
         }
     }
 }
 
-///
+/// Set shared GPU context - now handled by ResourceSupervisor distributing to all
 impl Handler<SetSharedGPUContext> for GPUManagerActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: SetSharedGPUContext, ctx: &mut Self::Context) -> Self::Result {
-        info!("GPUManagerActor: Received SharedGPUContext, distributing to all child actors");
+        info!("GPUManagerActor: Received SharedGPUContext, forwarding to ResourceSupervisor");
 
-        let child_actors = self.get_child_actors(ctx)?;
-        let context = msg.context;
-        let graph_service_addr = msg.graph_service_addr;
-        let mut errors = Vec::new();
+        // Cache locally for status queries
+        self.shared_context = Some(msg.context.clone());
 
+        let supervisors = self.get_supervisors(ctx)?;
 
-        if let Err(e) = child_actors
-            .force_compute_actor
-            .try_send(SetSharedGPUContext {
-                context: context.clone(),
-                graph_service_addr: graph_service_addr.clone(),
-                correlation_id: None,
-            })
-        {
-            errors.push(format!("ForceComputeActor: {}", e));
-        } else {
-            info!("SharedGPUContext sent to ForceComputeActor with GraphServiceActor address");
-        }
-
-
-        if let Err(e) = child_actors.clustering_actor.try_send(SetSharedGPUContext {
-            context: context.clone(),
-            graph_service_addr: graph_service_addr.clone(),
-            correlation_id: None,
-        }) {
-            errors.push(format!("ClusteringActor: {}", e));
-        } else {
-            info!("SharedGPUContext sent to ClusteringActor");
-        }
-
-
-        if let Err(e) = child_actors.constraint_actor.try_send(SetSharedGPUContext {
-            context: context.clone(),
-            graph_service_addr: graph_service_addr.clone(),
-            correlation_id: None,
-        }) {
-            errors.push(format!("ConstraintActor: {}", e));
-        } else {
-            info!("SharedGPUContext sent to ConstraintActor");
-        }
-
-
-        if let Err(e) = child_actors
-            .stress_majorization_actor
-            .try_send(SetSharedGPUContext {
-                context: context.clone(),
-                graph_service_addr: graph_service_addr.clone(),
-                correlation_id: None,
-            })
-        {
-            errors.push(format!("StressMajorizationActor: {}", e));
-        } else {
-            info!("SharedGPUContext sent to StressMajorizationActor");
-        }
-
-
-        if let Err(e) = child_actors
-            .anomaly_detection_actor
-            .try_send(SetSharedGPUContext {
-                context: context.clone(),
-                graph_service_addr: graph_service_addr.clone(),
-                correlation_id: None,
-            })
-        {
-            errors.push(format!("AnomalyDetectionActor: {}", e));
-        } else {
-            info!("SharedGPUContext sent to AnomalyDetectionActor");
-        }
-
-
-        if let Err(e) = child_actors
-            .ontology_constraint_actor
-            .try_send(SetSharedGPUContext {
-                context: context.clone(),
-                graph_service_addr: graph_service_addr.clone(),
-                correlation_id: None,
-            })
-        {
-            errors.push(format!("OntologyConstraintActor: {}", e));
-        } else {
-            info!("SharedGPUContext sent to OntologyConstraintActor");
-        }
-
-        // P2 GPU Analytics Actors
-        if let Err(e) = child_actors.pagerank_actor.try_send(SetSharedGPUContext {
-            context: context.clone(),
-            graph_service_addr: graph_service_addr.clone(),
-            correlation_id: None,
-        }) {
-            errors.push(format!("PageRankActor: {}", e));
-        } else {
-            info!("SharedGPUContext sent to PageRankActor");
-        }
-
-        if let Err(e) = child_actors.shortest_path_actor.try_send(SetSharedGPUContext {
-            context: context.clone(),
-            graph_service_addr: graph_service_addr.clone(),
-            correlation_id: None,
-        }) {
-            errors.push(format!("ShortestPathActor: {}", e));
-        } else {
-            info!("SharedGPUContext sent to ShortestPathActor");
-        }
-
-        if let Err(e) = child_actors
-            .connected_components_actor
-            .try_send(SetSharedGPUContext {
-                context: context.clone(),
-                graph_service_addr: graph_service_addr.clone(),
-                correlation_id: None,
-            })
-        {
-            errors.push(format!("ConnectedComponentsActor: {}", e));
-        } else {
-            info!("SharedGPUContext sent to ConnectedComponentsActor");
-        }
-
-        if errors.is_empty() {
-            info!("SharedGPUContext successfully distributed to all child actors");
-            Ok(())
-        } else {
-            error!(
-                "Failed to distribute SharedGPUContext to some actors: {:?}",
-                errors
-            );
-            
-            if !errors.iter().any(|e| e.starts_with("ForceComputeActor")) {
+        // ResourceSupervisor handles distribution to all subsystem supervisors
+        match supervisors.resource.try_send(msg) {
+            Ok(_) => {
+                info!("SharedGPUContext forwarded to ResourceSupervisor for distribution");
                 Ok(())
-            } else {
-                Err(format!(
-                    "Critical: Failed to send context to ForceComputeActor"
-                ))
+            }
+            Err(e) => {
+                error!("Failed to forward SharedGPUContext to ResourceSupervisor: {}", e);
+                Err(format!("Failed to distribute context: {}", e))
             }
         }
     }
 }
 
-///
+/// Apply ontology constraints - routes to PhysicsSupervisor
 impl Handler<ApplyOntologyConstraints> for GPUManagerActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: ApplyOntologyConstraints, ctx: &mut Self::Context) -> Self::Result {
-        let child_actors = self.get_child_actors(ctx)?;
+        let supervisors = self.get_supervisors(ctx)?;
 
-        match child_actors.ontology_constraint_actor.try_send(msg) {
+        match supervisors.physics.try_send(msg) {
             Ok(_) => Ok(()),
             Err(e) => Err(format!(
                 "Failed to delegate ApplyOntologyConstraints: {}",
@@ -709,41 +569,89 @@ impl Handler<ApplyOntologyConstraints> for GPUManagerActor {
     }
 }
 
-/// Handler for GetOntologyConstraintStats message
+/// Get ontology constraint stats - routes to PhysicsSupervisor
 impl Handler<GetOntologyConstraintStats> for GPUManagerActor {
     type Result = ResponseActFuture<Self, Result<OntologyConstraintStats, String>>;
 
-    fn handle(&mut self, _msg: GetOntologyConstraintStats, ctx: &mut Self::Context) -> Self::Result {
-        info!("GPUManagerActor: GetOntologyConstraintStats received - delegating to OntologyConstraintActor");
+    fn handle(&mut self, msg: GetOntologyConstraintStats, ctx: &mut Self::Context) -> Self::Result {
+        info!("GPUManagerActor: GetOntologyConstraintStats received - delegating to PhysicsSupervisor");
 
-        let child_actors = match self.get_child_actors(ctx) {
-            Ok(actors) => actors.clone(),
+        let supervisors = match self.get_supervisors(ctx) {
+            Ok(s) => s.clone(),
             Err(e) => {
-                error!("Failed to get child actors: {}", e);
+                error!("Failed to get supervisors: {}", e);
                 return Box::pin(async move {
-                    Err(format!("Failed to get child actors: {}", e))
+                    Err(format!("Failed to get supervisors: {}", e))
                 }.into_actor(self));
             }
         };
 
-        let fut = async move {
-            // Send message to OntologyConstraintActor to get stats
-            match child_actors.ontology_constraint_actor
-                .send(GetOntologyConstraintStats)
-                .await
-            {
-                Ok(result) => {
-                    info!("Successfully retrieved ontology constraint stats from child actor");
-                    result
-                }
-                Err(e) => {
-                    error!("Failed to retrieve ontology constraint stats: {}", e);
-                    Err(format!("Failed to retrieve ontology constraint stats: {}", e))
-                }
+        Box::pin(
+            async move {
+                supervisors.physics.send(msg).await
+                    .map_err(|e| format!("PhysicsSupervisor communication failed: {}", e))?
             }
-        }
-        .into_actor(self);
+            .into_actor(self)
+        )
+    }
+}
 
-        Box::pin(fut)
+/// Shortest path computation - routes to GraphAnalyticsSupervisor
+impl Handler<ComputeShortestPaths> for GPUManagerActor {
+    type Result = ResponseActFuture<Self, Result<PathfindingResult, String>>;
+
+    fn handle(&mut self, msg: ComputeShortestPaths, ctx: &mut Self::Context) -> Self::Result {
+        let supervisors = match self.get_supervisors(ctx) {
+            Ok(s) => s.clone(),
+            Err(e) => return Box::pin(async move { Err(e) }.into_actor(self)),
+        };
+
+        Box::pin(
+            async move {
+                supervisors.graph_analytics.send(msg).await
+                    .map_err(|e| format!("GraphAnalyticsSupervisor communication failed: {}", e))?
+            }
+            .into_actor(self)
+        )
+    }
+}
+
+/// PageRank computation - routes to AnalyticsSupervisor
+impl Handler<ComputePageRank> for GPUManagerActor {
+    type Result = ResponseActFuture<Self, Result<PageRankResult, String>>;
+
+    fn handle(&mut self, msg: ComputePageRank, ctx: &mut Self::Context) -> Self::Result {
+        let supervisors = match self.get_supervisors(ctx) {
+            Ok(s) => s.clone(),
+            Err(e) => return Box::pin(async move { Err(e) }.into_actor(self)),
+        };
+
+        Box::pin(
+            async move {
+                supervisors.analytics.send(msg).await
+                    .map_err(|e| format!("AnalyticsSupervisor communication failed: {}", e))?
+            }
+            .into_actor(self)
+        )
+    }
+}
+
+/// Get physics stats - routes to PhysicsSupervisor
+impl Handler<GetPhysicsStats> for GPUManagerActor {
+    type Result = ResponseActFuture<Self, Result<PhysicsStats, String>>;
+
+    fn handle(&mut self, msg: GetPhysicsStats, ctx: &mut Self::Context) -> Self::Result {
+        let supervisors = match self.get_supervisors(ctx) {
+            Ok(s) => s.clone(),
+            Err(e) => return Box::pin(async move { Err(e) }.into_actor(self)),
+        };
+
+        Box::pin(
+            async move {
+                supervisors.physics.send(msg).await
+                    .map_err(|e| format!("PhysicsSupervisor communication failed: {}", e))?
+            }
+            .into_actor(self)
+        )
     }
 }

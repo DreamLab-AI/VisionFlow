@@ -214,6 +214,13 @@ services:
           - ${NETWORK_ALIAS:-webxr-prod}
     deploy:
       <<: *gpu-resources
+      resources:
+        limits:
+          memory: 8G
+          cpus: '4'
+        reservations:
+          memory: 2G
+          cpus: '1'
     runtime: nvidia
     restart: unless-stopped
     healthcheck:

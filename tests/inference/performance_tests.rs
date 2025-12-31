@@ -16,12 +16,9 @@ mod tests {
         // Create hierarchy
         for i in 0..class_count {
             let class = OwlClass {
-                id: None,
                 iri: format!("http://example.com/Class{}", i),
                 label: Some(format!("Class {}", i)),
-                description: None,
-                parent_iri: None,
-                deprecated: false,
+                ..Default::default()
             };
             classes.push(class);
 

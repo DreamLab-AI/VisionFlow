@@ -22,3 +22,14 @@ export type {
 // Hooks
 export * from './hooks/useOntologyWebSocket';
 export * from './hooks/useOntologyStore';
+
+// Services
+export { jssOntologyService } from './services/JssOntologyService';
+export type {
+  JsonLdContext,
+  JsonLdOntology,
+  JsonLdNode,
+  OntologyChangeEvent,
+  OntologyChangeCallback,
+  FetchOptions,
+} from './services/JssOntologyService';

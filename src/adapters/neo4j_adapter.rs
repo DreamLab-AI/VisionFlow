@@ -29,6 +29,7 @@ use crate::ports::knowledge_graph_repository::{
     GraphStatistics, KnowledgeGraphRepository, KnowledgeGraphRepositoryError,
     Result as RepoResult,
 };
+use crate::utils::network::circuit_breaker::{CircuitBreaker, CircuitBreakerConfig, CircuitBreakerError};
 use crate::utils::time;
 
 /// Neo4j configuration with security and performance settings
@@ -99,6 +100,7 @@ impl Default for Neo4jConfig {
 pub struct Neo4jAdapter {
     graph: Arc<Graph>,
     config: Neo4jConfig,
+    circuit_breaker: CircuitBreaker,
 }
 
 impl Neo4jAdapter {
@@ -157,6 +159,7 @@ impl Neo4jAdapter {
         let adapter = Self {
             graph: Arc::new(graph),
             config,
+            circuit_breaker: CircuitBreaker::new(CircuitBreakerConfig::tcp_connection()),
         };
 
         // Create indexes and constraints
@@ -263,6 +266,7 @@ impl Neo4jAdapter {
     }
 
     /// Convert Neo4j node to our Node model
+    /// Prioritizes sim_* properties for physics coordinates (GPU-calculated positions)
     fn neo4j_node_to_node(neo4j_node: &Neo4jNode) -> RepoResult<Node> {
         let id: i64 = neo4j_node.get("id").map_err(|e| {
             KnowledgeGraphRepositoryError::DatabaseError(format!("Missing id: {}", e))
@@ -274,9 +278,11 @@ impl Neo4jAdapter {
 
         let label: String = neo4j_node.get("label").unwrap_or_else(|_| String::new());
 
-        let x: f64 = neo4j_node.get("x").unwrap_or(0.0);
-        let y: f64 = neo4j_node.get("y").unwrap_or(0.0);
-        let z: f64 = neo4j_node.get("z").unwrap_or(0.0);
+        // Prefer sim_* properties (GPU physics state) over x/y/z (initial/content positions)
+        // This preserves the calculated layout during content sync
+        let x: f64 = neo4j_node.get("sim_x").or_else(|_| neo4j_node.get("x")).unwrap_or(0.0);
+        let y: f64 = neo4j_node.get("sim_y").or_else(|_| neo4j_node.get("y")).unwrap_or(0.0);
+        let z: f64 = neo4j_node.get("sim_z").or_else(|_| neo4j_node.get("z")).unwrap_or(0.0);
         let vx: f64 = neo4j_node.get("vx").unwrap_or(0.0);
         let vy: f64 = neo4j_node.get("vy").unwrap_or(0.0);
         let vz: f64 = neo4j_node.get("vz").unwrap_or(0.0);
@@ -387,22 +393,41 @@ impl Neo4jAdapter {
                 .unwrap_or(30)
         );
 
-        let result = tokio::time::timeout(
-            query_timeout,
-            self.graph.execute(query_obj)
-        ).await;
+        // Clone graph Arc for use in closure
+        let graph = self.graph.clone();
 
-        let mut result = match result {
-            Ok(Ok(r)) => r,
-            Ok(Err(e)) => {
-                log::error!("Cypher query failed: {}", e);
-                return Err(KnowledgeGraphRepositoryError::DatabaseError(format!("Cypher query failed: {}", e)));
+        // Wrap query execution with circuit breaker for network resilience
+        let execute_result = self.circuit_breaker.execute(async {
+            let result = tokio::time::timeout(
+                query_timeout,
+                graph.execute(query_obj)
+            ).await;
+
+            match result {
+                Ok(Ok(r)) => Ok(r),
+                Ok(Err(e)) => {
+                    log::error!("Cypher query failed: {}", e);
+                    Err(KnowledgeGraphRepositoryError::DatabaseError(format!("Cypher query failed: {}", e)))
+                }
+                Err(_) => {
+                    log::error!("Cypher query timed out after {:?}", query_timeout);
+                    Err(KnowledgeGraphRepositoryError::DatabaseError(
+                        format!("Query timed out after {:?}", query_timeout)
+                    ))
+                }
             }
-            Err(_) => {
-                log::error!("Cypher query timed out after {:?}", query_timeout);
+        }).await;
+
+        let mut result = match execute_result {
+            Ok(r) => r,
+            Err(CircuitBreakerError::CircuitOpen) => {
+                log::warn!("Circuit breaker is open - Neo4j queries temporarily blocked");
                 return Err(KnowledgeGraphRepositoryError::DatabaseError(
-                    format!("Query timed out after {:?}", query_timeout)
+                    "Circuit breaker open: Neo4j service temporarily unavailable".to_string()
                 ));
+            }
+            Err(CircuitBreakerError::OperationFailed(e)) => {
+                return Err(e);
             }
         };
 
@@ -475,14 +500,64 @@ impl KnowledgeGraphRepository for Neo4jAdapter {
     }
 
     async fn save_graph(&self, graph: &GraphData) -> RepoResult<()> {
-        // Save nodes in batch
+        // Save nodes in batch - PRESERVING physics state (sim_x/y/z, vx/vy/vz)
+        // Content sync should NEVER reset GPU-calculated layout positions
         for node in &graph.nodes {
-            let props = Self::node_to_properties(node);
-
-            let mut query = Query::new("MERGE (n:GraphNode {id: $id}) SET n = $props".to_string());
-
-            query = query.param("id", node.id as i64);
-            query = query.param("props", props);
+            // Use COALESCE to preserve existing physics coordinates
+            // Physics state is stored in sim_* properties, content coords in x/y/z
+            let query = Query::new(
+                "MERGE (n:GraphNode {id: $id})
+                 ON CREATE SET
+                     n.metadata_id = $metadata_id,
+                     n.label = $label,
+                     n.x = $x,
+                     n.y = $y,
+                     n.z = $z,
+                     n.sim_x = $x,
+                     n.sim_y = $y,
+                     n.sim_z = $z,
+                     n.vx = $vx,
+                     n.vy = $vy,
+                     n.vz = $vz,
+                     n.mass = $mass,
+                     n.owl_class_iri = $owl_class_iri,
+                     n.color = $color,
+                     n.size = $size,
+                     n.node_type = $node_type,
+                     n.weight = $weight,
+                     n.group_name = $group_name,
+                     n.metadata = $metadata
+                 ON MATCH SET
+                     n.metadata_id = $metadata_id,
+                     n.label = $label,
+                     n.owl_class_iri = COALESCE($owl_class_iri, n.owl_class_iri),
+                     n.color = COALESCE($color, n.color),
+                     n.size = COALESCE($size, n.size),
+                     n.node_type = COALESCE($node_type, n.node_type),
+                     n.weight = COALESCE($weight, n.weight),
+                     n.group_name = COALESCE($group_name, n.group_name),
+                     n.metadata = $metadata
+                 // NEVER overwrite sim_x/sim_y/sim_z or vx/vy/vz on MATCH
+                 // These are the GPU-calculated physics positions
+                ".to_string()
+            )
+            .param("id", node.id as i64)
+            .param("metadata_id", node.metadata_id.clone())
+            .param("label", node.label.clone())
+            .param("x", node.data.x as f64)
+            .param("y", node.data.y as f64)
+            .param("z", node.data.z as f64)
+            .param("vx", node.data.vx as f64)
+            .param("vy", node.data.vy as f64)
+            .param("vz", node.data.vz as f64)
+            .param("mass", node.mass.unwrap_or(1.0) as f64)
+            .param("owl_class_iri", node.owl_class_iri.clone().unwrap_or_default())
+            .param("color", node.color.clone().unwrap_or_default())
+            .param("size", node.size.unwrap_or(1.0) as f64)
+            .param("node_type", node.node_type.clone().unwrap_or_default())
+            .param("weight", node.weight.unwrap_or(1.0) as f64)
+            .param("group_name", node.group.clone().unwrap_or_default())
+            .param("metadata", serde_json::to_string(&node.metadata).unwrap_or_default());
 
             self.graph.run(query).await.map_err(|e| {
                 KnowledgeGraphRepositoryError::DatabaseError(format!(
@@ -807,8 +882,13 @@ impl KnowledgeGraphRepository for Neo4jAdapter {
         &self,
         positions: Vec<(u32, f32, f32, f32)>,
     ) -> RepoResult<()> {
+        // Update sim_* properties (physics state) - these are the GPU-calculated positions
+        // x/y/z remain as initial/content positions and are not overwritten by physics
         for (node_id, x, y, z) in positions {
-            let query = Query::new("MATCH (n:GraphNode {id: $id}) SET n.x = $x, n.y = $y, n.z = $z".to_string())
+            let query = Query::new(
+                "MATCH (n:GraphNode {id: $id})
+                 SET n.sim_x = $x, n.sim_y = $y, n.sim_z = $z".to_string()
+            )
                 .param("id", node_id as i64)
                 .param("x", x as f64)
                 .param("y", y as f64)
@@ -938,10 +1018,14 @@ impl KnowledgeGraphRepository for Neo4jAdapter {
     }
 
     async fn get_all_positions(&self) -> RepoResult<HashMap<u32, (f32, f32, f32)>> {
+        // Return sim_* positions (GPU physics state) when available, fallback to x/y/z
         let query = Query::new(
             "MATCH (n:GraphNode)
-             WHERE n.x IS NOT NULL AND n.y IS NOT NULL AND n.z IS NOT NULL
-             RETURN n.id AS id, n.x AS x, n.y AS y, n.z AS z".to_string()
+             WHERE n.sim_x IS NOT NULL OR n.x IS NOT NULL
+             RETURN n.id AS id,
+                    COALESCE(n.sim_x, n.x, 0.0) AS x,
+                    COALESCE(n.sim_y, n.y, 0.0) AS y,
+                    COALESCE(n.sim_z, n.z, 0.0) AS z".to_string()
         );
 
         let mut positions = HashMap::new();
@@ -958,7 +1042,7 @@ impl KnowledgeGraphRepository for Neo4jAdapter {
             positions.insert(id as u32, (x as f32, y as f32, z as f32));
         }
 
-        debug!("Retrieved {} node positions from Neo4j", positions.len());
+        debug!("Retrieved {} node positions from Neo4j (using sim_* where available)", positions.len());
         Ok(positions)
     }
 

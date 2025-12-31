@@ -1056,6 +1056,15 @@ pub struct UpdateGPUGraphData {
     pub correlation_id: Option<MessageId>,
 }
 
+impl Clone for UpdateGPUGraphData {
+    fn clone(&self) -> Self {
+        Self {
+            graph: self.graph.clone(),
+            correlation_id: self.correlation_id.clone(),
+        }
+    }
+}
+
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct UpdateGPUPositions {
@@ -1719,4 +1728,28 @@ pub struct PositionBroadcastAck {
     pub correlation_id: u64,
     /// Number of clients that received the update
     pub clients_delivered: u32,
+}
+
+/// Message to set GPU compute actor address in ClientCoordinatorActor
+/// Enables backpressure acknowledgements to flow back to GPU actor
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct SetGpuComputeAddress {
+    pub addr: actix::Addr<crate::actors::gpu::force_compute_actor::ForceComputeActor>,
+}
+
+/// Client-originated broadcast acknowledgement for true end-to-end flow control
+/// Sent by WebSocket clients after they process position updates
+/// This enables application-level ACKs vs queue-only confirmation
+#[derive(Message, Debug, Clone)]
+#[rtype(result = "()")]
+pub struct ClientBroadcastAck {
+    /// Sequence ID from the original broadcast (correlates with GPU broadcast sequence)
+    pub sequence_id: u64,
+    /// Number of nodes the client actually processed
+    pub nodes_received: u32,
+    /// Client receive timestamp (ms since epoch)
+    pub timestamp: u64,
+    /// Client ID that sent this ACK (set by handler)
+    pub client_id: Option<usize>,
 }

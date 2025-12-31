@@ -6,15 +6,15 @@
 use actix::prelude::*;
 use std::sync::Arc;
 
-use visionflow::adapters::{ActixPhysicsAdapter, ActixSemanticAdapter, WhelkInferenceEngineStub};
-use visionflow::models::graph::GraphData;
-use visionflow::models::node::Node;
-use visionflow::ports::gpu_physics_adapter::{GpuPhysicsAdapter, PhysicsParameters};
-use visionflow::ports::gpu_semantic_analyzer::{
+use webxr::adapters::{ActixPhysicsAdapter, ActixSemanticAdapter, WhelkInferenceEngineStub};
+use webxr::models::graph::GraphData;
+use webxr::models::node::Node;
+use webxr::ports::gpu_physics_adapter::{GpuPhysicsAdapter, PhysicsParameters};
+use webxr::ports::gpu_semantic_analyzer::{
     ClusteringAlgorithm, GpuSemanticAnalyzer, ImportanceAlgorithm, SemanticConstraintConfig,
 };
-use visionflow::ports::inference_engine::InferenceEngine;
-use visionflow::utils::socket_flow_messages::BinaryNodeData;
+use webxr::ports::inference_engine::InferenceEngine;
+use webxr::utils::socket_flow_messages::BinaryNodeData;
 
 fn create_large_test_graph() -> Arc<GraphData> {
     let nodes = (1..=100)

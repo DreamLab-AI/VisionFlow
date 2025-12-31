@@ -12,20 +12,15 @@ mod tests {
     async fn create_consistent_ontology() -> (Vec<OwlClass>, Vec<OwlAxiom>) {
         let classes = vec![
             OwlClass {
-                id: None,
                 iri: "http://example.com/Animal".to_string(),
                 label: Some("Animal".to_string()),
-                description: None,
-                parent_iri: None,
-                deprecated: false,
+                ..Default::default()
             },
             OwlClass {
-                id: None,
                 iri: "http://example.com/Dog".to_string(),
                 label: Some("Dog".to_string()),
-                description: None,
-                parent_iri: Some("http://example.com/Animal".to_string()),
-                deprecated: false,
+                parent_classes: vec!["http://example.com/Animal".to_string()],
+                ..Default::default()
             },
         ];
 

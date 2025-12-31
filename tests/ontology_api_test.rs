@@ -6,8 +6,10 @@
 
 #[cfg(test)]
 mod integration_tests {
+    #[allow(unused_imports)]
     use actix_web::{test, web, App};
     use serde_json::json;
+    #[allow(unused_imports)]
     use std::collections::HashMap;
 
     #[cfg(feature = "ontology")]

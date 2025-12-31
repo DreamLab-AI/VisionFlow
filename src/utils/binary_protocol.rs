@@ -1289,6 +1289,10 @@ pub enum MessageType {
     /// Delta-encoded position updates (Protocol V4)
     /// Frame 0: FULL state, Frames 1-59: DELTA, Frame 60: FULL resync
     PositionDelta = 0x04,
+
+    /// Client acknowledgement of position broadcast (Protocol V3 backpressure)
+    /// Enables true end-to-end flow control vs queue-only confirmation
+    BroadcastAck = 0x34,
 }
 
 ///
@@ -1323,8 +1327,15 @@ pub enum Message {
         graph_type: GraphType,
         nodes: Vec<(String, [f32; 6])>, 
     },
-    
+
     VoiceData { audio: Vec<u8> },
+
+    /// Client acknowledgement of position broadcast for backpressure flow control
+    BroadcastAck {
+        sequence_id: u64,    // Correlates with server broadcast sequence
+        nodes_received: u32, // Number of nodes client processed
+        timestamp: u64,      // Client receive timestamp (ms since epoch)
+    },
 }
 
 #[derive(Debug)]
@@ -1401,6 +1412,7 @@ impl BinaryProtocol {
         match message_type {
             0x01 => Self::decode_graph_update(&data[1..]),
             0x02 => Self::decode_voice_data(&data[1..]),
+            0x34 => Self::decode_broadcast_ack(&data[1..]),
             _ => Err(ProtocolError::InvalidMessageType(message_type)),
         }
     }
@@ -1451,10 +1463,44 @@ impl BinaryProtocol {
         Ok(Message::GraphUpdate { graph_type, nodes })
     }
 
-    
+
     fn decode_voice_data(data: &[u8]) -> Result<Message, ProtocolError> {
         Ok(Message::VoiceData {
             audio: data.to_vec(),
+        })
+    }
+
+    /// Decode client broadcast acknowledgement for backpressure flow control
+    /// Payload: 8 bytes sequence_id + 4 bytes nodes_received + 8 bytes timestamp = 20 bytes
+    fn decode_broadcast_ack(data: &[u8]) -> Result<Message, ProtocolError> {
+        if data.len() < 20 {
+            return Err(ProtocolError::InvalidPayloadSize(format!(
+                "BroadcastAck payload size {} is less than required 20 bytes",
+                data.len()
+            )));
+        }
+
+        // Decode sequence_id (u64, little-endian)
+        let sequence_id = u64::from_le_bytes([
+            data[0], data[1], data[2], data[3],
+            data[4], data[5], data[6], data[7],
+        ]);
+
+        // Decode nodes_received (u32, little-endian)
+        let nodes_received = u32::from_le_bytes([
+            data[8], data[9], data[10], data[11],
+        ]);
+
+        // Decode timestamp (u64, little-endian)
+        let timestamp = u64::from_le_bytes([
+            data[12], data[13], data[14], data[15],
+            data[16], data[17], data[18], data[19],
+        ]);
+
+        Ok(Message::BroadcastAck {
+            sequence_id,
+            nodes_received,
+            timestamp,
         })
     }
 

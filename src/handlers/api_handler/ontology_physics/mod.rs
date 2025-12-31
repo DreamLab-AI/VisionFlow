@@ -402,7 +402,7 @@ mod tests {
 
     #[test]
     fn test_strength_clamping() {
-        let values = vec![-0.5, 0.0, 0.5, 1.0, 1.5];
+        let values: Vec<f32> = vec![-0.5, 0.0, 0.5, 1.0, 1.5];
         let clamped: Vec<f32> = values.iter().map(|v| v.clamp(0.0, 1.0)).collect();
         assert_eq!(clamped, vec![0.0, 0.0, 0.5, 1.0, 1.0]);
     }

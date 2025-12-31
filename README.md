@@ -649,6 +649,19 @@ VisionFlow/
 - Spatial avatars and presence
 - SPARQL query interface
 - Distributed GPU compute
+Server-Side Nostr Identity: Integrate a server Nostr identity to communicate with the private relay-hosted message board, enabling the LLM to send and receive events.
+
+Payment Infrastructure (Zaps): Implement a dedicated Stir Fry Relays Docker container in the home lab to support Nostr Zaps for agent/user payments.
+
+Secure Tunneling: Establish a secure SSH tunnel for direct HTTP Nostr communication between the home lab stack and the Google Cloud relay.
+
+RGB/UDA Stack: Integrate a stack using Bitmaskd.
+
+Context7 MCP Server: Add the Context7 MCP server to the backend.
+
+Perplexity Skill Overhaul: Significant update to the existing Perplexity integration.
+
+ComfyUI Optimization: Improve the image generation pipelines within ComfyUI.
 
 ### Future (v3.0+)
 

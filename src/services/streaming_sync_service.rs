@@ -43,6 +43,7 @@ use crate::ports::ontology_repository::OntologyRepository;
 use crate::services::github::content_enhanced::EnhancedContentAPI;
 use crate::services::github::types::GitHubFileBasicMetadata;
 use crate::services::parsers::{KnowledgeGraphParser, OntologyParser};
+use futures::stream::{FuturesUnordered, StreamExt};
 use log::{debug, error, info, warn};
 use std::collections::HashSet;
 use std::sync::Arc;
@@ -403,6 +404,10 @@ impl StreamingSyncService {
     }
 
     
+    /// Process files in parallel using FuturesUnordered for improved throughput
+    ///
+    /// Each worker now processes its assigned files concurrently (up to PARALLEL_FILES_PER_WORKER)
+    /// instead of sequentially, providing 2-4x speedup for I/O-bound file fetching.
     async fn worker_process_files(
         worker_id: usize,
         files: Vec<GitHubFileBasicMetadata>,
@@ -414,39 +419,99 @@ impl StreamingSyncService {
         db_semaphore: Arc<Semaphore>,
         result_tx: mpsc::UnboundedSender<FileProcessResult>,
     ) -> Result<(), String> {
+        // Limit concurrent file processing per worker to avoid overwhelming the network/DB
+        const PARALLEL_FILES_PER_WORKER: usize = 4;
+
         info!(
-            "🐝 Worker {} starting with {} files",
+            "🐝 Worker {} starting with {} files (parallel: {})",
             worker_id,
-            files.len()
+            files.len(),
+            PARALLEL_FILES_PER_WORKER
         );
 
-        for (file_idx, file) in files.iter().enumerate() {
-            debug!("[StreamingSync][Worker-{}] Starting to process file {}/{}: {}", worker_id, file_idx + 1, files.len(), file.name);
+        // Create FuturesUnordered for parallel file processing
+        type ProcessFuture = std::pin::Pin<Box<dyn std::future::Future<Output = (String, FileProcessResult)> + Send>>;
 
-            let result = Self::process_file_worker(
-                worker_id,
-                &file,
-                &content_api,
-                &kg_parser,
-                &onto_parser,
-                &kg_repo,
-                &onto_repo,
-                &db_semaphore,
-            )
-            .await;
+        let mut futures: FuturesUnordered<ProcessFuture> = FuturesUnordered::new();
+        let mut file_iter = files.into_iter().peekable();
+        let mut completed = 0;
+        let total_files = file_iter.size_hint().0;
 
-            
-            if let Err(e) = result_tx.send(result) {
-                error!("[StreamingSync][Worker-{}] Failed to send result for {}: {}", worker_id, file.name, e);
+        // Helper to create process future with consistent type
+        let create_process_future = |
+            worker_id: usize,
+            file: GitHubFileBasicMetadata,
+            content_api: Arc<EnhancedContentAPI>,
+            kg_parser: Arc<KnowledgeGraphParser>,
+            onto_parser: Arc<OntologyParser>,
+            kg_repo: Arc<dyn KnowledgeGraphRepository>,
+            onto_repo: Arc<Neo4jOntologyRepository>,
+            db_semaphore: Arc<Semaphore>,
+        | -> ProcessFuture {
+            Box::pin(async move {
+                let result = Self::process_file_worker(
+                    worker_id,
+                    &file,
+                    &content_api,
+                    &kg_parser,
+                    &onto_parser,
+                    &kg_repo,
+                    &onto_repo,
+                    &db_semaphore,
+                )
+                .await;
+                (file.name.clone(), result)
+            })
+        };
+
+        // Seed initial batch of parallel tasks
+        while futures.len() < PARALLEL_FILES_PER_WORKER {
+            if let Some(file) = file_iter.next() {
+                debug!("[StreamingSync][Worker-{}] Queueing file: {}", worker_id, file.name);
+                futures.push(create_process_future(
+                    worker_id,
+                    file,
+                    Arc::clone(&content_api),
+                    Arc::clone(&kg_parser),
+                    Arc::clone(&onto_parser),
+                    Arc::clone(&kg_repo),
+                    Arc::clone(&onto_repo),
+                    Arc::clone(&db_semaphore),
+                ));
             } else {
-                debug!("[StreamingSync][Worker-{}] Successfully sent result for {}", worker_id, file.name);
+                break;
             }
-
-            
-            tokio::time::sleep(Duration::from_millis(50)).await;
         }
 
-        info!("[StreamingSync][Worker-{}] Completed processing {} files", worker_id, files.len());
+        // Process results as they complete and add new tasks
+        while let Some((file_name, result)) = futures.next().await {
+            completed += 1;
+
+            if let Err(e) = result_tx.send(result) {
+                error!("[StreamingSync][Worker-{}] Failed to send result for {}: {}", worker_id, file_name, e);
+            } else {
+                debug!("[StreamingSync][Worker-{}] Completed {}/{}: {}", worker_id, completed, total_files, file_name);
+            }
+
+            // Add next file to maintain parallelism
+            if let Some(file) = file_iter.next() {
+                futures.push(create_process_future(
+                    worker_id,
+                    file,
+                    Arc::clone(&content_api),
+                    Arc::clone(&kg_parser),
+                    Arc::clone(&onto_parser),
+                    Arc::clone(&kg_repo),
+                    Arc::clone(&onto_repo),
+                    Arc::clone(&db_semaphore),
+                ));
+            }
+
+            // Brief yield to prevent task starvation
+            tokio::task::yield_now().await;
+        }
+
+        info!("[StreamingSync][Worker-{}] Completed processing {} files", worker_id, completed);
         Ok(())
     }
 

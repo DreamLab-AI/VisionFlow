@@ -329,6 +329,12 @@ impl Node {
     }
 }
 
+impl Default for Node {
+    fn default() -> Self {
+        Self::new("default".to_string())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -209,15 +209,17 @@ impl Neo4jGraphRepository {
             String::new()
         };
 
+        // Use COALESCE to prefer sim_* (GPU physics state) over x/y/z (initial positions)
+        // This preserves the calculated layout during content sync
         let query_str = format!("
             MATCH (n:GraphNode)
             {}
             RETURN n.id as id,
                    n.metadata_id as metadata_id,
                    n.label as label,
-                   n.x as x,
-                   n.y as y,
-                   n.z as z,
+                   COALESCE(n.sim_x, n.x) as x,
+                   COALESCE(n.sim_y, n.y) as y,
+                   COALESCE(n.sim_z, n.z) as z,
                    n.vx as vx,
                    n.vy as vy,
                    n.vz as vz,
@@ -414,19 +416,22 @@ impl GraphRepository for Neo4jGraphRepository {
         }
 
         // PERF: Use UNWIND for batch insert - 50-100x faster than sequential inserts
-        // This replaces N individual queries with 1 batch query
-        // PERF: Use UNWIND with parallel arrays - neo4rs native type support
+        // CRITICAL: Preserve physics state (sim_x/y/z, vx/vy/vz) during content sync
+        // ON CREATE: Initialize all positions (content AND physics)
+        // ON MATCH: Only update content properties, NEVER touch sim_* or velocity
         let query_str = "
             UNWIND range(0, size($ids)-1) AS i
             MERGE (n:GraphNode {id: $ids[i]})
             ON CREATE SET
                 n.created_at = datetime(),
                 n.metadata_id = $metadata_ids[i],
-                n.label = $labels[i]
-            ON MATCH SET n.updated_at = datetime()
-            SET n.x = $xs[i],
+                n.label = $labels[i],
+                n.x = $xs[i],
                 n.y = $ys[i],
                 n.z = $zs[i],
+                n.sim_x = $xs[i],
+                n.sim_y = $ys[i],
+                n.sim_z = $zs[i],
                 n.vx = $vxs[i],
                 n.vy = $vys[i],
                 n.vz = $vzs[i],
@@ -435,6 +440,18 @@ impl GraphRepository for Neo4jGraphRepository {
                 n.color = $colors[i],
                 n.weight = $weights[i],
                 n.node_type = $node_types[i],
+                n.quality_score = $quality_scores[i],
+                n.authority_score = $authority_scores[i],
+                n.metadata = $metadatas[i]
+            ON MATCH SET
+                n.updated_at = datetime(),
+                n.metadata_id = $metadata_ids[i],
+                n.label = $labels[i],
+                n.mass = $masses[i],
+                n.size = COALESCE($sizes[i], n.size),
+                n.color = COALESCE($colors[i], n.color),
+                n.weight = COALESCE($weights[i], n.weight),
+                n.node_type = COALESCE($node_types[i], n.node_type),
                 n.quality_score = $quality_scores[i],
                 n.authority_score = $authority_scores[i],
                 n.metadata = $metadatas[i]
@@ -622,14 +639,15 @@ impl GraphRepository for Neo4jGraphRepository {
         &self,
         updates: Vec<(u32, crate::ports::graph_repository::BinaryNodeData)>,
     ) -> Result<()> {
-        // Batch update positions AND velocities in Neo4j
+        // Update sim_* properties (GPU physics state) and velocities
+        // x/y/z remain as initial/content positions - NEVER overwritten by physics
         // BinaryNodeData format: (x, y, z, vx, vy, vz)
         for (node_id, data) in updates {
             let query_str = "
                 MATCH (n:GraphNode {id: $id})
-                SET n.x = $x,
-                    n.y = $y,
-                    n.z = $z,
+                SET n.sim_x = $x,
+                    n.sim_y = $y,
+                    n.sim_z = $z,
                     n.vx = $vx,
                     n.vy = $vy,
                     n.vz = $vz
@@ -674,6 +692,8 @@ impl GraphRepository for Neo4jGraphRepository {
     }
 
     async fn get_node_positions(&self) -> Result<Vec<(u32, Vec3)>> {
+        // The graph already uses sim_* positions via COALESCE in load query
+        // So this returns GPU physics state when available
         let graph = self.get_graph().await?;
         let positions = graph.nodes.iter()
             .map(|n| (n.id, Vec3::new(

@@ -25,7 +25,7 @@ const crypto = require('crypto');
  * Configuration from environment
  */
 const CONFIG = {
-  solidPodUrl: process.env.SOLID_POD_URL || 'http://localhost:3000',
+  solidPodUrl: process.env.SOLID_POD_URL || 'http://localhost:4000/solid',
   nostrToken: process.env.NOSTR_SESSION_TOKEN || '',
   memoryNamespace: 'agent-memory',
   claudeFlowBin: 'npx claude-flow@alpha',
@@ -747,6 +747,409 @@ async function searchMemories(context) {
 }
 
 /**
+ * Get inbox path for agent
+ * @param {string} agentType - Type of agent
+ * @returns {string} Inbox storage path
+ */
+function getInboxPath(agentType) {
+  return `/agent-${agentType}/inbox/`;
+}
+
+/**
+ * Get shared path for cross-agent data
+ * @param {string} agentType - Type of agent
+ * @returns {string} Shared storage path
+ */
+function getSharedPath(agentType) {
+  return `/agent-${agentType}/shared/`;
+}
+
+/**
+ * Send message to another agent's inbox
+ *
+ * Creates an inbox message for asynchronous inter-agent communication.
+ *
+ * @param {Object} context - Message context
+ * @param {string} context.fromAgent - Sender agent type
+ * @param {string} context.toAgent - Recipient agent type
+ * @param {string} context.messageType - Type of message (request, response, notification)
+ * @param {Object} context.content - Message content
+ * @param {string} context.priority - Message priority (low, normal, high, urgent)
+ * @returns {Object} Sent message reference
+ */
+async function sendInboxMessage(context) {
+  const {
+    fromAgent,
+    toAgent,
+    messageType = 'notification',
+    content,
+    priority = 'normal',
+    replyTo = null
+  } = context;
+
+  const messageId = `msg-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
+
+  const message = {
+    '@context': 'https://visionflow.local/ontology/agent-memory.jsonld',
+    '@type': 'InboxMessage',
+    '@id': messageId,
+    from: `agent:${fromAgent}`,
+    to: `agent:${toAgent}`,
+    messageType,
+    content,
+    priority,
+    replyTo,
+    timestamp: new Date().toISOString(),
+    status: 'unread',
+    metadata: {
+      version: '1.0.0',
+      createdBy: 'jss-memory-sync'
+    }
+  };
+
+  const inboxPath = getInboxPath(toAgent);
+  const stored = await storeToPod(inboxPath, message);
+
+  // Also store to claude-flow for immediate notification
+  await storeToClaudeFlow(
+    `swarm/${toAgent}/inbox/${messageId}`,
+    {
+      from: fromAgent,
+      messageType,
+      priority,
+      timestamp: message.timestamp
+    }
+  );
+
+  if (CONFIG.debugMode) {
+    console.log(`[JSS-Memory] Sent message ${messageId} from ${fromAgent} to ${toAgent}`);
+  }
+
+  return {
+    messageId,
+    stored,
+    from: fromAgent,
+    to: toAgent
+  };
+}
+
+/**
+ * Read messages from agent inbox
+ *
+ * @param {Object} context - Read context
+ * @param {string} context.agentType - Agent type to read inbox for
+ * @param {string} context.status - Filter by status (unread, read, all)
+ * @param {number} context.limit - Max messages to return
+ * @returns {Array} Inbox messages
+ */
+async function readInbox(context) {
+  const {
+    agentType,
+    status = 'unread',
+    limit = 20
+  } = context;
+
+  const inboxPath = getInboxPath(agentType);
+  const messageIds = await listPodMemories(inboxPath);
+
+  const messages = [];
+  for (const msgId of messageIds.slice(-limit)) {
+    const message = await retrieveFromPod(inboxPath, msgId);
+    if (message) {
+      if (status === 'all' || message.status === status) {
+        messages.push(message);
+      }
+    }
+  }
+
+  return messages.sort((a, b) => {
+    const priorityOrder = { urgent: 0, high: 1, normal: 2, low: 3 };
+    return priorityOrder[a.priority] - priorityOrder[b.priority];
+  });
+}
+
+/**
+ * Mark inbox message as read
+ *
+ * @param {Object} context - Context
+ * @param {string} context.agentType - Agent type
+ * @param {string} context.messageId - Message ID to mark
+ * @returns {boolean} Success status
+ */
+async function markMessageRead(context) {
+  const { agentType, messageId } = context;
+
+  const inboxPath = getInboxPath(agentType);
+  const message = await retrieveFromPod(inboxPath, messageId);
+
+  if (message) {
+    message.status = 'read';
+    message.readAt = new Date().toISOString();
+    await storeToPod(inboxPath, message);
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Share knowledge with other agents
+ *
+ * Creates shared knowledge accessible by specified agent types.
+ *
+ * @param {Object} context - Share context
+ * @param {string} context.fromAgent - Source agent type
+ * @param {Array} context.toAgents - Target agent types (or ['all'] for broadcast)
+ * @param {string} context.knowledgeType - Type of knowledge being shared
+ * @param {Object} context.knowledge - Knowledge content
+ * @returns {Object} Shared knowledge reference
+ */
+async function shareKnowledge(context) {
+  const {
+    fromAgent,
+    toAgents = ['all'],
+    knowledgeType,
+    knowledge,
+    sessionId = `shared-${Date.now()}`
+  } = context;
+
+  const sharedId = `shared-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
+
+  const sharedKnowledge = {
+    '@context': 'https://visionflow.local/ontology/agent-memory.jsonld',
+    '@type': 'SharedKnowledge',
+    '@id': sharedId,
+    sharedBy: `agent:${fromAgent}`,
+    sharedWith: toAgents.map(a => a === 'all' ? 'agent:*' : `agent:${a}`),
+    knowledgeType,
+    content: knowledge,
+    timestamp: new Date().toISOString(),
+    sessionId,
+    accessCount: 0,
+    metadata: {
+      version: '1.0.0',
+      createdBy: 'jss-memory-sync'
+    }
+  };
+
+  // Store in source agent's shared folder
+  const sharedPath = getSharedPath(fromAgent);
+  await storeToPod(sharedPath, sharedKnowledge);
+
+  // If broadcasting to all or specific agents, also store reference in coordination
+  await storeToClaudeFlow(
+    `swarm/shared/${sharedId}`,
+    {
+      from: fromAgent,
+      to: toAgents,
+      knowledgeType,
+      timestamp: sharedKnowledge.timestamp
+    }
+  );
+
+  // Notify target agents
+  if (!toAgents.includes('all')) {
+    for (const targetAgent of toAgents) {
+      await sendInboxMessage({
+        fromAgent,
+        toAgent: targetAgent,
+        messageType: 'knowledge-share',
+        content: {
+          sharedId,
+          knowledgeType,
+          summary: typeof knowledge === 'object' ? Object.keys(knowledge) : 'data'
+        },
+        priority: 'normal'
+      });
+    }
+  }
+
+  return {
+    sharedId,
+    from: fromAgent,
+    to: toAgents,
+    knowledgeType
+  };
+}
+
+/**
+ * Get shared knowledge by ID
+ *
+ * @param {Object} context - Context
+ * @param {string} context.sharedId - Shared knowledge ID
+ * @param {string} context.sourceAgent - Source agent type
+ * @returns {Object|null} Shared knowledge or null
+ */
+async function getSharedKnowledge(context) {
+  const { sharedId, sourceAgent } = context;
+
+  const sharedPath = getSharedPath(sourceAgent);
+  const knowledge = await retrieveFromPod(sharedPath, sharedId);
+
+  if (knowledge) {
+    // Increment access count
+    knowledge.accessCount = (knowledge.accessCount || 0) + 1;
+    knowledge.lastAccessed = new Date().toISOString();
+    await storeToPod(sharedPath, knowledge);
+  }
+
+  return knowledge;
+}
+
+/**
+ * Register agent in coordination registry
+ *
+ * @param {Object} context - Registration context
+ * @param {string} context.agentType - Agent type
+ * @param {string} context.agentId - Unique agent instance ID
+ * @param {Array} context.capabilities - Agent capabilities
+ * @param {string} context.status - Agent status (active, idle, busy)
+ * @returns {Object} Registration result
+ */
+async function registerAgent(context) {
+  const {
+    agentType,
+    agentId = `${agentType}-${Date.now()}`,
+    capabilities = [],
+    status = 'active'
+  } = context;
+
+  const registration = {
+    '@context': 'https://visionflow.local/ontology/agent-memory.jsonld',
+    '@type': 'AgentRegistry',
+    '@id': agentId,
+    agentType,
+    capabilities,
+    status,
+    registeredAt: new Date().toISOString(),
+    lastHeartbeat: new Date().toISOString(),
+    metadata: {
+      version: '1.0.0',
+      category: AGENT_CATEGORIES[agentType] || 'general'
+    }
+  };
+
+  // Store in shared agents registry
+  await storeToPod('/agents/', registration);
+
+  // Also store in claude-flow
+  await storeToClaudeFlow(
+    `swarm/registry/${agentId}`,
+    {
+      agentType,
+      status,
+      capabilities,
+      timestamp: registration.registeredAt
+    }
+  );
+
+  return {
+    agentId,
+    agentType,
+    registered: true
+  };
+}
+
+/**
+ * Agent heartbeat to update status
+ *
+ * @param {Object} context - Heartbeat context
+ * @param {string} context.agentId - Agent instance ID
+ * @param {string} context.status - Current status
+ * @param {Object} context.metrics - Optional metrics
+ * @returns {boolean} Success status
+ */
+async function agentHeartbeat(context) {
+  const {
+    agentId,
+    status = 'active',
+    metrics = {}
+  } = context;
+
+  await storeToClaudeFlow(
+    `swarm/heartbeat/${agentId}`,
+    {
+      status,
+      metrics,
+      timestamp: new Date().toISOString()
+    }
+  );
+
+  return true;
+}
+
+/**
+ * Agent category mappings
+ */
+const AGENT_CATEGORIES = {
+  // Core Development
+  'coder': 'core-development',
+  'reviewer': 'core-development',
+  'tester': 'core-development',
+  'planner': 'core-development',
+  'researcher': 'core-development',
+
+  // Swarm Coordination
+  'hierarchical-coordinator': 'swarm-coordination',
+  'mesh-coordinator': 'swarm-coordination',
+  'adaptive-coordinator': 'swarm-coordination',
+  'collective-intelligence-coordinator': 'swarm-coordination',
+  'swarm-memory-manager': 'swarm-coordination',
+
+  // Consensus & Distributed
+  'byzantine-coordinator': 'consensus-distributed',
+  'raft-manager': 'consensus-distributed',
+  'gossip-coordinator': 'consensus-distributed',
+  'consensus-builder': 'consensus-distributed',
+  'crdt-synchronizer': 'consensus-distributed',
+  'quorum-manager': 'consensus-distributed',
+  'security-manager': 'consensus-distributed',
+
+  // Performance & Optimization
+  'perf-analyzer': 'performance-optimization',
+  'performance-benchmarker': 'performance-optimization',
+  'task-orchestrator': 'performance-optimization',
+  'memory-coordinator': 'performance-optimization',
+  'smart-agent': 'performance-optimization',
+
+  // GitHub & Repository
+  'github-modes': 'github-repository',
+  'pr-manager': 'github-repository',
+  'code-review-swarm': 'github-repository',
+  'issue-tracker': 'github-repository',
+  'release-manager': 'github-repository',
+  'workflow-automation': 'github-repository',
+  'project-board-sync': 'github-repository',
+  'repo-architect': 'github-repository',
+  'multi-repo-swarm': 'github-repository',
+
+  // SPARC Methodology
+  'sparc-coord': 'sparc-methodology',
+  'sparc-coder': 'sparc-methodology',
+  'specification': 'sparc-methodology',
+  'pseudocode': 'sparc-methodology',
+  'architecture': 'sparc-methodology',
+  'refinement': 'sparc-methodology',
+
+  // Specialized Development
+  'backend-dev': 'specialized-development',
+  'mobile-dev': 'specialized-development',
+  'ml-developer': 'specialized-development',
+  'cicd-engineer': 'specialized-development',
+  'api-docs': 'specialized-development',
+  'system-architect': 'specialized-development',
+  'code-analyzer': 'specialized-development',
+  'base-template-generator': 'specialized-development',
+
+  // Testing & Validation
+  'tdd-london-swarm': 'testing-validation',
+  'production-validator': 'testing-validation',
+
+  // Migration & Planning
+  'migration-planner': 'migration-planning',
+  'swarm-init': 'migration-planning'
+};
+
+/**
  * Export module with named hooks
  *
  * Hook names match claude-flow expectations:
@@ -762,9 +1165,22 @@ module.exports = {
   'session-restore': sessionRestore,
   'session-end': sessionEnd,
 
-  // Additional utilities
+  // Memory utilities
   storeSemanticKnowledge,
   searchMemories,
+
+  // Inter-agent communication
+  sendInboxMessage,
+  readInbox,
+  markMessageRead,
+
+  // Cross-agent knowledge sharing
+  shareKnowledge,
+  getSharedKnowledge,
+
+  // Agent registry
+  registerAgent,
+  agentHeartbeat,
 
   // Low-level functions
   createMemoryObject,
@@ -773,10 +1189,15 @@ module.exports = {
   listPodMemories,
   storeToClaudeFlow,
   retrieveFromClaudeFlow,
+  getInboxPath,
+  getSharedPath,
+  getPodPath,
+  getSessionPath,
 
   // Constants
   MemoryType,
-  CONFIG
+  CONFIG,
+  AGENT_CATEGORIES
 };
 
 // CLI interface for testing
@@ -831,15 +1252,78 @@ if (require.main === module) {
         console.log('Search results:', JSON.stringify(searchResult, null, 2));
         break;
 
+      case 'send-message':
+        const msgResult = await sendInboxMessage({
+          fromAgent: args[1] || 'coder',
+          toAgent: args[2] || 'reviewer',
+          messageType: 'request',
+          content: { request: args[3] || 'Please review my code' },
+          priority: 'normal'
+        });
+        console.log('Message sent:', JSON.stringify(msgResult, null, 2));
+        break;
+
+      case 'read-inbox':
+        const messages = await readInbox({
+          agentType: args[1] || 'reviewer',
+          status: 'all',
+          limit: 10
+        });
+        console.log('Inbox messages:', JSON.stringify(messages, null, 2));
+        break;
+
+      case 'share-knowledge':
+        const shareResult = await shareKnowledge({
+          fromAgent: args[1] || 'researcher',
+          toAgents: (args[2] || 'coder,tester').split(','),
+          knowledgeType: 'best-practice',
+          knowledge: { topic: args[3] || 'testing', content: 'Always write tests first' }
+        });
+        console.log('Knowledge shared:', JSON.stringify(shareResult, null, 2));
+        break;
+
+      case 'register':
+        const regResult = await registerAgent({
+          agentType: args[1] || 'coder',
+          capabilities: (args[2] || 'code-generation,refactoring').split(','),
+          status: 'active'
+        });
+        console.log('Agent registered:', JSON.stringify(regResult, null, 2));
+        break;
+
+      case 'list-agents':
+        console.log('Available agent types (49 total):');
+        console.log('');
+        const categories = {};
+        for (const [agent, category] of Object.entries(AGENT_CATEGORIES)) {
+          if (!categories[category]) categories[category] = [];
+          categories[category].push(agent);
+        }
+        for (const [category, agents] of Object.entries(categories)) {
+          console.log(`  ${category}:`);
+          console.log(`    ${agents.join(', ')}`);
+          console.log('');
+        }
+        break;
+
       default:
         console.log(`
-JSS Memory Sync - Solid Pod Memory for AI Agents
+JSS Memory Sync - Solid Pod Memory for AI Agents (49 agent types)
 
 Usage:
-  node jss-memory-sync.js test-pre        # Test pre-task hook
-  node jss-memory-sync.js test-post       # Test post-task hook
-  node jss-memory-sync.js test-session    # Test session-end hook
-  node jss-memory-sync.js search <query>  # Search memories
+  node jss-memory-sync.js test-pre                    # Test pre-task hook
+  node jss-memory-sync.js test-post                   # Test post-task hook
+  node jss-memory-sync.js test-session                # Test session-end hook
+  node jss-memory-sync.js search <query>              # Search memories
+
+Inter-Agent Communication:
+  node jss-memory-sync.js send-message <from> <to> <msg>  # Send inbox message
+  node jss-memory-sync.js read-inbox <agent>              # Read agent inbox
+  node jss-memory-sync.js share-knowledge <from> <to> <topic>  # Share knowledge
+
+Agent Registry:
+  node jss-memory-sync.js register <type> <capabilities>  # Register agent
+  node jss-memory-sync.js list-agents                     # List all agent types
 
 Environment:
   SOLID_POD_URL          - Solid Pod URL (default: http://localhost:3000)
@@ -847,18 +1331,52 @@ Environment:
   JSS_CACHE_DIR          - Local cache directory
   JSS_DEBUG              - Enable debug output (true/false)
 
+Pod Structure:
+  /agents/                    - Shared coordination namespace
+    registry.jsonld           - Agent registry
+    schemas/                  - JSON-LD contexts
+    coordination/             - Swarm state
+
+  /agent-{type}/              - Per-agent-type pods (49 types)
+    memories/
+      episodic/               - Task memories
+      semantic/               - Factual knowledge
+      procedural/             - Learned patterns
+    inbox/                    - Inter-agent messages
+    shared/                   - Cross-agent data
+    sessions/                 - Session summaries
+
+Agent Categories (9):
+  core-development            - coder, reviewer, tester, planner, researcher
+  swarm-coordination          - hierarchical-coordinator, mesh-coordinator, ...
+  consensus-distributed       - byzantine-coordinator, raft-manager, ...
+  performance-optimization    - perf-analyzer, task-orchestrator, ...
+  github-repository           - github-modes, pr-manager, code-review-swarm, ...
+  sparc-methodology           - sparc-coord, specification, architecture, ...
+  specialized-development     - backend-dev, ml-developer, system-architect, ...
+  testing-validation          - tdd-london-swarm, production-validator
+  migration-planning          - migration-planner, swarm-init
+
 Integration:
   const hooks = require('./jss-memory-sync');
 
-  // Before task
-  const ctx = await hooks['pre-task']({ taskId, agentType, description });
-
-  // After task
+  // Standard hooks
+  await hooks['pre-task']({ taskId, agentType, description });
   await hooks['post-task']({ taskId, agentType, sessionId, result });
-
-  // Session management
   await hooks['session-restore']({ sessionId, agentType });
   await hooks['session-end']({ sessionId, agentType, exportMetrics: true });
+
+  // Inter-agent communication
+  await hooks.sendInboxMessage({ fromAgent, toAgent, content });
+  const messages = await hooks.readInbox({ agentType });
+
+  // Knowledge sharing
+  await hooks.shareKnowledge({ fromAgent, toAgents: ['coder'], knowledge });
+  const knowledge = await hooks.getSharedKnowledge({ sharedId, sourceAgent });
+
+  // Agent registry
+  await hooks.registerAgent({ agentType, capabilities });
+  await hooks.agentHeartbeat({ agentId, status, metrics });
         `);
     }
   })();

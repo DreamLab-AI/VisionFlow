@@ -2,7 +2,7 @@ use std::sync::Arc;
 use chrono::Utc;
 use std::collections::HashMap;
 
-use visionflow::events::*;
+use webxr::events::*;
 
 #[tokio::test]
 async fn test_graph_event_handler_integration() {

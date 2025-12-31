@@ -54,6 +54,8 @@ pub use memory_manager::{
 pub use semantic_forces::{
     AttributeSpringConfig, CollisionConfig, DAGConfig, SemanticConfig,
     SemanticForcesEngine, TypeClusterConfig,
+    // Dynamic relationship buffer management (schema-code decoupling)
+    DynamicForceConfigGPU, DynamicRelationshipBufferManager,
 };
 
 // Broadcast optimization module
@@ -61,4 +63,10 @@ pub mod broadcast_optimizer;
 pub use broadcast_optimizer::{
     BroadcastConfig, BroadcastOptimizer, BroadcastPerformanceStats,
     CompressionStats, SpatialCuller,
+};
+
+// Network backpressure control module
+pub mod backpressure;
+pub use backpressure::{
+    BackpressureConfig, BackpressureMetrics, NetworkBackpressure, TokenBucket,
 };

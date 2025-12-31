@@ -9,9 +9,9 @@ use serde_json::json;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
-use visionflow::cqrs::{CommandBus, QueryBus};
-use visionflow::events::EventBus;
-use visionflow::application::{
+use webxr::cqrs::{CommandBus, QueryBus};
+use webxr::events::EventBus;
+use webxr::application::{
     GraphApplicationService, SettingsApplicationService,
     OntologyApplicationService, PhysicsApplicationService,
 };
@@ -331,7 +331,7 @@ mod physics_service_tests {
 
 mod event_bus_tests {
     use super::*;
-    use visionflow::application::events::DomainEvent;
+    use webxr::application::events::DomainEvent;
 
     #[tokio::test]
     async fn test_event_bus_initialization() {

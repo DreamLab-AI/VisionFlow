@@ -7,12 +7,12 @@ use actix::prelude::*;
 use std::sync::Arc;
 use std::time::Duration;
 
-use visionflow::adapters::{ActixPhysicsAdapter, ActixSemanticAdapter};
-use visionflow::models::graph::GraphData;
-use visionflow::models::node::Node;
-use visionflow::ports::gpu_physics_adapter::{GpuPhysicsAdapter, PhysicsParameters};
-use visionflow::ports::gpu_semantic_analyzer::{ClusteringAlgorithm, GpuSemanticAnalyzer};
-use visionflow::utils::socket_flow_messages::BinaryNodeData;
+use webxr::adapters::{ActixPhysicsAdapter, ActixSemanticAdapter};
+use webxr::models::graph::GraphData;
+use webxr::models::node::Node;
+use webxr::ports::gpu_physics_adapter::{GpuPhysicsAdapter, PhysicsParameters};
+use webxr::ports::gpu_semantic_analyzer::{ClusteringAlgorithm, GpuSemanticAnalyzer};
+use webxr::utils::socket_flow_messages::BinaryNodeData;
 
 fn create_test_graph() -> Arc<GraphData> {
     Arc::new(GraphData {

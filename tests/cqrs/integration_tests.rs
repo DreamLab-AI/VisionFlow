@@ -5,12 +5,12 @@
 
 use anyhow::Result;
 use std::sync::Arc;
-use visionflow::cqrs::bus::{CommandBus, QueryBus};
-use visionflow::cqrs::commands::*;
-use visionflow::cqrs::handlers::*;
-use visionflow::cqrs::queries::*;
-use visionflow::models::node::Node;
-use visionflow::repositories::UnifiedGraphRepository;
+use webxr::cqrs::bus::{CommandBus, QueryBus};
+use webxr::cqrs::commands::*;
+use webxr::cqrs::handlers::*;
+use webxr::cqrs::queries::*;
+use webxr::models::node::Node;
+use webxr::repositories::UnifiedGraphRepository;
 
 #[tokio::test]
 async fn test_add_and_get_node() -> Result<()> {

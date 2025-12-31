@@ -18,16 +18,16 @@ use std::sync::Arc;
 use std::time::Instant;
 use tempfile::TempDir;
 
-use visionflow::repositories::{UnifiedGraphRepository, UnifiedOntologyRepository};
-// use visionflow::adapters::sqlite_settings_repository::SqliteSettingsRepository;  // REMOVED: SQL deprecated
-use visionflow::config::PhysicsSettings;
-use visionflow::models::edge::Edge;
-use visionflow::models::graph::GraphData;
-use visionflow::models::node::Node;
-use visionflow::ports::knowledge_graph_repository::KnowledgeGraphRepository;
-use visionflow::ports::ontology_repository::{AxiomType, OntologyRepository, OwlAxiom, OwlClass, OwlProperty, PropertyType};
-use visionflow::ports::settings_repository::{SettingValue, SettingsRepository};
-use visionflow::services::database_service::DatabaseService;
+use webxr::repositories::{UnifiedGraphRepository, UnifiedOntologyRepository};
+// use webxr::adapters::sqlite_settings_repository::SqliteSettingsRepository;  // REMOVED: SQL deprecated
+use webxr::config::PhysicsSettings;
+use webxr::models::edge::Edge;
+use webxr::models::graph::GraphData;
+use webxr::models::node::Node;
+use webxr::ports::knowledge_graph_repository::KnowledgeGraphRepository;
+use webxr::ports::ontology_repository::{AxiomType, OntologyRepository, OwlAxiom, OwlClass, OwlProperty, PropertyType};
+use webxr::ports::settings_repository::{SettingValue, SettingsRepository};
+use webxr::services::database_service::DatabaseService;
 
 /// Performance statistics
 #[derive(Debug)]
@@ -286,8 +286,8 @@ async fn bench_ontology_repository() -> Result<()> {
             } else {
                 vec![]
             },
-            properties: HashMap::new(),
             source_file: Some("bench.owl".to_string()),
+            ..Default::default()
         };
         let start = Instant::now();
         repo.add_owl_class(&class).await?;
@@ -333,14 +333,12 @@ async fn bench_ontology_repository() -> Result<()> {
     let classes: Vec<OwlClass> = (0..1000).map(|i| OwlClass {
         iri: format!("http://example.org/BatchClass{}", i),
         label: Some(format!("Batch Class {}", i)),
-        description: None,
         parent_classes: if i > 0 {
             vec![format!("http://example.org/BatchClass{}", i - 1)]
         } else {
             vec![]
         },
-        properties: HashMap::new(),
-        source_file: None,
+        ..Default::default()
     }).collect();
 
     let properties: Vec<OwlProperty> = (0..500).map(|i| OwlProperty {

@@ -2,6 +2,7 @@
 // Week 3 Deliverable: Complete Integration Test
 
 #[cfg(test)]
+#[allow(unused_variables)]
 mod constraint_system_tests {
     use std::collections::HashMap;
 
@@ -135,8 +136,8 @@ mod constraint_system_tests {
 
         let far_active = 20; // Priority 1-3 only
         let medium_active = 50; // Priority 1-5
-        let near_active = 75; // Priority 1-7
-        let close_active = 100; // All
+        let _near_active = 75; // Priority 1-7
+        let _close_active = 100; // All
 
         let far_reduction = (1.0 - far_active as f32 / total_constraints as f32) * 100.0;
         let medium_reduction = (1.0 - medium_active as f32 / total_constraints as f32) * 100.0;

@@ -23,10 +23,10 @@ pub fn test_telemetry_logging() -> Result<(), Box<dyn std::error::Error>> {
     metadata.insert("test_mode".to_string(), serde_json::json!(true));
 
     
-    logger.log_agent_spawn(agent_id, origin_position, metadata.clone());
+    logger.log_agent_spawn(agent_id, None, origin_position, metadata.clone());
 
-    
-    logger.log_agent_spawn("test_agent_002", normal_position, metadata);
+
+    logger.log_agent_spawn("test_agent_002", None, normal_position, metadata);
 
     
     let old_pos = Position3D::new(0.0, 0.0, 0.0);
@@ -46,7 +46,7 @@ pub fn test_telemetry_logging() -> Result<(), Box<dyn std::error::Error>> {
         serde_json::json!("force_directed"),
     );
     graph_details.insert("convergence_threshold".to_string(), serde_json::json!(0.01));
-    logger.log_graph_state_change("node_added", 50, 75, graph_details);
+    logger.log_graph_state_change(None, "node_added", 50, 75, graph_details);
 
     
     logger.flush();
@@ -77,7 +77,7 @@ pub fn example_usage() {
             serde_json::json!("websocket_connection"),
         );
 
-        logger.log_agent_spawn("example_agent", position, metadata);
+        logger.log_agent_spawn("example_agent", None, position, metadata);
 
         
         let event = TelemetryEvent::new(

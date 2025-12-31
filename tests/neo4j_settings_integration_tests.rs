@@ -7,6 +7,7 @@
 //! NOTE: These tests require a running Neo4j instance and cannot be run
 //! until pre-existing compilation errors are fixed.
 
+#[allow(unused_imports)]
 use std::sync::Arc;
 
 #[cfg(test)]

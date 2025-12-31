@@ -2,26 +2,36 @@
 //!
 //! Bridges JSS WebSocket notifications (solid-0.1 protocol) to VisionFlow clients.
 //! Connects to JSS at ws://jss:3030/.notifications and forwards resource update
-//! notifications to connected VisionFlow clients.
+//! notifications to connected VisionFlow clients via both JSON and binary protocols.
 //!
 //! Protocol:
 //! - JSS sends: "pub <url>" when a resource is published/updated
 //! - JSS sends: "ack <url>" when a subscription is acknowledged
-//! - VisionFlow clients receive: structured JSON messages via realtime WebSocket
+//! - VisionFlow clients receive:
+//!   - JSON messages via RealtimeWebSocketHandler (for general updates)
+//!   - Binary messages via ClientCoordinatorActor (for ontology/agent updates)
+//!
+//! Event Filtering:
+//! - Ontology changes (/ontology/, /public/ontology/) -> Binary + JSON
+//! - Agent updates (/agents/, /contributions/) -> Binary + JSON
+//! - Profile changes (/profile/) -> JSON only
+//! - Other resources -> JSON only
 
+use actix::Addr;
 use futures_util::{SinkExt, StreamExt};
 use log::{debug, error, info, warn};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::sync::Arc;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use thiserror::Error;
 use tokio::sync::{mpsc, RwLock};
 use tokio::time::{interval, timeout};
 use tokio_tungstenite::{connect_async, tungstenite::Message as WsMessage};
-use uuid::Uuid;
 
+use crate::actors::client_coordinator_actor::ClientCoordinatorActor;
+use crate::actors::messages::BroadcastNodePositions;
 use crate::handlers::solid_proxy_handler::JssConfig;
 use crate::handlers::realtime_websocket_handler::{
     RealtimeWebSocketMessage, CONNECTION_MANAGER,
@@ -100,6 +110,56 @@ pub struct JssResourceNotification {
     pub resource_type: Option<String>,
 }
 
+/// Event relevance categories for binary protocol routing
+#[derive(Debug, Clone, PartialEq)]
+pub enum EventRelevance {
+    /// Ontology changes - high priority, triggers graph reload
+    OntologyChange,
+    /// Agent/contribution updates - high priority, triggers position updates
+    AgentUpdate,
+    /// Profile changes - medium priority, JSON only
+    ProfileChange,
+    /// Pod resource changes - medium priority, JSON only
+    PodResource,
+    /// Other/unknown - low priority, JSON only
+    Other,
+}
+
+impl EventRelevance {
+    /// Determine relevance from resource URL
+    pub fn from_url(url: &str) -> Self {
+        let url_lower = url.to_lowercase();
+
+        if url_lower.contains("/ontology/") || url_lower.contains("/public/ontology/") {
+            EventRelevance::OntologyChange
+        } else if url_lower.contains("/agents/") || url_lower.contains("/contributions/") {
+            EventRelevance::AgentUpdate
+        } else if url_lower.contains("/profile/") {
+            EventRelevance::ProfileChange
+        } else if url_lower.contains("/pods/") {
+            EventRelevance::PodResource
+        } else {
+            EventRelevance::Other
+        }
+    }
+
+    /// Check if this event should trigger binary protocol broadcast
+    pub fn requires_binary_broadcast(&self) -> bool {
+        matches!(self, EventRelevance::OntologyChange | EventRelevance::AgentUpdate)
+    }
+
+    /// Get priority level (higher = more urgent)
+    pub fn priority(&self) -> u8 {
+        match self {
+            EventRelevance::OntologyChange => 10,
+            EventRelevance::AgentUpdate => 8,
+            EventRelevance::ProfileChange => 5,
+            EventRelevance::PodResource => 3,
+            EventRelevance::Other => 1,
+        }
+    }
+}
+
 /// Bridge connection state
 #[derive(Debug, Clone, PartialEq)]
 pub enum BridgeState {
@@ -133,6 +193,10 @@ pub struct JssBridgeConfig {
     pub ping_interval_secs: u64,
     pub connection_timeout_secs: u64,
     pub auto_subscribe_paths: Vec<String>,
+    /// Enable binary protocol broadcasts for relevant events
+    pub enable_binary_broadcast: bool,
+    /// Event types to broadcast via binary protocol
+    pub binary_event_types: Vec<String>,
 }
 
 impl Default for JssBridgeConfig {
@@ -147,6 +211,13 @@ impl Default for JssBridgeConfig {
             auto_subscribe_paths: vec![
                 "/public/ontology/*".to_string(),
                 "/pods/*/contributions/*".to_string(),
+                "/pods/*/agents/*".to_string(),
+            ],
+            enable_binary_broadcast: true,
+            binary_event_types: vec![
+                "ontology".to_string(),
+                "contribution".to_string(),
+                "agent".to_string(),
             ],
         }
     }
@@ -155,7 +226,7 @@ impl Default for JssBridgeConfig {
 /// JSS WebSocket Bridge
 ///
 /// Maintains a persistent WebSocket connection to JSS and bridges
-/// notifications to VisionFlow clients.
+/// notifications to VisionFlow clients via both JSON and binary protocols.
 pub struct JssWebSocketBridge {
     config: JssBridgeConfig,
     state: Arc<RwLock<BridgeState>>,
@@ -163,14 +234,19 @@ pub struct JssWebSocketBridge {
     subscriptions: Arc<RwLock<HashSet<String>>>,
     shutdown_tx: Arc<RwLock<Option<mpsc::Sender<()>>>>,
     started_at: Arc<RwLock<Option<Instant>>>,
+    /// ClientCoordinatorActor address for binary protocol broadcasts
+    client_coordinator_addr: Arc<RwLock<Option<Addr<ClientCoordinatorActor>>>>,
+    /// Binary broadcast statistics
+    binary_broadcasts_sent: Arc<RwLock<u64>>,
 }
 
 impl JssWebSocketBridge {
     /// Create a new JSS WebSocket bridge
     pub fn new(config: JssBridgeConfig) -> Self {
         info!(
-            "JSS WebSocket Bridge initialized - WS URL: {}",
-            config.jss_config.ws_url
+            "JSS WebSocket Bridge initialized - WS URL: {}, binary_broadcast: {}",
+            config.jss_config.ws_url,
+            config.enable_binary_broadcast
         );
 
         Self {
@@ -189,12 +265,25 @@ impl JssWebSocketBridge {
             subscriptions: Arc::new(RwLock::new(HashSet::new())),
             shutdown_tx: Arc::new(RwLock::new(None)),
             started_at: Arc::new(RwLock::new(None)),
+            client_coordinator_addr: Arc::new(RwLock::new(None)),
+            binary_broadcasts_sent: Arc::new(RwLock::new(0)),
         }
     }
 
     /// Create with default configuration from environment
     pub fn from_env() -> Self {
         Self::new(JssBridgeConfig::default())
+    }
+
+    /// Set the ClientCoordinatorActor address for binary protocol broadcasts
+    pub async fn set_client_coordinator(&self, addr: Addr<ClientCoordinatorActor>) {
+        info!("JSS Bridge: ClientCoordinatorActor address set for binary broadcasts");
+        *self.client_coordinator_addr.write().await = Some(addr);
+    }
+
+    /// Get binary broadcast count
+    pub async fn get_binary_broadcast_count(&self) -> u64 {
+        *self.binary_broadcasts_sent.read().await
     }
 
     /// Get current bridge state
@@ -238,6 +327,8 @@ impl JssWebSocketBridge {
         let state = self.state.clone();
         let status = self.status.clone();
         let subscriptions = self.subscriptions.clone();
+        let client_coordinator_addr = self.client_coordinator_addr.clone();
+        let binary_broadcasts_sent = self.binary_broadcasts_sent.clone();
 
         // Spawn the main connection loop
         tokio::spawn(async move {
@@ -263,6 +354,8 @@ impl JssWebSocketBridge {
                     &state,
                     &status,
                     &subscriptions,
+                    &client_coordinator_addr,
+                    &binary_broadcasts_sent,
                     &mut shutdown_rx,
                 ).await {
                     Ok(_) => {
@@ -351,6 +444,8 @@ impl JssWebSocketBridge {
         state: &Arc<RwLock<BridgeState>>,
         status: &Arc<RwLock<BridgeStatus>>,
         subscriptions: &Arc<RwLock<HashSet<String>>>,
+        client_coordinator_addr: &Arc<RwLock<Option<Addr<ClientCoordinatorActor>>>>,
+        binary_broadcasts_sent: &Arc<RwLock<u64>>,
         shutdown_rx: &mut mpsc::Receiver<()>,
     ) -> Result<()> {
         let ws_url = &config.jss_config.ws_url;
@@ -410,7 +505,13 @@ impl JssWebSocketBridge {
                 msg = ws_rx.next() => {
                     match msg {
                         Some(Ok(WsMessage::Text(text))) => {
-                            Self::handle_message(&text, status).await;
+                            Self::handle_message(
+                                &text,
+                                config,
+                                status,
+                                client_coordinator_addr,
+                                binary_broadcasts_sent,
+                            ).await;
                         }
                         Some(Ok(WsMessage::Ping(data))) => {
                             debug!("Received WebSocket ping");
@@ -463,7 +564,13 @@ impl JssWebSocketBridge {
         }
     }
 
-    async fn handle_message(message: &str, status: &Arc<RwLock<BridgeStatus>>) {
+    async fn handle_message(
+        message: &str,
+        config: &JssBridgeConfig,
+        status: &Arc<RwLock<BridgeStatus>>,
+        client_coordinator_addr: &Arc<RwLock<Option<Addr<ClientCoordinatorActor>>>>,
+        binary_broadcasts_sent: &Arc<RwLock<u64>>,
+    ) {
         debug!("Received JSS message: {}", message);
 
         // Update message count
@@ -478,11 +585,25 @@ impl JssWebSocketBridge {
         match notification_type {
             JssNotificationType::Publish(url) => {
                 info!("JSS resource published: {}", url);
-                Self::forward_to_visionflow("publish", &url, status).await;
+                Self::forward_to_visionflow(
+                    "publish",
+                    &url,
+                    config,
+                    status,
+                    client_coordinator_addr,
+                    binary_broadcasts_sent,
+                ).await;
             }
             JssNotificationType::Acknowledge(url) => {
                 debug!("JSS subscription acknowledged: {}", url);
-                Self::forward_to_visionflow("acknowledge", &url, status).await;
+                Self::forward_to_visionflow(
+                    "acknowledge",
+                    &url,
+                    config,
+                    status,
+                    client_coordinator_addr,
+                    binary_broadcasts_sent,
+                ).await;
             }
             JssNotificationType::Ping => {
                 debug!("Received JSS ping");
@@ -499,18 +620,25 @@ impl JssWebSocketBridge {
     async fn forward_to_visionflow(
         notification_type: &str,
         resource_url: &str,
+        config: &JssBridgeConfig,
         status: &Arc<RwLock<BridgeStatus>>,
+        client_coordinator_addr: &Arc<RwLock<Option<Addr<ClientCoordinatorActor>>>>,
+        binary_broadcasts_sent: &Arc<RwLock<u64>>,
     ) {
+        // Determine event relevance for routing
+        let relevance = EventRelevance::from_url(resource_url);
+        let resource_type = Self::determine_resource_type(resource_url);
+
         // Create VisionFlow notification
         let notification = JssResourceNotification {
             resource_url: resource_url.to_string(),
             notification_type: notification_type.to_string(),
             timestamp: Self::current_timestamp(),
             resource_path: Self::extract_path(resource_url),
-            resource_type: Self::determine_resource_type(resource_url),
+            resource_type: resource_type.clone(),
         };
 
-        // Create realtime message
+        // Create realtime message for JSON broadcast
         let message = RealtimeWebSocketMessage {
             msg_type: "jss_notification".to_string(),
             data: serde_json::to_value(&notification).unwrap_or(json!({})),
@@ -519,12 +647,50 @@ impl JssWebSocketBridge {
             session_id: None,
         };
 
-        // Broadcast to all subscribed VisionFlow clients
+        // Broadcast to all subscribed VisionFlow clients via JSON (always)
         let msg_clone = message.clone();
         tokio::spawn(async move {
             let manager = CONNECTION_MANAGER.lock().await;
             manager.broadcast("jss_notification", msg_clone).await;
         });
+
+        // Binary protocol broadcast for high-priority events (ontology/agent changes)
+        if config.enable_binary_broadcast && relevance.requires_binary_broadcast() {
+            if let Some(ref addr) = *client_coordinator_addr.read().await {
+                // Create binary notification message
+                let binary_msg = Self::create_binary_notification(
+                    notification_type,
+                    resource_url,
+                    &relevance,
+                    &resource_type,
+                );
+
+                if !binary_msg.is_empty() {
+                    info!(
+                        "JSS Bridge: Sending binary broadcast for {:?} event: {} ({} bytes)",
+                        relevance,
+                        resource_url,
+                        binary_msg.len()
+                    );
+
+                    // Send via ClientCoordinatorActor
+                    addr.do_send(BroadcastNodePositions {
+                        positions: binary_msg,
+                    });
+
+                    // Update binary broadcast count
+                    {
+                        let mut count = binary_broadcasts_sent.write().await;
+                        *count += 1;
+                    }
+                }
+            } else {
+                debug!(
+                    "JSS Bridge: Binary broadcast skipped - no ClientCoordinatorActor address (event: {:?})",
+                    relevance
+                );
+            }
+        }
 
         // Update forwarded count
         {
@@ -532,7 +698,59 @@ impl JssWebSocketBridge {
             st.messages_forwarded += 1;
         }
 
-        debug!("Forwarded JSS notification to VisionFlow clients");
+        debug!(
+            "Forwarded JSS notification to VisionFlow clients (relevance: {:?}, binary: {})",
+            relevance,
+            relevance.requires_binary_broadcast()
+        );
+    }
+
+    /// Create a binary notification message for the SocketFlowHandler binary protocol
+    fn create_binary_notification(
+        notification_type: &str,
+        resource_url: &str,
+        relevance: &EventRelevance,
+        resource_type: &Option<String>,
+    ) -> Vec<u8> {
+        // Binary message format:
+        // [message_type: u8][relevance_priority: u8][timestamp: u64][url_len: u16][url: bytes][type_len: u8][type: bytes]
+        let mut buffer = Vec::with_capacity(256);
+
+        // Message type: 0x20 = JSS notification (custom type for JSS events)
+        let msg_type: u8 = match relevance {
+            EventRelevance::OntologyChange => 0x21, // Ontology update
+            EventRelevance::AgentUpdate => 0x22,    // Agent/contribution update
+            _ => 0x20,                              // Generic JSS notification
+        };
+        buffer.push(msg_type);
+
+        // Relevance priority (1-10)
+        buffer.push(relevance.priority());
+
+        // Notification type (0 = publish, 1 = acknowledge)
+        buffer.push(if notification_type == "publish" { 0 } else { 1 });
+
+        // Timestamp (8 bytes, big endian)
+        let timestamp = Self::current_timestamp();
+        buffer.extend_from_slice(&timestamp.to_be_bytes());
+
+        // Resource URL length and data
+        let url_bytes = resource_url.as_bytes();
+        let url_len = url_bytes.len().min(u16::MAX as usize) as u16;
+        buffer.extend_from_slice(&url_len.to_be_bytes());
+        buffer.extend_from_slice(&url_bytes[..url_len as usize]);
+
+        // Resource type length and data
+        if let Some(ref res_type) = resource_type {
+            let type_bytes = res_type.as_bytes();
+            let type_len = type_bytes.len().min(u8::MAX as usize) as u8;
+            buffer.push(type_len);
+            buffer.extend_from_slice(&type_bytes[..type_len as usize]);
+        } else {
+            buffer.push(0);
+        }
+
+        buffer
     }
 
     fn extract_path(url: &str) -> Option<String> {
@@ -668,5 +886,98 @@ mod tests {
 
         let status = bridge.get_status().await;
         assert!(!status.subscribed_resources.contains(&"/test/path/*".to_string()));
+    }
+
+    #[test]
+    fn test_event_relevance_ontology() {
+        let url = "http://jss:3030/public/ontology/Person.ttl";
+        let relevance = EventRelevance::from_url(url);
+
+        assert_eq!(relevance, EventRelevance::OntologyChange);
+        assert!(relevance.requires_binary_broadcast());
+        assert_eq!(relevance.priority(), 10);
+    }
+
+    #[test]
+    fn test_event_relevance_agent() {
+        let url = "http://jss:3030/pods/alice/contributions/prop1.jsonld";
+        let relevance = EventRelevance::from_url(url);
+
+        assert_eq!(relevance, EventRelevance::AgentUpdate);
+        assert!(relevance.requires_binary_broadcast());
+        assert_eq!(relevance.priority(), 8);
+    }
+
+    #[test]
+    fn test_event_relevance_profile() {
+        let url = "http://jss:3030/pods/alice/profile/card";
+        let relevance = EventRelevance::from_url(url);
+
+        assert_eq!(relevance, EventRelevance::ProfileChange);
+        assert!(!relevance.requires_binary_broadcast());
+        assert_eq!(relevance.priority(), 5);
+    }
+
+    #[test]
+    fn test_event_relevance_pod_resource() {
+        let url = "http://jss:3030/pods/alice/documents/readme.txt";
+        let relevance = EventRelevance::from_url(url);
+
+        assert_eq!(relevance, EventRelevance::PodResource);
+        assert!(!relevance.requires_binary_broadcast());
+        assert_eq!(relevance.priority(), 3);
+    }
+
+    #[test]
+    fn test_event_relevance_other() {
+        let url = "http://example.com/some/random/path";
+        let relevance = EventRelevance::from_url(url);
+
+        assert_eq!(relevance, EventRelevance::Other);
+        assert!(!relevance.requires_binary_broadcast());
+        assert_eq!(relevance.priority(), 1);
+    }
+
+    #[test]
+    fn test_create_binary_notification() {
+        let binary_msg = JssWebSocketBridge::create_binary_notification(
+            "publish",
+            "http://jss:3030/public/ontology/Person.ttl",
+            &EventRelevance::OntologyChange,
+            &Some("ontology".to_string()),
+        );
+
+        // Verify message structure
+        assert!(!binary_msg.is_empty());
+        assert_eq!(binary_msg[0], 0x21); // OntologyChange message type
+        assert_eq!(binary_msg[1], 10);   // Priority
+        assert_eq!(binary_msg[2], 0);    // Publish = 0
+
+        // Timestamp is 8 bytes
+        // URL length is 2 bytes, then URL
+        // Resource type length is 1 byte, then type
+    }
+
+    #[test]
+    fn test_create_binary_notification_agent() {
+        let binary_msg = JssWebSocketBridge::create_binary_notification(
+            "acknowledge",
+            "http://jss:3030/pods/alice/contributions/test.jsonld",
+            &EventRelevance::AgentUpdate,
+            &Some("contribution".to_string()),
+        );
+
+        assert!(!binary_msg.is_empty());
+        assert_eq!(binary_msg[0], 0x22); // AgentUpdate message type
+        assert_eq!(binary_msg[1], 8);    // Priority
+        assert_eq!(binary_msg[2], 1);    // Acknowledge = 1
+    }
+
+    #[tokio::test]
+    async fn test_bridge_binary_broadcast_count() {
+        let bridge = JssWebSocketBridge::from_env();
+
+        // Initially should be 0
+        assert_eq!(bridge.get_binary_broadcast_count().await, 0);
     }
 }

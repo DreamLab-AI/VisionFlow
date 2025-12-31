@@ -96,7 +96,7 @@ pub struct CacheStats {
 }
 
 /// Request to pause pipeline
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PausePipelineRequest {
     pub reason: String,
 }

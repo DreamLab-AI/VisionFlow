@@ -45,3 +45,9 @@ pub mod ontology_file_cache;
 pub mod jss_sync_service;
 pub mod jss_websocket_bridge;
 pub mod semantic_type_registry;
+
+// Re-export semantic type registry types for convenience
+pub use semantic_type_registry::{
+    DynamicForceConfigGPU, RelationshipForceConfig, SemanticTypeRegistry,
+    SEMANTIC_TYPE_REGISTRY,
+};

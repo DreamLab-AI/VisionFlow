@@ -16,6 +16,7 @@ use crate::utils::socket_flow_messages::{glam_to_vec3data, BinaryNodeDataClient}
 use crate::utils::unified_gpu_compute::ComputeMode;
 use crate::utils::unified_gpu_compute::SimParams;
 use crate::gpu::broadcast_optimizer::{BroadcastConfig, BroadcastOptimizer};
+use crate::gpu::backpressure::{BackpressureConfig, NetworkBackpressure};
 use glam::Vec3;
 
 ///
@@ -91,14 +92,14 @@ pub struct ForceComputeActor {
     /// Broadcast optimizer for delta compression and spatial culling
     broadcast_optimizer: BroadcastOptimizer,
 
-    /// Credit-based backpressure: available broadcast credits
-    broadcast_credits: std::sync::atomic::AtomicU32,
+    /// Network backpressure controller with token bucket algorithm
+    backpressure: NetworkBackpressure,
 
-    /// Maximum credits for broadcast backpressure
-    max_credits: u32,
+    /// Pre-allocated buffer for position/velocity data (reused every frame to avoid 60Hz allocations)
+    position_velocity_buffer: Vec<(Vec3, Vec3)>,
 
-    /// Counter for frames skipped due to backpressure
-    skipped_due_to_backpressure: u64,
+    /// Pre-allocated buffer for node IDs (reused every frame to avoid 60Hz allocations)
+    node_id_buffer: Vec<u32>,
 }
 
 impl ForceComputeActor {
@@ -109,6 +110,17 @@ impl ForceComputeActor {
             delta_threshold: 0.01, // 1cm movement threshold
             enable_spatial_culling: false, // Disabled by default, can be enabled via API
             camera_bounds: None,
+        };
+
+        // Initialize network backpressure with token bucket
+        let backpressure_config = BackpressureConfig {
+            max_tokens: 100,
+            initial_tokens: 100,
+            refill_rate_per_sec: 30.0, // Match target broadcast rate
+            broadcast_cost: 1,
+            ack_restore_tokens: 1,
+            enable_time_refill: true,
+            log_interval_frames: 60,
         };
 
         Self {
@@ -128,382 +140,12 @@ impl ForceComputeActor {
             cached_constraint_buffer: Vec::new(),
             semantic_forces_addr: None,
             broadcast_optimizer: BroadcastOptimizer::new(broadcast_config),
-            broadcast_credits: std::sync::atomic::AtomicU32::new(100),
-            max_credits: 100,
-            skipped_due_to_backpressure: 0,
+            backpressure: NetworkBackpressure::new(backpressure_config),
+            position_velocity_buffer: Vec::with_capacity(10000),
+            node_id_buffer: Vec::with_capacity(10000),
         }
     }
 
-    
-    fn perform_force_computation(&mut self) -> Result<(), String> {
-        
-        if self.gpu_state.is_gpu_overloaded() {
-            self.skipped_frames += 1;
-            if self.skipped_frames % 60 == 0 {
-                info!("ForceComputeActor: Skipped {} frames due to GPU overload (utilization: {:.1}%, concurrent ops: {})",
-                      self.skipped_frames, self.gpu_state.get_average_utilization(), self.gpu_state.concurrent_access_count);
-            }
-            return Ok(()); 
-        }
-
-        
-        if self.is_computing {
-            self.skipped_frames += 1;
-            if self.skipped_frames % 60 == 0 {
-                info!(
-                    "ForceComputeActor: Skipped {} frames due to ongoing GPU computation",
-                    self.skipped_frames
-                );
-            }
-            return Ok(()); 
-        }
-
-        self.is_computing = true;
-
-        
-        self.gpu_state
-            .start_operation(GPUOperation::ForceComputation);
-
-        
-        let step_start = Instant::now();
-        let correlation_id = CorrelationId::new();
-        let iteration = self.iteration_count();
-
-        if iteration % 60 == 0 {
-            
-            info!(
-                "ForceComputeActor: Computing forces (iteration {}), nodes: {}",
-                iteration, self.gpu_state.num_nodes
-            );
-        }
-
-        
-        if let Some(logger) = get_telemetry_logger() {
-            let event = TelemetryEvent::new(
-                correlation_id.clone(),
-                LogLevel::DEBUG,
-                "gpu_compute",
-                "force_computation_start",
-                &format!(
-                    "Starting force computation iteration {} for {} nodes",
-                    iteration, self.gpu_state.num_nodes
-                ),
-                "force_compute_actor",
-            )
-            .with_metadata("iteration", serde_json::json!(iteration))
-            .with_metadata("node_count", serde_json::json!(self.gpu_state.num_nodes))
-            .with_metadata("edge_count", serde_json::json!(self.gpu_state.num_edges))
-            .with_metadata(
-                "compute_mode",
-                serde_json::json!(format!("{:?}", self.compute_mode)),
-            );
-
-            logger.log_event(event);
-        }
-
-        // Apply ontology constraints before acquiring shared context
-        // This avoids borrow conflicts since apply_ontology_forces needs mutable access
-        {
-            if let Err(e) = self.apply_ontology_forces() {
-                warn!("ForceComputeActor: Failed to apply ontology forces: {}", e);
-            }
-        }
-
-
-        let shared_context = match &self.shared_context {
-            Some(ctx) => ctx,
-            None => {
-                let error_msg = "GPU context not initialized".to_string();
-
-
-                if let Some(logger) = get_telemetry_logger() {
-                    let event = TelemetryEvent::new(
-                        correlation_id.clone(),
-                        LogLevel::ERROR,
-                        "gpu_compute",
-                        "context_not_initialized",
-                        &error_msg,
-                        "force_compute_actor",
-                    )
-                    .with_metadata("iteration", serde_json::json!(iteration));
-
-                    logger.log_event(event);
-                }
-
-                self.is_computing = false;
-                self.gpu_state
-                    .complete_operation(&GPUOperation::ForceComputation);
-                return Err(error_msg);
-            }
-        };
-
-
-
-        let _gpu_guard =
-            futures::executor::block_on(shared_context.acquire_gpu_access()).map_err(|e| {
-                let error_msg = format!("Failed to acquire GPU lock: {}", e);
-
-
-                if let Some(logger) = get_telemetry_logger() {
-                    let event = TelemetryEvent::new(
-                        correlation_id.clone(),
-                        LogLevel::ERROR,
-                        "gpu_compute",
-                        "exclusive_lock_acquisition_failed",
-                        &error_msg,
-                        "force_compute_actor",
-                    )
-                    .with_metadata("error_type", serde_json::json!("exclusive_lock_failed"))
-                    .with_metadata("iteration", serde_json::json!(iteration));
-
-                    logger.log_event(event);
-                }
-
-                self.is_computing = false;
-                self.gpu_state
-                    .complete_operation(&GPUOperation::ForceComputation);
-                error_msg
-            })?;
-
-        let mut unified_compute = shared_context.unified_compute.lock().map_err(|e| {
-            let error_msg = format!("Failed to acquire GPU compute lock: {}", e);
-
-
-            if let Some(logger) = get_telemetry_logger() {
-                let event = TelemetryEvent::new(
-                    correlation_id.clone(),
-                    LogLevel::ERROR,
-                    "gpu_compute",
-                    "lock_acquisition_failed",
-                    &error_msg,
-                    "force_compute_actor",
-                )
-                .with_metadata("error_type", serde_json::json!("mutex_lock_failed"))
-                .with_metadata("iteration", serde_json::json!(iteration));
-
-                logger.log_event(event);
-            }
-
-            self.is_computing = false;
-            self.gpu_state
-                .complete_operation(&GPUOperation::ForceComputation);
-            error_msg
-        })?;
-
-
-        let mut current_unified_params = self.unified_params.clone();
-        self.sync_simulation_to_unified_params(&mut current_unified_params);
-
-
-
-        let _sim_params_with_reheat = self.simulation_params.clone();
-        if self.reheat_factor > 0.0 {
-            info!(
-                "Reheating physics with factor {:.2} to break equilibrium after parameter change",
-                self.reheat_factor
-            );
-
-            self.stability_iterations = 0;
-
-
-        }
-
-        let sim_params = &self.simulation_params;
-        let gpu_result = unified_compute.execute_physics_step(sim_params);
-
-
-        if self.reheat_factor > 0.0 {
-            self.reheat_factor = 0.0;
-        }
-
-
-        self.stability_iterations += 1;
-
-        let execution_duration = step_start.elapsed().as_secs_f64() * 1000.0;
-        self.last_step_duration_ms = execution_duration as f32;
-
-        match gpu_result {
-            Ok(_) => {
-
-                let gpu_utilization = self.calculate_gpu_utilization(execution_duration);
-                self.gpu_state.record_utilization(gpu_utilization);
-
-
-                if let Err(e) = shared_context.update_utilization(gpu_utilization) {
-                    log::warn!("Failed to update shared GPU utilization metrics: {}", e);
-                }
-
-                
-                if let Some(logger) = get_telemetry_logger() {
-                    
-                    let gpu_memory_mb = (self.gpu_state.num_nodes as f32 * 48.0 +
-                                        self.gpu_state.num_edges as f32 * 24.0) / (1024.0 * 1024.0);
-
-                    logger.log_gpu_execution(
-                        "force_computation_kernel",
-                        self.gpu_state.num_nodes,
-                        execution_duration,
-                        gpu_memory_mb
-                    );
-
-                    
-                    if iteration % 300 == 0 { 
-                        let event = TelemetryEvent::new(
-                            correlation_id,
-                            LogLevel::TRACE,
-                            "position_tracking",
-                            "gpu_position_update",
-                            &format!("GPU force computation completed for {} nodes at iteration {} (utilization: {:.1}%)",
-                                   self.gpu_state.num_nodes, iteration, gpu_utilization),
-                            "force_compute_actor"
-                        )
-                        .with_metadata("execution_time_ms", serde_json::json!(execution_duration))
-                        .with_metadata("nodes_processed", serde_json::json!(self.gpu_state.num_nodes))
-                        .with_metadata("compute_mode", serde_json::json!(format!("{:?}", self.compute_mode)))
-                        .with_metadata("gpu_utilization_percent", serde_json::json!(gpu_utilization))
-                        .with_metadata("concurrent_ops", serde_json::json!(self.gpu_state.concurrent_access_count))
-                        .with_metadata("average_utilization", serde_json::json!(self.gpu_state.get_average_utilization()));
-
-                        logger.log_event(event);
-                    }
-                }
-
-
-                // Download positions from GPU and apply broadcast optimization
-                // The broadcast optimizer handles:
-                // - Adaptive broadcast frequency (25fps instead of 60fps)
-                // - Delta compression (only send nodes that moved > threshold)
-                // - Spatial culling (if enabled)
-
-                let positions_result = unified_compute.get_node_positions();
-                let velocities_result = unified_compute.get_node_velocities();
-
-                if let (Ok((pos_x, pos_y, pos_z)), Ok((vel_x, vel_y, vel_z))) =
-                    (positions_result, velocities_result) {
-
-                    // Prepare position/velocity data for optimizer
-                    let mut positions_velocities = Vec::with_capacity(pos_x.len());
-                    let mut node_ids = Vec::with_capacity(pos_x.len());
-
-                    for i in 0..pos_x.len() {
-                        let position = Vec3::new(pos_x[i], pos_y[i], pos_z[i]);
-                        let velocity = Vec3::new(vel_x[i], vel_y[i], vel_z[i]);
-                        positions_velocities.push((position, velocity));
-                        node_ids.push(i as u32);
-                    }
-
-                    // Apply broadcast optimization
-                    let (should_broadcast, filtered_indices) =
-                        self.broadcast_optimizer.process_frame(&positions_velocities, &node_ids);
-
-                    if should_broadcast && !filtered_indices.is_empty() {
-                        // Credit-based backpressure check
-                        use std::sync::atomic::Ordering;
-                        let available_credits = self.broadcast_credits.load(Ordering::Acquire);
-
-                        if available_credits > 0 {
-                            // Consume a credit for this broadcast
-                            self.broadcast_credits.fetch_sub(1, Ordering::Release);
-
-                            // Build node updates for only the filtered indices
-                            let mut node_updates = Vec::with_capacity(filtered_indices.len());
-                            for &idx in &filtered_indices {
-                                let node_id = node_ids[idx];
-                                let (position, velocity) = positions_velocities[idx];
-
-                                node_updates.push((node_id, BinaryNodeDataClient::new(
-                                    node_id,
-                                    glam_to_vec3data(position),
-                                    glam_to_vec3data(velocity),
-                                )));
-                            }
-
-                            if let Some(ref graph_addr) = self.graph_service_addr {
-                                graph_addr.do_send(crate::actors::messages::UpdateNodePositions {
-                                    positions: node_updates,
-                                    correlation_id: None, // Backpressure uses credit system, not per-message tracking
-                                });
-
-                                // Log bandwidth savings every 5 seconds
-                                if iteration % 300 == 0 {
-                                    let stats = self.broadcast_optimizer.get_performance_stats();
-                                    info!("ForceComputeActor: Broadcast stats - Total nodes: {}, Sent: {}, Reduction: {:.1}%, Credits: {}/{}",
-                                          pos_x.len(), filtered_indices.len(), stats.average_bandwidth_reduction,
-                                          available_credits - 1, self.max_credits);
-                                }
-                            } else if iteration % 60 == 0 {
-                                log::warn!("ForceComputeActor: No GraphServiceActor address - positions not being sent to clients!");
-                            }
-                        } else {
-                            // No credits available - backpressure active
-                            self.skipped_due_to_backpressure += 1;
-                            if self.skipped_due_to_backpressure % 60 == 0 {
-                                warn!("ForceComputeActor: Backpressure active - skipped {} broadcasts (network congestion)",
-                                      self.skipped_due_to_backpressure);
-                            }
-                        }
-                    } else if should_broadcast && iteration % 300 == 0 {
-                        // Log when no updates needed (high compression)
-                        debug!("ForceComputeActor: No position updates needed (all nodes stable)");
-                    }
-                } else {
-                    error!("ForceComputeActor: Failed to download positions/velocities from GPU");
-                }
-
-                Ok(())
-            },
-            Err(e) => {
-                let error_msg = format!("GPU force computation failed: {}", e);
-
-                
-                if let Some(logger) = get_telemetry_logger() {
-                    let event = TelemetryEvent::new(
-                        correlation_id,
-                        LogLevel::ERROR,
-                        "gpu_compute",
-                        "force_computation_failed",
-                        &error_msg,
-                        "force_compute_actor"
-                    )
-                    .with_gpu_info("force_computation_kernel", execution_duration, 0.0)
-                    .with_metadata("iteration", serde_json::json!(iteration))
-                    .with_metadata("node_count", serde_json::json!(self.gpu_state.num_nodes))
-                    .with_metadata("error_message", serde_json::json!(e.to_string()));
-
-                    logger.log_event(event);
-                }
-
-                self.is_computing = false; 
-                Err(error_msg)
-            }
-        }
-            .map_err(|e| {
-                error!("GPU force computation failed: {}", e);
-                self.gpu_state.gpu_failure_count += 1;
-                self.is_computing = false; 
-                format!("Force computation failed: {}", e)
-            })?;
-
-        
-        self.gpu_state.iteration_count += 1;
-
-        
-        self.last_step_duration_ms = step_start.elapsed().as_millis() as f32;
-
-        
-        if self.iteration_count() % 300 == 0 {
-            
-            info!("ForceComputeActor: {} iterations completed, {} GPU failures, {} skipped frames, last step: {:.2}ms",
-                  self.iteration_count(), self.gpu_state.gpu_failure_count, self.skipped_frames, self.last_step_duration_ms);
-        }
-
-        
-        self.is_computing = false;
-
-        Ok(())
-    }
-
-    
     fn sync_simulation_to_unified_params(&self, unified_params: &mut SimParams) {
         
         unified_params.spring_k = self.simulation_params.spring_k;
@@ -788,10 +430,238 @@ impl Actor for ForceComputeActor {
 // === Message Handlers ===
 
 impl Handler<ComputeForces> for ForceComputeActor {
-    type Result = Result<(), String>;
+    type Result = ResponseActFuture<Self, Result<(), String>>;
 
     fn handle(&mut self, _msg: ComputeForces, _ctx: &mut Self::Context) -> Self::Result {
-        self.perform_force_computation()
+        // Early checks that don't need async
+        if self.gpu_state.is_gpu_overloaded() {
+            self.skipped_frames += 1;
+            if self.skipped_frames % 60 == 0 {
+                info!("ForceComputeActor: Skipped {} frames due to GPU overload (utilization: {:.1}%, concurrent ops: {})",
+                      self.skipped_frames, self.gpu_state.get_average_utilization(), self.gpu_state.concurrent_access_count);
+            }
+            return Box::pin(futures::future::ready(Ok(())).into_actor(self));
+        }
+
+        if self.is_computing {
+            self.skipped_frames += 1;
+            if self.skipped_frames % 60 == 0 {
+                info!(
+                    "ForceComputeActor: Skipped {} frames due to ongoing GPU computation",
+                    self.skipped_frames
+                );
+            }
+            return Box::pin(futures::future::ready(Ok(())).into_actor(self));
+        }
+
+        // Check for shared context
+        let shared_context = match &self.shared_context {
+            Some(ctx) => ctx.clone(),
+            None => {
+                let error_msg = "GPU context not initialized".to_string();
+                return Box::pin(futures::future::ready(Err(error_msg)).into_actor(self));
+            }
+        };
+
+        self.is_computing = true;
+        self.gpu_state.start_operation(GPUOperation::ForceComputation);
+
+        // Apply ontology forces before async GPU access
+        if let Err(e) = self.apply_ontology_forces() {
+            warn!("ForceComputeActor: Failed to apply ontology forces: {}", e);
+        }
+
+        let step_start = Instant::now();
+        let correlation_id = CorrelationId::new();
+        let iteration = self.iteration_count();
+
+        if iteration % 60 == 0 {
+            info!(
+                "ForceComputeActor: Computing forces (iteration {}), nodes: {}",
+                iteration, self.gpu_state.num_nodes
+            );
+        }
+
+        // Log telemetry event
+        if let Some(logger) = get_telemetry_logger() {
+            let event = TelemetryEvent::new(
+                correlation_id.clone(),
+                LogLevel::DEBUG,
+                "gpu_compute",
+                "force_computation_start",
+                &format!(
+                    "Starting force computation iteration {} for {} nodes",
+                    iteration, self.gpu_state.num_nodes
+                ),
+                "force_compute_actor",
+            )
+            .with_metadata("iteration", serde_json::json!(iteration))
+            .with_metadata("node_count", serde_json::json!(self.gpu_state.num_nodes))
+            .with_metadata("edge_count", serde_json::json!(self.gpu_state.num_edges))
+            .with_metadata(
+                "compute_mode",
+                serde_json::json!(format!("{:?}", self.compute_mode)),
+            );
+
+            logger.log_event(event);
+        }
+
+        // Capture values needed for async block
+        let sim_params = self.simulation_params.clone();
+        let reheat_factor = self.reheat_factor;
+
+        // Use async pattern instead of blocking
+        let fut = async move {
+            // Acquire GPU access asynchronously
+            let _gpu_guard = match shared_context.acquire_gpu_access().await {
+                Ok(guard) => guard,
+                Err(e) => {
+                    let error_msg = format!("Failed to acquire GPU lock: {}", e);
+                    return Err(error_msg);
+                }
+            };
+
+            // Now perform the actual GPU computation
+            let unified_compute_result = shared_context.unified_compute.lock();
+            let mut unified_compute = match unified_compute_result {
+                Ok(guard) => guard,
+                Err(e) => {
+                    return Err(format!("Failed to acquire GPU compute lock: {}", e));
+                }
+            };
+
+            if reheat_factor > 0.0 {
+                info!(
+                    "Reheating physics with factor {:.2} to break equilibrium after parameter change",
+                    reheat_factor
+                );
+            }
+
+            let gpu_result = unified_compute.execute_physics_step(&sim_params);
+            let execution_duration = step_start.elapsed().as_secs_f64() * 1000.0;
+
+            // Get positions and velocities for broadcast
+            let positions_result = unified_compute.get_node_positions();
+            let velocities_result = unified_compute.get_node_velocities();
+
+            // Return results for processing in actor context
+            Ok((gpu_result, execution_duration, positions_result, velocities_result, correlation_id, iteration, step_start))
+        };
+
+        Box::pin(fut.into_actor(self).map(move |result, actor, _ctx| {
+            match result {
+                Ok((gpu_result, execution_duration, positions_result, velocities_result, _correlation_id, _iteration, step_start)) => {
+                    // Reset reheat factor
+                    if actor.reheat_factor > 0.0 {
+                        actor.reheat_factor = 0.0;
+                    }
+                    actor.stability_iterations += 1;
+                    actor.last_step_duration_ms = execution_duration as f32;
+
+                    match gpu_result {
+                        Ok(_) => {
+                            let gpu_utilization = actor.calculate_gpu_utilization(execution_duration);
+                            actor.gpu_state.record_utilization(gpu_utilization);
+
+                            if let Some(ctx) = &actor.shared_context {
+                                if let Err(e) = ctx.update_utilization(gpu_utilization) {
+                                    log::warn!("Failed to update shared GPU utilization metrics: {}", e);
+                                }
+                            }
+
+                            // Log telemetry
+                            if let Some(logger) = get_telemetry_logger() {
+                                let gpu_memory_mb = (actor.gpu_state.num_nodes as f32 * 48.0 +
+                                                    actor.gpu_state.num_edges as f32 * 24.0) / (1024.0 * 1024.0);
+
+                                logger.log_gpu_execution(
+                                    "force_computation_kernel",
+                                    actor.gpu_state.num_nodes,
+                                    execution_duration,
+                                    gpu_memory_mb
+                                );
+                            }
+
+                            // Process positions for broadcast
+                            if let (Ok((pos_x, pos_y, pos_z)), Ok((vel_x, vel_y, vel_z))) =
+                                (positions_result, velocities_result) {
+
+                                // Reuse pre-allocated buffers to avoid 60Hz allocations
+                                actor.position_velocity_buffer.clear();
+                                actor.node_id_buffer.clear();
+
+                                // Reserve capacity if graph grew beyond initial allocation
+                                if pos_x.len() > actor.position_velocity_buffer.capacity() {
+                                    actor.position_velocity_buffer.reserve(pos_x.len() - actor.position_velocity_buffer.capacity());
+                                    actor.node_id_buffer.reserve(pos_x.len() - actor.node_id_buffer.capacity());
+                                }
+
+                                for i in 0..pos_x.len() {
+                                    let position = Vec3::new(pos_x[i], pos_y[i], pos_z[i]);
+                                    let velocity = Vec3::new(vel_x[i], vel_y[i], vel_z[i]);
+                                    actor.position_velocity_buffer.push((position, velocity));
+                                    actor.node_id_buffer.push(i as u32);
+                                }
+
+                                let (should_broadcast, filtered_indices) =
+                                    actor.broadcast_optimizer.process_frame(&actor.position_velocity_buffer, &actor.node_id_buffer);
+
+                                if should_broadcast && !filtered_indices.is_empty() {
+                                    if let Some(_sequence_id) = actor.backpressure.try_acquire() {
+                                        let mut node_updates = Vec::with_capacity(filtered_indices.len());
+                                        for &idx in &filtered_indices {
+                                            let node_id = actor.node_id_buffer[idx];
+                                            let (position, velocity) = actor.position_velocity_buffer[idx];
+
+                                            node_updates.push((node_id, BinaryNodeDataClient::new(
+                                                node_id,
+                                                glam_to_vec3data(position),
+                                                glam_to_vec3data(velocity),
+                                            )));
+                                        }
+
+                                        if let Some(ref graph_addr) = actor.graph_service_addr {
+                                            graph_addr.do_send(crate::actors::messages::UpdateNodePositions {
+                                                positions: node_updates,
+                                                correlation_id: Some(crate::actors::messaging::MessageId::new()),
+                                            });
+                                        }
+                                    } else {
+                                        actor.backpressure.record_skip();
+                                    }
+                                }
+                            }
+
+                            actor.gpu_state.iteration_count += 1;
+                            actor.last_step_duration_ms = step_start.elapsed().as_millis() as f32;
+
+                            if actor.iteration_count() % 300 == 0 {
+                                info!("ForceComputeActor: {} iterations completed, {} GPU failures, {} skipped frames, last step: {:.2}ms",
+                                      actor.iteration_count(), actor.gpu_state.gpu_failure_count, actor.skipped_frames, actor.last_step_duration_ms);
+                            }
+
+                            actor.is_computing = false;
+                            actor.gpu_state.complete_operation(&GPUOperation::ForceComputation);
+                            Ok(())
+                        }
+                        Err(e) => {
+                            let error_msg = format!("GPU force computation failed: {}", e);
+                            error!("{}", error_msg);
+                            actor.gpu_state.gpu_failure_count += 1;
+                            actor.is_computing = false;
+                            actor.gpu_state.complete_operation(&GPUOperation::ForceComputation);
+                            Err(error_msg)
+                        }
+                    }
+                }
+                Err(e) => {
+                    error!("GPU access failed: {}", e);
+                    actor.is_computing = false;
+                    actor.gpu_state.complete_operation(&GPUOperation::ForceComputation);
+                    Err(e)
+                }
+            }
+        }))
     }
 }
 
@@ -1355,26 +1225,25 @@ impl Handler<crate::actors::messages::GetBroadcastStats> for ForceComputeActor {
 }
 
 // =============================================================================
-// Phase 5: GPU Backpressure - Credit-based Flow Control Handler
+// Phase 5: GPU Backpressure - Token Bucket Flow Control Handler
 // =============================================================================
 
-/// Handler for PositionBroadcastAck - replenishes broadcast credits when network confirms delivery
-/// This implements credit-based flow control between GPU producer and network consumer
+/// Handler for PositionBroadcastAck - replenishes tokens when network confirms delivery
+/// This implements token bucket flow control between GPU producer and network consumer
 impl Handler<crate::actors::messages::PositionBroadcastAck> for ForceComputeActor {
     type Result = ();
 
     fn handle(&mut self, msg: crate::actors::messages::PositionBroadcastAck, _ctx: &mut Self::Context) -> Self::Result {
-        use std::sync::atomic::Ordering;
+        // Acknowledge to backpressure controller - this restores tokens
+        self.backpressure.acknowledge(msg.clients_delivered as usize);
 
-        // Replenish credit (up to max_credits)
-        let current = self.broadcast_credits.load(Ordering::Acquire);
-        let new_credits = (current + 1).min(self.max_credits);
-        self.broadcast_credits.store(new_credits, Ordering::Release);
-
-        // Log credit restoration at debug level (every 300 acks to avoid spam)
+        // Log token restoration at debug level (every 300 acks to avoid spam)
         if msg.correlation_id % 300 == 0 {
-            debug!("ForceComputeActor: Broadcast ack received (correlation_id: {}, clients: {}), credits: {}/{}",
-                   msg.correlation_id, msg.clients_delivered, new_credits, self.max_credits);
+            let metrics = self.backpressure.metrics();
+            debug!("ForceComputeActor: Broadcast ack received (correlation_id: {}, clients: {}), tokens: {}/{}, congestion: {:.1}ms",
+                   msg.correlation_id, msg.clients_delivered,
+                   metrics.available_tokens, metrics.max_tokens,
+                   metrics.total_congestion_duration.as_secs_f32() * 1000.0);
         }
     }
 }

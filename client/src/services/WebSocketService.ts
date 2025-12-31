@@ -110,6 +110,12 @@ class WebSocketService {
   private positionBatchQueue: NodePositionBatchQueue | null = null;
   private binaryMessageCount: number = 0;
 
+  // Backpressure flow control - client-side sequence tracking
+  // Used to send ACKs back to server after processing position updates
+  private positionUpdateSequence: number = 0;
+  private lastAckSentSequence: number = 0;
+  private ackBatchSize: number = 10; // Send ACK every N position updates
+
   // JSS/Solid WebSocket for notifications (solid-0.1 protocol)
   private solidSocket: WebSocket | null = null;
   private solidSubscriptions: Map<string, Set<SolidNotificationCallback>> = new Map();
@@ -596,6 +602,8 @@ class WebSocketService {
   private async handlePositionUpdate(data: ArrayBuffer, header: any): Promise<void> {
     const payload = binaryProtocol.extractPayload(data, header);
 
+    // Estimate node count from payload (48 bytes per node in Protocol V3)
+    const estimatedNodeCount = Math.floor(payload.byteLength / 48);
 
     const hasBotsData = this.detectBotsData(payload);
 
@@ -632,9 +640,40 @@ class WebSocketService {
         logger.debug('Skipping position data processing - not a Logseq graph');
       }
     }
+
+    // Send backpressure ACK to server after processing position update
+    // Batched to reduce ACK traffic (every ackBatchSize updates)
+    this.positionUpdateSequence++;
+    if (this.positionUpdateSequence - this.lastAckSentSequence >= this.ackBatchSize) {
+      this.sendPositionAck(this.positionUpdateSequence, estimatedNodeCount);
+      this.lastAckSentSequence = this.positionUpdateSequence;
+    }
+  }
+
+  /**
+   * Send backpressure acknowledgement to server after processing position updates
+   * This enables true end-to-end flow control vs queue-only confirmation
+   */
+  private sendPositionAck(sequenceId: number, nodesReceived: number): void {
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+      return;
+    }
+
+    try {
+      const ackMessage = binaryProtocol.createBroadcastAck(sequenceId, nodesReceived);
+      this.socket.send(ackMessage);
+
+      if (debugState.isDataDebugEnabled() && sequenceId % 100 === 0) {
+        logger.debug(`Sent BroadcastAck: seq=${sequenceId}, nodes=${nodesReceived}`);
+      }
+    } catch (error) {
+      logger.error('Error sending position ACK:', createErrorMetadata(error));
+    }
   }
 
   private async handleLegacyBinaryData(data: ArrayBuffer): Promise<void> {
+    // Estimate node count from data (28 bytes per node in legacy format)
+    const estimatedNodeCount = Math.floor(data.byteLength / 28);
 
     const hasBotsData = this.detectBotsData(data);
 
@@ -661,6 +700,13 @@ class WebSocketService {
       } catch (error) {
         logger.error('Error processing legacy binary data:', createErrorMetadata(error));
       }
+    }
+
+    // Send backpressure ACK to server after processing (same as handlePositionUpdate)
+    this.positionUpdateSequence++;
+    if (this.positionUpdateSequence - this.lastAckSentSequence >= this.ackBatchSize) {
+      this.sendPositionAck(this.positionUpdateSequence, estimatedNodeCount);
+      this.lastAckSentSequence = this.positionUpdateSequence;
     }
   }
 

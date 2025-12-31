@@ -20,6 +20,7 @@ use crate::services::ontology_reasoner::OntologyReasoner;
 use crate::services::edge_classifier::EdgeClassifier;
 use crate::services::ontology_pipeline_service::OntologyPipelineService;
 use crate::adapters::whelk_inference_engine::WhelkInferenceEngine;
+use futures::stream::{FuturesUnordered, StreamExt};
 use log::{debug, error, info, warn};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -182,7 +183,10 @@ impl GitHubSyncService {
         Ok(stats)
     }
 
-    /// Process a batch of files
+    /// Process a batch of files with parallel content fetching
+    ///
+    /// Uses FuturesUnordered to fetch file contents in parallel (the main I/O bottleneck)
+    /// while processing/parsing sequentially to maintain state consistency.
     async fn process_batch(
         &self,
         files: &[GitHubFileBasicMetadata],
@@ -192,29 +196,75 @@ impl GitHubSyncService {
         let mut batch_edges = std::collections::HashMap::new();
         let mut public_pages = std::collections::HashSet::new();
 
-        info!("🔍 [DEBUG] Starting batch with {} files", files.len());
+        info!("🔍 [DEBUG] Starting batch with {} files (parallel fetch)", files.len());
 
-        // Process each file
-        for (idx, file) in files.iter().enumerate() {
+        // Phase 1: Fetch all file contents in parallel
+        const PARALLEL_FETCHES: usize = 8;
+
+        // Helper to create fetch future with consistent type
+        fn create_fetch_future(
+            content_api: Arc<EnhancedContentAPI>,
+            file: GitHubFileBasicMetadata,
+        ) -> std::pin::Pin<Box<dyn std::future::Future<Output = (GitHubFileBasicMetadata, Result<String, String>)> + Send>> {
+            let download_url = file.download_url.clone();
+            Box::pin(async move {
+                let result = content_api.fetch_file_content(&download_url).await
+                    .map_err(|e| format!("Failed to fetch content: {}", e));
+                (file, result)
+            })
+        }
+
+        let mut fetch_futures: FuturesUnordered<_> = FuturesUnordered::new();
+        let mut fetched_contents: Vec<(GitHubFileBasicMetadata, Result<String, String>)> = Vec::with_capacity(files.len());
+        let mut file_iter = files.iter().cloned().peekable();
+
+        // Seed initial batch of parallel fetches
+        while fetch_futures.len() < PARALLEL_FETCHES {
+            if let Some(file) = file_iter.next() {
+                fetch_futures.push(create_fetch_future(Arc::clone(&self.content_api), file));
+            } else {
+                break;
+            }
+        }
+
+        // Collect all fetched contents
+        while let Some((file, content_result)) = fetch_futures.next().await {
+            fetched_contents.push((file, content_result));
+
+            // Add next file to maintain parallelism
+            if let Some(file) = file_iter.next() {
+                fetch_futures.push(create_fetch_future(Arc::clone(&self.content_api), file));
+            }
+        }
+
+        info!("🔍 [DEBUG] Fetched {} files, now processing", fetched_contents.len());
+
+        // Phase 2: Process fetched contents sequentially (modifies shared state)
+        for (idx, (file, content_result)) in fetched_contents.into_iter().enumerate() {
             if idx % 10 == 0 && idx > 0 {
                 info!("  Progress: {}/{} files in batch (nodes so far: {}, edges: {})",
                     idx, files.len(), batch_nodes.len(), batch_edges.len());
             }
 
-            match self.process_single_file(file, &mut batch_nodes, &mut batch_edges, &mut public_pages).await {
-                Ok(()) => {
-                    stats.kg_files_processed += 1;
-                    debug!("✓ Processed {}: {} nodes total, {} edges total",
-                        file.name, batch_nodes.len(), batch_edges.len());
+            match content_result {
+                Ok(content) => {
+                    match self.process_fetched_file(&file, &content, &mut batch_nodes, &mut batch_edges, &mut public_pages).await {
+                        Ok(()) => {
+                            stats.kg_files_processed += 1;
+                            debug!("✓ Processed {}: {} nodes total, {} edges total",
+                                file.name, batch_nodes.len(), batch_edges.len());
+                        }
+                        Err(e) => {
+                            warn!("Error processing {}: {}", file.name, e);
+                            stats.errors.push(format!("{}: {}", file.name, e));
+                        }
+                    }
                 }
                 Err(e) => {
-                    warn!("Error processing {}: {}", file.name, e);
+                    warn!("Error fetching {}: {}", file.name, e);
                     stats.errors.push(format!("{}: {}", file.name, e));
                 }
             }
-
-            // Rate limiting
-            tokio::time::sleep(Duration::from_millis(50)).await;
         }
 
         info!("🔍 [DEBUG] After processing: {} nodes, {} edges, {} public_pages",
@@ -262,7 +312,8 @@ impl GitHubSyncService {
         Ok(())
     }
 
-    /// Process a single file
+    /// Process a single file (fetches content internally)
+    #[allow(dead_code)]
     async fn process_single_file(
         &self,
         file: &GitHubFileBasicMetadata,
@@ -270,15 +321,26 @@ impl GitHubSyncService {
         edges: &mut std::collections::HashMap<String, crate::models::edge::Edge>,
         public_pages: &mut std::collections::HashSet<String>,
     ) -> Result<(), String> {
-        debug!("🔍 Processing file: {}", file.name);
-
         // Fetch content
         let content = self.content_api
             .fetch_file_content(&file.download_url)
             .await
             .map_err(|e| format!("Failed to fetch content: {}", e))?;
 
-        debug!("🔍 Fetched {} bytes for {}", content.len(), file.name);
+        self.process_fetched_file(file, &content, nodes, edges, public_pages).await
+    }
+
+    /// Process a file with pre-fetched content (used by parallel batch processing)
+    async fn process_fetched_file(
+        &self,
+        file: &GitHubFileBasicMetadata,
+        content: &str,
+        nodes: &mut std::collections::HashMap<u32, crate::models::node::Node>,
+        edges: &mut std::collections::HashMap<String, crate::models::edge::Edge>,
+        public_pages: &mut std::collections::HashSet<String>,
+    ) -> Result<(), String> {
+        debug!("🔍 Processing file: {}", file.name);
+        debug!("🔍 Content size: {} bytes for {}", content.len(), file.name);
 
         // Detect file type
         let file_type = self.detect_file_type(&content);

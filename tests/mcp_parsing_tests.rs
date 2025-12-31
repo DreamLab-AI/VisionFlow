@@ -1,7 +1,7 @@
 // Test file for MCP response parsing functionality
 // This tests the type-safe JSON parsing to eliminate brittle double-parsing
 
-use ext::types::mcp_responses::*;
+use webxr::types::mcp_responses::*;
 use serde_json::{json, Value};
 
 #[cfg(test)]

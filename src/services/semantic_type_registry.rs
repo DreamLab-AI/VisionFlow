@@ -2,6 +2,19 @@
 //!
 //! Dynamic registry for ontology relationship types that decouples ontology from code.
 //! Eliminates hard-coded edge_type_to_int mappings and enables runtime type registration.
+//!
+//! ## Schema-Code Decoupling
+//!
+//! This registry enables adding new relationship types (e.g., ngm:requires, ngm:enables)
+//! without requiring CUDA recompilation. The workflow is:
+//!
+//! 1. Register new relationship type with `registry.register("ngm:new-type", config)`
+//! 2. Build GPU buffer with `registry.build_dynamic_gpu_buffer()`
+//! 3. Upload to GPU with `set_dynamic_relationship_buffer(buffer.as_ptr(), count, true)`
+//! 4. GPU kernel uses lookup table instead of switch statement
+//!
+//! Hot-reload is supported: call `update_dynamic_relationship_config` to update
+//! individual types without full buffer re-upload.
 
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU32, Ordering};
@@ -11,14 +24,55 @@ use std::sync::RwLock;
 #[derive(Clone, Copy, Debug)]
 #[repr(C)]
 pub struct RelationshipForceConfig {
-    /// Spring strength (0.0 - 1.0)
+    /// Spring strength (0.0 - 1.0, can be negative for repulsion)
     pub strength: f32,
     /// Rest length for spring calculations
     pub rest_length: f32,
     /// Whether the force is directional (source → target only)
     pub is_directional: bool,
-    /// Force type identifier for GPU kernel dispatch
+    /// Force type identifier for GPU kernel dispatch:
+    /// - 0: Standard spring force
+    /// - 1: Orbit clustering (has-part)
+    /// - 2: Cross-domain long-range spring
+    /// - 3: Repulsion force
     pub force_type: u32,
+}
+
+/// GPU-compatible dynamic force configuration
+/// Matches the DynamicForceConfig struct in semantic_forces.cu
+#[derive(Clone, Copy, Debug)]
+#[repr(C)]
+pub struct DynamicForceConfigGPU {
+    /// Spring strength (can be negative for repulsion)
+    pub strength: f32,
+    /// Rest length for spring calculations
+    pub rest_length: f32,
+    /// 1 = directional (source → target), 0 = bidirectional
+    pub is_directional: i32,
+    /// Force behavior type (0=spring, 1=orbit, 2=cross-domain, 3=repulsion)
+    pub force_type: u32,
+}
+
+impl Default for DynamicForceConfigGPU {
+    fn default() -> Self {
+        Self {
+            strength: 0.5,
+            rest_length: 100.0,
+            is_directional: 0,
+            force_type: 0,
+        }
+    }
+}
+
+impl From<&RelationshipForceConfig> for DynamicForceConfigGPU {
+    fn from(config: &RelationshipForceConfig) -> Self {
+        Self {
+            strength: config.strength,
+            rest_length: config.rest_length,
+            is_directional: if config.is_directional { 1 } else { 0 },
+            force_type: config.force_type,
+        }
+    }
 }
 
 impl Default for RelationshipForceConfig {
@@ -293,6 +347,19 @@ impl SemanticTypeRegistry {
     pub fn build_gpu_buffer(&self) -> Vec<RelationshipForceConfig> {
         let configs = self.id_to_config.read().unwrap();
         configs.clone()
+    }
+
+    /// Build a GPU buffer with the proper C-compatible struct layout
+    /// for the dynamic relationship system in semantic_forces.cu
+    pub fn build_dynamic_gpu_buffer(&self) -> Vec<DynamicForceConfigGPU> {
+        let configs = self.id_to_config.read().unwrap();
+        configs.iter().map(|c| DynamicForceConfigGPU::from(c)).collect()
+    }
+
+    /// Get the buffer version (incremented on each registration/update)
+    /// Useful for hot-reload detection
+    pub fn version(&self) -> u32 {
+        self.next_id.load(Ordering::SeqCst)
     }
 
     /// Get the number of registered relationship types

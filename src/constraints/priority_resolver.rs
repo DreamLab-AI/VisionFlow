@@ -284,14 +284,10 @@ impl PriorityResolver {
             }
 
             PhysicsConstraintType::Containment { .. } => {
-                
-                Some(
-                    constraints
-                        .iter()
-                        .min_by_key(|c| c.priority)
-                        .unwrap()
-                        .clone(),
-                )
+                constraints
+                    .iter()
+                    .min_by_key(|c| c.priority)
+                    .map(|c| (*c).clone())
             }
         }
     }

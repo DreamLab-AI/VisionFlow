@@ -17,17 +17,42 @@ const logger = createLogger('SolidPodService');
 
 // --- Interfaces ---
 
+/**
+ * Pod directory structure matching backend PodStructure
+ */
+export interface PodStructure {
+  profile: string;
+  ontology_contributions: string;
+  ontology_proposals: string;
+  ontology_annotations: string;
+  preferences: string;
+  inbox: string;
+}
+
 export interface PodInfo {
   exists: boolean;
   podUrl?: string;
   webId?: string;
   suggestedUrl?: string;
+  structure?: PodStructure;
 }
 
 export interface PodCreationResult {
   success: boolean;
   podUrl?: string;
   webId?: string;
+  created?: boolean;
+  structure?: PodStructure;
+  error?: string;
+}
+
+export interface PodInitResult {
+  success: boolean;
+  podUrl?: string;
+  webId?: string;
+  created: boolean;
+  structure?: PodStructure;
+  npub?: string;
   error?: string;
 }
 
@@ -133,7 +158,263 @@ class SolidPodService {
     return info.podUrl || null;
   }
 
+  /**
+   * Initialize pod for the current user (auto-provision if needed)
+   * Call this on user login to ensure their pod exists with full structure
+   */
+  public async initPod(): Promise<PodInitResult> {
+    try {
+      const response = await this.fetchWithAuth(`${JSS_BASE_URL}/pods/init`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Initialization failed' }));
+        return {
+          success: false,
+          created: false,
+          error: error.error || 'Pod initialization failed',
+        };
+      }
+
+      const result = await response.json();
+      logger.info('Pod initialized', {
+        podUrl: result.pod_url,
+        created: result.created,
+      });
+
+      return {
+        success: true,
+        podUrl: result.pod_url,
+        webId: result.webid,
+        created: result.created,
+        structure: result.structure,
+      };
+    } catch (error) {
+      logger.error('Failed to initialize pod', { error });
+      return {
+        success: false,
+        created: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  /**
+   * Ensure user's pod exists, creating if necessary
+   * Convenience wrapper that checks and creates in one call
+   */
+  public async ensurePodExists(): Promise<PodInitResult> {
+    return this.initPod();
+  }
+
+  /**
+   * Get the structure of the user's pod (directory URLs)
+   */
+  public async getPodStructure(): Promise<PodStructure | null> {
+    const result = await this.initPod();
+    return result.structure || null;
+  }
+
+  /**
+   * Store a preference in the user's preferences container
+   */
+  public async setPreference(key: string, value: unknown): Promise<boolean> {
+    const structure = await this.getPodStructure();
+    if (!structure) {
+      logger.error('Cannot set preference: pod not initialized');
+      return false;
+    }
+
+    const prefPath = `${structure.preferences}${key}.jsonld`;
+    return this.putResource(prefPath, {
+      '@context': 'https://www.w3.org/ns/ldp',
+      '@type': 'Preference',
+      key,
+      value,
+      modified: new Date().toISOString(),
+    });
+  }
+
+  /**
+   * Get a preference from the user's preferences container
+   */
+  public async getPreference(key: string): Promise<unknown | null> {
+    const structure = await this.getPodStructure();
+    if (!structure) {
+      logger.error('Cannot get preference: pod not initialized');
+      return null;
+    }
+
+    try {
+      const prefPath = `${structure.preferences}${key}.jsonld`;
+      const doc = await this.fetchJsonLd(prefPath);
+      return (doc as { value?: unknown }).value ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Submit an ontology contribution to the user's pod
+   */
+  public async submitOntologyContribution(contribution: {
+    title: string;
+    description: string;
+    changes: unknown;
+  }): Promise<string | null> {
+    const structure = await this.getPodStructure();
+    if (!structure) {
+      logger.error('Cannot submit contribution: pod not initialized');
+      return null;
+    }
+
+    const slug = `contrib-${Date.now()}`;
+    return this.postResource(structure.ontology_contributions, {
+      '@context': {
+        '@vocab': 'https://narrativegoldmine.com/ontology#',
+        schema: 'https://schema.org/',
+      },
+      '@type': 'OntologyContribution',
+      'schema:name': contribution.title,
+      'schema:description': contribution.description,
+      changes: contribution.changes,
+      status: 'draft',
+      'schema:dateCreated': new Date().toISOString(),
+    }, slug);
+  }
+
+  /**
+   * Submit an ontology proposal for review
+   */
+  public async submitOntologyProposal(proposal: {
+    title: string;
+    description: string;
+    contributionUrl: string;
+  }): Promise<string | null> {
+    const structure = await this.getPodStructure();
+    if (!structure) {
+      logger.error('Cannot submit proposal: pod not initialized');
+      return null;
+    }
+
+    const slug = `proposal-${Date.now()}`;
+    return this.postResource(structure.ontology_proposals, {
+      '@context': {
+        '@vocab': 'https://narrativegoldmine.com/ontology#',
+        schema: 'https://schema.org/',
+      },
+      '@type': 'OntologyProposal',
+      'schema:name': proposal.title,
+      'schema:description': proposal.description,
+      contribution: proposal.contributionUrl,
+      status: 'pending',
+      'schema:dateCreated': new Date().toISOString(),
+    }, slug);
+  }
+
+  // --- Connection Methods ---
+
+  /**
+   * Connect to a user's pod by their npub (Nostr public key in bech32 format)
+   * Sets up the pod context for subsequent operations
+   * @param npub - Nostr public key in npub format (e.g., npub1...)
+   * @returns Pod connection info
+   */
+  public async connectToPod(npub: string): Promise<PodInfo> {
+    logger.info('Connecting to pod for npub', { npub });
+
+    // Validate npub format
+    if (!npub.startsWith('npub1')) {
+      throw new Error('Invalid npub format. Expected npub1...');
+    }
+
+    try {
+      const response = await this.fetchWithAuth(`${JSS_BASE_URL}/pods/connect`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ npub }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Connection failed' }));
+        throw new Error(error.error || `Pod connection failed: ${response.status}`);
+      }
+
+      const info = await response.json();
+      logger.info('Connected to pod', { podUrl: info.podUrl });
+
+      // Auto-connect WebSocket if configured
+      if (JSS_WS_URL && !this.wsConnection) {
+        this.connectWebSocket();
+      }
+
+      return {
+        exists: true,
+        podUrl: info.podUrl || info.pod_url,
+        webId: info.webId || info.webid,
+      };
+    } catch (error) {
+      logger.error('Failed to connect to pod', { npub, error });
+      throw error;
+    }
+  }
+
   // --- LDP Operations ---
+
+  /**
+   * Read a resource from the pod as JSON-LD
+   * Alias for fetchJsonLd with enhanced error handling
+   * @param path - Resource path relative to pod or absolute URL
+   * @returns JSON-LD document
+   */
+  public async readResource(path: string): Promise<JsonLdDocument> {
+    return this.fetchJsonLd(path);
+  }
+
+  /**
+   * Write a resource to the pod
+   * Alias for putResource with JSON-LD default and flexible content type
+   * @param path - Resource path relative to pod or absolute URL
+   * @param content - Content to write (object or string)
+   * @returns Success status
+   */
+  public async writeResource(
+    path: string,
+    content: JsonLdDocument | Record<string, unknown> | string
+  ): Promise<boolean> {
+    // Convert plain objects to JSON-LD format
+    const jsonLdContent = this.ensureJsonLd(content);
+    return this.putResource(path, jsonLdContent);
+  }
+
+  /**
+   * Subscribe to changes on a resource path
+   * Wrapper around subscribe with simplified callback
+   * @param path - Resource path to watch
+   * @param callback - Function called when resource changes
+   * @returns Unsubscribe function
+   */
+  public subscribeToChanges(
+    path: string,
+    callback: (url: string, type: 'created' | 'updated' | 'deleted') => void
+  ): () => void {
+    const resourceUrl = this.resolvePath(path);
+
+    // Ensure WebSocket is connected
+    if (!this.wsConnection) {
+      this.connectWebSocket();
+    }
+
+    return this.subscribe(resourceUrl, (notification) => {
+      if (notification.type === 'pub') {
+        // Determine change type based on resource state
+        callback(notification.url, 'updated');
+      }
+    });
+  }
 
   /**
    * Fetch a resource as JSON-LD
@@ -340,6 +621,44 @@ class SolidPodService {
   }
 
   // --- Private Methods ---
+
+  /**
+   * Ensure content is in JSON-LD format
+   */
+  private ensureJsonLd(
+    content: JsonLdDocument | Record<string, unknown> | string
+  ): JsonLdDocument {
+    if (typeof content === 'string') {
+      try {
+        const parsed = JSON.parse(content);
+        return this.ensureJsonLd(parsed);
+      } catch {
+        // Treat as plain text content
+        return {
+          '@context': 'https://www.w3.org/ns/ldp',
+          '@type': 'Resource',
+          content: content,
+        };
+      }
+    }
+
+    // Already has @context - return as-is
+    if ('@context' in content && content['@context']) {
+      return content as JsonLdDocument;
+    }
+
+    // Wrap plain object in JSON-LD structure
+    const { '@context': _, '@type': __, ...rest } = content as Record<string, unknown>;
+    return {
+      '@context': {
+        '@vocab': 'https://narrativegoldmine.com/ontology#',
+        ldp: 'https://www.w3.org/ns/ldp#',
+        xsd: 'http://www.w3.org/2001/XMLSchema#',
+      },
+      '@type': 'Resource',
+      ...rest,
+    };
+  }
 
   private async fetchWithAuth(
     url: string,

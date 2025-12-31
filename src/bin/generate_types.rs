@@ -641,7 +641,7 @@ fn snake_to_camel_case(snake_str: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-use crate::utils::time;
+// NOTE: `use crate::utils::time;` removed - module doesn't exist in bin crate
 
     #[test]
     fn test_snake_to_camel_case() {

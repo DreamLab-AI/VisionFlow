@@ -295,21 +295,14 @@ mod tests {
         let class = OwlClass {
             iri: "http://example.org/Class1".to_string(),
             label: Some("Class 1".to_string()),
-            description: None,
-            parent_classes: vec![],
-            properties: Default::default(),
-            source_file: None,
+            ..Default::default()
         };
         let cmd = AddClassCommand { class };
         assert!(cmd.validate().is_ok());
 
         let class = OwlClass {
             iri: "".to_string(),
-            label: None,
-            description: None,
-            parent_classes: vec![],
-            properties: Default::default(),
-            source_file: None,
+            ..Default::default()
         };
         let cmd = AddClassCommand { class };
         assert!(cmd.validate().is_err());
@@ -321,8 +314,7 @@ mod tests {
             iri: "http://example.org/hasProperty".to_string(),
             label: Some("Has Property".to_string()),
             property_type: PropertyType::ObjectProperty,
-            domain: vec![],
-            range: vec![],
+            ..Default::default()
         };
         let cmd = AddPropertyCommand { property };
         assert!(cmd.validate().is_ok());

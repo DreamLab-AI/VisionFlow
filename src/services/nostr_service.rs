@@ -1,7 +1,10 @@
 use crate::config::feature_access::FeatureAccess;
 use crate::models::protected_settings::{ApiKeys, NostrUser};
+use crate::utils::nip98::{
+    parse_auth_header, validate_nip98_token, Nip98ValidationError, Nip98ValidationResult,
+};
 use chrono::Utc;
-use log::{debug, error, info};
+use log::{debug, error, info, warn};
 use nostr_sdk::{event::Error as EventError, prelude::*};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -30,6 +33,8 @@ pub enum NostrError {
     NostrError(#[from] EventError),
     #[error("JSON error: {0}")]
     JsonError(#[from] serde_json::Error),
+    #[error("NIP-98 validation error: {0}")]
+    Nip98Error(String),
 }
 
 impl Serialize for NostrError {
@@ -71,6 +76,10 @@ impl Serialize for NostrError {
             NostrError::JsonError(e) => {
                 state.serialize_field("type", "JsonError")?;
                 state.serialize_field("message", &e.to_string())?;
+            }
+            NostrError::Nip98Error(msg) => {
+                state.serialize_field("type", "Nip98Error")?;
+                state.serialize_field("message", msg)?;
             }
         }
         state.end()
@@ -291,6 +300,122 @@ impl NostrService {
                 user.session_token.as_ref() == Some(&token_string)
             })
             .cloned()
+    }
+
+    /// Validate NIP-98 HTTP authentication from Authorization header
+    ///
+    /// This validates tokens for Solid server requests per NIP-98 spec.
+    /// Tokens must be signed, unexpired (60s max), and match the request URL/method.
+    ///
+    /// # Arguments
+    /// * `auth_header` - Full Authorization header (e.g., "Nostr <base64>")
+    /// * `request_url` - The URL the request was made to
+    /// * `request_method` - The HTTP method (GET, POST, PUT, etc.)
+    /// * `request_body` - Optional request body for payload verification
+    ///
+    /// # Returns
+    /// The authenticated NostrUser or an error
+    pub async fn verify_nip98_auth(
+        &self,
+        auth_header: &str,
+        request_url: &str,
+        request_method: &str,
+        request_body: Option<&str>,
+    ) -> Result<NostrUser, NostrError> {
+        // Parse the Authorization header
+        let token = parse_auth_header(auth_header).ok_or_else(|| {
+            NostrError::Nip98Error("Invalid Authorization header format".to_string())
+        })?;
+
+        // Validate the NIP-98 token
+        let validation = validate_nip98_token(token, request_url, request_method, request_body)
+            .map_err(|e| NostrError::Nip98Error(e.to_string()))?;
+
+        debug!(
+            "NIP-98 token validated for pubkey: {}..., url: {}, method: {}",
+            &validation.pubkey[..16.min(validation.pubkey.len())],
+            validation.url,
+            validation.method
+        );
+
+        // Get or create the user
+        let user = self.get_or_create_user_from_pubkey(&validation.pubkey).await?;
+
+        info!(
+            "NIP-98 auth successful for pubkey: {}, is_power_user: {}",
+            user.pubkey, user.is_power_user
+        );
+
+        Ok(user)
+    }
+
+    /// Get existing user or create a new one from pubkey
+    async fn get_or_create_user_from_pubkey(&self, pubkey: &str) -> Result<NostrUser, NostrError> {
+        // Check if user exists
+        if let Some(user) = self.get_user(pubkey).await {
+            // Update last_seen
+            let mut users = self.users.write().await;
+            if let Some(user) = users.get_mut(pubkey) {
+                user.last_seen = time::timestamp_seconds();
+            }
+            return Ok(users.get(pubkey).cloned().unwrap());
+        }
+
+        // Register new user with feature access
+        let mut feature_access = self.feature_access.write().await;
+        if feature_access.register_new_user(pubkey) {
+            info!("Registered new user via NIP-98 with basic access: {}", pubkey);
+        }
+
+        let is_power_user = self.power_user_pubkeys.contains(&pubkey.to_string());
+        let session_token = Uuid::new_v4().to_string();
+
+        // Convert hex pubkey to npub (bech32)
+        let npub = match PublicKey::from_hex(pubkey) {
+            Ok(pk) => pk.to_bech32().unwrap_or_else(|_| pubkey.to_string()),
+            Err(_) => {
+                warn!("Could not convert pubkey to npub: {}", pubkey);
+                pubkey.to_string()
+            }
+        };
+
+        let user = NostrUser {
+            pubkey: pubkey.to_string(),
+            npub,
+            is_power_user,
+            api_keys: ApiKeys::default(),
+            last_seen: time::timestamp_seconds(),
+            session_token: Some(session_token),
+        };
+
+        // Store the new user
+        let mut users = self.users.write().await;
+        users.insert(pubkey.to_string(), user.clone());
+
+        info!(
+            "Created new user via NIP-98: pubkey={}, is_power_user={}",
+            user.pubkey, user.is_power_user
+        );
+
+        Ok(user)
+    }
+
+    /// Validate NIP-98 token and return just the validation result (no user creation)
+    ///
+    /// Use this for stateless validation when you only need to verify the token.
+    pub fn validate_nip98_token_only(
+        &self,
+        auth_header: &str,
+        request_url: &str,
+        request_method: &str,
+        request_body: Option<&str>,
+    ) -> Result<Nip98ValidationResult, NostrError> {
+        let token = parse_auth_header(auth_header).ok_or_else(|| {
+            NostrError::Nip98Error("Invalid Authorization header format".to_string())
+        })?;
+
+        validate_nip98_token(token, request_url, request_method, request_body)
+            .map_err(|e| NostrError::Nip98Error(e.to_string()))
     }
 }
 

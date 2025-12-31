@@ -47,16 +47,48 @@ struct AttributeSpringConfig {
 };
 
 // Ontology relationship forces configuration
+// NOTE: The 'enabled' flag is used by CPU fallback; GPU uses DynamicRelationshipBuffer.
+// Force parameters in this struct are legacy - CPU fallback uses SemanticTypeRegistry instead.
 struct OntologyRelationshipConfig {
-    float requires_strength;
-    float requires_rest_length;
-    float enables_strength;
-    float enables_rest_length;
-    float has_part_strength;
-    float has_part_orbit_radius;
-    float bridges_to_strength;
-    float bridges_to_rest_length;
-    bool enabled;
+    float requires_strength;      // Legacy: unused by GPU (uses DynamicRelationshipBuffer)
+    float requires_rest_length;   // Legacy: unused by GPU
+    float enables_strength;       // Legacy: unused by GPU
+    float enables_rest_length;    // Legacy: unused by GPU
+    float has_part_strength;      // Legacy: unused by GPU
+    float has_part_orbit_radius;  // Legacy: unused by GPU
+    float bridges_to_strength;    // Legacy: unused by GPU
+    float bridges_to_rest_length; // Legacy: unused by GPU
+    bool enabled;                 // Used by CPU fallback as feature toggle
+};
+
+// =============================================================================
+// Dynamic Semantic Force Configuration Buffer (Schema-Code Decoupling)
+// =============================================================================
+
+// Maximum number of dynamically registered relationship types
+// This allows ontology to add new types without CUDA recompilation
+#define MAX_RELATIONSHIP_TYPES 256
+
+// Force configuration for a single relationship type
+// Matches Rust's RelationshipForceConfig struct layout
+struct DynamicForceConfig {
+    float strength;           // Spring strength (can be negative for repulsion)
+    float rest_length;        // Rest length for spring calculations
+    int is_directional;       // 1 = directional (source → target), 0 = bidirectional
+    unsigned int force_type;  // Force behavior type:
+                              //   0 = standard spring
+                              //   1 = orbit clustering (has-part)
+                              //   2 = cross-domain long-range
+                              //   3 = repulsion
+};
+
+// Dynamic configuration buffer for all relationship types
+// Indexed by edge_type ID from SemanticTypeRegistry
+struct DynamicRelationshipBuffer {
+    DynamicForceConfig configs[MAX_RELATIONSHIP_TYPES];
+    int num_types;            // Number of registered types
+    int buffer_version;       // Version for hot-reload detection
+    bool enabled;             // Master enable for dynamic forces
 };
 
 // Physicality clustering configuration
@@ -107,6 +139,14 @@ struct SemanticConfig {
 
 // Global constant memory for semantic configuration
 __constant__ SemanticConfig c_semantic_config;
+
+// Global constant memory for dynamic relationship buffer
+// This enables ontology changes without CUDA recompilation
+__constant__ DynamicRelationshipBuffer c_dynamic_relationships;
+
+// Device-side relationship buffer pointer (for larger configurations)
+__device__ DynamicForceConfig* d_relationship_buffer = nullptr;
+__device__ int d_buffer_size = 0;
 
 // =============================================================================
 // Helper Functions
@@ -424,15 +464,17 @@ __global__ void finalize_type_centroids(
 }
 
 // =============================================================================
-// Ontology Relationship Forces Kernel
+// Dynamic Relationship Forces Kernel (Schema-Code Decoupled)
 // =============================================================================
 
-// Apply ontology relationship forces (requires, enables, has-part, bridges-to)
-__global__ void apply_ontology_relationship_force(
+// Apply dynamic relationship forces using registry-based configuration
+// This kernel reads force parameters from the dynamic buffer, enabling
+// new ontology relationship types without CUDA recompilation
+__global__ void apply_dynamic_relationship_force(
     const int* edge_sources,           // Source node index for each edge
     const int* edge_targets,           // Target node index for each edge
-    const int* edge_types,             // Type for each edge (7=requires, 8=enables, 9=has-part, 10=bridges-to)
-    const int* node_cross_domain_count, // Cross-domain link count per node (for bridges-to strength)
+    const int* edge_types,             // Type ID for each edge (from SemanticTypeRegistry)
+    const int* node_cross_domain_count, // Cross-domain link count per node
     float3* positions,                 // Current positions
     float3* forces,                    // Force accumulator
     const int num_edges
@@ -440,51 +482,60 @@ __global__ void apply_ontology_relationship_force(
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= num_edges) return;
 
-    if (!c_semantic_config.ontology_relationship.enabled) return;
+    if (!c_dynamic_relationships.enabled) return;
 
     int src = edge_sources[idx];
     int tgt = edge_targets[idx];
-    int edge_type = edge_types[idx];
+    int edge_type_id = edge_types[idx];
 
-    // Only process ontology relationship edges (7-10)
-    if (edge_type < 7 || edge_type > 10) return;
+    // Bounds check for edge type ID
+    if (edge_type_id < 0 || edge_type_id >= c_dynamic_relationships.num_types) return;
+
+    // Lookup force configuration from dynamic buffer (no switch statement!)
+    DynamicForceConfig config = c_dynamic_relationships.configs[edge_type_id];
+
+    // Skip if strength is effectively zero
+    if (fabsf(config.strength) < 1e-6f) return;
 
     float3 delta = positions[tgt] - positions[src];
     float dist = length(delta);
     if (dist < 1e-6f) return;
 
-    float strength, rest_length;
-    bool is_directional = false;
+    float strength = config.strength;
+    float rest_length = config.rest_length;
 
-    // Determine force parameters based on edge type
-    switch (edge_type) {
-        case 7: // requires - directional dependency spring
-            strength = c_semantic_config.ontology_relationship.requires_strength;
-            rest_length = c_semantic_config.ontology_relationship.requires_rest_length;
-            is_directional = true;
+    // Apply force type-specific modifiers
+    switch (config.force_type) {
+        case 0: // Standard spring force
+            // No modification needed
             break;
-        case 8: // enables - capability attraction (weaker)
-            strength = c_semantic_config.ontology_relationship.enables_strength;
-            rest_length = c_semantic_config.ontology_relationship.enables_rest_length;
+
+        case 1: // Orbit clustering (has-part)
+            // Parts orbit around the whole - use rest_length as orbit radius
+            // Add slight tangential component for orbital motion
             break;
-        case 9: // has-part - strong clustering (parts orbit whole)
-            strength = c_semantic_config.ontology_relationship.has_part_strength;
-            rest_length = c_semantic_config.ontology_relationship.has_part_orbit_radius;
-            break;
-        case 10: // bridges-to - cross-domain long-range spring
-            {
-                // Strength increases with cross-domain link count
+
+        case 2: // Cross-domain long-range spring
+            // Strength increases with cross-domain link count
+            if (node_cross_domain_count != nullptr) {
                 float src_count = (float)node_cross_domain_count[src];
                 float tgt_count = (float)node_cross_domain_count[tgt];
                 float avg_count = (src_count + tgt_count) * 0.5f;
-                float boost = min(1.0f + avg_count * c_semantic_config.cross_domain.link_count_multiplier,
-                                c_semantic_config.cross_domain.max_strength_boost);
-                strength = c_semantic_config.ontology_relationship.bridges_to_strength * boost;
-                rest_length = c_semantic_config.ontology_relationship.bridges_to_rest_length;
+                float boost = fminf(1.0f + avg_count * c_semantic_config.cross_domain.link_count_multiplier,
+                                   c_semantic_config.cross_domain.max_strength_boost);
+                strength *= boost;
             }
             break;
+
+        case 3: // Repulsion force
+            // Negative strength creates repulsion
+            // Only apply when distance is less than rest_length
+            if (dist >= rest_length) return;
+            break;
+
         default:
-            return;
+            // Unknown force type - use as standard spring
+            break;
     }
 
     // Hooke's law: F = -k * (x - x0)
@@ -492,8 +543,8 @@ __global__ void apply_ontology_relationship_force(
     float force_mag = strength * displacement / dist;
     float3 spring_force = normalize(delta) * force_mag;
 
-    if (is_directional) {
-        // For "requires": only source is pulled toward target (dependency → prerequisite)
+    if (config.is_directional) {
+        // Directional: only source is pulled toward target
         atomicAdd(&forces[src].x, spring_force.x);
         atomicAdd(&forces[src].y, spring_force.y);
         atomicAdd(&forces[src].z, spring_force.z);
@@ -756,6 +807,101 @@ __global__ void finalize_role_centroids(
 // Upload semantic configuration to constant memory
 void set_semantic_config(const SemanticConfig* config) {
     cudaMemcpyToSymbol(c_semantic_config, config, sizeof(SemanticConfig));
+}
+
+// =============================================================================
+// Dynamic Relationship Buffer Management (Hot-Reload Support)
+// =============================================================================
+
+// Current buffer version for hot-reload detection
+static int s_current_buffer_version = 0;
+
+// Upload dynamic relationship configurations to GPU constant memory
+// This function enables hot-reload: call whenever ontology changes
+// Returns 0 on success, CUDA error code on failure
+int set_dynamic_relationship_buffer(
+    const DynamicForceConfig* configs,  // Array of force configurations
+    int num_types,                       // Number of relationship types
+    bool enabled                         // Enable dynamic relationship forces
+) {
+    if (num_types > MAX_RELATIONSHIP_TYPES) {
+        return -1; // Too many types
+    }
+    if (configs == nullptr && num_types > 0) {
+        return -2; // Invalid configuration
+    }
+
+    // Prepare the buffer
+    DynamicRelationshipBuffer buffer;
+    buffer.num_types = num_types;
+    buffer.buffer_version = ++s_current_buffer_version;
+    buffer.enabled = enabled;
+
+    // Copy configurations
+    if (configs != nullptr && num_types > 0) {
+        memcpy(buffer.configs, configs, num_types * sizeof(DynamicForceConfig));
+    }
+
+    // Zero out remaining slots
+    for (int i = num_types; i < MAX_RELATIONSHIP_TYPES; i++) {
+        buffer.configs[i].strength = 0.0f;
+        buffer.configs[i].rest_length = 100.0f;
+        buffer.configs[i].is_directional = 0;
+        buffer.configs[i].force_type = 0;
+    }
+
+    // Upload to GPU constant memory
+    cudaError_t err = cudaMemcpyToSymbol(c_dynamic_relationships, &buffer, sizeof(DynamicRelationshipBuffer));
+    return (err == cudaSuccess) ? 0 : (int)err;
+}
+
+// Update a single relationship type configuration (hot-reload single type)
+// Useful for live-editing force parameters without full buffer upload
+int update_dynamic_relationship_config(
+    int type_id,                        // Relationship type ID
+    const DynamicForceConfig* config    // New configuration
+) {
+    if (type_id < 0 || type_id >= MAX_RELATIONSHIP_TYPES || config == nullptr) {
+        return -1;
+    }
+
+    // Calculate offset into the configs array within constant memory
+    size_t offset = offsetof(DynamicRelationshipBuffer, configs) + type_id * sizeof(DynamicForceConfig);
+
+    cudaError_t err = cudaMemcpyToSymbol(
+        c_dynamic_relationships,
+        config,
+        sizeof(DynamicForceConfig),
+        offset,
+        cudaMemcpyHostToDevice
+    );
+
+    if (err == cudaSuccess) {
+        // Update version to signal hot-reload
+        s_current_buffer_version++;
+        int new_version = s_current_buffer_version;
+        size_t version_offset = offsetof(DynamicRelationshipBuffer, buffer_version);
+        cudaMemcpyToSymbol(c_dynamic_relationships, &new_version, sizeof(int), version_offset, cudaMemcpyHostToDevice);
+    }
+
+    return (err == cudaSuccess) ? 0 : (int)err;
+}
+
+// Enable or disable dynamic relationship forces
+int set_dynamic_relationships_enabled(bool enabled) {
+    size_t offset = offsetof(DynamicRelationshipBuffer, enabled);
+    cudaError_t err = cudaMemcpyToSymbol(c_dynamic_relationships, &enabled, sizeof(bool), offset, cudaMemcpyHostToDevice);
+    return (err == cudaSuccess) ? 0 : (int)err;
+}
+
+// Get current buffer version (for hot-reload detection)
+int get_dynamic_relationship_buffer_version() {
+    return s_current_buffer_version;
+}
+
+// Get maximum supported relationship types
+int get_max_relationship_types() {
+    return MAX_RELATIONSHIP_TYPES;
 }
 
 } // extern "C"

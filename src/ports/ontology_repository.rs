@@ -93,6 +93,38 @@ pub struct OwlClass {
     pub additional_metadata: Option<String>,
 }
 
+impl Default for OwlClass {
+    fn default() -> Self {
+        Self {
+            iri: String::new(),
+            term_id: None,
+            preferred_term: None,
+            label: None,
+            description: None,
+            parent_classes: Vec::new(),
+            source_domain: None,
+            version: None,
+            class_type: None,
+            status: None,
+            maturity: None,
+            quality_score: None,
+            authority_score: None,
+            public_access: None,
+            content_status: None,
+            owl_physicality: None,
+            owl_role: None,
+            belongs_to_domain: None,
+            bridges_to_domain: None,
+            source_file: None,
+            file_sha1: None,
+            markdown_content: None,
+            last_synced: None,
+            properties: HashMap::new(),
+            additional_metadata: None,
+        }
+    }
+}
+
 /// Semantic relationship between OWL classes
 ///
 /// Supports relationship types: has-part, uses, enables, requires, subclass-of, etc.
@@ -136,6 +168,21 @@ pub struct OwlProperty {
 
     // Source tracking
     pub source_file: Option<String>,
+}
+
+impl Default for OwlProperty {
+    fn default() -> Self {
+        Self {
+            iri: String::new(),
+            label: None,
+            property_type: PropertyType::ObjectProperty,
+            domain: Vec::new(),
+            range: Vec::new(),
+            quality_score: None,
+            authority_score: None,
+            source_file: None,
+        }
+    }
 }
 
 ///

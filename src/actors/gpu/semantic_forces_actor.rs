@@ -59,6 +59,33 @@ struct SemanticConfigGPU {
     collision: CollisionConfigGPU,
     attribute_spring: AttributeSpringConfigGPU,
 }
+
+// =============================================================================
+// Dynamic Force Configuration (Schema-Code Decoupling)
+// =============================================================================
+
+/// GPU-compatible dynamic force configuration for a relationship type
+/// Matches the DynamicForceConfig struct in semantic_forces.cu
+#[repr(C)]
+#[derive(Clone, Copy, Debug)]
+pub struct DynamicForceConfigGPU {
+    pub strength: f32,        // Spring strength (can be negative for repulsion)
+    pub rest_length: f32,     // Rest length for spring calculations
+    pub is_directional: i32,  // 1 = directional, 0 = bidirectional
+    pub force_type: u32,      // Force behavior type (0=spring, 1=orbit, 2=cross-domain, 3=repulsion)
+}
+
+impl Default for DynamicForceConfigGPU {
+    fn default() -> Self {
+        Self {
+            strength: 0.5,
+            rest_length: 100.0,
+            is_directional: 0,
+            force_type: 0,
+        }
+    }
+}
+
 #[repr(C)]
 #[derive(Clone, Copy)]
 struct Float3 {
@@ -134,6 +161,44 @@ extern "C" {
         type_centroids: *mut Float3,
         type_counts: *const i32,
         num_types: i32,
+    );
+
+    // ==========================================================================
+    // Dynamic Relationship Buffer Management (Hot-Reload)
+    // ==========================================================================
+
+    /// Upload dynamic relationship configurations to GPU
+    /// Enables ontology changes without CUDA recompilation
+    fn set_dynamic_relationship_buffer(
+        configs: *const DynamicForceConfigGPU,
+        num_types: i32,
+        enabled: bool,
+    ) -> i32;
+
+    /// Update a single relationship type configuration (hot-reload)
+    fn update_dynamic_relationship_config(
+        type_id: i32,
+        config: *const DynamicForceConfigGPU,
+    ) -> i32;
+
+    /// Enable or disable dynamic relationship forces
+    fn set_dynamic_relationships_enabled(enabled: bool) -> i32;
+
+    /// Get current buffer version for hot-reload detection
+    fn get_dynamic_relationship_buffer_version() -> i32;
+
+    /// Get maximum supported relationship types
+    fn get_max_relationship_types() -> i32;
+
+    /// Apply dynamic relationship forces (schema-code decoupled)
+    fn apply_dynamic_relationship_force(
+        edge_sources: *const i32,
+        edge_targets: *const i32,
+        edge_types: *const i32,
+        node_cross_domain_count: *const i32,
+        positions: *mut Float3,
+        forces: *mut Float3,
+        num_edges: i32,
     );
 }
 

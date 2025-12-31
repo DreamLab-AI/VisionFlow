@@ -1492,8 +1492,8 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                     }
                     Ok(ProtocolMessage::VoiceData { audio }) => {
                         info!("Received voice data: {} bytes", audio.len());
-                        
-                        
+
+
                         let response = serde_json::json!({
                             "type": "voice_ack",
                             "bytes": audio.len(),
@@ -1504,8 +1504,27 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                         }
                         return;
                     }
+                    Ok(ProtocolMessage::BroadcastAck { sequence_id, nodes_received, timestamp }) => {
+                        // True end-to-end backpressure: client confirms receipt of position broadcast
+                        // Forward to ClientCoordinatorActor which routes to GPU for token restoration
+                        use crate::actors::messages::ClientBroadcastAck;
+
+                        trace!(
+                            "Received BroadcastAck: seq={}, nodes={}, timestamp={}",
+                            sequence_id, nodes_received, timestamp
+                        );
+
+                        // Send ACK to client coordinator for forwarding to GPU actor
+                        self.client_manager_addr.do_send(ClientBroadcastAck {
+                            sequence_id,
+                            nodes_received,
+                            timestamp,
+                            client_id: self.client_id,
+                        });
+                        return;
+                    }
                     Err(e) => {
-                        
+
                         debug!("New protocol decode failed ({}), trying legacy protocol", e);
                     }
                 }

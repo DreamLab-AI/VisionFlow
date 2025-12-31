@@ -8,16 +8,16 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::RwLock;
 
-use visionflow::actors::gpu::ontology_constraint_actor::OntologyConstraintActor;
-use visionflow::actors::messages::*;
-use visionflow::reasoning::custom_reasoner::{CustomReasoner, OWLClass, Ontology};
-use visionflow::reasoning::reasoning_actor::ReasoningActor;
-use visionflow::repositories::unified_ontology_repository::UnifiedOntologyRepository;
-use visionflow::services::github_sync_service::GitHubSyncService;
-use visionflow::services::ontology_pipeline_service::{
+use webxr::actors::gpu::ontology_constraint_actor::OntologyConstraintActor;
+use webxr::actors::messages::*;
+use webxr::reasoning::custom_reasoner::{CustomReasoner, OWLClass, Ontology};
+use webxr::reasoning::reasoning_actor::ReasoningActor;
+use webxr::repositories::unified_ontology_repository::UnifiedOntologyRepository;
+use webxr::services::github_sync_service::GitHubSyncService;
+use webxr::services::ontology_pipeline_service::{
     OntologyPipelineService, SemanticPhysicsConfig,
 };
-use visionflow::services::pipeline_events::{
+use webxr::services::pipeline_events::{
     OntologyModifiedEvent, PipelineEventBus, PipelineEvent,
 };
 

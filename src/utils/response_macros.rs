@@ -27,10 +27,10 @@
 macro_rules! ok_json {
     ($data:expr) => {
         {
-            use actix_web::HttpResponse;
+            use actix_web::{HttpResponse, Error};
             use crate::utils::handler_commons::StandardResponse;
 
-            Ok(HttpResponse::Ok().json(StandardResponse {
+            Ok::<HttpResponse, Error>(HttpResponse::Ok().json(StandardResponse {
                 success: true,
                 data: Some($data),
                 error: None,

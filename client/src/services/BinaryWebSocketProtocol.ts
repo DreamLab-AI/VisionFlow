@@ -40,6 +40,9 @@ export enum MessageType {
   VOICE_START = 0x41,
   VOICE_END = 0x42,
 
+  // Backpressure flow control (Phase 7)
+  BROADCAST_ACK = 0x34,      // Client acknowledgement of position broadcast
+
   // Multi-user sync messages (Phase 6)
   SYNC_UPDATE = 0x50,        // Graph operation sync
   ANNOTATION_UPDATE = 0x51,  // Annotation sync
@@ -52,9 +55,10 @@ export enum MessageType {
 }
 
 // Graph type flags for GRAPH_UPDATE messages
+// Values must match server: src/utils/binary_protocol.rs GraphType enum
 export enum GraphTypeFlag {
-  KNOWLEDGE_GRAPH = 0x01,    
-  ONTOLOGY = 0x02            
+  KNOWLEDGE_GRAPH = 0x00,
+  ONTOLOGY = 0x01
 }
 
 // Agent state flags (bit field)
@@ -123,10 +127,17 @@ export interface VoiceChunk {
 
 
 export interface MessageHeader {
-  type: MessageType;      
-  version: number;        
-  payloadLength: number;  
-  graphTypeFlag?: GraphTypeFlag; 
+  type: MessageType;
+  version: number;
+  payloadLength: number;
+  graphTypeFlag?: GraphTypeFlag;
+}
+
+// Broadcast ACK data for backpressure flow control
+export interface BroadcastAckData {
+  sequenceId: number;     // 8 bytes - correlates with server broadcast sequence
+  nodesReceived: number;  // 4 bytes - number of nodes client processed
+  timestamp: number;      // 8 bytes - client receive timestamp (ms)
 }
 
 
@@ -516,6 +527,65 @@ export class BinaryWebSocketProtocol {
   public setVoiceEnabled(enabled: boolean): void {
     this.voiceEnabled = enabled;
     logger.info(`Voice communication: ${enabled ? 'enabled' : 'disabled'}`);
+  }
+
+  /**
+   * Create a broadcast acknowledgement message for backpressure flow control.
+   * This should be sent after client processes a position update broadcast.
+   *
+   * @param sequenceId - Server broadcast sequence number (from position update header)
+   * @param nodesReceived - Number of nodes successfully processed
+   * @returns Binary message ready to send over WebSocket
+   */
+  public createBroadcastAck(sequenceId: number, nodesReceived: number): ArrayBuffer {
+    // Payload: 8 bytes sequenceId + 4 bytes nodesReceived + 8 bytes timestamp = 20 bytes
+    const payload = new ArrayBuffer(20);
+    const view = new DataView(payload);
+
+    // Write sequenceId as BigInt64 (8 bytes, little-endian)
+    const lowBits = sequenceId >>> 0;
+    const highBits = Math.floor(sequenceId / 0x100000000) >>> 0;
+    view.setUint32(0, lowBits, true);
+    view.setUint32(4, highBits, true);
+
+    // Write nodesReceived (4 bytes, little-endian)
+    view.setUint32(8, nodesReceived, true);
+
+    // Write timestamp (8 bytes, little-endian)
+    const timestamp = Date.now();
+    const tsLowBits = timestamp >>> 0;
+    const tsHighBits = Math.floor(timestamp / 0x100000000) >>> 0;
+    view.setUint32(12, tsLowBits, true);
+    view.setUint32(16, tsHighBits, true);
+
+    return this.createMessage(MessageType.BROADCAST_ACK, payload);
+  }
+
+  /**
+   * Decode a broadcast acknowledgement from server (for server-sent acks if needed)
+   */
+  public decodeBroadcastAck(payload: ArrayBuffer): BroadcastAckData | null {
+    if (payload.byteLength < 20) {
+      logger.error('Broadcast ACK payload too small');
+      return null;
+    }
+
+    const view = new DataView(payload);
+
+    // Read sequenceId (8 bytes, little-endian)
+    const lowBits = view.getUint32(0, true);
+    const highBits = view.getUint32(4, true);
+    const sequenceId = lowBits + highBits * 0x100000000;
+
+    // Read nodesReceived (4 bytes)
+    const nodesReceived = view.getUint32(8, true);
+
+    // Read timestamp (8 bytes)
+    const tsLowBits = view.getUint32(12, true);
+    const tsHighBits = view.getUint32(16, true);
+    const timestamp = tsLowBits + tsHighBits * 0x100000000;
+
+    return { sequenceId, nodesReceived, timestamp };
   }
 
   

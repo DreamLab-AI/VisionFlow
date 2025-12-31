@@ -25,7 +25,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Establish Neo4j connection using configuration
     let uri = std::env::var("NEO4J_URI").unwrap_or_else(|_| "bolt://localhost:7687".to_string());
     let user = std::env::var("NEO4J_USER").unwrap_or_else(|_| "neo4j".to_string());
-    let password = std::env::var("NEO4J_PASSWORD").unwrap_or_else(|_| "password".to_string());
+    let password = std::env::var("NEO4J_PASSWORD").unwrap_or_else(|_| {
+        if std::env::var("ALLOW_INSECURE_DEFAULTS").is_ok() {
+            eprintln!("WARNING: Using insecure default password. Set NEO4J_PASSWORD in production.");
+            "password".to_string()
+        } else {
+            panic!("NEO4J_PASSWORD environment variable must be set. Use ALLOW_INSECURE_DEFAULTS=1 for development only.");
+        }
+    });
     let database = std::env::var("NEO4J_DATABASE").unwrap_or_else(|_| "neo4j".to_string());
 
     let neo4j_config = Neo4jConfig {

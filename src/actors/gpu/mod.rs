@@ -2,15 +2,37 @@
 //!
 //! ## Architecture (Phase 7: God Actor Decomposition)
 //!
-//! The GPU subsystem is organized into independent subsystems that receive
-//! GPU context via event bus rather than through a centralized manager:
+//! The GPU subsystem is organized into independent subsystems managed by
+//! dedicated supervisors with proper error isolation and timeout handling:
 //!
-//! - **PhysicsSubsystem**: Force computation, stress majorization, constraints
-//! - **AnalyticsSubsystem**: Clustering, anomaly detection, PageRank
-//! - **GraphSubsystem**: Shortest path, connected components
+//! ```text
+//!                    GPUManagerActor (Coordinator)
+//!                           |
+//!          +----------------+----------------+----------------+
+//!          |                |                |                |
+//!   ResourceSupervisor  PhysicsSupervisor  AnalyticsSupervisor  GraphAnalyticsSupervisor
+//!          |                |                |                |
+//!   GPUResourceActor   +----+----+      +----+----+      +----+----+
+//!                      |    |    |      |    |    |      |         |
+//!                   Force Stress Constraint Cluster Anomaly PageRank ShortestPath ConnComp
+//! ```
 //!
-//! Each subsystem receives `SharedGPUContext` via `GPUContextBus` broadcast.
+//! ### Subsystem Supervisors
+//!
+//! - **ResourceSupervisor**: Manages GPU initialization with timeout handling
+//! - **PhysicsSupervisor**: Force computation, stress majorization, constraints
+//! - **AnalyticsSupervisor**: Clustering, anomaly detection, PageRank
+//! - **GraphAnalyticsSupervisor**: Shortest path, connected components
+//!
+//! ### Error Isolation
+//!
+//! Each subsystem supervisor:
+//! - Isolates failures from other subsystems
+//! - Implements exponential backoff restart policies
+//! - Reports health status independently
+//! - Receives SharedGPUContext via GPUContextBus broadcast
 
+// Child actors
 pub mod anomaly_detection_actor;
 pub mod clustering_actor;
 pub mod constraint_actor;
@@ -27,6 +49,14 @@ pub mod shared;
 pub mod stress_majorization_actor;
 pub mod semantic_forces_actor;
 
+// Supervisor actors
+pub mod supervisor_messages;
+pub mod physics_supervisor;
+pub mod analytics_supervisor;
+pub mod graph_analytics_supervisor;
+pub mod resource_supervisor;
+
+// Child actor exports
 pub use anomaly_detection_actor::AnomalyDetectionActor;
 pub use clustering_actor::ClusteringActor;
 pub use constraint_actor::ConstraintActor;
@@ -41,3 +71,15 @@ pub use connected_components_actor::ConnectedComponentsActor;
 pub use shared::{GPUContext, SharedGPUContext, UnifiedGPUCompute};
 pub use stress_majorization_actor::StressMajorizationActor;
 pub use semantic_forces_actor::SemanticForcesActor;
+
+// Supervisor exports
+pub use supervisor_messages::{
+    ActorFailure, ActorHealthState, ActorRecovered, GetSubsystemHealth,
+    InitializationTimeouts, InitializeSubsystem, RestartActor, RestartSubsystem,
+    RouteMessage, SubsystemHealth, SubsystemInitialized, SubsystemStatus,
+    SubsystemType, SupervisionPolicy,
+};
+pub use physics_supervisor::PhysicsSupervisor;
+pub use analytics_supervisor::AnalyticsSupervisor;
+pub use graph_analytics_supervisor::GraphAnalyticsSupervisor;
+pub use resource_supervisor::{ResourceSupervisor, GetContextBus, SetSubsystemSupervisors};

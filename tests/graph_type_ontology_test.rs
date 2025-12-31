@@ -1,4 +1,4 @@
-use hive_mind_server::models::graph_types::GraphType;
+use webxr::models::graph_types::GraphType;
 use std::str::FromStr;
 
 #[test]

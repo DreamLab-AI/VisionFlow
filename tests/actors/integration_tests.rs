@@ -6,15 +6,15 @@
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
-use visionflow::actors::lifecycle::{ActorLifecycleManager, SupervisionStrategy, SupervisionDecision};
-use visionflow::application::physics_service::{PhysicsService, SimulationParams};
-use visionflow::application::semantic_service::{SemanticService, CommunityDetectionRequest};
-use visionflow::events::event_bus::EventBus;
-use visionflow::models::graph::GraphData;
-use visionflow::models::node::Node;
-use visionflow::models::edge::Edge;
-use visionflow::ports::gpu_physics_adapter::{GpuPhysicsAdapter, PhysicsParameters};
-use visionflow::ports::gpu_semantic_analyzer::{GpuSemanticAnalyzer, ClusteringAlgorithm};
+use webxr::actors::lifecycle::{ActorLifecycleManager, SupervisionStrategy, SupervisionDecision};
+use webxr::application::physics_service::{PhysicsService, SimulationParams};
+use webxr::application::semantic_service::{SemanticService, CommunityDetectionRequest};
+use webxr::events::event_bus::EventBus;
+use webxr::models::graph::GraphData;
+use webxr::models::node::Node;
+use webxr::models::edge::Edge;
+use webxr::ports::gpu_physics_adapter::{GpuPhysicsAdapter, PhysicsParameters};
+use webxr::ports::gpu_semantic_analyzer::{GpuSemanticAnalyzer, ClusteringAlgorithm};
 
 // Mock implementations for testing
 mod mocks {
@@ -22,9 +22,9 @@ mod mocks {
     use async_trait::async_trait;
     use std::collections::HashMap;
 
-    use visionflow::models::constraints::ConstraintSet;
-    use visionflow::ports::gpu_physics_adapter::*;
-    use visionflow::ports::gpu_semantic_analyzer::*;
+    use webxr::models::constraints::ConstraintSet;
+    use webxr::ports::gpu_physics_adapter::*;
+    use webxr::ports::gpu_semantic_analyzer::*;
 
     pub struct MockPhysicsAdapter {
         pub initialized: Arc<RwLock<bool>>,
@@ -369,7 +369,7 @@ async fn test_event_driven_coordination() {
 
 #[tokio::test]
 async fn test_backward_compatibility() {
-    use visionflow::actors::backward_compat::LegacyActorCompat;
+    use webxr::actors::backward_compat::LegacyActorCompat;
 
     std::env::set_var("VISIONFLOW_LEGACY_ACTORS", "true");
     assert!(LegacyActorCompat::legacy_mode_enabled());
