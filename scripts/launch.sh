@@ -353,9 +353,41 @@ needs_rebuild() {
     return 1
 }
 
+# Check if container is already running and healthy
+is_container_running() {
+    local container_name="$1"
+    if docker ps --format '{{.Names}}' | grep -q "^${container_name}$"; then
+        # Check if container is healthy (or has no health check)
+        local health=$(docker inspect --format='{{.State.Health.Status}}' "$container_name" 2>/dev/null || echo "none")
+        if [[ "$health" == "healthy" ]] || [[ "$health" == "none" ]]; then
+            return 0
+        fi
+    fi
+    return 1
+}
+
 # Start environment
 start_environment() {
     log "Starting $ENVIRONMENT environment..."
+
+    # Check if main container is already running - skip restart if healthy
+    if is_container_running "$CONTAINER_NAME"; then
+        success "Container $CONTAINER_NAME is already running and healthy"
+        info "Skipping restart. Use 'restart' command to force restart."
+        echo ""
+        show_service_urls
+        echo ""
+        info "Following logs... (Press Ctrl+C to exit)"
+        echo ""
+
+        # Set up cleanup trap for dev environment
+        if [[ "$ENVIRONMENT" == "dev" ]]; then
+            trap cleanup_dev INT TERM
+        fi
+
+        docker_compose logs -f
+        return 0
+    fi
 
     # Clean up any conflicting containers first
     cleanup_conflicts
