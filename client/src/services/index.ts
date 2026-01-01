@@ -4,17 +4,26 @@
  * Central export point for all client services
  */
 
-// WebSocket Services
-export { webSocketService, default as WebSocketService } from './WebSocketService';
+// WebSocket Services - Now using Zustand store for better testability and SSR compatibility
+export {
+  webSocketService,
+  useWebSocketStore,
+  useWebSocketConnection,
+  useWebSocketActions,
+  WebSocketServiceCompat
+} from '../store/websocketStore';
 export type {
   WebSocketAdapter,
-  LegacyWebSocketMessage,
   WebSocketErrorFrame,
   QueuedMessage,
   ConnectionState,
   SolidNotification,
-  SolidNotificationCallback
-} from './WebSocketService';
+  SolidNotificationCallback,
+  WebSocketState
+} from '../store/websocketStore';
+
+// Legacy WebSocket types for backward compatibility
+export type { LegacyWebSocketMessage } from './WebSocketService';
 
 export { VoiceWebSocketService } from './VoiceWebSocketService';
 

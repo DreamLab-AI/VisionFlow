@@ -44,14 +44,18 @@ class GraphDataManager {
     try {
       console.log('[GraphDataManager] Waiting for worker to be ready...');
       let attempts = 0;
-      const maxAttempts = 50; 
-      
-      
+      const maxAttempts = 300; // Increased from 50 to 300 (3 seconds total)
+
+
       while (!graphWorkerProxy.isReady() && attempts < maxAttempts) {
         await new Promise(resolve => setTimeout(resolve, 10));
         attempts++;
+        // Log progress every 50 attempts
+        if (attempts % 50 === 0) {
+          console.log(`[GraphDataManager] Still waiting for worker... (${attempts}/${maxAttempts})`);
+        }
       }
-      
+
       if (!graphWorkerProxy.isReady()) {
         console.warn('[GraphDataManager] Worker not ready after timeout, continuing without worker');
         logger.warn('Graph worker proxy not ready after timeout, proceeding without worker');
@@ -106,6 +110,36 @@ class GraphDataManager {
       GraphDataManager.instance = new GraphDataManager();
     }
     return GraphDataManager.instance;
+  }
+
+  // Allow re-checking worker readiness after AppInitializer completes
+  public async ensureWorkerReady(): Promise<boolean> {
+    if (this.workerInitialized) {
+      return true;
+    }
+
+    console.log('[GraphDataManager] ensureWorkerReady called, checking worker status...');
+
+    if (graphWorkerProxy.isReady()) {
+      this.workerInitialized = true;
+      this.setupWorkerListeners();
+      console.log('[GraphDataManager] Worker is now ready (late initialization)');
+      return true;
+    }
+
+    // Wait a bit more for worker
+    for (let i = 0; i < 100; i++) {
+      await new Promise(resolve => setTimeout(resolve, 10));
+      if (graphWorkerProxy.isReady()) {
+        this.workerInitialized = true;
+        this.setupWorkerListeners();
+        console.log('[GraphDataManager] Worker became ready after additional wait');
+        return true;
+      }
+    }
+
+    console.warn('[GraphDataManager] Worker still not ready after ensureWorkerReady');
+    return false;
   }
 
   
@@ -302,10 +336,19 @@ class GraphDataManager {
 
   
   public async getGraphData(): Promise<GraphData> {
-    if (!this.workerInitialized) {
+    // Check both local flag AND proxy ready state (handles race condition)
+    if (!this.workerInitialized && !graphWorkerProxy.isReady()) {
       console.warn('[GraphDataManager] Worker not initialized, returning empty data');
       return { nodes: [], edges: [] };
     }
+
+    // Update local flag if proxy is ready but we missed initialization
+    if (!this.workerInitialized && graphWorkerProxy.isReady()) {
+      console.log('[GraphDataManager] Proxy ready, updating workerInitialized flag');
+      this.workerInitialized = true;
+      this.setupWorkerListeners();
+    }
+
     try {
       return await graphWorkerProxy.getGraphData();
     } catch (error) {

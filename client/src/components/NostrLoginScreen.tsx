@@ -73,6 +73,34 @@ export const NostrLoginScreen: React.FC = () => {
               >
                 Retry After Installing Extension
               </button>
+
+              {isDevLoginAvailable && (
+                <div className="dev-login-section">
+                  <div className="dev-login-divider">
+                    <span>Development Mode</span>
+                  </div>
+                  <button
+                    className="dev-login-button"
+                    onClick={handleDevLogin}
+                    disabled={isDevLoggingIn}
+                  >
+                    {isDevLoggingIn ? (
+                      <>
+                        <span className="spinner"></span>
+                        Logging in...
+                      </>
+                    ) : (
+                      <>
+                        <span className="dev-icon">🔧</span>
+                        Dev Login (Bypass Extension)
+                      </>
+                    )}
+                  </button>
+                  <p className="dev-login-warning">
+                    ⚠️ Development only - bypasses NIP-07 authentication
+                  </p>
+                </div>
+              )}
             </div>
           ) : (
             <div className="nostr-login-form">

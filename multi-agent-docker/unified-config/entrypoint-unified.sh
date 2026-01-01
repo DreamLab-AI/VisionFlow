@@ -56,6 +56,13 @@ fi
 
 echo "✓ Directories created and permissions set"
 
+# Detect host gateway IP for HTTPS bridge proxy
+if [ -z "$HOST_GATEWAY_IP" ]; then
+    HOST_GATEWAY_IP=$(ip route | grep default | awk '{print $3}' 2>/dev/null || echo "192.168.0.51")
+fi
+export HOST_GATEWAY_IP
+echo "✓ Host gateway IP detected: $HOST_GATEWAY_IP"
+
 # ============================================================================
 # Phase 2: Credential Distribution from Environment
 # ============================================================================

@@ -271,8 +271,7 @@ async fn main() -> std::io::Result<()> {
     };
 
     info!("[main] About to initialize Nostr service");
-    
-    nostr_handler::init_nostr_service(&mut app_state);
+    nostr_handler::init_nostr_service(&mut app_state).await;
     info!("[main] Nostr service initialized");
 
     

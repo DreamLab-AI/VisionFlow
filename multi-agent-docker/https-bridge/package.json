@@ -1,0 +1,11 @@
+{
+  "name": "https-bridge",
+  "version": "1.0.0",
+  "description": "HTTPS to HTTP bridge proxy for cross-origin security bypass",
+  "main": "https-proxy.js",
+  "scripts": {
+    "start": "node https-proxy.js"
+  },
+  "keywords": ["https", "proxy", "bridge", "cors"],
+  "license": "MIT"
+}

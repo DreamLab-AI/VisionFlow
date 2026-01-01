@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { webSocketService, WebSocketErrorFrame } from '../services/WebSocketService';
+import { webSocketService, WebSocketErrorFrame } from '../store/websocketStore';
 import { useErrorHandler } from './useErrorHandler';
 import { useSettingsStore } from '../store/settingsStore';
 import { createLogger } from '../utils/loggerConfig';
@@ -10,8 +10,9 @@ export function useWebSocketErrorHandler() {
   const { handleError, handleWebSocketError, handleSettingsError } = useErrorHandler();
   
   useEffect(() => {
-    
-    const unsubscribeErrorFrame = webSocketService.on('error-frame', (error: WebSocketErrorFrame) => {
+
+    const unsubscribeErrorFrame = webSocketService.on('error-frame', (data: unknown) => {
+      const error = data as WebSocketErrorFrame;
       logger.warn('WebSocket error frame received:', error);
       
       
@@ -93,17 +94,20 @@ export function useWebSocketErrorHandler() {
     });
     
     
-    const unsubscribeValidation = webSocketService.on('validation-error', (data: { paths: string[], message: string }) => {
+    const unsubscribeValidation = webSocketService.on('validation-error', (rawData: unknown) => {
+      const data = rawData as { paths: string[], message: string };
       handleSettingsError(new Error(data.message), data.paths);
     });
-    
-    
-    const unsubscribeRateLimit = webSocketService.on('rate-limit', (data: { retryAfter: number, message: string }) => {
+
+
+    const unsubscribeRateLimit = webSocketService.on('rate-limit', (rawData: unknown) => {
+      const data = rawData as { retryAfter: number, message: string };
       logger.info(`Rate limited. Will retry after ${data.retryAfter}ms`);
     });
-    
-    
-    const unsubscribeAuth = webSocketService.on('auth-error', (data: { code: string, message: string }) => {
+
+
+    const unsubscribeAuth = webSocketService.on('auth-error', (rawData: unknown) => {
+      const data = rawData as { code: string, message: string };
       
       useSettingsStore.getState().setAuthenticated(false);
       useSettingsStore.getState().setUser(null);

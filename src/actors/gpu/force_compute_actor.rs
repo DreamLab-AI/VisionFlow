@@ -259,17 +259,19 @@ impl ForceComputeActor {
         }
     }
 
-    
+    /// Calculate physics metrics from GPU state
+    /// Uses try_lock() to avoid blocking Tokio threads - returns estimates if GPU is busy
     fn calculate_physics_metrics(&self) -> (f32, f32, f32) {
-        
+        // Use try_lock() to avoid blocking - if GPU is busy, return estimates
         if let Some(ctx) = &self.shared_context {
-            if let Ok(unified_compute) = ctx.unified_compute.lock() {
+            if let Ok(unified_compute) = ctx.unified_compute.try_lock() {
                 return self.extract_gpu_metrics(&*unified_compute);
             }
+            // GPU mutex busy, fall through to estimates
         }
 
-        
-        let estimated_velocity = self.simulation_params.max_velocity * 0.3; 
+        // Return estimates when GPU access not available
+        let estimated_velocity = self.simulation_params.max_velocity * 0.3;
         let estimated_kinetic_energy =
             0.5 * (self.gpu_state.num_nodes as f32) * estimated_velocity.powi(2);
         let estimated_total_forces =
@@ -367,6 +369,13 @@ impl ForceComputeActor {
     ///
     /// The constraint buffer contains ConstraintData structs generated from OWL axioms
     /// by OntologyConstraintTranslator, which are processed by ontology_constraints.cu kernels.
+    ///
+    /// # Thread Safety
+    ///
+    /// This method uses try_lock() to avoid blocking Tokio threads. If the GPU mutex
+    /// is held, constraint upload is deferred to the next frame. This is acceptable
+    /// because constraint uploads are idempotent and the GPU will apply the cached
+    /// constraints on subsequent physics steps.
     fn apply_ontology_forces(&mut self) -> Result<(), String> {
         trace!("ForceComputeActor: Applying ontology constraint forces");
 
@@ -388,11 +397,15 @@ impl ForceComputeActor {
             return Ok(());
         }
 
-        // Access unified compute system and upload constraints to GPU
-        let mut unified_compute = shared_context
-            .unified_compute
-            .lock()
-            .map_err(|e| format!("Failed to acquire GPU compute lock: {}", e))?;
+        // Use try_lock() to avoid blocking Tokio threads
+        // If mutex is held by spawn_blocking task, skip this frame (constraints are idempotent)
+        let mut unified_compute = match shared_context.unified_compute.try_lock() {
+            Ok(guard) => guard,
+            Err(_) => {
+                trace!("ForceComputeActor: GPU mutex busy, deferring constraint upload to next frame");
+                return Ok(()); // Not an error, will retry next frame
+            }
+        };
 
         // Upload constraints to GPU - this is the critical integration point
         // The upload_constraints method:
@@ -510,9 +523,11 @@ impl Handler<ComputeForces> for ForceComputeActor {
         let sim_params = self.simulation_params.clone();
         let reheat_factor = self.reheat_factor;
 
-        // Use async pattern instead of blocking
+        // Use spawn_blocking to prevent Tokio thread starvation from blocking mutex locks
+        // GPU operations are inherently blocking (waiting for GPU kernels), so we move them
+        // to the blocking thread pool to keep async executor threads responsive
         let fut = async move {
-            // Acquire GPU access asynchronously
+            // Acquire GPU access asynchronously (this uses tokio::sync::RwLock - non-blocking)
             let _gpu_guard = match shared_context.acquire_gpu_access().await {
                 Ok(guard) => guard,
                 Err(e) => {
@@ -521,31 +536,47 @@ impl Handler<ComputeForces> for ForceComputeActor {
                 }
             };
 
-            // Now perform the actual GPU computation
-            let unified_compute_result = shared_context.unified_compute.lock();
-            let mut unified_compute = match unified_compute_result {
-                Ok(guard) => guard,
-                Err(e) => {
-                    return Err(format!("Failed to acquire GPU compute lock: {}", e));
+            // Clone Arc for move into spawn_blocking
+            let unified_compute_arc = shared_context.unified_compute.clone();
+
+            // Move blocking GPU operations to dedicated blocking thread pool
+            // This prevents std::sync::Mutex::lock() from blocking Tokio worker threads
+            let blocking_result = tokio::task::spawn_blocking(move || {
+                let mut unified_compute = match unified_compute_arc.lock() {
+                    Ok(guard) => guard,
+                    Err(e) => {
+                        return Err(format!("Failed to acquire GPU compute lock: {}", e));
+                    }
+                };
+
+                if reheat_factor > 0.0 {
+                    info!(
+                        "Reheating physics with factor {:.2} to break equilibrium after parameter change",
+                        reheat_factor
+                    );
                 }
-            };
 
-            if reheat_factor > 0.0 {
-                info!(
-                    "Reheating physics with factor {:.2} to break equilibrium after parameter change",
-                    reheat_factor
-                );
+                let gpu_result = unified_compute.execute_physics_step(&sim_params);
+                let execution_duration = step_start.elapsed().as_secs_f64() * 1000.0;
+
+                // Get positions and velocities for broadcast
+                let positions_result = unified_compute.get_node_positions();
+                let velocities_result = unified_compute.get_node_velocities();
+
+                Ok((gpu_result, execution_duration, positions_result, velocities_result))
+            }).await;
+
+            // Handle spawn_blocking join result
+            match blocking_result {
+                Ok(inner_result) => {
+                    inner_result.map(|(gpu_result, execution_duration, positions_result, velocities_result)| {
+                        (gpu_result, execution_duration, positions_result, velocities_result, correlation_id, iteration, step_start)
+                    })
+                }
+                Err(join_err) => {
+                    Err(format!("GPU blocking task panicked: {}", join_err))
+                }
             }
-
-            let gpu_result = unified_compute.execute_physics_step(&sim_params);
-            let execution_duration = step_start.elapsed().as_secs_f64() * 1000.0;
-
-            // Get positions and velocities for broadcast
-            let positions_result = unified_compute.get_node_positions();
-            let velocities_result = unified_compute.get_node_velocities();
-
-            // Return results for processing in actor context
-            Ok((gpu_result, execution_duration, positions_result, velocities_result, correlation_id, iteration, step_start))
         };
 
         Box::pin(fut.into_actor(self).map(move |result, actor, _ctx| {
@@ -764,8 +795,9 @@ impl Handler<UpdateAdvancedParams> for ForceComputeActor {
 }
 
 // Position upload support for external updates
+// Uses ResponseActFuture to allow spawn_blocking without blocking Tokio threads
 impl Handler<UploadPositions> for ForceComputeActor {
-    type Result = Result<(), String>;
+    type Result = ResponseActFuture<Self, Result<(), String>>;
 
     fn handle(&mut self, msg: UploadPositions, _ctx: &mut Self::Context) -> Self::Result {
         info!(
@@ -773,23 +805,51 @@ impl Handler<UploadPositions> for ForceComputeActor {
             msg.positions_x.len()
         );
 
-        let mut unified_compute = match &self.shared_context {
-            Some(ctx) => ctx
-                .unified_compute
-                .lock()
-                .map_err(|e| format!("Failed to acquire GPU compute lock: {}", e))?,
+        let shared_context = match &self.shared_context {
+            Some(ctx) => ctx.clone(),
             None => {
-                return Err("GPU context not initialized".to_string());
+                return Box::pin(
+                    futures::future::ready(Err("GPU context not initialized".to_string()))
+                        .into_actor(self),
+                );
             }
         };
 
-        
-        unified_compute
-            .update_positions_only(&msg.positions_x, &msg.positions_y, &msg.positions_z)
-            .map_err(|e| format!("Failed to upload positions: {}", e))?;
+        // Clone data for move into spawn_blocking
+        let positions_x = msg.positions_x;
+        let positions_y = msg.positions_y;
+        let positions_z = msg.positions_z;
 
-        info!("ForceComputeActor: Position upload completed successfully");
-        Ok(())
+        let fut = async move {
+            let unified_compute_arc = shared_context.unified_compute.clone();
+
+            // Move blocking GPU upload to dedicated blocking thread pool
+            let blocking_result = tokio::task::spawn_blocking(move || {
+                let mut unified_compute = match unified_compute_arc.lock() {
+                    Ok(guard) => guard,
+                    Err(e) => {
+                        return Err(format!("Failed to acquire GPU compute lock: {}", e));
+                    }
+                };
+
+                unified_compute
+                    .update_positions_only(&positions_x, &positions_y, &positions_z)
+                    .map_err(|e| format!("Failed to upload positions: {}", e))
+            })
+            .await;
+
+            match blocking_result {
+                Ok(inner_result) => inner_result,
+                Err(join_err) => Err(format!("GPU blocking task panicked: {}", join_err)),
+            }
+        };
+
+        Box::pin(fut.into_actor(self).map(|result, _actor, _ctx| {
+            if result.is_ok() {
+                info!("ForceComputeActor: Position upload completed successfully");
+            }
+            result
+        }))
     }
 }
 

@@ -95,11 +95,43 @@ impl GPUOperationBatch {
     }
 }
 
+/// Shared GPU context for all GPU actors
 ///
+/// # Thread Safety Architecture
+///
+/// This struct uses `std::sync::Mutex` (not `tokio::sync::Mutex`) for GPU resources because:
+/// 1. GPU operations are inherently blocking (they wait for GPU kernels to complete)
+/// 2. CUDA streams and compute kernels are not async-aware
+/// 3. Holding a `tokio::sync::Mutex` across `.await` points would be incorrect
+///
+/// To prevent Tokio worker thread starvation, callers MUST wrap blocking GPU operations
+/// in `tokio::task::spawn_blocking()`. This moves the blocking work to a dedicated thread pool
+/// while keeping async executor threads responsive.
+///
+/// ## Correct Usage Pattern
+/// ```ignore
+/// let unified_compute_arc = shared_context.unified_compute.clone();
+/// let result = tokio::task::spawn_blocking(move || {
+///     let mut guard = unified_compute_arc.lock().unwrap();
+///     guard.execute_physics_step(&params)
+/// }).await;
+/// ```
+///
+/// ## Incorrect Usage (causes thread starvation)
+/// ```ignore
+/// // DON'T do this in async handlers!
+/// let guard = shared_context.unified_compute.lock().unwrap();
+/// guard.execute_physics_step(&params);
+/// ```
+///
+/// For non-critical operations that can be skipped if the GPU is busy,
+/// use `try_lock()` instead to avoid blocking entirely.
 // Note: SafeCudaStream provides thread safety guarantees
 pub struct SharedGPUContext {
     pub device: Arc<CudaDevice>,
+    /// CUDA stream for GPU operations. Use spawn_blocking() for access in async contexts.
     pub stream: Arc<std::sync::Mutex<SafeCudaStream>>,
+    /// Unified GPU compute engine. Use spawn_blocking() for access in async contexts.
     pub unified_compute: Arc<std::sync::Mutex<UnifiedGPUCompute>>,
 
     

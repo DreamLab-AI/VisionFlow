@@ -9,7 +9,7 @@ import { initializeDebugSystem } from '../utils/debugConfig';
 import { unifiedApiClient } from '../services/api/UnifiedApiClient';
 import { initializeAuthInterceptor, setupAuthStateListener } from '../services/api/authInterceptor';
 import { useSettingsStore } from '../store/settingsStore';
-import { webSocketService } from '../services/WebSocketService';
+import { webSocketService, useWebSocketStore } from '../store/websocketStore';
 import '../styles/index.css';
 
 
@@ -19,8 +19,9 @@ initializeDebugSystem();
 // Expose stores and services for testing/debugging (dev mode only)
 if (import.meta.env.DEV) {
   (window as any).useSettingsStore = useSettingsStore;
+  (window as any).useWebSocketStore = useWebSocketStore;
   (window as any).webSocketService = webSocketService;
-  console.log('[Dev] Exposed useSettingsStore and webSocketService on window for testing');
+  console.log('[Dev] Exposed useSettingsStore, useWebSocketStore, and webSocketService on window for testing');
 }
 
 // Initialize authentication interceptor for all API calls

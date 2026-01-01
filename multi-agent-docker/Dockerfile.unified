@@ -356,6 +356,12 @@ RUN cd /home/devuser/.claude/skills/perplexity/mcp-server && \
     npm install --production 2>/dev/null || echo "Perplexity deps optional" && \
     chmod +x server.js 2>/dev/null || true
 
+# Host Webserver Debug MCP server (HTTPS bridge, screenshots, CORS debugging)
+RUN cd /home/devuser/.claude/skills/host-webserver-debug/mcp-server && \
+    npm install --production 2>/dev/null || echo "Host debug deps optional" && \
+    chmod +x server.js 2>/dev/null || true && \
+    chmod +x /home/devuser/.claude/skills/host-webserver-debug/tools/*.js 2>/dev/null || true
+
 # ============================================================================
 # Install Python Dependencies for FastMCP Skills
 # ============================================================================
@@ -459,6 +465,13 @@ RUN cd /opt/management-api && npm install --production && \
 COPY --chown=zai-user:zai-user multi-agent-docker/claude-zai/wrapper/ /opt/claude-zai/
 RUN cd /opt/claude-zai && npm install --production && \
     chown -R zai-user:zai-user /opt/claude-zai
+
+# Copy HTTPS Bridge Proxy (bridges https://localhost:3001 -> host http:3001)
+COPY --chown=devuser:devuser multi-agent-docker/https-bridge/ /opt/https-bridge/
+RUN cd /opt/https-bridge && \
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    -keyout server.key -out server.crt -subj "/CN=localhost" && \
+    chown -R devuser:devuser /opt/https-bridge
 
 # Install code-server using standalone binary method (AUR requires non-root)
 RUN mkdir -p /usr/local/lib/code-server && \

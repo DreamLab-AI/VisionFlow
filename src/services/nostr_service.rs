@@ -15,6 +15,9 @@ use uuid::Uuid;
 use crate::utils::time;
 use crate::utils::json::{from_json, to_json};
 
+#[cfg(feature = "redis")]
+use redis::{AsyncCommands, Client as RedisClient};
+
 #[derive(Debug, Error)]
 pub enum NostrError {
     #[error("Invalid event: {0}")]
@@ -97,12 +100,27 @@ pub struct AuthEvent {
     pub tags: Vec<Vec<String>>,
 }
 
+/// Redis key prefixes for session storage
+#[cfg(feature = "redis")]
+mod redis_keys {
+    /// Session token -> pubkey mapping (for token lookups)
+    pub const SESSION_TOKEN: &str = "nostr:session:token:";
+    /// Pubkey -> user data mapping (for user storage)
+    pub const USER_DATA: &str = "nostr:user:data:";
+    /// Pubkey -> session token mapping (for reverse lookups)
+    pub const USER_SESSION: &str = "nostr:user:session:";
+}
+
 #[derive(Clone)]
 pub struct NostrService {
+    /// In-memory user cache (always maintained for fast access)
     users: Arc<RwLock<HashMap<String, NostrUser>>>,
     power_user_pubkeys: Vec<String>,
     token_expiry: i64,
     feature_access: Arc<RwLock<FeatureAccess>>,
+    /// Redis client for persistent session storage (optional)
+    #[cfg(feature = "redis")]
+    redis_client: Option<RedisClient>,
 }
 
 impl NostrService {
@@ -119,12 +137,192 @@ impl NostrService {
             .unwrap_or(3600);
 
         let feature_access = Arc::new(RwLock::new(FeatureAccess::from_env()));
+
+        // Initialize Redis client for session persistence
+        #[cfg(feature = "redis")]
+        let redis_client = match std::env::var("REDIS_URL") {
+            Ok(url) => match RedisClient::open(url.clone()) {
+                Ok(client) => {
+                    info!("[NostrService] Connected to Redis for session persistence: {}",
+                          url.split('@').last().unwrap_or(&url));
+                    Some(client)
+                }
+                Err(e) => {
+                    warn!("[NostrService] Failed to connect to Redis, sessions will be in-memory only: {}", e);
+                    None
+                }
+            },
+            Err(_) => {
+                debug!("[NostrService] No REDIS_URL configured, sessions will be in-memory only");
+                None
+            }
+        };
+
         Self {
             users: Arc::new(RwLock::new(HashMap::new())),
             power_user_pubkeys: power_users,
             feature_access,
             token_expiry,
+            #[cfg(feature = "redis")]
+            redis_client,
         }
+    }
+
+    /// Initialize service and restore sessions from Redis
+    pub async fn initialize(&self) -> Result<usize, NostrError> {
+        #[cfg(feature = "redis")]
+        {
+            if let Some(ref client) = self.redis_client {
+                return self.restore_sessions_from_redis().await;
+            }
+        }
+        Ok(0)
+    }
+
+    /// Restore all active sessions from Redis on startup
+    #[cfg(feature = "redis")]
+    async fn restore_sessions_from_redis(&self) -> Result<usize, NostrError> {
+        let client = match &self.redis_client {
+            Some(c) => c,
+            None => return Ok(0),
+        };
+
+        let mut conn = client.get_multiplexed_async_connection().await
+            .map_err(|e| NostrError::InvalidEvent(format!("Redis connection failed: {}", e)))?;
+
+        // Scan for all user data keys
+        let pattern = format!("{}*", redis_keys::USER_DATA);
+        let keys: Vec<String> = redis::cmd("KEYS")
+            .arg(&pattern)
+            .query_async(&mut conn)
+            .await
+            .unwrap_or_default();
+
+        let mut restored_count = 0;
+        let mut users = self.users.write().await;
+
+        for key in keys {
+            let user_json: Option<String> = conn.get(&key).await.unwrap_or(None);
+            if let Some(json) = user_json {
+                match from_json::<NostrUser>(&json) {
+                    Ok(user) => {
+                        // Check if session is still valid (not expired)
+                        let now = time::timestamp_seconds();
+                        if now - user.last_seen <= self.token_expiry {
+                            info!("[NostrService] Restored session for user: {}",
+                                  &user.pubkey[..16.min(user.pubkey.len())]);
+                            users.insert(user.pubkey.clone(), user);
+                            restored_count += 1;
+                        } else {
+                            debug!("[NostrService] Skipping expired session for user: {}",
+                                   &key[redis_keys::USER_DATA.len()..]);
+                        }
+                    }
+                    Err(e) => {
+                        warn!("[NostrService] Failed to deserialize user from Redis: {}", e);
+                    }
+                }
+            }
+        }
+
+        info!("[NostrService] Restored {} active sessions from Redis", restored_count);
+        Ok(restored_count)
+    }
+
+    /// Persist user session to Redis
+    #[cfg(feature = "redis")]
+    async fn persist_session(&self, user: &NostrUser) {
+        let client = match &self.redis_client {
+            Some(c) => c,
+            None => return,
+        };
+
+        let mut conn = match client.get_multiplexed_async_connection().await {
+            Ok(c) => c,
+            Err(e) => {
+                warn!("[NostrService] Failed to get Redis connection for session persist: {}", e);
+                return;
+            }
+        };
+
+        let user_json = match to_json(user) {
+            Ok(j) => j,
+            Err(e) => {
+                error!("[NostrService] Failed to serialize user for Redis: {}", e);
+                return;
+            }
+        };
+
+        let ttl_secs = self.token_expiry as u64;
+
+        // Store user data with TTL
+        let user_key = format!("{}{}", redis_keys::USER_DATA, user.pubkey);
+        if let Err(e) = conn.set_ex::<_, _, ()>(&user_key, &user_json, ttl_secs).await {
+            warn!("[NostrService] Failed to store user data in Redis: {}", e);
+            return;
+        }
+
+        // Store session token -> pubkey mapping for token lookups
+        if let Some(ref token) = user.session_token {
+            let token_key = format!("{}{}", redis_keys::SESSION_TOKEN, token);
+            if let Err(e) = conn.set_ex::<_, _, ()>(&token_key, &user.pubkey, ttl_secs).await {
+                warn!("[NostrService] Failed to store session token in Redis: {}", e);
+            }
+
+            // Store pubkey -> session token for reverse lookups
+            let session_key = format!("{}{}", redis_keys::USER_SESSION, user.pubkey);
+            if let Err(e) = conn.set_ex::<_, _, ()>(&session_key, token, ttl_secs).await {
+                warn!("[NostrService] Failed to store user session mapping in Redis: {}", e);
+            }
+        }
+
+        debug!("[NostrService] Persisted session to Redis for user: {}",
+               &user.pubkey[..16.min(user.pubkey.len())]);
+    }
+
+    /// Remove session from Redis
+    #[cfg(feature = "redis")]
+    async fn remove_session_from_redis(&self, pubkey: &str, token: Option<&str>) {
+        let client = match &self.redis_client {
+            Some(c) => c,
+            None => return,
+        };
+
+        let mut conn = match client.get_multiplexed_async_connection().await {
+            Ok(c) => c,
+            Err(e) => {
+                warn!("[NostrService] Failed to get Redis connection for session removal: {}", e);
+                return;
+            }
+        };
+
+        // Remove user data
+        let user_key = format!("{}{}", redis_keys::USER_DATA, pubkey);
+        let _: Result<(), _> = conn.del(&user_key).await;
+
+        // Remove session token mapping
+        if let Some(token) = token {
+            let token_key = format!("{}{}", redis_keys::SESSION_TOKEN, token);
+            let _: Result<(), _> = conn.del(&token_key).await;
+        }
+
+        // Remove user session mapping
+        let session_key = format!("{}{}", redis_keys::USER_SESSION, pubkey);
+        let _: Result<(), _> = conn.del(&session_key).await;
+
+        debug!("[NostrService] Removed session from Redis for user: {}",
+               &pubkey[..16.min(pubkey.len())]);
+    }
+
+    /// Check if Redis is available for session persistence
+    #[cfg(feature = "redis")]
+    pub fn has_redis(&self) -> bool {
+        self.redis_client.is_some()
+    }
+
+    #[cfg(not(feature = "redis"))]
+    pub fn has_redis(&self) -> bool {
+        false
     }
 
     pub async fn verify_auth_event(&self, event: AuthEvent) -> Result<NostrUser, NostrError> {
@@ -198,15 +396,19 @@ impl NostrService {
             session_token: Some(session_token),
         };
 
-        
         info!(
             "Created/updated user: pubkey={}, is_power_user={}",
             user.pubkey, user.is_power_user
         );
 
-        
+        // Store in memory
         let mut users = self.users.write().await;
         users.insert(user.pubkey.clone(), user.clone());
+        drop(users);
+
+        // Persist to Redis for session survival across restarts
+        #[cfg(feature = "redis")]
+        self.persist_session(&user).await;
 
         Ok(user)
     }
@@ -229,7 +431,14 @@ impl NostrService {
             }
             user.api_keys = api_keys;
             user.last_seen = time::timestamp_seconds();
-            Ok(user.clone())
+            let updated_user = user.clone();
+            drop(users);
+
+            // Persist updated user to Redis
+            #[cfg(feature = "redis")]
+            self.persist_session(&updated_user).await;
+
+            Ok(updated_user)
         } else {
             Err(NostrError::UserNotFound)
         }
@@ -251,10 +460,27 @@ impl NostrService {
         let mut users = self.users.write().await;
 
         if let Some(user) = users.get_mut(pubkey) {
+            // Remove old token from Redis before creating new one
+            #[cfg(feature = "redis")]
+            let old_token = user.session_token.clone();
+
             let now = time::timestamp_seconds();
             let new_token = Uuid::new_v4().to_string();
             user.session_token = Some(new_token.clone());
             user.last_seen = now;
+            let updated_user = user.clone();
+            drop(users);
+
+            // Persist refreshed session to Redis
+            #[cfg(feature = "redis")]
+            {
+                // Remove old token mapping
+                if let Some(ref old) = old_token {
+                    self.remove_session_from_redis(pubkey, Some(old)).await;
+                }
+                self.persist_session(&updated_user).await;
+            }
+
             Ok(new_token)
         } else {
             Err(NostrError::UserNotFound)
@@ -265,8 +491,15 @@ impl NostrService {
         let mut users = self.users.write().await;
 
         if let Some(user) = users.get_mut(pubkey) {
+            let old_token = user.session_token.clone();
             user.session_token = None;
             user.last_seen = time::timestamp_seconds();
+            drop(users);
+
+            // Remove session from Redis
+            #[cfg(feature = "redis")]
+            self.remove_session_from_redis(pubkey, old_token.as_deref()).await;
+
             Ok(())
         } else {
             Err(NostrError::UserNotFound)
@@ -357,8 +590,16 @@ impl NostrService {
             let mut users = self.users.write().await;
             if let Some(user) = users.get_mut(pubkey) {
                 user.last_seen = time::timestamp_seconds();
+                let updated_user = user.clone();
+                drop(users);
+
+                // Persist updated last_seen to Redis
+                #[cfg(feature = "redis")]
+                self.persist_session(&updated_user).await;
+
+                return Ok(updated_user);
             }
-            return Ok(users.get(pubkey).cloned().unwrap());
+            return Err(NostrError::UserNotFound);
         }
 
         // Register new user with feature access
@@ -366,6 +607,7 @@ impl NostrService {
         if feature_access.register_new_user(pubkey) {
             info!("Registered new user via NIP-98 with basic access: {}", pubkey);
         }
+        drop(feature_access);
 
         let is_power_user = self.power_user_pubkeys.contains(&pubkey.to_string());
         let session_token = Uuid::new_v4().to_string();
@@ -391,6 +633,11 @@ impl NostrService {
         // Store the new user
         let mut users = self.users.write().await;
         users.insert(pubkey.to_string(), user.clone());
+        drop(users);
+
+        // Persist new user session to Redis
+        #[cfg(feature = "redis")]
+        self.persist_session(&user).await;
 
         info!(
             "Created new user via NIP-98: pubkey={}, is_power_user={}",

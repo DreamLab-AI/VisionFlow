@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { createLogger, createErrorMetadata } from '../utils/loggerConfig';
 import { debugState } from '../utils/clientDebugState';
 import { useSettingsStore } from '../store/settingsStore';
+import { useWorkerErrorStore } from '../store/workerErrorStore';
 import WebSocketService from '../services/WebSocketService';
 import { graphWorkerProxy } from '../features/graph/managers/graphWorkerProxy';
 import { graphDataManager } from '../features/graph/managers/graphDataManager';
@@ -74,10 +75,56 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
         logger.info('Starting application initialization...');
         }
 
+        // Set up retry handler for worker initialization
+        const initializeWorker = async (): Promise<boolean> => {
+          try {
+            console.log('[AppInitializer] Step 1: Initializing graphWorkerProxy');
+            await graphWorkerProxy.initialize();
+            console.log('[AppInitializer] Step 1b: graphWorkerProxy initialized, ensuring graphDataManager worker connection');
+
+            // Ensure graphDataManager is connected to the worker now that it's ready
+            const workerReady = await graphDataManager.ensureWorkerReady();
+            console.log(`[AppInitializer] Step 1c: graphDataManager worker ready: ${workerReady}`);
+
+            if (!workerReady) {
+              throw new Error('Graph worker failed to become ready after initialization');
+            }
+
+            return true;
+          } catch (workerError) {
+            console.error('[AppInitializer] Worker initialization failed:', workerError);
+            const errorMessage = workerError instanceof Error ? workerError.message : String(workerError);
+
+            // Check for SharedArrayBuffer-related issues
+            let details = errorMessage;
+            if (typeof SharedArrayBuffer === 'undefined') {
+              details = 'SharedArrayBuffer is not available. This is required for the graph engine to function properly.';
+            } else if (errorMessage.includes('Worker') || errorMessage.includes('worker')) {
+              details = `Worker initialization error: ${errorMessage}`;
+            }
+
+            useWorkerErrorStore.getState().setWorkerError(
+              'The graph visualization engine failed to initialize.',
+              details
+            );
+
+            // Continue without worker - graceful degradation
+            logger.warn('Continuing without fully initialized worker');
+            return false;
+          }
+        };
+
+        // Store retry handler
+        useWorkerErrorStore.getState().setRetryHandler(async () => {
+          const success = await initializeWorker();
+          if (!success) {
+            throw new Error('Worker initialization retry failed');
+          }
+        });
+
         try {
-          console.log('[AppInitializer] Step 1: Initializing graphWorkerProxy');
-          
-          await graphWorkerProxy.initialize();
+          await initializeWorker();
+
           console.log('[AppInitializer] Step 2: graphWorkerProxy initialized, calling settings initialize');
           await initialize();
           console.log('[AppInitializer] Step 3: Settings initialized');

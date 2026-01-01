@@ -22,20 +22,23 @@ class RemoteLogger {
   private maxConsecutiveFailures: number = 3; // Auto-disable after 3 failures
 
   constructor() {
-
+    // Check if remote logging is disabled via environment
+    const remoteLoggingDisabled = import.meta?.env?.VITE_REMOTE_LOGGING_DISABLED === 'true';
+    this.enabled = !remoteLoggingDisabled;
 
     // Use relative path for API calls - nginx will proxy to backend
     // In development, nginx runs on port 3001 and proxies /api/ to backend on port 4000
     const apiUrl = (import.meta?.env?.VITE_API_URL) || '';
 
     this.serverEndpoint = `${apiUrl}/api/client-logs`;
-    console.log('[RemoteLogger] Configured endpoint:', this.serverEndpoint);
 
-    
-    this.startFlushTimer();
-
-    
-    this.interceptConsole();
+    if (this.enabled) {
+      console.log('[RemoteLogger] Configured endpoint:', this.serverEndpoint);
+      this.startFlushTimer();
+      this.interceptConsole();
+    } else {
+      console.log('[RemoteLogger] Remote logging disabled via VITE_REMOTE_LOGGING_DISABLED');
+    }
 
     
     if (typeof window !== 'undefined') {

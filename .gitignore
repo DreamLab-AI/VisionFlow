@@ -16,6 +16,7 @@ webxr.long-type*
 qdrant_data/
 whelk-rs/
 .swarm/
+screenshots/
 
 # Dependencies
 node_modules

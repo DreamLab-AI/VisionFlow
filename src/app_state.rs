@@ -49,6 +49,121 @@ use crate::adapters::neo4j_settings_repository::Neo4jSettingsRepository;
 use crate::adapters::neo4j_ontology_repository::{Neo4jOntologyRepository, Neo4jOntologyConfig};
 use crate::ports::settings_repository::SettingsRepository;
 
+/// SECURITY: List of known insecure default values that must be rejected
+const INSECURE_DEFAULT_KEYS: &[&str] = &[
+    "change-this-secret-key",
+    "changeme",
+    "secret",
+    "password",
+    "admin",
+    "test",
+    "default",
+    "your-secret-key",
+    "your-api-key",
+    "replace-me",
+    "xxx",
+    "",
+];
+
+/// Validates all security-critical environment variables at startup.
+///
+/// This function enforces strict security requirements:
+/// - MANAGEMENT_API_KEY must be set and not contain insecure default values
+/// - JWT_SECRET (if used) must be set and not contain insecure default values
+///
+/// # Panics
+/// Panics if any security-critical environment variable is missing or insecure.
+/// This is intentional to prevent the application from starting in an insecure state.
+///
+/// # Returns
+/// The validated MANAGEMENT_API_KEY value on success.
+fn validate_security_env_vars() -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+    let mut errors: Vec<String> = Vec::new();
+
+    // Validate MANAGEMENT_API_KEY
+    let mgmt_api_key = match std::env::var("MANAGEMENT_API_KEY") {
+        Ok(key) => {
+            let key_lower = key.to_lowercase();
+            if INSECURE_DEFAULT_KEYS.iter().any(|&insecure| key_lower == insecure || key_lower.contains(insecure)) {
+                errors.push(format!(
+                    "MANAGEMENT_API_KEY contains an insecure default value. \
+                     Please set a strong, unique API key (minimum 32 characters recommended)."
+                ));
+                None
+            } else if key.len() < 16 {
+                errors.push(format!(
+                    "MANAGEMENT_API_KEY is too short ({} chars). \
+                     Please use a key with at least 16 characters (32+ recommended).",
+                    key.len()
+                ));
+                None
+            } else {
+                Some(key)
+            }
+        }
+        Err(_) => {
+            errors.push(
+                "MANAGEMENT_API_KEY environment variable is not set. \
+                 This is required for secure API authentication. \
+                 Please set MANAGEMENT_API_KEY to a strong, unique value."
+                    .to_string(),
+            );
+            None
+        }
+    };
+
+    // Validate JWT_SECRET if it exists (optional but must be secure if set)
+    if let Ok(jwt_secret) = std::env::var("JWT_SECRET") {
+        let jwt_lower = jwt_secret.to_lowercase();
+        if INSECURE_DEFAULT_KEYS.iter().any(|&insecure| jwt_lower == insecure || jwt_lower.contains(insecure)) {
+            errors.push(format!(
+                "JWT_SECRET contains an insecure default value. \
+                 Please set a strong, unique secret (minimum 32 characters recommended)."
+            ));
+        } else if jwt_secret.len() < 32 {
+            warn!(
+                "[Security] JWT_SECRET is shorter than recommended ({} chars). \
+                 Consider using at least 32 characters for production.",
+                jwt_secret.len()
+            );
+        }
+    }
+
+    // If there are any security errors, log them clearly and panic
+    if !errors.is_empty() {
+        log::error!("=========================================================");
+        log::error!("  SECURITY CONFIGURATION ERROR - APPLICATION CANNOT START");
+        log::error!("=========================================================");
+        for (i, error) in errors.iter().enumerate() {
+            log::error!("  {}. {}", i + 1, error);
+        }
+        log::error!("---------------------------------------------------------");
+        log::error!("  Required environment variables:");
+        log::error!("    - MANAGEMENT_API_KEY: Strong unique API key (16+ chars)");
+        log::error!("    - JWT_SECRET (optional): Strong unique secret (32+ chars)");
+        log::error!("---------------------------------------------------------");
+        log::error!("  Example secure configuration:");
+        log::error!("    export MANAGEMENT_API_KEY=$(openssl rand -hex 32)");
+        log::error!("    export JWT_SECRET=$(openssl rand -hex 32)");
+        log::error!("=========================================================");
+
+        return Err(format!(
+            "Security configuration failed: {} error(s). See logs above for details.",
+            errors.len()
+        )
+        .into());
+    }
+
+    // Return the validated key
+    let key = mgmt_api_key.expect("Key validated but None - logic error");
+    info!(
+        "[Security] MANAGEMENT_API_KEY validated successfully ({}*** chars)",
+        key.len()
+    );
+
+    Ok(key)
+}
+
 // CQRS Phase 1D: Graph query handlers struct
 #[derive(Clone)]
 pub struct GraphQueryHandlers {
@@ -630,19 +745,8 @@ impl AppState {
             .unwrap_or_else(|_| "9090".to_string())
             .parse::<u16>()
             .unwrap_or(9090);
-        let mgmt_api_key = std::env::var("MANAGEMENT_API_KEY").unwrap_or_else(|_| {
-            // Generate a secure random key if not set, but warn loudly
-            if std::env::var("ALLOW_INSECURE_DEFAULTS").is_ok() {
-                warn!("[AppState] MANAGEMENT_API_KEY not set, using insecure default (dev mode)");
-                "change-this-secret-key".to_string()
-            } else {
-                // Generate a secure random API key for this session
-                let random_key = format!("auto-{}", uuid::Uuid::new_v4());
-                warn!("[AppState] MANAGEMENT_API_KEY not set - generated session key: {}...", &random_key[..16]);
-                warn!("[AppState] Set MANAGEMENT_API_KEY in production for consistent key across restarts");
-                random_key
-            }
-        });
+        // SECURITY: Validate all security-critical environment variables at startup
+        let mgmt_api_key = validate_security_env_vars()?;
 
         let mgmt_client = ManagementApiClient::new(mgmt_api_host, mgmt_api_port, mgmt_api_key);
         let task_orchestrator_addr = TaskOrchestratorActor::new(mgmt_client).start();

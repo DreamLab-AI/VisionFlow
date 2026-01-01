@@ -305,16 +305,33 @@ async fn get_api_keys(
 }
 
 // Add the handler to app_state initialization
-pub fn init_nostr_service(app_state: &mut AppState) {
+pub async fn init_nostr_service(app_state: &mut AppState) {
     let nostr_service = NostrService::new();
 
-    
+    // Initialize and restore sessions from Redis (if available)
+    match nostr_service.initialize().await {
+        Ok(count) => {
+            if count > 0 {
+                log::info!("[NostrService] Restored {} sessions from persistent storage", count);
+            }
+            if nostr_service.has_redis() {
+                log::info!("[NostrService] Redis session persistence enabled");
+            } else {
+                log::warn!("[NostrService] No Redis configured - sessions will be lost on restart");
+            }
+        }
+        Err(e) => {
+            log::error!("[NostrService] Failed to restore sessions: {}", e);
+        }
+    }
+
+    // Start session cleanup task
     let service_clone = nostr_service.clone();
     tokio::spawn(async move {
-        let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(3600)); 
+        let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(3600));
         loop {
             interval.tick().await;
-            service_clone.cleanup_sessions(24).await; 
+            service_clone.cleanup_sessions(24).await;
         }
     });
 

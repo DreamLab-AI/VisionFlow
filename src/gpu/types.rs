@@ -198,8 +198,21 @@ impl BinaryNodeData {
     }
 }
 
-// Ensure correct size at compile time
-static_assertions::const_assert_eq!(std::mem::size_of::<BinaryNodeData>(), 28);
+// =============================================================================
+// Static Assertions for FFI Struct Sizes and Alignment
+// =============================================================================
+//
+// These compile-time checks ensure Rust struct sizes match C/C++ definitions.
+// BinaryNodeData is used in network protocol and GPU streaming operations.
+
+use static_assertions::const_assert_eq;
+
+// BinaryNodeData: 28 bytes total
+// - node_id: u32 (4 bytes)
+// - x, y, z: f32 (12 bytes)
+// - vx, vy, vz: f32 (12 bytes)
+const_assert_eq!(std::mem::size_of::<BinaryNodeData>(), 28);
+const_assert_eq!(std::mem::align_of::<BinaryNodeData>(), 4);
 
 // =============================================================================
 // Migration Helpers

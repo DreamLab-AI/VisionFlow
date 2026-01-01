@@ -159,8 +159,8 @@ pub fn extract_pubkey_from_token(token: &str) -> Option<String> {
     Some(event.pubkey)
 }
 
-/// Maximum age for NIP-98 tokens (60 seconds per spec)
-const TOKEN_MAX_AGE_SECONDS: i64 = 60;
+/// Maximum age for NIP-98 tokens (5 minutes to accommodate clock skew)
+const TOKEN_MAX_AGE_SECONDS: i64 = 300;
 
 /// Result of NIP-98 token validation
 #[derive(Debug, Clone)]
@@ -183,7 +183,7 @@ pub enum Nip98ValidationError {
     InvalidJson(String),
     #[error("Invalid event kind: expected {HTTP_AUTH_KIND}, got {0}")]
     InvalidKind(u16),
-    #[error("Token expired: created {0}s ago (max {TOKEN_MAX_AGE_SECONDS}s)")]
+    #[error("Token expired: created {0}s ago (max {TOKEN_MAX_AGE_SECONDS}s). Please check your system clock is synchronized.")]
     TokenExpired(i64),
     #[error("Missing required tag: {0}")]
     MissingTag(String),

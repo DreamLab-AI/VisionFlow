@@ -12,7 +12,7 @@ use crate::errors::{SettingsError, VisionFlowError, VisionFlowResult};
 use actix::prelude::*;
 use blake3::Hasher;
 use flate2::Status;
-use flate2::{Compress, Compression, Decompress, FlushDecompress};
+use flate2::{Compress, Compression, Decompress, FlushCompress, FlushDecompress};
 use log::{debug, error, info, warn};
 use lru::LruCache;
 use serde::{Deserialize, Serialize};
@@ -400,7 +400,6 @@ impl OptimizedSettingsActor {
                     if let Ok(json_str) = to_json(&value) {
                         
                         let mut compressor = Compress::new(Compression::default(), false);
-                        let mut compressed = Vec::new();
                         let json_bytes = json_str.as_bytes();
 
                         

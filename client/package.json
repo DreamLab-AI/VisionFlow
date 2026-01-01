@@ -108,6 +108,7 @@
     "string-width": "7.2.0",
     "wrap-ansi": "9.0.0",
     "esbuild": "0.25.9",
-    "prismjs": "1.30.0"
+    "prismjs": "1.30.0",
+    "three": "0.182.0"
   }
 }

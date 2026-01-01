@@ -22,43 +22,166 @@ pub use crate::actors::messages::{
 // =============================================================================
 // GPU Kernel FFI Declarations
 // =============================================================================
+//
+// IMPORTANT: These structs MUST match the C++ definitions in semantic_forces.cu exactly.
+// Any mismatch in size or alignment will cause memory corruption during FFI calls.
+//
+// C++ bool is typically 1 byte, but for alignment we use padding in #[repr(C)] structs.
+// Each config struct has 3-4 floats followed by a bool, so we add explicit padding
+// to ensure consistent memory layout across Rust and C++.
+
 #[repr(C)]
+#[derive(Clone, Copy)]
 struct DAGConfigGPU {
-    vertical_spacing: f32,
-    horizontal_spacing: f32,
-    level_attraction: f32,
-    sibling_repulsion: f32,
-    enabled: bool,
+    vertical_spacing: f32,    // 4 bytes, offset 0
+    horizontal_spacing: f32,  // 4 bytes, offset 4
+    level_attraction: f32,    // 4 bytes, offset 8
+    sibling_repulsion: f32,   // 4 bytes, offset 12
+    enabled: bool,            // 1 byte,  offset 16
+    _pad: [u8; 3],            // 3 bytes padding to align to 4 bytes
 }
+// Expected size: 20 bytes (5 * 4-byte aligned fields)
+
 #[repr(C)]
+#[derive(Clone, Copy)]
 struct TypeClusterConfigGPU {
-    cluster_attraction: f32,
-    cluster_radius: f32,
-    inter_cluster_repulsion: f32,
-    enabled: bool,
+    cluster_attraction: f32,      // 4 bytes, offset 0
+    cluster_radius: f32,          // 4 bytes, offset 4
+    inter_cluster_repulsion: f32, // 4 bytes, offset 8
+    enabled: bool,                // 1 byte,  offset 12
+    _pad: [u8; 3],                // 3 bytes padding to align to 4 bytes
 }
+// Expected size: 16 bytes (4 * 4-byte aligned fields)
+
 #[repr(C)]
+#[derive(Clone, Copy)]
 struct CollisionConfigGPU {
-    min_distance: f32,
-    collision_strength: f32,
-    node_radius: f32,
-    enabled: bool,
+    min_distance: f32,       // 4 bytes, offset 0
+    collision_strength: f32, // 4 bytes, offset 4
+    node_radius: f32,        // 4 bytes, offset 8
+    enabled: bool,           // 1 byte,  offset 12
+    _pad: [u8; 3],           // 3 bytes padding to align to 4 bytes
 }
+// Expected size: 16 bytes (4 * 4-byte aligned fields)
+
 #[repr(C)]
+#[derive(Clone, Copy)]
 struct AttributeSpringConfigGPU {
-    base_spring_k: f32,
-    weight_multiplier: f32,
-    rest_length_min: f32,
-    rest_length_max: f32,
-    enabled: bool,
+    base_spring_k: f32,      // 4 bytes, offset 0
+    weight_multiplier: f32,  // 4 bytes, offset 4
+    rest_length_min: f32,    // 4 bytes, offset 8
+    rest_length_max: f32,    // 4 bytes, offset 12
+    enabled: bool,           // 1 byte,  offset 16
+    _pad: [u8; 3],           // 3 bytes padding to align to 4 bytes
 }
+// Expected size: 20 bytes (5 * 4-byte aligned fields)
+
 #[repr(C)]
-struct SemanticConfigGPU {
-    dag: DAGConfigGPU,
-    type_cluster: TypeClusterConfigGPU,
-    collision: CollisionConfigGPU,
-    attribute_spring: AttributeSpringConfigGPU,
+#[derive(Clone, Copy)]
+struct OntologyRelationshipConfigGPU {
+    requires_strength: f32,      // 4 bytes, offset 0 (legacy, unused by GPU)
+    requires_rest_length: f32,   // 4 bytes, offset 4 (legacy)
+    enables_strength: f32,       // 4 bytes, offset 8 (legacy)
+    enables_rest_length: f32,    // 4 bytes, offset 12 (legacy)
+    has_part_strength: f32,      // 4 bytes, offset 16 (legacy)
+    has_part_orbit_radius: f32,  // 4 bytes, offset 20 (legacy)
+    bridges_to_strength: f32,    // 4 bytes, offset 24 (legacy)
+    bridges_to_rest_length: f32, // 4 bytes, offset 28 (legacy)
+    enabled: bool,               // 1 byte,  offset 32
+    _pad: [u8; 3],               // 3 bytes padding to align to 4 bytes
 }
+// Expected size: 36 bytes (9 * 4-byte aligned fields)
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+struct PhysicalityClusterConfigGPU {
+    cluster_attraction: f32,           // 4 bytes, offset 0
+    cluster_radius: f32,               // 4 bytes, offset 4
+    inter_physicality_repulsion: f32,  // 4 bytes, offset 8
+    enabled: bool,                     // 1 byte,  offset 12
+    _pad: [u8; 3],                     // 3 bytes padding to align to 4 bytes
+}
+// Expected size: 16 bytes (4 * 4-byte aligned fields)
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+struct RoleClusterConfigGPU {
+    cluster_attraction: f32,     // 4 bytes, offset 0
+    cluster_radius: f32,         // 4 bytes, offset 4
+    inter_role_repulsion: f32,   // 4 bytes, offset 8
+    enabled: bool,               // 1 byte,  offset 12
+    _pad: [u8; 3],               // 3 bytes padding to align to 4 bytes
+}
+// Expected size: 16 bytes (4 * 4-byte aligned fields)
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+struct MaturityLayoutConfigGPU {
+    vertical_spacing: f32,   // 4 bytes, offset 0
+    level_attraction: f32,   // 4 bytes, offset 4
+    stage_separation: f32,   // 4 bytes, offset 8
+    enabled: bool,           // 1 byte,  offset 12
+    _pad: [u8; 3],           // 3 bytes padding to align to 4 bytes
+}
+// Expected size: 16 bytes (4 * 4-byte aligned fields)
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+struct CrossDomainConfigGPU {
+    base_strength: f32,          // 4 bytes, offset 0
+    link_count_multiplier: f32,  // 4 bytes, offset 4
+    max_strength_boost: f32,     // 4 bytes, offset 8
+    rest_length: f32,            // 4 bytes, offset 12
+    enabled: bool,               // 1 byte,  offset 16
+    _pad: [u8; 3],               // 3 bytes padding to align to 4 bytes
+}
+// Expected size: 20 bytes (5 * 4-byte aligned fields)
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+struct SemanticConfigGPU {
+    dag: DAGConfigGPU,                                // 20 bytes, offset 0
+    type_cluster: TypeClusterConfigGPU,               // 16 bytes, offset 20
+    collision: CollisionConfigGPU,                    // 16 bytes, offset 36
+    attribute_spring: AttributeSpringConfigGPU,       // 20 bytes, offset 52
+    ontology_relationship: OntologyRelationshipConfigGPU, // 36 bytes, offset 72
+    physicality_cluster: PhysicalityClusterConfigGPU, // 16 bytes, offset 108
+    role_cluster: RoleClusterConfigGPU,               // 16 bytes, offset 124
+    maturity_layout: MaturityLayoutConfigGPU,         // 16 bytes, offset 140
+    cross_domain: CrossDomainConfigGPU,               // 20 bytes, offset 156
+}
+// Expected size: 176 bytes
+
+// =============================================================================
+// Static Assertions for FFI Struct Sizes
+// =============================================================================
+//
+// These compile-time checks ensure Rust struct sizes match C++ definitions.
+// If any assertion fails, the struct layouts are incompatible and must be fixed.
+
+use static_assertions::const_assert_eq;
+
+// Individual config struct sizes
+const_assert_eq!(std::mem::size_of::<DAGConfigGPU>(), 20);
+const_assert_eq!(std::mem::size_of::<TypeClusterConfigGPU>(), 16);
+const_assert_eq!(std::mem::size_of::<CollisionConfigGPU>(), 16);
+const_assert_eq!(std::mem::size_of::<AttributeSpringConfigGPU>(), 20);
+const_assert_eq!(std::mem::size_of::<OntologyRelationshipConfigGPU>(), 36);
+const_assert_eq!(std::mem::size_of::<PhysicalityClusterConfigGPU>(), 16);
+const_assert_eq!(std::mem::size_of::<RoleClusterConfigGPU>(), 16);
+const_assert_eq!(std::mem::size_of::<MaturityLayoutConfigGPU>(), 16);
+const_assert_eq!(std::mem::size_of::<CrossDomainConfigGPU>(), 20);
+
+// Combined config struct size (must match C++ SemanticConfig)
+const_assert_eq!(std::mem::size_of::<SemanticConfigGPU>(), 176);
+
+// Float3 struct (matches CUDA float3)
+const_assert_eq!(std::mem::size_of::<Float3>(), 12);
+const_assert_eq!(std::mem::align_of::<Float3>(), 4);
+
+// DynamicForceConfigGPU (matches C++ DynamicForceConfig)
+const_assert_eq!(std::mem::size_of::<DynamicForceConfigGPU>(), 16);
+const_assert_eq!(std::mem::align_of::<DynamicForceConfigGPU>(), 4);
 
 // =============================================================================
 // Dynamic Force Configuration (Schema-Code Decoupling)
@@ -379,6 +502,9 @@ impl SemanticForcesActor {
     }
 
     /// Convert Rust config to GPU C-compatible struct
+    ///
+    /// This function creates a SemanticConfigGPU struct that matches the C++ SemanticConfig
+    /// layout exactly. All 9 sub-configs must be populated to prevent undefined behavior.
     fn config_to_gpu(&self) -> SemanticConfigGPU {
         SemanticConfigGPU {
             dag: DAGConfigGPU {
@@ -387,18 +513,21 @@ impl SemanticForcesActor {
                 level_attraction: self.config.dag.level_attraction,
                 sibling_repulsion: self.config.dag.sibling_repulsion,
                 enabled: self.config.dag.enabled,
+                _pad: [0; 3],
             },
             type_cluster: TypeClusterConfigGPU {
                 cluster_attraction: self.config.type_cluster.cluster_attraction,
                 cluster_radius: self.config.type_cluster.cluster_radius,
                 inter_cluster_repulsion: self.config.type_cluster.inter_cluster_repulsion,
                 enabled: self.config.type_cluster.enabled,
+                _pad: [0; 3],
             },
             collision: CollisionConfigGPU {
                 min_distance: self.config.collision.min_distance,
                 collision_strength: self.config.collision.collision_strength,
                 node_radius: self.config.collision.node_radius,
                 enabled: self.config.collision.enabled,
+                _pad: [0; 3],
             },
             attribute_spring: AttributeSpringConfigGPU {
                 base_spring_k: self.config.attribute_spring.base_spring_k,
@@ -406,6 +535,53 @@ impl SemanticForcesActor {
                 rest_length_min: self.config.attribute_spring.rest_length_min,
                 rest_length_max: self.config.attribute_spring.rest_length_max,
                 enabled: self.config.attribute_spring.enabled,
+                _pad: [0; 3],
+            },
+            // Legacy ontology relationship config - unused by GPU, uses DynamicRelationshipBuffer
+            ontology_relationship: OntologyRelationshipConfigGPU {
+                requires_strength: 0.0,
+                requires_rest_length: 0.0,
+                enables_strength: 0.0,
+                enables_rest_length: 0.0,
+                has_part_strength: 0.0,
+                has_part_orbit_radius: 0.0,
+                bridges_to_strength: 0.0,
+                bridges_to_rest_length: 0.0,
+                enabled: false,
+                _pad: [0; 3],
+            },
+            // Physicality clustering config - defaults to disabled
+            physicality_cluster: PhysicalityClusterConfigGPU {
+                cluster_attraction: 0.4,
+                cluster_radius: 80.0,
+                inter_physicality_repulsion: 0.2,
+                enabled: false,
+                _pad: [0; 3],
+            },
+            // Role clustering config - defaults to disabled
+            role_cluster: RoleClusterConfigGPU {
+                cluster_attraction: 0.4,
+                cluster_radius: 80.0,
+                inter_role_repulsion: 0.2,
+                enabled: false,
+                _pad: [0; 3],
+            },
+            // Maturity layout config - defaults to disabled
+            maturity_layout: MaturityLayoutConfigGPU {
+                vertical_spacing: 100.0,
+                level_attraction: 0.5,
+                stage_separation: 150.0,
+                enabled: false,
+                _pad: [0; 3],
+            },
+            // Cross-domain config - defaults to disabled
+            cross_domain: CrossDomainConfigGPU {
+                base_strength: 0.3,
+                link_count_multiplier: 0.1,
+                max_strength_boost: 2.0,
+                rest_length: 200.0,
+                enabled: false,
+                _pad: [0; 3],
             },
         }
     }

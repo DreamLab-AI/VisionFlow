@@ -1,245 +1,312 @@
-# VisionFlow Architecture Todo List
+# AR-AI-Knowledge-Graph Hive-Mind Task List
 
-Last verified: 2025-12-31 by Opus 4.5 completion sprint
-
----
-
-## Architectural Issues - Status Summary
-
-| # | Issue | Status | Evidence |
-|---|-------|--------|----------|
-| 1 | Protocol V1 Bug | ✅ DONE | V1 removed, rejected with error |
-| 2 | Physics State Decoupling | ✅ DONE | sim_x/y/z stored separately |
-| 3 | GPU Backpressure | ✅ DONE | Token bucket implemented |
-| 4 | Solid Identity Forwarding | ✅ DONE | User NIP-98 forwarded |
-| 5 | GPU Config Buffer | ✅ DONE | Dynamic buffer, no recompile |
-| 6 | Ontology Enrichment | ✅ DONE | DashMap + transitive closure |
-| 7 | Hardcoded IPs | ✅ DONE | Externalized to .env |
-| 8 | God Actor Pattern | ✅ DONE | Refactored to supervisors |
-| 9 | JSS Docker Integration | ✅ DONE | Proxy + SSL + pod docs |
+> **Last Verified:** 2026-01-01 via multi-agent swarm verification
+> **Codebase:** 200k+ lines | Rust (382 files) | TypeScript (363 files)
+> **Architecture:** CQRS + Hexagonal + Actor Model + GPU Compute
 
 ---
 
-## Hive Mind Sprint Results (2025-12-31)
+## 🔴 CRITICAL ISSUES - VERIFIED PRESENT
 
-### QE Fleet Initial Score: 64/100
+### Issue 1: Concurrency & Blocking Hazards
+**Status:** ❌ PRESENT | **Severity:** Critical | **Priority:** P0
 
-### Fixes Applied by 11-Agent Swarm:
+| Location | Line | Problem |
+|----------|------|---------|
+| `src/actors/gpu/shared.rs` | 102-103 | `Arc<std::sync::Mutex<UnifiedGPUCompute>>` |
+| `src/actors/gpu/force_compute_actor.rs` | 525 | `.lock()` inside `async move` block |
+| `src/actors/gpu/force_compute_actor.rs` | 394 | `.lock()` in `apply_ontology_forces()` |
+| `src/actors/gpu/force_compute_actor.rs` | 779 | `.lock()` in `UploadPositions` handler |
 
-| Fix | Priority | Status | Details |
-|-----|----------|--------|---------|
-| GraphTypeFlag mismatch | P0 | ✅ DONE | Client enum values 0x00/0x01 aligned with server |
-| Struct field mismatches | P0 | ✅ DONE | BinaryNodeDataClient fields synchronized |
-| Jest/Chalk ESM | P1 | ✅ DONE | chalk@4.1.2 pinned in devDependencies |
-| block_on async patterns | P1 | ✅ DONE | ResponseActFuture pattern adopted |
-| Password hardcode | P1 | ✅ DONE | ALLOW_INSECURE_DEFAULTS gate added |
-| Duplicate springK | P1 | ✅ DONE | Removed duplicate in generated types |
-| Pre-allocate buffers | P2 | ✅ DONE | position_velocity_buffer capacity 10000 |
-| Docker resource limits | P2 | ✅ DONE | 8G memory, 4 CPU limits added |
-| Neo4j circuit breaker | P2 | ✅ DONE | CircuitBreaker integration wired |
-| Unused Cargo deps | P2 | ✅ DONE | serde_yaml/toml kept (actually used) |
-| JSS health check | P2 | ✅ DONE | /solid/health endpoint added |
+**Impact:** Tokio thread starvation, heartbeat timeouts, WebSocket frame drops at high FPS
 
-### Post-Sprint Validation:
-- **Rust compilation**: ✅ PASSES (497 warnings, 0 errors)
-- **Rust tests compilation**: ✅ PASSES (545 warnings, 0 errors) - Fixed by 6-agent swarm
-- **TypeScript compilation**: ✅ PASSES (0 errors)
-- **Security**: ✅ Password hardcode fixed
-- **Quality Score**: Improved from 64/100 → **100/100** (all 9 issues resolved)
-
-### Opus 4.5 Completion Sprint (2025-12-31):
-- **DashMap conversion**: ✅ ontology_reasoner.rs now lock-free
-- **Transitive closure**: ✅ O(1) ancestor lookups implemented
-- **Pod documentation**: ✅ docs/SOLID_POD_CREATION.md created
-- **All PARTIAL items**: ✅ Now COMPLETE
+**Fix Options:**
+- [ ] Replace `std::sync::Mutex<UnifiedGPUCompute>` with `tokio::sync::Mutex`
+- [ ] OR wrap GPU compute in `tokio::task::spawn_blocking`
+- [ ] OR use `web::block` for offloading to blocking thread pool
 
 ---
 
-## ✅ COMPLETED ITEMS
+### Issue 2: Session Persistence (In-Memory Only)
+**Status:** ❌ PRESENT | **Severity:** High | **Priority:** P1
 
-### 1. Kill Protocol V1 (ID Truncation Bug)
-- [x] Remove V1 protocol code from `src/utils/binary_protocol.rs`
-- [x] Remove V1 code from `client/src/services/BinaryWebSocketProtocol.ts`
-- [x] Add explicit V1 rejection with error message
-- [x] Add test `test_v1_protocol_rejected()`
-- [x] Use 30-bit node IDs (supports up to 1,073,741,823 nodes)
+| Location | Evidence |
+|----------|----------|
+| `src/services/nostr_service.rs:102` | `users: Arc<RwLock<HashMap<String, NostrUser>>>` |
+| Redis | Available but only for settings cache, NOT sessions |
+| Neo4j | `:User` nodes exist but NO `:Session` nodes |
 
-**Evidence**: Lines 9, 26-27, 34, 139, 236-237, 517-518, 524, 1195-1201 in binary_protocol.rs
+**Impact:** All users logged out on server restart; horizontal scaling impossible
 
-### 2. Decouple Physics State from Content
-- [x] Add `sim_x`, `sim_y`, `sim_z` properties in Neo4j
-- [x] Add `vx`, `vy`, `vz` velocity properties
-- [x] ON CREATE: Initialize both content (x/y/z) and physics (sim_x/y/z)
-- [x] ON MATCH: Update ONLY content properties, preserve physics
-- [x] Use COALESCE to prioritize physics state when reading
-
-**Evidence**: neo4j_graph_repository.rs:422-458, neo4j_adapter.rs:480-520
-
-### 3. GPU-to-Network Backpressure
-- [x] Implement token bucket algorithm in `src/gpu/backpressure.rs`
-- [x] Add acknowledgement mechanism (`PositionBroadcastAck`)
-- [x] Skip broadcast if congested (simulation continues)
-- [x] Add broadcast optimizer with delta compression
-- [x] Add adaptive FPS (25fps broadcast vs 60fps physics)
-
-**Evidence**: src/gpu/backpressure.rs, force_compute_actor.rs:403-441
-
-### 4. Solid Identity Forwarding
-- [x] Forward user's NIP-98 token to JSS (primary path)
-- [x] Add `X-Forwarded-User: did:nostr:{pubkey}` header
-- [x] Server signing only for anonymous fallback
-- [x] Document security architecture in code comments
-- [x] Implement NIP-98 validation with 60s window
-
-**Evidence**: solid_proxy_handler.rs:14-17, 157-164, 217-260
-
-### 5. GPU Config Buffer (Dynamic Ontology-to-GPU Mapping)
-- [x] Create `DynamicRelationshipBuffer` in CUDA (256 types)
-- [x] Implement `DynamicForceConfig` struct
-- [x] Add hot-reload API (`update_dynamic_relationship_config`)
-- [x] Create `SemanticTypeRegistry` for runtime registration
-- [x] Add `DynamicRelationshipBufferManager` in Rust FFI
-- [x] Use table lookup instead of switch/case in GPU kernel
-
-**Evidence**: semantic_forces.cu:66-90, 471-558, 908-992; semantic_type_registry.rs:285-357
-
-### 6. Externalize Hardcoded IPs
-- [x] Remove hardcoded IPs from `nostrAuthService.ts`
-- [x] Create `client/.env` with `VITE_*` variables
-- [x] Create `client/.env.example` template
-- [x] Update `vite.config.ts` for env var handling
-- [x] Add dev login button with local network detection
-
-**Evidence**: nostrAuthService.ts uses import.meta.env.VITE_*, .env files exist
-
-### 7. Refactor God Actor Pattern
-- [x] Extract subsystem supervisors (Resource, Physics, Analytics, GraphAnalytics)
-- [x] Delegate `SetSharedGPUContext` to ResourceSupervisor
-- [x] Isolate failures to subsystem boundaries
-- [x] Add per-subsystem health monitoring
-- [x] Reduce GPUManagerActor to thin routing layer
-
-**Evidence**: gpu_manager_actor.rs shows SubsystemSupervisors struct
+**Fix Options:**
+- [ ] Add `(:User)-[:HAS_SESSION]->(:Session)` to Neo4j
+- [ ] OR implement Redis session store with proper TTL
+- [ ] Add session restoration on server startup
 
 ---
 
-## ✅ COMPLETED (Former Partial Items)
+### Issue 3: FFI/GPU Struct Alignment Fragility
+**Status:** ⚠️ RISK | **Severity:** High | **Priority:** P2
 
-### 8. Ontology Enrichment Optimization
-- [x] Add inference cache (file_path -> class_iri)
-- [x] Add verified_classes HashSet
-- [x] Add checksum-based cache invalidation
-- [x] Run heavy reasoning async via tokio::spawn
-- [x] **Parallelize file processing within batches** (FuturesUnordered in github_sync_service.rs)
-- [x] Pre-compute and persist transitive closure (precompute_transitive_closure in ontology_reasoner.rs)
-- [x] Replace RwLock<HashMap> with DashMap (ontology_reasoner.rs - verified_classes, inference_cache, transitive_closure)
+| Location | Concern |
+|----------|---------|
+| `src/actors/gpu/semantic_forces_actor.rs` | `#[repr(C)]` structs must match CUDA |
+| `src/gpu/types.rs` | No automated layout verification |
+| `src/utils/semantic_forces.cu` | C++ structs may drift from Rust |
 
-**Evidence**:
-- github_sync_service.rs uses FuturesUnordered for parallel file fetching
-- ontology_reasoner.rs:14-16 imports DashMap
-- ontology_reasoner.rs:35-40 uses DashMap for all caches
-- ontology_reasoner.rs:108-145 precompute_transitive_closure function
+**Impact:** Silent physics explosions, illegal memory access on GPU
 
-### 9. JSS Docker Integration
-- [x] Add JSS service to docker-compose.unified.yml
-- [x] Create Dockerfile.jss
-- [x] Configure environment variables
-- [x] Set up volume mounts and health check
-- [x] **Add `/solid/*` reverse proxy route** (nginx.conf:200-263, nginx.production.conf)
-- [x] Configure SSL/TLS for production (via Cloudflare in nginx.production.conf)
-- [x] Document user pod creation flow (docs/SOLID_POD_CREATION.md)
-
-**Evidence**:
-- nginx.conf lines 200-263: /solid/ and /pods/ proxy_pass to JSS
-- nginx.production.conf: Cloudflare SSL/TLS configuration
-- docs/SOLID_POD_CREATION.md: Complete pod creation documentation
+**Fix Options:**
+- [ ] Implement `bindgen` in `build.rs` to auto-generate from C++ headers
+- [ ] OR add `static_assertions` on struct size/alignment
+- [ ] Add CI check comparing Rust vs C++ struct layouts
 
 ---
 
-## 📋 TODO - NOT STARTED
+### Issue 4: Data Sync Race Condition
+**Status:** ⚠️ RISK | **Severity:** Medium | **Priority:** P2
 
-### 10. Legacy CUDA Kernel Cleanup
-- [ ] Remove `apply_ontology_relationship_force` (hardcoded switch/case)
-- [ ] Increase MAX_RELATIONSHIP_TYPES to 512 or 1024
-- [ ] Use device-side buffer pointer for dynamic allocation
+| Component | Action |
+|-----------|--------|
+| GitHubSyncService | Writes default `sim_x/y/z` to Neo4j |
+| Physics Engine | Writes computed positions at 60fps |
+| Conflict | Batch sync may reset physics state |
 
-### 11. True Client ACK for Backpressure
-- [ ] Implement application-level ACKs from WebSocket clients
-- [ ] Currently only confirms queue submission, not delivery
-- [ ] Integrate fastwebsockets with PositionBroadcastAck flow
+**Impact:** Jittery node positions, DB locking issues
 
-### 12. Parallel Ontology Processing
-- [ ] Use `futures::stream::FuturesUnordered` for file batches
-- [ ] Remove 50ms rate limiting sleep (or make configurable)
-- [ ] Add batch node enrichment (same file = same infer result)
-
----
-
-## 📚 JSS Integration Roadmap (from plan)
-
-See `/home/devuser/.claude/plans/composed-singing-stallman.md` for full plan.
-
-### Phase 1: Docker Foundation ✅ DONE
-- [x] Add JSS to docker-compose
-- [x] Create Dockerfile.jss
-- [x] Verify Nostr auth works
-
-### Phase 2: Multi-User Pods ✅ DOCUMENTED
-- [x] Implement `/pods/{npub}/` URL structure (documented in SOLID_POD_CREATION.md)
-- [x] Auto-provision pods on first login (flow documented)
-- [x] Nostr -> WebID mapping (documented)
-
-### Phase 3: User Ontology Ownership 🔄 PENDING
-- [ ] Personal ontology fragments in pods
-- [ ] Proposal/merge workflow
-- [ ] Reverse sync to GitHub
-
-### Phase 4: Frontend Pod UI 🔄 PENDING
-- [ ] Create SolidPodService.ts
-- [ ] Pod browser component
-- [ ] Contribution/proposal UI
-
-### Phase 5: Agent Memory 🔄 PENDING
-- [ ] Per-agent pods (54 agent types)
-- [ ] Claude-flow hooks for JSS
-- [ ] Migrate .agentdb to pods
+**Fix Options:**
+- [ ] Modify sync MERGE to NEVER update `sim_*` properties
+- [ ] Add position read-before-write in GitHubSyncService
+- [ ] Implement optimistic locking on position updates
 
 ---
 
-## Verification Commands
+### Issue 5: Client-Side Singleton Pattern
+**Status:** ❌ NOT FIXED | **Severity:** Medium | **Priority:** P3
 
-```bash
-# Check Protocol V1 is rejected
-grep -n "V1" src/utils/binary_protocol.rs
+| Location | Evidence |
+|----------|----------|
+| `client/src/services/WebSocketService.ts:79` | `private static instance: WebSocketService` |
+| `client/src/services/WebSocketService.ts:223-228` | `getInstance()` method |
+| `client/src/services/WebSocketService.ts:1716` | `export const webSocketService = WebSocketService.getInstance()` |
 
-# Check physics state separation
-grep -n "sim_x\|sim_y\|sim_z" src/adapters/neo4j*.rs
+**Impact:** Testing difficulties, SSR incompatibility, state reset issues
 
-# Check backpressure
-grep -n "try_acquire\|PositionBroadcastAck" src/actors/gpu/*.rs
+**Fix Options:**
+- [ ] Migrate to React Context (`WebSocketContext`)
+- [ ] OR move to Zustand store (already used for `settingsStore`)
+- [ ] Add cleanup mechanism for test isolation
 
-# Check JSS service
-docker-compose -f docker-compose.unified.yml config | grep -A20 "jss:"
+---
 
-# Check env externalization
-grep -n "VITE_" client/.env client/.env.example
+### Issue 6: NIP-98 Token Window Too Narrow
+**Status:** ❌ NOT FIXED | **Severity:** Medium | **Priority:** P2
 
-# Check DashMap in ontology reasoner
-grep -n "DashMap" src/services/ontology_reasoner.rs
+| Location | Value |
+|----------|-------|
+| `src/utils/nip98.rs:163` | `TOKEN_MAX_AGE_SECONDS: i64 = 60` |
 
-# Check transitive closure
-grep -n "transitive_closure\|precompute_transitive" src/services/ontology_reasoner.rs
+**Impact:** Users with clock skew >60s cannot authenticate
 
-# Check nginx Solid proxy
-grep -n "solid\|pods" nginx.conf nginx.production.conf
+**Fix Options:**
+- [ ] Increase `TOKEN_MAX_AGE_SECONDS` to 300 (5 minutes)
+- [ ] Add explicit error message: "Check your system clock"
+- [ ] Consider NTP sync recommendation in client
+
+---
+
+### Issue 7: GraphDataManager Silent Failure
+**Status:** ⚠️ PARTIAL | **Severity:** Medium | **Priority:** P2
+
+| Location | Current State |
+|----------|---------------|
+| `client/src/features/graph/managers/graphDataManager.ts:59-64` | Logs warning but continues |
+| `client/src/features/graph/managers/graphDataManager.ts:340` | Returns `{ nodes: [], edges: [] }` silently |
+
+**Impact:** Blank screen of death with no user feedback
+
+**Done:**
+- [x] Graceful fallback to empty data (no crash)
+
+**Remaining:**
+- [ ] Add `<ErrorModal>` when worker initialization fails
+- [ ] Implement main-thread fallback processing
+- [ ] Display browser compatibility requirements
+
+---
+
+### Issue 8: Hardcoded Secret Backdoor
+**Status:** ⚠️ PARTIAL | **Severity:** Critical | **Priority:** P1
+
+| Location | Current State |
+|----------|---------------|
+| `src/app_state.rs:633-645` | `ALLOW_INSECURE_DEFAULTS` checks |
+| `src/app_state.rs:637` | `"change-this-secret-key"` hardcoded |
+
+**Done:**
+- [x] Random key generation when `ALLOW_INSECURE_DEFAULTS` not set
+
+**Remaining:**
+- [ ] REMOVE `ALLOW_INSECURE_DEFAULTS` condition entirely
+- [ ] Panic on missing `MANAGEMENT_API_KEY` in production
+- [ ] Add startup validation for all security-critical env vars
+
+---
+
+## 🟡 TODO - IN PROGRESS
+
+### Item 10: Legacy CUDA Kernel Cleanup
+**Status:** 🔄 IN PROGRESS
+
+| Sub-task | Status | Location |
+|----------|--------|----------|
+| Remove hardcoded switch/case | ⚠️ PARTIAL | CPU fallback uses dynamic registry; GPU kernel still has hardcoding |
+| Increase MAX_RELATIONSHIP_TYPES | ❌ NOT STARTED | `src/utils/semantic_forces.cu:70` → still 256 |
+| Device-side dynamic allocation | ❌ NOT STARTED | Using static array allocation |
+
+**Files:**
+- `src/utils/semantic_forces.cu:70` - `#define MAX_RELATIONSHIP_TYPES 256`
+- `src/gpu/semantic_forces.rs:878-940` - CPU fallback with dynamic registry
+
+---
+
+### Item 11: True Client ACK for Backpressure
+**Status:** 🔄 IN PROGRESS
+
+| Sub-task | Status | Location |
+|----------|--------|----------|
+| Application-level ACK types | ✅ DONE | `src/actors/messages.rs:1720-1755` |
+| End-to-end delivery confirmation | ⚠️ PARTIAL | Framework exists in `backpressure.rs` |
+| Integrate fastwebsockets ACK flow | ❌ NOT STARTED | `fastwebsockets_handler.rs` has no ACK sending |
+
+**Defined Types:**
+```rust
+pub struct PositionBroadcastAck { correlation_id: u64, clients_delivered: u32 }
+pub struct ClientBroadcastAck { sequence_id: u64, nodes_received: u32, timestamp: u64 }
 ```
 
 ---
 
-## Notes
+### Item 12: Parallel Ontology Processing
+**Status:** ✅ DONE
 
-- **All 9 architectural issues now ✅ DONE** (verified 2025-12-31)
-- Items 10-12 are optional enhancements, not critical fixes
-- JSS Roadmap Phases 3-5 are feature additions for future sprints
-- Rust compilation: 0 errors, TypeScript: 0 errors
-- Pod creation flow fully documented in `docs/SOLID_POD_CREATION.md`
+| Sub-task | Status | Evidence |
+|----------|--------|----------|
+| FuturesUnordered for file batches | ✅ DONE | `streaming_sync_service.rs:432-435` |
+| Remove 50ms rate limit sleep | ✅ DONE | Using `tokio::task::yield_now()` instead |
+| Batch node enrichment | ❌ NOT STARTED | No cross-file inference deduplication |
+
+**Evidence:**
+```rust
+use futures::stream::{FuturesUnordered, StreamExt};
+let mut futures: FuturesUnordered<ProcessFuture> = FuturesUnordered::new();
+```
+
+---
+
+## 🔵 JSS Integration Roadmap
+
+### Phase 1: Docker Foundation
+**Status:** ✅ DONE
+
+- [x] Add JSS to docker-compose
+- [x] Create Dockerfile.jss
+- [x] Verify Nostr auth works
+
+### Phase 2: Multi-User Pods
+**Status:** ⚠️ 40% IMPLEMENTED (Documentation complete, code partial)
+
+| Item | Status | Notes |
+|------|--------|-------|
+| `/pods/{npub}/` URL structure | 📝 DOCUMENTED | See `SOLID_POD_CREATION.md` |
+| Auto-provision pods on login | 📝 DOCUMENTED | Flow documented, code scaffolded |
+| Nostr -> WebID mapping | 📝 DOCUMENTED | Mapping schema defined |
+| Actual pod provisioning code | ❌ NOT IMPLEMENTED | Only test scaffolds exist |
+
+### Phase 3: User Ontology Ownership
+**Status:** 🔄 PENDING
+
+- [ ] Personal ontology fragments in pods
+- [ ] Proposal/merge workflow
+- [ ] Reverse sync to GitHub
+
+### Phase 4: Frontend Pod UI
+**Status:** 🔄 PENDING
+
+- [ ] Create `SolidPodService.ts`
+- [ ] Pod browser component
+- [ ] Contribution/proposal UI
+
+### Phase 5: Agent Memory
+**Status:** 🔄 PENDING
+
+- [ ] Per-agent pods (54 agent types)
+- [ ] Claude-flow hooks for JSS
+- [ ] Migrate `.agentdb` to pods
+
+---
+
+## 📊 Summary Matrix
+
+| ID | Issue | Status | Severity | Effort |
+|----|-------|--------|----------|--------|
+| 1 | Concurrency hazards | ❌ PRESENT | Critical | Medium |
+| 2 | Session persistence | ❌ PRESENT | High | Medium |
+| 3 | FFI struct alignment | ⚠️ RISK | High | Low |
+| 4 | Data sync race | ⚠️ RISK | Medium | Low |
+| 5 | Singleton pattern | ❌ NOT FIXED | Medium | Low |
+| 6 | NIP-98 60s window | ❌ NOT FIXED | Medium | Trivial |
+| 7 | GraphDataManager error | ⚠️ PARTIAL | Medium | Low |
+| 8 | Hardcoded secret | ⚠️ PARTIAL | Critical | Trivial |
+| 10 | CUDA cleanup | 🔄 IN PROGRESS | Low | Medium |
+| 11 | Client ACK | 🔄 IN PROGRESS | Low | Medium |
+| 12 | Parallel ontology | ✅ DONE | Low | - |
+
+---
+
+## 🛠️ Verification Commands
+
+```bash
+# Issue 1: Check for std::sync::Mutex in GPU actors
+grep -n "std::sync::Mutex" src/actors/gpu/*.rs
+
+# Issue 2: Check session storage mechanism
+grep -n "users.*HashMap" src/services/nostr_service.rs
+
+# Issue 5: Check WebSocket singleton
+grep -n "getInstance\|static instance" client/src/services/WebSocketService.ts
+
+# Issue 6: Check NIP-98 token window
+grep -n "TOKEN_MAX_AGE_SECONDS" src/utils/nip98.rs
+
+# Issue 8: Check insecure defaults
+grep -n "ALLOW_INSECURE_DEFAULTS\|change-this-secret-key" src/app_state.rs
+
+# Item 10: Check MAX_RELATIONSHIP_TYPES
+grep -n "MAX_RELATIONSHIP_TYPES" src/utils/semantic_forces.cu
+
+# Item 12: Verify FuturesUnordered usage
+grep -n "FuturesUnordered" src/services/streaming_sync_service.rs
+
+# JSS: Check service status
+docker-compose -f docker-compose.unified.yml config | grep -A20 "jss:"
+```
+
+---
+
+## 📋 Agent Assignment Recommendations
+
+For hive-mind parallel execution:
+
+| Agent Type | Assigned Issues | Estimated Complexity |
+|------------|-----------------|---------------------|
+| `backend-dev` | Issues 1, 2, 4, 8 | High |
+| `coder` | Issues 3, 6 | Low |
+| `mobile-dev` / `coder` | Issues 5, 7 | Medium |
+| `cicd-engineer` | Issue 8 (env validation) | Low |
+| `sparc-coder` | Items 10, 11 | Medium |
+
+---
+
+> **AWAITING AUTHORIZATION** to proceed with fixes.
+> Reply with priority order or specific issues to address.

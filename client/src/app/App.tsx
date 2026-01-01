@@ -25,6 +25,7 @@ import { VircadiaBridgesProvider } from '../contexts/VircadiaBridgesContext';
 import { useNostrAuth } from '../hooks/useNostrAuth';
 import { NostrLoginScreen } from '../components/NostrLoginScreen';
 import { LoadingScreen } from '../components/LoadingScreen';
+import { WorkerErrorModal } from '../components/WorkerErrorModal';
 import solidPodService from '../services/SolidPodService';
 
 const logger = createLogger('App');
@@ -187,6 +188,7 @@ function App() {
                     <ConnectionWarning />
                     <CommandPalette />
                     <DebugControlPanel />
+                    <WorkerErrorModal />
                   </>
                 )}
               </ApplicationModeProvider>
