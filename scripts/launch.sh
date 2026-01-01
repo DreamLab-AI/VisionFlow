@@ -324,17 +324,21 @@ needs_rebuild() {
     # Convert image timestamp to epoch
     local image_epoch=$(date -d "$image_created" +%s 2>/dev/null || echo 0)
 
-    # Check critical source files modification time
-    local latest_source=0
-    local critical_files=(
-        "$PROJECT_ROOT/src/main.rs"
-        "$PROJECT_ROOT/src/handlers/mod.rs"
-        "$PROJECT_ROOT/src/handlers/admin_sync_handler.rs"
+    # Check ALL Rust source files, not just a few critical ones
+    # Find the most recently modified .rs file in the src directory
+    local latest_rs=$(find "$PROJECT_ROOT/src" -name "*.rs" -printf '%T@\n' 2>/dev/null | sort -n | tail -1 | cut -d. -f1)
+    latest_rs=${latest_rs:-0}
+
+    # Also check key config files
+    local config_files=(
         "$PROJECT_ROOT/Cargo.toml"
-        "$PROJECT_ROOT/Dockerfile.dev"
+        "$PROJECT_ROOT/Cargo.lock"
+        "$PROJECT_ROOT/build.rs"
+        "$PROJECT_ROOT/Dockerfile.unified"
     )
 
-    for file in "${critical_files[@]}"; do
+    local latest_source=$latest_rs
+    for file in "${config_files[@]}"; do
         if [[ -f "$file" ]]; then
             local file_epoch=$(stat -c %Y "$file" 2>/dev/null || echo 0)
             if [[ $file_epoch -gt $latest_source ]]; then
@@ -370,10 +374,18 @@ is_container_running() {
 start_environment() {
     log "Starting $ENVIRONMENT environment..."
 
-    # Check if main container is already running - skip restart if healthy
+    # Check if main container is already running
     if is_container_running "$CONTAINER_NAME"; then
-        success "Container $CONTAINER_NAME is already running and healthy"
-        info "Skipping restart. Use 'restart' command to force restart."
+        # Even if running, check if source has changed (with volume mounts, container restart triggers recompile)
+        local source_changed=$(needs_rebuild)
+        if [[ "$source_changed" == "true" ]]; then
+            warning "Source code changes detected - restarting container to recompile..."
+            docker_compose restart visionflow
+            sleep 3
+        else
+            success "Container $CONTAINER_NAME is already running and healthy (no source changes)"
+        fi
+
         echo ""
         show_service_urls
         echo ""

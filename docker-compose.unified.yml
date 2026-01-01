@@ -146,6 +146,18 @@ services:
       # Data volumes - ALWAYS mounted (both dev and prod)
       - visionflow-data:/app/data
       - visionflow-logs:/app/logs
+      # SOURCE CODE MOUNTS - Live sync from host for development hot-reload
+      # These override the COPY'd source in the image with current host files
+      - ./src:/app/src:ro
+      - ./Cargo.toml:/app/Cargo.toml:ro
+      - ./Cargo.lock:/app/Cargo.lock:ro
+      - ./build.rs:/app/build.rs:ro
+      - ./whelk-rs:/app/whelk-rs:ro
+      - ./client/src:/app/client/src:ro
+      - ./client/public:/app/client/public:ro
+      - ./client/index.html:/app/client/index.html:ro
+      - ./client/vite.config.ts:/app/client/vite.config.ts:ro
+      - ./client/tsconfig.json:/app/client/tsconfig.json:ro
       # Cache volumes for build optimization
       - npm-cache:/root/.npm
       - cargo-cache:/root/.cargo/registry

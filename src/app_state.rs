@@ -50,6 +50,7 @@ use crate::adapters::neo4j_ontology_repository::{Neo4jOntologyRepository, Neo4jO
 use crate::ports::settings_repository::SettingsRepository;
 
 /// SECURITY: List of known insecure default values that must be rejected
+/// Note: Do NOT include empty string - use separate length check instead
 const INSECURE_DEFAULT_KEYS: &[&str] = &[
     "change-this-secret-key",
     "changeme",
@@ -62,7 +63,6 @@ const INSECURE_DEFAULT_KEYS: &[&str] = &[
     "your-api-key",
     "replace-me",
     "xxx",
-    "",
 ];
 
 /// Validates all security-critical environment variables at startup.
@@ -84,7 +84,7 @@ fn validate_security_env_vars() -> Result<String, Box<dyn std::error::Error + Se
     let mgmt_api_key = match std::env::var("MANAGEMENT_API_KEY") {
         Ok(key) => {
             let key_lower = key.to_lowercase();
-            if INSECURE_DEFAULT_KEYS.iter().any(|&insecure| key_lower == insecure || key_lower.contains(insecure)) {
+            if INSECURE_DEFAULT_KEYS.iter().any(|&insecure| !insecure.is_empty() && (key_lower == insecure || key_lower.contains(insecure))) {
                 errors.push(format!(
                     "MANAGEMENT_API_KEY contains an insecure default value. \
                      Please set a strong, unique API key (minimum 32 characters recommended)."
@@ -115,7 +115,7 @@ fn validate_security_env_vars() -> Result<String, Box<dyn std::error::Error + Se
     // Validate JWT_SECRET if it exists (optional but must be secure if set)
     if let Ok(jwt_secret) = std::env::var("JWT_SECRET") {
         let jwt_lower = jwt_secret.to_lowercase();
-        if INSECURE_DEFAULT_KEYS.iter().any(|&insecure| jwt_lower == insecure || jwt_lower.contains(insecure)) {
+        if INSECURE_DEFAULT_KEYS.iter().any(|&insecure| !insecure.is_empty() && (jwt_lower == insecure || jwt_lower.contains(insecure))) {
             errors.push(format!(
                 "JWT_SECRET contains an insecure default value. \
                  Please set a strong, unique secret (minimum 32 characters recommended)."
@@ -131,21 +131,21 @@ fn validate_security_env_vars() -> Result<String, Box<dyn std::error::Error + Se
 
     // If there are any security errors, log them clearly and panic
     if !errors.is_empty() {
-        log::error!("=========================================================");
-        log::error!("  SECURITY CONFIGURATION ERROR - APPLICATION CANNOT START");
-        log::error!("=========================================================");
+        eprintln!("=========================================================");
+        eprintln!("  SECURITY CONFIGURATION ERROR - APPLICATION CANNOT START");
+        eprintln!("=========================================================");
         for (i, error) in errors.iter().enumerate() {
-            log::error!("  {}. {}", i + 1, error);
+            eprintln!("  {}. {}", i + 1, error);
         }
-        log::error!("---------------------------------------------------------");
-        log::error!("  Required environment variables:");
-        log::error!("    - MANAGEMENT_API_KEY: Strong unique API key (16+ chars)");
-        log::error!("    - JWT_SECRET (optional): Strong unique secret (32+ chars)");
-        log::error!("---------------------------------------------------------");
-        log::error!("  Example secure configuration:");
-        log::error!("    export MANAGEMENT_API_KEY=$(openssl rand -hex 32)");
-        log::error!("    export JWT_SECRET=$(openssl rand -hex 32)");
-        log::error!("=========================================================");
+        eprintln!("---------------------------------------------------------");
+        eprintln!("  Required environment variables:");
+        eprintln!("    - MANAGEMENT_API_KEY: Strong unique API key (16+ chars)");
+        eprintln!("    - JWT_SECRET (optional): Strong unique secret (32+ chars)");
+        eprintln!("---------------------------------------------------------");
+        eprintln!("  Example secure configuration:");
+        eprintln!("    export MANAGEMENT_API_KEY=$(openssl rand -hex 32)");
+        eprintln!("    export JWT_SECRET=$(openssl rand -hex 32)");
+        eprintln!("=========================================================");
 
         return Err(format!(
             "Security configuration failed: {} error(s). See logs above for details.",
