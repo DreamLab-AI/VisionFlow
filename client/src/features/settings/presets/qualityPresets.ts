@@ -48,7 +48,7 @@ export const QUALITY_PRESETS: QualityPreset[] = [
 
       
       'visualisation.graphs.logseq.nodes.nodeSize': 0.7,
-      'visualisation.graphs.logseq.nodes.labelSize': 10,
+      'visualisation.graphs.logseq.nodes.labelSize': 1.0,
       'visualisation.graphs.logseq.nodes.maxLabels': 20,
       'visualisation.graphs.logseq.edges.edgeThickness': 1,
       'visualisation.graphs.logseq.edges.maxEdges': 500,
@@ -125,7 +125,7 @@ export const QUALITY_PRESETS: QualityPreset[] = [
 
       
       'visualisation.graphs.logseq.nodes.nodeSize': 1.0,
-      'visualisation.graphs.logseq.nodes.labelSize': 12,
+      'visualisation.graphs.logseq.nodes.labelSize': 1.2,
       'visualisation.graphs.logseq.nodes.maxLabels': 50,
       'visualisation.graphs.logseq.edges.edgeThickness': 2,
       'visualisation.graphs.logseq.edges.maxEdges': 1000,
@@ -203,7 +203,7 @@ export const QUALITY_PRESETS: QualityPreset[] = [
 
       
       'visualisation.graphs.logseq.nodes.nodeSize': 1.2,
-      'visualisation.graphs.logseq.nodes.labelSize': 14,
+      'visualisation.graphs.logseq.nodes.labelSize': 1.4,
       'visualisation.graphs.logseq.nodes.maxLabels': 100,
       'visualisation.graphs.logseq.edges.edgeThickness': 3,
       'visualisation.graphs.logseq.edges.maxEdges': 2000,
@@ -282,7 +282,7 @@ export const QUALITY_PRESETS: QualityPreset[] = [
 
       
       'visualisation.graphs.logseq.nodes.nodeSize': 1.5,
-      'visualisation.graphs.logseq.nodes.labelSize': 16,
+      'visualisation.graphs.logseq.nodes.labelSize': 1.6,
       'visualisation.graphs.logseq.nodes.maxLabels': 200,
       'visualisation.graphs.logseq.edges.edgeThickness': 4,
       'visualisation.graphs.logseq.edges.maxEdges': 5000,

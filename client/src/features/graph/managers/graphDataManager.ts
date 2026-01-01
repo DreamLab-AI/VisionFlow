@@ -187,7 +187,14 @@ class GraphDataManager {
         }
 
         const nodes = Array.isArray(responseData.nodes) ? responseData.nodes : [];
-        const edges = Array.isArray(responseData.edges) ? responseData.edges : [];
+        // Convert edge source/target from numbers to strings (API returns numeric IDs)
+        const edges = Array.isArray(responseData.edges)
+          ? responseData.edges.map((edge: any) => ({
+              ...edge,
+              source: String(edge.source),
+              target: String(edge.target)
+            }))
+          : [];
         const metadata = responseData.metadata || {};
         const settlementState = responseData.settlementState || { isSettled: false, stableFrameCount: 0, kineticEnergy: 0 };
 

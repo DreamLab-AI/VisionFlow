@@ -227,7 +227,7 @@ function transformApiToClientSettings(apiResponse: AllSettings): any {
             gradientColors: ['#4a9eff', '#ff4a9e'] as [string, string]
           },
           labels: {
-            desktopFontSize: 14,
+            desktopFontSize: 1.4,
             enableLabels: true,
             textColor: '#ffffff',
             textOutlineColor: '#000000',
@@ -268,7 +268,7 @@ function transformApiToClientSettings(apiResponse: AllSettings): any {
             gradientColors: ['#4a9eff', '#ff4a9e'] as [string, string]
           },
           labels: {
-            desktopFontSize: 14,
+            desktopFontSize: 1.4,
             enableLabels: true,
             textColor: '#ffffff',
             textOutlineColor: '#000000',

@@ -135,8 +135,8 @@ export class ConfigurationMapper {
         nodeMaxSize: 2.0,
         edgeWidth: 0.05,
         glowScale: 1.8,
-        labelFontSize: 0.5,
-        labelFontSizeHover: 0.6,
+        labelFontSize: 0.05,
+        labelFontSizeHover: 0.06,
       },
       animation: {
         pulseSpeed: 1.0,
@@ -320,8 +320,8 @@ export class ConfigurationMapper {
         sizes: {
           nodeBaseSize: 0.8,
           nodeMaxSize: 2.5,
-          labelFontSize: 0.7,
-          labelFontSizeHover: 0.9,
+          labelFontSize: 0.07,
+          labelFontSizeHover: 0.09,
         },
         rendering: {
           emissiveIntensity: 0.5,

@@ -131,7 +131,7 @@ export const DEFAULT_GRAPH_CONFIG: GraphTypeConfig = {
     rendering: {
       nodeSize: 5,
       edgeWidth: 1,
-      labelSize: 12
+      labelSize: 1.2
     }
   },
   visionflow: {

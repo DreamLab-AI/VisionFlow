@@ -962,7 +962,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
 
       
       const maxWidth = labelSettings.maxLabelWidth ?? 5;
-      const fontSize = labelSettings.desktopFontSize ?? 0.5;
+      const fontSize = labelSettings.desktopFontSize ?? 0.05;
 
       return (
         <Billboard
