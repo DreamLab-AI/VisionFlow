@@ -1452,44 +1452,6 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                 use crate::utils::binary_protocol::{BinaryProtocol, Message as ProtocolMessage};
 
                 match BinaryProtocol::decode_message(&data) {
-                    Ok(ProtocolMessage::GraphUpdate { graph_type, nodes }) => {
-                        info!(
-                            "Received graph update: type={:?}, nodes={}",
-                            graph_type,
-                            nodes.len()
-                        );
-
-                        
-                        let app_state = self.app_state.clone();
-                        let graph_type_clone = graph_type;
-
-                        let fut = async move {
-                            
-                            for (node_id_str, data) in nodes {
-                                if let Ok(node_id) = node_id_str.parse::<u32>() {
-                                    debug!("Updating node {} from graph {:?}: pos=[{:.3}, {:.3}, {:.3}]",
-                                           node_id, graph_type_clone, data[0], data[1], data[2]);
-
-
-                                    use crate::types::vec3::Vec3Data;
-                                    use glam::Vec3;
-
-                                    let position: Vec3 = Vec3Data::new(data[0], data[1], data[2]).into();
-                                    let velocity: Vec3 = Vec3Data::new(data[3], data[4], data[5]).into();
-
-                                    // Log node position update (GraphServiceSupervisor doesn't implement Handler<UpdateNodePosition>)
-                                    debug!("UpdateNodePosition: node_id={}, position=[{:.3}, {:.3}, {:.3}], velocity=[{:.3}, {:.3}, {:.3}]",
-                                           node_id, data[0], data[1], data[2], data[3], data[4], data[5]);
-                                }
-                            }
-
-                            info!("Processed graph update from client");
-                        };
-
-                        let fut = fut.into_actor(self);
-                        ctx.spawn(fut.map(|_, _, _| ()));
-                        return;
-                    }
                     Ok(ProtocolMessage::VoiceData { audio }) => {
                         info!("Received voice data: {} bytes", audio.len());
 

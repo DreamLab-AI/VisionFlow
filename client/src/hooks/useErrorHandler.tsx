@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef } from 'react';
 import { useToast, ToastAction } from '../features/design-system/components';
 import { createLogger } from '../utils/loggerConfig';
 import { webSocketService } from '../services/WebSocketService';
@@ -28,7 +28,8 @@ export interface ErrorContext {
 export function useErrorHandler() {
   const { toast } = useToast();
   const errorHistory = useRef<Map<string, ErrorContext>>(new Map());
-  const [retryAttempts, setRetryAttempts] = useState<Map<string, number>>(new Map());
+  // Use ref instead of state to avoid infinite re-render loops
+  const retryAttempts = useRef<Map<string, number>>(new Map());
 
   const handleError = useCallback((error: unknown, options: ErrorOptions = {}) => {
     const {
@@ -134,12 +135,12 @@ export function useErrorHandler() {
       }
     }
 
-    
+
     const shouldAutoRetry = showRetry && retry && errorContext.count <= maxRetries;
-    const currentRetries = retryAttempts.get(errorKey) || 0;
+    const currentRetries = retryAttempts.current.get(errorKey) || 0;
 
     if (shouldAutoRetry && currentRetries < maxRetries) {
-      setRetryAttempts(prev => new Map(prev).set(errorKey, currentRetries + 1));
+      retryAttempts.current.set(errorKey, currentRetries + 1);
       
       
       const delay = Math.min(1000 * Math.pow(2, currentRetries), 10000);
@@ -147,12 +148,8 @@ export function useErrorHandler() {
       setTimeout(async () => {
         try {
           await retry();
-          
-          setRetryAttempts(prev => {
-            const newMap = new Map(prev);
-            newMap.delete(errorKey);
-            return newMap;
-          });
+          // Clear retry count on success
+          retryAttempts.current.delete(errorKey);
           
           toast({
             title: 'Success',
@@ -222,7 +219,7 @@ export function useErrorHandler() {
         timestamp: Date.now()
       });
     }
-  }, [toast, retryAttempts]);
+  }, [toast]);
 
   const handleAsyncError = useCallback((promise: Promise<any>, options?: ErrorOptions) => {
     return promise.catch(error => {
@@ -273,10 +270,10 @@ export function useErrorHandler() {
     return stats;
   }, []);
 
-  
+
   const clearErrorHistory = useCallback(() => {
     errorHistory.current.clear();
-    setRetryAttempts(new Map());
+    retryAttempts.current.clear();
   }, []);
 
   return {

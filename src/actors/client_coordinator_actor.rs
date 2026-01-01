@@ -217,17 +217,14 @@ impl ClientManager {
     }
 
     fn serialize_positions(&self, positions: &[BinaryNodeDataClient]) -> Vec<u8> {
-        use crate::utils::binary_protocol::{BinaryProtocol, GraphType};
-        let nodes: Vec<(String, [f32; 6])> = positions
+        use crate::utils::binary_protocol::encode_node_data;
+        use crate::utils::socket_flow_messages::BinaryNodeData;
+        // Convert to (u32, BinaryNodeData) format for V3 protocol encoding
+        let nodes: Vec<(u32, BinaryNodeData)> = positions
             .iter()
-            .map(|pos| {
-                (
-                    pos.node_id.to_string(),
-                    [pos.x, pos.y, pos.z, pos.vx, pos.vy, pos.vz],
-                )
-            })
+            .map(|pos| (pos.node_id, *pos))
             .collect();
-        BinaryProtocol::encode_graph_update(GraphType::KnowledgeGraph, &nodes)
+        encode_node_data(&nodes)
     }
 
     pub fn broadcast_message(&self, message: String) -> usize {
@@ -604,26 +601,15 @@ impl ClientCoordinatorActor {
         true
     }
 
-    
-    
     fn serialize_positions(&self, positions: &[BinaryNodeDataClient]) -> Vec<u8> {
-        
-        use crate::utils::binary_protocol::{BinaryProtocol, GraphType};
-
-        
-        let nodes: Vec<(String, [f32; 6])> = positions
+        use crate::utils::binary_protocol::encode_node_data;
+        use crate::utils::socket_flow_messages::BinaryNodeData;
+        // Convert to (u32, BinaryNodeData) format for V3 protocol encoding
+        let nodes: Vec<(u32, BinaryNodeData)> = positions
             .iter()
-            .map(|pos| {
-                (
-                    pos.node_id.to_string(),
-                    [pos.x, pos.y, pos.z, pos.vx, pos.vy, pos.vz],
-                )
-            })
+            .map(|pos| (pos.node_id, *pos))
             .collect();
-
-        
-        
-        BinaryProtocol::encode_graph_update(GraphType::KnowledgeGraph, &nodes)
+        encode_node_data(&nodes)
     }
 
     

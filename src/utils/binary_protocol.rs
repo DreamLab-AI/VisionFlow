@@ -1278,9 +1278,8 @@ impl ControlFrame {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum MessageType {
 
+    /// Binary position updates using Protocol V3 (48 bytes/node)
     BinaryPositions = 0,
-
-    GraphUpdate = 0x01,
 
     VoiceData = 0x02,
 
@@ -1295,39 +1294,9 @@ pub enum MessageType {
     BroadcastAck = 0x34,
 }
 
-///
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum GraphType {
-    KnowledgeGraph = 0,
-    Ontology = 1,
-}
-
-impl GraphType {
-    pub fn from_u8(value: u8) -> Result<Self, String> {
-        match value {
-            0 => Ok(GraphType::KnowledgeGraph),
-            1 => Ok(GraphType::Ontology),
-            _ => Err(format!("Invalid graph type: {}", value)),
-        }
-    }
-
-    pub fn to_u8(self) -> u8 {
-        match self {
-            GraphType::KnowledgeGraph => 0,
-            GraphType::Ontology => 1,
-        }
-    }
-}
-
-///
+/// WebSocket message types for voice and acknowledgements
 #[derive(Debug, Clone, PartialEq)]
 pub enum Message {
-    
-    GraphUpdate {
-        graph_type: GraphType,
-        nodes: Vec<(String, [f32; 6])>, 
-    },
-
     VoiceData { audio: Vec<u8> },
 
     /// Client acknowledgement of position broadcast for backpressure flow control
@@ -1341,7 +1310,6 @@ pub enum Message {
 #[derive(Debug)]
 pub enum ProtocolError {
     InvalidMessageType(u8),
-    InvalidGraphType(u8),
     InvalidPayloadSize(String),
     EncodingError(String),
     DecodingError(String),
@@ -1351,7 +1319,6 @@ impl std::fmt::Display for ProtocolError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ProtocolError::InvalidMessageType(t) => write!(f, "Invalid message type: {}", t),
-            ProtocolError::InvalidGraphType(t) => write!(f, "Invalid graph type: {}", t),
             ProtocolError::InvalidPayloadSize(s) => write!(f, "Invalid payload size: {}", s),
             ProtocolError::EncodingError(s) => write!(f, "Encoding error: {}", s),
             ProtocolError::DecodingError(s) => write!(f, "Decoding error: {}", s),
@@ -1361,47 +1328,11 @@ impl std::fmt::Display for ProtocolError {
 
 impl std::error::Error for ProtocolError {}
 
-///
+/// Binary protocol utilities for voice and acknowledgement messages
 pub struct BinaryProtocol;
 
 impl BinaryProtocol {
-    
-    
-    pub fn encode_graph_update(graph_type: GraphType, nodes: &[(String, [f32; 6])]) -> Vec<u8> {
-        
-        let buffer_size = 2 + nodes.len() * 7 * 4;
-        let mut buffer = Vec::with_capacity(buffer_size);
-
-        
-        buffer.push(MessageType::GraphUpdate as u8);
-
-        
-        buffer.push(graph_type.to_u8());
-
-        
-        for (node_id, data) in nodes {
-            
-            let node_id_f32 = node_id.parse::<f32>().unwrap_or_else(|_| {
-                
-                let hash = node_id
-                    .bytes()
-                    .fold(0u32, |acc, b| acc.wrapping_mul(31).wrapping_add(b as u32));
-                hash as f32
-            });
-
-            buffer.extend_from_slice(&node_id_f32.to_le_bytes());
-            buffer.extend_from_slice(&data[0].to_le_bytes()); 
-            buffer.extend_from_slice(&data[1].to_le_bytes()); 
-            buffer.extend_from_slice(&data[2].to_le_bytes()); 
-            buffer.extend_from_slice(&data[3].to_le_bytes()); 
-            buffer.extend_from_slice(&data[4].to_le_bytes()); 
-            buffer.extend_from_slice(&data[5].to_le_bytes()); 
-        }
-
-        buffer
-    }
-
-    
+    /// Decode incoming WebSocket messages (voice data and acknowledgements)
     pub fn decode_message(data: &[u8]) -> Result<Message, ProtocolError> {
         if data.is_empty() {
             return Err(ProtocolError::DecodingError("Empty message".to_string()));
@@ -1410,59 +1341,11 @@ impl BinaryProtocol {
         let message_type = data[0];
 
         match message_type {
-            0x01 => Self::decode_graph_update(&data[1..]),
             0x02 => Self::decode_voice_data(&data[1..]),
             0x34 => Self::decode_broadcast_ack(&data[1..]),
             _ => Err(ProtocolError::InvalidMessageType(message_type)),
         }
     }
-
-    
-    fn decode_graph_update(data: &[u8]) -> Result<Message, ProtocolError> {
-        if data.is_empty() {
-            return Err(ProtocolError::InvalidPayloadSize(
-                "Empty graph update payload".to_string(),
-            ));
-        }
-
-        let graph_type =
-            GraphType::from_u8(data[0]).map_err(|_| ProtocolError::InvalidGraphType(data[0]))?;
-
-        let payload = &data[1..];
-
-        
-        if payload.len() % 28 != 0 {
-            return Err(ProtocolError::InvalidPayloadSize(format!(
-                "Graph update payload size {} is not a multiple of 28",
-                payload.len()
-            )));
-        }
-
-        let node_count = payload.len() / 28;
-        let mut nodes = Vec::with_capacity(node_count);
-
-        for i in 0..node_count {
-            let offset = i * 28;
-            let chunk = &payload[offset..offset + 28];
-
-            
-            let node_id_f32 = f32::from_le_bytes([chunk[0], chunk[1], chunk[2], chunk[3]]);
-            let node_id = format!("{:.0}", node_id_f32); 
-
-            
-            let x = f32::from_le_bytes([chunk[4], chunk[5], chunk[6], chunk[7]]);
-            let y = f32::from_le_bytes([chunk[8], chunk[9], chunk[10], chunk[11]]);
-            let z = f32::from_le_bytes([chunk[12], chunk[13], chunk[14], chunk[15]]);
-            let vx = f32::from_le_bytes([chunk[16], chunk[17], chunk[18], chunk[19]]);
-            let vy = f32::from_le_bytes([chunk[20], chunk[21], chunk[22], chunk[23]]);
-            let vz = f32::from_le_bytes([chunk[24], chunk[25], chunk[26], chunk[27]]);
-
-            nodes.push((node_id, [x, y, z, vx, vy, vz]));
-        }
-
-        Ok(Message::GraphUpdate { graph_type, nodes })
-    }
-
 
     fn decode_voice_data(data: &[u8]) -> Result<Message, ProtocolError> {
         Ok(Message::VoiceData {
@@ -1545,7 +1428,7 @@ impl MultiplexedMessage {
         result
     }
 
-    
+    /// Decode multiplexed message from wire format
     pub fn decode(data: &[u8]) -> Result<Self, String> {
         if data.is_empty() {
             return Err("Empty message".to_string());
@@ -1553,9 +1436,10 @@ impl MultiplexedMessage {
 
         let msg_type = match data[0] {
             0 => MessageType::BinaryPositions,
-            0x01 => MessageType::GraphUpdate,
             0x02 => MessageType::VoiceData,
             0x03 => MessageType::ControlFrame,
+            0x04 => MessageType::PositionDelta,
+            0x34 => MessageType::BroadcastAck,
             t => return Err(format!("Unknown message type: {}", t)),
         };
 
@@ -1624,48 +1508,6 @@ mod control_frame_tests {
     }
 
     #[test]
-    fn test_simplified_protocol_graph_update() {
-        let nodes = vec![
-            ("1".to_string(), [1.0, 2.0, 3.0, 0.1, 0.2, 0.3]),
-            ("2".to_string(), [4.0, 5.0, 6.0, 0.4, 0.5, 0.6]),
-        ];
-
-        
-        let encoded = BinaryProtocol::encode_graph_update(GraphType::KnowledgeGraph, &nodes);
-        assert_eq!(encoded[0], 0x01); 
-        assert_eq!(encoded[1], 0); 
-        assert_eq!(encoded.len(), 2 + nodes.len() * 28); 
-
-        
-        let decoded = BinaryProtocol::decode_message(&encoded).expect("Message decode failed");
-        match decoded {
-            Message::GraphUpdate {
-                graph_type,
-                nodes: decoded_nodes,
-            } => {
-                assert_eq!(graph_type, GraphType::KnowledgeGraph);
-                assert_eq!(decoded_nodes.len(), 2);
-                assert_eq!(decoded_nodes[0].1, [1.0, 2.0, 3.0, 0.1, 0.2, 0.3]);
-                assert_eq!(decoded_nodes[1].1, [4.0, 5.0, 6.0, 0.4, 0.5, 0.6]);
-            }
-            _ => panic!("Expected GraphUpdate message"),
-        }
-
-        
-        let encoded_ont = BinaryProtocol::encode_graph_update(GraphType::Ontology, &nodes);
-        assert_eq!(encoded_ont[0], 0x01);
-        assert_eq!(encoded_ont[1], 1); 
-
-        let decoded_ont = BinaryProtocol::decode_message(&encoded_ont).expect("Message decode failed");
-        match decoded_ont {
-            Message::GraphUpdate { graph_type, .. } => {
-                assert_eq!(graph_type, GraphType::Ontology);
-            }
-            _ => panic!("Expected GraphUpdate message"),
-        }
-    }
-
-    #[test]
     fn test_simplified_protocol_voice_data() {
         let audio = vec![0x12, 0x34, 0x56, 0x78];
 
@@ -1686,33 +1528,15 @@ mod control_frame_tests {
 
     #[test]
     fn test_protocol_error_handling() {
-        
+        // Empty message
         let result = BinaryProtocol::decode_message(&[]);
         assert!(matches!(result, Err(ProtocolError::DecodingError(_))));
 
-        
+        // Invalid message type
         let result = BinaryProtocol::decode_message(&[0xFF]);
         assert!(matches!(
             result,
             Err(ProtocolError::InvalidMessageType(0xFF))
         ));
-
-        
-        let result = BinaryProtocol::decode_message(&[0x01, 0xFF]);
-        assert!(matches!(result, Err(ProtocolError::InvalidGraphType(0xFF))));
-
-        
-        let result = BinaryProtocol::decode_message(&[0x01, 0x00, 0x01, 0x02]); 
-        assert!(matches!(result, Err(ProtocolError::InvalidPayloadSize(_))));
-    }
-
-    #[test]
-    fn test_graph_type_conversions() {
-        assert_eq!(GraphType::KnowledgeGraph.to_u8(), 0);
-        assert_eq!(GraphType::Ontology.to_u8(), 1);
-
-        assert_eq!(GraphType::from_u8(0).unwrap(), GraphType::KnowledgeGraph);
-        assert_eq!(GraphType::from_u8(1).unwrap(), GraphType::Ontology);
-        assert!(GraphType::from_u8(2).is_err());
     }
 }
