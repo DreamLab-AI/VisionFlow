@@ -140,11 +140,13 @@ defaults:
       path: ""
     values:
       layout: default
+      render_with_liquid: false
   - scope:
       path: ""
       type: "pages"
     values:
       layout: default
+      render_with_liquid: false
   - scope:
       path: "tutorials"
       type: "tutorials"
@@ -153,6 +155,7 @@ defaults:
       parent: Tutorials
       nav_order: 1
       category: "tutorials"
+      render_with_liquid: false
   - scope:
       path: "guides"
       type: "guides"
@@ -160,6 +163,7 @@ defaults:
       layout: default
       nav_order: 2
       category: "guides"
+      render_with_liquid: false
   - scope:
       path: "explanations"
       type: "explanations"
@@ -167,6 +171,7 @@ defaults:
       layout: default
       nav_order: 3
       category: "explanations"
+      render_with_liquid: false
   - scope:
       path: "reference"
       type: "reference"
@@ -174,6 +179,7 @@ defaults:
       layout: default
       nav_order: 4
       category: "reference"
+      render_with_liquid: false
 
 # Exclude from processing
 exclude:
@@ -197,11 +203,27 @@ exclude:
   - "*.sh"
   - "*.py"
   - "*.json"
+  - "*.bak"
   - MERMAID_FIXES_STATS.json
   - link-audit-categorized.json
   - link-audit-fix-report.json
   - validate_*.py
   - visionflow_*.py
+  # Files with YAML frontmatter issues
+  - audits/
+  - multi-agent-docker/
+  - architecture/skills-refactoring-plan.md
+  - architecture/phase1-completion.md
+  - architecture/skill-mcp-classification.md
+  - assets/diagrams/sparc-turboflow-architecture.md
+  - diagrams/mermaid-library/02-data-flow-diagrams.md
+  - diagrams/architecture/backend-api-architecture-complete.md
+  # Files with Liquid syntax issues (code contains {{ }})
+  - CLIENT_CODE_ANALYSIS.md
+  - CODE_QUALITY_ANALYSIS.md
+  - CUDA_KERNEL_ANALYSIS_REPORT.md
+  - CUDA_KERNEL_AUDIT_REPORT.md
+  - API_TEST_IMPLEMENTATION.md
 
 # Include specific files and directories
 include:
