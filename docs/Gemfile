@@ -4,9 +4,6 @@ source 'https://rubygems.org'
 gem 'jekyll', '~> 4.3'
 gem 'webrick', '~> 1.8'
 
-# Just the Docs theme (remote)
-gem 'just-the-docs', '~> 0.10.0'
-
 # GitHub Pages compatible plugins
 group :jekyll_plugins do
   gem 'jekyll-feed', '~> 0.17'
