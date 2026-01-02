@@ -1,21 +1,10 @@
 ---
+layout: default
 title: Feature Documentation Moved
-description: The following documentation has been moved to better reflect its nature:
-category: guide
-tags:
-  - patterns
-  - deployment
-  - ai
-  - performance
-  - tutorial
-related-docs:
-  - guides/ai-models/README.md
-  - guides/ai-models/perplexity-integration.md
-  - guides/ai-models/ragflow-integration.md
-  - guides/ai-models/INTEGRATION_SUMMARY.md
-  - guides/features/auth-user-settings.md
-updated-date: 2025-12-18
-difficulty-level: intermediate
+parent: Features
+grand_parent: Guides
+nav_order: 99
+description: Redirect notice for relocated documentation
 ---
 
 # Feature Documentation Moved

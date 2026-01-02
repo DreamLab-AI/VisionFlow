@@ -1,12 +1,8 @@
 ---
-title: "ASCII to Mermaid Diagram Conversion Report"
-description: "Report documenting the conversion of ASCII diagrams to Mermaid format across the documentation corpus"
-category: explanation
-tags:
-  - documentation
-  - validation
-updated-date: 2025-12-19
-difficulty-level: intermediate
+layout: default
+title: ASCII to Mermaid Conversion
+description: Report on conversion of ASCII diagrams to Mermaid format
+nav_exclude: true
 ---
 
 # ASCII to Mermaid Diagram Conversion Report

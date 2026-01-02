@@ -1,17 +1,10 @@
 ---
-title: Semantic Physics Architecture
-description: The Semantic Physics Architecture implements a constraint generation and physics integration system that translates OWL (Web Ontology Language) axioms into GPU-accelerated physics constraints for v...
-category: explanation
-tags:
-  - architecture
-  - backend
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "Semantic Physics Architecture"
+parent: Architecture
+grand_parent: Explanations
+nav_order: 11
 ---
-
 
 # Semantic Physics Architecture
 

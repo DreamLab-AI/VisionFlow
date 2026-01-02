@@ -1,17 +1,10 @@
 ---
-title: OntologyRepository Port
-description: The **OntologyRepository** port manages the ontology graph structure parsed from GitHub markdown files. It handles OWL (Web Ontology Language) classes, properties, axioms, inference results, and pa...
-category: explanation
-tags:
-  - architecture
-  - backend
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "OntologyRepository Port"
+parent: Ports
+grand_parent: Architecture
+nav_order: 99
 ---
-
 
 # OntologyRepository Port
 

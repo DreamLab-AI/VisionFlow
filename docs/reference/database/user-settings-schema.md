@@ -1,15 +1,10 @@
 ---
-title: Neo4j User Settings Schema
-description: VisionFlow's Neo4j settings repository has been extended with per-user settings support, enabling: - User-specific settings storage (Nostr pubkey-based authentication) - Individual graph filter pre...
-category: reference
-tags:
-  - database
-  - database
-  - backend
-updated-date: 2025-12-18
-difficulty-level: intermediate
+layout: default
+title: "Neo4j User Settings Schema"
+parent: Database
+grand_parent: Reference
+nav_order: 99
 ---
-
 
 # Neo4j User Settings Schema
 

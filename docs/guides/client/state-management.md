@@ -1,21 +1,10 @@
 ---
+layout: default
 title: Client State Management with Zustand
-description: VisionFlow uses **Zustand** for state management with custom lazy loading and auto-save middleware.  This architecture achieves **87% faster initial load times** and **93% reduction in API calls** ...
-category: guide
-tags:
-  - architecture
-  - design
-  - api
-  - api
-  - api
-related-docs:
-  - guides/client/three-js-rendering.md
-  - guides/client/xr-integration.md
-  - QUICK_NAVIGATION.md
-  - README.md
-  - concepts/architecture/core/client.md
-updated-date: 2025-12-18
-difficulty-level: beginner
+parent: Client
+grand_parent: Guides
+nav_order: 1
+description: Zustand state management with lazy loading and auto-save middleware
 ---
 
 # Client State Management with Zustand

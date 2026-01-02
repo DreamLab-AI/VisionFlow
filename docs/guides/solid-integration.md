@@ -1,23 +1,9 @@
 ---
+layout: default
 title: Solid Pod Integration
-description: Comprehensive guide for integrating Solid Pods with VisionFlow for decentralized user data storage, agent memory, and ontology contributions using Nostr NIP-98 authentication.
-category: guide
-tags:
-  - solid
-  - decentralized
-  - storage
-  - pods
-  - nostr
-  - authentication
-  - ldp
-  - rdf
-  - agent-memory
-updated-date: 2025-12-29
-difficulty-level: intermediate
-dependencies:
-  - Nostr authentication enabled
-  - Docker or native deployment
-  - Optional: JSS (JavaScript Solid Server)
+parent: Guides
+nav_order: 45
+description: Solid Pods integration for decentralised user data storage with Nostr authentication
 ---
 
 # Solid Pod Integration

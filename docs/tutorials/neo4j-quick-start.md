@@ -1,13 +1,9 @@
 ---
+layout: default
 title: Neo4j Integration - Quick Start Guide
-description: Added dual persistence to Neo4j graph database for advanced graph analytics:
-category: tutorial
-tags:
-  - docker
-  - database
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+parent: Tutorials
+nav_order: 3
+description: Quick start guide for Neo4j dual persistence and graph analytics integration
 ---
 
 

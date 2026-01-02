@@ -1,348 +1,296 @@
-# Link Validation Report - VisionFlow Documentation
+---
+title: Link Validation Report
+generated: 2026-01-02 17:54:25
+category: reports
+---
 
-**Date**: 2025-12-30 13:27:59
-**Documentation Root**: `/docs`
-**Project Root**: `/home/devuser/workspace/project`
+# Code Quality Analysis Report - Link Validation
 
-## Executive Summary
+## Summary
 
-**Link Health Score**: 83.3%
-
-| Metric | Count |
+| Metric | Value |
 |--------|-------|
-| Total Files | 375 |
-| Total Links | 3646 |
-| Valid Links | 3038 |
-| Broken Links | 608 |
-| Orphaned Files | 185 |
-| Files with No Links | 150 |
+| Overall Quality Score | 2/10 |
+| Files Analysed | 431 |
+| Total Internal Links | 3570 |
+| Valid Links | 2752 (77%) |
+| Broken Links | 818 |
+| Anchor Issues | 103 |
+| Orphaned Files | 169 |
+| External Links | 202 |
+| Technical Debt Estimate | 213.1 hours |
 
-## Link Type Distribution
+## Critical Issues
 
-- **Internal Links**: 2982
-- **External Links**: 189
-- **Anchor Links**: 475
+### Broken Links by Category
 
-## Broken Links Analysis
+| Category | Count | Priority |
+|----------|-------|----------|
+| Case-sensitive errors (readme.md vs README.md) | 29 | High |
+| Path errors (../docs, docs/docs) | 195 | High |
+| Missing files (non-archive) | 329 | Medium |
+| Archive references | 265 | Low |
 
-### Missing Internal Files (608)
+### Top 15 Files with Broken Links
 
-**Missing Docs Files**: 241 links
+| File | Broken Links | Priority |
+|------|--------------|----------|
+| `archive/reports/consolidation/link-validation-report-2025-12.md` | 245 | Critical |
+| `archive/INDEX-QUICK-START-old.md` | 98 | Critical |
+| `reports/navigation-design.md` | 72 | Critical |
+| `working/hive-spelling-audit.md` | 61 | Critical |
+| `working/hive-link-validation.md` | 49 | Critical |
+| `architect.md` | 36 | Critical |
+| `reports/link-validation.md` | 30 | Critical |
+| `guides/navigation-guide.md` | 15 | High |
+| `guides/ai-models/README.md` | 15 | High |
+| `index.md` | 11 | High |
+| `archive/reports/link-fixes-report.md` | 10 | Medium |
+| `getting-started.md` | 9 | Medium |
+| `diagrams/mermaid-library/README.md` | 9 | Medium |
+| `QUICK_NAVIGATION.md` | 8 | Medium |
+| `CONTRIBUTION.md` | 6 | Medium |
 
-- **File**: `ARCHITECTURE_COMPLETE.md`
-  - **Link**: `docs/diagrams/architecture/backend-api-architecture-complete.md`
-  - **Expected**: `docs/docs/diagrams/architecture/backend-api-architecture-complete.md`
+## Broken Links Detail
 
-- **File**: `ARCHITECTURE_COMPLETE.md`
-  - **Link**: `docs/diagrams/client/rendering/threejs-pipeline-complete.md`
-  - **Expected**: `docs/docs/diagrams/client/rendering/threejs-pipeline-complete.md`
+### Case-Sensitive Errors (Quick Fix)
 
-- **File**: `ARCHITECTURE_COMPLETE.md`
-  - **Link**: `docs/diagrams/client/state/state-management-complete.md`
-  - **Expected**: `docs/docs/diagrams/client/state/state-management-complete.md`
+These links use `readme.md` instead of `README.md`:
 
-- **File**: `ARCHITECTURE_COMPLETE.md`
-  - **Link**: `docs/diagrams/client/xr/xr-architecture-complete.md`
-  - **Expected**: `docs/docs/diagrams/client/xr/xr-architecture-complete.md`
+- `archive/reports/consolidation/link-validation-report-2025-12.md:806`: `../../explanations/architecture/gpu/readme.md`
+- `archive/reports/consolidation/link-validation-report-2025-12.md:860`: `../../explanations/architecture/gpu/readme.md`
+- `working/hive-spelling-audit.md:2329`: `readme.md`
+- `working/hive-spelling-audit.md:2331`: `../../explanations/architecture/gpu/readme.md`
+- `working/hive-spelling-audit.md:2333`: `../../explanations/architecture/gpu/readme.md`
+- `working/hive-link-validation.md:36`: `explanations/architecture/gpu/readme.md`
+- `working/hive-link-validation.md:40`: `reference/api/readme.md`
+- `working/hive-link-validation.md:44`: `explanations/architecture/gpu/readme.md`
+- `working/hive-link-validation.md:164`: `explanations/architecture/gpu/readme.md`
+- `working/hive-link-validation.md:168`: `reference/api/readme.md`
+- `working/hive-link-validation.md:188`: `guides/readme.md`
+- `working/hive-link-validation.md:200`: `explanations/architecture/gpu/readme.md`
+- `working/hive-link-validation.md:204`: `reference/api/readme.md`
+- `working/HIVE_QUALITY_REPORT.md:147`: `explanations/architecture/gpu/readme.md`
+- `working/HIVE_QUALITY_REPORT.md:148`: `reference/api/readme.md`
+- `guides/configuration.md:12`: `readme.md`
+- `guides/semantic-features-implementation.md:797`: `../../explanations/architecture/gpu/readme.md`
+- `guides/contributing.md:147`: `./readme.md`
+- `guides/contributing.md:156`: `./readme.md`
+- `guides/orchestrating-agents.md:2290`: `readme.md`
 
-- **File**: `ARCHITECTURE_COMPLETE.md`
-  - **Link**: `docs/diagrams/server/actors/actor-system-complete.md`
-  - **Expected**: `docs/docs/diagrams/server/actors/actor-system-complete.md`
+*...and 9 more*
 
-- **File**: `ARCHITECTURE_COMPLETE.md`
-  - **Link**: `docs/diagrams/server/agents/agent-system-architecture.md`
-  - **Expected**: `docs/docs/diagrams/server/agents/agent-system-architecture.md`
+### Path Errors (Requires Path Correction)
 
-- **File**: `ARCHITECTURE_COMPLETE.md`
-  - **Link**: `docs/diagrams/server/api/rest-api-architecture.md`
-  - **Expected**: `docs/docs/diagrams/server/api/rest-api-architecture.md`
+These links have incorrect path prefixes:
 
-- **File**: `ARCHITECTURE_COMPLETE.md`
-  - **Link**: `docs/diagrams/infrastructure/websocket/binary-protocol-complete.md`
-  - **Expected**: `docs/docs/diagrams/infrastructure/websocket/binary-protocol-complete.md`
+- `CONTRIBUTION.md:345`: `../deployment/docker-deployment.md`
+  - Resolved to: `/home/devuser/workspace/project/deployment/docker-deployment.md`
+- `CONTRIBUTION.md:350`: `/docs/deployment/docker-deployment.md`
+  - Resolved to: `docs/deployment/docker-deployment.md`
+- `CONTRIBUTION.md:356`: `../deployment/docker-deployment.md#configuration`
+  - Resolved to: `/home/devuser/workspace/project/deployment/docker-deployment.md`
+- `CONTRIBUTION.md:393`: `../api/rest-api.md`
+  - Resolved to: `/home/devuser/workspace/project/api/rest-api.md`
+- `CONTRIBUTION.md:394`: `../reference/configuration.md`
+  - Resolved to: `/home/devuser/workspace/project/reference/configuration.md`
+- `CONTRIBUTION.md:395`: `../guides/troubleshooting.md`
+  - Resolved to: `/home/devuser/workspace/project/guides/troubleshooting.md`
+- `MAINTENANCE.md:174`: `../related-category/related-doc.md`
+  - Resolved to: `/home/devuser/workspace/project/related-category/related-doc.md`
+- `MAINTENANCE.md:245`: `../new-category/new-doc.md`
+  - Resolved to: `/home/devuser/workspace/project/new-category/new-doc.md`
+- `audits/ascii-diagram-deprecation-audit.md:122`: `../../diagrams/data-flow/complete-data-flows.md`
+  - Resolved to: `/home/devuser/workspace/project/diagrams/data-flow/complete-data-flows.md`
+- `reference/implementation-status.md:455`: `../../explanations/architecture/system-overview.md`
+  - Resolved to: `/home/devuser/workspace/project/explanations/architecture/system-overview.md`
+- `reference/api-complete-reference.md:1314`: `../../explanations/architecture/system-overview.md`
+  - Resolved to: `/home/devuser/workspace/project/explanations/architecture/system-overview.md`
+- `reference/api-complete-reference.md:1315`: `../../tutorials/01-installation.md`
+  - Resolved to: `/home/devuser/workspace/project/tutorials/01-installation.md`
+- `reference/code-quality-status.md:405`: `../guides/developer/05-testing-guide.md`
+  - Resolved to: `guides/developer/05-testing-guide.md`
+- `reference/code-quality-status.md:406`: `../../explanations/architecture/system-overview.md`
+  - Resolved to: `/home/devuser/workspace/project/explanations/architecture/system-overview.md`
+- `reference/protocols/binary-websocket.md:62`: `../diagrams/infrastructure/websocket/binary-protocol-complete.md#3-position-update-v2-21-bytes-per-node`
+  - Resolved to: `reference/diagrams/infrastructure/websocket/binary-protocol-complete.md`
+- `reference/protocols/binary-websocket.md:116`: `../diagrams/infrastructure/websocket/binary-protocol-complete.md#protocol-versions`
+  - Resolved to: `reference/diagrams/infrastructure/websocket/binary-protocol-complete.md`
+- `reference/protocols/binary-websocket.md:138`: `../diagrams/infrastructure/websocket/binary-protocol-complete.md#binary-message-formats`
+  - Resolved to: `reference/diagrams/infrastructure/websocket/binary-protocol-complete.md`
+- `reference/protocols/binary-websocket.md:207`: `../diagrams/infrastructure/websocket/binary-protocol-complete.md#1-message-header-all-messages`
+  - Resolved to: `reference/diagrams/infrastructure/websocket/binary-protocol-complete.md`
+- `reference/api/rest-api-reference.md:633`: `../../../explanations/architecture/ontology-reasoning-pipeline.md`
+  - Resolved to: `/home/devuser/workspace/project/explanations/architecture/ontology-reasoning-pipeline.md`
+- `reference/api/rest-api-reference.md:634`: `../../../explanations/architecture/semantic-physics-system.md`
+  - Resolved to: `/home/devuser/workspace/project/explanations/architecture/semantic-physics-system.md`
 
-- **File**: `ARCHITECTURE_COMPLETE.md`
-  - **Link**: `docs/diagrams/infrastructure/gpu/cuda-architecture-complete.md`
-  - **Expected**: `docs/docs/diagrams/infrastructure/gpu/cuda-architecture-complete.md`
+*...and 175 more*
 
-- **File**: `ARCHITECTURE_COMPLETE.md`
-  - **Link**: `docs/diagrams/infrastructure/database/neo4j-architecture-complete.md`
-  - **Expected**: `docs/docs/diagrams/infrastructure/database/neo4j-architecture-complete.md`
+### Missing Files (Requires Content Creation or Link Removal)
 
-  ... and 231 more
+- `README.md:264`: [DeepSeek Verification](guides/features/deepseek-verification.md)
+- `README.md:265`: [DeepSeek Deployment](guides/features/deepseek-deployment.md)
+- `OVERVIEW.md:189`: [Installation Guide](getting-started/01-installation.md)
+- `OVERVIEW.md:190`: [First Graph Tutorial](getting-started/02-first-graph-and-agents.md)
+- `OVERVIEW.md:239`: [Get Started →](getting-started/01-installation.md)
+- `architect.md:14`: [Architecture Overview]($1.md)
+- `architect.md:15`: [Technology Choices]($1.md)
+- `architect.md:16`: [System Overview]($1.md)
+- `architect.md:17`: [Hexagonal CQRS]($1.md)
+- `architect.md:25`: [Data Flow Complete]($1.md)
+- `architect.md:26`: [Integration Patterns]($1.md)
+- `architect.md:27`: [Services Architecture]($1.md)
+- `architect.md:28`: [Adapter Patterns]($1.md)
+- `architect.md:34`: [Ports Overview]($1.md)
+- `architect.md:35`: [Knowledge Graph Repository]($1.md)
+- `architect.md:36`: [Ontology Repository]($1.md)
+- `architect.md:37`: [GPU Physics Adapter]($1.md)
+- `architect.md:43`: [Server Architecture]($1.md)
+- `architect.md:43`: [Actor System]($1.md)
+- `architect.md:44`: [Client Architecture]($1.md)
+- `architect.md:44`: [State Management]($1.md)
+- `architect.md:45`: [Database Architecture]($1.md)
+- `architect.md:45`: [Schemas]($1.md)
+- `architect.md:46`: [GPU Semantic Forces]($1.md)
+- `architect.md:46`: [Optimisations]($1.md)
+- `architect.md:52`: [Storage Architecture]($1.md)
+- `architect.md:52`: [Reasoning Pipeline]($1.md)
+- `architect.md:53`: [Semantic Physics System]($1.md)
+- `architect.md:53`: [Stress Majorisation]($1.md)
+- `architect.md:54`: [Multi-Agent System]($1.md)
 
-**Missing Subdirectories**: 327 links
+*...and 299 more*
 
-- **File**: `01-GETTING_STARTED.md`
-  - **Link**: `guides/getting-started/GETTING_STARTED_USER.md`
-  - **Expected**: `docs/guides/getting-started/GETTING_STARTED_USER.md`
+## Anchor Issues
 
-- **File**: `01-GETTING_STARTED.md`
-  - **Link**: `guides/getting-started/GETTING_STARTED_DEVELOPER.md`
-  - **Expected**: `docs/guides/getting-started/GETTING_STARTED_DEVELOPER.md`
+103 links point to anchors that do not exist in target files:
 
-- **File**: `01-GETTING_STARTED.md`
-  - **Link**: `guides/getting-started/GETTING_STARTED_ARCHITECT.md`
-  - **Expected**: `docs/guides/getting-started/GETTING_STARTED_ARCHITECT.md`
+- `ARCHITECTURE_OVERVIEW.md:695`: Anchor #roadmap not found in /home/devuser/workspace/project/docs/README.md
+- `DEVELOPER_JOURNEY.md:1048`: Anchor #faq not found in /home/devuser/workspace/project/docs/guides/troubleshooting.md
+- `GETTING_STARTED_WITH_UNIFIED_DOCS.md:19`: Anchor #faq not found in /home/devuser/workspace/project/docs/INDEX.md
+- `INDEX.md:38`: Anchor #specialized-content not found in same file
+- `reference/README.md:239`: Anchor #authentication--authorization not found in /home/devuser/workspace/project/docs/reference/API_REFERENCE.md
+- `reference/README.md:306`: Anchor #section-name not found in /home/devuser/workspace/project/docs/reference/API_REFERENCE.md
+- `reference/API_REFERENCE.md:20`: Anchor #authentication--authorization not found in same file
+- `reference/DATABASE_SCHEMA_REFERENCE.md:23`: Anchor #relationships--foreign-keys not found in same file
+- `reference/DATABASE_SCHEMA_REFERENCE.md:24`: Anchor #indexes--performance not found in same file
+- `reference/INDEX.md:35`: Anchor #agent-management not found in /home/devuser/workspace/project/docs/reference/CONFIGURATION_REFERENCE.md
+- `reference/INDEX.md:37`: Anchor #authentication--authorization not found in /home/devuser/workspace/project/docs/reference/API_REFERENCE.md
+- `reference/INDEX.md:78`: Anchor #relationships--foreign-keys not found in /home/devuser/workspace/project/docs/reference/DATABASE_SCHEMA_REFERENCE.md
+- `reference/INDEX.md:96`: Anchor #indexes--performance not found in /home/devuser/workspace/project/docs/reference/DATABASE_SCHEMA_REFERENCE.md
+- `reference/INDEX.md:110`: Anchor #logging--monitoring not found in /home/devuser/workspace/project/docs/reference/CONFIGURATION_REFERENCE.md
+- `reference/INDEX.md:150`: Anchor #relationships--foreign-keys not found in /home/devuser/workspace/project/docs/reference/DATABASE_SCHEMA_REFERENCE.md
+- `reference/INDEX.md:165`: Anchor #common-issues--solutions not found in /home/devuser/workspace/project/docs/reference/ERROR_REFERENCE.md
+- `reference/INDEX.md:192`: Anchor #common-issues--solutions not found in /home/devuser/workspace/project/docs/reference/ERROR_REFERENCE.md
+- `reference/INDEX.md:287`: Anchor #authentication--authorization not found in /home/devuser/workspace/project/docs/reference/API_REFERENCE.md
+- `reference/INDEX.md:342`: Anchor #common-issues--solutions not found in /home/devuser/workspace/project/docs/reference/ERROR_REFERENCE.md
+- `reference/INDEX.md:373`: Anchor #startrstop-simulation not found in /home/devuser/workspace/project/docs/reference/API_REFERENCE.md
+- `reference/ERROR_REFERENCE.md:25`: Anchor #common-issues--solutions not found in same file
+- `archive/reports/documentation-alignment-2025-12-02/SWARM_EXECUTION_REPORT.md:522`: Anchor #installation-guide not found in same file
+- `archive/reports/documentation-alignment-2025-12-02/SWARM_EXECUTION_REPORT.md:525`: Anchor #setup-and-installation not found in same file
+- `explanations/architecture/quick-reference.md:24`: Anchor #actor-lifecycle-and-supervision-strategies not found in /home/devuser/workspace/project/docs/diagrams/server/actors/actor-system-complete.md
+- `working/hive-spelling-audit.md:930`: Anchor #performance-optimisation not found in same file
+- `working/hive-spelling-audit.md:932`: Anchor #performance-optimisation not found in same file
+- `working/hive-spelling-audit.md:1161`: Anchor #8-performance-optimisations not found in same file
+- `working/hive-spelling-audit.md:1163`: Anchor #8-performance-optimisations not found in same file
+- `working/hive-spelling-audit.md:1180`: Anchor #store-catalogue not found in same file
+- `working/hive-spelling-audit.md:1182`: Anchor #store-catalogue not found in same file
 
-- **File**: `01-GETTING_STARTED.md`
-  - **Link**: `guides/getting-started/GETTING_STARTED_OPERATOR.md`
-  - **Expected**: `docs/guides/getting-started/GETTING_STARTED_OPERATOR.md`
+*...and 73 more*
 
-- **File**: `GETTING_STARTED_WITH_UNIFIED_DOCS.md`
-  - **Link**: `./guides/user/README.md`
-  - **Expected**: `docs/guides/user/README.md`
+## Orphaned Files
 
-- **File**: `INDEX.md`
-  - **Link**: `guides/features/deepseek-verification.md`
-  - **Expected**: `docs/guides/features/deepseek-verification.md`
+169 files have no incoming links (excluding README.md and INDEX.md files):
 
-- **File**: `INDEX.md`
-  - **Link**: `guides/features/deepseek-deployment.md`
-  - **Expected**: `docs/guides/features/deepseek-deployment.md`
-
-- **File**: `INDEX.md`
-  - **Link**: `explanations/architecture/gpu/readme.md`
-  - **Expected**: `docs/explanations/architecture/gpu/readme.md`
-
-- **File**: `INDEX.md`
-  - **Link**: `reference/api/readme.md`
-  - **Expected**: `docs/reference/api/readme.md`
-
-- **File**: `QUICK_NAVIGATION.md`
-  - **Link**: `guides/readme.md`
-  - **Expected**: `docs/guides/readme.md`
-
-  ... and 317 more
-
-**Wrong Paths**: 40 links
-
-- **File**: `CONTRIBUTION.md`
-  - **Link**: `../deployment/docker-deployment.md`
-  - **Expected**: `deployment/docker-deployment.md`
-
-- **File**: `CONTRIBUTION.md`
-  - **Link**: `../deployment/docker-deployment.md#configuration`
-  - **Expected**: `deployment/docker-deployment.md`
-
-- **File**: `CONTRIBUTION.md`
-  - **Link**: `../api/rest-api.md`
-  - **Expected**: `api/rest-api.md`
-
-- **File**: `CONTRIBUTION.md`
-  - **Link**: `../reference/configuration.md`
-  - **Expected**: `reference/configuration.md`
-
-- **File**: `CONTRIBUTION.md`
-  - **Link**: `../guides/troubleshooting.md`
-  - **Expected**: `guides/troubleshooting.md`
-
-- **File**: `MAINTENANCE.md`
-  - **Link**: `../related-category/related-doc.md`
-  - **Expected**: `related-category/related-doc.md`
-
-- **File**: `MAINTENANCE.md`
-  - **Link**: `../new-category/new-doc.md`
-  - **Expected**: `new-category/new-doc.md`
-
-- **File**: `audits/ascii-diagram-deprecation-audit.md`
-  - **Link**: `../../diagrams/data-flow/complete-data-flows.md`
-  - **Expected**: `diagrams/data-flow/complete-data-flows.md`
-
-- **File**: `guides/developer/01-development-setup.md`
-  - **Link**: `../../../explanations/architecture/`
-  - **Expected**: `explanations/architecture`
-
-- **File**: `guides/developer/websocket-best-practices.md`
-  - **Link**: `../../../explanations/architecture/components/websocket-protocol.md`
-  - **Expected**: `explanations/architecture/components/websocket-protocol.md`
-
-  ... and 30 more
-
-### Broken Anchor Links
-None detected.
-
-## Orphaned Files (185)
-
-Files with no inbound links (potential candidates for deletion or linking):
-
-- `01-GETTING_STARTED.md`
 - `API_TEST_IMPLEMENTATION.md`
-- `ASCII_DEPRECATION_COMPLETE.md`
 - `CLIENT_CODE_ANALYSIS.md`
 - `CODE_QUALITY_ANALYSIS.md`
-- `CONTRIBUTION.md`
 - `CUDA_KERNEL_ANALYSIS_REPORT.md`
 - `CUDA_KERNEL_AUDIT_REPORT.md`
 - `CUDA_OPTIMIZATION_SUMMARY.md`
+- `DOCS-MIGRATION-PLAN.md`
 - `FINAL_LINK_VERIFICATION.md`
 - `GETTING_STARTED_WITH_UNIFIED_DOCS.md`
 - `LINK_REPAIR_REPORT.md`
-- `MAINTENANCE.md`
+- `LINK_VALIDATION_COMPLETE.md`
+- `MIGRATION_LOG.md`
 - `PROJECT_CONSOLIDATION_PLAN.md`
 - `QUICK_NAVIGATION.md`
+- `SOLID_POD_CREATION.md`
 - `TEST_COVERAGE_ANALYSIS.md`
 - `VALIDATION_CHECKLIST.md`
-- `analysis/DUAL_RENDERER_OVERHEAD_ANALYSIS.md`
-- `analysis/ontology-knowledge-skills-analysis.md`
-- `analysis/ontology-skills-cluster-analysis.md`
+- `VISIONFLOW_WARDLEY_ANALYSIS.md`
+- `_pages/getting-started.md`
+- `analysis/index.md`
+- `architect.md`
 - `architecture/PROTOCOL_MATRIX.md`
 - `architecture/VIRCADIA_BABYLON_CONSOLIDATION_ANALYSIS.md`
 - `architecture/phase1-completion.md`
 - `architecture/skill-mcp-classification.md`
 - `architecture/skills-refactoring-plan.md`
-- `architecture/solid-sidecar-architecture.md`
+- `architecture/user-agent-pod-design.md`
 - `architecture_analysis_report.md`
 - `archive/ARCHIVE_REPORT.md`
 - `archive/INDEX-QUICK-START-old.md`
 - `archive/analysis/analysis-summary-2025-12.md`
-... and 155 more
-
-## Files with No Outbound Links (150)
-
-These files don't link to other documentation:
-
-- `API_TEST_IMPLEMENTATION.md`
-- `CLIENT_CODE_ANALYSIS.md`
-- `CODE_QUALITY_ANALYSIS.md`
-- `CUDA_KERNEL_ANALYSIS_REPORT.md`
-- `CUDA_KERNEL_AUDIT_REPORT.md`
-- `CUDA_OPTIMIZATION_SUMMARY.md`
-- `FINAL_LINK_VERIFICATION.md`
-- `LINK_REPAIR_REPORT.md`
-- `TEST_COVERAGE_ANALYSIS.md`
-- `VALIDATION_CHECKLIST.md`
-- `analysis/DUAL_RENDERER_OVERHEAD_ANALYSIS.md`
-- `architecture/PROTOCOL_MATRIX.md`
-- `architecture/VIRCADIA_BABYLON_CONSOLIDATION_ANALYSIS.md`
-- `architecture/phase1-completion.md`
-- `architecture/skill-mcp-classification.md`
-- `architecture/skills-refactoring-plan.md`
-- `architecture_analysis_report.md`
-- `archive/ARCHIVE_REPORT.md`
-- `archive/analysis/analysis-summary-2025-12.md`
 - `archive/analysis/client-docs-summary-2025-12.md`
-... and 130 more
+- `archive/analysis/historical-context-recovery-2025-12.md`
+- `archive/audits/quality-gates-api.md`
+- `archive/data/markdown/IMPLEMENTATION-SUMMARY.md`
+- `archive/data/markdown/OntologyDefinition.md`
+- `archive/data/markdown/implementation-examples.md`
+- `archive/data/pages/ComfyWorkFlows.md`
+- `archive/data/pages/IMPLEMENTATION-SUMMARY.md`
+- `archive/data/pages/OntologyDefinition.md`
+- `archive/data/pages/implementation-examples.md`
+- `archive/docs/guides/working-with-gui-sandbox.md`
+- `archive/fixes/type-corrections-final-summary.md`
+- `archive/fixes/type-corrections-progress.md`
+- `archive/implementation-logs/stress-majorization-implementation.md`
+- `archive/multi-agent-docker/skills/IMPLEMENTATION_GUIDE.md`
+- `archive/reports/CLEANUP_SUMMARY.md`
+- `archive/reports/ascii-conversion-report.md`
+- `archive/reports/ascii-to-mermaid-conversion.md`
+- `archive/reports/consolidation/link-fix-suggestions-2025-12.md`
 
-## Top Files by Link Volume
+*...and 119 more*
 
-- `INDEX.md`: 367 links
-- `README.md`: 262 links
-- `archive/reports/consolidation/link-validation-report-2025-12.md`: 253 links
-- `reference/INDEX.md`: 175 links
-- `NAVIGATION.md`: 159 links
-- `QUICK_NAVIGATION.md`: 159 links
-- `archive/INDEX-QUICK-START-old.md`: 111 links
-- `working/hive-link-validation.md`: 100 links
-- `working/hive-spelling-audit.md`: 79 links
-- `01-GETTING_STARTED.md`: 57 links
-- `GETTING_STARTED_WITH_UNIFIED_DOCS.md`: 56 links
-- `reference/README.md`: 55 links
-- `guides/navigation-guide.md`: 37 links
-- `research/graph-visualization-sota-analysis.md`: 32 links
-- `diagrams/mermaid-library/README.md`: 31 links
+## Refactoring Opportunities
 
-## External Link Sources
+### 1. Consolidate Archive Links
+Many broken links originate from archive files. Consider:
+- Removing archive files from active documentation
+- Fixing links within archive for historical accuracy
 
-- `github.com`: 46 links
-- `docs.vircadia.com`: 11 links
-- `doc.rust-lang.org`: 11 links
-- `forum.babylonjs.com`: 7 links
-- `img.shields.io`: 7 links
-- `actix.rs`: 7 links
-- `www.w3.org`: 6 links
-- `discord.gg`: 5 links
-- `chrome.google.com`: 5 links
-- `www.conventionalcommits.org`: 4 links
-- `ieeexplore.ieee.org`: 4 links
-- `developer.oculus.com`: 4 links
-- `docs.docker.com`: 3 links
-- `nblintao.github.io`: 3 links
-- `cosmograph.app`: 3 links
+### 2. Standardise File Naming
+Adopt consistent naming conventions:
+- Use `README.md` (uppercase) consistently
+- Avoid `readme.md`, `Readme.md` variants
 
-## Recommendations
+### 3. Remove Deprecated References
+Several files reference non-existent DeepSeek and getting-started guides:
+- Either create these files or remove references
 
-1. **High Priority**: Address 608 broken internal links
-   - Create missing documentation files
-   - Update incorrect link paths
+### 4. Fix Path Structure
+Common path issues:
+- `docs/docs/` should be `docs/`
+- Excessive `../` navigation
 
-2. **Medium Priority**: Review 185 orphaned files
-   - Consider adding inbound links from other documents
-   - Or remove if no longer relevant
+## Positive Findings
 
-3. **Low Priority**: Consider adding internal links to 150 standalone files
-   - Improve navigation between related topics
+- 77% of internal links are valid
+- Core documentation files (README.md, INDEX.md) are well-linked
+- External links are properly formatted
+- No security issues with links (no credentials in URLs)
 
-## Statistics by Directory
+## Recommended Actions
 
-- `analysis/`: 3 files, 10 total links
-- `architecture/`: 9 files, 18 total links
-- `archive/`: 3 files, 119 total links
-- `archive/analysis/`: 4 files, 5 total links
-- `archive/audits/`: 1 files, 0 total links
-- `archive/data/markdown/`: 3 files, 0 total links
-- `archive/data/pages/`: 4 files, 0 total links
-- `archive/deprecated-patterns/`: 2 files, 13 total links
-- `archive/docs/guides/`: 2 files, 39 total links
-- `archive/docs/guides/developer/`: 1 files, 7 total links
-- `archive/docs/guides/user/`: 2 files, 15 total links
-- `archive/fixes/`: 12 files, 48 total links
-- `archive/implementation-logs/`: 1 files, 0 total links
-- `archive/multi-agent-docker/skills/`: 1 files, 0 total links
-- `archive/reports/`: 19 files, 38 total links
-- `archive/reports/consolidation/`: 3 files, 258 total links
-- `archive/reports/documentation-alignment-2025-12-02/`: 4 files, 18 total links
-- `archive/specialized/`: 3 files, 41 total links
-- `archive/sprint-logs/`: 7 files, 0 total links
-- `archive/tests/`: 1 files, 9 total links
-- `archive/working/`: 2 files, 0 total links
-- `assets/diagrams/`: 1 files, 0 total links
-- `audits/`: 5 files, 33 total links
-- `concepts/architecture/core/`: 2 files, 18 total links
-- `diagrams/`: 3 files, 35 total links
-- `diagrams/architecture/`: 1 files, 0 total links
-- `diagrams/client/rendering/`: 1 files, 16 total links
-- `diagrams/client/state/`: 1 files, 14 total links
-- `diagrams/client/xr/`: 1 files, 5 total links
-- `diagrams/data-flow/`: 1 files, 16 total links
-- `diagrams/infrastructure/gpu/`: 1 files, 5 total links
-- `diagrams/infrastructure/testing/`: 1 files, 5 total links
-- `diagrams/infrastructure/websocket/`: 1 files, 15 total links
-- `diagrams/mermaid-library/`: 6 files, 48 total links
-- `diagrams/server/actors/`: 1 files, 5 total links
-- `diagrams/server/agents/`: 1 files, 17 total links
-- `diagrams/server/api/`: 1 files, 19 total links
-- `explanations/`: 1 files, 7 total links
-- `explanations/architecture/`: 31 files, 158 total links
-- `explanations/architecture/components/`: 1 files, 1 total links
-- `explanations/architecture/core/`: 3 files, 5 total links
-- `explanations/architecture/decisions/`: 1 files, 0 total links
-- `explanations/architecture/gpu/`: 3 files, 7 total links
-- `explanations/architecture/ports/`: 7 files, 31 total links
-- `explanations/ontology/`: 8 files, 17 total links
-- `explanations/physics/`: 2 files, 5 total links
-- `guides/`: 32 files, 272 total links
-- `guides/ai-models/`: 6 files, 29 total links
-- `guides/architecture/`: 1 files, 12 total links
-- `guides/client/`: 3 files, 40 total links
-- `guides/developer/`: 9 files, 73 total links
-- `guides/features/`: 11 files, 45 total links
-- `guides/infrastructure/`: 8 files, 66 total links
-- `guides/migration/`: 1 files, 9 total links
-- `guides/operations/`: 1 files, 15 total links
-- `multi-agent-docker/`: 7 files, 35 total links
-- `multi-agent-docker/development-notes/`: 2 files, 9 total links
-- `multi-agent-docker/fixes/`: 3 files, 15 total links
-- `reference/`: 14 files, 347 total links
-- `reference/api/`: 10 files, 61 total links
-- `reference/database/`: 5 files, 6 total links
-- `reference/protocols/`: 1 files, 9 total links
-- `reports/`: 3 files, 3 total links
-- `research/`: 3 files, 52 total links
-- `root/`: 41 files, 1218 total links
-- `scripts/`: 2 files, 1 total links
-- `testing/`: 2 files, 0 total links
-- `tutorials/`: 3 files, 23 total links
-- `working/`: 32 files, 185 total links
-- `working/hive-coordination/`: 2 files, 0 total links
-- `working/validation-reports/`: 1 files, 0 total links
+1. **Immediate**: Fix case-sensitive README links (39 items)
+2. **Short-term**: Correct path prefix errors (196 items)  
+3. **Medium-term**: Address missing file references (317 items)
+4. **Long-term**: Review and link orphaned files (169 items)
+
+---
+
+*Report generated automatically by link validation tool*

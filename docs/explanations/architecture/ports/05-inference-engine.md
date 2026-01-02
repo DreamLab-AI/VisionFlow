@@ -1,17 +1,10 @@
 ---
-title: InferenceEngine Port
-description: The **InferenceEngine** port provides ontology reasoning and inference capabilities using whelk-rs or similar OWL reasoners. It performs classification, consistency checking, entailment, and explan...
-category: explanation
-tags:
-  - architecture
-  - backend
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "InferenceEngine Port"
+parent: Ports
+grand_parent: Architecture
+nav_order: 99
 ---
-
 
 # InferenceEngine Port
 

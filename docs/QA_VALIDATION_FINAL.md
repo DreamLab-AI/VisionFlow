@@ -1,15 +1,8 @@
 ---
-title: QA Validation Final Report
-description: Comprehensive quality assurance validation of VisionFlow documentation corpus for production readiness
-category: explanation
-tags:
-  - api
-  - docker
-  - database
-  - backend
-updated-date: 2025-12-18
-difficulty-level: intermediate
-date: 2025-12-02
+layout: default
+title: QA Validation Report
+description: Comprehensive quality assurance validation of VisionFlow documentation corpus
+nav_exclude: true
 ---
 
 

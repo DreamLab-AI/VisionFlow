@@ -1,21 +1,8 @@
 ---
-title: VisionFlow Client Architecture Analysis
-description: VisionFlow is a sophisticated 3D knowledge graph visualization platform built on React Three Fiber (R3F) and Three. js, with real-time WebSocket communication, physics-based graph layout, and holog...
-category: explanation
-tags:
-  - architecture
-  - design
-  - patterns
-  - structure
-  - api
-related-docs:
-  - ARCHITECTURE_COMPLETE.md
-  - ARCHITECTURE_OVERVIEW.md
-  - ASCII_DEPRECATION_COMPLETE.md
-updated-date: 2025-12-18
-difficulty-level: advanced
-dependencies:
-  - Neo4j database
+layout: default
+title: Client Architecture Analysis
+description: Client architecture analysis for React Three Fiber 3D visualization platform
+nav_exclude: true
 ---
 
 # VisionFlow Client Architecture Analysis

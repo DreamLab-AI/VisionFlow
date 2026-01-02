@@ -1,16 +1,10 @@
 ---
-title: Semantic Forces System
-description: **Status:** Implementation Ready **Version:** 1.0 **Last Updated:** 2025-11-05
-category: explanation
-tags:
-  - architecture
-  - api
-  - backend
-  - frontend
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "Semantic Forces System"
+parent: Architecture
+grand_parent: Explanations
+nav_order: 12
 ---
-
 
 # Semantic Forces System
 

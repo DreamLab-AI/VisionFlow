@@ -1,15 +1,9 @@
 ---
+layout: default
 title: Neo4j Migration Guide - Settings Repository
-description: > ✅ **MIGRATION STATUS: COMPLETE (November 2025)** > Settings repository has been successfully migrated from SQLite to Neo4j in production. > This guide documents the migration process for referenc...
-category: guide
-tags:
-  - tutorial
-  - api
-  - docker
-  - database
-  - backend
-updated-date: 2025-12-18
-difficulty-level: intermediate
+parent: Guides
+nav_order: 50
+description: Settings repository migration from SQLite to Neo4j (completed November 2025)
 ---
 
 

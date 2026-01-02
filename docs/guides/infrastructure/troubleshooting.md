@@ -1,15 +1,10 @@
 ---
+layout: default
 title: Troubleshooting Guide
-description: This guide provides solutions to common issues you might encounter while using the Multi-Agent Docker Environment.
-category: guide
-tags:
-  - tutorial
-  - docker
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: intermediate
+parent: Infrastructure
+grand_parent: Guides
+nav_order: 7
+description: Solutions to common Docker environment issues and diagnostics
 ---
 
 

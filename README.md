@@ -1082,6 +1082,16 @@ npm test
 
 ---
 
+## Third-Party Components
+
+### JavaScriptSolidServer
+[JavaScriptSolidServer](https://github.com/JavaScriptSolidServer/JavaScriptSolidServer) v0.0.35
+- **License**: AGPL-3.0 (network copyleft - source must be available for network deployments)
+- **Location**: `JavaScriptSolidServer/`
+- **Upstream**: `git@github.com:JavaScriptSolidServer/JavaScriptSolidServer.git`
+
+---
+
 ## Acknowledgements
 
 Built on the work of:
@@ -1089,6 +1099,7 @@ Built on the work of:
 - **[3d-force-graph](https://github.com/vasturiano/3d-force-graph)** — Force-directed visualization
 - **[graph_RAG](https://github.com/nemegrod/graph_RAG)** — Natural language queries
 - **[Semantic RAG Research](https://github.com/glacier-creative-git/knowledge-graph-traversal-semantic-rag-research)** — Intelligent pathfinding
+- **[JavaScriptSolidServer](https://github.com/JavaScriptSolidServer/JavaScriptSolidServer)** — Solid Protocol server
 
 Special thanks to **Prof. Rob Aspin** for research in immersive knowledge visualization.
 

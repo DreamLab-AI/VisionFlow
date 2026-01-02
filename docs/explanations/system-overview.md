@@ -1,16 +1,11 @@
 ---
-title: Complete Hexagonal Architecture Migration - Overview
-description: This document provides a complete architectural blueprint for migrating the VisionFlow application to a fully database-backed hexagonal architecture. All designs are **production-ready with NO stub...
-category: explanation
-tags:
-  - api
-  - api
-  - database
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "System Overview"
+nav_order: 1
+parent: Architecture
+has_children: false
+permalink: /explanations/system-overview/
 ---
-
 
 # Complete Hexagonal Architecture Migration - Overview
 

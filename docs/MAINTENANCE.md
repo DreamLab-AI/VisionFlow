@@ -1,11 +1,9 @@
 ---
-title: "Documentation Maintenance Guide"
-description: "Procedures for maintaining the unified documentation corpus"
-category: reference
-tags:
-  - documentation
-updated-date: 2025-12-19
-difficulty-level: intermediate
+layout: default
+title: Maintenance Guide
+description: Procedures for maintaining the unified documentation corpus
+nav_order: 10
+parent: VisionFlow Documentation
 ---
 
 

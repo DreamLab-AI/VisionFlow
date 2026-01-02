@@ -1,15 +1,9 @@
 ---
+layout: default
 title: "Complete API Reference"
-description: "Unified reference for all VisionFlow APIs including REST, WebSocket, and binary protocols"
-category: reference
-tags:
-  - api
-  - backend
-updated-date: 2025-12-19
-difficulty-level: intermediate
+parent: Reference
+nav_order: 2
 ---
-
-
 
 # Complete API Reference
 

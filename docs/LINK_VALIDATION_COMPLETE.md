@@ -1,3 +1,10 @@
+---
+layout: default
+title: Link Validation Analysis
+description: Complete corpus-wide link validation report
+nav_exclude: true
+---
+
 # Link Validation Analysis - Complete Report
 
 **Project**: VisionFlow Documentation System

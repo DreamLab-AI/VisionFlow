@@ -1,0 +1,13 @@
+# Custom CSS directory
+# Place custom stylesheets here for Jekyll theme customization
+#
+# Usage:
+# 1. Create custom.css with your overrides
+# 2. Reference in _includes/head-custom.html:
+#    <link rel="stylesheet" href="{{ '/assets/css/custom.css' | relative_url }}">
+#
+# Common customizations:
+# - Code block styling
+# - Table formatting
+# - Custom callout colors
+# - Navigation tweaks

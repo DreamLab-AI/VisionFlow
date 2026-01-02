@@ -1,13 +1,9 @@
 ---
+layout: default
 title: Stress Majorization Layout Optimization Guide
-description: **Status**: ✅ Code complete, wiring needed **Last Updated**: November 3, 2025
-category: guide
-tags:
-  - tutorial
-  - api
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+parent: Guides
+nav_order: 58
+description: GPU-accelerated stress majorization algorithm for graph layout optimisation
 ---
 
 

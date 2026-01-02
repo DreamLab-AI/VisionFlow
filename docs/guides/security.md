@@ -1,14 +1,9 @@
 ---
+layout: default
 title: Security Best Practices
-description: *[Guides](../guides/readme.md) > Security*
-category: guide
-tags:
-  - tutorial
-  - api
-  - api
-  - docker
-updated-date: 2025-12-18
-difficulty-level: intermediate
+parent: Guides
+nav_order: 54
+description: Security measures and guidelines for VisionFlow deployment
 ---
 
 

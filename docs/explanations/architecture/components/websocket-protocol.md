@@ -1,15 +1,10 @@
 ---
-title: WebSocket Binary Protocol
-description: **Version**: 2.0 (Binary Protocol V2) **Status**: Production Ready **Last Updated**: October 2025
-category: explanation
-tags:
-  - architecture
-  - api
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "WebSocket Binary Protocol"
+parent: Components
+grand_parent: Architecture
+nav_order: 99
 ---
-
 
 # WebSocket Binary Protocol
 

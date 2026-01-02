@@ -1,15 +1,10 @@
 ---
+layout: default
 title: Multi-Agent Docker Environment - Complete Documentation
-description: 1. [Architecture Overview](#architecture-overview) 2. [Directory Structure](#directory-structure) 3. [Container Services](#container-services)
-category: guide
-tags:
-  - tutorial
-  - api
-  - api
-  - docker
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+parent: Infrastructure
+grand_parent: Guides
+nav_order: 3
+description: Complete Docker environment setup including services, build process, and CLI
 ---
 
 

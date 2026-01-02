@@ -1,14 +1,10 @@
 ---
+layout: default
 title: Nostr Authentication Implementation
-description: VisionFlow client now enforces Nostr authentication before allowing access to the application. All API requests and WebSocket connections include the user's authentication token and pubkey.
-category: guide
-tags:
-  - tutorial
-  - api
-  - api
-  - frontend
-updated-date: 2025-12-18
-difficulty-level: intermediate
+parent: Features
+grand_parent: Guides
+nav_order: 7
+description: Nostr-based authentication for API requests and WebSocket connections
 ---
 
 

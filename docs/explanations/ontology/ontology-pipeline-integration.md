@@ -1,17 +1,10 @@
 ---
-title: Ontology Pipeline Integration
-description: > ⚠️ **DEPRECATION NOTICE** ⚠️ > **GraphServiceActor** is deprecated. See `/docs/guides/graphserviceactor-migration.md` for current patterns.
-category: explanation
-tags:
-  - api
-  - backend
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "Ontology Pipeline Integration"
+parent: Ontology
+grand_parent: Explanations
+nav_order: 99
 ---
-
 
 # Ontology Pipeline Integration
 

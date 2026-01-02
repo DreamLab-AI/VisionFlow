@@ -1,21 +1,9 @@
 ---
-title: VisionFlow Client Architecture
-description: The VisionFlow client is a high-performance 3D visualization platform built on React Three Fiber, implementing instanced rendering for 10,000+ node graphs with real-time WebSocket synchronization. ...
-category: reference
-tags:
-  - architecture
-  - design
-  - api
-  - api
-  - api
-related-docs:
-  - guides/client/three-js-rendering.md
-  - guides/client/state-management.md
-  - guides/client/xr-integration.md
-  - working/link-validation-report.md
-  - concepts/architecture/core/server.md
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: Client Architecture
+parent: Concepts
+nav_order: 1
+description: High-performance 3D visualization platform with React Three Fiber, instanced rendering for 10,000+ node graphs, and real-time WebSocket synchronization
 ---
 
 # VisionFlow Client Architecture

@@ -1,13 +1,10 @@
 ---
+layout: default
 title: Multi-Agent Docker Port Configuration
-description: This document explains the port allocation and purpose for the Multi-Agent Docker Environment.
-category: guide
-tags:
-  - tutorial
-  - api
-  - docker
-updated-date: 2025-12-18
-difficulty-level: intermediate
+parent: Infrastructure
+grand_parent: Guides
+nav_order: 5
+description: Port allocation and service mapping for the Docker environment
 ---
 
 

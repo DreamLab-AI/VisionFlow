@@ -1,3 +1,10 @@
+---
+layout: default
+title: Phase 6 Multi-User Sync
+description: Implementation summary for WebSocket-based real-time synchronization
+nav_exclude: true
+---
+
 # Phase 6: Multi-User Sync Optimization - Implementation Summary
 
 ## Overview

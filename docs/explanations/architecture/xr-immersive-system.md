@@ -1,17 +1,10 @@
 ---
-title: XR Immersive System Architecture
-description: VisionFlow's XR immersive system provides comprehensive extended reality (XR) support across WebXR, Meta Quest, Apple Vision Pro, and PC VR platforms. The architecture integrates spatial interactio...
-category: explanation
-tags:
-  - architecture
-  - api
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "XR Immersive System Architecture"
+parent: Architecture
+grand_parent: Explanations
+nav_order: 25
 ---
-
 
 # XR Immersive System Architecture
 

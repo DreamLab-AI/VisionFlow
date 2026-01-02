@@ -1,3 +1,10 @@
+---
+layout: default
+title: CUDA Kernel Analysis
+description: Comprehensive performance and quality assessment of GPU kernels
+nav_exclude: true
+---
+
 # CUDA Kernel Code Quality Analysis Report
 **VisionFlow GPU Kernels - Comprehensive Performance & Quality Assessment**
 

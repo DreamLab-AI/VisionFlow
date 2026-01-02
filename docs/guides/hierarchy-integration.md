@@ -1,15 +1,9 @@
 ---
-title: Quick Integration Guide: Hierarchical Visualization
-description: ```typescript // In your main graph canvas component import { HierarchyRenderer } from '@/features/visualisation/components/HierarchyRenderer';
-category: guide
-tags:
-  - tutorial
-  - backend
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: intermediate
+layout: default
+title: Quick Integration Guide - Hierarchical Visualisation
+parent: Guides
+nav_order: 56
+description: Hierarchical visualisation component integration guide
 ---
 
 

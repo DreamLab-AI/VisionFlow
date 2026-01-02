@@ -1,17 +1,10 @@
 ---
-title: Services Architecture - WebXR Knowledge Graph Platform
-description: **Version:** 1.0.0 **Last Updated:** 2025-11-04 **Status:** Production
-category: explanation
-tags:
-  - architecture
-  - api
-  - api
-  - database
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "Services Architecture - WebXR Knowledge Graph Platform"
+parent: Architecture
+grand_parent: Explanations
+nav_order: 5
 ---
-
 
 # Services Architecture - WebXR Knowledge Graph Platform
 

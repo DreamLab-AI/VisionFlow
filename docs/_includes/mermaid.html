@@ -1,0 +1,217 @@
+<!-- Mermaid Diagram Support for VisionFlow Documentation -->
+<!-- Loaded via CDN with ESM module syntax for modern browsers -->
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+
+  // Configuration for VisionFlow documentation
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default',
+    securityLevel: 'loose',
+    fontFamily: '"Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+
+    // Flowchart configuration
+    flowchart: {
+      useMaxWidth: true,
+      htmlLabels: true,
+      curve: 'basis',
+      rankSpacing: 50,
+      nodeSpacing: 50,
+      padding: 15
+    },
+
+    // Sequence diagram configuration
+    sequence: {
+      diagramMarginX: 50,
+      diagramMarginY: 10,
+      actorMargin: 50,
+      width: 150,
+      height: 65,
+      boxMargin: 10,
+      boxTextMargin: 5,
+      noteMargin: 10,
+      messageMargin: 35,
+      mirrorActors: true,
+      bottomMarginAdj: 1,
+      useMaxWidth: true
+    },
+
+    // Gantt chart configuration
+    gantt: {
+      titleTopMargin: 25,
+      barHeight: 20,
+      barGap: 4,
+      topPadding: 50,
+      leftPadding: 75,
+      gridLineStartPadding: 35,
+      fontSize: 11,
+      sectionFontSize: 11,
+      numberSectionStyles: 4,
+      axisFormat: '%Y-%m-%d',
+      useMaxWidth: true
+    },
+
+    // ER diagram configuration
+    er: {
+      diagramPadding: 20,
+      layoutDirection: 'TB',
+      minEntityWidth: 100,
+      minEntityHeight: 75,
+      entityPadding: 15,
+      stroke: 'gray',
+      fill: 'honeydew',
+      fontSize: 12,
+      useMaxWidth: true
+    },
+
+    // Pie chart configuration
+    pie: {
+      useMaxWidth: true,
+      textPosition: 0.75
+    },
+
+    // State diagram configuration
+    state: {
+      dividerMargin: 10,
+      sizeUnit: 5,
+      padding: 8,
+      textHeight: 10,
+      titleShift: -15,
+      noteMargin: 10,
+      forkWidth: 70,
+      forkHeight: 7,
+      miniPadding: 2,
+      fontSizeFactor: 5.02,
+      fontSize: 24,
+      labelHeight: 16,
+      edgeLengthFactor: '20',
+      compositTitleSize: 35,
+      radius: 5,
+      useMaxWidth: true
+    },
+
+    // Class diagram configuration
+    class: {
+      arrowMarkerAbsolute: false,
+      useMaxWidth: true
+    },
+
+    // Git graph configuration
+    gitGraph: {
+      showBranches: true,
+      showCommitLabel: true,
+      mainBranchName: 'main',
+      rotateCommitLabel: true
+    },
+
+    // Quadrant chart configuration
+    quadrantChart: {
+      chartWidth: 500,
+      chartHeight: 500,
+      titleFontSize: 20,
+      titlePadding: 10,
+      quadrantPadding: 5,
+      xAxisLabelPadding: 5,
+      yAxisLabelPadding: 5,
+      xAxisLabelFontSize: 16,
+      yAxisLabelFontSize: 16,
+      quadrantLabelFontSize: 16,
+      quadrantTextTopPadding: 5,
+      pointTextPadding: 5,
+      pointLabelFontSize: 12,
+      pointRadius: 5,
+      useMaxWidth: true
+    },
+
+    // User journey configuration
+    journey: {
+      diagramMarginX: 50,
+      diagramMarginY: 10,
+      actorMargin: 50,
+      width: 150,
+      height: 50,
+      boxMargin: 10,
+      boxTextMargin: 5,
+      noteMargin: 10,
+      messageMargin: 35,
+      messageAlign: 'center',
+      bottomMarginAdj: 1,
+      useMaxWidth: true,
+      rightAngles: false
+    }
+  });
+
+  // Re-render on theme change
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (mutation.attributeName === 'data-theme') {
+        const theme = document.documentElement.getAttribute('data-theme');
+        mermaid.initialize({
+          theme: theme === 'dark' ? 'dark' : 'default'
+        });
+        // Re-render all diagrams
+        document.querySelectorAll('.mermaid').forEach((el) => {
+          const code = el.getAttribute('data-original') || el.textContent;
+          el.setAttribute('data-original', code);
+          el.removeAttribute('data-processed');
+          el.innerHTML = code;
+        });
+        mermaid.run();
+      }
+    });
+  });
+
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-theme']
+  });
+
+  // Handle system dark mode preference
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+  if (prefersDark.matches && !document.documentElement.getAttribute('data-theme')) {
+    mermaid.initialize({ theme: 'dark' });
+  }
+</script>
+
+<!-- Fallback for browsers without ESM support -->
+<script nomodule src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script nomodule>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'default'
+  });
+</script>
+
+<!-- Mermaid diagram styling -->
+<style>
+  /* Container styling */
+  .mermaid {
+    text-align: center;
+    background: transparent;
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background-color: #fafafa;
+    border-radius: 8px;
+    overflow-x: auto;
+  }
+
+  /* Dark mode support */
+  [data-theme="dark"] .mermaid {
+    background-color: #1a1a2e;
+  }
+
+  /* Responsive scaling */
+  .mermaid svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Print styling */
+  @media print {
+    .mermaid {
+      page-break-inside: avoid;
+      background-color: white;
+    }
+  }
+</style>

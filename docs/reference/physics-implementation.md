@@ -1,16 +1,9 @@
 ---
-title: Semantic Physics Implementation Report
-description: **Agent**: Semantic Physics Specialist **Date**: 2025-11-03 **Mission**: Transform inferred ontology axioms into physics forces applied by CUDA kernels
-category: reference
-tags:
-  - backend
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: intermediate
+layout: default
+title: "Semantic Physics Implementation Report"
+parent: Reference
+nav_order: 13
 ---
-
 
 # Semantic Physics Implementation Report
 

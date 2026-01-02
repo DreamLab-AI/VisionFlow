@@ -1,11 +1,9 @@
 ---
-title: "Documentation Validation Checklist"
-description: "Quality assurance checklist for documentation contributions"
-category: reference
-tags:
-  - documentation
-updated-date: 2025-12-19
-difficulty-level: intermediate
+layout: default
+title: Validation Checklist
+description: Quality assurance checklist for documentation contributions
+nav_order: 13
+parent: VisionFlow Documentation
 ---
 
 

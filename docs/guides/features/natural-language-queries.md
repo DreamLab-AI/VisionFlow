@@ -1,14 +1,10 @@
 ---
+layout: default
 title: Natural Language Queries Tutorial
-description: VisionFlow translates natural language questions into Cypher queries using LLM-powered semantic understanding.
-category: guide
-tags:
-  - tutorial
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: intermediate
+parent: Features
+grand_parent: Guides
+nav_order: 6
+description: LLM-powered translation of natural language to Cypher queries
 ---
 
 

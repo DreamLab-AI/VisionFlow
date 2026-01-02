@@ -1,3 +1,11 @@
+---
+layout: default
+title: "API Design Analysis & Improvement Recommendations"
+parent: API
+grand_parent: Reference
+nav_order: 99
+---
+
 # API Design Analysis & Improvement Recommendations
 
 **Date**: 2025-12-25

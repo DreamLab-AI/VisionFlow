@@ -1,15 +1,9 @@
 ---
-title: API Complete Reference
-description: **Version**: 1.0.0 **Base URL**: `http://localhost:9090/api` **WebSocket**: `ws://localhost:9090/ws`
-category: reference
-tags:
-  - api
-  - api
-  - api
-updated-date: 2025-12-18
-difficulty-level: intermediate
+layout: default
+title: "API Complete Reference"
+parent: Reference
+nav_order: 8
 ---
-
 
 # API Complete Reference
 

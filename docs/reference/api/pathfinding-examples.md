@@ -1,17 +1,10 @@
 ---
-title: Pathfinding API Examples
-description: The Pathfinding API provides GPU-accelerated graph analytics for shortest paths and connected components analysis. This document provides practical examples for each endpoint.
-category: reference
-tags:
-  - api
-  - api
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: intermediate
+layout: default
+title: "Pathfinding API Examples"
+parent: API
+grand_parent: Reference
+nav_order: 99
 ---
-
 
 # Pathfinding API Examples
 

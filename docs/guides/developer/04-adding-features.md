@@ -1,14 +1,10 @@
 ---
-title: "Adding Features"
-description: "Comprehensive guide for adding new features to VisionFlow with examples and best practices"
-category: guide
-tags:
-  - development
-  - features
-  - workflow
-  - testing
-updated-date: 2025-12-19
-difficulty-level: intermediate
+layout: default
+title: Adding Features
+parent: Developer
+grand_parent: Guides
+nav_order: 4
+description: Comprehensive guide for adding new features with TDD and best practices
 ---
 
 # Adding Features

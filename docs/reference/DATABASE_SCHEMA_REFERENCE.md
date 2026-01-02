@@ -1,17 +1,9 @@
 ---
-title: Database Schema Reference
-description: Complete unified database schema documentation for VisionFlow including tables, relationships, indexes, and query patterns
-category: reference
-tags:
-  - database
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: advanced
-version: 2.0
+layout: default
+title: "Database Schema Reference"
+parent: Reference
+nav_order: 4
 ---
-
 
 # Database Schema Reference
 

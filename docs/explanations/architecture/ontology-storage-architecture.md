@@ -1,16 +1,10 @@
 ---
-title: Ontology Storage Architecture
-description: VisionFlow's ontology storage architecture provides a production-ready system for managing OWL (Web Ontology Language) definitions, reasoning inferences, and semantic constraints at scale. The syst...
-category: explanation
-tags:
-  - architecture
-  - api
-  - database
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "Ontology Storage Architecture"
+parent: Architecture
+grand_parent: Explanations
+nav_order: 15
 ---
-
 
 # Ontology Storage Architecture
 

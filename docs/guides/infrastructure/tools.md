@@ -1,13 +1,10 @@
 ---
+layout: default
 title: Available Tooling Reference
-description: This document provides a comprehensive reference for all tooling integrated into the environment. It is divided into two main sections: 1.  **Integrated Development Environment**: An overview of th...
-category: guide
-tags:
-  - tutorial
-  - docker
-  - backend
-updated-date: 2025-12-18
-difficulty-level: intermediate
+parent: Infrastructure
+grand_parent: Guides
+nav_order: 6
+description: Comprehensive reference for IDE tools, runtimes, and MCP integrations
 ---
 
 

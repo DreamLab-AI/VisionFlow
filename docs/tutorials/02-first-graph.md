@@ -1,14 +1,9 @@
 ---
+layout: default
 title: Your First Graph and AI Agents
-description: * > [Installation](01-installation.md)*
-category: tutorial
-tags:
-  - api
-  - api
-  - docker
-  - frontend
-updated-date: 2025-12-18
-difficulty-level: intermediate
+parent: Tutorials
+nav_order: 2
+description: Create your first 3D knowledge graph and deploy multi-agent workflows in VisionFlow
 ---
 
 

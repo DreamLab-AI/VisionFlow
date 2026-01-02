@@ -1,15 +1,9 @@
 ---
+layout: default
 title: Orchestrating Agents
-description: > [Guides](./index.md) > Orchestrating Agents
-category: guide
-tags:
-  - tutorial
-  - api
-  - api
-  - docker
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+parent: Guides
+nav_order: 8
+description: Agent orchestration including MCP protocol integration, topology patterns, and troubleshooting strategies
 ---
 
 

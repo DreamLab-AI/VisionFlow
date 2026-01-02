@@ -1,17 +1,10 @@
 ---
-title: Hexagonal/CQRS Architecture Design
-description: Production hexagonal architecture with CQRS patterns, 21 actors, 9 ports, 12 adapters, and Neo4j persistence
-category: explanation
-tags:
-  - architecture
-  - api
-  - api
-  - database
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "Hexagonal/CQRS Architecture Design"
+parent: Architecture
+grand_parent: Explanations
+nav_order: 2
 ---
-
 
 # Hexagonal/CQRS Architecture Design
 **VisionFlow Graph Service - PRODUCTION ARCHITECTURE**

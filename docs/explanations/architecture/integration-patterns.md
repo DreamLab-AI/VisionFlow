@@ -1,17 +1,10 @@
 ---
-title: Integration Patterns in VisionFlow
-description: 1. [Overview](#overview) 2. [Multi-Agent Integration](#multi-agent-integration) 3. [Service Integration](#service-integration)
-category: explanation
-tags:
-  - architecture
-  - api
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "Integration Patterns in VisionFlow"
+parent: Architecture
+grand_parent: Explanations
+nav_order: 7
 ---
-
 
 # Integration Patterns in VisionFlow
 

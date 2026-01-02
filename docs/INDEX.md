@@ -1,11 +1,9 @@
 ---
-title: "VisionFlow Documentation - Master Index"
-description: "Complete index of all 226+ documentation files with role-based navigation"
-category: reference
-tags:
-  - documentation
-updated-date: 2025-12-19
-difficulty-level: intermediate
+layout: default
+title: Master Index
+description: Complete index of all 226+ documentation files with role-based navigation
+nav_order: 2
+parent: VisionFlow Documentation
 ---
 
 
@@ -343,7 +341,7 @@ difficulty-level: intermediate
 
 - [GPU Communication Flow](explanations/architecture/gpu/communication-flow.md)
 - [GPU Optimizations](explanations/architecture/gpu/optimizations.md)
-- [GPU README](explanations/architecture/gpu/readme.md)
+- [GPU README](explanations/architecture/gpu/README.md)
 
 #### 💻 Client-Server (4 documents)
 
@@ -383,7 +381,7 @@ difficulty-level: intermediate
 | **[WebSocket API](reference/api/03-websocket.md)** | Real-time binary protocol |
 | **[Semantic Features API](reference/api/semantic-features-api.md)** | Natural language queries |
 | **[Pathfinding Examples](reference/api/pathfinding-examples.md)** | Graph traversal examples |
-| **[API README](reference/api/readme.md)** | API documentation index |
+| **[API README](reference/api/README.md)** | API documentation index |
 
 #### 📡 Protocols (2 references)
 

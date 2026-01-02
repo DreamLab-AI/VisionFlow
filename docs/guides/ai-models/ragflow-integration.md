@@ -1,22 +1,10 @@
 ---
+layout: default
 title: RAGFlow Knowledge Management Integration
-description: RAGFlow provides document ingestion, vector storage, and semantic search capabilities for building knowledge bases and RAG (Retrieval-Augmented Generation) applications.  It runs as a separate Dock...
-category: guide
-tags:
-  - architecture
-  - patterns
-  - api
-  - api
-  - endpoints
-related-docs:
-  - guides/ai-models/README.md
-  - guides/features/MOVED.md
-  - guides/ai-models/INTEGRATION_SUMMARY.md
-  - guides/ai-models/deepseek-deployment.md
-updated-date: 2025-12-18
-difficulty-level: advanced
-dependencies:
-  - Docker installation
+parent: AI Models
+grand_parent: Guides
+nav_order: 6
+description: Document ingestion, vector storage, and semantic search with RAGFlow Docker service
 ---
 
 # RAGFlow Knowledge Management Integration

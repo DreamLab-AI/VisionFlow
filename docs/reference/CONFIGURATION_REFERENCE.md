@@ -1,17 +1,9 @@
 ---
-title: Configuration Reference
-description: Complete reference for all VisionFlow configuration options across environment variables, YAML files, and runtime settings
-category: reference
-tags:
-  - api
-  - api
-  - docker
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
-version: 2.0
+layout: default
+title: "Configuration Reference"
+parent: Reference
+nav_order: 3
 ---
-
 
 # Configuration Reference
 

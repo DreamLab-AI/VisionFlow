@@ -1,37 +1,61 @@
 ---
-title: VisionFlow API Documentation
-description: **Complete REST API Reference for VisionFlow Knowledge Graph Platform**
-category: reference
-tags:
-  - api
-  - api
-  - api
-  - frontend
-updated-date: 2025-12-18
-difficulty-level: intermediate
+layout: default
+title: "API Documentation"
+nav_order: 1
+parent: Reference
+has_children: true
+permalink: /reference/api/
 ---
 
+# API Documentation
 
-# VisionFlow API Documentation
+Complete REST and WebSocket API reference for VisionFlow.
 
-**Complete REST API Reference for VisionFlow Knowledge Graph Platform**
+## API Reference Documents
 
----
+| Document | Description |
+|----------|-------------|
+| [REST API Complete](rest-api-complete.md) | Master reference with all 100+ endpoints |
+| [REST API Reference](rest-api-reference.md) | OpenAPI/Swagger format |
+| [Authentication](01-authentication.md) | JWT tokens, API keys, Nostr auth |
+| [WebSocket API](03-websocket.md) | Real-time binary protocol |
+| [Semantic Features API](semantic-features-api.md) | Natural language queries |
+| [Pathfinding Examples](pathfinding-examples.md) | Graph traversal examples |
+| [Solid API](solid-api.md) | Pod management and LDP operations |
 
-## 📚 Documentation Index
+## Quick Start
+
+### Authentication
+
+```bash
+# Get JWT token
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username": "user", "password": "pass"}'
+```
+
+### Basic Query
+
+```bash
+# Get all nodes
+curl http://localhost:8080/api/graph/nodes \
+  -H "Authorization: Bearer <token>"
+```
+
+## Documentation Index
 
 ### Primary Documentation
 
-- **[rest-api-complete.md](./rest-api-complete.md)** - **MASTER REFERENCE**
+- **[rest-api-complete.md](rest-api-complete.md)** - **MASTER REFERENCE**
   - Complete API documentation with all 100+ endpoints
   - Authentication, request/response examples
   - cURL and TypeScript examples for every endpoint
   - WebSocket binary protocol integration
   - Error handling and status codes
 
-### Specialized Documentation
+### Specialised Documentation
 
-- **[01-authentication.md](./01-authentication.md)** - Authentication & Security
+- **[01-authentication.md](01-authentication.md)** - Authentication and Security
   - JWT token management
   - API key generation
   - Security best practices

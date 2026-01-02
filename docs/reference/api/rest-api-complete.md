@@ -1,15 +1,10 @@
 ---
-title: VisionFlow REST API Complete Reference
-description: **Version**: 1.0 **Base URL**: `http://localhost:9090/api` **Last Updated**: November 3, 2025
-category: reference
-tags:
-  - api
-  - api
-  - api
-updated-date: 2025-12-18
-difficulty-level: intermediate
+layout: default
+title: "VisionFlow REST API Complete Reference"
+parent: API
+grand_parent: Reference
+nav_order: 99
 ---
-
 
 # VisionFlow REST API Complete Reference
 

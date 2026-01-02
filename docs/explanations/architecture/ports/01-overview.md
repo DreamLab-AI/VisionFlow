@@ -1,15 +1,10 @@
 ---
-title: Hexagonal Architecture Ports - Overview
-description: This document provides an overview of VisionFlow's **Hexagonal Architecture** implementation, specifically the **Ports Layer** that defines technology-agnostic interfaces between the domain logic a...
-category: explanation
-tags:
-  - architecture
-  - database
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "Hexagonal Architecture Ports - Overview"
+parent: Ports
+grand_parent: Architecture
+nav_order: 99
 ---
-
 
 # Hexagonal Architecture Ports - Overview
 

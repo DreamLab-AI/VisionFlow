@@ -1,17 +1,10 @@
 ---
-title: Analytics Visualization Extension Design
-description: **Agent**: Analytics Visualization Agent **Date**: 2025-11-28 **Task**: Protocol V3 Extension - Clustering, Anomaly Detection, Community Visualization
-category: explanation
-tags:
-  - architecture
-  - api
-  - api
-  - database
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "Analytics Visualization Extension Design"
+parent: Architecture
+grand_parent: Explanations
+nav_order: 24
 ---
-
 
 # Analytics Visualization Extension Design
 

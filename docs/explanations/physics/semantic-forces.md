@@ -1,17 +1,10 @@
 ---
-title: Semantic Forces
-description: Based on the comprehensive CUDA and Rust codebase provided, combined with the current state-of-the-art in ontology visualization research (e.g., works involving VOWL, OntoTrix, or 3D hyperbolic lay...
-category: explanation
-tags:
-  - api
-  - backend
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: intermediate
+layout: default
+title: "Semantic Forces"
+parent: Physics
+grand_parent: Explanations
+nav_order: 99
 ---
-
 
 Based on the comprehensive CUDA and Rust codebase provided, combined with the current state-of-the-art in ontology visualization research (e.g., works involving VOWL, OntoTrix, or 3D hyperbolic layouts), here is an analysis of the synergies, crossovers, and opportunities for your system.
 

@@ -1,15 +1,9 @@
 ---
-title: GraphServiceActor Migration Guide (HISTORICAL REFERENCE)
-description: ✅ MIGRATION COMPLETE - Historical reference for the completed GraphServiceActor replacement
-category: guide
-tags:
-  - tutorial
-  - api
-  - api
-  - database
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: GraphServiceActor Migration Guide
+parent: Guides
+nav_order: 20
+description: Historical reference for the completed GraphServiceActor replacement (migration complete November 2025)
 ---
 
 

@@ -1,3 +1,10 @@
+---
+layout: default
+title: CUDA Optimization Summary
+description: GPU kernel optimization summary for VisionFlow visualization system
+nav_exclude: true
+---
+
 # CUDA Kernel Optimization Summary
 
 ## VisionFlow GPU-Accelerated Knowledge Graph Visualization System

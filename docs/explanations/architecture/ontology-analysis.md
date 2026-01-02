@@ -1,15 +1,10 @@
 ---
-title: Ontology-First Architecture Analysis
-description: ```cypher Neo4j Contains: - 529 GraphNode nodes (markdown pages)
-category: explanation
-tags:
-  - architecture
-  - database
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "Ontology-First Architecture Analysis"
+parent: Architecture
+grand_parent: Explanations
+nav_order: 18
 ---
-
 
 # Ontology-First Architecture Analysis
 

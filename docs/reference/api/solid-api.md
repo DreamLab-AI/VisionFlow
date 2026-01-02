@@ -1,16 +1,9 @@
 ---
-title: Solid API Reference
-description: Complete API reference for VisionFlow Solid Pod integration including endpoints, authentication, WebSocket protocol, and examples.
-category: reference
-tags:
-  - api
-  - solid
-  - ldp
-  - websocket
-  - nostr
-  - authentication
-updated-date: 2025-12-29
-difficulty-level: intermediate
+layout: default
+title: "Solid API Reference"
+parent: API
+grand_parent: Reference
+nav_order: 99
 ---
 
 # Solid API Reference

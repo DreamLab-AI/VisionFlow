@@ -1,15 +1,9 @@
 ---
+layout: default
 title: Installation Guide
-description: **
-category: tutorial
-tags:
-  - api
-  - api
-  - docker
-  - backend
-  - frontend
-updated-date: 2025-12-18
-difficulty-level: advanced
+parent: Tutorials
+nav_order: 1
+description: Complete installation guide for VisionFlow covering Docker setup, GPU acceleration, and multi-node deployment
 ---
 
 

@@ -1,19 +1,10 @@
 ---
-title: Ontology & Knowledge Skills Cluster Analysis
-description: Analysis reveals **significant architectural inconsistency** across the ontology skills cluster.  Only **web-summary** implements the "Best in Class" FastMCP pattern (Python-only with direct stdio).
-category: explanation
-tags:
-  - architecture
-  - patterns
-  - structure
-  - api
-  - api
-related-docs:
-  - analysis/ontology-knowledge-skills-analysis.md
-updated-date: 2025-12-18
-difficulty-level: advanced
-dependencies:
-  - Node.js runtime
+layout: default
+title: Ontology Skills Cluster Analysis
+parent: Analysis
+nav_order: 3
+nav_exclude: true
+description: Architectural consistency analysis of the ontology skills cluster with refactoring recommendations
 ---
 
 # Ontology & Knowledge Skills Cluster Analysis

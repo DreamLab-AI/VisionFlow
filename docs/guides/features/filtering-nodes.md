@@ -1,14 +1,10 @@
 ---
+layout: default
 title: Client-Side Filtering Implementation
-description: The client-side filtering feature allows authenticated clients to filter which graph nodes are visible based on quality and authority scores stored in node metadata.
-category: guide
-tags:
-  - tutorial
-  - api
-  - database
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+parent: Features
+grand_parent: Guides
+nav_order: 2
+description: Filter graph nodes by quality and authority scores in node metadata
 ---
 
 

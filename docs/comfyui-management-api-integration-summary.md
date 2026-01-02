@@ -1,21 +1,8 @@
 ---
-title: ComfyUI Management API Integration - Summary
-description: ComfyUI workflow management has been fully integrated into the existing Management API on port 9090.  The integration provides a complete REST API with WebSocket streaming, Prometheus metrics, and ...
-category: reference
-tags:
-  - architecture
-  - patterns
-  - structure
-  - api
-  - api
-related-docs:
-  - ARCHITECTURE_COMPLETE.md
-  - ARCHITECTURE_OVERVIEW.md
-  - ASCII_DEPRECATION_COMPLETE.md
-updated-date: 2025-12-18
-difficulty-level: intermediate
-dependencies:
-  - Node.js runtime
+layout: default
+title: ComfyUI API Integration Summary
+description: REST API with WebSocket streaming and Prometheus metrics for ComfyUI
+nav_exclude: true
 ---
 
 # ComfyUI Management API Integration - Summary

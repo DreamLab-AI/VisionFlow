@@ -1,24 +1,9 @@
 ---
-title: VisionFlow Documentation - Quick Navigation
-description: > **Search tip**: Use Ctrl+F to find keywords across all docs
-category: reference
-tags:
-  - architecture
-  - design
-  - patterns
-  - structure
-  - api
-related-docs:
-  - README.md
-  - OVERVIEW.md
-  - ARCHITECTURE_OVERVIEW.md
-  - DEVELOPER_JOURNEY.md
-  - TECHNOLOGY_CHOICES.md
-updated-date: 2025-12-18
-difficulty-level: advanced
-dependencies:
-  - Docker installation
-  - Neo4j database
+layout: default
+title: Quick Navigation
+description: Fast reference for all 226 documentation files organized by directory
+nav_order: 11
+parent: VisionFlow Documentation
 ---
 
 # VisionFlow Documentation - Quick Navigation
@@ -115,7 +100,7 @@ dependencies:
 |------|-------------|
 | **[docker-compose-guide.md](guides/docker-compose-guide.md)** | Multi-container orchestration with profiles |
 | **[docker-environment-setup.md](guides/docker-environment-setup.md)** | Container configuration and networking |
-| **[readme.md](guides/readme.md)** | Guides overview |
+| **[readme.md](guides/README.md)** | Guides overview |
 
 ### XR & VR (2 files)
 
@@ -258,7 +243,7 @@ dependencies:
 |------|-------------|
 | **[communication-flow.md](explanations/architecture/gpu/communication-flow.md)** | CPU-GPU data transfer optimization |
 | **[optimizations.md](explanations/architecture/gpu/optimizations.md)** | Performance tuning strategies for CUDA |
-| **[readme.md](explanations/architecture/gpu/readme.md)** | GPU subsystem overview and architecture |
+| **[readme.md](explanations/architecture/gpu/README.md)** | GPU subsystem overview and architecture |
 
 #### explanations/architecture/ports/ (7 files)
 
@@ -319,7 +304,7 @@ dependencies:
 | **[01-authentication.md](reference/api/01-authentication.md)** | JWT, sessions, Nostr authentication |
 | **[03-websocket.md](reference/api/03-websocket.md)** | Real-time binary protocol API |
 | **[pathfinding-examples.md](reference/api/pathfinding-examples.md)** | Graph traversal API examples |
-| **[readme.md](reference/api/readme.md)** | API documentation index |
+| **[readme.md](reference/api/README.md)** | API documentation index |
 | **[rest-api-complete.md](reference/api/rest-api-complete.md)** | HTTP API complete specification |
 | **[rest-api-reference.md](reference/api/rest-api-reference.md)** | OpenAPI/Swagger format reference |
 | **[semantic-features-api.md](reference/api/semantic-features-api.md)** | Natural language query API |

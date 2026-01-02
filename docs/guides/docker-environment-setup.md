@@ -1,15 +1,9 @@
 ---
+layout: default
 title: Docker Environment Setup - Multi-Agent System
-description: **Last Updated:** November 5, 2025 **Difficulty:** Intermediate **Time Required:** 15-30 minutes
-category: guide
-tags:
-  - tutorial
-  - api
-  - api
-  - docker
-  - database
-updated-date: 2025-12-18
-difficulty-level: intermediate
+parent: Guides
+nav_order: 48
+description: Docker environment setup for the multi-agent system
 ---
 
 

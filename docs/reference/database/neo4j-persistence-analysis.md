@@ -1,16 +1,10 @@
 ---
-title: Neo4j Persistence Analysis Report
-description: **Agent**: Neo4j Persistence Agent **Date**: 2025-11-28 **Working Directory**: /home/devuser/workspace/project
-category: reference
-tags:
-  - database
-  - api
-  - database
-  - backend
-updated-date: 2025-12-18
-difficulty-level: intermediate
+layout: default
+title: "Neo4j Persistence Analysis Report"
+parent: Database
+grand_parent: Reference
+nav_order: 99
 ---
-
 
 # Neo4j Persistence Analysis Report
 **Agent**: Neo4j Persistence Agent

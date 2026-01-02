@@ -1,17 +1,10 @@
 ---
-title: WebSocket Protocol
-description: **Version**: 2.0 (Binary Protocol) **Last Updated**: November 3, 2025 **Status**: Production
-category: reference
-tags:
-  - api
-  - api
-  - api
-  - backend
-  - frontend
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "WebSocket Protocol"
+parent: API
+grand_parent: Reference
+nav_order: 99
 ---
-
 
 # WebSocket Protocol
 

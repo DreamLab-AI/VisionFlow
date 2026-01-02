@@ -1,13 +1,9 @@
 ---
+layout: default
 title: Agent Control Panel User Guide
-description: The Agent Control Panel provides comprehensive orchestration and management of AI agents within the system. Access it through **Settings → Agents** tab in the Control Center.
-category: guide
-tags:
-  - tutorial
-  - api
-  - api
-updated-date: 2025-12-18
-difficulty-level: intermediate
+parent: Guides
+nav_order: 5
+description: Comprehensive orchestration and management of AI agents through the Control Center
 ---
 
 

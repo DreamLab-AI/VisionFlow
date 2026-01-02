@@ -1,0 +1,614 @@
+name: Deploy Documentation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - '.github/workflows/docs-deploy.yml'
+  workflow_dispatch:
+    inputs:
+      skip_validation:
+        description: 'Skip validation checks'
+        required: false
+        default: 'false'
+        type: boolean
+      environment:
+        description: 'Deployment environment'
+        required: false
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+env:
+  DOCS_ROOT: ./docs
+  RUBY_VERSION: '3.2'
+  BUNDLER_VERSION: '2.5.6'
+
+jobs:
+  validate:
+    name: Validate Documentation
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.skip_validation != 'true' }}
+    outputs:
+      quality_score: ${{ steps.quality.outputs.overall_score }}
+      validation_passed: ${{ steps.threshold.outputs.passed }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bc jq python3 python3-yaml
+
+      - name: Make scripts executable
+        run: chmod +x docs/scripts/*.sh
+
+      - name: Run link validation
+        id: links
+        run: |
+          echo "Running link validation..."
+          if docs/scripts/validate-links.sh --json > /tmp/links.json 2>&1; then
+            success_rate=$(cat /tmp/links.json | jq -r '.success_rate // 100')
+          else
+            success_rate=0
+          fi
+          echo "links_result=${success_rate:-100}" >> $GITHUB_OUTPUT
+
+      - name: Run frontmatter validation
+        id: frontmatter
+        run: |
+          echo "Running frontmatter validation..."
+          if docs/scripts/validate-frontmatter.sh --json > /tmp/frontmatter.json 2>&1; then
+            success_rate=$(cat /tmp/frontmatter.json | jq -r '.success_rate // 100')
+          else
+            success_rate=0
+          fi
+          echo "frontmatter_result=${success_rate:-100}" >> $GITHUB_OUTPUT
+
+      - name: Run Mermaid diagram validation
+        id: mermaid
+        run: |
+          echo "Running Mermaid validation..."
+          if docs/scripts/validate-mermaid.sh --json > /tmp/mermaid.json 2>&1; then
+            success_rate=$(cat /tmp/mermaid.json | jq -r '.success_rate // 100')
+          else
+            success_rate=0
+          fi
+          echo "mermaid_result=${success_rate:-100}" >> $GITHUB_OUTPUT
+
+      - name: Detect ASCII diagrams
+        id: ascii
+        run: |
+          echo "Detecting ASCII diagrams..."
+          if docs/scripts/detect-ascii.sh --json > /tmp/ascii.json 2>&1; then
+            ascii_count=$(cat /tmp/ascii.json | jq -r '.ascii_diagrams_found // 0')
+          else
+            ascii_count=0
+          fi
+          echo "ascii_count=${ascii_count:-0}" >> $GITHUB_OUTPUT
+
+      - name: Validate UK English spelling
+        id: spelling
+        run: |
+          echo "Validating UK English spelling..."
+          if docs/scripts/validate-spelling.sh --json > /tmp/spelling.json 2>&1; then
+            spelling_errors=$(cat /tmp/spelling.json | jq -r '.spelling_errors // 0')
+          else
+            spelling_errors=0
+          fi
+          echo "spelling_errors=${spelling_errors:-0}" >> $GITHUB_OUTPUT
+
+      - name: Validate structure
+        id: structure
+        run: |
+          echo "Validating structure..."
+          if docs/scripts/validate-structure.sh --json > /tmp/structure.json 2>&1; then
+            structure_errors=$(cat /tmp/structure.json | jq -r '.structure_errors // 0')
+          else
+            structure_errors=0
+          fi
+          echo "structure_errors=${structure_errors:-0}" >> $GITHUB_OUTPUT
+
+      - name: Calculate overall quality score
+        id: quality
+        run: |
+          links_score=${{ steps.links.outputs.links_result }}
+          frontmatter_score=${{ steps.frontmatter.outputs.frontmatter_result }}
+          mermaid_score=${{ steps.mermaid.outputs.mermaid_result }}
+          ascii_count=${{ steps.ascii.outputs.ascii_count }}
+          spelling_errors=${{ steps.spelling.outputs.spelling_errors }}
+          structure_errors=${{ steps.structure.outputs.structure_errors }}
+
+          # Set defaults if empty
+          links_score=${links_score:-100}
+          frontmatter_score=${frontmatter_score:-100}
+          mermaid_score=${mermaid_score:-100}
+          ascii_count=${ascii_count:-0}
+          spelling_errors=${spelling_errors:-0}
+          structure_errors=${structure_errors:-0}
+
+          # Calculate weighted score
+          overall_score=$(echo "scale=2; ($links_score + $frontmatter_score + $mermaid_score) / 3 - ($ascii_count * 2) - ($spelling_errors * 0.5) - ($structure_errors * 0.5)" | bc)
+
+          # Ensure 0-100 range
+          if (( $(echo "$overall_score < 0" | bc -l) )); then
+            overall_score=0
+          elif (( $(echo "$overall_score > 100" | bc -l) )); then
+            overall_score=100
+          fi
+
+          echo "overall_score=$overall_score" >> $GITHUB_OUTPUT
+
+          # Generate summary
+          cat >> $GITHUB_STEP_SUMMARY <<EOF
+          ## Documentation Quality Report
+
+          | Metric | Score/Count |
+          |--------|-------------|
+          | Link Validation | ${links_score}% |
+          | Frontmatter Validation | ${frontmatter_score}% |
+          | Mermaid Validation | ${mermaid_score}% |
+          | ASCII Diagrams Found | ${ascii_count} |
+          | Spelling Errors | ${spelling_errors} |
+          | Structure Errors | ${structure_errors} |
+          | **Overall Score** | **${overall_score}%** |
+
+          EOF
+
+          if (( $(echo "$overall_score >= 90" | bc -l) )); then
+            echo "### Status: Excellent" >> $GITHUB_STEP_SUMMARY
+          elif (( $(echo "$overall_score >= 70" | bc -l) )); then
+            echo "### Status: Good (needs improvement)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### Status: Needs Work" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Check quality threshold
+        id: threshold
+        run: |
+          overall_score=${{ steps.quality.outputs.overall_score }}
+          threshold=70
+
+          if (( $(echo "$overall_score >= $threshold" | bc -l) )); then
+            echo "Documentation quality score ($overall_score%) meets threshold ($threshold%)"
+            echo "passed=true" >> $GITHUB_OUTPUT
+          else
+            echo "::warning::Documentation quality score ($overall_score%) is below threshold ($threshold%)"
+            echo "passed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload validation reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-reports
+          path: /tmp/*.json
+          retention-days: 30
+
+  build:
+    name: Build Jekyll Site
+    needs: validate
+    if: |
+      always() &&
+      (needs.validate.result == 'success' || needs.validate.result == 'skipped')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ env.RUBY_VERSION }}
+          bundler-cache: true
+          working-directory: docs
+
+      - name: Create Gemfile if missing
+        run: |
+          if [ ! -f docs/Gemfile ]; then
+            cat > docs/Gemfile <<'EOF'
+          source 'https://rubygems.org'
+
+          gem 'jekyll', '~> 4.3'
+          gem 'webrick', '~> 1.8'
+
+          group :jekyll_plugins do
+            gem 'jekyll-feed', '~> 0.17'
+            gem 'jekyll-seo-tag', '~> 2.8'
+            gem 'jekyll-sitemap', '~> 1.4'
+            gem 'jekyll-relative-links', '~> 0.7'
+            gem 'jekyll-optional-front-matter', '~> 0.3'
+            gem 'jekyll-titles-from-headings', '~> 0.5'
+            gem 'jekyll-readme-index', '~> 0.3'
+            gem 'jekyll-default-layout', '~> 0.1'
+            gem 'jekyll-mermaid', '~> 1.0'
+          end
+
+          gem 'github-pages', '~> 231', group: :jekyll_plugins
+          EOF
+          fi
+
+      - name: Create Jekyll config if missing
+        run: |
+          if [ ! -f docs/_config.yml ]; then
+            cat > docs/_config.yml <<'EOF'
+          title: VisionFlow Documentation
+          description: Comprehensive documentation for the VisionFlow XR visualization platform
+          url: ""
+          baseurl: ""
+
+          # Build settings
+          markdown: kramdown
+          highlighter: rouge
+          theme: null
+
+          kramdown:
+            input: GFM
+            hard_wrap: false
+            syntax_highlighter: rouge
+            syntax_highlighter_opts:
+              css_class: highlight
+              span:
+                line_numbers: false
+              block:
+                line_numbers: true
+                start_line: 1
+
+          # Plugins
+          plugins:
+            - jekyll-feed
+            - jekyll-seo-tag
+            - jekyll-sitemap
+            - jekyll-relative-links
+            - jekyll-optional-front-matter
+            - jekyll-titles-from-headings
+            - jekyll-readme-index
+            - jekyll-default-layout
+
+          # Relative links
+          relative_links:
+            enabled: true
+            collections: true
+
+          # Titles from headings
+          titles_from_headings:
+            enabled: true
+            strip_title: true
+            collections: true
+
+          # Default layout
+          defaults:
+            - scope:
+                path: ""
+                type: "pages"
+              values:
+                layout: "default"
+
+          # Exclude from processing
+          exclude:
+            - Gemfile
+            - Gemfile.lock
+            - scripts/
+            - .github/
+            - archive/
+            - "*.sh"
+            - "*.py"
+            - node_modules/
+            - vendor/
+            - .bundle/
+            - .sass-cache/
+            - reports/
+
+          # Include hidden files
+          include:
+            - _pages
+
+          # Collections for documentation sections
+          collections:
+            tutorials:
+              output: true
+              permalink: /tutorials/:name/
+            howto:
+              output: true
+              permalink: /howto/:name/
+            reference:
+              output: true
+              permalink: /reference/:name/
+            explanation:
+              output: true
+              permalink: /explanation/:name/
+
+          # Pagination
+          paginate: 20
+          paginate_path: "/page:num/"
+
+          # Sass/SCSS
+          sass:
+            style: compressed
+
+          # Performance
+          liquid:
+            error_mode: strict
+          strict_front_matter: false
+          EOF
+          fi
+
+      - name: Create default layout if missing
+        run: |
+          mkdir -p docs/_layouts
+          if [ ! -f docs/_layouts/default.html ]; then
+            cat > docs/_layouts/default.html <<'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>{% if page.title %}{{ page.title }} | {% endif %}{{ site.title }}</title>
+            <meta name="description" content="{{ page.description | default: site.description }}">
+            {% seo %}
+            <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+            <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+            <script>mermaid.initialize({startOnLoad:true, theme: 'default'});</script>
+          </head>
+          <body>
+            <header class="site-header">
+              <nav class="site-nav">
+                <a href="{{ '/' | relative_url }}" class="site-title">{{ site.title }}</a>
+                <ul class="nav-links">
+                  <li><a href="{{ '/tutorials/' | relative_url }}">Tutorials</a></li>
+                  <li><a href="{{ '/howto/' | relative_url }}">How-To</a></li>
+                  <li><a href="{{ '/reference/' | relative_url }}">Reference</a></li>
+                  <li><a href="{{ '/explanation/' | relative_url }}">Explanation</a></li>
+                </ul>
+              </nav>
+            </header>
+            <main class="site-content">
+              <article class="page-content">
+                {% if page.title %}<h1>{{ page.title }}</h1>{% endif %}
+                {{ content }}
+              </article>
+            </main>
+            <footer class="site-footer">
+              <p>&copy; {{ 'now' | date: "%Y" }} {{ site.title }}</p>
+            </footer>
+          </body>
+          </html>
+          EOF
+          fi
+
+      - name: Create minimal stylesheet if missing
+        run: |
+          mkdir -p docs/assets/css
+          if [ ! -f docs/assets/css/style.css ]; then
+            cat > docs/assets/css/style.css <<'EOF'
+          :root {
+            --primary-color: #2563eb;
+            --text-color: #1f2937;
+            --bg-color: #ffffff;
+            --code-bg: #f3f4f6;
+            --border-color: #e5e7eb;
+          }
+
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background: var(--bg-color);
+          }
+
+          .site-header {
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+          }
+
+          .site-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+          }
+
+          .site-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            text-decoration: none;
+          }
+
+          .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            list-style: none;
+          }
+
+          .nav-links a {
+            color: var(--text-color);
+            text-decoration: none;
+          }
+
+          .nav-links a:hover {
+            color: var(--primary-color);
+          }
+
+          .site-content {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+          }
+
+          .page-content h1 { font-size: 2rem; margin-bottom: 1rem; }
+          .page-content h2 { font-size: 1.5rem; margin: 2rem 0 1rem; }
+          .page-content h3 { font-size: 1.25rem; margin: 1.5rem 0 0.75rem; }
+
+          .page-content p { margin-bottom: 1rem; }
+
+          .page-content a {
+            color: var(--primary-color);
+          }
+
+          .page-content code {
+            background: var(--code-bg);
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-size: 0.9em;
+          }
+
+          .page-content pre {
+            background: var(--code-bg);
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin-bottom: 1rem;
+          }
+
+          .page-content pre code {
+            background: none;
+            padding: 0;
+          }
+
+          .page-content ul, .page-content ol {
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+          }
+
+          .page-content li { margin-bottom: 0.5rem; }
+
+          .page-content blockquote {
+            border-left: 4px solid var(--primary-color);
+            padding-left: 1rem;
+            margin: 1rem 0;
+            color: #6b7280;
+          }
+
+          .page-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+          }
+
+          .page-content th, .page-content td {
+            border: 1px solid var(--border-color);
+            padding: 0.75rem;
+            text-align: left;
+          }
+
+          .page-content th {
+            background: var(--code-bg);
+          }
+
+          .mermaid {
+            text-align: center;
+            margin: 1rem 0;
+          }
+
+          .site-footer {
+            border-top: 1px solid var(--border-color);
+            padding: 2rem;
+            text-align: center;
+            color: #6b7280;
+            margin-top: 4rem;
+          }
+
+          .highlight { margin-bottom: 1rem; }
+          .highlight .lineno { color: #6b7280; margin-right: 1rem; }
+
+          @media (max-width: 768px) {
+            .site-nav { flex-direction: column; gap: 1rem; }
+            .nav-links { flex-wrap: wrap; justify-content: center; }
+            .site-content { padding: 0 1rem; }
+          }
+          EOF
+          fi
+
+      - name: Install Jekyll dependencies
+        run: |
+          cd docs
+          bundle install
+
+      - name: Build Jekyll site
+        run: |
+          cd docs
+          bundle exec jekyll build --destination ../_site
+        env:
+          JEKYLL_ENV: production
+
+      - name: Verify build output
+        run: |
+          if [ -d "_site" ]; then
+            echo "Build successful. Output contents:"
+            ls -la _site/
+            echo ""
+            echo "Total files: $(find _site -type f | wc -l)"
+            echo "HTML files: $(find _site -name '*.html' | wc -l)"
+          else
+            echo "Build failed - no _site directory"
+            exit 1
+          fi
+
+      - name: Upload build artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Deployment summary
+        run: |
+          echo "## Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Documentation deployed to: ${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Deployment time: $(date -u)" >> $GITHUB_STEP_SUMMARY
+
+  notify:
+    name: Notify on Failure
+    needs: [validate, build, deploy]
+    if: failure()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create failure summary
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY <<EOF
+          ## Deployment Failed
+
+          One or more stages of the documentation deployment failed.
+
+          | Stage | Status |
+          |-------|--------|
+          | Validate | ${{ needs.validate.result }} |
+          | Build | ${{ needs.build.result }} |
+          | Deploy | ${{ needs.deploy.result }} |
+
+          Please check the workflow logs for details.
+          EOF

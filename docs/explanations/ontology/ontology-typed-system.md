@@ -1,16 +1,10 @@
 ---
-title: Typed Ontology System with Natural Language Queries
-description: **Status:** Implementation Ready **Version:** 1.0 **Last Updated:** 2025-11-05
-category: explanation
-tags:
-  - api
-  - database
-  - backend
-  - frontend
-updated-date: 2025-12-18
-difficulty-level: intermediate
+layout: default
+title: "Typed Ontology System with Natural Language Queries"
+parent: Ontology
+grand_parent: Explanations
+nav_order: 99
 ---
-
 
 # Typed Ontology System with Natural Language Queries
 

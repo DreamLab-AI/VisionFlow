@@ -1,3 +1,10 @@
+---
+layout: default
+title: Phase 6 Integration Guide
+description: Multi-user sync integration guide for collaborative graph editing
+nav_exclude: true
+---
+
 # Phase 6: Multi-User Sync - Integration Guide
 
 ## Quick Start

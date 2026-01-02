@@ -1,13 +1,10 @@
 ---
+layout: default
 title: DeepSeek API Verification - Complete
-description: **URL:** `https://api.deepseek.com` **Status:** ✅ Working
-category: guide
-tags:
-  - tutorial
-  - docker
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+parent: AI Models
+grand_parent: Guides
+nav_order: 4
+description: Verification documentation for DeepSeek API endpoints and model testing
 ---
 
 

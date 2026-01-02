@@ -1,15 +1,10 @@
 ---
-title: Complete Data Flow Architecture
-description: **VisionFlow End-to-End Pipeline**
-category: explanation
-tags:
-  - architecture
-  - api
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "Complete Data Flow Architecture"
+parent: Architecture
+grand_parent: Explanations
+nav_order: 3
 ---
-
 
 # Complete Data Flow Architecture
 **VisionFlow End-to-End Pipeline**

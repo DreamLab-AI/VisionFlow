@@ -1,11 +1,9 @@
 ---
-title: "Documentation Contribution Guide"
-description: "Guidelines for contributing to the unified documentation corpus"
-category: reference
-tags:
-  - documentation
-updated-date: 2025-12-19
-difficulty-level: intermediate
+layout: default
+title: Contribution Guide
+description: Guidelines for contributing to the unified documentation corpus
+nav_order: 9
+parent: VisionFlow Documentation
 ---
 
 

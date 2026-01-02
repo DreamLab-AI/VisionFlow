@@ -1,0 +1,35 @@
+# VisionFlow Documentation Assets
+#
+# This directory contains static assets for Jekyll gh-pages deployment.
+#
+# Directory Structure:
+# --------------------
+# assets/
+#   architecture/   - System architecture diagrams (PNG, SVG)
+#   diagrams/       - Mermaid source files and rendered diagrams
+#   external/       - Third-party resources (with appropriate licenses)
+#   screenshots/    - UI screenshots and feature demonstrations
+#
+# Usage in Markdown:
+# ------------------
+# Relative path:    ![Alt text](./assets/screenshots/example.png)
+# Root path:        ![Alt text](/assets/screenshots/example.png)
+# With baseurl:     ![Alt text]({{ site.baseurl }}/assets/screenshots/example.png)
+#
+# For Jekyll gh-pages, prefer root paths: /assets/category/filename.ext
+#
+# Naming Convention:
+# ------------------
+# - Use lowercase with hyphens: graph-3d-visualization.png
+# - Include version if applicable: api-flow-v2.svg
+# - Be descriptive: turbo-flow-architecture-overview.svg
+#
+# File Formats:
+# -------------
+# - PNG: Screenshots, complex images with transparency
+# - SVG: Diagrams, logos, scalable graphics (preferred for diagrams)
+# - WEBP: Optimized images for web (good compression)
+# - JPG: Photos, images without transparency
+#
+# Note: Mermaid diagrams in markdown files are rendered client-side.
+# Export to SVG/PNG only when static rendering is required.

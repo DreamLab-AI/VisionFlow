@@ -1,0 +1,189 @@
+<!-- VisionFlow Documentation - Custom Head Elements -->
+
+<!-- Preconnect to CDNs for performance -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<!-- DNS prefetch for external resources -->
+<link rel="dns-prefetch" href="https://github.com">
+<link rel="dns-prefetch" href="https://api.github.com">
+
+<!-- Mermaid.js for diagram rendering -->
+{% include mermaid.html %}
+
+<!-- Custom fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- Additional meta tags for SEO -->
+<meta name="author" content="DreamLab AI">
+<meta name="keywords" content="VisionFlow, knowledge graph, GPU, CUDA, Neo4j, semantic search, XR, VR, Quest 3, multi-agent, Rust, TypeScript">
+<meta name="robots" content="index, follow">
+
+<!-- Open Graph / Social Media -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{ page.title }} | {{ site.title }}">
+<meta property="og:description" content="{{ page.description | default: site.description }}">
+<meta property="og:site_name" content="{{ site.title }}">
+<meta property="og:locale" content="en_GB">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- Structured Data for documentation -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "{{ page.title | default: site.title }}",
+  "description": "{{ page.description | default: site.description }}",
+  "author": {
+    "@type": "Organization",
+    "name": "DreamLab AI"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "DreamLab AI"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "{{ page.url | absolute_url }}"
+  }
+}
+</script>
+
+<!-- Custom CSS overrides -->
+<style>
+  :root {
+    --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --font-family-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', Consolas, monospace;
+
+    /* VisionFlow brand colours */
+    --vf-primary: #4A90E2;
+    --vf-secondary: #7ED321;
+    --vf-accent: #F5A623;
+    --vf-highlight: #BD10E0;
+    --vf-info: #50E3C2;
+  }
+
+  /* Improved code blocks */
+  pre, code {
+    font-family: var(--font-family-mono);
+    font-size: 0.9em;
+  }
+
+  /* Code block improvements */
+  .highlight {
+    border-radius: 6px;
+    margin: 1rem 0;
+  }
+
+  /* Table improvements */
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1rem 0;
+  }
+
+  table th {
+    background-color: #f6f8fa;
+    font-weight: 600;
+  }
+
+  table td, table th {
+    padding: 0.75rem 1rem;
+    border: 1px solid #e1e4e8;
+  }
+
+  /* Callout boxes */
+  .callout {
+    padding: 1rem 1.5rem;
+    margin: 1rem 0;
+    border-left: 4px solid var(--vf-primary);
+    background-color: #f6f8fa;
+    border-radius: 0 6px 6px 0;
+  }
+
+  .callout.warning {
+    border-left-color: #f5a623;
+    background-color: #fffbf0;
+  }
+
+  .callout.danger {
+    border-left-color: #d73a49;
+    background-color: #fff5f5;
+  }
+
+  .callout.success {
+    border-left-color: #28a745;
+    background-color: #f0fff4;
+  }
+
+  /* Navigation improvements */
+  .nav-list .nav-list-item .nav-list-link.active {
+    font-weight: 600;
+    color: var(--vf-primary);
+  }
+
+  .nav-list-link {
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+  }
+
+  /* Search improvements */
+  .search-input {
+    border-radius: 8px;
+  }
+
+  .search-result-title mark {
+    background-color: #fff3cd;
+    padding: 0.1em 0.2em;
+    border-radius: 2px;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .main-content {
+      padding: 1rem;
+    }
+  }
+
+  /* Print styles */
+  @media print {
+    .site-nav, .site-header, .site-footer, .search {
+      display: none !important;
+    }
+
+    .main-content {
+      max-width: 100% !important;
+      padding: 0 !important;
+    }
+
+    a[href]::after {
+      content: " (" attr(href) ")";
+      font-size: 0.8em;
+      color: #666;
+    }
+  }
+
+  /* Accessibility improvements */
+  :focus {
+    outline: 2px solid var(--vf-primary);
+    outline-offset: 2px;
+  }
+
+  /* Skip link for accessibility */
+  .skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--vf-primary);
+    color: white;
+    padding: 8px;
+    z-index: 100;
+  }
+
+  .skip-link:focus {
+    top: 0;
+  }
+</style>

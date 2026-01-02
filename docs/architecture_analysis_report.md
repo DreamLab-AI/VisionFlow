@@ -1,3 +1,10 @@
+---
+layout: default
+title: Hexagonal Architecture Assessment
+description: DDD and Hexagonal Architecture pattern analysis
+nav_exclude: true
+---
+
 # Architectural Analysis Report: Hexagonal Architecture Assessment
 
 **Date**: 2025-12-25

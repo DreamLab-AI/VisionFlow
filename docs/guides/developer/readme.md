@@ -1,13 +1,10 @@
 ---
+layout: default
 title: Developer Guides
-description: Welcome to the VisionFlow developer guides. These how-to guides help developers accomplish specific tasks and solve problems.
-category: guide
-tags:
-  - tutorial
-  - backend
-  - frontend
-updated-date: 2025-12-18
-difficulty-level: intermediate
+parent: Developer
+grand_parent: Guides
+nav_order: 9
+description: VisionFlow developer guides for specific tasks and problem solving
 ---
 
 

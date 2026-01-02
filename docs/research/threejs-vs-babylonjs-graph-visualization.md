@@ -1,3 +1,12 @@
+---
+layout: default
+title: Three.js vs Babylon.js Comparison
+parent: Research
+nav_order: 3
+nav_exclude: true
+description: Technical comparison of Three.js and Babylon.js for high-performance graph visualization
+---
+
 # Three.js vs Babylon.js: High-Performance Graph Visualization Comparison
 
 ## Executive Summary

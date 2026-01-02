@@ -1,17 +1,10 @@
 ---
-title: GpuSemanticAnalyzer Port
-description: The **GpuSemanticAnalyzer** port provides GPU-accelerated semantic analysis, clustering, and pathfinding algorithms for knowledge graphs. It includes community detection, shortest path computation,...
-category: explanation
-tags:
-  - architecture
-  - backend
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "GpuSemanticAnalyzer Port"
+parent: Ports
+grand_parent: Architecture
+nav_order: 99
 ---
-
 
 # GpuSemanticAnalyzer Port
 

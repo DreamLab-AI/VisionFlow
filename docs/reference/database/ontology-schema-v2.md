@@ -1,15 +1,10 @@
 ---
-title: Neo4j Rich Ontology Schema V2
-description: The Neo4j ontology adapter has been updated to support rich metadata from the SQLite schema migration (002_rich_ontology_metadata.sql). This document describes the new capabilities and how to use t...
-category: reference
-tags:
-  - database
-  - database
-  - backend
-updated-date: 2025-12-18
-difficulty-level: intermediate
+layout: default
+title: "Neo4j Rich Ontology Schema V2"
+parent: Database
+grand_parent: Reference
+nav_order: 99
 ---
-
 
 # Neo4j Rich Ontology Schema V2
 

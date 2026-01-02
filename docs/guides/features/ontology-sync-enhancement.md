@@ -1,14 +1,10 @@
 ---
+layout: default
 title: Ontology Sync Service Enhancement
-description: Enhanced GitHub sync service with intelligent ontology file filtering, caching, and metadata extraction.
-category: guide
-tags:
-  - tutorial
-  - api
-  - database
-  - backend
-updated-date: 2025-12-18
-difficulty-level: intermediate
+parent: Features
+grand_parent: Guides
+nav_order: 8
+description: Intelligent ontology file filtering, caching, and metadata extraction
 ---
 
 

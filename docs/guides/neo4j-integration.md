@@ -1,15 +1,9 @@
 ---
+layout: default
 title: Neo4j Integration Guide
-description: **Status**: ✅ Production (Primary Database) **Last Updated**: November 6, 2025
-category: guide
-tags:
-  - tutorial
-  - api
-  - api
-  - docker
-  - database
-updated-date: 2025-12-18
-difficulty-level: advanced
+parent: Guides
+nav_order: 42
+description: Neo4j 5.13 primary persistence layer setup and configuration
 ---
 
 

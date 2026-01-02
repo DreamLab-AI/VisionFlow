@@ -1,15 +1,9 @@
 ---
+layout: default
 title: Development Workflow
-description: > [Guides](./index.md) > Development Workflow
-category: guide
-tags:
-  - tutorial
-  - api
-  - api
-  - docker
-  - backend
-updated-date: 2025-12-18
-difficulty-level: intermediate
+parent: Guides
+nav_order: 4
+description: Best practices for developing with VisionFlow including git workflow and testing procedures
 ---
 
 

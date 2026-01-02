@@ -1,13 +1,10 @@
 ---
+layout: default
 title: Per-User Settings Implementation
-description: Implemented server-side authentication middleware and per-user settings lookup for VisionFlow.
-category: guide
-tags:
-  - tutorial
-  - database
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+parent: Features
+grand_parent: Guides
+nav_order: 1
+description: Server-side authentication middleware and per-user settings lookup
 ---
 
 

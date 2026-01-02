@@ -1,15 +1,10 @@
 ---
+layout: default
 title: Goalie Integration - Goal-Oriented AI Research
-description: Goalie is integrated as an MCP service providing goal-oriented AI research with anti-hallucination features using the Perplexity API.
-category: guide
-tags:
-  - tutorial
-  - api
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: advanced
+parent: Infrastructure
+grand_parent: Guides
+nav_order: 4
+description: MCP service for goal-oriented AI research with anti-hallucination features
 ---
 
 

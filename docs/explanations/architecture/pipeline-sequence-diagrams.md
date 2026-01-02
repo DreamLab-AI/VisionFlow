@@ -1,17 +1,10 @@
 ---
-title: Pipeline Sequence Diagrams
-description: ```mermaid sequenceDiagram participant GitHub
-category: explanation
-tags:
-  - architecture
-  - api
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "Pipeline Sequence Diagrams"
+parent: Architecture
+grand_parent: Explanations
+nav_order: 20
 ---
-
 
 # Pipeline Sequence Diagrams
 

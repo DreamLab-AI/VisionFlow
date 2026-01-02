@@ -1,21 +1,8 @@
 ---
-title: ComfyUI Service Integration - Automatic Startup
-description: ComfyUI is now configured to start automatically as a supervised service on port 8188 when the container launches.
-category: guide
-tags:
-  - api
-  - api
-  - endpoints
-  - http
-  - docker
-related-docs:
-  - ARCHITECTURE_COMPLETE.md
-  - ARCHITECTURE_OVERVIEW.md
-  - ASCII_DEPRECATION_COMPLETE.md
-updated-date: 2025-12-18
-difficulty-level: intermediate
-dependencies:
-  - Docker installation
+layout: default
+title: ComfyUI Service Integration
+description: Automatic startup configuration for ComfyUI supervised service
+nav_exclude: true
 ---
 
 # ComfyUI Service Integration - Automatic Startup

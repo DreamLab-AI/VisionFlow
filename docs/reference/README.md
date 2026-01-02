@@ -1,27 +1,63 @@
 ---
-title: "Reference Documentation"
-description: "Comprehensive unified reference documentation for VisionFlow extracted from 306-file corpus"
-category: reference
-tags:
-  - documentation
-updated-date: 2025-12-19
-difficulty-level: intermediate
+layout: default
+title: "Reference"
+nav_order: 30
+has_children: true
+permalink: /reference/
 ---
 
+# Reference Documentation
 
-# VisionFlow Reference Documentation
+Technical specifications, APIs, schemas, and detailed reference material.
 
-**Version**: 2.0
-**Last Updated**: December 18, 2025
-**Source**: 306-file corpus consolidated into unified reference guides
+**Version**: 2.0 | **Last Updated**: December 18, 2025
 
-This directory contains comprehensive unified reference documentation for all VisionFlow APIs, protocols, configurations, database schemas, and error codes.
+## Reference Sections
 
----
+| Section | Description |
+|---------|-------------|
+| [API Documentation](api/) | REST, WebSocket, and semantic APIs |
+| [Database Schemas](database/) | Neo4j graph schemas and data models |
+| [Protocols](protocols/) | Binary WebSocket and communication specs |
 
 ## Quick Access
 
-### Core Reference Documents
+### API Reference
+
+| Document | Description |
+|----------|-------------|
+| [API Complete Reference](api-complete-reference.md) | All endpoints with examples |
+| [REST API Complete](api/rest-api-complete.md) | HTTP API specification |
+| [WebSocket API](api/03-websocket.md) | Real-time binary protocol |
+| [Authentication](api/01-authentication.md) | JWT, sessions, Nostr auth |
+| [Semantic Features API](api/semantic-features-api.md) | Natural language queries |
+
+### Database Reference
+
+| Document | Description |
+|----------|-------------|
+| [Schemas](database/schemas.md) | Neo4j graph schema |
+| [Ontology Schema V2](database/ontology-schema-v2.md) | Advanced ontology schema |
+| [User Settings Schema](database/user-settings-schema.md) | User data model |
+
+### Protocol Reference
+
+| Document | Description |
+|----------|-------------|
+| [Binary WebSocket](protocols/binary-websocket.md) | 36-byte node format spec |
+| [WebSocket Protocol](websocket-protocol.md) | V2 protocol specification |
+
+### System Status
+
+| Document | Description |
+|----------|-------------|
+| [Error Codes](error-codes.md) | Complete error code reference |
+| [Implementation Status](implementation-status.md) | Feature completion matrix |
+| [Performance Benchmarks](performance-benchmarks.md) | GPU performance metrics |
+
+---
+
+## Unified Reference Documents
 
 | Document | Size | Lines | Description |
 |----------|------|-------|-------------|

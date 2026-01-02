@@ -1,13 +1,9 @@
 ---
+layout: default
 title: "Protocol Reference"
-description: "Complete specification for all VisionFlow communication protocols including binary WebSocket, REST, and MCP"
-category: reference
-tags:
-  - documentation
-updated-date: 2025-12-19
-difficulty-level: intermediate
+parent: Reference
+nav_order: 6
 ---
-
 
 # Protocol Reference
 

@@ -1,14 +1,10 @@
 ---
+layout: default
 title: Pipeline Operator Runbook
-description: 1. [System Overview](#system-overview) 2. [Monitoring](#monitoring) 3. [Common Issues](#common-issues)
-category: guide
-tags:
-  - tutorial
-  - api
-  - api
-  - docker
-updated-date: 2025-12-18
-difficulty-level: advanced
+parent: Operations
+grand_parent: Guides
+nav_order: 1
+description: Operational runbook for ontology processing pipeline with monitoring and incident response
 ---
 
 

@@ -1,17 +1,10 @@
 ---
-title: CQRS Directive Handler Template
-description: **Copy-Paste Template for Creating Graph Directive Handlers**
-category: explanation
-tags:
-  - architecture
-  - backend
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "CQRS Directive Handler Template"
+parent: Architecture
+grand_parent: Explanations
+nav_order: 30
 ---
-
 
 # CQRS Directive Handler Template
 **Copy-Paste Template for Creating Graph Directive Handlers**

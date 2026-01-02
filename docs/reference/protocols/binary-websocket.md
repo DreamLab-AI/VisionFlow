@@ -1,17 +1,10 @@
 ---
-title: VisionFlow Binary WebSocket Protocol
-description: Real-time graph position streaming protocol with multiple versions
-category: reference
-tags:
-  - api
-  - backend
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: intermediate
+layout: default
+title: "VisionFlow Binary WebSocket Protocol"
+parent: Protocols
+grand_parent: Reference
+nav_order: 99
 ---
-
 
 # VisionFlow Binary WebSocket Protocol
 

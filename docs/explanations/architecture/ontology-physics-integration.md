@@ -1,15 +1,10 @@
 ---
-title: Ontology Physics Integration Analysis
-description: **Date**: 2025-11-28 **Task**: Wire OntologyConstraintActor to ForceComputeActor physics pipeline **Status**: Integration mostly complete, needs wire-up finalization
-category: explanation
-tags:
-  - architecture
-  - api
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "Ontology Physics Integration Analysis"
+parent: Architecture
+grand_parent: Explanations
+nav_order: 17
 ---
-
 
 # Ontology Physics Integration Analysis
 

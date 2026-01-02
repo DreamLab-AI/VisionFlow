@@ -1,3 +1,10 @@
+---
+layout: default
+title: Code Quality Analysis
+description: Dead code detection and quality analysis report
+nav_exclude: true
+---
+
 # Code Quality Analysis Report - Dead Code Detection
 
 **Generated:** 2025-12-25

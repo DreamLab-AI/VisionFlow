@@ -1,15 +1,9 @@
 ---
+layout: default
 title: Deployment Guide
-description: > [Guides](./index.md) > Deployment
-category: guide
-tags:
-  - tutorial
-  - deployment
-  - api
-  - api
-  - docker
-updated-date: 2025-12-18
-difficulty-level: intermediate
+parent: Guides
+nav_order: 2
+description: Deploying VisionFlow in various environments from local development to production
 ---
 
 

@@ -1,21 +1,10 @@
 ---
-title: Ontology/Knowledge Skills Analysis
-description: Analyzed 6 ontology/knowledge skills to determine implementation status, MCP integration, dependencies, and migration priorities.  Found mixed implementation states requiring strategic consolidatio...
-category: explanation
-tags:
-  - architecture
-  - design
-  - structure
-  - api
-  - http
-related-docs:
-  - analysis/ontology-skills-cluster-analysis.md
-updated-date: 2025-12-18
-difficulty-level: intermediate
-dependencies:
-  - Python 3.x
-  - No external dependencies in requirements.txt
-  - Node.js runtime
+layout: default
+title: Ontology Knowledge Skills Analysis
+parent: Analysis
+nav_order: 2
+nav_exclude: true
+description: Analysis of ontology/knowledge skills implementation status, MCP integration, and migration priorities
 ---
 
 # Ontology/Knowledge Skills Analysis

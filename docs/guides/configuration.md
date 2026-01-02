@@ -1,15 +1,9 @@
 ---
+layout: default
 title: Configuration Guide
-description: *[Guides](readme.md)*
-category: guide
-tags:
-  - tutorial
-  - api
-  - api
-  - docker
-  - backend
-updated-date: 2025-12-18
-difficulty-level: intermediate
+parent: Guides
+nav_order: 3
+description: Common configuration scenarios and use cases for VisionFlow
 ---
 
 

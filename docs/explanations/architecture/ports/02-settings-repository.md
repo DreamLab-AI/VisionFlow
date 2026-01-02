@@ -1,16 +1,10 @@
 ---
-title: SettingsRepository Port
-description: > ⚠️ **MIGRATION NOTICE (November 2025)** > This document has been updated to reflect the completed migration from SQLite to Neo4j for settings storage. > Production code now uses `Neo4jSettingsRep...
-category: explanation
-tags:
-  - architecture
-  - docker
-  - database
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "SettingsRepository Port"
+parent: Ports
+grand_parent: Architecture
+nav_order: 99
 ---
-
 
 # SettingsRepository Port
 

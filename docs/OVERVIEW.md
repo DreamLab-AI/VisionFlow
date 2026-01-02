@@ -1,24 +1,9 @@
 ---
+layout: default
 title: What is VisionFlow?
-description: Traditional knowledge management tools force you to manually organize information and search for connections.  AI chatbots only respond when prompted.
-category: explanation
-tags:
-  - architecture
-  - design
-  - patterns
-  - structure
-  - api
-related-docs:
-  - ARCHITECTURE_OVERVIEW.md
-  - DEVELOPER_JOURNEY.md
-  - README.md
-  - QUICK_NAVIGATION.md
-  - ARCHITECTURE_COMPLETE.md
-updated-date: 2025-12-18
-difficulty-level: intermediate
-dependencies:
-  - Docker installation
-  - Neo4j database
+description: Enterprise platform for AI-driven knowledge discovery and 3D visualization
+nav_order: 4
+parent: VisionFlow Documentation
 ---
 
 # What is VisionFlow?

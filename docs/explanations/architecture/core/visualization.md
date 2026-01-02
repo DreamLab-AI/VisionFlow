@@ -1,16 +1,10 @@
 ---
-title: VisionFlow Visualisation Architecture
-description: VisionFlow supports dual-graph visualisation where both **Knowledge Graphs** (Logseq) and **Agent Graphs** (VisionFlow bots) coexist in the same 3D scene. This document outlines the existing archit...
-category: explanation
-tags:
-  - architecture
-  - api
-  - api
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "VisionFlow Visualisation Architecture"
+parent: Core
+grand_parent: Architecture
+nav_order: 99
 ---
-
 
 # VisionFlow Visualisation Architecture
 

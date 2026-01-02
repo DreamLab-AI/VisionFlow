@@ -1,17 +1,10 @@
 ---
-title: API Handlers Reference - Complete Endpoint Documentation
-description: **Version:** 1.0.0 **Last Updated:** 2025-11-04 **Status:** Production
-category: explanation
-tags:
-  - api
-  - architecture
-  - api
-  - api
-  - database
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "API Handlers Reference - Complete Endpoint Documentation"
+parent: Architecture
+grand_parent: Explanations
+nav_order: 29
 ---
-
 
 # API Handlers Reference - Complete Endpoint Documentation
 

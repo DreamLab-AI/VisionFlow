@@ -1,15 +1,9 @@
 ---
+layout: default
 title: Documentation Contributing Guidelines
-description: This document explains how to contribute to VisionFlow documentation using the **Diátaxis** framework.
-category: guide
-tags:
-  - tutorial
-  - api
-  - api
-  - docker
-  - frontend
-updated-date: 2025-12-18
-difficulty-level: intermediate
+parent: Guides
+nav_order: 10
+description: How to contribute to VisionFlow documentation using the Diataxis framework
 ---
 
 

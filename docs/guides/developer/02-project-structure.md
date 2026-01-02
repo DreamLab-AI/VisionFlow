@@ -1,15 +1,10 @@
 ---
+layout: default
 title: Project Structure
-description: This document provides a comprehensive overview of VisionFlow's codebase structure, explaining the purpose of each directory and key files.
-category: guide
-tags:
-  - tutorial
-  - docker
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: intermediate
+parent: Developer
+grand_parent: Guides
+nav_order: 3
+description: Comprehensive overview of VisionFlow codebase structure
 ---
 
 

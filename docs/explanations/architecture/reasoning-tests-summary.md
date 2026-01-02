@@ -1,15 +1,10 @@
 ---
-title: Ontology Reasoning Pipeline - Comprehensive Test Suite
-description: Complete test coverage for the ontology reasoning pipeline including inference, caching, constraint generation, and integration workflows.
-category: explanation
-tags:
-  - architecture
-  - api
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "Ontology Reasoning Pipeline - Comprehensive Test Suite"
+parent: Architecture
+grand_parent: Explanations
+nav_order: 22
 ---
-
 
 # Ontology Reasoning Pipeline - Comprehensive Test Suite
 

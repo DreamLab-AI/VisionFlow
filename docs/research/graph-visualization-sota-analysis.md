@@ -1,3 +1,12 @@
+---
+layout: default
+title: Graph Visualization SOTA Analysis
+parent: Research
+nav_order: 2
+nav_exclude: true
+description: State-of-the-art research on high-performance graph visualization for 1M+ nodes
+---
+
 # State-of-the-Art High-Performance Graph Visualization Research
 
 **Research Date:** 2025-12-25

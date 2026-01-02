@@ -1,15 +1,10 @@
 ---
-title: Ontology Reasoning Data Flow (ACTIVE)
-description: Complete ontology reasoning pipeline from GitHub markdown to inferred axioms
-category: explanation
-tags:
-  - architecture
-  - api
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "Ontology Reasoning Data Flow (ACTIVE)"
+parent: Architecture
+grand_parent: Explanations
+nav_order: 21
 ---
-
 
 # Ontology Reasoning Data Flow (ACTIVE)
 

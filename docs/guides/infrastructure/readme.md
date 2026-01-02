@@ -1,15 +1,10 @@
 ---
+layout: default
 title: Multi-Agent Docker Environment
-description: [![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/) [![Claude Flow](https://img.shields.io/badge/Claude-Flow-alpha-purpl...
-category: guide
-tags:
-  - tutorial
-  - api
-  - api
-  - docker
-  - backend
-updated-date: 2025-12-18
-difficulty-level: intermediate
+parent: Infrastructure
+grand_parent: Guides
+nav_order: 8
+description: Multi-container Docker environment for AI agents with MCP protocol
 ---
 
 

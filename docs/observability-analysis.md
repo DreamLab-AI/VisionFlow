@@ -1,3 +1,10 @@
+---
+layout: default
+title: Observability Analysis
+description: Production-grade observability analysis for WebXR Graph platform
+nav_exclude: true
+---
+
 # Production-Grade Observability Analysis
 
 **System**: WebXR Graph Visualization Platform

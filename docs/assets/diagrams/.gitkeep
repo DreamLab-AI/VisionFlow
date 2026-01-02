@@ -1,0 +1,12 @@
+# Diagrams directory
+# Contains diagram source files and rendered outputs
+#
+# Contents:
+# - Mermaid markdown files (.md) for source diagrams
+# - Exported PNG/SVG files for static rendering
+#
+# The sparc-turboflow-architecture.md file contains Mermaid diagrams
+# for the SPARC methodology and Turbo Flow architecture.
+#
+# To export Mermaid to SVG/PNG, use mermaid-cli:
+#   npx -p @mermaid-js/mermaid-cli mmdc -i diagram.mmd -o diagram.svg

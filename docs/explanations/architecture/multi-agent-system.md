@@ -1,17 +1,10 @@
 ---
-title: Multi-Agent System Architecture
-description: **Version:** 1.0 **Last Updated:** November 5, 2025 **Status:** Production
-category: explanation
-tags:
-  - architecture
-  - api
-  - api
-  - docker
-  - database
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "Multi-Agent System Architecture"
+parent: Architecture
+grand_parent: Explanations
+nav_order: 26
 ---
-
 
 # Multi-Agent System Architecture
 

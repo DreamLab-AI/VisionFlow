@@ -1,15 +1,10 @@
 ---
-title: Semantic Physics Architecture
-description: **Complete Guide to OWL-to-GPU Constraint Translation**
-category: explanation
-tags:
-  - architecture
-  - api
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "Semantic Physics Architecture"
+parent: Architecture
+grand_parent: Explanations
+nav_order: 10
 ---
-
 
 # Semantic Physics Architecture
 

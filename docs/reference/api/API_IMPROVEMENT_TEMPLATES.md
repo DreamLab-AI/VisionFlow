@@ -1,3 +1,11 @@
+---
+layout: default
+title: "API Improvement Implementation Templates"
+parent: API
+grand_parent: Reference
+nav_order: 99
+---
+
 # API Improvement Implementation Templates
 
 **Purpose**: Copy-paste code templates for implementing API improvements

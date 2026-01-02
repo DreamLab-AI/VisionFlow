@@ -1,17 +1,9 @@
 ---
+layout: default
 title: "VisionFlow Performance Benchmarks"
-description: "**Last Updated:** November 5, 2025 **Version:** v0.1.0 **Status:** Production"
-category: reference
-tags:
-  - api
-  - database
-  - backend
-  - frontend
-updated-date: 2025-12-19
-difficulty-level: advanced
+parent: Reference
+nav_order: 12
 ---
-
-
 
 # VisionFlow Performance Benchmarks
 

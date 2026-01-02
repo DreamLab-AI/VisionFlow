@@ -1,23 +1,9 @@
 ---
+layout: default
 title: Server Architecture
-description: VisionFlow server implements a **hexagonal (ports and adapters) architecture** with **CQRS patterns** and **actor-based concurrency** for handling real-time graph visualization and semantic analysis.
-category: explanation
-tags:
-  - architecture
-  - patterns
-  - structure
-  - api
-  - api
-related-docs:
-  - explanations/architecture/hexagonal-cqrs.md
-  - guides/architecture/actor-system.md
-  - explanations/architecture/database-architecture.md
-  - guides/graphserviceactor-migration.md
-  - ARCHITECTURE_OVERVIEW.md
-updated-date: 2025-12-18
-difficulty-level: advanced
-dependencies:
-  - Neo4j database
+parent: Concepts
+nav_order: 2
+description: Hexagonal (ports and adapters) architecture with CQRS patterns and actor-based concurrency for real-time graph visualization
 ---
 
 # Server Architecture

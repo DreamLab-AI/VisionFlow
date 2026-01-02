@@ -1,3 +1,10 @@
+---
+layout: default
+title: Wardley Map Analysis
+description: Strategic Wardley Map analysis of VisionFlow architecture
+nav_exclude: true
+---
+
 # VisionFlow Wardley Map Strategic Analysis
 
 > Generated via multi-agent swarm analysis of backend, frontend, GPU/CUDA, orchestration, and knowledge graph layers.

@@ -1,3 +1,10 @@
+---
+layout: default
+title: Client Code Analysis
+description: Analysis of VisionFlow TypeScript/React frontend codebase
+nav_exclude: true
+---
+
 # Client Code Analysis: VisionFlow Frontend
 
 **Analysis Date:** 2025-12-25

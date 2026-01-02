@@ -1,23 +1,9 @@
 ---
-title: Database Architecture
-description: VisionFlow uses **Neo4j** as the **single source of truth** for all graph data, user settings, ontology information, and application state.
-category: explanation
-tags:
-  - architecture
-  - design
-  - patterns
-  - structure
-  - api
-related-docs:
-  - concepts/architecture/core/server.md
-  - explanations/architecture/hexagonal-cqrs.md
-  - guides/architecture/actor-system.md
-  - guides/graphserviceactor-migration.md
-  - README.md
-updated-date: 2025-12-18
-difficulty-level: advanced
-dependencies:
-  - Neo4j database
+layout: default
+title: "Database Architecture"
+parent: Architecture
+grand_parent: Explanations
+nav_order: 9
 ---
 
 # Database Architecture

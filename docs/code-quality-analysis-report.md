@@ -1,3 +1,10 @@
+---
+layout: default
+title: Code Quality Analysis (Rust)
+description: Dead code detection and cleanup recommendations for Rust sources
+nav_exclude: true
+---
+
 # Code Quality Analysis Report - Dead Code & Cleanup Recommendations
 **Generated**: 2025-12-25
 **Scope**: /home/devuser/workspace/project/src/

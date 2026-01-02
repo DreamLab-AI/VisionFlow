@@ -1,17 +1,10 @@
 ---
-title: GPU Semantic Force Kernels
-description: The GPU semantic force system implements ontology-aware physics for knowledge graph visualization. It adds three types of forces based on semantic relationships between nodes:
-category: explanation
-tags:
-  - architecture
-  - backend
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "GPU Semantic Force Kernels"
+parent: Architecture
+grand_parent: Explanations
+nav_order: 13
 ---
-
 
 # GPU Semantic Force Kernels
 

@@ -1,15 +1,10 @@
 ---
+layout: default
 title: Multi-Agent Docker Environment Architecture
-description: This document describes the architecture of the Multi-Agent Docker Environment, a sophisticated containerized development platform that integrates Claude Flow, MCP (Model Context Protocol) tools, a...
-category: guide
-tags:
-  - architecture
-  - tutorial
-  - api
-  - api
-  - docker
-updated-date: 2025-12-18
-difficulty-level: advanced
+parent: Infrastructure
+grand_parent: Guides
+nav_order: 2
+description: Architecture of the containerised platform with Claude Flow and MCP tools
 ---
 
 

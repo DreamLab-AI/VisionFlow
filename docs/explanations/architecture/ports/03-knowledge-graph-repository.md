@@ -1,15 +1,10 @@
 ---
-title: KnowledgeGraphRepository Port
-description: The **KnowledgeGraphRepository** port manages the main knowledge graph structure parsed from local markdown files (Logseq, Obsidian). It provides comprehensive graph data access, manipulation, and ...
-category: explanation
-tags:
-  - architecture
-  - database
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "KnowledgeGraphRepository Port"
+parent: Ports
+grand_parent: Architecture
+nav_order: 99
 ---
-
 
 # KnowledgeGraphRepository Port
 

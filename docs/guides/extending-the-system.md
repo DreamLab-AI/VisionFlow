@@ -1,15 +1,9 @@
 ---
+layout: default
 title: Extending the System
-description: > [Guides](./index.md) > Extending the System
-category: guide
-tags:
-  - tutorial
-  - api
-  - api
-  - docker
-  - backend
-updated-date: 2025-12-18
-difficulty-level: intermediate
+parent: Guides
+nav_order: 7
+description: Creating custom MCP tools, agent types, plugins, and API extensions for VisionFlow
 ---
 
 

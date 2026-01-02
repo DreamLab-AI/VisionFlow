@@ -1,16 +1,10 @@
 ---
-title: Pipeline Integration Architecture
-description: This document describes the end-to-end event-driven data pipeline that processes ontology data from GitHub through reasoning, constraint generation, GPU physics, and client delivery.
-category: explanation
-tags:
-  - architecture
-  - api
-  - api
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "Pipeline Integration Architecture"
+parent: Architecture
+grand_parent: Explanations
+nav_order: 19
 ---
-
 
 # Pipeline Integration Architecture
 

@@ -1,15 +1,10 @@
 ---
+layout: default
 title: Contributing Guidelines
-description: We appreciate your interest in contributing to VisionFlow. This guide will help you get started.
-category: guide
-tags:
-  - tutorial
-  - api
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: intermediate
+parent: Developer
+grand_parent: Guides
+nav_order: 5
+description: Guidelines for contributing to VisionFlow including code style and PR process
 ---
 
 

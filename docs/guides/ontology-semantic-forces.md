@@ -1,13 +1,9 @@
 ---
+layout: default
 title: Ontology-Driven Semantic Forces
-description: **Status:** Implemented **Version:** 2.0.0 **Last Updated:** 2025-11-22
-category: guide
-tags:
-  - tutorial
-  - api
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+parent: Guides
+nav_order: 43
+description: Ontology-driven physics forces for semantically meaningful 3D layouts
 ---
 
 

@@ -1,16 +1,10 @@
 ---
-title: Neo4j Integration Documentation
-description: The Neo4j integration provides dual persistence to both SQLite (`unified.db`) and Neo4j graph database, enabling:
-category: explanation
-tags:
-  - api
-  - docker
-  - database
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "Neo4j Integration Documentation"
+parent: Ontology
+grand_parent: Explanations
+nav_order: 99
 ---
-
 
 # Neo4j Integration Documentation
 

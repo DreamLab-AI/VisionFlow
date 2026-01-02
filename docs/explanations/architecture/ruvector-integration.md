@@ -1,16 +1,10 @@
 ---
-title: RuVector Integration Analysis for VisionFlow
-description: **Date**: 2025-11-28 **Agent**: RuVector Integration Researcher **Working Directory**: `/home/devuser/workspace/project`
-category: explanation
-tags:
-  - architecture
-  - api
-  - database
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "RuVector Integration Analysis for VisionFlow"
+parent: Architecture
+grand_parent: Explanations
+nav_order: 27
 ---
-
 
 # RuVector Integration Analysis for VisionFlow
 

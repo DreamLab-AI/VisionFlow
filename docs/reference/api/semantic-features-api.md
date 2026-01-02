@@ -1,16 +1,10 @@
 ---
-title: Semantic Features API Reference
-description: Get complete graph schema.
-category: reference
-tags:
-  - api
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: intermediate
+layout: default
+title: "Semantic Features API Reference"
+parent: API
+grand_parent: Reference
+nav_order: 99
 ---
-
 
 # Semantic Features API Reference
 

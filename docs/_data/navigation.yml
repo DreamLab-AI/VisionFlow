@@ -1,0 +1,430 @@
+# VisionFlow Documentation Navigation
+# Complete hierarchical navigation for Just the Docs theme
+# Generated: 2025-01-02
+
+main:
+  - title: Home
+    url: /
+
+  - title: Getting Started
+    url: /getting-started/
+    children:
+      - title: Overview
+        url: /OVERVIEW/
+      - title: Installation
+        url: /tutorials/01-installation/
+      - title: First Graph
+        url: /tutorials/02-first-graph/
+      - title: Neo4j Quick Start
+        url: /tutorials/neo4j-quick-start/
+      - title: Navigation Guide
+        url: /guides/navigation-guide/
+      - title: Configuration
+        url: /guides/configuration/
+
+  - title: Tutorials
+    url: /tutorials/
+    children:
+      - title: Installation
+        url: /tutorials/01-installation/
+      - title: First Graph
+        url: /tutorials/02-first-graph/
+      - title: Neo4j Quick Start
+        url: /tutorials/neo4j-quick-start/
+
+  - title: Guides
+    url: /guides/
+    children:
+      - title: Core Features
+        url: /guides/features/
+        children:
+          - title: Navigation
+            url: /guides/navigation-guide/
+          - title: Filtering Nodes
+            url: /guides/features/filtering-nodes/
+          - title: Natural Language Queries
+            url: /guides/features/natural-language-queries/
+          - title: Intelligent Pathfinding
+            url: /guides/features/intelligent-pathfinding/
+          - title: Semantic Forces
+            url: /guides/features/semantic-forces/
+          - title: Authentication
+            url: /guides/features/auth-user-settings/
+          - title: Nostr Auth
+            url: /guides/features/nostr-auth/
+          - title: Settings Authentication
+            url: /guides/features/settings-authentication/
+
+      - title: Developer
+        url: /guides/developer/
+        children:
+          - title: Development Setup
+            url: /guides/developer/01-development-setup/
+          - title: Project Structure
+            url: /guides/developer/02-project-structure/
+          - title: Adding Features
+            url: /guides/developer/04-adding-features/
+          - title: Contributing
+            url: /guides/developer/06-contributing/
+          - title: WebSocket Best Practices
+            url: /guides/developer/websocket-best-practices/
+          - title: JSON Serialization
+            url: /guides/developer/json-serialization-patterns/
+          - title: Test Execution
+            url: /guides/developer/test-execution/
+
+      - title: Client
+        url: /guides/client/
+        children:
+          - title: State Management
+            url: /guides/client/state-management/
+          - title: Three.js Rendering
+            url: /guides/client/three-js-rendering/
+          - title: XR Integration
+            url: /guides/client/xr-integration/
+
+      - title: Infrastructure
+        url: /guides/infrastructure/
+        children:
+          - title: Architecture
+            url: /guides/infrastructure/architecture/
+          - title: Docker Environment
+            url: /guides/infrastructure/docker-environment/
+          - title: Port Configuration
+            url: /guides/infrastructure/port-configuration/
+          - title: Tools
+            url: /guides/infrastructure/tools/
+          - title: Troubleshooting
+            url: /guides/infrastructure/troubleshooting/
+          - title: Goalie Integration
+            url: /guides/infrastructure/goalie-integration/
+
+      - title: AI Agents
+        url: /guides/agent-orchestration/
+        children:
+          - title: Agent Orchestration
+            url: /guides/agent-orchestration/
+          - title: Orchestrating Agents
+            url: /guides/orchestrating-agents/
+          - title: Multi-Agent Skills
+            url: /guides/multi-agent-skills/
+          - title: AI Models Overview
+            url: /guides/ai-models/
+
+      - title: Ontology
+        url: /guides/ontology-parser/
+        children:
+          - title: Ontology Parser
+            url: /guides/ontology-parser/
+          - title: Reasoning Integration
+            url: /guides/ontology-reasoning-integration/
+          - title: Storage Guide
+            url: /guides/ontology-storage-guide/
+          - title: Semantic Forces
+            url: /guides/ontology-semantic-forces/
+
+      - title: Database
+        url: /guides/neo4j-integration/
+        children:
+          - title: Neo4j Integration
+            url: /guides/neo4j-integration/
+          - title: Neo4j Migration
+            url: /guides/neo4j-migration/
+          - title: Implementation Roadmap
+            url: /guides/neo4j-implementation-roadmap/
+          - title: Pipeline Admin API
+            url: /guides/pipeline-admin-api/
+
+      - title: Deployment
+        url: /guides/deployment/
+        children:
+          - title: Deployment Guide
+            url: /guides/deployment/
+          - title: Docker Compose
+            url: /guides/docker-compose-guide/
+          - title: Docker Environment Setup
+            url: /guides/docker-environment-setup/
+          - title: Security
+            url: /guides/security/
+          - title: Telemetry Logging
+            url: /guides/telemetry-logging/
+
+      - title: Operations
+        url: /guides/operations/
+        children:
+          - title: Pipeline Operator Runbook
+            url: /guides/operations/pipeline-operator-runbook/
+
+      - title: XR
+        url: /guides/vircadia-xr-complete-guide/
+        children:
+          - title: Vircadia XR Guide
+            url: /guides/vircadia-xr-complete-guide/
+          - title: Multi-User Guide
+            url: /guides/vircadia-multi-user-guide/
+
+      - title: Migration
+        url: /guides/migration/
+        children:
+          - title: JSON to Binary Protocol
+            url: /guides/migration/json-to-binary-protocol/
+          - title: GraphServiceActor Migration
+            url: /guides/graphserviceactor-migration/
+
+  - title: Architecture
+    url: /explanations/
+    children:
+      - title: System Overview
+        url: /explanations/system-overview/
+      - title: Core
+        url: /explanations/architecture/core/
+        children:
+          - title: Client Architecture
+            url: /explanations/architecture/core/client/
+          - title: Server Architecture
+            url: /explanations/architecture/core/server/
+          - title: Visualization
+            url: /explanations/architecture/core/visualization/
+
+      - title: Patterns
+        url: /explanations/architecture/
+        children:
+          - title: Hexagonal CQRS
+            url: /explanations/architecture/hexagonal-cqrs/
+          - title: Data Flow
+            url: /explanations/architecture/data-flow-complete/
+          - title: Integration Patterns
+            url: /explanations/architecture/integration-patterns/
+          - title: Services Architecture
+            url: /explanations/architecture/services-architecture/
+          - title: Services Layer
+            url: /explanations/architecture/services-layer/
+          - title: Adapter Patterns
+            url: /explanations/architecture/adapter-patterns/
+          - title: Pipeline Integration
+            url: /explanations/architecture/pipeline-integration/
+          - title: GitHub Sync Service
+            url: /explanations/architecture/github-sync-service-design/
+          - title: Quick Reference
+            url: /explanations/architecture/quick-reference/
+
+      - title: Ports (Hexagonal)
+        url: /explanations/architecture/ports/01-overview/
+        children:
+          - title: Overview
+            url: /explanations/architecture/ports/01-overview/
+          - title: Settings Repository
+            url: /explanations/architecture/ports/02-settings-repository/
+          - title: Knowledge Graph Repository
+            url: /explanations/architecture/ports/03-knowledge-graph-repository/
+          - title: Ontology Repository
+            url: /explanations/architecture/ports/04-ontology-repository/
+          - title: Inference Engine
+            url: /explanations/architecture/ports/05-inference-engine/
+          - title: GPU Physics Adapter
+            url: /explanations/architecture/ports/06-gpu-physics-adapter/
+          - title: GPU Semantic Analyzer
+            url: /explanations/architecture/ports/07-gpu-semantic-analyzer/
+
+      - title: GPU
+        url: /explanations/architecture/gpu/
+        children:
+          - title: GPU Overview
+            url: /explanations/architecture/gpu/
+          - title: Communication Flow
+            url: /explanations/architecture/gpu/communication-flow/
+          - title: Optimizations
+            url: /explanations/architecture/gpu/optimizations/
+          - title: GPU Semantic Forces
+            url: /explanations/architecture/gpu-semantic-forces/
+
+      - title: Physics
+        url: /explanations/architecture/semantic-physics-system/
+        children:
+          - title: Semantic Physics System
+            url: /explanations/architecture/semantic-physics-system/
+          - title: Semantic Forces System
+            url: /explanations/architecture/semantic-forces-system/
+          - title: Stress Majorization
+            url: /explanations/architecture/stress-majorization/
+          - title: Hierarchical Visualization
+            url: /explanations/architecture/hierarchical-visualization/
+          - title: Semantic Forces
+            url: /explanations/physics/semantic-forces/
+          - title: Semantic Forces Actor
+            url: /explanations/physics/semantic-forces-actor/
+
+      - title: Ontology
+        url: /explanations/architecture/ontology-storage-architecture/
+        children:
+          - title: Storage Architecture
+            url: /explanations/architecture/ontology-storage-architecture/
+          - title: Reasoning Pipeline
+            url: /explanations/architecture/ontology-reasoning-pipeline/
+          - title: Physics Integration
+            url: /explanations/architecture/ontology-physics-integration/
+          - title: Reasoning Engine
+            url: /explanations/ontology/reasoning-engine/
+          - title: Neo4j Integration
+            url: /explanations/ontology/neo4j-integration/
+          - title: Pipeline Integration
+            url: /explanations/ontology/ontology-pipeline-integration/
+          - title: Typed System
+            url: /explanations/ontology/ontology-typed-system/
+          - title: Enhanced Parser
+            url: /explanations/ontology/enhanced-parser/
+          - title: Hierarchical LOD
+            url: /explanations/ontology/client-side-hierarchical-lod/
+          - title: Pathfinding System
+            url: /explanations/ontology/intelligent-pathfinding-system/
+
+      - title: Multi-Agent
+        url: /explanations/architecture/multi-agent-system/
+        children:
+          - title: Multi-Agent System
+            url: /explanations/architecture/multi-agent-system/
+          - title: Analytics Visualization
+            url: /explanations/architecture/analytics-visualization/
+
+      - title: XR System
+        url: /explanations/architecture/xr-immersive-system/
+
+      - title: Decisions
+        url: /explanations/architecture/decisions/
+        children:
+          - title: ADR-0001 Neo4j Persistence
+            url: /explanations/architecture/decisions/0001-neo4j-persistent-with-filesystem-sync/
+
+      - title: Database
+        url: /explanations/architecture/database-architecture/
+        children:
+          - title: Database Architecture
+            url: /explanations/architecture/database-architecture/
+          - title: RuVector Integration
+            url: /explanations/architecture/ruvector-integration/
+
+  - title: Reference
+    url: /reference/
+    children:
+      - title: API
+        url: /reference/api/
+        children:
+          - title: API Complete Reference
+            url: /reference/api-complete-reference/
+          - title: REST API Complete
+            url: /reference/api/rest-api-complete/
+          - title: REST API Reference
+            url: /reference/api/rest-api-reference/
+          - title: Authentication
+            url: /reference/api/01-authentication/
+          - title: WebSocket API
+            url: /reference/api/03-websocket/
+          - title: Semantic Features API
+            url: /reference/api/semantic-features-api/
+          - title: Pathfinding Examples
+            url: /reference/api/pathfinding-examples/
+          - title: Solid API
+            url: /reference/api/solid-api/
+
+      - title: Database
+        url: /reference/database/
+        children:
+          - title: Schemas
+            url: /reference/database/schemas/
+          - title: Ontology Schema V2
+            url: /reference/database/ontology-schema-v2/
+          - title: User Settings Schema
+            url: /reference/database/user-settings-schema/
+          - title: Neo4j Persistence Analysis
+            url: /reference/database/neo4j-persistence-analysis/
+          - title: Solid Pod Schema
+            url: /reference/database/solid-pod-schema/
+
+      - title: Protocols
+        url: /reference/protocols/
+        children:
+          - title: Binary WebSocket
+            url: /reference/protocols/binary-websocket/
+          - title: WebSocket Protocol
+            url: /reference/websocket-protocol/
+
+      - title: System Status
+        url: /reference/implementation-status/
+        children:
+          - title: Implementation Status
+            url: /reference/implementation-status/
+          - title: Error Codes
+            url: /reference/error-codes/
+          - title: Code Quality Status
+            url: /reference/code-quality-status/
+          - title: Performance Benchmarks
+            url: /reference/performance-benchmarks/
+          - title: Physics Implementation
+            url: /reference/physics-implementation/
+
+# Role-based navigation shortcuts
+roles:
+  new_user:
+    - title: What is VisionFlow?
+      url: /OVERVIEW/
+    - title: Installation
+      url: /tutorials/01-installation/
+    - title: First Graph
+      url: /tutorials/02-first-graph/
+    - title: Navigation Guide
+      url: /guides/navigation-guide/
+    - title: Configuration
+      url: /guides/configuration/
+    - title: Troubleshooting
+      url: /guides/troubleshooting/
+
+  developer:
+    - title: Developer Journey
+      url: /DEVELOPER_JOURNEY/
+    - title: Development Setup
+      url: /guides/developer/01-development-setup/
+    - title: Project Structure
+      url: /guides/developer/02-project-structure/
+    - title: Adding Features
+      url: /guides/developer/04-adding-features/
+    - title: Testing Guide
+      url: /guides/testing-guide/
+    - title: Contributing
+      url: /guides/developer/06-contributing/
+
+  architect:
+    - title: Architecture Overview
+      url: /ARCHITECTURE_OVERVIEW/
+    - title: Technology Choices
+      url: /TECHNOLOGY_CHOICES/
+    - title: System Overview
+      url: /explanations/system-overview/
+    - title: Hexagonal CQRS
+      url: /explanations/architecture/hexagonal-cqrs/
+    - title: Integration Patterns
+      url: /explanations/architecture/integration-patterns/
+    - title: Ports Overview
+      url: /explanations/architecture/ports/01-overview/
+
+  devops:
+    - title: Deployment Guide
+      url: /guides/deployment/
+    - title: Docker Compose
+      url: /guides/docker-compose-guide/
+    - title: Configuration
+      url: /guides/configuration/
+    - title: Operations Runbook
+      url: /guides/operations/pipeline-operator-runbook/
+    - title: Security
+      url: /guides/security/
+    - title: Telemetry
+      url: /guides/telemetry-logging/
+
+# Footer navigation
+footer:
+  - title: GitHub
+    url: https://github.com/DreamLab-AI/VisionFlow
+  - title: Issues
+    url: https://github.com/DreamLab-AI/VisionFlow/issues
+  - title: Discussions
+    url: https://github.com/DreamLab-AI/VisionFlow/discussions

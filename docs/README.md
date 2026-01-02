@@ -1,24 +1,10 @@
 ---
+layout: default
 title: VisionFlow Documentation
-description: > **228 documents** organized using the **Diátaxis Framework** for maximum discoverability
-category: tutorial
-tags:
-  - architecture
-  - design
-  - patterns
-  - structure
-  - api
-related-docs:
-  - tutorials/01-installation.md
-  - tutorials/02-first-graph.md
-  - guides/navigation-guide.md
-  - OVERVIEW.md
-  - guides/configuration.md
-updated-date: 2025-12-18
-difficulty-level: beginner
-dependencies:
-  - Docker installation
-  - Neo4j database
+description: 228 documents organized using the Diataxis Framework for maximum discoverability
+nav_order: 1
+has_children: true
+permalink: /
 ---
 
 # VisionFlow Documentation
@@ -399,7 +385,7 @@ dependencies:
 |----------|-------------|
 | **[GPU Communication Flow](explanations/architecture/gpu/communication-flow.md)** | CPU-GPU data transfer |
 | **[GPU Optimisations](explanations/architecture/gpu/optimizations.md)** | Performance tuning strategies |
-| **[GPU README](explanations/architecture/gpu/readme.md)** | GPU subsystem overview |
+| **[GPU README](explanations/architecture/gpu/README.md)** | GPU subsystem overview |
 
 </details>
 
@@ -457,7 +443,7 @@ dependencies:
 | **[Solid API Reference](reference/api/solid-api.md)** | Pod management, LDP, agent memory |
 | **[Semantic Features API](reference/api/semantic-features-api.md)** | Natural language queries |
 | **[Pathfinding Examples](reference/api/pathfinding-examples.md)** | Graph traversal examples |
-| **[API README](reference/api/readme.md)** | API documentation index |
+| **[API README](reference/api/README.md)** | API documentation index |
 
 </details>
 
@@ -571,7 +557,7 @@ dependencies:
 - [GPU Semantic Forces](explanations/architecture/gpu-semantic-forces.md)
 - [GPU Communication Flow](explanations/architecture/gpu/communication-flow.md)
 - [GPU Optimisations](explanations/architecture/gpu/optimizations.md)
-- [GPU README](explanations/architecture/gpu/readme.md)
+- [GPU README](explanations/architecture/gpu/README.md)
 - [Performance Benchmarks](reference/performance-benchmarks.md)
 - [Physics Implementation](reference/physics-implementation.md)
 

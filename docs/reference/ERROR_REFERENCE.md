@@ -1,16 +1,9 @@
 ---
-title: Error Reference and Troubleshooting
-description: Complete error code reference with solutions, troubleshooting guides, and diagnostic procedures
-category: reference
-tags:
-  - api
-  - api
-  - docker
-updated-date: 2025-12-18
-difficulty-level: intermediate
-version: 2.0
+layout: default
+title: "Error Reference and Troubleshooting"
+parent: Reference
+nav_order: 5
 ---
-
 
 # Error Reference and Troubleshooting
 

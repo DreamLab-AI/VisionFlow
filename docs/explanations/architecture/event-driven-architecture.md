@@ -1,3 +1,11 @@
+---
+layout: default
+title: "Event-Driven Architecture"
+parent: Architecture
+grand_parent: Explanations
+nav_order: 8
+---
+
 # Event-Driven Architecture
 
 VisionFlow implements a robust event-driven architecture using domain events and the pub/sub pattern to enable loose coupling between system components.

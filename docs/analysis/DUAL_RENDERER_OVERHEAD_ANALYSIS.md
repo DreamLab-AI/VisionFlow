@@ -1,4 +1,14 @@
+---
+layout: default
+title: Dual Renderer Overhead Analysis
+parent: Analysis
+nav_order: 1
+nav_exclude: true
+description: Performance bottleneck analysis of the dual-renderer architecture
+---
+
 # Dual-Renderer Architecture Overhead Analysis
+
 **VisionFlow Client Performance Bottleneck Report**
 
 Date: 2025-12-25

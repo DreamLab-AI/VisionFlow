@@ -1,13 +1,9 @@
 ---
+layout: default
 title: Semantic Features Implementation Guide
-description: **Version:** 1.0 **Last Updated:** 2025-11-05 **Status:** Implementation Roadmap
-category: guide
-tags:
-  - tutorial
-  - database
-  - backend
-updated-date: 2025-12-18
-difficulty-level: intermediate
+parent: Guides
+nav_order: 46
+description: Implementation roadmap for semantic features in VisionFlow
 ---
 
 

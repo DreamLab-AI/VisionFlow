@@ -1,17 +1,10 @@
 ---
-title: Stress Majorization for GPU-Accelerated Graph Layout
-description: Stress majorization is a global layout optimization algorithm that complements local force-directed physics by minimizing the stress function across the entire graph. This implementation provides G...
-category: explanation
-tags:
-  - architecture
-  - backend
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "Stress Majorization for GPU-Accelerated Graph Layout"
+parent: Architecture
+grand_parent: Explanations
+nav_order: 14
 ---
-
 
 # Stress Majorization for GPU-Accelerated Graph Layout
 

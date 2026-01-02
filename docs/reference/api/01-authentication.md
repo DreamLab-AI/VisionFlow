@@ -1,16 +1,10 @@
 ---
-title: Authentication (DEPRECATED - JWT NOT USED)
-description: ⚠️ OUTDATED - VisionFlow uses Nostr protocol authentication, NOT JWT
-category: reference
-tags:
-  - api
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "Authentication (DEPRECATED - JWT NOT USED)"
+parent: API
+grand_parent: Reference
+nav_order: 99
 ---
-
 
 ## ⚠️ DEPRECATION WARNING
 

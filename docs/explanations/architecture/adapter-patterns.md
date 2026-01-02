@@ -1,17 +1,10 @@
 ---
-title: Adapter Patterns in VisionFlow
-description: 1. [Overview](#overview) 2. [Core Adapter Pattern](#core-adapter-pattern) 3. [Database Adapters](#database-adapters)
-category: explanation
-tags:
-  - architecture
-  - database
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "Adapter Patterns in VisionFlow"
+parent: Architecture
+grand_parent: Explanations
+nav_order: 6
 ---
-
 
 # Adapter Patterns in VisionFlow
 

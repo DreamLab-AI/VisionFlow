@@ -1,15 +1,10 @@
 ---
-title: GitHubSyncService Architecture Design
-description: **Version**: 2.0 **Date**: November 3, 2025 **Status**: Production Ready
-category: explanation
-tags:
-  - architecture
-  - api
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "GitHubSyncService Architecture Design"
+parent: Architecture
+grand_parent: Explanations
+nav_order: 28
 ---
-
 
 # GitHubSyncService Architecture Design
 

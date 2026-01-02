@@ -1,3 +1,10 @@
+---
+layout: default
+title: CUDA Kernel Audit
+description: Usage and orphaned code detection audit for CUDA kernels
+nav_exclude: true
+---
+
 # CUDA Kernel Usage Audit Report
 **Date:** 2025-12-25
 **Total Kernels:** 13

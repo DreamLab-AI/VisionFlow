@@ -1,16 +1,10 @@
 ---
-title: Solid Pod Schema
-description: Complete Solid pod structure and ACL patterns for VisionFlow decentralized data storage
-category: reference
-tags:
-  - database
-  - solid
-  - decentralized
-  - backend
-updated-date: 2025-12-29
-difficulty-level: intermediate
+layout: default
+title: "Solid Pod Schema"
+parent: Database
+grand_parent: Reference
+nav_order: 99
 ---
-
 
 # Solid Pod Schema
 

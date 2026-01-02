@@ -1,16 +1,10 @@
 ---
-title: Unified Services Guide
-description: This document provides a comprehensive overview of the service layer in the project, explaining how the various services work together to create a cohesive and functional backend.
-category: explanation
-tags:
-  - architecture
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "Unified Services Guide"
+parent: Architecture
+grand_parent: Explanations
+nav_order: 4
 ---
-
 
 # Unified Services Guide
 

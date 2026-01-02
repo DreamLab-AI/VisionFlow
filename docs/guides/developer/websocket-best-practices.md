@@ -1,15 +1,10 @@
 ---
+layout: default
 title: WebSocket Best Practices for VisionFlow
-description: **Version:** 1.0 **Last Updated:** 2025-11-05 **Audience:** Frontend & Backend Developers
-category: guide
-tags:
-  - tutorial
-  - api
-  - api
-  - backend
-  - frontend
-updated-date: 2025-12-18
-difficulty-level: advanced
+parent: Developer
+grand_parent: Guides
+nav_order: 8
+description: Connection management, dual protocols, and real-time communication patterns
 ---
 
 

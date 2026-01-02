@@ -1,15 +1,9 @@
 ---
+layout: default
 title: Troubleshooting Guide
-description: > [Guides](./index.md) > Troubleshooting
-category: guide
-tags:
-  - tutorial
-  - api
-  - api
-  - docker
-  - backend
-updated-date: 2025-12-18
-difficulty-level: intermediate
+parent: Guides
+nav_order: 25
+description: Comprehensive troubleshooting for installation, deployment, runtime issues, and system recovery
 ---
 
 

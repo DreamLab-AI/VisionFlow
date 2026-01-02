@@ -1,3 +1,10 @@
+---
+layout: default
+title: Consolidation Project Plan
+description: Plan to unify VisionFlow architecture around JSON-LD
+nav_exclude: true
+---
+
 # VisionFlow Consolidation Project Plan
 
 ## Executive Summary

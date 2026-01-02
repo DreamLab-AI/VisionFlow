@@ -1,16 +1,10 @@
 ---
-title: GPU Architecture Documentation
-description: This section contains documentation for GPU computation and actor communication systems.
-category: explanation
-tags:
-  - architecture
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "GPU Architecture Documentation"
+parent: Gpu
+grand_parent: Architecture
+nav_order: 99
 ---
-
 
 # GPU Architecture Documentation
 

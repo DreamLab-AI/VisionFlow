@@ -1,3 +1,12 @@
+---
+layout: default
+title: QUIC HTTP/3 Analysis
+parent: Research
+nav_order: 1
+nav_exclude: true
+description: Research on QUIC and HTTP/3 protocols for real-time graph visualization
+---
+
 # QUIC and HTTP/3 Research for Graph Visualization
 
 ## Executive Summary

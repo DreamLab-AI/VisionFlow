@@ -1,15 +1,9 @@
 ---
-title: VisionFlow Guides
-description: Welcome to the VisionFlow guides section. These practical, task-oriented guides will help you deploy, develop, and extend the VisionFlow system effectively.
-category: guide
-tags:
-  - tutorial
-  - docker
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: intermediate
+layout: default
+title: Guides
+nav_order: 3
+has_children: true
+description: Practical task-oriented guides for deploying, developing, and extending VisionFlow
 ---
 
 

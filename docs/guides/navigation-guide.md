@@ -1,14 +1,9 @@
 ---
+layout: default
 title: VisionFlow Quick Navigation Guide
-description: **Fast access to essential VisionFlow documentation**
-category: guide
-tags:
-  - tutorial
-  - api
-  - api
-  - docker
-updated-date: 2025-12-18
-difficulty-level: intermediate
+parent: Guides
+nav_order: 55
+description: Fast access to essential VisionFlow documentation
 ---
 
 

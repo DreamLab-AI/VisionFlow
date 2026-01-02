@@ -1,15 +1,9 @@
 ---
+layout: default
 title: OntologyReasoningService Integration Guide
-description: This guide documents the complete implementation of the OntologyReasoningService in VisionFlow, including all integration points and usage patterns.
-category: guide
-tags:
-  - tutorial
-  - backend
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: intermediate
+parent: Guides
+nav_order: 44
+description: OntologyReasoningService implementation and integration patterns
 ---
 
 

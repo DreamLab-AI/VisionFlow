@@ -1,14 +1,10 @@
 ---
+layout: default
 title: Intelligent Pathfinding Guide
-description: Semantic pathfinding finds paths that are not just shortest, but most relevant to your query and graph semantics.
-category: guide
-tags:
-  - tutorial
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: intermediate
+parent: Features
+grand_parent: Guides
+nav_order: 4
+description: Semantic pathfinding algorithms for relevance-weighted graph traversal
 ---
 
 

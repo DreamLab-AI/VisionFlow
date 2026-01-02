@@ -1,3 +1,10 @@
+---
+layout: default
+title: Solid Pod Creation
+description: Solid pod creation and management flow with JSS integration
+nav_exclude: true
+---
+
 # Solid Pod Creation Flow
 
 ## Overview

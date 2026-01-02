@@ -1,17 +1,10 @@
 ---
-title: VisionFlow Client Architecture - Current State
-description: > ⚠️ **DEPRECATION NOTICE** ⚠️ > **GraphServiceActor** is deprecated. See `/docs/guides/graphserviceactor-migration.md` for current patterns.
-category: explanation
-tags:
-  - architecture
-  - frontend
-  - api
-  - api
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "VisionFlow Client Architecture - Current State"
+parent: Core
+grand_parent: Architecture
+nav_order: 99
 ---
-
 
 # VisionFlow Client Architecture - Current State
 

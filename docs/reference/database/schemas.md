@@ -1,17 +1,10 @@
 ---
-title: Unified Database Schema (unified.db)
-description: **UPDATED: November 2, 2025** - Consolidated from three separate databases to a single unified architecture.
-category: reference
-tags:
-  - database
-  - backend
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "Unified Database Schema (unified.db)"
+parent: Database
+grand_parent: Reference
+nav_order: 99
 ---
-
 
 # Unified Database Schema (unified.db)
 

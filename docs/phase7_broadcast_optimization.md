@@ -1,3 +1,10 @@
+---
+layout: default
+title: Phase 7 Broadcast Optimization
+description: Server GPU physics broadcast optimization reducing bandwidth by 70-80%
+nav_exclude: true
+---
+
 # Phase 7: Server GPU Physics Broadcast Optimization
 
 ## Summary

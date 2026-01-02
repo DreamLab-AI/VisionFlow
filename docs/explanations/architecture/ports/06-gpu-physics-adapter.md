@@ -1,17 +1,10 @@
 ---
-title: GpuPhysicsAdapter Port
-description: The **GpuPhysicsAdapter** port provides GPU-accelerated physics simulation for knowledge graph layout using force-directed algorithms. It abstracts CUDA implementations for physics computations.
-category: explanation
-tags:
-  - architecture
-  - backend
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "GpuPhysicsAdapter Port"
+parent: Ports
+grand_parent: Architecture
+nav_order: 99
 ---
-
 
 # GpuPhysicsAdapter Port
 

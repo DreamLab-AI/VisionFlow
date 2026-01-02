@@ -1,13 +1,9 @@
 ---
+layout: default
 title: VisionFlow Testing Guide
-description: **Last Updated**: 2025-10-03 **Purpose**: Comprehensive manual testing guide for VisionFlow control panel functionality and API endpoints **Testing Approach**: Manual testing only (automated tests ...
-category: guide
-tags:
-  - tutorial
-  - testing
-  - api
-updated-date: 2025-12-18
-difficulty-level: intermediate
+parent: Guides
+nav_order: 49
+description: Comprehensive manual testing guide for control panel and API endpoints
 ---
 
 

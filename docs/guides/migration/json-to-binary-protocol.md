@@ -1,14 +1,10 @@
 ---
-title: Migration Guide: JSON to Binary WebSocket Protocol
-description: **Version:** 2.0 **Last Updated:** November 3, 2025 **Status:** Required Migration
-category: guide
-tags:
-  - tutorial
-  - api
-  - api
-  - frontend
-updated-date: 2025-12-18
-difficulty-level: intermediate
+layout: default
+title: Migration Guide - JSON to Binary WebSocket Protocol
+parent: Migration
+grand_parent: Guides
+nav_order: 1
+description: Required migration from JSON to Binary V2 protocol for 80% bandwidth reduction
 ---
 
 

@@ -1,16 +1,10 @@
 ---
-title: REST API Complete Reference
-description: **VisionFlow Ontology and Graph API Documentation**
-category: reference
-tags:
-  - api
-  - api
-  - api
-  - backend
-updated-date: 2025-12-18
-difficulty-level: intermediate
+layout: default
+title: "REST API Complete Reference"
+parent: API
+grand_parent: Reference
+nav_order: 99
 ---
-
 
 # REST API Complete Reference
 

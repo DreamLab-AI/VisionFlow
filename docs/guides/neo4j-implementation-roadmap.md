@@ -1,15 +1,9 @@
 ---
+layout: default
 title: Neo4j Implementation Roadmap
-description: **Version:** 1.0 **Last Updated:** 2025-11-05 **Status:** Implementation Ready
-category: guide
-tags:
-  - tutorial
-  - api
-  - api
-  - docker
-  - database
-updated-date: 2025-12-18
-difficulty-level: intermediate
+parent: Guides
+nav_order: 53
+description: Neo4j implementation roadmap for VisionFlow features
 ---
 
 

@@ -1,11 +1,9 @@
 ---
-title: "VisionFlow Documentation - Navigation Guide"
-description: "How to find exactly what you need in 226+ documentation files"
-category: reference
-tags:
-  - documentation
-updated-date: 2025-12-19
-difficulty-level: intermediate
+layout: default
+title: Navigation Guide
+description: How to find exactly what you need in 226+ documentation files
+nav_order: 3
+parent: VisionFlow Documentation
 ---
 
 

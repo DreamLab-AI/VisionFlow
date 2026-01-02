@@ -1,12 +1,9 @@
 ---
-title: "Getting Started with the Unified Documentation Corpus"
-description: "Welcome! This documentation has been completely modernized and reorganized for maximum discoverability and clarity."
-category: guide
-tags:
-  - getting-started
-  - documentation
-updated-date: 2025-12-19
-difficulty-level: beginner
+layout: default
+title: Unified Docs Guide
+description: Introduction to the modernized and reorganized documentation corpus
+nav_order: 14
+parent: VisionFlow Documentation
 ---
 
 # Getting Started with the Unified Documentation Corpus

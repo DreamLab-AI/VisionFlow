@@ -1,3 +1,10 @@
+---
+layout: default
+title: Refactoring Guide
+description: Hexagonal architecture compliance refactoring examples
+nav_exclude: true
+---
+
 # Refactoring Guide: Hexagonal Architecture Compliance
 
 This guide provides concrete examples for fixing architectural violations identified in the analysis.

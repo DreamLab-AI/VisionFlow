@@ -1,13 +1,10 @@
 ---
+layout: default
 title: Test Execution Guide - Semantic Intelligence Validation
-description: **Quick reference for running the comprehensive test suite**
-category: guide
-tags:
-  - tutorial
-  - api
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+parent: Developer
+grand_parent: Guides
+nav_order: 7
+description: Quick reference for running the comprehensive test suite
 ---
 
 

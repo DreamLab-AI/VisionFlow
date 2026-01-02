@@ -1,17 +1,10 @@
 ---
-title: SemanticForcesActor Design Document
-description: **Author**: Semantic Forces Agent **Date**: 2025-11-28 **Status**: Implementation Ready
-category: explanation
-tags:
-  - api
-  - backend
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: intermediate
+layout: default
+title: "SemanticForcesActor Design Document"
+parent: Physics
+grand_parent: Explanations
+nav_order: 99
 ---
-
 
 # SemanticForcesActor Design Document
 

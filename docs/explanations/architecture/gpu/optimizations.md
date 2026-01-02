@@ -1,17 +1,10 @@
 ---
-title: Graph Actor Data Ingestion Optimizations
-description: > ⚠️ **DEPRECATION NOTICE** ⚠️ > **GraphServiceActor** is deprecated. See `/docs/guides/graphserviceactor-migration.md` for current patterns.
-category: explanation
-tags:
-  - architecture
-  - backend
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: advanced
+layout: default
+title: "Graph Actor Data Ingestion Optimizations"
+parent: Gpu
+grand_parent: Architecture
+nav_order: 99
 ---
-
 
 # Graph Actor Data Ingestion Optimizations
 

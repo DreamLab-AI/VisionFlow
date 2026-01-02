@@ -1,17 +1,10 @@
 ---
-title: Enhanced Rust Ontology Parser Implementation
-description: **Date**: 2025-11-22 **Version**: 2.0.0 **Status**: Complete
-category: explanation
-tags:
-  - database
-  - backend
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: intermediate
+layout: default
+title: "Enhanced Rust Ontology Parser Implementation"
+parent: Ontology
+grand_parent: Explanations
+nav_order: 99
 ---
-
 
 # Enhanced Rust Ontology Parser Implementation
 

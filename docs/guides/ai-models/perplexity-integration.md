@@ -1,20 +1,10 @@
 ---
+layout: default
 title: Perplexity AI Integration
-description: Perplexity AI provides real-time web search and research capabilities with source citations.  This integration allows Claude Code to access current information, perform market research, and generat...
-category: guide
-tags:
-  - architecture
-  - structure
-  - api
-  - endpoints
-  - http
-related-docs:
-  - guides/ai-models/README.md
-  - guides/features/MOVED.md
-  - guides/ai-models/INTEGRATION_SUMMARY.md
-  - guides/ai-models/deepseek-deployment.md
-updated-date: 2025-12-18
-difficulty-level: advanced
+parent: AI Models
+grand_parent: Guides
+nav_order: 5
+description: Real-time web search and research integration with Perplexity AI Sonar API
 ---
 
 # Perplexity AI Integration

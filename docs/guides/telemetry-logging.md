@@ -1,15 +1,9 @@
 ---
+layout: default
 title: Telemetry and Logging Guide
-description: *[Guides](../guides/readme.md) > Telemetry and Logging*
-category: guide
-tags:
-  - tutorial
-  - api
-  - api
-  - docker
-  - backend
-updated-date: 2025-12-18
-difficulty-level: advanced
+parent: Guides
+nav_order: 52
+description: WebXR telemetry and logging system implementation
 ---
 
 

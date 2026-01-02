@@ -1,21 +1,8 @@
 ---
+layout: default
 title: GPU Access Fix Summary
-description: All changes implemented to fix PyTorch CUDA detection and enable GPU-accelerated image generation with ComfyUI.
-category: explanation
-tags:
-  - http
-  - deployment
-  - docker
-  - testing
-  - ai
-related-docs:
-  - ARCHITECTURE_COMPLETE.md
-  - ARCHITECTURE_OVERVIEW.md
-  - ASCII_DEPRECATION_COMPLETE.md
-updated-date: 2025-12-18
-difficulty-level: intermediate
-dependencies:
-  - Docker installation
+description: PyTorch CUDA detection and GPU-accelerated ComfyUI fixes
+nav_exclude: true
 ---
 
 # GPU Access Fix Summary

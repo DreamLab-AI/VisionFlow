@@ -1,17 +1,9 @@
 ---
-title: VisionFlow Error Codes Reference
-description: This document provides a comprehensive reference of all error codes used throughout the VisionFlow system. Error codes follow a hierarchical naming scheme: `[SYSTEM]-[SEVERITY]-[NUMBER]`.
-category: reference
-tags:
-  - api
-  - api
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: intermediate
+layout: default
+title: "VisionFlow Error Codes Reference"
+parent: Reference
+nav_order: 10
 ---
-
 
 # VisionFlow Error Codes Reference
 

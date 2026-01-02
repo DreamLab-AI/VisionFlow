@@ -1,15 +1,9 @@
 ---
-title: Guide: Ontology Parser
-description: **Version:** 1.0 **Date:** 2025-10-27
-category: guide
-tags:
-  - tutorial
-  - backend
-  - documentation
-  - reference
-  - visionflow
-updated-date: 2025-12-18
-difficulty-level: intermediate
+layout: default
+title: Guide - Ontology Parser
+parent: Guides
+nav_order: 47
+description: OntologyParser module for parsing Logseq-style ontology definitions
 ---
 
 

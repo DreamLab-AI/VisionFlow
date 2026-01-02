@@ -1,3 +1,10 @@
+---
+layout: default
+title: Test Coverage Analysis
+description: Comprehensive test coverage analysis for VisionFlow
+nav_exclude: true
+---
+
 # VisionFlow Test Coverage Analysis
 
 **Generated:** 2025-12-25
