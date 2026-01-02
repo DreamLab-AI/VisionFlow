@@ -140,13 +140,11 @@ defaults:
       path: ""
     values:
       layout: default
-      render_with_liquid: false
   - scope:
       path: ""
       type: "pages"
     values:
       layout: default
-      render_with_liquid: false
   - scope:
       path: "tutorials"
       type: "tutorials"
@@ -155,7 +153,6 @@ defaults:
       parent: Tutorials
       nav_order: 1
       category: "tutorials"
-      render_with_liquid: false
   - scope:
       path: "guides"
       type: "guides"
@@ -163,7 +160,6 @@ defaults:
       layout: default
       nav_order: 2
       category: "guides"
-      render_with_liquid: false
   - scope:
       path: "explanations"
       type: "explanations"
@@ -171,7 +167,6 @@ defaults:
       layout: default
       nav_order: 3
       category: "explanations"
-      render_with_liquid: false
   - scope:
       path: "reference"
       type: "reference"
@@ -179,7 +174,6 @@ defaults:
       layout: default
       nav_order: 4
       category: "reference"
-      render_with_liquid: false
 
 # Exclude from processing
 exclude:
@@ -224,6 +218,16 @@ exclude:
   - CUDA_KERNEL_ANALYSIS_REPORT.md
   - CUDA_KERNEL_AUDIT_REPORT.md
   - API_TEST_IMPLEMENTATION.md
+  - DOCS-MIGRATION-PLAN.md
+  - reference/ERROR_REFERENCE.md
+  - explanations/architecture/ruvector-integration.md
+  - explanations/architecture/database-architecture.md
+  - explanations/architecture/hierarchical-visualization.md
+  - guides/infrastructure/docker-environment.md
+  - guides/orchestrating-agents.md
+  - guides/developer/04-adding-features.md
+  - guides/troubleshooting.md
+  - guides/architecture/actor-system.md
 
 # Include specific files and directories
 include:
