@@ -1,10 +1,11 @@
 
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import type { BotsAgent, BotsEdge, BotsFullUpdateMessage } from '../types/BotsTypes';
 import { botsWebSocketIntegration } from '../services/BotsWebSocketIntegration';
 import { parseBinaryNodeData, isAgentNode, getActualNodeId } from '../../../types/binaryProtocol';
 import { useAgentPolling } from '../hooks/useAgentPolling';
 import { agentPollingService } from '../services/AgentPollingService';
+import { unifiedApiClient } from '../../../services/api/UnifiedApiClient';
 import { createLogger } from '../../../utils/loggerConfig';
 
 const logger = createLogger('BotsDataContext');
@@ -46,8 +47,9 @@ interface BotsDataContextType {
 const BotsDataContext = createContext<BotsDataContextType | undefined>(undefined);
 
 export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  
-  
+  // Track actual MCP connection status from API
+  const [mcpConnectionStatus, setMcpConnectionStatus] = useState<boolean>(false);
+
   const pollingData = useAgentPolling({
     enabled: true,
     config: {
@@ -249,7 +251,7 @@ export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         nodeCount: pollingData.agents.length,
         edgeCount: pollingData.edges.length,
         tokenCount: pollingData.metadata?.totalTokens || 0,
-        mcpConnected: pollingData.isPolling,
+        mcpConnected: mcpConnectionStatus,  // Use actual MCP status from API
         dataSource: 'live',
         agents: pollingData.agents,
         edges: pollingData.edges,
@@ -257,25 +259,51 @@ export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         lastUpdate: new Date(pollingData.lastUpdate).toISOString()
       });
     }
-  }, [pollingData]);
+  }, [pollingData, mcpConnectionStatus]);
 
-  
-  
+  // Update mcpConnected status even when no agents are present
   useEffect(() => {
-    
+    setBotsData(prev => {
+      if (!prev) return prev;
+      if (prev.mcpConnected === mcpConnectionStatus) return prev;
+      return { ...prev, mcpConnected: mcpConnectionStatus };
+    });
+  }, [mcpConnectionStatus]);
+
+  useEffect(() => {
+
     const unsubscribe = botsWebSocketIntegration.on('bots-binary-position-update', (binaryData: ArrayBuffer) => {
       updateFromBinaryPositions(binaryData);
     });
-
-    
-    
 
     return () => {
       unsubscribe();
     };
   }, []);
 
-  
+  // Poll actual MCP connection status from API
+  useEffect(() => {
+    const checkMcpStatus = async () => {
+      try {
+        const response = await unifiedApiClient.getData('/bots/status');
+        // API returns { success: true, data: { connected: true, ... } }
+        const connected = response?.data?.connected ?? response?.connected ?? false;
+        setMcpConnectionStatus(connected);
+      } catch (error) {
+        logger.error('Failed to check MCP status:', error);
+        setMcpConnectionStatus(false);
+      }
+    };
+
+    // Check immediately
+    checkMcpStatus();
+
+    // Then poll every 5 seconds
+    const interval = setInterval(checkMcpStatus, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const contextValue = useMemo(() => ({
     botsData,
     updateBotsData,

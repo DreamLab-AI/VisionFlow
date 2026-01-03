@@ -42,8 +42,9 @@ export const MultiAgentInitializationPrompt: React.FC<MultiAgentInitializationPr
   useEffect(() => {
     const checkConnection = async () => {
       try {
-        const data = await unifiedApiClient.getData('/bots/status');
-        setMcpConnected(data.connected);
+        const response = await unifiedApiClient.getData('/bots/status');
+        // API returns { success: true, data: { connected: true, ... } }
+        setMcpConnected(response?.data?.connected ?? response?.connected ?? false);
       } catch (error) {
         setMcpConnected(false);
       }
