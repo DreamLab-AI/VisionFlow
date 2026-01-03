@@ -480,57 +480,155 @@ HOST_CLAUDE_DIR=${HOME}/.claude
 ## Recommendations & Hardening Priorities
 
 ### Security & Isolation
-- Prefer a Docker socket proxy for `agentic-workstation` instead of a raw `/var/run/docker.sock` mount; scope allowed API verbs to build/start/stop/logs for VisionFlow only to reduce host root-equivalent exposure.
-- Move sensitive API keys from `.env` into Docker/Compose secrets; mount as files with least-privilege read access per service; avoid passing secrets as build args.
-- Enforce user separation at runtime: keep `visionflow` non-root (UID/GID) and drop privileges for `agentic-workstation` services that do not need elevated rights; add `read_only: true` rootfs where feasible (e.g., `cloudflared`).
-- Gate inter-container traffic with internal firewall rules or Compose network scoping to allow only required ports: VisionFlow → Management API :9090, VisionFlow → MCP TCP :9500, GUI bridges 9876–9878; keep 9600 (Z.AI) internal-only.
-- Add per-profile TLS: dev may stay HTTP; prod should front `visionflow-production` with TLS (nginx or `cloudflared`) and mutual auth for Management API calls from VisionFlow.
-- Rotate SSH/VNC exposure: disable host publishes by default in prod; if enabled, enforce key-only auth and rotate default credentials (e.g., `devuser:turboflow`).
+- **Privileged Access Control**: Prefer a Docker socket proxy for `agentic-workstation` instead of a raw `/var/run/docker.sock` mount. Scope allowed API verbs strictly to `build`/`start`/`stop`/`logs` for VisionFlow containers only, significantly reducing host root-equivalent exposure.
+- **Secrets Management**: Move sensitive API keys (OpenAI, Anthropic, Gemini, Z.AI) from `.env` files into Docker/Compose secrets. Mount these as files with least-privilege read access per service (e.g., `read_only: true`, owned by `devuser`). Avoid passing secrets as build args or environment variables where they can leak into image layers or `docker inspect` output.
+- **Runtime User Separation**: Enforce user separation at runtime. Ensure `visionflow` runs as a non-root user (UID/GID 1000). Drop privileges for `agentic-workstation` services that do not absolutely need elevated rights (like `code-server` or `management-api`). Implement `read_only: true` root filesystems for stateless services (e.g., `cloudflared`, `nginx`) to prevent tampering.
+- **Network Segmentation**: Gate inter-container traffic with an internal firewall policy (e.g., `iptables` inside `agentic-workstation`) or strict Compose network scoping. Allow *only* required ports:
+    - VisionFlow → Management API :9090
+    - VisionFlow → MCP TCP :9500
+    - GUI bridges 9876–9878
+    - *Block* external access to internal services like Z.AI (9600) and raw DB ports.
+- **TLS & Authentication**:
+    - **Dev**: HTTP is acceptable for local loops.
+    - **Prod**: Front `visionflow-production` with TLS (nginx sidecar or `cloudflared` tunnel). Implement mutual TLS (mTLS) or signed JWTs for Management API calls from VisionFlow to Agentic Workstation to ensure only trusted components can spawn tasks.
+- **Exposure Rotation**: Rotate SSH/VNC exposure. Disable host port binding by default in production. If enabled, enforce key-only authentication for SSH and rotate default VNC passwords (e.g., `devuser:turboflow`).
 
 ### Operations, Observability, & Health
-- Align health checks: add explicit checks for `visionflow`/`visionflow-production` on `/api/health`, `agentic-workstation` on `/health` (9090), and MCP TCP liveness (9500) via a small TCP probe or supervisord script.
-- Centralise logging: ship stdout/err to a log driver (Loki/Fluentd) with tags per container; keep `max-size`/`max-file` limits.
-- Startup ordering: ensure VisionFlow starts only after Management API (9090) and MCP (9500) are reachable to avoid failed initial polls; consider a lightweight MCP sidecar with `depends_on` `condition: service_healthy`.
-- Metrics: expose `/metrics` (Prometheus) on Management API; surface VisionFlow metrics for REST latency, MCP poll latency, and agent-state freshness; publish per-agent job resource usage via Management API backed by `docker stats` sampling.
+- **Comprehensive Health Checks**: Align and expand health checks:
+    - `visionflow`/`visionflow-production`: `/api/health` (Application ready)
+    - `agentic-workstation`: `/health` on port 9090 (Management API ready)
+    - **MCP Liveness**: Add a dedicated TCP probe or supervisord script to verify port 9500 is accepting connections, preventing "zombie" agent states.
+- **Centralized Logging**: Ship stdout/stderr to a centralized log driver (Loki, Fluentd, or simple file rotation) with tags per container. Maintain `max-size`/`max-file` limits to prevent disk exhaustion.
+- **Deterministic Startup**: Enforce startup ordering. Ensure VisionFlow starts *only after* Management API (9090) and MCP (9500) are reachable. Use `depends_on` with `condition: service_healthy` or a custom `wait-for-it` script in the entrypoint to prevent initial connection failures and log noise.
+- **Metrics & Telemetry**:
+    - Expose `/metrics` (Prometheus format) on the Management API.
+    - Surface VisionFlow internal metrics: REST latency, MCP poll latency, agent-state freshness/staleness.
+    - Publish per-agent job resource usage via Management API, backed by periodic `docker stats` sampling, to identify resource-hogging agents.
 
 ### Performance, Build, and GPU
-- Keep cache volumes (`npm-cache`, `cargo-*`); run builds with BuildKit (`COMPOSE_DOCKER_CLI_BUILD=1`, `BUILDKIT_INLINE_CACHE=1`) to reuse layers across CI.
-- Strict profile separation: dev mounts source `:ro` for hot reload; prod must avoid source mounts and Docker socket, using prebuilt artifacts only.
-- GPU scheduling: pin `CUDA_VISIBLE_DEVICES` per service to avoid contention; consider MIG or explicit device allocation when `comfyui` and VisionFlow co-run.
+- **Optimized Builds**: Leverage BuildKit caching. Keep `npm-cache`, `cargo-cache`, etc. Run builds with `COMPOSE_DOCKER_CLI_BUILD=1` and `BUILDKIT_INLINE_CACHE=1` to reuse layers across CI/CD runs, significantly speeding up "rebuild" tasks.
+- **Profile Separation**: Strict separation of Dev vs Prod mounts:
+    - **Dev**: Mount source code `:ro` for hot-reload.
+    - **Prod**: **NEVER** mount source code or the Docker socket. Use prebuilt, immutable artifacts (binaries) only.
+- **GPU Scheduling & Isolation**: Pin `CUDA_VISIBLE_DEVICES` per service to avoid contention. Consider MIG (Multi-Instance GPU) or explicit device allocation (e.g., `device=0` for VisionFlow, `device=1` for ComfyUI) if hardware allows.
 
 ### Networking & Data
-- Maintain `docker_ragflow` creation (already documented); consider a dedicated internal network for data plane (Neo4j/RAGFlow/Redis) and a control plane for MCP/Management to reduce blast radius.
-- Validate port exposure: keep MCP (9500), Z.AI (9600), and GUI bridges (9876–9878) unexposed on host; expose 3001/4000/9090 only as required per environment.
-- Volumes: document backup/restore for `visionflow-data`, `visionflow-logs`, Neo4j volumes, and `.claude`/workspace; use `:ro` for static configs (nginx, supervisord).
+- **Network Segmentation**: Maintain `docker_ragflow` creation but consider splitting into:
+    - `network_data`: Internal-only (Neo4j, RAGFlow, Redis, Postgres) - no external access.
+    - `network_control`: Control plane for MCP/Management traffic.
+    - `network_public`: Ingress traffic (Nginx, Cloudflare).
+- **Port Discipline**: Validate port exposure. Keep MCP (9500), Z.AI (9600), and GUI bridges (9876–9878) unexposed on the host. Expose 3001/4000/9090 *only* as required per environment (e.g., via `127.0.0.1` binding).
+- **Data Safety**: Document and script backup/restore procedures for critical volumes: `visionflow-data`, `visionflow-logs`, `neo4j-data`, and `.claude`/workspace. Use `:ro` mounts for static configuration files (nginx, supervisord) to prevent accidental mutation.
 
 ### Multi-Agent Workstation Specifics
-- Supervisord tightening: set restart policies for GUI MCP programs to `unexpected` with bounded retries/backoff; add health probes for `blender-mcp`, `qgis-mcp`, `pbr-mcp`, `comfyui` to detect silent failures.
-- User hopping: `as-*` scripts rely on passwordless sudo—limit commands to essentials; drop `SYS_ADMIN`/`NET_ADMIN` caps for non-GUI services where possible; prefer a capability drop list per program.
-- API keys: ensure `multi-agent-docker/.env` is not baked into images; inject at runtime; prefer per-user secrets mounts for provider keys.
+- **Supervisord Hardening**: Set restart policies for GUI MCP programs to `unexpected` with bounded retries and exponential backoff. Add specific health probes for `blender-mcp`, `qgis-mcp`, `pbr-mcp`, and `comfyui` to detect silent failures (e.g., process running but stuck).
+- **Least-Privilege User Hopping**: Scripts like `as-gemini.sh` rely on passwordless sudo. Limit this to the specific required commands only. Drop `SYS_ADMIN`/`NET_ADMIN` capabilities for non-GUI services where possible. Prefer a capability drop list per program in supervisord.
+- **Dynamic API Keys**: Ensure `multi-agent-docker/.env` is *not* baked into images. Inject at runtime. Prefer per-user secrets mounts (e.g., `/run/secrets/anthropic_key` owned by `devuser`) over environment variables for better leak protection.
+
+---
+
+## AI Service Integrations
+
+### Kokoro (TTS) & Whisper (STT) Analysis
+
+**Services:**
+- `kokoro-tts-container` (Port 8880): Text-to-Speech service. Image: `ghcr.io/remsky/kokoro-fastapi-gpu:latest`
+- `whisper-webui` (Port 7860): Speech-to-Text service. Image: `registry.gitlab.com/aadnk/whisper-webui:latest`
+
+**Network Topology:**
+Both containers reside on the `docker_ragflow` network, enabling direct internal communication with VisionFlow and Agentic Workstation without exposing ports to the host (unless explicitly mapped).
+
+**Communication Flow:**
+1.  **Request**: VisionFlow/Agent sends audio/text payload to `http://kokoro-tts-container:8880` or `http://whisper-webui:7860`.
+2.  **Processing**: Service processes request (GPU-accelerated if configured).
+3.  **Response**: JSON result or audio blob returned to requester.
+
+**Recommendations:**
+-   **Health Checks**: Add explicit health checks for these services in `docker-compose.unified.yml` (e.g., `curl -f http://localhost:8880/health`).
+-   **GPU Isolation**: Use explicit device requests (e.g., `--gpus '"device=2"'`) to prevent memory fragmentation when running alongside VisionFlow physics or ComfyUI.
+-   **Internal Only**: Keep these ports unexposed on the host unless debugging. Use the Docker network aliases for all inter-container traffic.
+
+### RAGFlow Knowledge Management
+
+**Service:** `ragflow-server` (Ports 80, 443, 9380) and dependencies (MySQL, Redis, ES, MinIO).
+
+**Network Topology:**
+Resides on `docker_ragflow`. Critical for document ingestion and semantic search.
+
+**Integration Points:**
+-   **VisionFlow → RAGFlow**: VisionFlow agents query `http://ragflow-server:9380` (API) for knowledge retrieval.
+-   **Agentic Workstation → RAGFlow**: Agents can trigger ingestion tasks or search via MCP tools bridging to the RAGFlow API.
+-   **RAGFlow MCP Server**: A dedicated MCP server is available to bridge Claude/Agents directly to RAGFlow capabilities. Configure via `mcp-config.json` in `agentic-workstation`.
+
+**Recommendations:**
+-   **Startup Dependency**: RAGFlow has a heavy startup time (ES + MySQL). VisionFlow agents relying on RAG should implement a "wait-for-ready" logic or retry mechanism when querying the knowledge base on boot.
+-   **Resource Fencing**: RAGFlow's Elasticsearch and MySQL can be memory-intensive. Set explicit memory limits in Docker Compose to prevent OOM kills affecting the core VisionFlow services.
+-   **Data Persistence**: Ensure `ragflow-mysql`, `ragflow-es-01`, and `ragflow-minio` volumes are included in the backup strategy documented in the "Security & Isolation" section.
 
 ---
 
 ## Rust Backend ↔ Agentic Workstation Telemetry & Control Analysis
 
-### Communication Paths
-- **Task orchestration (HTTP)**: VisionFlow Rust backend calls Management API at `agentic-workstation:9090` to create/monitor/terminate tasks (REST + bearer token). If 9090 is down, task creation fails; add retries/backoff and clear error surfacing.
-- **Agent telemetry (MCP TCP)**: AgentMonitorActor (formerly ClaudeFlowActor) polls MCP TCP at `agentic-workstation:9500` (~2s cadence) via JSON-RPC 2.0; read-only, updates graph visualization.
-- **WebSocket relay (optional)**: `/ws/mcp` can proxy to MCP WebSocket (3002) for browser clients when enabled.
+### Communication Architecture
 
-### Current Failure Modes
-- 9090 unreachable → spawn/status calls fail; VisionFlow may return 5xx to clients; no circuit breaker.
-- 9500 unreachable → agent monitor polls fail; UI shows stale/empty agents; no exponential backoff → noisy logs.
-- Partial starts → VisionFlow may boot before Management API/MCP are ready; initial polls fail until manual retry.
-- Auth gaps → missing/invalid Management API token causes 401; retries may hammer API without backoff.
+1.  **Task Orchestration (Control Plane)**:
+    -   **Direction**: VisionFlow (Rust) → Agentic Workstation (Node.js)
+    -   **Protocol**: HTTP REST
+    -   **Endpoint**: `http://agentic-workstation:9090`
+    -   **Function**: VisionFlow requests task creation, monitoring, and termination.
+    -   **Auth**: Bearer Token (shared secret).
+    -   **Risk**: Synchronous coupling. If 9090 is down, user actions in VisionFlow (e.g., "Spawn Agent") fail immediately.
 
-### Recommendations for Telemetry Robustness
-- Add exponential backoff with jitter for MCP polling; mark UI state as "degraded" after a threshold of MCP failures.
-- Provide a lightweight `/telemetry/agent-status` on Management API that VisionFlow can poll/subscribe to as a fallback when MCP is unavailable.
-- Standardize JSON schema for agent metrics (status, CPU/GPU, queue depth, errors) and persist recent samples to `visionflow-logs` for postmortems.
-- Enforce request timeouts (e.g., 5–10s) and capped retries for Management API calls; return typed errors to clients.
-- Security: in production, use mutual auth or signed tokens for MCP WS/TCP; restrict MCP to `docker_ragflow` only (no host publish).
+2.  **Agent Telemetry (Observability Plane)**:
+    -   **Direction**: VisionFlow (Rust) → Agentic Workstation (MCP Server)
+    -   **Protocol**: JSON-RPC 2.0 over TCP (Connection-oriented)
+    -   **Endpoint**: `agentic-workstation:9500`
+    -   **Component**: `AgentMonitorActor` (Rust) polls/subscribes.
+    -   **Function**: Real-time updates of agent status, health, and logs for visualization.
+    -   **Risk**: Polling overhead or connection drops causing "stale" UI state.
 
-### Suggested Bring-up Order (Control/Data Plane)
+3.  **WebSocket Relay (Real-time Feedback)**:
+    -   **Direction**: Agentic Workstation → VisionFlow → Browser
+    -   **Protocol**: WebSocket
+    -   **Endpoint**: `/ws/mcp` (proxied)
+    -   **Function**: Streaming logs/tokens directly to the user interface.
+
+### Failure Mode Analysis
+
+| Failure Scenario | Symptom | Current Behavior | Risk Level |
+| :--- | :--- | :--- | :--- |
+| **9090 Unreachable** | Task spawning fails | VisionFlow returns 5xx error to client immediately. No retry. | High (UX Impact) |
+| **9500 Unreachable** | Stale Agent UI | Agent monitor polls fail. UI shows empty or frozen agent list. Log spam in Rust backend. | Medium (Visibility) |
+| **Partial Startup** | Connection Refused | VisionFlow starts before Agentic Workstation. Initial polls fail continuously until manual restart or lucky timing. | High (Reliability) |
+| **Auth Mismatch** | 401 Unauthorized | Token mismatch between `.env` files. Requests fail permanently. | High (Config) |
+| **Actor Crash** | Message Loss | Internal Actor (`AgentMonitor`) crashes on panic (e.g., unwrap). Telemetry stops until service restart. | Critical (Stability) |
+
+### Robustness Recommendations
+
+1.  **Resilient Polling & Backoff**:
+    -   Implement **Exponential Backoff with Jitter** for the `AgentMonitorActor`'s TCP connection logic. Do not hammer a down service.
+    -   Add a **Circuit Breaker**: If 9500 is unreachable for >30s, stop polling, mark system as "Degraded" in UI, and try a slow heartbeat (e.g., every 30s) instead of 2s.
+
+2.  **Dual-Path Monitoring**:
+    -   Expose a lightweight `/telemetry/agent-status` endpoint on the Management API (9090).
+    -   VisionFlow can fallback to polling this HTTP endpoint if the high-fidelity MCP TCP connection (9500) is lost, ensuring *some* visibility is maintained.
+
+3.  **Structured & Persisted Events**:
+    -   Standardize the JSON schema for agent metrics (status, CPU/GPU, queue depth, errors).
+    -   Persist a ring buffer of recent samples to `visionflow-logs`. This allows post-mortem analysis of *why* an agent crashed, even if the realtime stream is gone.
+
+4.  **Strict Timeouts & Error Handling**:
+    -   Enforce strict timeouts (e.g., 5s) on all Management API calls.
+    -   Wrap all MCP Actor logic in `Result` types; remove any `unwrap()` calls that could panic on network data. Return typed, actionable errors to the frontend (e.g., "Agent Service Unreachable" vs "Task Failed").
+
+5.  **Secure Production Transport**:
+    -   In production, upgrade MCP TCP/WS to use **Mutual TLS (mTLS)**.
+    -   Ensure `docker_ragflow` network isolation prevents any external entity from connecting to the MCP port.
+
+### Proposed Bring-up Sequence
+
+To eliminate "Partial Startup" race conditions:
+
 ```mermaid
 graph TB
     subgraph Control_Plane
@@ -544,12 +642,17 @@ graph TB
     MCP --> Telemetry[Agent Metrics]
 ```
 
-Startup order: (1) start `agentic-workstation`, verify `/health` (9090) and MCP (9500); (2) start `visionflow`/`visionflow-production` after control plane healthy; (3) start GUI bridges (9876–9878) and ComfyUI after MCP ready.
+**Recommended Startup Order:**
+1.  **Infrastructure**: Start Databases (Neo4j, Redis, Postgres). Wait for healthy.
+2.  **Agentic Workstation**: Start `agentic-workstation`. Wait for `/health` (9090) AND MCP port (9500) to be open.
+3.  **VisionFlow**: Start `visionflow`/`visionflow-production`. It can now safely connect to 9090/9500 immediately.
+4.  **Extensions**: Optionally start GUI bridges and ComfyUI.
 
 ### Observability Hooks
-- Track MCP poll latency/failures in VisionFlow metrics, tagged by endpoint/transport.
-- Emit Management API call metrics (duration, status) in `/metrics` (Prometheus) for both containers.
-- Supervisord: bound log file sizes and retries for MCP programs; add `startretries` to prevent flapping.
+
+-   **Metrics**: Track "MCP Poll Latency" and "Poll Failure Count" in VisionFlow metrics. Tag by endpoint/transport.
+-   **APM**: Emit Management API call metrics (duration, status code) to Prometheus (`/metrics`).
+-   **Supervisord**: Configure `stdout_logfile_maxbytes` and `stdout_logfile_backups` for all MCP programs to prevent disk fill. Use `startretries` to handle transient startup failures gracefully.
 
 ---
 
