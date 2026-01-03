@@ -1090,6 +1090,14 @@ Built on the work of:
 - **[graph_RAG](https://github.com/nemegrod/graph_RAG)** — Natural language queries
 - **[Semantic RAG Research](https://github.com/glacier-creative-git/knowledge-graph-traversal-semantic-rag-research)** — Intelligent pathfinding
 
+### Third-Party Components
+
+| Component | Version | License | Purpose |
+|:---|:---|:---|:---|
+| **[JavaScriptSolidServer](https://github.com/JavaScriptSolidServer/JavaScriptSolidServer)** | 0.0.46 | AGPL-3.0 | Solid Protocol pod storage for user data sovereignty |
+
+**JavaScriptSolidServer (JSS)** provides W3C Solid Protocol compliant pod storage, enabling users to control their own data. The JSS source is vendored in `JavaScriptSolidServer/` and deployed as part of the Docker stack. See [`JavaScriptSolidServer/LOCAL_CHANGES.md`](JavaScriptSolidServer/LOCAL_CHANGES.md) for integration details and AGPL-3.0 compliance information.
+
 Special thanks to **Prof. Rob Aspin** for research in immersive knowledge visualization.
 
 ---
