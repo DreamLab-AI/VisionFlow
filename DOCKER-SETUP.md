@@ -742,3 +742,213 @@ mcpConnected: mcpConnectionStatus,
 | `multi-agent-docker/unified-config/supervisord.unified.conf` | Added `[program:mcp-gateway]` service |
 | `client/src/features/bots/components/MultiAgentInitializationPrompt.tsx` | Fixed response unwrapping for MCP status |
 | `client/src/features/bots/contexts/BotsDataContext.tsx` | Fixed mcpConnected to use actual API status |
+
+---
+
+## 10. System Integration Gap Analysis (2026-01-03)
+
+### Voice System (Kokoro TTS / Whisper STT)
+
+**Status**: Backend architecture 60% complete, operational infrastructure missing.
+
+#### What Exists
+| Component | Location | Status |
+|-----------|----------|--------|
+| Voice command parser | `src/actors/voice_commands.rs` | ✓ Complete |
+| Audio processor (WAV) | `src/utils/audio_processor.rs` | ✓ Complete |
+| Kokoro TTS config | `src/config/mod.rs` (KokoroSettings) | ✓ Configured |
+| Whisper STT config | `src/config/mod.rs` (WhisperSettings) | ✓ Configured |
+| Speech service | `src/services/speech_service.rs` | ✓ Partial |
+| WebSocket handler | `src/handlers/speech_socket_handler.rs` | ✓ Implemented |
+| Voice tag manager | `src/services/voice_tag_manager.rs` | ✓ Implemented |
+| AudioContextManager | `client/src/services/AudioContextManager.ts` | ✓ Implemented |
+
+#### Critical Gaps
+| Gap | Impact | Priority |
+|-----|--------|----------|
+| **Voice-to-swarm bridge broken** | `speech_voice_integration.rs` returns "Voice command processing is currently unavailable" - SupervisorActor handler removed | CRITICAL |
+| **No Docker services** | Kokoro/Whisper containers not defined in docker-compose | HIGH |
+| **No MCP voice tools** | No voice/TTS/STT MCP servers in `mcp-infrastructure/servers/` | HIGH |
+| **No REST API endpoints** | Missing `/api/voice/*` endpoints | HIGH |
+| **No client voice UI** | No microphone permission handling, recording UI, or transcription display | MEDIUM |
+| **Integration tests disabled** | `tests/voice_agent_integration_test.rs` commented out | LOW |
+
+#### Required Docker Services
+```yaml
+# Add to docker-compose.unified.yml
+kokoro-tts:
+  image: remsky/kokoro-fastapi-gpu:latest
+  container_name: kokoro-tts-container
+  networks:
+    - docker_ragflow
+  ports:
+    - "8880:8880"
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - capabilities: [gpu]
+  healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost:8880/health"]
+    interval: 30s
+    timeout: 10s
+    retries: 3
+
+whisper-stt:
+  image: registry.gitlab.com/aadnk/whisper-webui:latest
+  container_name: whisper-webui
+  networks:
+    - docker_ragflow
+  ports:
+    - "7860:7860"
+  healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost:7860/"]
+    interval: 30s
+    timeout: 10s
+    retries: 3
+```
+
+---
+
+### RAGFlow Knowledge Management
+
+**Status**: Configuration documented, NO functional implementation.
+
+#### What Exists
+| Component | Location | Status |
+|-----------|----------|--------|
+| RAGFlow config declaration | `multi-agent-docker/config/gemini-flow.config.ts` | Config only |
+| Network reference | `docker_ragflow` network | ✓ Exists |
+| Vector packages installed | `ruvector`, `agentdb`, `@ruvector/gnn` | Installed but unused |
+| AgentDB skills | `skills/agentic-lightning/`, `skills/agentdb-*/` | Isolated |
+
+#### Critical Gaps
+| Gap | Impact | Priority |
+|-----|--------|----------|
+| **No RAGFlow MCP server** | Cannot query knowledge base from agents | CRITICAL |
+| **No API endpoints** | Missing `/api/ragflow/*` routes in management API | HIGH |
+| **No vector embedding tools** | RuVector/AgentDB not exposed via MCP | HIGH |
+| **No semantic search** | No retrieval-augmented generation workflow | HIGH |
+| **No client interface** | No knowledge base query UI | MEDIUM |
+| **Skills isolated** | AgentDB skills not integrated into main MCP server | MEDIUM |
+
+#### Required Implementation
+```javascript
+// mcp-infrastructure/servers/implementations/ragflow-tools.js
+// Add tools:
+// - ragflow_query: Semantic search against knowledge base
+// - ragflow_ingest: Document ingestion pipeline
+// - ragflow_status: Service health and stats
+// - vector_embed: Generate embeddings via RuVector
+// - knowledge_search: Hybrid search (keyword + semantic)
+```
+
+```javascript
+// management-api/routes/ragflow.js
+// Add endpoints:
+// POST /api/ragflow/query - Knowledge base query
+// POST /api/ragflow/ingest - Document ingestion
+// GET /api/ragflow/status - Service health
+// GET /api/ragflow/collections - List collections
+```
+
+---
+
+### Docker Network Communication Gaps
+
+#### Missing Service Definitions
+
+| Service Reference | Used In | Status |
+|-------------------|---------|--------|
+| `mcp-orchestrator:9001` | `ORCHESTRATOR_WS_URL` in docker-compose | **NOT DEFINED** |
+| `multi-agent-container:3002` | `BOTS_ORCHESTRATOR_URL` in docker-compose.dev.yml | **NOT DEFINED** |
+| `mcp-relay` | Implied by fallback logic | **NOT DEFINED** |
+
+**Current Behavior**: Code falls back to mock data (`MCP_RELAY_FALLBACK_TO_MOCK: true`) masking the missing services.
+
+#### Hardcoded Localhost References (CRITICAL)
+
+| File | Issue | Fix |
+|------|-------|-----|
+| `multi-agent-docker/docker-compose.unified.yml:103` | `ZAI_CONTAINER_URL: http://localhost:9600` | Change to `http://agentic-workstation:9600` |
+| `multi-agent-docker/mcp-infrastructure/mcp.json:64,79` | `ZAI_URL: http://localhost:9600/chat` | Change to container hostname |
+| `docker-compose.unified.yml` health checks | Use `localhost` inside containers | Works (self-reference), but inconsistent |
+
+#### Environment Variable Conflicts
+
+```bash
+# CONFLICT: dev vs unified profiles use different hostnames
+# docker-compose.yml / .env
+CLAUDE_FLOW_HOST=agentic-workstation
+BOTS_ORCHESTRATOR_URL=ws://agentic-workstation:3002/ws
+
+# docker-compose.dev.yml (OVERRIDES with different service!)
+CLAUDE_FLOW_HOST=multi-agent-container
+BOTS_ORCHESTRATOR_URL=ws://multi-agent-container:3002/ws
+```
+
+**Impact**: Switching between dev/unified profiles causes connection failures.
+
+#### Port Exposure Issues
+
+| Port | Service | Issue |
+|------|---------|-------|
+| 24678 | Vite HMR | **Not mapped** - Hot reload breaks in dev |
+| 7687 | Neo4j Bolt | **Exposed externally** - Security risk |
+| 9600 | Z.AI | Correctly internal-only ✓ |
+| 9500 | MCP TCP | Correctly internal-only ✓ |
+
+#### Missing Health Check Dependencies
+
+```yaml
+# Current (incomplete)
+visionflow:
+  depends_on:
+    neo4j:
+      condition: service_healthy
+
+# Should also include:
+visionflow:
+  depends_on:
+    neo4j:
+      condition: service_healthy
+    jss:
+      condition: service_healthy
+    agentic-workstation:
+      condition: service_healthy  # For MCP/Management API
+```
+
+#### Security Issues in Version Control
+
+| Issue | File | Risk |
+|-------|------|------|
+| `MANAGEMENT_API_KEY: change-this-secret-key` | `multi-agent-docker/.env` | Credential exposed |
+| Neo4j Bolt port 7687 exposed | `docker-compose.unified.yml` | DB accessible externally |
+| Default VNC password | Various configs | Known credentials |
+
+---
+
+### Recommended Priority Fixes
+
+#### P0 - Critical (Blocks Core Functionality)
+1. Define `mcp-orchestrator` service or document why external
+2. Fix `ZAI_CONTAINER_URL` localhost reference
+3. Restore voice-to-swarm bridge in `speech_voice_integration.rs`
+
+#### P1 - High (Feature Gaps)
+1. Create RAGFlow MCP server with query/ingest tools
+2. Add Kokoro/Whisper Docker services
+3. Expose vector operations via MCP tools
+4. Add `/api/ragflow/*` and `/api/voice/*` endpoints
+
+#### P2 - Medium (Reliability)
+1. Add transitive health check dependencies
+2. Map HMR port 24678 for dev profile
+3. Unify hostname variables across profiles
+4. Create network aliases for all services
+
+#### P3 - Low (Hardening)
+1. Move secrets to `.env.local` (gitignored)
+2. Restrict Neo4j Bolt to internal network
+3. Add service aliases for DNS redundancy
+4. Reduce health check `start_period` from 120s

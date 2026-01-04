@@ -60,9 +60,9 @@ services:
       - NEO4J_PLUGINS=["apoc"]
       # Transaction timeout
       - NEO4J_dbms_transaction_timeout=${NEO4J_TX_TIMEOUT:-120s}
-      # Logging
-      - NEO4J_server_logs_user_stdout_enabled=true
-      - NEO4J_server_logs_debug_enabled=${NEO4J_DEBUG:-false}
+      # Logging (disabled deprecated settings for Neo4j 5.x)
+      # - NEO4J_server_logs_user_stdout_enabled=true
+      - NEO4J_dbms_logs_debug_level=${NEO4J_DEBUG:-INFO}
     ports:
       - "${NEO4J_HTTP_PORT:-7474}:7474"   # HTTP (Neo4j Browser)
       - "${NEO4J_BOLT_PORT:-7687}:7687"   # Bolt protocol

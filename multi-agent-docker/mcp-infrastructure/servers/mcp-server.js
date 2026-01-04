@@ -49,6 +49,23 @@ await import('./implementations/workflow-tools.js').catch(() => {
   }
 });
 
+// Initialize RAGFlow integration (docker_ragflow network)
+await import('./implementations/ragflow-tools.js').catch(() => {
+  // If ES module import fails, try require
+  try {
+    require('./implementations/ragflow-tools');
+  } catch (e) {
+    console.log('RAGFlow tools not loaded');
+  }
+});
+
+// PATCHED: Verify RAGFlow manager is available
+if (global.ragflowManager) {
+  console.error(`[${new Date().toISOString()}] INFO [claude-flow-mcp] RAGFlow manager verified and ready`);
+} else {
+  console.error(`[${new Date().toISOString()}] WARN [claude-flow-mcp] RAGFlow manager NOT available - RAG tools will not work`);
+}
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -942,6 +959,70 @@ class ClaudeFlowMCPServer {
         name: 'diagnostic_run',
         description: 'System diagnostics',
         inputSchema: { type: 'object', properties: { components: { type: 'array' } } },
+      },
+
+      // RAGFlow Knowledge Base Tools (docker_ragflow network)
+      ragflow_status: {
+        name: 'ragflow_status',
+        description: 'Check RAGFlow service health and connection status',
+        inputSchema: { type: 'object', properties: {} },
+      },
+      ragflow_query: {
+        name: 'ragflow_query',
+        description: 'Query the RAGFlow knowledge base with semantic search',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            query: { type: 'string', description: 'Search query' },
+            knowledgeBase: { type: 'string', description: 'Knowledge base ID (optional)' },
+            topK: { type: 'number', description: 'Number of results (default: 5)' },
+          },
+          required: ['query'],
+        },
+      },
+      ragflow_list_kb: {
+        name: 'ragflow_list_kb',
+        description: 'List available knowledge bases in RAGFlow',
+        inputSchema: { type: 'object', properties: {} },
+      },
+      ragflow_create_kb: {
+        name: 'ragflow_create_kb',
+        description: 'Create a new knowledge base in RAGFlow',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            name: { type: 'string', description: 'Knowledge base name' },
+            description: { type: 'string', description: 'Description' },
+            embeddingModel: { type: 'string', description: 'Embedding model ID' },
+          },
+          required: ['name'],
+        },
+      },
+      ragflow_ingest: {
+        name: 'ragflow_ingest',
+        description: 'Upload and ingest document into knowledge base',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            kbId: { type: 'string', description: 'Knowledge base ID' },
+            content: { type: 'string', description: 'Document content' },
+            filename: { type: 'string', description: 'Document filename' },
+          },
+          required: ['kbId', 'content'],
+        },
+      },
+      ragflow_chat: {
+        name: 'ragflow_chat',
+        description: 'Chat with RAGFlow assistant using RAG-enhanced responses',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            message: { type: 'string', description: 'User message' },
+            assistantId: { type: 'string', description: 'Assistant ID' },
+            conversationId: { type: 'string', description: 'Conversation ID for context' },
+          },
+          required: ['message'],
+        },
       },
     };
   }
@@ -1917,7 +1998,68 @@ class ClaudeFlowMCPServer {
           error: 'Performance monitor not initialized',
           timestamp: new Date().toISOString(),
         };
-        
+
+      // RAGFlow Tools Implementation (docker_ragflow network)
+      case 'ragflow_status':
+        if (global.ragflowManager) {
+          return global.ragflowManager.ragflow_status();
+        }
+        return {
+          success: false,
+          error: 'RAGFlow manager not initialized',
+          timestamp: new Date().toISOString(),
+        };
+
+      case 'ragflow_query':
+        if (global.ragflowManager) {
+          return global.ragflowManager.ragflow_query(args.query, args.knowledgeBase, args.topK);
+        }
+        return {
+          success: false,
+          error: 'RAGFlow manager not initialized',
+          timestamp: new Date().toISOString(),
+        };
+
+      case 'ragflow_list_kb':
+        if (global.ragflowManager) {
+          return global.ragflowManager.ragflow_list_kb();
+        }
+        return {
+          success: false,
+          error: 'RAGFlow manager not initialized',
+          timestamp: new Date().toISOString(),
+        };
+
+      case 'ragflow_create_kb':
+        if (global.ragflowManager) {
+          return global.ragflowManager.ragflow_create_kb(args.name, args.description, args.embeddingModel);
+        }
+        return {
+          success: false,
+          error: 'RAGFlow manager not initialized',
+          timestamp: new Date().toISOString(),
+        };
+
+      case 'ragflow_ingest':
+        if (global.ragflowManager) {
+          return global.ragflowManager.ragflow_ingest(args.kbId, args.content, args.filename);
+        }
+        return {
+          success: false,
+          error: 'RAGFlow manager not initialized',
+          timestamp: new Date().toISOString(),
+        };
+
+      case 'ragflow_chat':
+        if (global.ragflowManager) {
+          return global.ragflowManager.ragflow_chat(args.message, args.assistantId, args.conversationId);
+        }
+        return {
+          success: false,
+          error: 'RAGFlow manager not initialized',
+          timestamp: new Date().toISOString(),
+        };
+
       default:
         return {
           success: true,
