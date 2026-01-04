@@ -121,15 +121,16 @@ class NostrAuthService {
       if (storedUser) {
         logger.info(`Verifying stored session for pubkey: ${storedUser.pubkey}`);
         try {
-          
-          const verificationResponse = await unifiedApiClient.postData<VerifyResponse>('/auth/nostr/verify', {
+          // Backend wraps response in StandardResponse { success, data, error, timestamp }
+          const rawResponse = await unifiedApiClient.postData<{ success: boolean; data: VerifyResponse }>('/auth/nostr/verify', {
             pubkey: storedUser.pubkey,
             token: storedToken
           });
+          const verificationResponse = rawResponse.data;
 
-          if (verificationResponse.valid) { 
+          if (verificationResponse?.valid) {
             this.sessionToken = storedToken;
-            if (verificationResponse.user) { 
+            if (verificationResponse.user) {
               this.currentUser = {
                 pubkey: verificationResponse.user.pubkey,
                 npub: verificationResponse.user.npub || this.hexToNpub(verificationResponse.user.pubkey),
@@ -137,22 +138,18 @@ class NostrAuthService {
               };
               logger.info('Token verified and user details updated from backend.');
             } else if (storedUser) {
-              
-              
-              this.currentUser = storedUser; 
+              this.currentUser = storedUser;
               logger.info('Token verified, using stored user details as backend did not provide them on verify.');
             } else {
-              
               logger.error('Token verified but no user details available from backend or local storage. Clearing session.');
               this.clearSession();
               this.notifyListeners({ authenticated: false, error: 'User details missing after verification' });
-              return; 
+              return;
             }
-            this.storeCurrentUser(); 
+            this.storeCurrentUser();
             this.notifyListeners(this.getCurrentAuthState());
             logger.info('Restored and verified session from local storage.');
           } else {
-            
             logger.warn('Stored session token is invalid (verification failed), clearing session.');
             this.clearSession();
             this.notifyListeners({ authenticated: false });
@@ -223,10 +220,16 @@ class NostrAuthService {
 
       
       logger.info(`Sending auth event to backend for pubkey: ${pubkey}`);
-      const response = await unifiedApiClient.postData<AuthResponse>('/auth/nostr', eventPayload);
+      const rawResponse = await unifiedApiClient.postData<{ success: boolean; data: AuthResponse }>('/auth/nostr', eventPayload);
+
+      // Backend wraps response in StandardResponse { success, data, error, timestamp }
+      const response = rawResponse.data;
+      if (!response?.user) {
+        throw new Error('Invalid auth response: missing user data');
+      }
       logger.info(`Backend auth successful for pubkey: ${response.user.pubkey}`);
 
-      
+
       this.sessionToken = response.token;
       this.currentUser = {
         pubkey: response.user.pubkey,

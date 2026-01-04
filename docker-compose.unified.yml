@@ -219,11 +219,11 @@ services:
       - visionflow-logs:/app/logs
     ports:
       # Production: Only API port
-      - "${PROD_API_PORT:-4000}:4000"
+      - "${PROD_API_PORT:-3001}:3001"
     networks:
       docker_ragflow:
         aliases:
-          - ${NETWORK_ALIAS:-webxr-prod}
+          - ${NETWORK_ALIAS:-webxr}
     deploy:
       <<: *gpu-resources
       resources:
@@ -236,7 +236,11 @@ services:
     runtime: nvidia
     restart: unless-stopped
     healthcheck:
-      <<: *common-healthcheck
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     logging:
       <<: *common-logging
     profiles:

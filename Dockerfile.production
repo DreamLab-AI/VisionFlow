@@ -41,6 +41,9 @@ RUN --mount=type=cache,target=/root/.cargo/registry \
     --mount=type=cache,target=/root/.cargo/git \
     cargo fetch
 
+# Set DOCKER_BUILD to skip preinstall security check (test packages not executed in production)
+ENV DOCKER_BUILD=1
+
 RUN --mount=type=cache,target=/root/.npm \
     cd client && npm ci
 
@@ -92,6 +95,6 @@ COPY nginx.production.conf /etc/nginx/nginx.conf
 COPY scripts/production-startup.sh /app/start.sh
 RUN chmod +x /app/start.sh
 
-EXPOSE 4000
+EXPOSE 3001
 
 ENTRYPOINT ["/app/start.sh"]

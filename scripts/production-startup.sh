@@ -20,24 +20,19 @@ fi
 # Create necessary directories
 mkdir -p /app/logs /var/log/nginx /var/run/nginx
 
-# Build the production binary if not exists
-if [ ! -f /app/target/release/webxr ]; then
-    log "Building production binary..."
-    cd /app
-    cargo build --release --features gpu
+# Verify the pre-built production binary exists
+if [ ! -f /app/webxr ]; then
+    log "ERROR: Production binary /app/webxr not found!"
+    exit 1
 else
-    log "Using existing production binary"
+    log "Using pre-built production binary"
 fi
 
-# Copy PTX files from build output to expected locations
-log "Ensuring PTX files are in place..."
-mkdir -p /app/src/utils/ptx
-find /app/target/release/build -name 'visionflow_unified.ptx' -exec cp {} /app/src/utils/ptx/ \; 2>/dev/null || true
+# Verify PTX files are in place (copied during Docker build)
 if [ -f /app/src/utils/ptx/visionflow_unified.ptx ]; then
-    log "PTX file copied successfully"
-    ls -la /app/src/utils/ptx/
+    log "PTX file present"
 else
-    log "WARNING: PTX file not found in build output"
+    log "WARNING: PTX file not found - GPU features may not work"
 fi
 
 # Use supervisord for production
@@ -48,9 +43,9 @@ else
     # Fallback to direct execution
     log "Starting services directly (no supervisord config found)..."
 
-    # Start Rust backend on port 4001
+    # Start Rust backend on port 4001 (nginx needs 4000, backend on 4001)
     log "Starting Rust backend on port 4001..."
-    RUST_LOG=warn /app/target/release/webxr --port 4001 --gpu-debug &
+    SYSTEM_NETWORK_PORT=4001 RUST_LOG=warn /app/webxr --gpu-debug &
     BACKEND_PID=$!
 
     # Wait for backend to be ready
@@ -69,7 +64,7 @@ else
         exit 1
     fi
 
-    # Start nginx on port 4000 to serve frontend and proxy API
-    log "Starting nginx on port 4000..."
+    # Start nginx on port 3001 to serve frontend and proxy API (cloudflared interface)
+    log "Starting nginx on port 3001..."
     nginx -g "daemon off;"
 fi
