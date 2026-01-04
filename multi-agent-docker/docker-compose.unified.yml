@@ -51,6 +51,9 @@ services:
       # Host Claude config (read-write mount - single source of truth)
       - ${HOST_CLAUDE_DIR:-${HOME}/.claude}:/home/devuser/.claude:rw
 
+      # Host Claude desktop config (for additional config)
+      - ${HOME}/.config/claude:/home/devuser/.config/claude:rw
+
       # User-specific workspaces
       - gemini-workspace:/home/gemini-user/workspace:rw
       - openai-workspace:/home/openai-user/workspace:rw

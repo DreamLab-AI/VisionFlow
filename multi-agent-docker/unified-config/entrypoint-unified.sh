@@ -241,12 +241,33 @@ if [ -d "/home/devuser/.claude" ]; then
     find /home/devuser/.claude -name node_modules -prune -o -type f -writable -exec chown devuser:devuser {} + 2>/dev/null
     find /home/devuser/.claude -name node_modules -prune -o -type d -writable -exec chown devuser:devuser {} + 2>/dev/null
     set -e
+
+    # Ensure Claude Code credentials have proper permissions
+    if [ -f "/home/devuser/.claude/.credentials.json" ]; then
+        chmod 600 /home/devuser/.claude/.credentials.json 2>/dev/null || true
+        echo "  - OAuth credentials: .credentials.json found"
+    else
+        echo "  ⚠️  No .credentials.json found - Claude Code will require login"
+    fi
+
+    # Ensure settings files are accessible
+    if [ -f "/home/devuser/.claude/settings.json" ]; then
+        chmod 644 /home/devuser/.claude/settings.json 2>/dev/null || true
+        echo "  - Settings: settings.json found"
+    fi
+
     echo "✓ Host Claude configuration mounted at /home/devuser/.claude (read-write)"
 else
     # Create directory if mount failed
     mkdir -p /home/devuser/.claude/skills
     chown -R devuser:devuser /home/devuser/.claude
     echo "⚠️  Claude config directory created (host mount not detected)"
+fi
+
+# Setup ~/.config/claude if mounted
+if [ -d "/home/devuser/.config/claude" ]; then
+    chown -R devuser:devuser /home/devuser/.config/claude 2>/dev/null || true
+    echo "✓ Claude desktop config mounted at /home/devuser/.config/claude"
 fi
 
 # ============================================================================
@@ -343,6 +364,11 @@ export OPENAI_CODEX_SOCKET="/var/run/agentic-services/openai-codex.sock"
 # Display and supervisorctl configuration
 export DISPLAY=:1
 alias supervisorctl="/opt/venv/bin/supervisorctl"
+
+# Claude Code aliases (non-interactive mode works with existing OAuth credentials)
+alias dsp="claude --dangerously-skip-permissions"
+alias claude-ask='f() { echo "$1" | claude -p --dangerously-skip-permissions; }; f'
+alias claude-chat='claude --dangerously-skip-permissions --continue'
 ENV_EXPORTS
 
 # ============================================================================
