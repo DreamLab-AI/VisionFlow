@@ -15,10 +15,25 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 COMPOSE_FILE="$PROJECT_ROOT/docker-compose.unified.yml"
 CONTAINER_NAME="visionflow_container"
+AGENT_CONTAINER="agentic-workstation"
+AGENT_COMPOSE_FILE="$PROJECT_ROOT/multi-agent-docker/docker-compose.unified.yml"
 
 # Default values
 COMMAND="${1:-up}"
 ENVIRONMENT="${2:-dev}"
+WITH_AGENT=false
+
+# Check for --with-agent flag in any position
+for arg in "$@"; do
+    if [[ "$arg" == "--with-agent" ]]; then
+        WITH_AGENT=true
+    fi
+done
+
+# Adjust ENVIRONMENT if it was set to --with-agent
+if [[ "$ENVIRONMENT" == "--with-agent" ]]; then
+    ENVIRONMENT="dev"
+fi
 
 # Logging functions
 log() {
@@ -52,15 +67,16 @@ ${YELLOW}Usage:${NC}
     ./launch.unified.sh [COMMAND] [ENVIRONMENT]
 
 ${YELLOW}Commands:${NC}
-    ${GREEN}up${NC}         Start the environment (default)
-    ${GREEN}down${NC}       Stop and remove containers
-    ${GREEN}build${NC}      Build containers
-    ${GREEN}rebuild${NC}    Rebuild containers (no cache)
-    ${GREEN}logs${NC}       Show container logs (follow mode)
-    ${GREEN}shell${NC}      Open interactive shell in container
-    ${GREEN}restart${NC}    Restart the environment
-    ${GREEN}status${NC}     Show container status and URLs
-    ${GREEN}clean${NC}      Clean all containers, volumes, and images
+    ${GREEN}up${NC}             Start the environment (default)
+    ${GREEN}down${NC}           Stop and remove containers
+    ${GREEN}build${NC}          Build containers
+    ${GREEN}rebuild${NC}        Rebuild containers (no cache)
+    ${GREEN}logs${NC}           Show container logs (follow mode)
+    ${GREEN}shell${NC}          Open interactive shell in container
+    ${GREEN}restart${NC}        Restart the environment
+    ${GREEN}restart-agent${NC}  Restart the agentic-workstation container
+    ${GREEN}status${NC}         Show container status and URLs
+    ${GREEN}clean${NC}          Clean all containers, volumes, and images
 
 ${YELLOW}Environments:${NC}
     ${GREEN}dev${NC}        Development environment (default)
@@ -75,14 +91,19 @@ ${YELLOW}Environments:${NC}
                 - Restart policy: unless-stopped
                 - Optimized builds
 
+${YELLOW}Flags:${NC}
+    ${GREEN}--with-agent${NC}   Also restart the agentic-workstation container
+
 ${YELLOW}Examples:${NC}
     ./launch.unified.sh                    ${CYAN}# Start dev environment${NC}
     ./launch.unified.sh up dev             ${CYAN}# Start dev environment${NC}
+    ./launch.unified.sh up dev --with-agent ${CYAN}# Start dev + restart agent${NC}
     ./launch.unified.sh build prod         ${CYAN}# Build production${NC}
     ./launch.unified.sh rebuild prod       ${CYAN}# Rebuild production (no cache)${NC}
     ./launch.unified.sh logs dev           ${CYAN}# View dev logs${NC}
     ./launch.unified.sh shell prod         ${CYAN}# Open prod shell${NC}
     ./launch.unified.sh restart dev        ${CYAN}# Restart dev${NC}
+    ./launch.unified.sh restart-agent      ${CYAN}# Restart agentic-workstation${NC}
     ./launch.unified.sh clean              ${CYAN}# Clean everything${NC}
 
 ${YELLOW}Environment Files:${NC}
@@ -99,7 +120,7 @@ EOF
 # Validate command
 validate_command() {
     case "$COMMAND" in
-        up|down|build|rebuild|logs|shell|restart|status|clean|help|-h|--help)
+        up|down|build|rebuild|logs|shell|restart|restart-agent|status|clean|help|-h|--help)
             if [[ "$COMMAND" == "help" ]] || [[ "$COMMAND" == "-h" ]] || [[ "$COMMAND" == "--help" ]]; then
                 show_help
                 exit 0
@@ -469,6 +490,59 @@ restart_environment() {
     start_environment
 }
 
+# Restart agent container (agentic-workstation)
+restart_agent_container() {
+    log "Restarting agentic-workstation container..."
+
+    # Check if agent compose file exists
+    if [[ ! -f "$AGENT_COMPOSE_FILE" ]]; then
+        error "Agent compose file not found: $AGENT_COMPOSE_FILE"
+        exit 1
+    fi
+
+    # Check if container is running
+    if docker ps --format '{{.Names}}' | grep -q "^${AGENT_CONTAINER}$"; then
+        info "Stopping $AGENT_CONTAINER..."
+        docker stop "$AGENT_CONTAINER"
+        docker rm "$AGENT_CONTAINER"
+    else
+        warning "Container $AGENT_CONTAINER is not running"
+    fi
+
+    # Start the agent container
+    info "Starting $AGENT_CONTAINER..."
+    cd "$PROJECT_ROOT/multi-agent-docker"
+
+    # Load .env from multi-agent-docker
+    if [[ -f ".env" ]]; then
+        set -a
+        source .env
+        set +a
+    fi
+
+    docker compose -f docker-compose.unified.yml up -d
+
+    # Wait for container to start
+    sleep 3
+
+    # Check if container started successfully
+    if docker ps --format '{{.Names}}' | grep -q "^${AGENT_CONTAINER}$"; then
+        success "Container $AGENT_CONTAINER restarted successfully"
+        echo ""
+        info "Services available:"
+        echo "  ${GREEN}SSH:${NC}            ssh devuser@localhost -p 2222"
+        echo "  ${GREEN}VNC:${NC}            localhost:5901"
+        echo "  ${GREEN}code-server:${NC}    http://localhost:8080"
+        echo "  ${GREEN}Management API:${NC} http://localhost:9090"
+        echo ""
+        info "View logs with: docker logs -f $AGENT_CONTAINER"
+    else
+        error "Failed to start $AGENT_CONTAINER"
+        docker compose -f docker-compose.unified.yml logs --tail=50
+        exit 1
+    fi
+}
+
 # Show logs
 show_logs() {
     log "Showing logs for $ENVIRONMENT environment..."
@@ -598,6 +672,11 @@ main() {
         up)
             check_prerequisites
             detect_gpu
+            if [[ "$WITH_AGENT" == "true" ]]; then
+                info "Starting with --with-agent flag"
+                restart_agent_container
+                echo ""
+            fi
             start_environment
             ;;
         down)
@@ -622,7 +701,16 @@ main() {
         restart)
             check_prerequisites
             detect_gpu
+            if [[ "$WITH_AGENT" == "true" ]]; then
+                info "Restarting with --with-agent flag"
+                restart_agent_container
+                echo ""
+            fi
             restart_environment
+            ;;
+        restart-agent)
+            check_prerequisites
+            restart_agent_container
             ;;
         status)
             show_status

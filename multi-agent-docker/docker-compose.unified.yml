@@ -59,8 +59,20 @@ services:
       - model-cache:/home/devuser/models:rw
       - logs:/var/log:rw
 
-      # External project directory (if PROJECT_DIR is set)
+      # External project directories (multiple projects supported)
+      # PROJECT_DIR   -> /home/devuser/workspace/project
+      # PROJECT_DIR_2 -> /home/devuser/workspace/project2
+      # ... up to PROJECT_DIR_10
       - ${PROJECT_DIR:-/tmp/empty}:/home/devuser/workspace/project:rw
+      - ${PROJECT_DIR_2:-/tmp/empty}:/home/devuser/workspace/project2:rw
+      - ${PROJECT_DIR_3:-/tmp/empty}:/home/devuser/workspace/project3:rw
+      - ${PROJECT_DIR_4:-/tmp/empty}:/home/devuser/workspace/project4:rw
+      - ${PROJECT_DIR_5:-/tmp/empty}:/home/devuser/workspace/project5:rw
+      - ${PROJECT_DIR_6:-/tmp/empty}:/home/devuser/workspace/project6:rw
+      - ${PROJECT_DIR_7:-/tmp/empty}:/home/devuser/workspace/project7:rw
+      - ${PROJECT_DIR_8:-/tmp/empty}:/home/devuser/workspace/project8:rw
+      - ${PROJECT_DIR_9:-/tmp/empty}:/home/devuser/workspace/project9:rw
+      - ${PROJECT_DIR_10:-/tmp/empty}:/home/devuser/workspace/project10:rw
 
       # X11 socket for GUI apps (Xwayland compatibility)
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
