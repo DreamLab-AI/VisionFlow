@@ -330,7 +330,7 @@ echo "ℹ️  Claude Flow init started in background (see /var/log/claude-flow-i
 
 # Fix hooks to use global claude-flow instead of npx (prevents cache corruption)
 if [ -f /home/devuser/.claude/settings.json ]; then
-    sed -i 's|npx claude-flow@alpha|claude-flow|g' /home/devuser/.claude/settings.json
+    sed -i 's|npx claude-flow@v3alpha|claude-flow|g' /home/devuser/.claude/settings.json
     chown devuser:devuser /home/devuser/.claude/settings.json
     echo "✓ Hooks updated to use global claude-flow"
 fi

@@ -1,8 +1,8 @@
 services:
   agentic-workstation:
     build:
-      context: .
-      dockerfile: Dockerfile.unified
+      context: ..
+      dockerfile: multi-agent-docker/Dockerfile.unified
       args:
         BUILDKIT_INLINE_CACHE: 1
 

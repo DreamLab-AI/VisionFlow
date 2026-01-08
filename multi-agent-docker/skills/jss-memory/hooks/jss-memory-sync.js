@@ -28,7 +28,7 @@ const CONFIG = {
   solidPodUrl: process.env.SOLID_POD_URL || 'http://localhost:4000/solid',
   nostrToken: process.env.NOSTR_SESSION_TOKEN || '',
   memoryNamespace: 'agent-memory',
-  claudeFlowBin: 'npx claude-flow@alpha',
+  claudeFlowBin: 'npx claude-flow@v3alpha',
   maxRetries: 3,
   retryDelay: 1000,
   cacheDir: process.env.JSS_CACHE_DIR || '/tmp/jss-memory-cache',

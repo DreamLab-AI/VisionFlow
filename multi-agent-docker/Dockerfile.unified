@@ -15,8 +15,8 @@ RUN pacman -Syu --noconfirm && \
         base-devel git vim nano zsh curl wget \
         sudo openssh tmux htop btop ripgrep fd \
         jq yq bat exa fzf \
-        # Build dependencies for node-gyp
-        python make gcc \
+        # Build dependencies for node-gyp (python-setuptools provides distutils for Python 3.13+)
+        python make gcc python-setuptools \
         # Development languages (skip nodejs from pacman, will install v23.11.1 directly)
         python python-pip rustup \
         # Wayland desktop environment (Hyprland)
@@ -168,7 +168,7 @@ RUN echo "devuser ALL=(gemini-user,openai-user,zai-user,deepseek-user) NOPASSWD:
 RUN npm install -g \
     @anthropic-ai/claude-code@latest \
     claude-usage-cli@latest \
-    claude-flow@latest \
+    claude-flow@v3alpha \
     agentdb@latest \
     ruvector@latest \
     @ruvector/gnn@latest \
@@ -185,6 +185,15 @@ RUN npm install -g \
 
 # Install Playwright browsers (skip system deps - already installed via pacman)
 RUN npx -y playwright install chromium
+
+# Install Google Cloud CLI (gcloud) via official installer script
+RUN curl -sSL https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-linux-x86_64.tar.gz -o /tmp/gcloud.tar.gz && \
+    tar -xzf /tmp/gcloud.tar.gz -C /opt && \
+    /opt/google-cloud-sdk/install.sh --quiet --path-update=true && \
+    ln -s /opt/google-cloud-sdk/bin/gcloud /usr/local/bin/gcloud && \
+    ln -s /opt/google-cloud-sdk/bin/gsutil /usr/local/bin/gsutil && \
+    ln -s /opt/google-cloud-sdk/bin/bq /usr/local/bin/bq && \
+    rm /tmp/gcloud.tar.gz
 
 # Clear NPX cache to prevent corruption issues
 RUN rm -rf /root/.npm/_npx /home/devuser/.npm/_npx 2>/dev/null || true
@@ -323,8 +332,8 @@ RUN echo "devuser:turboflow" | chpasswd
 # PHASE 13: Copy Application Files
 # ============================================================================
 
-# Copy skills (build context is multi-agent-docker/, so paths are relative to that)
-COPY --chown=devuser:devuser skills/ /home/devuser/.claude/skills/
+# Copy skills (build context is parent directory, so paths include multi-agent-docker/)
+COPY --chown=devuser:devuser multi-agent-docker/skills/ /home/devuser/.claude/skills/
 
 # Docker manager and chrome-devtools are already in skills/ directory
 # No separate copy needed - they're included in the skills/ copy above
@@ -489,7 +498,7 @@ RUN mkdir -p /opt/antigravity && \
 RUN npm install -g gemini-flow
 
 # Copy helper scripts (includes generate-mcp-settings.sh for dynamic skill discovery)
-COPY --chown=root:root unified-config/scripts/ /usr/local/bin/
+COPY --chown=root:root multi-agent-docker/unified-config/scripts/ /usr/local/bin/
 RUN chmod 755 /usr/local/bin/*.sh && \
     ls -la /usr/local/bin/generate-mcp-settings.sh 2>/dev/null && \
     echo "✓ MCP settings generator installed" || true
@@ -500,19 +509,19 @@ RUN mkdir -p /home/devuser/.ssh && \
     chmod 700 /home/devuser/.ssh
 
 # Copy tmux configuration
-COPY --chown=devuser:devuser unified-config/tmux-autostart.sh /home/devuser/.config/tmux-autostart.sh
+COPY --chown=devuser:devuser multi-agent-docker/unified-config/tmux-autostart.sh /home/devuser/.config/tmux-autostart.sh
 RUN chmod +x /home/devuser/.config/tmux-autostart.sh
 
 # Copy screensaver disable script
-COPY --chown=devuser:devuser unified-config/disable-screensaver.sh /home/devuser/.config/disable-screensaver.sh
+COPY --chown=devuser:devuser multi-agent-docker/unified-config/disable-screensaver.sh /home/devuser/.config/disable-screensaver.sh
 RUN chmod +x /home/devuser/.config/disable-screensaver.sh
 
 # Copy terminal autostart script
-COPY --chown=devuser:devuser unified-config/autostart-terminals.sh /home/devuser/.config/autostart-terminals.sh
+COPY --chown=devuser:devuser multi-agent-docker/unified-config/autostart-terminals.sh /home/devuser/.config/autostart-terminals.sh
 RUN chmod +x /home/devuser/.config/autostart-terminals.sh
 
 # Copy terminal init scripts
-COPY --chown=devuser:devuser unified-config/terminal-init/ /home/devuser/.config/terminal-init/
+COPY --chown=devuser:devuser multi-agent-docker/unified-config/terminal-init/ /home/devuser/.config/terminal-init/
 RUN chmod +x /home/devuser/.config/terminal-init/*.sh && \
     ln -sf /home/devuser/.config/terminal-init/init-claude-main.sh /home/devuser/.config/init-claude-main.sh && \
     ln -sf /home/devuser/.config/terminal-init/init-claude-agent.sh /home/devuser/.config/init-claude-agent.sh && \
@@ -526,23 +535,23 @@ RUN chmod +x /home/devuser/.config/terminal-init/*.sh && \
     ln -sf /home/devuser/.config/terminal-init/init-deepseek.sh /home/devuser/.config/init-deepseek.sh
 
 # Copy Xorg headless configuration
-COPY --chown=root:root unified-config/10-headless.conf /etc/X11/xorg.conf.d/10-headless.conf
+COPY --chown=root:root multi-agent-docker/unified-config/10-headless.conf /etc/X11/xorg.conf.d/10-headless.conf
 
 # Copy Hyprland configuration
-COPY --chown=devuser:devuser unified-config/hyprland.conf /home/devuser/.config/hypr/hyprland.conf
+COPY --chown=devuser:devuser multi-agent-docker/unified-config/hyprland.conf /home/devuser/.config/hypr/hyprland.conf
 
 # Copy Kitty terminal configuration
-COPY --chown=devuser:devuser unified-config/kitty.conf /home/devuser/.config/kitty/kitty.conf
+COPY --chown=devuser:devuser multi-agent-docker/unified-config/kitty.conf /home/devuser/.config/kitty/kitty.conf
 
 # Copy CLAUDE.md to both home and workspace (Claude Code reads from workspace)
-COPY --chown=devuser:devuser CLAUDE.md /home/devuser/CLAUDE.md
-COPY --chown=devuser:devuser CLAUDE.md /home/devuser/workspace/CLAUDE.md
+COPY --chown=devuser:devuser multi-agent-docker/CLAUDE.md /home/devuser/CLAUDE.md
+COPY --chown=devuser:devuser multi-agent-docker/CLAUDE.md /home/devuser/workspace/CLAUDE.md
 
 # ============================================================================
 # PHASE 14: Supervisord Configuration
 # ============================================================================
 
-COPY --chown=root:root unified-config/supervisord.unified.conf /etc/supervisord.conf
+COPY --chown=root:root multi-agent-docker/unified-config/supervisord.unified.conf /etc/supervisord.conf
 
 # ============================================================================
 # PHASE 15: Environment & Runtime Configuration
@@ -608,7 +617,7 @@ VOLUME ["/home/devuser/workspace", \
 # PHASE 17: Entrypoint
 # ============================================================================
 
-COPY --chown=root:root unified-config/entrypoint-unified.sh /entrypoint.sh
+COPY --chown=root:root multi-agent-docker/unified-config/entrypoint-unified.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]

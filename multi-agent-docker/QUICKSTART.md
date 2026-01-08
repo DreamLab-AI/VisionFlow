@@ -207,7 +207,7 @@ cf-swarm "research UK AI regulations using perplexity and create compliance chec
 
 ### Hive Mind Deployment
 ```bash
-npx claude-flow@alpha hive-mind spawn \
+npx claude-flow@v3alpha hive-mind spawn \
   "Market analysis: UK renewable energy sector" \
   --agents 10 \
   --tools perplexity,web-summary \

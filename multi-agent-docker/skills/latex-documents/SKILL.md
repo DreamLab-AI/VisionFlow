@@ -37,7 +37,7 @@ Five agents for document generation:
 ### Claude-Flow Orchestration
 
 ```bash
-npx claude-flow@alpha task orchestrate \
+npx claude-flow@v3alpha task orchestrate \
   --task "Generate research paper on topic X" \
   --strategy sequential \
   --max-agents 5

@@ -1,10 +1,12 @@
 #!/bin/bash
-# Initialize Claude-Flow v110 Goal Planner and SAFLA Neural agents
+# Initialize Claude-Flow v3alpha agents and intelligence system
 # This script sets up the advanced AI capabilities in the Docker environment
 
 set -e
 
-echo "🚀 Initializing Claude-Flow v110 Advanced Agents..."
+echo "========================================"
+echo "  Claude-Flow v3alpha Initialization"
+echo "========================================"
 
 # Function to check if command exists
 command_exists() {
@@ -12,162 +14,150 @@ command_exists() {
 }
 
 # Ensure we're in the workspace directory
-cd /workspace || exit 1
+WORKSPACE="${WORKSPACE_FOLDER:-/workspace}"
+[ -d "$WORKSPACE" ] || WORKSPACE="/home/devuser/workspace"
+[ -d "$WORKSPACE" ] || WORKSPACE="$HOME/workspace"
+cd "$WORKSPACE" || exit 1
 
 # Check if claude-flow is available
-if ! command_exists claude-flow && ! npm list -g claude-flow@alpha >/dev/null 2>&1; then
-    echo "⚠️  claude-flow not found. Installing..."
-    npm install -g claude-flow@alpha || {
+if ! command_exists claude-flow; then
+    echo "⚠️  claude-flow not found. Installing v3alpha..."
+    npm install -g claude-flow@v3alpha || {
         echo "❌ Failed to install claude-flow"
         exit 1
     }
 fi
 
-# Initialize Goal Planner
+# Display version
 echo ""
-echo "🎯 Initializing Goal Planner Agent..."
-echo "   - Applies GOAP with A* pathfinding"
-echo "   - Calculates optimal action sequences"
-echo "   - Adapts dynamically to changing conditions"
+echo "📦 Version: $(claude-flow --version)"
 
-claude-flow goal init --force || {
-    echo "⚠️  Goal Planner may already be initialized"
+# Run system diagnostics
+echo ""
+echo "🔍 Running system diagnostics..."
+claude-flow doctor || {
+    echo "⚠️  Some diagnostics failed (non-critical)"
 }
 
-# Initialize SAFLA Neural Agent
+# Initialize v3 swarm with hierarchical-mesh topology
 echo ""
-echo "🧠 Initializing SAFLA Neural Agent..."
-echo "   - Four-tier memory architecture"
+echo "🐝 Initializing v3 swarm..."
+echo "   - 15-agent hierarchical-mesh coordination"
+echo "   - Flash Attention (2.49x-7.47x speedup)"
+echo "   - AgentDB with HNSW indexing (150x faster)"
+
+claude-flow swarm init --v3-mode || {
+    echo "⚠️  Swarm may already be initialized"
+}
+
+# Bootstrap intelligence from repository
+echo ""
+echo "🧠 Bootstrapping intelligence system..."
 echo "   - Pattern recognition and learning"
-echo "   - Persistent knowledge accumulation"
+echo "   - RuVector HNSW search (150x faster)"
+echo "   - Intelligent routing (90%+ accuracy)"
 
-claude-flow neural init --force || {
-    echo "⚠️  SAFLA Neural may already be initialized"
+claude-flow hooks pretrain 2>/dev/null || {
+    echo "ℹ️  Pretrain requires codebase context"
 }
-
-# Create example configurations
-echo ""
-echo "📝 Creating example configurations..."
-
-# Goal Planner example config
-cat > /workspace/.claude-flow-goal-example.yaml << 'EOF'
-# Example Goal Planner configuration for deployment task
-goal: deploy_application
-initial_state:
-  - code_tested: false
-  - docker_built: false
-  - deployed: false
-  
-desired_state:
-  - deployed: true
-  
-actions:
-  - name: run_tests
-    preconditions:
-      - code_tested: false
-    effects:
-      - code_tested: true
-    cost: 1
-    
-  - name: build_docker
-    preconditions:
-      - code_tested: true
-      - docker_built: false
-    effects:
-      - docker_built: true
-    cost: 2
-    
-  - name: deploy
-    preconditions:
-      - docker_built: true
-      - deployed: false
-    effects:
-      - deployed: true
-    cost: 3
-EOF
-
-# Neural Agent example config
-cat > /workspace/.claude-flow-neural-example.json << 'EOF'
-{
-  "name": "project_assistant",
-  "memory_config": {
-    "vector_dimension": 768,
-    "episodic_retention": 100,
-    "semantic_compression": true,
-    "working_memory_size": 10
-  },
-  "learning_config": {
-    "pattern_threshold": 0.75,
-    "style_adaptation": true,
-    "context_window": 2048
-  }
-}
-EOF
 
 # Verify installation
 echo ""
-echo "✅ Checking agent status..."
+echo "✅ Checking system status..."
 claude-flow status || {
-    echo "⚠️  Could not verify agent status"
+    echo "⚠️  Could not verify system status"
 }
 
 # Create helper functions file
-cat > /workspace/.claude-flow-helpers.sh << 'EOF'
+cat > "$WORKSPACE/.claude-flow-helpers.sh" << 'EOF'
 #!/bin/bash
-# Claude-Flow v110 Helper Functions
+# Claude-Flow v3alpha Helper Functions
 
-# Plan a deployment using Goal Planner
-cf_plan_deployment() {
-    local project="${1:-current}"
-    echo "Planning deployment for $project..."
-    claude-flow goal plan \
-        --config .claude-flow-goal-example.yaml \
-        --project "$project"
+# Run SPARC workflow
+cf_sparc() {
+    local task="${1:-build feature}"
+    echo "Running SPARC workflow for: $task"
+    claude-flow workflow run --template sparc --task "$task"
 }
 
-# Start a learning session with Neural agent
-cf_learn_project() {
-    local context="${1:-.}"
-    echo "Starting learning session for $context..."
-    claude-flow neural learn \
-        --config .claude-flow-neural-example.json \
-        --context "$context"
+# Intelligent task routing
+cf_route() {
+    local task="$1"
+    if [ -z "$task" ]; then
+        echo "Usage: cf_route 'task description'"
+        return 1
+    fi
+    echo "Routing task: $task"
+    claude-flow hooks route --task "$task"
 }
 
-# Query Neural agent memory
-cf_recall() {
+# Search memory
+cf_search() {
     local query="$1"
-    echo "Querying neural memory: $query"
-    claude-flow neural recall --query "$query"
+    if [ -z "$query" ]; then
+        echo "Usage: cf_search 'query'"
+        return 1
+    fi
+    echo "Searching: $query"
+    claude-flow memory search --query "$query"
 }
 
-# Show agent capabilities
-cf_capabilities() {
-    echo "=== Goal Planner Capabilities ==="
-    claude-flow goal capabilities
-    echo ""
-    echo "=== Neural Agent Capabilities ==="
-    claude-flow neural capabilities
+# View metrics dashboard
+cf_metrics() {
+    claude-flow hooks metrics
 }
 
-echo "Claude-Flow v110 helpers loaded. Available commands:"
-echo "  - cf_plan_deployment [project]"
-echo "  - cf_learn_project [context]"
-echo "  - cf_recall <query>"
-echo "  - cf_capabilities"
+# Spawn an agent
+cf_spawn() {
+    local type="${1:-coder}"
+    local name="${2:-agent-$(date +%s)}"
+    echo "Spawning $type agent: $name"
+    claude-flow agent spawn --type "$type" --name "$name"
+}
+
+# List agents
+cf_agents() {
+    claude-flow agent list
+}
+
+# Swarm status
+cf_status() {
+    claude-flow swarm status
+}
+
+# System diagnostics
+cf_doctor() {
+    claude-flow doctor
+}
+
+# Available workflow templates
+cf_templates() {
+    claude-flow workflow template list
+}
+
+echo "Claude-Flow v3alpha helpers loaded. Available commands:"
+echo "  cf_sparc [task]     - Run SPARC workflow"
+echo "  cf_route 'task'     - Intelligent routing"
+echo "  cf_search 'query'   - Search memory"
+echo "  cf_metrics          - View metrics dashboard"
+echo "  cf_spawn [type]     - Spawn agent (coder, tester, etc.)"
+echo "  cf_agents           - List active agents"
+echo "  cf_status           - Swarm status"
+echo "  cf_doctor           - System diagnostics"
+echo "  cf_templates        - List workflow templates"
 EOF
 
-chmod +x /workspace/.claude-flow-helpers.sh
+chmod +x "$WORKSPACE/.claude-flow-helpers.sh"
 
 echo ""
-echo "✨ Claude-Flow v110 agents initialized successfully!"
+echo "✨ Claude-Flow v3alpha initialized successfully!"
 echo ""
-echo "📚 Example configurations created:"
-echo "   - .claude-flow-goal-example.yaml"
-echo "   - .claude-flow-neural-example.json"
-echo "   - .claude-flow-helpers.sh"
+echo "📚 Helper functions created:"
+echo "   source .claude-flow-helpers.sh"
 echo ""
 echo "💡 Quick start:"
-echo "   source .claude-flow-helpers.sh"
-echo "   cf_capabilities"
+echo "   cf_doctor           # System diagnostics"
+echo "   cf_status           # Swarm status"
+echo "   cf_templates        # Available workflows"
+echo "   cf_route 'Fix bug'  # Route task to optimal agent"
 echo ""
