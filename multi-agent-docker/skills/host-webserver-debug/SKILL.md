@@ -24,7 +24,31 @@ triggers:
 
 # Host Webserver Debug Skill
 
-Debug web applications running on the Docker host from inside containers. Bridges HTTPS to HTTP to bypass browser security restrictions, captures screenshots, and provides debugging tools.
+Debug web applications running on the Docker host from inside containers.
+
+## Installation
+
+```bash
+# Install dependencies
+cd /home/devuser/.claude/skills/host-webserver-debug
+npm install
+
+# Add MCP server to Claude Code
+claude mcp add host-webserver-debug -- node /home/devuser/.claude/skills/host-webserver-debug/mcp-server/server.js
+```
+
+### Quick Verification
+
+```bash
+# Detect host gateway IP
+ip route | grep default | awk '{print $3}'
+
+# Test MCP server
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | \
+  node mcp-server/server.js
+```
+
+Bridges HTTPS to HTTP to bypass browser security restrictions, captures screenshots, and provides debugging tools.
 
 ## When to Use This Skill
 

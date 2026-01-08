@@ -19,6 +19,28 @@ dependencies:
 
 Browser automation and visual testing via MCP SDK, with direct browser control on Display :1.
 
+## Installation
+
+```bash
+# Add MCP server to Claude Code
+claude mcp add playwright -- node /home/devuser/.claude/skills/playwright/mcp-server/server.js
+
+# Or for project-specific install
+cd /path/to/skill
+npm install
+```
+
+### Quick Verification
+
+```bash
+# Test browser works on Display :1
+DISPLAY=:1 chromium --no-sandbox https://example.com &
+
+# Test MCP server
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | \
+  DISPLAY=:1 node mcp-server/server.js
+```
+
 ## When to Use This Skill
 
 - Navigate to web pages and capture screenshots
