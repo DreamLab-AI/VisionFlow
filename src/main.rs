@@ -64,6 +64,11 @@ async fn main() -> std::io::Result<()> {
 
     dotenv().ok();
 
+    // Initialize env_logger for console output - MUST be before any log macros
+    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info"))
+        .format_timestamp_millis()
+        .init();
+
     info!("--- Configuration Verification ---");
     info!("MARKDOWN_DIR: {}", webxr::services::file_service::MARKDOWN_DIR);
     info!("METADATA_PATH: {}", "/workspace/ext/data/metadata/metadata.json");

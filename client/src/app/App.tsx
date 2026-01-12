@@ -83,15 +83,25 @@ function App() {
 
   
   const shouldUseImmersiveClient = () => {
+    // Check for desktop force FIRST - allows overriding VR detection
+    const forceDesktop = window.location.search.includes('force=desktop') ||
+                         window.location.search.includes('vr=false') ||
+                         window.location.search.includes('mode=desktop');
+
+    if (forceDesktop) {
+      logger.info('[App] Desktop mode forced via URL parameter');
+      return false;
+    }
+
     const userAgent = navigator.userAgent;
-    
+
     const isQuest3Browser = userAgent.includes('Quest 3') ||
                             userAgent.includes('Quest3') ||
                             userAgent.includes('OculusBrowser') ||
                             (userAgent.includes('VR') && userAgent.includes('Quest')) ||
                             userAgent.toLowerCase().includes('meta quest');
 
-    
+
     const forceQuest3 = window.location.search.includes('force=quest3') ||
                         window.location.search.includes('directar=true') ||
                         window.location.search.includes('immersive=true');

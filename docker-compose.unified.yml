@@ -165,6 +165,9 @@ services:
       - cargo-target-cache:/app/target
       # Docker socket for controlled access (development only)
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Mount host data directory for graph content
+      - ./data/markdown:/workspace/ext/data/markdown:ro
+      - ./data/metadata:/workspace/ext/data/metadata:rw
     ports:
       # Development: Nginx entry point + API port
       - "${DEV_NGINX_PORT:-3001}:3001"
