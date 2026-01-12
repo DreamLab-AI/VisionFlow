@@ -1,0 +1,37 @@
+{
+  "name": "@aisp/integration",
+  "version": "5.1.0",
+  "description": "AISP 5.1 Platinum Integration Module - Neuro-symbolic AI-to-AI Protocol",
+  "main": "index.js",
+  "bin": {
+    "aisp-benchmark": "./benchmark.js",
+    "aisp-validate": "./cli.js"
+  },
+  "scripts": {
+    "benchmark": "node benchmark.js",
+    "benchmark:json": "node benchmark.js --json",
+    "test": "node test.js",
+    "validate": "node cli.js validate"
+  },
+  "keywords": [
+    "aisp",
+    "neuro-symbolic",
+    "ai-to-ai",
+    "protocol",
+    "category-theory",
+    "hebbian-learning",
+    "agent-coordination"
+  ],
+  "author": "Integration by Multi-Agent Docker, Spec by Bradley Ross",
+  "license": "MIT",
+  "homepage": "https://gist.github.com/bar181/b02944bd27e91c7116c41647b396c4b8",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bar181/aisp"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

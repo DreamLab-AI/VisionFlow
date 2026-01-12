@@ -81,6 +81,7 @@ Managed by supervisord:
 ## Documentation
 
 - **[QUICKSTART.md](./QUICKSTART.md)** - Connection info, VNC clients, quick commands
+- **[aisp.md](./aisp.md)** - AISP 5.1 Platinum neuro-symbolic protocol ([canonical source](https://gist.github.com/bar181/b02944bd27e91c7116c41647b396c4b8))
 - **[docs/ANTIGRAVITY.md](./docs/ANTIGRAVITY.md)** - Google Antigravity IDE usage
 - **[docs/TERMINAL_GRID.md](./docs/TERMINAL_GRID.md)** - Terminal window configuration and customization
 - **[docs/development-notes/](./docs/development-notes/)** - Session notes and migration history

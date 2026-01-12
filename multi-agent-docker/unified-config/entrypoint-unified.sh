@@ -338,6 +338,50 @@ fi
 echo "✓ Claude Flow initialized and NPX cache cleared"
 
 # ============================================================================
+# Phase 6.6: Initialize AISP 5.1 Platinum Neuro-Symbolic Protocol
+# ============================================================================
+
+echo "[6.6/10] Initializing AISP 5.1 Platinum protocol..."
+
+if [ -d "/opt/aisp" ] && [ -f "/opt/aisp/index.js" ]; then
+    # Run AISP initialization in background (non-blocking)
+    (
+        cd /opt/aisp
+
+        # Initialize AISP validator and load glossary
+        node -e "
+const { AISPValidator } = require('./index.js');
+const validator = new AISPValidator();
+validator.initialize().then(() => {
+    const stats = validator.getStats();
+    console.log('[AISP] ✓ Σ_512 glossary loaded:', stats.glossarySize, 'symbols');
+    console.log('[AISP] Signal: V_H=' + stats.config.signalDims.V_H + ', V_L=' + stats.config.signalDims.V_L + ', V_S=' + stats.config.signalDims.V_S);
+    console.log('[AISP] Hebbian: α=' + stats.config.hebbian.α + ', β=' + stats.config.hebbian.β);
+}).catch(err => {
+    console.error('[AISP] Init failed:', err.message);
+});
+" >> /var/log/aisp-init.log 2>&1
+
+        # Register AISP config in claude-flow memory
+        if command -v claude-flow &> /dev/null; then
+            claude-flow memory store --key "aisp/version" --value "5.1.0" --namespace aisp 2>/dev/null || true
+            claude-flow memory store --key "aisp/status" --value "initialized" --namespace aisp 2>/dev/null || true
+        fi
+    ) &
+
+    echo "✓ AISP 5.1 Platinum initializing in background"
+    echo "  - Glossary: Σ_512 (8 categories × 64 symbols)"
+    echo "  - Signal Theory: V_H(768d), V_L(512d), V_S(256d)"
+    echo "  - Pocket Architecture: ⟨ℋ:Header, ℳ:Membrane, 𝒩:Nucleus⟩"
+    echo "  - Hebbian Learning: ⊕(+1), ⊖(-10), τ_v=0.7"
+    echo "  - Binding States: Δ⊗λ ∈ {crash, null, adapt, zero-cost}"
+    echo "  - Quality Tiers: ◊⁺⁺, ◊⁺, ◊, ◊⁻, ⊘"
+    echo "  - Log: /var/log/aisp-init.log"
+else
+    echo "ℹ️  AISP integration module not installed (optional)"
+fi
+
+# ============================================================================
 # Phase 6.7: Configure Cross-User Service Access & Dynamic MCP Discovery
 # ============================================================================
 
@@ -626,7 +670,12 @@ echo "[9/10] Enhancing CLAUDE.md with project-specific context..."
 
 # Append compact project documentation to BOTH home and workspace CLAUDE.md
 # (Claude Code reads from workspace when running in project directory)
+# IDEMPOTENCY: Only append if marker not present (prevents duplication on restart)
 for claude_md in /home/devuser/CLAUDE.md /home/devuser/workspace/CLAUDE.md; do
+  if [ -f "$claude_md" ] && grep -q "## 🚀 Project-Specific: Turbo Flow Claude" "$claude_md" 2>/dev/null; then
+    echo "  → Skipping $claude_md (project context already present)"
+    continue
+  fi
   sudo -u devuser bash -c "cat >> $claude_md" <<'CLAUDE_APPEND'
 
 ---

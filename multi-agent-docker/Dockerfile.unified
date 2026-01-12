@@ -9,7 +9,11 @@ FROM archlinux:latest
 # PHASE 1: Base System Packages
 # ============================================================================
 
-RUN pacman -Syu --noconfirm && \
+# Initialize and refresh pacman keyring (required for signature verification)
+RUN pacman-key --init && \
+    pacman-key --populate archlinux && \
+    pacman -Sy --noconfirm archlinux-keyring && \
+    pacman -Syu --noconfirm && \
     pacman -S --noconfirm \
         # Core system
         base-devel git vim nano zsh curl wget \
@@ -199,16 +203,26 @@ RUN curl -sSL https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-
 RUN rm -rf /root/.npm/_npx /home/devuser/.npm/_npx 2>/dev/null || true
 
 # ============================================================================
-# PHASE 6: Python Virtual Environment & Tools
+# PHASE 6: Python 3.12 & Virtual Environment & Tools
 # ============================================================================
 
-# Cache bust to force rebuild of Python packages with cu130
-ARG REBUILD_PYTHON=2025-12-03-cu130
+# Install Python 3.12 from source (PyTorch doesn't have 3.14 wheels yet)
+RUN cd /tmp && \
+    curl -LO https://www.python.org/ftp/python/3.12.8/Python-3.12.8.tar.xz && \
+    tar xf Python-3.12.8.tar.xz && \
+    cd Python-3.12.8 && \
+    ./configure --prefix=/opt/python312 --enable-optimizations --with-lto && \
+    make -j$(nproc) && \
+    make install && \
+    cd / && rm -rf /tmp/Python-3.12.8*
 
-RUN python -m venv /opt/venv && \
+# Cache bust to force rebuild of Python packages with cu124
+ARG REBUILD_PYTHON=2026-01-10-cu124-py312
+
+RUN /opt/python312/bin/python3.12 -m venv /opt/venv && \
     /opt/venv/bin/pip install --upgrade pip && \
     /opt/venv/bin/pip install \
-        torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu130 && \
+        torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124 && \
     /opt/venv/bin/pip install \
         supervisor \
         google-generativeai \
@@ -439,29 +453,21 @@ RUN find /home/devuser/.claude/skills -name "*.py" -path "*/mcp-server/*" -exec 
 # PHASE 14: ComfyUI Installation (GPU-Accelerated Image Generation)
 # ============================================================================
 
+# Clone ComfyUI as root, install deps, then fix ownership
+RUN git clone https://github.com/comfyanonymous/ComfyUI.git /home/devuser/ComfyUI && \
+    cd /home/devuser/ComfyUI && \
+    ln -s /opt/venv venv && \
+    /opt/venv/bin/pip install --no-cache-dir aiohttp einops -r requirements.txt && \
+    mkdir -p models/checkpoints && \
+    chown -R devuser:devuser /home/devuser/ComfyUI
+
+# Download FLUX.1-schnell model (as devuser)
 USER devuser
 WORKDIR /home/devuser
-
-# Clone ComfyUI
-RUN git clone https://github.com/comfyanonymous/ComfyUI.git /home/devuser/ComfyUI
-
-# Install ComfyUI with GPU-enabled PyTorch
-RUN cd /home/devuser/ComfyUI && \
-    python3 -m venv venv && \
-    . venv/bin/activate && \
-    pip install --upgrade pip && \
-    pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124 && \
-    pip install -r requirements.txt
-
-# Download FLUX.1-schnell model
 RUN cd /home/devuser/ComfyUI && \
     . venv/bin/activate && \
-    mkdir -p models/checkpoints && \
     hf download Comfy-Org/flux1-schnell flux1-schnell-fp8.safetensors --local-dir models/checkpoints/ || \
     echo "FLUX model download will be attempted on first run"
-
-# Ensure proper ownership
-RUN chown -R devuser:devuser /home/devuser/ComfyUI
 
 USER root
 
@@ -543,9 +549,21 @@ COPY --chown=devuser:devuser multi-agent-docker/unified-config/hyprland.conf /ho
 # Copy Kitty terminal configuration
 COPY --chown=devuser:devuser multi-agent-docker/unified-config/kitty.conf /home/devuser/.config/kitty/kitty.conf
 
-# Copy CLAUDE.md to both home and workspace (Claude Code reads from workspace)
+# Copy CLAUDE.md and aisp.md to both home and workspace (Claude Code reads from workspace)
 COPY --chown=devuser:devuser multi-agent-docker/CLAUDE.md /home/devuser/CLAUDE.md
 COPY --chown=devuser:devuser multi-agent-docker/CLAUDE.md /home/devuser/workspace/CLAUDE.md
+COPY --chown=devuser:devuser multi-agent-docker/aisp.md /home/devuser/aisp.md
+COPY --chown=devuser:devuser multi-agent-docker/aisp.md /home/devuser/workspace/aisp.md
+
+# ============================================================================
+# AISP 5.1 Platinum Integration Module
+# Neuro-symbolic AI-to-AI protocol with Hebbian learning and pocket architecture
+# ============================================================================
+
+COPY --chown=root:root multi-agent-docker/aisp-integration/ /opt/aisp/
+RUN chmod +x /opt/aisp/*.js /opt/aisp/*.sh 2>/dev/null || true && \
+    ln -sf /opt/aisp/cli.js /usr/local/bin/aisp && \
+    echo "✓ AISP 5.1 Platinum integration module installed"
 
 # ============================================================================
 # PHASE 14: Supervisord Configuration
