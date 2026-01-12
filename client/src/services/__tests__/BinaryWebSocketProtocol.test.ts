@@ -1,70 +1,48 @@
+/**
+ * BinaryWebSocketProtocol Tests
+ *
+ * Tests V2 protocol (u32 IDs) - V1 backward compatibility removed.
+ * See: src/utils/binary_protocol.rs for Rust implementation.
+ */
 
-
+import { describe, it, expect, beforeEach } from 'vitest';
 import {
   BinaryWebSocketProtocol,
   PROTOCOL_V2,
   AGENT_POSITION_SIZE_V2,
   AGENT_STATE_SIZE_V2,
+  AGENT_ACTION_HEADER_SIZE,
+  AgentActionType,
+  AGENT_ACTION_COLORS,
   type AgentPositionUpdate,
   type AgentStateData,
+  type AgentActionEvent,
 } from '../BinaryWebSocketProtocol';
 
-// V1 constants for backward compatibility tests
-const AGENT_POSITION_SIZE_V1 = 19; // 2 (u16 id) + 12 (3 floats) + 4 (timestamp) + 1 (flags)
-const AGENT_STATE_SIZE_V1 = 47; // 2 (u16 id) + 24 (6 floats) + 16 (4 floats) + 4 (tokens) + 1 (flags)
+/**
+ * Helper to create a versioned payload (version byte + data)
+ */
+function createVersionedPayload(version: number, dataSize: number): { buffer: ArrayBuffer; dataView: DataView; dataOffset: number } {
+  const buffer = new ArrayBuffer(1 + dataSize);
+  const view = new DataView(buffer);
+  view.setUint8(0, version);
+  return { buffer, dataView: view, dataOffset: 1 };
+}
 
-describe('BinaryWebSocketProtocol - Node ID Truncation Fix', () => {
+describe('BinaryWebSocketProtocol - V2 Protocol', () => {
   let protocol: BinaryWebSocketProtocol;
 
   beforeEach(() => {
     protocol = BinaryWebSocketProtocol.getInstance();
   });
 
-  describe('V1 Legacy Protocol (u16 IDs)', () => {
-    it('should decode V1 format with small IDs', () => {
-      const payload = new ArrayBuffer(AGENT_POSITION_SIZE_V1);
-      const view = new DataView(payload);
-
-      
-      view.setUint16(0, 100, true);
-      view.setFloat32(2, 1.0, true);
-      view.setFloat32(6, 2.0, true);
-      view.setFloat32(10, 3.0, true);
-      view.setUint32(14, Date.now(), true);
-      view.setUint8(18, 0);
-
-      const updates = protocol.decodePositionUpdates(payload);
-
-      expect(updates).toHaveLength(1);
-      expect(updates[0].agentId).toBe(100);
-      expect(updates[0].position.x).toBe(1.0);
-    });
-
-    it('should handle V1 format with maximum safe ID (16383)', () => {
-      const payload = new ArrayBuffer(AGENT_POSITION_SIZE_V1);
-      const view = new DataView(payload);
-
-      view.setUint16(0, 16383, true); 
-      view.setFloat32(2, 1.0, true);
-      view.setFloat32(6, 2.0, true);
-      view.setFloat32(10, 3.0, true);
-      view.setUint32(14, Date.now(), true);
-      view.setUint8(18, 0);
-
-      const updates = protocol.decodePositionUpdates(payload);
-
-      expect(updates).toHaveLength(1);
-      expect(updates[0].agentId).toBe(16383);
-    });
-  });
-
-  describe('V2 Protocol (u32 IDs)', () => {
+  describe('Position Updates (u32 IDs)', () => {
     it('should encode V2 format with large IDs', () => {
       protocol.setUserInteracting(true);
 
       const updates: AgentPositionUpdate[] = [
         {
-          agentId: 20000, 
+          agentId: 20000,
           position: { x: 1.0, y: 2.0, z: 3.0 },
           timestamp: Date.now(),
           flags: 0,
@@ -74,22 +52,21 @@ describe('BinaryWebSocketProtocol - Node ID Truncation Fix', () => {
       const encoded = protocol.encodePositionUpdates(updates);
 
       expect(encoded).not.toBeNull();
-      expect(encoded!.byteLength).toBe(4 + AGENT_POSITION_SIZE_V2); 
+      // Header (4 bytes) + position data
+      expect(encoded!.byteLength).toBe(4 + AGENT_POSITION_SIZE_V2);
     });
 
     it('should decode V2 format with large IDs', () => {
-      const payload = new ArrayBuffer(AGENT_POSITION_SIZE_V2);
-      const view = new DataView(payload);
+      const { buffer, dataView, dataOffset } = createVersionedPayload(PROTOCOL_V2, AGENT_POSITION_SIZE_V2);
 
-      
-      view.setUint32(0, 50000, true); 
-      view.setFloat32(4, 1.0, true);
-      view.setFloat32(8, 2.0, true);
-      view.setFloat32(12, 3.0, true);
-      view.setUint32(16, Date.now(), true);
-      view.setUint8(20, 0);
+      dataView.setUint32(dataOffset + 0, 50000, true);
+      dataView.setFloat32(dataOffset + 4, 1.0, true);
+      dataView.setFloat32(dataOffset + 8, 2.0, true);
+      dataView.setFloat32(dataOffset + 12, 3.0, true);
+      dataView.setUint32(dataOffset + 16, Date.now(), true);
+      dataView.setUint8(dataOffset + 20, 0);
 
-      const updates = protocol.decodePositionUpdates(payload);
+      const updates = protocol.decodePositionUpdates(buffer);
 
       expect(updates).toHaveLength(1);
       expect(updates[0].agentId).toBe(50000);
@@ -100,17 +77,16 @@ describe('BinaryWebSocketProtocol - Node ID Truncation Fix', () => {
       const largeIds = [16384, 20000, 50000, 100000, 1000000];
 
       for (const nodeId of largeIds) {
-        const payload = new ArrayBuffer(AGENT_POSITION_SIZE_V2);
-        const view = new DataView(payload);
+        const { buffer, dataView, dataOffset } = createVersionedPayload(PROTOCOL_V2, AGENT_POSITION_SIZE_V2);
 
-        view.setUint32(0, nodeId, true);
-        view.setFloat32(4, 1.0, true);
-        view.setFloat32(8, 2.0, true);
-        view.setFloat32(12, 3.0, true);
-        view.setUint32(16, Date.now(), true);
-        view.setUint8(20, 0);
+        dataView.setUint32(dataOffset + 0, nodeId, true);
+        dataView.setFloat32(dataOffset + 4, 1.0, true);
+        dataView.setFloat32(dataOffset + 8, 2.0, true);
+        dataView.setFloat32(dataOffset + 12, 3.0, true);
+        dataView.setUint32(dataOffset + 16, Date.now(), true);
+        dataView.setUint8(dataOffset + 20, 0);
 
-        const updates = protocol.decodePositionUpdates(payload);
+        const updates = protocol.decodePositionUpdates(buffer);
 
         expect(updates).toHaveLength(1);
         expect(updates[0].agentId).toBe(nodeId);
@@ -119,25 +95,41 @@ describe('BinaryWebSocketProtocol - Node ID Truncation Fix', () => {
 
     it('should decode multiple V2 updates correctly', () => {
       const nodeIds = [100, 20000, 50000];
-      const payload = new ArrayBuffer(AGENT_POSITION_SIZE_V2 * nodeIds.length);
-      const view = new DataView(payload);
+      const { buffer, dataView, dataOffset } = createVersionedPayload(PROTOCOL_V2, AGENT_POSITION_SIZE_V2 * nodeIds.length);
 
       nodeIds.forEach((nodeId, i) => {
-        const offset = i * AGENT_POSITION_SIZE_V2;
-        view.setUint32(offset, nodeId, true);
-        view.setFloat32(offset + 4, i + 1.0, true);
-        view.setFloat32(offset + 8, i + 2.0, true);
-        view.setFloat32(offset + 12, i + 3.0, true);
-        view.setUint32(offset + 16, Date.now(), true);
-        view.setUint8(offset + 20, 0);
+        const offset = dataOffset + i * AGENT_POSITION_SIZE_V2;
+        dataView.setUint32(offset, nodeId, true);
+        dataView.setFloat32(offset + 4, i + 1.0, true);
+        dataView.setFloat32(offset + 8, i + 2.0, true);
+        dataView.setFloat32(offset + 12, i + 3.0, true);
+        dataView.setUint32(offset + 16, Date.now(), true);
+        dataView.setUint8(offset + 20, 0);
       });
 
-      const updates = protocol.decodePositionUpdates(payload);
+      const updates = protocol.decodePositionUpdates(buffer);
 
       expect(updates).toHaveLength(3);
       expect(updates[0].agentId).toBe(100);
       expect(updates[1].agentId).toBe(20000);
       expect(updates[2].agentId).toBe(50000);
+    });
+
+    it('should support maximum 30-bit node ID', () => {
+      const maxId = 0x3FFFFFFF;
+      const { buffer, dataView, dataOffset } = createVersionedPayload(PROTOCOL_V2, AGENT_POSITION_SIZE_V2);
+
+      dataView.setUint32(dataOffset + 0, maxId, true);
+      dataView.setFloat32(dataOffset + 4, 1.0, true);
+      dataView.setFloat32(dataOffset + 8, 2.0, true);
+      dataView.setFloat32(dataOffset + 12, 3.0, true);
+      dataView.setUint32(dataOffset + 16, Date.now(), true);
+      dataView.setUint8(dataOffset + 20, 0);
+
+      const updates = protocol.decodePositionUpdates(buffer);
+
+      expect(updates).toHaveLength(1);
+      expect(updates[0].agentId).toBe(maxId);
     });
   });
 
@@ -158,119 +150,87 @@ describe('BinaryWebSocketProtocol - Node ID Truncation Fix', () => {
       ];
 
       const encoded = protocol.encodeAgentState(agents);
-      const payload = encoded.slice(4); 
 
-      expect(payload.byteLength).toBe(AGENT_STATE_SIZE_V2);
+      // Payload includes 4-byte header + raw data
+      expect(encoded.byteLength).toBe(4 + AGENT_STATE_SIZE_V2);
     });
 
     it('should decode V2 agent state with large IDs', () => {
-      const payload = new ArrayBuffer(AGENT_STATE_SIZE_V2);
-      const view = new DataView(payload);
+      const { buffer, dataView, dataOffset } = createVersionedPayload(PROTOCOL_V2, AGENT_STATE_SIZE_V2);
 
-      view.setUint32(0, 100000, true); 
-      view.setFloat32(4, 1.0, true);
-      view.setFloat32(8, 2.0, true);
-      view.setFloat32(12, 3.0, true);
-      view.setFloat32(16, 0.1, true);
-      view.setFloat32(20, 0.2, true);
-      view.setFloat32(24, 0.3, true);
-      view.setFloat32(28, 100.0, true);
-      view.setFloat32(32, 50.0, true);
-      view.setFloat32(36, 60.0, true);
-      view.setFloat32(40, 70.0, true);
-      view.setUint32(44, 1000, true);
-      view.setUint8(48, 0);
+      dataView.setUint32(dataOffset + 0, 100000, true);
+      dataView.setFloat32(dataOffset + 4, 1.0, true);
+      dataView.setFloat32(dataOffset + 8, 2.0, true);
+      dataView.setFloat32(dataOffset + 12, 3.0, true);
+      dataView.setFloat32(dataOffset + 16, 0.1, true);
+      dataView.setFloat32(dataOffset + 20, 0.2, true);
+      dataView.setFloat32(dataOffset + 24, 0.3, true);
+      dataView.setFloat32(dataOffset + 28, 100.0, true);
+      dataView.setFloat32(dataOffset + 32, 50.0, true);
+      dataView.setFloat32(dataOffset + 36, 60.0, true);
+      dataView.setFloat32(dataOffset + 40, 70.0, true);
+      dataView.setUint32(dataOffset + 44, 1000, true);
+      dataView.setUint8(dataOffset + 48, 0);
 
-      const agents = protocol.decodeAgentState(payload);
+      const agents = protocol.decodeAgentState(buffer);
 
       expect(agents).toHaveLength(1);
       expect(agents[0].agentId).toBe(100000);
       expect(agents[0].position.x).toBe(1.0);
       expect(agents[0].health).toBe(100.0);
     });
-
-    it('should decode V1 agent state for backward compatibility', () => {
-      const payload = new ArrayBuffer(AGENT_STATE_SIZE_V1);
-      const view = new DataView(payload);
-
-      view.setUint16(0, 100, true); 
-      view.setFloat32(2, 1.0, true);
-      view.setFloat32(6, 2.0, true);
-      view.setFloat32(10, 3.0, true);
-      view.setFloat32(14, 0.1, true);
-      view.setFloat32(18, 0.2, true);
-      view.setFloat32(22, 0.3, true);
-      view.setFloat32(26, 100.0, true);
-      view.setFloat32(30, 50.0, true);
-      view.setFloat32(34, 60.0, true);
-      view.setFloat32(38, 70.0, true);
-      view.setUint32(42, 1000, true);
-      view.setUint8(46, 0);
-
-      const agents = protocol.decodeAgentState(payload);
-
-      expect(agents).toHaveLength(1);
-      expect(agents[0].agentId).toBe(100);
-    });
   });
 
-  describe('No Collision Tests', () => {
-    it('should have no collisions with V2 for different large IDs', () => {
+  describe('No ID Collision Tests', () => {
+    it('should have no collisions for different large IDs', () => {
       const nodeIds = [16384, 20000, 50000, 100000, 500000];
-      const payloadSize = AGENT_POSITION_SIZE_V2 * nodeIds.length;
-      const payload = new ArrayBuffer(payloadSize);
-      const view = new DataView(payload);
+      const { buffer, dataView, dataOffset } = createVersionedPayload(PROTOCOL_V2, AGENT_POSITION_SIZE_V2 * nodeIds.length);
 
       nodeIds.forEach((nodeId, i) => {
-        const offset = i * AGENT_POSITION_SIZE_V2;
-        view.setUint32(offset, nodeId, true);
-        view.setFloat32(offset + 4, i + 1.0, true);
-        view.setFloat32(offset + 8, i + 2.0, true);
-        view.setFloat32(offset + 12, i + 3.0, true);
-        view.setUint32(offset + 16, Date.now(), true);
-        view.setUint8(offset + 20, 0);
+        const offset = dataOffset + i * AGENT_POSITION_SIZE_V2;
+        dataView.setUint32(offset, nodeId, true);
+        dataView.setFloat32(offset + 4, i + 1.0, true);
+        dataView.setFloat32(offset + 8, i + 2.0, true);
+        dataView.setFloat32(offset + 12, i + 3.0, true);
+        dataView.setUint32(offset + 16, Date.now(), true);
+        dataView.setUint8(offset + 20, 0);
       });
 
-      const updates = protocol.decodePositionUpdates(payload);
+      const updates = protocol.decodePositionUpdates(buffer);
 
       expect(updates).toHaveLength(nodeIds.length);
 
-      
       const decodedIds = updates.map(u => u.agentId);
       const uniqueIds = new Set(decodedIds);
       expect(uniqueIds.size).toBe(nodeIds.length);
 
-      
       nodeIds.forEach((nodeId, i) => {
         expect(updates[i].agentId).toBe(nodeId);
       });
     });
 
-    it('should demonstrate V1 would have collisions', () => {
-      
+    it('should distinguish IDs that would collide in u16 space', () => {
       const id1 = 100;
-      const id2 = 16384 + 100; 
+      const id2 = 16384 + 100; // Would truncate to same value in u16
 
-      
-      
-      const payload = new ArrayBuffer(AGENT_POSITION_SIZE_V2 * 2);
-      const view = new DataView(payload);
+      const { buffer, dataView, dataOffset } = createVersionedPayload(PROTOCOL_V2, AGENT_POSITION_SIZE_V2 * 2);
 
-      view.setUint32(0, id1, true);
-      view.setFloat32(4, 1.0, true);
-      view.setFloat32(8, 2.0, true);
-      view.setFloat32(12, 3.0, true);
-      view.setUint32(16, Date.now(), true);
-      view.setUint8(20, 0);
+      dataView.setUint32(dataOffset + 0, id1, true);
+      dataView.setFloat32(dataOffset + 4, 1.0, true);
+      dataView.setFloat32(dataOffset + 8, 2.0, true);
+      dataView.setFloat32(dataOffset + 12, 3.0, true);
+      dataView.setUint32(dataOffset + 16, Date.now(), true);
+      dataView.setUint8(dataOffset + 20, 0);
 
-      view.setUint32(21, id2, true);
-      view.setFloat32(25, 4.0, true);
-      view.setFloat32(29, 5.0, true);
-      view.setFloat32(33, 6.0, true);
-      view.setUint32(37, Date.now(), true);
-      view.setUint8(41, 0);
+      const offset2 = dataOffset + AGENT_POSITION_SIZE_V2;
+      dataView.setUint32(offset2 + 0, id2, true);
+      dataView.setFloat32(offset2 + 4, 4.0, true);
+      dataView.setFloat32(offset2 + 8, 5.0, true);
+      dataView.setFloat32(offset2 + 12, 6.0, true);
+      dataView.setUint32(offset2 + 16, Date.now(), true);
+      dataView.setUint8(offset2 + 20, 0);
 
-      const updates = protocol.decodePositionUpdates(payload);
+      const updates = protocol.decodePositionUpdates(buffer);
 
       expect(updates).toHaveLength(2);
       expect(updates[0].agentId).toBe(id1);
@@ -279,67 +239,31 @@ describe('BinaryWebSocketProtocol - Node ID Truncation Fix', () => {
     });
   });
 
-  describe('Protocol Version Detection', () => {
-    it('should auto-detect V1 based on payload size', () => {
-      const payload = new ArrayBuffer(AGENT_POSITION_SIZE_V1);
-      const view = new DataView(payload);
-
-      view.setUint16(0, 100, true);
-      view.setFloat32(2, 1.0, true);
-      view.setFloat32(6, 2.0, true);
-      view.setFloat32(10, 3.0, true);
-      view.setUint32(14, Date.now(), true);
-      view.setUint8(18, 0);
-
-      const updates = protocol.decodePositionUpdates(payload);
-
-      expect(updates).toHaveLength(1);
-      expect(updates[0].agentId).toBe(100);
-    });
-
-    it('should auto-detect V2 based on payload size', () => {
-      const payload = new ArrayBuffer(AGENT_POSITION_SIZE_V2);
-      const view = new DataView(payload);
-
-      view.setUint32(0, 50000, true);
-      view.setFloat32(4, 1.0, true);
-      view.setFloat32(8, 2.0, true);
-      view.setFloat32(12, 3.0, true);
-      view.setUint32(16, Date.now(), true);
-      view.setUint8(20, 0);
-
-      const updates = protocol.decodePositionUpdates(payload);
-
-      expect(updates).toHaveLength(1);
-      expect(updates[0].agentId).toBe(50000);
-    });
-
+  describe('Invalid Payload Handling', () => {
     it('should handle invalid payload sizes gracefully', () => {
-      const payload = new ArrayBuffer(17); 
+      const payload = new ArrayBuffer(17);
 
       const updates = protocol.decodePositionUpdates(payload);
 
       expect(updates).toHaveLength(0);
     });
-  });
 
-  describe('Maximum Node ID Support', () => {
-    it('should support maximum 30-bit node ID', () => {
-      const maxId = 0x3FFFFFFF; 
-      const payload = new ArrayBuffer(AGENT_POSITION_SIZE_V2);
-      const view = new DataView(payload);
-
-      view.setUint32(0, maxId, true);
-      view.setFloat32(4, 1.0, true);
-      view.setFloat32(8, 2.0, true);
-      view.setFloat32(12, 3.0, true);
-      view.setUint32(16, Date.now(), true);
-      view.setUint8(20, 0);
+    it('should handle empty payload', () => {
+      const payload = new ArrayBuffer(0);
 
       const updates = protocol.decodePositionUpdates(payload);
 
-      expect(updates).toHaveLength(1);
-      expect(updates[0].agentId).toBe(maxId);
+      expect(updates).toHaveLength(0);
+    });
+
+    it('should reject unsupported protocol versions', () => {
+      const buffer = new ArrayBuffer(1 + AGENT_POSITION_SIZE_V2);
+      const view = new DataView(buffer);
+      view.setUint8(0, 1); // V1 - unsupported
+
+      const updates = protocol.decodePositionUpdates(buffer);
+
+      expect(updates).toHaveLength(0);
     });
   });
 
@@ -350,10 +274,130 @@ describe('BinaryWebSocketProtocol - Node ID Truncation Fix', () => {
 
       const bandwidth = protocol.calculateBandwidth(agentCount, updateRateHz);
 
-      
       const expectedFullState = agentCount * 49 * updateRateHz + 4 * updateRateHz;
 
       expect(bandwidth.fullState).toBe(expectedFullState);
+    });
+  });
+
+  describe('Agent Action Events (0x23)', () => {
+    it('should decode a single agent action event', () => {
+      // Create payload: 15 bytes header
+      const payload = new ArrayBuffer(AGENT_ACTION_HEADER_SIZE);
+      const view = new DataView(payload);
+
+      // sourceAgentId: 1001
+      view.setUint32(0, 1001, true);
+      // targetNodeId: 5000
+      view.setUint32(4, 5000, true);
+      // actionType: Query (0)
+      view.setUint8(8, AgentActionType.Query);
+      // timestamp: 1234567890
+      view.setUint32(9, 1234567890, true);
+      // durationMs: 500
+      view.setUint16(13, 500, true);
+
+      const event = protocol.decodeAgentAction(payload);
+
+      expect(event).not.toBeNull();
+      expect(event!.sourceAgentId).toBe(1001);
+      expect(event!.targetNodeId).toBe(5000);
+      expect(event!.actionType).toBe(AgentActionType.Query);
+      expect(event!.timestamp).toBe(1234567890);
+      expect(event!.durationMs).toBe(500);
+    });
+
+    it('should decode all action types correctly', () => {
+      const actionTypes = [
+        AgentActionType.Query,
+        AgentActionType.Update,
+        AgentActionType.Create,
+        AgentActionType.Delete,
+        AgentActionType.Link,
+        AgentActionType.Transform,
+      ];
+
+      for (const actionType of actionTypes) {
+        const payload = new ArrayBuffer(AGENT_ACTION_HEADER_SIZE);
+        const view = new DataView(payload);
+
+        view.setUint32(0, 100, true);
+        view.setUint32(4, 200, true);
+        view.setUint8(8, actionType);
+        view.setUint32(9, Date.now(), true);
+        view.setUint16(13, 300, true);
+
+        const event = protocol.decodeAgentAction(payload);
+
+        expect(event).not.toBeNull();
+        expect(event!.actionType).toBe(actionType);
+      }
+    });
+
+    it('should encode and decode agent action roundtrip', () => {
+      const original: AgentActionEvent = {
+        sourceAgentId: 42,
+        targetNodeId: 9999,
+        actionType: AgentActionType.Create,
+        timestamp: Date.now(),
+        durationMs: 750,
+      };
+
+      const encoded = protocol.encodeAgentAction(original);
+
+      // Skip message header (4 bytes) to get payload
+      const payload = encoded.slice(4);
+      const decoded = protocol.decodeAgentAction(payload);
+
+      expect(decoded).not.toBeNull();
+      expect(decoded!.sourceAgentId).toBe(original.sourceAgentId);
+      expect(decoded!.targetNodeId).toBe(original.targetNodeId);
+      expect(decoded!.actionType).toBe(original.actionType);
+      expect(decoded!.durationMs).toBe(original.durationMs);
+    });
+
+    it('should handle agent action with payload', () => {
+      const extraData = new Uint8Array([0xDE, 0xAD, 0xBE, 0xEF]);
+      const payload = new ArrayBuffer(AGENT_ACTION_HEADER_SIZE + extraData.length);
+      const view = new DataView(payload);
+
+      view.setUint32(0, 100, true);
+      view.setUint32(4, 200, true);
+      view.setUint8(8, AgentActionType.Update);
+      view.setUint32(9, 0, true);
+      view.setUint16(13, 500, true);
+
+      // Add extra payload
+      new Uint8Array(payload, AGENT_ACTION_HEADER_SIZE).set(extraData);
+
+      const event = protocol.decodeAgentAction(payload);
+
+      expect(event).not.toBeNull();
+      expect(event!.payload).toBeDefined();
+      expect(event!.payload!.length).toBe(4);
+      expect(event!.payload![0]).toBe(0xDE);
+    });
+
+    it('should reject payload that is too small', () => {
+      const tooSmall = new ArrayBuffer(10); // Less than 15 bytes
+
+      const event = protocol.decodeAgentAction(tooSmall);
+
+      expect(event).toBeNull();
+    });
+
+    it('should have correct color mappings for all action types', () => {
+      expect(AGENT_ACTION_COLORS[AgentActionType.Query]).toBe('#3b82f6');     // Blue
+      expect(AGENT_ACTION_COLORS[AgentActionType.Update]).toBe('#eab308');    // Yellow
+      expect(AGENT_ACTION_COLORS[AgentActionType.Create]).toBe('#22c55e');    // Green
+      expect(AGENT_ACTION_COLORS[AgentActionType.Delete]).toBe('#ef4444');    // Red
+      expect(AGENT_ACTION_COLORS[AgentActionType.Link]).toBe('#a855f7');      // Purple
+      expect(AGENT_ACTION_COLORS[AgentActionType.Transform]).toBe('#06b6d4'); // Cyan
+    });
+
+    it('should have correct header size constant', () => {
+      // 4 (sourceAgentId) + 4 (targetNodeId) + 1 (actionType) + 4 (timestamp) + 2 (durationMs) = 15
+      expect(AGENT_ACTION_HEADER_SIZE).toBe(15);
     });
   });
 });

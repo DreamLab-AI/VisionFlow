@@ -16,7 +16,6 @@ use crate::events::domain_events::{
 use crate::events::event_bus::EventBus;
 use crate::models::graph::GraphData;
 
-///
 pub struct EventCoordinator {
     physics_service: Arc<PhysicsService>,
     semantic_service: Arc<SemanticService>,
@@ -203,11 +202,9 @@ impl EventCoordinator {
     }
 }
 
-///
 pub static EVENT_COORDINATOR: once_cell::sync::Lazy<Arc<RwLock<Option<EventCoordinator>>>> =
     once_cell::sync::Lazy::new(|| Arc::new(RwLock::new(None)));
 
-///
 pub async fn initialize_event_coordinator(
     physics_service: Arc<PhysicsService>,
     semantic_service: Arc<SemanticService>,

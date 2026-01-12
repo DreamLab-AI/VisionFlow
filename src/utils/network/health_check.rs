@@ -7,7 +7,6 @@ use tokio::net::TcpStream;
 use tokio::sync::{Mutex, RwLock};
 use tokio::time::timeout;
 
-///
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum HealthStatus {
     
@@ -32,7 +31,6 @@ impl HealthStatus {
     }
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HealthCheckConfig {
     
@@ -98,7 +96,6 @@ impl HealthCheckConfig {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct HealthCheckResult {
     pub service_name: String,
@@ -146,7 +143,6 @@ impl HealthCheckResult {
     }
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServiceHealthInfo {
     pub service_name: String,
@@ -165,7 +161,6 @@ pub struct ServiceHealthInfo {
     pub check_types: Vec<String>,
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct ServiceEndpoint {
     pub name: String,
@@ -201,7 +196,6 @@ impl ServiceEndpoint {
     }
 }
 
-///
 pub struct HealthCheckManager {
     services: Arc<RwLock<HashMap<String, ServiceEndpoint>>>,
     health_info: Arc<RwLock<HashMap<String, ServiceHealthInfo>>>,
@@ -606,7 +600,6 @@ impl Default for HealthCheckManager {
     }
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SystemHealthSummary {
     pub overall_status: HealthStatus,

@@ -12,7 +12,6 @@ use crate::services::agent_visualization_protocol::{
 use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable};
 use crate::AppState;
 
-///
 pub struct AgentVisualizationWs {
     _app_state: web::Data<AppState>,
     protocol: AgentVisualizationProtocol,
@@ -112,7 +111,6 @@ impl Actor for AgentVisualizationWs {
     }
 }
 
-///
 struct InitConnection;
 
 impl Message for InitConnection {
@@ -167,7 +165,6 @@ impl Handler<UpdateStates> for AgentVisualizationWs {
     }
 }
 
-///
 impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for AgentVisualizationWs {
     fn handle(&mut self, msg: Result<ws::Message, ws::ProtocolError>, ctx: &mut Self::Context) {
         match msg {
@@ -219,9 +216,7 @@ struct ClientRequest {
     params: Option<serde_json::Value>,
 }
 
-///
 
-///
 pub async fn agent_visualization_ws(
     req: actix_web::HttpRequest,
     stream: web::Payload,
@@ -230,7 +225,6 @@ pub async fn agent_visualization_ws(
     ws::start(AgentVisualizationWs::new(app_state), &req, stream)
 }
 
-///
 pub async fn get_agent_visualization_snapshot(app_state: web::Data<AppState>) -> impl Responder {
     
     let agents = get_real_agents_from_app_state(&app_state).await;
@@ -309,7 +303,6 @@ pub async fn get_agent_visualization_snapshot(app_state: web::Data<AppState>) ->
         .body(init_json)
 }
 
-///
 #[derive(Deserialize)]
 pub struct InitializeSwarmRequest {
     pub topology: String,
@@ -338,7 +331,6 @@ pub async fn initialize_swarm_visualization(
     }))
 }
 
-///
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/visualization")
@@ -354,7 +346,6 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     );
 }
 
-///
 async fn get_real_agents_from_app_state(
     app_state: &AppState,
 ) -> Vec<crate::services::agent_visualization_protocol::AgentStateUpdate> {

@@ -23,7 +23,6 @@ use crate::ports::gpu_semantic_analyzer::{
 
 const DEFAULT_TIMEOUT: Duration = Duration::from_secs(30);
 
-///
 pub struct ActixSemanticAdapter {
     actor_addr: Option<Addr<SemanticProcessorActor>>,
     timeout: Duration,

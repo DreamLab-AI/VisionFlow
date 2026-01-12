@@ -16,7 +16,6 @@ use log::{debug, info, warn};
 use regex::Regex;
 use std::sync::Arc;
 
-///
 pub struct OwlExtractorService<R: OntologyRepository> {
     repo: Arc<R>,
 }
@@ -195,7 +194,6 @@ impl<R: OntologyRepository> OwlExtractorService<R> {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct ExtractedOwl {
     pub class_iri: String,

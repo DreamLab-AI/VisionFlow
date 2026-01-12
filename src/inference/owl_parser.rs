@@ -14,7 +14,6 @@ use horned_owl::ontology::set::SetOntology;
 
 use crate::ports::ontology_repository::{OwlClass, OwlAxiom, AxiomType};
 
-///
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum OWLFormat {
@@ -50,7 +49,6 @@ impl std::fmt::Display for OWLFormat {
     }
 }
 
-///
 #[derive(Debug, Error)]
 pub enum ParseError {
     #[error("Unsupported format: {0}")]
@@ -69,7 +67,6 @@ pub enum ParseError {
     FeatureNotEnabled,
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct ParseResult {
     
@@ -91,7 +88,6 @@ pub struct ParseResult {
     pub stats: ParseStatistics,
 }
 
-///
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ParseStatistics {
     pub classes_count: usize,
@@ -100,7 +96,6 @@ pub struct ParseStatistics {
     pub parse_time_ms: u64,
 }
 
-///
 pub struct OWLParser;
 
 impl OWLParser {

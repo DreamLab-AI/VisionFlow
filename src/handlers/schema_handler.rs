@@ -48,9 +48,7 @@ pub struct EdgeTypeResponse {
 }
 
 /// Get complete graph schema
-///
 /// GET /api/schema
-///
 /// Returns comprehensive schema information including:
 /// - Available node types with counts
 /// - Available edge types with counts
@@ -58,7 +56,6 @@ pub struct EdgeTypeResponse {
 /// - Sample labels and values
 /// - OWL classes and properties
 /// - LLM-formatted context string
-///
 /// # Example Response
 /// ```json
 /// {
@@ -109,23 +106,18 @@ pub async fn get_schema(
 }
 
 /// Get LLM context string
-///
 /// GET /api/schema/llm-context
-///
 /// Returns a human-readable schema description optimized for LLM consumption.
 /// This includes:
 /// - Graph statistics
 /// - Available types
 /// - Sample Cypher queries
 /// - Property examples
-///
 /// # Example Response
 /// ```text
 /// # Graph Schema
-///
 /// Total Nodes: 225
 /// Total Edges: 320
-///
 /// ## Node Types
 /// - person (150 nodes)
 /// - organization (45 nodes)
@@ -144,11 +136,8 @@ pub async fn get_llm_context(
 }
 
 /// Get all available node types
-///
 /// GET /api/schema/node-types
-///
 /// Returns list of all node types present in the graph with their counts.
-///
 /// # Example Response
 /// ```json
 /// {
@@ -174,11 +163,8 @@ pub async fn get_node_types(
 }
 
 /// Get all available edge types
-///
 /// GET /api/schema/edge-types
-///
 /// Returns list of all edge types present in the graph with their counts.
-///
 /// # Example Response
 /// ```json
 /// {
@@ -204,11 +190,8 @@ pub async fn get_edge_types(
 }
 
 /// Get information about specific node type
-///
 /// GET /api/schema/node-types/{type}
-///
 /// Returns count of nodes with the specified type.
-///
 /// # Example Response
 /// ```json
 /// {
@@ -239,11 +222,8 @@ pub async fn get_node_type_info(
 }
 
 /// Get information about specific edge type
-///
 /// GET /api/schema/edge-types/{type}
-///
 /// Returns count of edges with the specified type.
-///
 /// # Example Response
 /// ```json
 /// {

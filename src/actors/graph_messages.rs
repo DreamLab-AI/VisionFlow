@@ -20,7 +20,6 @@ use actix::prelude::*;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), Box<dyn std::error::Error>>")]
 pub struct AddNode {
@@ -86,42 +85,36 @@ pub struct UpdateNodePosition {
 // GRAPH STATE MESSAGES - Node and Edge operations
 // ============================================================================
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct UpdateNodePositions {
     pub positions: Vec<BinaryNodeData>,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct BuildGraphFromMetadata {
     pub metadata: Vec<FileMetadata>,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct AddNodesFromMetadata {
     pub metadata: Vec<FileMetadata>,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct BatchAddNodes {
     pub nodes: Vec<Node>,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct BatchAddEdges {
     pub edges: Vec<Edge>,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct BatchGraphUpdate {
@@ -131,12 +124,10 @@ pub struct BatchGraphUpdate {
     pub remove_edge_ids: Vec<String>,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct FlushUpdateQueue;
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct ConfigureUpdateQueue {
@@ -145,7 +136,6 @@ pub struct ConfigureUpdateQueue {
     pub enable_auto_flush: bool,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct UpdateNodeFromMetadata {
@@ -153,33 +143,28 @@ pub struct UpdateNodeFromMetadata {
     pub metadata: FileMetadata,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct RemoveNodeByMetadata {
     pub metadata_id: String,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct UpdateGraphData {
     pub graph_data: GraphData,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct UpdateBotsGraph {
     pub agents: Vec<serde_json::Value>, 
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<Arc<GraphData>, String>")]
 pub struct GetBotsGraphData;
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<HashMap<u32, Option<f32>>, String>")]
 pub struct ComputeShortestPaths {
@@ -190,65 +175,54 @@ pub struct ComputeShortestPaths {
 // PHYSICS MESSAGES - Simulation control and physics operations
 // ============================================================================
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct StartSimulation;
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct StopSimulation;
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct SimulationStep;
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct UpdateSimulationParams {
     pub params: SimulationParams,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct StoreGPUComputeAddress {
     pub addr: Option<()>, 
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct InitializeGPUConnection {
     pub force_reinit: bool,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct GPUInitialized;
 
-///
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct SetAdvancedGPUContext;
 
-///
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct ResetGPUInitFlag;
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<PositionSnapshot, String>")]
 pub struct RequestPositionSnapshot {
     pub include_metadata: bool,
 }
 
-///
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct PositionSnapshot {
     pub knowledge_nodes: Vec<BinaryNodeDataClient>,
@@ -256,7 +230,6 @@ pub struct PositionSnapshot {
     pub timestamp: u64,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), VisionFlowError>")]
 pub struct PhysicsPauseMessage {
@@ -264,7 +237,6 @@ pub struct PhysicsPauseMessage {
     pub source: String,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), VisionFlowError>")]
 pub struct NodeInteractionMessage {
@@ -273,19 +245,16 @@ pub struct NodeInteractionMessage {
     pub client_id: Option<String>,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), VisionFlowError>")]
 pub struct ForceResumePhysics {
     pub reason: String,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<bool, VisionFlowError>")]
 pub struct GetEquilibriumStatus;
 
-///
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct AutoBalanceNotification {
     pub message: String,
@@ -293,7 +262,6 @@ pub struct AutoBalanceNotification {
     pub severity: String, 
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<Vec<AutoBalanceNotification>, String>")]
 pub struct GetAutoBalanceNotifications {
@@ -305,31 +273,26 @@ pub struct GetAutoBalanceNotifications {
 // SEMANTIC MESSAGES - AI and constraint operations
 // ============================================================================
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct UpdateAdvancedParams {
     pub params: AdvancedParams,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct UpdateConstraints {
     pub constraint_data: serde_json::Value, 
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<ConstraintSet, String>")]
 pub struct GetConstraints;
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct TriggerStressMajorization;
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct RegenerateSemanticConstraints;
@@ -338,14 +301,12 @@ pub struct RegenerateSemanticConstraints;
 // CLIENT MESSAGES - WebSocket and client operations
 // ============================================================================
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct ForcePositionBroadcast {
     pub reason: String,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct InitialClientSync {
@@ -357,7 +318,6 @@ pub struct InitialClientSync {
 // MESSAGE ENUMS FOR GROUPING
 // ============================================================================
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<GraphStateResponse, String>")]
 pub enum GraphStateMessages {
@@ -382,7 +342,6 @@ pub enum GraphStateMessages {
     ConfigureUpdateQueue(ConfigureUpdateQueue),
 }
 
-///
 #[derive(Debug, Clone)]
 pub enum GraphStateResponse {
     Success,
@@ -392,7 +351,6 @@ pub enum GraphStateResponse {
     Error(String),
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<PhysicsResponse, String>")]
 pub enum PhysicsMessages {
@@ -415,7 +373,6 @@ pub enum PhysicsMessages {
     GetAutoBalance(GetAutoBalanceNotifications),
 }
 
-///
 #[derive(Debug, Clone)]
 pub enum PhysicsResponse {
     Success,
@@ -425,7 +382,6 @@ pub enum PhysicsResponse {
     Error(String),
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<SemanticResponse, String>")]
 pub enum SemanticMessages {
@@ -436,7 +392,6 @@ pub enum SemanticMessages {
     RegenerateConstraints(RegenerateSemanticConstraints),
 }
 
-///
 #[derive(Debug, Clone)]
 pub enum SemanticResponse {
     Success,
@@ -444,7 +399,6 @@ pub enum SemanticResponse {
     Error(String),
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<ClientResponse, String>")]
 pub enum ClientMessages {
@@ -452,7 +406,6 @@ pub enum ClientMessages {
     InitialSync(InitialClientSync),
 }
 
-///
 #[derive(Debug, Clone)]
 pub enum ClientResponse {
     Success,
@@ -463,7 +416,6 @@ pub enum ClientResponse {
 // INTER-ACTOR COMMUNICATION PROTOCOLS
 // ============================================================================
 
-///
 pub trait GraphStateToPhysicsProtocol {
     fn notify_node_added(&self, node: &Node) -> Result<(), String>;
     fn notify_node_removed(&self, node_id: u32) -> Result<(), String>;
@@ -472,7 +424,6 @@ pub trait GraphStateToPhysicsProtocol {
     fn notify_positions_updated(&self, positions: &[BinaryNodeData]) -> Result<(), String>;
 }
 
-///
 pub trait PhysicsToSemanticProtocol {
     fn notify_simulation_started(&self) -> Result<(), String>;
     fn notify_simulation_stopped(&self) -> Result<(), String>;
@@ -480,13 +431,11 @@ pub trait PhysicsToSemanticProtocol {
     fn request_constraint_update(&self) -> Result<(), String>;
 }
 
-///
 pub trait SemanticToClientProtocol {
     fn notify_constraints_updated(&self, constraints: &ConstraintSet) -> Result<(), String>;
     fn notify_semantic_analysis_complete(&self) -> Result<(), String>;
 }
 
-///
 pub trait ClientToGraphStateProtocol {
     fn request_initial_sync(&self, client_id: &str) -> Result<(), String>;
     fn request_position_broadcast(&self) -> Result<(), String>;
@@ -494,7 +443,6 @@ pub trait ClientToGraphStateProtocol {
     fn notify_client_disconnected(&self, client_id: &str) -> Result<(), String>;
 }
 
-///
 pub trait MessageRouter {
     fn route_graph_state_message(
         &self,
@@ -509,7 +457,6 @@ pub trait MessageRouter {
 // ACTOR ADDRESSES AND ROUTING
 // ============================================================================
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<String, String>")]
 pub struct HealthCheck {

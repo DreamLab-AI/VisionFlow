@@ -114,7 +114,6 @@ unsafe impl DeviceRepr for SimParams {}
 // All fields are primitives (f32, u32, i32) with well-defined memory layout
 unsafe impl DeviceCopy for SimParams {}
 
-///
 pub struct FeatureFlags;
 impl FeatureFlags {
     pub const ENABLE_REPULSION: u32 = 1 << 0;

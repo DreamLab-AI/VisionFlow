@@ -7,41 +7,8 @@
 use async_trait::async_trait;
 use std::fmt::Debug;
 
-///
 pub type Result<T> = anyhow::Result<T>;
 
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
 pub trait Command: Send + Sync + Debug {
     
     type Result: Send;
@@ -58,29 +25,6 @@ pub trait Command: Send + Sync + Debug {
     }
 }
 
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
 pub trait Query: Send + Sync + Debug {
     
     type Result: Send;
@@ -94,10 +38,6 @@ pub trait Query: Send + Sync + Debug {
     }
 }
 
-///
-///
-///
-///
 #[async_trait]
 pub trait CommandHandler<C: Command>: Send + Sync {
     
@@ -107,10 +47,6 @@ pub trait CommandHandler<C: Command>: Send + Sync {
     async fn handle(&self, command: C) -> Result<C::Result>;
 }
 
-///
-///
-///
-///
 #[async_trait]
 pub trait QueryHandler<Q: Query>: Send + Sync {
     
@@ -120,10 +56,6 @@ pub trait QueryHandler<Q: Query>: Send + Sync {
     async fn handle(&self, query: Q) -> Result<Q::Result>;
 }
 
-///
-///
-///
-///
 #[async_trait]
 pub trait CommandMiddleware: Send + Sync {
     
@@ -142,7 +74,6 @@ pub trait CommandMiddleware: Send + Sync {
     }
 }
 
-///
 #[async_trait]
 pub trait QueryMiddleware: Send + Sync {
     
@@ -161,7 +92,6 @@ pub trait QueryMiddleware: Send + Sync {
     }
 }
 
-///
 pub struct LoggingMiddleware;
 
 #[async_trait]

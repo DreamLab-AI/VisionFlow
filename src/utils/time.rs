@@ -6,14 +6,11 @@
 use chrono::{DateTime, Utc};
 
 /// Get current UTC timestamp
-///
 /// Wrapper around Utc::now() providing a centralized point for time operations.
 /// Use this instead of calling Utc::now() directly.
-///
 /// # Examples
 /// ```
 /// use crate::utils::time;
-///
 /// let current_time = time::now();
 /// println!("Current time: {}", current_time);
 /// ```
@@ -23,14 +20,11 @@ pub fn now() -> DateTime<Utc> {
 }
 
 /// Get current Unix timestamp in milliseconds
-///
 /// Returns the number of milliseconds since Unix epoch (1970-01-01 00:00:00 UTC).
 /// Useful for database storage and high-precision timing.
-///
 /// # Examples
 /// ```
 /// use crate::utils::time;
-///
 /// let millis = time::timestamp_millis();
 /// println!("Milliseconds since epoch: {}", millis);
 /// ```
@@ -40,13 +34,10 @@ pub fn timestamp_millis() -> i64 {
 }
 
 /// Get current Unix timestamp in seconds
-///
 /// Returns the number of seconds since Unix epoch (1970-01-01 00:00:00 UTC).
-///
 /// # Examples
 /// ```
 /// use crate::utils::time;
-///
 /// let seconds = time::timestamp_seconds();
 /// println!("Seconds since epoch: {}", seconds);
 /// ```
@@ -56,17 +47,13 @@ pub fn timestamp_seconds() -> i64 {
 }
 
 /// Format DateTime in ISO8601/RFC3339 standard format
-///
 /// Produces timestamps like: "2025-11-03T19:45:30.123456789+00:00"
 /// This is the standard format for API responses and logging.
-///
 /// # Arguments
 /// * `dt` - The DateTime to format
-///
 /// # Examples
 /// ```
 /// use crate::utils::time;
-///
 /// let timestamp = time::now();
 /// let formatted = time::format_iso8601(&timestamp);
 /// println!("ISO8601: {}", formatted);
@@ -76,20 +63,15 @@ pub fn format_iso8601(dt: &DateTime<Utc>) -> String {
 }
 
 /// Parse ISO8601/RFC3339 timestamp string
-///
 /// Parses timestamps in standard ISO8601 format.
-///
 /// # Arguments
 /// * `s` - The timestamp string to parse
-///
 /// # Returns
 /// * `Ok(DateTime<Utc>)` - Successfully parsed timestamp
 /// * `Err(String)` - Parse error with description
-///
 /// # Examples
 /// ```
 /// use crate::utils::time;
-///
 /// match time::parse_iso8601("2025-11-03T19:45:30Z") {
 ///     Ok(dt) => println!("Parsed: {}", dt),
 ///     Err(e) => println!("Parse error: {}", e),
@@ -102,19 +84,14 @@ pub fn parse_iso8601(s: &str) -> Result<DateTime<Utc>, String> {
 }
 
 /// Calculate milliseconds elapsed since a start time
-///
 /// Useful for measuring operation duration and performance tracking.
-///
 /// # Arguments
 /// * `start` - The starting timestamp
-///
 /// # Returns
 /// The number of milliseconds between start and now
-///
 /// # Examples
 /// ```
 /// use crate::utils::time;
-///
 /// let start = time::now();
 /// // ... do some work ...
 /// let duration_ms = time::elapsed_ms(&start);
@@ -126,16 +103,12 @@ pub fn elapsed_ms(start: &DateTime<Utc>) -> i64 {
 }
 
 /// Format timestamp for human-readable logging
-///
 /// Produces timestamps like: "2025-11-03 19:45:30.123"
-///
 /// # Arguments
 /// * `dt` - The DateTime to format
-///
 /// # Examples
 /// ```
 /// use crate::utils::time;
-///
 /// let timestamp = time::now();
 /// let formatted = time::format_log_time(&timestamp);
 /// println!("Log time: {}", formatted);

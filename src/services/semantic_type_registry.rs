@@ -94,6 +94,33 @@ pub struct SemanticTypeRegistry {
     next_id: AtomicU32,
 }
 
+// Lock helper methods that recover from poisoned locks
+impl SemanticTypeRegistry {
+    fn read_uri_map(&self) -> std::sync::RwLockReadGuard<'_, HashMap<String, u32>> {
+        self.uri_to_id.read().unwrap_or_else(|poisoned| poisoned.into_inner())
+    }
+
+    fn write_uri_map(&self) -> std::sync::RwLockWriteGuard<'_, HashMap<String, u32>> {
+        self.uri_to_id.write().unwrap_or_else(|poisoned| poisoned.into_inner())
+    }
+
+    fn read_configs(&self) -> std::sync::RwLockReadGuard<'_, Vec<RelationshipForceConfig>> {
+        self.id_to_config.read().unwrap_or_else(|poisoned| poisoned.into_inner())
+    }
+
+    fn write_configs(&self) -> std::sync::RwLockWriteGuard<'_, Vec<RelationshipForceConfig>> {
+        self.id_to_config.write().unwrap_or_else(|poisoned| poisoned.into_inner())
+    }
+
+    fn read_uris(&self) -> std::sync::RwLockReadGuard<'_, Vec<String>> {
+        self.id_to_uri.read().unwrap_or_else(|poisoned| poisoned.into_inner())
+    }
+
+    fn write_uris(&self) -> std::sync::RwLockWriteGuard<'_, Vec<String>> {
+        self.id_to_uri.write().unwrap_or_else(|poisoned| poisoned.into_inner())
+    }
+}
+
 impl SemanticTypeRegistry {
     /// Create a new registry with default relationship types
     pub fn new() -> Self {
@@ -271,9 +298,9 @@ impl SemanticTypeRegistry {
     fn register_internal(&self, uri: &str, config: RelationshipForceConfig) -> u32 {
         let id = self.next_id.fetch_add(1, Ordering::SeqCst);
 
-        let mut uri_map = self.uri_to_id.write().unwrap();
-        let mut configs = self.id_to_config.write().unwrap();
-        let mut uris = self.id_to_uri.write().unwrap();
+        let mut uri_map = self.write_uri_map();
+        let mut configs = self.write_configs();
+        let mut uris = self.write_uris();
 
         uri_map.insert(uri.to_string(), id);
         configs.push(config);
@@ -287,10 +314,10 @@ impl SemanticTypeRegistry {
     pub fn register(&self, uri: &str, config: RelationshipForceConfig) -> u32 {
         // Check if already registered
         {
-            let uri_map = self.uri_to_id.read().unwrap();
+            let uri_map = self.read_uri_map();
             if let Some(&existing_id) = uri_map.get(uri) {
                 // Update existing config
-                let mut configs = self.id_to_config.write().unwrap();
+                let mut configs = self.write_configs();
                 if (existing_id as usize) < configs.len() {
                     configs[existing_id as usize] = config;
                 }
@@ -303,7 +330,7 @@ impl SemanticTypeRegistry {
 
     /// Get the ID for a relationship type URI
     pub fn get_id(&self, uri: &str) -> Option<u32> {
-        let uri_map = self.uri_to_id.read().unwrap();
+        let uri_map = self.read_uri_map();
         uri_map.get(uri).copied()
     }
 
@@ -319,21 +346,22 @@ impl SemanticTypeRegistry {
 
     /// Get the force configuration for a relationship type ID
     pub fn get_config(&self, id: u32) -> Option<RelationshipForceConfig> {
-        let configs = self.id_to_config.read().unwrap();
+        let configs = self.read_configs();
         configs.get(id as usize).copied()
     }
 
     /// Get the URI for a relationship type ID
     pub fn get_uri(&self, id: u32) -> Option<String> {
-        let uris = self.id_to_uri.read().unwrap();
+        let uris = self.read_uris();
         uris.get(id as usize).cloned()
     }
 
     /// Update the configuration for an existing relationship type
     pub fn update_config(&self, uri: &str, config: RelationshipForceConfig) -> bool {
-        let uri_map = self.uri_to_id.read().unwrap();
+        let uri_map = self.read_uri_map();
         if let Some(&id) = uri_map.get(uri) {
-            let mut configs = self.id_to_config.write().unwrap();
+            drop(uri_map); // Release read lock before acquiring write lock
+            let mut configs = self.write_configs();
             if (id as usize) < configs.len() {
                 configs[id as usize] = config;
                 return true;
@@ -345,14 +373,14 @@ impl SemanticTypeRegistry {
     /// Build a GPU-compatible buffer of all force configurations
     /// Buffer is indexed by relationship type ID
     pub fn build_gpu_buffer(&self) -> Vec<RelationshipForceConfig> {
-        let configs = self.id_to_config.read().unwrap();
+        let configs = self.read_configs();
         configs.clone()
     }
 
     /// Build a GPU buffer with the proper C-compatible struct layout
     /// for the dynamic relationship system in semantic_forces.cu
     pub fn build_dynamic_gpu_buffer(&self) -> Vec<DynamicForceConfigGPU> {
-        let configs = self.id_to_config.read().unwrap();
+        let configs = self.read_configs();
         configs.iter().map(|c| DynamicForceConfigGPU::from(c)).collect()
     }
 
@@ -364,7 +392,7 @@ impl SemanticTypeRegistry {
 
     /// Get the number of registered relationship types
     pub fn len(&self) -> usize {
-        let configs = self.id_to_config.read().unwrap();
+        let configs = self.read_configs();
         configs.len()
     }
 
@@ -375,7 +403,7 @@ impl SemanticTypeRegistry {
 
     /// Get all registered URIs
     pub fn registered_uris(&self) -> Vec<String> {
-        let uris = self.id_to_uri.read().unwrap();
+        let uris = self.read_uris();
         uris.clone()
     }
 

@@ -3,8 +3,6 @@
 
 use super::physics_constraint::*;
 
-///
-///
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
 pub struct ConstraintData {
@@ -43,8 +41,6 @@ pub struct ConstraintData {
     _padding: [f32; 2],
 }
 
-///
-///
 pub mod gpu_constraint_kind {
     pub const NONE: i32 = 0;
     pub const SEPARATION: i32 = 1;
@@ -70,7 +66,6 @@ impl Default for ConstraintData {
     }
 }
 
-///
 pub fn to_gpu_constraint_data(constraint: &PhysicsConstraint) -> ConstraintData {
     let mut data = ConstraintData::default();
 
@@ -134,7 +129,6 @@ pub fn to_gpu_constraint_data(constraint: &PhysicsConstraint) -> ConstraintData 
     data
 }
 
-///
 pub fn to_gpu_constraint_batch(constraints: &[PhysicsConstraint]) -> Vec<ConstraintData> {
     constraints
         .iter()
@@ -142,7 +136,6 @@ pub fn to_gpu_constraint_batch(constraints: &[PhysicsConstraint]) -> Vec<Constra
         .collect()
 }
 
-///
 pub struct GPUConstraintBuffer {
     
     pub data: Vec<ConstraintData>,
@@ -209,7 +202,6 @@ impl GPUConstraintBuffer {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct ConstraintStats {
     pub total_constraints: usize,

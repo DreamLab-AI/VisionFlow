@@ -11,7 +11,6 @@ use crate::actors::messages::{
 use crate::AppState;
 use crate::utils::result_helpers::safe_json_number;
 
-///
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CommunityDetectionRequest {
@@ -22,7 +21,6 @@ pub struct CommunityDetectionRequest {
     pub seed: Option<u32>,
 }
 
-///
 #[derive(Debug, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Community {
@@ -35,7 +33,6 @@ pub struct Community {
     pub center_node: Option<u32>, 
 }
 
-///
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CommunityDetectionResponse {
@@ -51,7 +48,6 @@ pub struct CommunityDetectionResponse {
     pub error: Option<String>,
 }
 
-///
 #[cfg(feature = "gpu")]
 pub async fn run_gpu_community_detection(
     app_state: &actix_web::web::Data<AppState>,
@@ -134,7 +130,6 @@ pub async fn run_gpu_community_detection(
     }
 }
 
-///
 fn validate_community_params(params: &CommunityDetectionParams) -> Result<(), String> {
     if params.max_iterations.unwrap_or(100) == 0 || params.max_iterations.unwrap_or(100) > 10000 {
         return Err("max_iterations must be between 1 and 10000".to_string());
@@ -149,7 +144,6 @@ fn validate_community_params(params: &CommunityDetectionParams) -> Result<(), St
     Ok(())
 }
 
-///
 fn convert_gpu_result_to_communities(
     result: crate::actors::messages::CommunityDetectionResult,
 ) -> Result<Vec<Community>, String> {
@@ -196,7 +190,6 @@ fn convert_gpu_result_to_communities(
     Ok(communities)
 }
 
-///
 fn generate_community_color(community_id: usize) -> String {
     let colors = [
         "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FECA57", "#FF9FF3", "#54A0FF", "#5F27CD",
@@ -206,7 +199,6 @@ fn generate_community_color(community_id: usize) -> String {
     colors[community_id % colors.len()].to_string()
 }
 
-///
 pub fn get_community_statistics(communities: &[Community]) -> HashMap<String, serde_json::Value> {
     let mut stats = HashMap::new();
 

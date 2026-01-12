@@ -107,14 +107,11 @@ pub struct RetryRequest {
 }
 
 /// Tracks outstanding messages with timeouts and retry logic
-///
 /// # Example
 /// ```rust
 /// use webxr::actors::messaging::{MessageId, MessageKind, MessageTracker};
 /// use std::time::Duration;
-///
 /// let tracker = MessageTracker::new();
-///
 /// let msg_id = MessageId::new();
 /// tracker.track(
 ///     msg_id,
@@ -154,7 +151,6 @@ impl MessageTracker {
     }
 
     /// Track a new message
-    ///
     /// # Arguments
     /// * `id` - Unique message identifier
     /// * `kind` - Type of message

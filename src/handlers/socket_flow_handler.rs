@@ -34,7 +34,6 @@ lazy_static::lazy_static! {
 
 // Note: Now using u32 node IDs throughout the system
 
-///
 #[derive(Clone, Debug)]
 pub struct PreReadSocketSettings {
     pub min_update_rate: u32,
@@ -81,7 +80,6 @@ impl Handler<BroadcastPositionUpdate> for SocketFlowServer {
         }
     }
 }
-///
 #[derive(Message, Clone)]
 #[rtype(result = "()")]
 pub struct BroadcastPositionUpdate(pub Vec<(u32, BinaryNodeData)>);

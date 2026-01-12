@@ -15,7 +15,6 @@ use crate::application::physics_service::{
 use crate::models::graph::GraphData;
 use crate::ports::gpu_physics_adapter::PhysicsParameters;
 
-///
 #[derive(Debug, Deserialize)]
 pub struct StartSimulationRequest {
     pub profile_name: Option<String>,
@@ -30,14 +29,12 @@ pub struct StartSimulationRequest {
     pub auto_stop_on_convergence: Option<bool>,
 }
 
-///
 #[derive(Debug, Serialize)]
 pub struct StartSimulationResponse {
     pub simulation_id: String,
     pub status: String,
 }
 
-///
 #[derive(Debug, Serialize)]
 pub struct SimulationStatusResponse {
     pub simulation_id: Option<String>,
@@ -62,7 +59,6 @@ pub struct StatisticsInfo {
     pub gpu_memory_used_mb: f32,
 }
 
-///
 #[derive(Debug, Deserialize)]
 pub struct OptimizeLayoutRequest {
     pub algorithm: String,
@@ -70,14 +66,12 @@ pub struct OptimizeLayoutRequest {
     pub target_energy: Option<f32>,
 }
 
-///
 #[derive(Debug, Serialize)]
 pub struct OptimizeLayoutResponse {
     pub nodes_updated: usize,
     pub optimization_score: f64,
 }
 
-///
 #[derive(Debug, Deserialize)]
 pub struct ApplyForcesRequest {
     pub forces: Vec<NodeForceInput>,
@@ -91,7 +85,6 @@ pub struct NodeForceInput {
     pub force_z: f32,
 }
 
-///
 #[derive(Debug, Deserialize)]
 pub struct PinNodesRequest {
     pub nodes: Vec<NodePositionInput>,
@@ -105,7 +98,6 @@ pub struct NodePositionInput {
     pub z: f32,
 }
 
-///
 #[derive(Debug, Deserialize)]
 pub struct UpdateParametersRequest {
     pub time_step: Option<f32>,
@@ -116,7 +108,6 @@ pub struct UpdateParametersRequest {
     pub max_velocity: Option<f32>,
 }
 
-///
 pub async fn start_simulation(
     physics_service: web::Data<Arc<PhysicsService>>,
     graph_data: web::Data<Arc<RwLock<GraphData>>>,
@@ -172,7 +163,6 @@ pub async fn start_simulation(
     }
 }
 
-///
 pub async fn stop_simulation(
     physics_service: web::Data<Arc<PhysicsService>>,
 ) -> ActixResult<HttpResponse> {
@@ -184,7 +174,6 @@ pub async fn stop_simulation(
     }
 }
 
-///
 pub async fn get_status(
     physics_service: web::Data<Arc<PhysicsService>>,
 ) -> ActixResult<HttpResponse> {
@@ -221,7 +210,6 @@ pub async fn get_status(
     })
 }
 
-///
 pub async fn optimize_layout(
     physics_service: web::Data<Arc<PhysicsService>>,
     graph_data: web::Data<Arc<RwLock<GraphData>>>,
@@ -247,7 +235,6 @@ pub async fn optimize_layout(
     }
 }
 
-///
 pub async fn perform_step(
     physics_service: web::Data<Arc<PhysicsService>>,
 ) -> ActixResult<HttpResponse> {
@@ -263,7 +250,6 @@ pub async fn perform_step(
     }
 }
 
-///
 pub async fn apply_forces(
     physics_service: web::Data<Arc<PhysicsService>>,
     req: web::Json<ApplyForcesRequest>,
@@ -282,7 +268,6 @@ pub async fn apply_forces(
     }
 }
 
-///
 pub async fn pin_nodes(
     physics_service: web::Data<Arc<PhysicsService>>,
     req: web::Json<PinNodesRequest>,
@@ -301,7 +286,6 @@ pub async fn pin_nodes(
     }
 }
 
-///
 pub async fn unpin_nodes(
     physics_service: web::Data<Arc<PhysicsService>>,
     req: web::Json<Vec<u32>>,
@@ -314,7 +298,6 @@ pub async fn unpin_nodes(
     }
 }
 
-///
 pub async fn update_parameters(
     physics_service: web::Data<Arc<PhysicsService>>,
     req: web::Json<UpdateParametersRequest>,
@@ -348,7 +331,6 @@ pub async fn update_parameters(
     }
 }
 
-///
 pub async fn reset_simulation(
     physics_service: web::Data<Arc<PhysicsService>>,
 ) -> ActixResult<HttpResponse> {
@@ -360,7 +342,6 @@ pub async fn reset_simulation(
     }
 }
 
-///
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/physics")

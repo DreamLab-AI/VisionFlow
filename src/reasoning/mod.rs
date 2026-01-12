@@ -1,5 +1,4 @@
 /// Reasoning module for VisionFlow ontology inference
-///
 /// This module provides custom OWL reasoning capabilities using the Whelk reasoner.
 /// The reasoning system validates ontologies, infers new axioms, and detects contradictions.
 

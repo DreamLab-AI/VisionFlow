@@ -48,7 +48,6 @@ use log::info;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-///
 pub struct NetworkResilienceManager {
     circuit_breaker_registry: CircuitBreakerRegistry,
     connection_pool_registry: ConnectionPoolRegistry,
@@ -264,7 +263,6 @@ impl Default for NetworkResilienceManager {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct ServiceResilienceConfig {
     pub service_name: String,
@@ -321,7 +319,6 @@ impl ServiceResilienceConfig {
     }
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResilienceStats {
     pub circuit_breaker_stats: std::collections::HashMap<String, CircuitBreakerStats>,
@@ -330,7 +327,6 @@ pub struct ResilienceStats {
     pub system_health: SystemHealthSummary,
 }
 
-///
 #[derive(Debug, thiserror::Error)]
 pub enum ResilienceError<E> {
     #[error("All retry attempts failed")]

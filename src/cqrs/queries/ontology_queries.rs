@@ -12,7 +12,6 @@ use crate::ports::ontology_repository::{
 use std::collections::HashMap;
 use std::sync::Arc;
 
-///
 #[derive(Debug, Clone)]
 pub struct GetClassQuery {
     pub iri: String,
@@ -33,7 +32,6 @@ impl Query for GetClassQuery {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct ListClassesQuery;
 
@@ -45,7 +43,6 @@ impl Query for ListClassesQuery {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct GetClassHierarchyQuery {
     pub root_iri: Option<String>, 
@@ -59,7 +56,6 @@ impl Query for GetClassHierarchyQuery {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct GetPropertyQuery {
     pub iri: String,
@@ -80,7 +76,6 @@ impl Query for GetPropertyQuery {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct ListPropertiesQuery;
 
@@ -92,7 +87,6 @@ impl Query for ListPropertiesQuery {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct GetAxiomsForClassQuery {
     pub class_iri: String,
@@ -113,7 +107,6 @@ impl Query for GetAxiomsForClassQuery {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct GetInferenceResultsQuery;
 
@@ -125,7 +118,6 @@ impl Query for GetInferenceResultsQuery {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct ValidateOntologyQuery;
 
@@ -137,7 +129,6 @@ impl Query for ValidateOntologyQuery {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct QueryOntologyQuery {
     pub query: String,
@@ -158,7 +149,6 @@ impl Query for QueryOntologyQuery {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct GetOntologyMetricsQuery;
 
@@ -170,7 +160,6 @@ impl Query for GetOntologyMetricsQuery {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct LoadOntologyGraphQuery;
 
@@ -182,7 +171,6 @@ impl Query for LoadOntologyGraphQuery {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct ExportOntologyQuery;
 
@@ -194,7 +182,6 @@ impl Query for ExportOntologyQuery {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct GetCachedSsspQuery {
     pub source_node_id: u32,
@@ -208,7 +195,6 @@ impl Query for GetCachedSsspQuery {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct GetCachedApspQuery;
 

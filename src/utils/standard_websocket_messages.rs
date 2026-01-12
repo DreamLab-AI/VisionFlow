@@ -4,7 +4,6 @@ use std::collections::HashMap;
 use crate::utils::time;
 use crate::utils::json::{from_json, to_json};
 
-///
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct WebSocketEnvelope<T> {
     pub message_type: String,
@@ -15,7 +14,6 @@ pub struct WebSocketEnvelope<T> {
     pub metadata: Option<HashMap<String, serde_json::Value>>,
 }
 
-///
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(tag = "type")]
 pub enum StandardWebSocketMessage {
@@ -111,7 +109,6 @@ pub enum StandardWebSocketMessage {
     },
 }
 
-///
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(tag = "type")]
 pub enum HealthWebSocketMessage {
@@ -145,7 +142,6 @@ pub struct ComponentStatus {
     pub metrics: Option<serde_json::Value>,
 }
 
-///
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(tag = "type")]
 pub enum McpWebSocketMessage {
@@ -183,7 +179,6 @@ pub enum McpWebSocketMessage {
     },
 }
 
-///
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(tag = "type")]
 pub enum SpeechWebSocketMessage {
@@ -213,7 +208,6 @@ pub enum SpeechWebSocketMessage {
     },
 }
 
-///
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(tag = "type")]
 pub enum BotsWebSocketMessage {
@@ -252,7 +246,6 @@ pub enum BotsWebSocketMessage {
     },
 }
 
-///
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(tag = "type")]
 pub enum OntologyWebSocketMessage {
@@ -355,7 +348,6 @@ pub struct OntologyMetrics {
     pub reasoning_time_ms: u64,
 }
 
-///
 pub trait ToStandardMessage {
     fn to_standard_envelope(
         &self,
@@ -396,7 +388,6 @@ impl ToStandardMessage for StandardWebSocketMessage {
     }
 }
 
-///
 pub fn serialize_message<T: Serialize>(message: &T) -> Result<String, serde_json::Error> {
     to_json(message).map_err(|e| serde_json::Error::io(std::io::Error::new(std::io::ErrorKind::Other, e.to_string())))
 }
@@ -407,7 +398,6 @@ pub fn deserialize_message<T: for<'de> Deserialize<'de>>(
     from_json(data).map_err(|e| serde_json::Error::io(std::io::Error::new(std::io::ErrorKind::Other, e.to_string())))
 }
 
-///
 pub fn create_error_message(error_type: &str, message: &str) -> StandardWebSocketMessage {
     StandardWebSocketMessage::Error {
         error_type: error_type.to_string(),
@@ -417,7 +407,6 @@ pub fn create_error_message(error_type: &str, message: &str) -> StandardWebSocke
     }
 }
 
-///
 pub fn create_ping_message(client_id: Option<String>) -> StandardWebSocketMessage {
     StandardWebSocketMessage::Ping {
         timestamp: time::now(),
@@ -425,7 +414,6 @@ pub fn create_ping_message(client_id: Option<String>) -> StandardWebSocketMessag
     }
 }
 
-///
 pub fn create_pong_message(client_id: Option<String>) -> StandardWebSocketMessage {
     StandardWebSocketMessage::Pong {
         timestamp: time::now(),
@@ -433,7 +421,6 @@ pub fn create_pong_message(client_id: Option<String>) -> StandardWebSocketMessag
     }
 }
 
-///
 pub fn validate_message_format(data: &str) -> Result<bool, String> {
     match serde_json::from_str::<StandardWebSocketMessage>(data) {
         Ok(_) => Ok(true),
@@ -441,7 +428,6 @@ pub fn validate_message_format(data: &str) -> Result<bool, String> {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct ChannelManager {
     pub available_channels: Vec<String>,

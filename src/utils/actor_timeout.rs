@@ -8,19 +8,14 @@ use actix::prelude::*;
 use log::error;
 use std::time::Duration;
 
-///
 pub const DEFAULT_ACTOR_TIMEOUT: Duration = Duration::from_secs(5);
 
-///
 pub const EXTENDED_ACTOR_TIMEOUT: Duration = Duration::from_secs(10);
 
-///
 pub const SHORT_ACTOR_TIMEOUT: Duration = Duration::from_secs(2);
 
-///
 pub type ActorTimeoutResult<T> = Result<T, ActorTimeoutError>;
 
-///
 #[derive(Debug)]
 pub enum ActorTimeoutError {
     
@@ -51,16 +46,6 @@ impl std::fmt::Display for ActorTimeoutError {
 
 impl std::error::Error for ActorTimeoutError {}
 
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
 pub async fn send_with_timeout<A, M>(
     addr: &Addr<A>,
     msg: M,
@@ -89,7 +74,6 @@ where
     }
 }
 
-///
 pub async fn send_with_default_timeout<A, M>(
     addr: &Addr<A>,
     msg: M,
@@ -104,7 +88,6 @@ where
     send_with_timeout(addr, msg, DEFAULT_ACTOR_TIMEOUT, actor_type).await
 }
 
-///
 pub async fn send_with_extended_timeout<A, M>(
     addr: &Addr<A>,
     msg: M,
@@ -119,7 +102,6 @@ where
     send_with_timeout(addr, msg, EXTENDED_ACTOR_TIMEOUT, actor_type).await
 }
 
-///
 pub async fn send_with_short_timeout<A, M>(
     addr: &Addr<A>,
     msg: M,

@@ -184,7 +184,6 @@ impl GitHubSyncService {
     }
 
     /// Process a batch of files with parallel content fetching
-    ///
     /// Uses FuturesUnordered to fetch file contents in parallel (the main I/O bottleneck)
     /// while processing/parsing sequentially to maintain state consistency.
     async fn process_batch(
@@ -556,12 +555,10 @@ impl GitHubSyncService {
     }
 
     /// Save ontology data to Neo4j and trigger reasoning pipeline
-    ///
     /// This method:
     /// 1. Saves OWL classes, properties, and axioms to Neo4jOntologyRepository
     /// 2. Triggers OntologyPipelineService for automatic reasoning
     /// 3. Pipeline generates semantic constraints and uploads to GPU
-    ///
     /// The reasoning pipeline runs asynchronously to avoid blocking sync.
     async fn save_ontology_data(&self, onto_data: crate::services::parsers::ontology_parser::OntologyData) -> Result<(), String> {
         use crate::ports::ontology_repository::OntologyRepository;

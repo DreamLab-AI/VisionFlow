@@ -8,7 +8,6 @@ use actix_web::{web, HttpRequest, HttpResponse, Result};
 use log::{debug, info, warn};
 use serde_json::Value;
 
-///
 pub struct ValidationService {
     settings_schema: ValidationSchema,
     physics_schema: ValidationSchema,
@@ -369,7 +368,6 @@ impl Default for ValidationService {
     }
 }
 
-///
 pub async fn validate_payload(
     req: HttpRequest,
     payload: web::Json<Value>,
@@ -406,7 +404,6 @@ pub async fn validate_payload(
     }
 }
 
-///
 pub async fn get_validation_stats(req: HttpRequest) -> Result<HttpResponse> {
     let client_id = extract_client_id(&req);
     debug!("Validation stats request from client: {}", client_id);
@@ -434,7 +431,6 @@ pub async fn get_validation_stats(req: HttpRequest) -> Result<HttpResponse> {
     ok_json!(stats)
 }
 
-///
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/validation")

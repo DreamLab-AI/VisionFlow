@@ -38,7 +38,6 @@ pub type Result<T> = std::result::Result<T, ConversionError>;
 // ============================================================================
 
 /// Convert 3D position tuples to flat GPU buffer format
-///
 /// # Example
 /// ```
 /// let positions = vec![(1.0, 2.0, 3.0), (4.0, 5.0, 6.0)];
@@ -53,7 +52,6 @@ pub fn positions_to_gpu(positions: &[(f32, f32, f32)]) -> Vec<f32> {
 }
 
 /// Convert flat GPU buffer to 3D position tuples
-///
 /// # Errors
 /// Returns error if buffer length is not divisible by 3
 pub fn gpu_to_positions(buffer: &[f32]) -> Result<Vec<(f32, f32, f32)>> {
@@ -71,7 +69,6 @@ pub fn gpu_to_positions(buffer: &[f32]) -> Result<Vec<(f32, f32, f32)>> {
 }
 
 /// Convert 4D position tuples (x, y, z, w) to flat GPU buffer format
-///
 /// Used for homogeneous coordinates or Vec4 types
 pub fn positions_4d_to_gpu(positions: &[(f32, f32, f32, f32)]) -> Vec<f32> {
     positions
@@ -81,7 +78,6 @@ pub fn positions_4d_to_gpu(positions: &[(f32, f32, f32, f32)]) -> Vec<f32> {
 }
 
 /// Convert flat GPU buffer to 4D position tuples
-///
 /// # Errors
 /// Returns error if buffer length is not divisible by 4
 pub fn gpu_to_positions_4d(buffer: &[f32]) -> Result<Vec<(f32, f32, f32, f32)>> {
@@ -103,14 +99,12 @@ pub fn gpu_to_positions_4d(buffer: &[f32]) -> Result<Vec<(f32, f32, f32, f32)>> 
 // ============================================================================
 
 /// Convert generic slice to GPU buffer format (f32)
-///
 /// Handles type conversion for common numeric types
 pub fn to_gpu_buffer<T: Into<f32> + Copy>(data: &[T]) -> Vec<f32> {
     data.iter().map(|&v| v.into()).collect()
 }
 
 /// Convert GPU buffer back to specified type
-///
 /// # Errors
 /// Returns error if conversion fails or data is invalid
 pub fn from_gpu_buffer<T: TryFrom<f32> + Debug>(buffer: &[f32]) -> Result<Vec<T>>
@@ -132,7 +126,6 @@ where
 // ============================================================================
 
 /// Validate buffer size matches expected element count and stride
-///
 /// # Arguments
 /// * `buffer` - The buffer to validate
 /// * `expected_elements` - Expected number of elements
@@ -268,7 +261,6 @@ pub fn gpu_buffer_to_nodes(buffer: &[f32]) -> Result<Vec<GpuNode>> {
 // ============================================================================
 
 /// Validate render data buffers have consistent sizes
-///
 /// Ensures positions, colors are Vec4 aligned and importance matches node count
 pub fn validate_render_data(
     positions: &[f32],

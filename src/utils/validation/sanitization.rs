@@ -4,7 +4,6 @@ use regex::Regex;
 use serde_json::Value;
 use std::collections::HashMap;
 
-///
 pub struct Sanitizer;
 
 impl Sanitizer {
@@ -406,7 +405,6 @@ impl Sanitizer {
     }
 }
 
-///
 pub struct CSPUtils;
 
 impl CSPUtils {

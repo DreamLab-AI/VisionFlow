@@ -6,7 +6,6 @@
 use serde::ser::{Serialize, Serializer};
 use std::fmt;
 
-///
 fn serialize_io_error<S>(
     error: &std::sync::Arc<std::io::Error>,
     serializer: S,
@@ -17,7 +16,6 @@ where
     error.to_string().serialize(serializer)
 }
 
-///
 #[derive(Debug, Clone, serde::Serialize)]
 pub enum VisionFlowError {
     
@@ -59,7 +57,6 @@ pub enum VisionFlowError {
     },
 }
 
-///
 #[derive(Debug, Clone, serde::Serialize)]
 pub enum ActorError {
     
@@ -83,7 +80,6 @@ pub enum ActorError {
     ActorNotAvailable(String),
 }
 
-///
 #[derive(Debug, Clone, serde::Serialize)]
 pub enum GPUError {
     
@@ -112,7 +108,6 @@ pub enum DataTransferDirection {
     GPUToCPU,
 }
 
-///
 #[derive(Debug, Clone, serde::Serialize)]
 pub enum SettingsError {
     
@@ -130,7 +125,6 @@ pub enum SettingsError {
     CacheError(String),
 }
 
-///
 #[derive(Debug, Clone, serde::Serialize)]
 pub enum NetworkError {
     
@@ -155,7 +149,6 @@ pub enum NetworkError {
     Timeout { operation: String, timeout_ms: u64 },
 }
 
-///
 #[derive(Debug, Clone, serde::Serialize)]
 pub enum SpeechError {
     
@@ -170,7 +163,6 @@ pub enum SpeechError {
     ProviderConfigError { provider: String, reason: String },
 }
 
-///
 #[derive(Debug, Clone, serde::Serialize)]
 pub enum GitHubError {
     
@@ -193,7 +185,6 @@ pub enum GitHubError {
     PullRequestFailed { reason: String },
 }
 
-///
 #[derive(Debug, Clone, serde::Serialize)]
 pub enum AudioError {
     
@@ -206,7 +197,6 @@ pub enum AudioError {
     JSONProcessingFailed(String),
 }
 
-///
 #[derive(Debug, Clone, serde::Serialize)]
 pub enum ResourceError {
     
@@ -221,7 +211,6 @@ pub enum ResourceError {
     ProcessLimit { current: usize, limit: usize },
 }
 
-///
 #[derive(Debug, Clone, serde::Serialize)]
 pub enum PerformanceError {
     
@@ -237,7 +226,6 @@ pub enum PerformanceError {
     ComparisonFailed(String),
 }
 
-///
 #[derive(Debug, Clone, serde::Serialize)]
 pub enum ProtocolError {
 
@@ -250,7 +238,6 @@ pub enum ProtocolError {
     BinaryFormatError(String),
 }
 
-///
 #[derive(Debug, Clone, serde::Serialize)]
 pub enum DatabaseError {
 
@@ -267,7 +254,6 @@ pub enum DatabaseError {
     MigrationFailed { version: String, reason: String },
 }
 
-///
 #[derive(Debug, Clone, serde::Serialize)]
 pub enum ValidationError {
 
@@ -284,7 +270,6 @@ pub enum ValidationError {
     Custom(String),
 }
 
-///
 #[derive(Debug, Clone, serde::Serialize)]
 pub enum ParseError {
 
@@ -842,7 +827,6 @@ impl From<&str> for VisionFlowError {
 // Convenience type alias for Results
 pub type VisionFlowResult<T> = Result<T, VisionFlowError>;
 
-///
 pub trait ErrorContext<T> {
     fn with_context<F>(self, f: F) -> VisionFlowResult<T>
     where

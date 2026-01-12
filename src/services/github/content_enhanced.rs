@@ -7,7 +7,6 @@ use serde_json::Value;
 use std::sync::Arc;
 use crate::utils::time;
 
-///
 #[derive(Clone)] 
 pub struct EnhancedContentAPI {
     client: Arc<GitHubClient>,

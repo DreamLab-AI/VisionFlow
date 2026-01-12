@@ -7,14 +7,11 @@ use serde::{de::DeserializeOwned, Serialize};
 use crate::errors::{VisionFlowError, VisionFlowResult};
 
 /// Deserialize JSON string into a typed value with standard error handling
-///
 /// # Example
 /// ```
 /// use visionflow::utils::json::from_json;
-///
 /// #[derive(serde::Deserialize)]
 /// struct User { name: String }
-///
 /// let user: User = from_json(r#"{"name":"Alice"}"#)?;
 /// # Ok::<(), visionflow::errors::VisionFlowError>(())
 /// ```
@@ -25,14 +22,11 @@ pub fn from_json<T: DeserializeOwned>(s: &str) -> VisionFlowResult<T> {
 }
 
 /// Serialize a value into a JSON string with standard error handling
-///
 /// # Example
 /// ```
 /// use visionflow::utils::json::to_json;
-///
 /// #[derive(serde::Serialize)]
 /// struct User { name: String }
-///
 /// let user = User { name: "Alice".to_string() };
 /// let json = to_json(&user)?;
 /// # Ok::<(), visionflow::errors::VisionFlowError>(())
@@ -44,14 +38,11 @@ pub fn to_json<T: Serialize + ?Sized>(value: &T) -> VisionFlowResult<String> {
 }
 
 /// Deserialize JSON string with custom context for better error messages
-///
 /// # Example
 /// ```
 /// use visionflow::utils::json::from_json_with_context;
-///
 /// #[derive(serde::Deserialize)]
 /// struct Config { timeout: u64 }
-///
 /// let config: Config = from_json_with_context(
 ///     r#"{"timeout":5000}"#,
 ///     "Loading server configuration"
@@ -68,14 +59,11 @@ pub fn from_json_with_context<T: DeserializeOwned>(
 }
 
 /// Serialize a value into a pretty-printed JSON string
-///
 /// # Example
 /// ```
 /// use visionflow::utils::json::to_json_pretty;
-///
 /// #[derive(serde::Serialize)]
 /// struct User { name: String, age: u32 }
-///
 /// let user = User { name: "Alice".to_string(), age: 30 };
 /// let json = to_json_pretty(&user)?;
 /// assert!(json.contains('\n'));
@@ -88,14 +76,11 @@ pub fn to_json_pretty<T: Serialize>(value: &T) -> VisionFlowResult<String> {
 }
 
 /// Deserialize from JSON byte array
-///
 /// # Example
 /// ```
 /// use visionflow::utils::json::from_json_bytes;
-///
 /// #[derive(serde::Deserialize)]
 /// struct User { name: String }
-///
 /// let bytes = br#"{"name":"Alice"}"#;
 /// let user: User = from_json_bytes(bytes)?;
 /// # Ok::<(), visionflow::errors::VisionFlowError>(())
@@ -107,14 +92,11 @@ pub fn from_json_bytes<T: DeserializeOwned>(bytes: &[u8]) -> VisionFlowResult<T>
 }
 
 /// Serialize to JSON byte array
-///
 /// # Example
 /// ```
 /// use visionflow::utils::json::to_json_bytes;
-///
 /// #[derive(serde::Serialize)]
 /// struct User { name: String }
-///
 /// let user = User { name: "Alice".to_string() };
 /// let bytes = to_json_bytes(&user)?;
 /// # Ok::<(), visionflow::errors::VisionFlowError>(())

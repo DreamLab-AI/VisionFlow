@@ -7,6 +7,7 @@ import { BinaryNodeData, parseBinaryNodeData, createBinaryNodeData, Vec3, BINARY
 import { graphWorkerProxy } from './graphWorkerProxy';
 import type { GraphData, Node, Edge } from './graphWorkerProxy';
 import { startTransition } from 'react';
+import { useWorkerErrorStore } from '../../../store/workerErrorStore';
 
 const logger = createLogger('GraphDataManager');
 
@@ -60,6 +61,11 @@ class GraphDataManager {
         console.warn('[GraphDataManager] Worker not ready after timeout, continuing without worker');
         logger.warn('Graph worker proxy not ready after timeout, proceeding without worker');
         this.workerInitialized = false;
+        // Show user-facing error modal via workerErrorStore
+        useWorkerErrorStore.getState().setWorkerError(
+          'The graph visualization worker failed to initialize.',
+          'Worker initialization timed out after 3 seconds. The application will continue with reduced performance.'
+        );
         return;
       }
       
@@ -110,6 +116,27 @@ class GraphDataManager {
       GraphDataManager.instance = new GraphDataManager();
     }
     return GraphDataManager.instance;
+  }
+
+  /**
+   * Get the reverse node ID map (numeric ID -> string ID)
+   * Used for resolving node positions from binary protocol IDs.
+   */
+  public get reverseNodeIds(): Map<number, string> {
+    return this.reverseNodeIdMap;
+  }
+
+  /**
+   * Get cached graph data synchronously (may be stale or null)
+   * Used for fast position lookups during animation.
+   * Note: Returns null since worker data requires async access.
+   * Callers should use fallback positioning when null.
+   */
+  public getCachedGraphData(): GraphData | null {
+    // Worker data is async-only; callers should use fallback positioning
+    // For real-time visualization, ActionConnectionsLayer uses deterministic
+    // position generation based on node IDs when positions aren't available.
+    return null;
   }
 
   // Allow re-checking worker readiness after AppInitializer completes

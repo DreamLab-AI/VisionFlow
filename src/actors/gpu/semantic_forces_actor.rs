@@ -502,7 +502,6 @@ impl SemanticForcesActor {
     }
 
     /// Convert Rust config to GPU C-compatible struct
-    ///
     /// This function creates a SemanticConfigGPU struct that matches the C++ SemanticConfig
     /// layout exactly. All 9 sub-configs must be populated to prevent undefined behavior.
     fn config_to_gpu(&self) -> SemanticConfigGPU {

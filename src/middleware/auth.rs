@@ -16,12 +16,10 @@ use crate::services::nostr_service::NostrService;
 use crate::utils::auth::{verify_authenticated, verify_power_user, AccessLevel};
 
 /// Authentication middleware that enforces Nostr-based session validation
-///
 /// # Example
 /// ```
 /// use actix_web::{web, App};
 /// use crate::middleware::auth::RequireAuth;
-///
 /// App::new()
 ///     .wrap(RequireAuth::authenticated())  // Require any authenticated user
 ///     .route("/protected", web::get().to(handler))
@@ -136,12 +134,10 @@ pub struct AuthenticatedUser {
 }
 
 /// Extract authenticated user from request extensions (for use in handlers)
-///
 /// # Example
 /// ```
 /// use actix_web::{web, HttpRequest};
 /// use crate::middleware::auth::get_authenticated_user;
-///
 /// async fn handler(req: HttpRequest) -> impl Responder {
 ///     let user = get_authenticated_user(&req)?;
 ///     // Use user.pubkey

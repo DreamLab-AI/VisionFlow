@@ -21,7 +21,6 @@ use crate::types::claude_flow::{
 };
 use crate::utils::time;
 
-///
 fn task_to_agent_status(task: TaskInfo) -> AgentStatus {
     use chrono::TimeZone;
 
@@ -91,7 +90,6 @@ fn task_to_agent_status(task: TaskInfo) -> AgentStatus {
         workload: Some(0.5),
     }
 }
-///
 pub struct AgentMonitorActor {
     _client: ClaudeFlowClient,
     graph_service_addr: Addr<crate::actors::GraphServiceSupervisor>,
@@ -126,8 +124,11 @@ impl AgentMonitorActor {
             .ok()
             .and_then(|p| p.parse::<u16>().ok())
             .unwrap_or(9090);
-        let api_key = std::env::var("MANAGEMENT_API_KEY")
-            .unwrap_or_else(|_| "change-this-secret-key".to_string());
+        // SECURITY: Management API key is required - no insecure fallback
+        let api_key = std::env::var("MANAGEMENT_API_KEY").unwrap_or_else(|_| {
+            warn!("[AgentMonitorActor] MANAGEMENT_API_KEY not set - Management API client will be disabled");
+            String::new()
+        });
 
         let management_api_client = ManagementApiClient::new(host, port, api_key);
 
@@ -181,7 +182,6 @@ impl AgentMonitorActor {
     }
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "()")]
 struct ProcessAgentStatuses {

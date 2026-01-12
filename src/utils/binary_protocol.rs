@@ -33,10 +33,8 @@ const WIRE_V2_NODE_ID_MASK: u32 = 0x3FFFFFFF;
 
 // WireNodeDataItemV1 REMOVED - V1 protocol no longer supported
 
-///
 /// Wire format V2 - 36 bytes per node
 /// Basic pathfinding + node type flags
-///
 pub struct WireNodeDataItemV2 {
     pub id: u32,
     pub position: Vec3Data,
@@ -46,10 +44,8 @@ pub struct WireNodeDataItemV2 {
 
 }
 
-///
 /// Wire format V3 - 48 bytes per node (P0-4 Analytics Extension)
 /// Adds clustering, anomaly detection, and community detection
-///
 pub struct WireNodeDataItemV3 {
     pub id: u32,
     pub position: Vec3Data,
@@ -149,7 +145,6 @@ const WIRE_ITEM_SIZE: usize = WIRE_V3_ITEM_SIZE;
 // - V2/V3: Bits 26-28 of u32 ID for Ontology types (Bit 26 = Class, Bit 27 = Individual, Bit 28 = Property)
 // This allows the client to distinguish between different node types for visualization.
 
-///
 pub fn set_agent_flag(node_id: u32) -> u32 {
     (node_id & NODE_ID_MASK) | AGENT_NODE_FLAG
 }
@@ -204,7 +199,6 @@ pub fn get_node_type(node_id: u32) -> NodeType {
     }
 }
 
-///
 pub fn set_ontology_class_flag(node_id: u32) -> u32 {
     (node_id & NODE_ID_MASK) | ONTOLOGY_CLASS_FLAG
 }
@@ -236,16 +230,12 @@ pub fn is_ontology_node(node_id: u32) -> bool {
 // to_wire_id_v1 and from_wire_id_v1 REMOVED - V1 protocol no longer supported
 // Use to_wire_id_v2/from_wire_id_v2 for full 32-bit node ID support
 
-///
-///
 pub fn to_wire_id_v2(node_id: u32) -> u32 {
     
     
     node_id
 }
 
-///
-///
 pub fn from_wire_id_v2(wire_id: u32) -> u32 {
     
     wire_id
@@ -276,8 +266,6 @@ impl BinaryNodeData {
     }
 }
 
-///
-///
 pub fn needs_v2_protocol(nodes: &[(u32, BinaryNodeData)]) -> bool {
     nodes.iter().any(|(node_id, _)| {
         let actual_id = get_actual_node_id(*node_id);
@@ -285,9 +273,6 @@ pub fn needs_v2_protocol(nodes: &[(u32, BinaryNodeData)]) -> bool {
     })
 }
 
-///
-///
-///
 pub fn encode_node_data_with_types(
     nodes: &[(u32, BinaryNodeData)],
     agent_node_ids: &[u32],
@@ -296,7 +281,6 @@ pub fn encode_node_data_with_types(
     encode_node_data_extended(nodes, agent_node_ids, knowledge_node_ids, &[], &[], &[])
 }
 
-///
 pub fn encode_node_data_extended(
     nodes: &[(u32, BinaryNodeData)],
     agent_node_ids: &[u32],
@@ -402,7 +386,6 @@ pub fn encode_node_data_extended(
     buffer
 }
 
-///
 pub fn encode_node_data_with_flags(
     nodes: &[(u32, BinaryNodeData)],
     agent_node_ids: &[u32],
@@ -410,10 +393,8 @@ pub fn encode_node_data_with_flags(
     encode_node_data_with_types(nodes, agent_node_ids, &[])
 }
 
-///
 /// Encode node data with analytics (Protocol V3 - P0-4)
 /// Extends V2 with cluster_id, anomaly_score, and community_id
-///
 pub fn encode_node_data_with_analytics(
     nodes: &[(u32, BinaryNodeData)],
     agent_node_ids: &[u32],
@@ -494,8 +475,6 @@ pub fn encode_node_data_with_analytics(
     buffer
 }
 
-///
-///
 pub fn encode_node_data(nodes: &[(u32, BinaryNodeData)]) -> Vec<u8> {
     encode_node_data_with_types(nodes, &[], &[])
 }
@@ -523,7 +502,6 @@ pub fn decode_node_data(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, Strin
 
 // decode_node_data_v1 REMOVED - V1 protocol no longer supported
 
-///
 fn decode_node_data_v2(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String> {
     
     if data.len() % WIRE_V2_ITEM_SIZE != 0 {
@@ -655,10 +633,8 @@ fn decode_node_data_v2(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String
     Ok(updates)
 }
 
-///
 /// Decode Protocol V3 with analytics data (P0-4)
 /// Returns standard BinaryNodeData (analytics data is discarded in basic decode)
-///
 fn decode_node_data_v3(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String> {
     if data.len() % WIRE_V3_ITEM_SIZE != 0 {
         return Err(format!(
@@ -1201,9 +1177,185 @@ mod tests {
     }
 }
 
+// ============================================================================
+// AGENT ACTION EVENTS (Protocol 0x23) - Ephemeral Connection Visualization
+// ============================================================================
+
+/// Action types for agent-to-data interactions
+#[repr(u8)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum AgentActionType {
+    Query = 0,      // Agent querying data node (blue)
+    Update = 1,     // Agent updating data node (yellow)
+    Create = 2,     // Agent creating data node (green)
+    Delete = 3,     // Agent deleting data node (red)
+    Link = 4,       // Agent linking nodes (purple)
+    Transform = 5,  // Agent transforming data (cyan)
+}
+
+impl From<u8> for AgentActionType {
+    fn from(value: u8) -> Self {
+        match value {
+            0 => AgentActionType::Query,
+            1 => AgentActionType::Update,
+            2 => AgentActionType::Create,
+            3 => AgentActionType::Delete,
+            4 => AgentActionType::Link,
+            5 => AgentActionType::Transform,
+            _ => AgentActionType::Query, // Default
+        }
+    }
+}
+
+/// Agent action event for visualization (15 bytes header + variable payload)
+/// Used to render ephemeral connections between agent nodes and data nodes
+#[repr(C)]
+#[derive(Debug, Clone)]
+pub struct AgentActionEvent {
+    pub source_agent_id: u32,   // 4 bytes - ID of the acting agent
+    pub target_node_id: u32,    // 4 bytes - ID of the target data node
+    pub action_type: u8,        // 1 byte - AgentActionType
+    pub timestamp: u32,         // 4 bytes - Event timestamp (ms)
+    pub duration_ms: u16,       // 2 bytes - Animation duration hint
+    pub payload: Vec<u8>,       // Variable - Optional metadata
+}
+
+// Wire format size (fixed header only, payload is variable)
+const AGENT_ACTION_HEADER_SIZE: usize = 15;
+
+impl AgentActionEvent {
+    /// Create a new agent action event
+    pub fn new(
+        source_agent_id: u32,
+        target_node_id: u32,
+        action_type: AgentActionType,
+        duration_ms: u16,
+    ) -> Self {
+        Self {
+            source_agent_id,
+            target_node_id,
+            action_type: action_type as u8,
+            timestamp: std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| (d.as_millis() % u32::MAX as u128) as u32)
+                .unwrap_or(0),
+            duration_ms,
+            payload: Vec::new(),
+        }
+    }
+
+    /// Encode to wire format
+    pub fn encode(&self) -> Vec<u8> {
+        let mut buffer = Vec::with_capacity(1 + AGENT_ACTION_HEADER_SIZE + self.payload.len());
+
+        // Message type header
+        buffer.push(MessageType::AgentAction as u8);
+
+        // Fixed header (15 bytes)
+        buffer.extend_from_slice(&self.source_agent_id.to_le_bytes());
+        buffer.extend_from_slice(&self.target_node_id.to_le_bytes());
+        buffer.push(self.action_type);
+        buffer.extend_from_slice(&self.timestamp.to_le_bytes());
+        buffer.extend_from_slice(&self.duration_ms.to_le_bytes());
+
+        // Variable payload
+        buffer.extend_from_slice(&self.payload);
+
+        buffer
+    }
+
+    /// Decode from wire format (excludes message type byte)
+    pub fn decode(data: &[u8]) -> Result<Self, String> {
+        if data.len() < AGENT_ACTION_HEADER_SIZE {
+            return Err(format!(
+                "AgentActionEvent data too small: {} < {}",
+                data.len(),
+                AGENT_ACTION_HEADER_SIZE
+            ));
+        }
+
+        let source_agent_id = u32::from_le_bytes([data[0], data[1], data[2], data[3]]);
+        let target_node_id = u32::from_le_bytes([data[4], data[5], data[6], data[7]]);
+        let action_type = data[8];
+        let timestamp = u32::from_le_bytes([data[9], data[10], data[11], data[12]]);
+        let duration_ms = u16::from_le_bytes([data[13], data[14]]);
+        let payload = if data.len() > AGENT_ACTION_HEADER_SIZE {
+            data[AGENT_ACTION_HEADER_SIZE..].to_vec()
+        } else {
+            Vec::new()
+        };
+
+        Ok(Self {
+            source_agent_id,
+            target_node_id,
+            action_type,
+            timestamp,
+            duration_ms,
+            payload,
+        })
+    }
+
+    /// Get the action type as enum
+    pub fn get_action_type(&self) -> AgentActionType {
+        AgentActionType::from(self.action_type)
+    }
+}
+
+/// Batch encode multiple agent action events
+pub fn encode_agent_actions(events: &[AgentActionEvent]) -> Vec<u8> {
+    let mut buffer = Vec::with_capacity(
+        1 + events.len() * (AGENT_ACTION_HEADER_SIZE + 16) // Estimate with avg payload
+    );
+
+    // Message type
+    buffer.push(MessageType::AgentAction as u8);
+
+    // Event count (u16)
+    buffer.extend_from_slice(&(events.len() as u16).to_le_bytes());
+
+    // Each event (length-prefixed)
+    for event in events {
+        let event_data = event.encode();
+        let event_len = (event_data.len() - 1) as u16; // Exclude msg type byte
+        buffer.extend_from_slice(&event_len.to_le_bytes());
+        buffer.extend_from_slice(&event_data[1..]); // Skip msg type byte
+    }
+
+    buffer
+}
+
+/// Decode batch of agent action events
+pub fn decode_agent_actions(data: &[u8]) -> Result<Vec<AgentActionEvent>, String> {
+    if data.len() < 2 {
+        return Err("AgentAction batch data too small".to_string());
+    }
+
+    let event_count = u16::from_le_bytes([data[0], data[1]]) as usize;
+    let mut events = Vec::with_capacity(event_count);
+    let mut offset = 2;
+
+    for _ in 0..event_count {
+        if offset + 2 > data.len() {
+            return Err("Truncated event length".to_string());
+        }
+
+        let event_len = u16::from_le_bytes([data[offset], data[offset + 1]]) as usize;
+        offset += 2;
+
+        if offset + event_len > data.len() {
+            return Err("Truncated event data".to_string());
+        }
+
+        let event = AgentActionEvent::decode(&data[offset..offset + event_len])?;
+        events.push(event);
+        offset += event_len;
+    }
+
+    Ok(events)
+}
+
 // Control frame structures for constraint and parameter updates
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum ControlFrame {
@@ -1274,7 +1426,6 @@ impl ControlFrame {
     }
 }
 
-///
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum MessageType {
 
@@ -1292,6 +1443,10 @@ pub enum MessageType {
     /// Client acknowledgement of position broadcast (Protocol V3 backpressure)
     /// Enables true end-to-end flow control vs queue-only confirmation
     BroadcastAck = 0x34,
+
+    /// Agent action event for visualization of agent-to-data interactions
+    /// Used for ephemeral connection visualization in 3D space
+    AgentAction = 0x23,
 }
 
 /// WebSocket message types for voice and acknowledgements
@@ -1397,7 +1552,6 @@ impl BinaryProtocol {
     }
 }
 
-///
 pub struct MultiplexedMessage {
     pub msg_type: MessageType,
     pub data: Vec<u8>,
@@ -1439,6 +1593,7 @@ impl MultiplexedMessage {
             0x02 => MessageType::VoiceData,
             0x03 => MessageType::ControlFrame,
             0x04 => MessageType::PositionDelta,
+            0x23 => MessageType::AgentAction,
             0x34 => MessageType::BroadcastAck,
             t => return Err(format!("Unknown message type: {}", t)),
         };

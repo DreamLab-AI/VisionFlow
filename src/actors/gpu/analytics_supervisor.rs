@@ -53,7 +53,6 @@ impl SupervisedActorState {
 }
 
 /// Analytics Supervisor Actor
-///
 /// Manages the lifecycle of analytics-related GPU actors with proper error isolation.
 /// Analytics actors are considered non-critical - failures don't block physics.
 pub struct AnalyticsSupervisor {

@@ -20,10 +20,6 @@ use horned_owl::ontology::set::SetOntology;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 
-///
-///
-///
-///
 pub struct WhelkInferenceEngine {
     ontology: Option<SetOntology<ArcStr>>,
 
@@ -40,7 +36,6 @@ pub struct WhelkInferenceEngine {
     total_inferences: usize,
 }
 
-///
 use whelk;
 use crate::utils::time;
 

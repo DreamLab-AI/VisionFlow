@@ -202,7 +202,6 @@ impl BroadcastOptimizer {
     }
 
     /// Process positions and return indices of nodes to broadcast
-    ///
     /// Returns (should_broadcast, filtered_indices)
     pub fn process_frame(
         &mut self,

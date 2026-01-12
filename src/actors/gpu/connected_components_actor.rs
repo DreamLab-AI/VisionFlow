@@ -21,8 +21,7 @@ use crate::actors::messages::*;
 #[cfg(feature = "gpu")]
 extern "C" {
     /// Compute connected components using GPU label propagation
-    ///
-    /// # Parameters
+        /// # Parameters
     /// - edge_row_offsets: CSR row offsets [num_nodes + 1]
     /// - edge_col_indices: CSR column indices [num_edges]
     /// - labels: Output node labels [num_nodes] (allocated by caller)

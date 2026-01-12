@@ -3580,21 +3580,18 @@ impl UnifiedGPUCompute {
     }
 
     /// Get the number of nodes in the GPU compute context
-    ///
     /// Returns the actual node count from the position buffer size
     pub fn get_num_nodes(&self) -> usize {
         self.pos_in_x.len()
     }
 
     /// Run PageRank centrality computation on the graph
-    ///
     /// # Parameters
     /// - `damping`: Damping factor (typically 0.85)
     /// - `max_iterations`: Maximum number of iterations
     /// - `epsilon`: Convergence threshold
     /// - `normalize`: Whether to normalize the results
     /// - `use_optimized`: Use optimized algorithm variant
-    ///
     /// # Returns
     /// Tuple of (PageRank scores, iterations performed, converged, convergence value)
     pub fn run_pagerank_centrality(

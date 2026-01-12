@@ -1,6 +1,6 @@
 ---
 title: VisionFlow Documentation
-description: > **228 documents** organized using the **Diátaxis Framework** for maximum discoverability
+description: > **319 documents** organized using the **Diataxis Framework** for maximum discoverability
 category: tutorial
 tags:
   - architecture
@@ -14,7 +14,7 @@ related-docs:
   - guides/navigation-guide.md
   - OVERVIEW.md
   - guides/configuration.md
-updated-date: 2025-12-18
+updated-date: 2026-01-12
 difficulty-level: beginner
 dependencies:
   - Docker installation
@@ -25,7 +25,7 @@ dependencies:
 
 **Complete documentation for VisionFlow's enterprise-grade multi-agent knowledge graphing system.**
 
-> **228 documents** organized using the **Diátaxis Framework** for maximum discoverability
+> **319 documents** organized using the **Diataxis Framework** for maximum discoverability
 
 ---
 
@@ -106,6 +106,29 @@ dependencies:
 </td>
 </tr>
 </table>
+
+---
+
+## 📢 Recent Updates
+
+### Heroic Refactor Sprint (2026-01-12)
+
+**Quality Gate: 60 → 75/100** | [Full Sprint Report](sprints/heroic-refactor-sprint-2026-01.md)
+
+| Achievement | Result |
+|-------------|--------|
+| New Tests | +337 (837 total) |
+| Clippy Warnings | -56% (2429 → 1051) |
+| Critical Issues | 8/8 resolved |
+| Test Pass Rate | 95.1% |
+
+**Key Changes:**
+- Jest → Vitest migration for ESM compatibility
+- Binary Protocol V2 unification (21-byte position updates)
+- Agent Visualization feature (AGENT_ACTION 0x23)
+- Security vulnerabilities fixed (3 CRITICAL)
+
+See [CHANGELOG.md](../CHANGELOG.md) for full release notes.
 
 ---
 
@@ -760,18 +783,18 @@ See **[Contributing Guide](guides/developer/06-contributing.md)** for complete d
 
 ---
 
-## 📊 Documentation Stats
+## Documentation Stats
 
-- **Total Documents**: 228 markdown files
-- **Framework**: Diátaxis (Tutorials, How-To, Explanations, Reference)
-- **Last Full Audit**: 2025-12-02
+- **Total Documents**: 319 markdown files
+- **Framework**: Diataxis (Tutorials, How-To, Explanations, Reference)
+- **Last Full Audit**: 2026-01-12
 - **Documentation Coverage**: 95%+ (all major features documented)
 - **Link Health**: 98% valid internal links
 - **Diagram Format**: Mermaid (100% valid syntax)
 
 ---
 
-**Last Updated**: 2025-12-02
-**Documentation Version**: 2.0
-**Framework**: Diátaxis
+**Last Updated**: 2026-01-12
+**Documentation Version**: 2.1
+**Framework**: Diataxis
 **Maintainer**: DreamLab AI Documentation Team

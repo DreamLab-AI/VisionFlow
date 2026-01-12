@@ -9,7 +9,6 @@ use crate::AppState;
 use crate::actors::messages::GetGraphData;
 use super::{Cluster, ClusteringRequest, ClusteringParams};
 
-///
 pub async fn perform_clustering(
     app_state: &actix_web::web::Data<AppState>,
     request: &ClusteringRequest,
@@ -106,7 +105,6 @@ pub async fn perform_clustering(
     }
 }
 
-///
 async fn perform_spectral_clustering(
     graph_data: &crate::models::graph::GraphData,
     params: &ClusteringParams,
@@ -150,7 +148,6 @@ async fn perform_spectral_clustering(
     Ok(clusters)
 }
 
-///
 async fn perform_hierarchical_clustering(
     graph_data: &crate::models::graph::GraphData,
     params: &ClusteringParams,
@@ -193,7 +190,6 @@ async fn perform_hierarchical_clustering(
     Ok(clusters)
 }
 
-///
 async fn perform_dbscan_clustering(
     graph_data: &crate::models::graph::GraphData,
     params: &ClusteringParams,
@@ -249,7 +245,6 @@ async fn perform_dbscan_clustering(
     Ok(clusters)
 }
 
-///
 async fn perform_kmeans_clustering(
     graph_data: &crate::models::graph::GraphData,
     params: &ClusteringParams,
@@ -292,7 +287,6 @@ async fn perform_kmeans_clustering(
     Ok(clusters)
 }
 
-///
 async fn perform_louvain_clustering(
     graph_data: &crate::models::graph::GraphData,
     params: &ClusteringParams,
@@ -336,7 +330,6 @@ async fn perform_louvain_clustering(
     Ok(clusters)
 }
 
-///
 async fn perform_affinity_propagation(
     graph_data: &crate::models::graph::GraphData,
     params: &ClusteringParams,
@@ -374,7 +367,6 @@ async fn perform_affinity_propagation(
     Ok(clusters)
 }
 
-///
 fn create_single_cluster(graph_data: &crate::models::graph::GraphData, method: &str) -> Vec<Cluster> {
     let all_nodes: Vec<u32> = graph_data.nodes.keys().cloned().collect();
 
@@ -390,7 +382,6 @@ fn create_single_cluster(graph_data: &crate::models::graph::GraphData, method: &
     }]
 }
 
-///
 fn generate_cluster_color(index: usize) -> String {
     let colors = [
         "#4F46E5", "#7C3AED", "#DB2777", "#DC2626",
@@ -400,7 +391,6 @@ fn generate_cluster_color(index: usize) -> String {
     colors[index % colors.len()].to_string()
 }
 
-///
 fn generate_cluster_keywords(cluster_type: &str) -> Vec<String> {
     let base_keywords = vec![
         "semantic".to_string(),
@@ -423,7 +413,6 @@ fn generate_cluster_keywords(cluster_type: &str) -> Vec<String> {
         .collect()
 }
 
-///
 fn generate_centroid(cluster_index: usize, total_clusters: usize) -> [f32; 3] {
     let angle = 2.0 * std::f32::consts::PI * cluster_index as f32 / total_clusters as f32;
     let radius = 10.0 + (cluster_index as f32 * 2.0);
@@ -435,7 +424,6 @@ fn generate_centroid(cluster_index: usize, total_clusters: usize) -> [f32; 3] {
     ]
 }
 
-///
 fn validate_clustering_params(request: &ClusteringRequest) -> Result<(), String> {
     
     let valid_methods = ["spectral", "hierarchical", "dbscan", "kmeans", "louvain", "affinity"];

@@ -78,16 +78,6 @@ pub use semantic_gpu_buffer::{
     gpu_semantic_types,
 };
 
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
 pub struct ConstraintPipeline {
     mapper: AxiomMapper,
     resolver: PriorityResolver,

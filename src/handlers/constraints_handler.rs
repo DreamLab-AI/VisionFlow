@@ -8,7 +8,6 @@ use serde_json::{json, Value};
 // Note: Constraint imports available but currently unused - keeping for future enhancements
 use crate::handlers::settings_validation_fix::validate_constraint;
 
-///
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/constraints")
@@ -20,7 +19,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     );
 }
 
-///
 async fn define_constraints(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -132,7 +130,6 @@ async fn define_constraints(
     }
 }
 
-///
 async fn apply_constraints(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -200,7 +197,6 @@ async fn apply_constraints(
     }))
 }
 
-///
 async fn remove_constraints(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -236,7 +232,6 @@ async fn remove_constraints(
     }))
 }
 
-///
 async fn list_constraints(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -320,12 +315,11 @@ use crate::{
         }
         _ => {
             error!("Failed to get settings for constraint listing");
-            Ok(error_json!("Failed to retrieve constraint information").expect("JSON serialization failed"))
+            error_json!("Failed to retrieve constraint information")
         }
     }
 }
 
-///
 async fn validate_constraint_definition(
     _req: HttpRequest,
     _state: web::Data<AppState>,
@@ -348,7 +342,6 @@ async fn validate_constraint_definition(
     }
 }
 
-///
 fn validate_constraint_system(system: &ConstraintSystem) -> Result<(), String> {
     validate_single_constraint(&system.separation)?;
     validate_single_constraint(&system.boundary)?;
@@ -358,7 +351,6 @@ fn validate_constraint_system(system: &ConstraintSystem) -> Result<(), String> {
     Ok(())
 }
 
-///
 fn validate_single_constraint(constraint: &LegacyConstraintData) -> Result<(), String> {
     
     let constraint_json = serde_json::to_value(constraint).map_err(|e| e.to_string())?;

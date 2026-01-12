@@ -7,7 +7,6 @@ use tokio::sync::RwLock;
 
 use super::{HealthStatus, ServiceHealthInfo};
 
-///
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum DegradationLevel {
     
@@ -20,7 +19,6 @@ pub enum DegradationLevel {
     Unavailable,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum DegradationStrategy {
     
@@ -37,7 +35,6 @@ pub enum DegradationStrategy {
     FailFast,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GracefulDegradationConfig {
     
@@ -93,7 +90,6 @@ impl Default for GracefulDegradationConfig {
     }
 }
 
-///
 pub struct GracefulDegradationManager {
     config: GracefulDegradationConfig,
     service_levels: Arc<RwLock<HashMap<String, DegradationLevel>>>,
@@ -101,7 +97,6 @@ pub struct GracefulDegradationManager {
     request_queues: Arc<RwLock<HashMap<String, Vec<QueuedRequest>>>>,
 }
 
-///
 #[derive(Debug, Clone)]
 struct CachedResponse {
     data: serde_json::Value,
@@ -109,7 +104,6 @@ struct CachedResponse {
     ttl: Duration,
 }
 
-///
 #[derive(Debug)]
 struct QueuedRequest {
     id: String,

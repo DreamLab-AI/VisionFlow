@@ -185,7 +185,7 @@ pub enum CongestionController {
 impl Default for QuicServerConfig {
     fn default() -> Self {
         Self {
-            bind_addr: "0.0.0.0:4433".parse().expect("valid default QUIC bind address"),
+            bind_addr: SocketAddr::from(([0, 0, 0, 0], 4433)),
             max_connections: 1000,
             idle_timeout_ms: 30_000,
             max_udp_payload_size: 1472, // Standard MTU - headers
@@ -470,7 +470,7 @@ impl QuicTransportServer {
                         timestamp_ms,
                         server_timestamp_ms: std::time::SystemTime::now()
                             .duration_since(std::time::UNIX_EPOCH)
-                            .unwrap()
+                            .unwrap_or_default()
                             .as_millis() as u64,
                     };
                     session.read().await.control_tx.send(pong).await?;

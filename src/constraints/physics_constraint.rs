@@ -4,10 +4,8 @@
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
-///
 pub type NodeId = i64;
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum PhysicsConstraintType {
     
@@ -54,14 +52,11 @@ pub enum PhysicsConstraintType {
     },
 }
 
-///
-///
 pub const PRIORITY_USER_DEFINED: u8 = 1; 
 pub const PRIORITY_INFERRED: u8 = 3;     
 pub const PRIORITY_ASSERTED: u8 = 5;     
 pub const PRIORITY_DEFAULT: u8 = 8;      
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PhysicsConstraint {
     

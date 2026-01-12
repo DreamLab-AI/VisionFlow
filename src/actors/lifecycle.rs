@@ -14,7 +14,6 @@ use crate::actors::physics_orchestrator_actor::PhysicsOrchestratorActor;
 use crate::actors::semantic_processor_actor::SemanticProcessorActor;
 use crate::models::simulation_params::SimulationParams;
 
-///
 pub struct ActorLifecycleManager {
     physics_actor: Option<Addr<PhysicsOrchestratorActor>>,
     semantic_actor: Option<Addr<SemanticProcessorActor>>,
@@ -200,7 +199,6 @@ impl ActorLifecycleManager {
     }
 }
 
-///
 #[derive(Debug, thiserror::Error)]
 pub enum ActorLifecycleError {
     #[error("Actor initialization failed: {0}")]
@@ -216,7 +214,6 @@ pub enum ActorLifecycleError {
     ShutdownTimeout,
 }
 
-///
 pub struct SupervisionStrategy {
     max_restarts: usize,
     restart_window: Duration,
@@ -264,24 +261,20 @@ impl SupervisionStrategy {
     }
 }
 
-///
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SupervisionDecision {
     Restart,
     Stop,
 }
 
-///
 pub static ACTOR_SYSTEM: once_cell::sync::Lazy<Arc<RwLock<ActorLifecycleManager>>> =
     once_cell::sync::Lazy::new(|| Arc::new(RwLock::new(ActorLifecycleManager::new())));
 
-///
 pub async fn initialize_actor_system() -> Result<(), ActorLifecycleError> {
     let mut system = ACTOR_SYSTEM.write().await;
     system.initialize().await
 }
 
-///
 pub async fn shutdown_actor_system() -> Result<(), ActorLifecycleError> {
     let mut system = ACTOR_SYSTEM.write().await;
     system.shutdown().await

@@ -1,11 +1,6 @@
-///
 use std::sync::mpsc;
 use std::thread;
 
-///
-///
-///
-///
 pub async fn execute_in_thread<F, R>(handler_fn: F) -> Result<R, String>
 where
     F: FnOnce() -> R + Send + 'static,

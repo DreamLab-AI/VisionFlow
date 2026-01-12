@@ -12,7 +12,7 @@
 //! This module will be removed in a future release.
 
 #![deprecated(
-    since = "2025.11.03",
+    since = "0.1.0",
     note = "Use crate::gpu::memory_manager::GpuMemoryManager instead"
 )]
 
@@ -27,7 +27,6 @@ use std::sync::{Arc, Mutex};
 use log::{info, warn, error, debug};
 use crate::utils::cuda_error_handling::{CudaErrorHandler, CudaMemoryGuard};
 
-///
 #[derive(Debug, Clone)]
 pub struct BufferConfig {
     
@@ -98,7 +97,6 @@ impl BufferConfig {
     }
 }
 
-///
 pub struct DynamicGpuBuffer {
     name: String,
     config: BufferConfig,
@@ -233,7 +231,6 @@ pub struct BufferStats {
     pub utilization: f32,
 }
 
-///
 pub struct DynamicBufferManager {
     buffers: HashMap<String, DynamicGpuBuffer>,
     error_handler: Arc<CudaErrorHandler>,

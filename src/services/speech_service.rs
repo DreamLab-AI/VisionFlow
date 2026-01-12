@@ -29,16 +29,6 @@ use chrono;
 use reqwest::Client;
 use uuid::Uuid;
 
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
 pub struct SpeechService {
     
     sender: Arc<Mutex<mpsc::Sender<SpeechCommand>>>,

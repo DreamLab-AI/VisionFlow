@@ -17,7 +17,11 @@ test.describe('Settings Panel Debug', () => {
     if (await settingsToggle.isVisible()) {
       console.log('Clicking settings toggle...');
       await settingsToggle.click();
-      await page.waitForTimeout(1000);
+      // Wait for settings panel to appear
+      await page.waitForSelector('[role="tabpanel"], [class*="panel" i], [class*="settings" i]', {
+        state: 'visible',
+        timeout: 5000
+      }).catch(() => { /* Panel may already be visible */ });
       await page.screenshot({ path: '/tmp/02-after-settings-click.png', fullPage: true });
     }
 
@@ -51,7 +55,9 @@ test.describe('Settings Panel Debug', () => {
       const tabText = await allTabs[i].textContent();
       console.log(`Clicking tab ${i}: ${tabText}`);
       await allTabs[i].click();
-      await page.waitForTimeout(500);
+      // Wait for tab panel content to update
+      await page.waitForSelector('[role="tabpanel"]', { state: 'visible', timeout: 3000 })
+        .catch(() => { /* Tab panel may not exist for this tab */ });
       await page.screenshot({ path: `/tmp/03-tab-${i}.png`, fullPage: true });
     }
 

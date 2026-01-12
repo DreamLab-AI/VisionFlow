@@ -69,12 +69,10 @@ pub struct OntologyPipelineStats {
 }
 
 /// Orchestrates the complete ontology-to-physics pipeline
-///
 /// This service coordinates between:
 /// - ReasoningActor: Runs CustomReasoner for OWL inference
 /// - OntologyConstraintActor: Applies semantic constraints to GPU physics
 /// - GraphStateActor: Manages Neo4j graph data
-///
 /// The pipeline automatically triggers after ontology modifications from GitHub sync.
 pub struct OntologyPipelineService {
     config: SemanticPhysicsConfig,
@@ -133,8 +131,7 @@ impl OntologyPipelineService {
     }
 
     /// Handle ontology modification event
-    ///
-    /// Called automatically by GitHubSyncService after parsing OntologyBlock sections.
+        /// Called automatically by GitHubSyncService after parsing OntologyBlock sections.
     /// Pipeline flow:
     /// 1. Sends ontology data to ReasoningActor
     /// 2. ReasoningActor runs CustomReasoner inference
@@ -230,16 +227,13 @@ impl OntologyPipelineService {
     }
 
     /// Generate physics constraints from inferred axioms
-    ///
-    /// Converts CustomReasoner axiom types to semantic constraints:
+        /// Converts CustomReasoner axiom types to semantic constraints:
     /// - SubClassOf: Hierarchical attraction forces (child → parent clustering)
     /// - EquivalentTo: Strong colocation forces (equivalent classes align)
     /// - DisjointWith: Separation/repulsion forces (disjoint classes separate)
-    ///
-    /// All constraints use ConstraintKind::Semantic (= 10) which is processed
+        /// All constraints use ConstraintKind::Semantic (= 10) which is processed
     /// by ontology_constraints.cu in the CUDA kernel pipeline.
-    ///
-    /// Constraint params format:
+        /// Constraint params format:
     /// - [0]: Semantic constraint sub-type (0=separation, 1=hierarchical, 2=alignment, etc.)
     /// - [1]: Force magnitude
     /// - [2-4]: Optional direction vector or additional parameters

@@ -47,7 +47,6 @@ struct SubsystemSupervisors {
 }
 
 /// GPU Manager Actor - Lightweight Coordinator
-///
 /// Coordinates between subsystem supervisors rather than managing
 /// individual child actors directly. This provides:
 /// - Better error isolation

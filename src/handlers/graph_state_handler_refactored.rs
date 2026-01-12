@@ -91,7 +91,6 @@ struct SuccessResult {
     edge_id: Option<String>,
 }
 
-///
 pub async fn get_graph_state(state: web::Data<AppState>) -> impl Responder {
     info!("Received request for complete graph state via CQRS");
 
@@ -155,7 +154,6 @@ pub async fn get_graph_state(state: web::Data<AppState>) -> impl Responder {
     }
 }
 
-///
 pub async fn get_graph_statistics(state: web::Data<AppState>) -> impl Responder {
     info!("Received request for graph statistics via CQRS");
 
@@ -190,7 +188,6 @@ pub async fn get_graph_statistics(state: web::Data<AppState>) -> impl Responder 
     }
 }
 
-///
 pub async fn add_node(
     state: web::Data<AppState>,
     request: web::Json<AddNodeRequest>,
@@ -228,7 +225,6 @@ pub async fn add_node(
     }
 }
 
-///
 pub async fn update_node(
     state: web::Data<AppState>,
     request: web::Json<UpdateNodeRequest>,
@@ -262,7 +258,6 @@ pub async fn update_node(
     }
 }
 
-///
 pub async fn remove_node(state: web::Data<AppState>, node_id: web::Path<u32>) -> impl Responder {
     let id = node_id.into_inner();
     info!("Removing node via CQRS directive: id={}", id);
@@ -293,7 +288,6 @@ pub async fn remove_node(state: web::Data<AppState>, node_id: web::Path<u32>) ->
     }
 }
 
-///
 pub async fn get_node(state: web::Data<AppState>, node_id: web::Path<u32>) -> impl Responder {
     let id = node_id.into_inner();
     info!("Getting node via CQRS query: id={}", id);
@@ -337,7 +331,6 @@ pub async fn get_node(state: web::Data<AppState>, node_id: web::Path<u32>) -> im
     }
 }
 
-///
 pub async fn add_edge(
     state: web::Data<AppState>,
     request: web::Json<AddEdgeRequest>,
@@ -377,7 +370,6 @@ pub async fn add_edge(
     }
 }
 
-///
 pub async fn update_edge(state: web::Data<AppState>, request: web::Json<Edge>) -> impl Responder {
     let edge = request.into_inner();
     info!("Updating edge via CQRS directive: id={}", edge.id);
@@ -408,7 +400,6 @@ pub async fn update_edge(state: web::Data<AppState>, request: web::Json<Edge>) -
     }
 }
 
-///
 pub async fn batch_update_positions(
     state: web::Data<AppState>,
     request: web::Json<BatchPositionsRequest>,
@@ -446,7 +437,6 @@ pub async fn batch_update_positions(
     }
 }
 
-///
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/graph")

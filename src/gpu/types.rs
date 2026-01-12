@@ -12,20 +12,16 @@ use crate::utils::gpu_safety::GPUSafetyError;
 // =============================================================================
 
 /// Canonical GPU render data structure used for streaming and visual analytics
-///
 /// This is the **authoritative** definition. Other modules must import this type.
-///
 /// # Layout
 /// - `positions`: Vec<f32> with length = num_nodes * 4 (x, y, z, w components)
 /// - `colors`: Vec<f32> with length = num_nodes * 4 (r, g, b, a components)
 /// - `importance`: Vec<f32> with length = num_nodes (importance scores)
 /// - `frame`: u32 frame number
-///
 /// # Used By
 /// - src/gpu/streaming_pipeline.rs
 /// - src/gpu/visual_analytics.rs
 /// - src/gpu/conversion_utils.rs
-///
 /// # Validation
 /// Use `validate()` before GPU operations to ensure data integrity.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -120,19 +116,15 @@ impl RenderData {
 // =============================================================================
 
 /// Canonical binary node data structure for network transmission and GPU operations
-///
 /// This replaces multiple duplicate definitions across the codebase.
-///
 /// # Layout (28 bytes)
 /// - node_id: u32 (4 bytes)
 /// - x, y, z: f32 (12 bytes)
 /// - vx, vy, vz: f32 (12 bytes)
-///
 /// # Used By
 /// - src/utils/socket_flow_messages.rs
 /// - src/utils/binary_protocol.rs
 /// - GPU streaming operations
-///
 /// # See Also
 /// - BinaryNodeDataGPU for extended GPU-side data
 #[repr(C)]

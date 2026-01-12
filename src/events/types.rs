@@ -4,8 +4,6 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use crate::utils::time;
 
-///
-///
 pub trait DomainEvent: Send + Sync + Debug {
     
     fn event_type(&self) -> &'static str;
@@ -28,7 +26,6 @@ pub trait DomainEvent: Send + Sync + Debug {
     fn to_json_string(&self) -> Result<String, serde_json::Error>;
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EventMetadata {
     
@@ -90,7 +87,6 @@ impl EventMetadata {
     }
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StoredEvent {
     
@@ -103,7 +99,6 @@ pub struct StoredEvent {
     pub sequence: i64,
 }
 
-///
 #[async_trait]
 pub trait EventHandler: Send + Sync {
     
@@ -126,7 +121,6 @@ pub trait EventHandler: Send + Sync {
     }
 }
 
-///
 #[async_trait]
 pub trait EventMiddleware: Send + Sync {
     
@@ -147,7 +141,6 @@ pub trait EventMiddleware: Send + Sync {
     ) -> Result<(), EventError>;
 }
 
-///
 #[derive(Debug, Clone, thiserror::Error)]
 pub enum EventError {
     #[error("Serialization error: {0}")]
@@ -177,13 +170,11 @@ pub enum EventError {
 
 pub type EventResult<T> = Result<T, EventError>;
 
-///
 pub struct EventEnvelope {
     pub metadata: EventMetadata,
     pub event: Box<dyn std::any::Any + Send + Sync>,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EventSnapshot {
     pub aggregate_id: String,

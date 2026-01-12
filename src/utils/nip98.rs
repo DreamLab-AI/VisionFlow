@@ -53,14 +53,11 @@ pub struct Nip98Config {
 }
 
 /// Generate a NIP-98 authentication token for a request
-///
 /// Returns a base64-encoded Nostr event that can be used in the
 /// Authorization header as: `Authorization: Nostr <token>`
-///
 /// # Arguments
 /// * `keys` - The Nostr Keys (secret key) to sign with
 /// * `config` - Configuration for the NIP-98 request
-///
 /// # Returns
 /// Base64-encoded event string
 pub fn generate_nip98_token(keys: &Keys, config: &Nip98Config) -> Result<String, Nip98Error> {
@@ -118,7 +115,6 @@ pub fn generate_nip98_token(keys: &Keys, config: &Nip98Config) -> Result<String,
 }
 
 /// Generate NIP-98 token from hex secret key
-///
 /// # Arguments
 /// * `secret_key_hex` - 64-character hex secret key
 /// * `config` - Configuration for the NIP-98 request
@@ -141,10 +137,8 @@ fn compute_payload_hash(body: &str) -> String {
 }
 
 /// Build the Authorization header value
-///
 /// # Arguments
 /// * `token` - The base64-encoded NIP-98 token
-///
 /// # Returns
 /// Full header value: "Nostr <token>"
 pub fn build_auth_header(token: &str) -> String {
@@ -200,13 +194,11 @@ pub enum Nip98ValidationError {
 }
 
 /// Validate a NIP-98 token from an Authorization header
-///
 /// # Arguments
 /// * `token` - The base64-encoded token (without "Nostr " prefix)
 /// * `expected_url` - The URL the request was made to
 /// * `expected_method` - The HTTP method used
 /// * `request_body` - Optional request body for payload verification
-///
 /// # Returns
 /// Validation result with pubkey and metadata, or validation error
 pub fn validate_nip98_token(
@@ -320,10 +312,8 @@ pub fn validate_nip98_token(
 }
 
 /// Parse Authorization header and extract NIP-98 token
-///
 /// # Arguments
 /// * `auth_header` - Full Authorization header value (e.g., "Nostr <base64>")
-///
 /// # Returns
 /// The base64 token portion if valid Nostr auth, None otherwise
 pub fn parse_auth_header(auth_header: &str) -> Option<&str> {

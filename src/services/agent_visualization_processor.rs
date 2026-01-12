@@ -10,7 +10,6 @@ use std::hash::{Hash, Hasher};
 use std::sync::{Arc, Mutex};
 use sysinfo::{Pid, System};
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VisualizedAgent {
     pub id: String,
@@ -83,7 +82,6 @@ pub enum AnimationState {
     Flashing, 
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VisualizedConnection {
     pub id: String,
@@ -107,7 +105,6 @@ pub struct VisualizedConnection {
     pub pulse_frequency: f32,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SwarmVisualization {
     pub swarm_id: String,
@@ -148,7 +145,6 @@ pub struct PerformanceSnapshot {
     pub token_rate: f32,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentVisualizationData {
     pub timestamp: DateTime<Utc>,
@@ -182,14 +178,12 @@ pub struct GlowSettings {
     pub error_intensity: f32,
 }
 
-///
 static SYSTEM: Lazy<Arc<Mutex<System>>> = Lazy::new(|| {
     let mut sys = System::new_all();
     sys.refresh_all();
     Arc::new(Mutex::new(sys))
 });
 
-///
 pub struct AgentVisualizationProcessor {
     token_history: HashMap<String, Vec<(DateTime<Utc>, u64)>>,
     _performance_history: HashMap<String, Vec<PerformanceSnapshot>>,

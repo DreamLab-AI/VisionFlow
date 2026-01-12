@@ -1,6 +1,5 @@
 use anyhow::Result;
 
-///
 pub struct OntologyAssembler {
     header: String,
     axiom_blocks: Vec<String>,

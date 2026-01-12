@@ -78,15 +78,12 @@ pub struct ErrorResponse {
 }
 
 /// Execute a Cypher query
-///
 /// POST /api/query/cypher
-///
 /// # Safety Features
 /// - Query timeouts
 /// - Result size limits
 /// - Parameterized queries
 /// - Read-only enforcement (optional)
-///
 /// # Example
 /// ```json
 /// {
@@ -199,9 +196,7 @@ use crate::utils::json::{from_json, to_json};
 }
 
 /// Get example Cypher queries
-///
 /// GET /api/query/cypher/examples
-///
 /// Returns a list of common Cypher query patterns for reference
 pub async fn get_cypher_examples() -> Result<HttpResponse, actix_web::Error> {
     let examples = vec![

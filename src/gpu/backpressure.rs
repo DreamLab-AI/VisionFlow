@@ -115,7 +115,6 @@ impl TokenBucket {
     }
 
     /// Try to acquire tokens for a broadcast
-    ///
     /// Returns true if tokens were acquired, false if bucket is empty
     pub fn try_acquire(&self, cost: u32) -> bool {
         // First, apply any pending time-based refill
@@ -254,7 +253,6 @@ impl NetworkBackpressure {
     }
 
     /// Try to acquire permission for a broadcast
-    ///
     /// Returns Some(sequence_id) if broadcast is allowed, None if backpressure active
     pub fn try_acquire(&self) -> Option<u64> {
         if self.bucket.try_acquire(self.config.broadcast_cost) {
@@ -311,7 +309,6 @@ impl NetworkBackpressure {
     }
 
     /// Handle acknowledgement from network layer
-    ///
     /// Called when clients confirm receipt of broadcast
     pub fn acknowledge(&self, clients_delivered: usize) {
         // Restore tokens based on acknowledgement

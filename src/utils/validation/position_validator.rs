@@ -2,7 +2,6 @@ use super::errors::DetailedValidationError;
 use super::ValidationResult;
 use serde_json::Value;
 
-///
 pub struct PositionValidator;
 
 impl PositionValidator {

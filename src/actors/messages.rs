@@ -151,7 +151,6 @@ pub enum CommunityDetectionAlgorithm {
 #[rtype(result = "Result<std::sync::Arc<ServiceGraphData>, String>")]
 pub struct GetGraphData;
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<crate::actors::graph_actor::PhysicsState, String>")]
 pub struct GetPhysicsState;
@@ -709,7 +708,6 @@ pub struct SendPositionUpdate {
 // Claude Flow Actor Messages - Enhanced for Hive Mind Swarm
 use crate::types::claude_flow::AgentStatus;
 
-///
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct UpdateAgentCache {
@@ -1211,7 +1209,6 @@ pub struct ApplyConstraintsToNodes {
 }
 
 // SSSP (Single-Source Shortest Path) Message
-///
 #[derive(Message)]
 #[rtype(result = "Result<PathfindingResult, String>")]
 pub struct ComputeShortestPaths {
@@ -1294,7 +1291,6 @@ pub struct RequestGraphUpdate {
 // Ontology Actor Messages
 // ============================================================================
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<String, String>")]
 pub struct LoadOntologyAxioms {
@@ -1302,14 +1298,12 @@ pub struct LoadOntologyAxioms {
     pub format: Option<String>, 
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct UpdateOntologyMapping {
     pub config: crate::services::owl_validator::ValidationConfig,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<crate::services::owl_validator::ValidationReport, String>")]
 pub struct ValidateOntology {
@@ -1318,7 +1312,6 @@ pub struct ValidateOntology {
     pub mode: ValidationMode,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ValidationMode {
     Quick,       
@@ -1326,7 +1319,6 @@ pub enum ValidationMode {
     Incremental, 
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<Vec<crate::services::owl_validator::RdfTriple>, String>")]
 pub struct ApplyInferences {
@@ -1334,19 +1326,16 @@ pub struct ApplyInferences {
     pub max_depth: Option<usize>,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<Option<crate::services::owl_validator::ValidationReport>, String>")]
 pub struct GetOntologyReport {
     pub report_id: Option<String>, 
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<OntologyHealth, String>")]
 pub struct GetOntologyHealth;
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OntologyHealth {
     pub loaded_ontologies: u32,
@@ -1359,17 +1348,14 @@ pub struct OntologyHealth {
     pub memory_usage_mb: f32,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct ClearOntologyCaches;
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<Vec<CachedOntologyInfo>, String>")]
 pub struct GetCachedOntologies;
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CachedOntologyInfo {
     pub id: String,
@@ -1384,28 +1370,24 @@ pub struct CachedOntologyInfo {
 // Workspace Actor Messages
 // ============================================================================
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<crate::models::workspace::WorkspaceListResponse, String>")]
 pub struct GetWorkspaces {
     pub query: WorkspaceQuery,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<Workspace, String>")]
 pub struct GetWorkspace {
     pub workspace_id: String,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<Workspace, String>")]
 pub struct CreateWorkspace {
     pub request: CreateWorkspaceRequest,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<Workspace, String>")]
 pub struct UpdateWorkspace {
@@ -1413,21 +1395,18 @@ pub struct UpdateWorkspace {
     pub request: UpdateWorkspaceRequest,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct DeleteWorkspace {
     pub workspace_id: String,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<bool, String>")]
 pub struct ToggleFavoriteWorkspace {
     pub workspace_id: String,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct ArchiveWorkspace {
@@ -1435,24 +1414,20 @@ pub struct ArchiveWorkspace {
     pub archive: bool, 
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<usize, String>")]
 pub struct GetWorkspaceCount {
     pub filter: Option<WorkspaceFilter>,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct LoadWorkspaces;
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct SaveWorkspaces;
 
-///
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct WorkspaceStateChanged {
@@ -1460,7 +1435,6 @@ pub struct WorkspaceStateChanged {
     pub change_type: WorkspaceChangeType,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum WorkspaceChangeType {
     Created,
@@ -1478,29 +1452,24 @@ pub enum WorkspaceChangeType {
 
 use crate::ontology::parser::parser::LogseqPage;
 
-///
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct ProcessOntologyData {
     pub pages: Vec<LogseqPage>,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<String, String>")] 
 pub struct ValidateGraph {
     pub mode: ValidationMode,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<Option<String>, String>")] 
 pub struct GetValidationReport {
     pub report_id: Option<String>, 
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<String, String>")] 
 pub struct GetOntologyHealthLegacy;
@@ -1509,7 +1478,6 @@ pub struct GetOntologyHealthLegacy;
 // Ontology-Physics Integration Messages
 // ============================================================================
 
-///
 #[derive(Message, Clone)]
 #[rtype(result = "Result<(), String>")]
 pub struct ApplyOntologyConstraints {
@@ -1518,7 +1486,6 @@ pub struct ApplyOntologyConstraints {
     pub graph_id: u32,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum ConstraintMergeMode {
     
@@ -1529,7 +1496,6 @@ pub enum ConstraintMergeMode {
     AddIfNoConflict,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct SetConstraintGroupActive {
@@ -1537,17 +1503,14 @@ pub struct SetConstraintGroupActive {
     pub active: bool,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<ConstraintStats, String>")]
 pub struct GetConstraintStats;
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<OntologyConstraintStats, String>")]
 pub struct GetOntologyConstraintStats;
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OntologyConstraintStats {
     pub total_axioms_processed: u32,
@@ -1558,7 +1521,6 @@ pub struct OntologyConstraintStats {
     pub cpu_fallback_count: u32,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConstraintStats {
     pub total_constraints: usize,
@@ -1574,7 +1536,6 @@ pub struct ConstraintStats {
 // Note: ComputeShortestPaths already defined above at line ~1107
 // Note: PathfindingResult is defined in ports::gpu_semantic_analyzer
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<HashMap<(u32, u32), Vec<u32>>, String>")]
 pub struct ComputeAllPairsShortestPaths {

@@ -100,15 +100,13 @@ impl EdgeClassifier {
     }
 
     /// Classify an edge based on context
-    ///
-    /// # Arguments
+        /// # Arguments
     /// * `source_label` - Label of source node (e.g., "Tim Cook")
     /// * `target_label` - Label of target node (e.g., "Apple Inc")
     /// * `source_class` - OWL class IRI of source (e.g., "mv:Person")
     /// * `target_class` - OWL class IRI of target (e.g., "mv:Company")
     /// * `context` - Surrounding text context (e.g., "CEO: [[Apple Inc]]")
-    ///
-    /// # Returns
+        /// # Returns
     /// Optional OWL property IRI if classification succeeds
     pub fn classify_edge(
         &self,

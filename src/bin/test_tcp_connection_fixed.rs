@@ -6,13 +6,6 @@ use tokio::net::TcpStream;
 use uuid::Uuid;
 use webxr::utils::json::{from_json, to_json};
 
-///
-///
-///
-///
-///
-///
-///
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -214,7 +207,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-///
 async fn count_open_fds() -> usize {
     #[cfg(target_os = "linux")]
     {

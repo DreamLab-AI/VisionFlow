@@ -25,7 +25,6 @@ use crate::ports::physics_simulator::{
 use std::sync::Arc;
 use std::time::Duration;
 
-///
 pub struct PhysicsOrchestratorAdapter {
     actor_addr: Addr<PhysicsOrchestratorActor>,
     timeout: Duration,

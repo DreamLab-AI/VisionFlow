@@ -6,7 +6,6 @@ use std::task::{Context, Poll};
 use std::time::Duration;
 use tokio::time::{timeout, Instant, Sleep};
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TimeoutConfig {
     
@@ -98,7 +97,6 @@ impl TimeoutConfig {
     }
 }
 
-///
 #[derive(Debug)]
 pub enum TimeoutResult<T> {
     
@@ -143,7 +141,6 @@ impl<T> TimeoutResult<T> {
     }
 }
 
-///
 #[derive(Debug, thiserror::Error)]
 pub enum TimeoutError {
     #[error("Operation timed out")]
@@ -152,7 +149,6 @@ pub enum TimeoutError {
     OperationFailed(String),
 }
 
-///
 pub async fn with_timeout<F, T>(duration: Duration, future: F) -> TimeoutResult<T>
 where
     F: Future<Output = Result<T, Box<dyn std::error::Error + Send + Sync>>>,
@@ -164,7 +160,6 @@ where
     }
 }
 
-///
 pub async fn with_config_timeout<F, T>(
     config: &TimeoutConfig,
     operation_type: TimeoutType,
@@ -190,7 +185,6 @@ where
     with_timeout(timeout_duration, future).await
 }
 
-///
 #[derive(Debug, Clone, Copy)]
 pub enum TimeoutType {
     Connect,
@@ -214,7 +208,6 @@ impl TimeoutType {
     }
 }
 
-///
 pub struct TimeoutGuard {
     total_timeout: Duration,
     started_at: Instant,
@@ -290,9 +283,7 @@ impl TimeoutGuard {
     }
 }
 
-///
 
-///
 pub async fn connect_with_timeout<F, T>(
     config: &TimeoutConfig,
     future: F,
@@ -305,7 +296,6 @@ where
         .into_result()
 }
 
-///
 pub async fn request_with_timeout<F, T>(
     config: &TimeoutConfig,
     future: F,
@@ -318,7 +308,6 @@ where
         .into_result()
 }
 
-///
 pub async fn read_with_timeout<F, T>(config: &TimeoutConfig, future: F) -> Result<T, TimeoutError>
 where
     F: Future<Output = Result<T, Box<dyn std::error::Error + Send + Sync>>>,
@@ -328,7 +317,6 @@ where
         .into_result()
 }
 
-///
 pub async fn write_with_timeout<F, T>(config: &TimeoutConfig, future: F) -> Result<T, TimeoutError>
 where
     F: Future<Output = Result<T, Box<dyn std::error::Error + Send + Sync>>>,
@@ -338,7 +326,6 @@ where
         .into_result()
 }
 
-///
 pub struct AdaptiveTimeout<F> {
     future: Pin<Box<F>>,
     sleep: Pin<Box<Sleep>>,
@@ -399,7 +386,6 @@ where
     }
 }
 
-///
 pub struct BatchTimeoutManager {
     total_timeout: Duration,
     started_at: Instant,

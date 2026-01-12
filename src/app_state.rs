@@ -66,15 +66,12 @@ const INSECURE_DEFAULT_KEYS: &[&str] = &[
 ];
 
 /// Validates all security-critical environment variables at startup.
-///
 /// This function enforces strict security requirements:
 /// - MANAGEMENT_API_KEY must be set and not contain insecure default values
 /// - JWT_SECRET (if used) must be set and not contain insecure default values
-///
 /// # Panics
 /// Panics if any security-critical environment variable is missing or insecure.
 /// This is intentional to prevent the application from starting in an insecure state.
-///
 /// # Returns
 /// The validated MANAGEMENT_API_KEY value on success.
 fn validate_security_env_vars() -> Result<String, Box<dyn std::error::Error + Send + Sync>> {

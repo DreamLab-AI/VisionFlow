@@ -59,3 +59,7 @@ pub use neo4j_adapter::{Neo4jAdapter, Neo4jConfig};
 #[cfg(feature = "gpu")]
 pub use actix_physics_adapter::ActixPhysicsAdapter;
 pub use actix_semantic_adapter::ActixSemanticAdapter;
+
+// Tests module
+#[cfg(test)]
+mod tests;

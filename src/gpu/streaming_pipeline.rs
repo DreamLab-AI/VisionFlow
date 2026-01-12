@@ -13,7 +13,6 @@ use tokio::sync::{mpsc, RwLock};
 use crate::utils::gpu_safety::{GPUSafetyConfig, GPUSafetyError, GPUSafetyValidator};
 use crate::utils::memory_bounds::{MemoryBounds, SafeArrayAccess, ThreadSafeMemoryBoundsChecker};
 
-///
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct SimplifiedNode {
@@ -77,7 +76,6 @@ impl SimplifiedNode {
     }
 }
 
-///
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
 pub struct CompressedEdge {
@@ -118,7 +116,6 @@ impl CompressedEdge {
     }
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ClientLOD {
     Mobile {
@@ -224,7 +221,6 @@ impl ClientLOD {
     }
 }
 
-///
 pub struct FrameBuffer {
     current_frame: u32,
     positions: SafeArrayAccess<f32>,
@@ -479,7 +475,6 @@ impl FrameBuffer {
     }
 }
 
-///
 pub struct ClientConnection {
     id: String,
     lod: ClientLOD,
@@ -608,7 +603,6 @@ impl ClientConnection {
     }
 }
 
-///
 #[derive(Debug, Clone, Serialize)]
 pub struct ClientStats {
     pub id: String,
@@ -619,7 +613,6 @@ pub struct ClientStats {
     pub lod_type: String,
 }
 
-///
 pub struct StreamingPipeline {
     gpu_receiver: mpsc::Receiver<RenderData>,
     clients: Arc<RwLock<Vec<ClientConnection>>>,
@@ -630,7 +623,6 @@ pub struct StreamingPipeline {
     stats: Arc<RwLock<PipelineStats>>,
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct PipelineStats {
     pub frames_processed: u64,
@@ -1001,7 +993,6 @@ impl StreamingPipeline {
     }
 }
 
-///
 pub struct DeltaCompressor {
     previous_frame: Option<Vec<SimplifiedNode>>,
     keyframe_interval: u32,
@@ -1173,7 +1164,6 @@ impl DeltaCompressor {
     }
 }
 
-///
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum StreamMessage {

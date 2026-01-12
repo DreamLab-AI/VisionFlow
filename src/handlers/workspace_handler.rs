@@ -28,7 +28,6 @@ use crate::models::workspace::{
     WorkspaceType,
 };
 
-///
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/workspace")
@@ -43,8 +42,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     );
 }
 
-///
-///
 async fn list_workspaces(
     workspace_actor: web::Data<Addr<WorkspaceActor>>,
     query: web::Query<WorkspaceQueryParams>,
@@ -121,8 +118,6 @@ async fn list_workspaces(
     }
 }
 
-///
-///
 async fn get_workspace(
     workspace_actor: web::Data<Addr<WorkspaceActor>>,
     path: web::Path<String>,
@@ -174,8 +169,6 @@ async fn get_workspace(
     }
 }
 
-///
-///
 async fn create_workspace(
     workspace_actor: web::Data<Addr<WorkspaceActor>>,
     payload: web::Json<CreateWorkspaceRequest>,
@@ -226,8 +219,6 @@ async fn create_workspace(
     }
 }
 
-///
-///
 async fn update_workspace(
     workspace_actor: web::Data<Addr<WorkspaceActor>>,
     path: web::Path<String>,
@@ -295,8 +286,6 @@ async fn update_workspace(
     }
 }
 
-///
-///
 async fn delete_workspace(
     workspace_actor: web::Data<Addr<WorkspaceActor>>,
     path: web::Path<String>,
@@ -345,8 +334,6 @@ async fn delete_workspace(
     }
 }
 
-///
-///
 async fn toggle_favorite_workspace(
     workspace_actor: web::Data<Addr<WorkspaceActor>>,
     path: web::Path<String>,
@@ -414,8 +401,6 @@ async fn toggle_favorite_workspace(
     }
 }
 
-///
-///
 async fn archive_workspace(
     workspace_actor: web::Data<Addr<WorkspaceActor>>,
     path: web::Path<String>,
@@ -474,8 +459,6 @@ async fn archive_workspace(
     }
 }
 
-///
-///
 async fn get_workspace_count(
     workspace_actor: web::Data<Addr<WorkspaceActor>>,
     query: web::Query<WorkspaceCountQuery>,
@@ -516,7 +499,6 @@ async fn get_workspace_count(
 // Helper Types and Functions
 // ============================================================================
 
-///
 #[derive(serde::Deserialize, Debug)]
 struct WorkspaceQueryParams {
     page: Option<usize>,
@@ -532,13 +514,11 @@ struct WorkspaceQueryParams {
     search: Option<String>,
 }
 
-///
 #[derive(serde::Deserialize, Debug)]
 struct ArchiveRequest {
     archive: bool,
 }
 
-///
 #[derive(serde::Deserialize, Debug)]
 struct WorkspaceCountQuery {
     status: Option<WorkspaceStatus>,
@@ -548,7 +528,6 @@ struct WorkspaceCountQuery {
     search: Option<String>,
 }
 
-///
 fn build_filter_from_query(query: &WorkspaceQueryParams) -> Option<WorkspaceFilter> {
     if query.status.is_none()
         && query.workspace_type.is_none()
@@ -568,7 +547,6 @@ fn build_filter_from_query(query: &WorkspaceQueryParams) -> Option<WorkspaceFilt
     })
 }
 
-///
 fn build_filter_from_count_query(query: &WorkspaceCountQuery) -> Option<WorkspaceFilter> {
     if query.status.is_none()
         && query.workspace_type.is_none()

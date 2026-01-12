@@ -7,8 +7,6 @@ use crate::events::domain_events::*;
 use crate::events::types::{EventError, EventHandler, EventResult, StoredEvent};
 use crate::utils::json::{from_json, to_json};
 
-///
-///
 pub struct GraphEventHandler {
     handler_id: String,
     cache: Arc<RwLock<GraphCache>>,

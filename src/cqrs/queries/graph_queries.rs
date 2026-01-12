@@ -11,7 +11,6 @@ use crate::models::node::Node;
 use crate::ports::knowledge_graph_repository::GraphStatistics;
 use std::sync::Arc;
 
-///
 #[derive(Debug, Clone)]
 pub struct GetNodeQuery {
     pub node_id: u32,
@@ -25,7 +24,6 @@ impl Query for GetNodeQuery {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct GetNodesQuery {
     pub node_ids: Vec<u32>,
@@ -46,7 +44,6 @@ impl Query for GetNodesQuery {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct GetAllNodesQuery;
 
@@ -58,7 +55,6 @@ impl Query for GetAllNodesQuery {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct SearchNodesQuery {
     pub label_pattern: String,
@@ -79,7 +75,6 @@ impl Query for SearchNodesQuery {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct GetNodesByMetadataQuery {
     pub metadata_id: String,
@@ -100,7 +95,6 @@ impl Query for GetNodesByMetadataQuery {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct GetNodeEdgesQuery {
     pub node_id: u32,
@@ -114,7 +108,6 @@ impl Query for GetNodeEdgesQuery {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct GetEdgesBetweenQuery {
     pub source_id: u32,
@@ -129,7 +122,6 @@ impl Query for GetEdgesBetweenQuery {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct GetNeighborsQuery {
     pub node_id: u32,
@@ -144,7 +136,6 @@ impl Query for GetNeighborsQuery {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct CountNodesQuery;
 
@@ -156,7 +147,6 @@ impl Query for CountNodesQuery {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct CountEdgesQuery;
 
@@ -168,7 +158,6 @@ impl Query for CountEdgesQuery {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct GetGraphStatsQuery;
 
@@ -180,7 +169,6 @@ impl Query for GetGraphStatsQuery {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct LoadGraphQuery;
 
@@ -192,7 +180,6 @@ impl Query for LoadGraphQuery {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct QueryNodesQuery {
     pub query: String,
@@ -213,7 +200,6 @@ impl Query for QueryNodesQuery {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct GraphHealthCheckQuery;
 

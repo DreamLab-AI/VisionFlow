@@ -18,7 +18,11 @@ const metrics = require('./utils/metrics');
 // Configuration
 const PORT = process.env.MANAGEMENT_API_PORT || 9090;
 const HOST = process.env.MANAGEMENT_API_HOST || '0.0.0.0';
-const API_KEY = process.env.MANAGEMENT_API_KEY || 'change-this-secret-key';
+const API_KEY = process.env.MANAGEMENT_API_KEY;
+if (!API_KEY) {
+  console.error('MANAGEMENT_API_KEY environment variable is required');
+  process.exit(1);
+}
 
 // Initialize Fastify with logger
 const app = fastify({

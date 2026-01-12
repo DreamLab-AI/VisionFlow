@@ -48,7 +48,6 @@ impl Default for Neo4jOntologyConfig {
 }
 
 /// Repository for OWL ontology data in Neo4j
-///
 /// Provides full OntologyRepository implementation with:
 /// - OWL class storage and hierarchy
 /// - OWL property management
@@ -62,10 +61,8 @@ pub struct Neo4jOntologyRepository {
 
 impl Neo4jOntologyRepository {
     /// Create a new Neo4jOntologyRepository
-    ///
     /// # Arguments
     /// * `config` - Neo4j connection configuration
-    ///
     /// # Returns
     /// Initialized repository with schema created
     pub async fn new(config: Neo4jOntologyConfig) -> RepoResult<Self> {
@@ -91,7 +88,6 @@ impl Neo4jOntologyRepository {
     }
 
     /// Create Neo4j schema (constraints and indexes) - Schema V2
-    ///
     /// Creates 24+ indexes matching the SQLite schema for optimal query performance
     async fn create_schema(&self) -> RepoResult<()> {
         info!("Creating Neo4j ontology schema V2 with rich metadata indexes...");
@@ -1098,7 +1094,6 @@ impl OntologyRepository for Neo4jOntologyRepository {
 
 impl Neo4jOntologyRepository {
     /// Query classes by quality score threshold
-    ///
     /// Returns classes with quality_score >= min_score, ordered by combined score
     pub async fn query_by_quality(&self, min_score: f32) -> RepoResult<Vec<OwlClass>> {
         debug!("Querying classes with quality_score >= {}", min_score);
@@ -1128,7 +1123,6 @@ impl Neo4jOntologyRepository {
     }
 
     /// Query cross-domain bridges
-    ///
     /// Returns classes that bridge between different domains
     pub async fn query_cross_domain_bridges(&self) -> RepoResult<Vec<OwlClass>> {
         debug!("Querying cross-domain bridge classes");
@@ -1157,7 +1151,6 @@ impl Neo4jOntologyRepository {
     }
 
     /// Query classes by domain
-    ///
     /// Returns all classes belonging to a specific domain
     pub async fn query_by_domain(&self, domain: &str) -> RepoResult<Vec<OwlClass>> {
         debug!("Querying classes in domain: {}", domain);
@@ -1186,7 +1179,6 @@ impl Neo4jOntologyRepository {
     }
 
     /// Query classes by maturity level
-    ///
     /// Returns classes filtered by maturity (experimental, beta, stable)
     pub async fn query_by_maturity(&self, maturity: &str) -> RepoResult<Vec<OwlClass>> {
         debug!("Querying classes with maturity: {}", maturity);
@@ -1215,7 +1207,6 @@ impl Neo4jOntologyRepository {
     }
 
     /// Query classes by physicality
-    ///
     /// Returns classes filtered by OWL physicality (physical, virtual, abstract)
     pub async fn query_by_physicality(&self, physicality: &str) -> RepoResult<Vec<OwlClass>> {
         debug!("Querying classes with physicality: {}", physicality);
@@ -1244,7 +1235,6 @@ impl Neo4jOntologyRepository {
     }
 
     /// Query classes by role
-    ///
     /// Returns classes filtered by OWL role (agent, patient, instrument)
     pub async fn query_by_role(&self, role: &str) -> RepoResult<Vec<OwlClass>> {
         debug!("Querying classes with role: {}", role);
@@ -1273,7 +1263,6 @@ impl Neo4jOntologyRepository {
     }
 
     /// Add semantic relationship between classes
-    ///
     /// Creates a RELATES relationship with metadata
     pub async fn add_relationship(
         &self,
@@ -1313,7 +1302,6 @@ impl Neo4jOntologyRepository {
     }
 
     /// Query relationships by type
-    ///
     /// Returns all relationships of a specific type
     pub async fn query_relationships_by_type(&self, relationship_type: &str) -> RepoResult<Vec<(String, String, f32, bool)>> {
         debug!("Querying relationships of type: {}", relationship_type);
@@ -1346,7 +1334,6 @@ impl Neo4jOntologyRepository {
     }
 
     /// Batch add classes (efficient bulk insert)
-    ///
     /// Uses UNWIND for optimal batch insertion performance
     pub async fn batch_add_classes(&self, classes: &[OwlClass]) -> RepoResult<Vec<String>> {
         info!("Batch adding {} classes", classes.len());
@@ -1368,7 +1355,6 @@ impl Neo4jOntologyRepository {
     }
 
     /// Batch add relationships (efficient bulk insert)
-    ///
     /// Optimized for large-scale relationship insertion
     pub async fn batch_add_relationships(
         &self,
@@ -1391,7 +1377,6 @@ impl Neo4jOntologyRepository {
     }
 
     /// Get clustering by physicality and role
-    ///
     /// Returns a grouped view of classes organized by physicality and role
     pub async fn get_physicality_role_clustering(&self) -> RepoResult<HashMap<String, HashMap<String, Vec<OwlClass>>>> {
         debug!("Computing physicality-role clustering");

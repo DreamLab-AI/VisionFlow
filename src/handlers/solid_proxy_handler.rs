@@ -169,10 +169,8 @@ impl Default for SolidProxyState {
 }
 
 /// Main proxy handler for all /solid/* routes
-///
 /// Security: This handler prioritizes forwarding the USER's NIP-98 identity to JSS.
 /// This ensures Solid ACLs are enforced against the actual user, not the proxy server.
-///
 /// Authentication flow:
 /// 1. If user has NIP-98 Authorization header -> Forward it directly to JSS
 /// 2. If no user auth AND anonymous allowed -> Generate server-signed NIP-98
@@ -874,9 +872,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SolidNotification
 }
 
 /// WebSocket handler for solid-0.1 notifications
-///
 /// Endpoint: /solid/.notifications (WebSocket upgrade)
-///
 /// Protocol: solid-0.1
 /// - Client sends: { "type": "sub", "resource": "<url>" }
 /// - Server sends: { "type": "ack", "resource": "<url>" }
@@ -906,7 +902,6 @@ pub async fn handle_solid_notifications_ws(
 }
 
 /// Configuration for connecting to JSS notifications via WebSocket proxy
-///
 /// This creates a bidirectional proxy between the client and JSS's WebSocket endpoint
 pub async fn handle_solid_notifications_proxy(
     req: HttpRequest,
@@ -919,7 +914,6 @@ pub async fn handle_solid_notifications_proxy(
 }
 
 /// Health check for JSS connectivity
-///
 /// Returns the health status of the connection to the JavaScript Solid Server.
 /// - 200 OK with "healthy" status if JSS is reachable
 /// - 503 Service Unavailable with "degraded" if JSS responds with non-success

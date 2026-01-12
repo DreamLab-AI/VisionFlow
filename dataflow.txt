@@ -62362,7 +62362,7 @@ MANAGEMENT_API_KEY=change-this-secret-key
 # Security (Generate strong random secrets!)
 JWT_SECRET=generate-a-strong-random-secret-here-minimum-64-chars
 SESSION_SECRET=generate-another-strong-random-secret-here-minimum-64-chars
-WS_AUTH_ENABLED=false
+WS_AUTH_ENABLED=true
 
 # CORS
 CORS_ALLOWED_ORIGINS=http://localhost:3000

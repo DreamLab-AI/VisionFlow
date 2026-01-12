@@ -21,20 +21,20 @@ describe('Settings Search - Fuzzy Matching', () => {
     it('should return 100 score for exact match', () => {
       const result = fuzzyMatch('node color', 'node color', false);
       expect(result.score).toBeGreaterThanOrEqual(100);
-      expect(result.indices.length).toBeGreaterThan(0);
+      expect(result.indices.length).toBeGreaterThanOrEqual(1); // Exact match produces at least 1 index range
     });
 
     it('should match case-insensitively by default', () => {
       const result1 = fuzzyMatch('Node Color', 'node', false);
       const result2 = fuzzyMatch('node color', 'NODE', false);
-      expect(result1.score).toBeGreaterThan(0);
-      expect(result2.score).toBeGreaterThan(0);
+      expect(result1.score).toBeGreaterThanOrEqual(50); // Case-insensitive word boundary match
+      expect(result2.score).toBeGreaterThanOrEqual(50); // Case-insensitive word boundary match
     });
 
     it('should handle partial matches', () => {
       const result = fuzzyMatch('background color picker', 'color', false);
-      expect(result.score).toBeGreaterThan(0);
-      expect(result.indices.length).toBeGreaterThan(0);
+      expect(result.score).toBeGreaterThanOrEqual(30); // Partial word match with word boundary bonus
+      expect(result.indices.length).toBeGreaterThanOrEqual(1); // At least 1 match range
     });
 
     it('should score consecutive matches higher', () => {
@@ -98,12 +98,12 @@ describe('Settings Search - Index Building', () => {
 
   it('should include descriptions when available', () => {
     const withDescription = searchIndex.filter(s => s.description);
-    expect(withDescription.length).toBeGreaterThan(0);
+    expect(withDescription.length).toBeGreaterThanOrEqual(10); // Expect substantial number of described settings
   });
 
   it('should tag settings correctly', () => {
     const advancedSettings = searchIndex.filter(s => s.isAdvanced);
-    expect(advancedSettings.length).toBeGreaterThan(0);
+    expect(advancedSettings.length).toBeGreaterThanOrEqual(5); // Expect multiple advanced settings
     expect(advancedSettings[0].tags).toContain('advanced');
   });
 });
@@ -122,19 +122,19 @@ describe('Settings Search - Search Functionality', () => {
 
   it('should find settings by label', () => {
     const results = searchSettings(searchIndex, 'node color', {});
-    expect(results.length).toBeGreaterThan(0);
+    expect(results.length).toBeGreaterThanOrEqual(3); // Common term should match multiple settings
     expect(results.some(r => r.label.toLowerCase().includes('color'))).toBe(true);
   });
 
   it('should find settings by path', () => {
     const results = searchSettings(searchIndex, 'visualisation.nodes', {});
-    expect(results.length).toBeGreaterThan(0);
+    expect(results.length).toBeGreaterThanOrEqual(2); // Path search should find node-related settings
     expect(results.some(r => r.path.includes('visualisation.nodes'))).toBe(true);
   });
 
   it('should find settings by description', () => {
     const results = searchSettings(searchIndex, 'transparency', {});
-    expect(results.length).toBeGreaterThan(0);
+    expect(results.length).toBeGreaterThanOrEqual(1); // At least one transparency-related setting
   });
 
   it('should rank results by relevance', () => {
@@ -179,12 +179,12 @@ describe('Settings Search - Search Functionality', () => {
   it('should handle fuzzy matching', () => {
     // Typo: "colr" instead of "color"
     const results = searchSettings(searchIndex, 'nde colr', {});
-    expect(results.length).toBeGreaterThan(0);
+    expect(results.length).toBeGreaterThanOrEqual(1); // Fuzzy match should find at least one result
   });
 
   it('should include match highlights', () => {
     const results = searchSettings(searchIndex, 'node color', {});
-    expect(results[0].matches.length).toBeGreaterThan(0);
+    expect(results[0].matches.length).toBeGreaterThanOrEqual(1); // Each result should have at least 1 match
     expect(results[0].matches[0]).toHaveProperty('field');
     expect(results[0].matches[0]).toHaveProperty('text');
     expect(results[0].matches[0]).toHaveProperty('indices');
@@ -192,7 +192,7 @@ describe('Settings Search - Search Functionality', () => {
 
   it('should handle multi-word queries', () => {
     const results = searchSettings(searchIndex, 'background color picker', {});
-    expect(results.length).toBeGreaterThan(0);
+    expect(results.length).toBeGreaterThanOrEqual(1); // Multi-word query should find matches
   });
 
   it('should filter advanced settings when requested', () => {
@@ -330,6 +330,6 @@ describe('Settings Search - Edge Cases', () => {
 
   it('should handle numbers in queries', () => {
     const results = searchSettings(searchIndex, '0.5 opacity', {});
-    expect(results.length).toBeGreaterThan(0);
+    expect(results.length).toBeGreaterThanOrEqual(1); // Numeric query should find opacity-related settings
   });
 });

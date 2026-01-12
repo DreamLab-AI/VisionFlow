@@ -9,7 +9,6 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use log::{error, warn, info, debug};
 
-///
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CudaError {
@@ -191,7 +190,6 @@ impl std::fmt::Display for CudaError {
 
 impl std::error::Error for CudaError {}
 
-///
 #[derive(Debug, Clone, Copy)]
 pub enum RecoveryStrategy {
     
@@ -204,7 +202,6 @@ pub enum RecoveryStrategy {
     Abort,
 }
 
-///
 pub struct CudaErrorHandler {
     error_count: Arc<AtomicU32>,
     last_error_time: Arc<std::sync::Mutex<Option<Instant>>>,
@@ -384,7 +381,6 @@ impl Default for CudaErrorHandler {
     }
 }
 
-///
 pub struct CudaMemoryGuard {
     ptr: *mut c_void,
     size: usize,
@@ -424,7 +420,9 @@ impl CudaMemoryGuard {
     }
 
     
-    pub fn copy_from_host(&self, host_data: *const c_void, size: usize) -> Result<(), CudaError> {
+    /// # Safety
+    /// `host_data` must be a valid pointer to at least `size` bytes of readable memory.
+    pub unsafe fn copy_from_host(&self, host_data: *const c_void, size: usize) -> Result<(), CudaError> {
         if size > self.size {
             error!("Attempting to copy {} bytes to buffer of size {}", size, self.size);
             return Err(CudaError::InvalidValue);
@@ -447,7 +445,9 @@ impl CudaMemoryGuard {
     }
 
     
-    pub fn copy_to_host(&self, host_data: *mut c_void, size: usize) -> Result<(), CudaError> {
+    /// # Safety
+    /// `host_data` must be a valid pointer to at least `size` bytes of writable memory.
+    pub unsafe fn copy_to_host(&self, host_data: *mut c_void, size: usize) -> Result<(), CudaError> {
         if size > self.size {
             error!("Attempting to copy {} bytes from buffer of size {}", size, self.size);
             return Err(CudaError::InvalidValue);
@@ -501,7 +501,6 @@ const cudaMemcpyHostToDevice: c_int = 1;
 const cudaMemcpyDeviceToHost: c_int = 2;
 const cudaMemcpyDeviceToDevice: c_int = 3;
 
-///
 #[macro_export]
 macro_rules! cuda_check {
     ($handler:expr, $operation:expr, $op_name:expr) => {{
@@ -515,7 +514,6 @@ macro_rules! cuda_check {
     }};
 }
 
-///
 static GLOBAL_CUDA_ERROR_HANDLER: std::sync::OnceLock<Arc<CudaErrorHandler>> = std::sync::OnceLock::new();
 
 pub fn get_global_cuda_error_handler() -> Arc<CudaErrorHandler> {

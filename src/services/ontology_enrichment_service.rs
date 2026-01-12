@@ -31,17 +31,14 @@ impl OntologyEnrichmentService {
     }
 
     /// Enrich a graph with ontology information
-    ///
-    /// This modifies the graph in-place, adding:
+        /// This modifies the graph in-place, adding:
     /// - `owl_class_iri` to all nodes based on file path/content analysis
     /// - `owl_property_iri` to all edges based on context analysis
-    ///
-    /// # Arguments
+        /// # Arguments
     /// * `graph` - Mutable reference to graph data
     /// * `file_path` - Path to the source markdown file
     /// * `content` - Full markdown content
-    ///
-    /// # Returns
+        /// # Returns
     /// Number of nodes and edges enriched
     pub async fn enrich_graph(
         &self,

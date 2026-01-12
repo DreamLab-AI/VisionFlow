@@ -32,7 +32,6 @@ use crate::AppState;
 // REQUEST/RESPONSE DTOs
 // ============================================================================
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoadOntologyRequest {
@@ -42,7 +41,6 @@ pub struct LoadOntologyRequest {
     pub format: Option<String>,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoadOntologyResponse {
@@ -52,7 +50,6 @@ pub struct LoadOntologyResponse {
     pub axiom_count: usize,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoadAxiomsRequest {
@@ -64,7 +61,6 @@ pub struct LoadAxiomsRequest {
     pub validate_immediately: Option<bool>,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoadAxiomsResponse {
@@ -80,7 +76,6 @@ pub struct LoadAxiomsResponse {
     pub validation_job_id: Option<String>,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ValidateRequest {
@@ -90,7 +85,6 @@ pub struct ValidateRequest {
     pub mode: Option<ValidationModeDto>,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MappingRequest {
@@ -100,7 +94,6 @@ pub struct MappingRequest {
     pub apply_to_all: Option<bool>,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ValidationConfigDto {
@@ -140,7 +133,6 @@ impl From<ValidationConfigDto> for ValidationConfig {
     }
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ValidationRequest {
@@ -156,7 +148,6 @@ pub struct ValidationRequest {
     pub client_id: Option<String>,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum ValidationModeDto {
@@ -175,7 +166,6 @@ impl From<ValidationModeDto> for ValidationMode {
     }
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ValidationResponse {
@@ -191,7 +181,6 @@ pub struct ValidationResponse {
     pub websocket_url: Option<String>,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ApplyInferencesRequest {
@@ -203,7 +192,6 @@ pub struct ApplyInferencesRequest {
     pub update_graph: Option<bool>,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RdfTripleDto {
@@ -241,7 +229,6 @@ impl From<RdfTriple> for RdfTripleDto {
     }
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct InferenceResult {
@@ -255,7 +242,6 @@ pub struct InferenceResult {
     pub graph_updated: bool,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct HealthStatusResponse {
@@ -269,7 +255,6 @@ pub struct HealthStatusResponse {
     pub timestamp: DateTime<Utc>,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct OntologyHealthDto {
@@ -298,7 +283,6 @@ impl From<OntologyHealth> for OntologyHealthDto {
     }
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ClassNode {
@@ -310,7 +294,6 @@ pub struct ClassNode {
     pub depth: usize,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ClassHierarchy {
@@ -318,7 +301,6 @@ pub struct ClassHierarchy {
     pub hierarchy: HashMap<String, ClassNode>,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct HierarchyParams {
@@ -326,7 +308,6 @@ pub struct HierarchyParams {
     pub max_depth: Option<usize>,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ErrorResponse {
@@ -358,7 +339,6 @@ impl ErrorResponse {
 // UTILITY FUNCTIONS
 // ============================================================================
 
-///
 async fn check_feature_enabled() -> Result<(), ErrorResponse> {
     let flags = FEATURE_FLAGS.lock().await;
 
@@ -379,12 +359,10 @@ async fn check_feature_enabled() -> Result<(), ErrorResponse> {
     Ok(())
 }
 
-///
 fn actor_timeout() -> StdDuration {
     StdDuration::from_secs(30)
 }
 
-///
 fn extract_property_graph(_state: &AppState) -> Result<PropertyGraph, ErrorResponse> {
     
     
@@ -400,7 +378,6 @@ fn extract_property_graph(_state: &AppState) -> Result<PropertyGraph, ErrorRespo
 // REST ENDPOINTS
 // ============================================================================
 
-///
 pub async fn load_axioms(state: web::Data<AppState>, body: web::Bytes) -> impl Responder {
     
     let (source, format) = if let Ok(req) = serde_json::from_slice::<LoadOntologyRequest>(&body) {
@@ -456,7 +433,6 @@ pub async fn load_axioms(state: web::Data<AppState>, body: web::Bytes) -> impl R
     }
 }
 
-///
 pub async fn update_mapping(
     state: web::Data<AppState>,
     req: web::Json<MappingRequest>,
@@ -501,7 +477,6 @@ pub async fn update_mapping(
     }
 }
 
-///
 pub async fn validate_ontology(
     state: web::Data<AppState>,
     req: web::Json<ValidationRequest>,
@@ -569,7 +544,6 @@ pub async fn validate_ontology(
     }
 }
 
-///
 pub async fn get_validation_report(
     state: web::Data<AppState>,
     query: web::Query<HashMap<String, String>>,
@@ -614,7 +588,6 @@ pub async fn get_validation_report(
     }
 }
 
-///
 pub async fn apply_inferences(
     state: web::Data<AppState>,
     req: web::Json<ApplyInferencesRequest>,
@@ -679,7 +652,6 @@ pub async fn apply_inferences(
     }
 }
 
-///
 pub async fn get_health_status(state: web::Data<AppState>) -> impl Responder {
     info!("Retrieving ontology system health");
 
@@ -720,7 +692,6 @@ pub async fn get_health_status(state: web::Data<AppState>) -> impl Responder {
     }
 }
 
-///
 pub async fn clear_caches(state: web::Data<AppState>) -> impl Responder {
     info!("Clearing ontology caches");
 
@@ -759,7 +730,6 @@ pub async fn clear_caches(state: web::Data<AppState>) -> impl Responder {
     }
 }
 
-///
 pub async fn list_axioms(state: web::Data<AppState>) -> impl Responder {
     info!("Listing all loaded axioms");
 
@@ -799,7 +769,6 @@ pub async fn list_axioms(state: web::Data<AppState>) -> impl Responder {
     }
 }
 
-///
 pub async fn get_inferences(
     state: web::Data<AppState>,
     query: web::Query<HashMap<String, String>>,
@@ -862,7 +831,6 @@ pub async fn get_inferences(
     }
 }
 
-///
 pub async fn validate_graph(
     state: web::Data<AppState>,
     req: web::Json<ValidationRequest>,
@@ -935,18 +903,13 @@ pub async fn validate_graph(
 }
 
 /// Get Ontology Class Hierarchy
-///
 /// Returns the complete class hierarchy for the ontology with parent-child relationships,
 /// depth information, and descendant counts.
-///
 /// # OpenAPI Specification
-///
 /// **GET** `/api/ontology/hierarchy`
-///
 /// ## Query Parameters
 /// - `ontology_id` (optional): Specific ontology identifier. Defaults to "default"
 /// - `max_depth` (optional): Maximum depth to traverse. No limit if not specified
-///
 /// ## Response Schema (200 OK)
 /// ```json
 /// {
@@ -971,7 +934,6 @@ pub async fn validate_graph(
 ///   }
 /// }
 /// ```
-///
 /// ## Response Fields
 /// - `rootClasses`: Array of IRIs representing top-level classes (no parents)
 /// - `hierarchy`: Map of class IRI to ClassNode objects containing:
@@ -981,20 +943,16 @@ pub async fn validate_graph(
 ///   - `childrenIris`: Array of child class IRIs
 ///   - `nodeCount`: Total number of descendants (children + grandchildren + ...)
 ///   - `depth`: Distance from nearest root class (0 for roots)
-///
 /// ## Error Responses
 /// - `503 Service Unavailable`: Ontology validation feature is disabled
 /// - `500 Internal Server Error`: Failed to build hierarchy
-///
 /// ## Example Request
 /// ```bash
 /// curl -X GET "http://localhost:8080/api/ontology/hierarchy?ontology_id=default&max_depth=5"
 /// ```
-///
 /// ## Caching
 /// Results are computed on-demand. For large ontologies, consider caching the response
 /// on the client side or implementing server-side caching.
-///
 /// ## Performance Notes
 /// - Time complexity: O(n) where n is the number of classes
 /// - Space complexity: O(n)
@@ -1154,7 +1112,6 @@ pub async fn get_hierarchy(
     }
 }
 
-///
 pub async fn get_report_by_id(
     state: web::Data<AppState>,
     path: web::Path<String>,
@@ -1204,7 +1161,6 @@ pub async fn get_report_by_id(
 // WEBSOCKET IMPLEMENTATION
 // ============================================================================
 
-///
 pub struct OntologyWebSocket {
     
     client_id: String,
@@ -1279,7 +1235,6 @@ impl actix::StreamHandler<Result<ws::Message, ws::ProtocolError>> for OntologyWe
     }
 }
 
-///
 pub async fn websocket_handler(
     req: HttpRequest,
     stream: web::Payload,
@@ -1313,7 +1268,6 @@ pub async fn websocket_handler(
 // ROUTE CONFIGURATION
 // ============================================================================
 
-///
 /// SECURITY: All ontology endpoints require authentication
 pub fn config(cfg: &mut web::ServiceConfig) {
     use crate::middleware::RequireAuth;
@@ -1377,7 +1331,8 @@ mod tests {
         };
 
         
-        let json = serde_json::to_value(&response).unwrap();
+        let json = serde_json::to_value(&response)
+            .expect("HealthStatusResponse should serialize to JSON");
         assert!(json.get("status").is_some());
         assert!(json.get("health").is_some());
         assert!(json.get("ontologyValidationEnabled").is_some());

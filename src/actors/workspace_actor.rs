@@ -26,12 +26,10 @@ use crate::models::workspace::{
 };
 use crate::utils::json::{from_json, to_json};
 
-///
 pub trait WorkspaceWebSocketClient: Send + Sync {
     fn broadcast_workspace_change(&self, workspace: &Workspace, change_type: WorkspaceChangeType);
 }
 
-///
 #[derive(Clone, Default)]
 pub struct DefaultWebSocketClient;
 
@@ -45,7 +43,6 @@ impl WorkspaceWebSocketClient for DefaultWebSocketClient {
     }
 }
 
-///
 pub struct WorkspaceActor {
     
     workspaces: HashMap<String, Workspace>,

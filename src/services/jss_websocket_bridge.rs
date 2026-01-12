@@ -224,7 +224,6 @@ impl Default for JssBridgeConfig {
 }
 
 /// JSS WebSocket Bridge
-///
 /// Maintains a persistent WebSocket connection to JSS and bridges
 /// notifications to VisionFlow clients via both JSON and binary protocols.
 pub struct JssWebSocketBridge {

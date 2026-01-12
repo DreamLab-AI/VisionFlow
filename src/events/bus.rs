@@ -6,7 +6,6 @@ use crate::events::types::{
     DomainEvent, EventError, EventHandler, EventMetadata, EventMiddleware, EventResult, StoredEvent,
 };
 
-///
 pub struct EventBus {
     
     subscribers: Arc<RwLock<HashMap<String, Vec<Arc<dyn EventHandler>>>>>,

@@ -23,7 +23,6 @@ use crate::ports::gpu_semantic_analyzer::{
 // Physics Adapter Messages
 // ============================================================================
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct InitializePhysicsMessage {
@@ -31,79 +30,66 @@ pub struct InitializePhysicsMessage {
     pub params: PhysicsParameters,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<Vec<NodeForce>, String>")]
 pub struct ComputeForcesMessage;
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<Vec<(u32, f32, f32, f32)>, String>")]
 pub struct UpdatePositionsMessage {
     pub forces: Vec<NodeForce>,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<PhysicsStepResult, String>")]
 pub struct PhysicsStepMessage;
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<PhysicsStepResult, String>")]
 pub struct SimulateUntilConvergenceMessage;
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct ApplyExternalForcesMessage {
     pub forces: Vec<(u32, f32, f32, f32)>,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct PinNodesMessage {
     pub nodes: Vec<(u32, f32, f32, f32)>,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct UnpinNodesMessage {
     pub node_ids: Vec<u32>,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct UpdatePhysicsParametersMessage {
     pub params: PhysicsParameters,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct UpdatePhysicsGraphDataMessage {
     pub graph: Arc<GraphData>,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<GpuDeviceInfo, String>")]
 pub struct GetGpuStatusMessage;
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<PhysicsStatistics, String>")]
 pub struct GetPhysicsStatisticsMessage;
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct ResetPhysicsMessage;
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct CleanupPhysicsMessage;
@@ -112,54 +98,46 @@ pub struct CleanupPhysicsMessage;
 // Semantic Analyzer Messages
 // ============================================================================
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct InitializeSemanticMessage {
     pub graph: Arc<GraphData>,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<CommunityDetectionResult, String>")]
 pub struct DetectCommunitiesMessage {
     pub algorithm: ClusteringAlgorithm,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<PathfindingResult, String>")]
 pub struct ComputeShortestPathsMessage {
     pub source_node_id: u32,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<Vec<f32>, String>")]
 pub struct ComputeSsspDistancesMessage {
     pub source_node_id: u32,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<HashMap<(u32, u32), Vec<u32>>, String>")]
 pub struct ComputeAllPairsShortestPathsMessage;
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<Vec<Vec<f32>>, String>")]
 pub struct ComputeLandmarkApspMessage {
     pub num_landmarks: usize,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<ConstraintSet, String>")]
 pub struct GenerateSemanticConstraintsMessage {
     pub config: SemanticConstraintConfig,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<OptimizationResult, String>")]
 pub struct OptimizeLayoutMessage {
@@ -167,26 +145,22 @@ pub struct OptimizeLayoutMessage {
     pub max_iterations: usize,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<HashMap<u32, f32>, String>")]
 pub struct AnalyzeNodeImportanceMessage {
     pub algorithm: ImportanceAlgorithm,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct UpdateSemanticGraphDataMessage {
     pub graph: Arc<GraphData>,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<SemanticStatistics, String>")]
 pub struct GetSemanticStatisticsMessage;
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct InvalidatePathfindingCacheMessage;

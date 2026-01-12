@@ -51,13 +51,10 @@ use std::time::{Duration, Instant};
 use tokio::sync::{mpsc, Semaphore};
 use tokio::task::JoinSet;
 
-///
 const DEFAULT_MAX_WORKERS: usize = 8;
 
-///
 const DEFAULT_MAX_DB_WRITES: usize = 4;
 
-///
 #[derive(Debug, Clone, PartialEq)]
 pub enum FileType {
     KnowledgeGraph, 
@@ -65,7 +62,6 @@ pub enum FileType {
     Skip,           
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct SyncProgress {
     pub files_total: usize,
@@ -99,7 +95,6 @@ impl SyncProgress {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct SyncStatistics {
     pub total_files: usize,
@@ -116,7 +111,6 @@ pub struct SyncStatistics {
     pub total_axioms: usize,
 }
 
-///
 #[derive(Debug, Clone)]
 enum FileProcessResult {
     KnowledgeGraph {
@@ -141,7 +135,6 @@ enum FileProcessResult {
     },
 }
 
-///
 pub struct StreamingSyncService {
     content_api: Arc<EnhancedContentAPI>,
     kg_parser: Arc<KnowledgeGraphParser>,
@@ -405,8 +398,7 @@ impl StreamingSyncService {
 
     
     /// Process files in parallel using FuturesUnordered for improved throughput
-    ///
-    /// Each worker now processes its assigned files concurrently (up to PARALLEL_FILES_PER_WORKER)
+        /// Each worker now processes its assigned files concurrently (up to PARALLEL_FILES_PER_WORKER)
     /// instead of sequentially, providing 2-4x speedup for I/O-bound file fetching.
     async fn worker_process_files(
         worker_id: usize,

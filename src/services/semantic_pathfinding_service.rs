@@ -93,7 +93,6 @@ impl SemanticPathfindingService {
     }
 
     /// Find shortest semantic path between two nodes
-    ///
     /// Uses enhanced A* with semantic weighting
     pub fn find_semantic_path(
         &self,
@@ -198,7 +197,6 @@ impl SemanticPathfindingService {
     }
 
     /// Query-guided traversal
-    ///
     /// Prioritizes nodes similar to the query at each step
     pub fn query_traversal(
         &self,
@@ -290,7 +288,6 @@ impl SemanticPathfindingService {
     }
 
     /// Chunk-based local traversal
-    ///
     /// Explores locally similar nodes without query context
     pub fn chunk_traversal(
         &self,

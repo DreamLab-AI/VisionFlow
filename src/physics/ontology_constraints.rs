@@ -48,7 +48,6 @@ use crate::models::{
     node::Node,
 };
 
-///
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum OWLAxiomType {
     
@@ -73,7 +72,6 @@ pub enum OWLAxiomType {
     SymmetricProperty,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OWLAxiom {
     pub axiom_type: OWLAxiomType,
@@ -83,7 +81,6 @@ pub struct OWLAxiom {
     pub confidence: f32, 
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OntologyInference {
     pub inferred_axiom: OWLAxiom,
@@ -92,7 +89,6 @@ pub struct OntologyInference {
     pub is_derived: bool,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OntologyConstraintConfig {
     
@@ -128,7 +124,6 @@ impl Default for OntologyConstraintConfig {
     }
 }
 
-///
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum OntologyConstraintGroup {
     
@@ -141,7 +136,6 @@ pub enum OntologyConstraintGroup {
     OntologyIdentity,
 }
 
-///
 #[derive(Debug, Clone)]
 struct ConstraintCacheEntry {
     constraints: Vec<Constraint>,
@@ -149,7 +143,6 @@ struct ConstraintCacheEntry {
     last_updated: std::time::Instant,
 }
 
-///
 pub struct OntologyConstraintTranslator {
     config: OntologyConstraintConfig,
     constraint_cache: HashMap<String, ConstraintCacheEntry>,
@@ -676,7 +669,6 @@ impl Default for OntologyConstraintTranslator {
     }
 }
 
-///
 #[derive(Debug, Serialize, Deserialize)]
 pub struct OntologyReasoningReport {
     pub axioms: Vec<OWLAxiom>,
@@ -685,7 +677,6 @@ pub struct OntologyReasoningReport {
     pub reasoning_time_ms: u64,
 }
 
-///
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ConsistencyCheck {
     pub is_consistent: bool,
@@ -693,7 +684,6 @@ pub struct ConsistencyCheck {
     pub suggested_resolution: Option<String>,
 }
 
-///
 #[derive(Debug, Serialize, Deserialize)]
 pub struct OntologyConstraintCacheStats {
     pub total_cache_entries: usize,

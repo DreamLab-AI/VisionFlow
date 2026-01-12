@@ -66,12 +66,9 @@ pub struct ExplainCypherResponse {
 }
 
 /// Translate natural language to Cypher
-///
 /// POST /api/nl-query/translate
-///
 /// Translates a natural language query into one or more Cypher queries.
 /// Uses the current graph schema to generate contextually appropriate queries.
-///
 /// # Request Body
 /// ```json
 /// {
@@ -79,7 +76,6 @@ pub struct ExplainCypherResponse {
 ///   "suggestAlternatives": false
 /// }
 /// ```
-///
 /// # Response
 /// ```json
 /// {
@@ -124,12 +120,9 @@ pub async fn translate_query(
 }
 
 /// Get example queries
-///
 /// GET /api/nl-query/examples
-///
 /// Returns a list of example natural language queries and their Cypher translations.
 /// Useful for helping users understand what kinds of queries they can ask.
-///
 /// # Response
 /// ```json
 /// {
@@ -156,19 +149,15 @@ pub async fn get_examples() -> Result<HttpResponse, actix_web::Error> {
 }
 
 /// Explain Cypher query in natural language
-///
 /// POST /api/nl-query/explain
-///
 /// Takes a Cypher query and generates a natural language explanation
 /// of what it does.
-///
 /// # Request Body
 /// ```json
 /// {
 ///   "cypher": "MATCH (n:GraphNode)-[r:EDGE*1..3]-(m:GraphNode) RETURN n, m LIMIT 10"
 /// }
 /// ```
-///
 /// # Response
 /// ```json
 /// {
@@ -202,18 +191,14 @@ pub async fn explain_cypher(
 }
 
 /// Validate Cypher syntax
-///
 /// POST /api/nl-query/validate
-///
 /// Validates a Cypher query for basic syntax errors and dangerous operations.
-///
 /// # Request Body
 /// ```json
 /// {
 ///   "cypher": "MATCH (n:GraphNode) RETURN n"
 /// }
 /// ```
-///
 /// # Response
 /// ```json
 /// {

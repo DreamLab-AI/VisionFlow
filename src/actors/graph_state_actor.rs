@@ -65,7 +65,6 @@ use crate::utils::socket_flow_messages::{BinaryNodeData, BinaryNodeDataClient, g
 // Ports (hexagonal architecture)
 use crate::ports::knowledge_graph_repository::KnowledgeGraphRepository;
 
-///
 pub struct GraphStateActor {
     
     repository: Arc<dyn KnowledgeGraphRepository>,

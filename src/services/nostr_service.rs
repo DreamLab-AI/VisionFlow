@@ -536,16 +536,13 @@ impl NostrService {
     }
 
     /// Validate NIP-98 HTTP authentication from Authorization header
-    ///
     /// This validates tokens for Solid server requests per NIP-98 spec.
     /// Tokens must be signed, unexpired (60s max), and match the request URL/method.
-    ///
     /// # Arguments
     /// * `auth_header` - Full Authorization header (e.g., "Nostr <base64>")
     /// * `request_url` - The URL the request was made to
     /// * `request_method` - The HTTP method (GET, POST, PUT, etc.)
     /// * `request_body` - Optional request body for payload verification
-    ///
     /// # Returns
     /// The authenticated NostrUser or an error
     pub async fn verify_nip98_auth(
@@ -648,7 +645,6 @@ impl NostrService {
     }
 
     /// Validate NIP-98 token and return just the validation result (no user creation)
-    ///
     /// Use this for stateless validation when you only need to verify the token.
     pub fn validate_nip98_token_only(
         &self,

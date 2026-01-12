@@ -8,7 +8,6 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
 /// VisionFlow API - WebXR Graph Visualization Server
-///
 /// GPU-accelerated knowledge graph visualization with:
 /// - Real-time physics simulation
 /// - QUIC/WebTransport for ultra-low latency

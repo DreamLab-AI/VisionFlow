@@ -103,7 +103,6 @@ pub struct SaveGraphRequest {
     pub graph: GraphData,
 }
 
-///
 pub async fn get_ontology_graph(state: web::Data<AppState>) -> Result<HttpResponse, actix_web::Error> {
     info!("Getting ontology graph via CQRS query");
 
@@ -130,7 +129,6 @@ pub async fn get_ontology_graph(state: web::Data<AppState>) -> Result<HttpRespon
     }
 }
 
-///
 pub async fn save_ontology_graph(
     state: web::Data<AppState>,
     request: web::Json<SaveGraphRequest>,
@@ -162,7 +160,6 @@ pub async fn save_ontology_graph(
     }
 }
 
-///
 pub async fn get_owl_class(state: web::Data<AppState>, iri: web::Path<String>) -> Result<HttpResponse, actix_web::Error> {
     let class_iri = iri.into_inner();
     info!("Getting OWL class via CQRS query: iri={}", class_iri);
@@ -194,7 +191,6 @@ pub async fn get_owl_class(state: web::Data<AppState>, iri: web::Path<String>) -
     }
 }
 
-///
 pub async fn list_owl_classes(state: web::Data<AppState>) -> Result<HttpResponse, actix_web::Error> {
     info!("Listing all OWL classes via CQRS query");
 
@@ -223,7 +219,6 @@ pub async fn list_owl_classes(state: web::Data<AppState>) -> Result<HttpResponse
     }
 }
 
-///
 pub async fn add_owl_class(
     state: web::Data<AppState>,
     request: web::Json<AddClassRequest>,
@@ -257,7 +252,6 @@ pub async fn add_owl_class(
     }
 }
 
-///
 pub async fn update_owl_class(
     state: web::Data<AppState>,
     request: web::Json<UpdateClassRequest>,
@@ -289,7 +283,6 @@ pub async fn update_owl_class(
     }
 }
 
-///
 pub async fn remove_owl_class(
     state: web::Data<AppState>,
     iri: web::Path<String>,
@@ -321,7 +314,6 @@ pub async fn remove_owl_class(
     }
 }
 
-///
 pub async fn get_owl_property(
     state: web::Data<AppState>,
     iri: web::Path<String>,
@@ -351,7 +343,6 @@ pub async fn get_owl_property(
     }
 }
 
-///
 pub async fn list_owl_properties(state: web::Data<AppState>) -> Result<HttpResponse, actix_web::Error> {
     info!("Listing all OWL properties via CQRS query");
 
@@ -380,7 +371,6 @@ pub async fn list_owl_properties(state: web::Data<AppState>) -> Result<HttpRespo
     }
 }
 
-///
 pub async fn add_owl_property(
     state: web::Data<AppState>,
     request: web::Json<AddPropertyRequest>,
@@ -414,7 +404,6 @@ pub async fn add_owl_property(
     }
 }
 
-///
 pub async fn update_owl_property(
     state: web::Data<AppState>,
     request: web::Json<UpdatePropertyRequest>,
@@ -449,7 +438,6 @@ pub async fn update_owl_property(
     }
 }
 
-///
 pub async fn get_class_axioms(
     state: web::Data<AppState>,
     iri: web::Path<String>,
@@ -482,7 +470,6 @@ pub async fn get_class_axioms(
     }
 }
 
-///
 pub async fn add_axiom(
     state: web::Data<AppState>,
     request: web::Json<AddAxiomRequest>,
@@ -513,7 +500,6 @@ pub async fn add_axiom(
     }
 }
 
-///
 pub async fn remove_axiom(state: web::Data<AppState>, axiom_id: web::Path<u64>) -> Result<HttpResponse, actix_web::Error> {
     let id = axiom_id.into_inner();
     info!("Removing axiom via CQRS directive: id={}", id);
@@ -542,7 +528,6 @@ pub async fn remove_axiom(state: web::Data<AppState>, axiom_id: web::Path<u64>) 
     }
 }
 
-///
 pub async fn get_inference_results(state: web::Data<AppState>) -> Result<HttpResponse, actix_web::Error> {
     info!("Getting inference results via CQRS query");
 
@@ -572,7 +557,6 @@ pub async fn get_inference_results(state: web::Data<AppState>) -> Result<HttpRes
     }
 }
 
-///
 pub async fn store_inference_results(
     state: web::Data<AppState>,
     request: web::Json<StoreInferenceRequest>,
@@ -607,7 +591,6 @@ pub async fn store_inference_results(
     }
 }
 
-///
 pub async fn validate_ontology(state: web::Data<AppState>) -> Result<HttpResponse, actix_web::Error> {
     info!("Validating ontology via CQRS query");
 
@@ -636,7 +619,6 @@ pub async fn validate_ontology(state: web::Data<AppState>) -> Result<HttpRespons
     }
 }
 
-///
 pub async fn query_ontology(
     state: web::Data<AppState>,
     request: web::Json<QueryRequest>,
@@ -669,7 +651,6 @@ pub async fn query_ontology(
     }
 }
 
-///
 pub async fn get_ontology_metrics(state: web::Data<AppState>) -> Result<HttpResponse, actix_web::Error> {
     info!("Getting ontology metrics via CQRS query");
 
@@ -695,7 +676,6 @@ pub async fn get_ontology_metrics(state: web::Data<AppState>) -> Result<HttpResp
     }
 }
 
-///
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/ontology")

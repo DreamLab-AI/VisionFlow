@@ -8,12 +8,10 @@ use crate::models::graph::GraphData;
 use log::debug;
 
 /// Recomputes which node IDs pass the client's filter criteria
-///
 /// Called when:
 /// 1. Client authenticates and loads their saved filter
 /// 2. Client updates their filter settings
 /// 3. Graph data changes (new nodes added)
-///
 /// # Arguments
 /// * `filter` - The client's filter settings to update
 /// * `graph_data` - The complete graph data with node metadata

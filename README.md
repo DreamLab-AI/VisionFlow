@@ -84,7 +84,7 @@ graph LR
 ### GPU-Accelerated Performance
 - **39 CUDA kernels** for 100x speedup
 - **60 FPS** rendering at 100,000+ nodes
-- **36-byte binary protocol V2** (80% bandwidth reduction vs JSON)
+- **28-byte binary protocol** (80% bandwidth reduction vs JSON)
 - **Sub-10ms** WebSocket latency
 
 </td>
@@ -552,7 +552,7 @@ VisionFlow/
 │   └── services/           # API clients
 │
 ├── multi-agent-docker/     # AI orchestration
-│   ├── agents/             # 54+ agent templates
+│   ├── agents/             # 610 agent templates
 │   └── coordination/       # Agent coordination
 │
 └── docs/                   # Documentation

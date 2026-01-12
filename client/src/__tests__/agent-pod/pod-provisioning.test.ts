@@ -7,7 +7,7 @@
  * @see docs/architecture/user-agent-pod-design.md
  */
 
-// Jest globals are available automatically
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 // Types matching pseudocode design
 interface PodInfo {
@@ -36,19 +36,19 @@ const mockHttpClient = {
   responses: new Map<string, { status: number; body?: unknown }>(),
   createdResources: new Set<string>(),
 
-  head: jest.fn(async (url: string) => {
+  head: vi.fn(async (url: string) => {
     if (mockHttpClient.createdResources.has(url)) {
       return { status: 200 };
     }
     return mockHttpClient.responses.get(url) || { status: 404 };
   }),
 
-  put: jest.fn(async (url: string, body: unknown) => {
+  put: vi.fn(async (url: string, body: unknown) => {
     mockHttpClient.createdResources.add(url);
     return { status: 201 };
   }),
 
-  post: jest.fn(async (url: string, body: unknown) => {
+  post: vi.fn(async (url: string, body: unknown) => {
     mockHttpClient.createdResources.add(url);
     return { status: 201 };
   }),

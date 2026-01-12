@@ -8,7 +8,6 @@ use crate::ports::OntologyRepository;
 use async_trait::async_trait;
 use std::sync::Arc;
 
-///
 pub struct OntologyCommandHandler {
     repository: Arc<dyn OntologyRepository>,
 }
@@ -153,7 +152,6 @@ impl CommandHandler<InvalidatePathfindingCachesCommand> for OntologyCommandHandl
     }
 }
 
-///
 pub struct OntologyQueryHandler {
     repository: Arc<dyn OntologyRepository>,
 }

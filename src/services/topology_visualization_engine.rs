@@ -13,7 +13,6 @@ use crate::services::agent_visualization_protocol::{Position, SwarmTopologyData}
 use crate::types::Vec3Data;
 use crate::utils::time;
 
-///
 #[derive(Debug, Clone)]
 pub struct TopologyVisualizationEngine {
     
@@ -38,7 +37,6 @@ pub struct TopologyVisualizationEngine {
     pub layout_cache: HashMap<String, CachedLayout>,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TopologyNode {
     pub id: String,
@@ -53,7 +51,6 @@ pub struct TopologyNode {
     pub last_updated: i64,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TopologyEdge {
     pub id: String,
@@ -68,7 +65,6 @@ pub struct TopologyEdge {
     pub last_updated: i64,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum EdgeType {
     
@@ -87,7 +83,6 @@ pub enum EdgeType {
     Custom(String),
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LayoutConfiguration {
     pub algorithm: LayoutAlgorithm,
@@ -100,7 +95,6 @@ pub struct LayoutConfiguration {
     pub node_repulsion: bool,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum LayoutAlgorithm {
     
@@ -123,7 +117,6 @@ pub enum LayoutAlgorithm {
     Custom(CustomLayoutConfig),
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ForceDirectedConfig {
     pub attraction_strength: f32,
@@ -135,7 +128,6 @@ pub struct ForceDirectedConfig {
     pub center_gravity: bool,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HierarchicalConfig {
     pub direction: HierarchicalDirection,
@@ -147,7 +139,6 @@ pub struct HierarchicalConfig {
     pub align_nodes: bool,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum HierarchicalDirection {
     TopToBottom,
@@ -156,7 +147,6 @@ pub enum HierarchicalDirection {
     RightToLeft,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CircularConfig {
     pub radius: f32,
@@ -167,7 +157,6 @@ pub struct CircularConfig {
     pub layer_spacing: f32,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GridConfig {
     pub columns: Option<u32>,
@@ -178,7 +167,6 @@ pub struct GridConfig {
     pub align_center: bool,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SpringElectricalConfig {
     pub spring_length: f32,
@@ -189,7 +177,6 @@ pub struct SpringElectricalConfig {
     pub use_barnes_hut: bool,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StressConfig {
     pub distance_matrix: bool,
@@ -199,7 +186,6 @@ pub struct StressConfig {
     pub tolerance: f32,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MultiLevelConfig {
     pub coarsening_ratio: f32,
@@ -209,7 +195,6 @@ pub struct MultiLevelConfig {
     pub refinement_iterations: u32,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GeographicConfig {
     pub projection: MapProjection,
@@ -218,7 +203,6 @@ pub struct GeographicConfig {
     pub center_point: (f32, f32), 
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum MapProjection {
     Mercator,
@@ -227,7 +211,6 @@ pub enum MapProjection {
     Stereographic,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GeographicBounds {
     pub min_lat: f32,
@@ -236,7 +219,6 @@ pub struct GeographicBounds {
     pub max_lon: f32,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CustomLayoutConfig {
     pub name: String,
@@ -245,7 +227,6 @@ pub struct CustomLayoutConfig {
     pub use_physics: bool,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LayoutBounds {
     pub min_x: f32,
@@ -258,7 +239,6 @@ pub struct LayoutBounds {
     pub aspect_ratio: Option<f32>,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PhysicsParameters {
     pub enabled: bool,
@@ -271,7 +251,6 @@ pub struct PhysicsParameters {
     pub initial_temperature: f32,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct LayoutMetrics {
     pub computation_time_ms: f64,
@@ -285,7 +264,6 @@ pub struct LayoutMetrics {
     pub memory_usage_bytes: u64,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CachedLayout {
     pub layout_hash: String,

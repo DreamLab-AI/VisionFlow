@@ -2,8 +2,9 @@ import { test, expect } from '@playwright/test';
 
 test('verify Filter tab with Node Filter Settings', async ({ page }) => {
   await page.goto('/');
-  await page.waitForLoadState('domcontentloaded');
-  await page.waitForTimeout(20000); // Wait for app to fully load
+  await page.waitForLoadState('networkidle');
+  // Wait for app UI to be ready by checking for tab elements
+  await page.waitForSelector('[role="tab"]', { timeout: 30000 });
 
   // Take initial screenshot
   await page.screenshot({ path: '/tmp/verify-1-initial.png' });
@@ -29,7 +30,8 @@ test('verify Filter tab with Node Filter Settings', async ({ page }) => {
     return false;
   });
   console.log('Analytics tab clicked:', analyticsClicked);
-  await page.waitForTimeout(2000);
+  // Wait for tab panel to be visible after click
+  await expect(page.locator('[role="tabpanel"]')).toBeVisible({ timeout: 5000 });
   await page.screenshot({ path: '/tmp/verify-2-after-analytics.png' });
 
   // Now look for tab panel content
@@ -69,7 +71,8 @@ test('verify Filter tab with Node Filter Settings', async ({ page }) => {
       const filterBtn = buttons.find(btn => btn.textContent?.toLowerCase().includes('filter'));
       if (filterBtn) (filterBtn as HTMLElement).click();
     });
-    await page.waitForTimeout(1000);
+    // Wait for filter panel content to render
+    await page.waitForSelector('[role="tabpanel"]', { state: 'visible', timeout: 5000 });
     await page.screenshot({ path: '/tmp/verify-3-after-filter.png' });
   }
 

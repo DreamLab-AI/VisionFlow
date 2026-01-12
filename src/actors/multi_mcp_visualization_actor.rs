@@ -25,12 +25,10 @@ use crate::types::AgentStatus;
 use crate::types::Vec3Data;
 use crate::utils::time;
 
-///
 #[derive(Message, Debug, Clone)]
 #[rtype(result = "()")]
 pub struct AgentVisualizationMessageWrapper(pub AgentVisualizationMessage);
 
-///
 #[derive(Debug)]
 pub struct MultiMcpVisualizationActor {
     
@@ -71,7 +69,6 @@ pub struct MultiMcpVisualizationActor {
     pub global_metrics: GlobalPerformanceMetrics,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct McpServerMetrics {
     pub server_id: String,
@@ -85,7 +82,6 @@ pub struct McpServerMetrics {
     pub last_updated: i64,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum LayoutAlgorithm {
     
@@ -124,7 +120,6 @@ impl Default for LayoutAlgorithm {
     }
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub enum MultiMcpVisualizationMessage {
@@ -196,7 +191,6 @@ pub enum MultiMcpVisualizationMessage {
     Reset,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "()")]
 pub enum MultiMcpVisualizationResponse {
@@ -224,7 +218,6 @@ pub enum MultiMcpVisualizationResponse {
     },
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TopologyRecommendation {
     pub recommendation_type: RecommendationType,

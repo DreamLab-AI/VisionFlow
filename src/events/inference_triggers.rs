@@ -10,7 +10,6 @@ use tracing::{debug, info, warn, instrument};
 use crate::application::inference_service::InferenceService;
 use crate::events::EventBus;
 
-///
 #[derive(Debug, Clone)]
 pub enum OntologyEvent {
     
@@ -39,7 +38,6 @@ pub enum OntologyEvent {
     },
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct AutoInferenceConfig {
     
@@ -70,7 +68,6 @@ impl Default for AutoInferenceConfig {
     }
 }
 
-///
 pub struct InferenceTriggerHandler {
     
     inference_service: Arc<RwLock<InferenceService>>,
@@ -127,17 +124,23 @@ impl InferenceTriggerHandler {
         }
     }
 
-    
+    /// Trigger full inference for an ontology.
+        /// DEADLOCK FIX: RwLock guard is now dropped before awaiting run_inference()
+    /// and update_last_inference() to prevent holding guard across await points.
     async fn trigger_inference(&self, ontology_id: &str) {
-        
         if !self.should_run_inference(ontology_id).await {
             debug!("Skipping inference due to rate limiting: {}", ontology_id);
             return;
         }
 
-        let service = self.inference_service.read().await;
+        // Run inference - acquire and release guard within scope to avoid deadlock
+        let result = {
+            let service = self.inference_service.read().await;
+            service.run_inference(ontology_id).await
+            // Guard dropped here at end of block
+        };
 
-        match service.run_inference(ontology_id).await {
+        match result {
             Ok(results) => {
                 info!(
                     "Auto-inference completed for {}: {} inferred axioms in {}ms",
@@ -146,7 +149,7 @@ impl InferenceTriggerHandler {
                     results.inference_time_ms
                 );
 
-                
+                // Now safe to call - no guard held
                 self.update_last_inference(ontology_id).await;
             }
             Err(e) => {
@@ -186,7 +189,6 @@ impl InferenceTriggerHandler {
     }
 }
 
-///
 pub async fn register_inference_triggers(
     event_bus: Arc<RwLock<EventBus>>,
     inference_service: Arc<RwLock<InferenceService>>,

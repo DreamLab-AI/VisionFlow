@@ -73,7 +73,6 @@ impl GpuSemanticAnalyzerAdapter {
 
 use crate::utils::time;
 
-///
 #[derive(Debug, Clone)]
 pub struct SemanticProcessorConfig {
     
@@ -103,7 +102,6 @@ impl Default for SemanticProcessorConfig {
     }
 }
 
-///
 #[derive(Debug, Clone, Default)]
 pub struct SemanticStats {
     pub constraints_generated: usize,
@@ -127,7 +125,6 @@ where
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct AISemanticFeatures {
     
@@ -163,7 +160,6 @@ impl Default for AISemanticFeatures {
     }
 }
 
-///
 pub struct SemanticProcessorActor {
     
     semantic_analyzer: Option<SemanticAnalyzer>,
@@ -217,7 +213,6 @@ pub struct SemanticProcessorActor {
     gpu_analyzer: Option<GpuSemanticAnalyzerAdapter>,
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct SemanticTask {
     pub task_id: String,
@@ -247,7 +242,6 @@ pub enum SemanticTaskStatus {
     Cancelled,
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct SemanticClusteringParams {
     pub min_cluster_size: usize,
@@ -651,7 +645,7 @@ impl SemanticProcessorActor {
         
         let words: Vec<&str> = content.split_whitespace().collect();
         for word in words {
-            if word.len() > 2 && word.chars().next().expect("Expected non-empty string").is_uppercase() {
+            if word.len() > 2 && word.chars().next().map(|c| c.is_uppercase()).unwrap_or(false) {
                 let clean_word = word.trim_matches(|c: char| !c.is_alphabetic());
                 if clean_word.len() > 2 && !entities.contains(&clean_word.to_string()) {
                     entities.push(clean_word.to_string());
@@ -1075,7 +1069,7 @@ impl SemanticProcessorActor {
         
         let words: Vec<&str> = content.split_whitespace().collect();
         for word in words {
-            if word.len() > 2 && word.chars().next().expect("Expected non-empty string").is_uppercase() {
+            if word.len() > 2 && word.chars().next().map(|c| c.is_uppercase()).unwrap_or(false) {
                 let clean_word = word.trim_matches(|c: char| !c.is_alphabetic());
                 if clean_word.len() > 2 && !entities.contains(&clean_word.to_string()) {
                     entities.push(clean_word.to_string());
@@ -1661,7 +1655,6 @@ impl Handler<UpdateAdvancedParams> for SemanticProcessorActor {
     }
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct SetGraphData {
@@ -1677,7 +1670,6 @@ impl Handler<SetGraphData> for SemanticProcessorActor {
     }
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct ProcessMetadata {
@@ -1713,7 +1705,6 @@ impl Handler<ProcessMetadata> for SemanticProcessorActor {
     }
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "SemanticStats")]
 pub struct GetSemanticStats;
@@ -1726,7 +1717,6 @@ impl Handler<GetSemanticStats> for SemanticProcessorActor {
     }
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct UpdateSemanticConfig {
@@ -1742,7 +1732,6 @@ impl Handler<UpdateSemanticConfig> for SemanticProcessorActor {
     }
 }
 
-///
 impl Handler<ComputeShortestPaths> for SemanticProcessorActor {
     type Result = actix::ResponseFuture<Result<PathfindingResult, String>>;
 
@@ -1792,7 +1781,6 @@ impl Handler<ComputeShortestPaths> for SemanticProcessorActor {
     }
 }
 
-///
 impl Handler<ComputeAllPairsShortestPaths> for SemanticProcessorActor {
     type Result = actix::ResponseFuture<Result<HashMap<(u32, u32), Vec<u32>>, String>>;
 

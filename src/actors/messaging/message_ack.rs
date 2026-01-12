@@ -55,13 +55,11 @@ impl AckStatus {
 }
 
 /// Generic acknowledgment message sent by actors after processing
-///
 /// # Example
 /// ```
 /// use webxr::actors::messaging::{MessageId, MessageAck, AckStatus};
 /// use std::time::Instant;
 /// use std::collections::HashMap;
-///
 /// let ack = MessageAck {
 ///     correlation_id: MessageId::new(),
 ///     status: AckStatus::Success,

@@ -6,7 +6,6 @@ use tokio::sync::RwLock;
 use crate::events::types::{EventError, EventMiddleware, EventResult, StoredEvent};
 use crate::utils::json::from_json;
 
-///
 pub struct LoggingMiddleware {
     verbose: bool,
 }
@@ -65,7 +64,6 @@ impl EventMiddleware for LoggingMiddleware {
     }
 }
 
-///
 pub struct MetricsMiddleware {
     published_count: Arc<RwLock<HashMap<String, usize>>>,
     handler_count: Arc<RwLock<HashMap<String, usize>>>,
@@ -155,7 +153,6 @@ impl EventMiddleware for MetricsMiddleware {
     }
 }
 
-///
 pub struct ValidationMiddleware;
 
 impl ValidationMiddleware {
@@ -217,7 +214,6 @@ impl EventMiddleware for ValidationMiddleware {
     }
 }
 
-///
 pub struct RetryMiddleware {
     max_retries: u32,
     retry_delay_ms: u64,
@@ -264,7 +260,6 @@ impl EventMiddleware for RetryMiddleware {
     }
 }
 
-///
 pub struct EnrichmentMiddleware {
     user_id: Option<String>,
     correlation_id: Option<String>,

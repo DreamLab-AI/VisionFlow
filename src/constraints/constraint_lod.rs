@@ -3,7 +3,6 @@
 
 use super::physics_constraint::*;
 
-///
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum LODLevel {
     
@@ -19,7 +18,6 @@ pub enum LODLevel {
     Close = 3,
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct LODConfig {
     
@@ -56,7 +54,6 @@ impl Default for LODConfig {
     }
 }
 
-///
 pub struct ConstraintLOD {
     config: LODConfig,
     current_level: LODLevel,
@@ -237,7 +234,6 @@ impl Default for ConstraintLOD {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct LODStats {
     pub lod_level: LODLevel,

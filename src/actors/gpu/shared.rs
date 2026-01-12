@@ -19,9 +19,7 @@ pub use crate::utils::unified_gpu_compute::{SimParams, UnifiedGPUCompute};
 // use super::{GPUResourceActor, ForceComputeActor, ClusteringActor,
 //            AnomalyDetectionActor, StressMajorizationActor, ConstraintActor};
 
-///
 
-///
 #[derive(Debug, Clone)]
 pub struct GPUResourceMetrics {
     pub kernel_launch_count: u64,
@@ -45,7 +43,6 @@ impl Default for GPUResourceMetrics {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct GPUOperationBatch {
     pub operations: Vec<GPUOperation>,
@@ -96,18 +93,14 @@ impl GPUOperationBatch {
 }
 
 /// Shared GPU context for all GPU actors
-///
 /// # Thread Safety Architecture
-///
 /// This struct uses `std::sync::Mutex` (not `tokio::sync::Mutex`) for GPU resources because:
 /// 1. GPU operations are inherently blocking (they wait for GPU kernels to complete)
 /// 2. CUDA streams and compute kernels are not async-aware
 /// 3. Holding a `tokio::sync::Mutex` across `.await` points would be incorrect
-///
 /// To prevent Tokio worker thread starvation, callers MUST wrap blocking GPU operations
 /// in `tokio::task::spawn_blocking()`. This moves the blocking work to a dedicated thread pool
 /// while keeping async executor threads responsive.
-///
 /// ## Correct Usage Pattern
 /// ```ignore
 /// let unified_compute_arc = shared_context.unified_compute.clone();
@@ -116,14 +109,12 @@ impl GPUOperationBatch {
 ///     guard.execute_physics_step(&params)
 /// }).await;
 /// ```
-///
 /// ## Incorrect Usage (causes thread starvation)
 /// ```ignore
 /// // DON'T do this in async handlers!
 /// let guard = shared_context.unified_compute.lock().unwrap();
 /// guard.execute_physics_step(&params);
 /// ```
-///
 /// For non-critical operations that can be skipped if the GPU is busy,
 /// use `try_lock()` instead to avoid blocking entirely.
 // Note: SafeCudaStream provides thread safety guarantees
@@ -145,7 +136,6 @@ pub struct SharedGPUContext {
 /// Type alias for SharedGPUContext for backwards compatibility
 pub type GPUContext = SharedGPUContext;
 
-///
 #[derive(Debug, Clone)]
 pub struct GPUState {
     pub num_nodes: u32,
@@ -201,7 +191,6 @@ impl Default for GPUState {
     }
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StressMajorizationSafety {
     

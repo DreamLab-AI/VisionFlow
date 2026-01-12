@@ -613,7 +613,6 @@ pub fn get_performance_summary() -> HashMap<String, serde_json::Value> {
 }
 
 /// Check if debug logging is enabled
-///
 /// This function checks both the DEBUG_ENABLED environment variable
 /// and the application settings to determine if debug logging should be active.
 pub fn is_debug_enabled() -> bool {

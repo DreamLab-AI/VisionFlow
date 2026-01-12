@@ -12,7 +12,7 @@ import {
   WebSocketConnectionState,
   WebSocketStatistics,
 } from '../types/websocketTypes';
-import { binaryProtocol, MessageType, GraphTypeFlag } from '../services/BinaryWebSocketProtocol';
+import { binaryProtocol, MessageType, GraphTypeFlag, AgentActionEvent } from '../services/BinaryWebSocketProtocol';
 import { nostrAuth } from '../services/nostrAuthService';
 
 const logger = createLogger('WebSocketStore');
@@ -620,7 +620,9 @@ export const useWebSocketStore = create<WebSocketState>()(
       if (!header) return;
 
       const payload = binaryProtocol.extractPayload(data, header);
-      const estimatedNodeCount = Math.floor(payload.byteLength / 48);
+      // Binary protocol: 28 bytes per node (matches Rust BinaryNodeData)
+      // u32 node_id (4) + f32 x,y,z (12) + f32 vx,vy,vz (12) = 28 bytes
+      const estimatedNodeCount = Math.floor(payload.byteLength / 28);
 
       const hasBotsData = detectBotsData(payload);
 
@@ -696,6 +698,25 @@ export const useWebSocketStore = create<WebSocketState>()(
       }
     };
 
+    const handleAgentAction = async (data: ArrayBuffer, header: ReturnType<typeof binaryProtocol.parseHeader>) => {
+      if (!header) return;
+
+      const payload = binaryProtocol.extractPayload(data, header);
+
+      // Decode single action or batch
+      const actions = payload.byteLength >= 15
+        ? binaryProtocol.decodeAgentActions(payload)
+        : [];
+
+      if (actions.length > 0) {
+        emit('agent-action', actions);
+
+        if (debugState.isDataDebugEnabled()) {
+          logger.debug(`Processed ${actions.length} agent action(s)`);
+        }
+      }
+    };
+
     const processBinaryData = async (data: ArrayBuffer) => {
       try {
         if (debugState.isDataDebugEnabled()) {
@@ -720,6 +741,10 @@ export const useWebSocketStore = create<WebSocketState>()(
           case MessageType.POSITION_UPDATE:
           case MessageType.AGENT_POSITIONS:
             await handlePositionUpdate(data, header);
+            break;
+
+          case MessageType.AGENT_ACTION:
+            await handleAgentAction(data, header);
             break;
 
           default:

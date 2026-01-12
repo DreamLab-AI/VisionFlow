@@ -18,21 +18,18 @@ use crate::ports::gpu_semantic_analyzer::{
     SemanticStatistics,
 };
 
-///
 #[derive(Debug, Clone)]
 pub struct CommunityDetectionRequest {
     pub algorithm: ClusteringAlgorithm,
     pub min_cluster_size: Option<usize>,
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct CentralityRequest {
     pub algorithm: ImportanceAlgorithm,
     pub top_k: Option<usize>,
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct ShortestPathRequest {
     pub source_node_id: u32,
@@ -40,7 +37,6 @@ pub struct ShortestPathRequest {
     pub include_path: bool,
 }
 
-///
 pub struct SemanticService {
     semantic_adapter: Arc<RwLock<dyn GpuSemanticAnalyzer>>,
     event_bus: Arc<RwLock<EventBus>>,

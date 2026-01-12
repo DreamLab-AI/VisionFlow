@@ -60,7 +60,6 @@ impl std::fmt::Debug for GPUContextReady {
 }
 
 /// Event bus for broadcasting GPU context availability to all subsystems
-///
 /// This replaces the centralized GPUManagerActor approach with a decentralized
 /// event-driven architecture where each subsystem can independently receive
 /// and manage its GPU context.
@@ -72,7 +71,6 @@ pub struct GPUContextBus {
 
 impl GPUContextBus {
     /// Create a new GPU context bus with the specified channel capacity
-    ///
     /// The capacity determines how many messages can be buffered before
     /// slow receivers start losing messages.
     pub fn new() -> Self {
@@ -89,7 +87,6 @@ impl GPUContextBus {
     }
 
     /// Publish GPU context to all subscribers
-    ///
     /// Returns the number of receivers that received the message.
     /// If no receivers are subscribed, returns 0.
     pub fn publish(&self, context: Arc<SharedGPUContext>) -> usize {
@@ -106,7 +103,6 @@ impl GPUContextBus {
     }
 
     /// Subscribe to GPU context events
-    ///
     /// Returns a receiver that will receive all future GPUContextReady events.
     pub fn subscribe(&self) -> broadcast::Receiver<GPUContextReady> {
         self.subscriber_count

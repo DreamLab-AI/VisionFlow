@@ -11,7 +11,6 @@ use crate::actors::messages::AnomalyDetectionStats as MessageAnomalyStats;
 use crate::actors::messages::*;
 use crate::utils::unified_gpu_compute::UnifiedGPUCompute;
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnomalyDetectionStats {
     pub total_anomalies: usize,
@@ -19,7 +18,6 @@ pub struct AnomalyDetectionStats {
     pub computation_time_ms: u64,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnomalyNode {
     pub node_id: u32,
@@ -31,7 +29,6 @@ pub struct AnomalyNode {
     pub features: Vec<String>,
 }
 
-///
 pub struct AnomalyDetectionActor {
     
     gpu_state: GPUState,
@@ -244,17 +241,16 @@ impl AnomalyDetectionActor {
             } else {
                 0.0
             },
-            min_anomaly_score: if !anomalies.is_empty() {
-                anomalies.last().expect("Expected non-empty collection").anomaly_score
-            } else {
-                0.0
-            },
+            min_anomaly_score: anomalies
+                .last()
+                .map(|a| a.anomaly_score)
+                .unwrap_or(0.0),
         };
 
         Ok((anomalies, stats))
     }
 
-    
+
     async fn perform_zscore_detection(
         &self,
         unified_compute: &mut UnifiedGPUCompute,
@@ -347,17 +343,16 @@ impl AnomalyDetectionActor {
             } else {
                 0.0
             },
-            min_anomaly_score: if !anomalies.is_empty() {
-                anomalies.last().expect("Expected non-empty collection").anomaly_score
-            } else {
-                0.0
-            },
+            min_anomaly_score: anomalies
+                .last()
+                .map(|a| a.anomaly_score)
+                .unwrap_or(0.0),
         };
 
         Ok((anomalies, stats))
     }
 
-    
+
     async fn perform_isolation_forest_detection(
         &self,
         unified_compute: &mut UnifiedGPUCompute,
@@ -440,17 +435,16 @@ impl AnomalyDetectionActor {
             } else {
                 0.0
             },
-            min_anomaly_score: if !anomalies.is_empty() {
-                anomalies.last().expect("Expected non-empty collection").anomaly_score
-            } else {
-                0.0
-            },
+            min_anomaly_score: anomalies
+                .last()
+                .map(|a| a.anomaly_score)
+                .unwrap_or(0.0),
         };
 
         Ok((anomalies, stats))
     }
 
-    
+
     async fn perform_dbscan_anomaly_detection(
         &self,
         unified_compute: &mut UnifiedGPUCompute,
@@ -904,7 +898,6 @@ struct AnomalyStats {
     min_anomaly_score: f32,
 }
 
-///
 impl Handler<SetSharedGPUContext> for AnomalyDetectionActor {
     type Result = Result<(), String>;
 

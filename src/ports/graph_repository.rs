@@ -43,7 +43,6 @@ pub enum GraphRepositoryError {
     NotImplemented,
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct PathfindingParams {
     pub start_node: u32,
@@ -51,14 +50,12 @@ pub struct PathfindingParams {
     pub max_depth: Option<usize>,
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct PathfindingResult {
     pub path: Vec<u32>,
     pub total_distance: f32,
 }
 
-///
 #[async_trait]
 pub trait GraphRepository: Send + Sync {
     

@@ -53,7 +53,6 @@ impl ResponseError for RAGFlowError {
     }
 }
 
-///
 pub async fn send_message(
     state: web::Data<AppState>,
     request: web::Json<SendMessageRequest>,
@@ -148,7 +147,6 @@ pub async fn send_message(
     }
 }
 
-///
 pub async fn create_session(
     state: web::Data<AppState>,
     request: web::Json<CreateSessionRequest>,
@@ -186,7 +184,6 @@ pub async fn create_session(
     }
 }
 
-///
 pub async fn get_session_history(
     state: web::Data<AppState>,
     session_id: web::Path<String>,
@@ -210,7 +207,6 @@ pub async fn get_session_history(
     }
 }
 
-///
 async fn handle_ragflow_chat(
     state: web::Data<AppState>,
     req: HttpRequest,
@@ -300,8 +296,14 @@ async fn handle_ragflow_chat(
         }
     }
 
-    
-    let current_session_id = session_id.expect("Session ID should be Some at this point");
+    let current_session_id = match session_id {
+        Some(sid) => sid,
+        None => {
+            error!("[handle_ragflow_chat] Session ID unexpectedly None after initialization");
+            return Ok(HttpResponse::InternalServerError()
+                .json(json!({"error": "Session initialization failed unexpectedly"})));
+        }
+    };
 
     let stream_preference = payload.stream.unwrap_or(false); 
     match ragflow_service
@@ -327,7 +329,6 @@ async fn handle_ragflow_chat(
         }
     }
 }
-///
 pub struct EnhancedRagFlowHandler {
     validation_service: ValidationService,
     rate_limiter: Arc<RateLimiter>,

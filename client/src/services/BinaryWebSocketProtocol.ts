@@ -28,6 +28,7 @@ export enum MessageType {
   AGENT_STATE_FULL = 0x20,
   AGENT_STATE_DELTA = 0x21,
   AGENT_HEALTH = 0x22,
+  AGENT_ACTION = 0x23,        // Agent-to-data action for ephemeral connections
 
 
   CONTROL_BITS = 0x30,
@@ -139,6 +140,39 @@ export interface BroadcastAckData {
   nodesReceived: number;  // 4 bytes - number of nodes client processed
   timestamp: number;      // 8 bytes - client receive timestamp (ms)
 }
+
+// Agent action types for ephemeral connection visualization
+export enum AgentActionType {
+  Query = 0,      // Agent querying data node (blue)
+  Update = 1,     // Agent updating data node (yellow)
+  Create = 2,     // Agent creating data node (green)
+  Delete = 3,     // Agent deleting data node (red)
+  Link = 4,       // Agent linking nodes (purple)
+  Transform = 5,  // Agent transforming data (cyan)
+}
+
+// Agent action event for visualization
+export interface AgentActionEvent {
+  sourceAgentId: number;    // 4 bytes - ID of the acting agent
+  targetNodeId: number;     // 4 bytes - ID of the target data node
+  actionType: AgentActionType; // 1 byte
+  timestamp: number;        // 4 bytes - Event timestamp (ms)
+  durationMs: number;       // 2 bytes - Animation duration hint
+  payload?: Uint8Array;     // Variable - Optional metadata
+}
+
+// Color mapping for action types (used by visualization layer)
+export const AGENT_ACTION_COLORS: Record<AgentActionType, string> = {
+  [AgentActionType.Query]: '#3b82f6',     // Blue
+  [AgentActionType.Update]: '#eab308',    // Yellow
+  [AgentActionType.Create]: '#22c55e',    // Green
+  [AgentActionType.Delete]: '#ef4444',    // Red
+  [AgentActionType.Link]: '#a855f7',      // Purple
+  [AgentActionType.Transform]: '#06b6d4', // Cyan
+};
+
+// Wire format size for agent action header
+export const AGENT_ACTION_HEADER_SIZE = 15;
 
 
 export interface GraphUpdateHeader extends MessageHeader {
@@ -588,7 +622,114 @@ export class BinaryWebSocketProtocol {
     return { sequenceId, nodesReceived, timestamp };
   }
 
-  
+  /**
+   * Decode an agent action event from binary payload.
+   * Used to render ephemeral connections between agent and data nodes.
+   *
+   * @param payload - Binary payload (excluding message type byte)
+   * @returns Decoded agent action event
+   */
+  public decodeAgentAction(payload: ArrayBuffer): AgentActionEvent | null {
+    if (payload.byteLength < AGENT_ACTION_HEADER_SIZE) {
+      logger.error('Agent action payload too small');
+      return null;
+    }
+
+    const view = new DataView(payload);
+
+    const sourceAgentId = view.getUint32(0, true);
+    const targetNodeId = view.getUint32(4, true);
+    const actionType = view.getUint8(8) as AgentActionType;
+    const timestamp = view.getUint32(9, true);
+    const durationMs = view.getUint16(13, true);
+
+    const event: AgentActionEvent = {
+      sourceAgentId,
+      targetNodeId,
+      actionType,
+      timestamp,
+      durationMs,
+    };
+
+    // Extract optional payload
+    if (payload.byteLength > AGENT_ACTION_HEADER_SIZE) {
+      event.payload = new Uint8Array(payload.slice(AGENT_ACTION_HEADER_SIZE));
+    }
+
+    return event;
+  }
+
+  /**
+   * Decode a batch of agent action events.
+   * Wire format: [count: u16][event1_len: u16][event1_data]...
+   *
+   * @param payload - Binary payload (excluding message type byte)
+   * @returns Array of decoded agent action events
+   */
+  public decodeAgentActions(payload: ArrayBuffer): AgentActionEvent[] {
+    const events: AgentActionEvent[] = [];
+
+    if (payload.byteLength < 2) {
+      logger.error('Agent actions batch payload too small');
+      return events;
+    }
+
+    const view = new DataView(payload);
+    const eventCount = view.getUint16(0, true);
+    let offset = 2;
+
+    for (let i = 0; i < eventCount; i++) {
+      if (offset + 2 > payload.byteLength) {
+        logger.warn('Truncated event length in agent actions batch');
+        break;
+      }
+
+      const eventLen = view.getUint16(offset, true);
+      offset += 2;
+
+      if (offset + eventLen > payload.byteLength) {
+        logger.warn('Truncated event data in agent actions batch');
+        break;
+      }
+
+      const eventPayload = payload.slice(offset, offset + eventLen);
+      const event = this.decodeAgentAction(eventPayload);
+      if (event) {
+        events.push(event);
+      }
+      offset += eventLen;
+    }
+
+    return events;
+  }
+
+  /**
+   * Encode an agent action event for sending to server (if needed).
+   * Primarily used for testing or client-initiated actions.
+   *
+   * @param event - Agent action event to encode
+   * @returns Binary message ready to send
+   */
+  public encodeAgentAction(event: AgentActionEvent): ArrayBuffer {
+    const payloadLen = event.payload?.length ?? 0;
+    const payload = new ArrayBuffer(AGENT_ACTION_HEADER_SIZE + payloadLen);
+    const view = new DataView(payload);
+
+    view.setUint32(0, event.sourceAgentId, true);
+    view.setUint32(4, event.targetNodeId, true);
+    view.setUint8(8, event.actionType);
+    view.setUint32(9, event.timestamp, true);
+    view.setUint16(13, event.durationMs, true);
+
+    // Copy optional payload
+    if (event.payload && event.payload.length > 0) {
+      new Uint8Array(payload, AGENT_ACTION_HEADER_SIZE).set(event.payload);
+    }
+
+    return this.createMessage(MessageType.AGENT_ACTION, payload);
+  }
+
+
   public calculateBandwidth(agentCount: number, updateRateHz: number): {
     positionOnly: number;    
     fullState: number;       

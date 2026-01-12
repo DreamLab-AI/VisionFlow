@@ -13,16 +13,12 @@ use crate::errors::{VisionFlowError, VisionFlowResult};
 use tracing::{warn, error};
 
 /// Safely converts f64 to serde_json::Number, replacing NaN/Infinity with 0.0
-///
 /// This is a common pattern when building JSON responses with numeric data.
-///
 /// # Examples
 /// ```
 /// use visionflow::utils::result_helpers::safe_json_number;
-///
 /// let num = safe_json_number(42.5);
 /// assert!(num.is_some());
-///
 /// let nan_num = safe_json_number(f64::NAN);
 /// assert_eq!(nan_num, serde_json::Number::from_f64(0.0));
 /// ```
@@ -39,23 +35,18 @@ pub fn safe_json_number(value: f64) -> serde_json::Number {
 }
 
 /// Safely unwraps an Option with logging instead of panic.
-///
 /// Unlike `.unwrap()` which panics, this function logs a warning and returns
 /// a default value when the Option is None.
-///
 /// # Arguments
 /// * `option` - The Option to unwrap
 /// * `default` - The default value to return if None
 /// * `context` - Context message for logging
-///
 /// # Examples
 /// ```
 /// use visionflow::utils::result_helpers::safe_unwrap;
-///
 /// let value = Some(42);
 /// let result = safe_unwrap(value, 0, "getting user count");
 /// assert_eq!(result, 42);
-///
 /// let empty: Option<i32> = None;
 /// let result = safe_unwrap(empty, 0, "getting missing value");
 /// assert_eq!(result, 0); // Returns default, doesn't panic
@@ -71,21 +62,16 @@ pub fn safe_unwrap<T>(option: Option<T>, default: T, context: &str) -> T {
 }
 
 /// Safely unwraps an Option or returns an error with context.
-///
 /// Converts Option<T> to Result<T, VisionFlowError> with meaningful error message.
-///
 /// # Arguments
 /// * `option` - The Option to unwrap
 /// * `context` - Error message if None
-///
 /// # Examples
 /// ```
 /// use visionflow::utils::result_helpers::ok_or_error;
-///
 /// let value = Some(42);
 /// let result = ok_or_error(value, "Failed to get user ID");
 /// assert!(result.is_ok());
-///
 /// let empty: Option<i32> = None;
 /// let result = ok_or_error(empty, "Failed to get user ID");
 /// assert!(result.is_err());
@@ -98,18 +84,14 @@ pub fn ok_or_error<T>(option: Option<T>, context: &str) -> VisionFlowResult<T> {
 }
 
 /// Adds context to any error type and converts to VisionFlowError.
-///
 /// Replaces manual `.map_err(|e| format!("context: {}", e))` patterns.
-///
 /// # Arguments
 /// * `result` - The Result to add context to
 /// * `context` - Context message to prepend
-///
 /// # Examples
 /// ```
 /// use visionflow::utils::result_helpers::map_err_context;
 /// use std::fs::File;
-///
 /// let result = File::open("nonexistent.txt");
 /// let with_context = map_err_context(result, "Failed to open config file");
 /// // Error now includes: "Failed to open config file: No such file or directory"
@@ -125,17 +107,13 @@ where
 }
 
 /// Converts any Result to VisionFlowResult with context.
-///
 /// More flexible than map_err_context, works with any error type.
-///
 /// # Examples
 /// ```
 /// use visionflow::utils::result_helpers::to_vf_error;
-///
 /// fn parse_config() -> Result<i32, String> {
 ///     Err("Invalid format".to_string())
 /// }
-///
 /// let result = to_vf_error(parse_config(), "Failed to parse config");
 /// assert!(result.is_err());
 /// ```
@@ -150,16 +128,12 @@ where
 }
 
 /// Unwraps Option with logging, returns None if empty.
-///
 /// Logs a warning but doesn't panic, allows graceful degradation.
-///
 /// # Examples
 /// ```
 /// use visionflow::utils::result_helpers::ok_or_log;
-///
 /// let value = Some(42);
 /// assert_eq!(ok_or_log(value, "test value"), Some(42));
-///
 /// let empty: Option<i32> = None;
 /// assert_eq!(ok_or_log(empty, "missing value"), None); // Logs warning
 /// ```
@@ -171,16 +145,12 @@ pub fn ok_or_log<T>(option: Option<T>, message: &str) -> Option<T> {
 }
 
 /// Unwraps Option or returns default with logging.
-///
 /// Safer alternative to `.unwrap_or_default()` with visibility into when defaults are used.
-///
 /// # Examples
 /// ```
 /// use visionflow::utils::result_helpers::unwrap_or_default_log;
-///
 /// let value = Some(42);
 /// assert_eq!(unwrap_or_default_log(value, "test"), 42);
-///
 /// let empty: Option<i32> = None;
 /// assert_eq!(unwrap_or_default_log(empty, "missing"), 0); // Logs warning
 /// ```
@@ -195,17 +165,13 @@ pub fn unwrap_or_default_log<T: Default>(option: Option<T>, message: &str) -> T 
 }
 
 /// Safely unwraps Result or logs error and returns default.
-///
 /// For cases where we want to continue with a default instead of propagating errors.
-///
 /// # Examples
 /// ```
 /// use visionflow::utils::result_helpers::result_or_default_log;
-///
 /// fn may_fail() -> Result<i32, String> {
 ///     Err("oops".to_string())
 /// }
-///
 /// let result = result_or_default_log(may_fail(), 0, "operation");
 /// assert_eq!(result, 0); // Returns default, logs error
 /// ```
@@ -224,15 +190,12 @@ pub fn result_or_default_log<T: Default, E: std::fmt::Display>(
 }
 
 /// Macro for adding context to Results with ? operator support.
-///
 /// Replaces manual error handling with clean, context-rich errors.
-///
 /// # Examples
 /// ```
 /// use visionflow::try_with_context;
 /// use visionflow::errors::VisionFlowResult;
 /// use std::fs::File;
-///
 /// fn load_config() -> VisionFlowResult<String> {
 ///     let file = try_with_context!(
 ///         File::open("config.json"),
@@ -258,13 +221,10 @@ macro_rules! try_with_context {
 }
 
 /// Macro for safe unwrap with default value.
-///
 /// Cleaner syntax for unwrap_or_default_log.
-///
 /// # Examples
 /// ```
 /// use visionflow::unwrap_or_default;
-///
 /// let value: Option<i32> = None;
 /// let result = unwrap_or_default!(value, "user count");
 /// assert_eq!(result, 0);
@@ -277,11 +237,9 @@ macro_rules! unwrap_or_default {
 }
 
 /// Macro for safe unwrap with custom default.
-///
 /// # Examples
 /// ```
 /// use visionflow::safe_unwrap;
-///
 /// let value: Option<i32> = None;
 /// let result = safe_unwrap!(value, 42, "default value");
 /// assert_eq!(result, 42);

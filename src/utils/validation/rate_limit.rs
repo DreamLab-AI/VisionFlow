@@ -6,7 +6,6 @@ use std::net::IpAddr;
 use std::sync::{Arc, RwLock};
 use std::time::{Duration, Instant};
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RateLimitConfig {
     pub requests_per_minute: u32,
@@ -28,7 +27,6 @@ impl Default for RateLimitConfig {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 struct RateLimitEntry {
     tokens: u32,
@@ -89,7 +87,6 @@ impl RateLimitEntry {
     }
 }
 
-///
 pub struct RateLimiter {
     clients: Arc<RwLock<HashMap<String, RateLimitEntry>>>,
     config: RateLimitConfig,
@@ -313,7 +310,6 @@ impl RateLimiter {
     }
 }
 
-///
 #[derive(Debug, Serialize)]
 pub struct RateLimitStats {
     pub total_clients: usize,
@@ -322,7 +318,6 @@ pub struct RateLimitStats {
     pub config: RateLimitConfig,
 }
 
-///
 pub fn extract_client_id(req: &HttpRequest) -> String {
 
     let real_ip = req
@@ -342,7 +337,6 @@ pub fn extract_client_id(req: &HttpRequest) -> String {
     }
 }
 
-///
 pub fn extract_client_id_from_service_request(req: &ServiceRequest) -> String {
     let real_ip = req
         .headers()
@@ -360,7 +354,6 @@ pub fn extract_client_id_from_service_request(req: &ServiceRequest) -> String {
     }
 }
 
-///
 pub fn create_rate_limit_response(client_id: &str, limiter: &RateLimiter) -> Result<HttpResponse> {
     let remaining = limiter.remaining_tokens(client_id);
     let reset_time = limiter.reset_time(client_id);
@@ -397,7 +390,6 @@ pub fn create_rate_limit_response(client_id: &str, limiter: &RateLimiter) -> Res
     Ok(response)
 }
 
-///
 pub struct EndpointRateLimits;
 
 impl EndpointRateLimits {

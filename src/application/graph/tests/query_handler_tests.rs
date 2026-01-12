@@ -37,7 +37,6 @@ use crate::utils::socket_flow_messages::BinaryNodeDataClient;
 // MOCK REPOSITORY IMPLEMENTATION
 // ============================================================================
 
-///
 struct MockGraphRepository {
     graph_data: Arc<GraphData>,
     node_map: Arc<HashMap<u32, Node>>,

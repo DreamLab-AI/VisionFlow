@@ -6,27 +6,7 @@ use std::sync::{Arc, RwLock};
 use std::time::{Duration, Instant};
 use crate::utils::json::{to_json, from_json};
 
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum SettingsBroadcastMessage {
@@ -68,7 +48,6 @@ pub struct SettingChange {
     pub value: serde_json::Value,
 }
 
-///
 pub struct SettingsWebSocket {
     
     id: String,
@@ -172,7 +151,6 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SettingsWebSocket
     }
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct BroadcastToClients {
@@ -189,7 +167,6 @@ impl Handler<BroadcastToClients> for SettingsWebSocket {
     }
 }
 
-///
 pub struct SettingsBroadcastManager {
     
     clients: Arc<RwLock<HashMap<String, Addr<SettingsWebSocket>>>>,
@@ -261,7 +238,6 @@ impl Default for SettingsBroadcastManager {
     }
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct RegisterClient {
@@ -280,7 +256,6 @@ impl Handler<RegisterClient> for SettingsBroadcastManager {
     }
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct UnregisterClient {
@@ -298,7 +273,6 @@ impl Handler<UnregisterClient> for SettingsBroadcastManager {
     }
 }
 
-///
 #[derive(Message, Clone)]
 #[rtype(result = "()")]
 pub struct BroadcastSettingChange {
@@ -323,7 +297,6 @@ impl Handler<BroadcastSettingChange> for SettingsBroadcastManager {
     }
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct BroadcastSettingsReload {
@@ -341,7 +314,6 @@ impl Handler<BroadcastSettingsReload> for SettingsBroadcastManager {
     }
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct BroadcastPresetApplied {

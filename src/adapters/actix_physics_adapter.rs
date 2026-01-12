@@ -18,17 +18,8 @@ use crate::ports::gpu_physics_adapter::{
     PhysicsStepResult, Result as PortResult,
 };
 
-///
 const DEFAULT_TIMEOUT: Duration = Duration::from_secs(30);
 
-///
-///
-///
-///
-///
-///
-///
-///
 pub struct ActixPhysicsAdapter {
     
     actor_addr: Option<Addr<PhysicsOrchestratorActor>>,

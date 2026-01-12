@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use crate::utils::time;
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DetailedValidationError {
     pub error_type: String,
@@ -319,7 +318,6 @@ impl ResponseError for DetailedValidationError {
     }
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ValidationErrorCollection {
     pub errors: Vec<DetailedValidationError>,
@@ -432,7 +430,6 @@ impl ValidationErrorCollection {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub enum ValidationErrorType {
     Required(String),

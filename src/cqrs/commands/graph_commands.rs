@@ -9,7 +9,6 @@ use crate::models::edge::Edge;
 use crate::models::graph::GraphData;
 use crate::models::node::Node;
 
-///
 #[derive(Debug, Clone)]
 pub struct AddNodeCommand {
     pub node: Node,
@@ -30,7 +29,6 @@ impl Command for AddNodeCommand {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct AddNodesCommand {
     pub nodes: Vec<Node>,
@@ -56,7 +54,6 @@ impl Command for AddNodesCommand {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct UpdateNodeCommand {
     pub node: Node,
@@ -77,7 +74,6 @@ impl Command for UpdateNodeCommand {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct UpdateNodesCommand {
     pub nodes: Vec<Node>,
@@ -98,7 +94,6 @@ impl Command for UpdateNodesCommand {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct RemoveNodeCommand {
     pub node_id: u32,
@@ -112,7 +107,6 @@ impl Command for RemoveNodeCommand {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct RemoveNodesCommand {
     pub node_ids: Vec<u32>,
@@ -133,7 +127,6 @@ impl Command for RemoveNodesCommand {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct AddEdgeCommand {
     pub edge: Edge,
@@ -154,7 +147,6 @@ impl Command for AddEdgeCommand {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct AddEdgesCommand {
     pub edges: Vec<Edge>,
@@ -175,7 +167,6 @@ impl Command for AddEdgesCommand {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct UpdateEdgeCommand {
     pub edge: Edge,
@@ -189,7 +180,6 @@ impl Command for UpdateEdgeCommand {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct RemoveEdgeCommand {
     pub edge_id: String,
@@ -210,7 +200,6 @@ impl Command for RemoveEdgeCommand {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct RemoveEdgesCommand {
     pub edge_ids: Vec<String>,
@@ -231,7 +220,6 @@ impl Command for RemoveEdgesCommand {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct SaveGraphCommand {
     pub graph: GraphData,
@@ -245,7 +233,6 @@ impl Command for SaveGraphCommand {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct ClearGraphCommand;
 
@@ -257,7 +244,6 @@ impl Command for ClearGraphCommand {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct UpdatePositionsCommand {
     pub positions: Vec<(u32, f32, f32, f32)>, 

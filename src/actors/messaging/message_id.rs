@@ -5,11 +5,9 @@ use std::fmt;
 use uuid::Uuid;
 
 /// Unique identifier for tracking messages through the actor system
-///
 /// # Example
 /// ```
 /// use webxr::actors::messaging::MessageId;
-///
 /// let msg_id = MessageId::new();
 /// println!("Tracking message: {}", msg_id);
 /// ```

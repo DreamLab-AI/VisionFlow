@@ -73,7 +73,6 @@ pub use ontology_constraints::{
 pub use semantic_constraints::SemanticConstraintGenerator;
 pub use stress_majorization::StressMajorizationSolver;
 
-///
 pub use crate::models::constraints::{AdvancedParams, Constraint, ConstraintKind, ConstraintSet};
 pub use crate::models::graph::GraphData;
 pub use crate::models::metadata::Metadata;

@@ -7,7 +7,7 @@
  * @see docs/architecture/user-agent-pod-design.md
  */
 
-// Jest globals are available automatically
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 // Types matching pseudocode design
 interface AgentDelegationToken {
@@ -44,7 +44,7 @@ const mockHttpResponses = new Map<string, { status: number; body?: unknown }>();
 const storedMemories = new Map<string, Memory>();
 
 const mockHttp = {
-  put: jest.fn(async (url: string, body: unknown, headers: Record<string, string>) => {
+  put: vi.fn(async (url: string, body: unknown, headers: Record<string, string>) => {
     // Validate auth header
     if (!headers['Authorization']?.startsWith('Nostr ')) {
       return { ok: false, status: 401 };
@@ -55,7 +55,7 @@ const mockHttp = {
     return { ok: true, status: 201 };
   }),
 
-  get: jest.fn(async (url: string, headers: Record<string, string>) => {
+  get: vi.fn(async (url: string, headers: Record<string, string>) => {
     if (!headers['Authorization']?.startsWith('Nostr ')) {
       return { ok: false, status: 401, body: null };
     }
@@ -237,7 +237,8 @@ class AgentPodClient {
       });
 
       if (memoryResponse.ok && memoryResponse.body) {
-        memories.push(memoryResponse.body as Memory);
+        // Convert JSON-LD back to Memory format
+        memories.push(jsonLdToMemory(memoryResponse.body as Record<string, unknown>));
       }
     }
 

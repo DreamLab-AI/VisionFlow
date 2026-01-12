@@ -2,9 +2,9 @@
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub enum GraphType {
-
+    #[default]
     Standard,
 
     MultiAgent,
@@ -19,9 +19,10 @@ pub enum GraphType {
 }
 
 /// Semantic node types for type-aware physics and pathfinding
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Default)]
 pub enum NodeType {
     /// Generic untyped node
+    #[default]
     Generic,
     /// Person or individual entity
     Person,
@@ -42,9 +43,10 @@ pub enum NodeType {
 }
 
 /// Semantic edge types for relationship-aware algorithms
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Default)]
 pub enum EdgeType {
     /// Generic untyped edge
+    #[default]
     Generic,
     /// Dependency relationship
     Dependency,
@@ -62,11 +64,6 @@ pub enum EdgeType {
     Custom(String),
 }
 
-impl Default for GraphType {
-    fn default() -> Self {
-        GraphType::Standard
-    }
-}
 
 impl std::fmt::Display for GraphType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -97,11 +94,6 @@ impl std::str::FromStr for GraphType {
     }
 }
 
-impl Default for NodeType {
-    fn default() -> Self {
-        NodeType::Generic
-    }
-}
 
 impl std::fmt::Display for NodeType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -137,11 +129,6 @@ impl std::str::FromStr for NodeType {
     }
 }
 
-impl Default for EdgeType {
-    fn default() -> Self {
-        EdgeType::Generic
-    }
-}
 
 impl std::fmt::Display for EdgeType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

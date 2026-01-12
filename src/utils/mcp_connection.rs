@@ -9,7 +9,6 @@ use tokio::sync::{Mutex, RwLock};
 use uuid::Uuid;
 use crate::utils::json::{from_json, to_json};
 
-///
 pub struct PersistentMCPConnection {
     stream: Arc<Mutex<TcpStream>>,
     session_id: String,
@@ -202,7 +201,6 @@ impl PersistentMCPConnection {
     }
 }
 
-///
 #[derive(Clone)]
 pub struct MCPConnectionPool {
     connections: Arc<RwLock<HashMap<String, Arc<PersistentMCPConnection>>>>,
@@ -288,7 +286,6 @@ impl MCPConnectionPool {
     }
 }
 
-///
 pub async fn call_swarm_init(
     host: &str,
     port: &str,
@@ -311,7 +308,6 @@ pub async fn call_swarm_init(
         .await
 }
 
-///
 pub async fn call_agent_list(
     host: &str,
     port: &str,
@@ -330,7 +326,6 @@ pub async fn call_agent_list(
         .await
 }
 
-///
 pub async fn call_swarm_destroy(
     host: &str,
     port: &str,
@@ -351,7 +346,6 @@ pub async fn call_swarm_destroy(
         .await
 }
 
-///
 pub async fn call_agent_spawn(
     host: &str,
     port: &str,
@@ -377,7 +371,6 @@ pub async fn call_agent_spawn(
         .await
 }
 
-///
 pub async fn call_task_orchestrate(
     host: &str,
     port: &str,
@@ -410,7 +403,6 @@ pub async fn call_task_orchestrate(
         .await
 }
 
-///
 #[derive(Debug, Clone)]
 pub enum TaskMethod {
     Docker, 
@@ -423,7 +415,6 @@ pub enum TaskMethod {
 
 
 
-///
 pub async fn call_task_status(
     host: &str,
     port: &str,

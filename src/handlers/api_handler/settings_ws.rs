@@ -5,27 +5,6 @@ use uuid::Uuid;
 
 use crate::services::settings_broadcast::{SettingsBroadcastManager, SettingsWebSocket};
 
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
 pub async fn settings_websocket(
     req: HttpRequest,
     stream: web::Payload,

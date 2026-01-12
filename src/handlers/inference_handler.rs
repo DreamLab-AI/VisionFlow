@@ -12,7 +12,6 @@ use crate::{ok_json, error_json, bad_request, not_found, created_json, service_u
 
 use crate::application::inference_service::InferenceService;
 
-///
 #[derive(Debug, Deserialize)]
 pub struct RunInferenceRequest {
     
@@ -23,7 +22,6 @@ pub struct RunInferenceRequest {
     pub force: bool,
 }
 
-///
 #[derive(Debug, Serialize)]
 pub struct RunInferenceResponse {
     pub success: bool,
@@ -36,7 +34,6 @@ pub struct RunInferenceResponse {
     pub error: Option<String>,
 }
 
-///
 #[derive(Debug, Deserialize)]
 pub struct BatchInferenceRequest {
     
@@ -51,7 +48,6 @@ fn default_max_parallel() -> usize {
     4
 }
 
-///
 #[derive(Debug, Serialize)]
 pub struct BatchInferenceResponse {
     pub success: bool,
@@ -64,20 +60,16 @@ pub struct BatchInferenceResponse {
     pub results: Option<Vec<RunInferenceResponse>>,
 }
 
-///
 #[derive(Debug, Deserialize)]
 pub struct ValidateOntologyRequest {
     pub ontology_id: String,
 }
 
-///
 #[derive(Debug, Deserialize)]
 pub struct GetExplanationRequest {
     pub axiom_id: String,
 }
 
-///
-///
 pub async fn run_inference(
     service: web::Data<Arc<RwLock<InferenceService>>>,
     req: web::Json<RunInferenceRequest>,
@@ -121,8 +113,6 @@ pub async fn run_inference(
     }
 }
 
-///
-///
 pub async fn batch_inference(
     service: web::Data<Arc<RwLock<InferenceService>>>,
     req: web::Json<BatchInferenceRequest>,
@@ -181,8 +171,6 @@ pub async fn batch_inference(
     }
 }
 
-///
-///
 pub async fn validate_ontology(
     service: web::Data<Arc<RwLock<InferenceService>>>,
     req: web::Json<ValidateOntologyRequest>,
@@ -203,8 +191,6 @@ pub async fn validate_ontology(
     }
 }
 
-///
-///
 pub async fn get_inference_results(
     service: web::Data<Arc<RwLock<InferenceService>>>,
     path: web::Path<String>,
@@ -227,8 +213,6 @@ pub async fn get_inference_results(
     }
 }
 
-///
-///
 pub async fn classify_ontology(
     service: web::Data<Arc<RwLock<InferenceService>>>,
     path: web::Path<String>,
@@ -250,8 +234,6 @@ pub async fn classify_ontology(
     }
 }
 
-///
-///
 pub async fn get_consistency_report(
     service: web::Data<Arc<RwLock<InferenceService>>>,
     path: web::Path<String>,
@@ -273,8 +255,6 @@ pub async fn get_consistency_report(
     }
 }
 
-///
-///
 pub async fn invalidate_cache(
     service: web::Data<Arc<RwLock<InferenceService>>>,
     path: web::Path<String>,
@@ -291,7 +271,6 @@ pub async fn invalidate_cache(
     }))
 }
 
-///
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/inference")

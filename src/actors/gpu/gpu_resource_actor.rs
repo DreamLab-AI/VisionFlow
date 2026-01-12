@@ -18,11 +18,9 @@ use crate::models::graph::GraphData;
 use crate::utils::socket_flow_messages::BinaryNodeData;
 use crate::utils::unified_gpu_compute::UnifiedGPUCompute;
 
-///
 const MAX_NODES: u32 = 1_000_000;
 const MAX_GPU_FAILURES: u32 = 5;
 
-///
 pub struct GPUResourceActor {
     
     device: Option<Arc<CudaDevice>>,
@@ -321,7 +319,6 @@ impl GPUResourceActor {
     }
 }
 
-///
 struct CsrResult {
     row_offsets: Vec<u32>,
     col_indices: Vec<u32>,
@@ -410,13 +407,11 @@ impl Handler<InitializeGPU> for GPUResourceActor {
                             info!("GPU initialization completed successfully");
 
                             
-                            if actor.device.is_some() && actor.cuda_stream.is_some() && actor.unified_compute.is_some() {
-                                
-                                let device = actor.device.as_ref().expect("Expected value to be present").clone();
-                                let stream = actor.cuda_stream.take().expect("Expected value to be present");
-                                let compute = actor.unified_compute.take().expect("Expected value to be present");
-
-                                
+                            if let (Some(device), Some(stream), Some(compute)) = (
+                                actor.device.as_ref().cloned(),
+                                actor.cuda_stream.take(),
+                                actor.unified_compute.take(),
+                            ) {
                                 let safe_stream = super::cuda_stream_wrapper::SafeCudaStream::new(stream);
 
                                 let shared_context = Arc::new(super::shared::SharedGPUContext {
@@ -424,7 +419,6 @@ impl Handler<InitializeGPU> for GPUResourceActor {
                                     stream: Arc::new(std::sync::Mutex::new(safe_stream)),
                                     unified_compute: Arc::new(std::sync::Mutex::new(compute)),
 
-                                    
                                     gpu_access_lock: Arc::new(tokio::sync::RwLock::new(())),
                                     resource_metrics: Arc::new(std::sync::Mutex::new(super::shared::GPUResourceMetrics::default())),
                                     operation_batch: Arc::new(std::sync::Mutex::new(Vec::new())),
@@ -432,7 +426,6 @@ impl Handler<InitializeGPU> for GPUResourceActor {
                                 });
 
                                 info!("Created SharedGPUContext - distributing to GPU actors");
-
 
                                 if let Some(manager_addr) = gpu_manager_addr {
                                     if let Err(e) = manager_addr.try_send(SetSharedGPUContext {
@@ -446,8 +439,6 @@ impl Handler<InitializeGPU> for GPUResourceActor {
                                     }
                                 }
 
-                                
-                                
                                 info!("SharedGPUContext ownership transferred to shared actors");
                             } else {
                                 error!("Failed to create SharedGPUContext - missing components");

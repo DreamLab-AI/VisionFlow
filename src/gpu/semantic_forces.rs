@@ -118,7 +118,6 @@ impl Default for AttributeSpringConfig {
 }
 
 /// Ontology relationship forces configuration
-///
 /// NOTE: The `enabled` field is used as a feature toggle for the CPU fallback.
 /// Force parameters in this struct are legacy defaults - actual force configs
 /// are now loaded dynamically from SemanticTypeRegistry at runtime.

@@ -14,7 +14,6 @@ use uuid::Uuid;
 use crate::actors::voice_commands::{ConversationContext, SwarmIntent};
 use crate::utils::time;
 
-///
 pub struct VoiceContextManager {
     
     sessions: Arc<RwLock<HashMap<String, VoiceSession>>>,
@@ -24,7 +23,6 @@ pub struct VoiceContextManager {
     max_sessions: usize,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VoiceSession {
     
@@ -47,7 +45,6 @@ pub struct VoiceSession {
     pub pending_operations: Vec<PendingOperation>,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PendingOperation {
     

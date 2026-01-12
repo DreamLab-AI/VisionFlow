@@ -51,7 +51,6 @@ pub enum ClusterAlgorithm {
     ConnectedComponents,
 }
 
-///
 #[async_trait]
 pub trait SemanticAnalyzer: Send + Sync {
     

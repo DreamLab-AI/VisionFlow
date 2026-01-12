@@ -9,7 +9,6 @@ use std::time::Instant;
 use super::shared::{GPUState, SharedGPUContext, StressMajorizationSafety};
 use crate::actors::messages::*;
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StressMajorizationParams {
     pub max_iterations: u32,
@@ -30,7 +29,6 @@ pub struct StressMajorizationRuntimeConfig {
     pub auto_run_interval: usize,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StressMajorizationStats {
     pub stress_value: f32,
@@ -39,7 +37,6 @@ pub struct StressMajorizationStats {
     pub computation_time_ms: u64,
 }
 
-///
 pub struct StressMajorizationActor {
 
     gpu_state: GPUState,
@@ -419,7 +416,6 @@ impl Handler<UpdateStressMajorizationParams> for StressMajorizationActor {
     }
 }
 
-///
 impl Handler<CheckStressMajorization> for StressMajorizationActor {
     type Result = Result<bool, String>;
 
@@ -448,7 +444,6 @@ impl Handler<CheckStressMajorization> for StressMajorizationActor {
 #[rtype(result = "Result<bool, String>")]
 pub struct CheckStressMajorization;
 
-///
 impl Handler<SetSharedGPUContext> for StressMajorizationActor {
     type Result = Result<(), String>;
 

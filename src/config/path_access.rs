@@ -2,9 +2,6 @@ use serde_json::Value;
 use std::any::Any;
 use crate::utils::result_helpers::safe_json_number;
 
-///
-///
-///
 pub trait PathAccessible {
     
     fn get_by_path(&self, path: &str) -> Result<Box<dyn Any>, String>;
@@ -13,8 +10,6 @@ pub trait PathAccessible {
     fn set_by_path(&mut self, path: &str, value: Box<dyn Any>) -> Result<(), String>;
 }
 
-///
-///
 pub trait JsonPathAccessible: serde::Serialize + serde::de::DeserializeOwned {
     
     fn get_json_by_path(&self, path: &str) -> Result<Value, String> {
@@ -45,8 +40,6 @@ pub trait JsonPathAccessible: serde::Serialize + serde::de::DeserializeOwned {
 // Implement JsonPathAccessible for all types that have Serialize + DeserializeOwned
 impl<T: serde::Serialize + serde::de::DeserializeOwned> JsonPathAccessible for T {}
 
-///
-///
 pub fn parse_path(path: &str) -> Result<Vec<&str>, String> {
     if path.is_empty() {
         return Err("Path cannot be empty".to_string());
@@ -62,8 +55,6 @@ pub fn parse_path(path: &str) -> Result<Vec<&str>, String> {
     Ok(segments)
 }
 
-///
-///
 #[allow(unused_macros)]
 macro_rules! impl_field_access {
     ($struct_name:ident, {
@@ -121,8 +112,6 @@ macro_rules! impl_field_access {
 #[allow(unused_imports)]
 pub(crate) use impl_field_access;
 
-///
-///
 fn navigate_json_path(root: &Value, path: &str) -> Option<Value> {
     if path.is_empty() {
         return Some(root.clone());
@@ -147,7 +136,6 @@ fn navigate_json_path(root: &Value, path: &str) -> Option<Value> {
     Some(current.clone())
 }
 
-///
 fn set_json_at_path(root: &mut Value, path: &str, value: Value) -> Result<(), String> {
     if path.is_empty() {
         *root = value;
@@ -243,7 +231,6 @@ fn set_json_at_path(root: &mut Value, path: &str, value: Value) -> Result<(), St
     Ok(())
 }
 
-///
 fn find_field_key(map: &serde_json::Map<String, Value>, segment: &str) -> Option<String> {
     
     if map.contains_key(segment) {
@@ -265,7 +252,6 @@ fn find_field_key(map: &serde_json::Map<String, Value>, segment: &str) -> Option
     None
 }
 
-///
 fn snake_to_camel_case(s: &str) -> String {
     let mut result = String::new();
     let mut capitalize_next = false;
@@ -284,7 +270,6 @@ fn snake_to_camel_case(s: &str) -> String {
     result
 }
 
-///
 fn camel_to_snake_case(s: &str) -> String {
     let mut result = String::new();
 
@@ -298,7 +283,6 @@ fn camel_to_snake_case(s: &str) -> String {
     result
 }
 
-///
 fn validate_path_exists(root: &Value, segments: &[&str]) -> bool {
     let mut current = root;
 
@@ -319,7 +303,6 @@ fn validate_path_exists(root: &Value, segments: &[&str]) -> bool {
     true
 }
 
-///
 fn values_have_compatible_types(existing: &Value, new_value: &Value) -> bool {
     match (existing, new_value) {
         (Value::Null, _) | (_, Value::Null) => true,
@@ -336,7 +319,6 @@ fn values_have_compatible_types(existing: &Value, new_value: &Value) -> bool {
     }
 }
 
-///
 fn value_type_name(value: &Value) -> &'static str {
     match value {
         Value::Null => "null",

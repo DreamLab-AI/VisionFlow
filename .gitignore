@@ -193,3 +193,4 @@ multi-agent-docker/ComfyUIDocker/storage-models/
 .swarm/memory.db-shm
 .swarm/memory.db-shm
 .swarm/memory.db-shm
+.env.local

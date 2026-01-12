@@ -9,7 +9,6 @@ use crate::ports::ontology_repository::{
     InferenceResults, OwlAxiom, OwlClass, OwlProperty, PathfindingCacheEntry,
 };
 
-///
 #[derive(Debug, Clone)]
 pub struct AddClassCommand {
     pub class: OwlClass,
@@ -30,7 +29,6 @@ impl Command for AddClassCommand {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct UpdateClassCommand {
     pub class: OwlClass,
@@ -51,7 +49,6 @@ impl Command for UpdateClassCommand {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct RemoveClassCommand {
     pub iri: String,
@@ -72,7 +69,6 @@ impl Command for RemoveClassCommand {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct AddPropertyCommand {
     pub property: OwlProperty,
@@ -93,7 +89,6 @@ impl Command for AddPropertyCommand {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct UpdatePropertyCommand {
     pub property: OwlProperty,
@@ -114,7 +109,6 @@ impl Command for UpdatePropertyCommand {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct RemovePropertyCommand {
     pub iri: String,
@@ -135,7 +129,6 @@ impl Command for RemovePropertyCommand {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct AddAxiomCommand {
     pub axiom: OwlAxiom,
@@ -159,7 +152,6 @@ impl Command for AddAxiomCommand {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct RemoveAxiomCommand {
     pub axiom_id: u64,
@@ -173,7 +165,6 @@ impl Command for RemoveAxiomCommand {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct SaveOntologyCommand {
     pub classes: Vec<OwlClass>,
@@ -189,7 +180,6 @@ impl Command for SaveOntologyCommand {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct SaveOntologyGraphCommand {
     pub graph: GraphData,
@@ -203,7 +193,6 @@ impl Command for SaveOntologyGraphCommand {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct StoreInferenceResultsCommand {
     pub results: InferenceResults,
@@ -217,7 +206,6 @@ impl Command for StoreInferenceResultsCommand {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct ImportOntologyCommand {
     pub owl_xml: String,
@@ -238,7 +226,6 @@ impl Command for ImportOntologyCommand {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct CacheSsspResultCommand {
     pub entry: PathfindingCacheEntry,
@@ -252,7 +239,6 @@ impl Command for CacheSsspResultCommand {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct CacheApspResultCommand {
     pub distance_matrix: Vec<Vec<f32>>,
@@ -273,7 +259,6 @@ impl Command for CacheApspResultCommand {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct InvalidatePathfindingCachesCommand;
 

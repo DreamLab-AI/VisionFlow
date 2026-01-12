@@ -61,7 +61,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-///
 fn generate_typescript_interfaces() -> String {
     r#"
 export interface MovementAxes {
@@ -601,7 +600,6 @@ export default AppFullSettings;
     .to_string()
 }
 
-///
 fn convert_to_camel_case(typescript_code: String) -> String {
     let field_regex = Regex::new(r"(\s+)([a-z][a-z0-9_]*[a-z0-9])(\s*:\s*)").expect("Invalid regex pattern");
 
@@ -619,7 +617,6 @@ fn convert_to_camel_case(typescript_code: String) -> String {
         .to_string()
 }
 
-///
 fn snake_to_camel_case(snake_str: &str) -> String {
     let mut result = String::new();
     let mut capitalize_next = false;

@@ -7,7 +7,6 @@ use std::time::{Duration, Instant};
 
 use crate::AppState;
 
-///
 pub struct ClientMessagesWs {
     app_state: web::Data<AppState>,
     last_heartbeat: Instant,
@@ -107,7 +106,6 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for ClientMessagesWs 
     }
 }
 
-///
 pub async fn websocket_client_messages(
     req: HttpRequest,
     stream: web::Payload,

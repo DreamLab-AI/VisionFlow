@@ -21,7 +21,6 @@ use crate::types::mcp_responses::{McpError, McpResponse};
 use crate::utils::time;
 use crate::utils::json::{from_json, to_json};
 
-///
 // Debug removed due to non-Debug trait object
 pub struct RealMcpIntegrationBridge {
     
@@ -49,7 +48,6 @@ pub struct RealMcpIntegrationBridge {
     stats: Arc<RwLock<IntegrationStats>>,
 }
 
-///
 #[derive(Debug)]
 pub struct McpConnection {
     pub server_id: String,
@@ -68,7 +66,6 @@ pub struct McpConnection {
     pub session_info: Option<SessionInfo>,
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct PendingRequest {
     pub id: u64,
@@ -78,7 +75,6 @@ pub struct PendingRequest {
     pub response_handler: String, 
 }
 
-///
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ServerCapabilities {
     pub supported_tools: Vec<String>,
@@ -90,7 +86,6 @@ pub struct ServerCapabilities {
     pub roots_support: bool,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SessionInfo {
     pub session_id: String,
@@ -113,7 +108,6 @@ pub struct ServerInfo {
     pub capabilities: ServerCapabilities,
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct ConnectionPoolConfig {
     pub max_connections_per_server: u32,
@@ -139,7 +133,6 @@ impl Default for ConnectionPoolConfig {
     }
 }
 
-///
 #[derive(Debug, Default)]
 pub struct MessageRouter {
     pub routes: HashMap<String, RouteConfig>,
@@ -201,7 +194,6 @@ impl Default for RetryPolicy {
     }
 }
 
-///
 pub trait McpEventHandler {
     fn handle_connection_established(&self, server_id: &str, server_info: &ServerInfo);
     fn handle_connection_lost(&self, server_id: &str, error: &str);
@@ -212,7 +204,6 @@ pub trait McpEventHandler {
     fn handle_server_error(&self, server_id: &str, error: &McpError);
 }
 
-///
 #[derive(Debug, Default)]
 pub struct HealthMonitor {
     pub server_health: HashMap<String, ServerHealth>,
@@ -240,7 +231,6 @@ pub struct GlobalHealth {
     pub last_updated: Option<DateTime<Utc>>,
 }
 
-///
 #[derive(Debug, Default)]
 pub struct AuthenticationManager {
     pub credentials: HashMap<String, ServerCredentials>,
@@ -276,7 +266,6 @@ pub struct AuthToken {
     pub refresh_token: Option<String>,
 }
 
-///
 #[derive(Debug, Default)]
 pub struct RequestTracker {
     pub active_requests: HashMap<u64, TrackedRequest>,
@@ -294,7 +283,6 @@ pub struct TrackedRequest {
     pub retry_count: u32,
 }
 
-///
 #[derive(Debug, Default, Clone)]
 pub struct IntegrationStats {
     pub total_requests: u64,
@@ -311,7 +299,6 @@ pub struct IntegrationStats {
     pub last_reset: DateTime<Utc>,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum McpMessage {
@@ -1275,7 +1262,6 @@ impl RealMcpIntegrationBridge {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct BridgeConfiguration {
     pub connection_pool: ConnectionPoolConfig,
@@ -1311,7 +1297,6 @@ impl Default for BridgeConfiguration {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct ConnectionStatus {
     pub server_id: String,

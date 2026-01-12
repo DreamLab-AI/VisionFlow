@@ -71,7 +71,6 @@ struct InferenceCacheEntry {
 }
 
 /// Ontology Reasoning Service with CustomReasoner integration
-///
 /// Uses CustomReasoner for actual inference operations. The WhelkInferenceEngine
 /// is currently maintained for API compatibility but will be phased out.
 /// All ontology data is persisted in Neo4j via Neo4jOntologyRepository.
@@ -96,16 +95,13 @@ impl OntologyReasoningService {
     }
 
     /// Infer axioms from the ontology using CustomReasoner
-    ///
     /// This method:
     /// 1. Loads ontology data from Neo4j
     /// 2. Runs CustomReasoner for EL++ inference
     /// 3. Caches results with checksum validation
     /// 4. Stores inferred axioms back to Neo4j
-    ///
     /// # Arguments
     /// * `ontology_id` - Ontology identifier
-    ///
     /// # Returns
     /// Vector of inferred axioms with confidence scores and inference paths
     #[instrument(skip(self), level = "info")]
@@ -213,10 +209,8 @@ impl OntologyReasoningService {
     }
 
     /// Get the class hierarchy for an ontology
-    ///
     /// # Arguments
     /// * `ontology_id` - Ontology identifier
-    ///
     /// # Returns
     /// Complete class hierarchy with depth and node counts
     #[instrument(skip(self), level = "info")]
@@ -283,10 +277,8 @@ impl OntologyReasoningService {
     }
 
     /// Get disjoint class pairs
-    ///
     /// # Arguments
     /// * `ontology_id` - Ontology identifier
-    ///
     /// # Returns
     /// Vector of disjoint class pairs with explanations
     #[instrument(skip(self), level = "info")]

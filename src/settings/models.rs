@@ -4,7 +4,6 @@
 use serde::{Deserialize, Serialize};
 use crate::config::{PhysicsSettings, RenderingSettings};
 
-///
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub enum PriorityWeighting {
@@ -22,7 +21,6 @@ impl Default for PriorityWeighting {
     }
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct ConstraintSettings {
@@ -160,7 +158,6 @@ impl Default for NodeFilterSettings {
     }
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AllSettings {
@@ -183,7 +180,6 @@ impl Default for AllSettings {
     }
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SettingsProfile {

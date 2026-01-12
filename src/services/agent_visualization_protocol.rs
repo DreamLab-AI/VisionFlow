@@ -3,7 +3,6 @@ use crate::utils::json::{to_json, from_json};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum AgentVisualizationMessage {
@@ -28,7 +27,6 @@ pub enum AgentVisualizationMessage {
     MetricsUpdate(MetricsUpdateMessage),
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InitializeMessage {
     pub timestamp: i64, 
@@ -52,7 +50,6 @@ pub struct InitializeMessage {
     pub positions: HashMap<String, Position>,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentInit {
     pub id: String,
@@ -86,7 +83,6 @@ pub struct AgentInit {
     pub created_at: i64,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConnectionInit {
     pub id: String,
@@ -98,7 +94,6 @@ pub struct ConnectionInit {
     pub active: bool,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PositionUpdateMessage {
     pub timestamp: i64,
@@ -117,7 +112,6 @@ pub struct PositionUpdate {
     pub vz: Option<f32>,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StateUpdateMessage {
     pub timestamp: i64,
@@ -136,7 +130,6 @@ pub struct AgentStateUpdate {
     pub current_task: Option<String>,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConnectionUpdateMessage {
     pub timestamp: i64,
@@ -153,7 +146,6 @@ pub struct ConnectionStateUpdate {
     pub strength: Option<f32>,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MetricsUpdateMessage {
     pub timestamp: i64,
@@ -181,7 +173,6 @@ pub struct AgentMetrics {
     pub success_rate: f32,
 }
 
-///
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Position {
     pub x: f32,
@@ -189,7 +180,6 @@ pub struct Position {
     pub z: f32,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct VisualConfig {
     pub colors: HashMap<String, String>,
@@ -213,7 +203,6 @@ pub struct EffectsConfig {
     pub shadows: bool,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PhysicsConfig {
     pub spring_k: f32,
@@ -237,7 +226,6 @@ impl Default for PhysicsConfig {
     }
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct McpServerInfo {
     pub server_id: String,
@@ -259,7 +247,6 @@ pub enum McpServerType {
     Custom(String),
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MultiMcpAgentStatus {
     pub agent_id: String,
@@ -325,7 +312,6 @@ pub struct NeuralAgentData {
     pub knowledge_domains: Vec<String>,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SwarmTopologyData {
     pub topology_type: String,
@@ -363,7 +349,6 @@ pub struct Bottleneck {
     pub suggested_action: String,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum MultiMcpVisualizationMessage {
@@ -595,7 +580,6 @@ pub struct CoordinationEventMessage {
     pub coordination_impact: f32,
 }
 
-///
 pub struct AgentVisualizationProtocol {
     _update_interval_ms: u64,
     position_buffer: Vec<PositionUpdate>,

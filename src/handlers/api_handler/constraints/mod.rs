@@ -15,7 +15,6 @@ use crate::actors::messages::{GetConstraints, UpdateConstraint};
 use crate::models::constraints::{Constraint, ConstraintType};
 use crate::AppState;
 
-///
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateConstraintRequest {
@@ -28,7 +27,6 @@ pub struct CreateConstraintRequest {
     pub metadata: Option<serde_json::Value>,
 }
 
-///
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateConstraintRequest {
@@ -37,7 +35,6 @@ pub struct UpdateConstraintRequest {
     pub distance: Option<f32>,
 }
 
-///
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ConstraintResponse {
@@ -52,7 +49,6 @@ pub struct ConstraintResponse {
     pub created_at: String,
 }
 
-///
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ConstraintStatsResponse {
@@ -66,7 +62,6 @@ pub struct ConstraintStatsResponse {
     pub cache_hit_rate: f32,
 }
 
-///
 pub async fn get_constraints(state: web::Data<AppState>) -> impl Responder {
     info!("GET /api/constraints - Fetching all constraints");
 
@@ -108,7 +103,6 @@ pub async fn get_constraints(state: web::Data<AppState>) -> impl Responder {
     }
 }
 
-///
 pub async fn get_constraint(
     state: web::Data<AppState>,
     constraint_id: web::Path<String>,
@@ -151,7 +145,6 @@ pub async fn get_constraint(
     }
 }
 
-///
 pub async fn update_constraint(
     state: web::Data<AppState>,
     constraint_id: web::Path<String>,
@@ -191,7 +184,6 @@ pub async fn update_constraint(
     }
 }
 
-///
 pub async fn create_user_constraint(
     state: web::Data<AppState>,
     req: web::Json<CreateConstraintRequest>,
@@ -240,7 +232,6 @@ pub async fn create_user_constraint(
     }))
 }
 
-///
 pub async fn get_constraint_stats(state: web::Data<AppState>) -> impl Responder {
     info!("GET /api/constraints/stats - Fetching constraint statistics");
 
@@ -260,7 +251,6 @@ pub async fn get_constraint_stats(state: web::Data<AppState>) -> impl Responder 
     ok_json!(stats)
 }
 
-///
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/constraints")
@@ -301,7 +291,8 @@ mod tests {
             created_at: "2025-10-31T00:00:00Z".to_string(),
         };
 
-        let json = serde_json::to_string(&response).unwrap();
+        let json = serde_json::to_string(&response)
+            .expect("ConstraintResponse should serialize to JSON");
         assert!(json.contains("test-123"));
         assert!(json.contains("Distance"));
     }

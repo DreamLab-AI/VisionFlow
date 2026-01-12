@@ -9,10 +9,8 @@ use serde_json::Value as JsonValue;
 use std::collections::HashMap;
 
 /// Convert serde_json::Value to Neo4j BoltType
-///
 /// Recursively converts JSON values to their corresponding BoltType representations.
 /// This handles all JSON types including nested objects and arrays.
-///
 /// Note: neo4rs provides automatic From implementations for Vec<T> and HashMap<String, T>
 /// where T: Into<BoltType>, so we use those instead of manually constructing BoltList/BoltMap.
 pub fn json_to_bolt(value: JsonValue) -> BoltType {
@@ -47,7 +45,6 @@ pub fn json_to_bolt(value: JsonValue) -> BoltType {
 }
 
 /// Convert a string reference to Neo4j BoltType
-///
 /// Creates a BoltString from a string reference using the From trait.
 pub fn string_ref_to_bolt(s: &str) -> BoltType {
     BoltType::from(s.to_string())

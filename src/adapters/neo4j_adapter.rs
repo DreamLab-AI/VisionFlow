@@ -93,7 +93,6 @@ impl Default for Neo4jConfig {
 }
 
 /// Repository for knowledge graph data in Neo4j
-///
 /// Provides high-performance graph operations with native Cypher support.
 /// All node positions and velocities are persisted and can be queried with
 /// complex graph patterns.
@@ -105,15 +104,12 @@ pub struct Neo4jAdapter {
 
 impl Neo4jAdapter {
     /// Create a new Neo4jAdapter with security hardening
-    ///
     /// # Arguments
     /// * `config` - Neo4j connection configuration
-    ///
     /// # Security
     /// - Uses connection pooling (configured via config.max_connections)
     /// - Enforces query timeouts (configured via config.query_timeout_secs)
     /// - Logs warning if default password is used
-    ///
     /// # Returns
     /// Initialized adapter ready for graph operations
     pub async fn new(config: Neo4jConfig) -> Result<Self, KnowledgeGraphRepositoryError> {
@@ -331,17 +327,14 @@ impl Neo4jAdapter {
     }
 
     /// Execute a parameterized Cypher query (SAFE - use this for user input)
-    ///
     /// # Security
     /// This method enforces parameterization to prevent Cypher injection attacks.
     /// DO NOT concatenate user input into the query string - use parameters instead.
-    ///
     /// # Example
     /// ```ignore
     /// // SAFE - Uses parameters
     /// let params = hashmap!{"name" => BoltType::String("Alice".into())};
     /// adapter.execute_cypher_safe("MATCH (n:User {name: $name}) RETURN n", params).await?;
-    ///
     /// // UNSAFE - Don't do this!
     /// // let query = format!("MATCH (n:User {{name: '{}'}}) RETURN n", user_input);
     /// ```
@@ -354,7 +347,6 @@ impl Neo4jAdapter {
     }
 
     /// Execute a Cypher query (DEPRECATED - use execute_cypher_safe)
-    ///
     /// # Security Warning
     /// This method is deprecated in favor of execute_cypher_safe.
     /// Only use this for trusted, static queries. Never concatenate user input!

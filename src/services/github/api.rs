@@ -11,7 +11,6 @@ use tokio::sync::RwLock;
 // const MAX_RETRIES: u32 = 3; 
 // const RETRY_DELAY: Duration = Duration::from_secs(2); 
 
-///
 pub struct GitHubClient {
     client: Client,
     token: String,

@@ -227,6 +227,25 @@ class WebSocketService {
     return WebSocketService.instance;
   }
 
+  /**
+   * Reset singleton instance for test isolation.
+   * Disconnects any active connection and clears all handlers.
+   * @deprecated Prefer using websocketStore from '../store/websocketStore' for new code
+   */
+  public static resetInstance(): void {
+    if (WebSocketService.instance) {
+      WebSocketService.instance.disconnect();
+      WebSocketService.instance.messageHandlers = [];
+      WebSocketService.instance.binaryMessageHandlers = [];
+      WebSocketService.instance.connectionStatusHandlers = [];
+      WebSocketService.instance.connectionStateHandlers = [];
+      WebSocketService.instance.eventHandlers.clear();
+      WebSocketService.instance.solidSubscriptions.clear();
+      WebSocketService.instance.messageQueue = [];
+    }
+    WebSocketService.instance = undefined as unknown as WebSocketService;
+  }
+
   private determineWebSocketUrl(): string {
     const isDev = import.meta.env.DEV;
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';

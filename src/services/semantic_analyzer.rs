@@ -6,7 +6,6 @@ use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::path::Path;
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SemanticFeatures {
     
@@ -27,7 +26,6 @@ pub struct SemanticFeatures {
     pub importance_score: f32,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum KnowledgeDomain {
     Mathematics,
@@ -52,7 +50,6 @@ pub enum KnowledgeDomain {
     Other(String),
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TemporalFeatures {
     
@@ -67,7 +64,6 @@ pub struct TemporalFeatures {
     pub temporal_cluster: Option<u32>,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StructuralFeatures {
     
@@ -84,7 +80,6 @@ pub struct StructuralFeatures {
     pub module_path: Vec<String>,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ContentFeatures {
     
@@ -99,7 +94,6 @@ pub struct ContentFeatures {
     pub documentation_score: f32,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentCommunicationPatterns {
     
@@ -124,7 +118,6 @@ pub enum NetworkRole {
     Isolated,   
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SemanticAnalyzerConfig {
     
@@ -157,7 +150,6 @@ impl Default for SemanticAnalyzerConfig {
     }
 }
 
-///
 pub struct SemanticAnalyzer {
     config: SemanticAnalyzerConfig,
     feature_cache: HashMap<String, SemanticFeatures>,

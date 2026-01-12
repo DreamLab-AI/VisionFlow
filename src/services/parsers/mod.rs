@@ -4,11 +4,6 @@ pub mod ontology_parser;
 pub use knowledge_graph_parser::KnowledgeGraphParser;
 pub use ontology_parser::OntologyParser;
 
-///
-///
-///
-///
-///
 #[derive(Debug, Clone)]
 pub struct OntologyData {
     

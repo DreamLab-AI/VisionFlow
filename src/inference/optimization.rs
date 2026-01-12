@@ -13,7 +13,6 @@ use serde::{Deserialize, Serialize};
 use crate::ports::inference_engine::{InferenceEngine, Result as EngineResult};
 use crate::ports::ontology_repository::{OwlClass, OwlAxiom, InferenceResults};
 
-///
 #[derive(Debug, Clone)]
 pub struct BatchInferenceRequest {
     
@@ -26,7 +25,6 @@ pub struct BatchInferenceRequest {
     pub timeout_ms: u64,
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct IncrementalChange {
     
@@ -42,7 +40,6 @@ pub struct IncrementalChange {
     pub removed_axioms: Vec<OwlAxiom>,
 }
 
-///
 pub struct IncrementalInference {
     
     previous_checksum: Option<String>,
@@ -98,7 +95,6 @@ impl Default for IncrementalInference {
     }
 }
 
-///
 pub struct ParallelClassification {
     
     worker_count: usize,
@@ -153,7 +149,6 @@ impl ParallelClassification {
     }
 }
 
-///
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct OptimizationMetrics {
     
@@ -215,7 +210,6 @@ impl OptimizationMetrics {
     }
 }
 
-///
 pub struct InferenceOptimizer {
     
     incremental: Arc<RwLock<IncrementalInference>>,

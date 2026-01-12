@@ -14,7 +14,6 @@ use crate::utils::gpu_safety::{
 };
 use crate::utils::memory_bounds::{MemoryBounds, ThreadSafeMemoryBoundsChecker};
 
-///
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]
 pub struct Vec4 {
@@ -78,7 +77,6 @@ impl Vec4 {
 unsafe impl DeviceRepr for Vec4 {}
 unsafe impl ValidAsZeroBits for Vec4 {}
 
-///
 #[repr(C)]
 #[derive(Debug, Clone)]
 pub struct TSNode {
@@ -287,7 +285,6 @@ impl Default for TSNode {
     }
 }
 
-///
 #[repr(C)]
 #[derive(Debug, Clone)]
 pub struct TSEdge {
@@ -429,7 +426,6 @@ impl TSEdge {
 unsafe impl DeviceRepr for TSEdge {}
 unsafe impl ValidAsZeroBits for TSEdge {}
 
-///
 #[repr(C)]
 #[derive(Debug, Clone)]
 pub struct IsolationLayer {
@@ -567,7 +563,6 @@ impl Default for IsolationLayer {
     }
 }
 
-///
 #[repr(C)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VisualAnalyticsParams {
@@ -890,7 +885,6 @@ impl VisualAnalyticsParams {
     }
 }
 
-///
 pub struct VisualAnalyticsGPU {
     device: Arc<CudaDevice>,
 
@@ -1455,7 +1449,6 @@ impl VisualAnalyticsGPU {
     }
 }
 
-///
 #[derive(Debug, Clone, Serialize)]
 pub struct PerformanceMetrics {
     pub avg_kernel_time_ms: f32,
@@ -1471,7 +1464,6 @@ pub struct PerformanceMetrics {
     pub last_validation_time: Option<String>,
 }
 
-///
 #[derive(Debug, Clone, Serialize)]
 pub enum HealthLevel {
     Healthy,
@@ -1479,7 +1471,6 @@ pub enum HealthLevel {
     Critical,
 }
 
-///
 #[derive(Debug, Clone, Serialize)]
 pub struct SafetyStatus {
     pub health_level: HealthLevel,
@@ -1496,7 +1487,6 @@ pub struct SafetyStatus {
 // Note: frame field changed from i32 to u32 in canonical definition
 pub use crate::gpu::types::RenderData;
 
-///
 pub struct VisualAnalyticsBuilder {
     params: VisualAnalyticsParams,
 }
@@ -1579,7 +1569,6 @@ impl VisualAnalyticsBuilder {
     }
 }
 
-///
 pub struct VisualAnalyticsEngine {
     gpu: VisualAnalyticsGPU,
     params: VisualAnalyticsParams,

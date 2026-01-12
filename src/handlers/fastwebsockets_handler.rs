@@ -53,7 +53,7 @@ pub struct FastWebSocketConfig {
 impl Default for FastWebSocketConfig {
     fn default() -> Self {
         Self {
-            bind_addr: "0.0.0.0:9001".parse().expect("valid default WebSocket bind address"),
+            bind_addr: SocketAddr::from(([0, 0, 0, 0], 9001)),
             max_connections: 1000,
             max_message_size: 16 * 1024 * 1024, // 16 MB
             ping_interval_ms: 5000,
@@ -347,7 +347,7 @@ impl StandaloneFastWsHandler {
                 frame_id: 0,
                 timestamp_ms: std::time::SystemTime::now()
                     .duration_since(std::time::UNIX_EPOCH)
-                    .unwrap()
+                    .unwrap_or_default()
                     .as_millis() as u64,
                 nodes: updates,
             };

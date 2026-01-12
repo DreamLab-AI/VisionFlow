@@ -19,7 +19,6 @@ use crate::gpu::broadcast_optimizer::{BroadcastConfig, BroadcastOptimizer};
 use crate::gpu::backpressure::{BackpressureConfig, NetworkBackpressure};
 use glam::Vec3;
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PhysicsStats {
     pub iteration_count: u32,
@@ -43,7 +42,6 @@ pub struct PhysicsStats {
     pub total_force_calculations: u32,
 }
 
-///
 pub struct ForceComputeActor {
 
     gpu_state: GPUState,
@@ -356,22 +354,16 @@ impl ForceComputeActor {
     }
 
     /// Apply ontology-derived constraint forces to the physics simulation
-    ///
     /// This method integrates ontology constraints from the OntologyConstraintActor
     /// into the physics pipeline, enabling semantic relationships to influence node positions.
-    ///
     /// # Implementation Notes
-    ///
     /// This is the final integration point for P0-2 ontology constraints. It:
     /// 1. Retrieves constraint buffer from OntologyConstraintActor (via shared memory/coordination)
     /// 2. Uploads constraints to GPU via UnifiedGPUCompute::upload_constraints()
     /// 3. Constraints are automatically applied during execute_physics_step()
-    ///
     /// The constraint buffer contains ConstraintData structs generated from OWL axioms
     /// by OntologyConstraintTranslator, which are processed by ontology_constraints.cu kernels.
-    ///
     /// # Thread Safety
-    ///
     /// This method uses try_lock() to avoid blocking Tokio threads. If the GPU mutex
     /// is held, constraint upload is deferred to the next frame. This is acceptable
     /// because constraint uploads are idempotent and the GPU will apply the cached
@@ -1107,7 +1099,6 @@ impl Handler<crate::actors::messages::UpdateOntologyConstraintBuffer> for ForceC
     }
 }
 
-///
 impl Handler<SetSharedGPUContext> for ForceComputeActor {
     type Result = Result<(), String>;
 

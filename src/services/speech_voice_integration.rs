@@ -11,7 +11,6 @@ use log::{debug, info, warn};
 use std::sync::Arc;
 use crate::utils::time;
 
-///
 pub trait VoiceSwarmIntegration {
     
     async fn process_voice_command_with_tags(
@@ -191,8 +190,6 @@ impl VoiceSwarmIntegration for SpeechService {
     }
 }
 
-///
-///
 impl SpeechService {
     pub async fn process_audio_chunk_with_voice_commands(
         &self,

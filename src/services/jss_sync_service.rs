@@ -283,9 +283,7 @@ impl Default for JssSyncConfig {
 // ============================================================================
 
 /// JSS Sync Service
-///
 /// Manages unidirectional synchronization from Neo4j (authoritative) to JSS (distribution).
-///
 /// Sync Flow:
 /// 1. Full sync on startup (if enabled)
 /// 2. Listen for Neo4j change events via channel

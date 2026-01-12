@@ -10,7 +10,6 @@ use crate::config::{PhysicsSettings, RenderingSettings};
 use crate::ports::settings_repository::SettingsRepository;
 use super::models::{ConstraintSettings, AllSettings, SettingsProfile, NodeFilterSettings, QualityGateSettings};
 
-///
 pub struct SettingsActor {
     repository: Arc<dyn SettingsRepository>,
     current_physics: PhysicsSettings,
@@ -90,59 +89,48 @@ impl Actor for SettingsActor {
 // Message Types
 // ============================================================================
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<()>")]
 pub struct UpdatePhysicsSettings(pub PhysicsSettings);
 
-///
 #[derive(Message)]
 #[rtype(result = "PhysicsSettings")]
 pub struct GetPhysicsSettings;
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<()>")]
 pub struct UpdateConstraintSettings(pub ConstraintSettings);
 
-///
 #[derive(Message)]
 #[rtype(result = "ConstraintSettings")]
 pub struct GetConstraintSettings;
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<()>")]
 pub struct UpdateRenderingSettings(pub RenderingSettings);
 
-///
 #[derive(Message)]
 #[rtype(result = "RenderingSettings")]
 pub struct GetRenderingSettings;
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<AllSettings>")]
 pub struct LoadProfile(pub i64);
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<i64>")]
 pub struct SaveProfile {
     pub name: String,
 }
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<Vec<SettingsProfile>>")]
 pub struct ListProfiles;
 
-///
 #[derive(Message)]
 #[rtype(result = "Result<()>")]
 pub struct DeleteProfile(pub i64);
 
-///
 #[derive(Message)]
 #[rtype(result = "AllSettings")]
 pub struct GetAllSettings;

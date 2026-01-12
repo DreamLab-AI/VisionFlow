@@ -35,7 +35,6 @@ enum InitializationState {
 }
 
 /// Resource Supervisor Actor
-///
 /// Manages GPU resource initialization with proper timeout handling.
 /// If initialization hangs, the system continues in degraded mode.
 pub struct ResourceSupervisor {

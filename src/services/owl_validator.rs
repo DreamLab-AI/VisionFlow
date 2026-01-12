@@ -14,7 +14,6 @@ use thiserror::Error;
 use uuid::Uuid;
 use crate::utils::time;
 
-///
 #[derive(Error, Debug)]
 pub enum ValidationError {
     #[error("Failed to parse ontology: {0}")]
@@ -36,7 +35,6 @@ pub enum ValidationError {
     CacheError(String),
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RdfTriple {
     pub subject: String,
@@ -47,7 +45,6 @@ pub struct RdfTriple {
     pub language: Option<String>,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum Severity {
     Error,
@@ -55,7 +52,6 @@ pub enum Severity {
     Info,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Violation {
     pub id: String,
@@ -86,7 +82,6 @@ impl Default for ConstraintSummary {
     }
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ValidationReport {
     pub id: String,
@@ -100,7 +95,6 @@ pub struct ValidationReport {
     pub constraint_summary: ConstraintSummary,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ValidationStatistics {
     pub classes_checked: usize,
@@ -112,7 +106,6 @@ pub struct ValidationStatistics {
     pub cache_misses: usize,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GraphNode {
     pub id: String,
@@ -120,7 +113,6 @@ pub struct GraphNode {
     pub properties: HashMap<String, serde_json::Value>,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GraphEdge {
     pub id: String,
@@ -130,7 +122,6 @@ pub struct GraphEdge {
     pub properties: HashMap<String, serde_json::Value>,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PropertyGraph {
     pub nodes: Vec<GraphNode>,
@@ -138,7 +129,6 @@ pub struct PropertyGraph {
     pub metadata: HashMap<String, serde_json::Value>,
 }
 
-///
 #[derive(Debug, Clone)]
 struct CachedOntology {
     id: String,
@@ -149,7 +139,6 @@ struct CachedOntology {
     ttl_seconds: u64,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ValidationConfig {
     pub enable_reasoning: bool,
@@ -179,7 +168,6 @@ impl Default for ValidationConfig {
     }
 }
 
-///
 #[derive(Clone)]
 pub struct OwlValidatorService {
     ontology_cache: Arc<DashMap<String, CachedOntology>>,
@@ -189,7 +177,6 @@ pub struct OwlValidatorService {
     inference_rules: Vec<InferenceRule>,
 }
 
-///
 #[derive(Debug, Clone)]
 enum InferenceRule {
     InverseProperty {
@@ -1105,10 +1092,6 @@ impl Default for OwlValidatorService {
     }
 }
 
-///
-///
-///
-///
 pub fn validation_report_to_reasoning_report(
     report: &ValidationReport,
     _ontology: &SetOntology<Arc<str>>,

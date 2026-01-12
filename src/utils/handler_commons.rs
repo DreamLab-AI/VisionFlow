@@ -4,7 +4,6 @@ use log::{error, warn};
 use serde::{Deserialize, Serialize};
 use crate::utils::time;
 
-///
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct StandardResponse<T> {
     pub success: bool,
@@ -14,7 +13,6 @@ pub struct StandardResponse<T> {
     pub request_id: Option<String>,
 }
 
-///
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ErrorResponse {
     pub error_type: String,
@@ -23,7 +21,6 @@ pub struct ErrorResponse {
     pub timestamp: DateTime<Utc>,
 }
 
-///
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SuccessResponse<T> {
     pub data: T,
@@ -31,7 +28,6 @@ pub struct SuccessResponse<T> {
     pub timestamp: DateTime<Utc>,
 }
 
-///
 pub trait HandlerResponse<T: Serialize> {
     
     fn success(data: T) -> Result<HttpResponse> {
@@ -102,10 +98,8 @@ pub trait HandlerResponse<T: Serialize> {
     }
 }
 
-///
 impl<T: Serialize> HandlerResponse<T> for T {}
 
-///
 #[derive(Deserialize, Debug, Clone)]
 pub struct PaginationParams {
     pub page: Option<u32>,
@@ -139,7 +133,6 @@ impl PaginationParams {
     }
 }
 
-///
 #[derive(Serialize, Debug, Clone)]
 pub struct PaginatedResponse<T> {
     pub items: Vec<T>,
@@ -169,7 +162,6 @@ impl<T> PaginatedResponse<T> {
     }
 }
 
-///
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct HealthCheckResponse {
     pub status: String, 
@@ -188,7 +180,6 @@ pub struct ComponentHealth {
     pub metrics: Option<serde_json::Value>,
 }
 
-///
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(tag = "type")]
 pub enum StandardWebSocketMessage<T> {
@@ -237,7 +228,6 @@ pub enum StandardWebSocketMessage<T> {
     },
 }
 
-///
 pub trait Validate {
     type ValidationError;
 
@@ -256,7 +246,6 @@ pub trait Validate {
     }
 }
 
-///
 pub fn log_request<T: std::fmt::Debug>(endpoint: &str, request: &T) {
     log::info!("Request to {}: {:?}", endpoint, request);
 }
@@ -265,12 +254,10 @@ pub fn log_response<T: std::fmt::Debug>(endpoint: &str, response: &T) {
     log::debug!("Response from {}: {:?}", endpoint, response);
 }
 
-///
 pub fn convert_to_actix_error(error: Box<dyn std::error::Error + Send + Sync>) -> actix_web::Error {
     actix_web::error::ErrorInternalServerError(error)
 }
 
-///
 #[macro_export]
 macro_rules! handler_error {
     ($msg:expr) => {
@@ -281,7 +268,6 @@ macro_rules! handler_error {
     };
 }
 
-///
 #[macro_export]
 macro_rules! handler_success {
     ($data:expr) => {

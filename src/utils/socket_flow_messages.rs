@@ -11,9 +11,6 @@ use crate::utils::time;
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Pod, Zeroable, Serialize, Deserialize)]
-///
-///
-///
 pub struct BinaryNodeDataClient {
     pub node_id: u32, 
     pub x: f32,       
@@ -35,8 +32,6 @@ pub type BinaryNodeData = BinaryNodeDataClient;
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Pod, Zeroable, Serialize, Deserialize)]
-///
-///
 pub struct BinaryNodeDataGPU {
     pub node_id: u32,       
     pub x: f32,             

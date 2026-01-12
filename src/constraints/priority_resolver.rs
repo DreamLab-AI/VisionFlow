@@ -4,7 +4,6 @@
 use super::physics_constraint::*;
 use std::collections::HashMap;
 
-///
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct NodePair {
     pub node1: NodeId,
@@ -27,7 +26,6 @@ impl NodePair {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct ConstraintGroup {
     pub node_pair: NodePair,
@@ -74,7 +72,6 @@ impl ConstraintGroup {
     }
 }
 
-///
 pub struct PriorityResolver {
     
     constraint_groups: HashMap<NodePair, ConstraintGroup>,

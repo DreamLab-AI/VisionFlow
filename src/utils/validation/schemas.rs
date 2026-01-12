@@ -3,7 +3,6 @@ use super::{ValidationContext, ValidationResult, ValidationUtils};
 use serde_json::Value;
 use std::collections::HashMap;
 
-///
 #[derive(Debug, Clone)]
 pub struct ValidationSchema {
     pub fields: HashMap<String, FieldValidator>,
@@ -73,7 +72,6 @@ impl Default for ValidationSchema {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct FieldValidator {
     pub rules: Vec<ValidationRule>,
@@ -168,7 +166,6 @@ impl Default for FieldValidator {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub enum ValidationRule {
     Type(FieldType),
@@ -435,7 +432,6 @@ impl ValidationRule {
     }
 }
 
-///
 #[derive(Debug, Clone, PartialEq)]
 pub enum FieldType {
     String,
@@ -460,7 +456,6 @@ impl std::fmt::Display for FieldType {
     }
 }
 
-///
 pub struct ApiSchemas;
 
 impl ApiSchemas {

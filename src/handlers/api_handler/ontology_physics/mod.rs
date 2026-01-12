@@ -84,10 +84,8 @@ async fn check_ontology_feature() -> Result<(), actix_web::Error> {
 // ============================================================================
 
 /// POST /api/ontology-physics/enable - Enable ontology forces
-///
 /// Activates ontology-derived constraint forces in the physics simulation.
 /// Constraints are sourced from the specified ontology and uploaded to GPU memory.
-///
 /// ## Request Body
 /// ```json
 /// {
@@ -96,7 +94,6 @@ async fn check_ontology_feature() -> Result<(), actix_web::Error> {
 ///   "strength": 0.8
 /// }
 /// ```
-///
 /// ## Response
 /// ```json
 /// {
@@ -228,9 +225,7 @@ pub async fn enable_ontology_physics(
 }
 
 /// GET /api/ontology-physics/constraints - List active ontology constraints
-///
 /// Returns statistics about currently active ontology-derived physics constraints.
-///
 /// ## Response
 /// ```json
 /// {
@@ -281,9 +276,7 @@ pub async fn get_constraints(state: web::Data<AppState>) -> impl Responder {
 }
 
 /// PUT /api/ontology-physics/weights - Adjust constraint strengths
-///
 /// Modifies the strength of ontology-derived forces without reloading constraints.
-///
 /// ## Request Body
 /// ```json
 /// {
@@ -294,7 +287,6 @@ pub async fn get_constraints(state: web::Data<AppState>) -> impl Responder {
 ///   }
 /// }
 /// ```
-///
 /// ## Response
 /// ```json
 /// {
@@ -326,7 +318,6 @@ pub async fn adjust_weights(
 }
 
 /// POST /api/ontology-physics/disable - Disable ontology forces
-///
 /// Removes all ontology-derived constraints from the physics simulation.
 pub async fn disable_ontology_physics(state: web::Data<AppState>) -> impl Responder {
     info!("POST /api/ontology-physics/disable");

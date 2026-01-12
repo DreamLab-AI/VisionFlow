@@ -3,8 +3,9 @@ import { test, expect } from '@playwright/test';
 test.describe('Node Filter Settings Tab', () => {
   test('check if Filter tab exists in Semantic Analysis panel', async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(20000); // Wait for full app load
+    await page.waitForLoadState('networkidle');
+    // Wait for app to be ready by checking for tab elements
+    await page.waitForSelector('[role="tab"]', { timeout: 30000 });
 
     // Look for Analytics tab and click it with proper Playwright locator
     console.log('Looking for Analytics tab...');
@@ -15,7 +16,8 @@ test.describe('Node Filter Settings Tab', () => {
       if (await analyticsTab.count() > 0) {
         await analyticsTab.first().click();
         console.log('Clicked Analytics tab using Playwright locator');
-        await page.waitForTimeout(2000);
+        // Wait for tab panel to become active
+        await expect(page.locator('[role="tabpanel"]')).toBeVisible({ timeout: 5000 });
       }
     } catch (e) {
       console.log('Playwright click failed, trying JavaScript fallback');
@@ -35,7 +37,8 @@ test.describe('Node Filter Settings Tab', () => {
       }
     });
 
-    await page.waitForTimeout(2000);
+    // Wait for tab content to update after click
+    await expect(page.locator('[role="tabpanel"]')).toBeVisible({ timeout: 5000 });
 
     // Check what's now visible
     const pageContent = await page.evaluate(() => {
@@ -83,7 +86,8 @@ test.describe('Node Filter Settings Tab', () => {
           const filterTab = tabButtons.find(btn => btn.textContent?.toLowerCase().includes('filter'));
           if (filterTab) (filterTab as HTMLElement).click();
         });
-        await page.waitForTimeout(1000);
+        // Wait for filter panel content to appear
+        await page.waitForSelector('[role="tabpanel"]', { state: 'visible', timeout: 5000 });
 
         const afterFilterClick = await page.evaluate(() => {
           const body = document.body.textContent || '';

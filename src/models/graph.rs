@@ -4,8 +4,6 @@ use crate::models::node::Node;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-///
-///
 #[derive(Default, Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct GraphData {

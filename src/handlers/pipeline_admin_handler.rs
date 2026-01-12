@@ -110,7 +110,6 @@ pub struct PipelineAdminState {
 }
 
 /// POST /api/admin/pipeline/trigger
-///
 /// Manually trigger the ontology processing pipeline.
 pub async fn trigger_pipeline(
     req: web::Json<TriggerPipelineRequest>,
@@ -152,7 +151,6 @@ pub async fn trigger_pipeline(
 }
 
 /// GET /api/admin/pipeline/status
-///
 /// Get current pipeline status and queue information.
 pub async fn get_pipeline_status(
     data: web::Data<PipelineAdminState>,
@@ -191,7 +189,6 @@ pub async fn get_pipeline_status(
 }
 
 /// POST /api/admin/pipeline/pause
-///
 /// Pause the pipeline (stops processing new events).
 pub async fn pause_pipeline(
     req: web::Json<PausePipelineRequest>,
@@ -209,7 +206,6 @@ pub async fn pause_pipeline(
 }
 
 /// POST /api/admin/pipeline/resume
-///
 /// Resume the pipeline after pausing.
 pub async fn resume_pipeline(
     data: web::Data<PipelineAdminState>,
@@ -225,7 +221,6 @@ pub async fn resume_pipeline(
 }
 
 /// GET /api/admin/pipeline/metrics
-///
 /// Get comprehensive pipeline performance metrics.
 pub async fn get_pipeline_metrics(
     data: web::Data<PipelineAdminState>,
@@ -260,7 +255,6 @@ pub async fn get_pipeline_metrics(
 }
 
 /// GET /api/admin/pipeline/events/:correlation_id
-///
 /// Get event log for a specific correlation ID.
 pub async fn get_pipeline_events(
     correlation_id: web::Path<String>,

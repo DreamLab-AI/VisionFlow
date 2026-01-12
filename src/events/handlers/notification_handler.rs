@@ -6,7 +6,6 @@ use tokio::sync::RwLock;
 use crate::events::types::{EventHandler, EventResult, StoredEvent};
 use crate::utils::time;
 
-///
 pub struct NotificationEventHandler {
     handler_id: String,
     notifications: Arc<RwLock<Vec<Notification>>>,

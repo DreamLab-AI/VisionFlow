@@ -43,14 +43,12 @@ pub struct DeltaNodeData {
 /// Encodes nodes as delta updates (Protocol V4)
 /// Frame 0 & 60: Full state (36 bytes per node)
 /// Frames 1-59: Delta encoding (20 bytes per changed node only)
-///
 /// # Arguments
 /// * `nodes` - Current node positions/velocities
 /// * `previous_nodes` - Previous frame's node data (for delta calculation)
 /// * `frame_number` - Current frame number (0-59, resets at 60)
 /// * `agent_node_ids` - IDs of agent nodes (for flag setting)
 /// * `knowledge_node_ids` - IDs of knowledge nodes (for flag setting)
-///
 /// # Returns
 /// Binary-encoded delta frame with protocol version header
 pub fn encode_node_data_delta(
@@ -191,11 +189,9 @@ pub fn encode_node_data_delta(
 
 /// Decodes delta-encoded node data (Protocol V4)
 /// Reconstructs full node state by applying deltas to previous state
-///
 /// # Arguments
 /// * `data` - Encoded delta frame data (without protocol version byte)
 /// * `previous_state` - Previous frame's complete node state
-///
 /// # Returns
 /// Updated node state after applying deltas
 pub fn decode_node_data_delta(

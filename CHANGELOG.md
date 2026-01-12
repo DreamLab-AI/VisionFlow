@@ -5,6 +5,114 @@ All notable changes to VisionFlow will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-01-12
+
+### 🚀 Heroic Refactor Sprint - Quality Gate Achievement
+
+**Sprint Duration:** 2026-01-08 to 2026-01-12 (5 days)
+**Protocol:** AISP 5.1 Platinum (AI-to-AI Coordination with ∎ QED Confirmations)
+**Quality Gate:** 60 → 75/100 (+15 points) ✅
+
+---
+
+#### Sprint Summary
+
+The Heroic Refactor Sprint deployed 17 specialized QE agents across 3 waves using AISP 5.1 Platinum hive-mind coordination. All 8 critical issues resolved, test coverage significantly expanded, and code quality metrics improved across the board.
+
+#### Wave 1: Foundation (2026-01-08)
+| Agent | Task | Result |
+|-------|------|--------|
+| qe-coverage-analyzer | Test gap analysis | 62% baseline identified |
+| qe-security-auditor | Vulnerability scan | 3 CRITICAL found |
+| qe-code-reviewer | Quality standards | 439 unwrap() flagged |
+| qe-performance-validator | Bottleneck analysis | Binary protocol mismatch |
+| qe-architecture-reviewer | System design audit | CQRS validated |
+
+#### Wave 2: Remediation (2026-01-09-11)
+| Agent | Task | Result |
+|-------|------|--------|
+| security-remediator | Rotate secrets | ✅ Fixed 3 CVEs |
+| unwrap-auditor | Critical path fixes | 439 → 371 (-16%) |
+| coverage-booster | TypeScript tests | +145 tests |
+| flaky-test-stabilizer | Test reliability | 0 flaky tests |
+| clippy-cleaner | Lint warnings | 2429 → 1051 (-56%) |
+
+#### Wave 3: Polish (2026-01-12)
+| Agent | Task | Result |
+|-------|------|--------|
+| graph-export-handler | unwrap cleanup | 3 fixes applied |
+| useTelemetry-tester | Hook test coverage | +45 tests |
+| quality-gate-assessor | Final validation | 75/100 PASS |
+
+---
+
+#### Added
+
+- **337 New Tests**
+  - GPU memory manager: 48 tests (11 config, 37 GPU-gated)
+  - Neo4j adapters: 49 tests (44 pass, 5 ignored)
+  - useActionConnections: 50 tests
+  - useTelemetry: 45 tests
+  - Binary protocol: 20 tests
+  - Agent visualization: 80+ tests
+
+- **Test Framework Migration**
+  - Migrated Jest → Vitest 2.1.8 for ESM compatibility
+  - Fixed chalk TypeError in Node v23
+  - Created `client/vitest.config.ts` with jsdom environment
+  - Test pass rate: 77/81 (95.1%)
+
+- **Agent Visualization Feature** (AGENT_ACTION 0x23)
+  - `ActionConnectionsLayer.tsx` - 3D animated connections
+  - `useActionConnections.ts` - Connection lifecycle management
+  - `useAgentActionVisualization.ts` - WebSocket integration
+  - Protocol: 15-byte header + variable payload
+  - Quest 3 VR optimization (25 max connections)
+
+#### Changed
+
+- **Binary Protocol V2 Unification**
+  - Position updates: 21 bytes (u32 ID + 3×f32 pos + u32 ts + u8 flags)
+  - Agent state: 49 bytes V2 format
+  - Version byte prefix mandatory
+  - `createVersionedPayload()` test helper
+
+- **Error Handling Improvements**
+  - 68 unwrap()/expect() calls replaced with proper error handling
+  - RwLock poison-safe helpers in `semantic_type_registry.rs`
+  - Actor unwraps converted to `if let` patterns
+  - Handler unwraps converted to `unwrap_or_default()`
+
+#### Fixed
+
+- **Security (3 CRITICAL)**
+  - Removed hardcoded secret key fallback from `agent_monitor_actor.rs`
+  - WebSocket authentication enabled
+  - `.env.example` created for secure defaults
+
+- **Code Quality**
+  - Clippy warnings: 2429 → 1051 (56% reduction)
+  - Removed ~1381 empty doc comments
+  - Converted 6 manual Default impls to `#[derive(Default)]`
+  - Fixed MutexGuard await issues
+
+- **Test Reliability**
+  - Fixed flaky assertions with deterministic timing
+  - Hardcoded timeouts replaced with configurable values
+  - Test isolation via `resetInstance()` patterns
+
+#### Quality Metrics
+
+| Metric | Before | After | Target | Status |
+|--------|--------|-------|--------|--------|
+| Clippy warnings | 2429 | 1051 | <2000 | ✅ PASS |
+| Production unwrap() | 439 | 368 | <400 | ✅ PASS |
+| Test count | ~500 | 837 | +300 | ✅ PASS |
+| Test pass rate | 70% | 95.1% | 90% | ✅ PASS |
+| Quality gate | 60 | 75 | 75 | ✅ PASS |
+
+---
+
 ## [1.0.0] - 2025-10-27
 
 ### 🎉 Major Release - Hexagonal Architecture

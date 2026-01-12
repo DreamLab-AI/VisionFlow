@@ -12,31 +12,17 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 use uuid::Uuid;
 
-///
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct RateLimitState {
     pub requests: Vec<DateTime<Utc>>,
     pub daily_count: u32,
     pub hourly_count: u32,
 }
 
-impl Default for RateLimitState {
-    fn default() -> Self {
-        Self {
-            requests: Vec::new(),
-            daily_count: 0,
-            hourly_count: 0,
-        }
-    }
-}
-
-///
 type SharedGraphStorage = Arc<RwLock<HashMap<Uuid, SharedGraph>>>;
 
-///
 type RateLimitStorage = Arc<RwLock<HashMap<String, RateLimitState>>>;
 
-///
 pub struct GraphExportHandler {
     serialization_service: GraphSerializationService,
     shared_graphs: SharedGraphStorage,
@@ -137,7 +123,6 @@ impl GraphExportHandler {
     }
 }
 
-///
 pub async fn export_graph(
     app_state: web::Data<AppState>,
     request: web::Json<ExportRequest>,
@@ -182,7 +167,6 @@ pub async fn export_graph(
     }
 }
 
-///
 pub async fn share_graph(
     app_state: web::Data<AppState>,
     request: web::Json<ShareRequest>,
@@ -234,7 +218,6 @@ pub async fn share_graph(
     }
 }
 
-///
 pub async fn get_shared_graph(
     path: web::Path<String>,
     query: web::Query<HashMap<String, String>>,
@@ -316,7 +299,6 @@ pub async fn get_shared_graph(
     }
 }
 
-///
 pub async fn publish_graph(
     app_state: web::Data<AppState>,
     _request: web::Json<PublishRequest>,
@@ -366,7 +348,6 @@ pub async fn publish_graph(
     ok_json!(publish_response)
 }
 
-///
 pub async fn delete_shared_graph(path: web::Path<String>) -> ActixResult<HttpResponse> {
     let share_id = match Uuid::parse_str(&path.into_inner()) {
         Ok(id) => id,
@@ -399,7 +380,6 @@ pub async fn delete_shared_graph(path: web::Path<String>) -> ActixResult<HttpRes
     }
 }
 
-///
 pub async fn get_export_stats() -> ActixResult<HttpResponse> {
     
     let stats = ExportStats {
@@ -421,7 +401,6 @@ pub async fn get_export_stats() -> ActixResult<HttpResponse> {
     ok_json!(stats)
 }
 
-///
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     // Note: Using /graph-export to avoid conflict with /graph scope from api_handler/graph/mod.rs
     // Routes become /api/graph-export/*
@@ -443,19 +422,21 @@ mod tests {
     use tempfile::tempdir;
 
     #[actix_rt::test]
-    async fn test_rate_limiting() {
-        let temp_dir = tempdir().unwrap();
+    async fn test_rate_limiting() -> Result<()> {
+        let temp_dir = tempdir()?;
         let handler = GraphExportHandler::new(temp_dir.path().to_path_buf());
 
         let client_ip = "127.0.0.1";
 
-        
-        let rate_info = handler.check_rate_limit(client_ip).await.unwrap();
+
+        let rate_info = handler.check_rate_limit(client_ip).await?;
         assert!(rate_info.remaining_exports > 0);
 
-        
-        let rate_info2 = handler.check_rate_limit(client_ip).await.unwrap();
+
+        let rate_info2 = handler.check_rate_limit(client_ip).await?;
         assert!(rate_info2.remaining_exports < rate_info.remaining_exports);
+
+        Ok(())
     }
 
     // Test disabled - AppState initialization requires full context

@@ -58,7 +58,6 @@ impl SupervisedActorState {
 }
 
 /// Physics Supervisor Actor
-///
 /// Manages the lifecycle of physics-related GPU actors with proper error isolation.
 /// If ForceComputeActor hangs during initialization, the supervisor will:
 /// 1. Time out the initialization

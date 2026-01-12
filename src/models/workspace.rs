@@ -8,10 +8,10 @@ use uuid::Uuid;
 use validator::Validate;
 use crate::utils::time;
 
-///
-#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Default)]
 pub enum WorkspaceType {
     #[serde(rename = "personal")]
+    #[default]
     Personal,
     #[serde(rename = "team")]
     Team,
@@ -19,28 +19,15 @@ pub enum WorkspaceType {
     Public,
 }
 
-impl Default for WorkspaceType {
-    fn default() -> Self {
-        WorkspaceType::Personal
-    }
-}
-
-///
-#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Default)]
 pub enum WorkspaceStatus {
     #[serde(rename = "active")]
+    #[default]
     Active,
     #[serde(rename = "archived")]
     Archived,
 }
 
-impl Default for WorkspaceStatus {
-    fn default() -> Self {
-        WorkspaceStatus::Active
-    }
-}
-
-///
 #[derive(Debug, Clone, Serialize, Deserialize, Type, Validate)]
 pub struct Workspace {
     
@@ -196,7 +183,6 @@ impl Workspace {
     }
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize, Type, Validate)]
 pub struct CreateWorkspaceRequest {
     #[validate(length(
@@ -216,7 +202,6 @@ pub struct CreateWorkspaceRequest {
     pub metadata: Option<HashMap<String, serde_json::Value>>,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize, Type, Validate)]
 pub struct UpdateWorkspaceRequest {
     #[validate(length(
@@ -235,7 +220,6 @@ pub struct UpdateWorkspaceRequest {
     pub metadata: Option<HashMap<String, serde_json::Value>>,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct WorkspaceResponse {
     pub success: bool,
@@ -269,7 +253,6 @@ impl WorkspaceResponse {
     }
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct WorkspaceListResponse {
     pub success: bool,
@@ -309,7 +292,6 @@ impl WorkspaceListResponse {
     }
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct WorkspaceFilter {
     
@@ -324,7 +306,6 @@ pub struct WorkspaceFilter {
     pub search: Option<String>,
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub enum WorkspaceSortBy {
     #[serde(rename = "name")]
@@ -343,7 +324,6 @@ impl Default for WorkspaceSortBy {
     }
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub enum SortDirection {
     #[serde(rename = "asc")]
@@ -358,7 +338,6 @@ impl Default for SortDirection {
     }
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize, Type, Validate)]
 pub struct WorkspaceQuery {
     #[validate(range(min = 1, max = 1000, message = "Page size must be between 1 and 1000"))]

@@ -10,14 +10,12 @@ use std::process::Command;
 use std::sync::Arc;
 use std::time::Instant;
 
-///
 pub struct McpRelayManager {
     circuit_breaker: Arc<CircuitBreaker>,
     health_manager: Arc<HealthCheckManager>,
     timeout_config: TimeoutConfig,
 }
 
-///
 #[derive(Debug, thiserror::Error)]
 pub enum McpRelayError {
     #[error("Docker command failed: {0}")]
@@ -291,7 +289,6 @@ impl McpRelayManager {
     }
 }
 
-///
 pub async fn ensure_mcp_ready() -> Result<(), String> {
     
     if !McpRelayManager::check_mcp_container() {

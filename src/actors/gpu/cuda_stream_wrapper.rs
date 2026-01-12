@@ -5,17 +5,6 @@
 
 use cudarc::driver::CudaStream;
 
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
 pub struct SafeCudaStream {
     inner: CudaStream,
 }

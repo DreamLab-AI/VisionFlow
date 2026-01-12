@@ -18,14 +18,12 @@ use crate::ports::gpu_semantic_analyzer::{
     ClusteringAlgorithm, ImportanceAlgorithm, SemanticConstraintConfig,
 };
 
-///
 #[derive(Debug, Deserialize)]
 pub struct DetectCommunitiesRequest {
     pub algorithm: String,
     pub min_cluster_size: Option<usize>,
 }
 
-///
 #[derive(Debug, Serialize)]
 pub struct CommunitiesResponse {
     pub clusters: HashMap<u32, usize>,
@@ -34,7 +32,6 @@ pub struct CommunitiesResponse {
     pub computation_time_ms: f32,
 }
 
-///
 #[derive(Debug, Deserialize)]
 pub struct CentralityAnalysisRequest {
     pub algorithm: String,
@@ -43,7 +40,6 @@ pub struct CentralityAnalysisRequest {
     pub top_k: Option<usize>,
 }
 
-///
 #[derive(Debug, Serialize)]
 pub struct CentralityResponse {
     pub scores: HashMap<u32, f32>,
@@ -51,7 +47,6 @@ pub struct CentralityResponse {
     pub top_nodes: Vec<(u32, f32)>,
 }
 
-///
 #[derive(Debug, Deserialize)]
 pub struct ShortestPathAnalysisRequest {
     pub source_node_id: u32,
@@ -59,7 +54,6 @@ pub struct ShortestPathAnalysisRequest {
     pub include_path: Option<bool>,
 }
 
-///
 #[derive(Debug, Serialize)]
 pub struct ShortestPathResponse {
     pub source_node: u32,
@@ -68,7 +62,6 @@ pub struct ShortestPathResponse {
     pub computation_time_ms: f32,
 }
 
-///
 #[derive(Debug, Deserialize)]
 pub struct GenerateConstraintsRequest {
     pub similarity_threshold: Option<f32>,
@@ -78,7 +71,6 @@ pub struct GenerateConstraintsRequest {
     pub max_constraints: Option<usize>,
 }
 
-///
 pub async fn detect_communities(
     semantic_service: web::Data<Arc<SemanticService>>,
     graph_data: web::Data<Arc<RwLock<GraphData>>>,
@@ -117,7 +109,6 @@ pub async fn detect_communities(
     }
 }
 
-///
 pub async fn compute_centrality(
     semantic_service: web::Data<Arc<SemanticService>>,
     graph_data: web::Data<Arc<RwLock<GraphData>>>,
@@ -154,7 +145,7 @@ pub async fn compute_centrality(
         Ok(scores) => {
 
             let mut top_nodes: Vec<_> = scores.iter().map(|(&id, &score)| (id, score)).collect();
-            top_nodes.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+            top_nodes.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
             if let Some(k) = req.top_k {
                 top_nodes.truncate(k);
             } else {
@@ -171,7 +162,6 @@ pub async fn compute_centrality(
     }
 }
 
-///
 pub async fn compute_shortest_path(
     semantic_service: web::Data<Arc<SemanticService>>,
     graph_data: web::Data<Arc<RwLock<GraphData>>>,
@@ -200,7 +190,6 @@ pub async fn compute_shortest_path(
     }
 }
 
-///
 pub async fn generate_constraints(
     semantic_service: web::Data<Arc<SemanticService>>,
     graph_data: web::Data<Arc<RwLock<GraphData>>>,
@@ -229,7 +218,6 @@ pub async fn generate_constraints(
     }
 }
 
-///
 pub async fn get_statistics(
     semantic_service: web::Data<Arc<SemanticService>>,
 ) -> ActixResult<HttpResponse> {
@@ -245,7 +233,6 @@ pub async fn get_statistics(
     }
 }
 
-///
 pub async fn invalidate_cache(
     semantic_service: web::Data<Arc<SemanticService>>,
 ) -> ActixResult<HttpResponse> {
@@ -257,7 +244,6 @@ pub async fn invalidate_cache(
     }
 }
 
-///
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/semantic")

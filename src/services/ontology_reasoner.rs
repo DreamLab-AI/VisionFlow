@@ -21,7 +21,6 @@ use crate::ports::inference_engine::InferenceEngine;
 use crate::ports::ontology_repository::{OntologyRepository, OwlClass, Result as OntResult};
 
 /// Ontology reasoner for inferring missing class assignments
-///
 /// Thread-safe implementation using DashMap for lock-free concurrent access
 /// during parallel GitHub sync operations.
 pub struct OntologyReasoner {
@@ -40,8 +39,7 @@ pub struct OntologyReasoner {
 
 impl OntologyReasoner {
     /// Create a new OntologyReasoner
-    ///
-    /// # Arguments
+        /// # Arguments
     /// * `inference_engine` - The whelk inference engine (will be wrapped in RwLock)
     /// * `ontology_repo` - The ontology repository for persistence
     pub fn new(
@@ -89,8 +87,7 @@ impl OntologyReasoner {
     }
 
     /// Pre-load known classes into the verified cache
-    ///
-    /// Call this before parallel sync to reduce lock contention.
+        /// Call this before parallel sync to reduce lock contention.
     /// Classes in the cache won't trigger DB lookups or creation.
     /// Now lock-free with DashMap.
     pub async fn preload_verified_classes(&self, class_iris: Vec<String>) {
@@ -110,8 +107,7 @@ impl OntologyReasoner {
     }
 
     /// Pre-compute transitive closure for a set of class hierarchies
-    ///
-    /// This builds an ancestor lookup table for efficient subclass queries.
+        /// This builds an ancestor lookup table for efficient subclass queries.
     /// Should be called after loading ontology to enable fast relationship checks.
     pub async fn precompute_transitive_closure(&self, subclass_pairs: Vec<(String, String)>) {
         // Build adjacency list: child -> parent
@@ -153,8 +149,7 @@ impl OntologyReasoner {
     }
 
     /// Check if a class is a subclass of another (using pre-computed closure)
-    ///
-    /// Returns true if `subclass` is equal to or a subclass of `superclass`.
+        /// Returns true if `subclass` is equal to or a subclass of `superclass`.
     /// Runs in O(1) lookup time after precompute_transitive_closure() is called.
     pub fn is_subclass_of(&self, subclass: &str, superclass: &str) -> bool {
         if let Some(ancestors) = self.transitive_closure.get(subclass) {
@@ -171,21 +166,17 @@ impl OntologyReasoner {
     }
 
     /// Infer the most appropriate OWL class for a markdown file
-    ///
-    /// Uses multiple heuristics:
+        /// Uses multiple heuristics:
     /// 1. File path analysis (e.g., "people/Tim-Cook.md" → mv:Person)
     /// 2. Content analysis (keywords, structure)
     /// 3. Frontmatter/metadata
     /// 4. Reasoning over existing ontology
-    ///
-    /// Thread-safe: Uses read lock on inference cache, write lock only on cache miss.
-    ///
-    /// # Arguments
+        /// Thread-safe: Uses read lock on inference cache, write lock only on cache miss.
+        /// # Arguments
     /// * `file_path` - Path to the markdown file
     /// * `content` - File content
     /// * `metadata` - Optional frontmatter metadata
-    ///
-    /// # Returns
+        /// # Returns
     /// Optional OWL class IRI if classification succeeds
     pub async fn infer_class(
         &self,
@@ -354,8 +345,7 @@ impl OntologyReasoner {
     }
 
     /// Batch infer classes for multiple files
-    ///
-    /// More efficient than calling infer_class() repeatedly as it batches
+        /// More efficient than calling infer_class() repeatedly as it batches
     /// cache operations. Now lock-free with DashMap.
     pub async fn infer_classes_batch(
         &self,
@@ -426,8 +416,7 @@ impl OntologyReasoner {
     }
 
     /// Ensure a class exists in the ontology, creating it if missing
-    ///
-    /// Thread-safe: Uses verified_classes DashMap for lock-free lookups.
+        /// Thread-safe: Uses verified_classes DashMap for lock-free lookups.
     /// Uses entry API for atomic check-and-insert.
     pub async fn ensure_class_exists(&self, class_iri: &str) -> OntResult<()> {
         // Fast path: check verified cache (lock-free)
@@ -484,8 +473,7 @@ impl OntologyReasoner {
     }
 
     /// Batch ensure multiple classes exist (more efficient than individual calls)
-    ///
-    /// Uses DashMap for lock-free concurrent access - no lock contention.
+        /// Uses DashMap for lock-free concurrent access - no lock contention.
     pub async fn ensure_classes_exist_batch(&self, class_iris: Vec<&str>) -> OntResult<()> {
         // Filter uncached classes using lock-free DashMap access
         let uncached: Vec<&str> = class_iris
@@ -561,8 +549,7 @@ impl OntologyReasoner {
     }
 
     /// Use CustomReasoner to infer relationships
-    ///
-    /// Advanced reasoning implemented using CustomReasoner with EL++ profile
+        /// Advanced reasoning implemented using CustomReasoner with EL++ profile
     /// Analyzes the ontology graph and infers new subsumptions (SubClassOf axioms)
     #[allow(dead_code)]
     async fn reason_about_class(&self, class_iri: &str) -> OntResult<Vec<String>> {

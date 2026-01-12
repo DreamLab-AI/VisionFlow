@@ -7,7 +7,6 @@ use log::{debug, error, info, warn};
 use serde_json::{json, Value};
 use std::collections::HashMap;
 
-///
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/clustering")
@@ -19,7 +18,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     );
 }
 
-///
 async fn configure_clustering(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -105,7 +103,6 @@ async fn configure_clustering(
     }
 }
 
-///
 async fn start_clustering(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -200,11 +197,10 @@ async fn start_clustering(
         }
     } else {
         warn!("GPU compute not available, clustering request cannot be processed");
-        Ok(service_unavailable!("GPU compute not available").expect("JSON serialization failed"))
+        service_unavailable!("GPU compute not available")
     }
 }
 
-///
 async fn get_clustering_status(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -277,7 +273,6 @@ async fn get_clustering_status(
     }
 }
 
-///
 async fn get_clustering_results(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -384,7 +379,6 @@ use crate::{
     }
 }
 
-///
 async fn export_cluster_assignments(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -649,7 +643,6 @@ async fn export_cluster_assignments(
         .body(empty_response))
 }
 
-///
 fn validate_clustering_config(config: &ClusteringConfiguration) -> Result<(), String> {
     
     if ![

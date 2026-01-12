@@ -25,12 +25,10 @@ pub const MAX_REQUEST_SIZE: usize = 1024 * 1024;
 pub const MAX_STRING_LENGTH: usize = 100 * 1024;
 
 /// Input validation middleware
-///
 /// # Example
 /// ```
 /// use actix_web::{web, App};
 /// use crate::middleware::validation::{ValidateInput, ValidationConfig};
-///
 /// App::new()
 ///     .wrap(ValidateInput::with_config(ValidationConfig {
 ///         max_content_length: 10 * 1024 * 1024,  // 10MB

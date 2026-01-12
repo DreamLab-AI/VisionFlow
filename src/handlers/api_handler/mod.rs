@@ -23,7 +23,6 @@ use actix_web::{web, HttpResponse, Responder};
 use log::{error, info};
 use serde_json::json;
 
-///
 async fn health_check() -> Result<HttpResponse, actix_web::Error> {
     info!("Health check requested");
     ok_json!(json!({
@@ -33,7 +32,6 @@ async fn health_check() -> Result<HttpResponse, actix_web::Error> {
     }))
 }
 
-///
 async fn get_app_config(state: web::Data<crate::AppState>) -> impl Responder {
     info!("App config requested via CQRS");
 

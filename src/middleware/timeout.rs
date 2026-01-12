@@ -12,7 +12,6 @@ use log::error;
 use std::future::{ready, Ready};
 use std::time::Duration;
 
-///
 pub struct TimeoutMiddleware {
     timeout: Duration,
 }

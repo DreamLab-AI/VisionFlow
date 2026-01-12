@@ -107,13 +107,11 @@ impl std::fmt::Display for ConnectedComponentsResponse {
 }
 
 /// Compute single-source shortest paths from a given node
-///
 /// # Use Cases
 /// - Path highlighting in visualization
 /// - Reachability analysis
 /// - Proximity-based queries
 /// - Distance-based filtering
-///
 /// # Example
 /// ```json
 /// POST /api/analytics/pathfinding/sssp
@@ -170,13 +168,11 @@ pub async fn compute_sssp(
 }
 
 /// Compute approximate all-pairs shortest paths using landmark-based method
-///
 /// # Use Cases
 /// - Distance matrix visualization
 /// - Graph layout with distance preservation
 /// - Centrality analysis
 /// - Similarity-based clustering
-///
 /// # Example
 /// ```json
 /// POST /api/analytics/pathfinding/apsp
@@ -236,13 +232,11 @@ pub async fn compute_apsp(
 }
 
 /// Compute connected components of the graph
-///
 /// # Use Cases
 /// - Detecting disconnected graph regions
 /// - Network fragmentation analysis
 /// - Component-based visualization
 /// - Graph partitioning
-///
 /// # Example
 /// ```json
 /// POST /api/analytics/pathfinding/connected-components

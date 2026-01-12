@@ -16,7 +16,6 @@ use std::sync::{Arc, Mutex};
 use std::time::{SystemTime, UNIX_EPOCH};
 use uuid::Uuid;
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct CorrelationId(pub String);
 
@@ -59,7 +58,6 @@ impl std::fmt::Display for CorrelationId {
     }
 }
 
-///
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum LogLevel {
     TRACE, 
@@ -81,7 +79,6 @@ impl From<log::Level> for LogLevel {
     }
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Position3D {
     pub x: f32,
@@ -105,7 +102,6 @@ impl Position3D {
     }
 }
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TelemetryEvent {
     
@@ -280,7 +276,6 @@ impl TelemetryEvent {
     }
 }
 
-///
 #[derive(Clone)]
 pub struct AgentTelemetryLogger {
     log_dir: String,
@@ -615,11 +610,9 @@ impl AgentTelemetryLogger {
     }
 }
 
-///
 static mut GLOBAL_TELEMETRY_LOGGER: Option<AgentTelemetryLogger> = None;
 static LOGGER_INIT: std::sync::Once = std::sync::Once::new();
 
-///
 pub fn init_telemetry_logger(log_dir: &str, buffer_size: usize) -> Result<(), std::io::Error> {
     LOGGER_INIT.call_once(|| match AgentTelemetryLogger::new(log_dir, buffer_size) {
         Ok(logger) => {
@@ -638,12 +631,10 @@ pub fn init_telemetry_logger(log_dir: &str, buffer_size: usize) -> Result<(), st
     Ok(())
 }
 
-///
 pub fn get_telemetry_logger() -> Option<&'static AgentTelemetryLogger> {
     unsafe { GLOBAL_TELEMETRY_LOGGER.as_ref() }
 }
 
-///
 #[macro_export]
 macro_rules! telemetry_info {
     ($correlation_id:expr, $category:expr, $event_type:expr, $message:expr, $component:expr) => {

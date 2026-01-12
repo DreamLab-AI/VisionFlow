@@ -33,7 +33,6 @@ use crate::models::{
     node::Node,
 };
 
-///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SemanticConstraintConfig {
     
@@ -75,7 +74,6 @@ impl Default for SemanticConstraintConfig {
     }
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct NodeSimilarity {
     
@@ -90,7 +88,6 @@ pub struct NodeSimilarity {
     pub metadata_factors: HashMap<String, f32>,
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct SemanticCluster {
     
@@ -107,7 +104,6 @@ pub struct SemanticCluster {
     pub radius: Option<f32>,
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct HierarchicalRelation {
     
@@ -120,7 +116,6 @@ pub struct HierarchicalRelation {
     pub strength: f32,
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct ConstraintGenerationResult {
     
@@ -139,7 +134,6 @@ pub struct ConstraintGenerationResult {
     pub stats: GenerationStats,
 }
 
-///
 #[derive(Debug, Clone)]
 pub struct GenerationStats {
     
@@ -154,7 +148,6 @@ pub struct GenerationStats {
     pub avg_cluster_coherence: f32,
 }
 
-///
 pub struct SemanticConstraintGenerator {
     config: SemanticConstraintConfig,
     similarity_cache: HashMap<(u32, u32), NodeSimilarity>,

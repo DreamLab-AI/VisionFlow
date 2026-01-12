@@ -7,7 +7,6 @@ use crate::events::types::{
     DomainEvent, EventError, EventMetadata, EventResult, EventSnapshot, StoredEvent,
 };
 
-///
 #[async_trait]
 pub trait EventRepository: Send + Sync {
     
@@ -32,7 +31,6 @@ pub trait EventRepository: Send + Sync {
     async fn get_event_count(&self, aggregate_id: &str) -> EventResult<usize>;
 }
 
-///
 pub struct InMemoryEventRepository {
     events: Arc<RwLock<Vec<StoredEvent>>>,
     snapshots: Arc<RwLock<HashMap<String, EventSnapshot>>>,
@@ -114,7 +112,6 @@ impl EventRepository for InMemoryEventRepository {
     }
 }
 
-///
 pub struct EventStore {
     repo: Arc<dyn EventRepository>,
     snapshot_threshold: usize,

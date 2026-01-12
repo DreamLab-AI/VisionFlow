@@ -56,7 +56,6 @@ impl SupervisedActorState {
 }
 
 /// Graph Analytics Supervisor Actor
-///
 /// Manages the lifecycle of graph algorithm actors with proper error isolation.
 pub struct GraphAnalyticsSupervisor {
     /// Shared GPU context
