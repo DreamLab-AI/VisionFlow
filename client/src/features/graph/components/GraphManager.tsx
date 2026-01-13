@@ -884,11 +884,11 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   
   const defaultEdgeSettings: EdgeSettings = {
     arrowSize: 0.5,
-    baseWidth: 1,
-    color: '#ffffff',
+    baseWidth: 0.2,
+    color: '#56b6c2',
     enableArrows: true,
-    opacity: 0.8,
-    widthRange: [1, 5],
+    opacity: 0.9,
+    widthRange: [0.1, 0.3],
     quality: 'medium',
     enableFlowEffect: false,
     flowSpeed: 1,

@@ -214,13 +214,29 @@ class GraphDataManager {
         }
 
         const nodes = Array.isArray(responseData.nodes) ? responseData.nodes : [];
+
         // Convert edge source/target from numbers to strings (API returns numeric IDs)
+        // Also handle cases where source/target might be missing but extractable from id
         const edges = Array.isArray(responseData.edges)
-          ? responseData.edges.map((edge: any) => ({
-              ...edge,
-              source: String(edge.source),
-              target: String(edge.target)
-            }))
+          ? responseData.edges.map((edge: any) => {
+              let source = edge.source;
+              let target = edge.target;
+
+              // Extract from id if missing (format: "source-target")
+              if ((source === undefined || target === undefined) && edge.id && typeof edge.id === 'string') {
+                const parts = edge.id.split('-');
+                if (parts.length >= 2) {
+                  source = source ?? parts[0];
+                  target = target ?? parts.slice(1).join('-');
+                }
+              }
+
+              return {
+                ...edge,
+                source: String(source),
+                target: String(target)
+              };
+            }).filter((edge: any) => edge.source !== 'undefined' && edge.target !== 'undefined')
           : [];
         const metadata = responseData.metadata || {};
         const settlementState = responseData.settlementState || { isSettled: false, stableFrameCount: 0, kineticEnergy: 0 };

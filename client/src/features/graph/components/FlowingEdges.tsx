@@ -76,15 +76,16 @@ const flowFragmentShader = `
 
 export const FlowingEdges: React.FC<FlowingEdgesProps> = ({ points, settings: propSettings, edgeData }) => {
   const globalSettings = useSettingsStore((state) => state.settings);
-  
   const edgeBloomStrength = globalSettings?.visualisation?.glow?.edgeGlowStrength ?? 0.5;
   const lineRef = useRef<THREE.LineSegments>(null);
   const materialRef = useRef<THREE.LineBasicMaterial>(null);
-  
-  
-  
+
+
+
   const geometry = useMemo(() => {
-    if (points.length < 6) return null; 
+    if (points.length < 6) {
+      return null;
+    } 
     
     const geo = new THREE.BufferGeometry();
     const positions = new Float32Array(points);
@@ -96,10 +97,12 @@ export const FlowingEdges: React.FC<FlowingEdgesProps> = ({ points, settings: pr
   
   const material = useMemo(() => {
     const color = new THREE.Color(propSettings.color || '#56b6c2');
-    
-    
-    const bloomAdjustedColor = color.clone().multiplyScalar(edgeBloomStrength);
-    
+
+    // Don't darken base color for bloom - instead use additive glow boost
+    // Ensures edges remain visible regardless of bloom settings
+    const bloomBoost = 1 + (edgeBloomStrength * 0.5);
+    const bloomAdjustedColor = color.clone().multiplyScalar(bloomBoost);
+
     const mat = new THREE.LineBasicMaterial({
       color: bloomAdjustedColor,
       transparent: true,
@@ -145,8 +148,10 @@ export const FlowingEdges: React.FC<FlowingEdgesProps> = ({ points, settings: pr
     }
   });
   
-  if (!geometry) return null;
-  
+  if (!geometry) {
+    return null;
+  }
+
   return (
     <lineSegments ref={lineRef} geometry={geometry} material={material} renderOrder={5} />
   );

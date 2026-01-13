@@ -494,13 +494,27 @@ class WebSocketService {
           size: node.size,
         }));
 
-        const transformedEdges = edges.map((edge: any) => ({
-          id: edge.id || `${edge.source}-${edge.target}`,
-          source: String(edge.source),
-          target: String(edge.target),
-          weight: edge.weight,
-          label: edge.label,
-        }));
+        const transformedEdges = edges.map((edge: any) => {
+          // If source/target are missing but id is in format "source-target", extract them
+          let source = edge.source;
+          let target = edge.target;
+
+          if ((source === undefined || target === undefined) && edge.id && typeof edge.id === 'string') {
+            const parts = edge.id.split('-');
+            if (parts.length >= 2) {
+              source = source ?? parts[0];
+              target = target ?? parts.slice(1).join('-'); // Handle negative IDs
+            }
+          }
+
+          return {
+            id: edge.id || `${source}-${target}`,
+            source: String(source),
+            target: String(target),
+            weight: edge.weight,
+            label: edge.label,
+          };
+        }).filter((edge: any) => edge.source !== 'undefined' && edge.target !== 'undefined');
 
         // Update the graph data manager with the new filtered data
         graphDataManager.setGraphData({
