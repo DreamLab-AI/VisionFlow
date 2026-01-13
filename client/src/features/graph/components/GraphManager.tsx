@@ -203,6 +203,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   )
   const nodePositionsRef = useRef<Float32Array | null>(null)
   const [edgePoints, setEdgePoints] = useState<number[]>([])
+  const prevEdgePointsLengthRef = useRef<number>(0)
   const [nodesAreAtOrigin, setNodesAreAtOrigin] = useState(false)
 
   const [forceUpdate, setForceUpdate] = useState(0)
@@ -686,9 +687,15 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
             }
           }
         });
-        setEdgePoints(newEdgePoints);
+        // Only update edge points state when array length actually changes OR on first render
+        // This prevents React re-render loops from calling setEdgePoints every frame
+        const isFirstRender = prevEdgePointsLengthRef.current === 0 && newEdgePoints.length > 0;
+        if (isFirstRender || newEdgePoints.length !== prevEdgePointsLengthRef.current) {
+          prevEdgePointsLengthRef.current = newEdgePoints.length;
+          setEdgePoints(newEdgePoints);
+        }
 
-        
+
         const newLabelPositions = graphData.nodes.map((node, i) => {
           const i3 = i * 3;
           return {
