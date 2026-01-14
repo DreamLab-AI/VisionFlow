@@ -41,9 +41,10 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use crate::actors::{
-    ClientCoordinatorActor, PhysicsOrchestratorActor, SemanticProcessorActor,
+    ClientCoordinatorActor, GPUManagerActor, PhysicsOrchestratorActor, SemanticProcessorActor,
 };
 use crate::actors::graph_state_actor::GraphStateActor;
+use crate::actors::gpu::ForceComputeActor;
 // Removed unused import - we don't use graph_messages types for handlers
 use crate::actors::messages as msgs;
 // Removed graph_messages::GetGraphData import - not used
@@ -155,13 +156,16 @@ impl std::fmt::Debug for SupervisedMessage {
 }
 
 pub struct GraphServiceSupervisor {
-    
+    // Child actor addresses
     graph_state: Option<Addr<GraphStateActor>>,
     physics: Option<Addr<PhysicsOrchestratorActor>>,
     semantic: Option<Addr<SemanticProcessorActor>>,
     client: Option<Addr<ClientCoordinatorActor>>,
 
-    
+    // GPU manager address for GPU physics initialization
+    gpu_manager: Option<Addr<GPUManagerActor>>,
+
+    // Knowledge graph repository
     kg_repo: Option<Arc<dyn crate::ports::knowledge_graph_repository::KnowledgeGraphRepository>>,
 
     
@@ -230,6 +234,7 @@ impl GraphServiceSupervisor {
             physics: None,
             semantic: None,
             client: None,
+            gpu_manager: None,
             kg_repo: Some(kg_repo),
             strategy: GraphSupervisionStrategy::OneForOne,
             restart_policy: RestartPolicy::default(),
@@ -897,11 +902,51 @@ impl Handler<msgs::InitializeGPUConnection> for GraphServiceSupervisor {
 
     fn handle(
         &mut self,
-        _msg: msgs::InitializeGPUConnection,
-        _ctx: &mut Self::Context,
+        msg: msgs::InitializeGPUConnection,
+        ctx: &mut Self::Context,
     ) -> Self::Result {
-        warn!("InitializeGPUConnection: Supervisor not fully implemented");
+        info!("GraphServiceSupervisor: Initializing GPU connection");
 
+        // Store GPU manager address
+        if let Some(ref gpu_manager) = msg.gpu_manager {
+            self.gpu_manager = Some(gpu_manager.clone());
+            info!("GraphServiceSupervisor: GPU manager address stored");
+
+            // Get ForceComputeActor from GPUManagerActor and forward to PhysicsOrchestratorActor
+            let physics_addr = self.physics.clone();
+            let gpu_manager_clone = gpu_manager.clone();
+
+            ctx.spawn(
+                async move {
+                    // Query GPUManagerActor for ForceComputeActor address
+                    info!("GraphServiceSupervisor: Querying GPUManagerActor for ForceComputeActor");
+                    match gpu_manager_clone.send(msgs::GetForceComputeActor).await {
+                        Ok(Ok(force_compute_addr)) => {
+                            info!("GraphServiceSupervisor: Got ForceComputeActor address from GPUManagerActor");
+
+                            // Forward to PhysicsOrchestratorActor
+                            if let Some(physics) = physics_addr {
+                                physics.do_send(msgs::StoreGPUComputeAddress {
+                                    addr: Some(force_compute_addr),
+                                });
+                                info!("GraphServiceSupervisor: ForceComputeActor address sent to PhysicsOrchestratorActor");
+                            } else {
+                                warn!("GraphServiceSupervisor: PhysicsOrchestratorActor not available");
+                            }
+                        }
+                        Ok(Err(e)) => {
+                            warn!("GraphServiceSupervisor: Failed to get ForceComputeActor: {}", e);
+                        }
+                        Err(e) => {
+                            error!("GraphServiceSupervisor: GPUManagerActor communication error: {}", e);
+                        }
+                    }
+                }
+                .into_actor(self)
+            );
+        } else {
+            warn!("GraphServiceSupervisor: No GPU manager provided in InitializeGPUConnection");
+        }
     }
 }
 

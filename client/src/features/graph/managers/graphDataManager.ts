@@ -43,34 +43,31 @@ class GraphDataManager {
 
   private async waitForWorker(): Promise<void> {
     try {
-      console.log('[GraphDataManager] Waiting for worker to be ready...');
+      if (debugState.isEnabled()) {
+        logger.debug('Waiting for worker to be ready...');
+      }
       let attempts = 0;
-      const maxAttempts = 300; // Increased from 50 to 300 (3 seconds total)
-
+      const maxAttempts = 300; // 3 seconds total
 
       while (!graphWorkerProxy.isReady() && attempts < maxAttempts) {
         await new Promise(resolve => setTimeout(resolve, 10));
         attempts++;
-        // Log progress every 50 attempts
-        if (attempts % 50 === 0) {
-          console.log(`[GraphDataManager] Still waiting for worker... (${attempts}/${maxAttempts})`);
-        }
       }
 
       if (!graphWorkerProxy.isReady()) {
-        console.warn('[GraphDataManager] Worker not ready after timeout, continuing without worker');
         logger.warn('Graph worker proxy not ready after timeout, proceeding without worker');
         this.workerInitialized = false;
-        // Show user-facing error modal via workerErrorStore
         useWorkerErrorStore.getState().setWorkerError(
           'The graph visualization worker failed to initialize.',
           'Worker initialization timed out after 3 seconds. The application will continue with reduced performance.'
         );
         return;
       }
-      
+
       this.workerInitialized = true;
-      console.log('[GraphDataManager] Worker is ready!');
+      if (debugState.isEnabled()) {
+        logger.info('Worker is ready!');
+      }
       
       
       this.setupWorkerListeners();
@@ -79,7 +76,6 @@ class GraphDataManager {
         logger.info('Graph worker proxy is ready');
       }
     } catch (error) {
-      console.error('[GraphDataManager] Failed to wait for worker:', error);
       logger.error('Failed to wait for graph worker proxy:', createErrorMetadata(error));
       this.workerInitialized = false;
     }
@@ -145,12 +141,16 @@ class GraphDataManager {
       return true;
     }
 
-    console.log('[GraphDataManager] ensureWorkerReady called, checking worker status...');
+    if (debugState.isEnabled()) {
+      logger.debug('ensureWorkerReady called, checking worker status...');
+    }
 
     if (graphWorkerProxy.isReady()) {
       this.workerInitialized = true;
       this.setupWorkerListeners();
-      console.log('[GraphDataManager] Worker is now ready (late initialization)');
+      if (debugState.isEnabled()) {
+        logger.info('Worker is now ready (late initialization)');
+      }
       return true;
     }
 
@@ -160,12 +160,14 @@ class GraphDataManager {
       if (graphWorkerProxy.isReady()) {
         this.workerInitialized = true;
         this.setupWorkerListeners();
-        console.log('[GraphDataManager] Worker became ready after additional wait');
+        if (debugState.isEnabled()) {
+          logger.info('Worker became ready after additional wait');
+        }
         return true;
       }
     }
 
-    console.warn('[GraphDataManager] Worker still not ready after ensureWorkerReady');
+    logger.warn('Worker still not ready after ensureWorkerReady');
     return false;
   }
 
@@ -198,13 +200,11 @@ class GraphDataManager {
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`[GraphDataManager] Fetching initial ${this.graphType} graph data with physics positions (Attempt ${attempt}/${maxRetries})`);
         if (debugState.isEnabled()) {
           logger.info(`Fetching initial ${this.graphType} graph data with physics positions (Attempt ${attempt}/${maxRetries})`);
         }
 
         const response = await unifiedApiClient.get('/graph/data');
-        console.log(`[GraphDataManager] API response status: ${response.status}`);
 
         // Handle response structure: { success: true, data: { nodes: [], edges: [] } }
         const responseData = response.data.data || response.data;
@@ -241,7 +241,9 @@ class GraphDataManager {
         const metadata = responseData.metadata || {};
         const settlementState = responseData.settlementState || { isSettled: false, stableFrameCount: 0, kineticEnergy: 0 };
 
-        console.log(`[GraphDataManager] Received settlement state: settled=${settlementState.isSettled}, frames=${settlementState.stableFrameCount}, KE=${settlementState.kineticEnergy}`);
+        if (debugState.isEnabled()) {
+          logger.debug(`Received settlement state: settled=${settlementState.isSettled}, frames=${settlementState.stableFrameCount}, KE=${settlementState.kineticEnergy}`);
+        }
 
         
         
@@ -260,11 +262,12 @@ class GraphDataManager {
           logger.info(`Received initial graph data: ${validatedData.nodes.length} nodes, ${validatedData.edges.length} edges (physics settled: ${settlementState.isSettled})`);
         }
 
-        console.log(`[GraphDataManager] Setting validated graph data with ${validatedData.nodes.length} nodes at physics-settled positions`);
         await this.setGraphData(validatedData);
 
         const currentData = await graphWorkerProxy.getGraphData();
-        console.log(`[GraphDataManager] Worker returned data with ${currentData.nodes.length} nodes - no position "pop-in" expected!`);
+        if (debugState.isEnabled()) {
+          logger.info(`Graph data loaded: ${currentData.nodes.length} nodes`);
+        }
         return currentData;
 
       } catch (error) {
@@ -275,7 +278,9 @@ class GraphDataManager {
         }
 
         const delay = initialDelay * Math.pow(2, attempt - 1);
-        console.log(`[GraphDataManager] Retrying in ${delay}ms...`);
+        if (debugState.isEnabled()) {
+          logger.debug(`Retrying in ${delay}ms...`);
+        }
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
@@ -388,13 +393,14 @@ class GraphDataManager {
   public async getGraphData(): Promise<GraphData> {
     // Check both local flag AND proxy ready state (handles race condition)
     if (!this.workerInitialized && !graphWorkerProxy.isReady()) {
-      console.warn('[GraphDataManager] Worker not initialized, returning empty data');
+      if (debugState.isEnabled()) {
+        logger.warn('Worker not initialized, returning empty data');
+      }
       return { nodes: [], edges: [] };
     }
 
     // Update local flag if proxy is ready but we missed initialization
     if (!this.workerInitialized && graphWorkerProxy.isReady()) {
-      console.log('[GraphDataManager] Proxy ready, updating workerInitialized flag');
       this.workerInitialized = true;
       this.setupWorkerListeners();
     }
@@ -402,7 +408,6 @@ class GraphDataManager {
     try {
       return await graphWorkerProxy.getGraphData();
     } catch (error) {
-      console.error('[GraphDataManager] Error getting data from worker:', error);
       logger.error('Error getting graph data from worker:', createErrorMetadata(error));
       return { nodes: [], edges: [] };
     }
@@ -468,60 +473,38 @@ class GraphDataManager {
 
   
   public async updateNodePositions(positionData: ArrayBuffer): Promise<void> {
-    
     this.updateCount = (this.updateCount || 0) + 1;
-    if (this.updateCount % 100 === 1) { 
-      console.log('[GraphDataManager] updateNodePositions called, size:', positionData?.byteLength, 'graph type:', this.graphType, 'count:', this.updateCount);
-    }
-    
+
     if (!positionData || positionData.byteLength === 0) {
-      if (this.updateCount % 100 === 1) {
-        console.log('[GraphDataManager] No position data, returning');
-      }
       return;
     }
 
-    
+    // Skip non-logseq graphs
     if (this.graphType !== 'logseq') {
-      if (this.updateCount % 100 === 1) {
-        console.log('[GraphDataManager] Skipping - not logseq graph, type is:', this.graphType);
-      }
       if (debugState.isDataDebugEnabled()) {
         logger.debug(`Skipping binary update for ${this.graphType} graph`);
       }
       return;
     }
 
-    
+    // Throttle to ~60fps
     const now = Date.now();
-    if (now - this.lastBinaryUpdateTime < 16) { 
-      if (debugState.isDataDebugEnabled()) {
-        logger.debug('Skipping duplicate position update');
-      }
+    if (now - this.lastBinaryUpdateTime < 16) {
       return;
     }
     this.lastBinaryUpdateTime = now;
 
     try {
-      
       if (debugState.isDataDebugEnabled()) {
         logger.debug(`Received binary data: ${positionData.byteLength} bytes`);
-        
-        
+
         const remainder = positionData.byteLength % BINARY_NODE_SIZE;
         if (remainder !== 0) {
           logger.warn(`Binary data size (${positionData.byteLength} bytes) is not a multiple of ${BINARY_NODE_SIZE}. Remainder: ${remainder} bytes`);
         }
       }
-      
-      
-      if (this.updateCount % 100 === 1) {
-        console.log('[GraphDataManager] Sending to worker proxy for processing');
-      }
+
       await graphWorkerProxy.processBinaryData(positionData);
-      if (this.updateCount % 100 === 1) {
-        console.log('[GraphDataManager] Worker proxy processing complete');
-      }
       
       
       const settings = useSettingsStore.getState().settings;
@@ -623,24 +606,20 @@ class GraphDataManager {
 
   
   public onGraphDataChange(listener: GraphDataChangeListener): () => void {
-    console.log('[GraphDataManager] Adding graph data change listener');
     this.graphDataListeners.push(listener);
-    
-    
-    console.log('[GraphDataManager] Getting current data for new listener');
+
+    // Provide initial data to new listener
     graphWorkerProxy.getGraphData().then(data => {
-      console.log(`[GraphDataManager] Calling listener with current data: ${data.nodes.length} nodes`);
+      if (debugState.isEnabled()) {
+        logger.debug(`Calling listener with current data: ${data.nodes.length} nodes`);
+      }
       listener(data);
     }).catch(error => {
-      console.error('[GraphDataManager] Error getting initial graph data for listener:', error);
       logger.error('Error getting initial graph data for listener:', createErrorMetadata(error));
-      
       listener({ nodes: [], edges: [] });
     });
-    
-    
+
     return () => {
-      console.log('[GraphDataManager] Removing graph data change listener');
       this.graphDataListeners = this.graphDataListeners.filter(l => l !== listener);
     };
   }
@@ -685,8 +664,10 @@ class GraphDataManager {
   
   public ensureNodeHasValidPosition(node: Node): Node {
     if (!node.position) {
-      
-      console.warn(`[GraphDataManager] Node ${node.id} missing position - server should provide this!`);
+      // Only log in debug mode to avoid spam
+      if (debugState.isDataDebugEnabled()) {
+        logger.warn(`Node ${node.id} missing position - server should provide this!`);
+      }
       return {
         ...node,
         position: { x: 0, y: 0, z: 0 }
@@ -694,8 +675,9 @@ class GraphDataManager {
     } else if (typeof node.position.x !== 'number' ||
                typeof node.position.y !== 'number' ||
                typeof node.position.z !== 'number') {
-      
-      console.warn(`[GraphDataManager] Node ${node.id} has invalid position coordinates - fixing`);
+      if (debugState.isDataDebugEnabled()) {
+        logger.warn(`Node ${node.id} has invalid position coordinates - fixing`);
+      }
       node.position.x = typeof node.position.x === 'number' && isFinite(node.position.x) ? node.position.x : 0;
       node.position.y = typeof node.position.y === 'number' && isFinite(node.position.y) ? node.position.y : 0;
       node.position.z = typeof node.position.z === 'number' && isFinite(node.position.z) ? node.position.z : 0;

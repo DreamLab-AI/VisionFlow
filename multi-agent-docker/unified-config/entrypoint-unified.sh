@@ -391,6 +391,11 @@ echo "[6.7/10] Configuring cross-user service access..."
 mkdir -p /var/run/agentic-services
 chmod 755 /var/run/agentic-services
 
+# Set agent events bridge environment variables
+export ENABLE_MCP_BRIDGE="${ENABLE_MCP_BRIDGE:-true}"
+export MCP_TCP_HOST="${MCP_TCP_HOST:-localhost}"
+export MCP_TCP_PORT="${MCP_TCP_PORT:-9500}"
+
 # Create symlinks for devuser to access isolated services
 mkdir -p /home/devuser/.local/share/agentic-sockets
 ln -sf /var/run/agentic-services/gemini-mcp.sock /home/devuser/.local/share/agentic-sockets/gemini-mcp.sock 2>/dev/null || true
@@ -404,6 +409,11 @@ export GEMINI_MCP_SOCKET="/var/run/agentic-services/gemini-mcp.sock"
 export ZAI_API_URL="http://localhost:9600"
 export ZAI_CONTAINER_URL="http://localhost:9600"
 export OPENAI_CODEX_SOCKET="/var/run/agentic-services/openai-codex.sock"
+
+# Agent Event Bridge to VisionFlow
+export ENABLE_MCP_BRIDGE="true"
+export MCP_TCP_HOST="localhost"
+export MCP_TCP_PORT="9500"
 
 # Display and supervisorctl configuration
 export DISPLAY=:1

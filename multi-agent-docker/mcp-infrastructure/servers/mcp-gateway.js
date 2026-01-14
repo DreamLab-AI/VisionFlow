@@ -13,6 +13,9 @@ class SharedContext {
     this.agents = new Map();
     this.sessions = new Map();
     this.tools = new Map();
+    this.agentEventSubscribers = new Set(); // Track clients subscribed to agent events
+    this.broadcastCount = 0; // Throttle logging
+    this.lastLogTime = 0;
   }
 
   registerAgent(id, metadata) {
@@ -38,8 +41,50 @@ class SharedContext {
   }
 
   closeSession(id) {
+    // Remove from agent event subscribers
+    const session = this.sessions.get(id);
+    if (session) {
+      this.agentEventSubscribers.delete(session);
+    }
     this.sessions.delete(id);
     console.log(`[MCP Gateway] Session closed: ${id}`);
+  }
+
+  // Subscribe session to agent events
+  subscribeToAgentEvents(sessionId) {
+    const session = this.sessions.get(sessionId);
+    if (session) {
+      this.agentEventSubscribers.add(session);
+      console.log(`[MCP Gateway] Session ${sessionId} subscribed to agent events`);
+    }
+  }
+
+  // Broadcast agent action event to all subscribers
+  broadcastAgentEvent(event) {
+    const message = JSON.stringify(event);
+    let count = 0;
+
+    for (const session of this.agentEventSubscribers) {
+      try {
+        if (session.protocol === 'tcp' && session.socket && !session.socket.destroyed) {
+          session.socket.write(message + '\n');
+          count++;
+        } else if (session.protocol === 'websocket' && session.socket && session.socket.readyState === 1) {
+          session.socket.send(message);
+          count++;
+        }
+      } catch (err) {
+        // Throttle error logging to once per 10 seconds
+        const now = Date.now();
+        if (now - this.lastLogTime > 10000) {
+          console.error(`[MCP Gateway] Broadcast error to ${session.id}:`, err.message);
+          this.lastLogTime = now;
+        }
+      }
+    }
+
+    this.broadcastCount++;
+    return count;
   }
 }
 
@@ -90,6 +135,49 @@ class TCPServer {
     // Route to appropriate handler based on method
     let response;
     switch (method) {
+      case 'initialize':
+        // MCP handshake - auto-subscribe to agent events
+        this.context.subscribeToAgentEvents(sessionId);
+        response = {
+          jsonrpc: '2.0',
+          id,
+          result: {
+            protocolVersion: '2024-11-05',
+            serverInfo: { name: 'mcp-gateway', version: '2.0.0' },
+            capabilities: {
+              tools: { listChanged: true },
+              experimental: { agentEvents: true }
+            }
+          }
+        };
+        break;
+
+      case 'notifications/agent_action':
+        // Forward agent action events to all subscribers (VisionFlow)
+        const broadcastCount = this.context.broadcastAgentEvent({
+          jsonrpc: '2.0',
+          method: 'notifications/agent_action',
+          params: params
+        });
+        // Throttled logging - only log every 100th broadcast or every 30 seconds
+        if (this.context.broadcastCount % 100 === 1) {
+          console.log(`[MCP Gateway] Agent action broadcast #${this.context.broadcastCount} to ${broadcastCount} clients`);
+        }
+        if (id) {
+          response = { jsonrpc: '2.0', id, result: { broadcast_count: broadcastCount } };
+        }
+        break;
+
+      case 'agent_events/subscribe':
+        // Explicit subscription to agent events
+        this.context.subscribeToAgentEvents(sessionId);
+        response = {
+          jsonrpc: '2.0',
+          id,
+          result: { subscribed: true, session_id: sessionId }
+        };
+        break;
+
       case 'tools/list':
         response = this.handleToolsList(id);
         break;
@@ -110,7 +198,9 @@ class TCPServer {
         };
     }
 
-    socket.write(JSON.stringify(response) + '\n');
+    if (response) {
+      socket.write(JSON.stringify(response) + '\n');
+    }
   }
 
   handleToolsList(id) {
@@ -180,7 +270,20 @@ class WebSocketServerWrapper {
         res.end(JSON.stringify({
           status: 'healthy',
           agents: this.context.agents.size,
-          sessions: this.context.sessions.size
+          sessions: this.context.sessions.size,
+          agentEventSubscribers: this.context.agentEventSubscribers.size,
+          timestamp: new Date().toISOString()
+        }));
+      } else if (req.url === '/agent-events/status') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          subscribers: this.context.agentEventSubscribers.size,
+          sessions: Array.from(this.context.sessions.values()).map(s => ({
+            id: s.id,
+            protocol: s.protocol,
+            createdAt: s.createdAt
+          })),
+          timestamp: new Date().toISOString()
         }));
       } else {
         res.writeHead(404);
@@ -226,17 +329,81 @@ class WebSocketServerWrapper {
   handleMessage(sessionId, message, ws) {
     const { id, method, params } = message;
 
-    // Reuse TCP server logic by creating a wrapper
     let response;
     switch (method) {
-      case 'tools/list':
-      case 'tools/call':
-      case 'agent/register':
-      case 'agent/list':
-        // Delegate to TCP handler logic
-        const tcpHandler = new TCPServer(this.context);
-        response = tcpHandler.handleMessage(sessionId, message, { write: () => {} });
+      case 'initialize':
+        // MCP handshake - auto-subscribe to agent events
+        this.context.subscribeToAgentEvents(sessionId);
+        response = {
+          jsonrpc: '2.0',
+          id,
+          result: {
+            protocolVersion: '2024-11-05',
+            serverInfo: { name: 'mcp-gateway', version: '2.0.0' },
+            capabilities: {
+              tools: { listChanged: true },
+              experimental: { agentEvents: true }
+            }
+          }
+        };
         break;
+
+      case 'notifications/agent_action':
+        // Forward agent action events to all subscribers (VisionFlow)
+        const broadcastCount = this.context.broadcastAgentEvent({
+          jsonrpc: '2.0',
+          method: 'notifications/agent_action',
+          params: params
+        });
+        // Logging handled in broadcastAgentEvent (throttled)
+        if (id) {
+          response = { jsonrpc: '2.0', id, result: { broadcast_count: broadcastCount } };
+        }
+        break;
+
+      case 'agent_events/subscribe':
+        this.context.subscribeToAgentEvents(sessionId);
+        response = {
+          jsonrpc: '2.0',
+          id,
+          result: { subscribed: true, session_id: sessionId }
+        };
+        break;
+
+      case 'tools/list':
+        response = {
+          jsonrpc: '2.0',
+          id,
+          result: {
+            tools: this.context.getAllAgents().map(agent => ({
+              name: agent.id,
+              description: agent.description || 'Agent tool',
+              inputSchema: agent.inputSchema || {}
+            }))
+          }
+        };
+        break;
+
+      case 'agent/register':
+        this.context.registerAgent(params.id, params);
+        response = {
+          jsonrpc: '2.0',
+          id,
+          result: { success: true, agentId: params.id }
+        };
+        break;
+
+      case 'agent/list':
+        response = {
+          jsonrpc: '2.0',
+          id,
+          result: {
+            agents: this.context.getAllAgents(),
+            count: this.context.agents.size
+          }
+        };
+        break;
+
       default:
         response = {
           jsonrpc: '2.0',
@@ -245,7 +412,9 @@ class WebSocketServerWrapper {
         };
     }
 
-    ws.send(JSON.stringify(response));
+    if (response) {
+      ws.send(JSON.stringify(response));
+    }
   }
 
   stop() {

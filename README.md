@@ -186,7 +186,7 @@ docker-compose --profile dev up -d
 
 **That's it.** Your AI agent teams will begin analyzing data immediately.
 
-**Next:** [Full Installation Guide](docs/getting-started/01-installation.md) · [First Graph Tutorial](docs/getting-started/02-first-graph-and-agents.md)
+**Next:** [Full Installation Guide](docs/getting-started/installation.md) · [First Graph Tutorial](docs/getting-started/first-graph.md)
 
 <details>
 <summary><strong>Click to expand: Native Installation (without Docker)</strong></summary>
@@ -304,7 +304,7 @@ flowchart TB
 - **Actor System** — 21 specialized actors for graph state, physics, semantics, and coordination
 - **Event-Driven Architecture** — Domain events with pub/sub pattern for loose coupling
 
-**Deep Dive:** [Architecture Overview](docs/concepts/architecture/00-architecture-overview.md) · [Hexagonal CQRS](docs/concepts/architecture/hexagonal-cqrs-architecture.md) · [Actor System](docs/guides/graphserviceactor-migration.md)
+**Deep Dive:** [Architecture Overview](docs/architecture/overview.md) · [Hexagonal CQRS](docs/architecture/patterns/hexagonal-cqrs.md) · [Actor System](docs/guides/graphserviceactor-migration.md)
 
 <details>
 <summary><strong>Click to expand: Data Pipeline Details</strong></summary>
@@ -334,7 +334,7 @@ flowchart LR
 - **GPU-accelerated physics** — 100x faster than CPU
 - **Binary Protocol V2** — 36 bytes per node update (supports full 32-bit node IDs)
 
-**Complete documentation:** [Pipeline Integration](docs/concepts/architecture/pipeline-integration.md)
+**Complete documentation:** [Pipeline Integration](docs/explanations/architecture/pipeline-integration.md)
 
 </details>
 
@@ -342,15 +342,15 @@ flowchart LR
 <summary><strong>Click to expand: Architecture Documentation Index</strong></summary>
 
 **Core Architecture:**
-- [Architecture Overview](docs/concepts/architecture/00-architecture-overview.md)
-- [Hexagonal CQRS Architecture](docs/concepts/architecture/hexagonal-cqrs-architecture.md)
+- [Architecture Overview](docs/architecture/overview.md)
+- [Hexagonal CQRS Architecture](docs/architecture/patterns/hexagonal-cqrs.md)
 - [Modular Actor System](docs/guides/graphserviceactor-migration.md)
 
 **Specialized Systems:**
-- [XR Immersive System](docs/concepts/architecture/xr-immersive-system.md)
-- [Ontology Storage Architecture](docs/concepts/architecture/ontology-storage-architecture.md)
-- [Semantic Physics System](docs/concepts/architecture/semantic-physics-system.md)
-- [GPU Semantic Forces](docs/concepts/architecture/gpu-semantic-forces.md)
+- [XR Immersive System](docs/explanations/architecture/xr-immersive-system.md)
+- [Ontology Storage Architecture](docs/explanations/architecture/ontology-storage-architecture.md)
+- [Semantic Physics System](docs/explanations/architecture/semantic-physics-system.md)
+- [GPU Semantic Forces](docs/explanations/architecture/gpu-semantic-forces.md)
 
 **Communication Protocols:**
 - [WebSocket Protocol](docs/reference/websocket-protocol.md)
@@ -358,8 +358,8 @@ flowchart LR
 - [Error Codes](docs/reference/error-codes.md)
 
 **Data Flow:**
-- [Data Flow Complete](docs/concepts/architecture/data-flow-complete.md)
-- [Reasoning Data Flow](docs/concepts/architecture/reasoning-data-flow.md)
+- [Data Flow Complete](docs/architecture/data-flow.md)
+- [Reasoning Data Flow](docs/explanations/architecture/reasoning-data-flow.md)
 
 </details>
 
@@ -448,12 +448,12 @@ VisionFlow uses the **Diátaxis** framework for organized documentation:
 <td width="50%">
 
 ### Tutorials (Learning)
-- [Installation Guide](docs/getting-started/01-installation.md)
-- [First Graph & Agents](docs/getting-started/02-first-graph-and-agents.md)
-- [Neo4j Quick Start](docs/tutorials/neo4j-quick-start.md)
+- [Installation Guide](docs/getting-started/installation.md)
+- [First Graph & Agents](docs/getting-started/first-graph.md)
+- [Neo4j Quick Start](docs/getting-started/neo4j-quickstart.md)
 
 ### How-To Guides
-- [Working with Agents](docs/archive/docs/guides/user/working-with-agents.md)
+- [Working with Agents](docs/guides/agent-orchestration.md)
 - [XR Setup](docs/guides/vircadia-xr-complete-guide.md)
 - [Neo4j Integration](docs/guides/neo4j-integration.md)
 - [Docker Deployment](docs/guides/docker-compose-guide.md)
@@ -462,10 +462,10 @@ VisionFlow uses the **Diátaxis** framework for organized documentation:
 <td width="50%">
 
 ### Concepts (Understanding)
-- [Architecture Overview](docs/concepts/architecture/00-architecture-overview.md)
-- [Hexagonal CQRS](docs/concepts/architecture/hexagonal-cqrs-architecture.md)
-- [Semantic Physics](docs/concepts/architecture/semantic-physics-system.md)
-- [Ontology Reasoning](docs/concepts/ontology-reasoning.md)
+- [Architecture Overview](docs/architecture/overview.md)
+- [Hexagonal CQRS](docs/architecture/patterns/hexagonal-cqrs.md)
+- [Semantic Physics](docs/explanations/architecture/semantic-physics-system.md)
+- [Ontology Reasoning](docs/explanations/architecture/ontology-reasoning-pipeline.md)
 
 ### Reference
 - [REST API](docs/reference/api/rest-api-reference.md)
@@ -483,11 +483,11 @@ VisionFlow uses the **Diátaxis** framework for organized documentation:
 <summary><strong>Click to expand: Complete Documentation Index</strong></summary>
 
 ### Getting Started
-- [Installation Guide](docs/getting-started/01-installation.md)
-- [First Graph & Agents](docs/getting-started/02-first-graph-and-agents.md)
+- [Installation Guide](docs/getting-started/installation.md)
+- [First Graph & Agents](docs/getting-started/first-graph.md)
 
 ### User Guides
-- [Working with Agents](docs/archive/docs/guides/user/working-with-agents.md)
+- [Working with Agents](docs/guides/agent-orchestration.md)
 - [XR Setup](docs/guides/vircadia-xr-complete-guide.md)
 - [Neo4j Integration](docs/guides/neo4j-integration.md)
 - [Docker Deployment](docs/guides/docker-compose-guide.md)
@@ -497,18 +497,18 @@ VisionFlow uses the **Diátaxis** framework for organized documentation:
 ### Developer Guides
 - [Development Setup](docs/guides/developer/01-development-setup.md)
 - [Project Structure](docs/guides/developer/02-project-structure.md)
-- [Architecture Overview](docs/guides/developer/03-architecture.md)
+- [Architecture Overview](docs/architecture/overview.md)
 - [Adding Features](docs/guides/developer/04-adding-features.md)
 - [Testing Guide](docs/guides/testing-guide.md)
 - [Contributing](docs/guides/developer/06-contributing.md)
 
 ### Architecture Concepts
-- [Architecture Overview](docs/concepts/architecture/00-architecture-overview.md)
-- [Hexagonal CQRS](docs/concepts/architecture/hexagonal-cqrs-architecture.md)
-- [Semantic Physics](docs/concepts/architecture/semantic-physics-system.md)
-- [XR Immersive System](docs/concepts/architecture/xr-immersive-system.md)
-- [Ontology Storage](docs/concepts/architecture/ontology-storage-architecture.md)
-- [GPU Semantic Forces](docs/concepts/architecture/gpu-semantic-forces.md)
+- [Architecture Overview](docs/architecture/overview.md)
+- [Hexagonal CQRS](docs/architecture/patterns/hexagonal-cqrs.md)
+- [Semantic Physics](docs/explanations/architecture/semantic-physics-system.md)
+- [XR Immersive System](docs/explanations/architecture/xr-immersive-system.md)
+- [Ontology Storage](docs/explanations/architecture/ontology-storage-architecture.md)
+- [GPU Semantic Forces](docs/explanations/architecture/gpu-semantic-forces.md)
 
 ### Feature Guides
 - [Natural Language Queries](docs/guides/features/natural-language-queries.md)
@@ -523,10 +523,10 @@ VisionFlow uses the **Diátaxis** framework for organized documentation:
 - [Performance Benchmarks](docs/reference/performance-benchmarks.md)
 
 ### Multi-Agent System
-- [Architecture](docs/multi-agent-docker/architecture.md)
-- [Tools](docs/multi-agent-docker/tools.md)
-- [Docker Environment](docs/multi-agent-docker/docker-environment.md)
-- [Troubleshooting](docs/multi-agent-docker/troubleshooting.md)
+- [Architecture](docs/architecture/agents/multi-agent.md)
+- [Agent Orchestration](docs/guides/agent-orchestration.md)
+- [Agent Skills](docs/guides/multi-agent-skills.md)
+- [Docker Setup](multi-agent-docker/README.md)
 
 </details>
 
@@ -556,9 +556,10 @@ VisionFlow/
 │   └── coordination/       # Agent coordination
 │
 └── docs/                   # Documentation
-    ├── getting-started/    # Tutorials
+    ├── getting-started/    # Tutorials and onboarding
     ├── guides/             # How-to guides
-    ├── concepts/           # Architecture docs
+    ├── architecture/       # System architecture
+    ├── explanations/       # Deep-dive concepts
     └── reference/          # API reference
 ```
 
@@ -620,11 +621,15 @@ VisionFlow/
     │   ├── developer/               # Development guides
     │   ├── features/                # Feature-specific guides
     │   └── infrastructure/          # Infrastructure guides
-    ├── concepts/                 # Architecture & design concepts
-    │   └── architecture/            # System architecture
+    ├── architecture/             # System architecture & design
+    │   ├── patterns/                # Architecture patterns (CQRS, Hexagonal)
+    │   ├── agents/                  # Multi-agent system design
+    │   └── gpu/                     # GPU acceleration architecture
+    ├── explanations/             # Deep-dive explanations
+    │   └── architecture/            # Architecture explanations
     ├── reference/                # API references & technical specs
     │   └── api/                     # API documentation
-    └── explanations/             # Deep-dive explanations
+    └── archive/                  # Historical documentation
 ```
 
 </details>

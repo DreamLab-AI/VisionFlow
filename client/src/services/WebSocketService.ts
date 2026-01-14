@@ -114,7 +114,7 @@ class WebSocketService {
   // Used to send ACKs back to server after processing position updates
   private positionUpdateSequence: number = 0;
   private lastAckSentSequence: number = 0;
-  private ackBatchSize: number = 10; // Send ACK every N position updates
+  private ackBatchSize: number = 50; // Send ACK every N position updates (reduced from 10 to minimize traffic)
 
   // JSS/Solid WebSocket for notifications (solid-0.1 protocol)
   private solidSocket: WebSocket | null = null;
@@ -478,7 +478,9 @@ class WebSocketService {
       if (message.type === 'initialGraphLoad') {
         const nodes = message.nodes || [];
         const edges = message.edges || [];
-        logger.info(`[WebSocket] Received initialGraphLoad with ${nodes.length} nodes, ${edges.length} edges - updating graph`);
+        if (debugState.isEnabled()) {
+          logger.info(`[WebSocket] Received initialGraphLoad with ${nodes.length} nodes, ${edges.length} edges - updating graph`);
+        }
 
         // Transform server node format to client format
         const transformedNodes = nodes.map((node: any) => ({
@@ -521,7 +523,9 @@ class WebSocketService {
           nodes: transformedNodes,
           edges: transformedEdges,
         }).then(() => {
-          logger.info(`[WebSocket] Graph updated with ${transformedNodes.length} nodes from server filter`);
+          if (debugState.isEnabled()) {
+            logger.info(`[WebSocket] Graph updated with ${transformedNodes.length} nodes from server filter`);
+          }
           this.emit('graphDataUpdated', {
             nodeCount: transformedNodes.length,
             edgeCount: transformedEdges.length,
@@ -660,11 +664,10 @@ class WebSocketService {
     if (graphType === 'logseq') {
       try {
         await graphDataManager.updateNodePositions(payload);
-        if (this.binaryMessageCount % 100 === 1) {
+        if (this.binaryMessageCount % 100 === 1 && debugState.isDataDebugEnabled()) {
           logger.debug('Node positions updated successfully');
         }
       } catch (error) {
-        console.error('[WebSocketService] Error updating positions:', error);
         logger.error('Error processing position data in graphDataManager:', createErrorMetadata(error));
       }
     } else if (this.binaryMessageCount % 100 === 1) {
@@ -889,7 +892,9 @@ class WebSocketService {
       filter_mode: filter.filterMode,
     });
 
-    logger.info('Filter update sent to server', filter);
+    if (debugState.isEnabled()) {
+      logger.info('Filter update sent to server', filter);
+    }
   }
 
   /**
@@ -938,7 +943,9 @@ class WebSocketService {
       }
     });
 
-    logger.info('Filter subscription set up - changes will sync to server');
+    if (debugState.isEnabled()) {
+      logger.info('Filter subscription set up - changes will sync to server');
+    }
   }
 
   private handleFilterChange(): void {
@@ -972,11 +979,15 @@ class WebSocketService {
       // Reset last filter state to force sending even if values haven't changed
       this.lastFilterState = null;
 
-      logger.info('[Refresh] Clearing local graph and requesting fresh filtered data', nodeFilter);
+      if (debugState.isEnabled()) {
+        logger.info('[Refresh] Clearing local graph and requesting fresh filtered data', nodeFilter);
+      }
 
       // Step 1: Clear the local graph completely - don't try to fill gaps
       await graphDataManager.setGraphData({ nodes: [], edges: [] });
-      logger.info('[Refresh] Local graph cleared, awaiting server response...');
+      if (debugState.isEnabled()) {
+        logger.info('[Refresh] Local graph cleared, awaiting server response...');
+      }
 
       // Step 2: Send filter update to server - server will respond with filtered initialGraphLoad
       this.sendFilterUpdate({
@@ -1035,7 +1046,9 @@ class WebSocketService {
         const validatedBatch = validationMiddleware(batch);
 
         if (validatedBatch.length === 0) {
-          logger.warn('All nodes in batch failed validation');
+          if (debugState.isEnabled()) {
+            logger.warn('All nodes in batch failed validation');
+          }
           return;
         }
 
@@ -1045,7 +1058,9 @@ class WebSocketService {
       onSuccess: batchProcessor.onSuccess
     });
 
-    logger.info('Position batch queue initialized');
+    if (debugState.isEnabled()) {
+      logger.info('Position batch queue initialized');
+    }
   }
 
 

@@ -141,6 +141,14 @@ class PersistentMCPServer {
         this.broadcastToClients(JSON.stringify(clientMessageEvent));
       }
 
+      // Handle agent action events for VisionFlow visualization
+      if (msg.method === 'notifications/agent_action' ||
+          (msg.params && msg.params.type === 'agent_action')) {
+        this.log('debug', 'Agent action event:', msg.params?.event?.action_type_name);
+        // Forward directly to all clients - VisionFlow will decode
+        this.broadcastToClients(line);
+      }
+
       if (!msg.id) {
         this.broadcastToClients(line);
         return;

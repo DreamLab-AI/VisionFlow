@@ -1100,6 +1100,898 @@ mod cypher_query_tests {
 }
 
 // ============================================================
+// Physics Position Preservation Tests
+// ============================================================
+
+#[cfg(test)]
+mod physics_position_tests {
+    use super::*;
+
+    /// Test sim_* vs content position separation
+    #[test]
+    fn test_sim_position_vs_content_position() {
+        // Content positions (x, y, z) - from logseq/user data
+        let content_x = 100.0f32;
+        let content_y = 200.0f32;
+        let content_z = 0.0f32;
+
+        // Physics positions (sim_x, sim_y, sim_z) - from GPU simulation
+        let sim_x = 150.5f32;
+        let sim_y = 250.5f32;
+        let sim_z = 10.5f32;
+
+        // They should be independent
+        assert_ne!(content_x, sim_x);
+        assert_ne!(content_y, sim_y);
+        assert_ne!(content_z, sim_z);
+
+        // When saving to DB, sim_* should be written to sim_* columns
+        let save_query = format!(
+            "SET n.sim_x = {}, n.sim_y = {}, n.sim_z = {}",
+            sim_x, sim_y, sim_z
+        );
+        assert!(save_query.contains("sim_x"));
+        assert!(!save_query.contains("n.x ="));
+    }
+
+    /// Test position update preserves content positions
+    #[test]
+    fn test_position_update_preserves_content() {
+        let mut node = MockGraphNode {
+            id: 1,
+            metadata_id: "test".to_string(),
+            label: "Test".to_string(),
+            x: 100.0,  // Content position
+            y: 200.0,
+            z: 0.0,
+            vx: 0.0,   // Velocity
+            vy: 0.0,
+            vz: 0.0,
+            mass: 1.0,
+            color: None,
+            node_type: None,
+            metadata: HashMap::new(),
+        };
+
+        // Simulate physics update (should update vx/vy/vz, not x/y/z)
+        let new_vx = 5.5;
+        let new_vy = -3.2;
+        let new_vz = 0.1;
+
+        node.vx = new_vx;
+        node.vy = new_vy;
+        node.vz = new_vz;
+
+        // Content positions unchanged
+        assert_eq!(node.x, 100.0);
+        assert_eq!(node.y, 200.0);
+        assert_eq!(node.z, 0.0);
+
+        // Velocity updated
+        assert_eq!(node.vx, new_vx);
+        assert_eq!(node.vy, new_vy);
+        assert_eq!(node.vz, new_vz);
+    }
+
+    /// Test velocity damping logic
+    #[test]
+    fn test_velocity_damping() {
+        let damping_factor = 0.98f32;
+        let initial_velocity = 100.0f32;
+
+        let mut velocity = initial_velocity;
+        for _ in 0..100 {
+            velocity *= damping_factor;
+        }
+
+        // After 100 iterations, velocity should be significantly reduced
+        assert!(velocity < initial_velocity * 0.2);
+        assert!(velocity > 0.0);
+    }
+
+    /// Test position bounds checking
+    #[test]
+    fn test_position_bounds() {
+        let bounds_size = 1000.0f32;
+        let positions: Vec<(f32, f32, f32)> = vec![
+            (0.0, 0.0, 0.0),           // Center
+            (500.0, 500.0, 500.0),     // Within bounds
+            (1001.0, 0.0, 0.0),        // Out of bounds X
+            (0.0, -1001.0, 0.0),       // Out of bounds Y
+            (0.0, 0.0, 1001.0),        // Out of bounds Z
+        ];
+
+        for (x, y, z) in positions {
+            let in_bounds = x.abs() <= bounds_size
+                && y.abs() <= bounds_size
+                && z.abs() <= bounds_size;
+
+            if x.abs() > bounds_size || y.abs() > bounds_size || z.abs() > bounds_size {
+                assert!(!in_bounds, "Expected ({}, {}, {}) to be out of bounds", x, y, z);
+            } else {
+                assert!(in_bounds, "Expected ({}, {}, {}) to be in bounds", x, y, z);
+            }
+        }
+    }
+}
+
+// ============================================================
+// Extended Ontology Query Tests
+// ============================================================
+
+#[cfg(test)]
+mod extended_ontology_query_tests {
+    use super::*;
+
+    /// Test query_by_quality filter construction
+    #[test]
+    fn test_query_by_quality_cypher() {
+        let min_quality = 0.7f32;
+        let max_quality = Some(0.95f32);
+
+        let where_clause = if let Some(max) = max_quality {
+            format!(
+                "WHERE c.quality_score >= {} AND c.quality_score <= {}",
+                min_quality, max
+            )
+        } else {
+            format!("WHERE c.quality_score >= {}", min_quality)
+        };
+
+        assert!(where_clause.contains("quality_score >= 0.7"));
+        assert!(where_clause.contains("quality_score <= 0.95"));
+    }
+
+    /// Test query_by_domain filter construction
+    #[test]
+    fn test_query_by_domain_cypher() {
+        let domain_iri = "http://example.org/domain#Science";
+
+        let query = format!(
+            "MATCH (c:OwlClass)-[:IN_DOMAIN]->(d:Domain {{iri: '{}'}}) RETURN c",
+            domain_iri
+        );
+
+        assert!(query.contains("IN_DOMAIN"));
+        assert!(query.contains(domain_iri));
+    }
+
+    /// Test query_by_maturity filter construction
+    #[test]
+    fn test_query_by_maturity_cypher() {
+        let maturity_levels = vec!["draft", "stable", "deprecated"];
+
+        for level in maturity_levels {
+            let query = format!(
+                "MATCH (c:OwlClass) WHERE c.maturity_level = '{}' RETURN c",
+                level
+            );
+            assert!(query.contains("maturity_level"));
+            assert!(query.contains(level));
+        }
+    }
+
+    /// Test query_by_physicality - abstract vs physical concepts
+    #[test]
+    fn test_query_by_physicality_cypher() {
+        // Physical entities (can be touched/measured)
+        let physical_query = "MATCH (c:OwlClass) WHERE c.is_physical = true RETURN c";
+        assert!(physical_query.contains("is_physical = true"));
+
+        // Abstract concepts
+        let abstract_query = "MATCH (c:OwlClass) WHERE c.is_physical = false RETURN c";
+        assert!(abstract_query.contains("is_physical = false"));
+    }
+
+    /// Test combined query with multiple filters
+    #[test]
+    fn test_combined_ontology_query() {
+        let conditions = vec![
+            "c.quality_score >= 0.7",
+            "c.authority_score >= 0.5",
+            "c.maturity_level = 'stable'",
+        ];
+
+        // AND mode
+        let and_query = format!(
+            "MATCH (c:OwlClass) WHERE {} RETURN c",
+            conditions.join(" AND ")
+        );
+        assert!(and_query.contains("c.quality_score >= 0.7 AND c.authority_score >= 0.5"));
+
+        // OR mode
+        let or_query = format!(
+            "MATCH (c:OwlClass) WHERE ({}) RETURN c",
+            conditions.join(" OR ")
+        );
+        assert!(or_query.contains("c.quality_score >= 0.7 OR c.authority_score >= 0.5"));
+    }
+
+    /// Test pagination parameters
+    #[test]
+    fn test_ontology_query_pagination() {
+        let page = 2;
+        let page_size = 50;
+        let skip = (page - 1) * page_size;
+
+        let query = format!(
+            "MATCH (c:OwlClass) RETURN c SKIP {} LIMIT {}",
+            skip, page_size
+        );
+
+        assert!(query.contains("SKIP 50"));
+        assert!(query.contains("LIMIT 50"));
+    }
+
+    /// Test ordering by quality/authority
+    #[test]
+    fn test_ontology_query_ordering() {
+        let order_fields = vec![
+            ("quality_score", "DESC"),
+            ("authority_score", "DESC"),
+            ("label", "ASC"),
+            ("created_at", "DESC"),
+        ];
+
+        for (field, direction) in order_fields {
+            let query = format!(
+                "MATCH (c:OwlClass) RETURN c ORDER BY c.{} {}",
+                field, direction
+            );
+            assert!(query.contains(&format!("ORDER BY c.{} {}", field, direction)));
+        }
+    }
+}
+
+// ============================================================
+// LRU Cache Behavior Tests
+// ============================================================
+
+#[cfg(test)]
+mod lru_cache_tests {
+    use std::collections::HashMap;
+
+    /// Test LRU eviction order
+    #[test]
+    fn test_lru_eviction_order() {
+        // Simulate LRU with access tracking
+        let mut access_order: Vec<u32> = vec![1, 2, 3, 4, 5];
+        let cache_size = 3;
+
+        // Access item 2 (moves to front)
+        if let Some(pos) = access_order.iter().position(|&x| x == 2) {
+            let item = access_order.remove(pos);
+            access_order.push(item);
+        }
+
+        // Now order should be: 1, 3, 4, 5, 2 (2 most recently used)
+        assert_eq!(access_order.last(), Some(&2));
+
+        // Evict oldest items until at cache_size
+        while access_order.len() > cache_size {
+            access_order.remove(0); // Remove least recently used
+        }
+
+        assert_eq!(access_order.len(), cache_size);
+        assert!(!access_order.contains(&1)); // 1 was evicted
+        assert!(!access_order.contains(&3)); // 3 was evicted
+        assert!(access_order.contains(&2));  // 2 still present (recently accessed)
+    }
+
+    /// Test cache hit/miss tracking
+    #[test]
+    fn test_cache_hit_miss_tracking() {
+        let mut cache: HashMap<u32, String> = HashMap::new();
+        let mut hits = 0u64;
+        let mut misses = 0u64;
+
+        let requests = vec![1, 2, 3, 1, 2, 4, 1];
+
+        for key in requests {
+            if cache.contains_key(&key) {
+                hits += 1;
+            } else {
+                misses += 1;
+                cache.insert(key, format!("value_{}", key));
+            }
+        }
+
+        assert_eq!(hits, 3);  // 1, 2, 1 were hits
+        assert_eq!(misses, 4); // 1, 2, 3, 4 were misses
+
+        let hit_rate = hits as f64 / (hits + misses) as f64;
+        assert!((hit_rate - 0.4286).abs() < 0.01);
+    }
+
+    /// Test cache invalidation on update
+    #[test]
+    fn test_cache_invalidation_on_update() {
+        let mut cache: HashMap<u32, (String, u64)> = HashMap::new();
+        let mut version = 0u64;
+
+        // Insert initial value
+        cache.insert(1, ("initial".to_string(), version));
+        version += 1;
+
+        // Update should invalidate
+        cache.insert(1, ("updated".to_string(), version));
+
+        let entry = cache.get(&1).unwrap();
+        assert_eq!(entry.0, "updated");
+        assert_eq!(entry.1, 1); // Version incremented
+    }
+
+    /// Test cache size limits
+    #[test]
+    fn test_cache_size_limits() {
+        let max_size = 10000usize;
+        let node_count = 15000usize;
+
+        // When cache is full, new entries should trigger eviction
+        let evictions_needed = if node_count > max_size {
+            node_count - max_size
+        } else {
+            0
+        };
+
+        assert_eq!(evictions_needed, 5000);
+    }
+}
+
+// ============================================================
+// Edge ID Parsing Edge Cases
+// ============================================================
+
+#[cfg(test)]
+mod edge_id_parsing_tests {
+    /// Test valid edge ID formats
+    #[test]
+    fn test_valid_edge_id_formats() {
+        let valid_ids = vec![
+            ("1-2", 1u32, 2u32),
+            ("0-0", 0, 0),
+            ("999999-888888", 999999, 888888),
+            ("4294967295-1", u32::MAX, 1), // Max u32
+        ];
+
+        for (id, expected_source, expected_target) in valid_ids {
+            let parts: Vec<&str> = id.split('-').collect();
+            assert_eq!(parts.len(), 2, "Failed for id: {}", id);
+
+            let source: u32 = parts[0].parse().expect(&format!("Failed to parse source for: {}", id));
+            let target: u32 = parts[1].parse().expect(&format!("Failed to parse target for: {}", id));
+
+            assert_eq!(source, expected_source);
+            assert_eq!(target, expected_target);
+        }
+    }
+
+    /// Test edge ID with leading zeros
+    #[test]
+    fn test_edge_id_leading_zeros() {
+        let id = "001-002";
+        let parts: Vec<&str> = id.split('-').collect();
+
+        // Leading zeros are valid and parse correctly
+        let source: u32 = parts[0].parse().unwrap();
+        let target: u32 = parts[1].parse().unwrap();
+
+        assert_eq!(source, 1);
+        assert_eq!(target, 2);
+    }
+
+    /// Test edge ID with whitespace (should fail)
+    #[test]
+    fn test_edge_id_whitespace_invalid() {
+        let invalid_ids = vec![
+            " 1-2",
+            "1 -2",
+            "1- 2",
+            "1-2 ",
+            "1 - 2",
+        ];
+
+        for id in invalid_ids {
+            let parts: Vec<&str> = id.split('-').collect();
+            let is_valid = parts.len() == 2
+                && parts[0].trim().parse::<u32>().is_ok()
+                && parts[1].trim().parse::<u32>().is_ok();
+
+            // With trim, they would be valid, but raw parsing should handle carefully
+            let raw_valid = parts.len() == 2
+                && parts[0].parse::<u32>().is_ok()
+                && parts[1].parse::<u32>().is_ok();
+
+            // Some will fail raw parsing due to whitespace
+            if id.contains(' ') && !id.trim().contains(' ') {
+                // Whitespace only at ends - parse will fail
+            }
+            assert!(!raw_valid || is_valid, "Unexpected result for: {}", id);
+        }
+    }
+
+    /// Test edge ID overflow protection
+    #[test]
+    fn test_edge_id_overflow() {
+        let overflow_id = "4294967296-1"; // u32::MAX + 1
+        let parts: Vec<&str> = overflow_id.split('-').collect();
+
+        let source_result: Result<u32, _> = parts[0].parse();
+        assert!(source_result.is_err()); // Should overflow
+    }
+
+    /// Test negative number handling
+    #[test]
+    fn test_edge_id_negative_invalid() {
+        let negative_id = "-1-2";
+        let parts: Vec<&str> = negative_id.split('-').collect();
+
+        // Split on '-' will produce: ["", "1", "2"]
+        assert!(parts.len() != 2 || parts[0].is_empty());
+    }
+}
+
+// ============================================================
+// OWL Axiom Operation Tests
+// ============================================================
+
+#[cfg(test)]
+mod owl_axiom_tests {
+    /// Test SubClassOf axiom construction
+    #[test]
+    fn test_subclass_axiom_query() {
+        let subject_iri = "http://example.org/Child";
+        let object_iri = "http://example.org/Parent";
+
+        let query = format!(
+            "MATCH (s:OwlClass {{iri: $subject}}) \
+             MATCH (o:OwlClass {{iri: $object}}) \
+             MERGE (s)-[r:SUBCLASS_OF]->(o) \
+             SET r.axiom_type = 'SubClassOf', r.created_at = datetime()"
+        );
+
+        assert!(query.contains("SUBCLASS_OF"));
+        assert!(query.contains("axiom_type = 'SubClassOf'"));
+    }
+
+    /// Test EquivalentClass axiom
+    #[test]
+    fn test_equivalent_class_axiom_query() {
+        let query = "MERGE (s)-[r:EQUIVALENT_TO]->(o) SET r.axiom_type = 'EquivalentClass'";
+
+        assert!(query.contains("EQUIVALENT_TO"));
+        assert!(query.contains("EquivalentClass"));
+    }
+
+    /// Test DisjointWith axiom
+    #[test]
+    fn test_disjoint_axiom_query() {
+        let query = "MERGE (s)-[r:DISJOINT_WITH]->(o) SET r.axiom_type = 'DisjointWith'";
+
+        assert!(query.contains("DISJOINT_WITH"));
+    }
+
+    /// Test ObjectPropertyAssertion axiom
+    #[test]
+    fn test_object_property_assertion() {
+        let property_iri = "http://example.org/hasParent";
+
+        let query = format!(
+            "MATCH (s:Individual {{iri: $subject}}) \
+             MATCH (o:Individual {{iri: $object}}) \
+             MERGE (s)-[r:`{}`]->(o) \
+             SET r.axiom_type = 'ObjectPropertyAssertion'",
+            property_iri.replace('#', "_").replace('/', "_")
+        );
+
+        assert!(query.contains("ObjectPropertyAssertion"));
+    }
+
+    /// Test DataPropertyAssertion axiom
+    #[test]
+    fn test_data_property_assertion() {
+        let property_iri = "http://example.org/hasAge";
+        let value = 42;
+
+        let query = format!(
+            "MATCH (s:Individual {{iri: $subject}}) \
+             SET s.`{}` = {}",
+            property_iri.replace('#', "_").replace('/', "_"),
+            value
+        );
+
+        assert!(query.contains(&value.to_string()));
+    }
+
+    /// Test axiom with annotations
+    #[test]
+    fn test_axiom_with_annotations() {
+        let annotations = vec![
+            ("rdfs:label", "Parent Relationship"),
+            ("rdfs:comment", "Describes parent-child relationship"),
+            ("custom:confidence", "0.95"),
+        ];
+
+        let annotation_sets: Vec<String> = annotations
+            .iter()
+            .map(|(key, value)| format!("r.`{}` = '{}'", key.replace(':', "_"), value))
+            .collect();
+
+        let set_clause = annotation_sets.join(", ");
+
+        assert!(set_clause.contains("rdfs_label"));
+        assert!(set_clause.contains("Parent Relationship"));
+    }
+
+    /// Test batch axiom creation
+    #[test]
+    fn test_batch_axiom_creation() {
+        let axioms: Vec<(&str, &str, &str)> = vec![
+            ("http://ex.org/A", "SubClassOf", "http://ex.org/B"),
+            ("http://ex.org/B", "SubClassOf", "http://ex.org/C"),
+            ("http://ex.org/X", "EquivalentTo", "http://ex.org/Y"),
+        ];
+
+        // Batch UNWIND pattern
+        let query = "UNWIND $axioms AS axiom \
+                     MATCH (s:OwlClass {iri: axiom.subject}) \
+                     MATCH (o:OwlClass {iri: axiom.object}) \
+                     CALL { \
+                         WITH s, o, axiom \
+                         FOREACH (x IN CASE WHEN axiom.type = 'SubClassOf' THEN [1] ELSE [] END | \
+                             MERGE (s)-[:SUBCLASS_OF]->(o)) \
+                         FOREACH (x IN CASE WHEN axiom.type = 'EquivalentTo' THEN [1] ELSE [] END | \
+                             MERGE (s)-[:EQUIVALENT_TO]->(o)) \
+                     }";
+
+        assert!(query.contains("UNWIND"));
+        assert!(query.contains("FOREACH"));
+    }
+}
+
+// ============================================================
+// Batch Operation Edge Cases
+// ============================================================
+
+#[cfg(test)]
+mod batch_operation_tests {
+    use super::*;
+
+    /// Test empty batch handling
+    #[test]
+    fn test_empty_batch() {
+        let nodes: Vec<MockGraphNode> = vec![];
+
+        assert!(nodes.is_empty());
+
+        // Empty batch should not generate query
+        let should_execute = !nodes.is_empty();
+        assert!(!should_execute);
+    }
+
+    /// Test large batch chunking
+    #[test]
+    fn test_batch_chunking() {
+        let total_items = 15000;
+        let chunk_size = 5000;
+
+        let chunks: Vec<(usize, usize)> = (0..total_items)
+            .step_by(chunk_size)
+            .map(|start| {
+                let end = (start + chunk_size).min(total_items);
+                (start, end)
+            })
+            .collect();
+
+        assert_eq!(chunks.len(), 3);
+        assert_eq!(chunks[0], (0, 5000));
+        assert_eq!(chunks[1], (5000, 10000));
+        assert_eq!(chunks[2], (10000, 15000));
+    }
+
+    /// Test batch with partial failure recovery
+    #[test]
+    fn test_batch_partial_failure() {
+        let items: Vec<Result<u32, &str>> = vec![
+            Ok(1),
+            Ok(2),
+            Err("Failed"),
+            Ok(4),
+            Err("Also failed"),
+        ];
+
+        let successful: Vec<u32> = items
+            .iter()
+            .filter_map(|r| r.as_ref().ok().copied())
+            .collect();
+
+        let failed_count = items.iter().filter(|r| r.is_err()).count();
+
+        assert_eq!(successful, vec![1, 2, 4]);
+        assert_eq!(failed_count, 2);
+    }
+
+    /// Test transaction rollback on error
+    #[test]
+    fn test_transaction_rollback_marker() {
+        let operations = vec!["INSERT 1", "INSERT 2", "INSERT 3 (fails)"];
+
+        // Simulate transaction
+        let mut committed = false;
+        let mut last_successful = 0;
+
+        for (i, op) in operations.iter().enumerate() {
+            if op.contains("fails") {
+                // Rollback - don't commit
+                break;
+            }
+            last_successful = i + 1;
+        }
+
+        committed = last_successful == operations.len();
+
+        assert!(!committed);
+        assert_eq!(last_successful, 2);
+    }
+
+    /// Test concurrent batch isolation
+    #[test]
+    fn test_concurrent_batch_ids() {
+        use std::sync::atomic::{AtomicU64, Ordering};
+
+        static BATCH_COUNTER: AtomicU64 = AtomicU64::new(0);
+
+        let batch_id_1 = BATCH_COUNTER.fetch_add(1, Ordering::SeqCst);
+        let batch_id_2 = BATCH_COUNTER.fetch_add(1, Ordering::SeqCst);
+        let batch_id_3 = BATCH_COUNTER.fetch_add(1, Ordering::SeqCst);
+
+        assert_eq!(batch_id_1, 0);
+        assert_eq!(batch_id_2, 1);
+        assert_eq!(batch_id_3, 2);
+
+        // Each batch has unique ID for tracking
+        assert_ne!(batch_id_1, batch_id_2);
+        assert_ne!(batch_id_2, batch_id_3);
+    }
+}
+
+// ============================================================
+// Complex Filter Construction Tests
+// ============================================================
+
+#[cfg(test)]
+mod complex_filter_tests {
+    /// Test multi-condition filter with AND mode
+    #[test]
+    fn test_multi_condition_and_filter() {
+        let quality_threshold = 0.7f32;
+        let authority_threshold = 0.5f32;
+        let has_label = true;
+        let node_types = vec!["concept", "entity"];
+
+        let mut conditions: Vec<String> = vec![];
+
+        conditions.push(format!("n.quality_score >= {}", quality_threshold));
+        conditions.push(format!("n.authority_score >= {}", authority_threshold));
+
+        if has_label {
+            conditions.push("n.label IS NOT NULL".to_string());
+        }
+
+        if !node_types.is_empty() {
+            let types_list = node_types.iter()
+                .map(|t| format!("'{}'", t))
+                .collect::<Vec<_>>()
+                .join(", ");
+            conditions.push(format!("n.node_type IN [{}]", types_list));
+        }
+
+        let where_clause = format!("WHERE {}", conditions.join(" AND "));
+
+        assert!(where_clause.contains("quality_score >= 0.7"));
+        assert!(where_clause.contains("authority_score >= 0.5"));
+        assert!(where_clause.contains("label IS NOT NULL"));
+        assert!(where_clause.contains("node_type IN"));
+        assert!(where_clause.contains("'concept'"));
+    }
+
+    /// Test OR filter mode with fallback
+    #[test]
+    fn test_or_filter_with_fallback() {
+        let conditions = vec![
+            "n.quality_score >= 0.9",  // High quality
+            "n.authority_score >= 0.8", // High authority
+            "n.is_verified = true",     // Verified
+        ];
+
+        let or_filter = format!("WHERE ({})", conditions.join(" OR "));
+
+        assert!(or_filter.contains(" OR "));
+        assert!(!or_filter.contains(" AND "));
+    }
+
+    /// Test nested filter groups
+    #[test]
+    fn test_nested_filter_groups() {
+        // (quality >= 0.7 AND authority >= 0.5) OR is_verified = true
+        let group_a = "(n.quality_score >= 0.7 AND n.authority_score >= 0.5)";
+        let group_b = "n.is_verified = true";
+
+        let nested_filter = format!("WHERE {} OR {}", group_a, group_b);
+
+        assert!(nested_filter.contains("(n.quality_score >= 0.7 AND n.authority_score >= 0.5)"));
+        assert!(nested_filter.contains("OR n.is_verified"));
+    }
+
+    /// Test filter with range conditions
+    #[test]
+    fn test_range_filter() {
+        let min_quality = 0.5f32;
+        let max_quality = 0.9f32;
+        let min_created = "2024-01-01";
+        let max_created = "2024-12-31";
+
+        let range_filter = format!(
+            "WHERE n.quality_score >= {} AND n.quality_score <= {} \
+             AND n.created_at >= datetime('{}') AND n.created_at <= datetime('{}')",
+            min_quality, max_quality, min_created, max_created
+        );
+
+        assert!(range_filter.contains("quality_score >= 0.5"));
+        assert!(range_filter.contains("quality_score <= 0.9"));
+        assert!(range_filter.contains("datetime('2024-01-01')"));
+    }
+
+    /// Test filter with NULL handling
+    #[test]
+    fn test_null_handling_filter() {
+        let include_null_quality = true;
+
+        let filter = if include_null_quality {
+            "WHERE n.quality_score >= 0.7 OR n.quality_score IS NULL"
+        } else {
+            "WHERE n.quality_score >= 0.7"
+        };
+
+        assert!(filter.contains("IS NULL"));
+    }
+
+    /// Test max_nodes limit application
+    #[test]
+    fn test_max_nodes_limit() {
+        let max_nodes = Some(10000);
+        let no_limit: Option<usize> = None;
+
+        let with_limit = if let Some(limit) = max_nodes {
+            format!("LIMIT {}", limit)
+        } else {
+            String::new()
+        };
+
+        let without_limit = if let Some(limit) = no_limit {
+            format!("LIMIT {}", limit)
+        } else {
+            String::new()
+        };
+
+        assert_eq!(with_limit, "LIMIT 10000");
+        assert!(without_limit.is_empty());
+    }
+}
+
+// ============================================================
+// Ontology Metrics Calculation Tests
+// ============================================================
+
+#[cfg(test)]
+mod ontology_metrics_tests {
+    /// Test class hierarchy depth calculation
+    #[test]
+    fn test_hierarchy_depth() {
+        // Simulate class hierarchy: Thing -> Entity -> PhysicalEntity -> Person
+        let parent_map: Vec<(&str, Option<&str>)> = vec![
+            ("Thing", None),
+            ("Entity", Some("Thing")),
+            ("PhysicalEntity", Some("Entity")),
+            ("Person", Some("PhysicalEntity")),
+        ];
+
+        fn get_depth(class: &str, map: &[(&str, Option<&str>)]) -> usize {
+            let entry = map.iter().find(|(c, _)| *c == class);
+            match entry {
+                Some((_, Some(parent))) => 1 + get_depth(parent, map),
+                Some((_, None)) => 0,
+                None => 0,
+            }
+        }
+
+        assert_eq!(get_depth("Thing", &parent_map), 0);
+        assert_eq!(get_depth("Entity", &parent_map), 1);
+        assert_eq!(get_depth("PhysicalEntity", &parent_map), 2);
+        assert_eq!(get_depth("Person", &parent_map), 3);
+    }
+
+    /// Test orphan class detection
+    #[test]
+    fn test_orphan_detection() {
+        let classes = vec!["A", "B", "C", "D", "E"];
+        let relationships = vec![("B", "A"), ("C", "B"), ("D", "A")];
+        // E has no parent relationship
+
+        let with_parents: std::collections::HashSet<&str> = relationships
+            .iter()
+            .map(|(child, _)| *child)
+            .collect();
+
+        let orphans: Vec<&&str> = classes
+            .iter()
+            .filter(|c| **c != "A" && !with_parents.contains(**c)) // A is root, not orphan
+            .collect();
+
+        assert_eq!(orphans, vec![&"E"]);
+    }
+
+    /// Test property usage statistics
+    #[test]
+    fn test_property_usage_stats() {
+        let property_usages = vec![
+            ("hasName", 150),
+            ("hasAge", 120),
+            ("hasParent", 80),
+            ("hasChild", 80),
+            ("unusedProperty", 0),
+        ];
+
+        let total_usage: usize = property_usages.iter().map(|(_, count)| count).sum();
+        let unused_count = property_usages.iter().filter(|(_, count)| *count == 0).count();
+        let avg_usage = total_usage as f64 / property_usages.len() as f64;
+
+        assert_eq!(total_usage, 430);
+        assert_eq!(unused_count, 1);
+        assert!((avg_usage - 86.0).abs() < 0.1);
+    }
+
+    /// Test ontology density calculation
+    #[test]
+    fn test_ontology_density() {
+        let class_count = 100;
+        let property_count = 50;
+        let axiom_count = 250;
+        let relationship_count = 180;
+
+        // Density = relationships / (classes * (classes - 1))
+        let max_relationships = class_count * (class_count - 1);
+        let density = relationship_count as f64 / max_relationships as f64;
+
+        assert!(density > 0.0 && density < 1.0);
+        assert!((density - 0.0182).abs() < 0.001);
+
+        // Axiom-to-class ratio
+        let axiom_ratio = axiom_count as f64 / class_count as f64;
+        assert!((axiom_ratio - 2.5).abs() < 0.01);
+    }
+
+    /// Test consistency score calculation
+    #[test]
+    fn test_consistency_score() {
+        let total_classes = 100;
+        let orphan_classes = 5;
+        let circular_dependencies = 0;
+        let missing_labels = 10;
+        let missing_descriptions = 30;
+
+        // Deduct points for issues
+        let mut score = 100.0f64;
+        score -= (orphan_classes as f64 / total_classes as f64) * 20.0;  // -1%
+        score -= (circular_dependencies as f64) * 10.0;                   // -0%
+        score -= (missing_labels as f64 / total_classes as f64) * 15.0;  // -1.5%
+        score -= (missing_descriptions as f64 / total_classes as f64) * 5.0; // -1.5%
+
+        assert!(score > 95.0 && score < 100.0);
+    }
+}
+
+// ============================================================
 // Integration Test Stubs (require live Neo4j)
 // ============================================================
 

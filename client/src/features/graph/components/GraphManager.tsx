@@ -204,6 +204,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   const nodePositionsRef = useRef<Float32Array | null>(null)
   const [edgePoints, setEdgePoints] = useState<number[]>([])
   const prevEdgePointsLengthRef = useRef<number>(0)
+  const prevLabelPositionsLengthRef = useRef<number>(0)
   const [nodesAreAtOrigin, setNodesAreAtOrigin] = useState(false)
 
   const [forceUpdate, setForceUpdate] = useState(0)
@@ -696,15 +697,21 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         }
 
 
-        const newLabelPositions = graphData.nodes.map((node, i) => {
-          const i3 = i * 3;
-          return {
-            x: positions[i3],
-            y: positions[i3 + 1],
-            z: positions[i3 + 2]
-          };
-        });
-        setLabelPositions(newLabelPositions);
+        // Only update label positions when node count changes (prevents infinite re-render loop)
+        const labelCount = graphData.nodes.length;
+        const isLabelFirstRender = prevLabelPositionsLengthRef.current === 0 && labelCount > 0;
+        if (isLabelFirstRender || labelCount !== prevLabelPositionsLengthRef.current) {
+          prevLabelPositionsLengthRef.current = labelCount;
+          const newLabelPositions = graphData.nodes.map((node, i) => {
+            const i3 = i * 3;
+            return {
+              x: positions[i3],
+              y: positions[i3 + 1],
+              z: positions[i3 + 2]
+            };
+          });
+          setLabelPositions(newLabelPositions);
+        }
       }
     }
 

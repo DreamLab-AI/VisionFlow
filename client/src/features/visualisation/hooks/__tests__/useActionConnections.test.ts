@@ -216,7 +216,9 @@ describe('useActionConnections', () => {
       result.addAction(event);
       await waitForUpdate();
 
-      expect(hookResultRef!.connections[0].actionType).toBe(AgentActionType.Delete);
+      // New API returns string literal, legacy enum stored in _actionTypeEnum
+      expect(hookResultRef!.connections[0].actionType).toBe('delete');
+      expect(hookResultRef!.connections[0]._actionTypeEnum).toBe(AgentActionType.Delete);
     });
 
     it('initializes progress to 0', async () => {
@@ -309,7 +311,7 @@ describe('useActionConnections', () => {
       });
     });
 
-    it('sets sourcePosition to undefined when position not found', async () => {
+    it('sets sourcePosition to default Vector3(0,0,0) when position not found', async () => {
       const getNodePosition = () => null;
       const result = await renderHookTest({ getNodePosition });
       const event = createMockEvent({ sourceAgentId: 999 });
@@ -317,7 +319,11 @@ describe('useActionConnections', () => {
       result.addAction(event);
       await waitForUpdate();
 
-      expect(hookResultRef!.connections[0].sourcePosition).toBeUndefined();
+      // New API returns default Vector3 instead of undefined for easier rendering
+      const pos = hookResultRef!.connections[0].sourcePosition;
+      expect(pos.x).toBe(0);
+      expect(pos.y).toBe(0);
+      expect(pos.z).toBe(0);
     });
 
     it('creates multiple connections with incrementing ids', async () => {
@@ -402,20 +408,21 @@ describe('useActionConnections', () => {
       expect(conn.phase).toBe('impact');
     });
 
-    it('transitions to fade phase after 90% of duration', async () => {
+    it('stays in impact phase through 80-100% of duration (combined impact+fade)', async () => {
       const result = await renderHookTest();
       const event = createMockEvent({ durationMs: 500 });
 
       result.addAction(event);
       await waitForUpdate();
 
-      // At 475ms (95% progress - in fade phase)
+      // At 475ms (95% progress - still in impact phase, which now includes fade)
       advanceTime(475);
       await waitForUpdate();
 
       const conn = hookResultRef!.connections[0];
       expect(conn.progress).toBeCloseTo(0.95, 1);
-      expect(conn.phase).toBe('fade');
+      // Impact and fade are now combined into a single 'impact' phase (0.8-1.0)
+      expect(conn.phase).toBe('impact');
     });
 
     it('removes connection after 100% progress', async () => {

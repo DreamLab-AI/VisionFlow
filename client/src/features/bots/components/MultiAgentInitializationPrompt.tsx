@@ -1,8 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import { createLogger } from '../../../utils/loggerConfig';
 import { unifiedApiClient } from '../../../services/api/UnifiedApiClient';
 import { botsWebSocketIntegration } from '../services/BotsWebSocketIntegration';
+import {
+  skillDefinitions,
+  categoryLabels,
+  categoryIcons,
+  SkillDefinition,
+} from '../../settings/components/panels/skillDefinitions';
 
 const logger = createLogger('MultiAgentInitializationPrompt');
 
@@ -37,6 +43,45 @@ export const MultiAgentInitializationPrompt: React.FC<MultiAgentInitializationPr
   const [customPrompt, setCustomPrompt] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
+  const [selectedSkills, setSelectedSkills] = useState<Set<string>>(new Set());
+  const [skillSearchQuery, setSkillSearchQuery] = useState('');
+  const [showSkills, setShowSkills] = useState(false);
+
+  // Filter skills based on search
+  const filteredSkills = useMemo(() => {
+    if (!skillSearchQuery) return skillDefinitions;
+    const query = skillSearchQuery.toLowerCase();
+    return skillDefinitions.filter(
+      (skill) =>
+        skill.name.toLowerCase().includes(query) ||
+        skill.description.toLowerCase().includes(query) ||
+        skill.tags.some((tag) => tag.toLowerCase().includes(query))
+    );
+  }, [skillSearchQuery]);
+
+  // Group skills by category
+  const skillsByCategory = useMemo(() => {
+    const categories: Record<string, SkillDefinition[]> = {};
+    for (const skill of filteredSkills) {
+      if (!categories[skill.category]) {
+        categories[skill.category] = [];
+      }
+      categories[skill.category].push(skill);
+    }
+    return categories;
+  }, [filteredSkills]);
+
+  const toggleSkill = (skillId: string) => {
+    setSelectedSkills((prev) => {
+      const next = new Set(prev);
+      if (next.has(skillId)) {
+        next.delete(skillId);
+      } else {
+        next.add(skillId);
+      }
+      return next;
+    });
+  };
 
   
   useEffect(() => {
@@ -104,9 +149,10 @@ export const MultiAgentInitializationPrompt: React.FC<MultiAgentInitializationPr
       const config = {
         topology,
         maxAgents,
-        strategy: 'adaptive', 
+        strategy: 'adaptive',
         enableNeural,
         agentTypes: selectedAgentTypes,
+        skills: Array.from(selectedSkills),
         customPrompt: customPrompt.trim(),
       };
 
@@ -372,6 +418,140 @@ export const MultiAgentInitializationPrompt: React.FC<MultiAgentInitializationPr
         }}>
           Activates WASM-accelerated neural networks for collective intelligence
         </div>
+      </div>
+
+      {/* Skills Section */}
+      <div style={{ marginBottom: '20px' }}>
+        <button
+          onClick={() => setShowSkills(!showSkills)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            width: '100%',
+            padding: '10px',
+            backgroundColor: selectedSkills.size > 0 ? 'rgba(241, 196, 15, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+            border: selectedSkills.size > 0 ? '1px solid #F1C40F' : '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: '4px',
+            color: '#F1C40F',
+            cursor: 'pointer',
+            fontSize: '14px',
+          }}
+        >
+          <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            ⚡ Skills
+            {selectedSkills.size > 0 && (
+              <span style={{
+                backgroundColor: '#F1C40F',
+                color: 'black',
+                padding: '2px 8px',
+                borderRadius: '12px',
+                fontSize: '12px',
+                fontWeight: 'bold',
+              }}>
+                {selectedSkills.size} selected
+              </span>
+            )}
+          </span>
+          <span>{showSkills ? '▼' : '▶'}</span>
+        </button>
+
+        {showSkills && (
+          <div style={{
+            marginTop: '10px',
+            padding: '10px',
+            backgroundColor: 'rgba(0, 0, 0, 0.3)',
+            borderRadius: '4px',
+            maxHeight: '300px',
+            overflow: 'auto',
+          }}>
+            {/* Search */}
+            <input
+              type="text"
+              value={skillSearchQuery}
+              onChange={(e) => setSkillSearchQuery(e.target.value)}
+              placeholder="Search skills..."
+              style={{
+                width: '100%',
+                padding: '8px',
+                marginBottom: '10px',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                borderRadius: '4px',
+                color: 'white',
+              }}
+            />
+
+            {/* Skills by category */}
+            {Object.entries(skillsByCategory).map(([category, skills]) => (
+              <div key={category} style={{ marginBottom: '10px' }}>
+                <div style={{
+                  fontSize: '12px',
+                  color: '#F1C40F',
+                  marginBottom: '6px',
+                  fontWeight: 'bold',
+                }}>
+                  {categoryIcons[category]} {categoryLabels[category]}
+                </div>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gap: '4px',
+                }}>
+                  {skills.map((skill) => (
+                    <label
+                      key={skill.id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '4px 6px',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        backgroundColor: selectedSkills.has(skill.id)
+                          ? 'rgba(241, 196, 15, 0.2)'
+                          : 'transparent',
+                        color: selectedSkills.has(skill.id)
+                          ? '#F1C40F'
+                          : 'rgba(255, 255, 255, 0.7)',
+                      }}
+                      title={skill.description}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedSkills.has(skill.id)}
+                        onChange={() => toggleSkill(skill.id)}
+                        style={{ marginRight: '2px' }}
+                      />
+                      <span>{skill.icon}</span>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {skill.name}
+                      </span>
+                      {skill.mcpServer && (
+                        <span style={{
+                          fontSize: '9px',
+                          padding: '1px 4px',
+                          backgroundColor: 'rgba(46, 204, 113, 0.3)',
+                          color: '#2ECC71',
+                          borderRadius: '3px',
+                        }}>
+                          MCP
+                        </span>
+                      )}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            {filteredSkills.length === 0 && (
+              <div style={{ textAlign: 'center', color: 'rgba(255, 255, 255, 0.5)', padding: '20px' }}>
+                No skills match your search
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div style={{ marginBottom: '20px' }}>

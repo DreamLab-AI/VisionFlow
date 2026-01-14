@@ -71,18 +71,18 @@ difficulty-level: intermediate
 
 | Priority | Document | Focus Area |
 |----------|----------|-----------|
-| ⭐⭐⭐ | **[Developer Journey](DEVELOPER_JOURNEY.md)** | Codebase learning path |
+| ⭐⭐⭐ | **[Developer Journey](architecture/developer-journey.md)** | Codebase learning path |
 | ⭐⭐⭐ | **[Development Setup](guides/developer/01-development-setup.md)** | IDE, dependencies, environment |
 | ⭐⭐⭐ | **[Project Structure](guides/developer/02-project-structure.md)** | Code organization |
-| ⭐⭐ | **[Architecture Overview](ARCHITECTURE_OVERVIEW.md)** | System design patterns |
+| ⭐⭐ | **[Architecture Overview](architecture/overview.md)** | System design patterns |
 | ⭐⭐ | **[Adding Features](guides/developer/04-adding-features.md)** | Development workflow |
 | ⭐ | **[Testing Guide](guides/testing-guide.md)** | Unit, integration, E2E tests |
 
 **By Technology:**
-- **Rust Backend** → [Server Architecture](concepts/architecture/core/server.md), [Hexagonal CQRS](explanations/architecture/hexagonal-cqrs.md)
-- **React Frontend** → [Client Architecture](explanations/architecture/core/client.md), [State Management](guides/client/state-management.md)
-- **Neo4j Database** → [Database Architecture](explanations/architecture/database-architecture.md), [Schemas](reference/database/schemas.md)
-- **GPU/CUDA** → [GPU Semantic Forces](explanations/architecture/gpu-semantic-forces.md), [GPU Optimizations](explanations/architecture/gpu/optimizations.md)
+- **Rust Backend** → [Server Architecture](architecture/server/overview.md), [Hexagonal CQRS](architecture/patterns/hexagonal-cqrs.md)
+- **React Frontend** → [Client Architecture](architecture/client/overview.md), [State Management](guides/client/state-management.md)
+- **Neo4j Database** → [Database Architecture](architecture/database.md), [Schemas](reference/database/schemas.md)
+- **GPU/CUDA** → [GPU Overview](architecture/gpu/README.md), [GPU Optimizations](architecture/gpu/optimizations.md)
 - **WebSocket** → [Binary Protocol](reference/protocols/binary-websocket.md), [Best Practices](guides/developer/websocket-best-practices.md)
 
 **API Reference:**
@@ -98,26 +98,26 @@ difficulty-level: intermediate
 
 | Document | Focus |
 |----------|-------|
-| **[Architecture Overview](ARCHITECTURE_OVERVIEW.md)** | Complete system architecture |
-| **[Technology Choices](TECHNOLOGY_CHOICES.md)** | Technology stack rationale |
+| **[Architecture Overview](architecture/overview.md)** | Complete system architecture |
+| **[Technology Choices](architecture/technology-choices.md)** | Technology stack rationale |
 | **[System Overview](explanations/system-overview.md)** | Architectural blueprint |
-| **[Hexagonal CQRS](explanations/architecture/hexagonal-cqrs.md)** | Ports & adapters pattern |
-| **[Data Flow Complete](explanations/architecture/data-flow-complete.md)** | End-to-end pipeline |
+| **[Hexagonal CQRS](architecture/patterns/hexagonal-cqrs.md)** | Ports & adapters pattern |
+| **[Data Flow Complete](architecture/data-flow.md)** | End-to-end pipeline |
 | **[Integration Patterns](explanations/architecture/integration-patterns.md)** | System integration |
 
 **Deep Dives:**
-- **Actor System** → [Actor System Guide](guides/architecture/actor-system.md), [Server Architecture](concepts/architecture/core/server.md)
-- **Database** → [Database Architecture](explanations/architecture/database-architecture.md), [Neo4j Persistence ADR](explanations/architecture/decisions/0001-neo4j-persistent-with-filesystem-sync.md)
-- **Physics** → [Semantic Physics System](explanations/architecture/semantic-physics-system.md), [GPU Communication Flow](explanations/architecture/gpu/communication-flow.md)
-- **Ontology** → [Ontology Storage Architecture](explanations/architecture/ontology-storage-architecture.md), [Reasoning Pipeline](explanations/architecture/ontology-reasoning-pipeline.md)
-- **Multi-Agent** → [Multi-Agent System](explanations/architecture/multi-agent-system.md), [Agent Orchestration](guides/agent-orchestration.md)
+- **Actor System** → [Actor System Guide](guides/architecture/actor-system.md), [Server Architecture](architecture/server/overview.md)
+- **Database** → [Database Architecture](architecture/database.md), [Neo4j Persistence ADR](explanations/architecture/decisions/0001-neo4j-persistent-with-filesystem-sync.md)
+- **Physics** → [Semantic Physics System](architecture/physics/semantic-forces.md), [GPU Communication Flow](architecture/gpu/communication-flow.md)
+- **Ontology** → [Ontology Storage Architecture](explanations/architecture/ontology-storage-architecture.md), [Reasoning Pipeline](architecture/ontology/reasoning-engine.md)
+- **Multi-Agent** → [Multi-Agent System](architecture/agents/multi-agent.md), [Agent Orchestration](guides/agent-orchestration.md)
 
 **Ports (Hexagonal Architecture):**
-- [Ports Overview](explanations/architecture/ports/01-overview.md)
-- [Knowledge Graph Repository](explanations/architecture/ports/03-knowledge-graph-repository.md)
-- [Ontology Repository](explanations/architecture/ports/04-ontology-repository.md)
-- [Inference Engine](explanations/architecture/ports/05-inference-engine.md)
-- [GPU Physics Adapter](explanations/architecture/ports/06-gpu-physics-adapter.md)
+- [Ports Overview](architecture/ports/01-overview.md)
+- [Knowledge Graph Repository](architecture/ports/03-knowledge-graph-repository.md)
+- [Ontology Repository](architecture/ports/04-ontology-repository.md)
+- [Inference Engine](architecture/ports/05-inference-engine.md)
+- [GPU Physics Adapter](architecture/ports/06-gpu-physics-adapter.md)
 
 ---
 

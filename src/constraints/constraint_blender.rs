@@ -98,12 +98,12 @@ impl ConstraintBlender {
                 constraints
                     .iter()
                     .min_by_key(|c| c.priority)
-                    .unwrap()
+                    .expect("invariant: constraints verified non-empty at function entry")
                     .clone(),
             );
         }
 
-        
+
         let separation_constraints: Vec<_> = constraints
             .iter()
             .filter(|c| matches!(c.constraint_type, PhysicsConstraintType::Separation { .. }))
@@ -127,12 +127,12 @@ impl ConstraintBlender {
         } else if !colocation_constraints.is_empty() {
             self.blend_colocation_constraints(&colocation_constraints)
         } else {
-            
+            // Fallback: return lowest priority constraint
             Some(
                 constraints
                     .iter()
                     .min_by_key(|c| c.priority)
-                    .unwrap()
+                    .expect("invariant: constraints verified non-empty at function entry")
                     .clone(),
             )
         }

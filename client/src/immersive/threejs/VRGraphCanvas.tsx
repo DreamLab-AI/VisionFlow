@@ -1,12 +1,17 @@
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useState, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { createXRStore, XR } from '@react-three/xr';
 import GraphManager from '../../features/graph/components/GraphManager';
 import { GraphData } from '../../features/graph/managers/graphDataManager';
+import { VRAgentActionScene } from './VRAgentActionScene';
 
 interface VRGraphCanvasProps {
   graphData: GraphData;
   onDragStateChange?: (isDragging: boolean) => void;
+  /** Enable agent action visualization */
+  enableAgentActions?: boolean;
+  /** Show VR performance stats */
+  showStats?: boolean;
 }
 
 // Create XR store outside component to persist across renders
@@ -15,8 +20,26 @@ const xrStore = createXRStore({
   controller: true,
 });
 
-export function VRGraphCanvas({ graphData, onDragStateChange }: VRGraphCanvasProps) {
+export function VRGraphCanvas({
+  graphData,
+  onDragStateChange,
+  enableAgentActions = true,
+  showStats = false,
+}: VRGraphCanvasProps) {
   const [isVRSupported, setIsVRSupported] = useState<boolean | null>(null);
+
+  // Extract agent nodes for VR targeting
+  const agentNodes = useMemo(() => {
+    if (!graphData?.nodes) return [];
+    return graphData.nodes
+      .filter(node => node.metadata?.type === 'agent')
+      .map(node => ({
+        id: node.id,
+        type: (node.metadata?.agentType as string) || 'unknown',
+        position: node.position,
+        status: (node.metadata?.status as 'active' | 'idle' | 'error' | 'warning') || 'idle',
+      }));
+  }, [graphData?.nodes]);
 
   // Check VR support on mount
   React.useEffect(() => {
@@ -59,6 +82,18 @@ export function VRGraphCanvas({ graphData, onDragStateChange }: VRGraphCanvasPro
             <ambientLight intensity={0.5} />
             <pointLight position={[10, 10, 10]} />
             <GraphManager onDragStateChange={onDragStateChange} />
+
+            {/* Agent Action Visualization Layer */}
+            {enableAgentActions && (
+              <VRAgentActionScene
+                agents={agentNodes}
+                maxConnections={20}
+                baseDuration={500}
+                enableHandTracking={true}
+                showStats={showStats}
+                debug={false}
+              />
+            )}
           </Suspense>
         </XR>
       </Canvas>

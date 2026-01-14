@@ -13,11 +13,13 @@ import XCircle from 'lucide-react/dist/esm/icons/x-circle';
 import Users from 'lucide-react/dist/esm/icons/users';
 import Cpu from 'lucide-react/dist/esm/icons/cpu';
 import Zap from 'lucide-react/dist/esm/icons/zap';
+import Layers from 'lucide-react/dist/esm/icons/layers';
 import { Button } from '../../../design-system/components/Button';
 import { AgentTelemetryStream } from '../../../bots/components/AgentTelemetryStream';
 import { useSettingsStore } from '../../../../store/settingsStore';
 import { unifiedApiClient } from '../../../../services/api/UnifiedApiClient';
 import { createLogger } from '../../../../utils/loggerConfig';
+import { SkillsTab } from './SkillsTab';
 // Simple toast helper that works with the existing toast system
 const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
   console.log(`[Toast ${type}]: ${message}`);
@@ -39,7 +41,10 @@ interface AgentControlPanelProps {
   className?: string;
 }
 
+type PanelTab = 'agents' | 'skills';
+
 export const AgentControlPanel: React.FC<AgentControlPanelProps> = ({ className }) => {
+  const [activeTab, setActiveTab] = useState<PanelTab>('agents');
   const [spawning, setSpawning] = useState(false);
   const [agents, setAgents] = useState<AgentStatus[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -155,8 +160,48 @@ export const AgentControlPanel: React.FC<AgentControlPanelProps> = ({ className 
     }
   };
 
+  // Handle skill invocation
+  const handleSkillInvoke = (skillIds: string[]) => {
+    logger.info('Skills invoked:', skillIds);
+    showToast(`Invoked ${skillIds.length} skill(s)`, 'success');
+  };
+
   return (
     <div className={`space-y-4 ${className}`}>
+      {/* Tab Switcher */}
+      <div className="flex items-center gap-1 p-1 bg-muted rounded-lg">
+        <button
+          onClick={() => setActiveTab('agents')}
+          className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+            activeTab === 'agents'
+              ? 'bg-background shadow-sm text-foreground'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          Agents
+        </button>
+        <button
+          onClick={() => setActiveTab('skills')}
+          className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+            activeTab === 'skills'
+              ? 'bg-background shadow-sm text-foreground'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <Layers className="w-4 h-4" />
+          Skills
+        </button>
+      </div>
+
+      {/* Skills Tab Content */}
+      {activeTab === 'skills' && (
+        <SkillsTab onSkillInvoke={handleSkillInvoke} />
+      )}
+
+      {/* Agents Tab Content */}
+      {activeTab === 'agents' && (
+        <>
       {}
       <div className="border rounded-lg p-4 bg-card">
         <div className="flex items-center justify-between mb-3">
@@ -434,6 +479,8 @@ export const AgentControlPanel: React.FC<AgentControlPanelProps> = ({ className 
           </h3>
           <AgentTelemetryStream />
         </div>
+      )}
+        </>
       )}
     </div>
   );

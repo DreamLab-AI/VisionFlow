@@ -1694,4 +1694,118 @@ mod control_frame_tests {
             Err(ProtocolError::InvalidMessageType(0xFF))
         ));
     }
+
+    #[test]
+    fn test_agent_action_type_conversion() {
+        assert_eq!(AgentActionType::from(0), AgentActionType::Query);
+        assert_eq!(AgentActionType::from(1), AgentActionType::Update);
+        assert_eq!(AgentActionType::from(2), AgentActionType::Create);
+        assert_eq!(AgentActionType::from(3), AgentActionType::Delete);
+        assert_eq!(AgentActionType::from(4), AgentActionType::Link);
+        assert_eq!(AgentActionType::from(5), AgentActionType::Transform);
+        assert_eq!(AgentActionType::from(255), AgentActionType::Query); // Default
+    }
+
+    #[test]
+    fn test_agent_action_event_encode_decode() {
+        let event = AgentActionEvent::new(
+            42,   // source_agent_id
+            100,  // target_node_id
+            AgentActionType::Update,
+            500,  // duration_ms
+        );
+
+        let encoded = event.encode();
+
+        // Verify message type header
+        assert_eq!(encoded[0], MessageType::AgentAction as u8);
+        assert_eq!(encoded[0], 0x23);
+
+        // Verify header size: 1 (msg type) + 15 (header) = 16 bytes minimum
+        assert!(encoded.len() >= 16);
+
+        // Decode (skip msg type byte)
+        let decoded = AgentActionEvent::decode(&encoded[1..]).expect("Decode failed");
+
+        assert_eq!(decoded.source_agent_id, 42);
+        assert_eq!(decoded.target_node_id, 100);
+        assert_eq!(decoded.get_action_type(), AgentActionType::Update);
+        assert_eq!(decoded.duration_ms, 500);
+        assert!(decoded.payload.is_empty());
+    }
+
+    #[test]
+    fn test_agent_action_event_with_payload() {
+        let mut event = AgentActionEvent::new(
+            1,
+            2,
+            AgentActionType::Create,
+            1000,
+        );
+        event.payload = vec![0xDE, 0xAD, 0xBE, 0xEF];
+
+        let encoded = event.encode();
+
+        // 1 (msg type) + 15 (header) + 4 (payload) = 20 bytes
+        assert_eq!(encoded.len(), 20);
+
+        let decoded = AgentActionEvent::decode(&encoded[1..]).expect("Decode failed");
+        assert_eq!(decoded.payload, vec![0xDE, 0xAD, 0xBE, 0xEF]);
+    }
+
+    #[test]
+    fn test_agent_action_batch_encode_decode() {
+        let events = vec![
+            AgentActionEvent::new(1, 10, AgentActionType::Query, 100),
+            AgentActionEvent::new(2, 20, AgentActionType::Update, 200),
+            AgentActionEvent::new(3, 30, AgentActionType::Delete, 300),
+        ];
+
+        let encoded = encode_agent_actions(&events);
+
+        // First byte is message type
+        assert_eq!(encoded[0], MessageType::AgentAction as u8);
+
+        // Decode batch (skip msg type byte)
+        let decoded = decode_agent_actions(&encoded[1..]).expect("Batch decode failed");
+
+        assert_eq!(decoded.len(), 3);
+        assert_eq!(decoded[0].source_agent_id, 1);
+        assert_eq!(decoded[0].target_node_id, 10);
+        assert_eq!(decoded[0].get_action_type(), AgentActionType::Query);
+
+        assert_eq!(decoded[1].source_agent_id, 2);
+        assert_eq!(decoded[1].get_action_type(), AgentActionType::Update);
+
+        assert_eq!(decoded[2].source_agent_id, 3);
+        assert_eq!(decoded[2].get_action_type(), AgentActionType::Delete);
+    }
+
+    #[test]
+    fn test_agent_action_decode_error() {
+        // Data too small
+        let result = AgentActionEvent::decode(&[0; 10]);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("too small"));
+    }
+
+    #[test]
+    fn test_multiplexed_agent_action() {
+        let event = AgentActionEvent::new(5, 50, AgentActionType::Link, 750);
+        let encoded = event.encode();
+
+        let msg = MultiplexedMessage::decode(&encoded).expect("Decode failed");
+        assert_eq!(msg.msg_type, MessageType::AgentAction);
+    }
+
+    #[test]
+    fn test_message_type_values() {
+        // Verify message type constants match spec
+        assert_eq!(MessageType::BinaryPositions as u8, 0x00);
+        assert_eq!(MessageType::VoiceData as u8, 0x02);
+        assert_eq!(MessageType::ControlFrame as u8, 0x03);
+        assert_eq!(MessageType::PositionDelta as u8, 0x04);
+        assert_eq!(MessageType::AgentAction as u8, 0x23);
+        assert_eq!(MessageType::BroadcastAck as u8, 0x34);
+    }
 }

@@ -28,7 +28,7 @@ This guide takes you from a fresh installation to creating your first 3D knowled
 
 ## Prerequisites
 
-Before starting, ensure you've completed the [Installation Guide](01-installation.md) and have:
+Before starting, ensure you've completed the [Installation Guide](installation.md) and have:
 
 - ✅ Docker and Docker Compose running
 - ✅ VisionFlow services started (`docker-compose ps` shows all services "Up")
@@ -382,19 +382,19 @@ See [XR Setup Guide](../guides/xr-setup.md) for detailed configuration.
 ## Next Steps
 
 ### Beginner Path
-1. ✅ Complete this guide
-2. 📖 [Orchestrating Agents](../guides/orchestrating-agents.md) - Advanced agent patterns
-3. 🎯  - Customize your setup
+1. Complete this guide
+2. [Orchestrating Agents](../guides/orchestrating-agents.md) - Advanced agent patterns
+3. [Configuration Guide](../guides/configuration.md) - Customize your setup
 
 ### Intermediate Path
-1. 🔧 [Development Workflow](../guides/development-workflow.md) - Contribute to VisionFlow
-2. 🤖  - Create custom agents
-3. 🥽 [XR Integration](../guides/xr-setup.md) - Immersive VR experiences
+1. [Development Workflow](../guides/development-workflow.md) - Contribute to VisionFlow
+2. [Agent Development](../guides/agent-development.md) - Create custom agents
+3. [XR Integration](../guides/xr-setup.md) - Immersive VR experiences
 
 ### Advanced Path
-1. 🏗️  - Deep dive into design
-2. 💻 [API Reference](../reference/api/) - Build integrations
-3. 🚀 [Deployment Guide](../guides/deployment.md) - Production setup
+1. [Architecture Overview](../ARCHITECTURE_OVERVIEW.md) - Deep dive into design
+2. [API Reference](../reference/api/) - Build integrations
+3. [Deployment Guide](../guides/deployment.md) - Production setup
 
 ## Troubleshooting Quick Reference
 
@@ -457,10 +457,10 @@ bash scripts/voice-pipeline-test.sh
 
 ## Getting Help
 
-- **📚 ** - Comprehensive guides
-- **🐛 [Troubleshooting Guide](../guides/troubleshooting.md)** - Common issues
-- **💬 GitHub Discussions** - Community support *(Repository URL to be configured)*
-- **🔍 [API Reference](../reference/api/)** - Technical details
+- **[Documentation Hub](../README.md)** - Comprehensive guides
+- **[Troubleshooting Guide](../guides/troubleshooting.md)** - Common issues
+- **[GitHub Discussions](https://github.com/DreamLab-AI/VisionFlow/discussions)** - Community support
+- **[API Reference](../reference/api/)** - Technical details
 
 ---
 
@@ -468,7 +468,7 @@ bash scripts/voice-pipeline-test.sh
 
 ## Related Documentation
 
--  - Complete settings guide
+- [Configuration Guide](../guides/configuration.md) - Complete settings guide
 - [Agent Orchestration](../guides/orchestrating-agents.md) - Advanced agent patterns
 - [XR/AR Setup](../guides/xr-setup.md) - Immersive experiences
--  - How it all works
+- [Architecture Overview](../ARCHITECTURE_OVERVIEW.md) - How it all works

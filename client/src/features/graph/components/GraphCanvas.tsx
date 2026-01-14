@@ -9,6 +9,8 @@ import GraphManager from './GraphManager';
 import { SelectiveBloom } from '../../../rendering/SelectiveBloom';
 // Bots visualization for agent graph
 import { BotsVisualization } from '../../bots/components';
+// Agent action connections visualization
+import { AgentActionVisualization } from '../../visualisation/components/AgentActionVisualization';
 // SpacePilot Integration - using simpler version that works with useFrame
 import SpacePilotSimpleIntegration from '../../visualisation/components/SpacePilotSimpleIntegration';
 // Head Tracking for Parallax
@@ -138,7 +140,10 @@ const GraphCanvas: React.FC = () => {
                 
                 {}
                 <BotsVisualization />
-                
+
+                {/* Agent Action Connections - ephemeral animated connections */}
+                <AgentActionVisualization showStats={showStats} />
+
                 {}
                 <OrbitControls
                     ref={orbitControlsRef}

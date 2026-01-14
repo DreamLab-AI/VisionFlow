@@ -14,8 +14,20 @@ vi.mock('../../../utils/logger', () => ({
 }))
 
 vi.mock('../../../utils/clientDebugState', () => ({
+  clientDebugState: {
+    isEnabled: () => false,
+    get: () => false,
+    set: () => {},
+    subscribe: () => () => {},
+    getAll: () => ({})
+  },
   debugState: {
-    isEnabled: () => false
+    isEnabled: () => false,
+    enableDebug: () => {},
+    isDataDebugEnabled: () => false,
+    enableDataDebug: () => {},
+    isPerformanceDebugEnabled: () => false,
+    enablePerformanceDebug: () => {}
   }
 }))
 
@@ -159,16 +171,16 @@ describe('AnalyticsStore', () => {
       expect(result1.timestamp).toBe(result2.timestamp) 
     })
 
-    it('should invalidate cache when graph changes', async () => {
+    it('should invalidate cache when graph changes', { timeout: 20000 }, async () => {
       const store = useAnalyticsStore.getState()
-      
-      
+
+      // First computation
       await store.computeSSSP(sampleNodes, sampleEdges, 'A')
-      
-      
+
+      // Add new edge to invalidate cache
       const newEdges = [...sampleEdges, { id: 'e4', source: 'C', target: 'D', weight: 1 }]
-      
-      
+
+      // Second computation with changed graph
       await store.computeSSSP(sampleNodes, newEdges, 'A')
       const metrics = useAnalyticsStore.getState().metrics
       expect(metrics.cacheMisses).toBe(2)

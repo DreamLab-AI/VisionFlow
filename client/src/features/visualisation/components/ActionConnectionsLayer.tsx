@@ -32,12 +32,20 @@ interface ActionConnectionsLayerProps {
   lineWidth?: number;
 }
 
-/** Phase timing boundaries (cumulative) */
+/**
+ * Phase timing boundaries (cumulative percentages of total 500ms duration)
+ * - spawn:  0.0-0.2 (100ms) - Line fades in, particle grows at source
+ * - travel: 0.2-0.8 (300ms) - Particle travels along bezier curve
+ * - impact: 0.8-1.0 (100ms) - Burst effect at target, then fade out
+ *
+ * Note: Original spec had separate impact (50ms) and fade (50ms),
+ * combined here for smoother visual transition.
+ */
 const PHASE_BOUNDS = {
-  spawnEnd: 0.2,
-  travelEnd: 0.8,
-  impactEnd: 0.9,
-  fadeEnd: 1.0,
+  spawnEnd: 0.2,    // 100ms / 500ms = 0.2
+  travelEnd: 0.8,   // 300ms / 500ms = 0.6, cumulative = 0.8
+  impactEnd: 1.0,   // Combined impact+fade = 100ms, cumulative = 1.0
+  fadeEnd: 1.0,     // Kept for compatibility
 };
 
 export const ActionConnectionsLayer: React.FC<ActionConnectionsLayerProps> = ({
@@ -121,7 +129,10 @@ const ActionConnectionLine: React.FC<{
     const perpendicular = new THREE.Vector3().crossVectors(direction, up).normalize();
 
     // Offset based on action type for visual variety
-    const offsetAmount = distance * 0.3 * (1 + (connection.actionType * 0.1));
+    // Use _actionTypeEnum if available (new API), otherwise derive from string
+    const actionTypeIndex = connection._actionTypeEnum ??
+      (['query', 'update', 'create', 'delete', 'link', 'transform'].indexOf(connection.actionType as string) || 0);
+    const offsetAmount = distance * 0.3 * (1 + (actionTypeIndex * 0.1));
     midPoint.add(perpendicular.multiplyScalar(offsetAmount));
     midPoint.y += distance * 0.15; // Slight upward arc
 
@@ -162,28 +173,35 @@ const ActionConnectionLine: React.FC<{
 
     switch (phase) {
       case 'spawn':
-        // Line fades in, particle grows
+        // Line fades in, particle grows (0-100ms)
         lineOpacity = progress / PHASE_BOUNDS.spawnEnd;
         particleScale = progress / PHASE_BOUNDS.spawnEnd;
         break;
       case 'travel':
-        // Full visibility
+        // Full visibility during travel (100-400ms)
         lineOpacity = 1.0;
         particleScale = 1.0;
         break;
       case 'impact':
-        // Impact burst
-        lineOpacity = 1.0;
-        particleScale = 0.5;
-        impactScale = (progress - PHASE_BOUNDS.travelEnd) / (PHASE_BOUNDS.impactEnd - PHASE_BOUNDS.travelEnd);
+      case 'fade': {
+        // Combined impact + fade phase (400-500ms)
+        // First half: burst expands, second half: everything fades
+        const impactProgress = (progress - PHASE_BOUNDS.travelEnd) / (PHASE_BOUNDS.impactEnd - PHASE_BOUNDS.travelEnd);
+
+        if (impactProgress < 0.5) {
+          // Impact burst expansion (first 50ms)
+          lineOpacity = 1.0;
+          particleScale = 0.5;
+          impactScale = impactProgress * 2; // 0 -> 1 over first half
+        } else {
+          // Fade out (last 50ms)
+          const fadeProgress = (impactProgress - 0.5) * 2; // 0 -> 1 over second half
+          lineOpacity = 1 - fadeProgress;
+          particleScale = 0.5 * (1 - fadeProgress);
+          impactScale = 1 - fadeProgress;
+        }
         break;
-      case 'fade':
-        // Everything fades out
-        const fadeProgress = (progress - PHASE_BOUNDS.impactEnd) / (PHASE_BOUNDS.fadeEnd - PHASE_BOUNDS.impactEnd);
-        lineOpacity = 1 - fadeProgress;
-        particleScale = 0.5 * (1 - fadeProgress);
-        impactScale = 1 - fadeProgress;
-        break;
+      }
     }
 
     return {
@@ -273,7 +291,10 @@ export const ActionConnectionsStats: React.FC<{
   const stats = useMemo(() => {
     const byType: Record<string, number> = {};
     for (const conn of connections) {
-      const typeName = AgentActionType[conn.actionType] || 'Unknown';
+      // Support both new string type and legacy enum
+      const typeName = typeof conn.actionType === 'string'
+        ? conn.actionType
+        : AgentActionType[conn._actionTypeEnum ?? conn.actionType] || 'Unknown';
       byType[typeName] = (byType[typeName] || 0) + 1;
     }
     return byType;

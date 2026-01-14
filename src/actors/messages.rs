@@ -1026,12 +1026,12 @@ pub struct SetSharedGPUContext {
     pub correlation_id: Option<MessageId>,
 }
 
-// Message to store GPU compute actor address in GraphStateActor
+// Message to store GPU compute actor address in PhysicsOrchestratorActor
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct StoreGPUComputeAddress {
-    
-    pub addr: Option<Addr<crate::actors::gpu::GPUManagerActor>>,
+    /// ForceComputeActor address for GPU physics computation
+    pub addr: Option<Addr<crate::actors::gpu::ForceComputeActor>>,
 }
 
 // Message to get the ForceComputeActor address from GPUManagerActor

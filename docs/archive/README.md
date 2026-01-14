@@ -6,16 +6,26 @@ This directory contains archived documentation that is no longer actively mainta
 
 ```
 archive/
+├── analysis/        # Architecture and code analysis reports
 ├── audits/          # Historical audit reports (Neo4j migration, ASCII deprecation)
 ├── legacy/          # Superseded navigation and architecture docs
 ├── phases/          # Phase-specific implementation documentation
 │   ├── phase6/      # Multi-user sync implementation
 │   └── phase7/      # Broadcast optimization
 ├── reports/         # Historical analysis reports (coverage, validation, audits)
+│   ├── cuda/        # CUDA kernel analysis and optimization
+│   └── code-quality/# Code quality and test coverage reports
 └── sprints/         # Sprint planning and retrospectives
 ```
 
 ## Directory Contents
+
+### analysis/
+Architecture and codebase analysis reports:
+- Architecture analysis reports
+- Client code analysis
+- Observability analysis
+- Wardley mapping analysis
 
 ### audits/
 Historical audit reports including:

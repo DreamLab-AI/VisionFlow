@@ -201,14 +201,14 @@ For custom deployments or development, VisionFlow supports:
 
 ## Getting Started
 
-1. **[Installation Guide](getting-started/01-installation.md)** - Docker or native setup
-2. **[First Graph Tutorial](getting-started/02-first-graph-and-agents.md)** - Create your first visualization
-3. **[Architecture Overview](ARCHITECTURE_OVERVIEW.md)** - Understand the system design
-4. **[Developer Journey](DEVELOPER_JOURNEY.md)** - Navigate the codebase
+1. **[Installation Guide](installation.md)** - Docker or native setup
+2. **[First Graph Tutorial](first-graph.md)** - Create your first visualization
+3. **[Architecture Overview](../ARCHITECTURE_OVERVIEW.md)** - Understand the system design
+4. **[Developer Journey](../DEVELOPER_JOURNEY.md)** - Navigate the codebase
 
 ## Community & Support
 
-- **Documentation:** [Complete documentation hub](README.md)
+- **Documentation:** [Complete documentation hub](../README.md)
 - **Issues:** [GitHub Issues](https://github.com/DreamLab-AI/VisionFlow/issues)
 - **Discussions:** [GitHub Discussions](https://github.com/DreamLab-AI/VisionFlow/discussions)
 - **License:** Mozilla Public License 2.0 (MPL-2.0) - Commercial-friendly with copyleft on modifications
@@ -219,11 +219,11 @@ For custom deployments or development, VisionFlow supports:
 
 ## Related Documentation
 
-- [VisionFlow Complete Architecture Documentation](ARCHITECTURE_COMPLETE.md)
-- [VisionFlow Client Architecture Analysis](visionflow-architecture-analysis.md)
-- [VisionFlow Architecture Diagrams - Complete Corpus](diagrams/README.md)
-- [Agent/Bot System Architecture](diagrams/server/agents/agent-system-architecture.md)
-- [Agent Orchestration & Multi-Agent Systems](diagrams/mermaid-library/04-agent-orchestration.md)
+- [VisionFlow Complete Architecture Documentation](../ARCHITECTURE_COMPLETE.md)
+- [VisionFlow Client Architecture Analysis](../visionflow-architecture-analysis.md)
+- [VisionFlow Architecture Diagrams - Complete Corpus](../diagrams/README.md)
+- [Agent/Bot System Architecture](../diagrams/server/agents/agent-system-architecture.md)
+- [Agent Orchestration & Multi-Agent Systems](../diagrams/mermaid-library/04-agent-orchestration.md)
 
 ## Vision & Roadmap
 
@@ -251,4 +251,4 @@ VisionFlow represents the future of collaborative knowledge work—where AI agen
 
 **Transform how your team discovers knowledge. Start exploring VisionFlow today.**
 
-**[Get Started →](getting-started/01-installation.md)** | **[Architecture →](ARCHITECTURE_OVERVIEW.md)** | **[Star on GitHub ⭐](https://github.com/DreamLab-AI/VisionFlow)**
+**[Get Started](installation.md)** | **[Architecture](../ARCHITECTURE_OVERVIEW.md)** | **[Star on GitHub](https://github.com/DreamLab-AI/VisionFlow)**

@@ -1026,12 +1026,16 @@ impl Handler<StoreGPUComputeAddress> for PhysicsOrchestratorActor {
     type Result = ();
 
     fn handle(&mut self, msg: StoreGPUComputeAddress, ctx: &mut Self::Context) -> Self::Result {
-        info!("Storing GPU compute address");
-        
-        
-        debug!("GPU address stored: {:?}", msg.addr.is_some());
+        info!("PhysicsOrchestratorActor: Storing GPU compute address");
 
+        // Actually store the ForceComputeActor address
+        self.gpu_compute_addr = msg.addr;
+
+        info!("PhysicsOrchestratorActor: GPU address stored: {:?}", self.gpu_compute_addr.is_some());
+
+        // Now that we have the GPU address, try to initialize GPU physics
         if self.gpu_compute_addr.is_some() {
+            info!("PhysicsOrchestratorActor: GPU address available, initializing GPU physics");
             self.initialize_gpu_if_needed(ctx);
         }
     }
@@ -1125,8 +1129,16 @@ pub struct UpdateGraphData {
 impl Handler<UpdateGraphData> for PhysicsOrchestratorActor {
     type Result = ();
 
-    fn handle(&mut self, msg: UpdateGraphData, _ctx: &mut Self::Context) -> Self::Result {
+    fn handle(&mut self, msg: UpdateGraphData, ctx: &mut Self::Context) -> Self::Result {
+        info!("PhysicsOrchestratorActor: Received UpdateGraphData with {} nodes", msg.graph_data.nodes.len());
         self.update_graph_data(msg.graph_data);
+
+        // Try GPU initialization now that we have graph data
+        // This handles the case where GPU address arrived before graph data
+        if self.gpu_compute_addr.is_some() && !self.gpu_initialized && !self.gpu_init_in_progress {
+            info!("PhysicsOrchestratorActor: Graph data received, attempting GPU initialization");
+            self.initialize_gpu_if_needed(ctx);
+        }
     }
 }
 

@@ -117,7 +117,8 @@ app.register(require('@fastify/swagger'), {
       { name: 'tasks', description: 'Task management endpoints' },
       { name: 'monitoring', description: 'System monitoring and health' },
       { name: 'metrics', description: 'Prometheus metrics' },
-      { name: 'comfyui', description: 'ComfyUI workflow management' }
+      { name: 'comfyui', description: 'ComfyUI workflow management' },
+      { name: 'agent-events', description: 'Real-time agent action event streaming' }
     ]
   }
 });
@@ -151,6 +152,12 @@ app.register(require('./routes/status'), {
 app.register(require('./routes/comfyui'), {
   prefix: '',
   comfyuiManager,
+  logger,
+  metrics
+});
+
+app.register(require('./routes/agent-events'), {
+  prefix: '',
   logger,
   metrics
 });
@@ -208,6 +215,14 @@ app.get('/', {
         models: 'GET /v1/comfyui/models',
         outputs: 'GET /v1/comfyui/outputs',
         stream: 'WS /v1/comfyui/stream'
+      },
+      agentEvents: {
+        stream: 'WS /v1/agent-events/stream',
+        recent: 'GET /v1/agent-events',
+        emit: 'POST /v1/agent-events/emit',
+        batch: 'POST /v1/agent-events/batch',
+        types: 'GET /v1/agent-events/types',
+        status: 'GET /v1/agent-events/status'
       },
       monitoring: {
         status: 'GET /v1/status',
