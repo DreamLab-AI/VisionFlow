@@ -65,6 +65,16 @@ struct SimParams {
     float lof_score_min;                    // Minimum LOF score clamp
     float lof_score_max;                    // Maximum LOF score clamp
     float weight_precision_multiplier;      // Weight precision multiplier for integer operations
+
+    // Stress Majorization Parameters (must match Rust SimParams exactly)
+    unsigned int stress_optimization_enabled;   // Enable/disable stress majorization (0 or 1)
+    unsigned int stress_optimization_frequency; // Run every N frames (e.g., 60 = once per second at 60fps)
+    float stress_learning_rate;                 // Learning rate for gradient descent (0.01-0.1)
+    float stress_momentum;                      // Momentum factor (0.0-0.9)
+    float stress_max_displacement;              // Maximum displacement per iteration
+    float stress_convergence_threshold;         // Convergence threshold for early stopping
+    unsigned int stress_max_iterations;         // Maximum iterations per optimization call
+    float stress_blend_factor;                  // Blend factor with local forces (0.1-0.3)
 };
 
 // Global constant memory for simulation parameters

@@ -216,7 +216,7 @@ struct int3 {
 }
 
 pub struct UnifiedGPUCompute {
-    
+    device: Device,
     _context: Context,
     _module: Module,
     clustering_module: Option<Module>,
@@ -524,6 +524,7 @@ impl UnifiedGPUCompute {
         let initial_memory = Self::calculate_memory_usage(num_nodes, num_edges, max_grid_cells);
 
         let gpu_compute = Self {
+            device,
             _context,
             _module: kernel_module,
             clustering_module,
@@ -1173,6 +1174,11 @@ impl UnifiedGPUCompute {
     }
 
     pub fn execute(&mut self, mut params: SimParams) -> Result<()> {
+        // Make CUDA context current for this thread (required when called from spawn_blocking threads)
+        // Context::new() on the same device retains the primary context and makes it current
+        let _thread_context = Context::new(self.device.clone())
+            .map_err(|e| anyhow!("Failed to set CUDA context: {}", e))?;
+
         params.iteration = self.iteration;
         let block_size = 256;
         let grid_size = (self.num_nodes as u32 + block_size - 1) / block_size;

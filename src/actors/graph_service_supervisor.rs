@@ -784,17 +784,56 @@ impl Handler<msgs::GetGraphData> for GraphServiceSupervisor {
     }
 }
 
-/// Handler for ReloadGraphFromDatabase - delegates to GraphStateActor
+/// Handler for ReloadGraphFromDatabase - delegates to GraphStateActor and forwards to PhysicsOrchestratorActor
 impl Handler<msgs::ReloadGraphFromDatabase> for GraphServiceSupervisor {
     type Result = ResponseFuture<Result<(), String>>;
 
     fn handle(&mut self, _msg: msgs::ReloadGraphFromDatabase, _ctx: &mut Self::Context) -> Self::Result {
-        if self.graph_state.is_some() {
-            info!("ReloadGraphFromDatabase notification logged");
-            Box::pin(async { Ok(()) })
-        } else {
-            Box::pin(async { Err("GraphStateActor not initialized".to_string()) })
-        }
+        info!("GraphServiceSupervisor: ReloadGraphFromDatabase received");
+
+        let graph_state_addr = self.graph_state.clone();
+        let physics_addr = self.physics.clone();
+
+        Box::pin(async move {
+            // Get graph data from GraphStateActor
+            if let Some(graph_state) = graph_state_addr {
+                // Wait a moment for GraphStateActor to finish loading from Neo4j
+                tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+
+                match graph_state.send(msgs::GetGraphData).await {
+                    Ok(Ok(graph_data)) => {
+                        info!(
+                            "GraphServiceSupervisor: Got graph data with {} nodes, {} edges",
+                            graph_data.nodes.len(),
+                            graph_data.edges.len()
+                        );
+
+                        // Forward to PhysicsOrchestratorActor if available
+                        if let Some(physics) = physics_addr {
+                            use crate::actors::physics_orchestrator_actor::UpdateGraphData;
+                            physics.do_send(UpdateGraphData {
+                                graph_data: graph_data.clone(),
+                            });
+                            info!("GraphServiceSupervisor: Forwarded graph data to PhysicsOrchestratorActor for GPU initialization");
+                        } else {
+                            warn!("GraphServiceSupervisor: PhysicsOrchestratorActor not available to receive graph data");
+                        }
+
+                        Ok(())
+                    }
+                    Ok(Err(e)) => {
+                        error!("GraphServiceSupervisor: Failed to get graph data: {}", e);
+                        Err(e)
+                    }
+                    Err(e) => {
+                        error!("GraphServiceSupervisor: Mailbox error getting graph data: {}", e);
+                        Err(format!("Mailbox error: {}", e))
+                    }
+                }
+            } else {
+                Err("GraphStateActor not initialized".to_string())
+            }
+        })
     }
 }
 
@@ -915,6 +954,8 @@ impl Handler<msgs::InitializeGPUConnection> for GraphServiceSupervisor {
             // Get ForceComputeActor from GPUManagerActor and forward to PhysicsOrchestratorActor
             let physics_addr = self.physics.clone();
             let gpu_manager_clone = gpu_manager.clone();
+            let gpu_manager_for_init = gpu_manager.clone();
+            let graph_state_addr = self.graph_state.clone();
 
             ctx.spawn(
                 async move {
@@ -940,6 +981,46 @@ impl Handler<msgs::InitializeGPUConnection> for GraphServiceSupervisor {
                         Err(e) => {
                             error!("GraphServiceSupervisor: GPUManagerActor communication error: {}", e);
                         }
+                    }
+
+                    // Also send InitializeGPU to GPUManagerActor to create SharedGPUContext
+                    // First, get graph data from GraphStateActor
+                    if let Some(graph_state) = graph_state_addr {
+                        info!("GraphServiceSupervisor: Fetching graph data for GPU initialization");
+                        match graph_state.send(msgs::GetGraphData).await {
+                            Ok(Ok(graph_data)) => {
+                                info!("GraphServiceSupervisor: Sending InitializeGPU to GPUManagerActor with {} nodes",
+                                    graph_data.nodes.len());
+
+                                // Send InitializeGPU to GPUManagerActor
+                                // ServiceGraphData is the same type as GraphData, so we can use it directly
+                                match gpu_manager_for_init.send(msgs::InitializeGPU {
+                                    graph: graph_data,
+                                    graph_service_addr: None,
+                                    physics_orchestrator_addr: None,
+                                    gpu_manager_addr: Some(gpu_manager_for_init.clone()),
+                                    correlation_id: None,
+                                }).await {
+                                    Ok(Ok(())) => {
+                                        info!("GraphServiceSupervisor: GPUManagerActor GPU initialization successful");
+                                    }
+                                    Ok(Err(e)) => {
+                                        error!("GraphServiceSupervisor: GPUManagerActor GPU initialization failed: {}", e);
+                                    }
+                                    Err(e) => {
+                                        error!("GraphServiceSupervisor: GPUManagerActor communication error: {}", e);
+                                    }
+                                }
+                            }
+                            Ok(Err(e)) => {
+                                warn!("GraphServiceSupervisor: Failed to get graph data for GPU init: {}", e);
+                            }
+                            Err(e) => {
+                                error!("GraphServiceSupervisor: GraphStateActor communication error: {}", e);
+                            }
+                        }
+                    } else {
+                        warn!("GraphServiceSupervisor: GraphStateActor not available for GPU initialization");
                     }
                 }
                 .into_actor(self)

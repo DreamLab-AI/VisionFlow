@@ -37,3 +37,9 @@ data/*.db.*
 data/visionflow.db*
 logs/
 qdrant_data/
+
+# Large directories that shouldn't be in build context
+multi-agent-docker/comfyui/
+multi-agent-docker/node_modules/
+screenshots/
+output/

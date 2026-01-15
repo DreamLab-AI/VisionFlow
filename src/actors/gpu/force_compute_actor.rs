@@ -853,10 +853,8 @@ impl Handler<InitializeGPU> for ForceComputeActor {
     fn handle(&mut self, msg: InitializeGPU, _ctx: &mut Self::Context) -> Self::Result {
         info!("ForceComputeActor: InitializeGPU received");
 
-
         self.gpu_state.num_nodes = msg.graph.nodes.len() as u32;
         self.gpu_state.num_edges = msg.graph.edges.len() as u32;
-
 
         if msg.graph_service_addr.is_some() {
             self.graph_service_addr = msg.graph_service_addr;
@@ -867,6 +865,12 @@ impl Handler<InitializeGPU> for ForceComputeActor {
             "ForceComputeActor: GPU initialized with {} nodes, {} edges",
             self.gpu_state.num_nodes, self.gpu_state.num_edges
         );
+
+        // Send GPUInitialized confirmation back to PhysicsOrchestratorActor
+        if let Some(ref orchestrator_addr) = msg.physics_orchestrator_addr {
+            orchestrator_addr.do_send(crate::actors::messages::GPUInitialized);
+            info!("ForceComputeActor: GPUInitialized confirmation sent to PhysicsOrchestratorActor");
+        }
 
         // H4: Send acknowledgment
         if let Some(correlation_id) = msg.correlation_id {

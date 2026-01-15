@@ -209,11 +209,10 @@ impl PhysicsOrchestratorActor {
 
         
         if let Some(gpu_addr) = self.gpu_compute_addr.clone() {
-            
+            // Use GPU for physics computation
             self.execute_gpu_physics_step(&gpu_addr, ctx);
-        }
-        {
-            
+        } else {
+            // Fall back to CPU physics when GPU not available
             self.execute_cpu_physics_step(ctx);
         }
 
@@ -281,11 +280,12 @@ impl PhysicsOrchestratorActor {
         }
 
         if let Some(ref gpu_addr) = self.gpu_compute_addr {
-            self.gpu_init_in_progress = true;
             info!("Initializing GPU compute for physics");
 
-
             if let Some(ref graph_data) = self.graph_data_ref {
+                // Only set in_progress when we actually send messages
+                self.gpu_init_in_progress = true;
+
                 // H4: Track InitializeGPU message
                 let msg_id = MessageId::new();
                 let tracker = self.message_tracker.clone();
@@ -308,7 +308,6 @@ impl PhysicsOrchestratorActor {
                     tracker2.track_default(msg_id2, MessageKind::UpdateGPUGraphData).await;
                 });
 
-
                 gpu_addr.do_send(UpdateGPUGraphData {
                     graph: Arc::clone(graph_data),
                     correlation_id: Some(msg_id2),
@@ -316,9 +315,9 @@ impl PhysicsOrchestratorActor {
 
                 // NOTE: Do NOT set gpu_initialized here!
                 // Wait for GPUInitialized message from GPU actor (see handler at end of file)
-                // self.gpu_initialized = true;  // REMOVED - wait for confirmation
-                // self.gpu_init_in_progress = false;  // REMOVED - wait for confirmation
                 info!("GPU initialization messages sent - waiting for GPUInitialized confirmation");
+            } else {
+                info!("GPU address available but no graph data yet - will retry when graph data arrives");
             }
         }
     }
@@ -339,9 +338,14 @@ impl PhysicsOrchestratorActor {
             return;
         }
 
-
         self.current_iteration += 1;
         self.performance_metrics.total_steps = self.current_iteration;
+
+        // Send ComputeForces to ForceComputeActor to trigger GPU computation
+        use crate::actors::messages::ComputeForces;
+        gpu_addr.do_send(ComputeForces {
+            correlation_id: None,
+        });
 
         // Collect current positions from graph data for broadcasting
         if let Some(ref graph_data) = self.graph_data_ref {
@@ -368,7 +372,7 @@ impl PhysicsOrchestratorActor {
             self.broadcast_position_updates(positions, ctx);
         }
 
-        debug!("Physics step {} executed", self.current_iteration);
+        debug!("Physics step {} executed with GPU compute", self.current_iteration);
     }
 
     
@@ -862,7 +866,10 @@ impl Actor for PhysicsOrchestratorActor {
     fn started(&mut self, ctx: &mut Self::Context) {
         info!("Physics Orchestrator Actor started");
 
-        
+        // Start the physics simulation loop immediately
+        // GPU initialization will happen when GPU address and graph data are available
+        self.start_simulation_loop(ctx);
+
         if self.gpu_compute_addr.is_some() {
             self.initialize_gpu_if_needed(ctx);
         }
