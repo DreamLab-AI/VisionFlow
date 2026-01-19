@@ -33,17 +33,45 @@ pub struct Neo4jOntologyConfig {
     pub database: Option<String>,
 }
 
-impl Default for Neo4jOntologyConfig {
-    fn default() -> Self {
-        Self {
+impl Neo4jOntologyConfig {
+    /// Create a new Neo4jOntologyConfig from environment variables.
+    ///
+    /// # Errors
+    /// Returns an error if NEO4J_PASSWORD is not set and ALLOW_INSECURE_DEFAULTS is not "true".
+    pub fn from_env() -> Result<Self, String> {
+        let password = std::env::var("NEO4J_PASSWORD")
+            .or_else(|_| {
+                if std::env::var("ALLOW_INSECURE_DEFAULTS").map(|v| v == "true").unwrap_or(false) {
+                    warn!("Using insecure default password - set NEO4J_PASSWORD in production!");
+                    Ok("password".to_string())
+                } else {
+                    Err(std::env::VarError::NotPresent)
+                }
+            })
+            .map_err(|_| "NEO4J_PASSWORD environment variable not set. Set NEO4J_PASSWORD or set ALLOW_INSECURE_DEFAULTS=true for development.".to_string())?;
+
+        Ok(Self {
             uri: std::env::var("NEO4J_URI")
                 .unwrap_or_else(|_| "bolt://localhost:7687".to_string()),
             user: std::env::var("NEO4J_USER")
                 .unwrap_or_else(|_| "neo4j".to_string()),
-            password: std::env::var("NEO4J_PASSWORD")
-                .unwrap_or_else(|_| "password".to_string()),
+            password,
             database: std::env::var("NEO4J_DATABASE").ok(),
-        }
+        })
+    }
+}
+
+impl Default for Neo4jOntologyConfig {
+    /// Creates a default configuration.
+    ///
+    /// # Panics
+    /// Panics if NEO4J_PASSWORD is not set and ALLOW_INSECURE_DEFAULTS is not "true".
+    /// Use `Neo4jOntologyConfig::from_env()` for fallible construction.
+    fn default() -> Self {
+        Self::from_env().expect(
+            "NEO4J_PASSWORD environment variable not set. \
+             Set NEO4J_PASSWORD or set ALLOW_INSECURE_DEFAULTS=true for development."
+        )
     }
 }
 

@@ -61,24 +61,31 @@ Font is loaded via `@font-face` declarations in the component CSS.
 ## Visual Design
 
 ### Control Panel Layout (Expanded)
-```
-┌─────────────────────────────────────────┐
-│ ⚡ VisionFlow (LIVE)                    │
-├─────────────────────────────────────────┤
-│ ┌─────────┬─────────┬─────────┐        │
-│ │ Agents  │ Links   │ Tokens  │        │
-│ │   5     │   12    │  1,234  │        │
-│ └─────────┴─────────┴─────────┘        │
-│ [New Task] [Disconnect]                 │
-├─────────────────────────────────────────┤
-│ TELEMETRY STREAM              ●         │
-│ ┌───────────────────────────────────┐  │
-│ │ 10:47:23 agent-abc STS:ACTIVE | … │  │
-│ │ 10:47:24 agent-def HP:85% | CPU:… │  │
-│ │ 10:47:25 agent-ghi MEM:512MB | …  │  │
-│ │ ...                                │  │
-│ └───────────────────────────────────┘  │
-└─────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph ControlPanel["⚡ VisionFlow (LIVE)"]
+        direction TB
+        subgraph StatsGrid["Agent Statistics"]
+            direction LR
+            Agents["Agents<br/>5"]
+            Links["Links<br/>12"]
+            Tokens["Tokens<br/>1,234"]
+        end
+        Controls["[New Task] [Disconnect]"]
+        subgraph Telemetry["TELEMETRY STREAM ●"]
+            direction TB
+            Log1["10:47:23 agent-abc STS:ACTIVE"]
+            Log2["10:47:24 agent-def HP:85% CPU:..."]
+            Log3["10:47:25 agent-ghi MEM:512MB"]
+        end
+    end
+
+    StatsGrid --> Controls
+    Controls --> Telemetry
+
+    style ControlPanel fill:#1a1a2e,stroke:#16213e,color:#fff
+    style StatsGrid fill:#0f3460,stroke:#16213e,color:#fff
+    style Telemetry fill:#ff8800,stroke:#cc6600,color:#000
 ```
 
 ### Color Scheme

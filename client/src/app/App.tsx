@@ -148,11 +148,14 @@ function App() {
     return <LoadingScreen message="Checking authentication..." />;
   }
 
-  // Allow bypass for visual testing via URL parameter
-  const skipAuth = window.location.search.includes('skipAuth=true') ||
-                   window.location.search.includes('test=visual');
+  // Allow bypass for visual testing via URL parameter (DEVELOPMENT ONLY)
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  const skipAuth = isDevelopment && (
+    window.location.search.includes('skipAuth=true') ||
+    window.location.search.includes('test=visual')
+  );
 
-  // Show login screen if not authenticated (unless testing bypass)
+  // Show login screen if not authenticated (unless testing bypass in dev mode)
   if (!authenticated && !skipAuth) {
     return <NostrLoginScreen />;
   }

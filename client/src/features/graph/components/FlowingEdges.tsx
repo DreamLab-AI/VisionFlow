@@ -96,7 +96,7 @@ export const FlowingEdges: React.FC<FlowingEdgesProps> = ({ points, settings: pr
   
   
   const material = useMemo(() => {
-    const color = new THREE.Color(propSettings.color || '#56b6c2');
+    const color = new THREE.Color(propSettings.color || '#FF5722');
 
     // Don't darken base color for bloom - instead use additive glow boost
     // Ensures edges remain visible regardless of bloom settings
@@ -106,7 +106,7 @@ export const FlowingEdges: React.FC<FlowingEdgesProps> = ({ points, settings: pr
     const mat = new THREE.LineBasicMaterial({
       color: bloomAdjustedColor,
       transparent: true,
-      opacity: Math.min(1.0, (propSettings.opacity || 0.6)), 
+      opacity: Math.min(1.0, (propSettings.opacity ?? 0.2)), 
       linewidth: propSettings.baseWidth || 2, 
       depthWrite: false, 
       depthTest: true,
@@ -144,7 +144,7 @@ export const FlowingEdges: React.FC<FlowingEdgesProps> = ({ points, settings: pr
   useFrame((state) => {
     if (materialRef.current && (propSettings as any).enableFlowEffect) {
       const flowIntensity = Math.sin(state.clock.elapsedTime * ((propSettings as any).flowSpeed || 1.0)) * 0.3 + 0.7;
-      materialRef.current.opacity = (propSettings.opacity || 0.25) * flowIntensity;
+      materialRef.current.opacity = (propSettings.opacity ?? 0.2) * flowIntensity;
     }
   });
   

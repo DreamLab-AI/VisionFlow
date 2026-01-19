@@ -118,6 +118,16 @@ export const skillDefinitions: SkillDefinition[] = [
     icon: '🛠️',
     category: 'development'
   },
+  {
+    id: 'prd2build',
+    name: 'PRD to Build',
+    version: '3.0.0',
+    description: 'PRD to complete documentation and build - generates Specification, DDD, ADR, SPARC, Implementation Plans, Testing, and UI Mockups in single command',
+    tags: ['prd', 'adr', 'ddd', 'sparc', 'planning', 'documentation', 'swarm', 'build', 'mockups'],
+    mcpServer: false,
+    icon: '🏗️',
+    category: 'development'
+  },
 
   // Testing
   {

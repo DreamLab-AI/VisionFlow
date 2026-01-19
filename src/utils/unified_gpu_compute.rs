@@ -20,6 +20,32 @@
 //! - Efficient spatial grid acceleration structures
 //! - Memory usage tracking and optimization
 //!
+//! ## Safety Documentation for Unsafe Blocks
+//!
+//! This module contains multiple `unsafe` blocks, primarily for CUDA kernel launches and
+//! FFI calls. All unsafe blocks in this module follow these safety invariants:
+//!
+//! ### Kernel Launch Safety (via `launch!` macro)
+//! All CUDA kernel launches are safe when these invariants hold:
+//! 1. **Valid Module**: The kernel function is loaded from a valid PTX module
+//! 2. **Valid Buffers**: All `DeviceBuffer` arguments are valid allocations with sufficient capacity
+//! 3. **Bounds Check**: `num_nodes <= allocated_nodes` is verified before kernel launches
+//! 4. **Grid/Block Size**: Launch configuration uses valid grid and block dimensions
+//! 5. **Stream Validity**: The CUDA stream is valid and not destroyed
+//! 6. **Type Safety**: All arguments match the kernel's expected types (enforced by DeviceCopy trait)
+//!
+//! ### FFI Call Safety (thrust_sort_key_value, etc.)
+//! External CUDA library calls are safe when:
+//! 1. All device pointers are valid CUDA allocations
+//! 2. Buffer sizes are sufficient for the requested operation
+//! 3. The stream handle is valid or null (for default stream)
+//!
+//! ### DeviceCopy Trait Implementations
+//! Types implementing DeviceCopy are safe for GPU memory operations because:
+//! 1. They are repr(C) with stable memory layout
+//! 2. They contain no pointers, references, or non-Send types
+//! 3. Arbitrary bit patterns represent valid (if potentially meaningless) values
+//!
 //! ## Async Transfer Usage
 //!
 //! The async transfer methods provide multiple ways to access GPU data without blocking:
@@ -123,9 +149,14 @@ use std::ffi::CStr;
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct curandState {
-    _private: [u8; 48], 
+    _private: [u8; 48],
 }
 
+// SAFETY: curandState is safe to implement DeviceCopy because:
+// 1. It is repr(C) ensuring a stable memory layout compatible with CUDA
+// 2. The struct contains only plain bytes with no pointers or references
+// 3. The CUDA runtime treats this as opaque state that can be safely memcpy'd
+// 4. The 48-byte size matches the curandState size in the CUDA runtime headers
 unsafe impl DeviceCopy for curandState {}
 
 // GPU Performance Metrics tracking structure
@@ -185,6 +216,13 @@ impl Default for GPUPerformanceMetrics {
 
 // External CUDA/Thrust function for sorting
 // This is provided by the compiled CUDA object file
+//
+// SAFETY: This extern block declares FFI functions that are safe to call when:
+// 1. All device pointers (d_keys_in, d_keys_out, d_values_in, d_values_out) are valid
+//    CUDA device memory pointers allocated via cudaMalloc or DeviceBuffer
+// 2. The pointers have sufficient allocated size for num_items elements
+// 3. The stream pointer is a valid CUDA stream handle or null for default stream
+// 4. The caller ensures proper synchronization before reading output buffers
 unsafe extern "C" {
     fn thrust_sort_key_value(
         d_keys_in: *const ::std::os::raw::c_void,
@@ -204,7 +242,17 @@ struct AABB {
     max: [f32; 3],
 }
 
+// SAFETY: AABB is safe to implement Zeroable because:
+// 1. It is repr(C) with a deterministic memory layout
+// 2. All fields are f32 arrays which have valid zero representations
+// 3. An AABB with all zeros (min=[0,0,0], max=[0,0,0]) is a valid degenerate bounding box
 unsafe impl bytemuck::Zeroable for AABB {}
+
+// SAFETY: AABB is safe to implement Pod because:
+// 1. It is repr(C) ensuring no padding or alignment surprises
+// 2. All fields are f32 which is itself Pod (plain old data)
+// 3. The struct has no invariants that could be violated by arbitrary bit patterns
+// 4. Any bit pattern can be safely interpreted as an AABB (may represent invalid geometry but won't cause UB)
 unsafe impl bytemuck::Pod for AABB {}
 
 #[repr(C)]
@@ -1212,6 +1260,13 @@ impl UnifiedGPUCompute {
             let ke_kernel = self
                 ._module
                 .get_function("calculate_kinetic_energy_kernel")?;
+            // SAFETY: Kernel launch is safe because:
+            // 1. All DeviceBuffer pointers (vel_in_*, mass, partial_kinetic_energy, active_node_count)
+            //    are valid allocations created during UnifiedGPUCompute::new()
+            // 2. num_nodes <= allocated_nodes was verified at function entry
+            // 3. shared_mem_size is computed based on block_size and type sizes
+            // 4. self.stream is a valid CUDA stream created in UnifiedGPUCompute::new()
+            // 5. The kernel function was loaded from a valid PTX module
             unsafe {
                 let stream = &self.stream;
                 launch!(
@@ -1231,6 +1286,11 @@ impl UnifiedGPUCompute {
             
             let stability_kernel = self._module.get_function("check_system_stability_kernel")?;
             let reduction_blocks = (num_blocks as u32).min(256);
+            // SAFETY: Kernel launch is safe because:
+            // 1. All DeviceBuffer arguments are valid allocations from UnifiedGPUCompute::new()
+            // 2. reduction_blocks is bounded to max 256 (valid CUDA block size)
+            // 3. Shared memory (reduction_blocks * 4) fits within GPU limits
+            // 4. This reduction kernel reads from partial_kinetic_energy computed by prior kernel
             unsafe {
                 let stream = &self.stream;
                 launch!(
@@ -1273,6 +1333,11 @@ impl UnifiedGPUCompute {
         let aabb_grid_size = self.aabb_num_blocks as u32;
         let shared_mem = 6 * aabb_block_size * std::mem::size_of::<f32>() as u32;
 
+        // SAFETY: AABB reduction kernel launch is safe because:
+        // 1. pos_in_* buffers contain valid position data from prior physics step
+        // 2. aabb_block_results is sized for aabb_num_blocks * sizeof(AABB)
+        // 3. shared_mem is computed as 6 floats per thread (min/max x,y,z)
+        // 4. aabb_grid_size and aabb_block_size are validated during construction
         unsafe {
             let s = &self.stream;
             launch!(
@@ -1378,6 +1443,12 @@ impl UnifiedGPUCompute {
                     diagnosis
                 )
             })?;
+        // SAFETY: Grid building kernel launch is safe because:
+        // 1. pos_in_* buffers are valid DeviceBuffers with capacity >= num_nodes
+        // 2. cell_keys buffer is sized for allocated_nodes elements
+        // 3. aabb and grid_dims are computed from valid position data
+        // 4. auto_tuned_cell_size is a positive float computed from AABB dimensions
+        // 5. validate_kernel_launch() was called above to verify launch parameters
         unsafe {
             let stream = &self.stream;
             launch!(
@@ -1400,16 +1471,23 @@ impl UnifiedGPUCompute {
         let d_keys_out = DeviceBuffer::<i32>::zeroed(self.allocated_nodes)?;
         let mut d_values_out = DeviceBuffer::<i32>::zeroed(self.allocated_nodes)?;
 
+        // SAFETY: Thrust sort FFI call is safe because:
+        // 1. d_keys_in (cell_keys) is a valid DeviceBuffer allocated for allocated_nodes elements
+        // 2. d_keys_out is a freshly allocated DeviceBuffer::zeroed(allocated_nodes)
+        // 3. d_values_in (sorted_node_indices) is a valid DeviceBuffer for allocated_nodes elements
+        // 4. d_values_out is a freshly allocated DeviceBuffer::zeroed(allocated_nodes)
+        // 5. num_items is bounded by min(num_nodes, allocated_nodes) preventing out-of-bounds
+        // 6. stream_ptr is obtained from a valid cust::Stream via as_inner()
+        // 7. Thrust internally synchronizes on the provided stream before returning
         unsafe {
-            
             let stream_ptr = self.stream.as_inner() as *mut ::std::os::raw::c_void;
             thrust_sort_key_value(
                 d_keys_in.as_device_ptr().as_raw() as *const ::std::os::raw::c_void,
                 d_keys_out.as_device_ptr().as_raw() as *mut ::std::os::raw::c_void,
                 d_values_in.as_device_ptr().as_raw() as *const ::std::os::raw::c_void,
                 d_values_out.as_device_ptr().as_raw() as *mut ::std::os::raw::c_void,
-                self.num_nodes.min(self.allocated_nodes) as ::std::os::raw::c_int, 
-                stream_ptr, 
+                self.num_nodes.min(self.allocated_nodes) as ::std::os::raw::c_int,
+                stream_ptr,
             );
         }
         
@@ -1428,6 +1506,11 @@ impl UnifiedGPUCompute {
         let compute_cell_bounds_kernel = self
             ._module
             .get_function(self.compute_cell_bounds_kernel_name)?;
+        // SAFETY: Cell bounds kernel launch is safe because:
+        // 1. sorted_keys is the output from thrust_sort_key_value (valid device memory)
+        // 2. cell_start and cell_end were zeroed and have capacity >= num_grid_cells
+        // 3. num_grid_cells was computed from validated grid dimensions
+        // 4. The kernel reads sorted_keys and writes cell boundaries atomically
         unsafe {
             let stream = &self.stream;
             launch!(
@@ -1461,15 +1544,23 @@ impl UnifiedGPUCompute {
             DevicePointer::null()
         };
 
+        // SAFETY: Force computation kernel launch is safe because:
+        // 1. All position, velocity, and force buffers are valid DeviceBuffers with capacity >= num_nodes
+        // 2. cell_start, cell_end, sorted_node_indices, cell_keys are from the spatial grid build phase
+        // 3. edge_row_offsets, edge_col_indices, edge_weights are CSR graph data loaded at construction
+        // 4. d_sssp is either a valid DevicePointer to dist buffer or DevicePointer::null()
+        // 5. constraint_data has capacity for num_constraints ConstraintData elements
+        // 6. should_skip_physics is a valid single-element DeviceBuffer for stability gating
+        // 7. grid_size and block_size are validated via validate_kernel_launch()
         unsafe {
             if params.stability_threshold > 0.0 {
-                
+                // Force pass with stability checking variant
                 launch!(
                     force_pass_kernel<<<grid_size as u32, block_size as u32, 0, stream>>>(
                     self.pos_in_x.as_device_ptr(),
                     self.pos_in_y.as_device_ptr(),
                     self.pos_in_z.as_device_ptr(),
-                    self.vel_in_x.as_device_ptr(),  
+                    self.vel_in_x.as_device_ptr(),
                     self.vel_in_y.as_device_ptr(),
                     self.vel_in_z.as_device_ptr(),
                     self.force_x.as_device_ptr(),
@@ -1487,7 +1578,7 @@ impl UnifiedGPUCompute {
                     d_sssp,
                     self.constraint_data.as_device_ptr(),
                     self.num_constraints as i32,
-                    self.should_skip_physics.as_device_ptr()  
+                    self.should_skip_physics.as_device_ptr()
                 ))?;
             } else {
                 
@@ -1525,6 +1616,12 @@ impl UnifiedGPUCompute {
         
         let integrate_pass_kernel = self._module.get_function(self.integrate_pass_kernel_name)?;
         let stream = &self.stream;
+        // SAFETY: Integration kernel launch is safe because:
+        // 1. All input buffers (pos_in_*, vel_in_*, force_*, mass) contain data from force pass
+        // 2. All output buffers (pos_out_*, vel_out_*) are valid DeviceBuffers with capacity >= num_nodes
+        // 3. class_id, class_charge, class_mass are ontology metadata buffers loaded at construction
+        // 4. The kernel performs Verlet integration using c_params constants from device memory
+        // 5. After this kernel, swap_buffers() exchanges input/output for next iteration
         unsafe {
             launch!(
                 integrate_pass_kernel<<<grid_size as u32, block_size as u32, 0, stream>>>(
@@ -1629,6 +1726,13 @@ impl UnifiedGPUCompute {
                 let grid = ((frontier_len as u32 + block - 1) / block) as u32;
 
                 let func = self._module.get_function("relaxation_step_kernel")?;
+                // SAFETY: SSSP relaxation kernel launch is safe because:
+                // 1. dist buffer contains distance values initialized with infinity/0
+                // 2. current_frontier contains valid node indices from previous iteration
+                // 3. frontier_len <= num_nodes (bounded by graph size)
+                // 4. edge_* buffers are valid CSR graph representation
+                // 5. next_frontier_flags is zeroed before each iteration
+                // 6. The kernel performs Bellman-Ford style edge relaxation
                 unsafe {
                     launch!(func<<<grid, block, 0, s>>>(
                         self.dist.as_device_ptr(),
@@ -1652,6 +1756,11 @@ impl UnifiedGPUCompute {
                 let compact_grid = ((self.num_nodes as u32 + 255) / 256, 1, 1);
                 let compact_block = (256, 1, 1);
 
+                // SAFETY: Frontier compaction kernel launch is safe because:
+                // 1. next_frontier_flags contains 0/1 flags from relaxation step
+                // 2. current_frontier will be overwritten with compacted node indices
+                // 3. d_frontier_counter is a single-element buffer for atomic counting
+                // 4. The kernel uses atomic operations to build the compacted frontier
                 unsafe {
                     launch!(compact_func<<<compact_grid, compact_block, 0, s>>>(
                         self.next_frontier_flags.as_device_ptr(),
@@ -2025,6 +2134,12 @@ impl UnifiedGPUCompute {
 
         let lof_kernel = self._module.get_function("compute_lof_kernel")?;
         let stream = &self.stream;
+        // SAFETY: LOF anomaly detection kernel launch is safe because:
+        // 1. pos_in_* buffers contain valid position data
+        // 2. sorted_node_indices, cell_start, cell_end, cell_keys are from spatial grid
+        // 3. lof_scores and local_densities are output buffers with capacity >= num_nodes
+        // 4. grid_dims contains valid grid dimensions for spatial partitioning
+        // 5. k_neighbors and radius are validated algorithm parameters
         unsafe {
             launch!(
                 lof_kernel<<<grid_size as u32, block_size as u32, 0, stream>>>(
@@ -2077,8 +2192,13 @@ impl UnifiedGPUCompute {
 
         
         let stats_kernel = self._module.get_function("compute_feature_stats_kernel")?;
-        let stats_shared_memory = block_size * 2 * 4; 
+        let stats_shared_memory = block_size * 2 * 4;
         let stream = &self.stream;
+        // SAFETY: Feature statistics kernel launch is safe because:
+        // 1. feature_values was just populated from feature_data via copy_from()
+        // 2. partial_sums and partial_sq_sums are output buffers with capacity >= grid_size
+        // 3. shared_memory size (2 floats per thread) fits within GPU limits
+        // 4. This is a parallel reduction computing sum and sum-of-squares
         unsafe {
             launch!(
                 stats_kernel<<<grid_size, block_size, stats_shared_memory, stream>>>(
@@ -2107,6 +2227,11 @@ impl UnifiedGPUCompute {
         
         let zscore_kernel = self._module.get_function("compute_zscore_kernel")?;
         let stream = &self.stream;
+        // SAFETY: Z-score computation kernel launch is safe because:
+        // 1. feature_values contains the input feature data
+        // 2. zscore_values is the output buffer with capacity >= num_nodes
+        // 3. mean and std_dev are computed from the stats kernel reduction
+        // 4. The kernel performs element-wise (value - mean) / std_dev
         unsafe {
             launch!(
                 zscore_kernel<<<grid_size as u32, block_size as u32, 0, stream>>>(
@@ -2140,6 +2265,10 @@ impl UnifiedGPUCompute {
 
         
         let init_random_kernel = self._module.get_function("init_random_states_kernel")?;
+        // SAFETY: Random state initialization kernel is safe because:
+        // 1. rand_states buffer is allocated for num_nodes curandState elements
+        // 2. Each thread initializes its own random state using seed + thread_id
+        // 3. curandState is repr(C) and can be safely written from GPU
         unsafe {
             launch!(
                 init_random_kernel<<<grid_size as u32, block_size as u32, 0, stream>>>(
@@ -2150,7 +2279,9 @@ impl UnifiedGPUCompute {
             )?;
         }
 
-        
+        // SAFETY: Label initialization kernel is safe because:
+        // 1. labels_current is a valid DeviceBuffer with capacity >= num_nodes
+        // 2. Each thread writes its own index as the initial community label
         let init_labels_kernel = self._module.get_function("init_labels_kernel")?;
         unsafe {
             launch!(
@@ -2161,7 +2292,10 @@ impl UnifiedGPUCompute {
             )?;
         }
 
-        
+        // SAFETY: Node degree computation kernel is safe because:
+        // 1. edge_row_offsets and edge_weights are valid CSR graph data
+        // 2. node_degrees is an output buffer with capacity >= num_nodes
+        // 3. The kernel reads CSR offsets to compute weighted degree per node
         let compute_degrees_kernel = self._module.get_function("compute_node_degrees_kernel")?;
         unsafe {
             launch!(
@@ -2204,7 +2338,13 @@ impl UnifiedGPUCompute {
             self.convergence_flag.copy_from(&convergence_flag_host)?;
 
             if synchronous {
-                
+                // SAFETY: Synchronous label propagation kernel is safe because:
+                // 1. labels_current contains current community labels (read-only)
+                // 2. labels_next is the output buffer for new labels
+                // 3. edge_* buffers are valid CSR graph representation
+                // 4. label_counts is scratch space for counting neighbor labels
+                // 5. shared_mem_size is bounded by max_labels (validated in constructor)
+                // 6. rand_states provides tie-breaking randomness
                 unsafe {
                     launch!(
                         propagate_kernel<<<grid_size as u32, block_size as u32, shared_mem_size as u32, stream>>>(
@@ -2221,7 +2361,10 @@ impl UnifiedGPUCompute {
                     )?;
                 }
 
-                
+                // SAFETY: Convergence check kernel is safe because:
+                // 1. Compares labels_current and labels_next element-wise
+                // 2. convergence_flag is a single-element buffer with atomic write
+                // 3. Sets flag to 0 if any label differs between iterations
                 unsafe {
                     launch!(
                         check_convergence_kernel<<<grid_size as u32, block_size as u32, 0, stream>>>(
@@ -2233,10 +2376,13 @@ impl UnifiedGPUCompute {
                     )?;
                 }
 
-                
+                // Swap buffers for next iteration
                 std::mem::swap(&mut self.labels_current, &mut self.labels_next);
             } else {
-                
+                // SAFETY: Asynchronous label propagation kernel is safe because:
+                // 1. Updates labels_current in-place (each node reads neighbors, writes self)
+                // 2. In async mode, race conditions are acceptable (probabilistic convergence)
+                // 3. All other buffers have same safety guarantees as synchronous mode
                 unsafe {
                     launch!(
                         propagate_kernel<<<grid_size as u32, block_size as u32, shared_mem_size as u32, stream>>>(
@@ -2276,6 +2422,13 @@ impl UnifiedGPUCompute {
 
         
         let modularity_kernel = self._module.get_function("compute_modularity_kernel")?;
+        // SAFETY: Modularity computation kernel is safe because:
+        // 1. labels_current contains final community assignments from label propagation
+        // 2. edge_* buffers are valid CSR graph data
+        // 3. node_degrees was computed by compute_node_degrees_kernel
+        // 4. modularity_contributions is output buffer with capacity >= num_nodes
+        // 5. total_weight is the sum of all edge weights (computed from node_degrees)
+        // 6. The kernel computes Q = sum((A_ij - k_i*k_j/2m) * delta(c_i, c_j)) / 2m
         unsafe {
             launch!(
                 modularity_kernel<<<grid_size as u32, block_size as u32, 0, stream>>>(
@@ -2305,6 +2458,10 @@ impl UnifiedGPUCompute {
         self.community_sizes.copy_from(&zero_communities)?;
 
         let count_communities_kernel = self._module.get_function("count_community_sizes_kernel")?;
+        // SAFETY: Community size counting kernel is safe because:
+        // 1. labels_current contains valid community labels (0 to max_labels-1)
+        // 2. community_sizes was zeroed before this kernel and has capacity >= max_labels
+        // 3. The kernel uses atomic increments to count nodes per community
         unsafe {
             launch!(
                 count_communities_kernel<<<grid_size as u32, block_size as u32, 0, stream>>>(
@@ -2342,6 +2499,11 @@ impl UnifiedGPUCompute {
             self.label_mapping.copy_from(&label_map)?;
 
             let relabel_kernel = self._module.get_function("relabel_communities_kernel")?;
+            // SAFETY: Relabeling kernel is safe because:
+            // 1. labels_current contains valid labels that index into label_mapping
+            // 2. label_mapping was just populated with compact indices (0 to num_communities-1)
+            // 3. The kernel reads label_mapping[labels_current[i]] for each node
+            // 4. Entries with -1 in label_mapping indicate unused labels (should not occur)
             unsafe {
                 launch!(
                     relabel_kernel<<<grid_size as u32, block_size as u32, 0, stream>>>(
@@ -2629,6 +2791,12 @@ impl UnifiedGPUCompute {
                 ._module
                 .get_function("stress_majorization_step_kernel")?;
 
+            // SAFETY: Stress majorization kernel launch is safe because:
+            // 1. pos_in_* contain current positions from download_positions()
+            // 2. d_new_pos_* are freshly allocated DeviceBuffers for output
+            // 3. d_target_distances and d_weights are NxN matrices allocated above
+            // 4. edge_* buffers are valid CSR graph data
+            // 5. The kernel computes weighted stress-minimizing position updates
             unsafe {
                 let stream = &self.stream;
                 launch!(
@@ -2701,13 +2869,19 @@ impl UnifiedGPUCompute {
             
             let louvain_kernel = self._module.get_function("louvain_local_pass_kernel")?;
 
+            // SAFETY: Louvain community detection kernel launch is safe because:
+            // 1. d_node_weights contains per-node weights (initialized to 1.0)
+            // 2. d_node_communities contains community assignments (initially node indices)
+            // 3. d_community_weights is the sum of weights in each community
+            // 4. d_improvement_flag is a single bool to track if any improvement occurred
+            // 5. The kernel evaluates modularity gain for moving each node to neighbor communities
             unsafe {
                 let stream = &self.stream;
                 launch!(
                 louvain_kernel<<<grid_size, block_size, 0, stream>>>(
-                    d_node_weights.as_device_ptr(), 
-                    d_node_communities.as_device_ptr(), 
-                    d_node_communities.as_device_ptr(), 
+                    d_node_weights.as_device_ptr(),
+                    d_node_communities.as_device_ptr(),
+                    d_node_communities.as_device_ptr(),
                     d_node_communities.as_device_ptr(),
                     d_node_weights.as_device_ptr(),
                     d_community_weights.as_device_ptr(),
@@ -2785,6 +2959,12 @@ impl UnifiedGPUCompute {
         
         let find_neighbors_kernel = self._module.get_function("dbscan_find_neighbors_kernel")?;
 
+        // SAFETY: DBSCAN neighbor finding kernel launch is safe because:
+        // 1. pos_in_* contain valid position data for num_nodes nodes
+        // 2. d_neighbors is sized for num_nodes * max_neighbors indices
+        // 3. d_neighbor_counts stores count per node (capacity >= num_nodes)
+        // 4. d_neighbor_offsets stores offsets into d_neighbors for each node
+        // 5. The kernel finds all points within eps distance using brute-force search
         unsafe {
             let stream = &self.stream;
             launch!(
@@ -2808,6 +2988,11 @@ impl UnifiedGPUCompute {
             ._module
             .get_function("dbscan_mark_core_points_kernel")?;
 
+        // SAFETY: DBSCAN core point marking kernel is safe because:
+        // 1. d_neighbor_counts contains neighbor counts from previous kernel
+        // 2. d_labels is the output buffer for cluster labels (capacity >= num_nodes)
+        // 3. min_pts is the threshold for core point classification
+        // 4. The kernel marks nodes with >= min_pts neighbors as core points
         unsafe {
             let stream = &self.stream;
             launch!(
@@ -2835,6 +3020,12 @@ impl UnifiedGPUCompute {
             changed[0] = 0;
             d_changed.copy_from(&changed)?;
 
+            // SAFETY: DBSCAN label propagation kernel is safe because:
+            // 1. d_neighbors contains valid neighbor indices from find_neighbors
+            // 2. d_neighbor_counts and d_neighbor_offsets provide bounds for neighbor access
+            // 3. d_labels contains current cluster labels (read and written atomically)
+            // 4. d_changed is a single-element flag set if any label changed
+            // 5. The kernel propagates labels from core points to border points
             unsafe {
                 let stream = &self.stream;
                 launch!(
@@ -2861,6 +3052,10 @@ impl UnifiedGPUCompute {
             ._module
             .get_function("dbscan_finalize_noise_kernel")?;
 
+        // SAFETY: DBSCAN finalization kernel is safe because:
+        // 1. d_labels contains cluster labels from propagation phase
+        // 2. The kernel marks unlabeled points (label == 0) as noise (-1)
+        // 3. This is the final pass that produces the output cluster assignments
         unsafe {
             let stream = &self.stream;
             launch!(
@@ -3716,6 +3911,15 @@ pub enum ComputeMode {
 }
 
 // Additional Thrust wrapper function for scanning
+//
+// SAFETY: This extern block declares the thrust_exclusive_scan FFI function.
+// The function is safe to call when:
+// 1. d_in is a valid CUDA device pointer to at least num_items elements
+// 2. d_out is a valid CUDA device pointer to at least num_items elements
+// 3. d_in and d_out may alias (in-place scan is supported)
+// 4. num_items is a non-negative count of elements to scan
+// 5. stream is a valid CUDA stream handle or null for default stream
+// 6. The caller ensures synchronization before reading d_out
 unsafe extern "C" {
     fn thrust_exclusive_scan(
         d_in: *const ::std::os::raw::c_void,

@@ -53,10 +53,12 @@ export default defineConfig({
     port: parseInt(process.env.VITE_DEV_SERVER_PORT || '5173'),
     strictPort: true,
 
-    // Allow hosts from environment (comma-separated) + local dev IP
+    // Allow hosts from environment (comma-separated) + local dev IP + docker hosts
     allowedHosts: [
       ...(process.env.VITE_ALLOWED_HOSTS?.split(',') || ['localhost']),
       process.env.VITE_LOCAL_DEV_IP,
+      'host.docker.internal',  // For HTTPS bridge proxy
+      '127.0.0.1',
     ].filter(Boolean) as string[],
 
     // HMR configuration for development (configurable via env)

@@ -8,20 +8,20 @@ For projects with 1000+ documentation files, use hierarchical topology with quee
 
 ```bash
 # Initialize hierarchical swarm
-npx claude-flow@v3alpha swarm init \
+claude-flow swarm init \
   --topology hierarchical \
   --agents 12 \
   --strategy adaptive
 
 # Spawn queen coordinator
-npx claude-flow@v3alpha agent spawn \
+claude-flow agent spawn \
   --type coordinator \
   --name "queen-doc-aligner" \
   --capabilities "orchestration,memory,reporting"
 
 # Spawn worker agents
 for agent in link-validator mermaid-checker ascii-detector archiver stub-scanner readme-integrator; do
-  npx claude-flow@v3alpha agent spawn \
+  claude-flow agent spawn \
     --type specialist \
     --name "$agent" \
     --capabilities "analysis,memory"
@@ -33,7 +33,7 @@ done
 For smaller projects or when speed is critical:
 
 ```bash
-npx claude-flow@v3alpha swarm init \
+claude-flow swarm init \
   --topology mesh \
   --agents 8 \
   --strategy balanced
@@ -159,10 +159,10 @@ When using the swarm system, agents store results in these memory keys:
 
 ```bash
 # Retrieve results from memory
-npx claude-flow@v3alpha memory get swarm/link-validator/results
+claude-flow memory get swarm/link-validator/results
 
 # List all swarm results
-npx claude-flow@v3alpha memory list --prefix "swarm/"
+claude-flow memory list --prefix "swarm/"
 ```
 
 ## Custom Report Templates
@@ -207,7 +207,7 @@ python docs_alignment.py \
   --batch-size 100
 
 # Or use swarm with more agents
-npx claude-flow@v3alpha swarm init \
+claude-flow swarm init \
   --topology mesh \
   --agents 16 \
   --strategy adaptive

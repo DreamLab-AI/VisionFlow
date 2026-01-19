@@ -221,8 +221,13 @@ impl CudaErrorHandler {
         }
     }
 
-    
+    /// Check for CUDA errors from the last operation
     pub fn check_error(&self, operation_name: &str) -> Result<(), CudaError> {
+        // SAFETY: cudaGetLastError() is safe to call because:
+        // 1. It is a read-only FFI call that queries the CUDA runtime's last error state
+        // 2. It does not modify any memory or device state
+        // 3. The CUDA runtime is initialized before any operations that could set errors
+        // 4. The returned error code is immediately converted to a safe Rust enum
         let error_code = unsafe { cudaGetLastError() };
         let cuda_error = CudaError::from(error_code);
 
@@ -247,7 +252,10 @@ impl CudaErrorHandler {
         match strategy {
             RecoveryStrategy::Retry => {
                 warn!("Attempting to retry {} after CUDA error", operation_name);
-                
+                // SAFETY: cudaGetLastError() is safe to call because:
+                // 1. It clears the last error state in the CUDA runtime (idempotent operation)
+                // 2. No memory is accessed or modified beyond the CUDA runtime's internal state
+                // 3. This prepares the runtime for a clean retry attempt
                 unsafe { cudaGetLastError(); }
                 return Err(cuda_error);
             }
@@ -267,8 +275,13 @@ impl CudaErrorHandler {
         }
     }
 
-    
+    /// Synchronize the CUDA device, ensuring all previous operations complete
     pub fn synchronize_device(&self, operation_name: &str) -> Result<(), CudaError> {
+        // SAFETY: cudaDeviceSynchronize() is safe to call because:
+        // 1. It blocks until all previously issued CUDA operations complete
+        // 2. It does not take any pointer arguments or modify user memory
+        // 3. The CUDA runtime manages all synchronization internally
+        // 4. Any errors are returned as error codes, not via undefined behavior
         unsafe {
             let result = cudaDeviceSynchronize();
             if result != 0 {
@@ -361,12 +374,18 @@ impl CudaErrorHandler {
 
     fn reset_cuda_context(&self) {
         warn!("Attempting CUDA context reset");
+        // SAFETY: cudaDeviceReset() is safe to call because:
+        // 1. It destroys all allocations and resets all state on the current device
+        // 2. All CUDA resources (buffers, streams, events) become invalid after this call
+        // 3. The caller (CudaErrorHandler) does not hold any CUDA resources directly
+        // 4. This is only called as a recovery mechanism after severe errors
+        // 5. After reset, the CUDA runtime will reinitialize on the next CUDA call
+        // WARNING: Any code holding CudaMemoryGuard or other CUDA resources MUST
+        // ensure those resources are not used after context reset
         unsafe {
-            
             let result = cudaDeviceReset();
             if result == 0 {
                 info!("CUDA context reset successfully");
-                
                 self.error_count.store(0, Ordering::Relaxed);
             } else {
                 error!("Failed to reset CUDA context: error code {}", result);
@@ -392,6 +411,12 @@ impl CudaMemoryGuard {
     pub fn new(size: usize, name: String, error_handler: Arc<CudaErrorHandler>) -> Result<Self, CudaError> {
         let mut ptr: *mut c_void = std::ptr::null_mut();
 
+        // SAFETY: cudaMalloc is safe to call because:
+        // 1. We pass a valid mutable pointer to receive the allocated device pointer
+        // 2. `size` is a valid usize representing the requested allocation size
+        // 3. On success, cudaMalloc writes a valid device pointer to `ptr`
+        // 4. On failure, cudaMalloc returns an error code and `ptr` remains null
+        // 5. The allocated memory is tracked and will be freed in Drop
         unsafe {
             let result = cudaMalloc(&mut ptr as *mut *mut c_void, size);
             if result != 0 {
@@ -419,15 +444,24 @@ impl CudaMemoryGuard {
         self.size
     }
 
-    
+    /// Copy data from host memory to this GPU buffer.
+    ///
     /// # Safety
-    /// `host_data` must be a valid pointer to at least `size` bytes of readable memory.
+    /// - `host_data` must be a valid pointer to at least `size` bytes of readable memory
+    /// - The memory at `host_data` must remain valid and unmodified during the copy
+    /// - `host_data` must be properly aligned for the data type being copied
     pub unsafe fn copy_from_host(&self, host_data: *const c_void, size: usize) -> Result<(), CudaError> {
         if size > self.size {
             error!("Attempting to copy {} bytes to buffer of size {}", size, self.size);
             return Err(CudaError::InvalidValue);
         }
 
+        // SAFETY: cudaMemcpy (host-to-device) is safe here because:
+        // 1. `self.ptr` is a valid device pointer allocated via cudaMalloc in Self::new()
+        // 2. `host_data` validity is guaranteed by the caller (per function's safety contract)
+        // 3. `size` has been verified to not exceed the allocated buffer size
+        // 4. cudaMemcpyHostToDevice is the correct direction enum for this operation
+        // 5. The copy is synchronous - host_data can be modified after this call returns
         unsafe {
             let result = cudaMemcpy(self.ptr, host_data, size, cudaMemcpyHostToDevice);
             if result != 0 {
@@ -437,22 +471,30 @@ impl CudaMemoryGuard {
             }
         }
 
-        
         self.error_handler.check_error(&format!("copy_to_{}", self.name))?;
 
         debug!("Copied {} bytes to {}", size, self.name);
         Ok(())
     }
 
-    
+    /// Copy data from this GPU buffer to host memory.
+    ///
     /// # Safety
-    /// `host_data` must be a valid pointer to at least `size` bytes of writable memory.
+    /// - `host_data` must be a valid pointer to at least `size` bytes of writable memory
+    /// - The memory at `host_data` must be exclusively owned by the caller during the copy
+    /// - `host_data` must be properly aligned for the data type being copied
     pub unsafe fn copy_to_host(&self, host_data: *mut c_void, size: usize) -> Result<(), CudaError> {
         if size > self.size {
             error!("Attempting to copy {} bytes from buffer of size {}", size, self.size);
             return Err(CudaError::InvalidValue);
         }
 
+        // SAFETY: cudaMemcpy (device-to-host) is safe here because:
+        // 1. `host_data` validity is guaranteed by the caller (per function's safety contract)
+        // 2. `self.ptr` is a valid device pointer allocated via cudaMalloc in Self::new()
+        // 3. `size` has been verified to not exceed the allocated buffer size
+        // 4. cudaMemcpyDeviceToHost is the correct direction enum for this operation
+        // 5. The copy is synchronous - host_data contains valid data after this call returns
         unsafe {
             let result = cudaMemcpy(host_data, self.ptr, size, cudaMemcpyDeviceToHost);
             if result != 0 {
@@ -462,7 +504,6 @@ impl CudaMemoryGuard {
             }
         }
 
-        
         self.error_handler.check_error(&format!("copy_from_{}", self.name))?;
 
         debug!("Copied {} bytes from {}", size, self.name);
@@ -473,6 +514,12 @@ impl CudaMemoryGuard {
 impl Drop for CudaMemoryGuard {
     fn drop(&mut self) {
         if !self.ptr.is_null() {
+            // SAFETY: cudaFree is safe to call because:
+            // 1. `self.ptr` was allocated via cudaMalloc in Self::new() and is non-null
+            // 2. This is the only place where this pointer is freed (single ownership)
+            // 3. After Drop completes, `self.ptr` is no longer accessible
+            // 4. cudaFree handles the case where the CUDA context has been destroyed
+            // 5. Even if cudaFree fails, the memory is leaked (not double-freed)
             unsafe {
                 let result = cudaFree(self.ptr);
                 if result != 0 {

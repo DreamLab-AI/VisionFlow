@@ -1,8 +1,22 @@
 use anyhow::{Context, Result};
+use once_cell::sync::Lazy;
 use regex::Regex;
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
+
+/// Regex for matching markdown headings (e.g., "# Title")
+/// Compiled once at startup - pattern is a compile-time constant that is always valid
+static HEADING_RE: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"^#\s+(.+)$").expect("HEADING_RE pattern is a compile-time constant")
+});
+
+/// Regex for matching Logseq property syntax (e.g., "key:: value")
+/// Compiled once at startup - pattern is a compile-time constant that is always valid
+static PROPERTY_RE: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"^([a-zA-Z][a-zA-Z0-9-_]*)::\s*(.+)$")
+        .expect("PROPERTY_RE pattern is a compile-time constant")
+});
 
 #[derive(Debug, Clone)]
 pub struct LogseqPage {
@@ -27,31 +41,31 @@ pub fn parse_logseq_file(path: &Path) -> Result<LogseqPage> {
 }
 
 fn extract_title(path: &Path, content: &str) -> String {
-    
-    let heading_re = Regex::new(r"^#\s+(.+)$").expect("Invalid regex pattern");
+    // Check for markdown heading first
     for line in content.lines() {
-        if let Some(cap) = heading_re.captures(line) {
+        if let Some(cap) = HEADING_RE.captures(line) {
             return cap[1].trim().to_string();
         }
     }
 
-    
+    // Fall back to filename (without extension) as title
     path.file_stem()
         .and_then(|s| s.to_str())
+        // file_stem returns None only for paths like ".." or ending in ".."
+        // which is extremely rare for actual files; "Untitled" is a safe default
         .unwrap_or("Untitled")
         .to_string()
 }
 
 fn extract_properties(content: &str) -> HashMap<String, Vec<String>> {
     let mut properties = HashMap::new();
-    let property_re = Regex::new(r"^([a-zA-Z][a-zA-Z0-9-_]*)::\s*(.+)$").expect("Invalid regex pattern");
 
     for line in content.lines() {
-        if let Some(cap) = property_re.captures(line.trim()) {
+        if let Some(cap) = PROPERTY_RE.captures(line.trim()) {
             let key = cap[1].to_string();
             let value = cap[2].to_string();
 
-            
+            // Split comma-separated values
             let values: Vec<String> = value
                 .split(',')
                 .map(|v| v.trim().to_string())

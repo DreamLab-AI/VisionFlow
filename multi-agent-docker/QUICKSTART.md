@@ -207,7 +207,7 @@ cf-swarm "research UK AI regulations using perplexity and create compliance chec
 
 ### Hive Mind Deployment
 ```bash
-npx claude-flow@v3alpha hive-mind spawn \
+claude-flow hive-mind spawn \
   "Market analysis: UK renewable energy sector" \
   --agents 10 \
   --tools perplexity,web-summary \
@@ -322,7 +322,7 @@ docker compose -f docker-compose.unified.yml logs -f
 ## Default Credentials (⚠️ CHANGE IN PRODUCTION)
 
 - **SSH**: devuser / turboflow
-- **VNC**: turboflow
+- **VNC**: No password (x11vnc runs with -nopw flag)
 - **Management API**: X-API-Key: change-this-secret-key
 - **code-server**: No authentication
 

@@ -213,9 +213,9 @@ function transformApiToClientSettings(apiResponse: AllSettings): any {
           edges: {
             arrowSize: 0.5,
             baseWidth: 0.2,
-            color: '#56b6c2',
+            color: '#FF5722',
             enableArrows: true,
-            opacity: 0.9,
+            opacity: 0.2,
             widthRange: [0.1, 0.3] as [number, number],
             quality: 'medium' as const,
             enableFlowEffect: false,
@@ -254,9 +254,9 @@ function transformApiToClientSettings(apiResponse: AllSettings): any {
           edges: {
             arrowSize: 0.5,
             baseWidth: 0.2,
-            color: '#56b6c2',
+            color: '#FF5722',
             enableArrows: true,
-            opacity: 0.9,
+            opacity: 0.2,
             widthRange: [0.1, 0.3] as [number, number],
             quality: 'medium' as const,
             enableFlowEffect: false,

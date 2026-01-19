@@ -223,6 +223,12 @@ impl<T: cust_core::DeviceCopy + Clone + Default> GpuBuffer<T> {
 
             // Create stream for async copy from host to device
             let stream = Stream::new(StreamFlags::NON_BLOCKING, None)?;
+            // SAFETY: This async copy is safe because:
+            // 1. `temp_host` is a valid slice allocated on the heap with exactly `copy_count` elements
+            // 2. `new_buffer` is a freshly allocated DeviceBuffer with capacity >= copy_count
+            // 3. The stream is valid and will be synchronized before this function returns
+            // 4. `temp_host` lifetime extends past the stream.synchronize() call
+            // 5. T implements DeviceCopy, guaranteeing it is safe to copy between host and device
             unsafe {
                 new_buffer.async_copy_from(&temp_host, &stream)?;
             }
@@ -274,6 +280,13 @@ impl<T: cust_core::DeviceCopy + Clone + Default> GpuBuffer<T> {
 
         // Start async copy from device to host
         stream.synchronize()?; // Ensure previous operations complete
+        // SAFETY: This async copy is safe because:
+        // 1. `self.device_buffer` is a valid DeviceBuffer allocated during GpuBuffer::new()
+        // 2. `target_buffer` points to a valid host Vec<T> (either host_buffer_a or host_buffer_b)
+        //    that was allocated with the same capacity as the device buffer
+        // 3. The stream was synchronized before this call to ensure no concurrent modifications
+        // 4. T implements DeviceCopy, guaranteeing the type is safe for GPU memory operations
+        // 5. The caller must call wait_for_download() before accessing target_buffer data
         unsafe {
             self.device_buffer.async_copy_to(target_buffer, stream)?;
         }

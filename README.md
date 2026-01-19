@@ -82,7 +82,7 @@ graph LR
 <td width="50%">
 
 ### GPU-Accelerated Performance
-- **39 CUDA kernels** for 100x speedup
+- **100+ CUDA kernel functions** across 13 modules for 100x speedup
 - **60 FPS** rendering at 100,000+ nodes
 - **28-byte binary protocol** (80% bandwidth reduction vs JSON)
 - **Sub-10ms** WebSocket latency
@@ -586,8 +586,8 @@ VisionFlow/
 │   ├── ontology/                 # OWL reasoning and validation
 │   │   ├── parser.rs                # OWL/RDF parsing
 │   │   └── reasoner.rs              # Whelk-rs integration
-│   ├── gpu/                      # CUDA kernel integration
-│   │   └── kernels/                 # 39 CUDA kernels
+│   ├── gpu/                      # GPU orchestration & memory management
+│   ├── utils/                    # CUDA kernels (13 .cu files)
 │   ├── protocols/                # Binary WebSocket protocol
 │   │   └── binary_protocol.rs       # 36-byte V2 message format
 │   └── events/                   # Event-driven architecture
@@ -643,7 +643,7 @@ VisionFlow/
 - Modular actor architecture
 - Neo4j as primary database
 - Binary WebSocket protocol V2 (36 bytes, 80% reduction)
-- 39 CUDA kernels (100x speedup)
+- 100+ CUDA kernel functions (100x speedup)
 - 50+ concurrent AI agents
 - OWL 2 EL reasoning with Whelk-rs
 - Quest 3 WebXR (Beta)

@@ -287,7 +287,15 @@ impl Neo4jSettingsRepository {
             SettingValue::Integer(i) => serde_json::json!({"type": "integer", "value": i}),
             SettingValue::Float(f) => serde_json::json!({"type": "float", "value": f}),
             SettingValue::Boolean(b) => serde_json::json!({"type": "boolean", "value": b}),
-            SettingValue::Json(j) => serde_json::json!({"type": "json", "value": to_json(j).unwrap_or_default()}),
+            SettingValue::Json(j) => {
+                // JSON serialization should not fail for valid serde_json::Value,
+                // but we handle the edge case by storing as empty string with a warning
+                let json_str = to_json(j).unwrap_or_else(|e| {
+                    warn!("Failed to serialize JSON setting value: {}", e);
+                    String::new()
+                });
+                serde_json::json!({"type": "json", "value": json_str})
+            }
         }
     }
 
@@ -765,9 +773,14 @@ impl SettingsRepository for Neo4jSettingsRepository {
                  s.version = $version
              RETURN s";
 
+        let settings_str = to_json(&settings_json)
+            .map_err(|e| SettingsRepositoryError::SerializationError(
+                format!("Failed to serialize settings JSON: {}", e)
+            ))?;
+
         self.graph.run(
             query(query_str)
-                .param("settings", to_json(&settings_json).unwrap_or_default())
+                .param("settings", settings_str)
                 .param("version", settings.version.as_str())
         ).await.map_err(|e| SettingsRepositoryError::DatabaseError(
             format!("Failed to save all settings: {}", e)

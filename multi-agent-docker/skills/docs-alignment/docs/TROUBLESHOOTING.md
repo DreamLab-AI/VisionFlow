@@ -146,10 +146,10 @@ done
 **Solution**:
 ```bash
 # Verify claude-flow installation
-npx claude-flow@v3alpha --version
+claude-flow --version
 
 # Initialize swarm first
-npx claude-flow@v3alpha swarm init --topology mesh
+claude-flow swarm init --topology mesh
 ```
 
 #### Memory Coordination Failures
@@ -159,11 +159,11 @@ npx claude-flow@v3alpha swarm init --topology mesh
 **Solution**:
 ```bash
 # Check memory status
-npx claude-flow@v3alpha memory list --prefix "swarm/"
+claude-flow memory list --prefix "swarm/"
 
 # Manually store test data
-npx claude-flow@v3alpha memory set "test/key" '{"test": true}'
-npx claude-flow@v3alpha memory get "test/key"
+claude-flow memory set "test/key" '{"test": true}'
+claude-flow memory get "test/key"
 ```
 
 ## Debugging
