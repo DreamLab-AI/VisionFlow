@@ -298,6 +298,51 @@ SKILL_COUNT=$(find /home/devuser/.claude/skills -name "SKILL.md" | wc -l)
 echo "✓ $SKILL_COUNT Claude Code skills available"
 
 # ============================================================================
+# Phase 6.1: Build Chrome Extensions (Console Buddy, etc.)
+# ============================================================================
+
+echo "[6.1/10] Building Chrome extensions..."
+
+# Build Console Buddy Chrome Extension
+# Check multiple possible locations
+CONSOLE_BUDDY_PATHS=(
+    "/home/devuser/.claude/skills/console-buddy"
+    "/home/devuser/workspace/project/multi-agent-docker/skills/console-buddy"
+)
+
+CONSOLE_BUDDY_DIR=""
+for cb_path in "${CONSOLE_BUDDY_PATHS[@]}"; do
+    if [ -d "$cb_path" ] && [ -f "$cb_path/package.json" ]; then
+        CONSOLE_BUDDY_DIR="$cb_path"
+        break
+    fi
+done
+
+if [ -n "$CONSOLE_BUDDY_DIR" ]; then
+    echo "  Building Console Buddy from: $CONSOLE_BUDDY_DIR"
+    if [ ! -f "$CONSOLE_BUDDY_DIR/dist/manifest.json" ] || [ "$CONSOLE_BUDDY_DIR/package.json" -nt "$CONSOLE_BUDDY_DIR/dist/manifest.json" ]; then
+        (
+            cd "$CONSOLE_BUDDY_DIR"
+            # Install with dev dependencies (vite, typescript)
+            npm install --include=dev --silent 2>/dev/null || npm install --include=dev 2>&1 | head -5
+            # Build with vite
+            npx vite build 2>/dev/null || npx vite build 2>&1 | head -10
+            if [ -f "dist/manifest.json" ]; then
+                echo "  ✓ Console Buddy built successfully (22+ tools)"
+            else
+                echo "  ⚠️ Console Buddy build may have failed (no dist/manifest.json)"
+            fi
+        )
+    else
+        echo "  ✓ Console Buddy already built (dist/ up to date)"
+    fi
+    # Fix ownership of built artifacts
+    chown -R devuser:devuser "$CONSOLE_BUDDY_DIR" 2>/dev/null || true
+else
+    echo "  ℹ️ Console Buddy not found (will be available when cloned)"
+fi
+
+# ============================================================================
 # Phase 6: Setup Agents
 # ============================================================================
 
@@ -414,6 +459,9 @@ export OPENAI_CODEX_SOCKET="/var/run/agentic-services/openai-codex.sock"
 export ENABLE_MCP_BRIDGE="true"
 export MCP_TCP_HOST="localhost"
 export MCP_TCP_PORT="9500"
+
+# QGIS Python 3.14 Support (adds site-packages to PYTHONPATH)
+export PYTHONPATH=/usr/lib/python3.14/site-packages:\$PYTHONPATH
 
 # Display and supervisorctl configuration
 export DISPLAY=:1

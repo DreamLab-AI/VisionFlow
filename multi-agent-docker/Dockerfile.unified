@@ -51,6 +51,8 @@ RUN pacman-key --init && \
         qgis kicad imagemagick \
         # Python development
         python-virtualenv python-poetry \
+        # QGIS Python bindings support (PyQt5 for Python 3.14)
+        python-pyqt5 python-pyqt5-sip \
         # LaTeX (basic installation - full TeX Live is very large)
         texlive-basic texlive-bin texlive-binextra \
         texlive-fontsrecommended texlive-latexrecommended \
@@ -630,6 +632,20 @@ VOLUME ["/home/devuser/workspace", \
         "/home/openai-user/workspace", \
         "/home/devuser/models", \
         "/var/log"]
+
+# ============================================================================
+# PHASE 16.5: QGIS Python 3.14 Configuration
+# ============================================================================
+
+# Copy QGIS MCP standalone server
+COPY --chown=devuser:devuser multi-agent-docker/skills/qgis/qgis_mcp_standalone.py /opt/qgis/qgis_mcp_standalone.py
+RUN chmod +x /opt/qgis/qgis_mcp_standalone.py && \
+    mkdir -p /opt/qgis && \
+    ln -s /opt/qgis/qgis_mcp_standalone.py /usr/local/bin/qgis-mcp-server
+
+# Install PyQt5 for Python 3.14 (runtime fix for SIP module)
+RUN python3.14 -m pip install --break-system-packages PyQt5-sip PyQt5 && \
+    python3.14 -c "from PyQt5 import QtCore; print('PyQt5 configured for Python 3.14')"
 
 # ============================================================================
 # PHASE 17: Entrypoint
