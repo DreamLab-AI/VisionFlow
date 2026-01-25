@@ -283,6 +283,240 @@ rm -f /run/dbus/pid /var/run/dbus/pid
 echo "✓ DBus configured (supervisord will start)"
 
 # ============================================================================
+# Phase 5.5: PostgreSQL Initialization for RuVector Memory Storage
+# ============================================================================
+
+echo "[5.5/10] Initializing PostgreSQL for RuVector unified memory..."
+
+# Check if using external RuVector PostgreSQL (ragflow network)
+RUVECTOR_USE_EXTERNAL="${RUVECTOR_USE_EXTERNAL:-true}"
+RUVECTOR_PG_HOST="${RUVECTOR_PG_HOST:-ruvector-postgres}"
+RUVECTOR_PG_PORT="${RUVECTOR_PG_PORT:-5432}"
+RUVECTOR_PG_USER="${RUVECTOR_PG_USER:-ruvector}"
+RUVECTOR_PG_PASSWORD="${RUVECTOR_PG_PASSWORD:-ruvector_secure_pass}"
+RUVECTOR_PG_DATABASE="${RUVECTOR_PG_DATABASE:-ruvector}"
+
+# Export connection string for psycopg
+export RUVECTOR_PG_CONNINFO="host=$RUVECTOR_PG_HOST port=$RUVECTOR_PG_PORT user=$RUVECTOR_PG_USER password=$RUVECTOR_PG_PASSWORD dbname=$RUVECTOR_PG_DATABASE"
+
+if [ "$RUVECTOR_USE_EXTERNAL" = "true" ]; then
+    echo "  Checking external RuVector PostgreSQL at $RUVECTOR_PG_HOST:$RUVECTOR_PG_PORT..."
+
+    # Test connection to external PostgreSQL
+    set +e
+    PGPASSWORD="$RUVECTOR_PG_PASSWORD" psql -h "$RUVECTOR_PG_HOST" -p "$RUVECTOR_PG_PORT" -U "$RUVECTOR_PG_USER" -d "$RUVECTOR_PG_DATABASE" -c "SELECT 1" >/dev/null 2>&1
+    EXTERNAL_PG_STATUS=$?
+    set -e
+
+    if [ $EXTERNAL_PG_STATUS -eq 0 ]; then
+        echo "  ✓ External RuVector PostgreSQL connected successfully"
+
+        # Get stats from external database
+        ENTRY_COUNT=$(PGPASSWORD="$RUVECTOR_PG_PASSWORD" psql -h "$RUVECTOR_PG_HOST" -p "$RUVECTOR_PG_PORT" -U "$RUVECTOR_PG_USER" -d "$RUVECTOR_PG_DATABASE" -t -c "SELECT COUNT(*) FROM memory_entries" 2>/dev/null | xargs)
+        EMBEDDED_COUNT=$(PGPASSWORD="$RUVECTOR_PG_PASSWORD" psql -h "$RUVECTOR_PG_HOST" -p "$RUVECTOR_PG_PORT" -U "$RUVECTOR_PG_USER" -d "$RUVECTOR_PG_DATABASE" -t -c "SELECT COUNT(*) FROM memory_entries WHERE embedding_json IS NOT NULL" 2>/dev/null | xargs)
+        PROJECT_COUNT=$(PGPASSWORD="$RUVECTOR_PG_PASSWORD" psql -h "$RUVECTOR_PG_HOST" -p "$RUVECTOR_PG_PORT" -U "$RUVECTOR_PG_USER" -d "$RUVECTOR_PG_DATABASE" -t -c "SELECT COUNT(*) FROM projects" 2>/dev/null | xargs)
+
+        echo "  📊 External DB Stats: $ENTRY_COUNT entries, $EMBEDDED_COUNT embedded, $PROJECT_COUNT projects"
+        echo "  ✓ Using external RuVector PostgreSQL (skipping local PostgreSQL setup)"
+        echo "✓ External PostgreSQL connection configured"
+
+        # Skip local PostgreSQL initialization
+        goto_phase_6=true
+    else
+        echo "  ⚠️  External PostgreSQL not reachable, falling back to local PostgreSQL"
+        RUVECTOR_USE_EXTERNAL="false"
+    fi
+fi
+
+# Only initialize local PostgreSQL if not using external
+if [ "$RUVECTOR_USE_EXTERNAL" != "true" ]; then
+    echo "  Setting up local PostgreSQL..."
+
+    # Create postgres user if it doesn't exist
+    if ! id -u postgres &>/dev/null; then
+        useradd -r -d /var/lib/postgres -s /bin/false postgres
+    fi
+
+# Initialize data directory if needed
+PGDATA="/var/lib/postgres/data"
+if [ ! -d "$PGDATA" ] || [ ! -f "$PGDATA/PG_VERSION" ]; then
+    echo "  Initializing PostgreSQL data directory..."
+    mkdir -p "$PGDATA"
+    chown postgres:postgres "$PGDATA"
+    chmod 700 "$PGDATA"
+
+    sudo -u postgres initdb -D "$PGDATA" --encoding=UTF8 --locale=C.UTF-8
+
+    # Configure PostgreSQL for container environment
+    cat >> "$PGDATA/postgresql.conf" << 'PGCONF'
+# RuVector optimizations for vector workloads
+listen_addresses = 'localhost'
+max_connections = 100
+shared_buffers = 256MB
+work_mem = 64MB
+maintenance_work_mem = 128MB
+effective_cache_size = 512MB
+wal_level = minimal
+max_wal_senders = 0
+# HNSW index optimizations
+max_parallel_workers_per_gather = 4
+max_parallel_workers = 8
+parallel_tuple_cost = 0.001
+parallel_setup_cost = 10
+PGCONF
+
+    # Configure authentication
+    cat > "$PGDATA/pg_hba.conf" << 'HBACONF'
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+local   all             postgres                                trust
+local   all             all                                     trust
+host    all             all             127.0.0.1/32            trust
+host    all             all             ::1/128                 trust
+HBACONF
+
+    echo "  ✓ PostgreSQL data directory initialized"
+else
+    echo "  ✓ PostgreSQL data directory already exists"
+fi
+
+# Start PostgreSQL temporarily to create databases
+echo "  Starting PostgreSQL for database setup..."
+sudo -u postgres pg_ctl -D "$PGDATA" -l /tmp/pg_startup.log start -w || {
+    echo "  ⚠️  PostgreSQL startup failed, checking logs:"
+    cat /tmp/pg_startup.log 2>/dev/null || true
+}
+
+# Wait for PostgreSQL to be ready
+for i in $(seq 1 30); do
+    if sudo -u postgres pg_isready -q; then
+        break
+    fi
+    sleep 0.5
+done
+
+if sudo -u postgres pg_isready -q; then
+    echo "  ✓ PostgreSQL is ready"
+
+    # Create ruvector database if not exists
+    if ! sudo -u postgres psql -lqt | cut -d \| -f 1 | grep -qw ruvector; then
+        echo "  Creating ruvector database..."
+        sudo -u postgres createdb ruvector
+        echo "  ✓ ruvector database created"
+    fi
+
+    # Install pgvector extension if available
+    sudo -u postgres psql -d ruvector -c "CREATE EXTENSION IF NOT EXISTS vector;" 2>/dev/null && \
+        echo "  ✓ pgvector extension installed" || \
+        echo "  ⚠️  pgvector extension not available (will use pure ruvector)"
+
+    # Create unified memory schema
+    sudo -u postgres psql -d ruvector << 'SCHEMA'
+-- RuVector Unified Memory Schema for Claude Flow V3
+CREATE TABLE IF NOT EXISTS memory_entries (
+    id SERIAL PRIMARY KEY,
+    key VARCHAR(512) UNIQUE NOT NULL,
+    namespace VARCHAR(128) DEFAULT 'default',
+    type VARCHAR(32) NOT NULL DEFAULT 'persistent',
+    value JSONB NOT NULL,
+    embedding vector(384),  -- all-MiniLM-L6-v2 dimensions
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP WITH TIME ZONE,
+    agent_id VARCHAR(128),
+    session_id VARCHAR(128)
+);
+
+-- Create indexes for efficient querying
+CREATE INDEX IF NOT EXISTS idx_memory_namespace ON memory_entries(namespace);
+CREATE INDEX IF NOT EXISTS idx_memory_type ON memory_entries(type);
+CREATE INDEX IF NOT EXISTS idx_memory_agent ON memory_entries(agent_id);
+CREATE INDEX IF NOT EXISTS idx_memory_session ON memory_entries(session_id);
+CREATE INDEX IF NOT EXISTS idx_memory_created ON memory_entries(created_at);
+CREATE INDEX IF NOT EXISTS idx_memory_metadata ON memory_entries USING gin(metadata);
+
+-- HNSW index for vector similarity search (150x-12,500x faster)
+CREATE INDEX IF NOT EXISTS idx_memory_embedding_hnsw
+    ON memory_entries USING hnsw (embedding vector_cosine_ops)
+    WITH (m = 16, ef_construction = 64);
+
+-- ReasoningBank pattern storage
+CREATE TABLE IF NOT EXISTS reasoning_patterns (
+    id SERIAL PRIMARY KEY,
+    pattern_key VARCHAR(512) UNIQUE NOT NULL,
+    pattern_type VARCHAR(64) NOT NULL,
+    description TEXT,
+    embedding vector(384),
+    confidence FLOAT DEFAULT 0.5,
+    success_count INTEGER DEFAULT 0,
+    failure_count INTEGER DEFAULT 0,
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_patterns_type ON reasoning_patterns(pattern_type);
+CREATE INDEX IF NOT EXISTS idx_patterns_confidence ON reasoning_patterns(confidence DESC);
+CREATE INDEX IF NOT EXISTS idx_patterns_embedding_hnsw
+    ON reasoning_patterns USING hnsw (embedding vector_cosine_ops)
+    WITH (m = 16, ef_construction = 64);
+
+-- SONA trajectory tracking
+CREATE TABLE IF NOT EXISTS sona_trajectories (
+    id SERIAL PRIMARY KEY,
+    trajectory_id VARCHAR(128) UNIQUE NOT NULL,
+    agent_id VARCHAR(128),
+    task_description TEXT,
+    steps JSONB DEFAULT '[]',
+    success BOOLEAN,
+    feedback TEXT,
+    quality_score FLOAT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    completed_at TIMESTAMP WITH TIME ZONE
+);
+
+CREATE INDEX IF NOT EXISTS idx_trajectories_agent ON sona_trajectories(agent_id);
+CREATE INDEX IF NOT EXISTS idx_trajectories_success ON sona_trajectories(success);
+
+-- Session state persistence
+CREATE TABLE IF NOT EXISTS session_state (
+    id SERIAL PRIMARY KEY,
+    session_id VARCHAR(128) UNIQUE NOT NULL,
+    name VARCHAR(256),
+    description TEXT,
+    state JSONB NOT NULL,
+    agents JSONB DEFAULT '[]',
+    tasks JSONB DEFAULT '[]',
+    metrics JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Grant permissions to all users
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO PUBLIC;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO PUBLIC;
+
+SELECT 'RuVector unified memory schema initialized' AS status;
+SCHEMA
+
+    echo "  ✓ RuVector unified memory schema created"
+
+    # Stop PostgreSQL (supervisord will manage it)
+    sudo -u postgres pg_ctl -D "$PGDATA" stop -m fast
+    echo "  ✓ PostgreSQL stopped (supervisord will restart)"
+
+    # Update connection string for local PostgreSQL
+    export RUVECTOR_PG_CONNINFO="host=localhost port=5432 user=postgres dbname=ruvector"
+else
+    echo "  ⚠️  PostgreSQL not ready, skipping database setup"
+fi
+
+echo "✓ Local PostgreSQL initialization complete"
+fi  # End of local PostgreSQL block
+
+echo "✓ PostgreSQL initialization complete"
+
+# ============================================================================
 # Phase 6: Setup Claude Skills
 # ============================================================================
 
@@ -368,19 +602,28 @@ rm -rf /home/openai-user/.npm/_npx/* 2>/dev/null || true
 rm -rf /home/zai-user/.npm/_npx/* 2>/dev/null || true
 rm -rf /root/.npm/_npx/* 2>/dev/null || true
 
-# Run claude-flow init --force as devuser IN BACKGROUND (non-blocking)
+# Run Claude-Flow V3 init --force as devuser IN BACKGROUND (non-blocking)
 # This prevents blocking supervisord startup while npm packages compile
-(sudo -u devuser bash -c "cd /home/devuser && claude-flow init --force" > /var/log/claude-flow-init.log 2>&1 &) || true
-echo "ℹ️  Claude Flow init started in background (see /var/log/claude-flow-init.log)"
+# Using @claude-flow/cli@3.0.2 (latest stable)
+(sudo -u devuser bash -c "cd /home/devuser && npx @claude-flow/cli@3.0.2 init --force" > /var/log/claude-flow-init.log 2>&1 &) || true
+echo "ℹ️  Claude Flow V3 init started in background (see /var/log/claude-flow-init.log)"
 
-# Fix hooks to use global claude-flow instead of npx (prevents cache corruption)
+# Fix hooks to use V3 @claude-flow/cli instead of deprecated v3alpha
 if [ -f /home/devuser/.claude/settings.json ]; then
-    sed -i 's|npx claude-flow@v3alpha|claude-flow|g' /home/devuser/.claude/settings.json
+    # Update any remaining v3alpha references to stable V3
+    sed -i 's|npx claude-flow@v3alpha|npx @claude-flow/cli|g' /home/devuser/.claude/settings.json
+    sed -i 's|claude-flow@v3alpha|@claude-flow/cli|g' /home/devuser/.claude/settings.json
+    # Also update bare claude-flow to explicit V3
+    sed -i 's|"claude-flow"|"npx @claude-flow/cli"|g' /home/devuser/.claude/settings.json
     chown devuser:devuser /home/devuser/.claude/settings.json
-    echo "✓ Hooks updated to use global claude-flow"
+    echo "✓ Hooks updated to use @claude-flow/cli V3"
 fi
 
-echo "✓ Claude Flow initialized and NPX cache cleared"
+# Initialize @claude-flow/browser for AI-optimized browser automation
+echo "ℹ️  Initializing @claude-flow/browser (59 MCP tools)..."
+(sudo -u devuser bash -c "cd /home/devuser && npx @claude-flow/browser init 2>/dev/null" >> /var/log/claude-flow-init.log 2>&1 &) || true
+
+echo "✓ Claude Flow V3 initialized and NPX cache cleared"
 
 # ============================================================================
 # Phase 6.6: Initialize AISP 5.1 Platinum Neuro-Symbolic Protocol
@@ -466,6 +709,9 @@ export PYTHONPATH=/usr/lib/python3.14/site-packages:\$PYTHONPATH
 # Display and supervisorctl configuration
 export DISPLAY=:1
 alias supervisorctl="/opt/venv/bin/supervisorctl"
+
+# Disable Claude Code auto-updater (2.1.15 burns excessive tokens)
+export DISABLE_AUTOUPDATER=1
 
 # Claude Code aliases (non-interactive mode works with existing OAuth credentials)
 alias dsp="claude --dangerously-skip-permissions"
@@ -554,7 +800,8 @@ else
                     echo -n ", \"env\": {\"DISPLAY\": \":1\", \"CHROMIUM_PATH\": \"/usr/bin/chromium\"}" >> "$OUTPUT_FILE"
                     ;;
                 comfyui)
-                    echo -n ", \"env\": {\"COMFYUI_URL\": \"http://localhost:8188\"}" >> "$OUTPUT_FILE"
+                    # ComfyUI runs as external container, accessed via docker network
+                    echo -n ", \"env\": {\"COMFYUI_URL\": \"http://comfyui:8188\"}" >> "$OUTPUT_FILE"
                     ;;
                 perplexity)
                     echo -n ", \"env\": {\"PERPLEXITY_API_KEY\": \"\$PERPLEXITY_API_KEY\"}" >> "$OUTPUT_FILE"
@@ -925,8 +1172,9 @@ echo "  ✓ XFCE4 desktop"
 echo "  ✓ Management API (port 9090)"
 echo "  ✓ code-server (port 8080)"
 echo "  ✓ Claude Z.AI service (port 9600)"
-echo "  ✓ ComfyUI server (port 8188)"
-echo "  ✓ MCP servers (web-summary, qgis, blender, imagemagick, playwright)"
+echo "  ✓ ComfyUI skill (connects to external comfyui container)"
+echo "  ✓ @claude-flow/browser via claude-flow MCP (primary, 59 tools)"
+echo "  ✓ MCP servers (qgis, blender - on-demand: web-summary, imagemagick)"
 echo "  ✓ Gemini-flow daemon"
 echo "  ✓ tmux workspace auto-start"
 echo ""

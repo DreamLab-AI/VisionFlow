@@ -6,6 +6,7 @@
 ✅ **Python 3.14 Support** - PyQt5 configured
 ✅ **MCP Server** - Running on port 9877
 ✅ **Display** - VNC :1
+✅ **Qgis2threejs Plugin** - 3D visualization installed (v2.8)
 
 ## Quick Start
 
@@ -83,6 +84,28 @@ export PYTHONPATH=/usr/lib/python3.14/site-packages:\$PYTHONPATH
 - `/home/devuser/workspace/project/multi-agent-docker/unified-config/entrypoint-unified.sh`
 - `/home/devuser/workspace/project/multi-agent-docker/skills/qgis/SKILL.md`
 - `/tmp/qgis_mcp_standalone.py` (runtime)
+
+## 3D Visualization (Qgis2threejs)
+
+**Plugin**: Qgis2threejs v2.8
+**Location**: `~/.local/share/QGIS/QGIS3/profiles/default/python/plugins/qgis2threejs/`
+
+### Features
+- 3D terrain from DEM data
+- 3D vector visualization (points, lines, polygons)
+- Web export (three.js format)
+- glTF export for 3D printing/AR/VR
+- Camera animations and narratives
+- Lighting and fog effects
+
+### Access
+```bash
+# Launch QGIS GUI
+DISPLAY=:1 qgis-with-python
+
+# Access via VNC on port 5901
+# Menu: Web → Qgis2threejs Exporter
+```
 
 ## Next Build
 

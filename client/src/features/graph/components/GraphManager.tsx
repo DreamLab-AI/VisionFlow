@@ -203,8 +203,11 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   )
   const nodePositionsRef = useRef<Float32Array | null>(null)
   const [edgePoints, setEdgePoints] = useState<number[]>([])
-  const prevEdgePointsLengthRef = useRef<number>(0)
+  const prevEdgePointsRef = useRef<number[]>([])
   const prevLabelPositionsLengthRef = useRef<number>(0)
+  const labelPositionsRef = useRef<Array<{x: number, y: number, z: number}>>([])
+  const edgeUpdatePendingRef = useRef<number[] | null>(null)
+  const labelUpdatePendingRef = useRef<Array<{x: number, y: number, z: number}> | null>(null)
   const [nodesAreAtOrigin, setNodesAreAtOrigin] = useState(false)
 
   const [forceUpdate, setForceUpdate] = useState(0)
@@ -688,29 +691,48 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
             }
           }
         });
-        // Only update edge points state when array length actually changes OR on first render
-        // This prevents React re-render loops from calling setEdgePoints every frame
-        const isFirstRender = prevEdgePointsLengthRef.current === 0 && newEdgePoints.length > 0;
-        if (isFirstRender || newEdgePoints.length !== prevEdgePointsLengthRef.current) {
-          prevEdgePointsLengthRef.current = newEdgePoints.length;
-          setEdgePoints(newEdgePoints);
+        // Compare edge points content, not just length, to detect position changes
+        // Use sampling for performance: check length + first/last 6 values (2 edge endpoints)
+        const prev = prevEdgePointsRef.current;
+        const edgesChanged =
+          newEdgePoints.length !== prev.length ||
+          (newEdgePoints.length > 0 && (
+            newEdgePoints[0] !== prev[0] ||
+            newEdgePoints[1] !== prev[1] ||
+            newEdgePoints[2] !== prev[2] ||
+            newEdgePoints[newEdgePoints.length - 1] !== prev[prev.length - 1] ||
+            newEdgePoints[newEdgePoints.length - 2] !== prev[prev.length - 2] ||
+            newEdgePoints[newEdgePoints.length - 3] !== prev[prev.length - 3]
+          ));
+
+        if (edgesChanged) {
+          prevEdgePointsRef.current = [...newEdgePoints];
+          // Queue update outside useFrame to avoid setState in render loop
+          edgeUpdatePendingRef.current = newEdgePoints;
         }
 
 
-        // Only update label positions when node count changes (prevents infinite re-render loop)
+        // Update label positions ref every frame (fast, no re-render)
+        // Only trigger React state update when count changes or positions move significantly
         const labelCount = graphData.nodes.length;
+        const newLabelPositions = graphData.nodes.map((node, i) => {
+          const i3 = i * 3;
+          return {
+            x: positions[i3],
+            y: positions[i3 + 1],
+            z: positions[i3 + 2]
+          };
+        });
+
+        // Always update ref (used for rendering)
+        labelPositionsRef.current = newLabelPositions;
+
+        // Only setState when count changes (avoids re-render every frame)
         const isLabelFirstRender = prevLabelPositionsLengthRef.current === 0 && labelCount > 0;
         if (isLabelFirstRender || labelCount !== prevLabelPositionsLengthRef.current) {
           prevLabelPositionsLengthRef.current = labelCount;
-          const newLabelPositions = graphData.nodes.map((node, i) => {
-            const i3 = i * 3;
-            return {
-              x: positions[i3],
-              y: positions[i3 + 1],
-              z: positions[i3 + 2]
-            };
-          });
-          setLabelPositions(newLabelPositions);
+          // Queue update outside useFrame
+          labelUpdatePendingRef.current = newLabelPositions;
         }
       }
     }
@@ -746,13 +768,27 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         }
       })
     }
+
+    // Process pending state updates outside useFrame render loop
+    // This prevents setState calls during render which cause re-render loops
+    if (edgeUpdatePendingRef.current) {
+      const pendingEdges = edgeUpdatePendingRef.current;
+      edgeUpdatePendingRef.current = null;
+      // Use requestAnimationFrame to defer setState outside useFrame
+      requestAnimationFrame(() => setEdgePoints(pendingEdges));
+    }
+    if (labelUpdatePendingRef.current) {
+      const pendingLabels = labelUpdatePendingRef.current;
+      labelUpdatePendingRef.current = null;
+      requestAnimationFrame(() => setLabelPositions(pendingLabels));
+    }
   })
 
-  
+
   useEffect(() => {
-    
+
     const handleGraphUpdate = (data: GraphData) => {
-      
+
       const debugSettings = settings?.system?.debug;
       if (debugSettings?.enableNodeDebug) {
         console.log('GraphManager: Graph data updated', {
@@ -889,12 +925,14 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   }, [nodePositionsRef.current, graphData.nodes])
 
   
+  // Default edge settings - opacity increased to 0.6 for bloom visibility
+  // Bloom threshold is typically 0.15, so edges need opacity > 0.3 to remain visible
   const defaultEdgeSettings: EdgeSettings = {
     arrowSize: 0.5,
     baseWidth: 0.2,
     color: '#FF5722',
     enableArrows: true,
-    opacity: 0.2,
+    opacity: 0.6, // Increased from 0.2 to ensure visibility above bloom threshold
     widthRange: [0.1, 0.3],
     quality: 'medium',
     enableFlowEffect: false,

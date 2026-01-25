@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { settingsApi, QualityGateSettings } from '../../api/settingsApi';
+import { useSettingsStore } from '../../store/settingsStore';
 
 interface QualityGatePanelProps {
   onError: (message: string) => void;
@@ -20,7 +21,7 @@ const defaultSettings: QualityGateSettings = {
   ruvectorEnabled: false,
   gnnPhysics: false,
   minFpsThreshold: 30,
-  maxNodeCount: 10000,
+  maxNodeCount: 500,  // Reduced for better debugging velocity
   autoAdjust: true,
 };
 
@@ -38,10 +39,17 @@ export const QualityGatePanel: React.FC<QualityGatePanelProps> = ({
       try {
         const response = await settingsApi.getQualityGates();
         setSettings(response.data);
+        // Sync to Zustand store for graphDataManager
+        useSettingsStore.getState().updateSettings((draft: any) => {
+          draft.qualityGates = response.data;
+        });
       } catch (error) {
         console.error('Failed to load quality gate settings:', error);
         // Use defaults on error
         setSettings(defaultSettings);
+        useSettingsStore.getState().updateSettings((draft: any) => {
+          draft.qualityGates = defaultSettings;
+        });
       } finally {
         setLoading(false);
       }
@@ -54,6 +62,11 @@ export const QualityGatePanel: React.FC<QualityGatePanelProps> = ({
     setSaving(true);
     try {
       await settingsApi.updateQualityGates(newSettings);
+      // Sync to Zustand store for graphDataManager filtering
+      useSettingsStore.getState().updateSettings((draft: any) => {
+        draft.qualityGates = newSettings;
+      });
+      console.log('[QualityGatePanel] Updated qualityGates in store:', newSettings);
       onSuccess('Quality gate settings updated');
     } catch (error) {
       console.error('Failed to save quality gate settings:', error);
@@ -141,9 +154,9 @@ export const QualityGatePanel: React.FC<QualityGatePanelProps> = ({
           </label>
           <input
             type="range"
-            min={1000}
-            max={50000}
-            step={1000}
+            min={100}
+            max={10000}
+            step={100}
             value={settings.maxNodeCount}
             onChange={(e) => handleSliderChange('maxNodeCount', parseInt(e.target.value))}
             onMouseUp={handleSliderCommit}

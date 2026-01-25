@@ -90,6 +90,9 @@ services:
 
     # Environment variables from .env
     environment:
+      # Claude Code auto-update prevention (2.1.15 burns excessive tokens)
+      DISABLE_AUTOUPDATER: "1"
+
       # Display
       DISPLAY: ":1"
 
@@ -119,6 +122,14 @@ services:
       CLAUDE_WORKER_POOL_SIZE: ${CLAUDE_WORKER_POOL_SIZE:-4}
       CLAUDE_MAX_QUEUE_SIZE: ${CLAUDE_MAX_QUEUE_SIZE:-50}
 
+      # RuVector PostgreSQL Memory (external centralized storage)
+      RUVECTOR_PG_HOST: ${RUVECTOR_PG_HOST:-ruvector-postgres}
+      RUVECTOR_PG_PORT: ${RUVECTOR_PG_PORT:-5432}
+      RUVECTOR_PG_USER: ${RUVECTOR_PG_USER:-ruvector}
+      RUVECTOR_PG_PASSWORD: ${RUVECTOR_PG_PASSWORD:-ruvector_secure_pass}
+      RUVECTOR_PG_DATABASE: ${RUVECTOR_PG_DATABASE:-ruvector}
+      RUVECTOR_USE_EXTERNAL: ${RUVECTOR_USE_EXTERNAL:-true}
+
       # Management API
       MANAGEMENT_API_KEY: ${MANAGEMENT_API_KEY:-change-this-secret-key}
       MANAGEMENT_API_PORT: 9090
@@ -139,6 +150,9 @@ services:
       # Logging
       LOG_LEVEL: ${LOG_LEVEL:-info}
       NODE_ENV: ${NODE_ENV:-production}
+
+      # PostgreSQL connection string (for psycopg compatibility)
+      RUVECTOR_PG_CONNINFO: "host=${RUVECTOR_PG_HOST:-ruvector-postgres} port=${RUVECTOR_PG_PORT:-5432} user=${RUVECTOR_PG_USER:-ruvector} password=${RUVECTOR_PG_PASSWORD:-ruvector_secure_pass} dbname=${RUVECTOR_PG_DATABASE:-ruvector}"
 
     # Security capabilities
     cap_add:

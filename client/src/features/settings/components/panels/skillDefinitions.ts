@@ -409,6 +409,16 @@ export const skillDefinitions: SkillDefinition[] = [
     category: 'media'
   },
   {
+    id: 'console-buddy',
+    name: 'Console Buddy',
+    version: '2.0.0',
+    description: 'AI-powered Chrome extension with 22+ analysis tools - security, performance, accessibility, SEO',
+    tags: ['chrome', 'debugging', 'security', 'performance', 'accessibility', 'ai-analysis'],
+    mcpServer: false,
+    icon: '🤖',
+    category: 'testing'
+  },
+  {
     id: 'qgis',
     name: 'QGIS',
     version: '1.0.0',

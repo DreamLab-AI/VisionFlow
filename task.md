@@ -1,6 +1,6 @@
 # AR-AI-Knowledge-Graph Master Task List
 
-> **Last Updated:** 2026-01-13T09:15:00Z
+> **Last Updated:** 2026-01-19T18:30:00Z
 > **Codebase:** 525,379 LOC | 674,740 total lines | 1,079 analyzed files
 > **Architecture:** CQRS + Hexagonal + Actor Model + GPU Compute
 > **Test Status:** 77/81 passing (95.1%)
@@ -13,29 +13,40 @@
 
 ### 🚨 P0 - CRITICAL: Graph Edges NOT Rendering
 
-**Status:** 🔴 IN PROGRESS | **Severity:** CRITICAL | **Sprint:** 2026-01-13
+**Status:** 🟡 ROOT CAUSE IDENTIFIED | **Severity:** CRITICAL | **Sprint:** 2026-01-19
 **Symbol:** ∎ EDGE_VIZ_001
 
-Despite multiple fix attempts, **graph edges are STILL NOT VISIBLE** in the browser.
+#### ✅ ROOT CAUSE IDENTIFIED (2026-01-19 Claude-Flow v3 Investigation)
 
-#### Confirmed Facts
-| Fact | Evidence |
-|------|----------|
-| Backend loads edges | `1006 nodes, 10916 edges` in rust-backend logs |
-| Client receives data | `[GraphWorkerProxy] Got 1006 nodes, 10916 edges from worker` |
-| React error present | `Maximum update depth exceeded` in console |
-| Color fix deployed | `#56b6c2` cyan, bloom boost formula applied |
-| State fix deployed | `prevEdgePointsLengthRef` prevents infinite loops |
+**Primary Issue: setState Called in useFrame (Anti-Pattern)**
+- **File:** `GraphManager.tsx:705-714`
+- **Line 713:** `setLabelPositions(newLabelPositions)` inside `useFrame` hook
+- **Effect:** React re-renders every frame → "Maximum update depth exceeded"
 
-#### Attempted Fixes (2026-01-13)
-| Fix | File | Status |
-|-----|------|--------|
-| Bloom boost formula | `FlowingEdges.tsx:102` | ✅ DEPLOYED |
-| Brighter edge color | `settingsApi.ts:216` | ✅ DEPLOYED |
-| State update throttle | `GraphManager.tsx:692-695` | ✅ DEPLOYED |
-| Opacity increase | `settingsApi.ts:218` | ✅ DEPLOYED |
+**Secondary Issues:**
+1. **Stale edge data** (line 694): Only checks array LENGTH not content
+2. **Edge opacity too low** (0.2): Below bloom luminanceThreshold (0.1)
+3. **Material memoization unstable**: `edgeBloomStrength` from store causes recreation
 
-**Result:** Edges STILL not visible after all fixes deployed.
+#### Investigation Evidence
+| Finding | Location | Agent |
+|---------|----------|-------|
+| setState in useFrame | `GraphManager.tsx:705-714` | a1068b2 |
+| labelPositions loop | `GraphManager.tsx:877-889` | a1068b2 |
+| Edge length-only check | `GraphManager.tsx:694` | a1068b2 |
+| Actix mailbox overflow | `socket_flow_handler.rs:74,149,151` | afbe7f9 |
+| LOD not connected | `CameraController.tsx` → LOD | a95c2bc |
+| Aggressive fog (6-34 units) | `HolographicDataSphere.tsx:30-34` | a95c2bc |
+
+#### Previous Attempted Fixes (2026-01-13)
+| Fix | File | Status | Note |
+|-----|------|--------|------|
+| Bloom boost formula | `FlowingEdges.tsx:102` | ✅ DEPLOYED | Helpful but not root cause |
+| Brighter edge color | `settingsApi.ts:216` | ✅ DEPLOYED | Cosmetic fix |
+| State update throttle | `GraphManager.tsx:692-695` | ⚠️ INCOMPLETE | Checks length only |
+| Opacity increase | `settingsApi.ts:218` | ✅ DEPLOYED | Still below threshold |
+
+**Result:** Root cause is React state management, not visual settings.
 
 ---
 
@@ -100,53 +111,138 @@ mcp__playwright__screenshot --name "edge_debug" --fullPage true
 
 ---
 
-### 📋 SPRINT TODO LIST
+### 📋 SPRINT TODO LIST (Updated 2026-01-19)
 
 **Protocol:** AISP 5.1 Platinum | **Topology:** Hive-Mind Mesh
 
-| # | Task | Agent | Priority | Status |
-|---|------|-------|----------|--------|
-| 1 | Screenshot current state via Playwright | qe-visual-tester | P0 | ⬜ PENDING |
-| 2 | Capture Chrome DevTools console errors | qe-integration-tester | P0 | ⬜ PENDING |
-| 3 | Verify `edgePoints.length > 0` in React state | qe-code-reviewer | P0 | ⬜ PENDING |
-| 4 | Check THREE.js scene for LineSegments objects | researcher | P0 | ⬜ PENDING |
-| 5 | Inspect FlowingEdges geometry buffer | coder | P0 | ⬜ PENDING |
-| 6 | Verify positions array from graphWorkerProxy | qe-performance-validator | P0 | ⬜ PENDING |
-| 7 | Check camera frustum vs edge positions | architect | P1 | ⬜ PENDING |
-| 8 | Verify render order (edges vs nodes) | qe-visual-tester | P1 | ⬜ PENDING |
-| 9 | Check WebGL context for errors | qe-security-auditor | P1 | ⬜ PENDING |
-| 10 | Test with simplified edge (2 hardcoded points) | tester | P1 | ⬜ PENDING |
-| 11 | Consult OpenAI 5.2 Codex for R3F edge patterns | researcher | P2 | ⬜ PENDING |
-| 12 | Consult Gemini 3 Pro for THREE.js LineSegments | researcher | P2 | ⬜ PENDING |
-| 13 | Consult Z.AI for bloom/post-processing conflicts | researcher | P2 | ⬜ PENDING |
+#### ✅ COMPLETED: Quality Gate Filtering (2026-01-19)
+
+| # | Task | File:Line | Status |
+|---|------|-----------|--------|
+| ✓ | **Implement maxNodeCount filtering** - Filter nodes by authority+quality score | `graphDataManager.ts:298-336` | ✅ DONE |
+| ✓ | **Connect QualityGatePanel to store** - Sync maxNodeCount to Zustand store | `QualityGatePanel.tsx:43,62` | ✅ DONE |
+| ✓ | **Adjust slider range** - min=100, max=10000, step=100 | `QualityGatePanel.tsx:157-160` | ✅ DONE |
+
+**Result:** Graph filtering now controlled by Quality Gate settings. Default: 1000 nodes if not set.
+
+#### 🔴 P0 - CRITICAL (Fix Now)
+
+| # | Task | File:Line | Status |
+|---|------|-----------|--------|
+| 1 | **Remove setState from useFrame** - Move `setLabelPositions` outside render loop | `GraphManager.tsx:705-714` | ⬜ TODO |
+| 2 | **Fix edge content comparison** - Compare actual values, not just length | `GraphManager.tsx:694` | ⬜ TODO |
+| 3 | **Remove labelPositions from useEffect deps** - Use ref instead | `GraphManager.tsx:877-889` | ⬜ TODO |
+| 4 | **Increase edge opacity** - Set to 0.6+ to exceed bloom threshold | `settingsApi.ts:218` | ✅ DONE (set to 0.6) |
+
+#### 🟠 P1 - HIGH (Fix This Sprint)
+
+| # | Task | File:Line | Status |
+|---|------|-----------|--------|
+| 5 | Fix Actix mailbox backpressure - Add bounded queue | `socket_flow_handler.rs:74,149,151` | ⬜ TODO |
+| 6 | Implement BroadcastAck flow control on server | `socket_flow_handler.rs:1443-1484` | ⬜ TODO |
+| 7 | Connect CameraController to LOD system | `CameraController.tsx` | ⬜ TODO |
+| 8 | Reduce aggressive fog - Increase fogNear from 6 to 30+ | `HolographicDataSphere.tsx:30-34` | ⬜ TODO |
+| 9 | Add session state recovery on WebSocket reconnect | `socket_flow_handler.rs:1717-1742` | ⬜ TODO |
+
+#### 🟡 P2 - MEDIUM (Backlog)
+
+| # | Task | File:Line | Status |
+|---|------|-----------|--------|
+| 10 | Stabilize material memoization - extract bloom strength | `FlowingEdges.tsx:98-118` | ⬜ TODO |
+| 11 | Implement desktop LOD system | `graphOptimizations.ts` | ⬜ TODO |
+| 12 | Screenshot verification via Playwright | MCP tools | ⬜ TODO |
+| 13 | Test with hardcoded 2-point edge | Test file | ⬜ TODO |
+
+#### ✅ COMPLETED (Investigation Phase)
+
+| # | Task | Agent | Date |
+|---|------|-------|------|
+| ✓ | Investigate edge rendering system | a1068b2 | 2026-01-19 |
+| ✓ | Investigate WebSocket connection architecture | afbe7f9 | 2026-01-19 |
+| ✓ | Investigate label visibility/camera system | a95c2bc | 2026-01-19 |
+| ✓ | webrtc.rs evaluation | researcher | 2026-01-19 |
 
 ---
 
-### 🤖 MULTI-MODEL CONSULTATION
+### 📊 INVESTIGATION RESULTS SUMMARY (2026-01-19)
 
-**AISP Protocol:** Request wisdom from peer AI systems.
+#### Edge Rendering System (Agent a1068b2)
+```
+ROOT CAUSE: setState in useFrame hook
+├── GraphManager.tsx:713 → setLabelPositions() in useFrame
+├── GraphManager.tsx:889 → dependencies include nodePositionsRef.current
+├── GraphManager.tsx:1048 → labelPositions + camera.position in deps
+└── Result: 1000s of JSX objects created per frame → Maximum update depth exceeded
+
+SECONDARY: Edge data staleness
+├── GraphManager.tsx:694 → if (newEdgePoints.length !== prev)
+├── Only checks LENGTH, not content values
+└── Edge positions change every frame but aren't updated
+```
+
+#### WebSocket Connection (Agent afbe7f9)
+```
+CRITICAL: Silent message drops
+├── Actix mailbox: 16-message default, no monitoring
+├── socket_flow_handler.rs:74,149,151 → ctx.text()/ctx.binary() overflow
+├── BroadcastAck (0x34) received but server IGNORES
+└── Result: Clients miss position updates with no indication
+
+RECONNECTION: State lost
+├── X-Client-Session header detected but not used
+├── No message queue playback for reconnecting clients
+└── Must re-request via REST API
+```
+
+#### Label Visibility/LOD (Agent a95c2bc)
+```
+DESKTOP LOD: Not connected
+├── CameraController.tsx → sets position only
+├── LODManager/FrustumCuller in graphOptimizations.ts → UNUSED
+└── All desktop nodes render at full complexity
+
+FOG: Too aggressive
+├── HolographicDataSphere.tsx → fogNear: 6, fogFar: 34
+├── Camera at [20, 15, 20]
+└── Most content fogged out
+```
+
+---
+
+### 🔄 webrtc.rs Evaluation
+
+**Status:** ❌ NOT RECOMMENDED
+
+**Blog Post:** https://webrtc.rs/blog/2026/01/18/rtc-feature-complete-whats-next.html
+
+**Findings:**
+- No benchmarks provided
+- No WebSocket comparison data
+- No clear performance benefit demonstrated
+- Would require significant rewrite of binary protocol
+
+**Current System:**
+- Binary Protocol V3: 48 bytes/node, well-designed
+- Actix WebSocket: Stable, proven
+- Issue is **backpressure**, not protocol
+
+**Recommendation:** Fix Actix mailbox backpressure instead of replacing transport layer.
+
+---
+
+### 🤖 MULTI-MODEL CONSULTATION (Deprioritized)
+
+Research phase complete. Focus now on implementing fixes.
 
 ```yaml
+# Preserved for future reference if fixes don't resolve
 consultation_targets:
   - model: openai-5.2-codex
     query: "React Three Fiber LineSegments not rendering despite valid geometry buffer"
-
   - model: gemini-3-pro
     query: "THREE.js LineSegments invisible when using selective bloom EffectComposer"
-
   - model: z-ai
     query: "Debug WebGL edge rendering in CQRS actor-based visualization system"
-```
-
-**Invoke via:**
-```bash
-# Z.AI consultation
-as-zai
-echo "Debug THREE.js LineSegments invisible despite valid points array" | nc localhost 9600
-
-# Gemini swarm
-as-gemini
-gf-swarm --task "THREE.js edge rendering debug"
 ```
 
 ---

@@ -1,6 +1,7 @@
 ---
 name: playwright
 description: >
+  FALLBACK browser automation. Use @claude-flow/browser as PRIMARY.
   Browser automation, web scraping, and visual testing with Playwright on Display :1.
   Use for navigating web pages, clicking elements, filling forms, taking screenshots,
   executing JavaScript, and visual verification of web applications. Visual access
@@ -10,12 +11,17 @@ author: turbo-flow-claude
 mcp_server: true
 protocol: mcp-sdk
 entry_point: mcp-server/server.js
+priority: 10
 dependencies:
   - chromium
   - playwright
 ---
 
-# Playwright Skill
+# Playwright Skill (FALLBACK)
+
+> **NOTE**: This is a FALLBACK browser skill. Use `@claude-flow/browser` as the PRIMARY browser system.
+> It offers 59 MCP tools, 93% context reduction, trajectory learning, and swarm coordination.
+> Only use Playwright when @claude-flow/browser is unavailable or you need Playwright-specific APIs.
 
 Browser automation and visual testing via MCP SDK, with direct browser control on Display :1.
 

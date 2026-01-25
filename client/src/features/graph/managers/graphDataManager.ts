@@ -295,20 +295,59 @@ class GraphDataManager {
       logger.info(`Setting ${this.graphType} graph data: ${data.nodes.length} nodes, ${data.edges.length} edges`);
     }
 
-    
+    // Get quality gate settings for filtering
+    const storeState = useSettingsStore.getState();
+    const qualityGates = storeState.settings?.qualityGates;
+    // Use settings value, default to 1000 if not set
+    const maxNodeCount = qualityGates?.maxNodeCount ?? 1000;
+    console.log(`[GraphDataManager] Using maxNodeCount: ${maxNodeCount} (from settings: ${qualityGates?.maxNodeCount})`);
+
+
     let validatedData = data;
     if (data && data.nodes) {
-      const validatedNodes = data.nodes.map(node => this.ensureNodeHasValidPosition(node));
-      validatedData = {
-        ...data,
-        nodes: validatedNodes
-      };
-      
+      let nodesToUse = data.nodes;
+
+      // Apply node count filtering if we exceed maxNodeCount
+      if (nodesToUse.length > maxNodeCount) {
+        logger.info(`Filtering nodes: ${nodesToUse.length} exceeds maxNodeCount ${maxNodeCount}`);
+
+        // Sort by authority_score or quality_score (higher = more important)
+        const scoredNodes = nodesToUse.map(node => ({
+          node,
+          score: (node.metadata?.authority_score ?? 0) + (node.metadata?.quality_score ?? 0)
+        }));
+
+        // Sort descending by score, keep top N
+        scoredNodes.sort((a, b) => b.score - a.score);
+        nodesToUse = scoredNodes.slice(0, maxNodeCount).map(s => s.node);
+
+        logger.info(`Filtered to ${nodesToUse.length} nodes (by authority/quality score)`);
+
+        // Filter edges to only include connections between kept nodes
+        const keptNodeIds = new Set(nodesToUse.map(n => n.id));
+        const filteredEdges = (data.edges || []).filter(
+          edge => keptNodeIds.has(edge.source) && keptNodeIds.has(edge.target)
+        );
+
+        logger.info(`Filtered edges: ${data.edges?.length ?? 0} -> ${filteredEdges.length}`);
+
+        validatedData = {
+          nodes: nodesToUse.map(node => this.ensureNodeHasValidPosition(node)),
+          edges: filteredEdges
+        };
+      } else {
+        const validatedNodes = nodesToUse.map(node => this.ensureNodeHasValidPosition(node));
+        validatedData = {
+          ...data,
+          nodes: validatedNodes
+        };
+      }
+
       if (debugState.isEnabled()) {
-        logger.info(`Validated ${validatedNodes.length} nodes with positions`);
+        logger.info(`Validated ${validatedData.nodes.length} nodes with positions`);
       }
     } else {
-      
+
       validatedData = { nodes: [], edges: data?.edges || [] };
       logger.warn('Initialized with empty graph data');
     }

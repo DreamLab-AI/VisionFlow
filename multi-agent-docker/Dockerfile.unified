@@ -3,7 +3,8 @@
 # Combines devpod + multi-agent-docker with multi-user isolation
 # ============================================================================
 
-FROM archlinux:latest
+# Use CachyOS v3 for optimized x86-64-v3 packages aligned with host system
+FROM cachyos/cachyos-v3:latest
 
 # ============================================================================
 # PHASE 1: Base System Packages
@@ -60,6 +61,10 @@ RUN pacman-key --init && \
         # Additional tools
         docker docker-compose \
         direnv \
+        # GitHub CLI for PR management and repository operations
+        github-cli \
+        # PostgreSQL for ruvector vector storage and unified memory
+        postgresql postgresql-libs \
     && rm -rf /var/cache/pacman/pkg/*
 
 # Install Node.js v23.11.1 (required for chrome-devtools-mcp compatibility)
@@ -97,7 +102,7 @@ ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics,display
 ENV __GLX_VENDOR_LIBRARY_NAME=nvidia
 ENV CUDA_HOME=/opt/cuda
 ENV CUDA_PATH=/opt/cuda
-ENV CUDA_VERSION=13.0
+ENV CUDA_VERSION=13.1
 ENV NVCC_PREPEND_FLAGS='-ccbin /usr/bin/g++'
 ENV __NV_PRIME_RENDER_OFFLOAD=1
 ENV __VK_LAYER_NV_optimus=NVIDIA_only
@@ -171,23 +176,39 @@ RUN echo "devuser ALL=(gemini-user,openai-user,zai-user,deepseek-user) NOPASSWD:
 # Latest versions for Claude, Claude-Flow, AgentDB, RuVector integration
 # ============================================================================
 
+# ============================================================================
+# PHASE 5: Node.js Global Packages - V3 Stack
+# Claude-Flow V3, RuVector, Agentic-QE V3, Browser Automation
+# ============================================================================
+
 RUN npm install -g \
-    @anthropic-ai/claude-code@latest \
+    # Claude Code CLI (pinned to 2.1.17 - latest stable)
+    @anthropic-ai/claude-code@2.1.17 \
     claude-usage-cli@latest \
-    claude-flow@v3alpha \
+    # Claude-Flow V3 (latest stable - 3.0.2)
+    @claude-flow/cli@3.0.2 \
+    @claude-flow/browser@latest \
+    # Browser automation (peer dep for @claude-flow/browser)
+    agent-browser@latest \
+    # AgentDB and RuVector ecosystem
     agentdb@latest \
-    ruvector@latest \
+    ruvector@0.1.96 \
     @ruvector/gnn@latest \
-    agentic-qe@latest \
+    @ruvector/postgres-cli@latest \
+    # Agentic-QE V3 Fleet (51 agents, 12 domains)
+    agentic-qe@3.1.5 \
+    # Agentic ecosystem
     agentic-flow@latest \
     agentic-jujutsu@latest \
-    @playwright/mcp@latest \
+    # Playwright (fallback only - @claude-flow/browser is primary via claude-flow MCP)
+    playwright@latest \
+    # Chrome DevTools (legacy fallback)
+    chrome-devtools-mcp@latest \
+    # Build tools
     pm2@latest \
     typescript@latest \
     ts-node@latest \
-    @types/node@latest \
-    playwright@latest \
-    chrome-devtools-mcp@latest
+    @types/node@latest
 
 # Install Playwright browsers (skip system deps - already installed via pacman)
 RUN npx -y playwright install chromium
@@ -218,13 +239,13 @@ RUN cd /tmp && \
     make install && \
     cd / && rm -rf /tmp/Python-3.12.8*
 
-# Cache bust to force rebuild of Python packages with cu124
-ARG REBUILD_PYTHON=2026-01-10-cu124-py312
+# Cache bust to force rebuild of Python packages with cu130 (CUDA 13.x)
+ARG REBUILD_PYTHON=2026-01-22-cu130-py312
 
 RUN /opt/python312/bin/python3.12 -m venv /opt/venv && \
     /opt/venv/bin/pip install --upgrade pip && \
     /opt/venv/bin/pip install \
-        torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124 && \
+        torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu130 && \
     /opt/venv/bin/pip install \
         supervisor \
         google-generativeai \
@@ -260,7 +281,7 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh || true
 # Install Rust tools for devuser (as devuser, with proper environment)
 USER devuser
 ENV PATH="/home/devuser/.cargo/bin:${PATH}"
-RUN cargo install bat exa ripgrep fd-find tokei || echo "Rust tools installation skipped"
+RUN cargo install bat exa ripgrep fd-find tokei wasm-pack || echo "Rust tools installation skipped"
 USER root
 
 # Clone 610+ Claude subagents
@@ -452,26 +473,9 @@ RUN find /home/devuser/.claude/skills -name "*.py" -path "*/mcp-server/*" -exec 
     chown -R devuser:devuser /home/devuser/.claude/skills
 
 # ============================================================================
-# PHASE 14: ComfyUI Installation (GPU-Accelerated Image Generation)
+# PHASE 14: REMOVED - ComfyUI now runs as external Docker container
+# Use the comfyui skill which connects to remote ComfyUI via API
 # ============================================================================
-
-# Clone ComfyUI as root, install deps, then fix ownership
-RUN git clone https://github.com/comfyanonymous/ComfyUI.git /home/devuser/ComfyUI && \
-    cd /home/devuser/ComfyUI && \
-    ln -s /opt/venv venv && \
-    /opt/venv/bin/pip install --no-cache-dir aiohttp einops -r requirements.txt && \
-    mkdir -p models/checkpoints && \
-    chown -R devuser:devuser /home/devuser/ComfyUI
-
-# Download FLUX.1-schnell model (as devuser)
-USER devuser
-WORKDIR /home/devuser
-RUN cd /home/devuser/ComfyUI && \
-    . venv/bin/activate && \
-    hf download Comfy-Org/flux1-schnell flux1-schnell-fp8.safetensors --local-dir models/checkpoints/ || \
-    echo "FLUX model download will be attempted on first run"
-
-USER root
 
 # Copy Full Management API from multi-agent-docker
 COPY --chown=devuser:devuser multi-agent-docker/management-api/ /opt/management-api/
@@ -613,7 +617,17 @@ RUN echo '# ============================================' >> ~/.zshrc && \
     echo '# CUDA development aliases' >> ~/.zshrc && \
     echo 'alias nvcc-version="nvcc --version"' >> ~/.zshrc && \
     echo 'alias cuda-info="nvidia-smi && echo && nvcc --version"' >> ~/.zshrc && \
-    echo 'alias ptx-compile="nvcc -ptx"' >> ~/.zshrc
+    echo 'alias ptx-compile="nvcc -ptx"' >> ~/.zshrc && \
+    echo '' >> ~/.zshrc && \
+    echo '# Source Turbo Flow aliases (120+ aliases, 8 functions)' >> ~/.zshrc && \
+    echo 'if [ -f ~/.config/turbo-flow-aliases.sh ]; then source ~/.config/turbo-flow-aliases.sh; fi' >> ~/.zshrc
+
+# Copy Turbo Flow aliases (comprehensive aliases merged from upstream)
+COPY --chown=devuser:devuser multi-agent-docker/unified-config/turbo-flow-aliases.sh /home/devuser/.config/turbo-flow-aliases.sh
+
+# Copy upstream SPARC methodology agents (doc-planner, microtask-breakdown)
+COPY --chown=devuser:devuser multi-agent-docker/unified-config/doc-planner.md /home/devuser/agents/doc-planner.md
+COPY --chown=devuser:devuser multi-agent-docker/unified-config/microtask-breakdown.md /home/devuser/agents/microtask-breakdown.md
 
 USER root
 

@@ -112,8 +112,9 @@ EOF
 EOF
             ;;
         comfyui)
+            # ComfyUI runs as external container, accessed via docker network
             cat <<EOF
-        "COMFYUI_URL": "http://localhost:8188",
+        "COMFYUI_URL": "http://comfyui:8188",
         "COMFYUI_OUTPUT_DIR": "/tmp/comfyui-outputs"
 EOF
             ;;

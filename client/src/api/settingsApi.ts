@@ -215,7 +215,7 @@ function transformApiToClientSettings(apiResponse: AllSettings): any {
             baseWidth: 0.2,
             color: '#FF5722',
             enableArrows: true,
-            opacity: 0.2,
+            opacity: 0.6, // Increased for bloom visibility
             widthRange: [0.1, 0.3] as [number, number],
             quality: 'medium' as const,
             enableFlowEffect: false,
@@ -256,7 +256,7 @@ function transformApiToClientSettings(apiResponse: AllSettings): any {
             baseWidth: 0.2,
             color: '#FF5722',
             enableArrows: true,
-            opacity: 0.2,
+            opacity: 0.6, // Increased for bloom visibility
             widthRange: [0.1, 0.3] as [number, number],
             quality: 'medium' as const,
             enableFlowEffect: false,

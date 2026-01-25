@@ -177,7 +177,7 @@ export class ConfigurationMapper {
         roughness: 0.2,
         emissiveIntensity: 0.3,
         nodeOpacity: 0.5,
-        edgeOpacity: 0.2,
+        edgeOpacity: 0.6, // Increased for bloom visibility
         glowOpacity: 0.1,
         enableShadows: true,
         enablePostProcessing: true,

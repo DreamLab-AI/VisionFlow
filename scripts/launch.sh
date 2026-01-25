@@ -71,6 +71,7 @@ ${YELLOW}Commands:${NC}
     ${GREEN}down${NC}           Stop and remove containers
     ${GREEN}build${NC}          Build containers
     ${GREEN}rebuild${NC}        Rebuild containers (no cache)
+    ${GREEN}rebuild-agent${NC}  Rebuild and restart the agentic-workstation container
     ${GREEN}logs${NC}           Show container logs (follow mode)
     ${GREEN}shell${NC}          Open interactive shell in container
     ${GREEN}restart${NC}        Restart the environment
@@ -120,7 +121,7 @@ EOF
 # Validate command
 validate_command() {
     case "$COMMAND" in
-        up|down|build|rebuild|logs|shell|restart|restart-agent|status|clean|help|-h|--help)
+        up|down|build|rebuild|rebuild-agent|logs|shell|restart|restart-agent|status|clean|help|-h|--help)
             if [[ "$COMMAND" == "help" ]] || [[ "$COMMAND" == "-h" ]] || [[ "$COMMAND" == "--help" ]]; then
                 show_help
                 exit 0
@@ -543,6 +544,64 @@ restart_agent_container() {
     fi
 }
 
+# Rebuild agent container (agentic-workstation) with no cache
+rebuild_agent_container() {
+    log "Rebuilding agentic-workstation container (no cache)..."
+
+    # Check if agent compose file exists
+    if [[ ! -f "$AGENT_COMPOSE_FILE" ]]; then
+        error "Agent compose file not found: $AGENT_COMPOSE_FILE"
+        exit 1
+    fi
+
+    # Stop and remove existing container
+    if docker ps -a --format '{{.Names}}' | grep -q "^${AGENT_CONTAINER}$"; then
+        info "Stopping and removing $AGENT_CONTAINER..."
+        docker stop "$AGENT_CONTAINER" 2>/dev/null || true
+        docker rm "$AGENT_CONTAINER" 2>/dev/null || true
+    fi
+
+    # Change to multi-agent-docker directory
+    cd "$PROJECT_ROOT/multi-agent-docker"
+
+    # Load .env from multi-agent-docker
+    if [[ -f ".env" ]]; then
+        set -a
+        source .env
+        set +a
+    fi
+
+    # Build with no cache
+    info "Building image with --no-cache..."
+    export DOCKER_BUILDKIT=1
+    export COMPOSE_DOCKER_CLI_BUILD=1
+    docker compose -f docker-compose.unified.yml build --no-cache
+
+    # Start the container
+    info "Starting $AGENT_CONTAINER..."
+    docker compose -f docker-compose.unified.yml up -d
+
+    # Wait for container to start
+    sleep 5
+
+    # Check if container started successfully
+    if docker ps --format '{{.Names}}' | grep -q "^${AGENT_CONTAINER}$"; then
+        success "Container $AGENT_CONTAINER rebuilt and started successfully"
+        echo ""
+        info "Services available:"
+        echo "  ${GREEN}SSH:${NC}            ssh devuser@localhost -p 2222"
+        echo "  ${GREEN}VNC:${NC}            localhost:5901"
+        echo "  ${GREEN}code-server:${NC}    http://localhost:8080"
+        echo "  ${GREEN}Management API:${NC} http://localhost:9090"
+        echo ""
+        info "View logs with: docker logs -f $AGENT_CONTAINER"
+    else
+        error "Failed to start $AGENT_CONTAINER"
+        docker compose -f docker-compose.unified.yml logs --tail=50
+        exit 1
+    fi
+}
+
 # Show logs
 show_logs() {
     log "Showing logs for $ENVIRONMENT environment..."
@@ -711,6 +770,11 @@ main() {
         restart-agent)
             check_prerequisites
             restart_agent_container
+            ;;
+        rebuild-agent)
+            check_prerequisites
+            detect_gpu
+            rebuild_agent_container
             ;;
         status)
             show_status
