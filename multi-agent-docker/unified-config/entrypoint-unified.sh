@@ -968,6 +968,54 @@ HEALTHCHECK_SCRIPT
 fi
 
 # ============================================================================
+# Phase 7.6: Setup Agent-Browser (Vercel Labs)
+# Install playwright browsers and fix version compatibility
+# ============================================================================
+
+echo "[7.6/10] Setting up agent-browser (Vercel Labs browser automation)..."
+
+# Agent-browser uses playwright internally. Install browsers as devuser.
+# Also create symlinks for playwright version compatibility (1200 -> 1208, etc.)
+if command -v agent-browser &> /dev/null; then
+    # Install playwright browsers silently
+    sudo -u devuser bash -c '
+        mkdir -p ~/.cache/ms-playwright
+        agent-browser install 2>&1 | tail -2
+
+        # Create symlinks for version compatibility (playwright version mismatches)
+        # This allows agent-browser to work even with minor playwright version differences
+        cd ~/.cache/ms-playwright 2>/dev/null || exit 0
+        for dir in chromium-*; do
+            [[ -d "$dir" ]] || continue
+            version="${dir##*-}"
+            # Create symlinks for common version offsets (+/- 8 builds)
+            for offset in 1 2 3 4 5 6 7 8; do
+                target_v=$((version + offset))
+                [[ -e "chromium-$target_v" ]] || ln -sf "$dir" "chromium-$target_v" 2>/dev/null
+                target_v=$((version - offset))
+                [[ -e "chromium-$target_v" ]] || ln -sf "$dir" "chromium-$target_v" 2>/dev/null
+            done
+        done
+        for dir in chromium_headless_shell-*; do
+            [[ -d "$dir" ]] || continue
+            version="${dir##*-}"
+            for offset in 1 2 3 4 5 6 7 8; do
+                target_v=$((version + offset))
+                [[ -e "chromium_headless_shell-$target_v" ]] || ln -sf "$dir" "chromium_headless_shell-$target_v" 2>/dev/null
+                target_v=$((version - offset))
+                [[ -e "chromium_headless_shell-$target_v" ]] || ln -sf "$dir" "chromium_headless_shell-$target_v" 2>/dev/null
+            done
+        done
+    ' 2>/dev/null || true
+
+    echo "✓ agent-browser $(agent-browser --version 2>/dev/null || echo 'ready')"
+    echo "  Commands: open, click, fill, snapshot, screenshot, eval, close"
+    echo "  Usage: agent-browser open <url> && agent-browser snapshot -i"
+else
+    echo "ℹ️  agent-browser not installed (optional)"
+fi
+
+# ============================================================================
 # Phase 8: Enhance CLAUDE.md with Project Context
 # ============================================================================
 
