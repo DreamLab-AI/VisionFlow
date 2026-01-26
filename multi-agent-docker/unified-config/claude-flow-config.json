@@ -1,0 +1,15 @@
+{
+  "version": "3.0.0",
+  "memory": {
+    "backend": "postgres",
+    "postgres": {
+      "host": "ruvector-postgres",
+      "port": 5432,
+      "database": "ruvector",
+      "user": "ruvector",
+      "password": "ruvector_secure_pass"
+    },
+    "fallback": "sqlite",
+    "enableHNSW": true
+  }
+}

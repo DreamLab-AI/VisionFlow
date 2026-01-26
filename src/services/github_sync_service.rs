@@ -518,19 +518,66 @@ impl GitHubSyncService {
     async fn get_existing_file_metadata(
         &self,
     ) -> Result<std::collections::HashMap<String, String>, String> {
-        // TODO: File metadata tracking removed after Neo4j migration
-        // Return empty map to process all files
-        info!("[GitHubSync][SHA1] File metadata tracking disabled (Neo4j migration)");
-        Ok(std::collections::HashMap::new())
+        use neo4rs::query;
+
+        info!("[GitHubSync][SHA1] Querying Neo4j for existing file SHA1 hashes...");
+
+        // Query all FileMetadata nodes for filename -> sha1 mapping
+        let query_str = "MATCH (f:FileMetadata) RETURN f.filename AS filename, f.sha1 AS sha1";
+
+        let graph = self.onto_repo.graph();
+        let mut result = graph.execute(query(query_str)).await
+            .map_err(|e| format!("Failed to query file metadata: {}", e))?;
+
+        let mut metadata = std::collections::HashMap::new();
+        while let Some(row) = result.next().await.map_err(|e| format!("Row iteration error: {}", e))? {
+            if let (Ok(filename), Ok(sha1)) = (
+                row.get::<String>("filename"),
+                row.get::<String>("sha1")
+            ) {
+                metadata.insert(filename, sha1);
+            }
+        }
+
+        info!("[GitHubSync][SHA1] Found {} existing file SHA1 hashes in Neo4j", metadata.len());
+        Ok(metadata)
     }
 
     async fn update_file_metadata(
         &self,
         files: &[GitHubFileBasicMetadata],
     ) -> Result<(), String> {
-        // TODO: File metadata tracking removed after Neo4j migration
-        // This function is now a no-op
-        info!("[GitHubSync] File metadata update skipped (Neo4j migration) - {} files", files.len());
+        use neo4rs::query;
+
+        if files.is_empty() {
+            return Ok(());
+        }
+
+        info!("[GitHubSync][SHA1] Updating {} file SHA1 hashes in Neo4j...", files.len());
+
+        let graph = self.onto_repo.graph();
+
+        // Ensure FileMetadata index exists (idempotent)
+        let index_query = "CREATE INDEX file_metadata_filename IF NOT EXISTS FOR (f:FileMetadata) ON (f.filename)";
+        if let Err(e) = graph.run(query(index_query)).await {
+            warn!("[GitHubSync] Failed to create FileMetadata index (may already exist): {}", e);
+        }
+
+        // MERGE each file metadata (update if exists, create if not)
+        for file in files {
+            let merge_query = query(
+                "MERGE (f:FileMetadata {filename: $filename})
+                 SET f.sha1 = $sha1, f.last_synced = datetime()"
+            )
+            .param("filename", file.name.clone())
+            .param("sha1", file.sha.clone());
+
+            if let Err(e) = graph.run(merge_query).await {
+                warn!("[GitHubSync] Failed to update metadata for {}: {}", file.name, e);
+            }
+        }
+
+        info!("[GitHubSync][SHA1] Updated {} file SHA1 hashes", files.len());
         Ok(())
     }
 

@@ -115,6 +115,12 @@ impl Neo4jOntologyRepository {
         Ok(repo)
     }
 
+    /// Get access to the underlying Neo4j graph for direct queries
+    /// Used by GitHubSyncService for file metadata tracking
+    pub fn graph(&self) -> &Arc<Graph> {
+        &self.graph
+    }
+
     /// Create Neo4j schema (constraints and indexes) - Schema V2
     /// Creates 24+ indexes matching the SQLite schema for optimal query performance
     async fn create_schema(&self) -> RepoResult<()> {

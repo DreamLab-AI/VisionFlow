@@ -185,12 +185,20 @@ RUN echo "devuser ALL=(gemini-user,openai-user,zai-user,deepseek-user) NOPASSWD:
 # Claude-Flow V3, RuVector, Agentic-QE V3, Browser Automation
 # ============================================================================
 
+# Fix 2: Clear npm auth tokens to prevent warnings
+RUN npm logout 2>/dev/null || true && \
+    npm cache clean --force && \
+    npm config delete _authToken || true && \
+    npm config delete //registry.npmjs.org/:_authToken || true
+
 RUN npm install -g \
     # Claude Code CLI (pinned to 2.1.17 - latest stable)
     @anthropic-ai/claude-code@2.1.17 \
     claude-usage-cli@latest \
-    # Claude-Flow V3 (latest stable - 3.0.2)
-    @claude-flow/cli@3.0.2 \
+    # Claude-Flow V3 Alpha (Global Install Fix 1)
+    claude-flow@v3alpha \
+    # Postgres Driver (Fix 4)
+    pg \
     @claude-flow/browser@latest \
     # Browser automation - PRIMARY tool (Vercel Labs)
     # @claude-flow/browser provides MCP tools via claude-flow server
@@ -215,6 +223,9 @@ RUN npm install -g \
     typescript@latest \
     ts-node@latest \
     @types/node@latest
+
+# Fix 4/6: Install pg driver in claude-flow global package
+RUN cd /usr/local/lib/node_modules/claude-flow && npm install pg --save
 
 # Install Playwright browsers (skip system deps - already installed via pacman)
 RUN npx -y playwright install chromium
@@ -581,6 +592,13 @@ COPY --chown=devuser:devuser multi-agent-docker/CLAUDE.md /home/devuser/CLAUDE.m
 COPY --chown=devuser:devuser multi-agent-docker/CLAUDE.md /home/devuser/workspace/CLAUDE.md
 COPY --chown=devuser:devuser multi-agent-docker/aisp.md /home/devuser/aisp.md
 COPY --chown=devuser:devuser multi-agent-docker/aisp.md /home/devuser/workspace/aisp.md
+
+# Fix 5: Copy Claude-Flow Global Configuration
+RUN mkdir -p /home/devuser/.claude-flow
+COPY --chown=devuser:devuser multi-agent-docker/unified-config/claude-flow-config.json /home/devuser/.claude-flow/config.json
+
+# Copy RuVector Initialization SQL
+COPY --chown=devuser:devuser multi-agent-docker/unified-config/init-ruvector.sql /home/devuser/.claude-flow/init-ruvector.sql
 
 # ============================================================================
 # AISP 5.1 Platinum Integration Module

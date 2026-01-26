@@ -320,6 +320,14 @@ if [ "$RUVECTOR_USE_EXTERNAL" = "true" ]; then
         echo "  ✓ Using external RuVector PostgreSQL (skipping local PostgreSQL setup)"
         echo "✓ External PostgreSQL connection configured"
 
+        # Fix 8 & 9: Initialize RuVector Schema/Indexes on external DB
+        if [ -f "/home/devuser/.claude-flow/init-ruvector.sql" ]; then
+            echo "  Initializing RuVector schema extensions (Fix 8/9)..."
+            PGPASSWORD="$RUVECTOR_PG_PASSWORD" psql -h "$RUVECTOR_PG_HOST" -p "$RUVECTOR_PG_PORT" -U "$RUVECTOR_PG_USER" -d "$RUVECTOR_PG_DATABASE" -f /home/devuser/.claude-flow/init-ruvector.sql >/dev/null 2>&1 && \
+            echo "  ✓ RuVector schema extensions applied" || \
+            echo "  ⚠️  Failed to apply schema extensions (might already exist)"
+        fi
+
         # Skip local PostgreSQL initialization
         goto_phase_6=true
     else
@@ -608,15 +616,15 @@ rm -rf /root/.npm/_npx/* 2>/dev/null || true
 (sudo -u devuser bash -c "cd /home/devuser && npx @claude-flow/cli@3.0.2 init --force" > /var/log/claude-flow-init.log 2>&1 &) || true
 echo "ℹ️  Claude Flow V3 init started in background (see /var/log/claude-flow-init.log)"
 
-# Fix hooks to use V3 @claude-flow/cli instead of deprecated v3alpha
+# Fix hooks to use global claude-flow binary (Fix 3)
 if [ -f /home/devuser/.claude/settings.json ]; then
-    # Update any remaining v3alpha references to stable V3
-    sed -i 's|npx claude-flow@v3alpha|npx @claude-flow/cli|g' /home/devuser/.claude/settings.json
-    sed -i 's|claude-flow@v3alpha|@claude-flow/cli|g' /home/devuser/.claude/settings.json
-    # Also update bare claude-flow to explicit V3
-    sed -i 's|"claude-flow"|"npx @claude-flow/cli"|g' /home/devuser/.claude/settings.json
+    # Replace slow npx invocations with global binary
+    sed -i 's|npx @claude-flow/cli|claude-flow|g' /home/devuser/.claude/settings.json
+    sed -i 's|npx claude-flow|claude-flow|g' /home/devuser/.claude/settings.json
+    # Clean up any remaining legacy formats
+    sed -i 's|claude-flow@v3alpha|claude-flow|g' /home/devuser/.claude/settings.json
     chown devuser:devuser /home/devuser/.claude/settings.json
-    echo "✓ Hooks updated to use @claude-flow/cli V3"
+    echo "✓ Hooks updated to use global claude-flow binary"
 fi
 
 # Initialize @claude-flow/browser for AI-optimized browser automation
