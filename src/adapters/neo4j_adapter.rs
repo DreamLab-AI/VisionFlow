@@ -261,6 +261,20 @@ impl Neo4jAdapter {
         props
     }
 
+    /// Map ontology source_domain to a display color for visual grouping
+    fn domain_to_color(domain: &str) -> String {
+        match domain {
+            "AI" => "#4FC3F7".to_string(),   // Light blue
+            "BC" => "#81C784".to_string(),   // Green
+            "RB" => "#FFB74D".to_string(),   // Orange
+            "MV" => "#CE93D8".to_string(),   // Purple
+            "TC" => "#FFD54F".to_string(),   // Yellow
+            "DT" => "#EF5350".to_string(),   // Red
+            "NGM" => "#4DB6AC".to_string(),  // Teal
+            _ => "#90A4AE".to_string(),      // Grey for unknown
+        }
+    }
+
     /// Convert Neo4j node to our Node model
     /// Prioritizes sim_* properties for physics coordinates (GPU-calculated positions)
     fn neo4j_node_to_node(neo4j_node: &Neo4jNode) -> RepoResult<Node> {
@@ -439,7 +453,7 @@ impl Neo4jAdapter {
 impl KnowledgeGraphRepository for Neo4jAdapter {
     #[instrument(skip(self), level = "debug")]
     async fn load_graph(&self) -> RepoResult<Arc<GraphData>> {
-        // Load all nodes
+        // Try loading GraphNode nodes first (traditional pipeline)
         let nodes_query = Query::new("MATCH (n:GraphNode) RETURN n ORDER BY n.id".to_string());
 
         let mut nodes = Vec::new();
@@ -453,33 +467,175 @@ impl KnowledgeGraphRepository for Neo4jAdapter {
             }
         }
 
-        debug!("Loaded {} nodes from Neo4j", nodes.len());
+        debug!("Loaded {} GraphNode nodes from Neo4j", nodes.len());
 
-        // Load all edges
-        let edges_query = Query::new("MATCH (s:GraphNode)-[r:EDGE]->(t:GraphNode) RETURN s.id AS source, t.id AS target, r.weight AS weight, r.relation_type AS relation_type, r.owl_property_iri AS owl_property_iri, r.metadata AS metadata".to_string());
+        // If no GraphNode nodes exist, load ontology OwlClass nodes instead
+        // This bridges the ontology sync pipeline to the graph display pipeline
+        let mut iri_to_id: HashMap<String, u32> = HashMap::new();
+        if nodes.is_empty() {
+            info!("No GraphNode nodes found — loading OwlClass ontology nodes for display");
 
+            let owl_query = Query::new(
+                "MATCH (c:OwlClass)
+                 RETURN c.iri AS iri,
+                        c.term_id AS term_id,
+                        c.preferred_term AS preferred_term,
+                        c.label AS label,
+                        c.description AS description,
+                        c.source_domain AS source_domain,
+                        c.quality_score AS quality_score,
+                        c.authority_score AS authority_score,
+                        c.maturity AS maturity,
+                        c.status AS status,
+                        c.owl_physicality AS owl_physicality,
+                        c.owl_role AS owl_role,
+                        c.class_type AS class_type,
+                        c.belongs_to_domain AS belongs_to_domain,
+                        c.bridges_to_domain AS bridges_to_domain
+                 ORDER BY c.term_id".to_string()
+            );
+
+            let mut owl_result = self.graph.execute(owl_query).await.map_err(|e| {
+                KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to load OwlClass nodes: {}", e))
+            })?;
+
+            let mut next_id: u32 = 1;
+            while let Ok(Some(row)) = owl_result.next().await {
+                let iri: String = match row.get("iri") {
+                    Ok(v) => v,
+                    Err(_) => continue,
+                };
+                let term_id: String = row.get("term_id").unwrap_or_else(|_| iri.clone());
+                let preferred_term: String = row.get("preferred_term").unwrap_or_else(|_| term_id.clone());
+                let label: String = row.get("label").unwrap_or_else(|_| preferred_term.clone());
+                let source_domain: String = row.get("source_domain").unwrap_or_else(|_| "unknown".to_string());
+                let quality_score: f64 = row.get("quality_score").unwrap_or(0.5);
+                let authority_score: f64 = row.get("authority_score").unwrap_or(0.5);
+                let maturity: String = row.get("maturity").unwrap_or_else(|_| "unknown".to_string());
+                let status: String = row.get("status").unwrap_or_else(|_| "active".to_string());
+                let owl_physicality: Option<String> = row.get("owl_physicality").ok();
+                let owl_role: Option<String> = row.get("owl_role").ok();
+                let class_type: Option<String> = row.get("class_type").ok();
+                let belongs_to_domain: Option<String> = row.get("belongs_to_domain").ok();
+                let bridges_to_domain: Option<String> = row.get("bridges_to_domain").ok();
+                let description: Option<String> = row.get("description").ok();
+
+                let node_id = next_id;
+                next_id += 1;
+                iri_to_id.insert(iri.clone(), node_id);
+
+                // Map source_domain to a color for visual grouping
+                let color = Some(Self::domain_to_color(&source_domain));
+
+                // Size based on quality + authority scores
+                let size = Some((0.5 + quality_score * 0.5 + authority_score * 0.5) as f32);
+
+                let mut node = Node::new_with_id(term_id.clone(), Some(node_id));
+                node.label = label;
+                node.owl_class_iri = Some(iri);
+                node.color = color;
+                node.size = size;
+                node.node_type = class_type.or_else(|| Some("OwlClass".to_string()));
+                node.group = belongs_to_domain.or(Some(source_domain.clone()));
+
+                // Store ontology metadata
+                let mut meta = HashMap::new();
+                meta.insert("preferred_term".to_string(), preferred_term);
+                meta.insert("source_domain".to_string(), source_domain);
+                meta.insert("quality_score".to_string(), quality_score.to_string());
+                meta.insert("authority_score".to_string(), authority_score.to_string());
+                meta.insert("maturity".to_string(), maturity);
+                meta.insert("status".to_string(), status);
+                if let Some(p) = owl_physicality { meta.insert("owl_physicality".to_string(), p); }
+                if let Some(r) = owl_role { meta.insert("owl_role".to_string(), r); }
+                if let Some(b) = bridges_to_domain { meta.insert("bridges_to_domain".to_string(), b); }
+                if let Some(d) = description { meta.insert("description".to_string(), d); }
+                node.metadata = meta;
+
+                nodes.push(node);
+            }
+
+            info!("Loaded {} OwlClass nodes as graph nodes", nodes.len());
+        }
+
+        // Load edges — try GraphNode EDGE relationships first, then ontology relationships
         let mut edges = Vec::new();
-        let mut result = self.graph.execute(edges_query).await.map_err(|e| {
-            KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to load edges: {}", e))
-        })?;
 
-        while let Ok(Some(row)) = result.next().await {
-            let source: i64 = row.get("source").unwrap_or(0);
-            let target: i64 = row.get("target").unwrap_or(0);
-            let weight: f64 = row.get("weight").unwrap_or(1.0);
-            let relation_type: Option<String> = row.get("relation_type").ok();
-            let owl_property_iri: Option<String> = row.get("owl_property_iri").ok();
-            let metadata_json: Option<String> = row.get("metadata").ok();
+        if iri_to_id.is_empty() {
+            // Traditional GraphNode edges
+            let edges_query = Query::new("MATCH (s:GraphNode)-[r:EDGE]->(t:GraphNode) RETURN s.id AS source, t.id AS target, r.weight AS weight, r.relation_type AS relation_type, r.owl_property_iri AS owl_property_iri, r.metadata AS metadata".to_string());
 
-            let metadata = metadata_json
-                .and_then(|json| from_json(&json).ok());
+            let mut result = self.graph.execute(edges_query).await.map_err(|e| {
+                KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to load edges: {}", e))
+            })?;
 
-            let mut edge = Edge::new(source as u32, target as u32, weight as f32);
-            edge.edge_type = relation_type;
-            edge.owl_property_iri = owl_property_iri;
-            edge.metadata = metadata;
+            while let Ok(Some(row)) = result.next().await {
+                let source: i64 = row.get("source").unwrap_or(0);
+                let target: i64 = row.get("target").unwrap_or(0);
+                let weight: f64 = row.get("weight").unwrap_or(1.0);
+                let relation_type: Option<String> = row.get("relation_type").ok();
+                let owl_property_iri: Option<String> = row.get("owl_property_iri").ok();
+                let metadata_json: Option<String> = row.get("metadata").ok();
 
-            edges.push(edge);
+                let metadata = metadata_json
+                    .and_then(|json| from_json(&json).ok());
+
+                let mut edge = Edge::new(source as u32, target as u32, weight as f32);
+                edge.edge_type = relation_type;
+                edge.owl_property_iri = owl_property_iri;
+                edge.metadata = metadata;
+
+                edges.push(edge);
+            }
+        } else {
+            // Ontology relationships: SUBCLASS_OF and RELATES
+            let onto_edges_query = Query::new(
+                "MATCH (s:OwlClass)-[r]->(t:OwlClass)
+                 WHERE type(r) IN ['SUBCLASS_OF', 'RELATES']
+                 RETURN s.iri AS source_iri,
+                        t.iri AS target_iri,
+                        type(r) AS rel_type,
+                        r.relationship_type AS relationship_type,
+                        r.confidence AS confidence
+                 ".to_string()
+            );
+
+            let mut onto_result = self.graph.execute(onto_edges_query).await.map_err(|e| {
+                KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to load ontology edges: {}", e))
+            })?;
+
+            while let Ok(Some(row)) = onto_result.next().await {
+                let source_iri: String = match row.get("source_iri") {
+                    Ok(v) => v,
+                    Err(_) => continue,
+                };
+                let target_iri: String = match row.get("target_iri") {
+                    Ok(v) => v,
+                    Err(_) => continue,
+                };
+
+                // Map IRIs to numeric node IDs
+                let source_id = match iri_to_id.get(&source_iri) {
+                    Some(&id) => id,
+                    None => continue,
+                };
+                let target_id = match iri_to_id.get(&target_iri) {
+                    Some(&id) => id,
+                    None => continue,
+                };
+
+                let rel_type: String = row.get("rel_type").unwrap_or_else(|_| "RELATES".to_string());
+                let relationship_type: Option<String> = row.get("relationship_type").ok();
+                let confidence: f64 = row.get("confidence").unwrap_or(1.0);
+
+                let display_type = relationship_type.unwrap_or(rel_type);
+
+                let mut edge = Edge::new(source_id, target_id, confidence as f32);
+                edge.edge_type = Some(display_type);
+                edges.push(edge);
+            }
+
+            info!("Loaded {} ontology edges", edges.len());
         }
 
         debug!("Loaded {} edges from Neo4j", edges.len());

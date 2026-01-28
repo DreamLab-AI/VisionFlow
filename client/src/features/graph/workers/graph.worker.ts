@@ -72,6 +72,24 @@ function isZlibCompressed(data: ArrayBuffer): boolean {
 }
 
 
+// Force-directed physics settings for client-side simulation
+interface ForcePhysicsSettings {
+  repulsionStrength: number;     // Coulomb-like repulsion between all nodes
+  attractionStrength: number;    // Spring attraction along edges
+  centerGravity: number;         // Gentle pull toward center to prevent drift
+  damping: number;               // Velocity damping (0-1)
+  maxVelocity: number;           // Speed limit
+  idealEdgeLength: number;       // Target spring rest length
+  theta: number;                 // Barnes-Hut approximation threshold (0.5-1.0)
+  enabled: boolean;              // Whether physics is running
+  alpha: number;                 // Simulation "temperature" (decays over time)
+  alphaDecay: number;            // How fast alpha decays
+  alphaMin: number;              // Stop when alpha reaches this
+  // Semantic clustering
+  clusterStrength: number;       // Force pulling nodes of same domain together
+  enableClustering: boolean;     // Enable domain-based clustering
+}
+
 class GraphWorker {
   private graphData: GraphData = { nodes: [], edges: [] };
   private nodeIdMap: Map<string, number> = new Map();
@@ -102,6 +120,31 @@ class GraphWorker {
   private binaryUpdateCount: number = 0;
   private lastBinaryUpdate: number = 0;
 
+  // Force-directed physics for client-side simulation (VisionFlow)
+  private forcePhysics: ForcePhysicsSettings = {
+    repulsionStrength: 500,       // Node repulsion force
+    attractionStrength: 0.05,     // Edge spring force
+    centerGravity: 0.01,          // Gentle centering
+    damping: 0.85,                // Velocity decay
+    maxVelocity: 5.0,             // Max speed
+    idealEdgeLength: 30,          // Target edge length
+    theta: 0.8,                   // Barnes-Hut threshold
+    enabled: true,                // Physics on by default
+    alpha: 1.0,                   // Initial temperature
+    alphaDecay: 0.0228,           // ~300 iterations to cool
+    alphaMin: 0.001,              // Stop threshold
+    clusterStrength: 0.3,         // Domain clustering force
+    enableClustering: true,       // Enable semantic clustering
+  };
+
+  // Edge lookup for O(1) neighbor access
+  private edgeSourceMap: Map<string, string[]> = new Map();
+  private edgeTargetMap: Map<string, string[]> = new Map();
+
+  // Domain clustering - maps domain to node indices
+  private domainClusters: Map<string, number[]> = new Map();
+  private domainCenters: Map<string, { x: number; y: number; z: number }> = new Map();
+
   
   async initialize(): Promise<void> {
     console.log('GraphWorker: Initialize method called');
@@ -111,7 +154,18 @@ class GraphWorker {
   
   async setGraphType(type: 'logseq' | 'visionflow'): Promise<void> {
     this.graphType = type;
-    console.log(`GraphWorker: Graph type set to ${type}`);
+    // VisionFlow uses client-side physics since it doesn't receive server binary updates
+    if (type === 'visionflow') {
+      this.useServerPhysics = false;
+      this.forcePhysics.enabled = true;
+      this.forcePhysics.alpha = 1.0; // Reset simulation temperature
+      console.log(`GraphWorker: Graph type set to ${type} - using CLIENT-SIDE force-directed physics`);
+    } else {
+      // Logseq graphs receive server physics via binary protocol
+      this.useServerPhysics = true;
+      this.forcePhysics.enabled = false;
+      console.log(`GraphWorker: Graph type set to ${type} - using SERVER physics`);
+    }
   }
 
 
@@ -138,11 +192,39 @@ class GraphWorker {
         this.nodeIndexMap.set(node.id, index);
     });
 
-    
+    // Build edge adjacency maps for O(1) neighbor lookup
+    this.edgeSourceMap.clear();
+    this.edgeTargetMap.clear();
+    for (const edge of data.edges) {
+      // Source -> targets
+      if (!this.edgeSourceMap.has(edge.source)) {
+        this.edgeSourceMap.set(edge.source, []);
+      }
+      this.edgeSourceMap.get(edge.source)!.push(edge.target);
+
+      // Target -> sources (for bidirectional edge springs)
+      if (!this.edgeTargetMap.has(edge.target)) {
+        this.edgeTargetMap.set(edge.target, []);
+      }
+      this.edgeTargetMap.get(edge.target)!.push(edge.source);
+    }
+
+    // Build domain clusters for semantic grouping
+    this.domainClusters.clear();
+    this.domainCenters.clear();
+    this.graphData.nodes.forEach((node, index) => {
+      const domain = node.metadata?.source_domain || node.metadata?.domain || 'default';
+      if (!this.domainClusters.has(domain)) {
+        this.domainClusters.set(domain, []);
+      }
+      this.domainClusters.get(domain)!.push(index);
+    });
+
+
     const nodeCount = data.nodes.length;
     this.currentPositions = new Float32Array(nodeCount * 3);
     this.targetPositions = new Float32Array(nodeCount * 3);
-    this.velocities = new Float32Array(nodeCount * 3).fill(0); 
+    this.velocities = new Float32Array(nodeCount * 3).fill(0);
 
     data.nodes.forEach((node, index) => {
       const i3 = index * 3;
@@ -150,13 +232,19 @@ class GraphWorker {
       this.currentPositions![i3] = pos.x;
       this.currentPositions![i3 + 1] = pos.y;
       this.currentPositions![i3 + 2] = pos.z;
-      
+
       this.targetPositions![i3] = pos.x;
       this.targetPositions![i3 + 1] = pos.y;
       this.targetPositions![i3 + 2] = pos.z;
     });
 
-    console.log(`GraphWorker: Initialized ${this.graphType} graph with ${this.graphData.nodes.length} nodes`);
+    // Reset physics simulation when new data arrives
+    if (this.graphType === 'visionflow') {
+      this.forcePhysics.alpha = 1.0; // Reheat simulation
+      console.log(`GraphWorker: VisionFlow graph initialized with ${nodeCount} nodes, ${data.edges.length} edges, ${this.domainClusters.size} domains`);
+    } else {
+      console.log(`GraphWorker: Initialized ${this.graphType} graph with ${this.graphData.nodes.length} nodes`);
+    }
   }
 
   
@@ -345,14 +433,9 @@ class GraphWorker {
     
     const dt = Math.min(deltaTime, 0.016); 
 
-    
+
     this.frameCount = (this.frameCount || 0) + 1;
-    if (this.frameCount < 3 || this.frameCount % 100 === 0) { 
-      const timeSinceLastUpdate = this.lastBinaryUpdate ? Date.now() - this.lastBinaryUpdate : 999999;
-      console.log('[GraphWorker] Physics mode - useServerPhysics:', this.useServerPhysics, 
-                  'frame:', this.frameCount,
-                  'ms since last binary update:', timeSinceLastUpdate);
-    }
+    // Performance: Removed per-frame logging - use DEBUG_PHYSICS env var if needed
     
     
     if (this.useServerPhysics) {
@@ -368,11 +451,9 @@ class GraphWorker {
         }
       }
       
-      
+
       if (!hasAnyMovement) {
-        if (this.frameCount % 500 === 0) {
-          console.log('[GraphWorker] No movement detected, skipping interpolation entirely');
-        }
+        // Performance: Removed per-frame logging
         return this.currentPositions;
       }
       
@@ -385,20 +466,7 @@ class GraphWorker {
       
       let totalMovement = 0;
       
-      
-      if (this.frameCount % 200 === 0) { 
-        const node0_current = [this.currentPositions[0], this.currentPositions[1], this.currentPositions[2]];
-        const node0_target = [this.targetPositions[0], this.targetPositions[1], this.targetPositions[2]];
-        const dist = Math.sqrt(
-          Math.pow(node0_target[0] - node0_current[0], 2) +
-          Math.pow(node0_target[1] - node0_current[1], 2) +
-          Math.pow(node0_target[2] - node0_current[2], 2)
-        );
-        console.log('[GraphWorker] Interpolation - lerpFactor:', lerpFactor.toFixed(3), 
-                    'distance to target:', dist.toFixed(3),
-                    'dt:', dt.toFixed(4),
-                    'useServerPhysics:', this.useServerPhysics);
-      }
+      // Performance: Removed interpolation logging - use DEBUG_PHYSICS if needed
       
       for (let i = 0; i < this.graphData.nodes.length; i++) {
         const i3 = i * 3;
@@ -468,10 +536,7 @@ class GraphWorker {
         
       }
       
-      
-      if (this.frameCount % 100 === 0 && totalMovement > 0.01) {
-        console.log('[GraphWorker] Total movement this frame:', totalMovement.toFixed(4), 'nodes:', this.graphData.nodes.length);
-      }
+      // Performance: Removed movement logging
       
       return this.currentPositions;
     }

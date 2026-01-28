@@ -22,6 +22,41 @@ import { useExpansionState } from '../hooks/useExpansionState'
 
 const logger = createLogger('GraphManager')
 
+// === PERFORMANCE OPTIMIZATION: Domain colors defined once outside component ===
+const DOMAIN_COLORS: Record<string, string> = {
+  'AI': '#4FC3F7',   // Light blue
+  'BC': '#81C784',   // Green
+  'RB': '#FFB74D',   // Orange
+  'MV': '#CE93D8',   // Purple
+  'TC': '#FFD54F',   // Yellow
+  'DT': '#EF5350',   // Red
+  'NGM': '#4DB6AC',  // Teal
+};
+const DEFAULT_DOMAIN_COLOR = '#90A4AE'; // Grey
+
+// Pre-computed THREE.Color instances for domain colors (avoids GC pressure)
+const DOMAIN_THREE_COLORS: Record<string, THREE.Color> = {};
+Object.entries(DOMAIN_COLORS).forEach(([domain, hex]) => {
+  DOMAIN_THREE_COLORS[domain] = new THREE.Color(hex);
+});
+DOMAIN_THREE_COLORS['default'] = new THREE.Color(DEFAULT_DOMAIN_COLOR);
+
+// Muted domain colors (pre-computed at 0.7 intensity for metadata)
+const DOMAIN_MUTED_COLORS: Record<string, string> = {};
+Object.entries(DOMAIN_COLORS).forEach(([domain, hex]) => {
+  DOMAIN_MUTED_COLORS[domain] = new THREE.Color(hex).multiplyScalar(0.7).getStyle();
+});
+DOMAIN_MUTED_COLORS['default'] = new THREE.Color(DEFAULT_DOMAIN_COLOR).multiplyScalar(0.7).getStyle();
+
+// O(1) domain color lookup
+const getDomainColor = (domain?: string): string => {
+  return domain && DOMAIN_COLORS[domain] ? DOMAIN_COLORS[domain] : DEFAULT_DOMAIN_COLOR;
+};
+
+const getDomainMutedColor = (domain?: string): string => {
+  return domain && DOMAIN_MUTED_COLORS[domain] ? DOMAIN_MUTED_COLORS[domain] : DOMAIN_MUTED_COLORS['default'];
+};
+
 // Enhanced position calculation with better distribution
 const getPositionForNode = (node: GraphNode, index: number, totalNodes: number): [number, number, number] => {
   if (!node.position || (node.position.x === 0 && node.position.y === 0 && node.position.z === 0)) {
@@ -156,11 +191,7 @@ interface GraphManagerProps {
 
 const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   
-  useEffect(() => {
-    if (onDragStateChange) {
-      console.log('GraphManager: onDragStateChange callback available');
-    }
-  }, []);
+  // Performance: Removed mount-time logging
   const settings = useSettingsStore((state) => state.settings);
   
   const nodeBloomStrength = settings?.visualisation?.glow?.nodeGlowStrength ?? 0.5;
@@ -912,17 +943,18 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   
   useEffect(() => {
     if (nodePositionsRef.current && graphData.nodes.length > 0) {
-      const newPositions = graphData.nodes.map((node, i) => {
+      const positions = nodePositionsRef.current
+      const newPositions = graphData.nodes.map((_node, i) => {
         const i3 = i * 3
         return {
-          x: nodePositionsRef.current![i3],
-          y: nodePositionsRef.current![i3 + 1],
-          z: nodePositionsRef.current![i3 + 2]
+          x: positions[i3],
+          y: positions[i3 + 1],
+          z: positions[i3 + 2]
         }
       })
       setLabelPositions(newPositions)
     }
-  }, [nodePositionsRef.current, graphData.nodes])
+  }, [graphData.nodes.length])
 
   
   // Default edge settings - opacity increased to 0.6 for bloom visibility
@@ -944,6 +976,15 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
     gradientColors: ['#ff0000', '#0000ff'],
   };
 
+  // PERFORMANCE: Pre-compute node ID to index map for O(1) lookups (vs O(n) findIndex)
+  const nodeIdToIndex = useMemo(() => {
+    const map = new Map<string, number>();
+    graphData.nodes.forEach((node, index) => {
+      map.set(node.id, index);
+    });
+    return map;
+  }, [graphData.nodes]);
+
   const NodeLabels = useMemo(() => {
       const logseqSettings = settings?.visualisation?.graphs?.logseq;
       const labelSettings = logseqSettings?.labels ?? settings?.visualisation?.labels;
@@ -954,12 +995,15 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       cameraViewProjectionMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
       frustum.setFromProjectionMatrix(cameraViewProjectionMatrix);
 
-      // Distance threshold for label rendering (units)
-      const LABEL_DISTANCE_THRESHOLD = 50;
+      // Distance threshold for label rendering - configurable or use large default for big graphs
+      const LABEL_DISTANCE_THRESHOLD = labelSettings?.labelDistanceThreshold ?? 500;
+
+      // Cache camera position for distance checks
+      const cameraPos = camera.position.clone();
 
       return visibleNodes.map((node) => {
-        // CLIENT-SIDE HIERARCHICAL LOD: Find original index in graphData.nodes for position lookup
-        const originalIndex = graphData.nodes.findIndex(n => n.id === node.id);
+        // PERFORMANCE: O(1) lookup using pre-computed map instead of O(n) findIndex
+        const originalIndex = nodeIdToIndex.get(node.id) ?? -1;
         const physicsPos = originalIndex !== -1 ? labelPositions[originalIndex] : undefined;
         const position = physicsPos || node.position || { x: 0, y: 0, z: 0 };
 
@@ -984,20 +1028,35 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       let distanceInfo = null;
       
       
-      if (normalizedSSSPResult) {
+      // PERFORMANCE: Added null safety for SSSP distances access
+      if (normalizedSSSPResult && normalizedSSSPResult.distances) {
         const distance = normalizedSSSPResult.distances[node.id];
         if (node.id === normalizedSSSPResult.sourceNodeId) {
           distanceInfo = "Source (0)";
-        } else if (!isFinite(distance)) {
+        } else if (distance === undefined || !isFinite(distance)) {
           distanceInfo = "Unreachable";
         } else {
           distanceInfo = `Distance: ${distance.toFixed(2)}`;
         }
       }
-      
+
+      // PERFORMANCE: Using module-level getDomainColor (O(1) lookup, no function recreation)
+      const sourceDomain = node.metadata?.source_domain;
+      const domainColor = getDomainColor(sourceDomain);
+
       if (labelSettings.showMetadata && node.metadata) {
-        if (node.metadata.description) {
-          metadataToShow = node.metadata.description;
+        // Ontology node metadata display - simplified for color-coded domains
+        if (node.metadata.quality_score) {
+          const score = parseFloat(node.metadata.quality_score);
+          if (!isNaN(score)) {
+            // Show quality as stars (filled based on score)
+            const stars = Math.round(score * 5);
+            metadataToShow = '★'.repeat(stars) + '☆'.repeat(5 - stars);
+          }
+        } else if (node.metadata.description) {
+          // Truncate long descriptions
+          const desc = node.metadata.description;
+          metadataToShow = desc.length > 50 ? desc.substring(0, 47) + '...' : desc;
         } else if (node.metadata.type) {
           metadataToShow = node.metadata.type;
         } else if (node.metadata.fileSize) {
@@ -1013,8 +1072,9 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       }
 
       
-      const maxWidth = labelSettings.maxLabelWidth ?? 5;
-      const fontSize = labelSettings.desktopFontSize ?? 0.05;
+      const maxWidth = labelSettings.maxLabelWidth ?? 8;
+      // Font size in scene units - fallback of 0.4 is visible at typical camera distances
+      const fontSize = labelSettings.desktopFontSize ?? 0.4;
 
       return (
         <Billboard
@@ -1025,23 +1085,40 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
           lockY={false}
           lockZ={false}
         >
+          {/* Domain badge - colored indicator above label */}
+          {sourceDomain && (
+            <Text
+              position={[0, fontSize * 0.6, 0]}
+              fontSize={fontSize * 0.5}
+              color={domainColor}
+              anchorX="center"
+              anchorY="bottom"
+              outlineWidth={0.015}
+              outlineColor="#000000"
+            >
+              ● {sourceDomain}
+            </Text>
+          )}
+          {/* Main label */}
           <Text
             fontSize={fontSize}
-            color={labelSettings.textColor || '#ffffff'}
+            color={sourceDomain ? domainColor : (labelSettings.textColor || '#ffffff')}
             anchorX="center"
             anchorY="bottom"
-            outlineWidth={labelSettings.textOutlineWidth || 0.005}
+            outlineWidth={labelSettings.textOutlineWidth || 0.02}
             outlineColor={labelSettings.textOutlineColor || '#000000'}
             maxWidth={maxWidth}
             textAlign="center"
           >
-            {node.label || node.id}
+            {node.label && node.label.length > 40
+              ? node.label.substring(0, 37) + '...'
+              : (node.label || node.id)}
           </Text>
           {distanceInfo && (
             <Text
               position={[0, -(textPadding * 0.25), 0]}
               fontSize={fontSize * 0.7}
-              color={node.id === normalizedSSSPResult?.sourceNodeId ? '#00FFFF' : 
+              color={node.id === normalizedSSSPResult?.sourceNodeId ? '#00FFFF' :
                      (!isFinite(normalizedSSSPResult?.distances[node.id] || 0) ? '#666666' : '#FFFF00')}
               anchorX="center"
               anchorY="top"
@@ -1057,11 +1134,13 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
             <Text
               position={[0, -(textPadding * 0.25), 0]}
               fontSize={fontSize * 0.6}
-              color={new THREE.Color(labelSettings.textColor || '#ffffff').multiplyScalar(0.7).getStyle()}
+              color={getDomainMutedColor(sourceDomain)}
               anchorX="center"
               anchorY="top"
               maxWidth={maxWidth * 0.8}
               textAlign="center"
+              outlineWidth={0.01}
+              outlineColor="#000000"
             >
               {metadataToShow}
             </Text>
@@ -1070,7 +1149,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
             <Text
               position={[0, -(textPadding * 0.5), 0]}
               fontSize={fontSize * 0.5}
-              color={new THREE.Color(labelSettings.textColor || '#ffffff').multiplyScalar(0.5).getStyle()}
+              color="#999999"
               anchorX="center"
               anchorY="top"
               maxWidth={maxWidth * 0.8}
@@ -1082,8 +1161,8 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         </Billboard>
       )
     }).filter(Boolean) // Remove null entries from culled labels
-    // CLIENT-SIDE HIERARCHICAL LOD + FRUSTUM CULLING: Updated dependencies
-  }, [visibleNodes, graphData.nodes, graphData.edges, labelPositions, settings?.visualisation?.graphs?.logseq?.labels, settings?.visualisation?.labels, normalizedSSSPResult, camera.position, camera.projectionMatrix, camera.matrixWorldInverse])
+    // PERFORMANCE: Removed mutable camera objects from deps - using cached values inside useMemo
+  }, [visibleNodes, graphData.edges, labelPositions, nodeIdToIndex, settings?.visualisation?.graphs?.logseq?.labels, settings?.visualisation?.labels, normalizedSSSPResult])
 
   
   useEffect(() => {
@@ -1124,6 +1203,45 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         handlePointerDown({ ...event, instanceId: nodeIndex } as any);
       }
     }}
+    onNodeDoubleClick={(nodeId, node, _event) => {
+      // Priority 1: Check for explicit page URL in metadata
+      const pageUrl = node.metadata?.page_url || node.metadata?.pageUrl || node.metadata?.url;
+      if (pageUrl) {
+        logger.info(`Navigating to page URL for "${node.label}": ${pageUrl}`);
+        window.open(pageUrl, '_blank', 'noopener,noreferrer');
+        return;
+      }
+
+      // Priority 2: Check for file path in metadata (construct local URL)
+      const filePath = node.metadata?.file_path || node.metadata?.filePath || node.metadata?.path;
+      if (filePath) {
+        const encodedPath = encodeURIComponent(filePath);
+        const url = `/#/page/${encodedPath}`;
+        logger.info(`Navigating to file path for "${node.label}": ${url}`);
+        window.location.href = url;
+        return;
+      }
+
+      // Priority 3: Construct URL from node label (fallback)
+      if (node.label) {
+        const encodedLabel = encodeURIComponent(node.label);
+        const url = `/#/page/${encodedLabel}`;
+        logger.info(`Navigating to page for "${node.label}": ${url}`);
+        window.location.href = url;
+        return;
+      }
+
+      // Fallback: Toggle hierarchical expansion if node has children
+      const hierarchyNode = hierarchyMap.get(node.id);
+      if (hierarchyNode && hierarchyNode.childIds.length > 0) {
+        expansionState.toggleExpansion(node.id);
+        logger.info(`Toggled expansion for "${node.label}" (${node.id}): ${
+          expansionState.isExpanded(node.id) ? 'expanded' : 'collapsed'
+        }, ${hierarchyNode.childIds.length} children`);
+      } else {
+        logger.info(`Node "${node.label}" has no children to expand and no URL to navigate to`);
+      }
+    }}
     settings={settings}
     ssspResult={normalizedSSSPResult}
   />
@@ -1134,17 +1252,57 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
           frustumCulled={false}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
+          onPointerUp={(event) => handlePointerUp(event)}
+          onPointerLeave={(event) => {
+            // If dragging and pointer leaves the mesh, keep the drag active
+            // The pointer capture will ensure we still get events
+            // Only end if we lost the capture
+          }}
+          onPointerCancel={(event) => {
+            // Pointer was cancelled (e.g., touch interrupted)
+            if (dragDataRef.current.pointerDown) {
+              handlePointerUp(event);
+            }
+          }}
           onPointerMissed={() => {
-            if (dragDataRef.current.isDragging) {
-              handlePointerUp()
+            // Clicked outside the mesh (on canvas background)
+            if (dragDataRef.current.pointerDown) {
+              handlePointerUp();
             }
           }}
           onDoubleClick={(event: ThreeEvent<MouseEvent>) => {
-            // CLIENT-SIDE HIERARCHICAL LOD: Toggle expansion on double-click
             if (event.instanceId !== undefined && event.instanceId < visibleNodes.length) {
               const node = visibleNodes[event.instanceId];
               if (node) {
+                // Priority 1: Check for explicit page URL in metadata
+                const pageUrl = node.metadata?.page_url || node.metadata?.pageUrl || node.metadata?.url;
+                if (pageUrl) {
+                  logger.info(`Navigating to page URL for "${node.label}": ${pageUrl}`);
+                  window.open(pageUrl, '_blank', 'noopener,noreferrer');
+                  return;
+                }
+
+                // Priority 2: Check for file path in metadata (construct local URL)
+                const filePath = node.metadata?.file_path || node.metadata?.filePath || node.metadata?.path;
+                if (filePath) {
+                  // For file paths, open in the page viewer
+                  const encodedPath = encodeURIComponent(filePath);
+                  const url = `/#/page/${encodedPath}`;
+                  logger.info(`Navigating to file path for "${node.label}": ${url}`);
+                  window.location.href = url;
+                  return;
+                }
+
+                // Priority 3: Construct URL from node label (fallback)
+                if (node.label) {
+                  const encodedLabel = encodeURIComponent(node.label);
+                  const url = `/#/page/${encodedLabel}`;
+                  logger.info(`Navigating to page for "${node.label}": ${url}`);
+                  window.location.href = url;
+                  return;
+                }
+
+                // Fallback: Toggle hierarchical expansion if node has children
                 const hierarchyNode = hierarchyMap.get(node.id);
                 if (hierarchyNode && hierarchyNode.childIds.length > 0) {
                   expansionState.toggleExpansion(node.id);
@@ -1152,7 +1310,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
                     expansionState.isExpanded(node.id) ? 'expanded' : 'collapsed'
                   }, ${hierarchyNode.childIds.length} children`);
                 } else {
-                  logger.info(`Node "${node.label}" has no children to expand`);
+                  logger.info(`Node "${node.label}" has no children to expand and no URL to navigate to`);
                 }
               }
             }

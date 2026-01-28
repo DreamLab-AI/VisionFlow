@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import { ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { throttle } from 'lodash';
@@ -82,7 +82,13 @@ export const useGraphEventHandlers = (
     const node = graphData.nodes[instanceId];
     if (!node || !node.position) return;
 
-    
+    // CRITICAL: Disable OrbitControls IMMEDIATELY on pointer down
+    // This prevents OrbitControls from capturing subsequent move events
+    // before React state updates propagate
+    if (onDragStateChange) {
+      onDragStateChange(true);
+    }
+
     dragDataRef.current = {
       ...dragDataRef.current,
       pointerDown: true,
@@ -94,13 +100,23 @@ export const useGraphEventHandlers = (
       currentNodePos3D: new THREE.Vector3(node.position.x, node.position.y, node.position.z),
     };
 
-    
+    // Capture pointer to ensure we receive all subsequent pointer events
+    // even if pointer moves outside the mesh
+    const target = event.nativeEvent.target as Element;
+    if (target && 'setPointerCapture' in target) {
+      try {
+        target.setPointerCapture(event.nativeEvent.pointerId);
+      } catch (e) {
+        // Pointer capture may fail in some browsers/contexts
+      }
+    }
+
     startInteraction(node.id);
 
     if (debugState.isEnabled()) {
       logger.debug(`Started interaction tracking for node ${node.id}`);
     }
-  }, [graphData.nodes, meshRef, dragDataRef, startInteraction]);
+  }, [graphData.nodes, meshRef, dragDataRef, startInteraction, onDragStateChange]);
 
   const handlePointerMove = useCallback((event: ThreeEvent<PointerEvent>) => {
     const drag = dragDataRef.current;
@@ -195,33 +211,39 @@ export const useGraphEventHandlers = (
     }
   }, [camera, settings?.visualisation?.nodes?.nodeSize, meshRef, dragDataRef, setDragState, setGraphData, updateNodePosition, throttledWebSocketUpdate]);
 
-  const handlePointerUp = useCallback(() => {
+  const handlePointerUp = useCallback((event?: ThreeEvent<PointerEvent>) => {
     const drag = dragDataRef.current;
     if (!drag.pointerDown) {
       return;
     }
 
+    // Release pointer capture if we captured it
+    if (event?.nativeEvent) {
+      const target = event.nativeEvent.target as Element;
+      if (target && 'releasePointerCapture' in target) {
+        try {
+          target.releasePointerCapture(event.nativeEvent.pointerId);
+        } catch (e) {
+          // Pointer may not have been captured
+        }
+      }
+    }
+
     if (drag.isDragging) {
-      
       if (debugState.isEnabled()) logger.debug(`Drag ended for node ${drag.nodeId}`);
 
       const numericId = graphDataManager.nodeIdMap.get(drag.nodeId!);
       if (numericId !== undefined) {
         graphWorkerProxy.unpinNode(numericId);
-
-        
         flushPositionUpdates();
       }
     } else {
-      
+      // Click action (not a drag)
       const node = graphData.nodes.find((n: Node) => n.id === drag.nodeId);
       if (node?.label) {
         if (debugState.isEnabled()) logger.debug(`Click action on node ${node.id}`);
 
-        
         const encodedLabel = encodeURIComponent(node.label);
-
-        
         const url = `https://narrativegoldmine.com/#/page/${encodedLabel}`;
         window.open(url, '_blank', 'noopener,noreferrer');
 
@@ -231,10 +253,13 @@ export const useGraphEventHandlers = (
       }
     }
 
-    
     endInteraction(drag.nodeId);
 
-    
+    // CRITICAL: Re-enable OrbitControls by signaling drag is complete
+    if (onDragStateChange) {
+      onDragStateChange(false);
+    }
+
     dragDataRef.current.pointerDown = false;
     dragDataRef.current.isDragging = false;
     dragDataRef.current.nodeId = null;
@@ -245,7 +270,7 @@ export const useGraphEventHandlers = (
     if (debugState.isEnabled()) {
       logger.debug(`Ended interaction tracking for node ${drag.nodeId}`);
     }
-  }, [graphData.nodes, dragDataRef, setDragState, endInteraction, flushPositionUpdates]);
+  }, [graphData.nodes, dragDataRef, setDragState, endInteraction, flushPositionUpdates, onDragStateChange]);
 
   return {
     handlePointerDown,

@@ -229,6 +229,7 @@ function transformApiToClientSettings(apiResponse: AllSettings): any {
           labels: {
             desktopFontSize: 1.4,
             enableLabels: true,
+            labelDistanceThreshold: 500,
             textColor: '#ffffff',
             textOutlineColor: '#000000',
             textOutlineWidth: 0.5,
@@ -270,6 +271,7 @@ function transformApiToClientSettings(apiResponse: AllSettings): any {
           labels: {
             desktopFontSize: 1.4,
             enableLabels: true,
+            labelDistanceThreshold: 500,
             textColor: '#ffffff',
             textOutlineColor: '#000000',
             textOutlineWidth: 0.5,
@@ -321,7 +323,7 @@ function transformApiToClientSettings(apiResponse: AllSettings): any {
       ruvectorEnabled: false,
       gnnPhysics: false,
       minFpsThreshold: 30,
-      maxNodeCount: 10000,
+      maxNodeCount: 100000,
       autoAdjust: true
     },
     nodeFilter: apiResponse.nodeFilter || {

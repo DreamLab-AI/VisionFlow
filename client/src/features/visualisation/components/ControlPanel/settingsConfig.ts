@@ -46,14 +46,9 @@ export const SETTINGS_CONFIG: Record<string, SectionConfig> = {
       { key: 'labelColor', label: 'Label Color', type: 'color', path: 'visualisation.graphs.logseq.labels.textColor' },
       { key: 'labelOutlineColor', label: 'Outline Color', type: 'color', path: 'visualisation.graphs.logseq.labels.textOutlineColor' },
       { key: 'labelOutlineWidth', label: 'Outline Width', type: 'slider', min: 0, max: 0.01, path: 'visualisation.graphs.logseq.labels.textOutlineWidth' },
+      { key: 'labelDistanceThreshold', label: 'Label Distance', type: 'slider', min: 50, max: 2000, path: 'visualisation.graphs.logseq.labels.labelDistanceThreshold' },
 
-      
-      
-      
-      
-      
 
-      
       { key: 'ambientLight', label: 'Ambient Light', type: 'slider', min: 0, max: 2, path: 'visualisation.rendering.ambientLightIntensity' },
       { key: 'directionalLight', label: 'Direct Light', type: 'slider', min: 0, max: 2, path: 'visualisation.rendering.directionalLightIntensity' }
     ]
@@ -208,7 +203,7 @@ analytics: {
       { key: 'gpuAcceleration', label: 'GPU Acceleration', type: 'toggle', path: 'qualityGates.gpuAcceleration' },
       { key: 'autoAdjust', label: 'Auto-Adjust Quality', type: 'toggle', path: 'qualityGates.autoAdjust' },
       { key: 'minFpsThreshold', label: 'Min FPS Threshold', type: 'slider', min: 15, max: 60, step: 5, path: 'qualityGates.minFpsThreshold' },
-      { key: 'maxNodeCount', label: 'Max Node Count', type: 'slider', min: 1000, max: 50000, step: 1000, path: 'qualityGates.maxNodeCount' },
+      { key: 'maxNodeCount', label: 'Max Node Count', type: 'slider', min: 1000, max: 500000, step: 5000, path: 'qualityGates.maxNodeCount' },
       // Physics Features
       { key: 'ontologyPhysics', label: 'Ontology Physics', type: 'toggle', path: 'qualityGates.ontologyPhysics' },
       { key: 'semanticForces', label: 'Semantic Forces', type: 'toggle', path: 'qualityGates.semanticForces' },

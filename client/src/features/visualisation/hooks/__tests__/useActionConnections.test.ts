@@ -826,8 +826,14 @@ describe('useActionConnections', () => {
   });
 
   describe('Animation frame cleanup', () => {
-    it('cancels animation frame on unmount', async () => {
-      await renderHookTest();
+    it('cancels animation frame on unmount when connections exist', async () => {
+      const result = await renderHookTest({
+        getNodePosition: createMockPositionResolver(),
+      });
+
+      // Add a connection to start the animation loop
+      result.addAction(createMockEvent());
+      await waitForUpdate();
 
       root.unmount();
       await waitForUpdate();
@@ -835,8 +841,18 @@ describe('useActionConnections', () => {
       expect(cancelAnimationFrame).toHaveBeenCalled();
     });
 
-    it('starts animation loop on mount', async () => {
-      await renderHookTest();
+    it('starts animation loop when connections are added', async () => {
+      const result = await renderHookTest({
+        getNodePosition: createMockPositionResolver(),
+      });
+
+      // Animation loop only starts when there are connections to animate
+      // (optimization to prevent CPU waste when idle)
+      expect(requestAnimationFrame).not.toHaveBeenCalled();
+
+      // Add a connection to trigger animation
+      result.addAction(createMockEvent());
+      await waitForUpdate();
 
       expect(requestAnimationFrame).toHaveBeenCalled();
     });

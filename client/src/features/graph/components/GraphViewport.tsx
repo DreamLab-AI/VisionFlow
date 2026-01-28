@@ -57,11 +57,7 @@ const GraphViewport: React.FC = () => {
   const [graphSize, setGraphSize] = useState(50); 
   const [isNodeDragging, setIsNodeDragging] = useState(false);
   
-  
-  useEffect(() => {
-    console.log('GraphViewport: isNodeDragging changed to', isNodeDragging);
-    console.log('OrbitControls should be:', !isNodeDragging ? 'ENABLED' : 'DISABLED');
-  }, [isNodeDragging]);
+  // Performance: Removed drag state logging (was causing console spam)
   const [ambientRef, setAmbientRef] = useState<THREE.AmbientLight | null>(null);
   const [dirRef, setDirRef] = useState<THREE.DirectionalLight | null>(null);
   const [pointRef, setPointRef] = useState<THREE.PointLight | null>(null);

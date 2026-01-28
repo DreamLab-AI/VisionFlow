@@ -21,7 +21,7 @@ const defaultSettings: QualityGateSettings = {
   ruvectorEnabled: false,
   gnnPhysics: false,
   minFpsThreshold: 30,
-  maxNodeCount: 500,  // Reduced for better debugging velocity
+  maxNodeCount: 100000,  // High default - show all nodes by default
   autoAdjust: true,
 };
 

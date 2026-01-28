@@ -65,6 +65,7 @@ const createGraphSettingsSubsections = (graphName: 'logseq' | 'visionflow') => (
       textPadding: { label: 'Text Padding', type: 'slider', min: 0, max: 10.0, step: 0.1, unit: 'px', path: `visualisation.graphs.${graphName}.labels.textPadding`, description: 'Space around label text.' },
       labelDistance: { label: 'Label Distance', type: 'slider', min: 0, max: 5.0, step: 0.1, unit: 'units', path: `visualisation.graphs.${graphName}.labels.labelDistance`, description: 'Distance of label from node center.' },
       billboardMode: { label: 'Billboard Mode', type: 'select', options: [{value: 'camera', label: 'Camera Facing'}, {value: 'vertical', label: 'Vertical Lock'}], path: `visualisation.graphs.${graphName}.labels.billboardMode`, description: 'How labels orient themselves.' },
+      labelDistanceThreshold: { label: 'Visibility Distance', type: 'slider', min: 50, max: 2000, step: 50, unit: 'units', path: `visualisation.graphs.${graphName}.labels.labelDistanceThreshold`, description: 'Max camera distance for visible labels (higher = see labels from farther away).' },
     },
   },
   [`${graphName}Physics`]: {
@@ -293,7 +294,7 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
           gpuAcceleration: { label: 'GPU Acceleration', type: 'toggle', path: 'qualityGates.gpuAcceleration', description: 'Enable GPU-accelerated physics (20-50x faster). Falls back to CPU if unavailable.' },
           autoAdjust: { label: 'Auto-Adjust Quality', type: 'toggle', path: 'qualityGates.autoAdjust', description: 'Automatically disable expensive features if FPS drops.' },
           minFpsThreshold: { label: 'Min FPS Threshold', type: 'slider', min: 15, max: 60, step: 5, unit: 'fps', path: 'qualityGates.minFpsThreshold', description: 'Disable features if FPS falls below this threshold.' },
-          maxNodeCount: { label: 'Max Node Count', type: 'slider', min: 1000, max: 50000, step: 1000, unit: 'nodes', path: 'qualityGates.maxNodeCount', description: 'Maximum nodes before aggressive filtering kicks in.' },
+          maxNodeCount: { label: 'Max Node Count', type: 'slider', min: 1000, max: 500000, step: 5000, unit: 'nodes', path: 'qualityGates.maxNodeCount', description: 'Maximum nodes before filtering (set high to show all).' },
         },
       },
       physicsFeatures: {

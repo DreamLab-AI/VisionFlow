@@ -140,6 +140,7 @@ export const UNIFIED_SETTINGS_CONFIG: Record<string, SectionConfig> = {
       // Labels - Advanced
       { key: 'labelOutlineColor', label: 'Outline Color', type: 'color', path: 'visualisation.graphs.logseq.labels.textOutlineColor', description: 'Label outline color', isAdvanced: true },
       { key: 'labelOutlineWidth', label: 'Outline Width', type: 'slider', min: 0, max: 0.01, step: 0.001, path: 'visualisation.graphs.logseq.labels.textOutlineWidth', description: 'Label outline width', isAdvanced: true },
+      { key: 'labelDistanceThreshold', label: 'Label Distance', type: 'slider', min: 50, max: 2000, step: 50, path: 'visualisation.graphs.logseq.labels.labelDistanceThreshold', description: 'Max distance for label visibility (higher = see labels from farther)' },
 
       // Rendering - Basic
       { key: 'ambientLight', label: 'Ambient Light', type: 'slider', min: 0, max: 2, step: 0.1, path: 'visualisation.rendering.ambientLightIntensity', description: 'Overall scene brightness' },
@@ -274,7 +275,7 @@ export const UNIFIED_SETTINGS_CONFIG: Record<string, SectionConfig> = {
       { key: 'gpuAcceleration', label: 'GPU Acceleration', type: 'toggle', path: 'qualityGates.gpuAcceleration', description: 'Enable GPU compute' },
       { key: 'autoAdjust', label: 'Auto-Adjust Quality', type: 'toggle', path: 'qualityGates.autoAdjust', description: 'Automatic quality scaling' },
       { key: 'minFpsThreshold', label: 'Min FPS Threshold', type: 'slider', min: 15, max: 60, step: 5, path: 'qualityGates.minFpsThreshold', description: 'Minimum acceptable FPS' },
-      { key: 'maxNodeCount', label: 'Max Node Count', type: 'slider', min: 1000, max: 50000, step: 1000, path: 'qualityGates.maxNodeCount', description: 'Maximum nodes to render' },
+      { key: 'maxNodeCount', label: 'Max Node Count', type: 'slider', min: 1000, max: 500000, step: 5000, path: 'qualityGates.maxNodeCount', description: 'Maximum nodes to render (set high to show all)' },
 
       // Physics Features - Basic
       { key: 'ontologyPhysics', label: 'Ontology Physics', type: 'toggle', path: 'qualityGates.ontologyPhysics', description: 'Ontology-based forces' },

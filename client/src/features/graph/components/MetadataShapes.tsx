@@ -196,11 +196,12 @@ interface MetadataShapesProps {
   nodes: GraphNode[];
   nodePositions: Float32Array | null;
   onNodeClick?: (nodeId: string, event: any) => void;
+  onNodeDoubleClick?: (nodeId: string, node: GraphNode, event: any) => void;
   settings: any;
   ssspResult?: any;
 }
 
-export const MetadataShapes: React.FC<MetadataShapesProps> = ({ nodes, nodePositions, onNodeClick, settings, ssspResult }) => {
+export const MetadataShapes: React.FC<MetadataShapesProps> = ({ nodes, nodePositions, onNodeClick, onNodeDoubleClick, settings, ssspResult }) => {
   const geometries = useGeometries();
   const material = useHologramMaterial(settings);
   const meshRefs = useRef<Map<string, THREE.InstancedMesh>>(new Map());
@@ -283,6 +284,12 @@ export const MetadataShapes: React.FC<MetadataShapesProps> = ({ nodes, nodePosit
           onClick={(e) => {
             if (e.instanceId !== undefined && onNodeClick) {
               onNodeClick(group.nodes[e.instanceId].id, e);
+            }
+          }}
+          onDoubleClick={(e) => {
+            if (e.instanceId !== undefined && onNodeDoubleClick) {
+              const node = group.nodes[e.instanceId];
+              onNodeDoubleClick(node.id, node, e);
             }
           }}
         />

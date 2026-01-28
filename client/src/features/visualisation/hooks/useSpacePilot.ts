@@ -27,6 +27,7 @@ export interface SpacePilotHookReturn {
   disconnect: () => void;
   calibrate: () => void;
   resetView: () => void;
+  levelHorizon: () => void;
   updateConfig: (config: Partial<SpacePilotConfig>) => void;
   config: SpacePilotConfig;
 }
@@ -175,6 +176,11 @@ export function useSpacePilot(options: SpacePilotOptions = {}): SpacePilotHookRe
     }
   }, [camera, orbitControlsRef]);
 
+  // Level the horizon without resetting position or look direction
+  const levelHorizon = useCallback(() => {
+    controllerRef.current?.levelHorizon();
+  }, []);
+
   
   const setMode = useCallback((mode: 'camera' | 'object' | 'navigation') => {
     setCurrentMode(mode);
@@ -213,6 +219,7 @@ export function useSpacePilot(options: SpacePilotOptions = {}): SpacePilotHookRe
     disconnect,
     calibrate,
     resetView,
+    levelHorizon,
     updateConfig,
     config: configRef.current
   };

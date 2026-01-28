@@ -143,14 +143,15 @@ export interface AnimationSettings {
 export interface LabelSettings {
   desktopFontSize: number;
   enableLabels: boolean;
+  labelDistanceThreshold?: number; // Max camera distance for visible labels (default 500)
   textColor: string;
   textOutlineColor: string;
   textOutlineWidth: number;
   textResolution: number;
   textPadding: number;
   billboardMode: 'camera' | 'vertical';
-  showMetadata?: boolean; 
-  maxLabelWidth?: number; 
+  showMetadata?: boolean;
+  maxLabelWidth?: number;
 }
 
 

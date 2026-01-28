@@ -39,7 +39,7 @@ impl EnhancedContentAPI {
 
         loop {
             let contents_url = format!(
-                "{}?per_page={}&page={}",
+                "{}&per_page={}&page={}",
                 GitHubClient::get_contents_url(&self.client, path).await,
                 PER_PAGE,
                 page

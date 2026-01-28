@@ -190,6 +190,10 @@ path = "src/bin/generate_types.rs"
 name = "sync_local"
 path = "src/bin/sync_local.rs"
 
+[[bin]]
+name = "sync_github"
+path = "src/bin/sync_github.rs"
+
 # REMOVED: migrate_settings_to_neo4j binary - migration complete
 # [[bin]]
 # name = "migrate_settings_to_neo4j"

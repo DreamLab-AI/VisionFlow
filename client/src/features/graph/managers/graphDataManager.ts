@@ -298,9 +298,9 @@ class GraphDataManager {
     // Get quality gate settings for filtering
     const storeState = useSettingsStore.getState();
     const qualityGates = storeState.settings?.qualityGates;
-    // Use settings value, default to 1000 if not set
-    const maxNodeCount = qualityGates?.maxNodeCount ?? 1000;
-    console.log(`[GraphDataManager] Using maxNodeCount: ${maxNodeCount} (from settings: ${qualityGates?.maxNodeCount})`);
+    // Use settings value, default to Infinity (no limit) if not set
+    const maxNodeCount = qualityGates?.maxNodeCount ?? Infinity;
+    // Performance: Removed per-call logging
 
 
     let validatedData = data;
