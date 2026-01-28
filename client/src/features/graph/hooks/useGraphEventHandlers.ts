@@ -272,6 +272,25 @@ export const useGraphEventHandlers = (
     }
   }, [graphData.nodes, dragDataRef, setDragState, endInteraction, flushPositionUpdates, onDragStateChange]);
 
+  // Global pointer up listener as safety net
+  // Ensures drag ends even if pointer is released outside the canvas
+  useEffect(() => {
+    const handleGlobalPointerUp = () => {
+      if (dragDataRef.current.pointerDown) {
+        handlePointerUp();
+      }
+    };
+
+    // Add listener on window to catch all pointer up events
+    window.addEventListener('pointerup', handleGlobalPointerUp);
+    window.addEventListener('pointercancel', handleGlobalPointerUp);
+
+    return () => {
+      window.removeEventListener('pointerup', handleGlobalPointerUp);
+      window.removeEventListener('pointercancel', handleGlobalPointerUp);
+    };
+  }, [handlePointerUp]);
+
   return {
     handlePointerDown,
     handlePointerMove,

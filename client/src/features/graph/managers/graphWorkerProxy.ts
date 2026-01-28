@@ -1,7 +1,7 @@
 
 
 import { wrap, Remote } from 'comlink';
-import { GraphWorkerType } from '../workers/graph.worker';
+import { GraphWorkerType, ForcePhysicsSettings } from '../workers/graph.worker';
 import { createLogger } from '../../../utils/loggerConfig';
 import { debugState } from '../../../utils/clientDebugState';
 
@@ -267,6 +267,41 @@ class GraphWorkerProxy {
     return await this.workerApi.tick(deltaTime);
   }
 
+  /**
+   * Reheat the force simulation (restart physics from current positions).
+   * Use this when user wants to re-layout or after significant changes.
+   */
+  public async reheatSimulation(alpha: number = 1.0): Promise<void> {
+    if (!this.workerApi) {
+      throw new Error('Worker not initialized');
+    }
+    await this.workerApi.reheatSimulation(alpha);
+
+    if (debugState.isEnabled()) {
+      logger.info(`Reheated simulation to alpha=${alpha}`);
+    }
+  }
+
+  /**
+   * Update force-directed physics settings.
+   */
+  public async updateForcePhysicsSettings(settings: Partial<ForcePhysicsSettings>): Promise<void> {
+    if (!this.workerApi) {
+      throw new Error('Worker not initialized');
+    }
+    await this.workerApi.updateForcePhysicsSettings(settings);
+  }
+
+  /**
+   * Get current force physics settings.
+   */
+  public async getForcePhysicsSettings(): Promise<ForcePhysicsSettings> {
+    if (!this.workerApi) {
+      throw new Error('Worker not initialized');
+    }
+    return await this.workerApi.getForcePhysicsSettings();
+  }
+
   
   public getSharedPositionBuffer(): Float32Array | null {
     if (!this.sharedBuffer) {
@@ -341,3 +376,6 @@ class GraphWorkerProxy {
 
 // Create singleton instance
 export const graphWorkerProxy = GraphWorkerProxy.getInstance();
+
+// Re-export types for convenience
+export type { ForcePhysicsSettings } from '../workers/graph.worker';

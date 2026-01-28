@@ -1,6 +1,6 @@
 use actix::prelude::*;
 use actix_web::web;
-use log::{info, warn};
+use log::{debug, info, warn};
 use std::sync::{
     atomic::{AtomicUsize, Ordering},
     Arc,
@@ -286,7 +286,9 @@ impl GraphSubsystem {
 pub struct AppState {
     pub graph_service_addr: Addr<GraphServiceSupervisor>,
     pub gpu_manager_addr: Option<Addr<GPUManagerActor>>,
-    pub gpu_compute_addr: Option<Addr<gpu::ForceComputeActor>>,
+    /// ForceComputeActor address - populated asynchronously after GPU initialization
+    /// Use `get_gpu_compute_addr().await` to access this safely
+    pub gpu_compute_addr: Arc<RwLock<Option<Addr<gpu::ForceComputeActor>>>>,
     pub stress_majorization_addr: Option<Addr<gpu::StressMajorizationActor>>,
     pub shortest_path_actor: Option<Addr<gpu::ShortestPathActor>>,
     pub connected_components_actor: Option<Addr<gpu::ConnectedComponentsActor>>,

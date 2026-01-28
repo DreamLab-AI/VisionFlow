@@ -73,7 +73,7 @@ function isZlibCompressed(data: ArrayBuffer): boolean {
 
 
 // Force-directed physics settings for client-side simulation
-interface ForcePhysicsSettings {
+export interface ForcePhysicsSettings {
   repulsionStrength: number;     // Coulomb-like repulsion between all nodes
   attractionStrength: number;    // Spring attraction along edges
   centerGravity: number;         // Gentle pull toward center to prevent drift
@@ -256,16 +256,36 @@ class GraphWorker {
 
   
   async updateSettings(settings: any): Promise<void> {
-    
-    const graphSettings = settings?.visualisation?.graphs?.[this.graphType]?.physics || 
+    // Server physics interpolation settings (for logseq)
+    const graphSettings = settings?.visualisation?.graphs?.[this.graphType]?.physics ||
                          settings?.visualisation?.physics;
-    
+
     this.physicsSettings = {
       springStrength: graphSettings?.springStrength ?? 0.001,
       damping: graphSettings?.damping ?? 0.98,
       maxVelocity: graphSettings?.maxVelocity ?? 0.5,
       updateThreshold: graphSettings?.updateThreshold ?? 0.05
     };
+
+    // Force-directed physics settings (for visionflow)
+    if (this.graphType === 'visionflow') {
+      const vfPhysics = settings?.visualisation?.graphs?.visionflow?.physics || {};
+
+      // Map UI settings to force physics parameters
+      this.forcePhysics.enabled = vfPhysics.enabled ?? true;
+      this.forcePhysics.repulsionStrength = (vfPhysics.repelK ?? 1.0) * 500; // Scale for good defaults
+      this.forcePhysics.attractionStrength = vfPhysics.springK ?? 0.05;
+      this.forcePhysics.damping = vfPhysics.damping ?? 0.85;
+      this.forcePhysics.maxVelocity = vfPhysics.maxVelocity ?? 5.0;
+      this.forcePhysics.idealEdgeLength = vfPhysics.restLength ?? 30;
+      this.forcePhysics.centerGravity = vfPhysics.centerGravityK ?? 0.01;
+
+      // If physics was just enabled, reheat simulation
+      if (this.forcePhysics.enabled && this.forcePhysics.alpha < this.forcePhysics.alphaMin) {
+        this.forcePhysics.alpha = 1.0;
+        console.log('GraphWorker: VisionFlow physics enabled, reheating simulation');
+      }
+    }
   }
 
   
@@ -390,6 +410,211 @@ class GraphWorker {
     };
   }
 
+  /**
+   * Compute force-directed layout forces for client-side physics.
+   * Implements:
+   * 1. Node-node repulsion (Coulomb's law)
+   * 2. Edge-based attraction (spring force)
+   * 3. Center gravity (prevents drift)
+   * 4. Domain clustering (semantic grouping)
+   */
+  private computeForces(): Float32Array {
+    const n = this.graphData.nodes.length;
+    if (n === 0 || !this.currentPositions) {
+      return new Float32Array(0);
+    }
+
+    const forces = new Float32Array(n * 3); // fx, fy, fz per node
+    const {
+      repulsionStrength,
+      attractionStrength,
+      centerGravity,
+      idealEdgeLength,
+      clusterStrength,
+      enableClustering,
+      alpha
+    } = this.forcePhysics;
+
+    const pos = this.currentPositions;
+
+    // 1. REPULSION: Every node repels every other node (O(n^2) - can optimize with Barnes-Hut later)
+    // Using inverse-square law: F = k / r^2
+    for (let i = 0; i < n; i++) {
+      const i3 = i * 3;
+      const xi = pos[i3], yi = pos[i3 + 1], zi = pos[i3 + 2];
+
+      for (let j = i + 1; j < n; j++) {
+        const j3 = j * 3;
+        const xj = pos[j3], yj = pos[j3 + 1], zj = pos[j3 + 2];
+
+        let dx = xj - xi;
+        let dy = yj - yi;
+        let dz = zj - zi;
+
+        // Add small jitter to prevent singularities when nodes overlap
+        if (dx === 0 && dy === 0 && dz === 0) {
+          dx = (Math.random() - 0.5) * 0.1;
+          dy = (Math.random() - 0.5) * 0.1;
+          dz = (Math.random() - 0.5) * 0.1;
+        }
+
+        const distSq = dx * dx + dy * dy + dz * dz;
+        const dist = Math.sqrt(distSq);
+
+        // Repulsion force magnitude: F = k / r^2 (clamped for stability)
+        const minDist = 1.0; // Prevent explosion at very close distances
+        const effectiveDist = Math.max(dist, minDist);
+        const repulseForce = (repulsionStrength * alpha) / (effectiveDist * effectiveDist);
+
+        // Direction: from j to i (i is pushed away from j)
+        const nx = dx / dist;
+        const ny = dy / dist;
+        const nz = dz / dist;
+
+        // Apply equal and opposite forces
+        forces[i3] -= repulseForce * nx;
+        forces[i3 + 1] -= repulseForce * ny;
+        forces[i3 + 2] -= repulseForce * nz;
+
+        forces[j3] += repulseForce * nx;
+        forces[j3 + 1] += repulseForce * ny;
+        forces[j3 + 2] += repulseForce * nz;
+      }
+    }
+
+    // 2. ATTRACTION: Edges act as springs pulling connected nodes together
+    // Using Hooke's law: F = k * (distance - restLength)
+    for (const edge of this.graphData.edges) {
+      const sourceIdx = this.nodeIndexMap.get(edge.source);
+      const targetIdx = this.nodeIndexMap.get(edge.target);
+
+      if (sourceIdx === undefined || targetIdx === undefined) continue;
+
+      const s3 = sourceIdx * 3;
+      const t3 = targetIdx * 3;
+
+      const dx = pos[t3] - pos[s3];
+      const dy = pos[t3 + 1] - pos[s3 + 1];
+      const dz = pos[t3 + 2] - pos[s3 + 2];
+
+      const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+      if (dist < 0.0001) continue; // Skip if nodes are at same position
+
+      // Spring force: pull toward ideal length
+      const displacement = dist - idealEdgeLength;
+      const springForce = attractionStrength * displacement * alpha;
+
+      const nx = dx / dist;
+      const ny = dy / dist;
+      const nz = dz / dist;
+
+      // Pull source toward target
+      forces[s3] += springForce * nx;
+      forces[s3 + 1] += springForce * ny;
+      forces[s3 + 2] += springForce * nz;
+
+      // Pull target toward source
+      forces[t3] -= springForce * nx;
+      forces[t3 + 1] -= springForce * ny;
+      forces[t3 + 2] -= springForce * nz;
+    }
+
+    // 3. CENTER GRAVITY: Gentle pull toward origin to prevent drift
+    for (let i = 0; i < n; i++) {
+      const i3 = i * 3;
+      forces[i3] -= pos[i3] * centerGravity * alpha;
+      forces[i3 + 1] -= pos[i3 + 1] * centerGravity * alpha;
+      forces[i3 + 2] -= pos[i3 + 2] * centerGravity * alpha;
+    }
+
+    // 4. DOMAIN CLUSTERING: Pull nodes of same domain toward cluster center
+    if (enableClustering && this.domainClusters.size > 1) {
+      // First, compute domain centers
+      this.domainCenters.clear();
+      this.domainClusters.forEach((nodeIndices, domain) => {
+        if (nodeIndices.length === 0) return;
+
+        let cx = 0, cy = 0, cz = 0;
+        for (let i = 0; i < nodeIndices.length; i++) {
+          const idx = nodeIndices[i];
+          const i3 = idx * 3;
+          cx += pos[i3];
+          cy += pos[i3 + 1];
+          cz += pos[i3 + 2];
+        }
+        cx /= nodeIndices.length;
+        cy /= nodeIndices.length;
+        cz /= nodeIndices.length;
+        this.domainCenters.set(domain, { x: cx, y: cy, z: cz });
+      });
+
+      // Apply clustering force toward domain center
+      this.domainClusters.forEach((nodeIndices, domain) => {
+        const center = this.domainCenters.get(domain);
+        if (!center) return;
+
+        for (let i = 0; i < nodeIndices.length; i++) {
+          const idx = nodeIndices[i];
+          const i3 = idx * 3;
+          const dx = center.x - pos[i3];
+          const dy = center.y - pos[i3 + 1];
+          const dz = center.z - pos[i3 + 2];
+
+          forces[i3] += dx * clusterStrength * alpha;
+          forces[i3 + 1] += dy * clusterStrength * alpha;
+          forces[i3 + 2] += dz * clusterStrength * alpha;
+        }
+      });
+    }
+
+    return forces;
+  }
+
+  /**
+   * Apply computed forces to update velocities and positions.
+   * Implements velocity Verlet integration with damping and speed limits.
+   */
+  private applyForces(forces: Float32Array, dt: number): void {
+    if (!this.currentPositions || !this.velocities) return;
+
+    const n = this.graphData.nodes.length;
+    const { damping, maxVelocity } = this.forcePhysics;
+    const pos = this.currentPositions;
+    const vel = this.velocities;
+
+    for (let i = 0; i < n; i++) {
+      // Skip pinned nodes
+      const nodeId = this.nodeIdMap.get(this.graphData.nodes[i].id);
+      if (nodeId !== undefined && this.pinnedNodeIds.has(nodeId)) continue;
+
+      const i3 = i * 3;
+
+      // Update velocities with forces (F = ma, assume m = 1)
+      vel[i3] += forces[i3] * dt;
+      vel[i3 + 1] += forces[i3 + 1] * dt;
+      vel[i3 + 2] += forces[i3 + 2] * dt;
+
+      // Apply damping
+      vel[i3] *= damping;
+      vel[i3 + 1] *= damping;
+      vel[i3 + 2] *= damping;
+
+      // Clamp velocity
+      const speed = Math.sqrt(vel[i3] * vel[i3] + vel[i3 + 1] * vel[i3 + 1] + vel[i3 + 2] * vel[i3 + 2]);
+      if (speed > maxVelocity) {
+        const scale = maxVelocity / speed;
+        vel[i3] *= scale;
+        vel[i3 + 1] *= scale;
+        vel[i3 + 2] *= scale;
+      }
+
+      // Update positions
+      pos[i3] += vel[i3] * dt;
+      pos[i3 + 1] += vel[i3 + 1] * dt;
+      pos[i3 + 2] += vel[i3 + 2] * dt;
+    }
+  }
+
   
   async pinNode(nodeId: number): Promise<void> { this.pinnedNodeIds.add(nodeId); }
   async unpinNode(nodeId: number): Promise<void> { this.pinnedNodeIds.delete(nodeId); }
@@ -397,12 +622,43 @@ class GraphWorker {
   
   async setUseServerPhysics(useServer: boolean): Promise<void> {
     this.useServerPhysics = useServer;
+    // Also toggle force physics for visionflow
+    if (this.graphType === 'visionflow') {
+      this.forcePhysics.enabled = !useServer;
+      if (!useServer) {
+        this.forcePhysics.alpha = 1.0; // Reheat simulation
+      }
+    }
     console.log(`GraphWorker: Physics mode set to ${useServer ? 'server' : 'local'}`);
   }
-  
-  
+
+
   async getPhysicsMode(): Promise<boolean> {
     return this.useServerPhysics;
+  }
+
+  /**
+   * Reheat the force simulation (restart physics from current positions).
+   * Call this when user drags a node or wants to re-layout.
+   */
+  async reheatSimulation(alpha: number = 1.0): Promise<void> {
+    this.forcePhysics.alpha = alpha;
+    console.log(`GraphWorker: Simulation reheated to alpha=${alpha}`);
+  }
+
+  /**
+   * Update force-directed physics settings from UI.
+   */
+  async updateForcePhysicsSettings(settings: Partial<ForcePhysicsSettings>): Promise<void> {
+    Object.assign(this.forcePhysics, settings);
+    console.log('GraphWorker: Force physics settings updated', this.forcePhysics);
+  }
+
+  /**
+   * Get current force physics settings.
+   */
+  async getForcePhysicsSettings(): Promise<ForcePhysicsSettings> {
+    return { ...this.forcePhysics };
   }
   
   async updateUserDrivenNodePosition(nodeId: number, position: Vec3): Promise<void> {
@@ -420,6 +676,12 @@ class GraphWorker {
         this.targetPositions![i3 + 2] = position.z;
 
         this.velocities!.fill(0, i3, i3 + 3);
+
+        // Reheat simulation when user drags in VisionFlow mode
+        if (this.graphType === 'visionflow' && this.forcePhysics.enabled) {
+          // Partial reheat to allow re-equilibration without full restart
+          this.forcePhysics.alpha = Math.max(this.forcePhysics.alpha, 0.3);
+        }
       }
     }
   }
@@ -430,14 +692,37 @@ class GraphWorker {
       return new Float32Array(0);
     }
 
-    
-    const dt = Math.min(deltaTime, 0.016); 
-
+    // Clamp delta time for stability
+    const dt = Math.min(deltaTime, 0.033); // Max 30fps equivalent
 
     this.frameCount = (this.frameCount || 0) + 1;
-    // Performance: Removed per-frame logging - use DEBUG_PHYSICS env var if needed
-    
-    
+
+    // ====== CLIENT-SIDE FORCE-DIRECTED PHYSICS (VisionFlow) ======
+    if (this.graphType === 'visionflow' && this.forcePhysics.enabled) {
+      // Check if simulation has cooled down
+      if (this.forcePhysics.alpha < this.forcePhysics.alphaMin) {
+        // Simulation has settled - return current positions without updates
+        return this.currentPositions;
+      }
+
+      // Compute forces using repulsion/attraction model
+      const forces = this.computeForces();
+
+      // Apply forces to update positions
+      this.applyForces(forces, dt);
+
+      // Cool down simulation (alpha decay)
+      this.forcePhysics.alpha *= (1 - this.forcePhysics.alphaDecay);
+
+      // Log progress occasionally
+      if (this.frameCount % 60 === 0 && this.forcePhysics.alpha > this.forcePhysics.alphaMin) {
+        console.log(`GraphWorker: VisionFlow physics tick - alpha=${this.forcePhysics.alpha.toFixed(4)}, nodes=${this.graphData.nodes.length}`);
+      }
+
+      return this.currentPositions;
+    }
+
+    // ====== SERVER-SIDE PHYSICS (Logseq) - Interpolate toward target positions ======
     if (this.useServerPhysics) {
       
       let hasAnyMovement = false;

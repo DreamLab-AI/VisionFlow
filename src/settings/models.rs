@@ -106,7 +106,7 @@ impl Default for QualityGateSettings {
         Self {
             gpu_acceleration: true,  // GPU on by default if available
             ontology_physics: false, // Off by default (expensive)
-            semantic_forces: false,  // Off by default (experimental)
+            semantic_forces: true,   // Semantic clustering enabled by default
             layout_mode: "force-directed".to_string(),
             show_clusters: true,     // Show clustering by default
             show_anomalies: true,    // Show anomalies by default

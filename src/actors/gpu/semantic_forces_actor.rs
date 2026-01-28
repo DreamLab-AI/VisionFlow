@@ -351,7 +351,7 @@ impl Default for DAGConfig {
             horizontal_spacing: 50.0,
             level_attraction: 0.5,
             sibling_repulsion: 0.3,
-            enabled: false,
+            enabled: true,
             layout_mode: DAGLayoutMode::TopDown,
         }
     }
@@ -372,7 +372,7 @@ impl Default for TypeClusterConfig {
             cluster_attraction: 0.4,
             cluster_radius: 80.0,
             inter_cluster_repulsion: 0.2,
-            enabled: false,
+            enabled: true,
         }
     }
 }
@@ -414,7 +414,7 @@ impl Default for AttributeSpringConfig {
             weight_multiplier: 1.5,
             rest_length_min: 50.0,
             rest_length_max: 200.0,
-            enabled: false,
+            enabled: true,
         }
     }
 }
