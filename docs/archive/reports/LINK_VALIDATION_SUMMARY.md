@@ -42,7 +42,7 @@ The VisionFlow documentation corpus has been comprehensively analyzed for link i
 
 **Categories**:
 - **Missing Subdirectories** (327 links): Links reference expected directories that don't exist
-  - Examples: `guides/getting-started/`, `explanations/architecture/gpu/`, `reference/api/`
+  - Examples: `guides/getting-started/`, `architecture/gpu/`, `reference/api/`
   - Root cause: Documentation structure doesn't match link expectations
 
 - **Missing Docs Files** (241 links): References to `docs/` prefixed paths that suggest nested directory structure
@@ -96,7 +96,7 @@ The VisionFlow documentation corpus has been comprehensively analyzed for link i
 
 ### Directories with Broken Links
 - **01-GETTING_STARTED.md** - 4 broken links (guides missing)
-- **ARCHITECTURE_COMPLETE.md** - 10 broken links (diagrams missing)
+- **architecture/overview.md** - 10 broken links (diagrams missing)
 - **INDEX.md** - 8 broken links (feature guides missing)
 - **guides/developer/** - Multiple broken references to architecture docs
 
@@ -131,8 +131,8 @@ The VisionFlow documentation corpus has been comprehensively analyzed for link i
 
 2. **Create Missing Standard Documents**
    - `guides/getting-started/` subdirectory and base docs
-   - `explanations/architecture/gpu/readme.md`
-   - `reference/api/readme.md`
+   - `architecture/gpu/README.md`
+   - `reference/api/README.md`
    - These are referenced in multiple places
 
 ### Phase 2: Medium Effort (3-5 days)

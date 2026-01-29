@@ -345,8 +345,8 @@ let stats = sync_service.get_cache_statistics().await;
 
 - [Settings API Authentication](settings-authentication.md)
 - [Complete Hexagonal Architecture Migration - Overview](../../explanations/system-overview.md)
-- [Ontology Storage Architecture](../../explanations/architecture/ontology-storage-architecture.md)
-- [Hexagonal/CQRS Architecture Design](../../explanations/architecture/hexagonal-cqrs.md)
+- [Ontology Storage Architecture](../../concepts/ontology-storage.md)
+- [Hexagonal/CQRS Architecture Design](../../concepts/hexagonal-architecture.md)
 - [Documentation Archive](../../archive/README.md)
 
 ## Support

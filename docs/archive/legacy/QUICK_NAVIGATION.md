@@ -11,8 +11,8 @@ tags:
 related-docs:
   - README.md
   - OVERVIEW.md
-  - ARCHITECTURE_OVERVIEW.md
-  - DEVELOPER_JOURNEY.md
+  - architecture/overview.md
+  - architecture/developer-journey.md
   - TECHNOLOGY_CHOICES.md
 updated-date: 2025-12-18
 difficulty-level: advanced
@@ -35,8 +35,8 @@ dependencies:
 |------|-------------|
 | **[README.md](README.md)** | Master documentation index with Diátaxis organization |
 | **[OVERVIEW.md](OVERVIEW.md)** | What VisionFlow is and why it exists - value proposition |
-| **[ARCHITECTURE_OVERVIEW.md](ARCHITECTURE_OVERVIEW.md)** | Complete system architecture with layered diagrams |
-| **[DEVELOPER_JOURNEY.md](DEVELOPER_JOURNEY.md)** | Step-by-step codebase learning path for new developers |
+| **[architecture/overview.md](architecture/overview.md)** | Complete system architecture with layered diagrams |
+| **[architecture/developer-journey.md](architecture/developer-journey.md)** | Step-by-step codebase learning path for new developers |
 | **[TECHNOLOGY_CHOICES.md](TECHNOLOGY_CHOICES.md)** | Technology stack rationale and trade-off analysis |
 | **[MERMAID_FIXES_STATS.json](MERMAID_FIXES_STATS.json)** | Mermaid diagram validation statistics |
 
@@ -48,8 +48,8 @@ dependencies:
 
 | File | Description |
 |------|-------------|
-| **[01-installation.md](tutorials/01-installation.md)** | Docker and native installation for all platforms |
-| **[02-first-graph.md](tutorials/02-first-graph.md)** | Create your first knowledge graph with AI agents |
+| **[01-installation.md](getting-started/installation.md)** | Docker and native installation for all platforms |
+| **[02-first-graph.md](getting-started/first-graph.md)** | Create your first knowledge graph with AI agents |
 | **[neo4j-quick-start.md](tutorials/neo4j-quick-start.md)** | Query and explore the Neo4j graph database |
 
 ---
@@ -115,7 +115,7 @@ dependencies:
 |------|-------------|
 | **[docker-compose-guide.md](guides/docker-compose-guide.md)** | Multi-container orchestration with profiles |
 | **[docker-environment-setup.md](guides/docker-environment-setup.md)** | Container configuration and networking |
-| **[readme.md](guides/readme.md)** | Guides overview |
+| **[readme.md](guides/README.md)** | Guides overview |
 
 ### XR & VR (2 files)
 
@@ -141,7 +141,7 @@ dependencies:
 | **[04-adding-features.md](guides/developer/04-adding-features.md)** | Feature development workflow with SPARC |
 | **[06-contributing.md](guides/developer/06-contributing.md)** | Code style, testing, documentation standards |
 | **[json-serialization-patterns.md](guides/developer/json-serialization-patterns.md)** | Data serialization strategies for WebSocket |
-| **[readme.md](guides/developer/readme.md)** | Developer guides overview |
+| **[readme.md](guides/developer/README.md)** | Developer guides overview |
 | **[test-execution.md](guides/developer/test-execution.md)** | Running and debugging test suites |
 | **[websocket-best-practices.md](guides/developer/websocket-best-practices.md)** | Real-time communication patterns |
 
@@ -150,8 +150,8 @@ dependencies:
 | File | Description |
 |------|-------------|
 | **[auth-user-settings.md](guides/features/auth-user-settings.md)** | User authentication system implementation |
-| **[deepseek-deployment.md](guides/features/deepseek-deployment.md)** | Deploy DeepSeek LLM skill container |
-| **[deepseek-verification.md](guides/features/deepseek-verification.md)** | LLM API integration testing |
+| **[deepseek-deployment.md](guides/ai-models/deepseek-deployment.md)** | Deploy DeepSeek LLM skill container |
+| **[deepseek-verification.md](guides/ai-models/deepseek-verification.md)** | LLM API integration testing |
 | **[filtering-nodes.md](guides/features/filtering-nodes.md)** | Client-side graph filtering with quality scores |
 | **[github-pagination-fix.md](guides/features/github-pagination-fix.md)** | Handle large GitHub API responses |
 | **[intelligent-pathfinding.md](guides/features/intelligent-pathfinding.md)** | A* and Dijkstra graph traversal algorithms |
@@ -170,7 +170,7 @@ dependencies:
 | **[docker-environment.md](guides/infrastructure/docker-environment.md)** | Container setup and management |
 | **[goalie-integration.md](guides/infrastructure/goalie-integration.md)** | Quality gates and automated testing |
 | **[port-configuration.md](guides/infrastructure/port-configuration.md)** | Network and service port mappings |
-| **[readme.md](guides/infrastructure/readme.md)** | Infrastructure guides overview |
+| **[readme.md](guides/infrastructure/README.md)** | Infrastructure guides overview |
 | **[tools.md](guides/infrastructure/tools.md)** | Available MCP tools and integrations |
 | **[troubleshooting.md](guides/infrastructure/troubleshooting.md)** | Infrastructure-specific issues |
 
@@ -202,63 +202,63 @@ dependencies:
 
 | File | Description |
 |------|-------------|
-| **[README.md](explanations/architecture/README.md)** | Architecture documentation index |
-| **[adapter-patterns.md](explanations/architecture/adapter-patterns.md)** | Repository implementation patterns for hexagonal architecture |
-| **[analytics-visualization.md](explanations/architecture/analytics-visualization.md)** | UI/UX design patterns for analytics dashboard |
-| **[api-handlers-reference.md](explanations/architecture/api-handlers-reference.md)** | Handler patterns with code examples |
-| **[cqrs-directive-template.md](explanations/architecture/cqrs-directive-template.md)** | Command/query separation templates |
+| **[README.md](concepts/README.md)** | Architecture documentation index |
+| **[adapter-patterns.md](concepts/adapter-patterns.md)** | Repository implementation patterns for hexagonal architecture |
+| **[analytics-visualization.md](concepts/analytics-visualization.md)** | UI/UX design patterns for analytics dashboard |
+| **[api-handlers-reference.md](reference/api/handlers.md)** | Handler patterns with code examples |
+| **[cqrs-directive-template.md](concepts/cqrs-directive.md)** | Command/query separation templates |
 | **[data-flow-complete.md](explanations/architecture/data-flow-complete.md)** | End-to-end data pipeline from GitHub to GPU |
-| **[github-sync-service-design.md](explanations/architecture/github-sync-service-design.md)** | Streaming ontology sync with backpressure |
-| **[gpu-semantic-forces.md](explanations/architecture/gpu-semantic-forces.md)** | 39 CUDA kernels for physics simulation |
-| **[hexagonal-cqrs.md](explanations/architecture/hexagonal-cqrs.md)** | Ports & adapters with command/query separation |
-| **[hierarchical-visualization.md](explanations/architecture/hierarchical-visualization.md)** | DAG and tree layout algorithms |
-| **[integration-patterns.md](explanations/architecture/integration-patterns.md)** | System integration strategies and patterns |
+| **[github-sync-service-design.md](concepts/github-sync-service.md)** | Streaming ontology sync with backpressure |
+| **[gpu-semantic-forces.md](concepts/gpu-semantic-forces.md)** | 39 CUDA kernels for physics simulation |
+| **[hexagonal-cqrs.md](concepts/hexagonal-architecture.md)** | Ports & adapters with command/query separation |
+| **[hierarchical-visualization.md](concepts/hierarchical-visualization.md)** | DAG and tree layout algorithms |
+| **[integration-patterns.md](concepts/integration-patterns.md)** | System integration strategies and patterns |
 | **[multi-agent-system.md](explanations/architecture/multi-agent-system.md)** | AI agent coordination with MCP protocol |
-| **[ontology-analysis.md](explanations/architecture/ontology-analysis.md)** | Architecture decision analysis for ontology system |
-| **[ontology-physics-integration.md](explanations/architecture/ontology-physics-integration.md)** | Wire OWL constraints to GPU physics forces |
-| **[ontology-reasoning-pipeline.md](explanations/architecture/ontology-reasoning-pipeline.md)** | Whelk inference engine integration |
-| **[ontology-storage-architecture.md](explanations/architecture/ontology-storage-architecture.md)** | OWL persistence in Neo4j with typed nodes |
-| **[pipeline-integration.md](explanations/architecture/pipeline-integration.md)** | GitHub → Neo4j → GPU complete flow |
-| **[pipeline-sequence-diagrams.md](explanations/architecture/pipeline-sequence-diagrams.md)** | Visual interaction flows with Mermaid |
-| **[quick-reference.md](explanations/architecture/quick-reference.md)** | Architecture cheat sheet for developers |
-| **[reasoning-data-flow.md](explanations/architecture/reasoning-data-flow.md)** | Inference pipeline stages and transformations |
-| **[reasoning-tests-summary.md](explanations/architecture/reasoning-tests-summary.md)** | Test coverage report for reasoning system |
-| **[ruvector-integration.md](explanations/architecture/ruvector-integration.md)** | 150x faster HNSW vector search integration |
-| **[semantic-forces-system.md](explanations/architecture/semantic-forces-system.md)** | Physics constraint generation from semantic rules |
-| **[semantic-physics-system.md](explanations/architecture/semantic-physics-system.md)** | Force-directed layout engine architecture |
-| **[semantic-physics.md](explanations/architecture/semantic-physics.md)** | Physics simulation theory and algorithms |
+| **[ontology-analysis.md](concepts/ontology-analysis.md)** | Architecture decision analysis for ontology system |
+| **[ontology-physics-integration.md](concepts/ontology-physics-integration.md)** | Wire OWL constraints to GPU physics forces |
+| **[ontology-reasoning-pipeline.md](concepts/ontology-reasoning-pipeline.md)** | Whelk inference engine integration |
+| **[ontology-storage-architecture.md](concepts/ontology-storage.md)** | OWL persistence in Neo4j with typed nodes |
+| **[pipeline-integration.md](concepts/pipeline-integration.md)** | GitHub → Neo4j → GPU complete flow |
+| **[pipeline-sequence-diagrams.md](concepts/pipeline-sequence.md)** | Visual interaction flows with Mermaid |
+| **[quick-reference.md](concepts/quick-reference.md)** | Architecture cheat sheet for developers |
+| **[reasoning-data-flow.md](concepts/reasoning-data-flow.md)** | Inference pipeline stages and transformations |
+| **[reasoning-tests-summary.md](concepts/reasoning-tests.md)** | Test coverage report for reasoning system |
+| **[ruvector-integration.md](concepts/ruvector-integration.md)** | 150x faster HNSW vector search integration |
+| **[semantic-forces-system.md](concepts/semantic-forces-system.md)** | Physics constraint generation from semantic rules |
+| **[semantic-physics-system.md](concepts/semantic-physics-system.md)** | Force-directed layout engine architecture |
+| **[semantic-physics.md](concepts/semantic-physics.md)** | Physics simulation theory and algorithms |
 | **[services-architecture.md](explanations/architecture/services-architecture.md)** | Business logic layer design with clean architecture |
-| **[services-layer.md](explanations/architecture/services-layer.md)** | Business logic refactoring patterns |
-| **[stress-majorization.md](explanations/architecture/stress-majorization.md)** | Graph layout optimization technique |
-| **[xr-immersive-system.md](explanations/architecture/xr-immersive-system.md)** | Quest 3 WebXR architecture with hand tracking |
+| **[services-layer.md](concepts/services-layer.md)** | Business logic refactoring patterns |
+| **[stress-majorization.md](concepts/stress-majorization.md)** | Graph layout optimization technique |
+| **[xr-immersive-system.md](concepts/xr-immersive-system.md)** | Quest 3 WebXR architecture with hand tracking |
 
 #### explanations/architecture/components/ (1 file)
 
 | File | Description |
 |------|-------------|
-| **[websocket-protocol.md](explanations/architecture/components/websocket-protocol.md)** | Binary protocol design with 36-byte node format |
+| **[websocket-protocol.md](architecture/protocols/websocket.md)** | Binary protocol design with 36-byte node format |
 
 #### explanations/architecture/core/ (3 files)
 
 | File | Description |
 |------|-------------|
-| **[client.md](explanations/architecture/core/client.md)** | React Three.js frontend architecture |
-| **[server.md](explanations/architecture/core/server.md)** | Rust Actix backend with actor model |
+| **[client.md](architecture/client/overview.md)** | React Three.js frontend architecture |
+| **[server.md](architecture/server/overview.md)** | Rust Actix backend with actor model |
 | **[visualization.md](explanations/architecture/core/visualization.md)** | 3D rendering pipeline with WebGL |
 
 #### explanations/architecture/decisions/ (1 file)
 
 | File | Description |
 |------|-------------|
-| **[0001-neo4j-persistent-with-filesystem-sync.md](explanations/architecture/decisions/0001-neo4j-persistent-with-filesystem-sync.md)** | ADR: Database persistence strategy rationale |
+| **[0001-neo4j-persistent-with-filesystem-sync.md](architecture/adr/ADR-0001-neo4j-persistent-with-filesystem-sync.md)** | ADR: Database persistence strategy rationale |
 
-#### explanations/architecture/gpu/ (3 files)
+#### architecture/gpu/ (3 files)
 
 | File | Description |
 |------|-------------|
-| **[communication-flow.md](explanations/architecture/gpu/communication-flow.md)** | CPU-GPU data transfer optimization |
-| **[optimizations.md](explanations/architecture/gpu/optimizations.md)** | Performance tuning strategies for CUDA |
-| **[readme.md](explanations/architecture/gpu/readme.md)** | GPU subsystem overview and architecture |
+| **[communication-flow.md](architecture/gpu/communication-flow.md)** | CPU-GPU data transfer optimization |
+| **[optimizations.md](architecture/gpu/optimizations.md)** | Performance tuning strategies for CUDA |
+| **[readme.md](architecture/gpu/README.md)** | GPU subsystem overview and architecture |
 
 #### explanations/architecture/ports/ (7 files)
 
@@ -319,7 +319,7 @@ dependencies:
 | **[01-authentication.md](reference/api/01-authentication.md)** | JWT, sessions, Nostr authentication |
 | **[03-websocket.md](reference/api/03-websocket.md)** | Real-time binary protocol API |
 | **[pathfinding-examples.md](reference/api/pathfinding-examples.md)** | Graph traversal API examples |
-| **[readme.md](reference/api/readme.md)** | API documentation index |
+| **[readme.md](reference/api/README.md)** | API documentation index |
 | **[rest-api-complete.md](reference/api/rest-api-complete.md)** | HTTP API complete specification |
 | **[rest-api-reference.md](reference/api/rest-api-reference.md)** | OpenAPI/Swagger format reference |
 | **[semantic-features-api.md](reference/api/semantic-features-api.md)** | Natural language query API |
@@ -345,7 +345,7 @@ dependencies:
 
 | File | Description |
 |------|-------------|
-| **[HEXAGONAL_ARCHITECTURE_STATUS.md](architecture/HEXAGONAL_ARCHITECTURE_STATUS.md)** | Hexagonal architecture implementation status |
+| **[HEXAGONAL_ARCHITECTURE_STATUS.md](concepts/hexagonal-architecture.md)** | Hexagonal architecture implementation status |
 
 ---
 

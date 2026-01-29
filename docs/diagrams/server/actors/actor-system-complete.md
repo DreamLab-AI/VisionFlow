@@ -11,7 +11,7 @@ tags:
 related-docs:
   - ASCII_DEPRECATION_COMPLETE.md
   - diagrams/README.md
-  - explanations/architecture/quick-reference.md
+  - concepts/quick-reference.md
 updated-date: 2025-12-18
 difficulty-level: advanced
 dependencies:
@@ -68,7 +68,16 @@ graph TB
         GSS --> OSA[OptimisedSettingsActor<br/>Hot-path Settings<br/>Cache Layer]
     end
 
+    subgraph "Integration Actors (24 Total)"
+        GSS --> MCP[MultiMcpVisualizationActor<br/>MCP Server Integration<br/>Multi-protocol coordination]
+        GSS --> TASK[TaskOrchestratorActor<br/>Async Task Management<br/>Job scheduling]
+        GSS --> MON[AgentMonitorActor<br/>Agent Health Monitoring<br/>Telemetry collection]
+    end
+
     style GSS fill:#ff6b6b,stroke:#333,stroke-width:4px,color:#fff
+    style MCP fill:#b39ddb,stroke:#333,stroke-width:2px
+    style TASK fill:#b39ddb,stroke:#333,stroke-width:2px
+    style MON fill:#b39ddb,stroke:#333,stroke-width:2px
     style GSA fill:#4ecdc4,stroke:#333,stroke-width:2px
     style PO fill:#ffe66d,stroke:#333,stroke-width:2px
     style SP fill:#a8e6cf,stroke:#333,stroke-width:2px
@@ -1802,7 +1811,7 @@ impl GraphStateActor {
 
 ## 16. Summary: Actor System Capabilities
 
-### Total Actor Count: 21+
+### Total Actor Count: 24
 1. **GraphServiceSupervisor** - Root supervisor (OneForOne)
 2. **GraphStateActor** - Graph data management (7-state machine)
 3. **PhysicsOrchestratorActor** - GPU coordination (11 sub-actors)
@@ -1823,7 +1832,10 @@ impl GraphStateActor {
 17. **WorkspaceActor** - Multi-tenant workspace management
 18. **SettingsActor** - Configuration persistence
 19. **OptimisedSettingsActor** - Hot-path settings cache
-20-21. **Support Actors** (telemetry, logging, etc.)
+20. **MultiMcpVisualizationActor** - MCP server integration
+21. **TaskOrchestratorActor** - Async task management
+22. **AgentMonitorActor** - Agent health monitoring
+23-24. **Support Actors** (telemetry, logging, etc.)
 
 ### Message Types: 100+
 - **Graph State**: 20+ messages (CRUD, batch operations)

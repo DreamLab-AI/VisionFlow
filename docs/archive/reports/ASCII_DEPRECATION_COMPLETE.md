@@ -48,13 +48,13 @@ All ASCII box-drawing and tree diagrams have been **systematically audited and d
 - **Impact**: Reduced by ~100 lines of ASCII art
 - **New Reference**: Complete byte-level documentation with mermaid diagrams
 
-### 3. **docs/explanations/architecture/reasoning-data-flow.md**
+### 3. **docs/concepts/reasoning-data-flow.md**
 - **ASCII Diagrams Removed**: 1 (185-line flowchart)
 - **Replacement**: Link to [complete-data-flows.md](diagrams/data-flow/complete-data-flows.md)
 - **Impact**: Reduced by 185 lines, improved maintainability
 - **New Reference**: 10 complete data path flows with sequence diagrams
 
-### 4. **docs/explanations/architecture/quick-reference.md**
+### 4. **docs/concepts/quick-reference.md**
 - **ASCII Diagrams Removed**: 3 (problem diagram, solution diagram, event flow)
 - **Replacements**:
   - [actor-system-complete.md](diagrams/server/actors/actor-system-complete.md) - Actor lifecycle
@@ -182,7 +182,7 @@ All changes have been validated for:
 - [System Architecture Overview - Complete Mermaid Diagrams](diagrams/mermaid-library/01-system-architecture-overview.md)
 - [Deployment & Infrastructure Diagrams](diagrams/mermaid-library/03-deployment-infrastructure.md)
 - [VisionFlow Documentation Modernization - Final Report](DOCUMENTATION_MODERNIZATION_COMPLETE.md)
-- [VisionFlow Complete Architecture Documentation](ARCHITECTURE_COMPLETE.md)
+- [VisionFlow Complete Architecture Documentation](architecture/overview.md)
 
 ## References
 

@@ -7,6 +7,25 @@ use log::{debug, error, info, warn};
 use serde_json::{json, Value};
 use std::collections::HashMap;
 
+/// Minimum cluster size for meaningful grouping
+const MIN_CLUSTER_SIZE: usize = 3;
+/// Default similarity metric for clustering
+const DEFAULT_SIMILARITY_METRIC: &str = "cosine";
+/// Maximum iterations for convergence
+const MAX_CLUSTERING_ITERATIONS: usize = 100;
+/// Default number of clusters when not specified
+const DEFAULT_CLUSTER_COUNT: u32 = 5;
+/// Default convergence threshold for iterative algorithms (f32 for ClusteringParams)
+const DEFAULT_CONVERGENCE_THRESHOLD: f32 = 0.001;
+/// Default tolerance threshold for iterative algorithms (f64 for ClusteringParams)
+const DEFAULT_TOLERANCE: f64 = 0.001;
+/// Default resolution parameter for community detection
+const DEFAULT_RESOLUTION: f32 = 1.0;
+/// Default sigma for spectral clustering (f64 for ClusteringParams)
+const DEFAULT_SIGMA: f64 = 1.0;
+/// Default minimum modularity gain for Louvain algorithm (f64 for ClusteringParams)
+const DEFAULT_MIN_MODULARITY_GAIN: f64 = 0.01;
+
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/clustering")
@@ -124,7 +143,7 @@ async fn start_clustering(
     let cluster_count = request
         .get("clusterCount")
         .and_then(|v| v.as_u64())
-        .unwrap_or(5) as u32;
+        .unwrap_or(DEFAULT_CLUSTER_COUNT as u64) as u32;
 
     let task_id = uuid::Uuid::new_v4().to_string();
 
@@ -133,7 +152,7 @@ async fn start_clustering(
         algorithm, cluster_count
     );
 
-    if let Some(gpu_addr) = &state.gpu_compute_addr {
+    if let Some(gpu_addr) = state.get_gpu_compute_addr().await {
         
         use crate::actors::messages::PerformGPUClustering;
 
@@ -141,22 +160,22 @@ async fn start_clustering(
             method: algorithm.to_string(),
             params: crate::handlers::api_handler::analytics::ClusteringParams {
                 num_clusters: Some(cluster_count),
-                max_iterations: Some(100),
-                convergence_threshold: Some(0.001),
-                resolution: Some(1.0),
+                max_iterations: Some(MAX_CLUSTERING_ITERATIONS as u32),
+                convergence_threshold: Some(DEFAULT_CONVERGENCE_THRESHOLD),
+                resolution: Some(DEFAULT_RESOLUTION),
                 eps: None,
                 min_samples: None,
-                min_cluster_size: None,
-                similarity: None,
+                min_cluster_size: Some(MIN_CLUSTER_SIZE as u32),
+                similarity: Some(DEFAULT_SIMILARITY_METRIC.to_string()),
                 distance_threshold: None,
                 linkage: None,
                 random_state: None,
                 damping: None,
                 preference: None,
-                tolerance: Some(0.001),
+                tolerance: Some(DEFAULT_TOLERANCE),
                 seed: None,
-                sigma: Some(1.0),
-                min_modularity_gain: Some(0.01),
+                sigma: Some(DEFAULT_SIGMA),
+                min_modularity_gain: Some(DEFAULT_MIN_MODULARITY_GAIN),
             },
             task_id: format!("{}_{}", algorithm, chrono::Utc::now().timestamp_millis()),
         };
@@ -207,7 +226,7 @@ async fn get_clustering_status(
 ) -> Result<HttpResponse, actix_web::Error> {
     info!("Clustering status request");
 
-    if let Some(gpu_addr) = &state.gpu_compute_addr {
+    if let Some(gpu_addr) = state.get_gpu_compute_addr().await {
         use crate::actors::messages::GetClusteringResults;
 
         match gpu_addr.send(GetClusteringResults).await {
@@ -279,7 +298,7 @@ async fn get_clustering_results(
 ) -> Result<HttpResponse, actix_web::Error> {
     info!("Clustering results request");
 
-    if let Some(gpu_addr) = &state.gpu_compute_addr {
+    if let Some(gpu_addr) = state.get_gpu_compute_addr().await {
         use crate::actors::messages::{GetClusteringResults, GetGraphData};
 use crate::{
     ok_json, created_json, error_json, bad_request, not_found,
@@ -402,7 +421,7 @@ async fn export_cluster_assignments(
     }
 
     #[cfg(feature = "gpu")]
-    if let Some(gpu_addr) = &state.gpu_compute_addr {
+    if let Some(gpu_addr) = state.get_gpu_compute_addr().await {
         info!("Attempting to get clustering data from GPU compute actor");
 
         
@@ -624,7 +643,7 @@ async fn export_cluster_assignments(
             ],
             "gpu_available": cfg!(feature = "gpu") && {
                 #[cfg(feature = "gpu")]
-                { state.gpu_compute_addr.is_some() }
+                { state.try_get_gpu_compute_addr().is_some() }
                 #[cfg(not(feature = "gpu"))]
                 { false }
             },

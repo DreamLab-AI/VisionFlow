@@ -531,7 +531,7 @@ LIMIT 10
 
 ## Related Documentation
 
-- [Database Schema Reference](../DATABASE_SCHEMA_REFERENCE.md)
+- [Database Schema Reference](../database/README.md)
 - [Unified Database Schema](./schemas.md)
 - [Neo4j Ontology Schema V2](./ontology-schema-v2.md)
 - [User Settings Schema](./user-settings-schema.md)

@@ -47,7 +47,7 @@ Validate Cypher syntax.
 
 - [Authentication (DEPRECATED - JWT NOT USED)](01-authentication.md)
 - [Pathfinding API Examples](pathfinding-examples.md)
-- [Database Schema Reference](../DATABASE_SCHEMA_REFERENCE.md)
+- [Database Schema Reference](../database/README.md)
 - [VisionFlow Binary WebSocket Protocol](../protocols/binary-websocket.md)
 - [WebSocket Binary Protocol Reference](../websocket-protocol.md)
 

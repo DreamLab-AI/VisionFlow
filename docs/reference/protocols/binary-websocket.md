@@ -572,7 +572,7 @@ npm test -- BinaryWebSocketProtocol.test.ts
 ## Related Documentation
 
 - [WebSocket Binary Protocol Reference](../websocket-protocol.md)
-- [Database Schema Reference](../DATABASE_SCHEMA_REFERENCE.md)
+- [Database Schema Reference](../database/README.md)
 - [Authentication (DEPRECATED - JWT NOT USED)](../api/01-authentication.md)
 - [Semantic Features API Reference](../api/semantic-features-api.md)
 - [Pathfinding API Examples](../api/pathfinding-examples.md)

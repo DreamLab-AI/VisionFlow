@@ -469,7 +469,7 @@ This audit evaluates documentation coverage for all major code components in Vis
 ### Comprehensive Documentation (Excellent)
 
 1. **API Handler Reference** (3,000+ lines)
-   - Location: `explanations/architecture/api-handlers-reference.md`
+   - Location: `reference/api/handlers.md`
    - Coverage: 32/47 handlers fully documented
    - Quality: Excellent with examples and schemas
 
@@ -484,7 +484,7 @@ This audit evaluates documentation coverage for all major code components in Vis
    - Quality: Excellent with reasoning integration
 
 4. **GPU Architecture** (4 documents)
-   - Location: `explanations/architecture/gpu/*`
+   - Location: `architecture/gpu/*`
    - Coverage: Semantic analyzer and physics adapter
    - Quality: Good technical depth
 
@@ -871,10 +871,10 @@ Coverage % = (Fully Documented + 0.5 * Partially Documented) / Total * 100
 
 ### Existing Core Documents
 
-- `explanations/architecture/api-handlers-reference.md` - API documentation
+- `reference/api/handlers.md` - API documentation
 - `explanations/architecture/services-architecture.md` - Services overview
 - `explanations/ontology/ontology-pipeline-integration.md` - Ontology system
-- `explanations/architecture/gpu-semantic-forces.md` - GPU integration
+- `concepts/gpu-semantic-forces.md` - GPU integration
 - `reference/protocols/binary-websocket.md` - Binary protocol
 - `reference/physics-implementation.md` - Physics system
 

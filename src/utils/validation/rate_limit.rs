@@ -6,6 +6,10 @@ use std::net::IpAddr;
 use std::sync::{Arc, RwLock};
 use std::time::{Duration, Instant};
 
+/// Maximum number of tracked IP addresses to prevent unbounded memory growth
+/// SECURITY FIX: Prevents DoS via memory exhaustion from distributed attacks
+const MAX_TRACKED_CLIENTS: usize = 100_000;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RateLimitConfig {
     pub requests_per_minute: u32,
@@ -106,12 +110,54 @@ impl RateLimiter {
         limiter
     }
 
+    /// Probabilistic cleanup to supplement the interval-based cleanup
+    /// Called on each request with low probability to amortize cleanup cost
+    fn maybe_probabilistic_cleanup(&self) {
+        // 1% chance per request to trigger cleanup check
+        // This ensures cleanup happens even under sustained load between intervals
+        use std::hash::{Hash, Hasher};
+        use std::collections::hash_map::DefaultHasher;
+
+        let now = Instant::now();
+        let mut hasher = DefaultHasher::new();
+        now.hash(&mut hasher);
+        let hash = hasher.finish();
+
+        // ~1% probability (hash % 100 == 0)
+        if hash % 100 == 0 {
+            self.cleanup_if_needed();
+        }
+    }
+
     /// Check if the client is allowed to make a request
     pub fn is_allowed(&self, client_id: &str) -> bool {
+        // Probabilistic cleanup on each request (1% chance)
+        self.maybe_probabilistic_cleanup();
+
+        // Also do interval-based cleanup
         self.cleanup_if_needed();
 
         match self.clients.write() {
             Ok(mut clients) => {
+                // SECURITY FIX: Enforce max tracked clients to prevent memory exhaustion
+                if !clients.contains_key(client_id) && clients.len() >= MAX_TRACKED_CLIENTS {
+                    // Evict oldest non-banned entry to make room
+                    let oldest_key = clients
+                        .iter()
+                        .filter(|(_, entry)| !entry.is_banned())
+                        .min_by_key(|(_, entry)| entry.last_refill)
+                        .map(|(key, _)| key.clone());
+
+                    if let Some(key) = oldest_key {
+                        debug!("Evicting oldest rate limit entry to stay within bounds: {}", key);
+                        clients.remove(&key);
+                    } else {
+                        // All entries are banned, can't evict - fail open for new client
+                        warn!("Rate limiter at capacity with all banned entries, allowing new client");
+                        return true;
+                    }
+                }
+
                 let entry = clients
                     .entry(client_id.to_string())
                     .or_insert_with(|| RateLimitEntry::new(&self.config));
@@ -451,8 +497,8 @@ mod tests {
     use super::*;
     use std::thread;
 
-    #[test]
-    fn test_rate_limiter_basic() {
+    #[tokio::test]
+    async fn test_rate_limiter_basic() {
         let config = RateLimitConfig {
             requests_per_minute: 60,
             burst_size: 5,
@@ -470,8 +516,8 @@ mod tests {
         assert!(!limiter.is_allowed(client_id));
     }
 
-    #[test]
-    fn test_rate_limiter_refill() {
+    #[tokio::test]
+    async fn test_rate_limiter_refill() {
         let config = RateLimitConfig {
             requests_per_minute: 60,
             burst_size: 1,
@@ -485,14 +531,14 @@ mod tests {
         assert!(!limiter.is_allowed(client_id));
 
 
-        thread::sleep(Duration::from_secs(2));
+        tokio::time::sleep(Duration::from_secs(2)).await;
 
 
         assert!(limiter.is_allowed(client_id));
     }
 
-    #[test]
-    fn test_ban_after_violations() {
+    #[tokio::test]
+    async fn test_ban_after_violations() {
         let config = RateLimitConfig {
             requests_per_minute: 60,
             burst_size: 1,

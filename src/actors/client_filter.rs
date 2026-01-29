@@ -5,7 +5,7 @@
 
 use crate::actors::client_coordinator_actor::{ClientFilter, FilterMode};
 use crate::models::graph::GraphData;
-use log::debug;
+use log::{debug, trace};
 
 /// Recomputes which node IDs pass the client's filter criteria
 /// Called when:
@@ -69,7 +69,7 @@ pub fn recompute_filtered_nodes(filter: &mut ClientFilter, graph_data: &GraphDat
         }
     }
 
-    debug!(
+    trace!(
         "Filter applied: {} of {} nodes passed (mode: {:?})",
         candidates.len(),
         graph_data.nodes.len(),
@@ -197,10 +197,12 @@ mod tests {
         filter.filter_by_quality = true;
         filter.filter_by_authority = false;
         filter.quality_threshold = 0.7;
+        // Use And mode for single-criterion filtering (Or mode with filter_by_authority=false would pass all)
+        filter.filter_mode = FilterMode::And;
 
         recompute_filtered_nodes(&mut filter, &graph);
 
-        // Should include nodes 1 and 3 (high quality)
+        // Should include nodes 1 and 3 (high quality >= 0.7)
         assert!(filter.filtered_node_ids.contains(&1));
         assert!(!filter.filtered_node_ids.contains(&2));
         assert!(filter.filtered_node_ids.contains(&3));
@@ -214,10 +216,12 @@ mod tests {
         filter.filter_by_quality = false;
         filter.filter_by_authority = true;
         filter.authority_threshold = 0.7;
+        // Use And mode for single-criterion filtering (Or mode with filter_by_quality=false would pass all)
+        filter.filter_mode = FilterMode::And;
 
         recompute_filtered_nodes(&mut filter, &graph);
 
-        // Should include nodes 1 and 2 (high authority)
+        // Should include nodes 1 and 2 (high authority >= 0.7)
         assert!(filter.filtered_node_ids.contains(&1));
         assert!(filter.filtered_node_ids.contains(&2));
         assert!(!filter.filtered_node_ids.contains(&3));
@@ -283,12 +287,14 @@ mod tests {
         let mut filter = ClientFilter::default();
         filter.enabled = true;
         filter.filter_by_quality = true;
+        filter.filter_by_authority = false;
         filter.quality_threshold = 0.6; // Above default 0.5
-        filter.filter_mode = FilterMode::Or;
+        // Use And mode for single-criterion filtering
+        filter.filter_mode = FilterMode::And;
 
         recompute_filtered_nodes(&mut filter, &graph);
 
-        // Node 4 has no metadata, should get defaults (0.5) and fail threshold
+        // Node 4 has no metadata, should get defaults (0.5) and fail threshold (0.6)
         assert!(!filter.filtered_node_ids.contains(&4));
     }
 }

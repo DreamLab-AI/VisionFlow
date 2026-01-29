@@ -16,10 +16,10 @@ static MESSAGE_REGEX: OnceLock<Regex> = OnceLock::new();
 fn get_message_regex() -> &'static Regex {
     MESSAGE_REGEX.get_or_init(|| {
         Regex::new(
-            r"(?x)
+            r"(?xs)
             \*{0,2}\s*\[(?:CLIENT_)?MESSAGE\]\s*\*{0,2}  # Opening tag with optional ** and whitespace
             \s*
-            (.*?)                                          # Capture content (non-greedy)
+            (.*?)                                          # Capture content (non-greedy, . matches newlines due to s flag)
             \s*
             \*{0,2}\s*\[/(?:CLIENT_)?MESSAGE\]\s*\*{0,2}  # Closing tag with optional ** and whitespace
             "

@@ -1398,7 +1398,7 @@ impl MCPTcpClient {
 - [Agent Orchestration & Multi-Agent Systems](../../mermaid-library/04-agent-orchestration.md)
 - [VisionFlow Client Architecture Analysis](../../../visionflow-architecture-analysis.md)
 - [VisionFlow Architecture Diagrams - Complete Corpus](../../README.md)
-- [VisionFlow Complete Architecture Documentation](../../../ARCHITECTURE_COMPLETE.md)
+- [VisionFlow Complete Architecture Documentation](../../../architecture/overview.md)
 
 ## Summary
 

@@ -20,6 +20,10 @@ const DELTA_ITEM_SIZE: usize = 20;     // Size of DeltaNodeData in bytes
 const DELTA_RESYNC_INTERVAL: u64 = 60; // Full state every 60 frames
 const PROTOCOL_V4: u8 = 4;
 
+/// Maximum frames to keep in history (2 seconds at 60fps)
+/// Prevents unbounded memory growth in delta encoding history
+pub const MAX_HISTORY_FRAMES: usize = 120;
+
 // Wire format sizes from binary_protocol
 const WIRE_V2_ITEM_SIZE: usize = 36;
 
@@ -293,6 +297,27 @@ pub fn decode_node_data_delta(
     Ok(new_state)
 }
 
+/// Enforces maximum history size to prevent unbounded memory growth.
+/// Call this after adding new frames to the history.
+/// # Arguments
+/// * `history` - Mutable reference to the history VecDeque
+pub fn enforce_history_limit<T>(history: &mut std::collections::VecDeque<T>) {
+    while history.len() > MAX_HISTORY_FRAMES {
+        history.pop_front();
+    }
+}
+
+/// Enforces maximum history size for Vec-based history storage.
+/// Call this after adding new frames to the history.
+/// # Arguments
+/// * `history` - Mutable reference to the history Vec
+pub fn enforce_history_limit_vec<T>(history: &mut Vec<T>) {
+    if history.len() > MAX_HISTORY_FRAMES {
+        let excess = history.len() - MAX_HISTORY_FRAMES;
+        history.drain(0..excess);
+    }
+}
+
 /// Calculate bandwidth savings from delta encoding
 pub fn calculate_delta_savings(
     total_nodes: usize,
@@ -354,8 +379,8 @@ mod tests {
         // Frame 0 should be full state
         let encoded = encode_node_data_delta(&nodes, &previous, 0, &[], &[]);
 
-        // Should use Protocol V2 for full state, not V4
-        assert_eq!(encoded[0], 2); // PROTOCOL_V2
+        // Should use Protocol V3 for full state (encode_node_data_extended now uses V3)
+        assert_eq!(encoded[0], 3); // PROTOCOL_V3
     }
 
     #[test]
@@ -458,11 +483,11 @@ mod tests {
 
         // Frame 60 should be full resync
         let encoded = encode_node_data_delta(&nodes, &previous, 60, &[], &[]);
-        assert_eq!(encoded[0], 2); // PROTOCOL_V2 for full state
+        assert_eq!(encoded[0], 3); // PROTOCOL_V3 for full state (encode_node_data_extended uses V3)
 
         // Frame 120 should also be full resync
         let encoded = encode_node_data_delta(&nodes, &previous, 120, &[], &[]);
-        assert_eq!(encoded[0], 2); // PROTOCOL_V2 for full state
+        assert_eq!(encoded[0], 3); // PROTOCOL_V3 for full state
     }
 
     #[test]

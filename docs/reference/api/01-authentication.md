@@ -20,7 +20,7 @@ difficulty-level: advanced
 
 **For Current Documentation**, see:
 - **Primary**: `/docs/guides/features/nostr-auth.md` - Nostr authentication implementation
-- **Architecture**: `/docs/ARCHITECTURE_OVERVIEW.md` - Authentication section
+- **Architecture**: `/docs/architecture/overview.md` - Authentication section
 
 ---
 
@@ -111,7 +111,7 @@ curl -H "X-API-Key: YOUR-API-KEY" \
 
 - [Semantic Features API Reference](semantic-features-api.md)
 - [Pathfinding API Examples](pathfinding-examples.md)
-- [Database Schema Reference](../DATABASE_SCHEMA_REFERENCE.md)
+- [Database Schema Reference](../database/README.md)
 - [VisionFlow Binary WebSocket Protocol](../protocols/binary-websocket.md)
 - [WebSocket Binary Protocol Reference](../websocket-protocol.md)
 

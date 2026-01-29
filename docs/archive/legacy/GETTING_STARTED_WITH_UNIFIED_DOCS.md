@@ -26,13 +26,13 @@ Jump into technical documentation:
 1. [Development Setup](./guides/developer/01-development-setup.md)
 2. [Project Structure](./guides/developer/02-project-structure.md)
 3. [How to Add Features](./guides/developer/04-adding-features.md)
-4. [API Reference](./reference/API_REFERENCE.md)
+4. [API Reference](./reference/api/README.md)
 
 ### I'm a **System Architect** 🏗️
 Learn about system design and architecture:
-1. [Architecture Overview](./ARCHITECTURE_OVERVIEW.md)
+1. [Architecture Overview](./architecture/overview.md)
 2. [System Architecture Diagrams](./diagrams/mermaid-library/01-system-architecture-overview.md)
-3. [Hexagonal Architecture](./explanations/architecture/hexagonal-cqrs.md)
+3. [Hexagonal Architecture](./concepts/hexagonal-architecture.md)
 4. [Complete Data Flows](./diagrams/mermaid-library/02-data-flow-diagrams.md)
 
 ### I'm a **DevOps/Operator** ⚙️
@@ -70,9 +70,9 @@ Choose your experience level:
 ### By Technology/Component
 Navigate by system component:
 - **WebSocket Protocol** → [WebSocket Docs](./reference/protocols/binary-websocket.md)
-- **Database/Neo4j** → [Database Schema](./reference/DATABASE_SCHEMA_REFERENCE.md)
-- **REST API** → [API Reference](./reference/API_REFERENCE.md)
-- **Configuration** → [Configuration Reference](./reference/CONFIGURATION_REFERENCE.md)
+- **Database/Neo4j** → [Database Schema](./reference/database/README.md)
+- **REST API** → [API Reference](./reference/api/README.md)
+- **Configuration** → [Configuration Reference](./reference/configuration/README.md)
 
 ---
 
@@ -144,18 +144,18 @@ Choose based on your goal:
 
 ### Path 1: Complete Beginner
 1. [System Overview](./explanations/system-overview.md)
-2. [Architecture Concepts](./explanations/architecture/README.md)
+2. [Architecture Concepts](./concepts/README.md)
 3. [Development Setup](./guides/developer/01-development-setup.md)
 4. [First Feature](./guides/developer/04-adding-features.md)
 
 ### Path 2: Experienced Developer
 1. [Project Structure](./guides/developer/02-project-structure.md)
 2. [Testing Guide](./guides/testing-guide.md)
-3. [API Reference](./reference/API_REFERENCE.md)
-4. [Advanced Patterns](./explanations/architecture/integration-patterns.md)
+3. [API Reference](./reference/api/README.md)
+4. [Advanced Patterns](./concepts/integration-patterns.md)
 
 ### Path 3: System Architecture
-1. [Architecture Overview](./ARCHITECTURE_OVERVIEW.md)
+1. [Architecture Overview](./architecture/overview.md)
 2. [System Diagrams](./diagrams/mermaid-library/01-system-architecture-overview.md)
 3. [Data Flow Analysis](./diagrams/mermaid-library/02-data-flow-diagrams.md)
 4. [Deployment Architecture](./diagrams/mermaid-library/03-deployment-infrastructure.md)
@@ -211,26 +211,26 @@ The corpus includes **41 production-quality Mermaid diagrams** showing:
 
 ### API Reference
 Quick answers to API questions:
-- Endpoint documentation: `/reference/API_REFERENCE.md`
-- WebSocket protocol: `/reference/PROTOCOL_REFERENCE.md`
+- Endpoint documentation: `/reference/api/README.md`
+- WebSocket protocol: `/reference/protocols/README.md`
 - Binary protocol: `/reference/protocols/binary-websocket.md`
 - Authentication: `/reference/api/01-authentication.md`
 
 ### Configuration
 All configuration options documented:
-- Environment variables: `/reference/CONFIGURATION_REFERENCE.md`
+- Environment variables: `/reference/configuration/README.md`
 - YAML configuration: `/guides/configuration.md`
 - Docker compose: `/guides/docker-compose-guide.md`
 
 ### Database
 Schema and query documentation:
-- Neo4j schema: `/reference/DATABASE_SCHEMA_REFERENCE.md`
+- Neo4j schema: `/reference/database/README.md`
 - SQLite schemas: `/reference/database/schemas.md`
 - Query patterns: `/reference/database/`
 
 ### Troubleshooting
 Error codes and solutions:
-- Error reference: `/reference/ERROR_REFERENCE.md`
+- Error reference: `/reference/error-codes.md`
 - Troubleshooting guide: `/guides/troubleshooting.md`
 - Health checks: `/guides/infrastructure/tools.md`
 
@@ -261,14 +261,14 @@ Error codes and solutions:
 3. Check [INDEX.md](./INDEX.md) for complete topic index
 
 ### "I need API documentation"
-1. Go to [API_REFERENCE.md](./reference/API_REFERENCE.md)
+1. Go to [API_REFERENCE.md](./reference/api/README.md)
 2. Search for your endpoint
 3. See examples and usage patterns
 
 ### "I need to understand architecture"
-1. Read [ARCHITECTURE_OVERVIEW.md](./ARCHITECTURE_OVERVIEW.md)
+1. Read [architecture/overview.md](./architecture/overview.md)
 2. View [System Architecture Diagrams](./diagrams/mermaid-library/01-system-architecture-overview.md)
-3. Read [Architecture Explanations](./explanations/architecture/README.md)
+3. Read [Architecture Explanations](./concepts/README.md)
 
 ### "I need to set up locally"
 1. Go to [Development Setup](./guides/developer/01-development-setup.md)
@@ -276,7 +276,7 @@ Error codes and solutions:
 3. Review [Project Structure](./guides/developer/02-project-structure.md)
 
 ### "I'm troubleshooting an issue"
-1. Check [ERROR_REFERENCE.md](./reference/ERROR_REFERENCE.md)
+1. Check [ERROR_REFERENCE.md](./reference/error-codes.md)
 2. Review [Troubleshooting Guide](./guides/troubleshooting.md)
 3. Use [Health Checks](./guides/infrastructure/tools.md)
 

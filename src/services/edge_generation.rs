@@ -4,6 +4,14 @@ use crate::models::edge::Edge;
 use crate::services::semantic_analyzer::SemanticFeatures;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::time::{Duration, Instant};
+
+/// Global flag to track pending regeneration (debouncing)
+static REGENERATION_PENDING: AtomicBool = AtomicBool::new(false);
+
+/// Debounce interval in milliseconds for edge regeneration
+const DEBOUNCE_MS: u64 = 100;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EdgeGenerationConfig {
@@ -109,15 +117,70 @@ pub enum EdgeType {
 pub struct AdvancedEdgeGenerator {
     config: EdgeGenerationConfig,
     edge_cache: HashMap<(String, String), EnhancedEdge>,
+    last_generation_time: Option<Instant>,
 }
 
 impl AdvancedEdgeGenerator {
-    
+
     pub fn new(config: EdgeGenerationConfig) -> Self {
         Self {
             config,
             edge_cache: HashMap::new(),
+            last_generation_time: None,
         }
+    }
+
+    /// Check if edge regeneration should be debounced.
+    /// Returns true if enough time has passed since the last generation,
+    /// or if no generation is currently pending.
+    pub fn should_regenerate(&self) -> bool {
+        if let Some(last_time) = self.last_generation_time {
+            last_time.elapsed() >= Duration::from_millis(DEBOUNCE_MS)
+        } else {
+            true
+        }
+    }
+
+    /// Attempt to schedule a debounced edge regeneration.
+    /// Returns true if regeneration was scheduled, false if one is already pending.
+    /// Use this to prevent blocking the main thread with rapid graph updates.
+    pub fn try_schedule_regeneration(&mut self) -> bool {
+        if REGENERATION_PENDING.compare_exchange(
+            false,
+            true,
+            Ordering::SeqCst,
+            Ordering::SeqCst
+        ).is_ok() {
+            self.last_generation_time = Some(Instant::now());
+            true
+        } else {
+            false
+        }
+    }
+
+    /// Mark regeneration as complete. Call this after edge generation finishes.
+    pub fn complete_regeneration(&mut self) {
+        REGENERATION_PENDING.store(false, Ordering::SeqCst);
+        self.last_generation_time = Some(Instant::now());
+    }
+
+    /// Generate edges with debouncing support.
+    /// Returns None if regeneration was debounced, Some(edges) otherwise.
+    pub fn generate_debounced(
+        &mut self,
+        features: &HashMap<String, SemanticFeatures>,
+    ) -> Option<Vec<EnhancedEdge>> {
+        if !self.should_regenerate() {
+            return None;
+        }
+
+        if !self.try_schedule_regeneration() {
+            return None;
+        }
+
+        let edges = self.generate(features);
+        self.complete_regeneration();
+        Some(edges)
     }
 
     
@@ -758,8 +821,11 @@ mod tests {
 
         let edges = generator.generate(&features);
         assert!(!edges.is_empty());
-        assert_eq!(edges[0].source, "file1");
-        assert_eq!(edges[0].target, "file2");
+        // Check that we have an edge connecting file1 and file2 (order may vary due to HashMap iteration)
+        let edge = &edges[0];
+        let has_correct_pair = (edge.source == "file1" && edge.target == "file2")
+            || (edge.source == "file2" && edge.target == "file1");
+        assert!(has_correct_pair, "Expected edge between file1 and file2, got {} -> {}", edge.source, edge.target);
     }
 
     #[test]

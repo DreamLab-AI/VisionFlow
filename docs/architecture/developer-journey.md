@@ -148,7 +148,7 @@ npm run dev
 
 **Example Good First Issues:**
 - "Add loading spinner to graph initialization"
-- "Fix typo in ARCHITECTURE_OVERVIEW.md"
+- "Fix typo in architecture/overview.md"
 - "Add keyboard shortcut for zoom reset"
 
 ### Bug Fixing Workflow
@@ -363,9 +363,9 @@ VisionFlow/
 
 ├── docs/                     # Documentation (you are here!)
 │   ├── OVERVIEW.md           # What is VisionFlow?
-│   ├── ARCHITECTURE_OVERVIEW.md  # System architecture
+│   ├── architecture/overview.md  # System architecture
 │   ├── TECHNOLOGY_CHOICES.md     # Design rationale
-│   ├── DEVELOPER_JOURNEY.md      # This file
+│   ├── architecture/developer-journey.md      # This file
 │   ├── guides/               # How-to guides
 │   ├── tutorials/            # Step-by-step tutorials
 │   ├── explanations/         # Architecture deep dives
@@ -393,7 +393,7 @@ VisionFlow/
 
 **Documentation:**
 1. **`docs/OVERVIEW.md`** - What is VisionFlow?
-2. **`docs/ARCHITECTURE_OVERVIEW.md`** - System architecture
+2. **`docs/architecture/overview.md`** - System architecture
 3. **`docs/guides/developer/02-project-structure.md`** - Detailed structure
 
 ### Navigation Techniques
@@ -938,7 +938,7 @@ if duration.as_secs() > 1 {
 
 ### Hexagonal Architecture Patterns
 
-**Read:** [Hexagonal CQRS Architecture](explanations/architecture/hexagonal-cqrs.md)
+**Read:** [Hexagonal CQRS Architecture](concepts/hexagonal-architecture.md)
 
 **Key concepts:**
 - **Ports** - Trait definitions (interfaces) for business logic
@@ -950,7 +950,7 @@ if duration.as_secs() > 1 {
 
 ### GPU Physics Pipeline
 
-**Read:** [GPU Semantic Forces](explanations/architecture/gpu-semantic-forces.md)
+**Read:** [GPU Semantic Forces](concepts/gpu-semantic-forces.md)
 
 **Key concepts:**
 - **CUDA kernel coordination** - CPU-GPU memory transfer
@@ -1049,7 +1049,7 @@ cd client && npm run test:e2e
 # After adding a feature:
 1. Update API reference: docs/reference/api/rest-api-reference.md
 2. Add how-to guide: docs/guides/features/your-feature.md
-3. Update architecture diagram: docs/ARCHITECTURE_OVERVIEW.md
+3. Update architecture diagram: docs/architecture/overview.md
 4. Update changelog: CHANGELOG.md
 ```
 

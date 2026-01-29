@@ -853,7 +853,7 @@ describe('Physics API integration', () => {
 
 - [WebSocket Best Practices](./websocket-best-practices.md)
 - [Binary Protocol Specification](../../reference/binary-websocket.md)
-- [API Reference](../../reference/api/readme.md)
+- [API Reference](../../reference/api/README.md)
 - [UnifiedApiClient](../../../client/src/services/api/README.md)
 
 ---

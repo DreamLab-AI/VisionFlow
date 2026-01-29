@@ -29,43 +29,43 @@
 
 **Missing Docs Files**: 241 links
 
-- **File**: `ARCHITECTURE_COMPLETE.md`
+- **File**: `architecture/overview.md`
   - **Link**: `docs/diagrams/architecture/backend-api-architecture-complete.md`
   - **Expected**: `docs/docs/diagrams/architecture/backend-api-architecture-complete.md`
 
-- **File**: `ARCHITECTURE_COMPLETE.md`
+- **File**: `architecture/overview.md`
   - **Link**: `docs/diagrams/client/rendering/threejs-pipeline-complete.md`
   - **Expected**: `docs/docs/diagrams/client/rendering/threejs-pipeline-complete.md`
 
-- **File**: `ARCHITECTURE_COMPLETE.md`
+- **File**: `architecture/overview.md`
   - **Link**: `docs/diagrams/client/state/state-management-complete.md`
   - **Expected**: `docs/docs/diagrams/client/state/state-management-complete.md`
 
-- **File**: `ARCHITECTURE_COMPLETE.md`
+- **File**: `architecture/overview.md`
   - **Link**: `docs/diagrams/client/xr/xr-architecture-complete.md`
   - **Expected**: `docs/docs/diagrams/client/xr/xr-architecture-complete.md`
 
-- **File**: `ARCHITECTURE_COMPLETE.md`
+- **File**: `architecture/overview.md`
   - **Link**: `docs/diagrams/server/actors/actor-system-complete.md`
   - **Expected**: `docs/docs/diagrams/server/actors/actor-system-complete.md`
 
-- **File**: `ARCHITECTURE_COMPLETE.md`
+- **File**: `architecture/overview.md`
   - **Link**: `docs/diagrams/server/agents/agent-system-architecture.md`
   - **Expected**: `docs/docs/diagrams/server/agents/agent-system-architecture.md`
 
-- **File**: `ARCHITECTURE_COMPLETE.md`
+- **File**: `architecture/overview.md`
   - **Link**: `docs/diagrams/server/api/rest-api-architecture.md`
   - **Expected**: `docs/docs/diagrams/server/api/rest-api-architecture.md`
 
-- **File**: `ARCHITECTURE_COMPLETE.md`
+- **File**: `architecture/overview.md`
   - **Link**: `docs/diagrams/infrastructure/websocket/binary-protocol-complete.md`
   - **Expected**: `docs/docs/diagrams/infrastructure/websocket/binary-protocol-complete.md`
 
-- **File**: `ARCHITECTURE_COMPLETE.md`
+- **File**: `architecture/overview.md`
   - **Link**: `docs/diagrams/infrastructure/gpu/cuda-architecture-complete.md`
   - **Expected**: `docs/docs/diagrams/infrastructure/gpu/cuda-architecture-complete.md`
 
-- **File**: `ARCHITECTURE_COMPLETE.md`
+- **File**: `architecture/overview.md`
   - **Link**: `docs/diagrams/infrastructure/database/neo4j-architecture-complete.md`
   - **Expected**: `docs/docs/diagrams/infrastructure/database/neo4j-architecture-complete.md`
 
@@ -94,24 +94,24 @@
   - **Expected**: `docs/guides/user/README.md`
 
 - **File**: `INDEX.md`
-  - **Link**: `guides/features/deepseek-verification.md`
-  - **Expected**: `docs/guides/features/deepseek-verification.md`
+  - **Link**: `guides/ai-models/deepseek-verification.md`
+  - **Expected**: `docs/guides/ai-models/deepseek-verification.md`
 
 - **File**: `INDEX.md`
-  - **Link**: `guides/features/deepseek-deployment.md`
-  - **Expected**: `docs/guides/features/deepseek-deployment.md`
+  - **Link**: `guides/ai-models/deepseek-deployment.md`
+  - **Expected**: `docs/guides/ai-models/deepseek-deployment.md`
 
 - **File**: `INDEX.md`
-  - **Link**: `explanations/architecture/gpu/readme.md`
-  - **Expected**: `docs/explanations/architecture/gpu/readme.md`
+  - **Link**: `architecture/gpu/README.md`
+  - **Expected**: `docs/architecture/gpu/README.md`
 
 - **File**: `INDEX.md`
-  - **Link**: `reference/api/readme.md`
-  - **Expected**: `docs/reference/api/readme.md`
+  - **Link**: `reference/api/README.md`
+  - **Expected**: `docs/reference/api/README.md`
 
 - **File**: `QUICK_NAVIGATION.md`
-  - **Link**: `guides/readme.md`
-  - **Expected**: `docs/guides/readme.md`
+  - **Link**: `guides/README.md`
+  - **Expected**: `docs/guides/README.md`
 
   ... and 317 more
 
@@ -154,8 +154,8 @@
   - **Expected**: `explanations/architecture`
 
 - **File**: `guides/developer/websocket-best-practices.md`
-  - **Link**: `../../../explanations/architecture/components/websocket-protocol.md`
-  - **Expected**: `explanations/architecture/components/websocket-protocol.md`
+  - **Link**: `../../../architecture/protocols/websocket.md`
+  - **Expected**: `architecture/protocols/websocket.md`
 
   ... and 30 more
 
@@ -186,7 +186,7 @@ Files with no inbound links (potential candidates for deletion or linking):
 - `analysis/DUAL_RENDERER_OVERHEAD_ANALYSIS.md`
 - `analysis/ontology-knowledge-skills-analysis.md`
 - `analysis/ontology-skills-cluster-analysis.md`
-- `architecture/PROTOCOL_MATRIX.md`
+- `reference/protocols/matrix.md`
 - `architecture/VIRCADIA_BABYLON_CONSOLIDATION_ANALYSIS.md`
 - `architecture/phase1-completion.md`
 - `architecture/skill-mcp-classification.md`
@@ -213,7 +213,7 @@ These files don't link to other documentation:
 - `TEST_COVERAGE_ANALYSIS.md`
 - `VALIDATION_CHECKLIST.md`
 - `analysis/DUAL_RENDERER_OVERHEAD_ANALYSIS.md`
-- `architecture/PROTOCOL_MATRIX.md`
+- `reference/protocols/matrix.md`
 - `architecture/VIRCADIA_BABYLON_CONSOLIDATION_ANALYSIS.md`
 - `architecture/phase1-completion.md`
 - `architecture/skill-mcp-classification.md`
@@ -229,7 +229,7 @@ These files don't link to other documentation:
 - `INDEX.md`: 367 links
 - `README.md`: 262 links
 - `archive/reports/consolidation/link-validation-report-2025-12.md`: 253 links
-- `reference/INDEX.md`: 175 links
+- `reference/README.md`: 175 links
 - `NAVIGATION.md`: 159 links
 - `QUICK_NAVIGATION.md`: 159 links
 - `archive/INDEX-QUICK-START-old.md`: 111 links
@@ -317,7 +317,7 @@ These files don't link to other documentation:
 - `explanations/architecture/components/`: 1 files, 1 total links
 - `explanations/architecture/core/`: 3 files, 5 total links
 - `explanations/architecture/decisions/`: 1 files, 0 total links
-- `explanations/architecture/gpu/`: 3 files, 7 total links
+- `architecture/gpu/`: 3 files, 7 total links
 - `explanations/architecture/ports/`: 7 files, 31 total links
 - `explanations/ontology/`: 8 files, 17 total links
 - `explanations/physics/`: 2 files, 5 total links

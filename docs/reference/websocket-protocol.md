@@ -447,11 +447,11 @@ function checkRateLimit(userId: string, msgType: u8): boolean {
 
 ## Related Documentation
 
-- [Database Schema Reference](DATABASE_SCHEMA_REFERENCE.md)
+- [Database Schema Reference](database/README.md)
 - [VisionFlow Binary WebSocket Protocol](protocols/binary-websocket.md)
 - [Pathfinding API Examples](api/pathfinding-examples.md)
-- [Error Reference and Troubleshooting](ERROR_REFERENCE.md)
-- [Complete API Reference](API_REFERENCE.md)
+- [Error Reference and Troubleshooting](error-codes.md)
+- [Complete API Reference](api/README.md)
 
 ## Performance Tuning
 

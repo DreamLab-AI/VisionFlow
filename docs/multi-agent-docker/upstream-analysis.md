@@ -205,7 +205,7 @@ See detailed plan in `/mnt/mldata/githubs/AR-AI-Knowledge-Graph/multi-agent-dock
 - [Terminal Grid Configuration](TERMINAL_GRID.md)
 - [Ontology/Knowledge Skills Analysis](../analysis/ontology-knowledge-skills-analysis.md)
 - [X-FluxAgent Integration Plan for ComfyUI MCP Skill](x-fluxagent-adaptation-plan.md)
-- [Hexagonal Architecture Migration Status Report](../architecture/HEXAGONAL_ARCHITECTURE_STATUS.md)
+- [Hexagonal Architecture Migration Status Report](../concepts/hexagonal-architecture.md)
 
 ## Conclusion
 

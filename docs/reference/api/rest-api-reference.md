@@ -636,8 +636,8 @@ Large result sets automatically paginated:
 
 ## Related Documentation
 
-- [Ontology Reasoning Pipeline](../../../explanations/architecture/ontology-reasoning-pipeline.md)
-- [Semantic Physics System](../../../explanations/architecture/semantic-physics-system.md)
+- [Ontology Reasoning Pipeline](../../../concepts/ontology-reasoning-pipeline.md)
+- [Semantic Physics System](../../../concepts/semantic-physics-system.md)
 - 
 - 
 

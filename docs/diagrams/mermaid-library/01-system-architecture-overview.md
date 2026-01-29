@@ -460,7 +460,7 @@ graph TB
 - [Complete System Data Flow Documentation](../data-flow/complete-data-flows.md)
 - [ASCII Diagram Deprecation - Complete Report](../../ASCII_DEPRECATION_COMPLETE.md)
 - [Server Architecture](../../concepts/architecture/core/server.md)
-- [Hexagonal Architecture Migration Status Report](../../architecture/HEXAGONAL_ARCHITECTURE_STATUS.md)
+- [Hexagonal Architecture Migration Status Report](../../concepts/hexagonal-architecture.md)
 
 ## 5. Component Interaction Matrix
 

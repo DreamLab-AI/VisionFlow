@@ -21,7 +21,7 @@ difficulty-level: intermediate
 
 | I need to... | Go to |
 |-------------|-------|
-| Install VisionFlow for the first time | [tutorials/01-installation.md](tutorials/01-installation.md) |
+| Install VisionFlow for the first time | [getting-started/installation.md](getting-started/installation.md) |
 | Set up my development environment | [guides/developer/01-development-setup.md](guides/developer/01-development-setup.md) |
 | Configure environment variables | [guides/configuration.md](guides/configuration.md) |
 | Deploy to production | [guides/deployment.md](guides/deployment.md) |
@@ -31,7 +31,7 @@ difficulty-level: intermediate
 
 | I need to... | Go to |
 |-------------|-------|
-| Create my first graph | [tutorials/02-first-graph.md](tutorials/02-first-graph.md) |
+| Create my first graph | [getting-started/first-graph.md](getting-started/first-graph.md) |
 | Navigate the 3D interface | [guides/navigation-guide.md](guides/navigation-guide.md) |
 | Query the graph database | [tutorials/neo4j-quick-start.md](tutorials/neo4j-quick-start.md) |
 | Ask natural language questions | [guides/features/natural-language-queries.md](guides/features/natural-language-queries.md) |
@@ -43,7 +43,7 @@ difficulty-level: intermediate
 
 | I need to... | Go to |
 |-------------|-------|
-| Understand the codebase structure | [DEVELOPER_JOURNEY.md](DEVELOPER_JOURNEY.md) |
+| Understand the codebase structure | [architecture/developer-journey.md](architecture/developer-journey.md) |
 | Learn the project organization | [guides/developer/02-project-structure.md](guides/developer/02-project-structure.md) |
 | Add a new feature | [guides/developer/04-adding-features.md](guides/developer/04-adding-features.md) |
 | Write tests | [guides/testing-guide.md](guides/testing-guide.md) |
@@ -55,11 +55,11 @@ difficulty-level: intermediate
 
 | I need to... | Go to |
 |-------------|-------|
-| Understand system architecture | [ARCHITECTURE_OVERVIEW.md](ARCHITECTURE_OVERVIEW.md) |
-| Learn about hexagonal architecture | [explanations/architecture/hexagonal-cqrs.md](explanations/architecture/hexagonal-cqrs.md) |
+| Understand system architecture | [architecture/overview.md](architecture/overview.md) |
+| Learn about hexagonal architecture | [concepts/hexagonal-architecture.md](concepts/hexagonal-architecture.md) |
 | Understand data flow | [explanations/architecture/data-flow-complete.md](explanations/architecture/data-flow-complete.md) |
 | Learn about the actor system | [guides/architecture/actor-system.md](guides/architecture/actor-system.md) |
-| Understand database design | [explanations/architecture/database-architecture.md](explanations/architecture/database-architecture.md) |
+| Understand database design | [architecture/database.md](architecture/database.md) |
 | Learn about ports & adapters | [explanations/architecture/ports/01-overview.md](explanations/architecture/ports/01-overview.md) |
 
 ### AI & Agents
@@ -88,16 +88,16 @@ difficulty-level: intermediate
 | Store ontologies in Neo4j | [guides/ontology-storage-guide.md](guides/ontology-storage-guide.md) |
 | Enable reasoning | [guides/ontology-reasoning-integration.md](guides/ontology-reasoning-integration.md) |
 | Use ontology physics | [guides/ontology-semantic-forces.md](guides/ontology-semantic-forces.md) |
-| Understand reasoning architecture | [explanations/architecture/ontology-reasoning-pipeline.md](explanations/architecture/ontology-reasoning-pipeline.md) |
+| Understand reasoning architecture | [concepts/ontology-reasoning-pipeline.md](concepts/ontology-reasoning-pipeline.md) |
 
 ### GPU & Performance
 
 | I need to... | Go to |
 |-------------|-------|
-| Optimize GPU performance | [explanations/architecture/gpu/optimizations.md](explanations/architecture/gpu/optimizations.md) |
-| Understand GPU physics | [explanations/architecture/gpu-semantic-forces.md](explanations/architecture/gpu-semantic-forces.md) |
+| Optimize GPU performance | [architecture/gpu/optimizations.md](architecture/gpu/optimizations.md) |
+| Understand GPU physics | [concepts/gpu-semantic-forces.md](concepts/gpu-semantic-forces.md) |
 | See performance benchmarks | [reference/performance-benchmarks.md](reference/performance-benchmarks.md) |
-| Understand physics system | [explanations/architecture/semantic-physics-system.md](explanations/architecture/semantic-physics-system.md) |
+| Understand physics system | [concepts/semantic-physics-system.md](concepts/semantic-physics-system.md) |
 
 ### XR & VR
 
@@ -105,7 +105,7 @@ difficulty-level: intermediate
 |-------------|-------|
 | Set up Quest 3 XR | [guides/vircadia-xr-complete-guide.md](guides/vircadia-xr-complete-guide.md) |
 | Enable multi-user VR | [guides/vircadia-multi-user-guide.md](guides/vircadia-multi-user-guide.md) |
-| Understand XR architecture | [explanations/architecture/xr-immersive-system.md](explanations/architecture/xr-immersive-system.md) |
+| Understand XR architecture | [concepts/xr-immersive-system.md](concepts/xr-immersive-system.md) |
 | Integrate WebXR | [guides/client/xr-integration.md](guides/client/xr-integration.md) |
 
 ### API Reference
@@ -140,12 +140,12 @@ difficulty-level: intermediate
    - See real-world use cases
    - Learn key concepts
 
-2. **[Installation](tutorials/01-installation.md)** (15 min)
+2. **[Installation](getting-started/installation.md)** (15 min)
    - Install with Docker
    - Or install natively
    - Verify installation
 
-3. **[First Graph](tutorials/02-first-graph.md)** (20 min)
+3. **[First Graph](getting-started/first-graph.md)** (20 min)
    - Create your first visualization
    - Deploy AI agents
    - Explore the interface
@@ -168,12 +168,12 @@ difficulty-level: intermediate
 
 **Goal**: Build and customize the React Three.js client
 
-1. **[Developer Journey](DEVELOPER_JOURNEY.md)** (30 min)
+1. **[Developer Journey](architecture/developer-journey.md)** (30 min)
    - Understand codebase organization
    - Learn navigation patterns
    - Identify key modules
 
-2. **[Client Architecture](explanations/architecture/core/client.md)** (20 min)
+2. **[Client Architecture](architecture/client/overview.md)** (20 min)
    - React application structure
    - Three.js integration
    - State management patterns
@@ -201,7 +201,7 @@ difficulty-level: intermediate
 
 **Goal**: Understand and extend the Rust Actix backend
 
-1. **[Developer Journey](DEVELOPER_JOURNEY.md)** (30 min)
+1. **[Developer Journey](architecture/developer-journey.md)** (30 min)
    - Codebase overview
    - Module organization
    - Key patterns
@@ -211,12 +211,12 @@ difficulty-level: intermediate
    - Ports & adapters
    - Neo4j integration
 
-3. **[Hexagonal CQRS](explanations/architecture/hexagonal-cqrs.md)** (30 min)
+3. **[Hexagonal CQRS](concepts/hexagonal-architecture.md)** (30 min)
    - Ports & adapters pattern
    - Command/query separation
    - Business logic isolation
 
-4. **[Database Architecture](explanations/architecture/database-architecture.md)** (30 min)
+4. **[Database Architecture](architecture/database.md)** (30 min)
    - Neo4j schema design
    - Query patterns
    - Performance optimization
@@ -226,7 +226,7 @@ difficulty-level: intermediate
    - Message passing
    - Debugging actors
 
-**Next Steps**: [API Handlers Reference](explanations/architecture/api-handlers-reference.md), [Services Architecture](explanations/architecture/services-architecture.md)
+**Next Steps**: [API Handlers Reference](reference/api/handlers.md), [Services Architecture](explanations/architecture/services-architecture.md)
 
 ---
 
@@ -234,7 +234,7 @@ difficulty-level: intermediate
 
 **Goal**: Understand complete system design and make architectural decisions
 
-1. **[Architecture Overview](ARCHITECTURE_OVERVIEW.md)** (60 min)
+1. **[Architecture Overview](architecture/overview.md)** (60 min)
    - Complete system architecture
    - Component interaction
    - Technology choices
@@ -249,17 +249,17 @@ difficulty-level: intermediate
    - GitHub → Neo4j → GPU
    - Data transformations
 
-4. **[Integration Patterns](explanations/architecture/integration-patterns.md)** (30 min)
+4. **[Integration Patterns](concepts/integration-patterns.md)** (30 min)
    - System integration strategies
    - Adapter patterns
    - Service boundaries
 
-5. **[Hexagonal CQRS](explanations/architecture/hexagonal-cqrs.md)** (30 min)
+5. **[Hexagonal CQRS](concepts/hexagonal-architecture.md)** (30 min)
    - Ports & adapters pattern
    - CQRS implementation
    - Clean architecture
 
-**Next Steps**: [Multi-Agent System](explanations/architecture/multi-agent-system.md), [Ontology Storage Architecture](explanations/architecture/ontology-storage-architecture.md)
+**Next Steps**: [Multi-Agent System](explanations/architecture/multi-agent-system.md), [Ontology Storage Architecture](concepts/ontology-storage.md)
 
 ---
 
@@ -320,12 +320,12 @@ difficulty-level: intermediate
    - Whelk reasoner
    - Reasoning algorithms
 
-5. **[Ontology Reasoning Pipeline](explanations/architecture/ontology-reasoning-pipeline.md)** (40 min)
+5. **[Ontology Reasoning Pipeline](concepts/ontology-reasoning-pipeline.md)** (40 min)
    - End-to-end pipeline
    - Integration points
    - Performance optimization
 
-**Next Steps**: [Ontology Semantic Forces](guides/ontology-semantic-forces.md), [RuVector Integration](explanations/architecture/ruvector-integration.md)
+**Next Steps**: [Ontology Semantic Forces](guides/ontology-semantic-forces.md), [RuVector Integration](concepts/ruvector-integration.md)
 
 ---
 
@@ -368,8 +368,8 @@ difficulty-level: intermediate
 
 **Start with your role:**
 - **New User** → Start at [README.md](README.md) → New Users section
-- **Developer** → Start at [DEVELOPER_JOURNEY.md](DEVELOPER_JOURNEY.md)
-- **Architect** → Start at [ARCHITECTURE_OVERVIEW.md](ARCHITECTURE_OVERVIEW.md)
+- **Developer** → Start at [architecture/developer-journey.md](architecture/developer-journey.md)
+- **Architect** → Start at [architecture/overview.md](architecture/overview.md)
 - **DevOps** → Start at [Deployment Guide](guides/deployment.md)
 
 ### Strategy 2: Feature-Based Navigation
@@ -380,9 +380,9 @@ difficulty-level: intermediate
 2. **Search by feature area:**
    - Graph Visualization → tutorials/, guides/client/
    - AI Agents → guides/agent-orchestration.md, explanations/architecture/multi-agent-system.md
-   - Database → guides/neo4j-integration.md, explanations/architecture/database-architecture.md
+   - Database → guides/neo4j-integration.md, architecture/database.md
    - Ontology → guides/ontology-*.md, explanations/ontology/
-   - GPU → explanations/architecture/gpu-semantic-forces.md, explanations/architecture/gpu/
+   - GPU → concepts/gpu-semantic-forces.md, architecture/gpu/
 
 ### Strategy 3: Technology Stack Navigation
 
@@ -390,10 +390,10 @@ difficulty-level: intermediate
 
 | Technology | Start Here |
 |-----------|-----------|
-| **Neo4j** | [Neo4j Integration](guides/neo4j-integration.md) → [Database Schemas](reference/database/schemas.md) → [Database Architecture](explanations/architecture/database-architecture.md) |
-| **Rust** | [Server Architecture](concepts/architecture/core/server.md) → [Project Structure](guides/developer/02-project-structure.md) → [Hexagonal CQRS](explanations/architecture/hexagonal-cqrs.md) |
-| **React** | [Client Architecture](explanations/architecture/core/client.md) → [Three.js Rendering](guides/client/three-js-rendering.md) → [State Management](guides/client/state-management.md) |
-| **CUDA** | [GPU Semantic Forces](explanations/architecture/gpu-semantic-forces.md) → [GPU Optimizations](explanations/architecture/gpu/optimizations.md) → [Performance Benchmarks](reference/performance-benchmarks.md) |
+| **Neo4j** | [Neo4j Integration](guides/neo4j-integration.md) → [Database Schemas](reference/database/schemas.md) → [Database Architecture](architecture/database.md) |
+| **Rust** | [Server Architecture](concepts/architecture/core/server.md) → [Project Structure](guides/developer/02-project-structure.md) → [Hexagonal CQRS](concepts/hexagonal-architecture.md) |
+| **React** | [Client Architecture](architecture/client/overview.md) → [Three.js Rendering](guides/client/three-js-rendering.md) → [State Management](guides/client/state-management.md) |
+| **CUDA** | [GPU Semantic Forces](concepts/gpu-semantic-forces.md) → [GPU Optimizations](architecture/gpu/optimizations.md) → [Performance Benchmarks](reference/performance-benchmarks.md) |
 | **OWL** | [Ontology Parser](guides/ontology-parser.md) → [Ontology Storage](guides/ontology-storage-guide.md) → [Reasoning Engine](explanations/ontology/reasoning-engine.md) |
 
 ### Strategy 4: Task-Based Navigation
@@ -423,7 +423,7 @@ difficulty-level: intermediate
 4. **Follow cross-reference links**
 
 Example:
-- [Installation](tutorials/01-installation.md) → [First Graph](tutorials/02-first-graph.md) → [Navigation Guide](guides/navigation-guide.md) → [Configuration](guides/configuration.md)
+- [Installation](getting-started/installation.md) → [First Graph](getting-started/first-graph.md) → [Navigation Guide](guides/navigation-guide.md) → [Configuration](guides/configuration.md)
 
 ---
 
@@ -431,7 +431,7 @@ Example:
 
 ### Frontend (Client) Architecture
 
-**Entry Point**: [Client Architecture](explanations/architecture/core/client.md)
+**Entry Point**: [Client Architecture](architecture/client/overview.md)
 
 **Navigation Flow:**
 ```
@@ -443,7 +443,7 @@ Client Architecture
 ```
 
 **Related Topics:**
-- UI/UX → [Analytics Visualization](explanations/architecture/analytics-visualization.md)
+- UI/UX → [Analytics Visualization](concepts/analytics-visualization.md)
 - Performance → [Client-Side Hierarchical LOD](explanations/ontology/client-side-hierarchical-lod.md)
 - Data → [JSON Serialization Patterns](guides/developer/json-serialization-patterns.md)
 
@@ -461,13 +461,13 @@ Server Architecture
 ```
 
 **Related Topics:**
-- API → [API Handlers Reference](explanations/architecture/api-handlers-reference.md)
+- API → [API Handlers Reference](reference/api/handlers.md)
 - Data Flow → [Data Flow Complete](explanations/architecture/data-flow-complete.md)
-- Integration → [Integration Patterns](explanations/architecture/integration-patterns.md)
+- Integration → [Integration Patterns](concepts/integration-patterns.md)
 
 ### Database Architecture
 
-**Entry Point**: [Database Architecture](explanations/architecture/database-architecture.md)
+**Entry Point**: [Database Architecture](architecture/database.md)
 
 **Navigation Flow:**
 ```
@@ -481,11 +481,11 @@ Database Architecture
 **Related Topics:**
 - Migration → [Neo4j Migration](guides/neo4j-migration.md)
 - Query → [Neo4j Quick Start](tutorials/neo4j-quick-start.md)
-- ADR → [Neo4j Persistence ADR](explanations/architecture/decisions/0001-neo4j-persistent-with-filesystem-sync.md)
+- ADR → [Neo4j Persistence ADR](architecture/adr/ADR-0001-neo4j-persistent-with-filesystem-sync.md)
 
 ### GPU Architecture
 
-**Entry Point**: [GPU Semantic Forces](explanations/architecture/gpu-semantic-forces.md)
+**Entry Point**: [GPU Semantic Forces](concepts/gpu-semantic-forces.md)
 
 **Navigation Flow:**
 ```
@@ -502,7 +502,7 @@ GPU Semantic Forces
 
 ### Ontology Architecture
 
-**Entry Point**: [Ontology Storage Architecture](explanations/architecture/ontology-storage-architecture.md)
+**Entry Point**: [Ontology Storage Architecture](concepts/ontology-storage.md)
 
 **Navigation Flow:**
 ```
@@ -516,7 +516,7 @@ Ontology Storage Architecture
 **Related Topics:**
 - Physics → [Ontology Semantic Forces](guides/ontology-semantic-forces.md)
 - Port → [Ontology Repository](explanations/architecture/ports/04-ontology-repository.md)
-- Vector Search → [RuVector Integration](explanations/architecture/ruvector-integration.md)
+- Vector Search → [RuVector Integration](concepts/ruvector-integration.md)
 
 ---
 
@@ -528,8 +528,8 @@ docs/
 ├── INDEX.md (Complete index with search)
 ├── NAVIGATION.md (This file - navigation guide)
 ├── OVERVIEW.md (What is VisionFlow?)
-├── ARCHITECTURE_OVERVIEW.md (System architecture)
-├── DEVELOPER_JOURNEY.md (Codebase learning path)
+├── architecture/overview.md (System architecture)
+├── architecture/developer-journey.md (Codebase learning path)
 ├── TECHNOLOGY_CHOICES.md (Tech stack rationale)
 │
 ├── tutorials/ (3 files - LEARNING)

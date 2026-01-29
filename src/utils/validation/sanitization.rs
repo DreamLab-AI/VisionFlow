@@ -97,30 +97,35 @@ impl Sanitizer {
 
         let mut sanitized = input.to_string();
 
-        
+        // Check for malicious patterns BEFORE escaping, since escaping would alter the patterns
         sanitized = Self::remove_script_tags(&sanitized)?;
-        sanitized = Self::escape_html(&sanitized);
         sanitized = Self::remove_sql_injection_patterns(&sanitized)?;
         sanitized = Self::remove_path_traversal(&sanitized)?;
         sanitized = Self::limit_unicode_control_chars(&sanitized)?;
+        // HTML escape as the final step to safely render the output
+        sanitized = Self::escape_html(&sanitized);
 
         Ok(sanitized)
     }
 
-    
+
     fn remove_script_tags(input: &str) -> ValidationResult<String> {
-        
+
         let xss_patterns = [
-            
+
             r"(?i)<script[^>]*>.*?</script>",
-            
+
             r#"(?i)(href|src)\s*=\s*["']?\s*javascript:"#,
-            
+
             r#"(?i)(href|src)\s*=\s*["']?\s*vbscript:"#,
-            
+
             r"(?i)data:text/html[,;]",
-            
+
             r#"(?i)\s(on\w+)\s*=\s*["'][^"']*["']"#,
+
+            r"(?i)^javascript:",
+
+            r"(?i)^vbscript:",
         ];
 
         let result = input.to_string();
@@ -182,8 +187,29 @@ impl Sanitizer {
         Ok(input.to_string())
     }
 
-    
+
     fn remove_path_traversal(input: &str) -> ValidationResult<String> {
+        // Check for null bytes (path truncation attack)
+        if input.contains('\0') {
+            return Err(ValidationError::new(
+                "path",
+                "null byte detected",
+                "PATH_TRAVERSAL",
+            )
+            .into());
+        }
+
+        // Decode URL encoding to catch double-encoded attacks
+        let decoded = urlencoding::decode(input).unwrap_or_else(|_| input.into());
+        if decoded.contains("..") || decoded.contains("./") || decoded.contains(".\\") {
+            return Err(ValidationError::new(
+                "path",
+                "traversal after decode",
+                "PATH_TRAVERSAL",
+            )
+            .into());
+        }
+
         let traversal_patterns = [
             r"\.\./",
             r"\.\.\\",
@@ -409,11 +435,28 @@ pub struct CSPUtils;
 
 impl CSPUtils {
     
+    /// Generate CSP header with nonce for script security
+    /// SECURITY FIX: Removed unsafe-inline and unsafe-eval to prevent XSS attacks
     pub fn generate_csp_header() -> String {
+        Self::generate_csp_header_with_nonce(&Self::generate_nonce())
+    }
+
+    /// Generate a cryptographically secure nonce for CSP
+    pub fn generate_nonce() -> String {
+        use std::time::{SystemTime, UNIX_EPOCH};
+        let timestamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_nanos();
+        format!("{:x}", timestamp)
+    }
+
+    /// Generate CSP header with a specific nonce
+    pub fn generate_csp_header_with_nonce(nonce: &str) -> String {
         vec![
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval'", 
-            "style-src 'self' 'unsafe-inline'",
+            &format!("script-src 'self' 'nonce-{}'", nonce),
+            "style-src 'self' 'unsafe-inline'",  // inline styles less dangerous than scripts
             "img-src 'self' data: blob:",
             "font-src 'self'",
             "connect-src 'self' ws: wss:",

@@ -38,7 +38,7 @@ The VisionFlow documentation corpus is a comprehensive, well-organized system co
 - **Total Markdown Files:** 374
 - **Total Lines:** 219,826
 - **Average Lines per File:** 587
-- **Largest File:** ARCHITECTURE_OVERVIEW.md (66KB)
+- **Largest File:** architecture/overview.md (66KB)
 - **Smallest File:** Various stub files (<1KB)
 
 ---
@@ -91,9 +91,9 @@ The VisionFlow documentation corpus is a comprehensive, well-organized system co
 
 ### Large Files (>30KB)
 
-1. ARCHITECTURE_OVERVIEW.md (66KB)
+1. architecture/overview.md (66KB)
 2. visionflow-architecture-analysis.md (39KB)
-3. DEVELOPER_JOURNEY.md (33KB)
+3. architecture/developer-journey.md (33KB)
 4. README.md (33KB)
 5. PROJECT_CONSOLIDATION_PLAN.md (31KB)
 6. INDEX.md (30KB)
@@ -148,8 +148,8 @@ The Diataxis framework organizes documentation into four quadrants: **Tutorials*
 ### Breakdown by Location
 
 #### Tutorials (Getting Started)
-- tutorials/01-installation.md
-- tutorials/02-first-graph.md
+- getting-started/installation.md
+- getting-started/first-graph.md
 - tutorials/neo4j-quick-start.md
 - 01-GETTING_STARTED.md
 - GETTING_STARTED_WITH_UNIFIED_DOCS.md
@@ -168,11 +168,11 @@ The Diataxis framework organizes documentation into four quadrants: **Tutorials*
 - guides/architecture/* (4 files)
 
 #### Reference Documentation
-- reference/API_REFERENCE.md
-- reference/CONFIGURATION_REFERENCE.md
-- reference/DATABASE_SCHEMA_REFERENCE.md
-- reference/ERROR_REFERENCE.md
-- reference/PROTOCOL_REFERENCE.md
+- reference/api/README.md
+- reference/configuration/README.md
+- reference/database/README.md
+- reference/error-codes.md
+- reference/protocols/README.md
 - reference/api/* (10 files)
 - reference/database/* (5 files)
 
@@ -202,7 +202,7 @@ The Diataxis framework organizes documentation into four quadrants: **Tutorials*
 **Near-Duplicates Identified:**
 
 1. **Similar Architecture Overviews**
-   - ARCHITECTURE_OVERVIEW.md
+   - architecture/overview.md
    - visionflow-architecture-analysis.md
    - architecture/README.md (conceptual, not duplicate)
    - Recommendation: Consolidate or create cross-references
@@ -279,7 +279,7 @@ The Diataxis framework organizes documentation into four quadrants: **Tutorials*
 Files most frequently referenced:
 
 1. README.md (root) - 24 references
-2. ARCHITECTURE_OVERVIEW.md - 18 references
+2. architecture/overview.md - 18 references
 3. guides/README.md - 12 references
 4. reference/README.md - 11 references
 5. explanations/system-overview.md - 9 references
@@ -416,7 +416,7 @@ Files most frequently referenced:
    - Impact: 100% front matter coverage
 
 2. **Consolidate duplicate architecture docs**
-   - Merge: ARCHITECTURE_OVERVIEW.md + visionflow-architecture-analysis.md
+   - Merge: architecture/overview.md + visionflow-architecture-analysis.md
    - Create cross-references
    - Effort: 2 hours
    - Impact: Reduce redundancy

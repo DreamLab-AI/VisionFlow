@@ -558,8 +558,8 @@ ping turbo-devpod.ragflow
 - [Configuration Guide](/docs/guides/configuration.md)
 
 ### AI Service Documentation
-- [DeepSeek Verification](/docs/guides/features/deepseek-verification.md)
-- [DeepSeek Deployment](/docs/guides/features/deepseek-deployment.md)
+- [DeepSeek Verification](/docs/guides/ai-models/deepseek-verification.md)
+- [DeepSeek Deployment](/docs/guides/ai-models/deepseek-deployment.md)
 - [Perplexity Skill](/multi-agent-docker/skills/perplexity/SKILL.md)
 - [DeepSeek Reasoning Skill](/multi-agent-docker/skills/deepseek-reasoning/SKILL.md)
 

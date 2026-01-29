@@ -9,7 +9,7 @@ tags:
   - structure
   - api
 related-docs:
-  - architecture/HEXAGONAL_ARCHITECTURE_STATUS.md
+  - concepts/hexagonal-architecture.md
   - architecture/phase1-completion.md
   - architecture/skill-mcp-classification.md
 updated-date: 2025-12-18
@@ -1887,7 +1887,7 @@ node --inspect blender-mcp/dist/server.js
 - [Agent/Bot System Architecture](../diagrams/server/agents/agent-system-architecture.md)
 - [VisionFlow Client Architecture Analysis](../visionflow-architecture-analysis.md)
 - [Agent Orchestration & Multi-Agent Systems](../diagrams/mermaid-library/04-agent-orchestration.md)
-- [VisionFlow Complete Architecture Documentation](../ARCHITECTURE_COMPLETE.md)
+- [VisionFlow Complete Architecture Documentation](../architecture/overview.md)
 - [What is VisionFlow?](../OVERVIEW.md)
 
 ## 15. Appendix

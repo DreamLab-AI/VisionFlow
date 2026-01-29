@@ -9,7 +9,7 @@ tags:
   - structure
   - api
 related-docs:
-  - architecture/HEXAGONAL_ARCHITECTURE_STATUS.md
+  - concepts/hexagonal-architecture.md
   - architecture/blender-mcp-unified-architecture.md
   - architecture/phase1-completion.md
 updated-date: 2025-12-18

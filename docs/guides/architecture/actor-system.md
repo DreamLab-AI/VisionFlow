@@ -10,8 +10,8 @@ tags:
   - api
 related-docs:
   - concepts/architecture/core/server.md
-  - explanations/architecture/hexagonal-cqrs.md
-  - explanations/architecture/database-architecture.md
+  - concepts/hexagonal-architecture.md
+  - architecture/database.md
   - README.md
 updated-date: 2025-12-18
 difficulty-level: advanced
@@ -721,8 +721,8 @@ Is the operation:
 
 ### Architecture Docs
 - [Server Architecture](../../concepts/architecture/core/server.md) - Overall system design with 21-actor hierarchy
-- [Hexagonal Architecture](../../explanations/architecture/hexagonal-cqrs.md) - Ports/adapters/CQRS patterns
-- [Database Architecture](../../explanations/architecture/database-architecture.md) - Neo4j integration
+- [Hexagonal Architecture](../../concepts/hexagonal-architecture.md) - Ports/adapters/CQRS patterns
+- [Database Architecture](../../architecture/database.md) - Neo4j integration
 
 ### Implementation Guides
 - [Message Flow Debugging](../debugging/actor-message-tracing.md) - Tracing actor messages (if exists)

@@ -473,7 +473,7 @@ perplexity (MCP stub) ← Duplicate of ontology-enrich/perplexity_client.py
 ## Related Documentation
 
 - [Ontology & Knowledge Skills Cluster Analysis](ontology-skills-cluster-analysis.md)
-- [Hexagonal Architecture Migration Status Report](../architecture/HEXAGONAL_ARCHITECTURE_STATUS.md)
+- [Hexagonal Architecture Migration Status Report](../concepts/hexagonal-architecture.md)
 - [Upstream Turbo-Flow-Claude Analysis](../multi-agent-docker/upstream-analysis.md)
 - [VisionFlow Architecture Diagrams - Complete Corpus](../diagrams/README.md)
 - [Blender MCP Unified System Architecture](../architecture/blender-mcp-unified-architecture.md)

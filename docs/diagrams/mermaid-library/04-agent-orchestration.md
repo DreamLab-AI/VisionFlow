@@ -452,7 +452,7 @@ graph TB
 
 - [Agent/Bot System Architecture](../server/agents/agent-system-architecture.md)
 - [VisionFlow Architecture Diagrams - Complete Corpus](../README.md)
-- [VisionFlow Complete Architecture Documentation](../../ARCHITECTURE_COMPLETE.md)
+- [VisionFlow Complete Architecture Documentation](../../architecture/overview.md)
 - [Blender MCP Unified System Architecture](../../architecture/blender-mcp-unified-architecture.md)
 - [What is VisionFlow?](../../OVERVIEW.md)
 

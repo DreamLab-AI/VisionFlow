@@ -795,10 +795,10 @@ fn bench_dag_force_10k_nodes(b: &mut Bencher) {
 
 ## Related Documentation
 
-- [Semantic Forces System](../../explanations/architecture/semantic-forces-system.md)
+- [Semantic Forces System](../../concepts/semantic-forces-system.md)
 - [Typed Ontology System](../../explanations/ontology/ontology-typed-system.md)
 - [Intelligent Pathfinding System](../../explanations/ontology/intelligent-pathfinding-system.md)
-- [GPU Architecture](../../explanations/architecture/gpu/readme.md)
+- [GPU Architecture](../../architecture/gpu/README.md)
 - [Neo4j Integration Guide](./neo4j-integration.md)
 
 ---

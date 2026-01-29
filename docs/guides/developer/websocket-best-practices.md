@@ -781,7 +781,7 @@ describe('WebSocketService', () => {
 
 - [Binary Protocol Specification](../../reference/binary-websocket.md)
 - [JSON Serialization Patterns](./json-serialization-patterns.md)
-- [WebSocket Protocol Architecture](../../../explanations/architecture/components/websocket-protocol.md)
+- [WebSocket Protocol Architecture](../../../architecture/protocols/websocket.md)
 - [API Reference](../../reference/api/03-websocket.md)
 
 ---

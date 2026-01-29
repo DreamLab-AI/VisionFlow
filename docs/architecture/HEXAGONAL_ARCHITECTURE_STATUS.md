@@ -549,7 +549,7 @@ All code follows hexagonal principles without architecture violations.
 
 ## Related Documentation
 
-- [Database Architecture](../explanations/architecture/database-architecture.md)
+- [Database Architecture](../architecture/database.md)
 - [Blender MCP Unified System Architecture](blender-mcp-unified-architecture.md)
 - [Server Architecture](../concepts/architecture/core/server.md)
 - [VisionFlow Documentation Modernization - Final Report](../DOCUMENTATION_MODERNIZATION_COMPLETE.md)

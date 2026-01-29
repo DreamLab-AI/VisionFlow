@@ -1,6 +1,6 @@
 ---
 title: Security Best Practices
-description: *[Guides](../guides/readme.md) > Security*
+description: *[Guides](../guides/README.md) > Security*
 category: guide
 tags:
   - tutorial
@@ -14,7 +14,7 @@ difficulty-level: intermediate
 
 # Security Best Practices
 
-*[Guides](../guides/readme.md) > Security*
+*[Guides](../guides/README.md) > Security*
 
 This document outlines the security measures implemented in the VisionFlow multi-agent system and provides guidelines for secure deployment and usage.
 

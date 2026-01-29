@@ -719,7 +719,7 @@ impl RateLimiter {
 
 ## Related Documentation
 
-- [Semantic Forces System](./explanations/architecture/semantic-forces-system.md)
+- [Semantic Forces System](./concepts/semantic-forces-system.md)
 - [Intelligent Pathfinding](./intelligent-pathfinding-system.md)
 - [Neo4j Integration Guide](../guides/neo4j-integration.md)
 - [Semantic Features Implementation Guide](../guides/semantic-features-implementation.md)

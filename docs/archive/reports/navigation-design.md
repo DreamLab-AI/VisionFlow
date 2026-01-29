@@ -56,7 +56,7 @@ docs/
 
 **Total Active Documentation**: 161+ markdown files
 **Archive (Not Linked)**: 50+ files
-**Unique Entry Points**: 5 (README.md, INDEX.md, OVERVIEW.md, ARCHITECTURE_OVERVIEW.md, DEVELOPER_JOURNEY.md)
+**Unique Entry Points**: 5 (README.md, INDEX.md, OVERVIEW.md, architecture/overview.md, architecture/developer-journey.md)
 
 ### 1.2 Current Entry Points Assessment
 
@@ -66,8 +66,8 @@ docs/
 | **docs/README.md** | `/docs/` | Documentation hub | Comprehensive index | Scattered across 3 pages |
 | **docs/INDEX.md** | `/docs/` | Master index | Role-based navigation | Not discoverable from README |
 | **OVERVIEW.md** | `/docs/` | VisionFlow definition | Clear value proposition | No navigation context |
-| **ARCHITECTURE_OVERVIEW.md** | `/docs/` | System design | Detailed diagrams | Hidden in guides section |
-| **DEVELOPER_JOURNEY.md** | `/docs/` | Learning path | Structured progression | Duplicates INDEX.md content |
+| **architecture/overview.md** | `/docs/` | System design | Detailed diagrams | Hidden in guides section |
+| **architecture/developer-journey.md** | `/docs/` | Learning path | Structured progression | Duplicates INDEX.md content |
 
 **Problem**: Users must navigate multiple entry points to find role-appropriate content.
 
@@ -107,10 +107,10 @@ docs/
 1. **What is VisionFlow?** → [OVERVIEW.md](../OVERVIEW.md)
    *Learn the value proposition and use cases*
 
-2. **Installation** → [tutorials/01-installation.md](../tutorials/01-installation.md)
+2. **Installation** → [getting-started/installation.md](../getting-started/installation.md)
    *Docker or native setup (10 min)*
 
-3. **First Graph** → [tutorials/02-first-graph.md](../tutorials/02-first-graph.md)
+3. **First Graph** → [getting-started/first-graph.md](../getting-started/first-graph.md)
    *Create visualization with AI agents (15 min)*
 
 4. **Navigate in 3D** → [guides/navigation-guide.md](../guides/navigation-guide.md)
@@ -148,7 +148,7 @@ New Users
 **Recommended Path** (1-2 weeks):
 
 **Week 1: Foundation**
-1. **Developer Journey** → [DEVELOPER_JOURNEY.md](../DEVELOPER_JOURNEY.md)
+1. **Developer Journey** → [architecture/developer-journey.md](../architecture/developer-journey.md)
    *Structured codebase learning path*
 
 2. **Development Setup** → [guides/developer/01-development-setup.md](../guides/developer/01-development-setup.md)
@@ -157,7 +157,7 @@ New Users
 3. **Project Structure** → [guides/developer/02-project-structure.md](../guides/developer/02-project-structure.md)
    *Code organization and modules (⭐⭐⭐ priority)*
 
-4. **Architecture Overview** → [ARCHITECTURE_OVERVIEW.md](../ARCHITECTURE_OVERVIEW.md)
+4. **Architecture Overview** → [architecture/overview.md](../architecture/overview.md)
    *System design patterns (⭐⭐ priority)*
 
 **Week 2: Technology Deep-Dives**
@@ -166,10 +166,10 @@ New Users
 
 | Technology | Primary | Secondary | Reference |
 |-----------|---------|-----------|-----------|
-| **Rust Backend** | [Server Architecture](../concepts/architecture/core/server.md) | [Hexagonal CQRS](../explanations/architecture/hexagonal-cqrs.md) | [Project Structure](../guides/developer/02-project-structure.md) |
-| **React Frontend** | [Client Architecture](../explanations/architecture/core/client.md) | [State Management](../guides/client/state-management.md) | [Three.js Rendering](../guides/client/three-js-rendering.md) |
-| **Neo4j Database** | [Database Architecture](../explanations/architecture/database-architecture.md) | [Schemas](../reference/database/schemas.md) | [Neo4j Integration](../guides/neo4j-integration.md) |
-| **GPU/CUDA** | [GPU Semantic Forces](../explanations/architecture/gpu-semantic-forces.md) | [GPU Optimizations](../explanations/architecture/gpu/optimizations.md) | [Performance Benchmarks](../reference/performance-benchmarks.md) |
+| **Rust Backend** | [Server Architecture](../concepts/architecture/core/server.md) | [Hexagonal CQRS](../concepts/hexagonal-architecture.md) | [Project Structure](../guides/developer/02-project-structure.md) |
+| **React Frontend** | [Client Architecture](../architecture/client/overview.md) | [State Management](../guides/client/state-management.md) | [Three.js Rendering](../guides/client/three-js-rendering.md) |
+| **Neo4j Database** | [Database Architecture](../architecture/database.md) | [Schemas](../reference/database/schemas.md) | [Neo4j Integration](../guides/neo4j-integration.md) |
+| **GPU/CUDA** | [GPU Semantic Forces](../concepts/gpu-semantic-forces.md) | [GPU Optimizations](../architecture/gpu/optimizations.md) | [Performance Benchmarks](../reference/performance-benchmarks.md) |
 | **WebSocket** | [Binary Protocol](../reference/protocols/binary-websocket.md) | [WebSocket Best Practices](../guides/developer/websocket-best-practices.md) | [API Complete Reference](../reference/api/rest-api-complete.md) |
 
 **Adding Features**:
@@ -220,7 +220,7 @@ Developers
 **Recommended Path** (1-2 weeks):
 
 **Foundation** (Days 1-2):
-1. **Architecture Overview** → [ARCHITECTURE_OVERVIEW.md](../ARCHITECTURE_OVERVIEW.md)
+1. **Architecture Overview** → [architecture/overview.md](../architecture/overview.md)
    *Complete system architecture with diagrams*
 
 2. **Technology Choices** → [TECHNOLOGY_CHOICES.md](../TECHNOLOGY_CHOICES.md)
@@ -230,24 +230,24 @@ Developers
    *Architectural blueprint*
 
 **Core Design Patterns** (Days 3-5):
-4. **Hexagonal CQRS** → [explanations/architecture/hexagonal-cqrs.md](../explanations/architecture/hexagonal-cqrs.md)
+4. **Hexagonal CQRS** → [concepts/hexagonal-architecture.md](../concepts/hexagonal-architecture.md)
    *Ports & adapters pattern*
 
 5. **Data Flow** → [explanations/architecture/data-flow-complete.md](../explanations/architecture/data-flow-complete.md)
    *End-to-end pipeline*
 
-6. **Integration Patterns** → [explanations/architecture/integration-patterns.md](../explanations/architecture/integration-patterns.md)
+6. **Integration Patterns** → [concepts/integration-patterns.md](../concepts/integration-patterns.md)
    *System integration strategies*
 
 **Deep Dives by Topic** (Week 2):
 
 | Topic | Primary Document | Related | Decision Record |
 |-------|------------------|---------|-----------------|
-| **Actor System** | [guides/architecture/actor-system.md](../guides/architecture/actor-system.md) | [Server Architecture](../concepts/architecture/core/server.md) | [ADR-0001](../explanations/architecture/decisions/0001-neo4j-persistent-with-filesystem-sync.md) |
-| **Database** | [explanations/architecture/database-architecture.md](../explanations/architecture/database-architecture.md) | [Neo4j Persistence](../explanations/architecture/decisions/0001-neo4j-persistent-with-filesystem-sync.md) | [Schemas](../reference/database/schemas.md) |
-| **Physics** | [explanations/architecture/semantic-physics-system.md](../explanations/architecture/semantic-physics-system.md) | [GPU Communication Flow](../explanations/architecture/gpu/communication-flow.md) | [Stress Majorization](../explanations/architecture/stress-majorization.md) |
-| **Ontology** | [explanations/architecture/ontology-storage-architecture.md](../explanations/architecture/ontology-storage-architecture.md) | [Reasoning Pipeline](../explanations/architecture/ontology-reasoning-pipeline.md) | [Type System](../explanations/ontology/ontology-typed-system.md) |
-| **Multi-Agent** | [explanations/architecture/multi-agent-system.md](../explanations/architecture/multi-agent-system.md) | [Agent Orchestration](../guides/agent-orchestration.md) | [Services Layer](../explanations/architecture/services-layer.md) |
+| **Actor System** | [guides/architecture/actor-system.md](../guides/architecture/actor-system.md) | [Server Architecture](../concepts/architecture/core/server.md) | [ADR-0001](../architecture/adr/ADR-0001-neo4j-persistent-with-filesystem-sync.md) |
+| **Database** | [architecture/database.md](../architecture/database.md) | [Neo4j Persistence](../architecture/adr/ADR-0001-neo4j-persistent-with-filesystem-sync.md) | [Schemas](../reference/database/schemas.md) |
+| **Physics** | [concepts/semantic-physics-system.md](../concepts/semantic-physics-system.md) | [GPU Communication Flow](../architecture/gpu/communication-flow.md) | [Stress Majorization](../concepts/stress-majorization.md) |
+| **Ontology** | [concepts/ontology-storage.md](../concepts/ontology-storage.md) | [Reasoning Pipeline](../concepts/ontology-reasoning-pipeline.md) | [Type System](../explanations/ontology/ontology-typed-system.md) |
+| **Multi-Agent** | [explanations/architecture/multi-agent-system.md](../explanations/architecture/multi-agent-system.md) | [Agent Orchestration](../guides/agent-orchestration.md) | [Services Layer](../concepts/services-layer.md) |
 
 **Hexagonal Ports Deep-Dive**:
 7. **Ports Overview** → [explanations/architecture/ports/01-overview.md](../explanations/architecture/ports/01-overview.md)
@@ -622,8 +622,8 @@ VisionFlow Documentation
 
 ## Quick Start
 - [What is VisionFlow?](OVERVIEW.md)
-- [Installation](tutorials/01-installation.md)
-- [First Graph](tutorials/02-first-graph.md)
+- [Installation](getting-started/installation.md)
+- [First Graph](getting-started/first-graph.md)
 
 ## Browse by Role
 - [New Users](INDEX.md#-new-users)
@@ -702,9 +702,9 @@ Documents are organized by Diátaxis category, but users often need to traverse 
 
 | Document | Location | Links To | Purpose |
 |----------|----------|----------|---------|
-| [Installation](../tutorials/01-installation.md) | Tutorial | [Deployment Guide](../guides/deployment.md) | Task-oriented deployment |
+| [Installation](../getting-started/installation.md) | Tutorial | [Deployment Guide](../guides/deployment.md) | Task-oriented deployment |
 | | | [Docker Compose Guide](../guides/docker-compose-guide.md) | Multi-container setup |
-| | | [Architecture Overview](../ARCHITECTURE_OVERVIEW.md) | Understand what's running |
+| | | [Architecture Overview](../architecture/overview.md) | Understand what's running |
 | [Configuration](../guides/configuration.md) | How-To | [System Overview](../explanations/system-overview.md) | Understand what to configure |
 | | | [Security Guide](../guides/security.md) | Secure configuration |
 | | | [Reference](../reference/) | Detailed settings |
@@ -714,13 +714,13 @@ Documents are organized by Diátaxis category, but users often need to traverse 
 | Document | Location | Links To | Purpose |
 |----------|----------|----------|---------|
 | [Neo4j Quick Start](../tutorials/neo4j-quick-start.md) | Tutorial | [Neo4j Integration](../guides/neo4j-integration.md) | Hands-on guide |
-| | | [Database Architecture](../explanations/architecture/database-architecture.md) | Understand design |
-| [Neo4j Integration](../guides/neo4j-integration.md) | How-To | [Database Architecture](../explanations/architecture/database-architecture.md) | Deep-dive design |
-| | | [Neo4j Persistence ADR](../explanations/architecture/decisions/0001-neo4j-persistent-with-filesystem-sync.md) | Why Neo4j? |
+| | | [Database Architecture](../architecture/database.md) | Understand design |
+| [Neo4j Integration](../guides/neo4j-integration.md) | How-To | [Database Architecture](../architecture/database.md) | Deep-dive design |
+| | | [Neo4j Persistence ADR](../architecture/adr/ADR-0001-neo4j-persistent-with-filesystem-sync.md) | Why Neo4j? |
 | | | [Schemas](../reference/database/schemas.md) | Schema details |
-| [Database Architecture](../explanations/architecture/database-architecture.md) | Explanation | [Neo4j Integration](../guides/neo4j-integration.md) | Practical application |
-| | | [Adapter Patterns](../explanations/architecture/adapter-patterns.md) | Implementation patterns |
-| [Schemas](../reference/database/schemas.md) | Reference | [Database Architecture](../explanations/architecture/database-architecture.md) | Understand context |
+| [Database Architecture](../architecture/database.md) | Explanation | [Neo4j Integration](../guides/neo4j-integration.md) | Practical application |
+| | | [Adapter Patterns](../concepts/adapter-patterns.md) | Implementation patterns |
+| [Schemas](../reference/database/schemas.md) | Reference | [Database Architecture](../architecture/database.md) | Understand context |
 
 ### 5.2 Content Silos Identified
 
@@ -809,8 +809,8 @@ updated-date: 2025-12-30
 **Time**: 5-20 minutes | **Goal**: Install and run your first graph
 
 1. [What is VisionFlow?](OVERVIEW.md) (10 min)
-2. [Installation](tutorials/01-installation.md) (10 min)
-3. [First Graph](tutorials/02-first-graph.md) (15 min)
+2. [Installation](getting-started/installation.md) (10 min)
+3. [First Graph](getting-started/first-graph.md) (15 min)
 4. [Navigation Guide](guides/navigation-guide.md) (10 min)
 
 **Next**: [Neo4j Quick Start](tutorials/neo4j-quick-start.md) | [Configuration](guides/configuration.md)
@@ -822,16 +822,16 @@ updated-date: 2025-12-30
 **Time**: 1-2 weeks | **Goal**: Understand codebase and build features
 
 ### Week 1: Foundation
-- [Developer Journey](DEVELOPER_JOURNEY.md) - Structured learning path
+- [Developer Journey](architecture/developer-journey.md) - Structured learning path
 - [Development Setup](guides/developer/01-development-setup.md) ⭐⭐⭐
 - [Project Structure](guides/developer/02-project-structure.md) ⭐⭐⭐
-- [Architecture Overview](ARCHITECTURE_OVERVIEW.md) ⭐⭐
+- [Architecture Overview](architecture/overview.md) ⭐⭐
 
 ### Week 2: Technology Tracks
 - [Rust Backend](concepts/architecture/core/server.md)
-- [React Frontend](explanations/architecture/core/client.md)
-- [Neo4j Database](explanations/architecture/database-architecture.md)
-- [GPU/CUDA](explanations/architecture/gpu-semantic-forces.md)
+- [React Frontend](architecture/client/overview.md)
+- [Neo4j Database](architecture/database.md)
+- [GPU/CUDA](concepts/gpu-semantic-forces.md)
 - [WebSocket](reference/protocols/binary-websocket.md)
 
 ### Development Tasks
@@ -848,8 +848,8 @@ updated-date: 2025-12-30
 ## 📚 Browse by Category
 
 ### Tutorials (3 learning guides)
-- [Installation](tutorials/01-installation.md)
-- [First Graph](tutorials/02-first-graph.md)
+- [Installation](getting-started/installation.md)
+- [First Graph](getting-started/first-graph.md)
 - [Neo4j Quick Start](tutorials/neo4j-quick-start.md)
 
 ### Guides (61 task-oriented docs)
@@ -901,15 +901,15 @@ updated-date: 2025-12-30
 
 ### 7.2 Entry Point Consolidation Strategy
 
-**Current**: 5 separate entry points (README.md, INDEX.md, OVERVIEW.md, ARCHITECTURE_OVERVIEW.md, DEVELOPER_JOURNEY.md)
+**Current**: 5 separate entry points (README.md, INDEX.md, OVERVIEW.md, architecture/overview.md, architecture/developer-journey.md)
 
 **Proposed**:
 - `/README.md` → Project overview + link to docs
 - `/docs/README.md` → Documentation hub with quick links
 - `/docs/INDEX.md` → Master index with role-based paths
 - `/docs/OVERVIEW.md` → VisionFlow value proposition
-- `/docs/ARCHITECTURE_OVERVIEW.md` → System design (linked from INDEX)
-- `/docs/DEVELOPER_JOURNEY.md` → Learning path (linked from INDEX)
+- `/docs/architecture/overview.md` → System design (linked from INDEX)
+- `/docs/architecture/developer-journey.md` → Learning path (linked from INDEX)
 
 **Benefit**: Users have single entry point (INDEX.md) that routes to all others
 
@@ -1018,9 +1018,9 @@ related-docs:
 
 | Document Location | Breadcrumb Path |
 |-------------------|-----------------|
-| `docs/tutorials/01-installation.md` | `Home > Tutorials > Installation` |
+| `docs/getting-started/installation.md` | `Home > Tutorials > Installation` |
 | `docs/guides/developer/01-development-setup.md` | `Home > Guides > Developer > Development Setup` |
-| `docs/explanations/architecture/core/server.md` | `Home > Explanations > Architecture > Core > Server` |
+| `docs/architecture/server/overview.md` | `Home > Explanations > Architecture > Core > Server` |
 | `docs/reference/api/01-authentication.md` | `Home > Reference > API > Authentication` |
 
 ### 9.3 Navigation Consistency Checklist

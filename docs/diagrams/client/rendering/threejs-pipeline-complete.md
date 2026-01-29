@@ -964,68 +964,72 @@ graph TB
 ### 8.1 Optimization Techniques Map
 
 ```mermaid
-mindmap
-  root((Performance<br/>Optimizations))
-    CPU Optimizations
-      Frustum Culling Disabled
-        Single BBox for all instances
-        Culling check overhead > benefit
-        5% CPU reduction
-      Float32Array Position Data
-        Zero-copy from Web Worker
-        Transferable Objects
-        15% faster than Array
-      Memoized Resources
-        Geometry useMemo
-        Material useMemo
-        Prevents 10MB/frame GC
-      Billboard Label LOD
-        Distance culling
-        labelCullDistance: 50 units
-        30 FPS → 60 FPS improvement
-    GPU Optimizations
-      Instanced Rendering
-        10,000 nodes = 1 draw call
-        60,960,000 triangles/frame
-        vs 10,000 draw calls traditional
-      Shared Geometry
-        Single SphereGeometry
-        3,072 vertices
-        Reused for all instances
-      Attribute Compression
-        Float32 positions
-        Uint8 colors possible
-        Bandwidth reduction
-      Depth Write Disabled
-        Transparent materials
-        Avoids Z-buffer writes
-        Fragment shader optimization
-    Memory Optimizations
-      Shared ArrayBuffer
-        Worker ↔ Main thread
-        Zero-copy communication
-        Persistent allocation
-      Buffer Reuse
-        Geometry disposal
-        Material disposal
-        Texture atlas future
-      Garbage Collection
-        Avoid per-frame allocations
-        Object pooling
-        tempMatrix reuse
-    Algorithmic Optimizations
-      Hierarchical LOD
-        Parent/child expansion
-        Render only visible nodes
-        Adaptive detail levels
-      Quality Filtering
-        Server-side prefilter
-        Client-side postfilter
-        Threshold-based culling
-      SSSP Visualization
-        Precomputed distances
-        Normalized gradients
-        Color cache
+%%{init: {'theme': 'base', 'themeVariables': {
+  'primaryColor': '#4A90D9',
+  'secondaryColor': '#67B26F',
+  'tertiaryColor': '#FFA500',
+  'primaryTextColor': '#333',
+  'lineColor': '#666'
+}}}%%
+graph TB
+    ROOT((Performance<br/>Optimizations))
+
+    subgraph "CPU Optimizations"
+        CPU1[Frustum Culling Disabled<br/>Single BBox, 5% reduction]
+        CPU2[Float32Array Position Data<br/>Zero-copy, 15% faster]
+        CPU3[Memoized Resources<br/>Prevents 10MB/frame GC]
+        CPU4[Billboard Label LOD<br/>30 FPS to 60 FPS]
+    end
+
+    subgraph "GPU Optimizations"
+        GPU1[Instanced Rendering<br/>10K nodes = 1 draw call]
+        GPU2[Shared Geometry<br/>3,072 vertices reused]
+        GPU3[Attribute Compression<br/>Float32/Uint8]
+        GPU4[Depth Write Disabled<br/>Transparent materials]
+    end
+
+    subgraph "Memory Optimizations"
+        MEM1[Shared ArrayBuffer<br/>Zero-copy worker comm]
+        MEM2[Buffer Reuse<br/>Geometry/Material disposal]
+        MEM3[GC Avoidance<br/>Object pooling]
+    end
+
+    subgraph "Algorithmic Optimizations"
+        ALG1[Hierarchical LOD<br/>Adaptive detail levels]
+        ALG2[Quality Filtering<br/>Server + client filter]
+        ALG3[SSSP Visualization<br/>Precomputed distances]
+    end
+
+    ROOT --> CPU1
+    ROOT --> CPU2
+    ROOT --> CPU3
+    ROOT --> CPU4
+    ROOT --> GPU1
+    ROOT --> GPU2
+    ROOT --> GPU3
+    ROOT --> GPU4
+    ROOT --> MEM1
+    ROOT --> MEM2
+    ROOT --> MEM3
+    ROOT --> ALG1
+    ROOT --> ALG2
+    ROOT --> ALG3
+
+    style ROOT fill:#4A90D9,color:#fff
+    style CPU1 fill:#e3f2fd
+    style CPU2 fill:#e3f2fd
+    style CPU3 fill:#e3f2fd
+    style CPU4 fill:#e3f2fd
+    style GPU1 fill:#e1ffe1
+    style GPU2 fill:#e1ffe1
+    style GPU3 fill:#e1ffe1
+    style GPU4 fill:#e1ffe1
+    style MEM1 fill:#fff3e0
+    style MEM2 fill:#fff3e0
+    style MEM3 fill:#fff3e0
+    style ALG1 fill:#f0e1ff
+    style ALG2 fill:#f0e1ff
+    style ALG3 fill:#f0e1ff
 ```
 
 ### 8.2 Draw Call Analysis
@@ -1425,7 +1429,7 @@ flowchart TB
 ## Related Documentation
 
 - [VisionFlow Client Architecture Analysis](../../../visionflow-architecture-analysis.md)
-- [VisionFlow Complete Architecture Documentation](../../../ARCHITECTURE_COMPLETE.md)
+- [VisionFlow Complete Architecture Documentation](../../../architecture/overview.md)
 - [VisionFlow GPU CUDA Architecture - Complete Technical Documentation](../../infrastructure/gpu/cuda-architecture-complete.md)
 - [Server-Side Actor System - Complete Architecture Documentation](../../server/actors/actor-system-complete.md)
 - [Agent/Bot System Architecture](../../server/agents/agent-system-architecture.md)

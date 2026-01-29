@@ -54,6 +54,21 @@ pub struct SettingsResponseDTO {
     pub whisper: Option<WhisperSettingsDTO>,
 }
 
+/// Error type for post-deserialization validation failures
+#[derive(Debug, Clone)]
+pub struct SettingsValidationError {
+    pub field: String,
+    pub message: String,
+}
+
+impl std::fmt::Display for SettingsValidationError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Validation error in '{}': {}", self.field, self.message)
+    }
+}
+
+impl std::error::Error for SettingsValidationError {}
+
 #[derive(Debug, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SettingsUpdateDTO {
@@ -75,6 +90,97 @@ pub struct SettingsUpdateDTO {
     pub kokoro: Option<KokoroSettingsDTO>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub whisper: Option<WhisperSettingsDTO>,
+}
+
+impl SettingsUpdateDTO {
+    /// Validates deserialized settings to prevent crash-inducing values.
+    /// Call this immediately after deserializing settings from JSON.
+    pub fn validate(&self) -> Result<(), SettingsValidationError> {
+        // Validate system settings if present
+        if let Some(ref system) = self.system {
+            // Validate network settings
+            if system.network.port == 0 {
+                return Err(SettingsValidationError {
+                    field: "system.network.port".to_string(),
+                    message: "port must be > 0".to_string(),
+                });
+            }
+            if system.network.max_request_size == 0 {
+                return Err(SettingsValidationError {
+                    field: "system.network.max_request_size".to_string(),
+                    message: "max_request_size must be > 0".to_string(),
+                });
+            }
+            // Validate websocket settings
+            if system.websocket.max_connections == 0 {
+                return Err(SettingsValidationError {
+                    field: "system.websocket.max_connections".to_string(),
+                    message: "max_connections must be > 0".to_string(),
+                });
+            }
+            if system.websocket.max_message_size == 0 {
+                return Err(SettingsValidationError {
+                    field: "system.websocket.max_message_size".to_string(),
+                    message: "max_message_size must be > 0".to_string(),
+                });
+            }
+        }
+
+        // Validate visualisation settings if present
+        if let Some(ref vis) = self.visualisation {
+            // Validate physics iterations
+            let logseq_iterations = vis.graphs.logseq.physics.iterations;
+            if logseq_iterations == 0 || logseq_iterations > 1000 {
+                return Err(SettingsValidationError {
+                    field: "visualisation.graphs.logseq.physics.iterations".to_string(),
+                    message: "iterations must be between 1 and 1000".to_string(),
+                });
+            }
+            let visionflow_iterations = vis.graphs.visionflow.physics.iterations;
+            if visionflow_iterations == 0 || visionflow_iterations > 1000 {
+                return Err(SettingsValidationError {
+                    field: "visualisation.graphs.visionflow.physics.iterations".to_string(),
+                    message: "iterations must be between 1 and 1000".to_string(),
+                });
+            }
+
+            // Validate quality thresholds (0.0-1.0 range for normalized values)
+            let validate_range = |val: f32, field: &str| -> Result<(), SettingsValidationError> {
+                if val < 0.0 || val > 1.0 {
+                    return Err(SettingsValidationError {
+                        field: field.to_string(),
+                        message: "value must be between 0.0 and 1.0".to_string(),
+                    });
+                }
+                Ok(())
+            };
+
+            // Validate opacity values
+            validate_range(vis.glow.opacity, "visualisation.glow.opacity")?;
+            validate_range(vis.hologram.ring_opacity, "visualisation.hologram.ring_opacity")?;
+            validate_range(vis.hologram.buckminster_opacity, "visualisation.hologram.buckminster_opacity")?;
+            validate_range(vis.hologram.geodesic_opacity, "visualisation.hologram.geodesic_opacity")?;
+            validate_range(vis.hologram.triangle_sphere_opacity, "visualisation.hologram.triangle_sphere_opacity")?;
+        }
+
+        // Validate XR settings if present
+        if let Some(ref xr) = self.xr {
+            if xr.room_scale <= 0.0 {
+                return Err(SettingsValidationError {
+                    field: "xr.room_scale".to_string(),
+                    message: "room_scale must be > 0".to_string(),
+                });
+            }
+            if xr.interaction_distance <= 0.0 {
+                return Err(SettingsValidationError {
+                    field: "xr.interaction_distance".to_string(),
+                    message: "interaction_distance must be > 0".to_string(),
+                });
+            }
+        }
+
+        Ok(())
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -1673,7 +1779,7 @@ impl EnhancedSettingsHandler {
             let physics = settings.get_physics(graph_name);
             let sim_params = crate::models::simulation_params::SimulationParams::from(physics);
 
-            if let Some(gpu_addr) = &state.gpu_compute_addr {
+            if let Some(gpu_addr) = state.get_gpu_compute_addr().await {
                 if let Err(e) = gpu_addr
                     .send(UpdateSimulationParams { params: sim_params })
                     .await
@@ -2998,8 +3104,8 @@ async fn propagate_physics_to_gpu(
         params: sim_params.clone(),
     };
 
-    
-    if let Some(gpu_addr) = &state.gpu_compute_addr {
+
+    if let Some(gpu_addr) = state.get_gpu_compute_addr().await {
         info!("[PHYSICS UPDATE] Sending to GPUComputeActor...");
         if let Err(e) = gpu_addr.send(update_msg.clone()).await {
             error!("[PHYSICS UPDATE] FAILED to update GPUComputeActor: {}", e);
@@ -3394,12 +3500,12 @@ async fn get_cluster_analytics(
 ) -> Result<HttpResponse, Error> {
     info!("Cluster analytics request received");
 
-    
-    if let Some(gpu_addr) = &state.gpu_compute_addr {
-        
+
+    if let Some(_gpu_addr) = state.get_gpu_compute_addr().await {
+
         use crate::actors::messages::GetGraphData;
 
-        
+
         let graph_data = match state.graph_service_addr.send(GetGraphData).await {
             Ok(Ok(data)) => data,
             Ok(Err(e)) => {
@@ -3412,7 +3518,7 @@ async fn get_cluster_analytics(
             }
         };
 
-        
+
         info!("GPU compute actor available but clustering not handled by force compute actor");
         get_cpu_fallback_analytics(&graph_data).await
     } else {

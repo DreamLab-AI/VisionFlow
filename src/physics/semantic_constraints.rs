@@ -21,7 +21,7 @@
 //! - Boundary constraints for domain separation
 //! - Fixed position constraints for important anchor nodes
 
-use log::{debug, info, trace};
+use log::{debug, info, trace, warn};
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -268,7 +268,19 @@ impl SemanticConstraintGenerator {
         let mut similarities = HashMap::new();
         let nodes = &graph_data.nodes;
 
-        
+        // TODO: Replace O(n^2) pairwise with LSH for scale (see ADR for LSH implementation)
+        // For now, skip expensive similarity if too many nodes
+        const MAX_PAIRWISE_NODES: usize = 1000;
+        if nodes.len() > MAX_PAIRWISE_NODES {
+            warn!(
+                "Skipping pairwise similarity: {} nodes exceeds threshold {}",
+                nodes.len(),
+                MAX_PAIRWISE_NODES
+            );
+            return Ok(similarities);
+        }
+
+
         let node_pairs: Vec<_> = (0..nodes.len())
             .flat_map(|i| (i + 1..nodes.len()).map(move |j| (i, j)))
             .collect();
@@ -302,12 +314,25 @@ impl SemanticConstraintGenerator {
         let mut shared_topics = Vec::new();
         let mut metadata_factors = HashMap::new();
 
-        
+
         if let Some(store) = metadata_store {
-            if let (Some(meta_a), Some(meta_b)) = (
-                store.get(&node_a.metadata_id),
-                store.get(&node_b.metadata_id),
-            ) {
+            let meta_a = store.get(&node_a.metadata_id);
+            let meta_b = store.get(&node_b.metadata_id);
+
+            if meta_a.is_none() {
+                warn!(
+                    "No metadata for node {} (metadata_id: {}), using defaults",
+                    node_a.id, node_a.metadata_id
+                );
+            }
+            if meta_b.is_none() {
+                warn!(
+                    "No metadata for node {} (metadata_id: {}), using defaults",
+                    node_b.id, node_b.metadata_id
+                );
+            }
+
+            if let (Some(meta_a), Some(meta_b)) = (meta_a, meta_b) {
                 semantic_sim =
                     self.compute_topic_similarity(&meta_a.topic_counts, &meta_b.topic_counts);
                 shared_topics = self.find_shared_topics(&meta_a.topic_counts, &meta_b.topic_counts);
@@ -965,33 +990,55 @@ mod tests {
             id_to_metadata: std::collections::HashMap::new(),
         };
 
-        
+        // Use deterministic positions for consistent test results
+        // Position related nodes close together
         graph.nodes[0].label = "AI Overview".to_string();
+        graph.nodes[0].data.x = 0.0;
+        graph.nodes[0].data.y = 0.0;
+        graph.nodes[0].data.z = 0.0;
+
         graph.nodes[1].label = "Machine Learning".to_string();
+        graph.nodes[1].data.x = 10.0;
+        graph.nodes[1].data.y = 5.0;
+        graph.nodes[1].data.z = 2.0;
+
         graph.nodes[2].label = "Deep Learning".to_string();
+        graph.nodes[2].data.x = 20.0;
+        graph.nodes[2].data.y = 10.0;
+        graph.nodes[2].data.z = 4.0;
+
+        // Cooking is far from AI-related nodes
         graph.nodes[3].label = "Cooking Recipes".to_string();
+        graph.nodes[3].data.x = 200.0;
+        graph.nodes[3].data.y = 200.0;
+        graph.nodes[3].data.z = 100.0;
 
         
         let mut metadata_store = MetadataStore::new();
 
+        // Create topics with high overlap between related nodes
         let mut ai_topics = HashMap::new();
-        ai_topics.insert("artificial_intelligence".to_string(), 10);
-        ai_topics.insert("technology".to_string(), 5);
+        ai_topics.insert("artificial_intelligence".to_string(), 20);
+        ai_topics.insert("machine_learning".to_string(), 15);
+        ai_topics.insert("technology".to_string(), 10);
 
         let mut ml_topics = HashMap::new();
-        ml_topics.insert("machine_learning".to_string(), 15);
-        ml_topics.insert("artificial_intelligence".to_string(), 8);
-        ml_topics.insert("algorithms".to_string(), 6);
+        ml_topics.insert("machine_learning".to_string(), 25);
+        ml_topics.insert("artificial_intelligence".to_string(), 20);
+        ml_topics.insert("deep_learning".to_string(), 10);
+        ml_topics.insert("algorithms".to_string(), 8);
 
         let mut dl_topics = HashMap::new();
-        dl_topics.insert("deep_learning".to_string(), 20);
-        dl_topics.insert("machine_learning".to_string(), 10);
+        dl_topics.insert("deep_learning".to_string(), 25);
+        dl_topics.insert("machine_learning".to_string(), 20);
+        dl_topics.insert("artificial_intelligence".to_string(), 15);
         dl_topics.insert("neural_networks".to_string(), 12);
 
+        // Cooking topics have no overlap with AI topics
         let mut cooking_topics = HashMap::new();
         cooking_topics.insert("cooking".to_string(), 25);
         cooking_topics.insert("recipes".to_string(), 18);
-        cooking_topics.insert("food".to_string(), 8);
+        cooking_topics.insert("food".to_string(), 12);
 
         metadata_store.insert(
             "ai_overview.md".to_string(),

@@ -751,7 +751,7 @@ impl Default for PathfindingLimits {
 
 ## Related Documentation
 
-- [Semantic Forces System](./explanations/architecture/semantic-forces-system.md)
+- [Semantic Forces System](./concepts/semantic-forces-system.md)
 - [Typed Ontology System](./ontology-typed-system.md)
 - [Semantic Features Implementation Guide](../guides/semantic-features-implementation.md)
 - 

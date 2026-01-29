@@ -57,7 +57,7 @@ These files require front matter addition:
    - TEST_COVERAGE_ANALYSIS.md
 
 2. **Architecture Documentation** (1 file):
-   - architecture/PROTOCOL_MATRIX.md
+   - reference/protocols/matrix.md
 
 3. **Analysis Reports** (3 files):
    - analysis/DUAL_RENDERER_OVERHEAD_ANALYSIS.md
@@ -72,7 +72,7 @@ These files require front matter addition:
    - reports/spelling-audit.md
 
 5. **Research & Explanations** (4 files):
-   - explanations/architecture/event-driven-architecture.md
+   - concepts/event-driven-architecture.md
    - observability-analysis.md
    - research/QUIC_HTTP3_ANALYSIS.md
    - research/graph-visualization-sota-analysis.md
@@ -461,11 +461,11 @@ for file_path in Path('docs').rglob('*.md'):
 
 1. `GETTING_STARTED_WITH_UNIFIED_DOCS.md` - Category: `guide` → `tutorial`
 2. `guides/developer/01-development-setup.md` - Category: `guide` → `tutorial`
-3. `reference/API_REFERENCE.md` - Tag: `backend` → remove + context tags
-4. `explanations/architecture/hexagonal-cqrs.md` - Tags: `backend` → `development`, `architecture`
+3. `reference/api/README.md` - Tag: `backend` → remove + context tags
+4. `concepts/hexagonal-architecture.md` - Tags: `backend` → `development`, `architecture`
 5. `guides/infrastructure/README.md` - Category: `guide` → `reference`, Tag: `infrastructure` → `operations`
 6. `diagrams/README.md` - Tags: `design`, `patterns`, `structure` → `architecture`, `visualization`
-7. `tutorials/01-installation.md` - Tags: missing some standard tags
+7. `getting-started/installation.md` - Tags: missing some standard tags
 8. `guides/solid-integration.md` - 6 tag violations - highest tag count
 9. `reference/protocols/binary-websocket.md` - Tags: `backend`, `visionflow` → `protocol`, `websocket`
 10. `guides/ai-models/README.md` - Tags need `api`, domain-specific additions

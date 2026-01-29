@@ -9,9 +9,9 @@ tags:
   - structure
   - api
 related-docs:
-  - ARCHITECTURE_OVERVIEW.md
+  - architecture/overview.md
   - ASCII_DEPRECATION_COMPLETE.md
-  - DEVELOPER_JOURNEY.md
+  - architecture/developer-journey.md
 updated-date: 2025-12-18
 difficulty-level: advanced
 dependencies:
@@ -344,18 +344,18 @@ Indexes:
 
 ## Complete Documentation Index
 
-1. **[Backend API Architecture](docs/diagrams/architecture/backend-api-architecture-complete.md)** - Management API, Z.AI, MCP
-2. **[Three.js Rendering](docs/diagrams/client/rendering/threejs-pipeline-complete.md)** - 30 diagrams, GPU pipeline
-3. **[State Management](docs/diagrams/client/state/state-management-complete.md)** - 5 stores, subscriptions
-4. **[XR/VR Architecture](docs/diagrams/client/xr/xr-architecture-complete.md)** - Quest 3, WebXR
-5. **[Actor System](docs/diagrams/server/actors/actor-system-complete.md)** - 21 actors, messages
-6. **[Agent System](docs/diagrams/server/agents/agent-system-architecture.md)** - 17 types, swarms
-7. **[REST API](docs/diagrams/server/api/rest-api-architecture.md)** - 15 endpoints, OpenAPI
-8. **[Binary Protocol](docs/diagrams/infrastructure/websocket/binary-protocol-complete.md)** - V1-V4 specs
-9. **[GPU/CUDA](docs/diagrams/infrastructure/gpu/cuda-architecture-complete.md)** - 87 kernels
-10. **[Neo4j Database](docs/diagrams/infrastructure/database/neo4j-architecture-complete.md)** - Schema, Cypher
-11. **[Testing](docs/diagrams/infrastructure/testing/test-architecture.md)** - 478 tests, mocks
-12. **[Data Flows](docs/diagrams/data-flow/complete-data-flows.md)** - 10 paths, timing
+1. **[Backend API Architecture](diagrams/architecture/backend-api-architecture-complete.md)** - Management API, Z.AI, MCP
+2. **[Three.js Rendering](diagrams/client/rendering/threejs-pipeline-complete.md)** - 30 diagrams, GPU pipeline
+3. **[State Management](diagrams/client/state/state-management-complete.md)** - 5 stores, subscriptions
+4. **[XR/VR Architecture](diagrams/client/xr/xr-architecture-complete.md)** - Quest 3, WebXR
+5. **[Actor System](diagrams/server/actors/actor-system-complete.md)** - 21 actors, messages
+6. **[Agent System](diagrams/server/agents/agent-system-architecture.md)** - 17 types, swarms
+7. **[REST API](diagrams/server/api/rest-api-architecture.md)** - 15 endpoints, OpenAPI
+8. **[Binary Protocol](diagrams/infrastructure/websocket/binary-protocol-complete.md)** - V1-V4 specs
+9. **[GPU/CUDA](diagrams/infrastructure/gpu/cuda-architecture-complete.md)** - 87 kernels
+10. **[Neo4j Database](diagrams/infrastructure/database/neo4j-architecture-complete.md)** - Schema, Cypher
+11. **[Testing](diagrams/infrastructure/testing/test-architecture.md)** - 478 tests, mocks
+12. **[Data Flows](diagrams/data-flow/complete-data-flows.md)** - 10 paths, timing
 
 ---
 
@@ -371,7 +371,7 @@ Indexes:
 
 ## Cross-Reference Matrix
 
-See **[Complete Cross-Reference Matrix](docs/diagrams/cross-reference-matrix.md)** for component interactions.
+See **[Complete Cross-Reference Matrix](diagrams/cross-reference-matrix.md)** for component interactions.
 
 ---
 

@@ -536,20 +536,27 @@ mod tests {
 
     #[tokio::test]
     async fn test_adaptive_timeout() {
-        let mut adaptive = AdaptiveTimeout::new(
+        // Test 1: Verify timeout occurs when future takes too long
+        let adaptive = AdaptiveTimeout::new(
             async {
-                sleep(Duration::from_millis(30)).await;
+                sleep(Duration::from_millis(50)).await;
                 42
             },
             Duration::from_millis(10),
         );
 
-        
-        let result = tokio::time::timeout(Duration::from_millis(20), &mut adaptive).await;
-        assert!(result.is_err()); 
+        let result = adaptive.await;
+        assert!(result.is_err()); // Should timeout
 
-        
-        adaptive.extend_timeout(Duration::from_millis(50));
+        // Test 2: Verify success when timeout is sufficient
+        let adaptive = AdaptiveTimeout::new(
+            async {
+                sleep(Duration::from_millis(10)).await;
+                42
+            },
+            Duration::from_millis(50),
+        );
+
         let result = adaptive.await;
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), 42);

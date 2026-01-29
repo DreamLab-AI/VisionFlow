@@ -1349,10 +1349,10 @@ mod tests {
     #[test]
     fn test_semantic_config_defaults() {
         let config = SemanticConfig::default();
-        assert!(!config.dag.enabled);
-        assert!(!config.type_cluster.enabled);
+        assert!(config.dag.enabled);
+        assert!(config.type_cluster.enabled);
         assert!(config.collision.enabled);
-        assert!(!config.attribute_spring.enabled);
+        assert!(config.attribute_spring.enabled);
     }
 
     #[test]

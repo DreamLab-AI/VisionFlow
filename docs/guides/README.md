@@ -1,21 +1,34 @@
 ---
-title: "How-To Guides Overview"
-description: "Practical instructions for specific tasks and goals"
-category: guide
+title: How-To Guides
+description: Practical instructions for specific tasks and goals
+category: how-to
+diataxis: how-to
 tags:
-  - documentation
-updated-date: 2025-12-19
+  - guides
+  - how-to
+  - tutorials
+updated-date: 2025-01-29
 difficulty-level: beginner
 ---
 
 
-# How-To Guides Overview
+# How-To Guides
 
-Welcome to the VisionFlow How-To Guides section. These guides provide practical instructions for specific tasks.
+Welcome to the VisionFlow How-To Guides section. These guides provide practical, task-oriented instructions.
 
 ## Guides Organization
 
-All guides are organized by topic:
+All guides are organized by category following the Diataxis framework:
+
+### By Subdirectory
+
+- **[deployment/](deployment/README.md)** - Getting VisionFlow running in various environments
+- **[development/](development/README.md)** - Local development setup and workflows
+- **[integration/](integration/README.md)** - External system integration (GitHub, Neo4j)
+- **[operations/](operations/README.md)** - Production monitoring and maintenance
+- **[features/](features/README.md)** - Working with specific features
+
+### By Topic
 
 - **Core Guides** - Essential configuration, deployment, and troubleshooting
 - **AI Agent Guides** - Agent orchestration and management

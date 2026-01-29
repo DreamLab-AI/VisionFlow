@@ -1,6 +1,26 @@
+---
+title: Architecture Documentation
+description: Comprehensive architecture documentation and ADRs for VisionFlow
+category: explanation
+diataxis: explanation
+tags:
+  - architecture
+  - adr
+  - design
+updated-date: 2025-01-29
+---
+
 # Architecture Documentation
 
 Comprehensive architecture documentation for VisionFlow/TurboFlow.
+
+## Architectural Decision Records (ADRs)
+
+See the [ADR Index](adr/README.md) for all architectural decisions:
+
+| ADR | Title | Status |
+|-----|-------|--------|
+| [ADR-0001](adr/ADR-0001-neo4j-persistent-with-filesystem-sync.md) | Neo4j Persistent with Filesystem Sync | Accepted |
 
 ## Overview
 

@@ -83,7 +83,7 @@ grep -n "transition-colors\|instanceColor\|setColor" /home/devuser/workspace/pro
 - `/home/devuser/workspace/project/docs/guides/stress-majorization-guide.md` - 18 occurrences
 - `/home/devuser/workspace/project/docs/CUDA_OPTIMIZATION_SUMMARY.md` - 14 occurrences
 - `/home/devuser/workspace/project/docs/archive/implementation-logs/stress-majorization-implementation.md` - 18 occurrences
-- `/home/devuser/workspace/project/docs/explanations/architecture/stress-majorization.md` - 29 occurrences
+- `/home/devuser/workspace/project/docs/concepts/stress-majorization.md` - 29 occurrences
 
 **Find/Replace Commands**:
 ```bash
@@ -175,9 +175,9 @@ find /home/devuser/workspace/project/docs -name "*.md" -type f -exec sed -i 's/\
 ### 8. GRAY/GREY (10 occurrences)
 
 **Files with occurrences**: 4 files
-- `/home/devuser/workspace/project/docs/explanations/architecture/hierarchical-visualization.md` - 7 occurrences
-- `/home/devuser/workspace/project/docs/DEVELOPER_JOURNEY.md` - 1 occurrence
-- `/home/devuser/workspace/project/docs/explanations/architecture/ontology-analysis.md` - 1 occurrence
+- `/home/devuser/workspace/project/docs/concepts/hierarchical-visualization.md` - 7 occurrences
+- `/home/devuser/workspace/project/docs/architecture/developer-journey.md` - 1 occurrence
+- `/home/devuser/workspace/project/docs/concepts/ontology-analysis.md` - 1 occurrence
 - `/home/devuser/workspace/project/docs/archive/analysis/client-architecture-analysis-2025-12.md` - 1 occurrence
 
 **Find/Replace Commands**:

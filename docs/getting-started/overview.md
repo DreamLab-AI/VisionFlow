@@ -1,7 +1,7 @@
 ---
 title: What is VisionFlow?
 description: Traditional knowledge management tools force you to manually organize information and search for connections.  AI chatbots only respond when prompted.
-category: explanation
+category: tutorial
 tags:
   - architecture
   - design
@@ -9,11 +9,11 @@ tags:
   - structure
   - api
 related-docs:
-  - ARCHITECTURE_OVERVIEW.md
-  - DEVELOPER_JOURNEY.md
+  - architecture/overview.md
+  - architecture/developer-journey.md
   - README.md
   - QUICK_NAVIGATION.md
-  - ARCHITECTURE_COMPLETE.md
+  - architecture/overview.md
 updated-date: 2025-12-18
 difficulty-level: intermediate
 dependencies:
@@ -203,8 +203,8 @@ For custom deployments or development, VisionFlow supports:
 
 1. **[Installation Guide](installation.md)** - Docker or native setup
 2. **[First Graph Tutorial](first-graph.md)** - Create your first visualization
-3. **[Architecture Overview](../ARCHITECTURE_OVERVIEW.md)** - Understand the system design
-4. **[Developer Journey](../DEVELOPER_JOURNEY.md)** - Navigate the codebase
+3. **[Architecture Overview](../architecture/overview.md)** - Understand the system design
+4. **[Developer Journey](../architecture/developer-journey.md)** - Navigate the codebase
 
 ## Community & Support
 
@@ -219,7 +219,7 @@ For custom deployments or development, VisionFlow supports:
 
 ## Related Documentation
 
-- [VisionFlow Complete Architecture Documentation](../ARCHITECTURE_COMPLETE.md)
+- [VisionFlow Complete Architecture Documentation](../architecture/overview.md)
 - [VisionFlow Client Architecture Analysis](../visionflow-architecture-analysis.md)
 - [VisionFlow Architecture Diagrams - Complete Corpus](../diagrams/README.md)
 - [Agent/Bot System Architecture](../diagrams/server/agents/agent-system-architecture.md)
@@ -251,4 +251,4 @@ VisionFlow represents the future of collaborative knowledge work—where AI agen
 
 **Transform how your team discovers knowledge. Start exploring VisionFlow today.**
 
-**[Get Started](installation.md)** | **[Architecture](../ARCHITECTURE_OVERVIEW.md)** | **[Star on GitHub](https://github.com/DreamLab-AI/VisionFlow)**
+**[Get Started](installation.md)** | **[Architecture](../architecture/overview.md)** | **[Star on GitHub](https://github.com/DreamLab-AI/VisionFlow)**

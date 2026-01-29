@@ -69,7 +69,7 @@ Add advanced graph analytics with Neo4j dual persistence.
 | Resource | Description |
 |----------|-------------|
 | [API Reference](../reference/api/) | REST and WebSocket API documentation |
-| [Architecture](../ARCHITECTURE_OVERVIEW.md) | System design and component overview |
+| [Architecture](../architecture/overview.md) | System design and component overview |
 | [Troubleshooting](../guides/troubleshooting.md) | Solutions to common problems |
 | [Configuration](../guides/configuration.md) | Customise VisionFlow settings |
 

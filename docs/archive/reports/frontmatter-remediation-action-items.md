@@ -161,7 +161,7 @@ updated-date: 2025-12-30
 
 ### 1.2 Architecture Files (1 file)
 
-**architecture/PROTOCOL_MATRIX.md**
+**reference/protocols/matrix.md**
 ```yaml
 ---
 title: Protocol Matrix
@@ -287,7 +287,7 @@ updated-date: 2025-12-30
 
 ### 1.5 Research & Phase Documentation (10 files)
 
-1. **explanations/architecture/event-driven-architecture.md**
+1. **concepts/event-driven-architecture.md**
    ```yaml
    ---
    title: Event-Driven Architecture
@@ -629,7 +629,7 @@ sed -i 's/category: guide/category: howto/' guides/features/auth-user-settings.m
 | archive/docs/guides/user/working-with-agents.md | guide | howto | Task-oriented |
 | working/QUICK_REFERENCE.md | guide | reference | Reference doc |
 | guides/README.md | guide | reference | Index/reference |
-| guides/developer/readme.md | guide | reference | Index/reference |
+| guides/developer/README.md | guide | reference | Index/reference |
 
 ---
 
@@ -642,7 +642,7 @@ sed -i 's/category: guide/category: howto/' guides/features/auth-user-settings.m
 **Batch 1: Design/Pattern Tags → Architecture**
 ```bash
 # Command template - affects 87 files
-for file in ARCHITECTURE_COMPLETE.md OVERVIEW.md ...; do
+for file in architecture/overview.md OVERVIEW.md ...; do
   sed -i '/^tags:/,/^[^ -]/s/- design$/- architecture/' "$file"
   sed -i '/^tags:/,/^[^ -]/s/- patterns$/- architecture/' "$file"
   sed -i '/^tags:/,/^[^ -]/s/- structure$/- architecture/' "$file"

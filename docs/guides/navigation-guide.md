@@ -22,7 +22,7 @@ difficulty-level: intermediate
 
 ### Start Here
 - **[📖 Master Documentation Index](index.md)** - Complete catalog of all 311+ docs
-- **[📚 Documentation Hub](readme.md)** - Organized by Diátaxis framework
+- **[📚 Documentation Hub](README.md)** - Organized by Diátaxis framework
 - **** - Project overview and quick start
 
 ---
@@ -56,11 +56,11 @@ difficulty-level: intermediate
 #### **Setup XR/VR**
 1. [XR Setup Guide](../archive/docs/guides/xr-setup.md)
 2. [Vircadia Complete Guide](vircadia-xr-complete-guide.md)
-3. [XR Architecture](../../explanations/architecture/xr-immersive-system.md)
+3. [XR Architecture](../../concepts/xr-immersive-system.md)
 
 #### **Understand the Architecture**
 1. 
-2. [Hexagonal CQRS](../../explanations/architecture/hexagonal-cqrs.md)
+2. [Hexagonal CQRS](../../concepts/hexagonal-architecture.md)
 3. 
 4. [Database Schema](../../explanations/architecture/schemas.md)
 
@@ -84,7 +84,7 @@ difficulty-level: intermediate
 | System | Documentation |
 |--------|---------------|
 | **Ontology** |  •  •  |
-| **GPU Acceleration** |  • [Architecture](../../explanations/architecture/gpu/readme.md) • [Optimizations](../../explanations/architecture/gpu/optimizations.md) |
+| **GPU Acceleration** |  • [Architecture](../../architecture/gpu/README.md) • [Optimizations](../../architecture/gpu/optimizations.md) |
 | **AI Agents** |  • [User Guide](../archive/docs/guides/user/working-with-agents.md) •  |
 | **Multi-Agent System** | [Skills Guide](./multi-agent-skills.md) • [Architecture](../../explanations/architecture/multi-agent-system.md) • [Setup](./docker-environment-setup.md) |
 | **XR/VR** | [Setup](../archive/docs/guides/xr-setup.md) • Architecture (TODO) • [Vircadia](vircadia-xr-complete-guide.md) |
@@ -97,8 +97,8 @@ difficulty-level: intermediate
 | **Ontology Reasoning** |  |  |
 | **Semantic Physics** |  |  |
 | **Multi-User XR** | [Quick Setup](user/xr-setup.md) | [Complete Guide](vircadia-xr-complete-guide.md) |
-| **CQRS Pattern** | [Architecture](../../explanations/architecture/hexagonal-cqrs.md) |  |
-| **GPU Compute** |  | [Architecture](../../explanations/architecture/gpu/) |
+| **CQRS Pattern** | [Architecture](../../concepts/hexagonal-architecture.md) |  |
+| **GPU Compute** |  | [Architecture](../../architecture/gpu/) |
 
 ---
 
@@ -188,7 +188,7 @@ ls docs/guides/developer/
 ### Support Resources
 - [GitHub Issues](https://github.com/yourusername/VisionFlow/issues)
 - [GitHub Discussions](https://github.com/yourusername/VisionFlow/discussions)
-- [Documentation Hub](readme.md)
+- [Documentation Hub](README.md)
 - [Master Index](index.md)
 
 ---
@@ -224,4 +224,4 @@ ls docs/guides/developer/
 
 ---
 
-**Navigation:** [📖 Master Index](index.md) | [📚 Documentation Hub](readme.md) | 
+**Navigation:** [📖 Master Index](index.md) | [📚 Documentation Hub](README.md) | 

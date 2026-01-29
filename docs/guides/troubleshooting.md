@@ -1688,7 +1688,7 @@ scrape-configs:
 
 ### Documentation Resources
 
-- [Installation Guide](../../tutorials/01-installation.md)
+- [Installation Guide](../../getting-started/installation.md)
 - 
 - 
 - 
@@ -1796,4 +1796,4 @@ What you've already tried
 
 ---
 
- | [Back to Guides](readme.md)
+ | [Back to Guides](README.md)

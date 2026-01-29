@@ -1496,7 +1496,7 @@ ws.onmessage = (event) => {
 };
 ```
 
-**Protocol**: `solid-0.1` (see [Protocol Reference](../PROTOCOL_REFERENCE.md#solid-websocket-protocol-solid-01))
+**Protocol**: `solid-0.1` (see [Protocol Reference](../protocols/README.md#solid-websocket-protocol-solid-01))
 
 ### POST /solid/sync
 
@@ -1568,7 +1568,7 @@ Authorization: Bearer <visionflow_jwt>
 Authorization: Nostr <base64_encoded_event>
 ```
 
-See [NIP-98 Authentication Flow](../PROTOCOL_REFERENCE.md#nostr-nip-98) for details.
+See [NIP-98 Authentication Flow](../protocols/README.md#nostr-nip-98) for details.
 
 ---
 

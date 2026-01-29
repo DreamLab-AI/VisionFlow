@@ -28,7 +28,7 @@ This proposal redesigns VisionFlow's documentation from a fragmented 21-director
 docs/ (14MB)
 ├── Root Level Files (41 markdown files)
 │   ├── README.md
-│   ├── ARCHITECTURE_OVERVIEW.md
+│   ├── architecture/overview.md
 │   ├── CONTRIBUTION.md
 │   ├── PROJECT_CONSOLIDATION_PLAN.md
 │   └── 37 additional high-level docs
@@ -92,7 +92,7 @@ docs/ (14MB)
 1. **Duplicate Root Documentation** (41 markdown files at root)
    - README.md, OVERVIEW.md, INDEX.md (3 entry points)
    - Multiple getting started guides (01-GETTING_STARTED.md, GETTING_STARTED_WITH_UNIFIED_DOCS.md)
-   - Overlapping architecture docs (ARCHITECTURE_OVERVIEW.md, ARCHITECTURE_COMPLETE.md, visionflow-architecture-analysis.md)
+   - Overlapping architecture docs (architecture/overview.md, architecture/overview.md, visionflow-architecture-analysis.md)
 
 2. **Scattered Getting Started Content**
    - guides/getting-started/
@@ -104,7 +104,7 @@ docs/ (14MB)
 3. **Fragmented Reference Documentation**
    - API docs in multiple locations: reference/api/, root level files
    - Configuration spread across: guides/configuration.md, reference/
-   - Database schema: reference/database/ + explanations/architecture/database-architecture.md
+   - Database schema: reference/database/ + architecture/database.md
    - Error handling: reference/error-codes.md, multiple guides
 
 4. **Unstructured Architecture Documentation** (45+ files)
@@ -466,18 +466,18 @@ Supporting Directories (Not restructured):
 |---|---|---|
 | `reference/api/rest-api-reference.md` | `reference/api/rest-api.md` | Merge with `api-complete-reference.md` |
 | `reference/api/03-websocket.md` | `reference/api/websocket-api.md` | Rename for consistency |
-| `reference/CONFIGURATION_REFERENCE.md` | `reference/configuration/environment.md` | Rename & relocate |
+| `reference/configuration/README.md` | `reference/configuration/environment.md` | Rename & relocate |
 | `guides/configuration.md` | `reference/configuration/_index.md` | Consolidate |
 | `guides/security.md` | `reference/configuration/security.md` | Relocate |
-| `reference/PROTOCOL_REFERENCE.md` | `reference/protocols/_overview.md` | Reorganize |
-| `reference/ERROR_REFERENCE.md` | `reference/error-codes.md` | Align naming |
+| `reference/protocols/README.md` | `reference/protocols/_overview.md` | Reorganize |
+| `reference/error-codes.md` | `reference/error-codes.md` | Align naming |
 
 ### Phase 3: Architecture & Explanations
 
 | Current Location | New Location | Consolidation |
 |---|---|---|
-| `ARCHITECTURE_OVERVIEW.md` | `explanations/architecture/system-overview.md` | Remove from root; consolidate with `visionflow-architecture-analysis.md` |
-| `ARCHITECTURE_COMPLETE.md` | `explanations/architecture/system-overview.md` | Merge duplicate |
+| `architecture/overview.md` | `explanations/architecture/system-overview.md` | Remove from root; consolidate with `visionflow-architecture-analysis.md` |
+| `architecture/overview.md` | `explanations/architecture/system-overview.md` | Merge duplicate |
 | `explanations/architecture/*` | `explanations/architecture/` | Reorganize into logical subsections |
 | `explanations/ontology/*` | `explanations/ontology-deep-dive/` | Rename for clarity |
 | `reference/physics-implementation.md` | `explanations/core-concepts/physics-simulation.md` | Relocate to conceptual layer |
@@ -545,7 +545,7 @@ Supporting Directories (Not restructured):
 **Files**:
 - `reference/api/rest-api-reference.md`
 - `reference/api/rest-api-complete.md`
-- `reference/API_REFERENCE.md`
+- `reference/api/README.md`
 
 **Action**:
 - Keep `rest-api-reference.md` as canonical source
@@ -556,8 +556,8 @@ Supporting Directories (Not restructured):
 #### 2. Architecture Overview (5 files to consolidate)
 **Issue**: Multiple high-level architecture documents at root level
 **Files**:
-- `ARCHITECTURE_OVERVIEW.md`
-- `ARCHITECTURE_COMPLETE.md`
+- `architecture/overview.md`
+- `architecture/overview.md`
 - `visionflow-architecture-analysis.md`
 - `architecture_analysis_report.md`
 - `explanations/system-overview.md`
@@ -586,7 +586,7 @@ Supporting Directories (Not restructured):
 **Issue**: Configuration guidance scattered across guides and reference
 **Files**:
 - `guides/configuration.md`
-- `reference/CONFIGURATION_REFERENCE.md`
+- `reference/configuration/README.md`
 - `guides/infrastructure/port-configuration.md`
 
 **Action**:
@@ -599,8 +599,8 @@ Supporting Directories (Not restructured):
 **Files**:
 - `reference/database/neo4j-persistence-analysis.md`
 - `reference/database/user-settings-schema.md`
-- `explanations/architecture/database-architecture.md`
-- `reference/DATABASE_SCHEMA_REFERENCE.md`
+- `architecture/database.md`
+- `reference/database/README.md`
 
 **Action**:
 - `reference/database/neo4j-schema.md` (actual schema)
@@ -657,7 +657,7 @@ Supporting Directories (Not restructured):
 **Action**: Consolidate to `development/testing-qa/test-strategy.md`
 
 #### 10. Error Handling (2 files)
-**Files**: `reference/error-codes.md`, `reference/ERROR_REFERENCE.md`
+**Files**: `reference/error-codes.md`, `reference/error-codes.md`
 **Action**: Merge into single `reference/error-codes.md`
 
 #### 11. Physics & Semantic Forces (4 files)
@@ -666,7 +666,7 @@ Supporting Directories (Not restructured):
 - `guides/semantic-forces.md`
 - `reference/physics-implementation.md`
 - `explanations/physics/semantic-forces.md`
-**Action**: Consolidate to explanations/architecture/semantic-physics-system.md
+**Action**: Consolidate to concepts/semantic-physics-system.md
 
 #### 12. AI Model Integration (5 files)
 **Files**:
@@ -687,7 +687,7 @@ Supporting Directories (Not restructured):
 **Files**:
 - `guides/client/state-management.md`
 - `guides/client/three-js-rendering.md`
-- `explanations/architecture/core/client.md`
+- `architecture/client/overview.md`
 **Action**: Move how-to docs to development/, keep explanations in architecture/
 
 ---

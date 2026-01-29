@@ -21,8 +21,8 @@ pub async fn run_gpu_anomaly_detection(
 ) -> Result<Vec<Anomaly>, String> {
     info!("Running GPU anomaly detection with method: {}", method);
 
-    
-    let gpu_addr = app_state.gpu_compute_addr.as_ref()
+    // GPU compute address is now Arc<RwLock<Option<...>>> - use async accessor
+    let gpu_addr = app_state.get_gpu_compute_addr().await
         .ok_or_else(|| "GPU compute actor not available".to_string())?;
 
     

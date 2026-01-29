@@ -33,7 +33,7 @@ VisionFlow demonstrates strong real-time collaboration capabilities through Virc
 
 **Reference Files:**
 - `/home/devuser/workspace/project/docs/guides/vircadia-multi-user-guide.md`
-- `/home/devuser/workspace/project/docs/explanations/architecture/components/websocket-protocol.md`
+- `/home/devuser/workspace/project/docs/architecture/protocols/websocket.md`
 - `/home/devuser/workspace/project/docs/reference/websocket-protocol.md`
 
 **Capabilities:**
@@ -81,7 +81,7 @@ VisionFlow demonstrates strong real-time collaboration capabilities through Virc
 - Input validation on all binary frames
 - Rate limiting per-connection
 
-**Reference:** `/home/devuser/workspace/project/docs/explanations/architecture/components/websocket-protocol.md`
+**Reference:** `/home/devuser/workspace/project/docs/architecture/protocols/websocket.md`
 
 ### 1.3 Authentication & Identity (PARTIAL)
 
@@ -185,7 +185,7 @@ pub struct NostrService {
 - Controller input (6DOF)
 - Multi-user presence (avatar positions)
 
-**Reference:** `/home/devuser/workspace/project/docs/explanations/architecture/xr-immersive-system.md` (first 200 lines read)
+**Reference:** `/home/devuser/workspace/project/docs/concepts/xr-immersive-system.md` (first 200 lines read)
 
 **Capabilities:**
 ```
@@ -869,9 +869,9 @@ impl SovereignAgent {
 
 ## Related Documentation
 
-- [Hexagonal/CQRS Architecture Design](../explanations/architecture/hexagonal-cqrs.md)
-- [Pipeline Integration Architecture](../explanations/architecture/pipeline-integration.md)
-- [Ontology Storage Architecture](../explanations/architecture/ontology-storage-architecture.md)
+- [Hexagonal/CQRS Architecture Design](../concepts/hexagonal-architecture.md)
+- [Pipeline Integration Architecture](../concepts/pipeline-integration.md)
+- [Ontology Storage Architecture](../concepts/ontology-storage.md)
 - [Mermaid Diagram Fix Examples](../archive/reports/mermaid-fixes-examples.md)
 - [Documentation Restructuring Complete](../archive/reports/2025-12-02-restructuring-complete.md)
 
@@ -879,7 +879,7 @@ impl SovereignAgent {
 
 ### VisionFlow Documentation
 - `/home/devuser/workspace/project/docs/guides/vircadia-multi-user-guide.md`
-- `/home/devuser/workspace/project/docs/explanations/architecture/components/websocket-protocol.md`
+- `/home/devuser/workspace/project/docs/architecture/protocols/websocket.md`
 - `/home/devuser/workspace/project/docs/reference/websocket-protocol.md`
 - `/home/devuser/workspace/project/docs/explanations/architecture/multi-agent-system.md`
 - `/home/devuser/workspace/project/multi-agent-docker/README.md`

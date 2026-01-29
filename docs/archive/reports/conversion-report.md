@@ -35,7 +35,7 @@ difficulty-level: intermediate
    - **Nodes**: 7 (GitHub, FileSync, Parser, Neo4j, Forces, WebSocket, Client)
    - **Styling**: Color-coded by component type
 
-2. **explanations/architecture/integration-patterns.md**
+2. **concepts/integration-patterns.md**
    - **Type**: Integration layer diagram
    - **Conversion**: ASCII boxes → Mermaid graph TB with subgraph
    - **Nodes**: 6 (EventBus, MsgQueue, APIGateway, StreamHub, AgentSwarm, Services)
@@ -96,7 +96,7 @@ difficulty-level: intermediate
 These are appropriate as ASCII for representing file structures:
 - `README.md`
 - `GETTING_STARTED_WITH_UNIFIED_DOCS.md`
-- `DEVELOPER_JOURNEY.md`
+- `architecture/developer-journey.md`
 - `comfyui-integration-design.md`
 - `multi-agent-docker/TERMINAL_GRID.md`
 - And 14+ more...

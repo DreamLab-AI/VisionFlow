@@ -82,7 +82,7 @@ async fn define_constraints(
             info!("Constraints defined successfully");
 
 
-            if let Some(gpu_addr) = &state.gpu_compute_addr {
+            if let Some(gpu_addr) = state.get_gpu_compute_addr().await {
                 info!("Sending constraints to GPU compute actor");
 
                 
@@ -192,7 +192,7 @@ async fn apply_constraints(
         "constraintType": constraint_type,
         "nodeCount": nodes.len(),
         "strength": strength,
-        "gpuAvailable": state.gpu_compute_addr.is_some(),
+        "gpuAvailable": state.try_get_gpu_compute_addr().is_some(),
         "note": "Ready for GPU constraint processing integration"
     }))
 }
@@ -227,7 +227,7 @@ async fn remove_constraints(
     ok_json!(json!({
         "status": "Constraint removal recorded successfully",
         "removedCount": removal_count,
-        "gpuAvailable": state.gpu_compute_addr.is_some(),
+        "gpuAvailable": state.try_get_gpu_compute_addr().is_some(),
         "note": "Ready for GPU constraint removal integration"
     }))
 }
@@ -239,7 +239,7 @@ async fn list_constraints(
     info!("Constraint list request received");
 
 
-    if let Some(gpu_addr) = &state.gpu_compute_addr {
+    if let Some(gpu_addr) = state.get_gpu_compute_addr().await {
         use crate::actors::messages::GetConstraints;
 use crate::{
     ok_json, created_json, error_json, bad_request, not_found,
@@ -300,7 +300,7 @@ use crate::{
                 }));
             }
 
-            let gpu_available = state.gpu_compute_addr.is_some();
+            let gpu_available = state.try_get_gpu_compute_addr().is_some();
 
             ok_json!(json!({
                 "constraints": constraints_list,

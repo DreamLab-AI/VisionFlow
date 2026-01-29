@@ -348,7 +348,7 @@ Check file timestamps and git history for latest changes.
 - [Documentation Reports Archive](../archive/reports/README.md)
 - [Documentation Alignment Skill - Completion Report](../archive/reports/documentation-alignment-2025-12-02/DOCUMENTATION_ALIGNMENT_COMPLETE.md)
 - [DeepSeek User Setup - Complete](../archive/reports/documentation-alignment-2025-12-02/DEEPSEEK_SETUP_COMPLETE.md)
-- [Adapter Patterns in VisionFlow](../explanations/architecture/adapter-patterns.md)
+- [Adapter Patterns in VisionFlow](../concepts/adapter-patterns.md)
 
 ## Appendix: Quick Commands
 

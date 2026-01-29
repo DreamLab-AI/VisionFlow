@@ -9,8 +9,8 @@ tags:
   - api
   - api
 related-docs:
-  - ARCHITECTURE_COMPLETE.md
-  - ARCHITECTURE_OVERVIEW.md
+  - architecture/overview.md
+  - architecture/overview.md
   - ASCII_DEPRECATION_COMPLETE.md
 updated-date: 2025-12-18
 difficulty-level: advanced

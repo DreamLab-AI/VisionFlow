@@ -53,7 +53,7 @@ docker-compose up -d
 # See full installation guide
 ```
 
-→ **[Full Installation Guide](tutorials/01-installation.md)**
+→ **[Full Installation Guide](getting-started/installation.md)**
 
 ### Step 2: Create Graph (2 minutes)
 
@@ -62,7 +62,7 @@ docker-compose up -d
 3. Select GitHub repository or upload files
 4. Click "Visualize"
 
-→ **[First Graph Tutorial](tutorials/02-first-graph.md)**
+→ **[First Graph Tutorial](getting-started/first-graph.md)**
 
 ### Step 3: Explore (1 minute)
 
@@ -80,8 +80,8 @@ docker-compose up -d
 ### Everyone Should Read
 
 1. **[What is VisionFlow?](OVERVIEW.md)** - Value proposition and use cases
-2. **[Installation](tutorials/01-installation.md)** - Docker and native setup
-3. **[First Graph](tutorials/02-first-graph.md)** - Create your first visualization
+2. **[Installation](getting-started/installation.md)** - Docker and native setup
+3. **[First Graph](getting-started/first-graph.md)** - Create your first visualization
 4. **[Navigation Guide](guides/navigation-guide.md)** - Master the 3D interface
 
 ### Role-Specific Next Steps
@@ -92,14 +92,14 @@ docker-compose up -d
 - [Troubleshooting](guides/troubleshooting.md)
 
 **Developers:**
-- [Developer Journey](DEVELOPER_JOURNEY.md)
+- [Developer Journey](architecture/developer-journey.md)
 - [Development Setup](guides/developer/01-development-setup.md)
 - [Project Structure](guides/developer/02-project-structure.md)
 
 **Architects:**
-- [Architecture Overview](ARCHITECTURE_OVERVIEW.md)
+- [Architecture Overview](architecture/overview.md)
 - [Technology Choices](TECHNOLOGY_CHOICES.md)
-- [Hexagonal CQRS](explanations/architecture/hexagonal-cqrs.md)
+- [Hexagonal CQRS](concepts/hexagonal-architecture.md)
 
 **DevOps:**
 - [Deployment Guide](guides/deployment.md)
@@ -114,7 +114,7 @@ docker-compose up -d
 
 | Day | Focus | Documents |
 |-----|-------|-----------|
-| **1** | Installation & First Graph | [Installation](tutorials/01-installation.md), [First Graph](tutorials/02-first-graph.md) |
+| **1** | Installation & First Graph | [Installation](getting-started/installation.md), [First Graph](getting-started/first-graph.md) |
 | **2** | Navigation & Interface | [Navigation Guide](guides/navigation-guide.md) |
 | **3** | Database Basics | [Neo4j Quick Start](tutorials/neo4j-quick-start.md) |
 | **4** | Configuration | [Configuration](guides/configuration.md) |
@@ -122,14 +122,14 @@ docker-compose up -d
 
 ### Intermediate Path (Week 2-3)
 
-- **Architecture Understanding** → [Architecture Overview](ARCHITECTURE_OVERVIEW.md)
+- **Architecture Understanding** → [Architecture Overview](architecture/overview.md)
 - **Development Setup** → [Development Setup](guides/developer/01-development-setup.md)
 - **Feature Development** → [Adding Features](guides/developer/04-adding-features.md)
 
 ### Advanced Path (Week 4+)
 
-- **System Design** → [Hexagonal CQRS](explanations/architecture/hexagonal-cqrs.md)
-- **GPU Optimization** → [GPU Semantic Forces](explanations/architecture/gpu-semantic-forces.md)
+- **System Design** → [Hexagonal CQRS](concepts/hexagonal-architecture.md)
+- **GPU Optimization** → [GPU Semantic Forces](concepts/gpu-semantic-forces.md)
 - **Multi-Agent AI** → [Multi-Agent System](explanations/architecture/multi-agent-system.md)
 
 ---
@@ -139,7 +139,7 @@ docker-compose up -d
 ### Knowledge Graph
 **What**: Network of interconnected concepts and relationships
 **Why**: Enables semantic understanding and reasoning
-**Learn**: [First Graph Tutorial](tutorials/02-first-graph.md)
+**Learn**: [First Graph Tutorial](getting-started/first-graph.md)
 
 ### Neo4j Database
 **What**: Graph database storing nodes and edges
@@ -164,7 +164,7 @@ docker-compose up -d
 ### GPU Acceleration
 **What**: 39 CUDA kernels for computation
 **Why**: 100x speedup for large graphs (100k+ nodes)
-**Learn**: [GPU Semantic Forces](explanations/architecture/gpu-semantic-forces.md)
+**Learn**: [GPU Semantic Forces](concepts/gpu-semantic-forces.md)
 
 ---
 
@@ -196,10 +196,10 @@ docker-compose up -d
 ## 🆘 Common Questions
 
 ### "How do I install VisionFlow?"
-→ [Installation Tutorial](tutorials/01-installation.md)
+→ [Installation Tutorial](getting-started/installation.md)
 
 ### "How do I create my first graph?"
-→ [First Graph Tutorial](tutorials/02-first-graph.md)
+→ [First Graph Tutorial](getting-started/first-graph.md)
 
 ### "How do I navigate the 3D interface?"
 → [Navigation Guide](guides/navigation-guide.md)

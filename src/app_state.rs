@@ -637,13 +637,62 @@ impl AppState {
         };
 
 
+        // Create shared gpu_compute_addr that will be populated asynchronously
+        let gpu_compute_addr: Arc<RwLock<Option<Addr<gpu::ForceComputeActor>>>> =
+            Arc::new(RwLock::new(None));
+
         {
-            use crate::actors::messages::InitializeGPUConnection;
-            
+            use crate::actors::messages::{InitializeGPUConnection, GetForceComputeActor};
+
             info!("[AppState] Initializing GPU connection with GPUManagerActor for proper message delegation");
             if let Some(ref gpu_manager) = gpu_manager_addr {
                 graph_service_addr.do_send(InitializeGPUConnection {
                     gpu_manager: Some(gpu_manager.clone()),
+                });
+
+                // Spawn async task to get ForceComputeActor address after actors are ready
+                let gpu_manager_clone = gpu_manager.clone();
+                let gpu_compute_addr_clone = gpu_compute_addr.clone();
+
+                actix::spawn(async move {
+                    // Wait for GPUManagerActor and PhysicsSupervisor to fully initialize
+                    // This delay allows the actor hierarchy to be established:
+                    // GPUManagerActor -> ResourceSupervisor -> GPU init -> PhysicsSupervisor -> ForceComputeActor
+                    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+
+                    // Retry loop to get ForceComputeActor address
+                    let max_retries = 10;
+                    let retry_delay = tokio::time::Duration::from_millis(500);
+
+                    for attempt in 1..=max_retries {
+                        debug!("[AppState] Querying GPUManagerActor for ForceComputeActor (attempt {}/{})",
+                               attempt, max_retries);
+
+                        match gpu_manager_clone.send(GetForceComputeActor).await {
+                            Ok(Ok(force_compute_actor)) => {
+                                info!("[AppState] Successfully obtained ForceComputeActor address on attempt {}", attempt);
+                                let mut guard = gpu_compute_addr_clone.write().await;
+                                *guard = Some(force_compute_actor);
+                                info!("[AppState] ForceComputeActor address stored - GPU physics now available via AppState");
+                                return;
+                            }
+                            Ok(Err(e)) => {
+                                debug!("[AppState] ForceComputeActor not ready yet: {} (attempt {}/{})",
+                                       e, attempt, max_retries);
+                            }
+                            Err(e) => {
+                                warn!("[AppState] Failed to communicate with GPUManagerActor: {} (attempt {}/{})",
+                                      e, attempt, max_retries);
+                            }
+                        }
+
+                        if attempt < max_retries {
+                            tokio::time::sleep(retry_delay).await;
+                        }
+                    }
+
+                    warn!("[AppState] Failed to obtain ForceComputeActor after {} attempts - HTTP handlers will use fallback paths",
+                          max_retries);
                 });
             } else {
                 warn!("[AppState] GPUManagerActor not available - GPU physics will be disabled");
@@ -796,7 +845,7 @@ impl AppState {
         let state = Self {
             graph_service_addr,
             gpu_manager_addr,
-            gpu_compute_addr: None,
+            gpu_compute_addr,  // Now Arc<RwLock<Option<...>>>, populated asynchronously
             stress_majorization_addr,
             shortest_path_actor,
             connected_components_actor,
@@ -876,12 +925,17 @@ impl AppState {
                 reason: "GPU feature is enabled".to_string(),
             });
 
+            // gpu_compute_addr is populated asynchronously - check via try_read
+            let gpu_compute_present = self.gpu_compute_addr
+                .try_read()
+                .map(|guard| guard.is_some())
+                .unwrap_or(false);
             report.add(ValidationItem {
                 name: "gpu_compute_addr".to_string(),
                 expected: false,
-                present: self.gpu_compute_addr.is_some(),
+                present: gpu_compute_present,
                 severity: Severity::Info,
-                reason: "Initialized after GPU manager starts".to_string(),
+                reason: "Initialized asynchronously after GPU manager starts".to_string(),
             });
 
             report.add(ValidationItem {
@@ -1063,5 +1117,20 @@ impl AppState {
 
     pub fn get_task_orchestrator_addr(&self) -> &Addr<TaskOrchestratorActor> {
         &self.task_orchestrator_addr
+    }
+
+    /// Get the ForceComputeActor address asynchronously.
+    /// Returns None if the address hasn't been initialized yet or GPU is not available.
+    pub async fn get_gpu_compute_addr(&self) -> Option<Addr<gpu::ForceComputeActor>> {
+        self.gpu_compute_addr.read().await.clone()
+    }
+
+    /// Try to get the ForceComputeActor address synchronously (non-blocking).
+    /// Returns None if the lock is held or the address isn't available.
+    pub fn try_get_gpu_compute_addr(&self) -> Option<Addr<gpu::ForceComputeActor>> {
+        self.gpu_compute_addr
+            .try_read()
+            .ok()
+            .and_then(|guard| guard.clone())
     }
 }

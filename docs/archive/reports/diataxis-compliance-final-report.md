@@ -43,11 +43,11 @@ All documentation files in the VisionFlow project now have YAML frontmatter with
    - All 3 files already compliant
    - No corrections needed
 
-2. **Guides** (docs/guides/): 75 files
+2. **Guides** (guides/): 75 files
    - 72 files corrected (tutorial → guide, reference → guide)
    - 3 files already compliant
 
-3. **Reference** (docs/reference/): 31 files
+3. **Reference** (reference/): 31 files
    - 2 files corrected (tutorial → reference)
    - 29 files already compliant
 
@@ -69,16 +69,16 @@ The most common issue (60% of corrections) was guide documents incorrectly marke
 Second most common issue (32% of corrections).
 
 **Examples:**
-- `explanations/architecture/hexagonal-cqrs.md` (tutorial → explanation)
+- `concepts/hexagonal-architecture.md` (tutorial → explanation)
 - `explanations/ontology/reasoning-engine.md` (tutorial → explanation)
-- `explanations/architecture/semantic-forces-system.md` (tutorial → explanation)
+- `concepts/semantic-forces-system.md` (tutorial → explanation)
 
 ### 3. Reference/Guide Confusion
 Some technical references were misclassified as guides or explanations.
 
 **Examples:**
 - `guides/vircadia-xr-complete-guide.md` (reference → guide)
-- `explanations/architecture/ontology-analysis.md` (reference → explanation)
+- `concepts/ontology-analysis.md` (reference → explanation)
 
 ### 4. Plural vs Singular Category Names
 Files using "guides" instead of "guide":
@@ -94,17 +94,17 @@ One file had duplicate YAML frontmatter blocks:
 
 ### Root-Level Documentation
 ✓ **README.md**: category: guide (CORRECT - navigation/overview)
-✓ **ARCHITECTURE_OVERVIEW.md**: category: explanation (CORRECTED from reference)
+✓ **architecture/overview.md**: category: explanation (CORRECTED from reference)
 
 ### Installation Documentation
-✓ **tutorials/01-installation.md**: category: tutorial (CORRECT)
-✓ **tutorials/02-first-graph.md**: category: tutorial (CORRECT)
+✓ **getting-started/installation.md**: category: tutorial (CORRECT)
+✓ **getting-started/first-graph.md**: category: tutorial (CORRECT)
 ✓ **tutorials/neo4j-quick-start.md**: category: tutorial (CORRECT)
 
 ### API References
-✓ **reference/API_REFERENCE.md**: category: reference (CORRECT)
+✓ **reference/api/README.md**: category: reference (CORRECT)
 ✓ **reference/error-codes.md**: category: reference (CORRECT)
-✓ **reference/CONFIGURATION_REFERENCE.md**: category: reference (CORRECT)
+✓ **reference/configuration/README.md**: category: reference (CORRECT)
 
 ## Diataxis Framework Mapping
 

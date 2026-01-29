@@ -192,7 +192,7 @@ cargo test user_filter -- --ignored
 - [GraphServiceActor Migration Guide (HISTORICAL REFERENCE)](../graphserviceactor-migration.md)
 - [Ontology Storage Guide](../ontology-storage-guide.md)
 - [Docker Compose Unified Configuration - Usage Guide](../docker-compose-guide.md)
-- [Developer Guides](../developer/readme.md)
+- [Developer Guides](../developer/README.md)
 
 ## Future Enhancements
 - Add endpoint to copy global settings to user settings

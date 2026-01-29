@@ -35,7 +35,7 @@ static SECTION_HEADER_PATTERN: Lazy<Regex> = Lazy::new(|| {
 });
 
 static OWL_AXIOM_PATTERN: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r"```(?:clojure|owl)\s*\n(.*?)\n```").expect("Invalid OWL_AXIOM_PATTERN regex")
+    Regex::new(r"(?s)```(?:clojure|owl)\s*\n(.*?)\n\s*```").expect("Invalid OWL_AXIOM_PATTERN regex")
 });
 
 static BRIDGE_PATTERN: Lazy<Regex> = Lazy::new(|| {

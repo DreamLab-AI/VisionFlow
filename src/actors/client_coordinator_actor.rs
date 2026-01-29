@@ -1638,23 +1638,21 @@ mod tests {
         }];
 
         let serialized = actor.serialize_positions(&positions);
-        assert_eq!(
-            serialized.len(),
-            std::mem::size_of::<BinaryNodeDataClient>()
-        );
+        // V3 protocol: 1 header byte + 48 bytes per node
+        assert_eq!(serialized.len(), 1 + 48);
     }
 
     #[test]
     fn test_broadcast_timing() {
         let mut actor = ClientCoordinatorActor::new();
 
-        
-        assert!(actor.should_broadcast());
-
-        
-        actor.last_broadcast = Instant::now();
-
-        
+        // Immediately after creation, last_broadcast is set to now, so should NOT broadcast
         assert!(!actor.should_broadcast());
+
+        // Set last_broadcast to the past (beyond broadcast_interval of 50ms)
+        actor.last_broadcast = Instant::now() - Duration::from_millis(100);
+
+        // Now should broadcast since elapsed > broadcast_interval
+        assert!(actor.should_broadcast());
     }
 }

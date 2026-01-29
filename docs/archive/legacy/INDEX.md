@@ -19,8 +19,8 @@ difficulty-level: intermediate
 
 **Get started in 5 minutes:**
 
-1. **[Install VisionFlow](tutorials/01-installation.md)** → Docker or native setup
-2. **[Create Your First Graph](tutorials/02-first-graph.md)** → Launch AI agents
+1. **[Install VisionFlow](getting-started/installation.md)** → Docker or native setup
+2. **[Create Your First Graph](getting-started/first-graph.md)** → Launch AI agents
 3. **[Navigate in 3D](guides/navigation-guide.md)** → Master the interface
 
 **Choose your path:**
@@ -53,8 +53,8 @@ difficulty-level: intermediate
 | Step | Document | What You'll Learn | Time |
 |------|----------|-------------------|------|
 | 1 | **[What is VisionFlow?](OVERVIEW.md)** | Value proposition and use cases | 10 min |
-| 2 | **[Installation](tutorials/01-installation.md)** | Docker and native setup | 15 min |
-| 3 | **[First Graph](tutorials/02-first-graph.md)** | Create visualization with AI | 20 min |
+| 2 | **[Installation](getting-started/installation.md)** | Docker and native setup | 15 min |
+| 3 | **[First Graph](getting-started/first-graph.md)** | Create visualization with AI | 20 min |
 | 4 | **[Navigation Guide](guides/navigation-guide.md)** | Master 3D interface | 15 min |
 | 5 | **[Configuration](guides/configuration.md)** | Customize settings | 10 min |
 
@@ -103,13 +103,13 @@ difficulty-level: intermediate
 | **[System Overview](explanations/system-overview.md)** | Architectural blueprint |
 | **[Hexagonal CQRS](architecture/patterns/hexagonal-cqrs.md)** | Ports & adapters pattern |
 | **[Data Flow Complete](architecture/data-flow.md)** | End-to-end pipeline |
-| **[Integration Patterns](explanations/architecture/integration-patterns.md)** | System integration |
+| **[Integration Patterns](concepts/integration-patterns.md)** | System integration |
 
 **Deep Dives:**
 - **Actor System** → [Actor System Guide](guides/architecture/actor-system.md), [Server Architecture](architecture/server/overview.md)
-- **Database** → [Database Architecture](architecture/database.md), [Neo4j Persistence ADR](explanations/architecture/decisions/0001-neo4j-persistent-with-filesystem-sync.md)
+- **Database** → [Database Architecture](architecture/database.md), [Neo4j Persistence ADR](architecture/adr/ADR-0001-neo4j-persistent-with-filesystem-sync.md)
 - **Physics** → [Semantic Physics System](architecture/physics/semantic-forces.md), [GPU Communication Flow](architecture/gpu/communication-flow.md)
-- **Ontology** → [Ontology Storage Architecture](explanations/architecture/ontology-storage-architecture.md), [Reasoning Pipeline](architecture/ontology/reasoning-engine.md)
+- **Ontology** → [Ontology Storage Architecture](concepts/ontology-storage.md), [Reasoning Pipeline](architecture/ontology/reasoning-engine.md)
 - **Multi-Agent** → [Multi-Agent System](architecture/agents/multi-agent.md), [Agent Orchestration](guides/agent-orchestration.md)
 
 **Ports (Hexagonal Architecture):**
@@ -143,7 +143,7 @@ difficulty-level: intermediate
 **Data Operations:**
 - [Neo4j Migration](guides/neo4j-migration.md)
 - [Pipeline Admin API](guides/pipeline-admin-api.md)
-- [GitHub Sync Service](explanations/architecture/github-sync-service-design.md)
+- [GitHub Sync Service](concepts/github-sync-service.md)
 
 ---
 
@@ -155,8 +155,8 @@ difficulty-level: intermediate
 
 | Tutorial | What You'll Learn | Time | Difficulty |
 |----------|-------------------|------|------------|
-| **[Installation](tutorials/01-installation.md)** | Docker and native setup for all platforms | 10 min | Beginner |
-| **[First Graph](tutorials/02-first-graph.md)** | Create your first visualization with AI agents | 15 min | Beginner |
+| **[Installation](getting-started/installation.md)** | Docker and native setup for all platforms | 10 min | Beginner |
+| **[First Graph](getting-started/first-graph.md)** | Create your first visualization with AI agents | 15 min | Beginner |
 | **[Neo4j Quick Start](tutorials/neo4j-quick-start.md)** | Query and explore the graph database | 20 min | Beginner |
 
 ---
@@ -255,8 +255,8 @@ difficulty-level: intermediate
 - [Hierarchy Integration](guides/hierarchy-integration.md)
 - [Stress Majorization Guide](guides/stress-majorization-guide.md)
 - [Ontology Sync Enhancement](guides/features/ontology-sync-enhancement.md)
-- [DeepSeek Verification](guides/features/deepseek-verification.md)
-- [DeepSeek Deployment](guides/features/deepseek-deployment.md)
+- [DeepSeek Verification](guides/ai-models/deepseek-verification.md)
+- [DeepSeek Deployment](guides/ai-models/deepseek-deployment.md)
 
 #### 🔧 Migration (2 guides)
 
@@ -273,8 +273,8 @@ difficulty-level: intermediate
 
 | Document | Description |
 |----------|-------------|
-| **[Architecture Overview](ARCHITECTURE_OVERVIEW.md)** | Complete system architecture with diagrams |
-| **[Developer Journey](DEVELOPER_JOURNEY.md)** | Step-by-step codebase learning path |
+| **[Architecture Overview](architecture/overview.md)** | Complete system architecture with diagrams |
+| **[Developer Journey](architecture/developer-journey.md)** | Step-by-step codebase learning path |
 | **[System Overview](OVERVIEW.md)** | What VisionFlow is and why it exists |
 | **[Technology Choices](TECHNOLOGY_CHOICES.md)** | Technology stack rationale |
 
@@ -283,40 +283,40 @@ difficulty-level: intermediate
 **⭐ Core Architecture:**
 - [Server Architecture](concepts/architecture/core/server.md) - 21 actors, ports/adapters, Neo4j
 - [Actor System Guide](guides/architecture/actor-system.md) - Actor patterns, debugging
-- [Database Architecture](explanations/architecture/database-architecture.md) - Neo4j schema, queries
+- [Database Architecture](architecture/database.md) - Neo4j schema, queries
 - [System Overview](explanations/system-overview.md) - Complete blueprint
-- [Hexagonal CQRS](explanations/architecture/hexagonal-cqrs.md) - Ports & adapters
+- [Hexagonal CQRS](concepts/hexagonal-architecture.md) - Ports & adapters
 
 **Pipeline & Integration:**
 - [Data Flow Complete](explanations/architecture/data-flow-complete.md)
-- [Pipeline Integration](explanations/architecture/pipeline-integration.md)
-- [GitHub Sync Service Design](explanations/architecture/github-sync-service-design.md)
-- [Integration Patterns](explanations/architecture/integration-patterns.md)
+- [Pipeline Integration](concepts/pipeline-integration.md)
+- [GitHub Sync Service Design](concepts/github-sync-service.md)
+- [Integration Patterns](concepts/integration-patterns.md)
 
 **Services & Business Logic:**
 - [Services Architecture](explanations/architecture/services-architecture.md)
-- [Services Layer](explanations/architecture/services-layer.md)
-- [API Handlers Reference](explanations/architecture/api-handlers-reference.md)
-- [CQRS Directive Template](explanations/architecture/cqrs-directive-template.md)
+- [Services Layer](concepts/services-layer.md)
+- [API Handlers Reference](reference/api/handlers.md)
+- [CQRS Directive Template](concepts/cqrs-directive.md)
 
 **Advanced Topics:**
 - [Multi-Agent System](explanations/architecture/multi-agent-system.md)
-- [Analytics Visualization](explanations/architecture/analytics-visualization.md)
-- [XR Immersive System](explanations/architecture/xr-immersive-system.md)
-- [Quick Reference](explanations/architecture/quick-reference.md)
+- [Analytics Visualization](concepts/analytics-visualization.md)
+- [XR Immersive System](concepts/xr-immersive-system.md)
+- [Quick Reference](concepts/quick-reference.md)
 
 #### 🗄️ Database & Persistence (3 documents)
 
-- [Database Architecture](explanations/architecture/database-architecture.md)
-- [Adapter Patterns](explanations/architecture/adapter-patterns.md)
-- [Ontology Storage Architecture](explanations/architecture/ontology-storage-architecture.md)
+- [Database Architecture](architecture/database.md)
+- [Adapter Patterns](concepts/adapter-patterns.md)
+- [Ontology Storage Architecture](concepts/ontology-storage.md)
 
 #### 🦉 Ontology & Reasoning (11 documents)
 
 **Architecture:**
-- [Ontology Reasoning Pipeline](explanations/architecture/ontology-reasoning-pipeline.md)
-- [Reasoning Data Flow](explanations/architecture/reasoning-data-flow.md)
-- [Reasoning Tests Summary](explanations/architecture/reasoning-tests-summary.md)
+- [Ontology Reasoning Pipeline](concepts/ontology-reasoning-pipeline.md)
+- [Reasoning Data Flow](concepts/reasoning-data-flow.md)
+- [Reasoning Tests Summary](concepts/reasoning-tests.md)
 
 **Concepts:**
 - [Reasoning Engine](explanations/ontology/reasoning-engine.md)
@@ -330,27 +330,27 @@ difficulty-level: intermediate
 
 #### ⚡ Visualization & Physics (8 documents)
 
-- [Semantic Physics System](explanations/architecture/semantic-physics-system.md)
-- [Semantic Forces System](explanations/architecture/semantic-forces-system.md)
-- [Semantic Physics](explanations/architecture/semantic-physics.md)
-- [GPU Semantic Forces](explanations/architecture/gpu-semantic-forces.md)
-- [Stress Majorization](explanations/architecture/stress-majorization.md)
-- [Hierarchical Visualization](explanations/architecture/hierarchical-visualization.md)
+- [Semantic Physics System](concepts/semantic-physics-system.md)
+- [Semantic Forces System](concepts/semantic-forces-system.md)
+- [Semantic Physics](concepts/semantic-physics.md)
+- [GPU Semantic Forces](concepts/gpu-semantic-forces.md)
+- [Stress Majorization](concepts/stress-majorization.md)
+- [Hierarchical Visualization](concepts/hierarchical-visualization.md)
 - [Semantic Forces](explanations/physics/semantic-forces.md)
 - [Semantic Forces Actor](explanations/physics/semantic-forces-actor.md)
 
 #### 🎮 GPU Acceleration (3 documents)
 
-- [GPU Communication Flow](explanations/architecture/gpu/communication-flow.md)
-- [GPU Optimizations](explanations/architecture/gpu/optimizations.md)
-- [GPU README](explanations/architecture/gpu/readme.md)
+- [GPU Communication Flow](architecture/gpu/communication-flow.md)
+- [GPU Optimizations](architecture/gpu/optimizations.md)
+- [GPU README](architecture/gpu/README.md)
 
 #### 💻 Client-Server (4 documents)
 
-- [Client](explanations/architecture/core/client.md)
-- [Server](explanations/architecture/core/server.md)
+- [Client](architecture/client/overview.md)
+- [Server](architecture/server/overview.md)
 - [Visualization](explanations/architecture/core/visualization.md)
-- [WebSocket Protocol](explanations/architecture/components/websocket-protocol.md)
+- [WebSocket Protocol](architecture/protocols/websocket.md)
 
 #### 🔌 Ports (Hexagonal Architecture) (7 documents)
 
@@ -364,7 +364,7 @@ difficulty-level: intermediate
 
 #### 📐 Architecture Decisions (1 document)
 
-- [ADR-0001: Neo4j Persistence](explanations/architecture/decisions/0001-neo4j-persistent-with-filesystem-sync.md)
+- [ADR-0001: Neo4j Persistence](architecture/adr/ADR-0001-neo4j-persistent-with-filesystem-sync.md)
 
 ---
 
@@ -383,7 +383,7 @@ difficulty-level: intermediate
 | **[WebSocket API](reference/api/03-websocket.md)** | Real-time binary protocol |
 | **[Semantic Features API](reference/api/semantic-features-api.md)** | Natural language queries |
 | **[Pathfinding Examples](reference/api/pathfinding-examples.md)** | Graph traversal examples |
-| **[API README](reference/api/readme.md)** | API documentation index |
+| **[API README](reference/api/README.md)** | API documentation index |
 
 #### 📡 Protocols (2 references)
 
@@ -413,21 +413,21 @@ difficulty-level: intermediate
 
 | I want to... | Go here → |
 |-------------|----------|
-| **Install VisionFlow** | [Installation Tutorial](tutorials/01-installation.md) |
-| **Create my first graph** | [First Graph Tutorial](tutorials/02-first-graph.md) |
+| **Install VisionFlow** | [Installation Tutorial](getting-started/installation.md) |
+| **Create my first graph** | [First Graph Tutorial](getting-started/first-graph.md) |
 | **Deploy AI agents** | [Agent Orchestration](guides/agent-orchestration.md) |
 | **Query Neo4j** | [Neo4j Integration](guides/neo4j-integration.md) |
 | **Add a feature** | [Adding Features](guides/developer/04-adding-features.md) |
 | **Set up XR/VR** | [Vircadia XR Guide](guides/vircadia-xr-complete-guide.md) |
-| **Understand architecture** | [Architecture Overview](ARCHITECTURE_OVERVIEW.md) |
-| **Learn the codebase** | [Developer Journey](DEVELOPER_JOURNEY.md) |
+| **Understand architecture** | [Architecture Overview](architecture/overview.md) |
+| **Learn the codebase** | [Developer Journey](architecture/developer-journey.md) |
 | **Deploy to production** | [Deployment Guide](guides/deployment.md) |
 | **Configure environment** | [Configuration](guides/configuration.md) |
 | **Fix issues** | [Troubleshooting](guides/troubleshooting.md) |
 | **Write tests** | [Testing Guide](guides/testing-guide.md) |
 | **Use REST API** | [REST API Complete](reference/api/rest-api-complete.md) |
 | **Use WebSocket** | [WebSocket API](reference/api/03-websocket.md) |
-| **Optimize performance** | [GPU Optimizations](explanations/architecture/gpu/optimizations.md) |
+| **Optimize performance** | [GPU Optimizations](architecture/gpu/optimizations.md) |
 | **Secure the app** | [Security Guide](guides/security.md) |
 
 ### By Technology
@@ -435,26 +435,26 @@ difficulty-level: intermediate
 **Neo4j Graph Database:**
 - [Neo4j Integration](guides/neo4j-integration.md)
 - [Database Schemas](reference/database/schemas.md)
-- [Database Architecture](explanations/architecture/database-architecture.md)
+- [Database Architecture](architecture/database.md)
 - [Neo4j Migration](guides/neo4j-migration.md)
 
 **Rust / Actix Web:**
 - [Server Architecture](concepts/architecture/core/server.md)
-- [Hexagonal CQRS](explanations/architecture/hexagonal-cqrs.md)
+- [Hexagonal CQRS](concepts/hexagonal-architecture.md)
 - [Project Structure](guides/developer/02-project-structure.md)
 
 **React / Three.js:**
-- [Client Architecture](explanations/architecture/core/client.md)
+- [Client Architecture](architecture/client/overview.md)
 - [Three.js Rendering](guides/client/three-js-rendering.md)
 - [State Management](guides/client/state-management.md)
 
 **CUDA / GPU:**
-- [GPU Semantic Forces](explanations/architecture/gpu-semantic-forces.md)
-- [GPU Optimizations](explanations/architecture/gpu/optimizations.md)
+- [GPU Semantic Forces](concepts/gpu-semantic-forces.md)
+- [GPU Optimizations](architecture/gpu/optimizations.md)
 - [Performance Benchmarks](reference/performance-benchmarks.md)
 
 **OWL / Ontologies:**
-- [Ontology Storage Architecture](explanations/architecture/ontology-storage-architecture.md)
+- [Ontology Storage Architecture](concepts/ontology-storage.md)
 - [Ontology Parser](guides/ontology-parser.md)
 - [Reasoning Engine](explanations/ontology/reasoning-engine.md)
 
@@ -469,7 +469,7 @@ difficulty-level: intermediate
 - [Multi-Agent Skills](guides/multi-agent-skills.md)
 
 **XR / WebXR:**
-- [XR Immersive System](explanations/architecture/xr-immersive-system.md)
+- [XR Immersive System](concepts/xr-immersive-system.md)
 - [Vircadia XR Guide](guides/vircadia-xr-complete-guide.md)
 - [XR Integration](guides/client/xr-integration.md)
 
@@ -481,7 +481,7 @@ difficulty-level: intermediate
 - Actors → [Actor System Guide](guides/architecture/actor-system.md), [Server Architecture](concepts/architecture/core/server.md)
 - AI Agents → [Multi-Agent System](explanations/architecture/multi-agent-system.md), [Agent Orchestration](guides/agent-orchestration.md)
 - API → [REST API Complete](reference/api/rest-api-complete.md), [API Complete Reference](reference/api-complete-reference.md)
-- Architecture → [Architecture Overview](ARCHITECTURE_OVERVIEW.md), [System Overview](explanations/system-overview.md)
+- Architecture → [Architecture Overview](architecture/overview.md), [System Overview](explanations/system-overview.md)
 - Authentication → [Auth & User Settings](guides/features/auth-user-settings.md), [Nostr Auth](guides/features/nostr-auth.md)
 
 **B**
@@ -489,15 +489,15 @@ difficulty-level: intermediate
 - Benchmarks → [Performance Benchmarks](reference/performance-benchmarks.md)
 
 **C**
-- Client → [Client Architecture](explanations/architecture/core/client.md), [State Management](guides/client/state-management.md)
+- Client → [Client Architecture](architecture/client/overview.md), [State Management](guides/client/state-management.md)
 - Configuration → [Configuration Guide](guides/configuration.md)
-- CQRS → [Hexagonal CQRS](explanations/architecture/hexagonal-cqrs.md)
-- CUDA → [GPU Semantic Forces](explanations/architecture/gpu-semantic-forces.md)
+- CQRS → [Hexagonal CQRS](concepts/hexagonal-architecture.md)
+- CUDA → [GPU Semantic Forces](concepts/gpu-semantic-forces.md)
 
 **D**
-- Database → [Database Architecture](explanations/architecture/database-architecture.md), [Schemas](reference/database/schemas.md)
+- Database → [Database Architecture](architecture/database.md), [Schemas](reference/database/schemas.md)
 - Deployment → [Deployment Guide](guides/deployment.md)
-- Developer → [Developer Journey](DEVELOPER_JOURNEY.md), [Development Setup](guides/developer/01-development-setup.md)
+- Developer → [Developer Journey](architecture/developer-journey.md), [Development Setup](guides/developer/01-development-setup.md)
 - Docker → [Docker Compose Guide](guides/docker-compose-guide.md)
 
 **E**
@@ -508,26 +508,26 @@ difficulty-level: intermediate
 - Filtering → [Filtering Nodes](guides/features/filtering-nodes.md)
 
 **G**
-- GitHub → [GitHub Sync Service](explanations/architecture/github-sync-service-design.md)
-- GPU → [GPU Optimizations](explanations/architecture/gpu/optimizations.md)
+- GitHub → [GitHub Sync Service](concepts/github-sync-service.md)
+- GPU → [GPU Optimizations](architecture/gpu/optimizations.md)
 - Graph → [Knowledge Graph Repository](explanations/architecture/ports/03-knowledge-graph-repository.md)
 
 **H**
-- Hexagonal Architecture → [Hexagonal CQRS](explanations/architecture/hexagonal-cqrs.md), [Ports Overview](explanations/architecture/ports/01-overview.md)
+- Hexagonal Architecture → [Hexagonal CQRS](concepts/hexagonal-architecture.md), [Ports Overview](explanations/architecture/ports/01-overview.md)
 - Hierarchy → [Hierarchical Visualization](explanations/ontology/hierarchical-visualization.md)
 
 **I**
-- Installation → [Installation Tutorial](tutorials/01-installation.md)
-- Integration → [Integration Patterns](explanations/architecture/integration-patterns.md)
+- Installation → [Installation Tutorial](getting-started/installation.md)
+- Integration → [Integration Patterns](concepts/integration-patterns.md)
 
 **J**
 - JSON → [JSON Serialization](guides/developer/json-serialization-patterns.md)
 
 **K**
-- Knowledge Graph → [First Graph](tutorials/02-first-graph.md)
+- Knowledge Graph → [First Graph](getting-started/first-graph.md)
 
 **L**
-- Layout → [Stress Majorization](explanations/architecture/stress-majorization.md)
+- Layout → [Stress Majorization](concepts/stress-majorization.md)
 
 **M**
 - Migration → [Neo4j Migration](guides/neo4j-migration.md)
@@ -545,14 +545,14 @@ difficulty-level: intermediate
 **P**
 - Pathfinding → [Intelligent Pathfinding](guides/features/intelligent-pathfinding.md)
 - Performance → [Performance Benchmarks](reference/performance-benchmarks.md)
-- Physics → [Semantic Physics System](explanations/architecture/semantic-physics-system.md)
+- Physics → [Semantic Physics System](concepts/semantic-physics-system.md)
 - Ports → [Ports Overview](explanations/architecture/ports/01-overview.md)
 
 **Q**
 - Queries → [Natural Language Queries](guides/features/natural-language-queries.md)
 
 **R**
-- React → [Client Architecture](explanations/architecture/core/client.md)
+- React → [Client Architecture](architecture/client/overview.md)
 - Reasoning → [Reasoning Engine](explanations/ontology/reasoning-engine.md)
 - REST → [REST API Complete](reference/api/rest-api-complete.md)
 - Rust → [Server Architecture](concepts/architecture/core/server.md)
@@ -569,7 +569,7 @@ difficulty-level: intermediate
 - Troubleshooting → [Troubleshooting Guide](guides/troubleshooting.md)
 
 **V**
-- Vector Search → [RuVector Integration](explanations/architecture/ruvector-integration.md)
+- Vector Search → [RuVector Integration](concepts/ruvector-integration.md)
 - Vircadia → [Vircadia XR Guide](guides/vircadia-xr-complete-guide.md)
 - Visualization → [Visualization](explanations/architecture/core/visualization.md)
 
@@ -577,7 +577,7 @@ difficulty-level: intermediate
 - WebSocket → [WebSocket Protocol](reference/websocket-protocol.md), [Binary WebSocket](reference/protocols/binary-websocket.md)
 
 **X**
-- XR → [XR Immersive System](explanations/architecture/xr-immersive-system.md), [XR Integration](guides/client/xr-integration.md)
+- XR → [XR Immersive System](concepts/xr-immersive-system.md), [XR Integration](guides/client/xr-integration.md)
 
 ---
 
@@ -587,32 +587,32 @@ difficulty-level: intermediate
 
 **Beginner (Week 1):**
 1. [What is VisionFlow?](OVERVIEW.md)
-2. [Installation](tutorials/01-installation.md)
-3. [First Graph](tutorials/02-first-graph.md)
+2. [Installation](getting-started/installation.md)
+3. [First Graph](getting-started/first-graph.md)
 4. [Navigation Guide](guides/navigation-guide.md)
 5. [Neo4j Quick Start](tutorials/neo4j-quick-start.md)
 
 **Intermediate (Week 2-3):**
-1. [Architecture Overview](ARCHITECTURE_OVERVIEW.md)
-2. [Developer Journey](DEVELOPER_JOURNEY.md)
+1. [Architecture Overview](architecture/overview.md)
+2. [Developer Journey](architecture/developer-journey.md)
 3. [Project Structure](guides/developer/02-project-structure.md)
 4. [Adding Features](guides/developer/04-adding-features.md)
 5. [Testing Guide](guides/testing-guide.md)
 
 **Advanced (Week 4+):**
-1. [Hexagonal CQRS](explanations/architecture/hexagonal-cqrs.md)
-2. [Database Architecture](explanations/architecture/database-architecture.md)
-3. [GPU Semantic Forces](explanations/architecture/gpu-semantic-forces.md)
-4. [Ontology Reasoning Pipeline](explanations/architecture/ontology-reasoning-pipeline.md)
+1. [Hexagonal CQRS](concepts/hexagonal-architecture.md)
+2. [Database Architecture](architecture/database.md)
+3. [GPU Semantic Forces](concepts/gpu-semantic-forces.md)
+4. [Ontology Reasoning Pipeline](concepts/ontology-reasoning-pipeline.md)
 5. [Multi-Agent System](explanations/architecture/multi-agent-system.md)
 
 ### By Feature Area
 
 **Graph Visualization:**
-- [First Graph](tutorials/02-first-graph.md)
+- [First Graph](getting-started/first-graph.md)
 - [Navigation Guide](guides/navigation-guide.md)
 - [Three.js Rendering](guides/client/three-js-rendering.md)
-- [Semantic Physics System](explanations/architecture/semantic-physics-system.md)
+- [Semantic Physics System](concepts/semantic-physics-system.md)
 
 **AI Agents:**
 - [Agent Orchestration](guides/agent-orchestration.md)
@@ -622,14 +622,14 @@ difficulty-level: intermediate
 **Database:**
 - [Neo4j Quick Start](tutorials/neo4j-quick-start.md)
 - [Neo4j Integration](guides/neo4j-integration.md)
-- [Database Architecture](explanations/architecture/database-architecture.md)
+- [Database Architecture](architecture/database.md)
 - [Database Schemas](reference/database/schemas.md)
 
 **Ontology:**
 - [Ontology Parser](guides/ontology-parser.md)
 - [Ontology Storage Guide](guides/ontology-storage-guide.md)
 - [Reasoning Engine](explanations/ontology/reasoning-engine.md)
-- [Ontology Reasoning Pipeline](explanations/architecture/ontology-reasoning-pipeline.md)
+- [Ontology Reasoning Pipeline](concepts/ontology-reasoning-pipeline.md)
 
 ---
 

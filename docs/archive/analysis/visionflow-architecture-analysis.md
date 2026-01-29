@@ -9,8 +9,8 @@ tags:
   - structure
   - api
 related-docs:
-  - ARCHITECTURE_COMPLETE.md
-  - ARCHITECTURE_OVERVIEW.md
+  - architecture/overview.md
+  - architecture/overview.md
   - ASCII_DEPRECATION_COMPLETE.md
 updated-date: 2025-12-18
 difficulty-level: advanced
@@ -1097,7 +1097,7 @@ Total Analyzed: ~3,142 lines across key architecture files
 
 ## Related Documentation
 
-- [VisionFlow Complete Architecture Documentation](ARCHITECTURE_COMPLETE.md)
+- [VisionFlow Complete Architecture Documentation](architecture/overview.md)
 - [What is VisionFlow?](OVERVIEW.md)
 - [Blender MCP Unified System Architecture](architecture/blender-mcp-unified-architecture.md)
 - [Agent/Bot System Architecture](diagrams/server/agents/agent-system-architecture.md)

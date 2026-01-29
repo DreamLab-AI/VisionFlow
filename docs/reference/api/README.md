@@ -1,13 +1,14 @@
 ---
 title: VisionFlow API Documentation
-description: **Complete REST API Reference for VisionFlow Knowledge Graph Platform**
+description: Complete REST API Reference for VisionFlow Knowledge Graph Platform
 category: reference
+diataxis: reference
 tags:
   - api
-  - api
-  - api
+  - rest
+  - websocket
   - frontend
-updated-date: 2025-12-18
+updated-date: 2025-01-29
 difficulty-level: intermediate
 ---
 

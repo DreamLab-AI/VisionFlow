@@ -21,8 +21,8 @@ difficulty-level: advanced
 **Last Updated**: December 2, 2025
 
 > **Note**: This document is kept for **historical reference only**. The GraphServiceActor has been **completely removed** and replaced with a modular actor architecture. If you're looking for current architecture documentation, see:
-> - **Current Architecture**: `/docs/ARCHITECTURE_OVERVIEW.md`
-> - **Actor System**: `/docs/explanations/architecture/core/server.md`
+> - **Current Architecture**: `/docs/architecture/overview.md`
+> - **Actor System**: `/docs/architecture/server/overview.md`
 > - **Migration Complete**: All code has been updated - no action needed
 
 ---

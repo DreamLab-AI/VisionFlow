@@ -11,8 +11,8 @@ tags:
   - solid
   - ldp
 related-docs:
-  - reference/PROTOCOL_REFERENCE.md
-  - reference/CONFIGURATION_REFERENCE.md
+  - reference/protocols/README.md
+  - reference/configuration/README.md
   - reference/api/rest-api-complete.md
 updated-date: 2025-12-29
 difficulty-level: advanced
@@ -520,9 +520,9 @@ services:
 
 | Topic | Documentation |
 |-------|---------------|
-| Protocol Specification | [PROTOCOL_REFERENCE.md](../reference/PROTOCOL_REFERENCE.md#solidldp-protocol) |
+| Protocol Specification | [PROTOCOL_REFERENCE.md](../reference/protocols/README.md#solidldp-protocol) |
 | API Endpoints | [rest-api-complete.md](../reference/api/rest-api-complete.md#solid-integration-endpoints) |
-| Configuration | [CONFIGURATION_REFERENCE.md](../reference/CONFIGURATION_REFERENCE.md#solid-integration-jss-sidecar) |
+| Configuration | [CONFIGURATION_REFERENCE.md](../reference/configuration/README.md#solid-integration-jss-sidecar) |
 
 ---
 

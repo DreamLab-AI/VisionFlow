@@ -98,8 +98,8 @@ Pie Chart            4   ░░░░░░░░░░░░░░░░░░�
 guides/infrastructure/troubleshooting.md
 guides/semantic-features-implementation.md
 guides/neo4j-migration.md
-explanations/architecture/ontology-analysis.md
-reference/ERROR_REFERENCE.md
+concepts/ontology-analysis.md
+reference/error-codes.md
 ```
 
 ### Outdated Content (In Archive)

@@ -140,7 +140,7 @@ const NODE_ID_MASK: u32 = 0x3FFFFFFF;         // Bits 0-29
 #### Broken Link Analysis
 
 **Critical Broken Links (5):**
-1. `ARCHITECTURE_OVERVIEW.md` → `explanations/architecture/system-overview.md` (should be `explanations/system-overview.md`)
+1. `architecture/overview.md` → `explanations/architecture/system-overview.md` (should be `explanations/system-overview.md`)
 2. `README.md` → `guides/developer/05-testing-guide.md` (file moved to `guides/testing-guide.md`)
 3. Several references to old `guides/architecture/actor-system.md` (moved to `explanations/architecture/`)
 4. `reference/implementation-status.md` line 455 references non-existent `explanations/architecture/system-overview.md`
@@ -371,7 +371,7 @@ graph TB
 
 **Path Tested:**
 1. `README.md` → "Developer Journey"
-2. `DEVELOPER_JOURNEY.md` → Setup instructions
+2. `architecture/developer-journey.md` → Setup instructions
 3. `guides/developer/01-development-setup.md` → Environment setup
 4. `guides/developer/02-project-structure.md` → Codebase navigation
 5. `guides/developer/04-adding-features.md` → Feature development
@@ -384,10 +384,10 @@ graph TB
 
 **Path Tested:**
 1. `README.md` → "Architects" section
-2. `ARCHITECTURE_OVERVIEW.md` → High-level overview
+2. `architecture/overview.md` → High-level overview
 3. `TECHNOLOGY_CHOICES.md` → Technology decisions
 4. `explanations/system-overview.md` → Detailed system design
-5. `explanations/architecture/hexagonal-cqrs.md` → Pattern details
+5. `concepts/hexagonal-architecture.md` → Pattern details
 6. `explanations/architecture/ports/01-overview.md` → Port abstractions
 
 **Result:** ✅ **EXCELLENT** - Comprehensive journey with deep dives
@@ -408,8 +408,8 @@ graph TB
 
 **Path Tested:**
 1. `README.md` → "5-Minute Start"
-2. `tutorials/01-installation.md` → Installation
-3. `tutorials/02-first-graph.md` → First visualisation
+2. `getting-started/installation.md` → Installation
+3. `getting-started/first-graph.md` → First visualisation
 4. `guides/navigation-guide.md` → Interface mastery
 5. `guides/features/filtering-nodes.md` → Advanced features
 
@@ -628,7 +628,7 @@ All documentation pages provide:
 - [User Settings Implementation Summary](archive/reports/2025-12-02-user-settings-summary.md)
 - [Mermaid Diagram Fix Examples](archive/reports/mermaid-fixes-examples.md)
 - [Complete Hexagonal Architecture Migration - Overview](explanations/system-overview.md)
-- [Hexagonal/CQRS Architecture Design](explanations/architecture/hexagonal-cqrs.md)
+- [Hexagonal/CQRS Architecture Design](concepts/hexagonal-architecture.md)
 - [VisionFlow Distributed Systems & Collaboration Assessment](architecture/visionflow-distributed-systems-assessment.md)
 
 ## Sign-Off

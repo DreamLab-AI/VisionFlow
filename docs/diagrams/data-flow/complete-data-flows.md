@@ -12,8 +12,8 @@ related-docs:
   - ASCII_DEPRECATION_COMPLETE.md
   - audits/ascii-diagram-deprecation-audit.md
   - diagrams/README.md
-  - explanations/architecture/quick-reference.md
-  - explanations/architecture/reasoning-data-flow.md
+  - concepts/quick-reference.md
+  - concepts/reasoning-data-flow.md
 updated-date: 2025-12-18
 difficulty-level: intermediate
 dependencies:

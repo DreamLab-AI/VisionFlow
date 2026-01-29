@@ -62,8 +62,10 @@ impl Default for InMemoryEventRepository {
 
 #[async_trait]
 impl EventRepository for InMemoryEventRepository {
-    async fn append(&self, event: StoredEvent) -> EventResult<()> {
+    async fn append(&self, mut event: StoredEvent) -> EventResult<()> {
         let mut events = self.events.write().await;
+        // Assign sequence number based on current count
+        event.sequence = events.len() as i64 + 1;
         events.push(event);
         Ok(())
     }

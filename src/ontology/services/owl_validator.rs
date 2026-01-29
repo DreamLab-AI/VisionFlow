@@ -460,7 +460,53 @@ impl OwlValidatorService {
 
 impl Default for OwlValidatorService {
     fn default() -> Self {
-        Self::new().expect("Failed to load default mapping configuration")
+        Self::new().unwrap_or_else(|e| {
+            log::warn!("Failed to load mapping config: {}. Using minimal fallback.", e);
+            // Create minimal config with essential namespaces
+            let mut namespaces = std::collections::HashMap::new();
+            namespaces.insert("rdf".to_string(), "http://www.w3.org/1999/02/22-rdf-syntax-ns#".to_string());
+            namespaces.insert("rdfs".to_string(), "http://www.w3.org/2000/01/rdf-schema#".to_string());
+            namespaces.insert("owl".to_string(), "http://www.w3.org/2002/07/owl#".to_string());
+            namespaces.insert("xsd".to_string(), "http://www.w3.org/2001/XMLSchema#".to_string());
+
+            let minimal_config = MappingConfig {
+                metadata: MappingMetadata {
+                    title: "Minimal Config".to_string(),
+                    version: "1.0".to_string(),
+                    description: "Fallback minimal configuration".to_string(),
+                    author: "System".to_string(),
+                    created: "2024-01-01".to_string(),
+                    last_modified: "2024-01-01".to_string(),
+                },
+                global: GlobalConfig {
+                    base_iri: "http://example.org/".to_string(),
+                    default_vocabulary: "http://example.org/vocab#".to_string(),
+                    version_iri: "http://example.org/1.0.0".to_string(),
+                    default_language: "en".to_string(),
+                    strict_mode: false,
+                    auto_generate_inverses: false,
+                },
+                defaults: DefaultsConfig {
+                    default_node_class: "owl:Thing".to_string(),
+                    default_edge_property: "owl:relatedTo".to_string(),
+                    default_datatype: "xsd:string".to_string(),
+                    fallback_namespace: "http://example.org/".to_string(),
+                },
+                namespaces,
+                class_mappings: std::collections::HashMap::new(),
+                object_property_mappings: std::collections::HashMap::new(),
+                data_property_mappings: std::collections::HashMap::new(),
+                iri_templates: IriTemplates {
+                    nodes: std::collections::HashMap::new(),
+                    edges: std::collections::HashMap::new(),
+                    metadata: MetadataTemplates {
+                        property: "{base_iri}property/{id}".to_string(),
+                        class: "{base_iri}class/{id}".to_string(),
+                    },
+                },
+            };
+            Self::with_config(minimal_config)
+        })
     }
 }
 
@@ -469,9 +515,114 @@ mod tests {
     use super::*;
     use serde_json::json;
 
+    fn create_test_config() -> MappingConfig {
+        let mut namespaces = HashMap::new();
+        namespaces.insert("rdf".to_string(), "http://www.w3.org/1999/02/22-rdf-syntax-ns#".to_string());
+        namespaces.insert("rdfs".to_string(), "http://www.w3.org/2000/01/rdf-schema#".to_string());
+        namespaces.insert("owl".to_string(), "http://www.w3.org/2002/07/owl#".to_string());
+        namespaces.insert("xsd".to_string(), "http://www.w3.org/2001/XMLSchema#".to_string());
+        namespaces.insert("foaf".to_string(), "http://xmlns.com/foaf/0.1/".to_string());
+        namespaces.insert("mv".to_string(), "http://example.org/mv#".to_string());
+
+        let mut class_mappings = HashMap::new();
+        class_mappings.insert("Person".to_string(), ClassMapping {
+            owl_class: "foaf:Person".to_string(),
+            rdfs_label: "Person".to_string(),
+            rdfs_comment: "A person".to_string(),
+            rdfs_subclass_of: Vec::new(),
+            equivalent_classes: Vec::new(),
+            disjoint_with: Vec::new(),
+        });
+        class_mappings.insert("Company".to_string(), ClassMapping {
+            owl_class: "foaf:Organization".to_string(),
+            rdfs_label: "Company".to_string(),
+            rdfs_comment: "A company".to_string(),
+            rdfs_subclass_of: Vec::new(),
+            equivalent_classes: Vec::new(),
+            disjoint_with: Vec::new(),
+        });
+
+        let mut data_property_mappings = HashMap::new();
+        data_property_mappings.insert("name".to_string(), DataPropertyMapping {
+            owl_property: "foaf:name".to_string(),
+            rdfs_label: "name".to_string(),
+            rdfs_comment: "Name of entity".to_string(),
+            rdfs_domain: PropertyDomain::Single("owl:Thing".to_string()),
+            rdfs_range: "xsd:string".to_string(),
+            property_type: "data".to_string(),
+            characteristics: Vec::new(),
+        });
+        data_property_mappings.insert("age".to_string(), DataPropertyMapping {
+            owl_property: "foaf:age".to_string(),
+            rdfs_label: "age".to_string(),
+            rdfs_comment: "Age in years".to_string(),
+            rdfs_domain: PropertyDomain::Single("foaf:Person".to_string()),
+            rdfs_range: "xsd:integer".to_string(),
+            property_type: "data".to_string(),
+            characteristics: Vec::new(),
+        });
+        data_property_mappings.insert("email".to_string(), DataPropertyMapping {
+            owl_property: "foaf:mbox".to_string(),
+            rdfs_label: "email".to_string(),
+            rdfs_comment: "Email address".to_string(),
+            rdfs_domain: PropertyDomain::Single("foaf:Agent".to_string()),
+            rdfs_range: "xsd:string".to_string(),
+            property_type: "data".to_string(),
+            characteristics: Vec::new(),
+        });
+
+        let mut object_property_mappings = HashMap::new();
+        object_property_mappings.insert("employedBy".to_string(), ObjectPropertyMapping {
+            owl_property: "mv:employedBy".to_string(),
+            rdfs_label: "employed by".to_string(),
+            rdfs_comment: "Employment relationship".to_string(),
+            rdfs_domain: PropertyDomain::Single("foaf:Person".to_string()),
+            rdfs_range: PropertyRange::Single("foaf:Organization".to_string()),
+            owl_inverse_of: Some("mv:employs".to_string()),
+            property_type: "object".to_string(),
+            characteristics: Vec::new(),
+        });
+
+        MappingConfig {
+            metadata: MappingMetadata {
+                title: "Test Mapping".to_string(),
+                version: "1.0.0".to_string(),
+                description: "Test mapping config".to_string(),
+                author: "Test".to_string(),
+                created: "2024-01-01".to_string(),
+                last_modified: "2024-01-01".to_string(),
+            },
+            global: GlobalConfig {
+                base_iri: "http://example.org/".to_string(),
+                default_vocabulary: "http://example.org/vocab#".to_string(),
+                version_iri: "http://example.org/1.0.0".to_string(),
+                default_language: "en".to_string(),
+                strict_mode: false,
+                auto_generate_inverses: true,
+            },
+            defaults: DefaultsConfig {
+                default_node_class: "owl:Thing".to_string(),
+                default_edge_property: "mv:relatedTo".to_string(),
+                default_datatype: "xsd:string".to_string(),
+                fallback_namespace: "http://example.org/".to_string(),
+            },
+            namespaces,
+            class_mappings,
+            object_property_mappings,
+            data_property_mappings,
+            iri_templates: IriTemplates {
+                nodes: HashMap::new(),
+                edges: HashMap::new(),
+                metadata: MetadataTemplates {
+                    property: "{base_iri}property/{id}".to_string(),
+                    class: "{base_iri}class/{id}".to_string(),
+                },
+            },
+        }
+    }
+
     fn create_test_service() -> OwlValidatorService {
-        
-        OwlValidatorService::new().expect("Failed to create test service")
+        OwlValidatorService::with_config(create_test_config())
     }
 
     #[test]

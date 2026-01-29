@@ -1318,7 +1318,7 @@ print(f"Created {result['data']['created']} nodes")
 - [WebSocket Protocol](websocket-protocol.md) - Binary WebSocket specification
 -  - All configuration options
 - [Architecture Overview](../../explanations/architecture/system-overview.md) - System design
-- [Getting Started](../../tutorials/01-installation.md) - Installation guide
+- [Getting Started](../../getting-started/installation.md) - Installation guide
 
 ---
 

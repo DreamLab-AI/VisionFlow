@@ -11,10 +11,11 @@ static HEADING_RE: Lazy<Regex> = Lazy::new(|| {
     Regex::new(r"^#\s+(.+)$").expect("HEADING_RE pattern is a compile-time constant")
 });
 
-/// Regex for matching Logseq property syntax (e.g., "key:: value")
+/// Regex for matching Logseq property syntax (e.g., "key:: value" or "owl:class:: value")
+/// Supports both inline properties and Logseq outline format with "- " prefix
 /// Compiled once at startup - pattern is a compile-time constant that is always valid
 static PROPERTY_RE: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r"^([a-zA-Z][a-zA-Z0-9-_]*)::\s*(.+)$")
+    Regex::new(r"^(?:-\s+)?([a-zA-Z][a-zA-Z0-9:_-]*)::\s*(.+)$")
         .expect("PROPERTY_RE pattern is a compile-time constant")
 });
 
@@ -57,6 +58,8 @@ fn extract_title(path: &Path, content: &str) -> String {
         .to_string()
 }
 
+// TODO: Optimize to single-pass state machine for better performance
+// Current multi-pass approach is acceptable for typical ontology sizes
 fn extract_properties(content: &str) -> HashMap<String, Vec<String>> {
     let mut properties = HashMap::new();
 
@@ -160,20 +163,36 @@ fn extract_owl_blocks(content: &str) -> Result<Vec<String>> {
             continue;
         }
 
-        
-        if line.starts_with("owl:functional-syntax::") {
-            i += 1;
-            if i >= lines.len() {
-                break;
-            }
 
-            
-            if !lines[i].trim().starts_with('|') {
+        if line.starts_with("owl:functional-syntax::") {
+            // Check if | is on the same line or the next line
+            let remainder = line.trim_start_matches("owl:functional-syntax::").trim();
+
+            if remainder == "|" {
+                // | is on the same line, move to next line for content
+                i += 1;
+            } else if remainder.is_empty() {
+                // Check if next line starts with |
+                i += 1;
+                if i >= lines.len() {
+                    break;
+                }
+
+                if !lines[i].trim().starts_with('|') {
+                    i += 1;
+                    continue;
+                }
+
+                i += 1;
+            } else {
+                // Invalid format
                 i += 1;
                 continue;
             }
 
-            i += 1;
+            if i >= lines.len() {
+                break;
+            }
 
             
             let mut block_lines = Vec::new();

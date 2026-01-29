@@ -12,19 +12,58 @@ use log::error;
 use std::future::{ready, Ready};
 use std::time::Duration;
 
+use std::collections::HashMap;
+
+/// Configuration for per-endpoint timeout overrides
+#[derive(Clone)]
+pub struct TimeoutConfig {
+    pub default_timeout: Duration,
+    pub endpoint_overrides: HashMap<String, Duration>,
+}
+
+impl TimeoutConfig {
+    pub fn new(default_timeout: Duration) -> Self {
+        Self {
+            default_timeout,
+            endpoint_overrides: HashMap::new(),
+        }
+    }
+
+    pub fn with_override(mut self, path: &str, timeout: Duration) -> Self {
+        self.endpoint_overrides.insert(path.to_string(), timeout);
+        self
+    }
+
+    pub fn get_timeout(&self, path: &str) -> Duration {
+        self.endpoint_overrides.get(path)
+            .copied()
+            .unwrap_or(self.default_timeout)
+    }
+}
+
+impl Default for TimeoutConfig {
+    fn default() -> Self {
+        Self::new(Duration::from_secs(30))
+    }
+}
+
 pub struct TimeoutMiddleware {
-    timeout: Duration,
+    config: TimeoutConfig,
 }
 
 impl TimeoutMiddleware {
-    
+
     pub fn new(timeout: Duration) -> Self {
-        Self { timeout }
+        Self { config: TimeoutConfig::new(timeout) }
     }
 
-    
+    pub fn with_config(config: TimeoutConfig) -> Self {
+        Self { config }
+    }
+
+
     pub fn default() -> Self {
-        Self::new(Duration::from_secs(30))
+        Self { config: TimeoutConfig::default() }
     }
 }
 
@@ -43,14 +82,14 @@ where
     fn new_transform(&self, service: S) -> Self::Future {
         ready(Ok(TimeoutMiddlewareService {
             service,
-            timeout: self.timeout,
+            config: self.config.clone(),
         }))
     }
 }
 
 pub struct TimeoutMiddlewareService<S> {
     service: S,
-    timeout: Duration,
+    config: TimeoutConfig,
 }
 
 impl<S, B> Service<ServiceRequest> for TimeoutMiddlewareService<S>
@@ -66,7 +105,8 @@ where
     forward_ready!(service);
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
-        let timeout_duration = self.timeout;
+        let path = req.path().to_string();
+        let timeout_duration = self.config.get_timeout(&path);
         let fut = self.service.call(req);
 
         Box::pin(async move {
@@ -74,13 +114,16 @@ where
                 Ok(result) => result,
                 Err(_) => {
                     error!(
-                        "Request timeout after {:?} - request exceeded maximum processing time",
-                        timeout_duration
+                        "Request to {} timed out after {:?}ms - request exceeded maximum processing time",
+                        path,
+                        timeout_duration.as_millis()
                     );
-                    
-                    Err(actix_web::error::ErrorGatewayTimeout(
-                        "Request processing timeout - the server took too long to respond",
-                    ))
+
+                    Err(actix_web::error::ErrorGatewayTimeout(format!(
+                        "Request to {} timed out after {}ms",
+                        path,
+                        timeout_duration.as_millis()
+                    )))
                 }
             }
         })
@@ -125,7 +168,8 @@ mod tests {
         .await;
 
         let req = test::TestRequest::get().uri("/slow").to_request();
-        let resp = test::call_service(&app, req).await;
-        assert_eq!(resp.status(), actix_web::http::StatusCode::GATEWAY_TIMEOUT);
+        let resp = test::try_call_service(&app, req).await;
+        // The middleware returns an error on timeout, so try_call_service returns Err
+        assert!(resp.is_err());
     }
 }

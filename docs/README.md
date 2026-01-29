@@ -2,7 +2,7 @@
 title: VisionFlow Documentation
 description: Complete documentation for VisionFlow - enterprise-grade multi-agent knowledge graphing
 category: reference
-updated-date: 2026-01-14
+updated-date: 2026-01-29
 ---
 
 # VisionFlow Documentation
@@ -82,14 +82,14 @@ Get running in 5 minutes:
 | [System Overview](explanations/system-overview.md) | Architectural blueprint |
 | [Hexagonal CQRS](architecture/patterns/hexagonal-cqrs.md) | Ports and adapters |
 | [Data Flow](architecture/data-flow.md) | End-to-end pipeline |
-| [Integration Patterns](explanations/architecture/integration-patterns.md) | System integration |
+| [Integration Patterns](concepts/integration-patterns.md) | System integration |
 
 ### Deep Dives
 
 - **Actor System** - [Actor Guide](guides/architecture/actor-system.md), [Server Architecture](architecture/server/overview.md)
-- **Database** - [Database Architecture](architecture/database.md), [Neo4j ADR](explanations/architecture/decisions/0001-neo4j-persistent-with-filesystem-sync.md)
+- **Database** - [Database Architecture](architecture/database.md), [Neo4j ADR](architecture/adr/ADR-0001-neo4j-persistent-with-filesystem-sync.md)
 - **Physics** - [Semantic Physics](architecture/physics/semantic-forces.md), [GPU Communication](architecture/gpu/communication-flow.md)
-- **Ontology** - [Ontology Storage](explanations/architecture/ontology-storage-architecture.md), [Reasoning Pipeline](architecture/ontology/reasoning-engine.md)
+- **Ontology** - [Ontology Storage](concepts/ontology-storage.md), [Reasoning Pipeline](architecture/ontology/reasoning-engine.md)
 - **Multi-Agent** - [Multi-Agent System](architecture/agents/multi-agent.md), [Agent Orchestration](guides/agent-orchestration.md)
 
 ### Hexagonal Architecture Ports
@@ -127,7 +127,7 @@ Get running in 5 minutes:
 
 - [Neo4j Migration](guides/neo4j-migration.md)
 - [Pipeline Admin API](guides/pipeline-admin-api.md)
-- [GitHub Sync Service](explanations/architecture/github-sync-service-design.md)
+- [GitHub Sync Service](concepts/github-sync-service.md)
 
 </details>
 
@@ -215,6 +215,17 @@ Step-by-step lessons for beginners.
 | [First Graph](getting-started/first-graph.md) | 15 min | Create your first visualisation |
 | [Neo4j Quick Start](getting-started/neo4j-quickstart.md) | 20 min | Query the graph database |
 
+### Concepts (Understanding-Oriented)
+
+Core mental models and foundational knowledge.
+
+| Concept | Description |
+|---------|-------------|
+| [Core Concepts](concepts/README.md) | Overview of VisionFlow mental models |
+| [Physics Engine](concepts/physics-engine.md) | Force-directed graph simulation |
+| [Actor Model](concepts/actor-model.md) | Concurrent actor-based patterns |
+| [Hexagonal Architecture](concepts/hexagonal-architecture.md) | Ports and adapters design |
+
 ### Guides (Task-Oriented)
 
 Practical instructions for specific goals.
@@ -284,7 +295,7 @@ Deep dives into architecture and design.
 - [Data Flow](architecture/data-flow.md) - End-to-end pipeline
 - [Services Architecture](architecture/services.md) - Business logic
 - [Multi-Agent System](architecture/agents/multi-agent.md) - AI coordination
-- [Integration Patterns](explanations/architecture/integration-patterns.md) - System integration
+- [Integration Patterns](concepts/integration-patterns.md) - System integration
 - [Database Architecture](architecture/database.md) - Neo4j design
 
 </details>
@@ -292,20 +303,20 @@ Deep dives into architecture and design.
 <details>
 <summary>GPU and Physics (8 documents)</summary>
 
-- [Semantic Physics System](explanations/architecture/semantic-physics-system.md) - Force layout
-- [GPU Semantic Forces](explanations/architecture/gpu-semantic-forces.md) - CUDA kernels
+- [Semantic Physics System](concepts/semantic-physics-system.md) - Force layout
+- [GPU Semantic Forces](concepts/gpu-semantic-forces.md) - CUDA kernels
 - [GPU Communication](architecture/gpu/communication-flow.md) - Data transfer
 - [GPU Optimisations](architecture/gpu/optimizations.md) - Performance
-- [Stress Majorisation](explanations/architecture/stress-majorization.md) - Layout algorithm
+- [Stress Majorisation](concepts/stress-majorization.md) - Layout algorithm
 
 </details>
 
 <details>
 <summary>Ontology and Reasoning (11 documents)</summary>
 
-- [Ontology Reasoning Pipeline](explanations/architecture/ontology-reasoning-pipeline.md) - Inference
+- [Ontology Reasoning Pipeline](concepts/ontology-reasoning-pipeline.md) - Inference
 - [Reasoning Engine](architecture/ontology/reasoning-engine.md) - Inference concepts
-- [Ontology Storage](explanations/architecture/ontology-storage-architecture.md) - Neo4j persistence
+- [Ontology Storage](concepts/ontology-storage.md) - Neo4j persistence
 - [Hierarchical Visualisation](architecture/ontology/hierarchical-visualization.md) - Tree layouts
 - [Pathfinding System](architecture/ontology/intelligent-pathfinding-system.md) - Graph traversal
 
@@ -360,9 +371,10 @@ Technical specifications and APIs.
 
 ## Documentation Stats
 
-- **Total Documents**: 288 markdown files
-- **Framework**: Diataxis (Tutorials, Guides, Explanations, Reference)
-- **Last Updated**: 2026-01-14
+- **Total Documents**: 315 markdown files
+- **Directories**: 82
+- **Framework**: Diataxis (Tutorials, Guides, Explanations, Reference, Concepts)
+- **Last Updated**: 2026-01-29
 
 ---
 

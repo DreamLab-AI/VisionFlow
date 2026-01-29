@@ -3,38 +3,69 @@
 
 use super::physics_constraint::*;
 
+/// Level of Detail thresholds for constraint resolution
+///
+/// # LOD Levels
+/// - LOD 0 (Far): Coarse approximation, camera > 1000 units - only highest priority constraints
+/// - LOD 1 (Medium): Major constraints only, camera 100-1000 units
+/// - LOD 2 (Near): Most constraints active, camera 10-100 units
+/// - LOD 3 (Close): All constraints, used when camera < 10 units
+///
+/// # Default Zoom Thresholds
+/// The default zoom thresholds are `[1000.0, 100.0, 10.0]` which map to:
+/// - `zoom > 1000.0` -> Far (LOD 0)
+/// - `zoom > 100.0` -> Medium (LOD 1)
+/// - `zoom > 10.0` -> Near (LOD 2)
+/// - `zoom <= 10.0` -> Close (LOD 3)
+///
+/// # Priority Thresholds
+/// Each LOD level has a priority threshold. Constraints with priority > threshold are skipped.
+/// Default thresholds: `[3, 5, 7, 10]` for Far, Medium, Near, Close respectively.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum LODLevel {
-    
+    /// Coarse approximation, camera > 1000 units - only priority <= 3 constraints active
     Far = 0,
 
-    
+    /// Major constraints only, camera 100-1000 units - priority <= 5 constraints active
     Medium = 1,
 
-    
+    /// Most constraints active, camera 10-100 units - priority <= 7 constraints active
     Near = 2,
 
-    
+    /// All constraints active, camera < 10 units - all constraints (priority <= 10)
     Close = 3,
 }
 
+/// Configuration for LOD-based constraint filtering
+///
+/// # Zoom Thresholds
+/// Array of 3 distance values that define LOD level boundaries:
+/// - `zoom_thresholds[0]`: Far/Medium boundary (default: 1000.0)
+/// - `zoom_thresholds[1]`: Medium/Near boundary (default: 100.0)
+/// - `zoom_thresholds[2]`: Near/Close boundary (default: 10.0)
+///
+/// # Priority Thresholds
+/// Array of 4 priority values, one per LOD level. Constraints with
+/// priority > threshold for the current LOD are filtered out:
+/// - `priority_thresholds[0]`: Far level (default: 3)
+/// - `priority_thresholds[1]`: Medium level (default: 5)
+/// - `priority_thresholds[2]`: Near level (default: 7)
+/// - `priority_thresholds[3]`: Close level (default: 10)
 #[derive(Debug, Clone)]
 pub struct LODConfig {
-    
-    
+    /// Zoom distance thresholds for LOD transitions [Far/Medium, Medium/Near, Near/Close]
     pub zoom_thresholds: [f32; 3],
 
-    
-    
+    /// Priority thresholds per LOD level - constraints with priority > threshold are filtered
     pub priority_thresholds: [u8; 4],
 
-    
+    /// Enable adaptive LOD based on frame time performance
     pub adaptive: bool,
 
-    
+    /// Target frame time in milliseconds (default: 16.67ms for 60fps)
     pub target_frame_time: f32,
 
-    
+    /// Current measured frame time in milliseconds
     pub current_frame_time: f32,
 }
 
@@ -142,19 +173,19 @@ impl ConstraintLOD {
 
     
     fn should_activate_constraint(&self, constraint: &PhysicsConstraint, priority_threshold: u8) -> bool {
-        
+
         if constraint.user_defined {
             return true;
         }
 
-        
-        if constraint.priority > priority_threshold {
-            return false;
-        }
 
-        
         if matches!(constraint.constraint_type, PhysicsConstraintType::HierarchicalLayer { .. }) {
             return true;
+        }
+
+
+        if constraint.priority > priority_threshold {
+            return false;
         }
 
         true

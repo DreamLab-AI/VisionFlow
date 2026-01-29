@@ -119,7 +119,7 @@ The documentation contains moderate levels of developer markers and incomplete c
 // From docs/visionflow-architecture-analysis.md:179
 - **Auto-Zoom:** Placeholder (TODO: camera distance-based logic)
 
-// From docs/explanations/architecture/quick-reference.md:53
+// From docs/concepts/quick-reference.md:53
 | 2 | Directive handlers (writes) | ❌ TODO | 1-2 weeks |
 ```
 
@@ -179,8 +179,8 @@ docs/explanations/system-overview.md                (1 TODO)
 
 #### 2. API Reference Placeholders (3 files)
 ```
-docs/explanations/architecture/api-handlers-reference.md  (2 TODOs)
-docs/reference/API_REFERENCE.md                          (1 TODO)
+docs/reference/api/handlers.md  (2 TODOs)
+docs/reference/api/README.md                          (1 TODO)
 docs/reference/database/schemas.md                       (1 TODO)
 ```
 
@@ -190,10 +190,10 @@ docs/reference/database/schemas.md                       (1 TODO)
 
 #### 3. Architecture Documentation (4 files)
 ```
-docs/explanations/architecture/quick-reference.md           (3 TODOs)
+docs/concepts/quick-reference.md           (3 TODOs)
 docs/explanations/architecture/services-architecture.md    (3 TODOs)
-docs/architecture/HEXAGONAL_ARCHITECTURE_STATUS.md         (1 TODO)
-docs/explanations/architecture/reasoning-tests-summary.md  (2 TODOs)
+docs/concepts/hexagonal-architecture.md         (1 TODO)
+docs/concepts/reasoning-tests.md  (2 TODOs)
 ```
 
 **Action**: Verify architecture is current, remove TODOs or update dates

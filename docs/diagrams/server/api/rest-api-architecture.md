@@ -11,7 +11,7 @@ tags:
 related-docs:
   - ASCII_DEPRECATION_COMPLETE.md
   - diagrams/README.md
-  - explanations/architecture/quick-reference.md
+  - concepts/quick-reference.md
 updated-date: 2025-12-18
 difficulty-level: advanced
 dependencies:

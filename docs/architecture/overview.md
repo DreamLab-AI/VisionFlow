@@ -9,10 +9,10 @@ tags:
   - structure
   - api
 related-docs:
-  - DEVELOPER_JOURNEY.md
+  - architecture/developer-journey.md
   - TECHNOLOGY_CHOICES.md
   - guides/developer/01-development-setup.md
-  - explanations/architecture/hexagonal-cqrs.md
+  - concepts/hexagonal-architecture.md
   - explanations/architecture/data-flow-complete.md
 updated-date: 2025-12-18
 difficulty-level: advanced
@@ -697,12 +697,12 @@ services:
 ## Next Steps
 
 **For New Developers:**
-1. Read [Developer Journey](DEVELOPER_JOURNEY.md) to understand codebase navigation
+1. Read [Developer Journey](architecture/developer-journey.md) to understand codebase navigation
 2. Review [Technology Choices](TECHNOLOGY_CHOICES.md) for deeper technical rationale
 3. Follow [Development Setup](guides/developer/01-development-setup.md) to build locally
 
 **For System Architects:**
-1. Review [Hexagonal CQRS Architecture](explanations/architecture/hexagonal-cqrs.md) for design patterns
+1. Review [Hexagonal CQRS Architecture](concepts/hexagonal-architecture.md) for design patterns
 2. Study [Data Flow Complete](explanations/architecture/data-flow-complete.md) for pipeline details
 3. Evaluate [Performance Benchmarks](reference/performance-benchmarks.md) for capacity planning
 

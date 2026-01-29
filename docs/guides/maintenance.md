@@ -1,7 +1,7 @@
 ---
 title: "Documentation Maintenance Guide"
 description: "Procedures for maintaining the unified documentation corpus"
-category: reference
+category: guide
 tags:
   - documentation
 updated-date: 2025-12-19

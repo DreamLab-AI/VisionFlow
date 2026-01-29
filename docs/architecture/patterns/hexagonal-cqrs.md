@@ -2079,38 +2079,90 @@ async fn test-github-sync-emits-event() {
 ### Architecture Benefits Summary
 
 ```mermaid
-mindmap
-  root((Hexagonal/CQRS<br/>Architecture))
-    Separation of Concerns
-      Commands vs Queries
-      Write vs Read
-      Domain vs Infrastructure
-      Ports vs Adapters
-    Testability
-      Pure functions
-      No actors needed
-      Mock repositories
-      Isolated unit tests
-    Scalability
-      Event-driven
-      Horizontal scaling
-      Event replay
-      CQRS read replicas
-    Maintainability
-      Small focused modules
-      Clear boundaries
-      Self-documenting
-      48K → modular files
-    Bug Fix
-      Cache invalidation
-      Event sourcing
-      316 nodes ✅
-      Real-time updates
-    Performance
-      Optimized queries
-      Batch operations
-      GPU physics
-      WebSocket efficiency
+%%{init: {'theme': 'base', 'themeVariables': {
+  'primaryColor': '#4A90D9',
+  'secondaryColor': '#67B26F',
+  'tertiaryColor': '#FFA500',
+  'primaryTextColor': '#333',
+  'lineColor': '#666'
+}}}%%
+graph TB
+    ROOT((Hexagonal/CQRS<br/>Architecture))
+
+    subgraph "Separation of Concerns"
+        SOC1[Commands vs Queries]
+        SOC2[Write vs Read]
+        SOC3[Domain vs Infrastructure]
+        SOC4[Ports vs Adapters]
+    end
+
+    subgraph "Testability"
+        TEST1[Pure functions]
+        TEST2[No actors needed]
+        TEST3[Mock repositories]
+        TEST4[Isolated unit tests]
+    end
+
+    subgraph "Scalability"
+        SCALE1[Event-driven]
+        SCALE2[Horizontal scaling]
+        SCALE3[Event replay]
+        SCALE4[CQRS read replicas]
+    end
+
+    subgraph "Maintainability"
+        MAINT1[Small focused modules]
+        MAINT2[Clear boundaries]
+        MAINT3[Self-documenting]
+        MAINT4[48K to modular files]
+    end
+
+    subgraph "Bug Fix"
+        BUG1[Cache invalidation]
+        BUG2[Event sourcing]
+        BUG3[316 nodes fixed]
+        BUG4[Real-time updates]
+    end
+
+    subgraph "Performance"
+        PERF1[Optimized queries]
+        PERF2[Batch operations]
+        PERF3[GPU physics]
+        PERF4[WebSocket efficiency]
+    end
+
+    ROOT --> SOC1 & SOC2 & SOC3 & SOC4
+    ROOT --> TEST1 & TEST2 & TEST3 & TEST4
+    ROOT --> SCALE1 & SCALE2 & SCALE3 & SCALE4
+    ROOT --> MAINT1 & MAINT2 & MAINT3 & MAINT4
+    ROOT --> BUG1 & BUG2 & BUG3 & BUG4
+    ROOT --> PERF1 & PERF2 & PERF3 & PERF4
+
+    style ROOT fill:#4A90D9,color:#fff,stroke:#333,stroke-width:3px
+    style SOC1 fill:#e3f2fd
+    style SOC2 fill:#e3f2fd
+    style SOC3 fill:#e3f2fd
+    style SOC4 fill:#e3f2fd
+    style TEST1 fill:#e1ffe1
+    style TEST2 fill:#e1ffe1
+    style TEST3 fill:#e1ffe1
+    style TEST4 fill:#e1ffe1
+    style SCALE1 fill:#fff3e0
+    style SCALE2 fill:#fff3e0
+    style SCALE3 fill:#fff3e0
+    style SCALE4 fill:#fff3e0
+    style MAINT1 fill:#f0e1ff
+    style MAINT2 fill:#f0e1ff
+    style MAINT3 fill:#f0e1ff
+    style MAINT4 fill:#f0e1ff
+    style BUG1 fill:#e1f5fe
+    style BUG2 fill:#e1f5fe
+    style BUG3 fill:#e1f5fe
+    style BUG4 fill:#e1f5fe
+    style PERF1 fill:#fce4ec
+    style PERF2 fill:#fce4ec
+    style PERF3 fill:#fce4ec
+    style PERF4 fill:#fce4ec
 ```
 
 ### Success Verification Checklist

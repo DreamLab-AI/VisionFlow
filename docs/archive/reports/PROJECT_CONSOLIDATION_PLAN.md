@@ -420,7 +420,7 @@ let protocol_version = PROTOCOL_V3;
 
 ### P3.2: Document Protocol Separation
 
-**New File**: `docs/architecture/PROTOCOL_MATRIX.md`
+**New File**: `docs/reference/protocols/matrix.md`
 
 Document that:
 - WebSocket uses Binary V3 for real-time
@@ -959,7 +959,7 @@ Each actor subscribes independently, eliminating the 140-line sequential distrib
 
 ### New Files (7 files)
 - `public/contexts/visionflow.jsonld`
-- `docs/architecture/PROTOCOL_MATRIX.md`
+- `docs/reference/protocols/matrix.md`
 - `src/actors/gpu/position_persistence_actor.rs`
 - `src/services/semantic_type_registry.rs`
 - `src/actors/gpu/context_bus.rs`

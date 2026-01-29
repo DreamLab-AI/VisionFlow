@@ -392,7 +392,7 @@ See [XR Setup Guide](../guides/xr-setup.md) for detailed configuration.
 3. [XR Integration](../guides/xr-setup.md) - Immersive VR experiences
 
 ### Advanced Path
-1. [Architecture Overview](../ARCHITECTURE_OVERVIEW.md) - Deep dive into design
+1. [Architecture Overview](../architecture/overview.md) - Deep dive into design
 2. [API Reference](../reference/api/) - Build integrations
 3. [Deployment Guide](../guides/deployment.md) - Production setup
 
@@ -471,4 +471,4 @@ bash scripts/voice-pipeline-test.sh
 - [Configuration Guide](../guides/configuration.md) - Complete settings guide
 - [Agent Orchestration](../guides/orchestrating-agents.md) - Advanced agent patterns
 - [XR/AR Setup](../guides/xr-setup.md) - Immersive experiences
-- [Architecture Overview](../ARCHITECTURE_OVERVIEW.md) - How it all works
+- [Architecture Overview](../architecture/overview.md) - How it all works

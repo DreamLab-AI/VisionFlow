@@ -358,12 +358,12 @@ rest-api-complete.md (v1.0, most comprehensive)
 Create redirect mappings for backward compatibility:
 
 ```
-/docs/reference/api-complete-reference → /docs/reference/API_REFERENCE.md
-/docs/reference/error-codes → /docs/reference/ERROR_REFERENCE.md
-/docs/reference/websocket-protocol → /docs/reference/PROTOCOL_REFERENCE.md
-/docs/reference/api/rest-api-complete → /docs/reference/API_REFERENCE.md
-/docs/reference/api/rest-api-reference → /docs/reference/API_REFERENCE.md
-/docs/reference/database/schemas → /docs/reference/DATABASE_SCHEMA_REFERENCE.md
+/docs/reference/api-complete-reference → /docs/reference/api/README.md
+/docs/reference/error-codes → /docs/reference/error-codes.md
+/docs/reference/websocket-protocol → /docs/reference/protocols/README.md
+/docs/reference/api/rest-api-complete → /docs/reference/api/README.md
+/docs/reference/api/rest-api-reference → /docs/reference/api/README.md
+/docs/reference/database/schemas → /docs/reference/database/README.md
 ```
 
 ### Internal Link Updates
@@ -375,7 +375,7 @@ Update all internal references:
 See [REST API](./api/rest-api-complete.md)
 
 # After
-See [REST API](./API_REFERENCE.md#rest-api-endpoints)
+See [REST API](./api/README.md#rest-api-endpoints)
 ```
 
 ---
@@ -760,8 +760,8 @@ Specialized (4):
 
 - [VisionFlow Reference Documentation](./README.md)
 - [Reference Index](./INDEX.md)
-- [Configuration Reference](./CONFIGURATION_REFERENCE.md)
-- [Error Reference](./ERROR_REFERENCE.md)
+- [Configuration Reference](./configuration/README.md)
+- [Error Reference](./error-codes.md)
 
 ---
 

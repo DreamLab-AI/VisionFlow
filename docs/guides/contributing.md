@@ -150,7 +150,7 @@ Always include these in your file frontmatter or top section:
 ```markdown
 # [Page Title]
 
-* > [Section](./readme.md) > [This Page]*
+* > [Section](./README.md) > [This Page]*
 
 [description...]
 ```
@@ -159,7 +159,7 @@ Example:
 ```markdown
 # Adding a Feature
 
-* > [Developer Guides](./readme.md) > Adding a Feature*
+* > [Developer Guides](./README.md) > Adding a Feature*
 
 This guide walks you through adding a new feature to VisionFlow.
 ```
@@ -207,7 +207,7 @@ grep -L "^\*\[" docs/**/*.md
 
 ## 📋 Updating the Main README
 
-The main `docs/readme.md` serves as the single entry point. Update it when:
+The main `docs/README.md` serves as the single entry point. Update it when:
 1. Adding a new major section
 2. Changing the framework or structure
 3. Moving a file to a different category

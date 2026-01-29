@@ -401,7 +401,7 @@ curl -X POST http://localhost:8080/api/analytics/pathfinding/apsp \
 - [Authentication (DEPRECATED - JWT NOT USED)](01-authentication.md)
 - [Semantic Features API Reference](semantic-features-api.md)
 - [WebSocket Binary Protocol Reference](../websocket-protocol.md)
-- [Database Schema Reference](../DATABASE_SCHEMA_REFERENCE.md)
+- [Database Schema Reference](../database/README.md)
 - [VisionFlow Binary WebSocket Protocol](../protocols/binary-websocket.md)
 
 ## Feature Requirements

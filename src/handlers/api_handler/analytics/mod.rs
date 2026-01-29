@@ -391,7 +391,7 @@ pub async fn update_analytics_params(
     info!("Updating visual analytics parameters");
     debug!("Visual analytics params: {:?}", params);
 
-    if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
+    if let Some(gpu_addr) = app_state.get_gpu_compute_addr().await {
         match gpu_addr
             .send(UpdateVisualAnalyticsParams {
                 params: params.into_inner(),
@@ -441,7 +441,7 @@ pub async fn update_analytics_params(
 pub async fn get_constraints(app_state: web::Data<AppState>) -> Result<HttpResponse> {
     info!("Getting current constraint set");
 
-    if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
+    if let Some(gpu_addr) = app_state.get_gpu_compute_addr().await {
         match gpu_addr.send(GetConstraints).await {
             Ok(Ok(constraints)) => {
                 return ok_json!(ConstraintsResponse {
@@ -485,7 +485,7 @@ pub async fn update_constraints(
         }));
     };
 
-    if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
+    if let Some(gpu_addr) = app_state.get_gpu_compute_addr().await {
         match gpu_addr.send(UpdateConstraints { constraint_data }).await {
             Ok(Ok(())) => {
                 debug!("Constraints updated successfully");
@@ -601,11 +601,11 @@ pub async fn set_focus(
         }));
     };
 
-    
-    if let Some(gpu_addr) = &app_state.gpu_compute_addr {
+
+    if let Some(gpu_addr) = app_state.get_gpu_compute_addr().await {
         info!("Setting focus on GPU compute actor");
 
-        
+
         let mut updated_params = current_params.clone();
         match focus_request {
             FocusRequest::Node { node_id } => {
@@ -616,7 +616,7 @@ pub async fn set_focus(
             FocusRequest::Region { x, y, radius } => {
                 updated_params.camera_position =
                     crate::gpu::visual_analytics::Vec4::new(x, y, 0.0, 0.0).unwrap_or_default();
-                updated_params.zoom_level = 1.0 / radius.max(1.0); 
+                updated_params.zoom_level = 1.0 / radius.max(1.0);
                 info!("Setting focus on region: ({}, {}) radius {}", x, y, radius);
                 focus_response.focus_region = Some(FocusRegion {
                     center_x: x,
@@ -737,7 +737,7 @@ async fn calculate_network_metrics(
 pub async fn get_performance_stats(app_state: web::Data<AppState>) -> Result<HttpResponse> {
     info!("Getting performance statistics");
 
-    let physics_stats = if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
+    let physics_stats = if let Some(gpu_addr) = app_state.get_gpu_compute_addr().await {
         match gpu_addr.send(GetPhysicsStats).await {
             Ok(Ok(stats)) => Some(stats),
             Ok(Err(e)) => {
@@ -833,7 +833,7 @@ pub async fn set_kernel_mode(
             }
         };
 
-        if let Some(gpu_actor) = &app_state.gpu_compute_addr {
+        if let Some(gpu_actor) = app_state.get_gpu_compute_addr().await {
             match gpu_actor.send(SetComputeMode { mode: compute_mode }).await {
                 Ok(result) => match result {
                     Ok(()) => {
@@ -1748,7 +1748,7 @@ pub async fn toggle_sssp(
     drop(flags); 
 
     
-    if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
+    if let Some(gpu_addr) = app_state.get_gpu_compute_addr().await {
         let message = crate::actors::messages::UpdateSimulationParams {
             params: {
                 let mut params = crate::models::simulation_params::SimulationParams::new();
@@ -1828,7 +1828,7 @@ pub async fn get_sssp_status() -> Result<HttpResponse> {
 pub async fn get_gpu_status(app_state: web::Data<AppState>) -> Result<HttpResponse> {
     info!("Control center requesting comprehensive GPU status");
 
-    let gpu_status = if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
+    let gpu_status = if let Some(gpu_addr) = app_state.get_gpu_compute_addr().await {
         match gpu_addr
             .send(crate::actors::messages::GetPhysicsStats)
             .await
@@ -1912,7 +1912,7 @@ pub async fn get_gpu_status(app_state: web::Data<AppState>) -> Result<HttpRespon
 pub async fn get_gpu_features(app_state: web::Data<AppState>) -> Result<HttpResponse> {
     info!("Client requesting GPU feature capabilities");
 
-    let features = if let Some(_gpu_addr) = app_state.gpu_compute_addr.as_ref() {
+    let features = if let Some(_gpu_addr) = app_state.get_gpu_compute_addr().await {
         serde_json::json!({
             "success": true,
             "gpu_acceleration": true,
@@ -2110,7 +2110,7 @@ pub async fn get_realtime_insights(app_state: web::Data<AppState>) -> Result<Htt
     }
 
     
-    if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
+    if let Some(gpu_addr) = app_state.get_gpu_compute_addr().await {
         if let Ok(Ok(stats)) = gpu_addr
             .send(crate::actors::messages::GetPhysicsStats)
             .await
@@ -2141,7 +2141,8 @@ pub async fn get_realtime_insights(app_state: web::Data<AppState>) -> Result<Htt
 pub async fn get_dashboard_status(app_state: web::Data<AppState>) -> Result<HttpResponse> {
     info!("Control center requesting dashboard status");
 
-    let gpu_available = app_state.gpu_compute_addr.is_some();
+    // GPU compute address is now Arc<RwLock<Option<...>>> - use async accessor
+    let gpu_available = app_state.get_gpu_compute_addr().await.is_some();
     let clustering_tasks = CLUSTERING_TASKS.lock().await;
     let anomaly_state = ANOMALY_STATE.lock().await;
 
@@ -2204,7 +2205,8 @@ pub async fn get_dashboard_status(app_state: web::Data<AppState>) -> Result<Http
 }
 
 pub async fn get_health_check(app_state: web::Data<AppState>) -> Result<HttpResponse> {
-    let gpu_available = app_state.gpu_compute_addr.is_some();
+    // GPU compute address is now Arc<RwLock<Option<...>>> - use async accessor
+    let gpu_available = app_state.get_gpu_compute_addr().await.is_some();
     let timestamp = chrono::Utc::now().timestamp_millis();
 
     let status = if gpu_available { "healthy" } else { "degraded" };
@@ -2283,7 +2285,7 @@ pub async fn update_feature_flags(request: web::Json<FeatureFlags>) -> Result<Ht
 }
 
 async fn trigger_stress_majorization(data: web::Data<AppState>) -> Result<HttpResponse, actix_web::Error> {
-    if let Some(gpu_actor) = &data.gpu_compute_addr {
+    if let Some(gpu_actor) = data.get_gpu_compute_addr().await {
         match gpu_actor.send(TriggerStressMajorization).await {
             Ok(Ok(())) => ok_json!(serde_json::json!({
                 "success": true,
@@ -2307,7 +2309,7 @@ async fn trigger_stress_majorization(data: web::Data<AppState>) -> Result<HttpRe
 }
 
 async fn get_stress_majorization_stats(data: web::Data<AppState>) -> Result<HttpResponse, actix_web::Error> {
-    if let Some(gpu_actor) = &data.gpu_compute_addr {
+    if let Some(gpu_actor) = data.get_gpu_compute_addr().await {
         match gpu_actor.send(GetStressMajorizationStats).await {
             Ok(Ok(stats)) => ok_json!(serde_json::json!({
                 "success": true,
@@ -2333,7 +2335,7 @@ async fn get_stress_majorization_stats(data: web::Data<AppState>) -> Result<Http
 async fn reset_stress_majorization_safety(
     data: web::Data<AppState>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    if let Some(gpu_actor) = &data.gpu_compute_addr {
+    if let Some(gpu_actor) = data.get_gpu_compute_addr().await {
         match gpu_actor.send(ResetStressMajorizationSafety).await {
             Ok(Ok(())) => ok_json!(serde_json::json!({
                 "success": true,
@@ -2360,7 +2362,7 @@ async fn update_stress_majorization_params(
     params: web::Json<AdvancedParams>,
     data: web::Data<AppState>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    if let Some(gpu_actor) = &data.gpu_compute_addr {
+    if let Some(gpu_actor) = data.get_gpu_compute_addr().await {
         let msg = UpdateStressMajorizationParams {
             params: params.into_inner(),
         };
@@ -2392,7 +2394,7 @@ async fn configure_stress_majorization(
     config: web::Json<ConfigureStressMajorization>,
     data: web::Data<AppState>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    if let Some(gpu_actor) = &data.gpu_compute_addr {
+    if let Some(gpu_actor) = data.get_gpu_compute_addr().await {
         match gpu_actor.send(config.into_inner()).await {
             Ok(Ok(())) => ok_json!(serde_json::json!({
                 "success": true,
@@ -2419,7 +2421,7 @@ async fn configure_stress_majorization(
 async fn get_stress_majorization_config(
     data: web::Data<AppState>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    if let Some(gpu_actor) = &data.gpu_compute_addr {
+    if let Some(gpu_actor) = data.get_gpu_compute_addr().await {
         match gpu_actor.send(GetStressMajorizationConfig).await {
             Ok(Ok(config)) => ok_json!(serde_json::json!({
                 "success": true,
@@ -2655,7 +2657,7 @@ pub async fn get_gpu_metrics(app_state: web::Data<AppState>) -> Result<HttpRespo
     debug!("Retrieving GPU performance metrics");
 
     
-    if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
+    if let Some(gpu_addr) = app_state.get_gpu_compute_addr().await {
         use crate::actors::messages::GetGPUMetrics;
 
         match gpu_addr.send(GetGPUMetrics).await {

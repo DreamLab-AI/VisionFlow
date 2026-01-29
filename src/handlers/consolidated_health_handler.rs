@@ -6,9 +6,19 @@ use actix_web::{web, Error, HttpResponse, Result};
 use chrono::Utc;
 use log::{error, info, warn};
 use serde::{Deserialize, Serialize};
+use std::future::Future;
 use std::process::Command;
 use sysinfo::System;
 use tokio::time::Duration;
+
+/// Timeout duration for individual subsystem health checks
+const HEALTH_CHECK_TIMEOUT: Duration = Duration::from_secs(5);
+/// Threshold percentage for high CPU usage warning (f32 to match cpu_usage type)
+const HIGH_CPU_THRESHOLD: f32 = 90.0;
+/// Threshold percentage for high memory usage warning
+const HIGH_MEMORY_THRESHOLD: f64 = 90.0;
+/// Threshold percentage for high disk usage warning
+const HIGH_DISK_THRESHOLD: f64 = 90.0;
 
 #[derive(Serialize, Deserialize)]
 pub struct HealthResponse {
@@ -90,16 +100,16 @@ fn check_system_metrics(health_status: &mut String, issues: &mut Vec<String>) ->
     let disk_usage = check_disk_usage();
     let gpu_status = check_gpu_status();
 
-    
-    if cpu_usage > 90.0 {
+
+    if cpu_usage > HIGH_CPU_THRESHOLD {
         *health_status = "degraded".to_string();
         issues.push("High CPU usage".to_string());
     }
-    if memory_usage > 90.0 {
+    if memory_usage > HIGH_MEMORY_THRESHOLD {
         *health_status = "degraded".to_string();
         issues.push("High memory usage".to_string());
     }
-    if disk_usage > 90.0 {
+    if disk_usage > HIGH_DISK_THRESHOLD {
         *health_status = "degraded".to_string();
         issues.push("High disk usage".to_string());
     }
@@ -112,14 +122,47 @@ fn check_system_metrics(health_status: &mut String, issues: &mut Vec<String>) ->
     }
 }
 
+/// Result of a subsystem health check
+#[derive(Debug)]
+struct SubsystemHealth {
+    name: String,
+    healthy: bool,
+    error: Option<String>,
+}
+
+/// Check a subsystem with timeout protection
+async fn check_subsystem_health<F, Fut>(name: &str, check: F) -> SubsystemHealth
+where
+    F: FnOnce() -> Fut,
+    Fut: Future<Output = std::result::Result<bool, String>>,
+{
+    match tokio::time::timeout(HEALTH_CHECK_TIMEOUT, check()).await {
+        Ok(Ok(healthy)) => SubsystemHealth {
+            name: name.to_string(),
+            healthy,
+            error: None,
+        },
+        Ok(Err(e)) => SubsystemHealth {
+            name: name.to_string(),
+            healthy: false,
+            error: Some(e),
+        },
+        Err(_) => SubsystemHealth {
+            name: name.to_string(),
+            healthy: false,
+            error: Some("timeout".to_string()),
+        },
+    }
+}
+
 async fn check_service_metrics(
     app_state: &web::Data<AppState>,
     health_status: &mut String,
     issues: &mut Vec<String>,
 ) -> ServiceMetrics {
-    
+
     let metadata_count = match tokio::time::timeout(
-        Duration::from_secs(5),
+        HEALTH_CHECK_TIMEOUT,
         app_state.metadata_addr.send(GetMetadata),
     )
     .await
@@ -142,9 +185,9 @@ async fn check_service_metrics(
         }
     };
 
-    
+
     let (nodes_count, edges_count) = match tokio::time::timeout(
-        Duration::from_secs(5),
+        HEALTH_CHECK_TIMEOUT,
         app_state.graph_service_addr.send(GetGraphData),
     )
     .await
@@ -171,7 +214,7 @@ async fn check_service_metrics(
         metadata_count,
         nodes_count,
         edges_count,
-        mcp_status: "not_configured".to_string(), 
+        mcp_status: "not_configured".to_string(),
     }
 }
 
@@ -311,9 +354,9 @@ async fn get_physics_diagnostics(
         }
     }
 
-    
+
     #[cfg(feature = "gpu")]
-    if let Some(gpu_compute_addr) = &app_state.gpu_compute_addr {
+    if let Some(gpu_compute_addr) = app_state.get_gpu_compute_addr().await {
         match tokio::time::timeout(Duration::from_secs(2), gpu_compute_addr.send(GetGPUStatus))
             .await
         {

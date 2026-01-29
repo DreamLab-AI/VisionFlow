@@ -9,11 +9,11 @@ tags:
   - api
   - api
 related-docs:
-  - explanations/architecture/hexagonal-cqrs.md
+  - concepts/hexagonal-architecture.md
   - guides/architecture/actor-system.md
-  - explanations/architecture/database-architecture.md
+  - architecture/database.md
   - guides/graphserviceactor-migration.md
-  - ARCHITECTURE_OVERVIEW.md
+  - architecture/overview.md
 updated-date: 2025-12-18
 difficulty-level: advanced
 dependencies:
@@ -505,13 +505,13 @@ AddNodeCommand → CommandHandler → GraphStateActor → Neo4jGraphRepository �
 ---
 
 ### Architecture Deep Dives
-- [Hexagonal/CQRS Architecture](../../../explanations/architecture/hexagonal-cqrs.md) - Deep dive into ports/adapters/CQRS
+- [Hexagonal/CQRS Architecture](../../../concepts/hexagonal-architecture.md) - Deep dive into ports/adapters/CQRS
 - [Actor System Guide](../../../guides/architecture/actor-system.md) - Actor patterns, message ordering, debugging
-- [Database Architecture](../../../explanations/architecture/database-architecture.md) - Neo4j schema, queries, performance
+- [Database Architecture](../../../architecture/database.md) - Neo4j schema, queries, performance
 
 ### Historical References
 - [GraphServiceActor Migration](../../../guides/graphserviceactor-migration.md) - Migration history (completed Nov 2025)
-- [Architecture Overview](../../../ARCHITECTURE_OVERVIEW.md) - High-level system diagram
+- [Architecture Overview](../../../architecture/overview.md) - High-level system diagram
 
 ### Implementation References
 - [API Reference](../../../reference/api/README.md) - HTTP and WebSocket endpoints

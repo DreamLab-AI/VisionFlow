@@ -246,7 +246,7 @@ python3 validate_links_enhanced.py
 grep -r "guides/getting-started/" /home/devuser/workspace/project/docs
 
 # Find all broken links in a specific file
-grep -E "\[.*?\]\(" ARCHITECTURE_COMPLETE.md
+grep -E "\[.*?\]\(" architecture/overview.md
 ```
 
 ### Manual Verification

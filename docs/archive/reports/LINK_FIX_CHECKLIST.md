@@ -19,7 +19,7 @@ Priority files to fix:
   - [ ] `../../../explanations/architecture/` → verify target exists
 
 - [ ] `guides/developer/websocket-best-practices.md` - 1 broken path
-  - [ ] `../../../explanations/architecture/components/websocket-protocol.md` → verify
+  - [ ] `../../../architecture/protocols/websocket.md` → verify
 
 - [ ] `audits/ascii-diagram-deprecation-audit.md` - 1 broken path
   - [ ] `../../diagrams/data-flow/complete-data-flows.md` → verify
@@ -52,19 +52,19 @@ Create these frequently referenced files:
   - Referenced by: 01-GETTING_STARTED.md
   - Should contain: Operations and deployment guide
 
-- [ ] `guides/features/deepseek-verification.md`
+- [ ] `guides/ai-models/deepseek-verification.md`
   - Referenced by: README.md, INDEX.md
   - Should contain: DeepSeek verification feature documentation
 
-- [ ] `guides/features/deepseek-deployment.md`
+- [ ] `guides/ai-models/deepseek-deployment.md`
   - Referenced by: README.md, INDEX.md
   - Should contain: DeepSeek deployment guide
 
-- [ ] `explanations/architecture/gpu/readme.md`
+- [ ] `architecture/gpu/README.md`
   - Referenced by: README.md, INDEX.md, guides
   - Should contain: GPU architecture overview
 
-- [ ] `reference/api/readme.md`
+- [ ] `reference/api/README.md`
   - Referenced by: README.md, INDEX.md
   - Should contain: API reference index
 
@@ -77,7 +77,7 @@ Create these frequently referenced files:
 Analyze and resolve these directory structures:
 
 #### guides/ subdirectories
-- [ ] `guides/readme.md` - referenced by QUICK_NAVIGATION.md
+- [ ] `guides/README.md` - referenced by QUICK_NAVIGATION.md
 - [ ] `guides/user/README.md` - referenced by GETTING_STARTED_WITH_UNIFIED_DOCS.md
 - [ ] `guides/architecture/` - multiple references
 - [ ] `guides/client/` - verify structure complete
@@ -91,7 +91,7 @@ Analyze and resolve these directory structures:
 - [ ] `explanations/architecture/components/` - verify files exist
 - [ ] `explanations/architecture/core/` - verify files exist
 - [ ] `explanations/architecture/decisions/` - verify files exist
-- [ ] `explanations/architecture/gpu/` - create readme
+- [ ] `architecture/gpu/` - create readme
 - [ ] `explanations/ontology/` - verify all files exist
 - [ ] `explanations/physics/` - verify files exist
 
@@ -111,7 +111,7 @@ Analyze and resolve these directory structures:
 These likely reference old documentation hierarchy:
 
 - [ ] Audit all files linking to `docs/diagrams/`
-  - Examples: ARCHITECTURE_COMPLETE.md, diagrams listings
+  - Examples: architecture/overview.md, diagrams listings
   - Action: Update to remove `docs/` prefix OR verify directory structure
 
 - [ ] Audit all files linking to `docs/guides/`
@@ -126,12 +126,12 @@ These likely reference old documentation hierarchy:
 
 These files appear valuable but need inbound links:
 
-- [ ] `ARCHITECTURE_COMPLETE.md` - Link from: OVERVIEW.md, INDEX.md
+- [ ] `architecture/overview.md` - Link from: OVERVIEW.md, INDEX.md
 - [ ] `01-GETTING_STARTED.md` - Link from: README.md, navigation
 - [ ] `API_TEST_IMPLEMENTATION.md` - Link from: guides/infrastructure/
 - [ ] `CLIENT_CODE_ANALYSIS.md` - Link from: guides/client/
 - [ ] `CUDA_KERNEL_AUDIT_REPORT.md` - Link from: guides/infrastructure/gpu.md
-- [ ] `CUDA_OPTIMIZATION_SUMMARY.md` - Link from: explanations/architecture/gpu/
+- [ ] `CUDA_OPTIMIZATION_SUMMARY.md` - Link from: architecture/gpu/
 
 ### Medium-Value Orphaned Files (Review)
 

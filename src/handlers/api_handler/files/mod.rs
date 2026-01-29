@@ -95,9 +95,9 @@ pub async fn fetch_and_process_files(state: web::Data<AppState>) -> Result<impl 
                 Ok(Ok(())) => {
                     info!("Graph data structure updated successfully via GraphServiceActor");
 
-                    
+
                     #[cfg(feature = "gpu")]
-    if let Some(gpu_addr) = &state.gpu_compute_addr {
+    if let Some(gpu_addr) = state.get_gpu_compute_addr().await {
                         
                         
                         
@@ -231,7 +231,7 @@ pub async fn update_graph(state: web::Data<AppState>) -> Result<HttpResponse, Ac
             );
 
             #[cfg(feature = "gpu")]
-    if let Some(gpu_addr) = &state.gpu_compute_addr {
+    if let Some(gpu_addr) = state.get_gpu_compute_addr().await {
                 match gpu_addr.send(GetGpuNodeData).await {
                     Ok(Ok(_nodes)) => {
                         debug!(

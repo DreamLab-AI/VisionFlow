@@ -46,7 +46,7 @@ The VisionFlow documentation contains a comprehensive library of 430 Mermaid dia
 
 | File | Diagrams | Types | Directory |
 |---|---|---|---|
-| ARCHITECTURE_OVERVIEW.md | 16 | graph, sequenceDiagram | root |
+| architecture/overview.md | 16 | graph, sequenceDiagram | root |
 | archive/deprecated-patterns/03-architecture-WRONG-STACK.md | 14 | graph, sequenceDiagram | archive |
 | reference/code-quality-status.md | 4 | graph, flowchart | reference |
 | reference/protocols/binary-websocket.md | 1 | sequenceDiagram | reference |
@@ -138,7 +138,7 @@ Files containing ASCII art box diagrams (legacy format):
   - README.md (tables with ASCII boxes)
   - PROJECT_CONSOLIDATION_PLAN.md (decision trees)
   - CUDA_OPTIMIZATION_SUMMARY.md (flow diagrams)
-  - reference/DATABASE_SCHEMA_REFERENCE.md (schema layouts)
+  - reference/database/README.md (schema layouts)
 
 ### Conversion Status
 
@@ -233,8 +233,8 @@ Severity Breakdown:
 - guides/infrastructure/troubleshooting.md (requires flow diagram)
 - guides/semantic-features-implementation.md (needs sequence diagram)
 - guides/neo4j-migration.md (needs migration timeline)
-- explanations/architecture/ontology-analysis.md (needs entity diagram)
-- reference/ERROR_REFERENCE.md (could benefit from error classification diagram)
+- concepts/ontology-analysis.md (needs entity diagram)
+- reference/error-codes.md (could benefit from error classification diagram)
 
 **Recommendation**: Add 5-8 diagrams to fill these gaps
 
@@ -299,7 +299,7 @@ Severity Breakdown:
 ### Diagram References Across Docs
 
 ✅ **Well-Cross-Referenced:**
-- ARCHITECTURE_OVERVIEW.md → all diagram files
+- architecture/overview.md → all diagram files
 - guides/ → reference diagram files
 - explanations/ → mermaid-library
 
@@ -464,19 +464,19 @@ VisionFlow maintains an excellent diagram library with:
 
 ### Top 15 Diagram-Containing Files
 
-1. ARCHITECTURE_OVERVIEW.md - 16 diagrams
+1. architecture/overview.md - 16 diagrams
 2. archive/deprecated-patterns/03-architecture-WRONG-STACK.md - 14 diagrams
 3. archive/reports/documentation-alignment-2025-12-02/SWARM_EXECUTION_REPORT.md - 6 diagrams
 4. archive/reports/mermaid-fixes-examples.md - 5 diagrams
 5. archive/reports/ascii-to-mermaid-conversion.md - 5 diagrams
 6. archive/docs/guides/working-with-gui-sandbox.md - 3 diagrams
-7. reference/PROTOCOL_REFERENCE.md - 3 diagrams
+7. reference/protocols/README.md - 3 diagrams
 8. reference/code-quality-status.md - 4 diagrams
-9. reference/DATABASE_SCHEMA_REFERENCE.md - 2 diagrams
+9. reference/database/README.md - 2 diagrams
 10. CONTRIBUTION.md - 4 diagrams
 11. MAINTENANCE.md - 1 diagram
 12. explanations/system-overview.md - 4 diagrams
-13. reference/API_REFERENCE.md - 1 diagram
+13. reference/api/README.md - 1 diagram
 14. reference/protocols/binary-websocket.md - 1 diagram
 15. reference/database/ontology-schema-v2.md - 1 diagram
 

@@ -249,7 +249,7 @@ All diagrams have been validated for:
 
 ## Related Documentation
 
-- [VisionFlow Complete Architecture Documentation](../ARCHITECTURE_COMPLETE.md)
+- [VisionFlow Complete Architecture Documentation](../architecture/overview.md)
 - [What is VisionFlow?](../OVERVIEW.md)
 - [Agent Orchestration & Multi-Agent Systems](mermaid-library/04-agent-orchestration.md)
 - [Agent/Bot System Architecture](server/agents/agent-system-architecture.md)

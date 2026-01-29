@@ -1,6 +1,6 @@
 ---
 title: Configuration Guide
-description: *[Guides](readme.md)*
+description: *[Guides](README.md)*
 category: guide
 tags:
   - tutorial
@@ -15,7 +15,7 @@ difficulty-level: intermediate
 
 # Configuration Guide
 
-*[Guides](readme.md)*
+*[Guides](README.md)*
 
 This practical guide covers common configuration scenarios and use cases for VisionFlow. For comprehensive technical reference, see the .
 

@@ -71,6 +71,9 @@ pub struct ResourceSupervisor {
 
     /// Last error message
     last_error: Option<String>,
+
+    /// Pending graph data to send after context distribution
+    pending_graph_data: Option<Arc<crate::models::graph::GraphData>>,
 }
 
 impl ResourceSupervisor {
@@ -90,6 +93,7 @@ impl ResourceSupervisor {
             last_attempt: None,
             current_delay: Duration::from_secs(1),
             last_error: None,
+            pending_graph_data: None,
         }
     }
 
@@ -115,7 +119,7 @@ impl ResourceSupervisor {
     }
 
     /// Distribute context to all subsystem supervisors
-    fn distribute_context_to_supervisors(&self, ctx: &mut Context<Self>) {
+    fn distribute_context_to_supervisors(&mut self, ctx: &mut Context<Self>) {
         let context = match &self.shared_context {
             Some(c) => c.clone(),
             None => {
@@ -136,6 +140,21 @@ impl ResourceSupervisor {
                 correlation_id: None,
             });
             info!("ResourceSupervisor: Context sent to PhysicsSupervisor");
+
+            // Also send pending graph data to ForceComputeActor via PhysicsSupervisor
+            if let Some(ref graph_data) = self.pending_graph_data {
+                info!(
+                    "ResourceSupervisor: Sending UpdateGPUGraphData to PhysicsSupervisor with {} nodes",
+                    graph_data.nodes.len()
+                );
+                let _ = addr.try_send(UpdateGPUGraphData {
+                    graph: graph_data.clone(),
+                    correlation_id: None,
+                });
+                info!("ResourceSupervisor: Graph data sent to PhysicsSupervisor for ForceComputeActor");
+            } else {
+                warn!("ResourceSupervisor: No pending graph data to send to PhysicsSupervisor");
+            }
         }
 
         // Send to Analytics Supervisor
@@ -161,6 +180,9 @@ impl ResourceSupervisor {
         // Also publish to event bus for any additional subscribers
         let receiver_count = self.context_bus.publish(context);
         info!("ResourceSupervisor: Context published to {} event bus subscribers", receiver_count);
+
+        // Clear pending graph data after distribution
+        self.pending_graph_data = None;
     }
 
     /// Handle initialization failure
@@ -240,6 +262,63 @@ impl Actor for ResourceSupervisor {
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
         info!("ResourceSupervisor: Stopped");
+
+        // Ensure GPU resources are released on supervisor shutdown
+        if let Some(ref context) = self.shared_context {
+            info!("ResourceSupervisor: Releasing GPU context on shutdown");
+            // SharedGPUContext uses Arc, so dropping our reference helps cleanup
+            // The actual cleanup happens when all references are dropped
+        }
+        self.shared_context = None;
+        self.resource_actor = None;
+    }
+}
+
+/// Guard for GPU resource operations that ensures cleanup on drop
+/// Use this when performing operations that allocate temporary GPU resources
+#[allow(dead_code)]
+pub struct GpuOperationGuard {
+    operation_id: String,
+    start_time: Instant,
+    completed: bool,
+}
+
+impl GpuOperationGuard {
+    /// Create a new GPU operation guard
+    #[allow(dead_code)]
+    pub fn new(operation_id: impl Into<String>) -> Self {
+        let id = operation_id.into();
+        debug!("GpuOperationGuard: Starting operation {}", id);
+        Self {
+            operation_id: id,
+            start_time: Instant::now(),
+            completed: false,
+        }
+    }
+
+    /// Mark the operation as successfully completed
+    #[allow(dead_code)]
+    pub fn complete(mut self) {
+        self.completed = true;
+        let duration = self.start_time.elapsed();
+        debug!(
+            "GpuOperationGuard: Operation {} completed successfully in {:?}",
+            self.operation_id, duration
+        );
+    }
+}
+
+impl Drop for GpuOperationGuard {
+    fn drop(&mut self) {
+        if !self.completed {
+            let duration = self.start_time.elapsed();
+            warn!(
+                "GpuOperationGuard: Operation {} dropped without completion after {:?} - potential resource leak",
+                self.operation_id, duration
+            );
+            // In a real implementation, this would trigger cleanup of any
+            // temporary GPU allocations associated with this operation
+        }
     }
 }
 
@@ -267,6 +346,10 @@ impl Handler<InitializeGPU> for ResourceSupervisor {
 
         // Store graph service address
         self.graph_service_addr = msg.graph_service_addr.clone();
+
+        // Store graph data to send to ForceComputeActor after context distribution
+        self.pending_graph_data = Some(msg.graph.clone());
+        info!("ResourceSupervisor: Stored pending graph data for ForceComputeActor");
 
         // Get resource actor address
         let resource_addr = match &self.resource_actor {

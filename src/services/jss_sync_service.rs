@@ -1212,6 +1212,16 @@ impl Default for JssSyncService {
 // Tests
 // ============================================================================
 
+// TODO: Add integration tests for error paths:
+// - Network timeout during sync (test with mock server that delays response > http_timeout_secs)
+// - Invalid response format (test with mock server returning malformed JSON/non-JSON)
+// - Partial sync failure (test batch where some resources fail, verify others succeed)
+// - Retry exhaustion (test max_retries reached, verify proper error propagation)
+// - JSS server errors (test 4xx/5xx responses, verify JssSyncError::JssServerError)
+// - Neo4j connection failures (test OntologyRepository errors)
+// - Change event channel overflow (test with > 1000 pending events)
+// See: tests/integration/jss_sync_tests.rs (to be created)
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1307,7 +1317,9 @@ mod tests {
         assert_eq!(jsonld["@type"], "owl:Class");
         assert_eq!(jsonld["rdfs:label"], "Person");
         assert_eq!(jsonld["rdfs:comment"], "A human being");
-        assert_eq!(jsonld["vf:qualityScore"], 0.95);
+        // Compare as f64 with tolerance for floating-point precision
+        let score = jsonld["vf:qualityScore"].as_f64().unwrap();
+        assert!((score - 0.95).abs() < 0.001, "Expected ~0.95, got {}", score);
         assert_eq!(jsonld["vf:sourceDomain"], "core");
 
         let subclass_of = jsonld["rdfs:subClassOf"].as_array().unwrap();

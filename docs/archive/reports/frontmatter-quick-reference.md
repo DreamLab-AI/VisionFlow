@@ -59,7 +59,7 @@ Choose ONE category based on document purpose:
 category: tutorial
 ```
 
-**Files**: `tutorials/01-installation.md`, `01-GETTING_STARTED.md`
+**Files**: `getting-started/installation.md`, `01-GETTING_STARTED.md`
 
 ---
 
@@ -90,7 +90,7 @@ category: howto
 category: reference
 ```
 
-**Files**: `reference/API_REFERENCE.md`, `reference/PROTOCOL_REFERENCE.md`
+**Files**: `reference/api/README.md`, `reference/protocols/README.md`
 
 ---
 
@@ -106,7 +106,7 @@ category: reference
 category: explanation
 ```
 
-**Files**: `explanations/architecture/hexagonal-cqrs.md`, `ARCHITECTURE_OVERVIEW.md`
+**Files**: `concepts/hexagonal-architecture.md`, `architecture/overview.md`
 
 ---
 
@@ -279,9 +279,9 @@ dependencies:              # Optional: Prerequisites
 **related-docs**: Links to related documentation files
 ```yaml
 related-docs:
-  - tutorials/01-installation.md
+  - getting-started/installation.md
   - guides/configuration.md
-  - ARCHITECTURE_OVERVIEW.md
+  - architecture/overview.md
 ```
 
 **difficulty-level**: Target audience skill level
@@ -475,7 +475,7 @@ tags:
   - structure
   - api
 related-docs:
-  - DEVELOPER_JOURNEY.md
+  - architecture/developer-journey.md
   - TECHNOLOGY_CHOICES.md
   - guides/developer/01-development-setup.md
 updated-date: 2025-12-18

@@ -16,8 +16,8 @@ pub async fn perform_clustering(
 ) -> Result<Vec<Cluster>, String> {
     info!("Performing {} clustering for task {}", request.method, task_id);
 
-    
-    if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
+    // GPU compute address is now Arc<RwLock<Option<...>>> - use async accessor
+    if let Some(gpu_addr) = app_state.get_gpu_compute_addr().await {
         
         use crate::actors::messages::PerformGPUClustering;
 

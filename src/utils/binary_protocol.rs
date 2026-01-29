@@ -16,20 +16,23 @@ const AGENT_NODE_FLAG: u32 = 0x80000000;
 const KNOWLEDGE_NODE_FLAG: u32 = 0x40000000; 
 
 // Ontology node type flags (bits 26-28, only valid when GraphType::Ontology)
-const ONTOLOGY_TYPE_MASK: u32 = 0x1C000000; 
-const ONTOLOGY_CLASS_FLAG: u32 = 0x04000000; 
-const ONTOLOGY_INDIVIDUAL_FLAG: u32 = 0x08000000; 
-const ONTOLOGY_PROPERTY_FLAG: u32 = 0x10000000; 
+const ONTOLOGY_TYPE_MASK: u32 = 0x1C000000;
+const ONTOLOGY_CLASS_FLAG: u32 = 0x04000000;
+const ONTOLOGY_INDIVIDUAL_FLAG: u32 = 0x08000000;
+const ONTOLOGY_PROPERTY_FLAG: u32 = 0x10000000;
 
-const NODE_ID_MASK: u32 = 0x3FFFFFFF; 
+// Node ID mask: bits 0-25 only (excludes bits 26-31 for all flags)
+// Supports node IDs: 0 to 67,108,863 (2^26 - 1)
+const NODE_ID_MASK: u32 = 0x03FFFFFF; 
 
 // V1 wire format constants REMOVED - caused node ID truncation bugs
 // V2+ uses full u32 IDs with no truncation
 
 // Node type flag constants for u32 (wire format v2)
-const WIRE_V2_AGENT_FLAG: u32 = 0x80000000; 
-const WIRE_V2_KNOWLEDGE_FLAG: u32 = 0x40000000; 
-const WIRE_V2_NODE_ID_MASK: u32 = 0x3FFFFFFF; 
+const WIRE_V2_AGENT_FLAG: u32 = 0x80000000;
+const WIRE_V2_KNOWLEDGE_FLAG: u32 = 0x40000000;
+// Wire V2 node ID mask: bits 0-25 (excludes flag bits 26-31)
+const WIRE_V2_NODE_ID_MASK: u32 = 0x03FFFFFF; 
 
 // WireNodeDataItemV1 REMOVED - V1 protocol no longer supported
 
@@ -111,7 +114,7 @@ const WIRE_ITEM_SIZE: usize = WIRE_V3_ITEM_SIZE;
 //
 // PROTOCOL V3 (CURRENT - P0-4 Analytics Extension):
 // - Wire format sent to client (48 bytes total):
-//   - Node Index: 4 bytes (u32) - Bits 30-31 for flags, bits 0-29 for ID
+//   - Node Index: 4 bytes (u32) - Bits 30-31 for agent/knowledge, bits 26-28 for ontology, bits 0-25 for ID
 //   - Position: 3 × 4 bytes = 12 bytes
 //   - Velocity: 3 × 4 bytes = 12 bytes
 //   - SSSP Distance: 4 bytes (f32)
@@ -120,17 +123,17 @@ const WIRE_ITEM_SIZE: usize = WIRE_V3_ITEM_SIZE;
 //   - Anomaly Score: 4 bytes (f32) - LOF anomaly score (0.0-1.0)
 //   - Community ID: 4 bytes (u32) - Louvain community assignment
 // Total: 48 bytes per node
-// Supports node IDs: 0 to 1,073,741,823 (2^30 - 1)
+// Supports node IDs: 0 to 67,108,863 (2^26 - 1)
 //
 // PROTOCOL V2 (STABLE - FIXES node ID truncation bug):
 // - Wire format sent to client (36 bytes total):
-//   - Node Index: 4 bytes (u32) - Bits 30-31 for flags, bits 0-29 for ID
+//   - Node Index: 4 bytes (u32) - Bits 30-31 for agent/knowledge, bits 26-28 for ontology, bits 0-25 for ID
 //   - Position: 3 × 4 bytes = 12 bytes
 //   - Velocity: 3 × 4 bytes = 12 bytes
 //   - SSSP Distance: 4 bytes (f32)
 //   - SSSP Parent: 4 bytes (i32)
 // Total: 36 bytes per node (NOT 38 - that was a documentation error!)
-// Supports node IDs: 0 to 1,073,741,823 (2^30 - 1)
+// Supports node IDs: 0 to 67,108,863 (2^26 - 1)
 //
 // PROTOCOL V1 REMOVED - Had node ID truncation bug (IDs > 16383 were corrupted)
 //
@@ -1041,16 +1044,18 @@ mod tests {
     fn test_ontology_node_flags() {
         let node_id = 123u32;
 
-        
+        // Test ontology class flag
         let class_id = set_ontology_class_flag(node_id);
         assert!(is_ontology_class(class_id));
         assert!(is_ontology_node(class_id));
         assert!(!is_ontology_individual(class_id));
         assert!(!is_ontology_property(class_id));
+        // get_actual_node_id masks out all flags including ontology flags
+        // The flagged ID includes the ontology bits, but actual ID strips them
         assert_eq!(get_actual_node_id(class_id), node_id);
         assert_eq!(get_node_type(class_id), NodeType::OntologyClass);
 
-        
+        // Test ontology individual flag
         let individual_id = set_ontology_individual_flag(node_id);
         assert!(is_ontology_individual(individual_id));
         assert!(is_ontology_node(individual_id));
@@ -1059,7 +1064,7 @@ mod tests {
         assert_eq!(get_actual_node_id(individual_id), node_id);
         assert_eq!(get_node_type(individual_id), NodeType::OntologyIndividual);
 
-        
+        // Test ontology property flag
         let property_id = set_ontology_property_flag(node_id);
         assert!(is_ontology_property(property_id));
         assert!(is_ontology_node(property_id));
@@ -1068,7 +1073,7 @@ mod tests {
         assert_eq!(get_actual_node_id(property_id), node_id);
         assert_eq!(get_node_type(property_id), NodeType::OntologyProperty);
 
-        
+        // Test that unflagged node is not an ontology node
         assert!(!is_ontology_node(node_id));
         assert!(!is_ontology_class(node_id));
         assert!(!is_ontology_individual(node_id));
@@ -1116,7 +1121,7 @@ mod tests {
             ),
         ];
 
-        
+        // Mark nodes with ontology types
         let class_ids = vec![1u32];
         let individual_ids = vec![2u32];
         let property_ids = vec![3u32];
@@ -1130,9 +1135,10 @@ mod tests {
         let decoded = decode_node_data(&encoded).unwrap();
         assert_eq!(nodes.len(), decoded.len());
 
-        
+        // After decoding, the actual node IDs should match (flags are stripped)
+        // decode_node_data strips flags via get_actual_node_id
         for ((orig_id, orig_data), (dec_id, dec_data)) in nodes.iter().zip(decoded.iter()) {
-            assert_eq!(orig_id, dec_id);
+            assert_eq!(*orig_id, *dec_id);
             assert_eq!(orig_data.position(), dec_data.position());
             assert_eq!(orig_data.velocity(), dec_data.velocity());
         }
@@ -1162,8 +1168,9 @@ mod tests {
         // Wire ID is at offset 1
         let wire_id = u32::from_le_bytes([encoded[1], encoded[2], encoded[3], encoded[4]]);
 
-        
+        // Verify ontology flag is set in the wire format
         assert_eq!(wire_id & ONTOLOGY_TYPE_MASK, ONTOLOGY_CLASS_FLAG);
+        // Verify the actual node ID is preserved (using NODE_ID_MASK to extract it)
         assert_eq!(wire_id & NODE_ID_MASK, 100u32);
     }
 

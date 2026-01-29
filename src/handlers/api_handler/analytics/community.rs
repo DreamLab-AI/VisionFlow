@@ -60,8 +60,8 @@ pub async fn run_gpu_community_detection(
     );
 
     let gpu_addr = app_state
-        .gpu_compute_addr
-        .as_ref()
+        .get_gpu_compute_addr()
+        .await
         .ok_or_else(|| "GPU compute actor not available".to_string())?;
 
     

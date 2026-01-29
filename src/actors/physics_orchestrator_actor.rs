@@ -916,9 +916,43 @@ impl Handler<SimulationStep> for PhysicsOrchestratorActor {
 impl Handler<UpdateNodePositions> for PhysicsOrchestratorActor {
     type Result = Result<(), String>;
 
-    fn handle(&mut self, _msg: UpdateNodePositions, _ctx: &mut Self::Context) -> Self::Result {
+    fn handle(&mut self, msg: UpdateNodePositions, _ctx: &mut Self::Context) -> Self::Result {
+        // Broadcast positions to WebSocket clients via ClientCoordinatorActor
+        if let Some(ref client_coord_addr) = self.client_coordinator_addr {
+            // Throttle broadcasts to 60 FPS max
+            let now = std::time::Instant::now();
+            let broadcast_interval = std::time::Duration::from_millis(16); // 60 FPS
+            if now.duration_since(self.last_broadcast_time) >= broadcast_interval {
+                self.last_broadcast_time = now;
 
+                // Convert to client format (BinaryNodeDataClient has same layout as BinaryNodeData)
+                let client_positions: Vec<BinaryNodeDataClient> = msg.positions
+                    .iter()
+                    .map(|(node_id, data)| BinaryNodeDataClient {
+                        node_id: *node_id,
+                        x: data.x,
+                        y: data.y,
+                        z: data.z,
+                        vx: data.vx,
+                        vy: data.vy,
+                        vz: data.vz,
+                    })
+                    .collect();
 
+                // Send broadcast message to client coordinator
+                use crate::actors::messages::BroadcastPositions;
+                client_coord_addr.do_send(BroadcastPositions {
+                    positions: client_positions,
+                });
+
+                debug!(
+                    "Broadcasted {} node positions from ForceComputeActor to clients",
+                    msg.positions.len()
+                );
+            }
+        }
+
+        // Also update GPU if available
         if let Some(ref gpu_addr) = self.gpu_compute_addr {
             if let Some(ref graph_data) = self.graph_data_ref {
                 // H4: Track UpdateGPUGraphData message

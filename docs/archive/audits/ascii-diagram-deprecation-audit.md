@@ -44,10 +44,10 @@ This audit systematically identified and replaced ASCII diagrams throughout the 
 | File | ASCII Diagrams Found | Status | Replacement Strategy |
 |------|---------------------|--------|---------------------|
 | `docs/reference/protocols/binary-websocket.md` | 5 diagrams | ✅ COMPLETE | Replaced with references to `docs/diagrams/infrastructure/websocket/binary-protocol-complete.md` |
-| `docs/explanations/architecture/reasoning-data-flow.md` | 1 large flowchart (185 lines) | ✅ COMPLETE | Replaced with structured markdown + reference to `docs/diagrams/data-flow/complete-data-flows.md` |
+| `docs/concepts/reasoning-data-flow.md` | 1 large flowchart (185 lines) | ✅ COMPLETE | Replaced with structured markdown + reference to `docs/diagrams/data-flow/complete-data-flows.md` |
 | `docs/reference/error-codes.md` | 1 hierarchy tree | ✅ COMPLETE | Replaced with structured markdown lists |
 | `docs/reference/physics-implementation.md` | 1 pipeline diagram | ✅ COMPLETE | Replaced with reference to `docs/diagrams/data-flow/complete-data-flows.md` and `docs/diagrams/infrastructure/gpu/cuda-architecture-complete.md` |
-| `docs/ARCHITECTURE_OVERVIEW.md` | 0 (uses mermaid) | ✅ VERIFIED | Already using mermaid diagrams correctly |
+| `docs/architecture/overview.md` | 0 (uses mermaid) | ✅ VERIFIED | Already using mermaid diagrams correctly |
 | `docs/README.md` | 0 (uses markdown tables) | ✅ VERIFIED | No ASCII diagrams found |
 
 **Total ASCII Diagrams Deprecated**: 8
@@ -98,7 +98,7 @@ This audit systematically identified and replaced ASCII diagrams throughout the 
 
 ---
 
-### 2. Ontology Reasoning Data Flow (`docs/explanations/architecture/reasoning-data-flow.md`)
+### 2. Ontology Reasoning Data Flow (`docs/concepts/reasoning-data-flow.md`)
 
 **ASCII Diagrams Removed**: 1 large flowchart (185 lines)
 

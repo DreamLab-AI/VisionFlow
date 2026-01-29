@@ -137,8 +137,8 @@ difficulty-level: beginner
 ## 📖 Related Documentation
 
 ### Core Architecture
-- [Architecture Overview](/docs/ARCHITECTURE_OVERVIEW.md)
-- [Hexagonal CQRS](/docs/explanations/architecture/hexagonal-cqrs.md)
+- [Architecture Overview](/docs/architecture/overview.md)
+- [Hexagonal CQRS](/docs/concepts/hexagonal-architecture.md)
 - [Actor System Complete](/docs/diagrams/server/actors/actor-system-complete.md)
 
 ### Infrastructure
@@ -147,7 +147,7 @@ difficulty-level: beginner
 - [Neo4j Architecture](/docs/diagrams/infrastructure/database/neo4j-architecture-complete.md)
 
 ### Development
-- [Developer Journey](/docs/DEVELOPER_JOURNEY.md)
+- [Developer Journey](/docs/architecture/developer-journey.md)
 - [Technology Choices](/docs/TECHNOLOGY_CHOICES.md)
 - [Quick Navigation](/docs/QUICK_NAVIGATION.md)
 

@@ -34,11 +34,11 @@ pub struct ConstraintData {
     pub weight: f32,
 
     
-    
+
     pub activation_frame: i32,
 
-    
-    _padding: [f32; 2],
+
+    _padding: [f32; 4],
 }
 
 pub mod gpu_constraint_kind {
@@ -61,7 +61,7 @@ impl Default for ConstraintData {
             params2: [0.0; 4],
             weight: 1.0,
             activation_frame: -1,
-            _padding: [0.0; 2],
+            _padding: [0.0; 4],
         }
     }
 }
@@ -136,28 +136,37 @@ pub fn to_gpu_constraint_batch(constraints: &[PhysicsConstraint]) -> Vec<Constra
         .collect()
 }
 
+/// Buffer for GPU constraint data with reusable allocation
+///
+/// This buffer pre-allocates memory to avoid repeated allocations during
+/// batch conversion operations. Use `convert_batch` for efficient conversion
+/// that reuses the internal buffer.
 pub struct GPUConstraintBuffer {
-    
+    /// The constraint data storage
     pub data: Vec<ConstraintData>,
 
-    
+    /// Number of active constraints in the buffer
     pub count: usize,
 
-    
+    /// Maximum capacity of the buffer
     pub capacity: usize,
+
+    /// Reusable buffer for batch conversion operations to avoid allocation per batch
+    conversion_buffer: Vec<ConstraintData>,
 }
 
 impl GPUConstraintBuffer {
-    
+    /// Create a new GPU constraint buffer with the specified capacity
     pub fn new(capacity: usize) -> Self {
         Self {
             data: Vec::with_capacity(capacity),
             count: 0,
             capacity,
+            conversion_buffer: Vec::with_capacity(capacity),
         }
     }
 
-    
+    /// Add constraints to the buffer, converting them to GPU format
     pub fn add_constraints(&mut self, constraints: &[PhysicsConstraint]) -> Result<(), String> {
         if self.count + constraints.len() > self.capacity {
             return Err(format!(
@@ -175,7 +184,17 @@ impl GPUConstraintBuffer {
         Ok(())
     }
 
-    
+    /// Convert a batch of constraints using the reusable internal buffer
+    ///
+    /// This method avoids allocation per batch by reusing `conversion_buffer`.
+    /// The returned slice is valid until the next call to `convert_batch`.
+    pub fn convert_batch(&mut self, batch: &[PhysicsConstraint]) -> &[ConstraintData] {
+        self.conversion_buffer.clear();
+        self.conversion_buffer.extend(batch.iter().map(to_gpu_constraint_data));
+        &self.conversion_buffer
+    }
+
+    /// Clear the buffer for reuse
     pub fn clear(&mut self) {
         self.data.clear();
         self.count = 0;

@@ -9,7 +9,7 @@ tags:
   - api
   - docker
 related-docs:
-  - architecture/HEXAGONAL_ARCHITECTURE_STATUS.md
+  - concepts/hexagonal-architecture.md
   - architecture/blender-mcp-unified-architecture.md
   - architecture/skill-mcp-classification.md
 updated-date: 2025-12-18

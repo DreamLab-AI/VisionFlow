@@ -36,8 +36,8 @@ dependencies:
 ### 2. Integrated DeepSeek Documentation
 
 **Previous Locations**:
-- `/docs/guides/features/deepseek-verification.md`
-- `/docs/guides/features/deepseek-deployment.md`
+- `/docs/guides/ai-models/deepseek-verification.md`
+- `/docs/guides/ai-models/deepseek-deployment.md`
 
 **New Locations**:
 - `/docs/guides/ai-models/deepseek-verification.md`

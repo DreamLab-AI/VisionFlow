@@ -9,10 +9,10 @@ tags:
   - structure
   - api
 related-docs:
-  - ARCHITECTURE_OVERVIEW.md
+  - architecture/overview.md
   - QUICK_NAVIGATION.md
   - README.md
-  - ARCHITECTURE_COMPLETE.md
+  - architecture/overview.md
   - ASCII_DEPRECATION_COMPLETE.md
 updated-date: 2025-12-18
 difficulty-level: advanced
@@ -817,4 +817,4 @@ VisionFlow's technology choices reflect three core principles:
 
 **Last Updated:** 2025-12-02
 **Technology Stack Version:** v2.0.0
-**For Questions:** See [Architecture Overview](ARCHITECTURE_OVERVIEW.md) or [GitHub Discussions](https://github.com/DreamLab-AI/VisionFlow/discussions)
+**For Questions:** See [Architecture Overview](architecture/overview.md) or [GitHub Discussions](https://github.com/DreamLab-AI/VisionFlow/discussions)
