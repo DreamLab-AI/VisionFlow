@@ -192,8 +192,10 @@ RUN npm logout 2>/dev/null || true && \
     npm config delete //registry.npmjs.org/:_authToken || true
 
 RUN npm install -g \
-    # Claude Code CLI (pinned to 2.1.17 - latest stable)
-    @anthropic-ai/claude-code@2.1.17 \
+    # Claude Code CLI - Use native installer for user-level install, npm as fallback
+    # Native installer: curl -fsSL https://claude.ai/install.sh | bash (installs to ~/.local/bin)
+    # We use npm here for system-wide installation in Docker images
+    @anthropic-ai/claude-code@latest \
     claude-usage-cli@latest \
     # Claude-Flow V3 Alpha (Global Install Fix 1)
     claude-flow@v3alpha \
