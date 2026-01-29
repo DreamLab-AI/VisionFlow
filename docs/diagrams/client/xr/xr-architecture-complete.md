@@ -1675,8 +1675,6 @@ adb reverse tcp:3001 tcp:3001  # Backend
 
 ---
 
----
-
 ## Related Documentation
 
 - [VisionFlow Client Architecture - Deep Analysis](../../../archive/analysis/client-architecture-analysis-2025-12.md)

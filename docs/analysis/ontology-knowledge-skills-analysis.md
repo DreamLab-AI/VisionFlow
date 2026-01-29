@@ -20,7 +20,6 @@ dependencies:
 
 # Ontology/Knowledge Skills Analysis
 
-**Date**: 2025-12-18
 **Analyst**: Claude Code Quality Analyzer
 **Focus**: Ontology and knowledge management skills in multi-agent-docker/skills/
 
@@ -463,8 +462,6 @@ perplexity (MCP stub) ← Duplicate of ontology-enrich/perplexity_client.py
 - [ ] VisionFlow can discover and use all tools
 - [ ] Documentation updated for all skills
 - [ ] Clear library vs skill separation
-
----
 
 ---
 

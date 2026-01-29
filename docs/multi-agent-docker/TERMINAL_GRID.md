@@ -158,8 +158,6 @@ To modify a terminal's banner:
 
 ---
 
----
-
 ## Related Documentation
 
 - [Hyprland Migration Summary](hyprland-migration-summary.md)

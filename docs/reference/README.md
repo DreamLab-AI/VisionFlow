@@ -81,8 +81,8 @@ Complete technical reference documentation for VisionFlow APIs, protocols, confi
 | Document | Description |
 |----------|-------------|
 | [Performance Benchmarks](./performance-benchmarks.md) | Performance metrics and targets |
-| [Implementation Status](./implementation-status.md) | Feature implementation status |
-| [Code Quality Status](./code-quality-status.md) | Code quality metrics |
+| Implementation Status | Feature implementation status (see main README) |
+| Code Quality | Code quality metrics (see main README) |
 
 ### API Deep Dives
 
@@ -124,19 +124,19 @@ updated-date: 2025-01-29
 
 ### Guides
 
-- [Configuration Guide](../guides/configuration.md) - Practical examples
-- [Deployment Guide](../guides/deployment.md) - Production deployment
-- [Troubleshooting Guide](../guides/troubleshooting.md) - Common issues
+- [Configuration Guide](../how-to/operations/configuration.md) - Practical examples
+- [Deployment Guide](../how-to/deployment/deployment.md) - Production deployment
+- [Troubleshooting Guide](../how-to/operations/troubleshooting.md) - Common issues
 
 ### Concepts
 
-- [Architecture Overview](../concepts/README.md) - System architecture
-- [Data Flow](../explanations/architecture/data-flow-complete.md) - Data flow diagrams
+- [Architecture Overview](../explanation/concepts/README.md) - System architecture
+- [Data Flow](../explanation/architecture/data-flow.md) - Data flow diagrams
 
 ### Getting Started
 
-- [Installation Guide](../getting-started/installation.md) - Setup instructions
-- [First Graph](../getting-started/first-graph.md) - Quick start tutorial
+- [Installation Guide](../tutorials/installation.md) - Setup instructions
+- [First Graph](../tutorials/creating-first-graph.md) - Quick start tutorial
 
 ---
 

@@ -1404,8 +1404,6 @@ pub const METADATA_UPDATE_RATE: u32 = 1;     // 1 Hz metadata
 
 ---
 
----
-
 ## Related Documentation
 
 - [VisionFlow Architecture Cross-Reference Matrix](../../cross-reference-matrix.md)

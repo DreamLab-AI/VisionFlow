@@ -1,7 +1,7 @@
 ---
 title: Skills Documentation
 description: The Turbo Flow Claude multi-agent environment includes **54 specialized skills** that extend Claude Code's capabilities across AI/ML, DevOps, graphics, system administration, and development workfl...
-category: guide
+category: how-to
 tags:
   - architecture
   - design
@@ -432,8 +432,6 @@ claude "Use cuda skill (not pytorch-ml) to compile this kernel"
 - **SPARC Methodology**: `cat agents/doc-planner.md`
 - **Claude Flow**: https://github.com/ruvnet/claude-flow
 - **MCP Documentation**: https://github.com/anthropic/mcp
-
----
 
 ---
 

@@ -1424,8 +1424,6 @@ flowchart TB
 
 ---
 
----
-
 ## Related Documentation
 
 - [VisionFlow Client Architecture Analysis](../../../visionflow-architecture-analysis.md)

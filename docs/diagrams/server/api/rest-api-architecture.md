@@ -2224,8 +2224,6 @@ spec:
 
 ---
 
----
-
 ## Related Documentation
 
 - [ComfyUI MCP Server Integration with Management API](../../../comfyui-integration-design.md)

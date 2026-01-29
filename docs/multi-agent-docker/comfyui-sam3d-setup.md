@@ -1,7 +1,7 @@
 ---
 title: ComfyUI SAM3D Docker Setup
 description: Documentation for comfyui-sam3d-setup
-category: guide
+category: how-to
 tags:
   - architecture
   - structure
@@ -144,8 +144,6 @@ docker logs comfyui --tail 100
 - Joins `docker_ragflow` network
 - Aliases: `comfyui.ragflow`, `comfyui.local`
 - External access: `192.168.0.51:8188`
-
----
 
 ---
 

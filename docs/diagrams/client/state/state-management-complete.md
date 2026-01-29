@@ -2145,8 +2145,6 @@ interface OntologyState {
 
 ---
 
----
-
 ## Related Documentation
 
 - [Server-Side Actor System - Complete Architecture Documentation](../../server/actors/actor-system-complete.md)

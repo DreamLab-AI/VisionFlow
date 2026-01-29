@@ -20,9 +20,6 @@ dependencies:
 
 # Hyprland Migration Summary
 
-**Date**: 2025-11-15
-**Status**: Complete - Testing in Progress
-
 ## Overview
 
 Successfully migrated the Turbo Flow Unified Container from XFCE4 + Xvnc to **Hyprland + wayvnc** with 4K (3840x2160) support, high-contrast fonts, and comprehensive desktop automation.
@@ -330,8 +327,6 @@ docker exec -u devuser agentic-workstation /home/devuser/.config/tmux-autostart.
 2. **Xwayland** required for Blender/QGIS (legacy X11 apps)
 3. **Remote debugging** only one Chromium instance
 4. **GPU passthrough** requires host NVIDIA drivers
-
----
 
 ---
 

@@ -119,8 +119,6 @@ This matrix shows how different architectural components relate to each other ac
 
 ---
 
----
-
 ## Related Documentation
 
 - [ASCII Diagram Deprecation Audit](../audits/ascii-diagram-deprecation-audit.md)

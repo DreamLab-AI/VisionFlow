@@ -4,7 +4,7 @@ This document provides a rapid lookup for stakeholders evaluating VisionFlow for
 
 ---
 
-## 🎮 Gaming & Interactive Media
+## Gaming & Interactive Media
 
 ### Primary Use Cases
 1. **P2P Multiplayer Physics** - Distribute physics computation across players (zero server cost)
@@ -30,7 +30,7 @@ This document provides a rapid lookup for stakeholders evaluating VisionFlow for
 
 ---
 
-## 🔬 Scientific Computing
+## Scientific Computing
 
 ### Primary Use Cases
 1. **Molecular Dynamics** - Protein folding, drug discovery
@@ -56,7 +56,7 @@ This document provides a rapid lookup for stakeholders evaluating VisionFlow for
 
 ---
 
-## 🏭 Engineering & Manufacturing
+## Engineering & Manufacturing
 
 ### Primary Use Cases
 1. **Digital Twins** - Real-time factory floor simulations
@@ -82,7 +82,7 @@ This document provides a rapid lookup for stakeholders evaluating VisionFlow for
 
 ---
 
-## 🏥 Healthcare & Biotech
+## Healthcare & Biotech
 
 ### Primary Use Cases
 1. **Surgical Training** - Realistic soft-tissue simulations
@@ -108,7 +108,7 @@ This document provides a rapid lookup for stakeholders evaluating VisionFlow for
 
 ---
 
-## 💰 Finance & Economics
+## Finance & Economics
 
 ### Primary Use Cases
 1. **Systemic Risk Modeling** - 2008-style crisis simulations
@@ -134,7 +134,7 @@ This document provides a rapid lookup for stakeholders evaluating VisionFlow for
 
 ---
 
-## 📦 Supply Chain & Logistics
+## Supply Chain & Logistics
 
 ### Primary Use Cases
 1. **Last-Mile Delivery** - Real-time route optimization
@@ -160,7 +160,7 @@ This document provides a rapid lookup for stakeholders evaluating VisionFlow for
 
 ---
 
-## 🏙️ Urban Planning & Smart Cities
+## ️ Urban Planning & Smart Cities
 
 ### Primary Use Cases
 1. **Traffic Flow Simulation** - 100,000 vehicles + pedestrians

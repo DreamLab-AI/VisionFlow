@@ -41,8 +41,6 @@ Validate Cypher syntax.
 
 ---
 
----
-
 ## Related Documentation
 
 - [Authentication (DEPRECATED - JWT NOT USED)](01-authentication.md)

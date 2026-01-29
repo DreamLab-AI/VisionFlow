@@ -329,4 +329,4 @@ docker-compose run --rm visionflow /bin/bash
 
 - [Cargo Commands](./cargo-commands.md)
 - [Docker Compose Options](../configuration/docker-compose-options.md)
-- [Deployment Guide](../../guides/deployment.md)
+- [Deployment Guide](../../how-to/deployment/deployment.md)

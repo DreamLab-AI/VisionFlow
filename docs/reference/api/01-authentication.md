@@ -12,7 +12,7 @@ difficulty-level: advanced
 ---
 
 
-## ⚠️ DEPRECATION WARNING
+## ️ DEPRECATION WARNING
 
 **This document describes JWT authentication which is NOT used by VisionFlow.**
 
@@ -102,8 +102,6 @@ curl -H "X-API-Key: YOUR-API-KEY" \
 - JWT tokens expire in 24 hours
 - Refresh tokens expire in 30 days
 - Use `/auth/refresh` to get new tokens
-
----
 
 ---
 

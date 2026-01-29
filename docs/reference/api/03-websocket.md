@@ -46,7 +46,7 @@ VisionFlow uses a **36-byte binary WebSocket protocol** for real-time graph upda
 | Version | Status | Use Case | Bandwidth (100k nodes) |
 |---------|--------|----------|------------------------|
 | **Binary V2** | ✅ Current | Real-time physics updates | 3.6 MB/frame |
-| JSON V1 | ⚠️ Deprecated | Legacy compatibility | 18 MB/frame |
+| JSON V1 | Removed | Legacy (not recommended) | 18 MB/frame |
 
 ---
 

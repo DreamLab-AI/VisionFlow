@@ -442,8 +442,6 @@ let config = Neo4jOntologyConfig {
 
 ---
 
----
-
 ## Related Documentation
 
 - [Complete API Reference](../api/README.md)

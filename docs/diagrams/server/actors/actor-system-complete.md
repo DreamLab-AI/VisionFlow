@@ -1799,8 +1799,6 @@ impl GraphStateActor {
 
 ---
 
----
-
 ## Related Documentation
 
 - [VisionFlow GPU CUDA Architecture - Complete Technical Documentation](../../infrastructure/gpu/cuda-architecture-complete.md)

@@ -12,7 +12,6 @@ difficulty-level: advanced
 ---
 
 
-
 # VisionFlow Performance Benchmarks
 
 **Last Updated:** November 5, 2025

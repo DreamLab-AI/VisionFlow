@@ -394,8 +394,6 @@ curl -X POST http://localhost:8080/api/analytics/pathfinding/apsp \
 
 ---
 
----
-
 ## Related Documentation
 
 - [Authentication (DEPRECATED - JWT NOT USED)](01-authentication.md)

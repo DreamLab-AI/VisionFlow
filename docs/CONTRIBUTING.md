@@ -394,7 +394,7 @@ Link to related documents at the end of each section:
 **Related Documentation:**
 - [API Reference](../api/rest-api.md)
 - [Configuration Guide](../reference/configuration.md)
-- [Troubleshooting](../guides/troubleshooting.md)
+- [Troubleshooting](../how-to/operations/troubleshooting.md)
 ```
 
 ---

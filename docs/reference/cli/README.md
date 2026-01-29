@@ -86,5 +86,5 @@ docker-compose build --no-cache
 
 ## Related Documentation
 
-- [Deployment Guide](../../guides/deployment.md)
+- [Deployment Guide](../../how-to/deployment/deployment.md)
 - [Configuration Reference](../configuration/README.md)

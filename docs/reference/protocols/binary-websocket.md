@@ -567,8 +567,6 @@ npm test -- BinaryWebSocketProtocol.test.ts
 
 ---
 
----
-
 ## Related Documentation
 
 - [WebSocket Binary Protocol Reference](../websocket-protocol.md)

@@ -19,7 +19,7 @@ difficulty-level: intermediate
 
 ---
 
-## 📚 Documentation Index
+## Documentation Index
 
 ### Primary Documentation
 
@@ -57,7 +57,7 @@ difficulty-level: intermediate
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Health Check
 
@@ -92,7 +92,7 @@ ws.onmessage = (event) => {
 
 ---
 
-## 📋 API Categories
+## API Categories
 
 ### Core Endpoints
 - Health & Configuration
@@ -130,7 +130,7 @@ ws.onmessage = (event) => {
 
 ---
 
-## 🔗 Endpoint Count by Category
+## Endpoint Count by Category
 
 | Category | Endpoints | Documentation |
 |----------|-----------|---------------|
@@ -149,7 +149,7 @@ ws.onmessage = (event) => {
 
 ---
 
-## 🎯 Key Features
+## Key Features
 
 ### Binary WebSocket Protocol
 - **80% bandwidth reduction** (3.6 MB vs 18 MB per frame at 100k nodes)
@@ -173,7 +173,7 @@ ws.onmessage = (event) => {
 
 ---
 
-## 📖 Usage Examples
+## Usage Examples
 
 ### TypeScript Client
 
@@ -231,7 +231,7 @@ for class-iri in root-classes:
 
 ---
 
-## 🔒 Authentication
+## Authentication
 
 All endpoints except `/health` and `/config` require authentication:
 
@@ -252,7 +252,7 @@ curl -H "X-API-Key: YOUR-API-KEY" \
 
 ---
 
-## 🗄️ Database
+## ️ Database
 
 Unified SQLite database (`unified.db`) with tables:
 - `nodes` - Knowledge graph nodes
@@ -265,7 +265,7 @@ Unified SQLite database (`unified.db`) with tables:
 
 ---
 
-## ⚠️ Error Handling
+## ️ Error Handling
 
 Standard error format:
 ```json
@@ -291,7 +291,7 @@ HTTP status codes:
 
 ---
 
-## 📊 Performance Benchmarks
+## Performance Benchmarks
 
 ### WebSocket Binary Protocol (100k nodes @ 60 FPS)
 
@@ -304,7 +304,7 @@ HTTP status codes:
 
 ---
 
-## 🔄 Migration Notes
+## Migration Notes
 
 ### Deprecated Endpoints
 
@@ -315,7 +315,7 @@ The following endpoints have been consolidated:
 
 ---
 
-## 📞 Support
+## Support
 
 - **Full Documentation**: [rest-api-complete.md](./rest-api-complete.md)
 - **WebSocket Protocol**: [03-websocket.md](./03-websocket.md)

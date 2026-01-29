@@ -42,8 +42,6 @@ Right-click on the desktop background to access the application menu (if configu
 
 ---
 
----
-
 ## Related Documentation
 
 - [Terminal Grid Configuration](TERMINAL_GRID.md)

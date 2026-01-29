@@ -1390,8 +1390,6 @@ impl MCPTcpClient {
 
 ---
 
----
-
 ## Related Documentation
 
 - [Blender MCP Unified System Architecture](../../../architecture/blender-mcp-unified-architecture.md)

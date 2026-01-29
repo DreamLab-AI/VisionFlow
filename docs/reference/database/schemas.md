@@ -657,8 +657,6 @@ const WRITE-CONNECTION-TIMEOUT-MS: u64 = 5000;
 
 ---
 
----
-
 ## Solid Pod Structure Schema
 
 VisionFlow supports Solid pods for decentralized user data storage and ontology contributions.

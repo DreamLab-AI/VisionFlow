@@ -1662,8 +1662,6 @@ Total working set: ~10-22 MB (fits in L2 cache!)
 
 ---
 
----
-
 ## Related Documentation
 
 - [Server-Side Actor System - Complete Architecture Documentation](../../server/actors/actor-system-complete.md)

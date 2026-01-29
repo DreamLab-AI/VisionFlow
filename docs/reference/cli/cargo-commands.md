@@ -250,4 +250,4 @@ RUST_LOG=visionflow=debug RUST_BACKTRACE=1 cargo run
 
 - [Docker Commands](./docker-commands.md)
 - [CLI Reference](./README.md)
-- [Deployment Guide](../../guides/deployment.md)
+- [Deployment Guide](../../how-to/deployment/deployment.md)

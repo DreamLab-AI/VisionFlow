@@ -13,9 +13,9 @@ Enterprise-grade multi-agent knowledge graphing with 3D visualization, semantic 
 
 Get running in 5 minutes:
 
-1. **[Installation](getting-started/installation.md)** - Docker or native setup
-2. **[First Graph](getting-started/first-graph.md)** - Create your first visualization
-3. **[Navigation Guide](guides/navigation-guide.md)** - Master the 3D interface
+1. **[Installation](tutorials/installation.md)** - Docker or native setup
+2. **[First Graph](tutorials/creating-first-graph.md)** - Create your first visualization
+3. **[Navigation Guide](how-to/navigation-guide.md)** - Master the 3D interface
 
 ## Documentation by Role
 
@@ -26,17 +26,17 @@ Get running in 5 minutes:
 
 | Step | Document | Time |
 |------|----------|------|
-| 1 | [What is VisionFlow?](getting-started/overview.md) | 10 min |
-| 2 | [Installation](getting-started/installation.md) | 15 min |
-| 3 | [First Graph](getting-started/first-graph.md) | 20 min |
-| 4 | [Navigation Guide](guides/navigation-guide.md) | 15 min |
-| 5 | [Configuration](guides/configuration.md) | 10 min |
+| 1 | [What is VisionFlow?](tutorials/overview.md) | 10 min |
+| 2 | [Installation](tutorials/installation.md) | 15 min |
+| 3 | [First Graph](tutorials/creating-first-graph.md) | 20 min |
+| 4 | [Navigation Guide](how-to/navigation-guide.md) | 15 min |
+| 5 | [Configuration](how-to/operations/configuration.md) | 10 min |
 
 ### Next Steps
 
-- [Neo4j Quick Start](getting-started/neo4j-quickstart.md) - Query the graph database
-- [Natural Language Queries](guides/features/natural-language-queries.md) - Ask questions in plain English
-- [Troubleshooting](guides/troubleshooting.md) - Common issues and solutions
+- [Neo4j Quick Start](tutorials/neo4j-basics.md) - Query the graph database
+- [Natural Language Queries](how-to/features/natural-language-queries.md) - Ask questions in plain English
+- [Troubleshooting](how-to/operations/troubleshooting.md) - Common issues and solutions
 
 </details>
 
@@ -47,20 +47,20 @@ Get running in 5 minutes:
 
 | Priority | Document | Focus |
 |----------|----------|-------|
-| High | [Developer Journey](architecture/developer-journey.md) | Codebase learning path |
-| High | [Development Setup](guides/developer/01-development-setup.md) | IDE and environment |
-| High | [Project Structure](guides/developer/02-project-structure.md) | Code organisation |
-| Medium | [Architecture Overview](architecture/overview.md) | System design |
-| Medium | [Adding Features](guides/developer/04-adding-features.md) | Development workflow |
-| Standard | [Testing Guide](guides/testing-guide.md) | Unit, integration, E2E |
+| High | [Developer Journey](explanation/architecture/developer-journey.md) | Codebase learning path |
+| High | [Development Setup](how-to/development/01-development-setup.md) | IDE and environment |
+| High | [Project Structure](how-to/development/02-project-structure.md) | Code organisation |
+| Medium | [Architecture Overview](explanation/architecture/README.md) | System design |
+| Medium | [Adding Features](how-to/development/04-adding-features.md) | Development workflow |
+| Standard | [Testing Guide](how-to/development/testing-guide.md) | Unit, integration, E2E |
 
 ### By Technology
 
-- **Rust Backend** - [Server Architecture](architecture/server/overview.md), [Hexagonal CQRS](architecture/patterns/hexagonal-cqrs.md)
-- **React Frontend** - [Client Architecture](architecture/client/overview.md), [State Management](guides/client/state-management.md)
-- **Neo4j** - [Database Architecture](architecture/database.md), [Schemas](reference/database/schemas.md)
-- **GPU/CUDA** - [GPU Overview](architecture/gpu/README.md), [Optimisations](architecture/gpu/optimizations.md)
-- **WebSocket** - [Binary Protocol](reference/protocols/binary-websocket.md), [Best Practices](guides/developer/websocket-best-practices.md)
+- **Rust Backend** - [Server Architecture](explanation/architecture/server/overview.md), [Hexagonal CQRS](explanation/architecture/patterns/hexagonal-cqrs.md)
+- **React Frontend** - [Client Architecture](explanation/architecture/client/overview.md), [State Management](how-to/development/state-management.md)
+- **Neo4j** - [Database Architecture](explanation/architecture/database.md), [Schemas](reference/database/schemas.md)
+- **GPU/CUDA** - [GPU Overview](explanation/architecture/gpu/README.md), [Optimisations](explanation/architecture/gpu/optimizations.md)
+- **WebSocket** - [Binary Protocol](reference/protocols/binary-websocket.md), [Best Practices](how-to/development/websocket-best-practices.md)
 
 ### API Reference
 
@@ -77,28 +77,28 @@ Get running in 5 minutes:
 
 | Document | Focus |
 |----------|-------|
-| [Architecture Overview](architecture/overview.md) | Complete system architecture |
-| [Technology Choices](architecture/technology-choices.md) | Stack rationale |
+| [Architecture Overview](explanation/architecture/README.md) | Complete system architecture |
+| [Technology Choices](explanation/architecture/technology-choices.md) | Stack rationale |
 | [System Overview](explanations/system-overview.md) | Architectural blueprint |
-| [Hexagonal CQRS](architecture/patterns/hexagonal-cqrs.md) | Ports and adapters |
-| [Data Flow](architecture/data-flow.md) | End-to-end pipeline |
-| [Integration Patterns](concepts/integration-patterns.md) | System integration |
+| [Hexagonal CQRS](explanation/architecture/patterns/hexagonal-cqrs.md) | Ports and adapters |
+| [Data Flow](explanation/architecture/data-flow.md) | End-to-end pipeline |
+| [Integration Patterns](explanations/architecture/integration-patterns.md) | System integration |
 
 ### Deep Dives
 
-- **Actor System** - [Actor Guide](guides/architecture/actor-system.md), [Server Architecture](architecture/server/overview.md)
-- **Database** - [Database Architecture](architecture/database.md), [Neo4j ADR](architecture/adr/ADR-0001-neo4j-persistent-with-filesystem-sync.md)
-- **Physics** - [Semantic Physics](architecture/physics/semantic-forces.md), [GPU Communication](architecture/gpu/communication-flow.md)
-- **Ontology** - [Ontology Storage](concepts/ontology-storage.md), [Reasoning Pipeline](architecture/ontology/reasoning-engine.md)
-- **Multi-Agent** - [Multi-Agent System](architecture/agents/multi-agent.md), [Agent Orchestration](guides/agent-orchestration.md)
+- **Actor System** - [Actor Guide](how-to/development/actor-system.md), [Server Architecture](explanation/architecture/server/overview.md)
+- **Database** - [Database Architecture](explanation/architecture/database.md), [Neo4j ADR](explanation/architecture/adr/ADR-0001-neo4j-persistent-with-filesystem-sync.md)
+- **Physics** - [Semantic Physics](explanation/architecture/physics/semantic-forces.md), [GPU Communication](explanation/architecture/gpu/communication-flow.md)
+- **Ontology** - [Ontology Storage](explanations/architecture/ontology-storage-architecture.md), [Reasoning Pipeline](explanation/architecture/ontology/reasoning-engine.md)
+- **Multi-Agent** - [Multi-Agent System](explanation/architecture/agents/multi-agent.md), [Agent Orchestration](how-to/agents/agent-orchestration.md)
 
 ### Hexagonal Architecture Ports
 
-- [Ports Overview](architecture/ports/01-overview.md)
-- [Knowledge Graph Repository](architecture/ports/03-knowledge-graph-repository.md)
-- [Ontology Repository](architecture/ports/04-ontology-repository.md)
-- [Inference Engine](architecture/ports/05-inference-engine.md)
-- [GPU Physics Adapter](architecture/ports/06-gpu-physics-adapter.md)
+- [Ports Overview](reference/architecture/ports/01-overview.md)
+- [Knowledge Graph Repository](reference/architecture/ports/03-knowledge-graph-repository.md)
+- [Ontology Repository](reference/architecture/ports/04-ontology-repository.md)
+- [Inference Engine](reference/architecture/ports/05-inference-engine.md)
+- [GPU Physics Adapter](reference/architecture/ports/06-gpu-physics-adapter.md)
 
 </details>
 
@@ -109,25 +109,25 @@ Get running in 5 minutes:
 
 | Document | Purpose |
 |----------|---------|
-| [Deployment Guide](guides/deployment.md) | Production deployment |
-| [Docker Compose](guides/docker-compose-guide.md) | Container orchestration |
-| [Operator Runbook](guides/operations/pipeline-operator-runbook.md) | Operations playbook |
-| [Configuration](guides/configuration.md) | Environment variables |
-| [Security](guides/security.md) | Authentication and secrets |
-| [Telemetry](guides/telemetry-logging.md) | Observability |
+| [Deployment Guide](how-to/deployment/deployment.md) | Production deployment |
+| [Docker Compose](how-to/deployment/docker-compose-guide.md) | Container orchestration |
+| [Operator Runbook](how-to/operations/pipeline-operator-runbook.md) | Operations playbook |
+| [Configuration](how-to/operations/configuration.md) | Environment variables |
+| [Security](how-to/operations/security.md) | Authentication and secrets |
+| [Telemetry](how-to/operations/telemetry-logging.md) | Observability |
 
 ### Infrastructure
 
-- [Infrastructure Architecture](guides/infrastructure/architecture.md)
-- [Docker Environment](guides/infrastructure/docker-environment.md)
-- [Port Configuration](guides/infrastructure/port-configuration.md)
-- [Infrastructure Troubleshooting](guides/infrastructure/troubleshooting.md)
+- [Infrastructure Architecture](how-to/infrastructure/architecture.md)
+- [Docker Environment](how-to/infrastructure/docker-environment.md)
+- [Port Configuration](how-to/infrastructure/port-configuration.md)
+- [Infrastructure Troubleshooting](how-to/infrastructure/troubleshooting.md)
 
 ### Data Operations
 
-- [Neo4j Migration](guides/neo4j-migration.md)
-- [Pipeline Admin API](guides/pipeline-admin-api.md)
-- [GitHub Sync Service](concepts/github-sync-service.md)
+- [Neo4j Migration](how-to/integration/neo4j-migration.md)
+- [Pipeline Admin API](how-to/operations/pipeline-admin-api.md)
+- [GitHub Sync Service](explanations/architecture/github-sync-service-design.md)
 
 </details>
 
@@ -186,22 +186,22 @@ graph TB
 
 | Task | Document |
 |------|----------|
-| **Install VisionFlow** | [Installation](getting-started/installation.md) |
-| **Create first graph** | [First Graph](getting-started/first-graph.md) |
-| **Deploy AI agents** | [Agent Orchestration](guides/agent-orchestration.md) |
-| **Query Neo4j** | [Neo4j Integration](guides/neo4j-integration.md) |
-| **Add a feature** | [Adding Features](guides/developer/04-adding-features.md) |
-| **Set up XR/VR** | [Vircadia XR Guide](guides/vircadia-xr-complete-guide.md) |
-| **Understand architecture** | [Architecture Overview](architecture/overview.md) |
-| **Learn the codebase** | [Developer Journey](architecture/developer-journey.md) |
-| **Deploy to production** | [Deployment Guide](guides/deployment.md) |
-| **Configure environment** | [Configuration](guides/configuration.md) |
-| **Fix issues** | [Troubleshooting](guides/troubleshooting.md) |
-| **Write tests** | [Testing Guide](guides/testing-guide.md) |
+| **Install VisionFlow** | [Installation](tutorials/installation.md) |
+| **Create first graph** | [First Graph](tutorials/creating-first-graph.md) |
+| **Deploy AI agents** | [Agent Orchestration](how-to/agents/agent-orchestration.md) |
+| **Query Neo4j** | [Neo4j Integration](how-to/integration/neo4j-integration.md) |
+| **Add a feature** | [Adding Features](how-to/development/04-adding-features.md) |
+| **Set up XR/VR** | [Vircadia XR Guide](how-to/features/vircadia-xr-complete-guide.md) |
+| **Understand architecture** | [Architecture Overview](explanation/architecture/README.md) |
+| **Learn the codebase** | [Developer Journey](explanation/architecture/developer-journey.md) |
+| **Deploy to production** | [Deployment Guide](how-to/deployment/deployment.md) |
+| **Configure environment** | [Configuration](how-to/operations/configuration.md) |
+| **Fix issues** | [Troubleshooting](how-to/operations/troubleshooting.md) |
+| **Write tests** | [Testing Guide](how-to/development/testing-guide.md) |
 | **Use REST API** | [REST API](reference/api/rest-api-complete.md) |
 | **Use WebSocket API** | [WebSocket API](reference/api/03-websocket.md) |
-| **Optimise performance** | [GPU Optimisations](architecture/gpu/optimizations.md) |
-| **Secure the app** | [Security Guide](guides/security.md) |
+| **Optimise performance** | [GPU Optimisations](explanation/architecture/gpu/optimizations.md) |
+| **Secure the app** | [Security Guide](how-to/operations/security.md) |
 
 ## Documentation Categories
 
@@ -211,9 +211,9 @@ Step-by-step lessons for beginners.
 
 | Tutorial | Time | Description |
 |----------|------|-------------|
-| [Installation](getting-started/installation.md) | 10 min | Docker and native setup |
-| [First Graph](getting-started/first-graph.md) | 15 min | Create your first visualisation |
-| [Neo4j Quick Start](getting-started/neo4j-quickstart.md) | 20 min | Query the graph database |
+| [Installation](tutorials/installation.md) | 10 min | Docker and native setup |
+| [First Graph](tutorials/creating-first-graph.md) | 15 min | Create your first visualisation |
+| [Neo4j Quick Start](tutorials/neo4j-basics.md) | 20 min | Query the graph database |
 
 ### Concepts (Understanding-Oriented)
 
@@ -221,10 +221,10 @@ Core mental models and foundational knowledge.
 
 | Concept | Description |
 |---------|-------------|
-| [Core Concepts](concepts/README.md) | Overview of VisionFlow mental models |
-| [Physics Engine](concepts/physics-engine.md) | Force-directed graph simulation |
-| [Actor Model](concepts/actor-model.md) | Concurrent actor-based patterns |
-| [Hexagonal Architecture](concepts/hexagonal-architecture.md) | Ports and adapters design |
+| [Core Concepts](explanation/concepts/README.md) | Overview of VisionFlow mental models |
+| [Physics Engine](explanation/concepts/physics-engine.md) | Force-directed graph simulation |
+| [Actor Model](explanation/concepts/actor-model.md) | Concurrent actor-based patterns |
+| [Hexagonal Architecture](explanation/concepts/hexagonal-architecture.md) | Ports and adapters design |
 
 ### Guides (Task-Oriented)
 
@@ -233,53 +233,53 @@ Practical instructions for specific goals.
 <details>
 <summary>Core Features (8 guides)</summary>
 
-- [Navigation Guide](guides/navigation-guide.md) - 3D interface controls
-- [Filtering Nodes](guides/features/filtering-nodes.md) - Graph filtering
-- [Intelligent Pathfinding](guides/features/intelligent-pathfinding.md) - Graph traversal
-- [Natural Language Queries](guides/features/natural-language-queries.md) - Semantic search
-- [Semantic Forces](guides/features/semantic-forces.md) - Physics layouts
-- [Configuration](guides/configuration.md) - Settings
-- [Troubleshooting](guides/troubleshooting.md) - Common issues
-- [Extending the System](guides/extending-the-system.md) - Plugins
+- [Navigation Guide](how-to/navigation-guide.md) - 3D interface controls
+- [Filtering Nodes](how-to/features/filtering-nodes.md) - Graph filtering
+- [Intelligent Pathfinding](how-to/features/intelligent-pathfinding.md) - Graph traversal
+- [Natural Language Queries](how-to/features/natural-language-queries.md) - Semantic search
+- [Semantic Forces](how-to/features/semantic-forces.md) - Physics layouts
+- [Configuration](how-to/operations/configuration.md) - Settings
+- [Troubleshooting](how-to/operations/troubleshooting.md) - Common issues
+- [Extending the System](how-to/development/extending-the-system.md) - Plugins
 
 </details>
 
 <details>
 <summary>AI Agent System (4 guides)</summary>
 
-- [Agent Orchestration](guides/agent-orchestration.md) - Deploy AI agents
-- [Orchestrating Agents](guides/orchestrating-agents.md) - Coordination patterns
-- [Multi-Agent Skills](guides/multi-agent-skills.md) - Agent capabilities
-- [AI Models](guides/ai-models/README.md) - Model integrations
+- [Agent Orchestration](how-to/agents/agent-orchestration.md) - Deploy AI agents
+- [Orchestrating Agents](how-to/agents/orchestrating-agents.md) - Coordination patterns
+- [Multi-Agent Skills](how-to/agents/using-skills.md) - Agent capabilities
+- [AI Models](how-to/ai-integration/README.md) - Model integrations
 
 </details>
 
 <details>
 <summary>Developer Guides (8 guides)</summary>
 
-- [Development Setup](guides/developer/01-development-setup.md) - Environment
-- [Project Structure](guides/developer/02-project-structure.md) - Code organisation
-- [Adding Features](guides/developer/04-adding-features.md) - Workflow
-- [Contributing](guides/developer/06-contributing.md) - Code standards
-- [WebSocket Best Practices](guides/developer/websocket-best-practices.md) - Real-time
-- [JSON Serialisation](guides/developer/json-serialization-patterns.md) - Data formats
-- [Test Execution](guides/developer/test-execution.md) - Running tests
+- [Development Setup](how-to/development/01-development-setup.md) - Environment
+- [Project Structure](how-to/development/02-project-structure.md) - Code organisation
+- [Adding Features](how-to/development/04-adding-features.md) - Workflow
+- [Contributing](how-to/development/06-contributing.md) - Code standards
+- [WebSocket Best Practices](how-to/development/websocket-best-practices.md) - Real-time
+- [JSON Serialisation](how-to/development/json-serialization-patterns.md) - Data formats
+- [Test Execution](how-to/development/test-execution.md) - Running tests
 
 </details>
 
 <details>
 <summary>Infrastructure and Operations (15 guides)</summary>
 
-- [Deployment](guides/deployment.md) - Production deployment
-- [Docker Compose](guides/docker-compose-guide.md) - Container orchestration
-- [Docker Environment](guides/docker-environment-setup.md) - Container config
-- [Security](guides/security.md) - Auth and secrets
-- [Telemetry](guides/telemetry-logging.md) - Observability
-- [Operator Runbook](guides/operations/pipeline-operator-runbook.md) - Operations
-- [Infrastructure Architecture](guides/infrastructure/architecture.md) - System design
-- [Docker Environment](guides/infrastructure/docker-environment.md) - Containers
-- [Port Configuration](guides/infrastructure/port-configuration.md) - Networking
-- [Infrastructure Troubleshooting](guides/infrastructure/troubleshooting.md) - Issues
+- [Deployment](how-to/deployment/deployment.md) - Production deployment
+- [Docker Compose](how-to/deployment/docker-compose-guide.md) - Container orchestration
+- [Docker Environment](how-to/deployment/docker-environment-setup.md) - Container config
+- [Security](how-to/operations/security.md) - Auth and secrets
+- [Telemetry](how-to/operations/telemetry-logging.md) - Observability
+- [Operator Runbook](how-to/operations/pipeline-operator-runbook.md) - Operations
+- [Infrastructure Architecture](how-to/infrastructure/architecture.md) - System design
+- [Docker Environment](how-to/infrastructure/docker-environment.md) - Containers
+- [Port Configuration](how-to/infrastructure/port-configuration.md) - Networking
+- [Infrastructure Troubleshooting](how-to/infrastructure/troubleshooting.md) - Issues
 
 </details>
 
@@ -291,34 +291,34 @@ Deep dives into architecture and design.
 <summary>System Architecture (20+ documents)</summary>
 
 - [System Overview](explanations/system-overview.md) - Architectural blueprint
-- [Hexagonal CQRS](architecture/patterns/hexagonal-cqrs.md) - Ports and adapters
-- [Data Flow](architecture/data-flow.md) - End-to-end pipeline
-- [Services Architecture](architecture/services.md) - Business logic
-- [Multi-Agent System](architecture/agents/multi-agent.md) - AI coordination
-- [Integration Patterns](concepts/integration-patterns.md) - System integration
-- [Database Architecture](architecture/database.md) - Neo4j design
+- [Hexagonal CQRS](explanation/architecture/patterns/hexagonal-cqrs.md) - Ports and adapters
+- [Data Flow](explanation/architecture/data-flow.md) - End-to-end pipeline
+- [Services Architecture](explanation/architecture/services.md) - Business logic
+- [Multi-Agent System](explanation/architecture/agents/multi-agent.md) - AI coordination
+- [Integration Patterns](explanations/architecture/integration-patterns.md) - System integration
+- [Database Architecture](explanation/architecture/database.md) - Neo4j design
 
 </details>
 
 <details>
 <summary>GPU and Physics (8 documents)</summary>
 
-- [Semantic Physics System](concepts/semantic-physics-system.md) - Force layout
-- [GPU Semantic Forces](concepts/gpu-semantic-forces.md) - CUDA kernels
-- [GPU Communication](architecture/gpu/communication-flow.md) - Data transfer
-- [GPU Optimisations](architecture/gpu/optimizations.md) - Performance
-- [Stress Majorisation](concepts/stress-majorization.md) - Layout algorithm
+- [Semantic Physics System](explanations/architecture/semantic-physics-system.md) - Force layout
+- [GPU Semantic Forces](explanations/architecture/gpu-semantic-forces.md) - CUDA kernels
+- [GPU Communication](explanation/architecture/gpu/communication-flow.md) - Data transfer
+- [GPU Optimisations](explanation/architecture/gpu/optimizations.md) - Performance
+- [Stress Majorisation](explanations/architecture/stress-majorization.md) - Layout algorithm
 
 </details>
 
 <details>
 <summary>Ontology and Reasoning (11 documents)</summary>
 
-- [Ontology Reasoning Pipeline](concepts/ontology-reasoning-pipeline.md) - Inference
-- [Reasoning Engine](architecture/ontology/reasoning-engine.md) - Inference concepts
-- [Ontology Storage](concepts/ontology-storage.md) - Neo4j persistence
-- [Hierarchical Visualisation](architecture/ontology/hierarchical-visualization.md) - Tree layouts
-- [Pathfinding System](architecture/ontology/intelligent-pathfinding-system.md) - Graph traversal
+- [Ontology Reasoning Pipeline](explanations/architecture/ontology-reasoning-pipeline.md) - Inference
+- [Reasoning Engine](explanation/architecture/ontology/reasoning-engine.md) - Inference concepts
+- [Ontology Storage](explanations/architecture/ontology-storage-architecture.md) - Neo4j persistence
+- [Hierarchical Visualisation](explanation/architecture/ontology/hierarchical-visualization.md) - Tree layouts
+- [Pathfinding System](explanation/architecture/ontology/intelligent-pathfinding-system.md) - Graph traversal
 
 </details>
 
@@ -364,17 +364,25 @@ Technical specifications and APIs.
 | Issue Type | Resource |
 |------------|----------|
 | Documentation gaps | [GitHub Issues](https://github.com/DreamLab-AI/VisionFlow/issues) with `documentation` label |
-| Technical problems | [Troubleshooting Guide](guides/troubleshooting.md) |
-| Infrastructure issues | [Infrastructure Troubleshooting](guides/infrastructure/troubleshooting.md) |
-| Developer setup | [Development Setup](guides/developer/01-development-setup.md) |
+| Technical problems | [Troubleshooting Guide](how-to/operations/troubleshooting.md) |
+| Infrastructure issues | [Infrastructure Troubleshooting](how-to/infrastructure/troubleshooting.md) |
+| Developer setup | [Development Setup](how-to/development/01-development-setup.md) |
 | Feature requests | [GitHub Discussions](https://github.com/DreamLab-AI/VisionFlow/discussions) |
 
 ## Documentation Stats
 
-- **Total Documents**: 315 markdown files
-- **Directories**: 82
-- **Framework**: Diataxis (Tutorials, Guides, Explanations, Reference, Concepts)
+| Category | Count |
+|----------|-------|
+| **Tutorials** | 5 |
+| **How-To Guides** | 81 |
+| **Explanation** | 72 |
+| **Reference** | 46 |
+| **Other (diagrams, research)** | 38 |
+| **Total** | 242 markdown files |
+
+- **Framework**: Diataxis (Tutorials, How-To, Explanation, Reference)
 - **Last Updated**: 2026-01-29
+- **Verified**: Links checked, Mermaid diagrams validated
 
 ---
 

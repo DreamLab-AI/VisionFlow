@@ -1849,8 +1849,6 @@ Total time: 7000ms
 
 ---
 
----
-
 ## Related Documentation
 
 - [System Architecture Overview - Complete Mermaid Diagrams](../mermaid-library/01-system-architecture-overview.md)

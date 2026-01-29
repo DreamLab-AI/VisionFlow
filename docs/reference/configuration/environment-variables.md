@@ -220,4 +220,4 @@ GPU_MEMORY_LIMIT=16g
 
 - [Docker Compose Options](./docker-compose-options.md)
 - [Configuration Reference](./README.md)
-- [Deployment Guide](../../guides/deployment.md)
+- [Deployment Guide](../../how-to/deployment/deployment.md)

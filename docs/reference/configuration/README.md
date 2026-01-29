@@ -254,4 +254,4 @@ echo "Configuration valid"
 
 - [API Reference](../api/README.md)
 - [Error Reference](../error-codes.md)
-- [Deployment Guide](../../guides/deployment.md)
+- [Deployment Guide](../../how-to/deployment/deployment.md)

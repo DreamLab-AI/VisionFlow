@@ -341,5 +341,5 @@ MEMORY_LIMIT=32g CPU_LIMIT=16.0 ENABLE_GPU=true GPU_COUNT=2 docker-compose up
 ## Related Documentation
 
 - [Environment Variables](./environment-variables.md)
-- [Deployment Guide](../../guides/deployment.md)
+- [Deployment Guide](../../how-to/deployment/deployment.md)
 - [Configuration Reference](./README.md)

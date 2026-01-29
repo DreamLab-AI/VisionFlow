@@ -443,8 +443,6 @@ function checkRateLimit(userId: string, msgType: u8): boolean {
 
 ---
 
----
-
 ## Related Documentation
 
 - [Database Schema Reference](database/README.md)
