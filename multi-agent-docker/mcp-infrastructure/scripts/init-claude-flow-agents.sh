@@ -1,11 +1,11 @@
 #!/bin/bash
-# Initialize Claude-Flow v3alpha agents and intelligence system
+# Initialize Claude Flow V3 agents and intelligence system
 # This script sets up the advanced AI capabilities in the Docker environment
 
 set -e
 
 echo "========================================"
-echo "  Claude-Flow v3alpha Initialization"
+echo "  Claude Flow V3 Initialization"
 echo "========================================"
 
 # Function to check if command exists
@@ -21,8 +21,8 @@ cd "$WORKSPACE" || exit 1
 
 # Check if claude-flow is available
 if ! command_exists claude-flow; then
-    echo "⚠️  claude-flow not found. Installing v3alpha..."
-    npm install -g claude-flow@v3alpha || {
+    echo "⚠️  claude-flow not found. Installing @claude-flow/cli..."
+    npm install -g @claude-flow/cli@latest || {
         echo "❌ Failed to install claude-flow"
         exit 1
     }
@@ -71,7 +71,7 @@ claude-flow status || {
 # Create helper functions file
 cat > "$WORKSPACE/.claude-flow-helpers.sh" << 'EOF'
 #!/bin/bash
-# Claude-Flow v3alpha Helper Functions
+# Claude-Flow V3 Helper Functions
 
 # Run SPARC workflow
 cf_sparc() {
@@ -135,7 +135,7 @@ cf_templates() {
     claude-flow workflow template list
 }
 
-echo "Claude-Flow v3alpha helpers loaded. Available commands:"
+echo "Claude-Flow V3 helpers loaded. Available commands:"
 echo "  cf_sparc [task]     - Run SPARC workflow"
 echo "  cf_route 'task'     - Intelligent routing"
 echo "  cf_search 'query'   - Search memory"
@@ -150,7 +150,7 @@ EOF
 chmod +x "$WORKSPACE/.claude-flow-helpers.sh"
 
 echo ""
-echo "✨ Claude-Flow v3alpha initialized successfully!"
+echo "✨ Claude-Flow V3 initialized successfully!"
 echo ""
 echo "📚 Helper functions created:"
 echo "   source .claude-flow-helpers.sh"

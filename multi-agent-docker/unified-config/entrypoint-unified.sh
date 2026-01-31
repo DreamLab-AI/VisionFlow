@@ -1,12 +1,38 @@
 #!/bin/bash
-# Unified Container Entrypoint - Enhanced Edition
-# Handles multi-user setup, credential distribution, service initialization, and CLAUDE.md enhancement
+# ============================================================================
+# AGENTIC WORKSTATION - Canonical Entrypoint v3.0
+# ============================================================================
+#
+# VERSION:     3.0.0
+# UPDATED:     2026-01-31
+#
+# This is the CANONICAL entrypoint for the unified agentic development
+# workstation. All container initialization happens here.
+#
+# PHASES:
+#   1. Directory Setup & Docker Socket
+#   2. Credential Distribution
+#   3. GPU Verification
+#   4. Host Claude Configuration
+#   5. PostgreSQL Initialization
+#   5.5. RuVector Memory Setup
+#   6. Skills Setup
+#   6.5. Claude Flow V3 Initialization (CANONICAL)
+#   6.6. AISP Protocol
+#   6.7. Cross-User Services
+#   7. SSH Keys
+#   8. Management API
+#   9. CLAUDE.md Enhancement
+#   10. Service Start (supervisord)
+#
+# ============================================================================
 
 set -e
 
-echo "========================================"
-echo "  TURBO FLOW UNIFIED CONTAINER"
-echo "========================================"
+echo "╔══════════════════════════════════════════════════════════════════╗"
+echo "║     AGENTIC WORKSTATION v3.0 - Canonical Unified System         ║"
+echo "║     Claude Flow V3 | 62+ Skills | Multi-Agent Orchestration     ║"
+echo "╚══════════════════════════════════════════════════════════════════╝"
 echo ""
 
 # ============================================================================
@@ -598,10 +624,10 @@ else
 fi
 
 # ============================================================================
-# Phase 6.5: Initialize Claude Flow & Clean NPX Cache
+# Phase 6.5: Initialize Claude Flow V3 (Canonical System)
 # ============================================================================
 
-echo "[6.5/10] Initializing Claude Flow..."
+echo "[6.5/10] Initializing Claude Flow V3 (Canonical System)..."
 
 # Clean any stale NPX caches from all users to prevent corruption
 rm -rf /home/devuser/.npm/_npx/* 2>/dev/null || true
@@ -610,28 +636,77 @@ rm -rf /home/openai-user/.npm/_npx/* 2>/dev/null || true
 rm -rf /home/zai-user/.npm/_npx/* 2>/dev/null || true
 rm -rf /root/.npm/_npx/* 2>/dev/null || true
 
-# Run Claude-Flow V3 init --force as devuser IN BACKGROUND (non-blocking)
-# This prevents blocking supervisord startup while npm packages compile
-# Using @claude-flow/cli@3.0.2 (latest stable)
-(sudo -u devuser bash -c "cd /home/devuser && npx @claude-flow/cli@3.0.2 init --force" > /var/log/claude-flow-init.log 2>&1 &) || true
-echo "ℹ️  Claude Flow V3 init started in background (see /var/log/claude-flow-init.log)"
+# Ensure Claude Flow config directory exists with correct permissions
+mkdir -p /home/devuser/.claude-flow
+chown -R devuser:devuser /home/devuser/.claude-flow
+
+# Create canonical claude-flow config if not exists
+if [ ! -f /home/devuser/.claude-flow/config.json ]; then
+    cat > /home/devuser/.claude-flow/config.json << 'CFCONFIG'
+{
+  "version": "3.0.0",
+  "topology": "hierarchical",
+  "maxAgents": 8,
+  "strategy": "specialized",
+  "consensus": "raft",
+  "memory": {
+    "backend": "hybrid",
+    "hnsw": true,
+    "namespace": "default"
+  },
+  "neural": {
+    "enabled": true,
+    "modelType": "moe"
+  },
+  "hooks": {
+    "preTriggerHooks": true,
+    "postTriggerHooks": true,
+    "autoLearning": true
+  }
+}
+CFCONFIG
+    chown devuser:devuser /home/devuser/.claude-flow/config.json
+    echo "✓ Claude Flow V3 config created"
+fi
+
+# Run Claude-Flow V3 init as devuser IN BACKGROUND (non-blocking)
+# Uses global binary installed from @claude-flow/cli@latest
+echo "  Starting Claude Flow V3 initialization in background..."
+(sudo -u devuser bash -c "cd /home/devuser && claude-flow init --force 2>&1 || npx @claude-flow/cli@latest init --force 2>&1" > /var/log/claude-flow-init.log 2>&1 &) || true
 
 # Fix hooks to use global claude-flow binary (Fix 3)
 if [ -f /home/devuser/.claude/settings.json ]; then
     # Replace slow npx invocations with global binary
+    sed -i 's|npx @claude-flow/cli@[0-9.]*|claude-flow|g' /home/devuser/.claude/settings.json
     sed -i 's|npx @claude-flow/cli|claude-flow|g' /home/devuser/.claude/settings.json
     sed -i 's|npx claude-flow|claude-flow|g' /home/devuser/.claude/settings.json
     # Clean up any remaining legacy formats
     sed -i 's|claude-flow@v3alpha|claude-flow|g' /home/devuser/.claude/settings.json
+    sed -i 's|claude-flow@alpha|@claude-flow/cli@latest|g' /home/devuser/.claude/settings.json
     chown devuser:devuser /home/devuser/.claude/settings.json
     echo "✓ Hooks updated to use global claude-flow binary"
 fi
 
+# Fix MCP config files that might have wrong package names
+for mcp_file in /home/devuser/.mcp.json /home/devuser/workspace/.mcp.json /home/devuser/workspace/project/.mcp.json; do
+    if [ -f "$mcp_file" ]; then
+        sed -i 's|"claude-flow@alpha"|"claude-flow"|g' "$mcp_file" 2>/dev/null || true
+        sed -i 's|claude-flow@alpha|@claude-flow/cli@latest|g' "$mcp_file" 2>/dev/null || true
+        chown devuser:devuser "$mcp_file" 2>/dev/null || true
+    fi
+done
+
 # Initialize @claude-flow/browser for AI-optimized browser automation
-echo "ℹ️  Initializing @claude-flow/browser (59 MCP tools)..."
+echo "  Initializing @claude-flow/browser (59 MCP tools)..."
 (sudo -u devuser bash -c "cd /home/devuser && npx @claude-flow/browser init 2>/dev/null" >> /var/log/claude-flow-init.log 2>&1 &) || true
 
-echo "✓ Claude Flow V3 initialized and NPX cache cleared"
+# Store canonical system marker in memory (when available)
+(sudo -u devuser bash -c "claude-flow memory store --key 'system/canonical' --value 'agentic-workstation-v3.0' --namespace system 2>/dev/null" &) || true
+
+echo "✓ Claude Flow V3 initialized (canonical system)"
+echo "  - Config: /home/devuser/.claude-flow/config.json"
+echo "  - Log: /var/log/claude-flow-init.log"
+echo "  - Skills: 62+ available in /home/devuser/.claude/skills/"
 
 # ============================================================================
 # Phase 6.6: Initialize AISP 5.1 Platinum Neuro-Symbolic Protocol

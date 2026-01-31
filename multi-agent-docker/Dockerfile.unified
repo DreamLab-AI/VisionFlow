@@ -1,10 +1,40 @@
 # ============================================================================
-# Unified CachyOS Development Container
-# Combines devpod + multi-agent-docker with multi-user isolation
+# UNIFIED AGENTIC WORKSTATION - Canonical Build System v3.0
+# ============================================================================
+#
+# VERSION:     3.0.0
+# UPDATED:     2026-01-31
+# MAINTAINER:  Turbo Flow Development Team
+#
+# This is the CANONICAL Docker build for the unified agentic development
+# workstation. All updates to the container system should be made here.
+#
+# FEATURES:
+#   - CachyOS v3 base (x86-64-v3 optimized)
+#   - Claude Flow V3 with 62+ skills
+#   - Multi-user isolation (devuser, gemini-user, openai-user, zai-user)
+#   - NVIDIA GPU support with CUDA 13.x
+#   - Full GUI environment (Hyprland/Openbox + VNC)
+#   - PostgreSQL with RuVector unified memory
+#   - Agentic-QE V3 (51 agents, 12 domains)
+#
+# BUILD:
+#   docker build -f Dockerfile.unified -t agentic-workstation:latest .
+#   ./build-unified.sh
+#
 # ============================================================================
 
 # Use CachyOS v3 for optimized x86-64-v3 packages aligned with host system
 FROM cachyos/cachyos-v3:latest
+
+# Build metadata
+LABEL org.opencontainers.image.title="Agentic Workstation"
+LABEL org.opencontainers.image.description="Unified Claude Flow V3 Development Environment"
+LABEL org.opencontainers.image.version="3.0.0"
+LABEL org.opencontainers.image.created="2026-01-31"
+LABEL org.opencontainers.image.vendor="Turbo Flow"
+LABEL com.turboflow.skills.count="62"
+LABEL com.turboflow.claude-flow.version="3.0"
 
 # ============================================================================
 # PHASE 1: Base System Packages
@@ -197,8 +227,8 @@ RUN npm install -g \
     # We use npm here for system-wide installation in Docker images
     @anthropic-ai/claude-code@latest \
     claude-usage-cli@latest \
-    # Claude-Flow V3 Alpha (Global Install Fix 1)
-    claude-flow@v3alpha \
+    # Claude-Flow V3 CLI (Global Install - Canonical v3.0)
+    @claude-flow/cli@latest \
     # Postgres Driver (Fix 4)
     pg \
     @claude-flow/browser@latest \
@@ -227,7 +257,8 @@ RUN npm install -g \
     @types/node@latest
 
 # Fix 4/6: Install pg driver in claude-flow global package
-RUN cd /usr/local/lib/node_modules/claude-flow && npm install pg --save
+RUN cd /usr/local/lib/node_modules/@claude-flow/cli && npm install pg --save 2>/dev/null || \
+    cd /usr/local/lib/node_modules/claude-flow && npm install pg --save 2>/dev/null || true
 
 # Install Playwright browsers (skip system deps - already installed via pacman)
 RUN npx -y playwright install chromium
@@ -505,6 +536,46 @@ RUN find /home/devuser/.claude/skills -name "*.py" -path "*/mcp-server/*" -exec 
     find /home/devuser/.claude/skills -name "*.py" -path "*/tools/*" -exec chmod +x {} \; && \
     find /home/devuser/.claude/skills -name "*.js" -path "*/tools/*" -exec chmod +x {} \; && \
     chown -R devuser:devuser /home/devuser/.claude/skills
+
+# ============================================================================
+# PHASE 13.5: Claude Flow V3 Canonical Setup
+# ============================================================================
+
+# Create claude-flow alias for backwards compatibility
+RUN ln -sf /usr/local/bin/npx /usr/local/bin/claude-flow-npx && \
+    echo '#!/bin/bash\nexec npx @claude-flow/cli@latest "$@"' > /usr/local/bin/claude-flow && \
+    chmod +x /usr/local/bin/claude-flow
+
+# Pre-initialize Claude Flow configuration
+RUN mkdir -p /home/devuser/.claude-flow && \
+    cat > /home/devuser/.claude-flow/config.json << 'EOF'
+{
+  "version": "3.0.0",
+  "topology": "hierarchical",
+  "maxAgents": 8,
+  "strategy": "specialized",
+  "consensus": "raft",
+  "memory": {
+    "backend": "hybrid",
+    "hnsw": true,
+    "namespace": "default"
+  },
+  "neural": {
+    "enabled": true,
+    "modelType": "moe"
+  },
+  "hooks": {
+    "preTriggerHooks": true,
+    "postTriggerHooks": true,
+    "autoLearning": true
+  }
+}
+EOF
+RUN chown -R devuser:devuser /home/devuser/.claude-flow
+
+# Create global wrapper for quick access
+RUN echo '#!/bin/bash\n# Claude Flow V3 Quick Access\nexec claude-flow "$@"' > /usr/local/bin/cf && \
+    chmod +x /usr/local/bin/cf
 
 # ============================================================================
 # PHASE 14: REMOVED - ComfyUI now runs as external Docker container

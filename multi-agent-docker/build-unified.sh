@@ -1,10 +1,30 @@
 #!/bin/bash
-# Quick build and launch script for Turbo Flow Unified Container + ComfyUI
+# ============================================================================
+# AGENTIC WORKSTATION - Canonical Build System v3.0
+# ============================================================================
+#
+# VERSION:     3.0.0
+# UPDATED:     2026-01-31
+#
+# This is the CANONICAL build script for the unified agentic development
+# workstation. Use this script to build and launch the container.
+#
+# USAGE:
+#   ./build-unified.sh                 # Standard build
+#   ./build-unified.sh --no-cache      # Force full rebuild
+#   ./build-unified.sh --skip-comfyui  # Skip ComfyUI check
+#   ./build-unified.sh --comfyui-full  # Build ComfyUI with full open3d
+#
+# ============================================================================
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
+
+# Build version
+BUILD_VERSION="3.0.0"
+BUILD_DATE="2026-01-31"
 
 # Enable BuildKit for better caching and parallel builds
 export DOCKER_BUILDKIT=1
@@ -32,15 +52,33 @@ while [[ $# -gt 0 ]]; do
             echo "🔨 Will build ComfyUI with full open3d (takes 30-60 min)..."
             shift
             ;;
+        --version|-v)
+            echo "Agentic Workstation Build System v${BUILD_VERSION} (${BUILD_DATE})"
+            exit 0
+            ;;
+        --help|-h)
+            echo "Agentic Workstation Build System v${BUILD_VERSION}"
+            echo ""
+            echo "Usage: ./build-unified.sh [OPTIONS]"
+            echo ""
+            echo "Options:"
+            echo "  --no-cache      Force full rebuild without Docker cache"
+            echo "  --skip-comfyui  Skip ComfyUI deployment check"
+            echo "  --comfyui-full  Build ComfyUI with full open3d support"
+            echo "  --version, -v   Show version information"
+            echo "  --help, -h      Show this help message"
+            exit 0
+            ;;
         *)
             shift
             ;;
     esac
 done
 
-echo "========================================"
-echo "  AGENTIC WORKSTATION - BUILD & LAUNCH"
-echo "========================================"
+echo "╔══════════════════════════════════════════════════════════════════╗"
+echo "║   AGENTIC WORKSTATION v${BUILD_VERSION} - Canonical Build System        ║"
+echo "║   Claude Flow V3 | 62+ Skills | Multi-Agent Orchestration       ║"
+echo "╚══════════════════════════════════════════════════════════════════╝"
 echo ""
 
 # Check for .env file

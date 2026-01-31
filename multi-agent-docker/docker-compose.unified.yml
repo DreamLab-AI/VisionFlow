@@ -1,3 +1,18 @@
+# ============================================================================
+# AGENTIC WORKSTATION - Canonical Docker Compose v3.0
+# ============================================================================
+#
+# VERSION:     3.0.0
+# UPDATED:     2026-01-31
+#
+# This is the CANONICAL docker-compose for the unified agentic workstation.
+#
+# USAGE:
+#   docker compose -f docker-compose.unified.yml up -d
+#   ./build-unified.sh  (recommended)
+#
+# ============================================================================
+
 services:
   agentic-workstation:
     build:
@@ -5,9 +20,19 @@ services:
       dockerfile: multi-agent-docker/Dockerfile.unified
       args:
         BUILDKIT_INLINE_CACHE: 1
+      labels:
+        - "com.turboflow.version=3.0.0"
+        - "com.turboflow.canonical=true"
 
     container_name: agentic-workstation
     hostname: agentic-workstation
+
+    # Service labels
+    labels:
+      com.turboflow.service: "agentic-workstation"
+      com.turboflow.version: "3.0.0"
+      com.turboflow.claude-flow: "v3"
+      com.turboflow.skills.count: "62"
 
     # NVIDIA GPU support
     runtime: nvidia
