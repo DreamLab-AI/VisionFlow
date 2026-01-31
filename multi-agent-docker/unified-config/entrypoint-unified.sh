@@ -951,24 +951,54 @@ fi
 
 echo "[7.3/10] Configuring SSH credentials..."
 
-# Check if SSH mount exists (individual key files mounted)
-if [ -d "/home/devuser/.ssh" ] && [ "$(ls -A /home/devuser/.ssh 2>/dev/null)" ]; then
-    echo "✓ SSH credentials detected from host mount"
+# Ensure .ssh directory exists with correct permissions
+mkdir -p /home/devuser/.ssh
+chmod 700 /home/devuser/.ssh
+chown devuser:devuser /home/devuser/.ssh
 
-    # Ensure SSH directory has correct permissions
-    chmod 700 /home/devuser/.ssh 2>/dev/null || true
+# Check if SSH host mount exists (directory mounted to .ssh-host)
+if [ -d "/home/devuser/.ssh-host" ] && [ "$(ls -A /home/devuser/.ssh-host 2>/dev/null)" ]; then
+    echo "✓ SSH credentials detected from host mount (.ssh-host)"
 
-    # Set key file permissions (read-only mounts may fail silently, which is fine)
-    chmod 600 /home/devuser/.ssh/id_* 2>/dev/null || true
-    chmod 644 /home/devuser/.ssh/*.pub 2>/dev/null || true
-    chmod 644 /home/devuser/.ssh/known_hosts 2>/dev/null || true
+    # Copy keys from read-only mount to writable .ssh directory
+    # This handles any key type: ed25519, rsa, ecdsa, etc.
+    for keyfile in /home/devuser/.ssh-host/id_*; do
+        [ -f "$keyfile" ] || continue
+        keyname=$(basename "$keyfile")
+        cp "$keyfile" "/home/devuser/.ssh/$keyname"
+        chmod 600 "/home/devuser/.ssh/$keyname"
+        chown devuser:devuser "/home/devuser/.ssh/$keyname"
+    done
 
-    # Add GitHub to known_hosts if not present (prevents first-connect prompt)
-    if [ -f /home/devuser/.ssh/known_hosts ]; then
-        if ! grep -q "github.com" /home/devuser/.ssh/known_hosts 2>/dev/null; then
-            ssh-keyscan -t ed25519 github.com >> /home/devuser/.ssh/known_hosts 2>/dev/null || true
-            echo "  - Added github.com to known_hosts"
-        fi
+    # Copy public keys
+    for pubfile in /home/devuser/.ssh-host/*.pub; do
+        [ -f "$pubfile" ] || continue
+        pubname=$(basename "$pubfile")
+        cp "$pubfile" "/home/devuser/.ssh/$pubname"
+        chmod 644 "/home/devuser/.ssh/$pubname"
+        chown devuser:devuser "/home/devuser/.ssh/$pubname"
+    done
+
+    # Copy config if exists
+    if [ -f "/home/devuser/.ssh-host/config" ]; then
+        cp "/home/devuser/.ssh-host/config" "/home/devuser/.ssh/config"
+        chmod 600 "/home/devuser/.ssh/config"
+        chown devuser:devuser "/home/devuser/.ssh/config"
+    fi
+
+    # Copy or create known_hosts
+    if [ -f "/home/devuser/.ssh-host/known_hosts" ]; then
+        cp "/home/devuser/.ssh-host/known_hosts" "/home/devuser/.ssh/known_hosts"
+    else
+        touch /home/devuser/.ssh/known_hosts
+    fi
+    chmod 644 /home/devuser/.ssh/known_hosts
+    chown devuser:devuser /home/devuser/.ssh/known_hosts
+
+    # Add GitHub to known_hosts if not present
+    if ! grep -q "github.com" /home/devuser/.ssh/known_hosts 2>/dev/null; then
+        ssh-keyscan -t ed25519 github.com >> /home/devuser/.ssh/known_hosts 2>/dev/null || true
+        echo "  - Added github.com to known_hosts"
     fi
 
     # Verify key files
@@ -977,7 +1007,8 @@ if [ -d "/home/devuser/.ssh" ] && [ "$(ls -A /home/devuser/.ssh 2>/dev/null)" ];
 
     echo "  - Private keys: $KEY_COUNT"
     echo "  - Public keys: $PUB_COUNT"
-    echo "  - Mount: read-only (secure)"
+    echo "  - Source: ~/.ssh-host (read-only mount)"
+    echo "  - Target: ~/.ssh (writable copy)"
 
     # Add SSH environment setup to devuser's zshrc if not already present
     if ! grep -q "SSH_AUTH_SOCK" /home/devuser/.zshrc 2>/dev/null; then
@@ -996,7 +1027,7 @@ SSH_ENV
 
     echo "✓ SSH credentials configured successfully"
 else
-    echo "ℹ️  SSH credentials not mounted (mount ~/.ssh to container for SSH key access)"
+    echo "ℹ️  SSH credentials not mounted (mount ~/.ssh to .ssh-host for SSH key access)"
 fi
 
 # ============================================================================

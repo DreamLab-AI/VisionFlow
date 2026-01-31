@@ -51,7 +51,9 @@ mcp-infrastructure/
 
 ## Configuration
 
-**mcp.json**: Complete registry of MCP servers including:
+**mcp.json**: Complete registry of MCP servers with configurable endpoints. The Z.AI endpoint is controlled via the `ZAI_URL` environment variable.
+
+MCP servers included:
 - claude-flow
 - ruv-swarm
 - blender-mcp
@@ -63,6 +65,33 @@ mcp-infrastructure/
 - playwright-visual
 - playwright
 - web-summary
+
+## Service Configuration
+
+### Z.AI Endpoint
+
+The Z.AI service endpoint is configurable via environment variables:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `ZAI_URL` | Z.AI service endpoint URL | `http://localhost:9600` |
+| `ZAI_INTERNAL` | Run Z.AI as internal supervisord service | `true` |
+
+**Deployment modes:**
+
+- **Internal (default)**: Z.AI runs as a supervisord-managed service within the container
+  ```bash
+  ZAI_INTERNAL=true
+  ZAI_URL=http://localhost:9600
+  ```
+
+- **External**: Z.AI runs in a separate container (e.g., `claude-zai`)
+  ```bash
+  ZAI_INTERNAL=false
+  ZAI_URL=http://claude-zai:9600
+  ```
+
+When `ZAI_INTERNAL=false`, the internal Z.AI service is disabled and requests are proxied to the external endpoint.
 
 ## Usage
 

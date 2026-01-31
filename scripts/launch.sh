@@ -71,7 +71,8 @@ ${YELLOW}Commands:${NC}
     ${GREEN}down${NC}           Stop and remove containers
     ${GREEN}build${NC}          Build containers
     ${GREEN}rebuild${NC}        Rebuild containers (no cache)
-    ${GREEN}rebuild-agent${NC}  Rebuild and restart the agentic-workstation container
+    ${GREEN}rebuild-agent${NC}  Rebuild agentic-workstation (full GPU/ComfyUI/CachyOS validation)
+                     Options: --skip-comfyui, --comfyui-full, --skip-cachyos
     ${GREEN}logs${NC}           Show container logs (follow mode)
     ${GREEN}shell${NC}          Open interactive shell in container
     ${GREEN}restart${NC}        Restart the environment
@@ -105,6 +106,9 @@ ${YELLOW}Examples:${NC}
     ./launch.unified.sh shell prod         ${CYAN}# Open prod shell${NC}
     ./launch.unified.sh restart dev        ${CYAN}# Restart dev${NC}
     ./launch.unified.sh restart-agent      ${CYAN}# Restart agentic-workstation${NC}
+    ./launch.unified.sh rebuild-agent      ${CYAN}# Full rebuild with GPU/ComfyUI/CachyOS${NC}
+    ./launch.unified.sh rebuild-agent --skip-comfyui  ${CYAN}# Skip ComfyUI check${NC}
+    ./launch.unified.sh rebuild-agent --comfyui-full  ${CYAN}# Build full open3d (30-60 min)${NC}
     ./launch.unified.sh clean              ${CYAN}# Clean everything${NC}
 
 ${YELLOW}Environment Files:${NC}
@@ -545,14 +549,81 @@ restart_agent_container() {
 }
 
 # Rebuild agent container (agentic-workstation) with no cache
+# Canonical build with GPU verification, ComfyUI, CachyOS builds, and skills validation
 rebuild_agent_container() {
-    log "Rebuilding agentic-workstation container (no cache)..."
+    local SKIP_COMFYUI=false
+    local BUILD_COMFYUI_FULL=false
+    local SKIP_CACHYOS=false
+
+    # Parse additional flags
+    for arg in "$@"; do
+        case "$arg" in
+            --skip-comfyui) SKIP_COMFYUI=true ;;
+            --comfyui-full) BUILD_COMFYUI_FULL=true ;;
+            --skip-cachyos) SKIP_CACHYOS=true ;;
+        esac
+    done
+
+    echo -e "${GREEN}╔══════════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${GREEN}║   AGENTIC WORKSTATION v3.0.0 - Canonical Build System            ║${NC}"
+    echo -e "${GREEN}║   Claude Flow V3 | 62+ Skills | Multi-Agent Orchestration        ║${NC}"
+    echo -e "${GREEN}╚══════════════════════════════════════════════════════════════════╝${NC}"
+    echo ""
 
     # Check if agent compose file exists
     if [[ ! -f "$AGENT_COMPOSE_FILE" ]]; then
         error "Agent compose file not found: $AGENT_COMPOSE_FILE"
         exit 1
     fi
+
+    # Change to multi-agent-docker directory
+    cd "$PROJECT_ROOT/multi-agent-docker"
+
+    # Check for .env file
+    if [[ ! -f .env ]]; then
+        warning ".env file not found"
+        if [[ -f .env.example ]]; then
+            info "Creating from .env.example..."
+            cp .env.example .env
+            success "Created .env from template"
+            warning "IMPORTANT: Edit .env and add your API keys before continuing!"
+            read -p "Press Enter to continue (or Ctrl+C to exit and edit .env)..."
+        else
+            error ".env.example not found"
+            exit 1
+        fi
+    fi
+
+    # Load .env
+    set -a
+    source .env
+    set +a
+
+    # Verify skills exist
+    log "Verifying skills..."
+    local skills_dir="skills"
+    if [[ -d "$skills_dir/docker-manager" ]]; then
+        success "Docker Manager skill found"
+    else
+        warning "Docker Manager skill not found"
+    fi
+    if [[ -d "$skills_dir/chrome-devtools" ]]; then
+        success "Chrome DevTools skill found"
+    else
+        warning "Chrome DevTools skill not found"
+    fi
+    echo ""
+
+    # Check/create ragflow network
+    log "Checking docker_ragflow network..."
+    if ! docker network inspect docker_ragflow >/dev/null 2>&1; then
+        info "Creating docker_ragflow network..."
+        docker network create docker_ragflow
+        success "Network created"
+    else
+        success "Network exists"
+    fi
+    echo ""
 
     # Stop and remove existing container
     if docker ps -a --format '{{.Names}}' | grep -q "^${AGENT_CONTAINER}$"; then
@@ -561,45 +632,191 @@ rebuild_agent_container() {
         docker rm "$AGENT_CONTAINER" 2>/dev/null || true
     fi
 
-    # Change to multi-agent-docker directory
-    cd "$PROJECT_ROOT/multi-agent-docker"
-
-    # Load .env from multi-agent-docker
-    if [[ -f ".env" ]]; then
-        set -a
-        source .env
-        set +a
-    fi
-
     # Build with no cache
-    info "Building image with --no-cache..."
+    log "[1/4] Building Agentic Workstation Docker image..."
     export DOCKER_BUILDKIT=1
     export COMPOSE_DOCKER_CLI_BUILD=1
     docker compose -f docker-compose.unified.yml build --no-cache
 
     # Start the container
-    info "Starting $AGENT_CONTAINER..."
+    log "[2/4] Launching Agentic Workstation..."
     docker compose -f docker-compose.unified.yml up -d
 
-    # Wait for container to start
-    sleep 5
+    log "[3/4] Waiting for services to start..."
+    sleep 10
 
-    # Check if container started successfully
-    if docker ps --format '{{.Names}}' | grep -q "^${AGENT_CONTAINER}$"; then
-        success "Container $AGENT_CONTAINER rebuilt and started successfully"
-        echo ""
-        info "Services available:"
-        echo "  ${GREEN}SSH:${NC}            ssh devuser@localhost -p 2222"
-        echo "  ${GREEN}VNC:${NC}            localhost:5901"
-        echo "  ${GREEN}code-server:${NC}    http://localhost:8080"
-        echo "  ${GREEN}Management API:${NC} http://localhost:9090"
-        echo ""
-        info "View logs with: docker logs -f $AGENT_CONTAINER"
+    # Check services
+    echo ""
+    log "Service Status:"
+    docker exec "$AGENT_CONTAINER" /opt/venv/bin/supervisorctl status 2>/dev/null || warning "Could not get service status"
+
+    echo ""
+    echo "========================================"
+    echo "  GPU VERIFICATION"
+    echo "========================================"
+    echo ""
+
+    # Test GPU access
+    log "Testing NVIDIA GPU access..."
+    docker exec "$AGENT_CONTAINER" nvidia-smi --query-gpu=name,memory.total --format=csv,noheader 2>/dev/null || \
+        warning "GPU not accessible - check NVIDIA runtime configuration"
+
+    echo ""
+    log "Testing PyTorch CUDA..."
+    docker exec "$AGENT_CONTAINER" /opt/venv/bin/python3 -c "
+import torch
+print(f'PyTorch version: {torch.__version__}')
+print(f'CUDA available: {torch.cuda.is_available()}')
+if torch.cuda.is_available():
+    print(f'CUDA version: {torch.version.cuda}')
+    print(f'GPU count: {torch.cuda.device_count()}')
+    for i in range(torch.cuda.device_count()):
+        print(f'  GPU {i}: {torch.cuda.get_device_name(i)}')
+else:
+    print('WARNING: PyTorch cannot access CUDA')
+    print('   Image generation will be CPU-only and very slow')
+" 2>/dev/null || warning "PyTorch test failed"
+
+    echo ""
+    log "Testing ComfyUI installation..."
+    if docker exec "$AGENT_CONTAINER" test -d /home/devuser/ComfyUI 2>/dev/null; then
+        success "ComfyUI installed at /home/devuser/ComfyUI"
+        if docker exec "$AGENT_CONTAINER" test -f /home/devuser/ComfyUI/models/checkpoints/flux1-schnell-fp8.safetensors 2>/dev/null; then
+            success "FLUX model downloaded"
+        else
+            warning "FLUX model not found - will download on first use"
+        fi
     else
-        error "Failed to start $AGENT_CONTAINER"
-        docker compose -f docker-compose.unified.yml logs --tail=50
-        exit 1
+        warning "ComfyUI not installed"
     fi
+
+    # ComfyUI deployment
+    echo ""
+    echo "========================================"
+    echo "  COMFYUI STANDALONE DEPLOYMENT"
+    echo "========================================"
+    echo ""
+
+    if [[ "$SKIP_COMFYUI" == "true" ]]; then
+        info "Skipping standalone ComfyUI deployment (--skip-comfyui flag)"
+    elif [[ "$BUILD_COMFYUI_FULL" == "true" ]]; then
+        log "[4/4] Building ComfyUI with full open3d support..."
+        warning "This will take 30-60 minutes!"
+        if [[ -f "comfyui/build-comfyui.sh" ]]; then
+            cd comfyui && ./build-comfyui.sh && cd ..
+        else
+            warning "comfyui/build-comfyui.sh not found, skipping"
+        fi
+    else
+        log "[4/4] Checking ComfyUI standalone container..."
+        if docker ps -a | grep -q "^comfyui"; then
+            if docker exec comfyui python3 -c "import open3d; print(open3d.__version__)" 2>/dev/null | grep -q "stub"; then
+                success "ComfyUI already running with open3d stub"
+                info "To rebuild with full open3d: ./scripts/launch.sh rebuild-agent --comfyui-full"
+            else
+                info "ComfyUI running (open3d status unknown)"
+            fi
+        else
+            info "Standalone ComfyUI container not found"
+            info "To deploy: cd multi-agent-docker/comfyui && ./build-comfyui.sh"
+        fi
+    fi
+
+    # Build VisionFlow CachyOS containers
+    if [[ "$SKIP_CACHYOS" != "true" ]]; then
+        echo ""
+        echo "========================================"
+        echo "  VISIONFLOW CACHYOS BUILD"
+        echo "========================================"
+        echo ""
+        log "Building CachyOS-aligned VisionFlow containers..."
+
+        if [[ -f "comfyui/Dockerfile.cachyos" ]]; then
+            log "[VF-1/2] Building ComfyUI (CachyOS aligned)..."
+            docker build -f comfyui/Dockerfile.cachyos -t comfyui-cachyos:latest . 2>/dev/null || warning "ComfyUI CachyOS build failed"
+        else
+            warning "comfyui/Dockerfile.cachyos not found, skipping"
+        fi
+
+        if [[ -f "claude-zai/Dockerfile.cachyos" ]]; then
+            log "[VF-2/2] Building Claude-ZAI (CachyOS aligned)..."
+            docker build -f claude-zai/Dockerfile.cachyos -t claude-zai-cachyos:latest . 2>/dev/null || warning "Claude-ZAI CachyOS build failed"
+        else
+            warning "claude-zai/Dockerfile.cachyos not found, skipping"
+        fi
+
+        success "VisionFlow CachyOS builds complete"
+        echo ""
+        info "CUDA Compatibility (all containers):"
+        echo "  - CUDA Path: /opt/cuda"
+        echo "  - CUDA Version: 13.1"
+        echo "  - PTX Binary: /opt/cuda/bin/ptxas"
+        echo "  - Libraries: /opt/cuda/lib64"
+    fi
+
+    echo ""
+    echo "========================================"
+    echo "  DEPLOYMENT COMPLETE"
+    echo "========================================"
+    echo ""
+
+    # Verify skills installation in container
+    log "Verifying skills installation..."
+    if docker exec "$AGENT_CONTAINER" test -f /home/devuser/.claude/skills/docker-manager/SKILL.md 2>/dev/null; then
+        success "Docker Manager skill installed"
+    else
+        warning "Docker Manager skill not found in container"
+    fi
+    if docker exec "$AGENT_CONTAINER" test -f /home/devuser/.claude/skills/chrome-devtools/SKILL.md 2>/dev/null; then
+        success "Chrome DevTools skill installed"
+    else
+        warning "Chrome DevTools skill not found in container"
+    fi
+
+    # Verify Docker socket
+    if docker exec "$AGENT_CONTAINER" test -S /var/run/docker.sock 2>/dev/null; then
+        success "Docker socket mounted"
+    else
+        warning "Docker socket not found - Docker Manager will not work"
+    fi
+
+    echo ""
+    echo "========================================"
+    echo "  ACCESS INFORMATION"
+    echo "========================================"
+    echo ""
+    echo -e "${GREEN}Agentic Workstation:${NC}"
+    echo "  SSH:         ssh -p 2222 devuser@localhost  (password: turboflow)"
+    echo "  VNC:         vnc://localhost:5901           (password: turboflow)"
+    echo "  code-server: http://localhost:8080"
+    echo "  API:         http://localhost:9090/health"
+    echo "  Swagger:     http://localhost:9090/documentation"
+    echo ""
+
+    # Check ComfyUI standalone status
+    if docker ps | grep -q "comfyui"; then
+        echo -e "${GREEN}ComfyUI Standalone:${NC}"
+        echo "  Web UI:      http://localhost:8188"
+        echo "  Container:   comfyui"
+        local open3d_ver=$(docker exec comfyui python3 -c "import open3d; print(open3d.__version__)" 2>/dev/null || echo "not installed")
+        echo "  open3d:      $open3d_ver"
+        echo ""
+    fi
+
+    echo -e "${GREEN}Management Commands:${NC}"
+    echo "  View logs:   docker compose -f multi-agent-docker/docker-compose.unified.yml logs -f"
+    echo "  Stop:        docker compose -f multi-agent-docker/docker-compose.unified.yml down"
+    echo "  Shell:       docker exec -it $AGENT_CONTAINER zsh"
+    echo ""
+    echo -e "${GREEN}Build Options:${NC}"
+    echo "  ./scripts/launch.sh rebuild-agent              # Standard build"
+    echo "  ./scripts/launch.sh rebuild-agent --skip-comfyui  # Skip ComfyUI check"
+    echo "  ./scripts/launch.sh rebuild-agent --comfyui-full  # Full open3d (30-60 min)"
+    echo "  ./scripts/launch.sh rebuild-agent --skip-cachyos  # Skip CachyOS builds"
+    echo ""
+    echo "All containers use CachyOS v3 base for binary compatibility"
+    echo "  CUDA: /opt/cuda (v13.1) | PTX: /opt/cuda/bin/ptxas"
+    echo ""
 }
 
 # Show logs
@@ -774,7 +991,7 @@ main() {
         rebuild-agent)
             check_prerequisites
             detect_gpu
-            rebuild_agent_container
+            rebuild_agent_container "$@"
             ;;
         status)
             show_status

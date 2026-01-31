@@ -1,0 +1,95 @@
+################################################################################
+# Claude Z.AI Service - CachyOS Aligned Build
+#
+# PURPOSE: Binary-compatible with agentic-workstation (CachyOS v3 base)
+# NOTE: This service has no GPU requirements, alignment is for consistency
+#       and shared library compatibility (glibc, libstdc++)
+################################################################################
+
+FROM cachyos/cachyos-v3:latest
+
+LABEL maintainer="Multi-Agent-Docker"
+LABEL description="Claude Z.AI Service - CachyOS aligned"
+
+# ============================================================================
+# PHASE 1: System Dependencies
+# ============================================================================
+
+RUN pacman-key --init && \
+    pacman-key --populate archlinux cachyos && \
+    pacman -Sy --noconfirm archlinux-keyring cachyos-keyring && \
+    pacman -Syu --noconfirm && \
+    pacman -S --noconfirm \
+        git curl wget \
+        gettext \
+    && rm -rf /var/cache/pacman/pkg/*
+
+# ============================================================================
+# PHASE 2: Node.js Installation (v23.11.1 - same as Dockerfile.unified)
+# ============================================================================
+
+RUN curl -fsSL https://nodejs.org/dist/v23.11.1/node-v23.11.1-linux-x64.tar.xz | \
+    tar -xJ -C /usr/local --strip-components=1 && \
+    npm install -g npm@latest
+
+# Verify Node.js
+RUN node --version && npm --version
+
+# ============================================================================
+# PHASE 3: User Setup
+# ============================================================================
+
+RUN useradd -m -s /bin/bash claude && \
+    mkdir -p /home/claude/.claude && \
+    chown -R claude:claude /home/claude
+
+# ============================================================================
+# PHASE 4: Claude Code Installation
+# ============================================================================
+
+# Install Claude Code globally
+# NOTE: Native installer available via curl -fsSL https://claude.ai/install.sh | bash
+# Using npm for Docker system-wide installation
+RUN npm install -g @anthropic-ai/claude-code@latest
+
+# ============================================================================
+# PHASE 5: Application Setup
+# ============================================================================
+
+WORKDIR /app
+RUN mkdir -p /app/wrapper
+
+# Copy wrapper files (build context dependent)
+COPY claude-zai/wrapper/ /app/wrapper/
+
+# Install wrapper dependencies
+WORKDIR /app/wrapper
+RUN npm install
+
+# Copy config template
+COPY claude-zai/claude-config.json /app/claude-config.template.json
+
+# Set ownership
+RUN chown -R claude:claude /app
+
+# ============================================================================
+# PHASE 6: Environment Configuration
+# ============================================================================
+
+ENV CLAUDE_CONFIG_DIR=/home/claude/.claude
+ENV HOME=/home/claude
+
+# Create entrypoint script
+RUN echo '#!/bin/bash\n\
+set -e\n\
+mkdir -p /home/claude/.claude\n\
+envsubst < /app/claude-config.template.json > /home/claude/.claude/.claude.json\n\
+chown -R claude:claude /home/claude/.claude\n\
+exec node server.js\n' > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
+
+# Switch to non-root user
+USER claude
+
+EXPOSE 9600
+
+CMD ["/app/entrypoint.sh"]

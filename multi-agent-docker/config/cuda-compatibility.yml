@@ -1,0 +1,161 @@
+# ============================================================================
+# CachyOS CUDA Compatibility Configuration
+# ============================================================================
+#
+# This file defines shared CUDA library mounts for containers that cannot
+# be fully migrated to CachyOS base images. Use these mounts to ensure
+# PTX compilation and CUDA runtime compatibility.
+#
+# CUDA Version: 13.1 (CachyOS `cuda` package)
+# Path: /opt/cuda
+# Binaries: /opt/cuda/bin/{nvcc,ptxas,cuobjdump,nvprof}
+# Libraries: /opt/cuda/lib64/
+# ============================================================================
+
+version: "1.0"
+
+# CachyOS CUDA Installation Details
+cuda:
+  version: "13.1"
+  home: /opt/cuda
+  paths:
+    bin: /opt/cuda/bin
+    lib64: /opt/cuda/lib64
+    include: /opt/cuda/include
+    cupti: /opt/cuda/extras/CUPTI/lib64
+
+  binaries:
+    nvcc: /opt/cuda/bin/nvcc
+    ptxas: /opt/cuda/bin/ptxas
+    cuobjdump: /opt/cuda/bin/cuobjdump
+    nvprof: /opt/cuda/bin/nvprof
+    cuda-gdb: /opt/cuda/bin/cuda-gdb
+
+  environment:
+    CUDA_HOME: /opt/cuda
+    CUDA_PATH: /opt/cuda
+    CUDA_VERSION: "13.1"
+    NVCC_PREPEND_FLAGS: "-ccbin /usr/bin/g++"
+    PATH_PREFIX: /opt/cuda/bin
+    LD_LIBRARY_PATH_PREFIX: /opt/cuda/lib64:/opt/cuda/extras/CUPTI/lib64
+
+# Docker volume mounts for CUDA library sharing
+docker_mounts:
+  # Read-only CUDA toolkit mount (for containers needing nvcc/ptxas)
+  cuda_toolkit:
+    source: /opt/cuda
+    target: /opt/cuda
+    mode: ro
+    description: "Full CUDA toolkit (nvcc, ptxas, libraries)"
+
+  # NVIDIA driver libraries (injected by nvidia-container-toolkit)
+  nvidia_driver:
+    source: nvidia-driver
+    target: /usr/lib/x86_64-linux-gnu
+    mode: ro
+    description: "Host NVIDIA driver libraries (auto-injected)"
+
+# Container compatibility matrix
+containers:
+  # Fully CachyOS-aligned containers
+  cachyos_native:
+    - name: agentic-workstation
+      dockerfile: Dockerfile.unified
+      cuda_compatible: true
+      notes: "Native CachyOS base, full CUDA 13.1 support"
+
+    - name: comfyui-cachyos
+      dockerfile: comfyui/Dockerfile.cachyos
+      cuda_compatible: true
+      notes: "CachyOS aligned, /opt/cuda paths"
+
+    - name: claude-zai-cachyos
+      dockerfile: claude-zai/Dockerfile.cachyos
+      cuda_compatible: false  # No GPU requirements
+      notes: "CachyOS aligned for glibc/libstdc++ compatibility"
+
+  # Legacy containers requiring compatibility layer
+  legacy_ubuntu:
+    - name: comfyui-original
+      dockerfile: comfyui/Dockerfile
+      base: yanwk/comfyui-boot:cu130-slim
+      cuda_version: "12.4/13.0"
+      compatibility_mode: shared_mount
+      mounts_required:
+        - cuda_toolkit
+      notes: |
+        Ubuntu-based, uses CUDA 12.4 wheels.
+        For full compatibility:
+        1. Use Dockerfile.cachyos instead (recommended)
+        2. Or mount /opt/cuda and adjust LD_LIBRARY_PATH
+
+    - name: claude-zai-original
+      dockerfile: claude-zai/Dockerfile
+      base: node:20-slim
+      cuda_version: null
+      compatibility_mode: none
+      notes: "No GPU requirements, runs standalone"
+
+# Shared library compatibility notes
+compatibility_notes:
+  glibc_version:
+    cachyos: "2.40+"  # Arch-based, rolling release
+    ubuntu_22: "2.35"
+    ubuntu_24: "2.39"
+    issue: "CachyOS binaries may not run on older glibc"
+
+  libstdcxx_version:
+    cachyos: "14.x"  # GCC 14
+    ubuntu_22: "11.x"
+    ubuntu_24: "13.x"
+    issue: "C++ ABI differences can cause runtime failures"
+
+  pytorch_wheels:
+    cu124: "CUDA 12.4 - widely available"
+    cu130: "CUDA 13.0 - limited availability as of Jan 2026"
+    cu131: "CUDA 13.1 - may require source build"
+    recommendation: |
+      Use cu124 wheels with CachyOS CUDA 13.1 runtime.
+      CUDA 13.1 is backward compatible with 12.4 PTX.
+      JIT compilation handles version differences.
+
+# Migration strategy
+migration:
+  priority_1_recommended:
+    action: "Use CachyOS Dockerfiles"
+    files:
+      - comfyui/Dockerfile.cachyos
+      - claude-zai/Dockerfile.cachyos
+    benefits:
+      - Full binary compatibility with agentic-workstation
+      - Shared CUDA libraries with host
+      - Consistent glibc/libstdc++ versions
+      - Optimized x86-64-v3 packages
+
+  priority_2_hybrid:
+    action: "Multi-stage build with CachyOS compile stage"
+    when: "When specific Ubuntu packages required"
+    pattern: |
+      # Stage 1: CachyOS for CUDA compilation
+      FROM cachyos/cachyos-v3:latest AS cuda-builder
+      RUN pacman -S cuda cudnn
+      # Build CUDA extensions here
+
+      # Stage 2: Runtime (can be Ubuntu if needed)
+      FROM ubuntu:24.04
+      COPY --from=cuda-builder /built/extensions /opt/
+      # Mount /opt/cuda at runtime for JIT
+
+  priority_3_mount:
+    action: "Runtime CUDA mount"
+    when: "Legacy container cannot be modified"
+    compose_example: |
+      services:
+        legacy-comfyui:
+          image: yanwk/comfyui-boot:cu130-slim
+          volumes:
+            - /opt/cuda:/opt/cuda:ro
+          environment:
+            - CUDA_HOME=/opt/cuda
+            - PATH=/opt/cuda/bin:$PATH
+            - LD_LIBRARY_PATH=/opt/cuda/lib64:$LD_LIBRARY_PATH

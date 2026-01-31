@@ -251,7 +251,7 @@ Kubernetes-style readiness check (no authentication required).
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `MANAGEMENT_API_KEY` | `change-this-secret-key` | Bearer token for authentication |
+| `MANAGEMENT_API_KEY` | (none - required) | Bearer token for authentication (REQUIRED - no default) |
 | `MANAGEMENT_API_PORT` | `9090` | API server port |
 | `MANAGEMENT_API_HOST` | `0.0.0.0` | API server host |
 | `LOG_LEVEL` | `info` | Logging level (debug, info, warn, error) |
@@ -259,8 +259,8 @@ Kubernetes-style readiness check (no authentication required).
 
 ### Security Best Practices
 
-1. **Always change the default API key** in production
-2. Set `MANAGEMENT_API_KEY` to a strong random token
+1. **Set `MANAGEMENT_API_KEY`** - This is REQUIRED; the container will fail to start without it
+2. Use a strong random token (minimum 32 characters recommended)
 3. Use HTTPS in production (configure reverse proxy)
 4. Monitor rate limiting logs for abuse
 5. Regularly rotate API keys

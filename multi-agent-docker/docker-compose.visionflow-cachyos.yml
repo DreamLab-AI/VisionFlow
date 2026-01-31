@@ -1,0 +1,196 @@
+# ============================================================================
+# VisionFlow CachyOS-Aligned Docker Compose
+# ============================================================================
+#
+# PURPOSE: Deploy VisionFlow containers with CachyOS binary compatibility
+# CUDA: 13.1 (shared /opt/cuda from host or agentic-workstation)
+#
+# USAGE:
+#   # Build CachyOS-aligned images
+#   docker compose -f docker-compose.visionflow-cachyos.yml build
+#
+#   # Run alongside agentic-workstation
+#   docker compose -f docker-compose.unified.yml -f docker-compose.visionflow-cachyos.yml up -d
+#
+# ============================================================================
+
+services:
+  # ==========================================================================
+  # ComfyUI with SAM3D - CachyOS Aligned
+  # ==========================================================================
+  comfyui:
+    build:
+      context: .
+      dockerfile: comfyui/Dockerfile.cachyos
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+      labels:
+        - "com.turboflow.cuda.version=13.1"
+        - "com.turboflow.cuda.path=/opt/cuda"
+        - "com.turboflow.base=cachyos-v3"
+
+    container_name: comfyui-cachyos
+    hostname: comfyui
+
+    labels:
+      com.turboflow.service: "comfyui"
+      com.turboflow.cuda.aligned: "true"
+
+    # NVIDIA GPU support (same as agentic-workstation)
+    runtime: nvidia
+    shm_size: 16gb
+
+    deploy:
+      resources:
+        limits:
+          memory: 32G
+          cpus: '16'
+        reservations:
+          memory: 8G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu, compute, utility]
+
+    networks:
+      docker_ragflow:
+        aliases:
+          - comfyui.ragflow
+          - comfyui.local
+
+    ports:
+      - "8188:8188"  # ComfyUI Web UI
+
+    volumes:
+      # ComfyUI data persistence
+      - comfyui-models:/comfyui/models:rw
+      - comfyui-output:/comfyui/output:rw
+      - comfyui-input:/comfyui/input:rw
+      - comfyui-custom-nodes:/comfyui/custom_nodes:rw
+
+      # CUDA toolkit sharing (optional - for JIT compilation alignment)
+      # Uncomment if using legacy Dockerfile with Ubuntu base
+      # - /opt/cuda:/opt/cuda:ro
+
+    environment:
+      # CUDA configuration (aligned with Dockerfile.unified)
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility,graphics
+      CUDA_HOME: /opt/cuda
+      CUDA_PATH: /opt/cuda
+      CUDA_VERSION: "13.1"
+      PATH: /opt/cuda/bin:$PATH
+      LD_LIBRARY_PATH: /opt/cuda/lib64:/opt/cuda/extras/CUPTI/lib64:$LD_LIBRARY_PATH
+
+      # ComfyUI configuration
+      CLI_ARGS: "--listen --port 8188"
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8188/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+    restart: unless-stopped
+
+  # ==========================================================================
+  # Claude Z.AI Service - CachyOS Aligned
+  # ==========================================================================
+  claude-zai:
+    build:
+      context: .
+      dockerfile: claude-zai/Dockerfile.cachyos
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+      labels:
+        - "com.turboflow.base=cachyos-v3"
+        - "com.turboflow.node.version=23.11.1"
+
+    container_name: claude-zai-cachyos
+    hostname: claude-zai
+
+    labels:
+      com.turboflow.service: "claude-zai"
+      com.turboflow.cuda.required: "false"
+
+    # No GPU requirements
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '4'
+        reservations:
+          memory: 1G
+          cpus: '1'
+
+    networks:
+      docker_ragflow:
+        aliases:
+          - claude-zai.ragflow
+          - claude-zai.local
+
+    # Internal only - accessible via agentic-workstation
+    # Uncomment to expose externally:
+    # ports:
+    #   - "9600:9600"
+
+    environment:
+      # Claude configuration
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      CLAUDE_CONFIG_DIR: /home/claude/.claude
+
+      # Z.AI specific
+      ZAI_BASE_URL: ${ZAI_BASE_URL:-https://api.z.ai/api/anthropic}
+      ZAI_API_KEY: ${ZAI_API_KEY:-}
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9600/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    restart: unless-stopped
+
+# ============================================================================
+# Alternative: Legacy ComfyUI with CUDA Mount
+# ============================================================================
+# Use this if you need the original Ubuntu-based ComfyUI but want CUDA alignment
+#
+#   comfyui-legacy:
+#     image: yanwk/comfyui-boot:cu130-slim
+#     runtime: nvidia
+#     volumes:
+#       # Mount host CUDA for JIT compilation compatibility
+#       - /opt/cuda:/opt/cuda:ro
+#     environment:
+#       # Override CUDA paths to use host toolkit
+#       CUDA_HOME: /opt/cuda
+#       CUDA_PATH: /opt/cuda
+#       PATH: /opt/cuda/bin:$PATH
+#       LD_LIBRARY_PATH: /opt/cuda/lib64:$LD_LIBRARY_PATH
+#     # ... rest of config
+
+# ============================================================================
+# Networks
+# ============================================================================
+
+networks:
+  docker_ragflow:
+    external: true
+    name: docker_ragflow
+
+# ============================================================================
+# Volumes
+# ============================================================================
+
+volumes:
+  comfyui-models:
+    driver: local
+  comfyui-output:
+    driver: local
+  comfyui-input:
+    driver: local
+  comfyui-custom-nodes:
+    driver: local

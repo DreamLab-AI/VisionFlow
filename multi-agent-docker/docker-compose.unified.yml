@@ -106,12 +106,12 @@ services:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
 
       # Docker socket for Docker Manager skill (inter-container control)
+      # SECURITY WARNING: RW access enables container escapes - required for skill functionality
+      # Consider using socket proxy (socat) with limited API access in production
       - /var/run/docker.sock:/var/run/docker.sock:rw
 
-      # SSH credentials (individual key files - avoids socket issues)
-      - ${HOME}/.ssh/id_ed25519:/home/devuser/.ssh/id_ed25519:ro
-      - ${HOME}/.ssh/id_ed25519.pub:/home/devuser/.ssh/id_ed25519.pub:ro
-      - ${HOME}/.ssh/known_hosts:/home/devuser/.ssh/known_hosts:rw
+      # SSH credentials (directory mount - handles any key type: ed25519, rsa, ecdsa)
+      - ${HOME}/.ssh:/home/devuser/.ssh-host:ro
 
     # Environment variables from .env
     environment:
@@ -140,10 +140,14 @@ services:
       PERPLEXITY_API_KEY: ${PERPLEXITY_API_KEY:-}
 
       # Z.AI Configuration (separate from Claude CLI)
+      # ZAI_URL: Use localhost:9600 for internal supervisord, or claude-zai:9600 for external container
       ZAI_ANTHROPIC_API_KEY: ${ZAI_ANTHROPIC_API_KEY:-}
       ZAI_BASE_URL: ${ZAI_BASE_URL:-https://api.z.ai/api/anthropic}
       ZAI_API_KEY: ${ZAI_API_KEY:-}
-      ZAI_CONTAINER_URL: http://localhost:9600
+      ZAI_URL: ${ZAI_URL:-http://localhost:9600}
+      ZAI_CONTAINER_URL: ${ZAI_URL:-http://localhost:9600}
+      # Set ZAI_INTERNAL=false to disable internal Z.AI (when using external claude-zai container)
+      ZAI_INTERNAL: ${ZAI_INTERNAL:-true}
       CLAUDE_WORKER_POOL_SIZE: ${CLAUDE_WORKER_POOL_SIZE:-4}
       CLAUDE_MAX_QUEUE_SIZE: ${CLAUDE_MAX_QUEUE_SIZE:-50}
 
@@ -155,8 +159,9 @@ services:
       RUVECTOR_PG_DATABASE: ${RUVECTOR_PG_DATABASE:-ruvector}
       RUVECTOR_USE_EXTERNAL: ${RUVECTOR_USE_EXTERNAL:-true}
 
-      # Management API
-      MANAGEMENT_API_KEY: ${MANAGEMENT_API_KEY:-change-this-secret-key}
+      # Management API (REQUIRED: Set MANAGEMENT_API_KEY in .env or environment)
+      # WARNING: No default - service will reject requests without valid key
+      MANAGEMENT_API_KEY: ${MANAGEMENT_API_KEY:?MANAGEMENT_API_KEY must be set}
       MANAGEMENT_API_PORT: 9090
       MANAGEMENT_API_HOST: 0.0.0.0
 

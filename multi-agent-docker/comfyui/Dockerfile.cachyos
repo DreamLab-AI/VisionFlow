@@ -1,0 +1,275 @@
+################################################################################
+# ComfyUI with SAM3D CUDA Support - CachyOS Aligned Build
+#
+# PURPOSE: Binary-compatible with agentic-workstation (CachyOS v3 base)
+# CUDA: 13.1 (aligned with host /opt/cuda)
+# PTX: Uses /opt/cuda/bin/ptxas for JIT compilation
+################################################################################
+
+FROM cachyos/cachyos-v3:latest AS builder
+
+LABEL maintainer="Multi-Agent-Docker"
+LABEL description="ComfyUI with SAM3D CUDA support - CachyOS aligned"
+LABEL com.turboflow.cuda.version="13.1"
+LABEL com.turboflow.cuda.path="/opt/cuda"
+
+# ============================================================================
+# PHASE 1: System Dependencies
+# ============================================================================
+
+RUN pacman-key --init && \
+    pacman-key --populate archlinux cachyos && \
+    pacman -Sy --noconfirm archlinux-keyring cachyos-keyring && \
+    pacman -Syu --noconfirm && \
+    pacman -S --noconfirm \
+        base-devel git vim curl wget \
+        python python-pip python-virtualenv \
+        # Graphics libraries
+        mesa libglvnd vulkan-icd-loader \
+        # Required for ComfyUI custom nodes
+        ninja cmake \
+    && rm -rf /var/cache/pacman/pkg/*
+
+# ============================================================================
+# PHASE 2: CUDA Development Toolkit (aligned with Dockerfile.unified)
+# ============================================================================
+
+# Temporarily disable signature verification for CUDA packages
+RUN cp /etc/pacman.conf /etc/pacman.conf.bak && \
+    sed -i 's/SigLevel.*/SigLevel = Never/g' /etc/pacman.conf && \
+    pacman -S --noconfirm \
+        cuda \
+        cudnn \
+    && mv /etc/pacman.conf.bak /etc/pacman.conf && \
+    rm -rf /var/cache/pacman/pkg/*
+
+# CUDA Environment (matches Dockerfile.unified exactly)
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics,display
+ENV CUDA_HOME=/opt/cuda
+ENV CUDA_PATH=/opt/cuda
+ENV CUDA_VERSION=13.1
+ENV NVCC_PREPEND_FLAGS='-ccbin /usr/bin/g++'
+ENV PATH="/opt/cuda/bin:${PATH}"
+ENV LD_LIBRARY_PATH="/opt/cuda/lib64:/opt/cuda/extras/CUPTI/lib64:${LD_LIBRARY_PATH}"
+
+# Verify CUDA installation
+RUN nvcc --version && ptxas --version
+
+# ============================================================================
+# PHASE 3: Python 3.10 (required for SAM3D pytorch3d compatibility)
+# ============================================================================
+
+# Build Python 3.10 from source (CachyOS has 3.14 by default)
+RUN cd /tmp && \
+    curl -LO https://www.python.org/ftp/python/3.10.14/Python-3.10.14.tar.xz && \
+    tar xf Python-3.10.14.tar.xz && \
+    cd Python-3.10.14 && \
+    ./configure --prefix=/opt/python310 --enable-optimizations --with-lto && \
+    make -j$(nproc) && \
+    make install && \
+    cd / && rm -rf /tmp/Python-3.10.14*
+
+# Install uv for fast package management
+RUN /opt/python310/bin/python3.10 -m pip install uv
+
+# ============================================================================
+# PHASE 4: ComfyUI Base Installation
+# ============================================================================
+
+WORKDIR /comfyui
+
+# Clone ComfyUI
+RUN git clone --depth 1 https://github.com/comfyanonymous/ComfyUI.git . && \
+    /opt/python310/bin/python3.10 -m venv venv
+
+# Install PyTorch with CUDA 13.0 (closest available wheel)
+# NOTE: As of 2026, PyTorch cu130 wheels should be available
+# Fallback to cu124 if cu130 not yet released
+RUN /opt/python310/bin/python3.10 -m pip install \
+    torch==2.5.0 \
+    torchvision==0.20.0 \
+    torchaudio==2.5.0 \
+    --index-url https://download.pytorch.org/whl/cu130 || \
+    /opt/python310/bin/python3.10 -m pip install \
+    torch torchvision torchaudio \
+    --index-url https://download.pytorch.org/whl/cu124
+
+# Install ComfyUI requirements
+RUN ./venv/bin/pip install -r requirements.txt
+
+# ============================================================================
+# PHASE 5: SAM3D Custom Node Installation
+# ============================================================================
+
+WORKDIR /comfyui/custom_nodes
+
+# Clone SAM3D
+RUN git clone https://github.com/PozzettiAndrea/ComfyUI-SAM3DObjects.git comfyui-sam3dobjects
+
+WORKDIR /comfyui/custom_nodes/comfyui-sam3dobjects
+
+# Create dedicated venv for SAM3D (matches original Dockerfile pattern)
+RUN /opt/python310/bin/python3.10 -m venv _env
+
+# Install PyTorch in SAM3D venv (use same CUDA version)
+RUN ./_env/bin/pip install \
+    torch==2.4.1 \
+    torchvision==0.19.1 \
+    --index-url https://download.pytorch.org/whl/cu124
+
+# Install PyTorch3D (third-party wheels)
+RUN ./_env/bin/pip install \
+    pytorch3d==0.7.9+pt2.4.1cu124 \
+    --extra-index-url https://miropsota.github.io/torch_packages_builder
+
+# Install spconv
+RUN ./_env/bin/pip install "spconv-cu124>=2.3.8"
+
+# Install SAM3D dependencies (same as original)
+RUN ./_env/bin/pip install \
+    fvcore iopath torchsde \
+    "numpy>=1.24.0,<2.0" "scipy>=1.11.0" \
+    "timm>=0.9.16" transformers diffusers "lightning>=2.0.0" \
+    "scikit-image>=0.23.1" "imageio>=2.36.0" "Pillow>=10.0.0" \
+    trimesh "point-cloud-utils>=0.29.5" plyfile \
+    "matplotlib>=3.9.0" "seaborn>=0.13.0" "plotly>=5.24.0" \
+    "hydra-core>=1.3.2" "easydict>=1.13" "loguru>=0.7.2" \
+    huggingface-hub "python-igraph>=1.0.0" "tqdm>=4.67.0" \
+    "optree>=0.11.0" "astor>=0.8.0" \
+    "einops-exts>=0.0.4" "roma>=1.5.1" "xatlas>=0.0.9" "pymeshfix>=0.16.0" \
+    "gdown>=5.2.0" "zstandard>=0.22.0" "ninja>=1.10.0" jaxtyping \
+    open3d
+
+# Install utils3d from git
+RUN ./_env/bin/pip install \
+    "git+https://github.com/EasternJournalist/utils3d.git@9a4eb15e4021b67b12c460c7057d642626897ec8"
+
+# Install gsplat (Gaussian splatting)
+RUN ./_env/bin/pip install rich jaxtyping && \
+    ./_env/bin/pip install "gsplat>=1.4.0" \
+    --index-url https://docs.gsplat.studio/whl/pt24cu124
+
+# Install nvdiffrast (mesh rendering)
+RUN ./_env/bin/pip install \
+    "https://huggingface.co/spaces/microsoft/TRELLIS/resolve/main/wheels/nvdiffrast-0.3.3-cp310-cp310-linux_x86_64.whl"
+
+# Reinstall pinned torch version
+RUN ./_env/bin/pip install \
+    torch==2.4.1 \
+    torchvision==0.19.1 \
+    --index-url https://download.pytorch.org/whl/cu124 \
+    --reinstall
+
+# ============================================================================
+# PHASE 6: Apply CUDA Bridge Patch
+# ============================================================================
+
+# Apply the subprocess_bridge patch for CUDA library discovery
+RUN python3 << 'PYEOF'
+import os
+from pathlib import Path
+
+bridge_file = Path("/comfyui/custom_nodes/comfyui-sam3dobjects/nodes/subprocess_bridge.py")
+content = bridge_file.read_text()
+
+if "_get_worker_env" in content:
+    print("Already patched")
+    exit(0)
+
+lines = content.split("\n")
+new_lines = []
+import_added = False
+method_added = False
+
+for i, line in enumerate(lines):
+    if not import_added and line.strip() == "import subprocess":
+        new_lines.append(line)
+        new_lines.append("import os")
+        import_added = True
+        continue
+
+    if not method_added and line.strip().startswith("def start_worker("):
+        method = """    def _get_worker_env(self) -> dict:
+        \"\"\"Get environment with CUDA libraries for worker process.\"\"\"
+        env = os.environ.copy()
+        # CachyOS CUDA path - aligned with agentic-workstation
+        cuda_lib = "/opt/cuda/lib64"
+        cupti_lib = "/opt/cuda/extras/CUPTI/lib64"
+        existing = env.get("LD_LIBRARY_PATH", "")
+        env["LD_LIBRARY_PATH"] = f"{cuda_lib}:{cupti_lib}:{existing}" if existing else f"{cuda_lib}:{cupti_lib}"
+
+        # Also check venv NVIDIA packages
+        node_root = self.worker_script.parent
+        venv_lib = node_root / "_env" / "lib"
+        if venv_lib.exists():
+            python_dirs = [d for d in venv_lib.iterdir() if d.name.startswith("python")]
+            if python_dirs:
+                site_packages = python_dirs[0] / "site-packages"
+                nvidia_libs = []
+                for lib_name in ["cublas", "cuda_cupti", "cuda_nvrtc", "cuda_runtime",
+                                "cudnn", "cufft", "curand", "cusolver", "cusparse",
+                                "nccl", "nvjitlink", "nvtx"]:
+                    lib_path = site_packages / "nvidia" / lib_name / "lib"
+                    if lib_path.exists():
+                        nvidia_libs.append(str(lib_path))
+                if nvidia_libs:
+                    env["LD_LIBRARY_PATH"] = ":".join(nvidia_libs) + ":" + env["LD_LIBRARY_PATH"]
+                    print(f"[SAM3DObjects] Added {len(nvidia_libs)} venv CUDA libs + /opt/cuda")
+        return env
+"""
+        new_lines.append(method)
+        method_added = True
+
+    new_lines.append(line)
+
+content = "\n".join(new_lines)
+old_popen = """self.process = subprocess.Popen(
+                [str(self.python_exe), str(self.worker_script)],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1,  # Line buffered
+            )"""
+
+new_popen = """# Build environment with CUDA libraries
+            worker_env = self._get_worker_env()
+
+            self.process = subprocess.Popen(
+                [str(self.python_exe), str(self.worker_script)],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1,  # Line buffered
+                env=worker_env,
+            )"""
+
+content = content.replace(old_popen, new_popen)
+bridge_file.write_text(content)
+print(f"Patch applied: import_added={import_added}, method_added={method_added}")
+PYEOF
+
+# Verify patch
+RUN grep -q "_get_worker_env" /comfyui/custom_nodes/comfyui-sam3dobjects/nodes/subprocess_bridge.py \
+    && echo "SAM3D CUDA patch verified (CachyOS aligned)"
+
+# ============================================================================
+# PHASE 7: Runtime Configuration
+# ============================================================================
+
+WORKDIR /comfyui
+EXPOSE 8188
+ENV CLI_ARGS=""
+
+# Create entrypoint that ensures CUDA paths
+RUN echo '#!/bin/bash\n\
+export CUDA_HOME=/opt/cuda\n\
+export CUDA_PATH=/opt/cuda\n\
+export PATH="/opt/cuda/bin:$PATH"\n\
+export LD_LIBRARY_PATH="/opt/cuda/lib64:/opt/cuda/extras/CUPTI/lib64:$LD_LIBRARY_PATH"\n\
+exec python main.py --listen --port 8188 $CLI_ARGS\n' > /entrypoint.sh && \
+    chmod +x /entrypoint.sh
+
+CMD ["/entrypoint.sh"]

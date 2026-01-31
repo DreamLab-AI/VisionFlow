@@ -1,3 +1,67 @@
+# VisionFlow/TurboFlow: Dense Technical Overview
+
+> **Document Purpose**: Maximally dense technical reference for AI agent context grokking while retaining human readability. Contains all architectural diagrams, data flows, and system integration details.
+
+---
+
+## Executive Summary: Semantic Knowledge Made Tangible
+
+### Vision
+
+VisionFlow transforms abstract semantic relationships into physically interactive 3D environments where AI agents directly manipulate knowledge structures. Rather than viewing ontologies as static diagrams, users and agents navigate force-directed graphs rendered with GPU-accelerated physics, selecting nodes through spatial proximity, clustering concepts through gravitational attraction, and discovering hidden relationships through emergent simulation dynamics. The system bridges the gap between symbolic AI reasoning and embodied spatial cognition.
+
+### Core Innovation
+
+The fundamental innovation lies in bidirectional agent-visualization coupling. Claude Flow V3 swarm agents do not merely query semantic data--they inhabit the visualization space. An agent exploring an OWL ontology can grab concept clusters, apply forces to reorganize taxonomies, and trigger CUDA-accelerated layout algorithms in real-time. The RuVector PostgreSQL backend (1.17M+ memory entries with HNSW indexing) provides persistent semantic grounding, enabling agents to remember spatial arrangements across sessions. Byzantine fault-tolerant consensus ensures multi-agent coordination when several agents simultaneously manipulate the same knowledge graph region.
+
+### Technical Stack
+
+The architecture spans three execution domains: Rust handles performance-critical visualization (100+ CUDA kernels for force simulation, collision detection, level-of-detail rendering), Node.js orchestrates the Claude Flow V3 swarm infrastructure (hierarchical-mesh topology, 60+ agent types, 27 hooks), and the CachyOS container provides the agentic workstation runtime (supervisord services, multi-provider AI routing, 62+ Claude Code skills). MCP bridges expose visualization primitives as tools--agents invoke Blender for mesh generation, QGIS for geospatial overlays, Playwright for web scraping into the graph. The Z.AI service proxies Claude API calls through a 4-worker pool for cost optimization.
+
+### Architecture Philosophy
+
+Hexagonal architecture isolates the semantic core from visualization adapters and agent interfaces. OWL ontology reasoning remains pure domain logic; CUDA rendering constitutes an output port; agent tool invocations arrive through input ports. This separation enables swapping visualization backends (WebGPU, Vulkan) or agent frameworks without core refactoring. The system treats knowledge visualization not as a final product but as a collaborative workspace where human intuition and agent reasoning converge on shared spatial representations.
+
+---
+
+## Security Architecture
+
+The agentic workstation implements defense-in-depth through UID-based service isolation, hierarchical credential management, and network segmentation. Four system users partition workloads: devuser (UID 1000) runs Claude Code and primary development services; gemini-user (UID 1001) isolates Google Gemini operations; openai-user (UID 1002) handles OpenAI Codex; and zai-user (UID 1003) exclusively runs the Z.AI cost-optimization service. Supervisord enforces this separation by launching each service under its designated user account, with `user=zai-user` for claude-zai and `user=gemini-user` for gemini-flow.
+
+Credential distribution follows a read-only host mount pattern for SSH keys: the host's `~/.ssh` directory mounts to `/home/devuser/.ssh-host:ro`, and the entrypoint copies keys to `~/.ssh` with `chmod 600` for private keys and `chmod 644` for public keys. API keys inject via environment variables, with `MANAGEMENT_API_KEY: ${MANAGEMENT_API_KEY:?required}` syntax enforcing mandatory configuration at compose-time rather than defaulting to insecure values.
+
+Supervisord hardens its control socket with `chmod=0700` on `/var/run/supervisor.sock`, restricting access to root only. Each program block specifies `startretries=5`, `stopasgroup=true`, and `killasgroup=true` ensuring clean process tree termination. Service startup follows a priority chain: dbus at priority 10, sshd at 50, VNC/desktop components at 90-210, management-api at 300, and claude-zai at 500.
+
+Network security relies on the external `docker_ragflow` network for inter-container communication. Critically, port 9600 (Z.AI) is NOT exposed in the ports section, restricting access to containers on the ragflow network. The Docker socket mount carries an explicit security warning in docker-compose.yml noting that RW access enables container escapes, recommending a socket proxy for production deployments.
+
+---
+
+## Quick Reference Tables
+
+| Component | Specification |
+|-----------|---------------|
+| Base Image | `cachyos/cachyos-v3:latest` (x86-64-v3 optimized) |
+| glibc/libstdc++ | 2.40+/14.x for binary compatibility with host |
+| Node.js | v23.11.1 (direct tarball, not pacman) |
+| Python | 3.12.8 from source @ /opt/python312 |
+| CUDA | 13.1 @ /opt/cuda with cuDNN/cuTensor |
+| PostgreSQL | External ruvector-postgres preferred, local fallback |
+| supervisord Priority | 10 (dbus) -> 950 (healthcheck) |
+| User UIDs | devuser:1000, gemini:1001, openai:1002, zai:1003, deepseek:1004 |
+| SSH Mount | ~/.ssh -> .ssh-host:ro -> entrypoint copies with 600/644 perms |
+
+| Port | Service | Exposure |
+|------|---------|----------|
+| 2222->22 | SSH | Public |
+| 5901 | VNC | Public |
+| 8080 | code-server | Public |
+| 9090 | Management API | Public |
+| 9600 | Z.AI | Internal only (ragflow network) |
+
+---
+
+# Slide Presentation Content
+
 Here is a structured 20-minute technical system presentation for VisionFlow. It focuses purely on architecture, data flow, and the unique fusion of semantic reasoning with physics simulation.
 
 What I need from you is the FIRST infograph slide. Leave a space somewhere on the slide for me to insert bullet points using other software. It can just be a quiet area with a subtle border.
@@ -133,6 +197,628 @@ The slide 1 prompt below is a inspiration only, use the mermaid diagrams to full
 Extracted from project documentation.
 
 ---
+
+# Container Infrastructure (CachyOS Ecosystem)
+
+## CachyOS Binary Compatibility Architecture
+
+```mermaid
+flowchart TB
+    subgraph HOST["HOST SYSTEM (CachyOS x86-64-v3)"]
+        direction LR
+        KERNEL[("Linux Kernel<br/>6.18.6-2-cachyos")]
+        GLIBC["glibc 2.40+<br/>(x86-64-v3 ABI)"]
+        LIBSTDCPP["libstdc++ 14.x<br/>(C++23)"]
+        NVIDIA_DRV["NVIDIA Driver<br/>580.105.08"]
+        HOST_BIN["Host Binaries<br/>AVX2/FMA/BMI2"]
+    end
+
+    subgraph RUNTIME["nvidia-container-toolkit"]
+        direction TB
+        CDI["CDI Injection"]
+        LIB_MOUNT["Library Mount<br/>/usr/lib/nvidia"]
+        DEV_MOUNT["Device Mount<br/>/dev/nvidia*"]
+    end
+
+    subgraph CONTAINER["CONTAINER (cachyos/cachyos-v3:latest)"]
+        direction TB
+        subgraph BASE_LAYER["Base Layer (Binary Compatible)"]
+            C_GLIBC["glibc 2.40+<br/>SAME VERSION"]
+            C_LIBSTDCPP["libstdc++ 14.x<br/>SAME ABI"]
+            PACMAN["pacman<br/>CachyOS repos"]
+        end
+        subgraph CUDA_LAYER["CUDA Toolkit Layer"]
+            CUDA["/opt/cuda<br/>CUDA 13.1"]
+            NVCC["nvcc/ptxas<br/>PTX Compilation"]
+            CUDNN["cuDNN 9.x"]
+            CUTENSOR["cuTensor"]
+        end
+        subgraph APP_LAYER["Application Layer"]
+            NODE["Node.js 23.11.1<br/>(x86-64-v3 JIT)"]
+            PY312[("Python 3.12<br/>--enable-optimizations<br/>--with-lto")]
+            PYTORCH["PyTorch cu130<br/>Bundled CUDA libs"]
+        end
+    end
+
+    KERNEL --> CDI
+    NVIDIA_DRV --> LIB_MOUNT
+    GLIBC -.->|"Symbol Compat"| C_GLIBC
+    LIBSTDCPP -.->|"ABI Compat"| C_LIBSTDCPP
+    LIB_MOUNT --> CUDA_LAYER
+    DEV_MOUNT --> CUDA_LAYER
+
+    classDef host fill:#2d5016,stroke:#4ade80
+    classDef runtime fill:#854d0e,stroke:#fbbf24
+    classDef container fill:#1e3a5f,stroke:#60a5fa
+    class HOST host
+    class RUNTIME runtime
+    class CONTAINER container
+```
+
+## Container Service Architecture (supervisord)
+
+```mermaid
+flowchart TB
+    subgraph AGENTIC["agentic-workstation Container (CachyOS v3)"]
+        direction TB
+
+        subgraph SUPERVISOR["supervisord (PID 1)"]
+            direction LR
+            PRIO["Priority Order"]
+        end
+
+        subgraph TIER1["Priority 10-50: Core Services"]
+            DBUS["dbus p:10<br/>system+user"]
+            SSHD["sshd p:50<br/>:22"]
+            PGSQL["postgresql p:50<br/>:5432 (disabled)<br/>uses external"]
+        end
+
+        subgraph TIER2["Priority 90-210: Display Stack"]
+            XVFB["Xvfb p:90<br/>:1 2560x1440x24"]
+            X11VNC["x11vnc p:100<br/>:5901 -nopw"]
+            OPENBOX["openbox p:200<br/>WM"]
+            TINT2["tint2 p:210<br/>Panel"]
+        end
+
+        subgraph TIER3["Priority 300-400: Primary Services"]
+            MGMT["management-api p:300<br/>:9090"]
+            TERM["terminal-grid p:300<br/>7 kitty windows"]
+            HTTPS_B["https-bridge p:350<br/>:3001 TLS"]
+            CODE["code-server p:400<br/>:8080 --auth none"]
+        end
+
+        subgraph TIER4["Priority 500-520: MCP Stack"]
+            ZAI["claude-zai p:500<br/>:9600 user:zai-user"]
+            QGIS_M["qgis-mcp p:511"]
+            BLENDER_M["blender-mcp p:512"]
+            GW["mcp-gateway p:150<br/>TCP:9500 WS:3002"]
+        end
+
+        subgraph TIER5["Priority 600-950: Auxiliary"]
+            GEMINI["gemini-flow p:600<br/>user:gemini-user"]
+            SCRSVR["disable-screensaver p:250"]
+            TMUX["tmux-autostart p:900<br/>8 windows"]
+            HEALTH["mgmt-healthcheck p:950<br/>one-shot"]
+        end
+
+        subgraph USERS["Multi-User Isolation"]
+            direction LR
+            DEV["devuser<br/>UID:1000<br/>wheel,video,audio,docker"]
+            GEM["gemini-user<br/>UID:1001"]
+            OAI["openai-user<br/>UID:1002"]
+            ZAI_U["zai-user<br/>UID:1003"]
+            DEEP["deepseek-user<br/>UID:1004"]
+        end
+    end
+
+    SUPERVISOR --> TIER1
+    TIER1 --> TIER2
+    TIER2 --> TIER3
+    TIER3 --> TIER4
+    TIER4 --> TIER5
+
+    classDef core fill:#1e40af,stroke:#60a5fa
+    classDef display fill:#7c3aed,stroke:#a78bfa
+    classDef service fill:#0f766e,stroke:#2dd4bf
+    classDef mcp fill:#b45309,stroke:#fbbf24
+    classDef aux fill:#4b5563,stroke:#9ca3af
+    class TIER1 core
+    class TIER2 display
+    class TIER3 service
+    class TIER4 mcp
+    class TIER5 aux
+```
+
+## Deployment Modes: Monolithic vs Microservices
+
+```mermaid
+flowchart LR
+    subgraph MONO["MONOLITHIC MODE<br/>(ZAI_INTERNAL=true)"]
+        direction TB
+        AWM["agentic-workstation"]
+
+        subgraph AWM_SERVICES["All Services in One Container"]
+            SSHM[":22 SSH"]
+            VNCM[":5901 VNC"]
+            CODEM[":8080 code-server"]
+            MGMTM[":9090 Mgmt API"]
+            ZAIM[":9600 Z.AI<br/>supervisord program<br/>user: zai-user"]
+        end
+
+        AWM --> AWM_SERVICES
+    end
+
+    subgraph MICRO["MICROSERVICES MODE<br/>(ZAI_INTERNAL=false)"]
+        direction TB
+
+        subgraph RAGFLOW_NET["docker_ragflow network"]
+            direction TB
+
+            AWE["agentic-workstation<br/>Container"]
+            ZAI_EXT["claude-zai<br/>Container<br/>CachyOS aligned"]
+            RUV_PG["ruvector-postgres<br/>:5432<br/>pgvector + HNSW"]
+            COMFY["comfyui<br/>:8188"]
+
+            subgraph AWE_SVC["Workstation Services"]
+                SSH2[":22"]
+                VNC2[":5901"]
+                CODE2[":8080"]
+                MGMT2[":9090"]
+            end
+
+            subgraph ZAI_SVC["Z.AI Container"]
+                ZAI2[":9600"]
+                CLAUDE_N["node server.js"]
+            end
+        end
+
+        AWE --> AWE_SVC
+        ZAI_EXT --> ZAI_SVC
+        AWE -.->|"ZAI_URL=<br/>http://claude-zai:9600"| ZAI_EXT
+        AWE -.->|"RUVECTOR_PG_HOST=<br/>ruvector-postgres"| RUV_PG
+        AWE -.->|"COMFYUI_URL=<br/>http://comfyui:8188"| COMFY
+    end
+
+    subgraph ENV_VARS["Key Environment Variables"]
+        direction TB
+        E1["ZAI_INTERNAL=true/false<br/>Controls supervisord autostart"]
+        E2["ZAI_URL=http://localhost:9600<br/>or http://claude-zai:9600"]
+        E3["RUVECTOR_USE_EXTERNAL=true<br/>Skip local PostgreSQL init"]
+    end
+
+    classDef mono fill:#1e3a5f,stroke:#60a5fa
+    classDef micro fill:#065f46,stroke:#34d399
+    classDef env fill:#78350f,stroke:#fbbf24
+    class MONO mono
+    class MICRO micro
+    class ENV_VARS env
+```
+
+## SSH Key Handling Flow
+
+```mermaid
+flowchart TB
+    subgraph HOST["Host Machine"]
+        SSH_DIR["~/.ssh/"]
+        ID_ED["id_ed25519<br/>(private)"]
+        ID_RSA["id_rsa<br/>(private)"]
+        ID_PUB["*.pub<br/>(public)"]
+        CONFIG["config"]
+        KNOWN["known_hosts"]
+        SSH_DIR --> ID_ED & ID_RSA & ID_PUB & CONFIG & KNOWN
+    end
+
+    subgraph COMPOSE["docker-compose.unified.yml"]
+        MOUNT["volumes:<br/>- ${HOME}/.ssh:/home/devuser/.ssh-host:ro"]
+    end
+
+    subgraph CONTAINER["Container @ /home/devuser"]
+        subgraph RO_MOUNT[".ssh-host/ (READ-ONLY)"]
+            RO_ED["id_ed25519 (444)"]
+            RO_RSA["id_rsa (444)"]
+            RO_PUB["*.pub (444)"]
+            RO_CFG["config (444)"]
+            RO_KH["known_hosts (444)"]
+        end
+
+        subgraph ENTRY["entrypoint-unified.sh<br/>Phase 7.3"]
+            direction TB
+            MKDIR["mkdir -p ~/.ssh<br/>chmod 700 ~/.ssh"]
+            CP_PRIV["cp .ssh-host/id_* ~/.ssh/<br/>chmod 600"]
+            CP_PUB["cp .ssh-host/*.pub ~/.ssh/<br/>chmod 644"]
+            CP_CFG["cp .ssh-host/config ~/.ssh/<br/>chmod 600"]
+            CP_KH["cp .ssh-host/known_hosts ~/.ssh/<br/>chmod 644"]
+            SCAN["ssh-keyscan github.com<br/>>> ~/.ssh/known_hosts"]
+            CHOWN["chown devuser:devuser ~/.ssh/*"]
+        end
+
+        subgraph RW_SSH[".ssh/ (WRITABLE)"]
+            WR_ED["id_ed25519 (600)"]
+            WR_RSA["id_rsa (600)"]
+            WR_PUB["*.pub (644)"]
+            WR_CFG["config (600)"]
+            WR_KH["known_hosts (644)"]
+        end
+
+        subgraph ZSHRC[".zshrc SSH Agent Setup"]
+            AGENT["if [ -z $SSH_AUTH_SOCK ]; then<br/>  eval $(ssh-agent -s)<br/>  ssh-add ~/.ssh/id_*<br/>fi"]
+        end
+    end
+
+    SSH_DIR -->|"Bind Mount"| COMPOSE
+    COMPOSE -->|":ro flag"| RO_MOUNT
+    RO_MOUNT --> ENTRY
+    MKDIR --> CP_PRIV --> CP_PUB --> CP_CFG --> CP_KH --> SCAN --> CHOWN
+    ENTRY --> RW_SSH
+    RW_SSH --> ZSHRC
+
+    subgraph RESULT["SSH Access Ready"]
+        GIT["git clone git@github.com:..."]
+        GH["gh auth status"]
+        REMOTE["ssh user@server"]
+    end
+
+    ZSHRC --> RESULT
+
+    classDef host fill:#7c3aed,stroke:#a78bfa
+    classDef ro fill:#dc2626,stroke:#f87171
+    classDef entry fill:#2563eb,stroke:#60a5fa
+    classDef rw fill:#16a34a,stroke:#4ade80
+    class HOST host
+    class RO_MOUNT ro
+    class ENTRY entry
+    class RW_SSH rw
+```
+
+---
+
+# Claude Flow V3 Integration
+
+## RuVector PostgreSQL Memory Architecture
+
+```mermaid
+flowchart TB
+    subgraph Docker["docker_ragflow Network"]
+        subgraph PG["ruvector-postgres Container"]
+            DB[(ruvector Database)]
+
+            subgraph Tables["Core Tables"]
+                ME[("memory_entries<br/>1.17M+ rows")]
+                PR[("projects<br/>15 projects")]
+                PT[("patterns")]
+                RP[("reasoning_patterns<br/>HNSW indexed")]
+                ST[("sona_trajectories")]
+                SS[("session_state")]
+            end
+
+            subgraph Extensions["PostgreSQL Extensions"]
+                PGV["pgvector"]
+                HNSW["HNSW Index<br/>150x-12,500x faster"]
+            end
+
+            DB --> Tables
+            PGV --> HNSW
+            RP --> HNSW
+            ME --> HNSW
+        end
+    end
+
+    subgraph Container["agentic-workstation Container"]
+        subgraph EnvVars["Environment Variables"]
+            HOST["RUVECTOR_PG_HOST=ruvector-postgres"]
+            PORT["RUVECTOR_PG_PORT=5432"]
+            USER["RUVECTOR_PG_USER=ruvector"]
+            PASS["RUVECTOR_PG_PASSWORD=***"]
+            DBNAME["RUVECTOR_PG_DATABASE=ruvector"]
+            CONN["RUVECTOR_PG_CONNINFO"]
+        end
+
+        subgraph Clients["Memory Clients"]
+            CLI["claude-flow CLI<br/>memory store/search/retrieve"]
+            PSYCOPG["psycopg (Python)"]
+            AGENTS["60+ Agent Types"]
+        end
+
+        subgraph Embed["Embedding Pipeline"]
+            ONNX["ONNX Runtime"]
+            MINILM["all-MiniLM-L6-v2<br/>384 dimensions"]
+        end
+
+        EnvVars --> Clients
+        Clients --> Embed
+    end
+
+    subgraph Fallback["Fallback Strategy"]
+        LOCAL["Local PostgreSQL<br/>localhost:5432"]
+        ENTRYPOINT["entrypoint-unified.sh<br/>Auto-detection"]
+    end
+
+    Clients --> |TCP 5432| DB
+    ENTRYPOINT --> |"External unavailable"| LOCAL
+    ENTRYPOINT --> |"External available"| DB
+
+    classDef pgContainer fill:#336791,color:#fff
+    classDef table fill:#f9f9f9,stroke:#333
+    classDef extension fill:#ff6b6b,color:#fff
+    classDef client fill:#4ecdc4,color:#fff
+    classDef embed fill:#ffe66d,color:#333
+
+    class PG pgContainer
+    class ME,PR,PT,RP,ST,SS table
+    class PGV,HNSW extension
+    class CLI,PSYCOPG,AGENTS client
+    class ONNX,MINILM embed
+```
+
+## V3 Swarm Orchestration Architecture
+
+```mermaid
+flowchart TB
+    subgraph Topologies["Swarm Topologies"]
+        direction LR
+        HIER["hierarchical<br/>Queen controls workers<br/>anti-drift, 6-8 agents"]
+        MESH["mesh<br/>Fully connected peers<br/>max flexibility"]
+        HMESH["hierarchical-mesh<br/>V3 queen + peer comm<br/>10-15 agents"]
+        RING["ring<br/>Circular pattern"]
+        STAR["star<br/>Central coordinator"]
+    end
+
+    subgraph CLI["CLI Coordination Layer"]
+        INIT["swarm init<br/>--topology hierarchical<br/>--max-agents 8<br/>--strategy specialized"]
+        SPAWN["agent spawn<br/>-t coder --name X"]
+        STATUS["swarm status"]
+        ROUTE["hooks route<br/>--task 'description'"]
+    end
+
+    subgraph TaskTool["Claude Code Task Tool"]
+        direction TB
+        T1["Task: researcher<br/>run_in_background: true"]
+        T2["Task: system-architect<br/>run_in_background: true"]
+        T3["Task: coder<br/>run_in_background: true"]
+        T4["Task: tester<br/>run_in_background: true"]
+        T5["Task: reviewer<br/>run_in_background: true"]
+    end
+
+    subgraph AgentTypes["60+ Agent Specializations"]
+        subgraph Core["Core Development"]
+            CODER["coder"]
+            REVIEWER["reviewer"]
+            TESTER["tester"]
+            PLANNER["planner"]
+            RESEARCHER["researcher"]
+        end
+
+        subgraph V3Spec["V3 Specialized"]
+            SECARCH["security-architect"]
+            SECAUD["security-auditor"]
+            MEMSPEC["memory-specialist"]
+            PERFENG["performance-engineer"]
+        end
+
+        subgraph Swarm["Swarm Coordinators"]
+            HIERCOORD["hierarchical-coordinator"]
+            MESHCOORD["mesh-coordinator"]
+            ADAPTCOORD["adaptive-coordinator"]
+            COLLECTINT["collective-intelligence-coordinator"]
+        end
+    end
+
+    subgraph Routing["3-Tier Model Routing (ADR-026)"]
+        TIER1["Tier 1: Agent Booster<br/><1ms, $0<br/>var-to-const, add-types"]
+        TIER2["Tier 2: Haiku<br/>~500ms, $0.0002<br/>simple tasks, bug fixes"]
+        TIER3["Tier 3: Sonnet/Opus<br/>2-5s, $0.003-$0.015<br/>architecture, security"]
+    end
+
+    Topologies --> |"--topology"| INIT
+    INIT --> TaskTool
+    ROUTE --> Routing
+    Routing --> TaskTool
+    TaskTool --> AgentTypes
+
+    classDef topology fill:#e74c3c,color:#fff
+    classDef cli fill:#3498db,color:#fff
+    classDef task fill:#2ecc71,color:#fff
+    classDef agent fill:#9b59b6,color:#fff
+    classDef tier fill:#1abc9c,color:#fff
+
+    class HIER,MESH,HMESH,RING,STAR topology
+    class INIT,SPAWN,STATUS,ROUTE cli
+    class T1,T2,T3,T4,T5 task
+    class CODER,REVIEWER,TESTER,PLANNER,RESEARCHER,SECARCH,SECAUD,MEMSPEC,PERFENG agent
+    class TIER1,TIER2,TIER3 tier
+```
+
+## Self-Learning Hooks System (27 Hooks + 12 Workers)
+
+```mermaid
+flowchart TB
+    subgraph Lifecycle["27 Hooks - Lifecycle Events"]
+        subgraph EditHooks["Edit Hooks"]
+            PRE_EDIT["pre-edit<br/>--file, --operation"]
+            POST_EDIT["post-edit<br/>--file, --success<br/>--train-neural"]
+        end
+
+        subgraph CmdHooks["Command Hooks"]
+            PRE_CMD["pre-command<br/>--command<br/>--validate-safety"]
+            POST_CMD["post-command<br/>--command<br/>--track-metrics"]
+        end
+
+        subgraph TaskHooks["Task Hooks"]
+            PRE_TASK["pre-task<br/>--description<br/>--coordinate-swarm"]
+            POST_TASK["post-task<br/>--task-id, --success<br/>--store-results"]
+        end
+
+        subgraph SessionHooks["Session Hooks"]
+            SESS_START["session-start<br/>--session-id<br/>--auto-configure"]
+            SESS_END["session-end<br/>--generate-summary<br/>--export-metrics"]
+            SESS_REST["session-restore<br/>--session-id, --latest"]
+        end
+
+        subgraph IntelHooks["Intelligence Hooks"]
+            ROUTE["route<br/>--task, --context, --top-k"]
+            EXPLAIN["explain<br/>--topic, --detailed"]
+            PRETRAIN["pretrain<br/>--model-type moe<br/>--epochs 10"]
+        end
+    end
+
+    subgraph Workers["12 Background Workers"]
+        subgraph Critical["Critical Priority"]
+            AUDIT["audit<br/>Security analysis"]
+        end
+
+        subgraph High["High Priority"]
+            OPTIMIZE["optimize<br/>Performance tuning"]
+        end
+
+        subgraph Normal["Normal Priority"]
+            ULTRALEARN["ultralearn<br/>Deep knowledge"]
+            PREDICT["predict<br/>Predictive preload"]
+            MAP["map<br/>Codebase mapping"]
+            DEEPDIVE["deepdive<br/>Deep analysis"]
+            DOCUMENT["document<br/>Auto-docs"]
+            TESTGAPS["testgaps<br/>Coverage analysis"]
+        end
+
+        subgraph Low["Low Priority"]
+            CONSOLIDATE["consolidate<br/>Memory cleanup"]
+            PRELOAD["preload<br/>Resource preload"]
+        end
+    end
+
+    subgraph Pipeline["RuVector Intelligence Pipeline"]
+        direction LR
+        RETRIEVE["1. RETRIEVE<br/>HNSW vector search<br/>150x-12,500x faster"]
+        JUDGE["2. JUDGE<br/>Evaluate patterns<br/>success/failure verdicts"]
+        DISTILL["3. DISTILL<br/>Extract learnings<br/>LoRA fine-tuning"]
+        CONSOLIDATE_P["4. CONSOLIDATE<br/>EWC++ prevents<br/>catastrophic forgetting"]
+
+        RETRIEVE --> JUDGE --> DISTILL --> CONSOLIDATE_P
+    end
+
+    subgraph Components["Intelligence Components"]
+        SONA["SONA<br/>Self-Optimizing Neural<br/><0.05ms adaptation"]
+        MOE["MoE<br/>Mixture of Experts<br/>Specialized routing"]
+        HNSW_C["HNSW Index<br/>Fast pattern search"]
+        EWC["EWC++<br/>Weight consolidation"]
+        FLASH["Flash Attention<br/>2.49x-7.47x speedup"]
+    end
+
+    Lifecycle --> |"triggers"| Workers
+    Workers --> |"dispatches"| Pipeline
+    Pipeline --> Components
+
+    POST_EDIT --> |"--train-neural"| SONA
+    PRE_TASK --> |"routing"| MOE
+
+    classDef hook fill:#3498db,color:#fff
+    classDef worker fill:#e74c3c,color:#fff
+    classDef pipeline fill:#2ecc71,color:#fff
+    classDef component fill:#9b59b6,color:#fff
+
+    class PRE_EDIT,POST_EDIT,PRE_CMD,POST_CMD,PRE_TASK,POST_TASK,SESS_START,SESS_END,SESS_REST,ROUTE,EXPLAIN,PRETRAIN hook
+    class AUDIT,OPTIMIZE,ULTRALEARN,PREDICT,MAP,DEEPDIVE,DOCUMENT,TESTGAPS,CONSOLIDATE,PRELOAD worker
+    class RETRIEVE,JUDGE,DISTILL,CONSOLIDATE_P pipeline
+    class SONA,MOE,HNSW_C,EWC,FLASH component
+```
+
+## Complete System Integration Sequence
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Claude as Claude Code
+    participant CLI as claude-flow CLI
+    participant Hooks as Hooks System
+    participant Workers as Background Workers
+    participant Task as Task Tool
+    participant Agents as Agent Pool (60+)
+    participant Memory as Memory Layer
+    participant PG as ruvector-postgres
+    participant HNSW as HNSW Index
+
+    Note over User,HNSW: Task Initiation Phase
+    User->>Claude: Request complex task
+
+    Claude->>CLI: swarm init --topology hierarchical --max-agents 8 --strategy specialized
+    CLI->>Memory: Initialize swarm state
+
+    Claude->>Hooks: hooks pre-task --description "task"
+    Hooks->>HNSW: Search patterns (150x-12,500x faster)
+    HNSW->>PG: Vector similarity query
+    PG-->>HNSW: reasoning_patterns results
+    HNSW-->>Hooks: Matched patterns + routing
+
+    Note over Hooks,Agents: 3-Tier Model Routing
+    alt Tier 1: Agent Booster
+        Hooks-->>Claude: [AGENT_BOOSTER_AVAILABLE] var-to-const
+        Claude->>Claude: Direct Edit tool (skip LLM)
+    else Tier 2: Haiku
+        Hooks-->>Claude: [TASK_MODEL_RECOMMENDATION] model="haiku"
+        Claude->>Task: Task(..., model: "haiku")
+    else Tier 3: Sonnet/Opus
+        Hooks-->>Claude: [TASK_MODEL_RECOMMENDATION] model="opus"
+        Claude->>Task: Task(..., model: "opus")
+    end
+
+    Note over Claude,Agents: Parallel Agent Spawning
+    par Background Execution
+        Claude->>Task: Task(researcher, run_in_background: true)
+        Task->>Agents: Spawn researcher
+
+        Claude->>Task: Task(system-architect, run_in_background: true)
+        Task->>Agents: Spawn architect
+
+        Claude->>Task: Task(coder, run_in_background: true)
+        Task->>Agents: Spawn coder
+
+        Claude->>Task: Task(tester, run_in_background: true)
+        Task->>Agents: Spawn tester
+
+        Claude->>Task: Task(reviewer, run_in_background: true)
+        Task->>Agents: Spawn reviewer
+    end
+
+    Claude-->>User: "Spawned 5 agents working in parallel..."
+
+    Note over Agents,PG: Agent Memory Operations
+    loop Each Agent
+        Agents->>CLI: memory search --query "relevant patterns"
+        CLI->>PG: SELECT with embedding_json <=> vector
+        PG-->>CLI: Matched entries
+        CLI-->>Agents: Context from patterns namespace
+
+        Agents->>Agents: Execute specialized task
+
+        Agents->>CLI: memory store --key "result" --namespace results
+        CLI->>PG: INSERT INTO memory_entries
+    end
+
+    Note over Task,PG: Results Aggregation
+    Agents-->>Task: Complete with results
+    Task-->>Claude: All agents completed
+
+    Note over Claude,PG: Learning Phase
+    Claude->>Hooks: hooks post-task --task-id X --success true --store-results true
+    Hooks->>PG: Store in sona_trajectories
+
+    Claude->>Hooks: hooks post-edit --file "main.ts" --train-neural true
+    Hooks->>Workers: Trigger neural training
+
+    Note over Workers,HNSW: Background Learning
+    Workers->>PG: Retrieve sona_trajectories
+    Workers->>Workers: RETRIEVE -> JUDGE -> DISTILL -> CONSOLIDATE
+    Workers->>PG: Update reasoning_patterns
+    Workers->>HNSW: Rebuild index with new patterns
+
+    Claude->>CLI: memory store --namespace patterns --key "approach" --value "what worked"
+    CLI->>PG: INSERT with embedding_json
+
+    Claude-->>User: Synthesized results + learnings stored
+```
+
+---
+
+# VisionFlow Core Architecture
 
 ## Source: README.md (Diagram 1)
 
