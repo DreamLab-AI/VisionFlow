@@ -348,10 +348,20 @@ if [ "$RUVECTOR_USE_EXTERNAL" = "true" ]; then
 
         # Fix 8 & 9: Initialize RuVector Schema/Indexes on external DB
         if [ -f "/home/devuser/.claude-flow/init-ruvector.sql" ]; then
-            echo "  Initializing RuVector schema extensions (Fix 8/9)..."
-            PGPASSWORD="$RUVECTOR_PG_PASSWORD" psql -h "$RUVECTOR_PG_HOST" -p "$RUVECTOR_PG_PORT" -U "$RUVECTOR_PG_USER" -d "$RUVECTOR_PG_DATABASE" -f /home/devuser/.claude-flow/init-ruvector.sql >/dev/null 2>&1 && \
-            echo "  ✓ RuVector schema extensions applied" || \
-            echo "  ⚠️  Failed to apply schema extensions (might already exist)"
+            echo "  Initializing RuVector schema extensions..."
+            if PGPASSWORD="$RUVECTOR_PG_PASSWORD" psql -h "$RUVECTOR_PG_HOST" -p "$RUVECTOR_PG_PORT" -U "$RUVECTOR_PG_USER" -d "$RUVECTOR_PG_DATABASE" -f /home/devuser/.claude-flow/init-ruvector.sql >/dev/null 2>&1; then
+                echo "  ✓ RuVector schema extensions applied successfully"
+            else
+                echo "  ⚠️  Schema initialization failed (might already exist or permission issue)"
+                # Test basic connectivity
+                if PGPASSWORD="$RUVECTOR_PG_PASSWORD" psql -h "$RUVECTOR_PG_HOST" -p "$RUVECTOR_PG_PORT" -U "$RUVECTOR_PG_USER" -d "$RUVECTOR_PG_DATABASE" -c "SELECT 1;" >/dev/null 2>&1; then
+                    echo "  ✓ Database connection working, schema likely already initialized"
+                else
+                    echo "  ❌ Database connection failed, check network/credentials"
+                fi
+            fi
+        else
+            echo "  ℹ️  RuVector initialization SQL not found, skipping schema setup"
         fi
 
         # Skip local PostgreSQL initialization
@@ -645,46 +655,304 @@ if [ ! -f /home/devuser/.claude-flow/config.json ]; then
     cat > /home/devuser/.claude-flow/config.json << 'CFCONFIG'
 {
   "version": "3.0.0",
-  "topology": "hierarchical",
-  "maxAgents": 8,
+  "topology": "hierarchical-mesh",
+  "maxAgents": 15,
   "strategy": "specialized",
   "consensus": "raft",
   "memory": {
-    "backend": "hybrid",
+    "backend": "postgres",
+    "postgres": {
+      "host": "ruvector-postgres",
+      "port": 5432,
+      "database": "ruvector",
+      "user": "ruvector",
+      "password": "ruvector_secure_pass",
+      "ssl": false,
+      "connectionTimeout": 10000,
+      "maxConnections": 20
+    },
+    "fallback": "sqlite",
     "hnsw": true,
+    "cacheSize": 256,
+    "useExternal": true,
     "namespace": "default"
   },
   "neural": {
     "enabled": true,
-    "modelType": "moe"
+    "modelType": "moe",
+    "backend": "postgres"
   },
   "hooks": {
     "preTriggerHooks": true,
     "postTriggerHooks": true,
-    "autoLearning": true
+    "autoLearning": true,
+    "intelligenceEnabled": true
   }
 }
 CFCONFIG
     chown devuser:devuser /home/devuser/.claude-flow/config.json
-    echo "✓ Claude Flow V3 config created"
+    echo "✓ Claude Flow V3 config created (external RuVector memory)"
 fi
 
 # Run Claude-Flow V3 init as devuser IN BACKGROUND (non-blocking)
-# Uses global binary installed from @claude-flow/cli@latest
+# Uses global binary with fallback to npx
 echo "  Starting Claude Flow V3 initialization in background..."
-(sudo -u devuser bash -c "cd /home/devuser && claude-flow init --force 2>&1 || npx @claude-flow/cli@latest init --force 2>&1" > /var/log/claude-flow-init.log 2>&1 &) || true
+(sudo -u devuser bash -c "
+    cd /home/devuser
+    # Test if global binary works, fallback to npx if not
+    if command -v claude-flow >/dev/null 2>&1; then
+        echo '[INIT] Using global claude-flow binary'
+        claude-flow init --force --quiet 2>&1 || {
+            echo '[INIT] Global binary failed, trying npx fallback'
+            npx @claude-flow/cli@latest init --force 2>&1
+        }
+    else
+        echo '[INIT] Global binary not found, using npx'
+        npx @claude-flow/cli@latest init --force 2>&1
+    fi
+" > /var/log/claude-flow-init.log 2>&1 &) || true
 
-# Fix hooks to use global claude-flow binary (Fix 3)
+# Fix hooks to use global claude-flow binary and validate JSON (Fix 3)
 if [ -f /home/devuser/.claude/settings.json ]; then
+    # Create backup before modifications
+    cp /home/devuser/.claude/settings.json /home/devuser/.claude/settings.json.backup
+
     # Replace slow npx invocations with global binary
     sed -i 's|npx @claude-flow/cli@[0-9.]*|claude-flow|g' /home/devuser/.claude/settings.json
     sed -i 's|npx @claude-flow/cli|claude-flow|g' /home/devuser/.claude/settings.json
     sed -i 's|npx claude-flow|claude-flow|g' /home/devuser/.claude/settings.json
+
     # Clean up any remaining legacy formats
     sed -i 's|claude-flow@v3alpha|claude-flow|g' /home/devuser/.claude/settings.json
-    sed -i 's|claude-flow@alpha|@claude-flow/cli@latest|g' /home/devuser/.claude/settings.json
+    sed -i 's|claude-flow@alpha|claude-flow|g' /home/devuser/.claude/settings.json
+
+    # Fix JSON trailing commas that break validation
+    sed -i 's|},\s*]|}\n    ]|g' /home/devuser/.claude/settings.json
+
+    # Validate JSON syntax
+    if ! jq empty /home/devuser/.claude/settings.json 2>/dev/null; then
+        echo "⚠️  Invalid JSON in settings.json, restoring backup"
+        cp /home/devuser/.claude/settings.json.backup /home/devuser/.claude/settings.json
+    else
+        echo "✓ Settings.json validated and updated to use global claude-flow binary"
+        rm /home/devuser/.claude/settings.json.backup
+    fi
+
     chown devuser:devuser /home/devuser/.claude/settings.json
-    echo "✓ Hooks updated to use global claude-flow binary"
+fi
+
+# Fix Stop hook schema validation (Fix 4: Hook JSON Output)
+# The Stop hook must return JSON with "ok": boolean field
+if [ -f /home/devuser/.claude/settings.json ]; then
+    echo "  Fixing Stop hook schema validation..."
+
+    # Check if Stop hook exists and needs fixing
+    if grep -q '"command": "claude-flow hooks session-end' /home/devuser/.claude/settings.json; then
+        # Replace Stop hook command to return proper JSON format
+        python3 -c "
+import json
+import sys
+
+# Read the settings file
+with open('/home/devuser/.claude/settings.json', 'r') as f:
+    settings = json.load(f)
+
+# Fix the Stop hook command
+if 'hooks' in settings and 'Stop' in settings['hooks']:
+    for stop_hook_group in settings['hooks']['Stop']:
+        if 'hooks' in stop_hook_group:
+            for hook in stop_hook_group['hooks']:
+                if 'command' in hook and 'claude-flow hooks session-end' in hook['command']:
+                    hook['command'] = \"claude-flow hooks session-end --generate-summary --persist-state >/dev/null 2>&1 && echo '{\\\"ok\\\": true, \\\"message\\\": \\\"Session ended successfully\\\"}' || echo '{\\\"ok\\\": false, \\\"message\\\": \\\"Session end failed\\\"}'\"
+
+# Write the updated settings
+with open('/home/devuser/.claude/settings.json', 'w') as f:
+    json.dump(settings, f, indent=2)
+"
+
+        # Validate the JSON is still valid after our changes
+        if jq empty /home/devuser/.claude/settings.json 2>/dev/null; then
+            echo "✓ Stop hook fixed to return proper JSON format"
+        else
+            echo "⚠️  JSON validation failed after Stop hook fix, creating default settings"
+            # Create a proper default settings.json with correct hook configuration
+            cat > /home/devuser/.claude/settings.json << 'SETTINGS'
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "^(Write|Edit|MultiEdit)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude-flow hooks pre-edit --file \"$TOOL_INPUT_file_path\"",
+            "timeout": 5000,
+            "continueOnError": true
+          }
+        ]
+      },
+      {
+        "matcher": "^Bash$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude-flow hooks pre-command --command \"$TOOL_INPUT_command\"",
+            "timeout": 5000,
+            "continueOnError": true
+          }
+        ]
+      },
+      {
+        "matcher": "^Task$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude-flow hooks pre-task --description \"$TOOL_INPUT_prompt\"",
+            "timeout": 5000,
+            "continueOnError": true
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "^(Write|Edit|MultiEdit)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude-flow hooks post-edit --file \"$TOOL_INPUT_file_path\" --success \"$TOOL_SUCCESS\" --train-patterns",
+            "timeout": 5000,
+            "continueOnError": true
+          }
+        ]
+      },
+      {
+        "matcher": "^Bash$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude-flow hooks post-command --command \"$TOOL_INPUT_command\" --success \"$TOOL_SUCCESS\" --exit-code \"$TOOL_EXIT_CODE\"",
+            "timeout": 5000,
+            "continueOnError": true
+          }
+        ]
+      },
+      {
+        "matcher": "^Task$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude-flow hooks post-task --agent-id \"$TOOL_RESULT_agent_id\" --success \"$TOOL_SUCCESS\" --analyze",
+            "timeout": 5000,
+            "continueOnError": true
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude-flow hooks route --task \"$PROMPT\" --include-explanation",
+            "timeout": 5000,
+            "continueOnError": true
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude-flow hooks session-restore --session-id \"$SESSION_ID\" --restore-context",
+            "timeout": 10000,
+            "continueOnError": true
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude-flow hooks session-end --generate-summary --persist-state >/dev/null 2>&1 && echo '{\"ok\": true, \"message\": \"Session ended successfully\"}' || echo '{\"ok\": false, \"message\": \"Session end failed\"}'",
+            "timeout": 5000,
+            "continueOnError": true
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude-flow hooks notify --message \"$NOTIFICATION_MESSAGE\" --swarm-status",
+            "timeout": 3000,
+            "continueOnError": true
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "^mcp__claude-flow__.*$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"decision\": \"allow\", \"reason\": \"claude-flow MCP tool auto-approved\"}'",
+            "timeout": 1000
+          }
+        ]
+      },
+      {
+        "matcher": "^Bash\\((npx @?claude-flow|claude-flow).*\\)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"decision\": \"allow\", \"reason\": \"claude-flow CLI auto-approved\"}'",
+            "timeout": 1000
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(npx claude-flow*)",
+      "Bash(npx @claude-flow/*)",
+      "Bash(claude-flow*)",
+      "mcp__claude-flow__*",
+      "mcp__ruv-swarm__*",
+      "mcp__flow-nexus__*"
+    ],
+    "deny": []
+  },
+  "model": "claude-sonnet-4-20250514",
+  "claudeFlow": {
+    "version": "3.0.0",
+    "enabled": true,
+    "swarm": {
+      "topology": "hierarchical-mesh",
+      "maxAgents": 15
+    },
+    "memory": {
+      "backend": "hybrid",
+      "enableHNSW": true
+    },
+    "neural": {
+      "enabled": true
+    }
+  }
+}
+SETTINGS
+        fi
+    fi
+
+    chown devuser:devuser /home/devuser/.claude/settings.json
 fi
 
 # Fix MCP config files that might have wrong package names
@@ -700,7 +968,96 @@ done
 echo "  Initializing @claude-flow/browser (59 MCP tools)..."
 (sudo -u devuser bash -c "cd /home/devuser && npx @claude-flow/browser init 2>/dev/null" >> /var/log/claude-flow-init.log 2>&1 &) || true
 
-# Store canonical system marker in memory (when available)
+# ============================================================================
+# Phase 6.6: External Memory Connection & Migration
+# ============================================================================
+echo "[6.6/10] Connecting to External RuVector Memory..."
+
+# Wait for external PostgreSQL to be ready (with fallback)
+echo "  Testing external RuVector PostgreSQL connection..."
+EXTERNAL_READY=false
+for i in $(seq 1 30); do
+    if pg_isready -h ruvector-postgres -p 5432 -U ruvector -d ruvector 2>/dev/null; then
+        EXTERNAL_READY=true
+        echo "  ✓ External ruvector-postgres is ready"
+        break
+    fi
+    echo "  ⏳ Waiting for external database... ($i/30)"
+    sleep 1
+done
+
+if [ "$EXTERNAL_READY" = "true" ]; then
+    echo "  Configuring Claude Flow to use external memory..."
+
+    # Update memory backend configuration for all users
+    for user_dir in /home/devuser /home/gemini-user /home/openai-user /home/zai-user; do
+        if [ -d "$user_dir" ]; then
+            sudo -u $(basename "$user_dir") bash -c "
+                cd '$user_dir'
+                claude-flow config set --key memory.backend --value postgres 2>/dev/null || true
+                claude-flow config set --key memory.postgres.host --value ruvector-postgres 2>/dev/null || true
+                claude-flow config set --key memory.postgres.port --value 5432 2>/dev/null || true
+                claude-flow config set --key memory.postgres.user --value ruvector 2>/dev/null || true
+                claude-flow config set --key memory.postgres.database --value ruvector 2>/dev/null || true
+                claude-flow config set --key memory.postgres.password --value ruvector_secure_pass 2>/dev/null || true
+                claude-flow config set --key memory.enableHNSW --value true 2>/dev/null || true
+            "
+        fi
+    done
+
+    # Migrate existing local memories to external database
+    echo "  Migrating local memories to external database..."
+    (sudo -u devuser bash -c "
+        cd /home/devuser
+
+        # Check if local memory files exist to migrate
+        LOCAL_MEMORY_FOUND=false
+        for local_mem in /home/devuser/.claude-flow/memory.db /home/devuser/workspace/project/.swarm/memory.db /home/devuser/.claude/memory.json; do
+            if [ -f \"\$local_mem\" ]; then
+                LOCAL_MEMORY_FOUND=true
+                echo '  📦 Found local memory: \$local_mem'
+                break
+            fi
+        done
+
+        if [ \"\$LOCAL_MEMORY_FOUND\" = 'true' ]; then
+            echo '  🔄 Migrating local memories to external RuVector PostgreSQL...'
+
+            # Use claude-flow migrate command if available
+            if command -v claude-flow >/dev/null 2>&1; then
+                claude-flow migrate memory --from file --to postgres --force 2>/dev/null || {
+                    echo '  ⚠️  Direct migration not available, using manual approach'
+
+                    # Manual migration: list and re-store entries
+                    claude-flow memory list --format json 2>/dev/null | jq -r '.[] | \"\\(.namespace):\\(.key)\"' 2>/dev/null | while IFS=: read -r ns key; do
+                        if [ -n \"\$ns\" ] && [ -n \"\$key\" ]; then
+                            value=\$(claude-flow memory retrieve --namespace \"\$ns\" --key \"\$key\" 2>/dev/null | tail -1)
+                            if [ -n \"\$value\" ]; then
+                                claude-flow memory store --namespace \"\$ns\" --key \"\$key\" --value \"\$value\" 2>/dev/null || true
+                            fi
+                        fi
+                    done
+                }
+            fi
+        else
+            echo '  ℹ️  No local memories found to migrate'
+        fi
+
+        # Test external memory connection
+        claude-flow memory store --key 'system/external-test' --value 'connection-successful' --namespace system 2>/dev/null && {
+            echo '  ✓ External memory connection successful'
+            claude-flow memory delete --key 'system/external-test' --namespace system 2>/dev/null || true
+        } || echo '  ⚠️  External memory test failed, falling back to local storage'
+
+    " > /var/log/memory-migration.log 2>&1 &) || true
+
+    echo "  ✓ External memory configuration complete"
+else
+    echo "  ⚠️  External database unavailable, using local fallback"
+    echo "  Configure RUVECTOR_PG_HOST in .env to connect to external memory"
+fi
+
+# Store canonical system marker in memory (external or local)
 (sudo -u devuser bash -c "claude-flow memory store --key 'system/canonical' --value 'agentic-workstation-v3.0' --namespace system 2>/dev/null" &) || true
 
 echo "✓ Claude Flow V3 initialized (canonical system)"

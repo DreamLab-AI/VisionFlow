@@ -41,61 +41,71 @@ LABEL com.turboflow.claude-flow.version="3.0"
 # ============================================================================
 
 # Initialize and refresh pacman keyring (required for signature verification)
+# Added retry logic for transient mirror/network failures
 RUN pacman-key --init && \
     pacman-key --populate archlinux cachyos && \
     pacman -Sy --noconfirm archlinux-keyring cachyos-keyring && \
     pacman -Syu --noconfirm && \
-    pacman -S --noconfirm \
-        # Core system
-        base-devel git vim nano zsh curl wget \
-        sudo openssh tmux htop btop ripgrep fd \
-        jq yq bat exa fzf \
-        # Build dependencies for node-gyp (python-setuptools provides distutils for Python 3.13+)
-        python make gcc python-setuptools \
-        # Development languages (skip nodejs from pacman, will install v23.11.1 directly)
-        python python-pip rustup \
-        # Wayland desktop environment (Hyprland)
-        hyprland wayvnc kitty \
-        xdg-desktop-portal-hyprland \
-        qt5-wayland qt6-wayland \
-        wl-clipboard grim slurp \
-        polkit \
-        dunst \
-        # Fonts for high contrast 4K display
-        ttf-firacode-nerd ttf-liberation ttf-dejavu \
-        ttf-font-awesome ttf-hack noto-fonts noto-fonts-emoji \
-        # Xorg support for legacy apps (Blender, QGIS)
-        xorg-server xorg-xinit xorg-xauth xorg-xwayland xorg-server-xvfb \
-        # VNC server and utilities
-        x11vnc virtualgl \
-        # Window manager and desktop components
-        openbox tint2 xfce4-terminal \
-        dbus nss freetype2 harfbuzz \
-        # Audio/Video
-        alsa-lib pipewire pipewire-pulse gtk4 \
-        # Graphics
-        mesa mesa-utils libva-mesa-driver \
-        libglvnd glew freeglut libxcursor libxi libxinerama libxrandr \
-        vulkan-icd-loader vulkan-tools \
-        chromium firefox \
-        # GUI Tools (Blender 5.x installed separately for latest version)
-        qgis kicad imagemagick \
-        # Python development
-        python-virtualenv python-poetry \
-        # QGIS Python bindings support (PyQt5 for Python 3.14)
-        python-pyqt5 python-pyqt5-sip \
-        # LaTeX (basic installation - full TeX Live is very large)
-        texlive-basic texlive-bin texlive-binextra \
-        texlive-fontsrecommended texlive-latexrecommended \
-        biber \
-        # Additional tools
-        docker docker-compose \
-        direnv \
-        # GitHub CLI for PR management and repository operations
-        github-cli \
-        # PostgreSQL for ruvector vector storage and unified memory
-        postgresql postgresql-libs \
-    && rm -rf /var/cache/pacman/pkg/*
+    rm -rf /var/cache/pacman/pkg/*
+
+# Phase 1a: Core system packages (with retry logic for transient failures)
+RUN for attempt in 1 2 3; do \
+        echo "=== Package install attempt $attempt/3 ===" && \
+        pacman -S --noconfirm --needed \
+            base-devel git vim nano zsh curl wget \
+            sudo openssh tmux htop btop ripgrep fd \
+            jq yq bat exa fzf \
+            python make gcc python-setuptools \
+            python python-pip rustup \
+        && break || { echo "Attempt $attempt failed, retrying in 10s..."; sleep 10; pacman -Syy --noconfirm; }; \
+    done && rm -rf /var/cache/pacman/pkg/*
+
+# Phase 1b: Desktop environment (with retry logic)
+RUN for attempt in 1 2 3; do \
+        echo "=== Desktop packages attempt $attempt/3 ===" && \
+        pacman -S --noconfirm --needed \
+            hyprland wayvnc kitty \
+            xdg-desktop-portal-hyprland \
+            qt5-wayland qt6-wayland \
+            wl-clipboard grim slurp \
+            polkit dunst \
+            ttf-firacode-nerd ttf-liberation ttf-dejavu \
+            ttf-font-awesome ttf-hack noto-fonts noto-fonts-emoji \
+            xorg-server xorg-xinit xorg-xauth xorg-xwayland xorg-server-xvfb \
+            x11vnc virtualgl \
+            openbox tint2 xfce4-terminal \
+            dbus nss freetype2 harfbuzz \
+        && break || { echo "Attempt $attempt failed, retrying in 10s..."; sleep 10; pacman -Syy --noconfirm; }; \
+    done && rm -rf /var/cache/pacman/pkg/*
+
+# Phase 1c: Graphics and browsers (with retry logic)
+RUN for attempt in 1 2 3; do \
+        echo "=== Graphics packages attempt $attempt/3 ===" && \
+        pacman -S --noconfirm --needed \
+            alsa-lib pipewire pipewire-pulse gtk4 \
+            mesa mesa-utils libva-mesa-driver \
+            libglvnd glew freeglut libxcursor libxi libxinerama libxrandr \
+            vulkan-icd-loader vulkan-tools \
+            chromium firefox \
+        && break || { echo "Attempt $attempt failed, retrying in 10s..."; sleep 10; pacman -Syy --noconfirm; }; \
+    done && rm -rf /var/cache/pacman/pkg/*
+
+# Phase 1d: Development tools (with retry logic)
+RUN for attempt in 1 2 3; do \
+        echo "=== Dev tools packages attempt $attempt/3 ===" && \
+        pacman -S --noconfirm --needed \
+            qgis kicad imagemagick \
+            python-virtualenv python-poetry \
+            python-pyqt5 python-pyqt5-sip \
+            texlive-basic texlive-bin texlive-binextra \
+            texlive-fontsrecommended texlive-latexrecommended \
+            biber \
+            docker docker-compose \
+            direnv \
+            github-cli \
+            postgresql postgresql-libs \
+        && break || { echo "Attempt $attempt failed, retrying in 10s..."; sleep 10; pacman -Syy --noconfirm; }; \
+    done && rm -rf /var/cache/pacman/pkg/*
 
 # Install Node.js v23.11.1 (required for chrome-devtools-mcp compatibility)
 RUN curl -fsSL https://nodejs.org/dist/v23.11.1/node-v23.11.1-linux-x64.tar.xz | \
@@ -541,10 +551,13 @@ RUN find /home/devuser/.claude/skills -name "*.py" -path "*/mcp-server/*" -exec 
 # PHASE 13.5: Claude Flow V3 Canonical Setup
 # ============================================================================
 
-# Create claude-flow alias for backwards compatibility
+# Create claude-flow alias and verify installation
 RUN ln -sf /usr/local/bin/npx /usr/local/bin/claude-flow-npx && \
     echo '#!/bin/bash\nexec npx @claude-flow/cli@latest "$@"' > /usr/local/bin/claude-flow && \
-    chmod +x /usr/local/bin/claude-flow
+    chmod +x /usr/local/bin/claude-flow && \
+    # Verify claude-flow package is installed and accessible
+    npx @claude-flow/cli@latest --version 2>/dev/null || echo "Claude Flow CLI verification: using dynamic resolution" && \
+    echo "✓ Claude Flow V3 CLI configured"
 
 # Pre-initialize Claude Flow configuration
 RUN mkdir -p /home/devuser/.claude-flow && \

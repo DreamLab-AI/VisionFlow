@@ -7,9 +7,23 @@
       "port": 5432,
       "database": "ruvector",
       "user": "ruvector",
-      "password": "ruvector_secure_pass"
+      "password": "ruvector_secure_pass",
+      "ssl": false,
+      "connectionTimeout": 10000,
+      "maxConnections": 20
     },
     "fallback": "sqlite",
-    "enableHNSW": true
+    "enableHNSW": true,
+    "cacheSize": 256,
+    "useExternal": true
+  },
+  "swarm": {
+    "topology": "hierarchical-mesh",
+    "maxAgents": 15,
+    "strategy": "specialized"
+  },
+  "neural": {
+    "enabled": true,
+    "backend": "postgres"
   }
 }
