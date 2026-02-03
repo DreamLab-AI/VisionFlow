@@ -650,6 +650,16 @@ rm -rf /root/.npm/_npx/* 2>/dev/null || true
 mkdir -p /home/devuser/.claude-flow
 chown -R devuser:devuser /home/devuser/.claude-flow
 
+# Fix 7: Create proper claude-flow wrapper script (prevents shebang corruption)
+# The npm-installed cli.js can have corrupted shebangs with literal \n characters
+echo "  Creating claude-flow wrapper script (Fix 7: shebang corruption prevention)..."
+cat > /usr/local/bin/claude-flow << 'CFWRAPPER'
+#!/bin/bash
+exec npx @claude-flow/cli@latest "$@"
+CFWRAPPER
+chmod +x /usr/local/bin/claude-flow
+echo "  ✓ claude-flow wrapper installed at /usr/local/bin/claude-flow"
+
 # Create canonical claude-flow config if not exists
 if [ ! -f /home/devuser/.claude-flow/config.json ]; then
     cat > /home/devuser/.claude-flow/config.json << 'CFCONFIG'
