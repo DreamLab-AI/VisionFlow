@@ -686,6 +686,10 @@ COPY --chown=devuser:devuser multi-agent-docker/unified-config/claude-flow-confi
 # Copy RuVector Initialization SQL
 COPY --chown=devuser:devuser multi-agent-docker/unified-config/init-ruvector.sql /home/devuser/.claude-flow/init-ruvector.sql
 
+# Copy Statusline with Guidance Indicator (Fix 6: Guidance Control Plane)
+RUN mkdir -p /opt/unified-config
+COPY --chown=root:root multi-agent-docker/unified-config/statusline.sh /opt/unified-config/statusline.sh
+
 # ============================================================================
 # AISP 5.1 Platinum Integration Module
 # Neuro-symbolic AI-to-AI protocol with Hebbian learning and pocket architecture

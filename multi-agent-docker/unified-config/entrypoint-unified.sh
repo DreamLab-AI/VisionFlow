@@ -796,6 +796,12 @@ with open('/home/devuser/.claude/settings.json', 'w') as f:
         "hooks": [
           {
             "type": "command",
+            "command": "claude-flow guidance gates --command \"$TOOL_INPUT_command\" 2>/dev/null || true",
+            "timeout": 3000,
+            "continueOnError": true
+          },
+          {
+            "type": "command",
             "command": "claude-flow hooks pre-command --command \"$TOOL_INPUT_command\"",
             "timeout": 5000,
             "continueOnError": true
@@ -857,6 +863,12 @@ with open('/home/devuser/.claude/settings.json', 'w') as f:
             "command": "claude-flow hooks route --task \"$PROMPT\" --include-explanation",
             "timeout": 5000,
             "continueOnError": true
+          },
+          {
+            "type": "command",
+            "command": "claude-flow guidance retrieve --task \"$PROMPT\" 2>/dev/null || true",
+            "timeout": 3000,
+            "continueOnError": true
           }
         ]
       }
@@ -864,6 +876,12 @@ with open('/home/devuser/.claude/settings.json', 'w') as f:
     "SessionStart": [
       {
         "hooks": [
+          {
+            "type": "command",
+            "command": "claude-flow guidance compile 2>/dev/null || true",
+            "timeout": 5000,
+            "continueOnError": true
+          },
           {
             "type": "command",
             "command": "claude-flow hooks session-restore --session-id \"$SESSION_ID\" --restore-context",
@@ -967,6 +985,72 @@ done
 # Initialize @claude-flow/browser for AI-optimized browser automation
 echo "  Initializing @claude-flow/browser (59 MCP tools)..."
 (sudo -u devuser bash -c "cd /home/devuser && npx @claude-flow/browser init 2>/dev/null" >> /var/log/claude-flow-init.log 2>&1 &) || true
+
+# Initialize @claude-flow/guidance for typed constitution and task-scoped shards
+echo "  Initializing @claude-flow/guidance (Control Plane)..."
+(sudo -u devuser bash -c "cd /home/devuser && npm install @claude-flow/guidance@alpha 2>/dev/null" >> /var/log/claude-flow-init.log 2>&1 &) || true
+
+# Compile CLAUDE.md into typed constitution
+echo "  Compiling CLAUDE.md into policy bundle..."
+(sudo -u devuser bash -c "cd /home/devuser/workspace/project && npx @claude-flow/cli@latest guidance compile 2>/dev/null" >> /var/log/claude-flow-init.log 2>&1 &) || true
+
+# Create CLAUDE.local.md template for local experiments
+if [ ! -f /home/devuser/workspace/project/CLAUDE.local.md ]; then
+    cat > /home/devuser/workspace/project/CLAUDE.local.md << 'LOCALMD'
+# CLAUDE.local.md - Local Experiments & Private Context
+
+> This file overlays CLAUDE.md with local experiments and private context.
+> When a local rule measurably improves outcomes, promote it to CLAUDE.md with an ADR.
+> When it fails, it stays local.
+
+## Active Experiments
+
+### Experiment: Guidance Control Plane
+**Status**: 🔬 TESTING
+**Hypothesis**: Typed constitution with task-scoped shards improves long-horizon autonomy
+**Metrics to track**:
+- Autonomy duration before intervention
+- Cost per successful outcome
+- Tool/memory operation reliability
+- Runaway loop self-termination rate
+
+## Pending Experiments
+
+_Add new experiments here with hypothesis and metrics_
+
+## Local Overrides
+
+### Memory Backend
+- Use external RuVector PostgreSQL for all agent coordination
+- CLI memory commands are for debugging only
+
+### Hook Configuration
+- Stop hooks MUST return `{"ok": boolean}` JSON format
+- All hooks should use `|| true` fallback for resilience
+
+## Private Context
+
+### Container Environment
+- Container: turbo-flow-unified
+- External memory: ruvector-postgres:5432
+- Docker network: docker_ragflow
+
+### Known Issues
+- supervisorctl requires sudo in this container
+- npx calls are slower than global claude-flow binary
+LOCALMD
+    chown devuser:devuser /home/devuser/workspace/project/CLAUDE.local.md
+    echo "  ✓ Created CLAUDE.local.md template for local experiments"
+fi
+
+# Copy statusline with guidance indicator to project .claude directory
+mkdir -p /home/devuser/workspace/project/.claude
+if [ -f /opt/unified-config/statusline.sh ]; then
+    cp /opt/unified-config/statusline.sh /home/devuser/workspace/project/.claude/statusline.sh
+    chmod +x /home/devuser/workspace/project/.claude/statusline.sh
+    chown devuser:devuser /home/devuser/workspace/project/.claude/statusline.sh
+    echo "  ✓ Installed statusline.sh with guidance indicator"
+fi
 
 # ============================================================================
 # Phase 6.6: External Memory Connection & Migration
