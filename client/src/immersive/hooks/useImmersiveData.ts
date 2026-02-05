@@ -1,7 +1,10 @@
-import { useEffect, useRef, useState, useContext } from 'react';
+import { useEffect, useState } from 'react';
 import { graphDataManager } from '../../features/graph/managers/graphDataManager';
 import { useSettingsStore } from '../../store/settingsStore';
 import type { GraphData } from '../../features/graph/managers/graphDataManager';
+import { createLogger } from '../../utils/loggerConfig';
+
+const logger = createLogger('useImmersiveData');
 
 
 export const useImmersiveData = (initialData?: any) => {
@@ -19,14 +22,14 @@ export const useImmersiveData = (initialData?: any) => {
   const settings = useSettingsStore(state => state.settings);
 
   useEffect(() => {
-    console.log('useImmersiveData: Setting up data subscriptions');
+    logger.debug('Setting up data subscriptions');
 
     const subscriptions: (() => void)[] = [];
 
     try {
       
       const graphDataUnsubscribe = graphDataManager.onGraphDataChange((data: GraphData) => {
-        console.log('Graph data updated:', data);
+        logger.debug('Graph data updated:', data);
         setGraphData(data);
         setIsLoading(false);
         setError(null); 
@@ -36,7 +39,7 @@ export const useImmersiveData = (initialData?: any) => {
       
       const positionUnsubscribe = graphDataManager.onPositionUpdate((positions: ArrayBuffer | Float32Array) => {
         const floatPositions = positions instanceof Float32Array ? positions : new Float32Array(positions);
-        console.log('Position data updated, length:', floatPositions?.length);
+        logger.debug('Position data updated, length:', floatPositions?.length);
         setNodePositions(floatPositions);
       });
       subscriptions.push(positionUnsubscribe);
@@ -48,16 +51,16 @@ export const useImmersiveData = (initialData?: any) => {
           
           const currentData = await graphDataManager.getGraphData();
           if (currentData && currentData.nodes && currentData.nodes.length > 0) {
-            console.log('Initial graph data available:', currentData);
+            logger.debug('Initial graph data available:', currentData);
             setGraphData(currentData);
             setIsLoading(false);
           } else {
-            console.log('Waiting for graph data...');
+            logger.debug('Waiting for graph data...');
             setIsLoading(false); 
             
           }
         } catch (err) {
-          console.error('Failed to get initial graph data:', err);
+          logger.error('Failed to get initial graph data:', err);
           
           
           setIsLoading(false);
@@ -67,7 +70,7 @@ export const useImmersiveData = (initialData?: any) => {
       initializeData();
 
     } catch (err) {
-      console.error('Error setting up data subscriptions:', err);
+      logger.error('Error setting up data subscriptions:', err);
       setError('Failed to set up data connections');
       setIsLoading(false);
     }
@@ -82,36 +85,26 @@ export const useImmersiveData = (initialData?: any) => {
     };
   }, []);
 
-  const updateNodePosition = (nodeId: string, position: { x: number; y: number; z: number }) => {
-
-    if (graphDataManager) {
-      // @ts-ignore - method may not exist in current GraphDataManager interface
-      graphDataManager.updateUserDrivenNodePosition?.(nodeId, position) ??
-        // @ts-ignore - updateNodePositions signature may vary
-        graphDataManager.updateNodePositions?.([{ id: nodeId, position }] as any);
-    }
+  const updateNodePosition = (_nodeId: string, _position: { x: number; y: number; z: number }) => {
+    // updateUserDrivenNodePosition and pinNode/unpinNode live on graphWorkerProxy,
+    // not graphDataManager. Immersive mode should use the worker proxy directly
+    // when this integration is wired up.
+    logger.warn('updateNodePosition called but graphDataManager does not support direct position updates');
   };
 
   const selectNode = (nodeId: string | null) => {
     setSelectedNode(nodeId);
-    if (nodeId && graphDataManager) {
-      // @ts-ignore - method may not exist in current GraphDataManager interface
-      graphDataManager.highlightNode?.(nodeId);
+    if (nodeId) {
+      logger.debug('Node selected:', nodeId);
     }
   };
 
-  const pinNode = (nodeId: string) => {
-    if (graphDataManager) {
-      // @ts-ignore - method may not exist in current GraphDataManager interface
-      graphDataManager.pinNode?.(nodeId);
-    }
+  const pinNode = (_nodeId: string) => {
+    logger.warn('pinNode called but graphDataManager does not support pinning directly');
   };
 
-  const unpinNode = (nodeId: string) => {
-    if (graphDataManager) {
-      // @ts-ignore - method may not exist in current GraphDataManager interface
-      graphDataManager.unpinNode?.(nodeId);
-    }
+  const unpinNode = (_nodeId: string) => {
+    logger.warn('unpinNode called but graphDataManager does not support unpinning directly');
   };
 
   return {

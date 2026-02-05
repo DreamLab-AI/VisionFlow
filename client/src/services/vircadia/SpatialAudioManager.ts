@@ -48,6 +48,18 @@ export class SpatialAudioManager {
         refDistance: 1
     };
 
+    // Arrow function class properties for stable event listener references (Fix 8)
+    private handleSyncUpdateEvent = async (): Promise<void> => {
+        await this.handleSignalingMessages();
+    };
+
+    private handleStatusChangeEvent = (): void => {
+        const info = this.client.Utilities.Connection.getConnectionInfo();
+        if (info.isConnected && info.agentId) {
+            this.localAgentId = info.agentId;
+        }
+    };
+
     constructor(
         private client: ClientCore,
         private scene: THREE.Scene,
@@ -88,18 +100,9 @@ export class SpatialAudioManager {
 
 
     private setupConnectionListeners(): void {
-
-        this.client.Utilities.Connection.addEventListener('syncUpdate', async () => {
-            await this.handleSignalingMessages();
-        });
-
-
-        this.client.Utilities.Connection.addEventListener('statusChange', () => {
-            const info = this.client.Utilities.Connection.getConnectionInfo();
-            if (info.isConnected && info.agentId) {
-                this.localAgentId = info.agentId;
-            }
-        });
+        // Use stable arrow function references for proper removal in dispose() (Fix 8)
+        this.client.Utilities.Connection.addEventListener('syncUpdate', this.handleSyncUpdateEvent);
+        this.client.Utilities.Connection.addEventListener('statusChange', this.handleStatusChangeEvent);
     }
 
 
@@ -278,27 +281,29 @@ export class SpatialAudioManager {
 
     private async sendOffer(targetAgentId: string, offer: RTCSessionDescriptionInit): Promise<void> {
         try {
+            const entityName = `webrtc_offer_${this.localAgentId}_${targetAgentId}`;
+            const metaData = JSON.stringify({
+                type: 'offer',
+                from: this.localAgentId,
+                to: targetAgentId,
+                offer: offer,
+                timestamp: Date.now()
+            });
+
             const query = `
                 INSERT INTO entity.entities (
                     general__entity_name,
                     general__semantic_version,
                     group__sync,
                     meta__data
-                ) VALUES (
-                    'webrtc_offer_${this.localAgentId}_${targetAgentId}',
-                    '1.0.0',
-                    'public.NORMAL',
-                    '${JSON.stringify({
-                        type: 'offer',
-                        from: this.localAgentId,
-                        to: targetAgentId,
-                        offer: offer,
-                        timestamp: Date.now()
-                    })}'::jsonb
-                )
+                ) VALUES ($1, $2, $3, $4::jsonb)
             `;
 
-            await this.client.Utilities.Connection.query({ query, timeoutMs: 3000 });
+            await this.client.Utilities.Connection.query({
+                query,
+                parameters: [entityName, '1.0.0', 'public.NORMAL', metaData],
+                timeoutMs: 3000
+            });
 
         } catch (error) {
             logger.error('Failed to send offer:', error);
@@ -308,27 +313,29 @@ export class SpatialAudioManager {
 
     private async sendICECandidate(targetAgentId: string, candidate: RTCIceCandidate): Promise<void> {
         try {
+            const entityName = `webrtc_ice_${this.localAgentId}_${targetAgentId}_${Date.now()}`;
+            const metaData = JSON.stringify({
+                type: 'ice-candidate',
+                from: this.localAgentId,
+                to: targetAgentId,
+                candidate: candidate,
+                timestamp: Date.now()
+            });
+
             const query = `
                 INSERT INTO entity.entities (
                     general__entity_name,
                     general__semantic_version,
                     group__sync,
                     meta__data
-                ) VALUES (
-                    'webrtc_ice_${this.localAgentId}_${targetAgentId}_${Date.now()}',
-                    '1.0.0',
-                    'public.NORMAL',
-                    '${JSON.stringify({
-                        type: 'ice-candidate',
-                        from: this.localAgentId,
-                        to: targetAgentId,
-                        candidate: candidate,
-                        timestamp: Date.now()
-                    })}'::jsonb
-                )
+                ) VALUES ($1, $2, $3, $4::jsonb)
             `;
 
-            await this.client.Utilities.Connection.query({ query, timeoutMs: 2000 });
+            await this.client.Utilities.Connection.query({
+                query,
+                parameters: [entityName, '1.0.0', 'public.NORMAL', metaData],
+                timeoutMs: 2000
+            });
 
         } catch (error) {
             logger.debug('Failed to send ICE candidate:', error);
@@ -341,12 +348,13 @@ export class SpatialAudioManager {
             const query = `
                 SELECT * FROM entity.entities
                 WHERE general__entity_name LIKE 'webrtc_%'
-                AND meta__data->>'to' = '${this.localAgentId}'
+                AND meta__data->>'to' = $1
                 AND general__created_at > NOW() - INTERVAL '5 seconds'
             `;
 
             const result = await this.client.Utilities.Connection.query<{ result: any[] }>({
                 query,
+                parameters: [this.localAgentId],
                 timeoutMs: 3000
             });
 
@@ -395,27 +403,29 @@ export class SpatialAudioManager {
 
     private async sendAnswer(targetAgentId: string, answer: RTCSessionDescriptionInit): Promise<void> {
         try {
+            const entityName = `webrtc_answer_${this.localAgentId}_${targetAgentId}`;
+            const metaData = JSON.stringify({
+                type: 'answer',
+                from: this.localAgentId,
+                to: targetAgentId,
+                answer: answer,
+                timestamp: Date.now()
+            });
+
             const query = `
                 INSERT INTO entity.entities (
                     general__entity_name,
                     general__semantic_version,
                     group__sync,
                     meta__data
-                ) VALUES (
-                    'webrtc_answer_${this.localAgentId}_${targetAgentId}',
-                    '1.0.0',
-                    'public.NORMAL',
-                    '${JSON.stringify({
-                        type: 'answer',
-                        from: this.localAgentId,
-                        to: targetAgentId,
-                        answer: answer,
-                        timestamp: Date.now()
-                    })}'::jsonb
-                )
+                ) VALUES ($1, $2, $3, $4::jsonb)
             `;
 
-            await this.client.Utilities.Connection.query({ query, timeoutMs: 3000 });
+            await this.client.Utilities.Connection.query({
+                query,
+                parameters: [entityName, '1.0.0', 'public.NORMAL', metaData],
+                timeoutMs: 3000
+            });
 
         } catch (error) {
             logger.error('Failed to send answer:', error);
@@ -465,6 +475,9 @@ export class SpatialAudioManager {
     dispose(): void {
         logger.info('Disposing SpatialAudioManager');
 
+        // Remove event listeners using stable references (Fix 8)
+        this.client.Utilities.Connection.removeEventListener('syncUpdate', this.handleSyncUpdateEvent);
+        this.client.Utilities.Connection.removeEventListener('statusChange', this.handleStatusChangeEvent);
 
         if (this.localStream) {
             this.localStream.getTracks().forEach(track => track.stop());

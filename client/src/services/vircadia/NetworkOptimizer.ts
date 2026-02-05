@@ -40,6 +40,8 @@ export interface NetworkStats {
 }
 
 export class NetworkOptimizer {
+    private readonly textEncoder = new TextEncoder();
+    private readonly textDecoder = new TextDecoder();
     private pendingUpdates = new Map<string, PositionUpdate>();
     private lastPositions = new Map<string, { x: number; y: number; z: number }>();
     private batchInterval: ReturnType<typeof setInterval> | null = null;
@@ -129,13 +131,12 @@ export class NetworkOptimizer {
         
         
 
-        let totalSize = 4; 
-        const textEncoder = new TextEncoder();
+        let totalSize = 4;
         const encodedNames: Uint8Array[] = [];
 
         
         updates.forEach(update => {
-            const encoded = textEncoder.encode(update.entityName);
+            const encoded = this.textEncoder.encode(update.entityName);
             encodedNames.push(encoded);
             totalSize += 1 + encoded.length + 12 + 4; 
         });
@@ -179,7 +180,6 @@ export class NetworkOptimizer {
     
     decodePositionsFromBinary(buffer: ArrayBuffer): DeltaCompressedUpdate[] {
         const view = new DataView(buffer);
-        const textDecoder = new TextDecoder();
         let offset = 0;
 
         
@@ -196,7 +196,7 @@ export class NetworkOptimizer {
 
             
             const nameBytes = new Uint8Array(buffer, offset, nameLength);
-            const entityName = textDecoder.decode(nameBytes);
+            const entityName = this.textDecoder.decode(nameBytes);
             offset += nameLength;
 
             
@@ -217,7 +217,16 @@ export class NetworkOptimizer {
         return updates;
     }
 
-    
+    private encodeBase64(buffer: ArrayBuffer): string {
+        const bytes = new Uint8Array(buffer);
+        let binary = '';
+        for (let i = 0; i < bytes.length; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return btoa(binary);
+    }
+
+
     private async flushBatch(): Promise<void> {
         if (this.pendingUpdates.size === 0) {
             return;
@@ -236,9 +245,8 @@ export class NetworkOptimizer {
                 const binary = this.encodePositionsToBinary(compressed);
 
                 
-                const base64 = btoa(String.fromCharCode(...new Uint8Array(binary)));
+                const base64 = this.encodeBase64(binary);
 
-                
                 const query = `
                     INSERT INTO entity.entities (
                         general__entity_name,
@@ -246,19 +254,27 @@ export class NetworkOptimizer {
                         group__sync,
                         meta__data
                     ) VALUES (
-                        'batch_update_${Date.now()}',
+                        $1,
                         '1.0.0',
                         'public.NORMAL',
-                        '${JSON.stringify({
-                            type: 'batch_position_update',
-                            binary: base64,
-                            count: compressed.length,
-                            timestamp: Date.now()
-                        })}'::jsonb
+                        $2::jsonb
                     )
                 `;
 
-                await this.client.Utilities.Connection.query({ query, timeoutMs: 2000 });
+                const batchTimestamp = Date.now();
+                await this.client.Utilities.Connection.query({
+                    query,
+                    parameters: [
+                        `batch_update_${batchTimestamp}`,
+                        JSON.stringify({
+                            type: 'batch_position_update',
+                            binary: base64,
+                            count: compressed.length,
+                            timestamp: batchTimestamp
+                        })
+                    ],
+                    timeoutMs: 2000
+                });
 
                 
                 const originalSize = updates.length * 32; 
@@ -268,27 +284,35 @@ export class NetworkOptimizer {
 
             } else {
                 
-                const statements = updates.map(update => {
-                    return `
+                for (const update of updates) {
+                    const updateQuery = `
                         UPDATE entity.entities
                         SET meta__data = jsonb_set(
                             jsonb_set(
                                 jsonb_set(
                                     meta__data,
-                                    '{position,x}', '${update.x}'::text::jsonb
+                                    '{position,x}', $1::text::jsonb
                                 ),
-                                '{position,y}', '${update.y}'::text::jsonb
+                                '{position,y}', $2::text::jsonb
                             ),
-                            '{position,z}', '${update.z}'::text::jsonb
+                            '{position,z}', $3::text::jsonb
                         )
-                        WHERE general__entity_name = '${update.entityName}'
+                        WHERE general__entity_name = $4
                     `;
-                });
 
-                const batchQuery = statements.join('\n');
-                await this.client.Utilities.Connection.query({ query: batchQuery, timeoutMs: 3000 });
+                    await this.client.Utilities.Connection.query({
+                        query: updateQuery,
+                        parameters: [
+                            String(update.x),
+                            String(update.y),
+                            String(update.z),
+                            update.entityName
+                        ],
+                        timeoutMs: 3000
+                    });
+                }
 
-                this.stats.bytesSent += batchQuery.length;
+                this.stats.bytesSent += updates.length * 64;
             }
 
             const latency = Date.now() - startTime;

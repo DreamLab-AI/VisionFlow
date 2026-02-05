@@ -105,8 +105,8 @@ export class EntitySyncManager {
             const query = `
                 SELECT * FROM entity.entities
                 WHERE group__sync = $1
-                AND general__entity_name LIKE 'node_%'
-                   OR general__entity_name LIKE 'edge_%'
+                AND (general__entity_name LIKE 'node_%'
+                   OR general__entity_name LIKE 'edge_%')
                 ORDER BY group__load_priority ASC
             `;
 
@@ -155,17 +155,17 @@ export class EntitySyncManager {
         this.pendingPositionUpdates.clear();
 
         try {
-            
-            const statements = updates.map(([entityName, position]) =>
+            const parameterizedUpdates = updates.map(([entityName, position]) =>
                 this.mapper.generatePositionUpdateSQL(entityName, position)
             );
 
-            const batchSQL = statements.join('\n');
-
-            await this.client.Utilities.Connection.query({
-                query: batchSQL,
-                timeoutMs: 5000
-            });
+            for (const { query, parameters } of parameterizedUpdates) {
+                await this.client.Utilities.Connection.query({
+                    query,
+                    parameters,
+                    timeoutMs: 5000
+                });
+            }
 
             logger.debug(`Flushed ${updates.length} position updates to Vircadia`);
             this.stats.pendingUpdates = 0;
@@ -174,7 +174,6 @@ export class EntitySyncManager {
             logger.error('Failed to flush position updates:', error);
             this.stats.errors++;
 
-            
             updates.forEach(([entityName, position]) => {
                 this.pendingPositionUpdates.set(entityName, position);
             });
@@ -184,12 +183,15 @@ export class EntitySyncManager {
     
     private async insertEntitiesBatch(entities: VircadiaEntity[]): Promise<void> {
         try {
-            const sql = this.mapper.generateBatchInsertSQL(entities);
+            const { queries } = this.mapper.generateBatchInsertSQL(entities);
 
-            await this.client.Utilities.Connection.query({
-                query: sql,
-                timeoutMs: 10000
-            });
+            for (const { query, parameters } of queries) {
+                await this.client.Utilities.Connection.query({
+                    query,
+                    parameters,
+                    timeoutMs: 10000
+                });
+            }
 
             logger.debug(`Inserted batch of ${entities.length} entities`);
 

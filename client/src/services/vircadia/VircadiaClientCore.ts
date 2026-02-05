@@ -71,7 +71,7 @@ export interface QueryRequest extends WebSocketMessage {
 
 export interface QueryResponse<T = unknown> extends WebSocketMessage {
     type: MessageType.QUERY_RESPONSE;
-    data?: T;
+    result?: T;
 }
 
 export interface SessionInfoResponse extends WebSocketMessage {
@@ -391,33 +391,46 @@ class CoreConnectionManager {
 
 export class ClientCore {
     private connectionManager: CoreConnectionManager;
+    private _utilities: {
+        Connection: {
+            connect: (options?: { timeoutMs?: number }) => Promise<ClientCoreConnectionInfo>;
+            disconnect: () => void;
+            query: <T = unknown>(options: QueryOptions) => Promise<QueryResult<T>>;
+            getConnectionInfo: () => ClientCoreConnectionInfo;
+            addEventListener: (event: string, listener: ClientCoreConnectionEventListener) => void;
+            removeEventListener: (event: string, listener: ClientCoreConnectionEventListener) => void;
+        };
+    } | null = null;
 
     constructor(config: ClientCoreConfig) {
         this.connectionManager = new CoreConnectionManager(config);
     }
 
     get Utilities() {
-        return {
-            Connection: {
-                connect: (options?: { timeoutMs?: number }) =>
-                    this.connectionManager.connect(options),
+        if (!this._utilities) {
+            this._utilities = {
+                Connection: {
+                    connect: (options?: { timeoutMs?: number }) =>
+                        this.connectionManager.connect(options),
 
-                disconnect: () =>
-                    this.connectionManager.disconnect(),
+                    disconnect: () =>
+                        this.connectionManager.disconnect(),
 
-                query: <T = unknown>(options: QueryOptions) =>
-                    this.connectionManager.query<T>(options),
+                    query: <T = unknown>(options: QueryOptions) =>
+                        this.connectionManager.query<T>(options),
 
-                getConnectionInfo: () =>
-                    this.connectionManager.getConnectionInfo(),
+                    getConnectionInfo: () =>
+                        this.connectionManager.getConnectionInfo(),
 
-                addEventListener: (event: string, listener: ClientCoreConnectionEventListener) =>
-                    this.connectionManager.addEventListener(event, listener),
+                    addEventListener: (event: string, listener: ClientCoreConnectionEventListener) =>
+                        this.connectionManager.addEventListener(event, listener),
 
-                removeEventListener: (event: string, listener: ClientCoreConnectionEventListener) =>
-                    this.connectionManager.removeEventListener(event, listener)
-            }
-        };
+                    removeEventListener: (event: string, listener: ClientCoreConnectionEventListener) =>
+                        this.connectionManager.removeEventListener(event, listener)
+                }
+            };
+        }
+        return this._utilities;
     }
 
     dispose(): void {

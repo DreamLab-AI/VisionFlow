@@ -30,7 +30,6 @@ export interface FeatureFlagConfig {
 export class FeatureFlags {
     private static instance: FeatureFlags;
     private config: FeatureFlagConfig;
-    private userHash: number = 0;
 
     private defaultConfig: FeatureFlagConfig = {
         

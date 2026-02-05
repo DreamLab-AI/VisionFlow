@@ -2,7 +2,7 @@
 
 import { ClientCore } from '../vircadia/VircadiaClientCore';
 import { EntitySyncManager } from '../vircadia/EntitySyncManager';
-import { AvatarManager } from '../vircadia/AvatarManager';
+import { ThreeJSAvatarRenderer } from '../vircadia/ThreeJSAvatarRenderer';
 import type { BotsAgent, BotsEdge } from '../../features/bots/types/BotsTypes';
 import { createLogger } from '../../utils/loggerConfig';
 
@@ -42,7 +42,7 @@ export class BotsVircadiaBridge {
   constructor(
     private client: ClientCore,
     private entitySync: EntitySyncManager,
-    private avatars: AvatarManager | null,
+    private avatars: ThreeJSAvatarRenderer | null,
     config?: Partial<BridgeConfig>
   ) {
     this.defaultConfig = { ...this.defaultConfig, ...config };

@@ -41,12 +41,12 @@ export interface ControllerState {
 
 export class Quest3Optimizer {
     private xrSession: XRSession | null = null;
-    private handFeature: any | null = null;
     private localAgentId: string | null = null;
     private handUpdateInterval: ReturnType<typeof setInterval> | null = null;
     private controllerUpdateInterval: ReturnType<typeof setInterval> | null = null;
     private remoteHands = new Map<string, THREE.Mesh[]>();
     private remoteControllers = new Map<string, THREE.Mesh>();
+    private inputSourcesChangeHandler: ((event: Event) => void) | null = null;
     private currentFPS = 0;
     private lastFrameTime = 0;
     private frameCount = 0;
@@ -93,6 +93,8 @@ export class Quest3Optimizer {
             this.setupDynamicResolution();
         }
 
+        this.setupAnimationLoop();
+
 
         if (this.defaultConfig.enableHandTracking) {
             await this.setupHandTracking();
@@ -109,20 +111,6 @@ export class Quest3Optimizer {
 
     private setupPerformanceMonitoring(): void {
         this.lastFrameTime = performance.now();
-
-        const updateFPS = () => {
-            const currentTime = performance.now();
-            this.frameCount++;
-
-            if (currentTime >= this.lastFrameTime + 1000) {
-                this.currentFPS = Math.round((this.frameCount * 1000) / (currentTime - this.lastFrameTime));
-                this.frameCount = 0;
-                this.lastFrameTime = currentTime;
-            }
-        };
-
-        this.renderer.setAnimationLoop(updateFPS);
-
         logger.info('Performance monitoring enabled');
     }
 
@@ -144,31 +132,41 @@ export class Quest3Optimizer {
 
 
     private setupDynamicResolution(): void {
+        logger.info('Dynamic resolution scaling enabled');
+    }
+
+    private setupAnimationLoop(): void {
         const { targetFrameRate, minResolutionScale, maxResolutionScale } = this.defaultConfig;
 
-        const adjustResolution = () => {
-            const fps = this.currentFPS;
-            const currentPixelRatio = this.renderer.getPixelRatio();
+        this.renderer.setAnimationLoop((_timestamp: number) => {
+            // Performance monitoring: update FPS metrics
+            const currentTime = performance.now();
+            this.frameCount++;
 
-            if (fps < targetFrameRate - 10) {
-
-                const newPixelRatio = Math.max(currentPixelRatio * 0.9, minResolutionScale);
-                this.renderer.setPixelRatio(newPixelRatio);
-                logger.debug(`Resolution scaled down: ${newPixelRatio.toFixed(2)}`);
-
-            } else if (fps > targetFrameRate + 5) {
-
-                const newPixelRatio = Math.min(currentPixelRatio * 1.05, maxResolutionScale);
-                this.renderer.setPixelRatio(newPixelRatio);
-                logger.debug(`Resolution scaled up: ${newPixelRatio.toFixed(2)}`);
+            if (currentTime >= this.lastFrameTime + 1000) {
+                this.currentFPS = Math.round((this.frameCount * 1000) / (currentTime - this.lastFrameTime));
+                this.frameCount = 0;
+                this.lastFrameTime = currentTime;
             }
-        };
 
-        this.renderer.setAnimationLoop(() => {
-            adjustResolution();
+            // Dynamic resolution: adjust based on current FPS
+            if (this.defaultConfig.dynamicResolutionScale) {
+                const fps = this.currentFPS;
+                const currentPixelRatio = this.renderer.getPixelRatio();
+
+                if (fps < targetFrameRate - 10) {
+                    const newPixelRatio = Math.max(currentPixelRatio * 0.9, minResolutionScale);
+                    this.renderer.setPixelRatio(newPixelRatio);
+                    logger.debug(`Resolution scaled down: ${newPixelRatio.toFixed(2)}`);
+                } else if (fps > targetFrameRate + 5) {
+                    const newPixelRatio = Math.min(currentPixelRatio * 1.05, maxResolutionScale);
+                    this.renderer.setPixelRatio(newPixelRatio);
+                    logger.debug(`Resolution scaled up: ${newPixelRatio.toFixed(2)}`);
+                }
+            }
         });
 
-        logger.info('Dynamic resolution scaling enabled');
+        logger.info('Animation loop started (performance monitoring + dynamic resolution)');
     }
 
 
@@ -233,20 +231,29 @@ export class Quest3Optimizer {
                 }
             }
 
+            const jsonPath = `{handTracking,${hand}}`;
             const query = `
                 UPDATE entity.entities
                 SET meta__data = jsonb_set(
                     meta__data,
-                    '{handTracking,${hand}}',
-                    '${JSON.stringify({
-                        joints,
-                        timestamp: Date.now()
-                    })}'::jsonb
+                    $1::text[],
+                    $2::jsonb
                 )
-                WHERE general__entity_name = 'avatar_${this.localAgentId}'
+                WHERE general__entity_name = $3
             `;
 
-            await this.client.Utilities.Connection.query({ query, timeoutMs: 1000 });
+            await this.client.Utilities.Connection.query({
+                query,
+                parameters: [
+                    jsonPath,
+                    JSON.stringify({
+                        joints,
+                        timestamp: Date.now()
+                    }),
+                    `avatar_${this.localAgentId}`
+                ],
+                timeoutMs: 1000
+            });
 
         } catch (error) {
             logger.debug('Failed to broadcast hand data:', error);
@@ -288,10 +295,11 @@ export class Quest3Optimizer {
     private setupControllers(): void {
         if (!this.xrSession) return;
 
-        this.xrSession.addEventListener('inputsourceschange', (event) => {
+        this.inputSourcesChangeHandler = (_event: Event) => {
             logger.info('Input sources changed');
             this.startControllerBroadcast();
-        });
+        };
+        this.xrSession.addEventListener('inputsourceschange', this.inputSourcesChangeHandler);
 
         logger.info('Controller support enabled');
     }
@@ -342,12 +350,22 @@ export class Quest3Optimizer {
 
     private async broadcastControllerState(state: ControllerState): Promise<void> {
         try {
+            const jsonPath = `{controller,${state.controllerId}}`;
             const query = `
                 UPDATE entity.entities
                 SET meta__data = jsonb_set(
                     meta__data,
-                    '{controller,${state.controllerId}}',
-                    '${JSON.stringify({
+                    $1::text[],
+                    $2::jsonb
+                )
+                WHERE general__entity_name = $3
+            `;
+
+            await this.client.Utilities.Connection.query({
+                query,
+                parameters: [
+                    jsonPath,
+                    JSON.stringify({
                         position: {
                             x: state.position.x,
                             y: state.position.y,
@@ -362,12 +380,11 @@ export class Quest3Optimizer {
                         buttons: state.buttons,
                         axes: state.axes,
                         timestamp: state.timestamp
-                    })}'::jsonb
-                )
-                WHERE general__entity_name = 'avatar_${this.localAgentId}'
-            `;
-
-            await this.client.Utilities.Connection.query({ query, timeoutMs: 1000 });
+                    }),
+                    `avatar_${this.localAgentId}`
+                ],
+                timeoutMs: 1000
+            });
 
         } catch (error) {
             logger.debug('Failed to broadcast controller state:', error);
@@ -404,7 +421,7 @@ export class Quest3Optimizer {
             targetFPS: this.defaultConfig.targetFrameRate,
             pixelRatio: this.renderer.getPixelRatio(),
             foveationLevel: this.defaultConfig.foveatedRenderingLevel,
-            handTrackingActive: this.handFeature !== null,
+            handTrackingActive: this.handUpdateInterval !== null,
             controllersActive: this.xrSession?.inputSources.length || 0
         };
     }
@@ -433,6 +450,13 @@ export class Quest3Optimizer {
 
         this.stopHandTracking();
         this.stopControllerBroadcast();
+
+        if (this.xrSession && this.inputSourcesChangeHandler) {
+            this.xrSession.removeEventListener('inputsourceschange', this.inputSourcesChangeHandler);
+            this.inputSourcesChangeHandler = null;
+        }
+
+        this.renderer.setAnimationLoop(null);
 
 
         this.remoteHands.forEach(meshes => {

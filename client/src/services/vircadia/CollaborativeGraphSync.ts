@@ -80,7 +80,6 @@ export class CollaborativeGraphSync {
     private localSelection: string[] = [];
     private localFilterState: FilterState | null = null;
     private operationVersion = 0;
-    private pendingOperations: GraphOperation[] = [];
 
     private defaultConfig: CollaborativeConfig = {
         highlightColor: new THREE.Color(0.2, 0.8, 0.3),
@@ -92,7 +91,6 @@ export class CollaborativeGraphSync {
     };
 
     private protocol = BinaryWebSocketProtocol.getInstance();
-    private ws: WebSocket | null = null;
 
     constructor(
         private scene: THREE.Scene,
@@ -104,91 +102,30 @@ export class CollaborativeGraphSync {
     }
 
     async initialize(): Promise<void> {
-        logger.info('Initializing collaborative graph sync with WebSocket...');
+        logger.info('Initializing collaborative graph sync...');
 
         const info = this.client.Utilities.Connection.getConnectionInfo();
         if (info.agentId) {
             this.localAgentId = info.agentId;
         }
 
-        await this.initializeWebSocketSync();
         await this.loadAnnotations();
 
         logger.info('Collaborative sync initialized');
     }
 
-    private async initializeWebSocketSync(): Promise<void> {
-        // Get WebSocket connection from client core
-        // @ts-ignore - getWebSocket may not be exposed in public interface
-        this.ws = (this.client.Utilities.Connection as any).getWebSocket?.() ?? null;
+    // Arrow function class properties for stable references (Fix 3 - bind leak)
+    private handleSyncUpdateEvent = async (): Promise<void> => {
+        // Sync update handler - placeholder for event-driven sync processing
+        logger.debug('Sync update event received');
+    };
 
-        if (!this.ws) {
-            logger.warn('No WebSocket connection available');
-            return;
+    private handleStatusChangeEvent = (): void => {
+        const info = this.client.Utilities.Connection.getConnectionInfo();
+        if (info.isConnected && info.agentId) {
+            this.localAgentId = info.agentId;
         }
-
-        // Listen for sync updates via WebSocket
-        this.ws.addEventListener('message', this.handleWebSocketMessage.bind(this));
-
-        // Subscribe to sync events
-        this.sendSubscription('graph_sync');
-        this.sendSubscription('user_presence');
-        this.sendSubscription('annotations');
-
-        logger.info('WebSocket sync initialized');
-    }
-
-    private handleWebSocketMessage(event: MessageEvent): void {
-        if (!(event.data instanceof ArrayBuffer)) {
-            return;
-        }
-
-        const header = this.protocol.parseHeader(event.data);
-        if (!header) {
-            return;
-        }
-
-        const payload = this.protocol.extractPayload(event.data, header);
-
-        switch (header.type) {
-            case MessageType.POSITION_UPDATE:
-                this.handleUserPositions(payload);
-                break;
-            case 0x10: // SYNC_UPDATE (new message type)
-                this.handleSyncUpdate(payload);
-                break;
-            case 0x11: // ANNOTATION_UPDATE
-                this.handleAnnotationUpdate(payload);
-                break;
-            case 0x12: // SELECTION_UPDATE
-                this.handleSelectionUpdate(payload);
-                break;
-        }
-    }
-
-    private handleUserPositions(payload: ArrayBuffer): void {
-        const updates = this.protocol.decodePositionUpdates(payload);
-
-        for (const update of updates) {
-            const userId = update.agentId.toString();
-            if (userId === this.localAgentId) continue;
-
-            const presence: UserPresence = {
-                userId,
-                username: `User ${userId}`,
-                position: new THREE.Vector3(
-                    update.position.x,
-                    update.position.y,
-                    update.position.z
-                ),
-                rotation: new THREE.Quaternion(),
-                lastUpdate: update.timestamp
-            };
-
-            this.userPresence.set(userId, presence);
-            this.updatePresenceMesh(presence);
-        }
-    }
+    };
 
     private handleSyncUpdate(payload: ArrayBuffer): void {
         const view = new DataView(payload);
@@ -263,16 +200,6 @@ export class CollaborativeGraphSync {
     }
 
     private applyOperation(operation: GraphOperation): void {
-        // Operational transform: resolve conflicts
-        const conflictingOps = this.pendingOperations.filter(
-            op => op.nodeId === operation.nodeId && op.timestamp > operation.timestamp - 1000
-        );
-
-        if (conflictingOps.length > 0) {
-            const resolved = this.resolveConflict(operation, conflictingOps[0]);
-            operation = resolved;
-        }
-
         // Apply the operation to the graph
         if (operation.type === 'node_move' && operation.position) {
             const nodeMesh = this.scene.getObjectByName(`node_${operation.nodeId}`);
@@ -290,7 +217,6 @@ export class CollaborativeGraphSync {
 
     private resolveConflict(local: GraphOperation, remote: GraphOperation): GraphOperation {
         // Operational transform: last-write-wins with user priority
-        // In a real implementation, use vector clocks or CRDTs
         if (remote.timestamp > local.timestamp) {
             logger.debug(`Conflict resolved: using remote operation (${remote.userId})`);
             return remote;
@@ -321,22 +247,13 @@ export class CollaborativeGraphSync {
             filterState: this.localFilterState ?? undefined
         };
 
-        // Send via WebSocket instead of polling
-        this.broadcastSelection(selection);
+        // Selection is tracked locally; binary broadcast removed since
+        // getWebSocket() was non-functional (Fix 2). Use JSON query path
+        // or event system when WebSocket access is available.
+        this.activeSelections.set(this.localAgentId, selection);
+        this.updateSelectionHighlight(selection);
 
         logger.debug(`Selection broadcast: ${nodeIds.length} nodes`);
-    }
-
-    private broadcastSelection(selection: UserSelection): void {
-        if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-            return;
-        }
-
-        const message = JSON.stringify(selection);
-        const payload = new TextEncoder().encode(message).buffer;
-        const packet = this.protocol.createMessage(0x12 as MessageType, payload);
-
-        this.ws.send(packet);
     }
 
     async updateFilterState(filterState: FilterState): Promise<void> {
@@ -367,21 +284,8 @@ export class CollaborativeGraphSync {
 
         this.createAnnotationMesh(annotation);
         this.annotations.set(annotation.id, annotation);
-        this.broadcastAnnotation(annotation);
 
         logger.info(`Annotation created: "${text}" on node ${nodeId}`);
-    }
-
-    private broadcastAnnotation(annotation: GraphAnnotation): void {
-        if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-            return;
-        }
-
-        const message = JSON.stringify(annotation);
-        const payload = new TextEncoder().encode(message).buffer;
-        const packet = this.protocol.createMessage(0x11 as MessageType, payload);
-
-        this.ws.send(packet);
     }
 
     async loadAnnotations(): Promise<void> {
@@ -389,8 +293,6 @@ export class CollaborativeGraphSync {
             return;
         }
 
-        // Request annotations via WebSocket subscription
-        this.sendSubscription('annotations');
         logger.info('Annotations loading initiated');
     }
 
@@ -435,6 +337,14 @@ export class CollaborativeGraphSync {
         // plane.lookAt(camera.position) should be called each frame
 
         this.scene.add(plane);
+
+        // Dispose old mesh/texture if replacing (Fix 4 - texture leak)
+        const existingMesh = this.annotationMeshes.get(annotation.id);
+        if (existingMesh) {
+            this.scene.remove(existingMesh);
+            this.disposeAnnotationMesh(existingMesh);
+        }
+
         this.annotationMeshes.set(annotation.id, plane);
 
         logger.debug(`Annotation mesh created: "${annotation.text}"`);
@@ -596,108 +506,10 @@ export class CollaborativeGraphSync {
         }
     }
 
-    broadcastUserPosition(position: THREE.Vector3, rotation: THREE.Quaternion): void {
-        if (!this.localAgentId || !this.ws || this.ws.readyState !== WebSocket.OPEN) {
-            return;
-        }
-
-        const update: AgentPositionUpdate = {
-            agentId: parseInt(this.localAgentId) || 0,
-            position: { x: position.x, y: position.y, z: position.z },
-            timestamp: Date.now(),
-            flags: 0
-        };
-
-        const packet = this.protocol.encodePositionUpdates([update]);
-        if (packet) {
-            this.ws.send(packet);
-        }
-    }
-
-    broadcastVRPresence(
-        headPos: THREE.Vector3,
-        headRot: THREE.Quaternion,
-        leftHandPos?: THREE.Vector3,
-        leftHandRot?: THREE.Quaternion,
-        rightHandPos?: THREE.Vector3,
-        rightHandRot?: THREE.Quaternion
-    ): void {
-        if (!this.localAgentId || !this.ws || this.ws.readyState !== WebSocket.OPEN) {
-            return;
-        }
-
-        // Encode VR presence data (29 bytes for head + 29*2 for hands = 87 bytes total)
-        const buffer = new ArrayBuffer(87);
-        const view = new DataView(buffer);
-        let offset = 0;
-
-        // Head position (12 bytes)
-        view.setFloat32(offset, headPos.x, true); offset += 4;
-        view.setFloat32(offset, headPos.y, true); offset += 4;
-        view.setFloat32(offset, headPos.z, true); offset += 4;
-
-        // Head rotation (16 bytes)
-        view.setFloat32(offset, headRot.x, true); offset += 4;
-        view.setFloat32(offset, headRot.y, true); offset += 4;
-        view.setFloat32(offset, headRot.z, true); offset += 4;
-        view.setFloat32(offset, headRot.w, true); offset += 4;
-
-        // User ID (1 byte flag: 0 = no hands, 1 = left only, 2 = right only, 3 = both)
-        let handFlags = 0;
-        if (leftHandPos) handFlags |= 1;
-        if (rightHandPos) handFlags |= 2;
-        view.setUint8(offset, handFlags); offset += 1;
-
-        // Left hand (29 bytes if present)
-        if (leftHandPos && leftHandRot) {
-            view.setFloat32(offset, leftHandPos.x, true); offset += 4;
-            view.setFloat32(offset, leftHandPos.y, true); offset += 4;
-            view.setFloat32(offset, leftHandPos.z, true); offset += 4;
-            view.setFloat32(offset, leftHandRot.x, true); offset += 4;
-            view.setFloat32(offset, leftHandRot.y, true); offset += 4;
-            view.setFloat32(offset, leftHandRot.z, true); offset += 4;
-            view.setFloat32(offset, leftHandRot.w, true); offset += 4;
-            offset += 1; // padding
-        } else {
-            offset += 29;
-        }
-
-        // Right hand (29 bytes if present)
-        if (rightHandPos && rightHandRot) {
-            view.setFloat32(offset, rightHandPos.x, true); offset += 4;
-            view.setFloat32(offset, rightHandPos.y, true); offset += 4;
-            view.setFloat32(offset, rightHandPos.z, true); offset += 4;
-            view.setFloat32(offset, rightHandRot.x, true); offset += 4;
-            view.setFloat32(offset, rightHandRot.y, true); offset += 4;
-            view.setFloat32(offset, rightHandRot.z, true); offset += 4;
-            view.setFloat32(offset, rightHandRot.w, true); offset += 4;
-        }
-
-        const packet = this.protocol.createMessage(0x10 as MessageType, buffer);
-        this.ws.send(packet);
-    }
-
-    private sendSubscription(channel: string): void {
-        if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-            return;
-        }
-
-        const message = JSON.stringify({ type: 'subscribe', channel });
-        const payload = new TextEncoder().encode(message).buffer;
-        const packet = this.protocol.createMessage(0xFF as MessageType, payload);
-
-        this.ws.send(packet);
-        logger.debug(`Subscribed to channel: ${channel}`);
-    }
-
     private setupConnectionListeners(): void {
-        this.client.Utilities.Connection.addEventListener('statusChange', () => {
-            const info = this.client.Utilities.Connection.getConnectionInfo();
-            if (info.isConnected && info.agentId) {
-                this.localAgentId = info.agentId;
-                this.initializeWebSocketSync();
-            }
-        });
+        // Use stable arrow function references for proper removal in dispose() (Fix 3)
+        this.client.Utilities.Connection.addEventListener('syncUpdate', this.handleSyncUpdateEvent);
+        this.client.Utilities.Connection.addEventListener('statusChange', this.handleStatusChangeEvent);
     }
 
     async deleteAnnotation(annotationId: string): Promise<void> {
@@ -710,22 +522,42 @@ export class CollaborativeGraphSync {
         const mesh = this.annotationMeshes.get(annotationId);
         if (mesh) {
             this.scene.remove(mesh);
-            mesh.geometry.dispose();
-            (mesh.material as THREE.Material).dispose();
+            this.disposeAnnotationMesh(mesh); // Fix 4 - dispose texture
             this.annotationMeshes.delete(annotationId);
         }
 
         this.annotations.delete(annotationId);
 
-        // Broadcast deletion via WebSocket
-        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            const message = JSON.stringify({ type: 'delete_annotation', id: annotationId });
-            const payload = new TextEncoder().encode(message).buffer;
-            const packet = this.protocol.createMessage(0x11 as MessageType, payload);
-            this.ws.send(packet);
-        }
-
         logger.info(`Annotation deleted: ${annotationId}`);
+    }
+
+    /** Dispose an annotation mesh including its CanvasTexture (Fix 4) */
+    private disposeAnnotationMesh(mesh: THREE.Mesh): void {
+        mesh.geometry.dispose();
+        const material = mesh.material as THREE.MeshBasicMaterial;
+        if (material.map) {
+            material.map.dispose();
+        }
+        material.dispose();
+    }
+
+    /** Dispose a presence mesh including its nameplate CanvasTexture (Fix 4) */
+    private disposePresenceMesh(mesh: THREE.Object3D): void {
+        if (mesh instanceof THREE.Mesh) {
+            mesh.geometry.dispose();
+            (mesh.material as THREE.Material).dispose();
+        }
+        // Dispose child nameplate textures
+        mesh.children.forEach(child => {
+            if (child instanceof THREE.Mesh) {
+                child.geometry.dispose();
+                const mat = child.material as THREE.MeshBasicMaterial;
+                if (mat.map) {
+                    mat.map.dispose();
+                }
+                mat.dispose();
+            }
+        });
     }
 
     getActiveSelections(): UserSelection[] {
@@ -747,9 +579,9 @@ export class CollaborativeGraphSync {
     dispose(): void {
         logger.info('Disposing CollaborativeGraphSync');
 
-        if (this.ws) {
-            this.ws.removeEventListener('message', this.handleWebSocketMessage.bind(this));
-        }
+        // Remove event listeners using stable references (Fix 3)
+        this.client.Utilities.Connection.removeEventListener('syncUpdate', this.handleSyncUpdateEvent);
+        this.client.Utilities.Connection.removeEventListener('statusChange', this.handleStatusChangeEvent);
 
         this.selectionHighlights.forEach(highlights => {
             highlights.forEach(mesh => {
@@ -760,20 +592,18 @@ export class CollaborativeGraphSync {
         });
         this.selectionHighlights.clear();
 
+        // Dispose annotation meshes including textures (Fix 4)
         this.annotationMeshes.forEach(mesh => {
             this.scene.remove(mesh);
-            mesh.geometry.dispose();
-            (mesh.material as THREE.Material).dispose();
+            this.disposeAnnotationMesh(mesh);
         });
         this.annotationMeshes.clear();
 
+        // Dispose presence meshes including nameplate textures (Fix 4)
         this.presenceMeshes.forEach(mesh => {
             // @ts-ignore - THREE.js type mismatch between Object3D variants
             this.scene.remove(mesh);
-            if (mesh instanceof THREE.Mesh) {
-                mesh.geometry.dispose();
-                (mesh.material as THREE.Material).dispose();
-            }
+            this.disposePresenceMesh(mesh);
         });
         this.presenceMeshes.clear();
 

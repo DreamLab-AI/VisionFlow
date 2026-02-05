@@ -48,18 +48,22 @@ export class ThreeJSAvatarRenderer {
     this.setupConnectionListeners();
   }
 
-  private setupConnectionListeners(): void {
-    this.client.Utilities.Connection.addEventListener('statusChange', () => {
-      const info = this.client.Utilities.Connection.getConnectionInfo();
-      if (info.isConnected && info.agentId) {
-        this.localAgentId = info.agentId;
-        logger.info(`Local agent ID: ${this.localAgentId}`);
-      }
-    });
+  // Fix 2: Arrow function class properties for proper listener removal
+  private handleStatusChange = (): void => {
+    const info = this.client.Utilities.Connection.getConnectionInfo();
+    if (info.isConnected && info.agentId) {
+      this.localAgentId = info.agentId;
+      logger.info(`Local agent ID: ${this.localAgentId}`);
+    }
+  };
 
-    this.client.Utilities.Connection.addEventListener('syncUpdate', async () => {
-      await this.fetchRemoteAvatars();
-    });
+  private handleSyncUpdate = async (): Promise<void> => {
+    await this.fetchRemoteAvatars();
+  };
+
+  private setupConnectionListeners(): void {
+    this.client.Utilities.Connection.addEventListener('statusChange', this.handleStatusChange);
+    this.client.Utilities.Connection.addEventListener('syncUpdate', this.handleSyncUpdate);
   }
 
   async createLocalAvatar(username: string): Promise<void> {
@@ -117,13 +121,13 @@ export class ThreeJSAvatarRenderer {
         model.add(nameplate);
       }
 
+      // Fix 4: Proper type assertion instead of @ts-ignore
       const avatar: UserAvatar = {
         agentId,
         username,
         position: new THREE.Vector3(),
         rotation: new THREE.Quaternion(),
-        // @ts-ignore - THREE.js type mismatch between Group and Object3D
-        mesh: model,
+        mesh: model as THREE.Object3D,
         nameplate,
         mixer,
         animations: gltf.animations
@@ -207,34 +211,29 @@ export class ThreeJSAvatarRenderer {
     }, 100);
   }
 
+  // Fix 1: Parameterized SQL query
   private async broadcastAvatarUpdate(avatar: UserAvatar): Promise<void> {
     try {
       const query = `
         UPDATE entity.entities
         SET meta__data = jsonb_set(
           jsonb_set(
-            jsonb_set(
-              meta__data,
-              '{position}', '${JSON.stringify({
-                x: avatar.position.x,
-                y: avatar.position.y,
-                z: avatar.position.z
-              })}'::jsonb
-            ),
-            '{rotation}', '${JSON.stringify({
-              x: avatar.rotation.x,
-              y: avatar.rotation.y,
-              z: avatar.rotation.z,
-              w: avatar.rotation.w
-            })}'::jsonb
+            jsonb_set(meta__data, '{position}', $1::jsonb),
+            '{rotation}', $2::jsonb
           ),
-          '{timestamp}', '${Date.now()}'::text::jsonb
+          '{timestamp}', $3::text::jsonb
         )
-        WHERE general__entity_name = 'avatar_${avatar.agentId}'
+        WHERE general__entity_name = $4
       `;
 
       await this.client.Utilities.Connection.query({
         query,
+        parameters: [
+          JSON.stringify({ x: avatar.position.x, y: avatar.position.y, z: avatar.position.z }),
+          JSON.stringify({ x: avatar.rotation.x, y: avatar.rotation.y, z: avatar.rotation.z, w: avatar.rotation.w }),
+          String(Date.now()),
+          `avatar_${avatar.agentId}`
+        ],
         timeoutMs: 1000
       });
     } catch (error) {
@@ -242,16 +241,21 @@ export class ThreeJSAvatarRenderer {
     }
   }
 
+  // Fix 1: Parameterized SQL query
   private async fetchRemoteAvatars(): Promise<void> {
     try {
       const query = `
         SELECT * FROM entity.entities
-        WHERE general__entity_name LIKE 'avatar_%'
-        AND general__entity_name != 'avatar_${this.localAgentId}'
+        WHERE general__entity_name LIKE $1
+        AND general__entity_name != $2
       `;
 
       const result = await this.client.Utilities.Connection.query<{ result: any[] }>({
         query,
+        parameters: [
+          'avatar_%',
+          `avatar_${this.localAgentId}`
+        ],
         timeoutMs: 5000
       });
 
@@ -292,6 +296,7 @@ export class ThreeJSAvatarRenderer {
     }
   }
 
+  // Fix 1: Parameterized SQL query
   private async syncAvatarToVircadia(avatar: UserAvatar): Promise<void> {
     try {
       const query = `
@@ -303,12 +308,21 @@ export class ThreeJSAvatarRenderer {
           group__load_priority,
           meta__data
         ) VALUES (
-          'avatar_${avatar.agentId}',
+          $1, $2, $3, $4, $5, $6::jsonb
+        )
+        ON CONFLICT (general__entity_name)
+        DO UPDATE SET meta__data = EXCLUDED.meta__data
+      `;
+
+      await this.client.Utilities.Connection.query({
+        query,
+        parameters: [
+          `avatar_${avatar.agentId}`,
           '1.0.0',
           'visionflow-xr',
           'public.NORMAL',
           100,
-          '${JSON.stringify({
+          JSON.stringify({
             entityType: 'avatar',
             username: avatar.username,
             position: {
@@ -322,14 +336,8 @@ export class ThreeJSAvatarRenderer {
               z: avatar.rotation.z,
               w: avatar.rotation.w
             }
-          })}'::jsonb
-        )
-        ON CONFLICT (general__entity_name)
-        DO UPDATE SET meta__data = EXCLUDED.meta__data
-      `;
-
-      await this.client.Utilities.Connection.query({
-        query,
+          })
+        ],
         timeoutMs: 5000
       });
 
@@ -355,8 +363,8 @@ export class ThreeJSAvatarRenderer {
     logger.info(`Removing avatar: ${avatar.username}`);
 
     if (avatar.mesh) {
-      // @ts-ignore - THREE.js type mismatch between Object3D variants
-      this.scene.remove(avatar.mesh);
+      // Fix 4: Proper type assertion instead of @ts-ignore
+      this.scene.remove(avatar.mesh as THREE.Object3D);
       avatar.mesh.traverse(child => {
         if ((child as THREE.Mesh).geometry) {
           (child as THREE.Mesh).geometry.dispose();
@@ -370,6 +378,12 @@ export class ThreeJSAvatarRenderer {
           }
         }
       });
+    }
+
+    // Fix 3: Dispose nameplate sprite textures to prevent texture leak
+    if (avatar.nameplate) {
+      avatar.nameplate.material.map?.dispose();
+      avatar.nameplate.material.dispose();
     }
 
     this.avatars.delete(agentId);
@@ -390,6 +404,10 @@ export class ThreeJSAvatarRenderer {
       clearInterval(this.updateInterval);
       this.updateInterval = null;
     }
+
+    // Fix 2: Remove event listeners to prevent leaks
+    this.client.Utilities.Connection.removeEventListener('statusChange', this.handleStatusChange);
+    this.client.Utilities.Connection.removeEventListener('syncUpdate', this.handleSyncUpdate);
 
     this.avatars.forEach((_, agentId) => {
       this.removeAvatar(agentId);

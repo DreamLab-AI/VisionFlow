@@ -193,7 +193,7 @@ export class GraphEntityMapper {
     }
 
     
-    generateEntityInsertSQL(entity: VircadiaEntity): string {
+    generateEntityInsertSQL(entity: VircadiaEntity): { query: string; parameters: unknown[] } {
         const columns = [
             'general__entity_name',
             'general__semantic_version',
@@ -203,31 +203,31 @@ export class GraphEntityMapper {
             'meta__data'
         ];
 
-        const values = [
-            `'${entity.general__entity_name}'`,
-            `'${entity.general__semantic_version}'`,
-            `'${entity.general__created_by}'`,
-            `'${entity.group__sync}'`,
-            entity.group__load_priority,
-            `'${JSON.stringify(entity.meta__data)}'::jsonb`
-        ];
-
-        const sql = `
+        const query = `
 INSERT INTO entity.entities (${columns.join(', ')})
-VALUES (${values.join(', ')})
+VALUES ($1, $2, $3, $4, $5, $6::jsonb)
 ON CONFLICT (general__entity_name)
 DO UPDATE SET
     meta__data = EXCLUDED.meta__data,
     general__updated_at = CURRENT_TIMESTAMP;
         `.trim();
 
-        return sql;
+        const parameters: unknown[] = [
+            entity.general__entity_name,
+            entity.general__semantic_version,
+            entity.general__created_by,
+            entity.group__sync,
+            entity.group__load_priority,
+            JSON.stringify(entity.meta__data)
+        ];
+
+        return { query, parameters };
     }
 
     
-    generateBatchInsertSQL(entities: VircadiaEntity[]): string {
-        const statements = entities.map(entity => this.generateEntityInsertSQL(entity));
-        return statements.join('\n\n');
+    generateBatchInsertSQL(entities: VircadiaEntity[]): { queries: { query: string; parameters: unknown[] }[] } {
+        const queries = entities.map(entity => this.generateEntityInsertSQL(entity));
+        return { queries };
     }
 
     
@@ -326,20 +326,24 @@ DO UPDATE SET
     generatePositionUpdateSQL(
         entityName: string,
         position: { x: number; y: number; z: number }
-    ): string {
-        return `
+    ): { query: string; parameters: unknown[] } {
+        const query = `
 UPDATE entity.entities
 SET meta__data = jsonb_set(
     jsonb_set(
         jsonb_set(
             meta__data,
-            '{position,x}', '${position.x}'
+            '{position,x}', to_jsonb($1::numeric)
         ),
-        '{position,y}', '${position.y}'
+        '{position,y}', to_jsonb($2::numeric)
     ),
-    '{position,z}', '${position.z}'
+    '{position,z}', to_jsonb($3::numeric)
 )
-WHERE general__entity_name = '${entityName}';
+WHERE general__entity_name = $4;
         `.trim();
+
+        const parameters: unknown[] = [position.x, position.y, position.z, entityName];
+
+        return { query, parameters };
     }
 }
