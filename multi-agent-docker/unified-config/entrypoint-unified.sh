@@ -53,6 +53,11 @@ chmod 700 /home/devuser/.ssh
 chown devuser:devuser /home/devuser/.ssh
 mkdir -p /var/log /var/log/supervisor /run/dbus /run/user/1000 /tmp/.X11-unix /tmp/.ICE-unix
 chmod 1777 /tmp/.X11-unix /tmp/.ICE-unix
+
+# Clean up stale X lock files from previous container runs (fixes VNC FATAL on restart)
+rm -f /tmp/.X*-lock 2>/dev/null
+rm -f /tmp/.X11-unix/X* 2>/dev/null
+echo "  ✓ Cleaned stale X lock files"
 chmod 700 /run/user/1000
 chown devuser:devuser /run/user/1000
 

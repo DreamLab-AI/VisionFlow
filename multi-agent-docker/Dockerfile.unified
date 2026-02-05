@@ -79,6 +79,7 @@ RUN for attempt in 1 2 3; do \
     done && rm -rf /var/cache/pacman/pkg/*
 
 # Phase 1c: Graphics and browsers (with retry logic)
+# NOTE: firefox-pure is the CachyOS package name (not firefox)
 RUN for attempt in 1 2 3; do \
         echo "=== Graphics packages attempt $attempt/3 ===" && \
         pacman -S --noconfirm --needed \
@@ -86,9 +87,13 @@ RUN for attempt in 1 2 3; do \
             mesa mesa-utils libva-mesa-driver \
             libglvnd glew freeglut libxcursor libxi libxinerama libxrandr \
             vulkan-icd-loader vulkan-tools \
-            chromium firefox \
+            chromium firefox-pure \
         && break || { echo "Attempt $attempt failed, retrying in 10s..."; sleep 10; pacman -Syy --noconfirm; }; \
-    done && rm -rf /var/cache/pacman/pkg/*
+    done && \
+    # Validate critical packages installed
+    echo "=== Validating graphics packages ===" && \
+    pacman -Q mesa chromium && \
+    rm -rf /var/cache/pacman/pkg/*
 
 # Phase 1d: Development tools (with retry logic)
 RUN for attempt in 1 2 3; do \
@@ -105,7 +110,11 @@ RUN for attempt in 1 2 3; do \
             github-cli \
             postgresql postgresql-libs \
         && break || { echo "Attempt $attempt failed, retrying in 10s..."; sleep 10; pacman -Syy --noconfirm; }; \
-    done && rm -rf /var/cache/pacman/pkg/*
+    done && \
+    # Validate critical dev tools installed
+    echo "=== Validating dev tools ===" && \
+    pacman -Q docker github-cli postgresql && \
+    rm -rf /var/cache/pacman/pkg/*
 
 # Install Node.js v23.11.1 (required for chrome-devtools-mcp compatibility)
 RUN curl -fsSL https://nodejs.org/dist/v23.11.1/node-v23.11.1-linux-x64.tar.xz | \
@@ -275,16 +284,21 @@ RUN npx -y playwright install chromium
 
 # Setup agent-browser with playwright version compatibility
 # agent-browser uses playwright internally; create symlinks for minor version mismatches
+# Handle both root and devuser playwright caches
 RUN agent-browser install 2>/dev/null || true && \
-    cd /root/.cache/ms-playwright 2>/dev/null && \
-    for dir in chromium_headless_shell-*; do \
-        [ -d "$dir" ] || continue; \
-        version="${dir##*-}"; \
-        for offset in 1 2 3 4 5 6 7 8; do \
-            target_v=$((version + offset)); \
-            [ -e "chromium_headless_shell-$target_v" ] || ln -sf "$dir" "chromium_headless_shell-$target_v" 2>/dev/null; \
-            target_v=$((version - offset)); \
-            [ -e "chromium_headless_shell-$target_v" ] || ln -sf "$dir" "chromium_headless_shell-$target_v" 2>/dev/null; \
+    for cache_dir in /root/.cache/ms-playwright /home/devuser/.cache/ms-playwright; do \
+        [ -d "$cache_dir" ] || continue; \
+        cd "$cache_dir" && \
+        for dir in chromium_headless_shell-* chromium-*; do \
+            [ -d "$dir" ] || continue; \
+            base="${dir%-*}"; \
+            version="${dir##*-}"; \
+            for offset in 1 2 3 4 5 6 7 8 9 10; do \
+                target_v=$((version + offset)); \
+                [ -e "${base}-${target_v}" ] || ln -sf "$dir" "${base}-${target_v}" 2>/dev/null; \
+                target_v=$((version - offset)); \
+                [ -e "${base}-${target_v}" ] || ln -sf "$dir" "${base}-${target_v}" 2>/dev/null; \
+            done; \
         done; \
     done || true
 

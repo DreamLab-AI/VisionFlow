@@ -1,9 +1,19 @@
 #!/bin/bash
-# Wait for desktop to fully start
-sleep 5
-
-# Ensure DISPLAY is set (required for xfce4-terminal)
+# Wait for VNC desktop to be fully ready before starting terminals
 export DISPLAY="${DISPLAY:-:1}"
+
+# Wait for X server to be available (max 30 seconds)
+echo "Waiting for X server on $DISPLAY..."
+for i in {1..30}; do
+    if xdpyinfo -display "$DISPLAY" >/dev/null 2>&1; then
+        echo "X server ready after ${i}s"
+        break
+    fi
+    sleep 1
+done
+
+# Additional wait for window manager
+sleep 3
 
 # Launch 9 xfce4 terminals with colorful init scripts (3x3 grid)
 
@@ -34,6 +44,8 @@ xfce4-terminal --title="⚡ Z.AI-Shell" --geometry=80x24 -e "bash -c 'sudo -u za
 sleep 0.5
 xfce4-terminal --title="🧠 DeepSeek-Shell" --geometry=80x24 -e "bash -c 'sudo -u deepseek-user /home/devuser/.config/init-deepseek.sh'" &
 
-# Launch Chromium with DevTools
+# Launch Chromium with DevTools (use symlink or puppeteer chrome)
 sleep 2
-chromium --remote-debugging-port=9222 --user-data-dir=/home/devuser/.config/chromium-mcp &
+CHROME_BIN="${HOME}/.local/bin/chromium"
+[ -x "$CHROME_BIN" ] || CHROME_BIN="${HOME}/.cache/puppeteer/chrome/linux-131.0.6778.204/chrome-linux64/chrome"
+[ -x "$CHROME_BIN" ] && "$CHROME_BIN" --no-sandbox --remote-debugging-port=9222 --user-data-dir=/home/devuser/.config/chromium-mcp &
