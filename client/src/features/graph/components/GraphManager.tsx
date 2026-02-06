@@ -1172,7 +1172,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
 
   useEffect(() => {
 
-    const handleGraphUpdate = (data: GraphData) => {
+    const handleGraphUpdate = (data: GraphData): GraphData | undefined => {
 
       const debugSettings = settings?.system?.debug;
       if (debugSettings?.enableNodeDebug) {
@@ -1185,16 +1185,16 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       }
 
       if (debugState.isEnabled()) {
-        logger.info('Graph data updated', { 
-          nodeCount: data.nodes.length, 
+        logger.info('Graph data updated', {
+          nodeCount: data.nodes.length,
           edgeCount: data.edges.length,
           firstNode: data.nodes.length > 0 ? data.nodes[0] : null
         })
       }
 
-      
+
       if (!data || !Array.isArray(data.nodes) || !Array.isArray(data.edges)) {
-        return;
+        return undefined;
       }
 
       
@@ -1244,13 +1244,20 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       })
 
       setEdgePoints(newEdgePoints)
+
+      return dataWithPositions
     }
 
-    const unsubscribe = graphDataManager.onGraphDataChange(handleGraphUpdate)
+    const unsubscribe = graphDataManager.onGraphDataChange((data) => {
+      const positioned = handleGraphUpdate(data)
+      if (positioned) {
+        graphWorkerProxy.setGraphData(positioned)
+      }
+    })
 
-    
+
     graphDataManager.getGraphData().then((data) => {
-      
+
       const debugSettings = settings?.system?.debug;
       if (debugSettings?.enableNodeDebug) {
         logger.debug('Initial graph data loaded', {
@@ -1258,14 +1265,16 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
           edgeCount: data.edges.length
         });
       }
-      handleGraphUpdate(data)
+      const positioned = handleGraphUpdate(data)
 
-      // Send data to worker AFTER handleGraphUpdate so nodes have generated positions
-      // (getPositionForNode mutates data.nodes as a side-effect)
-      return graphWorkerProxy.setGraphData(data)
+      // Send positioned data to worker so it starts with generated positions
+      // (handleGraphUpdate normalizes IDs and generates positions for nodes at origin)
+      if (positioned) {
+        return graphWorkerProxy.setGraphData(positioned)
+      }
     }).then(() => {
     }).catch((error) => {
-      
+
       const fallbackData = {
         nodes: [
           { id: 'fallback1', label: 'Test Node 1', position: { x: -5, y: 0, z: 0 } },

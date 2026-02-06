@@ -119,7 +119,7 @@ export const useSettingsWebSocket = (
           reconnectAttemptsRef.current += 1;
           const delay = Math.min(reconnectDelay * reconnectAttemptsRef.current, 30000);
 
-          console.log(`[SettingsWS] Reconnecting in ${delay}ms (attempt ${reconnectAttemptsRef.current})`);
+          logger.warn(`[SettingsWS] Reconnecting in ${delay}ms (attempt ${reconnectAttemptsRef.current})`);
 
           reconnectTimeoutRef.current = setTimeout(() => {
             connect();
@@ -151,7 +151,6 @@ export const useSettingsWebSocket = (
         if (message.key && message.value !== undefined) {
           const basePath = message.key.split('.').slice(0, 2).join('.');
           if (ALLOWED_SETTING_PATHS.has(basePath)) {
-            console.log(`[SettingsWS] Setting changed: ${message.key}`);
             setByPath(message.key as any, message.value);
 
             if (showNotifications) {
@@ -179,7 +178,6 @@ export const useSettingsWebSocket = (
           });
 
           if (allowedChanges.length > 0) {
-            console.log(`[SettingsWS] Batch update: ${allowedChanges.length} settings`);
 
             const updates = allowedChanges.map(change => ({
               path: change.key as any,
@@ -204,7 +202,6 @@ export const useSettingsWebSocket = (
         break;
 
       case 'PresetApplied':
-        console.log(`[SettingsWS] Preset applied: ${message.preset_id}`);
 
         if (showNotifications) {
           toast({

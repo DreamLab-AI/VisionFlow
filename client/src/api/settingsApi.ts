@@ -153,24 +153,7 @@ const DEFAULT_HOLOGRAM_SETTINGS = {
   ringOpacity: 0.5,
   sphereSizes: [100, 150] as [number, number],
   globalRotationSpeed: 0.5,
-  enableBuckminster: true,
-  buckminsterSize: 120,
-  buckminsterOpacity: 0.3,
-  enableGeodesic: true,
-  geodesicSize: 100,
-  geodesicOpacity: 0.4,
-  enableTriangleSphere: false,
-  triangleSphereSize: 80,
-  triangleSphereOpacity: 0.5,
-  enableQuantumField: false,
-  quantumFieldIntensity: 0.5,
-  enablePlasmaEffects: false,
-  plasmaIntensity: 0.5,
-  enableEnergyFlow: false,
-  energyFlowSpeed: 1.0,
   ringRotationSpeed: 0.5,
-  enableRingParticles: false,
-  particleDensity: 100
 };
 
 const DEFAULT_GRAPH_TYPE_VISUALS = {

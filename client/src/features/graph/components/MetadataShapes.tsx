@@ -167,13 +167,6 @@ const getVisualsForNode = (
   const { metadata } = node;
   if (!metadata) return visuals;
 
-  if (typeof window !== 'undefined' && (window as any).debugState?.isEnabled?.() && Math.random() < 0.05) {
-    console.log('MetadataShapes: Node metadata sample:', {
-      id: node.id,
-      label: node.label,
-      metadata: metadata,
-    });
-  }
 
   // Geometry selection: authority and connections drive shape
   const authority = metadata.authority ?? metadata.authorityScore ?? 0;

@@ -4,11 +4,12 @@ import { expose } from 'comlink';
 import { BinaryNodeData, parseBinaryNodeData, createBinaryNodeData, Vec3 } from '../../../types/binaryProtocol';
 
 // Worker-safe logger (createLogger depends on localStorage/window which are unavailable in Workers)
+// Only warn/error by default; set self.__WORKER_DEBUG = true in devtools to enable info/debug
 const workerLogger = {
-  info: (...args: unknown[]) => console.log('[GraphWorker]', ...args),
+  info: (...args: unknown[]) => { if ((self as any).__WORKER_DEBUG) console.log('[GraphWorker]', ...args); },
   warn: (...args: unknown[]) => console.warn('[GraphWorker]', ...args),
   error: (...args: unknown[]) => console.error('[GraphWorker]', ...args),
-  debug: (...args: unknown[]) => console.debug('[GraphWorker]', ...args),
+  debug: (...args: unknown[]) => { if ((self as any).__WORKER_DEBUG) console.debug('[GraphWorker]', ...args); },
 };
 
 export interface Node {

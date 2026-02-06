@@ -21,7 +21,6 @@ if (import.meta.env.DEV) {
   (window as any).useSettingsStore = useSettingsStore;
   (window as any).useWebSocketStore = useWebSocketStore;
   (window as any).webSocketService = webSocketService;
-  console.log('[Dev] Exposed useSettingsStore, useWebSocketStore, and webSocketService on window for testing');
 }
 
 // Initialize authentication interceptor for all API calls

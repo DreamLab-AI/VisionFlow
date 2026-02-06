@@ -33,11 +33,8 @@ class RemoteLogger {
     this.serverEndpoint = `${apiUrl}/api/client-logs`;
 
     if (this.enabled) {
-      console.log('[RemoteLogger] Configured endpoint:', this.serverEndpoint);
       this.startFlushTimer();
       this.interceptConsole();
-    } else {
-      console.log('[RemoteLogger] Remote logging disabled via VITE_REMOTE_LOGGING_DISABLED');
     }
 
     

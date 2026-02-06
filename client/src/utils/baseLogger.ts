@@ -95,8 +95,8 @@ function getEnvironmentLogLevel(): LogLevel {
   }
 
   
-  const isDev = import.meta.env?.DEV || import.meta.env?.MODE === 'development';
-  return isDev ? 'debug' : 'info';
+  // Default to 'warn' to avoid console spam; set VITE_LOG_LEVEL=debug for verbose output
+  return 'warn';
 }
 
 

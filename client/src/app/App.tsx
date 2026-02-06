@@ -32,8 +32,7 @@ const logger = createLogger('App');
 
 // Initialize remote logging for Quest 3 debugging
 if (typeof window !== 'undefined') {
-  console.log('[RemoteLogger] Initializing remote logging service...');
-  remoteLogger.logXRInfo(); 
+  remoteLogger.logXRInfo();
 }
 
 function App() {

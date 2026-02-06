@@ -82,7 +82,7 @@ impl EnergyWisps {
         let mut rng = Xorshift::new(0xCAFE_BABE);
 
         let mut positions = vec![0.0f32; count * 3];
-        let mut opacities = vec![0.0f32; count];
+        let opacities = vec![0.0f32; count];
         let mut sizes = vec![0.0f32; count];
         let mut hues = vec![0.0f32; count];
         let mut ages = vec![0.0f32; count];

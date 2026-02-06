@@ -243,16 +243,22 @@ const GraphViewport: React.FC = () => {
           mouseButtons={isNodeDragging ? {} : undefined} 
         />
 
-            {/* Scene ambient effects (particles, fog, glow ring) */}
+            {/* Scene ambient effects (WASM particles, wisps, atmosphere) */}
             <WasmSceneEffects
               enabled={settings?.visualisation?.sceneEffects?.enabled !== false}
-              intensity={settings?.visualisation?.sceneEffects?.particleOpacity ?? 0.05}
+              particleCount={settings?.visualisation?.sceneEffects?.particleCount ?? 256}
+              intensity={settings?.visualisation?.sceneEffects?.particleOpacity ?? 0.3}
+              particleDrift={settings?.visualisation?.sceneEffects?.particleDrift ?? 0.5}
+              wispsEnabled={settings?.visualisation?.sceneEffects?.wispsEnabled !== false}
+              wispCount={settings?.visualisation?.sceneEffects?.wispCount ?? 48}
+              wispDriftSpeed={settings?.visualisation?.sceneEffects?.wispDriftSpeed ?? 1.0}
+              atmosphereEnabled={settings?.visualisation?.sceneEffects?.fogEnabled !== false}
+              atmosphereResolution={settings?.visualisation?.sceneEffects?.atmosphereResolution ?? 128}
             />
 
             <Suspense fallback={null}>
               {}
               <GraphManager onDragStateChange={(isDragging) => {
-                console.log('GraphViewport: onDragStateChange called with', isDragging);
                 setIsNodeDragging(isDragging);
               }} />
 
