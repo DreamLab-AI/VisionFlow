@@ -147,6 +147,14 @@ impl PhysicsSupervisor {
         self.ontology_constraint_state.is_running = true;
         debug!("PhysicsSupervisor: OntologyConstraintActor spawned");
 
+        // Wire ForceComputeActor address to OntologyConstraintActor for constraint synchronization
+        if let (Some(ref force_addr), Some(ref onto_addr)) = (&self.force_compute_actor, &self.ontology_constraint_actor) {
+            onto_addr.do_send(crate::actors::messages::SetForceComputeAddr {
+                addr: force_addr.clone(),
+            });
+            info!("PhysicsSupervisor: Sent ForceComputeActor address to OntologyConstraintActor");
+        }
+
         info!("PhysicsSupervisor: All child actors spawned successfully");
     }
 

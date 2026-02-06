@@ -151,7 +151,8 @@ function App() {
   const isDevelopment = process.env.NODE_ENV === 'development';
   const skipAuth = isDevelopment && (
     window.location.search.includes('skipAuth=true') ||
-    window.location.search.includes('test=visual')
+    window.location.search.includes('test=visual') ||
+    !window.nostr // Auto-bypass when no Nostr NIP-07 extension detected in dev
   );
 
   // Show login screen if not authenticated (unless testing bypass in dev mode)

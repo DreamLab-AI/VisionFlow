@@ -134,6 +134,23 @@ impl GPUResourceActor {
             }
         };
 
+        // Load ontology constraints PTX for OWL axiom → physics force pipeline
+        let _ontology_ptx = match crate::utils::ptx::load_ptx_module_sync(
+            crate::utils::ptx::PTXModule::OntologyConstraints,
+        ) {
+            Ok(content) => {
+                info!(
+                    "Ontology constraints PTX loaded successfully, size: {} bytes",
+                    content.len()
+                );
+                Some(content)
+            }
+            Err(e) => {
+                warn!("Failed to load ontology constraints PTX (will use CPU fallback): {}", e);
+                None
+            }
+        };
+
         debug!("Creating UnifiedGPUCompute with initial capacity: nodes=1000, edges=1000");
         let mut unified_compute = UnifiedGPUCompute::new_with_modules(
             1000,

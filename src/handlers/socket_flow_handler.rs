@@ -1406,6 +1406,114 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                     }
                                 }));
                             }
+                            // Ontology validation and constraint messages
+                            Some("ontology_validation") | Some("ontology_validation_report") => {
+                                info!("[WebSocket] Ontology validation request received");
+                                let ontology_id = msg.get("ontologyId")
+                                    .and_then(|v| v.as_str())
+                                    .unwrap_or("default")
+                                    .to_string();
+
+                                if let Some(ref ontology_addr) = self.app_state.ontology_actor_addr {
+                                    let addr = ontology_addr.clone();
+                                    let fut = async move {
+                                        use crate::actors::messages::GetOntologyReport;
+                                        match addr.send(GetOntologyReport { report_id: Some(ontology_id.clone()) }).await {
+                                            Ok(Ok(Some(report))) => {
+                                                serde_json::json!({
+                                                    "type": "ontology_validation_update",
+                                                    "ontologyId": ontology_id,
+                                                    "status": "completed",
+                                                    "violations": report.violations.len(),
+                                                    "inferredTriples": report.inferred_triples.len(),
+                                                    "constraints": report.constraint_summary.total_constraints,
+                                                    "timestamp": chrono::Utc::now().timestamp_millis()
+                                                })
+                                            }
+                                            Ok(Ok(None)) => {
+                                                serde_json::json!({
+                                                    "type": "ontology_validation_update",
+                                                    "ontologyId": ontology_id,
+                                                    "status": "not_found",
+                                                    "message": "No validation report available. Run validation first.",
+                                                    "timestamp": chrono::Utc::now().timestamp_millis()
+                                                })
+                                            }
+                                            _ => {
+                                                serde_json::json!({
+                                                    "type": "ontology_validation_update",
+                                                    "status": "error",
+                                                    "message": "Failed to retrieve validation report",
+                                                    "timestamp": chrono::Utc::now().timestamp_millis()
+                                                })
+                                            }
+                                        }
+                                    };
+
+                                    let fut = actix::fut::wrap_future::<_, Self>(fut);
+                                    ctx.spawn(fut.map(|response, _act, ctx| {
+                                        if let Ok(msg_str) = serde_json::to_string(&response) {
+                                            ctx.text(msg_str);
+                                        }
+                                    }));
+                                } else {
+                                    let response = serde_json::json!({
+                                        "type": "ontology_validation_update",
+                                        "status": "unavailable",
+                                        "message": "Ontology system not initialized"
+                                    });
+                                    if let Ok(msg_str) = serde_json::to_string(&response) {
+                                        ctx.text(msg_str);
+                                    }
+                                }
+                            }
+                            Some("ontology_constraint_update") | Some("ontology_constraint_toggle") => {
+                                info!("[WebSocket] Ontology constraint update request");
+                                let response = serde_json::json!({
+                                    "type": "ontology_constraint_update",
+                                    "status": "acknowledged",
+                                    "message": "Use REST API /api/ontology-physics/enable for constraint management",
+                                    "timestamp": chrono::Utc::now().timestamp_millis()
+                                });
+                                if let Ok(msg_str) = serde_json::to_string(&response) {
+                                    ctx.text(msg_str);
+                                }
+                            }
+                            Some("ontology_reasoning") => {
+                                info!("[WebSocket] Ontology reasoning request received");
+                                if let Some(ref ontology_addr) = self.app_state.ontology_actor_addr {
+                                    let addr = ontology_addr.clone();
+                                    let ontology_id = msg.get("ontologyId")
+                                        .and_then(|v| v.as_i64())
+                                        .unwrap_or(0);
+                                    let source = msg.get("source")
+                                        .and_then(|v| v.as_str())
+                                        .unwrap_or("websocket")
+                                        .to_string();
+
+                                    let fut = async move {
+                                        use crate::actors::ontology_actor::TriggerReasoning;
+                                        match addr.send(TriggerReasoning { ontology_id, source }).await {
+                                            Ok(Ok(job_id)) => serde_json::json!({
+                                                "type": "ontology_reasoning_started",
+                                                "jobId": job_id,
+                                                "timestamp": chrono::Utc::now().timestamp_millis()
+                                            }),
+                                            _ => serde_json::json!({
+                                                "type": "ontology_reasoning_error",
+                                                "message": "Failed to trigger reasoning",
+                                                "timestamp": chrono::Utc::now().timestamp_millis()
+                                            })
+                                        }
+                                    };
+                                    let fut = actix::fut::wrap_future::<_, Self>(fut);
+                                    ctx.spawn(fut.map(|response, _act, ctx| {
+                                        if let Ok(msg_str) = serde_json::to_string(&response) {
+                                            ctx.text(msg_str);
+                                        }
+                                    }));
+                                }
+                            }
                             _ => {
                                 warn!("[WebSocket] Unknown message type: {:?}", msg);
                             }

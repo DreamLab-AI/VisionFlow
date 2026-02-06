@@ -147,15 +147,12 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 
             .configure(crate::handlers::ragflow_handler::config)
             .configure(crate::handlers::clustering_handler::config)
-            .configure(crate::handlers::constraints_handler::config),
+            .configure(crate::handlers::constraints_handler::config)
+            // Ontology routes (previously orphaned outside scope)
+            .configure(ontology::config)
+            // Ontology-physics integration routes (P0-2)
+            .configure(ontology_physics::configure_routes)
+            // Semantic forces routes (GPU feature)
+            .configure(semantic_forces::config),
     );
-
-
-    cfg.service(web::scope("").configure(ontology::config));
-
-    // Configure ontology-physics integration routes (P0-2)
-    cfg.service(web::scope("").configure(ontology_physics::configure_routes));
-
-    // Configure semantic forces routes (GPU feature only)
-    cfg.service(web::scope("").configure(semantic_forces::config));
 }

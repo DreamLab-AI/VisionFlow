@@ -10,6 +10,7 @@ import { BrowserSupportWarning } from '../components/BrowserSupportWarning';
 import { SpaceMouseStatus } from '../components/SpaceMouseStatus';
 import { AudioInputService } from '../services/AudioInputService';
 import { graphDataManager, type GraphData } from '../features/graph/managers/graphDataManager';
+import { OntologyPanel } from '../features/ontology';
 import { createLogger } from '../utils/loggerConfig';
 
 const logger = createLogger('MainLayout');
@@ -84,6 +85,10 @@ const MainLayoutContent: React.FC = () => {
           otherGraphData={otherGraphData}
         />
       </nav>
+
+      <aside aria-label="Ontology physics controls">
+        <OntologyPanel />
+      </aside>
 
       <aside aria-label="Device status">
         <SpaceMouseStatus />

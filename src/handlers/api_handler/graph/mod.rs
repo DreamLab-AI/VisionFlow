@@ -459,7 +459,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 
     cfg.service(
         web::scope("/graph")
-            .wrap(RateLimit::per_minute(100))  // Rate limit: 100 requests/min for public reads
+            .wrap(RateLimit::per_minute(600))  // Rate limit: 600 requests/min (10/sec) for public reads
             // Read operations - public with rate limiting
             .route("/data", web::get().to(get_graph_data))
             .route("/data/paginated", web::get().to(get_paginated_graph_data))

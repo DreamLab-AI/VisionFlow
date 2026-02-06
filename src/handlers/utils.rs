@@ -8,14 +8,15 @@ where
 {
     let (tx, rx) = mpsc::channel();
 
-    
+    // Capture the tokio runtime handle so handlers can call block_on from the spawned thread
+    let handle = tokio::runtime::Handle::current();
+
     thread::spawn(move || {
+        let _guard = handle.enter();
         let result = handler_fn();
         let _ = tx.send(result);
     });
 
-    
-    
     tokio::task::spawn_blocking(move || {
         rx.recv()
             .map_err(|e| format!("Thread communication error: {}", e))

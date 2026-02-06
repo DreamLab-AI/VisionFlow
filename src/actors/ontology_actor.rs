@@ -146,6 +146,12 @@ pub struct OntologyActor {
     /// Optional semantic processor for inference propagation
     semantic_processor_addr:
         Option<Addr<crate::actors::semantic_processor_actor::SemanticProcessorActor>>,
+
+    /// Optional GPU manager for sending ontology constraints to the physics pipeline
+    gpu_manager_addr: Option<Addr<crate::actors::gpu::gpu_manager_actor::GPUManagerActor>>,
+
+    /// Optional client coordinator for broadcasting validation updates via WebSocket
+    client_manager_addr: Option<Addr<crate::actors::client_coordinator_actor::ClientCoordinatorActor>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -200,6 +206,8 @@ impl OntologyActor {
             graph_service_addr: None,
             physics_orchestrator_addr: None,
             semantic_processor_addr: None,
+            gpu_manager_addr: None,
+            client_manager_addr: None,
         }
     }
 
@@ -225,6 +233,20 @@ impl OntologyActor {
         addr: Addr<crate::actors::semantic_processor_actor::SemanticProcessorActor>,
     ) {
         self.semantic_processor_addr = Some(addr);
+    }
+
+    pub fn set_gpu_manager_addr(
+        &mut self,
+        addr: Addr<crate::actors::gpu::gpu_manager_actor::GPUManagerActor>,
+    ) {
+        self.gpu_manager_addr = Some(addr);
+    }
+
+    pub fn set_client_manager_addr(
+        &mut self,
+        addr: Addr<crate::actors::client_coordinator_actor::ClientCoordinatorActor>,
+    ) {
+        self.client_manager_addr = Some(addr);
     }
 
     
@@ -396,21 +418,43 @@ use crate::utils::time;
                         finished_at: time::now(),
                     };
 
-                    
+                    // Cache by both job_id and ontology_id for dual-key lookup
                     self.cache_report(report.clone());
+                    // Fix: Also store by ontology_id so GetOntologyReport can find it
+                    let ontology_key = job.ontology_id.clone();
+                    self.report_storage.insert(ontology_key, ReportCacheEntry {
+                        report: report.clone(),
+                        accessed_at: time::now(),
+                        access_count: 1,
+                    });
 
-                    
                     self.statistics.successful_validations += 1;
                     self.update_avg_validation_time(duration);
 
-                    
                     if !report.violations.is_empty() {
                         self.send_constraints_to_physics(&report);
                     }
 
-                    
                     if !report.inferred_triples.is_empty() {
                         self.send_inferences_to_semantic(&report.inferred_triples);
+                    }
+
+                    // Broadcast validation result to connected WebSocket clients
+                    if let Some(ref client_mgr) = self.client_manager_addr {
+                        let update_msg = serde_json::json!({
+                            "type": "ontology_validation_update",
+                            "ontologyId": job.ontology_id,
+                            "jobId": job_id,
+                            "status": "completed",
+                            "violations": report.violations.len(),
+                            "inferredTriples": report.inferred_triples.len(),
+                            "constraints": report.constraint_summary.total_constraints,
+                            "durationMs": duration.as_millis(),
+                            "timestamp": chrono::Utc::now().timestamp_millis()
+                        });
+                        if let Ok(msg_str) = serde_json::to_string(&update_msg) {
+                            client_mgr.do_send(crate::actors::messages::BroadcastMessage { message: msg_str });
+                        }
                     }
 
                     info!(
@@ -483,11 +527,46 @@ use crate::utils::time;
 
     
     fn send_constraints_to_physics(&self, report: &ValidationReport) {
-        if let Some(_addr) = &self.physics_orchestrator_addr {
-            
-            
+        // Route through GPUManagerActor which delegates to OntologyConstraintActor
+        if let Some(gpu_addr) = &self.gpu_manager_addr {
+            use crate::models::constraints::{Constraint, ConstraintKind, ConstraintSet};
+            use crate::actors::messages::{ApplyOntologyConstraints, ConstraintMergeMode};
+
+            let mut constraint_set = ConstraintSet::new();
+            for violation in &report.violations {
+                let constraint = Constraint {
+                    kind: ConstraintKind::Semantic,
+                    node_indices: vec![],
+                    params: vec![1.0],
+                    weight: match violation.severity {
+                        crate::services::owl_validator::Severity::Error => 1.0,
+                        crate::services::owl_validator::Severity::Warning => 0.6,
+                        crate::services::owl_validator::Severity::Info => 0.3,
+                    },
+                    active: true,
+                };
+                constraint_set.add_to_group(&violation.rule, constraint);
+            }
+
+            info!(
+                "Sending {} constraints ({} violations) to GPU pipeline",
+                constraint_set.constraints.len(),
+                report.violations.len()
+            );
+
+            gpu_addr.do_send(ApplyOntologyConstraints {
+                constraint_set,
+                merge_mode: ConstraintMergeMode::Merge,
+                graph_id: 0,
+            });
+        } else if let Some(_addr) = &self.physics_orchestrator_addr {
             debug!(
-                "Would send {} violations as constraints to physics orchestrator",
+                "PhysicsOrchestrator available but GPU manager preferred - {} violations pending",
+                report.violations.len()
+            );
+        } else {
+            warn!(
+                "No GPU pipeline available - {} violation constraints dropped",
                 report.violations.len()
             );
         }

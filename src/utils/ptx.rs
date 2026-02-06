@@ -24,6 +24,7 @@ pub enum PTXModule {
     GpuLandmarkApsp,
     SsspCompact,
     VisionflowUnifiedStability,
+    OntologyConstraints,
 }
 
 impl PTXModule {
@@ -36,6 +37,7 @@ impl PTXModule {
             PTXModule::GpuLandmarkApsp => "gpu_landmark_apsp.cu",
             PTXModule::SsspCompact => "sssp_compact.cu",
             PTXModule::VisionflowUnifiedStability => "visionflow_unified_stability.cu",
+            PTXModule::OntologyConstraints => "ontology_constraints.cu",
         }
     }
 
@@ -48,6 +50,7 @@ impl PTXModule {
             PTXModule::GpuLandmarkApsp => "GPU_LANDMARK_APSP_PTX_PATH",
             PTXModule::SsspCompact => "SSSP_COMPACT_PTX_PATH",
             PTXModule::VisionflowUnifiedStability => "VISIONFLOW_UNIFIED_STABILITY_PTX_PATH",
+            PTXModule::OntologyConstraints => "ONTOLOGY_CONSTRAINTS_PTX_PATH",
         }
     }
 
@@ -60,6 +63,7 @@ impl PTXModule {
             PTXModule::GpuLandmarkApsp,
             PTXModule::SsspCompact,
             PTXModule::VisionflowUnifiedStability,
+            PTXModule::OntologyConstraints,
         ]
     }
 }

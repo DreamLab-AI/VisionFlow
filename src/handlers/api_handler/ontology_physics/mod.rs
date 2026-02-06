@@ -156,9 +156,37 @@ pub async fn enable_ontology_physics(
                 }));
             };
 
-            // Create a constraint set from the validation report
-            // This would normally be done by the ontology translator
-            let constraint_set = ConstraintSet::new(); // Placeholder
+            // Build constraint set from validation report violations
+            let mut constraint_set = ConstraintSet::new();
+            for violation in &report.violations {
+                // Each violation maps to a semantic constraint that enforces the ontology rule
+                let constraint = crate::models::constraints::Constraint {
+                    kind: crate::models::constraints::ConstraintKind::Semantic,
+                    node_indices: vec![], // GPU will resolve from ontology IDs
+                    params: vec![1.0],    // Default force strength
+                    weight: match violation.severity {
+                        crate::services::owl_validator::Severity::Error => 1.0,
+                        crate::services::owl_validator::Severity::Warning => 0.6,
+                        crate::services::owl_validator::Severity::Info => 0.3,
+                    },
+                    active: true,
+                };
+                constraint_set.add_to_group(&violation.rule, constraint);
+            }
+            // Also use constraint_summary counts as semantic constraints when no violations
+            if constraint_set.constraints.is_empty() && report.constraint_summary.total_constraints > 0 {
+                info!("No violations but {} constraints in summary, creating semantic constraints",
+                      report.constraint_summary.total_constraints);
+                for _ in 0..report.constraint_summary.semantic_constraints {
+                    constraint_set.add(crate::models::constraints::Constraint {
+                        kind: crate::models::constraints::ConstraintKind::Semantic,
+                        node_indices: vec![],
+                        params: vec![0.8],
+                        weight: 0.5,
+                        active: true,
+                    });
+                }
+            }
 
             // Apply constraints to OntologyConstraintActor
             use crate::actors::messages::ApplyOntologyConstraints;

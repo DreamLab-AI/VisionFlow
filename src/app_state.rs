@@ -779,8 +779,16 @@ impl AppState {
 
         info!("[AppState::new] Starting OntologyActor");
         let ontology_actor_addr = {
+            let mut ontology_actor = OntologyActor::new();
+            // Wire GPU manager for constraint pipeline (Fix #2)
+            if let Some(ref gpu_mgr) = gpu_manager_addr {
+                ontology_actor.set_gpu_manager_addr(gpu_mgr.clone());
+                info!("[AppState] OntologyActor wired to GPUManagerActor for constraint pipeline");
+            }
+            // Wire client coordinator for WebSocket broadcasts (Fix #8)
+            ontology_actor.set_client_manager_addr(client_manager_addr.clone());
             info!("[AppState] OntologyActor initialized successfully");
-            Some(OntologyActor::new().start())
+            Some(ontology_actor.start())
         };
 
         info!("[AppState::new] Initializing BotsClient with graph service");
