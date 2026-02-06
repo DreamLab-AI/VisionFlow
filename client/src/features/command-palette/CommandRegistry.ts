@@ -143,7 +143,10 @@ export class CommandRegistry {
     try {
       const stored = localStorage.getItem('commandPalette.recentCommands');
       if (stored) {
-        this.recentCommands = JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.every((v: unknown) => typeof v === 'string')) {
+          this.recentCommands = parsed as string[];
+        }
       }
     } catch (error) {
       console.error('Failed to load recent commands:', error);

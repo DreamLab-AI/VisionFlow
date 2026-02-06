@@ -66,6 +66,8 @@ export class GraphAnimations {
   private animationMixer: AnimationMixer | null = null;
   private clock = new Clock();
   private isRunning = false;
+  private animationFrameId: number | null = null;
+  private activeTimers: Set<ReturnType<typeof setTimeout>> = new Set();
 
   private constructor() {}
 
@@ -79,16 +81,20 @@ export class GraphAnimations {
   
   public start(): void {
     if (this.isRunning) return;
-    
+
     this.isRunning = true;
     this.clock.start();
-    this.animate();
+    this.animationFrameId = requestAnimationFrame(this.animate);
     logger.info('Animation system started');
   }
 
-  
+
   public stop(): void {
     this.isRunning = false;
+    if (this.animationFrameId !== null) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
     logger.info('Animation system stopped');
   }
 
@@ -152,12 +158,12 @@ export class GraphAnimations {
       };
 
       this.morphingTransitions.set(morphId, morph);
-      
-      
-      setTimeout(() => {
+
+      const timer = this.trackTimer(setTimeout(() => {
+        this.untrackTimer(timer);
         this.morphingTransitions.delete(morphId);
         resolve();
-      }, duration);
+      }, duration));
 
       logger.info(`Started graph morphing animation: ${morphId}`);
     });
@@ -309,16 +315,17 @@ export class GraphAnimations {
       
       if (onWaypointReached) {
         interestingPoints.forEach((point, index) => {
-          setTimeout(() => {
+          const delay = waypoints.slice(0, index).reduce((sum, wp) => sum + wp.duration, 0);
+          const timer = this.trackTimer(setTimeout(() => {
+            this.untrackTimer(timer);
             onWaypointReached(index, point);
-            
-            
+
             if (point.highlightNodes) {
               point.highlightNodes.forEach(nodeId => {
                 this.addNodeAnimation(nodeId, 'glow', 1.5, 2.0);
               });
             }
-          }, waypoints.slice(0, index).reduce((sum, wp) => sum + wp.duration, 0));
+          }, delay));
         });
       }
     });
@@ -353,7 +360,10 @@ export class GraphAnimations {
         }
 
         currentStateIndex++;
-        setTimeout(animateNextState, stepDuration);
+        const timer = this.trackTimer(setTimeout(() => {
+          this.untrackTimer(timer);
+          animateNextState();
+        }, stepDuration));
       };
 
       animateNextState();
@@ -449,25 +459,36 @@ export class GraphAnimations {
   }
 
   
+  /** Track a setTimeout timer for cleanup on dispose */
+  private trackTimer(timer: ReturnType<typeof setTimeout>): ReturnType<typeof setTimeout> {
+    this.activeTimers.add(timer);
+    return timer;
+  }
+
+  /** Remove a timer from tracking (after it fires) */
+  private untrackTimer(timer: ReturnType<typeof setTimeout>): void {
+    this.activeTimers.delete(timer);
+  }
+
   private animate = (): void => {
     if (!this.isRunning) return;
 
     const deltaTime = this.clock.getDelta();
     const elapsedTime = this.clock.getElapsedTime();
 
-    
+
     this.updateTransitionAnimations(deltaTime);
 
-    
+
     this.updateCameraFlights(deltaTime);
 
-    
+
     this.updateMorphingTransitions(deltaTime);
 
-    
+
     this.updateNodeAnimations(elapsedTime);
 
-    requestAnimationFrame(this.animate);
+    this.animationFrameId = requestAnimationFrame(this.animate);
   };
 
   private updateTransitionAnimations(deltaTime: number): void {
@@ -489,10 +510,41 @@ export class GraphAnimations {
   }
 
   private updateCameraFlights(deltaTime: number): void {
+    const flightsToRemove: string[] = [];
+
     this.cameraFlights.forEach((flight, id) => {
-      
-      
+      if (flight.waypoints.length === 0) {
+        flightsToRemove.push(id);
+        return;
+      }
+
+      const waypoint = flight.waypoints[flight.currentWaypoint];
+      if (!waypoint) {
+        flightsToRemove.push(id);
+        return;
+      }
+
+      // Track elapsed time for current waypoint using totalDuration as a progress tracker
+      // We repurpose totalDuration countdown: subtract delta each frame
+      flight.totalDuration -= deltaTime * 1000;
+
+      // Compute remaining time for current waypoint
+      const waypointDuration = waypoint.duration;
+      const remainingTotal = flight.waypoints.slice(flight.currentWaypoint).reduce((sum, wp) => sum + wp.duration, 0);
+      const elapsedInWaypoint = waypointDuration - (remainingTotal - (flight.totalDuration < 0 ? 0 : flight.totalDuration) +
+        flight.waypoints.slice(flight.currentWaypoint + 1).reduce((sum, wp) => sum + wp.duration, 0));
+
+      // Advance to next waypoint if current one is done
+      if (flight.totalDuration <= flight.waypoints.slice(flight.currentWaypoint + 1).reduce((sum, wp) => sum + wp.duration, 0)) {
+        flight.currentWaypoint++;
+        if (flight.currentWaypoint >= flight.waypoints.length) {
+          flight.onComplete?.();
+          flightsToRemove.push(id);
+        }
+      }
     });
+
+    flightsToRemove.forEach(id => this.cameraFlights.delete(id));
   }
 
   private updateMorphingTransitions(deltaTime: number): void {
@@ -593,6 +645,11 @@ export class GraphAnimations {
   
   public dispose(): void {
     this.stop();
+
+    // Clear all tracked timers to prevent leaks
+    this.activeTimers.forEach(timer => clearTimeout(timer));
+    this.activeTimers.clear();
+
     this.activeAnimations.clear();
     this.cameraFlights.clear();
     this.nodeAnimations.clear();

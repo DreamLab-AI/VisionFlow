@@ -24,6 +24,8 @@ import { useVRConnectionsLOD, LODLevel } from '../hooks/useVRConnectionsLOD';
 /** Maximum connections for Quest 3 @ 72fps */
 const VR_MAX_CONNECTIONS = 20;
 
+const _tempColor = new THREE.Color();
+
 /** Geometry segments by LOD level */
 const LOD_SEGMENTS: Record<LODLevel, { curve: number; sphere: number }> = {
   high: { curve: 24, sphere: 12 },
@@ -127,19 +129,19 @@ const VRConnectionParticles: React.FC<{
   getLODLevel: (position: THREE.Vector3) => LODLevel;
 }> = ({ connections, opacity, getLODLevel }) => {
   const meshRef = useRef<THREE.InstancedMesh>(null);
+  const materialRef = useRef<THREE.MeshBasicMaterial>(null!);
   const maxInstances = VR_MAX_CONNECTIONS;
 
-  // Shared geometry and material
   const geometry = useMemo(() => new THREE.SphereGeometry(0.15, 8, 8), []);
-  const material = useMemo(
-    () =>
-      new THREE.MeshBasicMaterial({
-        transparent: true,
-        opacity: 0.9 * opacity,
-        depthWrite: false, // Prevent z-fighting in stereo
-      }),
-    [opacity]
-  );
+  const material = useMemo(() => {
+    const mat = new THREE.MeshBasicMaterial({
+      transparent: true,
+      opacity: 0.9 * opacity,
+      depthWrite: false,
+    });
+    materialRef.current = mat;
+    return mat;
+  }, []);
 
   // Dummy object for matrix calculations
   const dummy = useMemo(() => new THREE.Object3D(), []);
@@ -148,16 +150,16 @@ const VRConnectionParticles: React.FC<{
     [maxInstances]
   );
 
-  // Update instance positions and colors each frame
   useFrame(() => {
     if (!meshRef.current) return;
+
+    materialRef.current.opacity = 0.9 * opacity;
 
     for (let i = 0; i < maxInstances; i++) {
       if (i < connections.length) {
         const conn = connections[i];
         const position = calculateParticlePosition(conn);
 
-        // Check LOD - skip if culled
         const lod = getLODLevel(position);
         if (lod === 'culled') {
           dummy.scale.setScalar(0);
@@ -170,11 +172,10 @@ const VRConnectionParticles: React.FC<{
         dummy.updateMatrix();
         meshRef.current.setMatrixAt(i, dummy.matrix);
 
-        // Update color
-        const color = new THREE.Color(conn.color);
-        colorArray[i * 3] = color.r;
-        colorArray[i * 3 + 1] = color.g;
-        colorArray[i * 3 + 2] = color.b;
+        _tempColor.set(conn.color);
+        colorArray[i * 3] = _tempColor.r;
+        colorArray[i * 3 + 1] = _tempColor.g;
+        colorArray[i * 3 + 2] = _tempColor.b;
       } else {
         // Hide unused instances
         dummy.scale.setScalar(0);

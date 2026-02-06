@@ -16,10 +16,13 @@ export function useOnboarding() {
     try {
       const stored = localStorage.getItem(COMPLETED_FLOWS_KEY);
       if (stored) {
-        setState(prev => ({
-          ...prev,
-          completedFlows: JSON.parse(stored)
-        }));
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.every((v: unknown) => typeof v === 'string')) {
+          setState(prev => ({
+            ...prev,
+            completedFlows: parsed as string[]
+          }));
+        }
       }
     } catch (error) {
       console.error('Failed to load onboarding state:', error);

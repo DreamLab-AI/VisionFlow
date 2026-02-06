@@ -47,15 +47,16 @@ export const SelectiveBloom: React.FC<SelectiveBloomProps> = ({ enabled = true }
   const bloomSettings = settings?.visualisation?.bloom ?? (initialized ? null : FALLBACK_BLOOM);
   const glowSettings = settings?.visualisation?.glow ?? (initialized ? null : FALLBACK_GLOW);
 
-  // Log settings state for debugging
   useEffect(() => {
-    console.log('[SelectiveBloom] Settings state:', {
-      initialized,
-      hasSettings: !!settings,
-      hasVisualisation: !!settings?.visualisation,
-      bloomEnabled: bloomSettings?.enabled,
-      glowEnabled: glowSettings?.enabled
-    });
+    if ((globalThis as any).__SETTINGS__?.system?.debug?.enablePerformanceDebug) {
+      console.log('[SelectiveBloom] Settings state:', {
+        initialized,
+        hasSettings: !!settings,
+        hasVisualisation: !!settings?.visualisation,
+        bloomEnabled: bloomSettings?.enabled,
+        glowEnabled: glowSettings?.enabled
+      });
+    }
   }, [settings, initialized, bloomSettings, glowSettings]);
 
   const hasEffects = enabled && (bloomSettings?.enabled || glowSettings?.enabled);
@@ -175,7 +176,7 @@ export const useBloom = (
         }
       }
     };
-  }, [ref, layer, enabled, settings?.system?.debug?.enablePerformanceDebug]);
+  }, [ref, layer, enabled]);
 };
 
 // Export layer constants for use in other components

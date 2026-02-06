@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Html } from '@react-three/drei';
-import { 
-  configurationMapper, 
-  VisualizationConfig 
+import {
+  configurationMapper,
+  VisualizationConfig
 } from '../services/ConfigurationMapper';
 import { BotsAgent } from '../types/BotsTypes';
+import { createLogger } from '../../../utils/loggerConfig';
+
+const logger = createLogger('BotsControlPanel');
 
 interface BotsControlPanelProps {
   position?: [number, number, number];
@@ -70,7 +73,7 @@ export const BotsControlPanel: React.FC<BotsControlPanelProps> = ({
         response = apiResponse.data;
 
         if (response.success) {
-          console.log(`Successfully spawned ${type} agent via Docker:`, response.swarmId);
+          logger.info(`Successfully spawned ${type} agent via Docker:`, response.swarmId);
           setAgentCount(prev => prev + 1);
 
           
@@ -81,7 +84,7 @@ export const BotsControlPanel: React.FC<BotsControlPanelProps> = ({
           return;
         }
       } catch (dockerError) {
-        console.warn(`Docker spawn failed for ${type} agent, trying MCP fallback:`, dockerError);
+        logger.warn(`Docker spawn failed for ${type} agent, trying MCP fallback:`, dockerError);
       }
 
       
@@ -93,15 +96,15 @@ export const BotsControlPanel: React.FC<BotsControlPanelProps> = ({
       response = fallbackResponse.data;
 
       if (response.success) {
-        console.log(`Successfully spawned ${type} agent via MCP fallback`);
+        logger.info(`Successfully spawned ${type} agent via MCP fallback`);
         setAgentCount(prev => prev + 1);
       } else {
-        console.error(`Both Docker and MCP failed for ${type} agent:`, response.error);
+        logger.error(`Both Docker and MCP failed for ${type} agent:`, response.error);
         
         showSpawnError(type, 'Both primary and fallback methods failed');
       }
     } catch (error) {
-      console.error(`Critical error spawning ${type} agent:`, error);
+      logger.error(`Critical error spawning ${type} agent:`, error);
       showSpawnError(type, 'Network or system error occurred');
     }
   };
@@ -112,20 +115,20 @@ export const BotsControlPanel: React.FC<BotsControlPanelProps> = ({
 
     ws.onmessage = (event) => {
       const statusUpdate = JSON.parse(event.data);
-      console.log('Swarm status update:', statusUpdate);
+      logger.info('Swarm status update:', statusUpdate);
 
       
       if (statusUpdate.status === 'active') {
         
-        console.log(`Swarm ${swarmId} is now active with ${statusUpdate.activeWorkers} workers`);
+        logger.info(`Swarm ${swarmId} is now active with ${statusUpdate.activeWorkers} workers`);
       } else if (statusUpdate.status === 'failed') {
-        console.error(`Swarm ${swarmId} failed:`, statusUpdate.error);
+        logger.error(`Swarm ${swarmId} failed:`, statusUpdate.error);
         showSpawnError('swarm', statusUpdate.error);
       }
     };
 
     ws.onerror = (error) => {
-      console.error('Swarm monitoring WebSocket error:', error);
+      logger.error('Swarm monitoring WebSocket error:', error);
     };
 
     
@@ -139,7 +142,7 @@ export const BotsControlPanel: React.FC<BotsControlPanelProps> = ({
 
   const showSpawnError = (type: string, message: string) => {
     
-    console.error(`Spawn Error - ${type}: ${message}`);
+    logger.error(`Spawn Error - ${type}: ${message}`);
     
   };
 

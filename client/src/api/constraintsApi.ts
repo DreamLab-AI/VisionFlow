@@ -2,10 +2,17 @@
 // REAL API client for constraints management - NO MOCKS
 
 import axios, { AxiosResponse } from 'axios';
+import { nostrAuth } from '../services/nostrAuthService';
 
 // Use Vite proxy for API requests in development
 // In production, this will be served from the same origin
 const API_BASE = '/api';
+
+// Helper to get auth headers (matches settingsApi pattern)
+const getAuthHeaders = () => {
+  const token = nostrAuth.getSessionToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
 // ============================================================================
 // Type Definitions (matching Rust backend)
@@ -89,9 +96,9 @@ export const constraintsApi = {
   define: (
     system: ConstraintSystem
   ): Promise<AxiosResponse<{ status: string; constraints: ConstraintSystem }>> =>
-    axios.post(`${API_BASE}/constraints/define`, system),
+    axios.post(`${API_BASE}/constraints/define`, system, { headers: getAuthHeaders() }),
 
-  
+
   apply: (
     request: ApplyConstraintRequest
   ): Promise<
@@ -102,9 +109,9 @@ export const constraintsApi = {
       strength: number;
       gpuAvailable: boolean;
     }>
-  > => axios.post(`${API_BASE}/constraints/apply`, request),
+  > => axios.post(`${API_BASE}/constraints/apply`, request, { headers: getAuthHeaders() }),
 
-  
+
   remove: (
     request: RemoveConstraintRequest
   ): Promise<
@@ -113,17 +120,17 @@ export const constraintsApi = {
       removedCount: number;
       gpuAvailable: boolean;
     }>
-  > => axios.post(`${API_BASE}/constraints/remove`, request),
+  > => axios.post(`${API_BASE}/constraints/remove`, request, { headers: getAuthHeaders() }),
 
-  
+
   list: (): Promise<AxiosResponse<ConstraintListResponse>> =>
-    axios.get(`${API_BASE}/constraints/list`),
+    axios.get(`${API_BASE}/constraints/list`, { headers: getAuthHeaders() }),
 
-  
+
   validate: (
     constraint: LegacyConstraintData
   ): Promise<AxiosResponse<ValidationResponse>> =>
-    axios.post(`${API_BASE}/constraints/validate`, constraint),
+    axios.post(`${API_BASE}/constraints/validate`, constraint, { headers: getAuthHeaders() }),
 };
 
 // ============================================================================

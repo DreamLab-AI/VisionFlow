@@ -40,8 +40,8 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
 }));
 
 // Mock requestAnimationFrame
-global.requestAnimationFrame = vi.fn((cb) => setTimeout(cb, 16) as unknown as number);
-global.cancelAnimationFrame = vi.fn((id) => clearTimeout(id));
+global.requestAnimationFrame = vi.fn((cb: FrameRequestCallback) => setTimeout(cb, 16) as unknown as number);
+global.cancelAnimationFrame = vi.fn((id: number) => clearTimeout(id));
 
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {

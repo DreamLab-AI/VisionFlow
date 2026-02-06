@@ -74,8 +74,12 @@ export class FeatureFlags {
             const stored = localStorage.getItem('vircadia_feature_flags');
             if (stored) {
                 const parsed = JSON.parse(stored);
-                this.config = { ...this.config, ...parsed };
-                logger.info('Feature flags loaded from storage');
+                if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                    this.config = { ...this.config, ...parsed };
+                    logger.info('Feature flags loaded from storage');
+                } else {
+                    logger.warn('Invalid feature flags format in storage, ignoring');
+                }
             }
         } catch (error) {
             logger.warn('Failed to load feature flags from storage:', error);

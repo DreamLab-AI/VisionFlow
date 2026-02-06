@@ -184,38 +184,14 @@ export interface GlowSettings {
   environmentGlowStrength: number;
 }
 
-// Hologram settings - Enhanced with atmospheric effects
+// Hologram settings - Core ring effects (geometry objects removed)
 export interface HologramSettings {
-  
   ringCount: number;
   ringColor: string;
   ringOpacity: number;
   sphereSizes: [number, number];
   globalRotationSpeed: number;
-  
-  
-  enableBuckminster: boolean;
-  buckminsterSize: number;
-  buckminsterOpacity: number;
-  enableGeodesic: boolean;
-  geodesicSize: number;
-  geodesicOpacity: number;
-  enableTriangleSphere: boolean;
-  triangleSphereSize: number;
-  triangleSphereOpacity: number;
-  
-  
-  enableQuantumField: boolean;
-  quantumFieldIntensity: number;
-  enablePlasmaEffects: boolean;
-  plasmaIntensity: number;
-  enableEnergyFlow: boolean;
-  energyFlowSpeed: number;
-  
-  
   ringRotationSpeed: number;
-  enableRingParticles: boolean;
-  particleDensity: number;
 }
 
 // WebSocket settings
@@ -354,6 +330,75 @@ export interface GraphsSettings {
   visionflow: GraphSettings;
 }
 
+// Graph-type-specific visual settings
+export interface KnowledgeGraphVisualSettings {
+  shaderMode?: 'crystal' | 'hologram' | 'standard';
+  rimPower?: number;
+  metalness?: number;
+  roughness?: number;
+  glowStrength?: number;
+  innerGlowIntensity?: number;
+  facetDetail?: number;
+  authorityScaleFactor?: number;
+  showDomainBadge?: boolean;
+  showQualityStars?: boolean;
+  showRecencyIndicator?: boolean;
+  showConnectionDensity?: boolean;
+}
+
+export interface OntologyVisualSettings {
+  shaderMode?: 'constellation' | 'hologram' | 'standard';
+  rimPower?: number;
+  glowStrength?: number;
+  orbitalRingCount?: number;
+  orbitalRingSpeed?: number;
+  hierarchyScaleFactor?: number;
+  depthColorGradient?: boolean;
+  showHierarchyBreadcrumb?: boolean;
+  showInstanceCount?: boolean;
+  showConstraintStatus?: boolean;
+  nebulaGlowIntensity?: number;
+}
+
+export interface AgentVisualSettings {
+  shaderMode?: 'organic' | 'hologram' | 'standard';
+  membraneOpacity?: number;
+  nucleusGlowIntensity?: number;
+  breathingSpeed?: number;
+  breathingAmplitude?: number;
+  showHealthBar?: boolean;
+  showTokenRate?: boolean;
+  showTaskCount?: boolean;
+  bioluminescentIntensity?: number;
+}
+
+export interface GraphTypeVisualsSettings {
+  knowledgeGraph?: KnowledgeGraphVisualSettings;
+  ontology?: OntologyVisualSettings;
+  agent?: AgentVisualSettings;
+}
+
+// Scene effects settings (WASM-powered ambient visuals)
+export interface SceneEffectsSettings {
+  enabled?: boolean;
+  // Particle field
+  particleCount?: number;      // 64-512, default 256
+  particleOpacity?: number;    // 0-1, default 0.3
+  particleDrift?: number;      // 0-2, default 0.5
+  // Atmosphere/fog
+  fogEnabled?: boolean;        // default true
+  fogOpacity?: number;         // 0-0.15, default 0.03
+  atmosphereResolution?: number; // 64-256, default 128
+  // Energy wisps
+  wispsEnabled?: boolean;      // default true
+  wispCount?: number;          // 8-128, default 48
+  wispOpacity?: number;        // 0-1, default 0.3
+  wispDriftSpeed?: number;     // 0-3, default 1.0
+  // Ambient glow
+  ambientGlowEnabled?: boolean; // default true
+  ambientGlowOpacity?: number;  // 0-0.1, default 0.02
+}
+
 export interface VisualisationSettings {
 
   rendering: RenderingSettings;
@@ -364,6 +409,11 @@ export interface VisualisationSettings {
   camera?: CameraSettings;
   interaction?: InteractionSettings;
 
+  // Scene ambient effects (particles, fog, glow ring)
+  sceneEffects?: SceneEffectsSettings;
+
+  // Graph-type-specific visual settings
+  graphTypeVisuals?: GraphTypeVisualsSettings;
 
   graphs: GraphsSettings;
 

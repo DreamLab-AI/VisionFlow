@@ -36,7 +36,9 @@ export const VIEWPORT_SETTINGS_PATTERNS = [
   'xr.enablePlaneDetection',
   'xr.enablePassthroughPortal',
   
-  
+  // Graph-type visual settings
+  'visualisation.graphTypeVisuals.*',
+
   'system.debug.enabled',
   'system.debug.showAxesHelper',
   'system.debug.showStats',

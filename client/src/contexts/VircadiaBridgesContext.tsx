@@ -1,6 +1,6 @@
 
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { useVircadia } from './VircadiaContext';
 import { BotsVircadiaBridge } from '../services/bridges/BotsVircadiaBridge';
 import { GraphVircadiaBridge, type UserSelectionEvent, type AnnotationEvent } from '../services/bridges/GraphVircadiaBridge';
@@ -51,6 +51,8 @@ export const VircadiaBridgesProvider: React.FC<VircadiaBridgesProviderProps> = (
   const { client, isConnected } = useVircadia();
   const [botsBridge, setBotsBridge] = useState<BotsVircadiaBridge | null>(null);
   const [graphBridge, setGraphBridge] = useState<GraphVircadiaBridge | null>(null);
+  const botsBridgeRef = useRef<BotsVircadiaBridge | null>(null);
+  const graphBridgeRef = useRef<GraphVircadiaBridge | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [activeUsers, setActiveUsers] = useState<Array<{ userId: string; username: string; selectedNodes: string[] }>>([]);
@@ -79,6 +81,7 @@ export const VircadiaBridgesProvider: React.FC<VircadiaBridgesProviderProps> = (
           // BotsVircadiaBridge accepts null for avatars
           const bBridge = new BotsVircadiaBridge(client, entitySync, null);
           await bBridge.initialize();
+          botsBridgeRef.current = bBridge;
           setBotsBridge(bBridge);
 
           logger.info('BotsVircadiaBridge initialized');
@@ -101,6 +104,7 @@ export const VircadiaBridgesProvider: React.FC<VircadiaBridgesProviderProps> = (
             updateAnnotations();
           });
 
+          graphBridgeRef.current = gBridge;
           setGraphBridge(gBridge);
 
           logger.info('GraphVircadiaBridge initialized');
@@ -120,12 +124,14 @@ export const VircadiaBridgesProvider: React.FC<VircadiaBridgesProviderProps> = (
 
     
     return () => {
-      if (botsBridge) {
-        botsBridge.dispose();
+      if (botsBridgeRef.current) {
+        botsBridgeRef.current.dispose();
+        botsBridgeRef.current = null;
         setBotsBridge(null);
       }
-      if (graphBridge) {
-        graphBridge.dispose();
+      if (graphBridgeRef.current) {
+        graphBridgeRef.current.dispose();
+        graphBridgeRef.current = null;
         setGraphBridge(null);
       }
       setIsInitialized(false);

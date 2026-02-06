@@ -79,11 +79,6 @@ export function PhysicsEngineControls() {
     });
   };
   
-  const loadSettings = async () => {
-    
-  };
-  
-  
   const [kernelMode, setKernelMode] = useState<KernelMode>('visual_analytics');
   const [showConstraintBuilder, setShowConstraintBuilder] = useState(false);
   
@@ -249,10 +244,8 @@ export function PhysicsEngineControls() {
     }
   }, [isolationLayers]);
 
-  const handleSaveConstraint = useCallback((constraint: any) => {
-    
-    
-  }, []);
+  // No-op: constraint saving not yet implemented
+  const handleSaveConstraint = useCallback((_constraint: any) => {}, []);
 
   return (
     <div className="h-full overflow-auto">

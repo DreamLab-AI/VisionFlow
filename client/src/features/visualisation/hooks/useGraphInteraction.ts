@@ -87,8 +87,7 @@ export const useGraphInteraction = (options: UseGraphInteractionOptions = {}) =>
 
 
         if (updates.length > 0 && graphDataManager.webSocketService) {
-          // @ts-ignore - sendNodePositionUpdates may not be in WebSocketAdapter interface
-          graphDataManager.webSocketService.sendNodePositionUpdates?.(updates);
+          (graphDataManager.webSocketService as unknown as { sendNodePositionUpdates?: (updates: unknown[]) => void }).sendNodePositionUpdates?.(updates);
 
           if (debugState.isEnabled()) {
             logger.debug(`Sent position updates for ${updates.length} nodes during interaction`);
@@ -212,8 +211,7 @@ export const useGraphInteraction = (options: UseGraphInteractionOptions = {}) =>
 
 
       if (graphDataManager.webSocketService) {
-        // @ts-ignore - flushPositionUpdates may not be in WebSocketAdapter interface
-        await graphDataManager.webSocketService.flushPositionUpdates?.();
+        await (graphDataManager.webSocketService as unknown as { flushPositionUpdates?: () => Promise<void> }).flushPositionUpdates?.();
       }
     }
   }, [throttledSendPositions]);

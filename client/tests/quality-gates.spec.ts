@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Quality Gates Feature', () => {
 
   test('Quality Gates API returns all expected settings', async ({ request }) => {
-    const response = await request.get('http://172.18.0.11:4000/api/settings/quality-gates');
+    const response = await request.get('/api/settings/quality-gates');
     expect(response.ok()).toBe(true);
 
     const data = await response.json();
@@ -32,7 +32,7 @@ test.describe('Quality Gates Feature', () => {
 
   test('Quality Gates API can update settings', async ({ request }) => {
     // Update a setting
-    const updateResponse = await request.put('http://172.18.0.11:4000/api/settings/quality-gates', {
+    const updateResponse = await request.put('/api/settings/quality-gates', {
       data: {
         gpuAcceleration: false,
         ontologyPhysics: true,
@@ -51,7 +51,7 @@ test.describe('Quality Gates Feature', () => {
     expect(updateResponse.ok()).toBe(true);
 
     // Verify the update
-    const getResponse = await request.get('http://172.18.0.11:4000/api/settings/quality-gates');
+    const getResponse = await request.get('/api/settings/quality-gates');
     const data = await getResponse.json();
 
     console.log('Updated Quality Gates:', JSON.stringify(data, null, 2));
@@ -64,7 +64,7 @@ test.describe('Quality Gates Feature', () => {
     expect(data.autoAdjust).toBe(false);
 
     // Restore default values
-    await request.put('http://172.18.0.11:4000/api/settings/quality-gates', {
+    await request.put('/api/settings/quality-gates', {
       data: {
         gpuAcceleration: true,
         ontologyPhysics: false,

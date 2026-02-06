@@ -1,7 +1,7 @@
 import { createLogger, createErrorMetadata } from '../../../utils/loggerConfig';
 import { debugState, clientDebugState } from '../../../utils/clientDebugState';
 import { unifiedApiClient } from '../../../services/api/UnifiedApiClient';
-import { WebSocketAdapter } from '../../../services/WebSocketService';
+import { WebSocketAdapter } from '../../../store/websocketStore';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { BinaryNodeData, parseBinaryNodeData, createBinaryNodeData, Vec3, BINARY_NODE_SIZE } from '../../../types/binaryProtocol';
 import { graphWorkerProxy } from './graphWorkerProxy';
@@ -36,8 +36,11 @@ class GraphDataManager {
   private interactionTimeoutRef: number | null = null;
   private updateCount: number = 0; 
 
+  // Track worker subscription unsubscribe functions for cleanup
+  private workerUnsubscribers: Array<() => void> = [];
+
   private constructor() {
-    
+
     this.waitForWorker();
   }
 
@@ -82,8 +85,11 @@ class GraphDataManager {
   }
 
   private setupWorkerListeners(): void {
-    
-    graphWorkerProxy.onGraphDataChange((data) => {
+    // Clean up any previous subscriptions before re-subscribing
+    this.workerUnsubscribers.forEach(unsub => unsub());
+    this.workerUnsubscribers = [];
+
+    const unsubGraphData = graphWorkerProxy.onGraphDataChange((data) => {
       this.graphDataListeners.forEach(listener => {
         try {
           startTransition(() => {
@@ -94,9 +100,9 @@ class GraphDataManager {
         }
       });
     });
+    this.workerUnsubscribers.push(unsubGraphData);
 
-    
-    graphWorkerProxy.onPositionUpdate((positions) => {
+    const unsubPositions = graphWorkerProxy.onPositionUpdate((positions) => {
       this.positionUpdateListeners.forEach(listener => {
         try {
           listener(positions);
@@ -105,6 +111,7 @@ class GraphDataManager {
         }
       });
     });
+    this.workerUnsubscribers.push(unsubPositions);
   }
 
   public static getInstance(): GraphDataManager {
@@ -729,16 +736,18 @@ class GraphDataManager {
     return this.onGraphDataChange(listener);
   }
 
-  
-  public getVisibleNodes(): Node[] {
-    
-    let nodes: Node[] = [];
-    graphWorkerProxy.getGraphData().then(data => {
-      nodes = data.nodes;
-    }).catch(error => {
+  /**
+   * Get visible nodes asynchronously from the worker.
+   * Previously this was synchronous and always returned [] because of an async race.
+   */
+  public async getVisibleNodes(): Promise<Node[]> {
+    try {
+      const data = await graphWorkerProxy.getGraphData();
+      return data.nodes;
+    } catch (error) {
       logger.error('Error getting visible nodes:', createErrorMetadata(error));
-    });
-    return nodes;
+      return [];
+    }
   }
 
   
@@ -789,6 +798,10 @@ class GraphDataManager {
       window.clearTimeout(this.interactionTimeoutRef);
       this.interactionTimeoutRef = null;
     }
+
+    // Clean up worker subscriptions to prevent leaks
+    this.workerUnsubscribers.forEach(unsub => unsub());
+    this.workerUnsubscribers = [];
 
     this.graphDataListeners = [];
     this.positionUpdateListeners = [];

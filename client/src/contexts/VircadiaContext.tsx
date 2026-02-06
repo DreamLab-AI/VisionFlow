@@ -31,32 +31,35 @@ export const VircadiaProvider: React.FC<VircadiaProviderProps> = ({
     const [connectionInfo, setConnectionInfo] = useState<ClientCoreConnectionInfo | null>(null);
     const [error, setError] = useState<Error | null>(null);
     const clientRef = useRef<ClientCore | null>(null);
+    const configRef = useRef(config);
+    configRef.current = config;
 
-    
-    const defaultConfig: ClientCoreConfig = {
-        serverUrl: import.meta.env.VITE_VIRCADIA_SERVER_URL || 'ws://localhost:3020/world/ws',
-        authToken: import.meta.env.VITE_VIRCADIA_AUTH_TOKEN || '',
-        authProvider: import.meta.env.VITE_VIRCADIA_AUTH_PROVIDER || 'system',
-        reconnectAttempts: 5,
-        reconnectDelay: 5000,
-        debug: import.meta.env.DEV || false,
-        suppress: false,
-        ...config
-    };
+    // Serialize config to a stable string so the effect only re-runs when
+    // the actual config values change, not on every render identity change.
+    const configKey = JSON.stringify(config ?? {});
 
-    
     useEffect(() => {
+        const mergedConfig: ClientCoreConfig = {
+            serverUrl: import.meta.env.VITE_VIRCADIA_SERVER_URL || 'ws://localhost:3020/world/ws',
+            authToken: import.meta.env.VITE_VIRCADIA_AUTH_TOKEN || '',
+            authProvider: import.meta.env.VITE_VIRCADIA_AUTH_PROVIDER || 'system',
+            reconnectAttempts: 5,
+            reconnectDelay: 5000,
+            debug: import.meta.env.DEV || false,
+            suppress: false,
+            ...configRef.current
+        };
+
         logger.info('Initializing Vircadia client with config:', {
-            serverUrl: defaultConfig.serverUrl,
-            authProvider: defaultConfig.authProvider,
-            debug: defaultConfig.debug
+            serverUrl: mergedConfig.serverUrl,
+            authProvider: mergedConfig.authProvider,
+            debug: mergedConfig.debug
         });
 
-        const vircadiaClient = new ClientCore(defaultConfig);
+        const vircadiaClient = new ClientCore(mergedConfig);
         setClient(vircadiaClient);
         clientRef.current = vircadiaClient;
 
-        
         const handleStatusChange = () => {
             const info = vircadiaClient.Utilities.Connection.getConnectionInfo();
             setConnectionInfo(info);
@@ -65,13 +68,13 @@ export const VircadiaProvider: React.FC<VircadiaProviderProps> = ({
 
         vircadiaClient.Utilities.Connection.addEventListener('statusChange', handleStatusChange);
 
-        
         return () => {
             vircadiaClient.Utilities.Connection.removeEventListener('statusChange', handleStatusChange);
             vircadiaClient.dispose();
             clientRef.current = null;
         };
-    }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [configKey]);
 
     
     useEffect(() => {

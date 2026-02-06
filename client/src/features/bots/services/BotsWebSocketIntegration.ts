@@ -1,6 +1,6 @@
 import { createLogger } from '../../../utils/loggerConfig';
 import { agentTelemetry } from '../../../telemetry/AgentTelemetry';
-import { webSocketService } from '../../../services/WebSocketService';
+import { webSocketService } from '../../../store/websocketStore';
 import { agentPollingService } from './AgentPollingService';
 import type { BotsAgent, BotsEdge, BotsCommunication } from '../types/BotsTypes';
 
@@ -109,7 +109,8 @@ export class BotsWebSocketIntegration {
     });
 
     
-    webSocketService.on('bots-position-update', (data: ArrayBuffer) => {
+    webSocketService.on('bots-position-update', (data: unknown) => {
+      if (!(data instanceof ArrayBuffer)) return;
       logger.debug(`Received bots binary position update: ${data.byteLength} bytes`);
 
       

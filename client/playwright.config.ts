@@ -16,7 +16,7 @@ export default defineConfig({
     timeout: 10000,
   },
   use: {
-    baseURL: process.env.TEST_BASE_URL || 'http://192.168.0.51:3001',
+    baseURL: process.env.TEST_BASE_URL || 'http://localhost:3001',
     trace: 'on-first-retry',
     screenshot: 'on',
     video: 'on-first-retry',

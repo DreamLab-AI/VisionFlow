@@ -1,5 +1,8 @@
 import * as THREE from 'three';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
+import { createLogger } from '../../../utils/loggerConfig';
+
+const logger = createLogger('SpacePilotController');
 
 // Type alias for OrbitControls from drei
 type OrbitControls = OrbitControlsImpl;
@@ -152,6 +155,14 @@ export class SpacePilotController {
   private translation = { x: 0, y: 0, z: 0 };
   private rotation = { x: 0, y: 0, z: 0 };
 
+  // Pre-allocated reusable objects to avoid per-frame GC pressure
+  private readonly _tempVec = new THREE.Vector3();
+  private readonly _tempVec2 = new THREE.Vector3();
+  private readonly _tempVec3 = new THREE.Vector3();
+  private readonly _tempQuat = new THREE.Quaternion();
+  private readonly _tempEuler = new THREE.Euler();
+  private readonly _tempSpherical = new THREE.Spherical();
+
 
   private static readonly INPUT_SCALE = 1 / 32768;
   private static readonly TRANSLATION_SPEED = 0.01;
@@ -171,7 +182,7 @@ export class SpacePilotController {
   
   start(): void {
     if (this.isActive) return;
-    console.log('[SpacePilot] Controller starting - animation loop beginning');
+    logger.info('Controller starting - animation loop beginning');
 
     // Cancel any in-progress horizon leveling when starting
     this.cancelHorizonLeveling();
@@ -206,7 +217,7 @@ export class SpacePilotController {
   private startHorizonLeveling(): void {
     if (!this.camera || this.isLevelingHorizon) return;
 
-    console.log('[SpacePilot] Starting horizon leveling transition');
+    logger.info('Starting horizon leveling transition');
 
     // Store current quaternion
     this.levelingStartQuat.copy(this.camera.quaternion);
@@ -250,15 +261,15 @@ export class SpacePilotController {
    */
   private finishHorizonLeveling(): void {
     this.isLevelingHorizon = false;
-    console.log('[SpacePilot] Horizon leveling complete');
+    logger.info('Horizon leveling complete');
 
     // Update OrbitControls target to match where camera is now looking
     if (this.controls && this.camera) {
-      const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.quaternion);
+      this._tempVec.set(0, 0, -1).applyQuaternion(this.camera.quaternion);
       // Place target at a reasonable distance in front of camera
       const targetDistance = this.camera.position.length() || 50;
-      const newTarget = this.camera.position.clone().add(forward.multiplyScalar(targetDistance));
-      this.controls.target.copy(newTarget);
+      this._tempVec2.copy(this.camera.position).add(this._tempVec.multiplyScalar(targetDistance));
+      this.controls.target.copy(this._tempVec2);
       this.controls.update();
     }
   }
@@ -277,13 +288,13 @@ export class SpacePilotController {
   
   handleTranslation(detail: { x: number; y: number; z: number }): void {
     if (!this.isActive) {
-      console.log('[SpacePilot] Translation ignored - controller not active');
+      logger.debug('Translation ignored - controller not active');
       return;
     }
 
     
     if (Math.abs(detail.x) > 10 || Math.abs(detail.y) > 10 || Math.abs(detail.z) > 10) {
-      console.log('[SpacePilot] Raw translation input:', detail);
+      logger.debug('Raw translation input:', detail);
     }
 
     
@@ -403,49 +414,48 @@ export class SpacePilotController {
   private updateCamera(): void {
     if (!this.camera) return;
 
-    
+
     if (this.config.enabledAxes.x || this.config.enabledAxes.y || this.config.enabledAxes.z) {
-      const translationVector = new THREE.Vector3(
+      this._tempVec.set(
         this.config.enabledAxes.x ? this.translation.x * SpacePilotController.TRANSLATION_SPEED : 0,
         this.config.enabledAxes.y ? this.translation.y * SpacePilotController.TRANSLATION_SPEED : 0,
         this.config.enabledAxes.z ? -this.translation.z * SpacePilotController.TRANSLATION_SPEED : 0
       );
 
-      
-      if (translationVector.length() > 0.0001) {
-        console.log('[SpacePilot] Camera translation:', translationVector);
+
+      if (this._tempVec.length() > 0.0001) {
+        logger.debug('Camera translation:', this._tempVec);
       }
 
-      
-      translationVector.applyQuaternion(this.camera.quaternion);
-      this.camera.position.add(translationVector);
+
+      this._tempVec.applyQuaternion(this.camera.quaternion);
+      this.camera.position.add(this._tempVec);
     }
 
-    
+
     if (this.controls && (this.config.enabledAxes.rx || this.config.enabledAxes.ry)) {
-      
-      const spherical = new THREE.Spherical();
-      spherical.setFromVector3(this.camera.position.clone().sub(this.controls.target));
-      
+
+      this._tempSpherical.setFromVector3(this._tempVec.copy(this.camera.position).sub(this.controls.target));
+
       if (this.config.enabledAxes.ry) {
-        spherical.theta -= this.rotation.y * SpacePilotController.ROTATION_SPEED;
+        this._tempSpherical.theta -= this.rotation.y * SpacePilotController.ROTATION_SPEED;
       }
       if (this.config.enabledAxes.rx) {
-        spherical.phi += this.rotation.x * SpacePilotController.ROTATION_SPEED;
-        spherical.phi = Math.max(0.01, Math.min(Math.PI - 0.01, spherical.phi));
+        this._tempSpherical.phi += this.rotation.x * SpacePilotController.ROTATION_SPEED;
+        this._tempSpherical.phi = Math.max(0.01, Math.min(Math.PI - 0.01, this._tempSpherical.phi));
       }
-      
-      this.camera.position.setFromSpherical(spherical).add(this.controls.target);
+
+      this.camera.position.setFromSpherical(this._tempSpherical).add(this.controls.target);
       this.camera.lookAt(this.controls.target);
     } else if (!this.controls) {
-      
-      const euler = new THREE.Euler(
+
+      this._tempEuler.set(
         this.config.enabledAxes.rx ? this.rotation.x * SpacePilotController.ROTATION_SPEED : 0,
         this.config.enabledAxes.ry ? this.rotation.y * SpacePilotController.ROTATION_SPEED : 0,
         this.config.enabledAxes.rz ? this.rotation.z * SpacePilotController.ROTATION_SPEED : 0,
         'YXZ'
       );
-      this.camera.quaternion.multiply(new THREE.Quaternion().setFromEuler(euler));
+      this.camera.quaternion.multiply(this._tempQuat.setFromEuler(this._tempEuler));
     }
   }
 
@@ -453,60 +463,60 @@ export class SpacePilotController {
   private updateObject(): void {
     if (!this.selectedObject) return;
 
-    
+
     if (this.config.enabledAxes.x || this.config.enabledAxes.y || this.config.enabledAxes.z) {
-      const translationVector = new THREE.Vector3(
+      this._tempVec.set(
         this.config.enabledAxes.x ? this.translation.x * SpacePilotController.TRANSLATION_SPEED : 0,
         this.config.enabledAxes.y ? this.translation.y * SpacePilotController.TRANSLATION_SPEED : 0,
         this.config.enabledAxes.z ? this.translation.z * SpacePilotController.TRANSLATION_SPEED : 0
       );
-      
-      this.selectedObject.position.add(translationVector);
+
+      this.selectedObject.position.add(this._tempVec);
     }
 
-    
-    const euler = new THREE.Euler(
+
+    this._tempEuler.set(
       this.config.enabledAxes.rx ? this.rotation.x * SpacePilotController.ROTATION_SPEED : 0,
       this.config.enabledAxes.ry ? this.rotation.y * SpacePilotController.ROTATION_SPEED : 0,
       this.config.enabledAxes.rz ? this.rotation.z * SpacePilotController.ROTATION_SPEED : 0,
       'XYZ'
     );
-    
-    this.selectedObject.quaternion.multiply(new THREE.Quaternion().setFromEuler(euler));
+
+    this.selectedObject.quaternion.multiply(this._tempQuat.setFromEuler(this._tempEuler));
   }
 
   
   private updateNavigation(): void {
     if (!this.camera) return;
 
-    
-    const forward = new THREE.Vector3(0, 0, -1);
-    forward.applyQuaternion(this.camera.quaternion);
-    forward.multiplyScalar(this.translation.z * SpacePilotController.TRANSLATION_SPEED * 2);
-    
-    
-    const right = new THREE.Vector3(1, 0, 0);
-    right.applyQuaternion(this.camera.quaternion);
-    right.multiplyScalar(this.translation.x * SpacePilotController.TRANSLATION_SPEED * 2);
-    
-    
-    const up = new THREE.Vector3(0, 1, 0);
-    up.multiplyScalar(this.translation.y * SpacePilotController.TRANSLATION_SPEED * 2);
-    
-    
-    this.camera.position.add(forward);
-    this.camera.position.add(right);
-    this.camera.position.add(up);
-    
-    
-    const euler = new THREE.Euler(
+
+    this._tempVec.set(0, 0, -1);
+    this._tempVec.applyQuaternion(this.camera.quaternion);
+    this._tempVec.multiplyScalar(this.translation.z * SpacePilotController.TRANSLATION_SPEED * 2);
+
+
+    this._tempVec2.set(1, 0, 0);
+    this._tempVec2.applyQuaternion(this.camera.quaternion);
+    this._tempVec2.multiplyScalar(this.translation.x * SpacePilotController.TRANSLATION_SPEED * 2);
+
+
+    this._tempVec3.set(0, 1, 0);
+    this._tempVec3.multiplyScalar(this.translation.y * SpacePilotController.TRANSLATION_SPEED * 2);
+
+
+    this.camera.position.add(this._tempVec);
+    this.camera.position.add(this._tempVec2);
+    this.camera.position.add(this._tempVec3);
+
+
+    this._tempEuler.set(
       this.rotation.x * SpacePilotController.ROTATION_SPEED * 2,
       this.rotation.y * SpacePilotController.ROTATION_SPEED * 2,
       this.rotation.z * SpacePilotController.ROTATION_SPEED * 2,
       'YXZ'
     );
-    
-    this.camera.quaternion.multiply(new THREE.Quaternion().setFromEuler(euler));
+
+    this.camera.quaternion.multiply(this._tempQuat.setFromEuler(this._tempEuler));
   }
 
   

@@ -1,6 +1,9 @@
 
 
 import { unifiedApiClient } from '../services/api/UnifiedApiClient';
+import { createLogger } from '../utils/loggerConfig';
+
+const logger = createLogger('exportApi');
 
 export interface ExportOptions {
   format: string;
@@ -74,9 +77,15 @@ export const exportGraph = async (
     });
 
     if (response.data.downloadUrl) {
-      
+      // Validate download URL origin to prevent open redirect
+      const allowedOrigins = [window.location.origin];
+      const parsedUrl = new URL(response.data.downloadUrl, window.location.origin);
+      if (!allowedOrigins.includes(parsedUrl.origin)) {
+        throw new Error('Invalid download URL origin');
+      }
+
       const link = document.createElement('a');
-      link.href = response.data.downloadUrl;
+      link.href = parsedUrl.href;
       link.download = response.data.fileName || `graph.${options.format}`;
       document.body.appendChild(link);
       link.click();
@@ -85,7 +94,7 @@ export const exportGraph = async (
 
     return response.data;
   } catch (error) {
-    console.error('Export failed:', error);
+    logger.error('Export failed:', error);
     return {
       success: false,
       message: error instanceof Error ? error.message : 'Export failed'
@@ -106,7 +115,7 @@ export const shareGraph = async (
 
     return response.data;
   } catch (error) {
-    console.error('Share failed:', error);
+    logger.error('Share failed:', error);
     return {
       success: false,
       message: error instanceof Error ? error.message : 'Share failed'
@@ -117,10 +126,10 @@ export const shareGraph = async (
 
 export const getSharedGraph = async (shareId: string): Promise<any> => {
   try {
-    const response = await unifiedApiClient.get(`/graph/shared/${shareId}`);
+    const response = await unifiedApiClient.get(`/graph/shared/${encodeURIComponent(shareId)}`);
     return response.data;
   } catch (error) {
-    console.error('Failed to retrieve shared graph:', error);
+    logger.error('Failed to retrieve shared graph:', error);
     throw error;
   }
 };
@@ -128,10 +137,10 @@ export const getSharedGraph = async (shareId: string): Promise<any> => {
 
 export const deleteSharedGraph = async (shareId: string): Promise<boolean> => {
   try {
-    await unifiedApiClient.delete(`/graph/shared/${shareId}`);
+    await unifiedApiClient.delete(`/graph/shared/${encodeURIComponent(shareId)}`);
     return true;
   } catch (error) {
-    console.error('Failed to delete shared graph:', error);
+    logger.error('Failed to delete shared graph:', error);
     return false;
   }
 };
@@ -149,7 +158,7 @@ export const publishGraph = async (
 
     return response.data;
   } catch (error) {
-    console.error('Publish failed:', error);
+    logger.error('Publish failed:', error);
     return {
       success: false,
       message: error instanceof Error ? error.message : 'Publish failed'
@@ -163,7 +172,7 @@ export const getUserSharedGraphs = async (): Promise<any[]> => {
     const response = await unifiedApiClient.get('/graph/shared');
     return response.data.graphs || [];
   } catch (error) {
-    console.error('Failed to get shared graphs:', error);
+    logger.error('Failed to get shared graphs:', error);
     return [];
   }
 };
@@ -174,10 +183,10 @@ export const updateShareSettings = async (
   options: ShareOptions
 ): Promise<ShareResponse> => {
   try {
-    const response = await unifiedApiClient.put(`/graph/shared/${shareId}`, options);
+    const response = await unifiedApiClient.put(`/graph/shared/${encodeURIComponent(shareId)}`, options);
     return response.data;
   } catch (error) {
-    console.error('Failed to update share settings:', error);
+    logger.error('Failed to update share settings:', error);
     return {
       success: false,
       message: error instanceof Error ? error.message : 'Update failed'
@@ -186,10 +195,19 @@ export const updateShareSettings = async (
 };
 
 
+/**
+ * Sanitize a shareId for safe use in URLs and DOM contexts.
+ * Strips anything that is not alphanumeric, hyphen, or underscore.
+ */
+const sanitizeShareId = (shareId: string): string => {
+  return shareId.replace(/[^a-zA-Z0-9_-]/g, '');
+};
+
 export const generateEmbedCode = (
   shareId: string,
   settings: EmbedSettings = {}
 ): string => {
+  const safeShareId = sanitizeShareId(shareId);
   const {
     width = 800,
     height = 600,
@@ -205,7 +223,7 @@ export const generateEmbedCode = (
   });
 
   return `<iframe
-  src="${window.location.origin}/embed/${shareId}?${params.toString()}"
+  src="${window.location.origin}/embed/${safeShareId}?${params.toString()}"
   width="${width}"
   height="${height}"
   frameborder="0"
@@ -216,7 +234,7 @@ export const generateEmbedCode = (
 
 
 export const generateApiEndpoint = (shareId: string): string => {
-  return `${window.location.origin}/api/graph/shared/${shareId}/data`;
+  return `${window.location.origin}/api/graph/shared/${encodeURIComponent(shareId)}/data`;
 };
 
 
@@ -260,7 +278,7 @@ export const copyToClipboard = async (text: string): Promise<boolean> => {
       return result;
     }
   } catch (error) {
-    console.error('Failed to copy to clipboard:', error);
+    logger.error('Failed to copy to clipboard:', error);
     return false;
   }
 };

@@ -2,6 +2,7 @@ import { createLogger } from '../utils/loggerConfig';
 import { createErrorMetadata } from '../utils/loggerConfig';
 import { debugState } from '../utils/clientDebugState';
 import { unifiedApiClient, isApiError } from '../services/api/UnifiedApiClient';
+import { nostrAuth } from '../services/nostrAuthService';
 
 const logger = createLogger('AnalyticsAPI');
 
@@ -264,7 +265,7 @@ export class AnalyticsAPI {
         success: boolean;
         task: AnalysisTask;
         error?: string;
-      }>(`/analytics/clustering/status?task_id=${taskId}`);
+      }>(`/analytics/clustering/status?task_id=${encodeURIComponent(taskId)}`);
 
       if (!response.success) {
         throw new Error(response.error || 'Failed to get task status');
@@ -303,7 +304,7 @@ export class AnalyticsAPI {
       const response = await unifiedApiClient.postData<{
         success: boolean;
         error?: string;
-      }>(`/analytics/clustering/cancel?task_id=${taskId}`, {});
+      }>(`/analytics/clustering/cancel?task_id=${encodeURIComponent(taskId)}`, {});
 
       return response.success;
     } catch (error) {
@@ -442,7 +443,13 @@ export class AnalyticsAPI {
       logger.info('Analytics WebSocket connected');
       this.reconnectAttempts = 0;
 
-      
+      // Send auth token as first message instead of URL param
+      const token = nostrAuth.getSessionToken();
+      if (token) {
+        this.websocket?.send(JSON.stringify({ type: 'auth', token }));
+      }
+
+
       const taskIds = Array.from(this.taskSubscriptions.keys());
       for (const taskId of taskIds) {
         this.websocket?.send(JSON.stringify({

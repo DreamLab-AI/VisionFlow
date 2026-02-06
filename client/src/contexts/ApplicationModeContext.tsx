@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
 import { createLogger } from '../utils/loggerConfig';
 
 const logger = createLogger('ApplicationModeContext');
@@ -102,13 +102,15 @@ export const ApplicationModeProvider: React.FC<ApplicationModeProviderProps> = (
     }
   };
 
+  const layoutSettings = useMemo(() => getLayoutSettings(), [mode]);
+
   const contextValue: ApplicationModeContextValue = {
     mode,
     previousMode,
     isXRMode: mode === 'xr',
     isMobileView,
     setMode: handleModeChange,
-    layoutSettings: getLayoutSettings()
+    layoutSettings
   };
 
   return (

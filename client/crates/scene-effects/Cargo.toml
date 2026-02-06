@@ -1,0 +1,17 @@
+[package]
+name = "scene-effects"
+version = "0.1.0"
+edition = "2021"
+description = "WASM-powered background scene effects for Three.js knowledge graph visualization"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+js-sys = "0.3"
+web-sys = { version = "0.3", features = ["console"] }
+
+[profile.release]
+opt-level = "z"
+lto = true

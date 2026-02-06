@@ -17,7 +17,8 @@ interface CacheEntry<T> {
 }
 
 const responseCache = new Map<string, CacheEntry<any>>();
-const CACHE_TTL = 5000; 
+const CACHE_TTL = 5000;
+const MAX_CACHE_SIZE = 500;
 
 // Debounce utilities
 const debounceMap = new Map<string, ReturnType<typeof setTimeout>>();
@@ -59,6 +60,13 @@ function getCachedResponse<T>(key: string): T | undefined {
 
 
 function setCachedResponse<T>(key: string, value: T, ttl: number = CACHE_TTL): void {
+  // Evict oldest entry when cache exceeds max size (simple LRU approximation)
+  if (responseCache.size >= MAX_CACHE_SIZE && !responseCache.has(key)) {
+    const oldestKey = responseCache.keys().next().value;
+    if (oldestKey !== undefined) {
+      responseCache.delete(oldestKey);
+    }
+  }
   responseCache.set(key, {
     value,
     timestamp: Date.now(),
@@ -414,27 +422,29 @@ export function useSettingsSubscription(
 
   const callbackRef = useRef(callback);
   const stablePath = useMemo(() => path, [path]);
-  
-  
+  // Stabilize spread dependencies into a single JSON key
+  const depsKey = JSON.stringify(dependencies);
+
+
   useEffect(() => {
     callbackRef.current = callback;
   }, [callback]);
-  
+
   useEffect(() => {
     let mounted = true;
-    
+
     const handleChange = async () => {
       try {
         let value: any;
-        
+
         if (enableCache) {
-          
+
           value = await getDedicatedSetting(stablePath);
         } else {
-          
+
           value = useSettingsStore.getState().get(stablePath);
         }
-        
+
         if (mounted) {
           callbackRef.current(value);
         }
@@ -442,24 +452,25 @@ export function useSettingsSubscription(
         logger.error(`Subscription callback failed for path ${stablePath}:`, error);
       }
     };
-    
-    
+
+
     if (immediate) {
       handleChange();
     }
-    
-    
+
+
     const unsubscribe = useSettingsStore.getState().subscribe(
       stablePath,
       handleChange,
       false
     );
-    
+
     return () => {
       mounted = false;
       unsubscribe();
     };
-  }, [stablePath, enableCache, immediate, ...dependencies]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stablePath, enableCache, immediate, depsKey]);
 }
 
 

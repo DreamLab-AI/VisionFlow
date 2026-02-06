@@ -71,7 +71,8 @@ export class UnifiedApiClient {
   private authToken: string | null = null;
   private interceptors: InterceptorConfig = {};
   private retryConfig: RetryConfig;
-  private abortController: AbortController | null = null;
+  private activeRequests = new Map<string, AbortController>();
+  private requestIdCounter = 0;
 
   constructor(baseURL: string = '/api', retryConfig: Partial<RetryConfig> = {}) {
     this.baseURL = baseURL.endsWith('/') ? baseURL.slice(0, -1) : baseURL;
@@ -80,9 +81,6 @@ export class UnifiedApiClient {
       'Accept': 'application/json',
     };
     this.retryConfig = { ...DEFAULT_RETRY_CONFIG, ...retryConfig };
-
-    
-    this.abortController = new AbortController();
   }
 
   
@@ -126,11 +124,11 @@ export class UnifiedApiClient {
 
   
   public cancelRequests(): void {
-    if (this.abortController) {
-      this.abortController.abort();
-      this.abortController = new AbortController();
-      logger.info('All pending requests cancelled');
+    for (const [id, controller] of this.activeRequests) {
+      controller.abort();
     }
+    this.activeRequests.clear();
+    logger.info('All pending requests cancelled');
   }
 
   
@@ -200,16 +198,20 @@ export class UnifiedApiClient {
       delete headers.Authorization;
     }
 
-    
+    // Create a per-request AbortController to avoid cancelling all in-flight requests
+    const requestId = String(++this.requestIdCounter);
+    const abortController = new AbortController();
+    this.activeRequests.set(requestId, abortController);
+
     const timeoutMs = finalConfig.timeout || DEFAULT_TIMEOUT;
     const timeoutId = setTimeout(() => {
-      this.abortController?.abort();
+      abortController.abort();
     }, timeoutMs);
 
     const requestConfig: RequestInit = {
       ...finalConfig,
       headers,
-      signal: this.abortController?.signal,
+      signal: abortController.signal,
     };
 
     if (debugState.isEnabled()) {
@@ -224,6 +226,7 @@ export class UnifiedApiClient {
       response = await fetch(fullUrl, requestConfig);
     } catch (fetchError: any) {
       clearTimeout(timeoutId);
+      this.activeRequests.delete(requestId);
 
       if (fetchError.name === 'AbortError') {
         throw this.createApiError(
@@ -241,6 +244,7 @@ export class UnifiedApiClient {
       );
     } finally {
       clearTimeout(timeoutId);
+      this.activeRequests.delete(requestId);
     }
 
     

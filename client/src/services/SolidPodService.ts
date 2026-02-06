@@ -77,6 +77,23 @@ const JSS_WS_URL = import.meta.env.VITE_JSS_WS_URL || null;
 
 // --- Service Implementation ---
 
+/**
+ * Sanitize a preference key to prevent path traversal.
+ * Strips path separators and dot-sequences that could escape the container.
+ */
+function sanitizePreferenceKey(key: string): string {
+  // Remove sequences of two or more dots/slashes/backslashes (path traversal)
+  let sanitized = key.replace(/[\/\\\.]{2,}/g, '');
+  // Replace any remaining slashes/backslashes with hyphens
+  sanitized = sanitized.replace(/[\/\\]/g, '-');
+  // Remove leading dots or hyphens
+  sanitized = sanitized.replace(/^[.\-]+/, '');
+  if (!sanitized) {
+    throw new Error('Invalid preference key');
+  }
+  return sanitized;
+}
+
 class SolidPodService {
   private static instance: SolidPodService;
   private wsConnection: WebSocket | null = null;
@@ -84,6 +101,7 @@ class SolidPodService {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
+  private reconnectTimerId: ReturnType<typeof setTimeout> | null = null;
 
   private constructor() {}
 
@@ -228,7 +246,8 @@ class SolidPodService {
       return false;
     }
 
-    const prefPath = `${structure.preferences}${key}.jsonld`;
+    const safeKey = sanitizePreferenceKey(key);
+    const prefPath = `${structure.preferences}${safeKey}.jsonld`;
     return this.putResource(prefPath, {
       '@context': 'https://www.w3.org/ns/ldp',
       '@type': 'Preference',
@@ -249,7 +268,8 @@ class SolidPodService {
     }
 
     try {
-      const prefPath = `${structure.preferences}${key}.jsonld`;
+      const safeKey = sanitizePreferenceKey(key);
+      const prefPath = `${structure.preferences}${safeKey}.jsonld`;
       const doc = await this.fetchJsonLd(prefPath);
       return (doc as { value?: unknown }).value ?? null;
     } catch {
@@ -555,7 +575,13 @@ class SolidPodService {
     }
 
     try {
-      this.wsConnection = new WebSocket(JSS_WS_URL);
+      // Validate WebSocket URL before connecting
+      const validatedUrl = new URL(JSS_WS_URL);
+      if (validatedUrl.protocol !== 'ws:' && validatedUrl.protocol !== 'wss:') {
+        logger.error('Invalid WebSocket protocol', { protocol: validatedUrl.protocol });
+        return;
+      }
+      this.wsConnection = new WebSocket(validatedUrl.href);
 
       this.wsConnection.onopen = () => {
         logger.info('JSS WebSocket connected');
@@ -613,6 +639,10 @@ class SolidPodService {
    * Disconnect WebSocket
    */
   public disconnect(): void {
+    if (this.reconnectTimerId !== null) {
+      clearTimeout(this.reconnectTimerId);
+      this.reconnectTimerId = null;
+    }
     if (this.wsConnection) {
       this.wsConnection.close();
       this.wsConnection = null;
@@ -731,7 +761,8 @@ class SolidPodService {
 
     logger.info(`Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`);
 
-    setTimeout(() => {
+    this.reconnectTimerId = setTimeout(() => {
+      this.reconnectTimerId = null;
       this.connectWebSocket();
     }, delay);
   }

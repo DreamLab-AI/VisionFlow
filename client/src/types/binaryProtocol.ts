@@ -1,3 +1,7 @@
+import { createLogger } from '../utils/loggerConfig';
+
+const logger = createLogger('binaryProtocol');
+
 /**
  * Binary Protocol for WebSocket node data communication
  * Aligns with server-side src/utils/binary_protocol.rs
@@ -136,15 +140,15 @@ export function parseBinaryNodeData(buffer: ArrayBuffer): BinaryNodeData[] {
         hasAnalytics = true;
         break;
       case 1:
-        console.error('PROTOCOL_V1 is no longer supported. Please upgrade server.');
+        logger.error('PROTOCOL_V1 is no longer supported. Please upgrade server.');
         return [];
       case PROTOCOL_V4:
         // Delta encoding - not yet implemented on client
-        console.warn('PROTOCOL_V4 (delta encoding) not yet implemented on client');
+        logger.warn('PROTOCOL_V4 (delta encoding) not yet implemented on client');
         return [];
       default:
         // Unknown version - try to detect format by size
-        console.warn(`Unknown protocol version: ${protocolVersion}, attempting auto-detection`);
+        logger.warn(`Unknown protocol version: ${protocolVersion}, attempting auto-detection`);
         offset = 0; // No version byte - legacy format?
         nodeSize = BINARY_NODE_SIZE_V2;
         hasAnalytics = false;
@@ -157,11 +161,11 @@ export function parseBinaryNodeData(buffer: ArrayBuffer): BinaryNodeData[] {
       // Check if it might be the other version
       const otherSize = hasAnalytics ? BINARY_NODE_SIZE_V2 : BINARY_NODE_SIZE_V3;
       if (dataLength % otherSize === 0) {
-        console.warn(`Data size suggests ${hasAnalytics ? 'V2' : 'V3'} format, switching...`);
+        logger.warn(`Data size suggests ${hasAnalytics ? 'V2' : 'V3'} format, switching...`);
         nodeSize = otherSize;
         hasAnalytics = !hasAnalytics;
       } else {
-        console.warn(
+        logger.warn(
           `Binary data length (${dataLength} bytes) is not a multiple of node size (${nodeSize}). ` +
           `Expected ${Math.floor(dataLength / nodeSize)} complete nodes.`
         );
@@ -232,7 +236,7 @@ export function parseBinaryNodeData(buffer: ArrayBuffer): BinaryNodeData[] {
       } else {
         // Only log first few corrupted nodes to avoid spam
         if (i < 3) {
-          console.warn(
+          logger.warn(
             `Skipping corrupted node at index ${i}: id=${nodeId}, ` +
             `pos=[${position.x}, ${position.y}, ${position.z}]`
           );
@@ -240,7 +244,7 @@ export function parseBinaryNodeData(buffer: ArrayBuffer): BinaryNodeData[] {
       }
     }
   } catch (error) {
-    console.error('Error parsing binary data:', error);
+    logger.error('Error parsing binary data:', error);
   }
 
   return nodes;

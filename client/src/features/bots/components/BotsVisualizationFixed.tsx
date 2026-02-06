@@ -13,6 +13,15 @@ import { AgentPollingStatus } from './AgentPollingStatus';
 
 const logger = createLogger('BotsVisualization');
 
+// Pre-allocated Three.js objects to avoid GC pressure in animation loops
+const _tempVec3A = new THREE.Vector3();
+const _tempVec3B = new THREE.Vector3();
+const _tempVec3Mid = new THREE.Vector3();
+const _tempVec3Perp = new THREE.Vector3();
+const QUEEN_GOLD = new THREE.Color('#FFD700');
+const ADDITIVE_BLENDING = THREE.AdditiveBlending;
+const BACK_SIDE = THREE.BackSide;
+
 // CSS animations for enhanced visualizations
 const pulseKeyframes = `
   @keyframes pulse {
@@ -22,6 +31,10 @@ const pulseKeyframes = `
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-2px); }
     to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes sparkle {
+    0%, 100% { opacity: 1; text-shadow: 0 0 4px rgba(243, 156, 18, 0.8); }
+    50% { opacity: 0.8; text-shadow: 0 0 8px rgba(243, 156, 18, 1); }
   }
 `;
 
@@ -203,6 +216,33 @@ const AgentStatusBadges: React.FC<AgentStatusBadgesProps> = ({ agent, logs = [] 
         </span>
       </div>
 
+      {/* Bioluminescent health bar */}
+      <div style={{
+        width: '100%',
+        height: '2px',
+        backgroundColor: 'rgba(0, 0, 0, 0.15)',
+        borderRadius: '1px',
+        overflow: 'hidden',
+        marginBottom: '2px'
+      }}>
+        <div style={{
+          width: `${agent.health}%`,
+          height: '100%',
+          background: agent.health >= 80
+            ? 'linear-gradient(to right, #2ECC71, #00FF00)'
+            : agent.health >= 50
+            ? 'linear-gradient(to right, #F39C12, #F1C40F)'
+            : 'linear-gradient(to right, #E74C3C, #E67E22)',
+          borderRadius: '1px',
+          transition: 'width 0.5s ease',
+          boxShadow: agent.health >= 80
+            ? '0 0 4px rgba(46, 204, 113, 0.6)'
+            : agent.health >= 50
+            ? '0 0 4px rgba(243, 156, 18, 0.6)'
+            : '0 0 4px rgba(231, 76, 60, 0.6)'
+        }} />
+      </div>
+
       {}
       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
         <div style={{
@@ -286,11 +326,15 @@ const AgentStatusBadges: React.FC<AgentStatusBadgesProps> = ({ agent, logs = [] 
               padding: '2px 6px',
               borderRadius: '10px',
               fontSize: '10px',
-              backgroundColor: 'rgba(231, 76, 60, 0.8)',
+              backgroundColor: agent.tokenRate > 10 ? 'rgba(243, 156, 18, 0.9)' : 'rgba(231, 76, 60, 0.8)',
               color: 'white',
-              animation: agent.tokenRate > 10 ? 'pulse 1.5s ease-in-out infinite' : 'none'
+              animation: agent.tokenRate > 10 ? 'sparkle 1s ease-in-out infinite' : 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '2px'
             }}>
-              Rate: {agent.tokenRate.toFixed(1)}/min
+              {agent.tokenRate > 10 && <span style={{ fontSize: '9px' }}>{'~'}</span>}
+              {Math.round(agent.tokenRate)}/min
             </div>
           )}
         </div>
@@ -412,6 +456,8 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
   const groupRef = useRef<THREE.Group>(null);
   const meshRef = useRef<THREE.Mesh>(null);
   const glowRef = useRef<THREE.Mesh>(null);
+  const nucleusRef = useRef<THREE.Mesh>(null);
+  const coronaRef = useRef<THREE.Mesh>(null);
   const [hover, setHover] = useState(false);
   const [displayMode, setDisplayMode] = useState<'overview' | 'performance' | 'tasks' | 'network' | 'resources'>('overview');
   const telemetry = useTelemetry(`BotsNode-${agent.id}`);
@@ -432,7 +478,22 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
     return '#E74C3C'; 
   }, [agent.health]);
 
-  
+  const isQueen = agent.type === 'queen';
+
+  // Status color for nucleus and inner effects
+  const statusColor = useMemo(() => {
+    switch (agent.status) {
+      case 'active': return '#2ECC71';
+      case 'busy': return '#F39C12';
+      case 'error': return '#E74C3C';
+      case 'idle': return '#95A5A6';
+      case 'initializing': return '#3498DB';
+      case 'terminating': return '#9B59B6';
+      default: return '#95A5A6';
+    }
+  }, [agent.status]);
+
+
   const baseSize = 1.0;
   const cpuScale = agent.cpuUsage ? (agent.cpuUsage / 100) * 0.8 : 0;
   const workloadScale = agent.workload ? agent.workload * 0.6 : 0;
@@ -475,6 +536,10 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
     }
   }, [agent.status, agent.type, clampedSize]);
 
+  useEffect(() => {
+    return () => { geometry?.dispose(); };
+  }, [geometry]);
+
   useFrame((state) => {
     if (!groupRef.current || !meshRef.current || !glowRef.current) return;
 
@@ -486,10 +551,14 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
         { x: position.x, y: position.y, z: position.z },
         { agentType: agent.type, agentStatus: agent.status }
       );
-      lastPositionRef.current = position.clone();
+      if (!lastPositionRef.current) {
+        lastPositionRef.current = position.clone();
+      } else {
+        lastPositionRef.current.copy(position);
+      }
     }
 
-    
+
     targetPositionRef.current.copy(position);
     
     
@@ -500,65 +569,123 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
     
     groupRef.current.position.copy(currentPositionRef.current);
 
-    
-    
+    const elapsedTime = state.clock.elapsedTime;
+    const activity = agent.activity ?? 0;
+    const healthPulse = agent.health ? (agent.health / 100) : 0.5;
+    const tokenGlow = agent.tokenRate ? Math.min(agent.tokenRate / 20, 2) : 0;
+
+    // --- Organic Breathing & Metabolic Pulse ---
     if (agent.status === 'active' || agent.status === 'busy') {
-      
-      const tokenMultiplier = agent.tokenRate ? Math.min(agent.tokenRate / 10, 3) : 1; 
-      const healthMultiplier = agent.health ? Math.max(0.3, agent.health / 100) : 1; 
-      const pulseSpeed = 2 * tokenMultiplier * healthMultiplier; 
-      const pulse = Math.sin(state.clock.elapsedTime * pulseSpeed + index) * 0.15 + 1; 
+      const tokenMultiplier = agent.tokenRate ? Math.min(agent.tokenRate / 10, 3) : 1;
+      const healthMultiplier = agent.health ? Math.max(0.3, agent.health / 100) : 1;
+      const pulseSpeed = 2 * tokenMultiplier * healthMultiplier;
 
-      meshRef.current.scale.setScalar(pulse * clampedSize);
+      // Organic breathing: inhale faster than exhale (asymmetric)
+      const breathCycle = Math.sin(elapsedTime * pulseSpeed * 0.8 + index);
+      const breathScale = breathCycle > 0
+        ? 1 + breathCycle * 0.08   // Gentle inhale
+        : 1 + breathCycle * 0.04;  // Slower exhale
 
-      
-      const tokenGlow = agent.tokenRate ? Math.min(agent.tokenRate / 20, 2) : 1;
-      const healthGlow = agent.health ? (agent.health / 100) : 0.5;
+      meshRef.current.scale.setScalar(breathScale * clampedSize);
+
+      // Membrane breathing - outer glow follows breath with slight delay
+      const membraneScale = isQueen ? 1.5 : 1.3;
+      const membraneBreath = 0.08 + healthPulse * 0.04;
+      const glowBreathScale = membraneScale + Math.sin(elapsedTime * pulseSpeed * 0.7 + index + 0.3) * membraneBreath;
+
       const statusGlow = agent.status === 'busy' ? 1.5 : 1.0;
-      const glowIntensity = tokenGlow * healthGlow * statusGlow;
+      const glowIntensity = (tokenGlow > 0 ? tokenGlow : 1) * healthPulse * statusGlow;
+      glowRef.current.scale.setScalar(glowBreathScale * glowIntensity);
 
-      glowRef.current.scale.setScalar(pulse * 1.5 * glowIntensity);
+      // Nucleus glow pulse (offset from breathing for organic feel)
+      if (nucleusRef.current) {
+        const nucleusGlow = Math.pow(Math.sin(elapsedTime * 1.2 + 0.5 + index) * 0.5 + 0.5, 2);
+        const nucleusMat = nucleusRef.current.material as THREE.MeshBasicMaterial;
+        if (nucleusMat) {
+          nucleusMat.opacity = 0.3 + activity * 0.3 + nucleusGlow * 0.2;
+        }
+        nucleusRef.current.scale.setScalar(0.4 + nucleusGlow * 0.05);
+      }
+
+      // Update membrane material opacity for breathing effect
+      const glowMat = glowRef.current.material as THREE.MeshStandardMaterial;
+      if (glowMat && glowMat.opacity !== undefined) {
+        glowMat.emissiveIntensity = 0.3 + tokenGlow * 0.2;
+      }
     } else if (agent.status === 'error') {
-      
-      const errorPulse = Math.sin(state.clock.elapsedTime * 8 + index) * 0.3 + 1;
+      // Irregular distress pulse (like irregular heartbeat)
+      const distress = Math.sin(elapsedTime * 8 + index) * Math.sin(elapsedTime * 5.3 + index) * 0.2;
+      const errorPulse = 1 + Math.abs(distress) + Math.sin(elapsedTime * 8 + index) * 0.15;
       meshRef.current.scale.setScalar(errorPulse * clampedSize);
       glowRef.current.scale.setScalar(errorPulse * 2.0);
+
+      // Distressed nucleus flicker
+      if (nucleusRef.current) {
+        const flickerMat = nucleusRef.current.material as THREE.MeshBasicMaterial;
+        if (flickerMat) {
+          flickerMat.opacity = 0.2 + Math.abs(Math.sin(elapsedTime * 12 + index)) * 0.5;
+        }
+      }
+    } else {
+      // Idle/offline: very subtle drift to show it is alive
+      if (nucleusRef.current) {
+        const idleMat = nucleusRef.current.material as THREE.MeshBasicMaterial;
+        if (idleMat) {
+          idleMat.opacity = 0.15 + Math.sin(elapsedTime * 0.5 + index) * 0.05;
+        }
+      }
     }
 
-    
+    // --- Busy Agent: Cytoplasm Churning (organic asymmetric wobble) ---
     if (agent.status === 'busy') {
-      const rotationSpeed = agent.tokenRate ? 0.01 * (1 + agent.tokenRate / 50) : 0.01;
-      meshRef.current.rotation.y += rotationSpeed;
+      // Queen gets a slow majestic rotation; others get faster work rotation
+      if (isQueen) {
+        meshRef.current.rotation.y += 0.005;
+      } else {
+        const rotationSpeed = agent.tokenRate ? 0.01 * (1 + agent.tokenRate / 50) : 0.01;
+        meshRef.current.rotation.y += rotationSpeed;
+      }
+
+      // Slight asymmetric wobble (organic, not mechanical)
+      const wobbleX = Math.sin(elapsedTime * 0.7 + index) * 0.02;
+      const wobbleZ = Math.cos(elapsedTime * 0.5 + index * 0.7) * 0.02;
+      groupRef.current.rotation.x += wobbleX * 0.1;  // Damped application
+      groupRef.current.rotation.z += wobbleZ * 0.1;
     }
 
-    
+    // Queen corona animation
+    if (isQueen && coronaRef.current) {
+      coronaRef.current.rotation.y -= 0.003;
+      coronaRef.current.rotation.z = Math.sin(elapsedTime * 0.4) * 0.05;
+      const coronaMat = coronaRef.current.material as THREE.MeshBasicMaterial;
+      if (coronaMat) {
+        coronaMat.opacity = 0.12 + Math.sin(elapsedTime * 0.8) * 0.04;
+      }
+    }
+
+    // High token rate vibration and float
     if (agent.tokenRate && agent.tokenRate > 30) {
-      
-      const vibration = Math.sin(state.clock.elapsedTime * 15 + index) * 0.03;
-      const float = Math.cos(state.clock.elapsedTime * 3 + index) * 0.1;
+      const vibration = Math.sin(elapsedTime * 15 + index) * 0.03;
+      const float = Math.cos(elapsedTime * 3 + index) * 0.1;
       meshRef.current.position.y += vibration + float;
     }
 
-    
+    // Memory pressure shake
     if (agent.memoryUsage && agent.memoryUsage > 80) {
-      const shake = Math.sin(state.clock.elapsedTime * 25) * 0.01;
+      const shake = Math.sin(elapsedTime * 25) * 0.01;
       meshRef.current.position.x += shake;
       meshRef.current.position.z += shake * 0.7;
     }
 
-    
+    // Critical health alarm pulse
     if (agent.health && agent.health < 25) {
-      const criticalPulse = Math.sin(state.clock.elapsedTime * 12) * 0.5 + 1;
+      const criticalPulse = Math.sin(elapsedTime * 12) * 0.5 + 1;
       meshRef.current.scale.multiplyScalar(criticalPulse);
     }
 
     telemetry.endRender();
 
-    
-    threeJSTelemetry.logAnimationFrame(
-      { x: position.x, y: position.y, z: position.z },
-      { x: meshRef.current.rotation.x, y: meshRef.current.rotation.y, z: meshRef.current.rotation.z }
-    );
+    // Telemetry logging removed from per-frame loop to eliminate 2N allocations/frame
   });
 
   
@@ -566,20 +693,47 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
 
   return (
     <group ref={groupRef}>
-      {}
-      {}
-      <mesh ref={glowRef}>
-        <sphereGeometry args={[clampedSize * 1.5, 16, 16]} />
-        <meshBasicMaterial
-          color={glowColor}
+      {/* Outer membrane (bioluminescent, animated via useFrame) */}
+      <mesh ref={glowRef} scale={[isQueen ? 1.5 : 1.3, isQueen ? 1.5 : 1.3, isQueen ? 1.5 : 1.3]}>
+        <sphereGeometry args={[clampedSize * 0.75, 24, 24]} />
+        <meshStandardMaterial
+          color={isQueen ? '#FFD700' : glowColor}
           transparent
-          opacity={0.15 + (hover ? 0.1 : 0) + (agent.tokenRate ? Math.min(agent.tokenRate / 100, 0.2) : 0)}
+          opacity={0.08 + (hover ? 0.06 : 0) + (agent.tokenRate ? Math.min(agent.tokenRate / 100, 0.12) : 0)}
+          side={BACK_SIDE}
           depthWrite={false}
-          blending={THREE.AdditiveBlending}
+          emissive={isQueen ? '#FFD700' : glowColor}
+          emissiveIntensity={0.3 + (agent.tokenRate ? Math.min(agent.tokenRate / 20, 2) * 0.2 : 0)}
         />
       </mesh>
 
-      {}
+      {/* Inner nucleus glow */}
+      <mesh ref={nucleusRef} scale={[0.4, 0.4, 0.4]}>
+        <sphereGeometry args={[clampedSize * 0.8, 12, 12]} />
+        <meshBasicMaterial
+          color={isQueen ? '#FFD700' : statusColor}
+          transparent
+          opacity={0.3 + (agent.activity ?? 0) * 0.3}
+          blending={ADDITIVE_BLENDING}
+          depthWrite={false}
+        />
+      </mesh>
+
+      {/* Queen golden corona ring */}
+      {isQueen && (
+        <mesh ref={coronaRef} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[clampedSize * 1.8, clampedSize * 0.08, 16, 48]} />
+          <meshBasicMaterial
+            color="#FFD700"
+            transparent
+            opacity={0.14}
+            blending={ADDITIVE_BLENDING}
+            depthWrite={false}
+          />
+        </mesh>
+      )}
+
+      {/* Main agent body */}
       <mesh
         ref={meshRef}
         geometry={geometry}
@@ -1033,20 +1187,40 @@ const BotsEdgeComponent: React.FC<BotsEdgeProps> = ({
      '#2980B9') : 
     color;
 
-  
   const shouldAnimate = isActive && (avgTokenRate > 15 || edge.messageCount > 50);
   const animationSpeed = Math.min(avgTokenRate / 10, 3) + Math.min(edge.messageCount / 100, 2);
   const dashOffset = shouldAnimate ? -Date.now() * 0.001 * animationSpeed : 0;
 
-  
   const shouldPulse = avgTokenRate > 40 || edge.messageCount > 200;
   const pulseIntensity = shouldPulse ? Math.sin(Date.now() * 0.005) * 0.3 + 1 : 1;
 
+  // Organic curve: compute a midpoint with slight perpendicular offset for tendril effect
+  const distance = sourcePos.distanceTo(targetPos);
+  const now = Date.now() * 0.001;
+  const organicCurvePoints = useMemo(() => {
+    const mid = new THREE.Vector3().copy(sourcePos).add(targetPos).multiplyScalar(0.5);
+    const dir = new THREE.Vector3().subVectors(targetPos, sourcePos).normalize();
+    const perp = new THREE.Vector3(-dir.y, dir.x, dir.z * 0.5).normalize();
+    const sway = Math.sin(now * 0.5) * distance * 0.15;
+    mid.add(perp.multiplyScalar(sway));
+    return [sourcePos, mid, targetPos];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sourcePos, targetPos, distance, Math.floor(now * 2)]);
+
+  // Source agent glow color for particle tinting
+  const sourceGlowColor = useMemo(() => {
+    if (!sourceAgent) return '#3498DB';
+    const h = sourceAgent.health || 50;
+    if (h >= 80) return '#2ECC71';
+    if (h >= 50) return '#F1C40F';
+    return '#E74C3C';
+  }, [sourceAgent]);
+
   return (
     <>
-      {}
+      {/* Main organic tendril line (through curved midpoint) */}
       <DreiLine
-        points={[sourcePos, targetPos]}
+        points={organicCurvePoints}
         color={edgeColor}
         lineWidth={lineWidth * pulseIntensity}
         opacity={opacity * pulseIntensity}
@@ -1056,11 +1230,11 @@ const BotsEdgeComponent: React.FC<BotsEdgeProps> = ({
         dashSize={shouldAnimate ? 2 : 1}
         dashOffset={dashOffset}
       />
-      
-      {}
+
+      {/* Secondary energy channel */}
       {avgTokenRate > 25 && isActive && (
         <DreiLine
-          points={[sourcePos, targetPos]}
+          points={organicCurvePoints}
           color="#F39C12"
           lineWidth={lineWidth * 0.5 * pulseIntensity}
           opacity={0.4 * pulseIntensity}
@@ -1072,10 +1246,10 @@ const BotsEdgeComponent: React.FC<BotsEdgeProps> = ({
         />
       )}
 
-      {}
+      {/* Overload channel */}
       {avgTokenRate > 50 && edge.messageCount > 300 && isActive && (
         <DreiLine
-          points={[sourcePos, targetPos]}
+          points={organicCurvePoints}
           color="#E74C3C"
           lineWidth={lineWidth * 0.3 * pulseIntensity}
           opacity={0.6 * pulseIntensity}
@@ -1087,18 +1261,26 @@ const BotsEdgeComponent: React.FC<BotsEdgeProps> = ({
         />
       )}
 
-      {}
+      {/* Organic data particles flowing along tendril */}
       {isActive && shouldAnimate && (
         <group>
-          {[0.2, 0.5, 0.8].map((t, i) => {
-            const particlePos = new THREE.Vector3().lerpVectors(sourcePos, targetPos, t + (Date.now() * 0.001 * animationSpeed) % 1);
+          {[0.15, 0.4, 0.65, 0.9].map((baseT, i) => {
+            // Slightly varied speed per particle for organic feel
+            const speedVar = 1 + (i * 0.13);
+            const t = (baseT + (now * animationSpeed * speedVar * 0.15)) % 1;
+            // Lerp along the curve (source -> mid -> target based on t)
+            const particlePos = t < 0.5
+              ? _tempVec3A.clone().lerpVectors(sourcePos, organicCurvePoints[1], t * 2)
+              : _tempVec3A.clone().lerpVectors(organicCurvePoints[1], targetPos, (t - 0.5) * 2);
+            // Slight size variation per particle
+            const sizeVar = 0.04 + Math.sin(now * 2 + i * 1.5) * 0.015;
             return (
               <mesh key={i} position={particlePos}>
-                <sphereGeometry args={[0.05, 8, 8]} />
+                <sphereGeometry args={[sizeVar, 6, 6]} />
                 <meshBasicMaterial
-                  color={avgTokenRate > 30 ? '#F39C12' : '#3498DB'}
+                  color={sourceGlowColor}
                   transparent
-                  opacity={0.8 * pulseIntensity}
+                  opacity={(0.6 + Math.sin(now * 3 + i) * 0.2) * pulseIntensity}
                 />
               </mesh>
             );

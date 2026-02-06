@@ -634,25 +634,10 @@ export class AIInsights {
 
   private async applyClustering(
     graphData: GraphData,
-    algorithm: ClusterDetection['algorithm'],
+    _algorithm: ClusterDetection['algorithm'],
     options: any
   ): Promise<GraphCluster[]> {
-    switch (algorithm) {
-      case 'modularity':
-        return this.applyModularityClustering(graphData, options);
-      case 'density':
-        return this.applyDensityClustering(graphData, options);
-      case 'hierarchical':
-        return this.applyHierarchicalClustering(graphData, options);
-      case 'spectral':
-        return this.applySpectralClustering(graphData, options);
-      default:
-        return [];
-    }
-  }
-
-  private applyModularityClustering(graphData: GraphData, options: any): GraphCluster[] {
-    
+    // All algorithms currently use the same connected-component clustering
     const clusters: GraphCluster[] = [];
     const visited = new Set<string>();
     let clusterId = 0;
@@ -667,21 +652,6 @@ export class AIInsights {
     }
 
     return clusters;
-  }
-
-  private applyDensityClustering(graphData: GraphData, options: any): GraphCluster[] {
-    
-    return this.applyModularityClustering(graphData, options); 
-  }
-
-  private applyHierarchicalClustering(graphData: GraphData, options: any): GraphCluster[] {
-    
-    return this.applyModularityClustering(graphData, options); 
-  }
-
-  private applySpectralClustering(graphData: GraphData, options: any): GraphCluster[] {
-    
-    return this.applyModularityClustering(graphData, options); 
   }
 
   private growClusterFromNode(
@@ -789,15 +759,9 @@ export class AIInsights {
     return hasHubs;
   }
 
-  private doEdgesCross(edge1: any, edge2: any): boolean {
-    
-    const p1 = edge1.start;
-    const q1 = edge1.end;
-    const p2 = edge2.start;
-    const q2 = edge2.end;
-
-    
-    return false; 
+  private doEdgesCross(_edge1: any, _edge2: any): boolean {
+    // TODO: Implement proper edge crossing detection
+    return false;
   }
 
   private calculateAverageNodeDistance(positions: Map<string, Vector3>): number {
@@ -847,29 +811,24 @@ export class AIInsights {
     return `${primaryType} cluster (${nodeCount} nodes)`;
   }
 
-  private calculateAveragePathLength(graphData: GraphData): number {
-    
-    return 3.5; 
+  private calculateAveragePathLength(_graphData: GraphData): number {
+    return 3.5; // placeholder
   }
 
-  private calculateClusteringCoefficient(graphData: GraphData): number {
-    
-    return 0.3; 
+  private calculateClusteringCoefficient(_graphData: GraphData): number {
+    return 0.3; // placeholder
   }
 
-  private calculateCentralization(graphData: GraphData): number {
-    
-    return 0.4; 
+  private calculateCentralization(_graphData: GraphData): number {
+    return 0.4; // placeholder
   }
 
-  private calculateModularity(graphData: GraphData): number {
-    
-    return 0.5; 
+  private calculateModularity(_graphData: GraphData): number {
+    return 0.5; // placeholder
   }
 
-  private calculateNetworkEfficiency(graphData: GraphData): number {
-    
-    return 0.6; 
+  private calculateNetworkEfficiency(_graphData: GraphData): number {
+    return 0.6; // placeholder
   }
 
   private calculateSmallWorldness(clustering: number, pathLength: number): number {

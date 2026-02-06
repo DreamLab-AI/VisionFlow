@@ -1,5 +1,5 @@
 # =============================================================================
-# VisionFlow Unified Dockerfile - Multi-Stage Build
+# VisionFlow Unified Dockerfile - Multi-Stage Build (CachyOS)
 # =============================================================================
 # This Dockerfile provides a unified build process for both development and
 # production environments using multi-stage builds and build arguments.
@@ -21,54 +21,64 @@
 # =============================================================================
 # STAGE 1: Base - Common foundation for all targets
 # =============================================================================
-FROM nvidia/cuda:12.4.1-devel-ubuntu22.04 AS base
+FROM cachyos/cachyos-v3:latest AS base
 
 # Build arguments
 ARG CUDA_ARCH=86
 ARG BUILD_TARGET=development
 
 # Environment variables common to all stages
-ENV DEBIAN_FRONTEND=noninteractive \
-    RUST_LOG=${RUST_LOG:-warn} \
+# CUDA_ARCH is promoted from ARG to ENV so child stages inherit it for nvcc
+ENV RUST_LOG=${RUST_LOG:-warn} \
+    NVIDIA_VISIBLE_DEVICES=all \
     NVIDIA_DRIVER_CAPABILITIES=all \
-    CUDA_HOME=/usr/local/cuda \
-    CUDA_PATH=/usr/local/cuda \
-    LD_LIBRARY_PATH="/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
-    PATH="/root/.cargo/bin:${PATH}"
+    CUDA_HOME=/opt/cuda \
+    CUDA_PATH=/opt/cuda \
+    CUDA_ARCH=${CUDA_ARCH} \
+    LD_LIBRARY_PATH="/opt/cuda/lib64:${LD_LIBRARY_PATH}" \
+    PATH="/root/.cargo/bin:/opt/cuda/bin:${PATH}"
 
-# Install base system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    # Core build tools
-    curl \
-    git \
-    ca-certificates \
-    # Compilers (gcc-11 required for CUDA 12.x compatibility)
-    gcc-11 \
-    g++-11 \
-    build-essential \
-    pkg-config \
-    # Libraries
-    libssl-dev \
-    # Network utilities
-    netcat-openbsd \
-    lsof \
-    # Utilities
-    gzip \
-    expect \
-    && rm -rf /var/lib/apt/lists/*
+# Initialize pacman keyring (required for CachyOS signature verification)
+RUN pacman-key --init && \
+    pacman-key --populate archlinux cachyos && \
+    pacman -Sy --noconfirm archlinux-keyring cachyos-keyring && \
+    pacman -Syu --noconfirm && \
+    rm -rf /var/cache/pacman/pkg/*
 
-# Set gcc-11 as default compiler (CUDA 12.4.1 compatibility)
-RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100 && \
-    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 100
+# Install base system dependencies (with retry logic for transient failures)
+RUN for attempt in 1 2 3; do \
+        echo "=== Package install attempt $attempt/3 ===" && \
+        pacman -S --noconfirm --needed \
+            # Core build tools \
+            curl \
+            git \
+            # Compilers (CachyOS ships modern GCC, no version pinning needed) \
+            gcc \
+            base-devel \
+            # Libraries (openssl included in base, pkgconf in base-devel) \
+            openssl \
+            # Network utilities \
+            openbsd-netcat \
+            lsof \
+            # Utilities \
+            expect \
+        && break || { echo "Attempt $attempt failed, retrying in 10s..."; sleep 10; pacman -Syy --noconfirm; }; \
+    done && rm -rf /var/cache/pacman/pkg/*
+
+# Install CUDA via pacman (CachyOS installs to /opt/cuda)
+RUN for attempt in 1 2 3; do \
+        echo "=== CUDA install attempt $attempt/3 ===" && \
+        pacman -S --noconfirm --needed cuda \
+        && break || { echo "Attempt $attempt failed, retrying in 10s..."; sleep 10; pacman -Syy --noconfirm; }; \
+    done && rm -rf /var/cache/pacman/pkg/*
 
 # Install Rust toolchain (stable channel)
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
     sh -s -- -y --default-toolchain stable --profile minimal
 
-# Install Node.js 20.x LTS
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get install -y nodejs && \
-    rm -rf /var/lib/apt/lists/*
+# Install Node.js 20.x LTS via tarball
+RUN curl -fsSL https://nodejs.org/dist/v20.18.3/node-v20.18.3-linux-x64.tar.xz | \
+    tar -xJ -C /usr/local --strip-components=1
 
 WORKDIR /app
 
@@ -144,17 +154,23 @@ RUN npm run build && \
 # =============================================================================
 FROM base AS development
 
-# Install development-specific tools
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    docker.io \
-    supervisor \
-    nginx \
-    vim \
-    && rm -rf /var/lib/apt/lists/*
+# Install development-specific tools (with retry logic)
+RUN for attempt in 1 2 3; do \
+        echo "=== Dev tools install attempt $attempt/3 ===" && \
+        pacman -S --noconfirm --needed \
+            docker \
+            nginx \
+            vim \
+            python python-pip \
+        && break || { echo "Attempt $attempt failed, retrying in 10s..."; sleep 10; pacman -Syy --noconfirm; }; \
+    done && rm -rf /var/cache/pacman/pkg/*
+
+# Install supervisor via pip (not available in pacman)
+RUN pip install --break-system-packages supervisor
 
 # Create Nginx directories
 RUN mkdir -p /var/log/nginx /var/run/nginx && \
-    chown -R www-data:www-data /var/run/nginx
+    chown -R http:http /var/run/nginx
 
 # Create application directories
 RUN mkdir -p \
@@ -215,28 +231,42 @@ ENTRYPOINT ["./dev-entrypoint.sh"]
 # =============================================================================
 # STAGE 7: Production Target - Optimized runtime environment
 # =============================================================================
-FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04 AS production
+FROM cachyos/cachyos-v3:latest AS production
 
-# Install only runtime dependencies (smaller image)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates \
-    libssl3 \
-    supervisor \
-    nginx \
-    curl \
-    && rm -rf /var/lib/apt/lists/* && \
-    # Create non-root user for security
-    useradd -m -u 1000 -s /bin/bash appuser && \
+# Initialize pacman keyring for production stage
+RUN pacman-key --init && \
+    pacman-key --populate archlinux cachyos && \
+    pacman -Sy --noconfirm archlinux-keyring cachyos-keyring && \
+    pacman -Syu --noconfirm && \
+    rm -rf /var/cache/pacman/pkg/*
+
+# Install only runtime dependencies (no base-devel, no cuda dev headers)
+RUN for attempt in 1 2 3; do \
+        echo "=== Runtime packages install attempt $attempt/3 ===" && \
+        pacman -S --noconfirm --needed \
+            openssl \
+            nginx \
+            curl \
+            python python-pip \
+        && break || { echo "Attempt $attempt failed, retrying in 10s..."; sleep 10; pacman -Syy --noconfirm; }; \
+    done && rm -rf /var/cache/pacman/pkg/*
+
+# Install supervisor via pip (not available in pacman)
+RUN pip install --break-system-packages supervisor
+
+# Create non-root user for security
+RUN useradd -m -u 1000 -s /bin/bash appuser && \
     # Create Nginx directories
     mkdir -p /var/log/nginx /var/run/nginx && \
-    chown -R www-data:www-data /var/run/nginx /var/log/nginx
+    chown -R http:http /var/run/nginx /var/log/nginx
 
-# Copy CUDA libraries (only runtime, not development files)
-COPY --from=base /usr/local/cuda/lib64/libcudart.so* /usr/local/cuda/lib64/
-COPY --from=base /usr/local/cuda/lib64/libnvrtc.so* /usr/local/cuda/lib64/
+# Copy CUDA runtime libraries (only runtime, not development files)
+COPY --from=base /opt/cuda/lib64/libcudart.so* /opt/cuda/lib64/
+COPY --from=base /opt/cuda/lib64/libnvrtc.so* /opt/cuda/lib64/
 
-ENV CUDA_HOME=/usr/local/cuda \
-    LD_LIBRARY_PATH="/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
+ENV CUDA_HOME=/opt/cuda \
+    LD_LIBRARY_PATH="/opt/cuda/lib64:${LD_LIBRARY_PATH}" \
+    NVIDIA_VISIBLE_DEVICES=all \
     NVIDIA_DRIVER_CAPABILITIES=compute,utility
 
 WORKDIR /app

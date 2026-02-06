@@ -1,7 +1,7 @@
 import { useCallback, useRef } from 'react';
 import { useToast, ToastAction } from '../features/design-system/components';
 import { createLogger } from '../utils/loggerConfig';
-import { webSocketService } from '../services/WebSocketService';
+import { webSocketService } from '../store/websocketStore';
 import { unifiedApiClient } from '../services/api/UnifiedApiClient';
 
 const logger = createLogger('ErrorHandler');

@@ -170,7 +170,17 @@ let binaryMessageCount = 0;
 let positionUpdateSequence = 0;
 let lastAckSentSequence = 0;
 let filterSubscriptionSet = false;
-let lastFilterState: string | null = null;
+// P2 PERFORMANCE FIX: Track individual filter fields instead of serializing
+// the entire settings tree on every state change.
+interface FilterSnapshot {
+  enabled?: boolean;
+  qualityThreshold?: number;
+  authorityThreshold?: number;
+  filterByQuality?: boolean;
+  filterByAuthority?: boolean;
+  filterMode?: string;
+}
+let lastFilterSnapshot: FilterSnapshot | null = null;
 let solidReconnectTimeout: number | null = null;
 let solidReconnectAttempts = 0;
 
@@ -503,27 +513,21 @@ export const useWebSocketStore = create<WebSocketState>()(
     };
 
     const validateBinaryData = (data: ArrayBuffer): boolean => {
-      try {
-        if (!data || data.byteLength === 0) {
-          return false;
-        }
-
-        if (data.byteLength > 50 * 1024 * 1024) {
-          logger.warn(`Binary data too large: ${data.byteLength} bytes`);
-          return false;
-        }
-
-        try {
-          parseBinaryNodeData(data);
-          return true;
-        } catch (error) {
-          logger.warn('Binary data parsing validation failed, but allowing through:', createErrorMetadata(error));
-          return true;
-        }
-      } catch (error) {
-        logger.error('Error validating binary data:', createErrorMetadata(error));
+      // P2 PERFORMANCE: Only do cheap size checks here.
+      // Full parsing happens once in processBinaryData — no redundant decode.
+      if (!data || data.byteLength === 0) {
         return false;
       }
+
+      if (data.byteLength > 50 * 1024 * 1024) {
+        logger.warn(`Binary data too large: ${data.byteLength} bytes`);
+        return false;
+      }
+
+      // P1 BUG FIX: Previously returned true on parse failure, bypassing validation.
+      // Now we only perform lightweight structural checks (size bounds).
+      // The binary protocol header is validated inside processBinaryData.
+      return true;
     };
 
     const handleErrorFrame = (error: WebSocketErrorFrame) => {
@@ -624,7 +628,17 @@ export const useWebSocketStore = create<WebSocketState>()(
       // u32 node_id (4) + f32 x,y,z (12) + f32 vx,vy,vz (12) = 28 bytes
       const estimatedNodeCount = Math.floor(payload.byteLength / 28);
 
-      const hasBotsData = detectBotsData(payload);
+      // P2 PERFORMANCE FIX: Parse binary nodes once, reuse for both bot detection
+      // and position updates instead of parsing multiple times.
+      let parsedNodes: BinaryNodeData[] | null = null;
+      try {
+        parsedNodes = parseBinaryNodeData(payload);
+      } catch (error) {
+        logger.error('Error parsing binary node data:', createErrorMetadata(error));
+        return;
+      }
+
+      const hasBotsData = parsedNodes.some(node => isAgentNode(node.nodeId));
 
       if (hasBotsData) {
         emit('bots-position-update', payload);
@@ -647,7 +661,7 @@ export const useWebSocketStore = create<WebSocketState>()(
             logger.debug('Node positions updated successfully');
           }
         } catch (error) {
-          console.error('[WebSocketStore] Error updating positions:', error);
+          logger.error('[WebSocketStore] Error updating positions:', createErrorMetadata(error));
           logger.error('Error processing position data in graphDataManager:', createErrorMetadata(error));
         }
       } else if (binaryMessageCount % 100 === 1) {
@@ -664,7 +678,16 @@ export const useWebSocketStore = create<WebSocketState>()(
     const handleLegacyBinaryData = async (data: ArrayBuffer) => {
       const estimatedNodeCount = Math.floor(data.byteLength / 28);
 
-      const hasBotsData = detectBotsData(data);
+      // P2 PERFORMANCE FIX: Parse once and reuse for bot detection.
+      let parsedNodes: BinaryNodeData[] | null = null;
+      try {
+        parsedNodes = parseBinaryNodeData(data);
+      } catch (error) {
+        logger.error('Error parsing legacy binary data:', createErrorMetadata(error));
+        return;
+      }
+
+      const hasBotsData = parsedNodes.some(node => isAgentNode(node.nodeId));
 
       if (hasBotsData) {
         emit('bots-position-update', data);
@@ -791,17 +814,27 @@ export const useWebSocketStore = create<WebSocketState>()(
         const nodeFilter = state.settings?.nodeFilter;
         const wsState = get();
         if (nodeFilter && wsState.isConnected) {
-          const current = JSON.stringify(nodeFilter);
-          if (current !== lastFilterState) {
-            lastFilterState = current;
-            wsState.sendFilterUpdate({
+          // P2 PERFORMANCE FIX: Shallow field comparison instead of JSON.stringify
+          // on the entire settings tree every state change.
+          const prev = lastFilterSnapshot;
+          if (
+            !prev ||
+            prev.enabled !== nodeFilter.enabled ||
+            prev.qualityThreshold !== nodeFilter.qualityThreshold ||
+            prev.authorityThreshold !== nodeFilter.authorityThreshold ||
+            prev.filterByQuality !== nodeFilter.filterByQuality ||
+            prev.filterByAuthority !== nodeFilter.filterByAuthority ||
+            prev.filterMode !== nodeFilter.filterMode
+          ) {
+            lastFilterSnapshot = {
               enabled: nodeFilter.enabled,
               qualityThreshold: nodeFilter.qualityThreshold,
               authorityThreshold: nodeFilter.authorityThreshold,
               filterByQuality: nodeFilter.filterByQuality,
               filterByAuthority: nodeFilter.filterByAuthority,
               filterMode: nodeFilter.filterMode,
-            });
+            };
+            wsState.sendFilterUpdate(lastFilterSnapshot);
           }
         }
       });
@@ -996,26 +1029,26 @@ export const useWebSocketStore = create<WebSocketState>()(
             logger.info(`Connecting to WebSocket at ${state.url}`);
           }
 
-          const token = nostrAuth.getSessionToken();
-          const wsUrl = token ? `${state.url}?token=${token}` : state.url;
-
-          const socket = new WebSocket(wsUrl);
+          const socket = new WebSocket(state.url);
+          socket.binaryType = 'arraybuffer';
 
           socket.onopen = () => {
-            set({ isConnected: true, reconnectAttempts: 0 });
+            // Guard against stale socket from a prior connect() cycle
+            if (get().socket !== null && get().socket !== socket) return;
+
+            set({ socket, isConnected: true, reconnectAttempts: 0 });
             updateConnectionState('connected', undefined, Date.now());
 
             if (debugState.isEnabled()) {
               logger.info('WebSocket connection established');
             }
 
+            // P1 SECURITY: Send auth token as first message after connect,
+            // NOT as a URL query parameter (which leaks in logs/proxies).
             const token = nostrAuth.getSessionToken();
             const user = nostrAuth.getCurrentUser();
             if (token && user) {
-              get().sendMessage('authenticate', {
-                token,
-                pubkey: user.pubkey
-              });
+              socket.send(JSON.stringify({ type: 'AUTH', token, pubkey: user.pubkey }));
             }
 
             const currentFilter = useSettingsStore.getState().settings?.nodeFilter;
@@ -1038,6 +1071,9 @@ export const useWebSocketStore = create<WebSocketState>()(
           };
 
           socket.onmessage = (event: MessageEvent) => {
+            // P0 STALE CLOSURE FIX: Discard messages from a replaced socket.
+            if (get().socket !== socket) return;
+
             if (event.data === 'pong') {
               handleHeartbeatResponse();
               return;
@@ -1172,6 +1208,9 @@ export const useWebSocketStore = create<WebSocketState>()(
           };
 
           socket.onclose = (event: CloseEvent) => {
+            // P0 STALE CLOSURE FIX: If a newer socket replaced this one, ignore the event.
+            if (get().socket !== null && get().socket !== socket) return;
+
             set({ isConnected: false, isServerReady: false });
             stopHeartbeat();
 
@@ -1193,11 +1232,16 @@ export const useWebSocketStore = create<WebSocketState>()(
           };
 
           socket.onerror = (event: Event) => {
+            // P0 STALE CLOSURE FIX: Ignore errors from a replaced socket.
+            if (get().socket !== null && get().socket !== socket) return;
+
             const errorMessage = event instanceof ErrorEvent ? event.message : 'Unknown WebSocket error';
             logger.error('WebSocket error:', { event, message: errorMessage });
             updateConnectionState('failed', errorMessage);
           };
 
+          // Store socket reference immediately so handlers can guard against staleness.
+          // The definitive set happens inside onopen after the staleness check.
           set({ socket });
 
           return new Promise<void>((resolve, reject) => {
@@ -1326,7 +1370,7 @@ export const useWebSocketStore = create<WebSocketState>()(
 
         const nodeFilter = useSettingsStore.getState().settings?.nodeFilter;
         if (nodeFilter) {
-          lastFilterState = null;
+          lastFilterSnapshot = null;
 
           logger.info('[Refresh] Clearing local graph and requesting fresh filtered data', nodeFilter);
 
@@ -1657,7 +1701,7 @@ export const useWebSocketStore = create<WebSocketState>()(
         positionUpdateSequence = 0;
         lastAckSentSequence = 0;
         filterSubscriptionSet = false;
-        lastFilterState = null;
+        lastFilterSnapshot = null;
         solidReconnectTimeout = null;
         solidReconnectAttempts = 0;
 

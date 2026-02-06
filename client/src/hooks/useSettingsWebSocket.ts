@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSettingsStore } from '../store/settingsStore';
+import { createLogger } from '../utils/loggerConfig';
+
+const logger = createLogger('useSettingsWebSocket');
 
 // Mock toast function for notifications
 const toast = (options: { title: string; description: string; duration?: number }) => {
-  console.log(`[Toast] ${options.title}: ${options.description}`);
+  logger.info(`[Toast] ${options.title}: ${options.description}`);
 };
 
 
@@ -78,7 +81,7 @@ export const useSettingsWebSocket = (
       wsRef.current = ws;
 
       ws.onopen = () => {
-        console.log('[SettingsWS] Connected to settings WebSocket');
+        logger.info('[SettingsWS] Connected to settings WebSocket');
         setConnected(true);
         reconnectAttemptsRef.current = 0;
 
@@ -98,16 +101,16 @@ export const useSettingsWebSocket = (
           setLastUpdate(new Date());
           setMessageCount(prev => prev + 1);
         } catch (error) {
-          console.error('[SettingsWS] Failed to parse message:', error);
+          logger.error('[SettingsWS] Failed to parse message:', error);
         }
       };
 
       ws.onerror = (error) => {
-        console.error('[SettingsWS] WebSocket error:', error);
+        logger.error('[SettingsWS] WebSocket error:', error);
       };
 
       ws.onclose = () => {
-        console.log('[SettingsWS] Connection closed');
+        logger.info('[SettingsWS] Connection closed');
         setConnected(false);
         wsRef.current = null;
 
@@ -124,62 +127,80 @@ export const useSettingsWebSocket = (
         }
       };
     } catch (error) {
-      console.error('[SettingsWS] Failed to connect:', error);
+      logger.error('[SettingsWS] Failed to connect:', error);
       setConnected(false);
     }
   };
+
+  // Allowlist of setting paths that may be mutated via WebSocket
+  const ALLOWED_SETTING_PATHS = new Set([
+    'visualisation.nodes',
+    'visualisation.edges',
+    'visualisation.labels',
+    'visualisation.physics',
+    'visualisation.rendering',
+    'visualisation.glow',
+    'visualisation.animations',
+    'visualisation.sceneEffects',
+    'nodeFilter',
+  ]);
 
   const handleMessage = (message: SettingsBroadcastMessage) => {
     switch (message.type) {
       case 'SettingChanged':
         if (message.key && message.value !== undefined) {
-          console.log(`[SettingsWS] Setting changed: ${message.key}`);
-          setByPath(message.key as any, message.value);
+          const basePath = message.key.split('.').slice(0, 2).join('.');
+          if (ALLOWED_SETTING_PATHS.has(basePath)) {
+            console.log(`[SettingsWS] Setting changed: ${message.key}`);
+            setByPath(message.key as any, message.value);
 
-          if (showNotifications) {
-            toast({
-              title: 'Setting Updated',
-              description: `${message.key} changed`,
-              duration: 1500,
-            });
+            if (showNotifications) {
+              toast({
+                title: 'Setting Updated',
+                description: `${message.key} changed`,
+                duration: 1500,
+              });
+            }
+          } else {
+            logger.warn(`Blocked unauthorized setting change: ${message.key}`);
           }
         }
         break;
 
       case 'SettingsBatchChanged':
         if (message.changes && message.changes.length > 0) {
-          console.log(`[SettingsWS] Batch update: ${message.changes.length} settings`);
+          const allowedChanges = message.changes.filter(change => {
+            const basePath = change.key.split('.').slice(0, 2).join('.');
+            if (!ALLOWED_SETTING_PATHS.has(basePath)) {
+              logger.warn(`Blocked unauthorized setting change: ${change.key}`);
+              return false;
+            }
+            return true;
+          });
 
-          const updates = message.changes.map(change => ({
-            path: change.key as any,
-            value: change.value
-          }));
+          if (allowedChanges.length > 0) {
+            console.log(`[SettingsWS] Batch update: ${allowedChanges.length} settings`);
 
-          batchUpdate(updates);
+            const updates = allowedChanges.map(change => ({
+              path: change.key as any,
+              value: change.value
+            }));
 
-          if (showNotifications) {
-            toast({
-              title: 'Settings Updated',
-              description: `${message.changes.length} settings synchronized`,
-              duration: 2000,
-            });
+            batchUpdate(updates);
+
+            if (showNotifications) {
+              toast({
+                title: 'Settings Updated',
+                description: `${allowedChanges.length} settings synchronized`,
+                duration: 2000,
+              });
+            }
           }
         }
         break;
 
       case 'SettingsReloaded':
-        console.log(`[SettingsWS] Settings reloaded: ${message.reason}`);
-
-        if (showNotifications) {
-          toast({
-            title: 'Settings Reloaded',
-            description: message.reason || 'Configuration updated',
-            duration: 3000,
-          });
-        }
-
-        
-        window.location.reload();
+        logger.warn('Server requested page reload - ignoring for security');
         break;
 
       case 'PresetApplied':
@@ -209,7 +230,7 @@ export const useSettingsWebSocket = (
         break;
 
       default:
-        console.warn('[SettingsWS] Unknown message type:', message.type);
+        logger.warn('[SettingsWS] Unknown message type:', message.type);
     }
   };
 

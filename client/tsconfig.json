@@ -21,7 +21,7 @@
     "module": "ESNext",
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
-    "typeRoots": ["./node_modules/@types"],
+    "typeRoots": ["./node_modules/@types", "../node_modules/@types"],
     "types": ["node", "three"],
     "strict": true,
     "declaration": true,
@@ -29,5 +29,5 @@
     "sourceMap": true
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.js", "src/**/*.jsx", "src/types/react-three-fiber.d.ts"],
-  "exclude": ["node_modules", "src/tests", "**/__tests__", "**/*.test.ts", "**/*.test.tsx"]
+  "exclude": ["node_modules", "src/tests", "src/setupTests.ts", "**/__tests__", "**/*.test.ts", "**/*.test.tsx"]
 }

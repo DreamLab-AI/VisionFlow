@@ -10,7 +10,7 @@ import { useSettingsStore } from '../../../../store/settingsStore';
 import { useControlPanelContext } from '../../../settings/components/control-panel-context';
 import { UNIFIED_SETTINGS_CONFIG, filterSettingsFields } from './unifiedSettingsConfig';
 import { nostrAuth } from '../../../../services/nostrAuthService';
-import { webSocketService } from '../../../../services/WebSocketService';
+import { webSocketService } from '../../../../store/websocketStore';
 import type { SettingField } from './types';
 import { Lock, Info, RefreshCw } from 'lucide-react';
 

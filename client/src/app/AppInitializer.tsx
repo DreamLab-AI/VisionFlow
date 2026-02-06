@@ -3,7 +3,7 @@ import { createLogger, createErrorMetadata } from '../utils/loggerConfig';
 import { debugState } from '../utils/clientDebugState';
 import { useSettingsStore } from '../store/settingsStore';
 import { useWorkerErrorStore } from '../store/workerErrorStore';
-import WebSocketService from '../services/WebSocketService';
+import { webSocketService } from '../store/websocketStore';
 import { graphWorkerProxy } from '../features/graph/managers/graphWorkerProxy';
 import { graphDataManager } from '../features/graph/managers/graphDataManager';
 import { innovationManager } from '../features/graph/innovations/index';
@@ -22,7 +22,7 @@ const loadServices = async (): Promise<void> => {
 
     
     try {
-      console.log('[AppInitializer] Starting Innovation Manager initialization...');
+      logger.info('Starting Innovation Manager initialization...');
       const initPromise = innovationManager.initialize({
         enableSync: true,
         enableComparison: true,
@@ -39,14 +39,14 @@ const loadServices = async (): Promise<void> => {
       
       await Promise.race([initPromise, timeoutPromise]);
 
-      console.log('[AppInitializer] Innovation Manager initialized successfully');
+      logger.info('Innovation Manager initialized successfully');
       if (debugState.isEnabled()) {
         logger.info('Innovation Manager initialized successfully');
         const status = innovationManager.getStatus();
         logger.debug('Innovation Manager status:', status);
       }
     } catch (innovationError) {
-      console.error('[AppInitializer] Innovation Manager initialization failed:', innovationError);
+      logger.error('Innovation Manager initialization failed:', createErrorMetadata(innovationError));
       logger.error('Error initializing Innovation Manager:', createErrorMetadata(innovationError));
       
     }
@@ -78,13 +78,13 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
         // Set up retry handler for worker initialization
         const initializeWorker = async (): Promise<boolean> => {
           try {
-            console.log('[AppInitializer] Step 1: Initializing graphWorkerProxy');
+            logger.info('Step 1: Initializing graphWorkerProxy');
             await graphWorkerProxy.initialize();
-            console.log('[AppInitializer] Step 1b: graphWorkerProxy initialized, ensuring graphDataManager worker connection');
+            logger.info('Step 1b: graphWorkerProxy initialized, ensuring graphDataManager worker connection');
 
             // Ensure graphDataManager is connected to the worker now that it's ready
             const workerReady = await graphDataManager.ensureWorkerReady();
-            console.log(`[AppInitializer] Step 1c: graphDataManager worker ready: ${workerReady}`);
+            logger.info(`Step 1c: graphDataManager worker ready: ${workerReady}`);
 
             if (!workerReady) {
               throw new Error('Graph worker failed to become ready after initialization');
@@ -92,7 +92,7 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
 
             return true;
           } catch (workerError) {
-            console.error('[AppInitializer] Worker initialization failed:', workerError);
+            logger.error('Worker initialization failed:', createErrorMetadata(workerError));
             const errorMessage = workerError instanceof Error ? workerError.message : String(workerError);
 
             // Check for SharedArrayBuffer-related issues
@@ -125,9 +125,9 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
         try {
           await initializeWorker();
 
-          console.log('[AppInitializer] Step 2: graphWorkerProxy initialized, calling settings initialize');
+          logger.info('Step 2: graphWorkerProxy initialized, calling settings initialize');
           await initialize();
-          console.log('[AppInitializer] Step 3: Settings initialized');
+          logger.info('Step 3: Settings initialized');
 
           // Access settings from the store after initialization
           const currentSettings = useSettingsStore.getState().settings as any;
@@ -145,7 +145,7 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
           }
 
           
-          if (typeof WebSocketService !== 'undefined' && typeof graphDataManager !== 'undefined') {
+          if (typeof graphDataManager !== 'undefined') {
             try {
               
               await initializeWebSocket(settings);
@@ -160,33 +160,33 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
 
           
           try {
-            console.log('[AppInitializer] About to fetch initial graph data via REST API');
+            logger.info('About to fetch initial graph data via REST API');
             logger.info('Fetching initial graph data via REST API');
             const graphData = await graphDataManager.fetchInitialData();
-            console.log(`[AppInitializer] Successfully fetched ${graphData.nodes.length} nodes, ${graphData.edges.length} edges`);
+            logger.info(`Successfully fetched ${graphData.nodes.length} nodes, ${graphData.edges.length} edges`);
             if (debugState.isDataDebugEnabled()) {
               logger.debug('Initial graph data fetched successfully');
             }
           } catch (fetchError) {
-            console.error('[AppInitializer] Failed to fetch initial graph data:', fetchError);
+            logger.error('Failed to fetch initial graph data:', createErrorMetadata(fetchError));
             logger.error('Failed to fetch initial graph data:', createErrorMetadata(fetchError));
             
             const emptyGraph = {
               nodes: [],
               edges: []
             };
-            console.log('[AppInitializer] Initializing with empty graph due to fetch failure');
+            logger.info('Initializing with empty graph due to fetch failure');
             await graphDataManager.setGraphData(emptyGraph);
           }
 
-          console.log('[AppInitializer] About to call onInitialized');
+          logger.info('About to call onInitialized');
           if (debugState.isEnabled()) {
             logger.info('Application initialized successfully');
           }
 
           
           onInitialized();
-          console.log('[AppInitializer] onInitialized called successfully');
+          logger.info('onInitialized called successfully');
 
       } catch (error) {
           logger.error('Failed to initialize application components:', createErrorMetadata(error as Error));
@@ -200,7 +200,7 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
   
   const initializeWebSocket = async (settings: any): Promise<void> => {
     try {
-      const websocketService = WebSocketService.getInstance();
+      const websocketService = webSocketService;
 
       
       websocketService.onBinaryMessage((data) => {

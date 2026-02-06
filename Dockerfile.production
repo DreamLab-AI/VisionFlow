@@ -1,31 +1,49 @@
 # syntax=docker/dockerfile:1.7
 
-# Production Dockerfile - Multi-stage build
-FROM nvidia/cuda:12.4.1-devel-ubuntu22.04 AS builder
+# Production Dockerfile - Multi-stage build (CachyOS)
+FROM cachyos/cachyos-v3:latest AS builder
 
 ARG CUDA_ARCH=86
 ARG REBUILD_PTX=false
 
-ENV DEBIAN_FRONTEND=noninteractive \
-    RUST_LOG=warn \
-    PATH="/root/.cargo/bin:${PATH}" \
-    CUDA_HOME=/usr/local/cuda \
-    LD_LIBRARY_PATH="/usr/local/cuda/lib64:${LD_LIBRARY_PATH}"
+# CUDA_ARCH promoted from ARG to ENV so cargo/nvcc can read it during build
+ENV RUST_LOG=warn \
+    PATH="/root/.cargo/bin:/opt/cuda/bin:${PATH}" \
+    CUDA_HOME=/opt/cuda \
+    CUDA_PATH=/opt/cuda \
+    CUDA_ARCH=${CUDA_ARCH} \
+    LD_LIBRARY_PATH="/opt/cuda/lib64:${LD_LIBRARY_PATH}"
 
-# Install build dependencies
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    apt-get update && apt-get install -y --no-install-recommends \
-    curl git gcc-11 g++-11 build-essential pkg-config libssl-dev
+# Initialize pacman keyring (required for CachyOS signature verification)
+RUN pacman-key --init && \
+    pacman-key --populate archlinux cachyos && \
+    pacman -Sy --noconfirm archlinux-keyring cachyos-keyring && \
+    pacman -Syu --noconfirm && \
+    rm -rf /var/cache/pacman/pkg/*
+
+# Install build dependencies (with retry logic)
+RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
+    for attempt in 1 2 3; do \
+        echo "=== Build deps install attempt $attempt/3 ===" && \
+        pacman -S --noconfirm --needed \
+            curl git gcc base-devel openssl \
+        && break || { echo "Attempt $attempt failed, retrying in 10s..."; sleep 10; pacman -Syy --noconfirm; }; \
+    done
+
+# Install CUDA via pacman (CachyOS installs to /opt/cuda)
+RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
+    for attempt in 1 2 3; do \
+        echo "=== CUDA install attempt $attempt/3 ===" && \
+        pacman -S --noconfirm --needed cuda \
+        && break || { echo "Attempt $attempt failed, retrying in 10s..."; sleep 10; pacman -Syy --noconfirm; }; \
+    done
 
 # Install Rust
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
 
-# Install Node.js
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get install -y nodejs
+# Install Node.js 20.x LTS via tarball
+RUN curl -fsSL https://nodejs.org/dist/v20.18.3/node-v20.18.3-linux-x64.tar.xz | \
+    tar -xJ -C /usr/local --strip-components=1
 
 WORKDIR /app
 
@@ -58,21 +76,31 @@ RUN --mount=type=cache,target=/root/.cargo/registry \
     cargo build --release && \
     cp target/release/webxr /app/webxr
 
-# Runtime stage
-FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04
+# Runtime stage - same CachyOS base, only runtime packages
+FROM cachyos/cachyos-v3:latest
 
-ENV DEBIAN_FRONTEND=noninteractive \
-    RUST_LOG=${RUST_LOG:-warn} \
-    PATH="/root/.cargo/bin:${PATH}" \
+ENV RUST_LOG=${RUST_LOG:-warn} \
+    PATH="/opt/cuda/bin:${PATH}" \
+    NVIDIA_VISIBLE_DEVICES=all \
     NVIDIA_DRIVER_CAPABILITIES=all \
-    CUDA_HOME=/usr/local/cuda \
+    CUDA_HOME=/opt/cuda \
     NODE_ENV=production
 
-# Install runtime dependencies
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    apt-get update && apt-get install -y --no-install-recommends \
-    curl nginx netcat-openbsd ca-certificates
+# Initialize pacman keyring for runtime stage
+RUN pacman-key --init && \
+    pacman-key --populate archlinux cachyos && \
+    pacman -Sy --noconfirm archlinux-keyring cachyos-keyring && \
+    pacman -Syu --noconfirm && \
+    rm -rf /var/cache/pacman/pkg/*
+
+# Install runtime dependencies (no base-devel, no cuda dev headers)
+RUN --mount=type=cache,target=/var/cache/pacman/pkg,sharing=locked \
+    for attempt in 1 2 3; do \
+        echo "=== Runtime packages install attempt $attempt/3 ===" && \
+        pacman -S --noconfirm --needed \
+            curl nginx openbsd-netcat openssl \
+        && break || { echo "Attempt $attempt failed, retrying in 10s..."; sleep 10; pacman -Syy --noconfirm; }; \
+    done
 
 # Create necessary directories
 WORKDIR /app

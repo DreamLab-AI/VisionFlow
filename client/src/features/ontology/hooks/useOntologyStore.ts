@@ -3,7 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { produce } from 'immer';
 import { createLogger, createErrorMetadata } from '../../../utils/loggerConfig';
 import { debugState } from '../../../utils/clientDebugState';
-import { webSocketService } from '../../../services/WebSocketService';
+import { webSocketService } from '../../../store/websocketStore';
 
 const logger = createLogger('OntologyContributionStore');
 

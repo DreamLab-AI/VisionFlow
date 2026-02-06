@@ -80,7 +80,7 @@ const ESSENTIAL_PATHS = [
 
 
 // Helper function to find changed paths between two objects
-function findChangedPaths(oldObj: any, newObj: any, path: string = ''): string[] {
+function findChangedPaths(oldObj: unknown, newObj: unknown, path: string = ''): string[] {
   const changedPaths: string[] = [];
   
   
@@ -90,21 +90,23 @@ function findChangedPaths(oldObj: any, newObj: any, path: string = ''): string[]
     return changedPaths;
   }
   
-  
+
   if (typeof oldObj !== 'object' || typeof newObj !== 'object') {
     if (oldObj !== newObj && path) {
       changedPaths.push(path);
     }
     return changedPaths;
   }
-  
-  
-  const allKeys = new Set([...Object.keys(oldObj), ...Object.keys(newObj)]);
-  
+
+
+  const oldRecord = oldObj as Record<string, unknown>;
+  const newRecord = newObj as Record<string, unknown>;
+  const allKeys = new Set([...Object.keys(oldRecord), ...Object.keys(newRecord)]);
+
   for (const key of allKeys) {
     const currentPath = path ? `${path}.${key}` : key;
-    const oldValue = oldObj[key];
-    const newValue = newObj[key];
+    const oldValue = oldRecord[key];
+    const newValue = newRecord[key];
     
     if (typeof oldValue === 'object' && typeof newValue === 'object' && oldValue !== null && newValue !== null) {
       
@@ -152,7 +154,7 @@ export interface SettingsState {
   
   getByPath: <T>(path: SettingsPath) => Promise<T>; 
   setByPath: <T>(path: SettingsPath, value: T) => void; 
-  batchUpdate: (updates: Array<{path: SettingsPath, value: any}>) => void; 
+  batchUpdate: (updates: Array<{path: SettingsPath, value: unknown}>) => void;
   flushPendingUpdates: () => Promise<void>; 
   
   
@@ -262,7 +264,7 @@ export const useSettingsStore = create<SettingsState>()(
 
       initialize: async () => {
         try {
-          console.log('[SettingsStore] Starting initialization with essential paths');
+          logger.info('[SettingsStore] Starting initialization with essential paths');
           if (debugState.isEnabled()) {
             logger.info('Initializing settings store with essential paths only')
           }
@@ -279,9 +281,9 @@ export const useSettingsStore = create<SettingsState>()(
           });
 
           
-          console.log('[SettingsStore] Calling settingsApi.getSettingsByPaths');
+          logger.info('[SettingsStore] Calling settingsApi.getSettingsByPaths');
           const essentialSettings = await settingsApi.getSettingsByPaths(ESSENTIAL_PATHS);
-          console.log('[SettingsStore] Essential settings loaded successfully');
+          logger.info('[SettingsStore] Essential settings loaded successfully');
 
           if (debugState.isEnabled()) {
             logger.info('Essential settings loaded:', { essentialSettings })
@@ -305,7 +307,7 @@ export const useSettingsStore = create<SettingsState>()(
           }
 
         } catch (error) {
-          console.error('[SettingsStore] Failed to initialize:', error);
+          logger.error('[SettingsStore] Failed to initialize:', createErrorMetadata(error));
           logger.error('Failed to initialize settings store:', createErrorMetadata(error))
           set({ initialized: false })
           throw error
@@ -358,13 +360,13 @@ export const useSettingsStore = create<SettingsState>()(
 
         
         const pathParts = path.split('.');
-        let current: any = partialSettings;
+        let current: unknown = partialSettings;
 
         for (const part of pathParts) {
-          if (current?.[part] === undefined) {
+          if (current == null || typeof current !== 'object' || !(part in (current as Record<string, unknown>))) {
             return undefined;
           }
-          current = current[part];
+          current = (current as Record<string, unknown>)[part];
         }
 
         return current as T;
@@ -517,7 +519,7 @@ export const useSettingsStore = create<SettingsState>()(
       },
 
       
-      updateSettings: (updater: (draft: any) => void): void => {
+      updateSettings: (updater: (draft: Settings) => void): void => {
         const { partialSettings } = get();
         
         
@@ -543,9 +545,9 @@ export const useSettingsStore = create<SettingsState>()(
         
         changedPaths.forEach(path => {
           const pathParts = path.split('.');
-          let current: any = newSettings;
+          let current: unknown = newSettings;
           for (const part of pathParts) {
-            current = current[part];
+            current = (current as Record<string, unknown>)[part];
           }
           settingsApi.updateSettingByPath(path, current).catch(error => {
             logger.error(`Failed to update setting ${path}:`, createErrorMetadata(error));
@@ -591,37 +593,42 @@ export const useSettingsStore = create<SettingsState>()(
       
       updateComputeMode: (mode: string) => {
         const state = get();
-        state.updateSettings((draft: any) => {
-          if (!draft.dashboard) {
-            draft.dashboard = { computeMode: '' };
+        state.updateSettings((draft: Settings) => {
+          const d = draft as unknown as Record<string, unknown>;
+          if (!d.dashboard) {
+            d.dashboard = { computeMode: '' };
           }
-          draft.dashboard.computeMode = mode;
+          (d.dashboard as Record<string, unknown>).computeMode = mode;
         });
       },
 
       updateClustering: (config: ClusteringConfig) => {
         const state = get();
-        state.updateSettings((draft) => {
-          if (!draft.analytics) {
-            (draft as any).analytics = {};
+        state.updateSettings((draft: Settings) => {
+          const d = draft as unknown as Record<string, unknown>;
+          if (!d.analytics) {
+            d.analytics = {};
           }
-          if (!(draft as any).analytics.clustering) {
-            (draft as any).analytics.clustering = {};
+          const analytics = d.analytics as Record<string, unknown>;
+          if (!analytics.clustering) {
+            analytics.clustering = {};
           }
-          Object.assign((draft as any).analytics.clustering, config);
+          Object.assign(analytics.clustering as Record<string, unknown>, config);
         });
       },
 
       updateConstraints: (constraints: ConstraintConfig[]) => {
         const state = get();
-        state.updateSettings((draft) => {
-          if (!draft.developer) {
-            (draft as any).developer = {};
+        state.updateSettings((draft: Settings) => {
+          const d = draft as unknown as Record<string, unknown>;
+          if (!d.developer) {
+            d.developer = {};
           }
-          if (!(draft as any).developer.constraints) {
-            (draft as any).developer.constraints = {};
+          const developer = d.developer as Record<string, unknown>;
+          if (!developer.constraints) {
+            developer.constraints = {};
           }
-          (draft as any).developer.constraints.active = constraints;
+          (developer.constraints as Record<string, unknown>).active = constraints;
         });
       },
 
@@ -652,17 +659,18 @@ export const useSettingsStore = create<SettingsState>()(
         }
         
         
-        if ((validatedParams as any).arrow_size !== undefined) {
-          (validatedParams as any).arrow_size = Math.max(0.01, Math.min(5.0, (validatedParams as any).arrow_size));
+        const extParams = validatedParams as Record<string, unknown>;
+        if (extParams.arrow_size !== undefined) {
+          extParams.arrow_size = Math.max(0.01, Math.min(5.0, extParams.arrow_size as number));
         }
-        if ((validatedParams as any).arrowSize !== undefined) {
-          (validatedParams as any).arrowSize = Math.max(0.01, Math.min(5.0, (validatedParams as any).arrowSize));
+        if (extParams.arrowSize !== undefined) {
+          extParams.arrowSize = Math.max(0.01, Math.min(5.0, extParams.arrowSize as number));
         }
-        if ((validatedParams as any).base_width !== undefined) {
-          (validatedParams as any).base_width = Math.max(0.01, Math.min(5.0, (validatedParams as any).base_width));
+        if (extParams.base_width !== undefined) {
+          extParams.base_width = Math.max(0.01, Math.min(5.0, extParams.base_width as number));
         }
-        if ((validatedParams as any).baseWidth !== undefined) {
-          (validatedParams as any).baseWidth = Math.max(0.01, Math.min(5.0, (validatedParams as any).baseWidth));
+        if (extParams.baseWidth !== undefined) {
+          extParams.baseWidth = Math.max(0.01, Math.min(5.0, extParams.baseWidth as number));
         }
         
         
@@ -685,17 +693,20 @@ export const useSettingsStore = create<SettingsState>()(
           validatedParams.coolingRate = Math.max(0.0001, Math.min(1.0, validatedParams.coolingRate));
         }
         
-        state.updateSettings((draft: any) => {
-          if (!draft.visualisation) draft.visualisation = { graphs: {} };
-          if (!draft.visualisation.graphs) draft.visualisation.graphs = {};
-          
-          const graphs = draft.visualisation.graphs as any;
+        state.updateSettings((draft: Settings) => {
+          const d = draft as unknown as Record<string, unknown>;
+          if (!d.visualisation) d.visualisation = { graphs: {} };
+          const vis = d.visualisation as Record<string, unknown>;
+          if (!vis.graphs) vis.graphs = {};
+
+          const graphs = vis.graphs as Record<string, unknown>;
           if (!graphs[graphName]) graphs[graphName] = {};
-          if (!graphs[graphName].physics) graphs[graphName].physics = {};
+          const graph = graphs[graphName] as Record<string, unknown>;
+          if (!graph.physics) graph.physics = {};
           
-          const graphSettings = graphs[graphName];
+          const graphSettings = graphs[graphName] as Record<string, unknown> | undefined;
           if (graphSettings && graphSettings.physics) {
-            Object.assign(graphSettings.physics, validatedParams);
+            Object.assign(graphSettings.physics as Record<string, unknown>, validatedParams);
             
             if (debugState.isEnabled()) {
               logger.info('Physics parameters updated:', {
@@ -713,11 +724,12 @@ export const useSettingsStore = create<SettingsState>()(
 
       updateWarmupSettings: (settings: WarmupSettings) => {
         const state = get();
-        state.updateSettings((draft) => {
-          if (!draft.performance) {
-            (draft as any).performance = {};
+        state.updateSettings((draft: Settings) => {
+          const d = draft as unknown as Record<string, unknown>;
+          if (!d.performance) {
+            d.performance = {};
           }
-          Object.assign((draft as any).performance, settings);
+          Object.assign(d.performance as Record<string, unknown>, settings);
         });
       },
 
@@ -726,7 +738,8 @@ export const useSettingsStore = create<SettingsState>()(
         if (typeof window !== 'undefined') {
           try {
             
-            const wsService = (window as any).webSocketService;
+            const wsService = (window as unknown as Record<string, unknown>).webSocketService as
+              { isConnected?: () => boolean; send?: (msg: unknown) => void } | undefined;
             if (wsService && wsService.isConnected && wsService.isConnected()) {
               const message = {
                 type: 'physics_parameter_update',
@@ -735,7 +748,7 @@ export const useSettingsStore = create<SettingsState>()(
                 parameters: params
               };
               
-              wsService.send(message);
+              wsService.send?.(message);
               
               if (debugState.isEnabled()) {
                 logger.info('Physics update sent via WebSocket:', {
@@ -786,7 +799,7 @@ export const useSettingsStore = create<SettingsState>()(
         });
       },
       
-      batchUpdate: (updates: Array<{path: SettingsPath, value: any}>) => {
+      batchUpdate: (updates: Array<{path: SettingsPath, value: unknown}>) => {
         const state = get();
 
         
@@ -858,10 +871,10 @@ export const useSettingsStore = create<SettingsState>()(
           
           
           const allPaths = getAllSettingsPaths(importedSettings);
-          const updates: Array<{path: string, value: any}> = [];
-          
+          const updates: Array<{path: string, value: unknown}> = [];
+
           for (const path of allPaths) {
-            const value = path.split('.').reduce((obj, key) => obj?.[key], importedSettings);
+            const value = path.split('.').reduce<unknown>((obj, key) => (obj as Record<string, unknown>)?.[key], importedSettings);
             if (value !== undefined) {
               updates.push({ path, value });
             }
@@ -892,16 +905,16 @@ export const useSettingsStore = create<SettingsState>()(
             acc[path] = value;
           }
           return acc;
-        }, {} as Record<string, any>)
+        }, {} as Record<string, unknown>)
       }),
-      merge: (persistedState: any, currentState: SettingsState): SettingsState => {
+      merge: (persistedState: unknown, currentState: SettingsState): SettingsState => {
         if (!persistedState) return currentState;
-        
+        const persisted = persistedState as Record<string, unknown>;
         return {
           ...currentState,
-          authenticated: persistedState.authenticated || false,
-          user: persistedState.user || null,
-          isPowerUser: persistedState.isPowerUser || false,
+          authenticated: (persisted.authenticated as boolean) || false,
+          user: (persisted.user as SettingsState['user']) || null,
+          isPowerUser: (persisted.isPowerUser as boolean) || false,
           
         };
       },
@@ -948,10 +961,10 @@ function getSectionPaths(section: string): string[] {
       'visualisation.glow.radius',
       'visualisation.glow.threshold'
     ],
-    'hologram': [
-      'visualisation.hologram.ringCount',
-      'visualisation.hologram.ringColor',
-      'visualisation.hologram.globalRotationSpeed'
+    'graphTypeVisuals': [
+      'visualisation.graphTypeVisuals.knowledgeGraph',
+      'visualisation.graphTypeVisuals.ontology',
+      'visualisation.graphTypeVisuals.agent'
     ],
     'nodes': [
       'visualisation.graphs.logseq.nodes',
@@ -971,23 +984,23 @@ function getSectionPaths(section: string): string[] {
 }
 
 // Helper function to set nested value by dot notation path
-function setNestedValue(obj: any, path: string, value: any): void {
+function setNestedValue(obj: Record<string, unknown>, path: string, value: unknown): void {
   const keys = path.split('.');
-  let current = obj;
-  
+  let current: Record<string, unknown> = obj;
+
   for (let i = 0; i < keys.length - 1; i++) {
     const key = keys[i];
     if (!(key in current) || typeof current[key] !== 'object' || current[key] === null) {
       current[key] = {};
     }
-    current = current[key];
+    current = current[key] as Record<string, unknown>;
   }
-  
+
   current[keys[keys.length - 1]] = value;
 }
 
 // Helper function to extract all paths from a settings object
-function getAllSettingsPaths(obj: any, prefix: string = ''): string[] {
+function getAllSettingsPaths(obj: unknown, prefix: string = ''): string[] {
   const paths: string[] = [];
   
   if (obj && typeof obj === 'object') {
@@ -1044,8 +1057,12 @@ function getAllAvailableSettingsPaths(): string[] {
     'visualisation.hologram.ringCount',
     'visualisation.hologram.ringColor',
     'visualisation.hologram.globalRotationSpeed',
-    
-    
+
+    // Graph-type visual settings
+    'visualisation.graphTypeVisuals.knowledgeGraph',
+    'visualisation.graphTypeVisuals.ontology',
+    'visualisation.graphTypeVisuals.agent',
+
     'xr.enableHandTracking',
     'xr.enableHaptics',
     'xr.quality',

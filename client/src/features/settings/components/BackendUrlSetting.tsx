@@ -4,7 +4,7 @@ import { Button } from '@/features/design-system/components/Button';
 import { Input } from '@/features/design-system/components/Input';
 import { Label } from '@/features/design-system/components/Label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/features/design-system/components/Card';
-import WebSocketService from '@/services/WebSocketService';
+import { webSocketService } from '@/store/websocketStore';
 import { createLogger } from '@/utils/loggerConfig';
 
 const logger = createLogger('BackendUrlSetting');
@@ -13,44 +13,41 @@ export function BackendUrlSetting() {
   const { get: getSetting, set: setSetting } = useSettingsStore();
   const [backendUrl, setBackendUrl] = useState<string>('');
   const [isConnected, setIsConnected] = useState<boolean>(false);
-  
-  
+
+
   useEffect(() => {
     const storedUrl = getSetting('system.customBackendUrl') as string;
     setBackendUrl(storedUrl || '');
-    
-    
-    const websocketService = WebSocketService.getInstance();
-    setIsConnected(websocketService.isReady());
-    
-    
-    const unsubscribe = websocketService.onConnectionStatusChange((connected) => {
+
+
+    setIsConnected(webSocketService.isReady());
+
+
+    const unsubscribe = webSocketService.onConnectionStatusChange((connected) => {
       setIsConnected(connected);
     });
-    
+
     return () => {
       unsubscribe();
     };
   }, [getSetting]);
-  
+
   const handleSave = () => {
-    
+
     setSetting('system.customBackendUrl', backendUrl);
-    
-    
-    const websocketService = WebSocketService.getInstance();
-    websocketService.setCustomBackendUrl(backendUrl || null);
-    
+
+
+    webSocketService.setCustomBackendUrl(backendUrl || null);
+
     logger.info(`Backend URL set to: ${backendUrl || 'default'}`);
   };
-  
+
   const handleReset = () => {
     setBackendUrl('');
     setSetting('system.customBackendUrl', '');
-    
-    
-    const websocketService = WebSocketService.getInstance();
-    websocketService.setCustomBackendUrl(null);
+
+
+    webSocketService.setCustomBackendUrl(null);
     
     logger.info('Backend URL reset to default');
   };

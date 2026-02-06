@@ -17,7 +17,7 @@
 import { createLogger, createErrorMetadata } from '../../../utils/loggerConfig';
 import { debugState } from '../../../utils/clientDebugState';
 import { nostrAuth } from '../../../services/nostrAuthService';
-import { webSocketService, SolidNotification } from '../../../services/WebSocketService';
+import { webSocketService, type SolidNotification } from '../../../store/websocketStore';
 import { useOntologyStore, OntologyHierarchy, ClassNode, OntologyMetrics } from '../store/useOntologyStore';
 
 const logger = createLogger('JssOntologyService');
@@ -87,6 +87,7 @@ class JssOntologyService {
 
   // Metrics tracking
   private fetchCount: number = 0;
+  private cacheHitCount: number = 0;
   private lastFetchDurationMs: number = 0;
 
   private constructor() {}
@@ -109,6 +110,7 @@ class JssOntologyService {
 
     // Return cached data if valid
     if (!skipCache && this.isCacheValid()) {
+      this.cacheHitCount++;
       if (debugState.isEnabled()) {
         logger.debug('Returning cached JSON-LD ontology');
       }
@@ -179,6 +181,7 @@ class JssOntologyService {
 
     // Return cached data if valid
     if (!skipCache && this.cachedTurtle && this.isCacheValid()) {
+      this.cacheHitCount++;
       if (debugState.isEnabled()) {
         logger.debug('Returning cached Turtle ontology');
       }
@@ -610,7 +613,9 @@ class JssOntologyService {
       propertyCount,
       individualCount,
       constraintsByType,
-      cacheHitRate: this.fetchCount > 0 ? 0 : 1, // Placeholder
+      cacheHitRate: (this.fetchCount + this.cacheHitCount) > 0
+        ? this.cacheHitCount / (this.fetchCount + this.cacheHitCount)
+        : 0,
       validationTimeMs: this.lastFetchDurationMs,
       lastValidated: Date.now(),
     };

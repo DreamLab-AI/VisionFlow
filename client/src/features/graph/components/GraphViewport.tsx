@@ -11,7 +11,7 @@ import { useSettingsStore } from '../../../store/settingsStore';
 import { createLogger } from '../../../utils/loggerConfig';
 import { debugState } from '../../../utils/clientDebugState';
 import { BotsVisualization } from '../../bots/components';
-import { HologramContent } from '../../visualisation/components/HolographicDataSphere';
+import WasmSceneEffects from '../../visualisation/components/WasmSceneEffects';
 
 // Ensure Three.js types are properly loaded if not globally done
 // import '../../../types/react-three-fiber.d.ts';
@@ -86,8 +86,6 @@ const GraphViewport: React.FC = () => {
   const glowSettings = settings?.visualisation?.glow;
   const debugSettings = settings?.system?.debug;
   const nodeSettings = settings?.visualisation?.graphs?.logseq?.nodes || settings?.visualisation?.nodes;
-  const enableHologram = settings?.visualisation?.graphs?.logseq?.nodes?.enableHologram ?? false;
-
   const fov = cameraSettings?.fov ?? 75;
   const near = cameraSettings?.near ?? 0.1;
   const far = cameraSettings?.far ?? 2000;
@@ -245,25 +243,18 @@ const GraphViewport: React.FC = () => {
           mouseButtons={isNodeDragging ? {} : undefined} 
         />
 
+            {/* Scene ambient effects (particles, fog, glow ring) */}
+            <WasmSceneEffects
+              enabled={settings?.visualisation?.sceneEffects?.enabled !== false}
+              intensity={settings?.visualisation?.sceneEffects?.particleOpacity ?? 0.05}
+            />
+
             <Suspense fallback={null}>
               {}
               <GraphManager onDragStateChange={(isDragging) => {
                 console.log('GraphViewport: onDragStateChange called with', isDragging);
                 setIsNodeDragging(isDragging);
               }} />
-
-            {}
-            {enableHologram && (
-              <HologramContent
-                opacity={0.15}
-                layer={2}
-                renderOrder={-1}
-                includeSwarm={false}
-                enableDepthFade={true}
-                fadeStart={1600}
-                fadeEnd={4000}
-              />
-            )}
 
               {}
               <BotsVisualization />
@@ -297,7 +288,6 @@ const GraphViewport: React.FC = () => {
           {debugSettings?.enableShaderDebug && debugState.isEnabled() && (() => {
             logger.info('Shader debug enabled - Rendering state:', {
               enableGlow,
-              enableHologram,
               renderingSettings
             });
             return null;

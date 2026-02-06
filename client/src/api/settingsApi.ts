@@ -173,6 +173,47 @@ const DEFAULT_HOLOGRAM_SETTINGS = {
   particleDensity: 100
 };
 
+const DEFAULT_GRAPH_TYPE_VISUALS = {
+  knowledgeGraph: {
+    shaderMode: 'crystal' as const,
+    rimPower: 3.0,
+    metalness: 0.6,
+    roughness: 0.15,
+    glowStrength: 2.5,
+    innerGlowIntensity: 0.5,
+    facetDetail: 2,
+    authorityScaleFactor: 0.5,
+    showDomainBadge: true,
+    showQualityStars: true,
+    showRecencyIndicator: true,
+    showConnectionDensity: true,
+  },
+  ontology: {
+    shaderMode: 'constellation' as const,
+    rimPower: 1.5,
+    glowStrength: 1.8,
+    orbitalRingCount: 8,
+    orbitalRingSpeed: 0.5,
+    hierarchyScaleFactor: 0.15,
+    depthColorGradient: true,
+    showHierarchyBreadcrumb: true,
+    showInstanceCount: true,
+    showConstraintStatus: true,
+    nebulaGlowIntensity: 0.7,
+  },
+  agent: {
+    shaderMode: 'organic' as const,
+    membraneOpacity: 0.08,
+    nucleusGlowIntensity: 0.3,
+    breathingSpeed: 0.8,
+    breathingAmplitude: 0.08,
+    showHealthBar: true,
+    showTokenRate: true,
+    showTaskCount: true,
+    bioluminescentIntensity: 0.6,
+  },
+};
+
 // ============================================================================
 // Transform flat API response to nested client structure
 // ============================================================================
@@ -185,6 +226,7 @@ function transformApiToClientSettings(apiResponse: AllSettings): any {
       glow: DEFAULT_GLOW_SETTINGS,
       bloom: DEFAULT_BLOOM_SETTINGS,
       hologram: DEFAULT_HOLOGRAM_SETTINGS,
+      graphTypeVisuals: DEFAULT_GRAPH_TYPE_VISUALS,
       animations: {
         enableMotionBlur: false,
         enableNodeAnimations: true,
@@ -370,6 +412,9 @@ export const settingsApi = {
     axios.put(`${API_BASE}/api/settings/rendering`, settings, { headers: getAuthHeaders() }),
 
 
+  // NOTE: Over-fetches all settings sections. The backend does not currently support
+  // fetching individual sections in a single call. Consider adding a query parameter
+  // (e.g., ?sections=physics,rendering) if per-section fetching becomes available.
   getAll: (): Promise<AxiosResponse<AllSettings>> =>
     axios.get(`${API_BASE}/api/settings/all`, { headers: getAuthHeaders() }),
 
@@ -468,9 +513,27 @@ export const settingsApi = {
     return JSON.stringify(settings, null, 2);
   },
 
-  // Import settings from JSON string
+  // Import settings from JSON string with schema validation
   importSettings: (jsonString: string): any => {
-    return JSON.parse(jsonString);
+    const parsed = JSON.parse(jsonString);
+
+    // Validate that parsed object is a non-null object (not array/primitive)
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+      throw new Error('Invalid settings format: expected a JSON object');
+    }
+
+    // Validate expected top-level structure - must contain at least one known section
+    const knownSections = ['physics', 'constraints', 'rendering', 'nodeFilter', 'qualityGates',
+      'visualisation', 'system', 'xr', 'auth'];
+    const parsedKeys = Object.keys(parsed);
+    const hasKnownSection = parsedKeys.some(key => knownSections.includes(key));
+    if (!hasKnownSection) {
+      throw new Error(
+        `Invalid settings structure: expected at least one of [${knownSections.join(', ')}]`
+      );
+    }
+
+    return parsed;
   },
 
 

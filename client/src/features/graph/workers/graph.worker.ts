@@ -3,6 +3,14 @@
 import { expose } from 'comlink';
 import { BinaryNodeData, parseBinaryNodeData, createBinaryNodeData, Vec3 } from '../../../types/binaryProtocol';
 
+// Worker-safe logger (createLogger depends on localStorage/window which are unavailable in Workers)
+const workerLogger = {
+  info: (...args: unknown[]) => console.log('[GraphWorker]', ...args),
+  warn: (...args: unknown[]) => console.warn('[GraphWorker]', ...args),
+  error: (...args: unknown[]) => console.error('[GraphWorker]', ...args),
+  debug: (...args: unknown[]) => console.debug('[GraphWorker]', ...args),
+};
+
 export interface Node {
   id: string;
   label: string;
@@ -57,7 +65,7 @@ async function decompressZlib(compressedData: ArrayBuffer): Promise<ArrayBuffer>
 
       return result.buffer;
     } catch (error) {
-      console.error('Worker decompression failed:', error);
+      workerLogger.error('Decompression failed:', error);
       throw error;
     }
   }
@@ -145,9 +153,17 @@ class GraphWorker {
   private domainClusters: Map<string, number[]> = new Map();
   private domainCenters: Map<string, { x: number; y: number; z: number }> = new Map();
 
+  // Pre-allocated buffers for force computation (reused every tick)
+  private forcesBuffer: Float32Array | null = null;
+  private forcesBufferSize: number = 0;
+
+  // Pre-allocated buffer for binary position output (reused every processBinaryData call)
+  private binaryOutputBuffer: Float32Array | null = null;
+  private binaryOutputBufferSize: number = 0;
+
   
   async initialize(): Promise<void> {
-    console.log('GraphWorker: Initialize method called');
+    workerLogger.info('Initialize method called');
     return Promise.resolve();
   }
   
@@ -159,12 +175,12 @@ class GraphWorker {
       this.useServerPhysics = false;
       this.forcePhysics.enabled = true;
       this.forcePhysics.alpha = 1.0; // Reset simulation temperature
-      console.log(`GraphWorker: Graph type set to ${type} - using CLIENT-SIDE force-directed physics`);
+      workerLogger.info(`Graph type set to ${type} - using CLIENT-SIDE force-directed physics`);
     } else {
       // Logseq graphs receive server physics via binary protocol
       this.useServerPhysics = true;
       this.forcePhysics.enabled = false;
-      console.log(`GraphWorker: Graph type set to ${type} - using SERVER physics`);
+      workerLogger.info(`Graph type set to ${type} - using SERVER physics`);
     }
   }
 
@@ -241,9 +257,9 @@ class GraphWorker {
     // Reset physics simulation when new data arrives
     if (this.graphType === 'visionflow') {
       this.forcePhysics.alpha = 1.0; // Reheat simulation
-      console.log(`GraphWorker: VisionFlow graph initialized with ${nodeCount} nodes, ${data.edges.length} edges, ${this.domainClusters.size} domains`);
+      workerLogger.info(`VisionFlow graph initialized with ${nodeCount} nodes, ${data.edges.length} edges, ${this.domainClusters.size} domains`);
     } else {
-      console.log(`GraphWorker: Initialized ${this.graphType} graph with ${this.graphData.nodes.length} nodes`);
+      workerLogger.info(`Initialized ${this.graphType} graph with ${this.graphData.nodes.length} nodes`);
     }
   }
 
@@ -251,7 +267,7 @@ class GraphWorker {
   async setupSharedPositions(buffer: SharedArrayBuffer): Promise<void> {
     this.positionBuffer = buffer;
     this.positionView = new Float32Array(buffer);
-    console.log(`GraphWorker: SharedArrayBuffer set up with ${buffer.byteLength} bytes`);
+    workerLogger.info(`SharedArrayBuffer set up with ${buffer.byteLength} bytes`);
   }
 
   
@@ -283,7 +299,7 @@ class GraphWorker {
       // If physics was just enabled, reheat simulation
       if (this.forcePhysics.enabled && this.forcePhysics.alpha < this.forcePhysics.alphaMin) {
         this.forcePhysics.alpha = 1.0;
-        console.log('GraphWorker: VisionFlow physics enabled, reheating simulation');
+        workerLogger.info('VisionFlow physics enabled, reheating simulation');
       }
     }
   }
@@ -292,14 +308,14 @@ class GraphWorker {
   async processBinaryData(data: ArrayBuffer): Promise<Float32Array> { 
     
     if (this.graphType !== 'logseq') {
-      console.log(`GraphWorker: Skipping binary data processing for ${this.graphType} graph`);
+      workerLogger.debug(`Skipping binary data processing for ${this.graphType} graph`);
       return new Float32Array(0);
     }
 
     
     if (!this.useServerPhysics) {
       this.useServerPhysics = true;
-      console.log('GraphWorker: Auto-enabled server physics mode due to binary position updates');
+      workerLogger.info('Auto-enabled server physics mode due to binary position updates');
     }
     
     
@@ -313,7 +329,13 @@ class GraphWorker {
     const nodeUpdates = parseBinaryNodeData(data);
 
     
-    const positionArray = new Float32Array(nodeUpdates.length * 4);
+    // Reuse binary output buffer, only reallocate if size changed
+    const requiredBinarySize = nodeUpdates.length * 4;
+    if (!this.binaryOutputBuffer || this.binaryOutputBufferSize !== requiredBinarySize) {
+      this.binaryOutputBuffer = new Float32Array(requiredBinarySize);
+      this.binaryOutputBufferSize = requiredBinarySize;
+    }
+    const positionArray = this.binaryOutputBuffer;
 
     nodeUpdates.forEach((update, index) => {
       const stringNodeId = this.reverseNodeIdMap.get(update.nodeId);
@@ -413,7 +435,7 @@ class GraphWorker {
   /**
    * Compute force-directed layout forces for client-side physics.
    * Implements:
-   * 1. Node-node repulsion (Coulomb's law)
+   * 1. Node-node repulsion (Coulomb's law) with spatial grid for ~O(n*k) complexity
    * 2. Edge-based attraction (spring force)
    * 3. Center gravity (prevents drift)
    * 4. Domain clustering (semantic grouping)
@@ -421,10 +443,23 @@ class GraphWorker {
   private computeForces(): Float32Array {
     const n = this.graphData.nodes.length;
     if (n === 0 || !this.currentPositions) {
-      return new Float32Array(0);
+      if (!this.forcesBuffer || this.forcesBufferSize !== 0) {
+        this.forcesBuffer = new Float32Array(0);
+        this.forcesBufferSize = 0;
+      }
+      return this.forcesBuffer;
     }
 
-    const forces = new Float32Array(n * 3); // fx, fy, fz per node
+    // Reuse forces buffer, only reallocate if node count changed
+    const requiredSize = n * 3;
+    if (!this.forcesBuffer || this.forcesBufferSize !== requiredSize) {
+      this.forcesBuffer = new Float32Array(requiredSize);
+      this.forcesBufferSize = requiredSize;
+    } else {
+      this.forcesBuffer.fill(0);
+    }
+
+    const forces = this.forcesBuffer;
     const {
       repulsionStrength,
       attractionStrength,
@@ -437,48 +472,118 @@ class GraphWorker {
 
     const pos = this.currentPositions;
 
-    // 1. REPULSION: Every node repels every other node (O(n^2) - can optimize with Barnes-Hut later)
-    // Using inverse-square law: F = k / r^2
+    // 1. REPULSION: Spatial grid approximation for ~O(n*k) instead of O(n^2)
+    // Nodes beyond cutoffRadius are skipped entirely. Nearby nodes use grid cells.
+    const cutoffRadius = Math.max(idealEdgeLength * 4, 120); // Distance beyond which repulsion is negligible
+    const cutoffRadiusSq = cutoffRadius * cutoffRadius;
+    const cellSize = cutoffRadius; // One cell per cutoff radius
+
+    // Build spatial grid: compute bounds first
+    let minX = Infinity, minY = Infinity, minZ = Infinity;
+    let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+    for (let i = 0; i < n; i++) {
+      const i3 = i * 3;
+      const x = pos[i3], y = pos[i3 + 1], z = pos[i3 + 2];
+      if (x < minX) minX = x; if (x > maxX) maxX = x;
+      if (y < minY) minY = y; if (y > maxY) maxY = y;
+      if (z < minZ) minZ = z; if (z > maxZ) maxZ = z;
+    }
+
+    // Add padding to prevent edge issues
+    minX -= cellSize; minY -= cellSize; minZ -= cellSize;
+
+    const gridW = Math.max(1, Math.ceil((maxX - minX) / cellSize) + 1);
+    const gridH = Math.max(1, Math.ceil((maxY - minY) / cellSize) + 1);
+    const gridD = Math.max(1, Math.ceil((maxZ - minZ) / cellSize) + 1);
+
+    // Use flat Map for sparse grid (avoids allocating huge 3D array)
+    const grid = new Map<number, number[]>();
+
+    // Assign each node to a cell
+    const nodeCellKeys = new Int32Array(n);
+    for (let i = 0; i < n; i++) {
+      const i3 = i * 3;
+      const cx = Math.floor((pos[i3] - minX) / cellSize);
+      const cy = Math.floor((pos[i3 + 1] - minY) / cellSize);
+      const cz = Math.floor((pos[i3 + 2] - minZ) / cellSize);
+      const key = cx + cy * gridW + cz * gridW * gridH;
+      nodeCellKeys[i] = key;
+      let cell = grid.get(key);
+      if (!cell) {
+        cell = [];
+        grid.set(key, cell);
+      }
+      cell.push(i);
+    }
+
+    // For each node, check repulsion only against nodes in neighboring cells (3x3x3 neighborhood)
     for (let i = 0; i < n; i++) {
       const i3 = i * 3;
       const xi = pos[i3], yi = pos[i3 + 1], zi = pos[i3 + 2];
 
-      for (let j = i + 1; j < n; j++) {
-        const j3 = j * 3;
-        const xj = pos[j3], yj = pos[j3 + 1], zj = pos[j3 + 2];
+      const cx = Math.floor((xi - minX) / cellSize);
+      const cy = Math.floor((yi - minY) / cellSize);
+      const cz = Math.floor((zi - minZ) / cellSize);
 
-        let dx = xj - xi;
-        let dy = yj - yi;
-        let dz = zj - zi;
+      // Check 3x3x3 neighboring cells
+      for (let dcx = -1; dcx <= 1; dcx++) {
+        const ncx = cx + dcx;
+        if (ncx < 0 || ncx >= gridW) continue;
+        for (let dcy = -1; dcy <= 1; dcy++) {
+          const ncy = cy + dcy;
+          if (ncy < 0 || ncy >= gridH) continue;
+          for (let dcz = -1; dcz <= 1; dcz++) {
+            const ncz = cz + dcz;
+            if (ncz < 0 || ncz >= gridD) continue;
 
-        // Add small jitter to prevent singularities when nodes overlap
-        if (dx === 0 && dy === 0 && dz === 0) {
-          dx = (Math.random() - 0.5) * 0.1;
-          dy = (Math.random() - 0.5) * 0.1;
-          dz = (Math.random() - 0.5) * 0.1;
+            const neighborKey = ncx + ncy * gridW + ncz * gridW * gridH;
+            const neighborCell = grid.get(neighborKey);
+            if (!neighborCell) continue;
+
+            for (let ni = 0; ni < neighborCell.length; ni++) {
+              const j = neighborCell[ni];
+              if (j <= i) continue; // Only process each pair once (j > i)
+
+              const j3 = j * 3;
+              let dx = pos[j3] - xi;
+              let dy = pos[j3 + 1] - yi;
+              let dz = pos[j3 + 2] - zi;
+
+              // Add small jitter to prevent singularities when nodes overlap
+              if (dx === 0 && dy === 0 && dz === 0) {
+                dx = (Math.random() - 0.5) * 0.1;
+                dy = (Math.random() - 0.5) * 0.1;
+                dz = (Math.random() - 0.5) * 0.1;
+              }
+
+              const distSq = dx * dx + dy * dy + dz * dz;
+
+              // Skip nodes beyond cutoff radius
+              if (distSq > cutoffRadiusSq) continue;
+
+              const dist = Math.sqrt(distSq);
+
+              // Repulsion force magnitude: F = k / r^2 (clamped for stability)
+              const minDist = 1.0;
+              const effectiveDist = Math.max(dist, minDist);
+              const repulseForce = (repulsionStrength * alpha) / (effectiveDist * effectiveDist);
+
+              // Direction: from j to i (i is pushed away from j)
+              const nx = dx / dist;
+              const ny = dy / dist;
+              const nz = dz / dist;
+
+              // Apply equal and opposite forces
+              forces[i3] -= repulseForce * nx;
+              forces[i3 + 1] -= repulseForce * ny;
+              forces[i3 + 2] -= repulseForce * nz;
+
+              forces[j3] += repulseForce * nx;
+              forces[j3 + 1] += repulseForce * ny;
+              forces[j3 + 2] += repulseForce * nz;
+            }
+          }
         }
-
-        const distSq = dx * dx + dy * dy + dz * dz;
-        const dist = Math.sqrt(distSq);
-
-        // Repulsion force magnitude: F = k / r^2 (clamped for stability)
-        const minDist = 1.0; // Prevent explosion at very close distances
-        const effectiveDist = Math.max(dist, minDist);
-        const repulseForce = (repulsionStrength * alpha) / (effectiveDist * effectiveDist);
-
-        // Direction: from j to i (i is pushed away from j)
-        const nx = dx / dist;
-        const ny = dy / dist;
-        const nz = dz / dist;
-
-        // Apply equal and opposite forces
-        forces[i3] -= repulseForce * nx;
-        forces[i3 + 1] -= repulseForce * ny;
-        forces[i3 + 2] -= repulseForce * nz;
-
-        forces[j3] += repulseForce * nx;
-        forces[j3 + 1] += repulseForce * ny;
-        forces[j3 + 2] += repulseForce * nz;
       }
     }
 
@@ -629,7 +734,7 @@ class GraphWorker {
         this.forcePhysics.alpha = 1.0; // Reheat simulation
       }
     }
-    console.log(`GraphWorker: Physics mode set to ${useServer ? 'server' : 'local'}`);
+    workerLogger.info(`Physics mode set to ${useServer ? 'server' : 'local'}`);
   }
 
 
@@ -643,7 +748,7 @@ class GraphWorker {
    */
   async reheatSimulation(alpha: number = 1.0): Promise<void> {
     this.forcePhysics.alpha = alpha;
-    console.log(`GraphWorker: Simulation reheated to alpha=${alpha}`);
+    workerLogger.info(`Simulation reheated to alpha=${alpha}`);
   }
 
   /**
@@ -651,7 +756,7 @@ class GraphWorker {
    */
   async updateForcePhysicsSettings(settings: Partial<ForcePhysicsSettings>): Promise<void> {
     Object.assign(this.forcePhysics, settings);
-    console.log('GraphWorker: Force physics settings updated', this.forcePhysics);
+    workerLogger.info('Force physics settings updated', this.forcePhysics);
   }
 
   /**
@@ -716,7 +821,7 @@ class GraphWorker {
 
       // Log progress occasionally
       if (this.frameCount % 60 === 0 && this.forcePhysics.alpha > this.forcePhysics.alphaMin) {
-        console.log(`GraphWorker: VisionFlow physics tick - alpha=${this.forcePhysics.alpha.toFixed(4)}, nodes=${this.graphData.nodes.length}`);
+        workerLogger.debug(`VisionFlow physics tick - alpha=${this.forcePhysics.alpha.toFixed(4)}, nodes=${this.graphData.nodes.length}`);
       }
 
       return this.currentPositions;

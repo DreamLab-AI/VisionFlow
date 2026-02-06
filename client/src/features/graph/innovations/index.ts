@@ -1,5 +1,9 @@
 
 
+import { createLogger } from '../../../utils/loggerConfig';
+
+const logger = createLogger('InnovationManager');
+
 // Core Services - Import and re-export
 import { graphSynchronization, GraphSynchronization } from '../services/graphSynchronization';
 import { graphComparison, GraphComparison } from '../services/graphComparison';
@@ -107,11 +111,11 @@ export class InnovationManager {
     performanceMode?: 'high' | 'balanced' | 'low';
   } = {}): Promise<void> {
     if (this.isInitialized) {
-      console.warn('Innovation Manager already initialized');
+      logger.warn('Innovation Manager already initialized');
       return;
     }
     
-    console.log('🚀 Initializing World-Class Graph Innovation Features...');
+    logger.info('Initializing Graph Innovation Features...');
     
     
     this.applyPerformanceSettings(options.performanceMode || 'balanced');
@@ -120,35 +124,35 @@ export class InnovationManager {
     if (options.enableAnimations !== false) {
       graphAnimations.start();
       this.activeFeatures.add('animations');
-      console.log('✨ Animation System: ACTIVE');
+      logger.info('Animation System: ACTIVE');
     }
     
     if (options.enableSync !== false) {
       
       this.activeFeatures.add('synchronization');
-      console.log('🔄 Synchronization System: READY');
+      logger.info('Synchronization System: READY');
     }
     
     if (options.enableComparison !== false) {
       
       this.activeFeatures.add('comparison');
-      console.log('🔍 Comparison System: READY');
+      logger.info('Comparison System: READY');
     }
     
     if (options.enableAI !== false) {
       
       this.activeFeatures.add('ai-insights');
-      console.log('🧠 AI Insights System: READY');
+      logger.info('AI Insights System: READY');
     }
     
     if (options.enableAdvancedInteractions !== false) {
       
       this.activeFeatures.add('advanced-interactions');
-      console.log('🎮 Advanced Interactions: READY');
+      logger.info('Advanced Interactions: READY');
     }
     
     this.isInitialized = true;
-    console.log('🎯 All Innovation Systems Initialized Successfully!');
+    logger.info('All Innovation Systems Initialized Successfully');
     
     
     this.printFeatureSummary();
@@ -198,12 +202,12 @@ export class InnovationManager {
         
         break;
       default:
-        console.warn(`Unknown feature: ${feature}`);
+        logger.warn(`Unknown feature: ${feature}`);
         return;
     }
     
     this.activeFeatures.add(feature);
-    console.log(`✅ Feature enabled: ${feature}`);
+    logger.info(`Feature enabled: ${feature}`);
   }
   
   
@@ -227,12 +231,12 @@ export class InnovationManager {
     }
     
     this.activeFeatures.delete(feature);
-    console.log(`❌ Feature disabled: ${feature}`);
+    logger.info(`Feature disabled: ${feature}`);
   }
   
   
   private applyPerformanceSettings(mode: 'high' | 'balanced' | 'low'): void {
-    console.log(`⚡ Applying ${mode} performance mode...`);
+    logger.info(`Applying ${mode} performance mode...`);
 
     // Cast to any to access optional updateSettings method
     const animations = graphAnimations as any;
@@ -272,20 +276,14 @@ export class InnovationManager {
   
   
   private printFeatureSummary(): void {
-    console.log('\n🌟 === WORLD-CLASS GRAPH INNOVATION FEATURES ===');
-    console.log('📊 Features Available:');
-    console.log('  🔄 Graph Synchronization - Real-time dual graph coordination');
-    console.log('  🔍 Advanced Comparison - AI-powered graph analysis');
-    console.log('  ✨ Smooth Animations - Cinematic transitions and effects');
-    console.log('  🧠 AI Insights - Intelligent layout and recommendations');
-    console.log('  🎮 Advanced Interactions - VR/AR, collaboration, time-travel');
-    console.log('\n🎯 System Status: FULLY OPERATIONAL');
-    console.log('🚀 Ready for world-class graph visualization!\n');
+    logger.info('=== GRAPH INNOVATION FEATURES ===');
+    logger.info('Features Available: Synchronization, Comparison, Animations, AI Insights, Advanced Interactions');
+    logger.info('System Status: FULLY OPERATIONAL');
   }
   
   
   public dispose(): void {
-    console.log('🧹 Disposing innovation systems...');
+    logger.info('Disposing innovation systems...');
     
     graphAnimations.dispose();
     graphSynchronization.dispose();
@@ -296,7 +294,7 @@ export class InnovationManager {
     this.activeFeatures.clear();
     this.isInitialized = false;
     
-    console.log('✅ Innovation systems disposed');
+    logger.info('Innovation systems disposed');
   }
 }
 
@@ -353,7 +351,7 @@ export const setupInnovativeFeatures = {
     });
     
     
-    console.log('🎪 Demo Mode: All features enabled with enhanced visual effects!');
+    logger.info('Demo Mode: All features enabled with enhanced visual effects');
   }
 };
 

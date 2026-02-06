@@ -1,4 +1,4 @@
-import React, { forwardRef, useMemo } from 'react';
+import React, { forwardRef, useEffect, useMemo, useRef } from 'react';
 import { Uniform } from 'three';
 import { Effect } from 'postprocessing';
 import * as THREE from 'three';
@@ -115,7 +115,40 @@ interface AtmosphericGlowProps {
   resolution?: THREE.Vector2 | { width: number; height: number };
 }
 
-export const AtmosphericGlow = forwardRef<unknown, AtmosphericGlowProps>(({ ...props }, ref) => {
-  const effect = useMemo(() => new AtmosphericGlowEffect(props), [props]);
-  return <primitive ref={ref} object={effect} dispose={null} />;
+export const AtmosphericGlow = forwardRef<unknown, AtmosphericGlowProps>(({
+  glowColor,
+  intensity,
+  radius,
+  threshold,
+  diffuseStrength,
+  atmosphericDensity,
+  volumetricIntensity,
+  camera,
+  resolution,
+}, ref) => {
+  const effect = useMemo(
+    () => new AtmosphericGlowEffect({
+      glowColor,
+      intensity,
+      radius,
+      threshold,
+      diffuseStrength,
+      atmosphericDensity,
+      volumetricIntensity,
+      camera,
+      resolution,
+    }),
+    [glowColor, intensity, radius, threshold, diffuseStrength, atmosphericDensity, volumetricIntensity, camera, resolution]
+  );
+
+  const effectRef = useRef(effect);
+  effectRef.current = effect;
+
+  useEffect(() => {
+    return () => {
+      effectRef.current.dispose();
+    };
+  }, [effect]);
+
+  return <primitive ref={ref} object={effect} />;
 });

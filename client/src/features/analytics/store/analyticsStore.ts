@@ -16,7 +16,7 @@ export interface SSSPResult {
   unreachableCount: number
   computationTime: number
   timestamp: number
-  algorithm: 'dijkstra' | 'bellman-ford' | 'floyd-warshall'
+  algorithm: 'dijkstra' | 'bellman-ford'
 }
 
 export interface SSSPCache {
@@ -53,7 +53,7 @@ interface AnalyticsState {
     nodes: GraphNode[], 
     edges: GraphEdge[], 
     sourceNodeId: string,
-    algorithm?: 'dijkstra' | 'bellman-ford' | 'floyd-warshall'
+    algorithm?: 'dijkstra' | 'bellman-ford'
   ) => Promise<SSSPResult>
   
   clearResults: () => void
@@ -74,73 +74,137 @@ interface AnalyticsState {
   resetMetrics: () => void
 }
 
-// Hash function for graph structure
+// Hash function for graph structure (safe for non-Latin1 characters)
 function hashGraph(nodes: GraphNode[], edges: GraphEdge[]): string {
   const nodeIds = nodes.map(n => n.id).sort().join(',')
   const edgeIds = edges.map(e => `${e.source}-${e.target}-${e.weight || 1}`).sort().join(',')
-  return btoa(`${nodeIds}|${edgeIds}`)
+  const raw = `${nodeIds}|${edgeIds}`
+  // btoa crashes on non-Latin1 chars; encode via TextEncoder + manual base64
+  try {
+    return btoa(unescape(encodeURIComponent(raw)))
+  } catch {
+    // Fallback: use a simple hash if encoding still fails
+    let hash = 0
+    for (let i = 0; i < raw.length; i++) {
+      const chr = raw.charCodeAt(i)
+      hash = ((hash << 5) - hash) + chr
+      hash |= 0
+    }
+    return hash.toString(36)
+  }
 }
 
-// Dijkstra's algorithm implementation
+// Min-heap for O(V log V) Dijkstra instead of O(V^2) linear scan
+class MinHeap {
+  private data: [string, number][] = []
+
+  push(node: string, dist: number): void {
+    this.data.push([node, dist])
+    this._bubbleUp(this.data.length - 1)
+  }
+
+  pop(): [string, number] | undefined {
+    if (this.data.length === 0) return undefined
+    const top = this.data[0]
+    const last = this.data.pop()!
+    if (this.data.length > 0) {
+      this.data[0] = last
+      this._sinkDown(0)
+    }
+    return top
+  }
+
+  get size(): number {
+    return this.data.length
+  }
+
+  private _bubbleUp(i: number): void {
+    while (i > 0) {
+      const parent = (i - 1) >> 1
+      if (this.data[i][1] < this.data[parent][1]) {
+        [this.data[i], this.data[parent]] = [this.data[parent], this.data[i]]
+        i = parent
+      } else {
+        break
+      }
+    }
+  }
+
+  private _sinkDown(i: number): void {
+    const n = this.data.length
+    while (true) {
+      let smallest = i
+      const left = 2 * i + 1
+      const right = 2 * i + 2
+      if (left < n && this.data[left][1] < this.data[smallest][1]) smallest = left
+      if (right < n && this.data[right][1] < this.data[smallest][1]) smallest = right
+      if (smallest !== i) {
+        [this.data[i], this.data[smallest]] = [this.data[smallest], this.data[i]]
+        i = smallest
+      } else {
+        break
+      }
+    }
+  }
+}
+
+// Dijkstra's algorithm implementation (O(V log V) with min-heap)
 function dijkstra(nodes: GraphNode[], edges: GraphEdge[], sourceNodeId: string): Omit<SSSPResult, 'timestamp' | 'computationTime' | 'algorithm'> {
   const distances: Record<string, number> = {}
   const predecessors: Record<string, string | null> = {}
   const visited = new Set<string>()
   const nodeIds = new Set(nodes.map(n => n.id))
-  
-  
+
+
   for (const node of nodes) {
     distances[node.id] = node.id === sourceNodeId ? 0 : Infinity
     predecessors[node.id] = null
   }
-  
-  
+
+
   const adjacencyList: Record<string, Array<{ nodeId: string; weight: number }>> = {}
   for (const node of nodes) {
     adjacencyList[node.id] = []
   }
-  
+
   for (const edge of edges) {
     if (nodeIds.has(edge.source) && nodeIds.has(edge.target)) {
       const weight = edge.weight || 1
       adjacencyList[edge.source].push({ nodeId: edge.target, weight })
-      
+
       adjacencyList[edge.target].push({ nodeId: edge.source, weight })
     }
   }
-  
-  
-  while (visited.size < nodes.length) {
-    
-    let currentNode: string | null = null
-    let minDistance = Infinity
-    
-    for (const nodeId of Object.keys(distances)) {
-      if (!visited.has(nodeId) && distances[nodeId] < minDistance) {
-        minDistance = distances[nodeId]
-        currentNode = nodeId
-      }
-    }
-    
-    if (currentNode === null || minDistance === Infinity) break
-    
+
+  // Use min-heap instead of O(V) linear scan per iteration
+  const heap = new MinHeap()
+  heap.push(sourceNodeId, 0)
+
+  while (heap.size > 0) {
+    const entry = heap.pop()!
+    const [currentNode, currentDist] = entry
+
+    if (visited.has(currentNode)) continue
+    if (currentDist === Infinity) break
+
     visited.add(currentNode)
-    
-    
+
+
     for (const neighbor of adjacencyList[currentNode] || []) {
       if (!visited.has(neighbor.nodeId)) {
         const newDistance = distances[currentNode] + neighbor.weight
         if (newDistance < distances[neighbor.nodeId]) {
           distances[neighbor.nodeId] = newDistance
           predecessors[neighbor.nodeId] = currentNode
+          heap.push(neighbor.nodeId, newDistance)
         }
       }
     }
   }
-  
-  
+
+
   const unreachableCount = Object.values(distances).filter(d => d === Infinity).length
-  
+
   return {
     sourceNodeId,
     distances,

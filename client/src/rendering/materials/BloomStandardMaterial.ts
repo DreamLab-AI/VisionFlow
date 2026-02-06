@@ -156,6 +156,24 @@ export const createBloomStandardPresets = () => {
 };
 
 
-export const BloomStandardPresets = createBloomStandardPresets();
+type BloomStandardPresetsType = ReturnType<typeof createBloomStandardPresets>;
+let _presets: BloomStandardPresetsType | null = null;
+
+export function getBloomStandardPresets(): BloomStandardPresetsType {
+  if (!_presets) {
+    _presets = createBloomStandardPresets();
+  }
+  return _presets;
+}
+
+export function disposeBloomStandardPresets(): void {
+  if (_presets) {
+    _presets.GraphPrimary.dispose();
+    _presets.GraphSecondary.dispose();
+    _presets.EnvironmentGlow.dispose();
+    _presets.HologramSubtle.dispose();
+    _presets = null;
+  }
+}
 
 export default BloomStandardMaterial;

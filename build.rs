@@ -33,7 +33,7 @@ fn main() {
     let out_dir = env::var("OUT_DIR").unwrap();
     let cuda_path = env::var("CUDA_PATH")
         .or_else(|_| env::var("CUDA_HOME"))
-        .unwrap_or_else(|_| "/usr/local/cuda".to_string());
+        .unwrap_or_else(|_| "/opt/cuda".to_string());
 
     // Determine CUDA architecture
     let cuda_arch = env::var("CUDA_ARCH").unwrap_or_else(|_| "75".to_string());

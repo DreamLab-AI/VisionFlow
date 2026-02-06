@@ -22,9 +22,6 @@ export type {
   WebSocketState
 } from '../store/websocketStore';
 
-// Legacy WebSocket types for backward compatibility
-export type { LegacyWebSocketMessage } from './WebSocketService';
-
 export { VoiceWebSocketService } from './VoiceWebSocketService';
 
 // Binary Protocol

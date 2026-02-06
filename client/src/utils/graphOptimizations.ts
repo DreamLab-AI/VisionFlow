@@ -9,17 +9,19 @@ const logger = createLogger('GraphOptimizations');
 export class FrustumCuller {
   private frustum = new THREE.Frustum();
   private matrix = new THREE.Matrix4();
-  
+  private _reusableSphere = new THREE.Sphere();
+
   public updateFrustum(camera: THREE.Camera) {
     this.matrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
     this.frustum.setFromProjectionMatrix(this.matrix);
   }
-  
+
   public isNodeVisible(position: THREE.Vector3, radius: number = 1): boolean {
-    const sphere = new THREE.Sphere(position, radius);
-    return this.frustum.intersectsSphere(sphere);
+    this._reusableSphere.center.copy(position);
+    this._reusableSphere.radius = radius;
+    return this.frustum.intersectsSphere(this._reusableSphere);
   }
-  
+
   public cullNodes(nodes: Array<{ position: THREE.Vector3; radius?: number }>) {
     return nodes.filter(node => this.isNodeVisible(node.position, node.radius));
   }
@@ -28,42 +30,56 @@ export class FrustumCuller {
 // Level of Detail (LOD) manager
 export class LODManager {
   private camera: THREE.Camera | null = null;
-  
+  private geometryCache = new Map<string, THREE.BufferGeometry>();
+
   constructor(camera?: THREE.Camera) {
     this.camera = camera || null;
   }
-  
+
   public setCamera(camera: THREE.Camera) {
     this.camera = camera;
   }
-  
+
   public getLODLevel(nodePosition: THREE.Vector3): 'high' | 'medium' | 'low' | 'hidden' {
     if (!this.camera) return 'high';
-    
+
     const distance = this.camera.position.distanceTo(nodePosition);
-    
+
     if (distance < 20) return 'high';
     if (distance < 50) return 'medium';
     if (distance < 100) return 'low';
     return 'hidden';
   }
-  
+
   public getGeometryForLOD(level: 'high' | 'medium' | 'low'): THREE.BufferGeometry {
+    const cached = this.geometryCache.get(level);
+    if (cached) return cached;
+
+    let geometry: THREE.BufferGeometry;
     switch (level) {
       case 'high':
-        return new THREE.SphereGeometry(0.5, 32, 32);
+        geometry = new THREE.SphereGeometry(0.5, 32, 32);
+        break;
       case 'medium':
-        return new THREE.SphereGeometry(0.5, 16, 16);
+        geometry = new THREE.SphereGeometry(0.5, 16, 16);
+        break;
       case 'low':
-        return new THREE.SphereGeometry(0.5, 8, 8);
       default:
-        return new THREE.SphereGeometry(0.5, 8, 8);
+        geometry = new THREE.SphereGeometry(0.5, 8, 8);
+        break;
     }
+    this.geometryCache.set(level, geometry);
+    return geometry;
   }
-  
+
   public shouldRenderNode(nodePosition: THREE.Vector3, minDistance: number = 150): boolean {
     if (!this.camera) return true;
     return this.camera.position.distanceTo(nodePosition) < minDistance;
+  }
+
+  public disposeGeometries(): void {
+    this.geometryCache.forEach(geometry => geometry.dispose());
+    this.geometryCache.clear();
   }
 }
 
@@ -108,65 +124,71 @@ export class InstancedRenderingManager {
     return mesh;
   }
   
+  // Pre-allocated reusable objects for updateInstancedMesh
+  private _matrix = new THREE.Matrix4();
+  private _defaultColor = new THREE.Color(0x00ffff);
+  private _position = new THREE.Vector3();
+  private _quaternion = new THREE.Quaternion();
+  private _scaleVec = new THREE.Vector3();
+
   public updateInstancedMesh(
     mesh: THREE.InstancedMesh,
     nodes: Array<{ position: THREE.Vector3; scale?: number; color?: THREE.Color }>,
     lodManager?: LODManager,
     frustumCuller?: FrustumCuller
   ): { renderedCount: number; culledCount: number } {
-    const matrix = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const matrix = this._matrix;
     let renderedCount = 0;
     let culledCount = 0;
-    
-    
+    const maxCount = mesh.instanceMatrix.count;
+
+
     if (!mesh.geometry.attributes.instanceColor) {
-      const colors = new Float32Array(mesh.count * 3);
+      const colors = new Float32Array(maxCount * 3);
       mesh.geometry.setAttribute('instanceColor', new THREE.InstancedBufferAttribute(colors, 3));
     }
-    
+
     const colorAttribute = mesh.geometry.attributes.instanceColor as THREE.InstancedBufferAttribute;
-    
-    for (let i = 0; i < Math.min(nodes.length, mesh.count); i++) {
+    const nodeCount = Math.min(nodes.length, maxCount);
+
+    // Compact visible instances to the front of the buffer
+    for (let i = 0; i < nodeCount; i++) {
       const node = nodes[i];
-      
-      
+
+
       let shouldRender = true;
-      
+
       if (lodManager && !lodManager.shouldRenderNode(node.position)) {
         shouldRender = false;
       }
-      
+
       if (frustumCuller && !frustumCuller.isNodeVisible(node.position)) {
         shouldRender = false;
       }
-      
+
       if (shouldRender) {
-        
+
         const scale = node.scale || 1;
-        matrix.makeScale(scale, scale, scale);
-        matrix.setPosition(node.position);
-        mesh.setMatrixAt(i, matrix);
-        
-        
-        const nodeColor = node.color || new THREE.Color(0x00ffff);
-        colorAttribute.setXYZ(i, nodeColor.r, nodeColor.g, nodeColor.b);
-        
+        this._position.copy(node.position);
+        this._scaleVec.set(scale, scale, scale);
+        matrix.compose(this._position, this._quaternion, this._scaleVec);
+        mesh.setMatrixAt(renderedCount, matrix);
+
+
+        const nodeColor = node.color || this._defaultColor;
+        colorAttribute.setXYZ(renderedCount, nodeColor.r, nodeColor.g, nodeColor.b);
+
         renderedCount++;
       } else {
-        
-        matrix.makeScale(0, 0, 0);
-        matrix.setPosition(0, 0, 0);
-        mesh.setMatrixAt(i, matrix);
         culledCount++;
       }
     }
-    
-    
+
+
     mesh.instanceMatrix.needsUpdate = true;
     colorAttribute.needsUpdate = true;
     mesh.count = renderedCount;
-    
+
     return { renderedCount, culledCount };
   }
   
@@ -443,6 +465,7 @@ export class GraphOptimizer {
   
   public dispose() {
     this.instancedManager.dispose();
+    this.lodManager.disposeGeometries();
     this.sharedBuffer.dispose();
     this.octree?.clear();
   }

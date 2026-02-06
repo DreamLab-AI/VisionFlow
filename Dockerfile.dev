@@ -1,55 +1,69 @@
-# Development Docker image for WebXR with CUDA support
+# Development Docker image for WebXR with CUDA support (CachyOS)
 # This image includes all build tools and ALWAYS builds the Rust backend on startup
 # to ensure compatibility with the container's architecture
 
-FROM nvidia/cuda:12.4.1-devel-ubuntu22.04
+FROM cachyos/cachyos-v3:latest
 
 # Build argument for CUDA architecture (will be detected at runtime)
 ARG CUDA_ARCH=86
 
-ENV DEBIAN_FRONTEND=noninteractive \
-    RUST_LOG=${RUST_LOG:-warn} \
-    PATH="/root/.cargo/bin:${PATH}" \
+ENV RUST_LOG=${RUST_LOG:-warn} \
+    PATH="/root/.cargo/bin:/opt/cuda/bin:${PATH}" \
+    NVIDIA_VISIBLE_DEVICES=all \
     NVIDIA_DRIVER_CAPABILITIES=all \
-    CUDA_HOME=/usr/local/cuda \
-    LD_LIBRARY_PATH="/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
-    CUDA_PATH=/usr/local/cuda
+    CUDA_HOME=/opt/cuda \
+    CUDA_PATH=/opt/cuda \
+    CUDA_ARCH=${CUDA_ARCH} \
+    LD_LIBRARY_PATH="/opt/cuda/lib64:${LD_LIBRARY_PATH}"
 
-# Install runtime dependencies and build tools (no BuildKit mount caching)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    git \
-    gcc-11 \
-    g++-11 \
-    build-essential \
-    pkg-config \
-    libssl-dev \
-    netcat-openbsd \
-    lsof \
-    gzip \
-    expect \
-    docker.io \
-    supervisor \
-    nginx \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+# Initialize pacman keyring (required for CachyOS signature verification)
+RUN pacman-key --init && \
+    pacman-key --populate archlinux cachyos && \
+    pacman -Sy --noconfirm archlinux-keyring cachyos-keyring && \
+    pacman -Syu --noconfirm && \
+    rm -rf /var/cache/pacman/pkg/*
+
+# Install runtime dependencies and build tools (with retry logic)
+RUN for attempt in 1 2 3; do \
+        echo "=== Package install attempt $attempt/3 ===" && \
+        pacman -S --noconfirm --needed \
+            curl \
+            git \
+            gcc \
+            base-devel \
+            openssl \
+            openbsd-netcat \
+            lsof \
+            expect \
+            docker \
+            nginx \
+            python python-pip \
+        && break || { echo "Attempt $attempt failed, retrying in 10s..."; sleep 10; pacman -Syy --noconfirm; }; \
+    done && rm -rf /var/cache/pacman/pkg/*
+
+# Install supervisor via pip (not available in pacman)
+RUN pip install --break-system-packages supervisor
+
+# Install CUDA via pacman (CachyOS installs to /opt/cuda)
+RUN for attempt in 1 2 3; do \
+        echo "=== CUDA install attempt $attempt/3 ===" && \
+        pacman -S --noconfirm --needed cuda \
+        && break || { echo "Attempt $attempt failed, retrying in 10s..."; sleep 10; pacman -Syy --noconfirm; }; \
+    done && rm -rf /var/cache/pacman/pkg/*
 
 # Create Nginx log and run directories
 RUN mkdir -p /var/log/nginx /var/run/nginx && \
-    chown -R www-data:www-data /var/run/nginx && \
+    chown -R http:http /var/run/nginx && \
     which nginx && \
     nginx -v
-
-# Set gcc-11 as default compiler (needed for CUDA compatibility)
-RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100 \
-    && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 100
 
 # Install Rust toolchain - REQUIRED for building on startup
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
 ENV PATH="/root/.cargo/bin:${PATH}"
 
-# Install Node.js
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get install -y nodejs
+# Install Node.js 20.x LTS via tarball
+RUN curl -fsSL https://nodejs.org/dist/v20.18.3/node-v20.18.3-linux-x64.tar.xz | \
+    tar -xJ -C /usr/local --strip-components=1
 
 WORKDIR /app
 

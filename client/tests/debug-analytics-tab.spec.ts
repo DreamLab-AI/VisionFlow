@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test('debug Analytics tab click behavior', async ({ page }) => {
   // Go to the app
-  await page.goto('http://192.168.0.51:3001', { waitUntil: 'networkidle' });
+  await page.goto('/', { waitUntil: 'networkidle' });
   await page.waitForTimeout(3000);
 
   // Take initial screenshot

@@ -64,14 +64,14 @@ class GraphWorkerProxy {
 
   public async initialize(): Promise<void> {
     if (this.isInitialized) {
-      console.log('[GraphWorkerProxy] Already initialized, skipping');
+      logger.info('Already initialized, skipping');
       return;
     }
     
-    console.log('[GraphWorkerProxy] Starting worker initialization');
+    logger.info('Starting worker initialization');
     try {
-      
-      console.log('[GraphWorkerProxy] Creating worker');
+
+      logger.info('Creating worker');
       this.worker = new Worker(
         new URL('../workers/graph.worker.ts', import.meta.url),
         { type: 'module' }
@@ -79,21 +79,20 @@ class GraphWorkerProxy {
 
       
       this.worker.onerror = (error) => {
-        console.error('[GraphWorkerProxy] Worker error:', error);
         logger.error('Worker error:', error);
       };
 
-      console.log('[GraphWorkerProxy] Wrapping worker with Comlink');
+      logger.info('Wrapping worker with Comlink');
       
       this.workerApi = wrap<GraphWorkerType>(this.worker);
 
       
-      console.log('[GraphWorkerProxy] Testing worker communication');
+      logger.info('Testing worker communication');
       try {
         await this.workerApi.initialize();
-        console.log('[GraphWorkerProxy] Worker communication test successful');
+        logger.info('Worker communication test successful');
       } catch (commError) {
-        console.error('[GraphWorkerProxy] Worker communication failed:', commError);
+        logger.error('Worker communication failed:', commError);
         throw new Error(`Worker communication failed: ${commError}`);
       }
 
@@ -102,29 +101,27 @@ class GraphWorkerProxy {
       const bufferSize = maxNodes * 4 * 4; 
 
       if (typeof SharedArrayBuffer !== 'undefined') {
-        console.log('[GraphWorkerProxy] Setting up SharedArrayBuffer');
+        logger.info('Setting up SharedArrayBuffer');
         this.sharedBuffer = new SharedArrayBuffer(bufferSize);
         await this.workerApi.setupSharedPositions(this.sharedBuffer);
-        console.log(`[GraphWorkerProxy] SharedArrayBuffer initialized: ${bufferSize} bytes`);
+        logger.info(`SharedArrayBuffer initialized: ${bufferSize} bytes`);
         if (debugState.isEnabled()) {
           logger.info(`Initialized SharedArrayBuffer: ${bufferSize} bytes for ${maxNodes} nodes`);
         }
       } else {
-        console.warn('[GraphWorkerProxy] SharedArrayBuffer not available, using message passing');
         logger.warn('SharedArrayBuffer not available, falling back to regular message passing');
       }
 
       this.isInitialized = true;
-      console.log('[GraphWorkerProxy] Initialization complete');
+      logger.info('Initialization complete');
       if (debugState.isEnabled()) {
         logger.info('Graph worker initialized successfully');
       }
 
       
-      console.log(`[GraphWorkerProxy] Setting initial graph type: ${this.graphType}`);
+      logger.info(`Setting initial graph type: ${this.graphType}`);
       await this.setGraphType(this.graphType);
     } catch (error) {
-      console.error('[GraphWorkerProxy] Failed to initialize worker:', error);
       logger.error('Failed to initialize graph worker:', error);
       throw error;
     }
@@ -192,16 +189,16 @@ class GraphWorkerProxy {
   
   public async getGraphData(): Promise<GraphData> {
     if (!this.workerApi) {
-      console.error('[GraphWorkerProxy] Worker not initialized for getGraphData');
+      logger.error('Worker not initialized for getGraphData');
       throw new Error('Worker not initialized');
     }
-    console.log('[GraphWorkerProxy] Getting graph data from worker');
+    logger.info('Getting graph data from worker');
     try {
       const data = await this.workerApi.getGraphData();
-      console.log(`[GraphWorkerProxy] Got ${data.nodes.length} nodes, ${data.edges.length} edges from worker`);
+      logger.info(`Got ${data.nodes.length} nodes, ${data.edges.length} edges from worker`);
       return data;
     } catch (error) {
-      console.error('[GraphWorkerProxy] Error getting graph data from worker:', error);
+      logger.error('Error getting graph data from worker:', error);
       throw error;
     }
   }

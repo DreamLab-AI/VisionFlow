@@ -5,13 +5,14 @@
  */
 
 import React from 'react';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { PresetSelector, PresetSelectorCompact } from '../../client/src/features/settings/components/PresetSelector';
 import { QUALITY_PRESETS, getPresetById, getRecommendedPreset } from '../../client/src/features/settings/presets/qualityPresets';
 import { useSettingsStore } from '../../client/src/store/settingsStore';
 
 // Mock the settings store
-jest.mock('../../client/src/store/settingsStore');
+vi.mock('../../client/src/store/settingsStore');
 
 describe('Quality Presets System', () => {
 
@@ -145,9 +146,9 @@ describe('Quality Presets System', () => {
 
   describe('PresetSelector Component', () => {
     beforeEach(() => {
-      (useSettingsStore as jest.Mock).mockReturnValue({
+      (useSettingsStore as vi.Mock).mockReturnValue({
         settings: {},
-        updateSettings: jest.fn(),
+        updateSettings: vi.fn(),
       });
     });
 
@@ -168,8 +169,8 @@ describe('Quality Presets System', () => {
     });
 
     it('should apply preset when clicked', async () => {
-      const mockUpdateSettings = jest.fn();
-      (useSettingsStore as jest.Mock).mockReturnValue({
+      const mockUpdateSettings = vi.fn();
+      (useSettingsStore as vi.Mock).mockReturnValue({
         settings: {},
         updateSettings: mockUpdateSettings,
       });
@@ -187,8 +188,8 @@ describe('Quality Presets System', () => {
     });
 
     it('should show loading state when applying', async () => {
-      const mockUpdateSettings = jest.fn(() => new Promise(resolve => setTimeout(resolve, 100)));
-      (useSettingsStore as jest.Mock).mockReturnValue({
+      const mockUpdateSettings = vi.fn(() => new Promise(resolve => setTimeout(resolve, 100)));
+      (useSettingsStore as vi.Mock).mockReturnValue({
         settings: {},
         updateSettings: mockUpdateSettings,
       });
@@ -202,13 +203,13 @@ describe('Quality Presets System', () => {
     });
 
     it('should persist selected preset to localStorage', async () => {
-      const mockUpdateSettings = jest.fn();
-      (useSettingsStore as jest.Mock).mockReturnValue({
+      const mockUpdateSettings = vi.fn();
+      (useSettingsStore as vi.Mock).mockReturnValue({
         settings: {},
         updateSettings: mockUpdateSettings,
       });
 
-      const setItemSpy = jest.spyOn(Storage.prototype, 'setItem');
+      const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
 
       render(<PresetSelector />);
 
@@ -223,9 +224,9 @@ describe('Quality Presets System', () => {
 
   describe('PresetSelectorCompact Component', () => {
     beforeEach(() => {
-      (useSettingsStore as jest.Mock).mockReturnValue({
+      (useSettingsStore as vi.Mock).mockReturnValue({
         settings: {},
-        updateSettings: jest.fn(),
+        updateSettings: vi.fn(),
       });
     });
 
@@ -248,8 +249,8 @@ describe('Quality Presets System', () => {
     });
 
     it('should apply preset when clicked', async () => {
-      const mockUpdateSettings = jest.fn();
-      (useSettingsStore as jest.Mock).mockReturnValue({
+      const mockUpdateSettings = vi.fn();
+      (useSettingsStore as vi.Mock).mockReturnValue({
         settings: {},
         updateSettings: mockUpdateSettings,
       });
@@ -265,9 +266,9 @@ describe('Quality Presets System', () => {
     });
 
     it('should show active state', () => {
-      (useSettingsStore as jest.Mock).mockReturnValue({
+      (useSettingsStore as vi.Mock).mockReturnValue({
         settings: {},
-        updateSettings: jest.fn(),
+        updateSettings: vi.fn(),
       });
 
       const { container } = render(<PresetSelectorCompact />);
@@ -282,8 +283,8 @@ describe('Quality Presets System', () => {
 
   describe('Integration Tests', () => {
     it('should apply all settings from preset', async () => {
-      const mockUpdateSettings = jest.fn();
-      (useSettingsStore as jest.Mock).mockReturnValue({
+      const mockUpdateSettings = vi.fn();
+      (useSettingsStore as vi.Mock).mockReturnValue({
         settings: {},
         updateSettings: mockUpdateSettings,
       });
@@ -305,8 +306,8 @@ describe('Quality Presets System', () => {
     });
 
     it('should handle rapid preset switching', async () => {
-      const mockUpdateSettings = jest.fn();
-      (useSettingsStore as jest.Mock).mockReturnValue({
+      const mockUpdateSettings = vi.fn();
+      (useSettingsStore as vi.Mock).mockReturnValue({
         settings: {},
         updateSettings: mockUpdateSettings,
       });
@@ -348,13 +349,13 @@ describe('Quality Presets System', () => {
 
   describe('Error Handling', () => {
     it('should handle updateSettings failure gracefully', async () => {
-      const mockUpdateSettings = jest.fn().mockRejectedValue(new Error('Update failed'));
-      (useSettingsStore as jest.Mock).mockReturnValue({
+      const mockUpdateSettings = vi.fn().mockRejectedValue(new Error('Update failed'));
+      (useSettingsStore as vi.Mock).mockReturnValue({
         settings: {},
         updateSettings: mockUpdateSettings,
       });
 
-      const consoleError = jest.spyOn(console, 'error').mockImplementation();
+      const consoleError = vi.spyOn(console, 'error').mockImplementation();
 
       render(<PresetSelector />);
 

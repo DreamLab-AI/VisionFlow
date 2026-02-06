@@ -1,6 +1,7 @@
 // Optimization API Client - GPU-accelerated graph optimization and clustering
 import { createLogger } from '../utils/loggerConfig';
 import { unifiedApiClient, isApiError } from '../services/api/UnifiedApiClient';
+import { nostrAuth } from '../services/nostrAuthService';
 
 const API_BASE = '';
 const logger = createLogger('OptimizationAPI');
@@ -258,12 +259,21 @@ export class OptimizationWebSocketManager {
   private reconnectDelay = 1000;
   private listeners = new Map<string, Set<(event: OptimizationWebSocketEvent) => void>>();
 
-  constructor(private readonly url: string = `ws://${window.location.host}/ws/optimization`) {}
+  private readonly wsUrl: string;
+
+  constructor(url?: string) {
+    if (url) {
+      this.wsUrl = url;
+    } else {
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      this.wsUrl = `${wsProtocol}//${window.location.host}/ws/optimization`;
+    }
+  }
 
   connect(): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        this.ws = new WebSocket(this.url);
+        this.ws = new WebSocket(this.wsUrl);
 
         const connectionTimeout = setTimeout(() => {
           if (this.ws && this.ws.readyState !== WebSocket.OPEN) {
@@ -274,6 +284,11 @@ export class OptimizationWebSocketManager {
 
         this.ws.onopen = () => {
           clearTimeout(connectionTimeout);
+          // Send auth token as first message instead of URL param
+          const token = nostrAuth.getSessionToken();
+          if (token) {
+            this.ws?.send(JSON.stringify({ type: 'auth', token }));
+          }
           logger.info('Optimization WebSocket connected');
           this.reconnectAttempts = 0;
           resolve();

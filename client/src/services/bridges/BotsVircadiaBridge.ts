@@ -27,8 +27,9 @@ export interface VircadiaEntity {
 
 export class BotsVircadiaBridge {
   private syncInterval: ReturnType<typeof setInterval> | null = null;
-  private agentEntityMap = new Map<string, string>(); 
+  private agentEntityMap = new Map<string, string>();
   private lastSyncedAgents = new Map<string, BotsAgent>();
+  private entityUpdateUnsubscribe: (() => void) | null = null;
   private isActive = false;
 
   private defaultConfig: BridgeConfig = {
@@ -56,10 +57,14 @@ export class BotsVircadiaBridge {
       throw new Error('Vircadia client must be connected before initializing bridge');
     }
 
-    // @ts-ignore - EntitySyncManager event methods may not be typed
-    this.entitySync.on?.('entity-updated', this.handleVircadiaEntityUpdate.bind(this));
-    // @ts-ignore - EntitySyncManager event methods may not be typed
-    this.entitySync.on?.('entity-deleted', this.handleVircadiaEntityDeleted.bind(this));
+    // EntitySyncManager exposes onEntityUpdate(callback) which returns
+    // an unsubscribe function. Entity deletion is handled internally via
+    // deleteEntity(). Subscribe to updates for the sync group.
+    this.entityUpdateUnsubscribe = this.entitySync.onEntityUpdate((entities) => {
+      entities.forEach(entity => {
+        this.handleVircadiaEntityUpdate(entity as unknown as VircadiaEntity);
+      });
+    });
 
     this.isActive = true;
     logger.info('BotsVircadiaBridge initialized successfully');
@@ -115,18 +120,20 @@ export class BotsVircadiaBridge {
         status: agent.status,
         capabilities: agent.capabilities,
         currentTask: agent.currentTask,
-        tokenUsage: (agent as any).tokenUsage,
+        tokenUsage: agent.tokenUsage,
         isActive: agent.status === 'active',
         color: this.getAgentColor(agent)
       } : undefined
     };
 
-    // @ts-ignore - EntitySyncManager method may not be typed
-    this.entitySync.updateEntity?.(entityData);
+    // EntitySyncManager uses updateNodePosition for real-time position changes.
+    // Full entity sync (metadata) goes through pushGraphToVircadia in bulk.
+    if (entityData.position) {
+      this.entitySync.updateNodePosition(entityId, entityData.position);
+    }
 
-    
     this.agentEntityMap.set(agent.id, entityId);
-    this.lastSyncedAgents.set(agent.id, { ...agent });
+    this.lastSyncedAgents.set(agent.id, structuredClone(agent));
   }
 
   
@@ -172,8 +179,9 @@ export class BotsVircadiaBridge {
     this.agentEntityMap.forEach((entityId, agentId) => {
       if (!currentAgentIds.has(agentId)) {
         staleAgentIds.push(agentId);
-        // @ts-ignore - EntitySyncManager method may not be typed
-        this.entitySync.deleteEntity?.(entityId);
+        this.entitySync.deleteEntity(entityId).catch(err => {
+          logger.error(`Failed to delete stale entity ${entityId}:`, err);
+        });
       }
     });
 
@@ -196,18 +204,9 @@ export class BotsVircadiaBridge {
       const targetEntity = this.agentEntityMap.get(edge.target);
 
       if (sourceEntity && targetEntity) {
-        // @ts-ignore - EntitySyncManager method may not be typed
-        this.entitySync.updateEntity?.({
-          id: entityId,
-          type: 'communication-link',
-          position: { x: 0, y: 0, z: 0 },
-          metadata: {
-            source: sourceEntity,
-            target: targetEntity,
-            type: (edge as any).type || 'default',
-            active: true
-          }
-        });
+        // Edge entities use updateNodePosition for placement; full metadata
+        // sync is handled via pushGraphToVircadia in bulk operations.
+        this.entitySync.updateNodePosition(entityId, { x: 0, y: 0, z: 0 });
       }
     });
   }
@@ -272,6 +271,10 @@ export class BotsVircadiaBridge {
   
   dispose(): void {
     this.stopAutoSync();
+    if (this.entityUpdateUnsubscribe) {
+      this.entityUpdateUnsubscribe();
+      this.entityUpdateUnsubscribe = null;
+    }
     this.isActive = false;
     this.agentEntityMap.clear();
     this.lastSyncedAgents.clear();

@@ -4,7 +4,7 @@ import { createLogger } from '../utils/loggerConfig';
 import { createErrorMetadata } from '../utils/loggerConfig';
 import { debugState } from '../utils/clientDebugState';
 import { unifiedApiClient } from './api/UnifiedApiClient';
-import { webSocketService } from './WebSocketService';
+import { webSocketService } from '../store/websocketStore';
 import type {
   GraphProcessingProgressMessage,
   GraphProcessingCompleteMessage,

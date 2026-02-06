@@ -631,27 +631,21 @@ export class AdvancedInteractionModes {
   }
 
   private setupVRControls(): void {
-    
     if (this.vrArState.handTracking) {
-      this.enableHandTracking();
+      logger.info('Hand tracking enabled');
     }
-
-    
     if (this.vrArState.eyeTracking) {
-      this.enableEyeTracking();
+      logger.info('Eye tracking enabled');
     }
-
-    
     if (this.vrArState.hapticFeedback) {
-      this.enableHapticFeedback();
+      logger.info('Haptic feedback enabled');
     }
   }
 
   private setupARControls(): void {
-    
-    this.setupWorldTracking();
-    this.setupOcclusion();
-    this.setupLightEstimation();
+    logger.info('World tracking setup');
+    logger.info('Occlusion setup');
+    logger.info('Light estimation setup');
   }
 
   public processImmersiveInteraction(interaction: ImmersiveInteraction): void {
@@ -744,36 +738,6 @@ export class AdvancedInteractionModes {
   }
 
   
-
-  private enableHandTracking(): void {
-    
-    logger.info('Hand tracking enabled');
-  }
-
-  private enableEyeTracking(): void {
-    
-    logger.info('Eye tracking enabled');
-  }
-
-  private enableHapticFeedback(): void {
-    
-    logger.info('Haptic feedback enabled');
-  }
-
-  private setupWorldTracking(): void {
-    
-    logger.info('World tracking setup');
-  }
-
-  private setupOcclusion(): void {
-    
-    logger.info('Occlusion setup');
-  }
-
-  private setupLightEstimation(): void {
-    
-    logger.info('Light estimation setup');
-  }
 
   private selectNode(nodeId: string): void {
     this.emit('nodeSelected', { nodeId });

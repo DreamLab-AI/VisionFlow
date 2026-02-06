@@ -116,7 +116,7 @@ export const useHybridSystemStatus = (options: UseHybridSystemStatusOptions = {}
         lastUpdated: new Date().toISOString(),
       };
     } catch (err) {
-      console.error('Failed to fetch hybrid system status:', err);
+      logger.error('Failed to fetch hybrid system status:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
       return null;
     }
@@ -179,12 +179,12 @@ export const useHybridSystemStatus = (options: UseHybridSystemStatusOptions = {}
             }));
           }
         } catch (parseError) {
-          console.error('Failed to parse WebSocket message:', parseError);
+          logger.error('Failed to parse WebSocket message:', parseError);
         }
       };
 
       ws.onerror = (error) => {
-        console.error('Hybrid system status WebSocket error:', error);
+        logger.error('Hybrid system status WebSocket error:', error);
         setError('WebSocket connection error');
       };
 
@@ -205,7 +205,7 @@ export const useHybridSystemStatus = (options: UseHybridSystemStatusOptions = {}
       };
 
     } catch (err) {
-      console.error('Failed to initialize WebSocket:', err);
+      logger.error('Failed to initialize WebSocket:', err);
       setError('Failed to initialize WebSocket connection');
     }
   }, [opts.enableWebSocket, opts.autoReconnect, opts.reconnectDelay, opts.maxReconnectAttempts, reconnectAttempts]);
@@ -299,7 +299,7 @@ export const useHybridSystemStatus = (options: UseHybridSystemStatusOptions = {}
 
       return result;
     } catch (err) {
-      console.error('Failed to spawn swarm:', err);
+      logger.error('Failed to spawn swarm:', err);
       throw err;
     }
   }, [refresh]);
@@ -314,7 +314,7 @@ export const useHybridSystemStatus = (options: UseHybridSystemStatusOptions = {}
 
       return response.data;
     } catch (err) {
-      console.error('Failed to stop swarm:', err);
+      logger.error('Failed to stop swarm:', err);
       throw err;
     }
   }, [refresh]);
@@ -325,7 +325,7 @@ export const useHybridSystemStatus = (options: UseHybridSystemStatusOptions = {}
       const response = await unifiedApiClient.get('/hybrid/performance-report');
       return response.data;
     } catch (err) {
-      console.error('Failed to get performance report:', err);
+      logger.error('Failed to get performance report:', err);
       throw err;
     }
   }, []);

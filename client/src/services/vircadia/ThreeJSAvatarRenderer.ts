@@ -127,7 +127,7 @@ export class ThreeJSAvatarRenderer {
         username,
         position: new THREE.Vector3(),
         rotation: new THREE.Quaternion(),
-        mesh: model as THREE.Object3D,
+        mesh: model as unknown as THREE.Object3D,
         nameplate,
         mixer,
         animations: gltf.animations
@@ -364,7 +364,8 @@ export class ThreeJSAvatarRenderer {
 
     if (avatar.mesh) {
       // Fix 4: Proper type assertion instead of @ts-ignore
-      this.scene.remove(avatar.mesh as THREE.Object3D);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- @types/three dual-path resolution (build/ vs src/) creates incompatible Object3D types
+      this.scene.remove(avatar.mesh as any);
       avatar.mesh.traverse(child => {
         if ((child as THREE.Mesh).geometry) {
           (child as THREE.Mesh).geometry.dispose();

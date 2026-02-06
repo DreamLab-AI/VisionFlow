@@ -15,16 +15,17 @@ import { AgentActionVisualization } from '../../visualisation/components/AgentAc
 import SpacePilotSimpleIntegration from '../../visualisation/components/SpacePilotSimpleIntegration';
 // Head Tracking for Parallax
 import { HeadTrackedParallaxController } from '../../visualisation/components/HeadTrackedParallaxController';
-// Hologram environment removed
 // XR Support - causes graph to disappear
 // import XRController from '../../xr/components/XRController';
 // import XRVisualisationConnector from '../../xr/components/XRVisualisationConnector';
+
+// Scene ambient effects (particles, fog, glow ring)
+import WasmSceneEffects from '../../visualisation/components/WasmSceneEffects';
 
 // Store and utils
 import { useSettingsStore } from '../../../store/settingsStore';
 import { graphDataManager, type GraphData } from '../managers/graphDataManager';
 import { createLogger } from '../../../utils/loggerConfig';
-import { HologramContent } from '../../visualisation/components/HolographicDataSphere';
 
 const logger = createLogger('GraphCanvas');
 
@@ -39,8 +40,6 @@ const GraphCanvas: React.FC = () => {
     // Note: bloom was merged into glow settings
     const enableGlow = settings?.visualisation?.glow?.enabled ?? false;
     const useMultiLayerBloom = enableGlow; 
-    const enableHologram = settings?.visualisation?.graphs?.logseq?.nodes?.enableHologram ?? false;
-    
     
     const [graphData, setGraphData] = useState<GraphData>({ nodes: [], edges: [] });
     const [canvasReady, setCanvasReady] = useState(false);
@@ -118,19 +117,12 @@ const GraphCanvas: React.FC = () => {
                 <ambientLight intensity={0.15} />
                 <directionalLight position={[10, 10, 10]} intensity={0.4} />
                 
-                {}
-                {enableHologram && (
-                  <HologramContent
-                    opacity={0.1}
-                    layer={2}
-                    renderOrder={-1}
-                    includeSwarm={false}
-                    enableDepthFade={true}
-                    fadeStart={2000}
-                    fadeEnd={5000}
-                  />
-                )}
-                
+                {/* Scene ambient effects (particles, fog, glow ring) */}
+                <WasmSceneEffects
+                    enabled={settings?.visualisation?.sceneEffects?.enabled !== false}
+                    intensity={settings?.visualisation?.sceneEffects?.particleOpacity ?? 0.05}
+                />
+
                 {}
                 {canvasReady && graphData.nodes.length > 0 && (
                     <GraphManager />

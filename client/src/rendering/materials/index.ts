@@ -1,4 +1,5 @@
 
 // Core material classes
-export { BloomStandardMaterial, BloomStandardPresets } from './BloomStandardMaterial';
-export { HologramNodeMaterial, HologramNodePresets } from './HologramNodeMaterial';
+export { BloomStandardMaterial, getBloomStandardPresets, disposeBloomStandardPresets } from './BloomStandardMaterial';
+export { HologramNodeMaterial, getHologramNodePresets, disposeHologramNodePresets } from './HologramNodeMaterial';
+export type { HologramNodeMaterialParams } from './HologramNodeMaterial';

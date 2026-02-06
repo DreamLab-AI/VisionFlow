@@ -77,7 +77,6 @@ export class GraphComparison {
   private static instance: GraphComparison;
   private nodeMatches: Map<string, NodeMatch> = new Map();
   private relationshipBridges: Map<string, RelationshipBridge> = new Map();
-  private analysisCache: Map<string, any> = new Map();
 
   private constructor() {}
 
@@ -671,7 +670,6 @@ export class GraphComparison {
   public dispose(): void {
     this.nodeMatches.clear();
     this.relationshipBridges.clear();
-    this.analysisCache.clear();
     logger.info('Graph comparison disposed');
   }
 }

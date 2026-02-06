@@ -2,7 +2,7 @@
 
 import * as THREE from 'three';
 import { ClientCore } from '../vircadia/VircadiaClientCore';
-import { CollaborativeGraphSync } from '../vircadia/CollaborativeGraphSync';
+import { CollaborativeGraphSync, type FilterState } from '../vircadia/CollaborativeGraphSync';
 import { createLogger } from '../../utils/loggerConfig';
 
 const logger = createLogger('GraphVircadiaBridge');
@@ -59,17 +59,11 @@ export class GraphVircadiaBridge {
 
     await this.collab.initialize();
 
-
-    // @ts-ignore - CollaborativeGraphSync event methods may not be typed
-    this.collab.on?.('user-selection', this.handleRemoteSelection.bind(this));
-
-    // @ts-ignore - CollaborativeGraphSync event methods may not be typed
-    this.collab.on?.('annotation-added', this.handleRemoteAnnotation.bind(this));
-    // @ts-ignore - CollaborativeGraphSync event methods may not be typed
-    this.collab.on?.('annotation-removed', this.handleAnnotationRemoved.bind(this));
-
-    // @ts-ignore - CollaborativeGraphSync event methods may not be typed
-    this.collab.on?.('filter-state-changed', this.handleFilterStateChanged.bind(this));
+    // CollaborativeGraphSync has no EventEmitter interface.
+    // Remote selection / annotation / filter events are received via
+    // the binary WebSocket protocol and processed internally by
+    // CollaborativeGraphSync. The bridge reads state via polling
+    // (getActiveSelections, getAnnotations) instead.
 
     this.isActive = true;
     logger.info('GraphVircadiaBridge initialized successfully');
@@ -99,22 +93,18 @@ export class GraphVircadiaBridge {
 
   private syncNodeToEntity(node: GraphNode): void {
     const entityId = `graph-node-${node.id}`;
-
-
     this.nodeEntityMap.set(node.id, entityId);
-
-
-
+    // TODO: Push node entity to Vircadia via EntitySyncManager.pushGraphToVircadia
+    // once the bridge is wired to an EntitySyncManager instance.
   }
-
 
   private syncEdgeToEntity(edge: GraphEdge): void {
     const sourceEntityId = this.nodeEntityMap.get(edge.source);
     const targetEntityId = this.nodeEntityMap.get(edge.target);
 
     if (sourceEntityId && targetEntityId) {
-
-
+      // TODO: Push edge entity to Vircadia via EntitySyncManager.pushGraphToVircadia
+      // once the bridge is wired to an EntitySyncManager instance.
     }
   }
 
@@ -123,8 +113,7 @@ export class GraphVircadiaBridge {
     if (!this.isActive) return;
 
     try {
-      // @ts-ignore - CollaborativeGraphSync method may not be typed
-      this.collab.setLocalSelection?.(nodeIds);
+      this.collab.selectNodes(nodeIds);
       logger.debug(`Broadcasted selection of ${nodeIds.length} nodes`);
     } catch (error) {
       logger.error('Failed to broadcast selection:', error);
@@ -142,12 +131,13 @@ export class GraphVircadiaBridge {
     }
 
     try {
-      // @ts-ignore - CollaborativeGraphSync method may not be typed
-      const annotationId = await (this.collab as any).addAnnotation?.({
-        nodeId,
-        text,
-        position
-      }) || await (this.collab as any).createAnnotation?.(nodeId, text, position) || '';
+      const threePosition = new THREE.Vector3(position.x, position.y, position.z);
+      await this.collab.createAnnotation(nodeId, text, threePosition);
+      // createAnnotation generates the ID internally; retrieve the latest for this node
+      const nodeAnnotations = this.collab.getNodeAnnotations(nodeId);
+      const annotationId = nodeAnnotations.length > 0
+        ? nodeAnnotations[nodeAnnotations.length - 1].id
+        : '';
 
       logger.info(`Added annotation ${annotationId} to node ${nodeId}`);
       return annotationId;
@@ -162,8 +152,7 @@ export class GraphVircadiaBridge {
     if (!this.isActive) return;
 
     try {
-      // @ts-ignore - CollaborativeGraphSync method may not be typed
-      await (this.collab as any).removeAnnotation?.(annotationId);
+      await this.collab.deleteAnnotation(annotationId);
       logger.info(`Removed annotation ${annotationId}`);
     } catch (error) {
       logger.error('Failed to remove annotation:', error);
@@ -180,8 +169,13 @@ export class GraphVircadiaBridge {
     if (!this.isActive) return;
 
     try {
-      // @ts-ignore - CollaborativeGraphSync method may not be typed
-      (this.collab as any).setLocalFilterState?.(filterState);
+      const collabFilterState: FilterState = {
+        searchQuery: filterState.searchQuery,
+        categoryFilter: filterState.categoryFilter,
+        timeRange: filterState.timeRange,
+        customFilters: filterState.customFilters,
+      };
+      this.collab.updateFilterState(collabFilterState);
       logger.debug('Broadcasted filter state');
     } catch (error) {
       logger.error('Failed to broadcast filter state:', error);

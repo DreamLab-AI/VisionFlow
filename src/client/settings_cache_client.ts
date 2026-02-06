@@ -89,7 +89,10 @@ export class SettingsCacheClient {
       // Load metrics
       const storedMetrics = localStorage.getItem(`${this.CACHE_PREFIX}metrics`);
       if (storedMetrics) {
-        this.metrics = { ...this.metrics, ...JSON.parse(storedMetrics) };
+        const parsedMetrics = JSON.parse(storedMetrics);
+        if (parsedMetrics && typeof parsedMetrics === 'object' && !Array.isArray(parsedMetrics)) {
+          this.metrics = { ...this.metrics, ...parsedMetrics };
+        }
       }
       
     } catch (error) {

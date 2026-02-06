@@ -203,14 +203,31 @@ export const UNIFIED_SETTINGS_CONFIG: Record<string, SectionConfig> = {
   effects: {
     title: 'Visual Effects',
     fields: [
-      // Glow - Basic
-      { key: 'glow', label: 'Hologram Glow', type: 'toggle', path: 'visualisation.glow.enabled', description: 'Enable glow effect' },
-      { key: 'glowIntensity', label: 'Glow Intensity', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.glow.intensity', description: 'Brightness of glow' },
-      { key: 'glowRadius', label: 'Glow Radius', type: 'slider', min: 0, max: 5, step: 0.05, path: 'visualisation.glow.radius', description: 'Size of glow effect' },
+      // Scene Effects (WASM) - Basic
+      { key: 'sceneEffectsEnabled', label: 'Scene Effects', type: 'toggle', path: 'visualisation.sceneEffects.enabled', description: 'Enable WASM ambient effects' },
+      { key: 'particleCount', label: 'Particle Count', type: 'slider', min: 64, max: 512, step: 32, path: 'visualisation.sceneEffects.particleCount', description: 'Number of ambient dust particles' },
+      { key: 'particleOpacity', label: 'Particle Opacity', type: 'slider', min: 0, max: 1, step: 0.05, path: 'visualisation.sceneEffects.particleOpacity', description: 'Brightness of ambient particles' },
+      { key: 'particleDrift', label: 'Particle Drift', type: 'slider', min: 0, max: 2, step: 0.1, path: 'visualisation.sceneEffects.particleDrift', description: 'Drift speed of particles', isAdvanced: true },
+
+      // Energy Wisps (WASM) - Basic
+      { key: 'wispsEnabled', label: 'Energy Wisps', type: 'toggle', path: 'visualisation.sceneEffects.wispsEnabled', description: 'Ephemeral glowing orbs that drift and fade' },
+      { key: 'wispCount', label: 'Wisp Count', type: 'slider', min: 8, max: 128, step: 8, path: 'visualisation.sceneEffects.wispCount', description: 'Number of energy wisps' },
+      { key: 'wispOpacity', label: 'Wisp Opacity', type: 'slider', min: 0, max: 1, step: 0.05, path: 'visualisation.sceneEffects.wispOpacity', description: 'Brightness of wisps' },
+      { key: 'wispDriftSpeed', label: 'Wisp Speed', type: 'slider', min: 0, max: 3, step: 0.1, path: 'visualisation.sceneEffects.wispDriftSpeed', description: 'How fast wisps drift', isAdvanced: true },
+
+      // Atmosphere (WASM) - Basic
+      { key: 'fogEnabled', label: 'Atmosphere', type: 'toggle', path: 'visualisation.sceneEffects.fogEnabled', description: 'Nebula background texture' },
+      { key: 'fogOpacity', label: 'Atmosphere Opacity', type: 'slider', min: 0, max: 0.15, step: 0.01, path: 'visualisation.sceneEffects.fogOpacity', description: 'Intensity of nebula background' },
+      { key: 'atmosphereResolution', label: 'Atmosphere Detail', type: 'slider', min: 64, max: 256, step: 32, path: 'visualisation.sceneEffects.atmosphereResolution', description: 'Texture resolution (higher = more detail)', isAdvanced: true },
+
+      // Bloom/Glow - Basic
+      { key: 'glow', label: 'Bloom Glow', type: 'toggle', path: 'visualisation.glow.enabled', description: 'Enable bloom post-processing' },
+      { key: 'glowIntensity', label: 'Glow Intensity', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.glow.intensity', description: 'Brightness of bloom glow' },
+      { key: 'glowRadius', label: 'Glow Radius', type: 'slider', min: 0, max: 5, step: 0.05, path: 'visualisation.glow.radius', description: 'Size of glow spread' },
       { key: 'glowThreshold', label: 'Glow Threshold', type: 'slider', min: 0, max: 1, step: 0.01, path: 'visualisation.glow.threshold', description: 'Minimum brightness for glow', isAdvanced: true },
 
-      // Hologram - Basic
-      { key: 'hologram', label: 'Hologram Effect', type: 'toggle', path: 'visualisation.graphs.logseq.nodes.enableHologram', description: 'Enable hologram rings' },
+      // Hologram rings - Basic
+      { key: 'hologram', label: 'Hologram Rings', type: 'toggle', path: 'visualisation.graphs.logseq.nodes.enableHologram', description: 'Enable hologram rings on nodes' },
       { key: 'ringCount', label: 'Ring Count', type: 'slider', min: 0, max: 10, step: 1, path: 'visualisation.hologram.ringCount', description: 'Number of hologram rings' },
       { key: 'ringColor', label: 'Ring Color', type: 'color', path: 'visualisation.hologram.ringColor', description: 'Color of rings' },
       { key: 'ringOpacity', label: 'Ring Opacity', type: 'slider', min: 0, max: 1, step: 0.01, path: 'visualisation.hologram.ringOpacity', description: 'Transparency of rings' },

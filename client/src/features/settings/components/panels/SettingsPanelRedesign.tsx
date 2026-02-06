@@ -32,6 +32,9 @@ import { SettingControlComponent } from '../SettingControlComponent';
 import { SettingsSearch } from '../SettingsSearch';
 import { toast } from '../../../design-system/components/Toast';
 import { createLogger } from '../../../../utils/loggerConfig';
+
+const logger = createLogger('SettingsPanelRedesign');
+
 import { AgentControlPanel } from './AgentControlPanel';
 import { PhysicsControlPanel } from '../../../physics/components/PhysicsControlPanel';
 import { SemanticAnalysisPanel } from '../../../analytics/components/SemanticAnalysisPanel';
@@ -80,7 +83,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {
-      console.error('Export failed:', e);
+      logger.error('Export failed:', e);
     }
   };
   const loadFromFile = async (file: File) => {
@@ -88,7 +91,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
       const text = await file.text();
       await importSettings(text);
     } catch (e) {
-      console.error('Import failed:', e);
+      logger.error('Import failed:', e);
     }
   };
   const checkUnsavedChanges = () => false;
@@ -96,8 +99,8 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
   
   const canUndo = false;
   const canRedo = false;
-  const undo = () => console.log('Undo not yet implemented');
-  const redo = () => console.log('Redo not yet implemented');
+  const undo = () => logger.info('Undo not yet implemented');
+  const redo = () => logger.info('Redo not yet implemented');
 
   
   const searchIndex = useMemo(() => {
@@ -128,7 +131,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
 
     
     if (results.length > 0) {
-      console.debug(`Search: "${query}" found ${results.length} results (avg score: ${
+      logger.debug(`Search: "${query}" found ${results.length} results (avg score: ${
         (results.reduce((sum, r) => sum + r.score, 0) / results.length).toFixed(1)
       })`);
     }

@@ -53,10 +53,11 @@ export const useWorkspaces = (options: UseWorkspacesOptions = {}) => {
   const [filters, setFilters] = useState<UseWorkspacesFilters>({});
   const [currentPage, setCurrentPage] = useState(1);
 
-  
+
   const abortControllerRef = useRef<AbortController | null>(null);
   const cacheRef = useRef<WorkspaceCache | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
+  const hasFetchedRef = useRef(false);
 
   
   const isValidCache = useCallback((cache: WorkspaceCache | null): boolean => {
@@ -428,9 +429,10 @@ export const useWorkspaces = (options: UseWorkspacesOptions = {}) => {
     };
   }, [enableRealtime, optimisticallyUpdateWorkspace]);
 
-  
+
   useEffect(() => {
-    if (initialLoad) {
+    if (initialLoad && !hasFetchedRef.current) {
+      hasFetchedRef.current = true;
       fetchWorkspaces();
     }
   }, [initialLoad, fetchWorkspaces]);

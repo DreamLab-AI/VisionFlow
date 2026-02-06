@@ -73,11 +73,23 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
   const [performanceMetrics, setPerformanceMetrics] = useState<any>(null);
   const [canCancel, setCanCancel] = useState(false);
 
-  
+
   const wsConnectedRef = useRef(false);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const clusterPollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const currentTaskRef = useRef<OptimizationTask | null>(null);
+  const onOptimizationCompleteRef = useRef(onOptimizationComplete);
 
-  
+  // Keep refs in sync so WS handlers always see latest values
+  useEffect(() => {
+    currentTaskRef.current = currentTask;
+  }, [currentTask]);
+
+  useEffect(() => {
+    onOptimizationCompleteRef.current = onOptimizationComplete;
+  }, [onOptimizationComplete]);
+
+
   useEffect(() => {
     const initialize = async () => {
       try {
@@ -132,28 +144,36 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
 
       if (pollIntervalRef.current) {
         clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
+
+      if (clusterPollTimeoutRef.current) {
+        clearTimeout(clusterPollTimeoutRef.current);
+        clusterPollTimeoutRef.current = null;
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   
+  // WS handlers read from refs to avoid stale closures
   const handleOptimizationProgress = useCallback((event: OptimizationWebSocketEvent) => {
-    if (event.taskId === currentTask?.taskId) {
+    if (event.taskId === currentTaskRef.current?.taskId) {
       setOptimisationProgress(event.data.progress || 0);
       setCurrentTask(prev => prev ? { ...prev, progress: event.data.progress || 0 } : null);
     }
-  }, [currentTask?.taskId]);
+  }, []);
 
   const handleOptimizationComplete = useCallback((event: OptimizationWebSocketEvent) => {
-    if (event.taskId === currentTask?.taskId) {
+    if (event.taskId === currentTaskRef.current?.taskId) {
       setIsOptimising(false);
       setCanCancel(false);
       setOptimisationProgress(100);
 
-      
+
       optimizationApi.getOptimizationResults(event.taskId!).then(result => {
         setOptimisationResults(result);
-        onOptimizationComplete?.(result);
+        onOptimizationCompleteRef.current?.(result);
 
         toast({
           title: "Optimization Complete",
@@ -161,10 +181,10 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
         });
       });
     }
-  }, [currentTask?.taskId, onOptimizationComplete]);
+  }, []);
 
   const handleOptimizationError = useCallback((event: OptimizationWebSocketEvent) => {
-    if (event.taskId === currentTask?.taskId) {
+    if (event.taskId === currentTaskRef.current?.taskId) {
       setIsOptimising(false);
       setCanCancel(false);
 
@@ -174,7 +194,7 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
         variant: "destructive"
       });
     }
-  }, [currentTask?.taskId]);
+  }, []);
 
   const handleGpuStatusUpdate = useCallback((event: OptimizationWebSocketEvent) => {
     setGpuStatus({
@@ -313,27 +333,39 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
       const task = await optimizationApi.runClusteringAnalysis(graphData, 'louvain');
       setCurrentTask(task);
 
-      
+
       const pollClustering = async () => {
-        const status = await optimizationApi.getOptimizationStatus(task.taskId);
+        try {
+          const status = await optimizationApi.getOptimizationStatus(task.taskId);
 
-        if (status.status === 'completed') {
-          const result = await optimizationApi.getOptimizationResults(task.taskId);
-          setOptimisationResults(result);
+          if (status.status === 'completed') {
+            clusterPollTimeoutRef.current = null;
+            const result = await optimizationApi.getOptimizationResults(task.taskId);
+            setOptimisationResults(result);
+            setIsOptimising(false);
+
+            toast({
+              title: "Clustering Analysis Complete",
+              description: `Identified ${result.clusters} optimal clusters with ${(result.metrics.clustering.modularity * 100).toFixed(1)}% modularity`
+            });
+          } else if (status.status === 'failed') {
+            clusterPollTimeoutRef.current = null;
+            throw new Error(status.error || 'Clustering failed');
+          } else {
+            clusterPollTimeoutRef.current = setTimeout(pollClustering, 1000);
+          }
+        } catch (error) {
+          clusterPollTimeoutRef.current = null;
           setIsOptimising(false);
-
           toast({
-            title: "Clustering Analysis Complete",
-            description: `Identified ${result.clusters} optimal clusters with ${(result.metrics.clustering.modularity * 100).toFixed(1)}% modularity`
+            title: "Clustering Failed",
+            description: error instanceof Error ? error.message : "Unknown error occurred",
+            variant: "destructive"
           });
-        } else if (status.status === 'failed') {
-          throw new Error(status.error || 'Clustering failed');
-        } else {
-          setTimeout(pollClustering, 1000);
         }
       };
 
-      setTimeout(pollClustering, 1000);
+      clusterPollTimeoutRef.current = setTimeout(pollClustering, 1000);
 
     } catch (error) {
       setIsOptimising(false);

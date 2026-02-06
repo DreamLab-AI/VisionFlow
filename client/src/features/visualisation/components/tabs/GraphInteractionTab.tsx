@@ -32,7 +32,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/features/design-syst
 import { Progress } from '@/features/design-system/components/Progress';
 import { toast } from '@/features/design-system/components/Toast';
 import { interactionApi, type GraphProcessingProgress, type GraphProcessingResult } from '@/services/interactionApi';
-import { webSocketService } from '@/services/WebSocketService';
+import { webSocketService } from '@/store/websocketStore';
 import { useSettingsStore } from '@/store/settingsStore';
 
 interface GraphInteractionTabProps {

@@ -4,7 +4,7 @@
  * Comprehensive test suite for fuzzy search functionality
  */
 
-import { describe, it, expect, beforeEach } from '@jest/globals';
+import { describe, it, expect, beforeEach } from 'vitest';
 import {
   fuzzyMatch,
   searchSettings,
@@ -281,7 +281,7 @@ describe('Settings Search - Performance', () => {
 
     const start1 = Date.now();
     searchSettings(searchIndex, simpleQuery, {});
-    const simple Duration = Date.now() - start1;
+    const simpleDuration = Date.now() - start1;
 
     const start2 = Date.now();
     searchSettings(searchIndex, complexQuery, {});

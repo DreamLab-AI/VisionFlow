@@ -105,11 +105,12 @@ export const useVRHandTracking = (
   // Target nodes
   const targetNodesRef = useRef<TargetNode[]>([]);
 
-  // Detected target
+  // Detected target -- use refs for per-frame positional data to avoid re-renders
   const [targetedNode, setTargetedNode] = useState<TargetNode | null>(null);
-  const [showPreview, setShowPreview] = useState(false);
-  const [previewStart, setPreviewStart] = useState<THREE.Vector3 | null>(null);
-  const [previewEnd, setPreviewEnd] = useState<THREE.Vector3 | null>(null);
+  const targetedNodeIdRef = useRef<string | null>(null);
+  const showPreviewRef = useRef(false);
+  const previewStartRef = useRef<THREE.Vector3 | null>(null);
+  const previewEndRef = useRef<THREE.Vector3 | null>(null);
 
   // Raycaster for target detection
   const raycaster = useRef(new THREE.Raycaster());
@@ -203,44 +204,64 @@ export const useVRHandTracking = (
   );
 
   /**
-   * Update targeting each frame
+   * Update targeting each frame.
+   * Writes positional data to refs (no re-render). Only triggers setState
+   * when the targeted node identity actually changes.
    */
   useFrame(() => {
     const primary = primaryHandRef.current;
 
     // Only show preview when hand is tracking and pointing
     const shouldShowPreview = primary.isTracking && primary.isPointing;
-    setShowPreview(shouldShowPreview);
+    showPreviewRef.current = shouldShowPreview;
 
     if (!shouldShowPreview) {
-      setTargetedNode(null);
-      setPreviewStart(null);
-      setPreviewEnd(null);
+      previewStartRef.current = null;
+      previewEndRef.current = null;
+      if (targetedNodeIdRef.current !== null) {
+        targetedNodeIdRef.current = null;
+        setTargetedNode(null);
+      }
       return;
     }
 
-    // Update preview start
-    setPreviewStart(primary.position.clone());
+    // Update preview start (write to ref, no setState)
+    if (!previewStartRef.current) {
+      previewStartRef.current = primary.position.clone();
+    } else {
+      previewStartRef.current.copy(primary.position);
+    }
 
     // Find target
     const target = findTargetAlongRay(primary.position, primary.direction);
 
     if (target) {
-      setTargetedNode(target);
-      setPreviewEnd(target.position.clone());
-
-      // Haptic feedback on target acquisition
-      if (!targetedNode || targetedNode.id !== target.id) {
+      // Only call setState when the node identity changes
+      if (targetedNodeIdRef.current !== target.id) {
         triggerHaptic('primary', 0.3, 50);
+        targetedNodeIdRef.current = target.id;
+        setTargetedNode(target);
+      }
+      if (!previewEndRef.current) {
+        previewEndRef.current = target.position.clone();
+      } else {
+        previewEndRef.current.copy(target.position);
       }
     } else {
-      setTargetedNode(null);
+      if (targetedNodeIdRef.current !== null) {
+        targetedNodeIdRef.current = null;
+        setTargetedNode(null);
+      }
 
-      // Calculate ray endpoint
-      const rayEnd = primary.position
+      // Calculate ray endpoint (write to ref, no setState)
+      const end = primary.position
         .clone()
         .add(primary.direction.clone().multiplyScalar(settings.maxRayDistance));
-      setPreviewEnd(rayEnd);
+      if (!previewEndRef.current) {
+        previewEndRef.current = end;
+      } else {
+        previewEndRef.current.copy(end);
+      }
     }
   });
 
@@ -248,9 +269,9 @@ export const useVRHandTracking = (
     primaryHand: primaryHandRef.current.isTracking ? { ...primaryHandRef.current } : null,
     secondaryHand: secondaryHandRef.current.isTracking ? { ...secondaryHandRef.current } : null,
     targetedNode,
-    previewStart,
-    previewEnd,
-    showPreview,
+    previewStart: previewStartRef.current,
+    previewEnd: previewEndRef.current,
+    showPreview: showPreviewRef.current,
     previewColor,
     updateHandState,
     setTargetNodes,

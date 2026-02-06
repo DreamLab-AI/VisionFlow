@@ -40,7 +40,7 @@ export function ShortestPathControls({ nodes, edges, className }: ShortestPathCo
   
   
   const [sourceNodeId, setSourceNodeId] = useState<string>('');
-  const [algorithm, setAlgorithm] = useState<'dijkstra' | 'bellman-ford' | 'floyd-warshall'>('dijkstra');
+  const [algorithm, setAlgorithm] = useState<'dijkstra' | 'bellman-ford'>('dijkstra');
   const [showNormalized, setShowNormalized] = useState(false);
   const [progress, setProgress] = useState(0);
   
@@ -70,13 +70,6 @@ export function ShortestPathControls({ nodes, edges, className }: ShortestPathCo
       description: 'Handles negative weights, detects negative cycles',
       complexity: 'O(VE)',
       bestFor: 'Graphs with negative edges'
-    },
-    {
-      id: 'floyd-warshall',
-      name: 'Floyd-Warshall',
-      description: 'All-pairs shortest paths',
-      complexity: 'O(V³)',
-      bestFor: 'Small dense graphs, all pairs'
     }
   ];
 

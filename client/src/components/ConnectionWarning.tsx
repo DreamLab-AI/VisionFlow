@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createLogger } from '../utils/loggerConfig';
-import WebSocketService from '../services/WebSocketService';
+import { webSocketService } from '../store/websocketStore';
 import { useSettingsStore } from '../store/settingsStore';
 import { AlertCircle, WifiOff, RefreshCw } from 'lucide-react';
 
@@ -14,9 +14,7 @@ export const ConnectionWarning: React.FC = () => {
   const { settings } = useSettingsStore();
 
   useEffect(() => {
-    
-    const wsService = WebSocketService.getInstance();
-    
+
     const handleConnectionChange = (connected: boolean) => {
       setIsConnected(connected);
       if (!connected) {
@@ -24,11 +22,11 @@ export const ConnectionWarning: React.FC = () => {
       }
     };
 
-    
-    const unsubscribe = wsService.onConnectionStatusChange(handleConnectionChange);
-    
-    
-    setIsConnected(wsService.isReady());
+
+    const unsubscribe = webSocketService.onConnectionStatusChange(handleConnectionChange);
+
+
+    setIsConnected(webSocketService.isReady());
 
     
     const checkSettingsSource = () => {
@@ -52,8 +50,7 @@ export const ConnectionWarning: React.FC = () => {
     setIsReconnecting(true);
     try {
       logger.info('Attempting manual reconnection...');
-      const wsService = WebSocketService.getInstance();
-      await wsService.connect();
+      await webSocketService.connect();
       
       
       const { initialize } = useSettingsStore.getState();

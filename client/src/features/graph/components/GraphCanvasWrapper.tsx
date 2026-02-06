@@ -2,6 +2,30 @@ import React, { useEffect, useState } from 'react';
 import GraphCanvas from './GraphCanvas';
 import { createLogger } from '../../../utils/loggerConfig';
 
+class CanvasErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error: Error | null }
+> {
+  state = { hasError: false, error: null as Error | null };
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: 20, color: '#ff6b6b', background: '#1a1a2e', borderRadius: 8, margin: 10 }}>
+          <h3>3D Rendering Error</h3>
+          <p>The graph visualization encountered an error. Try refreshing the page.</p>
+          <details><summary>Details</summary><pre>{this.state.error?.message}</pre></details>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 const logger = createLogger('GraphCanvasWrapper');
 
 
@@ -101,7 +125,11 @@ const detectTestMode = (): boolean => {
 
 
 const GraphCanvasWrapper: React.FC = () => {
-    return <GraphCanvas />;
+    return (
+        <CanvasErrorBoundary>
+            <GraphCanvas />
+        </CanvasErrorBoundary>
+    );
 };
 
 export default GraphCanvasWrapper;

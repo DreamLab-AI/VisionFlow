@@ -85,16 +85,20 @@ export const FlowingEdges: React.FC<FlowingEdgesProps> = ({ points, settings: pr
   const geometry = useMemo(() => {
     if (points.length < 6) {
       return null;
-    } 
-    
+    }
+
     const geo = new THREE.BufferGeometry();
     const positions = new Float32Array(points);
     geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    
+
     return geo;
   }, [points]);
-  
-  
+
+  useEffect(() => {
+    return () => { geometry?.dispose(); };
+  }, [geometry]);
+
+
   const material = useMemo(() => {
     const color = new THREE.Color(propSettings.color || '#FF5722');
 
@@ -116,8 +120,12 @@ export const FlowingEdges: React.FC<FlowingEdgesProps> = ({ points, settings: pr
     
     return mat;
   }, [propSettings.color, propSettings.opacity, propSettings.baseWidth, edgeBloomStrength]);
-  
-  
+
+  useEffect(() => {
+    return () => { material?.dispose(); };
+  }, [material]);
+
+
   useEffect(() => {
     materialRef.current = material;
   }, [material]);

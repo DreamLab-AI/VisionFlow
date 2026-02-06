@@ -22,9 +22,10 @@ export interface BotsAgent {
   successRate?: number; 
   tokens?: number; 
   tokenRate?: number; 
-  activity?: number; 
+  activity?: number;
+  tokenUsage?: TokenUsage;
 
-  
+
   position?: {
     x: number;
     y: number;
@@ -73,7 +74,8 @@ export interface BotsEdge {
   id: string;
   source: string;
   target: string;
-  dataVolume: number; 
+  type?: string;
+  dataVolume: number;
   messageCount: number;
   lastMessageTime: number;
 }

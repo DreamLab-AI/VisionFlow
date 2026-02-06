@@ -11,4 +11,4 @@ export { useWebSocketErrorHandler, reportClientError } from '../../hooks/useWebS
 export { SettingsRetryManager } from '../../store/settingsRetryManager';
 
 // WebSocket error types
-export type { WebSocketErrorFrame } from '../../services/WebSocketService';
+export type { WebSocketErrorFrame } from '../../store/websocketStore';

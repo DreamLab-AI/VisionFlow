@@ -34,8 +34,13 @@ export class AgentTelemetryService {
   private sessionId: string;
   private metrics: TelemetryMetrics;
   private uploadInterval: NodeJS.Timeout | null = null;
+  private memoryInterval: NodeJS.Timeout | null = null;
   private frameTimeBuffer: number[] = [];
   private lastFrameTime = 0;
+
+  // Stored handler references for cleanup
+  private errorHandler = () => { this.metrics.errorCount++; };
+  private rejectionHandler = () => { this.metrics.errorCount++; };
 
   private constructor() {
     this.sessionId = this.generateSessionId();
@@ -67,23 +72,18 @@ export class AgentTelemetryService {
   }
 
   private setupPerformanceObserver() {
-    
+
     if ('memory' in performance && (performance as any).memory) {
       const updateMemory = () => {
         const memory = (performance as any).memory;
         this.metrics.memoryUsage = memory.usedJSHeapSize;
       };
-      setInterval(updateMemory, 5000);
+      this.memoryInterval = setInterval(updateMemory, 5000);
     }
 
-    
-    window.addEventListener('error', () => {
-      this.metrics.errorCount++;
-    });
 
-    window.addEventListener('unhandledrejection', () => {
-      this.metrics.errorCount++;
-    });
+    window.addEventListener('error', this.errorHandler);
+    window.addEventListener('unhandledrejection', this.rejectionHandler);
   }
 
   private startAutoUpload() {
@@ -267,10 +267,17 @@ export class AgentTelemetryService {
 
       const webglContext = gl as WebGLRenderingContext;
       const debugInfo = webglContext.getExtension('WEBGL_debug_renderer_info');
+      let renderer: string | undefined;
       if (debugInfo) {
-        return webglContext.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+        renderer = webglContext.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
       }
-      return undefined;
+
+      // Release the WebGL context and detached canvas to prevent GPU leak
+      const loseCtx = webglContext.getExtension('WEBGL_lose_context');
+      loseCtx?.loseContext();
+      canvas.remove();
+
+      return renderer;
     } catch (e) {
       return undefined;
     }
@@ -296,8 +303,14 @@ export class AgentTelemetryService {
   destroy() {
     if (this.uploadInterval) {
       clearInterval(this.uploadInterval);
+      this.uploadInterval = null;
     }
-    
+    if (this.memoryInterval) {
+      clearInterval(this.memoryInterval);
+      this.memoryInterval = null;
+    }
+    window.removeEventListener('error', this.errorHandler);
+    window.removeEventListener('unhandledrejection', this.rejectionHandler);
   }
 }
 

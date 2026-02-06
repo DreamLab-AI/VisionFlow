@@ -1,5 +1,9 @@
 // Comprehensive settings UI definitions merging current implementation with codestore features
 
+import { createLogger } from '../../../utils/loggerConfig';
+
+const logger = createLogger('settingsUIDefinition');
+
 // Import and re-export types from separate file for better organization
 import type {
   SettingWidgetType,
@@ -119,11 +123,11 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
       overview: {
         label: 'System Overview',
         settings: {
-          graphStatus: { label: 'Graph Status', type: 'buttonAction', path: 'dashboard.graphStatus', description: 'View current graph statistics', action: () => console.log('Graph Status') },
-          performance: { label: 'Performance Monitor', type: 'buttonAction', path: 'dashboard.performance', description: 'View performance metrics', action: () => console.log('Performance') },
-          quickReset: { label: 'Reset View', type: 'buttonAction', path: 'dashboard.quickReset', description: 'Reset camera to default position', action: () => console.log('Reset View') },
-          exportGraph: { label: 'Export Graph', type: 'buttonAction', path: 'dashboard.exportGraph', description: 'Export current graph data', action: () => console.log('Export') },
-          importData: { label: 'Import Data', type: 'buttonAction', path: 'dashboard.importData', description: 'Import graph data from file', action: () => console.log('Import') },
+          graphStatus: { label: 'Graph Status', type: 'buttonAction', path: 'dashboard.graphStatus', description: 'View current graph statistics', action: () => logger.info('Graph Status') },
+          performance: { label: 'Performance Monitor', type: 'buttonAction', path: 'dashboard.performance', description: 'View performance metrics', action: () => logger.info('Performance') },
+          quickReset: { label: 'Reset View', type: 'buttonAction', path: 'dashboard.quickReset', description: 'Reset camera to default position', action: () => logger.info('Reset View') },
+          exportGraph: { label: 'Export Graph', type: 'buttonAction', path: 'dashboard.exportGraph', description: 'Export current graph data', action: () => logger.info('Export') },
+          importData: { label: 'Import Data', type: 'buttonAction', path: 'dashboard.importData', description: 'Import graph data from file', action: () => logger.info('Import') },
         },
       },
     },
@@ -198,6 +202,302 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
           pulseSpeed: { label: 'Pulse Speed', type: 'slider', min: 0.1, max: 2, step: 0.05, path: 'visualisation.animations.pulseSpeed', description: 'Speed of pulse animation.' },
           pulseStrength: { label: 'Pulse Strength', type: 'slider', min: 0.1, max: 2, step: 0.05, path: 'visualisation.animations.pulseStrength', description: 'Strength of pulse animation.' },
           waveSpeed: { label: 'Wave Speed', type: 'slider', min: 0.1, max: 2, step: 0.05, path: 'visualisation.animations.waveSpeed', description: 'Speed of selection wave animation.' },
+        },
+      },
+      graphTypeKnowledgeGraph: {
+        label: 'Knowledge Graph Visuals',
+        settings: {
+          shaderMode: {
+            label: 'Shader Mode',
+            type: 'select',
+            path: 'visualisation.graphTypeVisuals.knowledgeGraph.shaderMode',
+            options: [{ value: 'crystal', label: 'Crystal' }, { value: 'hologram', label: 'Hologram' }, { value: 'standard', label: 'Standard' }],
+            description: 'Visual shader style for knowledge graph nodes.'
+          },
+          rimPower: {
+            label: 'Rim Power',
+            type: 'slider',
+            path: 'visualisation.graphTypeVisuals.knowledgeGraph.rimPower',
+            min: 0.5, max: 5.0, step: 0.1,
+            description: 'Fresnel rim light power on crystal edges.'
+          },
+          metalness: {
+            label: 'Crystal Metalness',
+            type: 'slider',
+            path: 'visualisation.graphTypeVisuals.knowledgeGraph.metalness',
+            min: 0, max: 1, step: 0.05,
+            description: 'Metallic sheen on knowledge crystal nodes.'
+          },
+          roughness: {
+            label: 'Crystal Roughness',
+            type: 'slider',
+            path: 'visualisation.graphTypeVisuals.knowledgeGraph.roughness',
+            min: 0, max: 1, step: 0.05,
+            description: 'Surface roughness of crystal nodes.'
+          },
+          glowStrength: {
+            label: 'Knowledge Glow',
+            type: 'slider',
+            path: 'visualisation.graphTypeVisuals.knowledgeGraph.glowStrength',
+            min: 0, max: 5, step: 0.1,
+            description: 'Inner glow intensity from knowledge density.'
+          },
+          innerGlowIntensity: {
+            label: 'Inner Glow Intensity',
+            type: 'slider',
+            path: 'visualisation.graphTypeVisuals.knowledgeGraph.innerGlowIntensity',
+            min: 0, max: 1, step: 0.05,
+            description: 'Core luminosity of the crystal interior.'
+          },
+          facetDetail: {
+            label: 'Facet Detail',
+            type: 'slider',
+            path: 'visualisation.graphTypeVisuals.knowledgeGraph.facetDetail',
+            min: 1, max: 3, step: 1,
+            description: 'Icosahedron subdivision level (1=low poly, 3=smooth).'
+          },
+          authorityScaleFactor: {
+            label: 'Authority Scale Factor',
+            type: 'slider',
+            path: 'visualisation.graphTypeVisuals.knowledgeGraph.authorityScaleFactor',
+            min: 0, max: 1, step: 0.05,
+            description: 'How much node authority score affects visual size.'
+          },
+          showDomainBadge: {
+            label: 'Show Domain Badge',
+            type: 'toggle',
+            path: 'visualisation.graphTypeVisuals.knowledgeGraph.showDomainBadge',
+            description: 'Show domain color badge on node labels.'
+          },
+          showQualityStars: {
+            label: 'Show Quality Stars',
+            type: 'toggle',
+            path: 'visualisation.graphTypeVisuals.knowledgeGraph.showQualityStars',
+            description: 'Show quality rating stars on node labels.'
+          },
+          showRecencyIndicator: {
+            label: 'Show Recency Indicator',
+            type: 'toggle',
+            path: 'visualisation.graphTypeVisuals.knowledgeGraph.showRecencyIndicator',
+            description: 'Show recency freshness indicator on nodes.'
+          },
+          showConnectionDensity: {
+            label: 'Show Connection Density',
+            type: 'toggle',
+            path: 'visualisation.graphTypeVisuals.knowledgeGraph.showConnectionDensity',
+            description: 'Visualize connection density as a halo effect.'
+          },
+        },
+      },
+      graphTypeOntology: {
+        label: 'Ontology Visuals',
+        settings: {
+          shaderMode: {
+            label: 'Shader Mode',
+            type: 'select',
+            path: 'visualisation.graphTypeVisuals.ontology.shaderMode',
+            options: [{ value: 'constellation', label: 'Constellation' }, { value: 'hologram', label: 'Hologram' }, { value: 'standard', label: 'Standard' }],
+            description: 'Visual shader style for ontology nodes.'
+          },
+          rimPower: {
+            label: 'Rim Power',
+            type: 'slider',
+            path: 'visualisation.graphTypeVisuals.ontology.rimPower',
+            min: 0.5, max: 5.0, step: 0.1,
+            description: 'Fresnel rim light power on constellation nodes.'
+          },
+          glowStrength: {
+            label: 'Nebula Glow',
+            type: 'slider',
+            path: 'visualisation.graphTypeVisuals.ontology.glowStrength',
+            min: 0, max: 5, step: 0.1,
+            description: 'Glow strength for ontology constellation nodes.'
+          },
+          orbitalRingCount: {
+            label: 'Orbital Ring Count',
+            type: 'slider',
+            path: 'visualisation.graphTypeVisuals.ontology.orbitalRingCount',
+            min: 0, max: 20, step: 1,
+            description: 'Number of orbital rings around taxonomy nodes.'
+          },
+          orbitalRingSpeed: {
+            label: 'Orbital Ring Speed',
+            type: 'slider',
+            path: 'visualisation.graphTypeVisuals.ontology.orbitalRingSpeed',
+            min: 0, max: 2, step: 0.05,
+            description: 'Rotation speed of orbital rings.'
+          },
+          hierarchyScaleFactor: {
+            label: 'Hierarchy Scale Factor',
+            type: 'slider',
+            path: 'visualisation.graphTypeVisuals.ontology.hierarchyScaleFactor',
+            min: 0, max: 1, step: 0.05,
+            description: 'How much hierarchy depth affects node size.'
+          },
+          depthColorGradient: {
+            label: 'Depth Color Gradient',
+            type: 'toggle',
+            path: 'visualisation.graphTypeVisuals.ontology.depthColorGradient',
+            description: 'Apply color gradient based on hierarchy depth.'
+          },
+          showHierarchyBreadcrumb: {
+            label: 'Show Hierarchy Breadcrumb',
+            type: 'toggle',
+            path: 'visualisation.graphTypeVisuals.ontology.showHierarchyBreadcrumb',
+            description: 'Show parent hierarchy path on node labels.'
+          },
+          showInstanceCount: {
+            label: 'Show Instance Count',
+            type: 'toggle',
+            path: 'visualisation.graphTypeVisuals.ontology.showInstanceCount',
+            description: 'Display the number of instances for each class node.'
+          },
+          showConstraintStatus: {
+            label: 'Show Constraint Status',
+            type: 'toggle',
+            path: 'visualisation.graphTypeVisuals.ontology.showConstraintStatus',
+            description: 'Show OWL constraint validation status on nodes.'
+          },
+          nebulaGlowIntensity: {
+            label: 'Nebula Glow Intensity',
+            type: 'slider',
+            path: 'visualisation.graphTypeVisuals.ontology.nebulaGlowIntensity',
+            min: 0, max: 2, step: 0.05,
+            description: 'Atmospheric nebula glow around constellation clusters.'
+          },
+        },
+      },
+      graphTypeAgent: {
+        label: 'Agent Visuals',
+        settings: {
+          shaderMode: {
+            label: 'Shader Mode',
+            type: 'select',
+            path: 'visualisation.graphTypeVisuals.agent.shaderMode',
+            options: [{ value: 'organic', label: 'Organic' }, { value: 'hologram', label: 'Hologram' }, { value: 'standard', label: 'Standard' }],
+            description: 'Visual shader style for agent nodes.'
+          },
+          membraneOpacity: {
+            label: 'Membrane Opacity',
+            type: 'slider',
+            path: 'visualisation.graphTypeVisuals.agent.membraneOpacity',
+            min: 0, max: 0.3, step: 0.01,
+            description: 'Opacity of the organic cell membrane surrounding the agent.'
+          },
+          nucleusGlowIntensity: {
+            label: 'Nucleus Glow Intensity',
+            type: 'slider',
+            path: 'visualisation.graphTypeVisuals.agent.nucleusGlowIntensity',
+            min: 0, max: 1, step: 0.05,
+            description: 'Glow intensity of the agent nucleus core.'
+          },
+          breathingSpeed: {
+            label: 'Breathing Speed',
+            type: 'slider',
+            path: 'visualisation.graphTypeVisuals.agent.breathingSpeed',
+            min: 0.1, max: 3, step: 0.1,
+            description: 'Speed of the organic breathing animation cycle.'
+          },
+          breathingAmplitude: {
+            label: 'Breathing Amplitude',
+            type: 'slider',
+            path: 'visualisation.graphTypeVisuals.agent.breathingAmplitude',
+            min: 0, max: 0.2, step: 0.01,
+            description: 'Scale amplitude of the breathing pulse effect.'
+          },
+          showHealthBar: {
+            label: 'Show Health Bar',
+            type: 'toggle',
+            path: 'visualisation.graphTypeVisuals.agent.showHealthBar',
+            description: 'Display a health status bar on agent nodes.'
+          },
+          showTokenRate: {
+            label: 'Show Token Rate',
+            type: 'toggle',
+            path: 'visualisation.graphTypeVisuals.agent.showTokenRate',
+            description: 'Display current token processing rate on agent labels.'
+          },
+          showTaskCount: {
+            label: 'Show Task Count',
+            type: 'toggle',
+            path: 'visualisation.graphTypeVisuals.agent.showTaskCount',
+            description: 'Display active task count on agent labels.'
+          },
+          bioluminescentIntensity: {
+            label: 'Bioluminescent Intensity',
+            type: 'slider',
+            path: 'visualisation.graphTypeVisuals.agent.bioluminescentIntensity',
+            min: 0, max: 2, step: 0.05,
+            description: 'Intensity of the organic bioluminescent glow effect.'
+          },
+        },
+      },
+      sceneEffects: {
+        label: 'Scene Ambient Effects',
+        settings: {
+          enabled: {
+            label: 'Enable Scene Effects',
+            type: 'toggle',
+            path: 'visualisation.sceneEffects.enabled',
+            description: 'Enable ambient particles, fog, and glow ring behind the graph.'
+          },
+          particleCount: {
+            label: 'Particle Count',
+            type: 'slider',
+            min: 64,
+            max: 512,
+            step: 32,
+            path: 'visualisation.sceneEffects.particleCount',
+            description: 'Number of ambient dust particles (higher = denser atmosphere).'
+          },
+          particleOpacity: {
+            label: 'Particle Opacity',
+            type: 'slider',
+            min: 0,
+            max: 0.2,
+            step: 0.005,
+            path: 'visualisation.sceneEffects.particleOpacity',
+            description: 'Opacity of ambient dust particles (keep very low for subtlety).'
+          },
+          particleDrift: {
+            label: 'Particle Drift Speed',
+            type: 'slider',
+            min: 0,
+            max: 2,
+            step: 0.05,
+            path: 'visualisation.sceneEffects.particleDrift',
+            description: 'How fast particles drift through space.'
+          },
+          fogEnabled: {
+            label: 'Enable Depth Fog',
+            type: 'toggle',
+            path: 'visualisation.sceneEffects.fogEnabled',
+            description: 'Show a subtle procedural fog plane behind the graph.'
+          },
+          fogOpacity: {
+            label: 'Fog Opacity',
+            type: 'slider',
+            min: 0,
+            max: 0.15,
+            step: 0.005,
+            path: 'visualisation.sceneEffects.fogOpacity',
+            description: 'Opacity of the depth fog layer.'
+          },
+          ambientGlowEnabled: {
+            label: 'Enable Ambient Glow Ring',
+            type: 'toggle',
+            path: 'visualisation.sceneEffects.ambientGlowEnabled',
+            description: 'Show a barely-visible torus ring framing the scene.'
+          },
+          ambientGlowOpacity: {
+            label: 'Glow Ring Opacity',
+            type: 'slider',
+            min: 0,
+            max: 0.1,
+            step: 0.002,
+            path: 'visualisation.sceneEffects.ambientGlowOpacity',
+            description: 'Opacity of the ambient glow ring.'
+          },
         },
       },
       interaction: {

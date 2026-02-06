@@ -89,14 +89,17 @@ export const GraphVisualisationTab: React.FC<GraphVisualisationTabProps> = ({
   }, [onFeatureUpdate]);
 
   const handleVisualEffectToggle = useCallback((effect: keyof typeof visualEffects, enabled: boolean) => {
-    setVisualEffects(prev => ({ ...prev, [effect]: enabled }));
-    onFeatureUpdate?.('visualEffects', { ...visualEffects, [effect]: enabled });
-    
+    setVisualEffects(prev => {
+      const updated = { ...prev, [effect]: enabled };
+      onFeatureUpdate?.('visualEffects', updated);
+      return updated;
+    });
+
     toast({
       title: `${effect.charAt(0).toUpperCase() + effect.slice(1)} ${enabled ? 'Enabled' : 'Disabled'}`,
       description: `Visual ${effect} effect has been ${enabled ? 'activated' : 'deactivated'}`
     });
-  }, [visualEffects, onFeatureUpdate]);
+  }, [onFeatureUpdate]);
 
   const resetCameraPosition = useCallback(() => {
     onFeatureUpdate?.('camera', { action: 'reset' });

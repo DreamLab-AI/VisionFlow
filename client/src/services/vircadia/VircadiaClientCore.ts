@@ -157,8 +157,6 @@ class CoreConnectionManager {
                 this.connectionStartTime = Date.now();
 
                 const url = new URL(this.config.serverUrl);
-                url.searchParams.set("token", this.config.authToken);
-                url.searchParams.set("provider", this.config.authProvider);
 
                 debugLog(this.config, `Connecting to: ${url.toString()}`);
 
@@ -166,6 +164,12 @@ class CoreConnectionManager {
 
                 this.ws.onopen = () => {
                     clearTimeout(timeoutTimer);
+                    // Send auth credentials as first message instead of URL params
+                    this.ws?.send(JSON.stringify({
+                        type: 'auth',
+                        token: this.config.authToken,
+                        provider: this.config.authProvider
+                    }));
                     this.updateStatus("connected");
                     this.reconnectCount = 0;
                     this.startHeartbeat();

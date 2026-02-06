@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { webSocketService } from '../../../services/WebSocketService';
+import { webSocketService } from '../../../store/websocketStore';
 import { useOntologyStore } from '../store/useOntologyStore';
 
 interface OntologyValidationMessage {

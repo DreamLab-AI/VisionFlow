@@ -34,7 +34,7 @@ const scrollbarStyles = `
 if (typeof document !== 'undefined' && !document.getElementById('scroll-area-styles')) {
   const styleElement = document.createElement('style');
   styleElement.id = 'scroll-area-styles';
-  styleElement.innerHTML = scrollbarStyles;
+  styleElement.textContent = scrollbarStyles;
   document.head.appendChild(styleElement);
 }
 

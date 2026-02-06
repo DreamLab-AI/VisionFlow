@@ -76,7 +76,7 @@ export class CollaborativeGraphSync {
     private userPresence = new Map<string, UserPresence>();
     private selectionHighlights = new Map<string, THREE.Mesh[]>();
     private annotationMeshes = new Map<string, THREE.Mesh>();
-    private presenceMeshes = new Map<string, THREE.Object3D>();
+    private presenceMeshes = new Map<string, THREE.Mesh>();
     private localSelection: string[] = [];
     private localFilterState: FilterState | null = null;
     private operationVersion = 0;
@@ -91,6 +91,7 @@ export class CollaborativeGraphSync {
     };
 
     private protocol = BinaryWebSocketProtocol.getInstance();
+    private textDecoder = new TextDecoder();
 
     constructor(
         private scene: THREE.Scene,
@@ -135,13 +136,13 @@ export class CollaborativeGraphSync {
             const opType = view.getUint8(offset);
             offset += 1;
 
-            const userId = new TextDecoder().decode(payload.slice(offset, offset + 36));
+            const userId = this.textDecoder.decode(payload.slice(offset, offset + 36));
             offset += 36;
 
             const nodeIdLength = view.getUint16(offset, true);
             offset += 2;
 
-            const nodeId = new TextDecoder().decode(payload.slice(offset, offset + nodeIdLength));
+            const nodeId = this.textDecoder.decode(payload.slice(offset, offset + nodeIdLength));
             offset += nodeIdLength;
 
             const operation: GraphOperation = {
@@ -167,7 +168,7 @@ export class CollaborativeGraphSync {
     }
 
     private handleAnnotationUpdate(payload: ArrayBuffer): void {
-        const text = new TextDecoder().decode(payload);
+        const text = this.textDecoder.decode(payload);
         try {
             const annotation: GraphAnnotation = JSON.parse(text);
             this.annotations.set(annotation.id, annotation);
@@ -178,7 +179,7 @@ export class CollaborativeGraphSync {
     }
 
     private handleSelectionUpdate(payload: ArrayBuffer): void {
-        const text = new TextDecoder().decode(payload);
+        const text = this.textDecoder.decode(payload);
         try {
             const selection: UserSelection = JSON.parse(text);
             this.activeSelections.set(selection.agentId, selection);
@@ -423,7 +424,6 @@ export class CollaborativeGraphSync {
                 opacity: 0.8
             });
 
-            // @ts-ignore - THREE.js type mismatch between Mesh and Object3D
             mesh = new THREE.Mesh(geometry, material);
             mesh!.name = `presence_${presence.userId}`;
 
@@ -454,7 +454,6 @@ export class CollaborativeGraphSync {
             // TODO: Billboard mode for nameplate
 
             mesh!.add(nameplate);
-            // @ts-ignore - THREE.js type mismatch between Object3D variants
             this.scene.add(mesh!);
             this.presenceMeshes.set(presence.userId, mesh!);
         }
@@ -601,9 +600,9 @@ export class CollaborativeGraphSync {
 
         // Dispose presence meshes including nameplate textures (Fix 4)
         this.presenceMeshes.forEach(mesh => {
-            // @ts-ignore - THREE.js type mismatch between Object3D variants
-            this.scene.remove(mesh);
-            this.disposePresenceMesh(mesh);
+            // THREE.Mesh extends Object3D; cast needed due to @types/three dual-path resolution
+            this.scene.remove(mesh as never);
+            this.disposePresenceMesh(mesh as never);
         });
         this.presenceMeshes.clear();
 
