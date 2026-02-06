@@ -4,7 +4,6 @@ import * as THREE from 'three';
 import { EdgeSettings } from '../../settings/config/settings';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { registerEdgeObject, unregisterEdgeObject } from '../../visualisation/hooks/bloomRegistry';
-// import { useBloomStrength } from '../contexts/BloomContext'; 
 
 interface FlowingEdgesProps {
   points: number[];
@@ -17,150 +16,147 @@ interface FlowingEdgesProps {
   }>;
 }
 
-// Custom shader for flowing edges
-const flowVertexShader = `
-  attribute float lineDistance;
-  attribute vec3 instanceColorStart;
-  attribute vec3 instanceColorEnd;
-  
-  varying float vLineDistance;
-  varying vec3 vColor;
-  
-  void main() {
-    vLineDistance = lineDistance;
-    vColor = mix(instanceColorStart, instanceColorEnd, lineDistance);
-    
-    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-    gl_Position = projectionMatrix * mvPosition;
-  }
-`;
-
-const flowFragmentShader = `
-  uniform float time;
-  uniform float flowSpeed;
-  uniform float flowIntensity;
-  uniform float opacity;
-  uniform vec3 baseColor;
-  uniform bool enableFlowEffect;
-  uniform bool useGradient;
-  uniform float glowStrength;
-  uniform float distanceIntensity;
-  
-  varying float vLineDistance;
-  varying vec3 vColor;
-  
-  void main() {
-    vec3 color = useGradient ? vColor : baseColor;
-    
-    
-    float flow = 0.0;
-    if (enableFlowEffect) {
-      float offset = time * flowSpeed;
-      flow = sin(vLineDistance * 10.0 - offset) * 0.5 + 0.5;
-      flow = pow(flow, 3.0) * flowIntensity;
-    }
-    
-    
-    float distanceFade = 1.0 - vLineDistance * distanceIntensity;
-    
-    
-    float glow = pow(1.0 - abs(vLineDistance - 0.5) * 2.0, 2.0) * glowStrength;
-    
-    
-    color += vec3(flow + glow) * 0.5;
-    float alpha = opacity * distanceFade * (1.0 + flow * 0.5);
-    
-    gl_FragColor = vec4(color, alpha);
-  }
-`;
+// Minimum visible opacity - prevents edges from becoming invisible
+const MIN_EDGE_OPACITY = 0.4;
 
 export const FlowingEdges: React.FC<FlowingEdgesProps> = ({ points, settings: propSettings, edgeData }) => {
   const globalSettings = useSettingsStore((state) => state.settings);
   const edgeBloomStrength = globalSettings?.visualisation?.glow?.edgeGlowStrength ?? 0.5;
   const lineRef = useRef<THREE.LineSegments>(null);
   const materialRef = useRef<THREE.LineBasicMaterial>(null);
+  const positionAttrRef = useRef<THREE.BufferAttribute | null>(null);
 
-
-
+  // Stable geometry ref - created once, buffer updated in-place.
+  // This avoids the dispose/recreate race that caused edges to vanish.
   const geometry = useMemo(() => {
-    if (points.length < 6) {
-      return null;
-    }
-
     const geo = new THREE.BufferGeometry();
     const positions = new Float32Array(points);
-    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-
+    const attr = new THREE.BufferAttribute(positions, 3);
+    attr.setUsage(THREE.DynamicDrawUsage);
+    geo.setAttribute('position', attr);
+    geo.computeBoundingSphere();
+    positionAttrRef.current = attr;
     return geo;
-  }, [points]);
+    // Intentionally depend only on initial mount - updates happen via the effect below
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
+  // Update geometry buffer in-place when points change (after initial mount)
+  const isFirstRender = useRef(true);
   useEffect(() => {
-    return () => { geometry?.dispose(); };
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    if (points.length < 6) {
+      if (lineRef.current) lineRef.current.visible = false;
+      return;
+    }
+
+    const geo = geometry;
+    const newPositions = new Float32Array(points);
+
+    const existingAttr = positionAttrRef.current;
+    if (existingAttr && existingAttr.array.length >= newPositions.length) {
+      // Reuse buffer - copy in-place
+      (existingAttr.array as Float32Array).set(newPositions);
+      existingAttr.needsUpdate = true;
+      geo.setDrawRange(0, newPositions.length / 3);
+    } else {
+      // Need larger buffer - allocate with headroom
+      const bufferSize = Math.ceil(newPositions.length * 1.5);
+      const buffer = new Float32Array(bufferSize);
+      buffer.set(newPositions);
+      const attr = new THREE.BufferAttribute(buffer, 3);
+      attr.setUsage(THREE.DynamicDrawUsage);
+      positionAttrRef.current = attr;
+      geo.setAttribute('position', attr);
+      geo.setDrawRange(0, newPositions.length / 3);
+    }
+
+    geo.computeBoundingSphere();
+
+    if (lineRef.current) {
+      lineRef.current.visible = true;
+    }
+  }, [points, geometry]);
+
+  // Cleanup geometry on unmount only
+  useEffect(() => {
+    return () => {
+      geometry.dispose();
+    };
   }, [geometry]);
 
+  // Resolve effective opacity: ensure edges are always visible
+  const effectiveOpacity = Math.max(MIN_EDGE_OPACITY, propSettings.opacity ?? 0.6);
 
   const material = useMemo(() => {
     const color = new THREE.Color(propSettings.color || '#FF5722');
 
-    // Don't darken base color for bloom - instead use additive glow boost
-    // Ensures edges remain visible regardless of bloom settings
+    // Additive glow boost ensures edges remain visible regardless of bloom
     const bloomBoost = 1 + (edgeBloomStrength * 0.5);
     const bloomAdjustedColor = color.clone().multiplyScalar(bloomBoost);
 
     const mat = new THREE.LineBasicMaterial({
       color: bloomAdjustedColor,
       transparent: true,
-      opacity: Math.min(1.0, (propSettings.opacity ?? 0.2)), 
-      linewidth: propSettings.baseWidth || 2, 
-      depthWrite: false, 
+      opacity: Math.min(1.0, effectiveOpacity),
+      linewidth: propSettings.baseWidth || 2,
+      depthWrite: false,
       depthTest: true,
-      alphaTest: 0.01, 
-      toneMapped: false, 
+      alphaTest: 0.01,
+      toneMapped: false,
     });
-    
+
     return mat;
-  }, [propSettings.color, propSettings.opacity, propSettings.baseWidth, edgeBloomStrength]);
+  }, [propSettings.color, effectiveOpacity, propSettings.baseWidth, edgeBloomStrength]);
 
   useEffect(() => {
     return () => { material?.dispose(); };
   }, [material]);
 
-
   useEffect(() => {
     materialRef.current = material;
   }, [material]);
 
-  
+  // Register with bloom layer system
   useEffect(() => {
     const obj = lineRef.current as any;
     if (obj) {
-      
       if (!obj.layers) {
         obj.layers = new THREE.Layers();
       }
-      obj.layers.set(0); 
-      obj.layers.enable(1); 
-      obj.layers.disable(2); 
+      obj.layers.set(0);
+      obj.layers.enable(1);
+      obj.layers.disable(2);
       registerEdgeObject(obj);
     }
     return () => {
       if (obj) unregisterEdgeObject(obj);
     };
   }, []);
-  
-  
+
+  // Animate flow effect
   useFrame((state) => {
     if (materialRef.current && (propSettings as any).enableFlowEffect) {
       const flowIntensity = Math.sin(state.clock.elapsedTime * ((propSettings as any).flowSpeed || 1.0)) * 0.3 + 0.7;
-      materialRef.current.opacity = (propSettings.opacity ?? 0.2) * flowIntensity;
+      materialRef.current.opacity = effectiveOpacity * flowIntensity;
     }
   });
-  
-  if (!geometry) {
+
+  if (points.length < 6) {
     return null;
   }
 
   return (
-    <lineSegments ref={lineRef} geometry={geometry} material={material} renderOrder={5} />
+    <lineSegments
+      ref={lineRef}
+      geometry={geometry}
+      material={material}
+      renderOrder={5}
+      frustumCulled={false}
+    />
   );
 };

@@ -689,7 +689,7 @@ COPY --chown=devuser:devuser multi-agent-docker/unified-config/kitty.conf /home/
 
 # Copy CLAUDE.md and aisp.md to both home and workspace (Claude Code reads from workspace)
 COPY --chown=devuser:devuser multi-agent-docker/CLAUDE.md /home/devuser/CLAUDE.md
-COPY --chown=devuser:devuser multi-agent-docker/CLAUDE.md /home/devuser/workspace/CLAUDE.md
+COPY --chown=devuser:devuser multi-agent-docker/CLAUDE.workspace.md /home/devuser/workspace/CLAUDE.md
 COPY --chown=devuser:devuser multi-agent-docker/aisp.md /home/devuser/aisp.md
 COPY --chown=devuser:devuser multi-agent-docker/aisp.md /home/devuser/workspace/aisp.md
 

@@ -1589,12 +1589,15 @@ fi
 # Phase 8: Enhance CLAUDE.md with Project Context
 # ============================================================================
 
-echo "[9/10] Enhancing CLAUDE.md with project-specific context..."
+echo "[9/10] Verifying CLAUDE.md configuration..."
 
-# Append compact project documentation to BOTH home and workspace CLAUDE.md
-# (Claude Code reads from workspace when running in project directory)
-# IDEMPOTENCY: Only append if marker not present (prevents duplication on restart)
-for claude_md in /home/devuser/CLAUDE.md /home/devuser/workspace/CLAUDE.md; do
+# Phase 8 OPTIMIZED: All container context is now baked into build-time CLAUDE.md and CLAUDE.workspace.md
+# (Dockerfile lines 691-692). The 130-line runtime append has been eliminated.
+# Home tier (~/CLAUDE.md) contains container env, memory mandate, behavioral rules.
+# Workspace tier (~/workspace/CLAUDE.md) contains discovery, protocols, browser automation.
+# Project tier (project/CLAUDE.md) contains claude-flow V3 operational rules.
+# Previous runtime append preserved below but disabled (iterates empty list).
+for claude_md in; do  # Was: /home/devuser/CLAUDE.md /home/devuser/workspace/CLAUDE.md
   if [ -f "$claude_md" ] && grep -q "## 🚀 Project-Specific: Turbo Flow Claude" "$claude_md" 2>/dev/null; then
     echo "  → Skipping $claude_md (project context already present)"
     continue
@@ -1732,7 +1735,7 @@ as-gemini whoami  # Should output: gemini-user
 CLAUDE_APPEND
 done
 
-echo "✓ CLAUDE.md enhanced with project context (both /home and /workspace)"
+echo "✓ CLAUDE.md hierarchy optimized: home(~80L) + workspace(~22L) + project(~145L) = ~247 total (was ~2400)"
 
 # ============================================================================
 # Phase 9: Display Connection Information
