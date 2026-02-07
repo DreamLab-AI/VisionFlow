@@ -10,7 +10,7 @@ import { BrowserSupportWarning } from '../components/BrowserSupportWarning';
 import { SpaceMouseStatus } from '../components/SpaceMouseStatus';
 import { AudioInputService } from '../services/AudioInputService';
 import { graphDataManager, type GraphData } from '../features/graph/managers/graphDataManager';
-import { OntologyPanel } from '../features/ontology';
+
 import { createLogger } from '../utils/loggerConfig';
 
 const logger = createLogger('MainLayout');
@@ -86,9 +86,7 @@ const MainLayoutContent: React.FC = () => {
         />
       </nav>
 
-      <aside aria-label="Ontology physics controls">
-        <OntologyPanel />
-      </aside>
+      {/* OntologyPanel is accessed via the control panel's ontology tab, not rendered as overlay */}
 
       <aside aria-label="Device status">
         <SpaceMouseStatus />

@@ -1304,10 +1304,10 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
     }
 
     const unsubscribe = graphDataManager.onGraphDataChange((data) => {
-      const positioned = handleGraphUpdate(data)
-      if (positioned) {
-        graphWorkerProxy.setGraphData(positioned)
-      }
+      // Process data locally only — do NOT send back to graphWorkerProxy.setGraphData()
+      // as that triggers notifyGraphDataListeners → this callback → infinite loop.
+      // The worker already has the data from graphDataManager.fetchInitialData().
+      handleGraphUpdate(data)
     })
 
 
@@ -1320,13 +1320,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
           edgeCount: data.edges.length
         });
       }
-      const positioned = handleGraphUpdate(data)
-
-      // Send positioned data to worker so it starts with generated positions
-      // (handleGraphUpdate normalizes IDs and generates positions for nodes at origin)
-      if (positioned) {
-        return graphWorkerProxy.setGraphData(positioned)
-      }
+      handleGraphUpdate(data)
     }).then(() => {
     }).catch((error) => {
 

@@ -187,13 +187,13 @@ export const SpacePilotSimpleIntegration: React.FC<SpacePilotSimpleIntegrationPr
           lastActivityTime.current = Date.now();
         }
         hasDivergedFromOrbit.current = true;
-      } else if (wasActive && !isActivelyMoving.current) {
-        // SpacePilot stopped — sync OrbitControls to current camera state
-        // BEFORE re-enabling so it doesn't snap back to stale position
-        syncOrbitControlsToCamera();
-        orbitControls.enabled = true;
-        hasDivergedFromOrbit.current = false;
       }
+      // When SpacePilot stops, do NOT re-enable OrbitControls here.
+      // OrbitControls enforces world-up alignment which snaps the camera
+      // back to level, discarding the SpaceMouse orientation.
+      // Instead, OrbitControls is re-enabled lazily on the next mouse/wheel
+      // interaction (see handleMouseInteraction above), which syncs the
+      // orbit target to wherever the camera currently is.
     }
 
     // Apply SpacePilot input to camera

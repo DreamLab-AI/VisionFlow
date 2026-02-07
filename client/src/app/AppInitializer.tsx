@@ -160,7 +160,14 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
 
           
           try {
-            logger.info('About to fetch initial graph data via REST API');
+            // Set graph type to 'visionflow' to enable client-side force-directed physics
+            // (repulsion, edge springs, center gravity, domain clustering).
+            // The default 'logseq' mode only interpolates server-sent positions via binary WS,
+            // which leaves nodes static when the server isn't sending updates.
+            logger.info('Setting graph type to visionflow for client-side physics');
+            graphDataManager.setGraphType('visionflow');
+            await graphWorkerProxy.setGraphType('visionflow');
+
             logger.info('Fetching initial graph data via REST API');
             const graphData = await graphDataManager.fetchInitialData();
             logger.info(`Successfully fetched ${graphData.nodes.length} nodes, ${graphData.edges.length} edges`);
