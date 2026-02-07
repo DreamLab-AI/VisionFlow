@@ -35,6 +35,15 @@ impl FromRequest for AuthenticatedUser {
     type Future = Ready<Result<Self, Self::Error>>;
 
     fn from_request(req: &HttpRequest, _payload: &mut Payload) -> Self::Future {
+        // Dev mode bypass: allow unauthenticated settings writes when explicitly enabled
+        if std::env::var("SETTINGS_AUTH_BYPASS").unwrap_or_default() == "true" {
+            debug!("Settings auth bypass enabled (SETTINGS_AUTH_BYPASS=true) - using dev user");
+            return ready(Ok(AuthenticatedUser {
+                pubkey: "dev-user".to_string(),
+                is_power_user: true,
+            }));
+        }
+
         // Extract NostrService from app data
         let nostr_service = match req.app_data::<web::Data<NostrService>>() {
             Some(service) => service,

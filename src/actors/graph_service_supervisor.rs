@@ -784,7 +784,12 @@ impl Handler<msgs::GetGraphData> for GraphServiceSupervisor {
     }
 }
 
-/// Handler for ReloadGraphFromDatabase - delegates to GraphStateActor and forwards to PhysicsOrchestratorActor
+/// Handler for ReloadGraphFromDatabase - tells GraphStateActor to reload from Neo4j,
+/// then forwards the fresh data to PhysicsOrchestratorActor.
+///
+/// Previously this handler only read stale cached data from GraphStateActor without
+/// triggering an actual reload, causing "0 links" when the actor loaded before
+/// Neo4j was populated by load_graph_from_files_into_neo4j.
 impl Handler<msgs::ReloadGraphFromDatabase> for GraphServiceSupervisor {
     type Result = ResponseFuture<Result<(), String>>;
 
@@ -795,26 +800,44 @@ impl Handler<msgs::ReloadGraphFromDatabase> for GraphServiceSupervisor {
         let physics_addr = self.physics.clone();
 
         Box::pin(async move {
-            // Get graph data from GraphStateActor
             if let Some(graph_state) = graph_state_addr {
-                // Wait a moment for GraphStateActor to finish loading from Neo4j
-                tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+                // Step 1: Tell GraphStateActor to reload its data from Neo4j.
+                // This replaces the old approach of just reading stale cached data.
+                info!("GraphServiceSupervisor: Sending ReloadGraphFromDatabase to GraphStateActor");
+                match graph_state.send(msgs::ReloadGraphFromDatabase).await {
+                    Ok(Ok(())) => {
+                        info!("GraphServiceSupervisor: GraphStateActor reloaded successfully");
+                    }
+                    Ok(Err(e)) => {
+                        error!("GraphServiceSupervisor: GraphStateActor reload failed: {}", e);
+                        return Err(e);
+                    }
+                    Err(e) => {
+                        error!("GraphServiceSupervisor: Mailbox error during reload: {}", e);
+                        return Err(format!("Mailbox error: {}", e));
+                    }
+                }
 
+                // Step 2: Now read the freshly-loaded data from GraphStateActor
                 match graph_state.send(msgs::GetGraphData).await {
                     Ok(Ok(graph_data)) => {
                         info!(
-                            "GraphServiceSupervisor: Got graph data with {} nodes, {} edges",
+                            "GraphServiceSupervisor: Got fresh graph data with {} nodes, {} edges",
                             graph_data.nodes.len(),
                             graph_data.edges.len()
                         );
 
                         // Forward to PhysicsOrchestratorActor if available
-                        if let Some(physics) = physics_addr {
+                        if let Some(ref physics) = physics_addr {
                             use crate::actors::physics_orchestrator_actor::UpdateGraphData;
                             physics.do_send(UpdateGraphData {
                                 graph_data: graph_data.clone(),
                             });
                             info!("GraphServiceSupervisor: Forwarded graph data to PhysicsOrchestratorActor for GPU initialization");
+
+                            // Auto-start physics simulation after graph data is loaded
+                            info!("GraphServiceSupervisor: Auto-starting physics simulation after graph data load");
+                            physics.do_send(crate::actors::messages::StartSimulation);
                         } else {
                             warn!("GraphServiceSupervisor: PhysicsOrchestratorActor not available to receive graph data");
                         }
@@ -822,7 +845,7 @@ impl Handler<msgs::ReloadGraphFromDatabase> for GraphServiceSupervisor {
                         Ok(())
                     }
                     Ok(Err(e)) => {
-                        error!("GraphServiceSupervisor: Failed to get graph data: {}", e);
+                        error!("GraphServiceSupervisor: Failed to get graph data after reload: {}", e);
                         Err(e)
                     }
                     Err(e) => {
@@ -895,9 +918,14 @@ impl Handler<msgs::StartSimulation> for GraphServiceSupervisor {
     type Result = ResponseActFuture<Self, Result<(), String>>;
 
     fn handle(&mut self, _msg: msgs::StartSimulation, _ctx: &mut Self::Context) -> Self::Result {
-        warn!("StartSimulation: Supervisor not fully implemented");
-        let result = Err("Supervisor not yet fully implemented".to_string());
-        Box::pin(actix::fut::ready(result))
+        if let Some(ref physics) = self.physics {
+            info!("Forwarding StartSimulation to PhysicsOrchestratorActor");
+            physics.do_send(msgs::StartSimulation);
+            Box::pin(actix::fut::ready(Ok(())))
+        } else {
+            warn!("StartSimulation: PhysicsOrchestratorActor not available");
+            Box::pin(actix::fut::ready(Err("Physics actor not initialized".to_string())))
+        }
     }
 }
 

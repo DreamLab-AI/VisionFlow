@@ -234,25 +234,36 @@ impl Handler<ProcessAgentStatuses> for AgentMonitorActor {
         );
 
         
+        let agent_count = msg.agents.len() as f32;
         let agents: Vec<crate::services::bots_client::Agent> = msg
             .agents
             .iter()
-            .map(|status| crate::services::bots_client::Agent {
-                id: status.agent_id.clone(),
-                name: status.profile.name.clone(),
-                agent_type: format!("{:?}", status.profile.agent_type).to_lowercase(),
-                status: status.status.clone(),
-                x: 0.0,
-                y: 0.0,
-                z: 0.0,
-                cpu_usage: status.cpu_usage,
-                memory_usage: status.memory_usage,
-                health: status.health,
-                workload: status.activity,
-                created_at: Some(status.timestamp.to_rfc3339()),
-                age: Some(
-                    (time::timestamp_seconds() - status.timestamp.timestamp()) as u64 * 1000,
-                ),
+            .enumerate()
+            .map(|(i, status)| {
+                // Distribute agents in a golden angle spiral on a sphere
+                let golden_angle = std::f32::consts::PI * (3.0 - (5.0_f32).sqrt());
+                let theta = golden_angle * i as f32;
+                let y_pos = 1.0 - (i as f32 / (agent_count - 1.0).max(1.0)) * 2.0;
+                let radius_at_y = (1.0 - y_pos * y_pos).sqrt();
+                let scale = 15.0; // Radius of agent sphere
+
+                crate::services::bots_client::Agent {
+                    id: status.agent_id.clone(),
+                    name: status.profile.name.clone(),
+                    agent_type: format!("{:?}", status.profile.agent_type).to_lowercase(),
+                    status: status.status.clone(),
+                    x: radius_at_y * theta.cos() * scale,
+                    y: y_pos * scale,
+                    z: radius_at_y * theta.sin() * scale,
+                    cpu_usage: status.cpu_usage,
+                    memory_usage: status.memory_usage,
+                    health: status.health,
+                    workload: status.activity,
+                    created_at: Some(status.timestamp.to_rfc3339()),
+                    age: Some(
+                        (time::timestamp_seconds() - status.timestamp.timestamp()) as u64 * 1000,
+                    ),
+                }
             })
             .collect();
 

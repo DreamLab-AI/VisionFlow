@@ -759,6 +759,64 @@ impl Handler<UpdateBotsGraph> for GraphStateActor {
     }
 }
 
+impl Handler<ReloadGraphFromDatabase> for GraphStateActor {
+    type Result = ResponseActFuture<Self, Result<(), String>>;
+
+    fn handle(&mut self, _msg: ReloadGraphFromDatabase, _ctx: &mut Self::Context) -> Self::Result {
+        info!("GraphStateActor: ReloadGraphFromDatabase - reloading graph from Neo4j");
+
+        let repository = Arc::clone(&self.repository);
+
+        Box::pin(
+            async move {
+                match repository.load_graph().await {
+                    Ok(arc_graph_data) => {
+                        info!(
+                            "GraphStateActor: Reloaded graph from Neo4j: {} nodes, {} edges",
+                            arc_graph_data.nodes.len(),
+                            arc_graph_data.edges.len()
+                        );
+                        Ok(arc_graph_data)
+                    }
+                    Err(e) => {
+                        error!("GraphStateActor: Failed to reload graph from Neo4j: {}", e);
+                        Err(format!("Failed to reload graph: {}", e))
+                    }
+                }
+            }
+            .into_actor(self)
+            .map(|result, act, _ctx| {
+                match result {
+                    Ok(arc_graph_data) => {
+                        // Update actor state with reloaded graph
+                        act.graph_data = arc_graph_data.clone();
+
+                        // Rebuild node map
+                        let mut node_map = HashMap::new();
+                        for node in &arc_graph_data.nodes {
+                            node_map.insert(node.id, node.clone());
+                        }
+                        act.node_map = Arc::new(node_map);
+
+                        // Update next_node_id
+                        if let Some(max_id) = arc_graph_data.nodes.iter().map(|n| n.id).max() {
+                            act.next_node_id.store(max_id + 1, std::sync::atomic::Ordering::SeqCst);
+                        }
+
+                        info!(
+                            "GraphStateActor: State updated after reload - {} nodes, {} edges",
+                            act.graph_data.nodes.len(),
+                            act.graph_data.edges.len()
+                        );
+                        Ok(())
+                    }
+                    Err(e) => Err(e),
+                }
+            }),
+        )
+    }
+}
+
 impl Handler<ComputeShortestPaths> for GraphStateActor {
     type Result = Result<crate::ports::gpu_semantic_analyzer::PathfindingResult, String>;
 

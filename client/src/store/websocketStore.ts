@@ -186,10 +186,10 @@ let solidReconnectAttempts = 0;
 
 const ACK_BATCH_SIZE = 10;
 const HEARTBEAT_INTERVAL_MS = 30000;
-const HEARTBEAT_TIMEOUT_MS = 10000;
+const HEARTBEAT_TIMEOUT_MS = 45000;  // Allow for server load
 const MAX_QUEUE_SIZE = 100;
 const MAX_RECONNECT_DELAY = 30000;
-const SOLID_MAX_RECONNECT_ATTEMPTS = 5;
+const SOLID_MAX_RECONNECT_ATTEMPTS = 10;
 const SOLID_RECONNECT_DELAY = 1000;
 
 function determineWebSocketUrl(): string {

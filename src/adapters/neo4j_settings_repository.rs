@@ -735,26 +735,70 @@ impl SettingsRepository for Neo4jSettingsRepository {
 
     #[instrument(skip(self), level = "debug")]
     async fn load_all_settings(&self) -> RepoResult<Option<AppFullSettings>> {
-        // For now, return default settings
-        // In a full implementation, this would reconstruct AppFullSettings from Neo4j
-        info!("Loading all settings from Neo4j (returning defaults for now)");
+        info!("Loading all settings: trying Neo4j first, then YAML fallback");
 
-        Ok(Some(AppFullSettings {
-            visualisation: Default::default(),
-            system: Default::default(),
-            xr: Default::default(),
-            auth: Default::default(),
-            ragflow: None,
-            perplexity: None,
-            openai: None,
-            kokoro: None,
-            whisper: None,
-            version: "1.0.0".to_string(),
-            user_preferences: Default::default(),
-            physics: Default::default(),
-            feature_flags: Default::default(),
-            developer_config: Default::default(),
-        }))
+        // Step 1: Try loading from Neo4j SettingsRoot node
+        let query_str =
+            "MATCH (s:SettingsRoot {id: 'default'})
+             WHERE s.full_settings IS NOT NULL
+             RETURN s.full_settings AS full_settings";
+
+        let neo4j_result = self.graph.execute(query(query_str)).await;
+
+        if let Ok(mut result) = neo4j_result {
+            if let Ok(Some(row)) = result.next().await {
+                if let Ok(settings_json) = row.get::<String>("full_settings") {
+                    if !settings_json.is_empty() {
+                        match from_json::<AppFullSettings>(&settings_json) {
+                            Ok(settings) => {
+                                info!("Loaded settings from Neo4j SettingsRoot node");
+                                return Ok(Some(settings));
+                            }
+                            Err(e) => {
+                                warn!("Failed to deserialize settings from Neo4j: {}, falling back to YAML", e);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Step 2: Fall back to YAML file
+        let yaml_path = std::env::var("SETTINGS_FILE_PATH")
+            .unwrap_or_else(|_| "/app/settings.yaml".to_string());
+
+        let yaml_paths = [yaml_path.as_str(), "data/settings.yaml"];
+
+        for path in &yaml_paths {
+            match tokio::fs::read_to_string(path).await {
+                Ok(yaml_content) => {
+                    match serde_yaml::from_str::<AppFullSettings>(&yaml_content) {
+                        Ok(settings) => {
+                            info!("Loaded settings from YAML file: {}", path);
+
+                            // Step 3: Persist to Neo4j for future use
+                            if let Err(e) = self.save_all_settings(&settings).await {
+                                warn!("Failed to persist YAML settings to Neo4j: {}", e);
+                            } else {
+                                info!("Persisted YAML settings to Neo4j for future loads");
+                            }
+
+                            return Ok(Some(settings));
+                        }
+                        Err(e) => {
+                            warn!("Failed to parse YAML settings from {}: {}", path, e);
+                        }
+                    }
+                }
+                Err(e) => {
+                    debug!("YAML settings file not found at {}: {}", path, e);
+                }
+            }
+        }
+
+        // Step 4: Return defaults as last resort
+        warn!("No settings found in Neo4j or YAML files, returning defaults");
+        Ok(Some(AppFullSettings::default()))
     }
 
     #[instrument(skip(self, settings), level = "debug")]

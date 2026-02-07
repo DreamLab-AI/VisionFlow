@@ -107,7 +107,7 @@ const AgentNode: React.FC<{
   const pulseRef = useRef({ phase: 0 });
 
   const position: [number, number, number] = useMemo(() => {
-    if (agent.position) {
+    if (agent.position && (agent.position.x !== 0 || agent.position.y !== 0 || agent.position.z !== 0)) {
       return [agent.position.x, agent.position.y, agent.position.z];
     }
     // Deterministic fallback position from agent ID hash

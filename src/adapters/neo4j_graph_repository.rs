@@ -349,13 +349,15 @@ impl Neo4jGraphRepository {
     }
 
     /// Load all edges from Neo4j
+    /// Matches any relationship type between GraphNode nodes, not just :EDGE,
+    /// to handle cases where relationships were created with different types.
     async fn load_all_edges(&self) -> Result<Vec<Edge>> {
         let query_str = "
-            MATCH (source:GraphNode)-[r:EDGE]->(target:GraphNode)
+            MATCH (source:GraphNode)-[r]->(target:GraphNode)
             RETURN source.id as source_id,
                    target.id as target_id,
-                   r.weight as weight,
-                   r.edge_type as edge_type
+                   COALESCE(r.weight, 1.0) as weight,
+                   COALESCE(r.edge_type, r.relation_type, type(r)) as edge_type
         ";
 
         let mut result = self.graph

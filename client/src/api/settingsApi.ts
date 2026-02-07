@@ -224,25 +224,25 @@ function transformApiToClientSettings(apiResponse: AllSettings): any {
         logseq: {
           physics: apiResponse.physics || {},
           nodes: {
-            baseColor: '#4a9eff',
-            metalness: 0.3,
-            opacity: 1.0,
-            roughness: 0.7,
-            nodeSize: 1.0,
-            quality: 'medium' as const,
+            baseColor: '#202724',
+            metalness: 0.1,
+            opacity: 0.88,
+            roughness: 0.6,
+            nodeSize: 1.7,
+            quality: 'high' as const,
             enableInstancing: true,
-            enableHologram: false,
+            enableHologram: true,
             enableMetadataShape: false,
-            enableMetadataVisualisation: false
+            enableMetadataVisualisation: true
           },
           edges: {
-            arrowSize: 0.5,
-            baseWidth: 0.2,
-            color: '#FF5722',
-            enableArrows: true,
-            opacity: 0.6, // Increased for bloom visibility
-            widthRange: [0.1, 0.3] as [number, number],
-            quality: 'medium' as const,
+            arrowSize: 0.02,
+            baseWidth: 0.61,
+            color: '#ff0000',
+            enableArrows: false,
+            opacity: 0.5,
+            widthRange: [0.3, 1.5] as [number, number],
+            quality: 'high' as const,
             enableFlowEffect: false,
             flowSpeed: 1.0,
             flowIntensity: 0.5,
@@ -252,15 +252,17 @@ function transformApiToClientSettings(apiResponse: AllSettings): any {
             gradientColors: ['#4a9eff', '#ff4a9e'] as [string, string]
           },
           labels: {
-            desktopFontSize: 1.4,
+            desktopFontSize: 1.41,
             enableLabels: true,
             labelDistanceThreshold: 500,
-            textColor: '#ffffff',
-            textOutlineColor: '#000000',
-            textOutlineWidth: 0.5,
-            textResolution: 256,
-            textPadding: 4,
-            billboardMode: 'camera' as const
+            textColor: '#676565',
+            textOutlineColor: '#00ff40',
+            textOutlineWidth: 0.0074725277,
+            textResolution: 32,
+            textPadding: 0.3,
+            billboardMode: 'camera' as const,
+            showMetadata: true,
+            maxLabelWidth: 5.0
           }
         },
         visionflow: {
