@@ -69,6 +69,9 @@ const ESSENTIAL_PATHS = [
   'visualisation.graphs.logseq.physics',
   'visualisation.graphs.visionflow.physics',
 
+  // Graph-type visual settings - needed for per-type rendering
+  'visualisation.graphTypeVisuals',
+
   // Node filtering settings - needed for visibility filtering
   'nodeFilter.enabled',
   'nodeFilter.qualityThreshold',

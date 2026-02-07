@@ -4,7 +4,7 @@ import { createLogger, createErrorMetadata } from '../utils/loggerConfig';
 import { debugState } from '../utils/clientDebugState';
 import { useSettingsStore } from './settingsStore';
 import { graphDataManager } from '../features/graph/managers/graphDataManager';
-import { parseBinaryNodeData, isAgentNode, BinaryNodeData } from '../types/binaryProtocol';
+import { parseBinaryNodeData, isAgentNode, BinaryNodeData, getNodeType, getActualNodeId, NodeType } from '../types/binaryProtocol';
 import { NodePositionBatchQueue, createWebSocketBatchProcessor } from '../utils/BatchQueue';
 import { validateNodePositions, createValidationMiddleware } from '../utils/validation';
 import {
@@ -120,6 +120,10 @@ export interface WebSocketState {
   isSolidWebSocketConnected: () => boolean;
   getSolidSubscriptions: () => string[];
 
+  // Per-node type map from binary protocol flags
+  nodeTypeMap: Map<number, NodeType>;
+  getNodeTypeMap: () => Map<number, NodeType>;
+
   // Utility methods
   isReady: () => boolean;
   getConnectionState: () => ConnectionState;
@@ -167,6 +171,7 @@ let heartbeatInterval: number | null = null;
 let heartbeatTimeout: number | null = null;
 let reconnectTimeout: number | null = null;
 let binaryMessageCount = 0;
+let currentNodeTypeMap: Map<number, NodeType> = new Map();
 let positionUpdateSequence = 0;
 let lastAckSentSequence = 0;
 let filterSubscriptionSet = false;
@@ -502,6 +507,18 @@ export const useWebSocketStore = create<WebSocketState>()(
       }
     };
 
+    const updateNodeTypeMapFromParsed = (parsedNodes: BinaryNodeData[]) => {
+      for (const node of parsedNodes) {
+        const nodeType = getNodeType(node.nodeId);
+        if (nodeType !== NodeType.Unknown) {
+          const actualId = getActualNodeId(node.nodeId);
+          currentNodeTypeMap.set(actualId, nodeType);
+        }
+      }
+      // Update store state so subscribers can react
+      set({ nodeTypeMap: new Map(currentNodeTypeMap) });
+    };
+
     const validateMessage = (message: unknown): message is WebSocketMessage => {
       return (
         message !== null &&
@@ -638,6 +655,9 @@ export const useWebSocketStore = create<WebSocketState>()(
         return;
       }
 
+      // Build per-node type map from binary protocol flags
+      updateNodeTypeMapFromParsed(parsedNodes);
+
       const hasBotsData = parsedNodes.some(node => isAgentNode(node.nodeId));
 
       if (hasBotsData) {
@@ -686,6 +706,9 @@ export const useWebSocketStore = create<WebSocketState>()(
         logger.error('Error parsing legacy binary data:', createErrorMetadata(error));
         return;
       }
+
+      // Build per-node type map from binary protocol flags (legacy path)
+      updateNodeTypeMapFromParsed(parsedNodes);
 
       const hasBotsData = parsedNodes.some(node => isAgentNode(node.nodeId));
 
@@ -1000,6 +1023,7 @@ export const useWebSocketStore = create<WebSocketState>()(
       solidSocket: null,
       isSolidConnected: false,
       solidSubscriptions: new Map(),
+      nodeTypeMap: new Map(),
       messageQueue: [],
       statistics: {
         messagesReceived: 0,
@@ -1668,6 +1692,10 @@ export const useWebSocketStore = create<WebSocketState>()(
         return Array.from(get().solidSubscriptions.keys());
       },
 
+      getNodeTypeMap: () => {
+        return new Map(currentNodeTypeMap);
+      },
+
       isReady: () => {
         const state = get();
         return state.isConnected && state.isServerReady;
@@ -1698,6 +1726,7 @@ export const useWebSocketStore = create<WebSocketState>()(
         heartbeatTimeout = null;
         reconnectTimeout = null;
         binaryMessageCount = 0;
+        currentNodeTypeMap = new Map();
         positionUpdateSequence = 0;
         lastAckSentSequence = 0;
         filterSubscriptionSet = false;
@@ -1717,6 +1746,7 @@ export const useWebSocketStore = create<WebSocketState>()(
           solidSocket: null,
           isSolidConnected: false,
           solidSubscriptions: new Map(),
+          nodeTypeMap: new Map(),
           messageQueue: [],
           statistics: {
             messagesReceived: 0,
@@ -1793,6 +1823,7 @@ class WebSocketServiceCompat {
   unsubscribeSolidResource = (url: string) => useWebSocketStore.getState().unsubscribeSolidResource(url);
   isSolidWebSocketConnected = () => useWebSocketStore.getState().isSolidWebSocketConnected();
   getSolidSubscriptions = () => useWebSocketStore.getState().getSolidSubscriptions();
+  getNodeTypeMap = () => useWebSocketStore.getState().getNodeTypeMap();
   isReady = () => useWebSocketStore.getState().isReady();
   getConnectionState = () => useWebSocketStore.getState().getConnectionState();
   getQueuedMessageCount = () => useWebSocketStore.getState().getQueuedMessageCount();

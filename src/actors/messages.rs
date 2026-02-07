@@ -195,6 +195,28 @@ pub struct RemoveEdge {
 #[rtype(result = "Result<std::sync::Arc<HashMap<u32, Node>>, String>")]
 pub struct GetNodeMap;
 
+/// Node type classification arrays for binary protocol flags
+#[derive(Debug, Clone, Default, MessageResponse)]
+pub struct NodeTypeArrays {
+    pub knowledge_ids: Vec<u32>,
+    pub agent_ids: Vec<u32>,
+    pub ontology_class_ids: Vec<u32>,
+    pub ontology_individual_ids: Vec<u32>,
+    pub ontology_property_ids: Vec<u32>,
+}
+
+/// Get node type classification arrays for binary protocol flags
+#[derive(Message)]
+#[rtype(result = "NodeTypeArrays")]
+pub struct GetNodeTypeArrays;
+
+/// Update cached node type arrays in ClientCoordinatorActor for binary protocol flags
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct UpdateNodeTypeArrays {
+    pub arrays: NodeTypeArrays,
+}
+
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct BuildGraphFromMetadata {

@@ -192,8 +192,12 @@ impl ClientManager {
         broadcast_count
     }
 
-    /// Broadcast with per-client filtering
-    pub fn broadcast_with_filter(&self, positions: &[BinaryNodeDataClient]) -> usize {
+    /// Broadcast with per-client filtering, including node type flags in binary protocol
+    pub fn broadcast_with_filter(
+        &self,
+        positions: &[BinaryNodeDataClient],
+        node_type_arrays: &crate::actors::messages::NodeTypeArrays,
+    ) -> usize {
         let mut broadcast_count = 0;
         for (_, client_state) in &self.clients {
             let filtered_positions = if client_state.filter.enabled {
@@ -206,7 +210,7 @@ impl ClientManager {
             };
 
             if !filtered_positions.is_empty() {
-                let binary_data = self.serialize_positions(&filtered_positions);
+                let binary_data = self.serialize_positions(&filtered_positions, node_type_arrays);
                 client_state.addr.do_send(SendToClientBinary(binary_data));
                 broadcast_count += 1;
             }
@@ -214,15 +218,19 @@ impl ClientManager {
         broadcast_count
     }
 
-    fn serialize_positions(&self, positions: &[BinaryNodeDataClient]) -> Vec<u8> {
-        use crate::utils::binary_protocol::encode_node_data;
+    fn serialize_positions(
+        &self,
+        positions: &[BinaryNodeDataClient],
+        nta: &crate::actors::messages::NodeTypeArrays,
+    ) -> Vec<u8> {
+        use crate::utils::binary_protocol::encode_node_data_extended;
         use crate::utils::socket_flow_messages::BinaryNodeData;
         // Convert to (u32, BinaryNodeData) format for V3 protocol encoding
         let nodes: Vec<(u32, BinaryNodeData)> = positions
             .iter()
             .map(|pos| (pos.node_id, *pos))
             .collect();
-        encode_node_data(&nodes)
+        encode_node_data_extended(&nodes, &nta.agent_ids, &nta.knowledge_ids, &nta.ontology_class_ids, &nta.ontology_individual_ids, &nta.ontology_property_ids)
     }
 
     pub fn broadcast_message(&self, message: String) -> usize {
@@ -296,9 +304,11 @@ pub struct ClientCoordinatorActor {
     bytes_sent_this_second: usize,
     last_bandwidth_check: Instant,
 
-    
     pending_voice_data: Vec<Vec<u8>>,
     voice_data_queued_bytes: usize,
+
+    /// Cached node type arrays from GraphStateActor for binary protocol flags
+    node_type_arrays: crate::actors::messages::NodeTypeArrays,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -333,6 +343,7 @@ impl ClientCoordinatorActor {
             last_bandwidth_check: Instant::now(),
             pending_voice_data: Vec::new(),
             voice_data_queued_bytes: 0,
+            node_type_arrays: crate::actors::messages::NodeTypeArrays::default(),
         }
     }
 
@@ -599,17 +610,27 @@ impl ClientCoordinatorActor {
     }
 
     fn serialize_positions(&self, positions: &[BinaryNodeDataClient]) -> Vec<u8> {
-        use crate::utils::binary_protocol::encode_node_data;
+        use crate::utils::binary_protocol::encode_node_data_extended;
         use crate::utils::socket_flow_messages::BinaryNodeData;
         // Convert to (u32, BinaryNodeData) format for V3 protocol encoding
         let nodes: Vec<(u32, BinaryNodeData)> = positions
             .iter()
             .map(|pos| (pos.node_id, *pos))
             .collect();
-        encode_node_data(&nodes)
+        let nta = &self.node_type_arrays;
+        encode_node_data_extended(&nodes, &nta.agent_ids, &nta.knowledge_ids, &nta.ontology_class_ids, &nta.ontology_individual_ids, &nta.ontology_property_ids)
     }
 
-    
+    /// Update cached node type arrays from GraphStateActor
+    pub fn update_node_type_arrays(&mut self, arrays: crate::actors::messages::NodeTypeArrays) {
+        info!(
+            "Node type arrays updated: knowledge={}, agent={}, owl_class={}, owl_individual={}, owl_property={}",
+            arrays.knowledge_ids.len(), arrays.agent_ids.len(), arrays.ontology_class_ids.len(),
+            arrays.ontology_individual_ids.len(), arrays.ontology_property_ids.len()
+        );
+        self.node_type_arrays = arrays;
+    }
+
     pub fn update_position_cache(&mut self, positions: Vec<(u32, BinaryNodeDataClient)>) {
         for (node_id, node_data) in positions {
             self.position_cache.insert(node_id, node_data);
@@ -1068,7 +1089,7 @@ impl Handler<BroadcastPositions> for ClientCoordinatorActor {
                     return;
                 }
             };
-            manager.broadcast_with_filter(&msg.positions)
+            manager.broadcast_with_filter(&msg.positions, &self.node_type_arrays)
         };
 
         if client_count > 0 {
@@ -1277,6 +1298,15 @@ impl Handler<SetGraphServiceAddress> for ClientCoordinatorActor {
     fn handle(&mut self, msg: SetGraphServiceAddress, _ctx: &mut Self::Context) -> Self::Result {
         debug!("Setting graph service address in client coordinator");
         self.set_graph_service_addr(msg.addr);
+    }
+}
+
+/// Handler for UpdateNodeTypeArrays - caches node type classification for binary protocol flags
+impl Handler<UpdateNodeTypeArrays> for ClientCoordinatorActor {
+    type Result = ();
+
+    fn handle(&mut self, msg: UpdateNodeTypeArrays, _ctx: &mut Self::Context) -> Self::Result {
+        self.update_node_type_arrays(msg.arrays);
     }
 }
 

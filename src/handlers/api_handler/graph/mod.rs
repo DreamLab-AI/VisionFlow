@@ -94,10 +94,15 @@ pub struct GraphQuery {
     pub page_size: Option<usize>,
     pub sort: Option<String>,
     pub filter: Option<String>,
+    pub graph_type: Option<String>,
 }
 
-pub async fn get_graph_data(state: web::Data<AppState>, _req: HttpRequest) -> impl Responder {
-    info!("Received request for graph data (CQRS Phase 1D)");
+pub async fn get_graph_data(
+    state: web::Data<AppState>,
+    query: web::Query<GraphQuery>,
+    _req: HttpRequest,
+) -> impl Responder {
+    info!("Received request for graph data (CQRS Phase 1D), graph_type={:?}", query.graph_type);
 
     
     let graph_handler = state.graph_query_handlers.get_graph_data.clone();
@@ -124,7 +129,7 @@ pub async fn get_graph_data(state: web::Data<AppState>, _req: HttpRequest) -> im
                 physics_state
             );
 
-            
+
             let nodes_with_positions: Vec<NodeWithPosition> = graph_data
                 .nodes
                 .iter()
@@ -150,9 +155,44 @@ pub async fn get_graph_data(state: web::Data<AppState>, _req: HttpRequest) -> im
                 })
                 .collect();
 
+            // Filter nodes by graph_type if specified
+            let filtered_nodes: Vec<NodeWithPosition> = nodes_with_positions
+                .into_iter()
+                .filter(|node| {
+                    match query.graph_type.as_deref() {
+                        Some("knowledge") => {
+                            let nt = node.node_type.as_deref().unwrap_or("");
+                            nt == "page" || nt == "linked_page" || nt.is_empty()
+                        }
+                        Some("ontology") => {
+                            let nt = node.node_type.as_deref().unwrap_or("");
+                            nt.starts_with("owl_") || node.metadata.contains_key("owl_class_iri")
+                        }
+                        Some("agent") => {
+                            let nt = node.node_type.as_deref().unwrap_or("");
+                            nt == "agent" || nt == "bot" || node.metadata.contains_key("agentType")
+                        }
+                        _ => true, // No filter, return all
+                    }
+                })
+                .collect();
+
+            // Filter edges to only include those connecting filtered nodes
+            let filtered_node_ids: std::collections::HashSet<u32> =
+                filtered_nodes.iter().map(|n| n.id).collect();
+            let filtered_edges: Vec<_> = graph_data
+                .edges
+                .iter()
+                .filter(|e| {
+                    filtered_node_ids.contains(&e.source)
+                        && filtered_node_ids.contains(&e.target)
+                })
+                .cloned()
+                .collect();
+
             let response = GraphResponseWithPositions {
-                nodes: nodes_with_positions,
-                edges: graph_data.edges.clone(),
+                nodes: filtered_nodes,
+                edges: filtered_edges,
                 metadata: graph_data.metadata.clone(),
                 settlement_state: SettlementState {
                     // PhysicsState only has is_running and params fields

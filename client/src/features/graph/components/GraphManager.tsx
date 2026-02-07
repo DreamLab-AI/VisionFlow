@@ -8,7 +8,8 @@ import { usePlatformStore } from '../../../services/platformManager'
 import { createLogger, createErrorMetadata } from '../../../utils/loggerConfig'
 import { debugState } from '../../../utils/clientDebugState'
 import { useSettingsStore } from '../../../store/settingsStore'
-import { BinaryNodeData, createBinaryNodeData } from '../../../types/binaryProtocol'
+import { BinaryNodeData, createBinaryNodeData, NodeType } from '../../../types/binaryProtocol'
+import { useWebSocketStore } from '../../../store/websocketStore'
 import { HologramNodeMaterial } from '../../../rendering/materials/HologramNodeMaterial'
 import { FlowingEdges } from './FlowingEdges'
 import { useGraphEventHandlers } from '../hooks/useGraphEventHandlers'
@@ -143,6 +144,22 @@ const detectGraphMode = (nodes: GraphNode[]): GraphVisualMode => {
   if (agentSignals > threshold && agentSignals >= ontologySignals) return 'agent';
   if (ontologySignals > threshold) return 'ontology';
   return 'knowledge_graph';
+};
+
+// Map binary protocol NodeType to GraphVisualMode for per-node rendering
+const nodeTypeToVisualMode = (nodeType: NodeType): GraphVisualMode => {
+  switch (nodeType) {
+    case NodeType.Agent:
+      return 'agent';
+    case NodeType.OntologyClass:
+    case NodeType.OntologyIndividual:
+    case NodeType.OntologyProperty:
+      return 'ontology';
+    case NodeType.Knowledge:
+      return 'knowledge_graph';
+    default:
+      return 'knowledge_graph';
+  }
 };
 
 // Quality score -> star rating string (1-5 filled stars, unicode)
@@ -588,6 +605,38 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
     return createLODGeometries(graphMode);
   }, [graphMode]);
 
+  // === PER-NODE VISUAL MODE MAP ===
+  // Binary protocol flags are ground truth; metadata heuristics are fallback.
+  // The store's nodeTypeMap is populated from binary protocol position updates.
+  const binaryNodeTypeMap = useWebSocketStore(state => state.nodeTypeMap);
+
+  const perNodeVisualModeMap = useMemo(() => {
+    const map = new Map<string, GraphVisualMode>();
+    for (const node of graphData.nodes) {
+      const nodeIdNum = parseInt(String(node.id), 10);
+
+      // Priority 1: Binary protocol type flags (ground truth)
+      if (!isNaN(nodeIdNum) && binaryNodeTypeMap.size > 0) {
+        const binaryType = binaryNodeTypeMap.get(nodeIdNum);
+        if (binaryType && binaryType !== NodeType.Unknown) {
+          map.set(String(node.id), nodeTypeToVisualMode(binaryType));
+          continue;
+        }
+      }
+
+      // Priority 2: Metadata heuristics (fallback)
+      const nt = node.metadata?.nodeType || (node as any).nodeType || '';
+      const owlIri = (node as any).owlClassIri;
+      if (node.metadata?.agentType || node.metadata?.status === 'active' || node.metadata?.status === 'busy') {
+        map.set(String(node.id), 'agent');
+      } else if (owlIri || nt === 'owl_class' || node.metadata?.hierarchyDepth !== undefined) {
+        map.set(String(node.id), 'ontology');
+      }
+      // If no signals found, don't set -- will fall through to global graphMode
+    }
+    return map;
+  }, [graphData.nodes, binaryNodeTypeMap]);
+
   // === APPLY MATERIAL MODE PRESET when mode changes ===
   const prevGraphModeRef = useRef<GraphVisualMode>(graphMode);
   useEffect(() => {
@@ -840,8 +889,10 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
     const colors = colorArrayRef.current;
 
     // Direct Float32Array writes - no allocation, reuse tempColor
+    // Per-node visual mode: use binary protocol flags when available, fallback to global graphMode
     graphData.nodes.forEach((node, i) => {
-      const color = getNodeColor(node, normalizedSSSPResult, graphMode, hierarchyMap, connectionCountMap);
+      const nodeVisualMode = perNodeVisualModeMap.get(String(node.id)) || graphMode;
+      const color = getNodeColor(node, normalizedSSSPResult, nodeVisualMode, hierarchyMap, connectionCountMap);
       const idx = i * 3;
       colors[idx] = color.r;
       colors[idx + 1] = color.g;
@@ -851,7 +902,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
     // Reuse existing attribute, just mark dirty
     mesh.geometry.setAttribute('instanceColor', colorAttributeRef.current);
     colorAttributeRef.current.needsUpdate = true;
-  }, [graphData.nodes, normalizedSSSPResult, graphMode, hierarchyMap, connectionCountMap]);
+  }, [graphData.nodes, normalizedSSSPResult, graphMode, perNodeVisualModeMap, hierarchyMap, connectionCountMap]);
 
   
   useEffect(() => {
@@ -885,8 +936,8 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       const baseScale = nodeSize / BASE_SPHERE_RADIUS;
 
       graphData.nodes.forEach((node, i) => {
-
-        const nodeScale = getNodeScale(node, graphData.edges, connectionCountMap, graphMode, hierarchyMap) * baseScale;
+        const nodeVisualMode = perNodeVisualModeMap.get(String(node.id)) || graphMode;
+        const nodeScale = getNodeScale(node, graphData.edges, connectionCountMap, nodeVisualMode, hierarchyMap) * baseScale;
         tempMatrix.makeScale(nodeScale, nodeScale, nodeScale);
 
 
@@ -1017,7 +1068,9 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
             if (i3 + 2 >= positions.length) break;
 
             const node = graphData.nodes[i];
-            let nodeScale = getNodeScale(node, graphData.edges, connectionCountMap, graphMode, hierarchyMap) * baseScale;
+            // Per-node visual mode from binary protocol flags (fallback to detected global mode)
+            const nodeVisualMode = perNodeVisualModeMap.get(String(node.id)) || graphMode;
+            let nodeScale = getNodeScale(node, graphData.edges, connectionCountMap, nodeVisualMode, hierarchyMap) * baseScale;
 
 
             if (normalizedSSSPResult && node.id === normalizedSSSPResult.sourceNodeId) {
@@ -1066,8 +1119,10 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
 
               const sourceNode = graphData.nodes[sourceNodeIndex];
               const targetNode = graphData.nodes[targetNodeIndex];
-              const sourceRadius = getNodeScale(sourceNode, graphData.edges, connectionCountMap, graphMode, hierarchyMap) * (nodeSettings?.nodeSize || 0.5);
-              const targetRadius = getNodeScale(targetNode, graphData.edges, connectionCountMap, graphMode, hierarchyMap) * (nodeSettings?.nodeSize || 0.5);
+              const sourceVisualMode = perNodeVisualModeMap.get(String(sourceNode.id)) || graphMode;
+              const targetVisualMode = perNodeVisualModeMap.get(String(targetNode.id)) || graphMode;
+              const sourceRadius = getNodeScale(sourceNode, graphData.edges, connectionCountMap, sourceVisualMode, hierarchyMap) * (nodeSettings?.nodeSize || 0.5);
+              const targetRadius = getNodeScale(targetNode, graphData.edges, connectionCountMap, targetVisualMode, hierarchyMap) * (nodeSettings?.nodeSize || 0.5);
 
               // Reuse offset vectors - zero allocation
               tempSourceOffset.copy(sourcePos).addScaledVector(tempDirection, sourceRadius + 0.1);
@@ -1382,7 +1437,8 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       if (distanceToCamera > LABEL_DISTANCE_THRESHOLD) return null;
 
       const showMetadataLines = distanceToCamera <= METADATA_DISTANCE_THRESHOLD;
-      const scale = getNodeScale(node, graphData.edges, connectionCountMap, graphMode, hierarchyMap);
+      const nodeLabelVisualMode = perNodeVisualModeMap.get(String(node.id)) || graphMode;
+      const scale = getNodeScale(node, graphData.edges, connectionCountMap, nodeLabelVisualMode, hierarchyMap);
       const textPadding = labelSettings.textPadding ?? 0.6;
       const labelOffsetY = scale * 1.5 + textPadding;
 
@@ -1424,7 +1480,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       }
 
       // === KNOWLEDGE GRAPH MODE ===
-      if (graphMode === 'knowledge_graph') {
+      if (nodeLabelVisualMode === 'knowledge_graph') {
         const sourceDomain = node.metadata?.source_domain ?? '';
         const domainColor = getDomainColor(sourceDomain);
         const qualityStars = getQualityStars(node.metadata?.quality ?? node.metadata?.quality_score);
@@ -1470,7 +1526,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       }
 
       // === ONTOLOGY MODE ===
-      if (graphMode === 'ontology') {
+      if (nodeLabelVisualMode === 'ontology') {
         const depth = node.metadata?.hierarchyDepth ?? node.metadata?.depth ?? 0;
         const instanceCount = node.metadata?.instanceCount ?? 0;
         const category = getOntologyCategory(node);
@@ -1512,7 +1568,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       }
 
       // === AGENT MODE ===
-      if (graphMode === 'agent') {
+      if (nodeLabelVisualMode === 'agent') {
         const agentType = (node.metadata?.agentType ?? node.metadata?.type ?? 'unknown').toUpperCase();
         const status = node.metadata?.status ?? 'idle';
         const statusColor = getAgentStatusHex(status);
@@ -1559,7 +1615,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         </Billboard>
       );
     }).filter(Boolean)
-  }, [visibleNodes, graphData.edges, connectionCountMap, labelUpdateTick, nodeIdToIndex, settings?.visualisation?.graphs?.logseq?.labels, settings?.visualisation?.labels, normalizedSSSPResult, graphMode, hierarchyMap, isXRMode])
+  }, [visibleNodes, graphData.edges, connectionCountMap, labelUpdateTick, nodeIdToIndex, settings?.visualisation?.graphs?.logseq?.labels, settings?.visualisation?.labels, normalizedSSSPResult, graphMode, perNodeVisualModeMap, hierarchyMap, isXRMode])
 
   
   useEffect(() => {

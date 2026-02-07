@@ -50,7 +50,7 @@
 //! ```
 
 use actix::prelude::*;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use log::{debug, info, warn, error, trace};
 
@@ -66,16 +66,23 @@ use crate::utils::socket_flow_messages::{BinaryNodeData, BinaryNodeDataClient, g
 use crate::ports::knowledge_graph_repository::KnowledgeGraphRepository;
 
 pub struct GraphStateActor {
-    
+
     repository: Arc<dyn KnowledgeGraphRepository>,
-    
+
     graph_data: Arc<GraphData>,
-    
+
     node_map: Arc<HashMap<u32, Node>>,
-    
+
     bots_graph_data: Arc<GraphData>,
-    
+
     next_node_id: std::sync::atomic::AtomicU32,
+
+    // Node type classification sets for binary protocol flags
+    knowledge_node_ids: HashSet<u32>,
+    ontology_class_ids: HashSet<u32>,
+    ontology_individual_ids: HashSet<u32>,
+    ontology_property_ids: HashSet<u32>,
+    agent_node_ids: HashSet<u32>,
 }
 
 impl GraphStateActor {
@@ -88,6 +95,11 @@ impl GraphStateActor {
             node_map: Arc::new(HashMap::new()),
             bots_graph_data: Arc::new(GraphData::new()),
             next_node_id: std::sync::atomic::AtomicU32::new(1),
+            knowledge_node_ids: HashSet::new(),
+            ontology_class_ids: HashSet::new(),
+            ontology_individual_ids: HashSet::new(),
+            ontology_property_ids: HashSet::new(),
+            agent_node_ids: HashSet::new(),
         }
     }
 
@@ -96,19 +108,110 @@ impl GraphStateActor {
         &self.graph_data
     }
 
-    
     pub fn get_node_map(&self) -> &HashMap<u32, Node> {
         &self.node_map
     }
 
-    
+    /// Returns node type arrays for binary protocol encoding
+    pub fn get_node_type_arrays(&self) -> NodeTypeArrays {
+        NodeTypeArrays {
+            knowledge_ids: self.knowledge_node_ids.iter().cloned().collect(),
+            agent_ids: self.agent_node_ids.iter().cloned().collect(),
+            ontology_class_ids: self.ontology_class_ids.iter().cloned().collect(),
+            ontology_individual_ids: self.ontology_individual_ids.iter().cloned().collect(),
+            ontology_property_ids: self.ontology_property_ids.iter().cloned().collect(),
+        }
+    }
+
+    /// Classify a single node into the appropriate type set based on its node_type and owl_class_iri fields
+    fn classify_node(&mut self, node: &Node) {
+        let node_id = node.id;
+        match node.node_type.as_deref() {
+            Some("page") | Some("linked_page") => {
+                self.knowledge_node_ids.insert(node_id);
+            }
+            Some("owl_class") => {
+                self.ontology_class_ids.insert(node_id);
+            }
+            Some("owl_individual") => {
+                self.ontology_individual_ids.insert(node_id);
+            }
+            Some("owl_property") => {
+                self.ontology_property_ids.insert(node_id);
+            }
+            Some("agent") | Some("bot") => {
+                self.agent_node_ids.insert(node_id);
+            }
+            _ => {
+                // Check owl_class_iri as secondary signal for ontology class
+                if node.owl_class_iri.is_some() {
+                    self.ontology_class_ids.insert(node_id);
+                } else {
+                    // Default: most nodes from logseq are knowledge nodes
+                    self.knowledge_node_ids.insert(node_id);
+                }
+            }
+        }
+    }
+
+    /// Reclassify all nodes in the current graph_data into type sets
+    fn reclassify_all_nodes(&mut self) {
+        self.knowledge_node_ids.clear();
+        self.ontology_class_ids.clear();
+        self.ontology_individual_ids.clear();
+        self.ontology_property_ids.clear();
+        self.agent_node_ids.clear();
+
+        // Collect node data first to avoid borrow conflict
+        let nodes: Vec<(u32, Option<String>, Option<String>)> = self.graph_data.nodes.iter()
+            .map(|n| (n.id, n.node_type.clone(), n.owl_class_iri.clone()))
+            .collect();
+
+        for (node_id, node_type, owl_class_iri) in &nodes {
+            match node_type.as_deref() {
+                Some("page") | Some("linked_page") => {
+                    self.knowledge_node_ids.insert(*node_id);
+                }
+                Some("owl_class") => {
+                    self.ontology_class_ids.insert(*node_id);
+                }
+                Some("owl_individual") => {
+                    self.ontology_individual_ids.insert(*node_id);
+                }
+                Some("owl_property") => {
+                    self.ontology_property_ids.insert(*node_id);
+                }
+                Some("agent") | Some("bot") => {
+                    self.agent_node_ids.insert(*node_id);
+                }
+                _ => {
+                    if owl_class_iri.is_some() {
+                        self.ontology_class_ids.insert(*node_id);
+                    } else {
+                        self.knowledge_node_ids.insert(*node_id);
+                    }
+                }
+            }
+        }
+
+        info!(
+            "Node type classification: knowledge={}, agent={}, owl_class={}, owl_individual={}, owl_property={}",
+            self.knowledge_node_ids.len(),
+            self.agent_node_ids.len(),
+            self.ontology_class_ids.len(),
+            self.ontology_individual_ids.len(),
+            self.ontology_property_ids.len(),
+        );
+    }
+
     fn add_node(&mut self, node: Node) {
         let node_id = node.id;
 
-        
+        // Classify the node by type
+        self.classify_node(&node);
+
         Arc::make_mut(&mut self.node_map).insert(node_id, node.clone());
 
-        
         Arc::make_mut(&mut self.graph_data).nodes.push(node);
 
         info!("Added node {} to graph", node_id);
@@ -116,14 +219,18 @@ impl GraphStateActor {
 
     
     fn remove_node(&mut self, node_id: u32) {
-        
         if Arc::make_mut(&mut self.node_map).remove(&node_id).is_some() {
-            
             let graph_data_mut = Arc::make_mut(&mut self.graph_data);
             graph_data_mut.nodes.retain(|n| n.id != node_id);
 
-            
             graph_data_mut.edges.retain(|e| e.source != node_id && e.target != node_id);
+
+            // Remove from all type classification sets
+            self.knowledge_node_ids.remove(&node_id);
+            self.ontology_class_ids.remove(&node_id);
+            self.ontology_individual_ids.remove(&node_id);
+            self.ontology_property_ids.remove(&node_id);
+            self.agent_node_ids.remove(&node_id);
 
             info!("Removed node {} and its edges from graph", node_id);
         } else {
@@ -205,10 +312,12 @@ impl GraphStateActor {
         
         self.generate_edges_from_metadata(&mut new_graph_data, &metadata);
 
-        
         self.graph_data = Arc::new(new_graph_data);
         self.node_map = Arc::new(new_node_map);
         self.next_node_id.store(current_id, std::sync::atomic::Ordering::SeqCst);
+
+        // Classify all nodes into type sets
+        self.reclassify_all_nodes();
 
         info!("Built graph from metadata: {} nodes, {} edges",
               self.graph_data.nodes.len(), self.graph_data.edges.len());
@@ -534,6 +643,9 @@ impl Actor for GraphStateActor {
                         act.next_node_id.store(max_id + 1, std::sync::atomic::Ordering::SeqCst);
                     }
 
+                    // Classify all loaded nodes into type sets
+                    act.reclassify_all_nodes();
+
                     info!("GraphStateActor initialized with {} nodes from Neo4j", arc_graph_data.nodes.len());
                 } else {
                     warn!("GraphStateActor starting with empty graph due to load failure");
@@ -643,14 +755,15 @@ impl Handler<UpdateGraphData> for GraphStateActor {
         info!("Updating graph data with {} nodes, {} edges",
               msg.graph_data.nodes.len(), msg.graph_data.edges.len());
 
-        
         self.graph_data = msg.graph_data;
 
-        
         Arc::make_mut(&mut self.node_map).clear();
         for node in &self.graph_data.nodes {
             Arc::make_mut(&mut self.node_map).insert(node.id, node.clone());
         }
+
+        // Reclassify all nodes after graph data update
+        self.reclassify_all_nodes();
 
         info!("Graph data updated successfully");
         Ok(())
@@ -803,6 +916,9 @@ impl Handler<ReloadGraphFromDatabase> for GraphStateActor {
                             act.next_node_id.store(max_id + 1, std::sync::atomic::Ordering::SeqCst);
                         }
 
+                        // Reclassify all nodes after reload
+                        act.reclassify_all_nodes();
+
                         info!(
                             "GraphStateActor: State updated after reload - {} nodes, {} edges",
                             act.graph_data.nodes.len(),
@@ -814,6 +930,14 @@ impl Handler<ReloadGraphFromDatabase> for GraphStateActor {
                 }
             }),
         )
+    }
+}
+
+impl Handler<GetNodeTypeArrays> for GraphStateActor {
+    type Result = NodeTypeArrays;
+
+    fn handle(&mut self, _msg: GetNodeTypeArrays, _ctx: &mut Self::Context) -> Self::Result {
+        self.get_node_type_arrays()
     }
 }
 
