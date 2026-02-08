@@ -436,15 +436,29 @@ export const settingsApi = {
 
   // Update a single setting by dot-notation path
   updateSettingByPath: async <T>(path: string, value: T): Promise<void> => {
-    // Map client paths to API endpoints
-    if (path.startsWith('visualisation.graphs.') && path.includes('.physics')) {
-      await settingsApi.updatePhysics({ [path.split('.').pop()!]: value } as any);
-    } else if (path.startsWith('visualisation.rendering')) {
-      await settingsApi.updateRendering({ [path.split('.').pop()!]: value } as any);
-    } else if (path.startsWith('qualityGates')) {
-      await settingsApi.updateQualityGates({ [path.split('.').pop()!]: value } as any);
+    try {
+      // Map client paths to API endpoints
+      if (path.startsWith('visualisation.graphs.') && path.includes('.physics')) {
+        await settingsApi.updatePhysics({ [path.split('.').pop()!]: value } as any);
+      } else if (path.startsWith('visualisation.rendering')) {
+        await settingsApi.updateRendering({ [path.split('.').pop()!]: value } as any);
+      } else if (path.startsWith('qualityGates')) {
+        await settingsApi.updateQualityGates({ [path.split('.').pop()!]: value } as any);
+      } else if (path.startsWith('nodeFilter')) {
+        await settingsApi.updateNodeFilter({ [path.split('.').pop()!]: value } as any);
+      } else {
+        // For paths without a dedicated backend endpoint (glow, edges, hologram,
+        // graphTypeVisuals, nodes, labels, etc.), persist to localStorage via
+        // the settingsStore partialize. The Zustand persist middleware handles
+        // this automatically since partialSettings is now included in partialize.
+        // Log at debug level so developers can track unhandled server paths.
+        console.debug(`[settingsApi] Path "${path}" persisted to localStorage only (no server endpoint)`);
+      }
+    } catch (error) {
+      // Log but don't throw -- the value is already saved in settingsStore/localStorage.
+      // Server-side persistence failure should not block the UI.
+      console.warn(`[settingsApi] Server update failed for "${path}", value persisted locally`, error);
     }
-    // For paths without backend support, store locally (already handled by settingsStore)
   },
 
   // Update multiple settings by paths
@@ -453,6 +467,8 @@ export const settingsApi = {
     const physicsUpdates: Record<string, any> = {};
     const renderingUpdates: Record<string, any> = {};
     const qualityGatesUpdates: Record<string, any> = {};
+    const nodeFilterUpdates: Record<string, any> = {};
+    const localOnlyPaths: string[] = [];
 
     for (const { path, value } of updates) {
       if (path.includes('.physics.')) {
@@ -464,10 +480,21 @@ export const settingsApi = {
       } else if (path.startsWith('qualityGates.')) {
         const key = path.split('.').pop()!;
         qualityGatesUpdates[key] = value;
+      } else if (path.startsWith('nodeFilter.')) {
+        const key = path.split('.').pop()!;
+        nodeFilterUpdates[key] = value;
+      } else {
+        // Paths without server endpoints (glow, edges, hologram, graphTypeVisuals, etc.)
+        // are persisted to localStorage by the settingsStore partialize.
+        localOnlyPaths.push(path);
       }
     }
 
-    // Send batched updates
+    if (localOnlyPaths.length > 0) {
+      console.debug(`[settingsApi] ${localOnlyPaths.length} paths persisted to localStorage only:`, localOnlyPaths);
+    }
+
+    // Send batched updates to server for supported categories
     const promises: Promise<any>[] = [];
     if (Object.keys(physicsUpdates).length > 0) {
       promises.push(settingsApi.updatePhysics(physicsUpdates as any));
@@ -478,8 +505,13 @@ export const settingsApi = {
     if (Object.keys(qualityGatesUpdates).length > 0) {
       promises.push(settingsApi.updateQualityGates(qualityGatesUpdates as any));
     }
+    if (Object.keys(nodeFilterUpdates).length > 0) {
+      promises.push(settingsApi.updateNodeFilter(nodeFilterUpdates as any));
+    }
 
-    await Promise.all(promises);
+    if (promises.length > 0) {
+      await Promise.all(promises);
+    }
   },
 
   // Flush any pending updates (no-op for now, updates are immediate)

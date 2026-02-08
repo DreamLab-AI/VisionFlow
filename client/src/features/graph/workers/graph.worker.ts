@@ -146,6 +146,9 @@ class GraphWorker {
     enableClustering: true,       // Enable semantic clustering
   };
 
+  // Idempotency guard: skip updateSettings when physics values haven't changed
+  private _lastPhysicsKey: string = '';
+
   // Edge lookup for O(1) neighbor access
   private edgeSourceMap: Map<string, string[]> = new Map();
   private edgeTargetMap: Map<string, string[]> = new Map();
@@ -277,9 +280,18 @@ class GraphWorker {
 
   
   async updateSettings(settings: any): Promise<void> {
-    // Server physics interpolation settings (for logseq)
+    // Extract only physics-relevant settings
     const graphSettings = settings?.visualisation?.graphs?.[this.graphType]?.physics ||
                          settings?.visualisation?.physics;
+    const vfPhysics = (this.graphType === 'visionflow')
+      ? (settings?.visualisation?.graphs?.visionflow?.physics || {})
+      : null;
+
+    // Idempotency: bail if physics values haven't changed (prevents unnecessary
+    // parameter resets that can disrupt a running force-directed simulation)
+    const physicsKey = JSON.stringify({ gs: graphSettings, vf: vfPhysics });
+    if (physicsKey === this._lastPhysicsKey) return;
+    this._lastPhysicsKey = physicsKey;
 
     this.physicsSettings = {
       springStrength: graphSettings?.springStrength ?? 0.001,
@@ -289,13 +301,12 @@ class GraphWorker {
     };
 
     // Force-directed physics settings (for visionflow)
-    if (this.graphType === 'visionflow') {
-      const vfPhysics = settings?.visualisation?.graphs?.visionflow?.physics || {};
+    if (this.graphType === 'visionflow' && vfPhysics) {
       const wasEnabled = this.forcePhysics.enabled;
 
       // Map UI settings to force physics parameters
       this.forcePhysics.enabled = vfPhysics.enabled ?? true;
-      this.forcePhysics.repulsionStrength = (vfPhysics.repelK ?? 1.0) * 500; // Scale for good defaults
+      this.forcePhysics.repulsionStrength = (vfPhysics.repelK ?? 1.0) * 500;
       this.forcePhysics.attractionStrength = vfPhysics.springK ?? 0.05;
       this.forcePhysics.damping = vfPhysics.damping ?? 0.85;
       this.forcePhysics.maxVelocity = vfPhysics.maxVelocity ?? 5.0;

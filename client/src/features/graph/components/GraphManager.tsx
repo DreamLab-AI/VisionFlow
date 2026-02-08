@@ -837,25 +837,32 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   }, [nodeBloomStrength]);
   
   
-  useEffect(() => {
-    if (materialRef.current && settings?.visualisation) {
-      
-      const logseqSettings = settings.visualisation.graphs?.logseq;
-      const nodeSettings = logseqSettings?.nodes || settings.visualisation.nodes;
+  // Narrow dependency to the specific primitive values actually read by this effect.
+  // Using [settings?.visualisation] would fire on any vis sub-path change (edges, glow, etc.)
+  // which causes unnecessary material updates and contributes to render churn.
+  const nodeBaseColor = settings?.visualisation?.graphs?.logseq?.nodes?.baseColor
+    || settings?.visualisation?.nodes?.baseColor;
+  const nodeOpacity = settings?.visualisation?.graphs?.logseq?.nodes?.opacity
+    ?? settings?.visualisation?.nodes?.opacity;
+  const nodeEnableHologram = settings?.visualisation?.graphs?.logseq?.nodes?.enableHologram
+    ?? settings?.visualisation?.nodes?.enableHologram;
+  const animPulseStrength = settings?.visualisation?.animations?.pulseStrength;
 
+  useEffect(() => {
+    if (materialRef.current) {
       materialRef.current.updateColors(
-        nodeSettings?.baseColor || '#00ffff',
-        nodeSettings?.baseColor || '#00ffff'
+        nodeBaseColor || '#00ffff',
+        nodeBaseColor || '#00ffff'
       )
-      materialRef.current.uniforms.opacity.value = nodeSettings?.opacity ?? 0.8;
+      materialRef.current.uniforms.opacity.value = nodeOpacity ?? 0.8;
       materialRef.current.setHologramEnabled(
-        nodeSettings?.enableHologram !== false
+        nodeEnableHologram !== false
       )
       materialRef.current.updateHologramParams({
-        glowStrength: settings.visualisation.animations?.pulseStrength || 1.0,
+        glowStrength: animPulseStrength || 1.0,
       })
     }
-  }, [settings?.visualisation])
+  }, [nodeBaseColor, nodeOpacity, nodeEnableHologram, animPulseStrength])
 
   
   useEffect(() => {
@@ -966,9 +973,17 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   }, [graphData, normalizedSSSPResult])
 
   
+  // Only forward settings to the worker when physics parameters actually change.
+  // Non-physics settings (edge opacity, glow, hologram, etc.) are irrelevant to the worker
+  // and sending them would cause unnecessary physics parameter resets that disrupt layout.
+  const physicsFingerprint = useMemo(() => JSON.stringify({
+    vf: settings?.visualisation?.graphs?.visionflow?.physics,
+    lq: settings?.visualisation?.graphs?.logseq?.physics,
+  }), [settings?.visualisation?.graphs?.visionflow?.physics, settings?.visualisation?.graphs?.logseq?.physics]);
+
   useEffect(() => {
     graphWorkerProxy.updateSettings(settings);
-  }, [settings]);
+  }, [physicsFingerprint]);
 
 
   useFrame(async (state, delta) => {

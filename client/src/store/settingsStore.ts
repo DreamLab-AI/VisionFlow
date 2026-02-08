@@ -897,34 +897,54 @@ export const useSettingsStore = create<SettingsState>()(
       name: 'graph-viz-settings-v2',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
-        
+        // Auth state
         authenticated: state.authenticated,
         user: state.user,
         isPowerUser: state.isPowerUser,
-        
-        essentialPaths: ESSENTIAL_PATHS.reduce((acc, path) => {
-          const value = (state.partialSettings as Record<string, unknown>)[path];
-          if (value !== undefined) {
-            acc[path] = value;
-          }
-          return acc;
-        }, {} as Record<string, unknown>)
+        // Persist ALL settings so visual settings (edges, glow, hologram, graphTypeVisuals, etc.)
+        // survive page reloads. The server only handles a subset of categories, so localStorage
+        // is the primary persistence layer for client-side visual settings.
+        partialSettings: state.partialSettings,
       }),
       merge: (persistedState: unknown, currentState: SettingsState): SettingsState => {
         if (!persistedState) return currentState;
         const persisted = persistedState as Record<string, unknown>;
+
+        // Deep-merge persisted partialSettings into the current state so that
+        // server-fetched values take priority during initialize(), but any settings
+        // that were only stored locally are restored from localStorage.
+        const persistedSettings = (persisted.partialSettings as DeepPartial<Settings>) || {};
+
+        // Reconstruct loadedPaths from the persisted settings keys
+        const restoredPaths = new Set<string>();
+        const collectPaths = (obj: unknown, prefix: string = '') => {
+          if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
+            for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
+              const currentPath = prefix ? `${prefix}.${key}` : key;
+              if (value && typeof value === 'object' && !Array.isArray(value)) {
+                collectPaths(value, currentPath);
+              } else {
+                restoredPaths.add(currentPath);
+              }
+            }
+          }
+        };
+        collectPaths(persistedSettings);
+
         return {
           ...currentState,
           authenticated: (persisted.authenticated as boolean) || false,
           user: (persisted.user as SettingsState['user']) || null,
           isPowerUser: (persisted.isPowerUser as boolean) || false,
-          
+          partialSettings: persistedSettings,
+          settings: persistedSettings,
+          loadedPaths: restoredPaths,
         };
       },
       onRehydrateStorage: () => (state) => {
         if (state) {
           if (debugState.isEnabled()) {
-            logger.info('Settings store rehydrated from storage');
+            logger.info('Settings store rehydrated from storage with persisted visual settings');
           }
         }
       }
