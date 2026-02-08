@@ -34,8 +34,6 @@ pub mod ptx;
 #[cfg(test)]
 mod ptx_tests;
 pub mod realtime_integration;
-pub mod resource_monitor;
-pub mod session_log_monitor;
 pub mod socket_flow_constants;
 pub mod socket_flow_messages;
 pub mod standard_websocket_messages;
