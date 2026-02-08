@@ -943,14 +943,10 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         const nodeScale = getNodeScale(node, graphData.edges, connectionCountMap, nodeVisualMode, hierarchyMap) * baseScale;
         tempMatrix.makeScale(nodeScale, nodeScale, nodeScale);
 
-
-        const angle = (i / graphData.nodes.length) * Math.PI * 2;
-        const radius = 10;
-        tempMatrix.setPosition(
-          Math.cos(angle) * radius,
-          (Math.random() - 0.5) * 5,
-          Math.sin(angle) * radius
-        );
+        // Use node's actual position (from API or force-directed layout),
+        // NOT a hardcoded circle — that would flash/reset on graphData change.
+        const pos = node.position || { x: 0, y: 0, z: 0 };
+        tempMatrix.setPosition(pos.x, pos.y, pos.z);
 
         mesh.setMatrixAt(i, tempMatrix);
       })
