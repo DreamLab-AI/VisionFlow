@@ -18,6 +18,7 @@ use std::collections::HashMap;
 use std::time::Duration as StdDuration;
 use uuid::Uuid;
 use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable, accepted};
+use crate::ports::ontology_repository::OntologyRepository;
 
 use crate::actors::messages::{
     ApplyInferences, ClearOntologyCaches, GetOntologyHealth, GetOntologyReport, LoadOntologyAxioms,
@@ -363,15 +364,47 @@ fn actor_timeout() -> StdDuration {
     StdDuration::from_secs(30)
 }
 
-fn extract_property_graph(_state: &AppState) -> Result<PropertyGraph, ErrorResponse> {
-    
-    
-    
-    Ok(PropertyGraph {
-        nodes: vec![],            
-        edges: vec![],            
-        metadata: HashMap::new(), 
-    })
+async fn extract_property_graph(state: &AppState) -> Result<PropertyGraph, ErrorResponse> {
+    use crate::services::owl_validator::{GraphNode, GraphEdge};
+
+    match state.ontology_repository.load_ontology_graph().await {
+        Ok(graph_data) => {
+            let nodes: Vec<GraphNode> = graph_data.nodes.iter().map(|n| {
+                let mut properties = HashMap::new();
+                properties.insert("label".to_string(), serde_json::json!(n.label));
+                if let Some(ref iri) = n.owl_class_iri {
+                    properties.insert("owl_class_iri".to_string(), serde_json::json!(iri));
+                }
+                GraphNode {
+                    id: n.metadata_id.clone(),
+                    labels: vec![n.label.clone()],
+                    properties,
+                }
+            }).collect();
+
+            let edges: Vec<GraphEdge> = graph_data.edges.iter().map(|e| {
+                GraphEdge {
+                    id: format!("{}-{}", e.source, e.target),
+                    source: e.source.to_string(),
+                    target: e.target.to_string(),
+                    relationship_type: e.edge_type.clone().unwrap_or_else(|| "RELATES".to_string()),
+                    properties: HashMap::new(),
+                }
+            }).collect();
+
+            Ok(PropertyGraph {
+                nodes,
+                edges,
+                metadata: HashMap::new(),
+            })
+        }
+        Err(e) => {
+            Err(ErrorResponse::new(
+                &format!("Failed to extract property graph: {}", e),
+                "PROPERTY_GRAPH_EXTRACTION_FAILED",
+            ))
+        }
+    }
 }
 
 // ============================================================================
@@ -492,7 +525,7 @@ pub async fn validate_ontology(
     }
 
 
-    let property_graph = match extract_property_graph(&state) {
+    let property_graph = match extract_property_graph(&state).await {
         Ok(graph) => graph,
         Err(error) => return Ok::<HttpResponse, actix_web::Error>(HttpResponse::InternalServerError().json(error)),
     };
@@ -846,7 +879,7 @@ pub async fn validate_graph(
     }
 
 
-    let property_graph = match extract_property_graph(&state) {
+    let property_graph = match extract_property_graph(&state).await {
         Ok(graph) => graph,
         Err(error) => return Ok::<HttpResponse, actix_web::Error>(HttpResponse::InternalServerError().json(error)),
     };

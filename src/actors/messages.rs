@@ -1611,6 +1611,9 @@ pub struct StressMajorizationConfig {
 
 // =============================================================================
 // Semantic Forces Actor Messages
+// NOTE: These messages are defined but SemanticForcesActor does NOT implement
+// Handler for any of them. They cannot be sent to any actor until Handler impls
+// are added to SemanticForcesActor (or another actor).
 // =============================================================================
 
 #[derive(Message, Debug, Clone, Serialize, Deserialize)]

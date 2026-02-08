@@ -867,8 +867,14 @@ impl Handler<UpdateBotsGraph> for GraphStateActor {
         bots_graph_data_mut.nodes = nodes;
         bots_graph_data_mut.edges = edges;
 
-        info!("Updated bots graph with {} agents and {} edges",
-             msg.agents.len(), self.bots_graph_data.edges.len());
+        // Classify all bots_graph_data nodes as agent nodes so binary protocol
+        // sets bit 31 for them via NodeTypeArrays.
+        for node in &self.bots_graph_data.nodes {
+            self.agent_node_ids.insert(node.id);
+        }
+
+        info!("Updated bots graph with {} agents and {} edges (agent_node_ids={})",
+             msg.agents.len(), self.bots_graph_data.edges.len(), self.agent_node_ids.len());
     }
 }
 

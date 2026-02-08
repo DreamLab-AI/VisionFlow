@@ -68,7 +68,7 @@ impl VoiceSwarmIntegration for SpeechService {
 
                 let error_response = TaggedVoiceResponse {
                     response: SwarmVoiceResponse {
-                        text: "Voice command processing is currently unavailable. Please use the API endpoints instead.".to_string(),
+                        text: "Voice command processing has been deprecated. Use the REST API endpoints instead.".to_string(),
                         use_voice: true,
                         metadata: None,
                         follow_up: None,
@@ -136,7 +136,7 @@ impl VoiceSwarmIntegration for SpeechService {
                 warn!("Voice command processing deprecated - SupervisorActor handler removed");
 
                 let error_response = SwarmVoiceResponse {
-                    text: "Voice command processing is currently unavailable. Please use the API endpoints instead.".to_string(),
+                    text: "Voice command processing has been deprecated. Use the REST API endpoints instead.".to_string(),
                     use_voice: true,
                     metadata: None,
                     follow_up: None,

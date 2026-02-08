@@ -235,20 +235,33 @@ pub async fn create_user_constraint(
 pub async fn get_constraint_stats(state: web::Data<AppState>) -> impl Responder {
     info!("GET /api/constraints/stats - Fetching constraint statistics");
 
-    
-    
-    let stats = ConstraintStatsResponse {
-        total_constraints: 150,
-        active_constraints: 120,
-        ontology_constraints: 80,
-        user_constraints: 40,
-        constraint_evaluation_count: 1500,
-        last_update_time_ms: 3.2,
-        gpu_status: "operational".to_string(),
-        cache_hit_rate: 0.85,
-    };
-
-    ok_json!(stats)
+    match state
+        .graph_service_addr
+        .send(crate::actors::messages::GetConstraintStats)
+        .await
+    {
+        Ok(Ok(stats)) => {
+            let response = ConstraintStatsResponse {
+                total_constraints: stats.total_constraints as u32,
+                active_constraints: stats.active_constraints as u32,
+                ontology_constraints: stats.ontology_constraints as u32,
+                user_constraints: stats.user_constraints as u32,
+                constraint_evaluation_count: 0,
+                last_update_time_ms: 0.0,
+                gpu_status: "operational".to_string(),
+                cache_hit_rate: 0.0,
+            };
+            ok_json!(response)
+        }
+        Ok(Err(e)) => {
+            error!("Failed to fetch constraint stats: {}", e);
+            error_json!("Failed to fetch constraint statistics")
+        }
+        Err(e) => {
+            error!("Actor mailbox error: {}", e);
+            error_json!("Actor communication failed")
+        }
+    }
 }
 
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {

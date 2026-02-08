@@ -469,6 +469,52 @@ impl OntologyRepository for Neo4jOntologyRepository {
         Ok(classes)
     }
 
+    #[instrument(skip(self))]
+    async fn remove_owl_class(&self, iri: &str) -> RepoResult<()> {
+        debug!("Removing OWL class: {}", iri);
+
+        let query_str = "
+            MATCH (c:OwlClass {iri: $iri})
+            DETACH DELETE c
+        ";
+
+        self.graph
+            .run(query(query_str).param("iri", iri.to_string()))
+            .await
+            .map_err(|e| {
+                OntologyRepositoryError::DatabaseError(format!(
+                    "Failed to remove OWL class: {}",
+                    e
+                ))
+            })?;
+
+        info!("Removed OWL class and its relationships: {}", iri);
+        Ok(())
+    }
+
+    #[instrument(skip(self))]
+    async fn remove_axiom(&self, axiom_id: u64) -> RepoResult<()> {
+        debug!("Removing OWL axiom: {}", axiom_id);
+
+        let query_str = "
+            MATCH (a:OwlAxiom {id: $id})
+            DETACH DELETE a
+        ";
+
+        self.graph
+            .run(query(query_str).param("id", axiom_id as i64))
+            .await
+            .map_err(|e| {
+                OntologyRepositoryError::DatabaseError(format!(
+                    "Failed to remove OWL axiom: {}",
+                    e
+                ))
+            })?;
+
+        info!("Removed OWL axiom: {}", axiom_id);
+        Ok(())
+    }
+
     // ============================================================
     // OWL Property Methods
     // ============================================================

@@ -164,12 +164,10 @@ impl DirectiveHandler<RemoveOwlClass> for RemoveOwlClassHandler {
                 return Err(Hexserror::not_found("OWL class", &directive.iri));
             }
 
-            
-            
-            log::warn!(
-                "OWL class removal not yet implemented in repository: iri={}",
-                directive.iri
-            );
+            self.repository
+                .remove_owl_class(&directive.iri)
+                .await
+                .map_err(|e| Hexserror::port("E_REPO_001", &format!("{}", e)))?;
 
             log::info!("OWL class removed successfully: iri={}", directive.iri);
             Ok(())
@@ -377,11 +375,10 @@ impl DirectiveHandler<RemoveAxiom> for RemoveAxiomHandler {
         tokio::runtime::Handle::current().block_on(async {
             log::info!("Executing RemoveAxiom directive: id={}", directive.axiom_id);
 
-            
-            log::warn!(
-                "Axiom removal not yet implemented in repository: id={}",
-                directive.axiom_id
-            );
+            self.repository
+                .remove_axiom(directive.axiom_id)
+                .await
+                .map_err(|e| Hexserror::port("E_REPO_001", &format!("{}", e)))?;
 
             log::info!("Axiom removed successfully: id={}", directive.axiom_id);
             Ok(())

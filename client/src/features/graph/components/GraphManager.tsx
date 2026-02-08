@@ -22,6 +22,7 @@ import { registerNodeObject, unregisterNodeObject } from '../../visualisation/ho
 import { useAnalyticsStore, useCurrentSSSPResult } from '../../analytics/store/analyticsStore'
 import { detectHierarchy } from '../utils/hierarchyDetector'
 import { useExpansionState } from '../hooks/useExpansionState'
+import { AgentNodesLayer, useAgentNodes } from '../../visualisation/components/AgentNodesLayer'
 // import { useBloomStrength } from '../contexts/BloomContext'
 
 const logger = createLogger('GraphManager')
@@ -591,6 +592,9 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
 
   // CLIENT-SIDE HIERARCHICAL LOD: Expansion state (per-client, no server persistence)
   const expansionState = useExpansionState(true); // Default: all expanded
+
+  // Agent nodes overlay: polls /api/bots/agents for live agent telemetry
+  const { agents: agentLayerNodes, connections: agentLayerConnections } = useAgentNodes();
 
   // === GRAPH VISUAL MODE DETECTION ===
   // Priority: 1) settings store, 2) auto-detect from node data, 3) default
@@ -1826,6 +1830,11 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         nodeIdToIndexMap={nodeIdToIndexMap}
         settings={settings}
       />
+
+      {/* Agent nodes overlay: bioluminescent agent visualization from Management API */}
+      {agentLayerNodes.length > 0 && (
+        <AgentNodesLayer agents={agentLayerNodes} connections={agentLayerConnections} />
+      )}
 
       {}
       {NodeLabels}

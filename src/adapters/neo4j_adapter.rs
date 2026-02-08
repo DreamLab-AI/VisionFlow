@@ -1053,9 +1053,31 @@ impl KnowledgeGraphRepository for Neo4jAdapter {
         Ok(())
     }
 
-    async fn query_nodes(&self, query: &str) -> RepoResult<Vec<Node>> {
-        warn!("query_nodes with custom query not yet implemented for Neo4j");
-        Ok(Vec::new())
+    async fn query_nodes(&self, cypher_query: &str) -> RepoResult<Vec<Node>> {
+        info!("query_nodes: executing custom Cypher query");
+
+        let query = Query::new(cypher_query.to_string());
+
+        let mut nodes = Vec::new();
+        let mut result = self.graph.execute(query).await.map_err(|e| {
+            KnowledgeGraphRepositoryError::DatabaseError(format!(
+                "Failed to execute query_nodes: {}",
+                e
+            ))
+        })?;
+
+        while let Ok(Some(row)) = result.next().await {
+            if let Ok(neo4j_node) = row.get::<Neo4jNode>("n") {
+                match Self::neo4j_node_to_node(&neo4j_node) {
+                    Ok(node) => nodes.push(node),
+                    Err(e) => {
+                        warn!("Skipping node due to conversion error: {}", e);
+                    }
+                }
+            }
+        }
+
+        Ok(nodes)
     }
 
     async fn get_neighbors(&self, node_id: u32) -> RepoResult<Vec<Node>> {

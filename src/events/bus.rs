@@ -70,10 +70,16 @@ impl EventBus {
 
         
         let subscribers = self.subscribers.read().await;
-        let handlers = subscribers
+        let mut handlers = subscribers
             .get(event.event_type())
             .cloned()
             .unwrap_or_default();
+        // Also dispatch to wildcard ("*") handlers (audit, notification, etc.)
+        if event.event_type() != "*" {
+            if let Some(wildcard_handlers) = subscribers.get("*") {
+                handlers.extend(wildcard_handlers.iter().cloned());
+            }
+        }
         drop(subscribers);
 
         

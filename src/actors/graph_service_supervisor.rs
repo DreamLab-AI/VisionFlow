@@ -943,10 +943,25 @@ impl Handler<msgs::GetBotsGraphData> for GraphServiceSupervisor {
     type Result =
         ResponseActFuture<Self, Result<std::sync::Arc<crate::models::graph::GraphData>, String>>;
 
-    fn handle(&mut self, _msg: msgs::GetBotsGraphData, _ctx: &mut Self::Context) -> Self::Result {
-        warn!("GetBotsGraphData: Supervisor not fully implemented");
-        let result = Err("Supervisor not fully implemented".to_string()); 
-        Box::pin(actix::fut::ready(result))
+    fn handle(&mut self, msg: msgs::GetBotsGraphData, _ctx: &mut Self::Context) -> Self::Result {
+        if let Some(ref graph_state_addr) = self.graph_state {
+            let addr = graph_state_addr.clone();
+            Box::pin(
+                async move {
+                    match addr.send(msg).await {
+                        Ok(result) => result,
+                        Err(e) => {
+                            error!("Failed to forward GetBotsGraphData to GraphStateActor: {}", e);
+                            Err(format!("Message forwarding failed: {}", e))
+                        }
+                    }
+                }
+                .into_actor(self),
+            )
+        } else {
+            warn!("GetBotsGraphData: GraphStateActor not initialized");
+            Box::pin(actix::fut::ready(Err("GraphStateActor not initialized".to_string())))
+        }
     }
 }
 

@@ -21,7 +21,14 @@ use crate::types::claude_flow::{
 };
 use crate::utils::time;
 
-fn task_to_agent_status(task: TaskInfo) -> AgentStatus {
+/// Container telemetry metrics from Management API /v1/status
+#[derive(Debug, Clone, Default)]
+struct ContainerTelemetry {
+    cpu_usage: f32,
+    memory_usage_mb: f32,
+}
+
+fn task_to_agent_status(task: TaskInfo, telemetry: &ContainerTelemetry) -> AgentStatus {
     use chrono::TimeZone;
 
     let agent_type_enum = match task.agent.as_str() {
@@ -33,17 +40,14 @@ fn task_to_agent_status(task: TaskInfo) -> AgentStatus {
         _ => AgentType::Coordinator,
     };
 
-    
     let timestamp = chrono::Utc
         .timestamp_millis_opt(task.start_time as i64)
         .single()
         .unwrap_or_else(|| time::now());
 
-    
     let age = (time::timestamp_millis() - task.start_time as i64) / 1000;
 
     AgentStatus {
-        
         agent_id: task.task_id.clone(),
         profile: AgentProfile {
             name: format!("{} ({})", task.agent, &task.task_id[..8]),
@@ -63,9 +67,9 @@ fn task_to_agent_status(task: TaskInfo) -> AgentStatus {
         agent_type: task.agent.clone(),
         current_task_description: Some(task.task.clone()),
         capabilities: vec![format!("Provider: {}", task.provider)],
-        position: None, 
-        cpu_usage: 0.5,
-        memory_usage: 200.0,
+        position: None,
+        cpu_usage: telemetry.cpu_usage,
+        memory_usage: telemetry.memory_usage_mb,
         health: 1.0,
         activity: 0.8,
         tasks_active: 1,
@@ -90,24 +94,24 @@ fn task_to_agent_status(task: TaskInfo) -> AgentStatus {
         workload: Some(0.5),
     }
 }
+
 pub struct AgentMonitorActor {
     _client: ClaudeFlowClient,
     graph_service_addr: Addr<crate::actors::GraphServiceSupervisor>,
     management_api_client: ManagementApiClient,
 
-    
     is_connected: bool,
 
-    
     polling_interval: Duration,
     last_poll: DateTime<Utc>,
 
-    
     agent_cache: HashMap<String, AgentStatus>,
 
-    
     consecutive_poll_failures: u32,
     last_successful_poll: Option<DateTime<Utc>>,
+
+    /// Cached container telemetry from Management API /v1/status
+    container_telemetry: ContainerTelemetry,
 }
 
 impl AgentMonitorActor {
@@ -117,7 +121,6 @@ impl AgentMonitorActor {
     ) -> Self {
         info!("[AgentMonitorActor] Initializing with Management API monitoring");
 
-        
         let host = std::env::var("MANAGEMENT_API_HOST")
             .unwrap_or_else(|_| "agentic-workstation".to_string());
         let port = std::env::var("MANAGEMENT_API_PORT")
@@ -137,15 +140,15 @@ impl AgentMonitorActor {
             graph_service_addr,
             management_api_client,
             is_connected: false,
-            polling_interval: Duration::from_secs(3), 
+            polling_interval: Duration::from_secs(3),
             last_poll: time::now(),
             agent_cache: HashMap::new(),
             consecutive_poll_failures: 0,
             last_successful_poll: None,
+            container_telemetry: ContainerTelemetry::default(),
         }
     }
 
-    
     fn poll_agent_statuses(&mut self, ctx: &mut Context<Self>) {
         debug!("[AgentMonitorActor] Polling active tasks from Management API");
 
@@ -154,7 +157,45 @@ impl AgentMonitorActor {
 
         ctx.spawn(
             async move {
-                match api_client.list_tasks().await {
+                // Fetch tasks and system status concurrently
+                let (tasks_result, status_result) = tokio::join!(
+                    api_client.list_tasks(),
+                    api_client.get_system_status()
+                );
+
+                // Extract container telemetry from system status
+                let telemetry = match &status_result {
+                    Ok(sys_status) => {
+                        let cpu = sys_status
+                            .system
+                            .get("cpu")
+                            .and_then(|v| v.as_f64())
+                            .unwrap_or(0.0) as f32;
+                        let mem = sys_status
+                            .system
+                            .get("memory")
+                            .and_then(|v| {
+                                // Try nested "used_mb" first, then top-level numeric
+                                v.get("used_mb")
+                                    .and_then(|m| m.as_f64())
+                                    .or_else(|| v.as_f64())
+                            })
+                            .unwrap_or(0.0) as f32;
+                        ContainerTelemetry {
+                            cpu_usage: cpu,
+                            memory_usage_mb: mem,
+                        }
+                    }
+                    Err(e) => {
+                        debug!(
+                            "[AgentMonitorActor] System status unavailable, using defaults: {}",
+                            e
+                        );
+                        ContainerTelemetry::default()
+                    }
+                };
+
+                match tasks_result {
                     Ok(task_list) => {
                         let active_count = task_list.active_tasks.len();
                         debug!(
@@ -162,14 +203,16 @@ impl AgentMonitorActor {
                             active_count
                         );
 
-                        
                         let agents: Vec<AgentStatus> = task_list
                             .active_tasks
                             .into_iter()
-                            .map(|task| task_to_agent_status(task))
+                            .map(|task| task_to_agent_status(task, &telemetry))
                             .collect();
 
-                        ctx_addr.do_send(ProcessAgentStatuses { agents });
+                        ctx_addr.do_send(ProcessAgentStatuses {
+                            agents,
+                            telemetry,
+                        });
                     }
                     Err(e) => {
                         error!("[AgentMonitorActor] Management API query failed: {}", e);
@@ -186,6 +229,7 @@ impl AgentMonitorActor {
 #[rtype(result = "()")]
 struct ProcessAgentStatuses {
     agents: Vec<AgentStatus>,
+    telemetry: ContainerTelemetry,
 }
 
 impl Actor for AgentMonitorActor {
@@ -196,7 +240,6 @@ impl Actor for AgentMonitorActor {
 
         self.is_connected = true;
 
-        
         ctx.address()
             .do_send(crate::actors::messages::InitializeActor);
     }
@@ -215,7 +258,7 @@ impl Handler<crate::actors::messages::InitializeActor> for AgentMonitorActor {
         ctx: &mut Self::Context,
     ) -> Self::Result {
         info!("[AgentMonitorActor] Initializing periodic polling (deferred from started)");
-        
+
         ctx.run_later(Duration::from_millis(100), |act, ctx| {
             ctx.run_interval(act.polling_interval, |act, ctx| {
                 act.poll_agent_statuses(ctx);
@@ -229,11 +272,15 @@ impl Handler<ProcessAgentStatuses> for AgentMonitorActor {
 
     fn handle(&mut self, msg: ProcessAgentStatuses, _ctx: &mut Self::Context) {
         info!(
-            "[AgentMonitorActor] Processing {} agent statuses from MCP",
-            msg.agents.len()
+            "[AgentMonitorActor] Processing {} agent statuses (cpu={:.1}%, mem={:.0}MB)",
+            msg.agents.len(),
+            msg.telemetry.cpu_usage,
+            msg.telemetry.memory_usage_mb
         );
 
-        
+        // Cache latest container telemetry
+        self.container_telemetry = msg.telemetry;
+
         let agent_count = msg.agents.len() as f32;
         let agents: Vec<crate::services::bots_client::Agent> = msg
             .agents
@@ -267,7 +314,6 @@ impl Handler<ProcessAgentStatuses> for AgentMonitorActor {
             })
             .collect();
 
-        
         let message = UpdateBotsGraph { agents };
         info!(
             "[AgentMonitorActor] Sending graph update with {} agents",
@@ -275,7 +321,6 @@ impl Handler<ProcessAgentStatuses> for AgentMonitorActor {
         );
         self.graph_service_addr.do_send(message);
 
-        
         if !msg.agents.is_empty() {
             self.agent_cache.clear();
             for agent in msg.agents {
@@ -283,7 +328,6 @@ impl Handler<ProcessAgentStatuses> for AgentMonitorActor {
             }
         }
 
-        
         self.consecutive_poll_failures = 0;
         self.last_successful_poll = Some(time::now());
     }

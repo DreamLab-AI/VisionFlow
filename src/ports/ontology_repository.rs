@@ -316,6 +316,12 @@ pub trait OntologyRepository: Send + Sync {
     }
 
 
+    /// Remove an OWL class by IRI
+    async fn remove_owl_class(&self, iri: &str) -> Result<()>;
+
+    /// Remove an axiom by ID
+    async fn remove_axiom(&self, axiom_id: u64) -> Result<()>;
+
     async fn get_metrics(&self) -> Result<OntologyMetrics>;
 
 

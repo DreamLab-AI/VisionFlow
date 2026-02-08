@@ -604,7 +604,41 @@ impl AppState {
         let query_bus = Arc::new(RwLock::new(QueryBus::new()));
         let event_bus = Arc::new(RwLock::new(EventBus::new()));
 
-        
+        // Register event handlers on the EventBus
+        {
+            use crate::events::handlers::{AuditEventHandler, NotificationEventHandler};
+
+            let bus = event_bus.write().await;
+            let audit_handler = Arc::new(AuditEventHandler::new("global-audit"));
+            let notification_handler = Arc::new(NotificationEventHandler::new("global-notifications"));
+            bus.subscribe(audit_handler).await;
+            bus.subscribe(notification_handler).await;
+            info!("[AppState::new] EventBus handlers registered: AuditEventHandler, NotificationEventHandler");
+        }
+
+        // Log warnings for settings that are present in config but not yet wired
+        {
+            let net = &settings.system.network;
+            let sec = &settings.system.security;
+
+            if net.enable_tls {
+                warn!("[Settings] system.network.enableTls is true but TLS termination is not implemented server-side. Use a reverse proxy for TLS.");
+            }
+            if net.enable_http2 {
+                warn!("[Settings] system.network.enableHttp2 is true but HTTP/2 is not implemented server-side. Use a reverse proxy for HTTP/2.");
+            }
+            if net.enable_rate_limiting {
+                warn!("[Settings] system.network.enableRateLimiting is true but rate limiting middleware is not yet wired. These values have no effect: rateLimitRequests={}, rateLimitWindow={}s",
+                    net.rate_limit_requests, net.rate_limit_window);
+            }
+            if net.enable_metrics {
+                warn!("[Settings] system.network.enableMetrics is true but metrics endpoint on port {} is not yet implemented.", net.metrics_port);
+            }
+            if sec.enable_request_validation {
+                warn!("[Settings] system.security.enableRequestValidation is true but request validation middleware is not yet wired.");
+            }
+        }
+
         info!("[AppState::new] Linking ClientCoordinatorActor to GraphServiceSupervisor for settling fix");
         
         let graph_supervisor_clone = graph_service_addr.clone();
