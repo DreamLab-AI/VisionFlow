@@ -213,6 +213,15 @@ struct Float3 {
     y: f32,
     z: f32,
 }
+// =============================================================================
+// GPU Kernel FFI Declarations (gated behind "gpu" feature)
+// =============================================================================
+//
+// When compiled WITHOUT the "gpu" feature, these symbols are not linked and all
+// call sites use the safe wrappers in `crate::gpu::kernel_bridge` which provide
+// CPU fallback implementations.
+
+#[cfg(feature = "gpu")]
 extern "C" {
     /// Upload semantic configuration to GPU constant memory
     fn set_semantic_config(config: *const SemanticConfigGPU);
@@ -255,61 +264,6 @@ extern "C" {
         num_edges: i32,
     );
 
-    /// Calculate hierarchy levels for DAG layout
-    fn calculate_hierarchy_levels(
-        edge_sources: *const i32,
-        edge_targets: *const i32,
-        edge_types: *const i32,
-        node_levels: *mut i32,
-        changed: *mut bool,
-        num_edges: i32,
-        num_nodes: i32,
-    );
-
-    /// Calculate centroid positions for each node type
-    fn calculate_type_centroids(
-        node_types: *const i32,
-        positions: *const Float3,
-        type_centroids: *mut Float3,
-        type_counts: *mut i32,
-        num_nodes: i32,
-        num_types: i32,
-    );
-
-    /// Finalize centroids by dividing by count
-    fn finalize_type_centroids(
-        type_centroids: *mut Float3,
-        type_counts: *const i32,
-        num_types: i32,
-    );
-
-    // ==========================================================================
-    // Dynamic Relationship Buffer Management (Hot-Reload)
-    // ==========================================================================
-
-    /// Upload dynamic relationship configurations to GPU
-    /// Enables ontology changes without CUDA recompilation
-    fn set_dynamic_relationship_buffer(
-        configs: *const DynamicForceConfigGPU,
-        num_types: i32,
-        enabled: bool,
-    ) -> i32;
-
-    /// Update a single relationship type configuration (hot-reload)
-    fn update_dynamic_relationship_config(
-        type_id: i32,
-        config: *const DynamicForceConfigGPU,
-    ) -> i32;
-
-    /// Enable or disable dynamic relationship forces
-    fn set_dynamic_relationships_enabled(enabled: bool) -> i32;
-
-    /// Get current buffer version for hot-reload detection
-    fn get_dynamic_relationship_buffer_version() -> i32;
-
-    /// Get maximum supported relationship types
-    fn get_max_relationship_types() -> i32;
-
     /// Apply dynamic relationship forces (schema-code decoupled)
     fn apply_dynamic_relationship_force(
         edge_sources: *const i32,
@@ -321,6 +275,9 @@ extern "C" {
         num_edges: i32,
     );
 }
+
+// Import the kernel bridge for safe access to gated FFI functions
+use crate::gpu::kernel_bridge;
 
 /// DAG layout configuration matching GPU kernel structure
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -615,7 +572,7 @@ impl SemanticForcesActor {
             }
         }
         {
-            // GPU-accelerated hierarchy computation using parallel BFS
+            // Hierarchy computation via kernel bridge (GPU when available, CPU fallback)
             if num_edges > 0 && !self.edge_sources.is_empty() {
                 let mut changed = true;
                 let mut iteration = 0;
@@ -623,17 +580,15 @@ impl SemanticForcesActor {
 
                 while changed && iteration < MAX_ITERATIONS {
                     changed = false;
-                    unsafe {
-                        calculate_hierarchy_levels(
-                            self.edge_sources.as_ptr(),
-                            self.edge_targets.as_ptr(),
-                            self.edge_types.as_ptr(),
-                            node_levels.as_mut_ptr(),
-                            &mut changed as *mut bool,
-                            num_edges as i32,
-                            num_nodes as i32,
-                        );
-                    }
+                    kernel_bridge::calculate_hierarchy_levels(
+                        &self.edge_sources,
+                        &self.edge_targets,
+                        &self.edge_types,
+                        &mut node_levels,
+                        &mut changed,
+                        num_edges,
+                        num_nodes,
+                    );
                     iteration += 1;
                 }
 
@@ -676,31 +631,29 @@ impl SemanticForcesActor {
         let mut centroids = vec![(0.0f32, 0.0f32, 0.0f32); self.num_types];
         let mut type_counts = vec![0usize; self.num_types];
 
-        // Calculate type centroids using GPU
+        // Calculate type centroids via kernel bridge (GPU or CPU fallback)
         if self.shared_context.is_some() && num_nodes > 0 && !self.node_types.is_empty() {
-            let mut centroid_f3 = vec![Float3 { x: 0.0, y: 0.0, z: 0.0 }; self.num_types];
+            let mut centroid_f3 = vec![kernel_bridge::Float3 { x: 0.0, y: 0.0, z: 0.0 }; self.num_types];
             let mut counts_i32 = vec![0i32; self.num_types];
 
-            let positions_f3: Vec<Float3> = positions.iter()
-                .map(|(x, y, z)| Float3 { x: *x, y: *y, z: *z })
+            let positions_f3: Vec<kernel_bridge::Float3> = positions.iter()
+                .map(|(x, y, z)| kernel_bridge::Float3 { x: *x, y: *y, z: *z })
                 .collect();
 
-            unsafe {
-                calculate_type_centroids(
-                    self.node_types.as_ptr(),
-                    positions_f3.as_ptr(),
-                    centroid_f3.as_mut_ptr(),
-                    counts_i32.as_mut_ptr(),
-                    num_nodes as i32,
-                    self.num_types as i32,
-                );
+            kernel_bridge::calculate_type_centroids(
+                &self.node_types,
+                &positions_f3,
+                &mut centroid_f3,
+                &mut counts_i32,
+                num_nodes,
+                self.num_types,
+            );
 
-                finalize_type_centroids(
-                    centroid_f3.as_mut_ptr(),
-                    counts_i32.as_ptr(),
-                    self.num_types as i32,
-                );
-            }
+            kernel_bridge::finalize_type_centroids(
+                &mut centroid_f3,
+                &counts_i32,
+                self.num_types,
+            );
 
             centroids = centroid_f3.iter()
                 .map(|f3| (f3.x, f3.y, f3.z))
@@ -855,24 +808,25 @@ impl Handler<ReloadRelationshipBuffer> for SemanticForcesActor {
 
         if msg.buffer.is_empty() {
             warn!("SemanticForcesActor: Empty buffer, disabling dynamic relationships");
-            unsafe {
-                set_dynamic_relationships_enabled(false);
-            }
+            kernel_bridge::set_dynamic_relationships_enabled(false);
             return Ok(());
         }
 
-        let result = unsafe {
-            set_dynamic_relationship_buffer(
-                msg.buffer.as_ptr(),
-                num_types as i32,
-                true,
+        // Convert from actor's DynamicForceConfigGPU to kernel_bridge's canonical type.
+        // Both are #[repr(C)] with identical layout (f32, f32, i32, u32 = 16 bytes).
+        // Safety: compile-time size assertions in this module verify layout compatibility.
+        let bridge_buffer: &[kernel_bridge::DynamicForceConfigGPU] = unsafe {
+            std::slice::from_raw_parts(
+                msg.buffer.as_ptr() as *const kernel_bridge::DynamicForceConfigGPU,
+                msg.buffer.len(),
             )
         };
+        let result = kernel_bridge::set_dynamic_relationship_buffer(bridge_buffer, true);
 
         if result == 0 {
             info!(
-                "SemanticForcesActor: Dynamic relationship buffer uploaded to GPU ({} types, version {})",
-                num_types, msg.version
+                "SemanticForcesActor: Dynamic relationship buffer uploaded ({} types, version {}, gpu={})",
+                num_types, msg.version, kernel_bridge::gpu_available()
             );
             Ok(())
         } else {

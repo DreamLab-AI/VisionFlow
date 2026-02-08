@@ -58,6 +58,9 @@ pub use semantic_forces::{
     DynamicForceConfigGPU, DynamicRelationshipBufferManager,
 };
 
+// CUDA kernel bridge (safe wrappers with CPU fallback)
+pub mod kernel_bridge;
+
 // Broadcast optimization module
 pub mod broadcast_optimizer;
 pub use broadcast_optimizer::{

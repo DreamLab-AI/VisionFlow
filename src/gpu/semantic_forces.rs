@@ -1176,25 +1176,10 @@ impl From<&RelationshipForceConfig> for DynamicForceConfigGPU {
     }
 }
 
-// FFI declarations for dynamic relationship buffer management
-extern "C" {
-    fn set_dynamic_relationship_buffer(
-        configs: *const DynamicForceConfigGPU,
-        num_types: i32,
-        enabled: bool,
-    ) -> i32;
-
-    fn update_dynamic_relationship_config(
-        type_id: i32,
-        config: *const DynamicForceConfigGPU,
-    ) -> i32;
-
-    fn set_dynamic_relationships_enabled(enabled: bool) -> i32;
-
-    fn get_dynamic_relationship_buffer_version() -> i32;
-
-    fn get_max_relationship_types() -> i32;
-}
+// Dynamic relationship buffer management now uses kernel_bridge for safe
+// GPU/CPU dispatch. The raw FFI declarations have been moved to kernel_bridge.rs
+// and gated behind cfg(feature = "gpu").
+use crate::gpu::kernel_bridge;
 
 /// Manager for dynamic relationship buffer on GPU
 /// Enables hot-reload of ontology force configurations without CUDA recompilation
@@ -1231,7 +1216,7 @@ impl DynamicRelationshipBufferManager {
 
     /// Upload a raw buffer of configurations to GPU
     pub fn upload_buffer(&mut self, configs: &[DynamicForceConfigGPU]) -> Result<(), String> {
-        let max_types = unsafe { get_max_relationship_types() } as usize;
+        let max_types = kernel_bridge::get_max_relationship_types() as usize;
 
         if configs.len() > max_types {
             return Err(format!(
@@ -1241,26 +1226,21 @@ impl DynamicRelationshipBufferManager {
             ));
         }
 
-        let result = unsafe {
-            set_dynamic_relationship_buffer(
-                if configs.is_empty() { std::ptr::null() } else { configs.as_ptr() },
-                configs.len() as i32,
-                true,
-            )
-        };
+        let result = kernel_bridge::set_dynamic_relationship_buffer(configs, true);
 
         if result != 0 {
             return Err(format!("CUDA error uploading relationship buffer: {}", result));
         }
 
-        self.current_version = unsafe { get_dynamic_relationship_buffer_version() };
+        self.current_version = kernel_bridge::get_dynamic_relationship_buffer_version();
         self.enabled = true;
         self.last_type_count = configs.len();
 
         info!(
-            "Uploaded {} relationship types to GPU (version {})",
+            "Uploaded {} relationship types (version {}, gpu={})",
             configs.len(),
-            self.current_version
+            self.current_version,
+            kernel_bridge::gpu_available()
         );
 
         Ok(())
@@ -1273,7 +1253,7 @@ impl DynamicRelationshipBufferManager {
         type_id: u32,
         config: &DynamicForceConfigGPU,
     ) -> Result<(), String> {
-        let max_types = unsafe { get_max_relationship_types() } as usize;
+        let max_types = kernel_bridge::get_max_relationship_types() as usize;
 
         if type_id as usize >= max_types {
             return Err(format!(
@@ -1282,13 +1262,13 @@ impl DynamicRelationshipBufferManager {
             ));
         }
 
-        let result = unsafe { update_dynamic_relationship_config(type_id as i32, config) };
+        let result = kernel_bridge::update_dynamic_relationship_config(type_id as i32, config);
 
         if result != 0 {
             return Err(format!("CUDA error updating relationship config: {}", result));
         }
 
-        self.current_version = unsafe { get_dynamic_relationship_buffer_version() };
+        self.current_version = kernel_bridge::get_dynamic_relationship_buffer_version();
 
         debug!(
             "Hot-reloaded relationship type {} (version {})",
@@ -1300,7 +1280,7 @@ impl DynamicRelationshipBufferManager {
 
     /// Enable or disable dynamic relationship forces on GPU
     pub fn set_enabled(&mut self, enabled: bool) -> Result<(), String> {
-        let result = unsafe { set_dynamic_relationships_enabled(enabled) };
+        let result = kernel_bridge::set_dynamic_relationships_enabled(enabled);
 
         if result != 0 {
             return Err(format!("CUDA error setting dynamic relationships enabled: {}", result));
@@ -1329,7 +1309,7 @@ impl DynamicRelationshipBufferManager {
 
     /// Get maximum supported relationship types
     pub fn max_types(&self) -> usize {
-        unsafe { get_max_relationship_types() as usize }
+        kernel_bridge::get_max_relationship_types() as usize
     }
 }
 
