@@ -759,9 +759,25 @@ export class AIInsights {
     return hasHubs;
   }
 
-  private doEdgesCross(_edge1: any, _edge2: any): boolean {
-    // TODO: Implement proper edge crossing detection
-    return false;
+  private doEdgesCross(edge1: { start: Vector3; end: Vector3 }, edge2: { start: Vector3; end: Vector3 }): boolean {
+    // Line segment intersection using cross-product orientation test (2D projection on XZ plane)
+    const p1x = edge1.start.x, p1z = edge1.start.z;
+    const p2x = edge1.end.x,   p2z = edge1.end.z;
+    const p3x = edge2.start.x, p3z = edge2.start.z;
+    const p4x = edge2.end.x,   p4z = edge2.end.z;
+
+    // Direction (cross product sign) of point relative to a directed line segment
+    const direction = (ax: number, az: number, bx: number, bz: number, cx: number, cz: number): number => {
+      return (bx - ax) * (cz - az) - (bz - az) * (cx - ax);
+    };
+
+    const d1 = direction(p3x, p3z, p4x, p4z, p1x, p1z);
+    const d2 = direction(p3x, p3z, p4x, p4z, p2x, p2z);
+    const d3 = direction(p1x, p1z, p2x, p2z, p3x, p3z);
+    const d4 = direction(p1x, p1z, p2x, p2z, p4x, p4z);
+
+    // Segments cross when endpoints of each segment lie on opposite sides of the other
+    return d1 * d2 < 0 && d3 * d4 < 0;
   }
 
   private calculateAverageNodeDistance(positions: Map<string, Vector3>): number {

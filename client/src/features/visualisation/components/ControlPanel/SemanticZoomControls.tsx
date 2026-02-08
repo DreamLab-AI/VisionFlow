@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useOntologyStore } from '../../../ontology/store/useOntologyStore';
 import { createLogger } from '../../../../utils/loggerConfig';
 
@@ -27,6 +27,50 @@ export const SemanticZoomControls: React.FC<SemanticZoomControlsProps> = ({ clas
 
   const [autoZoom, setAutoZoom] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const autoZoomRef = useRef(false);
+
+  // Distance thresholds for zoom level mapping
+  const DISTANCE_MIN = 100;  // At or below: level 0 (All Instances)
+  const DISTANCE_MAX = 1000; // At or above: level 5 (Top Classes)
+  const ZOOM_LEVELS = 6;     // 0..5
+
+  /**
+   * Maps a camera distance to a semantic zoom level (0-5).
+   * close (<100) = 0, far (>1000) = 5, linear interpolation between.
+   */
+  const distanceToZoomLevel = useCallback((distance: number): number => {
+    if (distance <= DISTANCE_MIN) return 0;
+    if (distance >= DISTANCE_MAX) return ZOOM_LEVELS - 1;
+    const t = (distance - DISTANCE_MIN) / (DISTANCE_MAX - DISTANCE_MIN);
+    return Math.round(t * (ZOOM_LEVELS - 1));
+  }, []);
+
+  // Listen for camera-distance-change custom events when auto-zoom is enabled.
+  // Scene components inside the R3F Canvas should dispatch:
+  //   window.dispatchEvent(new CustomEvent('camera-distance-change', { detail: { distance: number } }))
+  // on each frame or on OrbitControls change.
+  useEffect(() => {
+    autoZoomRef.current = autoZoom;
+
+    if (!autoZoom) return;
+
+    const onCameraDistance = (e: Event) => {
+      if (!autoZoomRef.current) return;
+      const detail = (e as CustomEvent<{ distance: number }>).detail;
+      if (detail && typeof detail.distance === 'number') {
+        const level = distanceToZoomLevel(detail.distance);
+        setZoomLevel(level);
+      }
+    };
+
+    window.addEventListener('camera-distance-change', onCameraDistance);
+    logger.info('Auto-zoom listener attached');
+
+    return () => {
+      window.removeEventListener('camera-distance-change', onCameraDistance);
+      logger.info('Auto-zoom listener detached');
+    };
+  }, [autoZoom, distanceToZoomLevel, setZoomLevel]);
 
   if (!hierarchy) {
     return (
@@ -37,19 +81,15 @@ export const SemanticZoomControls: React.FC<SemanticZoomControlsProps> = ({ clas
   }
 
   const handleZoomChange = (newLevel: number) => {
+    if (autoZoom) return; // Ignore manual changes while auto-zoom is active
     setZoomLevel(newLevel);
     logger.info('Manual zoom level changed', { level: newLevel });
   };
 
   const handleAutoZoomToggle = () => {
-    setAutoZoom(!autoZoom);
-    logger.info('Auto-zoom toggled', { enabled: !autoZoom });
-
-    // TODO: Implement auto-zoom logic based on camera distance
-    if (!autoZoom) {
-      // Enable auto-zoom
-      // Hook into camera controls to adjust zoom based on distance
-    }
+    const next = !autoZoom;
+    setAutoZoom(next);
+    logger.info('Auto-zoom toggled', { enabled: next });
   };
 
   const zoomLevelLabels = [
