@@ -9,7 +9,7 @@ use std::time::{Duration, Instant};
 use crate::services::agent_visualization_protocol::{
     AgentStateUpdate, AgentVisualizationProtocol, PositionUpdate,
 };
-use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable};
+use crate::ok_json;
 use crate::AppState;
 
 pub struct AgentVisualizationWs {
@@ -30,6 +30,7 @@ impl AgentVisualizationWs {
     }
 
     
+    #[allow(dead_code)]
     fn get_real_agent_data(
         &self,
     ) -> Vec<crate::services::agent_visualization_protocol::AgentStateUpdate> {

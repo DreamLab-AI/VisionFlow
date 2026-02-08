@@ -119,7 +119,7 @@ impl ResourceSupervisor {
     }
 
     /// Distribute context to all subsystem supervisors
-    fn distribute_context_to_supervisors(&mut self, ctx: &mut Context<Self>) {
+    fn distribute_context_to_supervisors(&mut self, _ctx: &mut Context<Self>) {
         let context = match &self.shared_context {
             Some(c) => c.clone(),
             None => {
@@ -264,7 +264,7 @@ impl Actor for ResourceSupervisor {
         info!("ResourceSupervisor: Stopped");
 
         // Ensure GPU resources are released on supervisor shutdown
-        if let Some(ref context) = self.shared_context {
+        if let Some(ref _context) = self.shared_context {
             info!("ResourceSupervisor: Releasing GPU context on shutdown");
             // SharedGPUContext uses Arc, so dropping our reference helps cleanup
             // The actual cleanup happens when all references are dropped

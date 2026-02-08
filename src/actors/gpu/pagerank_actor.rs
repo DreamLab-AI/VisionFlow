@@ -138,6 +138,7 @@ impl PageRankActor {
     }
 
     /// Perform PageRank computation on GPU
+    #[allow(dead_code)]
     async fn compute_pagerank(
         &mut self,
         params: PageRankParams,
@@ -326,7 +327,7 @@ impl Actor for PageRankActor {
 impl Handler<ComputePageRank> for PageRankActor {
     type Result = ResponseActFuture<Self, Result<PageRankResult, String>>;
 
-    fn handle(&mut self, msg: ComputePageRank, ctx: &mut Context<Self>) -> Self::Result {
+    fn handle(&mut self, msg: ComputePageRank, _ctx: &mut Context<Self>) -> Self::Result {
         info!("PageRankActor: Received ComputePageRank message");
 
         let params = msg.params.unwrap_or_default();

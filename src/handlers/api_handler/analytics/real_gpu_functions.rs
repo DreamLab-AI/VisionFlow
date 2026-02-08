@@ -285,6 +285,7 @@ pub async fn perform_gpu_default_clustering(
     }
 }
 
+#[allow(dead_code)]
 fn convert_gpu_clusters_to_response(
     gpu_results: Vec<Cluster>,
     graph_data: &crate::models::graph::GraphData,

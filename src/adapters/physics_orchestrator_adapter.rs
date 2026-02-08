@@ -109,7 +109,7 @@ impl PhysicsSimulator for PhysicsOrchestratorAdapter {
         });
 
         
-        let status = tokio::time::timeout(self.timeout, self.actor_addr.send(GetPhysicsStatus))
+        let _status = tokio::time::timeout(self.timeout, self.actor_addr.send(GetPhysicsStatus))
             .await
             .map_err(|_| {
                 error!("Timeout getting physics status");

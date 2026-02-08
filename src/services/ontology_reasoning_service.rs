@@ -5,7 +5,6 @@
 //! Infers missing axioms, computes class hierarchies, and identifies disjoint classes.
 //! All data is stored in Neo4j using Neo4jOntologyRepository.
 
-use async_trait::async_trait;
 use log::{debug, info, warn};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -14,9 +13,8 @@ use std::time::Instant;
 use tracing::instrument;
 
 use crate::adapters::whelk_inference_engine::WhelkInferenceEngine; // Currently used for initialization only
-use crate::ports::inference_engine::InferenceEngine;
 use crate::ports::ontology_repository::{
-    AxiomType, OntologyRepository, OntologyRepositoryError, OwlAxiom, OwlClass,
+    AxiomType, OntologyRepository, OntologyRepositoryError, OwlAxiom,
 };
 use crate::utils::time;
 
@@ -74,6 +72,7 @@ struct InferenceCacheEntry {
 /// Uses CustomReasoner for actual inference operations. The WhelkInferenceEngine
 /// is currently maintained for API compatibility but will be phased out.
 /// All ontology data is persisted in Neo4j via Neo4jOntologyRepository.
+#[allow(dead_code)]
 pub struct OntologyReasoningService {
     inference_engine: Arc<WhelkInferenceEngine>, // Legacy - to be removed
     ontology_repo: Arc<dyn OntologyRepository>,
@@ -131,7 +130,7 @@ impl OntologyReasoningService {
 
         // Build ontology for reasoning
         use crate::reasoning::custom_reasoner::{Ontology, OWLClass};
-        use std::collections::{HashMap, HashSet};
+        use std::collections::HashSet;
 
         let mut ontology = Ontology::default();
         for class in &classes {
@@ -391,6 +390,7 @@ impl OntologyReasoningService {
     }
 
     /// Convert axiom type enum to string
+    #[allow(dead_code)]
     fn axiom_type_to_string(&self, axiom_type: &AxiomType) -> String {
         match axiom_type {
             AxiomType::SubClassOf => "SubClassOf".to_string(),

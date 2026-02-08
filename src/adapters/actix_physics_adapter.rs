@@ -152,7 +152,7 @@ impl GpuPhysicsAdapter for ActixPhysicsAdapter {
 
         
         let msg = InitializePhysicsMessage::new(graph, params.clone());
-        self.send_message(msg).await?;
+        let _ = self.send_message(msg).await?;
 
         self.initialized = true;
         self.current_params = Some(params);
@@ -258,7 +258,7 @@ impl GpuPhysicsAdapter for ActixPhysicsAdapter {
     async fn update_parameters(&mut self, params: PhysicsParameters) -> PortResult<()> {
         info!("Updating physics parameters via actor");
         let msg = UpdatePhysicsParametersMessage::new(params.clone());
-        self.send_message(msg).await?;
+        let _ = self.send_message(msg).await?;
 
         self.current_params = Some(params);
         Ok(())

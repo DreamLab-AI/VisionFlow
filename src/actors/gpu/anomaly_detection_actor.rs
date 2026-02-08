@@ -46,6 +46,7 @@ impl AnomalyDetectionActor {
     }
 
     
+    #[allow(dead_code)]
     async fn perform_anomaly_detection(
         &mut self,
         params: AnomalyDetectionParams,
@@ -98,7 +99,7 @@ impl AnomalyDetectionActor {
             lof_scores: match params.method {
                 AnomalyDetectionMethod::LOF => {
                     
-                    let lof_scores: Vec<f32> = anomalies
+                    let _lof_scores: Vec<f32> = anomalies
                         .iter()
                         .enumerate()
                         .map(|(idx, anomaly)| {
@@ -890,6 +891,7 @@ impl Handler<RunAnomalyDetection> for AnomalyDetectionActor {
 
 // Additional internal data structures
 #[derive(Default)]
+#[allow(dead_code)]
 struct AnomalyStats {
     anomalies_found: usize,
     detection_threshold: f32,

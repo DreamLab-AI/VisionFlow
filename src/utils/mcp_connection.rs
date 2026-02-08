@@ -7,10 +7,10 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
 use tokio::sync::{Mutex, RwLock};
 use uuid::Uuid;
-use crate::utils::json::{from_json, to_json};
 
 pub struct PersistentMCPConnection {
     stream: Arc<Mutex<TcpStream>>,
+    #[allow(dead_code)]
     session_id: String,
     initialized: bool,
 }

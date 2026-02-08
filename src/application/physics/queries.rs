@@ -63,6 +63,7 @@ pub struct GetSimulationParams {
 }
 
 pub struct GetSimulationParamsHandler {
+    #[allow(dead_code)]
     simulator: Arc<dyn PhysicsSimulator>,
 }
 

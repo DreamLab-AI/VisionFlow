@@ -160,6 +160,7 @@ impl Default for AISemanticFeatures {
     }
 }
 
+#[allow(dead_code)]
 pub struct SemanticProcessorActor {
     
     semantic_analyzer: Option<SemanticAnalyzer>,
@@ -295,13 +296,13 @@ impl SemanticProcessorActor {
     
     fn generate_semantic_constraints_blocking(
         graph_data: Option<Arc<GraphData>>,
-        semantic_features_cache: HashMap<String, SemanticFeatures>,
-        ai_features_cache: HashMap<String, AISemanticFeatures>,
+        _semantic_features_cache: HashMap<String, SemanticFeatures>,
+        _ai_features_cache: HashMap<String, AISemanticFeatures>,
         config: SemanticProcessorConfig,
     ) -> Result<Vec<Constraint>, String> {
         let start_time = Instant::now();
 
-        let graph_data = match graph_data {
+        let _graph_data = match graph_data {
             Some(data) => data,
             None => return Err("No graph data available for constraint generation".to_string()),
         };
@@ -1168,7 +1169,7 @@ impl SemanticProcessorActor {
                 let similarity = self.calculate_semantic_similarity(features1, features2);
 
                 if similarity > self.config.similarity_threshold {
-                    let attraction_strength = similarity * 0.5; 
+                    let _attraction_strength = similarity * 0.5; 
                     let constraint = Constraint::separation(
                         node1.id, node2.id, 100.0, 
                     );
@@ -1290,7 +1291,7 @@ impl SemanticProcessorActor {
         let mut comparisons = 0;
 
         
-        let struct_sim = if features1.structural.complexity_score > 0.0
+        let _struct_sim = if features1.structural.complexity_score > 0.0
             || features2.structural.complexity_score > 0.0
         {
             let max_complexity = features1
@@ -1308,7 +1309,7 @@ impl SemanticProcessorActor {
         };
 
         
-        let content_sim = if features1.content.documentation_score > 0.0
+        let _content_sim = if features1.content.documentation_score > 0.0
             || features2.content.documentation_score > 0.0
         {
             let max_doc_score = features1
@@ -1786,7 +1787,7 @@ impl Handler<ComputeAllPairsShortestPaths> for SemanticProcessorActor {
 
     fn handle(
         &mut self,
-        msg: ComputeAllPairsShortestPaths,
+        _msg: ComputeAllPairsShortestPaths,
         _ctx: &mut Self::Context,
     ) -> Self::Result {
         info!("Computing all-pairs shortest paths using GPU landmark approximation");

@@ -71,6 +71,7 @@ pub struct OntologyConstraintActor {
     stats: OntologyConstraintStats,
 
 
+    #[allow(dead_code)]
     last_update: Instant,
 
 
@@ -110,6 +111,7 @@ impl OntologyConstraintActor {
     }
 
     
+    #[allow(dead_code)]
     fn apply_ontology_constraints(
         &mut self,
         reasoning_report: &OntologyReasoningReport,

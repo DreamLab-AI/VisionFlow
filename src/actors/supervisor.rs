@@ -49,6 +49,7 @@ struct ActorState {
     last_restart: Option<Instant>,
     current_delay: Duration,
     is_running: bool,
+    #[allow(dead_code)]
     session_id: Option<String>,
 }
 
@@ -108,6 +109,7 @@ impl SupervisorActor {
         }
     }
 
+    #[allow(dead_code)]
     fn should_restart(&self, actor_name: &str, state: &ActorState) -> bool {
         
         if state.restart_count >= state.actor_info.max_restart_count {
@@ -357,6 +359,7 @@ impl Handler<GetSupervisionStatus> for SupervisorActor {
 #[rtype(result = "()")]
 struct RestartAttempt {
     actor_name: String,
+    #[allow(dead_code)]
     supervisor_name: String,
 }
 

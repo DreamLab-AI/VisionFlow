@@ -313,7 +313,7 @@ macro_rules! no_content {
 macro_rules! too_many_requests {
     ($msg:expr) => {
         {
-            use actix_web::{HttpResponse, Error};
+            use actix_web::HttpResponse;
             use log::warn;
             use crate::utils::handler_commons::StandardResponse;
 
@@ -339,7 +339,7 @@ macro_rules! too_many_requests {
 macro_rules! service_unavailable {
     ($msg:expr) => {
         {
-            use actix_web::{HttpResponse, Error};
+            use actix_web::HttpResponse;
             use log::warn;
             use crate::utils::handler_commons::StandardResponse;
 

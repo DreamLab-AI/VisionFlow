@@ -215,6 +215,7 @@ pub struct InferenceOptimizer {
     incremental: Arc<RwLock<IncrementalInference>>,
 
     
+    #[allow(dead_code)]
     parallel: ParallelClassification,
 
     

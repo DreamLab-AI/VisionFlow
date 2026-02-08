@@ -50,7 +50,7 @@ impl EventMiddleware for LoggingMiddleware {
 
     async fn after_handle(
         &self,
-        event: &StoredEvent,
+        _event: &StoredEvent,
         handler_id: &str,
         result: &Result<(), EventError>,
     ) -> EventResult<()> {
@@ -215,7 +215,9 @@ impl EventMiddleware for ValidationMiddleware {
 }
 
 pub struct RetryMiddleware {
+    #[allow(dead_code)]
     max_retries: u32,
+    #[allow(dead_code)]
     retry_delay_ms: u64,
 }
 

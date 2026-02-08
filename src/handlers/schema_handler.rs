@@ -6,7 +6,7 @@
 
 use actix_web::{web, HttpResponse, Responder};
 use log::{debug, info};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use std::sync::Arc;
 
 use crate::services::schema_service::{SchemaService, GraphSchema};
@@ -15,7 +15,6 @@ use actix::Addr;
 
 // Response macros
 use crate::{ok_json, error_json};
-use crate::utils::handler_commons::HandlerResponse;
 
 /// Schema response
 #[derive(Debug, Serialize)]

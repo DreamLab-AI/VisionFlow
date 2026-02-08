@@ -99,7 +99,7 @@ pub fn parse_iso8601(s: &str) -> Result<DateTime<Utc>, String> {
 /// ```
 pub fn elapsed_ms(start: &DateTime<Utc>) -> i64 {
     let now = Utc::now();
-    (now.timestamp_millis() - start.timestamp_millis())
+    now.timestamp_millis() - start.timestamp_millis()
 }
 
 /// Format timestamp for human-readable logging

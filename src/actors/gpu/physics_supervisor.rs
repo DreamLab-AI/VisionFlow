@@ -117,7 +117,7 @@ impl PhysicsSupervisor {
     }
 
     /// Spawn all child actors without blocking
-    fn spawn_child_actors(&mut self, ctx: &mut Context<Self>) {
+    fn spawn_child_actors(&mut self, _ctx: &mut Context<Self>) {
         info!("PhysicsSupervisor: Spawning physics child actors");
 
         // Spawn ForceComputeActor with custom mailbox

@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 // Unified Settings Handler - Single source of truth: AppFullSettings
 use crate::actors::messages::{GetSettings, UpdateSettings, UpdateSimulationParams};
 use crate::app_state::AppState;
@@ -12,7 +13,7 @@ use actix_web::{web, Error, HttpRequest, HttpResponse};
 use log::{debug, error, info, warn};
 use tracing::info as trace_info;
 use uuid::Uuid;
-use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable, too_many_requests, payload_too_large};
+use crate::{ok_json, error_json, bad_request, not_found, service_unavailable, too_many_requests, payload_too_large};
 
 // Import comprehensive validation for GPU parameters
 use crate::handlers::settings_validation_fix::{
@@ -3542,17 +3543,12 @@ async fn get_cpu_fallback_analytics(
     graph_data: &crate::models::graph::GraphData,
 ) -> Result<HttpResponse, Error> {
     use std::collections::HashMap;
-use crate::{
-    ok_json, created_json, error_json, bad_request, not_found,
-    unauthorized, forbidden, conflict, no_content, accepted,
-    too_many_requests, service_unavailable, payload_too_large
-};
 
 
 
     
     let node_count = graph_data.nodes.len();
-    let edge_count = graph_data.edges.len();
+    let _edge_count = graph_data.edges.len();
 
     
     let mut type_clusters: HashMap<String, Vec<&crate::models::node::Node>> = HashMap::new();

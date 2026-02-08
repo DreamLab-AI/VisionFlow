@@ -1,8 +1,8 @@
 use crate::actors::messages::{GetSettings, UpdateSettings};
 use crate::app_state::AppState;
 use crate::config::ClusteringConfiguration;
-use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable};
-use actix_web::{web, Error, HttpRequest, HttpResponse};
+use crate::{ok_json, error_json, bad_request, service_unavailable};
+use actix_web::{web, HttpRequest, HttpResponse};
 use log::{debug, error, info, warn};
 use serde_json::{json, Value};
 use std::collections::HashMap;
@@ -300,11 +300,7 @@ async fn get_clustering_results(
 
     if let Some(gpu_addr) = state.get_gpu_compute_addr().await {
         use crate::actors::messages::{GetClusteringResults, GetGraphData};
-use crate::{
-    ok_json, created_json, error_json, bad_request, not_found,
-    unauthorized, forbidden, conflict, no_content, accepted,
-    too_many_requests, service_unavailable, payload_too_large
-};
+use crate::{ok_json, error_json, service_unavailable};
 
 
 

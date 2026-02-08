@@ -227,6 +227,7 @@ pub struct FrameBuffer {
     colors: SafeArrayAccess<f32>,
     importance: SafeArrayAccess<f32>,
     node_count: usize,
+    #[allow(dead_code)]
     bounds_checker: Arc<ThreadSafeMemoryBoundsChecker>,
 }
 

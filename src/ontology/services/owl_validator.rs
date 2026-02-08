@@ -349,7 +349,7 @@ impl OwlValidatorService {
     }
 
     
-    fn apply_template(&self, template: &str, node_id: &str, node: &GraphNode) -> Result<String> {
+    fn apply_template(&self, template: &str, node_id: &str, _node: &GraphNode) -> Result<String> {
         let mut result = template.to_string();
 
         result = result.replace("{base_iri}", &self.mapping_config.global.base_iri);

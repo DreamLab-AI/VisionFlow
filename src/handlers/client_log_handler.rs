@@ -1,4 +1,4 @@
-use actix_web::{web, Error, HttpRequest, HttpResponse};
+use actix_web::{web, HttpRequest, HttpResponse};
 use chrono::Local;
 use log::{debug, error, info};
 use serde::{Deserialize, Serialize};
@@ -7,7 +7,7 @@ use std::io::Write;
 use uuid::Uuid;
 
 use crate::telemetry::agent_telemetry::{get_telemetry_logger, CorrelationId};
-use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable};
+use crate::ok_json;
 use crate::AppState;
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -28,6 +28,7 @@ pub struct ClientLogsPayload {
     logs: Vec<LogEntry>,
     #[serde(rename = "sessionId")]
     session_id: String,
+    #[allow(dead_code)]
     timestamp: String,
 }
 

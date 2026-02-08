@@ -10,11 +10,11 @@ use log::{error, info};
 use serde::{Deserialize, Serialize};
 
 use crate::actors::gpu::shortest_path_actor::{
-    ComputeSSP, ComputeAPSP, GetShortestPathStats, SSSPResult, APSPResult, ShortestPathStats
+    ComputeSSP, ComputeAPSP, GetShortestPathStats, SSSPResult, APSPResult,
 };
 use crate::actors::gpu::connected_components_actor::{
     ComputeConnectedComponents, GetConnectedComponentsStats,
-    ConnectedComponentsResult, ConnectedComponentsStats
+    ConnectedComponentsResult,
 };
 use crate::{ok_json, error_json, AppState};
 

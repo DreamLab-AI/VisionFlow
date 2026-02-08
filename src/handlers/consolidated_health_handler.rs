@@ -1,6 +1,6 @@
 use crate::actors::messages::{GetGPUStatus, GetGraphData, GetMetadata};
 use crate::services::mcp_relay_manager::McpRelayManager;
-use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable};
+use crate::ok_json;
 use crate::AppState;
 use actix_web::{web, Error, HttpResponse, Result};
 use chrono::Utc;
@@ -124,6 +124,7 @@ fn check_system_metrics(health_status: &mut String, issues: &mut Vec<String>) ->
 
 /// Result of a subsystem health check
 #[derive(Debug)]
+#[allow(dead_code)]
 struct SubsystemHealth {
     name: String,
     healthy: bool,
@@ -131,6 +132,7 @@ struct SubsystemHealth {
 }
 
 /// Check a subsystem with timeout protection
+#[allow(dead_code)]
 async fn check_subsystem_health<F, Fut>(name: &str, check: F) -> SubsystemHealth
 where
     F: FnOnce() -> Fut,

@@ -44,7 +44,6 @@ use crate::actors::{
     ClientCoordinatorActor, GPUManagerActor, PhysicsOrchestratorActor, SemanticProcessorActor,
 };
 use crate::actors::graph_state_actor::GraphStateActor;
-use crate::actors::gpu::ForceComputeActor;
 // Removed unused import - we don't use graph_messages types for handlers
 use crate::actors::messages as msgs;
 // Removed graph_messages::GetGraphData import - not used
@@ -180,6 +179,7 @@ pub struct GraphServiceSupervisor {
     last_health_check: Instant,
 
     
+    #[allow(dead_code)]
     message_buffer_size: usize,
     total_messages_routed: u64,
 
@@ -491,6 +491,7 @@ impl GraphServiceSupervisor {
     }
 
     
+    #[allow(dead_code)]
     fn buffer_message(&mut self, actor_type: ActorType, message: SupervisedMessage) {
         if let Some(info) = self.actor_info.get_mut(&actor_type) {
             if info.message_buffer.len() < self.message_buffer_size {

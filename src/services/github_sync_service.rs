@@ -24,7 +24,6 @@ use futures::stream::{FuturesUnordered, StreamExt};
 use log::{debug, error, info, warn};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-use crate::utils::time;
 
 const BATCH_SIZE: usize = 50; // Save to database every 50 files
 
@@ -435,6 +434,7 @@ impl GitHubSyncService {
     }
 
     /// Filter linked pages
+    #[allow(dead_code)]
     fn filter_linked_pages(
         &self,
         nodes: &mut std::collections::HashMap<u32, crate::models::node::Node>,
@@ -455,6 +455,7 @@ impl GitHubSyncService {
     }
 
     /// Filter orphan edges
+    #[allow(dead_code)]
     fn filter_orphan_edges(
         &self,
         edges: &mut std::collections::HashMap<String, crate::models::edge::Edge>,

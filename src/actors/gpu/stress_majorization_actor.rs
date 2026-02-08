@@ -257,6 +257,7 @@ impl StressMajorizationActor {
     }
 
     
+    #[allow(dead_code)]
     fn get_stress_majorization_stats(&self) -> StressMajorizationStats {
         self.safety.get_stats()
     }
@@ -268,6 +269,7 @@ impl StressMajorizationActor {
     }
 
     
+    #[allow(dead_code)]
     fn should_disable_stress_majorization(&self) -> bool {
         self.safety.should_disable()
     }

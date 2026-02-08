@@ -107,8 +107,11 @@ struct CachedResponse {
 #[derive(Debug)]
 struct QueuedRequest {
     id: String,
+    #[allow(dead_code)]
     data: serde_json::Value,
+    #[allow(dead_code)]
     timestamp: Instant,
+    #[allow(dead_code)]
     callback: Option<tokio::sync::oneshot::Sender<Result<serde_json::Value, String>>>,
 }
 

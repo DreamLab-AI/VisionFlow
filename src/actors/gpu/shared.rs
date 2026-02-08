@@ -428,7 +428,7 @@ impl SharedGPUContext {
     }
 
     
-    pub async fn acquire_gpu_access(&self) -> Result<tokio::sync::RwLockReadGuard<()>, String> {
+    pub async fn acquire_gpu_access(&self) -> Result<tokio::sync::RwLockReadGuard<'_, ()>, String> {
         let start_time = Instant::now();
         let guard = self.gpu_access_lock.read().await;
 
@@ -468,7 +468,7 @@ impl SharedGPUContext {
     
     pub async fn acquire_exclusive_access(
         &self,
-    ) -> Result<tokio::sync::RwLockWriteGuard<()>, String> {
+    ) -> Result<tokio::sync::RwLockWriteGuard<'_, ()>, String> {
         let start_time = Instant::now();
 
         

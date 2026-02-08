@@ -360,6 +360,7 @@ impl ClusteringActor {
     }
 
     
+    #[allow(dead_code)]
     fn generate_cluster_color(cluster_id: usize) -> [f32; 3] {
         let mut rng = rand::thread_rng();
 

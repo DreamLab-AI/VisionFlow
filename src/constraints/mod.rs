@@ -129,7 +129,7 @@ impl ConstraintPipeline {
         
         self.resolver.clear();
         self.resolver.add_constraints(constraints);
-        let resolved = self.resolver.resolve();
+        let _resolved = self.resolver.resolve();
 
         
         let blended: Vec<PhysicsConstraint> = self.resolver

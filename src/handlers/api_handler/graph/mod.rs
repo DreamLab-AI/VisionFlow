@@ -2,7 +2,7 @@ use crate::models::metadata::Metadata;
 use crate::models::node::Node;
 use crate::services::file_service::FileService;
 use crate::types::vec3::Vec3Data;
-use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable};
+use crate::{ok_json, error_json, bad_request};
 use crate::AppState;
 use actix_web::{web, HttpRequest, HttpResponse, Responder};
 use log::{debug, error, info, warn};
@@ -18,7 +18,7 @@ use crate::application::graph::queries::{
 use crate::actors::graph_actor::PhysicsState;
 use crate::models::graph::GraphData;
 use crate::handlers::utils::execute_in_thread;
-use hexser::{HexResult, Hexserror, QueryHandler};
+use hexser::{Hexserror, QueryHandler};
 
 #[derive(Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -121,7 +121,7 @@ pub async fn get_graph_data(
     ) = tokio::join!(graph_future, node_map_future, physics_future);
 
     match (graph_result, node_map_result, physics_result) {
-        (Ok(Ok(graph_data)), Ok(Ok(node_map)), Ok(Ok(physics_state))) => {
+        (Ok(Ok(graph_data)), Ok(Ok(_node_map)), Ok(Ok(physics_state))) => {
             debug!(
                 "Preparing enhanced graph response with {} nodes, {} edges, physics state: {:?}",
                 graph_data.nodes.len(),

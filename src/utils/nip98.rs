@@ -7,7 +7,7 @@
 //! Authorization header format: "Nostr <base64-encoded-event>"
 
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
-use log::{debug, error};
+use log::debug;
 use nostr_sdk::prelude::*;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};

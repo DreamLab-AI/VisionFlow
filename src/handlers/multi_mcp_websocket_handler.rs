@@ -13,7 +13,7 @@ use std::time::{Duration, Instant};
 use uuid::Uuid;
 
 use crate::services::agent_visualization_protocol::McpServerType;
-use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable};
+use crate::ok_json;
 use crate::AppState;
 // DEPRECATED: HybridHealthManager removed
 use crate::utils::network::{
@@ -40,6 +40,7 @@ impl RetryableError for McpError {
 }
 
 pub struct MultiMcpVisualizationWs {
+    #[allow(dead_code)]
     app_state: web::Data<AppState>,
     _hybrid_manager: Option<()>, 
     client_id: String,
@@ -388,6 +389,7 @@ impl MultiMcpVisualizationWs {
     }
 
     
+    #[allow(dead_code)]
     fn should_send_message(
         &self,
         message_type: &str,
@@ -407,6 +409,7 @@ impl MultiMcpVisualizationWs {
     }
 
     
+    #[allow(dead_code)]
     fn filter_agent_data(&self, data: &mut serde_json::Value) {
         
         if let Some(agents_array) = data.get_mut("agents").and_then(|a| a.as_array_mut()) {

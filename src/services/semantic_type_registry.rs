@@ -424,7 +424,7 @@ impl Default for SemanticTypeRegistry {
     }
 }
 
-/// Global singleton registry instance
+// Global singleton registry instance
 lazy_static::lazy_static! {
     pub static ref SEMANTIC_TYPE_REGISTRY: SemanticTypeRegistry = SemanticTypeRegistry::new();
 }

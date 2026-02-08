@@ -8,6 +8,7 @@ use tokio_util::sync::CancellationToken;
 
 pub struct MCPConnectionPool {
     connections: Arc<RwLock<HashMap<String, PooledConnection>>>,
+    #[allow(dead_code)]
     max_connections_per_host: usize,
     connection_timeout: Duration,
     idle_timeout: Duration,
@@ -15,6 +16,7 @@ pub struct MCPConnectionPool {
 }
 
 struct PooledConnection {
+    #[allow(dead_code)]
     stream: TcpStream,
     last_used: Instant,
     in_use: bool,

@@ -9,7 +9,6 @@
 use actix::prelude::*;
 use anyhow::{anyhow, Result};
 use log::{debug, error, info};
-use serde_json;
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
@@ -24,7 +23,7 @@ use crate::actors::messages::{
 use crate::models::workspace::{
     SortDirection, Workspace, WorkspaceFilter, WorkspaceListResponse, WorkspaceSortBy,
 };
-use crate::utils::json::{from_json, to_json};
+use crate::utils::json::from_json;
 
 pub trait WorkspaceWebSocketClient: Send + Sync {
     fn broadcast_workspace_change(&self, workspace: &Workspace, change_type: WorkspaceChangeType);

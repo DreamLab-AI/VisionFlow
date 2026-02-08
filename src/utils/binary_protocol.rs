@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use crate::models::constraints::{AdvancedParams, Constraint};
 use crate::types::vec3::Vec3Data;
 use crate::utils::socket_flow_messages::BinaryNodeData;

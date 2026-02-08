@@ -174,6 +174,7 @@ where
 
 pub struct RateLimit {
     limiter: Rc<RateLimiter>,
+    #[allow(dead_code)]
     config: RateLimitConfig,
 }
 

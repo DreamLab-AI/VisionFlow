@@ -13,6 +13,7 @@ use std::time::Instant;
 pub struct McpRelayManager {
     circuit_breaker: Arc<CircuitBreaker>,
     health_manager: Arc<HealthCheckManager>,
+    #[allow(dead_code)]
     timeout_config: TimeoutConfig,
 }
 

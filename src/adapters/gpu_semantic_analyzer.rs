@@ -286,7 +286,7 @@ impl GpuSemanticAnalyzer for GpuSemanticAnalyzerAdapter {
     #[instrument(skip(self))]
     async fn detect_communities(
         &mut self,
-        algorithm: ClusteringAlgorithm,
+        _algorithm: ClusteringAlgorithm,
     ) -> Result<CommunityDetectionResult> {
         let start = Instant::now();
 
@@ -299,7 +299,7 @@ impl GpuSemanticAnalyzer for GpuSemanticAnalyzerAdapter {
 
         
         
-        let num_nodes = graph.nodes.len();
+        let _num_nodes = graph.nodes.len();
         let clusters = HashMap::new();
         let cluster_sizes = HashMap::new();
 
@@ -504,7 +504,7 @@ impl GpuSemanticAnalyzer for GpuSemanticAnalyzerAdapter {
             0.0
         };
 
-        let gpu_memory_mb = if let Some(ref gpu) = self.gpu_compute {
+        let gpu_memory_mb = if let Some(ref _gpu) = self.gpu_compute {
             
             let graph = self.graph_data.as_ref().map(|g| g.nodes.len()).unwrap_or(0);
             (graph * 4 * 10) as f32 / 1_048_576.0 

@@ -23,8 +23,8 @@
 
 use std::collections::HashMap;
 use std::ffi::c_void;
-use std::sync::{Arc, Mutex};
-use log::{info, warn, error, debug};
+use std::sync::Arc;
+use log::{info, warn, debug};
 use crate::utils::cuda_error_handling::{CudaErrorHandler, CudaMemoryGuard};
 
 #[derive(Debug, Clone)]
@@ -361,6 +361,7 @@ extern "C" {
     fn cudaMemcpy(dst: *mut c_void, src: *const c_void, count: usize, kind: i32) -> i32;
 }
 
+#[allow(non_upper_case_globals)]
 const cudaMemcpyDeviceToDevice: i32 = 3;
 
 #[cfg(test)]

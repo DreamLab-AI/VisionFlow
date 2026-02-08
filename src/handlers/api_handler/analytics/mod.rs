@@ -1,6 +1,6 @@
 
 
-use actix_web::{web, Error, HttpResponse, Result};
+use actix_web::{web, HttpResponse, Result};
 use log::{debug, error, info, warn};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
@@ -740,7 +740,7 @@ async fn calculate_network_metrics(
 pub async fn get_performance_stats(app_state: web::Data<AppState>) -> Result<HttpResponse> {
     info!("Getting performance statistics");
 
-    let physics_stats = if let Some(gpu_addr) = app_state.get_gpu_compute_addr().await {
+    let _physics_stats = if let Some(gpu_addr) = app_state.get_gpu_compute_addr().await {
         match gpu_addr.send(GetPhysicsStats).await {
             Ok(Ok(stats)) => Some(stats),
             Ok(Err(e)) => {
@@ -767,7 +767,7 @@ pub async fn get_performance_stats(app_state: web::Data<AppState>) -> Result<Htt
         network_latency_ms,
     ) = calculate_network_metrics(&app_state, &physics_stats).await;
 
-    let (active_nodes, active_edges) = (
+    let (_active_nodes, _active_edges) = (
         physics_stats.as_ref().map(|s| s.nodes_count).unwrap_or(0),
         physics_stats.as_ref().map(|s| s.edges_count).unwrap_or(0),
     );
@@ -1147,6 +1147,7 @@ async fn perform_clustering(
     Ok(clusters)
 }
 
+#[allow(dead_code)]
 fn generate_spectral_clusters_from_agents(
     graph_data: &crate::models::graph::GraphData,
     agents: &[crate::services::agent_visualization_protocol::MultiMcpAgentStatus],
@@ -1156,6 +1157,7 @@ fn generate_spectral_clusters_from_agents(
     generate_agent_based_clusters(graph_data, agents, num_clusters, "spectral")
 }
 
+#[allow(dead_code)]
 fn generate_kmeans_clusters_from_agents(
     graph_data: &crate::models::graph::GraphData,
     agents: &[crate::services::agent_visualization_protocol::MultiMcpAgentStatus],
@@ -1165,6 +1167,7 @@ fn generate_kmeans_clusters_from_agents(
     generate_agent_based_clusters(graph_data, agents, num_clusters, "kmeans")
 }
 
+#[allow(dead_code)]
 fn generate_louvain_clusters_from_agents(
     graph_data: &crate::models::graph::GraphData,
     agents: &[crate::services::agent_visualization_protocol::MultiMcpAgentStatus],
@@ -1175,6 +1178,7 @@ fn generate_louvain_clusters_from_agents(
     generate_agent_based_clusters(graph_data, agents, num_clusters, "louvain")
 }
 
+#[allow(dead_code)]
 fn generate_default_clusters_from_agents(
     graph_data: &crate::models::graph::GraphData,
     agents: &[crate::services::agent_visualization_protocol::MultiMcpAgentStatus],
@@ -1229,12 +1233,12 @@ fn generate_agent_based_clusters(
         }
 
         
-        let avg_cpu = type_agents
+        let _avg_cpu = type_agents
             .iter()
             .map(|a| a.performance.cpu_usage)
             .sum::<f32>()
             / type_agents.len() as f32;
-        let avg_memory = type_agents
+        let _avg_memory = type_agents
             .iter()
             .map(|a| a.performance.memory_usage)
             .sum::<f32>()
@@ -1244,7 +1248,7 @@ fn generate_agent_based_clusters(
             .map(|a| a.performance.health_score)
             .sum::<f32>()
             / type_agents.len() as f32;
-        let total_tasks = type_agents
+        let _total_tasks = type_agents
             .iter()
             .map(|a| a.performance.tasks_completed)
             .sum::<u32>();
@@ -2568,7 +2572,7 @@ pub async fn run_community_detection(
 }
 
 pub async fn get_community_statistics(
-    app_state: web::Data<AppState>,
+    _app_state: web::Data<AppState>,
 ) -> Result<HttpResponse, actix_web::Error> {
 
 

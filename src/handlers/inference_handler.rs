@@ -3,12 +3,12 @@
 //!
 //! REST API endpoints for ontology inference operations.
 
-use actix_web::{web, HttpResponse, Responder};
+use actix_web::{web, HttpResponse};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::{info, warn};
-use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable};
+use crate::ok_json;
 
 use crate::application::inference_service::InferenceService;
 
@@ -126,7 +126,6 @@ pub async fn batch_inference(
         Ok(results_map) => {
             let mut responses = Vec::new();
             let mut completed = 0;
-            let mut failed = 0;
 
             for (ont_id, results) in results_map {
                 completed += 1;
@@ -140,7 +139,7 @@ pub async fn batch_inference(
                 });
             }
 
-            failed = req.ontology_ids.len() - completed;
+            let failed = req.ontology_ids.len() - completed;
             let total_time_ms = start.elapsed().as_millis() as u64;
 
             let response = BatchInferenceResponse {

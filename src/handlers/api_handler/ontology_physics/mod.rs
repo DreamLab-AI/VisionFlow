@@ -17,7 +17,7 @@ use serde_json::json;
 use crate::{ok_json, error_json, bad_request, service_unavailable};
 
 use crate::actors::messages::{
-    ApplyOntologyConstraints, ConstraintMergeMode, GetConstraintStats, GetOntologyConstraintStats,
+    ApplyOntologyConstraints, ConstraintMergeMode, GetOntologyConstraintStats,
 };
 use crate::models::constraints::ConstraintSet;
 use crate::AppState;
@@ -326,7 +326,7 @@ pub async fn get_constraints(state: web::Data<AppState>) -> impl Responder {
 /// ```
 pub async fn adjust_weights(
     _auth: crate::settings::auth_extractor::AuthenticatedUser,
-    state: web::Data<AppState>,
+    _state: web::Data<AppState>,
     req: web::Json<AdjustWeightsRequest>,
 ) -> Result<impl Responder, actix_web::Error> {
     info!("PUT /api/ontology-physics/weights");

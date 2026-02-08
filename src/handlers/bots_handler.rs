@@ -6,7 +6,6 @@ use crate::models::metadata::MetadataStore;
 use crate::models::node::Node;
 use crate::services::bots_client::{Agent, BotsClient};
 use crate::utils::socket_flow_messages::BinaryNodeData;
-use crate::utils::response_macros::*;
 use crate::AppState;
 use actix_web::{web, HttpResponse, Responder, Result};
 use log::{error, info};
@@ -75,9 +74,7 @@ pub struct SpawnAgentResponse {
 // Static bots graph data storage
 use once_cell::sync::Lazy;
 use crate::{
-    ok_json, created_json, error_json, bad_request, not_found,
-    unauthorized, forbidden, conflict, no_content, accepted,
-    too_many_requests, service_unavailable, payload_too_large
+    ok_json, error_json, accepted,
 };
 
 static BOTS_GRAPH: Lazy<Arc<RwLock<GraphData>>> =

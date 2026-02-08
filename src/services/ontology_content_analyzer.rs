@@ -8,7 +8,7 @@
 //! - Relationship and class counting
 //! - public:: true flag detection
 
-use log::{debug, warn};
+use log::debug;
 use once_cell::sync::Lazy;
 use regex::Regex;
 use std::collections::HashSet;

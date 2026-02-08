@@ -1,5 +1,5 @@
 use crate::time;
-use crate::utils::json::{to_json, from_json};
+use crate::utils::json::to_json;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -937,7 +937,7 @@ impl AgentVisualizationProtocol {
         agents: Vec<crate::types::claude_flow::AgentStatus>,
     ) -> String {
         use crate::services::agent_visualization_processor::AgentVisualizationProcessor;
-use crate::utils::json::{from_json, to_json};
+use crate::utils::json::to_json;
 
         let mut processor = AgentVisualizationProcessor::new();
         let viz_data = processor.create_visualization_packet(

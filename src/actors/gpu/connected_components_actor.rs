@@ -8,7 +8,7 @@
 //! - Network fragmentation detection
 
 use actix::prelude::*;
-use log::{error, info};
+use log::info;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;

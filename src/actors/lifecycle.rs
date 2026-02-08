@@ -216,6 +216,7 @@ pub enum ActorLifecycleError {
 
 pub struct SupervisionStrategy {
     max_restarts: usize,
+    #[allow(dead_code)]
     restart_window: Duration,
 }
 

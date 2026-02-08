@@ -98,6 +98,7 @@ impl Default for Neo4jConfig {
 /// complex graph patterns.
 pub struct Neo4jAdapter {
     graph: Arc<Graph>,
+    #[allow(dead_code)]
     config: Neo4jConfig,
     circuit_breaker: CircuitBreaker,
 }

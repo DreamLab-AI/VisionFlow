@@ -5,7 +5,6 @@
 //! through hexagonal architecture ports. Handles GPU-accelerated physics
 //! computations and event publishing.
 
-use chrono::Utc;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
@@ -88,7 +87,7 @@ impl PhysicsService {
             timestamp: time::now(),
         };
 
-        self.event_bus
+        let _ = self.event_bus
             .write()
             .await
             .publish(event)
@@ -114,13 +113,13 @@ impl PhysicsService {
                 timestamp: time::now(),
             };
 
-            self.event_bus
+            let _ = self.event_bus
                 .write()
                 .await
                 .publish(event)
                 .await;
 
-            
+
             *self.simulation_id.write().await = None;
         }
 
@@ -138,7 +137,7 @@ impl PhysicsService {
         adapter.initialize(graph.clone(), params).await?;
 
         
-        let result = adapter.simulate_until_convergence().await?;
+        let _result = adapter.simulate_until_convergence().await?;
 
         
         let forces = adapter.compute_forces().await?;
@@ -163,7 +162,7 @@ impl PhysicsService {
             timestamp: time::now(),
         };
 
-        self.event_bus
+        let _ = self.event_bus
             .write()
             .await
             .publish(event)
@@ -201,7 +200,7 @@ impl PhysicsService {
             timestamp: time::now(),
         };
 
-        self.event_bus
+        let _ = self.event_bus
             .write()
             .await
             .publish(event)

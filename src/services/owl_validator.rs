@@ -131,11 +131,15 @@ pub struct PropertyGraph {
 
 #[derive(Debug, Clone)]
 struct CachedOntology {
+    #[allow(dead_code)]
     id: String,
+    #[allow(dead_code)]
     content_hash: String,
     ontology: SetOntology<Arc<str>>,
+    #[allow(dead_code)]
     axiom_count: usize,
     loaded_at: DateTime<Utc>,
+    #[allow(dead_code)]
     ttl_seconds: u64,
 }
 
@@ -189,6 +193,7 @@ enum InferenceRule {
     SymmetricProperty {
         property: String,
     },
+    #[allow(dead_code)]
     SubClassOf {
         subclass: String,
         superclass: String,
@@ -634,6 +639,7 @@ impl OwlValidatorService {
         hasher.finalize().to_hex().to_string()
     }
 
+    #[allow(dead_code)]
     fn generate_cache_key(&self, source: &str) -> String {
         format!("ontology_{}", self.calculate_signature(source))
     }

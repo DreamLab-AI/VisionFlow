@@ -103,6 +103,7 @@ pub struct AgentMonitorActor {
     is_connected: bool,
 
     polling_interval: Duration,
+    #[allow(dead_code)]
     last_poll: DateTime<Utc>,
 
     agent_cache: HashMap<String, AgentStatus>,

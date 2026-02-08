@@ -116,6 +116,7 @@ impl TaskOrchestratorActor {
     }
 
     
+    #[allow(dead_code)]
     fn update_task_status(&mut self, task_status: ApiTaskStatus) {
         if let Some(task) = self.active_tasks.get_mut(&task_status.task_id) {
             task.status = task_status.status.clone();

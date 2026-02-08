@@ -1,5 +1,5 @@
 use actix::{prelude::*, Actor, Handler, Message};
-use actix_web::{web, Error, HttpRequest, HttpResponse};
+use actix_web::{web, HttpRequest, HttpResponse};
 use actix_web_actors::ws;
 use log::{debug, error, info, trace, warn};
 use std::collections::HashMap;
@@ -23,7 +23,8 @@ const DEBUG_LOG_SAMPLE_RATE: usize = 10;
 const DEFAULT_POSITION_DEADBAND: f32 = 0.01; 
 const DEFAULT_VELOCITY_DEADBAND: f32 = 0.005; 
                                               
-const BATCH_UPDATE_WINDOW_MS: u64 = 200; 
+#[allow(dead_code)]
+const BATCH_UPDATE_WINDOW_MS: u64 = 200;
 
 // Create a global rate limiter for WebSocket position updates
 lazy_static::lazy_static! {
@@ -159,6 +160,7 @@ impl Handler<SendPositionUpdate> for SocketFlowServer {
     }
 }
 
+#[allow(dead_code)]
 pub struct SocketFlowServer {
     app_state: Arc<AppState>,
     client_id: Option<usize>,
@@ -481,12 +483,14 @@ impl SocketFlowServer {
     }
 
     
+    #[allow(dead_code)]
     fn get_current_update_interval(&self) -> std::time::Duration {
         let millis = (1000.0 / self.current_update_rate as f64) as u64;
         std::time::Duration::from_millis(millis)
     }
 
     
+    #[allow(dead_code)]
     fn calculate_motion_percentage(&self) -> f32 {
         if self.total_node_count == 0 {
             return 0.0;
@@ -496,6 +500,7 @@ impl SocketFlowServer {
     }
 
     
+    #[allow(dead_code)]
     fn update_dynamic_rate(&mut self) {
         
         let now = Instant::now();
@@ -768,7 +773,6 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
 
 
                                 let fut = async move {
-                                    use crate::actors::messages::RequestPositionSnapshot;
                                     // Log position snapshot request (GraphServiceSupervisor doesn't implement Handler<RequestPositionSnapshot>)
                                     debug!("RequestPositionSnapshot: include_knowledge={}, include_agent={}",
                                            include_knowledge, include_agent);

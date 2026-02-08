@@ -175,6 +175,7 @@ impl RateLimit {
     /// Extract identifier from request using multi-factor approach
     /// Priority: 1) Authenticated user ID, 2) API key, 3) IP address
     /// This prevents rate limit bypass via IP spoofing or rotation
+    #[allow(dead_code)]
     fn extract_identifier(&self, req: &ServiceRequest) -> String {
         // Priority 1: Prefer authenticated user ID (most reliable)
         if let Some(user) = req.extensions().get::<crate::middleware::AuthenticatedUser>() {

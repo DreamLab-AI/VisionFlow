@@ -178,6 +178,7 @@ pub struct GlowSettings {
     pub error_intensity: f32,
 }
 
+#[allow(dead_code)]
 static SYSTEM: Lazy<Arc<Mutex<System>>> = Lazy::new(|| {
     let mut sys = System::new_all();
     sys.refresh_all();
@@ -185,9 +186,11 @@ static SYSTEM: Lazy<Arc<Mutex<System>>> = Lazy::new(|| {
 });
 
 pub struct AgentVisualizationProcessor {
+    #[allow(dead_code)]
     token_history: HashMap<String, Vec<(DateTime<Utc>, u64)>>,
     _performance_history: HashMap<String, Vec<PerformanceSnapshot>>,
     _last_update: DateTime<Utc>,
+    #[allow(dead_code)]
     process_map: HashMap<String, Pid>,
 }
 
@@ -345,6 +348,7 @@ impl AgentVisualizationProcessor {
     }
 
     
+    #[allow(dead_code)]
     fn calculate_token_rate(&mut self, agent_id: &str, current_usage: u64) -> f32 {
         let now = time::now();
         let history = self
@@ -376,6 +380,7 @@ impl AgentVisualizationProcessor {
     }
 
     
+    #[allow(dead_code)]
     fn get_agent_token_usage(&self, agent_id: &str) -> u64 {
         
         if let Some(history) = self.token_history.get(agent_id) {
@@ -389,6 +394,7 @@ impl AgentVisualizationProcessor {
     }
 
     
+    #[allow(dead_code)]
     fn get_real_system_metrics(&mut self, agent_id: &str) -> (f32, f32) {
         let mut sys = SYSTEM.lock().expect("Mutex poisoned");
         sys.refresh_processes(sysinfo::ProcessesToUpdate::All, true);

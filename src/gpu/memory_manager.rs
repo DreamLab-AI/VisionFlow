@@ -577,7 +577,7 @@ impl GpuMemoryManager {
 
     /// Free a buffer
     pub fn free(&mut self, name: &str) -> Result<(), CudaError> {
-        if let Some(buffer_any) = self.buffers.remove(name) {
+        if let Some(_buffer_any) = self.buffers.remove(name) {
             // Type-erased, but Drop will handle cleanup
             self.configs.remove(name);
             self.track_deallocation(name, 0); // Size tracked in allocations map

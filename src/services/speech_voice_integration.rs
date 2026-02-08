@@ -11,6 +11,7 @@ use log::{debug, info, warn};
 use std::sync::Arc;
 use crate::utils::time;
 
+#[allow(async_fn_in_trait)]
 pub trait VoiceSwarmIntegration {
     
     async fn process_voice_command_with_tags(

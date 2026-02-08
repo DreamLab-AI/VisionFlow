@@ -4,9 +4,8 @@
 //! Implements DAG layout, type clustering, collision detection, and attribute-weighted springs.
 
 use crate::models::graph::GraphData;
-use crate::models::graph_types::{NodeType, EdgeType};
 use crate::services::semantic_type_registry::{SemanticTypeRegistry, RelationshipForceConfig};
-use log::{debug, info, warn};
+use log::{debug, info};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -862,7 +861,7 @@ impl SemanticForcesEngine {
                                              self.config.attribute_spring.rest_length_min));
 
                     let displacement = dist - rest_length;
-                    let force = spring_k * displacement / dist * 0.01;
+                    let _force = spring_k * displacement / dist * 0.01;
 
                     // Would need mutable access to both nodes - skipping for CPU fallback
                     // Real implementation uses CUDA with atomic operations

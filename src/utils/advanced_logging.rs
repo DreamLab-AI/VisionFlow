@@ -12,7 +12,7 @@ use std::{
 };
 
 use crate::utils::time;
-use crate::utils::json::{from_json, to_json};
+use crate::utils::json::to_json;
 
 // Structured log entry for JSON logging
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -456,6 +456,7 @@ impl AdvancedLogger {
         }
     }
 
+    #[allow(dead_code)]
     fn detect_performance_anomaly(&self, kernel_name: &str, execution_time_us: f64) -> bool {
         if let Ok(metrics) = self.performance_metrics.try_lock() {
             self.detect_performance_anomaly_with_metrics(kernel_name, execution_time_us, &metrics)

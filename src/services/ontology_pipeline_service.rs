@@ -212,7 +212,7 @@ impl OntologyPipelineService {
 
         use crate::reasoning::custom_reasoner::{CustomReasoner, OntologyReasoner};
 
-        let mut reasoner = CustomReasoner::new();
+        let reasoner = CustomReasoner::new();
 
         match reasoner.infer_axioms(&ontology) {
             Ok(axioms) => {

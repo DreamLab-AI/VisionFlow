@@ -17,7 +17,6 @@ use dashmap::DashMap;
 use log::{info, warn, debug};
 use tokio::sync::RwLock;
 use crate::adapters::whelk_inference_engine::WhelkInferenceEngine;
-use crate::ports::inference_engine::InferenceEngine;
 use crate::ports::ontology_repository::{OntologyRepository, OwlClass, Result as OntResult};
 
 /// Ontology reasoner for inferring missing class assignments
@@ -25,6 +24,7 @@ use crate::ports::ontology_repository::{OntologyRepository, OwlClass, Result as 
 /// during parallel GitHub sync operations.
 pub struct OntologyReasoner {
     /// The whelk inference engine (protected by RwLock for mutable operations)
+    #[allow(dead_code)]
     inference_engine: Arc<RwLock<WhelkInferenceEngine>>,
     /// Ontology repository for persistence
     ontology_repo: Arc<dyn OntologyRepository>,
@@ -53,7 +53,7 @@ impl OntologyReasoner {
         // we can use try_unwrap, otherwise we need to clone
         let engine = match Arc::try_unwrap(inference_engine) {
             Ok(engine) => engine,
-            Err(arc) => {
+            Err(_arc) => {
                 // If there are other references, we need to accept this limitation
                 // In practice, the caller should pass sole ownership
                 warn!("WhelkInferenceEngine has multiple Arc references; using shared state");

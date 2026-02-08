@@ -265,7 +265,7 @@ impl Handler<InitializeGPU> for GPUManagerActor {
                 }
             }
             .into_actor(self)
-            .map(|result, actor, _ctx| {
+            .map(|result, _actor, _ctx| {
                 if result.is_ok() {
                     info!("GPUManagerActor: GPU initialization completed successfully");
                 }

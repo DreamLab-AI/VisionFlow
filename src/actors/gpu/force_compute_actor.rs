@@ -42,6 +42,7 @@ pub struct PhysicsStats {
     pub total_force_calculations: u32,
 }
 
+#[allow(dead_code)]
 pub struct ForceComputeActor {
 
     gpu_state: GPUState,
@@ -903,7 +904,6 @@ impl Handler<UpdateGPUGraphData> for ForceComputeActor {
 
         // H4: Send acknowledgment
         if let Some(correlation_id) = msg.correlation_id {
-            use crate::actors::messaging::MessageAck;
             // Note: We don't have a direct physics orchestrator reference here,
             // but acknowledgments can still be sent if the reference is added in the future
             // For now, this demonstrates the pattern
@@ -1131,7 +1131,6 @@ impl Handler<SetSharedGPUContext> for ForceComputeActor {
 
         // H4: Send acknowledgment
         if let Some(correlation_id) = msg.correlation_id {
-            use crate::actors::messaging::MessageAck;
             debug!("SetSharedGPUContext completed with correlation_id: {}", correlation_id);
             // Note: Future enhancement - send ack to physics orchestrator if reference available
         }
@@ -1217,7 +1216,7 @@ impl Handler<crate::actors::messages::ConfigureBroadcastOptimization> for ForceC
         let old_stats = self.broadcast_optimizer.get_performance_stats();
 
         // Build new config from current + updates
-        let mut new_config = BroadcastConfig {
+        let new_config = BroadcastConfig {
             target_fps: msg.target_fps.unwrap_or(old_stats.target_fps),
             delta_threshold: msg.delta_threshold.unwrap_or(old_stats.delta_threshold),
             enable_spatial_culling: msg.enable_spatial_culling.unwrap_or(false),

@@ -263,6 +263,7 @@ struct int3 {
     z: i32,
 }
 
+#[allow(dead_code)]
 pub struct UnifiedGPUCompute {
     device: Device,
     _context: Context,
@@ -717,7 +718,9 @@ impl UnifiedGPUCompute {
         _num_nodes: usize,
         _num_cells: usize,
     ) -> Result<DeviceBuffer<u8>> {
+        #[allow(unused_assignments)]
         let mut sort_bytes = 0;
+        #[allow(unused_assignments)]
         let mut scan_bytes = 0;
         let mut error;
 
@@ -2838,7 +2841,7 @@ impl UnifiedGPUCompute {
         &mut self,
         max_iterations: u32,
         resolution: f32,
-        seed: u32,
+        _seed: u32,
     ) -> Result<(Vec<i32>, usize, f32, u32, Vec<i32>, bool)> {
         info!("Running REAL Louvain community detection on GPU");
 
@@ -3920,6 +3923,7 @@ pub enum ComputeMode {
 // 4. num_items is a non-negative count of elements to scan
 // 5. stream is a valid CUDA stream handle or null for default stream
 // 6. The caller ensures synchronization before reading d_out
+#[allow(dead_code)]
 unsafe extern "C" {
     fn thrust_exclusive_scan(
         d_in: *const ::std::os::raw::c_void,

@@ -11,7 +11,7 @@
 //! - Distance-based graph analytics
 
 use actix::prelude::*;
-use log::{error, info, warn};
+use log::{error, info};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::Instant;

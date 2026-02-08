@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 // High-Performance Settings Actor with Hexagonal Architecture
 // Now uses SettingsRepository port for database operations
 // Maintains caching and performance optimizations as adapter concerns
@@ -12,7 +13,7 @@ use crate::errors::{SettingsError, VisionFlowError, VisionFlowResult};
 use actix::prelude::*;
 use blake3::Hasher;
 use flate2::Status;
-use flate2::{Compress, Compression, Decompress, FlushCompress, FlushDecompress};
+use flate2::{Compress, Compression, Decompress, FlushDecompress};
 use log::{debug, error, info, warn};
 use lru::LruCache;
 use serde::{Deserialize, Serialize};
@@ -28,7 +29,7 @@ use crate::ports::settings_repository::SettingsRepository;
 
 #[cfg(feature = "redis")]
 use redis::{AsyncCommands, Client as RedisClient};
-use crate::utils::json::{from_json, to_json};
+use crate::utils::json::to_json;
 use crate::utils::result_helpers::safe_json_number;
 
 // Cache configuration constants
@@ -122,7 +123,7 @@ impl PerformanceMetrics {
         } else {
             
             let full_size = 50_000 * self.total_requests;
-            let actual_size = full_size - self.bandwidth_saved_bytes;
+            let _actual_size = full_size - self.bandwidth_saved_bytes;
             (self.bandwidth_saved_bytes as f64 / full_size as f64) * 100.0
         }
     }
@@ -296,7 +297,7 @@ impl OptimizedSettingsActor {
         settings
     }
 
-    async fn update_metrics(&self, start_time: Instant, was_cached: bool, success: bool) {
+    async fn update_metrics(&self, start_time: Instant, was_cached: bool, _success: bool) {
         let response_time = start_time.elapsed();
         let mut metrics = self.metrics.write().await;
         metrics.total_requests += 1;

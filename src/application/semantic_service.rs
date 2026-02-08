@@ -39,6 +39,7 @@ pub struct ShortestPathRequest {
 
 pub struct SemanticService {
     semantic_adapter: Arc<RwLock<dyn GpuSemanticAnalyzer>>,
+    #[allow(dead_code)]
     event_bus: Arc<RwLock<EventBus>>,
 }
 

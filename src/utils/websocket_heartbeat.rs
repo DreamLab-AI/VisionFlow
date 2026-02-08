@@ -5,7 +5,7 @@ use log::warn;
 use serde_json::json;
 use std::time::{Duration, Instant};
 use crate::utils::time;
-use crate::utils::json::{from_json, to_json};
+use crate::utils::json::to_json;
 
 pub trait WebSocketHeartbeat: Actor<Context = ws::WebsocketContext<Self>>
 where

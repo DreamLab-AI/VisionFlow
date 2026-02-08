@@ -18,7 +18,7 @@ pub use graph::{get_graph_data, get_paginated_graph_data, refresh_graph, update_
 pub use visualisation::get_visualisation_settings;
 
 use crate::handlers::utils::execute_in_thread;
-use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable};
+use crate::{ok_json, error_json};
 use actix_web::{web, HttpResponse, Responder};
 use log::{error, info};
 use serde_json::json;
@@ -74,11 +74,7 @@ async fn get_app_config(state: web::Data<crate::AppState>) -> impl Responder {
         Ok(Ok(None)) => {
             log::warn!("No settings found, using defaults");
             use crate::config::AppFullSettings;
-use crate::{
-    ok_json, created_json, error_json, bad_request, not_found,
-    unauthorized, forbidden, conflict, no_content, accepted,
-    too_many_requests, service_unavailable, payload_too_large
-};
+use crate::ok_json;
 
             let settings = AppFullSettings::default();
             ok_json!(json!({

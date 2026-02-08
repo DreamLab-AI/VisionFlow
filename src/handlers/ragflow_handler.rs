@@ -17,9 +17,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::sync::Arc;
 use crate::{
-    ok_json, created_json, error_json, bad_request, not_found,
-    unauthorized, forbidden, conflict, no_content, accepted,
-    too_many_requests, service_unavailable, payload_too_large
+    ok_json, error_json,
+    too_many_requests, service_unavailable,
 };
 
 
@@ -210,6 +209,7 @@ pub async fn get_session_history(
     }
 }
 
+#[allow(dead_code)]
 async fn handle_ragflow_chat(
     state: web::Data<AppState>,
     req: HttpRequest,

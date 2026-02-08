@@ -63,7 +63,7 @@ impl EventCoordinator {
 
         
         let graph_data_clone = graph_data.clone();
-        let physics_clone = physics_service.clone();
+        let _physics_clone = physics_service.clone();
 
         actix::spawn(async move {
             loop {
@@ -97,7 +97,7 @@ impl EventCoordinator {
 
     
     async fn subscribe_to_ontology_events(&self) {
-        let semantic_service = self.semantic_service.clone();
+        let _semantic_service = self.semantic_service.clone();
 
         
         actix::spawn(async move {
@@ -112,7 +112,7 @@ impl EventCoordinator {
 
     
     async fn subscribe_to_position_events(&self) {
-        let event_bus = self.event_bus.clone();
+        let _event_bus = self.event_bus.clone();
 
         
         actix::spawn(async move {
@@ -133,7 +133,7 @@ impl EventCoordinator {
         );
 
         
-        let graph = self.graph_data.read().await.clone();
+        let _graph = self.graph_data.read().await.clone();
 
         
         if let Err(e) = self.physics_service.reset().await {
@@ -173,7 +173,7 @@ impl EventCoordinator {
 
         
         let event_bus = self.event_bus.write().await;
-        event_bus.publish(event).await;
+        let _ = event_bus.publish(event).await;
     }
 
     

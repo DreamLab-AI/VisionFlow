@@ -190,11 +190,11 @@ impl InferenceTriggerHandler {
 }
 
 pub async fn register_inference_triggers(
-    event_bus: Arc<RwLock<EventBus>>,
+    _event_bus: Arc<RwLock<EventBus>>,
     inference_service: Arc<RwLock<InferenceService>>,
     config: AutoInferenceConfig,
 ) {
-    let handler = Arc::new(InferenceTriggerHandler::new(inference_service, config));
+    let _handler = Arc::new(InferenceTriggerHandler::new(inference_service, config));
 
     
     

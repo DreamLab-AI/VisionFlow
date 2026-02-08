@@ -5,7 +5,7 @@ use tokio::sync::RwLock;
 
 use crate::events::domain_events::*;
 use crate::events::types::{EventError, EventHandler, EventResult, StoredEvent};
-use crate::utils::json::{from_json, to_json};
+use crate::utils::json::from_json;
 
 pub struct GraphEventHandler {
     handler_id: String,
@@ -21,14 +21,19 @@ struct GraphCache {
 
 #[derive(Debug, Clone)]
 struct NodeInfo {
+    #[allow(dead_code)]
     label: String,
+    #[allow(dead_code)]
     node_type: String,
 }
 
 #[derive(Debug, Clone)]
 struct EdgeInfo {
+    #[allow(dead_code)]
     source_id: String,
+    #[allow(dead_code)]
     target_id: String,
+    #[allow(dead_code)]
     edge_type: String,
 }
 

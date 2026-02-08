@@ -352,7 +352,7 @@ impl QuicTransportServer {
         info!("QUIC connection established from {}", remote_addr);
 
         let session_id = uuid::Uuid::new_v4().to_string();
-        let (position_tx, mut position_rx) = mpsc::channel::<PostcardBatchUpdate>(100);
+        let (position_tx, _position_rx) = mpsc::channel::<PostcardBatchUpdate>(100);
         let (control_tx, mut control_rx) = mpsc::channel::<ControlMessage>(50);
 
         let session = Arc::new(RwLock::new(QuicClientSession {
@@ -445,7 +445,7 @@ impl QuicTransportServer {
     async fn handle_control_recv(
         recv: &mut RecvStream,
         session: Arc<RwLock<QuicClientSession>>,
-        app_state: Arc<AppState>,
+        _app_state: Arc<AppState>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let mut len_buf = [0u8; 4];
 

@@ -341,7 +341,7 @@ impl InferenceService {
     
     async fn load_ontology_data(
         &self,
-        ontology_id: &str,
+        _ontology_id: &str,
     ) -> EngineResult<(Vec<crate::ports::ontology_repository::OwlClass>, Vec<crate::ports::ontology_repository::OwlAxiom>)> {
         let classes = self
             .ontology_repo
@@ -448,7 +448,7 @@ impl InferenceService {
 
     
     async fn publish_event(&self, event: InferenceEvent) {
-        let event_bus = self.event_bus.write().await;
+        let _event_bus = self.event_bus.write().await;
         
         debug!("Published event: {:?}", event);
     }

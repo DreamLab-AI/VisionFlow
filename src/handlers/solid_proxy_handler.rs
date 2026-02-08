@@ -392,7 +392,7 @@ async fn create_pod_structure(
 
     // Create WebID profile card with Nostr identity
     let profile_url = format!("{}/profile/card", pod_base);
-    let webid = format!("{}#me", profile_url);
+    let _webid = format!("{}#me", profile_url);
     let profile_content = format!(
         r#"@prefix foaf: <http://xmlns.com/foaf/0.1/> .
 @prefix solid: <http://www.w3.org/ns/solid/terms#> .
@@ -742,6 +742,7 @@ async fn get_user_from_request(
 }
 
 /// Get user identity from NIP-98 Authorization header
+#[allow(dead_code)]
 async fn get_user_identity_from_request(
     req: &HttpRequest,
     state: &web::Data<SolidProxyState>,
@@ -761,6 +762,7 @@ pub struct SolidNotificationWs {
     /// User identity for the connection
     user_identity: Option<UserIdentity>,
     /// JSS WebSocket URL
+    #[allow(dead_code)]
     jss_ws_url: String,
     /// Subscribed resources
     subscriptions: Vec<String>,

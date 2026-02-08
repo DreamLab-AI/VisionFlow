@@ -18,7 +18,9 @@ use crate::models::graph::GraphData;
 use crate::utils::socket_flow_messages::BinaryNodeData;
 use crate::utils::unified_gpu_compute::UnifiedGPUCompute;
 
+#[allow(dead_code)]
 const MAX_NODES: u32 = 1_000_000;
+#[allow(dead_code)]
 const MAX_GPU_FAILURES: u32 = 5;
 
 pub struct GPUResourceActor {
@@ -35,6 +37,7 @@ pub struct GPUResourceActor {
     gpu_state: GPUState,
 
     
+    #[allow(dead_code)]
     last_failure_reset: Instant,
 }
 

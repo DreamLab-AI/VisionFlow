@@ -5,11 +5,11 @@
 //! AFTER parsing but BEFORE saving to database.
 
 use std::sync::Arc;
-use log::{info, debug, warn};
+use log::{info, debug};
 
 use crate::models::graph::GraphData;
-use crate::services::ontology_reasoner::{OntologyReasoner, FileContext};
-use crate::services::edge_classifier::{EdgeClassifier, EdgeContext};
+use crate::services::ontology_reasoner::OntologyReasoner;
+use crate::services::edge_classifier::EdgeClassifier;
 
 /// Service that enriches graph data with ontology classifications
 pub struct OntologyEnrichmentService {

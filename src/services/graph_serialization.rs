@@ -2,7 +2,6 @@ use crate::models::graph::GraphData;
 use crate::models::graph_export::*;
 use crate::time;
 use anyhow::{anyhow, Result};
-use chrono::Utc;
 use flate2::write::GzEncoder;
 use flate2::Compression;
 use serde_json;
@@ -205,7 +204,7 @@ impl GraphSerializationService {
     }
 
     
-    fn serialize_to_gexf(&self, graph: &GraphData, request: &ExportRequest) -> Result<String> {
+    fn serialize_to_gexf(&self, graph: &GraphData, _request: &ExportRequest) -> Result<String> {
         let mut buffer = Vec::new();
         {
             let mut writer = EmitterConfig::new()
@@ -260,7 +259,7 @@ impl GraphSerializationService {
     }
 
     
-    fn serialize_to_graphml(&self, graph: &GraphData, request: &ExportRequest) -> Result<String> {
+    fn serialize_to_graphml(&self, graph: &GraphData, _request: &ExportRequest) -> Result<String> {
         let mut buffer = Vec::new();
         {
             let mut writer = EmitterConfig::new()

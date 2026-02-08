@@ -105,7 +105,7 @@ impl GpuSemanticAnalyzer for ActixSemanticAdapter {
         }
 
         let msg = InitializeSemanticMessage::new(graph);
-        self.send_message(msg).await?;
+        let _ = self.send_message(msg).await?;
 
         self.initialized = true;
         Ok(())
@@ -269,7 +269,7 @@ impl Handler<ComputeShortestPathsMessage> for SemanticProcessorActor {
         _ctx: &mut Self::Context,
     ) -> Self::Result {
         use crate::actors::messages::ComputeShortestPaths;
-        let compute_msg = ComputeShortestPaths {
+        let _compute_msg = ComputeShortestPaths {
             source_node_id: msg.source_node_id,
         };
 

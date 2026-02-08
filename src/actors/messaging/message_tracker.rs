@@ -1,8 +1,6 @@
 //! Message tracking with timeout and retry logic
 
-use actix::prelude::*;
 use log::{debug, error, info, warn};
-use std::any::Any;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -127,6 +125,7 @@ pub struct MessageTracker {
 
     /// Channel for retry requests
     retry_tx: mpsc::UnboundedSender<RetryRequest>,
+    #[allow(dead_code)]
     retry_rx: Arc<RwLock<mpsc::UnboundedReceiver<RetryRequest>>>,
 
     /// Metrics for monitoring

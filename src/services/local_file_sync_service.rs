@@ -33,6 +33,7 @@ pub struct LocalFileSyncService {
     kg_parser: Arc<KnowledgeGraphParser>,
     onto_parser: Arc<OntologyParser>,
     kg_repo: Arc<dyn KnowledgeGraphRepository>,
+    #[allow(dead_code)]
     onto_repo: Arc<Neo4jOntologyRepository>,
     enrichment_service: Arc<OntologyEnrichmentService>,
     content_analyzer: Arc<OntologyContentAnalyzer>,
@@ -353,7 +354,7 @@ impl LocalFileSyncService {
             stats.cache_hits += 1;
 
             // Use cached analysis
-            let analysis = &cached.analysis;
+            let _analysis = &cached.analysis;
             let metadata = &cached.metadata;
 
             // Update statistics from cache
