@@ -14,8 +14,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::actors::gpu::semantic_forces_actor::{
-    ConfigureCollision, ConfigureDAG, ConfigureTypeClustering, DAGConfig, DAGLayoutMode,
-    GetHierarchyLevels, GetSemanticConfig, RecalculateHierarchy, TypeClusterConfig, CollisionConfig,
+    DAGConfig, DAGLayoutMode, TypeClusterConfig, CollisionConfig,
 };
 use crate::services::semantic_type_registry::{
     SEMANTIC_TYPE_REGISTRY, RelationshipForceConfig,
@@ -74,7 +73,7 @@ pub async fn configure_dag(
     };
 
     // Get GPU manager actor
-    let gpu_manager = match state.gpu_manager_addr.as_ref() {
+    let _gpu_manager = match state.gpu_manager_addr.as_ref() {
         Some(manager) => manager,
         None => {
             error!("GPU manager not available");
@@ -133,7 +132,7 @@ pub async fn configure_type_clustering(
     info!("Type clustering configuration request - enabled: {}", payload.enabled);
 
     // Get GPU manager actor
-    let gpu_manager = match state.gpu_manager_addr.as_ref() {
+    let _gpu_manager = match state.gpu_manager_addr.as_ref() {
         Some(manager) => manager,
         None => {
             error!("GPU manager not available");
@@ -183,7 +182,7 @@ pub async fn configure_collision(
     info!("Collision detection configuration request - enabled: {}", payload.enabled);
 
     // Get GPU manager actor
-    let gpu_manager = match state.gpu_manager_addr.as_ref() {
+    let _gpu_manager = match state.gpu_manager_addr.as_ref() {
         Some(manager) => manager,
         None => {
             error!("GPU manager not available");
@@ -229,7 +228,7 @@ pub async fn get_hierarchy_levels(state: web::Data<AppState>) -> impl Responder 
     info!("Hierarchy levels request received");
 
     // Get GPU manager actor
-    let gpu_manager = match state.gpu_manager_addr.as_ref() {
+    let _gpu_manager = match state.gpu_manager_addr.as_ref() {
         Some(manager) => manager,
         None => {
             error!("GPU manager not available");
@@ -250,7 +249,7 @@ pub async fn get_semantic_config(state: web::Data<AppState>) -> impl Responder {
     info!("Semantic forces config request received");
 
     // Get GPU manager actor
-    let gpu_manager = match state.gpu_manager_addr.as_ref() {
+    let _gpu_manager = match state.gpu_manager_addr.as_ref() {
         Some(manager) => manager,
         None => {
             error!("GPU manager not available");
@@ -274,7 +273,7 @@ pub async fn recalculate_hierarchy(
     info!("Hierarchy recalculation request received");
 
     // Get GPU manager actor
-    let gpu_manager = match state.gpu_manager_addr.as_ref() {
+    let _gpu_manager = match state.gpu_manager_addr.as_ref() {
         Some(manager) => manager,
         None => {
             error!("GPU manager not available");

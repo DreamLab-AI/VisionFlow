@@ -3,7 +3,7 @@
 //! Provides comprehensive error checking and recovery for all CUDA operations.
 //! Implements proper error propagation, automatic cleanup, and fallback mechanisms.
 
-use std::ffi::{CStr, c_char, c_int, c_void};
+use std::ffi::{c_char, c_int, c_void};
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -205,6 +205,7 @@ pub enum RecoveryStrategy {
 pub struct CudaErrorHandler {
     error_count: Arc<AtomicU32>,
     last_error_time: Arc<std::sync::Mutex<Option<Instant>>>,
+    #[allow(dead_code)]
     max_errors_per_minute: u32,
     fallback_threshold: u32,
     context_reset_threshold: u32,
@@ -540,12 +541,17 @@ extern "C" {
     fn cudaMalloc(devPtr: *mut *mut c_void, size: usize) -> c_int;
     fn cudaFree(devPtr: *mut c_void) -> c_int;
     fn cudaMemcpy(dst: *mut c_void, src: *const c_void, count: usize, kind: c_int) -> c_int;
+    #[allow(dead_code)]
     fn cudaGetErrorString(error: c_int) -> *const c_char;
 }
 
 // CUDA memory copy directions
+#[allow(non_upper_case_globals)]
 const cudaMemcpyHostToDevice: c_int = 1;
+#[allow(non_upper_case_globals)]
 const cudaMemcpyDeviceToHost: c_int = 2;
+#[allow(non_upper_case_globals)]
+#[allow(dead_code)]
 const cudaMemcpyDeviceToDevice: c_int = 3;
 
 #[macro_export]

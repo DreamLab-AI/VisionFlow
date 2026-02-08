@@ -1,17 +1,13 @@
 //! Semantic Forces Actor - Handles DAG layout, type clustering, and collision detection
 //! Integrates with GPU kernels in semantic_forces.cu for advanced graph layout
 
+#![allow(dead_code)]
 use actix::prelude::*;
-use log::{debug, info, warn};
+use log::{info, warn};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use std::time::Instant;
 
 use super::shared::{GPUState, SharedGPUContext};
-use crate::actors::messages::*;
-use crate::telemetry::agent_telemetry::{
-    get_telemetry_logger, CorrelationId, LogLevel, TelemetryEvent,
-};
 
 // Re-export message types for handlers
 pub use crate::actors::messages::{

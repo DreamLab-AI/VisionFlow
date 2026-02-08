@@ -4,7 +4,7 @@
 //! graph visualization system, including agent lifecycle, GPU operations, and MCP bridge.
 
 use crate::time;
-use crate::{to_json, from_json};
+use crate::to_json;
 use chrono::{DateTime, Utc};
 use log::{debug, error, info, trace, warn};
 use serde::{Deserialize, Serialize};
@@ -613,6 +613,7 @@ impl AgentTelemetryLogger {
 static mut GLOBAL_TELEMETRY_LOGGER: Option<AgentTelemetryLogger> = None;
 static LOGGER_INIT: std::sync::Once = std::sync::Once::new();
 
+#[allow(static_mut_refs)]
 pub fn init_telemetry_logger(log_dir: &str, buffer_size: usize) -> Result<(), std::io::Error> {
     LOGGER_INIT.call_once(|| match AgentTelemetryLogger::new(log_dir, buffer_size) {
         Ok(logger) => {
@@ -631,6 +632,7 @@ pub fn init_telemetry_logger(log_dir: &str, buffer_size: usize) -> Result<(), st
     Ok(())
 }
 
+#[allow(static_mut_refs)]
 pub fn get_telemetry_logger() -> Option<&'static AgentTelemetryLogger> {
     unsafe { GLOBAL_TELEMETRY_LOGGER.as_ref() }
 }
