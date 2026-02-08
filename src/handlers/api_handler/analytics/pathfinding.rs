@@ -8,6 +8,7 @@
 use actix_web::{web, HttpResponse, Result};
 use log::{error, info};
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 
 use crate::actors::gpu::shortest_path_actor::{
     ComputeSSP, ComputeAPSP, GetShortestPathStats, SSSPResult, APSPResult,
@@ -16,6 +17,11 @@ use crate::actors::gpu::connected_components_actor::{
     ComputeConnectedComponents, GetConnectedComponentsStats,
     ConnectedComponentsResult,
 };
+use crate::services::pathfinding::{
+    AStarPathfinder, BidirectionalDijkstra, JaccardEmbedding, PathAlgorithm,
+    PathResult as PfPathResult, SemanticPathfinder,
+};
+use crate::ports::graph_repository::GraphRepository;
 use crate::{ok_json, error_json, AppState};
 
 /// SSSP request payload
@@ -26,6 +32,9 @@ pub struct SSSPRequest {
     pub source_idx: usize,
     /// Optional maximum distance cutoff
     pub max_distance: Option<f32>,
+    /// Optional delta-stepping bucket width for SSSP.
+    /// When provided, uses delta-stepping instead of Bellman-Ford.
+    pub delta: Option<f32>,
 }
 
 /// APSP request payload
@@ -130,6 +139,7 @@ pub async fn compute_sssp(
             let msg = ComputeSSP {
                 source_idx: payload.source_idx,
                 max_distance: payload.max_distance,
+                delta: payload.delta,
             };
 
             match shortest_path_actor.send(msg).await {
@@ -325,12 +335,273 @@ pub async fn get_connected_components_stats(
         }
 }
 
+/// Point-to-point pathfinding request
+///
+/// Dispatches to A*, Bidirectional Dijkstra, or Semantic SSSP based on `algorithm`.
+/// # Example
+/// ```json
+/// POST /api/analytics/pathfinding/path
+/// {
+///   "sourceId": 1,
+///   "targetId": 5,
+///   "algorithm": "astar"
+/// }
+/// ```
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PointToPointRequest {
+    /// Source node ID
+    pub source_id: u32,
+    /// Target node ID
+    pub target_id: u32,
+    /// Algorithm: "astar" | "bidirectional" | "semantic" (default: "astar")
+    #[serde(default)]
+    pub algorithm: PathAlgorithm,
+    /// Query string for semantic pathfinding (required when algorithm = "semantic")
+    pub query: Option<String>,
+    /// Semantic alpha parameter (0.0-2.0, default 0.5). Only used with "semantic".
+    pub semantic_alpha: Option<f32>,
+}
+
+/// Point-to-point response wrapper
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PointToPointResponse {
+    pub success: bool,
+    pub result: Option<serde_json::Value>,
+    pub error: Option<String>,
+}
+
+impl std::fmt::Display for PointToPointResponse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.success {
+            write!(f, "Point-to-point pathfinding successful")
+        } else {
+            write!(f, "Point-to-point pathfinding failed: {:?}", self.error)
+        }
+    }
+}
+
+/// Compute point-to-point shortest path using A*, Bidirectional Dijkstra, or Semantic search
+pub async fn compute_point_to_point(
+    data: web::Data<AppState>,
+    payload: web::Json<PointToPointRequest>,
+) -> Result<HttpResponse> {
+    info!(
+        "API: Computing point-to-point path from {} to {} using {:?}",
+        payload.source_id, payload.target_id, payload.algorithm
+    );
+
+    // Retrieve graph data from the repository
+    let graph_data = match data.graph_repository.get_graph().await {
+        Ok(graph) => graph,
+        Err(e) => {
+            error!("Failed to get graph data: {:?}", e);
+            return error_json!(PointToPointResponse {
+                success: false,
+                result: None,
+                error: Some(format!("Failed to retrieve graph data: {:?}", e)),
+            });
+        }
+    };
+
+    match payload.algorithm {
+        PathAlgorithm::Astar => {
+            match AStarPathfinder::find_path(&graph_data, payload.source_id, payload.target_id) {
+                Ok(result) => {
+                    info!(
+                        "A* path found: {} nodes, distance {:.3}, visited {}",
+                        result.path.len(),
+                        result.distance,
+                        result.nodes_visited
+                    );
+                    let json_val = serde_json::to_value(&result).unwrap_or_default();
+                    ok_json!(PointToPointResponse {
+                        success: true,
+                        result: Some(json_val),
+                        error: None,
+                    })
+                }
+                Err(e) => {
+                    error!("A* pathfinding failed: {}", e);
+                    error_json!(PointToPointResponse {
+                        success: false,
+                        result: None,
+                        error: Some(e),
+                    })
+                }
+            }
+        }
+        PathAlgorithm::Bidirectional => {
+            match BidirectionalDijkstra::find_path(
+                &graph_data,
+                payload.source_id,
+                payload.target_id,
+            ) {
+                Ok(result) => {
+                    info!(
+                        "Bidirectional path found: {} nodes, distance {:.3}, visited {}",
+                        result.path.len(),
+                        result.distance,
+                        result.nodes_visited
+                    );
+                    let json_val = serde_json::to_value(&result).unwrap_or_default();
+                    ok_json!(PointToPointResponse {
+                        success: true,
+                        result: Some(json_val),
+                        error: None,
+                    })
+                }
+                Err(e) => {
+                    error!("Bidirectional Dijkstra failed: {}", e);
+                    error_json!(PointToPointResponse {
+                        success: false,
+                        result: None,
+                        error: Some(e),
+                    })
+                }
+            }
+        }
+        PathAlgorithm::Semantic => {
+            let query = match &payload.query {
+                Some(q) if !q.is_empty() => q.clone(),
+                _ => {
+                    return error_json!(PointToPointResponse {
+                        success: false,
+                        result: None,
+                        error: Some(
+                            "Query string is required for semantic pathfinding".to_string()
+                        ),
+                    });
+                }
+            };
+
+            let embedding = Arc::new(JaccardEmbedding);
+            let alpha = payload.semantic_alpha.unwrap_or(0.5);
+            let pathfinder = SemanticPathfinder::new(embedding).with_alpha(alpha);
+
+            match pathfinder.find_path(
+                &graph_data,
+                payload.source_id,
+                payload.target_id,
+                &query,
+            ) {
+                Ok(result) => {
+                    info!(
+                        "Semantic path found: {} nodes, distance {:.3}, relevance {:.3}",
+                        result.path_result.path.len(),
+                        result.path_result.distance,
+                        result.relevance
+                    );
+                    let json_val = serde_json::to_value(&result).unwrap_or_default();
+                    ok_json!(PointToPointResponse {
+                        success: true,
+                        result: Some(json_val),
+                        error: None,
+                    })
+                }
+                Err(e) => {
+                    error!("Semantic pathfinding failed: {}", e);
+                    error_json!(PointToPointResponse {
+                        success: false,
+                        result: None,
+                        error: Some(e),
+                    })
+                }
+            }
+        }
+        PathAlgorithm::Sssp => {
+            // Fall through to the GPU SSSP actor (requires index, not ID).
+            // For point-to-point via SSSP, find the node index first.
+            if let Some(ref shortest_path_actor) = data.shortest_path_actor {
+                // Find source index in graph
+                let source_idx = match graph_data
+                    .nodes
+                    .iter()
+                    .position(|n| n.id == payload.source_id)
+                {
+                    Some(idx) => idx,
+                    None => {
+                        return error_json!(PointToPointResponse {
+                            success: false,
+                            result: None,
+                            error: Some(format!(
+                                "Source node {} not found in graph",
+                                payload.source_id
+                            )),
+                        });
+                    }
+                };
+
+                let msg = ComputeSSP {
+                    source_idx,
+                    max_distance: None,
+                    delta: None,
+                };
+
+                match shortest_path_actor.send(msg).await {
+                    Ok(Ok(sssp_result)) => {
+                        // Extract distance to target
+                        let target_idx = graph_data
+                            .nodes
+                            .iter()
+                            .position(|n| n.id == payload.target_id);
+                        let (distance, exists) = match target_idx {
+                            Some(idx) if sssp_result.distances[idx] < f32::MAX => {
+                                (sssp_result.distances[idx], true)
+                            }
+                            _ => (f32::MAX, false),
+                        };
+
+                        let result = PfPathResult {
+                            path: Vec::new(), // SSSP does not track predecessors
+                            distance,
+                            exists,
+                            nodes_visited: sssp_result.nodes_reached,
+                            algorithm: "sssp".into(),
+                        };
+                        let json_val = serde_json::to_value(&result).unwrap_or_default();
+                        ok_json!(PointToPointResponse {
+                            success: true,
+                            result: Some(json_val),
+                            error: None,
+                        })
+                    }
+                    Ok(Err(e)) => {
+                        error!("GPU SSSP failed: {}", e);
+                        error_json!(PointToPointResponse {
+                            success: false,
+                            result: None,
+                            error: Some(e),
+                        })
+                    }
+                    Err(e) => {
+                        error!("SSSP actor communication error: {}", e);
+                        error_json!(PointToPointResponse {
+                            success: false,
+                            result: None,
+                            error: Some(format!("Actor communication error: {}", e)),
+                        })
+                    }
+                }
+            } else {
+                error_json!(PointToPointResponse {
+                    success: false,
+                    result: None,
+                    error: Some("Shortest path actor not available".to_string()),
+                })
+            }
+        }
+    }
+}
+
 /// Configure pathfinding API routes
 pub fn configure_pathfinding_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/analytics/pathfinding")
             .route("/sssp", web::post().to(compute_sssp))
             .route("/apsp", web::post().to(compute_apsp))
+            .route("/path", web::post().to(compute_point_to_point))
             .route("/connected-components", web::post().to(compute_connected_components))
             .route("/stats/sssp", web::get().to(get_shortest_path_stats))
             .route("/stats/components", web::get().to(get_connected_components_stats))
