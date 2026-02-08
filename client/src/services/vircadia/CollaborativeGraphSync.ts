@@ -1,8 +1,5 @@
-// TODO: Migrated from Babylon.js to Three.js
-// Some features may require additional Three.js implementations:
-// - DynamicTexture equivalent (use CanvasTexture)
-// - Billboard mode (use sprites or manual camera-facing)
-// - Mesh parent/child relationships work differently
+// Three.js migration verified: CanvasTexture for dynamic text, onBeforeRender for
+// billboard/rotation animation, standard Object3D parent/child hierarchy.
 
 import * as THREE from 'three';
 import { ClientCore } from './VircadiaClientCore';
@@ -334,8 +331,10 @@ export class CollaborativeGraphSync {
             annotation.position.z
         );
 
-        // TODO: Billboard mode - need to implement camera-facing in render loop
-        // plane.lookAt(camera.position) should be called each frame
+        // Billboard: face the camera every frame via onBeforeRender
+        plane.onBeforeRender = (_renderer, _scene, camera) => {
+            plane.quaternion.copy(camera.quaternion);
+        };
 
         this.scene.add(plane);
 
@@ -395,9 +394,11 @@ export class CollaborativeGraphSync {
             highlight.position.copy(nodeMesh.position);
             highlight.position.y += sphere.radius;
 
-            // TODO: Rotation animation needs to be handled in render loop
-            // Add userData for animation
-            highlight.userData.rotationSpeed = 0.02;
+            // Animate rotation each frame using onBeforeRender
+            const rotationSpeed = 0.02;
+            highlight.onBeforeRender = () => {
+                highlight.rotation.y += rotationSpeed;
+            };
 
             this.scene.add(highlight);
             highlights.push(highlight);
@@ -451,7 +452,11 @@ export class CollaborativeGraphSync {
             const nameplate = new THREE.Mesh(nameplateGeometry, nameplateMaterial);
             nameplate.name = `nameplate_${presence.userId}`;
             nameplate.position.y = 0.2;
-            // TODO: Billboard mode for nameplate
+
+            // Billboard: face the camera every frame via onBeforeRender
+            nameplate.onBeforeRender = (_renderer, _scene, camera) => {
+                nameplate.quaternion.copy(camera.quaternion);
+            };
 
             mesh!.add(nameplate);
             this.scene.add(mesh!);

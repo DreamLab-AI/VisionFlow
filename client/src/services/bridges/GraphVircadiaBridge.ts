@@ -1,4 +1,4 @@
-// TODO: Migrated from Babylon.js to Three.js - verify all THREE.Scene usage patterns
+// Three.js migration verified: all scene, mesh, vector, and material APIs use THREE.*
 
 import * as THREE from 'three';
 import { ClientCore } from '../vircadia/VircadiaClientCore';
