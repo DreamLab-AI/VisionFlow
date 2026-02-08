@@ -448,60 +448,49 @@ impl OntologyReasoningService {
     }
 }
 
-// TODO: Update all tests to use Neo4j test containers
+// Uses Neo4j test helpers from test_helpers when NEO4J_TEST_URI is set
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::collections::HashMap;
 
-    // TODO: Update tests to use Neo4j test containers
-    // #[tokio::test]
-    // async fn test_create_service() {
-    //     let engine = Arc::new(WhelkInferenceEngine::new());
-    //     let repo = Arc::new(/* TODO: Use Neo4j test container */);
-    //
-    //     let service = OntologyReasoningService::new(engine, repo);
-    //
-    //     // Service should initialize without errors
-    //     service.clear_cache().await;
-    // }
+    #[tokio::test]
+    async fn test_create_service() {
+        let service = crate::test_helpers::create_test_reasoning_service();
 
-    // #[tokio::test]
-    // async fn test_hierarchy_depth_calculation() {
-    //     let engine = Arc::new(WhelkInferenceEngine::new());
-    //     let repo = Arc::new(/* TODO: Use Neo4j test container */);
-    //
-    //     let service = OntologyReasoningService::new(engine, repo);
-    //
-    //     let mut child_map = HashMap::new();
-    //     child_map.insert("child".to_string(), "parent".to_string());
-    //     child_map.insert("parent".to_string(), "grandparent".to_string());
-    //
-    //     let depth = service.calculate_depth("child", &child_map);
-    //     assert_eq!(depth, 2);
-    // }
+        // Service should initialize without errors
+        service.clear_cache().await;
+    }
 
-    // #[tokio::test]
-    // async fn test_descendant_counting() {
-    //     // Test disabled until Neo4j test containers are available
-    //     let engine = Arc::new(WhelkInferenceEngine::new());
-    //     let repo = Arc::new(/* TODO: Use Neo4j test container */);
-    //
-    //     let service = OntologyReasoningService::new(engine, repo);
-    //
-    //     let mut parent_map = HashMap::new();
-    //     parent_map.insert(
-    //         "parent".to_string(),
-    //         vec!["child1".to_string(), "child2".to_string()],
-    //     );
-    //     parent_map.insert("child1".to_string(), vec!["grandchild".to_string()]);
-    //
-    //     let count = service.count_descendants(
-    //         &vec!["child1".to_string(), "child2".to_string()],
-    //         &parent_map,
-    //     );
-    //
-    //     // 2 children + 1 grandchild = 3 total descendants
-    //     assert_eq!(count, 3);
-    // }
+    #[tokio::test]
+    async fn test_hierarchy_depth_calculation() {
+        let service = crate::test_helpers::create_test_reasoning_service();
+
+        let mut child_map = HashMap::new();
+        child_map.insert("child".to_string(), "parent".to_string());
+        child_map.insert("parent".to_string(), "grandparent".to_string());
+
+        let depth = service.calculate_depth("child", &child_map);
+        assert_eq!(depth, 2);
+    }
+
+    #[tokio::test]
+    async fn test_descendant_counting() {
+        let service = crate::test_helpers::create_test_reasoning_service();
+
+        let mut parent_map = HashMap::new();
+        parent_map.insert(
+            "parent".to_string(),
+            vec!["child1".to_string(), "child2".to_string()],
+        );
+        parent_map.insert("child1".to_string(), vec!["grandchild".to_string()]);
+
+        let count = service.count_descendants(
+            &vec!["child1".to_string(), "child2".to_string()],
+            &parent_map,
+        );
+
+        // 2 children + 1 grandchild = 3 total descendants
+        assert_eq!(count, 3);
+    }
 }

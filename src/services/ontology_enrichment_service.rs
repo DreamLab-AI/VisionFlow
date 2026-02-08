@@ -262,49 +262,36 @@ impl OntologyEnrichmentService {
     }
 }
 
-// TODO: Update tests to use Neo4j test containers
-// Tests temporarily disabled - need to be updated to use Neo4j instead of SQLite
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//
-//     #[test]
-//     fn test_extract_frontmatter() {
-//         let content = r#"---
-// type: person
-// category: engineer
-// ---
-//
-// # Content here"#;
-//
-//         let service = OntologyEnrichmentService::new(
-//             Arc::new(OntologyReasoner::new(
-//                 Arc::new(crate::adapters::whelk_inference_engine::WhelkInferenceEngine::new()),
-//                 Arc::new(crate::repositories::unified_ontology_repository::UnifiedOntologyRepository::new(":memory:").unwrap())
-//             )),
-//             Arc::new(EdgeClassifier::new()),
-//         );
-//
-//         let metadata = service.extract_frontmatter(content);
-//         assert!(metadata.is_some());
-//         let meta = metadata.unwrap();
-//         assert_eq!(meta.get("type"), Some(&"person".to_string()));
-//         assert_eq!(meta.get("category"), Some(&"engineer".to_string()));
-//     }
-//
-//     #[test]
-//     fn test_extract_link_context() {
-//         let content = "Tim Cook is the CEO of [[Apple Inc]].";
-//
-//         let service = OntologyEnrichmentService::new(
-//             Arc::new(OntologyReasoner::new(
-//                 Arc::new(crate::adapters::whelk_inference_engine::WhelkInferenceEngine::new()),
-//                 Arc::new(crate::repositories::unified_ontology_repository::UnifiedOntologyRepository::new(":memory:").unwrap())
-//             )),
-//             Arc::new(EdgeClassifier::new()),
-//         );
-//
-//         let context = service.extract_link_context(content, "Apple Inc");
-//         assert_eq!(context, "Tim Cook is the CEO of [[Apple Inc]].");
-//     }
-// }
+// Uses Neo4j test helpers from test_helpers when NEO4J_TEST_URI is set
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_extract_frontmatter() {
+        let content = r#"---
+type: person
+category: engineer
+---
+
+# Content here"#;
+
+        let service = crate::test_helpers::create_test_enrichment_service();
+
+        let metadata = service.extract_frontmatter(content);
+        assert!(metadata.is_some());
+        let meta = metadata.unwrap();
+        assert_eq!(meta.get("type"), Some(&"person".to_string()));
+        assert_eq!(meta.get("category"), Some(&"engineer".to_string()));
+    }
+
+    #[test]
+    fn test_extract_link_context() {
+        let content = "Tim Cook is the CEO of [[Apple Inc]].";
+
+        let service = crate::test_helpers::create_test_enrichment_service();
+
+        let context = service.extract_link_context(content, "Apple Inc");
+        assert_eq!(context, "Tim Cook is the CEO of [[Apple Inc]].");
+    }
+}

@@ -33,6 +33,9 @@ pub mod validation;
 // #[cfg(test)]
 // pub mod test_settings_fix;
 
+#[cfg(test)]
+pub mod test_helpers;
+
 pub use actors::{
     ClientCoordinatorActor, MetadataActor, OptimizedSettingsActor,
 };

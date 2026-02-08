@@ -558,60 +558,46 @@ pub struct FileContext {
     pub metadata: Option<std::collections::HashMap<String, String>>,
 }
 
+// Uses Neo4j test helpers from test_helpers when NEO4J_TEST_URI is set
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    // TODO: Update tests to use Neo4j test containers
-    // #[test]
-    // fn test_infer_from_path_person() {
-    //     // Create minimal test setup
-    //     let engine = Arc::new(WhelkInferenceEngine::new());
-    //     // Mock repo would go here in real tests
+    #[test]
+    fn test_infer_from_path_person() {
+        let reasoner = crate::test_helpers::create_test_reasoner();
 
-    //     // Test path inference
-    //     assert!(OntologyReasoner::infer_from_path(
-    //         &OntologyReasoner {
-    //             inference_engine: engine.clone(),
-    //             ontology_repo: Arc::new(/* TODO: Use Neo4j test container */)
-    //         },
-    //         "people/Tim-Cook.md"
-    //     ) == Some("mv:Person".to_string()));
-    // }
+        assert_eq!(
+            reasoner.infer_from_path("people/Tim-Cook.md"),
+            Some("mv:Person".to_string())
+        );
+    }
 
-    // #[test]
-    // fn test_infer_from_path_company() {
-    //     let engine = Arc::new(WhelkInferenceEngine::new());
+    #[test]
+    fn test_infer_from_path_company() {
+        let reasoner = crate::test_helpers::create_test_reasoner();
 
-    //     assert!(OntologyReasoner::infer_from_path(
-    //         &OntologyReasoner {
-    //             inference_engine: engine.clone(),
-    //             ontology_repo: Arc::new(/* TODO: Use Neo4j test container */)
-    //         },
-    //         "companies/Apple-Inc.md"
-    //     ) == Some("mv:Company".to_string()));
-    // }
+        assert_eq!(
+            reasoner.infer_from_path("companies/Apple-Inc.md"),
+            Some("mv:Company".to_string())
+        );
+    }
 
-    // TODO: Update tests to use Neo4j test containers
-    // #[test]
-    // fn test_type_to_class_iri() {
-    //     let engine = Arc::new(WhelkInferenceEngine::new());
-    //     let reasoner = OntologyReasoner {
-    //         inference_engine: engine,
-    //         ontology_repo: Arc::new(/* TODO: Use Neo4j test container */)
-    //     };
-    //
-    //     assert_eq!(
-    //         reasoner.type_to_class_iri("person"),
-    //         Some("mv:Person".to_string())
-    //     );
-    //     assert_eq!(
-    //         reasoner.type_to_class_iri("Company"),
-    //         Some("mv:Company".to_string())
-    //     );
-    //     assert_eq!(
-    //         reasoner.type_to_class_iri("unknown"),
-    //         None
-    //     );
-    // }
+    #[test]
+    fn test_type_to_class_iri() {
+        let reasoner = crate::test_helpers::create_test_reasoner();
+
+        assert_eq!(
+            reasoner.type_to_class_iri("person"),
+            Some("mv:Person".to_string())
+        );
+        assert_eq!(
+            reasoner.type_to_class_iri("Company"),
+            Some("mv:Company".to_string())
+        );
+        assert_eq!(
+            reasoner.type_to_class_iri("unknown"),
+            None
+        );
+    }
 }
