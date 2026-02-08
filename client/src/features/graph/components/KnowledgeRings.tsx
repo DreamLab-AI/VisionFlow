@@ -38,9 +38,13 @@ export const KnowledgeRings: React.FC<KnowledgeRingsProps> = ({
   const knowledgeNodes = useMemo(() => {
     return nodes.filter((node) => {
       const mode = perNodeVisualModeMap.get(node.id);
-      return mode ? mode === 'knowledge_graph' : graphMode === 'knowledge_graph';
+      // Only show rings for nodes positively identified as knowledge_graph.
+      // Nodes without an explicit visual mode tag should NOT get rings —
+      // this prevents ontology/agent nodes from getting rings when
+      // the global graphMode happens to be 'knowledge_graph'.
+      return mode === 'knowledge_graph';
     });
-  }, [nodes, perNodeVisualModeMap, graphMode]);
+  }, [nodes, perNodeVisualModeMap]);
 
   const geometry = useMemo(() => {
     return new THREE.TorusGeometry(1.2, 0.03, 32, 64);

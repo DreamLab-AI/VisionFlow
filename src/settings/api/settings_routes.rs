@@ -134,14 +134,51 @@ pub async fn get_physics_settings(
 
 /// PUT /api/settings/physics
 /// Validates input before applying (QE Fix #2 + #5).
+/// Accepts partial JSON updates -- missing fields retain current values from the actor.
 pub async fn update_physics_settings(
     state: web::Data<AppState>,
-    body: web::Json<PhysicsSettings>,
+    body: web::Json<serde_json::Value>,
     auth: AuthenticatedUser,
 ) -> impl Responder {
     info!("User {} updating physics settings", auth.pubkey);
 
-    let new_physics = body.into_inner();
+    // Get current physics settings as the base for merging
+    let current_physics = match state.settings_addr.send(GetSettings).await {
+        Ok(Ok(full_settings)) => full_settings.visualisation.graphs.logseq.physics,
+        Ok(Err(e)) => {
+            error!("Failed to fetch current settings: {}", e);
+            return HttpResponse::InternalServerError().json(ErrorResponse {
+                error: format!("Failed to fetch current settings: {}", e),
+            });
+        }
+        Err(e) => {
+            error!("Actor mailbox error: {}", e);
+            return HttpResponse::InternalServerError().json(ErrorResponse {
+                error: format!("Actor communication error: {}", e),
+            });
+        }
+    };
+
+    let current_json = serde_json::to_value(&current_physics).unwrap_or_default();
+
+    let new_physics = if let (serde_json::Value::Object(mut base), serde_json::Value::Object(patch)) =
+        (current_json, body.into_inner())
+    {
+        for (k, v) in patch {
+            base.insert(k, v);
+        }
+        match serde_json::from_value::<PhysicsSettings>(serde_json::Value::Object(base)) {
+            Ok(merged) => merged,
+            Err(e) => {
+                warn!("Physics settings merge failed: {}", e);
+                return HttpResponse::BadRequest().json(ErrorResponse {
+                    error: format!("Invalid settings value: {}", e),
+                });
+            }
+        }
+    } else {
+        current_physics
+    };
 
     // Validate before applying
     if let Err(validation_err) = validate_physics_settings(&new_physics) {
@@ -324,15 +361,37 @@ pub async fn get_quality_gate_settings(
 }
 
 /// PUT /api/settings/quality-gates
+/// Accepts partial JSON updates -- missing fields retain their defaults.
 pub async fn update_quality_gate_settings(
     _state: web::Data<AppState>,
-    body: web::Json<QualityGateSettings>,
+    body: web::Json<serde_json::Value>,
     auth: AuthenticatedUser,
 ) -> impl Responder {
-    info!("User {} updating quality gate settings: gpu={}, ontology={}, semantic={}",
-          auth.pubkey, body.gpu_acceleration, body.ontology_physics, body.semantic_forces);
+    let mut settings = QualityGateSettings::default();
+    let defaults_json = serde_json::to_value(&settings).unwrap_or_default();
+
+    if let (serde_json::Value::Object(mut base), serde_json::Value::Object(patch)) =
+        (defaults_json, body.into_inner())
+    {
+        for (k, v) in patch {
+            base.insert(k, v);
+        }
+        match serde_json::from_value::<QualityGateSettings>(serde_json::Value::Object(base)) {
+            Ok(merged) => settings = merged,
+            Err(e) => {
+                warn!("Quality gate settings merge failed: {}", e);
+                return HttpResponse::BadRequest().json(ErrorResponse {
+                    error: format!("Invalid settings value: {}", e),
+                });
+            }
+        }
+    }
+
+    info!("User {} updating quality gate settings: gpu={}, ontology={}, semantic={}, maxNodeCount={}",
+          auth.pubkey, settings.gpu_acceleration, settings.ontology_physics,
+          settings.semantic_forces, settings.max_node_count);
     warn!("Quality gate settings accepted but persistence deferred (single actor consolidation)");
-    HttpResponse::Ok().finish()
+    HttpResponse::Ok().json(settings)
 }
 
 // ============================================================================

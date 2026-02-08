@@ -705,21 +705,14 @@ impl Handler<UpdateSimulationParams> for ForceComputeActor {
         
         
         
-        let previous_iteration = self.gpu_state.iteration_count;
-        self.gpu_state.iteration_count = 0;
-
-        
-        self.stability_iterations = 0;
-
-        
-        
-        self.reheat_factor = 0.3;
-
+        // Parameters are updated smoothly via update_simulation_parameters() above.
+        // Do NOT reset iteration_count, stability_iterations, or inject reheat_factor
+        // here — that causes visible graph "jumps" on every settings slider change.
+        // The PhysicsOrchestratorActor handles interpolation via target_params.
         info!(
-            "ForceComputeActor: Reset iteration counter from {} to 0 to restart physics",
-            previous_iteration
+            "ForceComputeActor: Parameters updated smoothly (iteration_count={}, stability={})",
+            self.gpu_state.iteration_count, self.stability_iterations
         );
-        info!("ForceComputeActor: Stability gate will allow physics to run for at least 600 iterations");
 
         Ok(())
     }

@@ -114,7 +114,7 @@ impl Default for QualityGateSettings {
             ruvector_enabled: false, // Off by default (requires integration)
             gnn_physics: false,      // Off by default (advanced)
             min_fps_threshold: 30,
-            max_node_count: 10000,
+            max_node_count: 500000,
             auto_adjust: true,       // Auto-adjust on by default
         }
     }

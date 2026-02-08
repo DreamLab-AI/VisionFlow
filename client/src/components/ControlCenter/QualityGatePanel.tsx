@@ -36,7 +36,7 @@ const defaultSettings: QualityGateSettings = {
   ruvectorEnabled: false,
   gnnPhysics: false,
   minFpsThreshold: 30,
-  maxNodeCount: 100000,  // High default - show all nodes by default
+  maxNodeCount: 500000,  // High default - show all nodes by default
   autoAdjust: true,
 };
 
@@ -153,8 +153,8 @@ export const QualityGatePanel: React.FC<QualityGatePanelProps> = ({
           <input
             type="range"
             min={100}
-            max={10000}
-            step={100}
+            max={500000}
+            step={5000}
             value={settings.maxNodeCount}
             onChange={(e) => handleSliderChange('maxNodeCount', parseInt(e.target.value))}
             onMouseUp={handleSliderCommit}

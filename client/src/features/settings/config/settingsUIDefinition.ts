@@ -585,7 +585,7 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
           gpuAcceleration: { label: 'GPU Acceleration', type: 'toggle', path: 'qualityGates.gpuAcceleration', description: 'Enable GPU-accelerated physics (20-50x faster). Falls back to CPU if unavailable.' },
           autoAdjust: { label: 'Auto-Adjust Quality', type: 'toggle', path: 'qualityGates.autoAdjust', description: 'Automatically disable expensive features if FPS drops.' },
           minFpsThreshold: { label: 'Min FPS Threshold', type: 'slider', min: 15, max: 60, step: 5, unit: 'fps', path: 'qualityGates.minFpsThreshold', description: 'Disable features if FPS falls below this threshold.' },
-          maxNodeCount: { label: 'Max Node Count', type: 'slider', min: 1000, max: 500000, step: 5000, unit: 'nodes', path: 'qualityGates.maxNodeCount', description: 'Maximum nodes before filtering (set high to show all).' },
+          maxNodeCount: { label: 'Max Node Count', type: 'slider', min: 100, max: 500000, step: 5000, unit: 'nodes', path: 'qualityGates.maxNodeCount', description: 'Maximum nodes before filtering (set high to show all).' },
         },
       },
       physicsFeatures: {

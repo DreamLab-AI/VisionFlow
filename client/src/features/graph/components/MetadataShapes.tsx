@@ -274,15 +274,17 @@ const getVisualsForNode = (
 
 
 // --- 2. Create Geometry and Material Resources ---
-// Extended geometry set for all modes (includes dodecahedron, tetrahedron, torus)
+// All geometries normalized to ~0.5 bounding sphere radius to match the base sphere.
+// Shape differences are visual distinction only; size is controlled by nodeSize setting.
+const BASE_SPHERE_RADIUS = 0.5;
 const useGeometries = () => useMemo(() => ({
   sphere: new THREE.SphereGeometry(0.5, 32, 16),
-  box: new THREE.BoxGeometry(0.8, 0.8, 0.8),
-  octahedron: new THREE.OctahedronGeometry(0.7, 0),
-  icosahedron: new THREE.IcosahedronGeometry(0.6, 1),
-  dodecahedron: new THREE.DodecahedronGeometry(0.55, 0),
-  tetrahedron: new THREE.TetrahedronGeometry(0.6, 0),
-  torus: new THREE.TorusGeometry(0.4, 0.15, 8, 16),
+  box: new THREE.BoxGeometry(0.58, 0.58, 0.58),         // bounding radius ≈ 0.5
+  octahedron: new THREE.OctahedronGeometry(0.5, 0),
+  icosahedron: new THREE.IcosahedronGeometry(0.5, 1),
+  dodecahedron: new THREE.DodecahedronGeometry(0.5, 0),
+  tetrahedron: new THREE.TetrahedronGeometry(0.5, 0),
+  torus: new THREE.TorusGeometry(0.35, 0.12, 8, 16),    // bounding radius ≈ 0.47
 }), []);
 
 const useHologramMaterial = (settings: any) => useMemo(() => {
@@ -351,6 +353,12 @@ export const MetadataShapes: React.FC<MetadataShapesProps> = ({
     const tempMatrix = new THREE.Matrix4();
     const tempColor = new THREE.Color();
 
+    // Hoist settings lookups out of per-node loop
+    const nodeSettings = settings?.visualisation?.graphs?.logseq?.nodes || settings?.visualisation?.nodes;
+    const baseColorForNode = nodeSettings?.baseColor || '#00ffff';
+    const nodeSize = nodeSettings?.nodeSize || 0.5;
+    const sizeMultiplier = nodeSize / BASE_SPHERE_RADIUS;
+
     nodeGroups.forEach((group, geometryType) => {
       const mesh = meshRefs.current.get(geometryType);
       if (!mesh) return;
@@ -358,13 +366,13 @@ export const MetadataShapes: React.FC<MetadataShapesProps> = ({
       group.nodes.forEach((node, localIndex) => {
         const originalIndex = group.originalIndices[localIndex];
         const i3 = originalIndex * 3;
+        if (!nodePositions || i3 + 2 >= nodePositions.length) return;
 
-        const nodeSettings = settings?.visualisation?.graphs?.logseq?.nodes || settings?.visualisation?.nodes;
-        const baseColorForNode = nodeSettings?.baseColor || '#00ffff';
         const visuals = getVisualsForNode(node, baseColorForNode, ssspResult, graphMode, hierarchyMap);
         material.uniforms.pulseSpeed.value = visuals.pulseSpeed;
 
-        tempMatrix.makeScale(visuals.scale, visuals.scale, visuals.scale);
+        const finalScale = visuals.scale * sizeMultiplier;
+        tempMatrix.makeScale(finalScale, finalScale, finalScale);
         tempMatrix.setPosition(nodePositions[i3], nodePositions[i3 + 1], nodePositions[i3 + 2]);
         mesh.setMatrixAt(localIndex, tempMatrix);
 

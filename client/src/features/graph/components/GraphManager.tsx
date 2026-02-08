@@ -1064,15 +1064,13 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       const positions = await graphWorkerProxy.tick(delta);
       nodePositionsRef.current = positions;
 
-      if (positions && positions.length > 0) {
-        // Validate positions array has enough data for all nodes
-        const expectedLength = graphData.nodes.length * 3;
-        if (positions.length < expectedLength) {
-          // Positions array is stale/incomplete - skip this frame
-          console.warn(`[GraphManager] Positions array too short: ${positions.length} < ${expectedLength} (${graphData.nodes.length} nodes). Edges will not render until positions catch up.`);
-          return;
-        }
+      // Determine if positions are valid for node/edge rendering from simulation
+      const positionsValid = positions && positions.length > 0 && positions.length >= graphData.nodes.length * 3;
+      if (positions && positions.length > 0 && !positionsValid) {
+        console.warn(`[GraphManager] Positions array too short: ${positions.length} < ${graphData.nodes.length * 3} (${graphData.nodes.length} nodes). Skipping position-dependent rendering this frame.`);
+      }
 
+      if (positionsValid) {
         const logseqSettings = settings?.visualisation?.graphs?.logseq;
         const nodeSettings = logseqSettings?.nodes || settings?.visualisation?.nodes;
         const nodeSize = nodeSettings?.nodeSize || 0.5;
