@@ -451,17 +451,60 @@ impl StressMajorizationSolver {
             .ok_or("Weight matrix not computed")?;
 
         let n = graph_data.nodes.len();
-        let mut stress = 0.0;
+        let mut stress = 0.0f32;
+
+        // Use SIMD-accelerated batch computation for the inner loop.
+        // For each row i, collect all pairs (i, j) where j > i into SoA buffers,
+        // compute distances via SIMD, then compute weighted stress via SIMD.
+        let max_batch = n; // maximum inner loop length
+        let mut pos_x_i = vec![0.0f32; max_batch];
+        let mut pos_y_i = vec![0.0f32; max_batch];
+        let mut pos_z_i = vec![0.0f32; max_batch];
+        let mut pos_x_j = vec![0.0f32; max_batch];
+        let mut pos_y_j = vec![0.0f32; max_batch];
+        let mut pos_z_j = vec![0.0f32; max_batch];
+        let mut actual_dists = vec![0.0f32; max_batch];
+        let mut ideal_dists = vec![0.0f32; max_batch];
+        let mut weights = vec![0.0f32; max_batch];
 
         for i in 0..n {
-            for j in i + 1..n {
-                let ideal_distance = distance_matrix[(i, j)];
-                let current_distance = self.euclidean_distance(positions, i, j);
-                let weight = weight_matrix[(i, j)];
-
-                let diff = ideal_distance - current_distance;
-                stress += weight * diff * diff;
+            let batch_len = n - i - 1;
+            if batch_len == 0 {
+                continue;
             }
+
+            // Fill SoA buffers for this row
+            let xi = positions[(i, 0)];
+            let yi = positions[(i, 1)];
+            let zi = positions[(i, 2)];
+            for (k, j) in (i + 1..n).enumerate() {
+                pos_x_i[k] = xi;
+                pos_y_i[k] = yi;
+                pos_z_i[k] = zi;
+                pos_x_j[k] = positions[(j, 0)];
+                pos_y_j[k] = positions[(j, 1)];
+                pos_z_j[k] = positions[(j, 2)];
+                ideal_dists[k] = distance_matrix[(i, j)];
+                weights[k] = weight_matrix[(i, j)];
+            }
+
+            // SIMD batch distance computation
+            crate::physics::simd_forces::compute_distances_simd(
+                &pos_x_i[..batch_len],
+                &pos_y_i[..batch_len],
+                &pos_z_i[..batch_len],
+                &pos_x_j[..batch_len],
+                &pos_y_j[..batch_len],
+                &pos_z_j[..batch_len],
+                &mut actual_dists[..batch_len],
+            );
+
+            // SIMD batch stress accumulation
+            stress += crate::physics::simd_forces::compute_stress_batch_simd(
+                &ideal_dists[..batch_len],
+                &actual_dists[..batch_len],
+                &weights[..batch_len],
+            );
         }
 
         Ok(stress)
@@ -486,26 +529,101 @@ impl StressMajorizationSolver {
         let n = graph_data.nodes.len();
         let mut gradient = DMatrix::zeros(n, 3);
 
-        
+        // SIMD-accelerated gradient computation.
+        // For each row i, batch-compute distances to all other nodes j,
+        // then compute factors and accumulate gradient contributions.
+        let mut pos_x_i = vec![0.0f32; n];
+        let mut pos_y_i = vec![0.0f32; n];
+        let mut pos_z_i = vec![0.0f32; n];
+        let mut pos_x_j = vec![0.0f32; n];
+        let mut pos_y_j = vec![0.0f32; n];
+        let mut pos_z_j = vec![0.0f32; n];
+        let mut batch_dists = vec![0.0f32; n];
+        let mut delta_x_buf = vec![0.0f32; n];
+        let mut delta_y_buf = vec![0.0f32; n];
+        let mut delta_z_buf = vec![0.0f32; n];
+        let mut factors_buf = vec![0.0f32; n];
+
         for i in 0..n {
+            // Build SoA for all j != i (pack contiguously, skip i)
+            let xi = positions[(i, 0)];
+            let yi = positions[(i, 1)];
+            let zi = positions[(i, 2)];
+            let mut k = 0;
             for j in 0..n {
-                if i == j {
+                if j == i {
                     continue;
                 }
-
-                let ideal_distance = distance_matrix[(i, j)];
-                let current_distance = self.euclidean_distance(positions, i, j);
-
-                if current_distance > f32::EPSILON {
-                    let weight = weight_matrix[(i, j)];
-                    let factor = 2.0 * weight * (1.0 - ideal_distance / current_distance);
-
-                    for dim in 0..3 {
-                        let diff = positions[(i, dim)] - positions[(j, dim)];
-                        gradient[(i, dim)] += factor * diff;
-                    }
-                }
+                pos_x_i[k] = xi;
+                pos_y_i[k] = yi;
+                pos_z_i[k] = zi;
+                pos_x_j[k] = positions[(j, 0)];
+                pos_y_j[k] = positions[(j, 1)];
+                pos_z_j[k] = positions[(j, 2)];
+                k += 1;
             }
+            let batch_len = k; // == n - 1
+
+            // SIMD batch distance
+            crate::physics::simd_forces::compute_distances_simd(
+                &pos_x_i[..batch_len],
+                &pos_y_i[..batch_len],
+                &pos_z_i[..batch_len],
+                &pos_x_j[..batch_len],
+                &pos_y_j[..batch_len],
+                &pos_z_j[..batch_len],
+                &mut batch_dists[..batch_len],
+            );
+
+            // Compute per-pair factors and delta vectors, then accumulate gradient
+            // factor = 2 * w * (1 - ideal/actual) when actual > epsilon, else 0
+            let mut grad_x = 0.0f32;
+            let mut grad_y = 0.0f32;
+            let mut grad_z = 0.0f32;
+
+            k = 0;
+            for j in 0..n {
+                if j == i {
+                    continue;
+                }
+                let current_distance = batch_dists[k];
+                if current_distance > f32::EPSILON {
+                    let ideal = distance_matrix[(i, j)];
+                    let weight = weight_matrix[(i, j)];
+                    let factor = 2.0 * weight * (1.0 - ideal / current_distance);
+
+                    delta_x_buf[k] = xi - positions[(j, 0)];
+                    delta_y_buf[k] = yi - positions[(j, 1)];
+                    delta_z_buf[k] = zi - positions[(j, 2)];
+                    factors_buf[k] = factor;
+                } else {
+                    delta_x_buf[k] = 0.0;
+                    delta_y_buf[k] = 0.0;
+                    delta_z_buf[k] = 0.0;
+                    factors_buf[k] = 0.0;
+                }
+                k += 1;
+            }
+
+            // SIMD dot-product-style accumulation: grad += sum(delta * factor)
+            // Use dot_product_simd for each dimension (factor acts as the "b" vector
+            // when we treat delta*factor as an element-wise product to sum)
+            grad_x += crate::physics::simd_forces::dot_product_simd(
+                &delta_x_buf[..batch_len],
+                &factors_buf[..batch_len],
+            );
+            grad_y += crate::physics::simd_forces::dot_product_simd(
+                &delta_y_buf[..batch_len],
+                &factors_buf[..batch_len],
+            );
+            grad_z += crate::physics::simd_forces::dot_product_simd(
+                &delta_z_buf[..batch_len],
+                &factors_buf[..batch_len],
+            );
+
+            gradient[(i, 0)] += grad_x;
+            gradient[(i, 1)] += grad_y;
+            gradient[(i, 2)] += grad_z;
         }
 
         
