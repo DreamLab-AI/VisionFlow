@@ -763,8 +763,10 @@ impl Default for PathfindingLimits {
 - [x] Algorithm design (Semantic SSSP, Query Traversal)
 - [x] API endpoint design
 - [x] Frontend component design
-- [ ] Semantic SSSP implementation
-- [ ] Query Traversal implementation
+- [x] Semantic SSSP implementation (trait-based `EmbeddingProvider` with `JaccardEmbedding` fallback)
+- [x] Query Traversal implementation (basic greedy best-neighbour)
+- [x] A* search with Euclidean 3D heuristic
+- [x] Bidirectional Dijkstra for point-to-point queries
 - [ ] Chunk Traversal implementation
 - [ ] LLM-Guided implementation
 - [ ] Embedding service integration

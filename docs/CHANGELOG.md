@@ -5,6 +5,22 @@ All notable changes to VisionFlow will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - 2026-02-08
+
+### Algorithm Pipeline Completion
+
+- Wire SSSP distances into GPU force kernel `d_sssp_dist` buffer (SSSP-aware spring forces now active)
+- Implement delta-stepping for GPU SSSP (configurable bucket width)
+- Wire GPU APSP kernel (`approximate_apsp_kernel`) into `ShortestPathActor`
+- Add multi-source batched SSSP for efficient landmark computation
+- Implement LSH (Locality-Sensitive Hashing) replacing O(n^2) pairwise similarity
+- Add CPU SIMD vectorization (AVX2/SSE4.1) for physics fallback
+- Implement A* search with Euclidean 3D heuristic
+- Implement bidirectional Dijkstra for point-to-point queries
+- Add semantic pathfinding with trait-based embedding provider
+
+---
+
 ## [1.2.0] - 2026-02-08
 
 ### Stabilization Sprint - 16 Commits

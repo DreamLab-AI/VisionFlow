@@ -322,6 +322,26 @@ VisionFlow achieves enterprise-grade performance for real-time 3D graph visualiz
 
 ---
 
+## 12. Algorithm Complexity Summary
+
+| Algorithm | Implementation | Complexity | Hardware |
+|-----------|---------------|------------|----------|
+| SSSP (Bellman-Ford) | GPU CUDA | O(V*E) amortized | GPU |
+| SSSP (Delta-Stepping) | GPU CUDA | O(V+E+D*L) | GPU |
+| APSP (Landmark) | GPU CUDA | O(k*V log V + V^2) | GPU |
+| Dijkstra | CPU Rust | O((V+E) log V) | CPU |
+| A* | CPU Rust | O(E log V) best case | CPU |
+| Bidirectional Dijkstra | CPU Rust | O(V log V) typical | CPU |
+| Semantic SSSP | CPU Rust | O((V+E) log V * embed) | CPU |
+| Pairwise Similarity | CPU+LSH | O(n) amortized | CPU |
+| Force Computation | CPU SIMD | O(V log V) | CPU AVX2 |
+| Stress Majorization | GPU CUDA | O(V*E) sparse | GPU |
+| PageRank | GPU CUDA | O(V+E) per iter | GPU |
+
+Where: V = vertices, E = edges, D = max delta bucket, L = max path length, k = landmark count, embed = embedding cost per node.
+
+---
+
 ## Conclusion
 
 VisionFlow delivers production-grade performance across all tiers:
