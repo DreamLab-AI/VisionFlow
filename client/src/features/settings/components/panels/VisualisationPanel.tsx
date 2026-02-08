@@ -8,7 +8,7 @@ export const VisualisationPanel: React.FC = () => {
         <CardTitle>Visualisation Settings</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-muted-foreground">Visualisation settings coming soon.</p>
+        <p className="text-muted-foreground">Settings for visualisation (rendering, effects, graph appearance) are managed via settings.yaml on the server. A UI for these settings is planned for a future release.</p>
       </CardContent>
     </Card>
   );

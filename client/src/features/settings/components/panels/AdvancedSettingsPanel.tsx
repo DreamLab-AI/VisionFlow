@@ -8,7 +8,7 @@ export const AdvancedSettingsPanel: React.FC = () => {
         <CardTitle>Advanced Settings</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-muted-foreground">Advanced settings coming soon.</p>
+        <p className="text-muted-foreground">Advanced settings (networking, security, performance tuning) are managed via settings.yaml on the server. A UI for these settings is planned for a future release.</p>
       </CardContent>
     </Card>
   );

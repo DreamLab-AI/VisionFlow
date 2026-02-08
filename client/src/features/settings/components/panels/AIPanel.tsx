@@ -8,7 +8,7 @@ export const AIPanel: React.FC = () => {
         <CardTitle>AI Settings</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-muted-foreground">AI configuration coming soon.</p>
+        <p className="text-muted-foreground">Settings for AI services (Perplexity, RAGFlow, OpenAI) are managed via settings.yaml on the server. A UI for these settings is planned for a future release.</p>
       </CardContent>
     </Card>
   );

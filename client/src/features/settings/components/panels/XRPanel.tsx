@@ -8,7 +8,7 @@ export const XRPanel: React.FC = () => {
         <CardTitle>XR Settings</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-muted-foreground">XR/VR settings coming soon.</p>
+        <p className="text-muted-foreground">Settings for XR/VR (Quest 3, WebXR, spatial audio) are managed via settings.yaml on the server. A UI for these settings is planned for a future release.</p>
       </CardContent>
     </Card>
   );
