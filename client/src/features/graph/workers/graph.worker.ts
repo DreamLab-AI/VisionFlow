@@ -197,16 +197,20 @@ class GraphWorker {
     this.reverseNodeIdMap.clear();
     this.nodeIndexMap.clear();
     this.graphData.nodes.forEach((node, index) => {
-        const numericId = parseInt(node.id, 10);
+        // Normalize node ID to string for consistent Map lookups.
+        // Edge source/target are always strings — keys must match.
+        const nodeId = String(node.id);
+        node.id = nodeId;
+        const numericId = parseInt(nodeId, 10);
         if (!isNaN(numericId) && numericId >= 0 && numericId <= 0xFFFFFFFF) {
-            this.nodeIdMap.set(node.id, numericId);
-            this.reverseNodeIdMap.set(numericId, node.id);
+            this.nodeIdMap.set(nodeId, numericId);
+            this.reverseNodeIdMap.set(numericId, nodeId);
         } else {
             const mappedId = index + 1;
-            this.nodeIdMap.set(node.id, mappedId);
-            this.reverseNodeIdMap.set(mappedId, node.id);
+            this.nodeIdMap.set(nodeId, mappedId);
+            this.reverseNodeIdMap.set(mappedId, nodeId);
         }
-        this.nodeIndexMap.set(node.id, index);
+        this.nodeIndexMap.set(nodeId, index);
     });
 
     // Build edge adjacency maps for O(1) neighbor lookup

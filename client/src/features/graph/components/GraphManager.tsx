@@ -1053,7 +1053,8 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         // Validate positions array has enough data for all nodes
         const expectedLength = graphData.nodes.length * 3;
         if (positions.length < expectedLength) {
-          // Positions array is stale/incomplete - skip this frame to avoid crash
+          // Positions array is stale/incomplete - skip this frame
+          console.warn(`[GraphManager] Positions array too short: ${positions.length} < ${expectedLength} (${graphData.nodes.length} nodes). Edges will not render until positions catch up.`);
           return;
         }
 

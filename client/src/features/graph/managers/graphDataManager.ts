@@ -255,12 +255,16 @@ class GraphDataManager {
         
         
         const enrichedNodes = nodes.map((node: Node) => {
-          const nodeAny = node as any;
+          // Normalize node ID to string — API returns u32 numeric IDs but
+          // edge source/target are already String()-coerced above.  Without this,
+          // Map/Set lookups using === fail: Set.has("42") misses number 42.
+          const normalizedNode = { ...node, id: String(node.id) };
+          const nodeAny = normalizedNode as any;
           const nodeMetadata = metadata[nodeAny.metadata_id || nodeAny.metadataId];
           if (nodeMetadata) {
-            return { ...node, metadata: { ...node.metadata, ...nodeMetadata } };
+            return { ...normalizedNode, metadata: { ...normalizedNode.metadata, ...nodeMetadata } };
           }
-          return node;
+          return normalizedNode;
         });
 
         const validatedData = { nodes: enrichedNodes, edges };
@@ -331,9 +335,9 @@ class GraphDataManager {
         logger.info(`Filtered to ${nodesToUse.length} nodes (by authority/quality score)`);
 
         // Filter edges to only include connections between kept nodes
-        const keptNodeIds = new Set(nodesToUse.map(n => n.id));
+        const keptNodeIds = new Set(nodesToUse.map(n => String(n.id)));
         const filteredEdges = (data.edges || []).filter(
-          edge => keptNodeIds.has(edge.source) && keptNodeIds.has(edge.target)
+          edge => keptNodeIds.has(String(edge.source)) && keptNodeIds.has(String(edge.target))
         );
 
         logger.info(`Filtered edges: ${data.edges?.length ?? 0} -> ${filteredEdges.length}`);
