@@ -300,6 +300,18 @@ class GraphWorker {
     this.targetPositions = newTargetPositions;
     this.velocities = newVelocities;
 
+    // Write preserved positions back into graphData so that:
+    // 1) Any consumer reading node.position gets current values, not stale DB positions
+    // 2) Future setGraphData() calls have up-to-date fallback data
+    for (let i = 0; i < nodeCount; i++) {
+      const i3 = i * 3;
+      this.graphData.nodes[i].position = {
+        x: newCurrentPositions[i3],
+        y: newCurrentPositions[i3 + 1],
+        z: newCurrentPositions[i3 + 2],
+      };
+    }
+
     if (this.graphType === 'visionflow') {
       // Only reheat VisionFlow client-side physics (logseq uses server physics)
       this.forcePhysics.alpha = 1.0;
@@ -879,6 +891,18 @@ class GraphWorker {
       // Cool down simulation (alpha decay)
       this.forcePhysics.alpha *= (1 - this.forcePhysics.alphaDecay);
 
+      // Sync graphData positions every 30 frames
+      if (this.frameCount % 30 === 0) {
+        for (let i = 0; i < this.graphData.nodes.length; i++) {
+          const i3 = i * 3;
+          this.graphData.nodes[i].position = {
+            x: this.currentPositions[i3],
+            y: this.currentPositions[i3 + 1],
+            z: this.currentPositions[i3 + 2],
+          };
+        }
+      }
+
       // Log progress occasionally
       if (this.frameCount % 60 === 0 && this.forcePhysics.alpha > this.forcePhysics.alphaMin) {
         workerLogger.debug(`VisionFlow physics tick - alpha=${this.forcePhysics.alpha.toFixed(4)}, nodes=${this.graphData.nodes.length}`);
@@ -986,8 +1010,22 @@ class GraphWorker {
         
       }
       
-      // Performance: Removed movement logging
-      
+      // Keep graphData.nodes[i].position in sync with currentPositions.
+      // This ensures any future setGraphData() / getGraphData() uses the
+      // latest interpolated positions — not stale DB values.
+      // Only sync every 30 frames (~0.5s at 60fps) to limit overhead.
+      if (this.frameCount % 30 === 0) {
+        for (let i = 0; i < this.graphData.nodes.length; i++) {
+          const i3 = i * 3;
+          const node = this.graphData.nodes[i];
+          node.position = {
+            x: this.currentPositions[i3],
+            y: this.currentPositions[i3 + 1],
+            z: this.currentPositions[i3 + 2],
+          };
+        }
+      }
+
       return this.currentPositions;
     }
 
