@@ -842,6 +842,78 @@ impl Handler<RecalculateHierarchy> for PhysicsSupervisor {
     }
 }
 
+impl Handler<ConfigureDAG> for PhysicsSupervisor {
+    type Result = ResponseActFuture<Self, Result<(), String>>;
+
+    fn handle(&mut self, msg: ConfigureDAG, _ctx: &mut Self::Context) -> Self::Result {
+        let addr = match &self.semantic_forces_actor {
+            Some(a) if self.semantic_forces_state.is_running => a.clone(),
+            _ => {
+                return Box::pin(
+                    async { Err("SemanticForcesActor not available".to_string()) }
+                        .into_actor(self)
+                );
+            }
+        };
+
+        Box::pin(
+            async move {
+                addr.send(msg).await
+                    .map_err(|e| format!("Communication failed: {}", e))?
+            }
+            .into_actor(self)
+        )
+    }
+}
+
+impl Handler<ConfigureTypeClustering> for PhysicsSupervisor {
+    type Result = ResponseActFuture<Self, Result<(), String>>;
+
+    fn handle(&mut self, msg: ConfigureTypeClustering, _ctx: &mut Self::Context) -> Self::Result {
+        let addr = match &self.semantic_forces_actor {
+            Some(a) if self.semantic_forces_state.is_running => a.clone(),
+            _ => {
+                return Box::pin(
+                    async { Err("SemanticForcesActor not available".to_string()) }
+                        .into_actor(self)
+                );
+            }
+        };
+
+        Box::pin(
+            async move {
+                addr.send(msg).await
+                    .map_err(|e| format!("Communication failed: {}", e))?
+            }
+            .into_actor(self)
+        )
+    }
+}
+
+impl Handler<ConfigureCollision> for PhysicsSupervisor {
+    type Result = ResponseActFuture<Self, Result<(), String>>;
+
+    fn handle(&mut self, msg: ConfigureCollision, _ctx: &mut Self::Context) -> Self::Result {
+        let addr = match &self.semantic_forces_actor {
+            Some(a) if self.semantic_forces_state.is_running => a.clone(),
+            _ => {
+                return Box::pin(
+                    async { Err("SemanticForcesActor not available".to_string()) }
+                        .into_actor(self)
+                );
+            }
+        };
+
+        Box::pin(
+            async move {
+                addr.send(msg).await
+                    .map_err(|e| format!("Communication failed: {}", e))?
+            }
+            .into_actor(self)
+        )
+    }
+}
+
 impl Handler<AdjustConstraintWeights> for PhysicsSupervisor {
     type Result = ResponseActFuture<Self, Result<serde_json::Value, String>>;
 

@@ -12,6 +12,7 @@ pub mod api;
 pub mod models;
 pub mod auth_extractor;
 
+// SettingsActor is retained for backward compatibility but routes now use OptimizedSettingsActor.
 pub use settings_actor::{SettingsActor, UpdatePhysicsSettings, GetPhysicsSettings, LoadProfile, SaveProfile};
 pub use models::{ConstraintSettings, PriorityWeighting, AllSettings, SettingsProfile};
 pub use auth_extractor::{AuthenticatedUser, OptionalAuth};

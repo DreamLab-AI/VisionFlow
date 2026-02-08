@@ -128,16 +128,15 @@ impl UserSettings {
         }
     }
 
+    /// Save user settings to cache and disk synchronously.
+    /// The disk write completes before returning Ok to prevent race conditions.
     pub fn save(&self) -> Result<(), String> {
-        let path = Self::get_settings_path(&self.pubkey);
-
-        
+        // Update cache first
         {
             let mut cache = match USER_SETTINGS_CACHE.write() {
                 Ok(cache) => cache,
                 Err(e) => {
                     warn!("Failed to write to user settings cache during save: {}", e);
-                    
                     return self.save_to_disk();
                 }
             };
@@ -151,32 +150,8 @@ impl UserSettings {
             debug!("Updated cache for user {}", self.pubkey);
         }
 
-        
-        if let Some(parent) = path.parent() {
-            if let Err(e) = fs::create_dir_all(parent) {
-                warn!("Failed to create settings directory: {}", e);
-                return Err(format!("Failed to create settings directory: {}", e));
-            }
-        }
-
-        
-        
-        let pubkey = self.pubkey.clone();
-        let settings_clone = self.clone();
-
-        std::thread::spawn(move || {
-            debug!("Background thread saving settings for user {}", pubkey);
-            match serde_yaml::to_string(&settings_clone) {
-                Ok(yaml) => match fs::write(&path, yaml) {
-                    Ok(_) => info!("Saved settings for user {} to disk", pubkey),
-                    Err(e) => error!("Failed to write settings file for {}: {}", pubkey, e),
-                },
-                Err(e) => error!("Failed to serialize settings for {}: {}", pubkey, e),
-            }
-        });
-
-        
-        Ok(())
+        // Write to disk synchronously (Fix #6: no fire-and-forget thread)
+        self.save_to_disk()
     }
 
     fn save_to_disk(&self) -> Result<(), String> {

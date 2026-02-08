@@ -257,15 +257,29 @@ pub fn from_wire_id(wire_id: u32) -> u32 {
 /// Convert BinaryNodeData to wire format V3
 impl BinaryNodeData {
     pub fn to_wire_format(&self, node_id: u32) -> WireNodeDataItem {
+        self.to_wire_format_with_data(node_id, None, None)
+    }
+
+    /// Convert to wire format V3 with optional SSSP and analytics data.
+    /// `sssp`: (distance, parent_id). Defaults to (INFINITY, -1).
+    /// `analytics`: (cluster_id, anomaly_score, community_id). Defaults to (0, 0.0, 0).
+    pub fn to_wire_format_with_data(
+        &self,
+        node_id: u32,
+        sssp: Option<(f32, i32)>,
+        analytics: Option<(u32, f32, u32)>,
+    ) -> WireNodeDataItem {
+        let (sssp_distance, sssp_parent) = sssp.unwrap_or((f32::INFINITY, -1));
+        let (cluster_id, anomaly_score, community_id) = analytics.unwrap_or((0, 0.0, 0));
         WireNodeDataItem {
             id: to_wire_id(node_id),
             position: self.position(),
             velocity: self.velocity(),
-            sssp_distance: f32::INFINITY,
-            sssp_parent: -1,
-            cluster_id: 0,      // V3 analytics fields - default values
-            anomaly_score: 0.0,
-            community_id: 0,
+            sssp_distance,
+            sssp_parent,
+            cluster_id,
+            anomaly_score,
+            community_id,
         }
     }
 }
@@ -293,12 +307,34 @@ pub fn encode_node_data_extended(
     ontology_individual_ids: &[u32],
     ontology_property_ids: &[u32],
 ) -> Vec<u8> {
+    encode_node_data_extended_with_sssp(
+        nodes,
+        agent_node_ids,
+        knowledge_node_ids,
+        ontology_class_ids,
+        ontology_individual_ids,
+        ontology_property_ids,
+        None,
+    )
+}
+
+/// Encode node data with optional per-node SSSP distances and analytics.
+/// `sssp_data` maps node_id -> (distance, parent_id).
+/// When absent for a node, defaults to (INFINITY, -1).
+pub fn encode_node_data_extended_with_sssp(
+    nodes: &[(u32, BinaryNodeData)],
+    agent_node_ids: &[u32],
+    knowledge_node_ids: &[u32],
+    ontology_class_ids: &[u32],
+    ontology_individual_ids: &[u32],
+    ontology_property_ids: &[u32],
+    sssp_data: Option<&HashMap<u32, (f32, i32)>>,
+) -> Vec<u8> {
     // Always use V3 as the default protocol (P0-4 Analytics Extension)
     let protocol_version = PROTOCOL_V3;
     let item_size = WIRE_V3_ITEM_SIZE;
 
-    
-    if nodes.len() > 0 {
+    if !nodes.is_empty() {
         trace!(
             "Encoding {} nodes with agent flags using protocol v{} (item_size={})",
             nodes.len(),
@@ -307,13 +343,10 @@ pub fn encode_node_data_extended(
         );
     }
 
-    
     let mut buffer = Vec::with_capacity(1 + nodes.len() * item_size);
 
-    
     buffer.push(protocol_version);
 
-    
     let sample_size = std::cmp::min(3, nodes.len());
     if sample_size > 0 {
         trace!(
@@ -323,8 +356,7 @@ pub fn encode_node_data_extended(
     }
 
     for (node_id, node) in nodes {
-        
-        
+
         let flagged_id = if agent_node_ids.contains(node_id) {
             set_agent_flag(*node_id)
         } else if knowledge_node_ids.contains(node_id) {
@@ -336,10 +368,9 @@ pub fn encode_node_data_extended(
         } else if ontology_property_ids.contains(node_id) {
             set_ontology_property_flag(*node_id)
         } else {
-            *node_id 
+            *node_id
         };
 
-        
         if sample_size > 0 && *node_id < sample_size as u32 {
             trace!(
                 "Encoding node {}: pos=[{:.3},{:.3},{:.3}], vel=[{:.3},{:.3},{:.3}], is_agent={}",
@@ -368,11 +399,16 @@ pub fn encode_node_data_extended(
         buffer.extend_from_slice(&node.vy.to_le_bytes());
         buffer.extend_from_slice(&node.vz.to_le_bytes());
 
-        // SSSP data (8 bytes)
-        buffer.extend_from_slice(&f32::INFINITY.to_le_bytes());
-        buffer.extend_from_slice(&(-1i32).to_le_bytes());
+        // SSSP data (8 bytes) - read from sssp_data if available
+        let (sssp_distance, sssp_parent) = sssp_data
+            .and_then(|m| m.get(node_id))
+            .copied()
+            .unwrap_or((f32::INFINITY, -1));
+        buffer.extend_from_slice(&sssp_distance.to_le_bytes());
+        buffer.extend_from_slice(&sssp_parent.to_le_bytes());
 
         // Analytics data (12 bytes) - V3 extension with default values
+        // For actual analytics data, use encode_node_data_with_analytics()
         buffer.extend_from_slice(&0u32.to_le_bytes());   // cluster_id
         buffer.extend_from_slice(&0.0f32.to_le_bytes()); // anomaly_score
         buffer.extend_from_slice(&0u32.to_le_bytes());   // community_id
@@ -408,10 +444,35 @@ pub fn encode_node_data_with_analytics(
     ontology_property_ids: &[u32],
     analytics: &HashMap<u32, (u32, f32, u32)>, // (cluster_id, anomaly_score, community_id)
 ) -> Vec<u8> {
+    encode_node_data_with_all(
+        nodes,
+        agent_node_ids,
+        knowledge_node_ids,
+        ontology_class_ids,
+        ontology_individual_ids,
+        ontology_property_ids,
+        None,
+        analytics,
+    )
+}
+
+/// Encode node data with both SSSP and analytics data (Protocol V3).
+/// `sssp_data` maps node_id -> (distance, parent_id).
+/// `analytics` maps node_id -> (cluster_id, anomaly_score, community_id).
+pub fn encode_node_data_with_all(
+    nodes: &[(u32, BinaryNodeData)],
+    agent_node_ids: &[u32],
+    knowledge_node_ids: &[u32],
+    ontology_class_ids: &[u32],
+    ontology_individual_ids: &[u32],
+    ontology_property_ids: &[u32],
+    sssp_data: Option<&HashMap<u32, (f32, i32)>>,
+    analytics: &HashMap<u32, (u32, f32, u32)>,
+) -> Vec<u8> {
     let protocol_version = PROTOCOL_V3;
     let item_size = WIRE_V3_ITEM_SIZE;
 
-    if nodes.len() > 0 {
+    if !nodes.is_empty() {
         trace!(
             "Encoding {} nodes with analytics using protocol v{} (item_size={})",
             nodes.len(),
@@ -452,11 +513,15 @@ pub fn encode_node_data_with_analytics(
         buffer.extend_from_slice(&node.vy.to_le_bytes());
         buffer.extend_from_slice(&node.vz.to_le_bytes());
 
-        // SSSP data (8 bytes)
-        buffer.extend_from_slice(&f32::INFINITY.to_le_bytes());
-        buffer.extend_from_slice(&(-1i32).to_le_bytes());
+        // SSSP data (8 bytes) - read from sssp_data if available
+        let (sssp_distance, sssp_parent) = sssp_data
+            .and_then(|m| m.get(node_id))
+            .copied()
+            .unwrap_or((f32::INFINITY, -1));
+        buffer.extend_from_slice(&sssp_distance.to_le_bytes());
+        buffer.extend_from_slice(&sssp_parent.to_le_bytes());
 
-        // Analytics data (12 bytes) - NEW in V3
+        // Analytics data (12 bytes) - V3 extension
         let (cluster_id, anomaly_score, community_id) = analytics
             .get(node_id)
             .copied()
@@ -467,7 +532,7 @@ pub fn encode_node_data_with_analytics(
         buffer.extend_from_slice(&community_id.to_le_bytes());
     }
 
-    if nodes.len() > 0 {
+    if !nodes.is_empty() {
         trace!(
             "Encoded binary data with analytics (v{}): {} bytes for {} nodes",
             protocol_version,

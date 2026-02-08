@@ -334,10 +334,9 @@ pub async fn save_profile(
 pub async fn list_profiles(_state: web::Data<AppState>) -> impl Responder {
     info!("GET /api/settings/profiles");
 
-    
-    
-    ok_json!(json!({
-        "profiles": []
+    HttpResponse::NotImplemented().json(json!({
+        "error": "Settings profiles not yet implemented",
+        "status": "coming_soon"
     }))
 }
 
@@ -347,8 +346,10 @@ pub async fn load_profile(
 ) -> impl Responder {
     info!("GET /api/settings/profiles/{}", profile_id);
 
-    
-    not_found!("Profile not found")
+    HttpResponse::NotImplemented().json(json!({
+        "error": "Settings profiles not yet implemented",
+        "status": "coming_soon"
+    }))
 }
 
 /// SECURITY: Settings endpoints require authentication (read-only public, write requires auth)

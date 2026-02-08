@@ -2073,6 +2073,19 @@ impl UnifiedGPUCompute {
             ));
         }
 
+        // Pre-check: ensure APSP matrix won't exceed GPU memory limits.
+        // An n*n f32 matrix can grow quadratically; cap at 4 GB to prevent OOM.
+        let required_bytes = (n as u64) * (n as u64) * (std::mem::size_of::<f32>() as u64);
+        const MAX_APSP_BYTES: u64 = 4 * 1024 * 1024 * 1024; // 4 GB limit
+        if required_bytes > MAX_APSP_BYTES {
+            return Err(anyhow!(
+                "APSP matrix too large: {} nodes requires {} GB, max is {} GB",
+                n,
+                required_bytes / (1024 * 1024 * 1024),
+                MAX_APSP_BYTES / (1024 * 1024 * 1024)
+            ));
+        }
+
         // Upload landmark distances to device
         let d_landmark = DeviceBuffer::from_slice(landmark_distances)?;
 
@@ -2643,7 +2656,18 @@ impl UnifiedGPUCompute {
         let check_convergence_kernel = self._module.get_function("check_convergence_kernel")?;
 
         
-        let shared_mem_size = block_size * (self.max_labels + 1) * 4; 
+        let mut shared_mem_size = block_size * (self.max_labels + 1) * 4;
+        // Cap shared memory to 48KB (safe default for all CUDA architectures).
+        // Exceeding the per-block shared memory limit causes a launch failure.
+        const MAX_SHARED_MEM: usize = 48 * 1024; // 48KB
+        if shared_mem_size > MAX_SHARED_MEM {
+            log::warn!(
+                "Reducing shared memory from {} to {} bytes (max_labels may be too high)",
+                shared_mem_size,
+                MAX_SHARED_MEM
+            );
+            shared_mem_size = MAX_SHARED_MEM;
+        }
 
         for iter in 0..max_iterations {
             iterations = iter + 1;
@@ -2730,9 +2754,13 @@ impl UnifiedGPUCompute {
             }
         }
 
-        
+
         if !synchronous {
-            converged = true;
+            // In async mode, we don't check convergence per iteration,
+            // so the algorithm runs for max_iterations
+            // TODO: Implement proper async convergence checking
+            log::warn!("Async community detection runs max_iterations without convergence check");
+            converged = false;
         }
 
         

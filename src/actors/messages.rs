@@ -151,9 +151,8 @@ pub enum CommunityDetectionAlgorithm {
 #[rtype(result = "Result<std::sync::Arc<ServiceGraphData>, String>")]
 pub struct GetGraphData;
 
-#[derive(Message)]
-#[rtype(result = "Result<crate::actors::graph_actor::PhysicsState, String>")]
-pub struct GetPhysicsState;
+// GetPhysicsState actor message removed - no Handler implementation existed.
+// Use application::graph::queries::GetPhysicsState (hexagonal query) instead.
 
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
@@ -553,47 +552,8 @@ impl PriorityUpdate {
     }
 }
 
-// Batched update message for handling concurrent updates efficiently
-#[derive(Message)]
-#[rtype(result = "Result<(), VisionFlowError>")]
-pub struct BatchedUpdate {
-    pub updates: Vec<PriorityUpdate>,
-    pub max_batch_size: usize,
-    pub timeout_ms: u64,
-}
-
-impl BatchedUpdate {
-    pub fn new(updates: Vec<PriorityUpdate>) -> Self {
-        Self {
-            updates,
-            max_batch_size: 50, 
-            timeout_ms: 100,    
-        }
-    }
-
-    pub fn with_batch_config(mut self, max_batch_size: usize, timeout_ms: u64) -> Self {
-        self.max_batch_size = max_batch_size;
-        self.timeout_ms = timeout_ms;
-        self
-    }
-
-    
-    pub fn sort_by_priority(&mut self) {
-        self.updates.sort_by(|a, b| a.priority.cmp(&b.priority));
-    }
-
-    
-    pub fn group_by_priority(&self) -> HashMap<UpdatePriority, Vec<&PriorityUpdate>> {
-        let mut groups = HashMap::new();
-        for update in &self.updates {
-            groups
-                .entry(update.priority.clone())
-                .or_insert_with(Vec::new)
-                .push(update);
-        }
-        groups
-    }
-}
+// BatchedUpdate removed - defined but never handled by any actor.
+// PriorityUpdate batching can be re-added when a handler is implemented.
 
 // Metadata Actor Messages
 #[derive(Message)]
@@ -1273,8 +1233,18 @@ pub struct SetForceComputeAddr {
 }
 
 // Auto-balance messages
+
+/// Auto-balance notification for physics parameter changes.
+/// Previously defined in graph_messages.rs, consolidated here.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AutoBalanceNotification {
+    pub message: String,
+    pub timestamp: i64,
+    pub severity: String,
+}
+
 #[derive(Message)]
-#[rtype(result = "Result<Vec<crate::actors::graph_actor::AutoBalanceNotification>, String>")]
+#[rtype(result = "Result<Vec<AutoBalanceNotification>, String>")]
 pub struct GetAutoBalanceNotifications {
     pub since_timestamp: Option<i64>,
 }
@@ -1611,9 +1581,7 @@ pub struct StressMajorizationConfig {
 
 // =============================================================================
 // Semantic Forces Actor Messages
-// NOTE: These messages are defined but SemanticForcesActor does NOT implement
-// Handler for any of them. They cannot be sent to any actor until Handler impls
-// are added to SemanticForcesActor (or another actor).
+// These messages are handled by SemanticForcesActor in semantic_forces_actor.rs
 // =============================================================================
 
 #[derive(Message, Debug, Clone, Serialize, Deserialize)]

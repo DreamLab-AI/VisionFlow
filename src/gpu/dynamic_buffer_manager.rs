@@ -358,6 +358,13 @@ impl DynamicBufferManager {
 
 // External CUDA function declarations
 extern "C" {
+    // SAFETY: cudaMemcpy is the standard CUDA runtime memcpy.
+    // Caller must ensure:
+    // - `dst` is a valid device/host pointer with at least `count` bytes allocated
+    // - `src` is a valid device/host pointer with at least `count` bytes readable
+    // - `count` does not exceed the allocation size of either buffer
+    // - `kind` is a valid cudaMemcpyKind enum value (0-4)
+    // Returns cudaSuccess (0) on success, non-zero cudaError_t on failure.
     fn cudaMemcpy(dst: *mut c_void, src: *const c_void, count: usize, kind: i32) -> i32;
 }
 

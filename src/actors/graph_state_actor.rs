@@ -210,7 +210,15 @@ impl GraphStateActor {
 
         Arc::make_mut(&mut self.node_map).insert(node_id, node.clone());
 
-        Arc::make_mut(&mut self.graph_data).nodes.push(node);
+        Arc::make_mut(&mut self.graph_data).nodes.push(node.clone());
+
+        // Persist to Neo4j (fire-and-forget)
+        let repository = Arc::clone(&self.repository);
+        actix::spawn(async move {
+            if let Err(e) = repository.add_node(&node).await {
+                error!("Failed to persist add_node({}) to Neo4j: {}", node_id, e);
+            }
+        });
 
         info!("Added node {} to graph", node_id);
     }
@@ -230,6 +238,14 @@ impl GraphStateActor {
             self.ontology_property_ids.remove(&node_id);
             self.agent_node_ids.remove(&node_id);
 
+            // Persist to Neo4j (fire-and-forget)
+            let repository = Arc::clone(&self.repository);
+            actix::spawn(async move {
+                if let Err(e) = repository.remove_node(node_id).await {
+                    error!("Failed to persist remove_node({}) to Neo4j: {}", node_id, e);
+                }
+            });
+
             info!("Removed node {} and its edges from graph", node_id);
         } else {
             warn!("Attempted to remove non-existent node {}", node_id);
@@ -238,7 +254,7 @@ impl GraphStateActor {
 
     
     fn add_edge(&mut self, edge: Edge) {
-        
+
         if !self.node_map.contains_key(&edge.source) {
             warn!("Cannot add edge: source node {} does not exist", edge.source);
             return;
@@ -248,8 +264,18 @@ impl GraphStateActor {
             return;
         }
 
-        
+
         Arc::make_mut(&mut self.graph_data).edges.push(edge.clone());
+
+        // Persist to Neo4j (fire-and-forget)
+        let repository = Arc::clone(&self.repository);
+        let edge_clone = edge.clone();
+        actix::spawn(async move {
+            if let Err(e) = repository.add_edge(&edge_clone).await {
+                error!("Failed to persist add_edge({}->{}) to Neo4j: {}", edge_clone.source, edge_clone.target, e);
+            }
+        });
+
         info!("Added edge from {} to {} with weight {}", edge.source, edge.target, edge.weight);
     }
 
@@ -262,6 +288,15 @@ impl GraphStateActor {
 
         let removed_count = initial_count - graph_data_mut.edges.len();
         if removed_count > 0 {
+            // Persist to Neo4j (fire-and-forget)
+            let repository = Arc::clone(&self.repository);
+            let edge_id_owned = edge_id.to_string();
+            actix::spawn(async move {
+                if let Err(e) = repository.remove_edge(&edge_id_owned).await {
+                    error!("Failed to persist remove_edge({}) to Neo4j: {}", edge_id_owned, e);
+                }
+            });
+
             info!("Removed {} edge(s) with ID {}", removed_count, edge_id);
         } else {
             warn!("No edges found with ID {}", edge_id);

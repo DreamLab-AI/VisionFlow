@@ -556,10 +556,7 @@ impl ClientCoordinatorActor {
             return false;
         }
 
-        
-        let binary_data = self.serialize_positions(&position_data);
-
-
+        // Use per-client filtered broadcast for consistency with BroadcastPositions
         let broadcast_count = {
             let manager = match handle_rwlock_error(self.client_manager.read()) {
                 Ok(manager) => manager,
@@ -568,16 +565,26 @@ impl ClientCoordinatorActor {
                     return false;
                 }
             };
-            manager.broadcast_to_all(binary_data.clone())
+            manager.broadcast_with_filter(&position_data, &self.node_type_arrays)
         };
 
+        // Approximate byte size (V3 protocol: 48 bytes per node + 1 header)
+        let approx_bytes = 1 + position_data.len() * 48;
 
         self.broadcast_count += 1;
-        self.bytes_sent += binary_data.len() as u64;
+        self.broadcast_sequence += 1;
+        self.bytes_sent += approx_bytes as u64;
         self.last_broadcast = Instant::now();
         self.initial_positions_sent = true;
 
-        
+        // Send acknowledgement to GPU actor for backpressure flow control
+        if let Some(ref gpu_addr) = self.gpu_compute_addr {
+            gpu_addr.do_send(PositionBroadcastAck {
+                correlation_id: self.broadcast_sequence,
+                clients_delivered: broadcast_count as u32,
+            });
+        }
+
         if let Some(logger) = get_telemetry_logger() {
             let correlation_id = CorrelationId::new();
             logger.log_event(
@@ -594,7 +601,7 @@ impl ClientCoordinatorActor {
                     ),
                     "client_coordinator_actor",
                 )
-                .with_metadata("bytes_sent", serde_json::json!(binary_data.len()))
+                .with_metadata("bytes_sent", serde_json::json!(approx_bytes))
                 .with_metadata("client_count", serde_json::json!(broadcast_count))
                 .with_metadata("reason", serde_json::json!(reason)),
             );
@@ -677,10 +684,7 @@ impl ClientCoordinatorActor {
             return Err("No position data available for broadcast".to_string());
         }
 
-        
-        let binary_data = self.serialize_positions(&position_data);
-
-
+        // Use per-client filtered broadcast for consistency with BroadcastPositions
         let broadcast_count = {
             let manager = match handle_rwlock_error(self.client_manager.read()) {
                 Ok(manager) => manager,
@@ -689,13 +693,24 @@ impl ClientCoordinatorActor {
                     return Err(format!("Failed to acquire client manager lock: {}", e));
                 }
             };
-            manager.broadcast_to_all(binary_data.clone())
+            manager.broadcast_with_filter(&position_data, &self.node_type_arrays)
         };
 
+        // Approximate byte size (V3 protocol: 48 bytes per node + 1 header)
+        let approx_bytes = 1 + position_data.len() * 48;
 
         self.broadcast_count += 1;
-        self.bytes_sent += binary_data.len() as u64;
+        self.broadcast_sequence += 1;
+        self.bytes_sent += approx_bytes as u64;
         self.last_broadcast = Instant::now();
+
+        // Send acknowledgement to GPU actor for backpressure flow control
+        if let Some(ref gpu_addr) = self.gpu_compute_addr {
+            gpu_addr.do_send(PositionBroadcastAck {
+                correlation_id: self.broadcast_sequence,
+                clients_delivered: broadcast_count as u32,
+            });
+        }
 
         if force_broadcast {
             self.initial_positions_sent = true;
@@ -706,7 +721,6 @@ impl ClientCoordinatorActor {
             );
         }
 
-        
         if crate::utils::logging::is_debug_enabled() && !force_broadcast {
             debug!(
                 "Broadcast positions: {} nodes to {} clients, stable: {}",
@@ -716,7 +730,6 @@ impl ClientCoordinatorActor {
             );
         }
 
-        
         if force_broadcast || position_data.len() > 100 {
             if let Some(logger) = get_telemetry_logger() {
                 let correlation_id = CorrelationId::new();
@@ -733,7 +746,7 @@ impl ClientCoordinatorActor {
                         ),
                         "client_coordinator_actor",
                     )
-                    .with_metadata("bytes_sent", serde_json::json!(binary_data.len()))
+                    .with_metadata("bytes_sent", serde_json::json!(approx_bytes))
                     .with_metadata("client_count", serde_json::json!(broadcast_count))
                     .with_metadata("is_initial", serde_json::json!(force_broadcast))
                     .with_metadata("is_stable", serde_json::json!(is_stable)),
@@ -1095,8 +1108,8 @@ impl Handler<BroadcastPositions> for ClientCoordinatorActor {
         if client_count > 0 {
             self.broadcast_count += 1;
             self.broadcast_sequence += 1;
-            // Approximate byte size (28 bytes per node in binary format)
-            let approx_bytes = msg.positions.len() * 28;
+            // Approximate byte size (V3 protocol: 48 bytes per node + 1 header)
+            let approx_bytes = 1 + msg.positions.len() * 48;
             self.bytes_sent += approx_bytes as u64;
             self.last_broadcast = Instant::now();
 

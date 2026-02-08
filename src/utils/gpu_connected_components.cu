@@ -1,8 +1,12 @@
-//! GPU kernel for connected components using label propagation
-//!
-//! This kernel implements parallel label propagation to find connected components.
-//! Each node starts with its own label, then iteratively adopts the minimum label
-//! of its neighbors until convergence.
+// WARNING: This file is not compiled by build.rs. Kernels are accessed via
+// kernel_bridge.rs FFI which expects a pre-linked library. See build.rs for
+// the list of compiled .cu files.
+//
+// GPU kernel for connected components using label propagation
+//
+// This kernel implements parallel label propagation to find connected components.
+// Each node starts with its own label, then iteratively adopts the minimum label
+// of its neighbors until convergence.
 
 #include <cuda_runtime.h>
 
@@ -100,7 +104,11 @@ void compute_connected_components_gpu(
 
     // Allocate changed flag
     int* d_changed;
-    cudaMalloc(&d_changed, sizeof(int));
+    cudaError_t err = cudaMalloc(&d_changed, sizeof(int));
+    if (err != cudaSuccess) {
+        printf("cudaMalloc d_changed failed: %s\n", cudaGetErrorString(err));
+        return;
+    }
 
     // Initialize labels
     initialize_labels_kernel<<<grid_size, block_size, 0, cuda_stream>>>(
@@ -137,8 +145,19 @@ void compute_connected_components_gpu(
     int* d_component_map;
     int* d_component_count;
 
-    cudaMalloc(&d_component_map, num_nodes * sizeof(int));
-    cudaMalloc(&d_component_count, sizeof(int));
+    err = cudaMalloc(&d_component_map, num_nodes * sizeof(int));
+    if (err != cudaSuccess) {
+        printf("cudaMalloc d_component_map failed: %s\n", cudaGetErrorString(err));
+        cudaFree(d_changed);
+        return;
+    }
+    err = cudaMalloc(&d_component_count, sizeof(int));
+    if (err != cudaSuccess) {
+        printf("cudaMalloc d_component_count failed: %s\n", cudaGetErrorString(err));
+        cudaFree(d_changed);
+        cudaFree(d_component_map);
+        return;
+    }
 
     // Initialize component map to -1
     cudaMemsetAsync(d_component_map, -1, num_nodes * sizeof(int), cuda_stream);

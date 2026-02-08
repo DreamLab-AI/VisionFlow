@@ -29,25 +29,13 @@ impl AgentVisualizationWs {
         }
     }
 
-    
+    /// Returns real agent data from AppState if available, otherwise an empty vec.
     #[allow(dead_code)]
     fn get_real_agent_data(
         &self,
     ) -> Vec<crate::services::agent_visualization_protocol::AgentStateUpdate> {
-        
-        
-        vec![
-            crate::services::agent_visualization_protocol::AgentStateUpdate {
-                id: "coordinator-001".to_string(),
-                status: Some("active".to_string()),
-                health: Some(95.0),
-                cpu: Some(25.0),
-                memory: Some(128.0),
-                activity: Some(0.3),
-                tasks_active: Some(1),
-                current_task: Some("Managing swarm coordination".to_string()),
-            },
-        ]
+        // No agents connected yet; callers should check the X-Data-Source header
+        vec![]
     }
 
     

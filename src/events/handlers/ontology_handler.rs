@@ -113,7 +113,7 @@ impl OntologyEventHandler {
 #[async_trait]
 impl EventHandler for OntologyEventHandler {
     fn event_type(&self) -> &'static str {
-        "Ontology"
+        "*"
     }
 
     fn handler_id(&self) -> &str {

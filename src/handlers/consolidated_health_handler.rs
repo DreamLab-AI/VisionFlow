@@ -391,6 +391,8 @@ async fn get_physics_diagnostics(
 }
 
 fn check_physics_parameters() -> String {
+    // Default values used when actual physics parameters are not available from AppState/settings.
+    // These match PhysicsSettings::default() and serve as baseline sanity-check values.
     let gravity = 0.08;
     let damping = 0.92;
     let spring_k = 0.3;
@@ -406,7 +408,7 @@ fn check_physics_parameters() -> String {
     }
 
     format!(
-        "Physics params OK (gravity: {}, damping: {}, spring: {})",
+        "Physics params OK (gravity: {}, damping: {}, spring: {} [defaults])",
         gravity, damping, spring_k
     )
 }

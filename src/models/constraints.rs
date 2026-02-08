@@ -206,7 +206,7 @@ impl Default for AdvancedParams {
             agent_communication_weight: 0.5,
             adaptive_force_scaling: true,
             target_edge_length: 150.0,
-            max_velocity: 50.0,
+            max_velocity: crate::config::CANONICAL_MAX_VELOCITY,
             collision_threshold: 30.0,
             hierarchical_mode: false,
             layer_separation: 200.0,

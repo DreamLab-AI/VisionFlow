@@ -74,7 +74,7 @@ pub async fn configure_dag(
     };
 
     // Get GPU manager actor
-    let _gpu_manager = match state.gpu_manager_addr.as_ref() {
+    let gpu_manager = match state.gpu_manager_addr.as_ref() {
         Some(manager) => manager,
         None => {
             error!("GPU manager not available");
@@ -104,10 +104,29 @@ pub async fn configure_dag(
     }
 
     // Send configuration to semantic forces actor via GPU manager
-    // Note: This requires the GPU manager to route messages to SemanticForcesActor
-    // For now, we'll return success with the configuration
-    info!("DAG configuration applied: mode={:?}, enabled={}",
-          dag_config.layout_mode, dag_config.enabled);
+    use crate::actors::messages::ConfigureDAG as ConfigureDAGMsg;
+    let configure_msg = ConfigureDAGMsg {
+        vertical_spacing: payload.vertical_spacing,
+        horizontal_spacing: payload.horizontal_spacing,
+        level_attraction: payload.level_attraction,
+        sibling_repulsion: payload.sibling_repulsion,
+        enabled: Some(dag_config.enabled),
+    };
+
+    match gpu_manager.send(configure_msg).await {
+        Ok(Ok(())) => {
+            info!("DAG configuration applied: mode={:?}, enabled={}",
+                  dag_config.layout_mode, dag_config.enabled);
+        }
+        Ok(Err(e)) => {
+            error!("Failed to apply DAG configuration: {}", e);
+            return error_json!("Failed to apply DAG configuration: {}", e);
+        }
+        Err(e) => {
+            error!("GPU Manager mailbox error: {}", e);
+            return error_json!("Actor communication failed: {}", e);
+        }
+    }
 
     ok_json!(json!({
         "status": "success",
@@ -133,7 +152,7 @@ pub async fn configure_type_clustering(
     info!("Type clustering configuration request - enabled: {}", payload.enabled);
 
     // Get GPU manager actor
-    let _gpu_manager = match state.gpu_manager_addr.as_ref() {
+    let gpu_manager = match state.gpu_manager_addr.as_ref() {
         Some(manager) => manager,
         None => {
             error!("GPU manager not available");
@@ -158,8 +177,29 @@ pub async fn configure_type_clustering(
         cluster_config.inter_cluster_repulsion = i;
     }
 
-    info!("Type clustering configured: enabled={}, attraction={:.2}, radius={:.2}",
-          cluster_config.enabled, cluster_config.cluster_attraction, cluster_config.cluster_radius);
+    // Send configuration to semantic forces actor via GPU manager
+    use crate::actors::messages::ConfigureTypeClustering as ConfigureTypeClusteringMsg;
+    let configure_msg = ConfigureTypeClusteringMsg {
+        cluster_attraction: payload.cluster_attraction,
+        cluster_radius: payload.cluster_radius,
+        inter_cluster_repulsion: payload.inter_cluster_repulsion,
+        enabled: Some(cluster_config.enabled),
+    };
+
+    match gpu_manager.send(configure_msg).await {
+        Ok(Ok(())) => {
+            info!("Type clustering configured: enabled={}, attraction={:.2}, radius={:.2}",
+                  cluster_config.enabled, cluster_config.cluster_attraction, cluster_config.cluster_radius);
+        }
+        Ok(Err(e)) => {
+            error!("Failed to apply type clustering configuration: {}", e);
+            return error_json!("Failed to apply type clustering configuration: {}", e);
+        }
+        Err(e) => {
+            error!("GPU Manager mailbox error: {}", e);
+            return error_json!("Actor communication failed: {}", e);
+        }
+    }
 
     ok_json!(json!({
         "status": "success",
@@ -183,7 +223,7 @@ pub async fn configure_collision(
     info!("Collision detection configuration request - enabled: {}", payload.enabled);
 
     // Get GPU manager actor
-    let _gpu_manager = match state.gpu_manager_addr.as_ref() {
+    let gpu_manager = match state.gpu_manager_addr.as_ref() {
         Some(manager) => manager,
         None => {
             error!("GPU manager not available");
@@ -208,8 +248,29 @@ pub async fn configure_collision(
         collision_config.node_radius = r;
     }
 
-    info!("Collision detection configured: enabled={}, min_distance={:.2}, strength={:.2}",
-          collision_config.enabled, collision_config.min_distance, collision_config.collision_strength);
+    // Send configuration to semantic forces actor via GPU manager
+    use crate::actors::messages::ConfigureCollision as ConfigureCollisionMsg;
+    let configure_msg = ConfigureCollisionMsg {
+        min_distance: payload.min_distance,
+        collision_strength: payload.collision_strength,
+        node_radius: payload.node_radius,
+        enabled: Some(collision_config.enabled),
+    };
+
+    match gpu_manager.send(configure_msg).await {
+        Ok(Ok(())) => {
+            info!("Collision detection configured: enabled={}, min_distance={:.2}, strength={:.2}",
+                  collision_config.enabled, collision_config.min_distance, collision_config.collision_strength);
+        }
+        Ok(Err(e)) => {
+            error!("Failed to apply collision configuration: {}", e);
+            return error_json!("Failed to apply collision configuration: {}", e);
+        }
+        Err(e) => {
+            error!("GPU Manager mailbox error: {}", e);
+            return error_json!("Actor communication failed: {}", e);
+        }
+    }
 
     ok_json!(json!({
         "status": "success",
@@ -380,6 +441,19 @@ pub async fn register_relationship_type(
     _auth: crate::settings::auth_extractor::AuthenticatedUser,
     payload: web::Json<RegisterRelationshipTypeRequest>,
 ) -> HttpResponse {
+    if !payload.strength.is_finite() || payload.strength < 0.0 || payload.strength > 10.0 {
+        return HttpResponse::BadRequest().json(serde_json::json!({
+            "status": "error",
+            "message": "strength must be a finite number in range 0.0..=10.0"
+        }));
+    }
+    if !payload.rest_length.is_finite() || payload.rest_length < 0.0 || payload.rest_length > 1000.0 {
+        return HttpResponse::BadRequest().json(serde_json::json!({
+            "status": "error",
+            "message": "rest_length must be a finite number in range 0.0..=1000.0"
+        }));
+    }
+
     info!("Registering new relationship type: {}", payload.uri);
 
     let config = RelationshipForceConfig {

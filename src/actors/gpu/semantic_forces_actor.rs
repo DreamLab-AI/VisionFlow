@@ -814,7 +814,14 @@ impl Handler<ReloadRelationshipBuffer> for SemanticForcesActor {
 
         // Convert from actor's DynamicForceConfigGPU to kernel_bridge's canonical type.
         // Both are #[repr(C)] with identical layout (f32, f32, i32, u32 = 16 bytes).
-        // Safety: compile-time size assertions in this module verify layout compatibility.
+        // SAFETY: This transmute-via-pointer-cast is safe because:
+        // 1. Both types are #[repr(C)] with identical field layout (f32, f32, i32, u32)
+        // 2. Compile-time size assertions elsewhere in this module verify
+        //    size_of::<actor::DynamicForceConfigGPU>() == size_of::<kernel_bridge::DynamicForceConfigGPU>()
+        // 3. `msg.buffer` is a valid, non-empty slice (checked above: buffer.is_empty() returns early)
+        // 4. The resulting slice borrows from `msg.buffer` with the same lifetime,
+        //    so the pointer remains valid for the duration of the borrow
+        // 5. Alignment: both types have alignment of 4 (all fields are 4-byte types)
         let bridge_buffer: &[kernel_bridge::DynamicForceConfigGPU] = unsafe {
             std::slice::from_raw_parts(
                 msg.buffer.as_ptr() as *const kernel_bridge::DynamicForceConfigGPU,

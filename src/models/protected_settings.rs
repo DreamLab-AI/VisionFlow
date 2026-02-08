@@ -37,8 +37,10 @@ pub struct NetworkSettings {
     pub bind_address: String,
     pub domain: String,
     pub port: u16,
+    #[deprecated(note = "Not enforced by server - use reverse proxy")]
     pub enable_http2: bool,
     pub enable_tls: bool,
+    #[deprecated(note = "Not enforced by server - use reverse proxy")]
     pub min_tls_version: String,
     pub max_request_size: usize,
     pub enable_rate_limiting: bool,
@@ -52,8 +54,11 @@ pub struct NetworkSettings {
 pub struct SecuritySettings {
     pub allowed_origins: Vec<String>,
     pub audit_log_path: String,
+    #[deprecated(note = "Not enforced by server")]
     pub cookie_httponly: bool,
+    #[deprecated(note = "Not enforced by server")]
     pub cookie_samesite: String,
+    #[deprecated(note = "Not enforced by server")]
     pub cookie_secure: bool,
     pub csrf_token_timeout: u32,
     pub enable_audit_logging: bool,
@@ -118,35 +123,57 @@ impl Default for ProtectedSettings {
 }
 
 impl ProtectedSettings {
+    /// Merge fields from a JSON value into this ProtectedSettings.
+    /// Returns Err if ALL present fields fail to deserialize.
+    /// If at least one field succeeds, logs warnings for failed fields and returns Ok.
     pub fn merge(&mut self, other: serde_json::Value) -> Result<(), String> {
+        let mut successes = 0u32;
+        let mut failures: Vec<String> = Vec::new();
+
         if let Some(network) = other.get("network") {
-            if let Ok(network_settings) = serde_json::from_value(network.clone()) {
-                self.network = network_settings;
+            match serde_json::from_value(network.clone()) {
+                Ok(v) => { self.network = v; successes += 1; }
+                Err(e) => failures.push(format!("network: {}", e)),
             }
         }
 
         if let Some(security) = other.get("security") {
-            if let Ok(security_settings) = serde_json::from_value(security.clone()) {
-                self.security = security_settings;
+            match serde_json::from_value(security.clone()) {
+                Ok(v) => { self.security = v; successes += 1; }
+                Err(e) => failures.push(format!("security: {}", e)),
             }
         }
 
         if let Some(websocket) = other.get("websocketServer") {
-            if let Ok(websocket_settings) = serde_json::from_value(websocket.clone()) {
-                self.websocket_server = websocket_settings;
+            match serde_json::from_value(websocket.clone()) {
+                Ok(v) => { self.websocket_server = v; successes += 1; }
+                Err(e) => failures.push(format!("websocketServer: {}", e)),
             }
         }
 
         if let Some(users) = other.get("users") {
-            if let Ok(user_settings) = serde_json::from_value(users.clone()) {
-                self.users = user_settings;
+            match serde_json::from_value(users.clone()) {
+                Ok(v) => { self.users = v; successes += 1; }
+                Err(e) => failures.push(format!("users: {}", e)),
             }
         }
 
         if let Some(api_keys) = other.get("defaultApiKeys") {
-            if let Ok(keys) = serde_json::from_value(api_keys.clone()) {
-                self.default_api_keys = keys;
+            match serde_json::from_value(api_keys.clone()) {
+                Ok(v) => { self.default_api_keys = v; successes += 1; }
+                Err(e) => failures.push(format!("defaultApiKeys: {}", e)),
             }
+        }
+
+        if !failures.is_empty() && successes == 0 {
+            return Err(format!("All field merges failed: {}", failures.join("; ")));
+        }
+
+        if !failures.is_empty() {
+            log::warn!(
+                "ProtectedSettings.merge: partial failure - {} succeeded, {} failed: {}",
+                successes, failures.len(), failures.join("; ")
+            );
         }
 
         Ok(())

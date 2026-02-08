@@ -606,14 +606,18 @@ impl AppState {
 
         // Register event handlers on the EventBus
         {
-            use crate::events::handlers::{AuditEventHandler, NotificationEventHandler};
+            use crate::events::handlers::{AuditEventHandler, NotificationEventHandler, GraphEventHandler, OntologyEventHandler};
 
             let bus = event_bus.write().await;
             let audit_handler = Arc::new(AuditEventHandler::new("global-audit"));
             let notification_handler = Arc::new(NotificationEventHandler::new("global-notifications"));
+            let graph_handler = Arc::new(GraphEventHandler::new("global-graph"));
+            let ontology_handler = Arc::new(OntologyEventHandler::new("global-ontology"));
             bus.subscribe(audit_handler).await;
             bus.subscribe(notification_handler).await;
-            info!("[AppState::new] EventBus handlers registered: AuditEventHandler, NotificationEventHandler");
+            bus.subscribe(graph_handler).await;
+            bus.subscribe(ontology_handler).await;
+            info!("[AppState::new] EventBus handlers registered: AuditEventHandler, NotificationEventHandler, GraphEventHandler, OntologyEventHandler");
         }
 
         // Log warnings for settings that are present in config but not yet wired

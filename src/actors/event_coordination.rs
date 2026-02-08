@@ -39,90 +39,10 @@ impl EventCoordinator {
         }
     }
 
-    
     pub async fn initialize(&self) {
-        info!("Initializing event coordination");
-
-        
-        self.subscribe_to_graph_events().await;
-
-        
-        self.subscribe_to_ontology_events().await;
-
-        
-        self.subscribe_to_position_events().await;
-
-        info!("Event coordination initialized");
-    }
-
-    
-    async fn subscribe_to_graph_events(&self) {
-        let physics_service = self.physics_service.clone();
-        let semantic_service = self.semantic_service.clone();
-        let graph_data = self.graph_data.clone();
-
-        
-        let graph_data_clone = graph_data.clone();
-        let _physics_clone = physics_service.clone();
-
-        actix::spawn(async move {
-            loop {
-                tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
-
-                
-                let graph = graph_data_clone.read().await.clone();
-                if graph.nodes.len() > 0 {
-                    debug!("Graph updated, triggering physics recalculation");
-
-                    
-                    
-                    
-                }
-            }
-        });
-
-        
-        let semantic_clone = semantic_service.clone();
-        actix::spawn(async move {
-            loop {
-                tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
-
-                
-                if let Err(e) = semantic_clone.invalidate_cache().await {
-                    warn!("Failed to invalidate cache: {}", e);
-                }
-            }
-        });
-    }
-
-    
-    async fn subscribe_to_ontology_events(&self) {
-        let _semantic_service = self.semantic_service.clone();
-
-        
-        actix::spawn(async move {
-            loop {
-                tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
-
-                debug!("Checking for ontology updates");
-                
-            }
-        });
-    }
-
-    
-    async fn subscribe_to_position_events(&self) {
-        let _event_bus = self.event_bus.clone();
-
-        
-        actix::spawn(async move {
-            loop {
-                tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
-
-                
-                debug!("Broadcasting position updates");
-            }
-        });
+        // Event coordination is now handled through the EventBus subscription system.
+        // See app_state.rs for handler registrations.
+        info!("Event coordination initialized (handlers registered via EventBus)");
     }
 
     

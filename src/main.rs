@@ -1,8 +1,7 @@
 // Rebuild: KE velocity fix applied
-use actix::Actor;
 use webxr::ports::ontology_repository::OntologyRepository;
 use webxr::services::nostr_service::NostrService;
-use webxr::settings::settings_actor::SettingsActor;
+// SettingsActor removed - OptimizedSettingsActor in AppState is the single source of truth
 use webxr::adapters::neo4j_settings_repository::{Neo4jSettingsRepository, Neo4jSettingsConfig};
 use webxr::actors::messages::ReloadGraphFromDatabase;
 use webxr::{
@@ -172,7 +171,9 @@ async fn main() -> std::io::Result<()> {
     debug!("main: Beginning application startup sequence.");
 
     // Phase 3: Initialize Neo4j settings repository and actor
-    info!("Initializing SettingsActor with Neo4j");
+    // SettingsActor removed: OptimizedSettingsActor in AppState is the single source of truth.
+    // Settings routes now use AppState.settings_addr (OptimizedSettingsActor) directly.
+    info!("Initializing Neo4j settings repository for routes");
     let settings_config = Neo4jSettingsConfig::default();
     let settings_repository = match Neo4jSettingsRepository::new(settings_config).await {
         Ok(repo) => Arc::new(repo),
@@ -184,11 +185,8 @@ async fn main() -> std::io::Result<()> {
             ));
         }
     };
-
-    let settings_actor = SettingsActor::new(settings_repository.clone()).start();
-    let settings_actor_data = web::Data::new(settings_actor);
     let neo4j_repo_data = web::Data::new(settings_repository.clone());
-    info!("SettingsActor initialized successfully");
+    info!("Neo4j settings repository initialized successfully");
 
 
 
@@ -506,8 +504,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(app_state_data.nostr_service.clone().unwrap_or_else(|| web::Data::new(NostrService::default())))
             .app_data(app_state_data.feature_access.clone())
             .app_data(web::Data::new(github_sync_service.clone()))
-            .app_data(settings_actor_data.clone())
-            .app_data(neo4j_repo_data.clone()) 
+            .app_data(neo4j_repo_data.clone())
             
             
             .route("/wss", web::get().to(socket_flow_handler)) 

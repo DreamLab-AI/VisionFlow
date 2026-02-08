@@ -611,7 +611,7 @@ mod tests {
         let filter = build_filter_from_query(&query);
         assert!(filter.is_some());
 
-        let filter = filter.unwrap();
+        let filter = filter.expect("filter should be Some after is_some assertion");
         assert_eq!(filter.status, Some(WorkspaceStatus::Active));
         assert_eq!(filter.workspace_type, Some(WorkspaceType::Team));
         assert_eq!(filter.is_favorite, Some(true));

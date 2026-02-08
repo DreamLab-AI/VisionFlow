@@ -3,12 +3,16 @@
 //!
 //! Event-driven inference that automatically runs reasoning when ontology changes occur.
 
+use async_trait::async_trait;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::{debug, info, warn, instrument};
 
 use crate::application::inference_service::InferenceService;
 use crate::events::EventBus;
+use crate::events::types::{EventError, EventHandler, EventResult, StoredEvent};
+use crate::utils::json::from_json;
+use crate::events::domain_events::{OntologyImportedEvent as DomainOntologyImportedEvent, ClassAddedEvent as DomainClassAddedEvent, AxiomAddedEvent as DomainAxiomAddedEvent};
 
 #[derive(Debug, Clone)]
 pub enum OntologyEvent {
@@ -189,15 +193,67 @@ impl InferenceTriggerHandler {
     }
 }
 
+#[async_trait]
+impl EventHandler for InferenceTriggerHandler {
+    fn event_type(&self) -> &'static str {
+        "*"
+    }
+
+    fn handler_id(&self) -> &str {
+        "inference-trigger"
+    }
+
+    async fn handle(&self, event: &StoredEvent) -> EventResult<()> {
+        let ontology_event = match event.metadata.event_type.as_str() {
+            "OntologyImported" => {
+                let data: DomainOntologyImportedEvent = from_json(&event.data)
+                    .map_err(|e| EventError::Handler(format!("Failed to parse OntologyImportedEvent: {}", e)))?;
+                Some(OntologyEvent::OntologyImported {
+                    ontology_id: data.ontology_id,
+                    class_count: data.class_count,
+                    axiom_count: 0,
+                })
+            }
+            "ClassAdded" => {
+                let data: DomainClassAddedEvent = from_json(&event.data)
+                    .map_err(|e| EventError::Handler(format!("Failed to parse ClassAddedEvent: {}", e)))?;
+                Some(OntologyEvent::ClassAdded {
+                    ontology_id: event.metadata.aggregate_id.clone(),
+                    class_iri: data.class_iri,
+                })
+            }
+            "AxiomAdded" => {
+                let data: DomainAxiomAddedEvent = from_json(&event.data)
+                    .map_err(|e| EventError::Handler(format!("Failed to parse AxiomAddedEvent: {}", e)))?;
+                Some(OntologyEvent::AxiomAdded {
+                    ontology_id: event.metadata.aggregate_id.clone(),
+                    axiom_id: data.axiom_id,
+                })
+            }
+            _ => None,
+        };
+
+        if let Some(evt) = ontology_event {
+            self.handle_event(evt).await;
+        }
+
+        Ok(())
+    }
+
+    fn max_retries(&self) -> u32 {
+        2
+    }
+}
+
 pub async fn register_inference_triggers(
-    _event_bus: Arc<RwLock<EventBus>>,
+    event_bus: Arc<RwLock<EventBus>>,
     inference_service: Arc<RwLock<InferenceService>>,
     config: AutoInferenceConfig,
 ) {
-    let _handler = Arc::new(InferenceTriggerHandler::new(inference_service, config));
+    let handler = Arc::new(InferenceTriggerHandler::new(inference_service, config));
 
-    
-    
+    let bus = event_bus.read().await;
+    bus.subscribe(handler).await;
 
     info!("Inference triggers registered with event bus");
 }

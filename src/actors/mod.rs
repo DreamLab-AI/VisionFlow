@@ -8,7 +8,7 @@ pub mod graph_state_actor;
 pub mod graph_actor {
     // Re-export graph_state_actor types for backward compatibility
     pub use super::graph_state_actor::GraphStateActor;
-    pub use super::graph_messages::AutoBalanceNotification;
+    pub use super::messages::AutoBalanceNotification;
 
     // PhysicsState type alias - represents the state of physics simulation
     // Contains simulation parameters and running status
@@ -34,7 +34,7 @@ pub mod protected_settings_actor;
 pub mod supervisor;
 pub mod voice_commands;
 // pub mod supervisor_voice; 
-pub mod graph_messages;
+// graph_messages module removed - AutoBalanceNotification consolidated into messages.rs
 pub mod graph_service_supervisor;
 pub mod messages;
 pub mod messaging;

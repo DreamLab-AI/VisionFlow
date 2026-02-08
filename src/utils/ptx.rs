@@ -5,7 +5,7 @@
 // 2) If unavailable, corrupted, or in Docker (DOCKER_ENV set), compile on-the-fly via nvcc -ptx.
 // 3) Support multiple PTX modules for different kernel sets.
 
-use log::{error, info, warn};
+use log::{info, warn};
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -90,6 +90,9 @@ pub fn validate_ptx(ptx: &str) -> Result<(), String> {
     }
     if !ptx.contains(".target") {
         return Err("PTX validation failed: missing .target directive".into());
+    }
+    if !ptx.contains(".entry ") {
+        return Err("PTX validation failed: missing kernel entry points (.entry directive)".into());
     }
     Ok(())
 }
@@ -183,6 +186,7 @@ pub fn load_ptx_sync() -> Result<String, String> {
 
 pub fn load_all_ptx_modules_sync() -> Result<HashMap<PTXModule, String>, String> {
     let mut modules = HashMap::new();
+    let mut failed: Vec<(PTXModule, String)> = Vec::new();
 
     for module in PTXModule::all_modules() {
         match load_ptx_module_sync(module) {
@@ -195,11 +199,27 @@ pub fn load_all_ptx_modules_sync() -> Result<HashMap<PTXModule, String>, String>
                 modules.insert(module, content);
             }
             Err(e) => {
-                error!("Failed to load PTX for {:?}: {}", module, e);
-                return Err(format!("Failed to load PTX for {:?}: {}", module, e));
+                warn!(
+                    "Failed to load PTX module {:?}: {}. Feature will be unavailable.",
+                    module, e
+                );
+                failed.push((module, e));
             }
         }
     }
+
+    if modules.is_empty() {
+        return Err(format!(
+            "No PTX modules loaded successfully. Failures: {:?}",
+            failed
+        ));
+    }
+
+    info!(
+        "Loaded {}/{} PTX modules",
+        modules.len(),
+        modules.len() + failed.len()
+    );
 
     Ok(modules)
 }
@@ -232,7 +252,16 @@ pub fn compile_ptx_fallback_sync_module(module: PTXModule) -> Result<String, Str
         ));
     }
 
-    let ptx_file = module.source_file().replace(".cu", ".ptx");
+    // Use unique temp filename to avoid race conditions
+    let unique = std::time::SystemTime::now()
+        .duration_since(std::time::SystemTime::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    let ptx_file = format!(
+        "ptx_{}_{}.ptx",
+        module.source_file().replace(".cu", ""),
+        unique
+    );
     let out_path = std::env::temp_dir().join(&ptx_file);
 
     let nvcc = "nvcc";

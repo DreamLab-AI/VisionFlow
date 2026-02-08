@@ -383,10 +383,17 @@ impl CudaErrorHandler {
         // 5. After reset, the CUDA runtime will reinitialize on the next CUDA call
         // WARNING: Any code holding CudaMemoryGuard or other CUDA resources MUST
         // ensure those resources are not used after context reset
+        //
+        // DANGER: cudaDeviceReset() INVALIDATES ALL GPU RESOURCES WITHOUT NOTIFYING RAII WRAPPERS
+        // - All CudaMemoryGuard instances become invalid and must not be used
+        // - All CudaSlice, Stream, and other GPU handles are dangling pointers after this call
+        // - Any future use of invalidated GPU resources will cause undefined behavior or crashes
+        // - The GPU context must be completely reinitialized before any further GPU operations
         unsafe {
             let result = cudaDeviceReset();
             if result == 0 {
-                info!("CUDA context reset successfully");
+                error!("CUDA context reset successfully - ALL GPU BUFFERS ARE NOW INVALID");
+                info!("All CudaMemoryGuard and GPU resource handles are now dangling pointers");
                 self.error_count.store(0, Ordering::Relaxed);
             } else {
                 error!("Failed to reset CUDA context: error code {}", result);

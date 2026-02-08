@@ -134,8 +134,7 @@ impl GraphEventHandler {
 #[async_trait]
 impl EventHandler for GraphEventHandler {
     fn event_type(&self) -> &'static str {
-        
-        "Graph"
+        "*"
     }
 
     fn handler_id(&self) -> &str {

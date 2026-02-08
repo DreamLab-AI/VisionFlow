@@ -217,8 +217,8 @@ impl Default for DevConfig {
                 cooling_rate: 0.001,
 
                 
-                max_force: 15.0,
-                max_velocity: 50.0,
+                max_force: crate::config::CANONICAL_MAX_FORCE,
+                max_velocity: crate::config::CANONICAL_MAX_VELOCITY,
                 world_bounds_min: -1000.0,
                 world_bounds_max: 1000.0,
                 cell_size_lod: 100.0,

@@ -32,11 +32,27 @@ pub struct ClientLogsPayload {
     timestamp: String,
 }
 
+/// Maximum number of log entries accepted per request to prevent DoS
+const MAX_LOG_ENTRIES: usize = 1000;
+
 pub async fn handle_client_logs(
     req: HttpRequest,
     payload: web::Json<ClientLogsPayload>,
     _app_state: web::Data<AppState>,
 ) -> Result<HttpResponse, actix_web::Error> {
+    // SECURITY: Reject oversized payloads to prevent DoS
+    if payload.logs.len() > MAX_LOG_ENTRIES {
+        log::warn!(
+            "Client log payload rejected: {} entries exceeds limit of {}",
+            payload.logs.len(),
+            MAX_LOG_ENTRIES
+        );
+        return Ok(HttpResponse::PayloadTooLarge().json(serde_json::json!({
+            "status": "error",
+            "message": format!("Too many log entries: {} exceeds maximum of {}", payload.logs.len(), MAX_LOG_ENTRIES)
+        })));
+    }
+
     let log_file_path = "/app/logs/client.log";
 
     

@@ -716,6 +716,63 @@ impl Handler<RecalculateHierarchy> for GPUManagerActor {
     }
 }
 
+impl Handler<ConfigureDAG> for GPUManagerActor {
+    type Result = ResponseActFuture<Self, Result<(), String>>;
+
+    fn handle(&mut self, msg: ConfigureDAG, ctx: &mut Self::Context) -> Self::Result {
+        let supervisors = match self.get_supervisors(ctx) {
+            Ok(s) => s.clone(),
+            Err(e) => return Box::pin(async move { Err(e) }.into_actor(self)),
+        };
+
+        Box::pin(
+            async move {
+                supervisors.physics.send(msg).await
+                    .map_err(|e| format!("PhysicsSupervisor communication failed: {}", e))?
+            }
+            .into_actor(self)
+        )
+    }
+}
+
+impl Handler<ConfigureTypeClustering> for GPUManagerActor {
+    type Result = ResponseActFuture<Self, Result<(), String>>;
+
+    fn handle(&mut self, msg: ConfigureTypeClustering, ctx: &mut Self::Context) -> Self::Result {
+        let supervisors = match self.get_supervisors(ctx) {
+            Ok(s) => s.clone(),
+            Err(e) => return Box::pin(async move { Err(e) }.into_actor(self)),
+        };
+
+        Box::pin(
+            async move {
+                supervisors.physics.send(msg).await
+                    .map_err(|e| format!("PhysicsSupervisor communication failed: {}", e))?
+            }
+            .into_actor(self)
+        )
+    }
+}
+
+impl Handler<ConfigureCollision> for GPUManagerActor {
+    type Result = ResponseActFuture<Self, Result<(), String>>;
+
+    fn handle(&mut self, msg: ConfigureCollision, ctx: &mut Self::Context) -> Self::Result {
+        let supervisors = match self.get_supervisors(ctx) {
+            Ok(s) => s.clone(),
+            Err(e) => return Box::pin(async move { Err(e) }.into_actor(self)),
+        };
+
+        Box::pin(
+            async move {
+                supervisors.physics.send(msg).await
+                    .map_err(|e| format!("PhysicsSupervisor communication failed: {}", e))?
+            }
+            .into_actor(self)
+        )
+    }
+}
+
 /// Adjust constraint weights - routes to PhysicsSupervisor -> OntologyConstraintActor
 impl Handler<AdjustConstraintWeights> for GPUManagerActor {
     type Result = ResponseActFuture<Self, Result<serde_json::Value, String>>;

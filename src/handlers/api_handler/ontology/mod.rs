@@ -45,10 +45,11 @@ pub struct LoadOntologyRequest {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoadOntologyResponse {
-    
+
     pub ontology_id: String,
-    
-    pub axiom_count: usize,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub axiom_count: Option<usize>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -412,8 +413,24 @@ async fn extract_property_graph(state: &AppState) -> Result<PropertyGraph, Error
 // REST ENDPOINTS
 // ============================================================================
 
+/// Maximum axiom content size: 10 MB
+const MAX_AXIOM_CONTENT_SIZE: usize = 10_000_000;
+
 pub async fn load_axioms(state: web::Data<AppState>, body: web::Bytes) -> impl Responder {
-    
+    // SECURITY: Reject oversized payloads to prevent resource exhaustion
+    if body.len() > MAX_AXIOM_CONTENT_SIZE {
+        warn!(
+            "Axiom payload rejected: {} bytes exceeds limit of {} bytes",
+            body.len(),
+            MAX_AXIOM_CONTENT_SIZE
+        );
+        let error_response = ErrorResponse::new(
+            &format!("Payload too large: {} bytes exceeds maximum of {} bytes", body.len(), MAX_AXIOM_CONTENT_SIZE),
+            "PAYLOAD_TOO_LARGE",
+        );
+        return Ok::<HttpResponse, actix_web::Error>(HttpResponse::PayloadTooLarge().json(error_response));
+    }
+
     let (source, format) = if let Ok(req) = serde_json::from_slice::<LoadOntologyRequest>(&body) {
         info!("Loading ontology from content string");
         (req.content, req.format)
@@ -448,7 +465,7 @@ pub async fn load_axioms(state: web::Data<AppState>, body: web::Bytes) -> impl R
 
             let response = LoadOntologyResponse {
                 ontology_id: ontology_id.clone(),
-                axiom_count: 0,
+                axiom_count: None,
             };
 
             info!("Successfully loaded ontology: {}", response.ontology_id);

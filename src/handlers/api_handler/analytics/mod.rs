@@ -476,7 +476,10 @@ pub async fn update_constraints(
     info!("Updating constraint set");
 
     let constraint_data = if let Some(constraint_set) = &request.constraint_set {
-        serde_json::to_value(constraint_set).unwrap_or_default()
+        serde_json::to_value(constraint_set).unwrap_or_else(|e| {
+            log::warn!("Failed to serialize constraint_set: {}", e);
+            serde_json::Value::default()
+        })
     } else if let Some(data) = &request.constraint_data {
         data.clone()
     } else {

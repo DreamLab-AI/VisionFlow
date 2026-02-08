@@ -294,11 +294,38 @@ async fn update_api_keys(
 }
 
 async fn get_api_keys(
+    req: HttpRequest,
     state: web::Data<AppState>,
     pubkey: web::Path<String>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    let api_keys = state.get_api_keys(&pubkey).await;
+    // Validate session before exposing API keys
+    let token = req
+        .headers()
+        .get("Authorization")
+        .and_then(|h| h.to_str().ok())
+        .and_then(|s| s.strip_prefix("Bearer "))
+        .unwrap_or("");
 
+    if token.is_empty() {
+        return Ok(HttpResponse::Unauthorized().json(json!({
+            "error": "Missing authorization token"
+        })));
+    }
+
+    // Validate the session token
+    if let Some(nostr_service) = &state.nostr_service {
+        if !nostr_service.validate_session(&pubkey, token).await {
+            return Ok(HttpResponse::Unauthorized().json(json!({
+                "error": "Invalid or expired session"
+            })));
+        }
+    } else {
+        return Ok(HttpResponse::ServiceUnavailable().json(json!({
+            "error": "Nostr service not available"
+        })));
+    }
+
+    let api_keys = state.get_api_keys(&pubkey).await;
     ok_json!(api_keys)
 }
 

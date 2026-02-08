@@ -27,7 +27,7 @@ pub async fn fetch_and_process_files(state: web::Data<AppState>) -> Result<impl 
     let settings = match state.settings_addr.send(GetSettings).await {
         Ok(Ok(s)) => Arc::new(tokio::sync::RwLock::new(s)),
         _ => {
-            error!("Failed to retrieve settings from SettingsActor");
+            error!("Failed to retrieve settings from OptimizedSettingsActor");
             return Ok(HttpResponse::InternalServerError().json(json!({
                 "status": "error",
                 "message": "Failed to retrieve application settings"
@@ -153,8 +153,48 @@ pub async fn get_file_content(
     _state: web::Data<AppState>,
     file_name: web::Path<String>,
 ) -> HttpResponse {
-    let file_path = format!("{}/{}", MARKDOWN_DIR, file_name);
-    match std::fs::read_to_string(&file_path) {
+    // SECURITY: Reject path traversal attempts
+    if file_name.contains("..") || file_name.starts_with('/') || file_name.contains('\0') {
+        error!("Path traversal attempt blocked for file_name: {}", file_name);
+        return HttpResponse::BadRequest().json(json!({
+            "status": "error",
+            "message": "Invalid file name"
+        }));
+    }
+
+    let base_dir = match std::path::Path::new(MARKDOWN_DIR).canonicalize() {
+        Ok(p) => p,
+        Err(e) => {
+            error!("Failed to canonicalize MARKDOWN_DIR: {}", e);
+            return HttpResponse::InternalServerError().json(json!({
+                "status": "error",
+                "message": "Server configuration error"
+            }));
+        }
+    };
+
+    let requested_path = std::path::Path::new(MARKDOWN_DIR).join(&*file_name);
+    let canonical_path = match requested_path.canonicalize() {
+        Ok(p) => p,
+        Err(e) => {
+            error!("Failed to read file {}: {}", file_name, e);
+            return HttpResponse::NotFound().json(json!({
+                "status": "error",
+                "message": format!("File not found or unreadable: {}", file_name)
+            }));
+        }
+    };
+
+    // SECURITY: Verify the resolved path is within MARKDOWN_DIR
+    if !canonical_path.starts_with(&base_dir) {
+        error!("Path traversal attempt blocked: resolved path escapes MARKDOWN_DIR for file_name: {}", file_name);
+        return HttpResponse::BadRequest().json(json!({
+            "status": "error",
+            "message": "Invalid file name"
+        }));
+    }
+
+    match std::fs::read_to_string(&canonical_path) {
         Ok(content) => HttpResponse::Ok().body(content),
         Err(e) => {
             error!("Failed to read file {}: {}", file_name, e);

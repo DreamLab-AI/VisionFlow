@@ -157,8 +157,16 @@ fn default_constraint_ramp_frames() -> u32 {
 }
 
 fn default_constraint_max_force_per_node() -> f32 {
-    50.0 
+    50.0
 }
+
+/// Canonical default for max_velocity across the entire codebase.
+/// All modules MUST use this constant instead of hardcoded values.
+pub const CANONICAL_MAX_VELOCITY: f32 = 50.0;
+
+/// Canonical default for max_force across the entire codebase.
+/// All modules MUST use this constant instead of hardcoded values.
+pub const CANONICAL_MAX_FORCE: f32 = 50.0;
 
 fn default_glow_color() -> String {
     "#00ffff".to_string()
@@ -698,6 +706,7 @@ pub struct PhysicsSettings {
     pub repel_k: f32,
     #[serde(alias = "spring_k")]
     pub spring_k: f32,
+    #[deprecated(note = "Not wired to physics engine")]
     #[serde(alias = "mass_scale")]
     pub mass_scale: f32,
     #[serde(alias = "boundary_damping")]
@@ -711,10 +720,13 @@ pub struct PhysicsSettings {
     #[serde(alias = "gravity")]
     pub gravity: f32,
     
+    #[deprecated(note = "Not wired to physics engine")]
     #[serde(alias = "stress_weight")]
     pub stress_weight: f32,
+    #[deprecated(note = "Not wired to physics engine")]
     #[serde(alias = "stress_alpha")]
     pub stress_alpha: f32,
+    #[deprecated(note = "Not wired to physics engine")]
     #[serde(alias = "boundary_limit")]
     pub boundary_limit: f32,
     #[serde(alias = "alignment_strength")]
@@ -754,8 +766,10 @@ pub struct PhysicsSettings {
     pub boundary_margin: f32,
     #[serde(alias = "boundary_force_strength")]
     pub boundary_force_strength: f32,
+    #[deprecated(note = "Not wired to physics engine")]
     #[serde(alias = "warmup_curve")]
     pub warmup_curve: String,
+    #[deprecated(note = "Not wired to physics engine")]
     #[serde(alias = "zero_velocity_iterations")]
     pub zero_velocity_iterations: u32,
 
@@ -795,8 +809,8 @@ impl Default for PhysicsSettings {
             enable_bounds: true,
             enabled: true,
             iterations: 100,
-            max_velocity: 1.0,
-            max_force: 100.0,
+            max_velocity: CANONICAL_MAX_VELOCITY,
+            max_force: CANONICAL_MAX_FORCE,
             repel_k: 50.0,
             spring_k: 0.005,
             mass_scale: 1.0,

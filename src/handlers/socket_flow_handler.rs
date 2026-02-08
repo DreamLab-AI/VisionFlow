@@ -1788,7 +1788,30 @@ pub async fn socket_flow_handler(
             .body("Origin header required for WebSocket connections"));
     }
 
-    let app_state_arc = app_state_data.into_inner(); 
+    // TODO(security): Enforce WebSocket authentication once clients support token-based WS auth.
+    // Currently logs a warning for unauthenticated connections to support gradual migration.
+    {
+        let token = req.headers().get("Authorization")
+            .and_then(|h| h.to_str().ok())
+            .and_then(|s| s.strip_prefix("Bearer "))
+            .map(|s| s.to_string())
+            .or_else(|| {
+                let query = req.query_string();
+                url::form_urlencoded::parse(query.as_bytes())
+                    .find(|(k, _)| k == "token")
+                    .map(|(_, v)| v.to_string())
+            });
+
+        if token.is_none() {
+            warn!(
+                "SECURITY: Unauthenticated WebSocket connection on /wss from {}. \
+                 WebSocket authentication is not yet enforced but should be added.",
+                client_ip
+            );
+        }
+    }
+
+    let app_state_arc = app_state_data.into_inner();
 
     
     let client_manager_addr = app_state_arc.client_manager_addr.clone();

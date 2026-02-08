@@ -450,5 +450,30 @@ pub async fn mcp_relay_handler(
     stream: web::Payload,
 ) -> Result<HttpResponse, actix_web::Error> {
     info!("[MCP Relay] New WebSocket connection request");
+
+    // TODO(security): Enforce WebSocket authentication once clients support token-based WS auth.
+    // Currently logs a warning for unauthenticated connections to support gradual migration.
+    {
+        let token = req.headers().get("Authorization")
+            .and_then(|h| h.to_str().ok())
+            .and_then(|s| s.strip_prefix("Bearer "))
+            .map(|s| s.to_string())
+            .or_else(|| {
+                let query = req.query_string();
+                url::form_urlencoded::parse(query.as_bytes())
+                    .find(|(k, _)| k == "token")
+                    .map(|(_, v)| v.to_string())
+            });
+
+        if token.is_none() {
+            let client_ip = req.peer_addr().map(|a| a.to_string()).unwrap_or_else(|| "unknown".to_string());
+            log::warn!(
+                "SECURITY: Unauthenticated WebSocket connection on /ws/mcp-relay from {}. \
+                 WebSocket authentication is not yet enforced but should be added.",
+                client_ip
+            );
+        }
+    }
+
     ws::start(MCPRelayActor::new(), &req, stream)
 }

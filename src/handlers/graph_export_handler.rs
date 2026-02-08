@@ -99,27 +99,14 @@ impl GraphExportHandler {
     }
 
     
-    async fn get_current_graph(&self, _app_state: &AppState) -> Result<GraphData> {
-        
-        
-        let mut graph = GraphData::new();
+    async fn get_current_graph(&self, app_state: &AppState) -> Result<GraphData> {
+        use crate::actors::messages::GetGraphData;
 
-        
-        for i in 1..=10 {
-            let mut node = crate::models::node::Node::new(format!("node_{}", i))
-                .with_label(format!("Node {}", i))
-                .with_position((i as f32) * 10.0, (i as f32) * 15.0, 0.0);
-            node.id = i;
-            graph.nodes.push(node);
+        match app_state.graph_service_addr.send(GetGraphData).await {
+            Ok(Ok(graph_data)) => Ok((*graph_data).clone()),
+            Ok(Err(e)) => Err(anyhow::anyhow!("Graph service error: {}", e)),
+            Err(e) => Err(anyhow::anyhow!("Graph service actor not responding: {}", e)),
         }
-
-        for i in 1..=9 {
-            graph
-                .edges
-                .push(crate::models::edge::Edge::new(i, i + 1, 1.0));
-        }
-
-        Ok(graph)
     }
 }
 
@@ -300,52 +287,13 @@ pub async fn get_shared_graph(
 }
 
 pub async fn publish_graph(
-    app_state: web::Data<AppState>,
+    _app_state: web::Data<AppState>,
     _request: web::Json<PublishRequest>,
-    req: HttpRequest,
+    _req: HttpRequest,
 ) -> ActixResult<HttpResponse> {
-    let client_ip = req
-        .connection_info()
-        .peer_addr()
-        .unwrap_or("unknown")
-        .to_string();
-
-    let handler = GraphExportHandler::new(std::path::PathBuf::from("data"));
-
-
-    match handler.check_rate_limit(&client_ip).await {
-        Ok(rate_info) if rate_info.remaining_exports == 0 => {
-            return too_many_requests!("Rate limit exceeded");
-        }
-        Err(e) => {
-            return error_json!("Rate limit check failed: {}", e);
-        }
-        _ => {}
-    }
-
-
-    let _graph = match handler.get_current_graph(&app_state).await {
-        Ok(graph) => graph,
-        Err(e) => {
-            return error_json!("Failed to get graph: {}", e);
-        }
-    };
-
-
-    let publication_id = Uuid::new_v4();
-    let repository_url = format!("https://graphdb.example.com/graphs/{}", publication_id);
-
-
-
-    let publish_response = PublishResponse {
-        publication_id,
-        repository_url,
-        doi: Some(format!("10.1000/graph.{}", publication_id)),
-        published_at: Utc::now(),
-        status: PublicationStatus::Pending,
-    };
-
-    ok_json!(publish_response)
+    Ok(HttpResponse::NotImplemented().json(serde_json::json!({
+        "error": "Graph publishing not yet implemented"
+    })))
 }
 
 pub async fn delete_shared_graph(path: web::Path<String>) -> ActixResult<HttpResponse> {
@@ -381,24 +329,9 @@ pub async fn delete_shared_graph(path: web::Path<String>) -> ActixResult<HttpRes
 }
 
 pub async fn get_export_stats() -> ActixResult<HttpResponse> {
-    
-    let stats = ExportStats {
-        total_exports: 1250,
-        exports_by_format: {
-            let mut map = HashMap::new();
-            map.insert("json".to_string(), 750);
-            map.insert("gexf".to_string(), 300);
-            map.insert("graphml".to_string(), 150);
-            map.insert("csv".to_string(), 50);
-            map
-        },
-        shared_graphs: 45,
-        published_graphs: 12,
-        avg_file_size: 2.4, 
-        last_export: Some(Utc::now() - chrono::Duration::minutes(15)),
-    };
-
-    ok_json!(stats)
+    Ok(HttpResponse::NotImplemented().json(serde_json::json!({
+        "error": "Export statistics not yet implemented"
+    })))
 }
 
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {

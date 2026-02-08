@@ -21,6 +21,7 @@ fn main() {
         "src/utils/sssp_compact.cu",
         "src/utils/visionflow_unified_stability.cu",
         "src/utils/ontology_constraints.cu",
+        "src/utils/semantic_forces.cu",
     ];
 
     // Only rebuild if CUDA files change
@@ -109,45 +110,59 @@ fn main() {
 
     println!("All PTX compilation successful!");
 
-    // Compile visionflow_unified for Thrust wrapper (legacy compatibility)
-    let cuda_src = Path::new("src/utils/visionflow_unified.cu");
-    let obj_output = PathBuf::from(&out_dir).join("thrust_wrapper.o");
+    // CUDA source files that export host-callable FFI symbols and need linking
+    let link_sources = [
+        ("src/utils/visionflow_unified.cu", "thrust_wrapper"),
+        ("src/utils/semantic_forces.cu", "semantic_forces"),
+    ];
 
-    // Compile Thrust wrapper functions to object file
-    println!("Compiling Thrust wrapper functions...");
-    let obj_status = Command::new("nvcc")
-        .args([
-            "-c",
-            "-arch",
-            &format!("sm_{}", cuda_arch),
-            "-o",
-            obj_output.to_str().unwrap(),
-            cuda_src.to_str().unwrap(),
-            "--use_fast_math",
-            "-O3",
-            "-Xcompiler",
-            "-fPIC",
-            "-dc", // Enable device code linking for Thrust
-        ])
-        .status()
-        .expect("Failed to compile Thrust wrapper");
+    let mut obj_files: Vec<PathBuf> = Vec::new();
 
-    if !obj_status.success() {
-        panic!("Thrust wrapper compilation failed");
+    for (src_path, obj_name) in &link_sources {
+        let cuda_src = Path::new(src_path);
+        let obj_output = PathBuf::from(&out_dir).join(format!("{}.o", obj_name));
+
+        println!("Compiling {} to object file...", obj_name);
+        let obj_status = Command::new("nvcc")
+            .args([
+                "-c",
+                "-arch",
+                &format!("sm_{}", cuda_arch),
+                "-o",
+                obj_output.to_str().unwrap(),
+                cuda_src.to_str().unwrap(),
+                "--use_fast_math",
+                "-O3",
+                "-Xcompiler",
+                "-fPIC",
+                "-dc", // Enable device code linking
+            ])
+            .status()
+            .expect(&format!("Failed to compile {}", obj_name));
+
+        if !obj_status.success() {
+            panic!("{} compilation failed", obj_name);
+        }
+
+        obj_files.push(obj_output);
     }
 
-    // Device link the object file (required for Thrust)
-    let dlink_output = PathBuf::from(&out_dir).join("thrust_wrapper_dlink.o");
-    println!("Device linking Thrust code...");
+    // Device link all object files together (required for cross-module device calls)
+    let dlink_output = PathBuf::from(&out_dir).join("cuda_dlink.o");
+    println!("Device linking {} CUDA object files...", obj_files.len());
+    let mut dlink_args: Vec<String> = vec![
+        "-dlink".to_string(),
+        "-arch".to_string(),
+        format!("sm_{}", cuda_arch),
+    ];
+    for obj in &obj_files {
+        dlink_args.push(obj.to_str().unwrap().to_string());
+    }
+    dlink_args.push("-o".to_string());
+    dlink_args.push(dlink_output.to_str().unwrap().to_string());
+
     let dlink_status = Command::new("nvcc")
-        .args([
-            "-dlink",
-            "-arch",
-            &format!("sm_{}", cuda_arch),
-            obj_output.to_str().unwrap(),
-            "-o",
-            dlink_output.to_str().unwrap(),
-        ])
+        .args(&dlink_args)
         .status()
         .expect("Failed to device link");
 
@@ -155,16 +170,20 @@ fn main() {
         panic!("Device linking failed");
     }
 
-    // Create static library from both object files
+    // Create static library from all object files + device link output
     let lib_output = PathBuf::from(&out_dir).join("libthrust_wrapper.a");
     println!("Creating static library...");
+    let mut ar_args: Vec<String> = vec![
+        "rcs".to_string(),
+        lib_output.to_str().unwrap().to_string(),
+    ];
+    for obj in &obj_files {
+        ar_args.push(obj.to_str().unwrap().to_string());
+    }
+    ar_args.push(dlink_output.to_str().unwrap().to_string());
+
     let ar_status = Command::new("ar")
-        .args([
-            "rcs",
-            lib_output.to_str().unwrap(),
-            obj_output.to_str().unwrap(),
-            dlink_output.to_str().unwrap(),
-        ])
+        .args(&ar_args)
         .status()
         .expect("Failed to create static library");
 

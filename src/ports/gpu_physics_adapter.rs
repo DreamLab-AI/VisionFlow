@@ -92,7 +92,7 @@ impl Default for PhysicsParameters {
             spring_constant: 0.01,
             repulsion_strength: 100.0,
             attraction_strength: 0.1,
-            max_velocity: 10.0,
+            max_velocity: crate::config::CANONICAL_MAX_VELOCITY,
             convergence_threshold: 0.01,
             max_iterations: 1000,
         }

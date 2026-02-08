@@ -1,3 +1,7 @@
+// WARNING: This file is not compiled by build.rs. Kernels are accessed via
+// kernel_bridge.rs FFI which expects a pre-linked library. See build.rs for
+// the list of compiled .cu files.
+//
 // GPU PageRank Centrality Implementation
 // Implements the power iteration algorithm for PageRank computation
 //

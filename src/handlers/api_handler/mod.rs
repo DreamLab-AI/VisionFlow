@@ -122,16 +122,11 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             
             .route("/health", web::get().to(health_check))
             .route("/config", web::get().to(get_app_config))
-            .route(
-                "/settings-test",
-                web::get().to(|| async { Ok::<HttpResponse, actix_web::Error>(HttpResponse::Ok().json(json!({"test": "works"}))) }),
-            )
             
             .configure(files::config)
             .configure(graph::config)
             .configure(crate::handlers::graph_state_handler::config) 
-            .configure(crate::handlers::ontology_handler::config) 
-            .configure(visualisation::config)
+            .configure(crate::handlers::ontology_handler::config)
             .configure(bots::config)
             
             .configure(analytics::config)

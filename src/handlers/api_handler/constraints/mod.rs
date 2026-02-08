@@ -11,7 +11,7 @@ use std::sync::Arc;
 use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable};
 
 use crate::actors::gpu::ontology_constraint_actor::OntologyConstraintStats;
-use crate::actors::messages::{GetConstraints, UpdateConstraint};
+use crate::actors::messages::{GetConstraints, UpdateConstraintData};
 use crate::models::constraints::{Constraint, ConstraintType};
 use crate::AppState;
 
@@ -56,10 +56,13 @@ pub struct ConstraintStatsResponse {
     pub active_constraints: u32,
     pub ontology_constraints: u32,
     pub user_constraints: u32,
-    pub constraint_evaluation_count: u32,
-    pub last_update_time_ms: f32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub constraint_evaluation_count: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_update_time_ms: Option<f64>,
     pub gpu_status: String,
-    pub cache_hit_rate: f32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cache_hit_rate: Option<f64>,
 }
 
 pub async fn get_constraints(state: web::Data<AppState>) -> impl Responder {
@@ -152,15 +155,17 @@ pub async fn update_constraint(
 ) -> impl Responder {
     info!("PUT /api/constraints/{} - Updating constraint", constraint_id);
 
-    
-    let update_msg = UpdateConstraint {
-        constraint_id: constraint_id.to_string(),
-        active: req.active,
-        strength: req.strength,
-        distance: req.distance,
+    let constraint_data = json!({
+        "constraint_id": constraint_id.to_string(),
+        "active": req.active,
+        "strength": req.strength,
+        "distance": req.distance,
+    });
+
+    let update_msg = UpdateConstraintData {
+        constraint_data,
     };
 
-    
     match state
         .graph_service_addr
         .send(update_msg)
@@ -190,7 +195,10 @@ pub async fn create_user_constraint(
 ) -> impl Responder {
     info!("POST /api/constraints/user - Creating user constraint");
 
-    
+    if !req.strength.is_finite() || req.strength < 0.0 || req.strength > 10.0 {
+        return bad_request!("strength must be a finite number in range 0.0..=10.0");
+    }
+
     let constraint_type = match req.constraint_type.as_str() {
         "Distance" => ConstraintType::Distance,
         "Angle" => ConstraintType::Angle,
@@ -202,7 +210,6 @@ pub async fn create_user_constraint(
         }
     };
 
-    
     let constraint = Constraint {
         id: uuid::Uuid::new_v4().to_string(),
         constraint_type,
@@ -214,8 +221,23 @@ pub async fn create_user_constraint(
         metadata: req.metadata.clone(),
     };
 
-    
-    
+    // Persist the constraint by sending it to the graph service actor
+    let constraint_data = serde_json::to_value(&constraint).unwrap_or_else(|_| json!({}));
+    let persist_msg = UpdateConstraintData { constraint_data };
+    match state.graph_service_addr.send(persist_msg).await {
+        Ok(Ok(())) => {
+            info!("User constraint {} persisted successfully", constraint.id);
+        }
+        Ok(Err(e)) => {
+            error!("Failed to persist user constraint: {}", e);
+            return error_json!("Failed to persist constraint: {}", e);
+        }
+        Err(e) => {
+            error!("Actor mailbox error persisting constraint: {}", e);
+            return error_json!("Actor communication failed");
+        }
+    }
+
     created_json!(json!({
         "success": true,
         "constraint": ConstraintResponse {
@@ -246,10 +268,10 @@ pub async fn get_constraint_stats(state: web::Data<AppState>) -> impl Responder 
                 active_constraints: stats.active_constraints as u32,
                 ontology_constraints: stats.ontology_constraints as u32,
                 user_constraints: stats.user_constraints as u32,
-                constraint_evaluation_count: 0,
-                last_update_time_ms: 0.0,
+                constraint_evaluation_count: None,
+                last_update_time_ms: None,
                 gpu_status: "operational".to_string(),
-                cache_hit_rate: 0.0,
+                cache_hit_rate: None,
             };
             ok_json!(response)
         }

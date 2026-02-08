@@ -252,10 +252,10 @@ __global__ void apply_sameas_colocate_kernel(
         atomic_add_float3(&nodes[source_idx].velocity, source_accel * delta_time);
         atomic_add_float3(&nodes[target_idx].velocity, target_accel * delta_time);
 
-        // Additional velocity damping to converge faster
-        float damping = 0.95f;
-        nodes[source_idx].velocity = nodes[source_idx].velocity * damping;
-        nodes[target_idx].velocity = nodes[target_idx].velocity * damping;
+        // NOTE: Velocity damping removed from this kernel to avoid data races.
+        // Multiple threads may write to the same node's velocity simultaneously
+        // (non-atomic read-modify-write). Damping is already applied in the main
+        // force integration kernel which runs sequentially per-node.
     }
 }
 
@@ -387,8 +387,10 @@ __global__ void apply_functional_cardinality_kernel(
             float3 accel = force * (1.0f / fmaxf(node.mass, EPSILON));
             atomic_add_float3(&nodes[idx].velocity, accel * delta_time);
 
-            // Additional damping to stabilize
-            nodes[idx].velocity = nodes[idx].velocity * 0.9f;
+            // NOTE: Velocity damping removed from this kernel to avoid data races.
+            // The non-atomic read-modify-write (velocity *= 0.9) races with atomic
+            // adds from other threads targeting the same node. Damping is already
+            // applied in the main force integration kernel.
         }
     }
 }
@@ -476,6 +478,10 @@ void launch_disjoint_classes_kernel(
         d_nodes, num_nodes, d_constraints, num_constraints,
         delta_time, separation_strength
     );
+    cudaError_t err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        printf("CUDA kernel launch error (disjoint_classes): %s\n", cudaGetErrorString(err));
+    }
 }
 
 void launch_subclass_hierarchy_kernel(
@@ -488,6 +494,10 @@ void launch_subclass_hierarchy_kernel(
         d_nodes, num_nodes, d_constraints, num_constraints,
         delta_time, alignment_strength
     );
+    cudaError_t err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        printf("CUDA kernel launch error (subclass_hierarchy): %s\n", cudaGetErrorString(err));
+    }
 }
 
 void launch_sameas_colocate_kernel(
@@ -500,6 +510,10 @@ void launch_sameas_colocate_kernel(
         d_nodes, num_nodes, d_constraints, num_constraints,
         delta_time, colocate_strength
     );
+    cudaError_t err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        printf("CUDA kernel launch error (sameas_colocate): %s\n", cudaGetErrorString(err));
+    }
 }
 
 void launch_inverse_symmetry_kernel(
@@ -512,6 +526,10 @@ void launch_inverse_symmetry_kernel(
         d_nodes, num_nodes, d_constraints, num_constraints,
         delta_time, symmetry_strength
     );
+    cudaError_t err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        printf("CUDA kernel launch error (inverse_symmetry): %s\n", cudaGetErrorString(err));
+    }
 }
 
 void launch_functional_cardinality_kernel(
@@ -524,6 +542,10 @@ void launch_functional_cardinality_kernel(
         d_nodes, num_nodes, d_constraints, num_constraints,
         delta_time, cardinality_penalty
     );
+    cudaError_t err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        printf("CUDA kernel launch error (functional_cardinality): %s\n", cudaGetErrorString(err));
+    }
 }
 
 } // extern "C"

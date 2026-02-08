@@ -221,7 +221,7 @@ impl Default for PhysicsConfig {
             damping: 0.9,
             repel_k: 5000.0, 
             gravity_k: 0.01,
-            max_velocity: 10.0,
+            max_velocity: crate::config::CANONICAL_MAX_VELOCITY,
         }
     }
 }

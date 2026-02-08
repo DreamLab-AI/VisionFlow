@@ -20,15 +20,27 @@ use crate::actors::messages::*;
 // GPU kernel extern C declarations for connected components
 #[cfg(feature = "gpu")]
 extern "C" {
-    /// Compute connected components using GPU label propagation
-        /// # Parameters
-    /// - edge_row_offsets: CSR row offsets [num_nodes + 1]
-    /// - edge_col_indices: CSR column indices [num_edges]
-    /// - labels: Output node labels [num_nodes] (allocated by caller)
-    /// - num_components: Output number of components (allocated by caller)
-    /// - num_nodes: Total number of nodes
-    /// - max_iterations: Maximum label propagation iterations
-    /// - stream: CUDA stream handle
+    // SAFETY: This FFI declaration must match the C function signature in
+    // gpu_connected_components.cu. The .cu function signature is:
+    //   void compute_connected_components_gpu(
+    //       const int* edge_row_offsets, const int* edge_col_indices,
+    //       int* labels, int* num_components,
+    //       const int num_nodes, const int max_iterations, void* stream)
+    //
+    // NOTE: This .cu file is NOT compiled by build.rs. The function must be
+    // available via a pre-linked library or kernel_bridge FFI. If the symbol
+    // is missing at link time, the gpu feature gate will prevent compilation.
+    //
+    // Caller must ensure:
+    // - `edge_row_offsets` points to a valid device buffer of [num_nodes + 1] i32 values
+    //   in CSR format (monotonically non-decreasing)
+    // - `edge_col_indices` points to a valid device buffer of [num_edges] i32 values
+    //   where num_edges = edge_row_offsets[num_nodes]
+    // - `labels` points to a valid device buffer of [num_nodes] i32 values (output)
+    // - `num_components` points to a valid device allocation for a single i32 (output)
+    // - `num_nodes` > 0 and matches the graph size used to construct the CSR arrays
+    // - `max_iterations` > 0
+    // - `stream` is a valid cudaStream_t handle (may be null for default stream)
     pub fn compute_connected_components_gpu(
         edge_row_offsets: *const i32,
         edge_col_indices: *const i32,

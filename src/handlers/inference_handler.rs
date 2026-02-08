@@ -108,7 +108,7 @@ pub async fn run_inference(
                 error: Some(format!("{:?}", e)),
             };
 
-            ok_json!(response)
+            Ok(HttpResponse::InternalServerError().json(response))
         }
     }
 }
@@ -165,7 +165,7 @@ pub async fn batch_inference(
                 results: None,
             };
 
-            ok_json!(response)
+            Ok(HttpResponse::InternalServerError().json(response))
         }
     }
 }
@@ -182,10 +182,10 @@ pub async fn validate_ontology(
         Ok(validation_result) => ok_json!(validation_result),
         Err(e) => {
             warn!("Validation failed: {:?}", e);
-            ok_json!(serde_json::json!({
+            Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "success": false,
                 "error": format!("{:?}", e)
-            }))
+            })))
         }
     }
 }
@@ -204,10 +204,10 @@ pub async fn get_inference_results(
         Ok(results) => ok_json!(results),
         Err(e) => {
             warn!("Failed to get results: {:?}", e);
-            ok_json!(serde_json::json!({
+            Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "success": false,
                 "error": format!("{:?}", e)
-            }))
+            })))
         }
     }
 }
@@ -225,10 +225,10 @@ pub async fn classify_ontology(
         Ok(classification) => ok_json!(classification),
         Err(e) => {
             warn!("Classification failed: {:?}", e);
-            ok_json!(serde_json::json!({
+            Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "success": false,
                 "error": format!("{:?}", e)
-            }))
+            })))
         }
     }
 }
@@ -246,10 +246,10 @@ pub async fn get_consistency_report(
         Ok(report) => ok_json!(report),
         Err(e) => {
             warn!("Consistency check failed: {:?}", e);
-            ok_json!(serde_json::json!({
+            Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "success": false,
                 "error": format!("{:?}", e)
-            }))
+            })))
         }
     }
 }

@@ -1,5 +1,4 @@
 // Visualization API Handler - Legacy endpoints removed, use /api/settings instead
-use actix_web::web;
 
 // Legacy function kept for backward compatibility but redirects to new settings API
 pub async fn get_visualisation_settings() -> actix_web::HttpResponse {
@@ -8,10 +7,5 @@ pub async fn get_visualisation_settings() -> actix_web::HttpResponse {
         .finish()
 }
 
-pub fn config(cfg: &mut web::ServiceConfig) {
-    
-    
-    cfg.service(
-        web::scope("/visualisation"), 
-    );
-}
+// Empty visualisation scope removed -- no routes registered.
+// Use /api/settings for all settings operations.

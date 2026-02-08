@@ -1,3 +1,7 @@
+// WARNING: This file is not compiled by build.rs. Kernels are accessed via
+// kernel_bridge.rs FFI which expects a pre-linked library. See build.rs for
+// the list of compiled .cu files.
+//
 // Semantic Forces GPU Kernel - Type-aware physics for knowledge graphs
 // Implements DAG layout, type clustering, collision detection, and attribute-weighted springs.
 

@@ -839,9 +839,12 @@ impl SemanticForcesEngine {
     }
 
     fn apply_attribute_spring_forces_cpu(&self, graph: &mut GraphData) {
-        // Simplified CPU implementation
+        // Phase 1: Collect forces into a vec to avoid borrow conflicts.
+        // We cannot mutate two nodes simultaneously while iterating edges,
+        // so we accumulate (node_index, force) pairs first, then apply them.
+        let mut forces: Vec<(usize, [f32; 3])> = Vec::new();
+
         for edge in &graph.edges {
-            // Find source and target nodes
             let src_idx = graph.nodes.iter().position(|n| n.id == edge.source);
             let tgt_idx = graph.nodes.iter().position(|n| n.id == edge.target);
 
@@ -861,12 +864,25 @@ impl SemanticForcesEngine {
                                              self.config.attribute_spring.rest_length_min));
 
                     let displacement = dist - rest_length;
-                    let _force = spring_k * displacement / dist * 0.01;
+                    let force_mag = spring_k * displacement / dist * 0.01;
 
-                    // Would need mutable access to both nodes - skipping for CPU fallback
-                    // Real implementation uses CUDA with atomic operations
+                    let fx = dx / dist * force_mag;
+                    let fy = dy / dist * force_mag;
+                    let fz = dz / dist * force_mag;
+
+                    // Source node gets pulled toward target (positive direction)
+                    forces.push((src_idx, [fx, fy, fz]));
+                    // Target node gets pulled toward source (negative direction)
+                    forces.push((tgt_idx, [-fx, -fy, -fz]));
                 }
             }
+        }
+
+        // Phase 2: Apply collected forces to nodes
+        for (node_idx, force) in forces {
+            graph.nodes[node_idx].data.vx += force[0];
+            graph.nodes[node_idx].data.vy += force[1];
+            graph.nodes[node_idx].data.vz += force[2];
         }
     }
 
