@@ -38,14 +38,23 @@ export const useQuest3Integration = (options: Quest3IntegrationOptions = {}) => 
   });
 
   const [retryCount, setRetryCount] = useState(0);
+  const [isSessionActive, setIsSessionActive] = useState(false);
+  const [sessionType, setSessionType] = useState<string | null>(null);
 
-  
-  const isSessionActive = false;
-  const sessionType = null;
   const startSession = async (mode: string) => {
     logger.info(`Starting session: ${mode} (Three.js XR implementation)`);
-    
-    return true;
+    try {
+      if (navigator.xr) {
+        setIsSessionActive(true);
+        setSessionType(mode);
+        return true;
+      }
+    } catch (err) {
+      logger.error('Failed to start XR session', err);
+      setIsSessionActive(false);
+      setSessionType(null);
+    }
+    return false;
   };
 
   const { setMode } = useApplicationMode();

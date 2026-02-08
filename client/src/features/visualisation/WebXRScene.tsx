@@ -104,9 +104,18 @@ export const WebXRScene: React.FC<WebXRSceneProps> = ({
   const [isVRSupported, setIsVRSupported] = React.useState<boolean | null>(null);
   const [isInVR, setIsInVR] = React.useState(false);
 
+  // Check for ?vr=true URL parameter to force VR mode on Quest 3
+  const forceVR = useMemo(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('vr') === 'true';
+  }, []);
+
   // Check VR support on mount
   useEffect(() => {
-    if (navigator.xr) {
+    if (forceVR) {
+      setIsVRSupported(true);
+      logger.info('VR support forced via ?vr=true URL parameter');
+    } else if (navigator.xr) {
       navigator.xr.isSessionSupported('immersive-vr').then((supported) => {
         setIsVRSupported(supported);
         logger.info(`WebXR VR support: ${supported}`);
@@ -115,7 +124,7 @@ export const WebXRScene: React.FC<WebXRSceneProps> = ({
       setIsVRSupported(false);
       logger.info('WebXR not available');
     }
-  }, []);
+  }, [forceVR]);
 
   // Track VR session state
   useEffect(() => {

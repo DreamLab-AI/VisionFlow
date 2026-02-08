@@ -33,6 +33,14 @@ export class Quest3AutoDetector {
       return this.detectionResult;
     }
 
+    // Check for ?vr=true URL parameter to force Quest 3 mode
+    const forceVR = new URLSearchParams(window.location.search).get('vr') === 'true';
+    if (forceVR) {
+      logger.info('Quest 3 mode forced via ?vr=true URL parameter');
+      this.detectionResult = { isQuest3: true, isQuest3Browser: true, supportsAR: false, shouldAutoStart: true };
+      return this.detectionResult;
+    }
+
     const userAgent = navigator.userAgent || '';
     const platform = usePlatformStore.getState();
 

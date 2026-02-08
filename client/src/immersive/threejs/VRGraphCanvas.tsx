@@ -28,6 +28,12 @@ export function VRGraphCanvas({
 }: VRGraphCanvasProps) {
   const [isVRSupported, setIsVRSupported] = useState<boolean | null>(null);
 
+  // Check for ?vr=true URL parameter to force VR mode on Quest 3
+  const forceVR = useMemo(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('vr') === 'true';
+  }, []);
+
   // Extract agent nodes for VR targeting
   const agentNodes = useMemo(() => {
     if (!graphData?.nodes) return [];
@@ -52,7 +58,7 @@ export function VRGraphCanvas({
 
   return (
     <>
-      {isVRSupported && (
+      {(isVRSupported || forceVR) && (
         <button
           onClick={() => xrStore.enterVR()}
           style={{
