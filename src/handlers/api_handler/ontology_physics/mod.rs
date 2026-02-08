@@ -17,7 +17,8 @@ use serde_json::json;
 use crate::{ok_json, error_json, bad_request, service_unavailable};
 
 use crate::actors::messages::{
-    ApplyOntologyConstraints, ConstraintMergeMode, GetOntologyConstraintStats,
+    AdjustConstraintWeights, ApplyOntologyConstraints, ConstraintMergeMode,
+    GetOntologyConstraintStats,
 };
 use crate::models::constraints::ConstraintSet;
 use crate::AppState;
@@ -326,22 +327,40 @@ pub async fn get_constraints(state: web::Data<AppState>) -> impl Responder {
 /// ```
 pub async fn adjust_weights(
     _auth: crate::settings::auth_extractor::AuthenticatedUser,
-    _state: web::Data<AppState>,
+    state: web::Data<AppState>,
     req: web::Json<AdjustWeightsRequest>,
 ) -> Result<impl Responder, actix_web::Error> {
     info!("PUT /api/ontology-physics/weights");
 
     check_ontology_feature().await?;
 
-    let _global_strength = req.global_strength.unwrap_or(1.0).clamp(0.0, 1.0);
+    let global_strength = req.global_strength.unwrap_or(1.0).clamp(0.0, 1.0);
 
-    // No actor message type exists for weight adjustment.
-    warn!("Weight adjustment not yet implemented - no actor message defined");
+    let Some(ref gpu_manager_addr) = state.gpu_manager_addr else {
+        return Ok(HttpResponse::ServiceUnavailable().json(json!({
+            "error": "GPU manager not available"
+        })));
+    };
 
-    Ok(HttpResponse::NotImplemented().json(json!({
-        "error": "Weight adjustment not yet implemented",
-        "message": "No AdjustConstraintWeights message type exists. Constraint weights cannot be modified at runtime yet."
-    })))
+    match gpu_manager_addr.send(AdjustConstraintWeights { global_strength }).await {
+        Ok(Ok(result)) => {
+            Ok(HttpResponse::Ok().json(result))
+        }
+        Ok(Err(e)) => {
+            error!("Failed to adjust constraint weights: {}", e);
+            Ok(HttpResponse::InternalServerError().json(json!({
+                "error": "Weight adjustment failed",
+                "details": e
+            })))
+        }
+        Err(e) => {
+            error!("GPU Manager mailbox error: {}", e);
+            Ok(HttpResponse::InternalServerError().json(json!({
+                "error": "Actor communication failed",
+                "details": e.to_string()
+            })))
+        }
+    }
 }
 
 /// POST /api/ontology-physics/disable - Disable ontology forces

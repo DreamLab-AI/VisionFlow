@@ -1656,6 +1656,25 @@ pub struct GetHierarchyLevels;
 #[rtype(result = "Result<(), String>")]
 pub struct RecalculateHierarchy;
 
+#[derive(Message, Debug, Clone, Serialize, Deserialize)]
+#[rtype(result = "Result<serde_json::Value, String>")]
+pub struct AdjustConstraintWeights {
+    pub global_strength: f32,
+}
+
+// =============================================================================
+// Dynamic Relationship Buffer Reload (Hot-Reload)
+// =============================================================================
+
+/// Reload the dynamic relationship buffer on the GPU from the semantic type registry
+/// Sent to SemanticForcesActor after registry updates to sync GPU constant memory
+#[derive(Message, Debug, Clone)]
+#[rtype(result = "Result<(), String>")]
+pub struct ReloadRelationshipBuffer {
+    pub buffer: Vec<crate::actors::gpu::semantic_forces_actor::DynamicForceConfigGPU>,
+    pub version: u64,
+}
+
 // =============================================================================
 // Broadcast Optimization Messages (Phase 7)
 // =============================================================================
@@ -1722,6 +1741,19 @@ pub struct PositionBroadcastAck {
 #[rtype(result = "()")]
 pub struct SetGpuComputeAddress {
     pub addr: actix::Addr<crate::actors::gpu::force_compute_actor::ForceComputeActor>,
+}
+
+// =============================================================================
+// Connected Components Edge Update Message
+// =============================================================================
+
+/// Update the cached edge list used by ConnectedComponentsActor for label propagation.
+/// Send this whenever graph edges change so connected-component queries use real data.
+#[derive(Message, Debug, Clone)]
+#[rtype(result = "()")]
+pub struct UpdateComponentEdges {
+    /// Edge list as (source_node_id, target_node_id) pairs
+    pub edges: Vec<(u32, u32)>,
 }
 
 /// Client-originated broadcast acknowledgement for true end-to-end flow control

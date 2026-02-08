@@ -17,7 +17,8 @@ use std::time::{Duration, Instant};
 use super::supervisor_messages::*;
 use super::shared::SharedGPUContext;
 use super::{
-    ConstraintActor, ForceComputeActor, OntologyConstraintActor, StressMajorizationActor,
+    ConstraintActor, ForceComputeActor, OntologyConstraintActor, SemanticForcesActor,
+    StressMajorizationActor,
 };
 use crate::actors::messages::*;
 
@@ -76,12 +77,14 @@ pub struct PhysicsSupervisor {
     stress_majorization_actor: Option<Addr<StressMajorizationActor>>,
     constraint_actor: Option<Addr<ConstraintActor>>,
     ontology_constraint_actor: Option<Addr<OntologyConstraintActor>>,
+    semantic_forces_actor: Option<Addr<SemanticForcesActor>>,
 
     /// Actor states for supervision
     force_compute_state: SupervisedActorState,
     stress_majorization_state: SupervisedActorState,
     constraint_state: SupervisedActorState,
     ontology_constraint_state: SupervisedActorState,
+    semantic_forces_state: SupervisedActorState,
 
     /// Supervision policy
     policy: SupervisionPolicy,
@@ -105,10 +108,12 @@ impl PhysicsSupervisor {
             stress_majorization_actor: None,
             constraint_actor: None,
             ontology_constraint_actor: None,
+            semantic_forces_actor: None,
             force_compute_state: SupervisedActorState::new("ForceComputeActor"),
             stress_majorization_state: SupervisedActorState::new("StressMajorizationActor"),
             constraint_state: SupervisedActorState::new("ConstraintActor"),
             ontology_constraint_state: SupervisedActorState::new("OntologyConstraintActor"),
+            semantic_forces_state: SupervisedActorState::new("SemanticForcesActor"),
             policy: SupervisionPolicy::critical(), // Physics is critical
             last_success: None,
             restart_count: 0,
@@ -146,6 +151,12 @@ impl PhysicsSupervisor {
         self.ontology_constraint_actor = Some(ontology_constraint_actor);
         self.ontology_constraint_state.is_running = true;
         debug!("PhysicsSupervisor: OntologyConstraintActor spawned");
+
+        // Spawn SemanticForcesActor
+        let semantic_forces_actor = SemanticForcesActor::new().start();
+        self.semantic_forces_actor = Some(semantic_forces_actor);
+        self.semantic_forces_state.is_running = true;
+        debug!("PhysicsSupervisor: SemanticForcesActor spawned");
 
         // Wire ForceComputeActor address to OntologyConstraintActor for constraint synchronization
         if let (Some(ref force_addr), Some(ref onto_addr)) = (&self.force_compute_actor, &self.ontology_constraint_actor) {
@@ -237,6 +248,23 @@ impl PhysicsSupervisor {
                 }
             }
         }
+
+        // Send context to SemanticForcesActor
+        if let Some(ref addr) = self.semantic_forces_actor {
+            match addr.try_send(SetSharedGPUContext {
+                context: context.clone(),
+                graph_service_addr: graph_service_addr.clone(),
+                correlation_id: None,
+            }) {
+                Ok(_) => {
+                    self.semantic_forces_state.has_context = true;
+                    info!("PhysicsSupervisor: Context sent to SemanticForcesActor");
+                }
+                Err(e) => {
+                    self.handle_actor_failure("SemanticForcesActor", &e.to_string(), ctx);
+                }
+            }
+        }
     }
 
     /// Handle actor failure with supervision policy
@@ -248,6 +276,7 @@ impl PhysicsSupervisor {
             "StressMajorizationActor" => &mut self.stress_majorization_state,
             "ConstraintActor" => &mut self.constraint_state,
             "OntologyConstraintActor" => &mut self.ontology_constraint_state,
+            "SemanticForcesActor" => &mut self.semantic_forces_state,
             _ => {
                 warn!("PhysicsSupervisor: Unknown actor: {}", actor_name);
                 return;
@@ -325,6 +354,12 @@ impl PhysicsSupervisor {
                 self.ontology_constraint_state.is_running = true;
                 self.ontology_constraint_state.last_restart = Some(Instant::now());
             }
+            "SemanticForcesActor" => {
+                let semantic_forces_actor = SemanticForcesActor::new().start();
+                self.semantic_forces_actor = Some(semantic_forces_actor);
+                self.semantic_forces_state.is_running = true;
+                self.semantic_forces_state.last_restart = Some(Instant::now());
+            }
             _ => {
                 warn!("PhysicsSupervisor: Unknown actor for restart: {}", actor_name);
                 return;
@@ -344,6 +379,7 @@ impl PhysicsSupervisor {
             &self.stress_majorization_state,
             &self.constraint_state,
             &self.ontology_constraint_state,
+            &self.semantic_forces_state,
         ];
 
         let running_count = states.iter().filter(|s| s.is_running).count();
@@ -387,6 +423,7 @@ impl Handler<GetSubsystemHealth> for PhysicsSupervisor {
             self.stress_majorization_state.to_health_state(),
             self.constraint_state.to_health_state(),
             self.ontology_constraint_state.to_health_state(),
+            self.semantic_forces_state.to_health_state(),
         ];
 
         let healthy = actor_states.iter().filter(|s| s.is_running && s.has_context).count() as u32;
@@ -395,7 +432,7 @@ impl Handler<GetSubsystemHealth> for PhysicsSupervisor {
             subsystem_name: "physics".to_string(),
             status: self.calculate_status(),
             healthy_actors: healthy,
-            total_actors: 4,
+            total_actors: 5,
             actor_states,
             last_success_ms: self.last_success.map(|t| t.elapsed().as_millis() as u64),
             restart_count: self.restart_count,
@@ -709,6 +746,106 @@ impl Handler<GetOntologyConstraintStats> for PhysicsSupervisor {
     type Result = ResponseActFuture<Self, Result<OntologyConstraintStats, String>>;
 
     fn handle(&mut self, msg: GetOntologyConstraintStats, _ctx: &mut Self::Context) -> Self::Result {
+        let addr = match &self.ontology_constraint_actor {
+            Some(a) if self.ontology_constraint_state.is_running => a.clone(),
+            _ => {
+                return Box::pin(
+                    async { Err("OntologyConstraintActor not available".to_string()) }
+                        .into_actor(self)
+                );
+            }
+        };
+
+        Box::pin(
+            async move {
+                addr.send(msg).await
+                    .map_err(|e| format!("Communication failed: {}", e))?
+            }
+            .into_actor(self)
+        )
+    }
+}
+
+// ============================================================================
+// Semantic Forces Forwarding Handlers
+// ============================================================================
+
+impl Handler<GetSemanticConfig> for PhysicsSupervisor {
+    type Result = ResponseActFuture<Self, Result<crate::actors::gpu::semantic_forces_actor::SemanticConfig, String>>;
+
+    fn handle(&mut self, msg: GetSemanticConfig, _ctx: &mut Self::Context) -> Self::Result {
+        let addr = match &self.semantic_forces_actor {
+            Some(a) if self.semantic_forces_state.is_running => a.clone(),
+            _ => {
+                return Box::pin(
+                    async { Err("SemanticForcesActor not available".to_string()) }
+                        .into_actor(self)
+                );
+            }
+        };
+
+        Box::pin(
+            async move {
+                addr.send(msg).await
+                    .map_err(|e| format!("Communication failed: {}", e))?
+            }
+            .into_actor(self)
+        )
+    }
+}
+
+impl Handler<GetHierarchyLevels> for PhysicsSupervisor {
+    type Result = ResponseActFuture<Self, Result<crate::actors::gpu::semantic_forces_actor::HierarchyLevels, String>>;
+
+    fn handle(&mut self, msg: GetHierarchyLevels, _ctx: &mut Self::Context) -> Self::Result {
+        let addr = match &self.semantic_forces_actor {
+            Some(a) if self.semantic_forces_state.is_running => a.clone(),
+            _ => {
+                return Box::pin(
+                    async { Err("SemanticForcesActor not available".to_string()) }
+                        .into_actor(self)
+                );
+            }
+        };
+
+        Box::pin(
+            async move {
+                addr.send(msg).await
+                    .map_err(|e| format!("Communication failed: {}", e))?
+            }
+            .into_actor(self)
+        )
+    }
+}
+
+impl Handler<RecalculateHierarchy> for PhysicsSupervisor {
+    type Result = ResponseActFuture<Self, Result<(), String>>;
+
+    fn handle(&mut self, msg: RecalculateHierarchy, _ctx: &mut Self::Context) -> Self::Result {
+        let addr = match &self.semantic_forces_actor {
+            Some(a) if self.semantic_forces_state.is_running => a.clone(),
+            _ => {
+                return Box::pin(
+                    async { Err("SemanticForcesActor not available".to_string()) }
+                        .into_actor(self)
+                );
+            }
+        };
+
+        Box::pin(
+            async move {
+                addr.send(msg).await
+                    .map_err(|e| format!("Communication failed: {}", e))?
+            }
+            .into_actor(self)
+        )
+    }
+}
+
+impl Handler<AdjustConstraintWeights> for PhysicsSupervisor {
+    type Result = ResponseActFuture<Self, Result<serde_json::Value, String>>;
+
+    fn handle(&mut self, msg: AdjustConstraintWeights, _ctx: &mut Self::Context) -> Self::Result {
         let addr = match &self.ontology_constraint_actor {
             Some(a) if self.ontology_constraint_state.is_running => a.clone(),
             _ => {

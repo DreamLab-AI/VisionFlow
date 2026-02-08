@@ -539,7 +539,7 @@ impl Handler<InitializeGPU> for OntologyConstraintActor {
     fn handle(&mut self, msg: InitializeGPU, _ctx: &mut Self::Context) -> Self::Result {
         info!("OntologyConstraintActor: InitializeGPU received");
 
-        
+
         self.gpu_state.num_nodes = msg.graph.nodes.len() as u32;
         self.gpu_state.num_edges = msg.graph.edges.len() as u32;
 
@@ -549,6 +549,56 @@ impl Handler<InitializeGPU> for OntologyConstraintActor {
         );
 
         Ok(())
+    }
+}
+
+impl Handler<AdjustConstraintWeights> for OntologyConstraintActor {
+    type Result = Result<serde_json::Value, String>;
+
+    fn handle(&mut self, msg: AdjustConstraintWeights, _ctx: &mut Self::Context) -> Self::Result {
+        let global_strength = msg.global_strength.clamp(0.0, 1.0);
+        info!(
+            "OntologyConstraintActor: Adjusting constraint weights with global_strength={:.3}",
+            global_strength
+        );
+
+        let mut adjusted_count = 0u32;
+        for constraint in &mut self.ontology_constraints {
+            constraint.weight *= global_strength;
+            adjusted_count += 1;
+        }
+
+        // Rebuild constraint buffer with adjusted weights
+        self.constraint_buffer = self
+            .ontology_constraints
+            .iter()
+            .filter(|c| c.active)
+            .map(|c| ConstraintData::from_constraint(c))
+            .collect();
+
+        // Re-upload to GPU if initialized
+        if self.gpu_initialized && self.shared_context.is_some() {
+            if let Err(e) = self.upload_constraints_to_gpu() {
+                warn!("OntologyConstraintActor: GPU re-upload after weight adjustment failed: {}", e);
+                self.stats.gpu_failure_count += 1;
+            }
+        }
+
+        // Notify ForceComputeActor about the updated buffer
+        self.notify_force_compute_actor();
+
+        self.stats.active_ontology_constraints = self
+            .ontology_constraints
+            .iter()
+            .filter(|c| c.active)
+            .count() as u32;
+
+        Ok(serde_json::json!({
+            "success": true,
+            "appliedStrength": global_strength,
+            "adjustedConstraints": adjusted_count,
+            "activeConstraints": self.stats.active_ontology_constraints
+        }))
     }
 }
 

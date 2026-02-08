@@ -3,7 +3,7 @@
 
 #![allow(dead_code)]
 use actix::prelude::*;
-use log::{info, warn};
+use log::{error, info, warn};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
@@ -13,6 +13,7 @@ use super::shared::{GPUState, SharedGPUContext};
 pub use crate::actors::messages::{
     ConfigureCollision, ConfigureDAG, ConfigureTypeClustering,
     GetHierarchyLevels, GetSemanticConfig, RecalculateHierarchy,
+    ReloadRelationshipBuffer, SetSharedGPUContext,
 };
 
 // =============================================================================
@@ -726,5 +727,161 @@ impl Actor for SemanticForcesActor {
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
         info!("SemanticForcesActor stopped");
+    }
+}
+
+// =============================================================================
+// Message Handlers
+// =============================================================================
+
+impl Handler<ConfigureDAG> for SemanticForcesActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: ConfigureDAG, _ctx: &mut Self::Context) -> Self::Result {
+        if let Some(v) = msg.vertical_spacing {
+            self.config.dag.vertical_spacing = v;
+        }
+        if let Some(h) = msg.horizontal_spacing {
+            self.config.dag.horizontal_spacing = h;
+        }
+        if let Some(a) = msg.level_attraction {
+            self.config.dag.level_attraction = a;
+        }
+        if let Some(r) = msg.sibling_repulsion {
+            self.config.dag.sibling_repulsion = r;
+        }
+        if let Some(e) = msg.enabled {
+            self.config.dag.enabled = e;
+        }
+        info!("SemanticForcesActor: DAG config updated, enabled={}", self.config.dag.enabled);
+        Ok(())
+    }
+}
+
+impl Handler<ConfigureTypeClustering> for SemanticForcesActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: ConfigureTypeClustering, _ctx: &mut Self::Context) -> Self::Result {
+        if let Some(a) = msg.cluster_attraction {
+            self.config.type_cluster.cluster_attraction = a;
+        }
+        if let Some(r) = msg.cluster_radius {
+            self.config.type_cluster.cluster_radius = r;
+        }
+        if let Some(i) = msg.inter_cluster_repulsion {
+            self.config.type_cluster.inter_cluster_repulsion = i;
+        }
+        if let Some(e) = msg.enabled {
+            self.config.type_cluster.enabled = e;
+        }
+        info!("SemanticForcesActor: Type clustering config updated, enabled={}", self.config.type_cluster.enabled);
+        Ok(())
+    }
+}
+
+impl Handler<ConfigureCollision> for SemanticForcesActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: ConfigureCollision, _ctx: &mut Self::Context) -> Self::Result {
+        if let Some(d) = msg.min_distance {
+            self.config.collision.min_distance = d;
+        }
+        if let Some(s) = msg.collision_strength {
+            self.config.collision.collision_strength = s;
+        }
+        if let Some(r) = msg.node_radius {
+            self.config.collision.node_radius = r;
+        }
+        if let Some(e) = msg.enabled {
+            self.config.collision.enabled = e;
+        }
+        info!("SemanticForcesActor: Collision config updated, enabled={}", self.config.collision.enabled);
+        Ok(())
+    }
+}
+
+impl Handler<GetSemanticConfig> for SemanticForcesActor {
+    type Result = Result<SemanticConfig, String>;
+
+    fn handle(&mut self, _msg: GetSemanticConfig, _ctx: &mut Self::Context) -> Self::Result {
+        Ok(self.config.clone())
+    }
+}
+
+impl Handler<GetHierarchyLevels> for SemanticForcesActor {
+    type Result = Result<HierarchyLevels, String>;
+
+    fn handle(&mut self, _msg: GetHierarchyLevels, _ctx: &mut Self::Context) -> Self::Result {
+        self.hierarchy_levels
+            .clone()
+            .ok_or_else(|| "Hierarchy levels not yet calculated".to_string())
+    }
+}
+
+impl Handler<RecalculateHierarchy> for SemanticForcesActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, _msg: RecalculateHierarchy, _ctx: &mut Self::Context) -> Self::Result {
+        let num_nodes = self.node_types.len();
+        let num_edges = self.edge_sources.len();
+        if num_nodes == 0 {
+            return Err("No nodes loaded".to_string());
+        }
+        let levels = self.calculate_hierarchy_levels(num_nodes, num_edges)?;
+        self.hierarchy_levels = Some(levels);
+        Ok(())
+    }
+}
+
+impl Handler<SetSharedGPUContext> for SemanticForcesActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: SetSharedGPUContext, _ctx: &mut Self::Context) -> Self::Result {
+        info!("SemanticForcesActor: Received SharedGPUContext");
+        self.shared_context = Some(msg.context);
+        Ok(())
+    }
+}
+
+impl Handler<ReloadRelationshipBuffer> for SemanticForcesActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: ReloadRelationshipBuffer, _ctx: &mut Self::Context) -> Self::Result {
+        let num_types = msg.buffer.len();
+        info!(
+            "SemanticForcesActor: Reloading dynamic relationship buffer ({} types, version {})",
+            num_types, msg.version
+        );
+
+        if msg.buffer.is_empty() {
+            warn!("SemanticForcesActor: Empty buffer, disabling dynamic relationships");
+            unsafe {
+                set_dynamic_relationships_enabled(false);
+            }
+            return Ok(());
+        }
+
+        let result = unsafe {
+            set_dynamic_relationship_buffer(
+                msg.buffer.as_ptr(),
+                num_types as i32,
+                true,
+            )
+        };
+
+        if result == 0 {
+            info!(
+                "SemanticForcesActor: Dynamic relationship buffer uploaded to GPU ({} types, version {})",
+                num_types, msg.version
+            );
+            Ok(())
+        } else {
+            let err = format!(
+                "GPU FFI set_dynamic_relationship_buffer returned error code {}",
+                result
+            );
+            error!("SemanticForcesActor: {}", err);
+            Err(err)
+        }
     }
 }

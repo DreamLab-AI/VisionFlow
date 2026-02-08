@@ -15,6 +15,7 @@ use serde_json::json;
 
 use crate::actors::gpu::semantic_forces_actor::{
     DAGConfig, DAGLayoutMode, TypeClusterConfig, CollisionConfig,
+    GetHierarchyLevels, GetSemanticConfig, RecalculateHierarchy,
 };
 use crate::services::semantic_type_registry::{
     SEMANTIC_TYPE_REGISTRY, RelationshipForceConfig,
@@ -227,8 +228,7 @@ pub async fn configure_collision(
 pub async fn get_hierarchy_levels(state: web::Data<AppState>) -> impl Responder {
     info!("Hierarchy levels request received");
 
-    // Get GPU manager actor
-    let _gpu_manager = match state.gpu_manager_addr.as_ref() {
+    let gpu_manager = match state.gpu_manager_addr.as_ref() {
         Some(manager) => manager,
         None => {
             error!("GPU manager not available");
@@ -236,11 +236,30 @@ pub async fn get_hierarchy_levels(state: web::Data<AppState>) -> impl Responder 
         }
     };
 
-    // GetHierarchyLevels has no Handler impl on any actor yet.
-    Ok(HttpResponse::NotImplemented().json(json!({
-        "error": "Hierarchy level retrieval not yet implemented",
-        "message": "SemanticForcesActor does not yet handle GetHierarchyLevels messages"
-    })))
+    match gpu_manager.send(GetHierarchyLevels).await {
+        Ok(Ok(levels)) => {
+            ok_json!(json!({
+                "status": "success",
+                "maxLevel": levels.max_level,
+                "nodeLevels": levels.node_levels,
+                "levelCounts": levels.level_counts
+            }))
+        }
+        Ok(Err(e)) => {
+            error!("Failed to get hierarchy levels: {}", e);
+            error_json!(json!({
+                "error": "Hierarchy level retrieval failed",
+                "details": e
+            }))
+        }
+        Err(e) => {
+            error!("GPU Manager mailbox error: {}", e);
+            error_json!(json!({
+                "error": "Actor communication failed",
+                "details": e.to_string()
+            }))
+        }
+    }
 }
 
 /// Get current semantic forces configuration
@@ -248,8 +267,7 @@ pub async fn get_hierarchy_levels(state: web::Data<AppState>) -> impl Responder 
 pub async fn get_semantic_config(state: web::Data<AppState>) -> impl Responder {
     info!("Semantic forces config request received");
 
-    // Get GPU manager actor
-    let _gpu_manager = match state.gpu_manager_addr.as_ref() {
+    let gpu_manager = match state.gpu_manager_addr.as_ref() {
         Some(manager) => manager,
         None => {
             error!("GPU manager not available");
@@ -257,11 +275,28 @@ pub async fn get_semantic_config(state: web::Data<AppState>) -> impl Responder {
         }
     };
 
-    // GetSemanticConfig has no Handler impl on any actor yet.
-    Ok(HttpResponse::NotImplemented().json(json!({
-        "error": "Semantic config retrieval not yet implemented",
-        "message": "SemanticForcesActor does not yet handle GetSemanticConfig messages"
-    })))
+    match gpu_manager.send(GetSemanticConfig).await {
+        Ok(Ok(config)) => {
+            ok_json!(json!({
+                "status": "success",
+                "config": config
+            }))
+        }
+        Ok(Err(e)) => {
+            error!("Failed to get semantic config: {}", e);
+            error_json!(json!({
+                "error": "Semantic config retrieval failed",
+                "details": e
+            }))
+        }
+        Err(e) => {
+            error!("GPU Manager mailbox error: {}", e);
+            error_json!(json!({
+                "error": "Actor communication failed",
+                "details": e.to_string()
+            }))
+        }
+    }
 }
 
 /// Recalculate hierarchy levels (useful after graph structure changes)
@@ -272,8 +307,7 @@ pub async fn recalculate_hierarchy(
 ) -> impl Responder {
     info!("Hierarchy recalculation request received");
 
-    // Get GPU manager actor
-    let _gpu_manager = match state.gpu_manager_addr.as_ref() {
+    let gpu_manager = match state.gpu_manager_addr.as_ref() {
         Some(manager) => manager,
         None => {
             error!("GPU manager not available");
@@ -281,11 +315,28 @@ pub async fn recalculate_hierarchy(
         }
     };
 
-    // RecalculateHierarchy has no Handler impl on any actor yet.
-    Ok(HttpResponse::NotImplemented().json(json!({
-        "error": "Hierarchy recalculation not yet implemented",
-        "message": "SemanticForcesActor does not yet handle RecalculateHierarchy messages"
-    })))
+    match gpu_manager.send(RecalculateHierarchy).await {
+        Ok(Ok(())) => {
+            ok_json!(json!({
+                "status": "success",
+                "message": "Hierarchy levels recalculated"
+            }))
+        }
+        Ok(Err(e)) => {
+            error!("Failed to recalculate hierarchy: {}", e);
+            error_json!(json!({
+                "error": "Hierarchy recalculation failed",
+                "details": e
+            }))
+        }
+        Err(e) => {
+            error!("GPU Manager mailbox error: {}", e);
+            error_json!(json!({
+                "error": "Actor communication failed",
+                "details": e.to_string()
+            }))
+        }
+    }
 }
 
 // =============================================================================
@@ -492,26 +543,32 @@ pub async fn reload_relationship_buffer(
 ) -> HttpResponse {
     info!("Triggering GPU relationship buffer reload");
 
-    // Build GPU buffer from registry
-    let buffer = SEMANTIC_TYPE_REGISTRY.build_gpu_buffer();
-    let count = buffer.len();
     let version = SEMANTIC_TYPE_REGISTRY.version();
 
-    // TODO: Send reload message to GPU manager actor
-    // For now, we just acknowledge the reload request
-    // The actual GPU upload happens via:
-    // 1. SemanticForcesActor receives ReloadRelationshipBuffer message
-    // 2. DynamicRelationshipBufferManager.upload_from_registry() is called
-    // 3. GPU constant memory is updated with new configurations
-
-    info!("Relationship buffer reload triggered: {} types, version {}", count, version);
-
-    HttpResponse::Ok().json(serde_json::json!({
-        "status": "success",
-        "message": "GPU buffer reload triggered",
-        "count": count,
-        "version": version,
-    }))
+    // Use DynamicRelationshipBufferManager to upload registry to GPU via FFI.
+    // SemanticForcesActor is not yet routed through the supervisor hierarchy,
+    // so we call through the buffer manager directly.
+    let mut buffer_manager = crate::gpu::semantic_forces::DynamicRelationshipBufferManager::new();
+    match buffer_manager.upload_from_registry(&*SEMANTIC_TYPE_REGISTRY) {
+        Ok(()) => {
+            let count = SEMANTIC_TYPE_REGISTRY.len();
+            info!("Relationship buffer reloaded to GPU: {} types, version {}", count, version);
+            HttpResponse::Ok().json(serde_json::json!({
+                "status": "success",
+                "message": "GPU buffer reloaded",
+                "count": count,
+                "version": version,
+            }))
+        }
+        Err(e) => {
+            error!("GPU buffer upload failed: {}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({
+                "status": "error",
+                "message": format!("GPU buffer upload failed: {}", e),
+                "version": version,
+            }))
+        }
+    }
 }
 
 /// Configure routes for semantic forces API

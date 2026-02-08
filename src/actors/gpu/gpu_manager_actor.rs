@@ -654,3 +654,84 @@ impl Handler<GetPhysicsStats> for GPUManagerActor {
         )
     }
 }
+
+// ============================================================================
+// Semantic Forces - routes to PhysicsSupervisor -> SemanticForcesActor
+// ============================================================================
+
+impl Handler<GetSemanticConfig> for GPUManagerActor {
+    type Result = ResponseActFuture<Self, Result<crate::actors::gpu::semantic_forces_actor::SemanticConfig, String>>;
+
+    fn handle(&mut self, msg: GetSemanticConfig, ctx: &mut Self::Context) -> Self::Result {
+        let supervisors = match self.get_supervisors(ctx) {
+            Ok(s) => s.clone(),
+            Err(e) => return Box::pin(async move { Err(e) }.into_actor(self)),
+        };
+
+        Box::pin(
+            async move {
+                supervisors.physics.send(msg).await
+                    .map_err(|e| format!("PhysicsSupervisor communication failed: {}", e))?
+            }
+            .into_actor(self)
+        )
+    }
+}
+
+impl Handler<GetHierarchyLevels> for GPUManagerActor {
+    type Result = ResponseActFuture<Self, Result<crate::actors::gpu::semantic_forces_actor::HierarchyLevels, String>>;
+
+    fn handle(&mut self, msg: GetHierarchyLevels, ctx: &mut Self::Context) -> Self::Result {
+        let supervisors = match self.get_supervisors(ctx) {
+            Ok(s) => s.clone(),
+            Err(e) => return Box::pin(async move { Err(e) }.into_actor(self)),
+        };
+
+        Box::pin(
+            async move {
+                supervisors.physics.send(msg).await
+                    .map_err(|e| format!("PhysicsSupervisor communication failed: {}", e))?
+            }
+            .into_actor(self)
+        )
+    }
+}
+
+impl Handler<RecalculateHierarchy> for GPUManagerActor {
+    type Result = ResponseActFuture<Self, Result<(), String>>;
+
+    fn handle(&mut self, msg: RecalculateHierarchy, ctx: &mut Self::Context) -> Self::Result {
+        let supervisors = match self.get_supervisors(ctx) {
+            Ok(s) => s.clone(),
+            Err(e) => return Box::pin(async move { Err(e) }.into_actor(self)),
+        };
+
+        Box::pin(
+            async move {
+                supervisors.physics.send(msg).await
+                    .map_err(|e| format!("PhysicsSupervisor communication failed: {}", e))?
+            }
+            .into_actor(self)
+        )
+    }
+}
+
+/// Adjust constraint weights - routes to PhysicsSupervisor -> OntologyConstraintActor
+impl Handler<AdjustConstraintWeights> for GPUManagerActor {
+    type Result = ResponseActFuture<Self, Result<serde_json::Value, String>>;
+
+    fn handle(&mut self, msg: AdjustConstraintWeights, ctx: &mut Self::Context) -> Self::Result {
+        let supervisors = match self.get_supervisors(ctx) {
+            Ok(s) => s.clone(),
+            Err(e) => return Box::pin(async move { Err(e) }.into_actor(self)),
+        };
+
+        Box::pin(
+            async move {
+                supervisors.physics.send(msg).await
+                    .map_err(|e| format!("PhysicsSupervisor communication failed: {}", e))?
+            }
+            .into_actor(self)
+        )
+    }
+}
