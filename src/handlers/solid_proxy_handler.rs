@@ -129,7 +129,10 @@ impl SolidProxyState {
             http_client: Client::builder()
                 .timeout(std::time::Duration::from_secs(30))
                 .build()
-                .expect("Failed to create HTTP client"),
+                .unwrap_or_else(|e| {
+                    error!("Failed to create HTTP client with custom config: {e}, falling back to default");
+                    Client::new()
+                }),
             server_keys,
             allow_anonymous,
         }
