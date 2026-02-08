@@ -5,8 +5,8 @@
 
 # Rust
 target/
-Cargo.lock
 **/*.rs.bk
+# NOTE: Cargo.lock is NOT excluded — required for reproducible dependency caching
 
 # Node.js
 node_modules/
@@ -39,7 +39,11 @@ logs/
 qdrant_data/
 
 # Large directories that shouldn't be in build context
-multi-agent-docker/comfyui/
-multi-agent-docker/node_modules/
+multi-agent-docker/
 screenshots/
 output/
+docs/
+examples/*.md
+JavaScriptSolidServer/
+*.md
+!client/**/*.md

@@ -1,12 +1,18 @@
 # syntax=docker/dockerfile:1.7
 
+# =============================================================================
 # Production Dockerfile - Multi-stage build (CachyOS)
-FROM cachyos/cachyos-v3:latest AS builder
+# Optimized layer ordering: toolchain → deps → CUDA PTX → source
+# Code-only changes skip dependency download and PTX compilation entirely.
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# Stage 1: Toolchain — cached until base image or tool versions change
+# ---------------------------------------------------------------------------
+FROM cachyos/cachyos-v3:latest AS toolchain
 
 ARG CUDA_ARCH=86
-ARG REBUILD_PTX=false
 
-# CUDA_ARCH promoted from ARG to ENV so cargo/nvcc can read it during build
 ENV RUST_LOG=warn \
     PATH="/root/.cargo/bin:/opt/cuda/bin:${PATH}" \
     CUDA_HOME=/opt/cuda \
@@ -45,34 +51,101 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --de
 RUN curl -fsSL https://nodejs.org/dist/v20.18.3/node-v20.18.3-linux-x64.tar.xz | \
     tar -xJ -C /usr/local --strip-components=1
 
+# ---------------------------------------------------------------------------
+# Stage 2: Dependency pre-compilation — cached until Cargo.toml/lock change
+# ---------------------------------------------------------------------------
+FROM toolchain AS deps
+
 WORKDIR /app
 
-# Copy all source code first
-COPY Cargo.toml build.rs ./
+# Copy ONLY dependency manifests + path dependency (whelk-rs)
+COPY Cargo.toml Cargo.lock ./
 COPY whelk-rs ./whelk-rs
-COPY src ./src
-COPY schema ./schema
-COPY client ./client
 
-# Download dependencies with full context
+# Create stub sources so cargo can resolve and compile all dependencies.
+# The dummy lib/main must reference whelk so the path dep compiles too.
+RUN mkdir -p src/bin && \
+    echo 'fn main() {}' > src/main.rs && \
+    echo 'pub use whelk;' > src/lib.rs && \
+    echo 'fn main() {}' > src/bin/generate_types.rs && \
+    echo 'fn main() {}' > src/bin/sync_local.rs && \
+    echo 'fn main() {}' > src/bin/sync_github.rs && \
+    echo 'fn main() {}' > src/bin/load_ontology.rs && \
+    echo 'fn main() {}' > src/bin/test_tcp_connection_fixed.rs && \
+    mkdir -p examples && \
+    echo 'fn main() {}' > examples/constraint_integration_debug.rs && \
+    echo 'fn main() {}' > examples/metadata_debug.rs && \
+    echo 'fn main() {}' > examples/ontology_constraints_example.rs && \
+    echo 'fn main() {}' > examples/ontology_validation_example.rs
+
+# Pre-build all 200+ dependencies in release mode (cached until Cargo.toml changes)
+# Using a stub build.rs that skips CUDA to avoid needing .cu files at this stage
+RUN echo 'fn main() { println!("cargo:warning=Stub build - deps only"); }' > build.rs
 RUN --mount=type=cache,target=/root/.cargo/registry \
     --mount=type=cache,target=/root/.cargo/git \
-    cargo fetch
+    --mount=type=cache,id=cargo-target,target=/app/target \
+    cargo build --release 2>&1 || true && \
+    cargo build --release --lib 2>&1 || true
 
-# Set DOCKER_BUILD to skip preinstall security check (test packages not executed in production)
+# ---------------------------------------------------------------------------
+# Stage 3: CUDA PTX compilation — cached until .cu files change
+# ---------------------------------------------------------------------------
+FROM toolchain AS cuda-ptx
+
+ARG CUDA_ARCH=86
+
+WORKDIR /app
+
+# Copy ONLY CUDA source files — PTX layer rebuilds only when .cu files change
+COPY src/utils/*.cu src/utils/
+
+RUN mkdir -p /app/ptx && \
+    for cu_file in src/utils/*.cu; do \
+        name=$(basename "$cu_file" .cu); \
+        echo "Compiling $name.ptx..."; \
+        nvcc -ptx -arch sm_${CUDA_ARCH} -o /app/ptx/${name}.ptx "$cu_file" --use_fast_math -O3; \
+    done && \
+    echo "All PTX compilation complete"
+
+# ---------------------------------------------------------------------------
+# Stage 4: Frontend build — cached until client/ files change
+# ---------------------------------------------------------------------------
+FROM toolchain AS frontend
+
+WORKDIR /app/client
 ENV DOCKER_BUILD=1
 
+# Copy package manifests first for npm ci caching
+COPY client/package.json client/package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm \
-    cd client && npm ci
+    npm ci
 
-# Build frontend
+# Copy source and build — only this layer invalidates on client code changes
+COPY client/ ./
 RUN --mount=type=cache,target=/root/.npm \
-    cd client && npm run build
+    npm run build
 
-# Build backend
+# ---------------------------------------------------------------------------
+# Stage 5: Backend build — only Rust source changes trigger recompilation
+# ---------------------------------------------------------------------------
+FROM deps AS builder
+
+ARG CUDA_ARCH=86
+ARG REBUILD_PTX=false
+
+# Copy pre-compiled PTX from the cuda-ptx stage
+COPY --from=cuda-ptx /app/ptx/ /app/src/utils/ptx/
+
+# Now copy the REAL source code (overwrites the stubs from deps stage)
+COPY build.rs ./
+COPY src ./src
+COPY schema ./schema
+
+# Cargo detects the source change and recompiles only the project crate.
+# All 200+ dependency crates remain cached from the deps stage.
 RUN --mount=type=cache,target=/root/.cargo/registry \
     --mount=type=cache,target=/root/.cargo/git \
-    --mount=type=cache,target=/app/target \
+    --mount=type=cache,id=cargo-target,target=/app/target \
     cargo build --release && \
     cp target/release/webxr /app/webxr
 
@@ -112,10 +185,10 @@ RUN mkdir -p /app/data/markdown \
     /var/log/nginx \
     /var/run/nginx
 
-# Copy built artifacts from builder stage
+# Copy built artifacts from parallel build stages
 COPY --from=builder /app/webxr /app/webxr
-COPY --from=builder /app/client/dist /app/client/dist
-COPY --from=builder /app/src/utils/ptx /app/src/utils/ptx
+COPY --from=frontend /app/client/dist /app/client/dist
+COPY --from=cuda-ptx /app/ptx /app/src/utils/ptx
 
 # Copy configuration files
 COPY data/settings.yaml /app/settings.yaml
