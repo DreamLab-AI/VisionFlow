@@ -101,6 +101,9 @@ pub struct ConnectedComponentsActor {
 
     /// Computation statistics
     stats: ConnectedComponentsStats,
+
+    /// Cached edge list (source, target) updated via UpdateComponentEdges message
+    cached_edges: Vec<(u32, u32)>,
 }
 
 impl ConnectedComponentsActor {
@@ -114,6 +117,7 @@ impl ConnectedComponentsActor {
                 avg_num_components: 0.0,
                 last_num_components: 0,
             },
+            cached_edges: Vec::new(),
         }
     }
 
@@ -264,16 +268,12 @@ impl Handler<ComputeConnectedComponents> for ConnectedComponentsActor {
         // For now, use CPU fallback - GPU kernel will be added in next iteration
         drop(unified_compute); // Release lock before CPU computation
 
-        // TODO: Replace with GPU kernel call when available
-        // For now, use CPU-based label propagation
+        // CPU-based label propagation (GPU kernel path pending)
         let max_iterations = msg.max_iterations.unwrap_or(100);
-
-        // Dummy edges for testing - in production, fetch from graph state
-        let edges: Vec<(u32, u32)> = Vec::new(); // Will be populated from graph
 
         let (labels, iterations) = self.compute_components_cpu(
             num_nodes,
-            &edges,
+            &self.cached_edges,
             max_iterations,
         )?;
 
@@ -310,5 +310,17 @@ impl Handler<GetConnectedComponentsStats> for ConnectedComponentsActor {
 
     fn handle(&mut self, _msg: GetConnectedComponentsStats, _ctx: &mut Self::Context) -> Self::Result {
         MessageResult(self.stats.clone())
+    }
+}
+
+impl Handler<UpdateComponentEdges> for ConnectedComponentsActor {
+    type Result = ();
+
+    fn handle(&mut self, msg: UpdateComponentEdges, _ctx: &mut Self::Context) -> Self::Result {
+        info!(
+            "ConnectedComponentsActor: Updated cached edges ({} edges)",
+            msg.edges.len()
+        );
+        self.cached_edges = msg.edges;
     }
 }

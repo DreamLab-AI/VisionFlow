@@ -379,8 +379,6 @@ impl Handler<TriggerStressMajorization> for StressMajorizationActor {
     }
 }
 
-// FIXME: Type conflict - commented for compilation
-
 
 impl Handler<ResetStressMajorizationSafety> for StressMajorizationActor {
     type Result = Result<(), String>;
