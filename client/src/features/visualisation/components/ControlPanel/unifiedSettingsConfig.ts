@@ -133,6 +133,10 @@ export const UNIFIED_SETTINGS_CONFIG: Record<string, SectionConfig> = {
       { key: 'useGradient', label: 'Edge Gradient', type: 'toggle', path: 'visualisation.graphs.logseq.edges.useGradient', description: 'Use gradient coloring', isAdvanced: true },
       { key: 'distanceIntensity', label: 'Distance Intensity', type: 'slider', min: 0, max: 10, step: 0.1, path: 'visualisation.graphs.logseq.edges.distanceIntensity', description: 'Intensity based on distance', isAdvanced: true },
 
+      // Knowledge Graph Mode - Basic
+      { key: 'kgEdgeColor', label: 'KG Edge Color', type: 'color', path: 'visualisation.graphTypeVisuals.knowledgeGraph.edgeColor', description: 'Edge color for knowledge graph mode' },
+      { key: 'ontologyEdgeColor', label: 'Ontology Edge Color', type: 'color', path: 'visualisation.graphTypeVisuals.ontology.edgeColor', description: 'Edge color for ontology mode', isAdvanced: true },
+
       // Labels - Basic
       { key: 'enableLabels', label: 'Show Labels', type: 'toggle', path: 'visualisation.graphs.logseq.labels.enableLabels', description: 'Display node labels' },
       { key: 'labelSize', label: 'Label Size', type: 'slider', min: 0.01, max: 1.5, step: 0.01, path: 'visualisation.graphs.logseq.labels.desktopFontSize', description: 'Font size for labels' },
@@ -232,6 +236,11 @@ export const UNIFIED_SETTINGS_CONFIG: Record<string, SectionConfig> = {
       { key: 'ringColor', label: 'Ring Color', type: 'color', path: 'visualisation.hologram.ringColor', description: 'Color of rings' },
       { key: 'ringOpacity', label: 'Ring Opacity', type: 'slider', min: 0, max: 1, step: 0.01, path: 'visualisation.hologram.ringOpacity', description: 'Transparency of rings' },
       { key: 'ringRotationSpeed', label: 'Ring Speed', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.hologram.ringRotationSpeed', description: 'Rotation speed', isAdvanced: true },
+
+      // Cluster Hulls - Basic
+      { key: 'clusterHullsEnabled', label: 'Cluster Hulls', type: 'toggle', path: 'visualisation.clusterHulls.enabled', description: 'Show translucent hull around clusters' },
+      { key: 'clusterHullsOpacity', label: 'Hull Opacity', type: 'slider', min: 0.01, max: 0.3, step: 0.01, path: 'visualisation.clusterHulls.opacity', description: 'Transparency of cluster hulls' },
+      { key: 'clusterHullsPadding', label: 'Hull Padding', type: 'slider', min: 0, max: 0.5, step: 0.05, path: 'visualisation.clusterHulls.padding', description: 'Hull inflation around clusters', isAdvanced: true },
 
       // Edge Effects - Basic
       { key: 'flowEffect', label: 'Edge Flow', type: 'toggle', path: 'visualisation.graphs.logseq.edges.enableFlowEffect', description: 'Animated flow on edges' },

@@ -332,6 +332,7 @@ export interface GraphsSettings {
 
 // Graph-type-specific visual settings
 export interface KnowledgeGraphVisualSettings {
+  edgeColor?: string;  // default '#4FC3F7'
   shaderMode?: 'crystal' | 'hologram' | 'standard';
   rimPower?: number;
   metalness?: number;
@@ -347,6 +348,7 @@ export interface KnowledgeGraphVisualSettings {
 }
 
 export interface OntologyVisualSettings {
+  edgeColor?: string;  // default '#AA96DA'
   shaderMode?: 'constellation' | 'hologram' | 'standard';
   rimPower?: number;
   glowStrength?: number;
@@ -399,6 +401,13 @@ export interface SceneEffectsSettings {
   ambientGlowOpacity?: number;  // 0-0.1, default 0.02
 }
 
+export interface ClusterHullSettings {
+  enabled: boolean;
+  opacity: number;      // 0-0.3, default 0.08
+  padding: number;      // 0-0.5, default 0.15
+  updateInterval: number; // frames between hull recalculation, default 30
+}
+
 export interface VisualisationSettings {
 
   rendering: RenderingSettings;
@@ -411,6 +420,9 @@ export interface VisualisationSettings {
 
   // Scene ambient effects (particles, fog, glow ring)
   sceneEffects?: SceneEffectsSettings;
+
+  // Cluster hull visualization
+  clusterHulls?: ClusterHullSettings;
 
   // Graph-type-specific visual settings
   graphTypeVisuals?: GraphTypeVisualsSettings;

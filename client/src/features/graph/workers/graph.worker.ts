@@ -287,6 +287,7 @@ class GraphWorker {
     // Force-directed physics settings (for visionflow)
     if (this.graphType === 'visionflow') {
       const vfPhysics = settings?.visualisation?.graphs?.visionflow?.physics || {};
+      const wasEnabled = this.forcePhysics.enabled;
 
       // Map UI settings to force physics parameters
       this.forcePhysics.enabled = vfPhysics.enabled ?? true;
@@ -297,8 +298,10 @@ class GraphWorker {
       this.forcePhysics.idealEdgeLength = vfPhysics.restLength ?? 30;
       this.forcePhysics.centerGravity = vfPhysics.centerGravityK ?? 0.01;
 
-      // If physics was just enabled, reheat simulation
-      if (this.forcePhysics.enabled && this.forcePhysics.alpha < this.forcePhysics.alphaMin) {
+      // Only reheat when physics transitions from disabled → enabled
+      // (NOT on every settings change, which would reset node positions
+      // whenever the user adjusts unrelated settings like edge opacity)
+      if (this.forcePhysics.enabled && !wasEnabled) {
         this.forcePhysics.alpha = 1.0;
         workerLogger.info('VisionFlow physics enabled, reheating simulation');
       }

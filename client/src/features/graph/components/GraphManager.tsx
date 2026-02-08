@@ -12,6 +12,8 @@ import { BinaryNodeData, createBinaryNodeData, NodeType } from '../../../types/b
 import { useWebSocketStore } from '../../../store/websocketStore'
 import { HologramNodeMaterial } from '../../../rendering/materials/HologramNodeMaterial'
 import { FlowingEdges } from './FlowingEdges'
+import { KnowledgeRings } from './KnowledgeRings'
+import { ClusterHulls } from './ClusterHulls'
 import { useGraphEventHandlers } from '../hooks/useGraphEventHandlers'
 import { MetadataShapes } from './MetadataShapes'
 import { NodeShaderToggle } from './NodeShaderToggle'
@@ -478,13 +480,14 @@ const getNodeScale = (
     return baseSize * workloadScale;
   }
 
-  // --- KNOWLEDGE GRAPH MODE (default): enhanced with authority factor ---
+  // --- KNOWLEDGE GRAPH MODE (default): larger nodes with authority-driven sizing ---
   const authority = node.metadata?.authority ?? node.metadata?.authorityScore ?? 0;
   const connectionScale = 1 + Math.log(connectionCount + 1) * 0.4;
   const authorityScale = 1 + authority * 0.5;
   const typeScale = getTypeImportance(node.metadata?.type);
 
-  return baseSize * connectionScale * authorityScale * typeScale;
+  // KG nodes are 2.5x larger than base to give them visual prominence
+  return baseSize * connectionScale * authorityScale * typeScale * 2.5;
 }
 
 // Get importance multiplier based on node type
@@ -1780,9 +1783,37 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         <FlowingEdges
           points={edgePoints}
           settings={(settings?.visualisation?.graphs?.logseq?.edges || settings?.visualisation?.edges || defaultEdgeSettings) as any}
+          colorOverride={
+            graphMode === 'knowledge_graph'
+              ? (settings?.visualisation?.graphTypeVisuals?.knowledgeGraph as any)?.edgeColor
+              : graphMode === 'ontology'
+              ? (settings?.visualisation?.graphTypeVisuals?.ontology as any)?.edgeColor
+              : undefined
+          }
           edgeData={graphData.edges}
         />
       )}
+
+      {/* Knowledge graph rotating rings */}
+      <KnowledgeRings
+        nodes={graphData.nodes}
+        graphMode={graphMode}
+        perNodeVisualModeMap={perNodeVisualModeMap}
+        nodePositionsRef={nodePositionsRef}
+        nodeIdToIndexMap={nodeIdToIndexMap}
+        connectionCountMap={connectionCountMap}
+        edges={graphData.edges}
+        hierarchyMap={hierarchyMap}
+        settings={settings}
+      />
+
+      {/* Cluster hull visualization */}
+      <ClusterHulls
+        nodes={graphData.nodes}
+        nodePositionsRef={nodePositionsRef}
+        nodeIdToIndexMap={nodeIdToIndexMap}
+        settings={settings}
+      />
 
       {}
       {NodeLabels}

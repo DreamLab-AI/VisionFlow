@@ -8,6 +8,7 @@ import { registerEdgeObject, unregisterEdgeObject } from '../../visualisation/ho
 interface FlowingEdgesProps {
   points: number[];
   settings: EdgeSettings;
+  colorOverride?: string; // Per-mode edge color override
   edgeData?: Array<{
     source: string;
     target: string;
@@ -16,10 +17,10 @@ interface FlowingEdgesProps {
   }>;
 }
 
-// Minimum visible opacity - prevents edges from becoming invisible
-const MIN_EDGE_OPACITY = 0.4;
+// Minimum edge opacity - allows very low transparency while preventing truly invisible edges
+const MIN_EDGE_OPACITY = 0.01;
 
-export const FlowingEdges: React.FC<FlowingEdgesProps> = ({ points, settings: propSettings, edgeData }) => {
+export const FlowingEdges: React.FC<FlowingEdgesProps> = ({ points, settings: propSettings, colorOverride, edgeData }) => {
   const globalSettings = useSettingsStore((state) => state.settings);
   const edgeBloomStrength = globalSettings?.visualisation?.glow?.edgeGlowStrength ?? 0.5;
   const lineRef = useRef<THREE.LineSegments>(null);
@@ -92,8 +93,10 @@ export const FlowingEdges: React.FC<FlowingEdgesProps> = ({ points, settings: pr
   // Resolve effective opacity: ensure edges are always visible
   const effectiveOpacity = Math.max(MIN_EDGE_OPACITY, propSettings.opacity ?? 0.6);
 
+  const edgeColor = colorOverride || propSettings.color || '#FF5722';
+
   const material = useMemo(() => {
-    const color = new THREE.Color(propSettings.color || '#FF5722');
+    const color = new THREE.Color(edgeColor);
 
     // Additive glow boost ensures edges remain visible regardless of bloom
     const bloomBoost = 1 + (edgeBloomStrength * 0.5);
@@ -111,7 +114,7 @@ export const FlowingEdges: React.FC<FlowingEdgesProps> = ({ points, settings: pr
     });
 
     return mat;
-  }, [propSettings.color, effectiveOpacity, propSettings.baseWidth, edgeBloomStrength]);
+  }, [edgeColor, effectiveOpacity, propSettings.baseWidth, edgeBloomStrength]);
 
   useEffect(() => {
     return () => { material?.dispose(); };
