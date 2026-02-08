@@ -170,6 +170,7 @@ async fn get_workspace(
 }
 
 async fn create_workspace(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     workspace_actor: web::Data<Addr<WorkspaceActor>>,
     payload: web::Json<CreateWorkspaceRequest>,
 ) -> ActixResult<HttpResponse> {
@@ -220,6 +221,7 @@ async fn create_workspace(
 }
 
 async fn update_workspace(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     workspace_actor: web::Data<Addr<WorkspaceActor>>,
     path: web::Path<String>,
     payload: web::Json<UpdateWorkspaceRequest>,
@@ -287,6 +289,7 @@ async fn update_workspace(
 }
 
 async fn delete_workspace(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     workspace_actor: web::Data<Addr<WorkspaceActor>>,
     path: web::Path<String>,
 ) -> ActixResult<HttpResponse> {
@@ -335,6 +338,7 @@ async fn delete_workspace(
 }
 
 async fn toggle_favorite_workspace(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     workspace_actor: web::Data<Addr<WorkspaceActor>>,
     path: web::Path<String>,
 ) -> ActixResult<HttpResponse> {
@@ -402,6 +406,7 @@ async fn toggle_favorite_workspace(
 }
 
 async fn archive_workspace(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     workspace_actor: web::Data<Addr<WorkspaceActor>>,
     path: web::Path<String>,
     payload: web::Json<ArchiveRequest>,

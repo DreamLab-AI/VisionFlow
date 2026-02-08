@@ -20,6 +20,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 }
 
 async fn define_constraints(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     _req: HttpRequest,
     state: web::Data<AppState>,
     payload: web::Json<ConstraintSystem>,
@@ -131,6 +132,7 @@ async fn define_constraints(
 }
 
 async fn apply_constraints(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     _req: HttpRequest,
     state: web::Data<AppState>,
     payload: web::Json<Value>,
@@ -198,6 +200,7 @@ async fn apply_constraints(
 }
 
 async fn remove_constraints(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     _req: HttpRequest,
     state: web::Data<AppState>,
     payload: web::Json<Value>,
@@ -321,6 +324,7 @@ use crate::{
 }
 
 async fn validate_constraint_definition(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     _req: HttpRequest,
     _state: web::Data<AppState>,
     payload: web::Json<LegacyConstraintData>,

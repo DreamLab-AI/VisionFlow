@@ -220,6 +220,7 @@ pub async fn get_quest3_defaults(_app_state: web::Data<AppState>) -> Result<Http
 }
 
 pub async fn calibrate_quest3(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     app_state: web::Data<AppState>,
     request: web::Json<Quest3CalibrationRequest>,
 ) -> Result<HttpResponse> {

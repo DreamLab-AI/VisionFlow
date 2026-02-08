@@ -187,6 +187,7 @@ fn convert_agents_to_nodes(agents: Vec<Agent>) -> Vec<Node> {
 }
 
 pub async fn update_bots_graph(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     request: web::Json<BotsDataRequest>,
     _state: web::Data<AppState>,
 ) -> Result<impl Responder> {
@@ -247,9 +248,10 @@ pub async fn get_bots_data(state: web::Data<AppState>) -> Result<impl Responder>
 }
 
 pub async fn initialize_hive_mind_swarm(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     request: web::Json<InitializeSwarmRequest>,
     state: web::Data<AppState>,
-    _hybrid_manager: Option<()>, 
+    _hybrid_manager: Option<()>,
 ) -> Result<impl Responder> {
     info!(
         "🐝 Initializing hive mind swarm via Management API with topology: {}",
@@ -400,6 +402,7 @@ pub struct BotData {
 }
 
 pub async fn spawn_agent_hybrid(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     state: web::Data<AppState>,
     req: web::Json<SpawnAgentHybridRequest>,
 ) -> Result<impl Responder> {
@@ -475,6 +478,7 @@ pub struct TaskResponse {
 }
 
 pub async fn remove_task(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     path: web::Path<String>,
     state: web::Data<AppState>,
 ) -> Result<impl Responder> {

@@ -385,6 +385,7 @@ pub async fn get_analytics_params(app_state: web::Data<AppState>) -> Result<Http
 }
 
 pub async fn update_analytics_params(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     app_state: web::Data<AppState>,
     params: web::Json<VisualAnalyticsParams>,
 ) -> Result<HttpResponse> {
@@ -468,6 +469,7 @@ pub async fn get_constraints(app_state: web::Data<AppState>) -> Result<HttpRespo
 }
 
 pub async fn update_constraints(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     app_state: web::Data<AppState>,
     request: web::Json<UpdateConstraintsRequest>,
 ) -> Result<HttpResponse> {
@@ -532,6 +534,7 @@ pub async fn update_constraints(
 }
 
 pub async fn set_focus(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     app_state: web::Data<AppState>,
     request: web::Json<SetFocusRequest>,
 ) -> Result<HttpResponse> {
@@ -809,6 +812,7 @@ fn create_default_analytics_params(
 }
 
 pub async fn set_kernel_mode(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     app_state: web::Data<AppState>,
     request: web::Json<serde_json::Value>,
 ) -> Result<HttpResponse> {
@@ -865,6 +869,7 @@ pub async fn set_kernel_mode(
 }
 
 pub async fn run_clustering(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     app_state: web::Data<AppState>,
     request: web::Json<ClusteringRequest>,
 ) -> Result<HttpResponse> {
@@ -967,6 +972,7 @@ pub async fn get_clustering_status(
 }
 
 pub async fn focus_cluster(
+    auth: crate::settings::auth_extractor::AuthenticatedUser,
     app_state: web::Data<AppState>,
     request: web::Json<ClusterFocusRequest>,
 ) -> Result<HttpResponse> {
@@ -997,7 +1003,7 @@ pub async fn focus_cluster(
             };
 
             
-            let focus_response = set_focus(app_state, web::Json(focus_request)).await?;
+            let focus_response = set_focus(auth, app_state, web::Json(focus_request)).await?;
             return Ok(focus_response);
         }
     }
@@ -1011,6 +1017,7 @@ pub async fn focus_cluster(
 }
 
 pub async fn toggle_anomaly_detection(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     request: web::Json<AnomalyDetectionConfig>,
 ) -> Result<HttpResponse> {
     info!("Toggling anomaly detection: enabled={}", request.enabled);
@@ -1721,6 +1728,7 @@ pub struct SSSPToggleResponse {
 }
 
 pub async fn toggle_sssp(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     app_state: web::Data<AppState>,
     request: web::Json<SSSPToggleRequest>,
 ) -> Result<HttpResponse> {
@@ -1993,7 +2001,10 @@ pub async fn get_gpu_features(app_state: web::Data<AppState>) -> Result<HttpResp
     ok_json!(features)
 }
 
-pub async fn cancel_clustering(query: web::Query<HashMap<String, String>>) -> Result<HttpResponse> {
+pub async fn cancel_clustering(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
+    query: web::Query<HashMap<String, String>>,
+) -> Result<HttpResponse> {
     let task_id = query.get("task_id");
 
     if let Some(task_id) = task_id {
@@ -2271,7 +2282,10 @@ pub async fn get_feature_flags() -> Result<HttpResponse> {
     }))
 }
 
-pub async fn update_feature_flags(request: web::Json<FeatureFlags>) -> Result<HttpResponse> {
+pub async fn update_feature_flags(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
+    request: web::Json<FeatureFlags>,
+) -> Result<HttpResponse> {
     info!("Updating analytics feature flags");
 
     let mut flags = FEATURE_FLAGS.lock().await;
@@ -2284,7 +2298,10 @@ pub async fn update_feature_flags(request: web::Json<FeatureFlags>) -> Result<Ht
     }))
 }
 
-async fn trigger_stress_majorization(data: web::Data<AppState>) -> Result<HttpResponse, actix_web::Error> {
+async fn trigger_stress_majorization(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
+    data: web::Data<AppState>,
+) -> Result<HttpResponse, actix_web::Error> {
     if let Some(gpu_actor) = data.get_gpu_compute_addr().await {
         match gpu_actor.send(TriggerStressMajorization).await {
             Ok(Ok(())) => ok_json!(serde_json::json!({
@@ -2333,6 +2350,7 @@ async fn get_stress_majorization_stats(data: web::Data<AppState>) -> Result<Http
 }
 
 async fn reset_stress_majorization_safety(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     data: web::Data<AppState>,
 ) -> Result<HttpResponse, actix_web::Error> {
     if let Some(gpu_actor) = data.get_gpu_compute_addr().await {
@@ -2359,6 +2377,7 @@ async fn reset_stress_majorization_safety(
 }
 
 async fn update_stress_majorization_params(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     params: web::Json<AdvancedParams>,
     data: web::Data<AppState>,
 ) -> Result<HttpResponse, actix_web::Error> {
@@ -2391,6 +2410,7 @@ async fn update_stress_majorization_params(
 
 /// P1-1: Configure Stress Majorization runtime parameters
 async fn configure_stress_majorization(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     config: web::Json<ConfigureStressMajorization>,
     data: web::Data<AppState>,
 ) -> Result<HttpResponse, actix_web::Error> {
@@ -2526,6 +2546,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 }
 
 pub async fn run_community_detection(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     app_state: web::Data<AppState>,
     request: web::Json<community::CommunityDetectionRequest>,
 ) -> Result<HttpResponse, actix_web::Error> {
@@ -2564,6 +2585,7 @@ pub async fn get_community_statistics(
 }
 
 pub async fn update_sssp_params(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     _app_state: web::Data<AppState>,
     request: web::Json<serde_json::Value>,
 ) -> Result<HttpResponse, actix_web::Error> {
@@ -2611,6 +2633,7 @@ pub async fn get_sssp_params(_app_state: web::Data<AppState>) -> Result<HttpResp
 }
 
 pub async fn compute_sssp(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     app_state: web::Data<AppState>,
     request: web::Json<serde_json::Value>,
 ) -> Result<HttpResponse, actix_web::Error> {

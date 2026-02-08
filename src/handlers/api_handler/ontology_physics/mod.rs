@@ -103,6 +103,7 @@ async fn check_ontology_feature() -> Result<(), actix_web::Error> {
 /// }
 /// ```
 pub async fn enable_ontology_physics(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     state: web::Data<AppState>,
     req: web::Json<EnableOntologyPhysicsRequest>,
 ) -> impl Responder {
@@ -324,6 +325,7 @@ pub async fn get_constraints(state: web::Data<AppState>) -> impl Responder {
 /// }
 /// ```
 pub async fn adjust_weights(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     state: web::Data<AppState>,
     req: web::Json<AdjustWeightsRequest>,
 ) -> Result<impl Responder, actix_web::Error> {
@@ -331,23 +333,23 @@ pub async fn adjust_weights(
 
     check_ontology_feature().await?;
 
-    let global_strength = req.global_strength.unwrap_or(1.0).clamp(0.0, 1.0);
+    let _global_strength = req.global_strength.unwrap_or(1.0).clamp(0.0, 1.0);
 
-    // For now, we'll just acknowledge the request
-    // Full implementation would involve updating constraint strengths in GPU memory
-    warn!("Weight adjustment not yet fully implemented - returning success");
+    // No actor message type exists for weight adjustment.
+    warn!("Weight adjustment not yet implemented - no actor message defined");
 
-    ok_json!(json!({
-        "success": true,
-        "appliedStrength": global_strength,
-        "message": "Weights adjusted (implementation pending)",
-        "activeConstraints": 0
-    }))
+    Ok(HttpResponse::NotImplemented().json(json!({
+        "error": "Weight adjustment not yet implemented",
+        "message": "No AdjustConstraintWeights message type exists. Constraint weights cannot be modified at runtime yet."
+    })))
 }
 
 /// POST /api/ontology-physics/disable - Disable ontology forces
 /// Removes all ontology-derived constraints from the physics simulation.
-pub async fn disable_ontology_physics(state: web::Data<AppState>) -> impl Responder {
+pub async fn disable_ontology_physics(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
+    state: web::Data<AppState>,
+) -> impl Responder {
     info!("POST /api/ontology-physics/disable");
 
     check_ontology_feature().await?;

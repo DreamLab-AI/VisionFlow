@@ -55,6 +55,7 @@ pub struct CollisionConfigRequest {
 /// Configure DAG layout mode and parameters
 /// POST /api/semantic-forces/dag/configure
 pub async fn configure_dag(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     state: web::Data<AppState>,
     payload: web::Json<DAGConfigRequest>,
 ) -> impl Responder {
@@ -125,6 +126,7 @@ pub async fn configure_dag(
 /// Configure type clustering parameters
 /// POST /api/semantic-forces/type-clustering/configure
 pub async fn configure_type_clustering(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     state: web::Data<AppState>,
     payload: web::Json<TypeClusterConfigRequest>,
 ) -> impl Responder {
@@ -174,6 +176,7 @@ pub async fn configure_type_clustering(
 /// Configure collision detection parameters
 /// POST /api/semantic-forces/collision/configure
 pub async fn configure_collision(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     state: web::Data<AppState>,
     payload: web::Json<CollisionConfigRequest>,
 ) -> impl Responder {
@@ -234,16 +237,11 @@ pub async fn get_hierarchy_levels(state: web::Data<AppState>) -> impl Responder 
         }
     };
 
-    // For now, return mock data
-    // TODO: Send GetHierarchyLevels message to SemanticForcesActor via GPU manager
-    ok_json!(json!({
-        "status": "success",
-        "hierarchy": {
-            "max_level": 3,
-            "level_counts": [1, 5, 12, 8],
-            "node_levels": vec![-1; 26], // Placeholder
-        }
-    }))
+    // GetHierarchyLevels has no Handler impl on any actor yet.
+    Ok(HttpResponse::NotImplemented().json(json!({
+        "error": "Hierarchy level retrieval not yet implemented",
+        "message": "SemanticForcesActor does not yet handle GetHierarchyLevels messages"
+    })))
 }
 
 /// Get current semantic forces configuration
@@ -260,37 +258,19 @@ pub async fn get_semantic_config(state: web::Data<AppState>) -> impl Responder {
         }
     };
 
-    // For now, return default configuration
-    ok_json!(json!({
-        "status": "success",
-        "config": {
-            "dag": {
-                "mode": "top-down",
-                "enabled": false,
-                "vertical_spacing": 100.0,
-                "horizontal_spacing": 50.0,
-                "level_attraction": 0.5,
-                "sibling_repulsion": 0.3,
-            },
-            "type_clustering": {
-                "enabled": false,
-                "cluster_attraction": 0.4,
-                "cluster_radius": 80.0,
-                "inter_cluster_repulsion": 0.2,
-            },
-            "collision": {
-                "enabled": true,
-                "min_distance": 10.0,
-                "collision_strength": 0.8,
-                "node_radius": 15.0,
-            },
-        }
-    }))
+    // GetSemanticConfig has no Handler impl on any actor yet.
+    Ok(HttpResponse::NotImplemented().json(json!({
+        "error": "Semantic config retrieval not yet implemented",
+        "message": "SemanticForcesActor does not yet handle GetSemanticConfig messages"
+    })))
 }
 
 /// Recalculate hierarchy levels (useful after graph structure changes)
 /// POST /api/semantic-forces/hierarchy/recalculate
-pub async fn recalculate_hierarchy(state: web::Data<AppState>) -> impl Responder {
+pub async fn recalculate_hierarchy(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
+    state: web::Data<AppState>,
+) -> impl Responder {
     info!("Hierarchy recalculation request received");
 
     // Get GPU manager actor
@@ -302,11 +282,11 @@ pub async fn recalculate_hierarchy(state: web::Data<AppState>) -> impl Responder
         }
     };
 
-    // TODO: Send RecalculateHierarchy message to SemanticForcesActor
-    ok_json!(json!({
-        "status": "success",
-        "message": "Hierarchy recalculation triggered"
-    }))
+    // RecalculateHierarchy has no Handler impl on any actor yet.
+    Ok(HttpResponse::NotImplemented().json(json!({
+        "error": "Hierarchy recalculation not yet implemented",
+        "message": "SemanticForcesActor does not yet handle RecalculateHierarchy messages"
+    })))
 }
 
 // =============================================================================
@@ -347,6 +327,7 @@ pub struct RelationshipTypeResponse {
 /// Register a new relationship type (hot-reload without CUDA recompilation)
 /// POST /api/semantic-forces/relationship-types
 pub async fn register_relationship_type(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     payload: web::Json<RegisterRelationshipTypeRequest>,
 ) -> HttpResponse {
     info!("Registering new relationship type: {}", payload.uri);
@@ -379,6 +360,7 @@ pub async fn register_relationship_type(
 /// Update force parameters for an existing relationship type
 /// PUT /api/semantic-forces/relationship-types/{uri}
 pub async fn update_relationship_type(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     path: web::Path<String>,
     payload: web::Json<UpdateRelationshipForceRequest>,
 ) -> HttpResponse {
@@ -505,7 +487,10 @@ pub async fn get_relationship_type(path: web::Path<String>) -> HttpResponse {
 
 /// Trigger GPU buffer reload from registry (hot-reload)
 /// POST /api/semantic-forces/relationship-types/reload
-pub async fn reload_relationship_buffer(_state: web::Data<AppState>) -> HttpResponse {
+pub async fn reload_relationship_buffer(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
+    _state: web::Data<AppState>,
+) -> HttpResponse {
     info!("Triggering GPU relationship buffer reload");
 
     // Build GPU buffer from registry

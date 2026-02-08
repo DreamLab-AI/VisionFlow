@@ -54,6 +54,7 @@ impl ResponseError for RAGFlowError {
 }
 
 pub async fn send_message(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     state: web::Data<AppState>,
     request: web::Json<SendMessageRequest>,
 ) -> Result<HttpResponse, actix_web::Error> {
@@ -148,6 +149,7 @@ pub async fn send_message(
 }
 
 pub async fn create_session(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     state: web::Data<AppState>,
     request: web::Json<CreateSessionRequest>,
 ) -> Result<HttpResponse, actix_web::Error> {
@@ -185,6 +187,7 @@ pub async fn create_session(
 }
 
 pub async fn get_session_history(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     state: web::Data<AppState>,
     session_id: web::Path<String>,
 ) -> Result<HttpResponse, actix_web::Error> {
