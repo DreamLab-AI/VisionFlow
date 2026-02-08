@@ -26,6 +26,7 @@ use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
+use super::lsh::LshIndex;
 use crate::models::{
     constraints::{AdvancedParams, Constraint, ConstraintSet},
     graph::GraphData,
@@ -268,22 +269,53 @@ impl SemanticConstraintGenerator {
         let mut similarities = HashMap::new();
         let nodes = &graph_data.nodes;
 
-        // TODO: Replace O(n^2) pairwise with LSH for scale (see ADR for LSH implementation)
-        // For now, skip expensive similarity if too many nodes
-        const MAX_PAIRWISE_NODES: usize = 1000;
-        if nodes.len() > MAX_PAIRWISE_NODES {
-            warn!(
-                "Skipping pairwise similarity: {} nodes exceeds threshold {}",
+        // For small graphs, exhaustive pairwise is cheaper than building the LSH index.
+        const LSH_THRESHOLD: usize = 500;
+
+        let node_pairs: Vec<(usize, usize)> = if nodes.len() <= LSH_THRESHOLD {
+            // Small graph: exhaustive O(n^2) pairwise.
+            debug!(
+                "Using exhaustive pairwise similarity for {} nodes (below LSH threshold {})",
                 nodes.len(),
-                MAX_PAIRWISE_NODES
+                LSH_THRESHOLD
             );
-            return Ok(similarities);
-        }
+            (0..nodes.len())
+                .flat_map(|i| (i + 1..nodes.len()).map(move |j| (i, j)))
+                .collect()
+        } else {
+            // Large graph: build LSH index and only evaluate candidate pairs.
+            info!(
+                "Using LSH candidate generation for {} nodes",
+                nodes.len()
+            );
 
+            let lsh_index = LshIndex::build_from_nodes(nodes, metadata_store);
+            let candidate_pairs = lsh_index.all_candidate_pairs();
 
-        let node_pairs: Vec<_> = (0..nodes.len())
-            .flat_map(|i| (i + 1..nodes.len()).map(move |j| (i, j)))
-            .collect();
+            info!(
+                "LSH produced {} candidate pairs (vs {} exhaustive)",
+                candidate_pairs.len(),
+                (nodes.len() as u64) * (nodes.len() as u64 - 1) / 2
+            );
+
+            // Build id -> index map for efficient lookup.
+            let id_to_idx: HashMap<u32, usize> = nodes
+                .iter()
+                .enumerate()
+                .map(|(idx, node)| (node.id, idx))
+                .collect();
+
+            candidate_pairs
+                .into_iter()
+                .filter_map(|(id_a, id_b)| {
+                    let idx_a = id_to_idx.get(&id_a)?;
+                    let idx_b = id_to_idx.get(&id_b)?;
+                    Some((*idx_a.min(idx_b), *idx_a.max(idx_b)))
+                })
+                .collect()
+        };
+
+        debug!("Computing full similarity for {} pairs", node_pairs.len());
 
         let computed_similarities: Vec<_> = node_pairs
             .par_iter()

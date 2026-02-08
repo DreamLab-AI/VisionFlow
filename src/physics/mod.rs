@@ -59,8 +59,10 @@
 //! solver.optimize(&mut graph_data, &final_constraint_set)?;
 //! ```
 
+pub mod lsh;
 pub mod ontology_constraints;
 pub mod semantic_constraints;
+pub mod simd_forces;
 pub mod stress_majorization;
 
 #[cfg(test)]
