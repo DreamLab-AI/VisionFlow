@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useEffect } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { useThree } from '@react-three/fiber';
 import {
   EffectComposer,
@@ -7,6 +7,9 @@ import {
 import { BlendFunction, KernelSize, Resolution } from 'postprocessing';
 import * as THREE from 'three';
 import { useSettingsStore } from '../store/settingsStore';
+import { createLogger } from '../utils/loggerConfig';
+
+const logger = createLogger('SelectiveBloom');
 
 
 
@@ -49,7 +52,7 @@ export const SelectiveBloom: React.FC<SelectiveBloomProps> = ({ enabled = true }
 
   useEffect(() => {
     if ((globalThis as any).__SETTINGS__?.system?.debug?.enablePerformanceDebug) {
-      console.log('[SelectiveBloom] Settings state:', {
+      logger.debug('Settings state:', {
         initialized,
         hasSettings: !!settings,
         hasVisualisation: !!settings?.visualisation,
@@ -67,7 +70,7 @@ export const SelectiveBloom: React.FC<SelectiveBloomProps> = ({ enabled = true }
     if (!activeSettings?.enabled) {
       // Only warn if settings are loaded but disabled
       if (initialized) {
-        console.log('[SelectiveBloom] Bloom disabled by settings');
+        logger.debug('Bloom disabled by settings');
       }
       return null;
     }

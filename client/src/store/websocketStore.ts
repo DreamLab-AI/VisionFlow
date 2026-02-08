@@ -9,11 +9,12 @@ import { NodePositionBatchQueue, createWebSocketBatchProcessor } from '../utils/
 import { validateNodePositions, createValidationMiddleware } from '../utils/validation';
 import {
   WebSocketMessage,
-  WebSocketConnectionState,
   WebSocketStatistics,
 } from '../types/websocketTypes';
-import { binaryProtocol, MessageType, GraphTypeFlag, AgentActionEvent } from '../services/BinaryWebSocketProtocol';
+import { binaryProtocol, MessageType, GraphTypeFlag } from '../services/BinaryWebSocketProtocol';
 import { nostrAuth } from '../services/nostrAuthService';
+import { webSocketRegistry } from '../services/WebSocketRegistry';
+import { webSocketEventBus } from '../services/WebSocketEventBus';
 
 const logger = createLogger('WebSocketStore');
 
@@ -218,19 +219,27 @@ function determineWebSocketUrl(): string {
 }
 
 function getUrlFromSettings(): string {
-  const state = useSettingsStore.getState();
-  const settings = state.settings;
   let newUrl = determineWebSocketUrl();
 
-  if (settings?.system?.customBackendUrl &&
-      settings.system.customBackendUrl.trim() !== '') {
-    const customUrl = settings.system.customBackendUrl.trim();
-    const protocol = customUrl.startsWith('https://') ? 'wss://' : 'ws://';
-    const hostAndPath = customUrl.replace(/^(https?:\/\/)?/, '');
-    newUrl = `${protocol}${hostAndPath.replace(/\/$/, '')}/wss`;
-    if (debugState.isEnabled()) {
-      logger.info(`Using custom backend WebSocket URL: ${newUrl}`);
+  // Guard: useSettingsStore may not be initialized yet due to circular import.
+  // During module evaluation, getState() would throw. Fall back to default URL.
+  try {
+    const state = useSettingsStore.getState();
+    const settings = state.settings;
+
+    if (settings?.system?.customBackendUrl &&
+        settings.system.customBackendUrl.trim() !== '') {
+      const customUrl = settings.system.customBackendUrl.trim();
+      const protocol = customUrl.startsWith('https://') ? 'wss://' : 'ws://';
+      const hostAndPath = customUrl.replace(/^(https?:\/\/)?/, '');
+      newUrl = `${protocol}${hostAndPath.replace(/\/$/, '')}/wss`;
+      if (debugState.isEnabled()) {
+        logger.info(`Using custom backend WebSocket URL: ${newUrl}`);
+      }
     }
+  } catch {
+    // Settings store not yet initialized — use default URL.
+    // The subscription below will re-evaluate once both stores are ready.
   }
 
   return newUrl;
@@ -987,27 +996,34 @@ export const useWebSocketStore = create<WebSocketState>()(
       }, delay);
     };
 
-    // Initialize URL from settings subscription
-    let previousCustomBackendUrl = useSettingsStore.getState().settings?.system?.customBackendUrl;
-    useSettingsStore.subscribe((state) => {
-      const newCustomBackendUrl = state.settings?.system?.customBackendUrl;
-      if (newCustomBackendUrl !== previousCustomBackendUrl) {
-        if (debugState.isEnabled()) {
-          logger.info(`customBackendUrl setting changed from "${previousCustomBackendUrl}" to "${newCustomBackendUrl}", re-evaluating WebSocket URL.`);
+    // Defer settings subscription to avoid circular import initialization crash.
+    // useSettingsStore may not be ready during module evaluation since
+    // settingsStore.ts also imports from this module.
+    queueMicrotask(() => {
+      let previousCustomBackendUrl = useSettingsStore.getState().settings?.system?.customBackendUrl;
+      // Re-evaluate URL now that settings store is initialized
+      set({ url: getUrlFromSettings() });
+
+      useSettingsStore.subscribe((state) => {
+        const newCustomBackendUrl = state.settings?.system?.customBackendUrl;
+        if (newCustomBackendUrl !== previousCustomBackendUrl) {
+          if (debugState.isEnabled()) {
+            logger.info(`customBackendUrl setting changed from "${previousCustomBackendUrl}" to "${newCustomBackendUrl}", re-evaluating WebSocket URL.`);
+          }
+          previousCustomBackendUrl = newCustomBackendUrl;
+          const wsState = get();
+          set({ url: getUrlFromSettings() });
+          if (wsState.isConnected || (wsState.socket && wsState.socket.readyState === WebSocket.CONNECTING)) {
+            logger.info('Reconnecting WebSocket due to customBackendUrl change.');
+            wsState.close();
+            setTimeout(() => {
+              get().connect().catch(error => {
+                logger.error('Failed to reconnect WebSocket after URL change:', createErrorMetadata(error));
+              });
+            }, 100);
+          }
         }
-        previousCustomBackendUrl = newCustomBackendUrl;
-        const wsState = get();
-        set({ url: getUrlFromSettings() });
-        if (wsState.isConnected || (wsState.socket && wsState.socket.readyState === WebSocket.CONNECTING)) {
-          logger.info('Reconnecting WebSocket due to customBackendUrl change.');
-          wsState.close();
-          setTimeout(() => {
-            get().connect().catch(error => {
-              logger.error('Failed to reconnect WebSocket after URL change:', createErrorMetadata(error));
-            });
-          }, 100);
-        }
-      }
+      });
     });
 
     return {
@@ -1062,6 +1078,10 @@ export const useWebSocketStore = create<WebSocketState>()(
 
             set({ socket, isConnected: true, reconnectAttempts: 0 });
             updateConnectionState('connected', undefined, Date.now());
+
+            // Register with the central WebSocket registry
+            webSocketRegistry.register('graph', state.url, socket);
+            webSocketEventBus.emit('connection:open', { name: 'graph', url: state.url });
 
             if (debugState.isEnabled()) {
               logger.info('WebSocket connection established');
@@ -1238,6 +1258,14 @@ export const useWebSocketStore = create<WebSocketState>()(
             set({ isConnected: false, isServerReady: false });
             stopHeartbeat();
 
+            // Unregister from the central WebSocket registry
+            webSocketRegistry.unregister('graph');
+            webSocketEventBus.emit('connection:close', {
+              name: 'graph',
+              code: event.code,
+              reason: event.reason,
+            });
+
             if (debugState.isEnabled()) {
               logger.info(`WebSocket connection closed: ${event.code} ${event.reason}`);
             }
@@ -1261,6 +1289,7 @@ export const useWebSocketStore = create<WebSocketState>()(
 
             const errorMessage = event instanceof ErrorEvent ? event.message : 'Unknown WebSocket error';
             logger.error('WebSocket error:', { event, message: errorMessage });
+            webSocketEventBus.emit('connection:error', { name: 'graph', error: errorMessage });
             updateConnectionState('failed', errorMessage);
           };
 
@@ -1296,6 +1325,7 @@ export const useWebSocketStore = create<WebSocketState>()(
           }
 
           stopHeartbeat();
+          webSocketRegistry.unregister('graph');
 
           if (positionBatchQueue) {
             positionBatchQueue.destroy();
@@ -1583,6 +1613,8 @@ export const useWebSocketStore = create<WebSocketState>()(
             logger.info('JSS WebSocket connected');
             set({ isSolidConnected: true });
             solidReconnectAttempts = 0;
+            webSocketRegistry.register('solid-store', wsUrl!, solidSocket);
+            webSocketEventBus.emit('connection:open', { name: 'solid-store', url: wsUrl! });
             emit('solid-connected', { url: wsUrl });
           };
 
@@ -1593,12 +1625,19 @@ export const useWebSocketStore = create<WebSocketState>()(
 
           solidSocket.onerror = (error) => {
             logger.error('JSS WebSocket error', { error });
+            webSocketEventBus.emit('connection:error', { name: 'solid-store', error });
             emit('solid-error', { error });
           };
 
           solidSocket.onclose = (event) => {
             logger.info('JSS WebSocket disconnected', { code: event.code, reason: event.reason });
             set({ isSolidConnected: false });
+            webSocketRegistry.unregister('solid-store');
+            webSocketEventBus.emit('connection:close', {
+              name: 'solid-store',
+              code: event.code,
+              reason: event.reason,
+            });
             emit('solid-disconnected', { code: event.code, reason: event.reason });
             attemptSolidReconnect();
           };
@@ -1614,6 +1653,8 @@ export const useWebSocketStore = create<WebSocketState>()(
           window.clearTimeout(solidReconnectTimeout);
           solidReconnectTimeout = null;
         }
+
+        webSocketRegistry.unregister('solid-store');
 
         const state = get();
         if (state.solidSocket) {

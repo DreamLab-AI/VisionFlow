@@ -1,7 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import Search from 'lucide-react/dist/esm/icons/search';
-import X from 'lucide-react/dist/esm/icons/x';
-import Filter from 'lucide-react/dist/esm/icons/filter';
+import { Search, X, Filter } from 'lucide-react';
 import { Input } from '../../design-system/components/Input';
 import { Button } from '../../design-system/components/Button';
 import { cn } from '../../../utils/classNameUtils';

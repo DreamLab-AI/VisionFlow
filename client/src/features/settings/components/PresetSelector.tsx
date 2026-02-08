@@ -1,16 +1,14 @@
 
 
 import React, { useState } from 'react';
-import Zap from 'lucide-react/dist/esm/icons/zap';
-import Battery from 'lucide-react/dist/esm/icons/battery';
-import Cpu from 'lucide-react/dist/esm/icons/cpu';
-import Rocket from 'lucide-react/dist/esm/icons/rocket';
-import Info from 'lucide-react/dist/esm/icons/info';
-import Check from 'lucide-react/dist/esm/icons/check';
+import { Zap, Battery, Cpu, Rocket, Info, Check } from 'lucide-react';
 import { Button } from '../../design-system/components/Button';
 import { QUALITY_PRESETS, type QualityPreset } from '../presets/qualityPresets';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { cn } from '../../../utils/classNameUtils';
+import { createLogger } from '../../../utils/loggerConfig';
+
+const logger = createLogger('PresetSelector');
 
 interface PresetSelectorProps {
   className?: string;
@@ -45,12 +43,12 @@ export const PresetSelector: React.FC<PresetSelectorProps> = ({
       });
 
       
-      console.log(`Applied ${preset.name} preset successfully`);
+      logger.info(`Applied ${preset.name} preset successfully`);
 
       
       localStorage.setItem('quality-preset', preset.id);
     } catch (error) {
-      console.error('Failed to apply preset:', error);
+      logger.error('Failed to apply preset:', error);
     } finally {
       setIsApplying(false);
     }

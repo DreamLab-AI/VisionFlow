@@ -7,9 +7,7 @@ import { Input } from '@/features/design-system/components/Input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/features/design-system/components/Select';
 import { RadioGroup, RadioGroupItem } from '@/features/design-system/components/RadioGroup'; 
 import { Button } from '@/features/design-system/components/Button';
-import Eye from 'lucide-react/dist/esm/icons/eye';
-import EyeOff from 'lucide-react/dist/esm/icons/eye-off';
-import Loader2 from 'lucide-react/dist/esm/icons/loader2';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { HelpTooltip } from '../../help/components/HelpTooltip';
 import { helpRegistry } from '../../help/HelpRegistry';
 

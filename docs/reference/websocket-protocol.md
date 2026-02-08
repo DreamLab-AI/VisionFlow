@@ -443,6 +443,27 @@ function checkRateLimit(userId: string, msgType: u8): boolean {
 
 ---
 
+## Client WebSocket Architecture (February 2026)
+
+### WebSocketEventBus and WebSocketRegistry
+
+The client now routes all WebSocket events through a typed pub/sub event bus and tracks all connections through a central registry. This replaces the previous `window.webSocketService` global pattern.
+
+**New modules:**
+- `client/src/services/WebSocketEventBus.ts` -- Typed event bus for WebSocket events
+- `client/src/services/WebSocketRegistry.ts` -- Central connection lifecycle tracker
+
+**Event types:** `connection:open/close/error`, `message:graph/voice/bots/pod`, `registry:registered/unregistered/closedAll`
+
+**Registered services:** Voice, Bots, SolidPod, Graph
+
+### Protocol Cleanup
+
+- V1 binary protocol code has been fully removed from the client codebase.
+- V4 protocol log spam has been fixed with a warn-once pattern.
+
+---
+
 ## Related Documentation
 
 - [Database Schema Reference](database/README.md)

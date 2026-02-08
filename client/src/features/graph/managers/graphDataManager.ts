@@ -1,9 +1,10 @@
 import { createLogger, createErrorMetadata } from '../../../utils/loggerConfig';
-import { debugState, clientDebugState } from '../../../utils/clientDebugState';
+import { debugState } from '../../../utils/clientDebugState';
 import { unifiedApiClient } from '../../../services/api/UnifiedApiClient';
 import { WebSocketAdapter } from '../../../store/websocketStore';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { BinaryNodeData, parseBinaryNodeData, createBinaryNodeData, Vec3, BINARY_NODE_SIZE } from '../../../types/binaryProtocol';
+import { stringToU32 } from '../../../types/idMapping';
 import { graphWorkerProxy } from './graphWorkerProxy';
 import type { GraphData, Node, Edge } from './graphWorkerProxy';
 import { startTransition } from 'react';
@@ -368,16 +369,16 @@ class GraphDataManager {
     this.reverseNodeIdMap.clear();
     
     
-    validatedData.nodes.forEach((node, index) => {
+    validatedData.nodes.forEach((node) => {
       const numericId = parseInt(node.id, 10);
       if (!isNaN(numericId) && numericId >= 0 && numericId <= 0xFFFFFFFF) {
-        
         this.nodeIdMap.set(node.id, numericId);
         this.reverseNodeIdMap.set(numericId, node.id);
       } else {
-        
-        
-        const mappedId = index + 1;
+        let mappedId = stringToU32(node.id);
+        while (this.reverseNodeIdMap.has(mappedId) && this.reverseNodeIdMap.get(mappedId) !== node.id) {
+          mappedId = (mappedId + 1) >>> 0;
+        }
         this.nodeIdMap.set(node.id, mappedId);
         this.reverseNodeIdMap.set(mappedId, node.id);
       }
@@ -471,9 +472,10 @@ class GraphDataManager {
       this.nodeIdMap.set(node.id, numericId);
       this.reverseNodeIdMap.set(numericId, node.id);
     } else {
-      
-      const currentData = await graphWorkerProxy.getGraphData();
-      const mappedId = currentData.nodes.length + 1;
+      let mappedId = stringToU32(node.id);
+      while (this.reverseNodeIdMap.has(mappedId) && this.reverseNodeIdMap.get(mappedId) !== node.id) {
+        mappedId = (mappedId + 1) >>> 0;
+      }
       this.nodeIdMap.set(node.id, mappedId);
       this.reverseNodeIdMap.set(mappedId, node.id);
     }

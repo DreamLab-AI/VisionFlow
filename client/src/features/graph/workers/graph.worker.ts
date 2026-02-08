@@ -2,6 +2,7 @@
 
 import { expose } from 'comlink';
 import { BinaryNodeData, parseBinaryNodeData, createBinaryNodeData, Vec3 } from '../../../types/binaryProtocol';
+import { stringToU32 } from '../../../types/idMapping';
 
 // Worker-safe logger (createLogger depends on localStorage/window which are unavailable in Workers)
 // Only warn/error by default; set self.__WORKER_DEBUG = true in devtools to enable info/debug
@@ -195,6 +196,12 @@ class GraphWorker {
       edges: data.edges
     };
 
+    // Capture old state BEFORE clearing maps — needed for position preservation.
+    // The nodeIndexMap maps nodeId → array index in the OLD position buffers.
+    const nodeCount = data.nodes.length;
+    const oldCurrentPos = this.currentPositions;
+    const oldTargetPos = this.targetPositions;
+    const oldNodeIndexMap = new Map(this.nodeIndexMap);
 
     this.nodeIdMap.clear();
     this.reverseNodeIdMap.clear();
@@ -209,7 +216,10 @@ class GraphWorker {
             this.nodeIdMap.set(nodeId, numericId);
             this.reverseNodeIdMap.set(numericId, nodeId);
         } else {
-            const mappedId = index + 1;
+            let mappedId = stringToU32(nodeId);
+            while (this.reverseNodeIdMap.has(mappedId) && this.reverseNodeIdMap.get(mappedId) !== nodeId) {
+              mappedId = (mappedId + 1) >>> 0;
+            }
             this.nodeIdMap.set(nodeId, mappedId);
             this.reverseNodeIdMap.set(mappedId, nodeId);
         }
@@ -244,30 +254,58 @@ class GraphWorker {
       this.domainClusters.get(domain)!.push(index);
     });
 
+    // Preserve positions for nodes that already exist (prevents reset on
+    // initialGraphLoad / filter-update / reconnect). Only allocate fresh
+    // positions for genuinely new nodes.
 
-    const nodeCount = data.nodes.length;
-    this.currentPositions = new Float32Array(nodeCount * 3);
-    this.targetPositions = new Float32Array(nodeCount * 3);
-    this.velocities = new Float32Array(nodeCount * 3).fill(0);
+    const newCurrentPositions = new Float32Array(nodeCount * 3);
+    const newTargetPositions = new Float32Array(nodeCount * 3);
+    const newVelocities = new Float32Array(nodeCount * 3);
 
-    data.nodes.forEach((node, index) => {
+    let preservedCount = 0;
+    this.graphData.nodes.forEach((node, index) => {
       const i3 = index * 3;
-      const pos = node.position;
-      this.currentPositions![i3] = pos.x;
-      this.currentPositions![i3 + 1] = pos.y;
-      this.currentPositions![i3 + 2] = pos.z;
+      const oldIndex = oldNodeIndexMap.get(String(node.id));
 
-      this.targetPositions![i3] = pos.x;
-      this.targetPositions![i3 + 1] = pos.y;
-      this.targetPositions![i3 + 2] = pos.z;
+      if (oldIndex !== undefined && oldCurrentPos && oldCurrentPos.length > oldIndex * 3 + 2) {
+        // Existing node — keep its interpolated position
+        const oi3 = oldIndex * 3;
+        newCurrentPositions[i3] = oldCurrentPos[oi3];
+        newCurrentPositions[i3 + 1] = oldCurrentPos[oi3 + 1];
+        newCurrentPositions[i3 + 2] = oldCurrentPos[oi3 + 2];
+
+        if (oldTargetPos && oldTargetPos.length > oi3 + 2) {
+          newTargetPositions[i3] = oldTargetPos[oi3];
+          newTargetPositions[i3 + 1] = oldTargetPos[oi3 + 1];
+          newTargetPositions[i3 + 2] = oldTargetPos[oi3 + 2];
+        } else {
+          newTargetPositions[i3] = newCurrentPositions[i3];
+          newTargetPositions[i3 + 1] = newCurrentPositions[i3 + 1];
+          newTargetPositions[i3 + 2] = newCurrentPositions[i3 + 2];
+        }
+        preservedCount++;
+      } else {
+        // New node — use data position
+        const pos = node.position;
+        newCurrentPositions[i3] = pos.x;
+        newCurrentPositions[i3 + 1] = pos.y;
+        newCurrentPositions[i3 + 2] = pos.z;
+        newTargetPositions[i3] = pos.x;
+        newTargetPositions[i3 + 1] = pos.y;
+        newTargetPositions[i3 + 2] = pos.z;
+      }
     });
 
-    // Reset physics simulation when new data arrives
+    this.currentPositions = newCurrentPositions;
+    this.targetPositions = newTargetPositions;
+    this.velocities = newVelocities;
+
     if (this.graphType === 'visionflow') {
-      this.forcePhysics.alpha = 1.0; // Reheat simulation
+      // Only reheat VisionFlow client-side physics (logseq uses server physics)
+      this.forcePhysics.alpha = 1.0;
       workerLogger.info(`VisionFlow graph initialized with ${nodeCount} nodes, ${data.edges.length} edges, ${this.domainClusters.size} domains`);
     } else {
-      workerLogger.info(`Initialized ${this.graphType} graph with ${this.graphData.nodes.length} nodes`);
+      workerLogger.info(`Initialized ${this.graphType} graph with ${nodeCount} nodes (${preservedCount} positions preserved)`);
     }
   }
 
@@ -402,7 +440,10 @@ class GraphWorker {
         this.nodeIdMap.set(node.id, numericId);
         this.reverseNodeIdMap.set(numericId, node.id);
       } else {
-        const mappedId = newIndex + 1;
+        let mappedId = stringToU32(node.id);
+        while (this.reverseNodeIdMap.has(mappedId) && this.reverseNodeIdMap.get(mappedId) !== node.id) {
+          mappedId = (mappedId + 1) >>> 0;
+        }
         this.nodeIdMap.set(node.id, mappedId);
         this.reverseNodeIdMap.set(mappedId, node.id);
       }
@@ -869,8 +910,8 @@ class GraphWorker {
 
 
 
-      const dtSeconds = deltaTime / 1000;
-      const lerpFactor = 1 - Math.pow(0.001, dtSeconds); 
+      // deltaTime is already in seconds (from Three.js useFrame delta)
+      const lerpFactor = 1 - Math.pow(0.001, deltaTime); 
       
       
       let totalMovement = 0;

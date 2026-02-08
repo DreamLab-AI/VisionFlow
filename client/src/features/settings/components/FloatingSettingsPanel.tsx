@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Settings from 'lucide-react/dist/esm/icons/settings';
-import X from 'lucide-react/dist/esm/icons/x';
+import { Settings, X } from 'lucide-react';
 import { SettingsPanelRedesign } from './panels/SettingsPanelRedesign';
 
 export const FloatingSettingsPanel: React.FC = () => {

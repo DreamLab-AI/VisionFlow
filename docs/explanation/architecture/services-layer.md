@@ -57,6 +57,18 @@ The `SemanticAnalyzer` is responsible for performing advanced semantic analysis 
 
 ---
 
+### 4. Client WebSocket Services (February 2026)
+
+The client-side service layer now includes two new services for WebSocket lifecycle management:
+
+- **WebSocketEventBus** (`client/src/services/WebSocketEventBus.ts`): A typed pub/sub system that routes WebSocket events (connection lifecycle, typed messages, registry events) to decoupled subscribers. This replaces the previous pattern of direct coupling and the `window.webSocketService` global.
+
+- **WebSocketRegistry** (`client/src/services/WebSocketRegistry.ts`): A central connection tracker where all WebSocket services (Voice, Bots, SolidPod, Graph) register their connections. Provides coordinated shutdown via `closeAll()` and connection health monitoring.
+
+These client services follow the same **publish-subscribe** pattern as the backend service layer but operate at the transport level rather than the domain event level.
+
+---
+
 ## Related Documentation
 
 - [Architecture Documentation](README.md)

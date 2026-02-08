@@ -17,12 +17,7 @@ import { Badge } from '@/features/design-system/components/Badge';
 import { Input } from '@/features/design-system/components/Input';
 import { Switch } from '@/features/design-system/components/Switch';
 import { useToast } from '@/features/design-system/components/Toast';
-import Brain from 'lucide-react/dist/esm/icons/brain';
-import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
-import AlertTriangle from 'lucide-react/dist/esm/icons/alert-triangle';
-import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
-import Trash2 from 'lucide-react/dist/esm/icons/trash-2';
-import FileText from 'lucide-react/dist/esm/icons/file-text';
+import { Brain, CheckCircle, AlertTriangle, AlertCircle, Trash2, FileText } from 'lucide-react';
 import { useInferenceService, RunInferenceResponse, OntologyClassification } from '../hooks/useInferenceService';
 
 interface InferencePanelProps {

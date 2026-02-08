@@ -4,6 +4,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { settingsApi, QualityGateSettings } from '../../api/settingsApi';
 import { useSettingsStore } from '../../store/settingsStore';
+import { createLogger } from '../../utils/loggerConfig';
+
+const logger = createLogger('QualityGatePanel');
 
 interface QualityGatePanelProps {
   onError: (message: string) => void;
@@ -59,7 +62,7 @@ export const QualityGatePanel: React.FC<QualityGatePanelProps> = ({
           draft.qualityGates = response.data;
         });
       } catch (error) {
-        console.error('Failed to load quality gate settings:', error);
+        logger.error('Failed to load quality gate settings:', error);
         // Use defaults on error
         setSettings(defaultSettings);
         useSettingsStore.getState().updateSettings((draft: any) => {
@@ -81,10 +84,10 @@ export const QualityGatePanel: React.FC<QualityGatePanelProps> = ({
       useSettingsStore.getState().updateSettings((draft: any) => {
         draft.qualityGates = newSettings;
       });
-      console.log('[QualityGatePanel] Updated qualityGates in store:', newSettings);
+      logger.debug('Updated qualityGates in store:', newSettings);
       onSuccess('Quality gate settings updated');
     } catch (error) {
-      console.error('Failed to save quality gate settings:', error);
+      logger.error('Failed to save quality gate settings:', error);
       onError('Failed to save quality gate settings');
     } finally {
       setSaving(false);

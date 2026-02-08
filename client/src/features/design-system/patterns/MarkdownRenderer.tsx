@@ -6,11 +6,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { cn } from '@/utils/classNameUtils';
 import { Button } from '@/features/design-system/components/Button';
-import Download from 'lucide-react/dist/esm/icons/download';
-import Check from 'lucide-react/dist/esm/icons/check';
-import Settings from 'lucide-react/dist/esm/icons/settings';
-import Terminal from 'lucide-react/dist/esm/icons/terminal';
-import Anchor from 'lucide-react/dist/esm/icons/anchor';
+import { Download, Check, Settings, Terminal, Anchor } from 'lucide-react';
 
 // Interactive code block component
 const InteractiveCodeBlock = ({ language, code, className }: { language: string; code: string; className?: string }) => {

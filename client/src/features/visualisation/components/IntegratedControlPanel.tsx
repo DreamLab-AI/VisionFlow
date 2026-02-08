@@ -6,6 +6,9 @@ import { TooltipProvider } from '../../design-system/components/Tooltip';
 import ErrorBoundary from '../../../components/ErrorBoundary';
 // Import to trigger scrollbar-hiding CSS injection
 import '../../design-system/components/ScrollArea';
+import { createLogger } from '../../../utils/loggerConfig';
+
+const logger = createLogger('IntegratedControlPanel');
 
 // Control Panel Components
 import { ControlPanelHeader } from './ControlPanel/ControlPanelHeader';
@@ -146,7 +149,7 @@ const IntegratedControlPanelInner: React.FC<ControlPanelProps> = ({
             graphId="current"
             graphData={graphData}
             onExport={(format, options) => {
-              console.log('Export:', format, options);
+              logger.debug('Export:', format, options);
             }}
           />
         );
@@ -386,8 +389,8 @@ const IntegratedControlPanelInner: React.FC<ControlPanelProps> = ({
               <TabsContent key={tab.id} value={tab.id}>
                 <UnifiedSettingsTabContent
                   sectionId={tab.id}
-                  onError={(err) => console.error('Settings error:', err)}
-                  onSuccess={(msg) => console.log('Settings success:', msg)}
+                  onError={(err) => logger.error('Settings error:', err)}
+                  onSuccess={(msg) => logger.debug('Settings success:', msg)}
                 />
               </TabsContent>
             ))}

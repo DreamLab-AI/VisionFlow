@@ -344,6 +344,51 @@ pub fn socket-flow-updates() -> RateLimitConfig {
 }
 ```
 
+## Client-Side WebSocket Architecture (February 2026)
+
+### WebSocketEventBus
+
+The client now uses a typed pub/sub event bus (`client/src/services/WebSocketEventBus.ts`) for cross-service WebSocket event routing. This replaces the previous pattern of direct coupling between WebSocket handlers and consuming services.
+
+**Event Categories:**
+
+| Category | Events | Description |
+|----------|--------|-------------|
+| `connection` | `open`, `close`, `error` | Connection lifecycle events |
+| `message` | `graph`, `voice`, `bots`, `pod` | Typed message routing by service domain |
+| `registry` | `registered`, `unregistered`, `closedAll` | Connection tracking events |
+
+**Usage:**
+```typescript
+import { webSocketEventBus } from '@/services/WebSocketEventBus';
+
+// Subscribe to graph messages
+const unsub = webSocketEventBus.on('message:graph', (data) => {
+  // Handle binary graph update
+});
+
+// Publish connection event
+webSocketEventBus.emit('connection:open', { url, protocol });
+```
+
+### WebSocketRegistry
+
+A central connection lifecycle tracker (`client/src/services/WebSocketRegistry.ts`) manages all WebSocket connections. Services register their connections on open and unregister on close, providing a single point for connection health monitoring and coordinated shutdown.
+
+**Registered Services:**
+- Voice WebSocket (WebRTC signaling)
+- Bots WebSocket (agent telemetry)
+- SolidPod WebSocket (pod sync)
+- Graph WebSocket (binary position updates)
+
+**Key Operations:**
+- `register(name, ws)` -- Track a new connection
+- `unregister(name)` -- Remove a closed connection
+- `closeAll()` -- Coordinated shutdown of all connections
+- `getConnection(name)` -- Retrieve a specific connection
+
+> **Migration Note (February 2026):** The `window.webSocketService` global has been removed. All modules now import WebSocket services directly via ES module imports.
+
 ## Connection Management
 
 ### Heartbeat Protocol

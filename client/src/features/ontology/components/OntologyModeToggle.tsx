@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '../../design-system/components/Button';
 import { Badge } from '../../design-system/components/Badge';
-import Network from 'lucide-react/dist/esm/icons/network';
-import Database from 'lucide-react/dist/esm/icons/database';
+import { Network, Database } from 'lucide-react';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { createLogger } from '../../../utils/loggerConfig';
 

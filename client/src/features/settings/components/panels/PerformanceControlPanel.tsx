@@ -1,11 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Zap from 'lucide-react/dist/esm/icons/zap';
-import Cpu from 'lucide-react/dist/esm/icons/cpu';
-import MemoryStick from 'lucide-react/dist/esm/icons/memory-stick';
-import Gauge from 'lucide-react/dist/esm/icons/gauge';
-import TrendingUp from 'lucide-react/dist/esm/icons/trending-up';
-import Activity from 'lucide-react/dist/esm/icons/activity';
-import SettingsIcon from 'lucide-react/dist/esm/icons/settings';
+import { Zap, Cpu, MemoryStick, Gauge, TrendingUp, Activity, Settings as SettingsIcon } from 'lucide-react';
 import { useSettingsStore } from '@/store/settingsStore';
 import { Button } from '@/features/design-system/components/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/features/design-system/components/Card';

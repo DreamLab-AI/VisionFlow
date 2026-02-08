@@ -5,7 +5,7 @@ import type { Vec3 } from '../types/binaryProtocol';
 
 const logger = createLogger('BinaryWebSocketProtocol');
 
-// Protocol versions (V1 removed - no backward compatibility)
+// Protocol versions
 export const PROTOCOL_V2 = 2;  // Supported
 export const PROTOCOL_V3 = 3;  // CURRENT: Analytics extension (48 bytes/node)
 export const PROTOCOL_VERSION = PROTOCOL_V3;  // Default to V3
@@ -179,14 +179,14 @@ export interface GraphUpdateHeader extends MessageHeader {
   graphTypeFlag: GraphTypeFlag; 
 }
 
-// Constants for binary layout (V2+ only - V1 removed)
+// Constants for binary layout (V2+)
 export const MESSAGE_HEADER_SIZE = 4;
 export const GRAPH_UPDATE_HEADER_SIZE = 5;
 export const AGENT_POSITION_SIZE_V2 = 21;  // 4 (u32 id) + 12 (pos) + 4 (timestamp) + 1 (flags)
 export const AGENT_STATE_SIZE_V2 = 49;     // Full agent state with u32 IDs
 export const SSSP_DATA_SIZE_V2 = 12;       // SSSP with u32 IDs
 
-// Canonical sizes (V1 removed)
+// Canonical sizes (V2+)
 export const AGENT_POSITION_SIZE = AGENT_POSITION_SIZE_V2;
 export const AGENT_STATE_SIZE = AGENT_STATE_SIZE_V2;
 export const SSSP_DATA_SIZE = SSSP_DATA_SIZE_V2;

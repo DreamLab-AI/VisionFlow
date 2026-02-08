@@ -252,6 +252,32 @@ class BinaryProtocolParser {
 
 ---
 
+## Client-Side WebSocket Management (February 2026)
+
+### WebSocketEventBus
+
+The client routes all WebSocket events through a typed event bus (`client/src/services/WebSocketEventBus.ts`). This replaces direct coupling between WebSocket handlers and consuming services.
+
+**Event Categories:**
+- `connection:open/close/error` -- Connection lifecycle
+- `message:graph/voice/bots/pod` -- Typed message routing by service domain
+- `registry:registered/unregistered/closedAll` -- Connection tracking
+
+### WebSocketRegistry
+
+All WebSocket connections register with a central registry (`client/src/services/WebSocketRegistry.ts`). This provides:
+- Single point for connection health monitoring
+- Coordinated shutdown via `closeAll()`
+- Named connection lookup via `getConnection(name)`
+
+**Registered connections:** Voice, Bots, SolidPod, Graph
+
+### Settings Pipeline
+
+Backend physics and quality-gate PUT handlers now accept partial JSON patches. The `useSelectiveSettingsStore` hook has been simplified from 548 to 152 lines, using native Zustand selectors instead of manual caching/TTL/debouncing. The quality-gate `maxNodeCount` default has been raised from 10,000 to 500,000.
+
+---
+
 ## Related Documentation
 
 - [Binary Protocol Specification](../protocols/binary-websocket.md)

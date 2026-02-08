@@ -5,8 +5,12 @@ import { AudioInputService, AudioChunk, AudioInputState } from './AudioInputServ
 import { useSettingsStore } from '../store/settingsStore';
 import { gatedConsole } from '../utils/console';
 import { createLogger } from '../utils/loggerConfig';
+import { webSocketRegistry } from './WebSocketRegistry';
+import { webSocketEventBus } from './WebSocketEventBus';
 
 const logger = createLogger('VoiceWebSocketService');
+
+const REGISTRY_NAME = 'voice';
 
 export interface VoiceMessage {
   type: 'tts' | 'stt' | 'audio_chunk' | 'transcription' | 'error' | 'connected';
@@ -80,6 +84,8 @@ export class VoiceWebSocketService {
         this.socket.onopen = () => {
           gatedConsole.voice.log('Voice WebSocket connected');
           this.reconnectAttempts = 0;
+          webSocketRegistry.register(REGISTRY_NAME, url, this.socket!);
+          webSocketEventBus.emit('connection:open', { name: REGISTRY_NAME, url });
           this.emit('connected');
           resolve();
         };
@@ -90,14 +96,21 @@ export class VoiceWebSocketService {
 
         this.socket.onclose = (event) => {
           gatedConsole.voice.log('Voice WebSocket disconnected');
+          webSocketRegistry.unregister(REGISTRY_NAME);
+          webSocketEventBus.emit('connection:close', {
+            name: REGISTRY_NAME,
+            code: event.code,
+            reason: event.reason,
+          });
           this.emit('disconnected', event);
-          if (event.code !== 1000) { 
+          if (event.code !== 1000) {
             this.attemptReconnect(url);
           }
         };
 
         this.socket.onerror = (error) => {
           gatedConsole.voice.error('Voice WebSocket error:', error);
+          webSocketEventBus.emit('connection:error', { name: REGISTRY_NAME, error });
           this.emit('error', error);
           reject(error);
         };
@@ -123,6 +136,9 @@ export class VoiceWebSocketService {
       if (message.type === 'error') {
         logger.error('Raw error message from server', message);
       }
+
+      // Emit to cross-service event bus for any listener
+      webSocketEventBus.emit('message:voice', { data: message });
 
       switch (message.type) {
         case 'connected':
@@ -385,11 +401,12 @@ export class VoiceWebSocketService {
   
   async disconnect(): Promise<void> {
     this.stopAllAudio();
+    webSocketRegistry.unregister(REGISTRY_NAME);
     if (this.socket) {
-      this.socket.close(1000, 'Normal closure'); 
+      this.socket.close(1000, 'Normal closure');
       this.socket = null;
     }
-    
+
     this.reconnectAttempts = this.maxReconnectAttempts;
   }
 

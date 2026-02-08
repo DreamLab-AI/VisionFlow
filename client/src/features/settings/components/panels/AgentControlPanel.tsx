@@ -1,19 +1,7 @@
 
 
 import React, { useState, useEffect } from 'react';
-import Activity from 'lucide-react/dist/esm/icons/activity';
-import Play from 'lucide-react/dist/esm/icons/play';
-import Pause from 'lucide-react/dist/esm/icons/pause';
-import Square from 'lucide-react/dist/esm/icons/square';
-import SettingsIcon from 'lucide-react/dist/esm/icons/settings';
-import RefreshCw from 'lucide-react/dist/esm/icons/refresh-cw';
-import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
-import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
-import XCircle from 'lucide-react/dist/esm/icons/x-circle';
-import Users from 'lucide-react/dist/esm/icons/users';
-import Cpu from 'lucide-react/dist/esm/icons/cpu';
-import Zap from 'lucide-react/dist/esm/icons/zap';
-import Layers from 'lucide-react/dist/esm/icons/layers';
+import { Activity, Play, Pause, Square, Settings as SettingsIcon, RefreshCw, AlertCircle, CheckCircle, XCircle, Users, Cpu, Zap, Layers } from 'lucide-react';
 import { Button } from '../../../design-system/components/Button';
 import { AgentTelemetryStream } from '../../../bots/components/AgentTelemetryStream';
 import { useSettingsStore } from '../../../../store/settingsStore';

@@ -6,15 +6,7 @@
  */
 
 import React, { useState, useMemo, useCallback } from 'react';
-import Zap from 'lucide-react/dist/esm/icons/zap';
-import Search from 'lucide-react/dist/esm/icons/search';
-import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
-import XCircle from 'lucide-react/dist/esm/icons/x-circle';
-import Play from 'lucide-react/dist/esm/icons/play';
-import Settings2 from 'lucide-react/dist/esm/icons/settings-2';
-import Filter from 'lucide-react/dist/esm/icons/filter';
-import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down';
-import ChevronRight from 'lucide-react/dist/esm/icons/chevron-right';
+import { Zap, Search, CheckCircle, XCircle, Play, Settings2, Filter, ChevronDown, ChevronRight } from 'lucide-react';
 import { Button } from '../../../design-system/components/Button';
 import {
   skillDefinitions,

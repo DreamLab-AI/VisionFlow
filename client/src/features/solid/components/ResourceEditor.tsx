@@ -4,15 +4,7 @@
  */
 
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import Save from 'lucide-react/dist/esm/icons/save';
-import X from 'lucide-react/dist/esm/icons/x';
-import RefreshCw from 'lucide-react/dist/esm/icons/refresh-cw';
-import AlertTriangle from 'lucide-react/dist/esm/icons/alert-triangle';
-import Check from 'lucide-react/dist/esm/icons/check';
-import Clock from 'lucide-react/dist/esm/icons/clock';
-import FileJson from 'lucide-react/dist/esm/icons/file-json';
-import Code from 'lucide-react/dist/esm/icons/code';
-import Eye from 'lucide-react/dist/esm/icons/eye';
+import { Save, X, RefreshCw, AlertTriangle, Check, Clock, FileJson, Code, Eye } from 'lucide-react';
 import { Button } from '@/features/design-system/components/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/features/design-system/components/Card';
 import { Badge } from '@/features/design-system/components/Badge';

@@ -1,10 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Activity from 'lucide-react/dist/esm/icons/activity';
-import RefreshCw from 'lucide-react/dist/esm/icons/refresh-cw';
-import Gauge from 'lucide-react/dist/esm/icons/gauge';
-import Layers from 'lucide-react/dist/esm/icons/layers';
-import TrendingUp from 'lucide-react/dist/esm/icons/trending-up';
-import SettingsIcon from 'lucide-react/dist/esm/icons/settings';
+import { Activity, RefreshCw, Gauge, Layers, TrendingUp, Settings as SettingsIcon } from 'lucide-react';
 import { useSettingsStore } from '../../../../store/settingsStore';
 import { Button } from '@/features/design-system/components/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/features/design-system/components/Card';

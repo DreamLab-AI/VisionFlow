@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Activity, Wifi, Database, Server, Check, AlertCircle, Loader, Filter } from 'lucide-react';
+import { webSocketService } from '../../../../store/websocketStore';
 
 interface ConnectionStatus {
   websocket: 'connected' | 'connecting' | 'disconnected';
@@ -47,13 +48,13 @@ export const SystemHealthIndicator: React.FC<SystemHealthIndicatorProps> = ({
 
   // Listen for filter updates from WebSocket
   useEffect(() => {
-    const wsService = (window as any).webSocketService;
-    if (wsService) {
-      const unsubscribe = wsService.on('filterApplied', (data: { visibleNodes: number; totalNodes: number }) => {
+    if (webSocketService) {
+      const unsubscribe = webSocketService.on('filterApplied', (data: unknown) => {
+        const filterData = data as { visibleNodes: number; totalNodes: number };
         setStatus(prev => ({
           ...prev,
-          visibleNodes: data.visibleNodes,
-          totalNodes: data.totalNodes
+          visibleNodes: filterData.visibleNodes,
+          totalNodes: filterData.totalNodes
         }));
       });
       return unsubscribe;

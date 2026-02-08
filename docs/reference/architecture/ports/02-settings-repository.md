@@ -480,6 +480,24 @@ async fn test-settings-repository-contract() {
 }
 ```
 
+## Client-Side Settings Pipeline (February 2026)
+
+### Partial JSON Updates
+
+The backend physics and quality-gate PUT handlers now accept partial JSON patches. Instead of requiring a full settings payload, clients can send only the changed fields, which are merged into the current settings server-side. This reduces bandwidth and simplifies the client implementation.
+
+### Simplified useSelectiveSettingsStore
+
+The client-side `useSelectiveSettingsStore` hook has been reduced from 548 to 152 lines. The manual caching, TTL expiration, and debouncing infrastructure has been removed in favour of native Zustand selectors, which provide automatic memoization and re-render optimization.
+
+### Quality Gate Defaults
+
+The `maxNodeCount` quality gate default has been raised from 10,000 to 500,000, reflecting the system's ability to handle larger graphs with the optimized rendering pipeline.
+
+### ForceComputeActor State Preservation
+
+The backend `ForceComputeActor` no longer resets `iteration_count`, `stability_iterations`, or `reheat_factor` when settings updates arrive. This ensures the physics simulation maintains convergence continuity across settings changes.
+
 ## Performance Considerations
 
 ### Optimization Strategies

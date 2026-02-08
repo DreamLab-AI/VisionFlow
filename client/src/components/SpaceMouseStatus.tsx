@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import AlertTriangle from 'lucide-react/dist/esm/icons/alert-triangle';
-import Info from 'lucide-react/dist/esm/icons/info';
+import { AlertTriangle, Info } from 'lucide-react';
 import { SpaceDriver } from '../services/SpaceDriverService';
 
 export const SpaceMouseStatus: React.FC = () => {

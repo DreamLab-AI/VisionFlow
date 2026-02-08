@@ -63,15 +63,23 @@ interface GraphNode {
 - **Colours**: Type-based (gold folders, turquoise files, etc.)
 - **Shapes**: Spheres, cubes, octahedrons, cones, torus based on metadata
 - **Materials**: HologramNodeMaterial with emissive glow
-- **Scaling**: Connection-based and type-importance scaling
+- **Scaling**: Connection-based and type-importance scaling, now respects `nodeSize` setting via `sizeMultiplier`
 - **Labels**: Billboard text with metadata display
 - **SSSP Visualisation**: Colour gradient from green (close) to red (far) from source node
 
+> **Update (February 2026) -- MetadataShapes:** Geometry sizes are now normalized to ~0.5 bounding sphere radius for consistent sizing across shape types. The `nodeSize` setting applies a `sizeMultiplier` to all metadata shapes. Settings lookups have been hoisted out of the per-node per-frame loop, improving rendering performance on large graphs.
+
+> **Update (February 2026) -- KnowledgeRings:** Ring rendering is now gated to nodes positively identified as `knowledge_graph` type. The previous behaviour of falling back to the `graphMode` default has been removed, which prevents KnowledgeRings from appearing on non-knowledge nodes in mixed-graph views.
+
 ### Data Flow
-1. `graphDataManager` → fetches from `/api/graph/data`
-2. `graphWorkerProxy` → handles physics simulation
-3. Binary position updates via WebSocket
+1. `graphDataManager` -- fetches from `/api/graph/data`
+2. `graphWorkerProxy` -- handles physics simulation in Web Worker
+3. Binary position updates via WebSocket (routed through WebSocketEventBus)
 4. Real-time updates to Three.js meshes
+
+> **Update (February 2026) -- Graph Worker Position Preservation:** When `setGraphData()` is called (initial load, filter updates, reconnects), the worker now preserves interpolated positions for existing nodes. Only genuinely new nodes receive fresh random positions. This eliminates the visual "explosion" on graph reloads. The worker uses FNV-1a hashed IDs (from `idMapping.ts`) to match existing nodes across calls.
+
+> **Update (February 2026) -- Interpolation Fix:** The server physics lerp factor was corrected from `deltaTime / 1000` to `1 - Math.pow(0.001, deltaTime)`. The previous formula was 1000x too slow because `deltaTime` from the Three.js clock is already in seconds. Convergence improved from ~16 minutes to ~1 second.
 
 ## 3. Agent Graph Visualisation
 
@@ -151,19 +159,35 @@ interface BotsAgent {
 ### Binary Protocol Support (`types/binaryProtocol.ts`)
 ```typescript
 interface BinaryNodeData {
-  nodeId: number;        // u16 with flags
+  nodeId: number;        // u32 with flags (V2+)
   position: Vec3;        // 3x f32
   velocity: Vec3;        // 3x f32
   ssspDistance: number;  // f32
   ssspParent: number;    // i32
 }
-// Total: 34 bytes per node
+// Total: 36 bytes per node (V2), 48 bytes (V3)
 ```
 
-**Node Type Flags**:
-- `AGENT-NODE-FLAG = 0x8000`: Bit 15 for agent nodes
-- `KNOWLEDGE-NODE-FLAG = 0x4000`: Bit 14 for knowledge nodes
-- `NODE-ID-MASK = 0x3FFF`: Actual ID in bits 0-13
+**Node Type Flags (V2+, u32)**:
+- `AGENT_NODE_FLAG = 0x80000000`: Bit 31 for agent nodes
+- `KNOWLEDGE_NODE_FLAG = 0x40000000`: Bit 30 for knowledge nodes
+- `NODE_ID_MASK = 0x3FFFFFFF`: Actual ID in bits 0-29
+
+> **Update (February 2026):** V1 binary protocol code (u16 IDs, 34 bytes/node) has been fully removed from the client codebase.
+
+### Stable ID Mapping (`types/idMapping.ts`)
+
+Non-numeric node IDs (e.g., string-based Logseq page names) are mapped to stable u32 numeric IDs using FNV-1a hashing. The shared `stringToU32` function in `client/src/types/idMapping.ts` provides deterministic mapping that survives graph reloads and filter updates.
+
+```typescript
+// FNV-1a hash for stable string -> u32 mapping
+function stringToU32(str: string): number;
+
+// Collision resolution via linear probe
+// Ensures unique IDs across the graph
+```
+
+**Key property:** Unlike the previous `index + 1` approach, FNV-1a produces the same numeric ID for the same string ID across different `setGraphData()` calls. This is critical for position preservation when the graph worker receives updated graph data.
 
 ## 5. Graph Coexistence Strategy
 
@@ -250,10 +274,11 @@ interface BinaryNodeData {
 - ✅ Camera and lighting setup
 - ✅ Post-processing effects (SelectiveBloom)
 - ✅ Control systems (OrbitControls, SpacePilot)
-- ✅ Settings management
-- ✅ WebSocket service (different message types)
+- ✅ Settings management (simplified `useSelectiveSettingsStore`, 152 lines)
+- ✅ WebSocket service (routed via WebSocketEventBus + WebSocketRegistry)
 - ✅ Performance monitoring
 - ✅ Holographic environment
+- ✅ Stable ID mapping (`idMapping.ts` with FNV-1a hash)
 
 ### Distinct Infrastructure
 - ❌ Data managers (GraphDataManager vs BotsDataContext)
@@ -270,7 +295,7 @@ Based on the existing architecture, potential enhancements could include:
 
 1. **Agent Graph Analytics**: Extend SSSP and clustering to agent relationships
 2. **Cross-Graph Interactions**: Visual connections between knowledge and agent nodes
-3. **Unified Binary Protocol**: Extend binary updates to agent positions
+3. ~~**Unified Binary Protocol**: Extend binary updates to agent positions~~ ✅ Completed (V3 protocol with type flags)
 4. **Agent Distribution Controls**: Apply semantic clustering to agent swarms
 5. **Performance Correlation**: Visual links between code nodes and executing agents
 6. **Unified Material System**: Shared holographic effects for both graph types

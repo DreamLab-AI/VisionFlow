@@ -4,6 +4,9 @@ import React, { useState, useCallback } from 'react';
 import { Eye, Zap, TrendingUp, MousePointer2, Download } from 'lucide-react';
 import { useSettingsStore } from '../../../../store/settingsStore';
 import type { GraphNode, GraphEdge } from '@/features/graph/types/graphTypes';
+import { createLogger } from '../../../../utils/loggerConfig';
+
+const logger = createLogger('RestoredGraphTabs');
 
 interface GraphTabProps {
   graphId?: string;
@@ -210,7 +213,7 @@ export const RestoredGraphOptimisationTab: React.FC<GraphTabProps> = ({ graphDat
       </div>
 
       <button
-        onClick={() => console.log('Optimize triggered')}
+        onClick={() => logger.debug('Optimize triggered')}
         style={{
           width: '100%',
           background: 'linear-gradient(to right, #f59e0b, #d97706)',
@@ -309,7 +312,7 @@ export const RestoredGraphExportTab: React.FC<GraphTabProps> = ({ graphData }) =
   const includeMetadata = exportSettings?.includeMetadata ?? true;
 
   const handleExport = () => {
-    console.log('Exporting as', format, 'with metadata:', includeMetadata);
+    logger.debug('Exporting as', format, 'with metadata:', includeMetadata);
     
   };
 

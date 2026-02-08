@@ -9,18 +9,17 @@ import { initializeDebugSystem } from '../utils/debugConfig';
 import { unifiedApiClient } from '../services/api/UnifiedApiClient';
 import { initializeAuthInterceptor, setupAuthStateListener } from '../services/api/authInterceptor';
 import { useSettingsStore } from '../store/settingsStore';
-import { webSocketService, useWebSocketStore } from '../store/websocketStore';
+import { useWebSocketStore } from '../store/websocketStore';
 import '../styles/index.css';
 
 
 // Initialize debug system before app starts
 initializeDebugSystem();
 
-// Expose stores and services for testing/debugging (dev mode only)
+// Expose stores for testing/debugging (dev mode only)
 if (import.meta.env.DEV) {
   (window as any).useSettingsStore = useSettingsStore;
   (window as any).useWebSocketStore = useWebSocketStore;
-  (window as any).webSocketService = webSocketService;
 }
 
 // Initialize authentication interceptor for all API calls

@@ -10,6 +10,7 @@ import { isViewportSetting } from '../features/settings/config/viewportSettings'
 import { settingsApi } from '../api/settingsApi';
 import { nostrAuth } from '../services/nostrAuthService';
 import { autoSaveManager } from './autoSaveManager';
+import { webSocketService } from './websocketStore';
 
 
 
@@ -741,17 +742,12 @@ export const useSettingsStore = create<SettingsState>()(
         if (typeof window !== 'undefined') {
           try {
             
-            const wsService = (window as unknown as Record<string, unknown>).webSocketService as
-              { isConnected?: () => boolean; send?: (msg: unknown) => void } | undefined;
-            if (wsService && wsService.isConnected && wsService.isConnected()) {
-              const message = {
-                type: 'physics_parameter_update',
+            if (webSocketService && webSocketService.isConnected) {
+              webSocketService.sendMessage('physics_parameter_update', {
                 timestamp: Date.now(),
                 graph: graphName,
                 parameters: params
-              };
-              
-              wsService.send?.(message);
+              });
               
               if (debugState.isEnabled()) {
                 logger.info('Physics update sent via WebSocket:', {

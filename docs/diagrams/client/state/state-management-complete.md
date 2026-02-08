@@ -1052,24 +1052,20 @@ const damping = useSelectiveSetting<number>(
 
 #### useSelectiveSettings (Batch)
 
+> **Update (February 2026):** `useSelectiveSettingsStore` has been simplified from 548 lines to 152 lines. Manual caching, TTL expiration, and debouncing logic have been removed. The hook now uses Zustand selectors natively, which provide automatic memoization and re-render optimization without custom infrastructure.
+
 ```typescript
-// Load multiple settings with batch API call
+// Load multiple settings with Zustand selectors (simplified)
 const { damping, repelK, maxVelocity } = useSelectiveSettings({
   damping: 'physics.damping',
   repelK: 'physics.repelK',
   maxVelocity: 'physics.maxVelocity'
-}, {
-  enableBatchLoading: true,   // Single API call for all paths
-  enableCache: true,          // Cache responses
-  fallbackToStore: true       // Fallback on API failure
 })
 
-// Implementation:
-1. Debounce multiple path requests (50ms)
-2. Send single batch API call
-3. Cache individual responses
-4. Subscribe to all paths in store
-5. Return merged API + store values
+// Implementation (simplified):
+// 1. Zustand selector subscribes to specific paths
+// 2. Automatic memoization prevents unnecessary re-renders
+// 3. No manual caching/TTL/debouncing needed
 ```
 
 #### useSettingSetter

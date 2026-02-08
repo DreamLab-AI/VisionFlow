@@ -2,8 +2,7 @@ import React, { useMemo, useCallback, memo } from 'react';
 // @ts-ignore - react-window types may not match exactly
 import { FixedSizeList as List } from 'react-window';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/features/design-system/components/Card';
-import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down';
-import Check from 'lucide-react/dist/esm/icons/check';
+import { ChevronDown, Check } from 'lucide-react';
 import { SettingControlComponent } from './SettingControlComponent';
 import { useSettingsStore } from '@/store/settingsStore';
 import { cn } from '@/utils/classNameUtils';

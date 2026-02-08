@@ -1,8 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useThree } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
 import { useSpacePilot } from '../hooks/useSpacePilot';
 import { useSettingsStore } from '../../../store/settingsStore';
+import { createLogger } from '../../../utils/loggerConfig';
+
+const logger = createLogger('SpacePilot');
 
 interface SpacePilotIntegrationProps {
   orbitControlsRef?: React.RefObject<any>;
@@ -19,13 +21,13 @@ export const SpacePilotIntegration: React.FC<SpacePilotIntegrationProps> = ({ or
     enabled: spacePilotEnabled,
     orbitControlsRef: orbitControlsRef,
     onConnect: () => {
-      console.log('[SpacePilot] Connected to 6DOF controller');
+      logger.info('Connected to 6DOF controller');
     },
     onDisconnect: () => {
-      console.log('[SpacePilot] Disconnected from 6DOF controller');
+      logger.info('Disconnected from 6DOF controller');
     },
     onModeChange: (mode) => {
-      console.log('[SpacePilot] Mode changed to:', mode);
+      logger.info('Mode changed to:', mode);
     }
   });
 

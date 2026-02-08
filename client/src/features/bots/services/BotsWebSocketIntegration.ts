@@ -2,6 +2,7 @@ import { createLogger } from '../../../utils/loggerConfig';
 import { agentTelemetry } from '../../../telemetry/AgentTelemetry';
 import { webSocketService } from '../../../store/websocketStore';
 import { agentPollingService } from './AgentPollingService';
+import { webSocketEventBus } from '../../../services/WebSocketEventBus';
 import type { BotsAgent, BotsEdge, BotsCommunication } from '../types/BotsTypes';
 
 const logger = createLogger('BotsWebSocketIntegration');
@@ -51,6 +52,9 @@ export class BotsWebSocketIntegration {
     // Cast to any to handle Bots-specific message types not in standard WS types
     webSocketService.onMessage((message: any) => {
       agentTelemetry.logWebSocketMessage(message.type || 'unknown', 'incoming', message.data);
+
+      // Emit to cross-service event bus
+      webSocketEventBus.emit('message:bots', { data: message });
 
       if (message.type === 'graph-update') {
         logger.debug('Received Logseq graph update', message.data);

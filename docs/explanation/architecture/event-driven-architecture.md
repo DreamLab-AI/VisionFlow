@@ -228,6 +228,37 @@ Middleware provides retry logic and error handling.
 ### 6. Observability
 Metrics and logging middleware provide system insights.
 
+## Client-Side Event Bus (February 2026)
+
+In addition to the backend Rust event bus, the client now implements its own typed event bus pattern for WebSocket event distribution.
+
+### WebSocketEventBus
+
+**Location:** `client/src/services/WebSocketEventBus.ts`
+
+A lightweight pub/sub system that decouples WebSocket message producers from consumers on the client side. Unlike the backend event bus which handles domain events (NodeAdded, EdgeRemoved, etc.), the client event bus routes transport-level events across service boundaries.
+
+**Event Types:**
+- **Connection events** (`connection:open`, `connection:close`, `connection:error`) -- lifecycle tracking
+- **Message events** (`message:graph`, `message:voice`, `message:bots`, `message:pod`) -- typed message routing
+- **Registry events** (`registry:registered`, `registry:unregistered`, `registry:closedAll`) -- connection tracking
+
+**Relationship to Backend Event Bus:**
+```
+Backend Event Bus (Rust)          Client Event Bus (TypeScript)
+├── Domain Events                 ├── Connection Events
+│   ├── NodeAddedEvent            │   ├── connection:open
+│   ├── EdgeRemovedEvent          │   ├── connection:close
+│   └── SettingUpdatedEvent       │   └── connection:error
+├── Middleware Pipeline            ├── Message Events (by service)
+│   ├── LoggingMiddleware         │   ├── message:graph (binary)
+│   └── MetricsMiddleware         │   ├── message:voice
+│                                 │   └── message:bots
+└── Event Store (persistent)      └── Registry Events (lifecycle)
+```
+
+The two event bus systems are complementary: the backend bus handles domain event sourcing and cross-actor communication, while the client bus handles WebSocket connection multiplexing and service-level message routing.
+
 ## Integration with Actor System
 
 Events complement the actor system by providing:

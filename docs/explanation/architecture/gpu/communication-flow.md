@@ -96,6 +96,7 @@ See `/docs/guides/graphserviceactor-migration.md` for migration details.
 
 ### ForceComputeActor
 - **Role**: Physics simulation execution (after GPU initialization)
+- **State Preservation (February 2026)**: On settings updates, `iteration_count`, `stability_iterations`, and `reheat_factor` are no longer reset. This ensures physics simulation maintains continuity and does not restart convergence from scratch when users adjust parameters.
 - **Responsibilities**:
   - Execute physics simulation steps
   - Force calculations

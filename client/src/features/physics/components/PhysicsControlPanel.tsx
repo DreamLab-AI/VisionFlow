@@ -19,15 +19,7 @@ import { Badge } from '@/features/design-system/components/Badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/features/design-system/components/Tabs';
 import { useToast } from '@/features/design-system/components/Toast';
 import { TooltipRoot, TooltipContent, TooltipProvider, TooltipTrigger } from '@/features/design-system/components/Tooltip';
-import Play from 'lucide-react/dist/esm/icons/play';
-import Square from 'lucide-react/dist/esm/icons/square';
-import RefreshCw from 'lucide-react/dist/esm/icons/refresh-cw';
-import Zap from 'lucide-react/dist/esm/icons/zap';
-import Activity from 'lucide-react/dist/esm/icons/activity';
-import Cpu from 'lucide-react/dist/esm/icons/cpu';
-import Info from 'lucide-react/dist/esm/icons/info';
-import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
-import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
+import { Play, Square, RefreshCw, Zap, Activity, Cpu, Info, AlertCircle, CheckCircle } from 'lucide-react';
 import { usePhysicsService, SimulationParameters } from '../hooks/usePhysicsService';
 
 interface PhysicsControlPanelProps {

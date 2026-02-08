@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - 2026-02-08
 
+### Client Architecture Overhaul
+
+#### Graph Worker & Physics
+
+- **Position preservation in setGraphData()**: Worker now preserves interpolated positions for existing nodes when setGraphData is called (from initialGraphLoad, filter updates, reconnects). Only genuinely new nodes receive fresh positions, eliminating the visual "explosion" on graph reload.
+- **Interpolation fix**: Server physics lerp factor was 1000x too slow due to `deltaTime / 1000` bug (deltaTime is already in seconds from Three.js clock). Fixed to `1 - Math.pow(0.001, deltaTime)`, converging in ~1 second instead of ~16 minutes.
+- **Stable ID mapping**: Non-numeric node IDs now use FNV-1a hash (shared `stringToU32` in `client/src/types/idMapping.ts`) instead of unstable `index + 1`. Collision resolution via linear probe. Ensures consistent numeric IDs across setGraphData calls.
+- **ForceComputeActor state preservation**: `iteration_count`, `stability_iterations`, and `reheat_factor` are no longer reset when settings updates arrive. Physics simulation maintains continuity across settings changes.
+
+#### WebSocket Architecture
+
+- **WebSocketEventBus** (`client/src/services/WebSocketEventBus.ts`): New typed pub/sub for cross-service WebSocket events. Event categories: `connection:open/close/error`, `message:graph/voice/bots/pod`, `registry:registered/unregistered/closedAll`.
+- **WebSocketRegistry** (`client/src/services/WebSocketRegistry.ts`): Central connection lifecycle tracker. All WebSocket services (Voice, Bots, SolidPod, Graph) register/unregister connections through the registry.
+- Eliminated `window.webSocketService` global in favour of direct module imports.
+
+#### Settings Pipeline
+
+- **Simplified useSelectiveSettingsStore**: Reduced from 548 to 152 lines. Removed manual caching, TTL, and debouncing; uses Zustand selectors natively.
+- **Backend accepts partial JSON**: Physics and quality-gate PUT handlers now merge partial patches into current settings instead of requiring full payloads.
+- **Quality gate defaults raised**: `maxNodeCount` increased from 10,000 to 500,000.
+
+#### Visual System
+
+- **MetadataShapes**: Now respects `nodeSize` setting (applies `sizeMultiplier`). Geometry sizes normalized to ~0.5 bounding sphere radius. Settings lookups hoisted out of per-node per-frame loop for performance.
+- **KnowledgeRings**: Only renders on nodes positively identified as `knowledge_graph` type. No longer falls back to the `graphMode` default, preventing incorrect ring display on non-knowledge nodes.
+
+#### Code Quality
+
+- Deleted `lucide-react.d.ts` manual type declarations; converted 32 deep-path imports to barrel imports.
+- Replaced `window.webSocketService` global with direct imports across all consuming modules.
+- Removed V1 binary protocol dead code. Fixed V4 log spam (warn-once pattern).
+- Replaced 14 `console.log` calls with proper logger usage.
+- Removed dead functions/imports from GraphManager, websocketStore, and graphDataManager.
+
 ### Algorithm Pipeline Completion
 
 - Wire SSSP distances into GPU force kernel `d_sssp_dist` buffer (SSSP-aware spring forces now active)

@@ -4,16 +4,7 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import Database from 'lucide-react/dist/esm/icons/database';
-import Copy from 'lucide-react/dist/esm/icons/copy';
-import Check from 'lucide-react/dist/esm/icons/check';
-import User from 'lucide-react/dist/esm/icons/user';
-import HardDrive from 'lucide-react/dist/esm/icons/hard-drive';
-import Trash2 from 'lucide-react/dist/esm/icons/trash-2';
-import Plus from 'lucide-react/dist/esm/icons/plus';
-import RefreshCw from 'lucide-react/dist/esm/icons/refresh-cw';
-import ExternalLink from 'lucide-react/dist/esm/icons/external-link';
-import AlertTriangle from 'lucide-react/dist/esm/icons/alert-triangle';
+import { Database, Copy, Check, User, HardDrive, Trash2, Plus, RefreshCw, ExternalLink, AlertTriangle } from 'lucide-react';
 import { Button } from '@/features/design-system/components/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/features/design-system/components/Card';
 import { Progress } from '@/features/design-system/components/Progress';

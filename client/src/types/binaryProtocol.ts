@@ -2,15 +2,15 @@ import { createLogger } from '../utils/loggerConfig';
 
 const logger = createLogger('binaryProtocol');
 
+
 /**
  * Binary Protocol for WebSocket node data communication
  * Aligns with server-side src/utils/binary_protocol.rs
  *
  * Protocol Versions:
- * - V1: REMOVED (had node ID truncation bug)
  * - V2: 36 bytes per node (basic pathfinding)
  * - V3: 48 bytes per node (adds cluster_id, anomaly_score, community_id)
- * - V4: Delta encoding (16 bytes per changed node)
+ * - V4: Delta encoding (16 bytes per changed node) [client decoding pending]
  */
 
 export interface Vec3 {
@@ -139,12 +139,8 @@ export function parseBinaryNodeData(buffer: ArrayBuffer): BinaryNodeData[] {
         nodeSize = BINARY_NODE_SIZE_V3;
         hasAnalytics = true;
         break;
-      case 1:
-        logger.error('PROTOCOL_V1 is no longer supported. Please upgrade server.');
-        return [];
       case PROTOCOL_V4:
-        // Delta encoding - not yet implemented on client
-        logger.warn('PROTOCOL_V4 (delta encoding) not yet implemented on client');
+        // Delta encoding - not yet implemented on client; silently skip
         return [];
       default:
         // Unknown version - try to detect format by size

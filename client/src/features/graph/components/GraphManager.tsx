@@ -5,10 +5,10 @@ import * as THREE from 'three'
 import { graphDataManager, type GraphData, type Node as GraphNode } from '../managers/graphDataManager'
 import { graphWorkerProxy } from '../managers/graphWorkerProxy'
 import { usePlatformStore } from '../../../services/platformManager'
-import { createLogger, createErrorMetadata } from '../../../utils/loggerConfig'
+import { createLogger } from '../../../utils/loggerConfig'
 import { debugState } from '../../../utils/clientDebugState'
 import { useSettingsStore } from '../../../store/settingsStore'
-import { BinaryNodeData, createBinaryNodeData, NodeType } from '../../../types/binaryProtocol'
+import { BinaryNodeData, NodeType } from '../../../types/binaryProtocol'
 import { useWebSocketStore } from '../../../store/websocketStore'
 import { HologramNodeMaterial } from '../../../rendering/materials/HologramNodeMaterial'
 import { FlowingEdges } from './FlowingEdges'
@@ -42,27 +42,9 @@ const DOMAIN_COLORS: Record<string, string> = {
 };
 const DEFAULT_DOMAIN_COLOR = '#90A4AE'; // Grey
 
-// Pre-computed THREE.Color instances for domain colors (avoids GC pressure)
-const DOMAIN_THREE_COLORS: Record<string, THREE.Color> = {};
-Object.entries(DOMAIN_COLORS).forEach(([domain, hex]) => {
-  DOMAIN_THREE_COLORS[domain] = new THREE.Color(hex);
-});
-DOMAIN_THREE_COLORS['default'] = new THREE.Color(DEFAULT_DOMAIN_COLOR);
-
-// Muted domain colors (pre-computed at 0.7 intensity for metadata)
-const DOMAIN_MUTED_COLORS: Record<string, string> = {};
-Object.entries(DOMAIN_COLORS).forEach(([domain, hex]) => {
-  DOMAIN_MUTED_COLORS[domain] = new THREE.Color(hex).multiplyScalar(0.7).getStyle();
-});
-DOMAIN_MUTED_COLORS['default'] = new THREE.Color(DEFAULT_DOMAIN_COLOR).multiplyScalar(0.7).getStyle();
-
 // O(1) domain color lookup
 const getDomainColor = (domain?: string): string => {
   return domain && DOMAIN_COLORS[domain] ? DOMAIN_COLORS[domain] : DEFAULT_DOMAIN_COLOR;
-};
-
-const getDomainMutedColor = (domain?: string): string => {
-  return domain && DOMAIN_MUTED_COLORS[domain] ? DOMAIN_MUTED_COLORS[domain] : DOMAIN_MUTED_COLORS['default'];
 };
 
 // === ONTOLOGY MODE: Hierarchy depth color spectrum (cosmic) ===
@@ -306,24 +288,6 @@ const createLODGeometries = (mode: GraphVisualMode): LODGeometrySet => {
         medium: new THREE.IcosahedronGeometry(0.5, 1),
         low: new THREE.OctahedronGeometry(0.5),
       };
-  }
-};
-
-// Get geometry for node type (kept for metadata shapes)
-const getGeometryForNodeType = (type?: string): THREE.BufferGeometry => {
-  switch (type?.toLowerCase()) {
-    case 'folder':
-      return new THREE.OctahedronGeometry(0.6, 0);
-    case 'file':
-      return new THREE.BoxGeometry(0.8, 0.8, 0.8);
-    case 'concept':
-      return new THREE.IcosahedronGeometry(0.5, 0);
-    case 'todo':
-      return new THREE.ConeGeometry(0.5, 1, 4);
-    case 'reference':
-      return new THREE.TorusGeometry(0.5, 0.2, 8, 16);
-    default:
-      return LOD_GEOMETRIES.high;
   }
 };
 
@@ -1067,7 +1031,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       // Determine if positions are valid for node/edge rendering from simulation
       const positionsValid = positions && positions.length > 0 && positions.length >= graphData.nodes.length * 3;
       if (positions && positions.length > 0 && !positionsValid) {
-        console.warn(`[GraphManager] Positions array too short: ${positions.length} < ${graphData.nodes.length * 3} (${graphData.nodes.length} nodes). Skipping position-dependent rendering this frame.`);
+        logger.warn(`Positions array too short: ${positions.length} < ${graphData.nodes.length * 3} (${graphData.nodes.length} nodes). Skipping position-dependent rendering this frame.`);
       }
 
       if (positionsValid) {
@@ -1811,7 +1775,6 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       {/* Knowledge graph rotating rings */}
       <KnowledgeRings
         nodes={graphData.nodes}
-        graphMode={graphMode}
         perNodeVisualModeMap={perNodeVisualModeMap}
         nodePositionsRef={nodePositionsRef}
         nodeIdToIndexMap={nodeIdToIndexMap}

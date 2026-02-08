@@ -15,14 +15,7 @@ import { Label } from '@/features/design-system/components/Label';
 import { Button } from '@/features/design-system/components/Button';
 import { Badge } from '@/features/design-system/components/Badge';
 import { useToast } from '@/features/design-system/components/Toast';
-import Activity from 'lucide-react/dist/esm/icons/activity';
-import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
-import XCircle from 'lucide-react/dist/esm/icons/x-circle';
-import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
-import RefreshCw from 'lucide-react/dist/esm/icons/refresh-cw';
-import Play from 'lucide-react/dist/esm/icons/play';
-import FileText from 'lucide-react/dist/esm/icons/file-text';
-import Zap from 'lucide-react/dist/esm/icons/zap';
+import { Activity, CheckCircle, XCircle, AlertCircle, RefreshCw, Play, FileText, Zap } from 'lucide-react';
 import { useHealthService } from '../hooks/useHealthService';
 
 interface HealthDashboardProps {

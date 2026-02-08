@@ -4,7 +4,6 @@ import * as THREE from 'three';
 
 interface KnowledgeRingsProps {
   nodes: Array<{ id: string; metadata?: any; position?: { x: number; y: number; z: number } }>;
-  graphMode: 'knowledge_graph' | 'ontology' | 'agent';
   perNodeVisualModeMap: Map<string, string>;
   nodePositionsRef: React.RefObject<Float32Array | null>;
   nodeIdToIndexMap: Map<string, number>;
@@ -21,7 +20,6 @@ const ROTATION_SPEED = 0.5;
 
 export const KnowledgeRings: React.FC<KnowledgeRingsProps> = ({
   nodes,
-  graphMode,
   perNodeVisualModeMap,
   nodePositionsRef,
   nodeIdToIndexMap,

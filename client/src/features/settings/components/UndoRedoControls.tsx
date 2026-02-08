@@ -1,7 +1,5 @@
 import React from 'react';
-import Undo from 'lucide-react/dist/esm/icons/undo';
-import Redo from 'lucide-react/dist/esm/icons/redo';
-import History from 'lucide-react/dist/esm/icons/history';
+import { Undo, Redo, History } from 'lucide-react';
 import { Button } from '@/features/design-system/components/Button';
 import { TooltipRoot, TooltipContent, TooltipTrigger } from '@/features/design-system/components/Tooltip';
 import { useSettingsHistory } from '../hooks/useSettingsHistory';

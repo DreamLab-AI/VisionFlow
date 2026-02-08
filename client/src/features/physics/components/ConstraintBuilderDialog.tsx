@@ -15,11 +15,7 @@ import { Slider } from '@/features/design-system/components/Slider';
 import { Badge } from '@/features/design-system/components/Badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/features/design-system/components/Tabs';
 import { ScrollArea } from '@/features/design-system/components/ScrollArea';
-import Plus from 'lucide-react/dist/esm/icons/plus';
-import X from 'lucide-react/dist/esm/icons/x';
-import Save from 'lucide-react/dist/esm/icons/save';
-import Copy from 'lucide-react/dist/esm/icons/copy';
-import Upload from 'lucide-react/dist/esm/icons/upload';
+import { Plus, X, Save, Copy, Upload } from 'lucide-react';
 import { useToast } from '@/features/design-system/components/Toast';
 
 interface ConstraintRule {

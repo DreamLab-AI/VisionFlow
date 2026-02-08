@@ -67,7 +67,7 @@ state and communicates exclusively through typed messages (`Handler<Msg>` patter
 | `OptimizedSettingsActor` | `GetSettings`, `UpdateSettings` | Settings persistence to Neo4j |
 | `AgentMonitorActor` | `UpdateBotsGraph` | Receives agent telemetry from Management API |
 | `PhysicsSupervisor` | `StartSimulation`, `StopSimulation` | Manages GPU compute actors |
-| `ForceComputeActor` | `ComputeForces` | CUDA force-directed layout |
+| `ForceComputeActor` | `ComputeForces` | CUDA force-directed layout (preserves iteration_count, stability_iterations, reheat_factor on settings updates) |
 | `ClientCoordinatorActor` | `RegisterClient`, `BroadcastBinary` | WebSocket session management |
 
 ### Message Flow (Agent Telemetry Example)
@@ -257,7 +257,7 @@ Each layer maintains its own:
 
 ## EventBus Pattern
 
-### Architecture
+### Backend Architecture (Rust)
 
 ```
                  publish(event)
@@ -267,6 +267,38 @@ DomainEvent -----> EventBus -----> wildcard subscribers (*)
                       |
                       +-----> middleware chain (logging, metrics)
 ```
+
+### Client Architecture (TypeScript, February 2026)
+
+The client now mirrors the backend event bus pattern with two complementary services:
+
+```
+WebSocket message arrives
+    |
+    v
+WebSocketEventBus.emit('message:graph', data)
+    |
+    +-----> graphDataManager subscriber (binary position updates)
+    +-----> analyticsStore subscriber (SSSP distance updates)
+    +-----> any other subscriber
+
+WebSocket lifecycle
+    |
+    v
+WebSocketRegistry.register('graph', ws)
+    |
+    +-----> WebSocketEventBus.emit('registry:registered', { name: 'graph' })
+    +-----> Connection health monitoring
+    +-----> Coordinated shutdown via closeAll()
+```
+
+**Key files:**
+- `client/src/services/WebSocketEventBus.ts` -- Typed pub/sub for WebSocket events
+- `client/src/services/WebSocketRegistry.ts` -- Central connection lifecycle tracker
+
+**Registered connections:** Voice, Bots, SolidPod, Graph
+
+> **Migration note:** `window.webSocketService` global removed. All modules use direct ES module imports.
 
 ### EventHandler Trait
 
@@ -441,7 +473,8 @@ src/
 client/
   src/
     components/     # React components
-    services/       # BinaryWebSocketProtocol, FeatureFlags, etc.
+    services/       # WebSocketEventBus, WebSocketRegistry, BinaryWebSocketProtocol, etc.
     hooks/          # React hooks (useActionConnections, useTelemetry)
     layers/         # Three.js rendering layers (AgentNodes, KnowledgeGraph)
+    types/          # idMapping.ts (FNV-1a hash for stable node ID mapping)
 ```

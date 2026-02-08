@@ -328,6 +328,10 @@ export const MetadataShapes: React.FC<MetadataShapesProps> = ({
   const material = useHologramMaterial(settings);
   const meshRefs = useRef<Map<string, THREE.InstancedMesh>>(new Map());
 
+  // Pre-allocated objects to avoid GC pressure in useFrame
+  const tempMatrixRef = useRef(new THREE.Matrix4());
+  const tempColorRef = useRef(new THREE.Color());
+
   // Group nodes by geometry type (mode-aware)
   const nodeGroups = useMemo(() => {
     const groups = new Map<string, { nodes: GraphNode[], originalIndices: number[] }>();
@@ -350,8 +354,8 @@ export const MetadataShapes: React.FC<MetadataShapesProps> = ({
     if (!nodePositions) return;
 
     material.updateTime(state.clock.elapsedTime);
-    const tempMatrix = new THREE.Matrix4();
-    const tempColor = new THREE.Color();
+    const tempMatrix = tempMatrixRef.current;
+    const tempColor = tempColorRef.current;
 
     // Hoist settings lookups out of per-node loop
     const nodeSettings = settings?.visualisation?.graphs?.logseq?.nodes || settings?.visualisation?.nodes;

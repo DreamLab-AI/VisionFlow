@@ -12,8 +12,12 @@
 
 import { createLogger } from '../utils/loggerConfig';
 import { nostrAuth } from './nostrAuthService';
+import { webSocketRegistry } from './WebSocketRegistry';
+import { webSocketEventBus } from './WebSocketEventBus';
 
 const logger = createLogger('SolidPodService');
+
+const REGISTRY_NAME = 'solid-pod';
 
 // --- Interfaces ---
 
@@ -586,20 +590,30 @@ class SolidPodService {
       this.wsConnection.onopen = () => {
         logger.info('JSS WebSocket connected');
         this.reconnectAttempts = 0;
+        webSocketRegistry.register(REGISTRY_NAME, validatedUrl.href, this.wsConnection!);
+        webSocketEventBus.emit('connection:open', { name: REGISTRY_NAME, url: validatedUrl.href });
         // Protocol handshake will be handled in onmessage
       };
 
       this.wsConnection.onmessage = (event) => {
         const msg = event.data.toString().trim();
+        webSocketEventBus.emit('message:pod', { data: msg });
         this.handleWebSocketMessage(msg);
       };
 
       this.wsConnection.onerror = (error) => {
         logger.error('JSS WebSocket error', { error });
+        webSocketEventBus.emit('connection:error', { name: REGISTRY_NAME, error });
       };
 
-      this.wsConnection.onclose = () => {
+      this.wsConnection.onclose = (event) => {
         logger.info('JSS WebSocket disconnected');
+        webSocketRegistry.unregister(REGISTRY_NAME);
+        webSocketEventBus.emit('connection:close', {
+          name: REGISTRY_NAME,
+          code: event.code,
+          reason: event.reason,
+        });
         this.handleReconnect();
       };
     } catch (error) {
@@ -643,6 +657,7 @@ class SolidPodService {
       clearTimeout(this.reconnectTimerId);
       this.reconnectTimerId = null;
     }
+    webSocketRegistry.unregister(REGISTRY_NAME);
     if (this.wsConnection) {
       this.wsConnection.close();
       this.wsConnection = null;

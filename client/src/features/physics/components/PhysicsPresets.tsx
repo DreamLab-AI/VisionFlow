@@ -2,17 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/features/design-system/components/Card';
 import { Button } from '@/features/design-system/components/Button';
 import { Badge } from '@/features/design-system/components/Badge';
-import Sparkles from 'lucide-react/dist/esm/icons/sparkles';
-import Zap from 'lucide-react/dist/esm/icons/zap';
-import Target from 'lucide-react/dist/esm/icons/target';
-import TreePine from 'lucide-react/dist/esm/icons/tree-pine';
-import Network from 'lucide-react/dist/esm/icons/network';
-import Globe from 'lucide-react/dist/esm/icons/globe';
-import Layers from 'lucide-react/dist/esm/icons/layers';
-import Save from 'lucide-react/dist/esm/icons/save';
-import Upload from 'lucide-react/dist/esm/icons/upload';
-import Download from 'lucide-react/dist/esm/icons/download';
-import Info from 'lucide-react/dist/esm/icons/info';
+import { Sparkles, Zap, Target, TreePine, Network, Globe, Layers, Save, Upload, Download, Info } from 'lucide-react';
 import { useToast } from '@/features/design-system/components/Toast';
 import { TooltipRoot, TooltipContent, TooltipProvider, TooltipTrigger } from '@/features/design-system/components/Tooltip';
 import {
