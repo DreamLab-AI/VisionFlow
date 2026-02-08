@@ -27,6 +27,11 @@ pub struct ComputeSSP {
     pub source_idx: usize,
     /// Optional maximum distance cutoff
     pub max_distance: Option<f32>,
+    /// Optional delta-stepping bucket width.  When `Some(d)`, edges are relaxed
+    /// in distance buckets of width `d` instead of all-at-once (Bellman-Ford).
+    /// Smaller deltas reduce work per iteration at the cost of more iterations.
+    #[serde(default)]
+    pub delta: Option<f32>,
 }
 
 /// APSP computation parameters
@@ -211,7 +216,7 @@ impl Handler<ComputeSSP> for ShortestPathActor {
 
             // Call the existing GPU SSSP implementation
             let distances = unified_compute
-                .run_sssp(msg.source_idx)
+                .run_sssp(msg.source_idx, msg.delta)
                 .map_err(|e| {
                     error!("GPU SSSP computation failed: {}", e);
                     format!("SSSP computation failed: {}", e)
@@ -300,43 +305,53 @@ impl Handler<ComputeAPSP> for ShortestPathActor {
                 landmarks.push(landmark);
             }
 
-            // Run SSSP from each landmark
-            let mut landmark_distances = Vec::with_capacity(msg.num_landmarks * num_nodes);
+            // Run batched SSSP from all landmarks at once (keeps CSR on device)
+            let landmark_vecs = unified_compute
+                .run_sssp_batch(&landmarks)
+                .map_err(|e| {
+                    error!("GPU batched SSSP computation failed: {}", e);
+                    format!("Batched SSSP computation failed: {}", e)
+                })?;
 
-            for &landmark in &landmarks {
-                let distances = unified_compute
-                    .run_sssp(landmark)
-                    .map_err(|e| {
-                        error!("GPU SSSP computation failed for landmark {}: {}", landmark, e);
-                        format!("SSSP computation failed: {}", e)
-                    })?;
-                landmark_distances.extend(distances);
+            // Flatten landmark distances into [num_landmarks][num_nodes] layout
+            let mut landmark_distances = Vec::with_capacity(msg.num_landmarks * num_nodes);
+            for dists in &landmark_vecs {
+                landmark_distances.extend_from_slice(dists);
             }
 
-            // Approximate all-pairs distances using triangle inequality
-            // d(i,j) ≈ min_k(d(k,i) + d(k,j)) over landmarks k
-            let mut apsp_distances = vec![f32::MAX; num_nodes * num_nodes];
-
-            for i in 0..num_nodes {
-                apsp_distances[i * num_nodes + i] = 0.0; // Distance to self is 0
-
-                for j in (i + 1)..num_nodes {
-                    let mut min_dist = f32::MAX;
-
-                    for (k_idx, &_k) in landmarks.iter().enumerate() {
-                        let dist_ki = landmark_distances[k_idx * num_nodes + i];
-                        let dist_kj = landmark_distances[k_idx * num_nodes + j];
-
-                        if dist_ki < f32::MAX && dist_kj < f32::MAX {
-                            min_dist = min_dist.min(dist_ki + dist_kj);
+            // Try GPU kernel for APSP assembly; fall back to CPU if module unavailable
+            let apsp_distances = match unified_compute
+                .run_apsp_gpu(&landmark_distances, msg.num_landmarks)
+            {
+                Ok(gpu_result) => {
+                    info!("APSP assembly completed on GPU");
+                    gpu_result
+                }
+                Err(e) => {
+                    info!(
+                        "GPU APSP kernel unavailable ({}), using CPU fallback",
+                        e
+                    );
+                    // CPU fallback: triangle inequality approximation
+                    let mut dists = vec![f32::MAX; num_nodes * num_nodes];
+                    for i in 0..num_nodes {
+                        dists[i * num_nodes + i] = 0.0;
+                        for j in (i + 1)..num_nodes {
+                            let mut min_dist = f32::MAX;
+                            for k_idx in 0..msg.num_landmarks {
+                                let dist_ki = landmark_distances[k_idx * num_nodes + i];
+                                let dist_kj = landmark_distances[k_idx * num_nodes + j];
+                                if dist_ki < f32::MAX && dist_kj < f32::MAX {
+                                    min_dist = min_dist.min(dist_ki + dist_kj);
+                                }
+                            }
+                            dists[i * num_nodes + j] = min_dist;
+                            dists[j * num_nodes + i] = min_dist;
                         }
                     }
-
-                    // Set symmetric distances
-                    apsp_distances[i * num_nodes + j] = min_dist;
-                    apsp_distances[j * num_nodes + i] = min_dist;
+                    dists
                 }
-            }
+            };
 
             let computation_time = start_time.elapsed().as_millis() as u64;
 

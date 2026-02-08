@@ -137,7 +137,7 @@ impl GPUResourceActor {
             }
         };
 
-        // Load ontology constraints PTX for OWL axiom → physics force pipeline
+        // Load ontology constraints PTX for OWL axiom -> physics force pipeline
         let _ontology_ptx = match crate::utils::ptx::load_ptx_module_sync(
             crate::utils::ptx::PTXModule::OntologyConstraints,
         ) {
@@ -154,12 +154,30 @@ impl GPUResourceActor {
             }
         };
 
+        // Load APSP PTX for GPU-accelerated landmark distance assembly
+        let apsp_ptx = match crate::utils::ptx::load_ptx_module_sync(
+            crate::utils::ptx::PTXModule::GpuLandmarkApsp,
+        ) {
+            Ok(content) => {
+                info!(
+                    "APSP PTX loaded successfully, size: {} bytes",
+                    content.len()
+                );
+                Some(content)
+            }
+            Err(e) => {
+                warn!("Failed to load APSP PTX (will use CPU fallback): {}", e);
+                None
+            }
+        };
+
         debug!("Creating UnifiedGPUCompute with initial capacity: nodes=1000, edges=1000");
         let mut unified_compute = UnifiedGPUCompute::new_with_modules(
             1000,
             1000,
             &ptx_content,
             clustering_ptx.as_deref(),
+            apsp_ptx.as_deref(),
         )
         .map_err(|e| {
             error!("Failed to create unified compute: {}", e);

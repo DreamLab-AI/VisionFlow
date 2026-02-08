@@ -385,6 +385,7 @@ impl Handler<ComputeShortestPaths> for GraphAnalyticsSupervisor {
                 let sssp_result = addr.send(ComputeSSP {
                     source_idx,
                     max_distance: None,
+                    delta: None,
                 }).await
                     .map_err(|e| format!("Communication failed: {}", e))??;
 

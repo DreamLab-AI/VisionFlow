@@ -59,7 +59,7 @@ mod tests {
             }
         };
 
-        match UnifiedGPUCompute::new_with_modules(100, 50, &main_ptx, clustering_ptx.as_deref()) {
+        match UnifiedGPUCompute::new_with_modules(100, 50, &main_ptx, clustering_ptx.as_deref(), None) {
             Ok(compute) => {
                 println!("✓ Created UnifiedGPUCompute with modules successfully");
                 println!(

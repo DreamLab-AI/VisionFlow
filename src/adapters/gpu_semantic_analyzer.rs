@@ -382,7 +382,7 @@ impl GpuSemanticAnalyzer for GpuSemanticAnalyzerAdapter {
         
         let gpu = self.gpu()?;
         let distances = gpu
-            .run_sssp(source_node_id as usize)
+            .run_sssp(source_node_id as usize, None)
             .map_err(|e| GpuSemanticAnalyzerError::CudaError(format!("SSSP failed: {}", e)))?;
 
         let computation_time_ms = start.elapsed().as_secs_f32() * 1000.0;
