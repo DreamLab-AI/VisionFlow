@@ -2,12 +2,12 @@ use crate::config::AppFullSettings;
 use futures::stream::{Stream, StreamExt};
 use log::{error, info};
 use reqwest::{Client, StatusCode};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use std::fmt;
 use std::pin::Pin;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use crate::utils::json::{from_json, to_json};
+use crate::utils::json::to_json;
 
 #[derive(Debug)]
 pub enum RAGFlowError {
@@ -71,43 +71,6 @@ impl From<std::io::Error> for RAGFlowError {
     fn from(err: std::io::Error) -> Self {
         RAGFlowError::IoError(err)
     }
-}
-
-#[derive(Debug, Deserialize)]
-#[allow(dead_code)] 
-struct SessionResponse {
-    code: i32,
-    data: SessionData,
-}
-
-#[derive(Debug, Deserialize)]
-#[allow(dead_code)] 
-struct SessionData {
-    id: String,
-    message: Option<Vec<Message>>,
-}
-
-#[derive(Debug, Deserialize)]
-#[allow(dead_code)] 
-struct Message {
-    role: String,
-    content: String,
-}
-
-#[derive(Debug, Deserialize)]
-#[allow(dead_code)] 
-struct CompletionResponse {
-    code: i32,
-    data: CompletionData,
-}
-
-#[derive(Debug, Deserialize)]
-#[allow(dead_code)] 
-struct CompletionData {
-    answer: Option<String>,
-    reference: Option<serde_json::Value>,
-    id: Option<String>,
-    session_id: Option<String>,
 }
 
 #[derive(Debug, Serialize)]

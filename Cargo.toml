@@ -166,7 +166,6 @@ tempfile = "3.14"
 default = ["gpu", "ontology"]
 gpu = []  # GPU acceleration with CUDA kernels
 ontology = []  # Ontology validation and reasoning
-gpu-safe = []  # Feature for GPU-safe types
 redis = ["dep:redis"]  # Enable Redis distributed caching
 
 [profile.release]

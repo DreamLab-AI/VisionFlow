@@ -219,10 +219,4 @@ impl GitHubClient {
         &self.branch
     }
 
-    #[allow(dead_code)]
-    pub(crate) fn settings(&self) -> &Arc<RwLock<AppFullSettings>> {
-
-        &self.settings
-    }
-
 }

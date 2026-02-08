@@ -12,16 +12,6 @@ use std::time::{Duration, Instant};
 use tokio::sync::Mutex;
 use tokio_tungstenite::{connect_async, tungstenite::Message as TungsteniteMessage};
 
-#[allow(dead_code)]
-#[derive(Message)]
-#[rtype(result = "()")]
-struct ClientText(String);
-
-#[allow(dead_code)]
-#[derive(Message)]
-#[rtype(result = "()")]
-struct ClientBinary(Vec<u8>);
-
 #[derive(Message)]
 #[rtype(result = "()")]
 struct OrchestratorText(String);

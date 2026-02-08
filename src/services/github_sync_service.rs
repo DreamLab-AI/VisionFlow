@@ -311,24 +311,6 @@ impl GitHubSyncService {
         Ok(())
     }
 
-    /// Process a single file (fetches content internally)
-    #[allow(dead_code)]
-    async fn process_single_file(
-        &self,
-        file: &GitHubFileBasicMetadata,
-        nodes: &mut std::collections::HashMap<u32, crate::models::node::Node>,
-        edges: &mut std::collections::HashMap<String, crate::models::edge::Edge>,
-        public_pages: &mut std::collections::HashSet<String>,
-    ) -> Result<(), String> {
-        // Fetch content
-        let content = self.content_api
-            .fetch_file_content(&file.download_url)
-            .await
-            .map_err(|e| format!("Failed to fetch content: {}", e))?;
-
-        self.process_fetched_file(file, &content, nodes, edges, public_pages).await
-    }
-
     /// Process a file with pre-fetched content (used by parallel batch processing)
     async fn process_fetched_file(
         &self,

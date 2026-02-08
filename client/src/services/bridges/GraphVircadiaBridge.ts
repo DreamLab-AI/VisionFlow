@@ -94,8 +94,7 @@ export class GraphVircadiaBridge {
   private syncNodeToEntity(node: GraphNode): void {
     const entityId = `graph-node-${node.id}`;
     this.nodeEntityMap.set(node.id, entityId);
-    // TODO: Push node entity to Vircadia via EntitySyncManager.pushGraphToVircadia
-    // once the bridge is wired to an EntitySyncManager instance.
+    logger.warn(`syncNodeToEntity(${entityId}): not implemented -- EntitySyncManager not wired`);
   }
 
   private syncEdgeToEntity(edge: GraphEdge): void {
@@ -103,8 +102,7 @@ export class GraphVircadiaBridge {
     const targetEntityId = this.nodeEntityMap.get(edge.target);
 
     if (sourceEntityId && targetEntityId) {
-      // TODO: Push edge entity to Vircadia via EntitySyncManager.pushGraphToVircadia
-      // once the bridge is wired to an EntitySyncManager instance.
+      logger.warn(`syncEdgeToEntity(${edge.source}->${edge.target}): not implemented -- EntitySyncManager not wired`);
     }
   }
 

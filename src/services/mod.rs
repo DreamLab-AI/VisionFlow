@@ -28,7 +28,6 @@ pub mod ontology_reasoner;
 pub mod ontology_enrichment_service;
 pub mod ontology_reasoning_service;
 pub mod ontology_pipeline_service;
-pub mod pipeline_events;
 pub mod ontology_content_analyzer;
 pub mod ontology_file_cache;
 pub mod semantic_type_registry;

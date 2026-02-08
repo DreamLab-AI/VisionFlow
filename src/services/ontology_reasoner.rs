@@ -548,18 +548,6 @@ impl OntologyReasoner {
             .replace('-', " ")
     }
 
-    /// Use CustomReasoner to infer relationships
-        /// Advanced reasoning implemented using CustomReasoner with EL++ profile
-    /// Analyzes the ontology graph and infers new subsumptions (SubClassOf axioms)
-    #[allow(dead_code)]
-    async fn reason_about_class(&self, class_iri: &str) -> OntResult<Vec<String>> {
-        // Load ontology into whelk
-        // Run reasoning
-        // Return inferred superclasses
-
-        // For now, return empty (placeholder for future enhancement)
-        Ok(vec![])
-    }
 }
 
 /// File context for batch inference

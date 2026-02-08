@@ -274,53 +274,6 @@ impl Actor for ResourceSupervisor {
     }
 }
 
-/// Guard for GPU resource operations that ensures cleanup on drop
-/// Use this when performing operations that allocate temporary GPU resources
-#[allow(dead_code)]
-pub struct GpuOperationGuard {
-    operation_id: String,
-    start_time: Instant,
-    completed: bool,
-}
-
-impl GpuOperationGuard {
-    /// Create a new GPU operation guard
-    #[allow(dead_code)]
-    pub fn new(operation_id: impl Into<String>) -> Self {
-        let id = operation_id.into();
-        debug!("GpuOperationGuard: Starting operation {}", id);
-        Self {
-            operation_id: id,
-            start_time: Instant::now(),
-            completed: false,
-        }
-    }
-
-    /// Mark the operation as successfully completed
-    #[allow(dead_code)]
-    pub fn complete(mut self) {
-        self.completed = true;
-        let duration = self.start_time.elapsed();
-        debug!(
-            "GpuOperationGuard: Operation {} completed successfully in {:?}",
-            self.operation_id, duration
-        );
-    }
-}
-
-impl Drop for GpuOperationGuard {
-    fn drop(&mut self) {
-        if !self.completed {
-            let duration = self.start_time.elapsed();
-            warn!(
-                "GpuOperationGuard: Operation {} dropped without completion after {:?} - potential resource leak",
-                self.operation_id, duration
-            );
-            // In a real implementation, this would trigger cleanup of any
-            // temporary GPU allocations associated with this operation
-        }
-    }
-}
 
 // ============================================================================
 // Message Handlers

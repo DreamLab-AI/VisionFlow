@@ -16,7 +16,6 @@ pub mod nostr_handler;
 pub mod ontology_handler;
 pub mod pages_handler;
 pub mod ragflow_handler;
-pub mod realtime_websocket_handler;
 pub mod settings_handler;
 pub mod settings_validation_fix;
 pub mod socket_flow_handler;
