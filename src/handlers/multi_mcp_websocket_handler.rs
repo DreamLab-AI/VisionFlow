@@ -556,6 +556,12 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MultiMcpVisualiza
                 self.last_heartbeat = Instant::now();
             }
             Ok(ws::Message::Text(text)) => {
+                // Handle plain-text heartbeat before JSON parsing
+                if text.trim() == "ping" {
+                    self.last_heartbeat = Instant::now();
+                    ctx.text("pong");
+                    return;
+                }
                 debug!("Received WebSocket message: {}", text);
 
                 if let Ok(request) = serde_json::from_str::<ClientRequest>(&text) {

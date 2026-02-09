@@ -535,6 +535,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   const [edgePoints, setEdgePoints] = useState<number[]>([])
   const [highlightEdgePoints, setHighlightEdgePoints] = useState<number[]>([]);
   const prevEdgePointsRef = useRef<number[]>([])
+  const edgeForceUpdateCounter = useRef(0)
   const prevLabelPositionsLengthRef = useRef<number>(0)
   const labelPositionsRef = useRef<Array<{x: number, y: number, z: number}>>([])
   const edgeUpdatePendingRef = useRef<number[] | null>(null)
@@ -1167,22 +1168,19 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
           highlightEdgeUpdatePendingRef.current = [];
         }
 
-        // Compare edge points content, not just length, to detect position changes
-        // Use sampling for performance: check length + first/last 6 values (2 edge endpoints)
-        const prev = prevEdgePointsRef.current;
-        const edgesChanged =
-          newEdgePoints.length !== prev.length ||
-          (newEdgePoints.length > 0 && (
-            newEdgePoints[0] !== prev[0] ||
-            newEdgePoints[1] !== prev[1] ||
-            newEdgePoints[2] !== prev[2] ||
-            newEdgePoints[newEdgePoints.length - 1] !== prev[prev.length - 1] ||
-            newEdgePoints[newEdgePoints.length - 2] !== prev[prev.length - 2] ||
-            newEdgePoints[newEdgePoints.length - 3] !== prev[prev.length - 3]
-          ));
+        // Force edge geometry update every 3 frames (~20fps) to guarantee
+        // edges track nodes even when sampling would miss position changes.
+        // The old 6-point sampling only checked first/last endpoints and missed
+        // moves in the middle of the edge array.
+        edgeForceUpdateCounter.current++;
+        const forceUpdate = edgeForceUpdateCounter.current >= 3;
+        if (forceUpdate) edgeForceUpdateCounter.current = 0;
 
-        if (edgesChanged) {
-          prevEdgePointsRef.current = newEdgePoints.slice();
+        const prev = prevEdgePointsRef.current;
+        const lengthChanged = newEdgePoints.length !== prev.length;
+
+        if (lengthChanged || forceUpdate) {
+          prevEdgePointsRef.current = newEdgePoints;
           edgeUpdatePendingRef.current = newEdgePoints;
         }
 

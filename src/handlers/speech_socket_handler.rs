@@ -286,10 +286,16 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SpeechSocket {
                 self.heartbeat = Instant::now();
             }
             Ok(ws::Message::Text(text)) => {
+                // Handle plain-text heartbeat before JSON parsing
+                if text.trim() == "ping" {
+                    self.heartbeat = Instant::now();
+                    ctx.text("pong");
+                    return;
+                }
                 debug!("[SpeechSocket] Received text: {}", text);
                 self.heartbeat = Instant::now();
 
-                
+
                 match serde_json::from_str::<serde_json::Value>(&text) {
                     Ok(msg) => {
                         

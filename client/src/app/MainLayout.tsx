@@ -5,7 +5,7 @@ import GraphCanvasWrapper from '../features/graph/components/GraphCanvasWrapper'
 // import GraphCanvasSimple from '../features/graph/components/GraphCanvasSimple';
 import { IntegratedControlPanel } from '../features/visualisation/components/IntegratedControlPanel';
 import { useSettingsStore } from '../store/settingsStore';
-import { BotsDataProvider, useBotsData } from '../features/bots/contexts/BotsDataContext';
+import { useBotsData } from '../features/bots/contexts/BotsDataContext';
 import { BrowserSupportWarning } from '../components/BrowserSupportWarning';
 import { SpaceMouseStatus } from '../components/SpaceMouseStatus';
 import { AudioInputService } from '../services/AudioInputService';
@@ -106,11 +106,8 @@ const MainLayoutContent: React.FC = () => {
 };
 
 const MainLayout: React.FC = () => {
-  return (
-    <BotsDataProvider>
-      <MainLayoutContent />
-    </BotsDataProvider>
-  );
+  // BotsDataProvider is mounted in App.tsx — no duplicate here
+  return <MainLayoutContent />;
 };
 
 export default MainLayout;

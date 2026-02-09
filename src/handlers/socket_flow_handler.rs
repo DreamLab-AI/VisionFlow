@@ -729,6 +729,12 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                 self.last_activity = std::time::Instant::now();
             }
             Ok(ws::Message::Text(text)) => {
+                // Handle plain-text heartbeat before JSON parsing
+                if text.trim() == "ping" {
+                    self.last_activity = std::time::Instant::now();
+                    ctx.text("pong");
+                    return;
+                }
                 info!("Received text message: {}", text);
                 self.last_activity = std::time::Instant::now();
                 match serde_json::from_str::<serde_json::Value>(&text) {

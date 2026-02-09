@@ -315,10 +315,9 @@ export class AgentPollingService {
       activeAgents: data.metadata?.active_agents || 0,
       totalTasks: data.metadata?.total_tasks || 0,
       completedTasks: data.metadata?.completed_tasks || 0,
-      
-      positions: data.nodes?.map(n => 
-        `${n.id}:${n.data?.position?.x?.toFixed(1)},${n.data?.position?.y?.toFixed(1)},${n.data?.position?.z?.toFixed(1)}`
-      ).join('|')
+      // Structural identity only — positions change every physics tick
+      // and must NOT be included or the service stays permanently "active"
+      nodeIds: data.nodes?.map(n => n.id).join(',')
     };
     return JSON.stringify(relevant);
   }
