@@ -528,13 +528,11 @@ impl PhysicsOrchestratorActor {
         let config = &self.simulation_params.auto_pause_config;
 
         
-        let _is_equilibrium = if let Some(ref stats) = self.physics_stats {
+        let is_equilibrium = if let Some(ref stats) = self.physics_stats {
             stats.kinetic_energy < config.equilibrium_energy_threshold
         } else {
             false
         };
-
-        let is_equilibrium = false; 
 
         if is_equilibrium {
             self.simulation_params.equilibrium_stability_counter += 1;
@@ -724,14 +722,8 @@ impl PhysicsOrchestratorActor {
     }
 
     
-    #[allow(unreachable_code)]
     fn upload_constraints_to_gpu(&self) {
-        {
-            if !self.gpu_initialized || self.gpu_compute_addr.is_none() {
-                return;
-            }
-        }
-        {
+        if !self.gpu_initialized || self.gpu_compute_addr.is_none() {
             return;
         }
 

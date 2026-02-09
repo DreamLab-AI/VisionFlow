@@ -610,31 +610,24 @@ impl AgentTelemetryLogger {
     }
 }
 
-static mut GLOBAL_TELEMETRY_LOGGER: Option<AgentTelemetryLogger> = None;
-static LOGGER_INIT: std::sync::Once = std::sync::Once::new();
+static GLOBAL_TELEMETRY_LOGGER: once_cell::sync::OnceCell<AgentTelemetryLogger> =
+    once_cell::sync::OnceCell::new();
 
-#[allow(static_mut_refs)]
 pub fn init_telemetry_logger(log_dir: &str, buffer_size: usize) -> Result<(), std::io::Error> {
-    LOGGER_INIT.call_once(|| match AgentTelemetryLogger::new(log_dir, buffer_size) {
-        Ok(logger) => {
-            unsafe {
-                GLOBAL_TELEMETRY_LOGGER = Some(logger);
-            }
+    GLOBAL_TELEMETRY_LOGGER
+        .get_or_try_init(|| -> Result<AgentTelemetryLogger, std::io::Error> {
+            let logger = AgentTelemetryLogger::new(log_dir, buffer_size)?;
             info!(
                 "Telemetry logger initialized with log directory: {}",
                 log_dir
             );
-        }
-        Err(e) => {
-            error!("Failed to initialize telemetry logger: {}", e);
-        }
-    });
+            Ok(logger)
+        })?;
     Ok(())
 }
 
-#[allow(static_mut_refs)]
 pub fn get_telemetry_logger() -> Option<&'static AgentTelemetryLogger> {
-    unsafe { GLOBAL_TELEMETRY_LOGGER.as_ref() }
+    GLOBAL_TELEMETRY_LOGGER.get()
 }
 
 #[macro_export]

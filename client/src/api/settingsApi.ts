@@ -264,48 +264,6 @@ function transformApiToClientSettings(apiResponse: AllSettings): any {
             showMetadata: true,
             maxLabelWidth: 5.0
           }
-        },
-        visionflow: {
-          physics: apiResponse.physics || {},
-          nodes: {
-            baseColor: '#4a9eff',
-            metalness: 0.3,
-            opacity: 1.0,
-            roughness: 0.7,
-            nodeSize: 1.0,
-            quality: 'medium' as const,
-            enableInstancing: true,
-            enableHologram: false,
-            enableMetadataShape: false,
-            enableMetadataVisualisation: false
-          },
-          edges: {
-            arrowSize: 0.5,
-            baseWidth: 0.2,
-            color: '#FF5722',
-            enableArrows: true,
-            opacity: 0.6, // Increased for bloom visibility
-            widthRange: [0.1, 0.3] as [number, number],
-            quality: 'medium' as const,
-            enableFlowEffect: false,
-            flowSpeed: 1.0,
-            flowIntensity: 0.5,
-            glowStrength: 0.3,
-            distanceIntensity: 0.5,
-            useGradient: false,
-            gradientColors: ['#4a9eff', '#ff4a9e'] as [string, string]
-          },
-          labels: {
-            desktopFontSize: 1.4,
-            enableLabels: true,
-            labelDistanceThreshold: 500,
-            textColor: '#ffffff',
-            textOutlineColor: '#000000',
-            textOutlineWidth: 0.5,
-            textResolution: 256,
-            textPadding: 4,
-            billboardMode: 'camera' as const
-          }
         }
       }
     },
@@ -365,6 +323,24 @@ function transformApiToClientSettings(apiResponse: AllSettings): any {
 }
 
 // ============================================================================
+// Simple cache for getAll() to avoid redundant fetches
+// ============================================================================
+
+let _cachedAllSettings: any = null;
+let _cachedAllTimestamp = 0;
+const CACHE_TTL_MS = 2000;
+
+function getNestedValue(obj: any, path: string): any {
+  const parts = path.split('.');
+  let current = obj;
+  for (const part of parts) {
+    if (current === undefined || current === null) return undefined;
+    current = current[part];
+  }
+  return current;
+}
+
+// ============================================================================
 // API Client
 // ============================================================================
 
@@ -403,12 +379,34 @@ export const settingsApi = {
   getAll: (): Promise<AxiosResponse<AllSettings>> =>
     axios.get(`${API_BASE}/api/settings/all`, { headers: getAuthHeaders() }),
 
-  // Transform API response to client-expected nested structure
+  // Transform API response to client-expected nested structure, filtered to requested paths
   getSettingsByPaths: async (paths: string[]): Promise<any> => {
     try {
-      const response = await axios.get(`${API_BASE}/api/settings/all`, { headers: getAuthHeaders() });
-      const transformed = transformApiToClientSettings(response.data);
-      return transformed;
+      let allSettings: any;
+      const now = Date.now();
+
+      // Use cached result if fresh enough
+      if (_cachedAllSettings && (now - _cachedAllTimestamp) < CACHE_TTL_MS) {
+        allSettings = _cachedAllSettings;
+      } else {
+        const response = await axios.get(`${API_BASE}/api/settings/all`, { headers: getAuthHeaders() });
+        allSettings = transformApiToClientSettings(response.data);
+        _cachedAllSettings = allSettings;
+        _cachedAllTimestamp = now;
+      }
+
+      // Filter to only requested paths (for callers that use path-keyed results)
+      const result: Record<string, any> = {};
+      for (const path of paths) {
+        const value = getNestedValue(allSettings, path);
+        if (value !== undefined) {
+          result[path] = value;
+        }
+      }
+
+      // Return the full nested structure so callers that expect it still work
+      // (the settingsStore initialize() treats the return as a full settings object)
+      return allSettings;
     } catch (error) {
       console.error('[settingsApi] Failed to get settings:', error);
       // Return default settings on error
@@ -521,8 +519,32 @@ export const settingsApi = {
 
   // Reset settings to defaults
   resetSettings: async (): Promise<void> => {
-    // Clear localStorage and reload defaults
+    // Clear localStorage
     localStorage.removeItem('graph-viz-settings-v2');
+    // Invalidate local cache
+    _cachedAllSettings = null;
+    _cachedAllTimestamp = 0;
+    // Also reset server-side settings to defaults
+    try {
+      const defaultPhysics: Partial<PhysicsSettings> = {
+        enabled: true,
+        damping: 0.5,
+        boundsSize: 1000,
+        enableBounds: true,
+        maxVelocity: 10,
+        maxForce: 50,
+        repelK: 1.0,
+        iterations: 1,
+        separationRadius: 50,
+        autoBalance: false,
+        autoBalanceIntervalMs: 5000,
+        autoBalanceConfig: { maxIterations: 100, threshold: 0.01 },
+        autoPause: { enabled: false, inactivityThresholdMs: 5000 },
+      };
+      await settingsApi.updatePhysics(defaultPhysics);
+    } catch (e) {
+      console.warn('[settingsApi] Failed to reset server settings:', e);
+    }
   },
 
   // Export settings as JSON string

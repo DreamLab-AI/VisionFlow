@@ -883,10 +883,22 @@ impl Handler<msgs::ComputeShortestPaths> for GraphServiceSupervisor {
 impl Handler<msgs::UpdateGraphData> for GraphServiceSupervisor {
     type Result = ResponseActFuture<Self, Result<(), String>>;
 
-    fn handle(&mut self, _msg: msgs::UpdateGraphData, _ctx: &mut Self::Context) -> Self::Result {
-        warn!("UpdateGraphData: Supervisor not fully implemented");
-        let result = Err("Supervisor not yet fully implemented".to_string());
-        Box::pin(actix::fut::ready(result))
+    fn handle(&mut self, msg: msgs::UpdateGraphData, _ctx: &mut Self::Context) -> Self::Result {
+        if let Some(ref graph_state_addr) = self.graph_state {
+            let addr = graph_state_addr.clone();
+            Box::pin(
+                async move {
+                    addr.send(msg).await.unwrap_or_else(|e| {
+                        error!("Failed to forward UpdateGraphData to GraphStateActor: {}", e);
+                        Err(format!("Message forwarding failed: {}", e))
+                    })
+                }
+                .into_actor(self),
+            )
+        } else {
+            warn!("UpdateGraphData: GraphStateActor not initialized");
+            Box::pin(actix::fut::ready(Err("GraphStateActor not initialized".to_string())))
+        }
     }
 }
 
@@ -933,10 +945,22 @@ impl Handler<msgs::StartSimulation> for GraphServiceSupervisor {
 impl Handler<msgs::SimulationStep> for GraphServiceSupervisor {
     type Result = ResponseActFuture<Self, Result<(), String>>;
 
-    fn handle(&mut self, _msg: msgs::SimulationStep, _ctx: &mut Self::Context) -> Self::Result {
-        warn!("SimulationStep: Supervisor not fully implemented");
-        let result = Err("Supervisor not yet fully implemented".to_string());
-        Box::pin(actix::fut::ready(result))
+    fn handle(&mut self, msg: msgs::SimulationStep, _ctx: &mut Self::Context) -> Self::Result {
+        if let Some(ref physics_addr) = self.physics {
+            let addr = physics_addr.clone();
+            Box::pin(
+                async move {
+                    addr.send(msg).await.unwrap_or_else(|e| {
+                        error!("Failed to forward SimulationStep to PhysicsOrchestratorActor: {}", e);
+                        Err(format!("Message forwarding failed: {}", e))
+                    })
+                }
+                .into_actor(self),
+            )
+        } else {
+            warn!("SimulationStep: PhysicsOrchestratorActor not initialized");
+            Box::pin(actix::fut::ready(Err("Physics actor not initialized".to_string())))
+        }
     }
 }
 
@@ -967,16 +991,28 @@ impl Handler<msgs::GetBotsGraphData> for GraphServiceSupervisor {
 }
 
 impl Handler<msgs::UpdateSimulationParams> for GraphServiceSupervisor {
-    type Result = Result<(), String>;
+    type Result = ResponseActFuture<Self, Result<(), String>>;
 
     fn handle(
         &mut self,
-        _msg: msgs::UpdateSimulationParams,
+        msg: msgs::UpdateSimulationParams,
         _ctx: &mut Self::Context,
     ) -> Self::Result {
-        warn!("UpdateSimulationParams: Supervisor not fully implemented");
-        
-        Ok(())
+        if let Some(ref physics_addr) = self.physics {
+            let addr = physics_addr.clone();
+            Box::pin(
+                async move {
+                    addr.send(msg).await.unwrap_or_else(|e| {
+                        error!("Failed to forward UpdateSimulationParams to PhysicsOrchestratorActor: {}", e);
+                        Err(format!("Message forwarding failed: {}", e))
+                    })
+                }
+                .into_actor(self),
+            )
+        } else {
+            warn!("UpdateSimulationParams: PhysicsOrchestratorActor not initialized");
+            Box::pin(actix::fut::ready(Err("Physics actor not initialized".to_string())))
+        }
     }
 }
 

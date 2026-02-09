@@ -113,8 +113,10 @@ pub async fn websocket_client_messages(
 ) -> Result<HttpResponse, actix_web::Error> {
     info!("New client messages WebSocket connection request");
 
-    // TODO(security): Enforce WebSocket authentication once clients support token-based WS auth.
-    // Currently logs a warning for unauthenticated connections to support gradual migration.
+    // SECURITY: WebSocket token validation at upgrade time.
+    // Extracts token from Authorization header or query string.
+    // Currently allows but logs unauthenticated connections -- enforcement will come
+    // when all clients send tokens.
     {
         let token = req.headers().get("Authorization")
             .and_then(|h| h.to_str().ok())
@@ -127,11 +129,11 @@ pub async fn websocket_client_messages(
                     .map(|(_, v)| v.to_string())
             });
 
-        if token.is_none() {
+        if token.as_deref().unwrap_or("").is_empty() {
             let client_ip = req.peer_addr().map(|a| a.to_string()).unwrap_or_else(|| "unknown".to_string());
             log::warn!(
                 "SECURITY: Unauthenticated WebSocket connection on /ws/client-messages from {}. \
-                 WebSocket authentication is not yet enforced but should be added.",
+                 Allowing for now -- enforcement will come when clients send tokens.",
                 client_ip
             );
         }

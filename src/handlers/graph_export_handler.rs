@@ -1,6 +1,7 @@
 use crate::models::graph::GraphData;
 use crate::models::graph_export::*;
 use crate::services::graph_serialization::GraphSerializationService;
+use crate::middleware::RequireAuth;
 use crate::{ok_json, error_json, bad_request, not_found, unauthorized, forbidden, too_many_requests};
 use crate::AppState;
 use actix_web::{http::header::HeaderValue, web, HttpRequest, HttpResponse, Result as ActixResult};
@@ -339,6 +340,7 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     // Routes become /api/graph-export/*
     cfg.service(
         web::scope("/graph-export")
+            .wrap(RequireAuth::authenticated())
             .route("", web::post().to(export_graph))
             .route("/share", web::post().to(share_graph))
             .route("/shared/{id}", web::get().to(get_shared_graph))

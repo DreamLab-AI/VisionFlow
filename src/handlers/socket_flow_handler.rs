@@ -1794,8 +1794,10 @@ pub async fn socket_flow_handler(
             .body("Origin header required for WebSocket connections"));
     }
 
-    // TODO(security): Enforce WebSocket authentication once clients support token-based WS auth.
-    // Currently logs a warning for unauthenticated connections to support gradual migration.
+    // SECURITY: WebSocket token validation at upgrade time.
+    // Extracts token from Authorization header or query string.
+    // Currently allows but logs unauthenticated connections -- enforcement will come
+    // when all clients send tokens.
     {
         let token = req.headers().get("Authorization")
             .and_then(|h| h.to_str().ok())
@@ -1808,10 +1810,10 @@ pub async fn socket_flow_handler(
                     .map(|(_, v)| v.to_string())
             });
 
-        if token.is_none() {
+        if token.as_deref().unwrap_or("").is_empty() {
             warn!(
                 "SECURITY: Unauthenticated WebSocket connection on /wss from {}. \
-                 WebSocket authentication is not yet enforced but should be added.",
+                 Allowing for now -- enforcement will come when clients send tokens.",
                 client_ip
             );
         }

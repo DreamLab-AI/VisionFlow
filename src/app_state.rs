@@ -1073,7 +1073,11 @@ impl AppState {
     }
 
     pub fn decrement_connections(&self) -> usize {
-        self.active_connections.fetch_sub(1, Ordering::SeqCst)
+        self.active_connections
+            .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |current| {
+                if current > 0 { Some(current - 1) } else { None }
+            })
+            .unwrap_or(0)
     }
 
     pub async fn get_api_keys(&self, pubkey: &str) -> ApiKeys {

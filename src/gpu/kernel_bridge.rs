@@ -141,12 +141,9 @@ pub fn set_dynamic_relationship_buffer(
 ) -> i32 {
     #[cfg(feature = "gpu")]
     {
-        assert!(
-            configs.len() <= i32::MAX as usize,
-            "Too many configs ({}) for GPU kernel (max {})",
-            configs.len(),
-            i32::MAX
-        );
+        if configs.len() > i32::MAX as usize {
+            return -1;
+        }
         let ptr = if configs.is_empty() {
             std::ptr::null()
         } else {

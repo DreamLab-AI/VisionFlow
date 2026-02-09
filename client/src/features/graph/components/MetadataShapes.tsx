@@ -1,9 +1,9 @@
 // client/src/features/graph/components/MetadataShapes.tsx
-import React, { useRef, useMemo } from 'react';
+import React, { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { type Node as GraphNode } from '../managers/graphDataManager';
-import { HologramNodeMaterial } from '../../../rendering/materials/HologramNodeMaterial';
+import { isWebGPURenderer } from '../../../rendering/rendererFactory';
 import type { GraphVisualMode } from './GraphManager';
 
 // Extended geometry type set for all three modes
@@ -287,19 +287,59 @@ const useGeometries = () => useMemo(() => ({
   torus: new THREE.TorusGeometry(0.35, 0.12, 8, 16),    // bounding radius ≈ 0.47
 }), []);
 
-const useHologramMaterial = (settings: any) => useMemo(() => {
-  const nodeSettings = settings?.visualisation?.graphs?.logseq?.nodes || settings?.visualisation?.nodes;
-  const material = new HologramNodeMaterial({
-    baseColor: nodeSettings?.baseColor || '#00ffff',
-    emissiveColor: nodeSettings?.emissiveColor || '#00ffff',
-    opacity: nodeSettings?.opacity ?? 0.8,
-    glowStrength: 2.0,
-    rimPower: 2.5,
-  });
-  material.defines = { ...material.defines, USE_INSTANCING_COLOR: '' };
-  material.needsUpdate = true;
-  return material;
-}, [settings]);
+/**
+ * Creates a MeshPhysicalMaterial with Fresnel rim glow that works on both renderers.
+ * On WebGPU, a TSL opacityNode provides the rim effect since onBeforeCompile GLSL is ignored.
+ * Replaces the deleted HologramNodeMaterial with a compatible physical-based alternative.
+ */
+const useMetadataShapeMaterial = (settings: any) => {
+  const material = useMemo(() => {
+    const nodeSettings = settings?.visualisation?.graphs?.logseq?.nodes || settings?.visualisation?.nodes;
+    const baseColor = nodeSettings?.baseColor || '#00ffff';
+    const emissiveColor = nodeSettings?.emissiveColor || '#00ffff';
+
+    const mat = new THREE.MeshPhysicalMaterial({
+      color: new THREE.Color(baseColor),
+      emissive: new THREE.Color(emissiveColor),
+      emissiveIntensity: 0.3,
+      roughness: 0.1,
+      metalness: 0.0,
+      clearcoat: 0.8,
+      clearcoatRoughness: 0.05,
+      transparent: true,
+      opacity: isWebGPURenderer ? 0.7 : (nodeSettings?.opacity ?? 0.8),
+      side: THREE.DoubleSide,
+      depthWrite: true,
+      transmission: isWebGPURenderer ? 0 : 0.5,
+      thickness: isWebGPURenderer ? 0 : 0.3,
+      ...(isWebGPURenderer ? {
+        sheen: 0.4,
+        sheenRoughness: 0.15,
+        sheenColor: new THREE.Color(baseColor),
+        envMapIntensity: 2.0,
+        specularIntensity: 1.0,
+      } : {}),
+    });
+
+    // TSL Fresnel upgrade for WebGPU
+    if (isWebGPURenderer) {
+      import('three/tsl').then((tsl: any) => {
+        const { float, mix, pow, dot, normalize: tslNorm, normalView, positionView, oneMinus, saturate } = tsl;
+        const vDir = tslNorm(positionView.negate());
+        const nDotV = saturate(dot(normalView, vDir));
+        const fresnel = pow(oneMinus(nDotV), float(3.0));
+        (mat as any).opacityNode = mix(float(0.3), float(0.85), fresnel);
+        (mat as any).needsUpdate = true;
+      }).catch((err: any) => console.warn('[MetadataShapes] TSL upgrade failed:', err));
+    }
+
+    return mat;
+  }, [settings]);
+
+  // Expose a time-update shim so useFrame callers can pulse emissive
+  const uniformsRef = useRef({ pulseSpeed: { value: 0.5 }, time: { value: 0 } });
+  return { material, uniforms: uniformsRef.current, updateTime: (t: number) => { uniformsRef.current.time.value = t; } };
+};
 
 
 // --- 3. The React Component ---
@@ -325,7 +365,7 @@ export const MetadataShapes: React.FC<MetadataShapesProps> = ({
   hierarchyMap
 }) => {
   const geometries = useGeometries();
-  const material = useHologramMaterial(settings);
+  const { material, uniforms: matUniforms, updateTime } = useMetadataShapeMaterial(settings);
   const meshRefs = useRef<Map<string, THREE.InstancedMesh>>(new Map());
 
   // Pre-allocated objects to avoid GC pressure in useFrame
@@ -353,7 +393,7 @@ export const MetadataShapes: React.FC<MetadataShapesProps> = ({
   useFrame((state) => {
     if (!nodePositions) return;
 
-    material.updateTime(state.clock.elapsedTime);
+    updateTime(state.clock.elapsedTime);
     const tempMatrix = tempMatrixRef.current;
     const tempColor = tempColorRef.current;
 
@@ -373,7 +413,7 @@ export const MetadataShapes: React.FC<MetadataShapesProps> = ({
         if (!nodePositions || i3 + 2 >= nodePositions.length) return;
 
         const visuals = getVisualsForNode(node, baseColorForNode, ssspResult, graphMode, hierarchyMap);
-        material.uniforms.pulseSpeed.value = visuals.pulseSpeed;
+        matUniforms.pulseSpeed.value = visuals.pulseSpeed;
 
         const finalScale = visuals.scale * sizeMultiplier;
         tempMatrix.makeScale(finalScale, finalScale, finalScale);

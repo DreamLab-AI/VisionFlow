@@ -217,14 +217,25 @@ export class BinaryWebSocketProtocol {
   public createMessage(type: MessageType, payload: ArrayBuffer, graphTypeFlag?: GraphTypeFlag): ArrayBuffer {
     const isGraphUpdate = type === MessageType.GRAPH_UPDATE;
     const headerSize = isGraphUpdate ? GRAPH_UPDATE_HEADER_SIZE : MESSAGE_HEADER_SIZE;
+
+    // Guard: payload length field is uint16 — max 65,535 bytes.
+    // At 26 bytes/node this overflows above ~2,520 nodes.
+    if (payload.byteLength > 0xFFFF) {
+      logger.error(
+        `Payload size ${payload.byteLength} exceeds uint16 max (65535). ` +
+        `Message type 0x${type.toString(16)} will be truncated on the wire. ` +
+        `Protocol upgrade to uint32 payload length required for large graphs.`
+      );
+    }
+
     const totalSize = headerSize + payload.byteLength;
     const buffer = new ArrayBuffer(totalSize);
     const view = new DataView(buffer);
 
-    
+
     view.setUint8(0, type);
     view.setUint8(1, PROTOCOL_VERSION);
-    view.setUint16(2, payload.byteLength, true);
+    view.setUint16(2, Math.min(payload.byteLength, 0xFFFF), true);
 
     
     if (isGraphUpdate && graphTypeFlag !== undefined) {
@@ -447,9 +458,14 @@ export class BinaryWebSocketProtocol {
     nodes.forEach((node, index) => {
       const offset = index * SSSP_DATA_SIZE;
 
-      view.setUint16(offset, node.nodeId, true);
+      // Guard: nodeId and parentId are uint16 — max 65,535.
+      // IDs above this are silently truncated. Log warning for visibility.
+      if (node.nodeId > 0xFFFF || node.parentId > 0xFFFF) {
+        logger.warn(`SSSP node/parent ID exceeds uint16: nodeId=${node.nodeId}, parentId=${node.parentId}`);
+      }
+      view.setUint16(offset, node.nodeId & 0xFFFF, true);
       view.setFloat32(offset + 2, node.distance, true);
-      view.setUint16(offset + 6, node.parentId, true);
+      view.setUint16(offset + 6, node.parentId & 0xFFFF, true);
       view.setUint16(offset + 8, node.flags, true);
     });
 

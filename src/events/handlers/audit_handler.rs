@@ -1,13 +1,16 @@
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
+use std::collections::VecDeque;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
 use crate::events::types::{EventHandler, EventResult, StoredEvent};
 
+const MAX_AUDIT_ENTRIES: usize = 10_000;
+
 pub struct AuditEventHandler {
     handler_id: String,
-    log: Arc<RwLock<Vec<AuditLogEntry>>>,
+    log: Arc<RwLock<VecDeque<AuditLogEntry>>>,
 }
 
 #[derive(Debug, Clone)]
@@ -25,12 +28,12 @@ impl AuditEventHandler {
     pub fn new(handler_id: impl Into<String>) -> Self {
         Self {
             handler_id: handler_id.into(),
-            log: Arc::new(RwLock::new(Vec::new())),
+            log: Arc::new(RwLock::new(VecDeque::new())),
         }
     }
 
     pub async fn get_log_entries(&self) -> Vec<AuditLogEntry> {
-        self.log.read().await.clone()
+        self.log.read().await.iter().cloned().collect()
     }
 
     pub async fn get_log_count(&self) -> usize {
@@ -95,7 +98,10 @@ impl EventHandler for AuditEventHandler {
         };
 
         let mut log = self.log.write().await;
-        log.push(entry);
+        log.push_back(entry);
+        while log.len() > MAX_AUDIT_ENTRIES {
+            log.pop_front();
+        }
 
         Ok(())
     }

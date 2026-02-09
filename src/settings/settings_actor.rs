@@ -265,8 +265,22 @@ impl Handler<UpdateConstraintSettings> for SettingsActor {
 
     fn handle(&mut self, msg: UpdateConstraintSettings, _ctx: &mut Self::Context) -> Self::Result {
         self.current_constraints = msg.0.clone();
-        info!("Constraint settings updated (in-memory only)");
-        Box::pin(async move { Ok(()) })
+        let repository = self.repository.clone();
+        let settings = msg.0;
+
+        Box::pin(async move {
+            let settings_json = serde_json::to_value(&settings)
+                .map_err(|e| anyhow::anyhow!("Failed to serialize constraint settings: {}", e))?;
+
+            repository.set_setting(
+                "constraints",
+                crate::ports::settings_repository::SettingValue::Json(settings_json),
+                Some("Constraint settings for physics simulation"),
+            ).await?;
+
+            info!("Constraint settings updated and persisted");
+            Ok(())
+        })
     }
 }
 
@@ -283,8 +297,22 @@ impl Handler<UpdateRenderingSettings> for SettingsActor {
 
     fn handle(&mut self, msg: UpdateRenderingSettings, _ctx: &mut Self::Context) -> Self::Result {
         self.current_rendering = msg.0.clone();
-        info!("Rendering settings updated (in-memory only)");
-        Box::pin(async move { Ok(()) })
+        let repository = self.repository.clone();
+        let settings = msg.0;
+
+        Box::pin(async move {
+            let settings_json = serde_json::to_value(&settings)
+                .map_err(|e| anyhow::anyhow!("Failed to serialize rendering settings: {}", e))?;
+
+            repository.set_setting(
+                "rendering",
+                crate::ports::settings_repository::SettingValue::Json(settings_json),
+                Some("Rendering settings for visualization"),
+            ).await?;
+
+            info!("Rendering settings updated and persisted");
+            Ok(())
+        })
     }
 }
 

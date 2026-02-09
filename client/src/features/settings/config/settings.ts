@@ -332,7 +332,7 @@ export interface GraphSettings {
 // Multi-graph namespace structure
 export interface GraphsSettings {
   logseq: GraphSettings;
-  visionflow: GraphSettings;
+  [key: string]: GraphSettings;
 }
 
 // Graph-type-specific visual settings

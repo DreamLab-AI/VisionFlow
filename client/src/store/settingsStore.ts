@@ -16,22 +16,25 @@ import { webSocketService } from './websocketStore';
 
 const logger = createLogger('SettingsStore')
 
+// Module-level subscribers map (kept outside Zustand to avoid serialization/diffing overhead)
+const subscribersMap = new Map<string, Set<() => void>>();
+
 // Helper to wait for authentication to be ready
 async function waitForAuthReady(maxWaitMs: number = 3000): Promise<void> {
   const startTime = Date.now();
 
-  
+
   if (!nostrAuth['initialized']) {
     logger.info('Waiting for nostrAuth to initialize...');
     await nostrAuth.initialize();
   }
 
-  
+
   return new Promise((resolve) => {
     const checkAuth = () => {
       const elapsed = Date.now() - startTime;
 
-      
+
       if (elapsed >= maxWaitMs || !localStorage.getItem('nostr_session_token')) {
         logger.info('Proceeding with settings initialization', {
           authenticated: nostrAuth.isAuthenticated(),
@@ -41,14 +44,14 @@ async function waitForAuthReady(maxWaitMs: number = 3000): Promise<void> {
         return;
       }
 
-      
+
       if (nostrAuth.isAuthenticated()) {
         logger.info('Auth ready, proceeding with settings initialization');
         resolve();
         return;
       }
 
-      
+
       setTimeout(checkAuth, 100);
     };
 
@@ -68,7 +71,6 @@ const ESSENTIAL_PATHS = [
   'xr.mode',
 
   'visualisation.graphs.logseq.physics',
-  'visualisation.graphs.visionflow.physics',
 
   // Graph-type visual settings - needed for per-type rendering
   'visualisation.graphTypeVisuals',
@@ -86,14 +88,14 @@ const ESSENTIAL_PATHS = [
 // Helper function to find changed paths between two objects
 function findChangedPaths(oldObj: unknown, newObj: unknown, path: string = ''): string[] {
   const changedPaths: string[] = [];
-  
-  
+
+
   if (oldObj === newObj) return changedPaths;
   if (oldObj == null || newObj == null) {
     if (path) changedPaths.push(path);
     return changedPaths;
   }
-  
+
 
   if (typeof oldObj !== 'object' || typeof newObj !== 'object') {
     if (oldObj !== newObj && path) {
@@ -111,69 +113,68 @@ function findChangedPaths(oldObj: unknown, newObj: unknown, path: string = ''): 
     const currentPath = path ? `${path}.${key}` : key;
     const oldValue = oldRecord[key];
     const newValue = newRecord[key];
-    
+
     if (typeof oldValue === 'object' && typeof newValue === 'object' && oldValue !== null && newValue !== null) {
-      
+
       changedPaths.push(...findChangedPaths(oldValue, newValue, currentPath));
     } else if (oldValue !== newValue) {
-      
+
       changedPaths.push(currentPath);
     }
   }
-  
+
   return changedPaths;
 }
 
 export interface SettingsState {
-  
+
   partialSettings: DeepPartial<Settings>
-  loadedPaths: Set<string> 
-  loadingSections: Set<string> 
-  
-  
-  settings: DeepPartial<Settings> 
-  
+  loadedPaths: Set<string>
+  loadingSections: Set<string>
+
+
+  settings: DeepPartial<Settings>
+
   initialized: boolean
   authenticated: boolean
   user: { isPowerUser: boolean; pubkey: string } | null
-  isPowerUser: boolean 
-  subscribers: Map<string, Set<() => void>>
+  isPowerUser: boolean
 
-  
+
   initialize: () => Promise<void>
   setAuthenticated: (authenticated: boolean) => void
   setUser: (user: { isPowerUser: boolean; pubkey: string } | null) => void
   get: <T>(path: SettingsPath) => T | undefined
-  set: <T>(path: SettingsPath, value: T) => void
+  set: <T>(path: SettingsPath, value: T, skipServerSync?: boolean) => void
   subscribe: (path: SettingsPath, callback: () => void, immediate?: boolean) => () => void;
   unsubscribe: (path: SettingsPath, callback: () => void) => void;
   updateSettings: (updater: (draft: Settings) => void) => void;
-  notifyViewportUpdate: (path: SettingsPath) => void; 
-  
-  
+  notifyViewportUpdate: (path: SettingsPath) => void;
+
+
   ensureLoaded: (paths: string[]) => Promise<void>
   loadSection: (section: string) => Promise<void>
   isLoaded: (path: SettingsPath) => boolean
-  
-  
-  getByPath: <T>(path: SettingsPath) => Promise<T>; 
-  setByPath: <T>(path: SettingsPath, value: T) => void; 
+
+
+  getByPath: <T>(path: SettingsPath) => Promise<T>;
+  setByPath: <T>(path: SettingsPath, value: T) => void;
   batchUpdate: (updates: Array<{path: SettingsPath, value: unknown}>) => void;
-  flushPendingUpdates: () => Promise<void>; 
-  
-  
-  resetSettings: () => Promise<void>; 
-  exportSettings: () => Promise<string>; 
-  importSettings: (jsonString: string) => Promise<void>; 
-  
-  
+  flushPendingUpdates: () => Promise<void>;
+
+
+  resetSettings: () => Promise<void>;
+  exportSettings: () => Promise<string>;
+  importSettings: (jsonString: string) => Promise<void>;
+
+
   updateComputeMode: (mode: string) => void;
   updateClustering: (config: ClusteringConfig) => void;
   updateConstraints: (constraints: ConstraintConfig[]) => void;
   updatePhysics: (graphName: string, params: Partial<GPUPhysicsParams>) => void;
   updateWarmupSettings: (settings: WarmupSettings) => void;
-  
-  
+
+
   notifyPhysicsUpdate: (graphName: string, params: Partial<GPUPhysicsParams>) => void;
 }
 
@@ -188,42 +189,42 @@ interface GPUPhysicsParams {
   damping: number;
   temperature: number;
   maxRepulsionDist: number;
-  
-  
+
+
   restLength: number;
   repulsionCutoff: number;
   repulsionSofteningEpsilon: number;
   centerGravityK: number;
   gridCellSize: number;
   featureFlags: number;
-  
-  
+
+
   warmupIterations: number;
   coolingRate: number;
-  
-  
+
+
   enableBounds?: boolean;
   boundsSize?: number;
   boundaryDamping?: number;
   collisionRadius?: number;
-  
-  
+
+
   iterations?: number;
   massScale?: number;
   updateThreshold?: number;
-  
-  
-  
+
+
+
   boundaryExtremeMultiplier?: number;
-  
+
   boundaryExtremeForceMultiplier?: number;
-  
+
   boundaryVelocityDamping?: number;
-  
+
   maxForce?: number;
-  
+
   seed?: number;
-  
+
   iteration?: number;
 }
 
@@ -248,8 +249,8 @@ interface WarmupSettings {
   warmupDuration: number;
   convergenceThreshold: number;
   enableAdaptiveCooling: boolean;
-  warmupIterations?: number; 
-  coolingRate?: number; 
+  warmupIterations?: number;
+  coolingRate?: number;
 }
 
 
@@ -257,14 +258,13 @@ export const useSettingsStore = create<SettingsState>()(
   persist(
     (set, get) => ({
       partialSettings: {},
-      settings: {}, 
+      settings: {},
       loadedPaths: new Set(),
       loadingSections: new Set(),
       initialized: false,
       authenticated: false,
       user: null,
       isPowerUser: false,
-      subscribers: new Map(),
 
       initialize: async () => {
         try {
@@ -273,7 +273,7 @@ export const useSettingsStore = create<SettingsState>()(
             logger.info('Initializing settings store with essential paths only')
           }
 
-          
+
           await waitForAuthReady();
 
           const isAuthenticated = nostrAuth.isAuthenticated();
@@ -284,7 +284,7 @@ export const useSettingsStore = create<SettingsState>()(
             user: user?.pubkey?.slice(0, 8) + '...',
           });
 
-          
+
           logger.info('[SettingsStore] Calling settingsApi.getSettingsByPaths');
           const essentialSettings = await settingsApi.getSettingsByPaths(ESSENTIAL_PATHS);
           logger.info('[SettingsStore] Essential settings loaded successfully');
@@ -295,7 +295,7 @@ export const useSettingsStore = create<SettingsState>()(
 
           set(state => ({
             partialSettings: essentialSettings as DeepPartial<Settings>,
-            settings: essentialSettings as DeepPartial<Settings>, 
+            settings: essentialSettings as DeepPartial<Settings>,
             loadedPaths: new Set(ESSENTIAL_PATHS),
             initialized: true,
             authenticated: isAuthenticated,
@@ -303,7 +303,7 @@ export const useSettingsStore = create<SettingsState>()(
             isPowerUser: user?.isPowerUser || false
           }));
 
-          
+
           autoSaveManager.setInitialized(true);
 
           if (debugState.isEnabled()) {
@@ -326,20 +326,19 @@ export const useSettingsStore = create<SettingsState>()(
       }),
 
       notifyViewportUpdate: (path: SettingsPath) => {
-        
-        const callbacks = get().subscribers.get('viewport.update')
+        const callbacks = subscribersMap.get('viewport.update');
         if (callbacks) {
           Array.from(callbacks).forEach(callback => {
             try {
-              callback()
+              callback();
             } catch (error) {
-              logger.error(`Error in viewport update subscriber:`, createErrorMetadata(error))
+              logger.error(`Error in viewport update subscriber:`, createErrorMetadata(error));
             }
-          })
+          });
         }
       },
 
-      
+
       get: <T>(path: SettingsPath): T | undefined => {
         const { partialSettings, loadedPaths } = get();
 
@@ -347,9 +346,9 @@ export const useSettingsStore = create<SettingsState>()(
           return partialSettings as unknown as T;
         }
 
-        
-        const isPathLoaded = loadedPaths.has(path) || 
-          [...loadedPaths].some(loadedPath => 
+
+        const isPathLoaded = loadedPaths.has(path) ||
+          [...loadedPaths].some(loadedPath =>
             path.startsWith(loadedPath + '.') || loadedPath.startsWith(path + '.')
           );
 
@@ -357,12 +356,12 @@ export const useSettingsStore = create<SettingsState>()(
           if (debugState.isEnabled()) {
             logger.warn(`Accessing unloaded path: ${path} - path should be loaded before access`);
           }
-          
-          
+
+
           return undefined as unknown as T;
         }
 
-        
+
         const pathParts = path.split('.');
         let current: unknown = partialSettings;
 
@@ -376,13 +375,12 @@ export const useSettingsStore = create<SettingsState>()(
         return current as T;
       },
 
-      
-      set: <T>(path: SettingsPath, value: T) => {
+
+      set: <T>(path: SettingsPath, value: T, skipServerSync: boolean = false) => {
         if (!path?.trim()) {
           throw new Error('Path cannot be empty');
         }
 
-        
         set(state => {
           const newPartialSettings = { ...state.partialSettings };
           setNestedValue(newPartialSettings, path, value);
@@ -391,15 +389,16 @@ export const useSettingsStore = create<SettingsState>()(
 
           return {
             partialSettings: newPartialSettings,
-            settings: newPartialSettings, 
+            settings: newPartialSettings,
             loadedPaths: newLoadedPaths
           };
         });
 
-        
-        settingsApi.updateSettingByPath(path, value).catch(error => {
-          logger.error(`Failed to update setting ${path}:`, createErrorMetadata(error));
-        });
+        if (!skipServerSync) {
+          settingsApi.updateSettingByPath(path, value).catch(error => {
+            logger.error(`Failed to update setting ${path}:`, createErrorMetadata(error));
+          });
+        }
 
         if (debugState.isEnabled()) {
           logger.info('Setting updated:', { path, value });
@@ -407,60 +406,44 @@ export const useSettingsStore = create<SettingsState>()(
       },
 
       subscribe: (path: SettingsPath, callback: () => void, immediate: boolean = true) => {
-        set(state => {
-          const subscribers = new Map(state.subscribers)
+        if (!subscribersMap.has(path)) {
+          subscribersMap.set(path, new Set());
+        }
+        subscribersMap.get(path)!.add(callback);
 
-          if (!subscribers.has(path)) {
-            subscribers.set(path, new Set())
-          }
-
-          subscribers.get(path)!.add(callback)
-
-          return { subscribers }
-        })
-
-        
         if (immediate && get().initialized) {
-          callback()
+          callback();
         }
 
-        
-        return () => get().unsubscribe(path, callback)
+        return () => get().unsubscribe(path, callback);
       },
 
       unsubscribe: (path: SettingsPath, callback: () => void) => {
-        set(state => {
-          const subscribers = new Map(state.subscribers)
-
-          if (subscribers.has(path)) {
-            const callbacks = subscribers.get(path)!
-            callbacks.delete(callback)
-
-            if (callbacks.size === 0) {
-              subscribers.delete(path)
-            }
+        if (subscribersMap.has(path)) {
+          const callbacks = subscribersMap.get(path)!;
+          callbacks.delete(callback);
+          if (callbacks.size === 0) {
+            subscribersMap.delete(path);
           }
-
-          return { subscribers }
-        })
+        }
       },
 
-      
+
       ensureLoaded: async (paths: string[]): Promise<void> => {
         const { loadedPaths } = get();
         const unloadedPaths = paths.filter(path => !loadedPaths.has(path));
-        
+
         if (unloadedPaths.length === 0) {
-          return; 
+          return;
         }
 
         try {
           const pathSettings = await settingsApi.getSettingsByPaths(unloadedPaths);
-          
+
           set(state => {
             const newPartialSettings = { ...state.partialSettings };
             const newLoadedPaths = new Set(state.loadedPaths);
-            
+
             Object.entries(pathSettings).forEach(([path, value]) => {
               setNestedValue(newPartialSettings, path, value);
               newLoadedPaths.add(path);
@@ -468,7 +451,7 @@ export const useSettingsStore = create<SettingsState>()(
 
             return {
               partialSettings: newPartialSettings,
-              settings: newPartialSettings, 
+              settings: newPartialSettings,
               loadedPaths: newLoadedPaths
             };
           });
@@ -482,11 +465,11 @@ export const useSettingsStore = create<SettingsState>()(
         }
       },
 
-      
+
       loadSection: async (section: string): Promise<void> => {
         const { loadingSections } = get();
         if (loadingSections.has(section)) {
-          return; 
+          return;
         }
 
         const sectionPaths = getSectionPaths(section);
@@ -495,7 +478,7 @@ export const useSettingsStore = create<SettingsState>()(
           return;
         }
 
-        
+
         set(state => ({
           loadingSections: new Set(state.loadingSections).add(section)
         }));
@@ -507,7 +490,7 @@ export const useSettingsStore = create<SettingsState>()(
             logger.info(`Section loaded: ${section}`, { paths: sectionPaths });
           }
         } finally {
-          
+
           set(state => {
             const newLoadingSections = new Set(state.loadingSections);
             newLoadingSections.delete(section);
@@ -516,37 +499,37 @@ export const useSettingsStore = create<SettingsState>()(
         }
       },
 
-      
+
       isLoaded: (path: SettingsPath): boolean => {
         const { loadedPaths } = get();
         return loadedPaths.has(path);
       },
 
-      
+
       updateSettings: (updater: (draft: Settings) => void): void => {
         const { partialSettings } = get();
-        
-        
+
+
         const newSettings = produce(partialSettings, updater);
-        
-        
+
+
         const changedPaths = findChangedPaths(partialSettings, newSettings);
-        
+
         if (changedPaths.length === 0) {
-          return; 
+          return;
         }
 
-        
+
         set(state => {
           return {
             partialSettings: newSettings,
-            settings: newSettings, 
-            
+            settings: newSettings,
+
             loadedPaths: new Set([...state.loadedPaths, ...changedPaths])
           };
         });
 
-        
+
         changedPaths.forEach(path => {
           const pathParts = path.split('.');
           let current: unknown = newSettings;
@@ -562,26 +545,26 @@ export const useSettingsStore = create<SettingsState>()(
           logger.info('Settings updated via updateSettings:', { changedPaths });
         }
 
-        
+
         const state = get();
-        
-        
+
+
         const viewportUpdated = changedPaths.some(path => isViewportSetting(path));
-        
+
         if (viewportUpdated) {
-          
+
           state.notifyViewportUpdate('viewport.update');
-          
+
           if (debugState.isEnabled()) {
-            logger.info('Viewport settings updated, triggering immediate update', { 
+            logger.info('Viewport settings updated, triggering immediate update', {
               viewportPaths: changedPaths.filter(path => isViewportSetting(path))
             });
           }
         }
 
-        
+
         const allCallbacks = new Set<() => void>();
-        state.subscribers.forEach(callbacks => {
+        subscribersMap.forEach(callbacks => {
           callbacks.forEach(cb => allCallbacks.add(cb));
         });
 
@@ -594,7 +577,7 @@ export const useSettingsStore = create<SettingsState>()(
         });
       },
 
-      
+
       updateComputeMode: (mode: string) => {
         const state = get();
         state.updateSettings((draft: Settings) => {
@@ -638,11 +621,11 @@ export const useSettingsStore = create<SettingsState>()(
 
       updatePhysics: (graphName: string, params: Partial<GPUPhysicsParams>) => {
         const state = get();
-        
-        
+
+
         const validatedParams = { ...params };
-        
-        
+
+
         if (validatedParams.restLength !== undefined) {
           validatedParams.restLength = Math.max(0.1, Math.min(10.0, validatedParams.restLength));
         }
@@ -661,8 +644,8 @@ export const useSettingsStore = create<SettingsState>()(
         if (validatedParams.featureFlags !== undefined) {
           validatedParams.featureFlags = Math.max(0, Math.min(255, Math.floor(validatedParams.featureFlags)));
         }
-        
-        
+
+
         const extParams = validatedParams as Record<string, unknown>;
         if (extParams.arrow_size !== undefined) {
           extParams.arrow_size = Math.max(0.01, Math.min(5.0, extParams.arrow_size as number));
@@ -676,8 +659,8 @@ export const useSettingsStore = create<SettingsState>()(
         if (extParams.baseWidth !== undefined) {
           extParams.baseWidth = Math.max(0.01, Math.min(5.0, extParams.baseWidth as number));
         }
-        
-        
+
+
         if (validatedParams.springK !== undefined) {
           validatedParams.springK = Math.max(0.001, Math.min(10.0, validatedParams.springK));
         }
@@ -696,7 +679,7 @@ export const useSettingsStore = create<SettingsState>()(
         if (validatedParams.coolingRate !== undefined) {
           validatedParams.coolingRate = Math.max(0.0001, Math.min(1.0, validatedParams.coolingRate));
         }
-        
+
         state.updateSettings((draft: Settings) => {
           const d = draft as unknown as Record<string, unknown>;
           if (!d.visualisation) d.visualisation = { graphs: {} };
@@ -707,11 +690,11 @@ export const useSettingsStore = create<SettingsState>()(
           if (!graphs[graphName]) graphs[graphName] = {};
           const graph = graphs[graphName] as Record<string, unknown>;
           if (!graph.physics) graph.physics = {};
-          
+
           const graphSettings = graphs[graphName] as Record<string, unknown> | undefined;
           if (graphSettings && graphSettings.physics) {
             Object.assign(graphSettings.physics as Record<string, unknown>, validatedParams);
-            
+
             if (debugState.isEnabled()) {
               logger.info('Physics parameters updated:', {
                 graphName,
@@ -721,8 +704,8 @@ export const useSettingsStore = create<SettingsState>()(
             }
           }
         });
-        
-        
+
+
         state.notifyPhysicsUpdate(graphName, validatedParams);
       },
 
@@ -737,18 +720,18 @@ export const useSettingsStore = create<SettingsState>()(
         });
       },
 
-      
+
       notifyPhysicsUpdate: (graphName: string, params: Partial<GPUPhysicsParams>) => {
         if (typeof window !== 'undefined') {
           try {
-            
+
             if (webSocketService && webSocketService.isConnected) {
               webSocketService.sendMessage('physics_parameter_update', {
                 timestamp: Date.now(),
                 graph: graphName,
                 parameters: params
               });
-              
+
               if (debugState.isEnabled()) {
                 logger.info('Physics update sent via WebSocket:', {
                   graphName,
@@ -764,8 +747,8 @@ export const useSettingsStore = create<SettingsState>()(
           } catch (error) {
             logger.warn('Failed to notify physics update via WebSocket:', createErrorMetadata(error));
           }
-          
-          
+
+
           const event = new CustomEvent('physicsParametersUpdated', {
             detail: { graphName, params }
           });
@@ -773,8 +756,8 @@ export const useSettingsStore = create<SettingsState>()(
         }
       },
 
-      
-      
+
+
       getByPath: async <T>(path: SettingsPath): Promise<T> => {
         try {
           const value = await settingsApi.getSettingByPath(path);
@@ -785,76 +768,84 @@ export const useSettingsStore = create<SettingsState>()(
           return localValue as T;
         }
       },
-      
+
       setByPath: <T>(path: SettingsPath, value: T) => {
         const state = get();
 
-        
-        state.set(path, value);
+        // Update Zustand state without triggering server sync from set()
+        state.set(path, value, true);
 
-        
+        // Single server write from setByPath
         settingsApi.updateSettingByPath(path, value).catch(error => {
           logger.error(`Failed to update setting ${path}:`, createErrorMetadata(error));
         });
       },
-      
-      batchUpdate: (updates: Array<{path: SettingsPath, value: unknown}>) => {
-        const state = get();
 
-        
-        updates.forEach(({ path, value }) => {
-          state.set(path, value);
+      batchUpdate: (updates: Array<{path: SettingsPath, value: unknown}>) => {
+        // Accumulate all changes locally without triggering per-key server writes
+        set(state => {
+          const newPartialSettings = { ...state.partialSettings };
+          const newLoadedPaths = new Set(state.loadedPaths);
+          for (const { path, value } of updates) {
+            setNestedValue(newPartialSettings, path, value);
+            newLoadedPaths.add(path);
+          }
+          return {
+            partialSettings: newPartialSettings,
+            settings: newPartialSettings,
+            loadedPaths: newLoadedPaths
+          };
         });
 
-        
+        // Single batched server write
         settingsApi.updateSettingsByPaths(updates.map(u => ({ path: u.path, value: u.value }))).catch(error => {
           logger.error('Failed to batch update settings:', createErrorMetadata(error));
         });
       },
-      
+
       flushPendingUpdates: async (): Promise<void> => {
-        
+
         await settingsApi.flushPendingUpdates();
       },
-      
-      
+
+
       resetSettings: async (): Promise<void> => {
         try {
-          
+
           await settingsApi.resetSettings();
-          
-          
+
+
           set({
             partialSettings: {},
-            settings: {}, 
+            settings: {},
             loadedPaths: new Set()
           });
-          
-          
+
+
           await get().initialize();
-          
+
           logger.info('Settings reset to defaults and essential paths reloaded');
         } catch (error) {
           logger.error('Failed to reset settings:', createErrorMetadata(error));
           throw error;
         }
       },
-      
+
       exportSettings: async (): Promise<string> => {
         const { partialSettings, loadedPaths } = get();
-        
+
         try {
-          
+
           if (loadedPaths.size === ESSENTIAL_PATHS.length) {
             logger.info('Only essential settings loaded, fetching all settings for export...');
-            
-            
+
+
             const allPaths = getAllAvailableSettingsPaths();
             const allSettings = await settingsApi.getSettingsByPaths(allPaths);
-            
+
             return settingsApi.exportSettings(allSettings as Settings);
           } else {
-            
+
             return settingsApi.exportSettings(partialSettings as Settings);
           }
         } catch (error) {
@@ -862,13 +853,13 @@ export const useSettingsStore = create<SettingsState>()(
           throw error;
         }
       },
-      
+
       importSettings: async (jsonString: string): Promise<void> => {
         try {
-          
+
           const importedSettings = settingsApi.importSettings(jsonString);
-          
-          
+
+
           const allPaths = getAllSettingsPaths(importedSettings);
           const updates: Array<{path: string, value: unknown}> = [];
 
@@ -878,10 +869,10 @@ export const useSettingsStore = create<SettingsState>()(
               updates.push({ path, value });
             }
           }
-          
-          
+
+
           get().batchUpdate(updates);
-          
+
           logger.info(`Successfully imported ${updates.length} settings using path-based updates`);
         } catch (error) {
           logger.error('Failed to import settings:', createErrorMetadata(error));
@@ -952,8 +943,7 @@ export const useSettingsStore = create<SettingsState>()(
 function getSectionPaths(section: string): string[] {
   const sectionPathMap: Record<string, string[]> = {
     'physics': [
-      'visualisation.graphs.logseq.physics',
-      'visualisation.graphs.visionflow.physics'
+      'visualisation.graphs.logseq.physics'
     ],
     'rendering': [
       'visualisation.rendering.ambientLightIntensity',
@@ -986,16 +976,13 @@ function getSectionPaths(section: string): string[] {
       'visualisation.graphTypeVisuals.agent'
     ],
     'nodes': [
-      'visualisation.graphs.logseq.nodes',
-      'visualisation.graphs.visionflow.nodes'
+      'visualisation.graphs.logseq.nodes'
     ],
     'edges': [
-      'visualisation.graphs.logseq.edges',
-      'visualisation.graphs.visionflow.edges'
+      'visualisation.graphs.logseq.edges'
     ],
     'labels': [
-      'visualisation.graphs.logseq.labels',
-      'visualisation.graphs.visionflow.labels'
+      'visualisation.graphs.logseq.labels'
     ]
   };
 
@@ -1021,35 +1008,35 @@ function setNestedValue(obj: Record<string, unknown>, path: string, value: unkno
 // Helper function to extract all paths from a settings object
 function getAllSettingsPaths(obj: unknown, prefix: string = ''): string[] {
   const paths: string[] = [];
-  
+
   if (obj && typeof obj === 'object') {
     for (const [key, value] of Object.entries(obj)) {
       const currentPath = prefix ? `${prefix}.${key}` : key;
-      
+
       if (value && typeof value === 'object' && !Array.isArray(value)) {
-        
+
         paths.push(...getAllSettingsPaths(value, currentPath));
       } else {
-        
+
         paths.push(currentPath);
       }
     }
   }
-  
+
   return paths;
 }
 
 // Helper function to get all available settings paths for comprehensive operations
 function getAllAvailableSettingsPaths(): string[] {
-  
-  
+
+
   return [
-    
+
     ...ESSENTIAL_PATHS,
-    
-    
+
+
     'visualisation.rendering.ambientLightIntensity',
-    'visualisation.rendering.backgroundColor', 
+    'visualisation.rendering.backgroundColor',
     'visualisation.rendering.directionalLightIntensity',
     'visualisation.rendering.enableAmbientOcclusion',
     'visualisation.rendering.enableAntialiasing',
@@ -1057,18 +1044,14 @@ function getAllAvailableSettingsPaths(): string[] {
     'visualisation.rendering.environmentIntensity',
     'visualisation.rendering.shadowMapSize',
     'visualisation.rendering.shadowBias',
-    
-    
+
+
     'visualisation.graphs.logseq.nodes',
-    'visualisation.graphs.logseq.edges', 
+    'visualisation.graphs.logseq.edges',
     'visualisation.graphs.logseq.labels',
     'visualisation.graphs.logseq.physics',
-    'visualisation.graphs.visionflow.nodes',
-    'visualisation.graphs.visionflow.edges',
-    'visualisation.graphs.visionflow.labels', 
-    'visualisation.graphs.visionflow.physics',
-    
-    
+
+
     'visualisation.glow.enabled',
     'visualisation.glow.intensity',
     'visualisation.glow.radius',
@@ -1085,14 +1068,14 @@ function getAllAvailableSettingsPaths(): string[] {
     'xr.enableHandTracking',
     'xr.enableHaptics',
     'xr.quality',
-    
-    
+
+
     'system.performance.maxFPS',
     'system.performance.enableVSync',
     'system.websocket.url',
     'system.websocket.protocol',
-    
-    
+
+
   ];
 }
 

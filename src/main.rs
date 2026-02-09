@@ -49,7 +49,7 @@ use std::sync::Arc;
 use tokio::signal::unix::{signal, SignalKind};
 use tokio::sync::RwLock;
 use tokio::time::Duration;
-use webxr::middleware::TimeoutMiddleware;
+use webxr::middleware::{RequireAuth, RateLimit, TimeoutMiddleware};
 use webxr::telemetry::agent_telemetry::init_telemetry_logger;
 use webxr::utils::advanced_logging::init_advanced_logging;
 use webxr::utils::json::to_json;
@@ -521,7 +521,12 @@ async fn main() -> std::io::Result<()> {
                 web::scope("/api")
                     // Client logs route - registered early to avoid scope conflicts
                     .route("/client-logs", web::post().to(client_log_handler::handle_client_logs))
-                    .service(web::scope("/settings").configure(webxr::settings::api::configure_routes))
+                    .service(
+                        web::scope("/settings")
+                            .wrap(RequireAuth::authenticated())
+                            .wrap(RateLimit::per_minute(60))
+                            .configure(webxr::settings::api::configure_routes)
+                    )
                     .configure(api_handler::config)
                     .configure(workspace_handler::config)
                     .configure(admin_sync_handler::configure_routes)

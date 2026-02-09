@@ -1,7 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Stats } from '@react-three/drei';
-import * as THREE from 'three';
+import { OrbitControls, Stats, Environment } from '@react-three/drei';
 
 // GraphManager for rendering the actual graph
 import GraphManager from './GraphManager';
@@ -36,31 +35,30 @@ const GraphCanvas: React.FC = () => {
     const orbitControlsRef = useRef<any>(null);
     const { settings } = useSettingsStore();
     const showStats = settings?.system?.debug?.enablePerformanceDebug ?? false;
-    const xrEnabled = settings?.xr?.enabled !== false;
     // Note: bloom was merged into glow settings
     const enableGlow = settings?.visualisation?.glow?.enabled ?? false;
-    const useMultiLayerBloom = enableGlow; 
     
-    const [graphData, setGraphData] = useState<GraphData>({ nodes: [], edges: [] });
+    // Lightweight subscription: only track counts to avoid storing full graph data in two places
+    const [nodeCount, setNodeCount] = useState(0);
+    const [edgeCount, setEdgeCount] = useState(0);
     const [canvasReady, setCanvasReady] = useState(false);
 
-    
     useEffect(() => {
         let mounted = true;
-        
-        
+
         const handleGraphData = (data: GraphData) => {
             if (mounted) {
-                setGraphData(data);
+                setNodeCount(data.nodes.length);
+                setEdgeCount(data.edges.length);
             }
         };
 
         const unsubscribe = graphDataManager.onGraphDataChange(handleGraphData);
-        
-        
+
         graphDataManager.getGraphData().then((data) => {
             if (mounted) {
-                setGraphData(data);
+                setNodeCount(data.nodes.length);
+                setEdgeCount(data.edges.length);
             }
         }).catch((error) => {
             console.error('[GraphCanvas] Failed to load initial graph data:', error);
@@ -97,7 +95,7 @@ const GraphCanvas: React.FC = () => {
                     zIndex: 1000,
                     fontSize: '12px'
                 }}>
-                    Nodes: {graphData.nodes.length} | Edges: {graphData.edges.length} | Ready: {canvasReady ? 'Yes' : 'No'}
+                    Nodes: {nodeCount} | Edges: {edgeCount} | Ready: {canvasReady ? 'Yes' : 'No'}
                 </div>
             )}
 
@@ -113,10 +111,13 @@ const GraphCanvas: React.FC = () => {
                     setCanvasReady(true);
                 }}
             >
-                {}
-                <ambientLight intensity={0.15} />
-                <directionalLight position={[10, 10, 10]} intensity={0.4} />
-                
+                {/* Lighting tuned for gem refraction -- driven by settings */}
+                <ambientLight intensity={settings?.visualisation?.rendering?.ambientLightIntensity ?? 0.15} />
+                <directionalLight position={[10, 10, 10]} intensity={settings?.visualisation?.rendering?.directionalLightIntensity ?? 0.4} />
+
+                {/* Environment map for PBR glass material reflections */}
+                <Environment preset="studio" background={false} />
+
                 {/* Scene ambient effects (WASM particles, wisps, atmosphere) */}
                 <WasmSceneEffects
                     enabled={settings?.visualisation?.sceneEffects?.enabled !== false}
@@ -131,7 +132,7 @@ const GraphCanvas: React.FC = () => {
                 />
 
                 {}
-                {canvasReady && graphData.nodes.length > 0 && (
+                {canvasReady && nodeCount > 0 && (
                     <GraphManager />
                 )}
                 

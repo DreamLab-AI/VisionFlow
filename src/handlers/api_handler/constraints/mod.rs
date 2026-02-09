@@ -149,6 +149,7 @@ pub async fn get_constraint(
 }
 
 pub async fn update_constraint(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     state: web::Data<AppState>,
     constraint_id: web::Path<String>,
     req: web::Json<UpdateConstraintRequest>,
@@ -190,6 +191,7 @@ pub async fn update_constraint(
 }
 
 pub async fn create_user_constraint(
+    _auth: crate::settings::auth_extractor::AuthenticatedUser,
     state: web::Data<AppState>,
     req: web::Json<CreateConstraintRequest>,
 ) -> impl Responder {

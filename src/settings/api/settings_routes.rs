@@ -1,7 +1,7 @@
 // src/settings/api/settings_routes.rs
 //! REST API endpoints for settings management.
 //! Uses OptimizedSettingsActor (via AppState) as the single source of truth.
-//! All PUT routes validate input before applying. (QE Fix #1, #2, #5)
+//! All PUT routes validate input before applying. (QE Fix #1, #2, #3, #5)
 
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
@@ -107,6 +107,64 @@ pub fn validate_physics_settings(settings: &PhysicsSettings) -> Result<(), Strin
 }
 
 // ============================================================================
+// Constraint Settings Validation (QE Fix #1)
+// ============================================================================
+
+/// Validates constraint threshold values are finite, non-negative, and properly ordered.
+pub fn validate_constraint_settings(settings: &ConstraintSettings) -> Result<(), String> {
+    if !settings.far_threshold.is_finite() || settings.far_threshold < 0.0 {
+        return Err("far_threshold must be finite and non-negative".into());
+    }
+    if !settings.medium_threshold.is_finite() || settings.medium_threshold < 0.0 {
+        return Err("medium_threshold must be finite and non-negative".into());
+    }
+    if !settings.near_threshold.is_finite() || settings.near_threshold < 0.0 {
+        return Err("near_threshold must be finite and non-negative".into());
+    }
+    if settings.near_threshold >= settings.medium_threshold || settings.medium_threshold >= settings.far_threshold {
+        return Err("Thresholds must be ordered: near < medium < far".into());
+    }
+    Ok(())
+}
+
+// ============================================================================
+// Rendering Settings Validation (QE Fix #1)
+// ============================================================================
+
+/// Validates rendering light intensity values are finite and non-negative.
+pub fn validate_rendering_settings(settings: &RenderingSettings) -> Result<(), String> {
+    let check_finite = |v: f64, name: &str| -> Result<(), String> {
+        if !v.is_finite() || v < 0.0 {
+            Err(format!("{} must be finite and non-negative", name))
+        } else {
+            Ok(())
+        }
+    };
+    check_finite(settings.ambient_light_intensity as f64, "ambient_light_intensity")?;
+    check_finite(settings.directional_light_intensity as f64, "directional_light_intensity")?;
+    check_finite(settings.environment_intensity as f64, "environment_intensity")?;
+    Ok(())
+}
+
+// ============================================================================
+// Node Filter Settings Validation (QE Fix #1)
+// ============================================================================
+
+/// Validates node filter thresholds and filter mode.
+pub fn validate_node_filter_settings(settings: &NodeFilterSettings) -> Result<(), String> {
+    if settings.quality_threshold < 0.0 || settings.quality_threshold > 1.0 {
+        return Err("quality_threshold must be 0.0-1.0".into());
+    }
+    if settings.authority_threshold < 0.0 || settings.authority_threshold > 1.0 {
+        return Err("authority_threshold must be 0.0-1.0".into());
+    }
+    if settings.filter_mode != "and" && settings.filter_mode != "or" {
+        return Err("filter_mode must be 'and' or 'or'".into());
+    }
+    Ok(())
+}
+
+// ============================================================================
 // Physics Settings Routes
 // ============================================================================
 
@@ -135,6 +193,7 @@ pub async fn get_physics_settings(
 /// PUT /api/settings/physics
 /// Validates input before applying (QE Fix #2 + #5).
 /// Accepts partial JSON updates -- missing fields retain current values from the actor.
+/// Uses single GetSettings call to avoid TOCTOU race (QE Fix #3).
 pub async fn update_physics_settings(
     state: web::Data<AppState>,
     body: web::Json<serde_json::Value>,
@@ -142,9 +201,9 @@ pub async fn update_physics_settings(
 ) -> impl Responder {
     info!("User {} updating physics settings", auth.pubkey);
 
-    // Get current physics settings as the base for merging
-    let current_physics = match state.settings_addr.send(GetSettings).await {
-        Ok(Ok(full_settings)) => full_settings.visualisation.graphs.logseq.physics,
+    // Single GetSettings call -- fetch full settings snapshot once to avoid TOCTOU race
+    let mut full_settings = match state.settings_addr.send(GetSettings).await {
+        Ok(Ok(settings)) => settings,
         Ok(Err(e)) => {
             error!("Failed to fetch current settings: {}", e);
             return HttpResponse::InternalServerError().json(ErrorResponse {
@@ -159,7 +218,9 @@ pub async fn update_physics_settings(
         }
     };
 
-    let current_json = serde_json::to_value(&current_physics).unwrap_or_default();
+    // Merge partial patch onto current physics from the same snapshot
+    let current_physics = &full_settings.visualisation.graphs.logseq.physics;
+    let current_json = serde_json::to_value(current_physics).unwrap_or_default();
 
     let new_physics = if let (serde_json::Value::Object(mut base), serde_json::Value::Object(patch)) =
         (current_json, body.into_inner())
@@ -177,7 +238,7 @@ pub async fn update_physics_settings(
             }
         }
     } else {
-        current_physics
+        full_settings.visualisation.graphs.logseq.physics.clone()
     };
 
     // Validate before applying
@@ -188,33 +249,17 @@ pub async fn update_physics_settings(
         });
     }
 
-    // Get current full settings, update physics subsection, write back
-    match state.settings_addr.send(GetSettings).await {
-        Ok(Ok(mut full_settings)) => {
-            full_settings.visualisation.graphs.logseq.physics = new_physics;
-            match state.settings_addr.send(UpdateSettings { settings: full_settings }).await {
-                Ok(Ok(())) => {
-                    info!("Physics settings updated successfully by {}", auth.pubkey);
-                    HttpResponse::Ok().finish()
-                }
-                Ok(Err(e)) => {
-                    error!("Failed to update physics settings: {}", e);
-                    HttpResponse::InternalServerError().json(ErrorResponse {
-                        error: format!("Failed to update physics settings: {}", e),
-                    })
-                }
-                Err(e) => {
-                    error!("Actor mailbox error: {}", e);
-                    HttpResponse::InternalServerError().json(ErrorResponse {
-                        error: format!("Actor communication error: {}", e),
-                    })
-                }
-            }
+    // Apply merged physics to the same snapshot and write back atomically
+    full_settings.visualisation.graphs.logseq.physics = new_physics.clone();
+    match state.settings_addr.send(UpdateSettings { settings: full_settings }).await {
+        Ok(Ok(())) => {
+            info!("Physics settings updated successfully by {}", auth.pubkey);
+            HttpResponse::Ok().json(&new_physics)
         }
         Ok(Err(e)) => {
-            error!("Failed to fetch current settings: {}", e);
+            error!("Failed to update physics settings: {}", e);
             HttpResponse::InternalServerError().json(ErrorResponse {
-                error: format!("Failed to fetch current settings: {}", e),
+                error: format!("Failed to update physics settings: {}", e),
             })
         }
         Err(e) => {
@@ -240,15 +285,26 @@ pub async fn get_constraint_settings(
 }
 
 /// PUT /api/settings/constraints
-/// Constraint settings are not persisted in AppFullSettings.
+/// Validates input before accepting (QE Fix #1). Returns updated state (QE Fix #2).
 pub async fn update_constraint_settings(
     _state: web::Data<AppState>,
     body: web::Json<ConstraintSettings>,
     auth: AuthenticatedUser,
 ) -> impl Responder {
-    info!("User {} updating constraint settings (accepted, not persisted in AppFullSettings)", auth.pubkey);
-    let _settings = body.into_inner();
-    HttpResponse::Ok().finish()
+    info!("User {} updating constraint settings", auth.pubkey);
+
+    let settings = body.into_inner();
+
+    // Validate before accepting
+    if let Err(validation_err) = validate_constraint_settings(&settings) {
+        warn!("Constraint settings validation failed: {}", validation_err);
+        return HttpResponse::BadRequest().json(ErrorResponse {
+            error: format!("Validation failed: {}", validation_err),
+        });
+    }
+
+    info!("Constraint settings accepted for user {} (persistence deferred)", auth.pubkey);
+    HttpResponse::Ok().json(&settings)
 }
 
 // ============================================================================
@@ -278,6 +334,7 @@ pub async fn get_rendering_settings(
 }
 
 /// PUT /api/settings/rendering
+/// Validates input before applying (QE Fix #1). Returns updated state (QE Fix #2).
 pub async fn update_rendering_settings(
     state: web::Data<AppState>,
     body: web::Json<RenderingSettings>,
@@ -285,13 +342,23 @@ pub async fn update_rendering_settings(
 ) -> impl Responder {
     info!("User {} updating rendering settings", auth.pubkey);
 
+    let new_rendering = body.into_inner();
+
+    // Validate before applying
+    if let Err(validation_err) = validate_rendering_settings(&new_rendering) {
+        warn!("Rendering settings validation failed: {}", validation_err);
+        return HttpResponse::BadRequest().json(ErrorResponse {
+            error: format!("Validation failed: {}", validation_err),
+        });
+    }
+
     match state.settings_addr.send(GetSettings).await {
         Ok(Ok(mut full_settings)) => {
-            full_settings.visualisation.rendering = body.into_inner();
+            full_settings.visualisation.rendering = new_rendering.clone();
             match state.settings_addr.send(UpdateSettings { settings: full_settings }).await {
                 Ok(Ok(())) => {
                     info!("Rendering settings updated successfully by {}", auth.pubkey);
-                    HttpResponse::Ok().finish()
+                    HttpResponse::Ok().json(&new_rendering)
                 }
                 Ok(Err(e)) => {
                     error!("Failed to update rendering settings: {}", e);
@@ -337,6 +404,7 @@ pub async fn get_node_filter_settings(
 }
 
 /// PUT /api/settings/node-filter
+/// Validates input before accepting (QE Fix #1). Returns updated state (QE Fix #2).
 pub async fn update_node_filter_settings(
     _state: web::Data<AppState>,
     body: web::Json<NodeFilterSettings>,
@@ -344,8 +412,19 @@ pub async fn update_node_filter_settings(
 ) -> impl Responder {
     info!("User {} updating node filter settings: enabled={}, threshold={}",
           auth.pubkey, body.enabled, body.quality_threshold);
-    warn!("Node filter settings accepted but persistence deferred (single actor consolidation)");
-    HttpResponse::Ok().finish()
+
+    let settings = body.into_inner();
+
+    // Validate before accepting
+    if let Err(validation_err) = validate_node_filter_settings(&settings) {
+        warn!("Node filter settings validation failed: {}", validation_err);
+        return HttpResponse::BadRequest().json(ErrorResponse {
+            error: format!("Validation failed: {}", validation_err),
+        });
+    }
+
+    info!("Node filter settings accepted for user {} (persistence deferred)", auth.pubkey);
+    HttpResponse::Ok().json(&settings)
 }
 
 // ============================================================================
@@ -362,6 +441,7 @@ pub async fn get_quality_gate_settings(
 
 /// PUT /api/settings/quality-gates
 /// Accepts partial JSON updates -- missing fields retain their defaults.
+/// Returns updated state (QE Fix #2).
 pub async fn update_quality_gate_settings(
     _state: web::Data<AppState>,
     body: web::Json<serde_json::Value>,
@@ -390,7 +470,6 @@ pub async fn update_quality_gate_settings(
     info!("User {} updating quality gate settings: gpu={}, ontology={}, semantic={}, maxNodeCount={}",
           auth.pubkey, settings.gpu_acceleration, settings.ontology_physics,
           settings.semantic_forces, settings.max_node_count);
-    warn!("Quality gate settings accepted but persistence deferred (single actor consolidation)");
     HttpResponse::Ok().json(settings)
 }
 

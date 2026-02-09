@@ -64,7 +64,7 @@ interface AppInitializerProps {
 }
 
 const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError }) => {
-  const { settings, initialize } = useSettingsStore();
+  const { initialize } = useSettingsStore();
 
   useEffect(() => {
     const initApp = async () => {
@@ -148,7 +148,9 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
           if (typeof graphDataManager !== 'undefined') {
             try {
               
-              await initializeWebSocket(settings);
+              // Read settings fresh from store to avoid stale closure
+              const currentSettings = useSettingsStore.getState().settings;
+              await initializeWebSocket(currentSettings);
               
             } catch (wsError) {
               logger.error('WebSocket initialization failed, continuing with UI only:', createErrorMetadata(wsError));
@@ -158,16 +160,10 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
             logger.warn('WebSocket services not available, continuing with UI only');
           }
 
-          
-          try {
-            // Set graph type to 'visionflow' to enable client-side force-directed physics
-            // (repulsion, edge springs, center gravity, domain clustering).
-            // The default 'logseq' mode only interpolates server-sent positions via binary WS,
-            // which leaves nodes static when the server isn't sending updates.
-            logger.info('Setting graph type to visionflow for client-side physics');
-            graphDataManager.setGraphType('visionflow');
-            await graphWorkerProxy.setGraphType('visionflow');
 
+          try {
+            // Use 'logseq' mode: server-authoritative physics via binary WS.
+            // Client only interpolates server-sent positions (no local force sim).
             logger.info('Fetching initial graph data via REST API');
             const graphData = await graphDataManager.fetchInitialData();
             logger.info(`Successfully fetched ${graphData.nodes.length} nodes, ${graphData.edges.length} edges`);
@@ -205,7 +201,9 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
   }, []);
 
   
-  const initializeWebSocket = async (settings: any): Promise<void> => {
+  const initializeWebSocket = async (settingsParam: any): Promise<void> => {
+    // Use passed settings or fall back to fresh store read
+    const settings = settingsParam ?? useSettingsStore.getState().settings;
     try {
       const websocketService = webSocketService;
 

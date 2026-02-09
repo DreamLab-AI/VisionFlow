@@ -1,14 +1,17 @@
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
+use std::collections::VecDeque;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
 use crate::events::types::{EventHandler, EventResult, StoredEvent};
 use crate::utils::time;
 
+const MAX_NOTIFICATIONS: usize = 5_000;
+
 pub struct NotificationEventHandler {
     handler_id: String,
-    notifications: Arc<RwLock<Vec<Notification>>>,
+    notifications: Arc<RwLock<VecDeque<Notification>>>,
 }
 
 #[derive(Debug, Clone)]
@@ -25,12 +28,12 @@ impl NotificationEventHandler {
     pub fn new(handler_id: impl Into<String>) -> Self {
         Self {
             handler_id: handler_id.into(),
-            notifications: Arc::new(RwLock::new(Vec::new())),
+            notifications: Arc::new(RwLock::new(VecDeque::new())),
         }
     }
 
     pub async fn get_notifications(&self) -> Vec<Notification> {
-        self.notifications.read().await.clone()
+        self.notifications.read().await.iter().cloned().collect()
     }
 
     pub async fn get_unsent_notifications(&self) -> Vec<Notification> {
@@ -111,10 +114,10 @@ impl EventHandler for NotificationEventHandler {
         };
 
         let mut notifications = self.notifications.write().await;
-        notifications.push(notification);
-
-        
-        
+        notifications.push_back(notification);
+        while notifications.len() > MAX_NOTIFICATIONS {
+            notifications.pop_front();
+        }
 
         Ok(())
     }

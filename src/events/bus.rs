@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
+use tracing::warn;
 
 use crate::events::types::{
     DomainEvent, EventError, EventHandler, EventMetadata, EventMiddleware, EventResult, StoredEvent,
@@ -89,25 +90,47 @@ impl EventBus {
             match self.execute_handler(handler.clone(), &stored_event).await {
                 Ok(_) => {}
                 Err(e) => {
-                    eprintln!("Handler {} failed: {}", handler.handler_id(), e);
+                    warn!(
+                        handler_id = handler.handler_id(),
+                        event_type = stored_event.metadata.event_type.as_str(),
+                        error = %e,
+                        "Event handler failed"
+                    );
                     errors.push((handler.handler_id().to_string(), e));
                 }
             }
         }
 
-        
+
         let middleware = self.middleware.read().await;
         for mw in middleware.iter() {
             mw.after_publish(&stored_event).await?;
         }
         drop(middleware);
 
-        
-        if !errors.is_empty() && errors.len() == handler_count {
-            return Err(EventError::Handler(format!(
-                "All {} handlers failed",
-                errors.len()
-            )));
+
+        if !errors.is_empty() {
+            let failure_summary: String = errors.iter()
+                .map(|(id, e)| format!("{}={}", id, e))
+                .collect::<Vec<_>>()
+                .join(", ");
+
+            if errors.len() == handler_count {
+                return Err(EventError::Handler(format!(
+                    "All {} handlers failed for event '{}': {}",
+                    errors.len(),
+                    stored_event.metadata.event_type,
+                    failure_summary,
+                )));
+            }
+            // Partial failure: some handlers succeeded, log but return Ok
+            warn!(
+                event_type = stored_event.metadata.event_type.as_str(),
+                failed = errors.len(),
+                total = handler_count,
+                failures = failure_summary.as_str(),
+                "Partial event handler failure"
+            );
         }
 
         Ok(())

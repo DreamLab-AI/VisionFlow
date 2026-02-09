@@ -890,13 +890,15 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
     updateNodeColors();
   }, [updateNodeColors]);
 
-  
+  // Extract specific settings value for stable dependency tracking
+  const meshInitNodeSize = settings?.visualisation?.graphs?.logseq?.nodes?.nodeSize ?? 0.5;
+
   useEffect(() => {
     if (meshRef.current && graphData.nodes.length > 0) {
       const mesh = meshRef.current
       mesh.count = graphData.nodes.length
-      
-      
+
+
       const debugSettings = settings?.system?.debug;
       if (debugSettings?.enableNodeDebug) {
         logger.debug('Node mesh initialized', {
@@ -910,11 +912,8 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
 
       updateNodeColors();
 
-      
-      const tempMatrix = new THREE.Matrix4();
-      const nodeSize = settings?.visualisation?.graphs?.logseq?.nodes?.nodeSize || 0.5;
       const BASE_SPHERE_RADIUS = 0.5;
-      const baseScale = nodeSize / BASE_SPHERE_RADIUS;
+      const baseScale = meshInitNodeSize / BASE_SPHERE_RADIUS;
 
       graphData.nodes.forEach((node, i) => {
         const nodeVisualMode = perNodeVisualModeMap.get(String(node.id)) || graphMode;
@@ -928,20 +927,20 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
 
         mesh.setMatrixAt(i, tempMatrix);
       })
-      
-      
+
+
       mesh.instanceMatrix.needsUpdate = true;
-      
-      
+
+
       mesh.computeBoundingSphere();
 
-      
+
       if (materialRef.current) {
         materialRef.current.needsUpdate = true
       }
 
     }
-  }, [graphData, normalizedSSSPResult])
+  }, [graphData, normalizedSSSPResult, meshInitNodeSize, perNodeVisualModeMap, connectionCountMap, hierarchyMap, graphMode, tempMatrix, updateNodeColors])
 
   
   // Only forward settings to the worker when physics parameters actually change.
@@ -1023,6 +1022,9 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
     labelTickRef.current++;
     if (labelTickRef.current >= 10) {
       labelTickRef.current = 0;
+      // Update frustum from current camera matrices (was previously a side effect inside useMemo)
+      cameraViewProjectionMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+      frustum.setFromProjectionMatrix(cameraViewProjectionMatrix);
       setLabelUpdateTick(prev => prev + 1);
     }
 
@@ -1432,22 +1434,14 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
     gradientColors: ['#ff0000', '#0000ff'],
   };
 
-  // PERFORMANCE: Pre-compute node ID to index map for O(1) lookups (vs O(n) findIndex)
-  const nodeIdToIndex = useMemo(() => {
-    const map = new Map<string, number>();
-    graphData.nodes.forEach((node, index) => {
-      map.set(node.id, index);
-    });
-    return map;
-  }, [graphData.nodes]);
+  // nodeIdToIndex removed -- use nodeIdToIndexMap (line ~517) which computes the same Map
 
   const NodeLabels = useMemo(() => {
     const logseqSettings = settings?.visualisation?.graphs?.logseq;
     const labelSettings = logseqSettings?.labels ?? settings?.visualisation?.labels;
     if (!labelSettings?.enableLabels || visibleNodes.length === 0) return null;
 
-    cameraViewProjectionMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
-    frustum.setFromProjectionMatrix(cameraViewProjectionMatrix);
+    // Frustum is updated in useFrame (labelTickRef gate) -- read the already-computed state here
 
     const LABEL_DISTANCE_THRESHOLD = labelSettings?.labelDistanceThreshold ?? 500;
     const METADATA_DISTANCE_THRESHOLD = LABEL_DISTANCE_THRESHOLD * 0.6;
@@ -1455,7 +1449,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
 
     const currentLabelPositions = labelPositionsRef.current;
     return visibleNodes.map((node) => {
-      const originalIndex = nodeIdToIndex.get(node.id) ?? -1;
+      const originalIndex = nodeIdToIndexMap.get(node.id) ?? -1;
       const physicsPos = originalIndex !== -1 ? currentLabelPositions[originalIndex] : undefined;
       const position = physicsPos || node.position || { x: 0, y: 0, z: 0 };
 
@@ -1644,7 +1638,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         </Billboard>
       );
     }).filter(Boolean)
-  }, [visibleNodes, graphData.edges, connectionCountMap, labelUpdateTick, nodeIdToIndex, settings?.visualisation?.graphs?.logseq?.labels, settings?.visualisation?.labels, normalizedSSSPResult, graphMode, perNodeVisualModeMap, hierarchyMap, isXRMode])
+  }, [visibleNodes, graphData.edges, connectionCountMap, labelUpdateTick, nodeIdToIndexMap, settings?.visualisation?.graphs?.logseq?.labels, settings?.visualisation?.labels, normalizedSSSPResult, graphMode, perNodeVisualModeMap, hierarchyMap, isXRMode])
 
   
   useEffect(() => {

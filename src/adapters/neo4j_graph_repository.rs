@@ -179,24 +179,23 @@ impl Neo4jGraphRepository {
         Ok(())
     }
 
-    /// Load all nodes from Neo4j with optional quality/authority filtering
+    /// Load all nodes from Neo4j with optional quality/authority filtering.
+    /// Uses parameterized queries to prevent Cypher injection (QE Fix #4).
     async fn load_all_nodes_filtered(&self, filter: &NodeFilterSettings) -> Result<Vec<Node>> {
-        // Build WHERE clause based on filter settings
+        // Build WHERE clause using parameterized placeholders instead of format! interpolation
         let where_clause = if filter.enabled {
             let mut conditions = Vec::new();
 
             if filter.filter_by_quality {
-                conditions.push(format!(
-                    "(n.quality_score IS NULL OR n.quality_score >= {})",
-                    filter.quality_threshold
-                ));
+                conditions.push(
+                    "(n.quality_score IS NULL OR n.quality_score >= $quality_threshold)".to_string()
+                );
             }
 
             if filter.filter_by_authority {
-                conditions.push(format!(
-                    "(n.authority_score IS NULL OR n.authority_score >= {})",
-                    filter.authority_threshold
-                ));
+                conditions.push(
+                    "(n.authority_score IS NULL OR n.authority_score >= $authority_threshold)".to_string()
+                );
             }
 
             if conditions.is_empty() {
@@ -239,10 +238,15 @@ impl Neo4jGraphRepository {
             ORDER BY id
         ", where_clause);
 
-        info!("Executing node query with filter: {}", if filter.enabled { &where_clause } else { "disabled" });
+        info!("Executing node query with filter: {}", if filter.enabled { "enabled" } else { "disabled" });
+
+        // Bind thresholds as parameters -- safe from Cypher injection
+        let parameterized_query = query(&query_str)
+            .param("quality_threshold", filter.quality_threshold)
+            .param("authority_threshold", filter.authority_threshold);
 
         let mut result = self.graph
-            .execute(query(&query_str))
+            .execute(parameterized_query)
             .await
             .map_err(|e| GraphRepositoryError::AccessError(format!("Failed to query nodes: {}", e)))?;
 

@@ -730,9 +730,15 @@ class GraphDataManager {
       if (debugState.isDataDebugEnabled()) {
         logger.warn(`Node ${node.id} has invalid position coordinates - fixing`);
       }
-      node.position.x = typeof node.position.x === 'number' && isFinite(node.position.x) ? node.position.x : 0;
-      node.position.y = typeof node.position.y === 'number' && isFinite(node.position.y) ? node.position.y : 0;
-      node.position.z = typeof node.position.z === 'number' && isFinite(node.position.z) ? node.position.z : 0;
+      // Return a new object to avoid mutating the input
+      return {
+        ...node,
+        position: {
+          x: typeof node.position.x === 'number' && isFinite(node.position.x) ? node.position.x : 0,
+          y: typeof node.position.y === 'number' && isFinite(node.position.y) ? node.position.y : 0,
+          z: typeof node.position.z === 'number' && isFinite(node.position.z) ? node.position.z : 0,
+        },
+      };
     }
     return node;
   }
