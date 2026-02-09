@@ -1,6 +1,6 @@
 
 // Core post-processing pipeline
-export { SelectiveBloom, useBloom, LAYERS } from './SelectiveBloom';
+export { GemPostProcessing } from './GemPostProcessing';
 
 // Material library
 export * from './materials';

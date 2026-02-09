@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react'
+import React, { useRef, useEffect, useState, useMemo } from 'react'
 import { useThree, useFrame, ThreeEvent } from '@react-three/fiber'
 import { Text, Billboard } from '@react-three/drei'
 import * as THREE from 'three'
@@ -10,15 +10,12 @@ import { debugState } from '../../../utils/clientDebugState'
 import { useSettingsStore } from '../../../store/settingsStore'
 import { BinaryNodeData, NodeType } from '../../../types/binaryProtocol'
 import { useWebSocketStore } from '../../../store/websocketStore'
-import { HologramNodeMaterial } from '../../../rendering/materials/HologramNodeMaterial'
-import { FlowingEdges, FlowingEdgesHandle } from './FlowingEdges'
+import { GemNodes, GemNodesHandle } from './GemNodes'
+import { GlassEdges, GlassEdgesHandle } from './GlassEdges'
 import { KnowledgeRings } from './KnowledgeRings'
 import { ClusterHulls } from './ClusterHulls'
 import { useGraphEventHandlers } from '../hooks/useGraphEventHandlers'
-import { MetadataShapes } from './MetadataShapes'
-import { NodeShaderToggle } from './NodeShaderToggle'
 import { EdgeSettings } from '../../settings/config/settings'
-import { registerNodeObject, unregisterNodeObject } from '../../visualisation/hooks/bloomRegistry'
 import { useAnalyticsStore, useCurrentSSSPResult } from '../../analytics/store/analyticsStore'
 import { detectHierarchy } from '../utils/hierarchyDetector'
 import { useExpansionState } from '../hooks/useExpansionState'
@@ -71,42 +68,7 @@ const AGENT_TYPE_COLORS: Record<string, THREE.Color> = {
   'coordinator': new THREE.Color('#E67E22'),
 };
 
-// === MODE-AWARE MATERIAL PRESETS ===
-interface MaterialModePreset {
-  rimPower: number;
-  glowStrength: number;
-  hologramStrength: number;
-  scanlineCount: number;
-  pulseSpeed: number;
-  pulseStrength: number;
-}
-
-const MATERIAL_MODE_PRESETS: Record<GraphVisualMode, MaterialModePreset> = {
-  knowledge_graph: {
-    rimPower: 3.0,
-    glowStrength: 2.5,
-    hologramStrength: 0.3,
-    scanlineCount: 30.0,
-    pulseSpeed: 1.0,
-    pulseStrength: 0.1,
-  },
-  ontology: {
-    rimPower: 1.5,
-    glowStrength: 1.8,
-    hologramStrength: 0.7,
-    scanlineCount: 8.0,
-    pulseSpeed: 0.8,
-    pulseStrength: 0.05,
-  },
-  agent: {
-    rimPower: 2.0,
-    glowStrength: 2.0,
-    hologramStrength: 0.4,
-    scanlineCount: 15.0,
-    pulseSpeed: 1.5,
-    pulseStrength: 0.15,
-  },
-};
+// (Material mode presets removed -- GemNodes handles mode switching internally)
 
 // === MODE-SPECIFIC METADATA OVERLAY HELPERS ===
 
@@ -253,43 +215,7 @@ const getPositionForNode = (node: GraphNode, index: number, totalNodes: number):
   return [node.position.x, node.position.y, node.position.z]
 }
 
-// === MODE-AWARE LOD GEOMETRY SETS ===
-type LODGeometrySet = {
-  high: THREE.BufferGeometry;
-  medium: THREE.BufferGeometry;
-  low: THREE.BufferGeometry;
-};
-
-// Default LOD geometries - static fallback for knowledge_graph
-const LOD_GEOMETRIES: LODGeometrySet = {
-  high: new THREE.IcosahedronGeometry(0.5, 2),     // 80 faceted faces, gem-like
-  medium: new THREE.IcosahedronGeometry(0.5, 1),   // 20 faces
-  low: new THREE.OctahedronGeometry(0.5),           // 8 faces
-};
-
-const createLODGeometries = (mode: GraphVisualMode): LODGeometrySet => {
-  switch (mode) {
-    case 'ontology':
-      return {
-        high: new THREE.SphereGeometry(0.5, 32, 32),   // Smooth stellar
-        medium: new THREE.SphereGeometry(0.5, 16, 16),
-        low: new THREE.SphereGeometry(0.5, 8, 8),
-      };
-    case 'agent':
-      return {
-        high: new THREE.SphereGeometry(0.5, 24, 24),   // Smooth organic
-        medium: new THREE.SphereGeometry(0.5, 12, 12),
-        low: new THREE.SphereGeometry(0.5, 8, 8),
-      };
-    case 'knowledge_graph':
-    default:
-      return {
-        high: new THREE.IcosahedronGeometry(0.5, 2),   // Faceted crystal
-        medium: new THREE.IcosahedronGeometry(0.5, 1),
-        low: new THREE.OctahedronGeometry(0.5),
-      };
-  }
-};
+// (LOD geometry sets removed -- GemNodes manages its own geometry)
 
 // Reusable Color for getNodeColor to eliminate per-call allocation
 const _nodeColor = new THREE.Color();
@@ -479,24 +405,17 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   // Performance: Removed mount-time logging
   const settings = useSettingsStore((state) => state.settings);
   
-  const nodeBloomStrength = settings?.visualisation?.glow?.nodeGlowStrength ?? 0.5;
-  const edgeBloomStrength = settings?.visualisation?.glow?.edgeGlowStrength ?? 0.5;
   
   
   const ssspResult = useCurrentSSSPResult();
   const normalizeDistances = useAnalyticsStore(state => state.normalizeDistances);
   const [normalizedSSSPResult, setNormalizedSSSPResult] = useState<any>(null);
   const isXRMode = usePlatformStore((state) => state.isXRMode);
-  const meshRef = useRef<THREE.InstancedMesh>(null)
-  const materialRef = useRef<HologramNodeMaterial | null>(null)
+  const gemNodesRef = useRef<GemNodesHandle>(null)
 
   
   // Pre-allocated reusable objects to eliminate GC churn
-  const tempMatrix = useMemo(() => new THREE.Matrix4(), [])
   const tempPosition = useMemo(() => new THREE.Vector3(), [])
-  const tempScale = useMemo(() => new THREE.Vector3(), [])
-  const tempQuaternion = useMemo(() => new THREE.Quaternion(), [])
-  const tempColor = useMemo(() => new THREE.Color(), [])
   const tempVec3 = useMemo(() => new THREE.Vector3(), [])
   const tempDirection = useMemo(() => new THREE.Vector3(), [])
   const tempSourceOffset = useMemo(() => new THREE.Vector3(), [])
@@ -505,10 +424,6 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   // Frustum for label culling
   const frustum = useMemo(() => new THREE.Frustum(), [])
   const cameraViewProjectionMatrix = useMemo(() => new THREE.Matrix4(), [])
-
-  // LOD state - track current geometry level
-  const [currentLODLevel, setCurrentLODLevel] = useState<'high' | 'medium' | 'low'>('high')
-  const lodCheckIntervalRef = useRef(0)
 
   const [graphData, setGraphData] = useState<GraphData>({ nodes: [], edges: [] })
 
@@ -534,8 +449,8 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   const nodePositionsRef = useRef<Float32Array | null>(null)
   const [edgePoints, setEdgePoints] = useState<number[]>([])
   const [highlightEdgePoints, setHighlightEdgePoints] = useState<number[]>([]);
-  const edgeFlowRef = useRef<FlowingEdgesHandle>(null);
-  const highlightEdgeFlowRef = useRef<FlowingEdgesHandle>(null);
+  const edgeFlowRef = useRef<GlassEdgesHandle>(null);
+  const highlightEdgeFlowRef = useRef<GlassEdgesHandle>(null);
   const prevLabelPositionsLengthRef = useRef<number>(0)
   const labelPositionsRef = useRef<Array<{x: number, y: number, z: number}>>([])
   const edgeUpdatePendingRef = useRef<number[] | null>(null)
@@ -573,12 +488,6 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
     return detectGraphMode(graphData.nodes);
   }, [settingsGraphMode, graphData.nodes]);
 
-  // === MODE-AWARE LOD GEOMETRIES (rebuilt only on mode change) ===
-  const modeLODGeometries = useMemo(() => {
-    logger.info(`Creating LOD geometries for mode: ${graphMode}`);
-    return createLODGeometries(graphMode);
-  }, [graphMode]);
-
   // === PER-NODE VISUAL MODE MAP ===
   // Binary protocol flags are ground truth; metadata heuristics are fallback.
   // The store's nodeTypeMap is populated from binary protocol position updates.
@@ -610,26 +519,6 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
     }
     return map;
   }, [graphData.nodes, binaryNodeTypeMap]);
-
-  // === APPLY MATERIAL MODE PRESET when mode changes ===
-  const prevGraphModeRef = useRef<GraphVisualMode>(graphMode);
-  useEffect(() => {
-    if (materialRef.current && prevGraphModeRef.current !== graphMode) {
-      prevGraphModeRef.current = graphMode;
-      const preset = MATERIAL_MODE_PRESETS[graphMode];
-      logger.info(`Applying material preset for mode: ${graphMode}`, preset);
-
-      materialRef.current.updateHologramParams({
-        rimPower: preset.rimPower,
-        glowStrength: preset.glowStrength,
-        hologramStrength: preset.hologramStrength,
-        scanlineCount: preset.scanlineCount,
-      });
-      materialRef.current.uniforms.pulseSpeed.value = preset.pulseSpeed;
-      materialRef.current.uniforms.pulseStrength.value = preset.pulseStrength;
-      materialRef.current.needsUpdate = true;
-    }
-  }, [graphMode]);
 
   // Get nodeFilter settings from store - extract individual values for stable deps
   const storeNodeFilter = settings?.nodeFilter;
@@ -754,86 +643,6 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   
   const logseqSettings = settings?.visualisation?.graphs?.logseq
   const nodeSettings = logseqSettings?.nodes || settings?.visualisation?.nodes
-  const enableMetadataShape = nodeSettings?.enableMetadataShape ?? false
-
-  
-  useEffect(() => {
-    if (!materialRef.current) {
-      materialRef.current = new HologramNodeMaterial({
-        baseColor: '#0066ff', 
-        emissiveColor: '#00ffff', 
-        opacity: settings?.visualisation?.graphs?.logseq?.nodes?.opacity ?? settings?.visualisation?.nodes?.opacity ?? 0.8,
-        enableHologram: true, 
-        glowStrength: (nodeBloomStrength || 1) * (settings?.visualisation?.glow?.nodeGlowStrength ?? 0.7), 
-        pulseSpeed: 1.0,
-        hologramStrength: 0.8, 
-        rimPower: 2.0, 
-      })
-
-      
-      ;(materialRef.current as any).toneMapped = false
-
-      
-      materialRef.current.defines = { ...materialRef.current.defines, USE_INSTANCING_COLOR: '' }
-      materialRef.current.needsUpdate = true
-    }
-  }, [])
-  
-  
-  useEffect(() => {
-    const obj = meshRef.current as any;
-    if (obj) {
-      
-      obj.layers.set(0); 
-      obj.layers.enable(1); 
-      registerNodeObject(obj);
-    }
-    return () => {
-      if (obj) unregisterNodeObject(obj);
-    };
-  }, [graphData.nodes.length]) 
-  
-  
-  useEffect(() => {
-    if (materialRef.current) {
-      
-      const strength = nodeBloomStrength || 1;
-      materialRef.current.updateHologramParams({
-        glowStrength: strength * (settings?.visualisation?.glow?.nodeGlowStrength ?? 0.7) 
-      });
-      
-      materialRef.current.uniforms.glowStrength.value = strength * (settings?.visualisation?.glow?.nodeGlowStrength ?? 0.7);
-      materialRef.current.needsUpdate = true;
-    }
-  }, [nodeBloomStrength]);
-  
-  
-  // Narrow dependency to the specific primitive values actually read by this effect.
-  // Using [settings?.visualisation] would fire on any vis sub-path change (edges, glow, etc.)
-  // which causes unnecessary material updates and contributes to render churn.
-  const nodeBaseColor = settings?.visualisation?.graphs?.logseq?.nodes?.baseColor
-    || settings?.visualisation?.nodes?.baseColor;
-  const nodeOpacity = settings?.visualisation?.graphs?.logseq?.nodes?.opacity
-    ?? settings?.visualisation?.nodes?.opacity;
-  const nodeEnableHologram = settings?.visualisation?.graphs?.logseq?.nodes?.enableHologram
-    ?? settings?.visualisation?.nodes?.enableHologram;
-  const animPulseStrength = settings?.visualisation?.animations?.pulseStrength;
-
-  useEffect(() => {
-    if (materialRef.current) {
-      materialRef.current.updateColors(
-        nodeBaseColor || '#00ffff',
-        nodeBaseColor || '#00ffff'
-      )
-      materialRef.current.uniforms.opacity.value = nodeOpacity ?? 0.8;
-      materialRef.current.setHologramEnabled(
-        nodeEnableHologram !== false
-      )
-      materialRef.current.updateHologramParams({
-        glowStrength: animPulseStrength || 1.0,
-      })
-    }
-  }, [nodeBaseColor, nodeOpacity, nodeEnableHologram, animPulseStrength])
 
   
   useEffect(() => {
@@ -848,99 +657,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
     }
   }, [ssspResult, normalizeDistances]);
 
-  // Pre-allocate color array and attribute for zero-allocation updates
-  const colorArrayRef = useRef<Float32Array | null>(null)
-  const colorAttributeRef = useRef<THREE.InstancedBufferAttribute | null>(null)
-
-  // Initialize color array when node count changes
-  useEffect(() => {
-    if (graphData.nodes.length > 0) {
-      const nodeCount = graphData.nodes.length
-      colorArrayRef.current = new Float32Array(nodeCount * 3)
-      colorAttributeRef.current = new THREE.InstancedBufferAttribute(colorArrayRef.current, 3)
-    }
-  }, [graphData.nodes.length])
-
-
-  const updateNodeColors = useCallback(() => {
-    if (!meshRef.current || graphData.nodes.length === 0) return;
-    if (!colorArrayRef.current || !colorAttributeRef.current) return;
-
-    const mesh = meshRef.current;
-    const colors = colorArrayRef.current;
-
-    // Direct Float32Array writes - no allocation, reuse tempColor
-    // Per-node visual mode: use binary protocol flags when available, fallback to global graphMode
-    graphData.nodes.forEach((node, i) => {
-      const nodeVisualMode = perNodeVisualModeMap.get(String(node.id)) || graphMode;
-      const color = getNodeColor(node, normalizedSSSPResult, nodeVisualMode, hierarchyMap, connectionCountMap);
-      const idx = i * 3;
-      colors[idx] = color.r;
-      colors[idx + 1] = color.g;
-      colors[idx + 2] = color.b;
-    });
-
-    // Reuse existing attribute, just mark dirty
-    mesh.geometry.setAttribute('instanceColor', colorAttributeRef.current);
-    colorAttributeRef.current.needsUpdate = true;
-  }, [graphData.nodes, normalizedSSSPResult, graphMode, perNodeVisualModeMap, hierarchyMap, connectionCountMap]);
-
-  
-  useEffect(() => {
-    updateNodeColors();
-  }, [updateNodeColors]);
-
-  // Extract specific settings value for stable dependency tracking
-  const meshInitNodeSize = settings?.visualisation?.graphs?.logseq?.nodes?.nodeSize ?? 0.5;
-
-  useEffect(() => {
-    if (meshRef.current && graphData.nodes.length > 0) {
-      const mesh = meshRef.current
-      mesh.count = graphData.nodes.length
-
-
-      const debugSettings = settings?.system?.debug;
-      if (debugSettings?.enableNodeDebug) {
-        logger.debug('Node mesh initialized', {
-          nodeCount: graphData.nodes.length,
-          meshCount: mesh.count,
-          hasPositions: !!nodePositionsRef.current,
-          meshRef: meshRef.current,
-          hasSSSPResult: !!normalizedSSSPResult
-        });
-      }
-
-      updateNodeColors();
-
-      const BASE_SPHERE_RADIUS = 0.5;
-      const baseScale = meshInitNodeSize / BASE_SPHERE_RADIUS;
-
-      graphData.nodes.forEach((node, i) => {
-        const nodeVisualMode = perNodeVisualModeMap.get(String(node.id)) || graphMode;
-        const nodeScale = getNodeScale(node, graphData.edges, connectionCountMap, nodeVisualMode, hierarchyMap) * baseScale;
-        tempMatrix.makeScale(nodeScale, nodeScale, nodeScale);
-
-        // Use node's actual position (from API or force-directed layout),
-        // NOT a hardcoded circle — that would flash/reset on graphData change.
-        const pos = node.position || { x: 0, y: 0, z: 0 };
-        tempMatrix.setPosition(pos.x, pos.y, pos.z);
-
-        mesh.setMatrixAt(i, tempMatrix);
-      })
-
-
-      mesh.instanceMatrix.needsUpdate = true;
-
-
-      mesh.computeBoundingSphere();
-
-
-      if (materialRef.current) {
-        materialRef.current.needsUpdate = true
-      }
-
-    }
-  }, [graphData, normalizedSSSPResult, meshInitNodeSize, perNodeVisualModeMap, connectionCountMap, hierarchyMap, graphMode, tempMatrix, updateNodeColors])
+  // (Color arrays, updateNodeColors, and mesh init removed -- GemNodes handles all node rendering)
 
   
   // Only forward settings to the worker when physics parameters actually change.
@@ -959,129 +676,34 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   useFrame((state, delta) => {
     animationStateRef.current.time = state.clock.elapsedTime
 
-    // LOD System: Check every 15 frames (~250ms at 60fps)
-    lodCheckIntervalRef.current += 1;
-    if (lodCheckIntervalRef.current >= 15 && meshRef.current && nodePositionsRef.current) {
-      lodCheckIntervalRef.current = 0;
-
-      // Calculate average distance of visible nodes from camera
-      let totalDistance = 0;
-      let nodeCount = 0;
-
-      for (let i = 0; i < Math.min(visibleNodes.length, 100); i++) { // Sample up to 100 nodes
-        const i3 = i * 3;
-        if (i3 + 2 < nodePositionsRef.current.length) {
-          tempVec3.set(
-            nodePositionsRef.current[i3],
-            nodePositionsRef.current[i3 + 1],
-            nodePositionsRef.current[i3 + 2]
-          );
-          totalDistance += tempVec3.distanceTo(camera.position);
-          nodeCount++;
-        }
-      }
-
-      const avgDistance = nodeCount > 0 ? totalDistance / nodeCount : 0;
-
-      // Determine LOD level based on average distance
-      let newLODLevel: 'high' | 'medium' | 'low' = 'high';
-      if (avgDistance > 40) {
-        newLODLevel = 'low';
-      } else if (avgDistance > 20) {
-        newLODLevel = 'medium';
-      }
-
-      // Update geometry if LOD level changed (uses mode-aware geometries)
-      if (newLODLevel !== currentLODLevel) {
-        setCurrentLODLevel(newLODLevel);
-        meshRef.current.geometry = modeLODGeometries[newLODLevel];
-      }
-    }
-
-
-    const debugSettings = settings?.system?.debug;
-    if (debugSettings?.enablePhysicsDebug && debugState.isEnabled()) {
-      const frameCount = Math.floor(state.clock.elapsedTime * 60);
-      if (frameCount === 1 || frameCount % 300 === 0) {
-        logger.debug('Physics frame update', {
-          time: state.clock.elapsedTime,
-          delta,
-          nodeCount: graphData.nodes.length,
-          hasPositions: !!nodePositionsRef.current,
-          lodLevel: currentLODLevel
-        });
-      }
-    }
-
-
-    if (materialRef.current) {
-      materialRef.current.updateTime(animationStateRef.current.time)
-    }
-
     // Periodic label frustum refresh (~6 updates/sec at 60fps)
     labelTickRef.current++;
     if (labelTickRef.current >= 10) {
       labelTickRef.current = 0;
-      // Update frustum from current camera matrices (was previously a side effect inside useMemo)
       cameraViewProjectionMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
       frustum.setFromProjectionMatrix(cameraViewProjectionMatrix);
       setLabelUpdateTick(prev => prev + 1);
     }
 
-
-    if ((meshRef.current || enableMetadataShape) && graphData.nodes.length > 0) {
+    // Position reading from SharedArrayBuffer (GemNodes reads from nodePositionsRef)
+    if (graphData.nodes.length > 0) {
       graphWorkerProxy.requestTick(delta);
       const positions = graphWorkerProxy.getPositionsSync();
       if (!positions) return;
       nodePositionsRef.current = positions;
 
-      // Determine if positions are valid for node/edge rendering from simulation
       const positionsValid = positions && positions.length > 0 && positions.length >= graphData.nodes.length * 3;
       if (positions && positions.length > 0 && !positionsValid) {
         logger.warn(`Positions array too short: ${positions.length} < ${graphData.nodes.length * 3} (${graphData.nodes.length} nodes). Skipping position-dependent rendering this frame.`);
       }
 
       if (positionsValid) {
-        const logseqSettings = settings?.visualisation?.graphs?.logseq;
-        const nodeSettings = logseqSettings?.nodes || settings?.visualisation?.nodes;
-        const nodeSize = nodeSettings?.nodeSize || 0.5;
-        const BASE_SPHERE_RADIUS = 0.5;
-        const baseScale = nodeSize / BASE_SPHERE_RADIUS;
-
-
-        if (meshRef.current && !enableMetadataShape) {
-          for (let i = 0; i < graphData.nodes.length; i++) {
-            const i3 = i * 3;
-            // Bounds check for safety
-            if (i3 + 2 >= positions.length) break;
-
-            const node = graphData.nodes[i];
-            // Per-node visual mode from binary protocol flags (fallback to detected global mode)
-            const nodeVisualMode = perNodeVisualModeMap.get(String(node.id)) || graphMode;
-            let nodeScale = getNodeScale(node, graphData.edges, connectionCountMap, nodeVisualMode, hierarchyMap) * baseScale;
-
-
-            if (normalizedSSSPResult && node.id === normalizedSSSPResult.sourceNodeId) {
-              const pulseScale = 1 + Math.sin(animationStateRef.current.time * 2) * 0.3;
-              nodeScale *= pulseScale;
-            }
-
-            tempMatrix.makeScale(nodeScale, nodeScale, nodeScale);
-            tempMatrix.setPosition(positions[i3], positions[i3 + 1], positions[i3 + 2]);
-            meshRef.current.setMatrixAt(i, tempMatrix);
-          }
-          meshRef.current.instanceMatrix.needsUpdate = true;
-
-          meshRef.current.computeBoundingSphere();
-        }
-
-        // OPTIMIZED: O(n) edge rendering using nodeIdToIndexMap
+        // Edge point computation (GlassEdges needs edgePoints)
         const edgeCount = graphData.edges.length;
         const newEdgePoints = new Array<number>(edgeCount * 6);
         let edgePointIdx = 0;
 
         graphData.edges.forEach(edge => {
-          // O(1) lookup instead of O(n) findIndex — String() for type-safe matching
           const sourceNodeIndex = nodeIdToIndexMap.get(String(edge.source));
           const targetNodeIndex = nodeIdToIndexMap.get(String(edge.target));
 
@@ -1089,16 +711,13 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
             const i3s = sourceNodeIndex * 3;
             const i3t = targetNodeIndex * 3;
 
-            // Bounds check for edge positions
             if (i3s + 2 >= positions.length || i3t + 2 >= positions.length) return;
 
-            // Reuse temp vectors - zero allocation
             tempVec3.set(positions[i3s], positions[i3s + 1], positions[i3s + 2]);
             const sourcePos = tempVec3;
             tempPosition.set(positions[i3t], positions[i3t + 1], positions[i3t + 2]);
             const targetPos = tempPosition;
 
-            // Reuse direction vector
             tempDirection.subVectors(targetPos, sourcePos);
             const edgeLength = tempDirection.length();
 
@@ -1112,7 +731,6 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
               const sourceRadius = getNodeScale(sourceNode, graphData.edges, connectionCountMap, sourceVisualMode, hierarchyMap) * (nodeSettings?.nodeSize || 0.5);
               const targetRadius = getNodeScale(targetNode, graphData.edges, connectionCountMap, targetVisualMode, hierarchyMap) * (nodeSettings?.nodeSize || 0.5);
 
-              // Reuse offset vectors - zero allocation
               tempSourceOffset.copy(sourcePos).addScaledVector(tempDirection, sourceRadius + 0.1);
               tempTargetOffset.copy(targetPos).addScaledVector(tempDirection, -(targetRadius + 0.1));
 
@@ -1180,17 +798,14 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
           }
         }
 
-        // Imperative edge update: push directly to FlowingEdges geometry buffer
+        // Imperative edge update: push directly to GlassEdges geometry buffer
         if (edgeFlowRef.current) {
           edgeFlowRef.current.updatePoints(newEdgePoints);
         } else {
-          // Fallback: FlowingEdges not mounted yet, queue for React state
           edgeUpdatePendingRef.current = newEdgePoints;
         }
 
-
         // Update label positions ref every frame (fast, no re-render)
-        // Reuse or grow label positions array to avoid per-frame allocation
         const labelCount = graphData.nodes.length;
         let currentLabelArr = labelPositionsRef.current;
         if (currentLabelArr.length !== labelCount) {
@@ -1207,40 +822,12 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         }
         labelPositionsRef.current = currentLabelArr;
 
-        // Always queue label update -- labelUpdateTick controls re-render frequency
         prevLabelPositionsLengthRef.current = labelCount;
         labelUpdatePendingRef.current = currentLabelArr;
       }
     }
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
-    
-    if (meshRef.current && animationStateRef.current.selectedNode !== null) {
-      const mesh = meshRef.current;
-      const selectedIndex = nodeIdToIndexMap.get(String(animationStateRef.current.selectedNode));
-      if (selectedIndex !== undefined) {
-        mesh.getMatrixAt(selectedIndex, tempMatrix);
-        tempMatrix.decompose(tempPosition, tempQuaternion, tempScale);
-        const pulseFactor = 1 + Math.sin(animationStateRef.current.time * 3) * 0.1;
-        tempScale.multiplyScalar(pulseFactor);
-        tempMatrix.compose(tempPosition, tempQuaternion, tempScale);
-        mesh.setMatrixAt(selectedIndex, tempMatrix);
-        mesh.instanceMatrix.needsUpdate = true;
-      }
-    }
-
-    // Process pending state updates — only for initial mount before imperative handles are available
+    // Process pending state updates -- only for initial mount before imperative handles are available
     if (edgeUpdatePendingRef.current && !edgeFlowRef.current) {
       const pendingEdges = edgeUpdatePendingRef.current;
       edgeUpdatePendingRef.current = null;
@@ -1380,8 +967,15 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
+  // Proxy ref: useGraphEventHandlers expects RefObject<InstancedMesh>.
+  // GemNodes manages its own mesh internally, so we bridge via a getter-backed ref.
+  const meshProxyRef = useMemo(() => ({
+    get current() { return gemNodesRef.current?.getMesh() ?? null; },
+    set current(_v) { /* no-op: GemNodes owns the mesh */ },
+  }), []) as React.RefObject<THREE.InstancedMesh>;
+
   const { handlePointerDown, handlePointerMove, handlePointerUp } = useGraphEventHandlers(
-    meshRef as any,
+    meshProxyRef,
     dragDataRef,
     setDragState,
     graphData,
@@ -1642,16 +1236,13 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
 
   
   useEffect(() => {
-    
     const debugSettings = settings?.system?.debug;
     if (debugSettings?.enableNodeDebug) {
       logger.debug('Component mounted', {
         nodeCount: graphData.nodes.length,
         edgeCount: graphData.edges.length,
         edgePointsLength: edgePoints.length,
-        enableMetadataShape,
-        meshRefCurrent: !!meshRef.current,
-        materialRefCurrent: !!materialRef.current
+        gemNodesRef: !!gemNodesRef.current,
       });
     }
 
@@ -1660,157 +1251,66 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         logger.debug('Component unmounting');
       }
     };
-  }, []); 
+  }, []);
 
   return (
     <>
-      {}
-      <NodeShaderToggle materialRef={materialRef} />
-      
-      
-      {}
-      {enableMetadataShape ? (
-  <MetadataShapes
-    nodes={visibleNodes}
-    nodePositions={nodePositionsRef.current}
-    onNodeClick={(nodeId, event) => {
-      const nodeIndex = visibleNodes.findIndex(n => n.id === nodeId);
-      if (nodeIndex !== -1) {
-        handlePointerDown({ ...event, instanceId: nodeIndex } as any);
-      }
-    }}
-    onNodeDoubleClick={(nodeId, node, _event) => {
-      // Priority 1: Check for explicit page URL in metadata
-      const pageUrl = node.metadata?.page_url || node.metadata?.pageUrl || node.metadata?.url;
-      if (pageUrl) {
-        logger.info(`Navigating to page URL for "${node.label}": ${pageUrl}`);
-        window.open(pageUrl, '_blank', 'noopener,noreferrer');
-        return;
-      }
-
-      // Priority 2: Check for file path in metadata (construct NarrativeGoldmine URL)
-      const filePath = node.metadata?.file_path || node.metadata?.filePath || node.metadata?.path;
-      if (filePath) {
-        const encodedPath = encodeURIComponent(filePath);
-        const url = `https://narrativegoldmine.com/#/page/${encodedPath}`;
-        logger.info(`Navigating to file path for "${node.label}": ${url}`);
-        window.open(url, '_blank', 'noopener,noreferrer');
-        return;
-      }
-
-      // Priority 3: Construct URL from node label (fallback)
-      if (node.label) {
-        const encodedLabel = encodeURIComponent(node.label);
-        const url = `https://narrativegoldmine.com/#/page/${encodedLabel}`;
-        logger.info(`Navigating to page for "${node.label}": ${url}`);
-        window.open(url, '_blank', 'noopener,noreferrer');
-        return;
-      }
-
-      // Fallback: Toggle hierarchical expansion if node has children
-      const hierarchyNode = hierarchyMap.get(node.id);
-      if (hierarchyNode && hierarchyNode.childIds.length > 0) {
-        expansionState.toggleExpansion(node.id);
-        logger.info(`Toggled expansion for "${node.label}" (${node.id}): ${
-          expansionState.isExpanded(node.id) ? 'expanded' : 'collapsed'
-        }, ${hierarchyNode.childIds.length} children`);
-      } else {
-        logger.info(`Node "${node.label}" has no children to expand and no URL to navigate to`);
-      }
-    }}
-    settings={settings}
-    ssspResult={normalizedSSSPResult}
-    graphMode={graphMode}
-    hierarchyMap={hierarchyMap}
-  />
-) : (
-        <instancedMesh
-          ref={meshRef}
-          args={[undefined, undefined, visibleNodes.length]}
-          frustumCulled={false}
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={(event) => handlePointerUp(event)}
-          onPointerLeave={(event) => {
-            // If dragging and pointer leaves the mesh, keep the drag active
-            // The pointer capture will ensure we still get events
-            // Only end if we lost the capture
-          }}
-          onPointerCancel={(event) => {
-            // Pointer was cancelled (e.g., touch interrupted)
-            if (dragDataRef.current.pointerDown) {
-              handlePointerUp(event);
-            }
-          }}
-          onPointerMissed={() => {
-            // Clicked outside the mesh (on canvas background)
-            if (dragDataRef.current.pointerDown) {
-              handlePointerUp();
-            }
-            // Deselect any selected node
-            setSelectedNodeId(null);
-          }}
-          onDoubleClick={(event: ThreeEvent<MouseEvent>) => {
-            if (event.instanceId !== undefined && event.instanceId < visibleNodes.length) {
-              const node = visibleNodes[event.instanceId];
-              if (node) {
-                // Priority 1: Check for explicit page URL in metadata
-                const pageUrl = node.metadata?.page_url || node.metadata?.pageUrl || node.metadata?.url;
-                if (pageUrl) {
-                  logger.info(`Navigating to page URL for "${node.label}": ${pageUrl}`);
-                  window.open(pageUrl, '_blank', 'noopener,noreferrer');
-                  return;
-                }
-
-                // Priority 2: Check for file path in metadata (construct NarrativeGoldmine URL)
-                const filePath = node.metadata?.file_path || node.metadata?.filePath || node.metadata?.path;
-                if (filePath) {
-                  const encodedPath = encodeURIComponent(filePath);
-                  const url = `https://narrativegoldmine.com/#/page/${encodedPath}`;
-                  logger.info(`Navigating to file path for "${node.label}": ${url}`);
-                  window.open(url, '_blank', 'noopener,noreferrer');
-                  return;
-                }
-
-                // Priority 3: Construct URL from node label (fallback)
-                if (node.label) {
-                  const encodedLabel = encodeURIComponent(node.label);
-                  const url = `https://narrativegoldmine.com/#/page/${encodedLabel}`;
-                  logger.info(`Navigating to page for "${node.label}": ${url}`);
-                  window.open(url, '_blank', 'noopener,noreferrer');
-                  return;
-                }
-
-                // Fallback: Toggle hierarchical expansion if node has children
-                const hierarchyNode = hierarchyMap.get(node.id);
-                if (hierarchyNode && hierarchyNode.childIds.length > 0) {
-                  expansionState.toggleExpansion(node.id);
-                  logger.info(`Toggled expansion for "${node.label}" (${node.id}): ${
-                    expansionState.isExpanded(node.id) ? 'expanded' : 'collapsed'
-                  }, ${hierarchyNode.childIds.length} children`);
-                } else {
-                  logger.info(`Node "${node.label}" has no children to expand and no URL to navigate to`);
-                }
+      {/* Gem node rendering (replaces old instancedMesh + MetadataShapes) */}
+      <GemNodes
+        ref={gemNodesRef}
+        nodes={visibleNodes}
+        edges={graphData.edges}
+        graphMode={graphMode}
+        perNodeVisualModeMap={perNodeVisualModeMap}
+        nodePositionsRef={nodePositionsRef}
+        connectionCountMap={connectionCountMap}
+        hierarchyMap={hierarchyMap}
+        nodeIdToIndexMap={nodeIdToIndexMap}
+        settings={settings}
+        ssspResult={normalizedSSSPResult}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={(event: any) => handlePointerUp(event)}
+        onPointerMissed={() => {
+          if (dragDataRef.current.pointerDown) {
+            handlePointerUp();
+          }
+          setSelectedNodeId(null);
+        }}
+        onDoubleClick={(event: ThreeEvent<MouseEvent>) => {
+          if (event.instanceId !== undefined && event.instanceId < visibleNodes.length) {
+            const node = visibleNodes[event.instanceId];
+            if (node) {
+              const pageUrl = node.metadata?.page_url || node.metadata?.pageUrl || node.metadata?.url;
+              if (pageUrl) {
+                window.open(pageUrl, '_blank', 'noopener,noreferrer');
+                return;
+              }
+              const filePath = node.metadata?.file_path || node.metadata?.filePath || node.metadata?.path;
+              if (filePath) {
+                window.open(`https://narrativegoldmine.com/#/page/${encodeURIComponent(filePath)}`, '_blank', 'noopener,noreferrer');
+                return;
+              }
+              if (node.label) {
+                window.open(`https://narrativegoldmine.com/#/page/${encodeURIComponent(node.label)}`, '_blank', 'noopener,noreferrer');
+                return;
+              }
+              const hierarchyNode = hierarchyMap.get(node.id);
+              if (hierarchyNode && hierarchyNode.childIds.length > 0) {
+                expansionState.toggleExpansion(node.id);
               }
             }
-          }}
-        >
-          {/* LOD-aware geometry: mode-specific, dynamically switches on distance */}
-          <primitive object={modeLODGeometries[currentLODLevel]} attach="geometry" />
-          {materialRef.current ? (
-            <primitive object={materialRef.current} attach="material" />
-          ) : (
-            <meshBasicMaterial color="#00ffff" />
-          )}
-        </instancedMesh>
-      )}
+          }
+        }}
+        selectedNodeId={selectedNodeId}
+      />
 
-      {}
+      {/* Glass edge rendering */}
       {edgePoints.length > 0 && (
-        <FlowingEdges
+        <GlassEdges
           ref={edgeFlowRef}
           points={edgePoints}
-          settings={(settings?.visualisation?.graphs?.logseq?.edges || settings?.visualisation?.edges || defaultEdgeSettings) as any}
+          settings={settings?.visualisation?.graphs?.logseq?.edges || settings?.visualisation?.edges || defaultEdgeSettings}
           colorOverride={
             graphMode === 'knowledge_graph'
               ? (settings?.visualisation?.graphTypeVisuals?.knowledgeGraph as any)?.edgeColor
@@ -1818,23 +1318,15 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
               ? (settings?.visualisation?.graphTypeVisuals?.ontology as any)?.edgeColor
               : undefined
           }
-          edgeData={graphData.edges}
         />
       )}
 
       {/* Highlighted edges for selected node */}
       {highlightEdgePoints.length > 0 && (
-        <FlowingEdges
+        <GlassEdges
           ref={highlightEdgeFlowRef}
           points={highlightEdgePoints}
-          settings={{
-            ...((settings?.visualisation?.graphs?.logseq?.edges || settings?.visualisation?.edges || defaultEdgeSettings) as EdgeSettings),
-            color: settings?.visualisation?.interaction?.selectionHighlightColor || '#00FFFF',
-            opacity: settings?.visualisation?.interaction?.selectionEdgeOpacity ?? 0.9,
-            baseWidth: settings?.visualisation?.interaction?.selectionEdgeWidth ?? 0.4,
-            enableFlowEffect: settings?.visualisation?.interaction?.selectionEdgeFlow ?? true,
-            flowSpeed: settings?.visualisation?.interaction?.selectionEdgeFlowSpeed ?? 2,
-          }}
+          settings={settings?.visualisation?.graphs?.logseq?.edges || settings?.visualisation?.edges || defaultEdgeSettings}
           colorOverride={settings?.visualisation?.interaction?.selectionHighlightColor || '#00FFFF'}
         />
       )}
@@ -1864,7 +1356,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         <AgentNodesLayer agents={agentLayerNodes} connections={agentLayerConnections} />
       )}
 
-      {}
+      {/* Node labels */}
       {NodeLabels}
     </>
   )

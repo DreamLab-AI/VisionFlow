@@ -4,8 +4,8 @@ import { OrbitControls, Stats, Environment } from '@react-three/drei';
 
 // GraphManager for rendering the actual graph
 import GraphManager from './GraphManager';
-// Post-processing effects - using modern R3F selective bloom
-import { SelectiveBloom } from '../../../rendering/SelectiveBloom';
+// Post-processing effects - unified gem post-processing (WebGPU + WebGL bloom)
+import { GemPostProcessing } from '../../../rendering/GemPostProcessing';
 // Bots visualization for agent graph
 import { BotsVisualization } from '../../bots/components';
 // Agent action connections visualization
@@ -165,7 +165,7 @@ const GraphCanvas: React.FC = () => {
                 {}
                 
                 {}
-                <SelectiveBloom enabled={enableGlow} />
+                <GemPostProcessing enabled={enableGlow} />
                 
                 {}
                 {showStats && <Stats />}

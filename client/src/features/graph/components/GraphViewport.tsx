@@ -1,9 +1,8 @@
 import React, { Suspense, useEffect, useState, useMemo, useRef } from 'react';
-import { Canvas, useThree } from '@react-three/fiber';
+import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Stats } from '@react-three/drei';
-import { EffectComposer } from '@react-three/postprocessing';
 import * as THREE from 'three';
-import { AtmosphericGlow } from '../../visualisation/effects/AtmosphericGlow';
+import { GemPostProcessing } from '../../../rendering/GemPostProcessing';
 import { graphDataManager } from '../managers/graphDataManager';
 import GraphManager from './GraphManager';
 import CameraController from '../../visualisation/components/CameraController';
@@ -17,38 +16,6 @@ import WasmSceneEffects from '../../visualisation/components/WasmSceneEffects';
 // import '../../../types/react-three-fiber.d.ts';
 
 const logger = createLogger('GraphViewport');
-
-const AtmosphericGlowWrapper = () => {
-  const { camera, size } = useThree();
-  const glowSettings = useSettingsStore(state => state.settings?.visualisation?.glow);
-  
-  
-  const defaultGlow = {
-    baseColor: "#00ffff",
-    intensity: 2.0,
-    radius: 0.85,
-    threshold: 0.15,
-    diffuseStrength: 1.5,
-    atmosphericDensity: 0.8,
-    volumetricIntensity: 1.2
-  };
-  
-  const settings = glowSettings || defaultGlow;
-
-  return (
-    <AtmosphericGlow
-      glowColor={settings.baseColor}
-      intensity={settings.intensity}
-      radius={settings.radius}
-      threshold={settings.threshold}
-      diffuseStrength={settings.diffuseStrength}
-      atmosphericDensity={settings.atmosphericDensity}
-      volumetricIntensity={settings.volumetricIntensity}
-      camera={camera}
-      resolution={size}
-    />
-  );
-};
 
 const GraphViewport: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -300,13 +267,7 @@ const GraphViewport: React.FC = () => {
           })()}
 
           {enableGlow && (
-            <EffectComposer
-              multisampling={0}
-              autoClear={false}
-              enabled={true}
-            >
-              <AtmosphericGlowWrapper />
-            </EffectComposer>
+            <GemPostProcessing enabled={true} />
           )}
       </Canvas>
     </div>
