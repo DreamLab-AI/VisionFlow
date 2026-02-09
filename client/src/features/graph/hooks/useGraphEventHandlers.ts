@@ -32,7 +32,8 @@ export const useGraphEventHandlers = (
   size: { width: number; height: number },
   settings: any,
   setGraphData: React.Dispatch<React.SetStateAction<any>>,
-  onDragStateChange?: (isDragging: boolean) => void
+  onDragStateChange?: (isDragging: boolean) => void,
+  onNodeSelect?: (nodeId: string | null) => void
 ) => {
   
   const {
@@ -238,18 +239,12 @@ export const useGraphEventHandlers = (
         flushPositionUpdates();
       }
     } else {
-      // Click action (not a drag)
-      const node = graphData.nodes.find((n: Node) => n.id === drag.nodeId);
-      if (node?.label) {
-        if (debugState.isEnabled()) logger.debug(`Click action on node ${node.id}`);
-
-        const encodedLabel = encodeURIComponent(node.label);
-        const url = `https://narrativegoldmine.com/#/page/${encodedLabel}`;
-        window.open(url, '_blank', 'noopener,noreferrer');
-
-        if (debugState.isEnabled()) {
-          logger.debug(`Opened Narrative Goldmine in new tab for node ${node.id}`);
+      // Click action (not a drag) — select this node to highlight adjacent edges
+      if (drag.nodeId) {
+        if (onNodeSelect) {
+          onNodeSelect(drag.nodeId);
         }
+        if (debugState.isEnabled()) logger.debug(`Selected node ${drag.nodeId}`);
       }
     }
 
@@ -270,7 +265,7 @@ export const useGraphEventHandlers = (
     if (debugState.isEnabled()) {
       logger.debug(`Ended interaction tracking for node ${drag.nodeId}`);
     }
-  }, [graphData.nodes, dragDataRef, setDragState, endInteraction, flushPositionUpdates, onDragStateChange]);
+  }, [graphData.nodes, dragDataRef, setDragState, endInteraction, flushPositionUpdates, onDragStateChange, onNodeSelect]);
 
   // Global pointer up listener as safety net
   // Ensures drag ends even if pointer is released outside the canvas

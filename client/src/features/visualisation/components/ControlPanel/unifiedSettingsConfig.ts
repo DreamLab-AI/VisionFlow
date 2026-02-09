@@ -152,7 +152,15 @@ export const UNIFIED_SETTINGS_CONFIG: Record<string, SectionConfig> = {
       // Rendering - Advanced
       { key: 'antialiasing', label: 'Antialiasing', type: 'toggle', path: 'visualisation.rendering.enableAntialiasing', description: 'Smooth edges', isAdvanced: true },
       { key: 'shadows', label: 'Shadows', type: 'toggle', path: 'visualisation.rendering.enableShadows', description: 'Enable shadows', isAdvanced: true },
-      { key: 'ambientOcclusion', label: 'Ambient Occlusion', type: 'toggle', path: 'visualisation.rendering.enableAmbientOcclusion', description: 'SSAO effect', isAdvanced: true }
+      { key: 'ambientOcclusion', label: 'Ambient Occlusion', type: 'toggle', path: 'visualisation.rendering.enableAmbientOcclusion', description: 'SSAO effect', isAdvanced: true },
+
+      // Selection Highlighting - Basic
+      { key: 'selectionHighlightColor', label: 'Selection Color', type: 'color', path: 'visualisation.interaction.selectionHighlightColor', description: 'Edge color when node is selected' },
+      { key: 'selectionEdgeFlow', label: 'Selection Flow', type: 'toggle', path: 'visualisation.interaction.selectionEdgeFlow', description: 'Animate flow on selected edges' },
+      // Selection Highlighting - Advanced
+      { key: 'selectionEdgeFlowSpeed', label: 'Selection Flow Speed', type: 'slider', min: 0.5, max: 5, step: 0.5, path: 'visualisation.interaction.selectionEdgeFlowSpeed', description: 'Flow animation speed', isAdvanced: true },
+      { key: 'selectionEdgeWidth', label: 'Selection Edge Width', type: 'slider', min: 0.1, max: 2, step: 0.1, path: 'visualisation.interaction.selectionEdgeWidth', description: 'Width of highlighted edges', isAdvanced: true },
+      { key: 'selectionEdgeOpacity', label: 'Selection Opacity', type: 'slider', min: 0.3, max: 1, step: 0.05, path: 'visualisation.interaction.selectionEdgeOpacity', description: 'Opacity of highlighted edges', isAdvanced: true }
     ]
   },
 

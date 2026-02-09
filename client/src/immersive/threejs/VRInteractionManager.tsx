@@ -5,6 +5,8 @@ import type { XRControllerEvent } from '@react-three/xr';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { createLogger } from '../../utils/loggerConfig';
+import { graphWorkerProxy } from '../../features/graph/managers/graphWorkerProxy';
+import { graphDataManager } from '../../features/graph/managers/graphDataManager';
 
 const logger = createLogger('VRInteractionManager');
 
@@ -23,9 +25,9 @@ export function VRInteractionManager({
   onNodeRelease,
   maxRayDistance = 50
 }: VRInteractionManagerProps) {
-  // @ts-ignore - useController may not be exported, use any type
-  const rightController = null as any;
-  const leftController = null as any;
+  // XR controllers - accessed via refs updated from XR frame data
+  const rightControllerRef = useRef<THREE.Group | null>(null);
+  const leftControllerRef = useRef<THREE.Group | null>(null);
   const grabbedNodeRef = useRef<{ nodeId: string; hand: 'left' | 'right' } | null>(null);
   const raycaster = useRef(new THREE.Raycaster());
   const tempMatrix = useRef(new THREE.Matrix4());
@@ -33,14 +35,14 @@ export function VRInteractionManager({
   const { scene } = useThree();
 
   // Find nearest node to controller ray
-  const findNodeAtRay = (controller: any): { nodeId: string; distance: number } | null => {
+  const findNodeAtRay = (controller: THREE.Group | null): { nodeId: string; distance: number } | null => {
     if (!controller || nodes.length === 0) return null;
 
     const controllerPos = new THREE.Vector3();
     const controllerDir = new THREE.Vector3(0, 0, -1);
 
-    controller.controller.getWorldPosition(controllerPos);
-    controller.controller.getWorldDirection(controllerDir);
+    controller.getWorldPosition(controllerPos);
+    controller.getWorldDirection(controllerDir);
 
     raycaster.current.set(controllerPos, controllerDir);
     raycaster.current.far = maxRayDistance;
@@ -71,9 +73,9 @@ export function VRInteractionManager({
 
   // Right controller select
   useXREvent('selectstart', (event: XRControllerEvent) => {
-    if (!rightController) return;
+    if (!rightControllerRef.current) return;
 
-    const result = findNodeAtRay(rightController);
+    const result = findNodeAtRay(rightControllerRef.current);
     if (result) {
       logger.info('Node selected via VR controller:', result.nodeId);
       grabbedNodeRef.current = { nodeId: result.nodeId, hand: 'right' };
@@ -91,9 +93,9 @@ export function VRInteractionManager({
 
   // Left controller select (alternative hand)
   useXREvent('selectstart', (event: XRControllerEvent) => {
-    if (!leftController) return;
+    if (!leftControllerRef.current) return;
 
-    const result = findNodeAtRay(leftController);
+    const result = findNodeAtRay(leftControllerRef.current);
     if (result) {
       logger.info('Node selected via left VR controller:', result.nodeId);
       grabbedNodeRef.current = { nodeId: result.nodeId, hand: 'left' };
@@ -111,7 +113,7 @@ export function VRInteractionManager({
 
   // Squeeze events for grip-based interaction
   useXREvent('squeezestart', (event: XRControllerEvent) => {
-    const controller = event.target.handedness === 'right' ? rightController : leftController;
+    const controller = event.target.handedness === 'right' ? rightControllerRef.current : leftControllerRef.current;
     if (!controller) return;
 
     const result = findNodeAtRay(controller);
@@ -134,20 +136,52 @@ export function VRInteractionManager({
   });
 
   // Update dragged node position each frame
-  useFrame(() => {
+  useFrame((state) => {
+    // Update controller refs from XR session input sources
+    const session = (state.gl as any).xr?.getSession?.();
+    if (session) {
+      const inputSources = session.inputSources;
+      for (const source of inputSources) {
+        const frame = (state.gl as any).xr?.getFrame?.();
+        const refSpace = (state.gl as any).xr?.getReferenceSpace?.();
+        if (!frame || !refSpace || !source.gripSpace) continue;
+
+        const pose = frame.getPose(source.gripSpace, refSpace);
+        if (!pose) continue;
+
+        const targetRef = source.handedness === 'right' ? rightControllerRef : leftControllerRef;
+        if (!targetRef.current) {
+          targetRef.current = new THREE.Group();
+        }
+        targetRef.current.position.set(
+          pose.transform.position.x,
+          pose.transform.position.y,
+          pose.transform.position.z
+        );
+        const q = pose.transform.orientation;
+        targetRef.current.quaternion.set(q.x, q.y, q.z, q.w);
+      }
+    }
+
     if (!grabbedNodeRef.current) return;
 
-    const controller = grabbedNodeRef.current.hand === 'right' ? rightController : leftController;
-    if (!controller?.controller) return;
+    const controller = grabbedNodeRef.current.hand === 'right' ? rightControllerRef.current : leftControllerRef.current;
+    if (!controller) return;
 
     const controllerPos = new THREE.Vector3();
-    controller.controller.getWorldPosition(controllerPos);
+    controller.getWorldPosition(controllerPos);
 
     // Project controller position forward slightly
     const controllerDir = new THREE.Vector3(0, 0, -1);
-    controller.controller.getWorldDirection(controllerDir);
+    controller.getWorldDirection(controllerDir);
 
     const dragPosition = controllerPos.clone().add(controllerDir.multiplyScalar(2));
+
+    // Send drag position directly to the worker proxy with numeric ID
+    const numericId = graphDataManager.nodeIdMap.get(grabbedNodeRef.current.nodeId);
+    if (numericId !== undefined) {
+      graphWorkerProxy.updateUserDrivenNodePosition(numericId, dragPosition);
+    }
 
     onNodeDrag?.(grabbedNodeRef.current.nodeId, dragPosition);
   });

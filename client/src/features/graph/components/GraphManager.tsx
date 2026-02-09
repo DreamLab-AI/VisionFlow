@@ -533,10 +533,12 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   }, [graphData.edges])
   const nodePositionsRef = useRef<Float32Array | null>(null)
   const [edgePoints, setEdgePoints] = useState<number[]>([])
+  const [highlightEdgePoints, setHighlightEdgePoints] = useState<number[]>([]);
   const prevEdgePointsRef = useRef<number[]>([])
   const prevLabelPositionsLengthRef = useRef<number>(0)
   const labelPositionsRef = useRef<Array<{x: number, y: number, z: number}>>([])
   const edgeUpdatePendingRef = useRef<number[] | null>(null)
+  const highlightEdgeUpdatePendingRef = useRef<number[] | null>(null);
   const labelUpdatePendingRef = useRef<Array<{x: number, y: number, z: number}> | null>(null)
   const [nodesAreAtOrigin, setNodesAreAtOrigin] = useState(false)
 
@@ -1121,6 +1123,50 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
           }
         });
         newEdgePoints.length = edgePointIdx;
+
+        // Compute highlighted edges for the selected node
+        if (selectedNodeId) {
+          const highlightPoints: number[] = [];
+          graphData.edges.forEach((edge: any) => {
+            const sourceStr = String(edge.source);
+            const targetStr = String(edge.target);
+            if (sourceStr !== selectedNodeId && targetStr !== selectedNodeId) return;
+
+            const sourceIdx = nodeIdToIndexMap.get(sourceStr);
+            const targetIdx = nodeIdToIndexMap.get(targetStr);
+            if (sourceIdx === undefined || targetIdx === undefined) return;
+
+            const si3 = sourceIdx * 3;
+            const ti3 = targetIdx * 3;
+            if (si3 + 2 >= positions.length || ti3 + 2 >= positions.length) return;
+
+            tempVec3.set(positions[si3], positions[si3 + 1], positions[si3 + 2]);
+            tempPosition.set(positions[ti3], positions[ti3 + 1], positions[ti3 + 2]);
+            tempDirection.subVectors(tempPosition, tempVec3);
+            const len = tempDirection.length();
+            if (len > 0) {
+              tempDirection.normalize();
+              const srcNode = graphData.nodes[sourceIdx];
+              const tgtNode = graphData.nodes[targetIdx];
+              const srcMode = perNodeVisualModeMap.get(String(srcNode.id)) || graphMode;
+              const tgtMode = perNodeVisualModeMap.get(String(tgtNode.id)) || graphMode;
+              const srcR = getNodeScale(srcNode, graphData.edges, connectionCountMap, srcMode, hierarchyMap) * (nodeSettings?.nodeSize || 0.5);
+              const tgtR = getNodeScale(tgtNode, graphData.edges, connectionCountMap, tgtMode, hierarchyMap) * (nodeSettings?.nodeSize || 0.5);
+              tempSourceOffset.copy(tempVec3).addScaledVector(tempDirection, srcR + 0.1);
+              tempTargetOffset.copy(tempPosition).addScaledVector(tempDirection, -(tgtR + 0.1));
+              if (tempSourceOffset.distanceTo(tempTargetOffset) > 0.2) {
+                highlightPoints.push(
+                  tempSourceOffset.x, tempSourceOffset.y, tempSourceOffset.z,
+                  tempTargetOffset.x, tempTargetOffset.y, tempTargetOffset.z
+                );
+              }
+            }
+          });
+          highlightEdgeUpdatePendingRef.current = highlightPoints;
+        } else if (highlightEdgePoints.length > 0) {
+          highlightEdgeUpdatePendingRef.current = [];
+        }
+
         // Compare edge points content, not just length, to detect position changes
         // Use sampling for performance: check length + first/last 6 values (2 edge endpoints)
         const prev = prevEdgePointsRef.current;
@@ -1202,6 +1248,11 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       const pendingLabels = labelUpdatePendingRef.current;
       labelUpdatePendingRef.current = null;
       setLabelPositions(pendingLabels);
+    }
+    if (highlightEdgeUpdatePendingRef.current !== null) {
+      const pendingHighlight = highlightEdgeUpdatePendingRef.current;
+      highlightEdgeUpdatePendingRef.current = null;
+      setHighlightEdgePoints(pendingHighlight);
     }
   })
 
@@ -1325,6 +1376,8 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   }, [])
 
   
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+
   const { handlePointerDown, handlePointerMove, handlePointerUp } = useGraphEventHandlers(
     meshRef as any,
     dragDataRef,
@@ -1334,7 +1387,8 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
     size,
     settings,
     setGraphData,
-    onDragStateChange
+    onDragStateChange,
+    setSelectedNodeId
   )
 
   // Particle geometry removed - was always null (dead code)
@@ -1640,22 +1694,22 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         return;
       }
 
-      // Priority 2: Check for file path in metadata (construct local URL)
+      // Priority 2: Check for file path in metadata (construct NarrativeGoldmine URL)
       const filePath = node.metadata?.file_path || node.metadata?.filePath || node.metadata?.path;
       if (filePath) {
         const encodedPath = encodeURIComponent(filePath);
-        const url = `/#/page/${encodedPath}`;
+        const url = `https://narrativegoldmine.com/#/page/${encodedPath}`;
         logger.info(`Navigating to file path for "${node.label}": ${url}`);
-        window.location.href = url;
+        window.open(url, '_blank', 'noopener,noreferrer');
         return;
       }
 
       // Priority 3: Construct URL from node label (fallback)
       if (node.label) {
         const encodedLabel = encodeURIComponent(node.label);
-        const url = `/#/page/${encodedLabel}`;
+        const url = `https://narrativegoldmine.com/#/page/${encodedLabel}`;
         logger.info(`Navigating to page for "${node.label}": ${url}`);
-        window.location.href = url;
+        window.open(url, '_blank', 'noopener,noreferrer');
         return;
       }
 
@@ -1699,6 +1753,8 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
             if (dragDataRef.current.pointerDown) {
               handlePointerUp();
             }
+            // Deselect any selected node
+            setSelectedNodeId(null);
           }}
           onDoubleClick={(event: ThreeEvent<MouseEvent>) => {
             if (event.instanceId !== undefined && event.instanceId < visibleNodes.length) {
@@ -1712,23 +1768,22 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
                   return;
                 }
 
-                // Priority 2: Check for file path in metadata (construct local URL)
+                // Priority 2: Check for file path in metadata (construct NarrativeGoldmine URL)
                 const filePath = node.metadata?.file_path || node.metadata?.filePath || node.metadata?.path;
                 if (filePath) {
-                  // For file paths, open in the page viewer
                   const encodedPath = encodeURIComponent(filePath);
-                  const url = `/#/page/${encodedPath}`;
+                  const url = `https://narrativegoldmine.com/#/page/${encodedPath}`;
                   logger.info(`Navigating to file path for "${node.label}": ${url}`);
-                  window.location.href = url;
+                  window.open(url, '_blank', 'noopener,noreferrer');
                   return;
                 }
 
                 // Priority 3: Construct URL from node label (fallback)
                 if (node.label) {
                   const encodedLabel = encodeURIComponent(node.label);
-                  const url = `/#/page/${encodedLabel}`;
+                  const url = `https://narrativegoldmine.com/#/page/${encodedLabel}`;
                   logger.info(`Navigating to page for "${node.label}": ${url}`);
-                  window.location.href = url;
+                  window.open(url, '_blank', 'noopener,noreferrer');
                   return;
                 }
 
@@ -1769,6 +1824,22 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
               : undefined
           }
           edgeData={graphData.edges}
+        />
+      )}
+
+      {/* Highlighted edges for selected node */}
+      {highlightEdgePoints.length > 0 && (
+        <FlowingEdges
+          points={highlightEdgePoints}
+          settings={{
+            ...((settings?.visualisation?.graphs?.logseq?.edges || settings?.visualisation?.edges || defaultEdgeSettings) as EdgeSettings),
+            color: settings?.visualisation?.interaction?.selectionHighlightColor || '#00FFFF',
+            opacity: settings?.visualisation?.interaction?.selectionEdgeOpacity ?? 0.9,
+            baseWidth: settings?.visualisation?.interaction?.selectionEdgeWidth ?? 0.4,
+            enableFlowEffect: settings?.visualisation?.interaction?.selectionEdgeFlow ?? true,
+            flowSpeed: settings?.visualisation?.interaction?.selectionEdgeFlowSpeed ?? 2,
+          }}
+          colorOverride={settings?.visualisation?.interaction?.selectionHighlightColor || '#00FFFF'}
         />
       )}
 

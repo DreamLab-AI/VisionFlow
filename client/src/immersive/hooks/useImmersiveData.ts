@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { graphDataManager } from '../../features/graph/managers/graphDataManager';
+import { graphWorkerProxy } from '../../features/graph/managers/graphWorkerProxy';
 import { useSettingsStore } from '../../store/settingsStore';
 import type { GraphData } from '../../features/graph/managers/graphDataManager';
 import { createLogger } from '../../utils/loggerConfig';
@@ -85,11 +86,12 @@ export const useImmersiveData = (initialData?: any) => {
     };
   }, []);
 
-  const updateNodePosition = (_nodeId: string, _position: { x: number; y: number; z: number }) => {
-    // updateUserDrivenNodePosition and pinNode/unpinNode live on graphWorkerProxy,
-    // not graphDataManager. Immersive mode should use the worker proxy directly
-    // when this integration is wired up.
-    logger.warn('updateNodePosition called but graphDataManager does not support direct position updates');
+  const updateNodePosition = (nodeId: string, position: { x: number; y: number; z: number }) => {
+    const numericId = graphDataManager.nodeIdMap.get(nodeId);
+    if (numericId !== undefined) {
+      graphWorkerProxy.pinNode(numericId);
+      graphWorkerProxy.updateUserDrivenNodePosition(numericId, position);
+    }
   };
 
   const selectNode = (nodeId: string | null) => {
@@ -99,12 +101,18 @@ export const useImmersiveData = (initialData?: any) => {
     }
   };
 
-  const pinNode = (_nodeId: string) => {
-    logger.warn('pinNode called but graphDataManager does not support pinning directly');
+  const pinNode = (nodeId: string) => {
+    const numericId = graphDataManager.nodeIdMap.get(nodeId);
+    if (numericId !== undefined) {
+      graphWorkerProxy.pinNode(numericId);
+    }
   };
 
-  const unpinNode = (_nodeId: string) => {
-    logger.warn('unpinNode called but graphDataManager does not support unpinning directly');
+  const unpinNode = (nodeId: string) => {
+    const numericId = graphDataManager.nodeIdMap.get(nodeId);
+    if (numericId !== undefined) {
+      graphWorkerProxy.unpinNode(numericId);
+    }
   };
 
   return {

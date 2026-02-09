@@ -305,6 +305,11 @@ export interface HeadTrackedParallaxSettings {
 // Interaction settings
 export interface InteractionSettings {
   headTrackedParallax: HeadTrackedParallaxSettings;
+  selectionHighlightColor?: string;
+  selectionEdgeFlow?: boolean;
+  selectionEdgeFlowSpeed?: number;
+  selectionEdgeWidth?: number;
+  selectionEdgeOpacity?: number;
 }
 
 // Visualisation settings
