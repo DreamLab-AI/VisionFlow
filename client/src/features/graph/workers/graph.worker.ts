@@ -328,6 +328,14 @@ class GraphWorker {
     workerLogger.info(`SharedArrayBuffer set up with ${buffer.byteLength} bytes`);
   }
 
+  /** Copy currentPositions into the SharedArrayBuffer so the main thread can read synchronously. */
+  private syncToSharedBuffer(): void {
+    if (this.positionView && this.currentPositions) {
+      const len = Math.min(this.currentPositions.length, this.positionView.length);
+      this.positionView.set(this.currentPositions.subarray(0, len));
+    }
+  }
+
   
   async updateSettings(settings: any): Promise<void> {
     // Extract only physics-relevant settings
@@ -879,6 +887,7 @@ class GraphWorker {
       // Check if simulation has cooled down
       if (this.forcePhysics.alpha < this.forcePhysics.alphaMin) {
         // Simulation has settled - return current positions without updates
+        this.syncToSharedBuffer();
         return this.currentPositions;
       }
 
@@ -908,6 +917,7 @@ class GraphWorker {
         workerLogger.debug(`VisionFlow physics tick - alpha=${this.forcePhysics.alpha.toFixed(4)}, nodes=${this.graphData.nodes.length}`);
       }
 
+      this.syncToSharedBuffer();
       return this.currentPositions;
     }
 
@@ -928,6 +938,7 @@ class GraphWorker {
 
       if (!hasAnyMovement) {
         // Performance: Removed per-frame logging
+        this.syncToSharedBuffer();
         return this.currentPositions;
       }
       
@@ -1082,7 +1093,7 @@ class GraphWorker {
       this.currentPositions[i3 + 2] += this.velocities[i3 + 2] * dt;
     }
 
-    
+    this.syncToSharedBuffer();
     return this.currentPositions;
   }
 }

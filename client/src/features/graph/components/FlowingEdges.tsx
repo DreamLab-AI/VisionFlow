@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useEffect } from 'react';
+import React, { useRef, useMemo, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { EdgeSettings } from '../../settings/config/settings';
@@ -17,15 +17,53 @@ interface FlowingEdgesProps {
   }>;
 }
 
+/** Imperative handle for direct buffer updates from useFrame (avoids React state). */
+export interface FlowingEdgesHandle {
+  updatePoints(points: number[]): void;
+}
+
 // Minimum edge opacity - allows very low transparency while preventing truly invisible edges
 const MIN_EDGE_OPACITY = 0.01;
 
-export const FlowingEdges: React.FC<FlowingEdgesProps> = ({ points, settings: propSettings, colorOverride, edgeData }) => {
+export const FlowingEdges = forwardRef<FlowingEdgesHandle, FlowingEdgesProps>(({ points, settings: propSettings, colorOverride, edgeData }, ref) => {
   const globalSettings = useSettingsStore((state) => state.settings);
   const edgeBloomStrength = globalSettings?.visualisation?.glow?.edgeGlowStrength ?? 0.5;
   const lineRef = useRef<THREE.LineSegments>(null);
   const materialRef = useRef<THREE.LineBasicMaterial>(null);
   const positionAttrRef = useRef<THREE.BufferAttribute | null>(null);
+  const geometryRef = useRef<THREE.BufferGeometry | null>(null);
+
+  // Imperative handle: lets parent push edge points directly without React state
+  useImperativeHandle(ref, () => ({
+    updatePoints(newPts: number[]) {
+      const geo = geometryRef.current;
+      if (!geo) return;
+
+      if (newPts.length < 6) {
+        if (lineRef.current) lineRef.current.visible = false;
+        return;
+      }
+
+      const newPositions = new Float32Array(newPts);
+      const existingAttr = positionAttrRef.current;
+      if (existingAttr && existingAttr.array.length >= newPositions.length) {
+        (existingAttr.array as Float32Array).set(newPositions);
+        existingAttr.needsUpdate = true;
+        geo.setDrawRange(0, newPositions.length / 3);
+      } else {
+        const bufferSize = Math.ceil(newPositions.length * 1.5);
+        const buffer = new Float32Array(bufferSize);
+        buffer.set(newPositions);
+        const attr = new THREE.BufferAttribute(buffer, 3);
+        attr.setUsage(THREE.DynamicDrawUsage);
+        positionAttrRef.current = attr;
+        geo.setAttribute('position', attr);
+        geo.setDrawRange(0, newPositions.length / 3);
+      }
+      geo.computeBoundingSphere();
+      if (lineRef.current) lineRef.current.visible = true;
+    }
+  }), []);
 
   // Stable geometry ref - created once, buffer updated in-place.
   // This avoids the dispose/recreate race that caused edges to vanish.
@@ -37,6 +75,7 @@ export const FlowingEdges: React.FC<FlowingEdgesProps> = ({ points, settings: pr
     geo.setAttribute('position', attr);
     geo.computeBoundingSphere();
     positionAttrRef.current = attr;
+    geometryRef.current = geo;
     return geo;
     // Intentionally depend only on initial mount - updates happen via the effect below
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -162,4 +201,4 @@ export const FlowingEdges: React.FC<FlowingEdgesProps> = ({ points, settings: pr
       frustumCulled={false}
     />
   );
-};
+});

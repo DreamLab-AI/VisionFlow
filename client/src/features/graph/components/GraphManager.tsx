@@ -11,7 +11,7 @@ import { useSettingsStore } from '../../../store/settingsStore'
 import { BinaryNodeData, NodeType } from '../../../types/binaryProtocol'
 import { useWebSocketStore } from '../../../store/websocketStore'
 import { HologramNodeMaterial } from '../../../rendering/materials/HologramNodeMaterial'
-import { FlowingEdges } from './FlowingEdges'
+import { FlowingEdges, FlowingEdgesHandle } from './FlowingEdges'
 import { KnowledgeRings } from './KnowledgeRings'
 import { ClusterHulls } from './ClusterHulls'
 import { useGraphEventHandlers } from '../hooks/useGraphEventHandlers'
@@ -534,8 +534,8 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   const nodePositionsRef = useRef<Float32Array | null>(null)
   const [edgePoints, setEdgePoints] = useState<number[]>([])
   const [highlightEdgePoints, setHighlightEdgePoints] = useState<number[]>([]);
-  const prevEdgePointsRef = useRef<number[]>([])
-  const edgeForceUpdateCounter = useRef(0)
+  const edgeFlowRef = useRef<FlowingEdgesHandle>(null);
+  const highlightEdgeFlowRef = useRef<FlowingEdgesHandle>(null);
   const prevLabelPositionsLengthRef = useRef<number>(0)
   const labelPositionsRef = useRef<Array<{x: number, y: number, z: number}>>([])
   const edgeUpdatePendingRef = useRef<number[] | null>(null)
@@ -957,7 +957,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   }, [physicsFingerprint]);
 
 
-  useFrame(async (state, delta) => {
+  useFrame((state, delta) => {
     animationStateRef.current.time = state.clock.elapsedTime
 
     // LOD System: Check every 15 frames (~250ms at 60fps)
@@ -1028,7 +1028,9 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
 
 
     if ((meshRef.current || enableMetadataShape) && graphData.nodes.length > 0) {
-      const positions = await graphWorkerProxy.tick(delta);
+      graphWorkerProxy.requestTick(delta);
+      const positions = graphWorkerProxy.getPositionsSync();
+      if (!positions) return;
       nodePositionsRef.current = positions;
 
       // Determine if positions are valid for node/edge rendering from simulation
@@ -1163,24 +1165,24 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
               }
             }
           });
-          highlightEdgeUpdatePendingRef.current = highlightPoints;
+          if (highlightEdgeFlowRef.current) {
+            highlightEdgeFlowRef.current.updatePoints(highlightPoints);
+          } else {
+            highlightEdgeUpdatePendingRef.current = highlightPoints;
+          }
         } else if (highlightEdgePoints.length > 0) {
-          highlightEdgeUpdatePendingRef.current = [];
+          if (highlightEdgeFlowRef.current) {
+            highlightEdgeFlowRef.current.updatePoints([]);
+          } else {
+            highlightEdgeUpdatePendingRef.current = [];
+          }
         }
 
-        // Force edge geometry update every 3 frames (~20fps) to guarantee
-        // edges track nodes even when sampling would miss position changes.
-        // The old 6-point sampling only checked first/last endpoints and missed
-        // moves in the middle of the edge array.
-        edgeForceUpdateCounter.current++;
-        const forceUpdate = edgeForceUpdateCounter.current >= 3;
-        if (forceUpdate) edgeForceUpdateCounter.current = 0;
-
-        const prev = prevEdgePointsRef.current;
-        const lengthChanged = newEdgePoints.length !== prev.length;
-
-        if (lengthChanged || forceUpdate) {
-          prevEdgePointsRef.current = newEdgePoints;
+        // Imperative edge update: push directly to FlowingEdges geometry buffer
+        if (edgeFlowRef.current) {
+          edgeFlowRef.current.updatePoints(newEdgePoints);
+        } else {
+          // Fallback: FlowingEdges not mounted yet, queue for React state
           edgeUpdatePendingRef.current = newEdgePoints;
         }
 
@@ -1236,8 +1238,8 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       }
     }
 
-    // Process pending state updates -- after await, React 18 batches automatically
-    if (edgeUpdatePendingRef.current) {
+    // Process pending state updates — only for initial mount before imperative handles are available
+    if (edgeUpdatePendingRef.current && !edgeFlowRef.current) {
       const pendingEdges = edgeUpdatePendingRef.current;
       edgeUpdatePendingRef.current = null;
       setEdgePoints(pendingEdges);
@@ -1247,7 +1249,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       labelUpdatePendingRef.current = null;
       setLabelPositions(pendingLabels);
     }
-    if (highlightEdgeUpdatePendingRef.current !== null) {
+    if (highlightEdgeUpdatePendingRef.current !== null && !highlightEdgeFlowRef.current) {
       const pendingHighlight = highlightEdgeUpdatePendingRef.current;
       highlightEdgeUpdatePendingRef.current = null;
       setHighlightEdgePoints(pendingHighlight);
@@ -1812,6 +1814,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       {}
       {edgePoints.length > 0 && (
         <FlowingEdges
+          ref={edgeFlowRef}
           points={edgePoints}
           settings={(settings?.visualisation?.graphs?.logseq?.edges || settings?.visualisation?.edges || defaultEdgeSettings) as any}
           colorOverride={
@@ -1828,6 +1831,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       {/* Highlighted edges for selected node */}
       {highlightEdgePoints.length > 0 && (
         <FlowingEdges
+          ref={highlightEdgeFlowRef}
           points={highlightEdgePoints}
           settings={{
             ...((settings?.visualisation?.graphs?.logseq?.edges || settings?.visualisation?.edges || defaultEdgeSettings) as EdgeSettings),

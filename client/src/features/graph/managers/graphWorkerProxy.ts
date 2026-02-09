@@ -51,7 +51,10 @@ class GraphWorkerProxy {
   private positionUpdateListeners: PositionUpdateListener[] = [];
   private sharedBuffer: SharedArrayBuffer | null = null;
   private isInitialized: boolean = false;
-  private graphType: 'logseq' | 'visionflow' = 'logseq'; 
+  private graphType: 'logseq' | 'visionflow' = 'logseq';
+  private sharedPositionView: Float32Array | null = null;
+  private lastReceivedPositions: Float32Array | null = null;
+  private tickInFlight: boolean = false;
 
   private constructor() {}
 
@@ -103,6 +106,7 @@ class GraphWorkerProxy {
       if (typeof SharedArrayBuffer !== 'undefined') {
         logger.info('Setting up SharedArrayBuffer');
         this.sharedBuffer = new SharedArrayBuffer(bufferSize);
+        this.sharedPositionView = new Float32Array(this.sharedBuffer);
         await this.workerApi.setupSharedPositions(this.sharedBuffer);
         logger.info(`SharedArrayBuffer initialized: ${bufferSize} bytes`);
         if (debugState.isEnabled()) {
@@ -265,6 +269,31 @@ class GraphWorkerProxy {
   }
 
   /**
+   * Fire-and-forget tick with concurrency guard.
+   * Only one tick RPC can be in flight at a time — subsequent calls are dropped.
+   */
+  public requestTick(deltaTime: number): void {
+    if (!this.workerApi || this.tickInFlight) return;
+    this.tickInFlight = true;
+    this.workerApi.tick(deltaTime)
+      .then((positions) => {
+        this.tickInFlight = false;
+        this.lastReceivedPositions = positions;
+      })
+      .catch(() => {
+        this.tickInFlight = false;
+      });
+  }
+
+  /**
+   * Synchronous position read — returns SharedArrayBuffer view (zero-copy)
+   * or cached positions from the last completed tick RPC as fallback.
+   */
+  public getPositionsSync(): Float32Array | null {
+    return this.sharedPositionView || this.lastReceivedPositions;
+  }
+
+  /**
    * Reheat the force simulation (restart physics from current positions).
    * Use this when user wants to re-layout or after significant changes.
    */
@@ -301,10 +330,7 @@ class GraphWorkerProxy {
 
   
   public getSharedPositionBuffer(): Float32Array | null {
-    if (!this.sharedBuffer) {
-      return null;
-    }
-    return new Float32Array(this.sharedBuffer);
+    return this.sharedPositionView;
   }
 
   
@@ -343,6 +369,9 @@ class GraphWorkerProxy {
     this.graphDataListeners = [];
     this.positionUpdateListeners = [];
     this.sharedBuffer = null;
+    this.sharedPositionView = null;
+    this.lastReceivedPositions = null;
+    this.tickInFlight = false;
     this.isInitialized = false;
 
     if (debugState.isEnabled()) {
