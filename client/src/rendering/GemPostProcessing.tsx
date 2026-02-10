@@ -79,7 +79,8 @@ export const GemPostProcessing: React.FC<GemPostProcessingProps> = ({ enabled = 
     (async () => {
       try {
         const { PostProcessing } = await import('three/webgpu');
-        const { pass } = await import('three/tsl');
+        const tslMod = await import('three/tsl') as any;
+        const { pass } = tslMod;
         const { bloom } = await import('three/examples/jsm/tsl/display/BloomNode.js');
 
         if (disposed) return;
@@ -87,13 +88,21 @@ export const GemPostProcessing: React.FC<GemPostProcessingProps> = ({ enabled = 
         const { strength, radius, threshold } = bloomParamsRef.current;
 
         // Build the node graph:
-        //   scenePass -> toTexture (breaks read/write sync scope) -> bloom -> compose
+        //   scenePass -> intermediate texture copy -> bloom -> compose
         const scenePass = pass(scene, camera);
         const scenePassColor = scenePass.getTextureNode('output');
-        // toTexture() resolves the WebGPU validation error where bloom reads the
-        // scene output texture while it's still a render attachment in the same
-        // synchronization scope. This copies to an intermediate texture first.
-        const bloomInput = (scenePassColor as any).toTexture();
+
+        // Break the WebGPU read/write synchronization scope: bloom must not
+        // read the scene output texture while it's still a render attachment.
+        // Try toTexture() first (r183+), then rtt() (r170+), then direct (with
+        // try-catch guard in useFrame as last resort).
+        let bloomInput = scenePassColor;
+        if (typeof (scenePassColor as any).toTexture === 'function') {
+          bloomInput = (scenePassColor as any).toTexture();
+        } else if (typeof tslMod.rtt === 'function') {
+          bloomInput = tslMod.rtt(scenePassColor);
+        }
+
         const bloomPass = bloom(bloomInput, strength, radius, threshold);
 
         // Compose: original scene + additive bloom
