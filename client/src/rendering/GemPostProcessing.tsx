@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
 import { useSettingsStore } from '../store/settingsStore';
+import * as THREE from 'three';
 
 interface GemPostProcessingProps {
   enabled?: boolean;
@@ -24,7 +25,7 @@ interface GemPostProcessingProps {
  *   - EffectComposer + UnrealBloomPass from three/examples/jsm/postprocessing
  */
 export const GemPostProcessing: React.FC<GemPostProcessingProps> = ({ enabled = true }) => {
-  const { gl, scene, camera } = useThree();
+  const { gl, scene, camera, size } = useThree();
   const settings = useSettingsStore(state => state.settings);
   const composerRef = useRef<any>(null);
   const postProcessingRef = useRef<any>(null);
@@ -46,21 +47,19 @@ export const GemPostProcessing: React.FC<GemPostProcessingProps> = ({ enabled = 
   const bloomStrength = (activeSource as any)?.strength ?? (activeSource as any)?.intensity ?? 0.8;
   const bloomRadius = (activeSource as any)?.radius ?? 0.4;
   const bloomThreshold = (activeSource as any)?.threshold ?? 0.4;
-  const glowEnabled = glowSettings?.enabled !== false;
 
-  const getEffectParams = useCallback(() => ({
-    strength: bloomStrength,
-    radius: bloomRadius,
-    threshold: bloomThreshold,
-    enabled: glowEnabled,
-  }), [bloomStrength, bloomRadius, bloomThreshold, glowEnabled]);
-
-  // Stable params object for effects that need the values directly
-  const effectParams = useMemo(() => ({
+  // Stable params object for WebGL EffectComposer (triggers rebuild on change — acceptable
+  // because WebGL bloom is cheap to reconstruct).
+  const effectParamsWebGL = useMemo(() => ({
     strength: bloomStrength,
     radius: bloomRadius,
     threshold: bloomThreshold,
   }), [bloomStrength, bloomRadius, bloomThreshold]);
+
+  // Ref for WebGPU initial bloom values — avoids full PostProcessing teardown on settings
+  // change. The separate useEffect below (bloom uniform updater) handles live tweaks.
+  const bloomParamsRef = useRef({ strength: bloomStrength, radius: bloomRadius, threshold: bloomThreshold });
+  bloomParamsRef.current = { strength: bloomStrength, radius: bloomRadius, threshold: bloomThreshold };
 
   // WebGPU node-based post-processing path
   useEffect(() => {
@@ -85,13 +84,17 @@ export const GemPostProcessing: React.FC<GemPostProcessingProps> = ({ enabled = 
 
         if (disposed) return;
 
-        const { strength, radius, threshold } = effectParams;
+        const { strength, radius, threshold } = bloomParamsRef.current;
 
         // Build the node graph:
-        //   scenePass -> bloom -> scenePassColor + bloomResult
+        //   scenePass -> toTexture (breaks read/write sync scope) -> bloom -> compose
         const scenePass = pass(scene, camera);
         const scenePassColor = scenePass.getTextureNode('output');
-        const bloomPass = bloom(scenePassColor, strength, radius, threshold);
+        // toTexture() resolves the WebGPU validation error where bloom reads the
+        // scene output texture while it's still a render attachment in the same
+        // synchronization scope. This copies to an intermediate texture first.
+        const bloomInput = (scenePassColor as any).toTexture();
+        const bloomPass = bloom(bloomInput, strength, radius, threshold);
 
         // Compose: original scene + additive bloom
         const outputNode = scenePassColor.add(bloomPass);
@@ -120,7 +123,10 @@ export const GemPostProcessing: React.FC<GemPostProcessingProps> = ({ enabled = 
       postProcessingRef.current = null;
       bloomNodeRef.current = null;
     };
-  }, [isEnabledWebGPU, gl, scene, camera, effectParams]);
+  // bloomParamsRef is intentionally NOT a dep — initial values are read from the ref,
+  // and live updates are handled by the bloom uniform updater useEffect below.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEnabledWebGPU, gl, scene, camera]);
 
   // Update WebGPU bloom uniforms when settings change without full rebuild
   useEffect(() => {
@@ -148,13 +154,26 @@ export const GemPostProcessing: React.FC<GemPostProcessingProps> = ({ enabled = 
 
         if (disposed) return;
 
-        const { strength, threshold, radius } = effectParams;
+        const { strength, threshold, radius } = effectParamsWebGL;
 
-        const composer = new EffectComposer(gl as any);
+        // Cap render target size to avoid GPU memory blowup on high-DPR displays.
+        // EffectComposer inherits the renderer's drawing buffer size; clamp to 2048
+        // on the long edge so bloom mip chain stays within GPU limits.
+        const maxDim = 2048;
+        const drawSize = new THREE.Vector2();
+        (gl as any).getDrawingBufferSize(drawSize);
+        const scale = Math.min(1, maxDim / Math.max(drawSize.x, drawSize.y));
+        const rtWidth = Math.round(drawSize.x * scale);
+        const rtHeight = Math.round(drawSize.y * scale);
+
+        const rt = new THREE.WebGLRenderTarget(rtWidth, rtHeight, {
+          type: THREE.HalfFloatType,
+        });
+        const composer = new EffectComposer(gl as any, rt);
         composer.addPass(new RenderPass(scene, camera));
 
         const bloomPass = new UnrealBloomPass(
-          new THREE.Vector2(window.innerWidth, window.innerHeight),
+          new THREE.Vector2(rtWidth, rtHeight),
           strength,
           radius,
           threshold
@@ -174,7 +193,20 @@ export const GemPostProcessing: React.FC<GemPostProcessingProps> = ({ enabled = 
         composerRef.current = null;
       }
     };
-  }, [isEnabledWebGL, gl, scene, camera, effectParams]);
+  }, [isEnabledWebGL, gl, scene, camera, effectParamsWebGL]);
+
+  // Resize EffectComposer when window size changes (WebGL path).
+  // Apply the same maxDim cap used during creation to avoid GPU memory blowup.
+  useEffect(() => {
+    if (composerRef.current && size.width > 0 && size.height > 0) {
+      const maxDim = 2048;
+      const dpr = Math.min(window.devicePixelRatio, 2);
+      const w = Math.round(size.width * dpr);
+      const h = Math.round(size.height * dpr);
+      const scale = Math.min(1, maxDim / Math.max(w, h));
+      composerRef.current.setSize(Math.round(w * scale), Math.round(h * scale));
+    }
+  }, [size.width, size.height]);
 
   // Render loop: delegate to whichever pipeline is active.
   //
@@ -185,17 +217,35 @@ export const GemPostProcessing: React.FC<GemPostProcessingProps> = ({ enabled = 
   // During async initialization, the post-processing refs are null while the
   // dynamic imports resolve. We fall back to gl.render() in that window to
   // avoid black frames.
+  const isActive = isEnabledWebGPU || isEnabledWebGL;
+  const ppErrorCountRef = useRef(0);
   useFrame(({ gl: renderer, scene: s, camera: cam }) => {
     if (postProcessingRef.current) {
-      postProcessingRef.current.render();
+      try {
+        postProcessingRef.current.render();
+      } catch (err: any) {
+        // PostProcessing can throw on WebGPU due to texture synchronization
+        // constraints (read+write same texture in one pass). After 3 consecutive
+        // failures, fall back to direct rendering for the rest of the session.
+        ppErrorCountRef.current++;
+        if (ppErrorCountRef.current <= 3) {
+          console.warn('[GemPostProcessing] PostProcessing.render() failed:', err?.message);
+        }
+        if (ppErrorCountRef.current >= 3) {
+          console.warn('[GemPostProcessing] Too many failures, disabling WebGPU bloom');
+          postProcessingRef.current = null;
+        }
+        renderer.render(s, cam);
+      }
     } else if (composerRef.current) {
       composerRef.current.render();
-    } else {
-      // Fallback: post-processing not yet initialized (async import in flight)
-      // or effects disabled. Render the scene directly so there are no black frames.
+    } else if (isActive) {
+      // Fallback: post-processing enabled but not yet initialized (async import in flight).
+      // Render the scene directly so there are no black frames during init.
       renderer.render(s, cam);
     }
-  }, (isEnabledWebGPU || isEnabledWebGL) ? 1 : undefined);
+    // When !isActive, priority is undefined so R3F renders normally — no fallback needed.
+  }, isActive ? 1 : undefined);
 
   return null;
 };

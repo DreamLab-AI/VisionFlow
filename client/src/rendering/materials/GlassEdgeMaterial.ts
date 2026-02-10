@@ -27,11 +27,14 @@ export function createGlassEdgeMaterial(): GlassEdgeMaterialResult {
     roughness: 0.05,
     metalness: 0.0,
     transparent: true,
-    opacity: isWebGPURenderer ? 0.35 : 0.4,
+    opacity: isWebGPURenderer ? 0.6 : 0.4,
     side: THREE.DoubleSide,
     depthWrite: false, // Edges behind nodes
-    emissive: new THREE.Color(0.1, 0.18, 0.3),
-    emissiveIntensity: 0.2,
+    emissive: new THREE.Color(isWebGPURenderer ? 0.2 : 0.1, isWebGPURenderer ? 0.3 : 0.18, isWebGPURenderer ? 0.55 : 0.3),
+    emissiveIntensity: isWebGPURenderer ? 0.5 : 0.2,
+    iridescence: isWebGPURenderer ? 0.2 : 0.1,
+    iridescenceIOR: 1.3,
+    iridescenceThicknessRange: [100, 250] as [number, number],
     ...(isWebGPURenderer ? {
       sheen: 0.3,
       sheenRoughness: 0.1,

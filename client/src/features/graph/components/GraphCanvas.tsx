@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Stats, Environment } from '@react-three/drei';
+import { createGemRenderer } from '../../../rendering/rendererFactory';
 
 // GraphManager for rendering the actual graph
 import GraphManager from './GraphManager';
@@ -35,8 +36,8 @@ const GraphCanvas: React.FC = () => {
     const orbitControlsRef = useRef<any>(null);
     const { settings } = useSettingsStore();
     const showStats = settings?.system?.debug?.enablePerformanceDebug ?? false;
-    // Note: bloom was merged into glow settings
-    const enableGlow = settings?.visualisation?.glow?.enabled ?? false;
+    // Note: bloom was merged into glow settings — default ON for gem aesthetic
+    const enableGlow = settings?.visualisation?.glow?.enabled !== false;
     
     // Lightweight subscription: only track counts to avoid storing full graph data in two places
     const [nodeCount, setNodeCount] = useState(0);
@@ -100,6 +101,8 @@ const GraphCanvas: React.FC = () => {
             )}
 
             <Canvas
+                gl={createGemRenderer}
+                dpr={[1, 2]}
                 camera={{
                     fov: 75,
                     near: 0.1,
@@ -112,11 +115,12 @@ const GraphCanvas: React.FC = () => {
                 }}
             >
                 {/* Lighting tuned for gem refraction -- driven by settings */}
-                <ambientLight intensity={settings?.visualisation?.rendering?.ambientLightIntensity ?? 0.15} />
-                <directionalLight position={[10, 10, 10]} intensity={settings?.visualisation?.rendering?.directionalLightIntensity ?? 0.4} />
+                <ambientLight intensity={settings?.visualisation?.rendering?.ambientLightIntensity ?? 0.4} />
+                <directionalLight position={[10, 10, 10]} intensity={settings?.visualisation?.rendering?.directionalLightIntensity ?? 0.8} />
+                <directionalLight position={[-5, -5, -10]} intensity={0.3} />
 
                 {/* Environment map for PBR glass material reflections */}
-                <Environment preset="studio" background={false} />
+                <Environment preset="studio" background={false} resolution={256} />
 
                 {/* Scene ambient effects (WASM particles, wisps, atmosphere) */}
                 <WasmSceneEffects

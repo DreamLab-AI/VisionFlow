@@ -37,6 +37,9 @@ export function createAgentCapsuleMaterial(): AgentCapsuleMaterialResult {
     depthWrite: true,
     emissive: new THREE.Color(0.08, 0.4, 0.2),
     emissiveIntensity: 0.25,
+    iridescence: isWebGPURenderer ? 0.25 : 0.15,
+    iridescenceIOR: 1.5,
+    iridescenceThicknessRange: [80, 300] as [number, number],
     ...(isWebGPURenderer ? {
       sheen: 0.4,
       sheenRoughness: 0.2,

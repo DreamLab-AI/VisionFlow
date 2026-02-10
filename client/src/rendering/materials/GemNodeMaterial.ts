@@ -36,8 +36,11 @@ export function createGemNodeMaterial(): GemMaterialResult {
     opacity: isWebGPURenderer ? 0.75 : 0.85,
     side: THREE.DoubleSide,
     depthWrite: true,
-    emissive: new THREE.Color(0.15, 0.18, 0.3),
-    emissiveIntensity: 0.3,
+    emissive: new THREE.Color(isWebGPURenderer ? 0.2 : 0.15, isWebGPURenderer ? 0.25 : 0.18, isWebGPURenderer ? 0.45 : 0.3),
+    emissiveIntensity: isWebGPURenderer ? 0.5 : 0.3,
+    iridescence: isWebGPURenderer ? 0.4 : 0.3,
+    iridescenceIOR: 1.3,
+    iridescenceThicknessRange: [100, 400] as [number, number],
     ...(isWebGPURenderer ? {
       sheen: 0.5,
       sheenRoughness: 0.15,
@@ -97,7 +100,7 @@ export async function createTslGemMaterial(
       float, vec2, vec3,
       mix, pow, sin, add, sub,
       dot, normalize, oneMinus, saturate, fract,
-      time, instanceIndex, instanceColor,
+      time, instanceIndex, vertexColor,
       normalView, positionView,
       texture: tslTexture,
     } = tslMod;
@@ -150,8 +153,10 @@ export async function createTslGemMaterial(
     const baseAlpha = mix(float(0.35), float(0.55), authority);
     const opacityNode = mix(baseAlpha, float(0.92), fresnel);
 
-    // --- Color: instanceColor tint + Fresnel rim brightening ---
-    const instCol = instanceColor; // per-node tint from computeColor()
+    // --- Color: per-instance tint + Fresnel rim brightening ---
+    // TSL exports `vertexColor` which maps to the InstancedMesh instanceColor buffer.
+    // `instanceColor` is NOT a TSL export and would be undefined at runtime.
+    const instCol = vertexColor;
     const rimWhite = vec3(1.0, 1.0, 1.0);
     const colorNode = mix(instCol, rimWhite, fresnel.mul(0.35));
 
@@ -166,6 +171,9 @@ export async function createTslGemMaterial(
     mat.metalness = 0.0;
     mat.clearcoat = 1.0;
     mat.clearcoatRoughness = 0.03;
+    mat.iridescence = 0.4;
+    mat.iridescenceIOR = 1.3;
+    mat.iridescenceThicknessRange = [100, 400];
     mat.transparent = true;
     mat.side = THREE.DoubleSide;
     mat.depthWrite = true;

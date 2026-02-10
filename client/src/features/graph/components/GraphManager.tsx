@@ -1,7 +1,8 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react'
 import { useThree, useFrame, ThreeEvent } from '@react-three/fiber'
-import { Text, Billboard } from '@react-three/drei'
+import { Text, Billboard, Html } from '@react-three/drei'
 import * as THREE from 'three'
+import { isWebGPURenderer } from '../../../rendering/rendererFactory'
 import { graphDataManager, type GraphData, type Node as GraphNode } from '../managers/graphDataManager'
 import { graphWorkerProxy } from '../managers/graphWorkerProxy'
 import { usePlatformStore } from '../../../services/platformManager'
@@ -183,6 +184,52 @@ const AGENT_STATUS_HEX: Record<string, string> = {
 };
 const getAgentStatusHex = (status?: string): string => {
   return AGENT_STATUS_HEX[status ?? 'idle'] ?? '#95A5A6';
+};
+
+// === WebGPU-safe label component ===
+// drei <Text> (troika-three-text) creates Mesh objects that trigger drawIndexed(Infinity)
+// on WebGPU. When the renderer is WebGPU, we use <Html> instead (CSS overlay, never enters
+// the GPU pipeline). On WebGL, we keep <Text> + <Billboard> for native 3D text.
+const NodeLabel: React.FC<{
+  position: [number, number, number];
+  lines: Array<{ text: string; color: string; fontSize: number; }>;
+  maxWidth?: number;
+}> = ({ position, lines, maxWidth = 8 }) => {
+  if (isWebGPURenderer) {
+    return (
+      <group position={position}>
+        <Html center distanceFactor={10} style={{ pointerEvents: 'none' }}>
+          <div style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            whiteSpace: 'nowrap', userSelect: 'none',
+          }}>
+            {lines.map((line, i) => (
+              <span key={i} style={{
+                color: line.color,
+                fontSize: `${Math.round(line.fontSize * 28)}px`,
+                textShadow: '0 0 3px #000, 0 0 6px #000',
+                fontFamily: 'system-ui, sans-serif',
+                lineHeight: 1.3,
+              }}>{line.text}</span>
+            ))}
+          </div>
+        </Html>
+      </group>
+    );
+  }
+  return (
+    <Billboard position={position} follow lockX={false} lockY={false} lockZ={false}>
+      {lines.map((line, i) => (
+        <Text key={i}
+          position={[0, i === 0 ? 0 : -i * line.fontSize * 1.3, 0]}
+          fontSize={line.fontSize} color={line.color}
+          anchorX="center" anchorY={i === 0 ? 'bottom' : 'top'}
+          maxWidth={maxWidth} textAlign="center"
+          outlineWidth={0.02} outlineColor="#000000"
+        >{line.text}</Text>
+      ))}
+    </Billboard>
+  );
 };
 
 // === END METADATA OVERLAY HELPERS ===
@@ -455,7 +502,6 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   const labelPositionsRef = useRef<Array<{x: number, y: number, z: number}>>([])
   const edgeUpdatePendingRef = useRef<number[] | null>(null)
   const highlightEdgeUpdatePendingRef = useRef<number[] | null>(null);
-  const labelUpdatePendingRef = useRef<Array<{x: number, y: number, z: number}> | null>(null)
   const [nodesAreAtOrigin, setNodesAreAtOrigin] = useState(false)
 
   const [forceUpdate, setForceUpdate] = useState(0)
@@ -678,7 +724,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
 
     // Periodic label frustum refresh (~6 updates/sec at 60fps)
     labelTickRef.current++;
-    if (labelTickRef.current >= 10) {
+    if (labelTickRef.current >= 30) {
       labelTickRef.current = 0;
       cameraViewProjectionMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
       frustum.setFromProjectionMatrix(cameraViewProjectionMatrix);
@@ -823,7 +869,6 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         labelPositionsRef.current = currentLabelArr;
 
         prevLabelPositionsLengthRef.current = labelCount;
-        labelUpdatePendingRef.current = currentLabelArr;
       }
     }
 
@@ -832,11 +877,6 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       const pendingEdges = edgeUpdatePendingRef.current;
       edgeUpdatePendingRef.current = null;
       setEdgePoints(pendingEdges);
-    }
-    if (labelUpdatePendingRef.current) {
-      const pendingLabels = labelUpdatePendingRef.current;
-      labelUpdatePendingRef.current = null;
-      setLabelPositions(pendingLabels);
     }
     if (highlightEdgeUpdatePendingRef.current !== null && !highlightEdgeFlowRef.current) {
       const pendingHighlight = highlightEdgeUpdatePendingRef.current;
@@ -989,24 +1029,8 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
 
   // Particle geometry removed - was always null (dead code)
 
-  
-  const [labelPositions, setLabelPositions] = useState<Array<{x: number, y: number, z: number}>>([])
-
-  
-  useEffect(() => {
-    if (nodePositionsRef.current && graphData.nodes.length > 0) {
-      const positions = nodePositionsRef.current
-      const newPositions = graphData.nodes.map((_node, i) => {
-        const i3 = i * 3
-        return {
-          x: positions[i3],
-          y: positions[i3 + 1],
-          z: positions[i3 + 2]
-        }
-      })
-      setLabelPositions(newPositions)
-    }
-  }, [graphData.nodes.length])
+  // Label positions are read directly from labelPositionsRef.current (updated every frame in useFrame).
+  // No React state needed -- eliminates per-frame re-renders.
 
   
   // Default edge settings - opacity increased to 0.6 for bloom visibility
@@ -1035,8 +1059,6 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
     const labelSettings = logseqSettings?.labels ?? settings?.visualisation?.labels;
     if (!labelSettings?.enableLabels || visibleNodes.length === 0) return null;
 
-    // Frustum is updated in useFrame (labelTickRef gate) -- read the already-computed state here
-
     const LABEL_DISTANCE_THRESHOLD = labelSettings?.labelDistanceThreshold ?? 500;
     const METADATA_DISTANCE_THRESHOLD = LABEL_DISTANCE_THRESHOLD * 0.6;
     const vrMode = isXRMode;
@@ -1059,6 +1081,18 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       const textPadding = labelSettings.textPadding ?? 0.6;
       const labelOffsetY = scale * 1.5 + textPadding;
 
+      const maxWidth = labelSettings.maxLabelWidth ?? 8;
+      const fontSize = labelSettings.desktopFontSize ?? 0.4;
+      const metaFontSize = fontSize * 0.8;
+      const labelText = node.label && node.label.length > 40
+        ? node.label.substring(0, 37) + '...' : (node.label || node.id);
+      const textColor = labelSettings.textColor || '#ffffff';
+      const pos: [number, number, number] = [position.x, position.y + labelOffsetY, position.z];
+
+      // Build lines array for the unified NodeLabel component
+      const lines: Array<{ text: string; color: string; fontSize: number }> = [];
+
+      // SSSP distance overlay
       let distanceInfo: string | null = null;
       if (normalizedSSSPResult && normalizedSSSPResult.distances) {
         const dist = normalizedSSSPResult.distances[node.id];
@@ -1067,37 +1101,12 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         else distanceInfo = `Distance: ${dist.toFixed(2)}`;
       }
 
-      const maxWidth = labelSettings.maxLabelWidth ?? 8;
-      const fontSize = labelSettings.desktopFontSize ?? 0.4;
-      const metaFontSize = fontSize * 0.8;
-      const outlineW = 0.012;
-      const lineSpacing = metaFontSize * 1.3;
-      const lineY = -(textPadding * 0.25);
-      const labelText = node.label && node.label.length > 40
-        ? node.label.substring(0, 37) + '...' : (node.label || node.id);
-
-      // === SSSP OVERRIDE ===
       if (distanceInfo) {
-        return (
-          <Billboard key={`label-${node.id}`}
-            position={[position.x, position.y + labelOffsetY, position.z]}
-            follow={true} lockX={false} lockY={false} lockZ={false}>
-            <Text fontSize={fontSize} color={labelSettings.textColor || '#ffffff'}
-              anchorX="center" anchorY="bottom"
-              outlineWidth={labelSettings.textOutlineWidth || 0.02}
-              outlineColor={labelSettings.textOutlineColor || '#000000'}
-              maxWidth={maxWidth} textAlign="center">{labelText}</Text>
-            <Text position={[0, lineY, 0]} fontSize={fontSize * 0.7}
-              color={node.id === normalizedSSSPResult?.sourceNodeId ? '#00FFFF' :
-                (!isFinite(normalizedSSSPResult?.distances[node.id] || 0) ? '#666666' : '#FFFF00')}
-              anchorX="center" anchorY="top" maxWidth={maxWidth * 0.8} textAlign="center"
-              outlineWidth={0.002} outlineColor="#000000">{distanceInfo}</Text>
-          </Billboard>
-        );
-      }
-
-      // === KNOWLEDGE GRAPH MODE ===
-      if (nodeLabelVisualMode === 'knowledge_graph') {
+        const dColor = node.id === normalizedSSSPResult?.sourceNodeId ? '#00FFFF'
+          : (!isFinite(normalizedSSSPResult?.distances[node.id] || 0) ? '#666666' : '#FFFF00');
+        lines.push({ text: labelText, color: textColor, fontSize });
+        lines.push({ text: distanceInfo, color: dColor, fontSize: fontSize * 0.7 });
+      } else if (nodeLabelVisualMode === 'knowledge_graph') {
         const sourceDomain = node.metadata?.source_domain ?? '';
         const domainColor = getDomainColor(sourceDomain);
         const qualityStars = getQualityStars(node.metadata?.quality ?? node.metadata?.quality_score);
@@ -1112,80 +1121,28 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         const line2 = line2Parts.join('  ');
         const line3 = `\u27E8${connectionCount} link${connectionCount !== 1 ? 's' : ''}\u27E9`;
 
-        return (
-          <Billboard key={`label-${node.id}`}
-            position={[position.x, position.y + labelOffsetY, position.z]}
-            follow={true} lockX={false} lockY={false} lockZ={false}>
-            <Text fontSize={fontSize}
-              color={sourceDomain ? domainColor : (labelSettings.textColor || '#ffffff')}
-              anchorX="center" anchorY="bottom"
-              outlineWidth={labelSettings.textOutlineWidth || 0.02}
-              outlineColor={labelSettings.textOutlineColor || '#000000'}
-              maxWidth={maxWidth} textAlign="center">{labelText}</Text>
-            {showMetadataLines && line2 && (
-              <Text position={[0, lineY, 0]} fontSize={metaFontSize}
-                color={sourceDomain ? domainColor : '#B0BEC5'}
-                anchorX="center" anchorY="top" maxWidth={maxWidth} textAlign="center"
-                outlineWidth={outlineW} outlineColor="#000000">{line2}</Text>
-            )}
-            {showMetadataLines && !vrMode && (
-              <Text position={[0, lineY - lineSpacing, 0]} fontSize={metaFontSize * 0.9}
-                color="#B0BEC5" anchorX="center" anchorY="top" maxWidth={maxWidth} textAlign="center"
-                outlineWidth={outlineW} outlineColor="#000000">{line3}</Text>
-            )}
-            {showMetadataLines && !vrMode && recencyText && (
-              <Text position={[0, lineY - lineSpacing * 2, 0]} fontSize={metaFontSize * 0.85}
-                color={recencyColor} anchorX="center" anchorY="top" maxWidth={maxWidth} textAlign="center"
-                outlineWidth={outlineW} outlineColor="#000000">{recencyText}</Text>
-            )}
-          </Billboard>
-        );
-      }
-
-      // === ONTOLOGY MODE ===
-      if (nodeLabelVisualMode === 'ontology') {
+        lines.push({ text: labelText, color: sourceDomain ? domainColor : textColor, fontSize });
+        if (showMetadataLines && line2) lines.push({ text: line2, color: sourceDomain ? domainColor : '#B0BEC5', fontSize: metaFontSize });
+        if (showMetadataLines && !vrMode) lines.push({ text: line3, color: '#B0BEC5', fontSize: metaFontSize * 0.9 });
+        if (showMetadataLines && !vrMode && recencyText) lines.push({ text: recencyText, color: recencyColor, fontSize: metaFontSize * 0.85 });
+      } else if (nodeLabelVisualMode === 'ontology') {
         const depth = node.metadata?.hierarchyDepth ?? node.metadata?.depth ?? 0;
         const instanceCount = node.metadata?.instanceCount ?? 0;
         const category = getOntologyCategory(node);
         const categoryDisplay = ONTOLOGY_CATEGORY_DISPLAY[category];
         const depthColor = getOntologyDepthHex(depth);
         const violations = node.metadata?.violations ?? 0;
-        const line2 = `\u21B3 Depth ${depth} \u00B7 ${instanceCount} instance${instanceCount !== 1 ? 's' : ''}`;
+        const depthLine = `\u21B3 Depth ${depth} \u00B7 ${instanceCount} instance${instanceCount !== 1 ? 's' : ''}`;
         const constraintLine = violations > 0
           ? `\u26A0 ${violations} violation${violations !== 1 ? 's' : ''}`
           : (node.metadata?.constraintValid !== undefined ? '\u2713 Valid' : '');
         const constraintColor = violations > 0 ? '#F39C12' : '#2ECC71';
 
-        return (
-          <Billboard key={`label-${node.id}`}
-            position={[position.x, position.y + labelOffsetY, position.z]}
-            follow={true} lockX={false} lockY={false} lockZ={false}>
-            <Text fontSize={fontSize} color={depthColor}
-              anchorX="center" anchorY="bottom"
-              outlineWidth={labelSettings.textOutlineWidth || 0.02}
-              outlineColor={labelSettings.textOutlineColor || '#000000'}
-              maxWidth={maxWidth} textAlign="center">{labelText}</Text>
-            {showMetadataLines && (
-              <Text position={[0, lineY, 0]} fontSize={metaFontSize} color={depthColor}
-                anchorX="center" anchorY="top" maxWidth={maxWidth} textAlign="center"
-                outlineWidth={outlineW} outlineColor="#000000">{line2}</Text>
-            )}
-            {showMetadataLines && !vrMode && (
-              <Text position={[0, lineY - lineSpacing, 0]} fontSize={metaFontSize * 0.9}
-                color="#B0BEC5" anchorX="center" anchorY="top" maxWidth={maxWidth} textAlign="center"
-                outlineWidth={outlineW} outlineColor="#000000">{categoryDisplay}</Text>
-            )}
-            {showMetadataLines && !vrMode && constraintLine && (
-              <Text position={[0, lineY - lineSpacing * 2, 0]} fontSize={metaFontSize * 0.85}
-                color={constraintColor} anchorX="center" anchorY="top" maxWidth={maxWidth} textAlign="center"
-                outlineWidth={outlineW} outlineColor="#000000">{constraintLine}</Text>
-            )}
-          </Billboard>
-        );
-      }
-
-      // === AGENT MODE ===
-      if (nodeLabelVisualMode === 'agent') {
+        lines.push({ text: labelText, color: depthColor, fontSize });
+        if (showMetadataLines) lines.push({ text: depthLine, color: depthColor, fontSize: metaFontSize });
+        if (showMetadataLines && !vrMode) lines.push({ text: categoryDisplay, color: '#B0BEC5', fontSize: metaFontSize * 0.9 });
+        if (showMetadataLines && !vrMode && constraintLine) lines.push({ text: constraintLine, color: constraintColor, fontSize: metaFontSize * 0.85 });
+      } else if (nodeLabelVisualMode === 'agent') {
         const agentType = (node.metadata?.agentType ?? node.metadata?.type ?? 'unknown').toUpperCase();
         const status = node.metadata?.status ?? 'idle';
         const statusColor = getAgentStatusHex(status);
@@ -1193,44 +1150,17 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         const tokenRate = node.metadata?.tokenRate ?? 0;
         const activeTasks = node.metadata?.tasksActive ?? node.metadata?.tasks ?? 0;
         const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
-        const line2 = `\u25CF ${statusLabel}  \u2665 ${health}%`;
-        const line3 = `\u26A1 ${tokenRate} tok/min \u00B7 ${activeTasks} task${activeTasks !== 1 ? 's' : ''}`;
+        const agentLine2 = `\u25CF ${statusLabel}  \u2665 ${health}%`;
+        const agentLine3 = `\u26A1 ${tokenRate} tok/min \u00B7 ${activeTasks} task${activeTasks !== 1 ? 's' : ''}`;
 
-        return (
-          <Billboard key={`label-${node.id}`}
-            position={[position.x, position.y + labelOffsetY, position.z]}
-            follow={true} lockX={false} lockY={false} lockZ={false}>
-            <Text fontSize={fontSize} color={statusColor}
-              anchorX="center" anchorY="bottom"
-              outlineWidth={labelSettings.textOutlineWidth || 0.02}
-              outlineColor={labelSettings.textOutlineColor || '#000000'}
-              maxWidth={maxWidth} textAlign="center">{agentType}</Text>
-            {showMetadataLines && (
-              <Text position={[0, lineY, 0]} fontSize={metaFontSize} color={statusColor}
-                anchorX="center" anchorY="top" maxWidth={maxWidth} textAlign="center"
-                outlineWidth={outlineW} outlineColor="#000000">{line2}</Text>
-            )}
-            {showMetadataLines && !vrMode && (
-              <Text position={[0, lineY - lineSpacing, 0]} fontSize={metaFontSize * 0.9}
-                color="#B0BEC5" anchorX="center" anchorY="top" maxWidth={maxWidth} textAlign="center"
-                outlineWidth={outlineW} outlineColor="#000000">{line3}</Text>
-            )}
-          </Billboard>
-        );
+        lines.push({ text: agentType, color: statusColor, fontSize });
+        if (showMetadataLines) lines.push({ text: agentLine2, color: statusColor, fontSize: metaFontSize });
+        if (showMetadataLines && !vrMode) lines.push({ text: agentLine3, color: '#B0BEC5', fontSize: metaFontSize * 0.9 });
+      } else {
+        lines.push({ text: labelText, color: textColor, fontSize });
       }
 
-      // Fallback
-      return (
-        <Billboard key={`label-${node.id}`}
-          position={[position.x, position.y + labelOffsetY, position.z]}
-          follow={true} lockX={false} lockY={false} lockZ={false}>
-          <Text fontSize={fontSize} color={labelSettings.textColor || '#ffffff'}
-            anchorX="center" anchorY="bottom"
-            outlineWidth={labelSettings.textOutlineWidth || 0.02}
-            outlineColor={labelSettings.textOutlineColor || '#000000'}
-            maxWidth={maxWidth} textAlign="center">{labelText}</Text>
-        </Billboard>
-      );
+      return <NodeLabel key={`label-${node.id}`} position={pos} lines={lines} maxWidth={maxWidth} />;
     }).filter(Boolean)
   }, [visibleNodes, graphData.edges, connectionCountMap, labelUpdateTick, nodeIdToIndexMap, settings?.visualisation?.graphs?.logseq?.labels, settings?.visualisation?.labels, normalizedSSSPResult, graphMode, perNodeVisualModeMap, hierarchyMap, isXRMode])
 
@@ -1306,30 +1236,26 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       />
 
       {/* Glass edge rendering */}
-      {edgePoints.length > 0 && (
-        <GlassEdges
-          ref={edgeFlowRef}
-          points={edgePoints}
-          settings={settings?.visualisation?.graphs?.logseq?.edges || settings?.visualisation?.edges || defaultEdgeSettings}
-          colorOverride={
-            graphMode === 'knowledge_graph'
-              ? (settings?.visualisation?.graphTypeVisuals?.knowledgeGraph as any)?.edgeColor
-              : graphMode === 'ontology'
-              ? (settings?.visualisation?.graphTypeVisuals?.ontology as any)?.edgeColor
-              : undefined
-          }
-        />
-      )}
+      <GlassEdges
+        ref={edgeFlowRef}
+        points={edgePoints}
+        settings={settings?.visualisation?.graphs?.logseq?.edges || settings?.visualisation?.edges || defaultEdgeSettings}
+        colorOverride={
+          graphMode === 'knowledge_graph'
+            ? (settings?.visualisation?.graphTypeVisuals?.knowledgeGraph as any)?.edgeColor
+            : graphMode === 'ontology'
+            ? (settings?.visualisation?.graphTypeVisuals?.ontology as any)?.edgeColor
+            : undefined
+        }
+      />
 
       {/* Highlighted edges for selected node */}
-      {highlightEdgePoints.length > 0 && (
-        <GlassEdges
-          ref={highlightEdgeFlowRef}
-          points={highlightEdgePoints}
-          settings={settings?.visualisation?.graphs?.logseq?.edges || settings?.visualisation?.edges || defaultEdgeSettings}
-          colorOverride={settings?.visualisation?.interaction?.selectionHighlightColor || '#00FFFF'}
-        />
-      )}
+      <GlassEdges
+        ref={highlightEdgeFlowRef}
+        points={highlightEdgePoints}
+        settings={settings?.visualisation?.graphs?.logseq?.edges || settings?.visualisation?.edges || defaultEdgeSettings}
+        colorOverride={settings?.visualisation?.interaction?.selectionHighlightColor || '#00FFFF'}
+      />
 
       {/* Knowledge graph rotating rings */}
       <KnowledgeRings

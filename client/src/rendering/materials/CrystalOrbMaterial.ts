@@ -37,6 +37,9 @@ export function createCrystalOrbMaterial(): CrystalOrbMaterialResult {
     depthWrite: true,
     emissive: new THREE.Color(0.12, 0.12, 0.25),
     emissiveIntensity: 0.3,
+    iridescence: isWebGPURenderer ? 0.35 : 0.25,
+    iridescenceIOR: 1.4,
+    iridescenceThicknessRange: [120, 350] as [number, number],
     ...(isWebGPURenderer ? {
       sheen: 0.4,
       sheenRoughness: 0.2,

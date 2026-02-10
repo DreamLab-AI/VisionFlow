@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { Html, Text, Billboard, Line as DreiLine } from '@react-three/drei';
+import { Html, Text, Billboard } from '@react-three/drei';
 import { BotsAgent, BotsEdge, BotsState, TokenUsage } from '../types/BotsTypes';
 import { createLogger } from '../../../utils/loggerConfig';
 import { useTelemetry, useThreeJSTelemetry } from '../../../telemetry/useTelemetry';
@@ -21,6 +21,42 @@ const _tempVec3Perp = new THREE.Vector3();
 const QUEEN_GOLD = new THREE.Color('#FFD700');
 const ADDITIVE_BLENDING = THREE.AdditiveBlending;
 const BACK_SIDE = THREE.BackSide;
+
+// Lightweight line component using standard BufferGeometry (NOT InstancedBufferGeometry).
+// drei's <Line> uses Line2/LineGeometry which extends InstancedBufferGeometry — its default
+// instanceCount=Infinity crashes WebGPU's drawIndexed(). This avoids the problem entirely.
+const SimpleLine: React.FC<{
+  points: THREE.Vector3[];
+  color: string;
+  opacity?: number;
+  transparent?: boolean;
+}> = ({ points, color, opacity = 1, transparent = false }) => {
+  const geomRef = useRef<THREE.BufferGeometry>(null);
+  const positions = useMemo(() => {
+    const arr = new Float32Array(points.length * 3);
+    for (let i = 0; i < points.length; i++) {
+      arr[i * 3] = points[i].x;
+      arr[i * 3 + 1] = points[i].y;
+      arr[i * 3 + 2] = points[i].z;
+    }
+    return arr;
+  }, [points]);
+
+  useEffect(() => {
+    if (geomRef.current) {
+      geomRef.current.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    }
+  }, [positions]);
+
+  return (
+    <line>
+      <bufferGeometry ref={geomRef}>
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+      </bufferGeometry>
+      <lineBasicMaterial color={color} opacity={opacity} transparent={transparent} />
+    </line>
+  );
+};
 
 // CSS animations for enhanced visualizations
 const pulseKeyframes = `
@@ -1219,45 +1255,30 @@ const BotsEdgeComponent: React.FC<BotsEdgeProps> = ({
   return (
     <>
       {/* Main organic tendril line (through curved midpoint) */}
-      <DreiLine
+      <SimpleLine
         points={organicCurvePoints}
         color={edgeColor}
-        lineWidth={lineWidth * pulseIntensity}
         opacity={opacity * pulseIntensity}
         transparent
-        dashed={!isActive || shouldAnimate}
-        dashScale={shouldAnimate ? 10 : 5}
-        dashSize={shouldAnimate ? 2 : 1}
-        dashOffset={dashOffset}
       />
 
       {/* Secondary energy channel */}
       {avgTokenRate > 25 && isActive && (
-        <DreiLine
+        <SimpleLine
           points={organicCurvePoints}
           color="#F39C12"
-          lineWidth={lineWidth * 0.5 * pulseIntensity}
           opacity={0.4 * pulseIntensity}
           transparent
-          dashed={true}
-          dashScale={15}
-          dashSize={3}
-          dashOffset={-dashOffset * 1.5}
         />
       )}
 
       {/* Overload channel */}
       {avgTokenRate > 50 && edge.messageCount > 300 && isActive && (
-        <DreiLine
+        <SimpleLine
           points={organicCurvePoints}
           color="#E74C3C"
-          lineWidth={lineWidth * 0.3 * pulseIntensity}
           opacity={0.6 * pulseIntensity}
           transparent
-          dashed={true}
-          dashScale={20}
-          dashSize={5}
-          dashOffset={-dashOffset * 2}
         />
       )}
 
