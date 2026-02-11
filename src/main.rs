@@ -305,6 +305,25 @@ async fn main() -> std::io::Result<()> {
     let pathfinding_service = Arc::new(webxr::services::semantic_pathfinding_service::SemanticPathfindingService::default());
     info!("[main] Semantic Pathfinding Service initialized");
 
+    // Initialize Ontology Agent Services (query + mutation + GitHub PR)
+    info!("[main] Initializing Ontology Agent Services...");
+    let whelk_engine = Arc::new(tokio::sync::RwLock::new(
+        webxr::adapters::whelk_inference_engine::WhelkInferenceEngine::new(),
+    ));
+    let github_pr_service = Arc::new(webxr::services::github_pr_service::GitHubPRService::new());
+    let ontology_query_service = Arc::new(webxr::services::ontology_query_service::OntologyQueryService::new(
+        app_state.ontology_repository.clone(),
+        app_state.neo4j_adapter.clone(),
+        whelk_engine.clone(),
+        schema_service.clone(),
+    ));
+    let ontology_mutation_service = Arc::new(webxr::services::ontology_mutation_service::OntologyMutationService::new(
+        app_state.ontology_repository.clone(),
+        whelk_engine.clone(),
+        github_pr_service.clone(),
+    ));
+    info!("[main] Ontology Agent Services initialized");
+
     info!("--- Starting Data Orchestration Sequence ---");
 
     // Step 1: Sync Files from GitHub.
@@ -504,6 +523,8 @@ async fn main() -> std::io::Result<()> {
             .app_data(app_state_data.nostr_service.clone().unwrap_or_else(|| web::Data::new(NostrService::default())))
             .app_data(app_state_data.feature_access.clone())
             .app_data(web::Data::new(github_sync_service.clone()))
+            .app_data(web::Data::new(ontology_query_service.clone()))
+            .app_data(web::Data::new(ontology_mutation_service.clone()))
             .app_data(neo4j_repo_data.clone())
             
             
@@ -552,6 +573,9 @@ async fn main() -> std::io::Result<()> {
                     .service(web::scope("/bots").configure(api_handler::bots::config))
                     .configure(bots_visualization_handler::configure_routes)
                     .configure(graph_export_handler::configure_routes)
+
+                    // Ontology agent tools (MCP surface)
+                    .configure(webxr::handlers::configure_ontology_agent_routes)
 
                     // JavaScript Solid Server (JSS) integration
                     .configure(webxr::handlers::configure_solid_routes)
