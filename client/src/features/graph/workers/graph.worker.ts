@@ -126,6 +126,15 @@ class GraphWorker {
   // Server physics is ALWAYS authoritative — all graph types use server positions.
   // This flag is kept for API compatibility but always returns true.
   private useServerPhysics: boolean = true;
+
+  // Client-side tweening configuration. Controls how smoothly the client
+  // interpolates toward server-computed positions. Configurable via settings.
+  private tweenSettings = {
+    enabled: true,
+    lerpBase: 0.001,      // Lower = smoother/slower. Default matches original.
+    snapThreshold: 5.0,   // Distance below which positions snap instantly.
+    maxDivergence: 50.0,  // Force snap when divergence exceeds this.
+  };
   private positionBuffer: SharedArrayBuffer | null = null;
   private positionView: Float32Array | null = null;
 
@@ -481,6 +490,20 @@ class GraphWorker {
     return this.useServerPhysics;
   }
 
+  /** Update client-side tweening configuration (does NOT affect server physics). */
+  async setTweeningSettings(settings: Partial<{
+    enabled: boolean;
+    lerpBase: number;
+    snapThreshold: number;
+    maxDivergence: number;
+  }>): Promise<void> {
+    if (settings.enabled !== undefined) this.tweenSettings.enabled = settings.enabled;
+    if (settings.lerpBase !== undefined) this.tweenSettings.lerpBase = Math.max(0.0001, Math.min(0.1, settings.lerpBase));
+    if (settings.snapThreshold !== undefined) this.tweenSettings.snapThreshold = Math.max(0.1, settings.snapThreshold);
+    if (settings.maxDivergence !== undefined) this.tweenSettings.maxDivergence = Math.max(1, settings.maxDivergence);
+    workerLogger.info(`Tweening settings updated: lerpBase=${this.tweenSettings.lerpBase}, snap=${this.tweenSettings.snapThreshold}`);
+  }
+
   /**
    * Reheat the force simulation (restart physics from current positions).
    * Call this when user drags a node or wants to re-layout.
@@ -566,7 +589,10 @@ class GraphWorker {
 
 
       // deltaTime is already in seconds (from Three.js useFrame delta)
-      const lerpFactor = 1 - Math.pow(0.001, deltaTime); 
+      // lerpBase and snapThreshold are configurable via ClientTweeningSettings.
+      // Lower lerpBase = smoother/slower interpolation. Default 0.001.
+      const lerpBase = this.tweenSettings.lerpBase;
+      const lerpFactor = 1 - Math.pow(lerpBase, deltaTime); 
       
       
       let totalMovement = 0;
@@ -607,8 +633,21 @@ class GraphWorker {
         
         
         
-        const snapThreshold = 5.0; 
-        if (distanceSq < snapThreshold * snapThreshold) {
+        const snapThreshold = this.tweenSettings.snapThreshold;
+        const maxDiv = this.tweenSettings.maxDivergence;
+
+        // Force snap when divergence exceeds maxDivergence (prevents runaway drift)
+        if (distanceSq > maxDiv * maxDiv) {
+          this.currentPositions[i3] = this.targetPositions[i3];
+          this.currentPositions[i3 + 1] = this.targetPositions[i3 + 1];
+          this.currentPositions[i3 + 2] = this.targetPositions[i3 + 2];
+          if (this.velocities) {
+            this.velocities[i3] = 0;
+            this.velocities[i3 + 1] = 0;
+            this.velocities[i3 + 2] = 0;
+          }
+          totalMovement += Math.sqrt(distanceSq);
+        } else if (distanceSq < snapThreshold * snapThreshold) {
           
           const positionChanged = Math.abs(this.currentPositions[i3] - this.targetPositions[i3]) > 0.01 ||
                                  Math.abs(this.currentPositions[i3 + 1] - this.targetPositions[i3 + 1]) > 0.01 ||

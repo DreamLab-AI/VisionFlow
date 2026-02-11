@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import type { RendererCapabilities } from '../features/settings/config/settings';
 
 /**
  * Whether the active renderer is a true WebGPU backend (not WebGPURenderer
@@ -13,6 +14,19 @@ import * as THREE from 'three';
  * PMREM blowups, and incorrect material codepaths.
  */
 export let isWebGPURenderer = false;
+
+/**
+ * Runtime renderer capabilities — populated after renderer init.
+ * Read by the settings panel to display active rendering features.
+ */
+export let rendererCapabilities: RendererCapabilities = {
+  backend: 'webgl',
+  tslMaterialsActive: false,
+  nodeBasedBloom: false,
+  gpuAdapterName: 'unknown',
+  maxTextureSize: 0,
+  pixelRatio: 1,
+};
 
 /**
  * Renderer factory for R3F <Canvas gl={rendererFactory}>.
@@ -87,6 +101,20 @@ export async function createGemRenderer(defaultProps: Record<string, any>) {
         }
       };
 
+      // Populate renderer capabilities for settings panel
+      const adapterInfo = renderer.backend?.adapter?.info ?? renderer.backend?.adapter ?? {};
+      rendererCapabilities = {
+        backend: 'webgpu',
+        tslMaterialsActive: true,  // TSL upgrade runs asynchronously per-material
+        nodeBasedBloom: true,
+        gpuAdapterName: (adapterInfo as any)?.description
+          || (adapterInfo as any)?.device
+          || backendName
+          || 'WebGPU',
+        maxTextureSize: 16384,  // WebGPU minimum guaranteed
+        pixelRatio: Math.min(window.devicePixelRatio, 2),
+      };
+
       console.log('[GemRenderer] WebGPU renderer initialized (backend:', backendName + ')');
       return renderer;
     } catch (err) {
@@ -110,6 +138,17 @@ export async function createGemRenderer(defaultProps: Record<string, any>) {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
   isWebGPURenderer = false;
+
+  // Populate renderer capabilities for WebGL fallback
+  const gl2 = renderer.getContext();
+  rendererCapabilities = {
+    backend: 'webgl',
+    tslMaterialsActive: false,
+    nodeBasedBloom: false,
+    gpuAdapterName: (gl2 as any)?.getParameter?.((gl2 as any)?.RENDERER) || 'WebGL',
+    maxTextureSize: (gl2 as any)?.getParameter?.((gl2 as any)?.MAX_TEXTURE_SIZE) || 4096,
+    pixelRatio: Math.min(window.devicePixelRatio, 2),
+  };
 
   console.log('[GemRenderer] WebGL renderer initialized');
   return renderer;
