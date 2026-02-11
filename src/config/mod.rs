@@ -1688,6 +1688,49 @@ pub struct AgentVoicePreset {
 
 fn default_speed() -> f32 { 1.0 }
 
+// ---------- Ontology Agent Settings ----------
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
+pub struct OntologyAgentSettings {
+    /// Minimum quality score for auto-merging agent proposals (0.0–1.0)
+    #[serde(default = "default_auto_merge_threshold")]
+    pub auto_merge_threshold: f32,
+    /// Minimum confidence for agent proposals to create a PR (0.0–1.0)
+    #[serde(default = "default_min_confidence")]
+    pub min_confidence: f32,
+    /// Maximum discovery results per query
+    #[serde(default = "default_max_discovery_results")]
+    pub max_discovery_results: usize,
+    /// Whether to require Whelk consistency check before creating PRs
+    #[serde(default = "default_true")]
+    pub require_consistency_check: bool,
+    /// GitHub repository owner for ontology PRs (overrides env GITHUB_REPO_OWNER)
+    #[serde(skip_serializing_if = "Option::is_none", alias = "github_owner")]
+    pub github_owner: Option<String>,
+    /// GitHub repository name for ontology PRs (overrides env GITHUB_REPO_NAME)
+    #[serde(skip_serializing_if = "Option::is_none", alias = "github_repo")]
+    pub github_repo: Option<String>,
+    /// Base branch for ontology PRs (default: main)
+    #[serde(skip_serializing_if = "Option::is_none", alias = "github_base_branch")]
+    pub github_base_branch: Option<String>,
+    /// Path prefix for per-user ontology notes in the repo
+    #[serde(default = "default_notes_path_prefix", alias = "notes_path_prefix")]
+    pub notes_path_prefix: String,
+    /// Labels to add to ontology PRs
+    #[serde(default = "default_pr_labels", alias = "pr_labels")]
+    pub pr_labels: Vec<String>,
+}
+
+fn default_auto_merge_threshold() -> f32 { 0.9 }
+fn default_min_confidence() -> f32 { 0.7 }
+fn default_max_discovery_results() -> usize { 20 }
+fn default_true() -> bool { true }
+fn default_notes_path_prefix() -> String { "pages/".to_string() }
+fn default_pr_labels() -> Vec<String> {
+    vec!["ontology".to_string(), "agent-proposed".to_string()]
+}
+
 // Constraint system structures
 // Note: ConstraintData has been moved to models/constraints.rs for GPU compatibility
 // The old simple structure has been replaced with a GPU-optimized version
@@ -1910,6 +1953,8 @@ pub struct AppFullSettings {
     pub whisper: Option<WhisperSettings>,
     #[serde(skip_serializing_if = "Option::is_none", alias = "voice_routing")]
     pub voice_routing: Option<VoiceRoutingSettings>,
+    #[serde(skip_serializing_if = "Option::is_none", alias = "ontology_agent")]
+    pub ontology_agent: Option<OntologyAgentSettings>,
     #[serde(default = "default_version", alias = "version")]
     pub version: String,
     
@@ -1941,6 +1986,8 @@ impl Default for AppFullSettings {
             openai: None,
             kokoro: None,
             whisper: None,
+            voice_routing: None,
+            ontology_agent: None,
             version: default_version(),
             user_preferences: UserPreferences::default(),
             physics: PhysicsSettings::default(),

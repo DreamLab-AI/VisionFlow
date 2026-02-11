@@ -33,6 +33,9 @@ pub mod ontology_content_analyzer;
 pub mod ontology_file_cache;
 pub mod pathfinding;
 pub mod semantic_type_registry;
+pub mod ontology_query_service;
+pub mod ontology_mutation_service;
+pub mod github_pr_service;
 
 // Re-export semantic type registry types for convenience
 pub use semantic_type_registry::{
