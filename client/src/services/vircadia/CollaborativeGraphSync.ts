@@ -198,7 +198,13 @@ export class CollaborativeGraphSync {
     }
 
     private applyOperation(operation: GraphOperation): void {
-        // Apply the operation to the graph
+        // Server-authoritative position flow:
+        // 1. Server computes positions via GPU physics
+        // 2. Server broadcasts via binary protocol to all clients (desktop + VR + Vircadia)
+        // 3. Each client applies optimistic tweening toward server targets
+        // 4. Collaborative operations (e.g. node_move from another user) are applied
+        //    as visual updates; the authoritative position comes from the server's
+        //    next physics broadcast.
         if (operation.type === 'node_move' && operation.position) {
             const nodeMesh = this.scene.getObjectByName(`node_${operation.nodeId}`);
             if (nodeMesh) {
@@ -208,6 +214,9 @@ export class CollaborativeGraphSync {
                     operation.position.z
                 );
             }
+            // Note: The graph data manager receives authoritative positions from the
+            // server via binary WebSocket protocol. This collaborative operation is
+            // an optimistic preview that will be reconciled on the next server tick.
         }
 
         logger.debug(`Applied operation: ${operation.type} on node ${operation.nodeId}`);

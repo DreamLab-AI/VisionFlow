@@ -531,13 +531,8 @@ class GraphDataManager {
       return;
     }
 
-    // Skip non-logseq graphs
-    if (this.graphType !== 'logseq') {
-      if (debugState.isDataDebugEnabled()) {
-        logger.debug(`Skipping binary update for ${this.graphType} graph`);
-      }
-      return;
-    }
+    // All graph types process binary position updates from the server.
+    // Server is the single source of truth for all node positions.
 
     // Throttle to ~60fps
     const now = Date.now();
