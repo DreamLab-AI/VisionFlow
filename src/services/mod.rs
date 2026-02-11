@@ -18,6 +18,7 @@ pub mod ragflow_service;
 pub mod schema_service;
 pub mod semantic_analyzer;
 pub mod semantic_pathfinding_service;
+pub mod audio_router;
 pub mod speech_service;
 pub mod speech_voice_integration;
 pub mod voice_context_manager;

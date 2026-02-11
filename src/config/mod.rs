@@ -1593,6 +1593,101 @@ pub struct WhisperSettings {
     pub initial_prompt: Option<String>,
 }
 
+// Voice routing configuration for multi-user real-time audio
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
+pub struct VoiceRoutingSettings {
+    #[serde(skip_serializing_if = "Option::is_none", alias = "livekit")]
+    pub livekit: Option<LiveKitSettings>,
+    #[serde(skip_serializing_if = "Option::is_none", alias = "turbo_whisper")]
+    pub turbo_whisper: Option<TurboWhisperSettings>,
+    /// Per-agent voice presets mapping agent_type → Kokoro voice ID
+    #[serde(default, skip_serializing_if = "HashMap::is_empty", alias = "agent_voices")]
+    pub agent_voices: HashMap<String, AgentVoicePreset>,
+    /// Audio format for the entire pipeline (default: opus)
+    #[serde(default = "default_audio_format", alias = "audio_format")]
+    pub audio_format: String,
+    /// Sample rate in Hz (default: 48000)
+    #[serde(default = "default_sample_rate_48k", alias = "sample_rate")]
+    pub sample_rate: u32,
+    /// Push-to-talk mode: "push" (hold key) or "toggle" (press to start/stop)
+    #[serde(default = "default_ptt_mode", alias = "ptt_mode")]
+    pub ptt_mode: String,
+    /// Whether agent responses are audible to all users (spatial) or owner-only
+    #[serde(default, alias = "agent_voice_public")]
+    pub agent_voice_public: bool,
+}
+
+fn default_audio_format() -> String { "opus".to_string() }
+fn default_sample_rate_48k() -> u32 { 48000 }
+fn default_ptt_mode() -> String { "push".to_string() }
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
+pub struct LiveKitSettings {
+    /// LiveKit server URL (default: ws://livekit:7880)
+    #[serde(skip_serializing_if = "Option::is_none", alias = "server_url")]
+    pub server_url: Option<String>,
+    /// API key for token generation
+    #[serde(skip_serializing_if = "Option::is_none", alias = "api_key")]
+    pub api_key: Option<String>,
+    /// API secret for token signing
+    #[serde(skip_serializing_if = "Option::is_none", alias = "api_secret")]
+    pub api_secret: Option<String>,
+    /// Room name template (default: "visionflow-{world_id}")
+    #[serde(skip_serializing_if = "Option::is_none", alias = "room_prefix")]
+    pub room_prefix: Option<String>,
+    /// Enable spatial audio based on Vircadia entity positions
+    #[serde(default = "default_true", alias = "spatial_audio")]
+    pub spatial_audio: bool,
+    /// Max distance (in Vircadia units) before audio falls to zero
+    #[serde(default = "default_spatial_max_distance", alias = "spatial_max_distance")]
+    pub spatial_max_distance: f32,
+}
+
+fn default_true() -> bool { true }
+fn default_spatial_max_distance() -> f32 { 50.0 }
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
+pub struct TurboWhisperSettings {
+    /// Turbo Whisper streaming endpoint (default: ws://turbo-whisper:8000/v1/audio/transcriptions)
+    #[serde(skip_serializing_if = "Option::is_none", alias = "ws_url")]
+    pub ws_url: Option<String>,
+    /// REST fallback URL (default: http://turbo-whisper:8000/v1/audio/transcriptions)
+    #[serde(skip_serializing_if = "Option::is_none", alias = "api_url")]
+    pub api_url: Option<String>,
+    /// Model to use (default: Systran/faster-whisper-large-v3)
+    #[serde(skip_serializing_if = "Option::is_none", alias = "model")]
+    pub model: Option<String>,
+    /// Language hint (default: en)
+    #[serde(skip_serializing_if = "Option::is_none", alias = "language")]
+    pub language: Option<String>,
+    /// Enable VAD (voice activity detection) to skip silence
+    #[serde(default = "default_true", alias = "vad_filter")]
+    pub vad_filter: bool,
+    /// Beam size (1 = greedy/fastest, 5 = more accurate)
+    #[serde(default = "default_beam_size", alias = "beam_size")]
+    pub beam_size: u32,
+}
+
+fn default_beam_size() -> u32 { 1 }
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[serde(rename_all = "camelCase")]
+pub struct AgentVoicePreset {
+    /// Kokoro voice ID (e.g., "af_sarah", "am_adam", "bf_emma")
+    pub voice_id: String,
+    /// Speech speed multiplier (default: 1.0)
+    #[serde(default = "default_speed")]
+    pub speed: f32,
+    /// Whether this agent's voice is heard spatially by all users
+    #[serde(default)]
+    pub spatial: bool,
+}
+
+fn default_speed() -> f32 { 1.0 }
+
 // Constraint system structures
 // Note: ConstraintData has been moved to models/constraints.rs for GPU compatibility
 // The old simple structure has been replaced with a GPU-optimized version
@@ -1813,6 +1908,8 @@ pub struct AppFullSettings {
     pub kokoro: Option<KokoroSettings>,
     #[serde(skip_serializing_if = "Option::is_none", alias = "whisper")]
     pub whisper: Option<WhisperSettings>,
+    #[serde(skip_serializing_if = "Option::is_none", alias = "voice_routing")]
+    pub voice_routing: Option<VoiceRoutingSettings>,
     #[serde(default = "default_version", alias = "version")]
     pub version: String,
     

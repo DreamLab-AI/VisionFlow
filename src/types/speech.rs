@@ -71,6 +71,8 @@ pub enum TTSProvider {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum STTProvider {
     Whisper,
+    /// Turbo Whisper (faster-whisper with streaming WebSocket)
+    TurboWhisper,
     OpenAI,
 }
 
@@ -79,12 +81,18 @@ pub enum SpeechCommand {
     Initialize,
     SendMessage(String),
     TextToSpeech(String, SpeechOptions),
+    /// User-scoped TTS: route audio only to the specified user
+    TextToSpeechForUser(String, SpeechOptions, String),
+    /// Agent spatial TTS: synthesize and inject into LiveKit at agent's position
+    TextToSpeechSpatial(String, SpeechOptions, AgentSpatialInfo),
     Close,
     SetTTSProvider(TTSProvider),
     SetSTTProvider(STTProvider),
     StartTranscription(TranscriptionOptions),
     StopTranscription,
     ProcessAudioChunk(Vec<u8>),
+    /// User-scoped audio processing: transcription routed to specific user's agents
+    ProcessAudioChunkForUser(Vec<u8>, String),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -92,14 +100,22 @@ pub struct SpeechOptions {
     pub voice: String,
     pub speed: f32,
     pub stream: bool,
+    /// Output format: "opus" (default), "mp3", "wav"
+    #[serde(default = "default_opus_format")]
+    pub format: String,
+}
+
+fn default_opus_format() -> String {
+    "opus".to_string()
 }
 
 impl Default for SpeechOptions {
     fn default() -> Self {
         Self {
-            voice: "af_heart".to_string(), 
+            voice: "af_heart".to_string(),
             speed: 1.0,
             stream: true,
+            format: "opus".to_string(),
         }
     }
 }
@@ -121,4 +137,39 @@ impl Default for TranscriptionOptions {
             stream: true,
         }
     }
+}
+
+/// Spatial position info for injecting agent voice into the LiveKit SFU
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentSpatialInfo {
+    /// Agent identifier
+    pub agent_id: String,
+    /// 3D position in Vircadia world coordinates
+    pub position: [f32; 3],
+    /// Owner user ID (for private fallback)
+    pub owner_user_id: String,
+    /// Whether audio should be public (spatial) or private (owner only)
+    pub public: bool,
+}
+
+/// Audio routing target — where synthesized audio should be delivered
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum AudioTarget {
+    /// Send to all connected clients (legacy broadcast)
+    Broadcast,
+    /// Send only to a specific user's WebSocket session
+    User(String),
+    /// Inject into LiveKit room as spatial audio at a position
+    Spatial {
+        room: String,
+        participant_id: String,
+        position: [f32; 3],
+    },
+    /// Send to specific user AND inject spatially
+    UserAndSpatial {
+        user_id: String,
+        room: String,
+        participant_id: String,
+        position: [f32; 3],
+    },
 }

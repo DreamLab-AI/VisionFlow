@@ -1,0 +1,125 @@
+# Voice-to-Voice Real-Time Audio Services
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.voice.yml --profile dev up
+#
+# Architecture:
+#   LiveKit SFU  — WebRTC spatial audio mixer for user-to-user + agent voice
+#   Turbo Whisper — faster-whisper with streaming WebSocket endpoint (replaces polling)
+#   Kokoro TTS   — OpenAI-compatible TTS with per-agent voice presets
+#
+# Audio format: Opus throughout (48kHz, mono, 64kbps)
+
+services:
+  # LiveKit SFU — WebRTC Selective Forwarding Unit for spatial voice chat
+  # All user-to-user voice and agent spatial audio routes through here
+  livekit:
+    image: livekit/livekit-server:v1.7
+    container_name: visionflow-livekit
+    hostname: livekit
+    command: --config /etc/livekit.yaml
+    environment:
+      - LIVEKIT_API_KEY=${LIVEKIT_API_KEY:-visionflow}
+      - LIVEKIT_API_SECRET=${LIVEKIT_API_SECRET:-visionflow-voice-secret-change-in-prod}
+    ports:
+      - "7880:7880"   # HTTP API + WebSocket signaling
+      - "7881:7881"   # RTC over TCP
+      - "7882:7882/udp"  # RTC over UDP (primary)
+      - "50000-50200:50000-50200/udp"  # WebRTC media ports
+    volumes:
+      - ./config/livekit.yaml:/etc/livekit.yaml:ro
+    networks:
+      docker_ragflow:
+        aliases:
+          - livekit
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:7880"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+    profiles:
+      - development
+      - dev
+      - production
+      - prod
+
+  # Turbo Whisper — faster-whisper with streaming WebSocket STT
+  # Replaces the polling-based whisper-webui-backend with direct streaming
+  turbo-whisper:
+    image: fedirz/faster-whisper-server:latest-cuda
+    container_name: visionflow-turbo-whisper
+    hostname: turbo-whisper
+    environment:
+      - WHISPER__MODEL=Systran/faster-whisper-large-v3
+      - WHISPER__DEVICE=cuda
+      - WHISPER__COMPUTE_TYPE=float16
+      - WHISPER__LANGUAGE=en
+      - WHISPER__VAD_FILTER=true
+      # Streaming mode: returns partial results as they arrive
+      - WHISPER__BEAM_SIZE=1
+      - WHISPER__BEST_OF=1
+    ports:
+      - "8100:8000"   # OpenAI-compatible REST + WebSocket
+    networks:
+      docker_ragflow:
+        aliases:
+          - turbo-whisper
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    runtime: nvidia
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    profiles:
+      - development
+      - dev
+      - production
+      - prod
+
+  # Kokoro TTS — Text-to-speech with distinct per-agent voice presets
+  # OpenAI-compatible /v1/audio/speech endpoint, Opus output
+  kokoro-tts:
+    image: ghcr.io/remsky/kokoro-fastapi-cpu:latest
+    container_name: visionflow-kokoro-tts
+    hostname: kokoro-tts
+    environment:
+      - KOKORO_DEFAULT_VOICE=af_heart
+      - KOKORO_DEFAULT_FORMAT=opus
+      - KOKORO_SAMPLE_RATE=48000
+    ports:
+      - "8880:8880"
+    networks:
+      docker_ragflow:
+        aliases:
+          - kokoro-tts
+          - kokoro-tts-container
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8880/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+    profiles:
+      - development
+      - dev
+      - production
+      - prod
+
+networks:
+  docker_ragflow:
+    external: true
+
+volumes:
+  whisper-models:
+    name: visionflow-whisper-models
+    driver: local
