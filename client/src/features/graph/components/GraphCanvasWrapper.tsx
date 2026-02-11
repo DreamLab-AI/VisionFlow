@@ -15,10 +15,16 @@ class CanvasErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ padding: 20, color: '#ff6b6b', background: '#1a1a2e', borderRadius: 8, margin: 10 }}>
-          <h3>3D Rendering Error</h3>
-          <p>The graph visualization encountered an error. Try refreshing the page.</p>
-          <details><summary>Details</summary><pre>{this.state.error?.message}</pre></details>
+        <div style={{ padding: 20, color: '#c9d1d9', background: '#1a1a2e', borderRadius: 8, margin: 10 }}>
+          <h3 style={{ color: '#e8a87c' }}>3D Rendering Error</h3>
+          <p>The graph visualization encountered an error.</p>
+          <button
+            style={{ padding: '6px 16px', marginBottom: 8, cursor: 'pointer', borderRadius: 4, border: '1px solid #444', background: '#2a2a3e', color: '#c9d1d9' }}
+            onClick={() => this.setState({ hasError: false, error: null })}
+          >
+            Retry
+          </button>
+          <details><summary>Details</summary><pre style={{ color: '#8b949e' }}>{this.state.error?.message}</pre></details>
         </div>
       );
     }
