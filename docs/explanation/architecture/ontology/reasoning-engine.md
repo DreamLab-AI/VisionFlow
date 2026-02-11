@@ -63,7 +63,7 @@ pub struct CustomReasoner {
 **Advanced reasoning with horned-owl crate integration**
 
 #### Features:
-- Parses OWL from unified.db SQLite database
+- Parses OWL from OntologyRepository (in-memory store)
 - Loads OWL classes, axioms, properties
 - Validates ontology consistency
 - Returns inferred axioms as `Vec<InferredAxiom>`

@@ -22,7 +22,7 @@ This document describes the end-to-end data pipeline that connects GitHub synchr
 ## Architecture Diagram
 
 ```
-GitHub Sync → Parse Ontology → Save to unified.db → Trigger Reasoning →
+GitHub Sync → Parse Ontology → Save to Neo4j/OntologyRepository → Trigger Reasoning →
 Cache Inferences → Generate Constraints → Upload to GPU →
 Apply Semantic Forces → Stream to Client → Render Hierarchy
 ```
@@ -36,7 +36,7 @@ Apply Semantic Forces → Stream to Client → Render Hierarchy
 - Fetch markdown files from GitHub repository
 - Parse knowledge graph data (nodes/edges) from public pages
 - Extract and parse ontology blocks (`### OntologyBlock`)
-- Save graph data to `unified.db`
+- Save graph data to `Neo4j/OntologyRepository`
 - **NEW**: Trigger ontology reasoning pipeline after ontology save
 
 **Key Methods**:
@@ -114,111 +114,60 @@ on-ontology-modified(ontology-id, ontology) {
 
 ## Data Flow Diagram
 
-```
-┌────────────────────────────────────────────────────────────────┐
-│ 1. GitHub Sync                                                 │
-├────────────────────────────────────────────────────────────────┤
-│ GitHubSyncService.sync-graphs()                                │
-│   ↓                                                             │
-│ process-single-file("page.md")                                 │
-│   ↓                                                             │
-│ OntologyParser.parse(content) → OntologyData                   │
-│   ↓                                                             │
-│ save-ontology-data(onto-data)                                  │
-│   → UnifiedOntologyRepository.save-ontology()                  │
-│   → Saves classes, properties, axioms to unified.db            │
-└────────────────────────────────────────────────────────────────┘
-                              ↓
-┌────────────────────────────────────────────────────────────────┐
-│ 2. Trigger Reasoning Pipeline                                  │
-├────────────────────────────────────────────────────────────────┤
-│ if pipeline-service configured:                                │
-│   Convert OntologyData → Ontology struct                       │
-│   pipeline.on-ontology-modified(ontology-id, ontology)         │
-│     → Spawns async task to avoid blocking sync                 │
-└────────────────────────────────────────────────────────────────┘
-                              ↓
-┌────────────────────────────────────────────────────────────────┐
-│ 3. Reasoning Execution                                         │
-├────────────────────────────────────────────────────────────────┤
-│ OntologyPipelineService.trigger-reasoning()                    │
-│   ↓                                                             │
-│ ReasoningActor.send(TriggerReasoning {                         │
-│   ontology-id, ontology                                        │
-│ })                                                              │
-│   ↓                                                             │
-│ InferenceCache.get-or-compute()                                │
-│   → Check cache for ontology-id                                │
-│   → If miss: CustomReasoner.infer()                            │
-│   → Store results in inference-cache.db                        │
-│   ↓                                                             │
-│ Returns: Vec<InferredAxiom>                                    │
-│   Example: [                                                   │
-│     InferredAxiom {                                            │
-│       axiom-type: "SubClassOf",                                │
-│       subject: "Engineer",                                     │
-│       object: "Person"                                         │
-│     }                                                           │
-│   ]                                                             │
-└────────────────────────────────────────────────────────────────┘
-                              ↓
-┌────────────────────────────────────────────────────────────────┐
-│ 4. Constraint Generation                                       │
-├────────────────────────────────────────────────────────────────┤
-│ OntologyPipelineService.generate-constraints-from-axioms()     │
-│   For each InferredAxiom:                                      │
-│     match axiom-type:                                          │
-│       "SubClassOf" → ConstraintType::Clustering                │
-│       "EquivalentClass" → ConstraintType::Alignment            │
-│       "DisjointWith" → ConstraintType::Separation              │
-│   ↓                                                             │
-│ Returns: ConstraintSet {                                       │
-│   constraints: Vec<Constraint>,                                │
-│   metadata: { source, axiom-count, timestamp }                 │
-│ }                                                               │
-└────────────────────────────────────────────────────────────────┘
-                              ↓
-┌────────────────────────────────────────────────────────────────┐
-│ 5. GPU Upload                                                  │
-├────────────────────────────────────────────────────────────────┤
-│ OntologyPipelineService.upload-constraints-to-gpu()            │
-│   ↓                                                             │
-│ OntologyConstraintActor.send(ApplyOntologyConstraints {        │
-│   constraint-set,                                              │
-│   merge-mode: ConstraintMergeMode::Merge,                      │
-│   graph-id: 0                                                  │
-│ })                                                              │
-│   ↓                                                             │
-│ OntologyConstraintTranslator.translate-axioms-to-constraints() │
-│   → Convert ConstraintSet to GPU buffer format                 │
-│   → Upload to CUDA constraint buffer                           │
-│   ↓                                                             │
-│ GPU now has semantic constraints applied                       │
-└────────────────────────────────────────────────────────────────┘
-                              ↓
-┌────────────────────────────────────────────────────────────────┐
-│ 6. Physics Simulation                                          │
-├────────────────────────────────────────────────────────────────┤
-│ ForceComputeActor runs GPU kernels:                            │
-│   1. compute-forces-kernel()                                   │
-│      → Apply repulsion, attraction, damping                    │
-│   2. apply-ontology-constraints-kernel()                       │
-│      → Apply semantic clustering/alignment/separation          │
-│   3. integrate-forces-kernel()                                 │
-│      → Update node positions and velocities                    │
-│   ↓                                                             │
-│ Results: Updated node positions                                │
-└────────────────────────────────────────────────────────────────┘
-                              ↓
-┌────────────────────────────────────────────────────────────────┐
-│ 7. Client Streaming                                            │
-├────────────────────────────────────────────────────────────────┤
-│ GraphServiceActor broadcasts to ClientManager                  │
-│ ❌ DEPRECATED (Nov 2025): Use unified-gpu-compute.rs          │
-│   ↓                                                             │
-│ WebSocket clients receive position updates                     │
-│   → Real-time graph visualization with semantic physics        │
-└────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph Step1["1. GitHub Sync"]
+        S1A["GitHubSyncService.sync_graphs()"]
+        S1B["process_single_file('page.md')"]
+        S1C["OntologyParser.parse(content)"]
+        S1D["save_ontology_data(onto_data)<br/>OntologyRepository.save_ontology()"]
+        S1A --> S1B --> S1C --> S1D
+    end
+
+    subgraph Step2["2. Trigger Reasoning Pipeline"]
+        S2A["Convert OntologyData to Ontology struct"]
+        S2B["pipeline.on_ontology_modified()<br/>(async task)"]
+        S2A --> S2B
+    end
+
+    subgraph Step3["3. Reasoning Execution"]
+        S3A["OntologyPipelineService.trigger_reasoning()"]
+        S3B["ReasoningActor: TriggerReasoning"]
+        S3C["InferenceCache.get_or_compute()"]
+        S3D["CustomReasoner.infer()"]
+        S3E["Returns: Vec of InferredAxiom<br/>e.g. SubClassOf(Engineer, Person)"]
+        S3A --> S3B --> S3C --> S3D --> S3E
+    end
+
+    subgraph Step4["4. Constraint Generation"]
+        S4A["generate_constraints_from_axioms()"]
+        S4B["SubClassOf → Clustering<br/>EquivalentClass → Alignment<br/>DisjointWith → Separation"]
+        S4C["Returns: ConstraintSet"]
+        S4A --> S4B --> S4C
+    end
+
+    subgraph Step5["5. GPU Upload"]
+        S5A["upload_constraints_to_gpu()"]
+        S5B["OntologyConstraintActor:<br/>ApplyOntologyConstraints"]
+        S5C["Translate to GPU buffer format<br/>Upload to CUDA constraint buffer"]
+        S5A --> S5B --> S5C
+    end
+
+    subgraph Step6["6. Physics Simulation"]
+        S6A["compute_forces_kernel()"]
+        S6B["apply_ontology_constraints_kernel()"]
+        S6C["integrate_forces_kernel()"]
+        S6D["Updated node positions"]
+        S6A --> S6B --> S6C --> S6D
+    end
+
+    subgraph Step7["7. Client Streaming"]
+        S7A["WebSocket binary broadcast"]
+        S7B["Real-time graph visualization<br/>with semantic physics"]
+        S7A --> S7B
+    end
+
+    Step1 --> Step2 --> Step3 --> Step4 --> Step5 --> Step6 --> Step7
 ```
 
 ## Configuration
@@ -524,11 +473,11 @@ pub struct DisjointPair {
 ```rust
 use std::sync::Arc;
 use crate::adapters::whelk-inference-engine::WhelkInferenceEngine;
-use crate::repositories::unified-ontology-repository::UnifiedOntologyRepository;
+use crate::repositories::unified-ontology-repository::OntologyRepository;
 use crate::services::ontology-reasoning-service::OntologyReasoningService;
 
 let engine = Arc::new(WhelkInferenceEngine::new());
-let repo = Arc::new(UnifiedOntologyRepository::new("data/unified.db")?);
+let repo = Arc::new(OntologyRepository::new("data/Neo4j/OntologyRepository")?);
 let reasoning-service = OntologyReasoningService::new(engine, repo);
 ```
 

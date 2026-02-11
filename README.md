@@ -42,6 +42,8 @@ VisionFlow transforms static documents into living knowledge ecosystems. Deploy 
 | **Ontology Reasoning** | OWL 2 EL via Whelk-rs for semantic physics and contradiction detection |
 | **AI Agents** | 50+ concurrent agents with Microsoft GraphRAG integration |
 | **XR Support** | Meta Quest 3 with hand tracking, foveated rendering, and dynamic resolution |
+| **Voice Routing** | Multi-user push-to-talk with LiveKit SFU, turbo-whisper STT, Opus codec |
+| **Ontology Agents** | Agent read/write tools with Whelk consistency, GitHub PR feedback loop, MCP integration |
 
 ---
 
@@ -96,6 +98,8 @@ flowchart TB
     subgraph Server["Backend"]
         Rust["Rust Server (Actix)"]
         VWS["Vircadia World Server"]
+        Voice["Voice Routing (LiveKit)"]
+        OntAgent["Ontology Agent Services"]
     end
 
     subgraph Data["Data Layer"]
@@ -112,6 +116,8 @@ flowchart TB
     Rust <--> Neo4j
     VWS <--> PG
     Rust <--> CUDA
+    Voice <-->|"PTT + STT"| Client
+    OntAgent <--> Rust
 
     style Client fill:#e1f5ff,stroke:#0288d1
     style Server fill:#fff3e0,stroke:#ff9800
@@ -149,6 +155,9 @@ The client communicates with the Vircadia World Server via WebSocket, using para
 | **Ontology** | OWL 2 EL, Whelk-rs |
 | **Networking** | WebSocket (JSON + Binary V3), WebRTC |
 | **Audio** | Web Audio API, HRTF PannerNode |
+| **Voice** | LiveKit SFU, turbo-whisper STT, Opus codec |
+| **Agent Tools** | MCP (Model Context Protocol), 7 ontology tools |
+| **CI** | GitHub Actions |
 | **Build** | Vite 6, Vitest, Playwright |
 
 ---
@@ -174,6 +183,9 @@ The client communicates with the Vircadia World Server via WebSocket, using para
 | [API Reference](docs/api-reference.md) | Complete TypeScript interfaces and method signatures |
 | [Integration Guide](docs/integration-guide.md) | Step-by-step setup for avatars, audio, collaboration, XR |
 | [Security](docs/security.md) | SQL parameterization, authentication, WebRTC security |
+| [Ontology Agent Tools](docs/how-to/agents/ontology-agent-tools.md) | Agent read/write tools for ontology data |
+| [Voice Routing](docs/how-to/features/voice-routing.md) | Multi-user voice system setup |
+| [Full Documentation](docs/README.md) | Complete Diataxis documentation hub |
 
 ---
 
@@ -222,6 +234,12 @@ Key variables for the Vircadia integration:
 | `VITE_VIRCADIA_ENABLE_MULTI_USER` | Enable multi-user mode |
 | `VITE_VIRCADIA_ENABLE_SPATIAL_AUDIO` | Enable spatial audio |
 | `VITE_QUEST3_ENABLE_HAND_TRACKING` | Enable Quest 3 hand tracking |
+| `LIVEKIT_URL` | LiveKit server URL for voice routing |
+| `LIVEKIT_API_KEY` | LiveKit API key |
+| `LIVEKIT_API_SECRET` | LiveKit API secret |
+| `GITHUB_TOKEN` | GitHub token for ontology PR creation |
+| `GITHUB_OWNER` | GitHub repository owner for ontology PRs |
+| `GITHUB_REPO` | GitHub repository name for ontology PRs |
 
 ---
 

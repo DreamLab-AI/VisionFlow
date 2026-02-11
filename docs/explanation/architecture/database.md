@@ -14,7 +14,7 @@ related-docs:
   - guides/architecture/actor-system.md
   - guides/graphserviceactor-migration.md
   - README.md
-updated-date: 2025-12-18
+updated-date: 2026-02-11
 difficulty-level: advanced
 dependencies:
   - Neo4j database
@@ -25,7 +25,7 @@ dependencies:
 **Database**: Neo4j 5.x
 **Status**: Production
 **Migration**: Completed November 2025 (from SQLite)
-**Last Updated**: December 2, 2025
+**Last Updated**: February 11, 2026
 
 ---
 

@@ -5,6 +5,45 @@ All notable changes to VisionFlow will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-02-11
+
+### Voice-to-Voice System (b92150b)
+
+- **Multi-User Real-Time Voice Routing** with push-to-talk support
+- **LiveKit SFU Sidecar** integration for spatial audio
+- **Turbo-Whisper STT** for speech recognition
+- **Opus Audio Codec** support for high-quality, low-latency audio
+- New components: `VoiceRoutingService`, `SpeechService`, `PttCoordinator`
+
+### Ontology-Guided Agent Intelligence (d856dfe + 1bd5dc4)
+
+#### Added
+
+- **OntologyQueryService**: semantic discovery, enriched note reading, Cypher validation with Levenshtein hints
+- **OntologyMutationService**: proposal creation, Logseq markdown generation, Whelk consistency checks, quality scoring
+- **GitHubPRService**: full GitHub REST API flow for ontology change PRs
+- **7 MCP Tool Definitions**:
+  - `ontology_discover` - semantic search across OWL classes
+  - `ontology_read` - enriched note reading with axioms and relationships
+  - `ontology_query` - schema-aware Cypher query validation
+  - `ontology_traverse` - BFS graph traversal with configurable depth
+  - `ontology_propose` - create/amend notes with Whelk consistency checks
+  - `ontology_validate` - automated completeness and quality scoring
+  - `ontology_status` - proposal and PR lifecycle tracking
+- **7 REST API Endpoints** under `/ontology-agent/*`
+- **13 Integration Tests** for the full ontology pipeline
+- **Actix-web DI Wiring** for all new services
+- **OntologyAgentSettings** configuration struct
+
+### Documentation Overhaul
+
+- Fixed 11 broken links in `docs/README.md` (`explanations/` → `explanation/`)
+- Updated project structure documentation
+- Corrected SQLite references to Neo4j throughout documentation
+- Added missing documentation for voice and ontology systems
+
+---
+
 ## [1.1.0] - 2026-01-12
 
 ### 🚀 Heroic Refactor Sprint - Quality Gate Achievement
@@ -151,6 +190,7 @@ VisionFlow v1.0.0 represents a complete architectural transformation from monoli
   - `SqliteKnowledgeGraphRepository` - Knowledge graph persistence
   - `SqliteOntologyRepository` - Ontology data storage
   - `SqliteSettingsRepository` - Settings persistence with validation
+  - *Note: v1.2.0 migrated the knowledge graph and ontology stores to Neo4j (see [1.2.0] changelog)*
 
 - ✅ **Actor System Wrappers**
   - `ActorGraphRepository` - Actix actor wrapper for graph operations
@@ -189,6 +229,7 @@ VisionFlow v1.0.0 represents a complete architectural transformation from monoli
   - `settings.db` - Application configuration and physics settings
   - `knowledge_graph.db` - Graph nodes, edges, and metadata
   - `ontology.db` - OWL/RDF semantic framework
+  - *Note: v1.2.0 migrated knowledge graph and ontology persistence from SQLite to Neo4j*
 
 - ✅ **Type-Safe Code Generation**
   - Specta integration for TypeScript type generation
@@ -550,7 +591,7 @@ cp data/backup/*.db data/
 ### Special Thanks
 - **Hexser Framework**: CQRS pattern implementation
 - **Actix Project**: Actor system and web framework
-- **SQLite Team**: High-performance embedded database
+- **Neo4j Team**: High-performance graph database
 - **NVIDIA**: CUDA GPU computing platform
 
 ---
@@ -564,8 +605,8 @@ cp data/backup/*.db data/
 - **** - Optimization techniques
 
 ### Community
-- **GitHub Issues**: https://github.com/yourusername/VisionFlow/issues
-- **Discussions**: https://github.com/yourusername/VisionFlow/discussions
+- **GitHub Issues**: https://github.com/DreamLab-AI/VisionFlow/issues
+- **Discussions**: https://github.com/DreamLab-AI/VisionFlow/discussions
 - **Discord**: https://discord.gg/visionflow
 
 ### Support
