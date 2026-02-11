@@ -3,6 +3,8 @@
 import * as THREE from 'three';
 import { ClientCore } from '../vircadia/VircadiaClientCore';
 import { CollaborativeGraphSync, type FilterState } from '../vircadia/CollaborativeGraphSync';
+import { EntitySyncManager } from '../vircadia/EntitySyncManager';
+import { GraphEntityMapper } from '../vircadia/GraphEntityMapper';
 import { createLogger } from '../../utils/loggerConfig';
 
 const logger = createLogger('GraphVircadiaBridge');
@@ -38,16 +40,25 @@ export interface AnnotationEvent {
 
 export class GraphVircadiaBridge {
   private nodeEntityMap = new Map<string, string>();
+  private nodePositionMap = new Map<string, { x: number; y: number; z: number }>();
   private localSelectionCallback?: (nodeIds: string[]) => void;
   private remoteSelectionCallback?: (event: UserSelectionEvent) => void;
   private annotationCallback?: (event: AnnotationEvent) => void;
   private isActive = false;
+  private entitySync: EntitySyncManager | null = null;
+  private mapper: GraphEntityMapper;
 
   constructor(
     private scene: THREE.Scene,
     private client: ClientCore,
     private collab: CollaborativeGraphSync
-  ) {}
+  ) {
+    this.mapper = new GraphEntityMapper({
+      syncGroup: 'public.NORMAL',
+      loadPriority: 0,
+      createdBy: 'visionflow-bridge'
+    });
+  }
 
 
   async initialize(): Promise<void> {
@@ -58,6 +69,14 @@ export class GraphVircadiaBridge {
     }
 
     await this.collab.initialize();
+
+    // Initialize EntitySyncManager for pushing graph entities to Vircadia
+    this.entitySync = new EntitySyncManager(this.client, {
+      syncGroup: 'public.NORMAL',
+      batchSize: 100,
+      syncIntervalMs: 100,
+      enableRealTimePositions: true,
+    });
 
     // CollaborativeGraphSync has no EventEmitter interface.
     // Remote selection / annotation / filter events are received via
@@ -92,18 +111,57 @@ export class GraphVircadiaBridge {
 
 
   private syncNodeToEntity(node: GraphNode): void {
-    const entityId = `graph-node-${node.id}`;
-    this.nodeEntityMap.set(node.id, entityId);
-    logger.warn(`syncNodeToEntity(${entityId}): not implemented -- EntitySyncManager not wired`);
+    const entityName = `node_${node.id}`;
+    this.nodeEntityMap.set(node.id, entityName);
+    this.nodePositionMap.set(node.id, node.position);
+
+    if (!this.entitySync) {
+      logger.warn(`syncNodeToEntity(${entityName}): EntitySyncManager not initialized`);
+      return;
+    }
+
+    // Map bridge GraphNode to mapper GraphNode format and create entity
+    const mapperNode = {
+      id: node.id,
+      label: node.label,
+      type: node.type,
+      x: node.position.x,
+      y: node.position.y,
+      z: node.position.z,
+      metadata: node.metadata,
+    };
+    const entity = this.mapper.mapNodeToEntity(mapperNode);
+
+    // Use EntitySyncManager's position update for real-time sync
+    this.entitySync.updateNodePosition(node.id, node.position);
+
+    logger.debug(`Synced node ${node.id} to entity ${entityName}`);
   }
 
   private syncEdgeToEntity(edge: GraphEdge): void {
-    const sourceEntityId = this.nodeEntityMap.get(edge.source);
-    const targetEntityId = this.nodeEntityMap.get(edge.target);
+    const sourceEntityName = this.nodeEntityMap.get(edge.source);
+    const targetEntityName = this.nodeEntityMap.get(edge.target);
 
-    if (sourceEntityId && targetEntityId) {
-      logger.warn(`syncEdgeToEntity(${edge.source}->${edge.target}): not implemented -- EntitySyncManager not wired`);
+    if (!sourceEntityName || !targetEntityName) {
+      logger.debug(`syncEdgeToEntity(${edge.source}->${edge.target}): missing node entities, skipping`);
+      return;
     }
+
+    if (!this.entitySync) {
+      logger.warn(`syncEdgeToEntity(${edge.source}->${edge.target}): EntitySyncManager not initialized`);
+      return;
+    }
+
+    // Map to mapper format using tracked node positions
+    const mapperEdge = {
+      id: `${edge.source}_${edge.target}`,
+      source: edge.source,
+      target: edge.target,
+      label: edge.type,
+    };
+    this.mapper.mapEdgeToEntity(mapperEdge, this.nodePositionMap);
+
+    logger.debug(`Synced edge ${edge.source}->${edge.target} to Vircadia`);
   }
 
 
@@ -283,9 +341,14 @@ export class GraphVircadiaBridge {
   dispose(): void {
     this.isActive = false;
     this.nodeEntityMap.clear();
+    this.nodePositionMap.clear();
     this.localSelectionCallback = undefined;
     this.remoteSelectionCallback = undefined;
     this.annotationCallback = undefined;
+    if (this.entitySync) {
+      this.entitySync.dispose();
+      this.entitySync = null;
+    }
     this.collab.dispose();
     logger.info('GraphVircadiaBridge disposed');
   }

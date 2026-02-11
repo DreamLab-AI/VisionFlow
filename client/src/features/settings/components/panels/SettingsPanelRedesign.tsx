@@ -1,5 +1,5 @@
 // Unified Settings Panel - The single control center for all settings (ENHANCED WITH SEARCH)
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../design-system/components/Tabs';
 import { Input } from '../../../design-system/components/Input';
 import { Button } from '../../../design-system/components/Button';
@@ -48,10 +48,12 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
   const exportSettings = useSettingsStore(state => state.exportSettings);
   const importSettings = useSettingsStore(state => state.importSettings);
 
-  // Stub functions for missing store methods
+  const batchUpdate = useSettingsStore(state => state.batchUpdate);
+
+  // Settings are auto-saved to server on each change
   const saving = false;
   const loading = false;
-  const saveSettings = async () => { /* Settings are auto-saved */ };
+  const saveSettings = async () => { /* Settings are auto-saved via updateSettings */ };
   const exportToFile = async () => {
     try {
       const json = await exportSettings();
@@ -76,11 +78,56 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
   };
   const checkUnsavedChanges = () => false;
 
-  
-  const canUndo = false;
-  const canRedo = false;
-  const undo = () => logger.info('Undo not yet implemented');
-  const redo = () => logger.info('Redo not yet implemented');
+  // Undo/redo history using snapshots of changed paths
+  const MAX_HISTORY = 50;
+  const historyRef = useRef<{ past: string[]; future: string[] }>({ past: [], future: [] });
+  const lastSettingsRef = useRef<string>(JSON.stringify(settings));
+  const isUndoRedoRef = useRef(false);
+  const [historyVersion, setHistoryVersion] = useState(0);
+
+  // Track settings changes to build undo history
+  useEffect(() => {
+    if (isUndoRedoRef.current) {
+      isUndoRedoRef.current = false;
+      lastSettingsRef.current = JSON.stringify(settings);
+      return;
+    }
+    const currentSnapshot = JSON.stringify(settings);
+    if (currentSnapshot !== lastSettingsRef.current) {
+      historyRef.current.past.push(lastSettingsRef.current);
+      historyRef.current.future = [];
+      if (historyRef.current.past.length > MAX_HISTORY) {
+        historyRef.current.past.shift();
+      }
+      lastSettingsRef.current = currentSnapshot;
+      setHistoryVersion(v => v + 1);
+    }
+  }, [settings]);
+
+  const canUndo = historyRef.current.past.length > 0;
+  const canRedo = historyRef.current.future.length > 0;
+
+  const undo = useCallback(() => {
+    if (historyRef.current.past.length === 0) return;
+    const previous = historyRef.current.past.pop()!;
+    historyRef.current.future.push(JSON.stringify(settings));
+    isUndoRedoRef.current = true;
+    const restored = JSON.parse(previous);
+    updateSettings(() => Object.assign({}, restored));
+    setHistoryVersion(v => v + 1);
+    logger.debug('Settings undone');
+  }, [settings, updateSettings]);
+
+  const redo = useCallback(() => {
+    if (historyRef.current.future.length === 0) return;
+    const next = historyRef.current.future.pop()!;
+    historyRef.current.past.push(JSON.stringify(settings));
+    isUndoRedoRef.current = true;
+    const restored = JSON.parse(next);
+    updateSettings(() => Object.assign({}, restored));
+    setHistoryVersion(v => v + 1);
+    logger.debug('Settings redone');
+  }, [settings, updateSettings]);
 
   
   const searchIndex = useMemo(() => {
