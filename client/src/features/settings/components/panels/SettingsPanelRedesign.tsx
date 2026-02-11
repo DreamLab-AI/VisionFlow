@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../design-system
 import { Input } from '../../../design-system/components/Input';
 import { Button } from '../../../design-system/components/Button';
 import { ScrollArea } from '../../../design-system/components/ScrollArea';
-import { Settings, Monitor, Palette, Activity, Database, Code, Shield, Headphones, Search, Save, RotateCcw, Download, Upload, Undo2 as Undo, Redo2 as Redo, Brain, Eye, BarChart3, Smartphone, Zap, Network, HeartPulse } from 'lucide-react';
+import { Settings, Activity, Database, Code, Search, Save, RotateCcw, Download, Upload, Undo2 as Undo, Redo2 as Redo, Eye, Smartphone, Zap, Network, Brain, HeartPulse } from 'lucide-react';
 import { useSettingsStore } from '../../../../store/settingsStore';
 import { settingsUIDefinition } from '../../config/settingsUIDefinition';
 import { SettingControlComponent } from '../SettingControlComponent';
@@ -19,6 +19,7 @@ import { PhysicsControlPanel } from '../../../physics/components/PhysicsControlP
 import { SemanticAnalysisPanel } from '../../../analytics/components/SemanticAnalysisPanel';
 import { InferencePanel } from '../../../ontology/components/InferencePanel';
 import { HealthDashboard } from '../../../monitoring/components/HealthDashboard';
+import { PerformanceControlPanel } from './PerformanceControlPanel';
 import {
   buildSearchIndex,
   searchSettings,
@@ -175,22 +176,20 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
     }
   };
 
-  
+  // Consolidated from 14 → 9 tabs.
+  // Removed: Dashboard (stub → merged into Performance), Auth (→ System),
+  //   System Health (→ Performance), Ontology Inference (→ Analytics).
+  // Distinct icons: no more triple Brain.
   const tabs = [
-    { id: 'dashboard', label: 'Dashboard', icon: Monitor, category: 'dashboard' },
     { id: 'visualization', label: 'Visualization', icon: Eye, category: 'visualization' },
-    { id: 'physics', label: 'Physics Control', icon: Zap, category: 'physics', isCustomPanel: true },
-    { id: 'analytics', label: 'Semantic Analysis', icon: Network, category: 'analytics', isCustomPanel: true },
-    { id: 'inference', label: 'Ontology Inference', icon: Brain, category: 'inference', isCustomPanel: true },
-    { id: 'health', label: 'System Health', icon: HeartPulse, category: 'health', isCustomPanel: true },
-    { id: 'agents', label: 'Agents', icon: Brain, category: 'agents', isCustomPanel: true },
+    { id: 'physics', label: 'Physics & Layout', icon: Zap, category: 'physics', isCustomPanel: true },
+    { id: 'performance', label: 'Performance', icon: Activity, category: 'performance', isCustomPanel: true },
+    { id: 'analytics', label: 'Analytics', icon: Network, category: 'analytics', isCustomPanel: true },
+    { id: 'agents', label: 'Agents', icon: HeartPulse, category: 'agents', isCustomPanel: true },
     { id: 'xr', label: 'XR/AR', icon: Smartphone, category: 'xr' },
-    { id: 'performance', label: 'Performance', icon: Activity, category: 'performance' },
-    { id: 'data', label: 'Data', icon: Database, category: 'integrations' },
     { id: 'system', label: 'System', icon: Settings, category: 'system' },
     { id: 'ai', label: 'AI Services', icon: Brain, category: 'ai' },
     { id: 'developer', label: 'Developer', icon: Code, category: 'developer' },
-    { id: 'auth', label: 'Auth', icon: Shield, category: 'auth' },
   ];
 
   return (
@@ -309,7 +308,6 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
             {tabs.map(tab => {
 
               if (tab.isCustomPanel) {
-                // Render custom panel components
                 if (tab.id === 'physics') {
                   return (
                     <TabsContent key={tab.id} value={tab.id} className="p-4">
@@ -317,24 +315,117 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
                     </TabsContent>
                   );
                 }
-                if (tab.id === 'analytics') {
+                if (tab.id === 'performance') {
+                  // Merged: Performance monitoring + Quality Gates + System Health
+                  const perfDef = filteredUIDefinition['performance'];
+                  const qgDef = filteredUIDefinition['qualityGates'];
                   return (
-                    <TabsContent key={tab.id} value={tab.id} className="p-4">
-                      <SemanticAnalysisPanel />
-                    </TabsContent>
-                  );
-                }
-                if (tab.id === 'inference') {
-                  return (
-                    <TabsContent key={tab.id} value={tab.id} className="p-4">
-                      <InferencePanel />
-                    </TabsContent>
-                  );
-                }
-                if (tab.id === 'health') {
-                  return (
-                    <TabsContent key={tab.id} value={tab.id} className="p-4">
+                    <TabsContent key={tab.id} value={tab.id} className="p-4 space-y-6">
+                      <PerformanceControlPanel />
+                      <hr className="border-border" />
                       <HealthDashboard />
+                      {/* Quality Gates settings */}
+                      {qgDef && Object.entries(qgDef.subsections || {}).map(([sectionKey, sectionUntyped]) => {
+                        const section = sectionUntyped as { label: string; description?: string; settings?: Record<string, any> };
+                        return (
+                          <div key={sectionKey} className="space-y-2">
+                            <h3 className="text-sm font-semibold">{section.label}</h3>
+                            {section.description && (
+                              <p className="text-xs text-muted-foreground">{section.description}</p>
+                            )}
+                            <div className="space-y-2">
+                              {Object.values(section.settings || {}).map((settingUntyped) => {
+                                const setting = settingUntyped as { path: string; [key: string]: any };
+                                return (
+                                  <SettingControlComponent
+                                    key={setting.path}
+                                    path={setting.path}
+                                    settingDef={setting as any}
+                                    value={getSettingValue(settings, setting.path)}
+                                    onChange={(value) => {
+                                      updateSettings((draft) => {
+                                        setSettingValue(draft, setting.path, value);
+                                      });
+                                    }}
+                                  />
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {/* Performance monitoring settings */}
+                      {perfDef && Object.entries(perfDef.subsections || {}).map(([sectionKey, sectionUntyped]) => {
+                        const section = sectionUntyped as { label: string; description?: string; settings?: Record<string, any> };
+                        return (
+                          <div key={sectionKey} className="space-y-2">
+                            <h3 className="text-sm font-semibold">{section.label}</h3>
+                            {section.description && (
+                              <p className="text-xs text-muted-foreground">{section.description}</p>
+                            )}
+                            <div className="space-y-2">
+                              {Object.values(section.settings || {}).map((settingUntyped) => {
+                                const setting = settingUntyped as { path: string; [key: string]: any };
+                                return (
+                                  <SettingControlComponent
+                                    key={setting.path}
+                                    path={setting.path}
+                                    settingDef={setting as any}
+                                    value={getSettingValue(settings, setting.path)}
+                                    onChange={(value) => {
+                                      updateSettings((draft) => {
+                                        setSettingValue(draft, setting.path, value);
+                                      });
+                                    }}
+                                  />
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </TabsContent>
+                  );
+                }
+                if (tab.id === 'analytics') {
+                  // Merged: SemanticAnalysisPanel + InferencePanel + Node Filter settings
+                  const analyticsDef = filteredUIDefinition['analytics'];
+                  return (
+                    <TabsContent key={tab.id} value={tab.id} className="p-4 space-y-6">
+                      <SemanticAnalysisPanel />
+                      <hr className="border-border" />
+                      <h3 className="text-sm font-semibold">Ontology Inference</h3>
+                      <InferencePanel />
+                      {/* Node Filter and metrics settings from analytics category */}
+                      {analyticsDef && Object.entries(analyticsDef.subsections || {}).map(([sectionKey, sectionUntyped]) => {
+                        const section = sectionUntyped as { label: string; description?: string; settings?: Record<string, any> };
+                        return (
+                          <div key={sectionKey} className="space-y-2">
+                            <h3 className="text-sm font-semibold">{section.label}</h3>
+                            {section.description && (
+                              <p className="text-xs text-muted-foreground">{section.description}</p>
+                            )}
+                            <div className="space-y-2">
+                              {Object.values(section.settings || {}).map((settingUntyped) => {
+                                const setting = settingUntyped as { path: string; [key: string]: any };
+                                return (
+                                  <SettingControlComponent
+                                    key={setting.path}
+                                    path={setting.path}
+                                    settingDef={setting as any}
+                                    value={getSettingValue(settings, setting.path)}
+                                    onChange={(value) => {
+                                      updateSettings((draft) => {
+                                        setSettingValue(draft, setting.path, value);
+                                      });
+                                    }}
+                                  />
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </TabsContent>
                   );
                 }
