@@ -34,7 +34,7 @@ LABEL org.opencontainers.image.version="3.0.0"
 LABEL org.opencontainers.image.created="2026-01-31"
 LABEL org.opencontainers.image.vendor="Turbo Flow"
 LABEL com.turboflow.skills.count="62"
-LABEL com.turboflow.claude-flow.version="3.1"
+LABEL com.turboflow.claude-flow.version="3.0"
 
 # ============================================================================
 # PHASE 1: Base System Packages
@@ -261,7 +261,7 @@ RUN npm install -g \
     @ruvector/gnn@latest \
     @ruvector/postgres-cli@latest \
     # Agentic-QE V3 Fleet (51 agents, 12 domains)
-    agentic-qe@3.6.2 \
+    agentic-qe@3.1.5 \
     # Agentic ecosystem
     agentic-flow@latest \
     agentic-jujutsu@latest \
