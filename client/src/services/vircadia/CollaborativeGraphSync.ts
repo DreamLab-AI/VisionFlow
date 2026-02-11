@@ -3,6 +3,8 @@
 
 import * as THREE from 'three';
 import { ClientCore } from './VircadiaClientCore';
+import { EntitySyncManager } from './EntitySyncManager';
+import { GraphEntityMapper, VircadiaEntity } from './GraphEntityMapper';
 import { createLogger } from '../../utils/loggerConfig';
 import { BinaryWebSocketProtocol, MessageType, AgentPositionUpdate } from '../BinaryWebSocketProtocol';
 
@@ -78,6 +80,10 @@ export class CollaborativeGraphSync {
     private localFilterState: FilterState | null = null;
     private operationVersion = 0;
 
+    /** EntitySyncManager for bi-directional Vircadia sync */
+    private entitySync: EntitySyncManager | null = null;
+    private entityUpdateUnsubscribe: (() => void) | null = null;
+
     private defaultConfig: CollaborativeConfig = {
         highlightColor: new THREE.Color(0.2, 0.8, 0.3),
         annotationColor: new THREE.Color(1.0, 0.8, 0.2),
@@ -97,6 +103,7 @@ export class CollaborativeGraphSync {
     ) {
         this.defaultConfig = { ...this.defaultConfig, ...config };
         this.setupConnectionListeners();
+        this.initEntitySync();
     }
 
     async initialize(): Promise<void> {
@@ -109,7 +116,81 @@ export class CollaborativeGraphSync {
 
         await this.loadAnnotations();
 
+        // Register bi-directional entity update listener
+        if (this.entitySync) {
+            this.entityUpdateUnsubscribe = this.entitySync.onEntityUpdate((entities) => {
+                this.handleIncomingEntityUpdates(entities);
+            });
+            logger.info('Bi-directional Vircadia entity sync registered');
+        }
+
         logger.info('Collaborative sync initialized');
+    }
+
+    /**
+     * Initialize the EntitySyncManager for bi-directional Vircadia sync.
+     * Positions flow: server → binary protocol → client AND client → EntitySync → Vircadia
+     */
+    private initEntitySync(): void {
+        try {
+            this.entitySync = new EntitySyncManager(this.client, {
+                syncGroup: 'public.NORMAL',
+                batchSize: 100,
+                syncIntervalMs: 100,
+                enableRealTimePositions: true,
+            });
+            logger.info('EntitySyncManager initialized for bi-directional sync');
+        } catch (err) {
+            logger.warn('Failed to initialize EntitySyncManager:', err);
+        }
+    }
+
+    /**
+     * Forward a node position update to the Vircadia entity sync layer.
+     * Called from applyOperation when node_move operations arrive.
+     */
+    public syncNodePositionToVircadia(nodeId: string, position: { x: number; y: number; z: number }): void {
+        if (this.entitySync) {
+            this.entitySync.updateNodePosition(nodeId, position);
+        }
+    }
+
+    /**
+     * Handle incoming entity updates from Vircadia (server → client direction).
+     * Reconciles remote entity positions into the local scene graph.
+     */
+    private handleIncomingEntityUpdates(entities: VircadiaEntity[]): void {
+        for (const entity of entities) {
+            const metadata = GraphEntityMapper.extractMetadata(entity);
+            if (!metadata) continue;
+
+            if (metadata.entityType === 'node' && metadata.position) {
+                const nodeMesh = this.scene.getObjectByName(`node_${metadata.graphId}`);
+                if (nodeMesh) {
+                    // Only apply if the position differs significantly (avoid jitter)
+                    const dx = nodeMesh.position.x - metadata.position.x;
+                    const dy = nodeMesh.position.y - metadata.position.y;
+                    const dz = nodeMesh.position.z - metadata.position.z;
+                    const distSq = dx * dx + dy * dy + dz * dz;
+
+                    if (distSq > 0.01) { // 0.1 unit threshold
+                        nodeMesh.position.set(
+                            metadata.position.x,
+                            metadata.position.y,
+                            metadata.position.z
+                        );
+                        logger.debug(`[BiSync] Reconciled node ${metadata.graphId} from Vircadia entity`);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Get the EntitySyncManager for external access (e.g. pushing full graph).
+     */
+    public getEntitySync(): EntitySyncManager | null {
+        return this.entitySync;
     }
 
     // Arrow function class properties for stable references (Fix 3 - bind leak)
@@ -213,6 +294,10 @@ export class CollaborativeGraphSync {
                     operation.position.y,
                     operation.position.z
                 );
+            }
+            // Forward position to Vircadia entity sync for bi-directional mirroring
+            if (operation.nodeId) {
+                this.syncNodePositionToVircadia(operation.nodeId, operation.position);
             }
             // Note: The graph data manager receives authoritative positions from the
             // server via binary WebSocket protocol. This collaborative operation is
@@ -591,6 +676,18 @@ export class CollaborativeGraphSync {
 
     dispose(): void {
         logger.info('Disposing CollaborativeGraphSync');
+
+        // Unsubscribe entity update listener
+        if (this.entityUpdateUnsubscribe) {
+            this.entityUpdateUnsubscribe();
+            this.entityUpdateUnsubscribe = null;
+        }
+
+        // Dispose entity sync manager
+        if (this.entitySync) {
+            this.entitySync.dispose();
+            this.entitySync = null;
+        }
 
         // Remove event listeners using stable references (Fix 3)
         this.client.Utilities.Connection.removeEventListener('syncUpdate', this.handleSyncUpdateEvent);
