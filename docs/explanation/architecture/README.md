@@ -14,17 +14,8 @@ updated-date: 2025-01-29
 
 Comprehensive architecture documentation for VisionFlow/TurboFlow.
 
-## Architectural Decision Records (ADRs)
-
-See the [ADR Index](adr/README.md) for all architectural decisions:
-
-| ADR | Title | Status |
-|-----|-------|--------|
-| [ADR-0001](adr/ADR-0001-neo4j-persistent-with-filesystem-sync.md) | Neo4j Persistent with Filesystem Sync | Accepted |
-
 ## Overview
 
-- **[Architecture Overview](overview.md)** - Complete system architecture
 - **[Technology Choices](technology-choices.md)** - Technology stack decisions
 - **[Developer Journey](developer-journey.md)** - Getting started with the codebase
 - **[Data Flow](data-flow.md)** - Complete data flow through the system
@@ -43,16 +34,15 @@ See the [ADR Index](adr/README.md) for all architectural decisions:
 
 ### Architectural Patterns
 - **[Hexagonal CQRS](patterns/hexagonal-cqrs.md)** - Hexagonal architecture with CQRS
-- **[Hexagonal Status](HEXAGONAL_ARCHITECTURE_STATUS.md)** - Implementation status
 
 ### Ports & Adapters
-- **[Ports Overview](ports/01-overview.md)** - Ports and adapters overview
-- **[Settings Repository](ports/02-settings-repository.md)** - Settings port
-- **[Knowledge Graph Repository](ports/03-knowledge-graph-repository.md)** - Graph port
-- **[Ontology Repository](ports/04-ontology-repository.md)** - Ontology port
-- **[Inference Engine](ports/05-inference-engine.md)** - Inference port
-- **[GPU Physics Adapter](ports/06-gpu-physics-adapter.md)** - GPU physics port
-- **[GPU Semantic Analyzer](ports/07-gpu-semantic-analyzer.md)** - GPU semantic port
+- **[Ports Overview](../../reference/architecture/ports/01-overview.md)** - Ports and adapters overview
+- **[Settings Repository](../../reference/architecture/ports/02-settings-repository.md)** - Settings port
+- **[Knowledge Graph Repository](../../reference/architecture/ports/03-knowledge-graph-repository.md)** - Graph port
+- **[Ontology Repository](../../reference/architecture/ports/04-ontology-repository.md)** - Ontology port
+- **[Inference Engine](../../reference/architecture/ports/05-inference-engine.md)** - Inference port
+- **[GPU Physics Adapter](../../reference/architecture/ports/06-gpu-physics-adapter.md)** - GPU physics port
+- **[GPU Semantic Analyzer](../../reference/architecture/ports/07-gpu-semantic-analyzer.md)** - GPU semantic port
 
 ## Domain-Specific Architecture
 
@@ -86,35 +76,19 @@ See the [ADR Index](adr/README.md) for all architectural decisions:
 - **[User Agent Pod Design](user-agent-pod-design.md)** - User agent design
 
 ### Protocols
-See [protocols/](protocols/) for protocol specifications.
-
-### Pipelines
-See [pipelines/](pipelines/) for data pipeline documentation.
+See [protocols/](../../reference/protocols/) for protocol specifications.
 
 ## Architecture Decisions
 
-- **[Decisions](decisions/)** - Architecture Decision Records (ADRs)
-- **[Protocol Matrix](PROTOCOL_MATRIX.md)** - Communication protocols
-
-## Visualization
-
-- **[Visualization](visualization/)** - Visualization architecture
-- **[XR](xr/)** - Extended reality components
+- **[Protocol Matrix](../../reference/protocols/protocol-matrix.md)** - Communication protocols
 
 ## Research & Analysis
 
-- **[Research](research/)** - Architecture research
 - **[VisionFlow Assessment](visionflow-distributed-systems-assessment.md)** - System assessment
-- **[Vircadia Analysis](VIRCADIA_BABYLON_CONSOLIDATION_ANALYSIS.md)** - Engine analysis
 
 ## Skills & Classification
 
-- **[Skill MCP Classification](skill-mcp-classification.md)** - Skill categorization
-- **[Skills Refactoring Plan](skills-refactoring-plan.md)** - Refactoring roadmap
-
-## Migrations
-
-See [migrations/](migrations/) for migration documentation.
+- **[Skill MCP Classification](../../reference/protocols/skill-mcp-classification.md)** - Skill categorization
 
 ## Diagrams
 
@@ -126,7 +100,6 @@ See [diagrams/](diagrams/) for architecture diagrams.
 
 | Document | Description |
 |----------|-------------|
-| [Overview](overview.md) | Start here for system overview |
 | [Technology Choices](technology-choices.md) | Tech stack rationale |
 | [Hexagonal CQRS](patterns/hexagonal-cqrs.md) | Core architecture pattern |
 | [Services](services.md) | Service layer details |

@@ -1,6 +1,6 @@
 ---
 title: Your First Graph and AI Agents
-description: * > [Installation](01-installation.md)*
+description: * > [Installation](installation.md)*
 category: tutorial
 tags:
   - api
@@ -14,7 +14,7 @@ difficulty-level: intermediate
 
 # Your First Graph and AI Agents
 
-* > [Installation](01-installation.md)*
+* > [Installation](installation.md)*
 
 This guide takes you from a fresh installation to creating your first 3D knowledge graph and deploying multi-agent workflows in under 10 minutes.
 
@@ -377,22 +377,21 @@ For immersive 3D exploration:
 - **Hand gesture commands**: Natural interaction
 - **Collaborative viewing**: Multiple users can join (if enabled)
 
-See [XR Setup Guide](../guides/xr-setup.md) for detailed configuration.
+See [XR Setup Guide](../how-to/development/xr-integration.md) for detailed configuration.
 
 ## Next Steps
 
 ### Beginner Path
 1. Complete this guide
-2. [Orchestrating Agents](../guides/orchestrating-agents.md) - Advanced agent patterns
+2. [Orchestrating Agents](../how-to/agents/orchestrating-agents.md) - Advanced agent patterns
 3. [Configuration Guide](../how-to/operations/configuration.md) - Customize your setup
 
 ### Intermediate Path
-1. [Development Workflow](../guides/development-workflow.md) - Contribute to VisionFlow
-2. [Agent Development](../guides/agent-development.md) - Create custom agents
-3. [XR Integration](../guides/xr-setup.md) - Immersive VR experiences
+1. [Development Workflow](../how-to/development/development-workflow.md) - Contribute to VisionFlow
+2. [XR Integration](../how-to/development/xr-integration.md) - Immersive VR experiences
 
 ### Advanced Path
-1. [Architecture Overview](../architecture/overview.md) - Deep dive into design
+1. [Architecture Overview](../architecture/ARCHITECTURE.md) - Deep dive into design
 2. [API Reference](../reference/api/) - Build integrations
 3. [Deployment Guide](../how-to/deployment/deployment.md) - Production setup
 
@@ -469,6 +468,6 @@ bash scripts/voice-pipeline-test.sh
 ## Related Documentation
 
 - [Configuration Guide](../how-to/operations/configuration.md) - Complete settings guide
-- [Agent Orchestration](../guides/orchestrating-agents.md) - Advanced agent patterns
-- [XR/AR Setup](../guides/xr-setup.md) - Immersive experiences
-- [Architecture Overview](../architecture/overview.md) - How it all works
+- [Agent Orchestration](../how-to/agents/orchestrating-agents.md) - Advanced agent patterns
+- [XR/AR Setup](../how-to/development/xr-integration.md) - Immersive experiences
+- [Architecture Overview](../architecture/ARCHITECTURE.md) - How it all works

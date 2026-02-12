@@ -74,7 +74,6 @@ This system integrates multiple AI models and services for diverse use cases: re
 **Documentation**:
 - [Verification Guide](deepseek-verification.md)
 - [Deployment Guide](deepseek-deployment.md)
-- [Skill Guide](/multi-agent-docker/skills/deepseek-reasoning/SKILL.md)
 
 ---
 
@@ -120,8 +119,6 @@ This system integrates multiple AI models and services for diverse use cases: re
 
 **Documentation**:
 - [Integration Guide](perplexity-integration.md)
-- [Skill Guide](/multi-agent-docker/skills/perplexity/SKILL.md)
-- [Templates](/multi-agent-docker/skills/perplexity/docs/templates.md)
 
 ---
 
@@ -168,8 +165,7 @@ This system integrates multiple AI models and services for diverse use cases: re
 
 **Documentation**:
 - [Integration Guide](ragflow-integration.md)
-- [Docker Configuration](/docker-compose.unified-with-neo4j.yml)
-- [API Reference](/docs/reference/api-complete-reference.md)
+- [API Reference](../../reference/api-complete-reference.md)
 
 ---
 
@@ -553,20 +549,15 @@ ping turbo-devpod.ragflow
 ## Related Documentation
 
 ### Core Documentation
-- [Multi-Agent Skills Overview](/docs/guides/multi-agent-skills.md)
-- [Agent Orchestration](/docs/guides/orchestrating-agents.md)
-- [Configuration Guide](/docs/guides/configuration.md)
+- [Agent Orchestration](../agents/orchestrating-agents.md)
+- [Configuration Guide](../operations/configuration.md)
 
 ### AI Service Documentation
-- [DeepSeek Verification](/docs/guides/ai-models/deepseek-verification.md)
-- [DeepSeek Deployment](/docs/guides/ai-models/deepseek-deployment.md)
-- [Perplexity Skill](/multi-agent-docker/skills/perplexity/SKILL.md)
-- [DeepSeek Reasoning Skill](/multi-agent-docker/skills/deepseek-reasoning/SKILL.md)
+- [DeepSeek Verification](deepseek-verification.md)
+- [DeepSeek Deployment](deepseek-deployment.md)
 
 ### Infrastructure Documentation
-- [Docker Environment Setup](/docs/guides/docker-environment-setup.md)
-- [Multi-Agent Docker README](/multi-agent-docker/README.md)
-- [Supervisord Configuration](/multi-agent-docker/unified-config/supervisord.unified.conf)
+- [API Reference](../../reference/api-complete-reference.md)
 
 ---
 

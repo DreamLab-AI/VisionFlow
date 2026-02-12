@@ -14,14 +14,6 @@ updated-date: 2025-01-29
 
 How to use specific VisionFlow features.
 
-## Contents
-
-- [Physics Configuration](physics.md) - Tuning physics parameters
-- [Constraint Management](constraints.md) - Working with constraints
-- [WebSocket Clients](websocket-clients.md) - Building real-time clients
-- [Ontology Reasoning](ontology.md) - Using semantic features
-- [GPU Acceleration](gpu.md) - Enabling GPU compute
-
 ## Overview
 
 VisionFlow provides several key features:
@@ -33,5 +25,4 @@ VisionFlow provides several key features:
 
 ## Related
 
-- [Concepts](../../concepts/README.md)
 - [API Reference](../../reference/api/README.md)

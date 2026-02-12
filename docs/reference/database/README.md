@@ -24,8 +24,8 @@ VisionFlow uses two complementary databases:
 
 | Database | Technology | Purpose | Performance |
 |----------|------------|---------|-------------|
-| **Unified DB** | SQLite | Structured data, OWL axioms, metadata | 100K+ rows, <5ms queries |
-| **Graph DB** | Neo4j | Graph traversal, relationships, analytics | 1M+ nodes, <20ms queries |
+| **Graph DB** | Neo4j | Graph data, relationships, analytics | 1M+ nodes, <20ms queries |
+| **Ontology Store** | In-Memory | OWL classes, axioms, reasoning | Sub-millisecond reads |
 
 ---
 
@@ -33,7 +33,7 @@ VisionFlow uses two complementary databases:
 
 | Topic | File | Description |
 |-------|------|-------------|
-| **Unified Schema** | [schemas.md](./schemas.md) | SQLite unified.db schema |
+| **Unified Schema** | [schemas.md](./schemas.md) | Legacy SQLite schema reference |
 | **Neo4j Schema** | [neo4j-schema.md](./neo4j-schema.md) | Neo4j graph database schema |
 | **Ontology Schema** | [ontology-schema-v2.md](./ontology-schema-v2.md) | OWL ontology storage |
 | **Solid Pod Schema** | [solid-pod-schema.md](./solid-pod-schema.md) | Decentralized data storage |
@@ -81,14 +81,14 @@ Source Files --> File Metadata Table
      v
   Sync Process
      |
-     +--> SQLite: unified.db
+     +--> Neo4j: Graph DB
      |         |
-     |         +--> graph_nodes
-     |         +--> graph_edges
+     |         +--> GraphNode labels
+     |         +--> Relationships
      |         +--> owl_classes
      |         +--> owl_axioms
      |
-     +--> Neo4j: Graph DB
+     +--> In-Memory: OntologyRepository
                |
                +--> GraphNode labels
                +--> Relationships

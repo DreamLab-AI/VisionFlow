@@ -22,7 +22,7 @@ The **OntologyRepository** port manages the ontology graph structure parsed from
 ## Location
 
 - **Trait Definition**: `src/ports/ontology-repository.rs`
-- **Adapter Implementation**: `src/adapters/sqlite-ontology-repository.rs`
+- **Adapter Implementation**: `src/adapters/ontology-repository.rs`
 
 ## Interface
 
@@ -185,7 +185,7 @@ pub struct PathfindingCacheEntry {
 ### Batch Ontology Import
 
 ```rust
-let repo: Arc<dyn OntologyRepository> = Arc::new(SqliteOntologyRepository::new(pool));
+let repo: Arc<dyn OntologyRepository> = Arc::new(OntologyRepository::new(pool));
 
 // Import complete ontology from GitHub sync
 let classes = vec![

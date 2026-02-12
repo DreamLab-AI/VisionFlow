@@ -376,18 +376,18 @@ No manual migration is required - the adapter handles backward compatibility.
 3. **Query Optimization**: Quality/domain/maturity queries use dedicated indexes
 4. **Connection Pooling**: Configured via `Neo4jConfig`
 
-## Dual-Write with SQLite
+## Dual-Write with In-Memory OntologyRepository
 
-To maintain consistency between Neo4j and SQLite:
+To maintain consistency between Neo4j and the in-memory OntologyRepository:
 
 ```rust
 // Write to both repositories
 let neo4j_repo = Neo4jOntologyRepository::new(neo4j_config).await?;
-let sqlite_repo = SqliteOntologyRepository::new("ontology.db")?;
+let ontology_repo = OntologyRepository::new()?;
 
 // Add to both
 neo4j_repo.add_owl_class(&class).await?;
-sqlite_repo.add_owl_class(&class).await?;
+ontology_repo.add_owl_class(&class).await?;
 ```
 
 ## Error Handling

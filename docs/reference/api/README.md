@@ -254,7 +254,7 @@ curl -H "X-API-Key: YOUR-API-KEY" \
 
 ## ️ Database
 
-Unified SQLite database (`unified.db`) with tables:
+Neo4j graph database with tables:
 - `nodes` - Knowledge graph nodes
 - `edges` - Node relationships
 - `owl-classes` - OWL ontology classes

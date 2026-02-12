@@ -24,7 +24,7 @@ The ontology system uses a **lossless storage architecture** that preserves comp
 For existing databases, run the migration script:
 
 ```bash
-sqlite3 project/data/unified.db < project/scripts/migrate-ontology-database.sql
+cypher-shell -u neo4j -p "$NEO4J_PASSWORD" < project/scripts/migrate-ontology-database.cypher
 ```
 
 This adds three new columns to `owl-classes`:
@@ -53,11 +53,11 @@ Use the OWL Extractor Service:
 
 ```rust
 use crate::services::owl-extractor-service::OwlExtractorService;
-use crate::adapters::sqlite-ontology-repository::SqliteOntologyRepository;
+use crate::ports::ontology-repository::OntologyRepository;
 use std::sync::Arc;
 
 // Initialize repository and extractor
-let repo = Arc::new(UnifiedOntologyRepository::new("unified.db")?);
+let repo: Arc<dyn OntologyRepository> = /* obtain from DI (in-memory store) */;
 let extractor = OwlExtractorService::new(repo.clone());
 
 // Extract from single class
@@ -85,7 +85,7 @@ println!("Complete ontology: {} axioms", ontology.axiom().len());
          │ • Detect changes
          ▼
 ┌─────────────────┐
-│ SQLite Database │  Stores raw markdown + SHA1 + timestamp
+│ Neo4j Database  │  Stores raw markdown + SHA1 + timestamp
 │                 │  • Zero semantic loss
 │                 │  • Fast change detection
 └────────┬────────┘
@@ -325,7 +325,7 @@ for class in recent-classes {
 
 **Solution**: Run migration script:
 ```bash
-sqlite3 unified.db < scripts/migrate-ontology-database.sql
+cypher-shell -u neo4j -p "$NEO4J_PASSWORD" < scripts/migrate-ontology-database.cypher
 ```
 
 ### Issue: Sync Takes Too Long

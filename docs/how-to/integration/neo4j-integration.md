@@ -407,7 +407,7 @@ If you're upgrading from an older VisionFlow version that used SQLite:
 
 ### Step 1: Export from SQLite
 
-The old `unified.db` format is **no longer supported**. Historical data must be migrated.
+The old SQLite format is **no longer supported**. Historical data must be migrated.
 
 ### Step 2: Sync from GitHub
 

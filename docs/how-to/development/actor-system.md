@@ -720,13 +720,9 @@ Is the operation:
 ---
 
 ### Architecture Docs
-- [Server Architecture](../../concepts/architecture/core/server.md) - Overall system design with 21-actor hierarchy
-- [Hexagonal Architecture](../../concepts/hexagonal-architecture.md) - Ports/adapters/CQRS patterns
-- [Database Architecture](../../architecture/database.md) - Neo4j integration
-
-### Implementation Guides
-- [Message Flow Debugging](../debugging/actor-message-tracing.md) - Tracing actor messages (if exists)
-- [Performance Tuning](../performance/actor-optimization.md) - Advanced optimization (if exists)
+- [Server Architecture](../../explanation/architecture/server/overview.md) - Overall system design with 21-actor hierarchy
+- [Hexagonal Architecture](../../explanation/concepts/hexagonal-architecture.md) - Ports/adapters/CQRS patterns
+- [Database Architecture](../../explanation/architecture/database.md) - Neo4j integration
 
 ### External Resources
 - [Actix Documentation](https://actix.rs/) - Official Actix framework docs
@@ -738,11 +734,11 @@ Is the operation:
 
 ## Related Documentation
 
-- [Client State Management with Zustand](../client/state-management.md)
-- [Adding Features](../developer/04-adding-features.md)
-- [Testing Guide](../../archive/docs/guides/developer/05-testing-guide.md)
-- [RAGFlow Knowledge Management Integration](../ai-models/ragflow-integration.md)
-- [Working with Agents](../../archive/docs/guides/user/working-with-agents.md)
+- [Client State Management with Zustand](state-management.md)
+- [Adding Features](04-adding-features.md)
+- [Testing Guide](testing-guide.md)
+- [RAGFlow Knowledge Management Integration](../ai-integration/ragflow-integration.md)
+- [Working with Agents](../agents/working-with-agents.md)
 
 ## Changelog
 

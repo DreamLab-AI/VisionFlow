@@ -596,10 +596,10 @@ After installation, verify these components:
 
 Now that VisionFlow is installed, proceed to:
 
-1. **[Quick Start Guide](first-graph.md)** - Create your first graph in 5 minutes
+1. **[Quick Start Guide](creating-first-graph.md)** - Create your first graph in 5 minutes
 2. **[Configuration Guide](../how-to/operations/configuration.md)** - Customise VisionFlow for your needs
 3. **[API Documentation](../reference/api/)** - Integrate with your applications
-4. **[Architecture Overview](../architecture/overview.md)** - Understand the system design
+4. **[Architecture Overview](../architecture/ARCHITECTURE.md)** - Understand the system design
 
 ## Getting Help
 
@@ -617,9 +617,9 @@ If you encounter issues during installation:
 ## Related Topics
 
 - [Configuration Guide](../how-to/operations/configuration.md)
-- [Architecture Overview](../architecture/overview.md)
-- [Quick Start Guide](first-graph.md)
+- [Architecture Overview](../architecture/ARCHITECTURE.md)
+- [Quick Start Guide](creating-first-graph.md)
 
 ---
 
-**Navigation:** [Getting Started](./) | [Guides](../guides/) | [Architecture](../explanations/architecture/)
+**Navigation:** [Getting Started](./) | [Guides](../how-to/) | [Architecture](../explanation/architecture/)

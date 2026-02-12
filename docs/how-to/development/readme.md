@@ -23,11 +23,10 @@ Welcome to the VisionFlow developer guides. These how-to guides help developers 
 
 ### Development Tasks
 - **[Adding Features](./04-adding-features.md)** - Step-by-step guide to implementing new features
-- **[Testing Guide](../testing-guide.md)** - Writing and running tests
+- **[Testing Guide](./testing-guide.md)** - Writing and running tests
 
 ### Reference
-- **[Architecture Overview](./03-architecture.md)** - Detailed architecture and design patterns
-- **[Testing Status](../testing-guide.md)** - Current testing capabilities and procedures
+- **[Testing Status](./testing-guide.md)** - Current testing capabilities and procedures
 - **[Contributing](./06-contributing.md)** - Guidelines for contributing to VisionFlow
 
 ## By Task
@@ -44,13 +43,10 @@ Welcome to the VisionFlow developer guides. These how-to guides help developers 
 → Follow [Adding Features](./04-adding-features.md)
 
 **Write tests for my code**
-→ See [Testing Guide](../testing-guide.md)
-
-**Understand the architecture**
-→ Review [Architecture Overview](./03-architecture.md)
+→ See [Testing Guide](./testing-guide.md)
 
 **Check testing capabilities**
-→ Reference [Testing Status](./05-testing-guide.md)
+→ Reference [Testing Status](./testing-guide.md)
 
 **Contribute to the project**
 → Read [Contributing Guidelines](./06-contributing.md)
@@ -60,8 +56,7 @@ Welcome to the VisionFlow developer guides. These how-to guides help developers 
 ## Related Documentation
 
 - [Per-User Settings Implementation](../features/auth-user-settings.md)
-- [Docker Compose Unified Configuration - Usage Guide](../docker-compose-guide.md)
-- [Ontology Storage Guide](../ontology-storage-guide.md)
+- [Ontology Storage Guide](../features/ontology-storage-guide.md)
 - [Development Setup Guide](01-development-setup.md)
 - [Contributing Guidelines](06-contributing.md)
 

@@ -9,10 +9,9 @@ tags:
   - structure
   - api
 related-docs:
-  - concepts/architecture/core/server.md
-  - concepts/hexagonal-architecture.md
-  - guides/architecture/actor-system.md
-  - guides/graphserviceactor-migration.md
+  - explanation/architecture/hexagonal-cqrs-unified.md
+  - explanation/architecture/actor-system.md
+  - how-to/operations/graphserviceactor-migration.md
   - README.md
 updated-date: 2026-02-11
 difficulty-level: advanced
@@ -630,29 +629,23 @@ if duration > Duration::from_millis(100) {
 ---
 
 ### Architecture Docs
-- [Server Architecture](../../concepts/architecture/core/server.md) - Overall system design
-- [Hexagonal Architecture](hexagonal-cqrs.md) - Ports and adapters pattern
-- [Actor System Guide](../../guides/architecture/actor-system.md) - Actor patterns and Neo4j interaction
+- [Hexagonal Architecture](hexagonal-cqrs-unified.md) - Ports and adapters pattern
+- [Actor System Guide](actor-system.md) - Actor patterns and Neo4j interaction
 
 ### Implementation References
-- [Settings System](../../guides/user-settings.md) - User settings with Nostr auth
-- [User Settings Implementation Summary](../../docs/user-settings-implementation-summary.md) - Settings migration details
-- [Neo4j Settings Schema](../../docs/neo4j-user-settings-schema.md) - Schema documentation
+- [Settings System](../../reference/database/user-settings-schema.md) - User settings with Nostr auth
+- [Neo4j Settings Schema](../../reference/database/neo4j-schema.md) - Schema documentation
 
 ### Historical References
-- [SQLite to Neo4j Migration](../../guides/sqlite-to-neo4j-migration.md) - Migration history (if exists)
-- [GraphServiceActor Migration](../../guides/graphserviceactor-migration.md) - Related actor migration
-
----
+- [SQLite to Neo4j Migration](../../how-to/integration/neo4j-migration.md) - Migration history
+- [GraphServiceActor Migration](../../how-to/operations/graphserviceactor-migration.md) - Related actor migration
 
 ---
 
 ## Related Documentation
 
-- [Blender MCP Unified System Architecture](../../architecture/blender-mcp-unified-architecture.md)
-- [Hexagonal Architecture Migration Status Report](../../concepts/hexagonal-architecture.md)
-- [Server Architecture](../../concepts/architecture/core/server.md)
-- [VisionFlow Documentation Modernization - Final Report](../../DOCUMENTATION_MODERNIZATION_COMPLETE.md)
+- [Blender MCP Unified System Architecture](blender-mcp-unified-architecture.md)
+- [Hexagonal Architecture Migration Status Report](hexagonal-cqrs-unified.md)
 - [VisionFlow GPU CUDA Architecture - Complete Technical Documentation](../../diagrams/infrastructure/gpu/cuda-architecture-complete.md)
 
 ## Changelog
