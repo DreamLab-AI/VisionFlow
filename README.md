@@ -293,6 +293,8 @@ flowchart LR
 
 The ontology pipeline syncs Logseq markdown from GitHub, parses OWL 2 EL axioms, runs Whelk inference for subsumption and consistency checking, and stores results in both Neo4j (persistent) and an in-memory `OntologyRepository` (fast access). GPU semantic forces use the ontology to drive graph layout physics.
 
+Explore a live ontology dataset at **[narrativegoldmine.com](https://www.narrativegoldmine.com)** — a 2D interactive graph and data explorer built on the same ontology data that VisionFlow renders in 3D.
+
 <details>
 <summary><strong>Logseq ontology input (source data)</strong></summary>
 
