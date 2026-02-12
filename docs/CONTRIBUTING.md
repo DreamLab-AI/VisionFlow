@@ -344,18 +344,18 @@ stateDiagram-v2
 
 ✅ Good:
 ```markdown
-See [Deployment Guide](../deployment/docker-deployment.md)
+See [API Reference](./reference/api/rest-api.md)
 ```
 
 ❌ Avoid:
 ```markdown
-See [Deployment Guide](/docs/deployment/docker-deployment.md)
+See [API Reference](/docs/reference/api/rest-api.md)
 ```
 
 **Link to Specific Sections**
 
 ```markdown
-See [Docker Configuration](../deployment/docker-deployment.md#configuration)
+See [API Reference](./reference/api/rest-api.md#configuration)
 ```
 
 **Verify Links Exist**
@@ -392,9 +392,9 @@ Link to related documents at the end of each section:
 ---
 
 **Related Documentation:**
-- [API Reference](../api/rest-api.md)
-- [Configuration Guide](../reference/configuration.md)
-- [Troubleshooting](../how-to/operations/troubleshooting.md)
+- [API Reference](./reference/api/rest-api.md)
+- [Configuration Guide](./how-to/operations/configuration.md)
+- [Troubleshooting](./how-to/operations/troubleshooting.md)
 ```
 
 ---
@@ -572,8 +572,8 @@ Reviewers will check:
 
 ### Support
 
-- Review [MAINTENANCE.md](./MAINTENANCE.md)
-- Check existing documentation in [INDEX.md](./INDEX.md)
+- Review [MAINTENANCE.md](./how-to/operations/maintenance.md)
+- Check existing documentation in [INDEX.md](./reference/INDEX.md)
 - Open an issue for questions
 - Contact documentation maintainers
 

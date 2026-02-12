@@ -25,15 +25,15 @@ Added dual persistence to Neo4j graph database for advanced graph analytics:
 ## Architecture
 
 ```
-SQLite (unified.db)     Neo4j
+Neo4j (primary)       In-Memory OntologyRepo
      │                    │
-     └─── DualRepository ─┘
+     └─── Repositories ───┘
             │
          Your App
 ```
 
-- **SQLite**: Fast local queries, physics state (primary)
-- **Neo4j**: Complex graph analytics, Cypher queries (secondary)
+- **Neo4j**: Primary graph store, Cypher queries, complex analytics
+- **In-Memory OntologyRepository**: OWL classes and axioms for fast reasoning
 
 ## Quick Setup (3 Steps)
 
@@ -67,7 +67,7 @@ NEO4J-ENABLED=true
 ### 3. Sync Existing Data
 
 ```bash
-# Full sync from unified.db to Neo4j
+# Full sync to Neo4j
 cargo run --bin sync-neo4j -- --full
 
 # Expected output:

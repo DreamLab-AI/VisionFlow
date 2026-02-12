@@ -336,7 +336,7 @@ gantt
 1. Create `src/adapters/` directory structure ✅ **COMPLETE**
 2. Implement Neo4jSettingsRepository (from 02-adapters-design.md) ✅ **COMPLETE** (November 2025)
 3. Implement UnifiedGraphRepository ✅ **COMPLETE** (replaced SQLite)
-4. Implement UnifiedOntologyRepository ✅ **COMPLETE** (replaced SQLite)
+4. Implement OntologyRepository ✅ **COMPLETE** (replaced SQLite)
 5. Implement PhysicsOrchestratorAdapter (wraps existing actor) ✅ **COMPLETE**
 6. Implement SemanticProcessorAdapter (wraps existing actor) ✅ **COMPLETE**
 7. Implement WhelkInferenceEngine with whelk-rs integration ✅ **COMPLETE**
@@ -655,7 +655,7 @@ cargo build --release --features gpu,ontology
 # Automated backup script
 #!/bin/bash
 DATE=$(date +%Y%m%d-%H%M%S)
-sqlite3 data/unified.db ".backup data/backups/unified-$DATE.db"
+neo4j-admin database dump neo4j --to-path=data/backups/neo4j-$DATE
 ```
 
 ## Success Criteria

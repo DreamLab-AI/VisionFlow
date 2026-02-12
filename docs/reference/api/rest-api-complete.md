@@ -1291,7 +1291,7 @@ class BinaryProtocolParser {
 
 ## Database Architecture
 
-The API uses a **unified database architecture** with `unified.db` containing all domain tables:
+The API uses a **unified database architecture** with Neo4j containing all domain data:
 
 - `nodes` - Knowledge graph nodes
 - `edges` - Relationships between nodes

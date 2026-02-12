@@ -42,10 +42,10 @@ difficulty-level: intermediate
 3. 
 
 #### **Develop a Feature**
-1. [Development Setup](developer/01-development-setup.md)
+1. [Development Setup](development/01-development-setup.md)
 2.
-3. [Adding Features](developer/04-adding-features.md)
-4. [Testing Guide](testing-guide.md)
+3. [Adding Features](development/04-adding-features.md)
+4. [Testing Guide](development/testing-guide.md)
 
 #### **Work with Ontologies**
 1. 
@@ -54,22 +54,19 @@ difficulty-level: intermediate
 4. 
 
 #### **Setup XR/VR**
-1. [XR Setup Guide](../archive/docs/guides/xr-setup.md)
-2. [Vircadia Complete Guide](vircadia-xr-complete-guide.md)
-3. [XR Architecture](../../concepts/xr-immersive-system.md)
+1. [Vircadia Complete Guide](features/vircadia-xr-complete-guide.md)
+2. [XR Architecture](../explanation/architecture/xr-immersive-system.md)
 
 #### **Understand the Architecture**
-1. 
-2. [Hexagonal CQRS](../../concepts/hexagonal-architecture.md)
-3. 
-4. [Database Schema](../../explanations/architecture/schemas.md)
+1.
+2.
+3. [Database Schema](../reference/database/schemas.md)
 
 #### **Use the API**
 1. 
 2. [REST API](../reference/api/rest-api-complete.md)
 3. [WebSocket API](../reference/api/03-websocket.md)
-4. [Binary Protocol](../reference/binary-websocket.md) - 36-byte binary format specification
-5. [Multi-Agent Skills](./multi-agent-skills.md) - Natural language AI assistant capabilities
+4. [Binary Protocol](../reference/protocols/binary-websocket.md) - 36-byte binary format specification
 
 #### **Debug Issues**
 1. 
@@ -84,21 +81,21 @@ difficulty-level: intermediate
 | System | Documentation |
 |--------|---------------|
 | **Ontology** |  •  •  |
-| **GPU Acceleration** |  • [Architecture](../../architecture/gpu/README.md) • [Optimizations](../../architecture/gpu/optimizations.md) |
-| **AI Agents** |  • [User Guide](../archive/docs/guides/user/working-with-agents.md) •  |
-| **Multi-Agent System** | [Skills Guide](./multi-agent-skills.md) • [Architecture](../../explanations/architecture/multi-agent-system.md) • [Setup](./docker-environment-setup.md) |
-| **XR/VR** | [Setup](../archive/docs/guides/xr-setup.md) • Architecture (TODO) • [Vircadia](vircadia-xr-complete-guide.md) |
-| **Database** | [Schema](../../explanations/architecture/schemas.md) •  |
-| **Binary Protocol** | [WebSocket](../reference/api/03-websocket.md) • [Specification](../reference/binary-websocket.md) |
+| **GPU Acceleration** |  • [Architecture](../explanation/architecture/gpu/README.md) • [Optimizations](../explanation/architecture/gpu/optimizations.md) |
+| **AI Agents** |  |
+| **Multi-Agent System** | [Architecture](../explanation/concepts/multi-agent-system.md) |
+| **XR/VR** | Architecture (TODO) • [Vircadia](features/vircadia-xr-complete-guide.md) |
+| **Database** | [Schema](../reference/database/schemas.md) •  |
+| **Binary Protocol** | [WebSocket](../reference/api/03-websocket.md) • [Specification](../reference/protocols/binary-websocket.md) |
 
 ### Key Features
 | Feature | Quick Link | Complete Docs |
 |---------|------------|---------------|
 | **Ontology Reasoning** |  |  |
 | **Semantic Physics** |  |  |
-| **Multi-User XR** | [Quick Setup](user/xr-setup.md) | [Complete Guide](vircadia-xr-complete-guide.md) |
-| **CQRS Pattern** | [Architecture](../../concepts/hexagonal-architecture.md) |  |
-| **GPU Compute** |  | [Architecture](../../architecture/gpu/) |
+| **Multi-User XR** |  | [Complete Guide](features/vircadia-xr-complete-guide.md) |
+| **CQRS Pattern** |  |  |
+| **GPU Compute** |  | [Architecture](../explanation/architecture/gpu/) |
 
 ---
 
@@ -208,7 +205,7 @@ ls docs/guides/developer/
 -  - Complete catalog
 -  - System design
 -  - API lookup
-- [Troubleshooting](troubleshooting.md) - Problem solving
+- [Troubleshooting](operations/troubleshooting.md) - Problem solving
 -  - Future plans
 
 **Quick References:**
