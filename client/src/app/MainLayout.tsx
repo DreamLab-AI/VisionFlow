@@ -1,8 +1,5 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import GraphCanvasWrapper from '../features/graph/components/GraphCanvasWrapper';
-// Note: SimpleThreeTest and GraphCanvasSimple are unused dev components
-// import SimpleThreeTest from '../features/graph/components/SimpleThreeTest';
-// import GraphCanvasSimple from '../features/graph/components/GraphCanvasSimple';
 import { IntegratedControlPanel } from '../features/visualisation/components/IntegratedControlPanel';
 import { useSettingsStore } from '../store/settingsStore';
 import { useBotsData } from '../features/bots/contexts/BotsDataContext';
@@ -10,7 +7,6 @@ import { BrowserSupportWarning } from '../components/BrowserSupportWarning';
 import { SpaceMouseStatus } from '../components/SpaceMouseStatus';
 import { AudioInputService } from '../services/AudioInputService';
 import { graphDataManager, type GraphData } from '../features/graph/managers/graphDataManager';
-
 import { createLogger } from '../utils/loggerConfig';
 
 const logger = createLogger('MainLayout');

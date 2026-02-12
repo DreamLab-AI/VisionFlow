@@ -6,7 +6,7 @@ tags:
   - architecture
   - api
   - backend
-updated-date: 2025-12-18
+updated-date: 2026-02-11
 difficulty-level: advanced
 ---
 
@@ -19,7 +19,7 @@ difficulty-level: advanced
 
 ## Executive Summary
 
-This document specifies the architecture for the GitHubSyncService, the component that populates **unified.db** from the jjohare/logseq GitHub repository and triggers ontology reasoning.
+This document specifies the architecture for the GitHubSyncService, the component that populates **Neo4j** from the jjohare/logseq GitHub repository and triggers ontology reasoning.
 
 ## Problem Statement (Resolved)
 
@@ -30,7 +30,7 @@ This document specifies the architecture for the GitHubSyncService, the componen
 - Application crashes when querying empty databases ❌
 
 **Current State** (Post-Migration):
-- ✅ **Unified database** (unified.db) with all domain tables
+- ✅ **Unified database** (Neo4j) with all domain tables
 - ✅ **Automated GitHub sync** on startup with differential updates
 - ✅ **Ontology reasoning pipeline** integrated
 - ✅ **FORCE-FULL-SYNC** environment variable for complete reprocessing
@@ -40,68 +40,45 @@ This document specifies the architecture for the GitHubSyncService, the componen
 
 ## Architecture Overview (Updated: Unified Database)
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  AppState::new() Initialization Sequence                    │
-├─────────────────────────────────────────────────────────────┤
-│  1. Create unified.db (ACTIVE)                              │
-│  2. ▶️ GitHubSyncService::sync-graphs() (ACTIVE)            │
-│  3. ▶️ OntologyReasoningPipeline::infer() (NEW)             │
-│  4. Start Actors (EXISTING)                                 │
-│  5. Start HTTP Server (EXISTING)                            │
-└─────────────────────────────────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│  GitHubSyncService::sync-graphs()                           │
-├─────────────────────────────────────────────────────────────┤
-│  1. Check FORCE-FULL-SYNC environment variable              │
-│  2. Query file-metadata for SHA1 hashes (differential sync) │
-│  3. Fetch changed .md files from jjohare/logseq/            │
-│     mainKnowledgeGraph/pages via GitHub API                 │
-│  4. For each file:                                          │
-│     a. Compute SHA1 hash                                    │
-│     b. Compare with stored hash (skip if identical)         │
-│     c. Route to appropriate parser                          │
-│     d. Store parsed data in unified.db                      │
-│     e. Update file-metadata with new hash                   │
-│  5. Trigger ontology reasoning                              │
-│  6. Return sync statistics                                  │
-└─────────────────────────────────────────────────────────────┘
-                           │
-                    ┌──────┴──────┐
-                    ▼             ▼
-┌──────────────────────┐  ┌──────────────────────┐
-│  KnowledgeGraphParser│  │   OntologyParser     │
-├──────────────────────┤  ├──────────────────────┤
-│ Triggers:            │  │ Triggers:            │
-│  "public:: true"     │  │  "- ### OntologyBlock│
-│                      │  │                      │
-│ Extracts:            │  │ Extracts:            │
-│  - Nodes             │  │  - OWL Classes       │
-│  - Edges             │  │  - Properties        │
-│  - Metadata          │  │  - Axioms            │
-│                      │  │  - Hierarchies       │
-│ Stores to:           │  │ Stores to:           │
-│  unified.db          │  │  unified.db          │
-│  (graph-nodes,       │  │  (owl-classes,       │
-│   graph-edges)       │  │   owl-axioms,        │
-│                      │  │   owl-hierarchy)     │
-└──────────────────────┘  └──────────────────────┘
-                           │
-                           ▼
-               ┌────────────────────────┐
-               │ OntologyReasoning      │
-               │ Pipeline (Whelk-rs)    │
-               ├────────────────────────┤
-               │ 1. Load owl-* tables   │
-               │ 2. Compute inferences  │
-               │ 3. Store inferred      │
-               │    axioms (flag=1)     │
-               │ 4. Generate semantic   │
-               │    constraints         │
-               │ 5. Upload to GPU       │
-               └────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph Init["AppState::new() Initialization"]
+        I1["1. Connect to Neo4j"]
+        I2["2. GitHubSyncService::sync_graphs()"]
+        I3["3. OntologyReasoningPipeline::infer()"]
+        I4["4. Start Actors"]
+        I5["5. Start HTTP Server"]
+        I1 --> I2 --> I3 --> I4 --> I5
+    end
+
+    subgraph Sync["GitHubSyncService::sync_graphs()"]
+        S1["Check FORCE_FULL_SYNC env var"]
+        S2["Query file-metadata for SHA1 hashes"]
+        S3["Fetch changed .md files from GitHub"]
+        S4["For each file: SHA1 compare, parse, store"]
+        S5["Trigger ontology reasoning"]
+        S1 --> S2 --> S3 --> S4 --> S5
+    end
+
+    subgraph Parsers["Content Parsers"]
+        KGP["KnowledgeGraphParser<br/>Trigger: public:: true<br/>Extracts: Nodes, Edges, Metadata<br/>Stores to: Neo4j"]
+        OP["OntologyParser<br/>Trigger: ### OntologyBlock<br/>Extracts: OWL Classes, Properties, Axioms<br/>Stores to: OntologyRepository"]
+    end
+
+    subgraph Reasoning["OntologyReasoning Pipeline (Whelk-rs)"]
+        R1["Load OWL classes and axioms"]
+        R2["Compute inferences"]
+        R3["Store inferred axioms"]
+        R4["Generate semantic constraints"]
+        R5["Upload to GPU"]
+        R1 --> R2 --> R3 --> R4 --> R5
+    end
+
+    Init --> Sync
+    S4 --> KGP
+    S4 --> OP
+    KGP --> Reasoning
+    OP --> Reasoning
 ```
 
 ## Component Specifications
@@ -123,8 +100,8 @@ pub struct GitHubSyncService {
     content-api: Arc<ContentAPI>,
     kg-parser: Arc<KnowledgeGraphParser>,
     onto-parser: Arc<OntologyParser>,
-    kg-repo: Arc<SqliteKnowledgeGraphRepository>,
-    onto-repo: Arc<SqliteOntologyRepository>,
+    kg-repo: Arc<KnowledgeGraphRepository>,
+    onto-repo: Arc<OntologyRepository>,
 }
 
 impl GitHubSyncService {
@@ -346,8 +323,14 @@ match github-sync-service.sync-graphs().await {
 ### Manual Validation
 ```bash
 # 1. Check database population
-sqlite3 data/unified.db "SELECT count(*) FROM graph-nodes;"
-sqlite3 data/unified.db "SELECT count(*) FROM owl-classes;"
+# Query via Neo4j Browser or cypher-shell:
+# cypher-shell -d neo4j "MATCH (n:Node) RETURN count(n);"
+# cypher-shell -d neo4j "MATCH (c:OwlClass) RETURN count(c);"
+# Previously: sqlite3 data/Neo4j "SELECT count(*) FROM graph-nodes;"
+# Query via Neo4j Browser or cypher-shell:
+# cypher-shell -d neo4j "MATCH (n:Node) RETURN count(n);"
+# cypher-shell -d neo4j "MATCH (c:OwlClass) RETURN count(c);"
+# Previously: sqlite3 data/Neo4j "SELECT count(*) FROM owl-classes;"
 
 # 2. Verify API endpoints return data
 curl http://localhost:4000/api/graph/data
@@ -367,7 +350,7 @@ curl http://localhost:4000/api/ontology/classes
 **New Dependencies** (add to Cargo.toml):
 ```toml
 # None required! All dependencies already present:
-# - rusqlite (database)
+# - neo4rs (Neo4j database)
 # - reqwest (HTTP)
 # - serde-json (JSON parsing)
 # - tokio (async)

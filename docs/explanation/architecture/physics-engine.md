@@ -383,7 +383,7 @@ Based on empirical testing with 1K-10K node graphs:
 
 1. **GitHub Sync**: Parse .md files -> OntologyBlock extraction
    - UnifiedOntologyRepository::save_ontology_class()
-   - Stores classes with IRIs in unified.db
+   - Stores classes with IRIs in OntologyRepository (in-memory)
 
 2. **Reasoning**: CustomReasoner infers transitive axioms
    - Input: Ontology { subclass_of, disjoint_classes, ... }

@@ -1,13 +1,13 @@
 ---
 title: Neo4j Integration Documentation
-description: The Neo4j integration provides dual persistence to both SQLite (`unified.db`) and Neo4j graph database, enabling:
+description: Neo4j is the primary graph database for VisionFlow, providing native graph storage and Cypher queries.
 category: explanation
 tags:
   - api
   - docker
   - database
   - backend
-updated-date: 2025-12-18
+updated-date: 2026-02-11
 difficulty-level: advanced
 ---
 
@@ -16,10 +16,10 @@ difficulty-level: advanced
 
 ## Overview
 
-The Neo4j integration provides dual persistence to both SQLite (`unified.db`) and Neo4j graph database, enabling:
+Neo4j is the **primary and sole graph database** for VisionFlow (migration from SQLite completed November 2025). It provides:
 
-- **SQLite (unified.db)**: Fast local queries, physics state persistence, primary source of truth
-- **Neo4j**: Complex graph traversals, multi-hop reasoning, semantic analysis via Cypher
+- **Neo4j**: Native graph storage, Cypher queries, complex traversals, multi-hop reasoning, semantic analysis
+- **In-Memory OntologyRepository**: OWL classes and axioms held in `Arc<RwLock<HashMap>>` for fast reasoning
 
 ## Architecture
 

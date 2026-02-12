@@ -34,38 +34,37 @@ export interface EdgeSettings {
   gradientColors: [string, string];
 }
 
-// Physics settings - using camelCase for client
+// Physics settings - using camelCase for client.
+// These parameters are sent to the SERVER (Rust/CUDA GPU) as the single source
+// of truth for layout computation. The client does NOT run force simulation;
+// it only performs optimistic interpolation toward server-computed positions.
 export interface PhysicsSettings {
   enabled: boolean;
-  
-  
+
+  // --- Server-routed force parameters (PUT /api/physics/parameters) ---
   springK: number;
   repelK: number;
   attractionK: number;
   gravity: number;
-  
-  
+
   dt: number;
   maxVelocity: number;
   damping: number;
   temperature: number;
-  
-  
+
   enableBounds: boolean;
   boundsSize: number;
   boundaryDamping: number;
   separationRadius: number;
-  collisionRadius?: number; 
-  
-  
+  collisionRadius?: number;
+
   restLength: number;
   repulsionCutoff: number;
   repulsionSofteningEpsilon: number;
   centerGravityK: number;
   gridCellSize: number;
   featureFlags: number;
-  
-  
+
   stressWeight: number;
   stressAlpha: number;
   boundaryLimit: number;
@@ -76,33 +75,23 @@ export interface PhysicsSettings {
   maxRepulsionDist: number;
   boundaryMargin: number;
   boundaryForceStrength: number;
-  
-  
+
   iterations: number;
   massScale: number;
   updateThreshold: number;
-  
-  
-  
+
   boundaryExtremeMultiplier: number;
-  
   boundaryExtremeForceMultiplier: number;
-  
   boundaryVelocityDamping: number;
-  
   maxForce: number;
-  
   seed: number;
-  
   iteration: number;
-  
-  
+
   warmupIterations: number;
-  warmupCurve?: string; 
-  zeroVelocityIterations?: number; 
+  warmupCurve?: string;
+  zeroVelocityIterations?: number;
   coolingRate: number;
-  
-  
+
   clusteringAlgorithm?: string;
   clusterCount?: number;
   clusteringResolution?: number;
@@ -111,6 +100,37 @@ export interface PhysicsSettings {
   // SSSP (Single Source Shortest Path) integration
   useSsspDistances?: boolean;
   ssspAlpha?: number;
+}
+
+// Client-side interpolation/tweening settings.
+// These control how the client smoothly animates toward server-computed positions.
+// They are NOT sent to the server — they are purely local visual smoothing.
+export interface ClientTweeningSettings {
+  /** Whether optimistic tweening is enabled (disable for instant snap) */
+  enabled: boolean;
+  /** Interpolation base factor: 1 - Math.pow(base, deltaTime). Lower = smoother. Default 0.001 */
+  lerpBase: number;
+  /** Distance below which positions snap instantly (no tweening). Default 5.0 */
+  snapThreshold: number;
+  /** Maximum allowed divergence from server before forcing snap. Default 50.0 */
+  maxDivergence: number;
+}
+
+// Renderer capability report — populated at runtime by rendererFactory.
+// Exposed in settings panel so users can see what rendering features are active.
+export interface RendererCapabilities {
+  /** 'webgpu' | 'webgl' */
+  backend: 'webgpu' | 'webgl';
+  /** True if TSL (Three Shading Language) node materials are active */
+  tslMaterialsActive: boolean;
+  /** True if node-based PostProcessing bloom is active (vs EffectComposer) */
+  nodeBasedBloom: boolean;
+  /** GPU adapter name (e.g. 'NVIDIA RTX 4090') */
+  gpuAdapterName: string;
+  /** Maximum texture size */
+  maxTextureSize: number;
+  /** Device pixel ratio (capped at 2) */
+  pixelRatio: number;
 }
 
 // Rendering settings
@@ -639,6 +659,10 @@ export interface Settings {
   vircadia?: VircadiaSettings;
   // Node filter settings for graph visualization
   nodeFilter?: NodeFilterSettings;
+  // Client-side tweening for server-authoritative positions
+  clientTweening?: ClientTweeningSettings;
+  // Runtime renderer capabilities (populated by rendererFactory, read-only in UI)
+  rendererCapabilities?: RendererCapabilities;
 }
 
 // Partial update types for settings mutations

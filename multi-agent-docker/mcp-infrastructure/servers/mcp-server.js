@@ -1024,6 +1024,108 @@ class ClaudeFlowMCPServer {
           required: ['message'],
         },
       },
+      // ---------- Ontology Agent Tools (7) ----------
+      ontology_discover: {
+        name: 'ontology_discover',
+        description: 'Semantic discovery of ontology notes via OWL class hierarchy and Whelk EL++ inference. Returns ranked results with relevance scores.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            query: { type: 'string', description: 'Natural language search query for ontology concepts' },
+            limit: { type: 'number', default: 20, description: 'Maximum results to return' },
+            domain: { type: 'string', description: 'Optional domain filter (ai, bc, rb, mv, tc, dt)' },
+          },
+          required: ['query'],
+        },
+      },
+      ontology_read: {
+        name: 'ontology_read',
+        description: 'Read a note with full ontology context: markdown content, OWL metadata, Whelk-inferred axioms, related notes, and schema context for query grounding.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            iri: { type: 'string', description: 'The IRI of the ontology class to read' },
+          },
+          required: ['iri'],
+        },
+      },
+      ontology_query: {
+        name: 'ontology_query',
+        description: 'Validate and execute a Cypher query against the knowledge graph, with OWL schema validation and Levenshtein-based suggestions for typos.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            cypher: { type: 'string', description: 'Cypher query to validate and execute' },
+          },
+          required: ['cypher'],
+        },
+      },
+      ontology_traverse: {
+        name: 'ontology_traverse',
+        description: 'Walk the ontology graph from a starting IRI, following relationships to a specified depth. Returns nodes and edges discovered.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            start_iri: { type: 'string', description: 'Starting IRI for traversal' },
+            depth: { type: 'number', default: 3, description: 'Maximum traversal depth' },
+            relationship_types: { type: 'array', items: { type: 'string' }, description: 'Optional filter: only follow these relationship types' },
+          },
+          required: ['start_iri'],
+        },
+      },
+      ontology_propose: {
+        name: 'ontology_propose',
+        description: 'Propose a new ontology note or amend an existing one. Generates Logseq markdown, validates via Whelk EL++ consistency, and creates a GitHub PR for human review.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            proposal: {
+              type: 'object',
+              description: 'The proposal: either {action: "create", ...NoteProposal} or {action: "amend", target_iri, amendment}',
+            },
+            agent_context: {
+              type: 'object',
+              properties: {
+                agent_id: { type: 'string' },
+                agent_type: { type: 'string' },
+                task_description: { type: 'string' },
+                session_id: { type: 'string' },
+                confidence: { type: 'number' },
+                user_id: { type: 'string' },
+              },
+              required: ['agent_id', 'agent_type', 'task_description', 'confidence', 'user_id'],
+            },
+          },
+          required: ['proposal', 'agent_context'],
+        },
+      },
+      ontology_validate: {
+        name: 'ontology_validate',
+        description: 'Validate a set of OWL axioms for Whelk EL++ consistency without creating a proposal. Useful for pre-checking before proposing changes.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            axioms: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  axiom_type: { type: 'string', description: 'Axiom type: SubClassOf, EquivalentClass, etc.' },
+                  subject: { type: 'string', description: 'Subject IRI' },
+                  object: { type: 'string', description: 'Object IRI' },
+                },
+                required: ['axiom_type', 'subject', 'object'],
+              },
+            },
+          },
+          required: ['axioms'],
+        },
+      },
+      ontology_status: {
+        name: 'ontology_status',
+        description: 'Check the health and capabilities of the ontology agent service.',
+        inputSchema: { type: 'object', properties: {} },
+      },
     };
   }
 
@@ -2059,6 +2161,42 @@ class ClaudeFlowMCPServer {
           error: 'RAGFlow manager not initialized',
           timestamp: new Date().toISOString(),
         };
+
+      // ---------- Ontology Agent Tools ----------
+      case 'ontology_discover':
+      case 'ontology_read':
+      case 'ontology_query':
+      case 'ontology_traverse':
+      case 'ontology_propose':
+      case 'ontology_validate':
+      case 'ontology_status': {
+        // Route to VisionFlow ontology-agent HTTP API
+        const endpoint = name.replace('ontology_', '');
+        const vfHost = process.env.VISIONFLOW_API_URL || 'http://host.docker.internal:4000';
+        const method = name === 'ontology_status' ? 'GET' : 'POST';
+        try {
+          const fetchOpts = { method, headers: { 'Content-Type': 'application/json' } };
+          if (method === 'POST') {
+            fetchOpts.body = JSON.stringify(args);
+          }
+          const response = await fetch(`${vfHost}/api/ontology-agent/${endpoint}`, fetchOpts);
+          const data = await response.json();
+          return {
+            success: data.success || false,
+            ...data,
+            timestamp: new Date().toISOString(),
+          };
+        } catch (error) {
+          console.error(`[${new Date().toISOString()}] ERROR [claude-flow-mcp] ontology tool ${name} failed:`, error.message);
+          return {
+            success: false,
+            tool: name,
+            error: `Ontology service unavailable: ${error.message}`,
+            hint: 'Ensure VisionFlow server is running and VISIONFLOW_API_URL is set',
+            timestamp: new Date().toISOString(),
+          };
+        }
+      }
 
       default:
         return {

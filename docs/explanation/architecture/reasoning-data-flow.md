@@ -6,7 +6,7 @@ tags:
   - architecture
   - api
   - backend
-updated-date: 2025-12-18
+updated-date: 2026-02-11
 difficulty-level: advanced
 ---
 
@@ -25,7 +25,7 @@ The ontology reasoning pipeline processes GitHub markdown files through these st
 2. **GitHubSyncService::process-single-file()** - Detects file type, identifies OntologyBlock sections
 3. **OntologyParser::parse()** - Extracts OWL classes, properties, axioms
 4. **GitHubSyncService::save-ontology-data()** [Lines 599-666]
-   - STEP 1: Save to unified.db via UnifiedOntologyRepository
+   - STEP 1: Save to OntologyRepository via UnifiedOntologyRepository
    - STEP 2: Trigger Reasoning Pipeline ✅ WIRED
 5. **OntologyPipelineService::on-ontology-modified()** [Lines 133-195]
    - auto-trigger-reasoning: true (default)
@@ -44,7 +44,7 @@ The ontology reasoning pipeline processes GitHub markdown files through these st
 - In-memory HashMap cache: 90x speedup on hit
 - If cache hit → return cached inferred-axioms
 
-**STEP 2: Load Ontology from unified.db** [Lines 127-134]
+**STEP 2: Load Ontology from OntologyRepository** [Lines 127-134]
 - get-classes() → Vec<OwlClass>
 - get-axioms() → Vec<OwlAxiom>
 - Debug log: "Loaded {n} classes and {m} axioms for inference"
@@ -253,7 +253,7 @@ CREATE TABLE inference-cache (
 tail -f logs/application.log | grep -E "(🔄 Triggering|✅ Reasoning|Inference complete)"
 
 # 2. Query inferred axioms in database
-sqlite3 unified.db <<SQL
+sqlite3 OntologyRepository <<SQL
 SELECT axiom-type, subject, object, annotations
 FROM owl-axioms
 WHERE annotations LIKE '%inferred%'
@@ -287,7 +287,7 @@ curl http://localhost:8080/api/constraints/status | jq
 
 Every GitHub sync that contains `### OntologyBlock` automatically:
 1. Parses OWL classes, properties, and axioms
-2. Saves to unified.db
+2. Saves to OntologyRepository
 3. Triggers CustomReasoner for EL++ inference
 4. Stores inferred axioms with is-inferred=true
 5. Generates physics constraints

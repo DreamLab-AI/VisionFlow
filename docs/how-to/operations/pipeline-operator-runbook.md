@@ -400,13 +400,11 @@ curl -X POST http://localhost:8080/api/admin/pipeline/pause \
   -H "Content-Type: application/json" \
   -d '{"reason": "Weekly maintenance"}'
 
-# 2. Backup database
-sqlite3 /var/lib/visionflow/unified.db ".backup /backups/unified-$(date +%Y%m%d).db"
-sqlite3 /var/lib/visionflow/reasoning-cache.db ".backup /backups/cache-$(date +%Y%m%d).db"
+# 2. Backup database (Neo4j)
+neo4j-admin database dump neo4j --to-path=/backups/neo4j-$(date +%Y%m%d)/
 
-# 3. Vacuum databases
-sqlite3 /var/lib/visionflow/unified.db "VACUUM;"
-sqlite3 /var/lib/visionflow/reasoning-cache.db "VACUUM;"
+# 3. Run Neo4j maintenance
+cypher-shell -d neo4j "CALL db.clearQueryCaches();"
 
 # 4. Clear old cache entries (>30 days)
 sqlite3 /var/lib/visionflow/reasoning-cache.db \
@@ -429,20 +427,20 @@ curl http://localhost:8080/api/admin/pipeline/status
 
 **Check Database Size**
 ```bash
-du -sh /var/lib/visionflow/unified.db
-du -sh /var/lib/visionflow/reasoning-cache.db
+# Neo4j data directory
+du -sh /var/lib/neo4j/data/
 ```
 
 **Optimize Database**
 ```bash
-# Analyze query patterns
-sqlite3 /var/lib/visionflow/unified.db "ANALYZE;"
+# Check Neo4j store info
+cypher-shell -d neo4j "CALL db.stats.retrieve('GRAPH COUNTS');"
 
 # Rebuild indices
-sqlite3 /var/lib/visionflow/unified.db "REINDEX;"
+cypher-shell -d neo4j "CALL db.indexes();"
 
-# Check integrity
-sqlite3 /var/lib/visionflow/unified.db "PRAGMA integrity-check;"
+# Check consistency
+neo4j-admin database check neo4j
 ```
 
 ### Cache Maintenance

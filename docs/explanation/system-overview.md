@@ -7,7 +7,7 @@ tags:
   - api
   - database
   - backend
-updated-date: 2025-12-18
+updated-date: 2026-02-11
 difficulty-level: advanced
 ---
 
@@ -29,12 +29,14 @@ This document provides a complete architectural blueprint for migrating the Visi
    - InferenceEngine
 
 2. **** - Adapter implementations
-   - Neo4jSettingsRepository ✅ **ACTIVE** (migrated from SQLite November 2025)
-   - SqliteKnowledgeGraphRepository ⚠️ Being replaced by UnifiedGraphRepository
-   - SqliteOntologyRepository ⚠️ Being replaced by UnifiedOntologyRepository
+   - Neo4jKnowledgeGraphRepository ✅ **ACTIVE** (Neo4j for graph data)
+   - InMemoryOntologyRepository ✅ **ACTIVE** (Arc<RwLock<HashMap>> for OWL classes)
    - PhysicsOrchestratorAdapter
    - SemanticProcessorAdapter
    - WhelkInferenceEngine
+   - OntologyQueryService ✅ **NEW** (agent read path)
+   - OntologyMutationService ✅ **NEW** (agent write path)
+   - GitHubPRService ✅ **NEW** (ontology change PRs)
 
 3. **** - CQRS business logic
    - Directives (write operations)
@@ -42,7 +44,7 @@ This document provides a complete architectural blueprint for migrating the Visi
    - Handlers for all domains
 
 4. **[schemas.md](./schemas.md)** - Complete database designs
-   - unified.db schema (single database with all domain tables)
+   - Neo4j schema (graph nodes, edges, ontology, user settings)
 
 ## Ontology Reasoning Pipeline
 
@@ -53,7 +55,7 @@ VisionFlow integrates a complete ontology reasoning pipeline that transforms sta
 ```mermaid
 graph LR
     A[GitHub OWL Files<br/>900+ Classes] --> B[Horned-OWL Parser]
-    B --> C[(unified.db<br/>owl-* tables)]
+    B --> C[(Neo4j + In-Memory<br/>OntologyRepository)]
     C --> D[Whelk-rs Reasoner<br/>OWL 2 EL]
     D --> E[Inferred Axioms<br/>is-inferred=1]
     E --> C
@@ -85,7 +87,7 @@ The system translates ontological relationships into physical forces for intelli
 sequenceDiagram
     participant GH as GitHub
     participant Parser as OWL Parser
-    participant DB as unified.db
+    participant DB as Neo4j + OntologyRepo
     participant Whelk as Whelk Reasoner
     participant GPU as CUDA Physics
     participant Client as 3D Client
@@ -113,27 +115,28 @@ sequenceDiagram
 
 ## Key Architectural Decisions
 
-### 1. Unified Database Design (ACTIVE: November 2, 2025)
+### 1. Database Architecture (Migrated to Neo4j: November 2025)
 
-**Decision**: ✅ Use a **single unified SQLite database** (unified.db) with all domain tables.
+**Decision**: ✅ Use **Neo4j** as the primary graph database with **in-memory OntologyRepository** for OWL reasoning.
 
 **Rationale**:
-- **Atomic transactions**: Cross-domain transactions are atomic
-- **Simplified operations**: Single connection pool, single backup file
-- **Foreign key integrity**: Cross-domain relationships enforced by database
-- **Easier development**: Simpler schema management and testing
-- **Better performance**: Reduced connection overhead
+- **Graph-native storage**: Natural fit for node/edge data structures
+- **Cypher queries**: Expressive query language for complex graph patterns
+- **ACID transactions**: Full consistency guarantees
+- **In-memory OWL**: Fast reasoning with `Arc<RwLock<HashMap>>` for ontology classes
+- **Scalability**: Neo4j clustering support for future horizontal scaling
 
-**Legacy Architecture Removed** (as of November 2, 2025):
+**Migration History**:
+- ❌ Previous SQLite unified.db architecture deprecated (November 2025)
 - ❌ Previous three-database design fully deprecated
-- ❌ Legacy databases archived to data/archive/
-- ❌ All code updated to use unified.db only
+- ✅ All graph data migrated to Neo4j
+- ✅ Ontology data served from in-memory OntologyRepository
 
 **Current Architecture**:
-- ✅ Single unified.db with 8 core domain tables
-- ✅ Full foreign key support across all domains
-- ✅ Atomic transactions spanning all domains
-- ✅ Simplified backup/restore (single file)
+- ✅ Neo4j for graph nodes, edges, user settings, and visualization data
+- ✅ In-memory OntologyRepository for OWL classes, axioms, and Whelk reasoning
+- ✅ OntologyQueryService and OntologyMutationService for agent read/write paths
+- ✅ GitHubPRService for automated ontology change PRs
 
 **Unified Database Structure**:
 

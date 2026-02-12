@@ -1,5 +1,6 @@
 pub mod claude_flow;
 pub mod mcp_responses;
+pub mod ontology_tools;
 pub mod speech;
 pub mod vec3;
 

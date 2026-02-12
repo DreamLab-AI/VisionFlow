@@ -55,6 +55,8 @@ class GraphWorkerProxy {
   private sharedPositionView: Float32Array | null = null;
   private lastReceivedPositions: Float32Array | null = null;
   private tickInFlight: boolean = false;
+  private _consecutiveTickErrors: number = 0;
+  private static readonly MAX_CONSECUTIVE_ERRORS = 10;
 
   private constructor() {}
 
@@ -166,13 +168,8 @@ class GraphWorkerProxy {
 
   
   public async processBinaryData(data: ArrayBuffer): Promise<void> {
-    
-    if (this.graphType !== 'logseq') {
-      if (debugState.isDataDebugEnabled()) {
-        logger.debug(`Skipping binary data processing for ${this.graphType} graph`);
-      }
-      return;
-    }
+    // All graph types process binary position data from the server.
+    // Server is the single source of truth for all node positions.
     if (!this.workerApi) {
       throw new Error('Worker not initialized');
     }
@@ -180,6 +177,8 @@ class GraphWorkerProxy {
     try {
       const positionArray = await this.workerApi.processBinaryData(data);
       this.notifyPositionUpdateListeners(positionArray);
+      // Reset consecutive errors on success
+      this._consecutiveTickErrors = 0;
 
       if (debugState.isDataDebugEnabled()) {
         logger.debug(`Processed binary data: ${positionArray.length / 4} position updates`);
@@ -271,6 +270,7 @@ class GraphWorkerProxy {
   /**
    * Fire-and-forget tick with concurrency guard.
    * Only one tick RPC can be in flight at a time — subsequent calls are dropped.
+   * Tracks consecutive errors for worker health monitoring.
    */
   public requestTick(deltaTime: number): void {
     if (!this.workerApi || this.tickInFlight) return;
@@ -279,10 +279,23 @@ class GraphWorkerProxy {
       .then((positions) => {
         this.tickInFlight = false;
         this.lastReceivedPositions = positions;
+        this._consecutiveTickErrors = 0;
       })
-      .catch(() => {
+      .catch((err) => {
         this.tickInFlight = false;
+        this._consecutiveTickErrors++;
+        logger.error(`[WorkerHealth] tick() failed (consecutive: ${this._consecutiveTickErrors}):`, err);
+        if (this._consecutiveTickErrors >= GraphWorkerProxy.MAX_CONSECUTIVE_ERRORS) {
+          logger.error(`[WorkerHealth] ${this._consecutiveTickErrors} consecutive tick errors — worker may be unhealthy`);
+        }
       });
+  }
+
+  /**
+   * Returns the number of consecutive tick errors (0 = healthy).
+   */
+  public getConsecutiveErrors(): number {
+    return this._consecutiveTickErrors;
   }
 
   /**

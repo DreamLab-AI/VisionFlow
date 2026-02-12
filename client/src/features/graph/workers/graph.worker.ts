@@ -82,22 +82,24 @@ function isZlibCompressed(data: ArrayBuffer): boolean {
 }
 
 
-// Force-directed physics settings for client-side simulation
+// Force-directed physics settings — retained for API compatibility.
+// Client-side force simulation is REMOVED: the server (Rust/CUDA GPU physics)
+// is the single source of truth for all graph types. The client only performs
+// optimistic interpolation/tweening toward server-provided target positions.
 export interface ForcePhysicsSettings {
-  repulsionStrength: number;     // Coulomb-like repulsion between all nodes
-  attractionStrength: number;    // Spring attraction along edges
-  centerGravity: number;         // Gentle pull toward center to prevent drift
-  damping: number;               // Velocity damping (0-1)
-  maxVelocity: number;           // Speed limit
-  idealEdgeLength: number;       // Target spring rest length
-  theta: number;                 // Barnes-Hut approximation threshold (0.5-1.0)
-  enabled: boolean;              // Whether physics is running
-  alpha: number;                 // Simulation "temperature" (decays over time)
-  alphaDecay: number;            // How fast alpha decays
-  alphaMin: number;              // Stop when alpha reaches this
-  // Semantic clustering
-  clusterStrength: number;       // Force pulling nodes of same domain together
-  enableClustering: boolean;     // Enable domain-based clustering
+  repulsionStrength: number;
+  attractionStrength: number;
+  centerGravity: number;
+  damping: number;
+  maxVelocity: number;
+  idealEdgeLength: number;
+  theta: number;
+  enabled: boolean;
+  alpha: number;
+  alphaDecay: number;
+  alphaMin: number;
+  clusterStrength: number;
+  enableClustering: boolean;
 }
 
 class GraphWorker {
@@ -121,7 +123,18 @@ class GraphWorker {
   };
 
 
+  // Server physics is ALWAYS authoritative — all graph types use server positions.
+  // This flag is kept for API compatibility but always returns true.
   private useServerPhysics: boolean = true;
+
+  // Client-side tweening configuration. Controls how smoothly the client
+  // interpolates toward server-computed positions. Configurable via settings.
+  private tweenSettings = {
+    enabled: true,
+    lerpBase: 0.001,      // Lower = smoother/slower. Default matches original.
+    snapThreshold: 5.0,   // Distance below which positions snap instantly.
+    maxDivergence: 50.0,  // Force snap when divergence exceeds this.
+  };
   private positionBuffer: SharedArrayBuffer | null = null;
   private positionView: Float32Array | null = null;
 
@@ -130,37 +143,30 @@ class GraphWorker {
   private binaryUpdateCount: number = 0;
   private lastBinaryUpdate: number = 0;
 
-  // Force-directed physics for client-side simulation (VisionFlow)
+  // Retained for API compatibility — client-side force simulation is removed.
+  // Physics settings are now sent to the server via REST API.
   private forcePhysics: ForcePhysicsSettings = {
-    repulsionStrength: 500,       // Node repulsion force
-    attractionStrength: 0.05,     // Edge spring force
-    centerGravity: 0.01,          // Gentle centering
-    damping: 0.85,                // Velocity decay
-    maxVelocity: 5.0,             // Max speed
-    idealEdgeLength: 30,          // Target edge length
-    theta: 0.8,                   // Barnes-Hut threshold
-    enabled: true,                // Physics on by default
-    alpha: 1.0,                   // Initial temperature
-    alphaDecay: 0.0228,           // ~300 iterations to cool
-    alphaMin: 0.001,              // Stop threshold
-    clusterStrength: 0.3,         // Domain clustering force
-    enableClustering: true,       // Enable semantic clustering
+    repulsionStrength: 500,
+    attractionStrength: 0.05,
+    centerGravity: 0.01,
+    damping: 0.85,
+    maxVelocity: 5.0,
+    idealEdgeLength: 30,
+    theta: 0.8,
+    enabled: true,
+    alpha: 1.0,
+    alphaDecay: 0.0228,
+    alphaMin: 0.001,
+    clusterStrength: 0.3,
+    enableClustering: true,
   };
 
   // Idempotency guard: skip updateSettings when physics values haven't changed
   private _lastPhysicsKey: string = '';
 
-  // Edge lookup for O(1) neighbor access
+  // Edge lookup for O(1) neighbor access (kept for graph structure queries)
   private edgeSourceMap: Map<string, string[]> = new Map();
   private edgeTargetMap: Map<string, string[]> = new Map();
-
-  // Domain clustering - maps domain to node indices
-  private domainClusters: Map<string, number[]> = new Map();
-  private domainCenters: Map<string, { x: number; y: number; z: number }> = new Map();
-
-  // Pre-allocated buffers for force computation (reused every tick)
-  private forcesBuffer: Float32Array | null = null;
-  private forcesBufferSize: number = 0;
 
   // Pre-allocated buffer for binary position output (reused every processBinaryData call)
   private binaryOutputBuffer: Float32Array | null = null;
@@ -175,18 +181,11 @@ class GraphWorker {
   
   async setGraphType(type: 'logseq' | 'visionflow'): Promise<void> {
     this.graphType = type;
-    // VisionFlow uses client-side physics since it doesn't receive server binary updates
-    if (type === 'visionflow') {
-      this.useServerPhysics = false;
-      this.forcePhysics.enabled = true;
-      this.forcePhysics.alpha = 1.0; // Reset simulation temperature
-      workerLogger.info(`Graph type set to ${type} - using CLIENT-SIDE force-directed physics`);
-    } else {
-      // Logseq graphs receive server physics via binary protocol
-      this.useServerPhysics = true;
-      this.forcePhysics.enabled = false;
-      workerLogger.info(`Graph type set to ${type} - using SERVER physics`);
-    }
+    // All graph types use server-authoritative physics.
+    // The server (Rust/CUDA GPU) is the single source of truth for positions.
+    // Client only performs optimistic tweening toward server targets.
+    this.useServerPhysics = true;
+    workerLogger.info(`Graph type set to ${type} - using SERVER-AUTHORITATIVE physics (single source of truth)`);
   }
 
 
@@ -242,17 +241,6 @@ class GraphWorker {
       }
       this.edgeTargetMap.get(edge.target)!.push(edge.source);
     }
-
-    // Build domain clusters for semantic grouping
-    this.domainClusters.clear();
-    this.domainCenters.clear();
-    this.graphData.nodes.forEach((node, index) => {
-      const domain = node.metadata?.source_domain || node.metadata?.domain || 'default';
-      if (!this.domainClusters.has(domain)) {
-        this.domainClusters.set(domain, []);
-      }
-      this.domainClusters.get(domain)!.push(index);
-    });
 
     // Preserve positions for nodes that already exist (prevents reset on
     // initialGraphLoad / filter-update / reconnect). Only allocate fresh
@@ -312,13 +300,7 @@ class GraphWorker {
       };
     }
 
-    if (this.graphType === 'visionflow') {
-      // Only reheat VisionFlow client-side physics (logseq uses server physics)
-      this.forcePhysics.alpha = 1.0;
-      workerLogger.info(`VisionFlow graph initialized with ${nodeCount} nodes, ${data.edges.length} edges, ${this.domainClusters.size} domains`);
-    } else {
-      workerLogger.info(`Initialized ${this.graphType} graph with ${nodeCount} nodes (${preservedCount} positions preserved)`);
-    }
+    workerLogger.info(`Initialized ${this.graphType} graph with ${nodeCount} nodes, ${data.edges.length} edges (${preservedCount} positions preserved, server-authoritative physics)`);
   }
 
   
@@ -358,42 +340,14 @@ class GraphWorker {
       updateThreshold: graphSettings?.updateThreshold ?? 0.05
     };
 
-    // Force-directed physics settings (for visionflow)
-    if (this.graphType === 'visionflow' && vfPhysics) {
-      const wasEnabled = this.forcePhysics.enabled;
-
-      // Map UI settings to force physics parameters
-      this.forcePhysics.enabled = vfPhysics.enabled ?? true;
-      this.forcePhysics.repulsionStrength = (vfPhysics.repelK ?? 1.0) * 500;
-      this.forcePhysics.attractionStrength = vfPhysics.springK ?? 0.05;
-      this.forcePhysics.damping = vfPhysics.damping ?? 0.85;
-      this.forcePhysics.maxVelocity = vfPhysics.maxVelocity ?? 5.0;
-      this.forcePhysics.idealEdgeLength = vfPhysics.restLength ?? 30;
-      this.forcePhysics.centerGravity = vfPhysics.centerGravityK ?? 0.01;
-
-      // Only reheat when physics transitions from disabled → enabled
-      // (NOT on every settings change, which would reset node positions
-      // whenever the user adjusts unrelated settings like edge opacity)
-      if (this.forcePhysics.enabled && !wasEnabled) {
-        this.forcePhysics.alpha = 1.0;
-        workerLogger.info('VisionFlow physics enabled, reheating simulation');
-      }
-    }
+    // Physics settings for visionflow are now routed to the server via REST API.
+    // The client stores them for reference but does not run local force simulation.
   }
 
   
-  async processBinaryData(data: ArrayBuffer): Promise<Float32Array> { 
-    
-    if (this.graphType !== 'logseq') {
-      workerLogger.debug(`Skipping binary data processing for ${this.graphType} graph`);
-      return new Float32Array(0);
-    }
-
-    
-    if (!this.useServerPhysics) {
-      this.useServerPhysics = true;
-      workerLogger.info('Auto-enabled server physics mode due to binary position updates');
-    }
+  async processBinaryData(data: ArrayBuffer): Promise<Float32Array> {
+    // All graph types process binary position updates from the server.
+    // Server is the single source of truth for positions.
     
     
     this.binaryUpdateCount = (this.binaryUpdateCount || 0) + 1;
@@ -512,293 +466,9 @@ class GraphWorker {
     };
   }
 
-  /**
-   * Compute force-directed layout forces for client-side physics.
-   * Implements:
-   * 1. Node-node repulsion (Coulomb's law) with spatial grid for ~O(n*k) complexity
-   * 2. Edge-based attraction (spring force)
-   * 3. Center gravity (prevents drift)
-   * 4. Domain clustering (semantic grouping)
-   */
-  private computeForces(): Float32Array {
-    const n = this.graphData.nodes.length;
-    if (n === 0 || !this.currentPositions) {
-      if (!this.forcesBuffer || this.forcesBufferSize !== 0) {
-        this.forcesBuffer = new Float32Array(0);
-        this.forcesBufferSize = 0;
-      }
-      return this.forcesBuffer;
-    }
-
-    // Reuse forces buffer, only reallocate if node count changed
-    const requiredSize = n * 3;
-    if (!this.forcesBuffer || this.forcesBufferSize !== requiredSize) {
-      this.forcesBuffer = new Float32Array(requiredSize);
-      this.forcesBufferSize = requiredSize;
-    } else {
-      this.forcesBuffer.fill(0);
-    }
-
-    const forces = this.forcesBuffer;
-    const {
-      repulsionStrength,
-      attractionStrength,
-      centerGravity,
-      idealEdgeLength,
-      clusterStrength,
-      enableClustering,
-      alpha
-    } = this.forcePhysics;
-
-    const pos = this.currentPositions;
-
-    // 1. REPULSION: Spatial grid approximation for ~O(n*k) instead of O(n^2)
-    // Nodes beyond cutoffRadius are skipped entirely. Nearby nodes use grid cells.
-    const cutoffRadius = Math.max(idealEdgeLength * 4, 120); // Distance beyond which repulsion is negligible
-    const cutoffRadiusSq = cutoffRadius * cutoffRadius;
-    const cellSize = cutoffRadius; // One cell per cutoff radius
-
-    // Build spatial grid: compute bounds first
-    let minX = Infinity, minY = Infinity, minZ = Infinity;
-    let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
-    for (let i = 0; i < n; i++) {
-      const i3 = i * 3;
-      const x = pos[i3], y = pos[i3 + 1], z = pos[i3 + 2];
-      if (x < minX) minX = x; if (x > maxX) maxX = x;
-      if (y < minY) minY = y; if (y > maxY) maxY = y;
-      if (z < minZ) minZ = z; if (z > maxZ) maxZ = z;
-    }
-
-    // Add padding to prevent edge issues
-    minX -= cellSize; minY -= cellSize; minZ -= cellSize;
-
-    const gridW = Math.max(1, Math.ceil((maxX - minX) / cellSize) + 1);
-    const gridH = Math.max(1, Math.ceil((maxY - minY) / cellSize) + 1);
-    const gridD = Math.max(1, Math.ceil((maxZ - minZ) / cellSize) + 1);
-
-    // Use flat Map for sparse grid (avoids allocating huge 3D array)
-    const grid = new Map<number, number[]>();
-
-    // Assign each node to a cell
-    const nodeCellKeys = new Int32Array(n);
-    for (let i = 0; i < n; i++) {
-      const i3 = i * 3;
-      const cx = Math.floor((pos[i3] - minX) / cellSize);
-      const cy = Math.floor((pos[i3 + 1] - minY) / cellSize);
-      const cz = Math.floor((pos[i3 + 2] - minZ) / cellSize);
-      const key = cx + cy * gridW + cz * gridW * gridH;
-      nodeCellKeys[i] = key;
-      let cell = grid.get(key);
-      if (!cell) {
-        cell = [];
-        grid.set(key, cell);
-      }
-      cell.push(i);
-    }
-
-    // For each node, check repulsion only against nodes in neighboring cells (3x3x3 neighborhood)
-    for (let i = 0; i < n; i++) {
-      const i3 = i * 3;
-      const xi = pos[i3], yi = pos[i3 + 1], zi = pos[i3 + 2];
-
-      const cx = Math.floor((xi - minX) / cellSize);
-      const cy = Math.floor((yi - minY) / cellSize);
-      const cz = Math.floor((zi - minZ) / cellSize);
-
-      // Check 3x3x3 neighboring cells
-      for (let dcx = -1; dcx <= 1; dcx++) {
-        const ncx = cx + dcx;
-        if (ncx < 0 || ncx >= gridW) continue;
-        for (let dcy = -1; dcy <= 1; dcy++) {
-          const ncy = cy + dcy;
-          if (ncy < 0 || ncy >= gridH) continue;
-          for (let dcz = -1; dcz <= 1; dcz++) {
-            const ncz = cz + dcz;
-            if (ncz < 0 || ncz >= gridD) continue;
-
-            const neighborKey = ncx + ncy * gridW + ncz * gridW * gridH;
-            const neighborCell = grid.get(neighborKey);
-            if (!neighborCell) continue;
-
-            for (let ni = 0; ni < neighborCell.length; ni++) {
-              const j = neighborCell[ni];
-              if (j <= i) continue; // Only process each pair once (j > i)
-
-              const j3 = j * 3;
-              let dx = pos[j3] - xi;
-              let dy = pos[j3 + 1] - yi;
-              let dz = pos[j3 + 2] - zi;
-
-              // Add small jitter to prevent singularities when nodes overlap
-              if (dx === 0 && dy === 0 && dz === 0) {
-                dx = (Math.random() - 0.5) * 0.1;
-                dy = (Math.random() - 0.5) * 0.1;
-                dz = (Math.random() - 0.5) * 0.1;
-              }
-
-              const distSq = dx * dx + dy * dy + dz * dz;
-
-              // Skip nodes beyond cutoff radius
-              if (distSq > cutoffRadiusSq) continue;
-
-              const dist = Math.sqrt(distSq);
-
-              // Repulsion force magnitude: F = k / r^2 (clamped for stability)
-              const minDist = 1.0;
-              const effectiveDist = Math.max(dist, minDist);
-              const repulseForce = (repulsionStrength * alpha) / (effectiveDist * effectiveDist);
-
-              // Direction: from j to i (i is pushed away from j)
-              const nx = dx / dist;
-              const ny = dy / dist;
-              const nz = dz / dist;
-
-              // Apply equal and opposite forces
-              forces[i3] -= repulseForce * nx;
-              forces[i3 + 1] -= repulseForce * ny;
-              forces[i3 + 2] -= repulseForce * nz;
-
-              forces[j3] += repulseForce * nx;
-              forces[j3 + 1] += repulseForce * ny;
-              forces[j3 + 2] += repulseForce * nz;
-            }
-          }
-        }
-      }
-    }
-
-    // 2. ATTRACTION: Edges act as springs pulling connected nodes together
-    // Using Hooke's law: F = k * (distance - restLength)
-    for (const edge of this.graphData.edges) {
-      const sourceIdx = this.nodeIndexMap.get(edge.source);
-      const targetIdx = this.nodeIndexMap.get(edge.target);
-
-      if (sourceIdx === undefined || targetIdx === undefined) continue;
-
-      const s3 = sourceIdx * 3;
-      const t3 = targetIdx * 3;
-
-      const dx = pos[t3] - pos[s3];
-      const dy = pos[t3 + 1] - pos[s3 + 1];
-      const dz = pos[t3 + 2] - pos[s3 + 2];
-
-      const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-      if (dist < 0.0001) continue; // Skip if nodes are at same position
-
-      // Spring force: pull toward ideal length
-      const displacement = dist - idealEdgeLength;
-      const springForce = attractionStrength * displacement * alpha;
-
-      const nx = dx / dist;
-      const ny = dy / dist;
-      const nz = dz / dist;
-
-      // Pull source toward target
-      forces[s3] += springForce * nx;
-      forces[s3 + 1] += springForce * ny;
-      forces[s3 + 2] += springForce * nz;
-
-      // Pull target toward source
-      forces[t3] -= springForce * nx;
-      forces[t3 + 1] -= springForce * ny;
-      forces[t3 + 2] -= springForce * nz;
-    }
-
-    // 3. CENTER GRAVITY: Gentle pull toward origin to prevent drift
-    for (let i = 0; i < n; i++) {
-      const i3 = i * 3;
-      forces[i3] -= pos[i3] * centerGravity * alpha;
-      forces[i3 + 1] -= pos[i3 + 1] * centerGravity * alpha;
-      forces[i3 + 2] -= pos[i3 + 2] * centerGravity * alpha;
-    }
-
-    // 4. DOMAIN CLUSTERING: Pull nodes of same domain toward cluster center
-    if (enableClustering && this.domainClusters.size > 1) {
-      // First, compute domain centers
-      this.domainCenters.clear();
-      this.domainClusters.forEach((nodeIndices, domain) => {
-        if (nodeIndices.length === 0) return;
-
-        let cx = 0, cy = 0, cz = 0;
-        for (let i = 0; i < nodeIndices.length; i++) {
-          const idx = nodeIndices[i];
-          const i3 = idx * 3;
-          cx += pos[i3];
-          cy += pos[i3 + 1];
-          cz += pos[i3 + 2];
-        }
-        cx /= nodeIndices.length;
-        cy /= nodeIndices.length;
-        cz /= nodeIndices.length;
-        this.domainCenters.set(domain, { x: cx, y: cy, z: cz });
-      });
-
-      // Apply clustering force toward domain center
-      this.domainClusters.forEach((nodeIndices, domain) => {
-        const center = this.domainCenters.get(domain);
-        if (!center) return;
-
-        for (let i = 0; i < nodeIndices.length; i++) {
-          const idx = nodeIndices[i];
-          const i3 = idx * 3;
-          const dx = center.x - pos[i3];
-          const dy = center.y - pos[i3 + 1];
-          const dz = center.z - pos[i3 + 2];
-
-          forces[i3] += dx * clusterStrength * alpha;
-          forces[i3 + 1] += dy * clusterStrength * alpha;
-          forces[i3 + 2] += dz * clusterStrength * alpha;
-        }
-      });
-    }
-
-    return forces;
-  }
-
-  /**
-   * Apply computed forces to update velocities and positions.
-   * Implements velocity Verlet integration with damping and speed limits.
-   */
-  private applyForces(forces: Float32Array, dt: number): void {
-    if (!this.currentPositions || !this.velocities) return;
-
-    const n = this.graphData.nodes.length;
-    const { damping, maxVelocity } = this.forcePhysics;
-    const pos = this.currentPositions;
-    const vel = this.velocities;
-
-    for (let i = 0; i < n; i++) {
-      // Skip pinned nodes
-      const nodeId = this.nodeIdMap.get(this.graphData.nodes[i].id);
-      if (nodeId !== undefined && this.pinnedNodeIds.has(nodeId)) continue;
-
-      const i3 = i * 3;
-
-      // Update velocities with forces (F = ma, assume m = 1)
-      vel[i3] += forces[i3] * dt;
-      vel[i3 + 1] += forces[i3 + 1] * dt;
-      vel[i3 + 2] += forces[i3 + 2] * dt;
-
-      // Apply damping
-      vel[i3] *= damping;
-      vel[i3 + 1] *= damping;
-      vel[i3 + 2] *= damping;
-
-      // Clamp velocity
-      const speed = Math.sqrt(vel[i3] * vel[i3] + vel[i3 + 1] * vel[i3 + 1] + vel[i3 + 2] * vel[i3 + 2]);
-      if (speed > maxVelocity) {
-        const scale = maxVelocity / speed;
-        vel[i3] *= scale;
-        vel[i3 + 1] *= scale;
-        vel[i3 + 2] *= scale;
-      }
-
-      // Update positions
-      pos[i3] += vel[i3] * dt;
-      pos[i3 + 1] += vel[i3 + 1] * dt;
-      pos[i3 + 2] += vel[i3 + 2] * dt;
-    }
-  }
+  // Client-side force computation (computeForces, applyForces) REMOVED.
+  // The server (Rust/CUDA GPU) handles all force-directed layout.
+  // Client only performs optimistic interpolation toward server targets.
 
   
   async pinNode(nodeId: number): Promise<void> { this.pinnedNodeIds.add(nodeId); }
@@ -806,20 +476,32 @@ class GraphWorker {
 
   
   async setUseServerPhysics(useServer: boolean): Promise<void> {
-    this.useServerPhysics = useServer;
-    // Also toggle force physics for visionflow
-    if (this.graphType === 'visionflow') {
-      this.forcePhysics.enabled = !useServer;
-      if (!useServer) {
-        this.forcePhysics.alpha = 1.0; // Reheat simulation
-      }
+    // Server physics is always authoritative. This method is kept for API
+    // compatibility but always enforces server mode.
+    this.useServerPhysics = true;
+    if (!useServer) {
+      workerLogger.warn('Client-side physics requested but server is authoritative — ignoring');
     }
-    workerLogger.info(`Physics mode set to ${useServer ? 'server' : 'local'}`);
+    workerLogger.info('Physics mode: server-authoritative (single source of truth)');
   }
 
 
   async getPhysicsMode(): Promise<boolean> {
     return this.useServerPhysics;
+  }
+
+  /** Update client-side tweening configuration (does NOT affect server physics). */
+  async setTweeningSettings(settings: Partial<{
+    enabled: boolean;
+    lerpBase: number;
+    snapThreshold: number;
+    maxDivergence: number;
+  }>): Promise<void> {
+    if (settings.enabled !== undefined) this.tweenSettings.enabled = settings.enabled;
+    if (settings.lerpBase !== undefined) this.tweenSettings.lerpBase = Math.max(0.0001, Math.min(0.1, settings.lerpBase));
+    if (settings.snapThreshold !== undefined) this.tweenSettings.snapThreshold = Math.max(0.1, settings.snapThreshold);
+    if (settings.maxDivergence !== undefined) this.tweenSettings.maxDivergence = Math.max(1, settings.maxDivergence);
+    workerLogger.info(`Tweening settings updated: lerpBase=${this.tweenSettings.lerpBase}, snap=${this.tweenSettings.snapThreshold}`);
   }
 
   /**
@@ -862,11 +544,9 @@ class GraphWorker {
 
         this.velocities!.fill(0, i3, i3 + 3);
 
-        // Reheat simulation when user drags in VisionFlow mode
-        if (this.graphType === 'visionflow' && this.forcePhysics.enabled) {
-          // Partial reheat to allow re-equilibration without full restart
-          this.forcePhysics.alpha = Math.max(this.forcePhysics.alpha, 0.3);
-        }
+        // User drag position is applied optimistically on the client.
+        // The position should also be sent to the server via REST API
+        // so the server can apply it as a constraint and rebroadcast.
       }
     }
   }
@@ -882,47 +562,10 @@ class GraphWorker {
 
     this.frameCount = (this.frameCount || 0) + 1;
 
-    // ====== CLIENT-SIDE FORCE-DIRECTED PHYSICS (VisionFlow) ======
-    if (this.graphType === 'visionflow' && this.forcePhysics.enabled) {
-      // Check if simulation has cooled down
-      if (this.forcePhysics.alpha < this.forcePhysics.alphaMin) {
-        // Simulation has settled - return current positions without updates
-        this.syncToSharedBuffer();
-        return this.currentPositions;
-      }
-
-      // Compute forces using repulsion/attraction model
-      const forces = this.computeForces();
-
-      // Apply forces to update positions
-      this.applyForces(forces, dt);
-
-      // Cool down simulation (alpha decay)
-      this.forcePhysics.alpha *= (1 - this.forcePhysics.alphaDecay);
-
-      // Sync graphData positions every 30 frames
-      if (this.frameCount % 30 === 0) {
-        for (let i = 0; i < this.graphData.nodes.length; i++) {
-          const i3 = i * 3;
-          this.graphData.nodes[i].position = {
-            x: this.currentPositions[i3],
-            y: this.currentPositions[i3 + 1],
-            z: this.currentPositions[i3 + 2],
-          };
-        }
-      }
-
-      // Log progress occasionally
-      if (this.frameCount % 60 === 0 && this.forcePhysics.alpha > this.forcePhysics.alphaMin) {
-        workerLogger.debug(`VisionFlow physics tick - alpha=${this.forcePhysics.alpha.toFixed(4)}, nodes=${this.graphData.nodes.length}`);
-      }
-
-      this.syncToSharedBuffer();
-      return this.currentPositions;
-    }
-
-    // ====== SERVER-SIDE PHYSICS (Logseq) - Interpolate toward target positions ======
-    if (this.useServerPhysics) {
+    // ====== SERVER-AUTHORITATIVE PHYSICS — Interpolate toward target positions ======
+    // All graph types (visionflow, logseq) use server-computed positions as the
+    // single source of truth. The client only performs optimistic tweening.
+    {
       
       let hasAnyMovement = false;
       for (let i = 0; i < this.graphData.nodes.length && !hasAnyMovement; i++) {
@@ -946,7 +589,10 @@ class GraphWorker {
 
 
       // deltaTime is already in seconds (from Three.js useFrame delta)
-      const lerpFactor = 1 - Math.pow(0.001, deltaTime); 
+      // lerpBase and snapThreshold are configurable via ClientTweeningSettings.
+      // Lower lerpBase = smoother/slower interpolation. Default 0.001.
+      const lerpBase = this.tweenSettings.lerpBase;
+      const lerpFactor = 1 - Math.pow(lerpBase, deltaTime); 
       
       
       let totalMovement = 0;
@@ -987,8 +633,21 @@ class GraphWorker {
         
         
         
-        const snapThreshold = 5.0; 
-        if (distanceSq < snapThreshold * snapThreshold) {
+        const snapThreshold = this.tweenSettings.snapThreshold;
+        const maxDiv = this.tweenSettings.maxDivergence;
+
+        // Force snap when divergence exceeds maxDivergence (prevents runaway drift)
+        if (distanceSq > maxDiv * maxDiv) {
+          this.currentPositions[i3] = this.targetPositions[i3];
+          this.currentPositions[i3 + 1] = this.targetPositions[i3 + 1];
+          this.currentPositions[i3 + 2] = this.targetPositions[i3 + 2];
+          if (this.velocities) {
+            this.velocities[i3] = 0;
+            this.velocities[i3 + 1] = 0;
+            this.velocities[i3 + 2] = 0;
+          }
+          totalMovement += Math.sqrt(distanceSq);
+        } else if (distanceSq < snapThreshold * snapThreshold) {
           
           const positionChanged = Math.abs(this.currentPositions[i3] - this.targetPositions[i3]) > 0.01 ||
                                  Math.abs(this.currentPositions[i3 + 1] - this.targetPositions[i3 + 1]) > 0.01 ||

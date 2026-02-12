@@ -2,7 +2,7 @@
 title: VisionFlow Documentation
 description: Complete documentation for VisionFlow - enterprise-grade multi-agent knowledge graphing
 category: reference
-updated-date: 2026-01-29
+updated-date: 2026-02-11
 ---
 
 # VisionFlow Documentation
@@ -79,17 +79,17 @@ Get running in 5 minutes:
 |----------|-------|
 | [Architecture Overview](explanation/architecture/README.md) | Complete system architecture |
 | [Technology Choices](explanation/architecture/technology-choices.md) | Stack rationale |
-| [System Overview](explanations/system-overview.md) | Architectural blueprint |
+| [System Overview](explanation/system-overview.md) | Architectural blueprint |
 | [Hexagonal CQRS](explanation/architecture/patterns/hexagonal-cqrs.md) | Ports and adapters |
 | [Data Flow](explanation/architecture/data-flow.md) | End-to-end pipeline |
-| [Integration Patterns](explanations/architecture/integration-patterns.md) | System integration |
+| [Integration Patterns](explanation/architecture/integration-patterns.md) | System integration |
 
 ### Deep Dives
 
 - **Actor System** - [Actor Guide](how-to/development/actor-system.md), [Server Architecture](explanation/architecture/server/overview.md)
 - **Database** - [Database Architecture](explanation/architecture/database.md), [Neo4j ADR](explanation/architecture/adr/ADR-0001-neo4j-persistent-with-filesystem-sync.md)
 - **Physics** - [Semantic Physics](explanation/architecture/physics/semantic-forces.md), [GPU Communication](explanation/architecture/gpu/communication-flow.md)
-- **Ontology** - [Ontology Storage](explanations/architecture/ontology-storage-architecture.md), [Reasoning Pipeline](explanation/architecture/ontology/reasoning-engine.md)
+- **Ontology** - [Ontology Storage](explanation/architecture/ontology-storage-architecture.md), [Reasoning Pipeline](explanation/architecture/ontology/reasoning-engine.md)
 - **Multi-Agent** - [Multi-Agent System](explanation/architecture/agents/multi-agent.md), [Agent Orchestration](how-to/agents/agent-orchestration.md)
 
 ### Hexagonal Architecture Ports
@@ -127,7 +127,7 @@ Get running in 5 minutes:
 
 - [Neo4j Migration](how-to/integration/neo4j-migration.md)
 - [Pipeline Admin API](how-to/operations/pipeline-admin-api.md)
-- [GitHub Sync Service](explanations/architecture/github-sync-service-design.md)
+- [GitHub Sync Service](explanation/architecture/github-sync-service-design.md)
 
 </details>
 
@@ -245,12 +245,14 @@ Practical instructions for specific goals.
 </details>
 
 <details>
-<summary>AI Agent System (4 guides)</summary>
+<summary>AI Agent System (6 guides)</summary>
 
 - [Agent Orchestration](how-to/agents/agent-orchestration.md) - Deploy AI agents
 - [Orchestrating Agents](how-to/agents/orchestrating-agents.md) - Coordination patterns
 - [Multi-Agent Skills](how-to/agents/using-skills.md) - Agent capabilities
 - [AI Models](how-to/ai-integration/README.md) - Model integrations
+- [Ontology Agent Tools](how-to/agents/ontology-agent-tools.md) - Ontology read/write tools for agents
+- [Voice Routing](how-to/features/voice-routing.md) - Multi-user voice-to-voice with LiveKit
 
 </details>
 
@@ -290,12 +292,12 @@ Deep dives into architecture and design.
 <details>
 <summary>System Architecture (20+ documents)</summary>
 
-- [System Overview](explanations/system-overview.md) - Architectural blueprint
+- [System Overview](explanation/system-overview.md) - Architectural blueprint
 - [Hexagonal CQRS](explanation/architecture/patterns/hexagonal-cqrs.md) - Ports and adapters
 - [Data Flow](explanation/architecture/data-flow.md) - End-to-end pipeline
 - [Services Architecture](explanation/architecture/services.md) - Business logic
 - [Multi-Agent System](explanation/architecture/agents/multi-agent.md) - AI coordination
-- [Integration Patterns](explanations/architecture/integration-patterns.md) - System integration
+- [Integration Patterns](explanation/architecture/integration-patterns.md) - System integration
 - [Database Architecture](explanation/architecture/database.md) - Neo4j design
 
 </details>
@@ -303,20 +305,20 @@ Deep dives into architecture and design.
 <details>
 <summary>GPU and Physics (8 documents)</summary>
 
-- [Semantic Physics System](explanations/architecture/semantic-physics-system.md) - Force layout
-- [GPU Semantic Forces](explanations/architecture/gpu-semantic-forces.md) - CUDA kernels
+- [Semantic Physics System](explanation/architecture/semantic-physics-system.md) - Force layout
+- [GPU Semantic Forces](explanation/architecture/gpu-semantic-forces.md) - CUDA kernels
 - [GPU Communication](explanation/architecture/gpu/communication-flow.md) - Data transfer
 - [GPU Optimisations](explanation/architecture/gpu/optimizations.md) - Performance
-- [Stress Majorisation](explanations/architecture/stress-majorization.md) - Layout algorithm
+- [Stress Majorisation](explanation/architecture/stress-majorization.md) - Layout algorithm
 
 </details>
 
 <details>
 <summary>Ontology and Reasoning (11 documents)</summary>
 
-- [Ontology Reasoning Pipeline](explanations/architecture/ontology-reasoning-pipeline.md) - Inference
+- [Ontology Reasoning Pipeline](explanation/architecture/ontology-reasoning-pipeline.md) - Inference
 - [Reasoning Engine](explanation/architecture/ontology/reasoning-engine.md) - Inference concepts
-- [Ontology Storage](explanations/architecture/ontology-storage-architecture.md) - Neo4j persistence
+- [Ontology Storage](explanation/architecture/ontology-storage-architecture.md) - Neo4j persistence
 - [Hierarchical Visualisation](explanation/architecture/ontology/hierarchical-visualization.md) - Tree layouts
 - [Pathfinding System](explanation/architecture/ontology/intelligent-pathfinding-system.md) - Graph traversal
 
@@ -381,7 +383,7 @@ Technical specifications and APIs.
 | **Total** | 242 markdown files |
 
 - **Framework**: Diataxis (Tutorials, How-To, Explanation, Reference)
-- **Last Updated**: 2026-01-29
+- **Last Updated**: 2026-02-11
 - **Verified**: Links checked, Mermaid diagrams validated
 
 ---

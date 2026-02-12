@@ -7,7 +7,7 @@ tags:
   - api
   - api
   - backend
-updated-date: 2025-12-18
+updated-date: 2026-02-11
 difficulty-level: advanced
 ---
 
@@ -35,7 +35,7 @@ The new architecture separates concerns:
 
 1. **HTTP Handler** → Receives request
 2. **CQRS Handler** → Processes command/query
-3. **Repository** → Reads/writes to unified.db (always fresh)
+3. **Repository** → Reads/writes to Neo4j / OntologyRepository (always fresh)
 4. **Event Bus** → Broadcasts changes
 5. **Subscribers** → Cache invalidation, WebSocket broadcast, metrics tracking
 
@@ -112,7 +112,7 @@ handler.handle(directive)?;
 
 **GitHub Sync Operation**:
 1. GitHub Sync reads markdown files
-2. Write to unified.db with new graph data
+2. Write to Neo4j/OntologyRepository with new graph data
 3. Emit `GraphSyncCompleted` event
 4. Subscribers act automatically:
    - **CacheInvalidationSubscriber** - Clears in-memory caches

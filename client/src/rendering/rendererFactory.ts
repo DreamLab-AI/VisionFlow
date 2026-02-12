@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import type { RendererCapabilities } from '../features/settings/config/settings';
 
 /**
  * Whether the active renderer is a true WebGPU backend (not WebGPURenderer
@@ -15,6 +16,38 @@ import * as THREE from 'three';
 export let isWebGPURenderer = false;
 
 /**
+ * Runtime renderer capabilities — populated after renderer init.
+ * Read by the settings panel to display active rendering features.
+ */
+export let rendererCapabilities: RendererCapabilities = {
+  backend: 'webgl',
+  tslMaterialsActive: false,
+  nodeBasedBloom: false,
+  gpuAdapterName: 'unknown',
+  maxTextureSize: 0,
+  pixelRatio: 1,
+};
+
+/**
+ * Detect XR headset user agents (Quest 3, Oculus Browser, etc.)
+ * for pixel ratio capping and WebGPU init timeout.
+ */
+function isXRHeadsetBrowser(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent || '';
+  return /Quest|OculusBrowser|Pico|VR/i.test(ua);
+}
+
+/**
+ * Resolve a max pixel ratio appropriate for the device.
+ * XR headsets get capped to 1.0 to avoid GPU memory blowup on
+ * the stereoscopic render targets (each eye = full resolution).
+ */
+function getMaxPixelRatio(): number {
+  return isXRHeadsetBrowser() ? 1.0 : 2.0;
+}
+
+/**
  * Renderer factory for R3F <Canvas gl={rendererFactory}>.
  * R3F calls: await glConfig(defaultProps) where defaultProps = { canvas, antialias, ... }
  *
@@ -23,9 +56,11 @@ export let isWebGPURenderer = false;
  *   2. Create WebGPURenderer with forceWebGL: false.
  *   3. After init(), verify the backend is actually WebGPU (not internal WebGL2 fallback).
  *   4. If the backend fell back to WebGL2, discard and use clean WebGLRenderer instead.
+ *   5. Timeout guard: if WebGPU init takes >5s, fall back to WebGL (Quest 3 sometimes hangs).
  */
 export async function createGemRenderer(defaultProps: Record<string, any>) {
   const canvas = defaultProps.canvas as HTMLCanvasElement;
+  const maxDPR = getMaxPixelRatio();
 
   // Gate 1: browser must expose the WebGPU API
   if (typeof navigator !== 'undefined' && (navigator as any).gpu) {
@@ -45,7 +80,12 @@ export async function createGemRenderer(defaultProps: Record<string, any>) {
         forceWebGL: false,
       });
 
-      await renderer.init();
+      // Timeout guard: Quest 3's Oculus Browser can hang during WebGPU adapter
+      // negotiation. Cap init to 5 seconds then fall back to WebGL.
+      const initTimeout = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('WebGPU init timed out (5s)')), 5000)
+      );
+      await Promise.race([renderer.init(), initTimeout]);
 
       // Gate 2: verify the backend is actually WebGPU, not the internal WebGL2 fallback.
       // Three.js r182 WebGPURenderer.init() silently falls back to WebGLBackend when
@@ -60,7 +100,7 @@ export async function createGemRenderer(defaultProps: Record<string, any>) {
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.2;
       renderer.outputColorSpace = THREE.SRGBColorSpace;
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxDPR));
 
       // Expose renderer type for components to check
       (renderer as any).__isWebGPURenderer = true;
@@ -87,6 +127,20 @@ export async function createGemRenderer(defaultProps: Record<string, any>) {
         }
       };
 
+      // Populate renderer capabilities for settings panel
+      const adapterInfo = renderer.backend?.adapter?.info ?? renderer.backend?.adapter ?? {};
+      rendererCapabilities = {
+        backend: 'webgpu',
+        tslMaterialsActive: true,  // TSL upgrade runs asynchronously per-material
+        nodeBasedBloom: true,
+        gpuAdapterName: (adapterInfo as any)?.description
+          || (adapterInfo as any)?.device
+          || backendName
+          || 'WebGPU',
+        maxTextureSize: 16384,  // WebGPU minimum guaranteed
+        pixelRatio: Math.min(window.devicePixelRatio, maxDPR),
+      };
+
       console.log('[GemRenderer] WebGPU renderer initialized (backend:', backendName + ')');
       return renderer;
     } catch (err) {
@@ -107,9 +161,25 @@ export async function createGemRenderer(defaultProps: Record<string, any>) {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.2;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxDPR));
 
   isWebGPURenderer = false;
+
+  // Populate renderer capabilities for WebGL fallback
+  const gl2 = renderer.getContext();
+  const isXR = isXRHeadsetBrowser();
+  rendererCapabilities = {
+    backend: 'webgl',
+    tslMaterialsActive: false,
+    nodeBasedBloom: false,
+    gpuAdapterName: (gl2 as any)?.getParameter?.((gl2 as any)?.RENDERER) || (isXR ? 'WebGL (XR)' : 'WebGL'),
+    maxTextureSize: (gl2 as any)?.getParameter?.((gl2 as any)?.MAX_TEXTURE_SIZE) || 4096,
+    pixelRatio: Math.min(window.devicePixelRatio, maxDPR),
+  };
+
+  if (isXR) {
+    console.log('[GemRenderer] XR headset detected — pixel ratio capped to', maxDPR);
+  }
 
   console.log('[GemRenderer] WebGL renderer initialized');
   return renderer;
