@@ -140,7 +140,8 @@ export function parseBinaryNodeData(buffer: ArrayBuffer): BinaryNodeData[] {
         hasAnalytics = true;
         break;
       case PROTOCOL_V4:
-        // Delta encoding - not yet implemented on client; silently skip
+        // Delta encoding - not yet implemented on client
+        logger.warn('Received Protocol V4 (delta encoding) frame — client decoding not yet implemented, skipping');
         return [];
       default:
         // Unknown version - try to detect format by size

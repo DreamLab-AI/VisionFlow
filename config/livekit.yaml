@@ -1,0 +1,32 @@
+# LiveKit SFU Configuration for VisionFlow Voice-to-Voice
+# Optimized for spatial audio with agent voice injection
+
+port: 7880
+rtc:
+  port_range_start: 50000
+  port_range_end: 50200
+  tcp_port: 7881
+  use_external_ip: false
+  # Opus codec settings — matches our pipeline
+  congestion_control:
+    enabled: true
+
+keys:
+  visionflow: visionflow-voice-secret-change-in-prod
+
+room:
+  # Default room settings for VisionFlow voice
+  empty_timeout: 300        # 5 min before closing empty rooms
+  max_participants: 50      # Matches Vircadia max users
+  auto_create: true
+
+audio:
+  # Force Opus codec across the board
+  active_level: 30          # dBFS threshold for active speaker detection
+  min_percentile: 30
+  update_interval: 300      # ms between active speaker updates
+  smooth_intervals: 2
+
+logging:
+  level: info
+  json: true

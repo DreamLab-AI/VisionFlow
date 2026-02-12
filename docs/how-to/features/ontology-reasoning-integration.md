@@ -197,7 +197,7 @@ OntologyParser::parse()
         ↓
 save-ontology-data()
         ↓
-UnifiedOntologyRepository::save-ontology()
+OntologyRepository::save-ontology()
         ↓
 OntologyReasoningService::infer-axioms()
         ↓
@@ -217,12 +217,12 @@ Broadcast OntologyUpdated event
 ```rust
 use std::sync::Arc;
 use crate::adapters::whelk-inference-engine::WhelkInferenceEngine;
-use crate::repositories::unified-ontology-repository::UnifiedOntologyRepository;
+use crate::ports::ontology-repository::OntologyRepository;
 use crate::services::ontology-reasoning-service::OntologyReasoningService;
 
 // Initialize
 let engine = Arc::new(WhelkInferenceEngine::new());
-let repo = Arc::new(UnifiedOntologyRepository::new("data/unified.db")?);
+let repo: Arc<dyn OntologyRepository> = /* obtain from DI */;
 let service = OntologyReasoningService::new(engine, repo);
 
 // Infer axioms

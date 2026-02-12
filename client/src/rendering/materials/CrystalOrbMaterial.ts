@@ -53,14 +53,35 @@ export function createCrystalOrbMaterial(): CrystalOrbMaterialResult {
     }),
   });
 
-  // TSL Fresnel upgrade for WebGPU (onBeforeCompile injects GLSL which WebGPU ignores)
+  // TSL Fresnel + depth-pulsing emissive upgrade for WebGPU
   const ready = isWebGPURenderer
     ? import('three/tsl').then((tsl: any) => {
-        const { float, mix, pow, dot, normalize: tslNorm, normalView, positionView, oneMinus, saturate } = tsl;
+        const {
+          float, vec3, mix, pow, sin, add,
+          dot, normalize: tslNorm, normalView, positionView, positionLocal,
+          oneMinus, saturate, time, vertexColor,
+        } = tsl;
+
+        // Fresnel rim lighting — cosmic nebula glow at grazing angles
         const vDir = tslNorm(positionView.negate());
         const nDotV = saturate(dot(normalView, vDir));
         const fresnel = pow(oneMinus(nDotV), float(3.0));
         (material as any).opacityNode = mix(float(0.3), float(0.88), fresnel);
+
+        // Depth-pulse emissive: ontology nodes pulse slowly with a cosmic spectrum
+        // driven by the pulseSpeed uniform (deeper nodes pulse slower)
+        const pulse = sin(time.mul(float(uniforms.pulseSpeed.value)).add(positionLocal.y.mul(2.0))).mul(0.5).add(0.5);
+        const baseEmissive = vec3(float(0.12), float(0.12), float(0.3));
+        const warmEmissive = vec3(float(0.25), float(0.15), float(0.35));
+        const emissiveNode = mix(baseEmissive, warmEmissive, pulse).mul(float(uniforms.glowStrength.value));
+        (material as any).emissiveNode = emissiveNode;
+
+        // Per-instance color via vertexColor (instanceColor buffer) + Fresnel brightening
+        if (vertexColor) {
+          const rimWhite = vec3(1.0, 1.0, 1.0);
+          (material as any).colorNode = mix(vertexColor, rimWhite, fresnel.mul(0.25));
+        }
+
         (material as any).needsUpdate = true;
       }).catch((err: any) => console.warn('[CrystalOrbMaterial] TSL upgrade failed:', err))
     : Promise.resolve();

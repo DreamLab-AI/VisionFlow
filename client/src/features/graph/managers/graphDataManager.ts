@@ -51,7 +51,7 @@ class GraphDataManager {
         logger.debug('Waiting for worker to be ready...');
       }
       let attempts = 0;
-      const maxAttempts = 300; // 3 seconds total
+      const maxAttempts = 1000; // 10 seconds total (increased from 3s)
 
       while (!graphWorkerProxy.isReady() && attempts < maxAttempts) {
         await new Promise(resolve => setTimeout(resolve, 10));
@@ -59,13 +59,18 @@ class GraphDataManager {
       }
 
       if (!graphWorkerProxy.isReady()) {
-        logger.warn('Graph worker proxy not ready after timeout, proceeding without worker');
-        this.workerInitialized = false;
-        useWorkerErrorStore.getState().setWorkerError(
-          'The graph visualization worker failed to initialize.',
-          'Worker initialization timed out after 3 seconds. The application will continue with reduced performance.'
-        );
-        return;
+        logger.warn('Graph worker proxy not ready after timeout, attempting recovery...');
+        // Try one more time with a longer wait before giving up
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        if (!graphWorkerProxy.isReady()) {
+          logger.warn('Graph worker proxy still not ready after recovery attempt');
+          this.workerInitialized = false;
+          useWorkerErrorStore.getState().setWorkerError(
+            'The graph visualization worker failed to initialize.',
+            'Worker initialization timed out after 12 seconds. Click retry to attempt reinitialization.'
+          );
+          return;
+        }
       }
 
       this.workerInitialized = true;
@@ -531,13 +536,8 @@ class GraphDataManager {
       return;
     }
 
-    // Skip non-logseq graphs
-    if (this.graphType !== 'logseq') {
-      if (debugState.isDataDebugEnabled()) {
-        logger.debug(`Skipping binary update for ${this.graphType} graph`);
-      }
-      return;
-    }
+    // All graph types process binary position updates from the server.
+    // Server is the single source of truth for all node positions.
 
     // Throttle to ~60fps
     const now = Date.now();
@@ -557,8 +557,9 @@ class GraphDataManager {
       }
 
       await graphWorkerProxy.processBinaryData(positionData);
-      
-      
+      // Successful processing — reset transient error counter
+      useWorkerErrorStore.getState().resetTransientErrors();
+
       const settings = useSettingsStore.getState().settings;
       const debugEnabled = settings?.system?.debug?.enabled;
       const physicsDebugEnabled = (settings?.system?.debug as any)?.enablePhysicsDebug;
@@ -581,8 +582,9 @@ class GraphDataManager {
       }
     } catch (error) {
       logger.error('Error processing binary position data:', createErrorMetadata(error));
-      
-      
+      // Track transient errors — only escalate to red screen after sustained failures
+      useWorkerErrorStore.getState().recordTransientError('updateNodePositions');
+
       if (debugState.isEnabled()) {
         try {
           

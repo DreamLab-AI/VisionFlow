@@ -50,14 +50,39 @@ export function createAgentCapsuleMaterial(): AgentCapsuleMaterialResult {
     } : {}),
   });
 
-  // TSL Fresnel upgrade for WebGPU (onBeforeCompile injects GLSL which WebGPU ignores)
+  // TSL Fresnel + bioluminescent pulse upgrade for WebGPU
   const ready = isWebGPURenderer
     ? import('three/tsl').then((tsl: any) => {
-        const { float, mix, pow, dot, normalize: tslNorm, normalView, positionView, oneMinus, saturate } = tsl;
+        const {
+          float, vec3, mix, pow, sin,
+          dot, normalize: tslNorm, normalView, positionView, positionLocal,
+          oneMinus, saturate, time, vertexColor,
+        } = tsl;
+
+        // Fresnel rim lighting — bioluminescent green glow at grazing angles
         const vDir = tslNorm(positionView.negate());
         const nDotV = saturate(dot(normalView, vDir));
         const fresnel = pow(oneMinus(nDotV), float(3.0));
         (material as any).opacityNode = mix(float(0.3), float(0.85), fresnel);
+
+        // Bioluminescent heartbeat pulse driven by activityLevel:
+        // Active agents pulse faster and brighter, idle agents dim and slow.
+        // Phase offset from positionLocal.y creates a traveling wave effect.
+        const heartbeat = pow(
+          sin(time.mul(float(2.0 * uniforms.activityLevel.value)).add(positionLocal.y.mul(3.0))).mul(0.5).add(0.5),
+          float(2.0),
+        );
+        const baseGreen = vec3(float(0.06), float(0.3), float(0.15));
+        const peakGreen = vec3(float(0.15), float(0.6), float(0.3));
+        const emissiveNode = mix(baseGreen, peakGreen, heartbeat).mul(float(uniforms.glowStrength.value));
+        (material as any).emissiveNode = emissiveNode;
+
+        // Per-instance color via vertexColor (instanceColor buffer) + Fresnel rim
+        if (vertexColor) {
+          const rimGreen = vec3(0.7, 1.0, 0.8);
+          (material as any).colorNode = mix(vertexColor, rimGreen, fresnel.mul(0.3));
+        }
+
         (material as any).needsUpdate = true;
       }).catch((err: any) => console.warn('[AgentCapsuleMaterial] TSL upgrade failed:', err))
     : Promise.resolve();

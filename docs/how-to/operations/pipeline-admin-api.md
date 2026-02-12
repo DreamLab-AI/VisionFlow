@@ -279,7 +279,7 @@ Register routes:
 ### Automatic Execution
 
 ```
-GitHub Sync → OWL Parse → unified.db → [TRIGGER]
+GitHub Sync → OWL Parse → Neo4j → [TRIGGER]
                                             ↓
                                        Reasoning
                                             ↓

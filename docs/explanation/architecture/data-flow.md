@@ -6,7 +6,7 @@ tags:
   - architecture
   - api
   - backend
-updated-date: 2025-12-18
+updated-date: 2026-02-11
 difficulty-level: advanced
 ---
 
@@ -46,10 +46,10 @@ graph TB
         ONTOP["🧬 OntologyParser"]
     end
 
-    subgraph Database["💾 Unified Database (unified.db)"]
-        GRAPH-TABLES["graph-nodes<br>graph-edges"]
-        OWL-TABLES["owl-classes<br>owl-properties<br>owl-axioms<br>owl-hierarchy"]
-        META["file-metadata"]
+    subgraph Database["💾 Data Layer (Neo4j + In-Memory Store)"]
+        GRAPH-TABLES["Neo4j Nodes<br>Neo4j Relationships"]
+        OWL-TABLES["OntologyRepository<br>(In-Memory Store)"]
+        META["Sync Metadata"]
     end
 
     subgraph Reasoning["🧠 Ontology Reasoning"]
@@ -112,14 +112,14 @@ sequenceDiagram
     participant Sync as GitHubSyncService
     participant GH as GitHub API
     participant Parser as Content Parsers
-    participant Repo as UnifiedGraphRepository
-    participant DB as unified.db
+    participant Repo as KnowledgeGraphRepository
+    participant DB as Neo4j
 
     App->>Sync: Initialize sync service
     App->>Sync: sync-graphs()
 
     activate Sync
-    Sync->>DB: Query file-metadata for SHA1 hashes
+    Sync->>DB: Query sync metadata for SHA1 hashes
     DB-->>Sync: Previous file states
 
     Sync->>GH: Fetch file list (jjohare/logseq)
@@ -134,7 +134,7 @@ sequenceDiagram
             Parser-->>Sync: Parsed data
             Sync->>Repo: Store nodes/edges/classes
             Repo->>DB: INSERT/UPDATE
-            Sync->>DB: Update file-metadata
+            Sync->>DB: Update sync metadata
         else File unchanged
             Sync->>Sync: Skip (no processing)
         end
@@ -171,16 +171,20 @@ public:: true
 - property:: active
 ```
 
-**Output** (to unified.db):
-```sql
--- graph-nodes table
-INSERT INTO graph-nodes (metadata-id, label, metadata)
-VALUES ('artificial-intelligence', 'Artificial Intelligence',
-        '{"tags": ["ai", "technology"], "property": "active"}');
+**Output** (to Neo4j):
+```cypher
+// Create graph node
+CREATE (n:GraphNode {
+  metadataId: 'artificial-intelligence',
+  label: 'Artificial Intelligence',
+  tags: ['ai', 'technology'],
+  property: 'active'
+})
 
--- graph-edges table
-INSERT INTO graph-edges (source, target, weight)
-VALUES (1, 2, 1.0); -- AI → Machine Learning
+// Create graph relationship
+MATCH (a:GraphNode {metadataId: 'artificial-intelligence'})
+MATCH (b:GraphNode {metadataId: 'machine-learning'})
+CREATE (a)-[:LINKS_TO {weight: 1.0}]->(b)
 ```
 
 ### 4. Ontology Parsing
@@ -196,23 +200,32 @@ VALUES (1, 2, 1.0); -- AI → Machine Learning
     - range:: Capability
 ```
 
-**Output** (to unified.db):
-```sql
--- owl-classes table
-INSERT INTO owl-classes (iri, label, description)
-VALUES ('Agent', 'Intelligent Agent', NULL);
+**Output** (to in-memory OntologyRepository via `Arc<RwLock<HashMap>>`):
+```rust
+// Store OWL class in OntologyRepository
+ontology_repo.write().unwrap().classes.insert(
+    "Agent".into(),
+    OwlClass { iri: "Agent", label: "Intelligent Agent", description: None }
+);
 
--- owl-class-hierarchy table
-INSERT INTO owl-class-hierarchy (class-iri, parent-iri)
-VALUES ('Agent', 'Entity');
+// Store class hierarchy
+ontology_repo.write().unwrap().hierarchy.insert(
+    "Agent".into(),
+    ParentClass { class_iri: "Agent", parent_iri: "Entity" }
+);
 
--- owl-properties table
-INSERT INTO owl-properties (iri, label, property-type, domain, range)
-VALUES ('hasCapability', 'hasCapability', 'ObjectProperty', 'Agent', 'Capability');
+// Store object property
+ontology_repo.write().unwrap().properties.insert(
+    "hasCapability".into(),
+    OwlProperty { iri: "hasCapability", property_type: ObjectProperty,
+                  domain: "Agent", range: "Capability" }
+);
 
--- owl-axioms table (asserted)
-INSERT INTO owl-axioms (axiom-type, subject, predicate, object, is-inferred)
-VALUES ('SubClassOf', 'Agent', 'rdfs:subClassOf', 'Entity', 0);
+// Store asserted axiom
+ontology_repo.write().unwrap().axioms.push(
+    OwlAxiom { axiom_type: SubClassOf, subject: "Agent",
+               predicate: "rdfs:subClassOf", object: "Entity", is_inferred: false }
+);
 ```
 
 ---
@@ -226,9 +239,9 @@ graph TB
     START["🔄 Sync Complete"]
 
     subgraph Load["1️⃣ Load Ontology"]
-        LOAD-CLASSES["Load owl-classes"]
-        LOAD-AXIOMS["Load owl-axioms<br>(is-inferred=0)"]
-        LOAD-PROPS["Load owl-properties"]
+        LOAD-CLASSES["Load classes from<br>OntologyRepository"]
+        LOAD-AXIOMS["Load asserted axioms<br>(is_inferred=false)"]
+        LOAD-PROPS["Load properties from<br>OntologyRepository"]
     end
 
     subgraph Reason["2️⃣ Whelk-rs Reasoning"]
@@ -238,8 +251,8 @@ graph TB
     end
 
     subgraph Store["3️⃣ Store Results"]
-        INFER-AX["Insert inferred axioms<br>(is-inferred=1)"]
-        UPDATE-META["Update reasoning-metadata"]
+        INFER-AX["Store inferred axioms<br>(is_inferred=true)"]
+        UPDATE-META["Update reasoning metadata"]
         CACHE-WARM["Warm LRU cache"]
     end
 
@@ -277,18 +290,22 @@ graph TB
 
 ### 2. Inference Examples
 
-**Asserted Axiom**:
-```sql
--- User defines: "Cat SubClassOf Animal"
-INSERT INTO owl-axioms (axiom-type, subject, predicate, object, is-inferred)
-VALUES ('SubClassOf', 'Cat', 'rdfs:subClassOf', 'Animal', 0);
+**Asserted Axiom** (stored in OntologyRepository):
+```rust
+// User defines: "Cat SubClassOf Animal"
+ontology_repo.write().unwrap().axioms.push(
+    OwlAxiom { axiom_type: SubClassOf, subject: "Cat",
+               predicate: "rdfs:subClassOf", object: "Animal", is_inferred: false }
+);
 ```
 
-**Inferred Axiom** (by Whelk-rs):
-```sql
--- System infers: "Cat SubClassOf LivingThing" (via Animal → LivingThing)
-INSERT INTO owl-axioms (axiom-type, subject, predicate, object, is-inferred)
-VALUES ('SubClassOf', 'Cat', 'rdfs:subClassOf', 'LivingThing', 1);
+**Inferred Axiom** (by Whelk-rs, stored back to OntologyRepository):
+```rust
+// System infers: "Cat SubClassOf LivingThing" (via Animal -> LivingThing)
+ontology_repo.write().unwrap().axioms.push(
+    OwlAxiom { axiom_type: SubClassOf, subject: "Cat",
+               predicate: "rdfs:subClassOf", object: "LivingThing", is_inferred: true }
+);
 ```
 
 ### 3. Performance Metrics
@@ -481,7 +498,7 @@ gantt
     section GitHub Sync
     Fetch files          :0, 2000
     Parse content        :2000, 1000
-    Store to DB          :3000, 500
+    Store to Neo4j       :3000, 500
 
     section Reasoning
     Load ontology        :3500, 200
@@ -521,15 +538,15 @@ gantt
 graph TB
     GH["📁 GitHub File:<br>artificial-intelligence.md"]
 
-    META["📋 file-metadata:<br>SHA1: abc123...<br>last-modified: 2025-11-03"]
+    META["📋 Sync Metadata:<br>SHA1: abc123...<br>last-modified: 2025-11-03"]
 
-    NODE["🔵 graph-nodes:<br>id: 1<br>metadata-id: 'artificial-intelligence'<br>label: 'Artificial Intelligence'"]
+    NODE["🔵 Neo4j GraphNode:<br>id: 1<br>metadataId: 'artificial-intelligence'<br>label: 'Artificial Intelligence'"]
 
-    CLASS["🧬 owl-classes:<br>iri: 'AI'<br>label: 'AI System'"]
+    CLASS["🧬 OntologyRepository class:<br>iri: 'AI'<br>label: 'AI System'"]
 
-    AXIOM-A["📐 owl-axioms:<br>subject: 'AI'<br>predicate: 'subClassOf'<br>object: 'ComputationalSystem'<br>is-inferred: 0"]
+    AXIOM-A["📐 OntologyRepository axiom:<br>subject: 'AI'<br>predicate: 'subClassOf'<br>object: 'ComputationalSystem'<br>is_inferred: false"]
 
-    AXIOM-I["📐 owl-axioms:<br>subject: 'AI'<br>predicate: 'subClassOf'<br>object: 'InformationProcessor'<br>is-inferred: 1<br>(inferred by Whelk-rs)"]
+    AXIOM-I["📐 OntologyRepository axiom:<br>subject: 'AI'<br>predicate: 'subClassOf'<br>object: 'InformationProcessor'<br>is_inferred: true<br>(inferred by Whelk-rs)"]
 
     CONS1["⚙️ Semantic Constraint:<br>type: Spring<br>node-a: 1<br>node-b: 2<br>strength: 0.5<br>is-inferred: false"]
 
@@ -609,14 +626,14 @@ graph TB
 ## Conclusion
 
 **System Characteristics**:
-- ✅ **Complete**: GitHub → Database → Reasoning → GPU → Client
+- ✅ **Complete**: GitHub → Neo4j/OntologyRepository → Reasoning → GPU → Client
 - ✅ **Efficient**: Differential sync, LRU caching, binary protocol
 - ✅ **Intelligent**: Ontology reasoning drives visualization
 - ✅ **Scalable**: Handles 10,000+ nodes at 60 FPS
 - ✅ **Traceable**: Complete data lineage from source to display
 
 **Architecture Benefits**:
-1. **Unified Database**: Single source of truth (unified.db)
+1. **Dual-Store Architecture**: Neo4j for graph data, in-memory OntologyRepository for OWL reasoning
 2. **Ontology-Driven**: Semantic relationships control physics
 3. **GPU-Accelerated**: Real-time 3D graph simulation
 4. **Binary Efficient**: 10x bandwidth reduction vs. JSON
@@ -624,6 +641,6 @@ graph TB
 
 ---
 
-**Documentation Version**: 1.0
-**Last Updated**: November 3, 2025
+**Documentation Version**: 2.0
+**Last Updated**: February 11, 2026
 **Maintained By**: VisionFlow Architecture Team

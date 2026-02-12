@@ -14,7 +14,7 @@ related-docs:
   - README.md
   - architecture/overview.md
   - ASCII_DEPRECATION_COMPLETE.md
-updated-date: 2025-12-18
+updated-date: 2026-02-11
 difficulty-level: advanced
 dependencies:
   - ❌ Immature ecosystem (spec finalized 2023)

@@ -72,66 +72,13 @@ const createGraphSettingsSubsections = (graphName: 'logseq' | 'visionflow') => (
       labelDistanceThreshold: { label: 'Visibility Distance', type: 'slider', min: 50, max: 2000, step: 50, unit: 'units', path: `visualisation.graphs.${graphName}.labels.labelDistanceThreshold`, description: 'Max camera distance for visible labels (higher = see labels from farther away).' },
     },
   },
-  [`${graphName}Physics`]: {
-    label: `${graphName === 'logseq' ? 'Logseq Graph' : 'VisionFlow Graph'} - Physics Simulation`,
-    settings: {
-      enabled: { label: 'Enable Physics', type: 'toggle', path: `visualisation.graphs.${graphName}.physics.enabled`, description: 'Enable physics simulation for graph layout.' },
-      attractionStrength: { label: 'Attraction Strength', type: 'slider', min: 0.0, max: 1.0, step: 0.001, path: `visualisation.graphs.${graphName}.physics.attractionStrength`, description: 'Attraction force between connected nodes.' },
-      boundsSize: { label: 'Bounds Size', type: 'slider', min: 10, max: 10000, step: 10, unit: 'units', path: `visualisation.graphs.${graphName}.physics.boundsSize`, description: 'Simulation viewport boundaries.' },
-      collisionRadius: { label: 'Collision Radius', type: 'slider', min: 0.5, max: 100, step: 0.5, unit: 'units', path: `visualisation.graphs.${graphName}.physics.collisionRadius`, description: 'Node collision detection distance.' },
-      damping: { label: 'Damping', type: 'slider', min: 0.0, max: 1.0, step: 0.01, path: `visualisation.graphs.${graphName}.physics.damping`, description: 'Velocity reduction factor (0=no damping, 1=complete stop).' },
-      enableBounds: { label: 'Enable Bounds', type: 'toggle', path: `visualisation.graphs.${graphName}.physics.enableBounds`, description: 'Confine nodes within the bounds size.' },
-      iterations: { label: 'Iterations', type: 'slider', min: 10, max: 1000, step: 10, unit: 'steps', path: `visualisation.graphs.${graphName}.physics.iterations`, description: 'Simulation accuracy (higher = more accurate, slower).' },
-      maxVelocity: { label: 'Max Velocity', type: 'slider', min: 0.1, max: 100.0, step: 0.1, unit: 'units/s', path: `visualisation.graphs.${graphName}.physics.maxVelocity`, description: 'Maximum velocity for nodes.' },
-      repelK: { label: 'Repel K', type: 'slider', min: 0.0, max: 500.0, step: 0.1, path: `visualisation.graphs.${graphName}.physics.repelK`, description: 'Repulsion force strength between nodes.' },
-      springK: { label: 'Spring K', type: 'slider', min: 0.0, max: 10.0, step: 0.01, path: `visualisation.graphs.${graphName}.physics.springK`, description: 'Spring force strength for edges.' },
-      repulsionDistance: { label: 'Repulsion Distance', type: 'slider', min: 1, max: 1000, step: 1, unit: 'units', path: `visualisation.graphs.${graphName}.physics.repulsionDistance`, description: 'Range of node repulsion effects.' },
-      massScale: { label: 'Mass Scale', type: 'slider', min: 0.1, max: 10.0, step: 0.1, path: `visualisation.graphs.${graphName}.physics.massScale`, description: 'Node mass multiplier (affects inertia).' },
-      boundaryDamping: { label: 'Boundary Damping', type: 'slider', min: 0.1, max: 1.0, step: 0.01, path: `visualisation.graphs.${graphName}.physics.boundaryDamping`, description: 'Energy loss when nodes hit boundaries.' },
-      updateThreshold: {
-        label: 'Update Threshold',
-        type: 'slider',
-        min: 0,
-        max: 1.0,
-        step: 0.01,
-        unit: 'units',
-        path: `visualisation.graphs.${graphName}.physics.updateThreshold`,
-        description: 'Minimum movement distance to trigger updates (0 = all updates, higher = fewer updates).'
-      },
-      
-      restLength: { label: 'Rest Length', type: 'slider', min: 1, max: 1000, step: 1, path: `visualisation.graphs.${graphName}.physics.restLength`, description: 'Target distance for spring forces.' },
-      repulsionCutoff: { label: 'Repulsion Cutoff', type: 'slider', min: 0, max: 1000, step: 1, path: `visualisation.graphs.${graphName}.physics.repulsionCutoff`, description: 'Max distance for repulsion effect.' },
-      repulsionSofteningEpsilon: { label: 'Repulsion Softening Epsilon', type: 'slider', min: 0.0001, max: 0.01, step: 0.0001, path: `visualisation.graphs.${graphName}.physics.repulsionSofteningEpsilon`, description: 'Softening parameter to prevent singularities in repulsion calculations.' },
-      centerGravityK: { label: 'Center Gravity K', type: 'slider', min: 0.0, max: 1.0, step: 0.001, path: `visualisation.graphs.${graphName}.physics.centerGravityK`, description: 'Centering force strength.' },
-      gridCellSize: { label: 'Grid Cell Size', type: 'slider', min: 10, max: 500, step: 5, path: `visualisation.graphs.${graphName}.physics.gridCellSize`, description: 'Spatial hashing grid cell size.' },
-      warmupIterations: { label: 'Warmup Iterations', type: 'slider', min: 0, max: 1000, step: 10, path: `visualisation.graphs.${graphName}.physics.warmupIterations`, description: 'Warmup iterations for smooth start.' },
-      coolingRate: { label: 'Cooling Rate', type: 'slider', min: 0.0, max: 1.0, step: 0.001, path: `visualisation.graphs.${graphName}.physics.coolingRate`, description: 'Rate at which the system cools down during simulation.' },
-      dt: { label: 'Time Step (dt)', type: 'slider', min: 0.001, max: 1.0, step: 0.001, path: `visualisation.graphs.${graphName}.physics.dt`, description: 'Integration time step (smaller = more accurate).' },
-      maxForce: { label: 'Max Force', type: 'slider', min: 1, max: 1000, step: 1, path: `visualisation.graphs.${graphName}.physics.maxForce`, description: 'Maximum force magnitude cap.' },
-      ssspAlpha: { label: 'SSSP Alpha', type: 'slider', min: 0.0, max: 1.0, step: 0.01, path: `visualisation.graphs.${graphName}.physics.ssspAlpha`, description: 'Shortest path spring adjustment factor.' },
-      viewportBounds: { label: 'Viewport Bounds', type: 'slider', min: 100, max: 10000, step: 100, path: `visualisation.graphs.${graphName}.physics.viewportBounds`, description: 'Boundary limit for nodes.' },
-    },
-  },
+  // Per-graph physics settings are managed in the dedicated Physics & Layout tab
+  // (PhysicsControlPanel + physics category subsections). Not duplicated here.
 });
 
 export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
-  
-  dashboard: {
-    label: 'Dashboard',
-    icon: 'Monitor',
-    subsections: {
-      overview: {
-        label: 'System Overview',
-        settings: {
-          graphStatus: { label: 'Graph Status', type: 'buttonAction', path: 'dashboard.graphStatus', description: 'View current graph statistics', action: () => logger.info('Graph Status') },
-          performance: { label: 'Performance Monitor', type: 'buttonAction', path: 'dashboard.performance', description: 'View performance metrics', action: () => logger.info('Performance') },
-          quickReset: { label: 'Reset View', type: 'buttonAction', path: 'dashboard.quickReset', description: 'Reset camera to default position', action: () => logger.info('Reset View') },
-          exportGraph: { label: 'Export Graph', type: 'buttonAction', path: 'dashboard.exportGraph', description: 'Export current graph data', action: () => logger.info('Export') },
-          importData: { label: 'Import Data', type: 'buttonAction', path: 'dashboard.importData', description: 'Import graph data from file', action: () => logger.info('Import') },
-        },
-      },
-    },
-  },
+  // Dashboard removed — its stub buttons were not connected to real actions.
+  // Performance monitoring is now in the Performance tab (PerformanceControlPanel).
   
   visualization: {
     label: 'Visualization',
@@ -521,6 +468,18 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
           }
         }
       },
+      nodeFilter: {
+        label: 'Node Confidence Filter',
+        description: 'Filter out low-confidence nodes to declutter the view. Synced with server.',
+        settings: {
+          enabled: { label: 'Enable Node Filter', type: 'toggle', path: 'nodeFilter.enabled', description: 'Filter out low-confidence nodes to improve rendering performance. Nodes below the quality threshold are hidden.' },
+          qualityThreshold: { label: 'Quality Threshold', type: 'slider', min: 0.0, max: 1.0, step: 0.05, path: 'nodeFilter.qualityThreshold', description: 'Minimum quality score (0-1) for nodes to be displayed. Higher values = fewer nodes.' },
+          authorityThreshold: { label: 'Authority Threshold', type: 'slider', min: 0.0, max: 1.0, step: 0.05, path: 'nodeFilter.authorityThreshold', description: 'Minimum authority score (0-1) for nodes to be displayed.' },
+          filterByQuality: { label: 'Filter by Quality', type: 'toggle', path: 'nodeFilter.filterByQuality', description: 'Use quality score for filtering nodes.' },
+          filterByAuthority: { label: 'Filter by Authority', type: 'toggle', path: 'nodeFilter.filterByAuthority', description: 'Use authority score for filtering nodes.' },
+          filterMode: { label: 'Filter Mode', type: 'select', options: [{value: 'or', label: 'OR (Any threshold)'}, {value: 'and', label: 'AND (All thresholds)'}], path: 'nodeFilter.filterMode', description: 'How to combine filter criteria: OR shows nodes passing any threshold, AND requires all.' },
+        },
+      },
     },
   },
   
@@ -734,23 +693,7 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
       },
     },
   },
-  
-  auth: {
-    label: 'Authentication',
-    icon: 'Shield',
-    subsections: {
-      authentication: {
-        label: 'Authentication Settings',
-        settings: {
-          requireAuth: { label: 'Require Authentication', type: 'toggle', path: 'auth.requireAuth', description: 'Require users to authenticate.' },
-          authProvider: { label: 'Auth Provider', type: 'select', options: [{value: 'local', label: 'Local'}, {value: 'oauth', label: 'OAuth'}, {value: 'saml', label: 'SAML'}], path: 'auth.authProvider', description: 'Authentication provider to use.' },
-          sessionTimeout: { label: 'Session Timeout', type: 'slider', min: 5, max: 480, step: 5, unit: 'min', path: 'auth.sessionTimeout', description: 'Session timeout duration.' },
-          rememberMe: { label: 'Enable Remember Me', type: 'toggle', path: 'auth.rememberMe', description: 'Allow users to stay logged in.' },
-          twoFactorAuth: { label: 'Two-Factor Auth', type: 'toggle', path: 'auth.twoFactorAuth', description: 'Require two-factor authentication.' },
-        },
-      },
-    },
-  },
+  // Auth settings moved into System → Authentication subsection
   xr: {
     label: 'XR',
     icon: 'Smartphone',
@@ -859,6 +802,16 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
         label: 'Security Settings',
         settings: {
           sessionTimeout: { label: 'Session Timeout', type: 'slider', min: 5, max: 1440, step: 5, unit: 'min', path: 'system.security.sessionTimeout', description: 'User session timeout duration.' },
+        },
+      },
+      authentication: {
+        label: 'Authentication',
+        settings: {
+          requireAuth: { label: 'Require Authentication', type: 'toggle', path: 'auth.requireAuth', description: 'Require users to authenticate.' },
+          authProvider: { label: 'Auth Provider', type: 'select', options: [{value: 'local', label: 'Local'}, {value: 'oauth', label: 'OAuth'}, {value: 'saml', label: 'SAML'}], path: 'auth.authProvider', description: 'Authentication provider to use.' },
+          sessionTimeout: { label: 'Auth Session Timeout', type: 'slider', min: 5, max: 480, step: 5, unit: 'min', path: 'auth.sessionTimeout', description: 'Authentication session timeout duration.' },
+          rememberMe: { label: 'Enable Remember Me', type: 'toggle', path: 'auth.rememberMe', description: 'Allow users to stay logged in.' },
+          twoFactorAuth: { label: 'Two-Factor Auth', type: 'toggle', path: 'auth.twoFactorAuth', description: 'Require two-factor authentication.' },
         },
       },
     },

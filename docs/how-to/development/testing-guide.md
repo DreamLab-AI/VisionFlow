@@ -1,371 +1,270 @@
 ---
 title: VisionFlow Testing Guide
-description: **Last Updated**: 2025-10-03 **Purpose**: Comprehensive manual testing guide for VisionFlow control panel functionality and API endpoints **Testing Approach**: Manual testing only (automated tests ...
+description: Comprehensive guide to running and writing tests for the Rust backend, React frontend, integration tests, ontology agent tests, and WebSocket testing.
 category: how-to
 tags:
-  - tutorial
   - testing
-  - api
-updated-date: 2025-12-18
+  - development
+  - rust
+  - react
+  - integration
+updated-date: 2026-02-12
 difficulty-level: intermediate
 ---
 
-
 # VisionFlow Testing Guide
 
-**Last Updated**: 2025-10-03
-**Purpose**: Comprehensive manual testing guide for VisionFlow control panel functionality and API endpoints
-**Testing Approach**: Manual testing only (automated tests removed for security)
+This guide covers the full testing strategy for VisionFlow: Rust unit and integration tests, React component and Vitest tests, ontology reasoning tests, and WebSocket testing approaches.
 
-## Overview
+## Test Infrastructure Overview
 
-This guide provides manual testing procedures for the VisionFlow visualization settings control panel and associated API endpoints. The control panel enables real-time adjustment of physics parameters, visual effects, and debug settings.
+| Layer | Tool | Command | Location |
+|-------|------|---------|----------|
+| Rust unit tests | `cargo test` | `cargo test --lib` | `src/` (inline `#[cfg(test)]` modules) |
+| Rust integration tests | `cargo test` | `cargo test --test '*'` | `tests/` |
+| React unit tests | Vitest + Testing Library | `npm test` (in `client/`) | `client/src/**/*.test.ts(x)` |
+| React E2E tests | Playwright | `npx playwright test` | `client/tests/` |
+| API endpoint tests | cargo test / curl | `cargo test api` | `tests/api/`, `tests/api_validation_tests.rs` |
+| GPU tests | cargo test (feature-gated) | `cargo test --features gpu` | `tests/gpu_*.rs` |
 
-### Testing Strategy
+## Rust Backend Tests
 
-**⚠️ Important**: VisionFlow uses **manual testing only**. Automated testing infrastructure was removed in October 2025 due to supply chain security concerns (see ).
+### Running All Rust Tests
 
-**Testing Approach**:
-- Manual functional testing via UI
-- API endpoint testing via curl/Postman
-- Visual verification of graph behavior
-- Performance monitoring via browser DevTools
-
-For details on why automated tests were removed, see .
-
-## Control Panel Settings Structure
-
-### 1. Physics Controls
-
-Physics settings control the graph visualization simulation:
-
-```javascript
-// Physics settings paths and ranges
-visualisation.graphs.logseq.physics.damping       // Range: 0.0 - 1.0 (default: 0.95)
-visualisation.graphs.logseq.physics.gravity       // Range: -1.0 - 1.0 (default: 0.0)
-visualisation.graphs.logseq.physics.springStrength // Range: 0.0 - 1.0 (default: 0.01)
-visualisation.graphs.logseq.physics.springLength  // Range: 0 - 500 (default: 100)
-visualisation.graphs.logseq.physics.repulsion     // Range: 0 - 1000 (default: 100)
-visualisation.graphs.logseq.physics.centralForce  // Range: 0.0 - 1.0 (default: 0.001)
-```
-
-### 2. Visual Effects Controls
-
-Settings for visual appearance and post-processing effects:
-
-```javascript
-// Glow settings
-visualisation.glow.nodeGlowStrength    // Range: 0.0 - 1.0
-visualisation.glow.edgeGlowStrength    // Range: 0.0 - 1.0
-visualisation.glow.baseColor           // Color: #RRGGBB format
-
-// Bloom effect
-visualisation.bloom.enabled            // Boolean: true/false
-visualisation.bloom.intensity          // Range: 0.0 - 2.0
-visualisation.bloom.threshold          // Range: 0.0 - 1.0
-visualisation.bloom.radius            // Range: 0.0 - 1.0
-
-// Node appearance
-visualisation.nodes.baseColor          // Color: #RRGGBB
-visualisation.nodes.highlightColor     // Color: #RRGGBB
-visualisation.nodes.defaultSize        // Range: 1 - 20
-
-// Edge appearance
-visualisation.edges.defaultColor       // Color: #RRGGBB
-visualisation.edges.highlightColor     // Color: #RRGGBB
-visualisation.edges.thickness          // Range: 0.1 - 5.0
-```
-
-### 3. Debug Controls
-
-Developer and debugging settings:
-
-```javascript
-system.debug.enabled                   // Boolean: Enable debug mode
-system.debug.enableDataDebug          // Boolean: Log data operations
-system.debug.enablePerformanceDebug   // Boolean: Show performance metrics
-system.debug.consoleLogging           // Boolean: Enable console output
-```
-
-## API Testing Endpoints
-
-### Single Setting Operations
-
-#### Get Single Setting
-```http
-GET /api/settings/path?path=<setting-path>
-
-Example Response:
-{
-  "path": "visualisation.glow.nodeGlowStrength",
-  "value": 0.5,
-  "success": true
-}
-```
-
-#### Update Single Setting
-```http
-PUT /api/settings/path
-Content-Type: application/json
-
-{
-  "path": "visualisation.glow.nodeGlowStrength",
-  "value": 0.7
-}
-
-Response:
-{
-  "success": true,
-  "path": "visualisation.glow.nodeGlowStrength",
-  "value": 0.7
-}
-```
-
-### Batch Operations
-
-#### Batch Get Settings
-```http
-POST /api/settings/batch
-Content-Type: application/json
-
-{
-  "paths": [
-    "visualisation.glow.nodeGlowStrength",
-    "visualisation.glow.edgeGlowStrength",
-    "visualisation.bloom.enabled"
-  ]
-}
-
-Response:
-{
-  "success": true,
-  "values": [
-    {"path": "visualisation.glow.nodeGlowStrength", "value": 0.5},
-    {"path": "visualisation.glow.edgeGlowStrength", "value": 0.3},
-    {"path": "visualisation.bloom.enabled", "value": true}
-  ]
-}
-```
-
-#### Batch Update Settings
-```http
-PUT /api/settings/batch
-Content-Type: application/json
-
-{
-  "updates": [
-    {"path": "visualisation.glow.nodeGlowStrength", "value": 0.7},
-    {"path": "visualisation.glow.edgeGlowStrength", "value": 0.5},
-    {"path": "visualisation.bloom.intensity", "value": 1.2}
-  ]
-}
-
-Response:
-{
-  "success": true,
-  "results": [
-    {"path": "visualisation.glow.nodeGlowStrength", "success": true},
-    {"path": "visualisation.glow.edgeGlowStrength", "success": true},
-    {"path": "visualisation.bloom.intensity", "success": true}
-  ]
-}
-```
-
-## Testing Scenarios
-
-### Scenario 1: Physics Parameter Tuning
-
-Test adjusting physics parameters and observe effects on graph layout:
-
-1. **Increase Damping** (0.95 → 0.99)
-   - **Expected Result**: Graph movement becomes more viscous, settles faster
-   - **Test Command**: `curl -X PUT "http://localhost:5173/api/settings/path" -H "Content-Type: application/json" -d '{"path":"visualisation.graphs.logseq.physics.damping","value":0.99}'`
-
-2. **Add Gravity** (0.0 → 0.5)
-   - **Expected Result**: Nodes drift downward
-   - **Test Command**: Update gravity setting and observe node movement
-
-3. **Increase Spring Strength** (0.01 → 0.1)
-   - **Expected Result**: Connected nodes pull together more strongly
-   - **Validation**: Measure distance between connected nodes
-
-4. **Adjust Repulsion** (100 → 500)
-   - **Expected Result**: Nodes push apart more, graph expands
-   - **Validation**: Measure overall graph bounding box
-
-### Scenario 2: Visual Effects Testing
-
-Test visual enhancement settings:
-
-1. **Toggle Bloom Effect**
-   - Enable bloom and adjust intensity (0.5 → 1.5)
-   - **Expected Result**: Glowing halo effect around bright elements
-   - **Validation**: Visual inspection of node rendering
-
-2. **Adjust Node Glow**
-   - Increase nodeGlowStrength from 0.5 to 0.9
-   - **Expected Result**: Nodes become more luminous
-   - **Test**: Compare before/after screenshots
-
-3. **Change Color Scheme**
-   - Update baseColor and highlightColor
-   - **Expected Result**: Immediate colour changes in visualisation
-   - **Validation**: Color picker validation
-
-### Scenario 3: Performance Testing
-
-Test debug and performance settings:
-
-1. **Enable Debug Mode**
-   - Set system.debug.enabled to true
-   - **Expected Result**: Additional debug information in console
-   - **Validation**: Check browser console for debug output
-
-2. **Enable Performance Metrics**
-   - Set system.debug.enablePerformanceDebug to true
-   - **Expected Result**: FPS counter and performance stats visible
-   - **Validation**: Verify performance overlay appears
-
-## cURL Testing Commands
-
-### Physics Parameter Testing
 ```bash
-# Get current damping value
-curl -X GET "http://localhost:5173/api/settings/path?path=visualisation.graphs.logseq.physics.damping"
+# From the project root (or inside the container)
+cargo test
 
-# Update damping value
-curl -X PUT "http://localhost:5173/api/settings/path" \
-  -H "Content-Type: application/json" \
-  -d '{"path":"visualisation.graphs.logseq.physics.damping","value":0.98}'
+# Run with output visible (useful for debugging)
+cargo test -- --nocapture
 
-# Test gravity setting
-curl -X PUT "http://localhost:5173/api/settings/path" \
-  -H "Content-Type: application/json" \
-  -d '{"path":"visualisation.graphs.logseq.physics.gravity","value":0.3}'
+# Run a specific test file
+cargo test --test ontology_smoke_test
+
+# Run tests matching a pattern
+cargo test settings_validation
 ```
 
-### Visual Effects Batch Update
+### Unit Tests
+
+Unit tests live alongside the code in `src/` using `#[cfg(test)]` modules. They test individual functions and types in isolation.
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_node_creation() {
+        let node = GraphNode::new("test-id", "Test Label");
+        assert_eq!(node.id, "test-id");
+    }
+
+    #[tokio::test]
+    async fn test_async_handler() {
+        // Async test using tokio runtime
+    }
+}
+```
+
+Dev dependencies used for testing:
+- `tokio-test` -- Async test utilities
+- `mockall` -- Mock trait implementations
+- `pretty_assertions` -- Readable diff output for assertion failures
+- `tempfile` -- Temporary directories for file-based tests
+- `actix-rt` -- Actix runtime for handler tests
+
+### Integration Tests
+
+Integration tests live in the top-level `tests/` directory. Key test files:
+
+| File | What It Tests |
+|------|--------------|
+| `ontology_smoke_test.rs` | Basic ontology loading and parsing |
+| `ontology_agent_integration_test.rs` | Ontology agent actor lifecycle |
+| `ontology_reasoning_integration_test.rs` | Whelk reasoning engine integration |
+| `neo4j_settings_integration_tests.rs` | Settings persistence to Neo4j |
+| `settings_validation_tests.rs` | Settings schema validation |
+| `voice_agent_integration_test.rs` | Voice pipeline agent integration |
+| `high_perf_networking_tests.rs` | QUIC/WebTransport protocol tests |
+| `gpu_safety_tests.rs` | GPU memory management and fallback |
+| `mcp_parsing_tests.rs` | MCP message parsing and relay |
+
+### Running Tests Inside Docker
+
 ```bash
-curl -X PUT "http://localhost:5173/api/settings/batch" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "updates": [
-      {"path": "visualisation.glow.nodeGlowStrength", "value": 0.8},
-      {"path": "visualisation.bloom.enabled", "value": true},
-      {"path": "visualisation.bloom.intensity", "value": 1.5}
-    ]
-  }'
+# Shell into the dev container
+docker exec -it visionflow_container bash
+
+# Run Rust tests
+cargo test
+
+# Run with specific log level
+RUST_LOG=debug cargo test -- --nocapture
 ```
 
-### Debug Settings Test
+## React Frontend Tests
+
+### Running Frontend Tests
+
 ```bash
-curl -X PUT "http://localhost:5173/api/settings/batch" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "updates": [
-      {"path": "system.debug.enabled", "value": true},
-      {"path": "system.debug.enablePerformanceDebug", "value": true},
-      {"path": "system.debug.consoleLogging", "value": true}
-    ]
-  }'
+cd client
+
+# Run all tests once
+npm test
+
+# Watch mode (re-runs on file changes)
+npm run test:watch
+
+# With coverage report
+npm run test:coverage
+
+# Interactive UI
+npm run test:ui
 ```
 
-## Expected UI Components
+### Vitest Configuration
 
-The control panel should include:
+The frontend uses Vitest (configured in `client/vitest.config.ts`) with jsdom for DOM simulation and `@testing-library/react` for component testing.
 
-### 1. Physics Section
-- Sliders for damping, gravity, spring settings
-- Reset button for default values
-- Real-time value display
-- Range validation
+```typescript
+// Example component test
+import { render, screen } from '@testing-library/react';
+import { SettingsPanel } from './SettingsPanel';
 
-### 2. Visual Effects Section
-- Toggle switches for bloom, glow effects
-- Colour pickers for node/edge colours
-- Intensity sliders with live preview
-- Effect preview area
+describe('SettingsPanel', () => {
+  it('renders physics controls', () => {
+    render(<SettingsPanel />);
+    expect(screen.getByText('Physics')).toBeInTheDocument();
+  });
+});
+```
 
-### 3. Debug Section
-- Checkbox toggles for debug options
-- Console output viewer
-- Performance metrics display
-- Export debug data button
+### Playwright E2E Tests
 
-### 4. Presets Management
-- Save current settings as preset
-- Load preset configurations
-- Reset to system defaults
-- Import/export settings JSON
+End-to-end tests use Playwright (configured in `client/playwright.config.ts`):
 
-## Known Working Endpoints
+```bash
+cd client
+npx playwright test
 
-✅ **Verified Operational**:
-- `POST /api/settings/batch` - Batch read settings
-- `PUT /api/settings/batch` - Batch update settings
-- `GET /api/settings/path` - Get single setting
-- `PUT /api/settings/path` - Update single setting
-- `GET /api/graph/data` - Get graph data
-- `POST /api/bots/spawn-agent-hybrid` - Spawn hybrid agents
+# Run with browser visible
+npx playwright test --headed
 
-## Testing Notes
+# Generate test report
+npx playwright show-report
+```
 
-- All settings changes are debounced on the client side (50ms)
-- Critical updates (physics parameters) are processed immediately
-- Settings are persisted to localStorage and server simultaneously
-- WebSocket updates notify all connected clients of changes
-- The backend has resolved duplicate route definitions
+## Ontology Agent Tests
 
-## Validation Checklist
+The ontology subsystem has dedicated tests for the Whelk reasoning engine and OWL parsing:
 
-### API Response Validation
-- [ ] HTTP status codes are correct (200 for success, 400 for validation errors)
-- [ ] Response format matches expected JSON structure
-- [ ] Field names use camelCase in responses
-- [ ] Error messages are descriptive and actionable
-- [ ] Timestamps are included in responses
+```bash
+# Smoke test for ontology loading
+cargo test --test ontology_smoke_test
 
-### Visual Validation
-- [ ] Physics changes affect graph layout immediately
-- [ ] Color changes are reflected in real-time
-- [ ] Bloom effects render correctly
-- [ ] Debug information displays properly
-- [ ] Performance metrics update continuously
+# Full reasoning integration
+cargo test --test ontology_reasoning_integration_test
 
-### Performance Validation
-- [ ] Settings updates complete within latency targets (<50ms)
-- [ ] Batch operations are more efficient than individual requests
-- [ ] WebSocket notifications are sent to all connected clients
-- [ ] No memory leaks during extended testing
-- [ ] CPU usage remains stable during parameter adjustments
+# Schema compliance
+cargo test --test test_ontology_schema_fixes
 
-## Troubleshooting Guide
+# Ontology constraint validation
+cargo test --test ontology_constraints_gpu_test
+```
 
-### Common Issues
+These tests verify:
+- OWL file parsing via `horned-owl`
+- Whelk subsumption reasoning over the VisionFlow ontology
+- Ontology-driven constraint application to graph physics
+- Actor lifecycle for the ontology agent
 
-1. **404 Errors on API Calls**
-   - **Check**: Vite proxy configuration in `vite.config.ts`
-   - **Solution**: Ensure proxy is always enabled, not conditionally
+## WebSocket Testing
 
-2. **Settings Not Persisting**
-   - **Check**: AutoSaveManager debouncing settings
-   - **Solution**: Wait for batch save to complete (500ms delay)
+VisionFlow uses WebSockets extensively for real-time graph updates, voice, and MCP relay. Testing approaches:
 
-3. **Visual Effects Not Appearing**
-   - **Check**: WebGL support in browser
-   - **Solution**: Test in browser with hardware acceleration enabled
+### Manual WebSocket Testing with wscat
 
-4. **Physics Parameters Not Responding**
-   - **Check**: Graph simulation is running
-   - **Solution**: Verify physics actor is active and receiving updates
+```bash
+# Install wscat (available in the client dev dependencies)
+npx wscat -c ws://localhost:3001/wss
 
-### Debug Steps
+# Send a graph subscription message
+> {"type":"subscribe","channel":"graph"}
+```
 
-1. **Enable Debug Mode**: Set `system.debug.enabled = true`
-2. **Check Console Logs**: Look for API request/response details
-3. **Verify WebSocket Connection**: Check `/wss` endpoint status
-4. **Test Individual Endpoints**: Use cURL commands to isolate issues
-5. **Monitor Network Traffic**: Use browser DevTools Network tab
+### Programmatic WebSocket Tests
 
----
+```bash
+# Run the WebSocket rate limit test
+cargo test --test test_websocket_rate_limit
 
+# Run the wire format test
+cargo test --test test_wire_format
+```
+
+### WebSocket Test Patterns
+
+For testing WebSocket handlers in Rust:
+
+```rust
+#[actix_rt::test]
+async fn test_ws_connection() {
+    let srv = actix_test::start(|| {
+        App::new().route("/wss", web::get().to(ws_handler))
+    });
+    let mut ws = srv.ws_at("/wss").await.unwrap();
+    ws.send(Message::Text("ping".into())).await.unwrap();
+    let response = ws.next().await.unwrap().unwrap();
+    assert!(matches!(response, Frame::Text(_)));
+}
+```
+
+## GPU Tests
+
+GPU tests require an NVIDIA GPU and CUDA runtime. They are feature-gated:
+
+```bash
+# Run GPU-specific tests
+cargo test --features gpu -- gpu
+
+# GPU memory manager tests
+cargo test --test gpu_memory_manager_test
+
+# GPU safety and fallback tests
+cargo test --test gpu_safety_tests
+```
+
+See `tests/README_GPU_TESTS.md` for hardware requirements and skip conditions.
+
+## Test Organization Conventions
+
+1. **File naming:** Test files use `snake_case` with a `_test.rs` suffix (e.g., `ontology_smoke_test.rs`).
+2. **Test naming:** Test functions use `test_` prefix with descriptive names.
+3. **Fixtures:** Shared test data lives in `tests/fixtures/`.
+4. **Test utilities:** Common helpers are in `tests/test_utils.rs` and `src/test_helpers.rs`.
+5. **Feature gates:** GPU and ontology tests use `#[cfg(feature = "gpu")]` / `#[cfg(feature = "ontology")]`.
+
+## Continuous Integration
+
+Tests should pass before any PR merge. Run the full suite:
+
+```bash
+# Rust (from project root)
+cargo test --all-features
+
+# Frontend (from client/)
+cd client && npm test
+
+# Linting
+cd client && npm run lint
+cargo clippy --all-features -- -D warnings
+```
+
+## See Also
+
+- [Contributing Guide](./contributing.md) -- Code contribution workflow and conventions
+- [Development Setup](./01-development-setup.md) -- Setting up a development environment
+- [Docker Environment Setup](../deployment/docker-environment-setup.md) -- Running tests inside Docker
+- `tests/README.md` -- Test directory index
+- `tests/README_GPU_TESTS.md` -- GPU test prerequisites

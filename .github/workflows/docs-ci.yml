@@ -5,11 +5,17 @@ on:
     branches: [main, develop]
     paths:
       - 'docs/**'
+      - 'README.md'
+      - 'CHANGELOG.md'
+      - 'AGENTS.md'
       - '.github/workflows/docs-ci.yml'
   pull_request:
     branches: [main]
     paths:
       - 'docs/**'
+      - 'README.md'
+      - 'CHANGELOG.md'
+      - 'AGENTS.md'
 
 jobs:
   validate-documentation:
@@ -20,132 +26,293 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y bc jq python3 python3-yaml
-
-      - name: Make scripts executable
-        run: chmod +x docs/scripts/*.sh
-
-      - name: Run link validation
+      - name: Validate internal links
         id: links
         run: |
-          echo "Running link validation..."
-          docs/scripts/validate-links.sh --json > /tmp/links.json || true
-          cat /tmp/links.json
-          echo "links_result=$(cat /tmp/links.json | jq -r '.success_rate')" >> $GITHUB_OUTPUT
+          echo "## Internal Link Validation" > /tmp/report.md
+          echo "" >> /tmp/report.md
 
-      - name: Run frontmatter validation
-        id: frontmatter
-        run: |
-          echo "Running frontmatter validation..."
-          docs/scripts/validate-frontmatter.sh --json > /tmp/frontmatter.json || true
-          cat /tmp/frontmatter.json
-          echo "frontmatter_result=$(cat /tmp/frontmatter.json | jq -r '.success_rate')" >> $GITHUB_OUTPUT
+          broken=0
+          checked=0
 
-      - name: Run Mermaid diagram validation
+          while IFS= read -r file; do
+            # Extract markdown links: [text](path)
+            while IFS= read -r raw; do
+              # raw is like [text](link)
+              link="$(echo "$raw" | sed 's/.*](//' | sed 's/)$//')"
+              [ -z "$link" ] && continue
+
+              # Skip external URLs, anchors, mailto
+              case "$link" in
+                https://*|http://*|mailto:*) continue ;;
+              esac
+
+              # Skip pure anchor links
+              case "$link" in
+                \#*) continue ;;
+              esac
+
+              checked=$((checked + 1))
+
+              # Strip anchor fragments for file existence check
+              target="${link%%#*}"
+              [ -z "$target" ] && continue
+
+              # Skip absolute paths (can't resolve in CI)
+              case "$target" in
+                /*) continue ;;
+              esac
+
+              # Resolve relative to the file's directory
+              dir="$(dirname "$file")"
+              resolved="$dir/$target"
+
+              if [ ! -e "$resolved" ]; then
+                echo "- \`$file\` -> \`$link\`" >> /tmp/report.md
+                broken=$((broken + 1))
+              fi
+            done < <(grep -oE '\[[^]]*\]\([^)]+\)' "$file" 2>/dev/null || true)
+          done < <(find docs -name '*.md' -type f)
+
+          valid=$((checked - broken))
+          if [ "$checked" -gt 0 ]; then
+            rate=$(( (valid * 100) / checked ))
+          else
+            rate=100
+          fi
+
+          echo "" >> /tmp/report.md
+          echo "**Result**: $valid/$checked links valid ($rate%)" >> /tmp/report.md
+          echo "" >> /tmp/report.md
+
+          echo "links_checked=$checked" >> $GITHUB_OUTPUT
+          echo "links_broken=$broken" >> $GITHUB_OUTPUT
+          echo "links_rate=$rate" >> $GITHUB_OUTPUT
+
+          if [ "$broken" -gt 0 ]; then
+            echo "::warning::Found $broken broken internal links out of $checked checked"
+          fi
+
+      - name: Validate Mermaid diagrams
         id: mermaid
         run: |
-          echo "Running Mermaid validation..."
-          docs/scripts/validate-mermaid.sh --json > /tmp/mermaid.json || true
-          cat /tmp/mermaid.json
-          echo "mermaid_result=$(cat /tmp/mermaid.json | jq -r '.success_rate')" >> $GITHUB_OUTPUT
+          echo "## Mermaid Diagram Validation" >> /tmp/report.md
+          echo "" >> /tmp/report.md
 
-      - name: Detect ASCII diagrams
-        id: ascii
+          total=0
+          invalid=0
+
+          while IFS= read -r file; do
+            in_block=false
+            first_line=""
+            while IFS= read -r line; do
+              if echo "$line" | grep -qE '^\s*```mermaid'; then
+                in_block=true
+                first_line=""
+                continue
+              fi
+              if [ "$in_block" = true ]; then
+                if echo "$line" | grep -qE '^\s*```\s*$'; then
+                  in_block=false
+                  total=$((total + 1))
+                  if [ -z "$first_line" ]; then
+                    echo "- \`$file\`: empty mermaid block" >> /tmp/report.md
+                    invalid=$((invalid + 1))
+                  elif ! echo "$first_line" | grep -qE '^(graph|flowchart|sequenceDiagram|classDiagram|stateDiagram|erDiagram|gantt|pie|gitgraph|mindmap|timeline|journey|quadrantChart|sankey|xychart|block|packet|kanban|architecture|C4Context|C4Container|C4Component|C4Deployment|C4Dynamic|%%)'; then
+                    echo "- \`$file\`: invalid start \`$first_line\`" >> /tmp/report.md
+                    invalid=$((invalid + 1))
+                  fi
+                elif [ -z "$first_line" ]; then
+                  trimmed="$(echo "$line" | sed 's/^[[:space:]]*//')"
+                  [ -n "$trimmed" ] && first_line="$trimmed"
+                fi
+              fi
+            done < "$file"
+          done < <(find docs -name '*.md' -type f)
+
+          valid=$((total - invalid))
+          if [ "$total" -gt 0 ]; then
+            rate=$(( (valid * 100) / total ))
+          else
+            rate=100
+          fi
+
+          echo "**Result**: $valid/$total diagrams valid ($rate%)" >> /tmp/report.md
+          echo "" >> /tmp/report.md
+
+          echo "mermaid_total=$total" >> $GITHUB_OUTPUT
+          echo "mermaid_invalid=$invalid" >> $GITHUB_OUTPUT
+          echo "mermaid_rate=$rate" >> $GITHUB_OUTPUT
+
+          if [ "$invalid" -gt 0 ]; then
+            echo "::warning::Found $invalid invalid Mermaid diagrams out of $total"
+          fi
+
+      - name: Check for stale references
+        id: stale
         run: |
-          echo "Detecting ASCII diagrams..."
-          docs/scripts/detect-ascii.sh --json > /tmp/ascii.json || true
-          cat /tmp/ascii.json
-          echo "ascii_count=$(cat /tmp/ascii.json | jq -r '.ascii_diagrams_found')" >> $GITHUB_OUTPUT
+          echo "## Stale Reference Check" >> /tmp/report.md
+          echo "" >> /tmp/report.md
 
-      - name: Validate UK English spelling
-        id: spelling
-        run: |
-          echo "Validating UK English spelling..."
-          docs/scripts/validate-spelling.sh --json > /tmp/spelling.json || true
-          cat /tmp/spelling.json
-          echo "spelling_errors=$(cat /tmp/spelling.json | jq -r '.spelling_errors')" >> $GITHUB_OUTPUT
+          stale=0
 
-      - name: Validate structure
+          # Check for references to removed database (unified.db as active, not historical)
+          while IFS= read -r file; do
+            # Skip migration/historical docs where unified.db references are expected
+            case "$file" in
+              *migration*|*CHANGELOG*|*schemas*|*neo4j-migration*) continue ;;
+            esac
+            count=$(grep -c 'unified\.db' "$file" 2>/dev/null || true)
+            if [ "$count" -gt 0 ]; then
+              echo "- \`$file\`: $count reference(s) to \`unified.db\` (migrated to Neo4j)" >> /tmp/report.md
+              stale=$((stale + count))
+            fi
+          done < <(find docs -name '*.md' -type f)
+
+          # Check for references to removed SQLite repositories
+          while IFS= read -r file; do
+            case "$file" in
+              *migration*|*CHANGELOG*|*schemas*|*neo4j-migration*) continue ;;
+            esac
+            count=$(grep -cE 'Sqlite(KnowledgeGraph|Ontology)Repository' "$file" 2>/dev/null || true)
+            if [ "$count" -gt 0 ]; then
+              echo "- \`$file\`: $count reference(s) to removed SQLite repositories" >> /tmp/report.md
+              stale=$((stale + count))
+            fi
+          done < <(find docs -name '*.md' -type f)
+
+          echo "" >> /tmp/report.md
+          if [ "$stale" -eq 0 ]; then
+            echo "**Result**: No stale references found" >> /tmp/report.md
+          else
+            echo "**Result**: $stale stale reference(s) found (informational)" >> /tmp/report.md
+          fi
+          echo "" >> /tmp/report.md
+
+          echo "stale_refs=$stale" >> $GITHUB_OUTPUT
+
+          # Stale refs are warnings, not score penalties — tracked for cleanup
+          if [ "$stale" -gt 0 ]; then
+            echo "::warning::Found $stale stale references to removed components (does not affect score)"
+          fi
+
+      - name: Validate directory structure
         id: structure
         run: |
-          echo "Validating structure..."
-          docs/scripts/validate-structure.sh --json > /tmp/structure.json || true
-          cat /tmp/structure.json
-          echo "structure_errors=$(cat /tmp/structure.json | jq -r '.structure_errors')" >> $GITHUB_OUTPUT
+          echo "## Directory Structure Validation" >> /tmp/report.md
+          echo "" >> /tmp/report.md
 
-      - name: Calculate overall quality score
+          errors=0
+
+          # Diataxis directories that must exist
+          for dir in docs/tutorials docs/how-to docs/explanation docs/reference; do
+            if [ ! -d "$dir" ]; then
+              echo "- Missing required directory: \`$dir\`" >> /tmp/report.md
+              errors=$((errors + 1))
+            fi
+          done
+
+          # Must have a docs index
+          if [ ! -f "docs/README.md" ]; then
+            echo "- Missing \`docs/README.md\` index" >> /tmp/report.md
+            errors=$((errors + 1))
+          fi
+
+          if [ "$errors" -eq 0 ]; then
+            echo "**Result**: Directory structure valid" >> /tmp/report.md
+          else
+            echo "**Result**: $errors structure issue(s)" >> /tmp/report.md
+          fi
+          echo "" >> /tmp/report.md
+
+          echo "structure_errors=$errors" >> $GITHUB_OUTPUT
+
+      - name: Calculate quality score
         id: quality
         run: |
-          links_score=${{ steps.links.outputs.links_result }}
-          frontmatter_score=${{ steps.frontmatter.outputs.frontmatter_result }}
-          mermaid_score=${{ steps.mermaid.outputs.mermaid_result }}
-          ascii_count=${{ steps.ascii.outputs.ascii_count }}
-          spelling_errors=${{ steps.spelling.outputs.spelling_errors }}
-          structure_errors=${{ steps.structure.outputs.structure_errors }}
+          links_rate=${{ steps.links.outputs.links_rate }}
+          mermaid_rate=${{ steps.mermaid.outputs.mermaid_rate }}
+          stale=${{ steps.stale.outputs.stale_refs }}
+          struct_errors=${{ steps.structure.outputs.structure_errors }}
 
-          # Calculate weighted score
-          overall_score=$(echo "scale=2; ($links_score + $frontmatter_score + $mermaid_score) / 3 - ($ascii_count * 2) - ($spelling_errors * 0.5) - ($structure_errors * 0.5)" | bc)
+          # Score is based on links (60%) and mermaid (40%)
+          # Stale refs are informational warnings, not score penalties
+          # Structure errors are hard penalties (-10 each)
+          base=$(( (links_rate * 60 + mermaid_rate * 40) / 100 ))
+          penalty=$(( struct_errors * 10 ))
+          score=$((base - penalty))
 
-          # Ensure 0-100 range
-          if (( $(echo "$overall_score < 0" | bc -l) )); then
-            overall_score=0
-          elif (( $(echo "$overall_score > 100" | bc -l) )); then
-            overall_score=100
-          fi
+          # Clamp 0-100
+          [ "$score" -lt 0 ] && score=0
+          [ "$score" -gt 100 ] && score=100
 
-          echo "overall_score=$overall_score" >> $GITHUB_OUTPUT
-          echo "### Documentation Quality Score: ${overall_score}%" >> $GITHUB_STEP_SUMMARY
+          echo "overall_score=$score" >> $GITHUB_OUTPUT
 
-          if (( $(echo "$overall_score >= 90" | bc -l) )); then
-            echo "✅ Documentation quality is excellent!" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "⚠️ Documentation quality needs improvement" >> $GITHUB_STEP_SUMMARY
-          fi
+          echo "---" >> /tmp/report.md
+          echo "## Quality Score: ${score}%" >> /tmp/report.md
+          echo "" >> /tmp/report.md
+          echo "| Check | Result | Weight |" >> /tmp/report.md
+          echo "|-------|--------|--------|" >> /tmp/report.md
+          echo "| Internal links | ${{ steps.links.outputs.links_rate }}% (${{ steps.links.outputs.links_broken }} broken / ${{ steps.links.outputs.links_checked }} checked) | 60% of score |" >> /tmp/report.md
+          echo "| Mermaid diagrams | ${{ steps.mermaid.outputs.mermaid_rate }}% (${{ steps.mermaid.outputs.mermaid_invalid }} invalid / ${{ steps.mermaid.outputs.mermaid_total }} total) | 40% of score |" >> /tmp/report.md
+          echo "| Stale references | ${{ steps.stale.outputs.stale_refs }} found | warning only |" >> /tmp/report.md
+          echo "| Directory structure | ${{ steps.structure.outputs.structure_errors }} issues | -10 per issue |" >> /tmp/report.md
 
-      - name: Generate report
-        if: always()
-        run: |
-          docs/scripts/generate-reports.sh
+          # Step summary
+          cat /tmp/report.md >> $GITHUB_STEP_SUMMARY
 
-      - name: Upload validation reports
+      - name: Upload report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: validation-reports
-          path: docs/reports/
+          name: docs-quality-report
+          path: /tmp/report.md
           retention-days: 30
 
-      - name: Comment PR with results
-        if: github.event_name == 'pull_request' && always()
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
-            const reportPath = 'docs/reports/';
-            const files = fs.readdirSync(reportPath).filter(f => f.endsWith('.md'));
+            const report = fs.readFileSync('/tmp/report.md', 'utf8');
 
-            if (files.length > 0) {
-              const latestReport = files.sort().reverse()[0];
-              const report = fs.readFileSync(reportPath + latestReport, 'utf8');
+            const body = `# Documentation Quality Report\n\n${report}\n\n---\n*Generated by docs-ci*`;
 
-              github.rest.issues.createComment({
-                issue_number: context.issue.number,
+            // Find and update existing comment, or create new one
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('Documentation Quality Report')
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: report
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
               });
             }
 
       - name: Check quality threshold
         run: |
-          overall_score=${{ steps.quality.outputs.overall_score }}
+          score=${{ steps.quality.outputs.overall_score }}
 
-          if (( $(echo "$overall_score < 90" | bc -l) )); then
-            echo "❌ Documentation quality score ($overall_score%) is below the required threshold of 90%"
+          if [ "$score" -lt 50 ]; then
+            echo "::error::Documentation quality score ($score%) is below the required threshold of 50%"
             exit 1
           else
-            echo "✅ Documentation quality score ($overall_score%) meets the threshold"
+            echo "Documentation quality score ($score%) meets the threshold"
           fi

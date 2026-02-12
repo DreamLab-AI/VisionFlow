@@ -7,7 +7,7 @@ tags:
   - api
   - database
   - backend
-updated-date: 2025-12-18
+updated-date: 2026-02-11
 difficulty-level: advanced
 ---
 
@@ -38,7 +38,7 @@ graph TB
     end
 
     subgraph "Storage Layer"
-        PrimaryDB["unified.db<br/>(Neo4j/SQLite)"]
+        PrimaryDB["Neo4j + In-Memory Store<br/>(OntologyRepository)"]
         Cache["Redis Cache<br/>(hot axioms)"]
         Archive["Archive Storage<br/>(historical versions)"]
     end
@@ -183,7 +183,7 @@ sequenceDiagram
     participant Fetcher as File Fetcher
     participant Parser as OWL Parser
     participant Reasoner as Whelk Reasoner
-    participant DB as unified.db
+    participant DB as OntologyRepository
     participant Cache as Redis Cache
 
     GitHub->>Fetcher: Webhook (new OWL)

@@ -1,6 +1,6 @@
 ---
 title: Orchestrating Agents
-description: > [Guides](./index.md) > Orchestrating Agents
+description: > [Guides](../index.md) > Orchestrating Agents
 category: how-to
 tags:
   - tutorial
@@ -15,7 +15,7 @@ difficulty-level: advanced
 
 # Orchestrating Agents
 
- > [Guides](./index.md) > Orchestrating Agents
+ > [Guides](../index.md) > Orchestrating Agents
 
 This comprehensive guide covers agent orchestration within the VisionFlow system, including practical examples, topology patterns, MCP protocol integration, and troubleshooting strategies for production multi-agent workflows.
 
@@ -2286,11 +2286,11 @@ async def batch-process-tasks(agent, tasks: list[Task]):
 
 ## Related Documentation
 
-- [Development Workflow](./development-workflow.md)
-- [Configuration Guide](./configuration.md)
+- [Development Workflow](../development/development-workflow.md)
+- [Configuration Guide](../operations/configuration.md)
 - [Agent Control Panel](./agent-orchestration.md)
 - 
 
 ---
 
-*[Back to Guides](README.md) | [Development Workflow →](development-workflow.md)*
+*[Back to Guides](../index.md) | [Development Workflow →](../development/development-workflow.md)*

@@ -8,15 +8,15 @@ tags:
   - api
   - database
   - backend
-updated-date: 2025-12-18
+updated-date: 2026-02-11
 difficulty-level: advanced
 ---
 
 
 # Services Architecture - WebXR Knowledge Graph Platform
 
-**Version:** 1.0.0
-**Last Updated:** 2025-11-04
+**Version:** 1.2.0
+**Last Updated:** 2026-02-11
 **Status:** Production
 
 ## Table of Contents
@@ -42,50 +42,67 @@ difficulty-level: advanced
 
 The WebXR Knowledge Graph Platform follows a **layered hexagonal architecture** with **CQRS** (Command Query Responsibility Segregation) patterns:
 
-```
-┌────────────────────────────────────────────────────────────────┐
-│                    HTTP/WebSocket Clients                       │
-└───────────────────────────┬────────────────────────────────────┘
-                            │
-┌───────────────────────────▼────────────────────────────────────┐
-│                  API Service Layer (Actix-Web)                  │
-│  - REST Endpoints (52+ handlers)                                │
-│  - WebSocket Endpoints (8 concurrent handlers)                  │
-│  - Authentication & Authorization                               │
-│  - Request/Response Serialization                               │
-└───────────────────────────┬────────────────────────────────────┘
-                            │
-┌───────────────────────────▼────────────────────────────────────┐
-│              Application Service Layer (CQRS)                   │
-│  - GraphApplicationService                                      │
-│  - SettingsApplicationService                                   │
-│  - OntologyApplicationService                                   │
-│  - PhysicsApplicationService                                    │
-│  Command Bus / Query Bus / Event Bus                            │
-└─────────┬─────────────────┬───────────────────┬────────────────┘
-          │                 │                   │
-┌─────────▼─────────┐ ┌─────▼───────┐ ┌────────▼──────────┐
-│  Domain Services  │ │ Actor System │ │ Background Workers│
-│  - GitHub Sync    │ │ - Graph Actor│ │ - Async Tasks     │
-│  - Semantic       │ │ - GPU Actors │ │ - Job Queues      │
-│  - Reasoning      │ │ - Settings   │ │ - Event Handlers  │
-│  - Speech/Voice   │ │ - Workspace  │ │ - Sync Workers    │
-└─────────┬─────────┘ └─────┬───────┘ └────────┬──────────┘
-          │                 │                   │
-┌─────────▼─────────────────▼───────────────────▼────────────────┐
-│              Repository/Adapter Layer (Ports)                   │
-│  - Neo4jAdapter (Knowledge Graph)                               │
-│  - UnifiedOntologyRepository (SQLite)                           │
-│  - ActorGraphRepository (In-Memory)                             │
-│  - Neo4jSettingsRepository                                      │
-└───────────────────────────┬────────────────────────────────────┘
-                            │
-┌───────────────────────────▼────────────────────────────────────┐
-│                    Data Storage Layer                           │
-│  - Neo4j Graph Database (Primary KG)                            │
-│  - SQLite (Ontology OWL Classes)                                │
-│  - In-Memory Actor State                                        │
-└────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph Clients["HTTP/WebSocket Clients"]
+        direction LR
+        Browser[Browser]
+        XR[WebXR/Quest 3]
+        Agent[AI Agents]
+    end
+
+    subgraph API["API Service Layer (Actix-Web)"]
+        REST["REST Endpoints (52+ handlers)"]
+        WS["WebSocket Endpoints (8 concurrent)"]
+        Auth["Authentication & Authorization"]
+    end
+
+    subgraph CQRS["Application Service Layer (CQRS)"]
+        GraphApp[GraphApplicationService]
+        SettingsApp[SettingsApplicationService]
+        OntologyApp[OntologyApplicationService]
+        PhysicsApp[PhysicsApplicationService]
+    end
+
+    subgraph Domain["Domain Services"]
+        GHSync[GitHub Sync]
+        Semantic[Semantic Analysis]
+        Reasoning[Reasoning]
+        Voice[Speech/Voice]
+    end
+
+    subgraph Actors["Actor System"]
+        GraphActor[Graph Actor]
+        GPUActors[GPU Actors]
+        SettingsActor[Settings Actor]
+    end
+
+    subgraph Workers["Background Workers"]
+        AsyncTasks[Async Tasks]
+        EventHandlers[Event Handlers]
+        SyncWorkers[Sync Workers]
+    end
+
+    subgraph Repos["Repository/Adapter Layer (Ports)"]
+        Neo4jAdapter[Neo4jAdapter]
+        OntologyRepo[InMemoryOntologyRepository]
+        Neo4jSettings[Neo4jSettingsRepository]
+    end
+
+    subgraph Storage["Data Storage Layer"]
+        Neo4j[(Neo4j Graph DB)]
+        InMemory[In-Memory OntologyRepository]
+    end
+
+    Clients --> API
+    API --> CQRS
+    CQRS --> Domain
+    CQRS --> Actors
+    CQRS --> Workers
+    Domain --> Repos
+    Actors --> Repos
+    Workers --> Repos
+    Repos --> Storage
 ```
 
 ### Key Architectural Principles
@@ -1067,10 +1084,10 @@ impl Neo4jAdapter {
 - Batch inserts: 1000 nodes/transaction
 - Index on `Node.metadata_id` for fast lookups
 
-#### 2. UnifiedOntologyRepository (SQLite)
+#### 2. InMemoryOntologyRepository
 
-**Location:** `src/repositories/unified_ontology_repository.rs`
-**Database:** SQLite (`data/unified.db`)
+**Location:** `src/adapters/` (implements `OntologyRepository` port)
+**Storage:** In-memory `Arc<RwLock<HashMap>>` (migrated from SQLite)
 **Port:** `OntologyRepository`
 
 ```rust
@@ -2741,11 +2758,9 @@ impl AppState {
             Neo4jSettingsRepository::new(Neo4jSettingsConfig::default()).await?
         );
 
-        let ontology_repository = Arc::new(
-            tokio::task::spawn_blocking(||
-                UnifiedOntologyRepository::new("data/unified.db")
-            ).await??
-        );
+        // OntologyRepository is created in-memory (loaded from GitHub sync)
+        let ontology_repository: Arc<dyn OntologyRepository> =
+            app_state.ontology_repository.clone();
 
         let neo4j_adapter = Arc::new(
             Neo4jAdapter::new(Neo4jConfig::default()).await?
@@ -3083,7 +3098,7 @@ UnifiedOntologyRepository.insert_owl_class()
   │ SQLite INSERT
   │
   ▼
-SQLite Database (unified.db)
+Neo4j Database + OntologyRepository
   │
   │
   ▼

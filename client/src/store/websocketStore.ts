@@ -1114,6 +1114,42 @@ export const useWebSocketStore = create<WebSocketState>()(
             processMessageQueue();
           };
 
+          // --- Binary frame velocity management ---
+          // On a fast LAN the server may push binary position frames faster than
+          // the client can process them.  We keep only the *latest* binary frame
+          // and process it on the next microtask, discarding any intermediate
+          // frames that arrived in the meantime.  This prevents unbounded queue
+          // growth and the resulting red-screen dropout.
+          let _pendingBinaryFrame: ArrayBuffer | null = null;
+          let _binaryFrameScheduled = false;
+          let _binaryDropCount = 0;
+
+          const scheduleBinaryProcessing = (buffer: ArrayBuffer) => {
+            if (_pendingBinaryFrame !== null) {
+              _binaryDropCount++;
+              if (_binaryDropCount % 100 === 1) {
+                logger.debug(`[BinaryVelocity] Dropped ${_binaryDropCount} stale binary frames (keeping latest)`);
+              }
+            }
+            _pendingBinaryFrame = buffer;
+
+            if (!_binaryFrameScheduled) {
+              _binaryFrameScheduled = true;
+              queueMicrotask(() => {
+                _binaryFrameScheduled = false;
+                const frame = _pendingBinaryFrame;
+                _pendingBinaryFrame = null;
+                if (frame) {
+                  try {
+                    processBinaryData(frame);
+                  } catch (err) {
+                    logger.error('Error in binary frame processing:', createErrorMetadata(err));
+                  }
+                }
+              });
+            }
+          };
+
           socket.onmessage = (event: MessageEvent) => {
             // P0 STALE CLOSURE FIX: Discard messages from a replaced socket.
             if (get().socket !== socket) return;
@@ -1130,7 +1166,7 @@ export const useWebSocketStore = create<WebSocketState>()(
 
               event.data.arrayBuffer().then(buffer => {
                 if (validateBinaryData(buffer)) {
-                  processBinaryData(buffer);
+                  scheduleBinaryProcessing(buffer);
                 } else {
                   logger.warn('Invalid binary data received, skipping processing');
                 }
@@ -1145,7 +1181,7 @@ export const useWebSocketStore = create<WebSocketState>()(
                 logger.debug(`Received binary ArrayBuffer data: ${event.data.byteLength} bytes`);
               }
               if (validateBinaryData(event.data)) {
-                processBinaryData(event.data);
+                scheduleBinaryProcessing(event.data);
               } else {
                 logger.warn('Invalid binary data received, skipping processing');
               }

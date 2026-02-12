@@ -1,13 +1,13 @@
 ---
 title: Neo4j Integration Documentation
-description: The Neo4j integration provides dual persistence to both SQLite (`unified.db`) and Neo4j graph database, enabling:
+description: Neo4j is the primary graph database for VisionFlow, providing native graph storage and Cypher queries.
 category: explanation
 tags:
   - api
   - docker
   - database
   - backend
-updated-date: 2025-12-18
+updated-date: 2026-02-11
 difficulty-level: advanced
 ---
 
@@ -16,10 +16,10 @@ difficulty-level: advanced
 
 ## Overview
 
-The Neo4j integration provides dual persistence to both SQLite (`unified.db`) and Neo4j graph database, enabling:
+Neo4j is the **primary and sole graph database** for VisionFlow (migration from SQLite completed November 2025). It provides:
 
-- **SQLite (unified.db)**: Fast local queries, physics state persistence, primary source of truth
-- **Neo4j**: Complex graph traversals, multi-hop reasoning, semantic analysis via Cypher
+- **Neo4j**: Native graph storage, Cypher queries, complex traversals, multi-hop reasoning, semantic analysis
+- **In-Memory OntologyRepository**: OWL classes and axioms held in `Arc<RwLock<HashMap>>` for fast reasoning
 
 ## Architecture
 
@@ -41,7 +41,7 @@ The Neo4j integration provides dual persistence to both SQLite (`unified.db`) an
    - Example queries and documentation
 
 4. **Sync Script** (`scripts/sync-neo4j.rs`)
-   - Migrates data from unified.db to Neo4j
+   - Migrates data from legacy SQLite to Neo4j
    - Supports full and incremental sync
    - Dry-run mode for testing
 
@@ -140,31 +140,24 @@ use webxr::adapters::dual-graph-repository::DualGraphRepository;
 use webxr::repositories::unified-graph-repository::UnifiedGraphRepository;
 
 // Initialize repositories
-let sqlite-repo = Arc::new(UnifiedGraphRepository::new("/app/data/unified.db")?);
-
 let neo4j-config = Neo4jConfig::default();
 let neo4j = Arc::new(Neo4jAdapter::new(neo4j-config).await?);
 
-// Create dual repository
-let dual-repo = Arc::new(DualGraphRepository::new(
-    sqlite-repo,
-    Some(neo4j),
-    false, // Non-strict mode: log Neo4j errors but don't fail
-));
+// Use Neo4j as the primary KnowledgeGraphRepository
 
 // Use dual-repo as KnowledgeGraphRepository
 ```
 
-**Option 2: SQLite-Only Mode** (Existing deployments)
+**Option 2: Neo4j-Only Mode** (Current default)
 
 ```rust
-// Continue using UnifiedGraphRepository directly
-let repo = Arc::new(UnifiedGraphRepository::new("/app/data/unified.db")?);
+// Use Neo4jAdapter directly as KnowledgeGraphRepository
+let repo = Arc::new(Neo4jAdapter::new(Neo4jConfig::default()).await?);
 ```
 
 ## Migration Guide
 
-### Initial Sync: unified.db → Neo4j
+### Initial Sync: Legacy SQLite → Neo4j
 
 1. **Start Neo4j**:
    ```bash
@@ -210,8 +203,8 @@ cargo run --bin sync-neo4j -- --full
 # Dry run (preview without changes)
 cargo run --bin sync-neo4j -- --dry-run
 
-# Custom database path
-cargo run --bin sync-neo4j -- --db=/custom/path/unified.db
+# Custom database path (legacy migration only)
+cargo run --bin sync-neo4j -- --db=/custom/path/legacy.db
 ```
 
 ## API Endpoints
@@ -321,23 +314,22 @@ RETURN n, m
 
 ### Dual-Write Strategy
 
-- **Primary (SQLite)**: All operations execute here first
-- **Secondary (Neo4j)**: Operations execute asynchronously
+- **Primary (Neo4j)**: All operations execute here first
+- **Secondary (if configured)**: Operations execute asynchronously
 - **Failure Handling**:
   - **Strict mode** (`strict-mode: true`): Fail entire operation if Neo4j fails
   - **Non-strict mode** (`strict-mode: false`): Log Neo4j errors, continue with SQLite
 
 ### Query Performance
 
-- **Read queries**: Always from SQLite (faster for simple queries)
+- **Read queries**: Always from Neo4j (primary graph store)
 - **Complex graph queries**: Use Cypher endpoint for Neo4j
 - **Indexes**: Automatically created on `id`, `metadata-id`, `owl-class-iri`
 
 ### Scaling
 
-- **SQLite**: Single-node, file-based
 - **Neo4j**: Can scale to millions of nodes/relationships
-- **Recommendation**: Use SQLite for ≤100k nodes, Neo4j for larger graphs
+- **Recommendation**: Neo4j is the primary store for all graph sizes
 
 ## Troubleshooting
 
@@ -365,7 +357,7 @@ Failed to connect to Neo4j: Connection refused
 
 **Solutions**:
 1. Run full sync to clear conflicts: `--full`
-2. Check for duplicate IDs in unified.db
+2. Check for duplicate IDs in Neo4j
 3. Verify Neo4j constraints: `SHOW CONSTRAINTS`
 
 ### Query Timeout
@@ -461,7 +453,7 @@ RETURN attributes
 
 ## Future Enhancements
 
-1. **Real-time Sync**: Change Data Capture (CDC) from SQLite
+1. **Real-time Sync**: Change Data Capture (CDC) for live updates
 2. **Conflict Resolution**: Automatic merging of divergent states
 3. **Partitioning**: Distribute graph across multiple Neo4j instances
 4. **Graph Algorithms**: PageRank, community detection, centrality

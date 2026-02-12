@@ -7,7 +7,7 @@ tags:
   - api
   - api
   - backend
-updated-date: 2025-12-18
+updated-date: 2026-02-11
 difficulty-level: advanced
 ---
 
@@ -22,73 +22,26 @@ This document describes the end-to-end event-driven data pipeline that processes
 
 ### Pipeline Stages
 
-```
-┌─────────────┐
-│   GitHub    │
-│  Repository │
-└──────┬──────┘
-       │ OWL Files
-       ▼
-┌─────────────────────────────┐
-│ GitHubSyncService           │
-│ - Parse OntologyBlock       │
-│ - Save to unified.db        │
-│ - SHA1 deduplication        │
-└──────┬──────────────────────┘
-       │ OntologyModified Event
-       ▼
-┌─────────────────────────────┐
-│ OntologyPipelineService     │
-│ - Event orchestration       │
-│ - Backpressure management   │
-│ - Error recovery            │
-└──────┬──────────────────────┘
-       │ TriggerReasoning
-       ▼
-┌─────────────────────────────┐
-│ ReasoningActor              │
-│ - CustomReasoner inference  │
-│ - Cache management          │
-│ - EL++ subsumption         │
-└──────┬──────────────────────┘
-       │ InferredAxioms
-       ▼
-┌─────────────────────────────┐
-│ ConstraintBuilder           │
-│ - Axiom → Physics forces    │
-│ - SubClassOf → Attraction   │
-│ - DisjointWith → Repulsion  │
-└──────┬──────────────────────┘
-       │ ConstraintSet
-       ▼
-┌─────────────────────────────┐
-│ OntologyConstraintActor     │
-│ - GPU upload                │
-│ - CUDA kernel execution     │
-│ - CPU fallback              │
-└──────┬──────────────────────┘
-       │ Forces Applied
-       ▼
-┌─────────────────────────────┐
-│ ForceComputeActor           │
-│ - Physics simulation        │
-│ - Position updates          │
-│ - Velocity integration      │
-└──────┬──────────────────────┘
-       │ Node Positions
-       ▼
-┌─────────────────────────────┐
-│ WebSocket Broadcasting      │
-│ - Binary protocol           │
-│ - Rate limiting             │
-│ - Backpressure              │
-└──────┬──────────────────────┘
-       │ Binary Node Data
-       ▼
-┌─────────────┐
-│   Client    │
-│   Browser   │
-└─────────────┘
+```mermaid
+flowchart TB
+    GitHub["GitHub Repository<br/>(OWL Files)"]
+    Sync["GitHubSyncService<br/>Parse OntologyBlock<br/>Save to Neo4j/OntologyRepository<br/>SHA1 deduplication"]
+    Pipeline["OntologyPipelineService<br/>Event orchestration<br/>Backpressure management<br/>Error recovery"]
+    Reasoning["ReasoningActor<br/>CustomReasoner inference<br/>Cache management<br/>EL++ subsumption"]
+    Constraint["ConstraintBuilder<br/>Axiom to Physics forces<br/>SubClassOf = Attraction<br/>DisjointWith = Repulsion"]
+    GPU["OntologyConstraintActor<br/>GPU upload<br/>CUDA kernel execution<br/>CPU fallback"]
+    Physics["ForceComputeActor<br/>Physics simulation<br/>Position updates<br/>Velocity integration"]
+    WS["WebSocket Broadcasting<br/>Binary protocol<br/>Rate limiting<br/>Backpressure"]
+    Client["Client Browser"]
+
+    GitHub -->|"OWL Files"| Sync
+    Sync -->|"OntologyModified Event"| Pipeline
+    Pipeline -->|"TriggerReasoning"| Reasoning
+    Reasoning -->|"InferredAxioms"| Constraint
+    Constraint -->|"ConstraintSet"| GPU
+    GPU -->|"Forces Applied"| Physics
+    Physics -->|"Node Positions"| WS
+    WS -->|"Binary Node Data"| Client
 ```
 
 ## Event-Driven Architecture
@@ -178,7 +131,7 @@ struct PositionsUpdatedEvent {
 ```rust
 // GitHubSyncService::save-ontology-data()
 async fn save-ontology-data(&self, onto-data: OntologyData) -> Result<(), String> {
-    // 1. Save to unified.db
+    // 1. Save to Neo4j/OntologyRepository
     self.onto-repo.save-ontology(
         &onto-data.classes,
         &onto-data.properties,

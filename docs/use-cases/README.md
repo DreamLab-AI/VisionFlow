@@ -20,13 +20,6 @@ This directory contains comprehensive documentation on real-world applications o
 - Competitive analysis vs established solutions
 - Decentralization value proposition
 
-### ️ Case Studies (Detailed)
-Coming soon:
-- [Gaming: P2P Multiplayer Physics](./case-studies/gaming-p2p.md)
-- [Healthcare: HIPAA-Compliant Training](./case-studies/healthcare-training.md)
-- [Manufacturing: Edge Digital Twin](./case-studies/manufacturing-digital-twin.md)
-- [Finance: Systemic Risk Modeling](./case-studies/finance-risk-modeling.md)
-
 ---
 
 ## Quick Start by Industry
@@ -37,7 +30,6 @@ git clone https://github.com/yourusername/visionflow
 cd visionflow
 cargo run --example multiplayer_physics
 ```
-**Next:** [Gaming Tutorial](../tutorials/multiplayer-game.md)
 
 ### For Researchers
 ```bash
@@ -45,7 +37,6 @@ cargo build --release --features gpu
 ./target/release/visionflow import --format pdb < protein.pdb
 ./target/release/visionflow simulate --gpu --render 3d
 ```
-**Next:** [Molecular Dynamics Tutorial](../tutorials/protein-folding.md)
 
 ### For Manufacturers
 ```bash
@@ -54,7 +45,6 @@ docker run -d --gpus all \
   -v /data/factory:/data \
   visionflow/edge:latest
 ```
-**Next:** [Digital Twin Tutorial](../tutorials/digital-twin.md)
 
 ---
 
@@ -192,31 +182,6 @@ docker run -d --gpus all \
 
 ---
 
-## ️ Implementation Resources
-
-### Tutorials
-- [Multiplayer Game Physics](../tutorials/multiplayer-game.md) - 2 hours
-- [Molecular Dynamics Simulation](../tutorials/protein-folding.md) - 4 hours
-- [Factory Digital Twin](../tutorials/digital-twin.md) - 6 hours
-- [Surgical Training Simulator](../tutorials/surgical-training.md) - 8 hours
-- [Traffic Flow Modeling](../tutorials/traffic-simulation.md) - 4 hours
-
-### API Documentation
-- [Physics Engine API](../api/physics.md)
-- [GPU Compute API](../api/gpu.md)
-- [WebSocket Protocol](../api/websocket.md)
-- [Ontology Reasoning API](../api/ontology.md)
-- [Constraint System API](../api/constraints.md)
-
-### Integration Guides
-- [Unity/Unreal Engine Plugin](../integrations/game-engines.md)
-- [MATLAB/Python Bindings](../integrations/scientific.md)
-- [Siemens TIA Portal (PLC)](../integrations/manufacturing.md)
-- [DICOM Import (Medical Imaging)](../integrations/healthcare.md)
-- [Bloomberg Terminal](../integrations/finance.md)
-
----
-
 ## Getting Help
 
 ### Community Support (Free)
@@ -270,8 +235,3 @@ Have a novel use case? We'd love to hear about it!
 **Document Version**: 1.0
 **Last Updated**: 2025-01-29
 **Maintained By**: VisionFlow Research Team
-
-**See Also**:
-- [Technical Architecture](../architecture/overview.md)
-- [Getting Started Guide](../getting-started/README.md)
-- [Performance Benchmarks](../performance/benchmarks.md)

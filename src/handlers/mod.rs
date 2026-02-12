@@ -14,6 +14,8 @@ pub mod multi_mcp_websocket_handler;
 pub mod natural_language_query_handler;
 pub mod nostr_handler;
 pub mod ontology_handler;
+pub mod ontology_agent_handler;
+pub use ontology_agent_handler::configure_ontology_agent_routes;
 pub mod pages_handler;
 pub mod ragflow_handler;
 pub mod settings_handler;

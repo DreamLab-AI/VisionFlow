@@ -164,9 +164,12 @@ export class BatchQueue<T> {
       item.retryCount = (item.retryCount || 0) + 1;
 
       if (item.retryCount < MAX_RETRIES) {
-        
-        this.enqueue(item.data, item.priority + 10);
-        logger.info(`Re-queued item for retry (attempt ${item.retryCount}/${MAX_RETRIES})`);
+        // Exponential backoff: delay re-enqueue by 2^retryCount * 100ms
+        const backoffMs = Math.pow(2, item.retryCount) * 100;
+        setTimeout(() => {
+          this.enqueue(item.data, item.priority + 10);
+        }, backoffMs);
+        logger.info(`Re-queued item for retry (attempt ${item.retryCount}/${MAX_RETRIES}, backoff ${backoffMs}ms)`);
       } else {
         this.metrics.droppedItems++;
         logger.error(`Dropped item after ${MAX_RETRIES} retries`);

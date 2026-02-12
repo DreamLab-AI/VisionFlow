@@ -21,7 +21,7 @@ difficulty-level: advanced
 sequenceDiagram
     participant GitHub
     participant GitHubSync as GitHubSyncService
-    participant DB as unified.db
+    participant DB as Neo4j/OntologyRepo
     participant Pipeline as OntologyPipelineService
     participant Reasoning as ReasoningActor
     participant Constraint as ConstraintBuilder
@@ -239,7 +239,7 @@ sequenceDiagram
     participant Pipeline
     participant Reasoning
     participant Cache as InferenceCache
-    participant DB as unified.db
+    participant DB as Neo4j/OntologyRepo
 
     Note over Pipeline: Ontology modified
     Pipeline->>Reasoning: TriggerReasoning(ontology-id=1)

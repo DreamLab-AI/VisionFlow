@@ -202,9 +202,9 @@ For custom deployments or development, VisionFlow supports:
 ## Getting Started
 
 1. **[Installation Guide](installation.md)** - Docker or native setup
-2. **[First Graph Tutorial](first-graph.md)** - Create your first visualization
-3. **[Architecture Overview](../architecture/overview.md)** - Understand the system design
-4. **[Developer Journey](../architecture/developer-journey.md)** - Navigate the codebase
+2. **[First Graph Tutorial](creating-first-graph.md)** - Create your first visualization
+3. **[Architecture Overview](../architecture/ARCHITECTURE.md)** - Understand the system design
+4. **[Developer Journey](../explanation/architecture/developer-journey.md)** - Navigate the codebase
 
 ## Community & Support
 
@@ -217,11 +217,8 @@ For custom deployments or development, VisionFlow supports:
 
 ## Related Documentation
 
-- [VisionFlow Complete Architecture Documentation](../architecture/overview.md)
-- [VisionFlow Client Architecture Analysis](../visionflow-architecture-analysis.md)
-- [VisionFlow Architecture Diagrams - Complete Corpus](../diagrams/README.md)
+- [VisionFlow Complete Architecture Documentation](../architecture/ARCHITECTURE.md)
 - [Agent/Bot System Architecture](../diagrams/server/agents/agent-system-architecture.md)
-- [Agent Orchestration & Multi-Agent Systems](../diagrams/mermaid-library/04-agent-orchestration.md)
 
 ## Vision & Roadmap
 
@@ -249,4 +246,4 @@ VisionFlow represents the future of collaborative knowledge work—where AI agen
 
 **Transform how your team discovers knowledge. Start exploring VisionFlow today.**
 
-**[Get Started](installation.md)** | **[Architecture](../architecture/overview.md)** | **[Star on GitHub](https://github.com/DreamLab-AI/VisionFlow)**
+**[Get Started](installation.md)** | **[Architecture](../architecture/ARCHITECTURE.md)** | **[Star on GitHub](https://github.com/DreamLab-AI/VisionFlow)**

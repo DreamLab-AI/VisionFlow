@@ -91,7 +91,7 @@ const GraphCanvas: React.FC = () => {
                     top: '10px',
                     left: '10px',
                     color: 'white',
-                    backgroundColor: 'rgba(255, 0, 0, 0.5)',
+                    backgroundColor: 'rgba(0, 0, 0, 0.6)',
                     padding: '5px 10px',
                     zIndex: 1000,
                     fontSize: '12px'

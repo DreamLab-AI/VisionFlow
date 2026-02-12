@@ -1,6 +1,6 @@
 ---
 title: Development Workflow
-description: > [Guides](./index.md) > Development Workflow
+description: > [Guides](../index.md) > Development Workflow
 category: how-to
 tags:
   - tutorial
@@ -15,7 +15,7 @@ difficulty-level: intermediate
 
 # Development Workflow
 
- > [Guides](./index.md) > Development Workflow
+ > [Guides](../index.md) > Development Workflow
 
 This guide provides comprehensive best practices for developing with VisionFlow, covering git workflow, branch strategies, code review processes, manual testing procedures, and contribution guidelines.
 
@@ -1207,7 +1207,7 @@ git push origin feature/my-feature
 
 1. **Review Documentation**
    - Read [Contributing Guide](./contributing.md)
-   - Review [Architecture Documentation](../../explanations/architecture/)
+   - Review [Architecture Documentation](../../explanation/architecture/)
    - Check  for relevant decisions
 
 2. **Check Existing Work**
@@ -1276,7 +1276,7 @@ git push origin feature/my-feature
 
 ### Getting Help
 
-- Check [Troubleshooting Guide](./troubleshooting.md)
+- Check [Troubleshooting Guide](../operations/troubleshooting.md)
 - Search GitHub issues
 - Join community Discord
 - Tag maintainers in issue/PR
@@ -1431,8 +1431,8 @@ EXPLAIN ANALYZE SELECT * FROM agents WHERE status = 'active';
 - **Start Contributing**: See [Contributing Guide](./contributing.md)
 - **Extend the System**: Read [Extending the System](./extending-the-system.md)
 - **Understand Architecture**: Review 
-- **Troubleshooting**: Consult [Troubleshooting Guide](./troubleshooting.md)
+- **Troubleshooting**: Consult [Troubleshooting Guide](../operations/troubleshooting.md)
 
 ---
 
-*Need help? Check [Troubleshooting](./troubleshooting.md) or open an issue on GitHub.*
+*Need help? Check [Troubleshooting](../operations/troubleshooting.md) or open an issue on GitHub.*

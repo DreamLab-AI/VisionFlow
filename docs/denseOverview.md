@@ -1015,7 +1015,7 @@ flowchart TB
 ```mermaid
 graph LR
     A[GitHub OWL Files<br/>900+ Classes] --> B[Horned-OWL Parser]
-    B --> C[(unified.db<br/>owl-* tables)]
+    B --> C[(Neo4j + OntologyRepo<br/>owl-* tables)]
     C --> D[Whelk-rs Reasoner<br/>OWL 2 EL]
     D --> E[Inferred Axioms<br/>is-inferred=1]
     E --> C
@@ -1034,7 +1034,7 @@ graph LR
 sequenceDiagram
     participant GH as GitHub
     participant Parser as OWL Parser
-    participant DB as unified.db
+    participant DB as Neo4j + OntologyRepo
     participant Whelk as Whelk Reasoner
     participant GPU as CUDA Physics
     participant Client as 3D Client
@@ -9380,7 +9380,7 @@ flowchart TD
 sequenceDiagram
     participant GitHub
     participant GitHubSync as GitHubSyncService
-    participant DB as unified.db
+    participant DB as Neo4j + OntologyRepo
     participant Pipeline as OntologyPipelineService
     participant Reasoning as ReasoningActor
     participant Constraint as ConstraintBuilder
@@ -9594,7 +9594,7 @@ sequenceDiagram
     participant Pipeline
     participant Reasoning
     participant Cache as InferenceCache
-    participant DB as unified.db
+    participant DB as Neo4j + OntologyRepo
 
     Note over Pipeline: Ontology modified
     Pipeline->>Reasoning: TriggerReasoning(ontology-id=1)
@@ -10029,7 +10029,7 @@ graph TB
     end
 
     subgraph "Storage Layer"
-        PrimaryDB["unified.db<br/>(Neo4j/SQLite)"]
+        PrimaryDB["Neo4j<br/>(primary graph store)"]
         Cache["Redis Cache<br/>(hot axioms)"]
         Archive["Archive Storage<br/>(historical versions)"]
     end
@@ -10063,7 +10063,7 @@ sequenceDiagram
     participant Fetcher as File Fetcher
     participant Parser as OWL Parser
     participant Reasoner as Whelk Reasoner
-    participant DB as unified.db
+    participant DB as Neo4j + OntologyRepo
     participant Cache as Redis Cache
 
     GitHub->>Fetcher: Webhook (new OWL)
@@ -11148,7 +11148,7 @@ graph TB
         ONTOP["🧬 OntologyParser"]
     end
 
-    subgraph Database["💾 Unified Database (unified.db)"]
+    subgraph Database["💾 Unified Database (Neo4j)"]
         GRAPH-TABLES["graph-nodes<br>graph-edges"]
         OWL-TABLES["owl-classes<br>owl-properties<br>owl-axioms<br>owl-hierarchy"]
         META["file-metadata"]
@@ -11210,7 +11210,7 @@ sequenceDiagram
     participant GH as GitHub API
     participant Parser as Content Parsers
     participant Repo as UnifiedGraphRepository
-    participant DB as unified.db
+    participant DB as Neo4j
 
     App->>Sync: Initialize sync service
     App->>Sync: sync-graphs()
