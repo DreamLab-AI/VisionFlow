@@ -9,10 +9,19 @@ import { nostrAuth } from '../services/nostrAuthService';
 // NOTE: Empty string because the function paths already include '/api/'
 const API_BASE = '';
 
-// Helper to get auth headers
+// Helper to get auth headers (Nostr NIP-07 + Bearer token)
 const getAuthHeaders = () => {
   const token = nostrAuth.getSessionToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  const user = nostrAuth.getCurrentUser();
+  if (!token) return {};
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+  };
+  if (user?.pubkey) {
+    headers['X-Nostr-Pubkey'] = user.pubkey;
+    headers['X-Nostr-Token'] = token;
+  }
+  return headers;
 };
 
 // ============================================================================

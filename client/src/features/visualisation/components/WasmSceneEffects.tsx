@@ -22,6 +22,7 @@ import React, { useMemo, useRef, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useWasmSceneEffects } from '../../../hooks/useWasmSceneEffects';
+import { isWebGPURenderer } from '../../../rendering/rendererFactory';
 
 // Pre-allocated temp vector for atmosphere direction (avoids per-frame GC)
 const _tempAtmDir = new THREE.Vector3();
@@ -185,8 +186,8 @@ const WasmParticlePoints: React.FC<WasmParticlePointsProps> = ({
 
   useEffect(() => () => { material.dispose(); }, [material]);
 
-  useFrame(({ camera, clock }) => {
-    const dt = Math.min(clock.getDelta(), 0.05);
+  useFrame(({ camera }, delta) => {
+    const dt = Math.min(delta, 0.05);
     const cam = camera.position;
     update(dt, cam.x, cam.y, cam.z);
 
@@ -396,8 +397,8 @@ const WasmAtmosphereBackground: React.FC<WasmAtmosphereProps> = ({
 
   useEffect(() => () => { texture.dispose(); }, [texture]);
 
-  useFrame(({ clock }) => {
-    const dt = Math.min(clock.getDelta(), 0.05);
+  useFrame((_state, delta) => {
+    const dt = Math.min(delta, 0.05);
     atmosphere.update(dt);
 
     const wasmPixels = atmosphere.getPixels();
@@ -576,7 +577,9 @@ const WasmSceneEffects: React.FC<WasmSceneEffectsProps> = ({
   const clamped = Math.max(0, Math.min(1, intensity));
 
   // WASM path: fully driven by Rust noise + particle/wisp simulation
-  if (ready && particles) {
+  // Note: WASM particle/wisp shaders use raw GLSL (gl_PointSize, gl_PointCoord, gl_FragColor)
+  // which is incompatible with WebGPURenderer. Force fallback path on WebGPU.
+  if (ready && particles && !isWebGPURenderer) {
     return (
       <group name="wasm-scene-effects">
         <WasmParticlePoints
@@ -602,15 +605,18 @@ const WasmSceneEffects: React.FC<WasmSceneEffectsProps> = ({
     );
   }
 
-  // JS fallback: lightweight hash-noise particles + shader fog
-  if (failed || !ready) {
+  // JS fallback: lightweight hash-noise particles + standard material fog
+  // Used when WASM fails OR when WebGPU is active (raw GLSL not supported).
+  // FallbackParticles uses PointsMaterial (standard, auto-converts via TSL).
+  // FallbackFogPlane uses ShaderMaterial with GLSL — skip on WebGPU.
+  if (failed || !ready || isWebGPURenderer) {
     const particleOpacity = 0.02 + clamped * 0.06;
     const fogOpacity = 0.01 + clamped * 0.04;
 
     return (
       <group name="wasm-scene-effects-fallback" renderOrder={-1}>
         <FallbackParticles opacity={particleOpacity} />
-        {atmosphereEnabled && <FallbackFogPlane opacity={fogOpacity} />}
+        {atmosphereEnabled && !isWebGPURenderer && <FallbackFogPlane opacity={fogOpacity} />}
       </group>
     );
   }

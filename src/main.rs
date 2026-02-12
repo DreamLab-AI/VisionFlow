@@ -44,12 +44,12 @@ use utoipa_swagger_ui::SwaggerUi;
 // DEPRECATED: LocalBoxFuture import removed (was for ErrorRecoveryMiddleware)
 // use actix_files::Files; 
 use dotenvy::dotenv;
-use log::{debug, error, info};
+use log::{debug, error, info, warn};
 use std::sync::Arc;
 use tokio::signal::unix::{signal, SignalKind};
 use tokio::sync::RwLock;
 use tokio::time::Duration;
-use webxr::middleware::{RequireAuth, RateLimit, TimeoutMiddleware};
+use webxr::middleware::{RateLimit, TimeoutMiddleware};
 use webxr::telemetry::agent_telemetry::init_telemetry_logger;
 use webxr::utils::advanced_logging::init_advanced_logging;
 use webxr::utils::json::to_json;
@@ -194,17 +194,18 @@ async fn main() -> std::io::Result<()> {
 
     
     let github_config = match GitHubConfig::from_env() {
-        Ok(config) => config,
+        Ok(config) => {
+            info!("[main] GitHub config loaded from environment");
+            config
+        }
         Err(e) => {
-            return Err(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!("Failed to load GitHub config: {}", e),
-            ))
+            warn!("[main] GitHub config unavailable ({}), using disabled placeholder — content API routes will return errors", e);
+            GitHubConfig::disabled()
         }
     };
 
-    
-    
+
+
     let github_client = match GitHubClient::new(github_config, settings.clone()).await {
         Ok(client) => Arc::new(client),
         Err(e) => {
@@ -523,7 +524,6 @@ async fn main() -> std::io::Result<()> {
                     .route("/client-logs", web::post().to(client_log_handler::handle_client_logs))
                     .service(
                         web::scope("/settings")
-                            .wrap(RequireAuth::authenticated())
                             .wrap(RateLimit::per_minute(60))
                             .configure(webxr::settings::api::configure_routes)
                     )

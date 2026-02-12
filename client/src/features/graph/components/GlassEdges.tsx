@@ -131,9 +131,12 @@ export const GlassEdges = forwardRef<GlassEdgesHandle, GlassEdgesProps>(
 
     useImperativeHandle(ref, () => ({ updatePoints }), [updatePoints]);
 
-    // Drive time uniform for the emissive flow pulse
+    // Subtle emissive pulse on edges
     useFrame(({ clock }) => {
-      uniforms.time.value = clock.elapsedTime;
+      const mat = meshRef.current?.material as THREE.MeshPhysicalMaterial | undefined;
+      if (mat) {
+        mat.emissiveIntensity = 0.15 + Math.sin(clock.elapsedTime * 0.8) * 0.08;
+      }
     });
 
     return <primitive object={mesh} />;

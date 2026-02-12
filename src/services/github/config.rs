@@ -31,6 +31,21 @@ pub struct GitHubConfig {
 }
 
 impl GitHubConfig {
+    /// Returns a placeholder config for when GitHub env vars are not set.
+    /// Content API routes will fail gracefully at call-time instead of
+    /// crashing the entire server at startup.
+    pub fn disabled() -> Self {
+        Self {
+            token: "disabled".to_string(),
+            owner: "none".to_string(),
+            repo: "none".to_string(),
+            base_path: "/".to_string(),
+            branch: "main".to_string(),
+            rate_limit: false,
+            version: "v3".to_string(),
+        }
+    }
+
     pub fn from_env() -> Result<Self, GitHubConfigError> {
         let token = env::var("GITHUB_TOKEN")
             .map_err(|_| GitHubConfigError::MissingEnvVar("GITHUB_TOKEN".to_string()))?;

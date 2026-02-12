@@ -208,7 +208,10 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
         s *= 1 + Math.sin(clock.elapsedTime * 3) * 0.15;
       }
 
-      const i3 = i * 3;
+      // Map from visibleNodes index to graphData.nodes index for correct position lookup
+      const srcIdx = props.nodeIdToIndexMap.get(String(node.id));
+      const posIdx = srcIdx !== undefined ? srcIdx : i;
+      const i3 = posIdx * 3;
       let x: number, y: number, z: number;
       if (positions && i3 + 2 < positions.length) {
         x = positions[i3]; y = positions[i3 + 1]; z = positions[i3 + 2];
