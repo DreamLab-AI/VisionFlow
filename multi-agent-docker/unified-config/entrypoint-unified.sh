@@ -1586,6 +1586,60 @@ else
 fi
 
 # ============================================================================
+# Phase 7.7: Install Beads Task Tracking CLI
+# ============================================================================
+
+echo "[7.7/10] Setting up Beads task tracking..."
+
+# Install bd CLI for structured dependency-aware task tracking
+# Agents use beads to coordinate work: epic → child beads with dependencies
+if command -v bd &> /dev/null; then
+    BD_VER=$(bd --version 2>/dev/null || echo "installed")
+    echo "✓ Beads CLI already installed: $BD_VER"
+else
+    echo "  Installing Beads (bd) CLI..."
+    set +e
+    # Try npm global install first (most reliable in this container)
+    npm install -g @steveyegge/beads 2>/dev/null
+    if command -v bd &> /dev/null; then
+        echo "✓ Beads CLI installed via npm"
+    else
+        # Fallback: try cargo install
+        if command -v cargo &> /dev/null; then
+            cargo install beads 2>/dev/null
+            if command -v bd &> /dev/null; then
+                echo "✓ Beads CLI installed via cargo"
+            else
+                echo "⚠️  Beads CLI installation failed (agents can still use bd if available on PATH)"
+            fi
+        else
+            echo "⚠️  Beads CLI not available (npm and cargo install both failed)"
+        fi
+    fi
+    set -e
+fi
+
+# Initialize beads in the workspace if not already done
+WORKSPACE_DIR="${WORKSPACE:-/home/devuser/workspace}"
+if [ ! -d "$WORKSPACE_DIR/.beads" ]; then
+    echo "  Initializing beads in workspace..."
+    set +e
+    sudo -u devuser bash -c "cd $WORKSPACE_DIR && bd init --prefix vf --quiet" 2>/dev/null
+    if [ -d "$WORKSPACE_DIR/.beads" ]; then
+        echo "✓ Beads initialized in workspace (prefix: vf)"
+    else
+        echo "ℹ️  Beads will be initialized on first use"
+    fi
+    set -e
+else
+    echo "✓ Beads already initialized in workspace"
+fi
+
+# Export BD_PATH for MCP server and Management API
+export BD_PATH=$(command -v bd 2>/dev/null || echo "bd")
+echo "  BD_PATH=$BD_PATH"
+
+# ============================================================================
 # Phase 8: Enhance CLAUDE.md with Project Context
 # ============================================================================
 

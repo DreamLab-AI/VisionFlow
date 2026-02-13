@@ -17,6 +17,7 @@
 //! - Automatic retry with exponential backoff
 //! - Bearer token authentication
 
+use crate::types::user_context::UserContext;
 use log::{debug, info};
 use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
@@ -112,6 +113,29 @@ pub struct GpuStatus {
     pub gpus: Option<Vec<serde_json::Value>>,
 }
 
+// --- Briefing workflow response types ---
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BriefResponse {
+    pub brief_id: String,
+    pub brief_path: String,
+    pub bead_id: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExecuteBriefResponse {
+    pub brief_id: String,
+    pub role_tasks: Vec<crate::types::user_context::RoleTask>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DebriefResponse {
+    pub debrief_path: String,
+}
+
 #[derive(Debug)]
 pub enum ManagementApiError {
     NetworkError(String),
@@ -179,17 +203,56 @@ impl ManagementApiClient {
         task: &str,
         provider: &str,
     ) -> Result<TaskResponse, ManagementApiError> {
+        self.create_task_with_context(agent, task, provider, None, false, None)
+            .await
+    }
+
+    /// Create a task with full user context and beads integration.
+    ///
+    /// When `user_context` is provided, the Management API will:
+    /// - Create a user-scoped workspace directory
+    /// - Inject VISIONFLOW_USER_* env vars into the agent process
+    /// - Optionally create a Beads epic for task tracking (if `with_beads` is true)
+    pub async fn create_task_with_context(
+        &self,
+        agent: &str,
+        task: &str,
+        provider: &str,
+        user_context: Option<&UserContext>,
+        with_beads: bool,
+        parent_bead_id: Option<&str>,
+    ) -> Result<TaskResponse, ManagementApiError> {
         let url = format!("{}/v1/tasks", self.base_url);
 
-        let request_body = serde_json::json!({
+        let mut request_body = serde_json::json!({
             "agent": agent,
             "task": task,
             "provider": provider,
         });
 
+        if let Some(ctx) = user_context {
+            request_body["user_context"] = serde_json::json!({
+                "user_id": ctx.user_id,
+                "pubkey": ctx.pubkey,
+                "display_name": ctx.display_name,
+                "session_id": ctx.session_id,
+                "is_power_user": ctx.is_power_user,
+            });
+        }
+
+        if with_beads {
+            request_body["with_beads"] = serde_json::json!(true);
+        }
+
+        if let Some(parent_id) = parent_bead_id {
+            request_body["parent_bead_id"] = serde_json::json!(parent_id);
+        }
+
         debug!(
-            "[ManagementApiClient] Creating task: agent={}, provider={}",
-            agent, provider
+            "[ManagementApiClient] Creating task: agent={}, provider={}, user={:?}",
+            agent,
+            provider,
+            user_context.map(|c| &c.display_name)
         );
 
         let response = self
@@ -345,7 +408,160 @@ impl ManagementApiClient {
         }
     }
 
-    
+    /// Create a brief via the Management API briefing workflow.
+    pub async fn create_brief(
+        &self,
+        content: &str,
+        roles: &[String],
+        user_context: &UserContext,
+        version: Option<&str>,
+        brief_type: Option<&str>,
+        slug: Option<&str>,
+    ) -> Result<BriefResponse, ManagementApiError> {
+        let url = format!("{}/v1/briefs", self.base_url);
+
+        let mut body = serde_json::json!({
+            "content": content,
+            "roles": roles,
+            "user_context": {
+                "user_id": user_context.user_id,
+                "pubkey": user_context.pubkey,
+                "display_name": user_context.display_name,
+                "session_id": user_context.session_id,
+                "is_power_user": user_context.is_power_user,
+            }
+        });
+
+        if let Some(v) = version {
+            body["version"] = serde_json::json!(v);
+        }
+        if let Some(bt) = brief_type {
+            body["brief_type"] = serde_json::json!(bt);
+        }
+        if let Some(s) = slug {
+            body["slug"] = serde_json::json!(s);
+        }
+
+        let response = self
+            .client
+            .post(&url)
+            .header("Authorization", format!("Bearer {}", self.api_key))
+            .header("Content-Type", "application/json")
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| ManagementApiError::NetworkError(e.to_string()))?;
+
+        let status = response.status();
+        if status == StatusCode::CREATED || status == StatusCode::OK {
+            response
+                .json()
+                .await
+                .map_err(|e| ManagementApiError::DeserializationError(e.to_string()))
+        } else {
+            let err = response.text().await.unwrap_or_default();
+            Err(ManagementApiError::ApiError(err, status))
+        }
+    }
+
+    /// Execute a brief — spawn role-specific agents.
+    pub async fn execute_brief(
+        &self,
+        brief_id: &str,
+        brief_path: &str,
+        roles: &[String],
+        user_context: &UserContext,
+        epic_bead_id: Option<&str>,
+    ) -> Result<Vec<crate::types::user_context::RoleTask>, ManagementApiError> {
+        let url = format!("{}/v1/briefs/{}/execute", self.base_url, brief_id);
+
+        let mut body = serde_json::json!({
+            "brief_path": brief_path,
+            "roles": roles,
+            "user_context": {
+                "user_id": user_context.user_id,
+                "pubkey": user_context.pubkey,
+                "display_name": user_context.display_name,
+                "session_id": user_context.session_id,
+                "is_power_user": user_context.is_power_user,
+            }
+        });
+
+        if let Some(eid) = epic_bead_id {
+            body["epic_bead_id"] = serde_json::json!(eid);
+        }
+
+        let response = self
+            .client
+            .post(&url)
+            .header("Authorization", format!("Bearer {}", self.api_key))
+            .header("Content-Type", "application/json")
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| ManagementApiError::NetworkError(e.to_string()))?;
+
+        let status = response.status();
+        if status == StatusCode::ACCEPTED || status == StatusCode::OK {
+            let result: ExecuteBriefResponse = response
+                .json()
+                .await
+                .map_err(|e| ManagementApiError::DeserializationError(e.to_string()))?;
+            Ok(result.role_tasks)
+        } else {
+            let err = response.text().await.unwrap_or_default();
+            Err(ManagementApiError::ApiError(err, status))
+        }
+    }
+
+    /// Create a consolidated debrief from role responses.
+    pub async fn create_debrief(
+        &self,
+        brief_id: &str,
+        role_tasks: &[crate::types::user_context::RoleTask],
+        user_context: &UserContext,
+    ) -> Result<String, ManagementApiError> {
+        let url = format!("{}/v1/briefs/{}/debrief", self.base_url, brief_id);
+
+        let body = serde_json::json!({
+            "role_responses": role_tasks.iter().map(|rt| serde_json::json!({
+                "role": rt.role,
+                "responsePath": rt.response_path,
+                "taskId": rt.task_id,
+                "status": if rt.bead_id.is_some() { "completed" } else { "pending" }
+            })).collect::<Vec<_>>(),
+            "user_context": {
+                "user_id": user_context.user_id,
+                "pubkey": user_context.pubkey,
+                "display_name": user_context.display_name,
+                "session_id": user_context.session_id,
+                "is_power_user": user_context.is_power_user,
+            }
+        });
+
+        let response = self
+            .client
+            .post(&url)
+            .header("Authorization", format!("Bearer {}", self.api_key))
+            .header("Content-Type", "application/json")
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| ManagementApiError::NetworkError(e.to_string()))?;
+
+        let status = response.status();
+        if status == StatusCode::CREATED || status == StatusCode::OK {
+            let result: DebriefResponse = response
+                .json()
+                .await
+                .map_err(|e| ManagementApiError::DeserializationError(e.to_string()))?;
+            Ok(result.debrief_path)
+        } else {
+            let err = response.text().await.unwrap_or_default();
+            Err(ManagementApiError::ApiError(err, status))
+        }
+    }
+
     pub async fn health_check(&self) -> Result<bool, ManagementApiError> {
         let url = format!("{}/health", self.base_url);
 

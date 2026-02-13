@@ -24,25 +24,73 @@ class ProcessManager {
   }
 
   /**
-   * Spawn a new agentic-flow task with isolation
+   * Spawn a new agentic-flow task with isolation.
+   *
+   * @param {string} agent - Agent skill name
+   * @param {string} task - Task prompt
+   * @param {string} provider - Execution provider (claude-flow, gemini, etc.)
+   * @param {object} [userContext] - Optional VisionFlow user context for identity propagation
+   * @param {object} [beadsOpts] - Optional beads configuration { withBeads, parentBeadId }
    */
-  spawnTask(agent, task, provider = 'gemini') {
+  spawnTask(agent, task, provider = 'gemini', userContext = null, beadsOpts = {}) {
     const taskId = uuidv4();
-    const taskDir = path.join(this.workspaceRoot, 'tasks', taskId);
+
+    // User-scoped workspace: /workspace/users/{display_name}/tasks/{taskId}
+    // Falls back to /workspace/tasks/{taskId} for system tasks without user context
+    let taskDir;
+    if (userContext && userContext.display_name) {
+      taskDir = path.join(this.workspaceRoot, 'users', userContext.display_name, 'tasks', taskId);
+    } else {
+      taskDir = path.join(this.workspaceRoot, 'tasks', taskId);
+    }
     const logFile = path.join(this.logsRoot, `${taskId}.log`);
 
     // Create isolated task directory
     fs.mkdirSync(taskDir, { recursive: true });
 
-    this.logger.info({ taskId, agent, provider }, 'Spawning new task');
+    this.logger.info({ taskId, agent, provider, user: userContext?.display_name || 'system' }, 'Spawning new task');
 
     let command, args, taskEnv;
+
+    // Build user context environment variables
+    const userEnv = {};
+    if (userContext) {
+      userEnv.VISIONFLOW_USER_ID = userContext.user_id || '';
+      userEnv.VISIONFLOW_USER_PUBKEY = userContext.pubkey || '';
+      userEnv.VISIONFLOW_USER_DISPLAY_NAME = userContext.display_name || '';
+      userEnv.VISIONFLOW_USER_SESSION_ID = userContext.session_id || '';
+      userEnv.VISIONFLOW_USER_IS_POWER_USER = String(userContext.is_power_user || false);
+      userEnv.BEADS_ACTOR = `visionflow/${userContext.display_name || userContext.user_id || 'anonymous'}`;
+    }
+
+    // Build beads context for the agent prompt
+    let beadsPrompt = '';
+    if (beadsOpts.withBeads) {
+      beadsPrompt = '\n\n--- BEADS TASK TRACKING ---\n';
+      beadsPrompt += 'This task uses Beads for structured tracking. Use `bd` CLI commands:\n';
+      beadsPrompt += '- Run `bd ready --json` to find unblocked work\n';
+      beadsPrompt += '- Run `bd update <id> --claim` to claim a task\n';
+      beadsPrompt += '- Run `bd close <id> --reason "..."` when done\n';
+      beadsPrompt += '- Before ending: run `bd sync` to persist state\n';
+      if (beadsOpts.parentBeadId) {
+        beadsPrompt += `- Parent epic bead: ${beadsOpts.parentBeadId}\n`;
+        beadsPrompt += `- Create child beads with: bd create "subtask" --parent ${beadsOpts.parentBeadId}\n`;
+      }
+      if (beadsOpts.beadId) {
+        beadsPrompt += `- Your assigned bead: ${beadsOpts.beadId}\n`;
+        beadsPrompt += `- Claim it: bd update ${beadsOpts.beadId} --claim\n`;
+      }
+      if (userContext?.display_name) {
+        beadsPrompt += `- Requesting user: ${userContext.display_name}\n`;
+      }
+      beadsPrompt += '--- END BEADS ---\n';
+    }
 
     // Use Claude CLI directly for claude-flow provider (accesses MCP servers)
     if (provider === 'claude-flow') {
       command = 'claude';
       // Prepend task directory instruction to the prompt
-      const enhancedTask = `Working directory: ${taskDir}\n\n${task}\n\nWrite all files to the working directory specified above.`;
+      const enhancedTask = `Working directory: ${taskDir}\n\n${task}${beadsPrompt}\n\nWrite all files to the working directory specified above.`;
       args = [
         '--dangerously-skip-permissions',
         enhancedTask
@@ -50,6 +98,7 @@ class ProcessManager {
       // Pass through all API keys for MCP servers (matching dsp script)
       taskEnv = {
         ...process.env,
+        ...userEnv,
         TASK_ID: taskId,
         CONTEXT7_API_KEY: process.env.CONTEXT7_API_KEY || '',
         BRAVE_API_KEY: process.env.BRAVE_API_KEY || '',
@@ -61,7 +110,7 @@ class ProcessManager {
         OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY || '',
         ZAI_CONTAINER_URL: 'http://claude-zai-service:9600'
       };
-      this.logger.info({ taskId, workDir: taskDir }, 'Using Claude CLI with dangerously-skip-permissions for automated task');
+      this.logger.info({ taskId, workDir: taskDir, user: userContext?.display_name }, 'Using Claude CLI with dangerously-skip-permissions for automated task');
     } else {
       // Use agentic-flow for other providers
       command = 'agentic-flow';
@@ -70,7 +119,7 @@ class ProcessManager {
         '--task', task,
         '--provider', provider
       ];
-      taskEnv = { ...process.env, TASK_ID: taskId };
+      taskEnv = { ...process.env, ...userEnv, TASK_ID: taskId };
     }
 
     // Spawn process in isolated directory
@@ -87,13 +136,15 @@ class ProcessManager {
     childProcess.stdout.pipe(logStream);
     childProcess.stderr.pipe(logStream);
 
-    // Store process info
+    // Store process info (including user context for attribution)
     const processInfo = {
       pid: childProcess.pid,
       taskId,
       agent,
       task,
       provider,
+      userContext: userContext || null,
+      beadId: beadsOpts.beadId || null,
       startTime: Date.now(),
       status: 'running',
       exitCode: null,

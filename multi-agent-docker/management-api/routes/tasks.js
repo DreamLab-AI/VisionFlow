@@ -4,6 +4,8 @@
  * GET /v1/tasks/:taskId - Get task status and results
  */
 
+const path = require('path');
+
 async function tasksRoutes(fastify, options) {
   const { processManager, logger } = options;
 
@@ -18,7 +20,19 @@ async function tasksRoutes(fastify, options) {
         properties: {
           agent: { type: 'string' },
           task: { type: 'string' },
-          provider: { type: 'string', default: 'claude-flow' }
+          provider: { type: 'string', default: 'claude-flow' },
+          user_context: {
+            type: 'object',
+            properties: {
+              user_id: { type: 'string' },
+              pubkey: { type: 'string' },
+              display_name: { type: 'string' },
+              session_id: { type: 'string' },
+              is_power_user: { type: 'boolean' }
+            }
+          },
+          with_beads: { type: 'boolean', default: false },
+          parent_bead_id: { type: 'string' }
         }
       },
       response: {
@@ -27,25 +41,67 @@ async function tasksRoutes(fastify, options) {
           properties: {
             taskId: { type: 'string' },
             status: { type: 'string' },
-            message: { type: 'string' }
+            message: { type: 'string' },
+            beadId: { type: 'string' }
           }
         }
       }
     }
   }, async (request, reply) => {
-    const { agent, task, provider = 'claude-flow' } = request.body;
+    const {
+      agent, task, provider = 'claude-flow',
+      user_context: userContext,
+      with_beads: withBeads = false,
+      parent_bead_id: parentBeadId
+    } = request.body;
 
-    logger.info({ agent, provider, task: task.substring(0, 100) }, 'Creating new task');
+    logger.info({
+      agent, provider,
+      task: task.substring(0, 100),
+      user: userContext?.display_name || 'system'
+    }, 'Creating new task');
 
     try {
-      const processInfo = processManager.spawnTask(agent, task, provider);
+      // Optionally create a beads epic for this task
+      let beadId = null;
+      if (withBeads && options.beadsService) {
+        try {
+          const userWorkspace = userContext?.display_name
+            ? path.join(processManager.workspaceRoot, 'users', userContext.display_name)
+            : processManager.workspaceRoot;
+          const { mkdirSync } = require('fs');
+          mkdirSync(userWorkspace, { recursive: true });
+
+          if (parentBeadId) {
+            // Create child bead under existing epic
+            const child = await options.beadsService.createChild(
+              userWorkspace, task.substring(0, 80), parentBeadId, userContext
+            );
+            beadId = child?.id || null;
+          } else {
+            // Create top-level epic bead
+            const epic = await options.beadsService.createEpic(
+              userWorkspace, task.substring(0, 80), userContext
+            );
+            beadId = epic?.id || null;
+          }
+        } catch (beadError) {
+          logger.warn({ error: beadError.message }, 'Beads creation failed (non-fatal)');
+        }
+      }
+
+      const processInfo = processManager.spawnTask(
+        agent, task, provider, userContext,
+        { withBeads, parentBeadId, beadId }
+      );
 
       reply.code(202).send({
         taskId: processInfo.taskId,
         status: 'accepted',
         message: 'Task started successfully',
         taskDir: processInfo.taskDir,
-        logFile: processInfo.logFile
+        logFile: processInfo.logFile,
+        beadId
       });
     } catch (error) {
       logger.error({ error: error.message }, 'Failed to spawn task');

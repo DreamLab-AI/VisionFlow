@@ -1126,6 +1126,90 @@ class ClaudeFlowMCPServer {
         description: 'Check the health and capabilities of the ontology agent service.',
         inputSchema: { type: 'object', properties: {} },
       },
+
+      // ---------- Beads Task Tracking Tools ----------
+      beads_create: {
+        name: 'beads_create',
+        description: 'Create a new bead (task/epic) for structured task tracking. Use for breaking work into dependency-aware units.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            title: { type: 'string', description: 'Bead title describing the task' },
+            type: { type: 'string', enum: ['epic', 'task'], default: 'task', description: 'Bead type: epic for top-level, task for leaf work' },
+            parent: { type: 'string', description: 'Parent bead ID (for child tasks under an epic)' },
+            priority: { type: 'number', default: 1, description: 'Priority (0=highest)' },
+            tags: { type: 'array', items: { type: 'string' }, description: 'Tags for filtering (e.g., role:architect, user:dinis)' },
+          },
+          required: ['title'],
+        },
+      },
+      beads_ready: {
+        name: 'beads_ready',
+        description: 'Get unblocked work items ready to be claimed. Returns beads whose dependencies are all resolved.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            limit: { type: 'number', default: 10, description: 'Maximum beads to return' },
+            assignee: { type: 'string', description: 'Filter by assignee' },
+            unassigned: { type: 'boolean', description: 'Only show unassigned beads' },
+          },
+        },
+      },
+      beads_claim: {
+        name: 'beads_claim',
+        description: 'Atomically claim a bead for this agent (compare-and-swap). Prevents double-assignment.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            bead_id: { type: 'string', description: 'The bead ID to claim' },
+          },
+          required: ['bead_id'],
+        },
+      },
+      beads_close: {
+        name: 'beads_close',
+        description: 'Close a completed bead with a reason. Unblocks dependent beads.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            bead_id: { type: 'string', description: 'The bead ID to close' },
+            reason: { type: 'string', description: 'Completion reason or summary' },
+          },
+          required: ['bead_id', 'reason'],
+        },
+      },
+      beads_show: {
+        name: 'beads_show',
+        description: 'Show details of a specific bead including status, assignee, dependencies, and children.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            bead_id: { type: 'string', description: 'The bead ID to inspect' },
+          },
+          required: ['bead_id'],
+        },
+      },
+      beads_sync: {
+        name: 'beads_sync',
+        description: 'Sync beads state to persistent storage. Run before ending a session to ensure all work is saved.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      beads_dep: {
+        name: 'beads_dep',
+        description: 'Add a dependency between two beads. The child bead will be blocked until the parent is closed.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            child_id: { type: 'string', description: 'The bead that depends on another' },
+            parent_id: { type: 'string', description: 'The bead that must complete first' },
+            dep_type: { type: 'string', enum: ['blocks', 'needs'], default: 'blocks', description: 'Dependency type' },
+          },
+          required: ['child_id', 'parent_id'],
+        },
+      },
     };
   }
 
@@ -2198,6 +2282,17 @@ class ClaudeFlowMCPServer {
         }
       }
 
+      // ---------- Beads Task Tracking Tools ----------
+      case 'beads_create':
+      case 'beads_ready':
+      case 'beads_claim':
+      case 'beads_close':
+      case 'beads_show':
+      case 'beads_sync':
+      case 'beads_dep': {
+        return this.handleBeadsTool(name, args);
+      }
+
       default:
         return {
           success: true,
@@ -2206,6 +2301,109 @@ class ClaudeFlowMCPServer {
           args: args,
           timestamp: new Date().toISOString(),
         };
+    }
+  }
+
+  /**
+   * Handle beads task tracking tools by executing bd CLI commands.
+   */
+  async handleBeadsTool(toolName, args) {
+    const { execFile } = await import('child_process');
+    const { promisify } = await import('util');
+    const execFileAsync = promisify(execFile);
+
+    const workspaceDir = process.env.WORKSPACE || path.join(process.env.HOME || '/home/devuser', 'workspace');
+    const bdPath = process.env.BD_PATH || 'bd';
+    const actor = process.env.BEADS_ACTOR || `agent/${this.sessionId}`;
+
+    try {
+      let bdArgs = [];
+      let env = { ...process.env, BEADS_ACTOR: actor };
+
+      switch (toolName) {
+        case 'beads_create': {
+          bdArgs = ['create', args.title, '--json'];
+          if (args.type === 'epic') bdArgs.push('--type', 'epic');
+          if (args.parent) bdArgs.push('--parent', args.parent);
+          if (args.priority !== undefined) bdArgs.push('-p', String(args.priority));
+          if (args.tags) {
+            for (const tag of args.tags) {
+              bdArgs.push('--tag', tag);
+            }
+          }
+          break;
+        }
+        case 'beads_ready': {
+          bdArgs = ['ready', '--json'];
+          if (args.limit) bdArgs.push('--limit', String(args.limit));
+          if (args.assignee) bdArgs.push('--assignee', args.assignee);
+          if (args.unassigned) bdArgs.push('--unassigned');
+          break;
+        }
+        case 'beads_claim': {
+          bdArgs = ['update', args.bead_id, '--claim', '--json'];
+          break;
+        }
+        case 'beads_close': {
+          bdArgs = ['close', args.bead_id, '--reason', args.reason, '--json'];
+          break;
+        }
+        case 'beads_show': {
+          bdArgs = ['show', args.bead_id, '--json'];
+          break;
+        }
+        case 'beads_sync': {
+          bdArgs = ['sync'];
+          break;
+        }
+        case 'beads_dep': {
+          bdArgs = ['dep', 'add', args.child_id, args.parent_id];
+          if (args.dep_type) bdArgs.push('--type', args.dep_type);
+          break;
+        }
+      }
+
+      const { stdout, stderr } = await execFileAsync(bdPath, bdArgs, {
+        cwd: workspaceDir,
+        env,
+        timeout: 30000,
+      });
+
+      // Try to parse JSON output
+      let result;
+      try {
+        result = JSON.parse(stdout.trim());
+      } catch {
+        // bd sometimes outputs non-JSON; extract JSON if present
+        const jsonStart = stdout.indexOf('{');
+        const jsonArrayStart = stdout.indexOf('[');
+        const start = jsonStart >= 0 && (jsonArrayStart < 0 || jsonStart < jsonArrayStart) ? jsonStart : jsonArrayStart;
+        if (start >= 0) {
+          try {
+            result = JSON.parse(stdout.substring(start));
+          } catch {
+            result = { raw: stdout.trim() };
+          }
+        } else {
+          result = { raw: stdout.trim() };
+        }
+      }
+
+      return {
+        success: true,
+        tool: toolName,
+        result,
+        timestamp: new Date().toISOString(),
+      };
+    } catch (error) {
+      console.error(`[${new Date().toISOString()}] ERROR [claude-flow-mcp] beads tool ${toolName} failed:`, error.message);
+      return {
+        success: false,
+        tool: toolName,
+        error: `Beads command failed: ${error.message}`,
+        hint: 'Ensure bd CLI is installed and beads is initialized (bd init)',
+        timestamp: new Date().toISOString(),
+      };
     }
   }
 

@@ -47,6 +47,10 @@ pub mod tests;
 pub mod semantic_pathfinding_handler;
 pub use semantic_pathfinding_handler::configure_pathfinding_routes;
 
+// Briefing workflow handler
+pub mod briefing_handler;
+pub use briefing_handler::configure_routes as configure_briefing_routes;
+
 // High-Performance Networking (QUIC/WebTransport + fastwebsockets)
 pub mod quic_transport_handler;
 pub mod fastwebsockets_handler;

@@ -13,6 +13,8 @@ const logger = require('./utils/logger');
 const ProcessManager = require('./utils/process-manager');
 const SystemMonitor = require('./utils/system-monitor');
 const ComfyUIManager = require('./utils/comfyui-manager');
+const BeadsService = require('./services/beads-service');
+const BriefingService = require('./services/briefing-service');
 const metrics = require('./utils/metrics');
 
 // Configuration
@@ -36,6 +38,8 @@ const app = fastify({
 const processManager = new ProcessManager(logger);
 const systemMonitor = new SystemMonitor(logger);
 const comfyuiManager = new ComfyUIManager(logger, metrics);
+const beadsService = new BeadsService(logger);
+const briefingService = new BriefingService(logger, processManager, beadsService);
 
 // Middleware: CORS
 app.register(cors, {
@@ -118,7 +122,8 @@ app.register(require('@fastify/swagger'), {
       { name: 'monitoring', description: 'System monitoring and health' },
       { name: 'metrics', description: 'Prometheus metrics' },
       { name: 'comfyui', description: 'ComfyUI workflow management' },
-      { name: 'agent-events', description: 'Real-time agent action event streaming' }
+      { name: 'agent-events', description: 'Real-time agent action event streaming' },
+      { name: 'briefs', description: 'Briefing workflow (brief → execute → debrief)' }
     ]
   }
 });
@@ -137,6 +142,16 @@ app.register(require('@fastify/swagger-ui'), {
 app.register(require('./routes/tasks'), {
   prefix: '',
   processManager,
+  beadsService,
+  logger,
+  metrics
+});
+
+app.register(require('./routes/briefs'), {
+  prefix: '',
+  processManager,
+  briefingService,
+  beadsService,
   logger,
   metrics
 });
@@ -215,6 +230,13 @@ app.get('/', {
         models: 'GET /v1/comfyui/models',
         outputs: 'GET /v1/comfyui/outputs',
         stream: 'WS /v1/comfyui/stream'
+      },
+      briefs: {
+        create: 'POST /v1/briefs',
+        execute: 'POST /v1/briefs/:briefId/execute',
+        list: 'GET /v1/briefs/:userId',
+        debrief: 'POST /v1/briefs/:briefId/debrief',
+        debriefs: 'GET /v1/debriefs/:userId'
       },
       agentEvents: {
         stream: 'WS /v1/agent-events/stream',
