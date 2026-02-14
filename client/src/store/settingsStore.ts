@@ -985,6 +985,41 @@ function getSectionPaths(section: string): string[] {
     ],
     'labels': [
       'visualisation.graphs.logseq.labels'
+    ],
+    'gemMaterial': [
+      'visualisation.gemMaterial'
+    ],
+    'sceneEffects': [
+      'visualisation.sceneEffects'
+    ],
+    'clusterHulls': [
+      'visualisation.clusterHulls'
+    ],
+    'hologram': [
+      'visualisation.hologram'
+    ],
+    'animations': [
+      'visualisation.animations'
+    ],
+    'interaction': [
+      'visualisation.interaction'
+    ],
+    'analytics': [
+      'analytics.enableMetrics',
+      'analytics.updateInterval',
+      'analytics.showDegreeDistribution',
+      'analytics.showClusteringCoefficient',
+      'analytics.showCentrality',
+      'analytics.clustering'
+    ],
+    'qualityGates': [
+      'qualityGates'
+    ],
+    'nodeFilter': [
+      'nodeFilter'
+    ],
+    'constraints': [
+      'constraints'
     ]
   };
 
@@ -1071,13 +1106,37 @@ function getAllAvailableSettingsPaths(): string[] {
     'xr.enableHaptics',
     'xr.quality',
 
+    // Gem material
+    'visualisation.gemMaterial',
+
+    // Scene effects (WASM ambient)
+    'visualisation.sceneEffects',
+
+    // Cluster hulls
+    'visualisation.clusterHulls',
+
+    // Animations
+    'visualisation.animations',
+
+    // Interaction / selection highlighting
+    'visualisation.interaction',
+
+    // Analytics
+    'analytics',
+
+    // Quality gates
+    'qualityGates',
+
+    // Node filter
+    'nodeFilter',
+
+    // Constraints / LOD
+    'constraints',
 
     'system.performance.maxFPS',
     'system.performance.enableVSync',
     'system.websocket.url',
     'system.websocket.protocol',
-
-
   ];
 }
 

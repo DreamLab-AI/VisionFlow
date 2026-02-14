@@ -166,6 +166,54 @@ const DEFAULT_HOLOGRAM_SETTINGS = {
   ringRotationSpeed: 0.5,
 };
 
+const DEFAULT_GEM_MATERIAL = {
+  ior: 2.42,
+  transmission: 0.6,
+  clearcoat: 1.0,
+  clearcoatRoughness: 0.02,
+  emissiveIntensity: 0.3,
+  iridescence: 0.3,
+};
+
+const DEFAULT_SCENE_EFFECTS = {
+  enabled: true,
+  particleCount: 128,
+  particleOpacity: 0.3,
+  particleDrift: 0.5,
+  wispsEnabled: true,
+  wispCount: 32,
+  wispOpacity: 0.4,
+  wispDriftSpeed: 1.0,
+  fogEnabled: false,
+  fogOpacity: 0.05,
+  atmosphereResolution: 128,
+};
+
+const DEFAULT_CLUSTER_HULLS = {
+  enabled: false,
+  opacity: 0.08,
+  padding: 0.15,
+};
+
+const DEFAULT_ANIMATION_SETTINGS = {
+  enableMotionBlur: false,
+  enableNodeAnimations: true,
+  motionBlurStrength: 0.5,
+  selectionWaveEnabled: true,
+  pulseEnabled: true,
+  pulseSpeed: 1.0,
+  pulseStrength: 0.5,
+  waveSpeed: 1.0,
+};
+
+const DEFAULT_INTERACTION_SETTINGS = {
+  selectionHighlightColor: '#ffff00',
+  selectionEdgeFlow: false,
+  selectionEdgeFlowSpeed: 1.0,
+  selectionEdgeWidth: 0.5,
+  selectionEdgeOpacity: 0.8,
+};
+
 const DEFAULT_GRAPH_TYPE_VISUALS = {
   knowledgeGraph: {
     metalness: 0.6,
@@ -215,16 +263,11 @@ function transformApiToClientSettings(apiResponse: AllSettings): any {
       bloom: DEFAULT_BLOOM_SETTINGS,
       hologram: DEFAULT_HOLOGRAM_SETTINGS,
       graphTypeVisuals: DEFAULT_GRAPH_TYPE_VISUALS,
-      animations: {
-        enableMotionBlur: false,
-        enableNodeAnimations: true,
-        motionBlurStrength: 0.5,
-        selectionWaveEnabled: true,
-        pulseEnabled: true,
-        pulseSpeed: 1.0,
-        pulseStrength: 0.5,
-        waveSpeed: 1.0
-      },
+      gemMaterial: DEFAULT_GEM_MATERIAL,
+      sceneEffects: DEFAULT_SCENE_EFFECTS,
+      clusterHulls: DEFAULT_CLUSTER_HULLS,
+      animations: DEFAULT_ANIMATION_SETTINGS,
+      interaction: DEFAULT_INTERACTION_SETTINGS,
       graphs: {
         logseq: {
           physics: apiResponse.physics || {},

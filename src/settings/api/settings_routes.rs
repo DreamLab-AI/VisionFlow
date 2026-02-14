@@ -13,6 +13,7 @@ use crate::actors::messages::{GetSettings, UpdateSettings};
 use crate::settings::models::{ConstraintSettings, NodeFilterSettings, QualityGateSettings, AllSettings};
 use crate::settings::auth_extractor::{AuthenticatedUser, OptionalAuth};
 use crate::adapters::neo4j_settings_repository::{Neo4jSettingsRepository, UserFilter};
+use crate::ports::settings_repository::SettingsRepository;
 use crate::AppState;
 
 // ============================================================================
@@ -276,18 +277,36 @@ pub async fn update_physics_settings(
 // ============================================================================
 
 /// GET /api/settings/constraints
-/// Constraint settings are not part of AppFullSettings; return defaults.
+/// Loads constraint settings from Neo4j repository, falling back to defaults.
 pub async fn get_constraint_settings(
     _state: web::Data<AppState>,
+    neo4j_repo: web::Data<Arc<Neo4jSettingsRepository>>,
     _auth: OptionalAuth,
 ) -> impl Responder {
-    HttpResponse::Ok().json(ConstraintSettings::default())
+    match neo4j_repo.get_setting("constraints").await {
+        Ok(Some(crate::ports::settings_repository::SettingValue::Json(json))) => {
+            match serde_json::from_value::<ConstraintSettings>(json) {
+                Ok(settings) => HttpResponse::Ok().json(settings),
+                Err(e) => {
+                    warn!("Failed to parse stored constraint settings, returning defaults: {}", e);
+                    HttpResponse::Ok().json(ConstraintSettings::default())
+                }
+            }
+        }
+        Ok(_) => HttpResponse::Ok().json(ConstraintSettings::default()),
+        Err(e) => {
+            warn!("Failed to load constraint settings from repository: {}", e);
+            HttpResponse::Ok().json(ConstraintSettings::default())
+        }
+    }
 }
 
 /// PUT /api/settings/constraints
 /// Validates input before accepting (QE Fix #1). Returns updated state (QE Fix #2).
+/// Persists to Neo4j repository via set_setting.
 pub async fn update_constraint_settings(
     _state: web::Data<AppState>,
+    neo4j_repo: web::Data<Arc<Neo4jSettingsRepository>>,
     body: web::Json<ConstraintSettings>,
     auth: AuthenticatedUser,
 ) -> impl Responder {
@@ -303,7 +322,29 @@ pub async fn update_constraint_settings(
         });
     }
 
-    info!("Constraint settings accepted for user {} (persistence deferred)", auth.pubkey);
+    // Persist to Neo4j
+    let settings_json = match serde_json::to_value(&settings) {
+        Ok(json) => json,
+        Err(e) => {
+            error!("Failed to serialize constraint settings: {}", e);
+            return HttpResponse::InternalServerError().json(ErrorResponse {
+                error: format!("Failed to serialize constraint settings: {}", e),
+            });
+        }
+    };
+
+    if let Err(e) = neo4j_repo.set_setting(
+        "constraints",
+        crate::ports::settings_repository::SettingValue::Json(settings_json),
+        Some("Constraint settings for physics simulation"),
+    ).await {
+        error!("Failed to persist constraint settings: {}", e);
+        return HttpResponse::InternalServerError().json(ErrorResponse {
+            error: format!("Failed to persist constraint settings: {}", e),
+        });
+    }
+
+    info!("Constraint settings updated and persisted for user {}", auth.pubkey);
     HttpResponse::Ok().json(&settings)
 }
 
@@ -394,19 +435,36 @@ pub async fn update_rendering_settings(
 // ============================================================================
 
 /// GET /api/settings/node-filter
+/// Loads node filter settings from Neo4j repository, falling back to defaults.
 pub async fn get_node_filter_settings(
     _state: web::Data<AppState>,
+    neo4j_repo: web::Data<Arc<Neo4jSettingsRepository>>,
     _auth: OptionalAuth,
 ) -> impl Responder {
-    // Node filter settings are not part of AppFullSettings.
-    // Return defaults (persisted via Neo4j repo separately).
-    HttpResponse::Ok().json(NodeFilterSettings::default())
+    match neo4j_repo.get_setting("node_filter").await {
+        Ok(Some(crate::ports::settings_repository::SettingValue::Json(json))) => {
+            match serde_json::from_value::<NodeFilterSettings>(json) {
+                Ok(settings) => HttpResponse::Ok().json(settings),
+                Err(e) => {
+                    warn!("Failed to parse stored node filter settings, returning defaults: {}", e);
+                    HttpResponse::Ok().json(NodeFilterSettings::default())
+                }
+            }
+        }
+        Ok(_) => HttpResponse::Ok().json(NodeFilterSettings::default()),
+        Err(e) => {
+            warn!("Failed to load node filter settings from repository: {}", e);
+            HttpResponse::Ok().json(NodeFilterSettings::default())
+        }
+    }
 }
 
 /// PUT /api/settings/node-filter
 /// Validates input before accepting (QE Fix #1). Returns updated state (QE Fix #2).
+/// Persists to Neo4j repository via set_setting.
 pub async fn update_node_filter_settings(
     _state: web::Data<AppState>,
+    neo4j_repo: web::Data<Arc<Neo4jSettingsRepository>>,
     body: web::Json<NodeFilterSettings>,
     auth: AuthenticatedUser,
 ) -> impl Responder {
@@ -423,7 +481,30 @@ pub async fn update_node_filter_settings(
         });
     }
 
-    info!("Node filter settings accepted for user {} (persistence deferred)", auth.pubkey);
+    // Persist to Neo4j
+    let settings_json = match serde_json::to_value(&settings) {
+        Ok(json) => json,
+        Err(e) => {
+            error!("Failed to serialize node filter settings: {}", e);
+            return HttpResponse::InternalServerError().json(ErrorResponse {
+                error: format!("Failed to serialize node filter settings: {}", e),
+            });
+        }
+    };
+
+    if let Err(e) = neo4j_repo.set_setting(
+        "node_filter",
+        crate::ports::settings_repository::SettingValue::Json(settings_json),
+        Some("Node confidence filter settings"),
+    ).await {
+        error!("Failed to persist node filter settings: {}", e);
+        return HttpResponse::InternalServerError().json(ErrorResponse {
+            error: format!("Failed to persist node filter settings: {}", e),
+        });
+    }
+
+    info!("Node filter settings updated and persisted for user {}: enabled={}, quality_threshold={}",
+          auth.pubkey, settings.enabled, settings.quality_threshold);
     HttpResponse::Ok().json(&settings)
 }
 
@@ -432,26 +513,52 @@ pub async fn update_node_filter_settings(
 // ============================================================================
 
 /// GET /api/settings/quality-gates
+/// Loads quality gate settings from Neo4j repository, falling back to defaults.
 pub async fn get_quality_gate_settings(
     _state: web::Data<AppState>,
+    neo4j_repo: web::Data<Arc<Neo4jSettingsRepository>>,
     _auth: OptionalAuth,
 ) -> impl Responder {
-    HttpResponse::Ok().json(QualityGateSettings::default())
+    match neo4j_repo.get_setting("quality_gates").await {
+        Ok(Some(crate::ports::settings_repository::SettingValue::Json(json))) => {
+            match serde_json::from_value::<QualityGateSettings>(json) {
+                Ok(settings) => HttpResponse::Ok().json(settings),
+                Err(e) => {
+                    warn!("Failed to parse stored quality gate settings, returning defaults: {}", e);
+                    HttpResponse::Ok().json(QualityGateSettings::default())
+                }
+            }
+        }
+        Ok(_) => HttpResponse::Ok().json(QualityGateSettings::default()),
+        Err(e) => {
+            warn!("Failed to load quality gate settings from repository: {}", e);
+            HttpResponse::Ok().json(QualityGateSettings::default())
+        }
+    }
 }
 
 /// PUT /api/settings/quality-gates
-/// Accepts partial JSON updates -- missing fields retain their defaults.
-/// Returns updated state (QE Fix #2).
+/// Accepts partial JSON updates -- missing fields retain their persisted or default values.
+/// Returns updated state (QE Fix #2). Persists to Neo4j repository.
 pub async fn update_quality_gate_settings(
     _state: web::Data<AppState>,
+    neo4j_repo: web::Data<Arc<Neo4jSettingsRepository>>,
     body: web::Json<serde_json::Value>,
     auth: AuthenticatedUser,
 ) -> impl Responder {
-    let mut settings = QualityGateSettings::default();
-    let defaults_json = serde_json::to_value(&settings).unwrap_or_default();
+    // Load current persisted settings as the merge base (instead of hardcoded defaults)
+    let current_settings = match neo4j_repo.get_setting("quality_gates").await {
+        Ok(Some(crate::ports::settings_repository::SettingValue::Json(json))) => {
+            serde_json::from_value::<QualityGateSettings>(json).unwrap_or_default()
+        }
+        _ => QualityGateSettings::default(),
+    };
+
+    let mut settings = current_settings;
+    let current_json = serde_json::to_value(&settings).unwrap_or_default();
 
     if let (serde_json::Value::Object(mut base), serde_json::Value::Object(patch)) =
-        (defaults_json, body.into_inner())
+        (current_json, body.into_inner())
     {
         for (k, v) in patch {
             base.insert(k, v);
@@ -467,7 +574,29 @@ pub async fn update_quality_gate_settings(
         }
     }
 
-    info!("User {} updating quality gate settings: gpu={}, ontology={}, semantic={}, maxNodeCount={}",
+    // Persist to Neo4j
+    let settings_json = match serde_json::to_value(&settings) {
+        Ok(json) => json,
+        Err(e) => {
+            error!("Failed to serialize quality gate settings: {}", e);
+            return HttpResponse::InternalServerError().json(ErrorResponse {
+                error: format!("Failed to serialize quality gate settings: {}", e),
+            });
+        }
+    };
+
+    if let Err(e) = neo4j_repo.set_setting(
+        "quality_gates",
+        crate::ports::settings_repository::SettingValue::Json(settings_json),
+        Some("Quality gate settings for feature toggles and performance thresholds"),
+    ).await {
+        error!("Failed to persist quality gate settings: {}", e);
+        return HttpResponse::InternalServerError().json(ErrorResponse {
+            error: format!("Failed to persist quality gate settings: {}", e),
+        });
+    }
+
+    info!("User {} updated quality gate settings: gpu={}, ontology={}, semantic={}, maxNodeCount={}",
           auth.pubkey, settings.gpu_acceleration, settings.ontology_physics,
           settings.semantic_forces, settings.max_node_count);
     HttpResponse::Ok().json(settings)
@@ -499,24 +628,49 @@ pub async fn get_all_settings(
                     error!("Failed to query user settings: {}, falling back to global", e);
                 }
             }
-            get_all_from_actor(&state).await
+            get_all_from_actor(&state, &neo4j_repo).await
         }
         None => {
             info!("GET /api/settings/all for anonymous user (read-only)");
-            get_all_from_actor(&state).await
+            get_all_from_actor(&state, &neo4j_repo).await
         }
     }
 }
 
-async fn get_all_from_actor(state: &web::Data<AppState>) -> HttpResponse {
+async fn get_all_from_actor(
+    state: &web::Data<AppState>,
+    neo4j_repo: &web::Data<Arc<Neo4jSettingsRepository>>,
+) -> HttpResponse {
     match state.settings_addr.send(GetSettings).await {
         Ok(Ok(full_settings)) => {
+            // Load persisted constraint, node_filter, and quality_gate settings from repository
+            let constraints = match neo4j_repo.get_setting("constraints").await {
+                Ok(Some(crate::ports::settings_repository::SettingValue::Json(json))) => {
+                    serde_json::from_value::<ConstraintSettings>(json).unwrap_or_default()
+                }
+                _ => ConstraintSettings::default(),
+            };
+
+            let node_filter = match neo4j_repo.get_setting("node_filter").await {
+                Ok(Some(crate::ports::settings_repository::SettingValue::Json(json))) => {
+                    serde_json::from_value::<NodeFilterSettings>(json).unwrap_or_default()
+                }
+                _ => NodeFilterSettings::default(),
+            };
+
+            let quality_gates = match neo4j_repo.get_setting("quality_gates").await {
+                Ok(Some(crate::ports::settings_repository::SettingValue::Json(json))) => {
+                    serde_json::from_value::<QualityGateSettings>(json).unwrap_or_default()
+                }
+                _ => QualityGateSettings::default(),
+            };
+
             let all = AllSettings {
                 physics: full_settings.visualisation.graphs.logseq.physics,
-                constraints: ConstraintSettings::default(),
+                constraints,
                 rendering: full_settings.visualisation.rendering,
-                node_filter: NodeFilterSettings::default(),
-                quality_gates: QualityGateSettings::default(),
+                node_filter,
+                quality_gates,
             };
             HttpResponse::Ok().json(all)
         }
