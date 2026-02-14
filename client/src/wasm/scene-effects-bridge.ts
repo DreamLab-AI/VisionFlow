@@ -73,23 +73,29 @@ interface WasmAtmosphereField {
 export class ParticleFieldBridge {
   private inner: WasmParticleField;
   private memory: WebAssembly.Memory;
+  private _disposed = false;
 
   constructor(inner: WasmParticleField, memory: WebAssembly.Memory) {
     this.inner = inner;
     this.memory = memory;
   }
 
+  /** True after dispose() has been called. Guards against use-after-free. */
+  get isDisposed(): boolean { return this._disposed; }
+
   /** Advance simulation. Call once per frame. */
   update(dt: number, cameraX: number, cameraY: number, cameraZ: number): void {
+    if (this._disposed) return;
     this.inner.update(dt, cameraX, cameraY, cameraZ);
   }
 
   /** Zero-copy Float32Array view of particle positions [x,y,z, x,y,z, ...]. */
   getPositions(): Float32Array {
+    if (this._disposed) return new Float32Array(0);
     const ptr = this.inner.get_positions_ptr();
     const len = this.inner.get_positions_len();
     const byteOffset = ptr;
-    const byteLength = len * 4; // 4 bytes per float32
+    const byteLength = len * 4;
     if (byteOffset + byteLength > this.memory.buffer.byteLength) {
       throw new Error('WASM pointer out of bounds');
     }
@@ -98,10 +104,11 @@ export class ParticleFieldBridge {
 
   /** Zero-copy Float32Array view of per-particle opacities. */
   getOpacities(): Float32Array {
+    if (this._disposed) return new Float32Array(0);
     const ptr = this.inner.get_opacities_ptr();
     const len = this.inner.get_opacities_len();
     const byteOffset = ptr;
-    const byteLength = len * 4; // 4 bytes per float32
+    const byteLength = len * 4;
     if (byteOffset + byteLength > this.memory.buffer.byteLength) {
       throw new Error('WASM pointer out of bounds');
     }
@@ -110,10 +117,11 @@ export class ParticleFieldBridge {
 
   /** Zero-copy Float32Array view of per-particle sizes. */
   getSizes(): Float32Array {
+    if (this._disposed) return new Float32Array(0);
     const ptr = this.inner.get_sizes_ptr();
     const len = this.inner.get_sizes_len();
     const byteOffset = ptr;
-    const byteLength = len * 4; // 4 bytes per float32
+    const byteLength = len * 4;
     if (byteOffset + byteLength > this.memory.buffer.byteLength) {
       throw new Error('WASM pointer out of bounds');
     }
@@ -122,11 +130,14 @@ export class ParticleFieldBridge {
 
   /** Number of particles in this field. */
   get count(): number {
+    if (this._disposed) return 0;
     return this.inner.particle_count();
   }
 
   /** Release WASM resources. */
   dispose(): void {
+    if (this._disposed) return;
+    this._disposed = true;
     this.inner.free();
   }
 }
@@ -137,19 +148,25 @@ export class ParticleFieldBridge {
 export class AtmosphereFieldBridge {
   private inner: WasmAtmosphereField;
   private memory: WebAssembly.Memory;
+  private _disposed = false;
 
   constructor(inner: WasmAtmosphereField, memory: WebAssembly.Memory) {
     this.inner = inner;
     this.memory = memory;
   }
 
+  /** True after dispose() has been called. */
+  get isDisposed(): boolean { return this._disposed; }
+
   /** Advance the atmosphere texture. Call once per frame. */
   update(dt: number): void {
+    if (this._disposed) return;
     this.inner.update(dt);
   }
 
   /** Zero-copy Uint8Array view of RGBA pixel data. */
   getPixels(): Uint8Array {
+    if (this._disposed) return new Uint8Array(0);
     const ptr = this.inner.get_pixels_ptr();
     const len = this.inner.get_pixels_len();
     if (ptr + len > this.memory.buffer.byteLength) {
@@ -160,26 +177,32 @@ export class AtmosphereFieldBridge {
 
   /** Texture width in pixels. */
   get width(): number {
+    if (this._disposed) return 0;
     return this.inner.get_width();
   }
 
   /** Texture height in pixels. */
   get height(): number {
+    if (this._disposed) return 0;
     return this.inner.get_height();
   }
 
   /** Set noise frequency (higher = finer detail). */
   setFrequency(freq: number): void {
+    if (this._disposed) return;
     this.inner.set_frequency(freq);
   }
 
   /** Set animation speed multiplier. */
   setSpeed(speed: number): void {
+    if (this._disposed) return;
     this.inner.set_speed(speed);
   }
 
   /** Release WASM resources. */
   dispose(): void {
+    if (this._disposed) return;
+    this._disposed = true;
     this.inner.free();
   }
 }
@@ -190,24 +213,31 @@ export class AtmosphereFieldBridge {
 export class WispFieldBridge {
   private inner: WasmEnergyWisps;
   private memory: WebAssembly.Memory;
+  private _disposed = false;
 
   constructor(inner: WasmEnergyWisps, memory: WebAssembly.Memory) {
     this.inner = inner;
     this.memory = memory;
   }
 
+  /** True after dispose() has been called. */
+  get isDisposed(): boolean { return this._disposed; }
+
   /** Advance simulation. Call once per frame. */
   update(dt: number, cameraX: number, cameraY: number, cameraZ: number): void {
+    if (this._disposed) return;
     this.inner.update(dt, cameraX, cameraY, cameraZ);
   }
 
   /** Set drift speed multiplier (default 1.0). */
   setDriftSpeed(speed: number): void {
+    if (this._disposed) return;
     this.inner.set_drift_speed(speed);
   }
 
   /** Zero-copy Float32Array view of wisp positions [x,y,z, ...]. */
   getPositions(): Float32Array {
+    if (this._disposed) return new Float32Array(0);
     const ptr = this.inner.get_positions_ptr();
     const len = this.inner.get_positions_len();
     if (ptr + len * 4 > this.memory.buffer.byteLength) {
@@ -218,6 +248,7 @@ export class WispFieldBridge {
 
   /** Zero-copy Float32Array view of per-wisp opacities. */
   getOpacities(): Float32Array {
+    if (this._disposed) return new Float32Array(0);
     const ptr = this.inner.get_opacities_ptr();
     const len = this.inner.get_opacities_len();
     if (ptr + len * 4 > this.memory.buffer.byteLength) {
@@ -228,6 +259,7 @@ export class WispFieldBridge {
 
   /** Zero-copy Float32Array view of per-wisp sizes. */
   getSizes(): Float32Array {
+    if (this._disposed) return new Float32Array(0);
     const ptr = this.inner.get_sizes_ptr();
     const len = this.inner.get_sizes_len();
     if (ptr + len * 4 > this.memory.buffer.byteLength) {
@@ -238,6 +270,7 @@ export class WispFieldBridge {
 
   /** Zero-copy Float32Array view of per-wisp hue offsets (0..1). */
   getHues(): Float32Array {
+    if (this._disposed) return new Float32Array(0);
     const ptr = this.inner.get_hues_ptr();
     const len = this.inner.get_hues_len();
     if (ptr + len * 4 > this.memory.buffer.byteLength) {
@@ -248,11 +281,14 @@ export class WispFieldBridge {
 
   /** Number of wisps. */
   get count(): number {
+    if (this._disposed) return 0;
     return this.inner.wisp_count();
   }
 
   /** Release WASM resources. */
   dispose(): void {
+    if (this._disposed) return;
+    this._disposed = true;
     this.inner.free();
   }
 }

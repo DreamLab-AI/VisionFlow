@@ -182,7 +182,7 @@ const WasmParticleInstances: React.FC<WasmParticleInstancesProps> = ({
 
   useFrame(({ camera }, delta) => {
     const m = meshRef.current;
-    if (!m) return;
+    if (!m || particles.isDisposed) return;
 
     const dt = Math.min(delta, 0.05);
     const cam = camera.position;
@@ -278,7 +278,7 @@ const WasmWispInstances: React.FC<WasmWispInstancesProps> = ({
   // wisps must call update() themselves.
   useFrame(() => {
     const m = meshRef.current;
-    if (!m) return;
+    if (!m || wisps.isDisposed) return;
 
     const wasmPositions = wisps.getPositions();
     const wasmOpacities = wisps.getOpacities();
@@ -347,6 +347,7 @@ const WasmAtmosphereBackground: React.FC<WasmAtmosphereProps> = ({
   useEffect(() => () => { texture.dispose(); }, [texture]);
 
   useFrame((_state, delta) => {
+    if (atmosphere.isDisposed) return;
     const dt = Math.min(delta, 0.05);
     atmosphere.update(dt);
 
