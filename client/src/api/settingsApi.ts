@@ -168,8 +168,6 @@ const DEFAULT_HOLOGRAM_SETTINGS = {
 
 const DEFAULT_GRAPH_TYPE_VISUALS = {
   knowledgeGraph: {
-    shaderMode: 'crystal' as const,
-    rimPower: 3.0,
     metalness: 0.6,
     roughness: 0.15,
     glowStrength: 2.5,
@@ -182,8 +180,6 @@ const DEFAULT_GRAPH_TYPE_VISUALS = {
     showConnectionDensity: false,
   },
   ontology: {
-    shaderMode: 'constellation' as const,
-    rimPower: 1.5,
     glowStrength: 1.8,
     orbitalRingCount: 8,
     orbitalRingSpeed: 0.5,
@@ -195,7 +191,6 @@ const DEFAULT_GRAPH_TYPE_VISUALS = {
     nebulaGlowIntensity: 0.7,
   },
   agent: {
-    shaderMode: 'organic' as const,
     membraneOpacity: 0.7,
     nucleusGlowIntensity: 0.6,
     breathingSpeed: 1.5,
@@ -241,7 +236,6 @@ function transformApiToClientSettings(apiResponse: AllSettings): any {
             nodeSize: 1.7,
             quality: 'high' as const,
             enableInstancing: true,
-            enableHologram: true,
             enableMetadataShape: false,
             enableMetadataVisualisation: true
           },

@@ -239,7 +239,6 @@ export const UNIFIED_SETTINGS_CONFIG: Record<string, SectionConfig> = {
       { key: 'glowThreshold', label: 'Glow Threshold', type: 'slider', min: 0, max: 1, step: 0.01, path: 'visualisation.glow.threshold', description: 'Minimum brightness for glow', isAdvanced: true },
 
       // Hologram rings - Basic
-      { key: 'hologram', label: 'Hologram Rings', type: 'toggle', path: 'visualisation.graphs.logseq.nodes.enableHologram', description: 'Enable hologram rings on nodes' },
       { key: 'ringCount', label: 'Ring Count', type: 'slider', min: 0, max: 10, step: 1, path: 'visualisation.hologram.ringCount', description: 'Number of hologram rings' },
       { key: 'ringColor', label: 'Ring Color', type: 'color', path: 'visualisation.hologram.ringColor', description: 'Color of rings' },
       { key: 'ringOpacity', label: 'Ring Opacity', type: 'slider', min: 0, max: 1, step: 0.01, path: 'visualisation.hologram.ringOpacity', description: 'Transparency of rings' },

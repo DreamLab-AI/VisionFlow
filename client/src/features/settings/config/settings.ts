@@ -11,7 +11,6 @@ export interface NodeSettings {
   nodeSize: number; 
   quality: 'low' | 'medium' | 'high';
   enableInstancing: boolean;
-  enableHologram: boolean;
   enableMetadataShape: boolean;
   enableMetadataVisualisation: boolean;
 }
@@ -358,8 +357,6 @@ export interface GraphsSettings {
 // Graph-type-specific visual settings
 export interface KnowledgeGraphVisualSettings {
   edgeColor?: string;  // default '#4FC3F7'
-  shaderMode?: 'crystal' | 'hologram' | 'standard';
-  rimPower?: number;
   metalness?: number;
   roughness?: number;
   glowStrength?: number;
@@ -374,8 +371,6 @@ export interface KnowledgeGraphVisualSettings {
 
 export interface OntologyVisualSettings {
   edgeColor?: string;  // default '#AA96DA'
-  shaderMode?: 'constellation' | 'hologram' | 'standard';
-  rimPower?: number;
   glowStrength?: number;
   orbitalRingCount?: number;
   orbitalRingSpeed?: number;
@@ -388,7 +383,6 @@ export interface OntologyVisualSettings {
 }
 
 export interface AgentVisualSettings {
-  shaderMode?: 'organic' | 'hologram' | 'standard';
   membraneOpacity?: number;
   nucleusGlowIntensity?: number;
   breathingSpeed?: number;

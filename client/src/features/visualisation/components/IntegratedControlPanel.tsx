@@ -16,7 +16,6 @@ import { SystemInfo } from './ControlPanel/SystemInfo';
 import { BotsStatusPanel } from './ControlPanel/BotsStatusPanel';
 import { SpacePilotStatus } from './ControlPanel/SpacePilotStatus';
 import { TabNavigation } from './ControlPanel/TabNavigation';
-import { TAB_CONFIGS } from './ControlPanel/config';
 import type { ControlPanelProps } from './ControlPanel/types';
 
 // Unified Control Center Components
@@ -28,15 +27,6 @@ import { ControlPanelProvider, useControlPanelContext } from '../../settings/com
 import { useSettingsStore } from '../../../store/settingsStore';
 import { Lock, Star } from 'lucide-react';
 
-// Tab Components
-import {
-  RestoredGraphAnalysisTab,
-  RestoredGraphVisualisationTab,
-  RestoredGraphOptimisationTab,
-  RestoredGraphInteractionTab,
-  RestoredGraphExportTab
-} from './ControlPanel/RestoredGraphTabs';
-import { SettingsTabContent } from './ControlPanel/SettingsTabContent';
 
 // Inner component that uses context
 const IntegratedControlPanelInner: React.FC<ControlPanelProps> = ({
@@ -116,51 +106,6 @@ const IntegratedControlPanelInner: React.FC<ControlPanelProps> = ({
     }
   };
 
-  
-  const renderTabContent = (tabId: string) => {
-    switch (tabId) {
-      
-      case 'graph-analysis':
-        return (
-          <RestoredGraphAnalysisTab
-            graphId="current"
-            graphData={graphData}
-            otherGraphData={otherGraphData}
-          />
-        );
-
-      case 'graph-visualisation':
-        return <RestoredGraphVisualisationTab graphId="current" />;
-
-      case 'graph-optimisation':
-        return (
-          <RestoredGraphOptimisationTab
-            graphId="current"
-            graphData={graphData}
-          />
-        );
-
-      case 'graph-interaction':
-        return <RestoredGraphInteractionTab graphId="current" />;
-
-      case 'graph-export':
-        return (
-          <RestoredGraphExportTab
-            graphId="current"
-            graphData={graphData}
-            onExport={(format, options) => {
-              logger.debug('Export:', format, options);
-            }}
-          />
-        );
-
-      
-      default:
-        return <SettingsTabContent sectionId={tabId} />;
-    }
-  };
-
-  
   if (!isExpanded) {
     return (
       <div

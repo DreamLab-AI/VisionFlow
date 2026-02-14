@@ -5,8 +5,6 @@
  */
 
 export * from './types';
-export * from './config';
-export * from './settingsConfig';
 export * from './unifiedSettingsConfig';
 
 // Core components
@@ -16,7 +14,6 @@ export { SpacePilotStatus } from './SpacePilotStatus';
 export { TabNavigation } from './TabNavigation';
 
 // Settings content
-export { SettingsTabContent } from './SettingsTabContent';
 export { UnifiedSettingsTabContent } from './UnifiedSettingsTabContent';
 
 // Status panels
