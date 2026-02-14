@@ -1,9 +1,9 @@
-import React, { useRef, useMemo, useCallback, useEffect, forwardRef, useImperativeHandle } from 'react';
+import React, { useRef, useMemo, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { GraphVisualMode } from './GraphManager';
 import type { Node as GraphNode } from '../managers/graphDataManager';
-import { createGemNodeMaterial, createGemGeometry, createTslGemMaterial } from '../../../rendering/materials/GemNodeMaterial';
+import { createGemNodeMaterial, createGemGeometry } from '../../../rendering/materials/GemNodeMaterial';
 import { createCrystalOrbMaterial, createCrystalOrbGeometry } from '../../../rendering/materials/CrystalOrbMaterial';
 import { createAgentCapsuleMaterial, createAgentCapsuleGeometry } from '../../../rendering/materials/AgentCapsuleMaterial';
 
@@ -142,21 +142,10 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
     getColorArray: () => meshRef.current?.instanceColor?.array as Float32Array | null ?? null,
   }), [mesh]);
 
-  // TSL metadata upgrade — augments existing MeshPhysicalMaterial with Fresnel/emissive nodes.
-  // Uses a mounted flag to survive React StrictMode double-invoke without breaking.
-  useEffect(() => {
-    if (dominant === 'ontology' || dominant === 'agent') return;
-    const tex = metaTexRef.current;
-    const inst = meshRef.current;
-    if (!tex || !inst) return;
-    let cancelled = false;
-    createTslGemMaterial(inst.material as THREE.MeshPhysicalMaterial, tex, tex.image.width).then((ok) => {
-      if (cancelled) return;
-      if (ok) console.log('[GemNodes] TSL metadata material activated (augmented)');
-      else console.log('[GemNodes] TSL not applied (WebGL fallback)');
-    });
-    return () => { cancelled = true; };
-  }, [dominant]);
+  // TSL DISABLED: Adding emissiveNode/opacityNode to MeshPhysicalMaterial triggers
+  // shader recompilation that breaks InstancedMesh draw calls on WebGPU r182.
+  // Visual quality achieved through standard PBR properties + per-instance color +
+  // per-frame emissive modulation in useFrame instead.
 
   const computeColor = useCallback((node: GraphNode, mode: GraphVisualMode): THREE.Color => {
     if (ssspResult) {
@@ -248,13 +237,19 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
     const baseScale = (settings?.visualisation?.nodes?.nodeSize ?? 0.5) / 0.5;
     const texBuf = metaTexRef.current?.image?.data as Float32Array | undefined;
 
-    // Subtle emissive pulse for agent capsule material
-    const u = uniforms as any;
-    if (dominant === 'agent' && u.activityLevel) {
-      const currentMat = inst.material as any;
-      if (currentMat.emissiveIntensity !== undefined) {
+    // Per-frame emissive modulation (replaces TSL which breaks InstancedMesh on WebGPU).
+    // Gentle breathing pulse on the shared material — all instances share it but
+    // per-instance color variation comes from instanceColor.
+    const currentMat = inst.material as any;
+    if (currentMat.emissiveIntensity !== undefined) {
+      const u = uniforms as any;
+      if (dominant === 'agent' && u.activityLevel) {
         const pulse = Math.pow((Math.sin(clock.elapsedTime * Math.PI) + 1) * 0.5, 4);
         currentMat.emissiveIntensity = 0.15 + pulse * u.activityLevel.value * 0.2;
+      } else {
+        // Knowledge graph / ontology: subtle breathing emissive
+        const breath = (Math.sin(clock.elapsedTime * 0.8) + 1) * 0.5;
+        currentMat.emissiveIntensity = 0.3 + breath * 0.3;
       }
     }
 
