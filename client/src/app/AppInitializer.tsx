@@ -68,132 +68,117 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
 
   useEffect(() => {
     const initApp = async () => {
-      
-      await loadServices();
+      const t0 = performance.now();
 
-      if (debugState.isEnabled()) {
-        logger.info('Starting application initialization...');
+      // Innovation Manager is non-critical — fire and forget
+      loadServices().catch(e => logger.warn('loadServices background error:', e));
+
+      console.log(`[AppInit] +${((performance.now() - t0) / 1000).toFixed(1)}s  loadServices kicked off (non-blocking)`);
+
+      // Set up retry handler for worker initialization
+      const initializeWorker = async (): Promise<boolean> => {
+        try {
+          logger.info('Step 1: Initializing graphWorkerProxy');
+          await graphWorkerProxy.initialize();
+          logger.info('Step 1b: graphWorkerProxy initialized, ensuring graphDataManager worker connection');
+
+          const workerReady = await graphDataManager.ensureWorkerReady();
+          logger.info(`Step 1c: graphDataManager worker ready: ${workerReady}`);
+
+          if (!workerReady) {
+            throw new Error('Graph worker failed to become ready after initialization');
+          }
+
+          return true;
+        } catch (workerError) {
+          logger.error('Worker initialization failed:', createErrorMetadata(workerError));
+          const errorMessage = workerError instanceof Error ? workerError.message : String(workerError);
+
+          let details = errorMessage;
+          if (typeof SharedArrayBuffer === 'undefined') {
+            details = 'SharedArrayBuffer is not available. This is required for the graph engine to function properly.';
+          } else if (errorMessage.includes('Worker') || errorMessage.includes('worker')) {
+            details = `Worker initialization error: ${errorMessage}`;
+          }
+
+          useWorkerErrorStore.getState().setWorkerError(
+            'The graph visualization engine failed to initialize.',
+            details
+          );
+
+          logger.warn('Continuing without fully initialized worker');
+          return false;
+        }
+      };
+
+      useWorkerErrorStore.getState().setRetryHandler(async () => {
+        const success = await initializeWorker();
+        if (!success) {
+          throw new Error('Worker initialization retry failed');
+        }
+      });
+
+      try {
+        await initializeWorker();
+        console.log(`[AppInit] +${((performance.now() - t0) / 1000).toFixed(1)}s  worker ready`);
+
+        logger.info('Step 2: graphWorkerProxy initialized, calling settings initialize');
+        await initialize();
+        console.log(`[AppInit] +${((performance.now() - t0) / 1000).toFixed(1)}s  settings initialized`);
+
+        // Apply debug settings
+        const currentSettings = useSettingsStore.getState().settings as any;
+        if (currentSettings?.system?.debug) {
+          try {
+            const debugSettings = currentSettings.system.debug;
+            debugState.enableDebug(debugSettings.enabled);
+            if (debugSettings.enabled) {
+              debugState.enableDataDebug(debugSettings.enableDataDebug);
+              debugState.enablePerformanceDebug(debugSettings.enablePerformanceDebug);
+            }
+          } catch (debugError) {
+            logger.warn('Error applying debug settings:', createErrorMetadata(debugError));
+          }
         }
 
-        // Set up retry handler for worker initialization
-        const initializeWorker = async (): Promise<boolean> => {
-          try {
-            logger.info('Step 1: Initializing graphWorkerProxy');
-            await graphWorkerProxy.initialize();
-            logger.info('Step 1b: graphWorkerProxy initialized, ensuring graphDataManager worker connection');
-
-            // Ensure graphDataManager is connected to the worker now that it's ready
-            const workerReady = await graphDataManager.ensureWorkerReady();
-            logger.info(`Step 1c: graphDataManager worker ready: ${workerReady}`);
-
-            if (!workerReady) {
-              throw new Error('Graph worker failed to become ready after initialization');
-            }
-
-            return true;
-          } catch (workerError) {
-            logger.error('Worker initialization failed:', createErrorMetadata(workerError));
-            const errorMessage = workerError instanceof Error ? workerError.message : String(workerError);
-
-            // Check for SharedArrayBuffer-related issues
-            let details = errorMessage;
-            if (typeof SharedArrayBuffer === 'undefined') {
-              details = 'SharedArrayBuffer is not available. This is required for the graph engine to function properly.';
-            } else if (errorMessage.includes('Worker') || errorMessage.includes('worker')) {
-              details = `Worker initialization error: ${errorMessage}`;
-            }
-
-            useWorkerErrorStore.getState().setWorkerError(
-              'The graph visualization engine failed to initialize.',
-              details
-            );
-
-            // Continue without worker - graceful degradation
-            logger.warn('Continuing without fully initialized worker');
-            return false;
-          }
-        };
-
-        // Store retry handler
-        useWorkerErrorStore.getState().setRetryHandler(async () => {
-          const success = await initializeWorker();
-          if (!success) {
-            throw new Error('Worker initialization retry failed');
-          }
-        });
-
-        try {
-          await initializeWorker();
-
-          logger.info('Step 2: graphWorkerProxy initialized, calling settings initialize');
-          await initialize();
-          logger.info('Step 3: Settings initialized');
-
-          // Access settings from the store after initialization
-          const currentSettings = useSettingsStore.getState().settings as any;
-          if (currentSettings?.system?.debug) {
-            try {
-              const debugSettings = currentSettings.system.debug;
-              debugState.enableDebug(debugSettings.enabled);
-              if (debugSettings.enabled) {
-                debugState.enableDataDebug(debugSettings.enableDataDebug);
-                debugState.enablePerformanceDebug(debugSettings.enablePerformanceDebug);
-              }
-            } catch (debugError) {
-              logger.warn('Error applying debug settings:', createErrorMetadata(debugError));
-            }
-          }
-
-          
+        // Run WebSocket init and graph data fetch IN PARALLEL
+        // WebSocket is for live position updates; graph data fetch is for initial load.
+        // Neither depends on the other — parallelize to cut startup time.
+        const wsPromise = (async () => {
           if (typeof graphDataManager !== 'undefined') {
             try {
-              
-              // Read settings fresh from store to avoid stale closure
-              const currentSettings = useSettingsStore.getState().settings;
-              await initializeWebSocket(currentSettings);
-              
+              const settings = useSettingsStore.getState().settings;
+              await initializeWebSocket(settings);
+              console.log(`[AppInit] +${((performance.now() - t0) / 1000).toFixed(1)}s  WebSocket connected`);
             } catch (wsError) {
               logger.error('WebSocket initialization failed, continuing with UI only:', createErrorMetadata(wsError));
-              
+              console.log(`[AppInit] +${((performance.now() - t0) / 1000).toFixed(1)}s  WebSocket FAILED (non-fatal)`);
             }
-          } else {
-            logger.warn('WebSocket services not available, continuing with UI only');
           }
+        })();
 
-
+        const dataPromise = (async () => {
           try {
-            // Use 'logseq' mode: server-authoritative physics via binary WS.
-            // Client only interpolates server-sent positions (no local force sim).
             logger.info('Fetching initial graph data via REST API');
             const graphData = await graphDataManager.fetchInitialData();
-            logger.info(`Successfully fetched ${graphData.nodes.length} nodes, ${graphData.edges.length} edges`);
-            if (debugState.isDataDebugEnabled()) {
-              logger.debug('Initial graph data fetched successfully');
-            }
+            console.log(`[AppInit] +${((performance.now() - t0) / 1000).toFixed(1)}s  graph data: ${graphData.nodes.length} nodes, ${graphData.edges.length} edges`);
           } catch (fetchError) {
             logger.error('Failed to fetch initial graph data:', createErrorMetadata(fetchError));
-            logger.error('Failed to fetch initial graph data:', createErrorMetadata(fetchError));
-            
-            const emptyGraph = {
-              nodes: [],
-              edges: []
-            };
-            logger.info('Initializing with empty graph due to fetch failure');
-            await graphDataManager.setGraphData(emptyGraph);
+            console.log(`[AppInit] +${((performance.now() - t0) / 1000).toFixed(1)}s  graph data FAILED`);
+            await graphDataManager.setGraphData({ nodes: [], edges: [] });
           }
+        })();
 
-          logger.info('About to call onInitialized');
-          if (debugState.isEnabled()) {
-            logger.info('Application initialized successfully');
-          }
+        // Wait for BOTH, but neither blocks the other
+        await Promise.all([wsPromise, dataPromise]);
 
-          
-          onInitialized();
-          logger.info('onInitialized called successfully');
+        console.log(`[AppInit] +${((performance.now() - t0) / 1000).toFixed(1)}s  initialization complete`);
+        onInitialized();
+        logger.info('onInitialized called successfully');
 
       } catch (error) {
-          logger.error('Failed to initialize application components:', createErrorMetadata(error as Error));
-          onError(error as Error);
+        logger.error('Failed to initialize application components:', createErrorMetadata(error as Error));
+        onError(error as Error);
       }
     };
 

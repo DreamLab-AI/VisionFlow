@@ -208,8 +208,8 @@ class GraphDataManager {
   
   
   public async fetchInitialData(): Promise<GraphData> {
-    const maxRetries = 5;
-    const initialDelay = 1000; 
+    const maxRetries = 3;
+    const initialDelay = 500;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
@@ -217,7 +217,7 @@ class GraphDataManager {
           logger.info(`Fetching initial ${this.graphType} graph data with physics positions (Attempt ${attempt}/${maxRetries})`);
         }
 
-        const response = await unifiedApiClient.get('/graph/data');
+        const response = await unifiedApiClient.get('/graph/data', { timeout: 10000 });
 
         // Handle response structure: { success: true, data: { nodes: [], edges: [] } }
         const responseData = response.data.data || response.data;

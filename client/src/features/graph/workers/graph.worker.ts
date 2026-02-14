@@ -131,8 +131,8 @@ class GraphWorker {
   // interpolates toward server-computed positions. Configurable via settings.
   private tweenSettings = {
     enabled: true,
-    lerpBase: 0.001,      // Lower = smoother/slower. Default matches original.
-    snapThreshold: 5.0,   // Distance below which positions snap instantly.
+    lerpBase: 0.15,       // Higher = faster convergence. 0.15 reaches 99% in ~0.5s at 60fps.
+    snapThreshold: 1.0,   // Distance below which positions snap instantly.
     maxDivergence: 50.0,  // Force snap when divergence exceeds this.
   };
   private positionBuffer: SharedArrayBuffer | null = null;
