@@ -24,31 +24,33 @@ export function createGemNodeMaterial(): GemMaterialResult {
   const uniforms = { time: { value: 0 }, glowStrength: { value: 1.5 } };
   console.log('[GemNodeMaterial] creating, isWebGPURenderer=', isWebGPURenderer);
 
+  // WebGPU: dark crystalline base + emissive glow (no transmission available).
+  // WebGL: classic glass gem with transmission.
   const material = new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color(isWebGPURenderer ? 0.7 : 0.88, isWebGPURenderer ? 0.75 : 0.92, isWebGPURenderer ? 0.9 : 1.0),
+    color: new THREE.Color(isWebGPURenderer ? 0.15 : 0.88, isWebGPURenderer ? 0.18 : 0.92, isWebGPURenderer ? 0.25 : 1.0),
     ior: 2.42,
     transmission: isWebGPURenderer ? 0 : 0.6,
     thickness: isWebGPURenderer ? 0 : 0.5,
-    roughness: isWebGPURenderer ? 0.12 : 0.08,
-    metalness: 0.0,
-    clearcoat: 1.0,
+    roughness: isWebGPURenderer ? 0.15 : 0.08,
+    metalness: isWebGPURenderer ? 0.3 : 0.0,
+    clearcoat: isWebGPURenderer ? 0.6 : 1.0,
     clearcoatRoughness: 0.03,
     transparent: true,
-    opacity: isWebGPURenderer ? 0.65 : 0.85,
+    opacity: isWebGPURenderer ? 0.8 : 0.85,
     side: THREE.DoubleSide,
     depthWrite: true,
-    emissive: new THREE.Color(isWebGPURenderer ? 0.08 : 0.15, isWebGPURenderer ? 0.1 : 0.18, isWebGPURenderer ? 0.25 : 0.3),
-    emissiveIntensity: isWebGPURenderer ? 0.3 : 0.3,
-    iridescence: isWebGPURenderer ? 0.5 : 0.3,
+    emissive: new THREE.Color(isWebGPURenderer ? 0.05 : 0.15, isWebGPURenderer ? 0.08 : 0.18, isWebGPURenderer ? 0.18 : 0.3),
+    emissiveIntensity: isWebGPURenderer ? 0.6 : 0.3,
+    iridescence: isWebGPURenderer ? 0.7 : 0.3,
     iridescenceIOR: 1.3,
     iridescenceThicknessRange: [100, 400] as [number, number],
     ...(isWebGPURenderer ? {
-      sheen: 0.3,
-      sheenRoughness: 0.2,
-      sheenColor: new THREE.Color(0.4, 0.5, 0.8),
-      envMapIntensity: 1.2,
-      specularIntensity: 0.8,
-      specularColor: new THREE.Color(0.9, 0.95, 1.0),
+      sheen: 0.15,
+      sheenRoughness: 0.3,
+      sheenColor: new THREE.Color(0.3, 0.4, 0.7),
+      envMapIntensity: 0.6,
+      specularIntensity: 0.5,
+      specularColor: new THREE.Color(0.7, 0.8, 1.0),
     } : {}),
   });
 

@@ -1,10 +1,12 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import wasm from 'vite-plugin-wasm';
 import topLevelAwait from 'vite-plugin-top-level-await';
 import path from 'path';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, path.resolve(__dirname, '.'), 'VITE_');
+  return {
   plugins: [wasm(), topLevelAwait(), react()],
   // Define global constants to replace process.env references
   define: {
@@ -89,7 +91,7 @@ export default defineConfig({
     // Always use proxy for API requests - the backend is at port 4000
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || 'http://visionflow_container:4000',
+        target: env.VITE_API_URL || 'http://127.0.0.1:4000',
         changeOrigin: true,
         secure: false,
         configure: (proxy, _options) => {
@@ -105,12 +107,12 @@ export default defineConfig({
         }
       },
       '/ws': {
-        target: process.env.VITE_WS_URL || 'ws://visionflow_container:4000',
+        target: env.VITE_WS_URL || 'ws://127.0.0.1:4000',
         ws: true,
         changeOrigin: true
       },
       '/wss': {
-        target: process.env.VITE_WS_URL || 'ws://visionflow_container:4000',
+        target: env.VITE_WS_URL || 'ws://127.0.0.1:4000',
         ws: true,
         changeOrigin: true
       }
@@ -121,4 +123,5 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+};
 });
