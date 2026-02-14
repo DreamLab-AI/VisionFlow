@@ -24,33 +24,34 @@ export function createGemNodeMaterial(): GemMaterialResult {
   const uniforms = { time: { value: 0 }, glowStrength: { value: 1.5 } };
   console.log('[GemNodeMaterial] creating, isWebGPURenderer=', isWebGPURenderer);
 
-  // WebGPU: dark crystalline base + emissive glow (no transmission available).
+  // WebGPU: mid-tone crystalline base so iridescence has reflected light to modulate.
+  // Emissive kept subtle — the per-instance TSL emissiveNode provides the glow.
   // WebGL: classic glass gem with transmission.
   const material = new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color(isWebGPURenderer ? 0.15 : 0.88, isWebGPURenderer ? 0.18 : 0.92, isWebGPURenderer ? 0.25 : 1.0),
+    color: new THREE.Color(isWebGPURenderer ? 0.35 : 0.88, isWebGPURenderer ? 0.38 : 0.92, isWebGPURenderer ? 0.5 : 1.0),
     ior: 2.42,
     transmission: isWebGPURenderer ? 0 : 0.6,
     thickness: isWebGPURenderer ? 0 : 0.5,
-    roughness: isWebGPURenderer ? 0.15 : 0.08,
-    metalness: isWebGPURenderer ? 0.3 : 0.0,
-    clearcoat: isWebGPURenderer ? 0.6 : 1.0,
-    clearcoatRoughness: 0.03,
+    roughness: isWebGPURenderer ? 0.08 : 0.08,
+    metalness: isWebGPURenderer ? 0.15 : 0.0,
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.02,
     transparent: true,
-    opacity: isWebGPURenderer ? 0.8 : 0.85,
+    opacity: isWebGPURenderer ? 0.7 : 0.85,
     side: THREE.DoubleSide,
     depthWrite: true,
-    emissive: new THREE.Color(isWebGPURenderer ? 0.05 : 0.15, isWebGPURenderer ? 0.08 : 0.18, isWebGPURenderer ? 0.18 : 0.3),
-    emissiveIntensity: isWebGPURenderer ? 0.6 : 0.3,
-    iridescence: isWebGPURenderer ? 0.7 : 0.3,
-    iridescenceIOR: 1.3,
-    iridescenceThicknessRange: [100, 400] as [number, number],
+    emissive: new THREE.Color(isWebGPURenderer ? 0.03 : 0.15, isWebGPURenderer ? 0.04 : 0.18, isWebGPURenderer ? 0.1 : 0.3),
+    emissiveIntensity: isWebGPURenderer ? 0.4 : 0.3,
+    iridescence: isWebGPURenderer ? 1.0 : 0.3,
+    iridescenceIOR: isWebGPURenderer ? 1.8 : 1.3,
+    iridescenceThicknessRange: [100, 600] as [number, number],
     ...(isWebGPURenderer ? {
-      sheen: 0.15,
-      sheenRoughness: 0.3,
-      sheenColor: new THREE.Color(0.3, 0.4, 0.7),
-      envMapIntensity: 0.6,
-      specularIntensity: 0.5,
-      specularColor: new THREE.Color(0.7, 0.8, 1.0),
+      sheen: 0.2,
+      sheenRoughness: 0.15,
+      sheenColor: new THREE.Color(0.4, 0.5, 0.8),
+      envMapIntensity: 1.8,
+      specularIntensity: 1.0,
+      specularColor: new THREE.Color(0.85, 0.9, 1.0),
     } : {}),
   });
 
