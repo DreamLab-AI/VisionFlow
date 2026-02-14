@@ -168,6 +168,11 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
     return _col;
   }, [ssspResult, hierarchyMap]);
 
+  // Progressive reveal: ramp up visible instance count over frames so nodes
+  // appear in waves (~120 nodes/frame at 60fps → full 1090 in ~0.15s).
+  const revealedRef = useRef(0);
+  const REVEAL_BATCH = 120;
+
   const diagLoggedRef = useRef(false);
   const frameCountRef = useRef(0);
   useFrame(({ clock, camera, scene }) => {
@@ -253,7 +258,13 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
       }
     }
 
-    for (let i = 0; i < nodes.length; i++) {
+    // Progressive reveal: ramp up visible count each frame
+    if (revealedRef.current < nodes.length) {
+      revealedRef.current = Math.min(revealedRef.current + REVEAL_BATCH, nodes.length);
+    }
+    const visCount = revealedRef.current;
+
+    for (let i = 0; i < visCount; i++) {
       const node = nodes[i];
       const mode = perNodeVisualModeMap.get(String(node.id)) || graphMode;
       let s = getNodeScale(node, connectionCountMap, mode, hierarchyMap) * baseScale;
@@ -280,7 +291,7 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
       const c = computeColor(node, mode);
       inst.setColorAt(i, c);
     }
-    inst.count = nodes.length;
+    inst.count = visCount;
     inst.instanceMatrix.needsUpdate = true;
 
     // Only flag instanceColor when SSSP mode or graph mode changes trigger recoloring

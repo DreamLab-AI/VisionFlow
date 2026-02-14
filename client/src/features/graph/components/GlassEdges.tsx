@@ -28,9 +28,11 @@ const tmpQuat = new THREE.Quaternion();
 const tmpDir = new THREE.Vector3();
 const tmpScale = new THREE.Vector3();
 
-function computeInstanceMatrices(mesh: THREE.InstancedMesh, pts: number[]): void {
+/** Compute up to `limit` edge matrices. Returns total edge count. */
+function computeInstanceMatrices(mesh: THREE.InstancedMesh, pts: number[], limit?: number): number {
   const edgeCount = Math.min(Math.floor(pts.length / 6), MAX_EDGES);
-  for (let i = 0; i < edgeCount; i++) {
+  const renderCount = limit !== undefined ? Math.min(limit, edgeCount) : edgeCount;
+  for (let i = 0; i < renderCount; i++) {
     const off = i * 6;
     tmpSrc.set(pts[off], pts[off + 1], pts[off + 2]);
     tmpTgt.set(pts[off + 3], pts[off + 4], pts[off + 5]);
@@ -64,13 +66,17 @@ function computeInstanceMatrices(mesh: THREE.InstancedMesh, pts: number[]): void
     mesh.setMatrixAt(i, tmpMat);
   }
 
-  mesh.count = edgeCount;
+  mesh.count = renderCount;
   mesh.instanceMatrix.needsUpdate = true;
+  return edgeCount;
 }
 
 export const GlassEdges = forwardRef<GlassEdgesHandle, GlassEdgesProps>(
   ({ points, settings, colorOverride }, ref) => {
     const meshRef = useRef<THREE.InstancedMesh | null>(null);
+    const edgeRevealRef = useRef(0);
+    const totalEdgesRef = useRef(0);
+    const EDGE_REVEAL_BATCH = 80;
 
     const { mesh, uniforms } = useMemo(() => {
       const geo = createGlassEdgeGeometry(settings?.edgeRadius ?? 0.03);
@@ -86,9 +92,9 @@ export const GlassEdges = forwardRef<GlassEdgesHandle, GlassEdgesProps>(
       m.frustumCulled = false;
       m.count = 0;
 
-      // Initial population
+      // Initial population — first batch only, rest via progressive reveal
       if (points.length >= 6) {
-        computeInstanceMatrices(m, points);
+        computeInstanceMatrices(m, points, EDGE_REVEAL_BATCH);
       }
 
       meshRef.current = m;
@@ -96,12 +102,14 @@ export const GlassEdges = forwardRef<GlassEdgesHandle, GlassEdgesProps>(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Recompute when points prop changes (declarative path)
+    // Recompute when points prop changes — reset progressive reveal
     useEffect(() => {
       if (points.length >= 6) {
-        computeInstanceMatrices(mesh, points);
+        totalEdgesRef.current = Math.min(Math.floor(points.length / 6), MAX_EDGES);
+        edgeRevealRef.current = 0; // Reset for progressive reveal in useFrame
       } else {
         mesh.count = 0;
+        totalEdgesRef.current = 0;
         mesh.instanceMatrix.needsUpdate = true;
       }
     }, [points, mesh]);
@@ -136,6 +144,15 @@ export const GlassEdges = forwardRef<GlassEdgesHandle, GlassEdgesProps>(
       const mat = meshRef.current?.material as THREE.MeshPhysicalMaterial | undefined;
       if (mat) {
         mat.emissiveIntensity = 0.15 + Math.sin(clock.elapsedTime * 0.8) * 0.08;
+      }
+
+      // Progressive edge reveal: ramp up each frame
+      if (edgeRevealRef.current < totalEdgesRef.current && points.length >= 6) {
+        edgeRevealRef.current = Math.min(
+          edgeRevealRef.current + EDGE_REVEAL_BATCH,
+          totalEdgesRef.current,
+        );
+        computeInstanceMatrices(mesh, points, edgeRevealRef.current);
       }
     });
 
