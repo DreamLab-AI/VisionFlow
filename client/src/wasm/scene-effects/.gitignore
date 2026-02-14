@@ -1,0 +1,3 @@
+# wasm-pack output — track generated glue + binary for builds
+# Ignore only the package.json that wasm-pack generates (conflicts with project)
+package.json
