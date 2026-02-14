@@ -120,7 +120,7 @@ const GraphCanvas: React.FC = () => {
                 <directionalLight position={[-5, -5, -10]} intensity={0.3} />
 
                 {/* Environment map for PBR glass material reflections */}
-                <Environment preset="studio" background={false} resolution={256} />
+                <Environment preset="studio" background={false} resolution={512} />
 
                 {/* Scene ambient effects (WASM particles, wisps, atmosphere) */}
                 <WasmSceneEffects

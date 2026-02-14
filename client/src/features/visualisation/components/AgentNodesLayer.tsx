@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useMemo } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useSettingsStore } from '@/store/settingsStore';
-import { Text } from '@react-three/drei';
+import { Text, Html } from '@react-three/drei';
+import { isWebGPURenderer } from '../../../rendering/rendererFactory';
 
 
 
@@ -240,46 +241,60 @@ const AgentNode: React.FC<{
         />
       </mesh>
 
-      {/* Agent type label */}
-      <Text
-        position={[0, scaledSize + 1, 0]}
-        fontSize={0.5}
-        color={statusColor}
-        anchorX="center"
-        anchorY="bottom"
-        outlineWidth={0.03}
-        outlineColor="black"
-      >
-        {agent.type.toUpperCase()}
-      </Text>
-
-      {/* Status label */}
-      <Text
-        position={[0, scaledSize + 1.5, 0]}
-        fontSize={0.3}
-        color="#ffffff"
-        anchorX="center"
-        anchorY="bottom"
-        outlineWidth={0.02}
-        outlineColor="black"
-      >
-        {agent.status} | {agent.health}%
-      </Text>
-
-      {/* Current task */}
-      {agent.currentTask && (
-        <Text
-          position={[0, -(scaledSize + 1), 0]}
-          fontSize={0.25}
-          color="#aaaaaa"
-          anchorX="center"
-          anchorY="top"
-          maxWidth={10}
-          outlineWidth={0.01}
-          outlineColor="black"
-        >
-          {agent.currentTask}
-        </Text>
+      {/* Agent type label — Html on WebGPU (troika Text triggers drawIndexed(Infinity)) */}
+      {isWebGPURenderer ? (
+        <Html position={[0, scaledSize + 1.5, 0]} center style={{ pointerEvents: 'none', whiteSpace: 'nowrap' }}>
+          <div style={{ color: statusColor, fontSize: '12px', fontWeight: 'bold', textShadow: '0 0 4px black' }}>
+            {agent.type.toUpperCase()}
+          </div>
+          <div style={{ color: '#fff', fontSize: '10px', textShadow: '0 0 3px black' }}>
+            {agent.status} | {agent.health}%
+          </div>
+          {agent.currentTask && (
+            <div style={{ color: '#aaa', fontSize: '9px', maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {agent.currentTask}
+            </div>
+          )}
+        </Html>
+      ) : (
+        <>
+          <Text
+            position={[0, scaledSize + 1, 0]}
+            fontSize={0.5}
+            color={statusColor}
+            anchorX="center"
+            anchorY="bottom"
+            outlineWidth={0.03}
+            outlineColor="black"
+          >
+            {agent.type.toUpperCase()}
+          </Text>
+          <Text
+            position={[0, scaledSize + 1.5, 0]}
+            fontSize={0.3}
+            color="#ffffff"
+            anchorX="center"
+            anchorY="bottom"
+            outlineWidth={0.02}
+            outlineColor="black"
+          >
+            {agent.status} | {agent.health}%
+          </Text>
+          {agent.currentTask && (
+            <Text
+              position={[0, -(scaledSize + 1), 0]}
+              fontSize={0.25}
+              color="#aaaaaa"
+              anchorX="center"
+              anchorY="top"
+              maxWidth={10}
+              outlineWidth={0.01}
+              outlineColor="black"
+            >
+              {agent.currentTask}
+            </Text>
+          )}
+        </>
       )}
 
       {/* Health bar with gradient glow */}

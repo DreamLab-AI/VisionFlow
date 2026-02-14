@@ -105,8 +105,13 @@ export const GemPostProcessing: React.FC<GemPostProcessingProps> = ({ enabled = 
 
         const bloomPass = bloom(bloomInput, strength, radius, threshold);
 
-        // Compose: original scene + additive bloom
-        const outputNode = scenePassColor.add(bloomPass);
+        // Compose: scene + attenuated bloom. Raw `add` blows out bright nodes
+        // because bloom(scene) at strength 0.8 pushes HDR values > 1.0 into
+        // ACES compression territory, causing white-out and desaturation.
+        // Scaling bloom by 0.5 preserves the glow effect while keeping values
+        // in a range where ACES tone mapping retains color distinction.
+        const { float: tslFloat } = tslMod;
+        const outputNode = scenePassColor.add(bloomPass.mul(tslFloat(0.5)));
 
         const postProcessing = new PostProcessing(gl as any, outputNode);
 

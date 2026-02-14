@@ -143,12 +143,14 @@ export class InstancedRenderingManager {
     const maxCount = mesh.instanceMatrix.count;
 
 
-    if (!mesh.geometry.attributes.instanceColor) {
-      const colors = new Float32Array(maxCount * 3);
-      mesh.geometry.setAttribute('instanceColor', new THREE.InstancedBufferAttribute(colors, 3));
+    // Use native setColorAt path — InstancedBufferAttribute causes
+    // drawIndexed(Infinity) crash on WebGPU backend.
+    if (!mesh.instanceColor) {
+      const _c = new THREE.Color();
+      for (let ci = 0; ci < maxCount; ci++) mesh.setColorAt(ci, _c);
     }
 
-    const colorAttribute = mesh.geometry.attributes.instanceColor as THREE.InstancedBufferAttribute;
+    const colorAttribute = mesh.instanceColor as THREE.InstancedBufferAttribute;
     const nodeCount = Math.min(nodes.length, maxCount);
 
     // Compact visible instances to the front of the buffer

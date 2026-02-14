@@ -44,31 +44,11 @@ export function createGlassEdgeMaterial(): GlassEdgeMaterialResult {
     } : {}),
   });
 
-  // TSL Fresnel + animated flow upgrade for WebGPU
-  const ready = isWebGPURenderer
-    ? import('three/tsl').then((tsl: any) => {
-        const {
-          float, vec3, mix, pow, sin, add,
-          dot, normalize: tslNorm, normalView, positionView, positionLocal,
-          oneMinus, saturate, time,
-        } = tsl;
-
-        // Fresnel rim lighting
-        const vDir = tslNorm(positionView.negate());
-        const nDotV = saturate(dot(normalView, vDir));
-        const fresnel = pow(oneMinus(nDotV), float(3.0));
-        (material as any).opacityNode = mix(float(0.35), float(0.7), fresnel);
-
-        // Animated flow pulse along edge Y-axis (cylinder stretches along Y)
-        const flowPhase = add(positionLocal.y, time.mul(float(uniforms.flowSpeed.value)));
-        const flowPulse = sin(flowPhase.mul(float(6.2831))).mul(0.5).add(0.5);
-        const baseEmissive = vec3(float(0.3), float(0.45), float(0.7));
-        const flowEmissive = baseEmissive.mul(mix(float(0.5), float(1.2), flowPulse));
-        (material as any).emissiveNode = flowEmissive;
-
-        (material as any).needsUpdate = true;
-      }).catch((err: any) => console.warn('[GlassEdgeMaterial] TSL upgrade failed:', err))
-    : Promise.resolve();
+  // TSL DISABLED: Adding emissiveNode/opacityNode to MeshPhysicalMaterial triggers
+  // shader recompilation that breaks InstancedMesh draw calls on WebGPU r182.
+  // Visual quality achieved through standard PBR properties + per-frame emissive
+  // modulation in GlassEdges useFrame instead.
+  const ready = Promise.resolve();
 
   return { material, uniforms, ready };
 }

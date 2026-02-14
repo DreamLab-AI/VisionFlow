@@ -519,7 +519,7 @@ class GraphWorker {
     maxDivergence: number;
   }>): Promise<void> {
     if (settings.enabled !== undefined) this.tweenSettings.enabled = settings.enabled;
-    if (settings.lerpBase !== undefined) this.tweenSettings.lerpBase = Math.max(0.0001, Math.min(0.1, settings.lerpBase));
+    if (settings.lerpBase !== undefined) this.tweenSettings.lerpBase = Math.max(0.0001, Math.min(0.5, settings.lerpBase));
     if (settings.snapThreshold !== undefined) this.tweenSettings.snapThreshold = Math.max(0.1, settings.snapThreshold);
     if (settings.maxDivergence !== undefined) this.tweenSettings.maxDivergence = Math.max(1, settings.maxDivergence);
     workerLogger.info(`Tweening settings updated: lerpBase=${this.tweenSettings.lerpBase}, snap=${this.tweenSettings.snapThreshold}`);

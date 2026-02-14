@@ -114,15 +114,10 @@ export const GlassEdges = forwardRef<GlassEdgesHandle, GlassEdgesProps>(
       }
     }, [points, mesh]);
 
-    // Dispose GPU resources on unmount
-    useEffect(() => {
-      return () => {
-        if (meshRef.current) {
-          meshRef.current.geometry.dispose();
-          (meshRef.current.material as THREE.Material).dispose();
-        }
-      };
-    }, []);
+    // NOTE: No disposal useEffect here. React StrictMode double-invokes useMemo
+    // and runs effect cleanup between mount cycles, which disposes the GPU buffers
+    // of the ONLY mesh instance. WebGPU cannot recover disposed geometry/material.
+    // Three.js / GC handles cleanup when the component fully unmounts.
 
     // Imperative path for hot-loop updates from useFrame callers
     const updatePoints = useCallback(

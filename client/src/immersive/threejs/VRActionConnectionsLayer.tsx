@@ -186,25 +186,16 @@ const VRConnectionParticles: React.FC<{
 
     meshRef.current.instanceMatrix.needsUpdate = true;
 
-    // Update instance colors
-    const colorAttr = meshRef.current.geometry.getAttribute('instanceColor');
-    if (colorAttr) {
-      (colorAttr as THREE.BufferAttribute).set(colorArray);
-      colorAttr.needsUpdate = true;
+    // Update instance colors via native setColorAt (InstancedBufferAttribute
+    // causes drawIndexed(Infinity) crash on WebGPU backend).
+    for (let i = 0; i < maxInstances; i++) {
+      _tempColor.setRGB(colorArray[i * 3], colorArray[i * 3 + 1], colorArray[i * 3 + 2]);
+      meshRef.current.setColorAt(i, _tempColor);
+    }
+    if (meshRef.current.instanceColor) {
+      meshRef.current.instanceColor.needsUpdate = true;
     }
   });
-
-  // Add instance color attribute
-  useEffect(() => {
-    if (meshRef.current) {
-      meshRef.current.geometry.setAttribute(
-        'instanceColor',
-        new THREE.InstancedBufferAttribute(colorArray, 3)
-      );
-      // Enable vertex colors on material
-      (meshRef.current.material as THREE.MeshBasicMaterial).vertexColors = true;
-    }
-  }, [colorArray]);
 
   return (
     <instancedMesh

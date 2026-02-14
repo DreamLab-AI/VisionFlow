@@ -171,6 +171,7 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
   // Progressive reveal: ramp up visible instance count over frames so nodes
   // appear in waves (~120 nodes/frame at 60fps → full 1090 in ~0.15s).
   const revealedRef = useRef(0);
+  const prevNodeCountRef = useRef(0);
   const REVEAL_BATCH = 120;
 
   const diagLoggedRef = useRef(false);
@@ -187,6 +188,12 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
     }
 
     if (uniforms.time) uniforms.time.value = clock.elapsedTime;
+
+    // Reset progressive reveal when node count changes (new data loaded)
+    if (nodes.length !== prevNodeCountRef.current) {
+      revealedRef.current = 0;
+      prevNodeCountRef.current = nodes.length;
+    }
 
     const positions = nodePositionsRef.current;
     frameCountRef.current++;

@@ -289,7 +289,7 @@ const useGeometries = () => useMemo(() => ({
 
 /**
  * Creates a MeshPhysicalMaterial with Fresnel rim glow that works on both renderers.
- * On WebGPU, a TSL opacityNode provides the rim effect since onBeforeCompile GLSL is ignored.
+ * TSL disabled — opacityNode breaks InstancedMesh draw calls on WebGPU r182.
  * Replaces the deleted HologramNodeMaterial with a compatible physical-based alternative.
  */
 const useMetadataShapeMaterial = (settings: any) => {
@@ -321,17 +321,8 @@ const useMetadataShapeMaterial = (settings: any) => {
       } : {}),
     });
 
-    // TSL Fresnel upgrade for WebGPU
-    if (isWebGPURenderer) {
-      import('three/tsl').then((tsl: any) => {
-        const { float, mix, pow, dot, normalize: tslNorm, normalView, positionView, oneMinus, saturate } = tsl;
-        const vDir = tslNorm(positionView.negate());
-        const nDotV = saturate(dot(normalView, vDir));
-        const fresnel = pow(oneMinus(nDotV), float(3.0));
-        (mat as any).opacityNode = mix(float(0.3), float(0.85), fresnel);
-        (mat as any).needsUpdate = true;
-      }).catch((err: any) => console.warn('[MetadataShapes] TSL upgrade failed:', err));
-    }
+    // TSL DISABLED: Adding opacityNode to MeshPhysicalMaterial triggers shader
+    // recompilation that breaks InstancedMesh draw calls on WebGPU r182.
 
     return mat;
   }, [settings]);
