@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, RefreshCw, Gauge, Layers, TrendingUp, Settings as SettingsIcon } from 'lucide-react';
+import { Activity, RefreshCw, Gauge, Layers, TrendingUp, Settings as SettingsIcon, Cpu, Monitor } from 'lucide-react';
 import { useSettingsStore } from '../../../../store/settingsStore';
+import { rendererCapabilities, isWebGPURenderer } from '../../../../rendering/rendererFactory';
 import { Button } from '@/features/design-system/components/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/features/design-system/components/Card';
 import { Switch } from '@/features/design-system/components/Switch';
@@ -114,6 +115,63 @@ export const DashboardControlPanel: React.FC = () => {
           Real-time system monitoring and computation controls
         </p>
       </div>
+
+      {/* Renderer Status — WebGPU telltale */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2">
+            <Monitor className="w-5 h-5" />
+            Renderer Status
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {/* Backend telltale */}
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">Backend</span>
+            <div className="flex items-center gap-2">
+              <span
+                className={`inline-block w-2.5 h-2.5 rounded-full ${
+                  isWebGPURenderer
+                    ? 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.7)]'
+                    : 'bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.5)]'
+                }`}
+              />
+              <Badge variant={isWebGPURenderer ? 'default' : 'secondary'}>
+                {rendererCapabilities.backend.toUpperCase()}
+              </Badge>
+            </div>
+          </div>
+
+          {/* GPU adapter */}
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">GPU</span>
+            <span className="text-sm text-muted-foreground font-mono truncate max-w-[200px]" title={rendererCapabilities.gpuAdapterName}>
+              {rendererCapabilities.gpuAdapterName}
+            </span>
+          </div>
+
+          {/* Feature flags */}
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">Features</span>
+            <div className="flex gap-1.5 flex-wrap justify-end">
+              {rendererCapabilities.tslMaterialsActive && (
+                <Badge variant="outline" className="text-xs px-1.5 py-0">TSL</Badge>
+              )}
+              {rendererCapabilities.nodeBasedBloom && (
+                <Badge variant="outline" className="text-xs px-1.5 py-0">Node Bloom</Badge>
+              )}
+              <Badge variant="outline" className="text-xs px-1.5 py-0">
+                {rendererCapabilities.pixelRatio.toFixed(1)}x DPR
+              </Badge>
+              <Badge variant="outline" className="text-xs px-1.5 py-0">
+                {rendererCapabilities.maxTextureSize}px tex
+              </Badge>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Separator />
 
       {}
       {(settings?.dashboard as any)?.showStatus && (

@@ -314,6 +314,9 @@ export async function initSceneEffects(): Promise<SceneEffectsAPI> {
       console.info(`[scene-effects] WASM loaded, version ${cachedAPI.version}`);
       return cachedAPI;
     } catch (err) {
+      // Reset initPromise so subsequent calls can retry (e.g., after a
+      // transient network error loading the .wasm file).
+      initPromise = null;
       // eslint-disable-next-line no-console
       console.warn('[scene-effects] WASM failed to load, effects disabled:', err);
       throw err;

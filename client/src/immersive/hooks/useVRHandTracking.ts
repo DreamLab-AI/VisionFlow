@@ -17,6 +17,10 @@ import { useRef, useCallback, useMemo, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
+// Pre-allocated objects reused every frame in findTargetAlongRay to avoid GC pressure
+const _rayVec = new THREE.Vector3();
+const _raySphere = new THREE.Sphere();
+
 export interface HandState {
   position: THREE.Vector3;
   direction: THREE.Vector3;
@@ -183,13 +187,12 @@ export const useVRHandTracking = (
       let closestDistance = Infinity;
 
       for (const node of targetNodesRef.current) {
-        const sphere = new THREE.Sphere(node.position, settings.targetRadius);
-        const intersectionPoint = new THREE.Vector3();
+        _raySphere.set(node.position, settings.targetRadius);
 
-        // Check if ray intersects sphere
-        const intersects = raycaster.current.ray.intersectSphere(sphere, intersectionPoint);
+        // Check if ray intersects sphere (reuse pre-allocated _rayVec for intersection point)
+        const intersects = raycaster.current.ray.intersectSphere(_raySphere, _rayVec);
         if (intersects) {
-          const distance = origin.distanceTo(intersectionPoint);
+          const distance = origin.distanceTo(_rayVec);
 
           if (distance < closestDistance && distance < settings.maxRayDistance) {
             closestDistance = distance;

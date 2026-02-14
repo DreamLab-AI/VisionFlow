@@ -126,7 +126,7 @@ const GraphCanvas: React.FC = () => {
                 <WasmSceneEffects
                     enabled={settings?.visualisation?.sceneEffects?.enabled !== false}
                     particleCount={settings?.visualisation?.sceneEffects?.particleCount ?? 256}
-                    intensity={settings?.visualisation?.sceneEffects?.particleOpacity ?? 0.3}
+                    intensity={settings?.visualisation?.sceneEffects?.particleOpacity ?? 0.6}
                     particleDrift={settings?.visualisation?.sceneEffects?.particleDrift ?? 0.5}
                     wispsEnabled={settings?.visualisation?.sceneEffects?.wispsEnabled !== false}
                     wispCount={settings?.visualisation?.sceneEffects?.wispCount ?? 48}

@@ -22,6 +22,9 @@ import { useFrame } from '@react-three/fiber';
 import { ActionConnection } from '../hooks/useActionConnections';
 import { AgentActionType } from '@/services/BinaryWebSocketProtocol';
 
+/** Pre-allocated temp objects for per-frame operations -- avoids GC churn. */
+const _connColor = new THREE.Color();
+
 interface ActionConnectionsLayerProps {
   connections: ActionConnection[];
   /** Enable VR-optimized rendering */
@@ -163,7 +166,8 @@ const ActionConnectionLine: React.FC<{
     return targetPos.clone();
   }, [connection.progress, connection.phase, curve, sourcePos, targetPos]);
 
-  // Calculate visual properties based on phase
+  // Calculate visual properties based on phase.
+  // Color is stored as a hex number to avoid allocating a THREE.Color each update.
   const visuals = useMemo(() => {
     const { progress, phase, color } = connection;
 
@@ -204,19 +208,40 @@ const ActionConnectionLine: React.FC<{
       }
     }
 
+    // Resolve color to hex integer -- avoids allocating THREE.Color per update.
+    _connColor.set(color);
+    const colorHex = _connColor.getHex();
+
     return {
       lineOpacity: lineOpacity * opacity,
       particleScale,
       impactScale,
-      color: new THREE.Color(color),
+      colorHex,
     };
   }, [connection, opacity]);
 
-  // Animate line opacity
+  // Stable material and line object -- avoids creating new Three.js objects every render.
+  const lineMaterial = useMemo(() => {
+    return new THREE.LineBasicMaterial({
+      color: visuals.colorHex,
+      transparent: true,
+      opacity: visuals.lineOpacity,
+      linewidth: lineWidth,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const lineObject = useMemo(() => {
+    const line = new THREE.Line(lineGeometry, lineMaterial);
+    return line;
+  }, [lineGeometry, lineMaterial]);
+
+  // Animate line opacity, color, and particle transforms per frame.
   useFrame(() => {
     if (lineRef.current) {
       const material = lineRef.current.material as THREE.LineBasicMaterial;
       material.opacity = visuals.lineOpacity;
+      material.color.setHex(visuals.colorHex);
     }
     if (particleRef.current) {
       particleRef.current.position.copy(particlePosition);
@@ -231,25 +256,14 @@ const ActionConnectionLine: React.FC<{
 
   return (
     <group>
-      {/* Connection line */}
-      <primitive
-        ref={lineRef}
-        object={new THREE.Line(
-          lineGeometry,
-          new THREE.LineBasicMaterial({
-            color: visuals.color,
-            transparent: true,
-            opacity: visuals.lineOpacity,
-            linewidth: lineWidth,
-          })
-        )}
-      />
+      {/* Connection line -- stable object avoids re-creating Line/Material per render */}
+      <primitive ref={lineRef} object={lineObject} />
 
       {/* Traveling particle */}
       <mesh ref={particleRef} position={particlePosition}>
         <sphereGeometry args={[vrMode ? 0.2 : 0.4, vrMode ? 8 : 16, vrMode ? 8 : 16]} />
         <meshBasicMaterial
-          color={visuals.color}
+          color={visuals.colorHex}
           transparent
           opacity={0.9 * opacity}
         />
@@ -260,7 +274,7 @@ const ActionConnectionLine: React.FC<{
         <mesh position={particlePosition}>
           <sphereGeometry args={[0.8, 12, 12]} />
           <meshBasicMaterial
-            color={visuals.color}
+            color={visuals.colorHex}
             transparent
             opacity={0.3 * opacity * visuals.particleScale}
             side={THREE.BackSide}
@@ -273,7 +287,7 @@ const ActionConnectionLine: React.FC<{
         <mesh ref={impactRef} position={targetPos}>
           <ringGeometry args={[0.5, 2, vrMode ? 16 : 32]} />
           <meshBasicMaterial
-            color={visuals.color}
+            color={visuals.colorHex}
             transparent
             opacity={visuals.impactScale * 0.5 * opacity}
             side={THREE.DoubleSide}

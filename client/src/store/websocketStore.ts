@@ -902,8 +902,8 @@ export const useWebSocketStore = create<WebSocketState>()(
         set(s => ({ reconnectAttempts: s.reconnectAttempts + 1 }));
 
         const baseDelay = 1000;
-        const exponentialDelay = baseDelay * Math.pow(2, state.reconnectAttempts);
-        const delay = Math.min(exponentialDelay, MAX_RECONNECT_DELAY);
+        const jitter = Math.random() * 500;
+        const delay = Math.min(baseDelay * Math.pow(2, state.reconnectAttempts) + jitter, MAX_RECONNECT_DELAY);
 
         updateConnectionState('reconnecting', `Reconnecting in ${delay}ms`);
 

@@ -2,10 +2,13 @@
 
 import { wrap, Remote } from 'comlink';
 import { GraphWorkerType, ForcePhysicsSettings } from '../workers/graph.worker';
+import type { NodeMetadata } from '../workers/graph.worker';
 import { createLogger } from '../../../utils/loggerConfig';
 import { debugState } from '../../../utils/clientDebugState';
 
 const logger = createLogger('GraphWorkerProxy');
+
+export type { NodeMetadata } from '../workers/graph.worker';
 
 export interface Node {
   id: string;
@@ -15,7 +18,7 @@ export interface Node {
     y: number;
     z: number;
   };
-  metadata?: Record<string, any>;
+  metadata?: NodeMetadata;
 }
 
 export interface Edge {

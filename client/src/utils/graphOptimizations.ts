@@ -210,10 +210,12 @@ export class SharedBufferCommunication {
   private supported: boolean;
   
   constructor() {
-    this.supported = typeof SharedArrayBuffer !== 'undefined';
-    
-    if (!this.supported) {
-      logger.warn('SharedArrayBuffer not supported, falling back to message passing');
+    try {
+      new SharedArrayBuffer(1);
+      this.supported = true;
+    } catch {
+      this.supported = false;
+      logger.warn('SharedArrayBuffer not supported or blocked by security policy, falling back to message passing');
     }
   }
   

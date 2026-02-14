@@ -16,11 +16,15 @@ export interface GlassEdgeMaterialResult {
 // Edges stay thin and subtle; depth-write off so they don't z-fight with nodes.
 // ---------------------------------------------------------------------------
 
-export function createGlassEdgeMaterial(): GlassEdgeMaterialResult {
+export function createGlassEdgeMaterial(baseColor?: string | THREE.Color): GlassEdgeMaterialResult {
   const uniforms = { time: { value: 0 }, flowSpeed: { value: 0.5 } };
 
+  const resolvedColor = baseColor
+    ? (baseColor instanceof THREE.Color ? baseColor : new THREE.Color(baseColor))
+    : new THREE.Color(0.35, 0.55, 0.85);
+
   const material = new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color(0.7, 0.85, 1.0),
+    color: resolvedColor,
     ior: 1.5,
     transmission: isWebGPURenderer ? 0 : 0.7,
     thickness: isWebGPURenderer ? 0 : 0.15,
@@ -30,17 +34,19 @@ export function createGlassEdgeMaterial(): GlassEdgeMaterialResult {
     opacity: isWebGPURenderer ? 0.6 : 0.4,
     side: THREE.DoubleSide,
     depthWrite: false, // Edges behind nodes
-    emissive: new THREE.Color(isWebGPURenderer ? 0.2 : 0.1, isWebGPURenderer ? 0.3 : 0.18, isWebGPURenderer ? 0.55 : 0.3),
-    emissiveIntensity: isWebGPURenderer ? 0.8 : 0.3,
+    // Derive emissive from the resolved base color (30% intensity) so edges
+    // glow in their own hue rather than a fixed blue.
+    emissive: resolvedColor.clone().multiplyScalar(isWebGPURenderer ? 0.5 : 0.3),
+    emissiveIntensity: isWebGPURenderer ? 0.6 : 0.3,
     iridescence: isWebGPURenderer ? 0.2 : 0.1,
     iridescenceIOR: 1.3,
     iridescenceThicknessRange: [100, 250] as [number, number],
     ...(isWebGPURenderer ? {
       sheen: 0.3,
       sheenRoughness: 0.1,
-      sheenColor: new THREE.Color(0.4, 0.6, 1.0),
+      sheenColor: resolvedColor.clone().multiplyScalar(0.7),
       specularIntensity: 0.8,
-      specularColor: new THREE.Color(0.7, 0.85, 1.0),
+      specularColor: resolvedColor.clone().lerp(new THREE.Color(1, 1, 1), 0.3),
     } : {}),
   });
 

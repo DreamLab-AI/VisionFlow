@@ -74,6 +74,13 @@ const AGENT_STATUS_MAP: Record<string, string> = {
   active: '#2ECC71', busy: '#F39C12', idle: '#95A5A6', error: '#E74C3C',
 };
 
+/** Deterministic hue from string (0-1). Used for node-label-based color differentiation. */
+const hashHue = (s: string): number => {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  return ((h >>> 0) % 360) / 360;
+};
+
 /** Map a lastModified timestamp to 0-1 recency (1 = recent, 0 = stale). */
 const computeRecency = (lastModified: string | number | undefined): number => {
   if (!lastModified) return 0.3;
@@ -162,11 +169,16 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
       const depth = hierarchyMap?.get(node.id)?.depth ?? (node.metadata?.depth ?? 0);
       return _col.set(ONTOLOGY_SPECTRUM[Math.min(depth, ONTOLOGY_SPECTRUM.length - 1)]);
     }
+    // Knowledge graph: derive hue from node label for visual differentiation,
+    // with authority driving saturation + lightness. Connection count adds warmth.
     const auth = node.metadata?.authority ?? node.metadata?.authorityScore ?? 0;
-    _col.set('#90A4AE');
-    if (auth > 0) _col.offsetHSL(0, auth * 0.06, auth * 0.3);
+    const cc = connectionCountMap.get(String(node.id)) || 0;
+    const hue = hashHue(node.label || String(node.id));
+    const sat = 0.35 + auth * 0.35 + Math.min(cc / 20, 0.2);
+    const lit = 0.45 + auth * 0.2;
+    _col.setHSL(hue, Math.min(sat, 0.9), Math.min(lit, 0.75));
     return _col;
-  }, [ssspResult, hierarchyMap]);
+  }, [ssspResult, hierarchyMap, connectionCountMap]);
 
   // Progressive reveal: ramp up visible instance count over frames so nodes
   // appear in waves (~120 nodes/frame at 60fps → full 1090 in ~0.15s).
@@ -184,7 +196,7 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
     // If the mesh has no parent after mount, attach it directly.
     if (!inst.parent && scene) {
       scene.add(inst);
-      console.log('[GemNodes] manually attached mesh to scene (R3F primitive workaround)');
+      console.debug('[GemNodes] manually attached mesh to scene (R3F primitive workaround)');
     }
 
     if (uniforms.time) uniforms.time.value = clock.elapsedTime;
@@ -198,53 +210,55 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
     const positions = nodePositionsRef.current;
     frameCountRef.current++;
 
-    // Delayed diagnostic — fires at frame 60 when positions are loaded
-    if (!diagLoggedRef.current && frameCountRef.current >= 60) {
-      diagLoggedRef.current = true;
-      const mat = inst.material as any;
-      // Sample first 3 instance matrices
-      const tempMat = new THREE.Matrix4();
-      const tempVec = new THREE.Vector3();
-      const tempScale = new THREE.Vector3();
-      const matSamples: any[] = [];
-      for (let si = 0; si < Math.min(3, inst.count); si++) {
-        inst.getMatrixAt(si, tempMat);
-        tempVec.setFromMatrixPosition(tempMat);
-        tempScale.setFromMatrixScale(tempMat);
-        matSamples.push({ i: si, pos: { x: +tempVec.x.toFixed(1), y: +tempVec.y.toFixed(1), z: +tempVec.z.toFixed(1) }, scale: +tempScale.x.toFixed(2) });
+    // Delayed diagnostic — fires at frame 60 when positions are loaded (dev only)
+    if (import.meta.env.DEV) {
+      if (!diagLoggedRef.current && frameCountRef.current >= 60) {
+        diagLoggedRef.current = true;
+        const mat = inst.material as any;
+        // Sample first 3 instance matrices
+        const tempMat = new THREE.Matrix4();
+        const tempVec = new THREE.Vector3();
+        const tempScale = new THREE.Vector3();
+        const matSamples: any[] = [];
+        for (let si = 0; si < Math.min(3, inst.count); si++) {
+          inst.getMatrixAt(si, tempMat);
+          tempVec.setFromMatrixPosition(tempMat);
+          tempScale.setFromMatrixScale(tempMat);
+          matSamples.push({ i: si, pos: { x: +tempVec.x.toFixed(1), y: +tempVec.y.toFixed(1), z: +tempVec.z.toFixed(1) }, scale: +tempScale.x.toFixed(2) });
+        }
+        // Compute bounding box from first 20 instances
+        const bbox = new THREE.Box3();
+        for (let bi = 0; bi < Math.min(20, inst.count); bi++) {
+          inst.getMatrixAt(bi, tempMat);
+          tempVec.setFromMatrixPosition(tempMat);
+          bbox.expandByPoint(tempVec);
+        }
+        const bboxSize = new THREE.Vector3();
+        bbox.getSize(bboxSize);
+        console.log('[GemNodes] DIAG frame60:', {
+          nodeCount: nodes.length,
+          instCount: inst.count,
+          hasPositions: !!positions,
+          posLen: positions?.length ?? 0,
+          visible: inst.visible,
+          hasParent: !!inst.parent,
+          parentType: inst.parent?.type,
+          frustumCulled: inst.frustumCulled,
+          matType: mat?.type,
+          matTransmission: mat?.transmission,
+          matOpacity: mat?.opacity,
+          matTransparent: mat?.transparent,
+          matDepthWrite: mat?.depthWrite,
+          matSide: mat?.side,
+          hasOpacityNode: !!mat?.opacityNode,
+          hasEmissiveNode: !!mat?.emissiveNode,
+          hasColorNode: !!mat?.colorNode,
+          matSamples,
+          bboxSize: { x: +bboxSize.x.toFixed(1), y: +bboxSize.y.toFixed(1), z: +bboxSize.z.toFixed(1) },
+          cameraPos: { x: +camera.position.x.toFixed(1), y: +camera.position.y.toFixed(1), z: +camera.position.z.toFixed(1) },
+          dominant,
+        });
       }
-      // Compute bounding box from first 20 instances
-      const bbox = new THREE.Box3();
-      for (let bi = 0; bi < Math.min(20, inst.count); bi++) {
-        inst.getMatrixAt(bi, tempMat);
-        tempVec.setFromMatrixPosition(tempMat);
-        bbox.expandByPoint(tempVec);
-      }
-      const bboxSize = new THREE.Vector3();
-      bbox.getSize(bboxSize);
-      console.log('[GemNodes] DIAG frame60:', {
-        nodeCount: nodes.length,
-        instCount: inst.count,
-        hasPositions: !!positions,
-        posLen: positions?.length ?? 0,
-        visible: inst.visible,
-        hasParent: !!inst.parent,
-        parentType: inst.parent?.type,
-        frustumCulled: inst.frustumCulled,
-        matType: mat?.type,
-        matTransmission: mat?.transmission,
-        matOpacity: mat?.opacity,
-        matTransparent: mat?.transparent,
-        matDepthWrite: mat?.depthWrite,
-        matSide: mat?.side,
-        hasOpacityNode: !!mat?.opacityNode,
-        hasEmissiveNode: !!mat?.emissiveNode,
-        hasColorNode: !!mat?.colorNode,
-        matSamples,
-        bboxSize: { x: +bboxSize.x.toFixed(1), y: +bboxSize.y.toFixed(1), z: +bboxSize.z.toFixed(1) },
-        cameraPos: { x: +camera.position.x.toFixed(1), y: +camera.position.y.toFixed(1), z: +camera.position.z.toFixed(1) },
-        dominant,
-      });
     }
     const baseScale = (settings?.visualisation?.nodes?.nodeSize ?? 0.5) / 0.5;
     const texBuf = metaTexRef.current?.image?.data as Float32Array | undefined;
@@ -255,13 +269,15 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
     const currentMat = inst.material as any;
     if (currentMat.emissiveIntensity !== undefined) {
       const u = uniforms as any;
+      // Read glow intensity from settings; fall back to conservative default
+      const glowBase = settings?.visualisation?.glow?.intensity ?? 0.3;
       if (dominant === 'agent' && u.activityLevel) {
         const pulse = Math.pow((Math.sin(clock.elapsedTime * Math.PI) + 1) * 0.5, 4);
         currentMat.emissiveIntensity = 0.15 + pulse * u.activityLevel.value * 0.2;
       } else {
-        // Knowledge graph / ontology: subtle breathing emissive
+        // Knowledge graph / ontology: subtle breathing emissive driven by glow setting
         const breath = (Math.sin(clock.elapsedTime * 0.8) + 1) * 0.5;
-        currentMat.emissiveIntensity = 0.3 + breath * 0.3;
+        currentMat.emissiveIntensity = glowBase * 0.6 + breath * glowBase * 0.4;
       }
     }
 

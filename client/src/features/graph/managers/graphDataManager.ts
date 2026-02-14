@@ -13,7 +13,7 @@ import { useWorkerErrorStore } from '../../../store/workerErrorStore';
 const logger = createLogger('GraphDataManager');
 
 // Re-export types from worker proxy for compatibility
-export type { Node, Edge, GraphData } from './graphWorkerProxy';
+export type { Node, Edge, GraphData, NodeMetadata } from './graphWorkerProxy';
 
 // Alias for backward compatibility
 export type GraphNode = Node;
@@ -118,6 +118,23 @@ class GraphDataManager {
       });
     });
     this.workerUnsubscribers.push(unsubPositions);
+
+    // Listen for physics parameter updates from settingsStore and forward to worker.
+    // settingsStore.notifyPhysicsUpdate() dispatches a CustomEvent with the latest
+    // physics settings; we forward them to the worker so tweening/interpolation
+    // parameters stay in sync with the UI controls.
+    const handlePhysicsUpdate = (e: Event) => {
+      const detail = (e as CustomEvent)?.detail;
+      if (detail && this.workerInitialized) {
+        graphWorkerProxy.updateSettings(detail).catch((err: unknown) => {
+          logger.warn('Failed to forward physics settings to worker:', createErrorMetadata(err));
+        });
+      }
+    };
+    window.addEventListener('physicsParametersUpdated', handlePhysicsUpdate);
+    this.workerUnsubscribers.push(() => {
+      window.removeEventListener('physicsParametersUpdated', handlePhysicsUpdate);
+    });
   }
 
   public static getInstance(): GraphDataManager {

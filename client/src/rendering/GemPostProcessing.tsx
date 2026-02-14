@@ -28,6 +28,7 @@ export const GemPostProcessing: React.FC<GemPostProcessingProps> = ({ enabled = 
   const { gl, scene, camera, size } = useThree();
   const settings = useSettingsStore(state => state.settings);
   const composerRef = useRef<any>(null);
+  const rtRef = useRef<THREE.WebGLRenderTarget | null>(null);
   const postProcessingRef = useRef<any>(null);
   const bloomNodeRef = useRef<any>(null);
   const disposeRef = useRef<(() => void) | null>(null);
@@ -44,9 +45,9 @@ export const GemPostProcessing: React.FC<GemPostProcessingProps> = ({ enabled = 
   // Object references (glowSettings, bloomSettings) change on every settings update
   // even when the underlying values haven't changed -- primitives are stable.
   const activeSource = !bloomSettings?.enabled && glowSettings?.enabled ? glowSettings : bloomSettings;
-  const bloomStrength = (activeSource as any)?.strength ?? (activeSource as any)?.intensity ?? 0.8;
-  const bloomRadius = (activeSource as any)?.radius ?? 0.4;
-  const bloomThreshold = (activeSource as any)?.threshold ?? 0.4;
+  const bloomStrength = (activeSource as any)?.strength ?? (activeSource as any)?.intensity ?? 0.3;
+  const bloomRadius = (activeSource as any)?.radius ?? 0.2;
+  const bloomThreshold = (activeSource as any)?.threshold ?? 0.3;
 
   // Stable params object for WebGL EffectComposer (triggers rebuild on change — acceptable
   // because WebGL bloom is cheap to reconstruct).
@@ -195,6 +196,7 @@ export const GemPostProcessing: React.FC<GemPostProcessingProps> = ({ enabled = 
         composer.addPass(bloomPass);
 
         composerRef.current = composer;
+        rtRef.current = rt;
       } catch (err) {
         console.warn('[GemPostProcessing] Failed to init WebGL bloom:', err);
       }
@@ -205,6 +207,12 @@ export const GemPostProcessing: React.FC<GemPostProcessingProps> = ({ enabled = 
       if (composerRef.current) {
         composerRef.current.dispose?.();
         composerRef.current = null;
+      }
+      // Dispose custom render target separately — EffectComposer.dispose()
+      // only disposes its internal targets, not the one passed to constructor.
+      if (rtRef.current) {
+        rtRef.current.dispose();
+        rtRef.current = null;
       }
     };
   }, [isEnabledWebGL, gl, scene, camera, effectParamsWebGL]);

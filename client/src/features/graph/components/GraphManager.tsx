@@ -9,8 +9,7 @@ import { usePlatformStore } from '../../../services/platformManager'
 import { createLogger } from '../../../utils/loggerConfig'
 import { debugState } from '../../../utils/clientDebugState'
 import { useSettingsStore } from '../../../store/settingsStore'
-import { BinaryNodeData, NodeType } from '../../../types/binaryProtocol'
-import { useWebSocketStore } from '../../../store/websocketStore'
+import { BinaryNodeData } from '../../../types/binaryProtocol'
 import { GemNodes, GemNodesHandle } from './GemNodes'
 import { GlassEdges, GlassEdgesHandle } from './GlassEdges'
 import { KnowledgeRings } from './KnowledgeRings'
@@ -18,15 +17,14 @@ import { ClusterHulls } from './ClusterHulls'
 import { useGraphEventHandlers } from '../hooks/useGraphEventHandlers'
 import { EdgeSettings } from '../../settings/config/settings'
 import { useAnalyticsStore, useCurrentSSSPResult } from '../../analytics/store/analyticsStore'
-import { detectHierarchy } from '../utils/hierarchyDetector'
-import { useExpansionState } from '../hooks/useExpansionState'
 import { AgentNodesLayer, useAgentNodes } from '../../visualisation/components/AgentNodesLayer'
-// import { useBloomStrength } from '../contexts/BloomContext'
+import { useGraphVisualState, type GraphVisualMode } from '../hooks/useGraphVisualState'
+import { useGraphFiltering } from '../hooks/useGraphFiltering'
 
 const logger = createLogger('GraphManager')
 
-// === GRAPH VISUAL MODE ===
-export type GraphVisualMode = 'knowledge_graph' | 'ontology' | 'agent';
+// Re-export GraphVisualMode from the hook for downstream consumers
+export type { GraphVisualMode } from '../hooks/useGraphVisualState';
 
 // === PERFORMANCE OPTIMIZATION: Domain colors defined once outside component ===
 const DOMAIN_COLORS: Record<string, string> = {
@@ -72,43 +70,6 @@ const AGENT_TYPE_COLORS: Record<string, THREE.Color> = {
 // (Material mode presets removed -- GemNodes handles mode switching internally)
 
 // === MODE-SPECIFIC METADATA OVERLAY HELPERS ===
-
-// Detect the dominant graph visual mode from node population (sampled for perf)
-const detectGraphMode = (nodes: GraphNode[]): GraphVisualMode => {
-  if (nodes.length === 0) return 'knowledge_graph';
-  const sample = nodes.length > 50 ? nodes.slice(0, 50) : nodes;
-  let ontologySignals = 0;
-  let agentSignals = 0;
-  for (const n of sample) {
-    if ((n as any).owlClassIri || n.metadata?.hierarchyDepth !== undefined || n.metadata?.depth !== undefined) {
-      ontologySignals++;
-    }
-    if (n.metadata?.agentType || n.metadata?.status === 'active' || n.metadata?.status === 'idle'
-        || n.metadata?.status === 'busy' || n.metadata?.status === 'error') {
-      agentSignals++;
-    }
-  }
-  const threshold = sample.length * 0.2;
-  if (agentSignals > threshold && agentSignals >= ontologySignals) return 'agent';
-  if (ontologySignals > threshold) return 'ontology';
-  return 'knowledge_graph';
-};
-
-// Map binary protocol NodeType to GraphVisualMode for per-node rendering
-const nodeTypeToVisualMode = (nodeType: NodeType): GraphVisualMode => {
-  switch (nodeType) {
-    case NodeType.Agent:
-      return 'agent';
-    case NodeType.OntologyClass:
-    case NodeType.OntologyIndividual:
-    case NodeType.OntologyProperty:
-      return 'ontology';
-    case NodeType.Knowledge:
-      return 'knowledge_graph';
-    default:
-      return 'knowledge_graph';
-  }
-};
 
 // Quality score -> star rating string (1-5 filled stars, unicode)
 const getQualityStars = (quality?: number | string): string => {
@@ -474,25 +435,13 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
 
   const [graphData, setGraphData] = useState<GraphData>({ nodes: [], edges: [] })
 
-  // O(n) lookup maps to replace O(n^2) findIndex calls (must be after graphData declaration)
-  // String() coercion ensures lookups work even if server returns numeric IDs
-  const nodeIdToIndexMap = useMemo(() =>
-    new Map(graphData.nodes.map((n, i) => [String(n.id), i])),
-    [graphData.nodes]
-  )
+  // === Decomposed hooks: visual state + filtering ===
+  const { perNodeVisualModeMap, hierarchyMap, connectionCountMap, dominantMode: graphMode } = useGraphVisualState(graphData);
+  const { visibleNodes, nodeIdToIndexMap, expansionState } = useGraphFiltering(graphData, hierarchyMap, connectionCountMap);
 
-  // Pre-built connection count map: O(E) build once, O(1) lookup per node
-  // Replaces O(n*E) filtering in getNodeScale
-  const connectionCountMap = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const edge of graphData.edges) {
-      const src = String(edge.source);
-      const tgt = String(edge.target);
-      map.set(src, (map.get(src) || 0) + 1);
-      map.set(tgt, (map.get(tgt) || 0) + 1);
-    }
-    return map;
-  }, [graphData.edges])
+  // Agent nodes overlay: polls /api/bots/agents for live agent telemetry
+  const { agents: agentLayerNodes, connections: agentLayerConnections } = useAgentNodes();
+
   const nodePositionsRef = useRef<Float32Array | null>(null)
   const [edgePoints, setEdgePoints] = useState<number[]>([])
   const [highlightEdgePoints, setHighlightEdgePoints] = useState<number[]>([]);
@@ -507,156 +456,6 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   const [forceUpdate, setForceUpdate] = useState(0)
   const [labelUpdateTick, setLabelUpdateTick] = useState(0)
   const labelTickRef = useRef(0)
-
-  // CLIENT-SIDE HIERARCHICAL LOD: Detect hierarchy from node IDs
-  const hierarchyMap = useMemo(() => {
-    if (graphData.nodes.length === 0) return new Map();
-    const hierarchy = detectHierarchy(graphData.nodes);
-    logger.info(`Detected hierarchy: ${hierarchy.size} nodes, max depth: ${
-      Math.max(...Array.from(hierarchy.values()).map(n => n.depth))
-    }`);
-    return hierarchy;
-  }, [graphData.nodes]);
-
-  // CLIENT-SIDE HIERARCHICAL LOD: Expansion state (per-client, no server persistence)
-  const expansionState = useExpansionState(true); // Default: all expanded
-
-  // Agent nodes overlay: polls /api/bots/agents for live agent telemetry
-  const { agents: agentLayerNodes, connections: agentLayerConnections } = useAgentNodes();
-
-  // === GRAPH VISUAL MODE DETECTION ===
-  // Priority: 1) settings store, 2) auto-detect from node data, 3) default
-  const settingsGraphMode = (settings?.visualisation as any)?.graphs?.mode as GraphVisualMode | undefined;
-  const graphMode: GraphVisualMode = useMemo(() => {
-    if (settingsGraphMode && (settingsGraphMode === 'knowledge_graph' || settingsGraphMode === 'ontology' || settingsGraphMode === 'agent')) {
-      return settingsGraphMode;
-    }
-    return detectGraphMode(graphData.nodes);
-  }, [settingsGraphMode, graphData.nodes]);
-
-  // === PER-NODE VISUAL MODE MAP ===
-  // Binary protocol flags are ground truth; metadata heuristics are fallback.
-  // The store's nodeTypeMap is populated from binary protocol position updates.
-  const binaryNodeTypeMap = useWebSocketStore(state => state.nodeTypeMap);
-
-  const perNodeVisualModeMap = useMemo(() => {
-    const map = new Map<string, GraphVisualMode>();
-    for (const node of graphData.nodes) {
-      const nodeIdNum = parseInt(String(node.id), 10);
-
-      // Priority 1: Binary protocol type flags (ground truth)
-      if (!isNaN(nodeIdNum) && binaryNodeTypeMap.size > 0) {
-        const binaryType = binaryNodeTypeMap.get(nodeIdNum);
-        if (binaryType && binaryType !== NodeType.Unknown) {
-          map.set(String(node.id), nodeTypeToVisualMode(binaryType));
-          continue;
-        }
-      }
-
-      // Priority 2: Metadata heuristics (fallback)
-      const nt = node.metadata?.nodeType || (node as any).nodeType || '';
-      const owlIri = (node as any).owlClassIri;
-      if (node.metadata?.agentType || node.metadata?.status === 'active' || node.metadata?.status === 'busy') {
-        map.set(String(node.id), 'agent');
-      } else if (owlIri || nt === 'owl_class' || node.metadata?.hierarchyDepth !== undefined) {
-        map.set(String(node.id), 'ontology');
-      }
-      // If no signals found, don't set -- will fall through to global graphMode
-    }
-    return map;
-  }, [graphData.nodes, binaryNodeTypeMap]);
-
-  // Get nodeFilter settings from store - extract individual values for stable deps
-  const storeNodeFilter = settings?.nodeFilter;
-  const filterEnabled = storeNodeFilter?.enabled ?? false;
-  const qualityThreshold = storeNodeFilter?.qualityThreshold ?? 0.7;
-  const authorityThreshold = storeNodeFilter?.authorityThreshold ?? 0.5;
-  const filterByQuality = storeNodeFilter?.filterByQuality ?? true;
-  const filterByAuthority = storeNodeFilter?.filterByAuthority ?? false;
-  const filterMode = storeNodeFilter?.filterMode ?? 'or';
-
-  // Log filter settings changes for debugging
-  useEffect(() => {
-    logger.info('[NodeFilter] Settings updated:', {
-      enabled: filterEnabled,
-      qualityThreshold,
-      authorityThreshold,
-      filterByQuality,
-      filterByAuthority,
-      filterMode,
-      hasStoreFilter: !!storeNodeFilter
-    });
-  }, [filterEnabled, qualityThreshold, authorityThreshold, filterByQuality, filterByAuthority, filterMode, storeNodeFilter]);
-
-  // CLIENT-SIDE HIERARCHICAL LOD + QUALITY/AUTHORITY FILTERING
-  // Physics still uses ALL graphData.nodes!
-  const visibleNodes = useMemo(() => {
-    if (graphData.nodes.length === 0) return [];
-
-    logger.debug(`[NodeFilter] Computing visible nodes: filterEnabled=${filterEnabled}, qualityThreshold=${qualityThreshold}, authorityThreshold=${authorityThreshold}`);
-
-    const visible = graphData.nodes.filter(node => {
-      // First apply hierarchy/expansion filtering
-      const hierarchyNode = hierarchyMap.get(node.id);
-      if (hierarchyNode) {
-        // Root nodes always pass hierarchy check
-        if (!hierarchyNode.isRoot) {
-          // Child nodes visible only if parent is expanded
-          if (!expansionState.isVisible(node.id, hierarchyNode.parentId)) {
-            return false;
-          }
-        }
-      }
-
-      // Then apply quality/authority filtering if enabled
-      if (filterEnabled) {
-        // Get quality score - use metadata if available, otherwise compute from connections
-        let quality = node.metadata?.quality ?? node.metadata?.qualityScore;
-        if (quality === undefined || quality === null) {
-          // Compute quality from node connections (normalized 0-1) using pre-built map
-          const connectionCount = connectionCountMap.get(node.id) || 0;
-          // Map connections to 0-1 range: 0 connections = 0, 10+ connections = 1
-          quality = Math.min(1.0, connectionCount / 10);
-        }
-
-        // Get authority score - use metadata if available, otherwise compute from hierarchy
-        let authority = node.metadata?.authority ?? node.metadata?.authorityScore;
-        if (authority === undefined || authority === null) {
-          // Compute authority from hierarchy depth and connections
-          const hierarchyNode = hierarchyMap.get(node.id);
-          const depth = hierarchyNode?.depth ?? 0;
-          // Root nodes (depth 0) have high authority, deeper nodes have less
-          authority = Math.max(0, 1.0 - (depth * 0.2));
-        }
-
-        const passesQuality = !filterByQuality || quality >= qualityThreshold;
-        const passesAuthority = !filterByAuthority || authority >= authorityThreshold;
-
-        // Apply filter mode (AND requires both, OR requires at least one)
-        if (filterMode === 'and') {
-          if (!passesQuality || !passesAuthority) {
-            return false;
-          }
-        } else {
-          // OR mode - but only if at least one filter is active
-          if (filterByQuality || filterByAuthority) {
-            if (!passesQuality && !passesAuthority) {
-              return false;
-            }
-          }
-        }
-      }
-
-      return true;
-    });
-
-    // Always log when filtering is active
-    if (filterEnabled) {
-      logger.info(`[NodeFilter] Result: ${visible.length}/${graphData.nodes.length} nodes visible (quality>=${qualityThreshold}, authority>=${authorityThreshold}, mode=${filterMode})`);
-    }
-
-    return visible;
-  }, [graphData.nodes, connectionCountMap, hierarchyMap, expansionState, filterEnabled, qualityThreshold, authorityThreshold, filterByQuality, filterByAuthority, filterMode])
 
   const animationStateRef = useRef({
     time: 0,

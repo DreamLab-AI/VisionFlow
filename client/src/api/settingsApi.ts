@@ -4,9 +4,10 @@
 import axios, { AxiosResponse } from 'axios';
 import { nostrAuth } from '../services/nostrAuthService';
 
-// Use Vite proxy for API requests in development
-// In production, this will be served from the same origin
-// NOTE: Empty string because the function paths already include '/api/'
+// Always use relative paths for API requests. In dev mode Vite proxies /api
+// to the backend (http://127.0.0.1:4000). In production the serving proxy
+// (nginx / HTTPS bridge) must also proxy /api to the backend.
+// VITE_API_URL is only used for non-browser contexts (SSR, tests).
 const API_BASE = '';
 
 // Helper to get auth headers (Nostr NIP-07 + Bearer token)
@@ -132,28 +133,28 @@ export interface ErrorResponse {
 
 const DEFAULT_GLOW_SETTINGS = {
   enabled: true,
-  intensity: 1.0,
-  radius: 0.5,
-  threshold: 0.1,
-  diffuseStrength: 0.5,
-  atmosphericDensity: 0.3,
-  volumetricIntensity: 0.5,
+  intensity: 0.5,
+  radius: 0.3,
+  threshold: 0.3,
+  diffuseStrength: 0.3,
+  atmosphericDensity: 0.2,
+  volumetricIntensity: 0.3,
   baseColor: '#ffffff',
   emissionColor: '#00ffff',
   opacity: 1.0,
   pulseSpeed: 1.0,
   flowSpeed: 0.5,
-  nodeGlowStrength: 1.0,
-  edgeGlowStrength: 0.5,
-  environmentGlowStrength: 0.3
+  nodeGlowStrength: 0.6,
+  edgeGlowStrength: 0.3,
+  environmentGlowStrength: 0.2
 };
 
 const DEFAULT_BLOOM_SETTINGS = {
   enabled: true,
-  intensity: 1.5,
-  threshold: 0.1,
-  radius: 0.5,
-  strength: 1.5
+  intensity: 0.4,
+  threshold: 0.3,
+  radius: 0.3,
+  strength: 0.4
 };
 
 const DEFAULT_HOLOGRAM_SETTINGS = {

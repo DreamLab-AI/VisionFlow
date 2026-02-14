@@ -395,9 +395,9 @@ export const useSettingsStore = create<SettingsState>()(
         });
 
         if (!skipServerSync) {
-          settingsApi.updateSettingByPath(path, value).catch(error => {
-            logger.error(`Failed to update setting ${path}:`, createErrorMetadata(error));
-          });
+          // Route through autoSaveManager for 500ms debounce — prevents flooding
+          // the backend when sliders fire onValueChange 60+/sec during drag.
+          autoSaveManager.queueChange(path, value);
         }
 
         if (debugState.isEnabled()) {
@@ -530,16 +530,18 @@ export const useSettingsStore = create<SettingsState>()(
         });
 
 
+        // Route through autoSaveManager for 500ms debounce — prevents flooding
+        // the backend when sliders fire onValueChange 60+/sec during drag.
+        const batchChanges = new Map<string, any>();
         changedPaths.forEach(path => {
           const pathParts = path.split('.');
           let current: unknown = newSettings;
           for (const part of pathParts) {
             current = (current as Record<string, unknown>)[part];
           }
-          settingsApi.updateSettingByPath(path, current).catch(error => {
-            logger.error(`Failed to update setting ${path}:`, createErrorMetadata(error));
-          });
+          batchChanges.set(path, current);
         });
+        autoSaveManager.queueChanges(batchChanges);
 
         if (debugState.isEnabled()) {
           logger.info('Settings updated via updateSettings:', { changedPaths });

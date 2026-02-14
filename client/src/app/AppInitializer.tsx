@@ -8,52 +8,57 @@ import { graphWorkerProxy } from '../features/graph/managers/graphWorkerProxy';
 import { graphDataManager } from '../features/graph/managers/graphDataManager';
 import { innovationManager } from '../features/graph/innovations/index';
 
-// Load and initialize all services
+// Load and initialize all non-critical services via Promise.allSettled
 const loadServices = async (): Promise<void> => {
   if (debugState.isEnabled()) {
     logger.info('Initializing services...');
   }
 
-  try {
-    
-    if (debugState.isEnabled()) {
-      logger.info('Using Nostr authentication system');
-    }
-
-    
-    try {
-      logger.info('Starting Innovation Manager initialization...');
-      const initPromise = innovationManager.initialize({
-        enableSync: true,
-        enableComparison: true,
-        enableAnimations: true,
-        enableAI: true,
-        enableAdvancedInteractions: true,
-        performanceMode: 'balanced'
-      });
-      
-      
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Innovation Manager initialization timeout')), 5000)
-      );
-      
-      await Promise.race([initPromise, timeoutPromise]);
-
-      logger.info('Innovation Manager initialized successfully');
-      if (debugState.isEnabled()) {
-        logger.info('Innovation Manager initialized successfully');
-        const status = innovationManager.getStatus();
-        logger.debug('Innovation Manager status:', status);
-      }
-    } catch (innovationError) {
-      logger.error('Innovation Manager initialization failed:', createErrorMetadata(innovationError));
-      logger.error('Error initializing Innovation Manager:', createErrorMetadata(innovationError));
-      
-    }
-
-  } catch (error) {
-    logger.error('Error initializing services:', createErrorMetadata(error));
+  if (debugState.isEnabled()) {
+    logger.info('Using Nostr authentication system');
   }
+
+  const serviceLoaders: Array<{ name: string; loader: () => Promise<void> }> = [
+    {
+      name: 'InnovationManager',
+      loader: async () => {
+        logger.info('Starting Innovation Manager initialization...');
+        const initPromise = innovationManager.initialize({
+          enableSync: true,
+          enableComparison: true,
+          enableAnimations: true,
+          enableAI: true,
+          enableAdvancedInteractions: true,
+          performanceMode: 'balanced',
+        });
+
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Innovation Manager initialization timeout')), 5000)
+        );
+
+        await Promise.race([initPromise, timeoutPromise]);
+
+        logger.info('Innovation Manager initialized successfully');
+        if (debugState.isEnabled()) {
+          const status = innovationManager.getStatus();
+          logger.debug('Innovation Manager status:', status);
+        }
+      },
+    },
+  ];
+
+  const results = await Promise.allSettled(
+    serviceLoaders.map((s) => s.loader())
+  );
+
+  results.forEach((result, i) => {
+    if (result.status === 'rejected') {
+      console.warn(
+        `[AppInitializer] Non-critical service "${serviceLoaders[i].name}" failed:`,
+        result.reason
+      );
+    }
+  });
 }
 
 const logger = createLogger('AppInitializer');

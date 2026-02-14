@@ -4,18 +4,20 @@
  * React Three Fiber component that renders WASM-driven ambient background
  * effects for the knowledge graph visualization:
  *
- * 1. Particle field: subtle drifting points with noise-based motion (WASM)
- * 2. Atmosphere plane: procedural nebula texture as far background (WASM)
- * 3. JS fallback: if WASM fails to load, renders lightweight JS particles
+ * 1. Particle field: drifting points with noise-based motion (WASM simulation)
+ * 2. Energy wisps: larger hue-shifting glow orbs (WASM simulation)
+ * 3. Atmosphere plane: procedural nebula texture as far background (WASM)
+ * 4. JS fallback: if WASM fails to load, renders lightweight JS particles
  *
- * All heavy computation runs in WASM. This component only transfers
- * typed array views to Three.js buffer attributes each frame.
+ * Rendering uses InstancedMesh + MeshBasicMaterial which works on both
+ * WebGL and WebGPU. Previous Points + ShaderMaterial approach used raw
+ * GLSL (gl_PointSize, gl_PointCoord) incompatible with WebGPU.
  *
  * Performance contract:
- *   - 2-3 draw calls maximum
+ *   - 3-4 draw calls maximum (particles + wisps + atmosphere + fog)
  *   - All Float32Arrays pre-allocated in useMemo
  *   - Zero per-frame GC pressure (reused typed array views from WASM)
- *   - renderOrder -10/-20 so everything draws behind nodes
+ *   - InstancedMesh rendering: proven pattern from GemNodes/GlassEdges
  */
 
 import React, { useMemo, useRef, useEffect } from 'react';
@@ -24,8 +26,17 @@ import * as THREE from 'three';
 import { useWasmSceneEffects } from '../../../hooks/useWasmSceneEffects';
 import { isWebGPURenderer } from '../../../rendering/rendererFactory';
 
-// Pre-allocated temp vector for atmosphere direction (avoids per-frame GC)
+// Pre-allocated temp objects (avoids per-frame GC).
+// INVARIANT: These are shared across all sub-components and are safe ONLY
+// because R3F useFrame callbacks execute synchronously on the main thread
+// in a single requestAnimationFrame tick. Do NOT use in useEffect, callbacks,
+// or any async context — allocate locals instead.
 const _tempAtmDir = new THREE.Vector3();
+const _tmpMat4 = new THREE.Matrix4();
+const _tmpPos = new THREE.Vector3();
+const _tmpScale = new THREE.Vector3();
+const _tmpColor = new THREE.Color();
+const _identityQuat = new THREE.Quaternion();
 
 // ---------------------------------------------------------------------------
 // Props
@@ -46,50 +57,17 @@ export interface WasmSceneEffectsProps {
   atmosphereEnabled?: boolean;
   /** Overall intensity 0-1 (maps to opacity). */
   intensity?: number;
-  /** Particle drift speed multiplier (0-2, default 0.5). */
+  /** Particle drift speed multiplier (0-2, default 0.5). Reserved for future WASM bridge support. */
   particleDrift?: number;
 }
 
 // ---------------------------------------------------------------------------
-// GLSL shaders for WASM-driven particles
-// ---------------------------------------------------------------------------
-const PARTICLE_VERTEX = /* glsl */ `
-  attribute float aOpacity;
-  attribute float aSize;
-  varying float vOpacity;
-
-  void main() {
-    vOpacity = aOpacity;
-    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-    gl_PointSize = aSize * (200.0 / -mvPosition.z);
-    gl_PointSize = clamp(gl_PointSize, 0.5, 8.0);
-    gl_Position = projectionMatrix * mvPosition;
-  }
-`;
-
-const PARTICLE_FRAGMENT = /* glsl */ `
-  varying float vOpacity;
-
-  void main() {
-    vec2 center = gl_PointCoord - vec2(0.5);
-    float dist = length(center);
-    float alpha = smoothstep(0.5, 0.15, dist) * vOpacity;
-    vec3 color = mix(
-      vec3(0.4, 0.5, 0.9),
-      vec3(0.7, 0.75, 1.0),
-      smoothstep(0.3, 0.0, dist)
-    );
-    if (alpha < 0.001) discard;
-    gl_FragColor = vec4(color, alpha);
-  }
-`;
-
-// ---------------------------------------------------------------------------
-// Fallback constants (JS-only path)
+// Shared constants
 // ---------------------------------------------------------------------------
 const FALLBACK_COUNT = 256;
 const FALLBACK_RADIUS = 120;
 const FALLBACK_DRIFT = 0.15;
+const WISP_RADIUS = 80;
 
 function hashNoise(x: number, y: number, seed: number): number {
   let h = (seed * 374761393 + x * 668265263 + y * 1274126177) | 0;
@@ -98,7 +76,7 @@ function hashNoise(x: number, y: number, seed: number): number {
 }
 
 // ---------------------------------------------------------------------------
-// GLSL for fallback fog plane
+// GLSL for fallback fog plane (WebGL only)
 // ---------------------------------------------------------------------------
 const fogVertexShader = /* glsl */ `
 varying vec2 vUv;
@@ -146,226 +124,197 @@ void main() {
 `;
 
 // ---------------------------------------------------------------------------
-// WASM-powered particles sub-component
+// WASM-powered particles (InstancedMesh — WebGPU + WebGL)
+//
+// WASM computes positions, opacities, sizes via Rust noise simulation.
+// This component maps WASM data to InstancedMesh matrices + instance colors.
+// Opacity is baked into color brightness (additive blending: dimmer = fainter).
 // ---------------------------------------------------------------------------
-interface WasmParticlePointsProps {
+interface WasmParticleInstancesProps {
   particles: NonNullable<ReturnType<typeof useWasmSceneEffects>['particles']>;
   update: ReturnType<typeof useWasmSceneEffects>['update'];
   opacity: number;
   count: number;
 }
 
-const WasmParticlePoints: React.FC<WasmParticlePointsProps> = ({
+const WasmParticleInstances: React.FC<WasmParticleInstancesProps> = ({
   particles,
   update,
   opacity,
   count,
 }) => {
-  const pointsRef = useRef<THREE.Points>(null);
-  const geometryRef = useRef<THREE.BufferGeometry>(null);
+  const meshRef = useRef<THREE.InstancedMesh | null>(null);
+  const baseColor = useMemo(() => new THREE.Color(0.4, 0.5, 0.9), []);
 
-  const { posAttr, opacityAttr, sizeAttr } = useMemo(() => {
-    return {
-      posAttr: new THREE.BufferAttribute(new Float32Array(count * 3), 3),
-      opacityAttr: new THREE.BufferAttribute(new Float32Array(count), 1),
-      sizeAttr: new THREE.BufferAttribute(new Float32Array(count), 1),
-    };
-  }, [count]);
+  const mesh = useMemo(() => {
+    const geo = new THREE.IcosahedronGeometry(0.15, 0);
+    const mat = new THREE.MeshBasicMaterial({
+      transparent: true,
+      opacity: 0.6,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      side: THREE.FrontSide,
+    });
 
-  const material = useMemo(
-    () =>
-      new THREE.ShaderMaterial({
-        vertexShader: PARTICLE_VERTEX,
-        fragmentShader: PARTICLE_FRAGMENT,
-        transparent: true,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-      }),
-    [],
-  );
+    const m = new THREE.InstancedMesh(geo, mat, count);
+    m.frustumCulled = false;
+    m.count = count;
 
-  useEffect(() => () => { material.dispose(); }, [material]);
+    for (let i = 0; i < count; i++) {
+      _tmpMat4.makeTranslation(0, 0, 0);
+      m.setMatrixAt(i, _tmpMat4);
+      m.setColorAt(i, baseColor);
+    }
+    m.instanceMatrix.needsUpdate = true;
+    if (m.instanceColor) m.instanceColor.needsUpdate = true;
+
+    meshRef.current = m;
+    return m;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Dispose GPU resources on unmount (geometry, material, InstancedMesh buffers)
+  useEffect(() => () => {
+    mesh.geometry.dispose();
+    (mesh.material as THREE.Material).dispose();
+    mesh.dispose();
+  }, [mesh]);
 
   useFrame(({ camera }, delta) => {
+    const m = meshRef.current;
+    if (!m) return;
+
     const dt = Math.min(delta, 0.05);
     const cam = camera.position;
     update(dt, cam.x, cam.y, cam.z);
 
-    const geom = geometryRef.current;
-    if (!geom) return;
-
     const wasmPositions = particles.getPositions();
     const wasmOpacities = particles.getOpacities();
     const wasmSizes = particles.getSizes();
+    const colorArray = m.instanceColor?.array as Float32Array | undefined;
+    // Clamp to allocated buffer size to prevent overrun if count prop > mesh capacity
+    const renderCount = Math.min(count, m.count);
 
-    const posArray = geom.attributes.position.array as Float32Array;
-    const opaArray = (geom.attributes.aOpacity as THREE.BufferAttribute).array as Float32Array;
-    const sizeArray = (geom.attributes.aSize as THREE.BufferAttribute).array as Float32Array;
+    for (let i = 0; i < renderCount; i++) {
+      const i3 = i * 3;
+      _tmpPos.set(wasmPositions[i3], wasmPositions[i3 + 1], wasmPositions[i3 + 2]);
+      const s = wasmSizes[i] * 0.12;
+      _tmpScale.set(s, s, s);
+      _tmpMat4.compose(_tmpPos, _identityQuat, _tmpScale);
+      m.setMatrixAt(i, _tmpMat4);
 
-    posArray.set(wasmPositions);
-    opaArray.set(wasmOpacities);
-    sizeArray.set(wasmSizes);
-
-    if (opacity < 1.0) {
-      for (let i = 0; i < opaArray.length; i++) {
-        opaArray[i] *= opacity;
+      if (colorArray) {
+        const brightness = wasmOpacities[i] * opacity;
+        colorArray[i3] = baseColor.r * brightness;
+        colorArray[i3 + 1] = baseColor.g * brightness;
+        colorArray[i3 + 2] = baseColor.b * brightness;
       }
     }
 
-    (geom.attributes.position as THREE.BufferAttribute).needsUpdate = true;
-    (geom.attributes.aOpacity as THREE.BufferAttribute).needsUpdate = true;
-    (geom.attributes.aSize as THREE.BufferAttribute).needsUpdate = true;
+    m.instanceMatrix.needsUpdate = true;
+    if (m.instanceColor) m.instanceColor.needsUpdate = true;
   });
 
-  return (
-    <points ref={pointsRef} frustumCulled={false} renderOrder={-10}>
-      <bufferGeometry ref={geometryRef}>
-        <bufferAttribute attach="attributes-position" args={[posAttr.array, 3]} />
-        <bufferAttribute attach="attributes-aOpacity" args={[opacityAttr.array, 1]} />
-        <bufferAttribute attach="attributes-aSize" args={[sizeAttr.array, 1]} />
-      </bufferGeometry>
-      <primitive object={material} attach="material" />
-    </points>
-  );
+  return <primitive object={mesh} />;
 };
 
 // ---------------------------------------------------------------------------
-// GLSL shaders for WASM-driven energy wisps (hue-shifting glow)
+// WASM-powered energy wisps (InstancedMesh — WebGPU + WebGL)
+//
+// WASM computes positions, opacities, sizes, hues. This component maps
+// that data to InstancedMesh matrices and hue-shifted instance colors.
 // ---------------------------------------------------------------------------
-const WISP_VERTEX = /* glsl */ `
-  attribute float aOpacity;
-  attribute float aSize;
-  attribute float aHue;
-  varying float vOpacity;
-  varying float vHue;
-
-  void main() {
-    vOpacity = aOpacity;
-    vHue = aHue;
-    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-    gl_PointSize = aSize * (250.0 / -mvPosition.z);
-    gl_PointSize = clamp(gl_PointSize, 1.0, 16.0);
-    gl_Position = projectionMatrix * mvPosition;
-  }
-`;
-
-const WISP_FRAGMENT = /* glsl */ `
-  varying float vOpacity;
-  varying float vHue;
-
-  // Simple HSL to RGB (hue only, high saturation, medium lightness)
-  vec3 hsl2rgb(float h) {
-    vec3 rgb = clamp(
-      abs(mod(h * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0,
-      0.0, 1.0
-    );
-    return 0.3 + 0.7 * rgb; // Boost brightness
-  }
-
-  void main() {
-    vec2 center = gl_PointCoord - vec2(0.5);
-    float dist = length(center);
-
-    // Soft radial glow with bright core
-    float core = smoothstep(0.5, 0.0, dist);
-    float glow = smoothstep(0.5, 0.1, dist);
-    float alpha = (core * 0.6 + glow * 0.4) * vOpacity;
-
-    // Hue-shifted color with warm bias
-    vec3 wispColor = hsl2rgb(vHue * 0.3 + 0.55); // blue-purple range
-    vec3 coreColor = mix(wispColor, vec3(1.0), core * 0.3);
-
-    if (alpha < 0.001) discard;
-    gl_FragColor = vec4(coreColor, alpha);
-  }
-`;
-
-// ---------------------------------------------------------------------------
-// WASM-powered energy wisps sub-component
-// ---------------------------------------------------------------------------
-interface WasmWispPointsProps {
+interface WasmWispInstancesProps {
   wisps: NonNullable<ReturnType<typeof useWasmSceneEffects>['wisps']>;
   opacity: number;
   count: number;
 }
 
-const WasmWispPoints: React.FC<WasmWispPointsProps> = ({
+const WasmWispInstances: React.FC<WasmWispInstancesProps> = ({
   wisps,
   opacity,
   count,
 }) => {
-  const pointsRef = useRef<THREE.Points>(null);
-  const geometryRef = useRef<THREE.BufferGeometry>(null);
+  const meshRef = useRef<THREE.InstancedMesh | null>(null);
 
-  const { posAttr, opacityAttr, sizeAttr, hueAttr } = useMemo(() => {
-    return {
-      posAttr: new THREE.BufferAttribute(new Float32Array(count * 3), 3),
-      opacityAttr: new THREE.BufferAttribute(new Float32Array(count), 1),
-      sizeAttr: new THREE.BufferAttribute(new Float32Array(count), 1),
-      hueAttr: new THREE.BufferAttribute(new Float32Array(count), 1),
-    };
-  }, [count]);
+  const mesh = useMemo(() => {
+    const geo = new THREE.IcosahedronGeometry(0.3, 0);
+    const mat = new THREE.MeshBasicMaterial({
+      transparent: true,
+      opacity: 0.7,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      side: THREE.FrontSide,
+    });
 
-  const material = useMemo(
-    () =>
-      new THREE.ShaderMaterial({
-        vertexShader: WISP_VERTEX,
-        fragmentShader: WISP_FRAGMENT,
-        transparent: true,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-      }),
-    [],
-  );
+    const m = new THREE.InstancedMesh(geo, mat, count);
+    m.frustumCulled = false;
+    m.count = count;
 
-  useEffect(() => () => { material.dispose(); }, [material]);
+    _tmpColor.setHSL(0.6, 0.7, 0.6);
+    for (let i = 0; i < count; i++) {
+      _tmpMat4.makeTranslation(0, 0, 0);
+      m.setMatrixAt(i, _tmpMat4);
+      m.setColorAt(i, _tmpColor);
+    }
+    m.instanceMatrix.needsUpdate = true;
+    if (m.instanceColor) m.instanceColor.needsUpdate = true;
 
+    meshRef.current = m;
+    return m;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Dispose GPU resources on unmount
+  useEffect(() => () => {
+    mesh.geometry.dispose();
+    (mesh.material as THREE.Material).dispose();
+    mesh.dispose();
+  }, [mesh]);
+
+  // NOTE: This component does NOT call update() — simulation is ticked by
+  // WasmParticleInstances which always mounts when WASM is ready. This is
+  // intentional to avoid double-ticking. If particles are ever made optional,
+  // wisps must call update() themselves.
   useFrame(() => {
-    const geom = geometryRef.current;
-    if (!geom) return;
+    const m = meshRef.current;
+    if (!m) return;
 
     const wasmPositions = wisps.getPositions();
     const wasmOpacities = wisps.getOpacities();
     const wasmSizes = wisps.getSizes();
     const wasmHues = wisps.getHues();
+    const colorArray = m.instanceColor?.array as Float32Array | undefined;
+    // Clamp to allocated buffer size to prevent overrun if count prop > mesh capacity
+    const renderCount = Math.min(count, m.count);
 
-    const posArray = geom.attributes.position.array as Float32Array;
-    const opaArray = (geom.attributes.aOpacity as THREE.BufferAttribute).array as Float32Array;
-    const sizeArray = (geom.attributes.aSize as THREE.BufferAttribute).array as Float32Array;
-    const hueArray = (geom.attributes.aHue as THREE.BufferAttribute).array as Float32Array;
+    for (let i = 0; i < renderCount; i++) {
+      const i3 = i * 3;
+      _tmpPos.set(wasmPositions[i3], wasmPositions[i3 + 1], wasmPositions[i3 + 2]);
+      const s = wasmSizes[i] * 0.2;
+      _tmpScale.set(s, s, s);
+      _tmpMat4.compose(_tmpPos, _identityQuat, _tmpScale);
+      m.setMatrixAt(i, _tmpMat4);
 
-    posArray.set(wasmPositions);
-    opaArray.set(wasmOpacities);
-    sizeArray.set(wasmSizes);
-    hueArray.set(wasmHues);
-
-    if (opacity < 1.0) {
-      for (let i = 0; i < opaArray.length; i++) {
-        opaArray[i] *= opacity;
+      if (colorArray) {
+        const hue = wasmHues[i] * 0.3 + 0.55;
+        _tmpColor.setHSL(hue, 0.7, 0.6);
+        const brightness = wasmOpacities[i] * opacity;
+        colorArray[i3] = _tmpColor.r * brightness;
+        colorArray[i3 + 1] = _tmpColor.g * brightness;
+        colorArray[i3 + 2] = _tmpColor.b * brightness;
       }
     }
 
-    (geom.attributes.position as THREE.BufferAttribute).needsUpdate = true;
-    (geom.attributes.aOpacity as THREE.BufferAttribute).needsUpdate = true;
-    (geom.attributes.aSize as THREE.BufferAttribute).needsUpdate = true;
-    (geom.attributes.aHue as THREE.BufferAttribute).needsUpdate = true;
+    m.instanceMatrix.needsUpdate = true;
+    if (m.instanceColor) m.instanceColor.needsUpdate = true;
   });
 
-  return (
-    <points ref={pointsRef} frustumCulled={false} renderOrder={-5}>
-      <bufferGeometry ref={geometryRef}>
-        <bufferAttribute attach="attributes-position" args={[posAttr.array, 3]} />
-        <bufferAttribute attach="attributes-aOpacity" args={[opacityAttr.array, 1]} />
-        <bufferAttribute attach="attributes-aSize" args={[sizeAttr.array, 1]} />
-        <bufferAttribute attach="attributes-aHue" args={[hueAttr.array, 1]} />
-      </bufferGeometry>
-      <primitive object={material} attach="material" />
-    </points>
-  );
+  return <primitive object={mesh} />;
 };
 
 // ---------------------------------------------------------------------------
-// WASM-powered atmosphere sub-component
+// WASM-powered atmosphere (MeshBasicMaterial + DataTexture — already compat)
 // ---------------------------------------------------------------------------
 interface WasmAtmosphereProps {
   atmosphere: NonNullable<ReturnType<typeof useWasmSceneEffects>['atmosphere']>;
@@ -430,80 +379,185 @@ const WasmAtmosphereBackground: React.FC<WasmAtmosphereProps> = ({
 };
 
 // ---------------------------------------------------------------------------
-// JS Fallback: particles (no WASM needed)
+// JS Fallback: particles (InstancedMesh — no WASM needed)
 // ---------------------------------------------------------------------------
 const FallbackParticles: React.FC<{ opacity: number }> = React.memo(({ opacity }) => {
-  const pointsRef = useRef<THREE.Points>(null);
+  const meshRef = useRef<THREE.InstancedMesh | null>(null);
 
-  const { positions, colors, baseSpeeds } = useMemo(() => {
-    const pos = new Float32Array(FALLBACK_COUNT * 3);
-    const col = new Float32Array(FALLBACK_COUNT * 3);
-    const spd = new Float32Array(FALLBACK_COUNT * 3);
+  const { mesh, basePositions, baseSpeeds } = useMemo(() => {
+    const geo = new THREE.IcosahedronGeometry(0.4, 0);
+    const mat = new THREE.MeshBasicMaterial({
+      transparent: true,
+      opacity: Math.min(opacity, 0.6),
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      side: THREE.FrontSide,
+    });
+
+    const m = new THREE.InstancedMesh(geo, mat, FALLBACK_COUNT);
+    m.frustumCulled = false;
+
     const c1 = new THREE.Color('#1a1a4e');
     const c2 = new THREE.Color('#c8d8ff');
-    const tmp = new THREE.Color();
+
+    const pos = new Float32Array(FALLBACK_COUNT * 3);
+    const spd = new Float32Array(FALLBACK_COUNT * 3);
 
     for (let i = 0; i < FALLBACK_COUNT; i++) {
       const phi = hashNoise(i, 0, 42) * Math.PI;
       const theta = hashNoise(i, 1, 42) * Math.PI * 2;
       const r = (0.3 + 0.7 * Math.abs(hashNoise(i, 2, 42))) * FALLBACK_RADIUS;
-      pos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-      pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
-      pos[i * 3 + 2] = r * Math.cos(phi);
+      const x = r * Math.sin(phi) * Math.cos(theta);
+      const y = r * Math.sin(phi) * Math.sin(theta);
+      const z = r * Math.cos(phi);
+      pos[i * 3] = x;
+      pos[i * 3 + 1] = y;
+      pos[i * 3 + 2] = z;
+
+      _tmpMat4.makeTranslation(x, y, z);
+      m.setMatrixAt(i, _tmpMat4);
 
       const t = Math.abs(hashNoise(i, 4, 42));
-      tmp.copy(c1).lerp(c2, t);
-      col[i * 3] = tmp.r;
-      col[i * 3 + 1] = tmp.g;
-      col[i * 3 + 2] = tmp.b;
+      _tmpColor.copy(c1).lerp(c2, t);
+      m.setColorAt(i, _tmpColor);
 
       spd[i * 3] = 0.5 + Math.abs(hashNoise(i, 5, 42));
       spd[i * 3 + 1] = 0.5 + Math.abs(hashNoise(i, 6, 42));
       spd[i * 3 + 2] = 0.5 + Math.abs(hashNoise(i, 7, 42));
     }
-    return { positions: pos, colors: col, baseSpeeds: spd };
+
+    m.instanceMatrix.needsUpdate = true;
+    if (m.instanceColor) m.instanceColor.needsUpdate = true;
+    m.count = FALLBACK_COUNT;
+
+    meshRef.current = m;
+    return { mesh: m, basePositions: pos, baseSpeeds: spd };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const basePositions = useMemo(() => new Float32Array(positions), [positions]);
+  // Dispose GPU resources on unmount
+  useEffect(() => () => {
+    mesh.geometry.dispose();
+    (mesh.material as THREE.Material).dispose();
+    mesh.dispose();
+  }, [mesh]);
+
+  useEffect(() => {
+    const mat = mesh.material as THREE.MeshBasicMaterial;
+    mat.opacity = Math.min(opacity, 0.6);
+    mat.needsUpdate = true;
+  }, [opacity, mesh]);
 
   useFrame(({ clock }) => {
-    const pts = pointsRef.current;
-    if (!pts) return;
-    const posAttr = pts.geometry.getAttribute('position') as THREE.BufferAttribute;
-    const arr = posAttr.array as Float32Array;
+    const m = meshRef.current;
+    if (!m) return;
     const t = clock.elapsedTime * FALLBACK_DRIFT;
 
     for (let i = 0; i < FALLBACK_COUNT; i++) {
       const i3 = i * 3;
-      arr[i3] = basePositions[i3] + Math.sin(t * baseSpeeds[i3] + i * 0.7) * 2.0;
-      arr[i3 + 1] = basePositions[i3 + 1] + Math.sin(t * baseSpeeds[i3 + 1] + i * 1.3) * 1.5;
-      arr[i3 + 2] = basePositions[i3 + 2] + Math.cos(t * baseSpeeds[i3 + 2] + i * 0.9) * 2.0;
+      const x = basePositions[i3] + Math.sin(t * baseSpeeds[i3] + i * 0.7) * 2.0;
+      const y = basePositions[i3 + 1] + Math.sin(t * baseSpeeds[i3 + 1] + i * 1.3) * 1.5;
+      const z = basePositions[i3 + 2] + Math.cos(t * baseSpeeds[i3 + 2] + i * 0.9) * 2.0;
+      _tmpMat4.makeTranslation(x, y, z);
+      m.setMatrixAt(i, _tmpMat4);
     }
-    posAttr.needsUpdate = true;
+    m.instanceMatrix.needsUpdate = true;
   });
 
-  return (
-    <points ref={pointsRef} renderOrder={-10}>
-      <bufferGeometry>
-        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
-        <bufferAttribute attach="attributes-color" args={[colors, 3]} />
-      </bufferGeometry>
-      <pointsMaterial
-        vertexColors
-        transparent
-        opacity={Math.min(opacity, 0.08)}
-        sizeAttenuation
-        size={1.5}
-        blending={THREE.AdditiveBlending}
-        depthWrite={false}
-      />
-    </points>
-  );
+  return <primitive object={mesh} />;
 });
 FallbackParticles.displayName = 'FallbackParticles';
 
 // ---------------------------------------------------------------------------
-// JS Fallback: fog plane
+// JS Fallback: energy wisps (InstancedMesh — no WASM needed)
+// ---------------------------------------------------------------------------
+const FallbackWisps: React.FC<{ opacity: number; count: number }> = React.memo(({ opacity, count }) => {
+  const meshRef = useRef<THREE.InstancedMesh | null>(null);
+  const safeCount = Math.min(count, 128);
+
+  const { mesh, basePositions, speeds } = useMemo(() => {
+    const geo = new THREE.IcosahedronGeometry(0.8, 0);
+    const mat = new THREE.MeshBasicMaterial({
+      transparent: true,
+      opacity: Math.min(opacity, 0.7),
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      side: THREE.FrontSide,
+    });
+
+    const m = new THREE.InstancedMesh(geo, mat, safeCount);
+    m.frustumCulled = false;
+
+    const pos = new Float32Array(safeCount * 3);
+    const spd = new Float32Array(safeCount * 3);
+
+    for (let i = 0; i < safeCount; i++) {
+      const phi = hashNoise(i, 10, 77) * Math.PI;
+      const theta = hashNoise(i, 11, 77) * Math.PI * 2;
+      const r = (0.4 + 0.6 * Math.abs(hashNoise(i, 12, 77))) * WISP_RADIUS;
+      const x = r * Math.sin(phi) * Math.cos(theta);
+      const y = r * Math.sin(phi) * Math.sin(theta);
+      const z = r * Math.cos(phi);
+      pos[i * 3] = x;
+      pos[i * 3 + 1] = y;
+      pos[i * 3 + 2] = z;
+
+      _tmpMat4.makeTranslation(x, y, z);
+      m.setMatrixAt(i, _tmpMat4);
+
+      const hue = 0.55 + hashNoise(i, 13, 77) * 0.15;
+      _tmpColor.setHSL(hue, 0.7, 0.6);
+      m.setColorAt(i, _tmpColor);
+
+      spd[i * 3] = 0.3 + Math.abs(hashNoise(i, 14, 77)) * 0.5;
+      spd[i * 3 + 1] = 0.3 + Math.abs(hashNoise(i, 15, 77)) * 0.5;
+      spd[i * 3 + 2] = 0.3 + Math.abs(hashNoise(i, 16, 77)) * 0.5;
+    }
+
+    m.instanceMatrix.needsUpdate = true;
+    if (m.instanceColor) m.instanceColor.needsUpdate = true;
+    m.count = safeCount;
+
+    meshRef.current = m;
+    return { mesh: m, basePositions: pos, speeds: spd };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Dispose GPU resources on unmount
+  useEffect(() => () => {
+    mesh.geometry.dispose();
+    (mesh.material as THREE.Material).dispose();
+    mesh.dispose();
+  }, [mesh]);
+
+  useEffect(() => {
+    const mat = mesh.material as THREE.MeshBasicMaterial;
+    mat.opacity = Math.min(opacity, 0.7);
+    mat.needsUpdate = true;
+  }, [opacity, mesh]);
+
+  useFrame(({ clock }) => {
+    const m = meshRef.current;
+    if (!m) return;
+    const t = clock.elapsedTime * 0.1;
+
+    for (let i = 0; i < safeCount; i++) {
+      const i3 = i * 3;
+      const x = basePositions[i3] + Math.sin(t * speeds[i3] + i * 1.1) * 5.0;
+      const y = basePositions[i3 + 1] + Math.sin(t * speeds[i3 + 1] + i * 0.7) * 4.0;
+      const z = basePositions[i3 + 2] + Math.cos(t * speeds[i3 + 2] + i * 1.3) * 5.0;
+      _tmpMat4.makeTranslation(x, y, z);
+      m.setMatrixAt(i, _tmpMat4);
+    }
+    m.instanceMatrix.needsUpdate = true;
+  });
+
+  return <primitive object={mesh} />;
+});
+FallbackWisps.displayName = 'FallbackWisps';
+
+// ---------------------------------------------------------------------------
+// JS Fallback: fog plane (WebGL only — GLSL ShaderMaterial)
 // ---------------------------------------------------------------------------
 const FallbackFogPlane: React.FC<{ opacity: number }> = React.memo(({ opacity }) => {
   const matRef = useRef<THREE.ShaderMaterial>(null);
@@ -521,7 +575,7 @@ const FallbackFogPlane: React.FC<{ opacity: number }> = React.memo(({ opacity })
   useFrame(({ clock }) => {
     if (matRef.current) {
       matRef.current.uniforms.uTime.value = clock.elapsedTime;
-      matRef.current.uniforms.uOpacity.value = Math.min(opacity, 0.03);
+      matRef.current.uniforms.uOpacity.value = Math.min(opacity, 0.15);
     }
   });
 
@@ -536,7 +590,7 @@ const FallbackFogPlane: React.FC<{ opacity: number }> = React.memo(({ opacity })
         transparent
         depthWrite={false}
         blending={THREE.AdditiveBlending}
-        side={THREE.DoubleSide}
+        side={THREE.FrontSide}
       />
     </mesh>
   );
@@ -544,7 +598,8 @@ const FallbackFogPlane: React.FC<{ opacity: number }> = React.memo(({ opacity })
 FallbackFogPlane.displayName = 'FallbackFogPlane';
 
 // ---------------------------------------------------------------------------
-// Main component
+// Main component — NO WebGPU gate: WASM simulation drives InstancedMesh
+// rendering on all backends. Fallback only used when WASM fails to load.
 // ---------------------------------------------------------------------------
 const WasmSceneEffects: React.FC<WasmSceneEffectsProps> = ({
   enabled = true,
@@ -554,7 +609,7 @@ const WasmSceneEffects: React.FC<WasmSceneEffectsProps> = ({
   wispDriftSpeed = 1.0,
   atmosphereResolution = 128,
   atmosphereEnabled = true,
-  intensity = 0.3,
+  intensity = 0.6,
   particleDrift: _particleDrift = 0.5,
 }) => {
   const { ready, failed, particles, atmosphere, wisps, update } = useWasmSceneEffects({
@@ -576,13 +631,11 @@ const WasmSceneEffects: React.FC<WasmSceneEffectsProps> = ({
 
   const clamped = Math.max(0, Math.min(1, intensity));
 
-  // WASM path: fully driven by Rust noise + particle/wisp simulation
-  // Note: WASM particle/wisp shaders use raw GLSL (gl_PointSize, gl_PointCoord, gl_FragColor)
-  // which is incompatible with WebGPURenderer. Force fallback path on WebGPU.
-  if (ready && particles && !isWebGPURenderer) {
+  // WASM path: Rust noise simulation -> InstancedMesh rendering (WebGL + WebGPU)
+  if (ready && particles) {
     return (
       <group name="wasm-scene-effects">
-        <WasmParticlePoints
+        <WasmParticleInstances
           particles={particles}
           update={update}
           opacity={clamped}
@@ -595,27 +648,30 @@ const WasmSceneEffects: React.FC<WasmSceneEffectsProps> = ({
           />
         )}
         {wispsEnabled && wisps && (
-          <WasmWispPoints
+          <WasmWispInstances
             wisps={wisps}
             opacity={clamped}
             count={wispCount}
           />
         )}
+        {/* Fog plane: GLSL ShaderMaterial — WebGL only */}
+        {atmosphereEnabled && !isWebGPURenderer && (
+          <FallbackFogPlane opacity={0.05 + clamped * 0.1} />
+        )}
       </group>
     );
   }
 
-  // JS fallback: lightweight hash-noise particles + standard material fog
-  // Used when WASM fails OR when WebGPU is active (raw GLSL not supported).
-  // FallbackParticles uses PointsMaterial (standard, auto-converts via TSL).
-  // FallbackFogPlane uses ShaderMaterial with GLSL — skip on WebGPU.
-  if (failed || !ready || isWebGPURenderer) {
-    const particleOpacity = 0.02 + clamped * 0.06;
-    const fogOpacity = 0.01 + clamped * 0.04;
+  // JS fallback: only when WASM fails to load (not renderer-dependent)
+  if (failed || !ready) {
+    const particleOpacity = 0.15 + clamped * 0.35;
+    const fogOpacity = 0.05 + clamped * 0.1;
+    const wispOpacity = 0.2 + clamped * 0.4;
 
     return (
       <group name="wasm-scene-effects-fallback" renderOrder={-1}>
         <FallbackParticles opacity={particleOpacity} />
+        {wispsEnabled && <FallbackWisps opacity={wispOpacity} count={wispCount} />}
         {atmosphereEnabled && !isWebGPURenderer && <FallbackFogPlane opacity={fogOpacity} />}
       </group>
     );

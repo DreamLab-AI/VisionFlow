@@ -76,16 +76,18 @@ export const GlassEdges = forwardRef<GlassEdgesHandle, GlassEdgesProps>(
     const meshRef = useRef<THREE.InstancedMesh | null>(null);
     const edgeRevealRef = useRef(0);
     const totalEdgesRef = useRef(0);
+    const edgeDataHashRef = useRef('');
     const EDGE_REVEAL_BATCH = 80;
 
     const { mesh, uniforms } = useMemo(() => {
+      // Resolve initial edge color: prefer override, then settings, then default
+      const initialColor = colorOverride || settings?.color || undefined;
       const geo = createGlassEdgeGeometry(settings?.edgeRadius ?? 0.03);
-      const result = createGlassEdgeMaterial();
+      const result = createGlassEdgeMaterial(initialColor);
 
-      if (colorOverride) {
-        // Override base color via material property when specified
-        const mat = result.material as THREE.MeshPhysicalMaterial;
-        if (mat.color) mat.color = new THREE.Color(colorOverride);
+      // Apply initial opacity from settings if provided
+      if (settings?.opacity !== undefined) {
+        (result.material as THREE.MeshPhysicalMaterial).opacity = settings.opacity;
       }
 
       const m = new THREE.InstancedMesh(geo, result.material, MAX_EDGES);
@@ -102,14 +104,29 @@ export const GlassEdges = forwardRef<GlassEdgesHandle, GlassEdgesProps>(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Recompute when points prop changes — reset progressive reveal
+    // Update material color and opacity when settings change
+    useEffect(() => {
+      const mat = mesh.material as THREE.MeshPhysicalMaterial;
+      const targetColor = colorOverride || settings?.color;
+      if (targetColor && mat.color) {
+        mat.color.set(targetColor);
+      }
+      if (settings?.opacity !== undefined) {
+        mat.opacity = settings.opacity;
+      }
+      mat.needsUpdate = true;
+    }, [colorOverride, settings?.color, settings?.opacity, mesh]);
+
+    // Recompute when points prop changes -- reset progressive reveal and dirty flag
     useEffect(() => {
       if (points.length >= 6) {
         totalEdgesRef.current = Math.min(Math.floor(points.length / 6), MAX_EDGES);
         edgeRevealRef.current = 0; // Reset for progressive reveal in useFrame
+        edgeDataHashRef.current = ''; // Force recompute on next reveal cycle
       } else {
         mesh.count = 0;
         totalEdgesRef.current = 0;
+        edgeDataHashRef.current = '';
         mesh.instanceMatrix.needsUpdate = true;
       }
     }, [points, mesh]);
@@ -119,14 +136,22 @@ export const GlassEdges = forwardRef<GlassEdgesHandle, GlassEdgesProps>(
     // of the ONLY mesh instance. WebGPU cannot recover disposed geometry/material.
     // Three.js / GC handles cleanup when the component fully unmounts.
 
-    // Imperative path for hot-loop updates from useFrame callers
+    // Imperative path for hot-loop updates from useFrame callers.
+    // Uses dirty-flag hash to skip redundant GPU uploads when edge data
+    // hasn't actually changed (the common case for static graphs).
     const updatePoints = useCallback(
       (newPts: number[]) => {
         if (newPts.length < 6) {
-          mesh.count = 0;
-          mesh.instanceMatrix.needsUpdate = true;
+          if (edgeDataHashRef.current !== '') {
+            edgeDataHashRef.current = '';
+            mesh.count = 0;
+            mesh.instanceMatrix.needsUpdate = true;
+          }
           return;
         }
+        const hash = `${newPts.length}-${newPts[0]}-${newPts[newPts.length - 1]}`;
+        if (hash === edgeDataHashRef.current) return;
+        edgeDataHashRef.current = hash;
         computeInstanceMatrices(mesh, newPts);
       },
       [mesh],
@@ -148,6 +173,14 @@ export const GlassEdges = forwardRef<GlassEdgesHandle, GlassEdgesProps>(
           totalEdgesRef.current,
         );
         computeInstanceMatrices(mesh, points, edgeRevealRef.current);
+        // Update hash after progressive reveal completes so imperative path
+        // can detect unchanged data and skip redundant GPU uploads.
+        if (edgeRevealRef.current >= totalEdgesRef.current) {
+          const pts = points;
+          edgeDataHashRef.current = pts.length >= 6
+            ? `${pts.length}-${pts[0]}-${pts[pts.length - 1]}`
+            : '';
+        }
       }
     });
 
