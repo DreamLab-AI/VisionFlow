@@ -6,6 +6,8 @@ import type { Node as GraphNode } from '../managers/graphDataManager';
 import { createGemNodeMaterial, createGemGeometry } from '../../../rendering/materials/GemNodeMaterial';
 import { createCrystalOrbMaterial, createCrystalOrbGeometry } from '../../../rendering/materials/CrystalOrbMaterial';
 import { createAgentCapsuleMaterial, createAgentCapsuleGeometry } from '../../../rendering/materials/AgentCapsuleMaterial';
+import { useSettingsStore } from '../../../store/settingsStore';
+import type { GemMaterialSettings } from '../../settings/config/settings';
 
 export interface GemNodesProps {
   nodes: GraphNode[];
@@ -102,6 +104,9 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
   const metaTexRef = useRef<THREE.DataTexture | null>(null);
   const prevMetaHashRef = useRef('');
   const dominant = getDominantMode(nodes, graphMode, perNodeVisualModeMap);
+
+  // Read gem material settings from the settings store for live tuning
+  const gemSettings = useSettingsStore(s => s.get<GemMaterialSettings>('visualisation.gemMaterial'));
 
   // Allocate a large buffer (4096 instances) so the mesh is created ONCE and
   // never recreated when nodes.length grows from 0→N on data load.
@@ -279,6 +284,17 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
         const breath = (Math.sin(clock.elapsedTime * 0.8) + 1) * 0.5;
         currentMat.emissiveIntensity = glowBase * 0.6 + breath * glowBase * 0.4;
       }
+    }
+
+    // Apply gem material settings from settings store when available
+    if (gemSettings && currentMat instanceof THREE.MeshPhysicalMaterial) {
+      if (gemSettings.ior !== undefined) currentMat.ior = gemSettings.ior;
+      if (gemSettings.transmission !== undefined) currentMat.transmission = gemSettings.transmission;
+      if (gemSettings.clearcoat !== undefined) currentMat.clearcoat = gemSettings.clearcoat;
+      if (gemSettings.clearcoatRoughness !== undefined) currentMat.clearcoatRoughness = gemSettings.clearcoatRoughness;
+      if (gemSettings.emissiveIntensity !== undefined) currentMat.emissiveIntensity = gemSettings.emissiveIntensity;
+      if (gemSettings.iridescence !== undefined) currentMat.iridescence = gemSettings.iridescence;
+      currentMat.needsUpdate = true;
     }
 
     // Progressive reveal: ramp up visible count each frame

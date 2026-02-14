@@ -5,6 +5,8 @@ import {
   createGlassEdgeMaterial,
   createGlassEdgeGeometry,
 } from '../../../rendering/materials/GlassEdgeMaterial';
+import { useSettingsStore } from '../../../store/settingsStore';
+import type { GemMaterialSettings } from '../../settings/config/settings';
 
 const MAX_EDGES = 10_000;
 
@@ -116,6 +118,16 @@ export const GlassEdges = forwardRef<GlassEdgesHandle, GlassEdgesProps>(
       }
       mat.needsUpdate = true;
     }, [colorOverride, settings?.color, settings?.opacity, mesh]);
+
+    // Apply shared gem material settings (ior, transmission) from settings store
+    const gemSettings = useSettingsStore(s => s.get<GemMaterialSettings>('visualisation.gemMaterial'));
+    useEffect(() => {
+      if (!gemSettings) return;
+      const mat = mesh.material as THREE.MeshPhysicalMaterial;
+      if (gemSettings.ior !== undefined) mat.ior = gemSettings.ior;
+      if (gemSettings.transmission !== undefined) mat.transmission = gemSettings.transmission;
+      mat.needsUpdate = true;
+    }, [gemSettings, mesh]);
 
     // Recompute when points prop changes -- reset progressive reveal and dirty flag
     useEffect(() => {

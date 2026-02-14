@@ -420,6 +420,15 @@ export interface SceneEffectsSettings {
   ambientGlowOpacity?: number;  // 0-0.1, default 0.02
 }
 
+export interface GemMaterialSettings {
+  ior: number;                // 1.0-3.0, default 2.42
+  transmission: number;       // 0-1, default 0.6
+  clearcoat: number;          // 0-1, default 1.0
+  clearcoatRoughness: number; // 0-0.5, default 0.02
+  emissiveIntensity: number;  // 0-2, default 0.3
+  iridescence: number;        // 0-1, default 0.3
+}
+
 export interface ClusterHullSettings {
   enabled: boolean;
   opacity: number;      // 0-0.3, default 0.08
@@ -439,6 +448,9 @@ export interface VisualisationSettings {
 
   // Scene ambient effects (particles, fog, glow ring)
   sceneEffects?: SceneEffectsSettings;
+
+  // Gem node material properties
+  gemMaterial?: GemMaterialSettings;
 
   // Cluster hull visualization
   clusterHulls?: ClusterHullSettings;

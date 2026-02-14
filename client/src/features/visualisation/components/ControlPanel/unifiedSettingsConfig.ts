@@ -244,6 +244,14 @@ export const UNIFIED_SETTINGS_CONFIG: Record<string, SectionConfig> = {
       { key: 'ringOpacity', label: 'Ring Opacity', type: 'slider', min: 0, max: 1, step: 0.01, path: 'visualisation.hologram.ringOpacity', description: 'Transparency of rings' },
       { key: 'ringRotationSpeed', label: 'Ring Speed', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.hologram.ringRotationSpeed', description: 'Rotation speed', isAdvanced: true },
 
+      // Gem Material - Advanced
+      { key: 'gemIor', label: 'Gem IOR', type: 'slider', min: 1.0, max: 3.0, step: 0.01, path: 'visualisation.gemMaterial.ior', description: 'Index of refraction for gem nodes', isAdvanced: true },
+      { key: 'gemTransmission', label: 'Gem Transmission', type: 'slider', min: 0, max: 1, step: 0.01, path: 'visualisation.gemMaterial.transmission', description: 'Light transmission through gems', isAdvanced: true },
+      { key: 'gemClearcoat', label: 'Gem Clearcoat', type: 'slider', min: 0, max: 1, step: 0.01, path: 'visualisation.gemMaterial.clearcoat', description: 'Clearcoat intensity on gems', isAdvanced: true },
+      { key: 'gemClearcoatRoughness', label: 'Clearcoat Rough', type: 'slider', min: 0, max: 0.5, step: 0.01, path: 'visualisation.gemMaterial.clearcoatRoughness', description: 'Clearcoat roughness', isAdvanced: true },
+      { key: 'gemEmissiveIntensity', label: 'Gem Emissive', type: 'slider', min: 0, max: 2, step: 0.05, path: 'visualisation.gemMaterial.emissiveIntensity', description: 'Emissive glow intensity of gems', isAdvanced: true },
+      { key: 'gemIridescence', label: 'Gem Iridescence', type: 'slider', min: 0, max: 1, step: 0.05, path: 'visualisation.gemMaterial.iridescence', description: 'Rainbow sheen intensity', isAdvanced: true },
+
       // Cluster Hulls - Basic
       { key: 'clusterHullsEnabled', label: 'Cluster Hulls', type: 'toggle', path: 'visualisation.clusterHulls.enabled', description: 'Show translucent hull around clusters' },
       { key: 'clusterHullsOpacity', label: 'Hull Opacity', type: 'slider', min: 0.01, max: 0.3, step: 0.01, path: 'visualisation.clusterHulls.opacity', description: 'Transparency of cluster hulls' },
