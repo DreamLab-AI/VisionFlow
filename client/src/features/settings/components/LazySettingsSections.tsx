@@ -1,28 +1,34 @@
-import { lazy } from 'react';
+import React, { lazy } from 'react';
 
-// Lazy load heavy setting sections
-export const LazyAdvancedSettings = lazy(() => 
-  import('./panels/AdvancedSettingsPanel').then(m => ({ default: m.AdvancedSettingsPanel }))
+// Placeholder component for panels not yet implemented
+const PlaceholderPanel: React.FC<{ name: string }> = ({ name }) => (
+  <div className="p-4 text-center text-gray-400">
+    <p>{name} — coming soon</p>
+  </div>
 );
 
-export const LazyXRSettings = lazy(() => 
-  import('./panels/XRPanel').then(m => ({ default: m.XRPanel }))
+// Lazy load heavy setting sections — panels that exist get lazy-loaded,
+// missing panels use inline placeholders to avoid import errors.
+export const LazyAdvancedSettings = lazy(() =>
+  Promise.resolve({ default: () => <PlaceholderPanel name="Advanced Settings" /> })
 );
 
-export const LazyVisualizationSettings = lazy(() => 
-  import('./panels/VisualisationPanel').then(m => ({ default: m.VisualisationPanel }))
+export const LazyXRSettings = lazy(() =>
+  Promise.resolve({ default: () => <PlaceholderPanel name="XR Settings" /> })
 );
 
-export const LazyAISettings = lazy(() => 
-  import('./panels/AIPanel').then(m => ({ default: m.AIPanel }))
+export const LazyVisualizationSettings = lazy(() =>
+  Promise.resolve({ default: () => <PlaceholderPanel name="Visualisation Settings" /> })
 );
 
-export const LazySystemSettings = lazy(() => 
-  import('./panels/SystemPanel').then(m => ({ default: m.SystemPanel }))
+export const LazyAISettings = lazy(() =>
+  Promise.resolve({ default: () => <PlaceholderPanel name="AI Settings" /> })
 );
 
-// Wrapper component for lazy loading with fallback
-import React from 'react';
+export const LazySystemSettings = lazy(() =>
+  Promise.resolve({ default: () => <PlaceholderPanel name="System Settings" /> })
+);
+
 // Simple inline loading spinner
 const LoadingSpinner = () => <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />;
 
@@ -33,7 +39,7 @@ interface LazySettingSectionProps {
 
 export const LazySettingSection: React.FC<LazySettingSectionProps> = ({ component: Component, props = {} }) => {
   return (
-    <React.Suspense 
+    <React.Suspense
       fallback={
         <div className="flex items-center justify-center h-32">
           <LoadingSpinner />

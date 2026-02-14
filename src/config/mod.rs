@@ -1725,7 +1725,6 @@ pub struct OntologyAgentSettings {
 fn default_auto_merge_threshold() -> f32 { 0.9 }
 fn default_min_confidence() -> f32 { 0.7 }
 fn default_max_discovery_results() -> usize { 20 }
-fn default_true() -> bool { true }
 fn default_notes_path_prefix() -> String { "pages/".to_string() }
 fn default_pr_labels() -> Vec<String> {
     vec!["ontology".to_string(), "agent-proposed".to_string()]

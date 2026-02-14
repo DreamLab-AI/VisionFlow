@@ -22,46 +22,40 @@ export interface GemMaterialResult {
 
 export function createGemNodeMaterial(): GemMaterialResult {
   const uniforms = { time: { value: 0 }, glowStrength: { value: 1.5 } };
+  console.log('[GemNodeMaterial] creating, isWebGPURenderer=', isWebGPURenderer);
 
   const material = new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color(0.88, 0.92, 1.0),
+    color: new THREE.Color(isWebGPURenderer ? 0.7 : 0.88, isWebGPURenderer ? 0.75 : 0.92, isWebGPURenderer ? 0.9 : 1.0),
     ior: 2.42,
     transmission: isWebGPURenderer ? 0 : 0.6,
     thickness: isWebGPURenderer ? 0 : 0.5,
-    roughness: 0.08,
+    roughness: isWebGPURenderer ? 0.12 : 0.08,
     metalness: 0.0,
     clearcoat: 1.0,
     clearcoatRoughness: 0.03,
     transparent: true,
-    opacity: isWebGPURenderer ? 0.75 : 0.85,
+    opacity: isWebGPURenderer ? 0.65 : 0.85,
     side: THREE.DoubleSide,
     depthWrite: true,
-    emissive: new THREE.Color(isWebGPURenderer ? 0.2 : 0.15, isWebGPURenderer ? 0.25 : 0.18, isWebGPURenderer ? 0.45 : 0.3),
-    emissiveIntensity: isWebGPURenderer ? 0.5 : 0.3,
-    iridescence: isWebGPURenderer ? 0.4 : 0.3,
+    emissive: new THREE.Color(isWebGPURenderer ? 0.08 : 0.15, isWebGPURenderer ? 0.1 : 0.18, isWebGPURenderer ? 0.25 : 0.3),
+    emissiveIntensity: isWebGPURenderer ? 0.3 : 0.3,
+    iridescence: isWebGPURenderer ? 0.5 : 0.3,
     iridescenceIOR: 1.3,
     iridescenceThicknessRange: [100, 400] as [number, number],
     ...(isWebGPURenderer ? {
-      sheen: 0.5,
-      sheenRoughness: 0.15,
-      sheenColor: new THREE.Color(0.6, 0.7, 1.0),
-      envMapIntensity: 2.0,
-      specularIntensity: 1.2,
-      specularColor: new THREE.Color(1.0, 1.0, 1.0),
+      sheen: 0.3,
+      sheenRoughness: 0.2,
+      sheenColor: new THREE.Color(0.4, 0.5, 0.8),
+      envMapIntensity: 1.2,
+      specularIntensity: 0.8,
+      specularColor: new THREE.Color(0.9, 0.95, 1.0),
     } : {}),
   });
 
-  // TSL Fresnel upgrade for WebGPU (onBeforeCompile injects GLSL which WebGPU ignores)
-  const ready = isWebGPURenderer
-    ? import('three/tsl').then((tsl: any) => {
-        const { float, mix, pow, abs: tslAbs, dot, normalize: tslNorm, normalView, positionView, oneMinus, saturate } = tsl;
-        const vDir = tslNorm(positionView.negate());
-        const nDotV = saturate(dot(normalView, vDir));
-        const fresnel = pow(oneMinus(nDotV), float(3.0));
-        (material as any).opacityNode = mix(float(0.35), float(0.9), fresnel);
-        (material as any).needsUpdate = true;
-      }).catch((err: any) => console.warn('[GemNodeMaterial] TSL upgrade failed:', err))
-    : Promise.resolve();
+  // TSL Fresnel upgrade deferred to createTslGemMaterial (metadata version).
+  // The initial Fresnel-only upgrade was conflicting with the metadata TSL pass,
+  // and the double-needsUpdate can break shader compilation on WebGPU InstancedMesh.
+  const ready = Promise.resolve();
 
   return { material, uniforms, ready };
 }
@@ -81,40 +75,45 @@ export function createGemNodeMaterial(): GemMaterialResult {
 // No backdropNode/viewportSharedTexture — avoids the transmission crash.
 // ---------------------------------------------------------------------------
 
+/**
+ * Augment an existing MeshPhysicalMaterial with TSL metadata-driven emissive
+ * and opacity nodes.  This follows the same pattern as GlassEdgeMaterial:
+ * add TSL nodes to the EXISTING material rather than creating a new
+ * MeshPhysicalNodeMaterial — the latter silently fails with InstancedMesh
+ * on WebGPU.
+ *
+ * Per-instance color is handled by the standard material's native
+ * instanceColor support (setColorAt) — no colorNode override needed.
+ */
 export async function createTslGemMaterial(
+  material: THREE.MeshPhysicalMaterial,
   metadataTexture: THREE.DataTexture,
   instanceCount: number,
-): Promise<THREE.Material | null> {
-  if (!isWebGPURenderer) return null;
+): Promise<boolean> {
+  if (!isWebGPURenderer) return false;
 
   try {
-    const [webgpuMod, tslMod] = await Promise.all([
-      import('three/webgpu') as any,
-      import('three/tsl') as any,
-    ]);
-
-    const MeshPhysicalNodeMaterial = webgpuMod.MeshPhysicalNodeMaterial;
-    if (!MeshPhysicalNodeMaterial) throw new Error('MeshPhysicalNodeMaterial not found');
+    const tslMod = await import('three/tsl') as any;
 
     const {
       float, vec2, vec3,
       mix, pow, sin, add, sub,
       dot, normalize, oneMinus, saturate, fract,
-      time, instanceIndex, vertexColor,
+      time, instanceIndex,
       normalView, positionView,
       texture: tslTexture,
     } = tslMod;
 
-    // --- Per-instance metadata via DataTexture (avoids InstancedBufferAttribute drawIndexed crash) ---
+    // --- Per-instance metadata via DataTexture ---
     const texW = float(instanceCount);
     const texU = float(instanceIndex).add(0.5).div(texW);
     const meta = tslTexture(metadataTexture, vec2(texU, float(0.5)));
-    const quality = meta.x;       // 0-1
-    const authority = meta.y;     // 0-1
-    const connections = meta.z;   // 0-1
-    const recency = meta.w;       // 0-1
+    const quality = meta.x;
+    const authority = meta.y;
+    const connections = meta.z;
+    const recency = meta.w;
 
-    // --- Per-instance unique phase (pseudo-hash via sin) ---
+    // --- Per-instance unique phase ---
     const rawIndex = float(instanceIndex);
     const phase = fract(sin(rawIndex.mul(43758.5453))).mul(6.2831);
 
@@ -123,66 +122,41 @@ export async function createTslGemMaterial(
     const nDotV = saturate(dot(normalView, viewDir));
     const fresnel = pow(oneMinus(nDotV), float(3.0));
 
-    // --- Authority-driven pulse speed (slow for low, fast for high) ---
+    // --- Authority-driven pulse ---
     const pulseSpeed = mix(float(0.8), float(3.0), authority);
     const pulse = sin(time.mul(pulseSpeed).add(phase)).mul(0.5).add(0.5);
 
     // --- Quality drives emissive brightness ---
-    const qualityBrightness = mix(float(0.08), float(0.5), quality);
-
-    // --- Recency drives overall vibrancy ---
+    const qualityBrightness = mix(float(0.3), float(0.8), quality);
     const recencyBoost = mix(float(0.5), float(1.0), recency);
-
-    // --- Connection density shifts emissive toward warm ---
     const warmShift = connections.mul(0.25);
 
-    // Base emissive: blue-white, warmer with more connections
     const baseEmissive = vec3(
-      add(float(0.12), warmShift),          // R: warmer
-      float(0.15),                           // G: steady
-      sub(float(0.28), warmShift.mul(0.5)), // B: cooler
+      add(float(0.25), warmShift),
+      float(0.30),
+      sub(float(0.50), warmShift.mul(0.5)),
     );
 
-    // Final emissive = base * quality * pulse * recency
     const emissiveNode = baseEmissive
       .mul(qualityBrightness)
       .mul(mix(float(0.4), float(1.0), pulse))
       .mul(recencyBoost);
 
     // --- Opacity: Fresnel rim + authority-based solidity ---
-    const baseAlpha = mix(float(0.35), float(0.55), authority);
-    const opacityNode = mix(baseAlpha, float(0.92), fresnel);
+    const baseAlpha = mix(float(0.55), float(0.85), authority);
+    const opacityNode = mix(baseAlpha, float(0.95), fresnel);
 
-    // --- Color: per-instance tint + Fresnel rim brightening ---
-    // TSL exports `vertexColor` which maps to the InstancedMesh instanceColor buffer.
-    // `instanceColor` is NOT a TSL export and would be undefined at runtime.
-    const instCol = vertexColor;
-    const rimWhite = vec3(1.0, 1.0, 1.0);
-    const colorNode = mix(instCol, rimWhite, fresnel.mul(0.35));
+    // Add TSL nodes to the EXISTING material (GlassEdges pattern).
+    // Do NOT set colorNode — the standard material reads instanceColor natively.
+    (material as any).emissiveNode = emissiveNode;
+    (material as any).opacityNode = opacityNode;
+    (material as any).needsUpdate = true;
 
-    // --- Assemble the material ---
-    const mat = new MeshPhysicalNodeMaterial();
-    mat.colorNode = colorNode;
-    mat.emissiveNode = emissiveNode;
-    mat.opacityNode = opacityNode;
-
-    mat.ior = 2.42;
-    mat.roughness = 0.08;
-    mat.metalness = 0.0;
-    mat.clearcoat = 1.0;
-    mat.clearcoatRoughness = 0.03;
-    mat.iridescence = 0.4;
-    mat.iridescenceIOR = 1.3;
-    mat.iridescenceThicknessRange = [100, 400];
-    mat.transparent = true;
-    mat.side = THREE.DoubleSide;
-    mat.depthWrite = true;
-
-    console.log('[GemNodeMaterial] TSL metadata material ready');
-    return mat;
+    console.log('[GemNodeMaterial] TSL metadata nodes applied to existing material');
+    return true;
   } catch (err) {
-    console.warn('[GemNodeMaterial] TSL material unavailable:', err);
-    return null;
+    console.warn('[GemNodeMaterial] TSL metadata upgrade failed:', err);
+    return false;
   }
 }
 

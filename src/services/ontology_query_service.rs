@@ -9,11 +9,12 @@
 //! subsumption reasoning, and relationship fan-out (has-part, requires, enables, bridges-to).
 
 use crate::adapters::whelk_inference_engine::WhelkInferenceEngine;
+use crate::ports::inference_engine::InferenceEngine;
 use crate::ports::knowledge_graph_repository::KnowledgeGraphRepository;
 use crate::ports::ontology_repository::OntologyRepository;
 use crate::services::schema_service::SchemaService;
 use crate::types::ontology_tools::*;
-use log::{debug, info, warn};
+use log::info;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -100,12 +101,12 @@ impl OntologyQueryService {
 
         // Step 3: Whelk expansion — for top matches, include subclasses via inference
         let whelk = self.whelk.read().await;
-        let hierarchy = whelk
+        let hierarchy: Vec<(String, String)> = whelk
             .get_subclass_hierarchy()
             .await
-            .unwrap_or_default();
+            .unwrap_or_else(|_| Vec::new());
 
-        // Build parent→children and child→parents maps
+        // Build parent->children and child->parents maps
         let mut children_of: HashMap<String, HashSet<String>> = HashMap::new();
         let mut parents_of: HashMap<String, HashSet<String>> = HashMap::new();
         for (child, parent) in &hierarchy {
@@ -196,7 +197,10 @@ impl OntologyQueryService {
 
         // Fetch Whelk-inferred axioms
         let whelk = self.whelk.read().await;
-        let hierarchy = whelk.get_subclass_hierarchy().await.unwrap_or_default();
+        let hierarchy: Vec<(String, String)> = whelk
+            .get_subclass_hierarchy()
+            .await
+            .unwrap_or_else(|_| Vec::new());
 
         let mut whelk_axioms: Vec<InferredAxiomSummary> = Vec::new();
 
@@ -280,7 +284,7 @@ impl OntologyQueryService {
                 authority_score: class.authority_score.unwrap_or(0.0),
                 maturity: class.maturity.clone().unwrap_or_default(),
                 status: class.status.clone().unwrap_or_default(),
-                parent_classes: class.parent_classes.clone().unwrap_or_default(),
+                parent_classes: class.parent_classes.clone(),
             },
             whelk_axioms,
             related_notes,

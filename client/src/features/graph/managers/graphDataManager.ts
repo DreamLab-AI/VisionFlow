@@ -228,19 +228,36 @@ class GraphDataManager {
 
         const nodes = Array.isArray(responseData.nodes) ? responseData.nodes : [];
 
-        // Convert edge source/target from numbers to strings (API returns numeric IDs)
-        // Also handle cases where source/target might be missing but extractable from id
+        // One-time diagnostic: use console.log directly (custom logger may filter)
+        if (Array.isArray(responseData.edges) && responseData.edges.length > 0) {
+          const rawEdge = responseData.edges[0];
+          console.log('[graphDataManager] RAW API edge[0]:',
+            'keys=', Object.keys(rawEdge),
+            'source=', rawEdge.source, '(type:', typeof rawEdge.source + ')',
+            'target=', rawEdge.target, '(type:', typeof rawEdge.target + ')',
+            'id=', rawEdge.id,
+            'full=', JSON.stringify(rawEdge).slice(0, 300));
+        }
+
+        // Convert edge source/target to strings.  Rust API returns `source: u32`,
+        // but the client Edge interface expects `source: string`.
+        // Also recover from pre-broken "undefined" strings and missing fields.
         const edges = Array.isArray(responseData.edges)
           ? responseData.edges.map((edge: any) => {
-              let source = edge.source;
-              let target = edge.target;
+              let source = edge.source ?? edge.from ?? edge.from_node ?? edge.sourceId ?? edge.source_id;
+              let target = edge.target ?? edge.to ?? edge.to_node ?? edge.targetId ?? edge.target_id;
 
-              // Extract from id if missing (format: "source-target")
-              if ((source === undefined || target === undefined) && edge.id && typeof edge.id === 'string') {
+              // Guard: if source/target are literally the string "undefined" (from a previous
+              // String(undefined) coercion), treat them as missing
+              if (source === 'undefined' || source === 'null') source = undefined;
+              if (target === 'undefined' || target === 'null') target = undefined;
+
+              // Extract from id if still missing (format: "source-target", e.g. "798-861")
+              if ((source == null || target == null) && edge.id && typeof edge.id === 'string') {
                 const parts = edge.id.split('-');
                 if (parts.length >= 2) {
-                  source = source ?? parts[0];
-                  target = target ?? parts.slice(1).join('-');
+                  if (source == null) source = parts[0];
+                  if (target == null) target = parts.slice(1).join('-');
                 }
               }
 
@@ -265,6 +282,17 @@ class GraphDataManager {
           // edge source/target are already String()-coerced above.  Without this,
           // Map/Set lookups using === fail: Set.has("42") misses number 42.
           const normalizedNode = { ...node, id: String(node.id) };
+
+          // Ensure position property exists (API may send flat x/y/z instead of nested position)
+          if (!normalizedNode.position) {
+            const raw = node as any;
+            normalizedNode.position = {
+              x: Number(raw.x) || Number(raw.position?.x) || 0,
+              y: Number(raw.y) || Number(raw.position?.y) || 0,
+              z: Number(raw.z) || Number(raw.position?.z) || 0,
+            };
+          }
+
           const nodeAny = normalizedNode as any;
           const nodeMetadata = metadata[nodeAny.metadata_id || nodeAny.metadataId];
           if (nodeMetadata) {

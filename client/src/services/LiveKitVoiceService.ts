@@ -85,8 +85,10 @@ export class LiveKitVoiceService {
     this.config = config;
 
     try {
-      // Dynamically import LiveKit client SDK
-      const { Room, RoomEvent, Track } = await import('livekit-client');
+      // Dynamically import LiveKit client SDK (optional peer dependency)
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const livekitModule: string = 'livekit-client';
+      const { Room, RoomEvent, Track } = await (Function('m', 'return import(m)')(livekitModule)) as any;
 
       this.room = new Room({
         adaptiveStream: true,

@@ -31,7 +31,7 @@ export function createGlassEdgeMaterial(): GlassEdgeMaterialResult {
     side: THREE.DoubleSide,
     depthWrite: false, // Edges behind nodes
     emissive: new THREE.Color(isWebGPURenderer ? 0.2 : 0.1, isWebGPURenderer ? 0.3 : 0.18, isWebGPURenderer ? 0.55 : 0.3),
-    emissiveIntensity: isWebGPURenderer ? 0.5 : 0.2,
+    emissiveIntensity: isWebGPURenderer ? 0.8 : 0.3,
     iridescence: isWebGPURenderer ? 0.2 : 0.1,
     iridescenceIOR: 1.3,
     iridescenceThicknessRange: [100, 250] as [number, number],
@@ -57,13 +57,13 @@ export function createGlassEdgeMaterial(): GlassEdgeMaterialResult {
         const vDir = tslNorm(positionView.negate());
         const nDotV = saturate(dot(normalView, vDir));
         const fresnel = pow(oneMinus(nDotV), float(3.0));
-        (material as any).opacityNode = mix(float(0.12), float(0.5), fresnel);
+        (material as any).opacityNode = mix(float(0.35), float(0.7), fresnel);
 
         // Animated flow pulse along edge Y-axis (cylinder stretches along Y)
         const flowPhase = add(positionLocal.y, time.mul(float(uniforms.flowSpeed.value)));
         const flowPulse = sin(flowPhase.mul(float(6.2831))).mul(0.5).add(0.5);
-        const baseEmissive = vec3(float(0.2), float(0.3), float(0.55));
-        const flowEmissive = baseEmissive.mul(mix(float(0.3), float(1.0), flowPulse));
+        const baseEmissive = vec3(float(0.3), float(0.45), float(0.7));
+        const flowEmissive = baseEmissive.mul(mix(float(0.5), float(1.2), flowPulse));
         (material as any).emissiveNode = flowEmissive;
 
         (material as any).needsUpdate = true;

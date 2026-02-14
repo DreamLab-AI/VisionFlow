@@ -551,6 +551,9 @@ impl SpeechService {
                                         .send("OpenAI STT configuration missing".to_string());
                                 }
                             }
+                            STTProvider::TurboWhisper => {
+                                log::warn!("TurboWhisper STT provider not yet implemented for StartTranscription");
+                            }
                         }
                     }
                     SpeechCommand::StopTranscription => {
@@ -566,6 +569,9 @@ impl SpeechService {
                             }
                             STTProvider::OpenAI => {
                                 debug!("OpenAI transcription stopped");
+                            }
+                            STTProvider::TurboWhisper => {
+                                debug!("TurboWhisper transcription stopped");
                             }
                         }
                     }
@@ -890,7 +896,28 @@ impl SpeechService {
                                     error!("OpenAI configuration not found for audio processing");
                                 }
                             }
+                            STTProvider::TurboWhisper => {
+                                log::warn!("TurboWhisper STT provider not yet implemented for ProcessAudioChunk");
+                            }
                         }
+                    }
+                    SpeechCommand::TextToSpeechForUser(text, _options, user_id) => {
+                        log::warn!(
+                            "TextToSpeechForUser not yet implemented (text={}, user={})",
+                            text, user_id
+                        );
+                    }
+                    SpeechCommand::TextToSpeechSpatial(text, _options, spatial_info) => {
+                        log::warn!(
+                            "TextToSpeechSpatial not yet implemented (text={}, agent={})",
+                            text, spatial_info.agent_id
+                        );
+                    }
+                    SpeechCommand::ProcessAudioChunkForUser(audio_data, user_id) => {
+                        log::warn!(
+                            "ProcessAudioChunkForUser not yet implemented (bytes={}, user={})",
+                            audio_data.len(), user_id
+                        );
                     }
                 }
             }

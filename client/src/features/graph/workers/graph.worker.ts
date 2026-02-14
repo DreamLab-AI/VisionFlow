@@ -273,14 +273,31 @@ class GraphWorker {
         }
         preservedCount++;
       } else {
-        // New node — use data position
-        const pos = node.position;
-        newCurrentPositions[i3] = pos.x;
-        newCurrentPositions[i3 + 1] = pos.y;
-        newCurrentPositions[i3 + 2] = pos.z;
-        newTargetPositions[i3] = pos.x;
-        newTargetPositions[i3 + 1] = pos.y;
-        newTargetPositions[i3 + 2] = pos.z;
+        // New node — use data position (defensive: handle missing position)
+        const pos = node.position || (node as any);
+        let px = Number(pos.x) || 0;
+        let py = Number(pos.y) || 0;
+        let pz = Number(pos.z) || 0;
+
+        // Generate deterministic Fibonacci sphere position for nodes at origin
+        // (prevents all nodes piling up at (0,0,0) when server hasn't run physics yet)
+        if (px === 0 && py === 0 && pz === 0) {
+          const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+          const theta = index * goldenAngle;
+          const t = 1 - (index / Math.max(nodeCount, 1)) * 2; // -1 to 1
+          const r = Math.sqrt(1 - t * t);
+          const spread = 15;
+          px = Math.cos(theta) * r * spread;
+          py = t * spread;
+          pz = Math.sin(theta) * r * spread;
+        }
+
+        newCurrentPositions[i3] = px;
+        newCurrentPositions[i3 + 1] = py;
+        newCurrentPositions[i3 + 2] = pz;
+        newTargetPositions[i3] = px;
+        newTargetPositions[i3 + 1] = py;
+        newTargetPositions[i3 + 2] = pz;
       }
     });
 
@@ -301,6 +318,10 @@ class GraphWorker {
     }
 
     workerLogger.info(`Initialized ${this.graphType} graph with ${nodeCount} nodes, ${data.edges.length} edges (${preservedCount} positions preserved, server-authoritative physics)`);
+
+    // Sync initial positions to SharedArrayBuffer so main thread
+    // has real positions before the first tick() completes.
+    this.syncToSharedBuffer();
   }
 
   
@@ -556,6 +577,10 @@ class GraphWorker {
     if (!this.currentPositions || !this.targetPositions || !this.velocities) {
       return new Float32Array(0);
     }
+    // Capture locals after null guard so TS narrows them as non-null
+    const curPos = this.currentPositions;
+    const tgtPos = this.targetPositions;
+    const vel = this.velocities;
 
     // Clamp delta time for stability
     const dt = Math.min(deltaTime, 0.033); // Max 30fps equivalent
@@ -570,19 +595,19 @@ class GraphWorker {
       let hasAnyMovement = false;
       for (let i = 0; i < this.graphData.nodes.length && !hasAnyMovement; i++) {
         const i3 = i * 3;
-        const dx = Math.abs(this.targetPositions[i3] - this.currentPositions[i3]);
-        const dy = Math.abs(this.targetPositions[i3 + 1] - this.currentPositions[i3 + 1]);
-        const dz = Math.abs(this.targetPositions[i3 + 2] - this.currentPositions[i3 + 2]);
+        const dx = Math.abs(tgtPos[i3] - curPos[i3]);
+        const dy = Math.abs(tgtPos[i3 + 1] - curPos[i3 + 1]);
+        const dz = Math.abs(tgtPos[i3 + 2] - curPos[i3 + 2]);
         if (dx > 0.001 || dy > 0.001 || dz > 0.001) {
           hasAnyMovement = true;
         }
       }
-      
+
 
       if (!hasAnyMovement) {
         // Performance: Removed per-frame logging
         this.syncToSharedBuffer();
-        return this.currentPositions;
+        return curPos;
       }
       
 
@@ -610,9 +635,9 @@ class GraphWorker {
         }
         
         
-        const dx = this.targetPositions[i3] - this.currentPositions[i3];
-        const dy = this.targetPositions[i3 + 1] - this.currentPositions[i3 + 1];
-        const dz = this.targetPositions[i3 + 2] - this.currentPositions[i3 + 2];
+        const dx = tgtPos[i3] - curPos[i3];
+        const dy = tgtPos[i3 + 1] - curPos[i3 + 1];
+        const dz = tgtPos[i3 + 2] - curPos[i3 + 2];
         const distanceSq = dx * dx + dy * dy + dz * dz;
         
         
@@ -638,44 +663,40 @@ class GraphWorker {
 
         // Force snap when divergence exceeds maxDivergence (prevents runaway drift)
         if (distanceSq > maxDiv * maxDiv) {
-          this.currentPositions[i3] = this.targetPositions[i3];
-          this.currentPositions[i3 + 1] = this.targetPositions[i3 + 1];
-          this.currentPositions[i3 + 2] = this.targetPositions[i3 + 2];
-          if (this.velocities) {
-            this.velocities[i3] = 0;
-            this.velocities[i3 + 1] = 0;
-            this.velocities[i3 + 2] = 0;
-          }
+          curPos[i3] = tgtPos[i3];
+          curPos[i3 + 1] = tgtPos[i3 + 1];
+          curPos[i3 + 2] = tgtPos[i3 + 2];
+          vel[i3] = 0;
+          vel[i3 + 1] = 0;
+          vel[i3 + 2] = 0;
           totalMovement += Math.sqrt(distanceSq);
         } else if (distanceSq < snapThreshold * snapThreshold) {
-          
-          const positionChanged = Math.abs(this.currentPositions[i3] - this.targetPositions[i3]) > 0.01 ||
-                                 Math.abs(this.currentPositions[i3 + 1] - this.targetPositions[i3 + 1]) > 0.01 ||
-                                 Math.abs(this.currentPositions[i3 + 2] - this.targetPositions[i3 + 2]) > 0.01;
+
+          const positionChanged = Math.abs(curPos[i3] - tgtPos[i3]) > 0.01 ||
+                                 Math.abs(curPos[i3 + 1] - tgtPos[i3 + 1]) > 0.01 ||
+                                 Math.abs(curPos[i3 + 2] - tgtPos[i3 + 2]) > 0.01;
 
           if (positionChanged) {
             totalMovement += Math.sqrt(distanceSq);
-            this.currentPositions[i3] = this.targetPositions[i3];
-            this.currentPositions[i3 + 1] = this.targetPositions[i3 + 1];
-            this.currentPositions[i3 + 2] = this.targetPositions[i3 + 2];
+            curPos[i3] = tgtPos[i3];
+            curPos[i3 + 1] = tgtPos[i3 + 1];
+            curPos[i3 + 2] = tgtPos[i3 + 2];
           }
-          
-          if (this.velocities) {
-            this.velocities[i3] = 0;
-            this.velocities[i3 + 1] = 0;
-            this.velocities[i3 + 2] = 0;
-          }
+
+          vel[i3] = 0;
+          vel[i3 + 1] = 0;
+          vel[i3 + 2] = 0;
         } else {
-          
+
           const moveX = dx * lerpFactor;
           const moveY = dy * lerpFactor;
           const moveZ = dz * lerpFactor;
 
           totalMovement += Math.sqrt(moveX * moveX + moveY * moveY + moveZ * moveZ);
 
-          this.currentPositions[i3] += moveX;
-          this.currentPositions[i3 + 1] += moveY;
-          this.currentPositions[i3 + 2] += moveZ;
+          curPos[i3] += moveX;
+          curPos[i3 + 1] += moveY;
+          curPos[i3 + 2] += moveZ;
         }
         
       }
@@ -689,14 +710,17 @@ class GraphWorker {
           const i3 = i * 3;
           const node = this.graphData.nodes[i];
           node.position = {
-            x: this.currentPositions[i3],
-            y: this.currentPositions[i3 + 1],
-            z: this.currentPositions[i3 + 2],
+            x: curPos[i3],
+            y: curPos[i3 + 1],
+            z: curPos[i3 + 2],
           };
         }
       }
 
-      return this.currentPositions;
+      // Always sync to SharedArrayBuffer so main thread reads latest positions
+      this.syncToSharedBuffer();
+
+      return curPos;
     }
 
 
@@ -704,56 +728,50 @@ class GraphWorker {
 
     for (let i = 0; i < this.graphData.nodes.length; i++) {
       const numericId = this.nodeIdMap.get(this.graphData.nodes[i].id)!;
-      if (this.pinnedNodeIds.has(numericId)) continue; 
+      if (this.pinnedNodeIds.has(numericId)) continue;
 
       const i3 = i * 3;
 
-      const dx = this.targetPositions[i3] - this.currentPositions[i3];
-      const dy = this.targetPositions[i3 + 1] - this.currentPositions[i3 + 1];
-      const dz = this.targetPositions[i3 + 2] - this.currentPositions[i3 + 2];
+      const dx = tgtPos[i3] - curPos[i3];
+      const dy = tgtPos[i3 + 1] - curPos[i3 + 1];
+      const dz = tgtPos[i3 + 2] - curPos[i3 + 2];
 
       const distSq = dx * dx + dy * dy + dz * dz;
 
-      
       if (distSq < updateThreshold * updateThreshold) {
-        this.velocities.fill(0, i3, i3 + 3); 
+        vel.fill(0, i3, i3 + 3);
         continue;
       }
 
-      
-      let ax = dx * springStrength;
-      let ay = dy * springStrength;
-      let az = dz * springStrength;
+      const ax = dx * springStrength;
+      const ay = dy * springStrength;
+      const az = dz * springStrength;
 
-      
-      this.velocities[i3] += ax * dt;
-      this.velocities[i3 + 1] += ay * dt;
-      this.velocities[i3 + 2] += az * dt;
+      vel[i3] += ax * dt;
+      vel[i3 + 1] += ay * dt;
+      vel[i3 + 2] += az * dt;
 
-      
-      this.velocities[i3] *= damping;
-      this.velocities[i3 + 1] *= damping;
-      this.velocities[i3 + 2] *= damping;
+      vel[i3] *= damping;
+      vel[i3 + 1] *= damping;
+      vel[i3 + 2] *= damping;
 
-      
-      const currentVelSq = this.velocities[i3] * this.velocities[i3] + 
-                          this.velocities[i3 + 1] * this.velocities[i3 + 1] + 
-                          this.velocities[i3 + 2] * this.velocities[i3 + 2];
+      const currentVelSq = vel[i3] * vel[i3] +
+                          vel[i3 + 1] * vel[i3 + 1] +
+                          vel[i3 + 2] * vel[i3 + 2];
       if (currentVelSq > maxVelocity * maxVelocity) {
         const scale = maxVelocity / Math.sqrt(currentVelSq);
-        this.velocities[i3] *= scale;
-        this.velocities[i3 + 1] *= scale;
-        this.velocities[i3 + 2] *= scale;
+        vel[i3] *= scale;
+        vel[i3 + 1] *= scale;
+        vel[i3 + 2] *= scale;
       }
 
-      
-      this.currentPositions[i3] += this.velocities[i3] * dt;
-      this.currentPositions[i3 + 1] += this.velocities[i3 + 1] * dt;
-      this.currentPositions[i3 + 2] += this.velocities[i3 + 2] * dt;
+      curPos[i3] += vel[i3] * dt;
+      curPos[i3 + 1] += vel[i3 + 1] * dt;
+      curPos[i3 + 2] += vel[i3 + 2] * dt;
     }
 
     this.syncToSharedBuffer();
-    return this.currentPositions;
+    return curPos;
   }
 }
 

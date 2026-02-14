@@ -10,6 +10,7 @@
 //! Notes are per-user — each user's agents write to their own namespace.
 
 use crate::adapters::whelk_inference_engine::WhelkInferenceEngine;
+use crate::ports::inference_engine::InferenceEngine;
 use crate::ports::ontology_repository::{OwlAxiom, AxiomType, OntologyRepository};
 use crate::services::github_pr_service::GitHubPRService;
 use crate::types::ontology_tools::*;
@@ -59,6 +60,7 @@ impl OntologyMutationService {
             .is_subclass_of
             .iter()
             .map(|parent| OwlAxiom {
+                id: None,
                 axiom_type: AxiomType::SubClassOf,
                 subject: proposal.owl_class.clone(),
                 object: parent.clone(),
@@ -193,6 +195,7 @@ impl OntologyMutationService {
             if rel_type == "is-subclass-of" {
                 for target in targets {
                     proposed_axioms.push(OwlAxiom {
+                        id: None,
                         axiom_type: AxiomType::SubClassOf,
                         subject: target_iri.to_string(),
                         object: target.clone(),
@@ -381,14 +384,18 @@ impl OntologyMutationService {
     ) -> Result<ConsistencyReport, String> {
         let whelk = self.whelk.read().await;
 
-        let is_consistent = whelk
+        let is_consistent: bool = whelk
             .check_consistency()
             .await
             .unwrap_or(true);
 
         // Count new subsumptions that would be inferred
-        let hierarchy = whelk.get_subclass_hierarchy().await.unwrap_or_default();
-        let new_subsumptions = proposed_axioms.len(); // simplified — real impl would do delta
+        let hierarchy: Vec<(String, String)> = whelk
+            .get_subclass_hierarchy()
+            .await
+            .unwrap_or_else(|_| Vec::new());
+        let _hierarchy_len = hierarchy.len();
+        let new_subsumptions = proposed_axioms.len(); // simplified -- real impl would do delta
 
         Ok(ConsistencyReport {
             consistent: is_consistent,

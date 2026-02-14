@@ -243,7 +243,7 @@ const getPositionForNode = (node: GraphNode, index: number, totalNodes: number):
     const y = 1 - (index / totalNodes) * 2
     const radius = Math.sqrt(1 - y * y)
 
-    const scaleFactor = 15 + Math.random() * 5 
+    const scaleFactor = 15
     const x = Math.cos(theta) * radius * scaleFactor
     const z = Math.sin(theta) * radius * scaleFactor
     const yScaled = y * scaleFactor
@@ -736,6 +736,23 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       graphWorkerProxy.requestTick(delta);
       const positions = graphWorkerProxy.getPositionsSync();
       if (!positions) return;
+
+      // Detect pre-allocated but unpopulated SharedArrayBuffer (all zeros).
+      // When this happens, set nodePositionsRef to null so GemNodes falls back
+      // to node.position from React state (which has generated fallback positions).
+      if (!nodePositionsRef.current) {
+        // First frame: check if positions are all zero (SAB not yet populated)
+        let hasNonZero = false;
+        const checkLen = Math.min(graphData.nodes.length * 3, positions.length);
+        for (let ci = 0; ci < checkLen; ci++) {
+          if (positions[ci] !== 0) { hasNonZero = true; break; }
+        }
+        if (!hasNonZero && checkLen > 0) {
+          // SAB is all zeros — don't set nodePositionsRef yet.
+          // GemNodes will use node.position from React state.
+          return;
+        }
+      }
       nodePositionsRef.current = positions;
 
       const positionsValid = positions && positions.length > 0 && positions.length >= graphData.nodes.length * 3;
@@ -851,6 +868,49 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
           edgeUpdatePendingRef.current = newEdgePoints;
         }
 
+        // One-time diagnostic for edge/position pipeline
+        if (!(window as any).__gmDiagV2) {
+          (window as any).__gmDiagV2 = true;
+          // Sample first 3 nodes' positions to check if they're real or all-zero
+          const samples: Array<{i: number, x: number, y: number, z: number}> = [];
+          for (let si = 0; si < Math.min(3, graphData.nodes.length); si++) {
+            const si3 = si * 3;
+            samples.push({ i: si, x: positions[si3], y: positions[si3+1], z: positions[si3+2] });
+          }
+          // Check how many positions are non-zero
+          let nonZeroCount = 0;
+          for (let si = 0; si < graphData.nodes.length; si++) {
+            const si3 = si * 3;
+            if (Math.abs(positions[si3]) > 0.01 || Math.abs(positions[si3+1]) > 0.01 || Math.abs(positions[si3+2]) > 0.01) {
+              nonZeroCount++;
+            }
+          }
+          // Sample a few edges to see source/target lookup
+          const edgeSamples: any[] = [];
+          for (let ei = 0; ei < Math.min(3, graphData.edges.length); ei++) {
+            const edge = graphData.edges[ei];
+            const srcIdx = nodeIdToIndexMap.get(String(edge.source));
+            const tgtIdx = nodeIdToIndexMap.get(String(edge.target));
+            edgeSamples.push({
+              src: edge.source, tgt: edge.target,
+              srcIdx, tgtIdx,
+              srcFound: srcIdx !== undefined, tgtFound: tgtIdx !== undefined,
+            });
+          }
+          console.log('[GraphManager] DIAG first frame:', {
+            nodeCount: graphData.nodes.length,
+            edgeCount: graphData.edges.length,
+            positionsLength: positions?.length ?? 0,
+            positionsValid,
+            edgePointsComputed: edgePointIdx / 6,
+            nonZeroPositions: nonZeroCount,
+            samplePositions: samples,
+            sampleEdges: edgeSamples,
+            hasEdgeFlowRef: !!edgeFlowRef.current,
+            visibleNodesCount: visibleNodes.length,
+          });
+        }
+
         // Update label positions ref every frame (fast, no re-render)
         const labelCount = graphData.nodes.length;
         let currentLabelArr = labelPositionsRef.current;
@@ -928,11 +988,51 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
           }
           return normalizedNode
         }),
-        edges: data.edges.map(edge => ({
-          ...edge,
-          source: String(edge.source),
-          target: String(edge.target)
-        }))
+        edges: data.edges.map((edge: any, idx: number) => {
+          // Robust source/target extraction: handle multiple API field naming conventions
+          let src = edge.source ?? edge.from ?? edge.from_node ?? edge.sourceId ?? edge.source_id ?? edge.start;
+          let tgt = edge.target ?? edge.to ?? edge.to_node ?? edge.targetId ?? edge.target_id ?? edge.end;
+
+          // Recover from pre-broken string "undefined" / "null" (graphDataManager may have
+          // already String()-coerced an undefined value before this code runs)
+          if (src === 'undefined' || src === 'null' || src === '') src = undefined;
+          if (tgt === 'undefined' || tgt === 'null' || tgt === '') tgt = undefined;
+
+          // Fallback: extract from edge ID format "source-target" (e.g. "798-861")
+          if ((src == null || tgt == null) && edge.id && typeof edge.id === 'string') {
+            const parts = edge.id.split('-');
+            if (parts.length >= 2) {
+              if (src == null) src = parts[0];
+              if (tgt == null) tgt = parts.slice(1).join('-');
+            }
+          }
+
+          // One-time diagnostic (v2: use fresh flag so HMR shows latest logic)
+          if (idx === 0 && !(window as any).__edgeRecoveryDiag) {
+            (window as any).__edgeRecoveryDiag = true;
+            console.log('[GraphManager] edge[0] RECOVERY: src=', src, 'tgt=', tgt,
+              'raw.source=', edge.source, 'raw.target=', edge.target,
+              'id=', edge.id, 'keys=', Object.keys(edge));
+          }
+
+          return {
+            ...edge,
+            source: String(src),
+            target: String(tgt),
+          };
+        }).filter((e: any) => e.source !== 'undefined' && e.target !== 'undefined' && e.source !== 'null' && e.target !== 'null')
+      }
+
+      // One-time edge pipeline diagnostic
+      if (!(window as any).__edgePipelineV2) {
+        (window as any).__edgePipelineV2 = true;
+        console.log('[GraphManager] handleGraphUpdate edge pipeline:',
+          'inputEdges=', data.edges.length,
+          'outputEdges=', dataWithPositions.edges.length,
+          'nodes=', dataWithPositions.nodes.length,
+          dataWithPositions.edges.length > 0
+            ? { first: { src: dataWithPositions.edges[0].source, tgt: dataWithPositions.edges[0].target, id: (dataWithPositions.edges[0] as any).id } }
+            : '(no edges survived filter)');
       }
 
       const allAtOrigin = dataWithPositions.nodes.every(node =>

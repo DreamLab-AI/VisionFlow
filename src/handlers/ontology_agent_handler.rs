@@ -14,7 +14,7 @@ use crate::services::ontology_query_service::OntologyQueryService;
 use crate::services::ontology_mutation_service::OntologyMutationService;
 use crate::types::ontology_tools::*;
 use crate::{ok_json, error_json};
-use actix_web::{web, HttpResponse};
+use actix_web::{web, HttpResponse, Error};
 use log::{error, info};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -81,7 +81,7 @@ pub struct StatusResponse {
 pub async fn discover(
     query_service: web::Data<Arc<OntologyQueryService>>,
     request: web::Json<DiscoverRequest>,
-) -> HttpResponse {
+) -> Result<HttpResponse, Error> {
     let req = request.into_inner();
     info!("ontology-agent/discover: query='{}'", req.query);
 
@@ -104,7 +104,7 @@ pub async fn discover(
 pub async fn read_note(
     query_service: web::Data<Arc<OntologyQueryService>>,
     request: web::Json<ReadNoteRequest>,
-) -> HttpResponse {
+) -> Result<HttpResponse, Error> {
     let req = request.into_inner();
     info!("ontology-agent/read: iri='{}'", req.iri);
 
@@ -126,7 +126,7 @@ pub async fn read_note(
 pub async fn query(
     query_service: web::Data<Arc<OntologyQueryService>>,
     request: web::Json<QueryRequest>,
-) -> HttpResponse {
+) -> Result<HttpResponse, Error> {
     let req = request.into_inner();
     info!("ontology-agent/query: cypher='{}'", &req.cypher[..req.cypher.len().min(80)]);
 
@@ -148,7 +148,7 @@ pub async fn query(
 pub async fn traverse(
     query_service: web::Data<Arc<OntologyQueryService>>,
     request: web::Json<TraverseRequest>,
-) -> HttpResponse {
+) -> Result<HttpResponse, Error> {
     let req = request.into_inner();
     info!("ontology-agent/traverse: start='{}', depth={}", req.start_iri, req.depth);
 
@@ -173,7 +173,7 @@ pub async fn traverse(
 pub async fn propose(
     mutation_service: web::Data<Arc<OntologyMutationService>>,
     request: web::Json<ProposeRequest>,
-) -> HttpResponse {
+) -> Result<HttpResponse, Error> {
     let req = request.into_inner();
     info!("ontology-agent/propose: agent={}", req.agent_context.agent_id);
 
@@ -204,7 +204,7 @@ pub async fn propose(
 pub async fn validate(
     query_service: web::Data<Arc<OntologyQueryService>>,
     request: web::Json<ValidateRequest>,
-) -> HttpResponse {
+) -> Result<HttpResponse, Error> {
     let req = request.into_inner();
     info!("ontology-agent/validate: {} axioms", req.axioms.len());
 
@@ -231,7 +231,7 @@ pub async fn validate(
 }
 
 /// GET /ontology-agent/status — Service health and capability listing
-pub async fn status() -> HttpResponse {
+pub async fn status() -> Result<HttpResponse, Error> {
     ok_json!(StatusResponse {
         service: "ontology-agent".to_string(),
         status: "healthy".to_string(),

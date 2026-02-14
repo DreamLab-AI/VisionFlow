@@ -358,28 +358,41 @@ export const settingsApi = {
   getPhysics: (): Promise<AxiosResponse<PhysicsSettings>> =>
     axios.get(`${API_BASE}/api/settings/physics`, { headers: getAuthHeaders() }),
 
-  updatePhysics: (
+  updatePhysics: async (
     settings: Partial<PhysicsSettings>
-  ): Promise<AxiosResponse<void>> =>
-    axios.put(`${API_BASE}/api/settings/physics`, settings, { headers: getAuthHeaders() }),
+  ): Promise<AxiosResponse<void>> => {
+    // GET-merge-PUT: backend requires full struct, not partial
+    const current = await axios.get(`${API_BASE}/api/settings/physics`, { headers: getAuthHeaders() });
+    const currentData = current.data?.data ?? current.data ?? {};
+    const merged = { ...currentData, ...settings };
+    return axios.put(`${API_BASE}/api/settings/physics`, merged, { headers: getAuthHeaders() });
+  },
 
 
   getConstraints: (): Promise<AxiosResponse<ConstraintSettings>> =>
     axios.get(`${API_BASE}/api/settings/constraints`, { headers: getAuthHeaders() }),
 
-  updateConstraints: (
+  updateConstraints: async (
     settings: Partial<ConstraintSettings>
-  ): Promise<AxiosResponse<void>> =>
-    axios.put(`${API_BASE}/api/settings/constraints`, settings, { headers: getAuthHeaders() }),
+  ): Promise<AxiosResponse<void>> => {
+    const current = await axios.get(`${API_BASE}/api/settings/constraints`, { headers: getAuthHeaders() });
+    const currentData = current.data?.data ?? current.data ?? {};
+    const merged = { ...currentData, ...settings };
+    return axios.put(`${API_BASE}/api/settings/constraints`, merged, { headers: getAuthHeaders() });
+  },
 
 
   getRendering: (): Promise<AxiosResponse<RenderingSettings>> =>
     axios.get(`${API_BASE}/api/settings/rendering`, { headers: getAuthHeaders() }),
 
-  updateRendering: (
+  updateRendering: async (
     settings: Partial<RenderingSettings>
-  ): Promise<AxiosResponse<void>> =>
-    axios.put(`${API_BASE}/api/settings/rendering`, settings, { headers: getAuthHeaders() }),
+  ): Promise<AxiosResponse<void>> => {
+    const current = await axios.get(`${API_BASE}/api/settings/rendering`, { headers: getAuthHeaders() });
+    const currentData = current.data?.data ?? current.data ?? {};
+    const merged = { ...currentData, ...settings };
+    return axios.put(`${API_BASE}/api/settings/rendering`, merged, { headers: getAuthHeaders() });
+  },
 
 
   // NOTE: Over-fetches all settings sections. The backend does not currently support
@@ -603,19 +616,27 @@ export const settingsApi = {
   getNodeFilter: (): Promise<AxiosResponse<NodeFilterSettings>> =>
     axios.get(`${API_BASE}/api/settings/node-filter`, { headers: getAuthHeaders() }),
 
-  updateNodeFilter: (
+  updateNodeFilter: async (
     settings: Partial<NodeFilterSettings>
-  ): Promise<AxiosResponse<void>> =>
-    axios.put(`${API_BASE}/api/settings/node-filter`, settings, { headers: getAuthHeaders() }),
+  ): Promise<AxiosResponse<void>> => {
+    const current = await axios.get(`${API_BASE}/api/settings/node-filter`, { headers: getAuthHeaders() });
+    const currentData = current.data?.data ?? current.data ?? {};
+    const merged = { ...currentData, ...settings };
+    return axios.put(`${API_BASE}/api/settings/node-filter`, merged, { headers: getAuthHeaders() });
+  },
 
   // Quality gate settings
   getQualityGates: (): Promise<AxiosResponse<QualityGateSettings>> =>
     axios.get(`${API_BASE}/api/settings/quality-gates`, { headers: getAuthHeaders() }),
 
-  updateQualityGates: (
+  updateQualityGates: async (
     settings: Partial<QualityGateSettings>
-  ): Promise<AxiosResponse<void>> =>
-    axios.put(`${API_BASE}/api/settings/quality-gates`, settings, { headers: getAuthHeaders() }),
+  ): Promise<AxiosResponse<void>> => {
+    const current = await axios.get(`${API_BASE}/api/settings/quality-gates`, { headers: getAuthHeaders() });
+    const currentData = current.data?.data ?? current.data ?? {};
+    const merged = { ...currentData, ...settings };
+    return axios.put(`${API_BASE}/api/settings/quality-gates`, merged, { headers: getAuthHeaders() });
+  },
 };
 
 // ============================================================================

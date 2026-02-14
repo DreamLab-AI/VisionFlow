@@ -122,6 +122,7 @@ impl SpeechSocket {
                 voice: req.voice.unwrap_or(default_voice),
                 speed: req.speed.unwrap_or(default_speed),
                 stream: req.stream.unwrap_or(default_stream),
+                format: "opus".to_string(),
             };
 
             

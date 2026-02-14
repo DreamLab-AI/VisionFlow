@@ -96,8 +96,12 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
   const prevMetaHashRef = useRef('');
   const dominant = getDominantMode(nodes, graphMode, perNodeVisualModeMap);
 
+  // Allocate a large buffer (4096 instances) so the mesh is created ONCE and
+  // never recreated when nodes.length grows from 0→N on data load.
+  // Only recreate when the visual mode (dominant) changes.
+  // useFrame sets inst.count to the actual node count each frame.
   const { mesh, uniforms } = useMemo(() => {
-    const count = Math.max(nextPowerOf2(nodes.length), 64); // Over-allocate to avoid re-creation
+    const count = 4096;
     const [geo, matResult] = dominant === 'ontology'
       ? [createCrystalOrbGeometry(), createCrystalOrbMaterial()] as const
       : dominant === 'agent'
@@ -126,36 +130,30 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
     meshRef.current = inst;
     return { mesh: inst, uniforms: matResult.uniforms };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dominant, nodes.length]);
+  }, [dominant]);
 
-  // Dispose GPU resources when mesh is recreated or component unmounts
-  useEffect(() => {
-    return () => {
-      if (meshRef.current) {
-        meshRef.current.geometry.dispose();
-        (meshRef.current.material as THREE.Material).dispose();
-      }
-      metaTexRef.current?.dispose();
-    };
-  }, [dominant, nodes.length]);
+  // NOTE: No disposal useEffect here. React StrictMode double-invokes useMemo
+  // and runs effect cleanup between mount cycles, which disposes the GPU buffers
+  // of the ONLY mesh instance. WebGPU cannot recover disposed geometry/material.
+  // Three.js / GC handles cleanup when the component fully unmounts.
 
   useImperativeHandle(ref, () => ({
     getMesh: () => meshRef.current,
     getColorArray: () => meshRef.current?.instanceColor?.array as Float32Array | null ?? null,
   }), [mesh]);
 
-  // Attempt TSL material upgrade (WebGPU only, knowledge_graph mode)
+  // TSL metadata upgrade — augments existing MeshPhysicalMaterial with Fresnel/emissive nodes.
+  // Uses a mounted flag to survive React StrictMode double-invoke without breaking.
   useEffect(() => {
     if (dominant === 'ontology' || dominant === 'agent') return;
     const tex = metaTexRef.current;
-    if (!tex) return;
+    const inst = meshRef.current;
+    if (!tex || !inst) return;
     let cancelled = false;
-    createTslGemMaterial(tex, tex.image.width).then((tslMat) => {
-      if (cancelled || !tslMat || !meshRef.current) return;
-      const old = meshRef.current.material;
-      meshRef.current.material = tslMat;
-      if (old && typeof (old as any).dispose === 'function') (old as any).dispose();
-      console.log('[GemNodes] TSL metadata material activated');
+    createTslGemMaterial(inst.material as THREE.MeshPhysicalMaterial, tex, tex.image.width).then((ok) => {
+      if (cancelled) return;
+      if (ok) console.log('[GemNodes] TSL metadata material activated (augmented)');
+      else console.log('[GemNodes] TSL not applied (WebGL fallback)');
     });
     return () => { cancelled = true; };
   }, [dominant]);
@@ -181,12 +179,72 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
     return _col;
   }, [ssspResult, hierarchyMap]);
 
-  useFrame(({ clock }) => {
+  const diagLoggedRef = useRef(false);
+  const frameCountRef = useRef(0);
+  useFrame(({ clock, camera, scene }) => {
     const inst = meshRef.current;
     if (!inst || nodes.length === 0) return;
+
+    // Workaround: R3F <primitive> sometimes fails to attach InstancedMesh to scene.
+    // If the mesh has no parent after mount, attach it directly.
+    if (!inst.parent && scene) {
+      scene.add(inst);
+      console.log('[GemNodes] manually attached mesh to scene (R3F primitive workaround)');
+    }
+
     if (uniforms.time) uniforms.time.value = clock.elapsedTime;
 
     const positions = nodePositionsRef.current;
+    frameCountRef.current++;
+
+    // Delayed diagnostic — fires at frame 60 when positions are loaded
+    if (!diagLoggedRef.current && frameCountRef.current >= 60) {
+      diagLoggedRef.current = true;
+      const mat = inst.material as any;
+      // Sample first 3 instance matrices
+      const tempMat = new THREE.Matrix4();
+      const tempVec = new THREE.Vector3();
+      const tempScale = new THREE.Vector3();
+      const matSamples: any[] = [];
+      for (let si = 0; si < Math.min(3, inst.count); si++) {
+        inst.getMatrixAt(si, tempMat);
+        tempVec.setFromMatrixPosition(tempMat);
+        tempScale.setFromMatrixScale(tempMat);
+        matSamples.push({ i: si, pos: { x: +tempVec.x.toFixed(1), y: +tempVec.y.toFixed(1), z: +tempVec.z.toFixed(1) }, scale: +tempScale.x.toFixed(2) });
+      }
+      // Compute bounding box from first 20 instances
+      const bbox = new THREE.Box3();
+      for (let bi = 0; bi < Math.min(20, inst.count); bi++) {
+        inst.getMatrixAt(bi, tempMat);
+        tempVec.setFromMatrixPosition(tempMat);
+        bbox.expandByPoint(tempVec);
+      }
+      const bboxSize = new THREE.Vector3();
+      bbox.getSize(bboxSize);
+      console.log('[GemNodes] DIAG frame60:', {
+        nodeCount: nodes.length,
+        instCount: inst.count,
+        hasPositions: !!positions,
+        posLen: positions?.length ?? 0,
+        visible: inst.visible,
+        hasParent: !!inst.parent,
+        parentType: inst.parent?.type,
+        frustumCulled: inst.frustumCulled,
+        matType: mat?.type,
+        matTransmission: mat?.transmission,
+        matOpacity: mat?.opacity,
+        matTransparent: mat?.transparent,
+        matDepthWrite: mat?.depthWrite,
+        matSide: mat?.side,
+        hasOpacityNode: !!mat?.opacityNode,
+        hasEmissiveNode: !!mat?.emissiveNode,
+        hasColorNode: !!mat?.colorNode,
+        matSamples,
+        bboxSize: { x: +bboxSize.x.toFixed(1), y: +bboxSize.y.toFixed(1), z: +bboxSize.z.toFixed(1) },
+        cameraPos: { x: +camera.position.x.toFixed(1), y: +camera.position.y.toFixed(1), z: +camera.position.z.toFixed(1) },
+        dominant,
+      });
+    }
     const baseScale = (settings?.visualisation?.nodes?.nodeSize ?? 0.5) / 0.5;
     const texBuf = metaTexRef.current?.image?.data as Float32Array | undefined;
 
@@ -256,6 +314,7 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
 
   return (
     <primitive
+      key={mesh.uuid}
       object={mesh}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
