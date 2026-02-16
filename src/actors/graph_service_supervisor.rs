@@ -1036,6 +1036,7 @@ impl Handler<msgs::InitializeGPUConnection> for GraphServiceSupervisor {
             let gpu_manager_clone = gpu_manager.clone();
             let gpu_manager_for_init = gpu_manager.clone();
             let graph_state_addr = self.graph_state.clone();
+            let self_addr = ctx.address();
 
             ctx.spawn(
                 async move {
@@ -1076,7 +1077,7 @@ impl Handler<msgs::InitializeGPUConnection> for GraphServiceSupervisor {
                                 // ServiceGraphData is the same type as GraphData, so we can use it directly
                                 match gpu_manager_for_init.send(msgs::InitializeGPU {
                                     graph: graph_data,
-                                    graph_service_addr: None,
+                                    graph_service_addr: Some(self_addr.clone()),
                                     physics_orchestrator_addr: None,
                                     gpu_manager_addr: Some(gpu_manager_for_init.clone()),
                                     correlation_id: None,
@@ -1125,13 +1126,25 @@ impl Handler<msgs::UpdateBotsGraph> for GraphServiceSupervisor {
     }
 }
 
-/// Handler for UpdateNodePositions - delegates to PhysicsOrchestratorActor
+/// Handler for UpdateNodePositions - delegates to PhysicsOrchestratorActor AND GraphStateActor.
+/// PhysicsOrchestratorActor forwards to ClientCoordinatorActor for WebSocket push (BroadcastPositions).
+/// GraphStateActor stores positions so the polling path (subscribe_position_updates → GetGraphData)
+/// returns GPU-computed layout instead of stale initial positions.
 impl Handler<msgs::UpdateNodePositions> for GraphServiceSupervisor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: msgs::UpdateNodePositions, _ctx: &mut Self::Context) -> Self::Result {
+        // Forward to GraphStateActor so polling-based position delivery returns GPU positions
+        if let Some(ref graph_state_addr) = self.graph_state {
+            graph_state_addr.do_send(msgs::UpdateNodePositions {
+                positions: msg.positions.clone(),
+                correlation_id: msg.correlation_id.clone(),
+            });
+        }
+
+        // Forward to PhysicsOrchestratorActor for WebSocket push broadcast
         if let Some(ref physics_addr) = self.physics {
-            debug!("Forwarding UpdateNodePositions to PhysicsOrchestratorActor");
+            debug!("Forwarding UpdateNodePositions to PhysicsOrchestratorActor and GraphStateActor");
             physics_addr.do_send(msg);
             Ok(())
         } else {

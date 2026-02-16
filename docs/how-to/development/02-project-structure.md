@@ -482,7 +482,6 @@ client/
     │   ├── useGraphSettings.ts
     │   ├── useMouseControls.ts
     │   ├── useKeyboardShortcuts.ts
-    │   ├── useSettingsWebSocket.ts
     │   ├── useAnalytics.ts
     │   ├── useVoiceInteraction.ts
     │   ├── useNostrAuth.ts

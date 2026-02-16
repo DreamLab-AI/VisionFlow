@@ -523,7 +523,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
 
     // Periodic label frustum refresh (~6 updates/sec at 60fps)
     labelTickRef.current++;
-    if (labelTickRef.current >= 30) {
+    if (labelTickRef.current >= 3) {
       labelTickRef.current = 0;
       cameraViewProjectionMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
       frustum.setFromProjectionMatrix(cameraViewProjectionMatrix);
@@ -590,11 +590,12 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
               const targetNode = graphData.nodes[targetNodeIndex];
               const sourceVisualMode = perNodeVisualModeMap.get(String(sourceNode.id)) || graphMode;
               const targetVisualMode = perNodeVisualModeMap.get(String(targetNode.id)) || graphMode;
-              const sourceRadius = getNodeScale(sourceNode, graphData.edges, connectionCountMap, sourceVisualMode, hierarchyMap) * (nodeSettings?.nodeSize || 0.5);
-              const targetRadius = getNodeScale(targetNode, graphData.edges, connectionCountMap, targetVisualMode, hierarchyMap) * (nodeSettings?.nodeSize || 0.5);
+              const edgeBaseScale = (nodeSettings?.nodeSize ?? 0.5) / 0.5;
+              const sourceRadius = getNodeScale(sourceNode, graphData.edges, connectionCountMap, sourceVisualMode, hierarchyMap) * edgeBaseScale;
+              const targetRadius = getNodeScale(targetNode, graphData.edges, connectionCountMap, targetVisualMode, hierarchyMap) * edgeBaseScale;
 
-              tempSourceOffset.copy(sourcePos).addScaledVector(tempDirection, sourceRadius + 0.1);
-              tempTargetOffset.copy(targetPos).addScaledVector(tempDirection, -(targetRadius + 0.1));
+              tempSourceOffset.copy(sourcePos).addScaledVector(tempDirection, sourceRadius);
+              tempTargetOffset.copy(targetPos).addScaledVector(tempDirection, -targetRadius);
 
               if (tempSourceOffset.distanceTo(tempTargetOffset) > 0.2) {
                 newEdgePoints[edgePointIdx++] = tempSourceOffset.x;
@@ -635,10 +636,11 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
               const tgtNode = graphData.nodes[targetIdx];
               const srcMode = perNodeVisualModeMap.get(String(srcNode.id)) || graphMode;
               const tgtMode = perNodeVisualModeMap.get(String(tgtNode.id)) || graphMode;
-              const srcR = getNodeScale(srcNode, graphData.edges, connectionCountMap, srcMode, hierarchyMap) * (nodeSettings?.nodeSize || 0.5);
-              const tgtR = getNodeScale(tgtNode, graphData.edges, connectionCountMap, tgtMode, hierarchyMap) * (nodeSettings?.nodeSize || 0.5);
-              tempSourceOffset.copy(tempVec3).addScaledVector(tempDirection, srcR + 0.1);
-              tempTargetOffset.copy(tempPosition).addScaledVector(tempDirection, -(tgtR + 0.1));
+              const hlBaseScale = (nodeSettings?.nodeSize ?? 0.5) / 0.5;
+              const srcR = getNodeScale(srcNode, graphData.edges, connectionCountMap, srcMode, hierarchyMap) * hlBaseScale;
+              const tgtR = getNodeScale(tgtNode, graphData.edges, connectionCountMap, tgtMode, hierarchyMap) * hlBaseScale;
+              tempSourceOffset.copy(tempVec3).addScaledVector(tempDirection, srcR);
+              tempTargetOffset.copy(tempPosition).addScaledVector(tempDirection, -tgtR);
               if (tempSourceOffset.distanceTo(tempTargetOffset) > 0.2) {
                 highlightPoints.push(
                   tempSourceOffset.x, tempSourceOffset.y, tempSourceOffset.z,

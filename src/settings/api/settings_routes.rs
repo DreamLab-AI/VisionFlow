@@ -5,15 +5,16 @@
 
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
-use log::{error, info, warn};
+use log::{debug, error, info, warn};
 use std::sync::Arc;
 
 use crate::config::{PhysicsSettings, RenderingSettings};
-use crate::actors::messages::{GetSettings, UpdateSettings};
+use crate::actors::messages::{BroadcastMessage, GetSettings, SetComputeMode, UpdateConstraints, UpdateSettings, UpdateSimulationParams};
+use crate::utils::unified_gpu_compute::ComputeMode;
 use crate::settings::models::{ConstraintSettings, NodeFilterSettings, QualityGateSettings, AllSettings};
 use crate::settings::auth_extractor::{AuthenticatedUser, OptionalAuth};
 use crate::adapters::neo4j_settings_repository::{Neo4jSettingsRepository, UserFilter};
-use crate::ports::settings_repository::SettingsRepository;
+use crate::ports::settings_repository::{SettingValue, SettingsRepository};
 use crate::AppState;
 
 // ============================================================================
@@ -41,6 +42,58 @@ pub struct ErrorResponse {
 // ============================================================================
 // Physics Settings Validation (QE Fix #2 + Fix #5)
 // ============================================================================
+
+/// Normalize incoming physics JSON keys to the canonical camelCase names
+/// expected by PhysicsSettings (which uses `#[serde(rename_all = "camelCase")]`).
+///
+/// This maps common aliases (snake_case, legacy names, client variants) so that
+/// both `{"spring_k": 0.05}` and `{"springK": 0.05}` work correctly.
+fn normalize_physics_keys(patch: serde_json::Map<String, serde_json::Value>) -> serde_json::Map<String, serde_json::Value> {
+    let mut normalized = serde_json::Map::new();
+    for (key, value) in patch {
+        let canonical = match key.as_str() {
+            // snake_case → camelCase mappings
+            "spring_k"          => "springK",
+            "repel_k"           => "repelK",
+            "spring_strength"   => "springK",
+            "repulsion_strength"=> "repelK",
+            "center_gravity_k"  => "centerGravityK",
+            "max_velocity"      => "maxVelocity",
+            "max_force"         => "maxForce",
+            "mass_scale"        => "massScale",
+            "enable_bounds"     => "enableBounds",
+            "bounds_size"       => "boundsSize",
+            "separation_radius" => "separationRadius",
+            "boundary_damping"  => "boundaryDamping",
+            "update_threshold"  => "updateThreshold",
+            "rest_length"       => "restLength",
+            "repulsion_cutoff"  => "repulsionCutoff",
+            "grid_cell_size"    => "gridCellSize",
+            "warmup_iterations" => "warmupIterations",
+            "cooling_rate"      => "coolingRate",
+            "max_repulsion_dist"=> "maxRepulsionDist",
+            "min_distance"      => "minDistance",
+            "auto_balance"      => "autoBalance",
+            "compute_mode"      => "computeMode",
+            "cluster_strength"  => "clusterStrength",
+            "alignment_strength"=> "alignmentStrength",
+            // Legacy/client aliases
+            "springStrength"    => "springK",
+            "repulsionStrength" => "repelK",
+            "attractionStrength"=> "centerGravityK",
+            "springStiffness"   => "springK",
+            "springDamping"     => "damping",
+            "deltaTime"         => "dt",
+            // Already camelCase — pass through
+            other => other,
+        };
+        // Don't overwrite if the canonical key was already provided explicitly
+        if !normalized.contains_key(canonical) {
+            normalized.insert(canonical.to_string(), value);
+        }
+    }
+    normalized
+}
 
 /// Validates physics settings values are within safe ranges.
 /// Rejects NaN, Infinity, and out-of-range values.
@@ -173,7 +226,15 @@ pub fn validate_node_filter_settings(settings: &NodeFilterSettings) -> Result<()
 pub async fn get_physics_settings(
     state: web::Data<AppState>,
     _auth: OptionalAuth,
+    neo4j_repo: web::Data<Arc<Neo4jSettingsRepository>>,
 ) -> impl Responder {
+    // Try Neo4j persisted settings first, fall back to in-memory actor
+    if let Ok(Some(SettingValue::Json(json))) = neo4j_repo.get_setting("physics").await {
+        if let Ok(physics) = serde_json::from_value::<PhysicsSettings>(json) {
+            return HttpResponse::Ok().json(physics);
+        }
+    }
+
     match state.settings_addr.send(GetSettings).await {
         Ok(Ok(settings)) => HttpResponse::Ok().json(settings.visualisation.graphs.logseq.physics),
         Ok(Err(e)) => {
@@ -199,8 +260,9 @@ pub async fn update_physics_settings(
     state: web::Data<AppState>,
     body: web::Json<serde_json::Value>,
     auth: AuthenticatedUser,
+    neo4j_repo: web::Data<Arc<Neo4jSettingsRepository>>,
 ) -> impl Responder {
-    info!("User {} updating physics settings", auth.pubkey);
+    debug!("User {} updating physics settings — request body: {:?}", auth.pubkey, body);
 
     // Single GetSettings call -- fetch full settings snapshot once to avoid TOCTOU race
     let mut full_settings = match state.settings_addr.send(GetSettings).await {
@@ -226,7 +288,10 @@ pub async fn update_physics_settings(
     let new_physics = if let (serde_json::Value::Object(mut base), serde_json::Value::Object(patch)) =
         (current_json, body.into_inner())
     {
-        for (k, v) in patch {
+        // Normalize incoming keys: map common aliases (snake_case, legacy names)
+        // to the canonical camelCase field names used by PhysicsSettings.
+        let normalized_patch = normalize_physics_keys(patch);
+        for (k, v) in normalized_patch {
             base.insert(k, v);
         }
         match serde_json::from_value::<PhysicsSettings>(serde_json::Value::Object(base)) {
@@ -255,6 +320,39 @@ pub async fn update_physics_settings(
     match state.settings_addr.send(UpdateSettings { settings: full_settings }).await {
         Ok(Ok(())) => {
             info!("Physics settings updated successfully by {}", auth.pubkey);
+
+            // Propagate physics changes to GPU actors so layout actually responds
+            let sim_params: crate::models::simulation_params::SimulationParams = (&new_physics).into();
+            debug!("Propagating SimulationParams to GPU actors: {:?}", sim_params);
+            let update_msg = UpdateSimulationParams { params: sim_params };
+
+            if let Some(gpu_addr) = state.get_gpu_compute_addr().await {
+                if let Err(e) = gpu_addr.send(update_msg.clone()).await {
+                    error!("Failed to propagate physics to GPUComputeActor: {}", e);
+                }
+            } else {
+                warn!("No GPUComputeActor address available — physics won't propagate to GPU!");
+            }
+            if let Err(e) = state.graph_service_addr.send(update_msg).await {
+                error!("Failed to propagate physics to GraphServiceActor: {}", e);
+            }
+
+            // Persist physics settings to Neo4j for cross-restart survival
+            match serde_json::to_value(&new_physics) {
+                Ok(physics_json) => {
+                    if let Err(e) = neo4j_repo.set_setting(
+                        "physics",
+                        SettingValue::Json(physics_json),
+                        Some("Physics simulation settings"),
+                    ).await {
+                        warn!("Failed to persist physics settings to Neo4j: {}", e);
+                    }
+                }
+                Err(e) => {
+                    warn!("Failed to serialize physics settings for persistence: {}", e);
+                }
+            }
+
             HttpResponse::Ok().json(&new_physics)
         }
         Ok(Err(e)) => {
@@ -305,7 +403,7 @@ pub async fn get_constraint_settings(
 /// Validates input before accepting (QE Fix #1). Returns updated state (QE Fix #2).
 /// Persists to Neo4j repository via set_setting.
 pub async fn update_constraint_settings(
-    _state: web::Data<AppState>,
+    state: web::Data<AppState>,
     neo4j_repo: web::Data<Arc<Neo4jSettingsRepository>>,
     body: web::Json<ConstraintSettings>,
     auth: AuthenticatedUser,
@@ -345,6 +443,29 @@ pub async fn update_constraint_settings(
     }
 
     info!("Constraint settings updated and persisted for user {}", auth.pubkey);
+
+    // Propagate constraint settings to GPU actors so physics simulation reflects changes
+    let constraint_json = match serde_json::to_value(&settings) {
+        Ok(json) => json,
+        Err(e) => {
+            error!("Failed to serialize constraint settings for GPU propagation: {}", e);
+            // Settings are already persisted; return success but log the propagation failure
+            return HttpResponse::Ok().json(&settings);
+        }
+    };
+
+    let constraint_msg = UpdateConstraints { constraint_data: constraint_json };
+
+    if let Some(ref gpu_manager) = state.gpu_manager_addr {
+        if let Err(e) = gpu_manager.send(constraint_msg).await {
+            error!("Failed to propagate constraints to GPUManagerActor: {}", e);
+        } else {
+            info!("Constraint settings propagated to GPUManagerActor for user {}", auth.pubkey);
+        }
+    } else {
+        warn!("GPUManagerActor not available; constraint settings persisted but not propagated to GPU");
+    }
+
     HttpResponse::Ok().json(&settings)
 }
 
@@ -399,6 +520,21 @@ pub async fn update_rendering_settings(
             match state.settings_addr.send(UpdateSettings { settings: full_settings }).await {
                 Ok(Ok(())) => {
                     info!("Rendering settings updated successfully by {}", auth.pubkey);
+
+                    // Propagate rendering changes to connected clients via broadcast
+                    // Rendering settings (ambient light, shadows, environment) are applied
+                    // client-side; notify all clients so they pick up the new values.
+                    let broadcast_payload = serde_json::json!({
+                        "type": "settingsUpdated",
+                        "category": "rendering",
+                        "updatedBy": auth.pubkey,
+                        "timestamp": chrono::Utc::now().timestamp_millis()
+                    });
+                    if let Ok(msg_str) = serde_json::to_string(&broadcast_payload) {
+                        state.client_manager_addr.do_send(BroadcastMessage { message: msg_str });
+                        info!("Rendering settings change broadcast sent to connected clients");
+                    }
+
                     HttpResponse::Ok().json(&new_rendering)
                 }
                 Ok(Err(e)) => {
@@ -463,7 +599,7 @@ pub async fn get_node_filter_settings(
 /// Validates input before accepting (QE Fix #1). Returns updated state (QE Fix #2).
 /// Persists to Neo4j repository via set_setting.
 pub async fn update_node_filter_settings(
-    _state: web::Data<AppState>,
+    state: web::Data<AppState>,
     neo4j_repo: web::Data<Arc<Neo4jSettingsRepository>>,
     body: web::Json<NodeFilterSettings>,
     auth: AuthenticatedUser,
@@ -501,6 +637,28 @@ pub async fn update_node_filter_settings(
         return HttpResponse::InternalServerError().json(ErrorResponse {
             error: format!("Failed to persist node filter settings: {}", e),
         });
+    }
+
+    // Propagate node filter changes to all connected clients via broadcast.
+    // Clients receiving this message recompute which nodes pass the filter
+    // and re-render the visible graph accordingly.
+    let broadcast_payload = serde_json::json!({
+        "type": "settingsUpdated",
+        "category": "nodeFilter",
+        "settings": {
+            "enabled": settings.enabled,
+            "qualityThreshold": settings.quality_threshold,
+            "authorityThreshold": settings.authority_threshold,
+            "filterByQuality": settings.filter_by_quality,
+            "filterByAuthority": settings.filter_by_authority,
+            "filterMode": settings.filter_mode,
+        },
+        "updatedBy": auth.pubkey,
+        "timestamp": chrono::Utc::now().timestamp_millis()
+    });
+    if let Ok(msg_str) = serde_json::to_string(&broadcast_payload) {
+        state.client_manager_addr.do_send(BroadcastMessage { message: msg_str });
+        info!("Node filter settings change broadcast sent to connected clients");
     }
 
     info!("Node filter settings updated and persisted for user {}: enabled={}, quality_threshold={}",
@@ -541,7 +699,7 @@ pub async fn get_quality_gate_settings(
 /// Accepts partial JSON updates -- missing fields retain their persisted or default values.
 /// Returns updated state (QE Fix #2). Persists to Neo4j repository.
 pub async fn update_quality_gate_settings(
-    _state: web::Data<AppState>,
+    state: web::Data<AppState>,
     neo4j_repo: web::Data<Arc<Neo4jSettingsRepository>>,
     body: web::Json<serde_json::Value>,
     auth: AuthenticatedUser,
@@ -596,9 +754,59 @@ pub async fn update_quality_gate_settings(
         });
     }
 
-    info!("User {} updated quality gate settings: gpu={}, ontology={}, semantic={}, maxNodeCount={}",
+    info!("User {} updated quality gate settings: gpu={}, ontology={}, semantic={}, layout={}, maxNodeCount={}",
           auth.pubkey, settings.gpu_acceleration, settings.ontology_physics,
-          settings.semantic_forces, settings.max_node_count);
+          settings.semantic_forces, settings.layout_mode, settings.max_node_count);
+
+    // Propagate GPU-affecting quality gate changes to the physics engine.
+    // Fetch current physics from the settings actor so SimulationParams is built
+    // from the authoritative snapshot, then overlay quality-gate fields.
+    match state.settings_addr.send(GetSettings).await {
+        Ok(Ok(full_settings)) => {
+            let physics = &full_settings.visualisation.graphs.logseq.physics;
+            let mut sim_params: crate::models::simulation_params::SimulationParams = physics.into();
+
+            // gpu_acceleration -> compute_mode (0 = Basic/CPU, 2 = Advanced/GPU)
+            if settings.gpu_acceleration {
+                sim_params.compute_mode = 2;
+            } else {
+                sim_params.compute_mode = 0;
+            }
+            sim_params.enabled = settings.gpu_acceleration;
+
+            let update_msg = UpdateSimulationParams { params: sim_params };
+
+            if let Some(gpu_addr) = state.get_gpu_compute_addr().await {
+                if let Err(e) = gpu_addr.send(update_msg.clone()).await {
+                    error!("Quality gates: failed to propagate SimulationParams to ForceComputeActor: {}", e);
+                }
+                let compute_mode = if settings.gpu_acceleration {
+                    ComputeMode::Advanced
+                } else {
+                    ComputeMode::Basic
+                };
+                if let Err(e) = gpu_addr.send(SetComputeMode { mode: compute_mode }).await {
+                    error!("Quality gates: failed to propagate ComputeMode to ForceComputeActor: {}", e);
+                }
+            }
+
+            if let Err(e) = state.graph_service_addr.send(update_msg).await {
+                error!("Quality gates: failed to propagate SimulationParams to GraphServiceActor: {}", e);
+            }
+
+            info!("Quality gates propagated to physics engine: gpu={}, compute_mode={}, layout={}",
+                  settings.gpu_acceleration,
+                  if settings.gpu_acceleration { "Advanced" } else { "Basic" },
+                  settings.layout_mode);
+        }
+        Ok(Err(e)) => {
+            warn!("Quality gates persisted but failed to read settings for propagation: {}", e);
+        }
+        Err(e) => {
+            warn!("Quality gates persisted but settings actor unreachable for propagation: {}", e);
+        }
+    }
+
     HttpResponse::Ok().json(settings)
 }
 
@@ -643,30 +851,38 @@ async fn get_all_from_actor(
 ) -> HttpResponse {
     match state.settings_addr.send(GetSettings).await {
         Ok(Ok(full_settings)) => {
-            // Load persisted constraint, node_filter, and quality_gate settings from repository
+            // Load persisted settings from Neo4j repository, falling back to actor/defaults
+            let physics = match neo4j_repo.get_setting("physics").await {
+                Ok(Some(SettingValue::Json(json))) => {
+                    serde_json::from_value::<PhysicsSettings>(json)
+                        .unwrap_or(full_settings.visualisation.graphs.logseq.physics)
+                }
+                _ => full_settings.visualisation.graphs.logseq.physics,
+            };
+
             let constraints = match neo4j_repo.get_setting("constraints").await {
-                Ok(Some(crate::ports::settings_repository::SettingValue::Json(json))) => {
+                Ok(Some(SettingValue::Json(json))) => {
                     serde_json::from_value::<ConstraintSettings>(json).unwrap_or_default()
                 }
                 _ => ConstraintSettings::default(),
             };
 
             let node_filter = match neo4j_repo.get_setting("node_filter").await {
-                Ok(Some(crate::ports::settings_repository::SettingValue::Json(json))) => {
+                Ok(Some(SettingValue::Json(json))) => {
                     serde_json::from_value::<NodeFilterSettings>(json).unwrap_or_default()
                 }
                 _ => NodeFilterSettings::default(),
             };
 
             let quality_gates = match neo4j_repo.get_setting("quality_gates").await {
-                Ok(Some(crate::ports::settings_repository::SettingValue::Json(json))) => {
+                Ok(Some(SettingValue::Json(json))) => {
                     serde_json::from_value::<QualityGateSettings>(json).unwrap_or_default()
                 }
                 _ => QualityGateSettings::default(),
             };
 
             let all = AllSettings {
-                physics: full_settings.visualisation.graphs.logseq.physics,
+                physics,
                 constraints,
                 rendering: full_settings.visualisation.rendering,
                 node_filter,

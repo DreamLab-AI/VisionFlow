@@ -95,14 +95,14 @@ export default defineConfig(({ mode }) => {
         changeOrigin: true,
         secure: false,
         configure: (proxy, _options) => {
-          proxy.on('error', (err, _req, _res) => {
-            // Proxy error handling
+          proxy.on('error', (err, req, _res) => {
+            console.error(`[SETTINGS-DIAG] Proxy error for ${req.method} ${req.url}:`, err.message);
           });
-          proxy.on('proxyReq', (_proxyReq, _req, _res) => {
-            // Proxy request handling
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
+            console.log(`[SETTINGS-DIAG] Proxy: ${req.method} ${req.url} → backend`);
           });
-          proxy.on('proxyRes', (_proxyRes, _req, _res) => {
-            // Proxy response handling
+          proxy.on('proxyRes', (proxyRes, req, _res) => {
+            console.log(`[SETTINGS-DIAG] Proxy response: ${req.method} ${req.url} → ${proxyRes.statusCode}`);
           });
         }
       },

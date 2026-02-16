@@ -30,13 +30,17 @@ export class AutoSaveManager {
   }
 
   setInitialized(initialized: boolean) {
+    console.warn(`[SETTINGS-DIAG] autoSaveManager.setInitialized(${initialized})`);
     this.isInitialized = initialized;
   }
 
 
   queueChange(path: string, value: any) {
-    if (!this.isInitialized) return;
-
+    if (!this.isInitialized) {
+      console.warn(`[SETTINGS-DIAG] autoSaveManager.queueChange DROPPED (not initialized): ${path}`, value);
+      return;
+    }
+    console.warn(`[SETTINGS-DIAG] autoSaveManager.queueChange: ${path} =`, value);
 
     if (this.isClientOnlyPath(path)) {
       logger.debug(`Skipping client-only path: ${path}`);
@@ -49,7 +53,11 @@ export class AutoSaveManager {
 
 
   queueChanges(changes: Map<string, any>) {
-    if (!this.isInitialized) return;
+    if (!this.isInitialized) {
+      console.warn(`[SETTINGS-DIAG] autoSaveManager.queueChanges DROPPED (not initialized): ${changes.size} changes`, [...changes.keys()]);
+      return;
+    }
+    console.warn(`[SETTINGS-DIAG] autoSaveManager.queueChanges: ${changes.size} changes`, [...changes.keys()]);
 
     changes.forEach((value, path) => {
       if (this.isClientOnlyPath(path)) {
@@ -92,13 +100,13 @@ export class AutoSaveManager {
     // Clear pending immediately to avoid re-sending on next flush
     this.pendingChanges.clear();
 
-    logger.debug('Auto-save: Attempting to flush changes', { count: updates.length, paths: updates.map(u => u.path) });
+    console.warn(`[SETTINGS-DIAG] autoSaveManager.flush: ${updates.length} updates`, updates.map(u => `${u.path}=${JSON.stringify(u.value)}`));
 
     try {
       await settingsApi.updateSettingsByPaths(updates);
-      logger.info('Auto-save: Successfully flushed pending changes', { count: updates.length });
+      console.warn(`[SETTINGS-DIAG] autoSaveManager.flush SUCCESS: ${updates.length} updates sent to server`);
     } catch (error) {
-      logger.error('Auto-save: Failed to flush changes, delegating to retry manager', { error, updatesCount: updates.length });
+      console.warn(`[SETTINGS-DIAG] autoSaveManager.flush FAILED:`, error);
 
       // Delegate all failed updates to the centralized retry manager
       for (const { path, value } of updates) {

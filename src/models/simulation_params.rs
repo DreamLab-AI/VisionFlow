@@ -94,16 +94,8 @@ pub struct SimParams {
     pub lof_score_min: f32,
     pub lof_score_max: f32,
     pub weight_precision_multiplier: f32,
-
-    // Stress Majorization Parameters
-    pub stress_optimization_enabled: u32,        // Enable/disable stress majorization (0 or 1)
-    pub stress_optimization_frequency: u32,      // Run every N frames (e.g., 60 = once per second at 60fps)
-    pub stress_learning_rate: f32,               // Learning rate for gradient descent (0.01-0.1)
-    pub stress_momentum: f32,                    // Momentum factor (0.0-0.9)
-    pub stress_max_displacement: f32,            // Maximum displacement per iteration
-    pub stress_convergence_threshold: f32,       // Convergence threshold for early stopping
-    pub stress_max_iterations: u32,              // Maximum iterations per optimization call
-    pub stress_blend_factor: f32,                // Blend factor with local forces (0.1-0.3)
+    // NOTE: Stress majorization params removed from GPU SimParams (not used by GPU kernels).
+    // Stress optimization is handled by SemanticProcessorActor on CPU.
 }
 
 // SAFETY: SimParams is repr(C) with only POD types, safe for GPU transfer
@@ -289,16 +281,6 @@ impl SimulationParams {
             lof_score_max: crate::config::dev_config::physics().lof_score_max,
             weight_precision_multiplier: crate::config::dev_config::physics()
                 .weight_precision_multiplier,
-
-            // Stress Majorization defaults
-            stress_optimization_enabled: 0,
-            stress_optimization_frequency: 100,
-            stress_learning_rate: 0.05,
-            stress_momentum: 0.5,
-            stress_max_displacement: 10.0,
-            stress_convergence_threshold: 0.01,
-            stress_max_iterations: 50,
-            stress_blend_factor: 0.2,
         }
     }
 }
@@ -442,16 +424,6 @@ impl From<&PhysicsSettings> for SimParams {
             lof_score_max: crate::config::dev_config::physics().lof_score_max,
             weight_precision_multiplier: crate::config::dev_config::physics()
                 .weight_precision_multiplier,
-
-            // Stress Majorization defaults
-            stress_optimization_enabled: 0,      // Disabled by default
-            stress_optimization_frequency: 60,   // Once per second at 60fps
-            stress_learning_rate: 0.05,          // Conservative learning rate
-            stress_momentum: 0.7,                // Moderate momentum
-            stress_max_displacement: 50.0,       // Maximum node displacement per step
-            stress_convergence_threshold: 0.01,  // Convergence threshold
-            stress_max_iterations: 50,           // Maximum iterations per optimization
-            stress_blend_factor: 0.2,            // 20% blend with global optimization
         }
     }
 }

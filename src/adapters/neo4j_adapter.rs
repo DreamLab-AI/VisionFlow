@@ -287,7 +287,10 @@ impl Neo4jAdapter {
             KnowledgeGraphRepositoryError::DatabaseError(format!("Missing metadata_id: {}", e))
         })?;
 
-        let label: String = neo4j_node.get("label").unwrap_or_else(|_| String::new());
+        let label: String = neo4j_node.get("label")
+            .ok()
+            .filter(|s: &String| !s.is_empty() && s != "UNKNOWN")
+            .unwrap_or_else(|| metadata_id.clone());
 
         // Prefer sim_* properties (GPU physics state) over x/y/z (initial/content positions)
         // This preserves the calculated layout during content sync

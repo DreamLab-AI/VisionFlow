@@ -286,6 +286,13 @@ impl BroadcastOptimizer {
         self.spatial_culler.update_camera_bounds(min, max);
         debug!("BroadcastOptimizer: Camera bounds updated to [{:?}, {:?}]", min, max);
     }
+
+    /// Reset delta compressor state so the next frame sends ALL positions.
+    /// Call this when simulation parameters change or a new client connects.
+    pub fn reset_delta_state(&mut self) {
+        info!("BroadcastOptimizer: Resetting delta state — next broadcast will include all nodes");
+        self.delta_compressor = DeltaCompressor::new(&self.config);
+    }
 }
 
 #[derive(Debug, Clone)]

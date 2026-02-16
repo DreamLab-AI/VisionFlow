@@ -76,6 +76,10 @@ pub struct ForceComputeActor {
 
     stability_iterations: u32,
 
+    /// Frames to bypass GPU stability-skip after a parameter change.
+    /// When >0, stability_threshold is forced to 0.0 so physics always runs.
+    stability_warmup_remaining: u32,
+
 
     graph_service_addr: Option<Addr<crate::actors::GraphServiceSupervisor>>,
 
@@ -99,6 +103,13 @@ pub struct ForceComputeActor {
 
     /// Pre-allocated buffer for node IDs (reused every frame to avoid 60Hz allocations)
     node_id_buffer: Vec<u32>,
+
+    /// Maps GPU buffer index → actual graph node ID (populated during graph upload)
+    gpu_index_to_node_id: Vec<u32>,
+
+    /// Graph data waiting to be uploaded to GPU (set by InitializeGPU/UpdateGPUGraphData,
+    /// consumed when shared_context becomes available)
+    pending_graph_data: Option<Arc<crate::models::graph::GraphData>>,
 }
 
 impl ForceComputeActor {
@@ -134,6 +145,11 @@ impl ForceComputeActor {
             skipped_frames: 0,
             reheat_factor: 0.0,
             stability_iterations: 0,
+            // Start with warmup so the initial random layout converges while
+            // broadcasting position updates.  Without this, the stability check
+            // quickly declares equilibrium and stops physics before the graph has
+            // time to spread out from its random initial positions.
+            stability_warmup_remaining: 300,
             graph_service_addr: None,
             ontology_constraint_addr: None,
             cached_constraint_buffer: Vec::new(),
@@ -142,6 +158,94 @@ impl ForceComputeActor {
             backpressure: NetworkBackpressure::new(backpressure_config),
             position_velocity_buffer: Vec::with_capacity(10000),
             node_id_buffer: Vec::with_capacity(10000),
+            gpu_index_to_node_id: Vec::new(),
+            pending_graph_data: None,
+        }
+    }
+
+    /// Upload pending graph data to the GPU compute engine.
+    /// Called when both shared_context and pending_graph_data become available.
+    fn try_upload_pending_graph_data(&mut self) {
+        let (Some(ref ctx), Some(ref graph_data)) = (&self.shared_context, &self.pending_graph_data) else {
+            return;
+        };
+
+        let num_nodes = graph_data.nodes.len();
+        let num_edges = graph_data.edges.len();
+        if num_nodes == 0 {
+            warn!("ForceComputeActor: Skipping graph upload — 0 nodes");
+            return;
+        }
+
+        info!("ForceComputeActor: Uploading {} nodes, {} edges to GPU", num_nodes, num_edges);
+
+        // Build CSR representation and GPU-index-to-node-ID mapping
+        let mut node_indices = std::collections::HashMap::new();
+        self.gpu_index_to_node_id = Vec::with_capacity(num_nodes);
+        for (i, node) in graph_data.nodes.iter().enumerate() {
+            node_indices.insert(node.id, i);
+            self.gpu_index_to_node_id.push(node.id);
+        }
+        info!("ForceComputeActor: GPU index→node_id mapping: first={}, last={} ({} entries)",
+              self.gpu_index_to_node_id.first().copied().unwrap_or(0),
+              self.gpu_index_to_node_id.last().copied().unwrap_or(0),
+              self.gpu_index_to_node_id.len());
+
+        let positions_x: Vec<f32> = graph_data.nodes.iter().map(|n| n.data.x).collect();
+        let positions_y: Vec<f32> = graph_data.nodes.iter().map(|n| n.data.y).collect();
+        let positions_z: Vec<f32> = graph_data.nodes.iter().map(|n| n.data.z).collect();
+
+        let mut adjacency_lists: Vec<Vec<(u32, f32)>> = vec![Vec::new(); num_nodes];
+        for edge in &graph_data.edges {
+            if let (Some(&src), Some(&tgt)) = (node_indices.get(&edge.source), node_indices.get(&edge.target)) {
+                adjacency_lists[src].push((tgt as u32, edge.weight));
+                if src != tgt {
+                    adjacency_lists[tgt].push((src as u32, edge.weight));
+                }
+            }
+        }
+
+        let mut row_offsets = vec![0u32; num_nodes + 1];
+        let mut col_indices = Vec::new();
+        let mut edge_weights = Vec::new();
+        let mut edge_count = 0u32;
+        for (i, adj) in adjacency_lists.iter().enumerate() {
+            row_offsets[i] = edge_count;
+            for &(target, weight) in adj {
+                col_indices.push(target);
+                edge_weights.push(weight);
+                edge_count += 1;
+            }
+        }
+        row_offsets[num_nodes] = edge_count;
+
+        // Upload to GPU via shared context (recover from poisoned mutex if needed)
+        let mut compute = match ctx.unified_compute.lock() {
+            Ok(guard) => guard,
+            Err(poisoned) => {
+                warn!("ForceComputeActor: GPU mutex was poisoned — recovering for graph upload");
+                poisoned.into_inner()
+            }
+        };
+        match compute.initialize_graph(
+            row_offsets.iter().map(|&x| x as i32).collect(),
+            col_indices.iter().map(|&x| x as i32).collect(),
+            edge_weights,
+            positions_x,
+            positions_y,
+            positions_z,
+            num_nodes,
+            edge_count as usize,
+        ) {
+            Ok(_) => {
+                info!("ForceComputeActor: Graph data uploaded to GPU successfully ({} nodes, {} CSR edges)", num_nodes, edge_count);
+                self.gpu_state.num_nodes = num_nodes as u32;
+                self.gpu_state.num_edges = edge_count;
+                self.pending_graph_data = None;
+            }
+            Err(e) => {
+                error!("ForceComputeActor: Failed to upload graph to GPU: {}", e);
+            }
         }
     }
 
@@ -469,6 +573,15 @@ impl Handler<ComputeForces> for ForceComputeActor {
             }
         };
 
+        // Guard: skip compute when graph data hasn't been uploaded to GPU yet
+        if self.gpu_state.num_nodes == 0 {
+            if self.skipped_frames % 60 == 0 {
+                debug!("ForceComputeActor: Skipping compute — no graph data uploaded to GPU yet (waiting for InitializeGPU)");
+            }
+            self.skipped_frames += 1;
+            return Box::pin(futures::future::ready(Ok(())).into_actor(self));
+        }
+
         self.is_computing = true;
         self.gpu_state.start_operation(GPUOperation::ForceComputation);
 
@@ -514,6 +627,10 @@ impl Handler<ComputeForces> for ForceComputeActor {
 
         // Capture values needed for async block
         let sim_params = self.simulation_params.clone();
+        let stability_bypass = self.stability_warmup_remaining > 0;
+        if stability_bypass {
+            self.stability_warmup_remaining -= 1;
+        }
         let reheat_factor = self.reheat_factor;
 
         // Use spawn_blocking to prevent Tokio thread starvation from blocking mutex locks
@@ -537,8 +654,9 @@ impl Handler<ComputeForces> for ForceComputeActor {
             let blocking_result = tokio::task::spawn_blocking(move || {
                 let mut unified_compute = match unified_compute_arc.lock() {
                     Ok(guard) => guard,
-                    Err(e) => {
-                        return Err(format!("Failed to acquire GPU compute lock: {}", e));
+                    Err(poisoned) => {
+                        warn!("ForceComputeActor: GPU mutex was poisoned by previous panic — recovering");
+                        poisoned.into_inner()
                     }
                 };
 
@@ -549,7 +667,7 @@ impl Handler<ComputeForces> for ForceComputeActor {
                     );
                 }
 
-                let gpu_result = unified_compute.execute_physics_step(&sim_params);
+                let gpu_result = unified_compute.execute_physics_step_with_bypass(&sim_params, stability_bypass);
                 let execution_duration = step_start.elapsed().as_secs_f64() * 1000.0;
 
                 // Get positions and velocities for broadcast
@@ -624,7 +742,9 @@ impl Handler<ComputeForces> for ForceComputeActor {
                                     let position = Vec3::new(pos_x[i], pos_y[i], pos_z[i]);
                                     let velocity = Vec3::new(vel_x[i], vel_y[i], vel_z[i]);
                                     actor.position_velocity_buffer.push((position, velocity));
-                                    actor.node_id_buffer.push(i as u32);
+                                    // Use actual graph node IDs, not buffer indices
+                                    let node_id = actor.gpu_index_to_node_id.get(i).copied().unwrap_or(i as u32);
+                                    actor.node_id_buffer.push(node_id);
                                 }
 
                                 let (should_broadcast, filtered_indices) =
@@ -645,14 +765,40 @@ impl Handler<ComputeForces> for ForceComputeActor {
                                         }
 
                                         if let Some(ref graph_addr) = actor.graph_service_addr {
+                                            // Log during warmup (first 5 broadcasts), after settings
+                                            // changes, and at regular 300-iteration intervals so
+                                            // position flow is always visible in logs.
+                                            if actor.stability_warmup_remaining > 295
+                                                || actor.gpu_state.iteration_count % 300 == 0
+                                            {
+                                                info!(
+                                                    "ForceComputeActor: Sending {} position updates (iter {}, warmup_remaining={})",
+                                                    node_updates.len(), actor.gpu_state.iteration_count,
+                                                    actor.stability_warmup_remaining
+                                                );
+                                            }
                                             graph_addr.do_send(crate::actors::messages::UpdateNodePositions {
                                                 positions: node_updates,
                                                 correlation_id: Some(crate::actors::messaging::MessageId::new()),
                                             });
+                                        } else {
+                                            if actor.gpu_state.iteration_count % 60 == 0 {
+                                                warn!(
+                                                    "ForceComputeActor: graph_service_addr is None — {} position updates DROPPED (iter {})",
+                                                    node_updates.len(), actor.gpu_state.iteration_count
+                                                );
+                                            }
                                         }
                                     } else {
                                         actor.backpressure.record_skip();
                                     }
+                                } else if actor.stability_warmup_remaining > 295
+                                    || actor.gpu_state.iteration_count % 300 == 0
+                                {
+                                    info!(
+                                        "ForceComputeActor: broadcast_optimizer filtered out all updates (should_broadcast={}, filtered={}, warmup_remaining={})",
+                                        should_broadcast, filtered_indices.len(), actor.stability_warmup_remaining
+                                    );
                                 }
                             }
 
@@ -709,6 +855,19 @@ impl Handler<UpdateSimulationParams> for ForceComputeActor {
         // Do NOT reset iteration_count, stability_iterations, or inject reheat_factor
         // here — that causes visible graph "jumps" on every settings slider change.
         // The PhysicsOrchestratorActor handles interpolation via target_params.
+
+        // Reset broadcast optimizer delta state so the next frame re-broadcasts ALL
+        // positions. Without this, converged positions are delta-suppressed and clients
+        // never see the effect of parameter changes.
+        self.broadcast_optimizer.reset_delta_state();
+
+        // Bypass GPU stability-skip for 300 frames (~5 seconds at 60fps).
+        // The GPU kernel's check_system_stability_kernel measures kinetic energy from the
+        // OLD state (before new forces). If the system was at equilibrium, KE ≈ 0 and the
+        // kernel sets should_skip_physics=1, preventing new forces from ever being applied.
+        self.stability_warmup_remaining = 300;
+        info!("ForceComputeActor: Stability warmup enabled for 300 frames (bypasses GPU skip)");
+
         info!(
             "ForceComputeActor: Parameters updated smoothly (iteration_count={}, stability={})",
             self.gpu_state.iteration_count, self.stability_iterations
@@ -813,8 +972,9 @@ impl Handler<UploadPositions> for ForceComputeActor {
             let blocking_result = tokio::task::spawn_blocking(move || {
                 let mut unified_compute = match unified_compute_arc.lock() {
                     Ok(guard) => guard,
-                    Err(e) => {
-                        return Err(format!("Failed to acquire GPU compute lock: {}", e));
+                    Err(poisoned) => {
+                        warn!("ForceComputeActor: GPU mutex was poisoned — recovering for position upload");
+                        poisoned.into_inner()
                     }
                 };
 
@@ -845,20 +1005,21 @@ impl Handler<InitializeGPU> for ForceComputeActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: InitializeGPU, _ctx: &mut Self::Context) -> Self::Result {
-        info!("ForceComputeActor: InitializeGPU received");
+        info!("ForceComputeActor: InitializeGPU received with {} nodes, {} edges",
+            msg.graph.nodes.len(), msg.graph.edges.len());
 
-        self.gpu_state.num_nodes = msg.graph.nodes.len() as u32;
-        self.gpu_state.num_edges = msg.graph.edges.len() as u32;
+        // NOTE: Do NOT set gpu_state.num_nodes here — only set it after successful GPU upload
+        // in try_upload_pending_graph_data(). This prevents ComputeForces from running on
+        // uninitialized GPU buffers (which causes a CUDA panic and mutex poisoning).
 
         if msg.graph_service_addr.is_some() {
             self.graph_service_addr = msg.graph_service_addr;
             info!("ForceComputeActor: GraphServiceActor address stored for position updates");
         }
 
-        info!(
-            "ForceComputeActor: GPU initialized with {} nodes, {} edges",
-            self.gpu_state.num_nodes, self.gpu_state.num_edges
-        );
+        // Store graph data for GPU upload (upload happens when shared_context is available)
+        self.pending_graph_data = Some(msg.graph);
+        self.try_upload_pending_graph_data();
 
         // Send GPUInitialized confirmation back to PhysicsOrchestratorActor
         if let Some(ref orchestrator_addr) = msg.physics_orchestrator_addr {
@@ -884,22 +1045,15 @@ impl Handler<UpdateGPUGraphData> for ForceComputeActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: UpdateGPUGraphData, _ctx: &mut Self::Context) -> Self::Result {
-        info!("ForceComputeActor: UpdateGPUGraphData received");
+        info!("ForceComputeActor: UpdateGPUGraphData received with {} nodes, {} edges",
+            msg.graph.nodes.len(), msg.graph.edges.len());
 
-
-        self.gpu_state.num_nodes = msg.graph.nodes.len() as u32;
-        self.gpu_state.num_edges = msg.graph.edges.len() as u32;
-
-        info!(
-            "ForceComputeActor: Graph data updated - {} nodes, {} edges",
-            self.gpu_state.num_nodes, self.gpu_state.num_edges
-        );
+        // Store graph data and attempt upload (num_nodes set only after successful upload)
+        self.pending_graph_data = Some(msg.graph);
+        self.try_upload_pending_graph_data();
 
         // H4: Send acknowledgment
         if let Some(correlation_id) = msg.correlation_id {
-            // Note: We don't have a direct physics orchestrator reference here,
-            // but acknowledgments can still be sent if the reference is added in the future
-            // For now, this demonstrates the pattern
             debug!("UpdateGPUGraphData completed with correlation_id: {}", correlation_id);
         }
 
@@ -1117,6 +1271,13 @@ impl Handler<SetSharedGPUContext> for ForceComputeActor {
         self.gpu_state.is_initialized = true;
 
         info!("ForceComputeActor: SharedGPUContext stored successfully - GPU physics enabled!");
+
+        // If graph data was received before the context, upload it now
+        if self.pending_graph_data.is_some() {
+            info!("ForceComputeActor: Pending graph data found — uploading to GPU now");
+            self.try_upload_pending_graph_data();
+        }
+
         info!(
             "ForceComputeActor: Physics can now run with {} nodes and {} edges",
             self.gpu_state.num_nodes, self.gpu_state.num_edges
@@ -1125,7 +1286,6 @@ impl Handler<SetSharedGPUContext> for ForceComputeActor {
         // H4: Send acknowledgment
         if let Some(correlation_id) = msg.correlation_id {
             debug!("SetSharedGPUContext completed with correlation_id: {}", correlation_id);
-            // Note: Future enhancement - send ack to physics orchestrator if reference available
         }
 
         Ok(())

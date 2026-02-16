@@ -162,7 +162,7 @@ fn default_constraint_max_force_per_node() -> f32 {
 
 /// Canonical default for max_velocity across the entire codebase.
 /// All modules MUST use this constant instead of hardcoded values.
-pub const CANONICAL_MAX_VELOCITY: f32 = 50.0;
+pub const CANONICAL_MAX_VELOCITY: f32 = 200.0;
 
 /// Canonical default for max_force across the entire codebase.
 /// All modules MUST use this constant instead of hardcoded values.

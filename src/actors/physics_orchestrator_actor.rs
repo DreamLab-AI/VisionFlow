@@ -341,38 +341,27 @@ impl PhysicsOrchestratorActor {
         self.current_iteration += 1;
         self.performance_metrics.total_steps = self.current_iteration;
 
-        // Send ComputeForces to ForceComputeActor to trigger GPU computation
+        // Send ComputeForces to ForceComputeActor to trigger GPU computation.
+        // GPU-computed positions flow back via:
+        //   ForceComputeActor -> UpdateNodePositions -> GraphServiceSupervisor
+        //   -> PhysicsOrchestratorActor::handle(UpdateNodePositions)
+        //   -> BroadcastPositions -> ClientCoordinatorActor -> WebSocket clients
+        //
+        // We do NOT broadcast from graph_data_ref here because it holds the
+        // immutable initial graph data (never updated with GPU positions).
+        // Broadcasting stale positions would also steal the throttle window
+        // from the GPU-computed path, causing 0 real broadcasts.
         use crate::actors::messages::ComputeForces;
         gpu_addr.do_send(ComputeForces {
             correlation_id: None,
         });
 
-        // Collect current positions from graph data for broadcasting
-        if let Some(ref graph_data) = self.graph_data_ref {
-            let positions: Vec<(u32, BinaryNodeData)> = graph_data
-                .nodes
-                .iter()
-                .map(|node| {
-                    (
-                        node.id,
-                        BinaryNodeData {
-                            node_id: node.id,
-                            x: node.data.x,
-                            y: node.data.y,
-                            z: node.data.z,
-                            vx: node.data.vx,
-                            vy: node.data.vy,
-                            vz: node.data.vz,
-                        },
-                    )
-                })
-                .collect();
-
-            // Broadcast positions to clients
-            self.broadcast_position_updates(positions, ctx);
+        if self.current_iteration % 300 == 0 {
+            info!(
+                "PhysicsOrchestratorActor: step {} dispatched ComputeForces to GPU",
+                self.current_iteration
+            );
         }
-
-        debug!("Physics step {} executed with GPU compute", self.current_iteration);
     }
 
     
@@ -911,7 +900,12 @@ impl Handler<UpdateNodePositions> for PhysicsOrchestratorActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: UpdateNodePositions, _ctx: &mut Self::Context) -> Self::Result {
-        // Broadcast positions to WebSocket clients via ClientCoordinatorActor
+        // GPU-computed positions arrive here via:
+        //   ForceComputeActor -> GraphServiceSupervisor -> this handler
+        // Forward them to ClientCoordinatorActor for WebSocket broadcast.
+
+        let node_count = msg.positions.len();
+
         if let Some(ref client_coord_addr) = self.client_coordinator_addr {
             // Throttle broadcasts to 60 FPS max
             let now = std::time::Instant::now();
@@ -919,7 +913,6 @@ impl Handler<UpdateNodePositions> for PhysicsOrchestratorActor {
             if now.duration_since(self.last_broadcast_time) >= broadcast_interval {
                 self.last_broadcast_time = now;
 
-                // Convert to client format (BinaryNodeDataClient has same layout as BinaryNodeData)
                 let client_positions: Vec<BinaryNodeDataClient> = msg.positions
                     .iter()
                     .map(|(node_id, data)| BinaryNodeDataClient {
@@ -933,35 +926,25 @@ impl Handler<UpdateNodePositions> for PhysicsOrchestratorActor {
                     })
                     .collect();
 
-                // Send broadcast message to client coordinator
                 use crate::actors::messages::BroadcastPositions;
                 client_coord_addr.do_send(BroadcastPositions {
                     positions: client_positions,
                 });
 
-                debug!(
-                    "Broadcasted {} node positions from ForceComputeActor to clients",
-                    msg.positions.len()
-                );
+                if self.current_iteration % 300 == 0 {
+                    info!(
+                        "PhysicsOrchestratorActor: Broadcasted {} GPU-computed positions to clients (step {})",
+                        node_count, self.current_iteration
+                    );
+                }
             }
+        } else {
+            warn!("PhysicsOrchestratorActor: UpdateNodePositions received but no client_coordinator_addr set!");
         }
 
-        // Also update GPU if available
-        if let Some(ref gpu_addr) = self.gpu_compute_addr {
-            if let Some(ref graph_data) = self.graph_data_ref {
-                // H4: Track UpdateGPUGraphData message
-                let msg_id = MessageId::new();
-                let tracker = self.message_tracker.clone();
-                actix::spawn(async move {
-                    tracker.track_default(msg_id, MessageKind::UpdateGPUGraphData).await;
-                });
-
-                gpu_addr.do_send(UpdateGPUGraphData {
-                    graph: Arc::clone(graph_data),
-                    correlation_id: Some(msg_id),
-                });
-            }
-        }
+        // NOTE: We intentionally do NOT send UpdateGPUGraphData back to ForceComputeActor here.
+        // graph_data_ref holds the immutable initial graph — sending it back would not update
+        // GPU positions and would create a wasteful feedback loop on every physics tick.
 
         Ok(())
     }

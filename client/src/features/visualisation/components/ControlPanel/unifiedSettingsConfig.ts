@@ -191,15 +191,12 @@ export const UNIFIED_SETTINGS_CONFIG: Record<string, SectionConfig> = {
       { key: 'coolingRate', label: 'Cooling Rate', type: 'slider', min: 0.00001, max: 0.01, step: 0.0001, path: 'visualisation.graphs.logseq.physics.coolingRate', description: 'Simulated annealing rate', isAdvanced: true },
 
       // Fine-tuning - Advanced
-      { key: 'stressWeight', label: 'Stress Weight', type: 'slider', min: 0, max: 1, step: 0.01, path: 'visualisation.graphs.logseq.physics.stressWeight', description: 'Stress majorization weight', isAdvanced: true },
-      { key: 'stressAlpha', label: 'Stress Alpha', type: 'slider', min: 0, max: 1, step: 0.01, path: 'visualisation.graphs.logseq.physics.stressAlpha', description: 'Stress majorization alpha', isAdvanced: true },
       { key: 'minDistance', label: 'Min Distance', type: 'slider', min: 0.05, max: 1, step: 0.01, path: 'visualisation.graphs.logseq.physics.minDistance', description: 'Minimum repulsion distance', isAdvanced: true },
       { key: 'maxRepulsionDist', label: 'Max Repulsion Dist', type: 'slider', min: 10, max: 200, step: 5, path: 'visualisation.graphs.logseq.physics.maxRepulsionDist', description: 'Maximum repulsion range', isAdvanced: true },
       { key: 'restLength', label: 'Rest Length', type: 'slider', min: 10, max: 200, step: 5, path: 'visualisation.graphs.logseq.physics.restLength', description: 'Spring rest length', isAdvanced: true },
       { key: 'repulsionCutoff', label: 'Repulsion Cutoff', type: 'slider', min: 10, max: 200, step: 5, path: 'visualisation.graphs.logseq.physics.repulsionCutoff', description: 'Cutoff for repulsion forces', isAdvanced: true },
       { key: 'centerGravityK', label: 'Center Gravity', type: 'slider', min: 0, max: 0.1, step: 0.001, path: 'visualisation.graphs.logseq.physics.centerGravityK', description: 'Pull towards center', isAdvanced: true },
       { key: 'gridCellSize', label: 'Grid Cell Size', type: 'slider', min: 10, max: 100, step: 5, path: 'visualisation.graphs.logseq.physics.gridCellSize', description: 'Spatial grid cell size', isAdvanced: true },
-      { key: 'massScale', label: 'Mass Scale', type: 'slider', min: 0.1, max: 10, step: 0.1, path: 'visualisation.graphs.logseq.physics.massScale', description: 'Node mass multiplier', isAdvanced: true },
       { key: 'repulsionSofteningEpsilon', label: 'Repulsion Epsilon', type: 'slider', min: 0.00001, max: 0.01, step: 0.0001, path: 'visualisation.graphs.logseq.physics.repulsionSofteningEpsilon', description: 'Softening for close nodes', isAdvanced: true },
       { key: 'boundaryExtremeMultiplier', label: 'Boundary Extreme Mult', type: 'slider', min: 1, max: 5, step: 0.1, path: 'visualisation.graphs.logseq.physics.boundaryExtremeMultiplier', description: 'Boundary force multiplier', isAdvanced: true },
       { key: 'boundaryExtremeForceMultiplier', label: 'Boundary Force Mult', type: 'slider', min: 1, max: 20, step: 1, path: 'visualisation.graphs.logseq.physics.boundaryExtremeForceMultiplier', description: 'Extreme boundary force', isAdvanced: true },
@@ -354,7 +351,7 @@ export const UNIFIED_SETTINGS_CONFIG: Record<string, SectionConfig> = {
       { key: 'authRequired', label: 'Auth Required', type: 'toggle', path: 'auth.required', description: 'Require authentication', isAdvanced: true, isPowerUserOnly: true },
 
       // System - Basic
-      { key: 'persistSettings', label: 'Persist Settings', type: 'toggle', path: 'system.persistSettingsOnServer', description: 'Save to server' },
+      { key: 'persistSettings', label: 'Persist Settings', type: 'toggle', path: 'system.persistSettings', description: 'Save to server' },
       { key: 'customBackendURL', label: 'Custom Backend URL', type: 'text', path: 'system.customBackendUrl', description: 'Override backend URL', isAdvanced: true, isPowerUserOnly: true },
 
       // Debug - Advanced
@@ -375,8 +372,8 @@ export const UNIFIED_SETTINGS_CONFIG: Record<string, SectionConfig> = {
       { key: 'xrRenderScale', label: 'XR Render Scale', type: 'slider', min: 0.5, max: 2, step: 0.1, path: 'xr.renderScale', description: 'Resolution scale' },
 
       // Hand Tracking
-      { key: 'handTracking', label: 'Hand Tracking', type: 'toggle', path: 'xr.handTracking.enabled', description: 'Enable hand input' },
-      { key: 'enableHaptics', label: 'Haptics', type: 'toggle', path: 'xr.interactions.enableHaptics', description: 'Haptic feedback' },
+      { key: 'handTracking', label: 'Hand Tracking', type: 'toggle', path: 'xr.enableHandTracking', description: 'Enable hand input' },
+      { key: 'enableHaptics', label: 'Haptics', type: 'toggle', path: 'xr.enableHaptics', description: 'Haptic feedback' },
 
       // Performance
       { key: 'xrComputeMode', label: 'XR Compute Mode', type: 'toggle', path: 'xr.gpu.enableOptimizedCompute', description: 'Optimized GPU compute', isAdvanced: true },

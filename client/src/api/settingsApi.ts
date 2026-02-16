@@ -14,7 +14,10 @@ const API_BASE = '';
 const getAuthHeaders = () => {
   const token = nostrAuth.getSessionToken();
   const user = nostrAuth.getCurrentUser();
-  if (!token) return {};
+  if (!token) {
+    console.warn('[SETTINGS-DIAG] getAuthHeaders: NO TOKEN — requests will be unauthenticated');
+    return {};
+  }
   const headers: Record<string, string> = {
     Authorization: `Bearer ${token}`,
   };
@@ -399,11 +402,22 @@ export const settingsApi = {
   updatePhysics: async (
     settings: Partial<PhysicsSettings>
   ): Promise<AxiosResponse<void>> => {
+    console.warn('[SETTINGS-DIAG] updatePhysics called with:', settings);
+    console.warn('[SETTINGS-DIAG] auth headers:', getAuthHeaders());
     // GET-merge-PUT: backend requires full struct, not partial
-    const current = await axios.get(`${API_BASE}/api/settings/physics`, { headers: getAuthHeaders() });
-    const currentData = current.data?.data ?? current.data ?? {};
-    const merged = { ...currentData, ...settings };
-    return axios.put(`${API_BASE}/api/settings/physics`, merged, { headers: getAuthHeaders() });
+    try {
+      const current = await axios.get(`${API_BASE}/api/settings/physics`, { headers: getAuthHeaders() });
+      console.warn('[SETTINGS-DIAG] updatePhysics GET current:', current.status, current.data);
+      const currentData = current.data?.data ?? current.data ?? {};
+      const merged = { ...currentData, ...settings };
+      console.warn('[SETTINGS-DIAG] updatePhysics PUT merged:', merged);
+      const result = await axios.put(`${API_BASE}/api/settings/physics`, merged, { headers: getAuthHeaders() });
+      console.warn('[SETTINGS-DIAG] updatePhysics PUT response:', result.status, result.data);
+      return result;
+    } catch (err) {
+      console.warn('[SETTINGS-DIAG] updatePhysics FAILED:', err);
+      throw err;
+    }
   },
 
 
@@ -504,6 +518,9 @@ export const settingsApi = {
         await settingsApi.updateQualityGates({ [path.split('.').pop()!]: value } as any);
       } else if (path.startsWith('nodeFilter')) {
         await settingsApi.updateNodeFilter({ [path.split('.').pop()!]: value } as any);
+      } else if (path.startsWith('constraints')) {
+        const key = path.split('.').pop()!;
+        await settingsApi.updateConstraints({ [key]: value });
       } else {
         // For paths without a dedicated backend endpoint (glow, edges, hologram,
         // graphTypeVisuals, nodes, labels, etc.), persist to localStorage via
@@ -521,30 +538,38 @@ export const settingsApi = {
 
   // Update multiple settings by paths
   updateSettingsByPaths: async (updates: Array<{ path: string; value: any }>): Promise<void> => {
+    console.warn(`[SETTINGS-DIAG] updateSettingsByPaths called with ${updates.length} updates:`, updates.map(u => u.path));
     // Group updates by API endpoint
     const physicsUpdates: Record<string, any> = {};
     const renderingUpdates: Record<string, any> = {};
     const qualityGatesUpdates: Record<string, any> = {};
     const nodeFilterUpdates: Record<string, any> = {};
+    const constraintsUpdates: Record<string, any> = {};
     const localOnlyPaths: string[] = [];
 
     for (const { path, value } of updates) {
-      if (path.includes('.physics.')) {
+      if (path.startsWith('visualisation.graphs.') && path.includes('.physics.')) {
         const key = path.split('.').pop()!;
         physicsUpdates[key] = value;
+        console.warn(`[SETTINGS-DIAG] routing ${path} → physics.${key} = ${value}`);
       } else if (path.startsWith('visualisation.rendering.')) {
         const key = path.split('.').pop()!;
         renderingUpdates[key] = value;
+        console.warn(`[SETTINGS-DIAG] routing ${path} → rendering.${key} = ${value}`);
       } else if (path.startsWith('qualityGates.')) {
         const key = path.split('.').pop()!;
         qualityGatesUpdates[key] = value;
       } else if (path.startsWith('nodeFilter.')) {
         const key = path.split('.').pop()!;
         nodeFilterUpdates[key] = value;
+      } else if (path.startsWith('constraints.')) {
+        const key = path.split('.').pop()!;
+        constraintsUpdates[key] = value;
       } else {
         // Paths without server endpoints (glow, edges, hologram, graphTypeVisuals, etc.)
         // are persisted to localStorage by the settingsStore partialize.
         localOnlyPaths.push(path);
+        console.warn(`[SETTINGS-DIAG] routing ${path} → LOCAL ONLY (no server endpoint)`);
       }
     }
 
@@ -565,6 +590,9 @@ export const settingsApi = {
     }
     if (Object.keys(nodeFilterUpdates).length > 0) {
       promises.push(settingsApi.updateNodeFilter(nodeFilterUpdates as any));
+    }
+    if (Object.keys(constraintsUpdates).length > 0) {
+      promises.push(settingsApi.updateConstraints(constraintsUpdates));
     }
 
     if (promises.length > 0) {

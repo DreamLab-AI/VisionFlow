@@ -96,22 +96,40 @@ impl FromRequest for AuthenticatedUser {
             }
         };
 
+        // Dev-mode session bypass: the client sets token="dev-session-token" when
+        // VITE_DEV_MODE_AUTH=true. Validating this via NostrService requires async,
+        // but FromRequest returns Ready<> (sync). Using block_on inside the actix
+        // async runtime panics, so we short-circuit dev tokens here.
+        if token == "dev-session-token" {
+            debug!("Dev-mode session token accepted for pubkey: {}", pubkey);
+            return ready(Ok(AuthenticatedUser {
+                pubkey,
+                is_power_user: true,
+            }));
+        }
+
         // Clone service for async validation
         let nostr_service = nostr_service.clone();
         let token = token.to_string();
 
-        // Validate session synchronously using block_on
-        let runtime = match tokio::runtime::Handle::try_current() {
-            Ok(handle) => handle,
+        // Use spawn_blocking to avoid block_on panic inside the async runtime.
+        // NOTE: This is a synchronous FromRequest so we use std::thread to run
+        // the async validation on a separate thread, then join.
+        let pubkey_clone = pubkey.clone();
+        let nostr_clone = nostr_service.clone();
+        let token_clone = token.clone();
+        let is_valid = match std::thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().expect("Failed to create runtime");
+            rt.block_on(async {
+                nostr_clone.validate_session(&pubkey_clone, &token_clone).await
+            })
+        }).join() {
+            Ok(valid) => valid,
             Err(_) => {
-                warn!("No tokio runtime available");
-                return ready(Err(ErrorUnauthorized("Runtime error")));
+                warn!("Session validation thread panicked");
+                return ready(Err(ErrorUnauthorized("Validation error")));
             }
         };
-
-        let is_valid = runtime.block_on(async {
-            nostr_service.validate_session(&pubkey, &token).await
-        });
 
         if !is_valid {
             debug!("Session validation failed for pubkey: {}", pubkey);
@@ -119,7 +137,17 @@ impl FromRequest for AuthenticatedUser {
         }
 
         // Get user details
-        let user_option = runtime.block_on(async { nostr_service.get_user(&pubkey).await });
+        let pubkey_clone2 = pubkey.clone();
+        let user_option = match std::thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().expect("Failed to create runtime");
+            rt.block_on(async { nostr_service.get_user(&pubkey_clone2).await })
+        }).join() {
+            Ok(user) => user,
+            Err(_) => {
+                warn!("User lookup thread panicked");
+                return ready(Err(ErrorUnauthorized("User lookup error")));
+            }
+        };
 
         match user_option {
             Some(user) => {

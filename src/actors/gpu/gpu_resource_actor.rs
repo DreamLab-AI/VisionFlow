@@ -186,39 +186,49 @@ impl GPUResourceActor {
 
         info!("UnifiedGPUCompute engine initialized successfully");
 
-        
-        let csr_result = self
-            .create_csr_from_graph_data(&graph_data)
-            .map_err(|e| format!("Failed to create CSR representation: {}", e))?;
-
-        
-        unified_compute
-            .initialize_graph(
-                csr_result.row_offsets.iter().map(|&x| x as i32).collect(),
-                csr_result.col_indices.iter().map(|&x| x as i32).collect(),
-                csr_result.edge_weights,
-                csr_result.positions_x,
-                csr_result.positions_y,
-                csr_result.positions_z,
-                csr_result.num_nodes as usize,
-                csr_result.num_edges as usize,
-            )
-            .map_err(|e| format!("Failed to initialize graph in unified compute: {}", e))?;
-
-        info!("Graph data uploaded to GPU successfully");
-
-        
+        // Store device/stream/compute BEFORE CSR creation so SharedGPUContext
+        // can be created even when graph data is empty (race condition at startup).
         self.device = Some(device);
         self.cuda_stream = Some(cuda_stream);
         self.unified_compute = Some(unified_compute);
 
-        
-        self.gpu_state.num_nodes = csr_result.num_nodes;
-        self.gpu_state.num_edges = csr_result.num_edges;
-        self.gpu_state.node_indices = csr_result.node_indices;
-        self.gpu_state.graph_structure_hash = Self::calculate_graph_structure_hash(&graph_data);
-        self.gpu_state.positions_hash = Self::calculate_positions_hash(&graph_data);
-        self.gpu_state.csr_structure_uploaded = true;
+        // CSR creation and graph upload — tolerate empty graphs
+        match self.create_csr_from_graph_data(&graph_data) {
+            Ok(csr_result) => {
+                if let Some(ref mut compute) = self.unified_compute {
+                    compute
+                        .initialize_graph(
+                            csr_result.row_offsets.iter().map(|&x| x as i32).collect(),
+                            csr_result.col_indices.iter().map(|&x| x as i32).collect(),
+                            csr_result.edge_weights,
+                            csr_result.positions_x,
+                            csr_result.positions_y,
+                            csr_result.positions_z,
+                            csr_result.num_nodes as usize,
+                            csr_result.num_edges as usize,
+                        )
+                        .map_err(|e| format!("Failed to initialize graph in unified compute: {}", e))?;
+                }
+
+                info!("Graph data uploaded to GPU successfully");
+
+                self.gpu_state.num_nodes = csr_result.num_nodes;
+                self.gpu_state.num_edges = csr_result.num_edges;
+                self.gpu_state.node_indices = csr_result.node_indices;
+                self.gpu_state.graph_structure_hash = Self::calculate_graph_structure_hash(&graph_data);
+                self.gpu_state.positions_hash = Self::calculate_positions_hash(&graph_data);
+                self.gpu_state.csr_structure_uploaded = true;
+            }
+            Err(e) => {
+                // Empty graph at startup is expected — graph data loads from Neo4j asynchronously.
+                // SharedGPUContext will still be created so ForceComputeActor can receive it.
+                // Graph data will be uploaded later via UpdateGPUGraphData or reinitialize_with_graph.
+                warn!(
+                    "CSR creation deferred ({}). GPU device/compute ready — graph data will be uploaded when available.",
+                    e
+                );
+            }
+        }
 
         info!("GPU initialization completed successfully");
         Ok(())

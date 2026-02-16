@@ -13,6 +13,7 @@ export interface NodeSettings {
   enableInstancing: boolean;
   enableMetadataShape: boolean;
   enableMetadataVisualisation: boolean;
+  enableImportance?: boolean;
 }
 
 // Edge settings
@@ -39,6 +40,7 @@ export interface EdgeSettings {
 // it only performs optimistic interpolation toward server-computed positions.
 export interface PhysicsSettings {
   enabled: boolean;
+  autoBalance: boolean;
 
   // --- Server-routed force parameters (PUT /api/physics/parameters) ---
   springK: number;
@@ -265,8 +267,9 @@ export interface SpacePilotConfig {
 // XR settings
 export interface XRSettings {
   enabled: boolean;
-  clientSideEnableXR?: boolean; 
-  mode?: 'inline' | 'immersive-vr' | 'immersive-ar'; 
+  enableAdaptiveQuality?: boolean;
+  clientSideEnableXR?: boolean;
+  mode?: 'inline' | 'immersive-vr' | 'immersive-ar';
   roomScale?: number;
   spaceType?: 'local-floor' | 'bounded-floor' | 'unbounded';
   quality?: 'low' | 'medium' | 'high';
@@ -458,14 +461,13 @@ export interface VisualisationSettings {
   // Graph-type-specific visual settings
   graphTypeVisuals?: GraphTypeVisualsSettings;
 
-  graphs: GraphsSettings;
-
-  // Legacy alias for glow settings (bloom was renamed to glow)
+  // Convenience accessors — components read these directly via DeepPartial<VisualisationSettings>
   bloom?: GlowSettings;
-  // Direct access shortcuts (alias to graphs.logseq.*)
   nodes?: NodeSettings;
   edges?: EdgeSettings;
   labels?: LabelSettings;
+
+  graphs: GraphsSettings;
 }
 
 // System settings
@@ -558,6 +560,7 @@ export interface DashboardSettings {
 
 // Analytics settings with GPU clustering
 export interface AnalyticsSettings {
+  enableMetrics?: boolean;
   updateInterval: number;
   showDegreeDistribution: boolean;
   showClusteringCoefficient: boolean;

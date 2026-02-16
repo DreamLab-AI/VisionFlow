@@ -3475,6 +3475,14 @@ impl UnifiedGPUCompute {
         &mut self,
         params: &crate::models::simulation_params::SimulationParams,
     ) -> Result<()> {
+        self.execute_physics_step_with_bypass(params, false)
+    }
+
+    pub fn execute_physics_step_with_bypass(
+        &mut self,
+        params: &crate::models::simulation_params::SimulationParams,
+        stability_bypass: bool,
+    ) -> Result<()> {
         // Build feature_flags from the SimulationParams and runtime toggles,
         // mirroring the logic in SimulationParams::to_sim_params().
         let mut feature_flags: u32 = 0;
@@ -3492,60 +3500,21 @@ impl UnifiedGPUCompute {
             feature_flags |= crate::models::simulation_params::FeatureFlags::ENABLE_SSSP_SPRING_ADJUST;
         }
 
-        let sim_params = crate::models::simulation_params::SimParams {
-            dt: params.dt,
-            damping: params.damping,
-            warmup_iterations: 0,
-            cooling_rate: 0.95,
-            spring_k: params.spring_k,
-            rest_length: 1.0,
-            repel_k: params.repel_k,
-            repulsion_cutoff: 100.0,
-            repulsion_softening_epsilon: 0.1,
-            center_gravity_k: params.center_gravity_k,
-            max_force: params.max_force,
-            max_velocity: params.max_velocity,
-            grid_cell_size: 100.0,
-            feature_flags,
-            seed: 42,
-            iteration: 0,
+        // Use SimulationParams::to_sim_params() which correctly maps ALL user-facing
+        // settings to the GPU-compatible SimParams struct. Previous implementation
+        // hardcoded many values (temperature, separation_radius, repulsion_cutoff, etc.)
+        // which caused "nothing moves when I change settings" because those settings
+        // never reached the GPU kernel.
+        let mut sim_params = params.to_sim_params();
+        sim_params.feature_flags = feature_flags;
 
-            separation_radius: 10.0,
-            cluster_strength: 0.0,
-            alignment_strength: 0.0,
-            temperature: 1.0,
-            viewport_bounds: 1000.0,
-            sssp_alpha: params.sssp_alpha.unwrap_or(1.0),
-            boundary_damping: 0.9,
-            constraint_ramp_frames: 60,
-            constraint_max_force_per_node: 100.0,
+        // When stability_bypass is true, disable the GPU stability check so physics
+        // runs unconditionally. This prevents the check_system_stability_kernel from
+        // skipping physics when the system was at equilibrium before a parameter change.
+        if stability_bypass {
+            sim_params.stability_threshold = 0.0;
+        }
 
-            stability_threshold: 1e-6,
-            min_velocity_threshold: 1e-4,
-
-            world_bounds_min: -1000.0,
-            world_bounds_max: 1000.0,
-            cell_size_lod: 50.0,
-            k_neighbors_max: 20,
-            anomaly_detection_radius: 50.0,
-            learning_rate_default: 0.01,
-
-            norm_delta_cap: 10.0,
-            position_constraint_attraction: 0.1,
-            lof_score_min: 0.0,
-            lof_score_max: 10.0,
-            weight_precision_multiplier: 1000.0,
-
-            // Stress Majorization Parameters
-            stress_optimization_enabled: 0,
-            stress_optimization_frequency: 100,
-            stress_learning_rate: 0.05,
-            stress_momentum: 0.5,
-            stress_max_displacement: 10.0,
-            stress_convergence_threshold: 0.01,
-            stress_max_iterations: 50,
-            stress_blend_factor: 0.2,
-        };
         self.execute(sim_params)
     }
 

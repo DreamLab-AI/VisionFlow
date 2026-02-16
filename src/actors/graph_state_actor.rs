@@ -694,6 +694,53 @@ impl Actor for GraphStateActor {
 
 // Handler implementations
 
+/// Handler for GPU-computed position updates.
+/// Updates node positions in-place so that GetGraphData returns GPU-computed layout.
+impl Handler<UpdateNodePositions> for GraphStateActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: UpdateNodePositions, _ctx: &mut Self::Context) -> Self::Result {
+        if msg.positions.is_empty() {
+            return Ok(());
+        }
+
+        // Build a lookup from the incoming positions
+        let pos_map: std::collections::HashMap<u32, &crate::utils::socket_flow_messages::BinaryNodeDataClient> =
+            msg.positions.iter().map(|(id, data)| (*id, data)).collect();
+
+        // Mutate the Arc<GraphData> in-place (clones on first mutation if shared)
+        let graph_data = Arc::make_mut(&mut self.graph_data);
+        let mut updated = 0usize;
+        for node in &mut graph_data.nodes {
+            if let Some(pos) = pos_map.get(&node.id) {
+                node.data.x = pos.x;
+                node.data.y = pos.y;
+                node.data.z = pos.z;
+                node.data.vx = pos.vx;
+                node.data.vy = pos.vy;
+                node.data.vz = pos.vz;
+                updated += 1;
+            }
+        }
+
+        // Also update the node_map
+        let node_map = Arc::make_mut(&mut self.node_map);
+        for (id, pos) in &msg.positions {
+            if let Some(node) = node_map.get_mut(id) {
+                node.data.x = pos.x;
+                node.data.y = pos.y;
+                node.data.z = pos.z;
+                node.data.vx = pos.vx;
+                node.data.vy = pos.vy;
+                node.data.vz = pos.vz;
+            }
+        }
+
+        debug!("GraphStateActor: Updated {} node positions from GPU", updated);
+        Ok(())
+    }
+}
+
 impl Handler<GetGraphData> for GraphStateActor {
     type Result = Result<Arc<GraphData>, String>;
 

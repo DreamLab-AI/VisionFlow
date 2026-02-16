@@ -36,8 +36,30 @@ fn main() {
         .or_else(|_| env::var("CUDA_HOME"))
         .unwrap_or_else(|_| "/opt/cuda".to_string());
 
-    // Determine CUDA architecture
-    let cuda_arch = env::var("CUDA_ARCH").unwrap_or_else(|_| "75".to_string());
+    // Determine CUDA architecture — prefer runtime GPU detection to avoid
+    // toolkit/driver version mismatches (e.g. nvcc 13.1 on CUDA 13.0 driver).
+    let cuda_arch = env::var("CUDA_ARCH").unwrap_or_else(|_| {
+        // Try to auto-detect GPU compute capability via nvidia-smi (first GPU only)
+        if let Ok(output) = Command::new("nvidia-smi")
+            .args(["--query-gpu=compute_cap", "--format=csv,noheader", "--id=0"])
+            .output()
+        {
+            if output.status.success() {
+                let raw = String::from_utf8_lossy(&output.stdout);
+                if let Some(cap) = raw.lines().next() {
+                    let cap = cap.trim();
+                    // nvidia-smi returns "8.6" → we need "86"
+                    let arch = cap.replace('.', "");
+                    if !arch.is_empty() {
+                        println!("Auto-detected GPU compute capability: {} (sm_{})", cap, arch);
+                        return arch;
+                    }
+                }
+            }
+        }
+        "75".to_string()
+    });
+    println!("Using CUDA architecture: sm_{}", cuda_arch);
 
     // Compile all CUDA files to PTX
     println!("Compiling {} CUDA kernels to PTX...", cuda_files.len());
@@ -82,6 +104,16 @@ fn main() {
                    file_name, nvcc_output.status.code());
         }
 
+        // Downgrade PTX ISA version 9.1 -> 9.0 for driver compatibility.
+        // CUDA toolkit 13.1 emits .version 9.1 but the driver (13.0) only JITs up to 9.0.
+        if let Ok(ptx_text) = std::fs::read_to_string(&ptx_output) {
+            if ptx_text.contains(".version 9.1") {
+                let fixed = ptx_text.replacen(".version 9.1", ".version 9.0", 1);
+                std::fs::write(&ptx_output, fixed).expect("Failed to write downgraded PTX");
+                println!("PTX Build: Downgraded ISA 9.1 -> 9.0 for {}", file_name);
+            }
+        }
+
         // Verify the PTX file was created
         match std::fs::metadata(&ptx_output) {
             Ok(metadata) => {
@@ -122,12 +154,18 @@ fn main() {
         let cuda_src = Path::new(src_path);
         let obj_output = PathBuf::from(&out_dir).join(format!("{}.o", obj_name));
 
-        println!("Compiling {} to object file...", obj_name);
+        // Use -gencode to produce only native CUBIN (no PTX fallback).
+        // This avoids Thrust/CUB JIT compilation which fails when the toolkit
+        // (13.1, PTX ISA 9.1) is newer than the driver (13.0, ISA ≤ 9.0).
+        let gencode_flag = format!(
+            "-gencode=arch=compute_{},code=sm_{}",
+            cuda_arch, cuda_arch
+        );
+        println!("Compiling {} to object file (gencode: {})...", obj_name, gencode_flag);
         let obj_status = Command::new("nvcc")
             .args([
                 "-c",
-                "-arch",
-                &format!("sm_{}", cuda_arch),
+                &gencode_flag,
                 "-o",
                 obj_output.to_str().unwrap(),
                 cuda_src.to_str().unwrap(),
@@ -149,11 +187,11 @@ fn main() {
 
     // Device link all object files together (required for cross-module device calls)
     let dlink_output = PathBuf::from(&out_dir).join("cuda_dlink.o");
-    println!("Device linking {} CUDA object files...", obj_files.len());
+    let dlink_gencode = format!("-gencode=arch=compute_{},code=sm_{}", cuda_arch, cuda_arch);
+    println!("Device linking {} CUDA object files ({})...", obj_files.len(), dlink_gencode);
     let mut dlink_args: Vec<String> = vec![
         "-dlink".to_string(),
-        "-arch".to_string(),
-        format!("sm_{}", cuda_arch),
+        dlink_gencode,
     ];
     for obj in &obj_files {
         dlink_args.push(obj.to_str().unwrap().to_string());

@@ -402,7 +402,7 @@ export interface ErrorMessage extends BaseWebSocketMessage {
 }
 
 export interface FilterConfirmedMessage extends BaseWebSocketMessage {
-  type: 'filter_confirmed';
+  type: 'filter_update_success';
   data: {
     visible_nodes: number;
     total_nodes: number;

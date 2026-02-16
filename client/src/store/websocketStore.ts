@@ -207,7 +207,9 @@ function determineWebSocketUrl(): string {
   const isDev = import.meta.env.DEV;
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   const host = window.location.hostname;
-  const port = isDev ? '3001' : window.location.port;
+  // In dev, use window.location.port (Vite dev server) so the /wss proxy works.
+  // Previously this used the HMR clientPort (3001) which has no WebSocket proxy.
+  const port = window.location.port;
   const baseUrl = `${protocol}//${host}:${port}`;
   const wsUrl = `${baseUrl}/wss`;
 
@@ -1092,7 +1094,7 @@ export const useWebSocketStore = create<WebSocketState>()(
             const token = nostrAuth.getSessionToken();
             const user = nostrAuth.getCurrentUser();
             if (token && user) {
-              socket.send(JSON.stringify({ type: 'AUTH', token, pubkey: user.pubkey }));
+              socket.send(JSON.stringify({ type: 'authenticate', token, pubkey: user.pubkey }));
             }
 
             const currentFilter = useSettingsStore.getState().settings?.nodeFilter;
@@ -1217,7 +1219,7 @@ export const useWebSocketStore = create<WebSocketState>()(
                 return;
               }
 
-              if (message.type === 'filter_confirmed') {
+              if (message.type === 'filter_update_success') {
                 if (debugState.isEnabled()) {
                   logger.info(`Filter applied: ${message.data?.visible_nodes}/${message.data?.total_nodes} nodes visible`);
                 }

@@ -83,6 +83,28 @@ pub fn effective_cuda_arch() -> String {
     std::env::var(CUDA_ARCH_ENV).unwrap_or_else(|_| DEFAULT_CUDA_ARCH.to_string())
 }
 
+/// Maximum PTX ISA version the CUDA 13.0 driver (version 13000) can JIT-compile.
+/// CUDA toolkit 13.1 emits `.version 9.1` PTX, but driver 13.0 only supports up to 9.0.
+/// Downgrading the header is safe when the code uses no ISA-9.1-specific instructions
+/// (verified empirically: our kernels use only basic ops available since ISA 7.x).
+const MAX_DRIVER_PTX_ISA: &str = "9.0";
+
+/// Downgrades the PTX ISA version header when it exceeds what the installed driver
+/// can handle.  This avoids `CUDA_ERROR_INVALID_PTX` (222) on systems where the
+/// toolkit is newer than the driver.
+pub fn downgrade_ptx_isa_if_needed(ptx: String) -> String {
+    // Fast path: already compatible
+    if !ptx.contains(".version 9.1") {
+        return ptx;
+    }
+    let fixed = ptx.replacen(".version 9.1", &format!(".version {}", MAX_DRIVER_PTX_ISA), 1);
+    info!(
+        "PTX ISA downgrade: .version 9.1 -> .version {} (driver compatibility)",
+        MAX_DRIVER_PTX_ISA
+    );
+    fixed
+}
+
 /// Validates PTX assembly code structure
 pub fn validate_ptx(ptx: &str) -> Result<(), String> {
     if !ptx.contains(".version") {
@@ -100,16 +122,14 @@ pub fn validate_ptx(ptx: &str) -> Result<(), String> {
 pub fn load_ptx_module_sync(module: PTXModule) -> Result<String, String> {
     info!("load_ptx_module_sync: Loading PTX for {:?}", module);
 
-    
-    
-    
-    
+    let raw = load_ptx_module_sync_raw(module)?;
+    Ok(downgrade_ptx_isa_if_needed(raw))
+}
 
-    
+fn load_ptx_module_sync_raw(module: PTXModule) -> Result<String, String> {
     if std::env::var(DOCKER_ENV_VAR).is_ok() {
         info!("Docker environment detected, checking for pre-compiled PTX first");
 
-        
         if let Ok(content) = load_precompiled_ptx(module) {
             return Ok(content);
         }
@@ -118,7 +138,6 @@ pub fn load_ptx_module_sync(module: PTXModule) -> Result<String, String> {
         return compile_ptx_fallback_sync_module(module);
     }
 
-    
     if let Some(path) = get_compiled_ptx_path(module) {
         match fs::read_to_string(&path) {
             Ok(content) => {
@@ -143,12 +162,10 @@ pub fn load_ptx_module_sync(module: PTXModule) -> Result<String, String> {
         }
     }
 
-    
     if let Ok(content) = load_precompiled_ptx(module) {
         return Ok(content);
     }
 
-    
     warn!(
         "No pre-compiled PTX found for {:?}. Falling back to runtime compile.",
         module

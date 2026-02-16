@@ -65,16 +65,7 @@ struct SimParams {
     float lof_score_min;                    // Minimum LOF score clamp
     float lof_score_max;                    // Maximum LOF score clamp
     float weight_precision_multiplier;      // Weight precision multiplier for integer operations
-
-    // Stress Majorization Parameters (must match Rust SimParams exactly)
-    unsigned int stress_optimization_enabled;   // Enable/disable stress majorization (0 or 1)
-    unsigned int stress_optimization_frequency; // Run every N frames (e.g., 60 = once per second at 60fps)
-    float stress_learning_rate;                 // Learning rate for gradient descent (0.01-0.1)
-    float stress_momentum;                      // Momentum factor (0.0-0.9)
-    float stress_max_displacement;              // Maximum displacement per iteration
-    float stress_convergence_threshold;         // Convergence threshold for early stopping
-    unsigned int stress_max_iterations;         // Maximum iterations per optimization call
-    float stress_blend_factor;                  // Blend factor with local forces (0.1-0.3)
+    // NOTE: Stress majorization params removed (unused by GPU kernels, handled on CPU)
 };
 
 // Global constant memory for simulation parameters
@@ -2170,6 +2161,72 @@ __global__ void force_pass_with_stability_kernel(
     force_out_x[idx] = total_force.x;
     force_out_y[idx] = total_force.y;
     force_out_z[idx] = total_force.z;
+}
+
+// =============================================================================
+// AABB Reduction Kernel - Computes per-block axis-aligned bounding boxes
+// Used for auto-tuning spatial hash grid cell size based on scene extent.
+// Each block reduces its portion of positions into a single AABB written to
+// block_results[blockIdx.x].  The host then does a final serial reduction.
+// =============================================================================
+__global__ void compute_aabb_reduction_kernel(
+    const float* __restrict__ pos_x,
+    const float* __restrict__ pos_y,
+    const float* __restrict__ pos_z,
+    AABB*        __restrict__ block_results,
+    const int    num_nodes)
+{
+    // Shared memory layout: [min_x, min_y, min_z, max_x, max_y, max_z] * blockDim.x
+    extern __shared__ float smem[];
+    float* s_min_x = smem;
+    float* s_min_y = smem + blockDim.x;
+    float* s_min_z = smem + 2 * blockDim.x;
+    float* s_max_x = smem + 3 * blockDim.x;
+    float* s_max_y = smem + 4 * blockDim.x;
+    float* s_max_z = smem + 5 * blockDim.x;
+
+    int tid = threadIdx.x;
+    int gid = blockIdx.x * blockDim.x + threadIdx.x;
+
+    // Initialize with extreme values
+    float local_min_x = FLT_MAX, local_min_y = FLT_MAX, local_min_z = FLT_MAX;
+    float local_max_x = -FLT_MAX, local_max_y = -FLT_MAX, local_max_z = -FLT_MAX;
+
+    // Grid-stride loop to handle more nodes than threads
+    for (int i = gid; i < num_nodes; i += gridDim.x * blockDim.x) {
+        float x = pos_x[i], y = pos_y[i], z = pos_z[i];
+        local_min_x = fminf(local_min_x, x);
+        local_min_y = fminf(local_min_y, y);
+        local_min_z = fminf(local_min_z, z);
+        local_max_x = fmaxf(local_max_x, x);
+        local_max_y = fmaxf(local_max_y, y);
+        local_max_z = fmaxf(local_max_z, z);
+    }
+
+    s_min_x[tid] = local_min_x; s_min_y[tid] = local_min_y; s_min_z[tid] = local_min_z;
+    s_max_x[tid] = local_max_x; s_max_y[tid] = local_max_y; s_max_z[tid] = local_max_z;
+    __syncthreads();
+
+    // Tree reduction in shared memory
+    for (unsigned int stride = blockDim.x / 2; stride > 0; stride >>= 1) {
+        if (tid < (int)stride) {
+            s_min_x[tid] = fminf(s_min_x[tid], s_min_x[tid + stride]);
+            s_min_y[tid] = fminf(s_min_y[tid], s_min_y[tid + stride]);
+            s_min_z[tid] = fminf(s_min_z[tid], s_min_z[tid + stride]);
+            s_max_x[tid] = fmaxf(s_max_x[tid], s_max_x[tid + stride]);
+            s_max_y[tid] = fmaxf(s_max_y[tid], s_max_y[tid + stride]);
+            s_max_z[tid] = fmaxf(s_max_z[tid], s_max_z[tid + stride]);
+        }
+        __syncthreads();
+    }
+
+    // Thread 0 writes the block result
+    if (tid == 0) {
+        AABB result;
+        result.min = make_float3(s_min_x[0], s_min_y[0], s_min_z[0]);
+        result.max = make_float3(s_max_x[0], s_max_y[0], s_max_z[0]);
+        block_results[blockIdx.x] = result;
+    }
 }
 
 } // extern "C"

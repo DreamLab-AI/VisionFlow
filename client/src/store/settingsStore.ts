@@ -10,7 +10,6 @@ import { isViewportSetting } from '../features/settings/config/viewportSettings'
 import { settingsApi } from '../api/settingsApi';
 import { nostrAuth } from '../services/nostrAuthService';
 import { autoSaveManager } from './autoSaveManager';
-import { webSocketService } from './websocketStore';
 
 
 
@@ -667,7 +666,7 @@ export const useSettingsStore = create<SettingsState>()(
           validatedParams.springK = Math.max(0.001, Math.min(10.0, validatedParams.springK));
         }
         if (validatedParams.repelK !== undefined) {
-          validatedParams.repelK = Math.max(0.001, Math.min(100.0, validatedParams.repelK));
+          validatedParams.repelK = Math.max(0.001, Math.min(500.0, validatedParams.repelK));
         }
         if (validatedParams.attractionK !== undefined) {
           validatedParams.attractionK = Math.max(0.0, Math.min(1.0, validatedParams.attractionK));
@@ -725,32 +724,6 @@ export const useSettingsStore = create<SettingsState>()(
 
       notifyPhysicsUpdate: (graphName: string, params: Partial<GPUPhysicsParams>) => {
         if (typeof window !== 'undefined') {
-          try {
-
-            if (webSocketService && webSocketService.isConnected) {
-              webSocketService.sendMessage('physics_parameter_update', {
-                timestamp: Date.now(),
-                graph: graphName,
-                parameters: params
-              });
-
-              if (debugState.isEnabled()) {
-                logger.info('Physics update sent via WebSocket:', {
-                  graphName,
-                  parameters: params,
-                  messageType: 'physics_parameter_update'
-                });
-              }
-            } else {
-              if (debugState.isEnabled()) {
-                logger.info('WebSocket not connected, physics update queued for next connection');
-              }
-            }
-          } catch (error) {
-            logger.warn('Failed to notify physics update via WebSocket:', createErrorMetadata(error));
-          }
-
-
           const event = new CustomEvent('physicsParametersUpdated', {
             detail: { graphName, params }
           });
@@ -1133,10 +1106,6 @@ function getAllAvailableSettingsPaths(): string[] {
     // Constraints / LOD
     'constraints',
 
-    'system.performance.maxFPS',
-    'system.performance.enableVSync',
-    'system.websocket.url',
-    'system.websocket.protocol',
   ];
 }
 
