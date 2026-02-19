@@ -1,9 +1,7 @@
 import { createLogger } from '../../../utils/loggerConfig';
 import { agentTelemetry } from '../../../telemetry/AgentTelemetry';
 import { webSocketService } from '../../../store/websocketStore';
-import { agentPollingService } from './AgentPollingService';
 import { webSocketEventBus } from '../../../services/WebSocketEventBus';
-import type { BotsAgent, BotsEdge, BotsCommunication } from '../types/BotsTypes';
 
 const logger = createLogger('BotsWebSocketIntegration');
 
@@ -12,8 +10,6 @@ export class BotsWebSocketIntegration {
   private static instance: BotsWebSocketIntegration;
   private logseqConnected = false;
   private listeners: Map<string, Set<(data: any) => void>> = new Map();
-  
-  private useRestPolling: boolean = true; 
 
   private constructor() {
     this.initializeConnections();
@@ -147,44 +143,6 @@ export class BotsWebSocketIntegration {
     this.emit('bots-update', data);
   }
 
-  
-  public setPollingMode(useRest: boolean): void {
-    logger.warn('setPollingMode is deprecated. Polling is handled by BotsDataContext via REST API.');
-    this.useRestPolling = useRest;
-  }
-
-  
-  public startBotsGraphPolling(interval: number = 2000): void {
-    logger.warn('startBotsGraphPolling is deprecated. Use REST polling via BotsDataContext instead.');
-    
-  }
-
-  
-  public stopBotsGraphPolling(): void {
-    logger.warn('stopBotsGraphPolling is deprecated - no WebSocket polling to stop');
-    
-  }
-
-  
-
-  
-  async requestInitialData() {
-    logger.info('requestInitialData is deprecated - initial data is now fetched via REST polling in BotsDataContext');
-    
-    
-  }
-
-  
-  async sendBotsUpdate(data: {
-    nodes: BotsAgent[],
-    edges: BotsEdge[]
-  }) {
-    logger.warn('sendBotsUpdate is deprecated. Use REST API POST /api/bots/update instead');
-    
-    
-  }
-
-  
   getConnectionStatus() {
     return {
       mcp: false, 
@@ -227,21 +185,9 @@ export class BotsWebSocketIntegration {
     });
   }
 
-  
-  restartPolling() {
-    logger.warn('restartPolling is deprecated. Polling is handled by BotsDataContext via REST API.');
-    
-    
-    
-  }
-
-  
   disconnect() {
     logger.info('Disconnecting WebSocket services');
     this.clearAgents();
-    
-    
-    this.stopBotsGraphPolling();
     
     webSocketService.close();
     this.logseqConnected = false;

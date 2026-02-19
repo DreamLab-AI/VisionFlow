@@ -839,18 +839,32 @@ impl Handler<UpdateSimulationParams> for ForceComputeActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: UpdateSimulationParams, _ctx: &mut Self::Context) -> Self::Result {
+        // Idempotency: skip reset if physics-relevant GPU params haven't changed.
+        // The client autoSaveManager may fire redundant updates (GET-merge-PUT with same values).
+        let cur = &self.simulation_params;
+        let physics_unchanged =
+            (cur.spring_k - msg.params.spring_k).abs() < f32::EPSILON
+            && (cur.repel_k - msg.params.repel_k).abs() < f32::EPSILON
+            && (cur.damping - msg.params.damping).abs() < f32::EPSILON
+            && (cur.dt - msg.params.dt).abs() < f32::EPSILON
+            && (cur.max_velocity - msg.params.max_velocity).abs() < f32::EPSILON
+            && (cur.max_force - msg.params.max_force).abs() < f32::EPSILON;
+
+        if physics_unchanged {
+            debug!(
+                "ForceComputeActor: UpdateSimulationParams — GPU-relevant fields unchanged, skipping reset"
+            );
+            return Ok(());
+        }
+
         info!("ForceComputeActor: UpdateSimulationParams received");
         info!(
             "  New params - spring_k: {:.3}, repel_k: {:.3}, damping: {:.3}",
             msg.params.spring_k, msg.params.repel_k, msg.params.damping
         );
 
-        
         self.update_simulation_parameters(msg.params);
 
-        
-        
-        
         // Parameters are updated smoothly via update_simulation_parameters() above.
         // Do NOT reset iteration_count, stability_iterations, or inject reheat_factor
         // here — that causes visible graph "jumps" on every settings slider change.

@@ -38,8 +38,9 @@ const detectGraphMode = (nodes: GraphNode[]): GraphVisualMode => {
     if ((n as any).owlClassIri || n.metadata?.hierarchyDepth !== undefined || n.metadata?.depth !== undefined) {
       ontologySignals++;
     }
-    if (n.metadata?.agentType || n.metadata?.status === 'active' || n.metadata?.status === 'idle'
-        || n.metadata?.status === 'busy' || n.metadata?.status === 'error') {
+    // Require agentType as the definitive agent signal.
+    // `status` alone is too generic — knowledge graph nodes commonly have status fields.
+    if (n.metadata?.agentType || n.metadata?.tokenRate !== undefined) {
       agentSignals++;
     }
   }
@@ -85,7 +86,11 @@ export interface GraphVisualStateResult {
 // ---------------------------------------------------------------------------
 
 export function useGraphVisualState(graphData: GraphData): GraphVisualStateResult {
-  const settings = useSettingsStore((state) => state.settings);
+  // Narrow selector: only the graph mode override matters for visual state.
+  // Avoids re-renders when unrelated settings (glow, edges, physics) change.
+  const settingsGraphMode = useSettingsStore(
+    s => (s.settings?.visualisation as any)?.graphs?.mode as GraphVisualMode | undefined
+  );
 
   // Binary protocol node-type map from websocket store
   const binaryNodeTypeMap = useWebSocketStore(state => state.nodeTypeMap);
@@ -113,7 +118,6 @@ export function useGraphVisualState(graphData: GraphData): GraphVisualStateResul
   }, [graphData.edges]);
 
   // --- dominantMode ---
-  const settingsGraphMode = (settings?.visualisation as any)?.graphs?.mode as GraphVisualMode | undefined;
   const dominantMode: GraphVisualMode = useMemo(() => {
     if (settingsGraphMode && (settingsGraphMode === 'knowledge_graph' || settingsGraphMode === 'ontology' || settingsGraphMode === 'agent')) {
       return settingsGraphMode;
@@ -139,7 +143,7 @@ export function useGraphVisualState(graphData: GraphData): GraphVisualStateResul
       // Priority 2: Metadata heuristics (fallback)
       const nt = node.metadata?.nodeType || (node as any).nodeType || '';
       const owlIri = (node as any).owlClassIri;
-      if (node.metadata?.agentType || node.metadata?.status === 'active' || node.metadata?.status === 'busy') {
+      if (node.metadata?.agentType || node.metadata?.tokenRate !== undefined) {
         map.set(String(node.id), 'agent');
       } else if (owlIri || nt === 'owl_class' || node.metadata?.hierarchyDepth !== undefined) {
         map.set(String(node.id), 'ontology');

@@ -1083,25 +1083,10 @@ impl Handler<UpdateSimulationParams> for PhysicsOrchestratorActor {
             self.auto_balance_last_check = None;
         }
 
-
-
-        if let Some(ref gpu_addr) = self.gpu_compute_addr {
-            if self.gpu_initialized {
-                if let Some(ref graph_data) = self.graph_data_ref {
-                    // H4: Track UpdateGPUGraphData message
-                    let msg_id = MessageId::new();
-                    let tracker = self.message_tracker.clone();
-                    actix::spawn(async move {
-                        tracker.track_default(msg_id, MessageKind::UpdateGPUGraphData).await;
-                    });
-
-                    gpu_addr.do_send(UpdateGPUGraphData {
-                        graph: Arc::clone(graph_data),
-                        correlation_id: Some(msg_id),
-                    });
-                }
-            }
-        }
+        // NOTE: Do NOT send UpdateGPUGraphData here. The settings route already sends
+        // UpdateSimulationParams directly to ForceComputeActor, which updates the GPU
+        // kernel parameters in-place. Re-uploading graph data would overwrite evolved
+        // GPU positions with the stored initial positions, causing a visible position reset.
 
         info!(
             "Physics parameters updated - repel_k: {}, damping: {}",

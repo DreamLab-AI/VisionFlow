@@ -811,6 +811,87 @@ pub async fn update_quality_gate_settings(
 }
 
 // ============================================================================
+// Visual Settings Routes (opaque JSON blob for client visual settings)
+// ============================================================================
+
+/// Recursively deep-merge `patch` into `base`. Values in `patch` take priority.
+/// Both must be JSON objects; non-object values in `patch` replace `base` wholesale.
+fn deep_merge_json(base: &mut serde_json::Value, patch: serde_json::Value) {
+    if let (serde_json::Value::Object(base_map), serde_json::Value::Object(patch_map)) = (base, patch) {
+        for (key, value) in patch_map {
+            let entry = base_map.entry(key).or_insert(serde_json::Value::Null);
+            if value.is_object() && entry.is_object() {
+                deep_merge_json(entry, value);
+            } else {
+                *entry = value;
+            }
+        }
+    }
+}
+
+/// GET /api/settings/visual
+/// Returns the stored visual settings blob (glow, hologram, graphTypeVisuals,
+/// gemMaterial, sceneEffects, clusterHulls, animations, interaction, nodes, edges, labels).
+/// Falls back to empty object if nothing stored yet.
+pub async fn get_visual_settings(
+    _state: web::Data<AppState>,
+    neo4j_repo: web::Data<Arc<Neo4jSettingsRepository>>,
+    _auth: OptionalAuth,
+) -> impl Responder {
+    match neo4j_repo.get_setting("visual").await {
+        Ok(Some(SettingValue::Json(json))) => HttpResponse::Ok().json(json),
+        Ok(_) => HttpResponse::Ok().json(serde_json::json!({})),
+        Err(e) => {
+            warn!("Failed to load visual settings from repository: {}", e);
+            HttpResponse::Ok().json(serde_json::json!({}))
+        }
+    }
+}
+
+/// PUT /api/settings/visual
+/// Accepts partial JSON updates — deep merges with currently stored values.
+/// This is the persistence endpoint for all client-only visual settings.
+pub async fn update_visual_settings(
+    _state: web::Data<AppState>,
+    neo4j_repo: web::Data<Arc<Neo4jSettingsRepository>>,
+    body: web::Json<serde_json::Value>,
+    auth: AuthenticatedUser,
+) -> impl Responder {
+    info!("User {} updating visual settings", auth.pubkey);
+
+    let patch = body.into_inner();
+    if !patch.is_object() {
+        return HttpResponse::BadRequest().json(ErrorResponse {
+            error: "Visual settings must be a JSON object".to_string(),
+        });
+    }
+
+    // Load current stored settings as merge base
+    let mut current = match neo4j_repo.get_setting("visual").await {
+        Ok(Some(SettingValue::Json(json))) if json.is_object() => json,
+        _ => serde_json::json!({}),
+    };
+
+    // Deep merge patch into current
+    deep_merge_json(&mut current, patch);
+
+    // Persist merged result to Neo4j
+    if let Err(e) = neo4j_repo.set_setting(
+        "visual",
+        SettingValue::Json(current.clone()),
+        Some("Client visual settings (glow, hologram, graphTypeVisuals, nodes, edges, labels, etc.)"),
+    ).await {
+        error!("Failed to persist visual settings: {}", e);
+        return HttpResponse::InternalServerError().json(ErrorResponse {
+            error: format!("Failed to persist visual settings: {}", e),
+        });
+    }
+
+    info!("Visual settings updated and persisted for user {}", auth.pubkey);
+    HttpResponse::Ok().json(current)
+}
+
+// ============================================================================
 // All Settings Route
 // ============================================================================
 
@@ -881,12 +962,18 @@ async fn get_all_from_actor(
                 _ => QualityGateSettings::default(),
             };
 
+            let visual = match neo4j_repo.get_setting("visual").await {
+                Ok(Some(SettingValue::Json(json))) => json,
+                _ => serde_json::json!({}),
+            };
+
             let all = AllSettings {
                 physics,
                 constraints,
                 rendering: full_settings.visualisation.rendering,
                 node_filter,
                 quality_gates,
+                visual,
             };
             HttpResponse::Ok().json(all)
         }
@@ -1022,6 +1109,8 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
         .route("node-filter", web::put().to(update_node_filter_settings))
         .route("quality-gates", web::get().to(get_quality_gate_settings))
         .route("quality-gates", web::put().to(update_quality_gate_settings))
+        .route("visual", web::get().to(get_visual_settings))
+        .route("visual", web::put().to(update_visual_settings))
         .route("all", web::get().to(get_all_settings))
         .route("profiles", web::post().to(save_profile))
         .route("profiles", web::get().to(list_profiles))

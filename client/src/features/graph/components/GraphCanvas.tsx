@@ -31,13 +31,17 @@ const logger = createLogger('GraphCanvas');
 
 // Main GraphCanvas component
 const GraphCanvas: React.FC = () => {
-    
+
     const containerRef = useRef<HTMLDivElement>(null);
     const orbitControlsRef = useRef<any>(null);
-    const { settings } = useSettingsStore();
-    const showStats = settings?.system?.debug?.enablePerformanceDebug ?? false;
-    // Note: bloom was merged into glow settings — default ON for gem aesthetic
-    const enableGlow = settings?.visualisation?.glow?.enabled !== false;
+    // Narrow selectors — prevent full Canvas tree re-render on unrelated settings changes.
+    // Each selector returns a primitive or stable nested ref so Zustand's Object.is comparison
+    // only triggers re-renders when that specific value actually changes.
+    const showStats = useSettingsStore(s => s.settings?.system?.debug?.enablePerformanceDebug ?? false);
+    const enableGlow = useSettingsStore(s => s.settings?.visualisation?.glow?.enabled !== false);
+    const ambientLightIntensity = useSettingsStore(s => s.settings?.visualisation?.rendering?.ambientLightIntensity ?? 0.4);
+    const directionalLightIntensity = useSettingsStore(s => s.settings?.visualisation?.rendering?.directionalLightIntensity ?? 0.8);
+    const sceneEffects = useSettingsStore(s => s.settings?.visualisation?.sceneEffects);
     
     // Lightweight subscription: only track counts to avoid storing full graph data in two places
     const [nodeCount, setNodeCount] = useState(0);
@@ -115,8 +119,8 @@ const GraphCanvas: React.FC = () => {
                 }}
             >
                 {/* Lighting tuned for gem refraction -- driven by settings */}
-                <ambientLight intensity={settings?.visualisation?.rendering?.ambientLightIntensity ?? 0.4} />
-                <directionalLight position={[10, 10, 10]} intensity={settings?.visualisation?.rendering?.directionalLightIntensity ?? 0.8} />
+                <ambientLight intensity={ambientLightIntensity} />
+                <directionalLight position={[10, 10, 10]} intensity={directionalLightIntensity} />
                 <directionalLight position={[-5, -5, -10]} intensity={0.3} />
 
                 {/* Environment map for PBR glass material reflections */}
@@ -124,15 +128,15 @@ const GraphCanvas: React.FC = () => {
 
                 {/* Scene ambient effects (WASM particles, wisps, atmosphere) */}
                 <WasmSceneEffects
-                    enabled={settings?.visualisation?.sceneEffects?.enabled !== false}
-                    particleCount={settings?.visualisation?.sceneEffects?.particleCount ?? 256}
-                    intensity={settings?.visualisation?.sceneEffects?.particleOpacity ?? 0.6}
-                    particleDrift={settings?.visualisation?.sceneEffects?.particleDrift ?? 0.5}
-                    wispsEnabled={settings?.visualisation?.sceneEffects?.wispsEnabled !== false}
-                    wispCount={settings?.visualisation?.sceneEffects?.wispCount ?? 48}
-                    wispDriftSpeed={settings?.visualisation?.sceneEffects?.wispDriftSpeed ?? 1.0}
-                    atmosphereEnabled={settings?.visualisation?.sceneEffects?.fogEnabled !== false}
-                    atmosphereResolution={settings?.visualisation?.sceneEffects?.atmosphereResolution ?? 128}
+                    enabled={sceneEffects?.enabled !== false}
+                    particleCount={sceneEffects?.particleCount ?? 256}
+                    intensity={sceneEffects?.particleOpacity ?? 0.6}
+                    particleDrift={sceneEffects?.particleDrift ?? 0.5}
+                    wispsEnabled={sceneEffects?.wispsEnabled !== false}
+                    wispCount={sceneEffects?.wispCount ?? 48}
+                    wispDriftSpeed={sceneEffects?.wispDriftSpeed ?? 1.0}
+                    atmosphereEnabled={sceneEffects?.fogEnabled !== false}
+                    atmosphereResolution={sceneEffects?.atmosphereResolution ?? 128}
                 />
 
                 {}

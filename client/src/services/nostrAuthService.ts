@@ -1,9 +1,7 @@
-import { unifiedApiClient } from './api/UnifiedApiClient';
 import { createLogger } from '../utils/loggerConfig';
 import { createErrorMetadata } from '../utils/loggerConfig';
-import { Event, UnsignedEvent, nip19 } from 'nostr-tools';
-import { v4 as uuidv4 } from 'uuid'; 
-import type {} from '../types/nip07'; 
+import { nip19 } from 'nostr-tools';
+import type {} from '../types/nip07';
 
 const logger = createLogger('NostrAuthService');
 
@@ -11,41 +9,38 @@ const logger = createLogger('NostrAuthService');
 
 // User info stored locally and used in AuthState
 export interface SimpleNostrUser {
-  pubkey: string; 
-  npub?: string; 
-  isPowerUser: boolean; 
+  pubkey: string;
+  npub?: string;
+  isPowerUser: boolean;
 }
 
-// User info returned by backend
+// User info returned by backend (kept for backward compat; remove in Phase 2)
 export interface BackendNostrUser {
   pubkey: string;
   npub?: string;
-  isPowerUser: boolean; 
-  
+  isPowerUser: boolean;
 }
 
-// Response from POST /auth/nostr
+// Legacy interfaces (kept for backward compat; remove in Phase 2)
 export interface AuthResponse {
   user: BackendNostrUser;
   token: string;
-  expiresAt: number; 
-  features?: string[]; 
+  expiresAt: number;
+  features?: string[];
 }
 
-// Response from POST /auth/nostr/verify
 export interface VerifyResponse {
   valid: boolean;
   user?: BackendNostrUser;
   features?: string[];
 }
 
-// Payload for POST /auth/nostr (signed NIP-42 event)
 export interface AuthEventPayload {
   id: string;
   pubkey: string;
   content: string;
   sig: string;
-  created_at: number; 
+  created_at: number;
   kind: number;
   tags: string[][];
 }
@@ -63,7 +58,6 @@ type AuthStateListener = (state: AuthState) => void;
 
 class NostrAuthService {
   private static instance: NostrAuthService;
-  private sessionToken: string | null = null;
   private currentUser: SimpleNostrUser | null = null;
   private authStateListeners: AuthStateListener[] = [];
   private initialized = false;
@@ -77,24 +71,59 @@ class NostrAuthService {
     return NostrAuthService.instance;
   }
 
-  
   public hasNip07Provider(): boolean {
     return typeof window !== 'undefined' && window.nostr !== undefined;
   }
 
-  
+  /** Check if running in dev mode with auth bypass */
+  public isDevMode(): boolean {
+    return import.meta.env.DEV && import.meta.env.VITE_DEV_MODE_AUTH === 'true';
+  }
+
+  /**
+   * Sign an HTTP request using NIP-98 (kind 27235).
+   * Returns base64-encoded signed event for the Authorization header.
+   */
+  public async signRequest(url: string, method: string, body?: string): Promise<string> {
+    if (!this.hasNip07Provider()) {
+      throw new Error('NIP-07 provider not available for request signing');
+    }
+
+    const tags: string[][] = [
+      ['u', url],
+      ['method', method.toUpperCase()],
+    ];
+
+    // Add payload hash if body exists
+    if (body) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(body);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      tags.push(['payload', hashHex]);
+    }
+
+    const unsignedEvent = {
+      created_at: Math.floor(Date.now() / 1000),
+      kind: 27235,
+      tags,
+      content: '',
+    };
+
+    const signedEvent = await window.nostr!.signEvent(unsignedEvent);
+    const eventJson = JSON.stringify(signedEvent);
+    return btoa(eventJson);
+  }
+
   public async initialize(): Promise<void> {
     if (this.initialized) return;
     logger.debug('Initializing NostrAuthService...');
 
-    // DEV MODE: Auto-login as power user when in development
-    // SECURITY: Controlled via VITE_DEV_MODE_AUTH env var (default: false)
-    const isDev = import.meta.env.DEV;
-    const devModeAuthEnabled = import.meta.env.VITE_DEV_MODE_AUTH === 'true';
-    if (isDev && devModeAuthEnabled) {
+    // DEV MODE: Auto-login as power user
+    if (this.isDevMode()) {
       logger.info('[DEV MODE] Auto-authenticating as power user');
       const devPowerUserPubkey = import.meta.env.VITE_DEV_POWER_USER_PUBKEY || 'bfcf20d472f0fb143b23cb5be3fa0a040d42176b71f73ca272f6912b1d62a452';
-      this.sessionToken = 'dev-session-token';
       this.currentUser = {
         pubkey: devPowerUserPubkey,
         npub: this.hexToNpub(devPowerUserPubkey),
@@ -106,69 +135,25 @@ class NostrAuthService {
       return;
     }
 
-    const storedToken = localStorage.getItem('nostr_session_token');
+    // Restore cached user from localStorage (no server verification — NIP-98 is per-request)
     const storedUserJson = localStorage.getItem('nostr_user');
-
-    if (storedToken && storedUserJson) {
-      let storedUser: SimpleNostrUser | null = null;
+    if (storedUserJson) {
       try {
-        storedUser = JSON.parse(storedUserJson);
-      } catch (parseError) {
-        logger.error('Failed to parse stored user data:', createErrorMetadata(parseError));
-        this.clearSession();
-      }
-
-      if (storedUser) {
-        logger.info(`Verifying stored session for pubkey: ${storedUser.pubkey}`);
-        try {
-          // Backend wraps response in StandardResponse { success, data, error, timestamp }
-          const rawResponse = await unifiedApiClient.postData<{ success: boolean; data: VerifyResponse }>('/auth/nostr/verify', {
-            pubkey: storedUser.pubkey,
-            token: storedToken
-          });
-          const verificationResponse = rawResponse.data;
-
-          if (verificationResponse?.valid) {
-            this.sessionToken = storedToken;
-            if (verificationResponse.user) {
-              this.currentUser = {
-                pubkey: verificationResponse.user.pubkey,
-                npub: verificationResponse.user.npub || this.hexToNpub(verificationResponse.user.pubkey),
-                isPowerUser: verificationResponse.user.isPowerUser,
-              };
-              logger.info('Token verified and user details updated from backend.');
-            } else if (storedUser) {
-              this.currentUser = storedUser;
-              logger.info('Token verified, using stored user details as backend did not provide them on verify.');
-            } else {
-              logger.error('Token verified but no user details available from backend or local storage. Clearing session.');
-              this.clearSession();
-              this.notifyListeners({ authenticated: false, error: 'User details missing after verification' });
-              return;
-            }
-            this.storeCurrentUser();
-            this.notifyListeners(this.getCurrentAuthState());
-            logger.info('Restored and verified session from local storage.');
-          } else {
-            logger.warn('Stored session token is invalid (verification failed), clearing session.');
-            this.clearSession();
-            this.notifyListeners({ authenticated: false });
-          }
-        } catch (error) {
-          logger.error('Failed to verify stored session with backend:', createErrorMetadata(error));
-          this.clearSession();
-          this.notifyListeners({ authenticated: false, error: 'Session verification failed' });
-        }
+        this.currentUser = JSON.parse(storedUserJson);
+        logger.info(`Restored user from localStorage: ${this.currentUser?.pubkey}`);
+      } catch (e) {
+        logger.error('Failed to parse stored user data:', createErrorMetadata(e));
+        localStorage.removeItem('nostr_user');
       }
     } else {
       logger.info('No stored session found.');
-      this.notifyListeners({ authenticated: false });
     }
+
     this.initialized = true;
+    this.notifyListeners(this.getCurrentAuthState());
     logger.debug('NostrAuthService initialized.');
   }
 
-  
   public async login(): Promise<AuthState> {
     logger.info('Attempting NIP-07 login...');
     if (!this.hasNip07Provider()) {
@@ -179,137 +164,44 @@ class NostrAuthService {
     }
 
     try {
-      
       const pubkey = await window.nostr!.getPublicKey();
       if (!pubkey) {
         throw new Error('Could not get public key from NIP-07 provider.');
       }
       logger.info(`Got pubkey via NIP-07: ${pubkey}`);
 
-      
-      const challenge = uuidv4(); 
-      
-      const relayUrl = 'wss://relay.damus.io';
-
-      
-      const unsignedNip07Event = {
-        created_at: Math.floor(Date.now() / 1000),
-        kind: 22242,
-        tags: [
-          ['relay', relayUrl],
-          ['challenge', challenge]
-        ],
-        content: 'Authenticate to LogseqSpringThing' 
-      };
-
-      
-      logger.debug('Requesting signature via NIP-07 for event:', unsignedNip07Event);
-      const signedEvent: Event = await window.nostr!.signEvent(unsignedNip07Event);
-      logger.debug('Event signed successfully via NIP-07.');
-
-      
-      const eventPayload: AuthEventPayload = {
-        id: signedEvent.id,
-        pubkey: signedEvent.pubkey, 
-        content: signedEvent.content,
-        sig: signedEvent.sig,
-        created_at: signedEvent.created_at,
-        kind: signedEvent.kind,
-        tags: signedEvent.tags,
-      };
-
-      
-      logger.info(`Sending auth event to backend for pubkey: ${pubkey}`);
-      const rawResponse = await unifiedApiClient.postData<{ success: boolean; data: AuthResponse }>('/auth/nostr', eventPayload);
-
-      // Backend wraps response in StandardResponse { success, data, error, timestamp }
-      const response = rawResponse.data;
-      if (!response?.user) {
-        throw new Error('Invalid auth response: missing user data');
-      }
-      logger.info(`Backend auth successful for pubkey: ${response.user.pubkey}`);
-
-
-      this.sessionToken = response.token;
       this.currentUser = {
-        pubkey: response.user.pubkey,
-        npub: response.user.npub || this.hexToNpub(response.user.pubkey),
-        isPowerUser: response.user.isPowerUser,
+        pubkey,
+        npub: this.hexToNpub(pubkey),
+        isPowerUser: false, // Server determines this per-request from power user list
       };
 
-      this.storeSessionToken(response.token);
-      this.storeCurrentUser(); 
-
+      this.storeCurrentUser();
       const newState = this.getCurrentAuthState();
       this.notifyListeners(newState);
       return newState;
-
     } catch (error: any) {
-      const errorMeta = createErrorMetadata(error);
-      logger.error(`NIP-07 login failed. Details: ${JSON.stringify(errorMeta, null, 2)}`);
       let errorMessage = 'Login failed';
-      if (error?.response?.data?.error) { 
-        errorMessage = error.response.data.error;
+      if (error?.message?.includes('User rejected') || error?.message?.includes('extension rejected')) {
+        errorMessage = 'Login request rejected in Nostr extension.';
       } else if (error?.message) {
         errorMessage = error.message;
-      } else if (typeof error === 'string') {
-        errorMessage = error;
       }
-
-      
-      if (errorMessage.includes('User rejected') || errorMessage.includes('extension rejected')) {
-        errorMessage = 'Login request rejected in Nostr extension.';
-      } else if (errorMessage.includes('401') || errorMessage.includes('Invalid signature')) {
-        errorMessage = 'Authentication failed: Invalid signature or credentials.';
-      } else if (errorMessage.includes('Could not get public key')) {
-        errorMessage = 'Failed to get public key from Nostr extension.';
-      }
-
       const errorState: AuthState = { authenticated: false, error: errorMessage };
       this.notifyListeners(errorState);
-      
       throw new Error(errorMessage);
     }
   }
 
-  
   public async logout(): Promise<void> {
-    logger.info('Attempting logout...');
-    const token = this.sessionToken;
-    const user = this.currentUser;
-
-    
-    const wasAuthenticated = this.isAuthenticated();
+    logger.info('Logging out...');
     this.clearSession();
-    if (wasAuthenticated) {
-        this.notifyListeners({ authenticated: false }); 
-    }
-
-
-    if (token && user) {
-      try {
-        logger.info(`Calling server logout for pubkey: ${user.pubkey}`);
-        
-        await unifiedApiClient.request<any>('DELETE', '/auth/nostr', {
-          pubkey: user.pubkey,
-          token: token
-        });
-        logger.info('Server logout successful.');
-      } catch (error) {
-        
-        logger.error('Server logout call failed:', createErrorMetadata(error));
-        
-        
-      }
-    } else {
-      logger.warn('Logout called but no active session found locally.');
-    }
+    this.notifyListeners({ authenticated: false });
   }
 
-  
-
-  private storeSessionToken(token: string): void {
-    localStorage.setItem('nostr_session_token', token);
+  /** @deprecated No session token in NIP-98 mode. Returns null. */
+  public getSessionToken(): string | null {
+    return null;
   }
 
   private storeCurrentUser(): void {
@@ -321,18 +213,17 @@ class NostrAuthService {
   }
 
   private clearSession(): void {
-    this.sessionToken = null;
     this.currentUser = null;
-    localStorage.removeItem('nostr_session_token');
     localStorage.removeItem('nostr_user');
+    // Clean up legacy key if present
+    localStorage.removeItem('nostr_session_token');
   }
 
   public onAuthStateChanged(listener: AuthStateListener): () => void {
     this.authStateListeners.push(listener);
-    if (this.initialized) { 
+    if (this.initialized) {
       listener(this.getCurrentAuthState());
     }
-    
     return () => {
       this.authStateListeners = this.authStateListeners.filter(l => l !== listener);
     };
@@ -352,23 +243,17 @@ class NostrAuthService {
     return this.currentUser;
   }
 
-  public getSessionToken(): string | null {
-    return this.sessionToken;
-  }
-
   public isAuthenticated(): boolean {
-    return !!this.sessionToken && !!this.currentUser;
+    return !!this.currentUser && (this.hasNip07Provider() || this.isDevMode());
   }
 
   public getCurrentAuthState(): AuthState {
     return {
       authenticated: this.isAuthenticated(),
-      user: this.currentUser ? { ...this.currentUser } : undefined, 
-      error: undefined 
+      user: this.currentUser ? { ...this.currentUser } : undefined,
+      error: undefined
     };
   }
-
-  
 
   public hexToNpub(pubkey: string): string | undefined {
     if (!pubkey) return undefined;
@@ -399,12 +284,10 @@ class NostrAuthService {
    * Only available in development mode on local network
    */
   public async devLogin(): Promise<AuthState> {
-    // Security: Only allow in dev mode
     if (!import.meta.env.DEV) {
       throw new Error('Dev login is only available in development mode');
     }
 
-    // Security: Only allow from local network IPs
     const hostname = window.location.hostname;
     const isLocalNetwork =
       hostname === 'localhost' ||
@@ -427,29 +310,21 @@ class NostrAuthService {
     const devPowerUserPubkey = import.meta.env.VITE_DEV_POWER_USER_PUBKEY ||
       'bfcf20d472f0fb143b23cb5be3fa0a040d42176b71f73ca272f6912b1d62a452';
 
-    this.sessionToken = 'dev-session-token';
     this.currentUser = {
       pubkey: devPowerUserPubkey,
       npub: this.hexToNpub(devPowerUserPubkey),
       isPowerUser: true,
     };
 
-    // Store in localStorage for persistence
-    this.storeSessionToken(this.sessionToken);
     this.storeCurrentUser();
-
     const newState = this.getCurrentAuthState();
     this.notifyListeners(newState);
     logger.info(`[DEV MODE] Logged in as power user: ${devPowerUserPubkey}`);
     return newState;
   }
 
-  /**
-   * Check if dev login button should be shown
-   */
   public isDevLoginAvailable(): boolean {
     if (!import.meta.env.DEV) return false;
-
     const hostname = window.location.hostname;
     return (
       hostname === 'localhost' ||

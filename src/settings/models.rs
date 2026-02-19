@@ -158,6 +158,10 @@ impl Default for NodeFilterSettings {
     }
 }
 
+fn default_visual_json() -> serde_json::Value {
+    serde_json::json!({})
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AllSettings {
@@ -166,6 +170,10 @@ pub struct AllSettings {
     pub rendering: RenderingSettings,
     pub node_filter: NodeFilterSettings,
     pub quality_gates: QualityGateSettings,
+    /// Opaque JSON blob for client visual settings (glow, hologram, graphTypeVisuals,
+    /// gemMaterial, sceneEffects, clusterHulls, animations, interaction, nodes, edges, labels).
+    #[serde(default = "default_visual_json")]
+    pub visual: serde_json::Value,
 }
 
 impl Default for AllSettings {
@@ -176,6 +184,7 @@ impl Default for AllSettings {
             rendering: RenderingSettings::default(),
             node_filter: NodeFilterSettings::default(),
             quality_gates: QualityGateSettings::default(),
+            visual: serde_json::json!({}),
         }
     }
 }

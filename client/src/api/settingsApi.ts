@@ -7,26 +7,35 @@ import { nostrAuth } from '../services/nostrAuthService';
 // Always use relative paths for API requests. In dev mode Vite proxies /api
 // to the backend (http://127.0.0.1:4000). In production the serving proxy
 // (nginx / HTTPS bridge) must also proxy /api to the backend.
-// VITE_API_URL is only used for non-browser contexts (SSR, tests).
 const API_BASE = '';
 
-// Helper to get auth headers (Nostr NIP-07 + Bearer token)
-const getAuthHeaders = () => {
-  const token = nostrAuth.getSessionToken();
+// Global NIP-98 auth interceptor for all axios requests
+axios.interceptors.request.use(async (config) => {
+  if (!nostrAuth.isAuthenticated()) return config;
+
   const user = nostrAuth.getCurrentUser();
-  if (!token) {
-    console.warn('[SETTINGS-DIAG] getAuthHeaders: NO TOKEN — requests will be unauthenticated');
-    return {};
+  if (!config.headers) return config;
+
+  if (nostrAuth.isDevMode()) {
+    config.headers['Authorization'] = 'Bearer dev-session-token';
+    if (user?.pubkey) {
+      config.headers['X-Nostr-Pubkey'] = user.pubkey;
+    }
+  } else if (user?.pubkey) {
+    try {
+      const fullUrl = new URL(config.url || '', config.baseURL || window.location.origin).href;
+      const method = (config.method || 'GET').toUpperCase();
+      const body = config.data
+        ? (typeof config.data === 'string' ? config.data : JSON.stringify(config.data))
+        : undefined;
+      const token = await nostrAuth.signRequest(fullUrl, method, body);
+      config.headers['Authorization'] = `Nostr ${token}`;
+    } catch (e) {
+      console.warn('[settingsApi] NIP-98 signing failed:', e);
+    }
   }
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${token}`,
-  };
-  if (user?.pubkey) {
-    headers['X-Nostr-Pubkey'] = user.pubkey;
-    headers['X-Nostr-Token'] = token;
-  }
-  return headers;
-};
+  return config;
+});
 
 // ============================================================================
 // Type Definitions (matching Rust backend exactly)
@@ -109,6 +118,7 @@ export interface AllSettings {
   rendering: RenderingSettings;
   nodeFilter: NodeFilterSettings;
   qualityGates: QualityGateSettings;
+  visual?: Record<string, any>;
 }
 
 export interface SettingsProfile {
@@ -217,6 +227,49 @@ const DEFAULT_INTERACTION_SETTINGS = {
   selectionEdgeOpacity: 0.8,
 };
 
+const DEFAULT_NODES_SETTINGS = {
+  baseColor: '#202724',
+  metalness: 0.1,
+  opacity: 0.88,
+  roughness: 0.6,
+  nodeSize: 1.7,
+  quality: 'high' as const,
+  enableInstancing: true,
+  enableMetadataShape: false,
+  enableMetadataVisualisation: true
+};
+
+const DEFAULT_EDGES_SETTINGS = {
+  arrowSize: 0.02,
+  baseWidth: 0.61,
+  color: '#ff0000',
+  enableArrows: false,
+  opacity: 0.5,
+  widthRange: [0.3, 1.5] as [number, number],
+  quality: 'high' as const,
+  enableFlowEffect: false,
+  flowSpeed: 1.0,
+  flowIntensity: 0.5,
+  glowStrength: 0.3,
+  distanceIntensity: 0.5,
+  useGradient: false,
+  gradientColors: ['#4a9eff', '#ff4a9e'] as [string, string]
+};
+
+const DEFAULT_LABELS_SETTINGS = {
+  desktopFontSize: 1.41,
+  enableLabels: true,
+  labelDistanceThreshold: 500,
+  textColor: '#676565',
+  textOutlineColor: '#00ff40',
+  textOutlineWidth: 0.0074725277,
+  textResolution: 32,
+  textPadding: 0.3,
+  billboardMode: 'camera' as const,
+  showMetadata: true,
+  maxLabelWidth: 5.0
+};
+
 const DEFAULT_GRAPH_TYPE_VISUALS = {
   knowledgeGraph: {
     metalness: 0.6,
@@ -224,7 +277,9 @@ const DEFAULT_GRAPH_TYPE_VISUALS = {
     glowStrength: 2.5,
     innerGlowIntensity: 0.3,
     facetDetail: 2,
-    authorityScaleFactor: 0.4,
+    authorityScaleFactor: 0.5,
+    connectionInfluence: 0.4,
+    globalScaleMultiplier: 2.5,
     showDomainBadge: true,
     showQualityStars: true,
     showRecencyIndicator: true,
@@ -234,7 +289,9 @@ const DEFAULT_GRAPH_TYPE_VISUALS = {
     glowStrength: 1.8,
     orbitalRingCount: 8,
     orbitalRingSpeed: 0.5,
-    hierarchyScaleFactor: 0.02,
+    hierarchyScaleFactor: 0.15,
+    minScale: 0.4,
+    instanceCountInfluence: 0.1,
     depthColorGradient: true,
     showHierarchyBreadcrumb: true,
     showInstanceCount: true,
@@ -246,6 +303,9 @@ const DEFAULT_GRAPH_TYPE_VISUALS = {
     nucleusGlowIntensity: 0.6,
     breathingSpeed: 1.5,
     breathingAmplitude: 0.4,
+    workloadInfluence: 0.3,
+    tokenRateInfluence: 100,
+    tokenRateCap: 0.5,
     showHealthBar: true,
     showTokenRate: true,
     showTaskCount: false,
@@ -257,63 +317,41 @@ const DEFAULT_GRAPH_TYPE_VISUALS = {
 // Transform flat API response to nested client structure
 // ============================================================================
 
+/** Deep merge stored server values over local defaults. Stored values win. */
+function deepMergeVisual(defaults: Record<string, any>, stored: Record<string, any>): Record<string, any> {
+  const result = { ...defaults };
+  for (const [key, value] of Object.entries(stored)) {
+    if (value && typeof value === 'object' && !Array.isArray(value) &&
+        result[key] && typeof result[key] === 'object' && !Array.isArray(result[key])) {
+      result[key] = deepMergeVisual(result[key], value);
+    } else {
+      result[key] = value;
+    }
+  }
+  return result;
+}
+
 function transformApiToClientSettings(apiResponse: AllSettings): any {
-  // Transform the flat API response into the nested structure the client expects
+  // Server-stored visual settings blob — defaults are used as fallback base
+  const v = apiResponse.visual || {};
   return {
     visualisation: {
       rendering: apiResponse.rendering || {},
-      glow: DEFAULT_GLOW_SETTINGS,
-      bloom: DEFAULT_BLOOM_SETTINGS,
-      hologram: DEFAULT_HOLOGRAM_SETTINGS,
-      graphTypeVisuals: DEFAULT_GRAPH_TYPE_VISUALS,
-      gemMaterial: DEFAULT_GEM_MATERIAL,
-      sceneEffects: DEFAULT_SCENE_EFFECTS,
-      clusterHulls: DEFAULT_CLUSTER_HULLS,
-      animations: DEFAULT_ANIMATION_SETTINGS,
-      interaction: DEFAULT_INTERACTION_SETTINGS,
+      glow: deepMergeVisual(DEFAULT_GLOW_SETTINGS, v.glow || {}),
+      bloom: deepMergeVisual(DEFAULT_BLOOM_SETTINGS, v.bloom || {}),
+      hologram: deepMergeVisual(DEFAULT_HOLOGRAM_SETTINGS, v.hologram || {}),
+      graphTypeVisuals: deepMergeVisual(DEFAULT_GRAPH_TYPE_VISUALS, v.graphTypeVisuals || {}),
+      gemMaterial: deepMergeVisual(DEFAULT_GEM_MATERIAL, v.gemMaterial || {}),
+      sceneEffects: deepMergeVisual(DEFAULT_SCENE_EFFECTS, v.sceneEffects || {}),
+      clusterHulls: deepMergeVisual(DEFAULT_CLUSTER_HULLS, v.clusterHulls || {}),
+      animations: deepMergeVisual(DEFAULT_ANIMATION_SETTINGS, v.animations || {}),
+      interaction: deepMergeVisual(DEFAULT_INTERACTION_SETTINGS, v.interaction || {}),
       graphs: {
         logseq: {
           physics: apiResponse.physics || {},
-          nodes: {
-            baseColor: '#202724',
-            metalness: 0.1,
-            opacity: 0.88,
-            roughness: 0.6,
-            nodeSize: 1.7,
-            quality: 'high' as const,
-            enableInstancing: true,
-            enableMetadataShape: false,
-            enableMetadataVisualisation: true
-          },
-          edges: {
-            arrowSize: 0.02,
-            baseWidth: 0.61,
-            color: '#ff0000',
-            enableArrows: false,
-            opacity: 0.5,
-            widthRange: [0.3, 1.5] as [number, number],
-            quality: 'high' as const,
-            enableFlowEffect: false,
-            flowSpeed: 1.0,
-            flowIntensity: 0.5,
-            glowStrength: 0.3,
-            distanceIntensity: 0.5,
-            useGradient: false,
-            gradientColors: ['#4a9eff', '#ff4a9e'] as [string, string]
-          },
-          labels: {
-            desktopFontSize: 1.41,
-            enableLabels: true,
-            labelDistanceThreshold: 500,
-            textColor: '#676565',
-            textOutlineColor: '#00ff40',
-            textOutlineWidth: 0.0074725277,
-            textResolution: 32,
-            textPadding: 0.3,
-            billboardMode: 'camera' as const,
-            showMetadata: true,
-            maxLabelWidth: 5.0
-          }
+          nodes: deepMergeVisual(DEFAULT_NODES_SETTINGS, v.nodes || {}),
+          edges: deepMergeVisual(DEFAULT_EDGES_SETTINGS, v.edges || {}),
+          labels: deepMergeVisual(DEFAULT_LABELS_SETTINGS, v.labels || {})
         }
       }
     },
@@ -394,24 +432,72 @@ function getNestedValue(obj: any, path: string): any {
 // API Client
 // ============================================================================
 
+/**
+ * Check if a settings path targets a visual setting that should be routed
+ * to the server `/api/settings/visual` endpoint.
+ *
+ * Excludes paths already handled by dedicated endpoints (rendering, physics).
+ */
+function isVisualSettingsPath(path: string): boolean {
+  if (path.startsWith('visualisation.rendering')) return false;
+  if (path.startsWith('visualisation.graphs.') && path.includes('.physics')) return false;
+  if (path.startsWith('visualisation.')) return true;
+  return false;
+}
+
+/**
+ * Convert a client settings path to its key within the visual blob stored on the server.
+ *
+ * Mappings:
+ *   visualisation.graphs.logseq.nodes.X  → nodes.X
+ *   visualisation.graphs.logseq.edges.X  → edges.X
+ *   visualisation.graphs.logseq.labels.X → labels.X
+ *   visualisation.<category>.X           → <category>.X
+ */
+function toVisualKey(path: string): string {
+  if (path.startsWith('visualisation.graphs.logseq.nodes')) {
+    return path.replace('visualisation.graphs.logseq.nodes', 'nodes');
+  }
+  if (path.startsWith('visualisation.graphs.logseq.edges')) {
+    return path.replace('visualisation.graphs.logseq.edges', 'edges');
+  }
+  if (path.startsWith('visualisation.graphs.logseq.labels')) {
+    return path.replace('visualisation.graphs.logseq.labels', 'labels');
+  }
+  return path.replace('visualisation.', '');
+}
+
+/** Build a nested object from a dot-notation path and a leaf value. */
+function setNestedFromDotPath(obj: Record<string, any>, dotPath: string, value: any): void {
+  const parts = dotPath.split('.');
+  let current = obj;
+  for (let i = 0; i < parts.length - 1; i++) {
+    if (!(parts[i] in current) || typeof current[parts[i]] !== 'object') {
+      current[parts[i]] = {};
+    }
+    current = current[parts[i]];
+  }
+  current[parts[parts.length - 1]] = value;
+}
+
 export const settingsApi = {
 
   getPhysics: (): Promise<AxiosResponse<PhysicsSettings>> =>
-    axios.get(`${API_BASE}/api/settings/physics`, { headers: getAuthHeaders() }),
+    axios.get(`${API_BASE}/api/settings/physics`),
 
   updatePhysics: async (
     settings: Partial<PhysicsSettings>
   ): Promise<AxiosResponse<void>> => {
     console.warn('[SETTINGS-DIAG] updatePhysics called with:', settings);
-    console.warn('[SETTINGS-DIAG] auth headers:', getAuthHeaders());
+    console.warn('[SETTINGS-DIAG] auth: authenticated=', nostrAuth.isAuthenticated());
     // GET-merge-PUT: backend requires full struct, not partial
     try {
-      const current = await axios.get(`${API_BASE}/api/settings/physics`, { headers: getAuthHeaders() });
+      const current = await axios.get(`${API_BASE}/api/settings/physics`);
       console.warn('[SETTINGS-DIAG] updatePhysics GET current:', current.status, current.data);
       const currentData = current.data?.data ?? current.data ?? {};
       const merged = { ...currentData, ...settings };
       console.warn('[SETTINGS-DIAG] updatePhysics PUT merged:', merged);
-      const result = await axios.put(`${API_BASE}/api/settings/physics`, merged, { headers: getAuthHeaders() });
+      const result = await axios.put(`${API_BASE}/api/settings/physics`, merged);
       console.warn('[SETTINGS-DIAG] updatePhysics PUT response:', result.status, result.data);
       return result;
     } catch (err) {
@@ -422,28 +508,28 @@ export const settingsApi = {
 
 
   getConstraints: (): Promise<AxiosResponse<ConstraintSettings>> =>
-    axios.get(`${API_BASE}/api/settings/constraints`, { headers: getAuthHeaders() }),
+    axios.get(`${API_BASE}/api/settings/constraints`),
 
   updateConstraints: async (
     settings: Partial<ConstraintSettings>
   ): Promise<AxiosResponse<void>> => {
-    const current = await axios.get(`${API_BASE}/api/settings/constraints`, { headers: getAuthHeaders() });
+    const current = await axios.get(`${API_BASE}/api/settings/constraints`);
     const currentData = current.data?.data ?? current.data ?? {};
     const merged = { ...currentData, ...settings };
-    return axios.put(`${API_BASE}/api/settings/constraints`, merged, { headers: getAuthHeaders() });
+    return axios.put(`${API_BASE}/api/settings/constraints`, merged);
   },
 
 
   getRendering: (): Promise<AxiosResponse<RenderingSettings>> =>
-    axios.get(`${API_BASE}/api/settings/rendering`, { headers: getAuthHeaders() }),
+    axios.get(`${API_BASE}/api/settings/rendering`),
 
   updateRendering: async (
     settings: Partial<RenderingSettings>
   ): Promise<AxiosResponse<void>> => {
-    const current = await axios.get(`${API_BASE}/api/settings/rendering`, { headers: getAuthHeaders() });
+    const current = await axios.get(`${API_BASE}/api/settings/rendering`);
     const currentData = current.data?.data ?? current.data ?? {};
     const merged = { ...currentData, ...settings };
-    return axios.put(`${API_BASE}/api/settings/rendering`, merged, { headers: getAuthHeaders() });
+    return axios.put(`${API_BASE}/api/settings/rendering`, merged);
   },
 
 
@@ -451,7 +537,7 @@ export const settingsApi = {
   // fetching individual sections in a single call. Consider adding a query parameter
   // (e.g., ?sections=physics,rendering) if per-section fetching becomes available.
   getAll: (): Promise<AxiosResponse<AllSettings>> =>
-    axios.get(`${API_BASE}/api/settings/all`, { headers: getAuthHeaders() }),
+    axios.get(`${API_BASE}/api/settings/all`),
 
   // Transform API response to client-expected nested structure, filtered to requested paths
   getSettingsByPaths: async (paths: string[]): Promise<any> => {
@@ -463,7 +549,7 @@ export const settingsApi = {
       if (_cachedAllSettings && (now - _cachedAllTimestamp) < CACHE_TTL_MS) {
         allSettings = _cachedAllSettings;
       } else {
-        const response = await axios.get(`${API_BASE}/api/settings/all`, { headers: getAuthHeaders() });
+        const response = await axios.get(`${API_BASE}/api/settings/all`);
         allSettings = transformApiToClientSettings(response.data);
         _cachedAllSettings = allSettings;
         _cachedAllTimestamp = now;
@@ -521,12 +607,14 @@ export const settingsApi = {
       } else if (path.startsWith('constraints')) {
         const key = path.split('.').pop()!;
         await settingsApi.updateConstraints({ [key]: value });
+      } else if (isVisualSettingsPath(path)) {
+        // Route visual settings to the server visual endpoint
+        const visualKey = toVisualKey(path);
+        const nested: Record<string, any> = {};
+        setNestedFromDotPath(nested, visualKey, value);
+        await settingsApi.updateVisualSettings(nested);
       } else {
-        // For paths without a dedicated backend endpoint (glow, edges, hologram,
-        // graphTypeVisuals, nodes, labels, etc.), persist to localStorage via
-        // the settingsStore partialize. The Zustand persist middleware handles
-        // this automatically since partialSettings is now included in partialize.
-        // Log at debug level so developers can track unhandled server paths.
+        // Non-visual, non-server paths (system, auth ephemeral state, etc.)
         console.debug(`[settingsApi] Path "${path}" persisted to localStorage only (no server endpoint)`);
       }
     } catch (error) {
@@ -545,6 +633,7 @@ export const settingsApi = {
     const qualityGatesUpdates: Record<string, any> = {};
     const nodeFilterUpdates: Record<string, any> = {};
     const constraintsUpdates: Record<string, any> = {};
+    const visualUpdates: Record<string, any> = {};
     const localOnlyPaths: string[] = [];
 
     for (const { path, value } of updates) {
@@ -565,9 +654,13 @@ export const settingsApi = {
       } else if (path.startsWith('constraints.')) {
         const key = path.split('.').pop()!;
         constraintsUpdates[key] = value;
+      } else if (isVisualSettingsPath(path)) {
+        // Batch all visual paths into a single nested object for the visual endpoint
+        const visualKey = toVisualKey(path);
+        setNestedFromDotPath(visualUpdates, visualKey, value);
+        console.warn(`[SETTINGS-DIAG] routing ${path} → visual.${visualKey} = ${value}`);
       } else {
-        // Paths without server endpoints (glow, edges, hologram, graphTypeVisuals, etc.)
-        // are persisted to localStorage by the settingsStore partialize.
+        // Non-visual, non-server paths (system debug, auth ephemeral state, etc.)
         localOnlyPaths.push(path);
         console.warn(`[SETTINGS-DIAG] routing ${path} → LOCAL ONLY (no server endpoint)`);
       }
@@ -593,6 +686,9 @@ export const settingsApi = {
     }
     if (Object.keys(constraintsUpdates).length > 0) {
       promises.push(settingsApi.updateConstraints(constraintsUpdates));
+    }
+    if (Object.keys(visualUpdates).length > 0) {
+      promises.push(settingsApi.updateVisualSettings(visualUpdates));
     }
 
     if (promises.length > 0) {
@@ -667,42 +763,52 @@ export const settingsApi = {
   saveProfile: (
     request: SaveProfileRequest
   ): Promise<AxiosResponse<ProfileIdResponse>> =>
-    axios.post(`${API_BASE}/api/settings/profiles`, request, { headers: getAuthHeaders() }),
+    axios.post(`${API_BASE}/api/settings/profiles`, request),
 
   listProfiles: (): Promise<AxiosResponse<SettingsProfile[]>> =>
-    axios.get(`${API_BASE}/api/settings/profiles`, { headers: getAuthHeaders() }),
+    axios.get(`${API_BASE}/api/settings/profiles`),
 
   loadProfile: (id: number): Promise<AxiosResponse<AllSettings>> =>
-    axios.get(`${API_BASE}/api/settings/profiles/${id}`, { headers: getAuthHeaders() }),
+    axios.get(`${API_BASE}/api/settings/profiles/${id}`),
 
   deleteProfile: (id: number): Promise<AxiosResponse<void>> =>
-    axios.delete(`${API_BASE}/api/settings/profiles/${id}`, { headers: getAuthHeaders() }),
+    axios.delete(`${API_BASE}/api/settings/profiles/${id}`),
 
   // Node filter settings
   getNodeFilter: (): Promise<AxiosResponse<NodeFilterSettings>> =>
-    axios.get(`${API_BASE}/api/settings/node-filter`, { headers: getAuthHeaders() }),
+    axios.get(`${API_BASE}/api/settings/node-filter`),
 
   updateNodeFilter: async (
     settings: Partial<NodeFilterSettings>
   ): Promise<AxiosResponse<void>> => {
-    const current = await axios.get(`${API_BASE}/api/settings/node-filter`, { headers: getAuthHeaders() });
+    const current = await axios.get(`${API_BASE}/api/settings/node-filter`);
     const currentData = current.data?.data ?? current.data ?? {};
     const merged = { ...currentData, ...settings };
-    return axios.put(`${API_BASE}/api/settings/node-filter`, merged, { headers: getAuthHeaders() });
+    return axios.put(`${API_BASE}/api/settings/node-filter`, merged);
   },
 
   // Quality gate settings
   getQualityGates: (): Promise<AxiosResponse<QualityGateSettings>> =>
-    axios.get(`${API_BASE}/api/settings/quality-gates`, { headers: getAuthHeaders() }),
+    axios.get(`${API_BASE}/api/settings/quality-gates`),
 
   updateQualityGates: async (
     settings: Partial<QualityGateSettings>
   ): Promise<AxiosResponse<void>> => {
-    const current = await axios.get(`${API_BASE}/api/settings/quality-gates`, { headers: getAuthHeaders() });
+    const current = await axios.get(`${API_BASE}/api/settings/quality-gates`);
     const currentData = current.data?.data ?? current.data ?? {};
     const merged = { ...currentData, ...settings };
-    return axios.put(`${API_BASE}/api/settings/quality-gates`, merged, { headers: getAuthHeaders() });
+    return axios.put(`${API_BASE}/api/settings/quality-gates`, merged);
   },
+
+  // Visual settings (glow, hologram, graphTypeVisuals, gemMaterial, sceneEffects,
+  // clusterHulls, animations, interaction, nodes, edges, labels)
+  getVisualSettings: (): Promise<AxiosResponse<Record<string, any>>> =>
+    axios.get(`${API_BASE}/api/settings/visual`),
+
+  updateVisualSettings: async (
+    patch: Record<string, any>
+  ): Promise<AxiosResponse<Record<string, any>>> =>
+    axios.put(`${API_BASE}/api/settings/visual`, patch),
 };
 
 // ============================================================================

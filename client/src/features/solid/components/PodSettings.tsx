@@ -7,7 +7,6 @@ import React, { useState, useCallback } from 'react';
 import { Database, Copy, Check, User, HardDrive, Trash2, Plus, RefreshCw, ExternalLink, AlertTriangle } from 'lucide-react';
 import { Button } from '@/features/design-system/components/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/features/design-system/components/Card';
-import { Progress } from '@/features/design-system/components/Progress';
 import { Badge } from '@/features/design-system/components/Badge';
 import { Separator } from '@/features/design-system/components/Separator';
 import { Input } from '@/features/design-system/components/Input';
@@ -108,10 +107,8 @@ export const PodSettings: React.FC<PodSettingsProps> = ({ className }) => {
   const [isCreating, setIsCreating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Mock storage quota (would come from pod info in real implementation)
-  const storageUsed = 45; // MB
-  const storageTotal = 100; // MB
-  const storagePercent = (storageUsed / storageTotal) * 100;
+  // Storage quota not available via Solid Pod API — omit fake data
+  const storageAvailable = false;
 
   const handleCreatePod = useCallback(async () => {
     setIsCreating(true);
@@ -255,22 +252,18 @@ export const PodSettings: React.FC<PodSettingsProps> = ({ className }) => {
 
         <Separator />
 
-        {/* Storage Quota */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <HardDrive className="h-4 w-4" />
-              Storage
+        {/* Storage Quota — only render when real data is available */}
+        {storageAvailable && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <HardDrive className="h-4 w-4" />
+                Storage
+              </div>
+              <span className="text-xs text-muted-foreground">Not available</span>
             </div>
-            <span>
-              {storageUsed} MB / {storageTotal} MB
-            </span>
           </div>
-          <Progress value={storagePercent} className="h-2" />
-          <p className="text-xs text-muted-foreground">
-            {(100 - storagePercent).toFixed(1)}% free
-          </p>
-        </div>
+        )}
 
         <Separator />
 

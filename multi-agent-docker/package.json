@@ -27,12 +27,12 @@
   },
   "homepage": "https://github.com/jjohare/turbo-flow-claude#readme",
   "dependencies": {
-    "@anthropic-ai/claude-code": "latest",
-    "claude-flow": "latest",
+    "@anthropic-ai/claude-code": "^2.1.47",
+    "@claude-flow/cli": "^3.1.0-alpha.44",
     "agentdb": "latest",
     "ruvector": "latest",
     "@ruvector/gnn": "latest",
-    "agentic-qe": "latest",
+    "agentic-qe": "^3.6.13",
     "agentic-flow": "latest",
     "agentic-jujutsu": "latest"
   }

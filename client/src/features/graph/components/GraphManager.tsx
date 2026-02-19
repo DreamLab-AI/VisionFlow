@@ -20,6 +20,7 @@ import { useAnalyticsStore, useCurrentSSSPResult } from '../../analytics/store/a
 import { AgentNodesLayer, useAgentNodes } from '../../visualisation/components/AgentNodesLayer'
 import { useGraphVisualState, type GraphVisualMode } from '../hooks/useGraphVisualState'
 import { useGraphFiltering } from '../hooks/useGraphFiltering'
+import { computeNodeScale } from '../utils/nodeScaling'
 
 const logger = createLogger('GraphManager')
 
@@ -342,76 +343,32 @@ const getNodeColor = (
   return _nodeColor;
 }
 
-// === MODE-AWARE NODE SCALE ===
-const getNodeScale = (
-  node: GraphNode,
-  edges: any[],
-  connectionCountMap?: Map<string, number>,
-  graphMode: GraphVisualMode = 'knowledge_graph',
-  hierarchyMap?: Map<string, any>
-): number => {
-  const baseSize = node.metadata?.size || 1.0;
-  let connectionCount: number;
-  const nodeIdStr = String(node.id);
-  if (connectionCountMap) {
-    connectionCount = connectionCountMap.get(nodeIdStr) || 0;
-  } else {
-    connectionCount = edges.filter(e =>
-      String(e.source) === nodeIdStr || String(e.target) === nodeIdStr
-    ).length;
-  }
-
-  // --- ONTOLOGY MODE: hierarchy-driven sizing ---
-  if (graphMode === 'ontology') {
-    const hierarchyNode = hierarchyMap?.get(node.id);
-    const depth = hierarchyNode?.depth ?? (node.metadata?.depth ?? 0);
-    const instanceCount = parseInt(node.metadata?.instanceCount || '0', 10);
-    const depthScale = Math.max(0.4, 1.0 - depth * 0.15);
-    const instanceScale = 1 + Math.log(instanceCount + 1) * 0.1;
-    return baseSize * depthScale * instanceScale;
-  }
-
-  // --- AGENT MODE: workload-driven sizing ---
-  if (graphMode === 'agent') {
-    const workload = node.metadata?.workload ?? 0;
-    const tokenRate = node.metadata?.tokenRate ?? 0;
-    const workloadScale = 1 + workload * 0.3 + Math.min(tokenRate / 100, 0.5);
-    return baseSize * workloadScale;
-  }
-
-  // --- KNOWLEDGE GRAPH MODE (default): larger nodes with authority-driven sizing ---
-  const authority = node.metadata?.authority ?? node.metadata?.authorityScore ?? 0;
-  const connectionScale = 1 + Math.log(connectionCount + 1) * 0.4;
-  const authorityScale = 1 + authority * 0.5;
-  const typeScale = getTypeImportance(node.metadata?.type);
-
-  // KG nodes are 2.5x larger than base to give them visual prominence
-  return baseSize * connectionScale * authorityScale * typeScale * 2.5;
-}
-
-// Get importance multiplier based on node type
-const getTypeImportance = (nodeType?: string): number => {
-  const importanceMap: Record<string, number> = {
-    'folder': 1.5,
-    'function': 1.3,
-    'class': 1.4,
-    'file': 1.0,
-    'variable': 0.8,
-    'import': 0.7,
-    'export': 0.9,
-  }
-
-  return importanceMap[nodeType || 'default'] || 1.0
-}
+// Node scaling delegated to shared computeNodeScale (../utils/nodeScaling.ts)
+// Both GemNodes and this file use the same function to guarantee edge-node alignment.
 
 interface GraphManagerProps {
   onDragStateChange?: (isDragging: boolean) => void;
 }
 
 const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
-  
-  // Performance: Removed mount-time logging
-  const settings = useSettingsStore((state) => state.settings);
+
+  // Narrow selectors: subscribe only to the sub-trees GraphManager actually reads.
+  // This prevents full re-renders when unrelated settings (glow, sceneEffects, etc.) change,
+  // which previously cascaded through the Three.js scene and caused visible position jumps.
+  const logseqSettings = useSettingsStore(s => s.settings?.visualisation?.graphs?.logseq);
+  const graphTypeVisuals = useSettingsStore(s => s.settings?.visualisation?.graphTypeVisuals);
+  const glowIntensity = useSettingsStore(s => s.settings?.visualisation?.glow?.intensity ?? 0.3);
+  const debugSettings = useSettingsStore(s => s.settings?.system?.debug);
+  const nodeFilterSettings = useSettingsStore(s => s.settings?.nodeFilter);
+  // Stable ref for the full settings object — updated every render but doesn't trigger re-renders.
+  // Used only by child components that need the broad settings (GemNodes, event handlers).
+  const settingsRef = useRef(useSettingsStore.getState().settings);
+  useEffect(() => {
+    const unsub = useSettingsStore.subscribe(state => { settingsRef.current = state.settings; });
+    return unsub;
+  }, []);
+  // Convenience alias for reading in render (always current, but selector-gated re-renders)
+  const settings = settingsRef.current;
   
   
   
@@ -486,8 +443,9 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   const { camera, size } = useThree()
 
   
-  const logseqSettings = settings?.visualisation?.graphs?.logseq
-  const nodeSettings = logseqSettings?.nodes || settings?.visualisation?.nodes
+  // These now use the narrow selectors defined at the top of the component.
+  // No extra variable needed for logseqSettings — it's already a top-level selector.
+  const nodeSettings = logseqSettings?.nodes || settings?.visualisation?.nodes;
 
   
   useEffect(() => {
@@ -508,22 +466,26 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   // Only forward settings to the worker when physics parameters actually change.
   // Non-physics settings (edge opacity, glow, hologram, etc.) are irrelevant to the worker
   // and sending them would cause unnecessary physics parameter resets that disrupt layout.
+  const logseqPhysics = logseqSettings?.physics;
+  const visionflowPhysics = useSettingsStore(s => s.settings?.visualisation?.graphs?.visionflow?.physics);
   const physicsFingerprint = useMemo(() => JSON.stringify({
-    vf: settings?.visualisation?.graphs?.visionflow?.physics,
-    lq: settings?.visualisation?.graphs?.logseq?.physics,
-  }), [settings?.visualisation?.graphs?.visionflow?.physics, settings?.visualisation?.graphs?.logseq?.physics]);
+    vf: visionflowPhysics,
+    lq: logseqPhysics,
+  }), [visionflowPhysics, logseqPhysics]);
 
   useEffect(() => {
-    graphWorkerProxy.updateSettings(settings);
+    graphWorkerProxy.updateSettings(settingsRef.current);
   }, [physicsFingerprint]);
 
 
   useFrame((state, delta) => {
     animationStateRef.current.time = state.clock.elapsedTime
 
-    // Periodic label frustum refresh (~6 updates/sec at 60fps)
+    // Periodic label frustum refresh (~4 updates/sec at 60fps)
+    // Uses ref-based counter to avoid React re-renders during drag.
+    // Labels re-render via useMemo deps (graphData, settings changes) not tick.
     labelTickRef.current++;
-    if (labelTickRef.current >= 3) {
+    if (labelTickRef.current >= 15) {
       labelTickRef.current = 0;
       cameraViewProjectionMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
       frustum.setFromProjectionMatrix(cameraViewProjectionMatrix);
@@ -565,9 +527,21 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         const newEdgePoints = new Array<number>(edgeCount * 6);
         let edgePointIdx = 0;
 
+        // Cache drag state outside the loop (hot path — avoid ref access per edge)
+        const isDragging = dragDataRef.current.isDragging;
+        const dragNodeId = isDragging ? dragDataRef.current.nodeId : null;
+        const dragPos = dragDataRef.current.currentNodePos3D;
+
+        // Visual surface radius = getNodeScale() * baseScale * GEO_RADIUS
+        // baseScale = (nodeSize / 0.5), GEO_RADIUS = 0.5
+        // Combined: getNodeScale() * nodeSize  (the 0.5's cancel)
+        const nodeSize = nodeSettings?.nodeSize ?? 0.5;
+
         graphData.edges.forEach(edge => {
-          const sourceNodeIndex = nodeIdToIndexMap.get(String(edge.source));
-          const targetNodeIndex = nodeIdToIndexMap.get(String(edge.target));
+          const sourceStr = String(edge.source);
+          const targetStr = String(edge.target);
+          const sourceNodeIndex = nodeIdToIndexMap.get(sourceStr);
+          const targetNodeIndex = nodeIdToIndexMap.get(targetStr);
 
           if (sourceNodeIndex !== undefined && targetNodeIndex !== undefined) {
             const i3s = sourceNodeIndex * 3;
@@ -575,29 +549,39 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
 
             if (i3s + 2 >= positions.length || i3t + 2 >= positions.length) return;
 
-            tempVec3.set(positions[i3s], positions[i3s + 1], positions[i3s + 2]);
-            const sourcePos = tempVec3;
-            tempPosition.set(positions[i3t], positions[i3t + 1], positions[i3t + 2]);
-            const targetPos = tempPosition;
+            // Read positions — override with live drag pos BEFORE computing direction
+            if (dragNodeId === sourceStr) {
+              tempVec3.set(dragPos.x, dragPos.y, dragPos.z);
+            } else {
+              tempVec3.set(positions[i3s], positions[i3s + 1], positions[i3s + 2]);
+            }
 
-            tempDirection.subVectors(targetPos, sourcePos);
+            if (dragNodeId === targetStr) {
+              tempPosition.set(dragPos.x, dragPos.y, dragPos.z);
+            } else {
+              tempPosition.set(positions[i3t], positions[i3t + 1], positions[i3t + 2]);
+            }
+
+            tempDirection.subVectors(tempPosition, tempVec3);
             const edgeLength = tempDirection.length();
 
-            if (edgeLength > 0) {
+            if (edgeLength > 0.001) {
               tempDirection.normalize();
 
               const sourceNode = graphData.nodes[sourceNodeIndex];
               const targetNode = graphData.nodes[targetNodeIndex];
-              const sourceVisualMode = perNodeVisualModeMap.get(String(sourceNode.id)) || graphMode;
-              const targetVisualMode = perNodeVisualModeMap.get(String(targetNode.id)) || graphMode;
-              const edgeBaseScale = (nodeSettings?.nodeSize ?? 0.5) / 0.5;
-              const sourceRadius = getNodeScale(sourceNode, graphData.edges, connectionCountMap, sourceVisualMode, hierarchyMap) * edgeBaseScale;
-              const targetRadius = getNodeScale(targetNode, graphData.edges, connectionCountMap, targetVisualMode, hierarchyMap) * edgeBaseScale;
+              const sourceVisualMode = perNodeVisualModeMap.get(sourceStr) || graphMode;
+              const targetVisualMode = perNodeVisualModeMap.get(targetStr) || graphMode;
 
-              tempSourceOffset.copy(sourcePos).addScaledVector(tempDirection, sourceRadius);
-              tempTargetOffset.copy(targetPos).addScaledVector(tempDirection, -targetRadius);
+              // Must match GemNodes: visual surface = getNodeScale * baseScale * 0.5
+              // = getNodeScale * (nodeSize/0.5) * 0.5 = getNodeScale * nodeSize
+              const sourceRadius = computeNodeScale(sourceNode, connectionCountMap, sourceVisualMode, hierarchyMap, graphTypeVisuals) * nodeSize;
+              const targetRadius = computeNodeScale(targetNode, connectionCountMap, targetVisualMode, hierarchyMap, graphTypeVisuals) * nodeSize;
 
-              if (tempSourceOffset.distanceTo(tempTargetOffset) > 0.2) {
+              tempSourceOffset.copy(tempVec3).addScaledVector(tempDirection, sourceRadius);
+              tempTargetOffset.copy(tempPosition).addScaledVector(tempDirection, -targetRadius);
+
+              if (tempSourceOffset.distanceTo(tempTargetOffset) > 0.1) {
                 newEdgePoints[edgePointIdx++] = tempSourceOffset.x;
                 newEdgePoints[edgePointIdx++] = tempSourceOffset.y;
                 newEdgePoints[edgePointIdx++] = tempSourceOffset.z;
@@ -626,19 +610,28 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
             const ti3 = targetIdx * 3;
             if (si3 + 2 >= positions.length || ti3 + 2 >= positions.length) return;
 
-            tempVec3.set(positions[si3], positions[si3 + 1], positions[si3 + 2]);
-            tempPosition.set(positions[ti3], positions[ti3 + 1], positions[ti3 + 2]);
+            // Override with drag pos BEFORE direction computation
+            if (dragNodeId === sourceStr) {
+              tempVec3.set(dragPos.x, dragPos.y, dragPos.z);
+            } else {
+              tempVec3.set(positions[si3], positions[si3 + 1], positions[si3 + 2]);
+            }
+            if (dragNodeId === targetStr) {
+              tempPosition.set(dragPos.x, dragPos.y, dragPos.z);
+            } else {
+              tempPosition.set(positions[ti3], positions[ti3 + 1], positions[ti3 + 2]);
+            }
             tempDirection.subVectors(tempPosition, tempVec3);
             const len = tempDirection.length();
-            if (len > 0) {
+            if (len > 0.001) {
               tempDirection.normalize();
               const srcNode = graphData.nodes[sourceIdx];
               const tgtNode = graphData.nodes[targetIdx];
-              const srcMode = perNodeVisualModeMap.get(String(srcNode.id)) || graphMode;
-              const tgtMode = perNodeVisualModeMap.get(String(tgtNode.id)) || graphMode;
-              const hlBaseScale = (nodeSettings?.nodeSize ?? 0.5) / 0.5;
-              const srcR = getNodeScale(srcNode, graphData.edges, connectionCountMap, srcMode, hierarchyMap) * hlBaseScale;
-              const tgtR = getNodeScale(tgtNode, graphData.edges, connectionCountMap, tgtMode, hierarchyMap) * hlBaseScale;
+              const srcMode = perNodeVisualModeMap.get(sourceStr) || graphMode;
+              const tgtMode = perNodeVisualModeMap.get(targetStr) || graphMode;
+              const srcR = computeNodeScale(srcNode, connectionCountMap, srcMode, hierarchyMap, graphTypeVisuals) * nodeSize;
+              const tgtR = computeNodeScale(tgtNode, connectionCountMap, tgtMode, hierarchyMap, graphTypeVisuals) * nodeSize;
+
               tempSourceOffset.copy(tempVec3).addScaledVector(tempDirection, srcR);
               tempTargetOffset.copy(tempPosition).addScaledVector(tempDirection, -tgtR);
               if (tempSourceOffset.distanceTo(tempTargetOffset) > 0.2) {
@@ -956,7 +949,6 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   // nodeIdToIndex removed -- use nodeIdToIndexMap (line ~517) which computes the same Map
 
   const NodeLabels = useMemo(() => {
-    const logseqSettings = settings?.visualisation?.graphs?.logseq;
     const labelSettings = logseqSettings?.labels ?? settings?.visualisation?.labels;
     if (!labelSettings?.enableLabels || visibleNodes.length === 0) return null;
 
@@ -978,7 +970,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
 
       const showMetadataLines = distanceToCamera <= METADATA_DISTANCE_THRESHOLD;
       const nodeLabelVisualMode = perNodeVisualModeMap.get(String(node.id)) || graphMode;
-      const scale = getNodeScale(node, graphData.edges, connectionCountMap, nodeLabelVisualMode, hierarchyMap);
+      const scale = computeNodeScale(node, connectionCountMap, nodeLabelVisualMode, hierarchyMap, graphTypeVisuals);
       const textPadding = labelSettings.textPadding ?? 0.6;
       const labelOffsetY = scale * 1.5 + textPadding;
 
@@ -1063,7 +1055,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
 
       return <NodeLabel key={`label-${node.id}`} position={pos} lines={lines} maxWidth={maxWidth} />;
     }).filter(Boolean)
-  }, [visibleNodes, graphData.edges, connectionCountMap, labelUpdateTick, nodeIdToIndexMap, settings?.visualisation?.graphs?.logseq?.labels, settings?.visualisation?.labels, normalizedSSSPResult, graphMode, perNodeVisualModeMap, hierarchyMap, isXRMode])
+  }, [visibleNodes, graphData.edges, connectionCountMap, labelUpdateTick, nodeIdToIndexMap, logseqSettings?.labels, normalizedSSSPResult, graphMode, perNodeVisualModeMap, hierarchyMap, isXRMode, graphTypeVisuals])
 
   
   useEffect(() => {
@@ -1099,6 +1091,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         nodeIdToIndexMap={nodeIdToIndexMap}
         settings={settings}
         ssspResult={normalizedSSSPResult}
+        dragDataRef={dragDataRef}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={(event: any) => handlePointerUp(event)}

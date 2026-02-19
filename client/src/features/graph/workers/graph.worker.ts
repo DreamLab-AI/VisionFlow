@@ -209,13 +209,16 @@ class GraphWorker {
   // This flag is kept for API compatibility but always returns true.
   private useServerPhysics: boolean = true;
 
-  // Client-side tweening configuration. Controls how smoothly the client
-  // interpolates toward server-computed positions. Configurable via settings.
+  // Client-side tweening: interpolates toward server-computed target positions.
+  // lerpFactor = 1 - lerpBase^dt. At 60fps (dt≈0.016):
+  //   lerpBase=0.15 → factor≈0.028 (sluggish, takes ~2s to converge)
+  //   lerpBase=0.001 → factor≈0.10 (snappy, converges in ~0.3s)
+  //   lerpBase=0.0001 → factor≈0.14 (near-instant)
   private tweenSettings = {
     enabled: true,
-    lerpBase: 0.15,       // Higher = faster convergence. 0.15 reaches 99% in ~0.5s at 60fps.
-    snapThreshold: 1.0,   // Distance below which positions snap instantly.
-    maxDivergence: 50.0,  // Force snap when divergence exceeds this.
+    lerpBase: 0.0001,     // Near-instant convergence — eliminates visible lag
+    snapThreshold: 0.05,  // Snap when within 0.05 units (sub-pixel)
+    maxDivergence: 50.0,  // Force snap on large jumps
   };
   private positionBuffer: SharedArrayBuffer | null = null;
   private positionView: Float32Array | null = null;
@@ -602,7 +605,7 @@ class GraphWorker {
   }>): Promise<void> {
     if (settings.enabled !== undefined) this.tweenSettings.enabled = settings.enabled;
     if (settings.lerpBase !== undefined) this.tweenSettings.lerpBase = Math.max(0.0001, Math.min(0.5, settings.lerpBase));
-    if (settings.snapThreshold !== undefined) this.tweenSettings.snapThreshold = Math.max(0.1, settings.snapThreshold);
+    if (settings.snapThreshold !== undefined) this.tweenSettings.snapThreshold = Math.max(0.01, settings.snapThreshold);
     if (settings.maxDivergence !== undefined) this.tweenSettings.maxDivergence = Math.max(1, settings.maxDivergence);
     workerLogger.info(`Tweening settings updated: lerpBase=${this.tweenSettings.lerpBase}, snap=${this.tweenSettings.snapThreshold}`);
   }

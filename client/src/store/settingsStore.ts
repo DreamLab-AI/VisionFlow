@@ -34,7 +34,7 @@ async function waitForAuthReady(maxWaitMs: number = 3000): Promise<void> {
       const elapsed = Date.now() - startTime;
 
 
-      if (elapsed >= maxWaitMs || !localStorage.getItem('nostr_session_token')) {
+      if (elapsed >= maxWaitMs || !localStorage.getItem('nostr_user')) {
         logger.info('Proceeding with settings initialization', {
           authenticated: nostrAuth.isAuthenticated(),
           elapsed
@@ -83,6 +83,32 @@ const ESSENTIAL_PATHS = [
   'nodeFilter.filterMode'
 ];
 
+
+// Deep merge two settings objects. overlay values win over base values.
+// Used during initialization to merge server defaults (base) with localStorage (overlay)
+// so that user customizations survive page reloads.
+function deepMergeSettings(
+  base: Record<string, unknown>,
+  overlay: Record<string, unknown>,
+): Record<string, unknown> {
+  const result = { ...base };
+  for (const [key, value] of Object.entries(overlay)) {
+    if (value === undefined) continue;
+    const baseVal = result[key];
+    if (
+      value !== null && typeof value === 'object' && !Array.isArray(value) &&
+      baseVal !== null && typeof baseVal === 'object' && !Array.isArray(baseVal)
+    ) {
+      result[key] = deepMergeSettings(
+        baseVal as Record<string, unknown>,
+        value as Record<string, unknown>,
+      );
+    } else {
+      result[key] = value;
+    }
+  }
+  return result;
+}
 
 // Helper function to find changed paths between two objects
 function findChangedPaths(oldObj: unknown, newObj: unknown, path: string = ''): string[] {
@@ -292,15 +318,24 @@ export const useSettingsStore = create<SettingsState>()(
             logger.info('Essential settings loaded:', { essentialSettings })
           }
 
-          set(state => ({
-            partialSettings: essentialSettings as DeepPartial<Settings>,
-            settings: essentialSettings as DeepPartial<Settings>,
-            loadedPaths: new Set(ESSENTIAL_PATHS),
-            initialized: true,
-            authenticated: isAuthenticated,
-            user: user ? { isPowerUser: user.isPowerUser, pubkey: user.pubkey } : null,
-            isPowerUser: user?.isPowerUser || false
-          }));
+          set(state => {
+            // Deep merge: server-fetched settings provide defaults and authoritative
+            // values as the base. localStorage-persisted customizations overlay on top
+            // so user tweaks (graphTypeVisuals, glow, edges, etc.) survive reloads.
+            const merged = deepMergeSettings(
+              essentialSettings as Record<string, unknown>,
+              state.partialSettings as Record<string, unknown>,
+            ) as DeepPartial<Settings>;
+            return {
+              partialSettings: merged,
+              settings: merged,
+              loadedPaths: new Set([...state.loadedPaths, ...ESSENTIAL_PATHS]),
+              initialized: true,
+              authenticated: isAuthenticated,
+              user: user ? { isPowerUser: user.isPowerUser, pubkey: user.pubkey } : null,
+              isPowerUser: user?.isPowerUser || false,
+            };
+          });
 
 
           autoSaveManager.setInitialized(true);

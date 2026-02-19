@@ -15,14 +15,66 @@ pub async fn verify_access(
     nostr_service: &NostrService,
     required_level: AccessLevel,
 ) -> Result<String, HttpResponse> {
-    
-    let request_id = req.headers()
+    let request_id = req
+        .headers()
         .get("X-Request-ID")
         .and_then(|v| v.to_str().ok())
         .unwrap_or(&Uuid::new_v4().to_string())
         .to_string();
 
-    
+    // --- NIP-98 Schnorr auth (primary path) ---
+    if let Some(auth_value) = req
+        .headers()
+        .get("Authorization")
+        .and_then(|h| h.to_str().ok())
+    {
+        if auth_value.starts_with("Nostr ") {
+            let conn_info = req.connection_info();
+            let url = format!(
+                "{}://{}{}",
+                conn_info.scheme(),
+                conn_info.host(),
+                req.uri()
+                    .path_and_query()
+                    .map(|pq| pq.as_str())
+                    .unwrap_or("/")
+            );
+            let method = req.method().as_str();
+
+            match nostr_service
+                .verify_nip98_auth(auth_value, &url, method, None)
+                .await
+            {
+                Ok(user) => {
+                    info!(
+                        request_id = %request_id,
+                        pubkey = %user.pubkey,
+                        "NIP-98 auth successful"
+                    );
+                    match required_level {
+                        AccessLevel::Authenticated => return Ok(user.pubkey),
+                        AccessLevel::PowerUser => {
+                            if user.is_power_user {
+                                return Ok(user.pubkey);
+                            } else {
+                                warn!("Non-power user {} attempted restricted operation", user.pubkey);
+                                return Err(HttpResponse::Forbidden()
+                                    .body("This operation requires power user access"));
+                            }
+                        }
+                    }
+                }
+                Err(e) => {
+                    warn!("[{}] NIP-98 validation failed: {}", request_id, e);
+                    return Err(
+                        HttpResponse::Unauthorized().body(format!("NIP-98 auth failed: {}", e))
+                    );
+                }
+            }
+        }
+    }
+
+    // --- Legacy path: X-Nostr-Pubkey + X-Nostr-Token ---
     let pubkey = match req.headers().get("X-Nostr-Pubkey") {
         Some(value) => value.to_str().unwrap_or("").to_string(),
         None => {
@@ -35,7 +87,6 @@ pub async fn verify_access(
         }
     };
 
-    
     let token = match req.headers().get("X-Nostr-Token") {
         Some(value) => value.to_str().unwrap_or("").to_string(),
         None => {
@@ -49,7 +100,6 @@ pub async fn verify_access(
         }
     };
 
-    
     debug!(
         request_id = %request_id,
         has_pubkey = !pubkey.is_empty(),
@@ -58,7 +108,6 @@ pub async fn verify_access(
         "Authentication headers extracted"
     );
 
-    
     if !nostr_service.validate_session(&pubkey, &token).await {
         warn!("Invalid or expired session for user {}", pubkey);
         debug!(
@@ -75,10 +124,8 @@ pub async fn verify_access(
         "Session validated successfully"
     );
 
-    
     match required_level {
         AccessLevel::Authenticated => {
-            
             debug!(
                 request_id = %request_id,
                 pubkey = %pubkey,

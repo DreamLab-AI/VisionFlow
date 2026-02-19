@@ -373,6 +373,7 @@ impl Handler<GetAllSettings> for SettingsActor {
             rendering: self.current_rendering.clone(),
             node_filter: self.current_node_filter.clone(),
             quality_gates: self.current_quality_gates.clone(),
+            visual: serde_json::json!({}),
         }
     }
 }

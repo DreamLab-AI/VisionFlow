@@ -443,10 +443,22 @@ export class AnalyticsAPI {
       logger.info('Analytics WebSocket connected');
       this.reconnectAttempts = 0;
 
-      // Send auth token as first message instead of URL param
-      const token = nostrAuth.getSessionToken();
-      if (token) {
-        this.websocket?.send(JSON.stringify({ type: 'auth', token }));
+      // Send NIP-98 auth as first message
+      const user = nostrAuth.getCurrentUser();
+      if (user?.pubkey) {
+        if (nostrAuth.isDevMode()) {
+          this.websocket?.send(JSON.stringify({ type: 'auth', token: 'dev-session-token' }));
+        } else {
+          (async () => {
+            try {
+              const httpUrl = wsUrl.replace(/^ws(s?):\/\//, 'http$1://');
+              const eventToken = await nostrAuth.signRequest(httpUrl, 'GET');
+              this.websocket?.send(JSON.stringify({ type: 'authenticate', event: eventToken }));
+            } catch (e) {
+              logger.error('NIP-98 analytics WS auth failed:', e);
+            }
+          })();
+        }
       }
 
 

@@ -33,7 +33,10 @@ export function createGlassEdgeMaterial(baseColor?: string | THREE.Color): Glass
     transparent: true,
     opacity: isWebGPURenderer ? 0.6 : 0.4,
     side: THREE.DoubleSide,
-    depthWrite: false, // Edges behind nodes
+    depthWrite: true,
+    polygonOffset: true,
+    polygonOffsetFactor: 1, // Push edges slightly behind nodes at connection points
+    polygonOffsetUnits: 1,
     // Derive emissive from the resolved base color (30% intensity) so edges
     // glow in their own hue rather than a fixed blue.
     emissive: resolvedColor.clone().multiplyScalar(isWebGPURenderer ? 0.5 : 0.3),

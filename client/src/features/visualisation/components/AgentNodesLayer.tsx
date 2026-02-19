@@ -39,7 +39,7 @@ const STATUS_COLORS = {
   warning: '#f97316'
 };
 
-// Health-based glow color (aligned with BotsVisualizationFixed palette)
+// Health-based glow color (aligned with BotsVisualization palette)
 const getGlowColor = (health: number): string => {
   if (health >= 95) return '#00FF00';
   if (health >= 80) return '#2ECC71';

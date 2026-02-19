@@ -44,7 +44,9 @@ export function useGraphFiltering(
   hierarchyMap: Map<string, HierarchyNode>,
   connectionCountMap: Map<string, number>,
 ): GraphFilteringResult {
-  const settings = useSettingsStore((state) => state.settings);
+  // Narrow selector: only subscribe to nodeFilter — prevents re-renders when
+  // unrelated settings (glow, edges, physics, etc.) change.
+  const storeNodeFilter = useSettingsStore(s => s.settings?.nodeFilter);
 
   // --- nodeIdToIndexMap ---
   const nodeIdToIndexMap = useMemo(() =>
@@ -54,9 +56,6 @@ export function useGraphFiltering(
 
   // --- Expansion state (per-client, no server persistence) ---
   const expansionState = useExpansionState(true); // Default: all expanded
-
-  // --- Extract filter settings for stable deps ---
-  const storeNodeFilter = settings?.nodeFilter;
   const filterEnabled = storeNodeFilter?.enabled ?? false;
   const qualityThreshold = storeNodeFilter?.qualityThreshold ?? 0.7;
   const authorityThreshold = storeNodeFilter?.authorityThreshold ?? 0.5;

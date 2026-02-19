@@ -244,10 +244,10 @@ RUN npm install -g \
     # Claude Code CLI - Use native installer for user-level install, npm as fallback
     # Native installer: curl -fsSL https://claude.ai/install.sh | bash (installs to ~/.local/bin)
     # We use npm here for system-wide installation in Docker images
-    @anthropic-ai/claude-code@latest \
+    @anthropic-ai/claude-code@2.1.47 \
     claude-usage-cli@latest \
     # Claude-Flow V3 CLI (Global Install - Canonical v3.0)
-    @claude-flow/cli@latest \
+    @claude-flow/cli@3.1.0-alpha.44 \
     # Postgres Driver (Fix 4)
     pg \
     @claude-flow/browser@latest \
@@ -261,7 +261,7 @@ RUN npm install -g \
     @ruvector/gnn@latest \
     @ruvector/postgres-cli@latest \
     # Agentic-QE V3 Fleet (51 agents, 12 domains)
-    agentic-qe@3.1.5 \
+    agentic-qe@3.6.13 \
     # Agentic ecosystem
     agentic-flow@latest \
     agentic-jujutsu@latest \
@@ -567,10 +567,10 @@ RUN find /home/devuser/.claude/skills -name "*.py" -path "*/mcp-server/*" -exec 
 
 # Create claude-flow alias and verify installation
 RUN ln -sf /usr/local/bin/npx /usr/local/bin/claude-flow-npx && \
-    echo '#!/bin/bash\nexec npx @claude-flow/cli@latest "$@"' > /usr/local/bin/claude-flow && \
+    echo '#!/bin/bash\nexec npx @claude-flow/cli@3.1.0-alpha.44 "$@"' > /usr/local/bin/claude-flow && \
     chmod +x /usr/local/bin/claude-flow && \
     # Verify claude-flow package is installed and accessible
-    npx @claude-flow/cli@latest --version 2>/dev/null || echo "Claude Flow CLI verification: using dynamic resolution" && \
+    npx @claude-flow/cli@3.1.0-alpha.44 --version 2>/dev/null || echo "Claude Flow CLI verification: using dynamic resolution" && \
     echo "✓ Claude Flow V3 CLI configured"
 
 # Pre-initialize Claude Flow configuration

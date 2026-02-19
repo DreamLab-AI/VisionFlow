@@ -1,15 +1,16 @@
 // src/settings/auth_extractor.rs
 //! Authentication extractor for settings API endpoints
+//! Supports dual-auth: NIP-98 Schnorr (primary) + Bearer token (legacy fallback)
 
 use actix_web::{
     dev::Payload, error::ErrorUnauthorized, web, Error as ActixError, FromRequest, HttpRequest,
 };
 use futures_util::future::{ready, Ready};
-use log::{debug, warn};
+use log::{debug, info, warn};
 
 use crate::services::nostr_service::NostrService;
 
-/// Authenticated user information extracted from session token
+/// Authenticated user information extracted from NIP-98 or session token
 #[derive(Clone, Debug)]
 pub struct AuthenticatedUser {
     pub pubkey: String,
@@ -57,7 +58,7 @@ impl FromRequest for AuthenticatedUser {
             }
         };
 
-        // Extract Authorization header (Bearer token)
+        // Extract Authorization header
         let auth_header = match req.headers().get("Authorization") {
             Some(header) => match header.to_str() {
                 Ok(s) => s,
@@ -72,16 +73,63 @@ impl FromRequest for AuthenticatedUser {
             }
         };
 
-        // Parse Bearer token
+        // --- NIP-98 Schnorr auth (primary path) ---
+        if auth_header.starts_with("Nostr ") {
+            // Reconstruct the request URL for NIP-98 validation
+            let conn_info = req.connection_info();
+            let url = format!(
+                "{}://{}{}",
+                conn_info.scheme(),
+                conn_info.host(),
+                req.uri().path_and_query().map(|pq| pq.as_str()).unwrap_or("/")
+            );
+            let method = req.method().as_str().to_string();
+            let auth_header_owned = auth_header.to_string();
+
+            // verify_nip98_auth is async — need thread spawn (FromRequest is sync)
+            let nostr_service = nostr_service.clone();
+            let user_result = match std::thread::spawn(move || {
+                let rt = tokio::runtime::Runtime::new().expect("Failed to create runtime");
+                rt.block_on(async {
+                    nostr_service
+                        .verify_nip98_auth(&auth_header_owned, &url, &method, None)
+                        .await
+                })
+            })
+            .join()
+            {
+                Ok(result) => result,
+                Err(_) => {
+                    warn!("NIP-98 auth thread panicked");
+                    return ready(Err(ErrorUnauthorized("Authentication error")));
+                }
+            };
+
+            return match user_result {
+                Ok(user) => {
+                    info!("NIP-98 authenticated user: {}", user.pubkey);
+                    ready(Ok(AuthenticatedUser {
+                        pubkey: user.pubkey,
+                        is_power_user: user.is_power_user,
+                    }))
+                }
+                Err(e) => {
+                    warn!("NIP-98 auth failed: {}", e);
+                    ready(Err(ErrorUnauthorized(format!("NIP-98 auth failed: {}", e))))
+                }
+            };
+        }
+
+        // --- Legacy Bearer token path (fallback) ---
         let token = match auth_header.strip_prefix("Bearer ") {
             Some(t) => t,
             None => {
-                debug!("Authorization header missing Bearer prefix");
+                debug!("Authorization header has unrecognized prefix");
                 return ready(Err(ErrorUnauthorized("Invalid authorization format")));
             }
         };
 
-        // Extract pubkey from X-Nostr-Pubkey header
+        // Extract pubkey from X-Nostr-Pubkey header (required for Bearer path)
         let pubkey = match req.headers().get("X-Nostr-Pubkey") {
             Some(header) => match header.to_str() {
                 Ok(s) => s.to_string(),
@@ -96,10 +144,7 @@ impl FromRequest for AuthenticatedUser {
             }
         };
 
-        // Dev-mode session bypass: the client sets token="dev-session-token" when
-        // VITE_DEV_MODE_AUTH=true. Validating this via NostrService requires async,
-        // but FromRequest returns Ready<> (sync). Using block_on inside the actix
-        // async runtime panics, so we short-circuit dev tokens here.
+        // Dev-mode session bypass
         if token == "dev-session-token" {
             debug!("Dev-mode session token accepted for pubkey: {}", pubkey);
             return ready(Ok(AuthenticatedUser {
@@ -112,9 +157,6 @@ impl FromRequest for AuthenticatedUser {
         let nostr_service = nostr_service.clone();
         let token = token.to_string();
 
-        // Use spawn_blocking to avoid block_on panic inside the async runtime.
-        // NOTE: This is a synchronous FromRequest so we use std::thread to run
-        // the async validation on a separate thread, then join.
         let pubkey_clone = pubkey.clone();
         let nostr_clone = nostr_service.clone();
         let token_clone = token.clone();
@@ -123,7 +165,9 @@ impl FromRequest for AuthenticatedUser {
             rt.block_on(async {
                 nostr_clone.validate_session(&pubkey_clone, &token_clone).await
             })
-        }).join() {
+        })
+        .join()
+        {
             Ok(valid) => valid,
             Err(_) => {
                 warn!("Session validation thread panicked");
@@ -141,7 +185,9 @@ impl FromRequest for AuthenticatedUser {
         let user_option = match std::thread::spawn(move || {
             let rt = tokio::runtime::Runtime::new().expect("Failed to create runtime");
             rt.block_on(async { nostr_service.get_user(&pubkey_clone2).await })
-        }).join() {
+        })
+        .join()
+        {
             Ok(user) => user,
             Err(_) => {
                 warn!("User lookup thread panicked");

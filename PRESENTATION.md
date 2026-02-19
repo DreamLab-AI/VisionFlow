@@ -1,11 +1,15 @@
 public:: true
-- ## VisionFlow — Spatial Intelligence for the Age of Agents
+- ## VisionFlow / IRIS — Spatial Intelligence for the Age of Agents
 - ![Slide1.png](../assets/Slide1_1770741359300_0.png)
-- *A 20-minute overview for the AI Symposium — adapted from AI Cafe v6 2025. Detailed leaves fold out for Q&A.*
+- *Technical deep-dive for the AI & Data Community. Structured as two sessions with folded technical appendices for Q&A.*
+- ### Session Format
+	- **Session 1 (45 min)**: The problem, what we built, and the science behind it (Sections 1-3)
+	- **Session 2 (45 min)**: Validation, how to get involved, and where it goes next (Sections 4-5) + live demo
+	- *Can be delivered as a single extended session (~90 min) or two standalone talks.*
 -
 - ---
 -
-- # The Problem: AI Is Making Knowledge Work Harder
+- # (1) The Problem: AI Is Making Knowledge Work Harder
 	- ## A third of the global workforce are knowledge workers
 		- **INGEST → REASON → WRITE → VERIFY** — the universal knowledge work loop
 		- Five Trillion Dollar Market addressable by agentic systems
@@ -21,10 +25,17 @@ public:: true
 		- No spatial organisation. No semantic structure. No shared context.
 		- **Knowledge workers need environments, not chat boxes.**
 -
+	- ## Why this matters for THG
+		- THG manages vast product catalogues, supply chain relationships, and brand portfolios — all knowledge-intensive domains
+		- Current AI tooling (chat, copilots, dashboards) treats each question as isolated; no persistent semantic structure connects insights across teams
+		- The cognitive overload problem scales with organisational complexity — the more brands, the worse flat interfaces perform
+		- **Opportunity**: A spatial, ontology-grounded workspace could let category managers, data scientists, and supply chain analysts *see* relationships across the entire portfolio instead of querying them one at a time
+-
 - ---
 -
-- # History — Scratching My Own Itch
-	- ## Started with a [book I wrote open source](https://arxiv.org/pdf/2207.09460) in 2022
+- # (2) What We Built — History and Architecture
+	- ## Scratching My Own Itch
+	- ### Started with a [book I wrote open source](https://arxiv.org/pdf/2207.09460) in 2022
 		- ![image.png](../assets/image_1770739046283_0.png)
 	- ![image.png](../assets/image_1770833035653_0.png)
 	- In researching the book I had too much disorganised knowledge, so I decided to sort that out.
@@ -50,7 +61,7 @@ public:: true
 -
 - ---
 -
-- # What is VisionFlow?
+- # What is VisionFlow / IRIS?
 	- ## Powerful and secure collaborative agent orchestration platform.
 	  collapsed:: true
 		- {{embed ((693b06df-7193-4daf-90d9-ab76c9447883))}}
@@ -65,7 +76,7 @@ public:: true
 -
 - ---
 -
-- # Architecture — How It Works
+- # The Tech Stack and Data Pipeline
 	- ## The Pipeline: From Markdown to 3D Physics
 		- ```
 		  Logseq Notes (GitHub) → OWL Parser → Whelk Reasoner → Neo4j + Memory
@@ -144,7 +155,7 @@ public:: true
 -
 - ---
 -
-- # The Ontology Advantage
+- # The Science: Ontology-Driven Semantic Physics
 	- ## Why ontologies matter for AI
 		- ![slide3.png](../assets/slide3_1770741502949_0.png)
 		- [April 2024 Ontology experiments with LLMs](https://github.com/jjohare/logseq/commits/c96f4582a5f6d7f616a7041e6492a706335ab99c/mainKnowledgeGraph/pages/Omniverse%20Ontology.md?browsing_rename_history=true&new_path=mainKnowledgeGraph/pages/Metaverse%20Ontology.md&original_branch=b07b434304d34431929e47887237783c9f98b563)
@@ -177,6 +188,126 @@ public:: true
 		- ## Live Ontology Explorer
 			- <iframe src="https://www.narrativegoldmine.com/ontology" style="width: 100%; height: 600px"></iframe>
 			- The same ontology data rendered as a 2D interactive graph at [narrativegoldmine.com](https://www.narrativegoldmine.com). VisionFlow renders this in 3D with GPU-accelerated physics.
+-
+	- ## The Novel Contribution: Axiom-to-Force Translation
+	  collapsed:: true
+		- The core scientific idea is that **formal ontology axioms can be interpreted as physical forces in a simulation**, producing layouts where the spatial structure of a graph directly encodes its logical structure. This is not standard force-directed layout — it is *semantically grounded* layout.
+		- ### The Force Model
+			- Each OWL axiom type maps to a specific force law executed on the GPU:
+			- | OWL Axiom | Physical Analogy | CUDA Kernel | Force Law |
+			  | ---- | ---- | ---- | ---- |
+			  | `SubClassOf(A, B)` | Spring (Hooke's law) | `force_pass_kernel` | `F = -k * (d - rest_length) * dir` — parent and child attract toward `rest_length` |
+			  | `DisjointWith(A, B)` | Coulomb repulsion | `apply_semantic_forces` | `F = k / d^2 * dir` — contradictions push apart, capped at `MAX_FORCE` |
+			  | `EquivalentClasses(A, B)` | Strong spring | `force_pass_kernel` | `F = -4k * d * dir` — synonyms collapse to near-zero distance |
+			  | `ObjectPropertyDomain/Range` | Directed attraction | `blend_semantic_physics_forces` | Weighted blend with base physics at configurable alpha |
+			  | *Inferred axioms* | Same laws at 0.3x | All kernels | Prevents over-determination from transitive closure |
+		- ### Why This Works (the intuition)
+			- Force-directed graph layout (Fruchterman-Reingold, 1991) finds equilibria where spring attraction balances repulsion. Standard implementations treat all edges identically. By differentiating force laws per axiom type, the equilibrium *encodes semantics*:
+			- Hierarchies form concentric shells (SubClassOf springs have rest lengths proportional to depth)
+			- Contradictions create visible gaps (Coulomb repulsion is inverse-square, so disjoint clusters separate cleanly)
+			- Synonyms merge (strong springs with zero rest length)
+			- The user sees the **shape of knowledge** without reading a single label
+		- ### GPU Implementation Detail
+			- The constraint pipeline runs in 11 CUDA `.cu` files totalling 6,400+ lines:
+			- | Kernel File | Lines | Purpose |
+			  | ---- | ---- | ---- |
+			  | `visionflow_unified.cu` | 2,231 | Main physics: grid construction, N-body forces, integration, stability detection |
+			  | `ontology_constraints.cu` | 350+ | Axiom-type-specific constraint forces with 64-byte aligned structs |
+			  | `semantic_forces.cu` | 500+ | Semantic attraction/repulsion blending with base physics |
+			  | `gpu_clustering_kernels.cu` | 400+ | K-means, LOF anomaly detection, z-score normalisation |
+			  | `pagerank.cu` | 300+ | GPU PageRank for node importance |
+			  | `sssp_compact.cu` | 200+ | Single-source shortest path (compact frontier) |
+			  | `gpu_landmark_apsp.cu` | 200+ | Landmark-based all-pairs shortest path |
+			  | `gpu_connected_components.cu` | 150+ | Connected components detection |
+			  | `gpu_aabb_reduction.cu` | 100+ | Axis-aligned bounding box for spatial culling |
+			  | `dynamic_grid.cu` | 150+ | Spatial hash grid for O(N) neighbour lookup |
+			  | `visionflow_unified_stability.cu` | 150+ | Kinetic energy measurement and equilibrium detection |
+			- **Grid-accelerated N-body**: Instead of O(N^2) all-pairs repulsion, a spatial hash grid bins nodes into cells. Each thread only checks neighbouring cells, reducing complexity to O(N * avg_neighbours). The grid is rebuilt every frame in `build_grid_kernel` and `compute_cell_bounds_kernel`.
+			- **Stability detection**: `check_system_stability_kernel` measures total kinetic energy via parallel reduction. When KE drops below threshold, physics pauses to save GPU cycles. The `stability_warmup_remaining` counter (300 frames) prevents premature equilibrium on cold start.
+			- **Memory layout**: All node data is stored in Structure-of-Arrays (SoA) format — separate `float*` arrays for x, y, z positions and velocities. This maximises GPU memory coalescing vs the alternative Array-of-Structures layout.
+-
+- ---
+-
+- # (3) Development Process and Validation
+	- ## How It Was Built
+		- ### Agentic development as methodology
+			- VisionFlow is built *with* and *for* agentic AI. The development process itself uses multi-agent orchestration (Claude Code + Claude Flow) with 101 agent skills, from architecture design to test generation.
+			- The 18-month development arc:
+			- | Phase | Period | Key Milestone |
+			  | ---- | ---- | ---- |
+			  | 1. Prototype | Aug 2024 | Working nodes and edges in Three.js, basic Logseq parser |
+			  | 2. Rust rewrite | Oct-Dec 2024 | Actix actor system, Neo4j integration, hexagonal architecture |
+			  | 3. GPU physics | Jan-Mar 2025 | CUDA force-directed layout, 55x speedup over CPU |
+			  | 4. Ontology engine | Apr-Jun 2025 | Whelk-rs OWL 2 EL reasoner, axiom-to-force pipeline |
+			  | 5. Multi-user + XR | Jul-Sep 2025 | Vircadia integration, WebXR Quest 3, spatial voice |
+			  | 6. Agent tools | Oct-Dec 2025 | MCP ontology tools, GitHub PR loop, 101 skills |
+			  | 7. IRIS studio | Jan-Feb 2026 | Immersive configuration, settings pipeline hardening |
+		- ### Lessons learned
+			- **Hexagonal architecture pays off late**: Swapping the settings backend from in-memory to Neo4j-persisted took one adapter, zero business logic changes
+			- **GPU mutex discipline is critical**: A single panic in a CUDA kernel poisons the `std::sync::Mutex`, killing all subsequent physics frames. Solved with `poisoned.into_inner()` recovery and deferred graph upload queues
+			- **Binary protocols matter at scale**: JSON position updates at 60 FPS for 1,000 nodes = 3.6 MB/s per client. Binary V3 protocol reduces this to 0.7 MB/s (80% reduction)
+			- **Ontology reasoning is surprisingly fast**: Whelk-rs processes 900+ OWL classes in <2 seconds; with LRU caching, repeat queries are 90x faster
+	- ## Validation and Testing
+		- ### Performance validation
+			- | Test | Method | Result |
+			  | ---- | ---- | ---- |
+			  | GPU physics throughput | Synthetic graph (180K nodes) on RTX 3080 | 60 FPS sustained |
+			  | CPU vs GPU | Same graph, CPU fallback mode | 55x slower |
+			  | WebSocket bandwidth | Binary V3 vs JSON, 1K nodes at 60 FPS | 80% reduction |
+			  | Concurrent clients | Load test with 250 simulated WebSocket clients | Stable, <10ms latency |
+			  | Ontology reasoning | 900+ OWL classes, full subsumption + consistency | <2s cold, 22ms cached |
+			  | Voice latency | PTT press to agent acknowledgement | 410ms measured |
+		- ### Correctness validation
+			- Whelk-rs consistency checking gates every ontology change — agents cannot merge contradictory knowledge
+			- Every knowledge modification produces a Git commit, enabling full audit trail and rollback
+			- The GPU index-to-node-ID mapping (recently hardened) ensures edges always connect to the correct node positions regardless of client/server array ordering differences
+	- ## Who Helped
+		- Solo developer (DreamLab AI Consulting Ltd.) with agentic AI assistance
+		- Inspired by 2016 VR data visualisation work from Prof Rob Aspin (Manchester Metropolitan University)
+		- Open source community feedback via GitHub issues
+		- Academic grounding from OG-RAG (EMNLP 2025), GenAI Benchmark II, and OWL 2 EL specification
+-
+- ---
+-
+- # (4) What Help and Feedback We Want
+	- ## Technical advice needed
+		- **GPU multi-device**: Current architecture is single-GPU. How best to partition the graph across multiple devices for larger deployments (10K+ node ontologies)?
+		- **Ontology scalability**: Whelk-rs handles 900+ classes well. What are the practical limits for enterprise taxonomies (10K+ classes)? Are there approximation strategies that preserve layout quality?
+		- **WebGPU migration**: The rendering pipeline uses WebGPU-primary with WebGL2 fallback. Backend physics is CUDA-only. Is there value in a WebGPU compute path for environments without NVIDIA GPUs?
+	- ## Testers wanted
+		- **Domain experts**: Anyone with a structured knowledge domain (product taxonomy, supply chain ontology, research corpus) who would benefit from spatial visualisation
+		- **XR testers**: Quest 3 owners willing to test the immersive mode and provide UX feedback
+		- **Security reviewers**: The Nostr NIP-07 authentication and MCP agent tool access model needs adversarial review
+	- ## Collaborators welcome
+		- **Data scientists**: Help design the analytics pipeline — PageRank, community detection, and anomaly detection are GPU-accelerated but need domain-specific tuning
+		- **Ontology engineers**: Help build reference ontologies for common enterprise domains (e-commerce taxonomy, supply chain, content management)
+		- **Frontend/Three.js developers**: The custom TSL material pipeline and WebGPU rendering path need performance profiling on diverse hardware
+	- ## How to get involved
+		- The codebase is open source (MPL 2.0): [github.com/DreamLab-AI/VisionFlow](https://github.com/DreamLab-AI/VisionFlow)
+		- Issues labelled `good-first-issue` and `help-wanted` are curated for new contributors
+		- The multi-agent Docker container provides a complete development environment with all 101 agent skills pre-configured
+-
+- ---
+-
+- # (5) What's Next — Vision and Impact
+	- ## Near-term roadmap
+		- | Priority | Item | Impact |
+		  | ---- | ---- | ---- |
+		  | P0 | Enterprise pilot programme | Validate with real organisational knowledge bases |
+		  | P0 | Multi-GPU graph partitioning | Scale beyond single-device limits |
+		  | P1 | SSO/SAML integration | Enterprise authentication requirements |
+		  | P1 | Data connectors (Confluence, SharePoint, Notion) | Ingest from where knowledge already lives |
+		  | P2 | Federated ontology reasoning | Cross-organisation knowledge sharing with privacy |
+		  | P2 | Academic partnerships | Formal evaluation of axiom-to-force model |
+	- ## Impact for THG
+		- **Product intelligence**: Visualise the entire product catalogue as a semantic graph — see category relationships, identify gaps, spot cannibalisation
+		- **Supply chain visibility**: Map supplier relationships, logistics dependencies, and risk factors in 3D space where clusters reveal hidden correlations
+		- **Brand portfolio management**: Ontology-structured brand knowledge with AI agents that continuously enrich and validate the knowledge base
+		- **Cross-team collaboration**: Multiple specialists (buyers, data scientists, planners) working in the same spatial environment with role-specific views
+		- **Decision audit trail**: Every insight, every agent contribution, every human edit is a Git commit — full traceability for regulated environments
+	- ## The bigger picture
+		- VisionFlow / IRIS demonstrates that the next interface paradigm for AI is not a better chat window — it is a **semantic environment** where knowledge has shape, agents have presence, and collaboration is spatial.
+		- The 80/10 gap (80% want multi-agent, <10% have achieved it) exists because current tools lack the structural foundation to coordinate agents meaningfully. Ontology-grounded spatial workspaces provide that foundation.
 -
 - ---
 -
@@ -470,4 +601,197 @@ public:: true
 -
 - ---
 -
-- *VisionFlow — DreamLab AI Consulting Ltd. — February 2026*
+- # Technical Appendices
+	- *Folded sections for Q&A and post-session reference. Each appendix provides implementation-level detail for a specific subsystem.*
+	- ## Appendix A: Abstract
+	  collapsed:: true
+		- **VisionFlow / IRIS** is an open-source spatial intelligence platform that transforms unstructured knowledge (Logseq markdown notebooks, OWL ontologies, document corpora) into interactive 3D environments where the spatial layout of a graph directly encodes its logical structure. The system implements a novel *axiom-to-force translation* pipeline: OWL 2 EL axioms produced by the Whelk-rs reasoner are compiled into GPU-accelerated physics forces (CUDA, 6,400+ lines across 11 kernel files), such that SubClassOf relations become spring attractions, DisjointWith relations become Coulomb repulsions, and EquivalentClasses produce strong attractive forces that merge synonymous concepts. This produces equilibrium layouts where hierarchies form concentric shells, contradictions create visible gaps, and equivalences collapse — enabling users to *see the shape of knowledge* without reading labels.
+		- The platform is built on a Rust/Actix hexagonal architecture (376 source files, 169K lines) with 45+ supervised actors managing GPU physics, ontology reasoning, graph state, client sessions, and voice interaction. A React/Three.js frontend (362 files, 92K lines) renders the graph with custom TSL (Three Shading Language) materials targeting WebGPU with WebGL2 fallback, and supports WebXR immersion on Meta Quest 3. Multi-user collaboration is provided via Vircadia World Server (spatial presence, avatar sync, HRTF spatial audio) and LiveKit SFU (Opus voice, turbo-whisper STT, Kokoro TTS). A compact binary WebSocket protocol (21 bytes/node, 80% bandwidth reduction vs JSON) sustains 60 FPS position updates for 180,000 nodes on an RTX 3080.
+		- AI agents interact with the knowledge graph through 7 MCP (Model Context Protocol) ontology tools, forming a closed loop: discover → read → propose → consistency check → GitHub PR → human review → merge → re-reason → re-layout. The system includes 101 agent skills spanning reasoning, development, orchestration, creative production, and infrastructure management. All knowledge changes are Git commits, providing a complete audit trail.
+		- VisionFlow addresses the growing evidence (HBR, Feb 2026) that flat AI interfaces (chat, terminals, inline completions) create cognitive overload rather than reducing it, by providing a structured spatial environment grounded in formal semantics. It targets the $5T knowledge work market where the 80/10 gap (80% of enterprises want multi-agent orchestration, <10% have achieved it) represents a significant opportunity.
+	- ## Appendix B: Rust Actor Architecture Deep-Dive
+	  collapsed:: true
+		- The backend uses the Actix actor framework for supervised concurrency. Each actor is a lightweight, single-threaded entity with its own mailbox. Message passing is typed and asynchronous. The system contains 45+ actors organised into GPU compute, service, and coordination layers.
+		- ### Actor Supervision Tree
+			- ```
+			  GraphServiceSupervisor (root)
+			  ├── GPUManagerActor
+			  │   ├── GPUResourceActor (CUDA context lifecycle)
+			  │   ├── ForceComputeActor (main physics loop)
+			  │   ├── StressMajorizationActor
+			  │   ├── ClusteringActor (k-means, LOF)
+			  │   ├── PageRankActor
+			  │   ├── SemanticForcesActor (ontology → forces)
+			  │   ├── OntologyConstraintActor (axiom buffer)
+			  │   ├── ShortestPathActor (SSSP, APSP)
+			  │   ├── ConnectedComponentsActor
+			  │   └── AnomalyDetectionActor
+			  ├── GraphStateActor (canonical graph)
+			  ├── OntologyActor (OWL class/axiom management)
+			  ├── PhysicsOrchestratorActor (60Hz tick, param interpolation)
+			  ├── ClientCoordinatorActor (per-session WebSocket)
+			  ├── WorkspaceActor (multi-workspace isolation)
+			  ├── TaskOrchestratorActor (background job scheduling)
+			  ├── OptimizedSettingsActor (Neo4j-persisted settings)
+			  ├── ProtectedSettingsActor (auth-gated settings)
+			  └── MetadataActor (node/edge metadata cache)
+			  ```
+		- ### Key Design Decisions
+			- **GPU mutex recovery**: CUDA kernel panics poison `std::sync::Mutex`. All GPU actors use `poisoned.into_inner()` to recover from panicked threads instead of propagating the panic
+			- **Deferred graph upload**: `ForceComputeActor` stores `pending_graph_data` and uploads to GPU only when both the graph data and `SharedGPUContext` are available (they can arrive in either order)
+			- **Non-blocking GPU access**: Physics computation uses `tokio::task::spawn_blocking` to move GPU mutex locks off the Tokio async executor threads, preventing thread starvation
+			- **Parameter interpolation**: `PhysicsOrchestratorActor` maintains `target_params` and smoothly interpolates toward them at 60Hz, preventing visible "jumps" when settings sliders change
+			- **Backpressure**: Token-bucket flow control between GPU producer and WebSocket consumer. `ForceComputeActor` tracks available broadcast tokens (100 max, refill at 30/s). Each broadcast costs 1 token; acknowledgements from `ClientCoordinatorActor` restore tokens
+		- ### Message Flow: Settings Change
+			- ```
+			  Client slider → REST PATCH /api/settings/physics
+			                → normalize_physics_keys() (snake_case/camelCase aliases)
+			                → validate_physics_settings() (NaN/Infinity/range check)
+			                → Neo4jSettingsRepository::save_setting()
+			                → ForceComputeActor::UpdateSimulationParams
+			                    → update_simulation_parameters()
+			                    → broadcast_optimizer.reset_delta_state()
+			                    → stability_warmup_remaining = 300
+			                → PhysicsOrchestratorActor::UpdateParams
+			                    → target_params = new_params (interpolated at 60Hz)
+			  ```
+	- ## Appendix C: CUDA Kernel Architecture
+	  collapsed:: true
+		- ### Kernel Inventory (28 `__global__` kernels across 11 files)
+			- | Kernel | Grid Size | Shared Memory | Purpose |
+			  | ---- | ---- | ---- | ---- |
+			  | `build_grid_kernel` | N nodes / 256 | 0 | Hash node positions into spatial grid cells |
+			  | `compute_cell_bounds_kernel` | N cells / 256 | 0 | Compute start/end offsets per grid cell |
+			  | `force_pass_kernel` | N nodes / 256 | 0 | Spring + repulsion forces with grid-accelerated neighbour lookup |
+			  | `integrate_pass_kernel` | N nodes / 256 | 0 | Velocity verlet integration with boundary enforcement |
+			  | `apply_semantic_forces` | N constraints / 256 | 0 | OWL axiom constraint forces (type-dispatched) |
+			  | `blend_semantic_physics_forces` | N nodes / 256 | 0 | Alpha-blend semantic and base physics force buffers |
+			  | `calculate_kinetic_energy_kernel` | N nodes / 256 | 256 * sizeof(float) | Parallel reduction for total KE |
+			  | `check_system_stability_kernel` | 1 block / 1 thread | 0 | Compare KE against threshold, set skip flag |
+			  | `force_pass_with_stability_kernel` | N nodes / 256 | 0 | Combined force + stability check in single pass |
+			  | `compute_aabb_reduction_kernel` | N nodes / 256 | 256 * sizeof(float) * 6 | Bounding box for spatial culling |
+			  | `relaxation_step_kernel` | N nodes / 256 | 0 | Stress majorisation gradient descent step |
+			  | `compact_frontier_kernel` | N nodes / 256 | 0 | SSSP compact-frontier BFS expansion |
+			  | `init_centroids_kernel` | K / 256 | 0 | K-means++ centroid initialisation |
+			  | `assign_clusters_kernel` | N nodes / 256 | 0 | K-means cluster assignment |
+			  | `update_centroids_kernel` | K / 256 | 0 | K-means centroid update |
+			  | `compute_inertia_kernel` | K / 256 | 0 | Elbow method inertia calculation |
+			  | `compute_lof_kernel` | N nodes / 256 | 0 | Local Outlier Factor anomaly scores |
+			  | `compute_zscore_kernel` | N nodes / 256 | 0 | Z-score normalisation |
+			  | `compute_feature_stats_kernel` | Features / 256 | 0 | Mean/stddev for feature normalisation |
+			  | `init_labels_kernel` | N nodes / 256 | 0 | Label propagation initialisation |
+			  | `propagate_labels_sync_kernel` | N nodes / 256 | 0 | Synchronous label propagation |
+			  | `propagate_labels_async_kernel` | N nodes / 256 | 0 | Asynchronous label propagation |
+			  | `check_convergence_kernel` | 1 block / 256 | 256 * sizeof(int) | Label propagation convergence check |
+			  | `compute_modularity_kernel` | N nodes / 256 | 256 * sizeof(float) | Modularity score computation |
+			  | `init_random_states_kernel` | N / 256 | 0 | PRNG state initialisation (curand) |
+			  | `compute_node_degrees_kernel` | N nodes / 256 | 0 | Degree computation from CSR |
+			  | `count_community_sizes_kernel` | N nodes / 256 | 0 | Community size histogram |
+			  | `relabel_communities_kernel` | N nodes / 256 | 0 | Compact community label assignment |
+		- ### Data Layout
+			- **Graph storage**: Compressed Sparse Row (CSR) format — `row_offsets[N+1]`, `col_indices[E]`, `edge_weights[E]`. CSR is cache-friendly for GPU traversal because all neighbours of node `i` are contiguous in memory at `col_indices[row_offsets[i]..row_offsets[i+1]]`.
+			- **Node state**: Structure-of-Arrays (SoA) — six separate `float*` buffers for `pos_x, pos_y, pos_z, vel_x, vel_y, vel_z`. SoA maximises memory coalescing: when 32 threads in a warp read `pos_x[tid]`, the 128-byte transaction fetches 32 consecutive floats.
+			- **Constraint buffer**: Array of 64-byte-aligned `OntologyConstraint` structs with pre-computed source/target indices. The host resolves node-ID-to-GPU-index before kernel launch, eliminating per-constraint O(N) lookup on the device.
+			- **Spatial grid**: 3D hash grid with configurable cell size. `build_grid_kernel` assigns each node to a cell; `compute_cell_bounds_kernel` computes cell start/end offsets via parallel prefix scan. Force kernels iterate only over the 27 neighbouring cells (3x3x3), reducing N-body from O(N^2) to O(N * k) where k = average nodes per neighbourhood.
+	- ## Appendix D: Ontology Reasoning Pipeline
+	  collapsed:: true
+		- ### OWL 2 EL Profile
+			- VisionFlow uses the OWL 2 EL (Existential Language) profile, which supports:
+			- Class subsumption (`SubClassOf`), equivalence (`EquivalentClasses`), disjointness (`DisjointWith`)
+			- Existential restrictions (`SomeValuesFrom`)
+			- Object property chains
+			- **Not supported** (by design): universal restrictions, negation, cardinality constraints (these make reasoning NP-hard; EL keeps it polynomial)
+		- ### Whelk-rs Implementation
+			- Whelk is an OWL 2 EL reasoner originally implemented in Scala. The Rust port (`whelk-rs`) provides:
+			- **Subsumption closure**: Given a set of axioms, compute all implied SubClassOf relationships. This is the core reasoning task.
+			- **Consistency checking**: Detect unsatisfiable classes (classes that cannot have instances). Used to gate ontology changes — agents cannot merge inconsistent knowledge.
+			- **Performance**: <2 seconds for 900+ classes on cold start. 90x speedup on repeat queries via LRU cache (class hierarchy is relatively stable between edits).
+		- ### The Axiom-to-Constraint Pipeline
+			- ```
+			  Logseq Markdown → OWL Parser (owl_parser.rs)
+			                  → Whelk-rs Reasoner (inference/mod.rs)
+			                  → Inferred Axiom Set
+			                  → OntologyConstraintTranslator (constraints/axiom_mapper.rs)
+			                  → ConstraintData buffer (64-byte aligned structs)
+			                  → OntologyConstraintActor (cached in-memory)
+			                  → ForceComputeActor::UpdateOntologyConstraintBuffer
+			                  → UnifiedGPUCompute::upload_constraints()
+			                  → ontology_constraints.cu kernels (per-frame)
+			  ```
+		- ### Constraint Types in CUDA
+			- ```c
+			  #define CONSTRAINT_DISJOINT_CLASSES 1  // Coulomb repulsion
+			  #define CONSTRAINT_SUBCLASS_OF 2       // Spring attraction (hierarchical)
+			  #define CONSTRAINT_SAMEAS 3             // Strong spring (equivalence)
+			  #define CONSTRAINT_INVERSE_OF 4         // Directed attraction
+			  #define CONSTRAINT_FUNCTIONAL 5          // Cardinality constraint
+			  ```
+		- Each constraint struct contains pre-computed `source_idx` and `target_idx` (resolved on host), so the GPU kernel does zero ID lookups — just reads positions, computes force, writes to force accumulator.
+	- ## Appendix E: Client Rendering and WebSocket Protocol
+	  collapsed:: true
+		- ### Binary Protocol V3 Wire Format
+			- Position update (21 bytes per node):
+			- ```
+			  [0x10] [node_id: u32] [x: f32] [y: f32] [z: f32] [vx: f16] [vy: f16] [vz: f16]
+			  ```
+			- Velocities use half-precision (f16) because visual interpolation tolerates quantisation. Positions use full f32 for accuracy.
+			- **Delta encoding**: The `BroadcastOptimizer` tracks previous positions per node. Only nodes that moved more than `delta_threshold` (default 1cm) are included in the broadcast. Typical compression: 60-90% of nodes filtered per frame after convergence.
+			- **Backpressure**: Token bucket with 100 max tokens, refill at 30/s. Each broadcast costs 1 token. When tokens depleted, frames are skipped (not queued). Client-side `PositionBroadcastAck` messages restore tokens.
+		- ### Client Position Pipeline
+			- ```
+			  Binary WebSocket frame
+			  → graph.worker.ts::processBinaryData()
+			      → parseBinaryNodeData() (typed array slicing, zero-copy)
+			      → reverseNodeIdMap.get(update.nodeId) → string node ID
+			      → nodeIndexMap.get(stringNodeId) → position buffer index
+			      → targetPositions[index * 3] = update.position.{x,y,z}
+			  → tick() (requestAnimationFrame, 60Hz)
+			      → lerp currentPositions toward targetPositions (smoothing)
+			      → syncToSharedBuffer() → SharedArrayBuffer
+			  → GraphManager.tsx (main thread, reads SharedArrayBuffer)
+			      → InstancedMesh position attribute update
+			      → Edge point computation: nodeIdToIndexMap lookups for source/target
+			      → GlassEdges.updatePoints(edgePoints)
+			  ```
+		- ### TSL Materials
+			- Three Shading Language (TSL) materials are written as JavaScript node graphs compiled to WGSL (WebGPU) or GLSL (WebGL2). The custom materials are:
+			- **GemNodeMaterial**: Fresnel-based iridescence with analytics-driven colour mapping (PageRank → hue, degree → saturation, anomaly score → emission intensity)
+			- **CrystalOrbMaterial**: Time-varying depth pulse with cosmic spectrum sampling and Fresnel rim
+			- **AgentCapsuleMaterial**: Bioluminescent heartbeat driven by agent `activity_level` uniform (0.0-1.0)
+			- **GlassEdgeMaterial**: Animated UV-scrolling emissive for edge flow visualisation, opacity proportional to edge weight
+	- ## Appendix F: Voice and Multi-User Architecture
+	  collapsed:: true
+		- ### Four-Plane Voice Model
+			- | Plane | Path | Codec | Latency Budget |
+			  | ---- | ---- | ---- | ---- |
+			  | 1. Private command | Mic → turbo-whisper STT → intent parse → agent dispatch | Opus 48kHz mono | 410ms measured (STT 300ms + parse 1ms + dispatch 50ms + ACK 5ms) |
+			  | 2. Private response | Agent → Kokoro TTS → user ear (spatial) | Opus 48kHz mono | ~200ms (synthesis + buffering) |
+			  | 3. Public voice | Mic → LiveKit SFU → all users (spatial audio) | Opus 48kHz mono | <50ms (SFU relay) |
+			  | 4. Public agent | Agent TTS → LiveKit → all users (spatial) | Opus 48kHz mono | ~250ms |
+		- **Spatial audio**: HRTF panning based on entity positions from Vircadia World Server. Each user and agent has a 3D position; audio is spatialised relative to the listener's head position/orientation.
+		- **Voice differentiation**: Each agent type uses a distinct Kokoro voice preset (pitch, speed, timbre) so users can identify which agent is speaking without visual confirmation.
+		- ### Vircadia World Server Integration
+			- Vircadia provides the multi-user substrate:
+			- **Entity CRUD**: Each graph node, edge, and agent is a Vircadia entity with position, rotation, and metadata
+			- **Avatar sync**: User positions, orientations, and hand tracking data (Quest 3) replicated at 30Hz
+			- **Spatial presence**: Users see each other as avatars positioned in the graph space
+			- **PostgreSQL backend**: Entity state persisted in PostgreSQL 15 (separate from Neo4j graph store)
+	- ## Appendix G: Security Model
+	  collapsed:: true
+		- ### Authentication
+			- **Nostr NIP-07**: Browser extension signing (nos2x, Alby). Public key identity without passwords or centralised auth servers.
+			- **Relay integration**: Signed events published to Nostr relays for decentralised audit
+			- **Per-request auth**: `AuthenticatedUser` extractor validates Nostr signatures on every API call; `OptionalAuth` allows anonymous read access
+		- ### Agent Access Control
+			- MCP tools are the only interface agents have to the knowledge graph. Each tool validates:
+			- Authentication (agent identity via MCP session)
+			- Authorization (which ontology namespaces the agent can modify)
+			- Consistency (Whelk-rs validates proposed changes before GitHub PR creation)
+		- ### Audit Trail
+			- Every ontology modification is a Git commit → full history, blame, and rollback
+			- Agent contributions are tagged with agent identity in commit metadata
+			- Nostr event signatures provide non-repudiation
+-
+- ---
+-
+- *VisionFlow / IRIS — DreamLab AI Consulting Ltd. — February 2026*

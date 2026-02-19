@@ -1089,12 +1089,24 @@ export const useWebSocketStore = create<WebSocketState>()(
               logger.info('WebSocket connection established');
             }
 
-            // P1 SECURITY: Send auth token as first message after connect,
-            // NOT as a URL query parameter (which leaks in logs/proxies).
-            const token = nostrAuth.getSessionToken();
+            // P1 SECURITY: Send NIP-98 auth as first message after connect.
             const user = nostrAuth.getCurrentUser();
-            if (token && user) {
-              socket.send(JSON.stringify({ type: 'authenticate', token, pubkey: user.pubkey }));
+            if (user?.pubkey) {
+              if (nostrAuth.isDevMode()) {
+                // Dev mode: legacy Bearer auth
+                socket.send(JSON.stringify({ type: 'authenticate', token: 'dev-session-token', pubkey: user.pubkey }));
+              } else {
+                // Production: NIP-98 signed event for WS URL
+                (async () => {
+                  try {
+                    const httpUrl = state.url.replace(/^ws(s?):\/\//, 'http$1://');
+                    const eventToken = await nostrAuth.signRequest(httpUrl, 'GET');
+                    socket.send(JSON.stringify({ type: 'authenticate', event: eventToken }));
+                  } catch (e) {
+                    logger.error('NIP-98 WS auth signing failed:', e);
+                  }
+                })();
+              }
             }
 
             const currentFilter = useSettingsStore.getState().settings?.nodeFilter;

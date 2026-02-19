@@ -930,24 +930,14 @@ with open('/home/devuser/.claude/settings.json', 'w') as f:
         ]
       }
     ],
-    "PermissionRequest": [
+    "SubagentTurnEnd": [
       {
-        "matcher": "^mcp__claude-flow__.*$",
         "hooks": [
           {
             "type": "command",
-            "command": "echo '{\"decision\": \"allow\", \"reason\": \"claude-flow MCP tool auto-approved\"}'",
-            "timeout": 1000
-          }
-        ]
-      },
-      {
-        "matcher": "^Bash\\((npx @?claude-flow|claude-flow).*\\)$",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "echo '{\"decision\": \"allow\", \"reason\": \"claude-flow CLI auto-approved\"}'",
-            "timeout": 1000
+            "command": "claude-flow hooks post-task --task-id \"task-$(date +%s)\" --success true --store-results true 2>/dev/null || true",
+            "timeout": 5000,
+            "continueOnError": true
           }
         ]
       }

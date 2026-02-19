@@ -205,6 +205,8 @@ pub struct SocketFlowServer {
     // Authentication state
     pubkey: Option<String>,
     is_power_user: bool,
+    // HTTP-equivalent URL of the WebSocket connection (for NIP-98 validation)
+    connection_url: String,
 }
 
 impl SocketFlowServer {
@@ -264,6 +266,7 @@ impl SocketFlowServer {
             state_synced: false,
             pubkey: None,
             is_power_user: false,
+            connection_url: String::new(),
         }
     }
 
@@ -1148,31 +1151,29 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                             Some("authenticate") => {
                                 info!("Client sent authenticate message");
 
-                                let token = msg.get("token").and_then(|t| t.as_str()).map(String::from);
-                                let pubkey = msg.get("pubkey").and_then(|p| p.as_str()).map(String::from);
-
-                                if let (Some(token), Some(pubkey)) = (token, pubkey) {
+                                if let Some(event_b64) = msg.get("event").and_then(|e| e.as_str()) {
+                                    // --- NIP-98 path: { type: "authenticate", event: "<base64>" } ---
                                     let nostr_service = self.app_state.nostr_service.clone();
                                     let client_id = self.client_id;
                                     let cm_addr = self.client_manager_addr.clone();
+                                    let auth_header = format!("Nostr {}", event_b64);
+                                    let ws_url = self.connection_url.clone();
 
-                                    // Validate and load user
                                     ctx.spawn(actix::fut::wrap_future::<_, Self>(async move {
                                         if let Some(ref ns) = nostr_service {
-                                            if let Some(user) = ns.get_session(&token).await {
-                                                if user.pubkey == pubkey {
-                                                    return (Some(user), client_id, cm_addr);
+                                            match ns.verify_nip98_auth(&auth_header, &ws_url, "GET", None).await {
+                                                Ok(user) => return (Some(user), client_id, cm_addr),
+                                                Err(e) => {
+                                                    warn!("NIP-98 WS auth failed: {}", e);
                                                 }
                                             }
                                         }
                                         (None, client_id, cm_addr)
                                     }).map(|(user_opt, client_id, cm_addr), act, ctx| {
                                         if let Some(user) = user_opt {
-                                            // Update local state
                                             act.pubkey = Some(user.pubkey.clone());
                                             act.is_power_user = user.is_power_user;
 
-                                            // Update ClientCoordinator state
                                             if let Some(cid) = client_id {
                                                 use crate::actors::messages::AuthenticateClient;
                                                 cm_addr.do_send(AuthenticateClient {
@@ -1182,7 +1183,6 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                                 });
                                             }
 
-                                            // Send confirmation
                                             let response = serde_json::json!({
                                                 "type": "authenticate_success",
                                                 "pubkey": user.pubkey,
@@ -1192,26 +1192,80 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                             if let Ok(msg_str) = serde_json::to_string(&response) {
                                                 ctx.text(msg_str);
                                             }
-
-                                            info!("Client authenticated: pubkey={}, power_user={}", user.pubkey, user.is_power_user);
+                                            info!("NIP-98 WS authenticated: pubkey={}, power_user={}", user.pubkey, user.is_power_user);
                                         } else {
                                             let error_msg = serde_json::json!({
                                                 "type": "error",
-                                                "message": "Authentication failed: invalid token or pubkey mismatch"
+                                                "message": "NIP-98 WebSocket authentication failed"
                                             });
                                             if let Ok(msg_str) = serde_json::to_string(&error_msg) {
                                                 ctx.text(msg_str);
                                             }
-                                            warn!("Authentication failed for client");
+                                            warn!("NIP-98 WS authentication failed for client");
                                         }
                                     }));
                                 } else {
-                                    let error_msg = serde_json::json!({
-                                        "type": "error",
-                                        "message": "Authentication requires both 'token' and 'pubkey'"
-                                    });
-                                    if let Ok(msg_str) = serde_json::to_string(&error_msg) {
-                                        ctx.text(msg_str);
+                                    // --- Legacy path: { type: "authenticate", token, pubkey } ---
+                                    let token = msg.get("token").and_then(|t| t.as_str()).map(String::from);
+                                    let pubkey = msg.get("pubkey").and_then(|p| p.as_str()).map(String::from);
+
+                                    if let (Some(token), Some(pubkey)) = (token, pubkey) {
+                                        let nostr_service = self.app_state.nostr_service.clone();
+                                        let client_id = self.client_id;
+                                        let cm_addr = self.client_manager_addr.clone();
+
+                                        ctx.spawn(actix::fut::wrap_future::<_, Self>(async move {
+                                            if let Some(ref ns) = nostr_service {
+                                                if let Some(user) = ns.get_session(&token).await {
+                                                    if user.pubkey == pubkey {
+                                                        return (Some(user), client_id, cm_addr);
+                                                    }
+                                                }
+                                            }
+                                            (None, client_id, cm_addr)
+                                        }).map(|(user_opt, client_id, cm_addr), act, ctx| {
+                                            if let Some(user) = user_opt {
+                                                act.pubkey = Some(user.pubkey.clone());
+                                                act.is_power_user = user.is_power_user;
+
+                                                if let Some(cid) = client_id {
+                                                    use crate::actors::messages::AuthenticateClient;
+                                                    cm_addr.do_send(AuthenticateClient {
+                                                        client_id: cid,
+                                                        pubkey: user.pubkey.clone(),
+                                                        is_power_user: user.is_power_user,
+                                                    });
+                                                }
+
+                                                let response = serde_json::json!({
+                                                    "type": "authenticate_success",
+                                                    "pubkey": user.pubkey,
+                                                    "is_power_user": user.is_power_user,
+                                                    "timestamp": chrono::Utc::now().timestamp_millis()
+                                                });
+                                                if let Ok(msg_str) = serde_json::to_string(&response) {
+                                                    ctx.text(msg_str);
+                                                }
+                                                info!("Client authenticated: pubkey={}, power_user={}", user.pubkey, user.is_power_user);
+                                            } else {
+                                                let error_msg = serde_json::json!({
+                                                    "type": "error",
+                                                    "message": "Authentication failed: invalid token or pubkey mismatch"
+                                                });
+                                                if let Ok(msg_str) = serde_json::to_string(&error_msg) {
+                                                    ctx.text(msg_str);
+                                                }
+                                                warn!("Authentication failed for client");
+                                            }
+                                        }));
+                                    } else {
+                                        let error_msg = serde_json::json!({
+                                            "type": "error",
+                                            "message": "Authentication requires 'event' (NIP-98) or both 'token' and 'pubkey'"
+                                        });
+                                        if let Ok(msg_str) = serde_json::to_string(&error_msg) {
+                                            ctx.text(msg_str);
+                                        }
                                     }
                                 }
                             }
@@ -1883,6 +1937,17 @@ pub async fn socket_flow_handler(
     );
 
     ws.is_reconnection = is_reconnection;
+
+    // Store HTTP-equivalent URL for NIP-98 WS auth validation
+    {
+        let conn_info = req.connection_info();
+        ws.connection_url = format!(
+            "{}://{}{}",
+            conn_info.scheme(),
+            conn_info.host(),
+            req.uri().path_and_query().map(|pq| pq.as_str()).unwrap_or("/wss")
+        );
+    }
 
     // Try to authenticate from query string token
     if let Some(token) = token_from_qs {

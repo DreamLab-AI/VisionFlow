@@ -326,9 +326,6 @@ if (typeof window !== 'undefined') {
 // Export the current effective log level for reference
 export { DEFAULT_LOG_LEVEL };
 
-// Backward compatibility exports (deprecated)
-export { createLogger as createLegacyLogger, createAgentLogger as createLegacyAgentLogger };
-
 // Dynamic telemetry logger for system-wide telemetry that respects Control Center settings
 export const dynamicAgentTelemetryLogger = createDynamicAgentLogger('agent-telemetry');
 

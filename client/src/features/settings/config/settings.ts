@@ -366,6 +366,8 @@ export interface KnowledgeGraphVisualSettings {
   innerGlowIntensity?: number;
   facetDetail?: number;
   authorityScaleFactor?: number;
+  connectionInfluence?: number;
+  globalScaleMultiplier?: number;
   showDomainBadge?: boolean;
   showQualityStars?: boolean;
   showRecencyIndicator?: boolean;
@@ -378,6 +380,8 @@ export interface OntologyVisualSettings {
   orbitalRingCount?: number;
   orbitalRingSpeed?: number;
   hierarchyScaleFactor?: number;
+  minScale?: number;
+  instanceCountInfluence?: number;
   depthColorGradient?: boolean;
   showHierarchyBreadcrumb?: boolean;
   showInstanceCount?: boolean;
@@ -390,6 +394,9 @@ export interface AgentVisualSettings {
   nucleusGlowIntensity?: number;
   breathingSpeed?: number;
   breathingAmplitude?: number;
+  workloadInfluence?: number;
+  tokenRateInfluence?: number;
+  tokenRateCap?: number;
   showHealthBar?: boolean;
   showTokenRate?: boolean;
   showTaskCount?: boolean;

@@ -174,28 +174,10 @@ export const useGraphEventHandlers = (
 
         drag.currentNodePos3D.copy(intersection);
 
-        
-        const nodeSize = settings?.visualisation?.nodes?.nodeSize || 0.01;
-        const scale = nodeSize / BASE_SPHERE_RADIUS;
-        const tempMatrix = new THREE.Matrix4();
-        tempMatrix.makeScale(scale, scale, scale);
-        tempMatrix.setPosition(drag.currentNodePos3D);
-        if (meshRef.current) {
-          meshRef.current.setMatrixAt(drag.instanceId!, tempMatrix);
-          meshRef.current.instanceMatrix.needsUpdate = true;
-        }
+        // GemNodes reads dragDataRef.current.currentNodePos3D directly in useFrame,
+        // so we do NOT need to call setGraphData or setMatrixAt here.
+        // This avoids expensive React re-renders during drag (was ~16ms/frame).
 
-        
-        setGraphData((prev: GraphData) => ({
-          ...prev,
-          nodes: prev.nodes.map((node: Node, idx: number) =>
-            idx === drag.instanceId
-              ? { ...node, position: { x: drag.currentNodePos3D.x, y: drag.currentNodePos3D.y, z: drag.currentNodePos3D.z } }
-              : node
-          )
-        }));
-
-        
         updateNodePosition(drag.nodeId!, {
           x: drag.currentNodePos3D.x,
           y: drag.currentNodePos3D.y,

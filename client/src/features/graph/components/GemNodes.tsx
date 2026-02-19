@@ -8,6 +8,7 @@ import { createCrystalOrbMaterial, createCrystalOrbGeometry } from '../../../ren
 import { createAgentCapsuleMaterial, createAgentCapsuleGeometry } from '../../../rendering/materials/AgentCapsuleMaterial';
 import { useSettingsStore } from '../../../store/settingsStore';
 import type { GemMaterialSettings } from '../../settings/config/settings';
+import { computeNodeScale } from '../utils/nodeScaling';
 
 export interface GemNodesProps {
   nodes: GraphNode[];
@@ -26,6 +27,12 @@ export interface GemNodesProps {
   onPointerMissed: () => void;
   onDoubleClick: (event: any) => void;
   selectedNodeId: string | null;
+  /** Live drag state ref — when set, the dragged node uses this position instead of SAB */
+  dragDataRef?: React.MutableRefObject<{
+    isDragging: boolean;
+    nodeId: string | null;
+    currentNodePos3D: { x: number; y: number; z: number };
+  }>;
 }
 
 export interface GemNodesHandle {
@@ -36,27 +43,7 @@ export interface GemNodesHandle {
 /** Round up to next power of 2 (minimum 1). */
 const nextPowerOf2 = (n: number): number => Math.pow(2, Math.ceil(Math.log2(Math.max(n, 1))));
 
-// Mode-aware node scale (mirrors GraphManager getNodeScale)
-const getNodeScale = (
-  node: GraphNode, conns: Map<string, number>,
-  mode: GraphVisualMode, hier?: Map<string, any>,
-): number => {
-  const base = node.metadata?.size || 1.0;
-  const id = String(node.id);
-  if (mode === 'ontology') {
-    const depth = hier?.get(id)?.depth ?? (node.metadata?.depth ?? 0);
-    const ic = parseInt(node.metadata?.instanceCount || '0', 10);
-    return base * Math.max(0.4, 1.0 - depth * 0.15) * (1 + Math.log(ic + 1) * 0.1);
-  }
-  if (mode === 'agent') {
-    const w = node.metadata?.workload ?? 0;
-    const t = node.metadata?.tokenRate ?? 0;
-    return base * (1 + w * 0.3 + Math.min(t / 100, 0.5));
-  }
-  const auth = node.metadata?.authority ?? node.metadata?.authorityScore ?? 0;
-  const cc = conns.get(id) || 0;
-  return base * (1 + Math.log(cc + 1) * 0.4) * (1 + auth * 0.5) * 2.5;
-};
+// Node scaling delegated to shared computeNodeScale (../utils/nodeScaling.ts)
 
 const getDominantMode = (
   nodes: GraphNode[], global: GraphVisualMode, perNode: Map<string, GraphVisualMode>,
@@ -306,17 +293,25 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
     for (let i = 0; i < visCount; i++) {
       const node = nodes[i];
       const mode = perNodeVisualModeMap.get(String(node.id)) || graphMode;
-      let s = getNodeScale(node, connectionCountMap, mode, hierarchyMap) * baseScale;
+      let s = computeNodeScale(node, connectionCountMap, mode, hierarchyMap, props.settings?.visualisation?.graphTypeVisuals) * baseScale;
       if (selectedNodeId && String(node.id) === selectedNodeId) {
         s *= 1 + Math.sin(clock.elapsedTime * 3) * 0.15;
       }
 
       // Map from visibleNodes index to graphData.nodes index for correct position lookup
-      const srcIdx = props.nodeIdToIndexMap.get(String(node.id));
+      const nodeIdStr = String(node.id);
+      const srcIdx = props.nodeIdToIndexMap.get(nodeIdStr);
       const posIdx = srcIdx !== undefined ? srcIdx : i;
       const i3 = posIdx * 3;
       let x: number, y: number, z: number;
-      if (positions && i3 + 2 < positions.length) {
+
+      // Use live drag position for the dragged node (avoids 1-frame SAB lag)
+      const drag = props.dragDataRef?.current;
+      if (drag && drag.isDragging && drag.nodeId === nodeIdStr) {
+        x = drag.currentNodePos3D.x;
+        y = drag.currentNodePos3D.y;
+        z = drag.currentNodePos3D.z;
+      } else if (positions && i3 + 2 < positions.length) {
         x = positions[i3]; y = positions[i3 + 1]; z = positions[i3 + 2];
       } else {
         const p = node.position || { x: 0, y: 0, z: 0 };

@@ -73,21 +73,6 @@ export interface ActionConnection {
   targetPosition: THREE.Vector3;
 }
 
-/** Legacy ActionConnection interface for backward compatibility */
-export interface LegacyActionConnection {
-  id: string;
-  sourceAgentId: number;
-  targetNodeId: number;
-  actionType: AgentActionType;
-  color: string;
-  progress: number;
-  phase: 'spawn' | 'travel' | 'impact' | 'fade';
-  startTime: number;
-  duration: number;
-  sourcePosition?: { x: number; y: number; z: number };
-  targetPosition?: { x: number; y: number; z: number };
-}
-
 export interface UseActionConnectionsOptions {
   /** Maximum concurrent connections to display (default: 50) */
   maxConnections?: number;
@@ -429,33 +414,6 @@ export function useActionConnections(
     getConnectionsByType,
     activeCount,
     updateConnections,
-  };
-}
-
-/**
- * Convert ActionConnection to legacy format for backward compatibility
- */
-export function toLegacyConnection(conn: ActionConnection): LegacyActionConnection {
-  return {
-    id: conn.id,
-    sourceAgentId: conn.sourceAgentId,
-    targetNodeId: conn.targetNodeId,
-    actionType: conn._actionTypeEnum,
-    color: conn.color,
-    progress: conn.progress,
-    phase: conn.phase,
-    startTime: conn.startTime,
-    duration: conn.duration,
-    sourcePosition: {
-      x: conn.sourcePosition.x,
-      y: conn.sourcePosition.y,
-      z: conn.sourcePosition.z,
-    },
-    targetPosition: {
-      x: conn.targetPosition.x,
-      y: conn.targetPosition.y,
-      z: conn.targetPosition.z,
-    },
   };
 }
 

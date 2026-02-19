@@ -414,12 +414,23 @@ class JssOntologyService {
     url: string,
     options: RequestInit = {}
   ): Promise<Response> {
-    const token = nostrAuth.getSessionToken();
-
     const headers = new Headers(options.headers);
 
-    if (token) {
-      headers.set('Authorization', `Bearer ${token}`);
+    if (nostrAuth.isAuthenticated()) {
+      if (nostrAuth.isDevMode()) {
+        headers.set('Authorization', 'Bearer dev-session-token');
+        const user = nostrAuth.getCurrentUser();
+        if (user?.pubkey) headers.set('X-Nostr-Pubkey', user.pubkey);
+      } else {
+        try {
+          const method = (options.method || 'GET').toUpperCase();
+          const body = typeof options.body === 'string' ? options.body : undefined;
+          const token = await nostrAuth.signRequest(url, method, body);
+          headers.set('Authorization', `Nostr ${token}`);
+        } catch (e) {
+          console.warn('[JssOntologyService] NIP-98 signing failed:', e);
+        }
+      }
     }
 
     return fetch(url, {

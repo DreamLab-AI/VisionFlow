@@ -284,10 +284,24 @@ export class OptimizationWebSocketManager {
 
         this.ws.onopen = () => {
           clearTimeout(connectionTimeout);
-          // Send auth token as first message instead of URL param
-          const token = nostrAuth.getSessionToken();
-          if (token) {
-            this.ws?.send(JSON.stringify({ type: 'auth', token }));
+          // Send NIP-98 auth as first message
+          const user = nostrAuth.getCurrentUser();
+          if (user?.pubkey) {
+            if (nostrAuth.isDevMode()) {
+              this.ws?.send(JSON.stringify({ type: 'auth', token: 'dev-session-token' }));
+            } else {
+              const currentWsUrl = this.wsUrl;
+              const wsRef = this.ws;
+              (async () => {
+                try {
+                  const httpUrl = currentWsUrl.replace(/^ws(s?):\/\//, 'http$1://');
+                  const eventToken = await nostrAuth.signRequest(httpUrl, 'GET');
+                  wsRef?.send(JSON.stringify({ type: 'authenticate', event: eventToken }));
+                } catch (e) {
+                  logger.error('NIP-98 optimization WS auth failed:', e);
+                }
+              })();
+            }
           }
           logger.info('Optimization WebSocket connected');
           this.reconnectAttempts = 0;

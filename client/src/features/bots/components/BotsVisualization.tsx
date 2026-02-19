@@ -9,7 +9,6 @@ import { agentTelemetry } from '../../../telemetry/AgentTelemetry';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { debugState } from '../../../utils/clientDebugState';
 import { useBotsData } from '../contexts/BotsDataContext';
-import { AgentPollingStatus } from './AgentPollingStatus';
 
 const logger = createLogger('BotsVisualization');
 
