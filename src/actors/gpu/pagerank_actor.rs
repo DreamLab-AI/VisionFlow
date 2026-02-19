@@ -32,7 +32,7 @@
 //! - Drive layout forces (important nodes at center)
 
 use actix::prelude::*;
-use log::{error, info};
+use log::{error, info, warn};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::Instant;
@@ -345,42 +345,55 @@ impl Handler<ComputePageRank> for PageRankActor {
 
         // Create the async computation future
         let future = async move {
-            let mut unified_compute = match shared_ctx
-                .unified_compute
-                .lock()
-            {
-                Ok(guard) => guard,
-                Err(e) => return Err(format!("Failed to acquire GPU compute lock: {}", e)),
-            };
+            // Clone Arc for move into spawn_blocking
+            let unified_compute_arc = Arc::clone(&shared_ctx.unified_compute);
 
-            let start_time = Instant::now();
+            // Move blocking GPU operations to dedicated blocking thread pool
+            // This prevents std::sync::Mutex::lock() from blocking Tokio worker threads
+            let blocking_result = tokio::task::spawn_blocking(move || {
+                let mut unified_compute = match unified_compute_arc.lock() {
+                    Ok(guard) => guard,
+                    Err(poisoned) => {
+                        warn!("PageRankActor: GPU mutex was poisoned, recovering");
+                        poisoned.into_inner()
+                    }
+                };
 
-            // Extract parameters with defaults
-            let damping = params.damping_factor.unwrap_or(0.85);
-            let max_iter = params.max_iterations.unwrap_or(100) as usize;
-            let epsilon = params.epsilon.unwrap_or(1e-6);
-            let normalize = params.normalize.unwrap_or(true);
-            let use_optimized = params.use_optimized.unwrap_or(true);
+                let start_time = Instant::now();
 
-            // Call GPU PageRank computation
-            let gpu_result = unified_compute
-                .run_pagerank_centrality(damping, max_iter, epsilon, normalize, use_optimized)
-                .map_err(|e| {
-                    error!("GPU PageRank computation failed: {}", e);
-                    format!("PageRank computation failed: {}", e)
-                })?;
+                // Extract parameters with defaults
+                let damping = params.damping_factor.unwrap_or(0.85);
+                let max_iter = params.max_iterations.unwrap_or(100) as usize;
+                let epsilon = params.epsilon.unwrap_or(1e-6);
+                let normalize = params.normalize.unwrap_or(true);
+                let use_optimized = params.use_optimized.unwrap_or(true);
 
-            let computation_time = start_time.elapsed();
-            info!(
-                "PageRankActor: PageRank computation completed in {:?}",
-                computation_time
-            );
+                // Call GPU PageRank computation
+                let gpu_result = unified_compute
+                    .run_pagerank_centrality(damping, max_iter, epsilon, normalize, use_optimized)
+                    .map_err(|e| {
+                        error!("GPU PageRank computation failed: {}", e);
+                        format!("PageRank computation failed: {}", e)
+                    })?;
 
-            // Unpack GPU result and convert iterations to u32 for PageRankResult
-            let (pagerank_values, iterations, converged, convergence_value) = gpu_result;
-            let iterations = iterations as u32;
+                let computation_time = start_time.elapsed();
+                info!(
+                    "PageRankActor: PageRank computation completed in {:?}",
+                    computation_time
+                );
 
-            Ok((pagerank_values, iterations, converged, convergence_value, computation_time))
+                // Unpack GPU result and convert iterations to u32 for PageRankResult
+                let (pagerank_values, iterations, converged, convergence_value) = gpu_result;
+                let iterations = iterations as u32;
+
+                Ok((pagerank_values, iterations, converged, convergence_value, computation_time))
+            }).await;
+
+            // Handle spawn_blocking join result
+            match blocking_result {
+                Ok(inner_result) => inner_result,
+                Err(join_err) => Err(format!("GPU blocking task panicked: {}", join_err)),
+            }
         };
 
         // Use into_actor to re-enter actor context and finish processing

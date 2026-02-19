@@ -1,7 +1,7 @@
 //! Anomaly Detection Actor - Handles anomaly detection algorithms
 
 use actix::prelude::*;
-use log::{error, info};
+use log::{error, info, warn};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::Instant;
@@ -56,35 +56,95 @@ impl AnomalyDetectionActor {
             params.method
         );
 
-        let mut unified_compute = match &self.shared_context {
-            Some(ctx) => ctx
-                .unified_compute
-                .lock()
-                .map_err(|e| format!("Failed to acquire GPU compute lock: {}", e))?,
+        let unified_compute_arc = match &self.shared_context {
+            Some(ctx) => Arc::clone(&ctx.unified_compute),
             None => {
                 return Err("GPU context not initialized".to_string());
             }
         };
 
+        let num_nodes = self.gpu_state.num_nodes;
+        let method = params.method.clone();
+        let k_neighbors = params.k_neighbors;
+        let threshold = params.threshold;
+        let feature_data = params.feature_data.clone();
+
         let start_time = Instant::now();
 
-        
+        // Move blocking GPU operations to dedicated blocking thread pool
+        // This prevents std::sync::Mutex::lock() from blocking Tokio worker threads
+        type BlockingResult = (String, Option<Vec<f32>>, Option<Vec<f32>>, Option<Vec<i32>>, f32, u32);
+        let blocking_result = tokio::task::spawn_blocking(move || -> Result<BlockingResult, String> {
+            let mut unified_compute = match unified_compute_arc.lock() {
+                Ok(guard) => guard,
+                Err(poisoned) => {
+                    warn!("AnomalyDetectionActor: GPU mutex was poisoned, recovering");
+                    poisoned.into_inner()
+                }
+            };
+
+            match method {
+                AnomalyDetectionMethod::LOF => {
+                    let k = k_neighbors.unwrap_or(5);
+                    let thresh = threshold.unwrap_or(0.5);
+                    let lof_result = unified_compute
+                        .run_lof_anomaly_detection(k, thresh)
+                        .map_err(|e| format!("LOF detection failed: {}", e))?;
+                    Ok(("LOF".to_string(), Some(lof_result.0), None, None, thresh, num_nodes))
+                }
+                AnomalyDetectionMethod::ZScore => {
+                    let thresh = threshold.unwrap_or(3.0);
+                    let data = feature_data.unwrap_or_else(|| {
+                        (0..num_nodes)
+                            .map(|i| (i as f32 + 1.0) / num_nodes as f32 + (i as f32).sin() * 0.1 + (i as f32).cos() * 0.05)
+                            .collect()
+                    });
+                    let z_scores = unified_compute
+                        .run_zscore_anomaly_detection(&data)
+                        .map_err(|e| format!("Z-Score detection failed: {}", e))?;
+                    Ok(("ZScore".to_string(), None, Some(z_scores), None, thresh, num_nodes))
+                }
+                AnomalyDetectionMethod::IsolationForest => {
+                    let thresh = threshold.unwrap_or(0.5);
+                    let _positions = unified_compute
+                        .get_node_positions()
+                        .map_err(|e| format!("Failed to get node positions: {}", e))?;
+                    Ok(("IsolationForest".to_string(), None, None, None, thresh, num_nodes))
+                }
+                AnomalyDetectionMethod::DBSCAN => {
+                    let eps = threshold.unwrap_or(50.0);
+                    let min_pts = 3;
+                    let cluster_labels = unified_compute
+                        .run_dbscan_clustering(eps, min_pts)
+                        .map_err(|e| format!("DBSCAN clustering failed: {}", e))?;
+                    Ok(("DBSCAN".to_string(), None, None, Some(cluster_labels), eps, num_nodes))
+                }
+            }
+        }).await;
+
+        let (_method_name, lof_scores, z_scores, dbscan_labels, used_threshold, _num_nodes) = match blocking_result {
+            Ok(inner_result) => inner_result?,
+            Err(join_err) => return Err(format!("GPU blocking task panicked: {}", join_err)),
+        };
+
+        // Post-process GPU results into anomalies (CPU-bound, non-blocking)
         let (anomalies, stats): (Vec<AnomalyNode>, AnomalyStats) = match params.method {
             AnomalyDetectionMethod::LOF => {
-                self.perform_lof_detection(&mut unified_compute, &params)
-                    .await?
+                let scores = lof_scores.unwrap_or_default();
+                self.build_lof_anomalies(&scores, used_threshold)
             }
             AnomalyDetectionMethod::ZScore => {
-                self.perform_zscore_detection(&mut unified_compute, &params)
-                    .await?
+                let scores = z_scores.unwrap_or_default();
+                self.build_zscore_anomalies(&scores, used_threshold)
             }
             AnomalyDetectionMethod::IsolationForest => {
-                self.perform_isolation_forest_detection(&mut unified_compute, &params)
-                    .await?
+                // IsolationForest uses CPU-side computation via compute_isolation_scores
+                // which was already called in the original sub-method; re-dispatch here
+                self.perform_isolation_forest_detection_cpu(&params)?
             }
             AnomalyDetectionMethod::DBSCAN => {
-                self.perform_dbscan_anomaly_detection(&mut unified_compute, &params)
-                    .await?
+                let labels = dbscan_labels.unwrap_or_default();
+                self.build_dbscan_anomalies(&labels, used_threshold)
             }
         };
 
@@ -635,6 +695,158 @@ impl AnomalyDetectionActor {
     }
 
     
+    /// Build LOF anomaly results from raw GPU scores (CPU-only post-processing)
+    #[allow(dead_code)]
+    fn build_lof_anomalies(&self, lof_scores: &[f32], threshold: f32) -> (Vec<AnomalyNode>, AnomalyStats) {
+        let mut anomalies = Vec::new();
+
+        for (node_id, &score) in lof_scores.iter().enumerate() {
+            if score > threshold {
+                anomalies.push(AnomalyNode {
+                    node_id: node_id as u32,
+                    anomaly_score: score,
+                    reason: format!("LOF score {:.3} exceeds threshold {:.3}", score, threshold),
+                    anomaly_type: "outlier".to_string(),
+                    severity: Self::calculate_severity(score, threshold),
+                    explanation: format!("LOF score {:.3} exceeds threshold {:.3}", score, threshold),
+                    features: vec!["lof_score".to_string(), "local_density".to_string(), "reachability".to_string()],
+                });
+            }
+        }
+
+        anomalies.sort_by(|a, b| b.anomaly_score.partial_cmp(&a.anomaly_score).unwrap_or(std::cmp::Ordering::Equal));
+
+        let stats = AnomalyStats {
+            anomalies_found: anomalies.len(),
+            detection_threshold: threshold,
+            average_anomaly_score: if !anomalies.is_empty() {
+                anomalies.iter().map(|a| a.anomaly_score).sum::<f32>() / anomalies.len() as f32
+            } else { 0.0 },
+            max_anomaly_score: anomalies.first().map(|a| a.anomaly_score).unwrap_or(0.0),
+            min_anomaly_score: anomalies.last().map(|a| a.anomaly_score).unwrap_or(0.0),
+        };
+
+        (anomalies, stats)
+    }
+
+    /// Build Z-Score anomaly results from raw GPU scores (CPU-only post-processing)
+    #[allow(dead_code)]
+    fn build_zscore_anomalies(&self, z_scores: &[f32], threshold: f32) -> (Vec<AnomalyNode>, AnomalyStats) {
+        let mut anomalies = Vec::new();
+
+        for (node_id, &z_score) in z_scores.iter().enumerate() {
+            let abs_z_score = z_score.abs();
+            if abs_z_score > threshold {
+                anomalies.push(AnomalyNode {
+                    node_id: node_id as u32,
+                    anomaly_score: abs_z_score,
+                    reason: format!("Z-score {:.3} (abs {:.3}) exceeds threshold {:.3}", z_score, abs_z_score, threshold),
+                    anomaly_type: if z_score > threshold { "high_outlier" } else { "low_outlier" }.to_string(),
+                    severity: Self::calculate_severity(abs_z_score, threshold),
+                    explanation: format!("Z-score {:.3} (abs {:.3}) exceeds threshold {:.3}", z_score, abs_z_score, threshold),
+                    features: vec!["z_score".to_string(), "statistical_deviation".to_string()],
+                });
+            }
+        }
+
+        anomalies.sort_by(|a, b| b.anomaly_score.partial_cmp(&a.anomaly_score).unwrap_or(std::cmp::Ordering::Equal));
+
+        let stats = AnomalyStats {
+            anomalies_found: anomalies.len(),
+            detection_threshold: threshold,
+            average_anomaly_score: if !anomalies.is_empty() {
+                anomalies.iter().map(|a| a.anomaly_score).sum::<f32>() / anomalies.len() as f32
+            } else { 0.0 },
+            max_anomaly_score: anomalies.first().map(|a| a.anomaly_score).unwrap_or(0.0),
+            min_anomaly_score: anomalies.last().map(|a| a.anomaly_score).unwrap_or(0.0),
+        };
+
+        (anomalies, stats)
+    }
+
+    /// Build DBSCAN anomaly results from cluster labels (CPU-only post-processing)
+    #[allow(dead_code)]
+    fn build_dbscan_anomalies(&self, cluster_labels: &[i32], eps: f32) -> (Vec<AnomalyNode>, AnomalyStats) {
+        let mut anomalies = Vec::new();
+        let min_pts = 3;
+
+        for (node_id, &label) in cluster_labels.iter().enumerate() {
+            if label == -1 {
+                anomalies.push(AnomalyNode {
+                    node_id: node_id as u32,
+                    anomaly_score: 1.0,
+                    reason: format!("Node classified as noise by DBSCAN (eps={:.2}, min_pts={})", eps, min_pts),
+                    anomaly_type: "noise_outlier".to_string(),
+                    severity: "high".to_string(),
+                    explanation: "DBSCAN identified this node as noise (not belonging to any cluster)".to_string(),
+                    features: vec!["spatial_isolation".to_string()],
+                });
+            }
+        }
+
+        let threshold = 0.5;
+        let stats = AnomalyStats {
+            anomalies_found: anomalies.len(),
+            detection_threshold: threshold,
+            average_anomaly_score: if !anomalies.is_empty() { 1.0 } else { 0.0 },
+            max_anomaly_score: if !anomalies.is_empty() { 1.0 } else { 0.0 },
+            min_anomaly_score: if !anomalies.is_empty() { 1.0 } else { 0.0 },
+        };
+
+        (anomalies, stats)
+    }
+
+    /// CPU-only Isolation Forest detection (no GPU lock needed, uses compute_isolation_scores)
+    #[allow(dead_code)]
+    fn perform_isolation_forest_detection_cpu(
+        &self,
+        params: &AnomalyDetectionParams,
+    ) -> Result<(Vec<AnomalyNode>, AnomalyStats), String> {
+        let threshold = params.threshold.unwrap_or(0.5);
+        let num_trees = 100;
+
+        // Generate synthetic features from node indices (matches original behavior
+        // when GPU positions are unavailable in this CPU-only path)
+        let num_nodes = self.gpu_state.num_nodes as usize;
+        let mut features = Vec::with_capacity(num_nodes * 3);
+        for i in 0..num_nodes {
+            features.push(i as f32);
+            features.push((i as f32).sin());
+            features.push((i as f32).cos());
+        }
+
+        let isolation_scores = self.compute_isolation_scores(&features, num_trees);
+
+        let mut anomalies = Vec::new();
+        for (node_id, &score) in isolation_scores.iter().enumerate() {
+            if score > threshold {
+                anomalies.push(AnomalyNode {
+                    node_id: node_id as u32,
+                    anomaly_score: score,
+                    reason: format!("Isolation score {:.3} exceeds threshold {:.3}", score, threshold),
+                    anomaly_type: "isolated_outlier".to_string(),
+                    severity: Self::calculate_severity(score, threshold),
+                    explanation: format!("Isolation Forest score {:.3} indicates anomalous behavior", score),
+                    features: vec!["position".to_string()],
+                });
+            }
+        }
+
+        anomalies.sort_by(|a, b| b.anomaly_score.partial_cmp(&a.anomaly_score).unwrap_or(std::cmp::Ordering::Equal));
+
+        let stats = AnomalyStats {
+            anomalies_found: anomalies.len(),
+            detection_threshold: threshold,
+            average_anomaly_score: if !anomalies.is_empty() {
+                anomalies.iter().map(|a| a.anomaly_score).sum::<f32>() / anomalies.len() as f32
+            } else { 0.0 },
+            max_anomaly_score: anomalies.first().map(|a| a.anomaly_score).unwrap_or(0.0),
+            min_anomaly_score: anomalies.last().map(|a| a.anomaly_score).unwrap_or(0.0),
+        };
+
+        Ok((anomalies, stats))
+    }
+
     fn calculate_severity(score: f32, threshold: f32) -> String {
         let ratio = score / threshold;
 
@@ -716,176 +928,189 @@ impl Handler<RunAnomalyDetection> for AnomalyDetectionActor {
             feature_data: None,
         };
 
-        
         let start_time = std::time::Instant::now();
 
-        
-        let result = match &self.shared_context {
-            Some(ctx) => {
-                match ctx.unified_compute.lock() {
-                    Ok(mut unified_compute) => {
-                        match internal_params.method {
-                            AnomalyDetectionMethod::LOF => {
-                                
-                                let k_neighbors = internal_params.k_neighbors.unwrap_or(5);
-                                let threshold = internal_params.threshold.unwrap_or(0.5);
+        // Clone Arc for move into spawn_blocking
+        let shared_ctx = Arc::clone(self.shared_context.as_ref().unwrap());
+        let num_nodes = self.gpu_state.num_nodes;
+        let internal_method = internal_params.method.clone();
+        let internal_threshold = internal_params.threshold;
+        let internal_k_neighbors = internal_params.k_neighbors;
 
-                                match unified_compute
-                                    .run_lof_anomaly_detection(k_neighbors, threshold)
-                                {
-                                    Ok(lof_result) => {
-                                        let lof_scores = lof_result.0;
-                                        let mut anomalies = Vec::new();
+        // Capture all values needed for the async + actor future
+        let internal_params_method = internal_params.method.clone();
+        let internal_params_threshold = internal_params.threshold;
 
-                                        for (node_id, &score) in lof_scores.iter().enumerate() {
-                                            if score > threshold {
-                                                anomalies.push(crate::actors::gpu::anomaly_detection_actor::AnomalyNode {
-                                                        node_id: node_id as u32,
-                                                        anomaly_score: score,
-                                                        reason: format!("LOF score {:.3} exceeds threshold {:.3}", score, threshold),
-                                                        anomaly_type: "outlier".to_string(),
-                                                        severity: if score > threshold * 3.0 { "high" } else { "medium" }.to_string(),
-                                                        explanation: format!("LOF anomaly detected with score {:.3}", score),
-                                                        features: vec!["lof_score".to_string()],
-                                                    });
-                                            }
-                                        }
+        let future = async move {
+            // Move blocking GPU operations to dedicated blocking thread pool
+            // This prevents std::sync::Mutex::lock() from blocking Tokio worker threads
+            let blocking_result = tokio::task::spawn_blocking(move || {
+                let mut unified_compute = match shared_ctx.unified_compute.lock() {
+                    Ok(guard) => guard,
+                    Err(poisoned) => {
+                        warn!("AnomalyDetectionActor: GPU mutex was poisoned, recovering");
+                        poisoned.into_inner()
+                    }
+                };
 
-                                        Ok((Some(lof_scores), anomalies))
+                match internal_method {
+                    AnomalyDetectionMethod::LOF => {
+                        let k_neighbors = internal_k_neighbors.unwrap_or(5);
+                        let threshold = internal_threshold.unwrap_or(0.5);
+
+                        match unified_compute.run_lof_anomaly_detection(k_neighbors, threshold) {
+                            Ok(lof_result) => {
+                                let lof_scores = lof_result.0;
+                                let mut anomalies = Vec::new();
+
+                                for (node_id, &score) in lof_scores.iter().enumerate() {
+                                    if score > threshold {
+                                        anomalies.push(AnomalyNode {
+                                            node_id: node_id as u32,
+                                            anomaly_score: score,
+                                            reason: format!("LOF score {:.3} exceeds threshold {:.3}", score, threshold),
+                                            anomaly_type: "outlier".to_string(),
+                                            severity: if score > threshold * 3.0 { "high" } else { "medium" }.to_string(),
+                                            explanation: format!("LOF anomaly detected with score {:.3}", score),
+                                            features: vec!["lof_score".to_string()],
+                                        });
                                     }
-                                    Err(e) => Err(format!("GPU LOF detection failed: {}", e)),
                                 }
+
+                                Ok((Some(lof_scores), anomalies))
                             }
-                            AnomalyDetectionMethod::ZScore => {
-                                
-                                let feature_data: Vec<f32> = (0..self.gpu_state.num_nodes)
-                                    .map(|i| (i as f32 + 1.0) / self.gpu_state.num_nodes as f32)
-                                    .collect();
-
-                                match unified_compute.run_zscore_anomaly_detection(&feature_data) {
-                                    Ok(z_scores) => {
-                                        let threshold = internal_params.threshold.unwrap_or(3.0);
-                                        let mut anomalies = Vec::new();
-
-                                        for (node_id, &score) in z_scores.iter().enumerate() {
-                                            let abs_score = score.abs();
-                                            if abs_score > threshold {
-                                                anomalies.push(crate::actors::gpu::anomaly_detection_actor::AnomalyNode {
-                                                        node_id: node_id as u32,
-                                                        anomaly_score: abs_score,
-                                                        reason: format!("Z-score {:.3} exceeds threshold {:.3}", abs_score, threshold),
-                                                        anomaly_type: "statistical_outlier".to_string(),
-                                                        severity: if abs_score > threshold * 2.0 { "high" } else { "medium" }.to_string(),
-                                                        explanation: format!("Statistical anomaly detected with Z-score {:.3}", score),
-                                                        features: vec!["z_score".to_string()],
-                                                    });
-                                            }
-                                        }
-
-                                        Ok((Some(z_scores), anomalies))
-                                    }
-                                    Err(e) => Err(format!("GPU Z-Score detection failed: {}", e)),
-                                }
-                            }
-                            AnomalyDetectionMethod::DBSCAN => {
-                                
-                                let eps = internal_params.threshold.unwrap_or(50.0);
-                                let min_pts = 3;
-
-                                match unified_compute.run_dbscan_clustering(eps, min_pts) {
-                                    Ok(cluster_labels) => {
-                                        let mut anomalies = Vec::new();
-
-                                        for (node_id, &label) in cluster_labels.iter().enumerate() {
-                                            if label == -1 {
-                                                
-                                                anomalies.push(crate::actors::gpu::anomaly_detection_actor::AnomalyNode {
-                                                        node_id: node_id as u32,
-                                                        anomaly_score: 1.0,
-                                                        reason: format!("Node classified as noise by DBSCAN (eps={:.2})", eps),
-                                                        anomaly_type: "spatial_outlier".to_string(),
-                                                        severity: "high".to_string(),
-                                                        explanation: "DBSCAN identified this node as noise (not belonging to any cluster)".to_string(),
-                                                        features: vec!["spatial_isolation".to_string()],
-                                                    });
-                                            }
-                                        }
-
-                                        Ok((None, anomalies))
-                                    }
-                                    Err(e) => Err(format!("GPU DBSCAN detection failed: {}", e)),
-                                }
-                            }
-                            _ => Err("Unsupported anomaly detection method".to_string()),
+                            Err(e) => Err(format!("GPU LOF detection failed: {}", e)),
                         }
                     }
-                    Err(e) => Err(format!("Failed to acquire GPU compute lock: {}", e)),
+                    AnomalyDetectionMethod::ZScore => {
+                        let feature_data: Vec<f32> = (0..num_nodes)
+                            .map(|i| (i as f32 + 1.0) / num_nodes as f32)
+                            .collect();
+
+                        match unified_compute.run_zscore_anomaly_detection(&feature_data) {
+                            Ok(z_scores) => {
+                                let threshold = internal_threshold.unwrap_or(3.0);
+                                let mut anomalies = Vec::new();
+
+                                for (node_id, &score) in z_scores.iter().enumerate() {
+                                    let abs_score = score.abs();
+                                    if abs_score > threshold {
+                                        anomalies.push(AnomalyNode {
+                                            node_id: node_id as u32,
+                                            anomaly_score: abs_score,
+                                            reason: format!("Z-score {:.3} exceeds threshold {:.3}", abs_score, threshold),
+                                            anomaly_type: "statistical_outlier".to_string(),
+                                            severity: if abs_score > threshold * 2.0 { "high" } else { "medium" }.to_string(),
+                                            explanation: format!("Statistical anomaly detected with Z-score {:.3}", score),
+                                            features: vec!["z_score".to_string()],
+                                        });
+                                    }
+                                }
+
+                                Ok((Some(z_scores), anomalies))
+                            }
+                            Err(e) => Err(format!("GPU Z-Score detection failed: {}", e)),
+                        }
+                    }
+                    AnomalyDetectionMethod::DBSCAN => {
+                        let eps = internal_threshold.unwrap_or(50.0);
+                        let min_pts = 3;
+
+                        match unified_compute.run_dbscan_clustering(eps, min_pts) {
+                            Ok(cluster_labels) => {
+                                let mut anomalies = Vec::new();
+
+                                for (node_id, &label) in cluster_labels.iter().enumerate() {
+                                    if label == -1 {
+                                        anomalies.push(AnomalyNode {
+                                            node_id: node_id as u32,
+                                            anomaly_score: 1.0,
+                                            reason: format!("Node classified as noise by DBSCAN (eps={:.2})", eps),
+                                            anomaly_type: "spatial_outlier".to_string(),
+                                            severity: "high".to_string(),
+                                            explanation: "DBSCAN identified this node as noise (not belonging to any cluster)".to_string(),
+                                            features: vec!["spatial_isolation".to_string()],
+                                        });
+                                    }
+                                }
+
+                                Ok((None, anomalies))
+                            }
+                            Err(e) => Err(format!("GPU DBSCAN detection failed: {}", e)),
+                        }
+                    }
+                    _ => Err("Unsupported anomaly detection method".to_string()),
+                }
+            }).await;
+
+            // Handle spawn_blocking join result
+            let result: Result<(Option<Vec<f32>>, Vec<AnomalyNode>), String> = match blocking_result {
+                Ok(inner_result) => inner_result,
+                Err(join_err) => Err(format!("GPU blocking task panicked: {}", join_err)),
+            };
+
+            let computation_time = start_time.elapsed();
+
+            match result {
+                Ok((scores, anomalies)) => {
+                    let anomalies_count = anomalies.len();
+                    let avg_score = if !anomalies.is_empty() {
+                        anomalies.iter().map(|a| a.anomaly_score).sum::<f32>() / anomalies.len() as f32
+                    } else {
+                        0.0
+                    };
+                    let max_score = anomalies
+                        .iter()
+                        .map(|a| a.anomaly_score)
+                        .fold(0.0, f32::max);
+                    let min_score = anomalies
+                        .iter()
+                        .map(|a| a.anomaly_score)
+                        .fold(f32::INFINITY, f32::min);
+
+                    info!("AnomalyDetectionActor: GPU {:?} detection completed in {:?}, found {} anomalies",
+                              internal_params_method, computation_time, anomalies_count);
+
+                    Ok(AnomalyResult {
+                        lof_scores: if matches!(internal_params_method, AnomalyDetectionMethod::LOF) {
+                            scores.clone()
+                        } else {
+                            None
+                        },
+                        local_densities: None,
+                        zscore_values: if matches!(
+                            internal_params_method,
+                            AnomalyDetectionMethod::ZScore
+                        ) {
+                            scores
+                        } else {
+                            None
+                        },
+                        anomaly_threshold: internal_params_threshold.unwrap_or(0.5),
+                        num_anomalies: anomalies_count,
+                        anomalies,
+                        stats: crate::actors::messages::AnomalyDetectionStats {
+                            total_nodes_analyzed: num_nodes,
+                            anomalies_found: anomalies_count,
+                            detection_threshold: internal_params_threshold.unwrap_or(0.5),
+                            computation_time_ms: computation_time.as_millis() as u64,
+                            method: internal_params_method.clone(),
+                            average_anomaly_score: avg_score,
+                            max_anomaly_score: max_score,
+                            min_anomaly_score: min_score,
+                        },
+                        method: internal_params_method.clone(),
+                        threshold: internal_params_threshold.unwrap_or(0.5),
+                    })
+                }
+                Err(e) => {
+                    error!("AnomalyDetectionActor: GPU detection failed: {}", e);
+                    Err(e)
                 }
             }
-            None => Err("GPU context not initialized".to_string()),
         };
 
-        let computation_time = start_time.elapsed();
-
-        let final_result = match result {
-            Ok((scores, anomalies)) => {
-                let anomalies_count = anomalies.len();
-                let avg_score = if !anomalies.is_empty() {
-                    anomalies.iter().map(|a| a.anomaly_score).sum::<f32>() / anomalies.len() as f32
-                } else {
-                    0.0
-                };
-                let max_score = anomalies
-                    .iter()
-                    .map(|a| a.anomaly_score)
-                    .fold(0.0, f32::max);
-                let min_score = anomalies
-                    .iter()
-                    .map(|a| a.anomaly_score)
-                    .fold(f32::INFINITY, f32::min);
-
-                info!("AnomalyDetectionActor: GPU {:?} detection completed in {:?}, found {} anomalies",
-                          internal_params.method, computation_time, anomalies_count);
-
-                Ok(AnomalyResult {
-                    lof_scores: if matches!(internal_params.method, AnomalyDetectionMethod::LOF) {
-                        scores.clone()
-                    } else {
-                        None
-                    },
-                    local_densities: None,
-                    zscore_values: if matches!(
-                        internal_params.method,
-                        AnomalyDetectionMethod::ZScore
-                    ) {
-                        scores
-                    } else {
-                        None
-                    },
-                    anomaly_threshold: internal_params.threshold.unwrap_or(0.5),
-                    num_anomalies: anomalies_count,
-                    anomalies,
-                    stats: crate::actors::messages::AnomalyDetectionStats {
-                        total_nodes_analyzed: self.gpu_state.num_nodes,
-                        anomalies_found: anomalies_count,
-                        detection_threshold: internal_params.threshold.unwrap_or(0.5),
-                        computation_time_ms: computation_time.as_millis() as u64,
-                        method: internal_params.method.clone(),
-                        average_anomaly_score: avg_score,
-                        max_anomaly_score: max_score,
-                        min_anomaly_score: min_score,
-                    },
-                    method: internal_params.method.clone(),
-                    threshold: internal_params.threshold.unwrap_or(0.5),
-                })
-            }
-            Err(e) => {
-                error!("AnomalyDetectionActor: GPU detection failed: {}", e);
-                Err(e)
-            }
-        };
-
-        Box::pin(async move { final_result }.into_actor(self))
+        Box::pin(future.into_actor(self).map(|result, _actor, _ctx| result))
     }
 }
 

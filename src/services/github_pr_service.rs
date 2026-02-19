@@ -351,12 +351,46 @@ impl GitHubPRService {
         if !resp.status().is_success() {
             let status = resp.status();
             let body = resp.text().await.unwrap_or_default();
-            // 422 = branch already exists, which is ok for amendments
-            if status.as_u16() != 422 {
+            if status.as_u16() == 422 {
+                // Branch already exists — force-update it to the new commit
+                info!(
+                    "Branch '{}' already exists, force-updating to SHA {}",
+                    branch, sha
+                );
+                self.update_ref(branch, sha).await?;
+            } else {
                 return Err(format!("Create ref failed ({}): {}", status, body));
             }
         }
 
+        Ok(())
+    }
+
+    /// Force-update an existing branch ref to a new SHA.
+    async fn update_ref(&self, branch: &str, sha: &str) -> Result<(), String> {
+        let url = self.api_url(&format!("git/refs/heads/{}", branch));
+
+        let body = serde_json::json!({
+            "sha": sha,
+            "force": true,
+        });
+
+        let resp = self
+            .client
+            .patch(&url)
+            .headers(self.headers())
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| format!("Failed to update ref: {}", e))?;
+
+        if !resp.status().is_success() {
+            let status = resp.status();
+            let resp_body = resp.text().await.unwrap_or_default();
+            return Err(format!("Update ref failed ({}): {}", status, resp_body));
+        }
+
+        info!("Force-updated branch '{}' to SHA {}", branch, sha);
         Ok(())
     }
 
@@ -389,8 +423,16 @@ impl GitHubPRService {
 
         if !resp.status().is_success() {
             let status = resp.status();
-            let body = resp.text().await.unwrap_or_default();
-            return Err(format!("Create PR failed ({}): {}", status, body));
+            let resp_body = resp.text().await.unwrap_or_default();
+            if status.as_u16() == 422 {
+                // PR already exists for this head/base pair — fetch the existing one
+                info!(
+                    "PR already exists for branch '{}', fetching existing PR URL",
+                    head_branch
+                );
+                return self.get_existing_pr_url(head_branch).await;
+            }
+            return Err(format!("Create PR failed ({}): {}", status, resp_body));
         }
 
         let pr: PRResponse = resp
@@ -399,5 +441,43 @@ impl GitHubPRService {
             .map_err(|e| format!("Failed to parse PR response: {}", e))?;
 
         Ok(pr.html_url)
+    }
+
+    /// Fetch the URL of an existing open PR for the given head branch.
+    async fn get_existing_pr_url(&self, head_branch: &str) -> Result<String, String> {
+        let url = format!(
+            "{}?head={}:{}&state=open",
+            self.api_url("pulls"),
+            self.owner,
+            head_branch
+        );
+
+        let resp = self
+            .client
+            .get(&url)
+            .headers(self.headers())
+            .send()
+            .await
+            .map_err(|e| format!("Failed to fetch existing PRs: {}", e))?;
+
+        if !resp.status().is_success() {
+            let status = resp.status();
+            let body = resp.text().await.unwrap_or_default();
+            return Err(format!("Fetch existing PRs failed ({}): {}", status, body));
+        }
+
+        let prs: Vec<PRResponse> = resp
+            .json()
+            .await
+            .map_err(|e| format!("Failed to parse PR list response: {}", e))?;
+
+        prs.first()
+            .map(|pr| pr.html_url.clone())
+            .ok_or_else(|| {
+                format!(
+                    "PR creation returned 422 but no open PR found for branch '{}'",
+                    head_branch
+                )
+            })
     }
 }

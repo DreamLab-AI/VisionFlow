@@ -7,6 +7,57 @@ use crate::events::types::{
     DomainEvent, EventError, EventHandler, EventMetadata, EventMiddleware, EventResult, StoredEvent,
 };
 
+/// Execute a single handler with retry logic and middleware hooks.
+/// Extracted as a free function so it can be spawned concurrently without
+/// borrowing the entire `EventBus`.
+async fn execute_handler_concurrent(
+    handler: Arc<dyn EventHandler>,
+    event: StoredEvent,
+    middleware: Arc<RwLock<Vec<Arc<dyn EventMiddleware>>>>,
+) -> Result<(), EventError> {
+    let handler_id = handler.handler_id().to_string();
+    let max_retries = handler.max_retries();
+
+    // Pre-handle middleware
+    {
+        let mw_list = middleware.read().await;
+        for mw in mw_list.iter() {
+            mw.before_handle(&event, &handler_id).await?;
+        }
+    }
+
+    // Retry loop with exponential backoff
+    let mut last_error = None;
+    for attempt in 0..=max_retries {
+        match handler.handle(&event).await {
+            Ok(_) => {
+                let mw_list = middleware.read().await;
+                for mw in mw_list.iter() {
+                    mw.after_handle(&event, &handler_id, &Ok(())).await?;
+                }
+                return Ok(());
+            }
+            Err(e) => {
+                last_error = Some(e);
+                if attempt < max_retries {
+                    let delay = std::time::Duration::from_millis(100 * 2_u64.pow(attempt));
+                    tokio::time::sleep(delay).await;
+                }
+            }
+        }
+    }
+
+    let error = last_error.unwrap();
+    let result = Err(error.clone());
+
+    let mw_list = middleware.read().await;
+    for mw in mw_list.iter() {
+        let _ = mw.after_handle(&event, &handler_id, &result).await;
+    }
+
+    Err(error)
+}
+
 pub struct EventBus {
     
     subscribers: Arc<RwLock<HashMap<String, Vec<Arc<dyn EventHandler>>>>>,
@@ -85,19 +136,32 @@ impl EventBus {
 
         
         let handler_count = handlers.len();
-        let mut errors = Vec::new();
-        for handler in handlers {
-            match self.execute_handler(handler.clone(), &stored_event).await {
-                Ok(_) => {}
-                Err(e) => {
-                    warn!(
-                        handler_id = handler.handler_id(),
-                        event_type = stored_event.metadata.event_type.as_str(),
-                        error = %e,
-                        "Event handler failed"
-                    );
-                    errors.push((handler.handler_id().to_string(), e));
+        let middleware_ref = Arc::clone(&self.middleware);
+        let handler_futures: Vec<_> = handlers
+            .iter()
+            .map(|handler| {
+                let handler = Arc::clone(handler);
+                let event = stored_event.clone();
+                let mw = Arc::clone(&middleware_ref);
+                let handler_id = handler.handler_id().to_string();
+                async move {
+                    let result = execute_handler_concurrent(handler, event, mw).await;
+                    (handler_id, result)
                 }
+            })
+            .collect();
+        let results = futures::future::join_all(handler_futures).await;
+
+        let mut errors = Vec::new();
+        for (handler_id, result) in results {
+            if let Err(e) = result {
+                warn!(
+                    handler_id = handler_id.as_str(),
+                    event_type = stored_event.metadata.event_type.as_str(),
+                    error = %e,
+                    "Event handler failed"
+                );
+                errors.push((handler_id, e));
             }
         }
 
@@ -162,57 +226,6 @@ impl EventBus {
         mw_list.push(middleware);
     }
 
-    
-    async fn execute_handler(
-        &self,
-        handler: Arc<dyn EventHandler>,
-        event: &StoredEvent,
-    ) -> EventResult<()> {
-        let handler_id = handler.handler_id();
-        let max_retries = handler.max_retries();
-
-        
-        let middleware = self.middleware.read().await;
-        for mw in middleware.iter() {
-            mw.before_handle(event, handler_id).await?;
-        }
-        drop(middleware);
-
-        
-        let mut last_error = None;
-        for attempt in 0..=max_retries {
-            match handler.handle(event).await {
-                Ok(_) => {
-                    
-                    let middleware = self.middleware.read().await;
-                    for mw in middleware.iter() {
-                        mw.after_handle(event, handler_id, &Ok(())).await?;
-                    }
-                    return Ok(());
-                }
-                Err(e) => {
-                    last_error = Some(e);
-                    if attempt < max_retries {
-                        
-                        let delay = std::time::Duration::from_millis(100 * 2_u64.pow(attempt));
-                        tokio::time::sleep(delay).await;
-                    }
-                }
-            }
-        }
-
-        
-        let error = last_error.unwrap();
-        let result = Err(error.clone());
-
-        
-        let middleware = self.middleware.read().await;
-        for mw in middleware.iter() {
-            let _ = mw.after_handle(event, handler_id, &result).await;
-        }
-
-        Err(error)
-    }
 
     
     pub async fn subscriber_count(&self, event_type: &str) -> usize {

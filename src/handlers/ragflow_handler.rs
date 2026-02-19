@@ -1,6 +1,6 @@
 use crate::handlers::validation_handler::ValidationService;
 use crate::models::ragflow_chat::{RagflowChatRequest, RagflowChatResponse};
-use crate::services::ragflow_service::RAGFlowError;
+use crate::services::ragflow_service::{ChatResponse, RAGFlowError};
 use crate::types::speech::SpeechOptions;
 use crate::utils::validation::errors::DetailedValidationError;
 use crate::utils::validation::rate_limit::{extract_client_id, EndpointRateLimits, RateLimiter};
@@ -308,7 +308,7 @@ async fn handle_ragflow_chat(
         }
     };
 
-    let stream_preference = payload.stream.unwrap_or(false); 
+    let stream_preference = payload.stream.unwrap_or(false);
     match ragflow_service
         .send_chat_message(
             current_session_id.clone(),
@@ -317,11 +317,19 @@ async fn handle_ragflow_chat(
         )
         .await
     {
-        Ok((answer, final_session_id)) => {
+        Ok(ChatResponse::Buffered {
+            answer,
+            session_id: final_session_id,
+        }) => {
             ok_json!(RagflowChatResponse {
                 answer,
-                session_id: final_session_id, 
+                session_id: final_session_id,
             })
+        }
+        Ok(ChatResponse::Streaming(stream)) => {
+            Ok(HttpResponse::Ok()
+                .content_type("text/event-stream")
+                .streaming(stream))
         }
         Err(e) => {
             error!(
@@ -524,18 +532,19 @@ impl EnhancedRagFlowHandler {
             self.process_tts_request(&state, question).await;
         }
 
-        
         match ragflow_service
             .send_chat_message(current_session_id.clone(), question.to_string(), stream)
             .await
         {
-            Ok((answer, final_session_id)) => {
+            Ok(ChatResponse::Buffered {
+                answer,
+                session_id: final_session_id,
+            }) => {
                 info!(
                     "RAGFlow response received for client: {} (session: {})",
                     client_id, final_session_id
                 );
 
-                
                 if enable_tts {
                     self.process_tts_request(&state, &answer).await;
                 }
@@ -544,6 +553,15 @@ impl EnhancedRagFlowHandler {
                     answer,
                     session_id: final_session_id,
                 })
+            }
+            Ok(ChatResponse::Streaming(stream)) => {
+                info!(
+                    "RAGFlow streaming response started for client: {} (session: {})",
+                    client_id, current_session_id
+                );
+                Ok(HttpResponse::Ok()
+                    .content_type("text/event-stream")
+                    .streaming(stream))
             }
             Err(e) => {
                 error!(

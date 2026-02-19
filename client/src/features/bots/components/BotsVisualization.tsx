@@ -23,7 +23,8 @@ const BACK_SIDE = THREE.BackSide;
 
 // Lightweight line component using standard BufferGeometry (NOT InstancedBufferGeometry).
 // drei's <Line> uses Line2/LineGeometry which extends InstancedBufferGeometry — its default
-// instanceCount=Infinity crashes WebGPU's drawIndexed(). This avoids the problem entirely.
+// instanceCount=Infinity crashes WebGPU's drawIndexed(). This is a three.js Line2/troika
+// limitation (not version-specific) and this workaround avoids the problem entirely.
 const SimpleLine: React.FC<{
   points: THREE.Vector3[];
   color: string;

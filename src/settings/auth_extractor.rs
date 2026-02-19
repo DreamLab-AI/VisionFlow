@@ -76,11 +76,21 @@ impl FromRequest for AuthenticatedUser {
         // --- NIP-98 Schnorr auth (primary path) ---
         if auth_header.starts_with("Nostr ") {
             // Reconstruct the request URL for NIP-98 validation
+            // Behind a TLS-terminating proxy, connection_info returns internal
+            // scheme/host; prefer X-Forwarded-* headers from the proxy.
             let conn_info = req.connection_info();
+            let scheme = req.headers()
+                .get("X-Forwarded-Proto")
+                .and_then(|v| v.to_str().ok())
+                .unwrap_or_else(|| conn_info.scheme());
+            let host = req.headers()
+                .get("X-Forwarded-Host")
+                .and_then(|v| v.to_str().ok())
+                .unwrap_or_else(|| conn_info.host());
             let url = format!(
                 "{}://{}{}",
-                conn_info.scheme(),
-                conn_info.host(),
+                scheme,
+                host,
                 req.uri().path_and_query().map(|pq| pq.as_str()).unwrap_or("/")
             );
             let method = req.method().as_str().to_string();
@@ -144,13 +154,16 @@ impl FromRequest for AuthenticatedUser {
             }
         };
 
-        // Dev-mode session bypass
-        if token == "dev-session-token" {
-            debug!("Dev-mode session token accepted for pubkey: {}", pubkey);
-            return ready(Ok(AuthenticatedUser {
-                pubkey,
-                is_power_user: true,
-            }));
+        // Dev-mode session bypass - ONLY available in debug builds
+        #[cfg(debug_assertions)]
+        {
+            if token == "dev-session-token" {
+                debug!("Dev-mode session token accepted for pubkey: {}", pubkey);
+                return ready(Ok(AuthenticatedUser {
+                    pubkey,
+                    is_power_user: true,
+                }));
+            }
         }
 
         // Clone service for async validation

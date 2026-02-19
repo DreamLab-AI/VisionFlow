@@ -197,68 +197,71 @@ impl MultiMcpAgentDiscovery {
             while *discovery_running.read().await {
                 let servers_config = servers.read().await.clone();
 
-                for (server_id, config) in servers_config {
-                    if !config.enabled {
-                        continue;
-                    }
+                // Discover all enabled servers concurrently
+                let discovery_futures: Vec<_> = servers_config
+                    .into_iter()
+                    .filter(|(_, config)| config.enabled)
+                    .map(|(server_id, config)| {
+                        let discovered = Arc::clone(&discovered_agents);
+                        let statuses = Arc::clone(&server_statuses);
+                        let topo_data = Arc::clone(&topology_data);
+                        let stats_ref = Arc::clone(&stats);
+                        async move {
+                            let start_time = std::time::Instant::now();
 
-                    let start_time = std::time::Instant::now();
+                            match Self::discover_server_agents(&config).await {
+                                Ok((server_info, agents, topology)) => {
+                                    {
+                                        let mut guard = statuses.write().await;
+                                        guard.insert(server_id.clone(), server_info);
+                                    }
+                                    {
+                                        let mut guard = discovered.write().await;
+                                        for agent in agents {
+                                            guard.insert(agent.agent_id.clone(), agent);
+                                        }
+                                    }
+                                    if let Some(topo) = topology {
+                                        let mut guard = topo_data.write().await;
+                                        guard.insert(server_id.clone(), topo);
+                                    }
 
-                    match Self::discover_server_agents(&config).await {
-                        Ok((server_info, agents, topology)) => {
-                            let mut server_statuses_guard = server_statuses.write().await;
-                            server_statuses_guard.insert(server_id.clone(), server_info);
-                            drop(server_statuses_guard);
+                                    let discovery_time = start_time.elapsed().as_millis() as f64;
+                                    {
+                                        let mut guard = stats_ref.write().await;
+                                        guard.successful_discoveries += 1;
+                                        guard.last_discovery_time = Some(time::now());
+                                        guard.average_discovery_time_ms =
+                                            (guard.average_discovery_time_ms + discovery_time) / 2.0;
+                                    }
 
-                            let mut agents_guard = discovered_agents.write().await;
-                            for agent in agents {
-                                agents_guard.insert(agent.agent_id.clone(), agent);
+                                    debug!(
+                                        "Successfully discovered agents from {} in {}ms",
+                                        server_id, discovery_time
+                                    );
+                                }
+                                Err(e) => {
+                                    error!("Failed to discover agents from {}: {}", server_id, e);
+                                    {
+                                        let mut guard = stats_ref.write().await;
+                                        guard.failed_discoveries += 1;
+                                    }
+                                    {
+                                        let mut guard = statuses.write().await;
+                                        if let Some(server_info) = guard.get_mut(&server_id) {
+                                            server_info.is_connected = false;
+                                            server_info.last_heartbeat = time::timestamp_seconds();
+                                        }
+                                    }
+                                }
                             }
-                            drop(agents_guard);
-
-                            if let Some(topo) = topology {
-                                let mut topology_guard = topology_data.write().await;
-                                topology_guard.insert(server_id.clone(), topo);
-                                drop(topology_guard);
-                            }
-
-                            let discovery_time = start_time.elapsed().as_millis() as f64;
-                            let mut stats_guard = stats.write().await;
-                            stats_guard.successful_discoveries += 1;
-                            stats_guard.last_discovery_time = Some(time::now());
-                            stats_guard.average_discovery_time_ms =
-                                (stats_guard.average_discovery_time_ms + discovery_time) / 2.0;
-                            drop(stats_guard);
-
-                            debug!(
-                                "Successfully discovered agents from {} in {}ms",
-                                server_id, discovery_time
-                            );
                         }
-                        Err(e) => {
-                            error!("Failed to discover agents from {}: {}", server_id, e);
-                            let mut stats_guard = stats.write().await;
-                            stats_guard.failed_discoveries += 1;
-                            drop(stats_guard);
+                    })
+                    .collect();
 
-                            
-                            let mut server_statuses_guard = server_statuses.write().await;
-                            if let Some(server_info) = server_statuses_guard.get_mut(&server_id) {
-                                server_info.is_connected = false;
-                                server_info.last_heartbeat = time::timestamp_seconds();
-                            }
-                            drop(server_statuses_guard);
-                        }
-                    }
+                futures::future::join_all(discovery_futures).await;
 
-                    
-                    tokio::time::sleep(tokio::time::Duration::from_millis(
-                        config.discovery_interval_ms,
-                    ))
-                    .await;
-                }
-
-                
+                // Sleep between discovery cycles
                 tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
             }
 

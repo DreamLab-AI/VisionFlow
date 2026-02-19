@@ -176,6 +176,7 @@ let currentNodeTypeMap: Map<number, NodeType> = new Map();
 let positionUpdateSequence = 0;
 let lastAckSentSequence = 0;
 let filterSubscriptionSet = false;
+let filterUnsubscribers: (() => void)[] = [];
 // P2 PERFORMANCE FIX: Track individual filter fields instead of serializing
 // the entire settings tree on every state change.
 interface FilterSnapshot {
@@ -838,13 +839,14 @@ export const useWebSocketStore = create<WebSocketState>()(
         // Use type assertion to handle the settings store subscribe signature
         const store = useSettingsStore.getState();
         if (store.subscribe) {
-          store.subscribe(path as Parameters<typeof store.subscribe>[0], () => {
+          const unsub = store.subscribe(path as Parameters<typeof store.subscribe>[0], () => {
             handleFilterChange();
           });
+          filterUnsubscribers.push(unsub);
         }
       });
 
-      useSettingsStore.subscribe((state) => {
+      const zustandUnsub = useSettingsStore.subscribe((state) => {
         const nodeFilter = state.settings?.nodeFilter;
         const wsState = get();
         if (nodeFilter && wsState.isConnected) {
@@ -872,6 +874,7 @@ export const useWebSocketStore = create<WebSocketState>()(
           }
         }
       });
+      filterUnsubscribers.push(zustandUnsub);
 
       logger.info('Filter subscription set up - changes will sync to server');
     };
@@ -1382,6 +1385,11 @@ export const useWebSocketStore = create<WebSocketState>()(
             positionBatchQueue = null;
           }
 
+          // Clean up filter subscriptions to prevent leaks on reconnect
+          filterUnsubscribers.forEach(unsub => { try { unsub(); } catch (_) { /* ignore */ } });
+          filterUnsubscribers = [];
+          filterSubscriptionSet = false;
+
           try {
             state.socket.close(1000, 'Normal closure');
             if (debugState.isEnabled()) {
@@ -1820,6 +1828,8 @@ export const useWebSocketStore = create<WebSocketState>()(
         currentNodeTypeMap = new Map();
         positionUpdateSequence = 0;
         lastAckSentSequence = 0;
+        filterUnsubscribers.forEach(unsub => { try { unsub(); } catch (_) { /* ignore */ } });
+        filterUnsubscribers = [];
         filterSubscriptionSet = false;
         lastFilterSnapshot = null;
         solidReconnectTimeout = null;

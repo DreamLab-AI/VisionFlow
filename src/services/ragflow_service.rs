@@ -1,4 +1,5 @@
-use crate::config::AppFullSettings; 
+use crate::config::AppFullSettings;
+use bytes::Bytes;
 use futures::stream::{Stream, StreamExt};
 use log::{error, info};
 use reqwest::{Client, StatusCode};
@@ -71,6 +72,14 @@ impl From<std::io::Error> for RAGFlowError {
     fn from(err: std::io::Error) -> Self {
         RAGFlowError::IoError(err)
     }
+}
+
+/// Result type for `send_chat_message`: either a buffered answer or a byte stream.
+pub enum ChatResponse {
+    /// Non-streaming: the complete answer and final session ID.
+    Buffered { answer: String, session_id: String },
+    /// Streaming: an SSE byte stream suitable for `HttpResponse::streaming()`.
+    Streaming(Pin<Box<dyn Stream<Item = Result<Bytes, actix_web::Error>> + Send + 'static>>),
 }
 
 #[derive(Debug, Serialize)]
@@ -362,9 +371,8 @@ impl RAGFlowService {
         &self,
         session_id: String,
         message: String,
-        stream_preference: bool, 
-    ) -> Result<(String, String), RAGFlowError> {
-        
+        stream_preference: bool,
+    ) -> Result<ChatResponse, RAGFlowError> {
         info!(
             "Sending chat message to RAGFlow session: {}, stream_preference: {}",
             session_id, stream_preference
@@ -377,7 +385,7 @@ impl RAGFlowService {
 
         let request_body = CompletionRequest {
             question: message,
-            stream: stream_preference, 
+            stream: stream_preference,
             session_id: Some(session_id.clone()),
             user_id: None,
             sync_dsl: Some(false),
@@ -403,7 +411,6 @@ impl RAGFlowService {
         }
 
         if !stream_preference {
-            
             let result: serde_json::Value = response.json().await.map_err(|e| {
                 RAGFlowError::ParseError(format!(
                     "Failed to parse non-streamed JSON response: {}",
@@ -424,66 +431,80 @@ impl RAGFlowService {
                     )
                 })?;
 
-            
-            
             let final_session_id = result
                 .get("data")
                 .and_then(|data| data.get("session_id"))
                 .and_then(|sid| sid.as_str())
                 .map(|s| s.to_string())
-                .unwrap_or_else(|| session_id.clone()); 
+                .unwrap_or_else(|| session_id.clone());
 
-            Ok((answer, final_session_id))
+            Ok(ChatResponse::Buffered {
+                answer,
+                session_id: final_session_id,
+            })
         } else {
-            
-            let mut full_answer = String::new();
-            let mut response_stream = response.bytes_stream();
-
-            while let Some(chunk_result) = response_stream.next().await {
+            // True streaming: transform the upstream SSE byte stream into
+            // parsed JSON-line chunks suitable for HttpResponse::streaming().
+            let byte_stream = response.bytes_stream().map(move |chunk_result| {
                 match chunk_result {
                     Ok(chunk_bytes) => {
-                        let chunk_vec: Vec<u8> = chunk_bytes.to_vec();
-                        let chunk_str = String::from_utf8_lossy(&chunk_vec);
+                        let chunk_str = String::from_utf8_lossy(&chunk_bytes);
+                        let mut out = String::new();
+
                         for line in chunk_str.lines() {
-                            if line.starts_with("data:") {
-                                let json_str = line.trim_start_matches("data:").trim();
-                                if json_str.is_empty() {
-                                    continue;
+                            if !line.starts_with("data:") {
+                                continue;
+                            }
+                            let json_str = line.trim_start_matches("data:").trim();
+                            if json_str.is_empty() {
+                                continue;
+                            }
+
+                            match serde_json::from_str::<serde_json::Value>(json_str) {
+                                Ok(json_val) => {
+                                    // Terminal sentinel — stream is done
+                                    if json_val.get("code").and_then(|c| c.as_i64()) == Some(0)
+                                        && json_val.get("data").and_then(|d| d.as_bool())
+                                            == Some(true)
+                                    {
+                                        break;
+                                    }
+
+                                    if let Some(answer_chunk) = json_val
+                                        .get("data")
+                                        .and_then(|d| d.get("answer"))
+                                        .and_then(|a| a.as_str())
+                                    {
+                                        out.push_str(answer_chunk);
+                                    } else if let Some(answer_chunk) =
+                                        json_val.get("answer").and_then(|a| a.as_str())
+                                    {
+                                        out.push_str(answer_chunk);
+                                    }
                                 }
-
-                                match serde_json::from_str::<serde_json::Value>(json_str) {
-                                    Ok(json_val) => {
-                                        if json_val.get("code").and_then(|c| c.as_i64()) == Some(0) &&
-                                           json_val.get("data").and_then(|d| d.as_bool()) == Some(true) {
-                                            
-                                            return Ok((full_answer, session_id)); 
-                                        }
-
-                                        if let Some(answer_chunk) = json_val.get("data").and_then(|d| d.get("answer")).and_then(|a| a.as_str()) {
-                                            full_answer.push_str(answer_chunk);
-                                        } else if let Some(answer_chunk) = json_val.get("answer").and_then(|a| a.as_str()) {
-                                            full_answer.push_str(answer_chunk);
-                                        }
-                                    },
-                                    Err(e) => log::warn!("Failed to parse RAGFlow stream chunk JSON: {}. Chunk: '{}'", e, json_str),
+                                Err(e) => {
+                                    log::warn!(
+                                        "Failed to parse RAGFlow stream chunk JSON: {}. Chunk: '{}'",
+                                        e,
+                                        json_str
+                                    );
                                 }
                             }
                         }
-                        
-                        if chunk_str.contains(r#"{"code":0,"data":true}"#)
-                            || chunk_str.contains(r#"{"code": 0, "data": true}"#)
-                        {
-                            return Ok((full_answer, session_id)); 
-                        }
+
+                        Ok(Bytes::from(out))
                     }
                     Err(e) => {
                         log::error!("Error reading RAGFlow stream chunk: {}", e);
-                        return Err(RAGFlowError::ReqwestError(e));
+                        Err(actix_web::error::ErrorInternalServerError(format!(
+                            "RAGFlow stream error: {}",
+                            e
+                        )))
                     }
                 }
-            }
-            
-            Ok((full_answer, session_id))
+            });
+
+            Ok(ChatResponse::Streaming(Box::pin(byte_stream)))
         }
     }
 } 

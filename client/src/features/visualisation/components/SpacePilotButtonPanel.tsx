@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../design-system/components/Card';
 import { Tooltip } from '../../design-system/components/Tooltip';
 import { cn } from '../../../utils/classNameUtils';
@@ -53,28 +53,31 @@ export const SpacePilotButtonPanel: React.FC<SpacePilotButtonPanelProps> = ({
 
   const [isConnected, setIsConnected] = useState(false);
 
+  // Keep a stable ref to onButtonPress so the effect doesn't re-bind on callback changes
+  const onButtonPressRef = useRef(onButtonPress);
+  onButtonPressRef.current = onButtonPress;
+
   useEffect(() => {
     const handleButtons = (event: CustomEvent) => {
       const { buttons } = event.detail;
-      
-      
-      
-      const newStates: Record<number, ButtonState> = {};
-      for (let i = 1; i <= 16; i++) {
-        const buttonString = `[${i.toString(16).toUpperCase()}]`;
-        const isPressed = buttons.includes(buttonString);
-        newStates[i] = { 
-          pressed: isPressed,
-          label: buttonLabels[i] 
-        };
-        
-        
-        if (isPressed && !buttonStates[i]?.pressed && onButtonPress) {
-          onButtonPress(i);
+
+      setButtonStates(prevStates => {
+        const newStates: Record<number, ButtonState> = {};
+        for (let i = 1; i <= 16; i++) {
+          const buttonString = `[${i.toString(16).toUpperCase()}]`;
+          const isPressed = buttons.includes(buttonString);
+          newStates[i] = {
+            pressed: isPressed,
+            label: buttonLabels[i]
+          };
+
+          // Fire callback on rising edge (was not pressed, now is)
+          if (isPressed && !prevStates[i]?.pressed && onButtonPressRef.current) {
+            onButtonPressRef.current(i);
+          }
         }
-      }
-      
-      setButtonStates(newStates);
+        return newStates;
+      });
     };
 
     const handleConnect = () => {
@@ -83,7 +86,7 @@ export const SpacePilotButtonPanel: React.FC<SpacePilotButtonPanelProps> = ({
 
     const handleDisconnect = () => {
       setIsConnected(false);
-      
+
       const resetStates: Record<number, ButtonState> = {};
       for (let i = 1; i <= 16; i++) {
         resetStates[i] = { pressed: false, label: buttonLabels[i] };
@@ -91,21 +94,16 @@ export const SpacePilotButtonPanel: React.FC<SpacePilotButtonPanelProps> = ({
       setButtonStates(resetStates);
     };
 
-
     SpaceDriver.addEventListener('buttons', handleButtons as EventListener);
     SpaceDriver.addEventListener('connect', handleConnect as EventListener);
     SpaceDriver.addEventListener('disconnect', handleDisconnect as EventListener);
-
-    
-    
-    
 
     return () => {
       SpaceDriver.removeEventListener('buttons', handleButtons as EventListener);
       SpaceDriver.removeEventListener('connect', handleConnect as EventListener);
       SpaceDriver.removeEventListener('disconnect', handleDisconnect as EventListener);
     };
-  }, [buttonStates, onButtonPress, buttonLabels]);
+  }, [buttonLabels]);
 
   if (!isConnected) {
     return (

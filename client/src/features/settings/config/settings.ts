@@ -124,7 +124,7 @@ export interface RendererCapabilities {
   backend: 'webgpu' | 'webgl';
   /** True if TSL (Three Shading Language) node materials are active */
   tslMaterialsActive: boolean;
-  /** True if node-based PostProcessing bloom is active (vs EffectComposer) */
+  /** True if node-based RenderPipeline bloom is active (vs EffectComposer) */
   nodeBasedBloom: boolean;
   /** GPU adapter name (e.g. 'NVIDIA RTX 4090') */
   gpuAdapterName: string;

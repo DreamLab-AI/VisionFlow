@@ -188,7 +188,7 @@ export const ClusterHulls: React.FC<ClusterHullsProps> = ({
     <group ref={groupRef} renderOrder={1}>
       {hullEntries.map(({ domain, geometry }) => (
         <mesh
-          key={`hull-${domain}-${tick}`}
+          key={`hull-${domain}`}
           geometry={geometry}
           renderOrder={1}
         >

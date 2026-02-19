@@ -1,14 +1,15 @@
-import React, { useRef, useMemo, useCallback, forwardRef, useImperativeHandle } from 'react';
+import React, { useRef, useMemo, useCallback, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { GraphVisualMode } from './GraphManager';
 import type { Node as GraphNode } from '../managers/graphDataManager';
-import { createGemNodeMaterial, createGemGeometry } from '../../../rendering/materials/GemNodeMaterial';
+import { createGemNodeMaterial, createTslGemMaterial, createGemGeometry } from '../../../rendering/materials/GemNodeMaterial';
 import { createCrystalOrbMaterial, createCrystalOrbGeometry } from '../../../rendering/materials/CrystalOrbMaterial';
 import { createAgentCapsuleMaterial, createAgentCapsuleGeometry } from '../../../rendering/materials/AgentCapsuleMaterial';
 import { useSettingsStore } from '../../../store/settingsStore';
 import type { GemMaterialSettings } from '../../settings/config/settings';
 import { computeNodeScale } from '../utils/nodeScaling';
+import { isWebGPURenderer } from '../../../rendering/rendererFactory';
 
 export interface GemNodesProps {
   nodes: GraphNode[];
@@ -94,6 +95,7 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
 
   // Read gem material settings from the settings store for live tuning
   const gemSettings = useSettingsStore(s => s.get<GemMaterialSettings>('visualisation.gemMaterial'));
+  const lastGemSettingsRef = useRef<string>('');
 
   // Allocate a large buffer (4096 instances) so the mesh is created ONCE and
   // never recreated when nodes.length grows from 0→N on data load.
@@ -131,20 +133,62 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dominant]);
 
-  // NOTE: No disposal useEffect here. React StrictMode double-invokes useMemo
-  // and runs effect cleanup between mount cycles, which disposes the GPU buffers
-  // of the ONLY mesh instance. WebGPU cannot recover disposed geometry/material.
-  // Three.js / GC handles cleanup when the component fully unmounts.
+  // Dispose previous GPU resources when dominant mode changes or on unmount.
+  // R3F <primitive> never auto-disposes, so manual cleanup is required.
+  useEffect(() => {
+    const currentMetaTex = metaTexRef.current;
+    return () => {
+      if (mesh) {
+        mesh.geometry?.dispose();
+        if (mesh.material) {
+          (mesh.material as THREE.Material).dispose();
+        }
+        mesh.dispose();
+      }
+      if (currentMetaTex) {
+        currentMetaTex.dispose();
+      }
+    };
+  }, [mesh]);
 
   useImperativeHandle(ref, () => ({
     getMesh: () => meshRef.current,
     getColorArray: () => meshRef.current?.instanceColor?.array as Float32Array | null ?? null,
   }), [mesh]);
 
-  // TSL DISABLED: Adding emissiveNode/opacityNode to MeshPhysicalMaterial triggers
-  // shader recompilation that breaks InstancedMesh draw calls on WebGPU r182.
-  // Visual quality achieved through standard PBR properties + per-instance color +
-  // per-frame emissive modulation in useFrame instead.
+  // TSL ENABLED (r183+) with PBR fallback — wire createTslGemMaterial once
+  // the metadata texture and mesh are ready. Per-frame emissive modulation in
+  // useFrame remains the active fallback path if TSL fails.
+  const tslAppliedRef = useRef(false);
+  useEffect(() => {
+    if (
+      dominant === 'knowledge_graph' &&
+      isWebGPURenderer &&
+      mesh &&
+      metaTexRef.current &&
+      nodes.length > 0 &&
+      !tslAppliedRef.current
+    ) {
+      tslAppliedRef.current = true;
+      createTslGemMaterial(
+        mesh.material as THREE.MeshPhysicalMaterial,
+        metaTexRef.current,
+        nodes.length,
+      ).then(success => {
+        if (success) {
+          console.log('[GemNodes] TSL metadata material active');
+        } else {
+          tslAppliedRef.current = false; // allow retry on next render cycle
+        }
+      }).catch(() => {
+        tslAppliedRef.current = false;
+      });
+    }
+    // Reset flag when dominant mode changes away from knowledge_graph
+    if (dominant !== 'knowledge_graph') {
+      tslAppliedRef.current = false;
+    }
+  }, [dominant, mesh, nodes.length]);
 
   const computeColor = useCallback((node: GraphNode, mode: GraphVisualMode): THREE.Color => {
     if (ssspResult) {
@@ -273,8 +317,11 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
       }
     }
 
-    // Apply gem material settings from settings store when available
-    if (gemSettings && currentMat instanceof THREE.MeshPhysicalMaterial) {
+    // Apply gem material settings from settings store — only when values actually change
+    // to avoid forcing shader recompilation every frame via needsUpdate.
+    const settingsKey = gemSettings ? JSON.stringify(gemSettings) : '';
+    if (settingsKey !== lastGemSettingsRef.current && gemSettings && currentMat instanceof THREE.MeshPhysicalMaterial) {
+      lastGemSettingsRef.current = settingsKey;
       if (gemSettings.ior !== undefined) currentMat.ior = gemSettings.ior;
       if (gemSettings.transmission !== undefined) currentMat.transmission = gemSettings.transmission;
       if (gemSettings.clearcoat !== undefined) currentMat.clearcoat = gemSettings.clearcoat;
@@ -290,6 +337,7 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
     }
     const visCount = revealedRef.current;
 
+    let colorsDirty = false;
     for (let i = 0; i < visCount; i++) {
       const node = nodes[i];
       const mode = perNodeVisualModeMap.get(String(node.id)) || graphMode;
@@ -324,17 +372,20 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
       // Per-instance color via Three.js managed instanceColor
       const c = computeColor(node, mode);
       inst.setColorAt(i, c);
+      colorsDirty = true;
     }
     inst.count = visCount;
     inst.instanceMatrix.needsUpdate = true;
 
-    // Only flag instanceColor when SSSP mode or graph mode changes trigger recoloring
-    // (colors are always written above, but the upload is the expensive part)
-    if (inst.instanceColor) inst.instanceColor.needsUpdate = true;
+    // Only upload instanceColor buffer when colors were actually written this frame
+    if (inst.instanceColor && colorsDirty) inst.instanceColor.needsUpdate = true;
 
     // Dirty-flag metadata texture: only upload when inputs structurally change
     if (texBuf) {
-      const metaHash = `${nodes.length}-${connectionCountMap.size}-${selectedNodeId}`;
+      const sampleHash = nodes.length > 0
+        ? `${nodes[0]?.metadata?.authorityScore ?? 0}-${nodes[Math.floor(nodes.length / 2)]?.metadata?.quality ?? 0}-${nodes[nodes.length - 1]?.metadata?.authorityScore ?? 0}`
+        : '';
+      const metaHash = `${nodes.length}-${connectionCountMap.size}-${selectedNodeId}-${sampleHash}`;
       if (metaHash !== prevMetaHashRef.current) {
         for (let i = 0; i < nodes.length; i++) {
           const node = nodes[i];

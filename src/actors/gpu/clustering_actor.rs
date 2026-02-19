@@ -1,7 +1,7 @@
 //! Clustering Actor - Handles K-means clustering and community detection algorithms
 
 use actix::prelude::*;
-use log::{error, info};
+use log::{error, info, warn};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -86,36 +86,56 @@ impl ClusteringActor {
             params.num_clusters
         );
 
-        let mut unified_compute = match &self.shared_context {
-            Some(ctx) => ctx
-                .unified_compute
-                .lock()
-                .map_err(|e| format!("Failed to acquire GPU compute lock: {}", e))?,
+        let unified_compute_arc = match &self.shared_context {
+            Some(ctx) => Arc::clone(&ctx.unified_compute),
             None => {
                 return Err("GPU context not initialized".to_string());
             }
         };
 
-        let start_time = Instant::now();
+        let num_clusters = params.num_clusters;
+        let max_iterations = params.max_iterations.unwrap_or(100);
+        let tolerance = params.tolerance.unwrap_or(0.001);
+        let seed = params.seed.unwrap_or(42);
 
-        
-        let gpu_result = unified_compute
-            .run_kmeans_clustering_with_metrics(
-                params.num_clusters,
-                params.max_iterations.unwrap_or(100),
-                params.tolerance.unwrap_or(0.001),
-                params.seed.unwrap_or(42),
-            )
-            .map_err(|e| {
-                error!("GPU K-means clustering failed: {}", e);
-                format!("K-means clustering failed: {}", e)
-            })?;
+        // Move blocking GPU operations to dedicated blocking thread pool
+        // This prevents std::sync::Mutex::lock() from blocking Tokio worker threads
+        let blocking_result = tokio::task::spawn_blocking(move || -> Result<_, String> {
+            let mut unified_compute = match unified_compute_arc.lock() {
+                Ok(guard) => guard,
+                Err(poisoned) => {
+                    warn!("ClusteringActor: GPU mutex was poisoned, recovering");
+                    poisoned.into_inner()
+                }
+            };
 
-        let computation_time = start_time.elapsed();
-        info!(
-            "ClusteringActor: K-means clustering completed in {:?}",
-            computation_time
-        );
+            let start_time = Instant::now();
+
+            let gpu_result = unified_compute
+                .run_kmeans_clustering_with_metrics(
+                    num_clusters,
+                    max_iterations,
+                    tolerance,
+                    seed,
+                )
+                .map_err(|e| {
+                    error!("GPU K-means clustering failed: {}", e);
+                    format!("K-means clustering failed: {}", e)
+                })?;
+
+            let computation_time = start_time.elapsed();
+            info!(
+                "ClusteringActor: K-means clustering completed in {:?}",
+                computation_time
+            );
+
+            Ok((gpu_result, computation_time))
+        }).await;
+
+        let (gpu_result, computation_time) = match blocking_result {
+            Ok(inner_result) => inner_result?,
+            Err(join_err) => return Err(format!("GPU blocking task panicked: {}", join_err)),
+        };
 
         
         let (assignments, centroids, inertia, actual_iterations, converged) = gpu_result;
@@ -170,51 +190,67 @@ impl ClusteringActor {
             params.algorithm
         );
 
-        let mut unified_compute = match &self.shared_context {
-            Some(ctx) => ctx
-                .unified_compute
-                .lock()
-                .map_err(|e| format!("Failed to acquire GPU compute lock: {}", e))?,
+        let unified_compute_arc = match &self.shared_context {
+            Some(ctx) => Arc::clone(&ctx.unified_compute),
             None => {
                 return Err("GPU context not initialized".to_string());
             }
         };
 
-        let start_time = Instant::now();
+        let algorithm = params.algorithm.clone();
+        let max_iterations = params.max_iterations.unwrap_or(100);
+        let seed = params.seed.unwrap_or(42);
 
-        
-        let gpu_result = match params.algorithm {
-            CommunityDetectionAlgorithm::LabelPropagation => unified_compute
-                .run_community_detection_label_propagation(
-                    params.max_iterations.unwrap_or(100),
-                    params.seed.unwrap_or(42),
-                )
-                .map_err(|e| {
-                    error!("GPU label propagation failed: {}", e);
-                    format!("Label propagation failed: {}", e)
-                })?,
-            CommunityDetectionAlgorithm::Louvain => {
-                unified_compute
-                    .run_louvain_community_detection(
-                        params.max_iterations.unwrap_or(100),
-                        1.0, 
-                        params.seed.unwrap_or(42),
+        // Move blocking GPU operations to dedicated blocking thread pool
+        // This prevents std::sync::Mutex::lock() from blocking Tokio worker threads
+        let blocking_result = tokio::task::spawn_blocking(move || -> Result<_, String> {
+            let mut unified_compute = match unified_compute_arc.lock() {
+                Ok(guard) => guard,
+                Err(poisoned) => {
+                    warn!("ClusteringActor: GPU mutex was poisoned, recovering");
+                    poisoned.into_inner()
+                }
+            };
+
+            let start_time = Instant::now();
+
+            let gpu_result = match algorithm {
+                CommunityDetectionAlgorithm::LabelPropagation => unified_compute
+                    .run_community_detection_label_propagation(
+                        max_iterations,
+                        seed,
                     )
                     .map_err(|e| {
-                        error!("GPU Louvain community detection failed: {}", e);
-                        format!("Louvain community detection failed: {}", e)
-                    })?
-            } 
-              
-              
-              
-        };
+                        error!("GPU label propagation failed: {}", e);
+                        format!("Label propagation failed: {}", e)
+                    })?,
+                CommunityDetectionAlgorithm::Louvain => {
+                    unified_compute
+                        .run_louvain_community_detection(
+                            max_iterations,
+                            1.0,
+                            seed,
+                        )
+                        .map_err(|e| {
+                            error!("GPU Louvain community detection failed: {}", e);
+                            format!("Louvain community detection failed: {}", e)
+                        })?
+                }
+            };
 
-        let computation_time = start_time.elapsed();
-        info!(
-            "ClusteringActor: Community detection completed in {:?}",
-            computation_time
-        );
+            let computation_time = start_time.elapsed();
+            info!(
+                "ClusteringActor: Community detection completed in {:?}",
+                computation_time
+            );
+
+            Ok((gpu_result, computation_time))
+        }).await;
+
+        let (gpu_result, computation_time) = match blocking_result {
+            Ok(inner_result) => inner_result?,
+            Err(join_err) => return Err(format!("GPU blocking task panicked: {}", join_err)),
+        };
 
         
         let (node_labels, num_communities, modularity, iterations, community_sizes, converged) =
@@ -476,25 +512,44 @@ impl ClusteringActor {
         })
     }
 
-    
+    /// Compute Euclidean distance between two nodes using actual GPU positions.
+    /// Falls back to centroid Euclidean distance if positions are unavailable.
     fn calculate_node_distance(
         &self,
         node1: usize,
         node2: usize,
         centroids: &[(f32, f32, f32)],
     ) -> f32 {
-        
-        
-        let diff = (node1 as f32 - node2 as f32).abs();
+        // Try to use actual spatial positions from GPU
+        if let Some(ref ctx) = self.shared_context {
+            if let Ok(uc) = ctx.unified_compute.lock() {
+                let n = uc.num_nodes;
+                if node1 < n && node2 < n {
+                    let mut px = vec![0.0f32; n];
+                    let mut py = vec![0.0f32; n];
+                    let mut pz = vec![0.0f32; n];
+                    if uc.download_positions(&mut px, &mut py, &mut pz).is_ok() {
+                        let dx = px[node1] - px[node2];
+                        let dy = py[node1] - py[node2];
+                        let dz = pz[node1] - pz[node2];
+                        return (dx * dx + dy * dy + dz * dz).sqrt();
+                    }
+                }
+            }
+        }
 
-        
-        if !centroids.is_empty() {
-            let centroid_idx = (node1 + node2) % centroids.len();
-            let (cx, cy, cz) = centroids[centroid_idx];
-            let centroid_magnitude = (cx * cx + cy * cy + cz * cz).sqrt();
-            diff + centroid_magnitude * 0.1
+        // Fallback: Euclidean distance between cluster centroids
+        if centroids.len() >= 2 {
+            let c1 = node1 % centroids.len();
+            let c2 = node2 % centroids.len();
+            let (x1, y1, z1) = centroids[c1];
+            let (x2, y2, z2) = centroids[c2];
+            let dx = x1 - x2;
+            let dy = y1 - y2;
+            let dz = z1 - z2;
+            (dx * dx + dy * dy + dz * dz).sqrt()
         } else {
-            diff
+            1.0
         }
     }
 
@@ -524,19 +579,48 @@ impl ClusteringActor {
         modularity.max(0.0).min(1.0)
     }
 
-    
+    /// Compute cluster coherence using actual Euclidean distances between
+    /// node positions from the GPU layout. High coherence means nodes in
+    /// this cluster are spatially close together.
     fn calculate_cluster_coherence(&self, nodes: &[u32], _assignments: &[i32]) -> f32 {
         if nodes.len() < 2 {
             return 1.0;
         }
 
-        
-        let mut total_distance = 0.0;
-        let mut pair_count = 0;
+        // Try to load actual positions from GPU for Euclidean distance
+        let positions: Option<(Vec<f32>, Vec<f32>, Vec<f32>)> =
+            self.shared_context.as_ref().and_then(|ctx| {
+                ctx.unified_compute.lock().ok().and_then(|uc| {
+                    let n = uc.num_nodes;
+                    let mut px = vec![0.0f32; n];
+                    let mut py = vec![0.0f32; n];
+                    let mut pz = vec![0.0f32; n];
+                    uc.download_positions(&mut px, &mut py, &mut pz)
+                        .ok()
+                        .map(|_| (px, py, pz))
+                })
+            });
+
+        let mut total_distance = 0.0f32;
+        let mut pair_count = 0u64;
 
         for i in 0..nodes.len() {
             for j in (i + 1)..nodes.len() {
-                let dist = ((nodes[i] as f32 - nodes[j] as f32).abs() + 1.0).ln();
+                let dist = if let Some((ref px, ref py, ref pz)) = positions {
+                    let ni = nodes[i] as usize;
+                    let nj = nodes[j] as usize;
+                    if ni < px.len() && nj < px.len() {
+                        let dx = px[ni] - px[nj];
+                        let dy = py[ni] - py[nj];
+                        let dz = pz[ni] - pz[nj];
+                        (dx * dx + dy * dy + dz * dz).sqrt()
+                    } else {
+                        1.0
+                    }
+                } else {
+                    // No GPU positions available; use constant to avoid fake ordering
+                    1.0
+                };
                 total_distance += dist;
                 pair_count += 1;
             }
@@ -544,25 +628,51 @@ impl ClusteringActor {
 
         if pair_count > 0 {
             let avg_distance = total_distance / pair_count as f32;
+            // Inverse relationship: smaller avg distance = higher coherence
             (1.0 / (1.0 + avg_distance)).max(0.1).min(1.0)
         } else {
             1.0
         }
     }
 
-    
+    /// Compute cluster centroid from actual GPU node positions.
+    /// Falls back to origin if positions are unavailable.
     fn calculate_cluster_centroid(&self, nodes: &[u32]) -> [f32; 3] {
         if nodes.is_empty() {
             return [0.0, 0.0, 0.0];
         }
 
-        
-        let sum_x: f32 = nodes.iter().map(|&n| (n % 100) as f32).sum();
-        let sum_y: f32 = nodes.iter().map(|&n| ((n / 100) % 100) as f32).sum();
-        let sum_z: f32 = nodes.iter().map(|&n| (n / 10000) as f32).sum();
+        // Try actual positions from GPU
+        if let Some(ref ctx) = self.shared_context {
+            if let Ok(uc) = ctx.unified_compute.lock() {
+                let n = uc.num_nodes;
+                let mut px = vec![0.0f32; n];
+                let mut py = vec![0.0f32; n];
+                let mut pz = vec![0.0f32; n];
+                if uc.download_positions(&mut px, &mut py, &mut pz).is_ok() {
+                    let mut sx = 0.0f32;
+                    let mut sy = 0.0f32;
+                    let mut sz = 0.0f32;
+                    let mut count = 0u32;
+                    for &nid in nodes {
+                        let idx = nid as usize;
+                        if idx < n {
+                            sx += px[idx];
+                            sy += py[idx];
+                            sz += pz[idx];
+                            count += 1;
+                        }
+                    }
+                    if count > 0 {
+                        let c = count as f32;
+                        return [sx / c, sy / c, sz / c];
+                    }
+                }
+            }
+        }
 
-        let count = nodes.len() as f32;
-        [sum_x / count, sum_y / count, sum_z / count]
+        // Fallback: return origin
+        [0.0, 0.0, 0.0]
     }
 
     

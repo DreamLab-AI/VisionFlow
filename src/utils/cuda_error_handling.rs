@@ -4,7 +4,7 @@
 //! Implements proper error propagation, automatic cleanup, and fallback mechanisms.
 
 use std::ffi::{c_char, c_int, c_void};
-use std::sync::atomic::{AtomicU32, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use log::{error, warn, info, debug};
@@ -209,6 +209,9 @@ pub struct CudaErrorHandler {
     max_errors_per_minute: u32,
     fallback_threshold: u32,
     context_reset_threshold: u32,
+    /// Flag signaling that GPU compute actors must tear down all RAII wrappers
+    /// and reinitialize the CUDA context on their next cycle.
+    needs_reinit: Arc<AtomicBool>,
 }
 
 impl CudaErrorHandler {
@@ -219,6 +222,7 @@ impl CudaErrorHandler {
             max_errors_per_minute: 10,
             fallback_threshold: 5,
             context_reset_threshold: 15,
+            needs_reinit: Arc::new(AtomicBool::new(false)),
         }
     }
 
@@ -374,31 +378,32 @@ impl CudaErrorHandler {
     }
 
     fn reset_cuda_context(&self) {
-        warn!("Attempting CUDA context reset");
-        // SAFETY: cudaDeviceReset() is safe to call because:
-        // 1. It destroys all allocations and resets all state on the current device
-        // 2. All CUDA resources (buffers, streams, events) become invalid after this call
-        // 3. The caller (CudaErrorHandler) does not hold any CUDA resources directly
-        // 4. This is only called as a recovery mechanism after severe errors
-        // 5. After reset, the CUDA runtime will reinitialize on the next CUDA call
-        // WARNING: Any code holding CudaMemoryGuard or other CUDA resources MUST
-        // ensure those resources are not used after context reset
+        warn!("CUDA error threshold reached — signaling GPU pipeline for graceful reinit");
+        // SAFETY: We do NOT call cudaDeviceReset() here because Rust RAII wrappers
+        // (CudaMemoryGuard, DeviceBuffer, CudaSlice) still hold live GPU pointers.
+        // Their Drop impls would call cudaFree on dangling pointers after a reset.
         //
-        // DANGER: cudaDeviceReset() INVALIDATES ALL GPU RESOURCES WITHOUT NOTIFYING RAII WRAPPERS
-        // - All CudaMemoryGuard instances become invalid and must not be used
-        // - All CudaSlice, Stream, and other GPU handles are dangling pointers after this call
-        // - Any future use of invalidated GPU resources will cause undefined behavior or crashes
-        // - The GPU context must be completely reinitialized before any further GPU operations
-        unsafe {
-            let result = cudaDeviceReset();
-            if result == 0 {
-                error!("CUDA context reset successfully - ALL GPU BUFFERS ARE NOW INVALID");
-                info!("All CudaMemoryGuard and GPU resource handles are now dangling pointers");
-                self.error_count.store(0, Ordering::Relaxed);
-            } else {
-                error!("Failed to reset CUDA context: error code {}", result);
-            }
-        }
+        // Instead, set an atomic flag that GPU compute actors check on each cycle.
+        // Those actors must:
+        //   1. Drop all CudaMemoryGuard / DeviceBuffer instances
+        //   2. Call cudaDeviceReset()
+        //   3. Reinitialize GPU resources from scratch
+        //   4. Call clear_reinit_flag()
+        self.needs_reinit.store(true, Ordering::SeqCst);
+        self.error_count.store(0, Ordering::Relaxed);
+        warn!("GPU reinit flag set — compute actors will tear down and rebuild on next cycle");
+    }
+
+    /// Returns `true` if the GPU pipeline needs full reinitialization.
+    /// Compute actors should check this at the top of every processing cycle.
+    pub fn needs_reinit(&self) -> bool {
+        self.needs_reinit.load(Ordering::SeqCst)
+    }
+
+    /// Clear the reinit flag after compute actors have successfully torn down
+    /// all RAII wrappers and reinitialized the CUDA context.
+    pub fn clear_reinit_flag(&self) {
+        self.needs_reinit.store(false, Ordering::SeqCst);
     }
 }
 

@@ -23,7 +23,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::models::protected_settings::NostrUser;
 use crate::services::nostr_service::NostrService;
-use crate::utils::nip98::{generate_nip98_token, build_auth_header, extract_pubkey_from_token, Nip98Config};
+use crate::utils::nip98::{generate_nip98_token, build_auth_header, validate_nip98_token, Nip98Config};
 use nostr_sdk::{Keys, PublicKey, ToBech32};
 
 /// JSS configuration from environment
@@ -138,8 +138,9 @@ impl SolidProxyState {
         }
     }
 
-    /// Extract user identity from NIP-98 Authorization header
+    /// Extract and verify user identity from NIP-98 Authorization header
     /// Returns the user's pubkey and original token for forwarding
+    /// Validates the NIP-98 signature, timestamp, URL, and method before accepting
     pub fn extract_user_identity(&self, req: &HttpRequest) -> Option<UserIdentity> {
         let auth_header = req.headers().get("Authorization")?;
         let auth_str = auth_header.to_str().ok()?;
@@ -152,16 +153,44 @@ impl SolidProxyState {
 
         let token = &auth_str[6..]; // Skip "Nostr "
 
-        // Extract and validate the pubkey from the token
-        let pubkey = extract_pubkey_from_token(token)?;
+        // Reconstruct the request URL and method for NIP-98 validation
+        // Behind a TLS-terminating proxy, connection_info returns internal
+        // scheme/host; prefer X-Forwarded-* headers from the proxy.
+        let conn_info = req.connection_info();
+        let scheme = req.headers()
+            .get("X-Forwarded-Proto")
+            .and_then(|v| v.to_str().ok())
+            .unwrap_or_else(|| conn_info.scheme());
+        let host = req.headers()
+            .get("X-Forwarded-Host")
+            .and_then(|v| v.to_str().ok())
+            .unwrap_or_else(|| conn_info.host());
+        let expected_url = format!(
+            "{}://{}{}",
+            scheme,
+            host,
+            req.uri().path_and_query().map(|pq| pq.as_str()).unwrap_or("/")
+        );
+        let expected_method = req.method().as_str();
 
-        debug!("Extracted user identity from NIP-98: pubkey={}...", &pubkey[..16.min(pubkey.len())]);
-
-        Some(UserIdentity {
-            pubkey,
-            nip98_token: token.to_string(),
-            auth_header: auth_str.to_string(),
-        })
+        // Validate the NIP-98 token: signature, timestamp, URL, and method
+        match validate_nip98_token(token, &expected_url, expected_method, None) {
+            Ok(validation) => {
+                debug!(
+                    "Verified NIP-98 user identity: pubkey={}...",
+                    &validation.pubkey[..16.min(validation.pubkey.len())]
+                );
+                Some(UserIdentity {
+                    pubkey: validation.pubkey,
+                    nip98_token: token.to_string(),
+                    auth_header: auth_str.to_string(),
+                })
+            }
+            Err(e) => {
+                warn!("NIP-98 token validation failed in proxy: {}", e);
+                None
+            }
+        }
     }
 }
 
@@ -726,7 +755,7 @@ pub async fn init_pod_nip98(
     }
 }
 
-/// Get user from request using session token
+/// Get user from request using NIP-98 auth (primary) or session token (fallback)
 async fn get_user_from_request(
     req: &HttpRequest,
     nostr_service: &web::Data<NostrService>,
@@ -735,7 +764,40 @@ async fn get_user_from_request(
     let auth_header = req.headers().get("Authorization")?;
     let auth_str = auth_header.to_str().ok()?;
 
-    // Extract Bearer token
+    // Try NIP-98 first (primary authentication path)
+    if auth_str.starts_with("Nostr ") {
+        // Behind a TLS-terminating proxy, connection_info returns internal
+        // scheme/host; prefer X-Forwarded-* headers from the proxy.
+        let conn_info = req.connection_info();
+        let scheme = req.headers()
+            .get("X-Forwarded-Proto")
+            .and_then(|v| v.to_str().ok())
+            .unwrap_or_else(|| conn_info.scheme());
+        let host = req.headers()
+            .get("X-Forwarded-Host")
+            .and_then(|v| v.to_str().ok())
+            .unwrap_or_else(|| conn_info.host());
+        let request_url = format!(
+            "{}://{}{}",
+            scheme,
+            host,
+            req.uri().path_and_query().map(|pq| pq.as_str()).unwrap_or("/")
+        );
+        let request_method = req.method().as_str();
+
+        match nostr_service
+            .verify_nip98_auth(auth_str, &request_url, request_method, None)
+            .await
+        {
+            Ok(user) => return Some(user),
+            Err(e) => {
+                warn!("NIP-98 auth failed in pod management: {}", e);
+                return None;
+            }
+        }
+    }
+
+    // Fall back to Bearer session token (legacy path)
     if auth_str.starts_with("Bearer ") {
         let token = &auth_str[7..];
         nostr_service.get_session(token).await

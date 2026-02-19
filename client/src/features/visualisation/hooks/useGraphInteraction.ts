@@ -38,6 +38,7 @@ export const useGraphInteraction = (options: UseGraphInteractionOptions = {}) =>
   const activeInteractionsRef = useRef(new Set<string>());
   const interactionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastPositionSentRef = useRef<Map<string, number>>(new Map());
+  const lastInteractionTimeRef = useRef(Date.now());
 
   
   const throttledSendPositions = useRef(
@@ -107,6 +108,7 @@ export const useGraphInteraction = (options: UseGraphInteractionOptions = {}) =>
     const newInteractionCount = activeInteractionsRef.current.size;
     const wasInteracting = interactionState.isUserInteracting;
 
+    lastInteractionTimeRef.current = now;
     setInteractionState(prev => ({
       ...prev,
       hasActiveInteractions: true,
@@ -190,12 +192,9 @@ export const useGraphInteraction = (options: UseGraphInteractionOptions = {}) =>
     }
 
     
-    setInteractionState(prev => ({
-      ...prev,
-      lastInteractionTime: Date.now()
-    }));
+    lastInteractionTimeRef.current = Date.now();
 
-    
+
     throttledSendPositions();
   }, [throttledSendPositions]);
 
@@ -235,6 +234,7 @@ export const useGraphInteraction = (options: UseGraphInteractionOptions = {}) =>
 
   return {
     interactionState,
+    lastInteractionTimeRef,
     startInteraction,
     endInteraction,
     updateNodePosition,

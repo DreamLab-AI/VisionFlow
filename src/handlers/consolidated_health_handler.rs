@@ -65,16 +65,22 @@ pub async fn unified_health_check(app_state: web::Data<AppState>) -> Result<Http
     let mut health_status = "healthy".to_string();
     let mut issues = Vec::new();
 
-    
+    // Check application-level degraded state (e.g. Neo4j init failure)
+    if let Some(reason) = app_state.get_degraded_reason() {
+        health_status = "degraded".to_string();
+        issues.push(reason);
+    }
+
+
     let system_metrics = check_system_metrics(&mut health_status, &mut issues);
 
-    
+
     let service_metrics = check_service_metrics(&app_state, &mut health_status, &mut issues).await;
 
-    
+
     let mcp_metrics = check_mcp_metrics().await;
 
-    
+
     if health_status == "healthy" && !issues.is_empty() {
         health_status = "degraded".to_string();
     }

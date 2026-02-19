@@ -117,6 +117,15 @@ const PHASE_TIMING = {
 const DEFAULT_POSITION = new THREE.Vector3(0, 0, 0);
 
 /**
+ * Pre-allocated temp vectors to avoid cloning on every getPosition call.
+ * getPosition writes into one of these and returns it -- callers must
+ * consume the value immediately (before the next getPosition call) or
+ * copy it themselves.
+ */
+const _tempSource = new THREE.Vector3();
+const _tempTarget = new THREE.Vector3();
+
+/**
  * Primary hook interface using Map-based position lookups
  */
 export function useActionConnections(
@@ -179,29 +188,34 @@ export function useActionConnections(
   const wsOn = useWebSocketStore(state => state.on);
 
   /**
-   * Get position from Maps or legacy resolver
+   * Get position from Maps or legacy resolver.
+   * Returns a pre-allocated temp vector (_tempSource or _tempTarget) to
+   * avoid allocating a new Vector3 every call.  Callers that need to
+   * persist the value must copy it before the next getPosition call.
    */
   const getPosition = useCallback((
     nodeId: number,
     isAgent: boolean
   ): THREE.Vector3 => {
+    const out = isAgent ? _tempSource : _tempTarget;
+
     // Try Map lookup first
     const map = isAgent ? agentPositionMap : nodePositionMap;
     const mapPosition = map.get(nodeId);
     if (mapPosition) {
-      return mapPosition.clone();
+      return out.copy(mapPosition);
     }
 
     // Fall back to legacy resolver
     if (config.getNodePosition) {
       const legacyPos = config.getNodePosition(nodeId);
       if (legacyPos) {
-        return new THREE.Vector3(legacyPos.x, legacyPos.y, legacyPos.z);
+        return out.set(legacyPos.x, legacyPos.y, legacyPos.z);
       }
     }
 
     // Return default position
-    return DEFAULT_POSITION.clone();
+    return out.copy(DEFAULT_POSITION);
   }, [agentPositionMap, nodePositionMap, config.getNodePosition]);
 
   /**
@@ -213,8 +227,9 @@ export function useActionConnections(
     const duration = event.durationMs > 0 ? event.durationMs : config.baseDuration;
     const actionTypeString = ACTION_TYPE_MAP[event.actionType] || 'query';
 
-    const sourcePosition = getPosition(event.sourceAgentId, true);
-    const targetPosition = getPosition(event.targetNodeId, false);
+    // Clone here because getPosition returns temp vectors that get overwritten
+    const sourcePosition = getPosition(event.sourceAgentId, true).clone();
+    const targetPosition = getPosition(event.targetNodeId, false).clone();
 
     const newConnection: ActionConnection = {
       id,
@@ -281,9 +296,9 @@ export function useActionConnections(
           continue;
         }
 
-        // Update positions from current Maps
-        const sourcePosition = getPosition(conn.sourceAgentId, true);
-        const targetPosition = getPosition(conn.targetNodeId, false);
+        // Update positions from current Maps (clone because getPosition returns temp vectors)
+        const sourcePosition = getPosition(conn.sourceAgentId, true).clone();
+        const targetPosition = getPosition(conn.targetNodeId, false).clone();
 
         updated.push({
           ...conn,
@@ -380,8 +395,8 @@ export function useActionConnections(
   const updatePositions = useCallback(() => {
     setConnections(prev => prev.map(conn => ({
       ...conn,
-      sourcePosition: getPosition(conn.sourceAgentId, true),
-      targetPosition: getPosition(conn.targetNodeId, false),
+      sourcePosition: getPosition(conn.sourceAgentId, true).clone(),
+      targetPosition: getPosition(conn.targetNodeId, false).clone(),
     })));
   }, [getPosition]);
 

@@ -76,6 +76,14 @@ export function useErrorHandler() {
     errorContext.lastOccurrence = Date.now();
     errorHistory.current.set(errorKey, errorContext);
 
+    // Evict oldest entry when the map exceeds capacity to prevent unbounded growth
+    if (errorHistory.current.size > 100) {
+      const oldestKey = errorHistory.current.keys().next().value;
+      if (oldestKey !== undefined) {
+        errorHistory.current.delete(oldestKey);
+      }
+    }
+
     
     const userFriendlyMessages: Record<string, string> = {
       'Network request failed': 'Unable to connect to the server. Please check your internet connection.',

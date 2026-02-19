@@ -533,6 +533,30 @@ impl<T: Clone> SafeArrayAccess<T> {
     pub fn is_empty(&self) -> bool {
         self.data.is_empty()
     }
+
+    /// Bulk copy from a source slice into the beginning of this buffer.
+    /// Performs a single bounds-range check (one mutex acquisition) instead of
+    /// per-element checks, then delegates to the standard `copy_from_slice`.
+    pub fn copy_from_slice(&mut self, src: &[T]) -> Result<(), MemoryBoundsError>
+    where
+        T: Copy,
+    {
+        if src.len() > self.data.len() {
+            return Err(MemoryBoundsError::RangeOutOfBounds {
+                start: 0,
+                end: src.len(),
+                size: self.data.len(),
+                name: self.buffer_name.clone(),
+            });
+        }
+
+        if let Some(checker) = &self.bounds_checker {
+            checker.check_range_access(&self.buffer_name, 0, src.len(), true)?;
+        }
+
+        self.data[..src.len()].copy_from_slice(src);
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -586,6 +610,50 @@ mod tests {
         assert_eq!(slice, &[2, 3, 4]);
 
         assert!(safe_array.slice(3, 5).is_err()); 
+    }
+
+    #[test]
+    fn test_safe_array_copy_from_slice() {
+        let data = vec![0i32; 8];
+        let mut safe_array = SafeArrayAccess::new(data, "copy_test".to_string());
+
+        // Exact-fit copy
+        let src = vec![10, 20, 30, 40, 50, 60, 70, 80];
+        assert!(safe_array.copy_from_slice(&src).is_ok());
+        assert_eq!(*safe_array.get(0).unwrap(), 10);
+        assert_eq!(*safe_array.get(7).unwrap(), 80);
+
+        // Partial copy (smaller source)
+        let partial = vec![99, 98];
+        assert!(safe_array.copy_from_slice(&partial).is_ok());
+        assert_eq!(*safe_array.get(0).unwrap(), 99);
+        assert_eq!(*safe_array.get(1).unwrap(), 98);
+        // Remaining elements unchanged
+        assert_eq!(*safe_array.get(2).unwrap(), 30);
+
+        // Oversized source must fail
+        let oversized = vec![0i32; 9];
+        assert!(safe_array.copy_from_slice(&oversized).is_err());
+    }
+
+    #[test]
+    fn test_safe_array_copy_from_slice_with_bounds_checker() {
+        let checker = Arc::new(ThreadSafeMemoryBoundsChecker::new(100_000));
+        let bounds = MemoryBounds::new("checked_copy".to_string(), 20, 4, 4); // 5 elements
+        checker.register_allocation(bounds).unwrap();
+
+        let data = vec![0.0f32; 5];
+        let mut safe_array = SafeArrayAccess::new(data, "checked_copy".to_string())
+            .with_bounds_checker(checker);
+
+        let src = vec![1.0, 2.0, 3.0];
+        assert!(safe_array.copy_from_slice(&src).is_ok());
+        assert_eq!(*safe_array.get(0).unwrap(), 1.0);
+        assert_eq!(*safe_array.get(2).unwrap(), 3.0);
+
+        // Oversized must fail
+        let oversized = vec![0.0f32; 6];
+        assert!(safe_array.copy_from_slice(&oversized).is_err());
     }
 
     #[test]

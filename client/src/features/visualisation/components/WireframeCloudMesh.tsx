@@ -73,7 +73,14 @@ export const WireframeCloudMesh: React.FC<WireframeCloudMeshProps> = ({
     });
   }, [color, opacity, glowIntensity]);
 
-  
+  // Dispose geometry when it changes or on unmount
+  useEffect(() => {
+    return () => {
+      geometryObj.dispose();
+    };
+  }, [geometryObj]);
+
+
   useEffect(() => {
     materialRef.current = material;
     return () => {

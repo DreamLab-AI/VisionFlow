@@ -38,6 +38,10 @@ const loadGoapWidget = () => {
   script.id = 'goap-widget-script';
   script.src = 'https://goal.ruv.io/widget.js';
   script.async = true;
+  script.crossOrigin = 'anonymous';
+  script.onerror = () => {
+    console.warn('[GOAP] Widget script failed to load (may be blocked by COEP/CSP policy)');
+  };
   document.body.appendChild(script);
 };
 

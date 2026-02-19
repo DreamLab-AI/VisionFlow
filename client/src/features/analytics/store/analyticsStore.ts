@@ -590,13 +590,12 @@ export const useAnalyticsStore = create<AnalyticsState>()(
       name: 'analytics-store',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
-        cache: state.cache,
+        // cache deliberately excluded -- too large for localStorage
         metrics: state.metrics
       }),
       onRehydrateStorage: () => (state) => {
         if (state && debugState.isEnabled()) {
           logger.info('Analytics store rehydrated', {
-            cacheEntries: Object.keys(state.cache || {}).length,
             metrics: state.metrics
           })
         }

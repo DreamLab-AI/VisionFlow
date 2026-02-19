@@ -85,9 +85,11 @@ pub fn encode_node_data_delta(
             let dvy = node.vy - prev_node.vy;
             let dvz = node.vz - prev_node.vz;
 
-            // Determine what changed (with threshold to avoid noise)
-            let position_changed = dx.abs() > 0.001 || dy.abs() > 0.001 || dz.abs() > 0.001;
-            let velocity_changed = dvx.abs() > 0.0001 || dvy.abs() > 0.0001 || dvz.abs() > 0.0001;
+            // Threshold must match quantization resolution: deltas smaller than
+            // 1/DELTA_SCALE_FACTOR truncate to zero in i16, producing useless packets.
+            let min_delta = 1.0 / DELTA_SCALE_FACTOR;
+            let position_changed = dx.abs() >= min_delta || dy.abs() >= min_delta || dz.abs() >= min_delta;
+            let velocity_changed = dvx.abs() >= min_delta || dvy.abs() >= min_delta || dvz.abs() >= min_delta;
 
             if position_changed || velocity_changed {
                 let mut change_flags = 0u8;

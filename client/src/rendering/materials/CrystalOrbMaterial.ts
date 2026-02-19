@@ -53,11 +53,26 @@ export function createCrystalOrbMaterial(): CrystalOrbMaterialResult {
     }),
   });
 
-  // TSL DISABLED: Adding colorNode/emissiveNode/opacityNode to MeshPhysicalMaterial
-  // triggers shader recompilation that breaks InstancedMesh draw calls on WebGPU r182.
-  // Visual quality achieved through standard PBR properties + per-frame emissive
-  // modulation in GemNodes useFrame instead.
-  const ready = Promise.resolve();
+  // TSL ENABLED (r183+) with PBR fallback — Fresnel emissive and opacity nodes
+  // are applied asynchronously on WebGPU; standard PBR + per-frame emissive
+  // modulation in GemNodes useFrame remains the active fallback path.
+  const ready = (async () => {
+    if (!isWebGPURenderer) return;
+    try {
+      const { float, vec3, normalize, positionView, normalView, dot, saturate, pow, oneMinus, sin, time } = await import('three/tsl') as any;
+      const viewDir = normalize(positionView.negate());
+      const fresnel = pow(oneMinus(saturate(dot(normalView, viewDir))), float(3.0));
+      const pulse = sin(time.mul(float(0.8))).mul(0.5).add(0.5);
+      const emissiveNode = vec3(float(0.12), float(0.12), float(0.25)).mul(fresnel).mul(pulse.mul(0.4).add(0.6));
+      const opacityNode = float(0.55).add(fresnel.mul(0.4));
+      (material as any).emissiveNode = emissiveNode;
+      (material as any).opacityNode = opacityNode;
+      (material as any).needsUpdate = true;
+      console.log('[CrystalOrbMaterial] TSL nodes enabled (r183+)');
+    } catch (err) {
+      console.warn('[CrystalOrbMaterial] TSL upgrade failed, using PBR fallback:', err);
+    }
+  })();
 
   return { material, uniforms, ready };
 }

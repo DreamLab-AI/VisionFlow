@@ -106,6 +106,7 @@ class SolidPodService {
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
   private reconnectTimerId: ReturnType<typeof setTimeout> | null = null;
+  private isDisconnecting = false;
 
   private constructor() {}
 
@@ -614,6 +615,10 @@ class SolidPodService {
           code: event.code,
           reason: event.reason,
         });
+        if (this.isDisconnecting) {
+          this.isDisconnecting = false;
+          return;
+        }
         this.handleReconnect();
       };
     } catch (error) {
@@ -657,6 +662,7 @@ class SolidPodService {
       clearTimeout(this.reconnectTimerId);
       this.reconnectTimerId = null;
     }
+    this.isDisconnecting = true;
     webSocketRegistry.unregister(REGISTRY_NAME);
     if (this.wsConnection) {
       this.wsConnection.close();

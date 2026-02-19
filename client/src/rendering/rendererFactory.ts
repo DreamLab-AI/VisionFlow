@@ -88,8 +88,8 @@ export async function createGemRenderer(defaultProps: Record<string, any>) {
       await Promise.race([renderer.init(), initTimeout]);
 
       // Gate 2: verify the backend is actually WebGPU, not the internal WebGL2 fallback.
-      // Three.js r182 WebGPURenderer.init() silently falls back to WebGLBackend when
-      // the GPU adapter request fails. Check the backend class name.
+      // Three.js r182 and earlier silently fell back to WebGLBackend when the GPU
+      // adapter request failed. r183+ still has this fallback path, so the check remains.
       const backendName = renderer.backend?.constructor?.name ?? '';
       if (backendName === 'WebGLBackend') {
         console.warn('[GemRenderer] WebGPURenderer fell back to WebGLBackend — using clean WebGLRenderer instead');
@@ -110,6 +110,8 @@ export async function createGemRenderer(defaultProps: Record<string, any>) {
       // Some objects (e.g. InstancedMesh during async init, or three.js internal
       // passes) can transiently have invalid draw parameters. Rather than crashing
       // the entire render loop, we catch the TypeError and skip the object.
+      // Precautionary for r183+: the root cause patches are in the materials, but
+      // third-party geometry (troika Line2, etc.) can still trigger this edge case.
       const _origRenderObject = renderer.renderObject.bind(renderer);
       const _warnedObjects = new WeakSet<object>();
       renderer.renderObject = function (object: any, ...rest: any[]) {

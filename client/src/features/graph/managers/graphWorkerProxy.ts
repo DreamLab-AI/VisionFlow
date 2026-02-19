@@ -108,14 +108,24 @@ class GraphWorkerProxy {
       const maxNodes = 10000;
       const bufferSize = maxNodes * 4 * 4; 
 
+      if (!self.crossOriginIsolated) {
+        logger.warn('Cross-origin isolation is NOT active. COOP/COEP headers may be missing or stripped. SharedArrayBuffer will be unavailable.');
+      }
+
       if (typeof SharedArrayBuffer !== 'undefined') {
-        logger.info('Setting up SharedArrayBuffer');
-        this.sharedBuffer = new SharedArrayBuffer(bufferSize);
-        this.sharedPositionView = new Float32Array(this.sharedBuffer);
-        await this.workerApi.setupSharedPositions(this.sharedBuffer);
-        logger.info(`SharedArrayBuffer initialized: ${bufferSize} bytes`);
-        if (debugState.isEnabled()) {
-          logger.info(`Initialized SharedArrayBuffer: ${bufferSize} bytes for ${maxNodes} nodes`);
+        try {
+          logger.info('Setting up SharedArrayBuffer');
+          this.sharedBuffer = new SharedArrayBuffer(bufferSize);
+          this.sharedPositionView = new Float32Array(this.sharedBuffer);
+          await this.workerApi.setupSharedPositions(this.sharedBuffer);
+          logger.info(`SharedArrayBuffer initialized: ${bufferSize} bytes`);
+          if (debugState.isEnabled()) {
+            logger.info(`Initialized SharedArrayBuffer: ${bufferSize} bytes for ${maxNodes} nodes`);
+          }
+        } catch (sabError) {
+          logger.warn('SharedArrayBuffer construction failed, falling back to message passing:', sabError);
+          this.sharedBuffer = null;
+          this.sharedPositionView = null;
         }
       } else {
         logger.warn('SharedArrayBuffer not available, falling back to regular message passing');

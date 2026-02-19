@@ -402,37 +402,28 @@ impl FrameBuffer {
             }
         }
 
-        
+
         self.current_frame = frame;
         self.node_count = node_count;
 
-        
-        for i in 0..positions.len() {
-            *self
-                .positions
-                .get_mut(i)
-                .map_err(|e| GPUSafetyError::DeviceError {
-                    message: format!("Failed to update position {}: {}", i, e),
-                })? = positions[i];
-        }
+        // Bulk copy: one bounds-range check per buffer instead of per-element mutex locks
+        self.positions
+            .copy_from_slice(positions)
+            .map_err(|e| GPUSafetyError::DeviceError {
+                message: format!("Failed to bulk update positions: {}", e),
+            })?;
 
-        for i in 0..colors.len() {
-            *self
-                .colors
-                .get_mut(i)
-                .map_err(|e| GPUSafetyError::DeviceError {
-                    message: format!("Failed to update color {}: {}", i, e),
-                })? = colors[i];
-        }
+        self.colors
+            .copy_from_slice(colors)
+            .map_err(|e| GPUSafetyError::DeviceError {
+                message: format!("Failed to bulk update colors: {}", e),
+            })?;
 
-        for i in 0..importance.len() {
-            *self
-                .importance
-                .get_mut(i)
-                .map_err(|e| GPUSafetyError::DeviceError {
-                    message: format!("Failed to update importance {}: {}", i, e),
-                })? = importance[i];
-        }
+        self.importance
+            .copy_from_slice(importance)
+            .map_err(|e| GPUSafetyError::DeviceError {
+                message: format!("Failed to bulk update importance: {}", e),
+            })?;
 
         debug!(
             "Frame buffer updated: frame={}, nodes={}",

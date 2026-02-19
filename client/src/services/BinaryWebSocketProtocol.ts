@@ -6,10 +6,11 @@ import type { Vec3 } from '../types/binaryProtocol';
 const logger = createLogger('BinaryWebSocketProtocol');
 
 // Protocol versions
-export const PROTOCOL_V2 = 2;  // Supported
-export const PROTOCOL_V3 = 3;  // CURRENT: Analytics extension (48 bytes/node)
-export const PROTOCOL_VERSION = PROTOCOL_V3;  // Default to V3
-export const SUPPORTED_PROTOCOLS = [PROTOCOL_V2, PROTOCOL_V3];  
+export const PROTOCOL_V2 = 2;  // Legacy: uint16 payload length, uint16 SSSP IDs
+export const PROTOCOL_V3 = 3;  // Analytics extension (48 bytes/node)
+export const PROTOCOL_V4 = 4;  // CURRENT: uint32 payload length header (6 bytes), uint32 SSSP IDs (14 bytes/node)
+export const PROTOCOL_VERSION = PROTOCOL_V4;  // Default to V4
+export const SUPPORTED_PROTOCOLS = [PROTOCOL_V2, PROTOCOL_V3, PROTOCOL_V4];
 
 // Message types (1 byte header)
 export enum MessageType {
@@ -179,14 +180,16 @@ export interface GraphUpdateHeader extends MessageHeader {
   graphTypeFlag: GraphTypeFlag; 
 }
 
-// Constants for binary layout (V2+)
-export const MESSAGE_HEADER_SIZE = 4;
-export const GRAPH_UPDATE_HEADER_SIZE = 5;
+// Constants for binary layout
+// V4 header: [1-byte type][1-byte version][4-byte payloadLength] = 6 bytes
+export const MESSAGE_HEADER_SIZE = 6;
+export const GRAPH_UPDATE_HEADER_SIZE = 7;  // MESSAGE_HEADER_SIZE + 1-byte graphTypeFlag
 export const AGENT_POSITION_SIZE_V2 = 21;  // 4 (u32 id) + 12 (pos) + 4 (timestamp) + 1 (flags)
 export const AGENT_STATE_SIZE_V2 = 49;     // Full agent state with u32 IDs
-export const SSSP_DATA_SIZE_V2 = 12;       // SSSP with u32 IDs
+// V4 SSSP layout: 4 (u32 nodeId) + 4 (f32 distance) + 4 (u32 parentId) + 2 (u16 flags) = 14 bytes
+export const SSSP_DATA_SIZE_V2 = 14;       // SSSP with u32 IDs
 
-// Canonical sizes (V2+)
+// Canonical sizes
 export const AGENT_POSITION_SIZE = AGENT_POSITION_SIZE_V2;
 export const AGENT_STATE_SIZE = AGENT_STATE_SIZE_V2;
 export const SSSP_DATA_SIZE = SSSP_DATA_SIZE_V2;
@@ -218,31 +221,19 @@ export class BinaryWebSocketProtocol {
     const isGraphUpdate = type === MessageType.GRAPH_UPDATE;
     const headerSize = isGraphUpdate ? GRAPH_UPDATE_HEADER_SIZE : MESSAGE_HEADER_SIZE;
 
-    // Guard: payload length field is uint16 — max 65,535 bytes.
-    // At 26 bytes/node this overflows above ~2,520 nodes.
-    if (payload.byteLength > 0xFFFF) {
-      logger.error(
-        `Payload size ${payload.byteLength} exceeds uint16 max (65535). ` +
-        `Message type 0x${type.toString(16)} will be truncated on the wire. ` +
-        `Protocol upgrade to uint32 payload length required for large graphs.`
-      );
-    }
-
     const totalSize = headerSize + payload.byteLength;
     const buffer = new ArrayBuffer(totalSize);
     const view = new DataView(buffer);
 
-
+    // V4 header: [1-byte type][1-byte version][4-byte payloadLength (uint32, LE)]
     view.setUint8(0, type);
     view.setUint8(1, PROTOCOL_VERSION);
-    view.setUint16(2, Math.min(payload.byteLength, 0xFFFF), true);
+    view.setUint32(2, payload.byteLength, true);
 
-    
     if (isGraphUpdate && graphTypeFlag !== undefined) {
-      view.setUint8(4, graphTypeFlag);
+      view.setUint8(6, graphTypeFlag);
     }
 
-    
     new Uint8Array(buffer, headerSize).set(new Uint8Array(payload));
 
     return buffer;
@@ -260,12 +251,11 @@ export class BinaryWebSocketProtocol {
     const header: MessageHeader = {
       type,
       version: view.getUint8(1),
-      payloadLength: view.getUint16(2, true)
+      payloadLength: view.getUint32(2, true)
     };
 
-    
     if (type === MessageType.GRAPH_UPDATE && buffer.byteLength >= GRAPH_UPDATE_HEADER_SIZE) {
-      header.graphTypeFlag = view.getUint8(4) as GraphTypeFlag;
+      header.graphTypeFlag = view.getUint8(6) as GraphTypeFlag;
     }
 
     return header;
@@ -458,15 +448,11 @@ export class BinaryWebSocketProtocol {
     nodes.forEach((node, index) => {
       const offset = index * SSSP_DATA_SIZE;
 
-      // Guard: nodeId and parentId are uint16 — max 65,535.
-      // IDs above this are silently truncated. Log warning for visibility.
-      if (node.nodeId > 0xFFFF || node.parentId > 0xFFFF) {
-        logger.warn(`SSSP node/parent ID exceeds uint16: nodeId=${node.nodeId}, parentId=${node.parentId}`);
-      }
-      view.setUint16(offset, node.nodeId & 0xFFFF, true);
-      view.setFloat32(offset + 2, node.distance, true);
-      view.setUint16(offset + 6, node.parentId & 0xFFFF, true);
-      view.setUint16(offset + 8, node.flags, true);
+      // V4 layout: [u32 nodeId][f32 distance][u32 parentId][u16 flags] = 14 bytes
+      view.setUint32(offset, node.nodeId, true);
+      view.setFloat32(offset + 4, node.distance, true);
+      view.setUint32(offset + 8, node.parentId, true);
+      view.setUint16(offset + 12, node.flags, true);
     });
 
     return this.createMessage(MessageType.SSSP_DATA, payload);
@@ -476,7 +462,7 @@ export class BinaryWebSocketProtocol {
   public decodeSSSPData(payload: ArrayBuffer): SSSPData[] {
     const nodes: SSSPData[] = [];
     const view = new DataView(payload);
-    const nodeCount = payload.byteLength / SSSP_DATA_SIZE;
+    const nodeCount = Math.floor(payload.byteLength / SSSP_DATA_SIZE);
 
     for (let i = 0; i < nodeCount; i++) {
       const offset = i * SSSP_DATA_SIZE;
@@ -486,11 +472,12 @@ export class BinaryWebSocketProtocol {
         break;
       }
 
+      // V4 layout: [u32 nodeId][f32 distance][u32 parentId][u16 flags] = 14 bytes
       nodes.push({
-        nodeId: view.getUint16(offset, true),
-        distance: view.getFloat32(offset + 2, true),
-        parentId: view.getUint16(offset + 6, true),
-        flags: view.getUint16(offset + 8, true)
+        nodeId: view.getUint32(offset, true),
+        distance: view.getFloat32(offset + 4, true),
+        parentId: view.getUint32(offset + 8, true),
+        flags: view.getUint16(offset + 12, true)
       });
     }
 

@@ -8,7 +8,10 @@ use std::{
     fs::{create_dir_all, metadata, remove_file, rename, File, OpenOptions},
     io::{self, BufWriter, Write},
     path::{Path, PathBuf},
-    sync::{Arc, Mutex, RwLock},
+    sync::{
+        atomic::{AtomicU64, Ordering},
+        Arc, Mutex,
+    },
 };
 
 use crate::utils::time;
@@ -96,12 +99,14 @@ impl Default for LogRotationConfig {
 pub struct AdvancedLogger {
     _log_sender: Sender<LogEntry>,
     _log_receivers: Arc<Mutex<HashMap<LogComponent, Receiver<LogEntry>>>>,
-    log_writers: Arc<RwLock<HashMap<LogComponent, BufWriter<File>>>>,
+    log_writers: HashMap<LogComponent, Mutex<BufWriter<File>>>,
     log_dir: PathBuf,
     rotation_config: LogRotationConfig,
     performance_metrics: Arc<Mutex<HashMap<String, Vec<f64>>>>,
     gpu_error_count: Arc<Mutex<u32>>,
     recovery_attempts: Arc<Mutex<u32>>,
+    dropped_logs: AtomicU64,
+    write_errors: AtomicU64,
 }
 
 impl AdvancedLogger {
@@ -112,9 +117,7 @@ impl AdvancedLogger {
 
         let (log_sender, _) = unbounded();
         let log_receivers = Arc::new(Mutex::new(HashMap::new()));
-        let log_writers = Arc::new(RwLock::new(HashMap::new()));
 
-        
         let components = [
             LogComponent::Server,
             LogComponent::Client,
@@ -133,27 +136,20 @@ impl AdvancedLogger {
                 .create(true)
                 .append(true)
                 .open(file_path)?;
-            writers_map.insert(*component, BufWriter::new(file));
-        }
-
-        if let Ok(mut writers_guard) = log_writers.write() {
-            *writers_guard = writers_map;
-        } else {
-            return Err(io::Error::new(
-                io::ErrorKind::Other,
-                "Failed to acquire log writers lock",
-            ));
+            writers_map.insert(*component, Mutex::new(BufWriter::new(file)));
         }
 
         Ok(Self {
             _log_sender: log_sender,
             _log_receivers: log_receivers,
-            log_writers,
+            log_writers: writers_map,
             log_dir,
             rotation_config: LogRotationConfig::default(),
             performance_metrics: Arc::new(Mutex::new(HashMap::new())),
             gpu_error_count: Arc::new(Mutex::new(0)),
             recovery_attempts: Arc::new(Mutex::new(0)),
+            dropped_logs: AtomicU64::new(0),
+            write_errors: AtomicU64::new(0),
         })
     }
 
@@ -366,16 +362,53 @@ impl AdvancedLogger {
         let json_line =
             to_json(entry).unwrap_or_else(|_| "Invalid log entry".to_string());
 
-        
-        if let Ok(mut writers) = self.log_writers.try_write() {
-            if let Some(writer) = writers.get_mut(&component) {
-                let _ = writeln!(writer, "{}", json_line);
-                let _ = writer.flush();
+        if let Some(writer_mutex) = self.log_writers.get(&component) {
+            // Try non-blocking first for the fast path
+            let lock_result = writer_mutex.try_lock();
+            let mut writer = match lock_result {
+                Ok(guard) => guard,
+                Err(std::sync::TryLockError::WouldBlock) => {
+                    // Contended -- block to guarantee delivery
+                    match writer_mutex.lock() {
+                        Ok(guard) => guard,
+                        Err(poisoned) => {
+                            self.dropped_logs.fetch_add(1, Ordering::Relaxed);
+                            let prev = self.dropped_logs.load(Ordering::Relaxed);
+                            if prev % 1000 == 0 {
+                                warn!(
+                                    "Log writer mutex poisoned for {:?}, {} logs dropped so far",
+                                    component, prev
+                                );
+                            }
+                            poisoned.into_inner()
+                        }
+                    }
+                }
+                Err(std::sync::TryLockError::Poisoned(poisoned)) => {
+                    // Recover from poison
+                    poisoned.into_inner()
+                }
+            };
+
+            if let Err(e) = writeln!(writer, "{}", json_line) {
+                let count = self.write_errors.fetch_add(1, Ordering::Relaxed) + 1;
+                if count % 100 == 1 {
+                    warn!(
+                        "Failed to write log for {:?}: {} ({} total write errors)",
+                        component, e, count
+                    );
+                }
+            } else if let Err(e) = writer.flush() {
+                let count = self.write_errors.fetch_add(1, Ordering::Relaxed) + 1;
+                if count % 100 == 1 {
+                    warn!(
+                        "Failed to flush log for {:?}: {} ({} total write errors)",
+                        component, e, count
+                    );
+                }
             }
         }
-        
 
-        
         self.check_and_rotate_logs(component);
     }
 
@@ -397,26 +430,33 @@ impl AdvancedLogger {
         let archived_name = format!("{}_{}.log", component.as_str(), timestamp);
         let archived_path = self.log_dir.join("archived").join(archived_name);
 
-        
-        if rename(&current_path, &archived_path).is_ok() {
-            
-            if let Ok(new_file) = OpenOptions::new()
-                .create(true)
-                .append(true)
-                .open(&current_path)
-            {
-                if let Ok(mut writers) = self.log_writers.write() {
-                    writers.insert(component, BufWriter::new(new_file));
+        if let Some(writer_mutex) = self.log_writers.get(&component) {
+            let mut writer = match writer_mutex.lock() {
+                Ok(guard) => guard,
+                Err(poisoned) => poisoned.into_inner(),
+            };
+
+            // Flush before rotating
+            let _ = writer.flush();
+
+            if rename(&current_path, &archived_path).is_ok() {
+                if let Ok(new_file) = OpenOptions::new()
+                    .create(true)
+                    .append(true)
+                    .open(&current_path)
+                {
+                    *writer = BufWriter::new(new_file);
                 } else {
                     warn!(
-                        "Failed to acquire writers lock during log rotation for {:?}",
+                        "Failed to open new log file during rotation for {:?}",
                         component
                     );
                 }
-            }
 
-            
-            self.cleanup_old_logs(component);
+                // Drop lock before cleanup (cleanup doesn't need the writer)
+                drop(writer);
+                self.cleanup_old_logs(component);
+            }
         }
     }
 

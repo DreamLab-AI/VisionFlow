@@ -143,8 +143,8 @@ export class InstancedRenderingManager {
     const maxCount = mesh.instanceMatrix.count;
 
 
-    // Use native setColorAt path — InstancedBufferAttribute causes
-    // drawIndexed(Infinity) crash on WebGPU backend.
+    // Use native setColorAt path — more efficient than raw InstancedBufferAttribute
+    // manipulation and avoids drawIndexed(Infinity) edge cases on WebGPU backend.
     if (!mesh.instanceColor) {
       const _c = new THREE.Color();
       for (let ci = 0; ci < maxCount; ci++) mesh.setColorAt(ci, _c);

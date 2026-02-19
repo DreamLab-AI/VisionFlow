@@ -228,7 +228,8 @@ export const generateEmbedCode = (
   height="${height}"
   frameborder="0"
   title="Interactive Graph Visualisation"
-  allow="fullscreen">
+  allow="fullscreen"
+  credentialless>
 </iframe>`;
 };
 

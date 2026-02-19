@@ -21,6 +21,7 @@ export class AudioOutputService {
   private state: AudioOutputState = 'idle';
   private listeners: Map<string, Set<Function>> = new Map();
   private isProcessing = false;
+  private stopRequested = false;
   private volume = 1.0;
 
   private constructor() {
@@ -60,6 +61,7 @@ export class AudioOutputService {
     }
 
     this.isProcessing = true;
+    this.stopRequested = false;
     this.setState('buffering');
 
     while (this.playbackQueue.length > 0 && this.state !== 'paused') {
@@ -82,8 +84,9 @@ export class AudioOutputService {
     try {
       
       const audioBuffer = await this.audioContext.decodeAudioData(item.buffer.slice(0));
-      
-      
+
+      if (this.stopRequested) return;
+
       this.currentSource = this.audioContext.createBufferSource();
       this.currentSource.buffer = audioBuffer;
       this.currentSource.connect(this.gainNode);
@@ -101,6 +104,11 @@ export class AudioOutputService {
           resolve();
         };
 
+        if (this.stopRequested) {
+          resolve();
+          return;
+        }
+
         this.setState('playing');
         this.emit('audioStarted', item);
         this.currentSource.start(0);
@@ -113,6 +121,7 @@ export class AudioOutputService {
 
   
   stop() {
+    this.stopRequested = true;
     if (this.currentSource) {
       try {
         this.currentSource.stop();

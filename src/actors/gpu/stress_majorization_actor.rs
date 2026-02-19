@@ -274,7 +274,14 @@ impl StressMajorizationActor {
         self.safety.should_disable()
     }
 
-    
+    /// Compute the normalized stress metric using graph-theoretic shortest-path
+    /// distances from the CSR graph stored on the GPU.
+    ///
+    /// Stress = sum_{i<j} w_ij * (||p_i - p_j|| - d_ij)^2
+    /// where d_ij is the BFS hop distance and w_ij = d_ij^{-2}.
+    ///
+    /// The result is normalized by the sum of weights so that convergence
+    /// thresholds remain meaningful regardless of graph size.
     fn calculate_stress_value(
         &self,
         pos_x: &[f32],
@@ -285,27 +292,137 @@ impl StressMajorizationActor {
             return Err("Position arrays have mismatched lengths".to_string());
         }
 
-        let mut total_stress = 0.0f32;
         let n = pos_x.len();
+        if n < 2 {
+            return Ok(0.0);
+        }
 
-        
+        // Download CSR graph structure from GPU to compute BFS distances
+        let (row_offsets, col_indices) = {
+            let unified_compute = match &self.shared_context {
+                Some(ctx) => ctx
+                    .unified_compute
+                    .lock()
+                    .map_err(|e| format!("Failed to acquire GPU lock for stress calc: {}", e))?,
+                None => {
+                    return Err("GPU context not initialized for stress calculation".to_string());
+                }
+            };
+            unified_compute
+                .download_csr()
+                .map_err(|e| format!("Failed to download CSR: {}", e))?
+        };
+
+        // BFS all-pairs shortest paths (or landmark approximation for large graphs)
+        let hop_distances = Self::bfs_all_pairs_hop_distances(n, &row_offsets, &col_indices);
+
+        let mut total_stress = 0.0f32;
+        let mut total_weight = 0.0f32;
+
         for i in 0..n {
             for j in (i + 1)..n {
+                let d_graph = hop_distances[i * n + j];
+                if d_graph <= 0.0 {
+                    // Unreachable or self-pair: skip
+                    continue;
+                }
+
                 let dx = pos_x[i] - pos_x[j];
                 let dy = pos_y[i] - pos_y[j];
                 let dz = pos_z[i] - pos_z[j];
                 let actual_dist = (dx * dx + dy * dy + dz * dz).sqrt();
 
-                
-                let target_dist = ((i as f32 - j as f32).abs() + 1.0).ln();
-                let weight = 1.0; 
-
-                let diff = actual_dist - target_dist;
-                total_stress += weight * diff * diff;
+                // Standard stress majorization weight: w_ij = d_ij^{-2}
+                let w = 1.0 / (d_graph * d_graph);
+                let diff = actual_dist - d_graph;
+                total_stress += w * diff * diff;
+                total_weight += w;
             }
         }
 
-        Ok(total_stress)
+        // Normalize so threshold doesn't depend on graph size
+        if total_weight > 0.0 {
+            Ok(total_stress / total_weight)
+        } else {
+            Ok(0.0)
+        }
+    }
+
+    /// CPU-side BFS all-pairs shortest-path distances.
+    /// Returns flat n*n Vec<f32>; unreachable pairs get 0.0.
+    /// Falls back to landmark approximation for n > 2000.
+    fn bfs_all_pairs_hop_distances(
+        n: usize,
+        row_offsets: &[i32],
+        col_indices: &[i32],
+    ) -> Vec<f32> {
+        use std::collections::VecDeque;
+
+        if n == 0 {
+            return Vec::new();
+        }
+
+        let use_landmarks = n > 2000;
+        let sources: Vec<usize> = if use_landmarks {
+            let num_landmarks = (n as f64).sqrt().ceil() as usize;
+            let step = if num_landmarks > 0 { n / num_landmarks } else { 1 };
+            (0..num_landmarks).map(|i| (i * step).min(n - 1)).collect()
+        } else {
+            (0..n).collect()
+        };
+
+        let mut landmark_dists: Vec<Vec<i32>> = Vec::with_capacity(sources.len());
+        for &src in &sources {
+            let mut dist = vec![-1i32; n];
+            dist[src] = 0;
+            let mut queue = VecDeque::new();
+            queue.push_back(src);
+
+            while let Some(u) = queue.pop_front() {
+                let start = row_offsets[u] as usize;
+                let end = if u + 1 < row_offsets.len() {
+                    row_offsets[u + 1] as usize
+                } else {
+                    col_indices.len()
+                };
+                for idx in start..end.min(col_indices.len()) {
+                    let v = col_indices[idx] as usize;
+                    if v < n && dist[v] < 0 {
+                        dist[v] = dist[u] + 1;
+                        queue.push_back(v);
+                    }
+                }
+            }
+            landmark_dists.push(dist);
+        }
+
+        let mut result = vec![0.0f32; n * n];
+
+        if use_landmarks {
+            for i in 0..n {
+                for j in (i + 1)..n {
+                    let mut best = i32::MAX;
+                    for ld in &landmark_dists {
+                        if ld[i] >= 0 && ld[j] >= 0 {
+                            best = best.min(ld[i] + ld[j]);
+                        }
+                    }
+                    let d = if best == i32::MAX { 0.0 } else { best as f32 };
+                    result[i * n + j] = d;
+                    result[j * n + i] = d;
+                }
+            }
+        } else {
+            for (src_idx, &src) in sources.iter().enumerate() {
+                let ld = &landmark_dists[src_idx];
+                for j in 0..n {
+                    let d = if ld[j] < 0 { 0.0 } else { ld[j] as f32 };
+                    result[src * n + j] = d;
+                }
+            }
+        }
+
+        result
     }
 
     

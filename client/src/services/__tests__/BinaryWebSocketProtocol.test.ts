@@ -9,6 +9,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import {
   BinaryWebSocketProtocol,
   PROTOCOL_V2,
+  MESSAGE_HEADER_SIZE,
   AGENT_POSITION_SIZE_V2,
   AGENT_STATE_SIZE_V2,
   AGENT_ACTION_HEADER_SIZE,
@@ -52,8 +53,8 @@ describe('BinaryWebSocketProtocol - V2 Protocol', () => {
       const encoded = protocol.encodePositionUpdates(updates);
 
       expect(encoded).not.toBeNull();
-      // Header (4 bytes) + position data
-      expect(encoded!.byteLength).toBe(4 + AGENT_POSITION_SIZE_V2);
+      // Header + position data
+      expect(encoded!.byteLength).toBe(MESSAGE_HEADER_SIZE + AGENT_POSITION_SIZE_V2);
     });
 
     it('should decode V2 format with large IDs', () => {
@@ -151,8 +152,8 @@ describe('BinaryWebSocketProtocol - V2 Protocol', () => {
 
       const encoded = protocol.encodeAgentState(agents);
 
-      // Payload includes 4-byte header + raw data
-      expect(encoded.byteLength).toBe(4 + AGENT_STATE_SIZE_V2);
+      // Payload includes header + raw data
+      expect(encoded.byteLength).toBe(MESSAGE_HEADER_SIZE + AGENT_STATE_SIZE_V2);
     });
 
     it('should decode V2 agent state with large IDs', () => {
@@ -274,7 +275,7 @@ describe('BinaryWebSocketProtocol - V2 Protocol', () => {
 
       const bandwidth = protocol.calculateBandwidth(agentCount, updateRateHz);
 
-      const expectedFullState = agentCount * 49 * updateRateHz + 4 * updateRateHz;
+      const expectedFullState = agentCount * 49 * updateRateHz + MESSAGE_HEADER_SIZE * updateRateHz;
 
       expect(bandwidth.fullState).toBe(expectedFullState);
     });
@@ -345,8 +346,8 @@ describe('BinaryWebSocketProtocol - V2 Protocol', () => {
 
       const encoded = protocol.encodeAgentAction(original);
 
-      // Skip message header (4 bytes) to get payload
-      const payload = encoded.slice(4);
+      // Skip message header to get payload
+      const payload = encoded.slice(MESSAGE_HEADER_SIZE);
       const decoded = protocol.decodeAgentAction(payload);
 
       expect(decoded).not.toBeNull();

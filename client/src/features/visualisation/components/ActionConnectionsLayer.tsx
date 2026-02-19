@@ -16,7 +16,7 @@
  * - Max 50 concurrent connections
  */
 
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo, useRef, useEffect } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { ActionConnection } from '../hooks/useActionConnections';
@@ -83,123 +83,139 @@ const ActionConnectionLine: React.FC<{
 }> = ({ connection, vrMode, opacity, lineWidth }) => {
   const lineRef = useRef<THREE.Line>(null);
   const particleRef = useRef<THREE.Mesh>(null);
+  const glowRef = useRef<THREE.Mesh>(null);
   const impactRef = useRef<THREE.Mesh>(null);
 
-  // Fallback positions if not provided
-  const sourcePos = useMemo(() => {
-    if (connection.sourcePosition) {
-      return new THREE.Vector3(
-        connection.sourcePosition.x,
-        connection.sourcePosition.y,
-        connection.sourcePosition.z
-      );
+  // Number of curve sample points -- stable across lifetime
+  const numPoints = vrMode ? 21 : 41;
+
+  // Pre-allocated temp vectors for per-frame bezier computation
+  const _src = useRef(new THREE.Vector3());
+  const _tgt = useRef(new THREE.Vector3());
+  const _mid = useRef(new THREE.Vector3());
+  const _dir = useRef(new THREE.Vector3());
+  const _perp = useRef(new THREE.Vector3());
+  const _curvePoint = useRef(new THREE.Vector3());
+  const _up = useRef(new THREE.Vector3(0, 1, 0));
+  const _curve = useRef(new THREE.QuadraticBezierCurve3(
+    new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()
+  ));
+
+  // Create the line geometry ONCE and reuse it -- never recreated per frame
+  const lineGeometry = useRef<THREE.BufferGeometry | null>(null);
+  if (!lineGeometry.current) {
+    const positions = new Float32Array(numPoints * 3);
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    lineGeometry.current = geom;
+  }
+
+  // Stable material -- created once
+  const lineMaterial = useMemo(() => {
+    _connColor.set(connection.color);
+    return new THREE.LineBasicMaterial({
+      color: _connColor.getHex(),
+      transparent: true,
+      opacity: opacity,
+      linewidth: lineWidth,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Stable line object -- created once
+  const lineObject = useMemo(() => {
+    return new THREE.Line(lineGeometry.current!, lineMaterial);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Dispose geometry and material on unmount
+  useEffect(() => {
+    const geom = lineGeometry.current;
+    const mat = lineMaterial;
+    return () => {
+      geom?.dispose();
+      mat.dispose();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Resolve source/target with deterministic fallback (no allocation)
+  const resolveSource = (conn: ActionConnection, out: THREE.Vector3): THREE.Vector3 => {
+    if (conn.sourcePosition) {
+      return out.set(conn.sourcePosition.x, conn.sourcePosition.y, conn.sourcePosition.z);
     }
-    // Fallback: generate position from agent ID (deterministic)
-    const hash = connection.sourceAgentId * 1337;
-    return new THREE.Vector3(
-      Math.sin(hash) * 15,
-      Math.cos(hash * 0.7) * 10,
-      Math.sin(hash * 0.3) * 15
-    );
-  }, [connection.sourcePosition, connection.sourceAgentId]);
+    const hash = conn.sourceAgentId * 1337;
+    return out.set(Math.sin(hash) * 15, Math.cos(hash * 0.7) * 10, Math.sin(hash * 0.3) * 15);
+  };
 
-  const targetPos = useMemo(() => {
-    if (connection.targetPosition) {
-      return new THREE.Vector3(
-        connection.targetPosition.x,
-        connection.targetPosition.y,
-        connection.targetPosition.z
-      );
+  const resolveTarget = (conn: ActionConnection, out: THREE.Vector3): THREE.Vector3 => {
+    if (conn.targetPosition) {
+      return out.set(conn.targetPosition.x, conn.targetPosition.y, conn.targetPosition.z);
     }
-    // Fallback: generate position from target ID
-    const hash = connection.targetNodeId * 2749;
-    return new THREE.Vector3(
-      Math.sin(hash) * 20,
-      Math.cos(hash * 0.5) * 15,
-      Math.sin(hash * 0.8) * 20
-    );
-  }, [connection.targetPosition, connection.targetNodeId]);
+    const hash = conn.targetNodeId * 2749;
+    return out.set(Math.sin(hash) * 20, Math.cos(hash * 0.5) * 15, Math.sin(hash * 0.8) * 20);
+  };
 
-  // Generate bezier curve points
-  const { curve, points } = useMemo(() => {
-    // Control point creates arc effect
-    const midPoint = new THREE.Vector3().addVectors(sourcePos, targetPos).multiplyScalar(0.5);
-    const distance = sourcePos.distanceTo(targetPos);
+  // All animation and geometry updates happen in useFrame -- zero allocations per frame
+  useFrame(() => {
+    const conn = connection;
+    const src = resolveSource(conn, _src.current);
+    const tgt = resolveTarget(conn, _tgt.current);
 
-    // Perpendicular offset for curve
-    const direction = new THREE.Vector3().subVectors(targetPos, sourcePos).normalize();
-    const up = new THREE.Vector3(0, 1, 0);
-    const perpendicular = new THREE.Vector3().crossVectors(direction, up).normalize();
-
-    // Offset based on action type for visual variety
-    // Use _actionTypeEnum if available (new API), otherwise derive from string
-    const actionTypeIndex = connection._actionTypeEnum ??
-      (['query', 'update', 'create', 'delete', 'link', 'transform'].indexOf(connection.actionType as string) || 0);
+    // Recompute bezier control point
+    const mid = _mid.current.addVectors(src, tgt).multiplyScalar(0.5);
+    const distance = src.distanceTo(tgt);
+    const dir = _dir.current.subVectors(tgt, src).normalize();
+    const perp = _perp.current.crossVectors(dir, _up.current).normalize();
+    const actionTypeIndex = conn._actionTypeEnum ??
+      (['query', 'update', 'create', 'delete', 'link', 'transform'].indexOf(conn.actionType as string) || 0);
     const offsetAmount = distance * 0.3 * (1 + (actionTypeIndex * 0.1));
-    midPoint.add(perpendicular.multiplyScalar(offsetAmount));
-    midPoint.y += distance * 0.15; // Slight upward arc
+    mid.add(perp.multiplyScalar(offsetAmount));
+    mid.y += distance * 0.15;
 
-    const bezier = new THREE.QuadraticBezierCurve3(sourcePos, midPoint, targetPos);
-    const curvePoints = bezier.getPoints(vrMode ? 20 : 40);
+    // Update curve endpoints
+    const curve = _curve.current;
+    curve.v0.copy(src);
+    curve.v1.copy(mid);
+    curve.v2.copy(tgt);
 
-    return { curve: bezier, points: curvePoints };
-  }, [sourcePos, targetPos, connection.actionType, vrMode]);
-
-  // Line geometry
-  const lineGeometry = useMemo(() => {
-    return new THREE.BufferGeometry().setFromPoints(points);
-  }, [points]);
-
-  // Calculate particle position along curve
-  const particlePosition = useMemo(() => {
-    if (connection.phase === 'spawn') {
-      // Particle grows at source during spawn
-      return sourcePos.clone();
+    // Write bezier points directly into the existing buffer attribute
+    const geom = lineGeometry.current!;
+    const posAttr = geom.getAttribute('position') as THREE.BufferAttribute;
+    const arr = posAttr.array as Float32Array;
+    for (let i = 0; i < numPoints; i++) {
+      const t = i / (numPoints - 1);
+      curve.getPoint(t, _curvePoint.current);
+      arr[i * 3] = _curvePoint.current.x;
+      arr[i * 3 + 1] = _curvePoint.current.y;
+      arr[i * 3 + 2] = _curvePoint.current.z;
     }
-    if (connection.phase === 'travel') {
-      // Particle travels along curve
-      const travelProgress = (connection.progress - PHASE_BOUNDS.spawnEnd) /
-        (PHASE_BOUNDS.travelEnd - PHASE_BOUNDS.spawnEnd);
-      return curve.getPoint(travelProgress);
-    }
-    // Impact/fade: particle at target
-    return targetPos.clone();
-  }, [connection.progress, connection.phase, curve, sourcePos, targetPos]);
+    posAttr.needsUpdate = true;
 
-  // Calculate visual properties based on phase.
-  // Color is stored as a hex number to avoid allocating a THREE.Color each update.
-  const visuals = useMemo(() => {
-    const { progress, phase, color } = connection;
-
+    // Compute visual properties
+    const { progress, phase, color } = conn;
     let lineOpacity = 1.0;
     let particleScale = 1.0;
     let impactScale = 0;
 
     switch (phase) {
       case 'spawn':
-        // Line fades in, particle grows (0-100ms)
         lineOpacity = progress / PHASE_BOUNDS.spawnEnd;
         particleScale = progress / PHASE_BOUNDS.spawnEnd;
         break;
       case 'travel':
-        // Full visibility during travel (100-400ms)
         lineOpacity = 1.0;
         particleScale = 1.0;
         break;
       case 'impact':
       case 'fade': {
-        // Combined impact + fade phase (400-500ms)
-        // First half: burst expands, second half: everything fades
         const impactProgress = (progress - PHASE_BOUNDS.travelEnd) / (PHASE_BOUNDS.impactEnd - PHASE_BOUNDS.travelEnd);
-
         if (impactProgress < 0.5) {
-          // Impact burst expansion (first 50ms)
           lineOpacity = 1.0;
           particleScale = 0.5;
-          impactScale = impactProgress * 2; // 0 -> 1 over first half
+          impactScale = impactProgress * 2;
         } else {
-          // Fade out (last 50ms)
-          const fadeProgress = (impactProgress - 0.5) * 2; // 0 -> 1 over second half
+          const fadeProgress = (impactProgress - 0.5) * 2;
           lineOpacity = 1 - fadeProgress;
           particleScale = 0.5 * (1 - fadeProgress);
           impactScale = 1 - fadeProgress;
@@ -208,62 +224,59 @@ const ActionConnectionLine: React.FC<{
       }
     }
 
-    // Resolve color to hex integer -- avoids allocating THREE.Color per update.
     _connColor.set(color);
     const colorHex = _connColor.getHex();
 
-    return {
-      lineOpacity: lineOpacity * opacity,
-      particleScale,
-      impactScale,
-      colorHex,
-    };
-  }, [connection, opacity]);
-
-  // Stable material and line object -- avoids creating new Three.js objects every render.
-  const lineMaterial = useMemo(() => {
-    return new THREE.LineBasicMaterial({
-      color: visuals.colorHex,
-      transparent: true,
-      opacity: visuals.lineOpacity,
-      linewidth: lineWidth,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const lineObject = useMemo(() => {
-    const line = new THREE.Line(lineGeometry, lineMaterial);
-    return line;
-  }, [lineGeometry, lineMaterial]);
-
-  // Animate line opacity, color, and particle transforms per frame.
-  useFrame(() => {
+    // Update line material
     if (lineRef.current) {
-      const material = lineRef.current.material as THREE.LineBasicMaterial;
-      material.opacity = visuals.lineOpacity;
-      material.color.setHex(visuals.colorHex);
+      const mat = lineRef.current.material as THREE.LineBasicMaterial;
+      mat.opacity = lineOpacity * opacity;
+      mat.color.setHex(colorHex);
     }
+
+    // Compute particle position along curve
+    let particleT = 0;
+    if (phase === 'spawn') {
+      particleT = 0;
+    } else if (phase === 'travel') {
+      particleT = (progress - PHASE_BOUNDS.spawnEnd) / (PHASE_BOUNDS.travelEnd - PHASE_BOUNDS.spawnEnd);
+    } else {
+      particleT = 1;
+    }
+    curve.getPoint(particleT, _curvePoint.current);
+
     if (particleRef.current) {
-      particleRef.current.position.copy(particlePosition);
-      particleRef.current.scale.setScalar(visuals.particleScale * (vrMode ? 0.3 : 0.5));
+      particleRef.current.position.copy(_curvePoint.current);
+      particleRef.current.scale.setScalar(particleScale * (vrMode ? 0.3 : 0.5));
     }
-    if (impactRef.current && visuals.impactScale > 0) {
-      impactRef.current.scale.setScalar(visuals.impactScale * 2);
-      const mat = impactRef.current.material as THREE.MeshBasicMaterial;
-      mat.opacity = visuals.impactScale * 0.5 * opacity;
+    if (glowRef.current) {
+      glowRef.current.position.copy(_curvePoint.current);
+      const glowMat = glowRef.current.material as THREE.MeshBasicMaterial;
+      glowMat.opacity = 0.3 * opacity * particleScale;
+    }
+    if (impactRef.current) {
+      impactRef.current.position.copy(tgt);
+      impactRef.current.scale.setScalar(impactScale > 0 ? impactScale * 2 : 0.001);
+      impactRef.current.visible = impactScale > 0;
+      const impactMat = impactRef.current.material as THREE.MeshBasicMaterial;
+      impactMat.opacity = impactScale * 0.5 * opacity;
     }
   });
 
+  // Resolve initial color for declarative JSX props
+  _connColor.set(connection.color);
+  const initialColorHex = _connColor.getHex();
+
   return (
     <group>
-      {/* Connection line -- stable object avoids re-creating Line/Material per render */}
+      {/* Connection line -- stable object, geometry buffer updated in-place per frame */}
       <primitive ref={lineRef} object={lineObject} />
 
       {/* Traveling particle */}
-      <mesh ref={particleRef} position={particlePosition}>
+      <mesh ref={particleRef}>
         <sphereGeometry args={[vrMode ? 0.2 : 0.4, vrMode ? 8 : 16, vrMode ? 8 : 16]} />
         <meshBasicMaterial
-          color={visuals.colorHex}
+          color={initialColorHex}
           transparent
           opacity={0.9 * opacity}
         />
@@ -271,29 +284,27 @@ const ActionConnectionLine: React.FC<{
 
       {/* Glow around particle */}
       {!vrMode && (
-        <mesh position={particlePosition}>
+        <mesh ref={glowRef}>
           <sphereGeometry args={[0.8, 12, 12]} />
           <meshBasicMaterial
-            color={visuals.colorHex}
+            color={initialColorHex}
             transparent
-            opacity={0.3 * opacity * visuals.particleScale}
+            opacity={0.3 * opacity}
             side={THREE.BackSide}
           />
         </mesh>
       )}
 
       {/* Impact burst at target */}
-      {visuals.impactScale > 0 && (
-        <mesh ref={impactRef} position={targetPos}>
-          <ringGeometry args={[0.5, 2, vrMode ? 16 : 32]} />
-          <meshBasicMaterial
-            color={visuals.colorHex}
-            transparent
-            opacity={visuals.impactScale * 0.5 * opacity}
-            side={THREE.DoubleSide}
-          />
-        </mesh>
-      )}
+      <mesh ref={impactRef} visible={false}>
+        <ringGeometry args={[0.5, 2, vrMode ? 16 : 32]} />
+        <meshBasicMaterial
+          color={initialColorHex}
+          transparent
+          opacity={0}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
     </group>
   );
 };

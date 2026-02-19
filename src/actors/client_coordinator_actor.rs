@@ -193,26 +193,39 @@ impl ClientManager {
     }
 
     /// Broadcast with per-client filtering, including node type flags in binary protocol
+    ///
+    /// Pre-serializes the unfiltered payload once so that clients without active filters
+    /// receive a cheap `Vec<u8>` clone instead of re-encoding per client.
+    /// Complexity: O(N + F*N_f) where F = filtered-client count, N_f = per-filter node count.
     pub fn broadcast_with_filter(
         &self,
         positions: &[BinaryNodeDataClient],
         node_type_arrays: &crate::actors::messages::NodeTypeArrays,
     ) -> usize {
+        if positions.is_empty() || self.clients.is_empty() {
+            return 0;
+        }
+
+        // Pre-serialize the full unfiltered payload ONCE
+        let unfiltered_binary = self.serialize_positions(positions, node_type_arrays);
+
         let mut broadcast_count = 0;
         for (_, client_state) in &self.clients {
-            let filtered_positions = if client_state.filter.enabled {
-                positions.iter()
+            if !client_state.filter.enabled {
+                // Send pre-serialized payload — no re-encoding needed
+                client_state.addr.do_send(SendToClientBinary(unfiltered_binary.clone()));
+                broadcast_count += 1;
+            } else {
+                // Only re-serialize for clients with active filters
+                let filtered_positions: Vec<_> = positions.iter()
                     .filter(|pos| client_state.filter.filtered_node_ids.contains(&pos.node_id))
                     .copied()
-                    .collect::<Vec<_>>()
-            } else {
-                positions.to_vec()
-            };
-
-            if !filtered_positions.is_empty() {
-                let binary_data = self.serialize_positions(&filtered_positions, node_type_arrays);
-                client_state.addr.do_send(SendToClientBinary(binary_data));
-                broadcast_count += 1;
+                    .collect();
+                if !filtered_positions.is_empty() {
+                    let binary_data = self.serialize_positions(&filtered_positions, node_type_arrays);
+                    client_state.addr.do_send(SendToClientBinary(binary_data));
+                    broadcast_count += 1;
+                }
             }
         }
         broadcast_count

@@ -354,9 +354,8 @@ async fn main() -> std::io::Result<()> {
     // Step 2: Load Files into Neo4j.
     info!("[Startup] Step 2: Populating Neo4j from local files...");
     if let Err(e) = webxr::services::file_service::FileService::load_graph_from_files_into_neo4j(&app_state.neo4j_adapter).await {
-        error!("[Startup] FATAL: Failed to populate Neo4j: {}. The application may not function correctly.", e);
-        // Optional: Exit if this step is critical
-        // return Err(std::io::Error::new(std::io::ErrorKind::Other, e));
+        error!("[Startup] FATAL: Failed to populate Neo4j: {}. Application is in DEGRADED state.", e);
+        app_state.set_degraded(format!("Neo4j init failed: {}", e));
     } else {
         info!("[Startup] SUCCESS: Neo4j database is populated and ready.");
     }

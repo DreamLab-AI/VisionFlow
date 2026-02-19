@@ -925,6 +925,19 @@ impl UnifiedGPUCompute {
         Ok(())
     }
 
+    /// Download the CSR graph structure from GPU device memory.
+    /// Returns (row_offsets, col_indices) where row_offsets has length num_nodes+1
+    /// and col_indices has length num_edges.
+    pub fn download_csr(&self) -> Result<(Vec<i32>, Vec<i32>)> {
+        let mut row_offsets = vec![0i32; self.num_nodes + 1];
+        let mut col_indices = vec![0i32; self.num_edges];
+        self.edge_row_offsets.copy_to(&mut row_offsets)?;
+        if self.num_edges > 0 {
+            self.edge_col_indices.copy_to(&mut col_indices)?;
+        }
+        Ok((row_offsets, col_indices))
+    }
+
     pub fn download_positions(&self, x: &mut [f32], y: &mut [f32], z: &mut [f32]) -> Result<()> {
         self.pos_in_x.copy_to(x)?;
         self.pos_in_y.copy_to(y)?;
@@ -3087,32 +3100,118 @@ impl UnifiedGPUCompute {
         self.run_lof_anomaly_detection(k_neighbors, radius)
     }
 
-    
+    /// Compute all-pairs BFS shortest-path distances on a CSR graph.
+    /// Returns a flat n*n Vec<f32> where result[i*n + j] is the hop distance
+    /// from node i to node j. Unreachable pairs get distance 0.0 (they will
+    /// be assigned zero weight in stress majorization so they don't contribute).
+    ///
+    /// For large graphs (>2000 nodes) this falls back to a landmark-based
+    /// approximation using sqrt(n) random landmarks to keep O(n * sqrt(n) * (n+m)).
+    fn bfs_all_pairs_distances(n: usize, row_offsets: &[i32], col_indices: &[i32]) -> Vec<f32> {
+        use std::collections::VecDeque;
+
+        if n == 0 {
+            return Vec::new();
+        }
+
+        // For very large graphs, use landmark BFS approximation
+        let use_landmarks = n > 2000;
+        let sources: Vec<usize> = if use_landmarks {
+            let num_landmarks = (n as f64).sqrt().ceil() as usize;
+            let step = if num_landmarks > 0 { n / num_landmarks } else { 1 };
+            (0..num_landmarks).map(|i| (i * step).min(n - 1)).collect()
+        } else {
+            (0..n).collect()
+        };
+
+        // BFS from each source, store distances
+        let mut landmark_dists: Vec<Vec<i32>> = Vec::with_capacity(sources.len());
+        for &src in &sources {
+            let mut dist = vec![-1i32; n];
+            dist[src] = 0;
+            let mut queue = VecDeque::new();
+            queue.push_back(src);
+
+            while let Some(u) = queue.pop_front() {
+                let start = row_offsets[u] as usize;
+                let end = if u + 1 < row_offsets.len() {
+                    row_offsets[u + 1] as usize
+                } else {
+                    col_indices.len()
+                };
+                for idx in start..end.min(col_indices.len()) {
+                    let v = col_indices[idx] as usize;
+                    if v < n && dist[v] < 0 {
+                        dist[v] = dist[u] + 1;
+                        queue.push_back(v);
+                    }
+                }
+            }
+            landmark_dists.push(dist);
+        }
+
+        let mut result = vec![0.0f32; n * n];
+
+        if use_landmarks {
+            // Approximate: d(i,j) ≈ min over landmarks L of (d(L,i) + d(L,j))
+            for i in 0..n {
+                for j in (i + 1)..n {
+                    let mut best = i32::MAX;
+                    for ld in &landmark_dists {
+                        if ld[i] >= 0 && ld[j] >= 0 {
+                            best = best.min(ld[i] + ld[j]);
+                        }
+                    }
+                    let d = if best == i32::MAX { 0.0 } else { best as f32 };
+                    result[i * n + j] = d;
+                    result[j * n + i] = d;
+                }
+            }
+        } else {
+            // Exact all-pairs
+            for (src_idx, &src) in sources.iter().enumerate() {
+                let ld = &landmark_dists[src_idx];
+                for j in 0..n {
+                    let d = if ld[j] < 0 { 0.0 } else { ld[j] as f32 };
+                    result[src * n + j] = d;
+                }
+            }
+        }
+
+        result
+    }
+
     pub fn run_stress_majorization(&mut self) -> Result<(Vec<f32>, Vec<f32>, Vec<f32>)> {
         info!("Running REAL stress majorization on GPU");
 
         let block_size = 256;
         let grid_size = (self.num_nodes as u32 + block_size - 1) / block_size;
 
-        
         let mut pos_x = vec![0.0f32; self.num_nodes];
         let mut pos_y = vec![0.0f32; self.num_nodes];
         let mut pos_z = vec![0.0f32; self.num_nodes];
         self.download_positions(&mut pos_x, &mut pos_y, &mut pos_z)?;
 
-        
-        let mut target_distances = vec![0.0f32; self.num_nodes * self.num_nodes];
-        let mut weights = vec![1.0f32; self.num_nodes * self.num_nodes];
+        // Compute BFS shortest-path distances from the CSR graph structure.
+        // This replaces the previous bogus index-based formula.
+        let n = self.num_nodes;
+        let (row_offsets, col_indices) = self.download_csr()?;
+        let hop_distances = Self::bfs_all_pairs_distances(n, &row_offsets, &col_indices);
 
-        for i in 0..self.num_nodes {
-            for j in 0..self.num_nodes {
-                if i != j {
-                    
-                    let dist = ((i as f32 - j as f32).abs() + 1.0).ln();
-                    target_distances[i * self.num_nodes + j] = dist;
+        let mut target_distances = vec![0.0f32; n * n];
+        let mut weights = vec![0.0f32; n * n];
+
+        for i in 0..n {
+            for j in 0..n {
+                let d = hop_distances[i * n + j];
+                if i == j || d == 0.0 {
+                    // Self-pair or unreachable: zero weight so it contributes nothing
+                    target_distances[i * n + j] = 0.0;
+                    weights[i * n + j] = 0.0;
                 } else {
-                    target_distances[i * self.num_nodes + j] = 0.0;
-                    weights[i * self.num_nodes + j] = 0.0;
+                    // Standard stress majorization: w_ij = d_ij^{-2}
+                    target_distances[i * n + j] = d;
+                    weights[i * n + j] = 1.0 / (d * d);
                 }
             }
         }

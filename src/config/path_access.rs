@@ -122,11 +122,15 @@ fn navigate_json_path(root: &Value, path: &str) -> Option<Value> {
     for segment in segments {
         match current {
             Value::Object(map) => {
-                
+
                 current = map
                     .get(segment)
                     .or_else(|| map.get(&camel_to_snake_case(segment)))
                     .or_else(|| map.get(&snake_to_camel_case(segment)))?;
+            }
+            Value::Array(arr) => {
+                let index = segment.parse::<usize>().ok()?;
+                current = arr.get(index)?;
             }
             _ => return None,
         }
@@ -202,13 +206,25 @@ fn set_json_at_path(root: &mut Value, path: &str, value: Value) -> Result<(), St
                     map.insert(field_key, final_value);
                     return Ok(());
                 }
-                _ => return Err(format!("Parent of '{}' is not an object", segment)),
+                Value::Array(arr) => {
+                    if let Ok(index) = segment.parse::<usize>() {
+                        if index < arr.len() {
+                            arr[index] = value;
+                            return Ok(());
+                        } else {
+                            return Err(format!("Array index {} out of bounds (length {})", index, arr.len()));
+                        }
+                    } else {
+                        return Err(format!("Cannot use non-numeric key '{}' on array", segment));
+                    }
+                }
+                _ => return Err(format!("Parent of '{}' is not an object or array", segment)),
             }
         } else {
-            
+
             match current {
                 Value::Object(map) => {
-                    
+
                     let field_key = find_field_key(map, segment).ok_or_else(|| {
                         format!("Field '{}' not found while navigating path", segment)
                     })?;
@@ -217,9 +233,20 @@ fn set_json_at_path(root: &mut Value, path: &str, value: Value) -> Result<(), St
                         format!("Failed to get mutable reference to field '{}'", segment)
                     })?;
                 }
+                Value::Array(arr) => {
+                    if let Ok(index) = segment.parse::<usize>() {
+                        if index < arr.len() {
+                            current = &mut arr[index];
+                        } else {
+                            return Err(format!("Array index {} out of bounds (length {})", index, arr.len()));
+                        }
+                    } else {
+                        return Err(format!("Cannot use non-numeric key '{}' to navigate array", segment));
+                    }
+                }
                 _ => {
                     return Err(format!(
-                        "Cannot navigate through non-object at '{}'",
+                        "Cannot navigate through non-object/non-array at '{}'",
                         segment
                     ))
                 }
@@ -288,9 +315,20 @@ fn validate_path_exists(root: &Value, segments: &[&str]) -> bool {
     for segment in segments {
         match current {
             Value::Object(map) => {
-                
+
                 if let Some(field_key) = find_field_key(map, segment) {
                     current = &map[&field_key];
+                } else {
+                    return false;
+                }
+            }
+            Value::Array(arr) => {
+                if let Ok(index) = segment.parse::<usize>() {
+                    if let Some(elem) = arr.get(index) {
+                        current = elem;
+                    } else {
+                        return false;
+                    }
                 } else {
                     return false;
                 }

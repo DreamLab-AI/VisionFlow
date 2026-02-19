@@ -185,6 +185,14 @@ static SYSTEM: Lazy<Arc<Mutex<System>>> = Lazy::new(|| {
     Arc::new(Mutex::new(sys))
 });
 
+/// Number of `get_real_system_metrics` calls between automatic dead-PID evictions.
+const EVICTION_INTERVAL: u32 = 50;
+
+/// Check whether a PID is still alive by probing `/proc/{pid}`.
+fn is_pid_alive(pid: Pid) -> bool {
+    std::path::Path::new(&format!("/proc/{}", pid)).exists()
+}
+
 pub struct AgentVisualizationProcessor {
     #[allow(dead_code)]
     token_history: HashMap<String, Vec<(DateTime<Utc>, u64)>>,
@@ -192,6 +200,9 @@ pub struct AgentVisualizationProcessor {
     _last_update: DateTime<Utc>,
     #[allow(dead_code)]
     process_map: HashMap<String, Pid>,
+    /// Counter tracking calls to `get_real_system_metrics` for periodic eviction.
+    #[allow(dead_code)]
+    metrics_call_count: u32,
 }
 
 impl AgentVisualizationProcessor {
@@ -201,7 +212,14 @@ impl AgentVisualizationProcessor {
             _performance_history: HashMap::new(),
             _last_update: time::now(),
             process_map: HashMap::new(),
+            metrics_call_count: 0,
         }
+    }
+
+    /// Remove entries from `process_map` whose PIDs are no longer alive.
+    #[allow(dead_code)]
+    fn evict_dead_processes(&mut self) {
+        self.process_map.retain(|_, pid| is_pid_alive(*pid));
     }
 
     
@@ -396,37 +414,45 @@ impl AgentVisualizationProcessor {
     
     #[allow(dead_code)]
     fn get_real_system_metrics(&mut self, agent_id: &str) -> (f32, f32) {
+        // Periodic eviction of dead PIDs to prevent unbounded map growth
+        self.metrics_call_count = self.metrics_call_count.wrapping_add(1);
+        if self.metrics_call_count % EVICTION_INTERVAL == 0 {
+            self.evict_dead_processes();
+        }
+
         let mut sys = SYSTEM.lock().expect("Mutex poisoned");
         sys.refresh_processes(sysinfo::ProcessesToUpdate::All, true);
 
-        
+        // Check cached PID and validate it is still alive
         if let Some(&pid) = self.process_map.get(agent_id) {
-            if let Some(process) = sys.process(pid) {
-                let cpu_usage = process.cpu_usage() / 100.0; 
-                let memory_usage = process.memory() as f32 / (1024.0 * 1024.0 * 1024.0); 
-                let total_memory = sys.total_memory() as f32 / (1024.0 * 1024.0 * 1024.0); 
-                let memory_percentage = if total_memory > 0.0 {
-                    memory_usage / total_memory
-                } else {
-                    0.0
-                };
+            if is_pid_alive(pid) {
+                if let Some(process) = sys.process(pid) {
+                    let cpu_usage = process.cpu_usage() / 100.0;
+                    let memory_usage = process.memory() as f32 / (1024.0 * 1024.0 * 1024.0);
+                    let total_memory = sys.total_memory() as f32 / (1024.0 * 1024.0 * 1024.0);
+                    let memory_percentage = if total_memory > 0.0 {
+                        memory_usage / total_memory
+                    } else {
+                        0.0
+                    };
 
-                return (cpu_usage.clamp(0.0, 1.0), memory_percentage.clamp(0.0, 1.0));
+                    return (cpu_usage.clamp(0.0, 1.0), memory_percentage.clamp(0.0, 1.0));
+                }
             }
+            // PID is dead or not in sysinfo -- remove stale entry
+            self.process_map.remove(agent_id);
         }
 
-        
+        // Scan processes to find a matching one
         for (pid, process) in sys.processes() {
             let process_name = process.name().to_string_lossy().to_lowercase();
             let agent_id_lower = agent_id.to_lowercase();
 
-            
             if process_name.contains(&agent_id_lower)
                 || process_name.contains("claude")
                 || process_name.contains("agent")
                 || process_name.contains("bot")
             {
-                
                 self.process_map.insert(agent_id.to_string(), *pid);
 
                 let cpu_usage = process.cpu_usage() / 100.0;
@@ -442,7 +468,7 @@ impl AgentVisualizationProcessor {
             }
         }
 
-        
+        // Fallback to global system metrics
         let global_cpu = sys.global_cpu_usage() / 100.0;
         let used_memory = sys.used_memory() as f32;
         let total_memory = sys.total_memory() as f32;
@@ -452,9 +478,8 @@ impl AgentVisualizationProcessor {
             0.0
         };
 
-        
-        let agent_cpu = (global_cpu * 0.1).clamp(0.0, 1.0); 
-        let agent_memory = (global_memory * 0.05).clamp(0.0, 1.0); 
+        let agent_cpu = (global_cpu * 0.1).clamp(0.0, 1.0);
+        let agent_memory = (global_memory * 0.05).clamp(0.0, 1.0);
 
         (agent_cpu, agent_memory)
     }

@@ -35,7 +35,10 @@ export class AgentTelemetryService {
   private metrics: TelemetryMetrics;
   private uploadInterval: NodeJS.Timeout | null = null;
   private memoryInterval: NodeJS.Timeout | null = null;
-  private frameTimeBuffer: number[] = [];
+  private frameTimeBuffer = new Float64Array(60);
+  private frameTimeIndex = 0;
+  private frameTimeCount = 0;
+  private frameTimeSum = 0;
   private lastFrameTime = 0;
 
   // Stored handler references for cleanup
@@ -140,18 +143,21 @@ export class AgentTelemetryService {
   logRenderCycle(frameTime: number) {
     this.metrics.renderCycles++;
 
-    
-    this.frameTimeBuffer.push(frameTime);
-    if (this.frameTimeBuffer.length > 60) { 
-      this.frameTimeBuffer.shift();
+    // O(1) circular buffer update
+    if (this.frameTimeCount >= 60) {
+      this.frameTimeSum -= this.frameTimeBuffer[this.frameTimeIndex];
+    }
+    this.frameTimeBuffer[this.frameTimeIndex] = frameTime;
+    this.frameTimeSum += frameTime;
+    this.frameTimeIndex = (this.frameTimeIndex + 1) % 60;
+    if (this.frameTimeCount < 60) {
+      this.frameTimeCount++;
     }
 
-    
-    this.metrics.averageFrameTime = this.frameTimeBuffer.reduce((a, b) => a + b, 0) / this.frameTimeBuffer.length;
+    this.metrics.averageFrameTime = this.frameTimeSum / this.frameTimeCount;
 
-    
-    if (frameTime > 50) { 
-      console.warn(`⚡ PERFORMANCE: Slow frame detected - ${frameTime.toFixed(2)}ms`);
+    if (frameTime > 50) {
+      console.warn(`PERFORMANCE: Slow frame detected - ${frameTime.toFixed(2)}ms`);
     }
 
     this.logger.logPerformance('render_cycle', frameTime);
@@ -167,12 +173,23 @@ export class AgentTelemetryService {
     this.logger.logAgentAction('user', 'interaction', interactionType, { target, ...metadata });
   }
 
-  
+  private getRecentFrameTimes(count: number): number[] {
+    const n = Math.min(count, this.frameTimeCount);
+    const result: number[] = new Array(n);
+    for (let i = 0; i < n; i++) {
+      // Walk backwards from the most recent entry
+      const idx = (this.frameTimeIndex - 1 - i + 60) % 60;
+      result[n - 1 - i] = this.frameTimeBuffer[idx];
+    }
+    return result;
+  }
+
+
   getDebugOverlayData() {
     return {
       sessionId: this.sessionId,
       metrics: { ...this.metrics },
-      recentFrameTimes: [...this.frameTimeBuffer.slice(-10)],
+      recentFrameTimes: this.getRecentFrameTimes(10),
       agentTelemetry: this.logger.getAgentTelemetry().slice(-10),
       webSocketTelemetry: this.logger.getWebSocketTelemetry().slice(-10),
       threeJSTelemetry: this.logger.getThreeJSTelemetry().slice(-10)

@@ -12,6 +12,7 @@
 use crate::adapters::whelk_inference_engine::WhelkInferenceEngine;
 use crate::ports::inference_engine::InferenceEngine;
 use crate::ports::ontology_repository::{OwlAxiom, AxiomType, OntologyRepository};
+use crate::services::file_service::MARKDOWN_DIR;
 use crate::services::github_pr_service::GitHubPRService;
 use crate::types::ontology_tools::*;
 use chrono::Utc;
@@ -93,7 +94,8 @@ impl OntologyMutationService {
 
         // 6. Determine file path (per-user namespace)
         let file_path = format!(
-            "data/markdown/{}/{}.md",
+            "{}/{}/{}.md",
+            MARKDOWN_DIR,
             proposal.domain,
             term_id.to_lowercase().replace('-', "_")
         );
@@ -234,7 +236,8 @@ impl OntologyMutationService {
             let domain = existing.source_domain.as_deref().unwrap_or("general");
             let term_id = existing.term_id.as_deref().unwrap_or("unknown");
             format!(
-                "data/markdown/{}/{}.md",
+                "{}/{}/{}.md",
+                MARKDOWN_DIR,
                 domain,
                 term_id.to_lowercase().replace('-', "_")
             )

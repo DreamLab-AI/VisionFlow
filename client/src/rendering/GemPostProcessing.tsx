@@ -17,7 +17,7 @@ interface GemPostProcessingProps {
  *   component becomes the sole renderer -- no double-render occurs.
  *
  * WebGPU path uses:
- *   - PostProcessing from three/webgpu
+ *   - RenderPipeline from three/webgpu (renamed from PostProcessing in r183)
  *   - pass() from three/tsl
  *   - bloom() from three/examples/jsm/tsl/display/BloomNode.js
  *
@@ -57,7 +57,7 @@ export const GemPostProcessing: React.FC<GemPostProcessingProps> = ({ enabled = 
     threshold: bloomThreshold,
   }), [bloomStrength, bloomRadius, bloomThreshold]);
 
-  // Ref for WebGPU initial bloom values — avoids full PostProcessing teardown on settings
+  // Ref for WebGPU initial bloom values — avoids full RenderPipeline teardown on settings
   // change. The separate useEffect below (bloom uniform updater) handles live tweaks.
   const bloomParamsRef = useRef({ strength: bloomStrength, radius: bloomRadius, threshold: bloomThreshold });
   bloomParamsRef.current = { strength: bloomStrength, radius: bloomRadius, threshold: bloomThreshold };
@@ -79,7 +79,7 @@ export const GemPostProcessing: React.FC<GemPostProcessingProps> = ({ enabled = 
 
     (async () => {
       try {
-        const { PostProcessing } = await import('three/webgpu');
+        const { RenderPipeline } = await import('three/webgpu');
         const tslMod = await import('three/tsl') as any;
         const { pass } = tslMod;
         const { bloom } = await import('three/examples/jsm/tsl/display/BloomNode.js');
@@ -95,8 +95,7 @@ export const GemPostProcessing: React.FC<GemPostProcessingProps> = ({ enabled = 
 
         // Break the WebGPU read/write synchronization scope: bloom must not
         // read the scene output texture while it's still a render attachment.
-        // Try toTexture() first (r183+), then rtt() (r170+), then direct (with
-        // try-catch guard in useFrame as last resort).
+        // r183+: toTexture() is the standard API. rtt() (r170-r182) kept as fallback.
         let bloomInput = scenePassColor;
         if (typeof (scenePassColor as any).toTexture === 'function') {
           bloomInput = (scenePassColor as any).toTexture();
@@ -114,7 +113,7 @@ export const GemPostProcessing: React.FC<GemPostProcessingProps> = ({ enabled = 
         const { float: tslFloat } = tslMod;
         const outputNode = scenePassColor.add(bloomPass.mul(tslFloat(0.5)));
 
-        const postProcessing = new PostProcessing(gl as any, outputNode);
+        const postProcessing = new RenderPipeline(gl as any, outputNode);
 
         postProcessingRef.current = postProcessing;
         bloomNodeRef.current = bloomPass;
@@ -246,7 +245,7 @@ export const GemPostProcessing: React.FC<GemPostProcessingProps> = ({ enabled = 
       try {
         postProcessingRef.current.render();
       } catch (err: any) {
-        // PostProcessing can throw on WebGPU due to texture synchronization
+        // RenderPipeline can throw on WebGPU due to texture synchronization
         // constraints (read+write same texture in one pass). After 3 consecutive
         // failures, fall back to direct rendering for the rest of the session.
         ppErrorCountRef.current++;

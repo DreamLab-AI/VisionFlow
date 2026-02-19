@@ -599,12 +599,31 @@ export const useSettingsStore = create<SettingsState>()(
         }
 
 
-        const allCallbacks = new Set<() => void>();
-        subscribersMap.forEach(callbacks => {
-          callbacks.forEach(cb => allCallbacks.add(cb));
-        });
+        // Only notify subscribers registered to paths that actually changed.
+        // For each changedPath, fire callbacks on exact matches and on any
+        // registered prefix (parent path) so that e.g. a subscriber on
+        // "visualisation" is notified when "visualisation.glow.intensity" changes.
+        const matchedCallbacks = new Set<() => void>();
+        for (const changedPath of changedPaths) {
+          // Exact match
+          const exact = subscribersMap.get(changedPath);
+          if (exact) {
+            exact.forEach(cb => matchedCallbacks.add(cb));
+          }
+          // Prefix/parent matches: a subscriber on "a.b" should fire for "a.b.c.d"
+          // and a subscriber on "a.b.c.d" should fire for "a.b" (child matches parent)
+          subscribersMap.forEach((callbacks, subscribedPath) => {
+            if (
+              subscribedPath !== changedPath &&
+              (changedPath.startsWith(subscribedPath + '.') ||
+               subscribedPath.startsWith(changedPath + '.'))
+            ) {
+              callbacks.forEach(cb => matchedCallbacks.add(cb));
+            }
+          });
+        }
 
-        Array.from(allCallbacks).forEach(callback => {
+        matchedCallbacks.forEach(callback => {
           try {
             callback();
           } catch (error) {

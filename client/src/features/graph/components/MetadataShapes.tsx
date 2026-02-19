@@ -289,8 +289,8 @@ const useGeometries = () => useMemo(() => ({
 
 /**
  * Creates a MeshPhysicalMaterial with Fresnel rim glow that works on both renderers.
- * TSL disabled — opacityNode breaks InstancedMesh draw calls on WebGPU r182.
- * Replaces the deleted HologramNodeMaterial with a compatible physical-based alternative.
+ * Standard PBR with Fresnel rim glow for both renderers. TSL opacityNode is applied
+ * asynchronously on WebGPU r183+ (see async block below); PBR path serves as fallback.
  */
 const useMetadataShapeMaterial = (settings: any) => {
   const material = useMemo(() => {
@@ -321,8 +321,23 @@ const useMetadataShapeMaterial = (settings: any) => {
       } : {}),
     });
 
-    // TSL DISABLED: Adding opacityNode to MeshPhysicalMaterial triggers shader
-    // recompilation that breaks InstancedMesh draw calls on WebGPU r182.
+    // TSL ENABLED (r183+) with PBR fallback — async Fresnel opacity upgrade on WebGPU.
+    // Per-frame emissive modulation in useFrame remains the active fallback path.
+    if (isWebGPURenderer) {
+      (async () => {
+        try {
+          const { float, normalize, positionView, normalView, dot, saturate, pow, oneMinus } = await import('three/tsl') as any;
+          const viewDir = normalize(positionView.negate());
+          const fresnel = pow(oneMinus(saturate(dot(normalView, viewDir))), float(3.0));
+          const opacityNode = float(0.5).add(fresnel.mul(0.45));
+          (mat as any).opacityNode = opacityNode;
+          (mat as any).needsUpdate = true;
+          console.log('[MetadataShapes] TSL opacityNode enabled (r183+)');
+        } catch (err) {
+          console.warn('[MetadataShapes] TSL upgrade failed, using PBR fallback:', err);
+        }
+      })();
+    }
 
     return mat;
   }, [settings]);

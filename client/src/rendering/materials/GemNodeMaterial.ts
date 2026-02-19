@@ -55,9 +55,10 @@ export function createGemNodeMaterial(): GemMaterialResult {
     } : {}),
   });
 
-  // TSL Fresnel upgrade deferred to createTslGemMaterial (metadata version).
-  // The initial Fresnel-only upgrade was conflicting with the metadata TSL pass,
-  // and the double-needsUpdate can break shader compilation on WebGPU InstancedMesh.
+  // TSL ENABLED (r183+) with PBR fallback — the full metadata-driven TSL upgrade
+  // is wired from GemNodes.tsx via createTslGemMaterial() once metadataTexture and
+  // instanceCount are available. The basic Fresnel-only upgrade is skipped here to
+  // avoid a double-needsUpdate conflict with the metadata pass.
   const ready = Promise.resolve();
 
   return { material, uniforms, ready };

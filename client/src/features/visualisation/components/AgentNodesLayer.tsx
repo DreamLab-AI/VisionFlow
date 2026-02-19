@@ -144,7 +144,7 @@ const AgentNode: React.FC<{
         ? 1 + breathCycle * 0.08
         : 1 + breathCycle * 0.04;
 
-      meshRef.current.scale.setScalar(breathScale);
+      meshRef.current.scale.setScalar(scaledSize * breathScale);
 
       // Membrane breathes with slight delay
       const membraneBreath = 1.3 + Math.sin(pulseRef.current.phase - 0.3) * 0.06;
@@ -165,10 +165,11 @@ const AgentNode: React.FC<{
       // Distress flicker
       pulseRef.current.phase += delta * 8;
       const distress = Math.sin(pulseRef.current.phase) * Math.sin(pulseRef.current.phase * 0.66) * 0.15;
-      meshRef.current.scale.setScalar(1 + Math.abs(distress));
+      meshRef.current.scale.setScalar(scaledSize * (1 + Math.abs(distress)));
       glowRef.current.scale.setScalar(1.3 + Math.abs(distress) * 0.5);
     } else {
-      // Idle: very subtle life sign
+      // Idle: apply base scale and very subtle life sign
+      meshRef.current.scale.setScalar(scaledSize);
       if (nucleusRef.current) {
         pulseRef.current.phase += delta * 0.5;
         const idleMat = nucleusRef.current.material as THREE.MeshBasicMaterial;
@@ -179,24 +180,25 @@ const AgentNode: React.FC<{
     }
   });
 
+  // Unit-size geometry keyed only on agent.type -- scaledSize applied via mesh scale
   const geometry = useMemo(() => {
     switch (agent.type) {
       case 'researcher':
-        return new THREE.OctahedronGeometry(scaledSize, 0);
+        return new THREE.OctahedronGeometry(1.0, 0);
       case 'coder':
-        return new THREE.BoxGeometry(scaledSize * 1.5, scaledSize * 1.5, scaledSize * 1.5);
+        return new THREE.BoxGeometry(1.5, 1.5, 1.5);
       case 'analyzer':
-        return new THREE.TetrahedronGeometry(scaledSize, 0);
+        return new THREE.TetrahedronGeometry(1.0, 0);
       case 'tester':
-        return new THREE.ConeGeometry(scaledSize, scaledSize * 2, 6);
+        return new THREE.ConeGeometry(1.0, 2.0, 6);
       case 'optimizer':
-        return new THREE.TorusGeometry(scaledSize * 0.8, scaledSize * 0.3, 8, 12);
+        return new THREE.TorusGeometry(0.8, 0.3, 8, 12);
       case 'coordinator':
-        return new THREE.IcosahedronGeometry(scaledSize, 0);
+        return new THREE.IcosahedronGeometry(1.0, 0);
       default:
-        return new THREE.SphereGeometry(scaledSize, 16, 16);
+        return new THREE.SphereGeometry(1.0, 16, 16);
     }
-  }, [agent.type, scaledSize]);
+  }, [agent.type]);
 
   useEffect(() => {
     return () => { geometry?.dispose(); };
@@ -241,7 +243,7 @@ const AgentNode: React.FC<{
         />
       </mesh>
 
-      {/* Agent type label — Html on WebGPU (troika Text triggers drawIndexed(Infinity)) */}
+      {/* Agent type label — Html on WebGPU (troika Text Line2 geometry triggers drawIndexed(Infinity); troika limitation, not version-specific) */}
       {isWebGPURenderer ? (
         <Html position={[0, scaledSize + 1.5, 0]} center style={{ pointerEvents: 'none', whiteSpace: 'nowrap' }}>
           <div style={{ color: statusColor, fontSize: '12px', fontWeight: 'bold', textShadow: '0 0 4px black' }}>

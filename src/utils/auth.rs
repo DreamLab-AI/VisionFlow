@@ -29,11 +29,21 @@ pub async fn verify_access(
         .and_then(|h| h.to_str().ok())
     {
         if auth_value.starts_with("Nostr ") {
+            // Behind a TLS-terminating proxy, connection_info returns internal
+            // scheme/host; prefer X-Forwarded-* headers from the proxy.
             let conn_info = req.connection_info();
+            let scheme = req.headers()
+                .get("X-Forwarded-Proto")
+                .and_then(|v| v.to_str().ok())
+                .unwrap_or_else(|| conn_info.scheme());
+            let host = req.headers()
+                .get("X-Forwarded-Host")
+                .and_then(|v| v.to_str().ok())
+                .unwrap_or_else(|| conn_info.host());
             let url = format!(
                 "{}://{}{}",
-                conn_info.scheme(),
-                conn_info.host(),
+                scheme,
+                host,
                 req.uri()
                     .path_and_query()
                     .map(|pq| pq.as_str())

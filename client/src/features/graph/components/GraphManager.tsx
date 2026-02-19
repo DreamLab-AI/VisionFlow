@@ -149,9 +149,10 @@ const getAgentStatusHex = (status?: string): string => {
 };
 
 // === WebGPU-safe label component ===
-// drei <Text> (troika-three-text) creates Mesh objects that trigger drawIndexed(Infinity)
-// on WebGPU. When the renderer is WebGPU, we use <Html> instead (CSS overlay, never enters
-// the GPU pipeline). On WebGL, we keep <Text> + <Billboard> for native 3D text.
+// drei <Text> (troika-three-text) creates Line2 geometry with instanceCount=Infinity that
+// triggers drawIndexed(Infinity) on WebGPU. This is a troika limitation (not r182-specific).
+// When the renderer is WebGPU, we use <Html> instead (CSS overlay, never enters the GPU
+// pipeline). On WebGL, we keep <Text> + <Billboard> for native 3D text.
 const NodeLabel: React.FC<{
   position: [number, number, number];
   lines: Array<{ text: string; color: string; fontSize: number; }>;
@@ -408,6 +409,9 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   const labelPositionsRef = useRef<Array<{x: number, y: number, z: number}>>([])
   const edgeUpdatePendingRef = useRef<number[] | null>(null)
   const highlightEdgeUpdatePendingRef = useRef<number[] | null>(null);
+  // Pre-allocated buffers to eliminate per-frame array allocation GC pressure
+  const edgeBufferRef = useRef<number[]>([]);
+  const highlightBufferRef = useRef<number[]>([]);
   const [nodesAreAtOrigin, setNodesAreAtOrigin] = useState(false)
 
   const [forceUpdate, setForceUpdate] = useState(0)
@@ -523,8 +527,13 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
 
       if (positionsValid) {
         // Edge point computation (GlassEdges needs edgePoints)
+        // Reuse pre-allocated buffer -- only grow when needed (never shrinks to avoid churn)
         const edgeCount = graphData.edges.length;
-        const newEdgePoints = new Array<number>(edgeCount * 6);
+        const edgeBufferNeeded = edgeCount * 6;
+        if (edgeBufferRef.current.length < edgeBufferNeeded) {
+          edgeBufferRef.current = new Array<number>(edgeBufferNeeded);
+        }
+        const newEdgePoints = edgeBufferRef.current;
         let edgePointIdx = 0;
 
         // Cache drag state outside the loop (hot path — avoid ref access per edge)
@@ -592,11 +601,18 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
             }
           }
         });
-        newEdgePoints.length = edgePointIdx;
+        // Slice the reusable buffer to the actual used length for consumers
+        const edgePointsSlice = newEdgePoints.slice(0, edgePointIdx);
 
         // Compute highlighted edges for the selected node
         if (selectedNodeId) {
-          const highlightPoints: number[] = [];
+          // Reuse pre-allocated highlight buffer -- only grow when needed
+          const hlBufferNeeded = edgeCount * 6;
+          if (highlightBufferRef.current.length < hlBufferNeeded) {
+            highlightBufferRef.current = new Array<number>(hlBufferNeeded);
+          }
+          const highlightBuf = highlightBufferRef.current;
+          let hlIdx = 0;
           graphData.edges.forEach((edge: any) => {
             const sourceStr = String(edge.source);
             const targetStr = String(edge.target);
@@ -635,17 +651,20 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
               tempSourceOffset.copy(tempVec3).addScaledVector(tempDirection, srcR);
               tempTargetOffset.copy(tempPosition).addScaledVector(tempDirection, -tgtR);
               if (tempSourceOffset.distanceTo(tempTargetOffset) > 0.2) {
-                highlightPoints.push(
-                  tempSourceOffset.x, tempSourceOffset.y, tempSourceOffset.z,
-                  tempTargetOffset.x, tempTargetOffset.y, tempTargetOffset.z
-                );
+                highlightBuf[hlIdx++] = tempSourceOffset.x;
+                highlightBuf[hlIdx++] = tempSourceOffset.y;
+                highlightBuf[hlIdx++] = tempSourceOffset.z;
+                highlightBuf[hlIdx++] = tempTargetOffset.x;
+                highlightBuf[hlIdx++] = tempTargetOffset.y;
+                highlightBuf[hlIdx++] = tempTargetOffset.z;
               }
             }
           });
+          const highlightSlice = highlightBuf.slice(0, hlIdx);
           if (highlightEdgeFlowRef.current) {
-            highlightEdgeFlowRef.current.updatePoints(highlightPoints);
+            highlightEdgeFlowRef.current.updatePoints(highlightSlice);
           } else {
-            highlightEdgeUpdatePendingRef.current = highlightPoints;
+            highlightEdgeUpdatePendingRef.current = highlightSlice;
           }
         } else if (highlightEdgePoints.length > 0) {
           if (highlightEdgeFlowRef.current) {
@@ -657,9 +676,9 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
 
         // Imperative edge update: push directly to GlassEdges geometry buffer
         if (edgeFlowRef.current) {
-          edgeFlowRef.current.updatePoints(newEdgePoints);
+          edgeFlowRef.current.updatePoints(edgePointsSlice);
         } else {
-          edgeUpdatePendingRef.current = newEdgePoints;
+          edgeUpdatePendingRef.current = edgePointsSlice;
         }
 
         // One-time diagnostic for edge/position pipeline

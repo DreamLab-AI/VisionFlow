@@ -342,6 +342,9 @@ pub struct AppState {
     pub client_message_tx: mpsc::UnboundedSender<ClientMessage>,
     pub client_message_rx: Arc<tokio::sync::Mutex<mpsc::UnboundedReceiver<ClientMessage>>>,
     pub ontology_pipeline_service: Option<Arc<crate::services::ontology_pipeline_service::OntologyPipelineService>>,
+    /// Health degradation reason. `None` means healthy; `Some(reason)` means degraded.
+    /// Uses `std::sync::RwLock` (not tokio) so it can be read synchronously in health checks.
+    pub degraded_reason: Arc<std::sync::RwLock<Option<String>>>,
 }
 
 impl AppState {
@@ -939,6 +942,7 @@ impl AppState {
             client_message_tx,
             client_message_rx: Arc::new(tokio::sync::Mutex::new(client_message_rx)),
             ontology_pipeline_service,
+            degraded_reason: Arc::new(std::sync::RwLock::new(None)),
         };
 
         // Validate optional actor addresses
@@ -1173,6 +1177,30 @@ impl AppState {
     /// Returns None if the address hasn't been initialized yet or GPU is not available.
     pub async fn get_gpu_compute_addr(&self) -> Option<Addr<gpu::ForceComputeActor>> {
         self.gpu_compute_addr.read().await.clone()
+    }
+
+    /// Mark the application as degraded with a reason string.
+    /// This is checked by the health endpoint to report degraded state.
+    pub fn set_degraded(&self, reason: String) {
+        if let Ok(mut guard) = self.degraded_reason.write() {
+            *guard = Some(reason);
+        }
+    }
+
+    /// Returns `true` if no degradation reason has been set.
+    pub fn is_healthy(&self) -> bool {
+        self.degraded_reason
+            .read()
+            .map(|g| g.is_none())
+            .unwrap_or(false)
+    }
+
+    /// Returns the current degradation reason, if any.
+    pub fn get_degraded_reason(&self) -> Option<String> {
+        self.degraded_reason
+            .read()
+            .ok()
+            .and_then(|g| g.clone())
     }
 
     /// Try to get the ForceComputeActor address synchronously (non-blocking).
