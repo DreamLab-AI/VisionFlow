@@ -15,16 +15,32 @@ log() {
 if [ "${SKIP_RUST_REBUILD:-false}" != "true" ]; then
     log "Rebuilding Rust backend with GPU support to apply code changes..."
     cd /app
-    
-    # Build only the main server binary (skip broken bin targets)
-    if cargo build --bin webxr; then
-        log "✓ Rust backend rebuilt successfully (debug build)"
+
+    # Clean stale incremental cache if fingerprints look corrupt
+    if [ -d "/app/target/release/.fingerprint" ]; then
+        FINGERPRINT_AGE=$(find /app/target/release/.fingerprint -maxdepth 1 -type d -mmin +1440 2>/dev/null | head -1)
+        if [ -n "$FINGERPRINT_AGE" ]; then
+            log "Stale fingerprints detected (>24h old), cleaning incremental cache..."
+            cargo clean 2>/dev/null || true
+        fi
+    fi
+
+    # Build release with GPU features (matches dev-entrypoint.sh)
+    if cargo build --release --features gpu 2>&1; then
+        log "✓ Rust backend rebuilt successfully (release build with GPU)"
     else
         log "ERROR: Failed to rebuild Rust backend"
-        exit 1
+        log "Attempting clean build..."
+        cargo clean 2>/dev/null || true
+        if cargo build --release --features gpu 2>&1; then
+            log "✓ Clean rebuild succeeded"
+        else
+            log "FATAL: Clean rebuild also failed"
+            exit 1
+        fi
     fi
-    
-    RUST_BINARY="/app/target/debug/webxr"
+
+    RUST_BINARY="/app/target/release/webxr"
 else
     log "Skipping Rust rebuild (SKIP_RUST_REBUILD=true)"
     RUST_BINARY="/app/webxr"

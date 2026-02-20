@@ -64,13 +64,13 @@ ${GREEN}╔═══════════════════════
 ╚════════════════════════════════════════════════════════════╝${NC}
 
 ${YELLOW}Usage:${NC}
-    ./launch.unified.sh [COMMAND] [ENVIRONMENT]
+    ./launch.sh [COMMAND] [ENVIRONMENT]
 
 ${YELLOW}Commands:${NC}
-    ${GREEN}up${NC}             Start the environment (default)
+    ${GREEN}up${NC}             Start the environment (auto-detects changes, fast)
     ${GREEN}down${NC}           Stop and remove containers
-    ${GREEN}build${NC}          Build containers
-    ${GREEN}rebuild${NC}        Rebuild containers (no cache)
+    ${GREEN}build${NC}          Build containers (with layer cache)
+    ${GREEN}rebuild${NC}        Full rebuild (no cache, cleans all cargo volumes)
     ${GREEN}rebuild-agent${NC}  Rebuild agentic-workstation (full GPU/ComfyUI/CachyOS validation)
                      Options: --skip-comfyui, --comfyui-full, --skip-cachyos
     ${GREEN}logs${NC}           Show container logs (follow mode)
@@ -97,19 +97,19 @@ ${YELLOW}Flags:${NC}
     ${GREEN}--with-agent${NC}   Also restart the agentic-workstation container
 
 ${YELLOW}Examples:${NC}
-    ./launch.unified.sh                    ${CYAN}# Start dev environment${NC}
-    ./launch.unified.sh up dev             ${CYAN}# Start dev environment${NC}
-    ./launch.unified.sh up dev --with-agent ${CYAN}# Start dev + restart agent${NC}
-    ./launch.unified.sh build prod         ${CYAN}# Build production${NC}
-    ./launch.unified.sh rebuild prod       ${CYAN}# Rebuild production (no cache)${NC}
-    ./launch.unified.sh logs dev           ${CYAN}# View dev logs${NC}
-    ./launch.unified.sh shell prod         ${CYAN}# Open prod shell${NC}
-    ./launch.unified.sh restart dev        ${CYAN}# Restart dev${NC}
-    ./launch.unified.sh restart-agent      ${CYAN}# Restart agentic-workstation${NC}
-    ./launch.unified.sh rebuild-agent      ${CYAN}# Full rebuild with GPU/ComfyUI/CachyOS${NC}
-    ./launch.unified.sh rebuild-agent --skip-comfyui  ${CYAN}# Skip ComfyUI check${NC}
-    ./launch.unified.sh rebuild-agent --comfyui-full  ${CYAN}# Build full open3d (30-60 min)${NC}
-    ./launch.unified.sh clean              ${CYAN}# Clean everything${NC}
+    ./launch.sh                    ${CYAN}# Start dev environment${NC}
+    ./launch.sh up dev             ${CYAN}# Start dev environment${NC}
+    ./launch.sh up dev --with-agent ${CYAN}# Start dev + restart agent${NC}
+    ./launch.sh build prod         ${CYAN}# Build production${NC}
+    ./launch.sh rebuild prod       ${CYAN}# Rebuild production (no cache)${NC}
+    ./launch.sh logs dev           ${CYAN}# View dev logs${NC}
+    ./launch.sh shell prod         ${CYAN}# Open prod shell${NC}
+    ./launch.sh restart dev        ${CYAN}# Restart dev${NC}
+    ./launch.sh restart-agent      ${CYAN}# Restart agentic-workstation${NC}
+    ./launch.sh rebuild-agent      ${CYAN}# Full rebuild with GPU/ComfyUI/CachyOS${NC}
+    ./launch.sh rebuild-agent --skip-comfyui  ${CYAN}# Skip ComfyUI check${NC}
+    ./launch.sh rebuild-agent --comfyui-full  ${CYAN}# Build full open3d (30-60 min)${NC}
+    ./launch.sh clean              ${CYAN}# Clean everything${NC}
 
 ${YELLOW}Environment Files:${NC}
     .env.dev       Development configuration
@@ -330,11 +330,40 @@ cleanup_dev() {
     exit 0
 }
 
-# Check if rebuild is needed (source code changes)
-needs_rebuild() {
-    local image_name="ar-ai-knowledge-graph-visionflow"
+# Derive the Docker Compose image name for the visionflow service
+get_image_name() {
+    # Docker Compose names images as <project>-<service>
+    # Project name defaults to the directory name of the compose file
+    local project_dir
+    project_dir="$(basename "$PROJECT_ROOT")"
+    # Also check COMPOSE_PROJECT_NAME override
+    local project_name="${COMPOSE_PROJECT_NAME:-$project_dir}"
+    echo "${project_name}-visionflow"
+}
 
-    # Check if image exists
+# Remove stale cargo TARGET cache only — preserves registry/git downloads
+clean_cargo_target() {
+    log "Removing stale cargo target cache volume..."
+    docker volume rm "${CARGO_TARGET_CACHE_VOLUME:-visionflow-cargo-target-cache}" 2>/dev/null || true
+    success "Cargo target cache cleaned (registry/git downloads preserved)"
+}
+
+# Remove ALL cargo cache volumes (for full rebuild only)
+clean_cargo_volumes() {
+    log "Removing all cargo cache volumes..."
+    docker volume rm "${CARGO_TARGET_CACHE_VOLUME:-visionflow-cargo-target-cache}" 2>/dev/null || true
+    docker volume rm "${CARGO_CACHE_VOLUME:-visionflow-cargo-cache}" 2>/dev/null || true
+    docker volume rm "${CARGO_GIT_CACHE_VOLUME:-visionflow-cargo-git-cache}" 2>/dev/null || true
+    success "All cargo cache volumes cleaned"
+}
+
+# Check if Docker IMAGE rebuild is needed (Dockerfile/dependency changes)
+# Source-only changes DON'T need image rebuild — source is volume-mounted in dev
+needs_image_rebuild() {
+    local image_name
+    image_name="$(get_image_name)"
+
+    # No image at all — must build
     if ! docker images --format "{{.Repository}}" | grep -q "^${image_name}$"; then
         echo "true"
         return 0
@@ -347,34 +376,70 @@ needs_rebuild() {
         return 0
     fi
 
-    # Convert image timestamp to epoch
     local image_epoch=$(date -d "$image_created" +%s 2>/dev/null || echo 0)
 
-    # Check ALL Rust source files, not just a few critical ones
-    # Find the most recently modified .rs file in the src directory
-    local latest_rs=$(find "$PROJECT_ROOT/src" -name "*.rs" -printf '%T@\n' 2>/dev/null | sort -n | tail -1 | cut -d. -f1)
-    latest_rs=${latest_rs:-0}
-
-    # Also check key config files
-    local config_files=(
+    # Only check files that affect the IMAGE (not source — that's volume-mounted)
+    local image_files=(
+        "$PROJECT_ROOT/Dockerfile.unified"
+        "$PROJECT_ROOT/Dockerfile.dev"
         "$PROJECT_ROOT/Cargo.toml"
         "$PROJECT_ROOT/Cargo.lock"
-        "$PROJECT_ROOT/build.rs"
-        "$PROJECT_ROOT/Dockerfile.unified"
+        "$PROJECT_ROOT/client/package.json"
+        "$PROJECT_ROOT/client/package-lock.json"
+        "$PROJECT_ROOT/supervisord.dev.conf"
+        "$PROJECT_ROOT/nginx.dev.conf"
+        "$PROJECT_ROOT/scripts/dev-entrypoint.sh"
+        "$PROJECT_ROOT/scripts/rust-backend-wrapper.sh"
     )
 
-    local latest_source=$latest_rs
-    for file in "${config_files[@]}"; do
+    for file in "${image_files[@]}"; do
         if [[ -f "$file" ]]; then
             local file_epoch=$(stat -c %Y "$file" 2>/dev/null || echo 0)
-            if [[ $file_epoch -gt $latest_source ]]; then
-                latest_source=$file_epoch
+            if [[ $file_epoch -gt $image_epoch ]]; then
+                echo "true"
+                return 0
             fi
         fi
     done
 
-    # If source is newer than image, rebuild needed
-    if [[ $latest_source -gt $image_epoch ]]; then
+    echo "false"
+    return 1
+}
+
+# Check if source code changed (needs container restart to trigger recompile)
+needs_recompile() {
+    local container_name="$1"
+
+    # If container isn't running, recompile is implicit on startup
+    if ! docker ps --format '{{.Names}}' | grep -q "^${container_name}$"; then
+        echo "false"
+        return 1
+    fi
+
+    # Get container start time
+    local container_started=$(docker inspect --format='{{.State.StartedAt}}' "$container_name" 2>/dev/null)
+    if [[ -z "$container_started" ]]; then
+        echo "true"
+        return 0
+    fi
+    local container_epoch=$(date -d "$container_started" +%s 2>/dev/null || echo 0)
+
+    # Check Rust source files
+    local latest_rs=$(find "$PROJECT_ROOT/src" -name "*.rs" -printf '%T@\n' 2>/dev/null | sort -n | tail -1 | cut -d. -f1)
+    latest_rs=${latest_rs:-0}
+
+    # Check client source files
+    local latest_ts=$(find "$PROJECT_ROOT/client/src" \( -name "*.ts" -o -name "*.tsx" \) -printf '%T@\n' 2>/dev/null | sort -n | tail -1 | cut -d. -f1)
+    latest_ts=${latest_ts:-0}
+
+    # Check build.rs
+    local build_rs_epoch=$(stat -c %Y "$PROJECT_ROOT/build.rs" 2>/dev/null || echo 0)
+
+    local latest_source=$latest_rs
+    [[ $latest_ts -gt $latest_source ]] && latest_source=$latest_ts
+    [[ $build_rs_epoch -gt $latest_source ]] && latest_source=$build_rs_epoch
+
+    if [[ $latest_source -gt $container_epoch ]]; then
         echo "true"
         return 0
     fi
@@ -400,13 +465,16 @@ is_container_running() {
 start_environment() {
     log "Starting $ENVIRONMENT environment..."
 
-    # Check if main container is already running
+    # Check if main container is already running and healthy
     if is_container_running "$CONTAINER_NAME"; then
-        # Even if running, check if source has changed (with volume mounts, container restart triggers recompile)
-        local source_changed=$(needs_rebuild)
+        local source_changed=$(needs_recompile "$CONTAINER_NAME")
         if [[ "$source_changed" == "true" ]]; then
-            warning "Source code changes detected - restarting container to recompile..."
-            docker_compose restart visionflow
+            warning "Source code changes detected — restarting container to recompile..."
+            # Source is volume-mounted, so just restart. The wrapper rebuilds on startup.
+            # Clean target cache to avoid stale incremental artifacts.
+            docker_compose stop visionflow
+            clean_cargo_target
+            docker_compose start visionflow
             sleep 3
         else
             success "Container $CONTAINER_NAME is already running and healthy (no source changes)"
@@ -430,18 +498,19 @@ start_environment() {
     # Clean up any conflicting containers first
     cleanup_conflicts
 
-    # Check if rebuild is needed
-    local rebuild_needed=$(needs_rebuild)
+    # Check if IMAGE rebuild is needed (Dockerfile/deps changed)
+    local image_rebuild=$(needs_image_rebuild)
 
-    if [[ "$rebuild_needed" == "true" ]]; then
-        warning "Source code changes detected - rebuilding without cache..."
-        COMMAND="rebuild"
+    if [[ "$image_rebuild" == "true" ]]; then
+        warning "Image-level changes detected (Dockerfile/deps) — rebuilding image..."
+        # Only clean target cache, preserve registry downloads for speed
+        clean_cargo_target
         build_containers
     elif ! docker images | grep -q "visionflow"; then
         info "Container images not found. Building first..."
         build_containers
     else
-        success "Using existing container image (no source changes detected)"
+        success "Using existing container image (source is volume-mounted, no image rebuild needed)"
     fi
 
     # Conditionally start cloudflared based on environment
@@ -475,8 +544,8 @@ start_environment() {
         echo ""
         show_service_urls
         echo ""
-        info "View logs with: ${GREEN}./launch.unified.sh logs $ENVIRONMENT${NC}"
-        info "Stop with: ${GREEN}./launch.unified.sh down $ENVIRONMENT${NC}"
+        info "View logs with: ${GREEN}./launch.sh logs $ENVIRONMENT${NC}"
+        info "Stop with: ${GREEN}./launch.sh down $ENVIRONMENT${NC}"
     fi
 }
 
@@ -832,7 +901,7 @@ open_shell() {
     log "Opening interactive shell in $ENVIRONMENT container..."
 
     if ! docker ps | grep -q "$CONTAINER_NAME"; then
-        error "Container is not running. Start it first with: ./launch.unified.sh up $ENVIRONMENT"
+        error "Container is not running. Start it first with: ./launch.sh up $ENVIRONMENT"
         exit 1
     fi
 
@@ -856,7 +925,7 @@ show_status() {
         docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}" | grep "$CONTAINER_NAME" || true
     else
         warning "Container is not running"
-        info "Start with: ${GREEN}./launch.unified.sh up $ENVIRONMENT${NC}"
+        info "Start with: ${GREEN}./launch.sh up $ENVIRONMENT${NC}"
     fi
 }
 
@@ -966,6 +1035,8 @@ main() {
         rebuild)
             check_prerequisites
             detect_gpu
+            # Explicit rebuild: clean all cargo caches and --no-cache image build
+            clean_cargo_volumes
             build_containers
             ;;
         logs)
