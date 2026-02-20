@@ -8,7 +8,6 @@ src/application/ontology/**
 src/application/physics/**
 src/application/settings/**
 src/bin/**
-src/config/**
 src/constraints/**
 src/cqrs/commands/**
 src/cqrs/handlers/**
@@ -30,6 +29,7 @@ src/services/parsers/**
 src/types/**
 src/utils/**
 src/application/graph/queries.rs
+src/config/path_access.rs
 src/cqrs/bus.rs
 src/handlers/api_handler/semantic_forces.rs
 src/ontology/services/owl_validator.rs

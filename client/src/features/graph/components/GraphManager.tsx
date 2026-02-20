@@ -11,6 +11,7 @@ import { debugState } from '../../../utils/clientDebugState'
 import { useSettingsStore } from '../../../store/settingsStore'
 import { BinaryNodeData } from '../../../types/binaryProtocol'
 import { GemNodes, GemNodesHandle } from './GemNodes'
+import { MetadataShapes } from './MetadataShapes'
 import { GlassEdges, GlassEdgesHandle } from './GlassEdges'
 import { KnowledgeRings } from './KnowledgeRings'
 import { ClusterHulls } from './ClusterHulls'
@@ -157,14 +158,17 @@ const NodeLabel: React.FC<{
   position: [number, number, number];
   lines: Array<{ text: string; color: string; fontSize: number; }>;
   maxWidth?: number;
-}> = ({ position, lines, maxWidth = 8 }) => {
+  thresholdOpacity?: number;
+}> = ({ position, lines, maxWidth = 8, thresholdOpacity = 1 }) => {
   if (isWebGPURenderer) {
     return (
       <group position={position}>
-        <Html center distanceFactor={10} style={{ pointerEvents: 'none' }}>
+        <Html center distanceFactor={4} style={{ pointerEvents: 'none' }}>
           <div style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center',
             whiteSpace: 'nowrap', userSelect: 'none',
+            opacity: thresholdOpacity,
+            transition: 'opacity 0.15s ease-out',
           }}>
             {lines.map((line, i) => (
               <span key={i} style={{
@@ -971,9 +975,12 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
     const labelSettings = logseqSettings?.labels ?? settings?.visualisation?.labels;
     if (!labelSettings?.enableLabels || visibleNodes.length === 0) return null;
 
+    const nodeSettings = logseqSettings?.nodes ?? settings?.visualisation?.nodes;
+    const nodeSize = nodeSettings?.nodeSize ?? 0.5;
     const LABEL_DISTANCE_THRESHOLD = labelSettings?.labelDistanceThreshold ?? 500;
     const METADATA_DISTANCE_THRESHOLD = LABEL_DISTANCE_THRESHOLD * 0.6;
     const vrMode = isXRMode;
+    const metadataEnabled = labelSettings?.showMetadata !== false;
 
     const currentLabelPositions = labelPositionsRef.current;
     return visibleNodes.map((node) => {
@@ -986,14 +993,25 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
 
       const distanceToCamera = tempVec3.distanceTo(camera.position);
       if (distanceToCamera > LABEL_DISTANCE_THRESHOLD) return null;
+      // Hide labels too close to the camera — they render disproportionately
+      // large via distanceFactor scaling and flash in/out during navigation
+      if (distanceToCamera < 2) return null;
 
-      const showMetadataLines = distanceToCamera <= METADATA_DISTANCE_THRESHOLD;
+      // Soft fade: labels fade in/out over the last 15% of the visible range
+      // instead of snapping from fully visible to invisible at the boundary
+      const FADE_START = LABEL_DISTANCE_THRESHOLD * 0.85;
+      const thresholdOpacity = distanceToCamera > FADE_START
+        ? 1 - (distanceToCamera - FADE_START) / (LABEL_DISTANCE_THRESHOLD - FADE_START)
+        : 1;
+
+      const showMetadataLines = metadataEnabled && distanceToCamera <= METADATA_DISTANCE_THRESHOLD;
       const nodeLabelVisualMode = perNodeVisualModeMap.get(String(node.id)) || graphMode;
       const scale = computeNodeScale(node, connectionCountMap, nodeLabelVisualMode, hierarchyMap, graphTypeVisuals);
-      const textPadding = labelSettings.textPadding ?? 0.6;
-      const labelOffsetY = scale * 1.5 + textPadding;
+      // Label sits above the node visual surface: visualRadius = scale * nodeSize (0.5s cancel)
+      const textPadding = labelSettings.textPadding ?? 0.3;
+      const labelOffsetY = scale * nodeSize + textPadding;
 
-      const maxWidth = labelSettings.maxLabelWidth ?? 8;
+      const maxWidth = labelSettings.maxLabelWidth ?? 5.0;
       const fontSize = labelSettings.desktopFontSize ?? 0.4;
       const metaFontSize = fontSize * 0.8;
       const labelText = node.label && node.label.length > 40
@@ -1072,9 +1090,9 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         lines.push({ text: labelText, color: textColor, fontSize });
       }
 
-      return <NodeLabel key={`label-${node.id}`} position={pos} lines={lines} maxWidth={maxWidth} />;
+      return <NodeLabel key={`label-${node.id}`} position={pos} lines={lines} maxWidth={maxWidth} thresholdOpacity={thresholdOpacity} />;
     }).filter(Boolean)
-  }, [visibleNodes, graphData.edges, connectionCountMap, labelUpdateTick, nodeIdToIndexMap, logseqSettings?.labels, normalizedSSSPResult, graphMode, perNodeVisualModeMap, hierarchyMap, isXRMode, graphTypeVisuals])
+  }, [visibleNodes, graphData.edges, connectionCountMap, labelUpdateTick, nodeIdToIndexMap, logseqSettings?.labels, logseqSettings?.nodes, normalizedSSSPResult, graphMode, perNodeVisualModeMap, hierarchyMap, isXRMode, graphTypeVisuals])
 
   
   useEffect(() => {
@@ -1097,7 +1115,19 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
 
   return (
     <>
-      {/* Gem node rendering (replaces old instancedMesh + MetadataShapes) */}
+      {/* MetadataShapes: shape-based metadata visualization (opt-in via enableMetadataShape) */}
+      {(logseqSettings?.nodes?.enableMetadataShape || settings?.visualisation?.nodes?.enableMetadataShape) && (
+        <MetadataShapes
+          nodes={visibleNodes}
+          nodePositions={nodePositionsRef.current}
+          settings={settings}
+          ssspResult={normalizedSSSPResult}
+          graphMode={graphMode}
+          hierarchyMap={hierarchyMap}
+        />
+      )}
+
+      {/* Gem node rendering */}
       <GemNodes
         ref={gemNodesRef}
         nodes={visibleNodes}

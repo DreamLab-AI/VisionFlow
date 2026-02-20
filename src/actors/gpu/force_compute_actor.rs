@@ -149,7 +149,10 @@ impl ForceComputeActor {
             // broadcasting position updates.  Without this, the stability check
             // quickly declares equilibrium and stops physics before the graph has
             // time to spread out from its random initial positions.
-            stability_warmup_remaining: 300,
+            // 600 frames (~10s at 60fps) — edge-sparse graphs (e.g. 0 edges)
+            // reach equilibrium quickly on repulsion+gravity alone and need more
+            // runway before the stability kernel is allowed to halt physics.
+            stability_warmup_remaining: 600,
             graph_service_addr: None,
             ontology_constraint_addr: None,
             cached_constraint_buffer: Vec::new(),
@@ -242,6 +245,16 @@ impl ForceComputeActor {
                 self.gpu_state.num_nodes = num_nodes as u32;
                 self.gpu_state.num_edges = edge_count;
                 self.pending_graph_data = None;
+
+                // Fresh graph data needs a full warmup window so the layout can
+                // converge before the GPU stability kernel is allowed to halt
+                // physics.  Edge-sparse graphs (0 edges → only repulsion + gravity)
+                // reach equilibrium extremely fast; give them extra runway.
+                let warmup = if edge_count == 0 { 1200 } else { 600 };
+                self.stability_warmup_remaining = warmup;
+                self.broadcast_optimizer.reset_delta_state();
+                info!("ForceComputeActor: Stability warmup reset to {} frames after graph upload ({} edges)",
+                      warmup, edge_count);
             }
             Err(e) => {
                 error!("ForceComputeActor: Failed to upload graph to GPU: {}", e);
@@ -875,12 +888,12 @@ impl Handler<UpdateSimulationParams> for ForceComputeActor {
         // never see the effect of parameter changes.
         self.broadcast_optimizer.reset_delta_state();
 
-        // Bypass GPU stability-skip for 300 frames (~5 seconds at 60fps).
+        // Bypass GPU stability-skip for 600 frames (~10 seconds at 60fps).
         // The GPU kernel's check_system_stability_kernel measures kinetic energy from the
         // OLD state (before new forces). If the system was at equilibrium, KE ≈ 0 and the
         // kernel sets should_skip_physics=1, preventing new forces from ever being applied.
-        self.stability_warmup_remaining = 300;
-        info!("ForceComputeActor: Stability warmup enabled for 300 frames (bypasses GPU skip)");
+        self.stability_warmup_remaining = 600;
+        info!("ForceComputeActor: Stability warmup enabled for 600 frames (bypasses GPU skip)");
 
         info!(
             "ForceComputeActor: Parameters updated smoothly (iteration_count={}, stability={})",

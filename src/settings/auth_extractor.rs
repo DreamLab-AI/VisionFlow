@@ -37,16 +37,13 @@ impl FromRequest for AuthenticatedUser {
 
     fn from_request(req: &HttpRequest, _payload: &mut Payload) -> Self::Future {
         // Dev mode bypass: allow unauthenticated settings writes when explicitly enabled
-        // SECURITY: Only available in debug builds to prevent accidental production bypass
-        #[cfg(debug_assertions)]
-        {
-            if std::env::var("SETTINGS_AUTH_BYPASS").unwrap_or_default() == "true" {
-                debug!("Settings auth bypass enabled (SETTINGS_AUTH_BYPASS=true) - using dev user");
-                return ready(Ok(AuthenticatedUser {
-                    pubkey: "dev-user".to_string(),
-                    is_power_user: true,
-                }));
-            }
+        // SECURITY: Requires SETTINGS_AUTH_BYPASS=true in environment (only set in dev compose)
+        if std::env::var("SETTINGS_AUTH_BYPASS").unwrap_or_default() == "true" {
+            debug!("Settings auth bypass enabled (SETTINGS_AUTH_BYPASS=true) - using dev user");
+            return ready(Ok(AuthenticatedUser {
+                pubkey: "dev-user".to_string(),
+                is_power_user: true,
+            }));
         }
 
         // Extract NostrService from app data
@@ -154,16 +151,15 @@ impl FromRequest for AuthenticatedUser {
             }
         };
 
-        // Dev-mode session bypass - ONLY available in debug builds
-        #[cfg(debug_assertions)]
+        // Dev-mode session bypass - requires SETTINGS_AUTH_BYPASS in environment
+        if std::env::var("SETTINGS_AUTH_BYPASS").unwrap_or_default() == "true"
+            && token == "dev-session-token"
         {
-            if token == "dev-session-token" {
-                debug!("Dev-mode session token accepted for pubkey: {}", pubkey);
-                return ready(Ok(AuthenticatedUser {
-                    pubkey,
-                    is_power_user: true,
-                }));
-            }
+            debug!("Dev-mode session token accepted for pubkey: {}", pubkey);
+            return ready(Ok(AuthenticatedUser {
+                pubkey,
+                is_power_user: true,
+            }));
         }
 
         // Clone service for async validation

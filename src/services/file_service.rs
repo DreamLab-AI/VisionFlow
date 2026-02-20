@@ -26,6 +26,7 @@ use rand::Rng;
 
 // Constants
 const METADATA_PATH: &str = "/workspace/ext/data/metadata/metadata.json";
+const BASE_PATH_MARKER: &str = "/workspace/ext/data/metadata/base_path.txt";
 pub const MARKDOWN_DIR: &str = "/workspace/ext/data/markdown";
 const GITHUB_API_DELAY: Duration = Duration::from_millis(500);
 
@@ -313,16 +314,24 @@ impl FileService {
 
     
     pub async fn initialize_local_storage(
-        settings: Arc<RwLock<AppFullSettings>>, 
+        settings: Arc<RwLock<AppFullSettings>>,
     ) -> Result<(), Box<dyn StdError + Send + Sync>> {
-        
+
         let github_config =
             GitHubConfig::from_env().map_err(|e| Box::new(e) as Box<dyn StdError + Send + Sync>)?;
+
+        // Detect base path change — wipe local cache if target directory changed
+        let current_base_path = github_config.base_path.clone();
+        if Self::base_path_changed(&current_base_path) {
+            info!("🔄 GITHUB_BASE_PATH changed to '{}' — clearing local file cache for fresh ingest", current_base_path);
+            Self::clear_local_cache();
+            Self::save_base_path_marker(&current_base_path);
+        }
 
         let github = GitHubClient::new(github_config, Arc::clone(&settings)).await?;
         let content_api = ContentAPI::new(Arc::new(github));
 
-        
+
         if Self::has_valid_local_setup() {
             info!("Valid local setup found, skipping initialization");
             return Ok(());
@@ -442,6 +451,9 @@ impl FileService {
         info!("Saving metadata for {} public files", metadata_store.len());
         Self::save_metadata(&metadata_store)?;
 
+        // Record current base path for future change detection
+        Self::save_base_path_marker(&current_base_path);
+
         info!(
             "Initialization complete. Processed {} public files",
             metadata_store.len()
@@ -483,6 +495,47 @@ impl FileService {
             }
         }
         false
+    }
+
+    /// Check if GITHUB_BASE_PATH changed since last successful sync
+    fn base_path_changed(current_base_path: &str) -> bool {
+        match fs::read_to_string(BASE_PATH_MARKER) {
+            Ok(stored) => stored.trim() != current_base_path.trim(),
+            Err(_) => false, // No marker = first run, not a "change"
+        }
+    }
+
+    /// Record the current base path for future change detection
+    fn save_base_path_marker(base_path: &str) {
+        if let Some(parent) = Path::new(BASE_PATH_MARKER).parent() {
+            let _ = fs::create_dir_all(parent);
+        }
+        if let Err(e) = fs::write(BASE_PATH_MARKER, base_path) {
+            warn!("Failed to write base path marker: {}", e);
+        }
+    }
+
+    /// Clear local markdown files and metadata for a fresh ingest
+    fn clear_local_cache() {
+        // Remove metadata.json
+        if let Err(e) = fs::remove_file(METADATA_PATH) {
+            if e.kind() != std::io::ErrorKind::NotFound {
+                warn!("Failed to remove {}: {}", METADATA_PATH, e);
+            }
+        }
+
+        // Remove all .md files from the markdown directory
+        if let Ok(entries) = fs::read_dir(MARKDOWN_DIR) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.extension().map_or(false, |ext| ext == "md") {
+                    if let Err(e) = fs::remove_file(&path) {
+                        warn!("Failed to remove {}: {}", path.display(), e);
+                    }
+                }
+            }
+        }
+        info!("Local file cache cleared (metadata.json + markdown files)");
     }
 
     

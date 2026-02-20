@@ -139,12 +139,15 @@ export const UNIFIED_SETTINGS_CONFIG: Record<string, SectionConfig> = {
 
       // Labels - Basic
       { key: 'enableLabels', label: 'Show Labels', type: 'toggle', path: 'visualisation.graphs.logseq.labels.enableLabels', description: 'Display node labels' },
-      { key: 'labelSize', label: 'Label Size', type: 'slider', min: 0.01, max: 1.5, step: 0.01, path: 'visualisation.graphs.logseq.labels.desktopFontSize', description: 'Font size for labels' },
+      { key: 'labelSize', label: 'Label Size', type: 'slider', min: 0.1, max: 5.0, step: 0.1, path: 'visualisation.graphs.logseq.labels.desktopFontSize', description: 'Font size for labels' },
       { key: 'labelColor', label: 'Label Color', type: 'color', path: 'visualisation.graphs.logseq.labels.textColor', description: 'Color of label text' },
+      { key: 'showMetadata', label: 'Show Metadata', type: 'toggle', path: 'visualisation.graphs.logseq.labels.showMetadata', description: 'Show domain, links, and quality info under labels' },
+      { key: 'labelStandoff', label: 'Label Standoff', type: 'slider', min: 0.0, max: 3.0, step: 0.05, path: 'visualisation.graphs.logseq.labels.textPadding', description: 'Gap between node surface and label' },
       // Labels - Advanced
       { key: 'labelOutlineColor', label: 'Outline Color', type: 'color', path: 'visualisation.graphs.logseq.labels.textOutlineColor', description: 'Label outline color', isAdvanced: true },
       { key: 'labelOutlineWidth', label: 'Outline Width', type: 'slider', min: 0, max: 0.01, step: 0.001, path: 'visualisation.graphs.logseq.labels.textOutlineWidth', description: 'Label outline width', isAdvanced: true },
-      { key: 'labelDistanceThreshold', label: 'Label Distance', type: 'slider', min: 50, max: 2000, step: 50, path: 'visualisation.graphs.logseq.labels.labelDistanceThreshold', description: 'Max distance for label visibility (higher = see labels from farther)' },
+      { key: 'labelDistanceThreshold', label: 'Label Draw Distance', type: 'slider', min: 50, max: 2000, step: 50, path: 'visualisation.graphs.logseq.labels.labelDistanceThreshold', description: 'Max camera distance for label visibility' },
+      { key: 'maxLabelWidth', label: 'Max Label Width', type: 'slider', min: 2, max: 20, step: 0.5, path: 'visualisation.graphs.logseq.labels.maxLabelWidth', description: 'Maximum text wrapping width', isAdvanced: true },
 
       // Rendering - Basic
       { key: 'ambientLight', label: 'Ambient Light', type: 'slider', min: 0, max: 2, step: 0.1, path: 'visualisation.rendering.ambientLightIntensity', description: 'Overall scene brightness' },

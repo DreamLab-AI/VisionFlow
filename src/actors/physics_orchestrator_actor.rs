@@ -509,6 +509,11 @@ impl PhysicsOrchestratorActor {
             .as_ref()
             .map(|g| g.nodes.len())
             .unwrap_or(0);
+        let edge_count = self
+            .graph_data_ref
+            .as_ref()
+            .map(|g| g.edges.len())
+            .unwrap_or(0);
 
         if !self.simulation_params.auto_pause_config.enabled || node_count == 0 {
             return;
@@ -516,9 +521,18 @@ impl PhysicsOrchestratorActor {
 
         let config = &self.simulation_params.auto_pause_config;
 
-        
+        // Edge-sparse graphs (e.g. 0 edges) reach equilibrium almost
+        // immediately on repulsion + center-gravity alone.  Use a much
+        // stricter (lower) energy threshold and longer check window so
+        // the layout has time to spread out before auto-pause fires.
+        let (energy_threshold, check_frames) = if edge_count == 0 {
+            (config.equilibrium_energy_threshold * 0.001, config.equilibrium_check_frames * 10)
+        } else {
+            (config.equilibrium_energy_threshold, config.equilibrium_check_frames)
+        };
+
         let is_equilibrium = if let Some(ref stats) = self.physics_stats {
-            stats.kinetic_energy < config.equilibrium_energy_threshold
+            stats.kinetic_energy < energy_threshold
         } else {
             false
         };
@@ -526,9 +540,9 @@ impl PhysicsOrchestratorActor {
         if is_equilibrium {
             self.simulation_params.equilibrium_stability_counter += 1;
 
-            
+
             if self.simulation_params.equilibrium_stability_counter
-                >= config.equilibrium_check_frames
+                >= check_frames
             {
                 if !self.simulation_params.is_physics_paused && config.pause_on_equilibrium {
                     info!("Auto-pause: System reached equilibrium, pausing physics");

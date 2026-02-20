@@ -107,6 +107,9 @@ impl GitHubSyncService {
             total_edges: 0,
         };
 
+        // Detect base path change — clear stale Neo4j data if target repo path changed
+        let base_path_changed = self.detect_and_handle_base_path_change().await;
+
         // Fetch files
         let files = match self.fetch_all_markdown_files().await {
             Ok(files) => {
@@ -125,12 +128,12 @@ impl GitHubSyncService {
         stats.total_files = files.len();
 
         // SHA1 filtering - only process changed files (unless FORCE_FULL_SYNC is set)
-        let force_full_sync = std::env::var("FORCE_FULL_SYNC")
+        let force_full_sync = base_path_changed || std::env::var("FORCE_FULL_SYNC")
             .map(|v| v == "1" || v.to_lowercase() == "true")
             .unwrap_or(false);
 
         let files_to_process = if force_full_sync {
-            info!("🔄 FORCE_FULL_SYNC enabled - processing ALL {} files (bypassing SHA1 filter)", files.len());
+            info!("🔄 Full sync required — processing ALL {} files (bypassing SHA1 filter)", files.len());
             files.clone()
         } else {
             match self.filter_changed_files(&files).await {
@@ -564,23 +567,118 @@ impl GitHubSyncService {
         Ok(())
     }
 
+    /// Detect if GITHUB_BASE_PATH changed and clear stale Neo4j data if so.
+    /// Stores/reads a SyncConfig node in Neo4j to track the last-used base path.
+    /// Returns true if the base path changed (triggering a forced full sync).
+    async fn detect_and_handle_base_path_change(&self) -> bool {
+        use neo4rs::query;
+
+        let current_base_path = std::env::var("GITHUB_BASE_PATH").unwrap_or_default();
+        if current_base_path.is_empty() {
+            return false;
+        }
+
+        let graph = self.onto_repo.graph();
+
+        // Read the previously stored base path from Neo4j
+        let read_query = query("MATCH (c:SyncConfig {key: 'github_base_path'}) RETURN c.value AS value");
+        let stored_base_path = match graph.execute(read_query).await {
+            Ok(mut result) => {
+                match result.next().await {
+                    Ok(Some(row)) => row.get::<String>("value").ok(),
+                    _ => None,
+                }
+            }
+            Err(e) => {
+                warn!("[GitHubSync] Failed to read SyncConfig: {} (treating as first run)", e);
+                None
+            }
+        };
+
+        let changed = match &stored_base_path {
+            Some(stored) if stored == &current_base_path => false,
+            Some(stored) => {
+                info!("🔄 GITHUB_BASE_PATH changed: '{}' → '{}' — clearing stale Neo4j data",
+                    stored, current_base_path);
+                true
+            }
+            None => {
+                info!("📝 First sync run — recording base path '{}'", current_base_path);
+                false // First run, no stale data to clear
+            }
+        };
+
+        if changed {
+            // Clear all stale data from Neo4j for clean ingest
+            if let Err(e) = self.clear_stale_neo4j_data().await {
+                error!("Failed to clear stale Neo4j data: {}", e);
+            }
+        }
+
+        // Update the stored base path
+        let upsert_query = query(
+            "MERGE (c:SyncConfig {key: 'github_base_path'})
+             SET c.value = $value, c.updated_at = datetime()"
+        ).param("value", current_base_path.clone());
+
+        if let Err(e) = graph.run(upsert_query).await {
+            warn!("[GitHubSync] Failed to save SyncConfig: {}", e);
+        }
+
+        changed
+    }
+
+    /// Clear all stale data from Neo4j when switching to a new GitHub base path.
+    /// Removes: GraphNode, FileMetadata, OwlClass, OwlProperty, Axiom nodes.
+    async fn clear_stale_neo4j_data(&self) -> Result<(), String> {
+        use neo4rs::query;
+        let graph = self.onto_repo.graph();
+
+        let queries = vec![
+            ("GraphNode",    "MATCH (n:GraphNode) DETACH DELETE n"),
+            ("FileMetadata", "MATCH (n:FileMetadata) DETACH DELETE n"),
+            ("OwlClass",     "MATCH (n:OwlClass) DETACH DELETE n"),
+            ("OwlProperty",  "MATCH (n:OwlProperty) DETACH DELETE n"),
+            ("Axiom",        "MATCH (n:Axiom) DETACH DELETE n"),
+        ];
+
+        for (label, cypher) in queries {
+            match graph.run(query(cypher)).await {
+                Ok(_) => info!("  ✓ Cleared {} nodes", label),
+                Err(e) => warn!("  ✗ Failed to clear {} nodes: {}", label, e),
+            }
+        }
+
+        info!("🧹 Stale Neo4j data cleared for fresh ingest");
+        Ok(())
+    }
+
     fn detect_file_type(&self, content: &str) -> FileType {
         let content = content.trim_start_matches('\u{feff}');
         let lines: Vec<&str> = content.lines().take(20).collect();
 
-        // Check for ontology blocks first (highest priority)
-        if content.contains("### OntologyBlock") {
+        let has_public = lines.iter().any(|line| {
+            let t = line.trim().trim_start_matches('-').trim();
+            t == "public:: true" || t == "public-access:: true"
+        }) || content.contains("public-access:: true");
+
+        let has_ontology = content.contains("### OntologyBlock");
+
+        // Files with public:: true are knowledge-graph nodes first.
+        // The KG branch already has secondary OntologyBlock handling
+        // (process_fetched_file lines 381-403) so ontology data is
+        // still extracted — but KG nodes + wikilink edges are also
+        // created, which is essential for the force-directed layout.
+        if has_public {
+            return FileType::KnowledgeGraph;
+        }
+
+        // Pure ontology files (no public flag) go through ontology-only path
+        if has_ontology {
             return FileType::Ontology;
         }
 
-        // Check for explicit public:: true (knowledge graph files)
-        for line in lines.iter() {
-            if line.trim() == "public:: true" {
-                return FileType::KnowledgeGraph;
-            }
-        }
-
-        // Default: skip regular notes without public:: true or ontology blocks
+        // Default: skip regular notes
         FileType::Skip
     }
 
