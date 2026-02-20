@@ -53,6 +53,7 @@ static DOMAIN_PREFIXES: Lazy<HashMap<&'static str, &'static str>> = Lazy::new(||
     m.insert("MV-", "mv");
     m.insert("TC-", "tc");
     m.insert("DT-", "dt");
+    m.insert("FASH-", "fash");
     m
 });
 
@@ -229,6 +230,12 @@ impl OntologyBlock {
                 "xsd" => "http://www.w3.org/2001/XMLSchema#",
                 "dcterms" => "http://purl.org/dc/terms/",
                 "skos" => "http://www.w3.org/2004/02/skos/core#",
+                "fash" => "http://fashionont.org/ontology#",
+                "sc" => "http://fashionont.org/supply-chain#",
+                "cpi" => "http://fashionont.org/product-information#",
+                "clmat" => "http://fashionont.org/clothing-material#",
+                "gr" => "http://purl.org/goodrelations/v1#",
+                "pto" => "http://www.productontology.org/id/",
                 _ => return None,
             };
 
