@@ -23,7 +23,7 @@ import { remoteLogger } from '../services/remoteLogger';
 import { VircadiaProvider } from '../contexts/VircadiaContext';
 import { VircadiaBridgesProvider } from '../contexts/VircadiaBridgesContext';
 import { useNostrAuth } from '../hooks/useNostrAuth';
-import { NostrLoginScreen } from '../components/NostrLoginScreen';
+import { OnboardingWizard } from '../components/OnboardingWizard';
 import { LoadingScreen } from '../components/LoadingScreen';
 import { WorkerErrorModal } from '../components/WorkerErrorModal';
 import solidPodService from '../services/SolidPodService';
@@ -151,13 +151,15 @@ function App() {
   const isDevelopment = process.env.NODE_ENV === 'development';
   const skipAuth = isDevelopment && (
     window.location.search.includes('skipAuth=true') ||
-    window.location.search.includes('test=visual') ||
-    !window.nostr // Auto-bypass when no Nostr NIP-07 extension detected in dev
+    window.location.search.includes('test=visual')
   );
 
   // Show login screen if not authenticated (unless testing bypass in dev mode)
   if (!authenticated && !skipAuth) {
-    return <NostrLoginScreen />;
+    return <OnboardingWizard onComplete={() => {
+      // Auth state update happens inside the wizard via nostrAuth
+      // React re-renders automatically via useNostrAuth subscription
+    }} />;
   }
 
   const renderContent = () => {

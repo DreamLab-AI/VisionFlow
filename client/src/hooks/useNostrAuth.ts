@@ -84,13 +84,27 @@ export function useNostrAuth() {
     }
   };
 
+  const loginWithPasskey = async (pubkey: string, privateKey: Uint8Array) => {
+    try {
+      const newState = await nostrAuth.loginWithPasskey(pubkey, privateKey);
+      setAuthState(newState);
+      return newState;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Passkey login failed';
+      setAuthState({ authenticated: false, error: errorMessage });
+      throw error;
+    }
+  };
+
   return {
     ...authState,
     isLoading,
     login,
     logout,
     devLogin,
+    loginWithPasskey,
     hasNip07: nostrAuth.hasNip07Provider(),
+    hasPasskeySession: nostrAuth.hasPasskeySession(),
     isDevLoginAvailable: nostrAuth.isDevLoginAvailable()
   };
 }

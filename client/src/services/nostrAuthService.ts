@@ -1,6 +1,7 @@
 import { createLogger } from '../utils/loggerConfig';
 import { createErrorMetadata } from '../utils/loggerConfig';
 import { nip19 } from 'nostr-tools';
+import { getPublicKey, finalizeEvent } from 'nostr-tools/pure';
 import type {} from '../types/nip07';
 
 const logger = createLogger('NostrAuthService');
@@ -59,6 +60,7 @@ type AuthStateListener = (state: AuthState) => void;
 class NostrAuthService {
   private static instance: NostrAuthService;
   private currentUser: SimpleNostrUser | null = null;
+  private localPrivateKey: Uint8Array | null = null;
   private authStateListeners: AuthStateListener[] = [];
   private initialized = false;
 
@@ -83,10 +85,16 @@ class NostrAuthService {
   /**
    * Sign an HTTP request using NIP-98 (kind 27235).
    * Returns base64-encoded signed event for the Authorization header.
+   * Prefers local passkey-derived key, falls back to NIP-07 extension.
    */
   public async signRequest(url: string, method: string, body?: string): Promise<string> {
+    // Prefer local key (passkey-derived) over NIP-07 extension
+    if (this.localPrivateKey) {
+      return this.signWithLocalKey(url, method, body);
+    }
+
     if (!this.hasNip07Provider()) {
-      throw new Error('NIP-07 provider not available for request signing');
+      throw new Error('No signing method available (no passkey session or NIP-07 provider)');
     }
 
     const tags: string[][] = [
@@ -94,7 +102,6 @@ class NostrAuthService {
       ['method', method.toUpperCase()],
     ];
 
-    // Add payload hash if body exists
     if (body) {
       const encoder = new TextEncoder();
       const data = encoder.encode(body);
@@ -112,6 +119,40 @@ class NostrAuthService {
     };
 
     const signedEvent = await window.nostr!.signEvent(unsignedEvent);
+    const eventJson = JSON.stringify(signedEvent);
+    return btoa(eventJson);
+  }
+
+  /**
+   * Sign a NIP-98 request using the local passkey-derived private key.
+   */
+  public async signWithLocalKey(url: string, method: string, body?: string): Promise<string> {
+    if (!this.localPrivateKey) {
+      throw new Error('No local private key available');
+    }
+
+    const tags: string[][] = [
+      ['u', url],
+      ['method', method.toUpperCase()],
+    ];
+
+    if (body) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(body);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      tags.push(['payload', hashHex]);
+    }
+
+    const eventTemplate = {
+      created_at: Math.floor(Date.now() / 1000),
+      kind: 27235,
+      tags,
+      content: '',
+    };
+
+    const signedEvent = finalizeEvent(eventTemplate, this.localPrivateKey);
     const eventJson = JSON.stringify(signedEvent);
     return btoa(eventJson);
   }
@@ -148,6 +189,9 @@ class NostrAuthService {
     } else {
       logger.info('No stored session found.');
     }
+
+    // Restore passkey session from sessionStorage (per-tab, survives page reload)
+    this.restorePasskeySession();
 
     this.initialized = true;
     this.notifyListeners(this.getCurrentAuthState());
@@ -214,9 +258,16 @@ class NostrAuthService {
 
   private clearSession(): void {
     this.currentUser = null;
+    this.localPrivateKey = null;
     localStorage.removeItem('nostr_user');
     // Clean up legacy key if present
     localStorage.removeItem('nostr_session_token');
+    // Clear passkey session
+    try {
+      sessionStorage.removeItem('nostr_passkey_key');
+      sessionStorage.removeItem('nostr_passkey_pubkey');
+      sessionStorage.removeItem('nostr_prf');
+    } catch { /* sessionStorage may be unavailable */ }
   }
 
   public onAuthStateChanged(listener: AuthStateListener): () => void {
@@ -244,7 +295,7 @@ class NostrAuthService {
   }
 
   public isAuthenticated(): boolean {
-    return !!this.currentUser && (this.hasNip07Provider() || this.isDevMode());
+    return !!this.currentUser && (this.hasNip07Provider() || this.isDevMode() || this.localPrivateKey !== null);
   }
 
   public getCurrentAuthState(): AuthState {
@@ -276,6 +327,77 @@ class NostrAuthService {
     } catch (error) {
       logger.warn(`Failed to convert npub to hex: ${npub}`, createErrorMetadata(error));
       return undefined;
+    }
+  }
+
+  /**
+   * Login using a passkey-derived private key.
+   * Stores key in sessionStorage (per-tab) and sets auth state.
+   */
+  public async loginWithPasskey(pubkey: string, privateKey: Uint8Array): Promise<AuthState> {
+    logger.info('Passkey login...');
+    this.localPrivateKey = privateKey;
+
+    this.currentUser = {
+      pubkey,
+      npub: this.hexToNpub(pubkey),
+      isPowerUser: false,
+    };
+
+    // Persist user in localStorage for cross-reload (key stays in sessionStorage)
+    this.storeCurrentUser();
+    // Store key in sessionStorage (per-tab isolation)
+    try {
+      const hexKey = Array.from(privateKey).map(b => b.toString(16).padStart(2, '0')).join('');
+      sessionStorage.setItem('nostr_passkey_key', hexKey);
+      sessionStorage.setItem('nostr_passkey_pubkey', pubkey);
+    } catch { /* sessionStorage unavailable */ }
+
+    const newState = this.getCurrentAuthState();
+    this.notifyListeners(newState);
+    logger.info(`Passkey login complete: ${pubkey}`);
+    return newState;
+  }
+
+  /** Check if a passkey session exists in sessionStorage */
+  public hasPasskeySession(): boolean {
+    try {
+      return !!sessionStorage.getItem('nostr_passkey_key');
+    } catch {
+      return false;
+    }
+  }
+
+  /** Restore passkey-derived key from sessionStorage (called during initialize) */
+  public restorePasskeySession(): void {
+    try {
+      const hexKey = sessionStorage.getItem('nostr_passkey_key');
+      const pubkey = sessionStorage.getItem('nostr_passkey_pubkey');
+      if (hexKey && pubkey) {
+        this.localPrivateKey = new Uint8Array(
+          hexKey.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16))
+        );
+        // Verify the key matches by deriving pubkey
+        const derivedPubkey = getPublicKey(this.localPrivateKey);
+        if (derivedPubkey !== pubkey) {
+          logger.warn('Passkey session pubkey mismatch, clearing');
+          this.localPrivateKey = null;
+          sessionStorage.removeItem('nostr_passkey_key');
+          sessionStorage.removeItem('nostr_passkey_pubkey');
+          return;
+        }
+        // Set current user if not already set from localStorage
+        if (!this.currentUser) {
+          this.currentUser = {
+            pubkey,
+            npub: this.hexToNpub(pubkey),
+            isPowerUser: false,
+          };
+        }
+        logger.info(`Restored passkey session: ${pubkey}`);
+      }
+    } catch (e) {
+      logger.warn('Failed to restore passkey session:', createErrorMetadata(e));
     }
   }
 
