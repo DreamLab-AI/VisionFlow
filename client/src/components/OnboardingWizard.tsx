@@ -12,6 +12,7 @@ import {
   checkUsernameAvailable,
   bytesToHex,
   downloadKeyBackup,
+  type UsernameCheckResult,
 } from '../services/passkeyService';
 import { getPublicKey, generateSecretKey } from 'nostr-tools/pure';
 import './OnboardingWizard.css';
@@ -240,7 +241,7 @@ function UsernameStep({
 }) {
   const [username, setUsername] = useState('');
   const [checking, setChecking] = useState(false);
-  const [available, setAvailable] = useState<boolean | null>(null);
+  const [checkResult, setCheckResult] = useState<UsernameCheckResult | null>(null);
   const [validationError, setValidationError] = useState('');
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -254,7 +255,7 @@ function UsernameStep({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '');
     setUsername(val);
-    setAvailable(null);
+    setCheckResult(null);
     const err = validate(val);
     setValidationError(err);
 
@@ -263,8 +264,8 @@ function UsernameStep({
     if (!err && val.length >= 3) {
       setChecking(true);
       debounceRef.current = setTimeout(async () => {
-        const ok = await checkUsernameAvailable(val);
-        setAvailable(ok);
+        const result = await checkUsernameAvailable(val);
+        setCheckResult(result);
         setChecking(false);
       }, 400);
     }
@@ -274,7 +275,7 @@ function UsernameStep({
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, []);
 
-  const canProceed = username.length >= 3 && !validationError && available === true && !checking;
+  const canProceed = username.length >= 3 && !validationError && checkResult === 'available' && !checking;
 
   return (
     <div className="wizard-step">
@@ -294,8 +295,10 @@ function UsernameStep({
         />
         <div className="wizard-input-status">
           {checking && <span className="status-checking">Checking...</span>}
-          {!checking && available === true && <span className="status-available">Available</span>}
-          {!checking && available === false && <span className="status-taken">Taken</span>}
+          {!checking && checkResult === 'available' && <span className="status-available">Available</span>}
+          {!checking && checkResult === 'taken' && <span className="status-taken">Taken</span>}
+          {!checking && checkResult === 'invalid' && <span className="status-error">Invalid username</span>}
+          {!checking && checkResult === 'error' && <span className="status-error">Could not reach server</span>}
           {validationError && <span className="status-error">{validationError}</span>}
         </div>
       </div>

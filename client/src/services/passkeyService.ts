@@ -92,29 +92,36 @@ export async function startRegistration(username: string): Promise<RegistrationO
     const data = await res.json();
     throw new Error(data.error || 'Invalid username');
   }
+  if (res.status === 405) {
+    throw new Error('Passkey registration is not enabled on this server');
+  }
   if (!res.ok) {
-    throw new Error('Failed to get registration options');
+    throw new Error(`Registration failed (${res.status})`);
   }
 
   return res.json();
 }
 
+export type UsernameCheckResult = 'available' | 'taken' | 'invalid' | 'error';
+
 /**
  * Check if a username is available without committing to registration.
  * Uses the same endpoint — a 409 means taken, 200 means available.
+ * Returns a discriminated result so the UI can show the right message.
  */
-export async function checkUsernameAvailable(username: string): Promise<boolean> {
+export async function checkUsernameAvailable(username: string): Promise<UsernameCheckResult> {
   try {
     const res = await fetch('/idp/passkey/register-new/options', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username }),
     });
-    if (res.status === 409) return false;
-    if (res.status === 400) return false;
-    return res.ok;
+    if (res.status === 409) return 'taken';
+    if (res.status === 400) return 'invalid';
+    if (res.ok) return 'available';
+    return 'error';
   } catch {
-    return false;
+    return 'error';
   }
 }
 
@@ -216,8 +223,11 @@ export async function startLogin(username?: string): Promise<AuthenticationOptio
     body: JSON.stringify({ username: username || undefined }),
   });
 
+  if (res.status === 405) {
+    throw new Error('Passkey login is not enabled on this server');
+  }
   if (!res.ok) {
-    throw new Error('Failed to get login options');
+    throw new Error(`Failed to get login options (${res.status})`);
   }
 
   return res.json();
