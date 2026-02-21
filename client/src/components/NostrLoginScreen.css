@@ -148,37 +148,49 @@
   line-height: 1.6;
 }
 
-.extension-recommendations {
-  background: #f7fafc;
-  border-radius: 8px;
-  padding: 16px;
-  margin: 24px 0;
-  text-align: left;
+.passkey-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-.extension-recommendations h3 {
-  margin: 0 0 12px 0;
-  color: #2d3748;
-  font-size: 16px;
+.podkey-button {
+  background: linear-gradient(135deg, #7b1fa2 0%, #6a1b9a 100%);
 }
 
-.extension-recommendations ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.auth-divider {
+  display: flex;
+  align-items: center;
+  margin: 16px 0;
+  gap: 12px;
 }
 
-.extension-recommendations li {
-  margin: 8px 0;
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
 }
 
-.extension-recommendations a {
+.auth-divider span {
+  color: #a0aec0;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.podkey-hint {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 13px;
+  color: #718096;
+}
+
+.podkey-hint a {
   color: #667eea;
   text-decoration: none;
   font-weight: 600;
 }
 
-.extension-recommendations a:hover {
+.podkey-hint a:hover {
   text-decoration: underline;
 }
 

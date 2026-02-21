@@ -399,7 +399,7 @@ export function loginPage(uid, clientId, error = null, passkeyEnabled = true, sc
 
       // Check for NIP-07 extension (window.nostr)
       if (typeof window.nostr === 'undefined') {
-        alert('No Schnorr signer found. Please install a NIP-07 compatible extension like Podkey, nos2x, or Alby.');
+        alert('PodKey extension required for Nostr signing. Get it at: https://podkey.io');
         return;
       }
 
