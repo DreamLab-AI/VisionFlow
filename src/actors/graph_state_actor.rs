@@ -396,6 +396,14 @@ impl GraphStateActor {
         node.metadata.insert("file_size".to_string(), size.to_string());
         node.metadata.insert("last_modified".to_string(), metadata.last_modified.to_string());
 
+        // Copy ontology fields to node metadata for edge generation and client display
+        if let Some(ref domain) = metadata.source_domain {
+            node.metadata.insert("source_domain".to_string(), domain.clone());
+        }
+        if !metadata.is_subclass_of.is_empty() {
+            node.metadata.insert("is_subclass_of".to_string(), metadata.is_subclass_of.join(","));
+        }
+
         // Copy quality and authority scores to node.metadata for filtering
         if let Some(quality) = metadata.quality_score {
             node.metadata.insert("quality_score".to_string(), quality.to_string());
@@ -421,42 +429,93 @@ impl GraphStateActor {
     }
 
     
-    fn generate_edges_from_metadata(&self, graph_data: &mut GraphData, _metadata: &MetadataStore) {
-        
-        let mut path_to_node: HashMap<std::path::PathBuf, u32> = HashMap::new();
+    fn generate_edges_from_metadata(&self, graph_data: &mut GraphData, metadata: &MetadataStore) {
+        let mut edge_set: HashSet<(u32, u32)> = HashSet::new();
 
-        
+        // Build lookup maps: label (lowercase, without .md) -> node_id
+        let mut label_to_node: HashMap<String, u32> = HashMap::new();
+        let mut metadata_id_to_node: HashMap<String, u32> = HashMap::new();
         for node in &graph_data.nodes {
-            if let Some(path_str) = node.metadata.get("path") {
-                let path = std::path::PathBuf::from(path_str);
-                path_to_node.insert(path, node.id);
-            }
+            let label_key = node.label.to_lowercase().trim_end_matches(".md").to_string();
+            label_to_node.insert(label_key, node.id);
+            metadata_id_to_node.insert(node.metadata_id.clone(), node.id);
         }
 
-        
-        let mut directory_nodes: HashMap<std::path::PathBuf, Vec<u32>> = HashMap::new();
-
-        for (path, node_id) in &path_to_node {
-            if let Some(parent) = path.parent() {
-                directory_nodes.entry(parent.to_path_buf())
-                    .or_insert_with(Vec::new)
-                    .push(*node_id);
+        // 1) Edges from is_subclass_of relationships in metadata
+        for (metadata_id, file_meta) in metadata.iter() {
+            if file_meta.is_subclass_of.is_empty() {
+                continue;
             }
-        }
-
-        
-        for (_, nodes) in directory_nodes {
-            if nodes.len() > 1 {
-                for i in 0..nodes.len() {
-                    for j in i+1..nodes.len() {
-                        let edge = Edge::new(nodes[i], nodes[j], 0.3); 
-                        graph_data.edges.push(edge);
+            let source_id = match metadata_id_to_node.get(metadata_id) {
+                Some(id) => *id,
+                None => continue,
+            };
+            for parent_label in &file_meta.is_subclass_of {
+                let parent_key = parent_label.to_lowercase();
+                if let Some(&target_id) = label_to_node.get(&parent_key) {
+                    if source_id != target_id && edge_set.insert((source_id, target_id)) {
+                        graph_data.edges.push(
+                            Edge::new(source_id, target_id, 1.0)
+                                .with_edge_type("is_subclass_of".to_string()),
+                        );
                     }
                 }
             }
         }
 
-        info!("Generated {} edges from metadata relationships", graph_data.edges.len());
+        // 2) Edges from topic_counts (cross-references between files)
+        for (metadata_id, file_meta) in metadata.iter() {
+            if file_meta.topic_counts.is_empty() {
+                continue;
+            }
+            let source_id = match metadata_id_to_node.get(metadata_id) {
+                Some(id) => *id,
+                None => continue,
+            };
+            for (topic, count) in &file_meta.topic_counts {
+                let topic_key = topic.to_lowercase();
+                if let Some(&target_id) = label_to_node.get(&topic_key) {
+                    if source_id != target_id && edge_set.insert((source_id, target_id)) {
+                        let weight = (*count as f32 * 0.3).min(1.0);
+                        graph_data.edges.push(
+                            Edge::new(source_id, target_id, weight)
+                                .with_edge_type("reference".to_string()),
+                        );
+                    }
+                }
+            }
+        }
+
+        // 3) Edges from shared namespace prefix (e.g., "underwear--*" files are related)
+        let mut prefix_groups: HashMap<String, Vec<u32>> = HashMap::new();
+        for node in &graph_data.nodes {
+            let name = node.label.to_lowercase().trim_end_matches(".md").to_string();
+            // Extract prefix before "--" separator (namespace convention)
+            if let Some(prefix) = name.split("--").next() {
+                if name.contains("--") {
+                    prefix_groups.entry(prefix.to_string())
+                        .or_default()
+                        .push(node.id);
+                }
+            }
+        }
+        for (_, group_nodes) in &prefix_groups {
+            if group_nodes.len() > 1 && group_nodes.len() <= 50 {
+                for i in 0..group_nodes.len() {
+                    for j in (i + 1)..group_nodes.len() {
+                        if edge_set.insert((group_nodes[i], group_nodes[j])) {
+                            graph_data.edges.push(
+                                Edge::new(group_nodes[i], group_nodes[j], 0.3)
+                                    .with_edge_type("namespace".to_string()),
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        info!("Generated {} edges from metadata relationships (subclass + references + namespace)",
+              graph_data.edges.len());
     }
 
     
