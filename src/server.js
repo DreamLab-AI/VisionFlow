@@ -440,6 +440,17 @@ export function createServer(options = {}) {
     }
   };
 
+  // Health / readiness probe (bypasses auth via /.well-known/ prefix)
+  fastify.get('/.well-known/health', {
+    config: { rateLimit: false }
+  }, async (request, reply) => {
+    return reply.code(200).send({
+      status: 'healthy',
+      uptime: process.uptime(),
+      timestamp: Date.now()
+    });
+  });
+
   // LDP routes - using wildcard routing
   // Read operations - no rate limit (handled by bodyLimit)
   fastify.get('/*', handleGet);

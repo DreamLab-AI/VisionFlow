@@ -311,7 +311,7 @@ pub struct SSSPToggleResponse {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct ClusteringTask {
+pub struct ClusteringTask {
     pub task_id: String,
     pub method: String,
     pub status: String,
@@ -322,7 +322,7 @@ pub(crate) struct ClusteringTask {
 }
 
 #[derive(Debug, Default, Clone)]
-pub(crate) struct AnomalyState {
+pub struct AnomalyState {
     pub enabled: bool,
     pub method: String,
     pub sensitivity: f32,

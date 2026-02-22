@@ -516,6 +516,7 @@ impl EnhancedSettingsHandler {
     }
 
 
+    #[allow(dead_code)]
     async fn propagate_physics_updates(
         &self,
         state: &web::Data<AppState>,

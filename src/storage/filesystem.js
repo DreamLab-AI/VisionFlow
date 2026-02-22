@@ -136,10 +136,13 @@ export async function listContainer(urlPath) {
 
   try {
     const entries = await fs.readdir(filePath, { withFileTypes: true });
-    return entries.map(entry => ({
-      name: entry.name,
-      isDirectory: entry.isDirectory()
-    }));
+    // Per Solid spec, auxiliary resources (.acl, .meta) MUST NOT appear in containment triples
+    return entries
+      .filter(entry => !entry.name.endsWith('.acl') && !entry.name.endsWith('.meta'))
+      .map(entry => ({
+        name: entry.name,
+        isDirectory: entry.isDirectory()
+      }));
   } catch {
     return null;
   }

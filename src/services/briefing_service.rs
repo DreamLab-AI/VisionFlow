@@ -4,11 +4,11 @@
 //! This service translates BriefingRequest structs into Management API calls,
 //! creating briefs, spawning role-specific agents, and consolidating debriefs.
 
-use crate::services::management_api_client::{ManagementApiClient, ManagementApiError};
+use crate::services::management_api_client::ManagementApiClient;
 use crate::types::user_context::{
     BriefingRequest, BriefingResponse, RoleTask, UserContext,
 };
-use log::{info, warn};
+use log::info;
 
 pub struct BriefingService {
     api_client: ManagementApiClient,

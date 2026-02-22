@@ -7,9 +7,9 @@
 //! These endpoints bridge the VisionFlow frontend (voice/UI) to the
 //! Management API briefing service running in the agent container.
 
-use actix_web::{web, HttpRequest, HttpResponse};
+use actix_web::{web, HttpResponse};
 use log::{error, info};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 use crate::services::briefing_service::{BriefingError, BriefingService};
 use crate::types::user_context::{BriefingRequest, RoleTask, UserContext};

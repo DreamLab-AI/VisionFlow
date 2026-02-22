@@ -332,7 +332,7 @@ impl PhysicsOrchestratorActor {
     fn execute_gpu_physics_step(
         &mut self,
         gpu_addr: &Addr<ForceComputeActor>,
-        ctx: &mut Context<Self>,
+        _ctx: &mut Context<Self>,
     ) {
         if !self.gpu_initialized {
             return;
@@ -378,7 +378,7 @@ impl PhysicsOrchestratorActor {
         warn!("CPU physics fallback not fully implemented - using GPU compute");
     }
 
-
+    #[allow(dead_code)]
     fn broadcast_position_updates(
         &mut self,
         positions: Vec<(u32, BinaryNodeData)>,

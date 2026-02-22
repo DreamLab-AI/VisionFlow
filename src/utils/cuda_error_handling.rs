@@ -549,6 +549,7 @@ impl Drop for CudaMemoryGuard {
 extern "C" {
     fn cudaGetLastError() -> c_int;
     fn cudaDeviceSynchronize() -> c_int;
+    #[allow(dead_code)]
     fn cudaDeviceReset() -> c_int;
     fn cudaMalloc(devPtr: *mut *mut c_void, size: usize) -> c_int;
     fn cudaFree(devPtr: *mut c_void) -> c_int;
