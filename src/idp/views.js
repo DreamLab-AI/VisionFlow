@@ -323,11 +323,13 @@ export function loginPage(uid, clientId, error = null, passkeyEnabled = true, sc
             // Dynamic import for getPublicKey (login page is not type=module)
             var nostrTools = await import('https://esm.sh/nostr-tools@2.19.4/pure');
             var pubkey = nostrTools.getPublicKey(secretKey);
-            // Store in sessionStorage for NIP-98 signing during this session
-            sessionStorage.setItem('nostr_privkey', hexSecret);
+            // Store pubkey + PRF flag in sessionStorage (non-secret metadata only)
+            // Private key stays in memory-scoped variable — never written to storage
+            window.__nostrPrivKey = hexSecret;
             sessionStorage.setItem('nostr_pubkey', pubkey);
             sessionStorage.setItem('nostr_prf', '1');
-            console.log('PRF key derived for NIP-98 signing');
+            window.addEventListener('beforeunload', function() { window.__nostrPrivKey = null; });
+            console.log('PRF key derived for NIP-98 signing (memory-only)');
           } catch (prfErr) {
             console.warn('PRF key derivation failed (non-fatal):', prfErr);
           }
@@ -805,11 +807,13 @@ export function registerPage(uid = null, error = null, success = null, inviteOnl
 
         var result = await verifyRes.json();
         if (result.success) {
-          // Store derived key in sessionStorage for NIP-98 signing
+          // Store pubkey + PRF flag in sessionStorage (non-secret metadata only)
+          // Private key stays in memory-scoped variable — never written to storage
           try {
-            sessionStorage.setItem('nostr_privkey', bytesToHex(secretKey));
+            window.__nostrPrivKey = bytesToHex(secretKey);
             sessionStorage.setItem('nostr_pubkey', pubkey);
             sessionStorage.setItem('nostr_prf', prfEnabled ? '1' : '0');
+            window.addEventListener('beforeunload', function() { window.__nostrPrivKey = null; });
           } catch (e) { /* sessionStorage may be unavailable */ }
 
           var uid = '${safeUid}';
