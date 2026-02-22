@@ -239,7 +239,7 @@ async fn get_user_npub(req: &HttpRequest, nostr_service: &NostrService) -> Optio
     if parts.len() != 2 { return None; }
 
     let pubkey = parts[0];
-    if nostr_service.validate_session(pubkey, parts[1]).await.is_ok() {
+    if nostr_service.validate_session(pubkey, parts[1]).await {
         Some(pubkey.to_string())
     } else {
         None
