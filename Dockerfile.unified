@@ -21,6 +21,7 @@
 # =============================================================================
 # STAGE 1: Base - Common foundation for all targets
 # =============================================================================
+# SECURITY: Pin to digest for production builds (e.g., cachyos/cachyos-v3@sha256:abc123...)
 FROM cachyos/cachyos-v3:latest AS base
 
 # Build arguments
@@ -231,6 +232,7 @@ ENTRYPOINT ["./dev-entrypoint.sh"]
 # =============================================================================
 # STAGE 7: Production Target - Optimized runtime environment
 # =============================================================================
+# SECURITY: Pin to digest for production builds (e.g., cachyos/cachyos-v3@sha256:abc123...)
 FROM cachyos/cachyos-v3:latest AS production
 
 # Initialize pacman keyring for production stage

@@ -18,12 +18,12 @@ services:
       - DB_PORT=5432
       - DB_NAME=vircadia_world
       - DB_USER=${POSTGRES_USER:-visionflow}
-      - DB_PASSWORD=${POSTGRES_PASSWORD:-visionflow_secure}
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-changeme}
 
       # Authentication
       - ENABLE_AUTH=true
       - AUTH_PROVIDERS=system,nostr
-      - JWT_SECRET=${VIRCADIA_JWT_SECRET:-change_this_in_production}
+      - JWT_SECRET=${VIRCADIA_JWT_SECRET:-changeme}
       - SESSION_TIMEOUT=86400
 
       # Multi-User Settings
@@ -75,7 +75,7 @@ services:
     container_name: visionflow_postgres
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-visionflow}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-visionflow_secure}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-changeme}
       - POSTGRES_DB=visionflow
     volumes:
       - postgres-data:/var/lib/postgresql/data

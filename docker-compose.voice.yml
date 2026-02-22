@@ -18,7 +18,7 @@ services:
     command: --config /etc/livekit.yaml
     environment:
       - LIVEKIT_API_KEY=${LIVEKIT_API_KEY:-visionflow}
-      - LIVEKIT_API_SECRET=${LIVEKIT_API_SECRET:-visionflow-voice-secret-change-in-prod}
+      - LIVEKIT_API_SECRET=${LIVEKIT_API_SECRET:-changeme}
     ports:
       - "7880:7880"   # HTTP API + WebSocket signaling
       - "7881:7881"   # RTC over TCP

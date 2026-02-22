@@ -194,3 +194,14 @@ multi-agent-docker/ComfyUIDocker/storage-models/
 .swarm/memory.db-shm
 .swarm/memory.db-shm
 .env.local
+
+# Additional sensitive files
+cth.env
+client/.env
+!client/.env.example
+multi-agent-docker/.env
+!multi-agent-docker/.env.example
+*.key
+*.secret
+**/credentials.json
+**/.env.local
