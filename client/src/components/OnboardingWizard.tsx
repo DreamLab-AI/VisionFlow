@@ -19,7 +19,8 @@ import './OnboardingWizard.css';
 
 // --- State Machine ---
 
-type WizardStep = 'welcome' | 'username' | 'create-passkey' | 'identity-ready' | 'sign-in' | 'error';
+type WizardStep = 'welcome' | 'username' | 'create-passkey' | 'identity-ready'
+  | 'sign-in-method' | 'sign-in' | 'sign-in-extension' | 'error';
 
 interface WizardState {
   step: WizardStep;
@@ -34,6 +35,8 @@ interface WizardState {
 type WizardAction =
   | { type: 'START_REGISTER' }
   | { type: 'START_LOGIN' }
+  | { type: 'START_LOGIN_PASSKEY' }
+  | { type: 'START_LOGIN_EXTENSION' }
   | { type: 'SET_USERNAME'; username: string }
   | { type: 'PASSKEY_CREATED'; pubkey: string; privateKey: Uint8Array; webId: string }
   | { type: 'LOGIN_SUCCESS'; pubkey: string; privateKey: Uint8Array | null }
@@ -55,7 +58,11 @@ function wizardReducer(state: WizardState, action: WizardAction): WizardState {
     case 'START_REGISTER':
       return { ...state, step: 'username', prevStep: 'welcome' };
     case 'START_LOGIN':
-      return { ...state, step: 'sign-in', prevStep: 'welcome' };
+      return { ...state, step: 'sign-in-method', prevStep: 'welcome' };
+    case 'START_LOGIN_PASSKEY':
+      return { ...state, step: 'sign-in', prevStep: 'sign-in-method' };
+    case 'START_LOGIN_EXTENSION':
+      return { ...state, step: 'sign-in-extension', prevStep: 'sign-in-method' };
     case 'SET_USERNAME':
       return { ...state, step: 'create-passkey', prevStep: 'username', username: action.username };
     case 'PASSKEY_CREATED':
@@ -107,7 +114,7 @@ interface OnboardingWizardProps {
 
 export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }) => {
   const [state, dispatch] = useReducer(wizardReducer, initialState);
-  const { isDevLoginAvailable, devLogin } = useNostrAuth();
+  const { isDevLoginAvailable, devLogin, hasNip07, login: nip07Login } = useNostrAuth();
 
   const finishAuth = useCallback(async (pubkey: string, privateKey: Uint8Array | null) => {
     if (privateKey) {
@@ -153,9 +160,25 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }
               onEnter={() => finishAuth(state.pubkey, state.privateKey)}
             />
           )}
+          {state.step === 'sign-in-method' && (
+            <SignInMethodStep
+              onPasskey={() => dispatch({ type: 'START_LOGIN_PASSKEY' })}
+              onExtension={() => dispatch({ type: 'START_LOGIN_EXTENSION' })}
+              hasExtension={hasNip07}
+              onBack={() => dispatch({ type: 'BACK' })}
+            />
+          )}
           {state.step === 'sign-in' && (
             <SignInStep
               onSuccess={(pubkey, privateKey) => finishAuth(pubkey, privateKey)}
+              onError={(msg) => dispatch({ type: 'ERROR', message: msg })}
+              onBack={() => dispatch({ type: 'BACK' })}
+            />
+          )}
+          {state.step === 'sign-in-extension' && (
+            <ExtensionLoginStep
+              nip07Login={nip07Login}
+              onSuccess={(pubkey) => finishAuth(pubkey, null)}
               onError={(msg) => dispatch({ type: 'ERROR', message: msg })}
               onBack={() => dispatch({ type: 'BACK' })}
             />
@@ -497,6 +520,91 @@ function SignInStep({
       <h2>{status}</h2>
       <p className="wizard-hint">
         Select your passkey when prompted by your browser.
+      </p>
+    </div>
+  );
+}
+
+// --- Step: Sign-In Method Picker ---
+
+function SignInMethodStep({
+  onPasskey,
+  onExtension,
+  hasExtension,
+  onBack,
+}: {
+  onPasskey: () => void;
+  onExtension: () => void;
+  hasExtension: boolean;
+  onBack: () => void;
+}) {
+  return (
+    <div className="wizard-step">
+      <button className="wizard-back" onClick={onBack}>Back</button>
+      <h2>Sign in</h2>
+      <p className="wizard-hint">Choose how to authenticate</p>
+      <div className="wizard-actions">
+        <button className="wizard-btn wizard-btn-primary" onClick={onPasskey}>
+          Sign in with Passkey
+        </button>
+        {hasExtension && (
+          <button className="wizard-btn wizard-btn-secondary" onClick={onExtension}>
+            Sign in with Signing Extension
+          </button>
+        )}
+      </div>
+      {!hasExtension && (
+        <p className="wizard-hint wizard-hint-small">
+          Have a Nostr signing extension? Reload to detect it.
+        </p>
+      )}
+    </div>
+  );
+}
+
+// --- Step: Extension Login ---
+
+function ExtensionLoginStep({
+  nip07Login,
+  onSuccess,
+  onError,
+  onBack,
+}: {
+  nip07Login: () => Promise<{ user?: { pubkey: string } }>;
+  onSuccess: (pubkey: string) => void;
+  onError: (msg: string) => void;
+  onBack: () => void;
+}) {
+  const [status, setStatus] = useState('Requesting key from extension...');
+  const startedRef = useRef(false);
+
+  useEffect(() => {
+    if (startedRef.current) return;
+    startedRef.current = true;
+
+    (async () => {
+      try {
+        setStatus('Requesting key from extension...');
+        const result = await nip07Login();
+        if (result.user?.pubkey) {
+          onSuccess(result.user.pubkey);
+        } else {
+          onError('Extension did not return a public key');
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Extension login failed';
+        onError(msg);
+      }
+    })();
+  }, [nip07Login, onSuccess, onError]);
+
+  return (
+    <div className="wizard-step wizard-step-centered">
+      <button className="wizard-back" onClick={onBack}>Back</button>
+      <div className="wizard-spinner-large" />
+      <h2>{status}</h2>
+      <p className="wizard-hint">
+        Approve the request in your Nostr signing extension.
       </p>
     </div>
   );
