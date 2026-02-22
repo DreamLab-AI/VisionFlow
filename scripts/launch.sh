@@ -302,6 +302,11 @@ build_containers() {
         build_args+=("--no-cache")
     fi
 
+    # Always pass a CACHE_BUST timestamp so the runtime stage re-copies artifacts
+    # from the builder. Without this, Docker may serve a cached runtime layer even
+    # when the builder stage ran fresh (e.g., deterministic/LTO binary with same hash).
+    build_args+=("--build-arg" "CACHE_BUST=$(date +%s)")
+
     # Enable GPU and ontology features by default for both dev and prod
     # These are the core VisionFlow features required for full functionality
     if [[ "${GPU_AVAILABLE:-false}" == "true" ]]; then

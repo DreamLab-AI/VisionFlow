@@ -145,6 +145,12 @@ RUN rm -rf /app/target/release/build/webxr-* /app/target/release/deps/webxr* /ap
 # SECURITY: Pin to digest for production builds (e.g., cachyos/cachyos-v3@sha256:abc123...)
 FROM cachyos/cachyos-v3:latest
 
+# Cache-buster: pass --build-arg CACHE_BUST=$(date +%s) to force runtime stage
+# to re-copy artifacts from the builder even when their content hash is unchanged.
+# This prevents Docker from serving a stale binary when the builder stage ran fresh
+# but produced a deterministically identical binary (LTO, reproducible builds).
+ARG CACHE_BUST=0
+
 ENV RUST_LOG=${RUST_LOG:-warn} \
     PATH="/opt/cuda/bin:${PATH}" \
     NVIDIA_VISIBLE_DEVICES=all \
