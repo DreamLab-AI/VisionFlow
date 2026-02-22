@@ -1018,6 +1018,7 @@ pub async fn jss_health_check(state: web::Data<SolidProxyState>) -> HttpResponse
 
 /// Configure Solid proxy routes
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
+    info!("=== REGISTERING SOLID PROXY ROUTES ===");
     cfg.app_data(web::Data::new(SolidProxyState::new()))
         .service(
             web::scope("/solid")

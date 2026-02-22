@@ -117,33 +117,29 @@ use crate::ok_json;
 
 // Configure all API routes
 pub fn config(cfg: &mut web::ServiceConfig) {
-    cfg.service(
-        web::scope("") 
-            
-            .route("/health", web::get().to(health_check))
-            .route("/config", web::get().to(get_app_config))
-            
-            .configure(files::config)
-            .configure(graph::config)
-            .configure(crate::handlers::graph_state_handler::config) 
-            .configure(crate::handlers::ontology_handler::config)
-            .configure(bots::config)
-            
-            .configure(analytics::config)
-            .configure(quest3::config)
-            .configure(crate::handlers::nostr_handler::config)
-            // OLD settings_handler disabled - using new SettingsActor routes from webxr::settings::api
-            // .configure(crate::handlers::settings_handler::config)
+    cfg
+        .route("/health", web::get().to(health_check))
+        .route("/config", web::get().to(get_app_config))
 
+        .configure(files::config)
+        .configure(graph::config)
+        .configure(crate::handlers::graph_state_handler::config)
+        .configure(crate::handlers::ontology_handler::config)
+        .configure(bots::config)
 
-            .configure(crate::handlers::ragflow_handler::config)
-            .configure(crate::handlers::clustering_handler::config)
-            .configure(crate::handlers::constraints_handler::config)
-            // Ontology routes (previously orphaned outside scope)
-            .configure(ontology::config)
-            // Ontology-physics integration routes (P0-2)
-            .configure(ontology_physics::configure_routes)
-            // Semantic forces routes (GPU feature)
-            .configure(semantic_forces::config),
-    );
+        .configure(analytics::config)
+        .configure(quest3::config)
+        .configure(crate::handlers::nostr_handler::config)
+        // OLD settings_handler disabled - using new SettingsActor routes from webxr::settings::api
+        // .configure(crate::handlers::settings_handler::config)
+
+        .configure(crate::handlers::ragflow_handler::config)
+        .configure(crate::handlers::clustering_handler::config)
+        .configure(crate::handlers::constraints_handler::config)
+        // Ontology routes (previously orphaned outside scope)
+        .configure(ontology::config)
+        // Ontology-physics integration routes (P0-2)
+        .configure(ontology_physics::configure_routes)
+        // Semantic forces routes (GPU feature)
+        .configure(semantic_forces::config);
 }
