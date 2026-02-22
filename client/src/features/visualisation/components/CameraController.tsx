@@ -1,6 +1,9 @@
 import { useEffect } from 'react';
 import { useThree } from '@react-three/fiber';
-import * as THREE from 'three'; 
+import * as THREE from 'three';
+import { createLogger } from '../../../utils/loggerConfig';
+
+const logger = createLogger('CameraController');
 
 interface CameraControllerProps {
   center: [number, number, number];
@@ -18,7 +21,7 @@ const CameraController: React.FC<CameraControllerProps> = ({ center, size }) => 
         camera.lookAt(new THREE.Vector3(center[0], center[1], center[2])); 
         camera.updateProjectionMatrix();
     } else {
-         console.warn("CameraController expects a PerspectiveCamera.");
+         logger.warn("CameraController expects a PerspectiveCamera.");
          
          camera.position.set(center[0], center[1] + 10, center[2] + size * 2);
          camera.lookAt(new THREE.Vector3(center[0], center[1], center[2]));

@@ -1,5 +1,19 @@
 import * as THREE from 'three';
 import { isWebGPURenderer } from '../rendererFactory';
+import { createLogger } from '../../utils/loggerConfig';
+
+const logger = createLogger('GemNodeMaterial');
+
+// ---------------------------------------------------------------------------
+// TSL node-augmented material interface
+// ---------------------------------------------------------------------------
+
+/** Runtime-augmented material properties added by Three.js TSL (node-based shading). */
+interface TSLNodeProperties {
+  emissiveNode: unknown;
+  opacityNode: unknown;
+  needsUpdate: boolean;
+}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -22,7 +36,7 @@ export interface GemMaterialResult {
 
 export function createGemNodeMaterial(): GemMaterialResult {
   const uniforms = { time: { value: 0 }, glowStrength: { value: 1.5 } };
-  console.log('[GemNodeMaterial] creating, isWebGPURenderer=', isWebGPURenderer);
+  logger.info('[GemNodeMaterial] creating, isWebGPURenderer=', isWebGPURenderer);
 
   // WebGPU: mid-tone crystalline base so iridescence has reflected light to modulate.
   // Emissive kept subtle — the per-instance TSL emissiveNode provides the glow.
@@ -97,6 +111,7 @@ export async function createTslGemMaterial(
   if (!isWebGPURenderer) return false;
 
   try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Three.js TSL module exports are complex node builder types with no stable public API
     const tslMod = await import('three/tsl') as any;
 
     const {
@@ -152,14 +167,15 @@ export async function createTslGemMaterial(
 
     // Add TSL nodes to the EXISTING material (GlassEdges pattern).
     // Do NOT set colorNode — the standard material reads instanceColor natively.
-    (material as any).emissiveNode = emissiveNode;
-    (material as any).opacityNode = opacityNode;
-    (material as any).needsUpdate = true;
+    const augmented = material as unknown as TSLNodeProperties;
+    augmented.emissiveNode = emissiveNode;
+    augmented.opacityNode = opacityNode;
+    augmented.needsUpdate = true;
 
-    console.log('[GemNodeMaterial] TSL metadata nodes applied to existing material');
+    logger.info('[GemNodeMaterial] TSL metadata nodes applied to existing material');
     return true;
   } catch (err) {
-    console.warn('[GemNodeMaterial] TSL metadata upgrade failed:', err);
+    logger.warn('[GemNodeMaterial] TSL metadata upgrade failed:', err);
     return false;
   }
 }

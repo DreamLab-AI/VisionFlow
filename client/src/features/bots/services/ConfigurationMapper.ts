@@ -1,4 +1,7 @@
 import { BotsVisualConfig } from '../types/BotsTypes';
+import { createLogger } from '../../../utils/loggerConfig';
+
+const logger = createLogger('ConfigurationMapper');
 
 // Deep partial utility type for nested partial objects
 type DeepPartial<T> = T extends object ? {
@@ -273,7 +276,7 @@ export class ConfigurationMapper {
       this.config = this.deepMerge(this.getDefaultConfig(), imported);
       this.notifyListeners();
     } catch (error) {
-      console.error('Failed to import configuration:', error);
+      logger.error('Failed to import configuration:', error);
       throw new Error('Invalid configuration JSON');
     }
   }

@@ -106,7 +106,7 @@ export const GraphInteractionTab: React.FC<GraphInteractionTabProps> = ({
 
   const handleHeadTrackingToggle = useCallback((enabled: boolean) => {
     updateSettings(draft => {
-      if (!draft.visualisation) draft.visualisation = {} as any;
+      if (!draft.visualisation) draft.visualisation = {} as typeof draft.visualisation;
       if (!draft.visualisation.interaction) {
         draft.visualisation.interaction = {
           headTrackedParallax: {

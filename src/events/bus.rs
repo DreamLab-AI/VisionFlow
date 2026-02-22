@@ -47,7 +47,9 @@ async fn execute_handler_concurrent(
         }
     }
 
-    let error = last_error.unwrap();
+    let error = last_error.unwrap_or_else(|| {
+        EventError::Handler("Handler failed with unknown error after retries".to_string())
+    });
     let result = Err(error.clone());
 
     let mw_list = middleware.read().await;

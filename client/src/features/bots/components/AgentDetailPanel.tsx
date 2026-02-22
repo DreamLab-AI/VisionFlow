@@ -203,13 +203,13 @@ export const AgentDetailPanel: React.FC<AgentDetailPanelProps> = ({
             )}
 
             {}
-            {(selectedAgent as any).multiAgentId && (
+            {!!(selectedAgent as unknown as Record<string, unknown>).multiAgentId && (
               <div>
                 <h5 className="font-semibold text-sm mb-2">Multi-Agent Information</h5>
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Multi-Agent ID:</span>
-                    <span className="font-mono text-xs">{(selectedAgent as any).multiAgentId}</span>
+                    <span className="font-mono text-xs">{String((selectedAgent as unknown as Record<string, unknown>).multiAgentId)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Mode:</span>

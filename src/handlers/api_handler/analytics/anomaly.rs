@@ -1,7 +1,7 @@
 
 
 use std::collections::HashMap;
-use log::{debug, info};
+use log::{debug, error, info, warn};
 use rand::Rng;
 use uuid::Uuid;
 use chrono::Utc;
@@ -69,6 +69,7 @@ pub async fn start_anomaly_detection() {
     warn!("start_anomaly_detection is deprecated - use run_gpu_anomaly_detection for real GPU processing");
 }
 
+#[allow(dead_code)]
 async fn generate_anomaly(method: &str) -> Anomaly {
     let mut rng = rand::thread_rng();
 
@@ -158,6 +159,7 @@ async fn generate_anomaly(method: &str) -> Anomaly {
     }
 }
 
+#[allow(dead_code)]
 fn generate_anomaly_details(method: &str, severity: &str) -> (String, String) {
     let mut rng = rand::thread_rng();
 

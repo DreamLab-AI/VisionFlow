@@ -8,6 +8,9 @@ import { OntologyMetrics } from './OntologyMetrics';
 import { useOntologyStore } from '../store/useOntologyStore';
 import { useOntologyWebSocket } from '../hooks/useOntologyWebSocket';
 import { Upload, RefreshCw } from 'lucide-react';
+import { createLogger } from '../../../utils/loggerConfig';
+
+const logger = createLogger('OntologyPanel');
 
 export function OntologyPanel() {
   const { loaded, validating, constraintGroups, loadOntology, validateOntology } = useOntologyStore();
@@ -23,7 +26,7 @@ export function OntologyPanel() {
     try {
       await loadOntology(selectedFile);
     } catch (error) {
-      console.error('Failed to load ontology:', error);
+      logger.error('Failed to load ontology:', error);
     } finally {
       setLoading(false);
     }
@@ -33,7 +36,7 @@ export function OntologyPanel() {
     try {
       await validateOntology();
     } catch (error) {
-      console.error('Failed to validate:', error);
+      logger.error('Failed to validate:', error);
     }
   };
 

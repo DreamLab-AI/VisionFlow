@@ -45,7 +45,6 @@ impl AnomalyDetectionActor {
         }
     }
 
-    
     #[allow(dead_code)]
     async fn perform_anomaly_detection(
         &mut self,
@@ -218,7 +217,7 @@ impl AnomalyDetectionActor {
         })
     }
 
-    
+        #[allow(dead_code)]
     async fn perform_lof_detection(
         &self,
         unified_compute: &mut UnifiedGPUCompute,
@@ -311,7 +310,7 @@ impl AnomalyDetectionActor {
         Ok((anomalies, stats))
     }
 
-
+    #[allow(dead_code)]
     async fn perform_zscore_detection(
         &self,
         unified_compute: &mut UnifiedGPUCompute,
@@ -413,7 +412,7 @@ impl AnomalyDetectionActor {
         Ok((anomalies, stats))
     }
 
-
+    #[allow(dead_code)]
     async fn perform_isolation_forest_detection(
         &self,
         unified_compute: &mut UnifiedGPUCompute,
@@ -505,7 +504,7 @@ impl AnomalyDetectionActor {
         Ok((anomalies, stats))
     }
 
-
+    #[allow(dead_code)]
     async fn perform_dbscan_anomaly_detection(
         &self,
         unified_compute: &mut UnifiedGPUCompute,

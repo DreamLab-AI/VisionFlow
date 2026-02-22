@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { unifiedApiClient } from '../../../services/api';
+import { createLogger } from '../../../utils/loggerConfig';
+
+const logger = createLogger('AutoBalanceIndicator');
 
 interface AutoBalanceIndicatorProps {
   style?: React.CSSProperties;
@@ -14,7 +17,8 @@ export const AutoBalanceIndicator: React.FC<AutoBalanceIndicatorProps> = ({ styl
     
     const checkAutoBalance = () => {
       const settings = useSettingsStore.getState().settings;
-      const autoBalanceEnabled = (settings?.visualisation?.graphs?.logseq?.physics as any)?.autoBalance;
+      const physics = settings?.visualisation?.graphs?.logseq?.physics as Record<string, unknown> | undefined;
+      const autoBalanceEnabled = physics?.autoBalance;
       
       if (!autoBalanceEnabled) {
         setIsActive(false);
@@ -39,7 +43,7 @@ export const AutoBalanceIndicator: React.FC<AutoBalanceIndicatorProps> = ({ styl
             }
           }
         })
-        .catch(err => console.error('Failed to check auto-balance status:', err));
+        .catch(err => logger.error('Failed to check auto-balance status:', err));
     };
     
     

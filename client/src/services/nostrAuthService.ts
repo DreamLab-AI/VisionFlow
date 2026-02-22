@@ -6,6 +6,40 @@ import type {} from '../types/nip07';
 
 const logger = createLogger('NostrAuthService');
 
+// --- Module-scoped key storage ---
+// Private key held in memory only, never persisted to sessionStorage.
+// This reduces the attack surface vs sessionStorage (which is queryable by
+// any same-origin JS).  nostr-tools still needs raw bytes for signing, so
+// this is the best we can do without a native secp256k1 WebCrypto curve.
+let _localKeyHex: string | null = null;
+
+/**
+ * Store a hex-encoded Nostr private key in the module-scoped closure.
+ * Call this instead of writing the key to sessionStorage.
+ */
+export function setLocalKey(hexKey: string): void {
+  _localKeyHex = hexKey;
+}
+
+/**
+ * Wipe the module-scoped private key and remove any legacy sessionStorage
+ * entries that may still exist from older code paths.
+ */
+export function clearLocalKey(): void {
+  _localKeyHex = null;
+  try {
+    sessionStorage.removeItem('nostr_passkey_key');
+    sessionStorage.removeItem('nostr_privkey');
+  } catch { /* sessionStorage may be unavailable */ }
+}
+
+// Clear key material when the tab / window is closed
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeunload', () => {
+    _localKeyHex = null;
+  });
+}
+
 // --- Interfaces ---
 
 // User info stored locally and used in AuthState
@@ -259,12 +293,14 @@ class NostrAuthService {
   private clearSession(): void {
     this.currentUser = null;
     this.localPrivateKey = null;
+    _localKeyHex = null;
     localStorage.removeItem('nostr_user');
     // Clean up legacy key if present
     localStorage.removeItem('nostr_session_token');
-    // Clear passkey session
+    // Clear passkey session (private key should already be absent, but belt-and-suspenders)
     try {
       sessionStorage.removeItem('nostr_passkey_key');
+      sessionStorage.removeItem('nostr_privkey');
       sessionStorage.removeItem('nostr_passkey_pubkey');
       sessionStorage.removeItem('nostr_prf');
     } catch { /* sessionStorage may be unavailable */ }
@@ -332,11 +368,15 @@ class NostrAuthService {
 
   /**
    * Login using a passkey-derived private key.
-   * Stores key in sessionStorage (per-tab) and sets auth state.
+   * Key is held in module-scoped memory only -- never persisted to sessionStorage.
    */
   public async loginWithPasskey(pubkey: string, privateKey: Uint8Array): Promise<AuthState> {
     logger.info('Passkey login...');
     this.localPrivateKey = privateKey;
+
+    // Keep hex form in module closure for restorePasskeySession fallback
+    const hexKey = Array.from(privateKey).map(b => b.toString(16).padStart(2, '0')).join('');
+    _localKeyHex = hexKey;
 
     this.currentUser = {
       pubkey,
@@ -344,12 +384,10 @@ class NostrAuthService {
       isPowerUser: false,
     };
 
-    // Persist user in localStorage for cross-reload (key stays in sessionStorage)
+    // Persist user in localStorage for cross-reload
     this.storeCurrentUser();
-    // Store key in sessionStorage (per-tab isolation)
+    // Only store pubkey and PRF flag -- NEVER store the private key
     try {
-      const hexKey = Array.from(privateKey).map(b => b.toString(16).padStart(2, '0')).join('');
-      sessionStorage.setItem('nostr_passkey_key', hexKey);
       sessionStorage.setItem('nostr_passkey_pubkey', pubkey);
     } catch { /* sessionStorage unavailable */ }
 
@@ -359,8 +397,10 @@ class NostrAuthService {
     return newState;
   }
 
-  /** Check if a passkey session exists in sessionStorage */
+  /** Check if a passkey session exists (in-memory key or legacy sessionStorage) */
   public hasPasskeySession(): boolean {
+    if (_localKeyHex) return true;
+    if (this.localPrivateKey) return true;
     try {
       return !!sessionStorage.getItem('nostr_passkey_key');
     } catch {
@@ -368,11 +408,33 @@ class NostrAuthService {
     }
   }
 
-  /** Restore passkey-derived key from sessionStorage (called during initialize) */
+  /**
+   * Restore passkey-derived key from the module-scoped variable or, as a
+   * one-time migration, from legacy sessionStorage.  Legacy entries are
+   * deleted immediately after migration so the private key is never left
+   * in queryable browser storage.
+   */
   public restorePasskeySession(): void {
     try {
-      const hexKey = sessionStorage.getItem('nostr_passkey_key');
+      // Prefer the in-memory module-scoped key
+      let hexKey = _localKeyHex;
       const pubkey = sessionStorage.getItem('nostr_passkey_pubkey');
+
+      // Legacy migration: if sessionStorage still has the private key, ingest
+      // it into memory and wipe the storage entry.
+      if (!hexKey) {
+        const legacyKey = sessionStorage.getItem('nostr_passkey_key');
+        if (legacyKey) {
+          hexKey = legacyKey;
+          _localKeyHex = legacyKey;
+          // Immediately remove legacy plaintext key from sessionStorage
+          sessionStorage.removeItem('nostr_passkey_key');
+          logger.info('Migrated legacy passkey key from sessionStorage to memory');
+        }
+      }
+      // Also clean nostr_privkey if present (older legacy path)
+      sessionStorage.removeItem('nostr_privkey');
+
       if (hexKey && pubkey) {
         this.localPrivateKey = new Uint8Array(
           hexKey.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16))
@@ -382,7 +444,7 @@ class NostrAuthService {
         if (derivedPubkey !== pubkey) {
           logger.warn('Passkey session pubkey mismatch, clearing');
           this.localPrivateKey = null;
-          sessionStorage.removeItem('nostr_passkey_key');
+          _localKeyHex = null;
           sessionStorage.removeItem('nostr_passkey_pubkey');
           return;
         }

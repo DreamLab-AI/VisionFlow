@@ -11,7 +11,7 @@
 //! or Plane 3 (voice chat). When PTT is held, audio routes to STT for agent control.
 //! When PTT is released, audio routes to LiveKit for spatial voice chat.
 
-use log::{debug, error, info, warn};
+use log::{debug, info, warn};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;

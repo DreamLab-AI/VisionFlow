@@ -25,6 +25,7 @@
 # ============================================================================
 
 # Use CachyOS v3 for optimized x86-64-v3 packages aligned with host system
+# SECURITY: Pin to digest for production builds (e.g., cachyos/cachyos-v3@sha256:abc123...)
 FROM cachyos/cachyos-v3:latest
 
 # Build metadata

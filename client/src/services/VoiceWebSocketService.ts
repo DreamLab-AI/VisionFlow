@@ -151,7 +151,7 @@ export class VoiceWebSocketService {
           break;
 
         case 'error':
-          const errorMsg = (message as any).data || (message as any).error || 'Unknown voice service error';
+          const errorMsg = (message as VoiceMessage).data || (message as VoiceMessage & { error?: string }).error || 'Unknown voice service error';
           gatedConsole.voice.error('Voice service error:', errorMsg);
           this.emit('voiceError', errorMsg);
           break;
@@ -307,7 +307,7 @@ export class VoiceWebSocketService {
           
           this.sendBinary(arrayBuffer);
         } catch (error) {
-          console.error('[VoiceWebSocketService] Failed to send audio:', error);
+          logger.error('Failed to send audio:', error);
           gatedConsole.voice.error('Failed to send audio:', error);
         }
       } else {

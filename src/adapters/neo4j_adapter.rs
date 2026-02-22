@@ -47,31 +47,37 @@ pub struct Neo4jConfig {
     pub connection_timeout_secs: u64,
 }
 
-impl Default for Neo4jConfig {
-    fn default() -> Self {
+impl Neo4jConfig {
+    /// Build a Neo4jConfig from environment variables, returning an error
+    /// instead of panicking when required variables are missing or invalid.
+    pub fn from_env() -> Result<Self, String> {
         // SECURITY: NEO4J_PASSWORD is REQUIRED - no insecure defaults
         let password = std::env::var("NEO4J_PASSWORD").unwrap_or_else(|_| {
             // In development/test mode, allow default only if explicitly set
             if std::env::var("ALLOW_INSECURE_DEFAULTS").is_ok() {
-                log::warn!("⚠️  NEO4J_PASSWORD not set - using insecure default (ALLOW_INSECURE_DEFAULTS=1)");
+                log::warn!("NEO4J_PASSWORD not set - using insecure default (ALLOW_INSECURE_DEFAULTS=1)");
                 "password".to_string()
             } else {
-                log::error!("🚨 CRITICAL: NEO4J_PASSWORD environment variable is REQUIRED!");
-                log::error!("   Set NEO4J_PASSWORD=<your-secure-password> or");
-                log::error!("   Set ALLOW_INSECURE_DEFAULTS=1 for development only");
-                panic!("NEO4J_PASSWORD must be set. See logs for details.");
+                String::new()
             }
         });
 
-        // Reject obviously insecure passwords in production
-        if password == "password" || password == "neo4j" || password.len() < 8 {
-            if std::env::var("ALLOW_INSECURE_DEFAULTS").is_err() {
-                log::error!("🚨 CRITICAL: NEO4J_PASSWORD is too weak or uses a default value!");
-                panic!("NEO4J_PASSWORD must be at least 8 characters and not a default value");
-            }
+        if password.is_empty() {
+            log::error!("CRITICAL: NEO4J_PASSWORD environment variable is REQUIRED!");
+            log::error!("   Set NEO4J_PASSWORD=<your-secure-password> or");
+            log::error!("   Set ALLOW_INSECURE_DEFAULTS=1 for development only");
+            return Err("NEO4J_PASSWORD must be set. See logs for details.".to_string());
         }
 
-        Self {
+        // Reject obviously insecure passwords in production
+        if (password == "password" || password == "neo4j" || password.len() < 8)
+            && std::env::var("ALLOW_INSECURE_DEFAULTS").is_err()
+        {
+            log::error!("CRITICAL: NEO4J_PASSWORD is too weak or uses a default value!");
+            return Err("NEO4J_PASSWORD must be at least 8 characters and not a default value".to_string());
+        }
+
+        Ok(Self {
             uri: std::env::var("NEO4J_URI").unwrap_or_else(|_| "bolt://localhost:7687".to_string()),
             user: std::env::var("NEO4J_USER").unwrap_or_else(|_| "neo4j".to_string()),
             password,
@@ -88,7 +94,13 @@ impl Default for Neo4jConfig {
                 .ok()
                 .and_then(|v| v.parse().ok())
                 .unwrap_or(10),
-        }
+        })
+    }
+}
+
+impl Default for Neo4jConfig {
+    fn default() -> Self {
+        Self::from_env().expect("Neo4jConfig::from_env failed — check NEO4J_PASSWORD")
     }
 }
 

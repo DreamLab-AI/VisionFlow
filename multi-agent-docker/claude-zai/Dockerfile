@@ -1,3 +1,4 @@
+# SECURITY: Pin to digest for production builds (e.g., node:20-slim@sha256:abc123...)
 FROM node:20-slim
 
 # Install system dependencies

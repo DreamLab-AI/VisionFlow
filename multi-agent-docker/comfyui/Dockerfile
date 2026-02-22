@@ -3,6 +3,7 @@
 # Based on yanwk/comfyui-boot:cu130-slim with SAM3D environment pre-configured
 ################################################################################
 
+# SECURITY: Pin to digest for production builds (e.g., yanwk/comfyui-boot@sha256:abc123...)
 FROM yanwk/comfyui-boot:cu130-slim
 
 LABEL maintainer="Multi-Agent-Docker"

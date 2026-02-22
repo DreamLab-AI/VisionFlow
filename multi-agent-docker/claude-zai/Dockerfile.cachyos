@@ -6,6 +6,7 @@
 #       and shared library compatibility (glibc, libstdc++)
 ################################################################################
 
+# SECURITY: Pin to digest for production builds (e.g., cachyos/cachyos-v3@sha256:abc123...)
 FROM cachyos/cachyos-v3:latest
 
 LABEL maintainer="Multi-Agent-Docker"

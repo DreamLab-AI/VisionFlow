@@ -3,6 +3,9 @@ import { useVoiceInteraction } from '../hooks/useVoiceInteraction';
 import { VoiceWebSocketService } from '../services/VoiceWebSocketService';
 import { AudioInputService } from '../services/AudioInputService';
 import { Mic, MicOff, Volume2 } from 'lucide-react';
+import { createLogger } from '../utils/loggerConfig';
+
+const logger = createLogger('VoiceStatusIndicator');
 
 export interface VoiceStatusIndicatorProps {
   className?: string;
@@ -18,7 +21,7 @@ export const VoiceStatusIndicator: React.FC<VoiceStatusIndicatorProps> = ({
   
   const { isListening, isSpeaking, toggleListening } = useVoiceInteraction({
     onError: (error) => {
-      console.error('Voice interaction error:', error);
+      logger.error('Voice interaction error:', error);
       setHasError(true);
     }
   });
@@ -96,7 +99,7 @@ export const VoiceStatusIndicator: React.FC<VoiceStatusIndicatorProps> = ({
   const handleToggle = async () => {
     if (!isSupported) {
       setHasError(true);
-      console.error('Voice features not supported in this browser/environment');
+      logger.error('Voice features not supported in this browser/environment');
       return;
     }
 
@@ -104,7 +107,7 @@ export const VoiceStatusIndicator: React.FC<VoiceStatusIndicatorProps> = ({
       setHasError(false);
       await toggleListening();
     } catch (error) {
-      console.error('Failed to toggle voice input:', error);
+      logger.error('Failed to toggle voice input:', error);
       setHasError(true);
     }
   };

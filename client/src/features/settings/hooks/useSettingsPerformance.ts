@@ -1,5 +1,8 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useSettingsStore } from '@/store/settingsStore';
+import { createLogger } from '../../../utils/loggerConfig';
+
+const logger = createLogger('SettingsPerformance');
 
 interface PerformanceMetrics {
   renderCount: number;
@@ -65,14 +68,15 @@ export function useSettingsPerformance(
       renderTimesRef.current.reduce((a, b) => a + b, 0) / renderTimesRef.current.length;
 
     
-    if (enableMemoryTracking && 'memory' in performance) {
-      const memoryInfo = (performance as any).memory;
-      metrics.memoryUsage = memoryInfo.usedJSHeapSize / 1048576; 
+    interface PerformanceMemory { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number; }
+    const perfWithMemory = performance as Performance & { memory?: PerformanceMemory };
+    if (enableMemoryTracking && perfWithMemory.memory) {
+      metrics.memoryUsage = perfWithMemory.memory.usedJSHeapSize / 1048576;
     }
 
     
     if (enableLogging && metrics.renderCount % sampleRate === 0) {
-      console.log(`[${componentName}] Performance Metrics:`, {
+      logger.debug(`[${componentName}] Performance Metrics:`, {
         ...metrics,
         averageRenderTime: `${metrics.averageRenderTime.toFixed(2)}ms`,
         lastRenderTime: `${metrics.lastRenderTime.toFixed(2)}ms`,
@@ -98,7 +102,7 @@ export function useSettingsPerformance(
     metricsRef.current.searchTime = searchTime;
 
     if (enableLogging) {
-      console.log(`[${componentName}] Search completed in ${searchTime.toFixed(2)}ms`);
+      logger.debug(`[${componentName}] Search completed in ${searchTime.toFixed(2)}ms`);
     }
   }, [componentName, enableLogging]);
 
@@ -126,7 +130,7 @@ export function useSettingsPerformance(
 
       
       if (metrics.averageRenderTime > 16.67 && enableLogging) {
-        console.warn(
+        logger.warn(
           `[${componentName}] Average render time (${metrics.averageRenderTime.toFixed(
             2
           )}ms) exceeds 60fps threshold`
@@ -135,7 +139,7 @@ export function useSettingsPerformance(
 
       
       if (metrics.memoryUsage && metrics.memoryUsage > 500 && enableLogging) {
-        console.warn(
+        logger.warn(
           `[${componentName}] High memory usage: ${metrics.memoryUsage.toFixed(2)}MB`
         );
       }

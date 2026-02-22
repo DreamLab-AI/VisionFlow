@@ -39,6 +39,9 @@ import {
   GraphData,
   OptimizationWebSocketEvent
 } from '@/api/optimizationApi';
+import { createLogger } from '../../../../utils/loggerConfig';
+
+const logger = createLogger('GraphOptimisationTab');
 
 interface GraphOptimisationTabProps {
   graphId?: string;
@@ -70,7 +73,7 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
   const [currentTask, setCurrentTask] = useState<OptimizationTask | null>(null);
   const [gpuStatus, setGpuStatus] = useState<{ available: boolean; utilization: number }>({ available: false, utilization: 0 });
   const [availableAlgorithms, setAvailableAlgorithms] = useState<string[]>([]);
-  const [performanceMetrics, setPerformanceMetrics] = useState<any>(null);
+  const [performanceMetrics, setPerformanceMetrics] = useState<Record<string, Record<string, unknown>> | null>(null);
   const [canCancel, setCanCancel] = useState(false);
 
 
@@ -120,7 +123,7 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
         setPerformanceMetrics(metrics);
 
       } catch (error) {
-        console.error('Failed to initialize optimization system:', error);
+        logger.error('Failed to initialize optimization system:', error);
         toast({
           title: "Initialization Error",
           description: "Failed to connect to GPU optimization backend",
@@ -262,11 +265,11 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
 
     try {
       const optimizationParams: OptimizationParams = {
-        algorithm: layoutAlgorithm as any,
+        algorithm: layoutAlgorithm as OptimizationParams['algorithm'],
         optimizationLevel: optimisationLevel[0],
         clusteringEnabled,
         gpuAcceleration: true,
-        performanceMode: performanceMode as any,
+        performanceMode: performanceMode as OptimizationParams['performanceMode'],
         maxIterations: 1000,
         convergenceThreshold: 0.01
       };
@@ -683,10 +686,10 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
             <div className="text-xs space-y-2 p-2 bg-muted/50 rounded">
               <div className="font-semibold">System Status</div>
               <div className="grid grid-cols-2 gap-2">
-                <div>GPU Utilization: {performanceMetrics.gpu?.utilization?.toFixed(1) || 'N/A'}%</div>
-                <div>Active Tasks: {performanceMetrics.optimization?.activeTasksCount || 0}</div>
-                <div>Success Rate: {performanceMetrics.optimization?.successRate ? (performanceMetrics.optimization.successRate * 100).toFixed(1) : 'N/A'}%</div>
-                <div>Avg Execution: {performanceMetrics.optimization?.averageExecutionTime?.toFixed(1) || 'N/A'}s</div>
+                <div>GPU Utilization: {(performanceMetrics.gpu?.utilization as number | undefined)?.toFixed(1) || 'N/A'}%</div>
+                <div>Active Tasks: {(performanceMetrics.optimization?.activeTasksCount as number | undefined) || 0}</div>
+                <div>Success Rate: {(performanceMetrics.optimization?.successRate as number | undefined) ? ((performanceMetrics.optimization.successRate as number) * 100).toFixed(1) : 'N/A'}%</div>
+                <div>Avg Execution: {(performanceMetrics.optimization?.averageExecutionTime as number | undefined)?.toFixed(1) || 'N/A'}s</div>
               </div>
             </div>
           )}

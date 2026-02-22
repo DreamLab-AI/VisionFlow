@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use log;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -20,7 +21,7 @@ impl LoggingMiddleware {
 impl EventMiddleware for LoggingMiddleware {
     async fn before_publish(&self, event: &mut StoredEvent) -> EventResult<()> {
         if self.verbose {
-            println!(
+            log::info!(
                 "[EventBus] Publishing: {} (seq: {}, agg: {})",
                 event.metadata.event_type, event.sequence, event.metadata.aggregate_id
             );
@@ -30,7 +31,7 @@ impl EventMiddleware for LoggingMiddleware {
 
     async fn after_publish(&self, event: &StoredEvent) -> EventResult<()> {
         if self.verbose {
-            println!(
+            log::info!(
                 "[EventBus] Published: {} successfully",
                 event.metadata.event_type
             );
@@ -40,7 +41,7 @@ impl EventMiddleware for LoggingMiddleware {
 
     async fn before_handle(&self, event: &StoredEvent, handler_id: &str) -> EventResult<()> {
         if self.verbose {
-            println!(
+            log::info!(
                 "[EventBus] Handler {} processing {}",
                 handler_id, event.metadata.event_type
             );
@@ -56,8 +57,8 @@ impl EventMiddleware for LoggingMiddleware {
     ) -> EventResult<()> {
         if self.verbose {
             match result {
-                Ok(_) => println!("[EventBus] Handler {} succeeded", handler_id),
-                Err(e) => eprintln!("[EventBus] Handler {} failed: {}", handler_id, e),
+                Ok(_) => log::info!("[EventBus] Handler {} succeeded", handler_id),
+                Err(e) => log::error!("[EventBus] Handler {} failed: {}", handler_id, e),
             }
         }
         Ok(())

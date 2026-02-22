@@ -261,7 +261,17 @@ export class ThreeJSAvatarRenderer {
 
       if (!result?.result) return;
 
-      for (const entity of (result as any).result) {
+      interface AvatarEntity {
+        general__entity_name: string;
+        meta__data: {
+          username?: string;
+          position?: { x: number; y: number; z: number };
+          rotation?: { x: number; y: number; z: number; w: number };
+        };
+      }
+
+      const entities = (result as unknown as { result: AvatarEntity[] }).result;
+      for (const entity of entities) {
         const agentId = entity.general__entity_name.replace('avatar_', '');
         const metadata = entity.meta__data;
 
@@ -365,7 +375,7 @@ export class ThreeJSAvatarRenderer {
     if (avatar.mesh) {
       // Fix 4: Proper type assertion instead of @ts-ignore
       // eslint-disable-next-line @typescript-eslint/no-explicit-any -- @types/three dual-path resolution (build/ vs src/) creates incompatible Object3D types
-      this.scene.remove(avatar.mesh as any);
+      this.scene.remove(avatar.mesh as unknown as THREE.Object3D);
       avatar.mesh.traverse(child => {
         if ((child as THREE.Mesh).geometry) {
           (child as THREE.Mesh).geometry.dispose();

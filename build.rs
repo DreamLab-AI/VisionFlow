@@ -22,6 +22,8 @@ fn main() {
         "src/utils/visionflow_unified_stability.cu",
         "src/utils/ontology_constraints.cu",
         "src/utils/semantic_forces.cu",
+        "src/utils/pagerank.cu",
+        "src/utils/gpu_connected_components.cu",
     ];
 
     // Only rebuild if CUDA files change
@@ -146,6 +148,8 @@ fn main() {
     let link_sources = [
         ("src/utils/visionflow_unified.cu", "thrust_wrapper"),
         ("src/utils/semantic_forces.cu", "semantic_forces"),
+        ("src/utils/pagerank.cu", "pagerank"),
+        ("src/utils/gpu_connected_components.cu", "gpu_connected_components"),
     ];
 
     let mut obj_files: Vec<PathBuf> = Vec::new();

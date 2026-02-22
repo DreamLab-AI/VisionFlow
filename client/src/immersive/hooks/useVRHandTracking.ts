@@ -157,19 +157,20 @@ export const useVRHandTracking = (
       if (!settings.enableHaptics) return;
 
       // Access XR session if available
-      const session = (gl.xr as any)?.getSession?.();
+      const session = (gl.xr as unknown as { getSession?: () => XRSession | null })?.getSession?.();
       if (!session) return;
 
       const inputSources = session.inputSources;
       if (!inputSources) return;
 
       const handedness = hand === 'primary' ? 'right' : 'left';
-      const source = Array.from(inputSources).find(
-        (s: any) => s.handedness === handedness
-      ) as any;
+      const source = Array.from(inputSources as Iterable<XRInputSource>).find(
+        (s) => s.handedness === handedness
+      );
 
-      if (source?.gamepad?.hapticActuators?.[0]) {
-        source.gamepad.hapticActuators[0].pulse(intensity, duration);
+      const actuators = (source?.gamepad as unknown as { hapticActuators?: Array<{ pulse: (intensity: number, duration: number) => void }> })?.hapticActuators;
+      if (actuators?.[0]) {
+        actuators[0].pulse(intensity, duration);
       }
     },
     [gl, settings.enableHaptics]

@@ -5,7 +5,7 @@ import { Switch } from '@/features/design-system/components/Switch';
 import { Slider } from '@/features/design-system/components/Slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/features/design-system/components/Select';
 import { Input } from '@/features/design-system/components/Input';
-import { clientDebugState } from '@/utils/clientDebugState';
+import { clientDebugState, type DebugKey } from '@/utils/clientDebugState';
 import { createLogger } from '@/utils/loggerConfig';
 
 const logger = createLogger('LocalStorageSettingControl');
@@ -26,7 +26,8 @@ interface LocalStorageSettingControlProps {
 }
 
 export const LocalStorageSettingControl: React.FC<LocalStorageSettingControlProps> = ({ setting }) => {
-  const [value, setValue] = useState<any>(null);
+  // Setting value can be boolean (toggle), number (slider/number), or string (select/text)
+  const [value, setValue] = useState<unknown>(null);
 
   
   const getDebugKey = useCallback(() => {
@@ -44,7 +45,7 @@ export const LocalStorageSettingControl: React.FC<LocalStorageSettingControlProp
       
       if (setting.path.startsWith('debug.')) {
         
-        const debugKey = key as any;
+        const debugKey = key as DebugKey;
         const val = clientDebugState.get(debugKey);
         setValue(val);
       } else {
@@ -71,7 +72,7 @@ export const LocalStorageSettingControl: React.FC<LocalStorageSettingControlProp
 
     
     if (setting.path.startsWith('debug.')) {
-      const key = getDebugKey() as any;
+      const key = getDebugKey() as DebugKey;
       const unsubscribe = clientDebugState.subscribe(key, (newValue) => {
         setValue(newValue);
       });
@@ -90,15 +91,16 @@ export const LocalStorageSettingControl: React.FC<LocalStorageSettingControlProp
   }, [setting.path, setting.type, setting.min, getDebugKey]);
 
   
-  const handleChange = useCallback((newValue: any) => {
+  const handleChange = useCallback((newValue: string | number | boolean) => {
     setValue(newValue);
-    
+
     const key = getDebugKey();
-    
+
     if (setting.path.startsWith('debug.')) {
-      
-      const debugKey = key as any;
-      clientDebugState.set(debugKey, newValue);
+
+      const debugKey = key as DebugKey;
+      const debugValue = typeof newValue === 'number' ? String(newValue) : newValue;
+      clientDebugState.set(debugKey, debugValue);
     } else {
       
       localStorage.setItem(setting.path, String(newValue));
@@ -121,7 +123,7 @@ export const LocalStorageSettingControl: React.FC<LocalStorageSettingControlProp
       case 'toggle':
         return (
           <Switch
-            checked={value || false}
+            checked={(value as boolean) || false}
             onCheckedChange={handleChange}
             aria-label={setting.label}
           />
@@ -131,7 +133,7 @@ export const LocalStorageSettingControl: React.FC<LocalStorageSettingControlProp
         return (
           <div className="flex items-center gap-2">
             <Slider
-              value={[value || setting.min || 0]}
+              value={[(value as number) || setting.min || 0]}
               onValueChange={([val]) => handleChange(val)}
               min={setting.min}
               max={setting.max}
@@ -139,14 +141,14 @@ export const LocalStorageSettingControl: React.FC<LocalStorageSettingControlProp
               className="flex-1"
             />
             <span className="text-sm text-muted-foreground min-w-[3rem] text-right">
-              {value || setting.min || 0}{setting.unit || ''}
+              {(value as number) || setting.min || 0}{setting.unit || ''}
             </span>
           </div>
         );
 
       case 'select':
         return (
-          <Select value={value || ''} onValueChange={handleChange}>
+          <Select value={(value as string) || ''} onValueChange={handleChange}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select an option" />
             </SelectTrigger>
@@ -164,7 +166,7 @@ export const LocalStorageSettingControl: React.FC<LocalStorageSettingControlProp
         return (
           <Input
             type="text"
-            value={value || ''}
+            value={(value as string) || ''}
             onChange={(e) => handleChange(e.target.value)}
             placeholder={setting.label}
           />
@@ -174,7 +176,7 @@ export const LocalStorageSettingControl: React.FC<LocalStorageSettingControlProp
         return (
           <Input
             type="number"
-            value={value || 0}
+            value={(value as number) || 0}
             onChange={(e) => handleChange(parseFloat(e.target.value) || 0)}
             min={setting.min}
             max={setting.max}

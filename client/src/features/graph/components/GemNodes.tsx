@@ -7,26 +7,43 @@ import { createGemNodeMaterial, createTslGemMaterial, createGemGeometry } from '
 import { createCrystalOrbMaterial, createCrystalOrbGeometry } from '../../../rendering/materials/CrystalOrbMaterial';
 import { createAgentCapsuleMaterial, createAgentCapsuleGeometry } from '../../../rendering/materials/AgentCapsuleMaterial';
 import { useSettingsStore } from '../../../store/settingsStore';
-import type { GemMaterialSettings } from '../../settings/config/settings';
+import type { GemMaterialSettings, GraphTypeVisualsSettings } from '../../settings/config/settings';
+import type { Edge } from '../managers/graphDataManager';
+import type { ThreeEvent } from '@react-three/fiber';
+import { createLogger } from '../../../utils/loggerConfig';
+
+const logger = createLogger('GemNodes');
 import { computeNodeScale } from '../utils/nodeScaling';
 import { isWebGPURenderer } from '../../../rendering/rendererFactory';
 
+/** Minimal hierarchy node shape compatible with HierarchyNode from hierarchyDetector */
+interface HierarchyNodeLike {
+  depth?: number;
+}
+
+/** SSSP (Single Source Shortest Path) analysis result */
+interface SSSPResult {
+  sourceNodeId: string;
+  distances?: Record<string, number>;
+  normalizedDistances?: Record<string, number>;
+}
+
 export interface GemNodesProps {
   nodes: GraphNode[];
-  edges: any[];
+  edges: Edge[];
   graphMode: GraphVisualMode;
   perNodeVisualModeMap: Map<string, GraphVisualMode>;
   nodePositionsRef: React.MutableRefObject<Float32Array | null>;
   connectionCountMap: Map<string, number>;
-  hierarchyMap: Map<string, any>;
+  hierarchyMap: Map<string, HierarchyNodeLike>;
   nodeIdToIndexMap: Map<string, number>;
-  settings: any;
-  ssspResult: any;
-  onPointerDown: (event: any) => void;
-  onPointerMove: (event: any) => void;
-  onPointerUp: (event: any) => void;
+  settings: Record<string, unknown> | undefined;
+  ssspResult: SSSPResult | null;
+  onPointerDown: (event: ThreeEvent<PointerEvent>) => void;
+  onPointerMove: (event: ThreeEvent<PointerEvent>) => void;
+  onPointerUp: (event: ThreeEvent<PointerEvent>) => void;
   onPointerMissed: () => void;
-  onDoubleClick: (event: any) => void;
+  onDoubleClick: (event: ThreeEvent<MouseEvent>) => void;
   selectedNodeId: string | null;
   /** Live drag state ref — when set, the dragged node uses this position instead of SAB */
   dragDataRef?: React.MutableRefObject<{
@@ -176,7 +193,7 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
         nodes.length,
       ).then(success => {
         if (success) {
-          console.log('[GemNodes] TSL metadata material active');
+          logger.debug('[GemNodes] TSL metadata material active');
         } else {
           tslAppliedRef.current = false; // allow retry on next render cycle
         }
@@ -192,8 +209,8 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
 
   const computeColor = useCallback((node: GraphNode, mode: GraphVisualMode): THREE.Color => {
     if (ssspResult) {
-      const d = ssspResult.distances?.[node.id];
-      if (node.id === ssspResult.sourceNodeId) return _col.set('#00FFFF');
+      const d = ssspResult.distances?.[node.id] ?? NaN;
+      if (String(node.id) === ssspResult.sourceNodeId) return _col.set('#00FFFF');
       if (!isFinite(d)) return _col.set('#666666');
       const nd = ssspResult.normalizedDistances?.[node.id] || 0;
       return _col.setRGB(Math.min(1, nd * 1.2), Math.min(1, (1 - nd) * 1.2), 0.1);
@@ -232,7 +249,7 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
     // If the mesh has no parent after mount, attach it directly.
     if (!inst.parent && scene) {
       scene.add(inst);
-      console.debug('[GemNodes] manually attached mesh to scene (R3F primitive workaround)');
+      logger.debug('[GemNodes] manually attached mesh to scene (R3F primitive workaround)');
     }
 
     if (uniforms.time) uniforms.time.value = clock.elapsedTime;
@@ -250,12 +267,12 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
     if (import.meta.env.DEV) {
       if (!diagLoggedRef.current && frameCountRef.current >= 60) {
         diagLoggedRef.current = true;
-        const mat = inst.material as any;
+        const mat = inst.material as THREE.MeshPhysicalMaterial & { opacityNode?: unknown; emissiveNode?: unknown; colorNode?: unknown };
         // Sample first 3 instance matrices
         const tempMat = new THREE.Matrix4();
         const tempVec = new THREE.Vector3();
         const tempScale = new THREE.Vector3();
-        const matSamples: any[] = [];
+        const matSamples: Array<{ i: number; pos: { x: number; y: number; z: number }; scale: number }> = [];
         for (let si = 0; si < Math.min(3, inst.count); si++) {
           inst.getMatrixAt(si, tempMat);
           tempVec.setFromMatrixPosition(tempMat);
@@ -271,7 +288,7 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
         }
         const bboxSize = new THREE.Vector3();
         bbox.getSize(bboxSize);
-        console.log('[GemNodes] DIAG frame60:', {
+        logger.debug('[GemNodes] DIAG frame60:', {
           nodeCount: nodes.length,
           instCount: inst.count,
           hasPositions: !!positions,
@@ -296,17 +313,21 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
         });
       }
     }
-    const baseScale = (settings?.visualisation?.nodes?.nodeSize ?? 0.5) / 0.5;
+    const visSettings = settings?.visualisation as Record<string, unknown> | undefined;
+    const nodeSettings = visSettings?.nodes as Record<string, unknown> | undefined;
+    const baseScale = ((nodeSettings?.nodeSize as number | undefined) ?? 0.5) / 0.5;
     const texBuf = metaTexRef.current?.image?.data as Float32Array | undefined;
 
     // Per-frame emissive modulation (replaces TSL which breaks InstancedMesh on WebGPU).
     // Gentle breathing pulse on the shared material — all instances share it but
     // per-instance color variation comes from instanceColor.
-    const currentMat = inst.material as any;
+    const currentMat = inst.material as THREE.MeshPhysicalMaterial;
     if (currentMat.emissiveIntensity !== undefined) {
-      const u = uniforms as any;
+      const u = uniforms as Record<string, { value: number }>;
       // Read glow intensity from settings; fall back to conservative default
-      const glowBase = settings?.visualisation?.glow?.intensity ?? 0.3;
+      const vis = settings?.visualisation as Record<string, unknown> | undefined;
+      const glow = vis?.glow as Record<string, unknown> | undefined;
+      const glowBase = (glow?.intensity as number | undefined) ?? 0.3;
       if (dominant === 'agent' && u.activityLevel) {
         const pulse = Math.pow((Math.sin(clock.elapsedTime * Math.PI) + 1) * 0.5, 4);
         currentMat.emissiveIntensity = 0.15 + pulse * u.activityLevel.value * 0.2;
@@ -341,7 +362,8 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
     for (let i = 0; i < visCount; i++) {
       const node = nodes[i];
       const mode = perNodeVisualModeMap.get(String(node.id)) || graphMode;
-      let s = computeNodeScale(node, connectionCountMap, mode, hierarchyMap, props.settings?.visualisation?.graphTypeVisuals) * baseScale;
+      const propsVis = props.settings?.visualisation as Record<string, unknown> | undefined;
+      let s = computeNodeScale(node, connectionCountMap, mode, hierarchyMap, propsVis?.graphTypeVisuals as GraphTypeVisualsSettings | undefined) * baseScale;
       if (selectedNodeId && String(node.id) === selectedNodeId) {
         s *= 1 + Math.sin(clock.elapsedTime * 3) * 0.15;
       }

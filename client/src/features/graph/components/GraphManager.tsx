@@ -125,8 +125,9 @@ const getOntologyDepthHex = (depth: number): string => {
 const getOntologyCategory = (node: GraphNode): 'class' | 'property' | 'instance' => {
   const meta = node.metadata ?? {};
   const role = meta.role ?? meta.type ?? '';
-  if (role === 'property' || (node as any).nodeType === 'property') return 'property';
-  if (role === 'instance' || (node as any).nodeType === 'instance') return 'instance';
+  const rawNodeType = (node as unknown as { nodeType?: string }).nodeType;
+  if (role === 'property' || rawNodeType === 'property') return 'property';
+  if (role === 'instance' || rawNodeType === 'instance') return 'instance';
   return 'class';
 };
 
@@ -686,8 +687,8 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         }
 
         // One-time diagnostic for edge/position pipeline
-        if (!(window as any).__gmDiagV2) {
-          (window as any).__gmDiagV2 = true;
+        if (!(window as unknown as Record<string, boolean>).__gmDiagV2) {
+          (window as unknown as Record<string, boolean>).__gmDiagV2 = true;
           // Sample first 3 nodes' positions to check if they're real or all-zero
           const samples: Array<{i: number, x: number, y: number, z: number}> = [];
           for (let si = 0; si < Math.min(3, graphData.nodes.length); si++) {
@@ -714,7 +715,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
               srcFound: srcIdx !== undefined, tgtFound: tgtIdx !== undefined,
             });
           }
-          console.log('[GraphManager] DIAG first frame:', {
+          logger.debug('[GraphManager] DIAG first frame:', {
             nodeCount: graphData.nodes.length,
             edgeCount: graphData.edges.length,
             positionsLength: positions?.length ?? 0,
@@ -825,9 +826,9 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
           }
 
           // One-time diagnostic (v2: use fresh flag so HMR shows latest logic)
-          if (idx === 0 && !(window as any).__edgeRecoveryDiag) {
-            (window as any).__edgeRecoveryDiag = true;
-            console.log('[GraphManager] edge[0] RECOVERY: src=', src, 'tgt=', tgt,
+          if (idx === 0 && !(window as unknown as Record<string, boolean>).__edgeRecoveryDiag) {
+            (window as unknown as Record<string, boolean>).__edgeRecoveryDiag = true;
+            logger.debug('[GraphManager] edge[0] RECOVERY: src=', src, 'tgt=', tgt,
               'raw.source=', edge.source, 'raw.target=', edge.target,
               'id=', edge.id, 'keys=', Object.keys(edge));
           }
@@ -837,18 +838,18 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
             source: String(src),
             target: String(tgt),
           };
-        }).filter((e: any) => e.source !== 'undefined' && e.target !== 'undefined' && e.source !== 'null' && e.target !== 'null')
+        }).filter((e: { source: string; target: string }) => e.source !== 'undefined' && e.target !== 'undefined' && e.source !== 'null' && e.target !== 'null')
       }
 
       // One-time edge pipeline diagnostic
-      if (!(window as any).__edgePipelineV2) {
-        (window as any).__edgePipelineV2 = true;
-        console.log('[GraphManager] handleGraphUpdate edge pipeline:',
+      if (!(window as unknown as Record<string, boolean>).__edgePipelineV2) {
+        (window as unknown as Record<string, boolean>).__edgePipelineV2 = true;
+        logger.debug('[GraphManager] handleGraphUpdate edge pipeline:',
           'inputEdges=', data.edges.length,
           'outputEdges=', dataWithPositions.edges.length,
           'nodes=', dataWithPositions.nodes.length,
           dataWithPositions.edges.length > 0
-            ? { first: { src: dataWithPositions.edges[0].source, tgt: dataWithPositions.edges[0].target, id: (dataWithPositions.edges[0] as any).id } }
+            ? { first: { src: dataWithPositions.edges[0].source, tgt: dataWithPositions.edges[0].target, id: dataWithPositions.edges[0].id } }
             : '(no edges survived filter)');
       }
 
@@ -1185,9 +1186,9 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         settings={settings?.visualisation?.graphs?.logseq?.edges || settings?.visualisation?.edges || defaultEdgeSettings}
         colorOverride={
           graphMode === 'knowledge_graph'
-            ? (settings?.visualisation?.graphTypeVisuals?.knowledgeGraph as any)?.edgeColor
+            ? settings?.visualisation?.graphTypeVisuals?.knowledgeGraph?.edgeColor
             : graphMode === 'ontology'
-            ? (settings?.visualisation?.graphTypeVisuals?.ontology as any)?.edgeColor
+            ? settings?.visualisation?.graphTypeVisuals?.ontology?.edgeColor
             : undefined
         }
       />

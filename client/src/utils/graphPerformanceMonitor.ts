@@ -201,11 +201,13 @@ class GraphPerformanceMonitor {
 
   
   private updateMemoryMetrics() {
-    if ('memory' in performance) {
-      const memory = (performance as any).memory;
+    interface PerformanceMemory { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number; }
+    const perfWithMemory = performance as Performance & { memory?: PerformanceMemory };
+    if (perfWithMemory.memory) {
+      const memory = perfWithMemory.memory;
       this.metrics.memory = {
-        used: Math.round(memory.usedJSHeapSize / 1048576), 
-        limit: Math.round(memory.jsHeapSizeLimit / 1048576), 
+        used: Math.round(memory.usedJSHeapSize / 1048576),
+        limit: Math.round(memory.jsHeapSizeLimit / 1048576),
         percent: Math.round((memory.usedJSHeapSize / memory.jsHeapSizeLimit) * 100)
       };
     }
@@ -388,7 +390,7 @@ class GraphPerformanceMonitor {
 
   
   public logReport() {
-    console.log(this.generateReport());
+    logger.info(this.generateReport());
   }
 
   
@@ -432,5 +434,6 @@ export const graphPerformanceMonitor = new GraphPerformanceMonitor();
 
 // Export to window for debugging
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-  (window as any).graphPerformanceMonitor = graphPerformanceMonitor;
+  const devWindow = window as unknown as Record<string, unknown>;
+  devWindow.graphPerformanceMonitor = graphPerformanceMonitor;
 }

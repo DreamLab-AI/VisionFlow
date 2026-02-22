@@ -25,6 +25,8 @@ pub enum PTXModule {
     SsspCompact,
     VisionflowUnifiedStability,
     OntologyConstraints,
+    Pagerank,
+    GpuConnectedComponents,
 }
 
 impl PTXModule {
@@ -38,6 +40,8 @@ impl PTXModule {
             PTXModule::SsspCompact => "sssp_compact.cu",
             PTXModule::VisionflowUnifiedStability => "visionflow_unified_stability.cu",
             PTXModule::OntologyConstraints => "ontology_constraints.cu",
+            PTXModule::Pagerank => "pagerank.cu",
+            PTXModule::GpuConnectedComponents => "gpu_connected_components.cu",
         }
     }
 
@@ -51,6 +55,8 @@ impl PTXModule {
             PTXModule::SsspCompact => "SSSP_COMPACT_PTX_PATH",
             PTXModule::VisionflowUnifiedStability => "VISIONFLOW_UNIFIED_STABILITY_PTX_PATH",
             PTXModule::OntologyConstraints => "ONTOLOGY_CONSTRAINTS_PTX_PATH",
+            PTXModule::Pagerank => "PAGERANK_PTX_PATH",
+            PTXModule::GpuConnectedComponents => "GPU_CONNECTED_COMPONENTS_PTX_PATH",
         }
     }
 
@@ -64,6 +70,8 @@ impl PTXModule {
             PTXModule::SsspCompact,
             PTXModule::VisionflowUnifiedStability,
             PTXModule::OntologyConstraints,
+            PTXModule::Pagerank,
+            PTXModule::GpuConnectedComponents,
         ]
     }
 }

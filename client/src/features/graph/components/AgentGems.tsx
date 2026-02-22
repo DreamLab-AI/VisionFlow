@@ -103,7 +103,7 @@ export const AgentGems: React.FC<AgentGemsProps> = ({ agents }) => {
 
     // Subtle emissive pulse based on activity
     const pulse = Math.pow((Math.sin(t * Math.PI) + 1) * 0.5, 4);
-    const currentMat = mesh.material as any;
+    const currentMat = mesh.material as THREE.MeshPhysicalMaterial;
     if (currentMat.emissiveIntensity !== undefined) {
       currentMat.emissiveIntensity = 0.15 + pulse * uniforms.activityLevel.value * 0.2;
     }

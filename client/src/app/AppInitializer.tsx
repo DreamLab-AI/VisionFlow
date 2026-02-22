@@ -53,8 +53,8 @@ const loadServices = async (): Promise<void> => {
 
   results.forEach((result, i) => {
     if (result.status === 'rejected') {
-      console.warn(
-        `[AppInitializer] Non-critical service "${serviceLoaders[i].name}" failed:`,
+      logger.warn(
+        `Non-critical service "${serviceLoaders[i].name}" failed:`,
         result.reason
       );
     }
@@ -78,7 +78,7 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
       // Innovation Manager is non-critical — fire and forget
       loadServices().catch(e => logger.warn('loadServices background error:', e));
 
-      console.log(`[AppInit] +${((performance.now() - t0) / 1000).toFixed(1)}s  loadServices kicked off (non-blocking)`);
+      logger.debug(`+${((performance.now() - t0) / 1000).toFixed(1)}s  loadServices kicked off (non-blocking)`);
 
       // Set up retry handler for worker initialization
       const initializeWorker = async (): Promise<boolean> => {
@@ -125,21 +125,22 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
 
       try {
         await initializeWorker();
-        console.log(`[AppInit] +${((performance.now() - t0) / 1000).toFixed(1)}s  worker ready`);
+        logger.debug(`+${((performance.now() - t0) / 1000).toFixed(1)}s  worker ready`);
 
         logger.info('Step 2: graphWorkerProxy initialized, calling settings initialize');
         await initialize();
-        console.log(`[AppInit] +${((performance.now() - t0) / 1000).toFixed(1)}s  settings initialized`);
+        logger.debug(`+${((performance.now() - t0) / 1000).toFixed(1)}s  settings initialized`);
 
         // Apply debug settings
-        const currentSettings = useSettingsStore.getState().settings as any;
-        if (currentSettings?.system?.debug) {
+        const currentSettings = useSettingsStore.getState().settings;
+        const systemDebug = (currentSettings as unknown as Record<string, Record<string, Record<string, unknown>>>)?.system?.debug;
+        if (systemDebug) {
           try {
-            const debugSettings = currentSettings.system.debug;
-            debugState.enableDebug(debugSettings.enabled);
+            const debugSettings = systemDebug;
+            debugState.enableDebug(!!debugSettings.enabled);
             if (debugSettings.enabled) {
-              debugState.enableDataDebug(debugSettings.enableDataDebug);
-              debugState.enablePerformanceDebug(debugSettings.enablePerformanceDebug);
+              debugState.enableDataDebug(!!debugSettings.enableDataDebug);
+              debugState.enablePerformanceDebug(!!debugSettings.enablePerformanceDebug);
             }
           } catch (debugError) {
             logger.warn('Error applying debug settings:', createErrorMetadata(debugError));
@@ -154,10 +155,10 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
             try {
               const settings = useSettingsStore.getState().settings;
               await initializeWebSocket(settings);
-              console.log(`[AppInit] +${((performance.now() - t0) / 1000).toFixed(1)}s  WebSocket connected`);
+              logger.debug(`+${((performance.now() - t0) / 1000).toFixed(1)}s  WebSocket connected`);
             } catch (wsError) {
               logger.error('WebSocket initialization failed, continuing with UI only:', createErrorMetadata(wsError));
-              console.log(`[AppInit] +${((performance.now() - t0) / 1000).toFixed(1)}s  WebSocket FAILED (non-fatal)`);
+              logger.debug(`+${((performance.now() - t0) / 1000).toFixed(1)}s  WebSocket FAILED (non-fatal)`);
             }
           }
         })();
@@ -166,10 +167,10 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
           try {
             logger.info('Fetching initial graph data via REST API');
             const graphData = await graphDataManager.fetchInitialData();
-            console.log(`[AppInit] +${((performance.now() - t0) / 1000).toFixed(1)}s  graph data: ${graphData.nodes.length} nodes, ${graphData.edges.length} edges`);
+            logger.debug(`+${((performance.now() - t0) / 1000).toFixed(1)}s  graph data: ${graphData.nodes.length} nodes, ${graphData.edges.length} edges`);
           } catch (fetchError) {
             logger.error('Failed to fetch initial graph data:', createErrorMetadata(fetchError));
-            console.log(`[AppInit] +${((performance.now() - t0) / 1000).toFixed(1)}s  graph data FAILED`);
+            logger.debug(`+${((performance.now() - t0) / 1000).toFixed(1)}s  graph data FAILED`);
             await graphDataManager.setGraphData({ nodes: [], edges: [] });
           }
         })();
@@ -177,7 +178,7 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
         // Wait for BOTH, but neither blocks the other
         await Promise.all([wsPromise, dataPromise]);
 
-        console.log(`[AppInit] +${((performance.now() - t0) / 1000).toFixed(1)}s  initialization complete`);
+        logger.debug(`+${((performance.now() - t0) / 1000).toFixed(1)}s  initialization complete`);
         onInitialized();
         logger.info('onInitialized called successfully');
 
@@ -191,9 +192,9 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
   }, []);
 
   
-  const initializeWebSocket = async (settingsParam: any): Promise<void> => {
+  const initializeWebSocket = async (settingsParam: Record<string, unknown> | null | undefined): Promise<void> => {
     // Use passed settings or fall back to fresh store read
-    const settings = settingsParam ?? useSettingsStore.getState().settings;
+    const settings = (settingsParam ?? useSettingsStore.getState().settings) as Record<string, unknown>;
     try {
       const websocketService = webSocketService;
 
@@ -272,9 +273,12 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
 
               
               logger.info('Sending subscribe_position_updates message to server');
+              const sys = settings?.system as Record<string, unknown> | undefined;
+              const ws = sys?.websocket as Record<string, unknown> | undefined;
+              const updateRate = (ws?.updateRate as number | undefined) || 60;
               websocketService.sendMessage('subscribe_position_updates', {
                 binary: true,
-                interval: settings?.system?.websocket?.updateRate || 60
+                interval: updateRate
               });
 
               if (debugState.isDataDebugEnabled()) {
@@ -283,18 +287,21 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
             } else {
               logger.info('WebSocket connected but not fully established yet - waiting for readiness');
 
-              
-              
+
+
               graphDataManager.enableBinaryUpdates();
 
-              
+
               const unsubscribe = websocketService.onMessage((message) => {
-                if ((message as any).type === 'connection_established') {
-                  
+                if (message.type === 'connection_established') {
+
                   logger.info('Connection established message received, sending subscribe_position_updates');
+                  const sys2 = settings?.system as Record<string, unknown> | undefined;
+                  const ws2 = sys2?.websocket as Record<string, unknown> | undefined;
+                  const updateRate2 = (ws2?.updateRate as number | undefined) || 60;
                   websocketService.sendMessage('subscribe_position_updates', {
                     binary: true,
-                    interval: settings?.system?.websocket?.updateRate || 60
+                    interval: updateRate2
                   });
                   unsubscribe(); 
 

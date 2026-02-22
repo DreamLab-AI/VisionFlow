@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { AlertCircle, X, RefreshCw, Wifi, WifiOff, AlertTriangle, CheckCircle } from 'lucide-react';
 import { Button } from '../features/design-system/components';
 import { cn } from '../utils/classNameUtils';
+import { createLogger } from '../utils/loggerConfig';
+
+const logger = createLogger('ErrorNotification');
 
 export interface ErrorNotificationProps {
   type: 'error' | 'warning' | 'info' | 'success';
@@ -67,7 +70,7 @@ export const ErrorNotification: React.FC<ErrorNotificationProps> = ({
       handleClose(); 
     } catch (error) {
       
-      console.error('Retry failed:', error);
+      logger.error('Retry failed:', error);
     } finally {
       setIsRetrying(false);
     }

@@ -459,7 +459,7 @@ export async function handleRegisterPost(request, reply, issuer, inviteOnly = fa
  */
 export async function handlePasskeyComplete(request, reply, provider) {
   const { uid } = request.params;
-  const { accountId } = request.query;
+  const { accountId, token } = request.query;
 
   if (!accountId) {
     return reply.code(400).type('text/html').send(errorPage('Missing account', 'Account ID is required.'));
@@ -477,6 +477,16 @@ export async function handlePasskeyComplete(request, reply, provider) {
       if (interaction.result.login.accountId !== accountId) {
         request.log.warn({ expected: interaction.result.login.accountId, provided: accountId }, 'AccountId mismatch in passkey complete');
         return reply.code(403).type('text/html').send(errorPage('Access denied', 'Account mismatch.'));
+      }
+    } else {
+      // For direct passkey login: validate completion token to prevent unauthenticated OIDC completion
+      if (!token) {
+        return reply.code(400).type('text/html').send(errorPage('Missing token', 'Login completion token is required.'));
+      }
+      const { validateLoginCompletionToken } = await import('./passkey.js');
+      const tokenValid = validateLoginCompletionToken(token, accountId);
+      if (!tokenValid) {
+        return reply.code(403).type('text/html').send(errorPage('Access denied', 'Invalid or expired login token.'));
       }
     }
 

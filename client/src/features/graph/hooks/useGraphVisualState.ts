@@ -35,7 +35,7 @@ const detectGraphMode = (nodes: GraphNode[]): GraphVisualMode => {
   let ontologySignals = 0;
   let agentSignals = 0;
   for (const n of sample) {
-    if ((n as any).owlClassIri || n.metadata?.hierarchyDepth !== undefined || n.metadata?.depth !== undefined) {
+    if ((n as unknown as { owlClassIri?: string }).owlClassIri || n.metadata?.hierarchyDepth !== undefined || n.metadata?.depth !== undefined) {
       ontologySignals++;
     }
     // Require agentType as the definitive agent signal.
@@ -89,7 +89,7 @@ export function useGraphVisualState(graphData: GraphData): GraphVisualStateResul
   // Narrow selector: only the graph mode override matters for visual state.
   // Avoids re-renders when unrelated settings (glow, edges, physics) change.
   const settingsGraphMode = useSettingsStore(
-    s => (s.settings?.visualisation as any)?.graphs?.mode as GraphVisualMode | undefined
+    s => (s.settings?.visualisation?.graphs as unknown as { mode?: GraphVisualMode } | undefined)?.mode
   );
 
   // Binary protocol node-type map from websocket store
@@ -141,8 +141,8 @@ export function useGraphVisualState(graphData: GraphData): GraphVisualStateResul
       }
 
       // Priority 2: Metadata heuristics (fallback)
-      const nt = node.metadata?.nodeType || (node as any).nodeType || '';
-      const owlIri = (node as any).owlClassIri;
+      const nt = node.metadata?.nodeType || (node as unknown as { nodeType?: string }).nodeType || '';
+      const owlIri = (node as unknown as { owlClassIri?: string }).owlClassIri;
       if (node.metadata?.agentType || node.metadata?.tokenRate !== undefined) {
         map.set(String(node.id), 'agent');
       } else if (owlIri || nt === 'owl_class' || node.metadata?.hierarchyDepth !== undefined) {

@@ -7,6 +7,7 @@
 # ---------------------------------------------------------------------------
 # Stage 1: Toolchain — cached until base image or tool versions change
 # ---------------------------------------------------------------------------
+# SECURITY: Pin to digest for production builds (e.g., cachyos/cachyos-v3@sha256:abc123...)
 FROM cachyos/cachyos-v3:latest AS toolchain
 
 ARG CUDA_ARCH=86
@@ -141,6 +142,7 @@ RUN rm -rf /app/target/release/build/webxr-* /app/target/release/deps/webxr* /ap
     cp target/release/webxr /app/webxr
 
 # Runtime stage - same CachyOS base, only runtime packages
+# SECURITY: Pin to digest for production builds (e.g., cachyos/cachyos-v3@sha256:abc123...)
 FROM cachyos/cachyos-v3:latest
 
 ENV RUST_LOG=${RUST_LOG:-warn} \

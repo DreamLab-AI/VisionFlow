@@ -6,6 +6,17 @@ import { createLogger } from '../utils/loggerConfig';
 
 const logger = createLogger('AudioInputService');
 
+// Legacy vendor-prefixed APIs for older browsers
+interface NavigatorWithLegacy extends Navigator {
+  webkitGetUserMedia?: Navigator['mediaDevices']['getUserMedia'];
+  mozGetUserMedia?: Navigator['mediaDevices']['getUserMedia'];
+  msGetUserMedia?: Navigator['mediaDevices']['getUserMedia'];
+}
+
+interface WindowWithWebkit extends Window {
+  webkitAudioContext?: typeof AudioContext;
+}
+
 export interface AudioConstraints {
   echoCancellation?: boolean;
   noiseSuppression?: boolean;
@@ -62,10 +73,11 @@ export class AudioInputService {
       }
 
       
-      const getUserMedia = navigator.mediaDevices.getUserMedia ||
-                          (navigator as any).webkitGetUserMedia ||
-                          (navigator as any).mozGetUserMedia ||
-                          (navigator as any).msGetUserMedia;
+      const nav = navigator as NavigatorWithLegacy;
+      const getUserMedia = navigator.mediaDevices?.getUserMedia ||
+                          nav.webkitGetUserMedia ||
+                          nav.mozGetUserMedia ||
+                          nav.msGetUserMedia;
 
       if (!getUserMedia) {
         throw new Error('Browser does not support microphone access. Please use a modern browser with HTTPS.');
@@ -93,7 +105,7 @@ export class AudioInputService {
       } else if (getUserMedia) {
         // Fallback to legacy API with callback style
         this.stream = await new Promise<MediaStream>((resolve, reject) => {
-          (getUserMedia as any).call(navigator, defaultConstraints, resolve, reject);
+          (getUserMedia as (constraints: MediaStreamConstraints, successCb: (stream: MediaStream) => void, errorCb: (err: DOMException) => void) => void).call(navigator, defaultConstraints, resolve, reject);
         });
       } else {
         throw new Error('getUserMedia is not supported');
@@ -359,7 +371,7 @@ export class AudioInputService {
     }
   }
 
-  private emit(event: string, ...args: any[]) {
+  private emit(event: string, ...args: unknown[]) {
     if (this.listeners.has(event)) {
       this.listeners.get(event)!.forEach(callback => {
         callback(...args);
@@ -371,7 +383,7 @@ export class AudioInputService {
   static isSupported(): boolean {
     const hasGetUserMedia = !!(navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function');
     const hasMediaRecorder = typeof MediaRecorder !== 'undefined';
-    const hasAudioContext = typeof AudioContext !== 'undefined' || typeof (window as any).webkitAudioContext !== 'undefined';
+    const hasAudioContext = typeof AudioContext !== 'undefined' || typeof (window as WindowWithWebkit).webkitAudioContext !== 'undefined';
     return hasGetUserMedia && hasMediaRecorder && hasAudioContext;
   }
 
@@ -386,11 +398,11 @@ export class AudioInputService {
     return {
       mediaDevices: !!navigator.mediaDevices,
       getUserMedia: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) ||
-                   !!((navigator as any).webkitGetUserMedia ||
-                      (navigator as any).mozGetUserMedia ||
-                      (navigator as any).msGetUserMedia),
+                   !!((navigator as NavigatorWithLegacy).webkitGetUserMedia ||
+                      (navigator as NavigatorWithLegacy).mozGetUserMedia ||
+                      (navigator as NavigatorWithLegacy).msGetUserMedia),
       mediaRecorder: !!window.MediaRecorder,
-      audioContext: !!(window.AudioContext || (window as any).webkitAudioContext),
+      audioContext: !!(window.AudioContext || (window as WindowWithWebkit).webkitAudioContext),
       isHttps: location.protocol === 'https:' ||
                location.hostname === 'localhost' ||
                location.hostname === '127.0.0.1'

@@ -1,4 +1,7 @@
 import { Command, CommandCategory, CommandRegistryOptions } from './types';
+import { createLogger } from '../../utils/loggerConfig';
+
+const logger = createLogger('CommandRegistry');
 
 export class CommandRegistry {
   private commands: Map<string, Command> = new Map();
@@ -149,7 +152,7 @@ export class CommandRegistry {
         }
       }
     } catch (error) {
-      console.error('Failed to load recent commands:', error);
+      logger.error('Failed to load recent commands:', error);
     }
   }
 
@@ -157,7 +160,7 @@ export class CommandRegistry {
     try {
       localStorage.setItem('commandPalette.recentCommands', JSON.stringify(this.recentCommands));
     } catch (error) {
-      console.error('Failed to save recent commands:', error);
+      logger.error('Failed to save recent commands:', error);
     }
   }
 

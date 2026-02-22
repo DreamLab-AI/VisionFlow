@@ -356,10 +356,8 @@ fn generate_cpu_fallback_clustering(
     method: &str,
 ) -> Vec<Cluster> {
     if !agents.is_empty() {
-        
-        super::generate_agent_based_clusters(graph_data, agents, num_clusters, method)
+        super::clustering_handlers::generate_agent_based_clusters(graph_data, agents, num_clusters, method)
     } else {
-        
-        super::generate_graph_based_clusters(graph_data, num_clusters, method)
+        super::clustering_handlers::generate_graph_based_clusters(graph_data, num_clusters, method)
     }
 }

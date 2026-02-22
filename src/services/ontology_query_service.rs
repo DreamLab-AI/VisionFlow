@@ -21,6 +21,7 @@ use tokio::sync::RwLock;
 
 pub struct OntologyQueryService {
     ontology_repo: Arc<dyn OntologyRepository>,
+    #[allow(dead_code)]
     graph_repo: Arc<dyn KnowledgeGraphRepository>,
     whelk: Arc<RwLock<WhelkInferenceEngine>>,
     schema_service: Arc<SchemaService>,

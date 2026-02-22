@@ -2,6 +2,7 @@
 # This image includes all build tools and ALWAYS builds the Rust backend on startup
 # to ensure compatibility with the container's architecture
 
+# SECURITY: Pin to digest for production builds (e.g., cachyos/cachyos-v3@sha256:abc123...)
 FROM cachyos/cachyos-v3:latest
 
 # Build argument for CUDA architecture (will be detected at runtime)

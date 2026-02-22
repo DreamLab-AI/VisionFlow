@@ -557,8 +557,10 @@ impl OntologyParser {
 
             if in_relationships {
                 if let Some(caps) = PROPERTY_PATTERN.captures(line) {
-                    let prop_name = caps.get(1).unwrap().as_str().to_string();
-                    let value_text = caps.get(2).unwrap().as_str();
+                    let (prop_name, value_text) = match (caps.get(1), caps.get(2)) {
+                        (Some(p), Some(v)) => (p.as_str().to_string(), v.as_str()),
+                        _ => continue, // Malformed capture, skip line
+                    };
 
                     // Extract wiki-links
                     let wiki_links = self.extract_wiki_links(value_text);
@@ -579,9 +581,10 @@ impl OntologyParser {
     fn extract_bridges(&self, section: &str, block: &mut OntologyBlock) {
         for line in section.lines() {
             if let Some(caps) = BRIDGE_PATTERN.captures(line) {
-                let direction = caps.get(1).unwrap().as_str();
-                let target = caps.get(2).unwrap().as_str();
-                let via = caps.get(3).unwrap().as_str();
+                let (direction, target, via) = match (caps.get(1), caps.get(2), caps.get(3)) {
+                    (Some(d), Some(t), Some(v)) => (d.as_str(), t.as_str(), v.as_str()),
+                    _ => continue, // Malformed capture, skip line
+                };
 
                 let bridge_str = format!("{} via {}", target, via);
 
@@ -641,9 +644,15 @@ impl OntologyParser {
     fn extract_property(&self, section: &str, property_name: &str) -> Option<String> {
         for line in section.lines() {
             if let Some(caps) = PROPERTY_PATTERN.captures(line) {
-                let prop = caps.get(1).unwrap().as_str();
+                let prop = match caps.get(1) {
+                    Some(m) => m.as_str(),
+                    None => continue,
+                };
                 if prop == property_name {
-                    let value = caps.get(2).unwrap().as_str().trim();
+                    let value = match caps.get(2) {
+                        Some(m) => m.as_str().trim(),
+                        None => continue,
+                    };
                     // Remove wiki-link brackets if present
                     let cleaned = if value.starts_with("[[") && value.ends_with("]]") {
                         &value[2..value.len() - 2]
@@ -662,9 +671,15 @@ impl OntologyParser {
 
         for line in section.lines() {
             if let Some(caps) = PROPERTY_PATTERN.captures(line) {
-                let prop = caps.get(1).unwrap().as_str();
+                let prop = match caps.get(1) {
+                    Some(m) => m.as_str(),
+                    None => continue,
+                };
                 if prop == property_name {
-                    let value_text = caps.get(2).unwrap().as_str();
+                    let value_text = match caps.get(2) {
+                        Some(m) => m.as_str(),
+                        None => continue,
+                    };
                     let wiki_links = self.extract_wiki_links(value_text);
                     result.extend(wiki_links);
                 }

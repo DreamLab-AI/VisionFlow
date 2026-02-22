@@ -1,6 +1,5 @@
 
 
-use std::collections::HashMap;
 use log::{debug, error, info};
 use rand::Rng;
 use uuid::Uuid;
@@ -125,13 +124,13 @@ async fn perform_spectral_clustering(
         let end_idx = if i == num_clusters - 1 { node_count } else { (i + 1) * nodes_per_cluster };
 
         let cluster_nodes: Vec<u32> = graph_data.nodes
-            .keys()
+            .iter()
             .skip(start_idx)
             .take(end_idx - start_idx)
-            .cloned()
+            .map(|n| n.id)
             .collect();
 
-        let coherence = 0.7 + rand::thread_rng().gen::<f32>() * 0.25; 
+        let coherence = 0.7 + rand::thread_rng().gen::<f32>() * 0.25;
 
         clusters.push(Cluster {
             id: Uuid::new_v4().to_string(),
@@ -167,10 +166,10 @@ async fn perform_hierarchical_clustering(
         let end_idx = if i == num_clusters - 1 { node_count } else { (i + 1) * nodes_per_cluster };
 
         let cluster_nodes: Vec<u32> = graph_data.nodes
-            .keys()
+            .iter()
             .skip(start_idx)
             .take(end_idx - start_idx)
-            .cloned()
+            .map(|n| n.id)
             .collect();
 
         let coherence = 0.6 + distance_threshold * 0.3;
@@ -204,7 +203,7 @@ async fn perform_dbscan_clustering(
     let num_clusters = num_clusters.min(node_count / min_samples).max(1);
 
     let mut clusters = Vec::new();
-    let mut remaining_nodes: Vec<u32> = graph_data.nodes.keys().cloned().collect();
+    let mut remaining_nodes: Vec<u32> = graph_data.nodes.iter().map(|n| n.id).collect();
 
     for i in 0..num_clusters {
         let cluster_size = (remaining_nodes.len() / (num_clusters - i)).max(min_samples);
@@ -264,10 +263,10 @@ async fn perform_kmeans_clustering(
         let end_idx = if i == num_clusters - 1 { node_count } else { (i + 1) * nodes_per_cluster };
 
         let cluster_nodes: Vec<u32> = graph_data.nodes
-            .keys()
+            .iter()
             .skip(start_idx)
             .take(end_idx - start_idx)
-            .cloned()
+            .map(|n| n.id)
             .collect();
 
         let coherence = 0.65 + rand::thread_rng().gen::<f32>() * 0.25; 
@@ -301,9 +300,9 @@ async fn perform_louvain_clustering(
     let num_communities = num_communities.min(node_count / 2).max(2);
 
     let mut clusters = Vec::new();
-    let mut remaining_nodes: Vec<u32> = graph_data.nodes.keys().cloned().collect();
+    let mut remaining_nodes: Vec<u32> = graph_data.nodes.iter().map(|n| n.id).collect();
 
-    
+
     for i in 0..num_communities {
         let base_size = remaining_nodes.len() / (num_communities - i);
         let variation = (base_size as f32 * rand::thread_rng().gen::<f32>() * 0.5) as usize;
@@ -342,7 +341,7 @@ async fn perform_affinity_propagation(
     let num_exemplars = num_exemplars.min(node_count / 3).max(1);
 
     let mut clusters = Vec::new();
-    let mut remaining_nodes: Vec<u32> = graph_data.nodes.keys().cloned().collect();
+    let mut remaining_nodes: Vec<u32> = graph_data.nodes.iter().map(|n| n.id).collect();
 
     for i in 0..num_exemplars {
         let cluster_size = remaining_nodes.len() / (num_exemplars - i);
@@ -368,7 +367,7 @@ async fn perform_affinity_propagation(
 }
 
 fn create_single_cluster(graph_data: &crate::models::graph::GraphData, method: &str) -> Vec<Cluster> {
-    let all_nodes: Vec<u32> = graph_data.nodes.keys().cloned().collect();
+    let all_nodes: Vec<u32> = graph_data.nodes.iter().map(|n| n.id).collect();
 
     vec![Cluster {
         id: Uuid::new_v4().to_string(),

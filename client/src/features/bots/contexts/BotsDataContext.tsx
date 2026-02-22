@@ -111,7 +111,7 @@ export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const agentType = node.metadata?.agent_type || node.type || node.node_type || node.nodeType;
 
       if (!agentType) {
-        console.error('Missing agent type for node:', {
+        logger.error('Missing agent type for node:', {
           nodeId: node.id,
           metadataId: node.metadataId || node.metadata_id,
           metadata: node.metadata,

@@ -187,8 +187,10 @@ export class AIInsights {
       algorithmUsed: algorithm,
       improvements,
       optimizedPositions,
-      // Cast layout metrics - calculateOptimizationConfidence uses different metrics internally
-      confidence: this.calculateOptimizationConfidence(currentMetrics as any, improvedMetrics as any),
+      confidence: this.calculateOptimizationConfidence(
+        { ...currentMetrics, density: 0, averagePathLength: 0, clusteringCoefficient: 0, centralization: 0, modularity: 0, efficiency: currentMetrics.readability, smallWorldness: 0 },
+        { ...improvedMetrics, density: 0, averagePathLength: 0, clusteringCoefficient: 0, centralization: 0, modularity: 0, efficiency: improvedMetrics.readability, smallWorldness: 0 },
+      ),
       reasoning: this.generateOptimizationReasoning(algorithm, improvements)
     };
 

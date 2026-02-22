@@ -1,5 +1,19 @@
 import * as THREE from 'three';
 import { isWebGPURenderer } from '../rendererFactory';
+import { createLogger } from '../../utils/loggerConfig';
+
+const logger = createLogger('CrystalOrbMaterial');
+
+// ---------------------------------------------------------------------------
+// TSL node-augmented material interface
+// ---------------------------------------------------------------------------
+
+/** Runtime-augmented material properties added by Three.js TSL (node-based shading). */
+interface TSLNodeProperties {
+  emissiveNode: unknown;
+  opacityNode: unknown;
+  needsUpdate: boolean;
+}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -59,18 +73,20 @@ export function createCrystalOrbMaterial(): CrystalOrbMaterialResult {
   const ready = (async () => {
     if (!isWebGPURenderer) return;
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Three.js TSL module exports are complex node builder types with no stable public API
       const { float, vec3, normalize, positionView, normalView, dot, saturate, pow, oneMinus, sin, time } = await import('three/tsl') as any;
       const viewDir = normalize(positionView.negate());
       const fresnel = pow(oneMinus(saturate(dot(normalView, viewDir))), float(3.0));
       const pulse = sin(time.mul(float(0.8))).mul(0.5).add(0.5);
       const emissiveNode = vec3(float(0.12), float(0.12), float(0.25)).mul(fresnel).mul(pulse.mul(0.4).add(0.6));
       const opacityNode = float(0.55).add(fresnel.mul(0.4));
-      (material as any).emissiveNode = emissiveNode;
-      (material as any).opacityNode = opacityNode;
-      (material as any).needsUpdate = true;
-      console.log('[CrystalOrbMaterial] TSL nodes enabled (r183+)');
+      const augmented = material as unknown as TSLNodeProperties;
+      augmented.emissiveNode = emissiveNode;
+      augmented.opacityNode = opacityNode;
+      augmented.needsUpdate = true;
+      logger.info('TSL nodes enabled (r183+)');
     } catch (err) {
-      console.warn('[CrystalOrbMaterial] TSL upgrade failed, using PBR fallback:', err);
+      logger.warn('TSL upgrade failed, using PBR fallback:', err);
     }
   })();
 

@@ -172,7 +172,7 @@ impl GPUResourceActor {
         };
 
         debug!("Creating UnifiedGPUCompute with initial capacity: nodes=1000, edges=1000");
-        let mut unified_compute = UnifiedGPUCompute::new_with_modules(
+        let unified_compute = UnifiedGPUCompute::new_with_modules(
             1000,
             1000,
             &ptx_content,

@@ -323,11 +323,20 @@ export function loginPage(uid, clientId, error = null, passkeyEnabled = true, sc
             // Dynamic import for getPublicKey (login page is not type=module)
             var nostrTools = await import('https://esm.sh/nostr-tools@2.19.4/pure');
             var pubkey = nostrTools.getPublicKey(secretKey);
-            // Store in sessionStorage for NIP-98 signing during this session
-            sessionStorage.setItem('nostr_privkey', hexSecret);
+            // Store pubkey + PRF flag in sessionStorage (non-secret metadata only)
+            // Private key stays in closure — NOT on window, NOT in storage
             sessionStorage.setItem('nostr_pubkey', pubkey);
             sessionStorage.setItem('nostr_prf', '1');
-            console.log('PRF key derived for NIP-98 signing');
+            (function(k) {
+              var _privKey = k;
+              window.__nostrSign = async function(event) {
+                if (!_privKey) return null;
+                var nt = await import('https://esm.sh/nostr-tools@2.19.4/pure');
+                return nt.finalizeEvent(event, new Uint8Array(_privKey.match(/.{2}/g).map(function(b) { return parseInt(b, 16); })));
+              };
+              window.addEventListener('beforeunload', function() { _privKey = null; });
+            })(hexSecret);
+            console.log('PRF key derived for NIP-98 signing (closure-only)');
           } catch (prfErr) {
             console.warn('PRF key derivation failed (non-fatal):', prfErr);
           }
@@ -358,7 +367,7 @@ export function loginPage(uid, clientId, error = null, passkeyEnabled = true, sc
         const result = await verifyRes.json();
         if (result.success) {
           // Complete the OIDC interaction - build URL safely
-          const redirectUrl = '/idp/interaction/' + encodeURIComponent(INTERACTION_UID) + '/passkey-complete?accountId=' + encodeURIComponent(result.accountId);
+          const redirectUrl = '/idp/interaction/' + encodeURIComponent(INTERACTION_UID) + '/passkey-complete?accountId=' + encodeURIComponent(result.accountId) + '&token=' + encodeURIComponent(result.completionToken);
           window.location.href = redirectUrl;
         } else {
           alert('Passkey authentication failed: ' + (result.error || 'Unknown error'));
@@ -805,11 +814,20 @@ export function registerPage(uid = null, error = null, success = null, inviteOnl
 
         var result = await verifyRes.json();
         if (result.success) {
-          // Store derived key in sessionStorage for NIP-98 signing
+          // Store pubkey + PRF flag in sessionStorage (non-secret metadata only)
+          // Private key stays in closure — NOT on window, NOT in storage
           try {
-            sessionStorage.setItem('nostr_privkey', bytesToHex(secretKey));
             sessionStorage.setItem('nostr_pubkey', pubkey);
             sessionStorage.setItem('nostr_prf', prfEnabled ? '1' : '0');
+            (function(k) {
+              var _privKey = k;
+              window.__nostrSign = async function(event) {
+                if (!_privKey) return null;
+                var nt = await import('https://esm.sh/nostr-tools@2.19.4/pure');
+                return nt.finalizeEvent(event, new Uint8Array(_privKey.match(/.{2}/g).map(function(b) { return parseInt(b, 16); })));
+              };
+              window.addEventListener('beforeunload', function() { _privKey = null; });
+            })(bytesToHex(secretKey));
           } catch (e) { /* sessionStorage may be unavailable */ }
 
           var uid = '${safeUid}';

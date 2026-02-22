@@ -2,6 +2,9 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Stats, Environment } from '@react-three/drei';
 import { createGemRenderer } from '../../../rendering/rendererFactory';
+import { createLogger } from '../../../utils/loggerConfig';
+
+const logger = createLogger('GraphCanvas');
 
 // GraphManager for rendering the actual graph
 import GraphManager from './GraphManager';
@@ -25,9 +28,6 @@ import WasmSceneEffects from '../../visualisation/components/WasmSceneEffects';
 // Store and utils
 import { useSettingsStore } from '../../../store/settingsStore';
 import { graphDataManager, type GraphData } from '../managers/graphDataManager';
-import { createLogger } from '../../../utils/loggerConfig';
-
-const logger = createLogger('GraphCanvas');
 
 // Main GraphCanvas component
 const GraphCanvas: React.FC = () => {
@@ -66,7 +66,7 @@ const GraphCanvas: React.FC = () => {
                 setEdgeCount(data.edges.length);
             }
         }).catch((error) => {
-            console.error('[GraphCanvas] Failed to load initial graph data:', error);
+            logger.error('Failed to load initial graph data:', error);
         });
 
         return () => {

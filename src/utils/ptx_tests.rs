@@ -12,7 +12,7 @@ mod tests {
             assert!(seen.insert(module), "Duplicate module: {:?}", module);
         }
 
-        assert_eq!(seen.len(), 7, "Should have exactly 7 unique modules");
+        assert_eq!(seen.len(), 10, "Should have exactly 10 unique modules");
     }
 
     #[test]

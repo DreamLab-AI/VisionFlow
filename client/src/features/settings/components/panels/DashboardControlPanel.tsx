@@ -3,6 +3,9 @@ import { Activity, RefreshCw, Gauge, Layers, TrendingUp, Settings as SettingsIco
 import { useSettingsStore } from '../../../../store/settingsStore';
 import { rendererCapabilities, isWebGPURenderer } from '../../../../rendering/rendererFactory';
 import { Button } from '@/features/design-system/components/Button';
+import { createLogger } from '../../../../utils/loggerConfig';
+
+const logger = createLogger('DashboardControlPanel');
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/features/design-system/components/Card';
 import { Switch } from '@/features/design-system/components/Switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/features/design-system/components/Select';
@@ -34,13 +37,13 @@ export const DashboardControlPanel: React.FC = () => {
   const settings = useSettingsStore(state => state.settings);
   const updateSettings = useSettingsStore(state => state.updateSettings);
 
-  const updateSetting = (path: string, value: any) => {
-    updateSettings((draft: any) => {
+  const updateSetting = (path: string, value: string | number | boolean) => {
+    updateSettings((draft) => {
       const parts = path.split('.');
-      let current = draft;
+      let current = draft as unknown as Record<string, unknown>;
       for (let i = 0; i < parts.length - 1; i++) {
         if (!current[parts[i]]) current[parts[i]] = {};
-        current = current[parts[i]];
+        current = current[parts[i]] as Record<string, unknown>;
       }
       current[parts[parts.length - 1]] = value;
     });
@@ -73,7 +76,7 @@ export const DashboardControlPanel: React.FC = () => {
           });
         }
       } catch (error) {
-        console.warn('Failed to fetch system status:', error);
+        logger.warn('Failed to fetch system status:', error);
       }
     };
 
@@ -174,7 +177,7 @@ export const DashboardControlPanel: React.FC = () => {
       <Separator />
 
       {}
-      {(settings?.dashboard as any)?.showStatus && (
+      {((settings?.dashboard as unknown as Record<string, unknown> | undefined)?.showStatus as boolean | undefined) && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -327,7 +330,7 @@ export const DashboardControlPanel: React.FC = () => {
             </div>
             <Switch
               id="show-status"
-              checked={(settings?.dashboard as any)?.showStatus ?? true}
+              checked={((settings?.dashboard as unknown as Record<string, unknown> | undefined)?.showStatus as boolean | undefined) ?? true}
               onCheckedChange={(checked) => updateSetting('dashboard.showStatus', checked)}
             />
           </div>

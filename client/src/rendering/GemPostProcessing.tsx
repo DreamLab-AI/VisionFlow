@@ -2,9 +2,34 @@ import React, { useEffect, useRef, useMemo } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
 import { useSettingsStore } from '../store/settingsStore';
 import * as THREE from 'three';
+import { createLogger } from '../utils/loggerConfig';
+
+const logger = createLogger('GemPostProcessing');
 
 interface GemPostProcessingProps {
   enabled?: boolean;
+}
+
+/** Renderer extended with WebGPU detection flag set by rendererFactory. */
+interface RendererWithWebGPUFlag {
+  __isWebGPURenderer?: boolean;
+  getDrawingBufferSize: (target: THREE.Vector2) => THREE.Vector2;
+  render: (scene: THREE.Scene, camera: THREE.Camera) => void;
+}
+
+/** Bloom/glow settings shape with optional strength/intensity/radius/threshold. */
+interface BloomLikeSettings {
+  enabled?: boolean;
+  strength?: number;
+  intensity?: number;
+  radius?: number;
+  threshold?: number;
+}
+
+/** TSL texture node with optional toTexture method. */
+interface TSLTextureNode {
+  toTexture?: () => unknown;
+  add: (node: unknown) => unknown;
 }
 
 /**
@@ -27,12 +52,12 @@ interface GemPostProcessingProps {
 export const GemPostProcessing: React.FC<GemPostProcessingProps> = ({ enabled = true }) => {
   const { gl, scene, camera, size } = useThree();
   const settings = useSettingsStore(state => state.settings);
-  const composerRef = useRef<any>(null);
+  const composerRef = useRef<{ render: () => void; dispose?: () => void; setSize: (w: number, h: number) => void } | null>(null);
   const rtRef = useRef<THREE.WebGLRenderTarget | null>(null);
-  const postProcessingRef = useRef<any>(null);
-  const bloomNodeRef = useRef<any>(null);
+  const postProcessingRef = useRef<{ render: () => void; dispose: () => void } | null>(null);
+  const bloomNodeRef = useRef<{ strength?: { value: number }; radius?: { value: number }; threshold?: { value: number }; dispose?: () => void } | null>(null);
   const disposeRef = useRef<(() => void) | null>(null);
-  const isWebGPU = (gl as any).__isWebGPURenderer === true;
+  const isWebGPU = (gl as unknown as RendererWithWebGPUFlag).__isWebGPURenderer === true;
 
   const glowSettings = settings?.visualisation?.glow;
   const bloomSettings = settings?.visualisation?.bloom;
@@ -44,10 +69,10 @@ export const GemPostProcessing: React.FC<GemPostProcessingProps> = ({ enabled = 
   // Extract primitive values to avoid stale closures and unnecessary effect deps.
   // Object references (glowSettings, bloomSettings) change on every settings update
   // even when the underlying values haven't changed -- primitives are stable.
-  const activeSource = !bloomSettings?.enabled && glowSettings?.enabled ? glowSettings : bloomSettings;
-  const bloomStrength = (activeSource as any)?.strength ?? (activeSource as any)?.intensity ?? 0.3;
-  const bloomRadius = (activeSource as any)?.radius ?? 0.2;
-  const bloomThreshold = (activeSource as any)?.threshold ?? 0.3;
+  const activeSource: BloomLikeSettings | undefined = !bloomSettings?.enabled && glowSettings?.enabled ? glowSettings as BloomLikeSettings : bloomSettings as BloomLikeSettings;
+  const bloomStrength = activeSource?.strength ?? activeSource?.intensity ?? 0.3;
+  const bloomRadius = activeSource?.radius ?? 0.2;
+  const bloomThreshold = activeSource?.threshold ?? 0.3;
 
   // Stable params object for WebGL EffectComposer (triggers rebuild on change — acceptable
   // because WebGL bloom is cheap to reconstruct).
@@ -80,8 +105,9 @@ export const GemPostProcessing: React.FC<GemPostProcessingProps> = ({ enabled = 
     (async () => {
       try {
         const { RenderPipeline } = await import('three/webgpu');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Three.js TSL module exports are complex node builder types with no stable public API
         const tslMod = await import('three/tsl') as any;
-        const { pass } = tslMod;
+        const pass = tslMod.pass as (scene: THREE.Scene, camera: THREE.Camera) => { getTextureNode: (name: string) => TSLTextureNode; dispose?: () => void };
         const { bloom } = await import('three/examples/jsm/tsl/display/BloomNode.js');
 
         if (disposed) return;
@@ -96,23 +122,24 @@ export const GemPostProcessing: React.FC<GemPostProcessingProps> = ({ enabled = 
         // Break the WebGPU read/write synchronization scope: bloom must not
         // read the scene output texture while it's still a render attachment.
         // r183+: toTexture() is the standard API. rtt() (r170-r182) kept as fallback.
-        let bloomInput = scenePassColor;
-        if (typeof (scenePassColor as any).toTexture === 'function') {
-          bloomInput = (scenePassColor as any).toTexture();
+        let bloomInput: unknown = scenePassColor;
+        if (typeof scenePassColor.toTexture === 'function') {
+          bloomInput = scenePassColor.toTexture();
         } else if (typeof tslMod.rtt === 'function') {
           bloomInput = tslMod.rtt(scenePassColor);
         }
 
-        const bloomPass = bloom(bloomInput, strength, radius, threshold);
+        const { Node: NodeClass } = await import('three/webgpu');
+        const bloomPass = bloom(bloomInput as InstanceType<typeof NodeClass>, strength, radius, threshold);
 
         // Compose: scene + attenuated bloom. Raw `add` blows out bright nodes
         // because bloom(scene) at strength 0.8 pushes HDR values > 1.0 into
         // ACES compression territory, causing white-out and desaturation.
         // Scaling bloom by 0.5 preserves the glow effect while keeping values
         // in a range where ACES tone mapping retains color distinction.
-        const { float: tslFloat } = tslMod;
-        const outputNode = scenePassColor.add(bloomPass.mul(tslFloat(0.5)));
+        const outputNode = scenePassColor.add(bloomPass.mul(tslMod.float(0.5)));
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- RenderPipeline constructor types don't match R3F's renderer type
         const postProcessing = new RenderPipeline(gl as any, outputNode);
 
         postProcessingRef.current = postProcessing;
@@ -124,7 +151,7 @@ export const GemPostProcessing: React.FC<GemPostProcessingProps> = ({ enabled = 
           if (scenePass.dispose) scenePass.dispose();
         };
       } catch (err) {
-        console.warn('[GemPostProcessing] Failed to init WebGPU bloom:', err);
+        logger.warn('[GemPostProcessing] Failed to init WebGPU bloom:', err);
       }
     })();
 
@@ -175,7 +202,7 @@ export const GemPostProcessing: React.FC<GemPostProcessingProps> = ({ enabled = 
         // on the long edge so bloom mip chain stays within GPU limits.
         const maxDim = 2048;
         const drawSize = new THREE.Vector2();
-        (gl as any).getDrawingBufferSize(drawSize);
+        (gl as unknown as RendererWithWebGPUFlag).getDrawingBufferSize(drawSize);
         const scale = Math.min(1, maxDim / Math.max(drawSize.x, drawSize.y));
         const rtWidth = Math.round(drawSize.x * scale);
         const rtHeight = Math.round(drawSize.y * scale);
@@ -183,7 +210,7 @@ export const GemPostProcessing: React.FC<GemPostProcessingProps> = ({ enabled = 
         const rt = new THREE.WebGLRenderTarget(rtWidth, rtHeight, {
           type: THREE.HalfFloatType,
         });
-        const composer = new EffectComposer(gl as any, rt);
+        const composer = new EffectComposer(gl as unknown as THREE.WebGLRenderer, rt);
         composer.addPass(new RenderPass(scene, camera));
 
         const bloomPass = new UnrealBloomPass(
@@ -197,7 +224,7 @@ export const GemPostProcessing: React.FC<GemPostProcessingProps> = ({ enabled = 
         composerRef.current = composer;
         rtRef.current = rt;
       } catch (err) {
-        console.warn('[GemPostProcessing] Failed to init WebGL bloom:', err);
+        logger.warn('[GemPostProcessing] Failed to init WebGL bloom:', err);
       }
     })();
 
@@ -244,16 +271,16 @@ export const GemPostProcessing: React.FC<GemPostProcessingProps> = ({ enabled = 
     if (postProcessingRef.current) {
       try {
         postProcessingRef.current.render();
-      } catch (err: any) {
+      } catch (err: unknown) {
         // RenderPipeline can throw on WebGPU due to texture synchronization
         // constraints (read+write same texture in one pass). After 3 consecutive
         // failures, fall back to direct rendering for the rest of the session.
         ppErrorCountRef.current++;
         if (ppErrorCountRef.current <= 3) {
-          console.warn('[GemPostProcessing] PostProcessing.render() failed:', err?.message);
+          logger.warn('[GemPostProcessing] PostProcessing.render() failed:', err instanceof Error ? err.message : err);
         }
         if (ppErrorCountRef.current >= 3) {
-          console.warn('[GemPostProcessing] Too many failures, disabling WebGPU bloom');
+          logger.warn('[GemPostProcessing] Too many failures, disabling WebGPU bloom');
           postProcessingRef.current = null;
         }
         renderer.render(s, cam);

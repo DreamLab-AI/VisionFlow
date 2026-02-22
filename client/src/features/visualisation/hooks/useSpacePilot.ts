@@ -3,6 +3,9 @@ import { useThree } from '@react-three/fiber';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { SpacePilotController, SpacePilotConfig, defaultSpacePilotConfig } from '../controls/SpacePilotController';
 import { useSettingsStore } from '../../../store/settingsStore';
+import { createLogger } from '../../../utils/loggerConfig';
+
+const logger = createLogger('useSpacePilot');
 
 // Type alias for OrbitControls
 type OrbitControls = OrbitControlsImpl;
@@ -12,7 +15,7 @@ import { SpaceDriver } from '../../../services/SpaceDriverService';
 export interface SpacePilotOptions {
   enabled?: boolean;
   config?: Partial<SpacePilotConfig>;
-  orbitControlsRef?: React.RefObject<any>;
+  orbitControlsRef?: React.RefObject<OrbitControls | null>;
   onConnect?: () => void;
   onDisconnect?: () => void;
   onModeChange?: (mode: 'camera' | 'object' | 'navigation') => void;
@@ -143,14 +146,14 @@ export function useSpacePilot(options: SpacePilotOptions = {}): SpacePilotHookRe
   
   const connect = useCallback(async () => {
     if (!isSupported) {
-      console.error('WebHID is not supported in this browser');
+      logger.error('WebHID is not supported in this browser');
       return;
     }
 
     try {
       await SpaceDriver.scan();
     } catch (error) {
-      console.error('Failed to connect to SpacePilot:', error);
+      logger.error('Failed to connect to SpacePilot:', error);
     }
   }, [isSupported]);
 
@@ -190,9 +193,11 @@ export function useSpacePilot(options: SpacePilotOptions = {}): SpacePilotHookRe
     
     const updateSettingsFn = useSettingsStore.getState().updateSettings;
     updateSettingsFn((draft) => {
-      if (!draft.visualisation) draft.visualisation = {} as any;
-      if (!draft.visualisation.spacePilot) draft.visualisation.spacePilot = {} as any;
-      (draft.visualisation.spacePilot as any).mode = mode;
+      const d = draft as unknown as Record<string, unknown>;
+      if (!d.visualisation) d.visualisation = {};
+      const vis = d.visualisation as Record<string, unknown>;
+      if (!vis.spacePilot) vis.spacePilot = {};
+      (vis.spacePilot as Record<string, unknown>).mode = mode;
     });
   }, [onModeChange]);
 
@@ -205,8 +210,9 @@ export function useSpacePilot(options: SpacePilotOptions = {}): SpacePilotHookRe
     
     const updateSettingsFn = useSettingsStore.getState().updateSettings;
     updateSettingsFn((draft) => {
-      if (!draft.visualisation) draft.visualisation = {} as any;
-      (draft.visualisation as any).spacePilot = mergedConfig;
+      const d = draft as unknown as Record<string, unknown>;
+      if (!d.visualisation) d.visualisation = {};
+      (d.visualisation as Record<string, unknown>).spacePilot = mergedConfig;
     });
   }, []);
 

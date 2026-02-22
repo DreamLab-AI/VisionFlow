@@ -6,11 +6,12 @@ import { stringToU32 } from '../../../types/idMapping';
 
 // Worker-safe logger (createLogger depends on localStorage/window which are unavailable in Workers)
 // Only warn/error by default; set self.__WORKER_DEBUG = true in devtools to enable info/debug
+const workerSelf = self as unknown as Record<string, unknown>;
 const workerLogger = {
-  info: (...args: unknown[]) => { if ((self as any).__WORKER_DEBUG) console.log('[GraphWorker]', ...args); },
+  info: (...args: unknown[]) => { if (workerSelf.__WORKER_DEBUG) console.log('[GraphWorker]', ...args); },
   warn: (...args: unknown[]) => console.warn('[GraphWorker]', ...args),
   error: (...args: unknown[]) => console.error('[GraphWorker]', ...args),
-  debug: (...args: unknown[]) => { if ((self as any).__WORKER_DEBUG) console.debug('[GraphWorker]', ...args); },
+  debug: (...args: unknown[]) => { if (workerSelf.__WORKER_DEBUG) console.debug('[GraphWorker]', ...args); },
 };
 
 /**
@@ -359,7 +360,7 @@ class GraphWorker {
         preservedCount++;
       } else {
         // New node — use data position (defensive: handle missing position)
-        const pos = node.position || (node as any);
+        const pos = node.position || node as unknown as { x?: number; y?: number; z?: number };
         let px = Number(pos.x) || 0;
         let py = Number(pos.y) || 0;
         let pz = Number(pos.z) || 0;
@@ -425,12 +426,14 @@ class GraphWorker {
   }
 
   
-  async updateSettings(settings: any): Promise<void> {
-    // Extract only physics-relevant settings
-    const graphSettings = settings?.visualisation?.graphs?.[this.graphType]?.physics ||
-                         settings?.visualisation?.physics;
+  async updateSettings(settings: Record<string, unknown>): Promise<void> {
+    // Extract only physics-relevant settings via nested Record traversal
+    const vis = settings?.visualisation as Record<string, unknown> | undefined;
+    const graphs = vis?.graphs as Record<string, Record<string, unknown>> | undefined;
+    const graphSettings = graphs?.[this.graphType]?.physics as Record<string, unknown> | undefined ??
+                         vis?.physics as Record<string, unknown> | undefined;
     const vfPhysics = (this.graphType === 'visionflow')
-      ? (settings?.visualisation?.graphs?.visionflow?.physics || {})
+      ? (graphs?.visionflow?.physics as Record<string, unknown> | undefined ?? {})
       : null;
 
     // Idempotency: bail if physics values haven't changed (prevents unnecessary
@@ -440,10 +443,10 @@ class GraphWorker {
     this._lastPhysicsKey = physicsKey;
 
     this.physicsSettings = {
-      springStrength: graphSettings?.springStrength ?? 0.001,
-      damping: graphSettings?.damping ?? 0.98,
-      maxVelocity: graphSettings?.maxVelocity ?? 0.5,
-      updateThreshold: graphSettings?.updateThreshold ?? 0.05
+      springStrength: (graphSettings?.springStrength as number | undefined) ?? 0.001,
+      damping: (graphSettings?.damping as number | undefined) ?? 0.98,
+      maxVelocity: (graphSettings?.maxVelocity as number | undefined) ?? 0.5,
+      updateThreshold: (graphSettings?.updateThreshold as number | undefined) ?? 0.05
     };
 
     // Physics settings for visionflow are now routed to the server via REST API.

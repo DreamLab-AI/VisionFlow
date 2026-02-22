@@ -729,7 +729,7 @@ class SolidPodService {
           const token = await nostrAuth.signRequest(url, method, body);
           headers.set('Authorization', `Nostr ${token}`);
         } catch (e) {
-          console.warn('[SolidPodService] NIP-98 signing failed:', e);
+          logger.warn('NIP-98 signing failed:', e);
         }
       }
     }

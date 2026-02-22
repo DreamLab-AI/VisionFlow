@@ -17,40 +17,9 @@ use std::time::Instant;
 use super::shared::{GPUState, SharedGPUContext};
 use crate::actors::messages::*;
 
-// GPU kernel extern C declarations for connected components
-#[cfg(feature = "gpu")]
-extern "C" {
-    // SAFETY: This FFI declaration must match the C function signature in
-    // gpu_connected_components.cu. The .cu function signature is:
-    //   void compute_connected_components_gpu(
-    //       const int* edge_row_offsets, const int* edge_col_indices,
-    //       int* labels, int* num_components,
-    //       const int num_nodes, const int max_iterations, void* stream)
-    //
-    // NOTE: This .cu file is NOT compiled by build.rs. The function must be
-    // available via a pre-linked library or kernel_bridge FFI. If the symbol
-    // is missing at link time, the gpu feature gate will prevent compilation.
-    //
-    // Caller must ensure:
-    // - `edge_row_offsets` points to a valid device buffer of [num_nodes + 1] i32 values
-    //   in CSR format (monotonically non-decreasing)
-    // - `edge_col_indices` points to a valid device buffer of [num_edges] i32 values
-    //   where num_edges = edge_row_offsets[num_nodes]
-    // - `labels` points to a valid device buffer of [num_nodes] i32 values (output)
-    // - `num_components` points to a valid device allocation for a single i32 (output)
-    // - `num_nodes` > 0 and matches the graph size used to construct the CSR arrays
-    // - `max_iterations` > 0
-    // - `stream` is a valid cudaStream_t handle (may be null for default stream)
-    pub fn compute_connected_components_gpu(
-        edge_row_offsets: *const i32,
-        edge_col_indices: *const i32,
-        labels: *mut i32,
-        num_components: *mut i32,
-        num_nodes: i32,
-        max_iterations: i32,
-        stream: *mut std::ffi::c_void,
-    );
-}
+// GPU kernel FFI declarations are now centralized in
+// src/utils/unified_gpu_compute/types.rs and accessed through
+// UnifiedGPUCompute::run_connected_components_gpu()
 
 /// Connected components computation parameters
 #[derive(Debug, Clone, Serialize, Deserialize, Message)]
@@ -263,31 +232,43 @@ impl Handler<ComputeConnectedComponents> for ConnectedComponentsActor {
 
         let start_time = Instant::now();
 
-        // Get GPU context
-        let unified_compute = match &self.shared_context {
-            Some(ctx) => ctx
-                .unified_compute
-                .lock()
-                .map_err(|e| format!("Failed to acquire GPU compute lock: {}", e))?,
+        let max_iterations = msg.max_iterations.unwrap_or(100);
+
+        // Get GPU context and try GPU path first
+        let (labels, iterations) = match &self.shared_context {
+            Some(ctx) => {
+                let mut unified_compute = ctx
+                    .unified_compute
+                    .lock()
+                    .map_err(|e| format!("Failed to acquire GPU compute lock: {}", e))?;
+
+                let num_nodes = unified_compute.get_num_nodes();
+
+                // Try GPU-accelerated connected components
+                match unified_compute.run_connected_components_gpu(max_iterations as i32) {
+                    Ok((gpu_labels, _num_comp)) => {
+                        info!("ConnectedComponentsActor: GPU path succeeded");
+                        let labels: Vec<u32> = gpu_labels.iter().map(|&l| l as u32).collect();
+                        (labels, max_iterations)
+                    }
+                    Err(e) => {
+                        info!(
+                            "ConnectedComponentsActor: GPU path failed ({}), falling back to CPU",
+                            e
+                        );
+                        drop(unified_compute);
+                        self.compute_components_cpu(
+                            num_nodes,
+                            &self.cached_edges,
+                            max_iterations,
+                        )?
+                    }
+                }
+            }
             None => {
                 return Err("GPU context not initialized".to_string());
             }
         };
-
-        let num_nodes = unified_compute.get_num_nodes();
-
-        // Get edge list from GPU context
-        // For now, use CPU fallback - GPU kernel will be added in next iteration
-        drop(unified_compute); // Release lock before CPU computation
-
-        // CPU-based label propagation (GPU kernel path pending)
-        let max_iterations = msg.max_iterations.unwrap_or(100);
-
-        let (labels, iterations) = self.compute_components_cpu(
-            num_nodes,
-            &self.cached_edges,
-            max_iterations,
-        )?;
 
         let (num_components, component_sizes, largest_component_size, is_connected) =
             self.analyze_components(&labels);

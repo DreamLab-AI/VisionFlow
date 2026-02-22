@@ -6,6 +6,7 @@
 # PTX: Uses /opt/cuda/bin/ptxas for JIT compilation
 ################################################################################
 
+# SECURITY: Pin to digest for production builds (e.g., cachyos/cachyos-v3@sha256:abc123...)
 FROM cachyos/cachyos-v3:latest AS builder
 
 LABEL maintainer="Multi-Agent-Docker"

@@ -1,4 +1,6 @@
+import { createLogger } from '../../utils/loggerConfig';
 
+const logger = createLogger('VircadiaClient');
 
 export type ClientCoreConnectionState =
     | "connected"
@@ -82,13 +84,13 @@ export interface SessionInfoResponse extends WebSocketMessage {
 
 const debugLog = (config: ClientCoreConfig, message: string, ...args: unknown[]) => {
     if (config.debug && !config.suppress) {
-        console.log(`[VircadiaClient] ${message}`, ...args);
+        logger.debug(`${message}`, ...args);
     }
 };
 
 const debugError = (config: ClientCoreConfig, message: string, ...args: unknown[]) => {
     if (!config.suppress) {
-        console.error(`[VircadiaClient] ${message}`, ...args);
+        logger.error(`${message}`, ...args);
     }
 };
 
@@ -383,9 +385,9 @@ class CoreConnectionManager {
             isReconnecting: this.lastStatus === "reconnecting",
             connectionDuration: this.connectionStartTime ? now - this.connectionStartTime : undefined,
             reconnectAttempts: this.reconnectCount,
-            pendingRequests: Array.from(this.pendingRequests.entries()).map(([requestId, pending]) => ({
+            pendingRequests: Array.from(this.pendingRequests.entries()).map(([requestId]) => ({
                 requestId,
-                elapsedMs: now - (pending as any).startTime || 0
+                elapsedMs: 0
             })),
             agentId: this.agentId,
             sessionId: this.sessionId

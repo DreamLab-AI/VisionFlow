@@ -1,6 +1,6 @@
 import React, { useReducer, useRef, useCallback, useEffect, useState } from 'react';
 import { useNostrAuth } from '../hooks/useNostrAuth';
-import { nostrAuth } from '../services/nostrAuthService';
+import { nostrAuth, setLocalKey } from '../services/nostrAuthService';
 import {
   startRegistration,
   createPasskeyCredential,
@@ -15,6 +15,7 @@ import {
   type UsernameCheckResult,
 } from '../services/passkeyService';
 import { getPublicKey, generateSecretKey } from 'nostr-tools/pure';
+import { nip19 } from 'nostr-tools';
 import './OnboardingWizard.css';
 
 // --- State Machine ---
@@ -166,6 +167,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }
               onExtension={() => dispatch({ type: 'START_LOGIN_EXTENSION' })}
               hasExtension={hasNip07}
               onBack={() => dispatch({ type: 'BACK' })}
+              onPrivKeyLogin={(pubkey, privateKey) => finishAuth(pubkey, privateKey)}
             />
           )}
           {state.step === 'sign-in' && (
@@ -220,7 +222,7 @@ function WelcomeStep({
     <div className="wizard-step">
       <div className="wizard-header">
         <h1>VisionFlow</h1>
-        <p className="wizard-subtitle">Decentralized identity, powered by passkeys</p>
+        <p className="wizard-subtitle">See your knowledge in three dimensions.<br />Own it with decentralized identity.</p>
       </div>
       <div className="wizard-actions">
         <button className="wizard-btn wizard-btn-primary" onClick={onRegister}>
@@ -230,11 +232,33 @@ function WelcomeStep({
           Sign In
         </button>
       </div>
+      <div className="wizard-features">
+        <div className="wizard-feature-card">
+          <div className="wizard-feature-icon">~</div>
+          <div className="wizard-feature-title">3D Knowledge Graph</div>
+          <div className="wizard-feature-desc">
+            Navigate your ideas, notes, and connections in an interactive three-dimensional space.
+          </div>
+        </div>
+        <div className="wizard-feature-card">
+          <div className="wizard-feature-icon">&#x25A1;</div>
+          <div className="wizard-feature-title">Your Data, Your Pod</div>
+          <div className="wizard-feature-desc">
+            Store everything in a Solid pod you control. No vendor lock-in, full portability.
+          </div>
+        </div>
+        <div className="wizard-feature-card">
+          <div className="wizard-feature-icon">&#x2731;</div>
+          <div className="wizard-feature-title">Decentralized Identity</div>
+          <div className="wizard-feature-desc">
+            Cryptographic keys replace passwords. Sign in with a passkey — no extensions required.
+          </div>
+        </div>
+      </div>
       <div className="wizard-info">
-        <p><strong>How it works</strong></p>
         <p>
-          VisionFlow uses passkeys for passwordless authentication.
-          Your cryptographic identity is derived on-device — no passwords, no extensions needed.
+          Passwordless authentication. Your cryptographic keys are generated
+          and stored on-device — never sent to a server.
         </p>
       </div>
       {isDevLoginAvailable && (
@@ -391,9 +415,10 @@ function CreatePasskeyStep({
           prfEnabled,
         });
 
-        // 5. Store in sessionStorage for NIP-98 signing
+        // 5. Store key in memory (not sessionStorage) for NIP-98 signing
+        setLocalKey(bytesToHex(secretKey));
         try {
-          sessionStorage.setItem('nostr_passkey_key', bytesToHex(secretKey));
+          // Only non-secret metadata goes to sessionStorage
           sessionStorage.setItem('nostr_passkey_pubkey', pubkey);
           sessionStorage.setItem('nostr_prf', prfEnabled ? '1' : '0');
         } catch { /* sessionStorage may be unavailable in some contexts */ }
@@ -498,8 +523,10 @@ function SignInStep({
           secretKey = await deriveNostrKey(prfOutput);
           pubkey = getPublicKey(secretKey);
 
+          // Store key in memory only -- never in sessionStorage
+          setLocalKey(bytesToHex(secretKey));
           try {
-            sessionStorage.setItem('nostr_passkey_key', bytesToHex(secretKey));
+            // Only non-secret metadata goes to sessionStorage
             sessionStorage.setItem('nostr_passkey_pubkey', pubkey);
             sessionStorage.setItem('nostr_prf', '1');
           } catch { /* ignore */ }
@@ -532,12 +559,98 @@ function SignInMethodStep({
   onExtension,
   hasExtension,
   onBack,
+  onPrivKeyLogin,
 }: {
   onPasskey: () => void;
   onExtension: () => void;
   hasExtension: boolean;
   onBack: () => void;
+  onPrivKeyLogin: (pubkey: string, privateKey: Uint8Array) => void;
 }) {
+  const [showPrivKey, setShowPrivKey] = useState(false);
+  const [privKeyInput, setPrivKeyInput] = useState('');
+  const [privKeyError, setPrivKeyError] = useState('');
+  const [showKey, setShowKey] = useState(false);
+  const [isValidPrivKey, setIsValidPrivKey] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  const validatePrivKey = useCallback((value: string): { valid: boolean; error: string } => {
+    const trimmed = value.trim();
+    if (!trimmed) return { valid: false, error: '' };
+
+    if (trimmed.startsWith('nsec1')) {
+      try {
+        const decoded = nip19.decode(trimmed);
+        if (decoded.type === 'nsec') return { valid: true, error: '' };
+        return { valid: false, error: 'Invalid nsec key format' };
+      } catch {
+        return { valid: false, error: 'Invalid nsec key — check for typos' };
+      }
+    }
+
+    if (/^[0-9a-f]{64}$/i.test(trimmed)) return { valid: true, error: '' };
+
+    if (/^[0-9a-f]+$/i.test(trimmed) && trimmed.length < 64) {
+      return { valid: false, error: `Hex key too short (${trimmed.length}/64 characters)` };
+    }
+
+    return { valid: false, error: 'Enter an nsec1... key or 64-character hex key' };
+  }, []);
+
+  const handlePrivKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setPrivKeyInput(val);
+    setPrivKeyError('');
+    setIsValidPrivKey(false);
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      const { valid, error } = validatePrivKey(val);
+      setIsValidPrivKey(valid);
+      setPrivKeyError(error);
+    }, 300);
+  };
+
+  useEffect(() => {
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, []);
+
+  const handlePrivKeyLogin = () => {
+    const trimmed = privKeyInput.trim();
+    let secretKeyBytes: Uint8Array;
+    let hexKey: string;
+
+    try {
+      if (trimmed.startsWith('nsec1')) {
+        const decoded = nip19.decode(trimmed);
+        if (decoded.type !== 'nsec') throw new Error('Invalid nsec');
+        secretKeyBytes = decoded.data as Uint8Array;
+        hexKey = bytesToHex(secretKeyBytes);
+      } else {
+        hexKey = trimmed.toLowerCase();
+        secretKeyBytes = new Uint8Array(
+          hexKey.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16))
+        );
+      }
+
+      const pubkey = getPublicKey(secretKeyBytes);
+      setLocalKey(hexKey);
+
+      try {
+        sessionStorage.setItem('nostr_passkey_pubkey', pubkey);
+      } catch { /* sessionStorage unavailable */ }
+
+      // Clear input state before navigating away
+      setPrivKeyInput('');
+      setShowKey(false);
+
+      onPrivKeyLogin(pubkey, secretKeyBytes);
+    } catch (err) {
+      setPrivKeyError(err instanceof Error ? err.message : 'Invalid key');
+      setIsValidPrivKey(false);
+    }
+  };
+
   return (
     <div className="wizard-step">
       <button className="wizard-back" onClick={onBack}>Back</button>
@@ -557,6 +670,55 @@ function SignInMethodStep({
         <p className="wizard-hint wizard-hint-small">
           Have a Nostr signing extension? Reload to detect it.
         </p>
+      )}
+      <div className="wizard-divider" />
+      <button
+        className="wizard-advanced-link"
+        onClick={() => setShowPrivKey(!showPrivKey)}
+      >
+        {showPrivKey ? '\u25BE' : '\u25B8'} Advanced: Import a private key
+      </button>
+      {showPrivKey && (
+        <div className="wizard-privkey-section">
+          <div className="wizard-privkey-input-wrap">
+            <input
+              type={showKey ? 'text' : 'password'}
+              className="wizard-input wizard-input-mono"
+              placeholder="nsec1... or 64-character hex key"
+              value={privKeyInput}
+              onChange={handlePrivKeyChange}
+              autoComplete="off"
+              spellCheck={false}
+            />
+            <button
+              className="wizard-eye-toggle"
+              onClick={() => setShowKey(!showKey)}
+              type="button"
+              aria-label={showKey ? 'Hide key' : 'Show key'}
+            >
+              {showKey ? '\u25C9' : '\u25CE'}
+            </button>
+          </div>
+          {privKeyError && (
+            <div className="status-error" style={{ marginTop: 6, fontSize: 13 }}>{privKeyError}</div>
+          )}
+          <div className="wizard-security-notice">
+            <strong>Security Notice</strong>
+            <ul>
+              <li>Only paste keys on devices you fully trust</li>
+              <li>Key held in browser memory only — never stored to disk</li>
+              <li>Cleared when you close this tab</li>
+              <li>Passkeys are the recommended sign-in method</li>
+            </ul>
+          </div>
+          <button
+            className="wizard-btn wizard-btn-outline"
+            disabled={!isValidPrivKey}
+            onClick={handlePrivKeyLogin}
+          >
+            Sign In with Key
+          </button>
+        </div>
       )}
     </div>
   );

@@ -3,7 +3,7 @@ services:
     image: neo4j:5.13.0
     container_name: visionflow-neo4j
     environment:
-      - NEO4J_AUTH=neo4j/visionflow-dev-password
+      - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD:-changeme-dev}
       - NEO4J_server_memory_pagecache_size=512M
       - NEO4J_server_memory_heap_max__size=1G
       - NEO4J_dbms_security_procedures_unrestricted=apoc.*
@@ -78,7 +78,7 @@ services:
       # Neo4j Configuration
       - NEO4J_URI=bolt://neo4j:7687
       - NEO4J_USER=neo4j
-      - NEO4J_PASSWORD=visionflow-dev-password
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD:-changeme-dev}
       - NEO4J_DATABASE=neo4j
     deploy: # Indentation: 4 spaces
       resources:

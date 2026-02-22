@@ -25,7 +25,7 @@ export interface BatchProcessor<T> {
 
 
 export class BatchQueue<T> {
-  private queue: QueueItem<T>[] = [];
+  protected queue: QueueItem<T>[] = [];
   private flushTimer: NodeJS.Timeout | null = null;
   private isProcessing = false;
   private config: BatchQueueConfig;
@@ -252,10 +252,9 @@ export class NodePositionBatchQueue extends BatchQueue<BinaryNodeData> {
 
   
   private deduplicateNode(nodeId: number): void {
-    const queue = (this as any).queue as QueueItem<BinaryNodeData>[];
-    const index = queue.findIndex(item => item.data.nodeId === nodeId);
+    const index = this.queue.findIndex(item => item.data.nodeId === nodeId);
     if (index !== -1) {
-      queue.splice(index, 1);
+      this.queue.splice(index, 1);
       logger.debug(`Deduplicated update for node ${nodeId}`);
     }
   }

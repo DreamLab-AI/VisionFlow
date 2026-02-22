@@ -8,14 +8,54 @@ import { createLogger } from '../../../../utils/loggerConfig';
 
 const logger = createLogger('RestoredGraphTabs');
 
+// Extended settings interfaces for properties managed by these tabs
+// but not on the strict Settings/VisualisationSettings types.
+interface SyncSettings {
+  enabled?: boolean;
+  camera?: boolean;
+  selection?: boolean;
+}
+
+interface EffectsSettings {
+  bloom?: boolean;
+  glow?: boolean;
+}
+
+interface ExtendedVisualisation {
+  sync?: SyncSettings;
+  effects?: EffectsSettings;
+  animations?: { enabled?: boolean } & Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+interface ExtendedPerformance {
+  autoOptimize?: boolean;
+  simplifyEdges?: boolean;
+  cullDistance?: number;
+  [key: string]: unknown;
+}
+
+interface ExtendedInteraction {
+  enableHover?: boolean;
+  enableClick?: boolean;
+  enableDrag?: boolean;
+  hoverDelay?: number;
+  [key: string]: unknown;
+}
+
+interface ExportSettings {
+  format?: string;
+  includeMetadata?: boolean;
+}
+
 interface GraphTabProps {
   graphId?: string;
   graphData?: {
     nodes: GraphNode[];
     edges: GraphEdge[];
   };
-  otherGraphData?: any;
-  onExport?: (format: string, options: any) => void;
+  otherGraphData?: Record<string, unknown>;
+  onExport?: (format: string, options: Record<string, unknown>) => void;
 }
 
 // Toggle Switch Component
@@ -55,7 +95,7 @@ const Toggle: React.FC<{
 );
 
 // Section Header
-const SectionHeader: React.FC<{ icon: React.ComponentType<any>; title: string; color: string }> = ({ icon: Icon, title, color }) => (
+const SectionHeader: React.FC<{ icon: React.ComponentType<{ size?: number; style?: React.CSSProperties }>; title: string; color: string }> = ({ icon: Icon, title, color }) => (
   <div style={{
     display: 'flex',
     alignItems: 'center',
@@ -73,8 +113,8 @@ export const RestoredGraphVisualisationTab: React.FC<GraphTabProps> = () => {
   const settings = useSettingsStore(state => state.settings);
   const updateSettings = useSettingsStore(state => state.updateSettings);
 
-  // Type assertion for extended visualisation settings
-  const visSettings = (settings?.visualisation ?? {}) as any;
+  // Read extended visualisation settings
+  const visSettings = (settings?.visualisation ?? {}) as unknown as ExtendedVisualisation;
   const syncEnabled = visSettings?.sync?.enabled ?? false;
   const cameraSync = visSettings?.sync?.camera ?? true;
   const selectionSync = visSettings?.sync?.selection ?? true;
@@ -88,9 +128,10 @@ export const RestoredGraphVisualisationTab: React.FC<GraphTabProps> = () => {
       <Toggle
         checked={syncEnabled}
         onChange={(val) => updateSettings((draft) => {
-          if (!draft.visualisation) draft.visualisation = {} as any;
-          if (!(draft.visualisation as any).sync) (draft.visualisation as any).sync = {};
-          (draft.visualisation as any).sync.enabled = val;
+          const vis = (draft as unknown as Record<string, unknown>).visualisation as Record<string, unknown> | undefined ?? {};
+          (draft as unknown as Record<string, unknown>).visualisation = vis;
+          if (!vis.sync) vis.sync = {};
+          (vis.sync as Record<string, unknown>).enabled = val;
         })}
         label="Enable Sync"
       />
@@ -99,18 +140,20 @@ export const RestoredGraphVisualisationTab: React.FC<GraphTabProps> = () => {
           <Toggle
             checked={cameraSync}
             onChange={(val) => updateSettings((draft) => {
-              if (!draft.visualisation) draft.visualisation = {} as any;
-              if (!(draft.visualisation as any).sync) (draft.visualisation as any).sync = {};
-              (draft.visualisation as any).sync.camera = val;
+              const vis = (draft as unknown as Record<string, unknown>).visualisation as Record<string, unknown> | undefined ?? {};
+              (draft as unknown as Record<string, unknown>).visualisation = vis;
+              if (!vis.sync) vis.sync = {};
+              (vis.sync as Record<string, unknown>).camera = val;
             })}
             label="Camera"
           />
           <Toggle
             checked={selectionSync}
             onChange={(val) => updateSettings((draft) => {
-              if (!draft.visualisation) draft.visualisation = {} as any;
-              if (!(draft.visualisation as any).sync) (draft.visualisation as any).sync = {};
-              (draft.visualisation as any).sync.selection = val;
+              const vis = (draft as unknown as Record<string, unknown>).visualisation as Record<string, unknown> | undefined ?? {};
+              (draft as unknown as Record<string, unknown>).visualisation = vis;
+              if (!vis.sync) vis.sync = {};
+              (vis.sync as Record<string, unknown>).selection = val;
             })}
             label="Selection"
           />
@@ -121,9 +164,10 @@ export const RestoredGraphVisualisationTab: React.FC<GraphTabProps> = () => {
       <Toggle
         checked={animationsEnabled}
         onChange={(val) => updateSettings((draft) => {
-          if (!draft.visualisation) draft.visualisation = {} as any;
-          if (!(draft.visualisation as any).animations) (draft.visualisation as any).animations = {};
-          (draft.visualisation as any).animations.enabled = val;
+          const vis = (draft as unknown as Record<string, unknown>).visualisation as Record<string, unknown> | undefined ?? {};
+          (draft as unknown as Record<string, unknown>).visualisation = vis;
+          if (!vis.animations) vis.animations = {};
+          (vis.animations as Record<string, unknown>).enabled = val;
         })}
         label="Enable Animations"
       />
@@ -132,18 +176,20 @@ export const RestoredGraphVisualisationTab: React.FC<GraphTabProps> = () => {
       <Toggle
         checked={bloomEffect}
         onChange={(val) => updateSettings((draft) => {
-          if (!draft.visualisation) draft.visualisation = {} as any;
-          if (!(draft.visualisation as any).effects) (draft.visualisation as any).effects = {};
-          (draft.visualisation as any).effects.bloom = val;
+          const vis = (draft as unknown as Record<string, unknown>).visualisation as Record<string, unknown> | undefined ?? {};
+          (draft as unknown as Record<string, unknown>).visualisation = vis;
+          if (!vis.effects) vis.effects = {};
+          (vis.effects as Record<string, unknown>).bloom = val;
         })}
         label="Bloom"
       />
       <Toggle
         checked={glowEffect}
         onChange={(val) => updateSettings((draft) => {
-          if (!draft.visualisation) draft.visualisation = {} as any;
-          if (!(draft.visualisation as any).effects) (draft.visualisation as any).effects = {};
-          (draft.visualisation as any).effects.glow = val;
+          const vis = (draft as unknown as Record<string, unknown>).visualisation as Record<string, unknown> | undefined ?? {};
+          (draft as unknown as Record<string, unknown>).visualisation = vis;
+          if (!vis.effects) vis.effects = {};
+          (vis.effects as Record<string, unknown>).glow = val;
         })}
         label="Glow"
       />
@@ -155,8 +201,8 @@ export const RestoredGraphOptimisationTab: React.FC<GraphTabProps> = ({ graphDat
   const settings = useSettingsStore(state => state.settings);
   const updateSettings = useSettingsStore(state => state.updateSettings);
 
-  // Type assertion for extended performance settings
-  const perfSettings = (settings as any)?.performance || {};
+  // Read extended performance settings
+  const perfSettings = (settings?.performance ?? {}) as unknown as ExtendedPerformance;
   const autoOptimize = perfSettings?.autoOptimize ?? false;
   const simplifyEdges = perfSettings?.simplifyEdges ?? true;
   const cullDistance = perfSettings?.cullDistance ?? 50;
@@ -172,16 +218,18 @@ export const RestoredGraphOptimisationTab: React.FC<GraphTabProps> = ({ graphDat
       <Toggle
         checked={autoOptimize}
         onChange={(val) => updateSettings((draft) => {
-          if (!(draft as any).performance) (draft as any).performance = {};
-          (draft as any).performance.autoOptimize = val;
+          const d = draft as unknown as Record<string, unknown>;
+          if (!d.performance) d.performance = {};
+          (d.performance as Record<string, unknown>).autoOptimize = val;
         })}
         label="Auto Optimize"
       />
       <Toggle
         checked={simplifyEdges}
         onChange={(val) => updateSettings((draft) => {
-          if (!(draft as any).performance) (draft as any).performance = {};
-          (draft as any).performance.simplifyEdges = val;
+          const d = draft as unknown as Record<string, unknown>;
+          if (!d.performance) d.performance = {};
+          (d.performance as Record<string, unknown>).simplifyEdges = val;
         })}
         label="Simplify Edges"
       />
@@ -195,8 +243,9 @@ export const RestoredGraphOptimisationTab: React.FC<GraphTabProps> = ({ graphDat
           type="range"
           value={cullDistance}
           onChange={(e) => updateSettings((draft) => {
-            if (!(draft as any).performance) (draft as any).performance = {};
-            (draft as any).performance.cullDistance = Number(e.target.value);
+            const d = draft as unknown as Record<string, unknown>;
+            if (!d.performance) d.performance = {};
+            (d.performance as Record<string, unknown>).cullDistance = Number(e.target.value);
           })}
           min={10}
           max={100}
@@ -237,8 +286,8 @@ export const RestoredGraphInteractionTab: React.FC<GraphTabProps> = () => {
   const settings = useSettingsStore(state => state.settings);
   const updateSettings = useSettingsStore(state => state.updateSettings);
 
-  // Type assertion for extended interaction settings
-  const interactionSettings = (settings as any)?.interaction || {};
+  // Read extended interaction settings (stored at root level, not under visualisation)
+  const interactionSettings = ((settings as unknown as Record<string, unknown>)?.interaction ?? {}) as ExtendedInteraction;
   const enableHover = interactionSettings?.enableHover ?? true;
   const enableClick = interactionSettings?.enableClick ?? true;
   const enableDrag = interactionSettings?.enableDrag ?? true;
@@ -251,24 +300,27 @@ export const RestoredGraphInteractionTab: React.FC<GraphTabProps> = () => {
       <Toggle
         checked={enableHover}
         onChange={(val) => updateSettings((draft) => {
-          if (!(draft as any).interaction) (draft as any).interaction = {};
-          (draft as any).interaction.enableHover = val;
+          const d = draft as unknown as Record<string, unknown>;
+          if (!d.interaction) d.interaction = {};
+          (d.interaction as Record<string, unknown>).enableHover = val;
         })}
         label="Hover Effects"
       />
       <Toggle
         checked={enableClick}
         onChange={(val) => updateSettings((draft) => {
-          if (!(draft as any).interaction) (draft as any).interaction = {};
-          (draft as any).interaction.enableClick = val;
+          const d = draft as unknown as Record<string, unknown>;
+          if (!d.interaction) d.interaction = {};
+          (d.interaction as Record<string, unknown>).enableClick = val;
         })}
         label="Click to Select"
       />
       <Toggle
         checked={enableDrag}
         onChange={(val) => updateSettings((draft) => {
-          if (!(draft as any).interaction) (draft as any).interaction = {};
-          (draft as any).interaction.enableDrag = val;
+          const d = draft as unknown as Record<string, unknown>;
+          if (!d.interaction) d.interaction = {};
+          (d.interaction as Record<string, unknown>).enableDrag = val;
         })}
         label="Drag Nodes"
       />
@@ -282,8 +334,9 @@ export const RestoredGraphInteractionTab: React.FC<GraphTabProps> = () => {
           type="range"
           value={hoverDelay}
           onChange={(e) => updateSettings((draft) => {
-            if (!(draft as any).interaction) (draft as any).interaction = {};
-            (draft as any).interaction.hoverDelay = Number(e.target.value);
+            const d = draft as unknown as Record<string, unknown>;
+            if (!d.interaction) d.interaction = {};
+            (d.interaction as Record<string, unknown>).hoverDelay = Number(e.target.value);
           })}
           min={0}
           max={500}
@@ -306,8 +359,8 @@ export const RestoredGraphExportTab: React.FC<GraphTabProps> = ({ graphData }) =
   const settings = useSettingsStore(state => state.settings);
   const updateSettings = useSettingsStore(state => state.updateSettings);
 
-  // Type assertion for extended export settings
-  const exportSettings = (settings as any)?.export || {};
+  // Read extended export settings
+  const exportSettings = ((settings as unknown as Record<string, unknown>)?.export ?? {}) as ExportSettings;
   const format = exportSettings?.format ?? 'json';
   const includeMetadata = exportSettings?.includeMetadata ?? true;
 
@@ -331,8 +384,9 @@ export const RestoredGraphExportTab: React.FC<GraphTabProps> = ({ graphData }) =
         <select
           value={format}
           onChange={(e) => updateSettings((draft) => {
-            if (!(draft as any).export) (draft as any).export = {};
-            (draft as any).export.format = e.target.value;
+            const d = draft as unknown as Record<string, unknown>;
+            if (!d.export) d.export = {};
+            (d.export as Record<string, unknown>).format = e.target.value;
           })}
           style={{
             width: '100%',
@@ -355,8 +409,9 @@ export const RestoredGraphExportTab: React.FC<GraphTabProps> = ({ graphData }) =
       <Toggle
         checked={includeMetadata}
         onChange={(val) => updateSettings((draft) => {
-          if (!(draft as any).export) (draft as any).export = {};
-          (draft as any).export.includeMetadata = val;
+          const d = draft as unknown as Record<string, unknown>;
+          if (!d.export) d.export = {};
+          (d.export as Record<string, unknown>).includeMetadata = val;
         })}
         label="Include Metadata"
       />

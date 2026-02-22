@@ -2,6 +2,9 @@ import { useEffect, useRef } from 'react';
 import { useToast } from '../features/design-system/components/Toast';
 import { useSettingsStore } from '../store/settingsStore';
 import { unifiedApiClient } from '../services/api/UnifiedApiClient';
+import { createLogger } from '../utils/loggerConfig';
+
+const logger = createLogger('useAutoBalanceNotifications');
 
 interface AutoBalanceNotification {
   message: string;
@@ -53,7 +56,7 @@ export function useAutoBalanceNotifications() {
               });
             }
           } catch (error) {
-            console.error('Failed to fetch auto-balance notifications:', error);
+            logger.error('Failed to fetch auto-balance notifications:', error);
           }
         }, 2000); 
       }

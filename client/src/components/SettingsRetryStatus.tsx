@@ -172,11 +172,12 @@ export const GlobalSettingsRetryStatus: React.FC = () => {
   
   useEffect(() => {
     
-    (window as any).__settingsRetryManager = retryManager;
-    
+    const devWindow = window as unknown as Record<string, unknown>;
+    devWindow.__settingsRetryManager = retryManager;
+
     return () => {
       retryManager.stopRetryProcessor();
-      delete (window as any).__settingsRetryManager;
+      delete devWindow.__settingsRetryManager;
     };
   }, [retryManager]);
   

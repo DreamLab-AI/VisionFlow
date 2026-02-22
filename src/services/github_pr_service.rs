@@ -13,7 +13,7 @@
 //! Notes are per-user — each user's agents write to their own path namespace.
 
 use crate::types::ontology_tools::AgentContext;
-use log::{error, info};
+use log::info;
 use reqwest::header::{ACCEPT, AUTHORIZATION, USER_AGENT};
 use serde::{Deserialize, Serialize};
 use std::env;
@@ -86,6 +86,7 @@ struct CreatePRRequest {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct PRResponse {
     html_url: String,
     number: u64,

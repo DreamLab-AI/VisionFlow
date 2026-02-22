@@ -155,7 +155,7 @@ services:
       RUVECTOR_PG_HOST: ${RUVECTOR_PG_HOST:-ruvector-postgres}
       RUVECTOR_PG_PORT: ${RUVECTOR_PG_PORT:-5432}
       RUVECTOR_PG_USER: ${RUVECTOR_PG_USER:-ruvector}
-      RUVECTOR_PG_PASSWORD: ${RUVECTOR_PG_PASSWORD:-ruvector_secure_pass}
+      RUVECTOR_PG_PASSWORD: ${RUVECTOR_PG_PASSWORD:-changeme}
       RUVECTOR_PG_DATABASE: ${RUVECTOR_PG_DATABASE:-ruvector}
       RUVECTOR_USE_EXTERNAL: ${RUVECTOR_USE_EXTERNAL:-true}
 
@@ -182,7 +182,7 @@ services:
       NODE_ENV: ${NODE_ENV:-production}
 
       # PostgreSQL connection string (for psycopg compatibility)
-      RUVECTOR_PG_CONNINFO: "host=${RUVECTOR_PG_HOST:-ruvector-postgres} port=${RUVECTOR_PG_PORT:-5432} user=${RUVECTOR_PG_USER:-ruvector} password=${RUVECTOR_PG_PASSWORD:-ruvector_secure_pass} dbname=${RUVECTOR_PG_DATABASE:-ruvector}"
+      RUVECTOR_PG_CONNINFO: "host=${RUVECTOR_PG_HOST:-ruvector-postgres} port=${RUVECTOR_PG_PORT:-5432} user=${RUVECTOR_PG_USER:-ruvector} password=${RUVECTOR_PG_PASSWORD:-changeme} dbname=${RUVECTOR_PG_DATABASE:-ruvector}"
 
     # Security capabilities
     cap_add:

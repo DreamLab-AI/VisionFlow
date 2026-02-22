@@ -54,7 +54,7 @@ export function KeyboardShortcutsModal({ isOpen, onClose }: KeyboardShortcutsMod
 
       {}
       <Card
-        ref={containerRef as any}
+        ref={containerRef as React.Ref<HTMLDivElement>}
         className="relative z-10 w-full max-w-2xl max-h-[80vh] overflow-hidden"
       >
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">

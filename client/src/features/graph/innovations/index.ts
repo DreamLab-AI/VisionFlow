@@ -238,8 +238,8 @@ export class InnovationManager {
   private applyPerformanceSettings(mode: 'high' | 'balanced' | 'low'): void {
     logger.info(`Applying ${mode} performance mode...`);
 
-    // Cast to any to access optional updateSettings method
-    const animations = graphAnimations as any;
+    // Access optional updateSettings method
+    const animations = graphAnimations as unknown as { updateSettings?: (settings: Record<string, unknown>) => void };
 
     switch (mode) {
       case 'high':
@@ -370,7 +370,7 @@ export const featureDetection = {
   
   
   hasWebXR(): boolean {
-    return 'xr' in navigator && 'isSessionSupported' in (navigator as any).xr;
+    return 'xr' in navigator && 'isSessionSupported' in ((navigator as unknown as Record<string, unknown>).xr as Record<string, unknown>);
   },
   
   
