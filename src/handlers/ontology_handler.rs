@@ -219,6 +219,83 @@ pub async fn list_owl_classes(state: web::Data<AppState>) -> Result<HttpResponse
     }
 }
 
+pub async fn get_class_hierarchy(state: web::Data<AppState>) -> Result<HttpResponse, actix_web::Error> {
+    use std::collections::HashMap;
+    use serde::Serialize;
+
+    #[derive(Serialize)]
+    #[serde(rename_all = "camelCase")]
+    struct ClassNode {
+        iri: String,
+        label: String,
+        parent_iri: Option<String>,
+        children_iris: Vec<String>,
+        node_count: usize,
+        depth: usize,
+    }
+
+    #[derive(Serialize)]
+    #[serde(rename_all = "camelCase")]
+    struct ClassHierarchy {
+        root_classes: Vec<String>,
+        hierarchy: HashMap<String, ClassNode>,
+    }
+
+    let handler = ListOwlClassesHandler::new(state.ontology_repository.clone());
+    let result = execute_in_thread(move || handler.handle(ListOwlClasses)).await;
+
+    let classes = match result {
+        Ok(Ok(c)) => c,
+        Ok(Err(e)) => return error_json!("Failed to list OWL classes", e.to_string()),
+        Err(e) => return error_json!("Internal server error", e),
+    };
+
+    let mut children_map: HashMap<String, Vec<String>> = HashMap::new();
+    let mut root_classes: Vec<String> = Vec::new();
+
+    for class in &classes {
+        if class.parent_classes.is_empty() {
+            root_classes.push(class.iri.clone());
+        }
+        for parent_iri in &class.parent_classes {
+            children_map.entry(parent_iri.clone()).or_default().push(class.iri.clone());
+        }
+    }
+
+    fn depth_of(iri: &str, classes: &[OwlClass], memo: &mut HashMap<String, usize>) -> usize {
+        if let Some(&d) = memo.get(iri) { return d; }
+        let d = classes.iter().find(|c| c.iri == iri)
+            .map(|c| c.parent_classes.iter().map(|p| depth_of(p, classes, memo) + 1).max().unwrap_or(0))
+            .unwrap_or(0);
+        memo.insert(iri.to_string(), d);
+        d
+    }
+
+    fn descendants(iri: &str, children_map: &HashMap<String, Vec<String>>, memo: &mut HashMap<String, usize>) -> usize {
+        if let Some(&n) = memo.get(iri) { return n; }
+        let n = children_map.get(iri).map(|ch| ch.len() + ch.iter().map(|c| descendants(c, children_map, memo)).sum::<usize>()).unwrap_or(0);
+        memo.insert(iri.to_string(), n);
+        n
+    }
+
+    let mut depth_memo = HashMap::new();
+    let mut count_memo = HashMap::new();
+    let mut hierarchy: HashMap<String, ClassNode> = HashMap::new();
+
+    for class in &classes {
+        let depth = depth_of(&class.iri, &classes, &mut depth_memo);
+        let node_count = descendants(&class.iri, &children_map, &mut count_memo);
+        let children_iris = children_map.get(&class.iri).cloned().unwrap_or_default();
+        let parent_iri = class.parent_classes.first().cloned();
+        let label = class.label.clone().unwrap_or_else(|| {
+            class.iri.split('#').last().or_else(|| class.iri.split('/').last()).unwrap_or(&class.iri).to_string()
+        });
+        hierarchy.insert(class.iri.clone(), ClassNode { iri: class.iri.clone(), label, parent_iri, children_iris, node_count, depth });
+    }
+
+    ok_json!(ClassHierarchy { root_classes, hierarchy })
+}
+
 pub async fn add_owl_class(
     state: web::Data<AppState>,
     request: web::Json<AddClassRequest>,
@@ -703,6 +780,8 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             
             .route("/validate", web::get().to(validate_ontology))
             .route("/query", web::post().to(query_ontology))
-            .route("/metrics", web::get().to(get_ontology_metrics)),
+            .route("/metrics", web::get().to(get_ontology_metrics))
+
+            .route("/hierarchy", web::get().to(get_class_hierarchy)),
     );
 }
