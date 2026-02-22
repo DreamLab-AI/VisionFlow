@@ -23,6 +23,7 @@ import { SystemHealthIndicator } from './ControlPanel/SystemHealthIndicator';
 import { AdvancedModeToggle } from './ControlPanel/AdvancedModeToggle';
 import { UnifiedSettingsTabContent } from './ControlPanel/UnifiedSettingsTabContent';
 import { UNIFIED_TABS, filterTabs } from './ControlPanel/unifiedSettingsConfig';
+import { SolidTabContent } from '../../solid/components/SolidTabContent';
 import { ControlPanelProvider, useControlPanelContext } from '../../settings/components/control-panel-context';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { Lock, Star } from 'lucide-react';
@@ -332,11 +333,15 @@ const IntegratedControlPanelInner: React.FC<ControlPanelProps> = ({
           }}>
             {UNIFIED_TABS.map(tab => (
               <TabsContent key={tab.id} value={tab.id}>
-                <UnifiedSettingsTabContent
-                  sectionId={tab.id}
-                  onError={(err) => logger.error('Settings error:', err)}
-                  onSuccess={(msg) => logger.debug('Settings success:', msg)}
-                />
+                {tab.id === 'solid' ? (
+                  <SolidTabContent />
+                ) : (
+                  <UnifiedSettingsTabContent
+                    sectionId={tab.id}
+                    onError={(err) => logger.error('Settings error:', err)}
+                    onSuccess={(msg) => logger.debug('Settings success:', msg)}
+                  />
+                )}
               </TabsContent>
             ))}
           </div>

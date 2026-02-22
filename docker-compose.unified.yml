@@ -89,6 +89,7 @@ services:
       - JSS_CONNEG=true
       - JSS_MULTIUSER=true
       - JSS_IDP=false
+      - JSS_MASHLIB_CDN=true
     volumes:
       - jss-data:/data
     ports:
