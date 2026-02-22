@@ -210,85 +210,113 @@ class ComfyUIClient extends EventEmitter {
         }
     }
 
-    buildText2ImgWorkflow(params) {
-        const {
-            prompt,
-            width = 1024,
-            height = 1024,
-            seed = Math.floor(Math.random() * 1000000),
-            steps = 20,
-            cfg_scale = 1.0,
-            sampler_name = 'euler',
-            scheduler = 'simple',
-            denoise = 1.0,
-            guidance = 3.5
-        } = params;
-
-        return {
-            "6": {
-                "inputs": { "text": prompt, "clip": ["30", 1] },
-                "class_type": "CLIPTextEncode"
-            },
-            "8": {
-                "inputs": {
-                    "samples": ["31", 0],
-                    "vae": ["30", 2]
-                },
-                "class_type": "VAEDecode"
-            },
-            "9": {
-                "inputs": {
-                    "filename_prefix": "ComfyUI",
-                    "images": ["8", 0]
-                },
-                "class_type": "SaveImage"
-            },
-            "27": {
-                "inputs": {
-                    "width": width,
-                    "height": height,
-                    "batch_size": 1
-                },
-                "class_type": "EmptySD3LatentImage"
-            },
-            "30": {
-                "inputs": {
-                    "ckpt_name": "flux1-schnell-fp8.safetensors"
-                },
-                "class_type": "CheckpointLoaderSimple"
-            },
-            "31": {
-                "inputs": {
-                    "seed": seed,
-                    "steps": steps,
-                    "cfg": cfg_scale,
-                    "sampler_name": sampler_name,
-                    "scheduler": scheduler,
-                    "denoise": denoise,
-                    "model": ["30", 0],
-                    "positive": ["6", 0],
-                    "negative": ["33", 0],
-                    "latent_image": ["27", 0]
-                },
-                "class_type": "KSampler"
-            },
-            "33": {
-                "inputs": {
-                    "text": "",
-                    "clip": ["30", 1]
-                },
-                "class_type": "CLIPTextEncode"
-            }
-        };
-    }
-
+    /**
+     * Generate an image via the VisionFlow backend (POST /api/image-gen/agent-submit).
+     * The backend handles the full Flux2 pipeline (ComfyUI + Solid pod storage) and
+     * returns a text URL — no binary data crosses the MCP boundary.
+     *
+     * Falls back to direct ComfyUI submission if VISIONFLOW_URL is not configured.
+     */
     async generateImage(params) {
+        const visionflowUrl = process.env.VISIONFLOW_URL;
+        const agentKey = process.env.VISIONFLOW_AGENT_KEY || 'changeme-agent-key';
+
+        if (visionflowUrl) {
+            return await this._generateViaBackend(params, visionflowUrl, agentKey);
+        }
+
+        // Fallback: submit directly to ComfyUI (no Solid pod storage)
+        console.error('[comfyui-mcp] VISIONFLOW_URL not set — falling back to direct ComfyUI submit');
         try {
-            const workflow = this.buildText2ImgWorkflow(params);
+            const workflow = this.buildFlux2Workflow(params);
             return await this.submitWorkflow(workflow);
         } catch (err) {
             return { success: false, error: err.message };
         }
+    }
+
+    /**
+     * POST to VisionFlow backend agent-submit endpoint.
+     * Synchronous — backend polls ComfyUI and returns when the image is ready.
+     */
+    async _generateViaBackend(params, visionflowUrl, agentKey) {
+        const {
+            prompt,
+            width = 1024,
+            height = 1024,
+            steps = 20,
+            guidance = 3.5,
+            seed = -1,
+            pod_folder = 'images',
+            user_npub
+        } = params;
+
+        const body = { prompt, width, height, steps, guidance, seed, pod_folder };
+        if (user_npub) body.user_npub = user_npub;
+
+        try {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 360_000); // 6 min
+
+            const response = await fetch(`${visionflowUrl}/api/image-gen/agent-submit`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Agent-Key': agentKey,
+                },
+                body: JSON.stringify(body),
+                signal: controller.signal,
+            });
+
+            clearTimeout(timeout);
+
+            if (!response.ok) {
+                const errText = await response.text();
+                return { success: false, error: `Backend ${response.status}: ${errText}` };
+            }
+
+            const result = await response.json();
+            return { success: true, ...result };
+        } catch (err) {
+            return { success: false, error: err.message };
+        }
+    }
+
+    /**
+     * Flux2 workflow for direct ComfyUI submission (fallback path).
+     * Uses the confirmed-correct Flux2 node graph.
+     */
+    buildFlux2Workflow(params) {
+        const {
+            prompt,
+            width = 1024,
+            height = 1024,
+            seed = Math.floor(Math.random() * 2 ** 32),
+            steps = 20,
+            guidance = 3.5,
+        } = params;
+
+        return {
+            "1": { "class_type": "UNETLoader", "inputs": { "unet_name": "flux2_dev_fp8mixed.safetensors", "weight_dtype": "fp8_e4m3fn" } },
+            "2": { "class_type": "CLIPLoader", "inputs": { "clip_name": "mistral_3_small_flux2_fp8.safetensors", "type": "flux2" } },
+            "3": { "class_type": "VAELoader", "inputs": { "vae_name": "flux2-vae.safetensors" } },
+            "4": { "class_type": "CLIPTextEncode", "inputs": { "text": prompt, "clip": ["2", 0] } },
+            "5": { "class_type": "FluxGuidance", "inputs": { "conditioning": ["4", 0], "guidance": guidance } },
+            "6": { "class_type": "BasicGuider", "inputs": { "model": ["1", 0], "conditioning": ["5", 0] } },
+            "7": { "class_type": "RandomNoise", "inputs": { "noise_seed": seed } },
+            "8": { "class_type": "EmptySD3LatentImage", "inputs": { "width": width, "height": height, "batch_size": 1 } },
+            "9": { "class_type": "BasicScheduler", "inputs": { "model": ["1", 0], "scheduler": "beta", "steps": steps, "denoise": 1.0 } },
+            "10": {
+                "class_type": "SamplerCustomAdvanced",
+                "inputs": {
+                    "noise": ["7", 0], "guider": ["6", 0],
+                    "sampler": { "class_type": "KSamplerSelect", "inputs": { "sampler_name": "euler" } },
+                    "sigmas": ["9", 0], "latent_image": ["8", 0]
+                }
+            },
+            "11": { "class_type": "VAEDecode", "inputs": { "samples": ["10", 0], "vae": ["3", 0] } },
+            "12": { "class_type": "SaveImage", "inputs": { "images": ["11", 0], "filename_prefix": "agent" } }
+        };
     }
 
     async chatToWorkflow(prompt, llmEndpoint = 'http://localhost:9600/chat') {
@@ -408,13 +436,17 @@ class ComfyUIMCPServer {
             },
             {
                 name: 'image_generate',
-                description: 'Convenience text2img generation using FLUX model',
+                description: 'Generate an image using Flux2 via ComfyUI. The image is stored in the user\'s Solid pod and the pod URL is returned. Synchronous — waits until the image is ready (up to 6 minutes).',
                 inputSchema: {
                     type: 'object',
                     properties: {
                         prompt: {
                             type: 'string',
-                            description: 'Text prompt for image generation'
+                            description: 'Detailed text prompt describing the image to generate'
+                        },
+                        user_npub: {
+                            type: 'string',
+                            description: 'Nostr public key (npub) of the user whose Solid pod to store the image in'
                         },
                         width: {
                             type: 'integer',
@@ -432,19 +464,25 @@ class ComfyUIMCPServer {
                         },
                         steps: {
                             type: 'integer',
-                            description: 'Number of sampling steps',
+                            description: 'Number of diffusion steps (higher = better quality, slower)',
                             default: 20,
                             minimum: 1,
-                            maximum: 100
+                            maximum: 50
                         },
-                        cfg_scale: {
+                        guidance: {
                             type: 'number',
-                            description: 'CFG scale',
-                            default: 1.0
+                            description: 'Guidance scale (3.5 recommended for Flux2)',
+                            default: 3.5
                         },
                         seed: {
                             type: 'integer',
-                            description: 'Seed for reproducibility (random if not set)'
+                            description: 'Seed for reproducibility (-1 = random)',
+                            default: -1
+                        },
+                        pod_folder: {
+                            type: 'string',
+                            description: 'Subfolder in the pod to store the image (default: images)',
+                            default: 'images'
                         }
                     },
                     required: ['prompt']
@@ -642,10 +680,25 @@ class ComfyUIMCPServer {
                 break;
 
             case 'image_generate':
-                text = `# Image Generation Started\n\n`;
-                text += `**Job ID:** ${result.jobId}\n`;
-                text += `**Status:** Job queued for execution\n\n`;
-                text += `Use \`workflow_status\` to check completion.\n`;
+                if (result.status === 'completed') {
+                    text = `# Image Generated\n\n`;
+                    text += `**Job ID:** ${result.job_id || result.jobId}\n`;
+                    text += `**Status:** Completed\n`;
+                    text += `**Size:** ${result.width || '?'}×${result.height || '?'}px\n`;
+                    text += `**Seed:** ${result.seed || 'N/A'}\n`;
+                    if (result.pod_image_url) {
+                        text += `**Pod URL:** ${result.pod_image_url}\n`;
+                        text += `\nThe image is stored in the Solid pod at: \`${result.pod_image_url}\`\n`;
+                    } else if (result.comfyui_filename) {
+                        text += `**ComfyUI file:** ${result.comfyui_filename}\n`;
+                        text += `\nImage generated but not yet stored in Solid pod (pod storage skipped).\n`;
+                    }
+                } else {
+                    text = `# Image Generation Queued\n\n`;
+                    text += `**Job ID:** ${result.jobId}\n`;
+                    text += `**Status:** ${result.status || 'queued'}\n\n`;
+                    text += `Use \`workflow_status\` with job_id \`${result.jobId}\` to check progress.\n`;
+                }
                 break;
 
             case 'display_capture':

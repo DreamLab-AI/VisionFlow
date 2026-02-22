@@ -777,12 +777,14 @@ async fn get_user_from_request(
             .get("X-Forwarded-Host")
             .and_then(|v| v.to_str().ok())
             .unwrap_or_else(|| conn_info.host());
-        let request_url = format!(
-            "{}://{}{}",
-            scheme,
-            host,
-            req.uri().path_and_query().map(|pq| pq.as_str()).unwrap_or("/")
-        );
+        // Prefer X-Forwarded-URI (the original nginx-facing path, e.g. /solid/pods/init)
+        // over the nginx-rewritten backend path (e.g. /api/solid/pods/init).
+        // The client signs the NIP-98 token with the URL as sent to nginx, not the internal path.
+        let path = req.headers()
+            .get("X-Forwarded-URI")
+            .and_then(|v| v.to_str().ok())
+            .unwrap_or_else(|| req.uri().path_and_query().map(|pq| pq.as_str()).unwrap_or("/"));
+        let request_url = format!("{}://{}{}", scheme, host, path);
         let request_method = req.method().as_str();
 
         match nostr_service

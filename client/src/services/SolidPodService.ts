@@ -726,7 +726,10 @@ class SolidPodService {
         try {
           const method = (options.method || 'GET').toUpperCase();
           const body = typeof options.body === 'string' ? options.body : undefined;
-          const token = await nostrAuth.signRequest(url, method, body);
+          // NIP-98 requires a full absolute URL. Expand relative URLs using the window origin
+          // so the backend can verify against the public-facing URL (before nginx rewrite).
+          const absoluteUrl = url.startsWith('http') ? url : `${window.location.origin}${url}`;
+          const token = await nostrAuth.signRequest(absoluteUrl, method, body);
           headers.set('Authorization', `Nostr ${token}`);
         } catch (e) {
           logger.warn('NIP-98 signing failed:', e);
