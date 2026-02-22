@@ -8,7 +8,7 @@
 import type { SectionConfig } from './types';
 import {
   Eye, Sparkles, BarChart3, Gauge, Settings,
-  Bot, Code, Network, Shield
+  Bot, Code, Network, Shield, Database
 } from 'lucide-react';
 // @ts-ignore - These icons exist in lucide-react but types may be outdated
 import { Atom, Glasses } from 'lucide-react';
@@ -97,6 +97,13 @@ export const UNIFIED_TABS: UnifiedTabConfig[] = [
     buttonKey: '9',
     isAdvanced: true,
     isPowerUserOnly: true
+  },
+  {
+    id: 'solid',
+    label: 'Pod',
+    icon: Database,
+    description: 'Solid Pod file browser and settings',
+    buttonKey: '0'
   }
 ];
 

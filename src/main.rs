@@ -579,6 +579,9 @@ async fn main() -> std::io::Result<()> {
                     // JavaScript Solid Server (JSS) integration
                     .configure(webxr::handlers::configure_solid_routes)
 
+                    // Image generation via ComfyUI (Flux2)
+                    .configure(webxr::handlers::configure_image_gen_routes)
+
                     // Briefing workflow (voice → brief → role agents → debrief)
                     .configure(webxr::handlers::configure_briefing_routes)
 

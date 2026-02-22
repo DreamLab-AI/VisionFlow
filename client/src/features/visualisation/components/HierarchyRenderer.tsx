@@ -206,7 +206,7 @@ export const HierarchyRenderer: React.FC<HierarchyRendererProps> = ({
     if (rootGroupRef.current) {
       scene.remove(rootGroupRef.current);
       rootGroupRef.current.traverse((obj) => {
-        if (obj instanceof THREE.Mesh) {
+        if (obj instanceof THREE.Mesh || obj instanceof THREE.Line) {
           obj.geometry.dispose();
           if (obj.material instanceof THREE.Material) {
             obj.material.dispose();
@@ -286,6 +286,33 @@ export const HierarchyRenderer: React.FC<HierarchyRendererProps> = ({
       }
 
       rootGroup.add(nodePos.group);
+    });
+
+    // Render parent→child edges as lines
+    const maxDepthVisible = 5 - semanticZoomLevel;
+    nodePositionsRef.current.forEach((nodePos, iri) => {
+      const node = hierarchy.hierarchy[iri];
+      if (!node?.parentIri) return;
+
+      const parentPos = nodePositionsRef.current.get(node.parentIri);
+      if (!parentPos) return;
+
+      const parentNode = hierarchy.hierarchy[node.parentIri];
+      if (!parentNode) return;
+
+      // Only draw edges when both endpoints are visible
+      if (node.depth > maxDepthVisible || parentNode.depth > maxDepthVisible) return;
+
+      const points = new Float32Array([
+        parentPos.position.x, parentPos.position.y, parentPos.position.z,
+        nodePos.position.x, nodePos.position.y, nodePos.position.z,
+      ]);
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(points, 3));
+      const mat = new THREE.LineBasicMaterial({ color: 0x4488aa, opacity: 0.5, transparent: true });
+      const line = new THREE.Line(geo, mat);
+      line.userData.type = 'HierarchyEdge';
+      rootGroup.add(line);
     });
 
     scene.add(rootGroup);

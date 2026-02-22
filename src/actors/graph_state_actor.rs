@@ -75,6 +75,9 @@ pub struct GraphStateActor {
 
     next_node_id: std::sync::atomic::AtomicU32,
 
+    // Full metadata store — kept in sync so edge generation always has complete context
+    metadata_store: MetadataStore,
+
     // Node type classification sets for binary protocol flags
     knowledge_node_ids: HashSet<u32>,
     ontology_class_ids: HashSet<u32>,
@@ -93,6 +96,7 @@ impl GraphStateActor {
             node_map: Arc::new(HashMap::new()),
             bots_graph_data: Arc::new(GraphData::new()),
             next_node_id: std::sync::atomic::AtomicU32::new(1),
+            metadata_store: HashMap::new(),
             knowledge_node_ids: HashSet::new(),
             ontology_class_ids: HashSet::new(),
             ontology_individual_ids: HashSet::new(),
@@ -342,12 +346,13 @@ impl GraphStateActor {
             current_id += 1;
         }
 
-        
-        self.generate_edges_from_metadata(&mut new_graph_data, &metadata);
+
+        Self::generate_edges_from_metadata(&mut new_graph_data, &metadata);
 
         self.graph_data = Arc::new(new_graph_data);
         self.node_map = Arc::new(new_node_map);
         self.next_node_id.store(current_id, std::sync::atomic::Ordering::SeqCst);
+        self.metadata_store = metadata.clone();
 
         // Classify all nodes into type sets
         self.reclassify_all_nodes();
@@ -429,7 +434,7 @@ impl GraphStateActor {
     }
 
     
-    fn generate_edges_from_metadata(&self, graph_data: &mut GraphData, metadata: &MetadataStore) {
+    fn generate_edges_from_metadata(graph_data: &mut GraphData, metadata: &MetadataStore) {
         let mut edge_set: HashSet<(u32, u32)> = HashSet::new();
 
         // Build lookup maps: label (lowercase, without .md) -> node_id
@@ -524,7 +529,7 @@ impl GraphStateActor {
         let mut current_id = self.next_node_id.load(std::sync::atomic::Ordering::SeqCst);
 
         for (metadata_id, file_metadata) in metadata.iter() {
-            
+
             if self.node_map.values().any(|n| n.metadata_id == *metadata_id) {
                 continue;
             }
@@ -540,6 +545,17 @@ impl GraphStateActor {
 
         self.next_node_id.store(current_id, std::sync::atomic::Ordering::SeqCst);
         info!("Added {} new nodes from metadata", added_count);
+
+        // Merge new metadata into stored metadata and regenerate all edges.
+        // Clone first to avoid borrow conflict with self.graph_data.
+        for (id, meta) in metadata {
+            self.metadata_store.insert(id, meta);
+        }
+        let full_metadata = self.metadata_store.clone();
+        let graph_data_mut = Arc::make_mut(&mut self.graph_data);
+        graph_data_mut.edges.clear();
+        Self::generate_edges_from_metadata(graph_data_mut, &full_metadata);
+
         Ok(())
     }
 

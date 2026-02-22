@@ -1,6 +1,7 @@
 /**
  * Hook for Solid Pod management
- * Provides pod state, creation, and deletion functionality
+ * Provides pod state, auto-provisioning, and deletion functionality.
+ * Uses initPod() which auto-creates the pod if it doesn't exist.
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -27,8 +28,20 @@ export function useSolidPod(): UseSolidPodReturn {
     setIsLoading(true);
     setError(null);
     try {
-      const info = await solidPodService.checkPodExists();
-      setPodInfo(info);
+      // Use initPod which auto-provisions if pod doesn't exist
+      const result = await solidPodService.initPod();
+      if (result.success) {
+        setPodInfo({
+          exists: true,
+          podUrl: result.podUrl,
+          webId: result.webId,
+          structure: result.structure,
+        });
+      } else {
+        // initPod failed (e.g. not authenticated) — fall back to check
+        const info = await solidPodService.checkPodExists();
+        setPodInfo(info);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to check pod');
     } finally {
@@ -40,17 +53,26 @@ export function useSolidPod(): UseSolidPodReturn {
     setIsLoading(true);
     setError(null);
     try {
-      const result = await solidPodService.createPod(name);
+      // initPod handles create-if-not-exists with full structure
+      const result = await solidPodService.initPod();
       if (result.success) {
         setPodInfo({
           exists: true,
           podUrl: result.podUrl,
           webId: result.webId,
+          structure: result.structure,
         });
+        return {
+          success: true,
+          podUrl: result.podUrl,
+          webId: result.webId,
+          created: result.created,
+          structure: result.structure,
+        };
       } else {
         setError(result.error || 'Failed to create pod');
+        return { success: false, error: result.error };
       }
-      return result;
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Failed to create pod';
       setError(errorMsg);
