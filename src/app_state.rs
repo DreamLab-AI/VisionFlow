@@ -128,21 +128,21 @@ fn validate_security_env_vars() -> Result<String, Box<dyn std::error::Error + Se
 
     // If there are any security errors, log them clearly and panic
     if !errors.is_empty() {
-        eprintln!("=========================================================");
-        eprintln!("  SECURITY CONFIGURATION ERROR - APPLICATION CANNOT START");
-        eprintln!("=========================================================");
+        log::error!("=========================================================");
+        log::error!("  SECURITY CONFIGURATION ERROR - APPLICATION CANNOT START");
+        log::error!("=========================================================");
         for (i, error) in errors.iter().enumerate() {
-            eprintln!("  {}. {}", i + 1, error);
+            log::error!("  {}. {}", i + 1, error);
         }
-        eprintln!("---------------------------------------------------------");
-        eprintln!("  Required environment variables:");
-        eprintln!("    - MANAGEMENT_API_KEY: Strong unique API key (16+ chars)");
-        eprintln!("    - JWT_SECRET (optional): Strong unique secret (32+ chars)");
-        eprintln!("---------------------------------------------------------");
-        eprintln!("  Example secure configuration:");
-        eprintln!("    export MANAGEMENT_API_KEY=$(openssl rand -hex 32)");
-        eprintln!("    export JWT_SECRET=$(openssl rand -hex 32)");
-        eprintln!("=========================================================");
+        log::error!("---------------------------------------------------------");
+        log::error!("  Required environment variables:");
+        log::error!("    - MANAGEMENT_API_KEY: Strong unique API key (16+ chars)");
+        log::error!("    - JWT_SECRET (optional): Strong unique secret (32+ chars)");
+        log::error!("---------------------------------------------------------");
+        log::error!("  Example secure configuration:");
+        log::error!("    export MANAGEMENT_API_KEY=$(openssl rand -hex 32)");
+        log::error!("    export JWT_SECRET=$(openssl rand -hex 32)");
+        log::error!("=========================================================");
 
         return Err(format!(
             "Security configuration failed: {} error(s). See logs above for details.",

@@ -30,17 +30,17 @@ export class AutoSaveManager {
   }
 
   setInitialized(initialized: boolean) {
-    console.warn(`[SETTINGS-DIAG] autoSaveManager.setInitialized(${initialized})`);
+    logger.debug(`[SETTINGS-DIAG] autoSaveManager.setInitialized(${initialized})`);
     this.isInitialized = initialized;
   }
 
 
   queueChange(path: string, value: any) {
     if (!this.isInitialized) {
-      console.warn(`[SETTINGS-DIAG] autoSaveManager.queueChange DROPPED (not initialized): ${path}`, value);
+      logger.debug(`[SETTINGS-DIAG] autoSaveManager.queueChange DROPPED (not initialized): ${path}`, value);
       return;
     }
-    console.warn(`[SETTINGS-DIAG] autoSaveManager.queueChange: ${path} =`, value);
+    logger.debug(`[SETTINGS-DIAG] autoSaveManager.queueChange: ${path} =`, value);
 
     if (this.isClientOnlyPath(path)) {
       logger.debug(`Skipping client-only path: ${path}`);
@@ -54,10 +54,10 @@ export class AutoSaveManager {
 
   queueChanges(changes: Map<string, any>) {
     if (!this.isInitialized) {
-      console.warn(`[SETTINGS-DIAG] autoSaveManager.queueChanges DROPPED (not initialized): ${changes.size} changes`, [...changes.keys()]);
+      logger.debug(`[SETTINGS-DIAG] autoSaveManager.queueChanges DROPPED (not initialized): ${changes.size} changes`, [...changes.keys()]);
       return;
     }
-    console.warn(`[SETTINGS-DIAG] autoSaveManager.queueChanges: ${changes.size} changes`, [...changes.keys()]);
+    logger.debug(`[SETTINGS-DIAG] autoSaveManager.queueChanges: ${changes.size} changes`, [...changes.keys()]);
 
     changes.forEach((value, path) => {
       if (this.isClientOnlyPath(path)) {
@@ -100,13 +100,13 @@ export class AutoSaveManager {
     // Clear pending immediately to avoid re-sending on next flush
     this.pendingChanges.clear();
 
-    console.warn(`[SETTINGS-DIAG] autoSaveManager.flush: ${updates.length} updates`, updates.map(u => `${u.path}=${JSON.stringify(u.value)}`));
+    logger.debug(`[SETTINGS-DIAG] autoSaveManager.flush: ${updates.length} updates`, updates.map(u => `${u.path}=${JSON.stringify(u.value)}`));
 
     try {
       await settingsApi.updateSettingsByPaths(updates);
-      console.warn(`[SETTINGS-DIAG] autoSaveManager.flush SUCCESS: ${updates.length} updates sent to server`);
+      logger.debug(`[SETTINGS-DIAG] autoSaveManager.flush SUCCESS: ${updates.length} updates sent to server`);
     } catch (error) {
-      console.warn(`[SETTINGS-DIAG] autoSaveManager.flush FAILED:`, error);
+      logger.debug(`[SETTINGS-DIAG] autoSaveManager.flush FAILED:`, error);
 
       // Delegate all failed updates to the centralized retry manager
       for (const { path, value } of updates) {

@@ -96,13 +96,13 @@ impl OntologyAssembler {
         
         match read_ofn::<Arc<str>, SetOntology<Arc<str>>, _>(cursor, Default::default()) {
             Ok((_ontology, _prefixes)) => {
-                println!("  ✓ Parsed successfully");
-                println!("  ✓ OWL Functional Syntax is valid");
+                log::info!("  Parsed successfully");
+                log::info!("  OWL Functional Syntax is valid");
 
-                
-                
-                println!(
-                    "  ℹ For full reasoning/consistency checking, use a DL reasoner like whelk-rs"
+
+
+                log::info!(
+                    "  For full reasoning/consistency checking, use a DL reasoner like whelk-rs"
                 );
 
                 Ok(())

@@ -76,10 +76,12 @@ export class AgentTelemetryService {
 
   private setupPerformanceObserver() {
 
-    if ('memory' in performance && (performance as any).memory) {
+    /** Chrome-specific performance.memory API */
+    interface PerformanceMemory { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number; }
+    const perfWithMemory = performance as Performance & { memory?: PerformanceMemory };
+    if (perfWithMemory.memory) {
       const updateMemory = () => {
-        const memory = (performance as any).memory;
-        this.metrics.memoryUsage = memory.usedJSHeapSize;
+        this.metrics.memoryUsage = perfWithMemory.memory?.usedJSHeapSize;
       };
       this.memoryInterval = setInterval(updateMemory, 5000);
     }
@@ -157,7 +159,7 @@ export class AgentTelemetryService {
     this.metrics.averageFrameTime = this.frameTimeSum / this.frameTimeCount;
 
     if (frameTime > 50) {
-      console.warn(`PERFORMANCE: Slow frame detected - ${frameTime.toFixed(2)}ms`);
+      this.logger.warn(`PERFORMANCE: Slow frame detected - ${frameTime.toFixed(2)}ms`);
     }
 
     this.logger.logPerformance('render_cycle', frameTime);

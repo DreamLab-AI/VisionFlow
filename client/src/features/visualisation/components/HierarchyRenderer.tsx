@@ -128,7 +128,7 @@ export const HierarchyRenderer: React.FC<HierarchyRendererProps> = ({
     (min: THREE.Vector3, max: THREE.Vector3, color: number): THREE.Box3Helper => {
       const box = new THREE.Box3(min, max);
       const helper = new THREE.Box3Helper(box, new THREE.Color(color));
-      (helper as any).type = 'BoundingBox'; // Tag for identification
+      helper.userData.type = 'BoundingBox'; // Tag for identification
       return helper;
     },
     []

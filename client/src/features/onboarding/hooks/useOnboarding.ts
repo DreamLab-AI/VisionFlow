@@ -1,5 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
 import { OnboardingState, OnboardingFlow, OnboardingStep } from '../types';
+import { createLogger } from '../../../utils/loggerConfig';
+
+const logger = createLogger('useOnboarding');
 
 const COMPLETED_FLOWS_KEY = 'onboarding.completedFlows';
 
@@ -25,7 +28,7 @@ export function useOnboarding() {
         }
       }
     } catch (error) {
-      console.error('Failed to load onboarding state:', error);
+      logger.error('Failed to load onboarding state:', error);
     }
   }, []);
 
@@ -56,7 +59,7 @@ export function useOnboarding() {
       try {
         await currentStep.action();
       } catch (error) {
-        console.error('Failed to execute step action:', error);
+        logger.error('Failed to execute step action:', error);
       }
     }
 
@@ -97,7 +100,7 @@ export function useOnboarding() {
     try {
       localStorage.setItem(COMPLETED_FLOWS_KEY, JSON.stringify(newCompletedFlows));
     } catch (error) {
-      console.error('Failed to save onboarding state:', error);
+      logger.error('Failed to save onboarding state:', error);
     }
 
     setState(prev => ({

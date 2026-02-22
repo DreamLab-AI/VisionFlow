@@ -40,6 +40,7 @@ import {
   useVRHandTracking,
   agentsToTargetNodes,
   TargetNode,
+  HandState,
 } from '../../immersive/hooks/useVRHandTracking';
 import { createLogger } from '../../utils/loggerConfig';
 
@@ -342,7 +343,8 @@ const ActionConnectionsScene: React.FC<{
       updateCameraPosition(camera.position);
 
       // Update hand tracking from XR session
-      const session = (gl.xr as any)?.getSession?.();
+      const xrManager = gl.xr as unknown as { getSession?: () => XRSession | null };
+      const session = xrManager.getSession?.();
       if (session) {
         updateHandTrackingFromSession(session, updateHandState);
       }
@@ -502,7 +504,7 @@ const VRPerformanceStats: React.FC<{
  */
 function updateHandTrackingFromSession(
   session: XRSession,
-  updateHandState: (hand: 'primary' | 'secondary', state: any) => void
+  updateHandState: (hand: 'primary' | 'secondary', state: Partial<HandState>) => void
 ) {
   const inputSources = session.inputSources;
   if (!inputSources) return;

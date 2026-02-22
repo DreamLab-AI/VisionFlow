@@ -127,12 +127,15 @@ const generateAgentTypeColor = (agentType: string): string => {
 };
 
 // Get VisionFlow colors from settings with dynamic fallback
-const getVisionFlowColors = (settings: any) => {
-  const visionflowSettings = settings?.visualisation?.graphs?.visionflow;
-  const baseColor = visionflowSettings?.nodes?.baseColor || '#F1C40F';
+const getVisionFlowColors = (settings: Record<string, unknown> | undefined) => {
+  const vis = settings?.visualisation as Record<string, unknown> | undefined;
+  const graphs = vis?.graphs as Record<string, unknown> | undefined;
+  const visionflowSettings = graphs?.visionflow as Record<string, unknown> | undefined;
+  const vfNodes = visionflowSettings?.nodes as Record<string, unknown> | undefined;
+  const baseColor = (vfNodes?.baseColor as string | undefined) || '#F1C40F';
 
-  
-  const agentColors = settings?.visualisation?.rendering?.agentColors;
+  const rendering = vis?.rendering as Record<string, unknown> | undefined;
+  const agentColors = rendering?.agentColors as Record<string, string> | undefined;
 
   if (agentColors && Object.keys(agentColors).length > 0) {
     
@@ -1339,7 +1342,7 @@ export const BotsVisualization: React.FC = () => {
   
 
   
-  const colors = useMemo(() => getVisionFlowColors(settings), [settings]);
+  const colors = useMemo(() => getVisionFlowColors(settings as unknown as Record<string, unknown> | undefined), [settings]);
 
   
   useEffect(() => {
@@ -1401,17 +1404,18 @@ export const BotsVisualization: React.FC = () => {
     });
 
     
-    const edges = (contextBotsData as any).edges || [];
+    const edges = contextBotsData.edges || [];
     const edgeMap = new Map<string, BotsEdge>();
     edges.forEach((edge: BotsEdge) => {
       edgeMap.set(edge.id, edge);
     });
 
+    const contextRecord = contextBotsData as unknown as Record<string, unknown>;
     setBotsData({
       agents: agentMap,
       edges: edgeMap,
       communications: [],
-      tokenUsage: (contextBotsData as any).tokenUsage || { total: 0, byAgent: {} },
+      tokenUsage: (contextRecord.tokenUsage as TokenUsage | undefined) || { total: 0, byAgent: {} },
       lastUpdate: Date.now(),
     });
 

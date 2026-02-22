@@ -23,13 +23,13 @@ export function parseDebugConfig(): DebugConfig {
     enabled: env.VITE_DEBUG === 'true' || isDev,
     categories: [],
     replaceConsole: env.VITE_DEBUG_REPLACE_CONSOLE === 'true',
-    preset: env.VITE_DEBUG_PRESET as any,
+    preset: env.VITE_DEBUG_PRESET as DebugConfig['preset'],
   };
 
 
   if (env.VITE_DEBUG_CATEGORIES) {
     const cats = env.VITE_DEBUG_CATEGORIES.split(',').map((c: string) => c.trim());
-    config.categories = cats.filter((c: string) => Object.values(DebugCategory).includes(c as any)) as DebugCategory[];
+    config.categories = cats.filter((c: string) => (Object.values(DebugCategory) as string[]).includes(c)) as DebugCategory[];
   }
 
   return config;

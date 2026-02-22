@@ -188,7 +188,7 @@ function shouldEnableLogging(options: LoggerOptions): boolean {
     return !options.disabled;
   }
 
-  const consoleLoggingEnabled = clientDebugState.get('consoleLogging');
+  const consoleLoggingEnabled = clientDebugState.get('consoleLogging') === true;
   return !options.disabled && consoleLoggingEnabled;
 }
 

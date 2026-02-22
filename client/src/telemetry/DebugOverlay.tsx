@@ -92,7 +92,7 @@ export const DebugOverlay: React.FC<DebugOverlayProps> = ({ visible, onToggle })
         ].map(tab => (
           <button
             key={tab.key}
-            onClick={() => setSelectedTab(tab.key as any)}
+            onClick={() => setSelectedTab(tab.key as typeof selectedTab)}
             style={{
               flex: 1,
               padding: '8px 4px',
@@ -237,7 +237,7 @@ export const DebugOverlay: React.FC<DebugOverlayProps> = ({ visible, onToggle })
       }}>
         <button
           onClick={() => {
-            (agentTelemetry as any).uploadTelemetry?.() ?? agentTelemetry.fetchAgentTelemetry();
+            (agentTelemetry as unknown as { uploadTelemetry?: () => void }).uploadTelemetry?.() ?? agentTelemetry.fetchAgentTelemetry();
           }}
           style={{
             padding: '5px 10px',

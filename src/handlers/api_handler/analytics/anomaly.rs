@@ -1,7 +1,7 @@
 
 
 use std::collections::HashMap;
-use log::{debug, info};
+use log::{debug, error, info, warn};
 use rand::Rng;
 use uuid::Uuid;
 use chrono::Utc;

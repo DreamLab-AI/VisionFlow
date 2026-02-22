@@ -33,7 +33,7 @@ const DEBUG_KEYS = {
 export type DebugKey = keyof typeof DEBUG_KEYS;
 
 class ClientDebugState {
-  private listeners: Map<string, Set<(value: any) => void>> = new Map();
+  private listeners: Map<string, Set<(value: string | boolean) => void>> = new Map();
 
   constructor() {
     
@@ -43,15 +43,15 @@ class ClientDebugState {
   }
 
   private handleStorageChange(e: StorageEvent): void {
-    if (e.key && Object.values(DEBUG_KEYS).includes(e.key as any)) {
-      const newValue = e.newValue === 'true' ? true : 
-                       e.newValue === 'false' ? false : 
-                       e.newValue;
+    if (e.key && (Object.values(DEBUG_KEYS) as readonly string[]).includes(e.key)) {
+      const newValue: string | boolean = e.newValue === 'true' ? true :
+                       e.newValue === 'false' ? false :
+                       e.newValue ?? '';
       this.notifyListeners(e.key, newValue);
     }
   }
 
-  private notifyListeners(key: string, value: any): void {
+  private notifyListeners(key: string, value: string | boolean): void {
     const listeners = this.listeners.get(key);
     if (listeners) {
       listeners.forEach(listener => listener(value));
@@ -59,7 +59,7 @@ class ClientDebugState {
   }
 
   
-  public get(key: DebugKey): any {
+  public get(key: DebugKey): string | boolean {
     const storageKey = DEBUG_KEYS[key];
     if (typeof window === 'undefined') return false;
     
@@ -80,7 +80,7 @@ class ClientDebugState {
   }
 
   
-  public set(key: DebugKey, value: any): void {
+  public set(key: DebugKey, value: string | boolean): void {
     const storageKey = DEBUG_KEYS[key];
     if (typeof window === 'undefined') return;
     
@@ -95,7 +95,7 @@ class ClientDebugState {
   }
 
   
-  public subscribe(key: DebugKey, listener: (value: any) => void): () => void {
+  public subscribe(key: DebugKey, listener: (value: string | boolean) => void): () => void {
     const storageKey = DEBUG_KEYS[key];
     if (!this.listeners.has(storageKey)) {
       this.listeners.set(storageKey, new Set());
@@ -112,7 +112,7 @@ class ClientDebugState {
   }
 
   
-  private getDefault(key: DebugKey): any {
+  private getDefault(key: DebugKey): string | boolean {
     switch (key) {
       case 'logLevel':
         return 'info';
@@ -123,7 +123,7 @@ class ClientDebugState {
 
   
   public isEnabled(): boolean {
-    return this.get('enabled');
+    return this.get('enabled') === true;
   }
 
   public setEnabled(value: boolean): void {
@@ -131,20 +131,20 @@ class ClientDebugState {
   }
 
   public isDataDebugEnabled(): boolean {
-    return this.isEnabled() && this.get('dataDebug');
+    return this.isEnabled() && this.get('dataDebug') === true;
   }
 
   public isPerformanceDebugEnabled(): boolean {
-    return this.isEnabled() && this.get('performanceDebug');
+    return this.isEnabled() && this.get('performanceDebug') === true;
   }
 
   
-  public getAll(): Record<DebugKey, any> {
-    const result: Partial<Record<DebugKey, any>> = {};
+  public getAll(): Record<DebugKey, string | boolean> {
+    const result: Partial<Record<DebugKey, string | boolean>> = {};
     for (const key of Object.keys(DEBUG_KEYS) as DebugKey[]) {
       result[key] = this.get(key);
     }
-    return result as Record<DebugKey, any>;
+    return result as Record<DebugKey, string | boolean>;
   }
 
   public reset(): void {
@@ -153,7 +153,7 @@ class ClientDebugState {
     try {
       for (const storageKey of Object.values(DEBUG_KEYS)) {
         localStorage.removeItem(storageKey);
-        this.notifyListeners(storageKey, this.getDefault(storageKey as any));
+        this.notifyListeners(storageKey, this.getDefault(Object.entries(DEBUG_KEYS).find(([, v]) => v === storageKey)?.[0] as DebugKey || 'enabled'));
       }
       logger.info('All debug settings reset to defaults');
     } catch (e) {

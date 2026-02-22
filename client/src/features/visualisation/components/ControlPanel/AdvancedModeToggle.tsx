@@ -2,6 +2,9 @@ import React from 'react';
 import { Settings2, Lock, Unlock } from 'lucide-react';
 import { useControlPanelContext } from '../../../settings/components/control-panel-context';
 import { useSettingsStore } from '../../../../store/settingsStore';
+import { createLogger } from '../../../../utils/loggerConfig';
+
+const logger = createLogger('AdvancedModeToggle');
 
 interface AdvancedModeToggleProps {
   compact?: boolean;
@@ -20,7 +23,7 @@ export const AdvancedModeToggle: React.FC<AdvancedModeToggleProps> = ({
     if (!advancedMode && !isAuthenticated) {
       // Attempting to enable advanced mode without auth - show message
       // In production this would trigger login flow
-      console.warn('Advanced mode requires Nostr authentication for write access');
+      logger.warn('Advanced mode requires Nostr authentication for write access');
     }
     toggleAdvancedMode();
   };

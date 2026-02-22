@@ -10,7 +10,7 @@ const logger = createLogger('AgentTelemetryStream');
 const loadGoapWidget = () => {
   if (typeof window === 'undefined' || document.getElementById('goap-widget-script')) return;
 
-  (window as any).GOAPWidgetConfig = {
+  (window as unknown as Record<string, unknown>).GOAPWidgetConfig = {
     primaryColor: '#ff8800',
     accentColor: '#fbbf24',
     backgroundColor: '#1a1a1a',
@@ -40,7 +40,7 @@ const loadGoapWidget = () => {
   script.async = true;
   script.crossOrigin = 'anonymous';
   script.onerror = () => {
-    console.warn('[GOAP] Widget script failed to load (may be blocked by COEP/CSP policy)');
+    logger.warn('[GOAP] Widget script failed to load (may be blocked by COEP/CSP policy)');
   };
   document.body.appendChild(script);
 };
@@ -81,10 +81,10 @@ export const AgentTelemetryStream: React.FC = () => {
         const response = await unifiedApiClient.get('/bots/agents');
 
         if (response.data && response.data.agents) {
-          const newMessages: TelemetryMessage[] = response.data.agents.map((agent: any) => ({
+          const newMessages: TelemetryMessage[] = response.data.agents.map((agent: Record<string, unknown>) => ({
             timestamp: Date.now(),
-            agentId: agent.id || 'unknown',
-            agentType: agent.type || agent.agent_type || 'agent',
+            agentId: (agent.id as string) || 'unknown',
+            agentType: (agent.type as string) || (agent.agent_type as string) || 'agent',
             message: formatAgentStatus(agent),
             level: getMessageLevel(agent)
           }));
@@ -114,26 +114,27 @@ export const AgentTelemetryStream: React.FC = () => {
     };
   }, []);
 
-  const formatAgentStatus = (agent: any): string => {
-    const parts = [];
+  const formatAgentStatus = (agent: Record<string, unknown>): string => {
+    const parts: string[] = [];
 
-    if (agent.status) parts.push(`STS:${agent.status.toUpperCase()}`);
-    if (agent.health !== undefined) parts.push(`HP:${Math.round(agent.health)}%`);
-    
+    if (agent.status) parts.push(`STS:${String(agent.status).toUpperCase()}`);
+    if (agent.health !== undefined) parts.push(`HP:${Math.round(Number(agent.health))}%`);
+
     const cpuUsage = agent.cpuUsage ?? agent.cpu_usage;
-    if (cpuUsage !== undefined) parts.push(`CPU:${Math.round(cpuUsage)}%`);
+    if (cpuUsage !== undefined) parts.push(`CPU:${Math.round(Number(cpuUsage))}%`);
     const memoryUsage = agent.memoryUsage ?? agent.memory_usage;
-    if (memoryUsage !== undefined) parts.push(`MEM:${Math.round(memoryUsage)}MB`);
-    if (agent.workload !== undefined) parts.push(`WL:${Math.round(agent.workload)}`);
-    const currentTask = agent.current_task ?? agent.currentTask;
+    if (memoryUsage !== undefined) parts.push(`MEM:${Math.round(Number(memoryUsage))}MB`);
+    if (agent.workload !== undefined) parts.push(`WL:${Math.round(Number(agent.workload))}`);
+    const currentTask = (agent.current_task ?? agent.currentTask) as string | undefined;
     if (currentTask) parts.push(`TSK:${currentTask.substring(0, 20)}`);
 
     return parts.join(' | ') || 'IDLE';
   };
 
-  const getMessageLevel = (agent: any): 'info' | 'warning' | 'error' | 'success' => {
-    if (agent.status === 'error' || agent.health < 30) return 'error';
-    if (agent.status === 'warning' || agent.health < 60) return 'warning';
+  const getMessageLevel = (agent: Record<string, unknown>): 'info' | 'warning' | 'error' | 'success' => {
+    const health = Number(agent.health ?? 100);
+    if (agent.status === 'error' || health < 30) return 'error';
+    if (agent.status === 'warning' || health < 60) return 'warning';
     if (agent.status === 'active' || agent.status === 'working') return 'success';
     return 'info';
   };

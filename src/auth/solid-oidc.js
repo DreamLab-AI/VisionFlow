@@ -12,6 +12,7 @@
 
 import * as jose from 'jose';
 import { validateExternalUrl } from '../utils/ssrf.js';
+import logger from '../utils/logger.js';
 
 // Cache for OIDC configurations and JWKS
 const oidcConfigCache = new Map();
@@ -145,19 +146,19 @@ export async function verifySolidOidc(request) {
   } catch (err) {
     // Handle specific JWT errors
     if (err.code === 'ERR_JWT_EXPIRED') {
-      console.error('Solid-OIDC: Access token expired');
+      logger.error('Solid-OIDC: Access token expired');
       return { webId: null, error: 'Access token expired' };
     }
     if (err.code === 'ERR_JWS_SIGNATURE_VERIFICATION_FAILED') {
-      console.error('Solid-OIDC: Invalid token signature');
+      logger.error('Solid-OIDC: Invalid token signature');
       return { webId: null, error: 'Invalid token signature' };
     }
     if (err.code === 'ERR_JWKS_NO_MATCHING_KEY') {
-      console.error('Solid-OIDC: No matching key found in JWKS');
+      logger.error('Solid-OIDC: No matching key found in JWKS');
       return { webId: null, error: 'No matching key found in JWKS' };
     }
 
-    console.error('Solid-OIDC verification error:', err.code, err.message);
+    logger.error({ code: err.code, err }, 'Solid-OIDC verification error');
     return { webId: null, error: 'Token verification failed' };
   }
 }
@@ -244,7 +245,7 @@ async function verifyDpopProof(dpopProof, request, accessToken) {
     return { thumbprint, error: null };
 
   } catch (err) {
-    console.error('DPoP verification error:', err.code, err.message);
+    logger.error({ code: err.code, err }, 'DPoP verification error');
     return { thumbprint: null, error: 'Invalid DPoP proof: ' + err.message };
   }
 }
@@ -299,7 +300,7 @@ async function getOidcConfig(issuer) {
     return config;
 
   } catch (err) {
-    console.error(`Failed to fetch OIDC config from ${issuer}:`, err.message);
+    logger.error({ issuer, err }, `Failed to fetch OIDC config from ${issuer}`);
     throw err;
   }
 }

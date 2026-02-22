@@ -287,7 +287,7 @@ export const MultiAgentInitializationPrompt: React.FC<MultiAgentInitializationPr
         </label>
         <select
           value={topology}
-          onChange={(e) => setTopology(e.target.value as any)}
+          onChange={(e) => setTopology(e.target.value as typeof topology)}
           style={{
             width: '100%',
             padding: '8px',

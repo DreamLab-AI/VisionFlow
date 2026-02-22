@@ -248,7 +248,7 @@ class GraphDataManager {
         // One-time diagnostic: use console.log directly (custom logger may filter)
         if (Array.isArray(responseData.edges) && responseData.edges.length > 0) {
           const rawEdge = responseData.edges[0];
-          console.log('[graphDataManager] RAW API edge[0]:',
+          logger.debug('[graphDataManager] RAW API edge[0]:',
             'keys=', Object.keys(rawEdge),
             'source=', rawEdge.source, '(type:', typeof rawEdge.source + ')',
             'target=', rawEdge.target, '(type:', typeof rawEdge.target + ')',
@@ -260,9 +260,9 @@ class GraphDataManager {
         // but the client Edge interface expects `source: string`.
         // Also recover from pre-broken "undefined" strings and missing fields.
         const edges = Array.isArray(responseData.edges)
-          ? responseData.edges.map((edge: any) => {
-              let source = edge.source ?? edge.from ?? edge.from_node ?? edge.sourceId ?? edge.source_id;
-              let target = edge.target ?? edge.to ?? edge.to_node ?? edge.targetId ?? edge.target_id;
+          ? responseData.edges.map((edge: Edge & Record<string, unknown>) => {
+              let source: string | undefined = (edge.source ?? edge.from ?? edge.from_node ?? edge.sourceId ?? edge.source_id) as string | undefined;
+              let target: string | undefined = (edge.target ?? edge.to ?? edge.to_node ?? edge.targetId ?? edge.target_id) as string | undefined;
 
               // Guard: if source/target are literally the string "undefined" (from a previous
               // String(undefined) coercion), treat them as missing
@@ -283,7 +283,7 @@ class GraphDataManager {
                 source: String(source),
                 target: String(target)
               };
-            }).filter((edge: any) => edge.source !== 'undefined' && edge.target !== 'undefined')
+            }).filter((edge: { source: string; target: string }) => edge.source !== 'undefined' && edge.target !== 'undefined')
           : [];
         const metadata = responseData.metadata || {};
         const settlementState = responseData.settlementState || { isSettled: false, stableFrameCount: 0, kineticEnergy: 0 };
@@ -302,7 +302,7 @@ class GraphDataManager {
 
           // Ensure position property exists (API may send flat x/y/z instead of nested position)
           if (!normalizedNode.position) {
-            const raw = node as any;
+            const raw = node as unknown as Record<string, unknown> & { position?: { x?: number; y?: number; z?: number } };
             normalizedNode.position = {
               x: Number(raw.x) || Number(raw.position?.x) || 0,
               y: Number(raw.y) || Number(raw.position?.y) || 0,
@@ -310,8 +310,8 @@ class GraphDataManager {
             };
           }
 
-          const nodeAny = normalizedNode as any;
-          const nodeMetadata = metadata[nodeAny.metadata_id || nodeAny.metadataId];
+          const nodeWithMeta = normalizedNode as unknown as { metadata_id?: string; metadataId?: string };
+          const nodeMetadata = metadata[nodeWithMeta.metadata_id || nodeWithMeta.metadataId || ''];
           if (nodeMetadata) {
             return { ...normalizedNode, metadata: { ...normalizedNode.metadata, ...nodeMetadata } };
           }
@@ -607,8 +607,8 @@ class GraphDataManager {
 
       const settings = useSettingsStore.getState().settings;
       const debugEnabled = settings?.system?.debug?.enabled;
-      const physicsDebugEnabled = (settings?.system?.debug as any)?.enablePhysicsDebug;
-      const nodeDebugEnabled = (settings?.system?.debug as any)?.enableNodeDebug;
+      const physicsDebugEnabled = settings?.system?.debug?.enablePhysicsDebug;
+      const nodeDebugEnabled = settings?.system?.debug?.enableNodeDebug;
       
       if (debugEnabled && (physicsDebugEnabled || nodeDebugEnabled)) {
         const view = new DataView(positionData);

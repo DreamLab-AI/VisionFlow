@@ -1,8 +1,35 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useOntologyStore } from '../../../ontology/store/useOntologyStore';
+import type { OntologyHierarchy } from '../../../ontology/store/useOntologyStore';
 import { createLogger } from '../../../../utils/loggerConfig';
 
 const logger = createLogger('SemanticZoomControls');
+
+// Extended hierarchy with optional properties not on the base OntologyHierarchy type
+interface ExtendedHierarchy extends OntologyHierarchy {
+  rootClasses?: string[];
+  maxDepth?: number;
+}
+
+// Extended store with optional methods not on the base OntologyState type
+interface ExtendedOntologyStore {
+  hierarchy: ExtendedHierarchy | null;
+  semanticZoomLevel: number;
+  expandedClasses: Set<string>;
+  visibleClasses?: Set<string>;
+  setZoomLevel?: (level: number) => void;
+  expandAll?: () => void;
+  collapseAll?: () => void;
+  toggleClassVisibility?: (iri: string) => void;
+}
+
+// Class node shape used in filter list - runtime data may use `iri` instead of `id`
+interface HierarchyClassNode {
+  id: string;
+  iri?: string;
+  label: string;
+  instanceCount?: number;
+}
 
 interface SemanticZoomControlsProps {
   className?: string;
@@ -12,13 +39,13 @@ interface SemanticZoomControlsProps {
  * Semantic zoom controls for hierarchical ontology visualization
  */
 export const SemanticZoomControls: React.FC<SemanticZoomControlsProps> = ({ className = '' }) => {
-  // Type assertion for extended ontology store methods that may not be in base type
-  const store = useOntologyStore() as any;
+  // Extended store with optional methods that may not be in base type
+  const store = useOntologyStore() as unknown as ExtendedOntologyStore;
   const {
     hierarchy,
     semanticZoomLevel,
     expandedClasses,
-    visibleClasses = new Set(),
+    visibleClasses = new Set<string>(),
     setZoomLevel = () => {},
     expandAll = () => {},
     collapseAll = () => {},
@@ -101,9 +128,9 @@ export const SemanticZoomControls: React.FC<SemanticZoomControlsProps> = ({ clas
     'Top Classes'
   ];
 
-  const rootClasses = ((hierarchy as any).rootClasses || [])
+  const rootClasses = (hierarchy.rootClasses ?? [])
     .map((iri: string) => hierarchy.classes.get(iri))
-    .filter(Boolean);
+    .filter((c): c is NonNullable<typeof c> => c != null) as unknown as HierarchyClassNode[];
 
   return (
     <div className={`semantic-zoom-controls ${className}`} style={styles.container}>
@@ -186,22 +213,25 @@ export const SemanticZoomControls: React.FC<SemanticZoomControlsProps> = ({ clas
             <div style={styles.filterHeader}>
               Filter by Class ({visibleClasses.size} visible)
             </div>
-            {rootClasses.map((classNode: any) => (
-              <div key={classNode!.iri} style={styles.filterItem}>
-                <label style={styles.checkboxLabel}>
-                  <input
-                    type="checkbox"
-                    checked={visibleClasses.has(classNode!.iri)}
-                    onChange={() => toggleClassVisibility(classNode!.iri)}
-                    style={styles.checkbox}
-                  />
-                  {classNode!.label}
-                  <span style={styles.instanceCount}>
-                    ({classNode!.instanceCount} instances)
-                  </span>
-                </label>
-              </div>
-            ))}
+            {rootClasses.map((classNode) => {
+              const nodeId = classNode.iri ?? classNode.id;
+              return (
+                <div key={nodeId} style={styles.filterItem}>
+                  <label style={styles.checkboxLabel}>
+                    <input
+                      type="checkbox"
+                      checked={visibleClasses.has(nodeId)}
+                      onChange={() => toggleClassVisibility(nodeId)}
+                      style={styles.checkbox}
+                    />
+                    {classNode.label}
+                    <span style={styles.instanceCount}>
+                      ({classNode.instanceCount ?? 0} instances)
+                    </span>
+                  </label>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -215,11 +245,11 @@ export const SemanticZoomControls: React.FC<SemanticZoomControlsProps> = ({ clas
           </div>
           <div style={styles.statItem}>
             <span style={styles.statLabel}>Root Classes:</span>
-            <span style={styles.statValue}>{((hierarchy as any).rootClasses || []).length}</span>
+            <span style={styles.statValue}>{(hierarchy.rootClasses ?? []).length}</span>
           </div>
           <div style={styles.statItem}>
             <span style={styles.statLabel}>Max Depth:</span>
-            <span style={styles.statValue}>{(hierarchy as any).maxDepth || 0}</span>
+            <span style={styles.statValue}>{hierarchy.maxDepth ?? 0}</span>
           </div>
         </div>
       </div>

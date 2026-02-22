@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Zap, Cpu, MemoryStick, Gauge, TrendingUp, Activity, Settings as SettingsIcon } from 'lucide-react';
 import { useSettingsStore } from '@/store/settingsStore';
+import { createLogger } from '../../../../utils/loggerConfig';
+
+const logger = createLogger('PerformanceControlPanel');
 import { Button } from '@/features/design-system/components/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/features/design-system/components/Card';
 import { Switch } from '@/features/design-system/components/Switch';
@@ -35,16 +38,29 @@ export const PerformanceControlPanel: React.FC = () => {
   const settings = useSettingsStore(state => state.settings);
   const updateSettings = useSettingsStore(state => state.updateSettings);
 
-  // Type assertion for extended performance settings that may not be in base type
-  const perfSettings = (settings?.performance ?? {}) as any;
+  // Extended performance settings that may not be in base PerformanceSettings type
+  interface ExtendedPerfSettings {
+    showFPS?: boolean;
+    targetFPS?: number;
+    levelOfDetail?: string;
+    gpuMemoryLimit?: number;
+    gpuBlockSize?: string;
+    enableMemoryCoalescing?: boolean;
+    iterationLimit?: number;
+    warmupDuration?: number;
+    convergenceThreshold?: number;
+    enableAdaptiveQuality?: boolean;
+    enableAdaptiveCooling?: boolean;
+  }
+  const perfSettings = (settings?.performance ?? {}) as unknown as ExtendedPerfSettings;
 
-  const updateSetting = (path: string, value: any) => {
-    updateSettings((draft: any) => {
+  const updateSetting = (path: string, value: string | number | boolean) => {
+    updateSettings((draft) => {
       const parts = path.split('.');
-      let current = draft;
+      let current = draft as unknown as Record<string, unknown>;
       for (let i = 0; i < parts.length - 1; i++) {
         if (!current[parts[i]]) current[parts[i]] = {};
-        current = current[parts[i]];
+        current = current[parts[i]] as Record<string, unknown>;
       }
       current[parts[parts.length - 1]] = value;
     });
@@ -75,7 +91,7 @@ export const PerformanceControlPanel: React.FC = () => {
           });
         }
       } catch (error) {
-        console.warn('Failed to fetch performance metrics:', error);
+        logger.warn('Failed to fetch performance metrics:', error);
       }
     };
 

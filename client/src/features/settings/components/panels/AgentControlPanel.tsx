@@ -1,20 +1,19 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { Activity, Play, Pause, Square, Settings as SettingsIcon, RefreshCw, AlertCircle, CheckCircle, XCircle, Users, Cpu, Zap, Layers } from 'lucide-react';
 import { Button } from '../../../design-system/components/Button';
+import { createLogger } from '../../../../utils/loggerConfig';
 import { AgentTelemetryStream } from '../../../bots/components/AgentTelemetryStream';
 import { useSettingsStore } from '../../../../store/settingsStore';
 import { unifiedApiClient } from '../../../../services/api/UnifiedApiClient';
-import { createLogger } from '../../../../utils/loggerConfig';
 import { SkillsTab } from './SkillsTab';
-// Simple toast helper that works with the existing toast system
-const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
-  console.log(`[Toast ${type}]: ${message}`);
-  // The toast system may not expose success/error directly, so just log for now
-};
 
 const logger = createLogger('AgentControlPanel');
+
+// Simple toast helper that works with the existing toast system
+const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+  logger.info(`[Toast ${type}]: ${message}`);
+  // The toast system may not expose success/error directly, so just log for now
+};
 
 interface AgentStatus {
   id: string;
@@ -49,8 +48,14 @@ export const AgentControlPanel: React.FC<AgentControlPanelProps> = ({ className 
     { id: 'coordinator', label: 'Coordinator', icon: '🎯' }
   ];
 
-  // Type assertion for extended settings that may include agents
-  const agentSettings = (settings as any)?.agents || {
+  // Extended agent settings type
+  interface AgentSettingsShape {
+    spawn?: { auto_scale?: boolean; max_concurrent?: number; default_priority?: string; default_strategy?: string; default_provider?: string };
+    lifecycle?: { idle_timeout?: number; auto_restart?: boolean; health_check_interval?: number };
+    monitoring?: { telemetry_enabled?: boolean; telemetry_poll_interval?: number; log_level?: string };
+    visualization?: { show_in_graph?: boolean; node_size?: number; node_color?: string };
+  }
+  const agentSettings: AgentSettingsShape = ((settings as unknown as Record<string, unknown>)?.agents as AgentSettingsShape | undefined) || {
     spawn: {
       auto_scale: true,
       max_concurrent: 10,
@@ -126,13 +131,13 @@ export const AgentControlPanel: React.FC<AgentControlPanelProps> = ({ className 
   };
 
   
-  const updateSetting = (path: string, value: any) => {
+  const updateSetting = (path: string, value: string | number | boolean) => {
     updateSettings((draft) => {
       const parts = path.split('.');
-      let current: any = draft;
+      let current = draft as unknown as Record<string, unknown>;
       for (let i = 0; i < parts.length - 1; i++) {
         if (!current[parts[i]]) current[parts[i]] = {};
-        current = current[parts[i]];
+        current = current[parts[i]] as Record<string, unknown>;
       }
       current[parts[parts.length - 1]] = value;
     });

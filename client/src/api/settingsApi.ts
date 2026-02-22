@@ -3,6 +3,9 @@
 
 import axios, { AxiosResponse } from 'axios';
 import { nostrAuth } from '../services/nostrAuthService';
+import { createLogger } from '../utils/loggerConfig';
+
+const logger = createLogger('settingsApi');
 
 // Always use relative paths for API requests. In dev mode Vite proxies /api
 // to the backend (http://127.0.0.1:4000). In production the serving proxy
@@ -31,7 +34,7 @@ axios.interceptors.request.use(async (config) => {
       const token = await nostrAuth.signRequest(fullUrl, method, body);
       config.headers['Authorization'] = `Nostr ${token}`;
     } catch (e) {
-      console.warn('[settingsApi] NIP-98 signing failed:', e);
+      logger.warn('[settingsApi] NIP-98 signing failed:', e);
     }
   }
   return config;
@@ -118,7 +121,7 @@ export interface AllSettings {
   rendering: RenderingSettings;
   nodeFilter: NodeFilterSettings;
   qualityGates: QualityGateSettings;
-  visual?: Record<string, any>;
+  visual?: Record<string, unknown>;
 }
 
 export interface SettingsProfile {
@@ -318,12 +321,12 @@ const DEFAULT_GRAPH_TYPE_VISUALS = {
 // ============================================================================
 
 /** Deep merge stored server values over local defaults. Stored values win. */
-function deepMergeVisual(defaults: Record<string, any>, stored: Record<string, any>): Record<string, any> {
+function deepMergeVisual(defaults: Record<string, unknown>, stored: Record<string, unknown>): Record<string, unknown> {
   const result = { ...defaults };
   for (const [key, value] of Object.entries(stored)) {
     if (value && typeof value === 'object' && !Array.isArray(value) &&
         result[key] && typeof result[key] === 'object' && !Array.isArray(result[key])) {
-      result[key] = deepMergeVisual(result[key], value);
+      result[key] = deepMergeVisual(result[key] as Record<string, unknown>, value as Record<string, unknown>);
     } else {
       result[key] = value;
     }
@@ -331,9 +334,9 @@ function deepMergeVisual(defaults: Record<string, any>, stored: Record<string, a
   return result;
 }
 
-function transformApiToClientSettings(apiResponse: AllSettings): any {
+function transformApiToClientSettings(apiResponse: AllSettings): Record<string, unknown> {
   // Server-stored visual settings blob — defaults are used as fallback base
-  const v = apiResponse.visual || {};
+  const v = (apiResponse.visual || {}) as Record<string, Record<string, unknown>>;
   return {
     visualisation: {
       rendering: apiResponse.rendering || {},
@@ -414,16 +417,16 @@ function transformApiToClientSettings(apiResponse: AllSettings): any {
 // Simple cache for getAll() to avoid redundant fetches
 // ============================================================================
 
-let _cachedAllSettings: any = null;
+let _cachedAllSettings: Record<string, unknown> | null = null;
 let _cachedAllTimestamp = 0;
 const CACHE_TTL_MS = 2000;
 
-function getNestedValue(obj: any, path: string): any {
+function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
   const parts = path.split('.');
-  let current = obj;
+  let current: unknown = obj;
   for (const part of parts) {
-    if (current === undefined || current === null) return undefined;
-    current = current[part];
+    if (current === undefined || current === null || typeof current !== 'object') return undefined;
+    current = (current as Record<string, unknown>)[part];
   }
   return current;
 }
@@ -468,14 +471,14 @@ function toVisualKey(path: string): string {
 }
 
 /** Build a nested object from a dot-notation path and a leaf value. */
-function setNestedFromDotPath(obj: Record<string, any>, dotPath: string, value: any): void {
+function setNestedFromDotPath(obj: Record<string, unknown>, dotPath: string, value: unknown): void {
   const parts = dotPath.split('.');
-  let current = obj;
+  let current: Record<string, unknown> = obj;
   for (let i = 0; i < parts.length - 1; i++) {
     if (!(parts[i] in current) || typeof current[parts[i]] !== 'object') {
       current[parts[i]] = {};
     }
-    current = current[parts[i]];
+    current = current[parts[i]] as Record<string, unknown>;
   }
   current[parts[parts.length - 1]] = value;
 }
@@ -488,20 +491,20 @@ export const settingsApi = {
   updatePhysics: async (
     settings: Partial<PhysicsSettings>
   ): Promise<AxiosResponse<void>> => {
-    console.warn('[SETTINGS-DIAG] updatePhysics called with:', settings);
-    console.warn('[SETTINGS-DIAG] auth: authenticated=', nostrAuth.isAuthenticated());
+    logger.debug('[SETTINGS-DIAG] updatePhysics called with:', settings);
+    logger.debug('[SETTINGS-DIAG] auth: authenticated=', nostrAuth.isAuthenticated());
     // GET-merge-PUT: backend requires full struct, not partial
     try {
       const current = await axios.get(`${API_BASE}/api/settings/physics`);
-      console.warn('[SETTINGS-DIAG] updatePhysics GET current:', current.status, current.data);
+      logger.debug('[SETTINGS-DIAG] updatePhysics GET current:', current.status, current.data);
       const currentData = current.data?.data ?? current.data ?? {};
       const merged = { ...currentData, ...settings };
-      console.warn('[SETTINGS-DIAG] updatePhysics PUT merged:', merged);
+      logger.debug('[SETTINGS-DIAG] updatePhysics PUT merged:', merged);
       const result = await axios.put(`${API_BASE}/api/settings/physics`, merged);
-      console.warn('[SETTINGS-DIAG] updatePhysics PUT response:', result.status, result.data);
+      logger.debug('[SETTINGS-DIAG] updatePhysics PUT response:', result.status, result.data);
       return result;
     } catch (err) {
-      console.warn('[SETTINGS-DIAG] updatePhysics FAILED:', err);
+      logger.debug('[SETTINGS-DIAG] updatePhysics FAILED:', err);
       throw err;
     }
   },
@@ -540,9 +543,9 @@ export const settingsApi = {
     axios.get(`${API_BASE}/api/settings/all`),
 
   // Transform API response to client-expected nested structure, filtered to requested paths
-  getSettingsByPaths: async (paths: string[]): Promise<any> => {
+  getSettingsByPaths: async (paths: string[]): Promise<Record<string, unknown>> => {
     try {
-      let allSettings: any;
+      let allSettings: Record<string, unknown>;
       const now = Date.now();
 
       // Use cached result if fresh enough
@@ -556,7 +559,7 @@ export const settingsApi = {
       }
 
       // Filter to only requested paths (for callers that use path-keyed results)
-      const result: Record<string, any> = {};
+      const result: Record<string, unknown> = {};
       for (const path of paths) {
         const value = getNestedValue(allSettings, path);
         if (value !== undefined) {
@@ -568,7 +571,7 @@ export const settingsApi = {
       // (the settingsStore initialize() treats the return as a full settings object)
       return allSettings;
     } catch (error) {
-      console.error('[settingsApi] Failed to get settings:', error);
+      logger.error('[settingsApi] Failed to get settings:', error);
       // Return default settings on error
       return transformApiToClientSettings({
         physics: {} as PhysicsSettings,
@@ -584,10 +587,10 @@ export const settingsApi = {
   getSettingByPath: async <T>(path: string): Promise<T> => {
     const allSettings = await settingsApi.getSettingsByPaths([path]);
     const parts = path.split('.');
-    let current: any = allSettings;
+    let current: unknown = allSettings;
     for (const part of parts) {
-      if (current === undefined) break;
-      current = current[part];
+      if (current === undefined || current === null || typeof current !== 'object') break;
+      current = (current as Record<string, unknown>)[part];
     }
     return current as T;
   },
@@ -597,54 +600,54 @@ export const settingsApi = {
     try {
       // Map client paths to API endpoints
       if (path.startsWith('visualisation.graphs.') && path.includes('.physics')) {
-        await settingsApi.updatePhysics({ [path.split('.').pop()!]: value } as any);
+        await settingsApi.updatePhysics({ [path.split('.').pop()!]: value } as Partial<PhysicsSettings>);
       } else if (path.startsWith('visualisation.rendering')) {
-        await settingsApi.updateRendering({ [path.split('.').pop()!]: value } as any);
+        await settingsApi.updateRendering({ [path.split('.').pop()!]: value } as Partial<RenderingSettings>);
       } else if (path.startsWith('qualityGates')) {
-        await settingsApi.updateQualityGates({ [path.split('.').pop()!]: value } as any);
+        await settingsApi.updateQualityGates({ [path.split('.').pop()!]: value } as Partial<QualityGateSettings>);
       } else if (path.startsWith('nodeFilter')) {
-        await settingsApi.updateNodeFilter({ [path.split('.').pop()!]: value } as any);
+        await settingsApi.updateNodeFilter({ [path.split('.').pop()!]: value } as Partial<NodeFilterSettings>);
       } else if (path.startsWith('constraints')) {
         const key = path.split('.').pop()!;
         await settingsApi.updateConstraints({ [key]: value });
       } else if (isVisualSettingsPath(path)) {
         // Route visual settings to the server visual endpoint
         const visualKey = toVisualKey(path);
-        const nested: Record<string, any> = {};
+        const nested: Record<string, unknown> = {};
         setNestedFromDotPath(nested, visualKey, value);
         await settingsApi.updateVisualSettings(nested);
       } else {
         // Non-visual, non-server paths (system, auth ephemeral state, etc.)
-        console.debug(`[settingsApi] Path "${path}" persisted to localStorage only (no server endpoint)`);
+        logger.debug(`[settingsApi] Path "${path}" persisted to localStorage only (no server endpoint)`);
       }
     } catch (error) {
       // Log but don't throw -- the value is already saved in settingsStore/localStorage.
       // Server-side persistence failure should not block the UI.
-      console.warn(`[settingsApi] Server update failed for "${path}", value persisted locally`, error);
+      logger.warn(`Server update failed for "${path}", value persisted locally`, error);
     }
   },
 
   // Update multiple settings by paths
-  updateSettingsByPaths: async (updates: Array<{ path: string; value: any }>): Promise<void> => {
-    console.warn(`[SETTINGS-DIAG] updateSettingsByPaths called with ${updates.length} updates:`, updates.map(u => u.path));
+  updateSettingsByPaths: async (updates: Array<{ path: string; value: unknown }>): Promise<void> => {
+    logger.debug(`[SETTINGS-DIAG] updateSettingsByPaths called with ${updates.length} updates:`, updates.map(u => u.path));
     // Group updates by API endpoint
-    const physicsUpdates: Record<string, any> = {};
-    const renderingUpdates: Record<string, any> = {};
-    const qualityGatesUpdates: Record<string, any> = {};
-    const nodeFilterUpdates: Record<string, any> = {};
-    const constraintsUpdates: Record<string, any> = {};
-    const visualUpdates: Record<string, any> = {};
+    const physicsUpdates: Record<string, unknown> = {};
+    const renderingUpdates: Record<string, unknown> = {};
+    const qualityGatesUpdates: Record<string, unknown> = {};
+    const nodeFilterUpdates: Record<string, unknown> = {};
+    const constraintsUpdates: Record<string, unknown> = {};
+    const visualUpdates: Record<string, unknown> = {};
     const localOnlyPaths: string[] = [];
 
     for (const { path, value } of updates) {
       if (path.startsWith('visualisation.graphs.') && path.includes('.physics.')) {
         const key = path.split('.').pop()!;
         physicsUpdates[key] = value;
-        console.warn(`[SETTINGS-DIAG] routing ${path} → physics.${key} = ${value}`);
+        logger.debug(`[SETTINGS-DIAG] routing ${path} → physics.${key} = ${value}`);
       } else if (path.startsWith('visualisation.rendering.')) {
         const key = path.split('.').pop()!;
         renderingUpdates[key] = value;
-        console.warn(`[SETTINGS-DIAG] routing ${path} → rendering.${key} = ${value}`);
+        logger.debug(`[SETTINGS-DIAG] routing ${path} → rendering.${key} = ${value}`);
       } else if (path.startsWith('qualityGates.')) {
         const key = path.split('.').pop()!;
         qualityGatesUpdates[key] = value;
@@ -658,34 +661,34 @@ export const settingsApi = {
         // Batch all visual paths into a single nested object for the visual endpoint
         const visualKey = toVisualKey(path);
         setNestedFromDotPath(visualUpdates, visualKey, value);
-        console.warn(`[SETTINGS-DIAG] routing ${path} → visual.${visualKey} = ${value}`);
+        logger.debug(`[SETTINGS-DIAG] routing ${path} → visual.${visualKey} = ${value}`);
       } else {
         // Non-visual, non-server paths (system debug, auth ephemeral state, etc.)
         localOnlyPaths.push(path);
-        console.warn(`[SETTINGS-DIAG] routing ${path} → LOCAL ONLY (no server endpoint)`);
+        logger.debug(`[SETTINGS-DIAG] routing ${path} → LOCAL ONLY (no server endpoint)`);
       }
     }
 
     if (localOnlyPaths.length > 0) {
-      console.debug(`[settingsApi] ${localOnlyPaths.length} paths persisted to localStorage only:`, localOnlyPaths);
+      logger.debug(`[settingsApi] ${localOnlyPaths.length} paths persisted to localStorage only:`, localOnlyPaths);
     }
 
     // Send batched updates to server for supported categories
-    const promises: Promise<any>[] = [];
+    const promises: Promise<unknown>[] = [];
     if (Object.keys(physicsUpdates).length > 0) {
-      promises.push(settingsApi.updatePhysics(physicsUpdates as any));
+      promises.push(settingsApi.updatePhysics(physicsUpdates as Partial<PhysicsSettings>));
     }
     if (Object.keys(renderingUpdates).length > 0) {
-      promises.push(settingsApi.updateRendering(renderingUpdates as any));
+      promises.push(settingsApi.updateRendering(renderingUpdates as Partial<RenderingSettings>));
     }
     if (Object.keys(qualityGatesUpdates).length > 0) {
-      promises.push(settingsApi.updateQualityGates(qualityGatesUpdates as any));
+      promises.push(settingsApi.updateQualityGates(qualityGatesUpdates as Partial<QualityGateSettings>));
     }
     if (Object.keys(nodeFilterUpdates).length > 0) {
-      promises.push(settingsApi.updateNodeFilter(nodeFilterUpdates as any));
+      promises.push(settingsApi.updateNodeFilter(nodeFilterUpdates as Partial<NodeFilterSettings>));
     }
     if (Object.keys(constraintsUpdates).length > 0) {
-      promises.push(settingsApi.updateConstraints(constraintsUpdates));
+      promises.push(settingsApi.updateConstraints(constraintsUpdates as Partial<ConstraintSettings>));
     }
     if (Object.keys(visualUpdates).length > 0) {
       promises.push(settingsApi.updateVisualSettings(visualUpdates));
@@ -727,17 +730,17 @@ export const settingsApi = {
       };
       await settingsApi.updatePhysics(defaultPhysics);
     } catch (e) {
-      console.warn('[settingsApi] Failed to reset server settings:', e);
+      logger.warn('[settingsApi] Failed to reset server settings:', e);
     }
   },
 
   // Export settings as JSON string
-  exportSettings: (settings: any): string => {
+  exportSettings: (settings: Record<string, unknown>): string => {
     return JSON.stringify(settings, null, 2);
   },
 
   // Import settings from JSON string with schema validation
-  importSettings: (jsonString: string): any => {
+  importSettings: (jsonString: string): Record<string, unknown> => {
     const parsed = JSON.parse(jsonString);
 
     // Validate that parsed object is a non-null object (not array/primitive)
@@ -802,12 +805,12 @@ export const settingsApi = {
 
   // Visual settings (glow, hologram, graphTypeVisuals, gemMaterial, sceneEffects,
   // clusterHulls, animations, interaction, nodes, edges, labels)
-  getVisualSettings: (): Promise<AxiosResponse<Record<string, any>>> =>
+  getVisualSettings: (): Promise<AxiosResponse<Record<string, unknown>>> =>
     axios.get(`${API_BASE}/api/settings/visual`),
 
   updateVisualSettings: async (
-    patch: Record<string, any>
-  ): Promise<AxiosResponse<Record<string, any>>> =>
+    patch: Record<string, unknown>
+  ): Promise<AxiosResponse<Record<string, unknown>>> =>
     axios.put(`${API_BASE}/api/settings/visual`, patch),
 };
 

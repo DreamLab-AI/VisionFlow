@@ -14,11 +14,24 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Store captured hook options for verification (module-level globals)
-const mockState = {
-  capturedVisualizationOptions: null as any,
+interface MockSettingsState {
+  settings: Record<string, unknown>;
+}
+interface MockVisualizationState {
+  connections: Array<Record<string, unknown>>;
+  activeCount: number;
+  enabled: boolean;
+}
+const mockState: {
+  capturedVisualizationOptions: Record<string, unknown> | null;
+  quest3State: { isQuest3Detected: boolean };
+  settingsState: MockSettingsState;
+  visualizationState: MockVisualizationState;
+} = {
+  capturedVisualizationOptions: null,
   quest3State: { isQuest3Detected: false },
-  settingsState: { settings: { agents: { visualization: { show_action_connections: true } } } } as any,
-  visualizationState: { connections: [], activeCount: 0, enabled: true } as any,
+  settingsState: { settings: { agents: { visualization: { show_action_connections: true } } } },
+  visualizationState: { connections: [], activeCount: 0, enabled: true },
 };
 
 // Mock React hooks to avoid need for React rendering context
@@ -26,7 +39,7 @@ vi.mock('react', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react')>();
   return {
     ...actual,
-    useMemo: (factory: () => any) => factory(),
+    useMemo: (factory: () => unknown) => factory(),
   };
 });
 
@@ -40,7 +53,7 @@ vi.mock('@/store/settingsStore', () => ({
 }));
 
 vi.mock('@/features/visualisation/hooks/useAgentActionVisualization', () => ({
-  useAgentActionVisualization: vi.fn((options: any) => {
+  useAgentActionVisualization: vi.fn((options: Record<string, unknown>) => {
     mockState.capturedVisualizationOptions = options;
     return {
       ...mockState.visualizationState,
@@ -51,8 +64,8 @@ vi.mock('@/features/visualisation/hooks/useAgentActionVisualization', () => ({
 }));
 
 vi.mock('@/features/visualisation/components/ActionConnectionsLayer', () => ({
-  ActionConnectionsLayer: (props: any) => ({ type: 'ActionConnectionsLayer', props }),
-  ActionConnectionsStats: (props: any) => ({ type: 'ActionConnectionsStats', props }),
+  ActionConnectionsLayer: (props: Record<string, unknown>) => ({ type: 'ActionConnectionsLayer', props }),
+  ActionConnectionsStats: (props: Record<string, unknown>) => ({ type: 'ActionConnectionsStats', props }),
 }));
 
 import { AgentActionVisualization, AgentActionVisualizationXR } from '@/features/visualisation/components/AgentActionVisualization';
@@ -61,7 +74,11 @@ import { useQuest3Integration } from '@/hooks/useQuest3Integration';
 /**
  * Helper to extract ActionConnectionsLayer props from rendered output
  */
-function getLayerProps(result: any): any {
+interface ReactLikeElement {
+  props?: { children?: ReactLikeElement | ReactLikeElement[] | boolean | null; [key: string]: unknown };
+  type?: unknown;
+}
+function getLayerProps(result: ReactLikeElement | null): Record<string, unknown> | null {
   if (!result) return null;
 
   // Result is a React fragment with children
@@ -70,17 +87,17 @@ function getLayerProps(result: any): any {
 
   // First child should be ActionConnectionsLayer
   if (Array.isArray(children)) {
-    const layer = children[0];
-    return layer?.props;
+    const layer = children[0] as ReactLikeElement | undefined;
+    return (layer?.props as Record<string, unknown>) ?? null;
   }
 
-  return children?.props;
+  return ((children as ReactLikeElement)?.props as Record<string, unknown>) ?? null;
 }
 
 /**
  * Helper to check if ActionConnectionsStats is rendered and get its props
  */
-function getStatsProps(result: any): any {
+function getStatsProps(result: ReactLikeElement | null): Record<string, unknown> | null {
   if (!result) return null;
 
   const children = result.props?.children;
@@ -90,7 +107,7 @@ function getStatsProps(result: any): any {
   const stats = children[1];
   if (stats === false || stats === null || stats === undefined) return null;
 
-  return stats?.props;
+  return ((stats as ReactLikeElement)?.props as Record<string, unknown>) ?? null;
 }
 
 /**
@@ -100,7 +117,7 @@ function resetMocks() {
   vi.clearAllMocks();
   mockState.capturedVisualizationOptions = null;
   mockState.quest3State = { isQuest3Detected: false };
-  mockState.settingsState = { settings: { agents: { visualization: { show_action_connections: true } } } };
+  mockState.settingsState = { settings: { agents: { visualization: { show_action_connections: true } } } } as MockSettingsState;
   mockState.visualizationState = { connections: [], activeCount: 0, enabled: true };
 }
 

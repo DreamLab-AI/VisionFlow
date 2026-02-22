@@ -1,5 +1,30 @@
 import * as THREE from 'three';
 import type { RendererCapabilities } from '../features/settings/config/settings';
+import { createLogger } from '../utils/loggerConfig';
+
+const logger = createLogger('GemRenderer');
+
+/** Navigator with optional WebGPU API (not all browsers expose navigator.gpu). */
+interface NavigatorWithGPU {
+  gpu?: unknown;
+}
+
+/** WebGPU adapter info shape for capabilities reporting. */
+interface GPUAdapterInfo {
+  description?: string;
+  device?: string;
+}
+
+/** WebGPU renderer shape for the dynamically imported three/webgpu module. */
+interface WebGPURendererInstance extends THREE.WebGLRenderer {
+  backend?: {
+    constructor?: { name?: string };
+    adapter?: { info?: GPUAdapterInfo } & GPUAdapterInfo;
+  };
+  init: () => Promise<void>;
+  renderObject: (object: THREE.Object3D, ...rest: unknown[]) => void;
+  __isWebGPURenderer?: boolean;
+}
 
 /**
  * Whether the active renderer is a true WebGPU backend (not WebGPURenderer
@@ -58,15 +83,15 @@ function getMaxPixelRatio(): number {
  *   4. If the backend fell back to WebGL2, discard and use clean WebGLRenderer instead.
  *   5. Timeout guard: if WebGPU init takes >5s, fall back to WebGL (Quest 3 sometimes hangs).
  */
-export async function createGemRenderer(defaultProps: Record<string, any>) {
+export async function createGemRenderer(defaultProps: Record<string, unknown>) {
   const canvas = defaultProps.canvas as HTMLCanvasElement;
   const maxDPR = getMaxPixelRatio();
 
   // Gate 1: browser must expose the WebGPU API
-  if (typeof navigator !== 'undefined' && (navigator as any).gpu) {
+  if (typeof navigator !== 'undefined' && (navigator as NavigatorWithGPU).gpu) {
     try {
-      const threeWebGPU = await import('three/webgpu') as any;
-      const WebGPURenderer = threeWebGPU.WebGPURenderer;
+      const threeWebGPU = await import('three/webgpu');
+      const WebGPURenderer = (threeWebGPU as Record<string, unknown>).WebGPURenderer as new (opts: Record<string, unknown>) => WebGPURendererInstance;
 
       if (typeof WebGPURenderer !== 'function') {
         throw new Error('WebGPURenderer export not found');
@@ -92,7 +117,7 @@ export async function createGemRenderer(defaultProps: Record<string, any>) {
       // adapter request failed. r183+ still has this fallback path, so the check remains.
       const backendName = renderer.backend?.constructor?.name ?? '';
       if (backendName === 'WebGLBackend') {
-        console.warn('[GemRenderer] WebGPURenderer fell back to WebGLBackend — using clean WebGLRenderer instead');
+        logger.warn('[GemRenderer] WebGPURenderer fell back to WebGLBackend — using clean WebGLRenderer instead');
         renderer.dispose();
         throw new Error('WebGPU backend unavailable (got WebGLBackend)');
       }
@@ -103,7 +128,7 @@ export async function createGemRenderer(defaultProps: Record<string, any>) {
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxDPR));
 
       // Expose renderer type for components to check
-      (renderer as any).__isWebGPURenderer = true;
+      (renderer as WebGPURendererInstance).__isWebGPURenderer = true;
       isWebGPURenderer = true;
 
       // Guard against drawIndexed(Infinity) crashes in the WebGPU backend.
@@ -114,42 +139,42 @@ export async function createGemRenderer(defaultProps: Record<string, any>) {
       // third-party geometry (troika Line2, etc.) can still trigger this edge case.
       const _origRenderObject = renderer.renderObject.bind(renderer);
       const _warnedObjects = new WeakSet<object>();
-      renderer.renderObject = function (object: any, ...rest: any[]) {
+      renderer.renderObject = function (object: THREE.Object3D, ...rest: unknown[]) {
         try {
           return _origRenderObject(object, ...rest);
-        } catch (err: any) {
+        } catch (err: unknown) {
           if (!_warnedObjects.has(object)) {
             _warnedObjects.add(object);
             console.warn(
               '[GemRenderer] renderObject skipped:',
               object?.name || object?.type || object?.uuid,
-              err?.message,
+              err instanceof Error ? err.message : err,
             );
           }
         }
       };
 
       // Populate renderer capabilities for settings panel
-      const adapterInfo = renderer.backend?.adapter?.info ?? renderer.backend?.adapter ?? {};
+      const adapterInfo = (renderer.backend?.adapter?.info ?? renderer.backend?.adapter ?? {}) as GPUAdapterInfo;
       rendererCapabilities = {
         backend: 'webgpu',
         tslMaterialsActive: true,  // TSL upgrade runs asynchronously per-material
         nodeBasedBloom: true,
-        gpuAdapterName: (adapterInfo as any)?.description
-          || (adapterInfo as any)?.device
+        gpuAdapterName: adapterInfo.description
+          || adapterInfo.device
           || backendName
           || 'WebGPU',
         maxTextureSize: 16384,  // WebGPU minimum guaranteed
         pixelRatio: Math.min(window.devicePixelRatio, maxDPR),
       };
 
-      console.log('[GemRenderer] WebGPU renderer initialized (backend:', backendName + ')');
+      logger.info('[GemRenderer] WebGPU renderer initialized (backend:', backendName + ')');
       return renderer;
     } catch (err) {
-      console.warn('[GemRenderer] WebGPU unavailable, falling back to WebGL:', err);
+      logger.warn('[GemRenderer] WebGPU unavailable, falling back to WebGL:', err);
     }
   } else {
-    console.log('[GemRenderer] navigator.gpu not available — using WebGL directly');
+    logger.info('[GemRenderer] navigator.gpu not available — using WebGL directly');
   }
 
   // WebGL fallback — clean path, no hybrid renderer quirks
@@ -168,21 +193,21 @@ export async function createGemRenderer(defaultProps: Record<string, any>) {
   isWebGPURenderer = false;
 
   // Populate renderer capabilities for WebGL fallback
-  const gl2 = renderer.getContext();
+  const gl2 = renderer.getContext() as WebGLRenderingContext;
   const isXR = isXRHeadsetBrowser();
   rendererCapabilities = {
     backend: 'webgl',
     tslMaterialsActive: false,
     nodeBasedBloom: false,
-    gpuAdapterName: (gl2 as any)?.getParameter?.((gl2 as any)?.RENDERER) || (isXR ? 'WebGL (XR)' : 'WebGL'),
-    maxTextureSize: (gl2 as any)?.getParameter?.((gl2 as any)?.MAX_TEXTURE_SIZE) || 4096,
+    gpuAdapterName: (gl2.getParameter(gl2.RENDERER) as string) || (isXR ? 'WebGL (XR)' : 'WebGL'),
+    maxTextureSize: (gl2.getParameter(gl2.MAX_TEXTURE_SIZE) as number) || 4096,
     pixelRatio: Math.min(window.devicePixelRatio, maxDPR),
   };
 
   if (isXR) {
-    console.log('[GemRenderer] XR headset detected — pixel ratio capped to', maxDPR);
+    logger.info('[GemRenderer] XR headset detected — pixel ratio capped to', maxDPR);
   }
 
-  console.log('[GemRenderer] WebGL renderer initialized');
+  logger.info('[GemRenderer] WebGL renderer initialized');
   return renderer;
 }

@@ -307,16 +307,16 @@ pub struct SemanticConstraintStats {
 impl SemanticConstraintStats {
     /// Print human-readable statistics
     pub fn print(&self) {
-        println!("Semantic Constraint Statistics:");
-        println!("  Total: {}", self.total_constraints);
-        println!("  Separation: {}", self.separation_count);
-        println!("  Hierarchical: {}", self.hierarchical_count);
-        println!("  Alignment: {}", self.alignment_count);
-        println!("  Bidirectional: {}", self.bidirectional_count);
-        println!("  Colocation: {}", self.colocation_count);
-        println!("  Containment: {}", self.containment_count);
-        println!("  Total Weight: {:.2}", self.total_weight);
-        println!("  Avg Priority: {:.1}", self.avg_priority);
+        log::info!("Semantic Constraint Statistics:");
+        log::info!("  Total: {}", self.total_constraints);
+        log::info!("  Separation: {}", self.separation_count);
+        log::info!("  Hierarchical: {}", self.hierarchical_count);
+        log::info!("  Alignment: {}", self.alignment_count);
+        log::info!("  Bidirectional: {}", self.bidirectional_count);
+        log::info!("  Colocation: {}", self.colocation_count);
+        log::info!("  Containment: {}", self.containment_count);
+        log::info!("  Total Weight: {:.2}", self.total_weight);
+        log::info!("  Avg Priority: {:.1}", self.avg_priority);
     }
 }
 

@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { CommandPaletteState, Command } from '../types';
 import { commandRegistry } from '../CommandRegistry';
 import { useKeyboardShortcuts } from '../../../hooks/useKeyboardShortcuts';
+import { createLogger } from '../../../utils/loggerConfig';
+
+const logger = createLogger('useCommandPalette');
 
 export function useCommandPalette() {
   const [state, setState] = useState<CommandPaletteState>({
@@ -98,7 +101,7 @@ export function useCommandPalette() {
       close();
       await command.handler();
     } catch (error) {
-      console.error('Failed to execute command:', error);
+      logger.error('Failed to execute command:', error);
     }
   }, [close]);
 

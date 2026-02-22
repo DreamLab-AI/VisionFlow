@@ -1,4 +1,7 @@
 import { create } from 'zustand';
+import { createLogger } from '../../../utils/loggerConfig';
+
+const logger = createLogger('OntologyStore');
 
 export interface Violation {
   axiomType: string;
@@ -196,7 +199,7 @@ export const useOntologyStore = create<OntologyState>((set, get) => ({
         constraintGroups: data.constraintGroups || get().constraintGroups
       });
     } catch (error) {
-      console.error('Failed to load ontology:', error);
+      logger.error('Failed to load ontology:', error);
       throw error;
     } finally {
       set({ validating: false });
@@ -224,7 +227,7 @@ export const useOntologyStore = create<OntologyState>((set, get) => ({
         metrics: { ...get().metrics, ...data.metrics, lastValidated: Date.now() }
       });
     } catch (error) {
-      console.error('Validation failed:', error);
+      logger.error('Validation failed:', error);
       throw error;
     } finally {
       set({ validating: false });

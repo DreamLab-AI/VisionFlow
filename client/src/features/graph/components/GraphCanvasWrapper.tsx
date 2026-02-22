@@ -117,10 +117,11 @@ const detectTestMode = (): boolean => {
         }
 
         
-        if ((window as any).navigator?.webdriver === true ||
-            (window as any).__nightmare ||
-            (window as any).__selenium_unwrapped ||
-            (window as any).callPhantom) {
+        const w = window as unknown as Record<string, unknown>;
+        if ((navigator as unknown as Record<string, unknown>).webdriver === true ||
+            w.__nightmare ||
+            w.__selenium_unwrapped ||
+            w.callPhantom) {
             logger.info('Automation tool detected, enabling test mode');
             return true;
         }

@@ -88,7 +88,7 @@ mod tests {
                     println!("  {:?}: {} bytes", module, content.len());
                 }
 
-                assert_eq!(modules.len(), 7, "Should have loaded all 7 modules");
+                assert_eq!(modules.len(), 10, "Should have loaded all 10 modules");
             }
             Err(e) => {
                 println!("⚠ Could not load all modules: {}", e);
@@ -110,6 +110,12 @@ mod tests {
                 PTXModule::VisionflowUnifiedStability,
                 "VisionflowUnifiedStability",
             ),
+            (PTXModule::OntologyConstraints, "OntologyConstraints"),
+            (PTXModule::Pagerank, "Pagerank"),
+            (
+                PTXModule::GpuConnectedComponents,
+                "GpuConnectedComponents",
+            ),
         ];
 
         let mut loaded_count = 0;
@@ -125,7 +131,7 @@ mod tests {
             }
         }
 
-        println!("\nLoaded {}/7 modules", loaded_count);
+        println!("\nLoaded {}/10 modules", loaded_count);
         if loaded_count == 0 {
             println!("This is expected if running outside Docker or without pre-compiled PTX");
         }

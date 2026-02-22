@@ -13,6 +13,7 @@
 
 import { turtleToJsonLd } from '../rdf/turtle.js';
 import { validateExternalUrl } from '../utils/ssrf.js';
+import logger from '../utils/logger.js';
 
 // cert: ontology namespace
 const CERT_NS = 'http://www.w3.org/ns/auth/cert#';
@@ -212,7 +213,7 @@ export async function verifyWebIdTls(certificate, webId) {
     cache.set(cacheKey, { verified, timestamp: Date.now() });
     return verified;
   } catch (err) {
-    console.error(`WebID-TLS verification error for ${webId}:`, err.message);
+    logger.error({ webId, err }, `WebID-TLS verification error for ${webId}`);
     cache.set(cacheKey, { verified: false, timestamp: Date.now() });
     return false;
   }

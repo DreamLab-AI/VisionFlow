@@ -8,6 +8,7 @@
  */
 
 import { validateExternalUrl } from '../utils/ssrf.js';
+import logger from '../utils/logger.js';
 
 // Default DID resolver endpoint
 const DEFAULT_DID_RESOLVER = 'https://nostr.social/.well-known/did/nostr';
@@ -101,7 +102,7 @@ export async function resolveDidNostrToWebId(pubkey, resolverUrl = DEFAULT_DID_R
 
   } catch (err) {
     // Network error or timeout - don't cache failures
-    console.error(`DID resolution error for ${pubkey}:`, err.message);
+    logger.error({ pubkey, err }, `DID resolution error for ${pubkey}`);
     return null;
   }
 }
@@ -161,7 +162,7 @@ async function verifyWebIdBacklink(webId, pubkey) {
     return false;
 
   } catch (err) {
-    console.error(`WebID backlink verification error for ${webId}:`, err.message);
+    logger.error({ webId, err }, `WebID backlink verification error for ${webId}`);
     return false;
   }
 }

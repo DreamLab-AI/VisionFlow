@@ -5,6 +5,9 @@ import * as THREE from 'three';
 import { type Node as GraphNode } from '../managers/graphDataManager';
 import { isWebGPURenderer } from '../../../rendering/rendererFactory';
 import type { GraphVisualMode } from './GraphManager';
+import { createLogger } from '../../../utils/loggerConfig';
+
+const logger = createLogger('MetadataShapes');
 
 // Extended geometry type set for all three modes
 type MetadataGeometryType = 'sphere' | 'box' | 'octahedron' | 'icosahedron' | 'dodecahedron' | 'tetrahedron' | 'torus';
@@ -31,9 +34,9 @@ const AGENT_STATUS_COLORS_MD: Record<string, THREE.Color> = {
 const getVisualsForNode = (
   node: GraphNode,
   settingsBaseColor?: string,
-  ssspResult?: any,
+  ssspResult?: Record<string, unknown>,
   graphMode: GraphVisualMode = 'knowledge_graph',
-  hierarchyMap?: Map<string, any>
+  hierarchyMap?: Map<string, HierarchyNodeLike>
 ) => {
   const visuals = {
     geometryType: 'sphere' as MetadataGeometryType,
@@ -45,7 +48,8 @@ const getVisualsForNode = (
 
   // SSSP visualization overrides all modes
   if (ssspResult) {
-    const distance = ssspResult.distances[node.id];
+    const distances = ssspResult.distances as Record<string, number> | undefined;
+    const distance = distances?.[node.id] ?? Infinity;
 
     if (node.id === ssspResult.sourceNodeId) {
       visuals.color = new THREE.Color('#00FFFF');
@@ -59,8 +63,8 @@ const getVisualsForNode = (
       visuals.scale = 0.7;
       visuals.pulseSpeed = 0.1;
     } else {
-      const normalizedDistances = ssspResult.normalizedDistances || {};
-      const normalizedDistance = normalizedDistances[node.id] || 0;
+      const normalizedDistances = (ssspResult.normalizedDistances as Record<string, number> | undefined) ?? {};
+      const normalizedDistance = normalizedDistances[node.id] ?? 0;
 
       const red = Math.min(1, normalizedDistance * 1.2);
       const green = Math.min(1, (1 - normalizedDistance) * 1.2);
@@ -79,7 +83,7 @@ const getVisualsForNode = (
     const metadata = node.metadata || {};
     const nodeType = (metadata.type || metadata.role || '').toLowerCase();
     const hierarchyNode = hierarchyMap?.get(node.id);
-    const depth = hierarchyNode?.depth ?? (metadata.depth ?? 0);
+    const depth = Number(hierarchyNode?.depth ?? metadata.depth ?? 0);
     const instanceCount = parseInt(metadata.instanceCount || '0', 10);
 
     // Geometry by hierarchy role
@@ -292,11 +296,13 @@ const useGeometries = () => useMemo(() => ({
  * Standard PBR with Fresnel rim glow for both renderers. TSL opacityNode is applied
  * asynchronously on WebGPU r183+ (see async block below); PBR path serves as fallback.
  */
-const useMetadataShapeMaterial = (settings: any) => {
+const useMetadataShapeMaterial = (settings: Record<string, unknown> | undefined) => {
   const material = useMemo(() => {
-    const nodeSettings = settings?.visualisation?.graphs?.logseq?.nodes || settings?.visualisation?.nodes;
-    const baseColor = nodeSettings?.baseColor || '#00ffff';
-    const emissiveColor = nodeSettings?.emissiveColor || '#00ffff';
+    const vis = settings?.visualisation as Record<string, unknown> | undefined;
+    const graphs = vis?.graphs as Record<string, Record<string, unknown>> | undefined;
+    const nodeSettings = graphs?.logseq?.nodes as Record<string, unknown> | undefined ?? vis?.nodes as Record<string, unknown> | undefined;
+    const baseColor = (nodeSettings?.baseColor as string) || '#00ffff';
+    const emissiveColor = (nodeSettings?.emissiveColor as string) || '#00ffff';
 
     const mat = new THREE.MeshPhysicalMaterial({
       color: new THREE.Color(baseColor),
@@ -307,7 +313,7 @@ const useMetadataShapeMaterial = (settings: any) => {
       clearcoat: 0.8,
       clearcoatRoughness: 0.05,
       transparent: true,
-      opacity: isWebGPURenderer ? 0.7 : (nodeSettings?.opacity ?? 0.8),
+      opacity: isWebGPURenderer ? 0.7 : ((nodeSettings?.opacity as number | undefined) ?? 0.8),
       side: THREE.DoubleSide,
       depthWrite: true,
       transmission: isWebGPURenderer ? 0 : 0.5,
@@ -326,15 +332,17 @@ const useMetadataShapeMaterial = (settings: any) => {
     if (isWebGPURenderer) {
       (async () => {
         try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TSL types are unstable across Three.js releases
           const { float, normalize, positionView, normalView, dot, saturate, pow, oneMinus } = await import('three/tsl') as any;
           const viewDir = normalize(positionView.negate());
           const fresnel = pow(oneMinus(saturate(dot(normalView, viewDir))), float(3.0));
-          const opacityNode = float(0.5).add(fresnel.mul(0.45));
-          (mat as any).opacityNode = opacityNode;
-          (mat as any).needsUpdate = true;
-          console.log('[MetadataShapes] TSL opacityNode enabled (r183+)');
+          const opNode = float(0.5).add(fresnel.mul(0.45));
+          const augmented = mat as unknown as { opacityNode: unknown; needsUpdate: boolean };
+          augmented.opacityNode = opNode;
+          augmented.needsUpdate = true;
+          logger.info('TSL opacityNode enabled (r183+)');
         } catch (err) {
-          console.warn('[MetadataShapes] TSL upgrade failed, using PBR fallback:', err);
+          logger.warn('TSL upgrade failed, using PBR fallback:', err);
         }
       })();
     }
@@ -349,15 +357,20 @@ const useMetadataShapeMaterial = (settings: any) => {
 
 
 // --- 3. The React Component ---
+// Minimal hierarchy node shape used for visual computation
+interface HierarchyNodeLike {
+  depth?: number;
+}
+
 interface MetadataShapesProps {
   nodes: GraphNode[];
   nodePositions: Float32Array | null;
-  onNodeClick?: (nodeId: string, event: any) => void;
-  onNodeDoubleClick?: (nodeId: string, node: GraphNode, event: any) => void;
-  settings: any;
-  ssspResult?: any;
+  onNodeClick?: (nodeId: string, event: THREE.Event) => void;
+  onNodeDoubleClick?: (nodeId: string, node: GraphNode, event: THREE.Event) => void;
+  settings: Record<string, unknown> | undefined;
+  ssspResult?: Record<string, unknown>;
   graphMode?: GraphVisualMode;
-  hierarchyMap?: Map<string, any>;
+  hierarchyMap?: Map<string, HierarchyNodeLike>;
 }
 
 export const MetadataShapes: React.FC<MetadataShapesProps> = ({
@@ -381,8 +394,10 @@ export const MetadataShapes: React.FC<MetadataShapesProps> = ({
   // Group nodes by geometry type (mode-aware)
   const nodeGroups = useMemo(() => {
     const groups = new Map<string, { nodes: GraphNode[], originalIndices: number[] }>();
-    const nodeSettings = settings?.visualisation?.graphs?.logseq?.nodes || settings?.visualisation?.nodes;
-    const baseColor = nodeSettings?.baseColor || '#00ffff';
+    const vis3 = settings?.visualisation as Record<string, unknown> | undefined;
+    const graphs3 = vis3?.graphs as Record<string, Record<string, unknown>> | undefined;
+    const ns = graphs3?.logseq?.nodes as Record<string, unknown> | undefined ?? vis3?.nodes as Record<string, unknown> | undefined;
+    const baseColor = (ns?.baseColor as string) || '#00ffff';
 
     nodes.forEach((node, index) => {
       const { geometryType } = getVisualsForNode(node, baseColor, ssspResult, graphMode, hierarchyMap);
@@ -404,9 +419,11 @@ export const MetadataShapes: React.FC<MetadataShapesProps> = ({
     const tempColor = tempColorRef.current;
 
     // Hoist settings lookups out of per-node loop
-    const nodeSettings = settings?.visualisation?.graphs?.logseq?.nodes || settings?.visualisation?.nodes;
-    const baseColorForNode = nodeSettings?.baseColor || '#00ffff';
-    const nodeSize = nodeSettings?.nodeSize || 0.5;
+    const vis2 = settings?.visualisation as Record<string, unknown> | undefined;
+    const graphs2 = vis2?.graphs as Record<string, Record<string, unknown>> | undefined;
+    const nodeSettings2 = graphs2?.logseq?.nodes as Record<string, unknown> | undefined ?? vis2?.nodes as Record<string, unknown> | undefined;
+    const baseColorForNode = (nodeSettings2?.baseColor as string) || '#00ffff';
+    const nodeSize = (nodeSettings2?.nodeSize as number) || 0.5;
     const sizeMultiplier = nodeSize / BASE_SPHERE_RADIUS;
 
     nodeGroups.forEach((group, geometryType) => {

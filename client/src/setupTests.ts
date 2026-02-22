@@ -5,9 +5,9 @@ import * as React from 'react';
 
 // Polyfill React.act for React 19 compatibility with @testing-library/react
 // React 19 moved act from react-dom/test-utils to the main react package
-if (typeof (React as any).act === 'function') {
+if (typeof (React as unknown as Record<string, unknown>).act === 'function') {
   // React.act is available, patch react-dom/test-utils
-  (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
+  (globalThis as unknown as Record<string, unknown>).IS_REACT_ACT_ENVIRONMENT = true;
 }
 
 // Mock WebSocket

@@ -17,7 +17,9 @@ export class AudioContextManager {
   
   getContext(): AudioContext {
     if (!this.audioContext) {
-      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      interface WindowWithWebkit extends Window { webkitAudioContext?: typeof AudioContext; }
+      const AudioCtx = window.AudioContext || (window as WindowWithWebkit).webkitAudioContext;
+      this.audioContext = new AudioCtx!();
       this.initialized = true;
     }
     return this.audioContext;

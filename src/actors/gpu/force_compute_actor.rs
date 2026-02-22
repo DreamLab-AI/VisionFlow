@@ -1462,6 +1462,215 @@ impl Handler<crate::actors::messages::GetBroadcastStats> for ForceComputeActor {
 // Phase 5: GPU Backpressure - Token Bucket Flow Control Handler
 // =============================================================================
 
+/// Handler for RunAnomalyDetection - delegates anomaly detection to GPU compute
+/// Supports LocalOutlierFactor (LOF) and ZScore methods via the unified GPU compute engine
+impl Handler<RunAnomalyDetection> for ForceComputeActor {
+    type Result = ResponseActFuture<Self, Result<AnomalyResult, String>>;
+
+    fn handle(&mut self, msg: RunAnomalyDetection, _ctx: &mut Self::Context) -> Self::Result {
+        info!("ForceComputeActor: RunAnomalyDetection received for method {:?}", msg.params.method);
+
+        let shared_context = match &self.shared_context {
+            Some(ctx) => ctx.clone(),
+            None => {
+                return Box::pin(
+                    futures::future::ready(Err("GPU context not initialized".to_string()))
+                        .into_actor(self),
+                );
+            }
+        };
+
+        if self.gpu_state.num_nodes == 0 {
+            return Box::pin(
+                futures::future::ready(Err("No graph data uploaded to GPU".to_string()))
+                    .into_actor(self),
+            );
+        }
+
+        let params = msg.params;
+        let num_nodes = self.gpu_state.num_nodes;
+        let start_time = Instant::now();
+
+        let fut = async move {
+            let unified_compute_arc = shared_context.unified_compute.clone();
+
+            type AnomalyBlockingResult = (
+                Option<Vec<f32>>,
+                Option<Vec<f32>>,
+                Vec<crate::actors::gpu::anomaly_detection_actor::AnomalyNode>,
+                f32,
+                AnomalyDetectionMethod,
+            );
+
+            let blocking_result = tokio::task::spawn_blocking(move || -> Result<AnomalyBlockingResult, String> {
+                let mut unified_compute = match unified_compute_arc.lock() {
+                    Ok(guard) => guard,
+                    Err(poisoned) => {
+                        warn!("ForceComputeActor: GPU mutex was poisoned — recovering for anomaly detection");
+                        poisoned.into_inner()
+                    }
+                };
+
+                match params.method {
+                    AnomalyMethod::LocalOutlierFactor => {
+                        let lof_result = unified_compute
+                            .run_lof_anomaly_detection(params.k_neighbors, params.threshold)
+                            .map_err(|e| format!("GPU LOF detection failed: {}", e))?;
+
+                        let lof_scores = lof_result.0;
+                        let mut anomalies = Vec::new();
+
+                        for (node_id, &score) in lof_scores.iter().enumerate() {
+                            if score > params.threshold {
+                                anomalies.push(
+                                    crate::actors::gpu::anomaly_detection_actor::AnomalyNode {
+                                        node_id: node_id as u32,
+                                        anomaly_score: score,
+                                        reason: format!(
+                                            "LOF score {:.3} exceeds threshold {:.3}",
+                                            score, params.threshold
+                                        ),
+                                        anomaly_type: "outlier".to_string(),
+                                        severity: if score > params.threshold * 3.0 {
+                                            "high"
+                                        } else {
+                                            "medium"
+                                        }
+                                        .to_string(),
+                                        explanation: format!(
+                                            "LOF anomaly detected with score {:.3}",
+                                            score
+                                        ),
+                                        features: vec![
+                                            "lof_score".to_string(),
+                                            "local_density".to_string(),
+                                        ],
+                                    },
+                                );
+                            }
+                        }
+
+                        Ok((
+                            Some(lof_scores),
+                            None::<Vec<f32>>,
+                            anomalies,
+                            params.threshold,
+                            AnomalyDetectionMethod::LOF,
+                        ))
+                    }
+                    AnomalyMethod::ZScore => {
+                        let feature_data = params.feature_data.unwrap_or_else(|| {
+                            (0..num_nodes)
+                                .map(|i| {
+                                    (i as f32 + 1.0) / num_nodes as f32
+                                        + (i as f32).sin() * 0.1
+                                        + (i as f32).cos() * 0.05
+                                })
+                                .collect()
+                        });
+
+                        let z_scores = unified_compute
+                            .run_zscore_anomaly_detection(&feature_data)
+                            .map_err(|e| format!("GPU Z-Score detection failed: {}", e))?;
+
+                        let mut anomalies = Vec::new();
+
+                        for (node_id, &score) in z_scores.iter().enumerate() {
+                            let abs_score = score.abs();
+                            if abs_score > params.threshold {
+                                anomalies.push(
+                                    crate::actors::gpu::anomaly_detection_actor::AnomalyNode {
+                                        node_id: node_id as u32,
+                                        anomaly_score: abs_score,
+                                        reason: format!(
+                                            "Z-score {:.3} exceeds threshold {:.3}",
+                                            abs_score, params.threshold
+                                        ),
+                                        anomaly_type: "statistical_outlier".to_string(),
+                                        severity: if abs_score > params.threshold * 2.0 {
+                                            "high"
+                                        } else {
+                                            "medium"
+                                        }
+                                        .to_string(),
+                                        explanation: format!(
+                                            "Statistical anomaly detected with Z-score {:.3}",
+                                            score
+                                        ),
+                                        features: vec![
+                                            "z_score".to_string(),
+                                            "statistical_deviation".to_string(),
+                                        ],
+                                    },
+                                );
+                            }
+                        }
+
+                        Ok((
+                            None::<Vec<f32>>,
+                            Some(z_scores),
+                            anomalies,
+                            params.threshold,
+                            AnomalyDetectionMethod::ZScore,
+                        ))
+                    }
+                }
+            })
+            .await;
+
+            match blocking_result {
+                Ok(inner_result) => {
+                    let (lof_scores, zscore_values, anomalies, threshold, method) = inner_result?;
+                    let computation_time = start_time.elapsed();
+                    let anomalies_count = anomalies.len();
+                    let avg_score = if !anomalies.is_empty() {
+                        anomalies.iter().map(|a| a.anomaly_score).sum::<f32>()
+                            / anomalies.len() as f32
+                    } else {
+                        0.0
+                    };
+                    let max_score = anomalies
+                        .iter()
+                        .map(|a| a.anomaly_score)
+                        .fold(0.0f32, f32::max);
+                    let min_score = anomalies
+                        .iter()
+                        .map(|a| a.anomaly_score)
+                        .fold(f32::INFINITY, f32::min);
+
+                    Ok(AnomalyResult {
+                        lof_scores,
+                        local_densities: None,
+                        zscore_values,
+                        anomaly_threshold: threshold,
+                        num_anomalies: anomalies_count,
+                        anomalies,
+                        stats: AnomalyDetectionStats {
+                            total_nodes_analyzed: num_nodes,
+                            anomalies_found: anomalies_count,
+                            detection_threshold: threshold,
+                            computation_time_ms: computation_time.as_millis() as u64,
+                            method: method.clone(),
+                            average_anomaly_score: avg_score,
+                            max_anomaly_score: max_score,
+                            min_anomaly_score: if min_score == f32::INFINITY {
+                                0.0
+                            } else {
+                                min_score
+                            },
+                        },
+                        method,
+                        threshold,
+                    })
+                }
+                Err(join_err) => Err(format!("GPU blocking task panicked: {}", join_err)),
+            }
+        };
+
+        Box::pin(fut.into_actor(self).map(|result, _actor, _ctx| result))
+    }
+}
+
 /// Handler for PositionBroadcastAck - replenishes tokens when network confirms delivery
 /// This implements token bucket flow control between GPU producer and network consumer
 impl Handler<crate::actors::messages::PositionBroadcastAck> for ForceComputeActor {

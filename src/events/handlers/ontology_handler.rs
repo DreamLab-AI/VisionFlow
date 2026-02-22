@@ -51,7 +51,7 @@ impl OntologyEventHandler {
         state.class_count += 1;
         state.inference_pending = true;
 
-        println!("[OntologyHandler] Class added, inference pending");
+        log::info!("[OntologyHandler] Class added, inference pending");
         Ok(())
     }
 
@@ -63,7 +63,7 @@ impl OntologyEventHandler {
         state.property_count += 1;
         state.inference_pending = true;
 
-        println!("[OntologyHandler] Property added, inference pending");
+        log::info!("[OntologyHandler] Property added, inference pending");
         Ok(())
     }
 
@@ -74,7 +74,7 @@ impl OntologyEventHandler {
         let mut state = self.state.write().await;
         state.inference_pending = true;
 
-        println!("[OntologyHandler] Axiom added, inference pending");
+        log::info!("[OntologyHandler] Axiom added, inference pending");
         Ok(())
     }
 
@@ -87,7 +87,7 @@ impl OntologyEventHandler {
         state.property_count += data.property_count;
         state.inference_pending = true;
 
-        println!(
+        log::info!(
             "[OntologyHandler] Ontology imported: {} classes, {} properties",
             data.class_count, data.property_count
         );
@@ -102,7 +102,7 @@ impl OntologyEventHandler {
         state.inference_pending = false;
         state.last_inference_duration_ms = Some(data.duration_ms);
 
-        println!(
+        log::info!(
             "[OntologyHandler] Inference completed: {} axioms in {}ms",
             data.inferred_axioms, data.duration_ms
         );

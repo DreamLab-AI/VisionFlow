@@ -18,8 +18,9 @@ initializeDebugSystem();
 
 // Expose stores for testing/debugging (dev mode only)
 if (import.meta.env.DEV) {
-  (window as any).useSettingsStore = useSettingsStore;
-  (window as any).useWebSocketStore = useWebSocketStore;
+  const devWindow = window as unknown as Record<string, unknown>;
+  devWindow.useSettingsStore = useSettingsStore;
+  devWindow.useWebSocketStore = useWebSocketStore;
 }
 
 // Initialize authentication interceptor for all API calls

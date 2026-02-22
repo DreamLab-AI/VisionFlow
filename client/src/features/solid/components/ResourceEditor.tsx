@@ -23,7 +23,10 @@ import {
   TooltipContent,
 } from '@/features/design-system/components/Tooltip';
 import { cn } from '@/utils/classNameUtils';
+import { createLogger } from '../../../utils/loggerConfig';
 import { useSolidResource, ResourceMetadata } from '../hooks/useSolidResource';
+
+const logger = createLogger('ResourceEditor');
 import { JsonLdDocument } from '@/services/SolidPodService';
 
 interface ValidationResult {
@@ -187,7 +190,7 @@ export const ResourceEditor: React.FC<ResourceEditorProps> = ({
       }
     } catch (e) {
       // Validation should catch JSON errors
-      console.error('Save failed:', e);
+      logger.error('Save failed:', e);
     } finally {
       setIsSaving(false);
     }

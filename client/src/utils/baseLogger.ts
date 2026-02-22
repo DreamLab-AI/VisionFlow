@@ -1,7 +1,7 @@
 
 
 // Moved from loggerConfig.ts - utility functions for error handling
-export function createErrorMetadata(error: unknown): Record<string, any> {
+export function createErrorMetadata(error: unknown): Record<string, unknown> {
   if (error instanceof Error) {
     return {
       message: error.message,
@@ -13,9 +13,9 @@ export function createErrorMetadata(error: unknown): Record<string, any> {
     try {
       const errorKeys = Object.getOwnPropertyNames(error);
       const serializableError = errorKeys.reduce((acc, key) => {
-        acc[key] = (error as any)[key];
+        acc[key] = (error as Record<string, unknown>)[key];
         return acc;
-      }, {} as Record<string, any>);
+      }, {} as Record<string, unknown>);
 
       const serializedErrorString = JSON.stringify(serializableError, null, 2);
       return {
@@ -35,7 +35,7 @@ export function createErrorMetadata(error: unknown): Record<string, any> {
   };
 }
 
-export function createDataMetadata(data: Record<string, any>): Record<string, any> {
+export function createDataMetadata(data: Record<string, unknown>): Record<string, unknown> {
   return {
     ...data,
     timestamp: new Date().toISOString(),
@@ -64,7 +64,7 @@ interface LogEntryType {
   level: LogLevel;
   namespace: string;
   message: string;
-  args: any[];
+  args: unknown[];
 }
 
 interface LoggerOptionsType {
@@ -100,9 +100,9 @@ function getEnvironmentLogLevel(): LogLevel {
 }
 
 
-function isValidLogLevel(level: any): level is LogLevel {
-  const validLevels: LogLevel[] = ['debug', 'info', 'warn', 'error'];
-  return validLevels.includes(level);
+function isValidLogLevel(level: unknown): level is LogLevel {
+  const validLevels: string[] = ['debug', 'info', 'warn', 'error'];
+  return typeof level === 'string' && validLevels.includes(level);
 }
 
 
@@ -133,7 +133,7 @@ export function createLogger(namespace: string, options: LoggerOptions = {}) {
     };
   }
 
-  function formatMessage(message: any): string {
+  function formatMessage(message: unknown): string {
     if (typeof message === 'string') return message;
     if (message instanceof Error) {
       return message.stack ? message.stack : message.message;
@@ -150,7 +150,7 @@ export function createLogger(namespace: string, options: LoggerOptions = {}) {
     }
   }
 
-  function formatArgs(args: any[]): any[] {
+  function formatArgs(args: unknown[]): unknown[] {
     return args.map(arg => {
       if (arg instanceof Error) {
         return { message: arg.message, name: arg.name, stack: arg.stack };
@@ -160,7 +160,7 @@ export function createLogger(namespace: string, options: LoggerOptions = {}) {
   }
 
   function createLogMethod(logLevel: LogLevel) {
-    return function(message: any, ...args: any[]) {
+    return function(message: unknown, ...args: unknown[]) {
       if (!shouldLog(logLevel)) return;
 
       const color = LOG_COLORS[logLevel];

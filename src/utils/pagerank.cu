@@ -1,8 +1,7 @@
-// WARNING: This file is not compiled by build.rs. Kernels are accessed via
-// kernel_bridge.rs FFI which expects a pre-linked library. See build.rs for
-// the list of compiled .cu files.
-//
 // GPU PageRank Centrality Implementation
+// Compiled by build.rs as an object file and linked into libthrust_wrapper.a.
+// FFI declarations in src/utils/unified_gpu_compute/types.rs.
+//
 // Implements the power iteration algorithm for PageRank computation
 //
 // PageRank Formula: PR(v) = (1-d)/N + d * Σ(PR(u)/deg(u))

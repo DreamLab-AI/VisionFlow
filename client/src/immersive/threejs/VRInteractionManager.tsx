@@ -138,12 +138,13 @@ export function VRInteractionManager({
   // Update dragged node position each frame
   useFrame((state) => {
     // Update controller refs from XR session input sources
-    const session = (state.gl as any).xr?.getSession?.();
+    const xrManager = state.gl.xr as unknown as { getSession?: () => XRSession | null; getFrame?: () => XRFrame | null; getReferenceSpace?: () => XRReferenceSpace | null } | undefined;
+    const session = xrManager?.getSession?.();
     if (session) {
       const inputSources = session.inputSources;
       for (const source of inputSources) {
-        const frame = (state.gl as any).xr?.getFrame?.();
-        const refSpace = (state.gl as any).xr?.getReferenceSpace?.();
+        const frame = xrManager?.getFrame?.();
+        const refSpace = xrManager?.getReferenceSpace?.();
         if (!frame || !refSpace || !source.gripSpace) continue;
 
         const pose = frame.getPose(source.gripSpace, refSpace);

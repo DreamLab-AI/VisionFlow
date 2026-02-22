@@ -3,6 +3,9 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useSettingsStore } from '@/store/settingsStore';
 import { Text, Html } from '@react-three/drei';
+import { createLogger } from '../../../utils/loggerConfig';
+
+const logger = createLogger('AgentNodesLayer');
 import { isWebGPURenderer } from '../../../rendering/rendererFactory';
 
 
@@ -57,13 +60,13 @@ export const AgentNodesLayer: React.FC<AgentNodesLayerProps> = ({
   const groupRef = useRef<THREE.Group>(null);
 
   // Type assertion for extended settings that may include agents
-  const agentViz = (settings as any)?.agents?.visualization;
-  const showAgents = agentViz?.show_in_graph ?? true;
-  const nodeSize = agentViz?.node_size ?? 1.5;
-  const baseColor = agentViz?.node_color ?? '#ff8800';
-  const showConnections = agentViz?.show_connections ?? true;
-  const connectionColor = agentViz?.connection_color ?? '#fbbf24';
-  const animateActivity = agentViz?.animate_activity ?? true;
+  const agentViz = (settings as unknown as Record<string, Record<string, Record<string, unknown>>>)?.agents?.visualization;
+  const showAgents = (agentViz?.show_in_graph as boolean | undefined) ?? true;
+  const nodeSize = (agentViz?.node_size as number | undefined) ?? 1.5;
+  const baseColor = (agentViz?.node_color as string | undefined) ?? '#ff8800';
+  const showConnections = (agentViz?.show_connections as boolean | undefined) ?? true;
+  const connectionColor = (agentViz?.connection_color as string | undefined) ?? '#fbbf24';
+  const animateActivity = (agentViz?.animate_activity as boolean | undefined) ?? true;
 
   if (!showAgents || agents.length === 0) {
     return null;
@@ -435,8 +438,8 @@ export const useAgentNodes = () => {
   const { settings } = useSettingsStore();
 
   // Type assertion for extended settings with agents
-  const agentMonitoring = (settings as any)?.agents?.monitoring;
-  const pollInterval = agentMonitoring?.telemetry_poll_interval || 5;
+  const agentMonitoring = (settings as unknown as Record<string, Record<string, Record<string, unknown>>>)?.agents?.monitoring;
+  const pollInterval = (agentMonitoring?.telemetry_poll_interval as number | undefined) || 5;
 
   useEffect(() => {
     const pollAgents = async () => {
@@ -447,7 +450,7 @@ export const useAgentNodes = () => {
           setAgents(data.agents || []);
         }
       } catch (error) {
-        console.error('Failed to fetch agent telemetry:', error);
+        logger.error('Failed to fetch agent telemetry:', error);
       }
     };
 
@@ -459,7 +462,7 @@ export const useAgentNodes = () => {
           setConnections(data.edges || []);
         }
       } catch (error) {
-        console.error('Failed to fetch agent connections:', error);
+        logger.error('Failed to fetch agent connections:', error);
       }
     };
 

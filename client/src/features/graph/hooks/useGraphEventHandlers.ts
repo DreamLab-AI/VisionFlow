@@ -62,7 +62,7 @@ export const useGraphEventHandlers = (
 
           
           if (graphDataManager.webSocketService && 'sendNodePositionUpdates' in graphDataManager.webSocketService) {
-            (graphDataManager.webSocketService as any).sendNodePositionUpdates([update]);
+            (graphDataManager.webSocketService as unknown as { sendNodePositionUpdates: (updates: unknown[]) => void }).sendNodePositionUpdates([update]);
           }
 
           if (debugState.isEnabled()) {

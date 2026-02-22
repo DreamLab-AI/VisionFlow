@@ -46,6 +46,14 @@ export interface RemoteParticipant {
   pannerNode?: PannerNode;
 }
 
+/** LiveKit Room instance shape from dynamically-imported SDK */
+interface LiveKitRoomInstance {
+  on: (event: string, handler: (...args: unknown[]) => void) => void;
+  connect: (url: string, token: string) => Promise<void>;
+  disconnect: () => Promise<void>;
+  localParticipant: { setMicrophoneEnabled: (enabled: boolean) => Promise<void> };
+}
+
 /**
  * Manages the LiveKit WebRTC connection for spatial voice chat.
  *
@@ -63,10 +71,11 @@ export class LiveKitVoiceService {
   private remoteParticipants: Map<string, RemoteParticipant> = new Map();
   private localStream: MediaStream | null = null;
   private isConnected = false;
-  private listeners: Map<string, Set<Function>> = new Map();
+  private listeners: Map<string, Set<(...args: unknown[]) => void>> = new Map();
 
   // LiveKit SDK room reference (lazy-loaded to avoid bundling when unused)
-  private room: any = null;
+  /** LiveKit Room instance from dynamically-imported SDK */
+  private room: LiveKitRoomInstance | null = null;
 
   private constructor() {}
 
@@ -88,7 +97,14 @@ export class LiveKitVoiceService {
       // Dynamically import LiveKit client SDK (optional peer dependency)
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const livekitModule: string = 'livekit-client';
-      const { Room, RoomEvent, Track } = await (Function('m', 'return import(m)')(livekitModule)) as any;
+      // LiveKit SDK types from dynamic import
+      // LiveKit SDK types from dynamic import
+      interface LiveKitModule {
+        Room: new (opts: Record<string, unknown>) => LiveKitRoomInstance;
+        RoomEvent: Record<string, string>;
+        Track: { Kind: Record<string, unknown> };
+      }
+      const { Room, RoomEvent, Track } = await (Function('m', 'return import(m)')(livekitModule)) as LiveKitModule;
 
       this.room = new Room({
         adaptiveStream: true,
@@ -103,18 +119,22 @@ export class LiveKitVoiceService {
       });
 
       // Set up event handlers
-      this.room.on(RoomEvent.TrackSubscribed, (track: any, publication: any, participant: any) => {
+      this.room.on(RoomEvent.TrackSubscribed, (...args: unknown[]) => {
+        const track = args[0] as Record<string, unknown>;
+        const participant = args[2] as Record<string, unknown>;
         if (track.kind === Track.Kind.Audio) {
           this.handleRemoteAudio(track, participant);
         }
       });
 
-      this.room.on(RoomEvent.TrackUnsubscribed, (_track: any, _publication: any, participant: any) => {
-        this.removeRemoteParticipant(participant.identity);
+      this.room.on(RoomEvent.TrackUnsubscribed, (...args: unknown[]) => {
+        const participant = args[2] as Record<string, unknown>;
+        this.removeRemoteParticipant(participant.identity as string);
       });
 
-      this.room.on(RoomEvent.ParticipantDisconnected, (participant: any) => {
-        this.removeRemoteParticipant(participant.identity);
+      this.room.on(RoomEvent.ParticipantDisconnected, (...args: unknown[]) => {
+        const participant = args[0] as Record<string, unknown>;
+        this.removeRemoteParticipant(participant.identity as string);
       });
 
       this.room.on(RoomEvent.Disconnected, () => {
@@ -218,13 +238,13 @@ export class LiveKitVoiceService {
   }
 
   /** Handle incoming audio track from a remote participant */
-  private handleRemoteAudio(track: any, participant: any): void {
-    const participantId = participant.identity;
+  private handleRemoteAudio(track: Record<string, unknown>, participant: Record<string, unknown>): void {
+    const participantId = participant.identity as string;
     const isAgent = participantId.startsWith('agent-');
 
     // Create or update the remote participant entry
     const remote: RemoteParticipant = {
-      id: participant.sid,
+      id: participant.sid as string,
       identity: participantId,
       isAgent,
       position: { x: 0, y: 0, z: 0 },
@@ -232,7 +252,7 @@ export class LiveKitVoiceService {
 
     if (this.config?.spatialAudio && this.audioContext) {
       // Set up spatial audio: track → panner → destination
-      const mediaStream = new MediaStream([track.mediaStreamTrack]);
+      const mediaStream = new MediaStream([track.mediaStreamTrack as MediaStreamTrack]);
       const source = this.audioContext.createMediaStreamSource(mediaStream);
 
       const panner = this.audioContext.createPanner();
@@ -250,7 +270,7 @@ export class LiveKitVoiceService {
       remote.pannerNode = panner;
     } else {
       // Non-spatial: just attach to an audio element
-      const audioEl = track.attach();
+      const audioEl = (track.attach as () => HTMLAudioElement)();
       audioEl.volume = 1.0;
       remote.audioElement = audioEl;
     }
@@ -309,18 +329,18 @@ export class LiveKitVoiceService {
   }
 
   // --- Event emitter ---
-  on(event: string, callback: Function): void {
+  on(event: string, callback: (...args: unknown[]) => void): void {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());
     }
     this.listeners.get(event)!.add(callback);
   }
 
-  off(event: string, callback: Function): void {
+  off(event: string, callback: (...args: unknown[]) => void): void {
     this.listeners.get(event)?.delete(callback);
   }
 
-  private emit(event: string, ...args: any[]): void {
+  private emit(event: string, ...args: unknown[]): void {
     this.listeners.get(event)?.forEach(cb => {
       try { cb(...args); } catch (err) {
         logger.error(`LiveKit event listener error (${event}):`, err);

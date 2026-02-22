@@ -12,6 +12,10 @@
  *   const positions = particles.getPositions(); // Float32Array view
  */
 
+import { createLogger } from '../utils/loggerConfig';
+
+const logger = createLogger('scene-effects');
+
 // The WASM module is loaded dynamically, so these types mirror the
 // generated .d.ts but we define them here to avoid import-time failures
 // when WASM is unavailable.
@@ -346,15 +350,13 @@ export async function initSceneEffects(): Promise<SceneEffectsAPI> {
         version: wasmModule.version(),
       };
 
-      // eslint-disable-next-line no-console
-      console.info(`[scene-effects] WASM loaded, version ${cachedAPI.version}`);
+      logger.info(`WASM loaded, version ${cachedAPI.version}`);
       return cachedAPI;
     } catch (err) {
       // Reset initPromise so subsequent calls can retry (e.g., after a
       // transient network error loading the .wasm file).
       initPromise = null;
-      // eslint-disable-next-line no-console
-      console.warn('[scene-effects] WASM failed to load, effects disabled:', err);
+      logger.warn('WASM failed to load, effects disabled:', err);
       throw err;
     }
   })();

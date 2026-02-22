@@ -133,7 +133,7 @@ export const VRAgentActionScene: React.FC<VRAgentActionSceneProps> = ({
     updateCameraPosition(camera.position);
 
     // Update hand tracking from XR session
-    const session = (gl.xr as any)?.getSession?.();
+    const session = (gl.xr as unknown as { getSession?: () => XRSession | null })?.getSession?.();
     if (session && enableHandTracking) {
       updateHandTrackingFromSession(session, updateHandState);
     }

@@ -3,6 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/fea
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/features/design-system/components/Select';
 import { Slider } from '@/features/design-system/components/Slider';
 import { Switch } from '@/features/design-system/components/Switch';
+import { createLogger } from '../../../utils/loggerConfig';
+
+const logger = createLogger('SemanticClusteringControls');
 import { Label } from '@/features/design-system/components/Label';
 import { Button } from '@/features/design-system/components/Button';
 import { Badge } from '@/features/design-system/components/Badge';
@@ -178,7 +181,7 @@ export function SemanticClusteringControls() {
     try {
       await unifiedApiClient.post('/api/analytics/clustering/focus', { clusterId });
     } catch (error) {
-      console.error('Failed to focus cluster:', error);
+      logger.error('Failed to focus cluster:', error);
     }
   }, []);
 
@@ -196,7 +199,7 @@ export function SemanticClusteringControls() {
         });
       }
     } catch (error) {
-      console.error('Failed to toggle anomaly detection:', error);
+      logger.error('Failed to toggle anomaly detection:', error);
     }
   }, [anomalyDetection, toast]);
 
@@ -210,7 +213,7 @@ export function SemanticClusteringControls() {
         setAnomalies(response.data.anomalies);
         setAnomalyStats(response.data.stats);
       } catch (error) {
-        console.error('Failed to fetch anomalies:', error);
+        logger.error('Failed to fetch anomalies:', error);
       }
     };
     

@@ -169,7 +169,7 @@ export function CommandPalette() {
 
       {}
       <div
-        ref={dialogRef as any}
+        ref={dialogRef as React.RefObject<HTMLDivElement>}
         id="command-palette-dialog"
         className={cn(
           "relative w-full max-w-2xl",

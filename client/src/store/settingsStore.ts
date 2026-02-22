@@ -872,10 +872,10 @@ export const useSettingsStore = create<SettingsState>()(
             const allPaths = getAllAvailableSettingsPaths();
             const allSettings = await settingsApi.getSettingsByPaths(allPaths);
 
-            return settingsApi.exportSettings(allSettings as Settings);
+            return settingsApi.exportSettings(allSettings);
           } else {
 
-            return settingsApi.exportSettings(partialSettings as Settings);
+            return settingsApi.exportSettings(partialSettings as unknown as Record<string, unknown>);
           }
         } catch (error) {
           logger.error('Failed to export settings:', createErrorMetadata(error));

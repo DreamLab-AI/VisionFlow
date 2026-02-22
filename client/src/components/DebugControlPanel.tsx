@@ -31,8 +31,8 @@ export function DebugControlPanel({ className }: DebugControlPanelProps) {
   useEffect(() => {
     const loadState = () => {
       setMainDebugEnabled(clientDebugState.isEnabled());
-      setDataDebugEnabled(clientDebugState.get('dataDebug'));
-      setPerformanceDebugEnabled(clientDebugState.get('performanceDebug'));
+      setDataDebugEnabled(clientDebugState.get('dataDebug') === true);
+      setPerformanceDebugEnabled(clientDebugState.get('performanceDebug') === true);
       setEnabledCategories(new Set(debugControl.getEnabledCategories()));
     };
 

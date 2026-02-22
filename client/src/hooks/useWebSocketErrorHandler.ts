@@ -39,7 +39,8 @@ export function useWebSocketErrorHandler() {
                 await new Promise(resolve => setTimeout(resolve, error.retryAfter));
               }
               
-              await (webSocketService as any).processMessageQueue?.();
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- processMessageQueue is internal to websocketStore, not exposed on compat wrapper
+              await (webSocketService as unknown as { processMessageQueue?: () => Promise<void> }).processMessageQueue?.();
             },
             metadata: {
               retryAfter: error.retryAfter,
@@ -131,7 +132,7 @@ export function useWebSocketErrorHandler() {
 }
 
 // Helper to report client errors to server
-export function reportClientError(error: Error, context?: Record<string, any>) {
+export function reportClientError(error: Error, context?: Record<string, unknown>) {
   try {
     webSocketService.sendErrorFrame({
       code: 'CLIENT_ERROR',

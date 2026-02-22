@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useVoiceInteraction } from '../hooks/useVoiceInteraction';
 import { VoiceWebSocketService } from '../services/VoiceWebSocketService';
 import { AudioInputService } from '../services/AudioInputService';
+import { createLogger } from '../utils/loggerConfig';
+
+const logger = createLogger('VoiceButton');
 
 // Simple icon components to avoid lucide-react import issues
 const MicIcon = ({ className }: { className?: string }) => (
@@ -53,7 +56,7 @@ export const VoiceButton: React.FC<VoiceButtonProps> = ({
     toggleListening
   } = useVoiceInteraction({
     onError: (error) => {
-      console.error('Voice interaction error:', error);
+      logger.error('Voice interaction error:', error);
       setHasError(true);
     }
   });
@@ -123,7 +126,7 @@ export const VoiceButton: React.FC<VoiceButtonProps> = ({
   const handleToggle = async () => {
     if (!isSupported) {
       setHasError(true);
-      console.error('Voice features not supported in this browser/environment');
+      logger.error('Voice features not supported in this browser/environment');
       return;
     }
 
@@ -131,7 +134,7 @@ export const VoiceButton: React.FC<VoiceButtonProps> = ({
       setHasError(false);
       await toggleListening();
     } catch (error) {
-      console.error('Failed to toggle voice input:', error);
+      logger.error('Failed to toggle voice input:', error);
       setHasError(true);
     }
   };

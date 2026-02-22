@@ -1,14 +1,13 @@
-// WARNING: This file is not compiled by build.rs. Kernels are accessed via
-// kernel_bridge.rs FFI which expects a pre-linked library. See build.rs for
-// the list of compiled .cu files.
-//
 // GPU kernel for connected components using label propagation
+// Compiled by build.rs as an object file and linked into libthrust_wrapper.a.
+// FFI declarations in src/utils/unified_gpu_compute/types.rs.
 //
 // This kernel implements parallel label propagation to find connected components.
 // Each node starts with its own label, then iteratively adopts the minimum label
 // of its neighbors until convergence.
 
 #include <cuda_runtime.h>
+#include <cstdio>
 
 extern "C" {
 
