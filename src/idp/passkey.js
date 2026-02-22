@@ -449,11 +449,20 @@ export async function authenticationVerify(request, reply) {
 
     challenges.delete(challengeKey);
 
+    // Generate a short-lived login completion token to bind passkey login to OIDC interaction
+    const loginCompletionToken = crypto.randomUUID();
+    storeChallenge(`login-complete:${loginCompletionToken}`, {
+      type: 'login-complete',
+      accountId: account.id,
+      expires: Date.now() + 300000 // 5 minutes
+    });
+
     // Return account info for session creation
     return reply.send({
       success: true,
       accountId: account.id,
-      webId: account.webId
+      webId: account.webId,
+      completionToken: loginCompletionToken,
     });
   } catch (err) {
     request.log.error({ err }, 'Passkey authentication error');
@@ -472,6 +481,26 @@ export function validateCompletionToken(token, accountId) {
   const key = `reg-complete:${token}`;
   const stored = challenges.get(key);
   if (!stored || stored.type !== 'registration-complete' || Date.now() > stored.expires) {
+    return false;
+  }
+  if (stored.accountId !== accountId) {
+    return false;
+  }
+  challenges.delete(key);
+  return true;
+}
+
+/**
+ * Validate a login completion token
+ * Used by handlePasskeyComplete to verify the caller completed passkey authentication
+ * @param {string} token - Completion token from authenticationVerify
+ * @param {string} accountId - Expected account ID
+ * @returns {boolean} - True if valid
+ */
+export function validateLoginCompletionToken(token, accountId) {
+  const key = `login-complete:${token}`;
+  const stored = challenges.get(key);
+  if (!stored || stored.type !== 'login-complete' || Date.now() > stored.expires) {
     return false;
   }
   if (stored.accountId !== accountId) {

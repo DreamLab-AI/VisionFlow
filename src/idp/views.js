@@ -358,7 +358,7 @@ export function loginPage(uid, clientId, error = null, passkeyEnabled = true, sc
         const result = await verifyRes.json();
         if (result.success) {
           // Complete the OIDC interaction - build URL safely
-          const redirectUrl = '/idp/interaction/' + encodeURIComponent(INTERACTION_UID) + '/passkey-complete?accountId=' + encodeURIComponent(result.accountId);
+          const redirectUrl = '/idp/interaction/' + encodeURIComponent(INTERACTION_UID) + '/passkey-complete?accountId=' + encodeURIComponent(result.accountId) + '&token=' + encodeURIComponent(result.completionToken);
           window.location.href = redirectUrl;
         } else {
           alert('Passkey authentication failed: ' + (result.error || 'Unknown error'));
