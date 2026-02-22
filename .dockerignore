@@ -39,7 +39,12 @@ logs/
 qdrant_data/
 
 # Large directories that shouldn't be in build context
-multi-agent-docker/
+# multi-agent-docker/ is intentionally NOT excluded here because Dockerfile.unified
+# (agentic-workstation build) uses context: .. and COPYs many subdirs from it.
+# Instead, exclude only the heavy/irrelevant parts:
+multi-agent-docker/comfyui/storage-models/
+multi-agent-docker/comfyui/storage-output/
+multi-agent-docker/comfyui/storage-input/
 screenshots/
 output/
 docs/

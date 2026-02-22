@@ -312,10 +312,6 @@ build_containers() {
         build_args+=("--build-arg" "FEATURES=ontology")
     fi
 
-    # Enable BuildKit for optimized multi-stage builds
-    export DOCKER_BUILDKIT=1
-    export COMPOSE_DOCKER_CLI_BUILD=1
-
     docker_compose build "${build_args[@]}"
     success "Build complete for $ENVIRONMENT environment"
 }
@@ -583,6 +579,22 @@ restart_agent_container() {
         warning "Container $AGENT_CONTAINER is not running"
     fi
 
+    # Ensure comfyui container is reachable from docker_ragflow network
+    # (comfyui may live on a different network; connect it at runtime without build changes)
+    local RAGFLOW_NET="${EXTERNAL_NETWORK:-docker_ragflow}"
+    if docker ps --format '{{.Names}}' | grep -q "^comfyui$"; then
+        if ! docker inspect comfyui --format '{{range $k,$v := .NetworkSettings.Networks}}{{$k}} {{end}}' 2>/dev/null | grep -q "$RAGFLOW_NET"; then
+            info "Connecting comfyui to $RAGFLOW_NET for agentic-workstation access..."
+            docker network connect "$RAGFLOW_NET" comfyui && \
+                success "comfyui connected to $RAGFLOW_NET (reachable at comfyui:3000 enhanced API, comfyui:8188 standard)" || \
+                warning "Could not connect comfyui to $RAGFLOW_NET (container will use host.docker.internal fallback)"
+        else
+            success "comfyui already on $RAGFLOW_NET"
+        fi
+    else
+        warning "comfyui container not running - ComfyUI integration will be unavailable"
+    fi
+
     # Start the agent container
     info "Starting $AGENT_CONTAINER..."
     cd "$PROJECT_ROOT/multi-agent-docker"
@@ -608,6 +620,7 @@ restart_agent_container() {
         echo "  ${GREEN}VNC:${NC}            localhost:5901"
         echo "  ${GREEN}code-server:${NC}    http://localhost:8080"
         echo "  ${GREEN}Management API:${NC} http://localhost:9090"
+        echo "  ${GREEN}ComfyUI API:${NC}    http://comfyui:3000 (enhanced) | http://comfyui:8188 (standard)"
         echo ""
         info "View logs with: docker logs -f $AGENT_CONTAINER"
     else

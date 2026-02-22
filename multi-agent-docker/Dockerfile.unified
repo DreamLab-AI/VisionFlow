@@ -79,20 +79,22 @@ RUN for attempt in 1 2 3; do \
     done && rm -rf /var/cache/pacman/pkg/*
 
 # Phase 1c: Graphics and browsers (with retry logic)
-# NOTE: firefox-pure is the CachyOS package name (not firefox)
+# NOTE: CachyOS base ships mesa-git which conflicts with mesa; skip mesa/libva-mesa-driver.
+# chromium was removed from CachyOS repos; Playwright installs its own chromium later.
+# firefox-pure is the CachyOS package name (not firefox).
 RUN for attempt in 1 2 3; do \
         echo "=== Graphics packages attempt $attempt/3 ===" && \
         pacman -S --noconfirm --needed \
             alsa-lib pipewire pipewire-pulse gtk4 \
-            mesa mesa-utils libva-mesa-driver \
+            mesa-utils \
             libglvnd glew freeglut libxcursor libxi libxinerama libxrandr \
             vulkan-icd-loader vulkan-tools \
-            chromium firefox-pure \
+            firefox-pure \
         && break || { echo "Attempt $attempt failed, retrying in 10s..."; sleep 10; pacman -Syy --noconfirm; }; \
     done && \
-    # Validate critical packages installed
+    # Validate critical packages installed (mesa-git ships in CachyOS base as mesa provider)
     echo "=== Validating graphics packages ===" && \
-    pacman -Q mesa chromium && \
+    pacman -Q firefox-pure && \
     rm -rf /var/cache/pacman/pkg/*
 
 # Phase 1d: Development tools (with retry logic)
