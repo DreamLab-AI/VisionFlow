@@ -324,12 +324,19 @@ export function loginPage(uid, clientId, error = null, passkeyEnabled = true, sc
             var nostrTools = await import('https://esm.sh/nostr-tools@2.19.4/pure');
             var pubkey = nostrTools.getPublicKey(secretKey);
             // Store pubkey + PRF flag in sessionStorage (non-secret metadata only)
-            // Private key stays in memory-scoped variable — never written to storage
-            window.__nostrPrivKey = hexSecret;
+            // Private key stays in closure — NOT on window, NOT in storage
             sessionStorage.setItem('nostr_pubkey', pubkey);
             sessionStorage.setItem('nostr_prf', '1');
-            window.addEventListener('beforeunload', function() { window.__nostrPrivKey = null; });
-            console.log('PRF key derived for NIP-98 signing (memory-only)');
+            (function(k) {
+              var _privKey = k;
+              window.__nostrSign = async function(event) {
+                if (!_privKey) return null;
+                var nt = await import('https://esm.sh/nostr-tools@2.19.4/pure');
+                return nt.finalizeEvent(event, new Uint8Array(_privKey.match(/.{2}/g).map(function(b) { return parseInt(b, 16); })));
+              };
+              window.addEventListener('beforeunload', function() { _privKey = null; });
+            })(hexSecret);
+            console.log('PRF key derived for NIP-98 signing (closure-only)');
           } catch (prfErr) {
             console.warn('PRF key derivation failed (non-fatal):', prfErr);
           }
@@ -808,12 +815,19 @@ export function registerPage(uid = null, error = null, success = null, inviteOnl
         var result = await verifyRes.json();
         if (result.success) {
           // Store pubkey + PRF flag in sessionStorage (non-secret metadata only)
-          // Private key stays in memory-scoped variable — never written to storage
+          // Private key stays in closure — NOT on window, NOT in storage
           try {
-            window.__nostrPrivKey = bytesToHex(secretKey);
             sessionStorage.setItem('nostr_pubkey', pubkey);
             sessionStorage.setItem('nostr_prf', prfEnabled ? '1' : '0');
-            window.addEventListener('beforeunload', function() { window.__nostrPrivKey = null; });
+            (function(k) {
+              var _privKey = k;
+              window.__nostrSign = async function(event) {
+                if (!_privKey) return null;
+                var nt = await import('https://esm.sh/nostr-tools@2.19.4/pure');
+                return nt.finalizeEvent(event, new Uint8Array(_privKey.match(/.{2}/g).map(function(b) { return parseInt(b, 16); })));
+              };
+              window.addEventListener('beforeunload', function() { _privKey = null; });
+            })(bytesToHex(secretKey));
           } catch (e) { /* sessionStorage may be unavailable */ }
 
           var uid = '${safeUid}';

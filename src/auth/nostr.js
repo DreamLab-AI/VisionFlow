@@ -212,7 +212,10 @@ export async function verifyNostrAuth(request) {
     }
 
     const expectedHash = crypto.createHash('sha256').update(bodyString).digest('hex');
-    if (payloadTag.toLowerCase() !== expectedHash.toLowerCase()) {
+    if (!crypto.timingSafeEqual(
+      Buffer.from(payloadTag.toLowerCase()),
+      Buffer.from(expectedHash.toLowerCase())
+    )) {
       return { webId: null, error: 'Payload hash mismatch' };
     }
   }
