@@ -1,6 +1,6 @@
 import React, { useReducer, useRef, useCallback, useEffect, useState } from 'react';
 import { useNostrAuth } from '../hooks/useNostrAuth';
-import { nostrAuth } from '../services/nostrAuthService';
+import { nostrAuth, setLocalKey } from '../services/nostrAuthService';
 import {
   startRegistration,
   createPasskeyCredential,
@@ -391,9 +391,10 @@ function CreatePasskeyStep({
           prfEnabled,
         });
 
-        // 5. Store in sessionStorage for NIP-98 signing
+        // 5. Store key in memory (not sessionStorage) for NIP-98 signing
+        setLocalKey(bytesToHex(secretKey));
         try {
-          sessionStorage.setItem('nostr_passkey_key', bytesToHex(secretKey));
+          // Only non-secret metadata goes to sessionStorage
           sessionStorage.setItem('nostr_passkey_pubkey', pubkey);
           sessionStorage.setItem('nostr_prf', prfEnabled ? '1' : '0');
         } catch { /* sessionStorage may be unavailable in some contexts */ }
@@ -498,8 +499,10 @@ function SignInStep({
           secretKey = await deriveNostrKey(prfOutput);
           pubkey = getPublicKey(secretKey);
 
+          // Store key in memory only -- never in sessionStorage
+          setLocalKey(bytesToHex(secretKey));
           try {
-            sessionStorage.setItem('nostr_passkey_key', bytesToHex(secretKey));
+            // Only non-secret metadata goes to sessionStorage
             sessionStorage.setItem('nostr_passkey_pubkey', pubkey);
             sessionStorage.setItem('nostr_prf', '1');
           } catch { /* ignore */ }
