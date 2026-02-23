@@ -215,7 +215,7 @@ services:
       <<: *common-environment
       # Production-specific overrides
       NODE_ENV: production
-      RUST_LOG: ${RUST_LOG:-warn}
+      RUST_LOG: ${RUST_LOG:-info}
       GIT_HASH: ${GIT_HASH:-production}
       VITE_DEBUG: "false"
       # Neo4j Configuration
