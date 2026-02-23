@@ -353,51 +353,67 @@ fn normalize_url(url: &str) -> String {
     normalized
 }
 
-/// Extract the path portion from a URL (full or relative).
-fn extract_path(url: &str) -> &str {
+/// Extract host and path from a URL.  Returns `(Some(host), path)` for
+/// absolute URLs and `(None, path)` for relative paths.
+fn extract_host_and_path(url: &str) -> (Option<&str>, &str) {
     if let Some(idx) = url.find("://") {
         let after_scheme = &url[idx + 3..];
         if let Some(path_idx) = after_scheme.find('/') {
-            &after_scheme[path_idx..]
+            (Some(&after_scheme[..path_idx]), &after_scheme[path_idx..])
         } else {
-            "/"
+            (Some(after_scheme), "/")
         }
     } else {
-        // Already a relative path
-        url
+        // Relative path — no host
+        (None, url)
     }
 }
 
 /// Compare two URLs flexibly for NIP-98 validation.
-/// Handles: relative vs absolute, nginx /solid/ → /api/solid/ rewrite.
+///
+/// Handles two real-world cases:
+///  1. Client signs with a relative path (`/solid/pods/init`), server expects
+///     the full URL after nginx rewrites it to `/api/solid/pods/init`.
+///  2. Client signs with the public absolute URL, server sees the internal one.
+///
+/// Security: when both URLs are absolute, hosts MUST match (case-insensitive)
+/// before we fall through to path-only comparison.  This prevents a token
+/// signed for `https://evil.com/solid/x` from matching requests to our server.
 fn urls_match(expected: &str, actual: &str) -> bool {
     let norm_expected = normalize_url(expected);
     let norm_actual = normalize_url(actual);
 
-    // Direct match
+    // 1. Direct full-URL match (fast path)
     if norm_expected == norm_actual {
         return true;
     }
 
-    // Path-level comparison: strip the /api prefix that nginx adds
-    let expected_path = extract_path(&norm_expected);
-    let actual_path = extract_path(&norm_actual);
+    let (expected_host, expected_path) = extract_host_and_path(&norm_expected);
+    let (actual_host, actual_path) = extract_host_and_path(&norm_actual);
 
-    // Direct path match
+    // 2. If both are absolute, hosts must match before we compare paths.
+    //    Only skip the host check when one side is a relative path (no host).
+    if let (Some(eh), Some(ah)) = (expected_host, actual_host) {
+        if !eh.eq_ignore_ascii_case(ah) {
+            return false;
+        }
+    }
+
+    // 3. Direct path match
     if expected_path == actual_path {
         return true;
     }
 
-    // Check if /api prefix was added by the reverse proxy:
-    // expected (server-side) = /api/solid/pods/init
-    // actual   (client-side) = /solid/pods/init
+    // 4. Handle nginx /solid/ → /api/solid/ rewrite:
+    //    expected (server-side) = /api/solid/pods/init
+    //    actual   (client-side) = /solid/pods/init
     if let Some(stripped) = expected_path.strip_prefix("/api") {
         if stripped == actual_path {
             return true;
         }
     }
 
-    // Also handle the reverse: client sent full URL, server stripped /api
+    // 5. Reverse: client sent /api/..., server sees without prefix
     if let Some(stripped) = actual_path.strip_prefix("/api") {
         if stripped == expected_path {
             return true;
@@ -461,6 +477,67 @@ mod tests {
         assert_eq!(parse_auth_header("  Nostr xyz  "), Some("xyz"));
         assert_eq!(parse_auth_header("Bearer abc123"), None);
         assert_eq!(parse_auth_header("nostr abc123"), None); // case sensitive
+    }
+
+    #[test]
+    fn test_urls_match_direct() {
+        assert!(urls_match(
+            "http://localhost:3000/api/solid/pods/init",
+            "http://localhost:3000/api/solid/pods/init"
+        ));
+    }
+
+    #[test]
+    fn test_urls_match_api_prefix_strip() {
+        // Server sees /api/solid/..., client signed /solid/...
+        assert!(urls_match(
+            "http://localhost:3001/api/solid/pods/init",
+            "http://localhost:3001/solid/pods/init"
+        ));
+    }
+
+    #[test]
+    fn test_urls_match_relative_path() {
+        // Client signs relative path, server has full URL
+        assert!(urls_match(
+            "http://localhost:3001/api/solid/pods/init",
+            "/solid/pods/init"
+        ));
+    }
+
+    #[test]
+    fn test_urls_match_rejects_different_host() {
+        // CRITICAL: token signed for evil.com must NOT match our server
+        assert!(!urls_match(
+            "https://visionflow.info/api/solid/pods/init",
+            "https://evil.com/api/solid/pods/init"
+        ));
+        assert!(!urls_match(
+            "https://visionflow.info/solid/pods/init",
+            "https://evil.com/solid/pods/init"
+        ));
+    }
+
+    #[test]
+    fn test_urls_match_case_insensitive_host() {
+        assert!(urls_match(
+            "https://VisionFlow.INFO/solid/pods",
+            "https://visionflow.info/solid/pods"
+        ));
+    }
+
+    #[test]
+    fn test_urls_match_relative_vs_absolute_allowed() {
+        // Relative path has no host — should still match via path comparison
+        assert!(urls_match(
+            "https://visionflow.info/api/solid/pods/init",
+            "/solid/pods/init"
+        ));
+        // But the reverse should also work
+        assert!(urls_match(
+            "/solid/pods/init",
+            "https://visionflow.info/api/solid/pods/init"
+        ));
     }
 
     #[test]
