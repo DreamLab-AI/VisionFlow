@@ -30,6 +30,11 @@ fn comfyui_base() -> String {
     std::env::var("COMFYUI_URL").unwrap_or_else(|_| "http://comfyui:8188".to_string())
 }
 
+fn comfyui_salad() -> String {
+    // Salad wrapper: synchronous, returns { id, images:[base64], filenames, stats }
+    std::env::var("COMFYUI_SALAD_URL").unwrap_or_else(|_| "http://comfyui:3000".to_string())
+}
+
 fn solid_base() -> String {
     // Internal base — goes through nginx→Rust solid proxy
     std::env::var("SOLID_INTERNAL_URL").unwrap_or_else(|_| "http://127.0.0.1:4001/api/solid".to_string())
@@ -192,15 +197,18 @@ fn build_flux2_workflow(req: &ImageGenRequest, seed: u64, filename_prefix: &str)
                 "denoise": 1.0
             }
         },
+        "13": {
+            "class_type": "KSamplerSelect",
+            "inputs": {
+                "sampler_name": "euler"
+            }
+        },
         "10": {
             "class_type": "SamplerCustomAdvanced",
             "inputs": {
                 "noise": ["7", 0],
                 "guider": ["6", 0],
-                "sampler": {
-                    "class_type": "KSamplerSelect",
-                    "inputs": { "sampler_name": "euler" }
-                },
+                "sampler": ["13", 0],
                 "sigmas": ["9", 0],
                 "latent_image": ["8", 0]
             }
@@ -334,6 +342,7 @@ pub async fn submit_image_job(
     // Poll /history/{prompt_id} until done (max ~5 min)
     let history_url = format!("{}/history/{}", comfyui_base(), prompt_id);
     let mut output_filename: Option<String> = None;
+    let mut output_subfolder: Option<String> = None;
 
     for attempt in 0..60 {
         sleep(Duration::from_secs(5)).await;
@@ -353,6 +362,9 @@ pub async fn submit_image_job(
                     if let Some(images) = node_out.get("images").and_then(|v| v.as_array()) {
                         if let Some(first) = images.first() {
                             output_filename = first.get("filename")
+                                .and_then(|v| v.as_str())
+                                .map(|s| s.to_string());
+                            output_subfolder = first.get("subfolder")
                                 .and_then(|v| v.as_str())
                                 .map(|s| s.to_string());
                             break;
@@ -377,7 +389,9 @@ pub async fn submit_image_job(
     info!("ComfyUI finished: {}", filename);
 
     // Fetch the PNG bytes from ComfyUI
-    let view_url = format!("{}/view?filename={}&type=output", comfyui_base(), urlencoding::encode(&filename));
+    let subfolder = output_subfolder.as_deref().unwrap_or("");
+    let view_url = format!("{}/view?filename={}&subfolder={}&type=output",
+        comfyui_base(), urlencoding::encode(&filename), urlencoding::encode(subfolder));
     let image_bytes = match client.get(&view_url).send().await {
         Ok(r) => match r.bytes().await {
             Ok(b) => b,
@@ -440,7 +454,9 @@ pub async fn submit_image_job(
 }
 
 /// POST /api/image-gen/agent-submit
-/// Same ComfyUI pipeline as submit_image_job but authenticated with X-Agent-Key.
+/// Uses the ComfyUI Salad wrapper (:3000) — synchronous, returns base64 images
+/// in a single request. No polling needed.
+///
 /// Used by MCP agents in the agentic-workstation container — no user Nostr session needed.
 /// Images are stored directly in JSS under the `user_npub` pod using server NIP-98 signing.
 pub async fn agent_submit_image_job(
@@ -463,7 +479,6 @@ pub async fn agent_submit_image_job(
     let job_id = Uuid::new_v4().to_string();
     let filename_prefix = format!("visionflow/{}/{}", user_npub, job_id);
 
-    // Re-use ImageGenRequest for the workflow builder
     let params = ImageGenRequest {
         prompt: body.prompt.clone(),
         negative_prompt: None,
@@ -481,102 +496,74 @@ pub async fn agent_submit_image_job(
         .build()
         .unwrap_or_default();
 
-    let comfyui_url = format!("{}/prompt", comfyui_base());
-    info!("[agent] Submitting image job {} for npub {}… to ComfyUI", job_id, &user_npub[..8.min(user_npub.len())]);
+    // Salad API: synchronous — one POST, get base64 images back directly
+    let salad_url = format!("{}/prompt", comfyui_salad());
+    info!("[agent] Submitting image job {} for npub {} to ComfyUI Salad API",
+        job_id, &user_npub[..8.min(user_npub.len())]);
 
-    let submit_resp = match client
-        .post(&comfyui_url)
-        .json(&json!({ "prompt": workflow, "client_id": job_id }))
+    let salad_resp = match client
+        .post(&salad_url)
+        .json(&json!({ "prompt": workflow }))
         .send()
         .await
     {
         Ok(r) => r,
         Err(e) => {
-            error!("[agent] ComfyUI submit failed: {}", e);
+            error!("[agent] ComfyUI Salad API unreachable: {}", e);
             return HttpResponse::ServiceUnavailable().json(json!({
-                "error": "ComfyUI unreachable", "details": e.to_string()
+                "error": "ComfyUI Salad API unreachable", "details": e.to_string()
             }));
         }
     };
 
-    if !submit_resp.status().is_success() {
-        let err_body = submit_resp.text().await.unwrap_or_default();
+    if !salad_resp.status().is_success() {
+        let err_body = salad_resp.text().await.unwrap_or_default();
         return HttpResponse::BadRequest().json(json!({
             "error": "ComfyUI rejected workflow", "details": err_body
         }));
     }
 
-    let submit_json: Value = match submit_resp.json().await {
+    // Salad response: { "id": "...", "images": ["base64..."], "filenames": ["..."], "stats": {...} }
+    let salad_json: Value = match salad_resp.json().await {
         Ok(v) => v,
         Err(e) => return HttpResponse::InternalServerError().json(json!({
-            "error": "Failed to parse ComfyUI response", "details": e.to_string()
+            "error": "Failed to parse Salad response", "details": e.to_string()
         })),
     };
 
-    let prompt_id = match submit_json.get("prompt_id").and_then(|v| v.as_str()) {
-        Some(id) => id.to_string(),
+    let prompt_id = salad_json.get("id")
+        .and_then(|v| v.as_str())
+        .unwrap_or(&job_id)
+        .to_string();
+
+    // Extract first base64 image
+    let b64_image = match salad_json.get("images")
+        .and_then(|v| v.as_array())
+        .and_then(|arr| arr.first())
+        .and_then(|v| v.as_str())
+    {
+        Some(b64) => b64,
         None => return HttpResponse::InternalServerError().json(json!({
-            "error": "No prompt_id in ComfyUI response", "raw": submit_json
+            "error": "No images in Salad response",
+            "raw": salad_json
         })),
     };
 
-    info!("[agent] ComfyUI accepted → prompt_id {}", prompt_id);
+    let comfyui_filename = salad_json.get("filenames")
+        .and_then(|v| v.as_array())
+        .and_then(|arr| arr.first())
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string());
 
-    // Poll /history until done (max ~6 min)
-    let history_url = format!("{}/history/{}", comfyui_base(), prompt_id);
-    let mut output_filename: Option<String> = None;
+    info!("[agent] ComfyUI Salad returned image ({} base64 chars), file: {:?}",
+        b64_image.len(), comfyui_filename);
 
-    for attempt in 0..72u32 {
-        sleep(Duration::from_secs(5)).await;
-
-        let history = match client.get(&history_url).send().await {
-            Ok(r) => r.json::<Value>().await.unwrap_or_default(),
-            Err(e) => {
-                warn!("[agent] History poll {}/72 failed: {}", attempt + 1, e);
-                continue;
-            }
-        };
-
-        if let Some(job) = history.get(&prompt_id) {
-            if let Some(outputs) = job.get("outputs") {
-                for (_node_id, node_out) in outputs.as_object().unwrap_or(&Default::default()) {
-                    if let Some(images) = node_out.get("images").and_then(|v| v.as_array()) {
-                        if let Some(first) = images.first() {
-                            output_filename = first.get("filename")
-                                .and_then(|v| v.as_str())
-                                .map(|s| s.to_string());
-                            break;
-                        }
-                    }
-                }
-                if output_filename.is_some() { break; }
-            }
-        }
-        if attempt % 6 == 5 {
-            info!("[agent] Waiting for ComfyUI ({}/72)…", attempt + 1);
-        }
-    }
-
-    let filename = match output_filename {
-        Some(f) => f,
-        None => return HttpResponse::GatewayTimeout().json(json!({
-            "error": "Timed out waiting for ComfyUI", "prompt_id": prompt_id
-        })),
-    };
-
-    info!("[agent] ComfyUI finished: {}", filename);
-
-    // Fetch PNG bytes
-    let view_url = format!("{}/view?filename={}&type=output", comfyui_base(), urlencoding::encode(&filename));
-    let image_bytes = match client.get(&view_url).send().await {
-        Ok(r) => match r.bytes().await {
-            Ok(b) => b.to_vec(),
-            Err(e) => return HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to fetch image bytes", "details": e.to_string()
-            })),
-        },
+    // Decode base64 → PNG bytes
+    use base64::Engine;
+    let image_bytes = match base64::engine::general_purpose::STANDARD.decode(b64_image) {
+        Ok(bytes) => bytes,
         Err(e) => return HttpResponse::InternalServerError().json(json!({
-            "error": "Failed to GET image from ComfyUI", "details": e.to_string()
+            "error": "Failed to decode base64 image", "details": e.to_string()
         })),
     };
 
@@ -587,7 +574,7 @@ pub async fn agent_submit_image_job(
         job_id: prompt_id,
         status: "completed".to_string(),
         pod_image_url,
-        comfyui_filename: Some(filename),
+        comfyui_filename,
         width: body.width,
         height: body.height,
         seed,
