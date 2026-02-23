@@ -25,16 +25,23 @@ axios.interceptors.request.use(async (config) => {
       config.headers['X-Nostr-Pubkey'] = user.pubkey;
     }
   } else if (user?.pubkey) {
-    try {
-      const fullUrl = new URL(config.url || '', config.baseURL || window.location.origin).href;
-      const method = (config.method || 'GET').toUpperCase();
-      const body = config.data
-        ? (typeof config.data === 'string' ? config.data : JSON.stringify(config.data))
-        : undefined;
-      const token = await nostrAuth.signRequest(fullUrl, method, body);
-      config.headers['Authorization'] = `Nostr ${token}`;
-    } catch (e) {
-      logger.warn('[settingsApi] NIP-98 signing failed:', e);
+    // When a NIP-07 extension (e.g. Podkey) is present, it intercepts fetch/XHR
+    // and injects its own NIP-98 Authorization header. Skip manual signing for
+    // HTTP requests to avoid conflicts. WebSocket auth is unaffected.
+    if (typeof window !== 'undefined' && (window as any).nostr) {
+      logger.debug('[settingsApi] NIP-07 extension detected, skipping NIP-98 signing');
+    } else {
+      try {
+        const fullUrl = new URL(config.url || '', config.baseURL || window.location.origin).href;
+        const method = (config.method || 'GET').toUpperCase();
+        const body = config.data
+          ? (typeof config.data === 'string' ? config.data : JSON.stringify(config.data))
+          : undefined;
+        const token = await nostrAuth.signRequest(fullUrl, method, body);
+        config.headers['Authorization'] = `Nostr ${token}`;
+      } catch (e) {
+        logger.warn('[settingsApi] NIP-98 signing failed:', e);
+      }
     }
   }
   return config;

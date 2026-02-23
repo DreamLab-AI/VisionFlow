@@ -15,7 +15,7 @@ use crate::noise::simplex3d;
 const MAX_WISPS: usize = 128;
 
 /// Spawn radius for wisp birth positions.
-const SPAWN_RADIUS: f32 = 45.0;
+const SPAWN_RADIUS: f32 = 200.0;
 
 /// Minimum wisp lifespan in seconds.
 const MIN_LIFE: f32 = 2.0;
@@ -215,7 +215,7 @@ impl EnergyWisps {
             let cam_dist = (dx * dx + dy * dy + dz * dz).sqrt();
 
             let near_fade = ((cam_dist - 2.0) / 4.0).clamp(0.0, 1.0);
-            let far_fade = ((55.0 - cam_dist) / 15.0).clamp(0.0, 1.0);
+            let far_fade = ((300.0 - cam_dist) / 100.0).clamp(0.0, 1.0);
 
             // Gentle flicker from noise
             let flicker = simplex3d(
