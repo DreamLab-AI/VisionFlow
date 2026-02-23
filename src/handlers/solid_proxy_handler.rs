@@ -319,8 +319,11 @@ pub async fn handle_solid_proxy(
             );
 
             // Rewrite internal JSS URLs to public proxy paths in header values.
-            // JSS returns URLs like http://jss:3030/... which are unreachable from the browser.
+            // JSS returns URLs like http://jss:3030/... or ws://jss:3030/... which
+            // are unreachable from the browser.
             let jss_base = &state.config.base_url; // e.g. "http://jss:3030"
+            // Also build the ws:// variant for updates-via headers
+            let jss_ws_base = jss_base.replace("http://", "ws://");
 
             // Track content-type for body rewriting decision
             let mut response_content_type = String::new();
@@ -347,7 +350,9 @@ pub async fn handle_solid_proxy(
                         if name_str == "content-type" {
                             response_content_type = val.to_string();
                         }
-                        let rewritten = val.replace(jss_base, "/solid");
+                        let rewritten = val
+                            .replace(jss_base, "/solid")
+                            .replace(&jss_ws_base, "/solid");
                         builder.insert_header((name.as_str(), rewritten));
                     }
                 }
@@ -365,7 +370,9 @@ pub async fn handle_solid_proxy(
 
                     if is_text {
                         if let Ok(body_str) = std::str::from_utf8(&bytes) {
-                            let rewritten = body_str.replace(jss_base, "/solid");
+                            let rewritten = body_str
+                                .replace(jss_base, "/solid")
+                                .replace(&jss_ws_base, "/solid");
                             builder.body(rewritten)
                         } else {
                             builder.body(bytes.to_vec())
