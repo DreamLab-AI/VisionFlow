@@ -288,26 +288,6 @@ async fn main() -> std::io::Result<()> {
     ));
     info!("[main] GitHub Sync Service initialized");
 
-    // Run GitHub sync on startup to ensure graph data is up-to-date
-    {
-        let sync_ref = github_sync_service.clone();
-        info!("[main] Running startup GitHub sync...");
-        match sync_ref.sync_graphs().await {
-            Ok(stats) => {
-                info!(
-                    "[main] Startup sync complete: {} nodes, {} edges from {} files ({} errors)",
-                    stats.total_nodes, stats.total_edges, stats.total_files, stats.errors.len()
-                );
-                // Notify graph actor to reload from database
-                app_state.graph_service_addr.do_send(ReloadGraphFromDatabase);
-                info!("[main] Graph reload notification sent");
-            }
-            Err(e) => {
-                error!("[main] Startup sync failed: {} (server will continue without fresh data)", e);
-            }
-        }
-    }
-
     // Initialize SchemaService for natural language query support
     info!("[main] Initializing Schema Service...");
     let schema_service = Arc::new(webxr::services::schema_service::SchemaService::new());
