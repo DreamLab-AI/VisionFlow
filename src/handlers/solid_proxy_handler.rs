@@ -318,7 +318,14 @@ pub async fn handle_solid_proxy(
                     .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
             );
 
-            // Forward response headers
+            // Rewrite internal JSS URLs to public proxy paths in header values.
+            // JSS returns URLs like http://jss:3030/... which are unreachable from the browser.
+            let jss_base = &state.config.base_url; // e.g. "http://jss:3030"
+
+            // Track content-type for body rewriting decision
+            let mut response_content_type = String::new();
+
+            // Forward response headers (with URL rewriting)
             for (name, value) in response.headers() {
                 let name_str = name.as_str().to_lowercase();
                 // Forward these headers from JSS
@@ -337,14 +344,36 @@ pub async fn handle_solid_proxy(
                         | "ms-author-via"
                 ) {
                     if let Ok(val) = value.to_str() {
-                        builder.insert_header((name.as_str(), val));
+                        if name_str == "content-type" {
+                            response_content_type = val.to_string();
+                        }
+                        let rewritten = val.replace(jss_base, "/solid");
+                        builder.insert_header((name.as_str(), rewritten));
                     }
                 }
             }
 
-            // Get response body
+            // Get response body and rewrite internal URLs
             match response.bytes().await {
-                Ok(bytes) => builder.body(bytes.to_vec()),
+                Ok(bytes) => {
+                    // Only rewrite text-based responses (JSON-LD, Turtle, HTML)
+                    let is_text = response_content_type.contains("json")
+                        || response_content_type.contains("turtle")
+                        || response_content_type.contains("html")
+                        || response_content_type.contains("xml")
+                        || response_content_type.contains("text");
+
+                    if is_text {
+                        if let Ok(body_str) = std::str::from_utf8(&bytes) {
+                            let rewritten = body_str.replace(jss_base, "/solid");
+                            builder.body(rewritten)
+                        } else {
+                            builder.body(bytes.to_vec())
+                        }
+                    } else {
+                        builder.body(bytes.to_vec())
+                    }
+                }
                 Err(e) => {
                     error!("Failed to read JSS response body: {}", e);
                     HttpResponse::BadGateway().json(SolidProxyError {
@@ -368,7 +397,8 @@ pub async fn handle_solid_proxy(
 async fn pod_exists(state: &SolidProxyState, npub: &str) -> bool {
     let pod_url = format!("{}/pods/{}/", state.config.base_url, npub);
     match state.http_client.head(&pod_url).send().await {
-        Ok(resp) => resp.status().is_success(),
+        // 401/403 means the pod exists but WAC denies access (missing/restrictive ACL)
+        Ok(resp) => resp.status().is_success() || resp.status().as_u16() == 401 || resp.status().as_u16() == 403,
         Err(_) => false,
     }
 }
@@ -463,6 +493,50 @@ async fn create_pod_structure(
         }
     }
 
+    // Create WAC ACL for the pod root granting owner full control + public read
+    let acl_url = format!("{}/.acl", pod_base);
+    let acl_content = format!(
+        r#"@prefix acl: <http://www.w3.org/ns/auth/acl#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+<#owner>
+    a acl:Authorization ;
+    acl:agent <did:nostr:{pubkey}> ;
+    acl:accessTo <./> ;
+    acl:default <./> ;
+    acl:mode acl:Read, acl:Write, acl:Control .
+
+<#public>
+    a acl:Authorization ;
+    acl:agentClass foaf:Agent ;
+    acl:accessTo <./> ;
+    acl:default <./> ;
+    acl:mode acl:Read .
+"#,
+        pubkey = pubkey
+    );
+
+    let mut acl_req = state.http_client.put(&acl_url);
+    if let Some(auth) = auth_header {
+        acl_req = acl_req.header("Authorization", auth);
+    }
+    acl_req = acl_req
+        .header("Content-Type", "text/turtle")
+        .body(acl_content);
+
+    match acl_req.send().await {
+        Ok(resp) if resp.status().is_success() || resp.status().as_u16() == 409 => {
+            info!("Created ACL for pod {}", npub);
+        }
+        Ok(resp) => {
+            let status = resp.status();
+            warn!("ACL creation for {} returned {}: access may be restricted", npub, status);
+        }
+        Err(e) => {
+            warn!("Failed to create ACL for {}: {}", npub, e);
+        }
+    }
+
     Ok(PodStructure {
         profile: format!("{}/profile/card#me", pod_base),
         ontology_contributions: format!("{}/ontology/contributions/", pod_base),
@@ -484,6 +558,59 @@ pub async fn ensure_pod_exists(
     // Check if pod already exists
     if pod_exists(state, npub).await {
         let pod_base = format!("{}/pods/{}", state.config.base_url, npub);
+
+        // Ensure ACL exists even for pre-existing pods (backfill for pods created
+        // before ACL creation was added to create_pod_structure)
+        let acl_url = format!("{}/.acl", pod_base);
+        let acl_check = state.http_client.head(&acl_url).send().await;
+        let acl_missing = match acl_check {
+            Ok(resp) => !resp.status().is_success(),
+            Err(_) => true,
+        };
+        if acl_missing {
+            info!("Backfilling missing ACL for existing pod: {}", npub);
+            let acl_content = format!(
+                r#"@prefix acl: <http://www.w3.org/ns/auth/acl#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+<#owner>
+    a acl:Authorization ;
+    acl:agent <did:nostr:{pubkey}> ;
+    acl:accessTo <./> ;
+    acl:default <./> ;
+    acl:mode acl:Read, acl:Write, acl:Control .
+
+<#public>
+    a acl:Authorization ;
+    acl:agentClass foaf:Agent ;
+    acl:accessTo <./> ;
+    acl:default <./> ;
+    acl:mode acl:Read .
+"#,
+                pubkey = pubkey
+            );
+
+            let mut acl_req = state.http_client.put(&acl_url);
+            if let Some(auth) = auth_header {
+                acl_req = acl_req.header("Authorization", auth);
+            }
+            acl_req = acl_req
+                .header("Content-Type", "text/turtle")
+                .body(acl_content);
+
+            match acl_req.send().await {
+                Ok(resp) if resp.status().is_success() => {
+                    info!("Backfilled ACL for pod {}", npub);
+                }
+                Ok(resp) => {
+                    warn!("ACL backfill for {} returned {}", npub, resp.status());
+                }
+                Err(e) => {
+                    warn!("Failed to backfill ACL for {}: {}", npub, e);
+                }
+            }
+        }
+
         return Ok((false, PodStructure {
             profile: format!("{}/profile/card#me", pod_base),
             ontology_contributions: format!("{}/ontology/contributions/", pod_base),

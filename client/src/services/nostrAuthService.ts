@@ -111,6 +111,35 @@ class NostrAuthService {
     return typeof window !== 'undefined' && window.nostr !== undefined;
   }
 
+  /**
+   * Wait for NIP-07 extension to inject window.nostr.
+   * Polls every 100ms and resolves immediately on detection.
+   * Based on the nip07 library's event-based detection pattern.
+   * Returns true if detected within timeout, false otherwise.
+   */
+  private waitForNip07(timeoutMs: number): Promise<boolean> {
+    return new Promise((resolve) => {
+      // Already available
+      if (this.hasNip07Provider()) {
+        resolve(true);
+        return;
+      }
+
+      const interval = 100;
+      let elapsed = 0;
+      const timer = setInterval(() => {
+        elapsed += interval;
+        if (this.hasNip07Provider()) {
+          clearInterval(timer);
+          resolve(true);
+        } else if (elapsed >= timeoutMs) {
+          clearInterval(timer);
+          resolve(false);
+        }
+      }, interval);
+    });
+  }
+
   /** Check if running in dev mode with auth bypass */
   public isDevMode(): boolean {
     return import.meta.env.DEV && import.meta.env.VITE_DEV_MODE_AUTH === 'true';
@@ -228,19 +257,20 @@ class NostrAuthService {
     this.restorePasskeySession();
 
     // Detect stale session: user in localStorage but no signing capability.
-    // This happens when the user logged in before the sessionStorage persistence
-    // fix was deployed, or when sessionStorage was cleared (new tab).
-    // Don't auto-clear — NIP-07 extension may still be loading.
-    // Instead, schedule a deferred check that clears after extension load window.
+    // Use event-based NIP-07 detection instead of a fixed timeout — extensions
+    // inject window.nostr at unpredictable times (content script load order varies).
+    // Poll every 100ms up to 3s, and resolve immediately when detected.
     if (this.currentUser && !this.hasNip07Provider() && !this.isDevMode() && !this.localPrivateKey) {
       logger.warn(
-        'No signing key available on init — NIP-07 extension may still be loading. ' +
-        'Will re-check in 2s. If still no signing capability, session will be cleared.'
+        'No signing key available on init — watching for NIP-07 extension...'
       );
-      setTimeout(() => {
-        if (this.currentUser && !this.isAuthenticated()) {
+      this.waitForNip07(3000).then((detected) => {
+        if (detected) {
+          logger.info('NIP-07 extension detected after init — session is valid.');
+          this.notifyListeners(this.getCurrentAuthState());
+        } else if (this.currentUser && !this.isAuthenticated()) {
           logger.warn(
-            'Stale session confirmed: clearing. Please log in again to restore NIP-98 signing.'
+            'Stale session confirmed: no NIP-07 extension after 3s. Clearing session.'
           );
           this.currentUser = null;
           localStorage.removeItem('nostr_user');
@@ -250,7 +280,7 @@ class NostrAuthService {
           } catch { /* sessionStorage unavailable */ }
           this.notifyListeners(this.getCurrentAuthState());
         }
-      }, 2000);
+      });
     }
 
     this.initialized = true;
