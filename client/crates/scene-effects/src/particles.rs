@@ -10,7 +10,7 @@ use crate::noise::simplex3d;
 const MAX_PARTICLES: usize = 512;
 
 /// Spread radius for initial particle placement.
-const SPAWN_RADIUS: f32 = 50.0;
+const SPAWN_RADIUS: f32 = 200.0;
 
 /// A pseudo-random number generator (xorshift32) that avoids pulling in rand.
 struct Xorshift {
@@ -162,7 +162,7 @@ impl ParticleField {
 
             // Fade near camera (< 3 units) and far away (> 40 units)
             let near_fade = ((cam_dist - 1.5) / 3.0).clamp(0.0, 1.0);
-            let far_fade = ((50.0 - cam_dist) / 15.0).clamp(0.0, 1.0);
+            let far_fade = ((300.0 - cam_dist) / 100.0).clamp(0.0, 1.0);
 
             // Base opacity with breathing (slow noise modulation)
             let breath = (simplex3d(

@@ -722,6 +722,12 @@ class SolidPodService {
         headers.set('Authorization', 'Bearer dev-session-token');
         const user = nostrAuth.getCurrentUser();
         if (user?.pubkey) headers.set('X-Nostr-Pubkey', user.pubkey);
+      } else if (typeof window !== 'undefined' && (window as any).nostr) {
+        // NIP-07 extension (e.g. Podkey) detected — it intercepts fetch and
+        // adds its own NIP-98 Authorization header. Skip manual signing to
+        // avoid conflicts. WebSocket auth is still signed by us since
+        // extensions cannot intercept WebSocket frames.
+        logger.debug('NIP-07 extension detected, skipping NIP-98 signing for HTTP request');
       } else {
         try {
           const method = (options.method || 'GET').toUpperCase();
@@ -755,7 +761,7 @@ class SolidPodService {
     if (path.startsWith('http://') || path.startsWith('https://')) {
       // Rewrite internal JSS URLs to use the proxy path so the browser
       // doesn't try to reach the Docker-internal hostname directly.
-      const jssPattern = /^https?:\/\/[^/]*(?:visionflow-jss|localhost)[^/]*(?::\d+)?\/(.*)$/;
+      const jssPattern = /^https?:\/\/[^/]*(?:visionflow-jss|jss|localhost)[^/]*(?::\d+)?\/(.*)$/;
       const match = path.match(jssPattern);
       if (match) {
         return `${JSS_BASE_URL}/${match[1]}`;
