@@ -370,6 +370,7 @@ fn value_type_name(value: &Value) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::utils::result_helpers::safe_json_number;
     use serde::{Deserialize, Serialize};
 
     #[test]

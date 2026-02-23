@@ -48,8 +48,8 @@ impl Default for Neo4jTestConfig {
 /// Returns `false` when unavailable so tests can be skipped gracefully.
 pub async fn neo4j_available() -> bool {
     let config = Neo4jTestConfig::default();
-    match neo4rs::Graph::new(&config.uri, &config.username, &config.password).await {
-        Ok(_) => true,
+    match neo4rs::Graph::new(&config.uri, &config.username, &config.password) {
+        Ok(graph) => graph.run(neo4rs::query("RETURN 1")).await.is_ok(),
         Err(_) => false,
     }
 }

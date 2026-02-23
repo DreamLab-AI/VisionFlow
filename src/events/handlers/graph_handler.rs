@@ -161,8 +161,8 @@ impl EventHandler for GraphEventHandler {
 mod tests {
     use super::*;
     use crate::events::types::EventMetadata;
-    use chrono::Utc;
-use crate::utils::time;
+    use crate::utils::json::to_json;
+    use crate::utils::time;
 
     #[tokio::test]
     async fn test_node_added_event() {

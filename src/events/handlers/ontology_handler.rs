@@ -140,8 +140,8 @@ impl EventHandler for OntologyEventHandler {
 mod tests {
     use super::*;
     use crate::events::types::EventMetadata;
-    use chrono::Utc;
-use crate::utils::time;
+    use crate::utils::json::to_json;
+    use crate::utils::time;
 
     #[tokio::test]
     async fn test_class_added_triggers_inference() {
