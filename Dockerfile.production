@@ -145,7 +145,7 @@ RUN rm -rf /app/target/release/build/webxr-* /app/target/release/deps/webxr* /ap
 # SECURITY: Pin to digest for production builds (e.g., cachyos/cachyos-v3@sha256:abc123...)
 FROM cachyos/cachyos-v3:latest
 
-ENV RUST_LOG=${RUST_LOG:-warn} \
+ENV RUST_LOG=${RUST_LOG:-info} \
     PATH="/opt/cuda/bin:${PATH}" \
     NVIDIA_VISIBLE_DEVICES=all \
     NVIDIA_DRIVER_CAPABILITIES=all \
