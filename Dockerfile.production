@@ -107,7 +107,8 @@ RUN mkdir -p /app/ptx && \
 FROM toolchain AS frontend
 
 WORKDIR /app/client
-ENV DOCKER_BUILD=1
+ENV DOCKER_BUILD=1 \
+    VITE_JSS_WS_URL=wss://www.visionflow.info/solid/.notifications
 
 # Copy package manifests and scripts needed by preinstall hook
 COPY client/package.json client/package-lock.json ./

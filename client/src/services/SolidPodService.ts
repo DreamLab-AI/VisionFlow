@@ -722,11 +722,17 @@ class SolidPodService {
         headers.set('Authorization', 'Bearer dev-session-token');
         const user = nostrAuth.getCurrentUser();
         if (user?.pubkey) headers.set('X-Nostr-Pubkey', user.pubkey);
-      } else if (typeof window !== 'undefined' && (window as any).nostr) {
-        // NIP-07 extension (e.g. Podkey) detected — it intercepts fetch and
-        // adds its own NIP-98 Authorization header. Skip manual signing to
-        // avoid conflicts. WebSocket auth is still signed by us since
-        // extensions cannot intercept WebSocket frames.
+      } else if (
+        typeof window !== 'undefined' &&
+        (window as any).nostr &&
+        // Only skip manual signing if the user actually authenticated via
+        // the NIP-07 extension (not a passkey session). If they used a
+        // passkey, we have a local key and should sign ourselves.
+        !nostrAuth.hasPasskeySession()
+      ) {
+        // NIP-07 extension (e.g. Podkey) detected and user logged in through
+        // it — the extension intercepts fetch and adds its own NIP-98
+        // Authorization header. Skip manual signing to avoid conflicts.
         logger.debug('NIP-07 extension detected, skipping NIP-98 signing for HTTP request');
       } else {
         try {

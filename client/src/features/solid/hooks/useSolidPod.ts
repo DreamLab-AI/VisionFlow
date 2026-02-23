@@ -9,6 +9,7 @@ import solidPodService, {
   PodInfo,
   PodCreationResult,
 } from '../../../services/SolidPodService';
+import { nostrAuth } from '../../../services/nostrAuthService';
 
 export interface UseSolidPodReturn {
   podInfo: PodInfo | null;
@@ -102,7 +103,11 @@ export function useSolidPod(): UseSolidPodReturn {
   }, [podInfo?.podUrl]);
 
   useEffect(() => {
-    checkPod();
+    // Only check/init pod if user is authenticated — otherwise we get 401s
+    // from the backend and the NIP-07 extension can't sign without a session.
+    if (nostrAuth.isAuthenticated()) {
+      checkPod();
+    }
   }, [checkPod]);
 
   return {
