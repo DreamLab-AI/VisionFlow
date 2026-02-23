@@ -223,6 +223,12 @@ services:
       NEO4J_USER: ${NEO4J_USER:-neo4j}
       NEO4J_PASSWORD: ${NEO4J_PASSWORD}
       NEO4J_DATABASE: ${NEO4J_DATABASE:-neo4j}
+      # ComfyUI image generation
+      COMFYUI_URL: ${COMFYUI_URL:-http://comfyui:8188}
+      COMFYUI_SALAD_URL: ${COMFYUI_SALAD_URL:-http://comfyui:3000}
+      # Solid pod storage for agent pipeline
+      SOLID_PROXY_SECRET_KEY: ${SOLID_PROXY_SECRET_KEY}
+      VISIONFLOW_AGENT_KEY: ${VISIONFLOW_AGENT_KEY:-changeme-agent-key}
     volumes:
       # Production: ONLY data volumes (no source mounts, no Docker socket)
       - visionflow-data:/app/data

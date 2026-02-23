@@ -746,6 +746,13 @@ class SolidPodService {
 
   private resolvePath(path: string): string {
     if (path.startsWith('http://') || path.startsWith('https://')) {
+      // Rewrite internal JSS URLs to use the proxy path so the browser
+      // doesn't try to reach the Docker-internal hostname directly.
+      const jssPattern = /^https?:\/\/[^/]*(?:visionflow-jss|localhost)[^/]*(?::\d+)?\/(.*)$/;
+      const match = path.match(jssPattern);
+      if (match) {
+        return `${JSS_BASE_URL}/${match[1]}`;
+      }
       return path;
     }
 

@@ -260,9 +260,11 @@ pub fn validate_nip98_token(
     let method = method.ok_or_else(|| Nip98ValidationError::MissingTag("method".to_string()))?;
 
     // Validate URL matches (normalize for comparison)
-    let normalized_expected = normalize_url(expected_url);
-    let normalized_actual = normalize_url(&url);
-    if normalized_expected != normalized_actual {
+    // The client may sign with a relative path (e.g. /solid/pods/init) while
+    // the server sees the full URL after nginx rewrites /solid/ → /api/solid/.
+    // We compare paths flexibly: strip the /api prefix from the expected URL
+    // and allow relative-path tokens to match the server-side full URL.
+    if !urls_match(expected_url, &url) {
         return Err(Nip98ValidationError::UrlMismatch {
             expected: expected_url.to_string(),
             actual: url,
@@ -349,6 +351,60 @@ fn normalize_url(url: &str) -> String {
     }
 
     normalized
+}
+
+/// Extract the path portion from a URL (full or relative).
+fn extract_path(url: &str) -> &str {
+    if let Some(idx) = url.find("://") {
+        let after_scheme = &url[idx + 3..];
+        if let Some(path_idx) = after_scheme.find('/') {
+            &after_scheme[path_idx..]
+        } else {
+            "/"
+        }
+    } else {
+        // Already a relative path
+        url
+    }
+}
+
+/// Compare two URLs flexibly for NIP-98 validation.
+/// Handles: relative vs absolute, nginx /solid/ → /api/solid/ rewrite.
+fn urls_match(expected: &str, actual: &str) -> bool {
+    let norm_expected = normalize_url(expected);
+    let norm_actual = normalize_url(actual);
+
+    // Direct match
+    if norm_expected == norm_actual {
+        return true;
+    }
+
+    // Path-level comparison: strip the /api prefix that nginx adds
+    let expected_path = extract_path(&norm_expected);
+    let actual_path = extract_path(&norm_actual);
+
+    // Direct path match
+    if expected_path == actual_path {
+        return true;
+    }
+
+    // Check if /api prefix was added by the reverse proxy:
+    // expected (server-side) = /api/solid/pods/init
+    // actual   (client-side) = /solid/pods/init
+    if let Some(stripped) = expected_path.strip_prefix("/api") {
+        if stripped == actual_path {
+            return true;
+        }
+    }
+
+    // Also handle the reverse: client sent full URL, server stripped /api
+    if let Some(stripped) = actual_path.strip_prefix("/api") {
+        if stripped == expected_path {
+            return true;
+        }
+    }
+
+    false
 }
 
 #[cfg(test)]
