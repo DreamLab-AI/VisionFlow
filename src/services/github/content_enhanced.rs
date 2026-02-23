@@ -32,110 +32,77 @@ impl EnhancedContentAPI {
         path: &str,
     ) -> VisionFlowResult<Vec<GitHubFileBasicMetadata>> {
         let mut all_markdown_files = Vec::new();
-        let mut page = 1;
-        const PER_PAGE: usize = 100;
 
-        info!("list_markdown_files: Starting paginated fetch from GitHub API");
+        // GitHub Contents API returns all items in a single response (no pagination).
+        // per_page/page params are ignored by this endpoint.
+        let contents_url = GitHubClient::get_contents_url(&self.client, path).await;
 
-        loop {
-            let contents_url = format!(
-                "{}&per_page={}&page={}",
-                GitHubClient::get_contents_url(&self.client, path).await,
-                PER_PAGE,
-                page
+        debug!("list_markdown_files: Fetching from: {}", contents_url);
+
+        let response = self
+            .client
+            .client()
+            .get(&contents_url)
+            .header("Authorization", format!("Bearer {}", self.client.token()))
+            .header("Accept", "application/vnd.github+json")
+            .send()
+            .await?;
+
+        let status = response.status();
+        debug!("list_markdown_files: Response status: {}", status);
+
+        if !status.is_success() {
+            let error_text = response.text().await?;
+            error!(
+                "list_markdown_files: GitHub API error for path '{}' ({}): {}",
+                path, status, error_text
             );
+            return Err(format!(
+                "GitHub API error listing files for '{}' ({}): {}",
+                path, status, error_text
+            )
+            .into());
+        }
 
-            debug!("list_markdown_files: Fetching page {} from: {}", page, contents_url);
+        let files: Vec<Value> = response.json().await?;
+        info!(
+            "list_markdown_files: Received {} items from GitHub for path '{}'",
+            files.len(), path
+        );
 
-            let response = self
-                .client
-                .client()
-                .get(&contents_url)
-                .header("Authorization", format!("Bearer {}", self.client.token()))
-                .header("Accept", "application/vnd.github+json")
-                .send()
-                .await?;
+        for file in files {
+            let file_type = file["type"].as_str().unwrap_or("unknown");
+            let file_name = file["name"].as_str().unwrap_or("unnamed");
 
-            let status = response.status();
-            debug!("list_markdown_files: Page {} response status: {}", page, status);
+            if file_type == "file" && file_name.ends_with(".md") {
+                debug!("list_markdown_files: Found markdown file: {}", file_name);
+                all_markdown_files.push(GitHubFileBasicMetadata {
+                    name: file_name.to_string(),
+                    path: file["path"].as_str().unwrap_or("").to_string(),
+                    sha: file["sha"].as_str().unwrap_or("").to_string(),
+                    size: file["size"].as_u64().unwrap_or(0),
+                    download_url: file["download_url"].as_str().unwrap_or("").to_string(),
+                });
+            } else if file_type == "dir" {
+                let dir_path = file["path"].as_str().unwrap_or("");
+                debug!("list_markdown_files: Recursively processing directory: {}", dir_path);
 
-            if !status.is_success() {
-                let error_text = response.text().await?;
-                error!(
-                    "list_markdown_files: GitHub API error on page {} ({}): {}",
-                    page, status, error_text
-                );
-                return Err(format!(
-                    "GitHub API error listing files page {} ({}): {}",
-                    page, status, error_text
-                )
-                .into());
-            }
-
-            let files: Vec<Value> = response.json().await?;
-            let files_count = files.len();
-            info!(
-                "list_markdown_files: Page {} received {} items from GitHub",
-                page, files_count
-            );
-
-            // Break if no more files
-            if files_count == 0 {
-                info!("list_markdown_files: No more files, stopping pagination at page {}", page);
-                break;
-            }
-
-            // Process files on this page
-            for file in files {
-                let file_type = file["type"].as_str().unwrap_or("unknown");
-                let file_name = file["name"].as_str().unwrap_or("unnamed");
-
-                if file_type == "file" && file_name.ends_with(".md") {
-                    debug!("list_markdown_files: Found markdown file: {}", file_name);
-                    all_markdown_files.push(GitHubFileBasicMetadata {
-                        name: file_name.to_string(),
-                        path: file["path"].as_str().unwrap_or("").to_string(),
-                        sha: file["sha"].as_str().unwrap_or("").to_string(),
-                        size: file["size"].as_u64().unwrap_or(0),
-                        download_url: file["download_url"].as_str().unwrap_or("").to_string(),
-                    });
-                } else if file_type == "dir" {
-                    let dir_path = file["path"].as_str().unwrap_or("");
-                    debug!("list_markdown_files_impl: Recursively processing directory: {}", dir_path);
-
-                    // Recursively fetch markdown files from subdirectory
-                    match self.list_markdown_files(dir_path).await {
-                        Ok(mut subdir_files) => {
-                            let count = subdir_files.len();
-                            debug!("list_markdown_files_impl: Found {} files in subdirectory {}", count, dir_path);
-                            all_markdown_files.append(&mut subdir_files);
-                        }
-                        Err(e) => {
-                            warn!("list_markdown_files_impl: Failed to process subdirectory {}: {}", dir_path, e);
-                        }
+                match self.list_markdown_files(dir_path).await {
+                    Ok(mut subdir_files) => {
+                        let count = subdir_files.len();
+                        debug!("list_markdown_files: Found {} files in subdirectory {}", count, dir_path);
+                        all_markdown_files.append(&mut subdir_files);
+                    }
+                    Err(e) => {
+                        warn!("list_markdown_files: Failed to process subdirectory {}: {}", dir_path, e);
                     }
                 }
-            }
-
-            // GitHub API returns < PER_PAGE items on last page
-            if files_count < PER_PAGE {
-                info!("list_markdown_files: Last page detected (received {} < {} items)", files_count, PER_PAGE);
-                break;
-            }
-
-            page += 1;
-
-            // Safety limit to prevent infinite loops
-            if page > 100 {
-                warn!("list_markdown_files: Reached safety limit of 100 pages (10,000 files)");
-                break;
             }
         }
 
         info!(
-            "list_markdown_files: Pagination complete. Found {} markdown files total across {} pages",
-            all_markdown_files.len(),
-            page
+            "list_markdown_files: Found {} markdown files total for path '{}'",
+            all_markdown_files.len(), path
         );
         Ok(all_markdown_files)
     }
