@@ -11,34 +11,54 @@ export function useNostrAuth() {
     error: undefined
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [hasNip07, setHasNip07] = useState(() => nostrAuth.hasNip07Provider());
 
   useEffect(() => {
+    let cancelled = false;
+
     // Initialize auth service
     const initAuth = async () => {
       try {
         await nostrAuth.initialize();
         const currentState = nostrAuth.getCurrentAuthState();
-        setAuthState(currentState);
+        if (!cancelled) setAuthState(currentState);
       } catch (error) {
         logger.error('Failed to initialize auth:', error);
-        setAuthState({
-          authenticated: false,
-          error: error instanceof Error ? error.message : 'Authentication initialization failed'
-        });
+        if (!cancelled) {
+          setAuthState({
+            authenticated: false,
+            error: error instanceof Error ? error.message : 'Authentication initialization failed'
+          });
+        }
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     };
 
     initAuth();
 
-    // Subscribe to auth state changes
+    // Subscribe to auth state changes (fires when extension detected or stale session cleared)
     const unsubscribe = nostrAuth.onAuthStateChanged((newState) => {
-      setAuthState(newState);
-      setIsLoading(false);
+      if (!cancelled) {
+        setAuthState(newState);
+        setIsLoading(false);
+        // Re-check NIP-07 availability whenever auth state changes
+        setHasNip07(nostrAuth.hasNip07Provider());
+      }
     });
 
+    // If NIP-07 is not yet available, wait for it reactively
+    if (!nostrAuth.hasNip07Provider()) {
+      nostrAuth.waitForNip07Provider(10000).then((detected) => {
+        if (!cancelled && detected) {
+          logger.info('NIP-07 extension detected — updating UI');
+          setHasNip07(true);
+        }
+      });
+    }
+
     return () => {
+      cancelled = true;
       unsubscribe();
     };
   }, []);
@@ -103,7 +123,7 @@ export function useNostrAuth() {
     logout,
     devLogin,
     loginWithPasskey,
-    hasNip07: nostrAuth.hasNip07Provider(),
+    hasNip07,
     hasPasskeySession: nostrAuth.hasPasskeySession(),
     isDevLoginAvailable: nostrAuth.isDevLoginAvailable()
   };

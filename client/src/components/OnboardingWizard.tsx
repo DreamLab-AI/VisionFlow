@@ -668,7 +668,7 @@ function SignInMethodStep({
       </div>
       {!hasExtension && (
         <p className="wizard-hint wizard-hint-small">
-          Have a Nostr signing extension? Reload to detect it.
+          Have a Nostr signing extension? It will be detected automatically.
         </p>
       )}
       <div className="wizard-divider" />

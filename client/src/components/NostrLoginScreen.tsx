@@ -97,10 +97,7 @@ export const NostrLoginScreen: React.FC = () => {
             {!hasNip07 && (
               <div className="podkey-hint">
                 <p>
-                  Have a PodKey extension?{' '}
-                  <a href="#" onClick={(e) => { e.preventDefault(); window.location.reload(); }}>
-                    Reload to detect it
-                  </a>
+                  Have a PodKey extension? It will be detected automatically.
                 </p>
               </div>
             )}
