@@ -735,6 +735,13 @@ class SolidPodService {
           logger.warn('NIP-98 signing failed:', e);
         }
       }
+    } else if (nostrAuth.getCurrentUser()) {
+      // User is "logged in" (localStorage) but has no signing capability —
+      // stale session after page reload where private key wasn't persisted.
+      logger.warn(
+        'Stale auth session: user exists but cannot sign requests. ' +
+        'Please log out and log back in.'
+      );
     }
 
     return fetch(url, {

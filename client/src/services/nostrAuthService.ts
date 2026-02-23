@@ -227,6 +227,32 @@ class NostrAuthService {
     // Restore passkey session from sessionStorage (per-tab, survives page reload)
     this.restorePasskeySession();
 
+    // Detect stale session: user in localStorage but no signing capability.
+    // This happens when the user logged in before the sessionStorage persistence
+    // fix was deployed, or when sessionStorage was cleared (new tab).
+    // Don't auto-clear — NIP-07 extension may still be loading.
+    // Instead, schedule a deferred check that clears after extension load window.
+    if (this.currentUser && !this.hasNip07Provider() && !this.isDevMode() && !this.localPrivateKey) {
+      logger.warn(
+        'No signing key available on init — NIP-07 extension may still be loading. ' +
+        'Will re-check in 2s. If still no signing capability, session will be cleared.'
+      );
+      setTimeout(() => {
+        if (this.currentUser && !this.isAuthenticated()) {
+          logger.warn(
+            'Stale session confirmed: clearing. Please log in again to restore NIP-98 signing.'
+          );
+          this.currentUser = null;
+          localStorage.removeItem('nostr_user');
+          try {
+            sessionStorage.removeItem('nostr_passkey_pubkey');
+            sessionStorage.removeItem('nostr_passkey_key');
+          } catch { /* sessionStorage unavailable */ }
+          this.notifyListeners(this.getCurrentAuthState());
+        }
+      }, 2000);
+    }
+
     this.initialized = true;
     this.notifyListeners(this.getCurrentAuthState());
     logger.debug('NostrAuthService initialized.');
