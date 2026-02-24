@@ -184,35 +184,38 @@ export const UNIFIED_SETTINGS_CONFIG: Record<string, SectionConfig> = {
       { key: 'enabled', label: 'Physics Enabled', type: 'toggle', path: 'visualisation.graphs.logseq.physics.enabled', description: 'Enable physics simulation' },
       { key: 'autoBalance', label: 'Auto Balance', type: 'toggle', path: 'visualisation.graphs.logseq.physics.autoBalance', description: 'Adaptive force balancing' },
       { key: 'damping', label: 'Damping', type: 'slider', min: 0, max: 1, step: 0.01, path: 'visualisation.graphs.logseq.physics.damping', description: 'Velocity damping' },
-      { key: 'springK', label: 'Spring Strength', type: 'slider', min: 0.0001, max: 10, step: 0.01, path: 'visualisation.graphs.logseq.physics.springK', description: 'Edge spring constant' },
-      { key: 'repelK', label: 'Repulsion', type: 'slider', min: 0.1, max: 200, step: 1, path: 'visualisation.graphs.logseq.physics.repelK', description: 'Node repulsion strength' },
-      { key: 'attractionK', label: 'Attraction', type: 'slider', min: 0, max: 10, step: 0.1, path: 'visualisation.graphs.logseq.physics.attractionK', description: 'Edge attraction strength' },
+      { key: 'springK', label: 'Spring Strength', type: 'slider', min: 0.0001, max: 50, step: 0.1, path: 'visualisation.graphs.logseq.physics.springK', description: 'Edge spring constant' },
+      { key: 'repelK', label: 'Repulsion', type: 'slider', min: 0.1, max: 500, step: 1, path: 'visualisation.graphs.logseq.physics.repelK', description: 'Node repulsion strength' },
+      { key: 'attractionK', label: 'Attraction', type: 'slider', min: 0, max: 50, step: 0.1, path: 'visualisation.graphs.logseq.physics.attractionK', description: 'Edge attraction strength' },
 
       // Dynamics - Basic
-      { key: 'maxVelocity', label: 'Max Velocity', type: 'slider', min: 0.1, max: 10, step: 0.1, path: 'visualisation.graphs.logseq.physics.maxVelocity', description: 'Maximum node speed' },
+      { key: 'maxVelocity', label: 'Max Velocity', type: 'slider', min: 0.1, max: 200, step: 1, path: 'visualisation.graphs.logseq.physics.maxVelocity', description: 'Maximum node speed' },
       { key: 'enableBounds', label: 'Enable Bounds', type: 'toggle', path: 'visualisation.graphs.logseq.physics.enableBounds', description: 'Constrain to bounds' },
       { key: 'boundsSize', label: 'Bounds Size', type: 'slider', min: 1, max: 10000, step: 100, path: 'visualisation.graphs.logseq.physics.boundsSize', description: 'Size of bounding box' },
 
       // Advanced dynamics
       { key: 'dt', label: 'Time Step', type: 'slider', min: 0.001, max: 0.1, step: 0.001, path: 'visualisation.graphs.logseq.physics.dt', description: 'Simulation time step', isAdvanced: true },
-      { key: 'separationRadius', label: 'Separation Radius', type: 'slider', min: 0.1, max: 10, step: 0.1, path: 'visualisation.graphs.logseq.physics.separationRadius', description: 'Minimum node separation', isAdvanced: true },
+      { key: 'separationRadius', label: 'Separation Radius', type: 'slider', min: 0.1, max: 50, step: 0.5, path: 'visualisation.graphs.logseq.physics.separationRadius', description: 'Minimum node separation', isAdvanced: true },
       { key: 'iterations', label: 'Iterations', type: 'slider', min: 1, max: 1000, step: 10, path: 'visualisation.graphs.logseq.physics.iterations', description: 'Solver iterations per frame', isAdvanced: true },
       { key: 'warmupIterations', label: 'Warmup Iterations', type: 'slider', min: 0, max: 500, step: 10, path: 'visualisation.graphs.logseq.physics.warmupIterations', description: 'Initial stabilization iterations', isAdvanced: true },
       { key: 'coolingRate', label: 'Cooling Rate', type: 'slider', min: 0.00001, max: 0.01, step: 0.0001, path: 'visualisation.graphs.logseq.physics.coolingRate', description: 'Simulated annealing rate', isAdvanced: true },
 
       // Fine-tuning - Advanced
-      { key: 'minDistance', label: 'Min Distance', type: 'slider', min: 0.05, max: 1, step: 0.01, path: 'visualisation.graphs.logseq.physics.minDistance', description: 'Minimum repulsion distance', isAdvanced: true },
-      { key: 'maxRepulsionDist', label: 'Max Repulsion Dist', type: 'slider', min: 10, max: 200, step: 5, path: 'visualisation.graphs.logseq.physics.maxRepulsionDist', description: 'Maximum repulsion range', isAdvanced: true },
-      { key: 'restLength', label: 'Rest Length', type: 'slider', min: 10, max: 200, step: 5, path: 'visualisation.graphs.logseq.physics.restLength', description: 'Spring rest length', isAdvanced: true },
-      { key: 'repulsionCutoff', label: 'Repulsion Cutoff', type: 'slider', min: 10, max: 200, step: 5, path: 'visualisation.graphs.logseq.physics.repulsionCutoff', description: 'Cutoff for repulsion forces', isAdvanced: true },
-      { key: 'centerGravityK', label: 'Center Gravity', type: 'slider', min: 0, max: 0.1, step: 0.001, path: 'visualisation.graphs.logseq.physics.centerGravityK', description: 'Pull towards center', isAdvanced: true },
-      { key: 'gridCellSize', label: 'Grid Cell Size', type: 'slider', min: 10, max: 100, step: 5, path: 'visualisation.graphs.logseq.physics.gridCellSize', description: 'Spatial grid cell size', isAdvanced: true },
+      { key: 'minDistance', label: 'Min Distance', type: 'slider', min: 0.05, max: 20, step: 0.1, path: 'visualisation.graphs.logseq.physics.minDistance', description: 'Minimum repulsion distance', isAdvanced: true },
+      { key: 'maxRepulsionDist', label: 'Max Repulsion Dist', type: 'slider', min: 10, max: 2000, step: 10, path: 'visualisation.graphs.logseq.physics.maxRepulsionDist', description: 'Maximum repulsion range', isAdvanced: true },
+      { key: 'restLength', label: 'Rest Length', type: 'slider', min: 1, max: 500, step: 5, path: 'visualisation.graphs.logseq.physics.restLength', description: 'Spring rest length', isAdvanced: true },
+      { key: 'repulsionCutoff', label: 'Repulsion Cutoff', type: 'slider', min: 1, max: 500, step: 5, path: 'visualisation.graphs.logseq.physics.repulsionCutoff', description: 'Cutoff for repulsion forces', isAdvanced: true },
+      { key: 'centerGravityK', label: 'Center Gravity', type: 'slider', min: 0, max: 1.0, step: 0.001, path: 'visualisation.graphs.logseq.physics.centerGravityK', description: 'Pull towards center', isAdvanced: true },
+      { key: 'gridCellSize', label: 'Grid Cell Size', type: 'slider', min: 1, max: 200, step: 5, path: 'visualisation.graphs.logseq.physics.gridCellSize', description: 'Spatial grid cell size', isAdvanced: true },
       { key: 'repulsionSofteningEpsilon', label: 'Repulsion Epsilon', type: 'slider', min: 0.00001, max: 0.01, step: 0.0001, path: 'visualisation.graphs.logseq.physics.repulsionSofteningEpsilon', description: 'Softening for close nodes', isAdvanced: true },
       { key: 'boundaryExtremeMultiplier', label: 'Boundary Extreme Mult', type: 'slider', min: 1, max: 5, step: 0.1, path: 'visualisation.graphs.logseq.physics.boundaryExtremeMultiplier', description: 'Boundary force multiplier', isAdvanced: true },
       { key: 'boundaryExtremeForceMultiplier', label: 'Boundary Force Mult', type: 'slider', min: 1, max: 20, step: 1, path: 'visualisation.graphs.logseq.physics.boundaryExtremeForceMultiplier', description: 'Extreme boundary force', isAdvanced: true },
       { key: 'boundaryVelocityDamping', label: 'Boundary Vel Damping', type: 'slider', min: 0, max: 1, step: 0.01, path: 'visualisation.graphs.logseq.physics.boundaryVelocityDamping', description: 'Damping at boundaries', isAdvanced: true },
       { key: 'boundaryDamping', label: 'Boundary Damping', type: 'slider', min: 0, max: 1, step: 0.01, path: 'visualisation.graphs.logseq.physics.boundaryDamping', description: 'General boundary damping', isAdvanced: true },
-      { key: 'updateThreshold', label: 'Update Threshold', type: 'slider', min: 0, max: 0.5, step: 0.01, path: 'visualisation.graphs.logseq.physics.updateThreshold', description: 'Movement threshold for updates', isAdvanced: true }
+      { key: 'updateThreshold', label: 'Update Threshold', type: 'slider', min: 0, max: 0.5, step: 0.01, path: 'visualisation.graphs.logseq.physics.updateThreshold', description: 'Movement threshold for updates', isAdvanced: true },
+      { key: 'maxForce', label: 'Max Force', type: 'slider', min: 1, max: 5000, step: 10, path: 'visualisation.graphs.logseq.physics.maxForce', description: 'Maximum force per node', isAdvanced: true },
+      { key: 'temperature', label: 'Temperature', type: 'slider', min: 0.01, max: 10, step: 0.1, path: 'visualisation.graphs.logseq.physics.temperature', description: 'Simulation temperature (energy)', isAdvanced: true },
+      { key: 'massScale', label: 'Mass Scale', type: 'slider', min: 0.01, max: 10, step: 0.1, path: 'visualisation.graphs.logseq.physics.massScale', description: 'Node mass multiplier', isAdvanced: true }
     ]
   },
 

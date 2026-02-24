@@ -148,25 +148,25 @@ visualisation:
         iterations: 50
         maxVelocity: 100.0
         maxForce: 1000.0
-        repelK: 13.28022
-        springK: 4.6001
-        massScale: 0.39917582
+        repelK: 80.0
+        springK: 2.0
+        massScale: 1.0
         boundaryDamping: 0.95
         updateThreshold: 0.01
-        dt: 0.02269863
-        temperature: 2.0
+        dt: 0.016
+        temperature: 1.0
         gravity: 0.0001
         stressWeight: 0.0001
         stressAlpha: 0.0001
-        boundaryLimit: 1000.0
+        boundaryLimit: 2000.0
         alignmentStrength: 0.1
         clusterStrength: 0.1
         computeMode: 1
-        restLength: 50.0
-        repulsionCutoff: 50.0
+        restLength: 80.0
+        repulsionCutoff: 200.0
         repulsionSofteningEpsilon: 0.0001
-        centerGravityK: 0.005
-        gridCellSize: 28.543957
+        centerGravityK: 0.001
+        gridCellSize: 50.0
         warmupIterations: 100
         coolingRate: 0.001
         boundaryExtremeMultiplier: 2.0
