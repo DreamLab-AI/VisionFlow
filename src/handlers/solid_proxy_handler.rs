@@ -402,7 +402,7 @@ pub async fn handle_solid_proxy(
 
 /// Check if a pod exists for the given npub
 async fn pod_exists(state: &SolidProxyState, npub: &str) -> bool {
-    let pod_url = format!("{}/pods/{}/", state.config.base_url, npub);
+    let pod_url = format!("{}/{}/", state.config.base_url, npub);
     match state.http_client.head(&pod_url).send().await {
         // 401/403 means the pod exists but WAC denies access (missing/restrictive ACL)
         Ok(resp) => resp.status().is_success() || resp.status().as_u16() == 401 || resp.status().as_u16() == 403,
@@ -417,7 +417,7 @@ async fn create_pod_structure(
     pubkey: &str,
     auth_header: Option<&str>,
 ) -> Result<PodStructure, String> {
-    let pod_base = format!("{}/pods/{}", state.config.base_url, npub);
+    let pod_base = format!("{}/{}", state.config.base_url, npub);
 
     // Directories to create (relative to pod root)
     let directories = [
@@ -564,7 +564,7 @@ pub async fn ensure_pod_exists(
 ) -> Result<(bool, PodStructure), String> {
     // Check if pod already exists
     if pod_exists(state, npub).await {
-        let pod_base = format!("{}/pods/{}", state.config.base_url, npub);
+        let pod_base = format!("{}/{}", state.config.base_url, npub);
 
         // Ensure ACL exists even for pre-existing pods (backfill for pods created
         // before ACL creation was added to create_pod_structure)
@@ -630,19 +630,19 @@ pub async fn ensure_pod_exists(
 
     info!("Auto-provisioning pod for user: {}", npub);
 
-    // Create pod via JSS API
-    let pod_create_url = format!("{}/.pods", state.config.base_url);
-    let pod_request = serde_json::json!({
-        "name": npub,
-        "webId": format!("did:nostr:{}", pubkey)
-    });
+    // Create pod as an LDP Basic Container at the root level via PUT
+    let pod_container_url = format!("{}/{}/", state.config.base_url, npub);
 
-    let mut req = state.http_client.post(&pod_create_url);
+    let mut req = state.http_client.put(&pod_container_url);
     if let Some(auth) = auth_header {
         req = req.header("Authorization", auth);
     }
+    req = req
+        .header("Content-Type", "text/turtle")
+        .header("Link", "<http://www.w3.org/ns/ldp#BasicContainer>; rel=\"type\"")
+        .body("");
 
-    let response = req.json(&pod_request).send().await;
+    let response = req.send().await;
 
     match response {
         Ok(resp) if resp.status().is_success() || resp.status().as_u16() == 409 => {
@@ -689,7 +689,7 @@ pub async fn create_pod(
     // Use ensure_pod_exists for creation with full structure
     match ensure_pod_exists(&state, npub, pubkey, auth_header).await {
         Ok((created, structure)) => {
-            let pod_url = format!("{}/pods/{}/", state.config.base_url, npub);
+            let pod_url = format!("{}/{}/", state.config.base_url, npub);
             let status = if created {
                 actix_web::http::StatusCode::CREATED
             } else {
@@ -734,7 +734,7 @@ pub async fn check_pod_exists(
         }
     };
 
-    let pod_base = format!("{}/pods/{}", state.config.base_url, user.npub);
+    let pod_base = format!("{}/{}", state.config.base_url, user.npub);
     let pod_url = format!("{}/", pod_base);
 
     match state.http_client.head(&pod_url).send().await {
@@ -809,7 +809,7 @@ pub async fn init_pod(
     // Use ensure_pod_exists for auto-provisioning
     match ensure_pod_exists(&state, npub, pubkey, auth_header).await {
         Ok((created, structure)) => {
-            let pod_url = format!("{}/pods/{}/", state.config.base_url, npub);
+            let pod_url = format!("{}/{}/", state.config.base_url, npub);
             HttpResponse::Ok().json(serde_json::json!({
                 "pod_url": pod_url,
                 "webid": structure.profile,
@@ -870,7 +870,7 @@ pub async fn init_pod_nip98(
     // Use ensure_pod_exists for auto-provisioning
     match ensure_pod_exists(&state, &npub, &identity.pubkey, Some(&identity.auth_header)).await {
         Ok((created, structure)) => {
-            let pod_url = format!("{}/pods/{}/", state.config.base_url, npub);
+            let pod_url = format!("{}/{}/", state.config.base_url, npub);
             HttpResponse::Ok().json(serde_json::json!({
                 "pod_url": pod_url,
                 "webid": structure.profile,

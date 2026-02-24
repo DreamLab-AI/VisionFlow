@@ -763,6 +763,11 @@ class SolidPodService {
       return path;
     }
 
+    // Already resolved to proxy path — don't double-prefix
+    if (path.startsWith(JSS_BASE_URL + '/') || path === JSS_BASE_URL) {
+      return path;
+    }
+
     // Remove leading slash if present
     const cleanPath = path.startsWith('/') ? path.slice(1) : path;
     return `${JSS_BASE_URL}/${cleanPath}`;
