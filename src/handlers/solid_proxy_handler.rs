@@ -165,11 +165,18 @@ impl SolidProxyState {
             .get("X-Forwarded-Host")
             .and_then(|v| v.to_str().ok())
             .unwrap_or_else(|| conn_info.host());
+        // Prefer X-Forwarded-URI (the original nginx-facing path, e.g. /solid/npub1.../
+        // over the nginx-rewritten backend path (e.g. /api/solid/npub1.../)).
+        // The client signs the NIP-98 token with the URL as sent to nginx.
+        let path = req.headers()
+            .get("X-Forwarded-URI")
+            .and_then(|v| v.to_str().ok())
+            .unwrap_or_else(|| req.uri().path_and_query().map(|pq| pq.as_str()).unwrap_or("/"));
         let expected_url = format!(
             "{}://{}{}",
             scheme,
             host,
-            req.uri().path_and_query().map(|pq| pq.as_str()).unwrap_or("/")
+            path
         );
         let expected_method = req.method().as_str();
 
