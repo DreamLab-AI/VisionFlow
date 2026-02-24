@@ -10,6 +10,7 @@ import solidPodService, {
   PodCreationResult,
 } from '../../../services/SolidPodService';
 import { nostrAuth } from '../../../services/nostrAuthService';
+import { useNostrAuth } from '../../../hooks/useNostrAuth';
 
 /** Rewrite internal JSS Docker URLs to public-facing proxy paths. */
 const jssPattern = /^https?:\/\/[^/]*(?:visionflow-jss|jss|localhost)[^/]*(?::\d+)?\/(.*)$/;
@@ -29,6 +30,7 @@ export interface UseSolidPodReturn {
 }
 
 export function useSolidPod(): UseSolidPodReturn {
+  const { authenticated } = useNostrAuth();
   const [podInfo, setPodInfo] = useState<PodInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -113,10 +115,10 @@ export function useSolidPod(): UseSolidPodReturn {
   useEffect(() => {
     // Only check/init pod if user is authenticated — otherwise we get 401s
     // from the backend and the NIP-07 extension can't sign without a session.
-    if (nostrAuth.isAuthenticated()) {
+    if (authenticated && nostrAuth.isAuthenticated()) {
       checkPod();
     }
-  }, [checkPod]);
+  }, [checkPod, authenticated]);
 
   return {
     podInfo,

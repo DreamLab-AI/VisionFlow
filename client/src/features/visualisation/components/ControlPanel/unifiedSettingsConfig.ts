@@ -146,10 +146,10 @@ export const UNIFIED_SETTINGS_CONFIG: Record<string, SectionConfig> = {
 
       // Labels - Basic
       { key: 'enableLabels', label: 'Show Labels', type: 'toggle', path: 'visualisation.graphs.logseq.labels.enableLabels', description: 'Display node labels' },
-      { key: 'labelSize', label: 'Label Size', type: 'slider', min: 0.1, max: 5.0, step: 0.1, path: 'visualisation.graphs.logseq.labels.desktopFontSize', description: 'Font size for labels' },
+      { key: 'labelSize', label: 'Label Size', type: 'slider', min: 0.1, max: 20.0, step: 0.1, path: 'visualisation.graphs.logseq.labels.desktopFontSize', description: 'Font size for labels' },
       { key: 'labelColor', label: 'Label Color', type: 'color', path: 'visualisation.graphs.logseq.labels.textColor', description: 'Color of label text' },
       { key: 'showMetadata', label: 'Show Metadata', type: 'toggle', path: 'visualisation.graphs.logseq.labels.showMetadata', description: 'Show domain, links, and quality info under labels' },
-      { key: 'labelStandoff', label: 'Label Standoff', type: 'slider', min: 0.0, max: 3.0, step: 0.05, path: 'visualisation.graphs.logseq.labels.textPadding', description: 'Gap between node surface and label' },
+      { key: 'labelStandoff', label: 'Label Standoff', type: 'slider', min: -1.0, max: 3.0, step: 0.05, path: 'visualisation.graphs.logseq.labels.textPadding', description: 'Gap between node surface and label' },
       // Labels - Advanced
       { key: 'labelOutlineColor', label: 'Outline Color', type: 'color', path: 'visualisation.graphs.logseq.labels.textOutlineColor', description: 'Label outline color', isAdvanced: true },
       { key: 'labelOutlineWidth', label: 'Outline Width', type: 'slider', min: 0, max: 0.01, step: 0.001, path: 'visualisation.graphs.logseq.labels.textOutlineWidth', description: 'Label outline width', isAdvanced: true },

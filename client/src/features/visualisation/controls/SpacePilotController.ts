@@ -528,12 +528,16 @@ export class SpacePilotController {
         this.resetView();
         break;
       case '[2]':
-        
+
         const modes: Array<'camera' | 'object' | 'navigation'> = ['camera', 'object', 'navigation'];
         const currentIndex = modes.indexOf(this.config.mode);
         this.setMode(modes[(currentIndex + 1) % modes.length]);
         break;
-      
+      case '[3]':
+        // Dispatch voice toggle event for ControlPanelHeader to handle
+        window.dispatchEvent(new CustomEvent('spacepilot:voice-toggle'));
+        break;
+
     }
   }
 

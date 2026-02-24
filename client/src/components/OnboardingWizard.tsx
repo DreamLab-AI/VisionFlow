@@ -57,7 +57,7 @@ const initialState: WizardState = {
 function wizardReducer(state: WizardState, action: WizardAction): WizardState {
   switch (action.type) {
     case 'START_REGISTER':
-      return { ...state, step: 'username', prevStep: 'welcome' };
+      return { ...state, step: 'sign-in-method', prevStep: 'welcome' };
     case 'START_LOGIN':
       return { ...state, step: 'sign-in-method', prevStep: 'welcome' };
     case 'START_LOGIN_PASSKEY':
@@ -226,7 +226,7 @@ function WelcomeStep({
       </div>
       <div className="wizard-actions">
         <button className="wizard-btn wizard-btn-primary" onClick={onRegister}>
-          Create Account
+          Get Started
         </button>
         <button className="wizard-btn wizard-btn-secondary" onClick={onLogin}>
           Sign In

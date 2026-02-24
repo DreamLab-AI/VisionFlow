@@ -134,11 +134,11 @@ visualisation:
           clusterDensityThreshold: 50.0
           numericalInstabilityThreshold: 0.001
         autoPause:
-          enabled: true
+          enabled: false
           equilibriumVelocityThreshold: 0.1
           equilibriumCheckFrames: 30
           equilibriumEnergyThreshold: 0.01
-          pauseOnEquilibrium: true
+          pauseOnEquilibrium: false
           resumeOnInteraction: true
         boundsSize: 1000.0
         separationRadius: 2.1155233
