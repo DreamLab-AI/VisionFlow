@@ -445,7 +445,7 @@ kokoro:
   returnTimestamps: true
   sampleRate: 24000
 whisper:
-  apiUrl: http://whisper-webui-backend:8000
+  apiUrl: http://whisper-webui:7860
   defaultModel: base
   defaultLanguage: en
   timeout: 30
