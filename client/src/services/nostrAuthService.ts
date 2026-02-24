@@ -40,6 +40,103 @@ if (typeof window !== 'undefined') {
   });
 }
 
+// --- NIP-07 Extension Detection ---
+// Adapted from nip07-awaiter (https://github.com/penpenpng/nip07-awaiter)
+// Uses dual-strategy: Object.defineProperty setter hook (instant) + heuristic
+// polling (fallback), racing against a caller-supplied timeout.
+
+/** Type guard: does the value look like a NIP-07 provider? */
+function isNip07Provider(value: unknown): value is NonNullable<typeof window.nostr> {
+  if (!value || typeof value !== 'object') return false;
+  const obj = value as Record<string, unknown>;
+  return typeof obj.getPublicKey === 'function' && typeof obj.signEvent === 'function';
+}
+
+/**
+ * Wait for a NIP-07 extension to set window.nostr.
+ * Resolves with true if detected within timeoutMs, false otherwise.
+ *
+ * Strategy 1 (instant): Object.defineProperty setter hook intercepts the
+ *   assignment the moment the extension writes window.nostr.
+ * Strategy 2 (fallback): Heuristic polling - 10ms for first 1s, 100ms for
+ *   1-5s, 1s thereafter.
+ */
+function waitForNip07(timeoutMs: number): Promise<boolean> {
+  if (isNip07Provider(window.nostr)) return Promise.resolve(true);
+
+  const controller = new AbortController();
+  const cleanup = () => controller.abort();
+  const promises: Promise<boolean>[] = [];
+
+  // Timeout: resolves false after timeoutMs
+  promises.push(
+    new Promise<boolean>((resolve) => {
+      const timer = setTimeout(() => resolve(false), timeoutMs);
+      controller.signal.addEventListener('abort', () => clearTimeout(timer));
+    })
+  );
+
+  // Heuristic polling (always works)
+  promises.push(
+    new Promise<boolean>((resolve) => {
+      let elapsed = 0;
+      let timer: ReturnType<typeof setTimeout> | undefined;
+
+      const check = () => {
+        if (isNip07Provider(window.nostr)) {
+          resolve(true);
+          return;
+        }
+        let interval: number;
+        if (elapsed < 1000) interval = 10;
+        else if (elapsed < 5000) interval = 100;
+        else interval = 1000;
+        elapsed += interval;
+        timer = setTimeout(check, interval);
+      };
+
+      check();
+      controller.signal.addEventListener('abort', () => {
+        if (timer !== undefined) clearTimeout(timer);
+      });
+    })
+  );
+
+  // Object.defineProperty setter hook (instant detection, not always installable)
+  const descriptor = Object.getOwnPropertyDescriptor(window, 'nostr');
+  if (!descriptor || descriptor.configurable) {
+    promises.push(
+      new Promise<boolean>((resolve) => {
+        let current = window.nostr;
+        Object.defineProperty(window, 'nostr', {
+          configurable: true,
+          get: () => current,
+          set: (value) => {
+            current = value;
+            if (isNip07Provider(value)) resolve(true);
+          },
+        });
+        // Restore normal property on teardown
+        controller.signal.addEventListener('abort', () => {
+          try {
+            Object.defineProperty(window, 'nostr', {
+              configurable: true,
+              writable: true,
+              enumerable: true,
+              value: current,
+            });
+          } catch { /* best effort */ }
+        });
+      })
+    );
+  }
+
+  return Promise.race(promises).then((result) => {
+    cleanup();
+    return result;
+  });
+}
+
 // --- Interfaces ---
 
 // User info stored locally and used in AuthState
@@ -108,7 +205,16 @@ class NostrAuthService {
   }
 
   public hasNip07Provider(): boolean {
-    return typeof window !== 'undefined' && window.nostr !== undefined;
+    return typeof window !== 'undefined' && isNip07Provider(window.nostr);
+  }
+
+  /**
+   * Wait for a NIP-07 extension to become available.
+   * Returns true if detected within timeoutMs, false otherwise.
+   * UI components can use this to reactively show the extension button.
+   */
+  public waitForNip07Provider(timeoutMs = 5000): Promise<boolean> {
+    return waitForNip07(timeoutMs);
   }
 
   /** Check if running in dev mode with auth bypass */
@@ -228,19 +334,20 @@ class NostrAuthService {
     this.restorePasskeySession();
 
     // Detect stale session: user in localStorage but no signing capability.
-    // This happens when the user logged in before the sessionStorage persistence
-    // fix was deployed, or when sessionStorage was cleared (new tab).
-    // Don't auto-clear — NIP-07 extension may still be loading.
-    // Instead, schedule a deferred check that clears after extension load window.
+    // Use dual-strategy NIP-07 detection (Object.defineProperty + heuristic
+    // polling) adapted from nip07-awaiter — resolves the instant the extension
+    // sets window.nostr, with a 5s maximum wait.
     if (this.currentUser && !this.hasNip07Provider() && !this.isDevMode() && !this.localPrivateKey) {
-      logger.warn(
-        'No signing key available on init — NIP-07 extension may still be loading. ' +
-        'Will re-check in 2s. If still no signing capability, session will be cleared.'
+      logger.info(
+        'No signing key available on init — waiting for NIP-07 extension...'
       );
-      setTimeout(() => {
-        if (this.currentUser && !this.isAuthenticated()) {
+      waitForNip07(5000).then((detected) => {
+        if (detected) {
+          logger.info('NIP-07 extension detected after init — session is valid.');
+          this.notifyListeners(this.getCurrentAuthState());
+        } else if (this.currentUser && !this.isAuthenticated()) {
           logger.warn(
-            'Stale session confirmed: clearing. Please log in again to restore NIP-98 signing.'
+            'Stale session confirmed: no NIP-07 extension after 3s. Clearing session.'
           );
           this.currentUser = null;
           localStorage.removeItem('nostr_user');
@@ -250,7 +357,7 @@ class NostrAuthService {
           } catch { /* sessionStorage unavailable */ }
           this.notifyListeners(this.getCurrentAuthState());
         }
-      }, 2000);
+      });
     }
 
     this.initialized = true;

@@ -1101,19 +1101,21 @@ impl FileService {
         neo4j_adapter: &Arc<crate::adapters::neo4j_adapter::Neo4jAdapter>,
     ) -> Result<(), String> {
         info!("Starting to load graph from local files into Neo4j...");
-    
+
         let metadata = Self::load_or_create_metadata()?;
         if metadata.is_empty() {
             warn!("metadata.json is empty. No data to load into Neo4j.");
             return Ok(());
         }
-    
+
         let mut graph_data = GraphData::new();
-        let valid_nodes: Vec<String> = metadata
-            .keys()
-            .map(|name| name.trim_end_matches(".md").to_string())
-            .collect();
-    
+
+        // Phase 1: Create nodes and collect file contents + actual IDs.
+        // new_with_id auto-increments when nodeId is 0, so we capture the real ID.
+        let mut term_to_id: HashMap<String, u32> = HashMap::new();
+        let mut filename_to_id: HashMap<String, u32> = HashMap::new();
+        let mut file_contents: Vec<(String, u32)> = Vec::new(); // (content, actual_node_id)
+
         for (filename, meta) in metadata.iter() {
             let file_path = Path::new(MARKDOWN_DIR).join(filename);
             let content = match fs::read_to_string(&file_path) {
@@ -1123,61 +1125,78 @@ impl FileService {
                     continue;
                 }
             };
-    
-            // CORRECT: Parse the string ID to a u32.
-            let node_id = match meta.node_id.parse::<u32>() {
-                Ok(id) => id,
-                Err(_) => {
-                    error!("Invalid node_id '{}' for file {}. Skipping.", meta.node_id, filename);
-                    continue;
-                }
-            };
-    
-            // CORRECT: Use the main Node struct from `models::node`.
+
+            let meta_node_id = meta.node_id.parse::<u32>().unwrap_or(0);
+
             let mut node = AppNode::new_with_id(
-                filename.clone(), // metadata_id is the full filename
-                Some(node_id)
+                filename.clone(),
+                Some(meta_node_id)
             );
             node.label = meta.file_name.trim_end_matches(".md").to_string();
             node.size = Some(meta.node_size as f32);
-            node.color = Some("#888888".to_string()); // Default color
-            // Initialize position with random spread to prevent origin collapse
+            node.color = Some("#888888".to_string());
             let mut rng = rand::thread_rng();
             node.data.x = rng.gen_range(-100.0..100.0);
             node.data.y = rng.gen_range(-100.0..100.0);
             node.data.z = rng.gen_range(-100.0..100.0);
-    
+
+            // Capture the actual assigned ID (may differ from meta_node_id due to auto-increment)
+            let actual_id = node.id;
+            filename_to_id.insert(filename.clone(), actual_id);
+
+            // Map preferred term → actual node ID for wikilink resolution
+            if let Some(ref term) = meta.preferred_term {
+                term_to_id.insert(term.to_lowercase(), actual_id);
+            }
+
             graph_data.nodes.push(node);
-    
-            let references = Self::extract_references(&content, &valid_nodes);
-            for reference in references {
-                // Find the metadata for the referenced file
-                if let Some(target_meta) = metadata.get(&format!("{}.md", reference)) {
-                    if let Ok(target_id) = target_meta.node_id.parse::<u32>() {
-                        // CORRECT: Use the main Edge struct from `models::edge`.
-                        let edge = AppEdge::new(node_id, target_id, 1.0);
-                        graph_data.edges.push(edge);
+            file_contents.push((content, actual_id));
+        }
+
+        info!(
+            "Phase 1: Created {} nodes, preferred_term mapping has {} entries",
+            graph_data.nodes.len(), term_to_id.len()
+        );
+
+        // Phase 2: Extract edges from wikilinks using the preferred_term mapping.
+        let wikilink_re = Regex::new(r"\[\[([^\]|]+)(?:\|[^\]]+)?\]\]")
+            .expect("Invalid wikilink regex");
+        let mut seen_edges = std::collections::HashSet::new();
+
+        for (content, source_id) in &file_contents {
+            for cap in wikilink_re.captures_iter(content) {
+                if let Some(link_match) = cap.get(1) {
+                    let target = link_match.as_str().trim().to_lowercase();
+                    if let Some(&target_id) = term_to_id.get(&target) {
+                        let edge_key = (*source_id, target_id);
+                        if target_id != *source_id && seen_edges.insert(edge_key) {
+                            graph_data.edges.push(AppEdge::new(*source_id, target_id, 1.0));
+                        }
                     }
                 }
             }
         }
-    
+
         info!(
-            "Parsed {} nodes and {} edges from local files.",
+            "Phase 2: Extracted {} edges from wikilinks across {} files.",
+            graph_data.edges.len(), file_contents.len()
+        );
+        info!(
+            "Total: {} nodes and {} edges ready for Neo4j.",
             graph_data.nodes.len(),
             graph_data.edges.len()
         );
-    
+
         info!("Clearing existing graph data from Neo4j...");
         if let Err(e) = neo4j_adapter.clear_graph().await {
             return Err(format!("Failed to clear Neo4j graph: {}", e));
         }
-    
+
         info!("Saving new graph data to Neo4j...");
         if let Err(e) = neo4j_adapter.save_graph(&graph_data).await {
             return Err(format!("Failed to save graph to Neo4j: {}", e));
         }
-    
+
         info!("✅ Successfully populated Neo4j from local files.");
         Ok(())
     }

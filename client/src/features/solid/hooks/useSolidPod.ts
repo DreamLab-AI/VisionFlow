@@ -9,6 +9,16 @@ import solidPodService, {
   PodInfo,
   PodCreationResult,
 } from '../../../services/SolidPodService';
+import { nostrAuth } from '../../../services/nostrAuthService';
+import { useNostrAuth } from '../../../hooks/useNostrAuth';
+
+/** Rewrite internal JSS Docker URLs to public-facing proxy paths. */
+const jssPattern = /^https?:\/\/[^/]*(?:visionflow-jss|jss|localhost)[^/]*(?::\d+)?\/(.*)$/;
+function publicUrl(url: string | undefined): string | undefined {
+  if (!url) return url;
+  const m = url.match(jssPattern);
+  return m ? `/solid/${m[1]}` : url;
+}
 
 export interface UseSolidPodReturn {
   podInfo: PodInfo | null;
@@ -20,6 +30,7 @@ export interface UseSolidPodReturn {
 }
 
 export function useSolidPod(): UseSolidPodReturn {
+  const { authenticated } = useNostrAuth();
   const [podInfo, setPodInfo] = useState<PodInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,14 +44,14 @@ export function useSolidPod(): UseSolidPodReturn {
       if (result.success) {
         setPodInfo({
           exists: true,
-          podUrl: result.podUrl,
-          webId: result.webId,
+          podUrl: publicUrl(result.podUrl),
+          webId: publicUrl(result.webId),
           structure: result.structure,
         });
       } else {
         // initPod failed (e.g. not authenticated) — fall back to check
         const info = await solidPodService.checkPodExists();
-        setPodInfo(info);
+        setPodInfo({ ...info, podUrl: publicUrl(info.podUrl), webId: publicUrl(info.webId) });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to check pod');
@@ -58,14 +69,14 @@ export function useSolidPod(): UseSolidPodReturn {
       if (result.success) {
         setPodInfo({
           exists: true,
-          podUrl: result.podUrl,
-          webId: result.webId,
+          podUrl: publicUrl(result.podUrl),
+          webId: publicUrl(result.webId),
           structure: result.structure,
         });
         return {
           success: true,
-          podUrl: result.podUrl,
-          webId: result.webId,
+          podUrl: publicUrl(result.podUrl),
+          webId: publicUrl(result.webId),
           created: result.created,
           structure: result.structure,
         };
@@ -102,8 +113,12 @@ export function useSolidPod(): UseSolidPodReturn {
   }, [podInfo?.podUrl]);
 
   useEffect(() => {
-    checkPod();
-  }, [checkPod]);
+    // Only check/init pod if user is authenticated — otherwise we get 401s
+    // from the backend and the NIP-07 extension can't sign without a session.
+    if (authenticated && nostrAuth.isAuthenticated()) {
+      checkPod();
+    }
+  }, [checkPod, authenticated]);
 
   return {
     podInfo,

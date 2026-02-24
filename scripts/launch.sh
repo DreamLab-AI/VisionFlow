@@ -302,10 +302,12 @@ build_containers() {
         build_args+=("--no-cache")
     fi
 
-    # Always pass a CACHE_BUST timestamp so the runtime stage re-copies artifacts
-    # from the builder. Without this, Docker may serve a cached runtime layer even
-    # when the builder stage ran fresh (e.g., deterministic/LTO binary with same hash).
-    build_args+=("--build-arg" "CACHE_BUST=$(date +%s)")
+    # Only bust cache on explicit rebuild. Normal builds rely on Docker's content-
+    # addressable layer cache. Without this guard, CACHE_BUST invalidates the
+    # runtime stage's pacman/CUDA layers (~2.2 GB download) on every single build.
+    if [[ "$COMMAND" == "rebuild" ]]; then
+        build_args+=("--build-arg" "CACHE_BUST=$(date +%s)")
+    fi
 
     # Enable GPU and ontology features by default for both dev and prod
     # These are the core VisionFlow features required for full functionality
@@ -382,6 +384,7 @@ needs_image_rebuild() {
     # Only check files that affect the IMAGE (not source — that's volume-mounted)
     local image_files=(
         "$PROJECT_ROOT/Dockerfile.unified"
+        "$PROJECT_ROOT/Dockerfile.production"
         "$PROJECT_ROOT/Dockerfile.dev"
         "$PROJECT_ROOT/Cargo.toml"
         "$PROJECT_ROOT/Cargo.lock"
@@ -389,8 +392,10 @@ needs_image_rebuild() {
         "$PROJECT_ROOT/client/package-lock.json"
         "$PROJECT_ROOT/supervisord.dev.conf"
         "$PROJECT_ROOT/nginx.dev.conf"
+        "$PROJECT_ROOT/nginx.production.conf"
         "$PROJECT_ROOT/scripts/dev-entrypoint.sh"
         "$PROJECT_ROOT/scripts/rust-backend-wrapper.sh"
+        "$PROJECT_ROOT/scripts/production-startup.sh"
     )
 
     for file in "${image_files[@]}"; do

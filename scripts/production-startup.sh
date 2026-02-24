@@ -45,7 +45,7 @@ else
 
     # Start Rust backend on port 4001 (nginx needs 4000, backend on 4001)
     log "Starting Rust backend on port 4001..."
-    SYSTEM_NETWORK_PORT=4001 RUST_LOG=warn /app/webxr --gpu-debug &
+    SYSTEM_NETWORK_PORT=4001 RUST_LOG=${RUST_LOG:-info} /app/webxr --gpu-debug &
     BACKEND_PID=$!
 
     # Wait for backend to be ready
