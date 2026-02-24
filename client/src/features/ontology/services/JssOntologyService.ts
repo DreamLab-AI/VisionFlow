@@ -421,13 +421,9 @@ class JssOntologyService {
         headers.set('Authorization', 'Bearer dev-session-token');
         const user = nostrAuth.getCurrentUser();
         if (user?.pubkey) headers.set('X-Nostr-Pubkey', user.pubkey);
-      } else if (typeof window !== 'undefined' && (window as any).nostr) {
-        // NIP-07 extension (e.g. Podkey) detected — it intercepts fetch and
-        // adds its own NIP-98 Authorization header. Skip manual signing to
-        // avoid conflicts. WebSocket auth is still signed by us since
-        // extensions cannot intercept WebSocket frames.
-        logger.debug('NIP-07 extension detected, skipping NIP-98 signing for HTTP request');
       } else {
+        // Always sign with NIP-98. NIP-07 extensions may also intercept,
+        // but their retry-on-401 is unreliable for mutations.
         try {
           const method = (options.method || 'GET').toUpperCase();
           const body = typeof options.body === 'string' ? options.body : undefined;

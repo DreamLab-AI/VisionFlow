@@ -32,25 +32,18 @@ export async function authRequestInterceptor(config: RequestConfig, url: string)
       }
       logger.debug(`[${requestId}] Dev-mode auth headers for ${url}`);
     } else if (user?.pubkey) {
-      // When a NIP-07 browser extension (e.g. Podkey) is present, it intercepts
-      // fetch/XHR and injects its own NIP-98 Authorization header automatically.
-      // Adding our own header would conflict or double-sign, so we skip manual
-      // signing for HTTP requests. WebSocket auth is unaffected — extensions
-      // cannot intercept WebSocket frames, so those are still signed by us.
-      if (typeof window !== 'undefined' && (window as any).nostr) {
-        logger.debug(`[${requestId}] NIP-07 extension detected, skipping NIP-98 signing for ${url}`);
-      } else {
-        // Production (no extension): NIP-98 Schnorr signing
-        try {
-          const fullUrl = new URL(url, window.location.origin).href;
-          const method = (finalConfig.method || 'GET').toUpperCase();
-          const body = typeof finalConfig.body === 'string' ? finalConfig.body : undefined;
-          const token = await nostrAuth.signRequest(fullUrl, method, body);
-          headers['Authorization'] = `Nostr ${token}`;
-          logger.debug(`[${requestId}] NIP-98 signed request for ${method} ${url}`);
-        } catch (e) {
-          logger.error(`[${requestId}] NIP-98 signing failed:`, e);
-        }
+      // Always sign with NIP-98 ourselves. NIP-07 extensions like Podkey may
+      // also intercept, but their retry-on-401 approach is unreliable for
+      // PUT/POST mutations.
+      try {
+        const fullUrl = new URL(url, window.location.origin).href;
+        const method = (finalConfig.method || 'GET').toUpperCase();
+        const body = typeof finalConfig.body === 'string' ? finalConfig.body : undefined;
+        const token = await nostrAuth.signRequest(fullUrl, method, body);
+        headers['Authorization'] = `Nostr ${token}`;
+        logger.debug(`[${requestId}] NIP-98 signed request for ${method} ${url}`);
+      } catch (e) {
+        logger.error(`[${requestId}] NIP-98 signing failed:`, e);
       }
     }
   } else {

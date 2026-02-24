@@ -722,24 +722,12 @@ class SolidPodService {
         headers.set('Authorization', 'Bearer dev-session-token');
         const user = nostrAuth.getCurrentUser();
         if (user?.pubkey) headers.set('X-Nostr-Pubkey', user.pubkey);
-      } else if (
-        typeof window !== 'undefined' &&
-        (window as any).nostr &&
-        // Only skip manual signing if the user actually authenticated via
-        // the NIP-07 extension (not a passkey session). If they used a
-        // passkey, we have a local key and should sign ourselves.
-        !nostrAuth.hasPasskeySession()
-      ) {
-        // NIP-07 extension (e.g. Podkey) detected and user logged in through
-        // it — the extension intercepts fetch and adds its own NIP-98
-        // Authorization header. Skip manual signing to avoid conflicts.
-        logger.debug('NIP-07 extension detected, skipping NIP-98 signing for HTTP request');
       } else {
+        // Always sign with NIP-98 ourselves. NIP-07 extensions may also
+        // intercept, but their retry-on-401 is unreliable for mutations.
         try {
           const method = (options.method || 'GET').toUpperCase();
           const body = typeof options.body === 'string' ? options.body : undefined;
-          // NIP-98 requires a full absolute URL. Expand relative URLs using the window origin
-          // so the backend can verify against the public-facing URL (before nginx rewrite).
           const absoluteUrl = url.startsWith('http') ? url : `${window.location.origin}${url}`;
           const token = await nostrAuth.signRequest(absoluteUrl, method, body);
           headers.set('Authorization', `Nostr ${token}`);
