@@ -212,9 +212,17 @@ class NostrAuthService {
    * Wait for a NIP-07 extension to become available.
    * Returns true if detected within timeoutMs, false otherwise.
    * UI components can use this to reactively show the extension button.
+   *
+   * SINGLETON: Only one waitForNip07 instance ever runs. Multiple callers
+   * (initialize() + useNostrAuth hook) share the same promise to prevent
+   * competing Object.defineProperty hooks from destroying window.nostr.
    */
+  private _nip07Promise: Promise<boolean> | null = null;
   public waitForNip07Provider(timeoutMs = 5000): Promise<boolean> {
-    return waitForNip07(timeoutMs);
+    if (!this._nip07Promise) {
+      this._nip07Promise = waitForNip07(timeoutMs);
+    }
+    return this._nip07Promise;
   }
 
   /** Check if running in dev mode with auth bypass */
@@ -341,13 +349,13 @@ class NostrAuthService {
       logger.info(
         'No signing key available on init — waiting for NIP-07 extension...'
       );
-      waitForNip07(5000).then((detected) => {
+      this.waitForNip07Provider(5000).then((detected) => {
         if (detected) {
           logger.info('NIP-07 extension detected after init — session is valid.');
           this.notifyListeners(this.getCurrentAuthState());
         } else if (this.currentUser && !this.isAuthenticated()) {
           logger.warn(
-            'Stale session confirmed: no NIP-07 extension after 3s. Clearing session.'
+            'Stale session confirmed: no NIP-07 extension after 5s. Clearing session.'
           );
           this.currentUser = null;
           localStorage.removeItem('nostr_user');
