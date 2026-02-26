@@ -30,7 +30,7 @@ fn default_bloom_color() -> String {
     "#ffffff".to_string()
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Type, Validate)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct NodeSettings {
     #[validate(custom(function = "validate_hex_color"))]
@@ -60,7 +60,24 @@ pub struct NodeSettings {
     pub enable_metadata_visualisation: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Type, Validate)]
+impl Default for NodeSettings {
+    fn default() -> Self {
+        Self {
+            base_color: "#202724".to_string(),
+            metalness: 0.1,
+            opacity: 0.88,
+            roughness: 0.6,
+            node_size: 1.7,
+            quality: "high".to_string(),
+            enable_instancing: true,
+            enable_hologram: true,
+            enable_metadata_shape: false,
+            enable_metadata_visualisation: true,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct EdgeSettings {
     #[validate(range(min = 0.01, max = 5.0))]
@@ -82,6 +99,20 @@ pub struct EdgeSettings {
     pub width_range: Vec<f32>,
     #[serde(alias = "quality")]
     pub quality: String,
+}
+
+impl Default for EdgeSettings {
+    fn default() -> Self {
+        Self {
+            arrow_size: 0.02,
+            base_width: 0.61,
+            color: "#ff0000".to_string(),
+            enable_arrows: false,
+            opacity: 0.5,
+            width_range: vec![0.3, 1.5],
+            quality: "high".to_string(),
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Type, Validate)]
@@ -162,7 +193,7 @@ impl Default for AnimationSettings {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Type, Validate)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct LabelSettings {
     #[serde(alias = "desktop_font_size")]
@@ -185,6 +216,23 @@ pub struct LabelSettings {
     pub show_metadata: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none", alias = "max_label_width")]
     pub max_label_width: Option<f32>,
+}
+
+impl Default for LabelSettings {
+    fn default() -> Self {
+        Self {
+            desktop_font_size: 1.41,
+            enable_labels: true,
+            text_color: "#676565".to_string(),
+            text_outline_color: "#00ff40".to_string(),
+            text_outline_width: 0.007,
+            text_resolution: 32,
+            text_padding: 0.3,
+            billboard_mode: "camera".to_string(),
+            show_metadata: Some(true),
+            max_label_width: Some(5.0),
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
