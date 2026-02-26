@@ -235,7 +235,7 @@ impl Default for LabelSettings {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[derive(Debug, Serialize, Deserialize, Clone, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct GlowSettings {
     #[serde(alias = "enabled")]
@@ -290,6 +290,28 @@ pub struct GlowSettings {
     #[validate(range(min = 0.0, max = 10.0))]
     #[serde(default, alias = "environment_glow_strength")]
     pub environment_glow_strength: f32,
+}
+
+impl Default for GlowSettings {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            intensity: 1.2,
+            radius: 1.2,
+            threshold: 0.39,
+            diffuse_strength: 1.5,
+            atmospheric_density: 0.8,
+            volumetric_intensity: 1.2,
+            base_color: "#00ffff".to_string(),
+            emission_color: "#00e5ff".to_string(),
+            opacity: 0.6,
+            pulse_speed: 1.2,
+            flow_speed: 0.5,
+            node_glow_strength: 0.7,
+            edge_glow_strength: 0.5,
+            environment_glow_strength: 0.96,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Type, Validate)]
@@ -347,7 +369,7 @@ impl Default for BloomSettings {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[derive(Debug, Serialize, Deserialize, Clone, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct HologramSettings {
     #[serde(alias = "ring_count")]
@@ -382,7 +404,29 @@ pub struct HologramSettings {
     pub global_rotation_speed: f32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+impl Default for HologramSettings {
+    fn default() -> Self {
+        Self {
+            ring_count: 3,
+            ring_color: "#f0e800".to_string(),
+            ring_opacity: 0.2,
+            sphere_sizes: vec![80.0, 180.0],
+            ring_rotation_speed: 0.14,
+            enable_buckminster: true,
+            buckminster_size: 250.0,
+            buckminster_opacity: 0.3,
+            enable_geodesic: true,
+            geodesic_size: 600.0,
+            geodesic_opacity: 0.25,
+            enable_triangle_sphere: true,
+            triangle_sphere_size: 1000.0,
+            triangle_sphere_opacity: 0.4,
+            global_rotation_speed: 0.5,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct CameraSettings {
     #[serde(alias = "fov")]
@@ -395,6 +439,18 @@ pub struct CameraSettings {
     pub position: Position,
     #[serde(alias = "look_at")]
     pub look_at: Position,
+}
+
+impl Default for CameraSettings {
+    fn default() -> Self {
+        Self {
+            fov: 75.0,
+            near: 0.1,
+            far: 2000.0,
+            position: Position { x: 0.0, y: 10.0, z: 50.0 },
+            look_at: Position::default(),
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
