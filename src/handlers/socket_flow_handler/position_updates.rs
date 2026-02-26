@@ -1,20 +1,48 @@
 use actix::prelude::*;
 use actix_web_actors::ws;
-use log::{debug, info, warn};
+use log::{debug, info, trace, warn};
+use std::time::Instant;
 
 use crate::utils::binary_protocol;
+use crate::utils::delta_encoding;
 use crate::utils::socket_flow_messages::{BinaryNodeData, BinaryNodeDataClient};
 use crate::utils::validation::rate_limit::EndpointRateLimits;
 
 use super::types::SocketFlowServer;
 
+/// Maximum time budget (ms) for settle iterations per drag update.
+const DRAG_SETTLE_BUDGET_MS: u64 = 50;
+
+/// Maximum number of nodes a single client may drag simultaneously.
+const MAX_DRAGGED_NODES_PER_CLIENT: usize = 5;
+
+/// Minimum interval between drag position updates (~60 Hz cap).
+const MIN_DRAG_INTERVAL_MS: u64 = 16;
+
+/// Validate that a position is finite and within sane world-space bounds.
+/// Returns `None` for NaN, Infinity, or out-of-range values (VULN-05).
+fn sanitize_position(x: f32, y: f32, z: f32) -> Option<(f32, f32, f32)> {
+    const MAX_BOUND: f32 = 10000.0;
+    if x.is_finite() && y.is_finite() && z.is_finite()
+        && x.abs() <= MAX_BOUND && y.abs() <= MAX_BOUND && z.abs() <= MAX_BOUND
+    {
+        Some((x, y, z))
+    } else {
+        None
+    }
+}
+
 /// Fetch nodes from the graph service for streaming position updates.
+///
+/// Pre-flags all node IDs with their type (agent, knowledge, ontology) so that
+/// downstream delta/binary encoding emits correct type bits on the wire.
 pub(crate) async fn fetch_nodes(
     app_state: std::sync::Arc<crate::app_state::AppState>,
     _settings_addr: actix::Addr<crate::actors::optimized_settings_actor::OptimizedSettingsActor>,
 ) -> Option<(Vec<(u32, BinaryNodeData)>, bool)> {
-    use crate::actors::messages::GetGraphData;
+    use crate::actors::messages::{GetGraphData, GetNodeTypeArrays};
     use log::error;
+    use std::collections::HashSet;
 
     let graph_data = match app_state.graph_service_addr.send(GetGraphData).await {
         Ok(Ok(data)) => data,
@@ -32,21 +60,31 @@ pub(crate) async fn fetch_nodes(
     };
 
     if graph_data.nodes.is_empty() {
-        debug!("[WebSocket] No nodes to send! Empty graph data.");
+        // hot-path: trace only (fires every update cycle when graph is empty)
+        trace!("[WebSocket] No nodes to send! Empty graph data.");
         return None;
     }
+
+    // Fetch node type classification arrays for binary protocol flags
+    let nta = match app_state.graph_service_addr.send(GetNodeTypeArrays).await {
+        Ok(arrays) => arrays,
+        Err(_) => crate::actors::messages::NodeTypeArrays::default(),
+    };
+    let agent_set: HashSet<u32> = nta.agent_ids.iter().copied().collect();
+    let knowledge_set: HashSet<u32> = nta.knowledge_ids.iter().copied().collect();
 
     let debug_enabled = crate::utils::logging::is_debug_enabled();
     let debug_websocket = debug_enabled;
     let detailed_debug = debug_enabled && debug_websocket;
 
+    // hot-path: trace only (fires every update cycle, formats node data)
     if detailed_debug {
-        debug!(
+        trace!(
             "Raw nodes count: {}, showing first 5 nodes IDs:",
             graph_data.nodes.len()
         );
         for (i, node) in graph_data.nodes.iter().take(5).enumerate() {
-            debug!(
+            trace!(
                 "  Node {}: id={} (numeric), metadata_id={} (filename)",
                 i, node.id, node.metadata_id
             );
@@ -55,10 +93,17 @@ pub(crate) async fn fetch_nodes(
 
     let mut nodes = Vec::with_capacity(graph_data.nodes.len());
     for node in &graph_data.nodes {
-        let node_id = node.id;
+        // Apply node type flags so the client can distinguish agent/knowledge/ontology nodes
+        let flagged_id = if agent_set.contains(&node.id) {
+            binary_protocol::set_agent_flag(node.id)
+        } else if knowledge_set.contains(&node.id) {
+            binary_protocol::set_knowledge_flag(node.id)
+        } else {
+            node.id
+        };
         let node_data =
-            BinaryNodeDataClient::new(node_id, node.data.position(), node.data.velocity());
-        nodes.push((node_id, node_data));
+            BinaryNodeDataClient::new(flagged_id, node.data.position(), node.data.velocity());
+        nodes.push((flagged_id, node_data));
     }
 
     if nodes.is_empty() {
@@ -73,20 +118,62 @@ pub(crate) fn handle_request_full_snapshot(
     msg: &serde_json::Value,
     ctx: &mut <SocketFlowServer as Actor>::Context,
 ) {
-    info!("Client requested full position snapshot");
+    debug!("Client requested full position snapshot");
 
     let graphs = msg.get("graphs").and_then(|g| g.as_array());
     let include_knowledge = graphs.map_or(true, |arr| arr.iter().any(|v| v.as_str() == Some("knowledge")));
     let include_agent = graphs.map_or(true, |arr| arr.iter().any(|v| v.as_str() == Some("agent")));
 
+    let app_state = _act.app_state.clone();
     let fut = async move {
-        debug!(
+        use crate::actors::messages::{GetGraphData, GetBotsGraphData, GetNodeTypeArrays};
+        use std::collections::HashSet;
+
+        // hot-path: trace only (fires per snapshot request)
+        trace!(
             "RequestPositionSnapshot: include_knowledge={}, include_agent={}",
             include_knowledge, include_agent
         );
+
+        let mut knowledge_nodes = Vec::new();
+        let mut agent_nodes = Vec::new();
+
+        // Fetch node type arrays and graph data for classification
+        let nta = app_state.graph_service_addr.send(GetNodeTypeArrays).await
+            .unwrap_or_default();
+        let agent_set: HashSet<u32> = nta.agent_ids.iter().copied().collect();
+
+        if include_knowledge {
+            if let Ok(Ok(graph_data)) = app_state.graph_service_addr.send(GetGraphData).await {
+                for node in &graph_data.nodes {
+                    let node_data = BinaryNodeData {
+                        node_id: node.id, x: node.data.x, y: node.data.y, z: node.data.z,
+                        vx: node.data.vx, vy: node.data.vy, vz: node.data.vz,
+                    };
+                    if agent_set.contains(&node.id) {
+                        agent_nodes.push((node.id, node_data));
+                    } else {
+                        knowledge_nodes.push((node.id, node_data));
+                    }
+                }
+            }
+        }
+
+        if include_agent {
+            if let Ok(Ok(bots_data)) = app_state.graph_service_addr.send(GetBotsGraphData).await {
+                for node in &bots_data.nodes {
+                    let node_data = BinaryNodeData {
+                        node_id: node.id, x: node.data.x, y: node.data.y, z: node.data.z,
+                        vx: node.data.vx, vy: node.data.vy, vz: node.data.vz,
+                    };
+                    agent_nodes.push((node.id, node_data));
+                }
+            }
+        }
+
         crate::actors::messages::PositionSnapshot {
-            knowledge_nodes: Vec::new(),
-            agent_nodes: Vec::new(),
+            knowledge_nodes,
+            agent_nodes,
             timestamp: std::time::Instant::now(),
         }
     };
@@ -106,7 +193,7 @@ pub(crate) fn handle_request_full_snapshot(
         if !all_nodes.is_empty() {
             let binary_data = binary_protocol::encode_node_data(&all_nodes);
             ctx.binary(binary_data);
-            info!("Sent position snapshot with {} nodes", all_nodes.len());
+            debug!("Sent position snapshot with {} nodes", all_nodes.len());
         }
     }));
 }
@@ -207,7 +294,7 @@ pub(crate) fn handle_request_bots_graph(
                 if let Ok(msg_str) = serde_json::to_string(&response) {
                     let original_size = graph_data.nodes.len() * 500;
                     let optimized_size = msg_str.len();
-                    info!(
+                    debug!(
                         "Sending optimized bots graph: {} nodes, {} edges ({} bytes, est. {}% reduction)",
                         minimal_nodes.len(),
                         minimal_edges.len(),
@@ -245,7 +332,7 @@ pub(crate) fn handle_request_bots_positions(
     act: &mut SocketFlowServer,
     ctx: &mut <SocketFlowServer as Actor>::Context,
 ) {
-    info!("Client requested bots position updates");
+    debug!("Client requested bots position updates");
 
     let app_state = act.app_state.clone();
 
@@ -260,8 +347,10 @@ pub(crate) fn handle_request_bots_positions(
 
             let mut nodes_data = Vec::new();
             for node in bots_nodes {
+                // Flag bots/agent nodes so the client renders them in AgentNodesLayer
+                let flagged_id = binary_protocol::set_agent_flag(node.id);
                 let node_data = BinaryNodeData {
-                    node_id: node.id,
+                    node_id: flagged_id,
                     x: node.data.x,
                     y: node.data.y,
                     z: node.data.z,
@@ -269,7 +358,7 @@ pub(crate) fn handle_request_bots_positions(
                     vy: node.data.vy,
                     vz: node.data.vz,
                 };
-                nodes_data.push((node.id, node_data));
+                nodes_data.push((flagged_id, node_data));
             }
 
             nodes_data
@@ -278,7 +367,8 @@ pub(crate) fn handle_request_bots_positions(
             if !nodes_data.is_empty() {
                 let binary_data = binary_protocol::encode_node_data(&nodes_data);
 
-                info!(
+                // hot-path: trace only (fires per bots position update cycle)
+                trace!(
                     "Sending bots positions: {} nodes, {} bytes",
                     nodes_data.len(),
                     binary_data.len()
@@ -303,7 +393,8 @@ pub(crate) fn handle_subscribe_position_updates(
     msg: &serde_json::Value,
     ctx: &mut <SocketFlowServer as Actor>::Context,
 ) {
-    info!("Client requested position update subscription");
+    // hot-path: trace only (re-fires every interval via run_later re-subscription loop)
+    trace!("Client requested position update subscription");
 
     let interval = msg
         .get("data")
@@ -321,14 +412,16 @@ pub(crate) fn handle_subscribe_position_updates(
         1000 / (EndpointRateLimits::socket_flow_updates().requests_per_minute / 60);
     let actual_interval = interval.max(min_allowed_interval as u64);
 
+    // hot-path: trace only (fires every re-subscription cycle)
     if actual_interval != interval {
-        info!(
+        trace!(
             "Adjusted position update interval from {}ms to {}ms to comply with rate limits",
             interval, actual_interval
         );
     }
 
-    info!(
+    // hot-path: trace only (fires every re-subscription cycle)
+    trace!(
         "Starting position updates with interval: {}ms, binary: {}",
         actual_interval, binary
     );
@@ -358,26 +451,37 @@ pub(crate) fn handle_subscribe_position_updates(
 
         ctx.spawn(fut.map(move |result, act, ctx| {
             if let Some((nodes, detailed_debug)) = result {
-                let mut filtered_nodes = Vec::new();
-                for (node_id, node_data) in &nodes {
-                    let node_id_str = node_id.to_string();
-                    let position = node_data.position();
-                    let velocity = node_data.velocity();
+                let frame = act.delta_frame_counter;
+                let is_full_sync = frame == 0;
+                let epsilon_sq = act.delta_epsilon_sq;
 
-                    if act.has_node_changed_significantly(
-                        &node_id_str,
-                        position.clone(),
-                        velocity.clone(),
-                    ) {
-                        filtered_nodes.push((*node_id, node_data.clone()));
+                // Count nodes that have actually moved (squared distance epsilon check)
+                let changed_count = nodes.iter().filter(|(node_id, node_data)| {
+                    if let Some(prev) = act.delta_previous_nodes.get(node_id) {
+                        let dx = node_data.x - prev.x;
+                        let dy = node_data.y - prev.y;
+                        let dz = node_data.z - prev.z;
+                        (dx * dx + dy * dy + dz * dz) > epsilon_sq
+                    } else {
+                        true // New node always counts as changed
                     }
-                }
+                }).count();
 
-                if !filtered_nodes.is_empty() {
-                    let binary_data = binary_protocol::encode_node_data(&filtered_nodes);
+                // Skip broadcast entirely when graph has converged (0 changes) and not a full sync frame
+                if changed_count == 0 && !is_full_sync {
+                    act.delta_frame_counter = (frame + 1) % 60;
+                } else {
+                    // Delta encoding: V4 for delta frames (1-59), V3 for full sync (0, 60, 120, ...)
+                    let binary_data = delta_encoding::encode_node_data_delta(
+                        &nodes,
+                        &act.delta_previous_nodes,
+                        frame,
+                        &[],
+                        &[],
+                    );
 
-                    act.total_node_count = filtered_nodes.len();
-                    let moving_nodes = filtered_nodes
+                    act.total_node_count = nodes.len();
+                    let moving_nodes = nodes
                         .iter()
                         .filter(|(_, node_data)| {
                             let vel = node_data.velocity();
@@ -389,17 +493,32 @@ pub(crate) fn handle_subscribe_position_updates(
                     act.last_transfer_size = binary_data.len();
                     act.total_bytes_sent += binary_data.len();
                     act.update_count += 1;
-                    act.nodes_sent_count += filtered_nodes.len();
+                    act.nodes_sent_count += changed_count;
 
+                    // hot-path: trace only (fires every update cycle per client)
                     if detailed_debug {
                         debug!(
-                            "[Position Updates] Sending {} nodes, {} bytes",
-                            filtered_nodes.len(),
+                            "[Position Updates] Frame {} ({}): {} changed of {} total, {} bytes",
+                            frame,
+                            if is_full_sync { "full" } else { "delta" },
+                            changed_count,
+                            nodes.len(),
                             binary_data.len()
                         );
                     }
 
                     ctx.binary(binary_data);
+
+                    // Update previous node state for next delta computation.
+                    // On full sync frames, clear and repopulate to prevent stale
+                    // entries for deleted nodes from accumulating (VULN-09).
+                    if is_full_sync {
+                        act.delta_previous_nodes.clear();
+                    }
+                    for (node_id, node_data) in &nodes {
+                        act.delta_previous_nodes.insert(*node_id, node_data.clone());
+                    }
+                    act.delta_frame_counter = (frame + 1) % 60;
                 }
 
                 let next_interval = std::time::Duration::from_millis(actual_interval);
@@ -425,7 +544,7 @@ pub(crate) fn handle_request_swarm_telemetry(
     act: &mut SocketFlowServer,
     ctx: &mut <SocketFlowServer as Actor>::Context,
 ) {
-    info!("Client requested enhanced swarm telemetry");
+    debug!("Client requested enhanced swarm telemetry");
 
     let app_state = act.app_state.clone();
 
@@ -453,13 +572,15 @@ pub(crate) fn handle_request_swarm_telemetry(
                         total_workload += agent.workload;
 
                         let id = (1000 + idx) as u32;
+                        // Flag swarm telemetry nodes as agents for client-side rendering
+                        let flagged_id = binary_protocol::set_agent_flag(id);
                         let node_data = BinaryNodeData {
-                            node_id: id,
+                            node_id: flagged_id,
                             x: (idx as f32 * 100.0).sin() * 500.0,
                             y: (idx as f32 * 100.0).cos() * 500.0,
                             z: 0.0, vx: 0.0, vy: 0.0, vz: 0.0,
                         };
-                        nodes_data.push((id, node_data));
+                        nodes_data.push((flagged_id, node_data));
                     }
 
                     let n = agents.len() as f32;
@@ -496,4 +617,461 @@ pub(crate) fn handle_request_swarm_telemetry(
             }
         }),
     );
+}
+
+// ---------------------------------------------------------------------------
+// Server-side drag handling
+// ---------------------------------------------------------------------------
+
+/// Handle `nodeDragStart` from client.
+///
+/// Pins the node at its current (or client-reported) position and notifies
+/// the physics orchestrator so the simulation can resume if auto-paused.
+///
+/// Expected message shape:
+/// ```json
+/// { "type": "nodeDragStart", "data": { "nodeId": 42, "position": { "x": 1.0, "y": 2.0, "z": 3.0 } } }
+/// ```
+pub(crate) fn handle_node_drag_start(
+    act: &mut SocketFlowServer,
+    msg: &serde_json::Value,
+    ctx: &mut <SocketFlowServer as Actor>::Context,
+) {
+    // VULN-01: Reject unauthenticated clients
+    if act.pubkey.is_none() {
+        warn!("[Drag] Rejecting drag from unauthenticated client");
+        return;
+    }
+
+    let data = match msg.get("data") {
+        Some(d) => d,
+        None => {
+            warn!("[Drag] nodeDragStart missing 'data' field");
+            return;
+        }
+    };
+
+    // VULN-03: Validate nodeId fits in u32 (prevent silent truncation)
+    let node_id = match data.get("nodeId").and_then(|v| v.as_u64()) {
+        Some(id) if id <= u32::MAX as u64 => id as u32,
+        _ => {
+            warn!("[Drag] Invalid or missing nodeId");
+            return;
+        }
+    };
+
+    let pos_x = data.get("position").and_then(|p| p.get("x")).and_then(|v| v.as_f64()).unwrap_or(0.0) as f32;
+    let pos_y = data.get("position").and_then(|p| p.get("y")).and_then(|v| v.as_f64()).unwrap_or(0.0) as f32;
+    let pos_z = data.get("position").and_then(|p| p.get("z")).and_then(|v| v.as_f64()).unwrap_or(0.0) as f32;
+
+    // VULN-05: Reject NaN / Infinity / out-of-bounds positions
+    let (pos_x, pos_y, pos_z) = match sanitize_position(pos_x, pos_y, pos_z) {
+        Some(p) => p,
+        None => {
+            warn!("[Drag] nodeDragStart: rejecting invalid position [{}, {}, {}]", pos_x, pos_y, pos_z);
+            return;
+        }
+    };
+
+    // VULN-10: Cap simultaneous drags per client
+    if act.dragged_nodes.len() >= MAX_DRAGGED_NODES_PER_CLIENT && !act.dragged_nodes.contains(&node_id) {
+        warn!("[Drag] Client exceeded max simultaneous drags ({})", MAX_DRAGGED_NODES_PER_CLIENT);
+        return;
+    }
+
+    info!("[Drag] nodeDragStart: node_id={}, pos=[{:.2}, {:.2}, {:.2}]", node_id, pos_x, pos_y, pos_z);
+
+    // Track drag state on this connection
+    act.dragged_nodes.insert(node_id);
+    act.drag_last_update.insert(node_id, Instant::now());
+
+    // Pin the node at client position + notify physics to resume if paused
+    let app_state = act.app_state.clone();
+
+    let fut = async move {
+        // 1. Send NodeInteractionMessage to resume physics if auto-paused
+        use crate::actors::messages::{NodeInteractionMessage, NodeInteractionType};
+        app_state.graph_service_addr.do_send(NodeInteractionMessage {
+            node_id,
+            interaction_type: NodeInteractionType::Dragged,
+            position: Some([pos_x, pos_y, pos_z]),
+        });
+
+        // 2. Update the node position in graph state (velocity zeroed -- pinned)
+        use crate::actors::messages::UpdateNodePositions;
+        let pinned_data = BinaryNodeData {
+            node_id,
+            x: pos_x,
+            y: pos_y,
+            z: pos_z,
+            vx: 0.0,
+            vy: 0.0,
+            vz: 0.0,
+        };
+        app_state.graph_service_addr.do_send(UpdateNodePositions {
+            positions: vec![(node_id, pinned_data)],
+            correlation_id: None,
+        });
+    };
+
+    ctx.spawn(actix::fut::wrap_future::<_, SocketFlowServer>(fut).map(|_, _, _| ()));
+
+    // Acknowledge to the client
+    let ack = serde_json::json!({
+        "type": "nodeDragStartAck",
+        "data": { "nodeId": node_id },
+        "timestamp": chrono::Utc::now().timestamp_millis()
+    });
+    if let Ok(msg_str) = serde_json::to_string(&ack) {
+        ctx.text(msg_str);
+    }
+
+    // Start drag timeout checker for this node
+    let timeout_ms = act.drag_timeout_ms;
+    let drag_node_id = node_id;
+    ctx.run_later(
+        std::time::Duration::from_millis(timeout_ms + 100),
+        move |act, ctx| {
+            check_drag_timeout(act, drag_node_id, ctx);
+        },
+    );
+}
+
+/// Handle `nodeDragUpdate` from client during an active drag.
+///
+/// Updates the pinned node's position and runs a time-budgeted settle
+/// cycle for the rest of the graph, then broadcasts results to all clients.
+///
+/// Expected message shape:
+/// ```json
+/// { "type": "nodeDragUpdate", "data": { "nodeId": 42, "position": { "x": 1.0, "y": 2.0, "z": 3.0 }, "timestamp": 1234567890 } }
+/// ```
+pub(crate) fn handle_node_drag_update(
+    act: &mut SocketFlowServer,
+    msg: &serde_json::Value,
+    ctx: &mut <SocketFlowServer as Actor>::Context,
+) {
+    // VULN-01: Reject unauthenticated clients
+    if act.pubkey.is_none() {
+        warn!("[Drag] Rejecting drag from unauthenticated client");
+        return;
+    }
+
+    let data = match msg.get("data") {
+        Some(d) => d,
+        None => return,
+    };
+
+    // VULN-03: Validate nodeId fits in u32 (prevent silent truncation)
+    let node_id = match data.get("nodeId").and_then(|v| v.as_u64()) {
+        Some(id) if id <= u32::MAX as u64 => id as u32,
+        _ => {
+            warn!("[Drag] Invalid or missing nodeId");
+            return;
+        }
+    };
+
+    // VULN-02: Server-side rate limit on drag updates (~60 Hz max)
+    if let Some(last) = act.drag_last_update.get(&node_id) {
+        if last.elapsed() < std::time::Duration::from_millis(MIN_DRAG_INTERVAL_MS) {
+            return; // Drop excess updates silently
+        }
+    }
+
+    // Ignore updates for nodes we haven't received a drag start for
+    if !act.dragged_nodes.contains(&node_id) {
+        debug!("[Drag] Received dragUpdate for non-dragged node {}, treating as implicit drag start", node_id);
+        // VULN-10: Cap simultaneous drags per client (implicit drag start path)
+        if act.dragged_nodes.len() >= MAX_DRAGGED_NODES_PER_CLIENT && !act.dragged_nodes.contains(&node_id) {
+            warn!("[Drag] Client exceeded max simultaneous drags ({})", MAX_DRAGGED_NODES_PER_CLIENT);
+            return;
+        }
+        // Implicit drag start -- pin and track
+        act.dragged_nodes.insert(node_id);
+    }
+
+    let pos_x = data.get("position").and_then(|p| p.get("x")).and_then(|v| v.as_f64()).unwrap_or(0.0) as f32;
+    let pos_y = data.get("position").and_then(|p| p.get("y")).and_then(|v| v.as_f64()).unwrap_or(0.0) as f32;
+    let pos_z = data.get("position").and_then(|p| p.get("z")).and_then(|v| v.as_f64()).unwrap_or(0.0) as f32;
+
+    // VULN-05: Reject NaN / Infinity / out-of-bounds positions
+    let (pos_x, pos_y, pos_z) = match sanitize_position(pos_x, pos_y, pos_z) {
+        Some(p) => p,
+        None => {
+            warn!("[Drag] nodeDragUpdate: rejecting invalid position [{}, {}, {}]", pos_x, pos_y, pos_z);
+            return;
+        }
+    };
+
+    // Multi-client conflict: last-write-wins via timestamp
+    let client_ts = data.get("timestamp").and_then(|v| v.as_u64()).unwrap_or(0);
+    _ = client_ts; // Timestamp available for future last-write-wins comparisons
+
+    // Update the drag timeout tracker
+    act.drag_last_update.insert(node_id, Instant::now());
+
+    let app_state = act.app_state.clone();
+    let client_manager_addr = act.client_manager_addr.clone();
+
+    let fut = async move {
+        let settle_start = Instant::now();
+
+        // 1. Move the pinned node to the new client-reported position (velocity zeroed)
+        use crate::actors::messages::UpdateNodePositions;
+        let pinned_data = BinaryNodeData {
+            node_id,
+            x: pos_x,
+            y: pos_y,
+            z: pos_z,
+            vx: 0.0,
+            vy: 0.0,
+            vz: 0.0,
+        };
+        app_state.graph_service_addr.do_send(UpdateNodePositions {
+            positions: vec![(node_id, pinned_data)],
+            correlation_id: None,
+        });
+
+        // 2. Run time-budgeted settle iterations for neighbor relaxation
+        //    We run multiple SimulationSteps within our time budget.
+        use crate::actors::messages::SimulationStep;
+        let budget = std::time::Duration::from_millis(DRAG_SETTLE_BUDGET_MS);
+
+        let mut iterations = 0u32;
+        while settle_start.elapsed() < budget && iterations < 10 {
+            // We use send() to await completion of each step before the next
+            match app_state.graph_service_addr.send(SimulationStep).await {
+                Ok(Ok(())) => {}
+                Ok(Err(e)) => {
+                    debug!("[Drag] Settle step {} failed: {}", iterations, e);
+                    break;
+                }
+                Err(e) => {
+                    debug!("[Drag] Settle step {} mailbox error: {}", iterations, e);
+                    break;
+                }
+            }
+            iterations += 1;
+        }
+
+        debug!(
+            "[Drag] Ran {} settle iterations for node {} in {:.1}ms",
+            iterations,
+            node_id,
+            settle_start.elapsed().as_secs_f64() * 1000.0
+        );
+
+        // 3. Fetch updated positions and broadcast to all clients
+        use crate::actors::messages::GetGraphData;
+        if let Ok(Ok(graph_data)) = app_state.graph_service_addr.send(GetGraphData).await {
+            let node_data: Vec<(u32, BinaryNodeData)> = graph_data
+                .nodes
+                .iter()
+                .map(|node| {
+                    (
+                        node.id,
+                        BinaryNodeData {
+                            node_id: node.id,
+                            x: node.data.x,
+                            y: node.data.y,
+                            z: node.data.z,
+                            vx: node.data.vx,
+                            vy: node.data.vy,
+                            vz: node.data.vz,
+                        },
+                    )
+                })
+                .collect();
+
+            if !node_data.is_empty() {
+                use crate::actors::messages::BroadcastNodePositions;
+                let binary_data = binary_protocol::encode_node_data(&node_data);
+                client_manager_addr.do_send(BroadcastNodePositions { positions: binary_data });
+            }
+        }
+    };
+
+    ctx.spawn(actix::fut::wrap_future::<_, SocketFlowServer>(fut).map(|_, act, _ctx| {
+        // Fix: drag broadcast bypasses delta state -- clear delta_previous_nodes so
+        // the next subscription-tick broadcast computes a full V3 frame, re-syncing
+        // all clients that received the out-of-band drag broadcast.
+        act.delta_previous_nodes.clear();
+        act.delta_frame_counter = 0;
+    }));
+}
+
+/// Handle `nodeDragEnd` from client.
+///
+/// Unpins the node, runs one final settle cycle with the node free, and
+/// broadcasts the resulting positions to all clients.
+///
+/// Expected message shape:
+/// ```json
+/// { "type": "nodeDragEnd", "data": { "nodeId": 42 } }
+/// ```
+pub(crate) fn handle_node_drag_end(
+    act: &mut SocketFlowServer,
+    msg: &serde_json::Value,
+    ctx: &mut <SocketFlowServer as Actor>::Context,
+) {
+    // VULN-01: Reject unauthenticated clients
+    if act.pubkey.is_none() {
+        warn!("[Drag] Rejecting drag from unauthenticated client");
+        return;
+    }
+
+    let data = match msg.get("data") {
+        Some(d) => d,
+        None => {
+            warn!("[Drag] nodeDragEnd missing 'data' field");
+            return;
+        }
+    };
+
+    // VULN-03: Validate nodeId fits in u32 (prevent silent truncation)
+    let node_id = match data.get("nodeId").and_then(|v| v.as_u64()) {
+        Some(id) if id <= u32::MAX as u64 => id as u32,
+        _ => {
+            warn!("[Drag] Invalid or missing nodeId");
+            return;
+        }
+    };
+
+    info!("[Drag] nodeDragEnd: node_id={}", node_id);
+
+    // Remove from drag tracking
+    act.dragged_nodes.remove(&node_id);
+    act.drag_last_update.remove(&node_id);
+
+    let app_state = act.app_state.clone();
+    let client_manager_addr = act.client_manager_addr.clone();
+
+    let fut = async move {
+        // 1. Notify physics that the drag interaction ended (node released)
+        use crate::actors::messages::{NodeInteractionMessage, NodeInteractionType};
+        app_state.graph_service_addr.do_send(NodeInteractionMessage {
+            node_id,
+            interaction_type: NodeInteractionType::Released,
+            position: None,
+        });
+
+        // 2. Run one final settle cycle with the node free
+        use crate::actors::messages::SimulationStep;
+        let budget = std::time::Duration::from_millis(DRAG_SETTLE_BUDGET_MS);
+        let settle_start = Instant::now();
+        let mut iterations = 0u32;
+
+        while settle_start.elapsed() < budget && iterations < 10 {
+            match app_state.graph_service_addr.send(SimulationStep).await {
+                Ok(Ok(())) => {}
+                Ok(Err(e)) => {
+                    debug!("[Drag] Final settle step {} failed: {}", iterations, e);
+                    break;
+                }
+                Err(e) => {
+                    debug!("[Drag] Final settle step {} mailbox error: {}", iterations, e);
+                    break;
+                }
+            }
+            iterations += 1;
+        }
+
+        debug!(
+            "[Drag] Final settle: {} iterations for node {} in {:.1}ms",
+            iterations,
+            node_id,
+            settle_start.elapsed().as_secs_f64() * 1000.0
+        );
+
+        // 3. Broadcast final positions to all clients
+        use crate::actors::messages::GetGraphData;
+        if let Ok(Ok(graph_data)) = app_state.graph_service_addr.send(GetGraphData).await {
+            let node_data: Vec<(u32, BinaryNodeData)> = graph_data
+                .nodes
+                .iter()
+                .map(|node| {
+                    (
+                        node.id,
+                        BinaryNodeData {
+                            node_id: node.id,
+                            x: node.data.x,
+                            y: node.data.y,
+                            z: node.data.z,
+                            vx: node.data.vx,
+                            vy: node.data.vy,
+                            vz: node.data.vz,
+                        },
+                    )
+                })
+                .collect();
+
+            if !node_data.is_empty() {
+                use crate::actors::messages::BroadcastNodePositions;
+                let binary_data = binary_protocol::encode_node_data(&node_data);
+                client_manager_addr.do_send(BroadcastNodePositions { positions: binary_data });
+            }
+        }
+    };
+
+    ctx.spawn(actix::fut::wrap_future::<_, SocketFlowServer>(fut).map(|_, act, _ctx| {
+        // Fix: drag broadcast bypasses delta state -- clear delta_previous_nodes so
+        // the next subscription-tick broadcast computes a full V3 frame, re-syncing
+        // all clients that received the out-of-band drag broadcast.
+        act.delta_previous_nodes.clear();
+        act.delta_frame_counter = 0;
+    }));
+
+    // Acknowledge drag end
+    let ack = serde_json::json!({
+        "type": "nodeDragEndAck",
+        "data": { "nodeId": node_id },
+        "timestamp": chrono::Utc::now().timestamp_millis()
+    });
+    if let Ok(msg_str) = serde_json::to_string(&ack) {
+        ctx.text(msg_str);
+    }
+}
+
+/// Periodic timeout checker: if no drag update has been received for a node
+/// within `drag_timeout_ms`, automatically unpin it (safety net for dropped
+/// connections or missed dragEnd messages).
+fn check_drag_timeout(
+    act: &mut SocketFlowServer,
+    node_id: u32,
+    ctx: &mut <SocketFlowServer as Actor>::Context,
+) {
+    // If the node is no longer being dragged, nothing to do
+    if !act.dragged_nodes.contains(&node_id) {
+        return;
+    }
+
+    let timeout = std::time::Duration::from_millis(act.drag_timeout_ms);
+    let timed_out = act
+        .drag_last_update
+        .get(&node_id)
+        .map(|last| last.elapsed() > timeout)
+        .unwrap_or(true);
+
+    if timed_out {
+        info!(
+            "[Drag] Timeout: auto-unpin node {} (no update for >{}ms)",
+            node_id, act.drag_timeout_ms
+        );
+
+        // Synthesize a drag end
+        let end_msg = serde_json::json!({
+            "type": "nodeDragEnd",
+            "data": { "nodeId": node_id }
+        });
+        handle_node_drag_end(act, &end_msg, ctx);
+    } else {
+        // Re-schedule check
+        let timeout_ms = act.drag_timeout_ms;
+        ctx.run_later(
+            std::time::Duration::from_millis(timeout_ms + 100),
+            move |act, ctx| {
+                check_drag_timeout(act, node_id, ctx);
+            },
+        );
+    }
 }

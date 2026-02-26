@@ -1,10 +1,10 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::time::Instant;
 
 use actix::prelude::*;
 use actix_web_actors::ws;
-use log::{debug, error, info, trace};
+use log::{debug, error, info, trace, warn};
 
 use crate::app_state::AppState;
 use crate::types::vec3::Vec3Data;
@@ -82,6 +82,23 @@ pub struct SocketFlowServer {
     pub(crate) is_power_user: bool,
     // HTTP-equivalent URL of the WebSocket connection (for NIP-98 validation)
     pub(crate) connection_url: String,
+
+    // Server-side drag handling state
+    /// Set of node IDs currently being dragged by this client.
+    /// Nodes are pinned on the server when added and unpinned when removed.
+    pub(crate) dragged_nodes: HashSet<u32>,
+    /// Last time a drag position update was received per node (for timeout-based unpin).
+    pub(crate) drag_last_update: HashMap<u32, Instant>,
+    /// Maximum time (ms) with no position update before auto-unpin. Default 500ms.
+    pub(crate) drag_timeout_ms: u64,
+
+    // Delta encoding state (per-connection)
+    /// Frame counter for delta encoding (0..59, wraps at DELTA_RESYNC_INTERVAL)
+    pub(crate) delta_frame_counter: u64,
+    /// Previous frame's node positions, used to compute deltas
+    pub(crate) delta_previous_nodes: HashMap<u32, BinaryNodeData>,
+    /// Position epsilon squared for delta detection (configurable, default 0.001^2)
+    pub(crate) delta_epsilon_sq: f32,
 }
 
 impl SocketFlowServer {
@@ -136,6 +153,12 @@ impl SocketFlowServer {
             pubkey: None,
             is_power_user: false,
             connection_url: String::new(),
+            dragged_nodes: HashSet::new(),
+            drag_last_update: HashMap::new(),
+            drag_timeout_ms: 500,
+            delta_frame_counter: 0,
+            delta_previous_nodes: HashMap::new(),
+            delta_epsilon_sq: 0.001 * 0.001, // epsilon = 0.001, stored as squared
         }
     }
 
@@ -347,16 +370,32 @@ impl SocketFlowServer {
                               nodes.len(), graph_data.nodes.len(),
                               edges.len(), DEFAULT_INITIAL_NODE_LIMIT);
 
-                        // Also send binary position data for SAME limited nodes only
+                        // Fetch node type arrays for binary protocol flags
+                        let nta = app_state.graph_service_addr
+                            .send(crate::actors::messages::GetNodeTypeArrays)
+                            .await
+                            .unwrap_or_default();
+                        let agent_set: std::collections::HashSet<u32> = nta.agent_ids.iter().copied().collect();
+                        let knowledge_set: std::collections::HashSet<u32> = nta.knowledge_ids.iter().copied().collect();
+
+                        // Also send binary position data for SAME limited nodes only,
+                        // with node type flags applied for client-side rendering
                         let node_data: Vec<(u32, BinaryNodeData)> = graph_data
                             .nodes
                             .iter()
                             .filter(|node| filtered_node_ids.contains(&node.id))
                             .map(|node| {
+                                let flagged_id = if agent_set.contains(&node.id) {
+                                    crate::utils::binary_protocol::set_agent_flag(node.id)
+                                } else if knowledge_set.contains(&node.id) {
+                                    crate::utils::binary_protocol::set_knowledge_flag(node.id)
+                                } else {
+                                    node.id
+                                };
                                 (
-                                    node.id,
+                                    flagged_id,
                                     BinaryNodeData {
-                                        node_id: node.id,
+                                        node_id: flagged_id,
                                         x: node.data.x,
                                         y: node.data.y,
                                         z: node.data.z,
@@ -434,8 +473,9 @@ impl Actor for SocketFlowServer {
             "is_reconnection": is_reconnection,
             "state_sync_sent": true,
             "protocol": {
-                "supported": [2, 3],
-                "preferred": 3
+                "supported": [2, 3, 4],
+                "preferred": 3,
+                "delta_encoding": true
             }
         });
 
@@ -453,6 +493,30 @@ impl Actor for SocketFlowServer {
     }
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
+        // Clean up orphaned drags: unpin any nodes this client was still dragging
+        // when the WebSocket connection dropped (missed dragEnd messages).
+        if !self.dragged_nodes.is_empty() {
+            let node_ids: Vec<u32> = self.dragged_nodes.drain().collect();
+            let graph_addr = self.app_state.graph_service_addr.clone();
+            let count = node_ids.len();
+            actix::spawn(async move {
+                use crate::actors::messages::{NodeInteractionMessage, NodeInteractionType};
+                for node_id in &node_ids {
+                    graph_addr.do_send(NodeInteractionMessage {
+                        node_id: *node_id,
+                        interaction_type: NodeInteractionType::Released,
+                        position: None,
+                    });
+                }
+                debug!("[Drag] Cleaned up {} orphaned drags on disconnect", count);
+            });
+            warn!(
+                "[Drag] Client disconnected with {} nodes still dragged, sending release",
+                count
+            );
+        }
+        self.drag_last_update.clear();
+
         if let Some(client_id) = self.client_id {
             let cm_addr = self.client_manager_addr.clone();
             actix::spawn(async move {

@@ -1154,6 +1154,25 @@ impl Handler<msgs::UpdateNodePositions> for GraphServiceSupervisor {
     }
 }
 
+/// Forward NodeInteractionMessage to PhysicsOrchestratorActor for drag resume/pause handling.
+impl Handler<msgs::NodeInteractionMessage> for GraphServiceSupervisor {
+    type Result = Result<(), crate::errors::VisionFlowError>;
+
+    fn handle(&mut self, msg: msgs::NodeInteractionMessage, _ctx: &mut Self::Context) -> Self::Result {
+        if let Some(ref physics_addr) = self.physics {
+            debug!("Forwarding NodeInteractionMessage ({:?}) to PhysicsOrchestratorActor", msg.interaction_type);
+            physics_addr.do_send(msg);
+            Ok(())
+        } else {
+            debug!("Cannot forward NodeInteractionMessage: PhysicsOrchestratorActor not initialized");
+            Err(crate::errors::VisionFlowError::Generic {
+                message: "PhysicsOrchestratorActor not initialized".to_string(),
+                source: None,
+            })
+        }
+    }
+}
+
 // ============================================================================
 // NOTE: Tests disabled due to:
 // 1. GraphServiceSupervisor::new() requires 1 argument but tests pass 0
@@ -1200,5 +1219,24 @@ impl Handler<msgs::GetGraphStateActor> for GraphServiceSupervisor {
 
     fn handle(&mut self, _msg: msgs::GetGraphStateActor, _ctx: &mut Self::Context) -> Self::Result {
         self.graph_state.clone()
+    }
+}
+
+/// Handler for GetNodeTypeArrays - forwards to GraphStateActor for binary protocol flag classification
+impl Handler<msgs::GetNodeTypeArrays> for GraphServiceSupervisor {
+    type Result = ResponseFuture<msgs::NodeTypeArrays>;
+
+    fn handle(&mut self, msg: msgs::GetNodeTypeArrays, _ctx: &mut Self::Context) -> Self::Result {
+        if let Some(ref graph_state_addr) = self.graph_state {
+            let addr = graph_state_addr.clone();
+            Box::pin(async move {
+                addr.send(msg).await.unwrap_or_else(|e| {
+                    error!("Failed to forward GetNodeTypeArrays to GraphStateActor: {}", e);
+                    msgs::NodeTypeArrays::default()
+                })
+            })
+        } else {
+            Box::pin(async { msgs::NodeTypeArrays::default() })
+        }
     }
 }
