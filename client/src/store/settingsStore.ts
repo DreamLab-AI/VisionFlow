@@ -80,7 +80,22 @@ const ESSENTIAL_PATHS = [
   'nodeFilter.authorityThreshold',
   'nodeFilter.filterByQuality',
   'nodeFilter.filterByAuthority',
-  'nodeFilter.filterMode'
+  'nodeFilter.filterMode',
+
+  // Client-side tweening settings - needed for smooth node movement
+  'clientTweening',
+  'visualisation.graphs.logseq.tweening',
+
+  // Rendering settings - needed for scene lighting and quality
+  'visualisation.rendering.ambientLightIntensity',
+  'visualisation.rendering.directionalLightIntensity',
+  'visualisation.rendering.enableAntialiasing',
+
+  // Quality gate settings - needed for cluster/anomaly/layout rendering
+  'qualityGates.showClusters',
+  'qualityGates.showAnomalies',
+  'qualityGates.showCommunities',
+  'qualityGates.layoutMode'
 ];
 
 
@@ -201,6 +216,10 @@ export interface SettingsState {
 
 
   notifyPhysicsUpdate: (graphName: string, params: Partial<GPUPhysicsParams>) => void;
+
+  // Client-side tweening
+  updateTweening: (graphName: string, params: Partial<{ enabled: boolean; lerpBase: number; snapThreshold: number; maxDivergence: number }>) => void;
+  notifyTweeningUpdate: (params: Partial<{ enabled: boolean; lerpBase: number; snapThreshold: number; maxDivergence: number }>) => void;
 }
 
 // GPU-specific interfaces for type safety
@@ -326,6 +345,28 @@ export const useSettingsStore = create<SettingsState>()(
               essentialSettings as Record<string, unknown>,
               state.partialSettings as Record<string, unknown>,
             ) as DeepPartial<Settings>;
+
+            // For physics and tweening paths, server values are authoritative.
+            // localStorage may hold stale values that conflict with server-side
+            // tuning, so we overlay the server-fetched essential values back on top.
+            const essRec = essentialSettings as Record<string, unknown>;
+            const mergedRec = merged as Record<string, unknown>;
+            const essVis = essRec.visualisation as Record<string, unknown> | undefined;
+            const mergedVis = mergedRec.visualisation as Record<string, unknown> | undefined;
+            if (essVis && mergedVis) {
+              const essGraphs = essVis.graphs as Record<string, Record<string, unknown>> | undefined;
+              const mergedGraphs = mergedVis.graphs as Record<string, Record<string, unknown>> | undefined;
+              if (essGraphs?.logseq?.tweening && mergedGraphs?.logseq) {
+                mergedGraphs.logseq.tweening = essGraphs.logseq.tweening;
+              }
+              if (essGraphs?.logseq?.physics && mergedGraphs?.logseq) {
+                mergedGraphs.logseq.physics = essGraphs.logseq.physics;
+              }
+            }
+            if (essRec.clientTweening !== undefined && essRec.clientTweening !== null) {
+              mergedRec.clientTweening = essRec.clientTweening;
+            }
+
             return {
               partialSettings: merged,
               settings: merged,
@@ -598,6 +639,24 @@ export const useSettingsStore = create<SettingsState>()(
           }
         }
 
+        // Auto-dispatch tweening updates to the graph worker when tweening paths change.
+        // This ensures slider changes take effect in real-time without page reload.
+        const tweeningPaths = changedPaths.filter(path =>
+          path.startsWith('clientTweening.') || path.includes('.tweening.')
+        );
+        if (tweeningPaths.length > 0) {
+          // Collect the current tweening values from the updated settings
+          const tweening = (newSettings as Record<string, unknown>);
+          const vis = tweening.visualisation as Record<string, unknown> | undefined;
+          const graphs = vis?.graphs as Record<string, Record<string, unknown>> | undefined;
+          // Prefer per-graph tweening, fall back to top-level clientTweening
+          const perGraphTweening = graphs?.logseq?.tweening as Record<string, unknown> | undefined;
+          const topLevelTweening = tweening.clientTweening as Record<string, unknown> | undefined;
+          const tweeningSettings = perGraphTweening || topLevelTweening;
+          if (tweeningSettings) {
+            state.notifyTweeningUpdate(tweeningSettings as Partial<{ enabled: boolean; lerpBase: number; snapThreshold: number; maxDivergence: number }>);
+          }
+        }
 
         // Only notify subscribers registered to paths that actually changed.
         // For each changedPath, fire callbacks on exact matches and on any
@@ -780,6 +839,52 @@ export const useSettingsStore = create<SettingsState>()(
         if (typeof window !== 'undefined') {
           const event = new CustomEvent('physicsParametersUpdated', {
             detail: { graphName, params }
+          });
+          window.dispatchEvent(event);
+        }
+      },
+
+      updateTweening: (graphName: string, params: Partial<{ enabled: boolean; lerpBase: number; snapThreshold: number; maxDivergence: number }>) => {
+        const state = get();
+
+        // Validate ranges
+        const validatedParams = { ...params };
+        if (validatedParams.lerpBase !== undefined) {
+          validatedParams.lerpBase = Math.max(0.0001, Math.min(0.5, validatedParams.lerpBase));
+        }
+        if (validatedParams.snapThreshold !== undefined) {
+          validatedParams.snapThreshold = Math.max(0.01, Math.min(1.0, validatedParams.snapThreshold));
+        }
+        if (validatedParams.maxDivergence !== undefined) {
+          validatedParams.maxDivergence = Math.max(1, Math.min(100, validatedParams.maxDivergence));
+        }
+
+        state.updateSettings((draft: Settings) => {
+          const d = draft as unknown as Record<string, unknown>;
+          if (!d.visualisation) d.visualisation = { graphs: {} };
+          const vis = d.visualisation as Record<string, unknown>;
+          if (!vis.graphs) vis.graphs = {};
+
+          const graphs = vis.graphs as Record<string, unknown>;
+          if (!graphs[graphName]) graphs[graphName] = {};
+          const graph = graphs[graphName] as Record<string, unknown>;
+          if (!graph.tweening) graph.tweening = {};
+
+          Object.assign(graph.tweening as Record<string, unknown>, validatedParams);
+
+          // Also update top-level clientTweening for backward compatibility
+          if (!d.clientTweening) d.clientTweening = {};
+          Object.assign(d.clientTweening as Record<string, unknown>, validatedParams);
+        });
+
+        // Dispatch event so the graph worker picks up the change in real-time
+        state.notifyTweeningUpdate(validatedParams);
+      },
+
+      notifyTweeningUpdate: (params: Partial<{ enabled: boolean; lerpBase: number; snapThreshold: number; maxDivergence: number }>) => {
+        if (typeof window !== 'undefined') {
+          const event = new CustomEvent('tweeningSettingsUpdated', {
+            detail: params
           });
           window.dispatchEvent(event);
         }
@@ -1047,6 +1152,10 @@ function getSectionPaths(section: string): string[] {
     ],
     'constraints': [
       'constraints'
+    ],
+    'tweening': [
+      'clientTweening',
+      'visualisation.graphs.logseq.tweening'
     ]
   };
 
@@ -1159,6 +1268,10 @@ function getAllAvailableSettingsPaths(): string[] {
 
     // Constraints / LOD
     'constraints',
+
+    // Client-side tweening
+    'clientTweening',
+    'visualisation.graphs.logseq.tweening',
 
   ];
 }

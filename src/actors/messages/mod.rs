@@ -53,6 +53,8 @@ pub use physics_messages::{
     UpdateGPUPositions, UpdateOntologyConstraintBuffer, UpdateSimulationParams,
     UpdateStressMajorizationParams, UpdateVisualAnalyticsParams, UploadConstraintsToGPU,
     UploadPositions,
+    // Sequential pipeline (Step 5)
+    PhysicsStepCompleted, SetPhysicsOrchestratorAddr,
 };
 
 // --- settings_messages ---

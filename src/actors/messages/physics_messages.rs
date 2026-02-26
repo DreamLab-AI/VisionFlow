@@ -513,6 +513,33 @@ pub struct PositionBroadcastAck {
     pub clients_delivered: u32,
 }
 
+// ---------------------------------------------------------------------------
+// Sequential physics pipeline (Step 5)
+// ---------------------------------------------------------------------------
+
+/// Sent by ForceComputeActor to PhysicsOrchestratorActor after a physics step
+/// completes. This enables a sequential pipeline:
+///   [Physics Step] -> [Read Positions] -> [Broadcast] -> [Wait] -> repeat
+/// instead of two independent timers that can race.
+#[derive(Message, Debug, Clone)]
+#[rtype(result = "()")]
+pub struct PhysicsStepCompleted {
+    /// How long the physics step took (GPU compute + position readback)
+    pub step_duration_ms: f32,
+    /// Number of nodes broadcast in this step (0 if broadcast was skipped)
+    pub nodes_broadcast: u32,
+    /// Current physics iteration count
+    pub iteration: u32,
+}
+
+/// Sent by PhysicsOrchestratorActor to ForceComputeActor to wire up the
+/// back-channel for PhysicsStepCompleted messages.
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct SetPhysicsOrchestratorAddr {
+    pub addr: Addr<crate::actors::physics_orchestrator_actor::PhysicsOrchestratorActor>,
+}
+
 /// Message to set GPU compute actor address in ClientCoordinatorActor
 #[derive(Message)]
 #[rtype(result = "()")]

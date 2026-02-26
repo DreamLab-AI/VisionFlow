@@ -13,9 +13,11 @@ use crate::application::physics_service::{
     LayoutOptimizationRequest, PhysicsService, SimulationParams,
 };
 use crate::models::graph::GraphData;
+use crate::models::simulation_params::SettleMode;
 use crate::ports::gpu_physics_adapter::PhysicsParameters;
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct StartSimulationRequest {
     pub profile_name: Option<String>,
     pub time_step: Option<f32>,
@@ -27,6 +29,8 @@ pub struct StartSimulationRequest {
     pub convergence_threshold: Option<f32>,
     pub max_iterations: Option<u32>,
     pub auto_stop_on_convergence: Option<bool>,
+    /// Controls simulation convergence behavior. If omitted, defaults to FastSettle.
+    pub settle_mode: Option<SettleMode>,
 }
 
 #[derive(Debug, Serialize)]
@@ -36,11 +40,13 @@ pub struct StartSimulationResponse {
 }
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SimulationStatusResponse {
     pub simulation_id: Option<String>,
     pub running: bool,
     pub gpu_status: Option<GpuStatusInfo>,
     pub statistics: Option<StatisticsInfo>,
+    pub settle_mode: SettleMode,
 }
 
 #[derive(Debug, Serialize)]
@@ -149,6 +155,7 @@ pub async fn start_simulation(
             .unwrap_or_else(|| "default".to_string()),
         physics_params: params,
         auto_stop_on_convergence: req.auto_stop_on_convergence.unwrap_or(true),
+        settle_mode: req.settle_mode.clone().unwrap_or_default(),
     };
 
     match physics_service
@@ -207,6 +214,7 @@ pub async fn get_status(
         running,
         gpu_status,
         statistics,
+        settle_mode: SettleMode::default(),
     })
 }
 
@@ -342,6 +350,57 @@ pub async fn reset_simulation(
     }
 }
 
+/// Request body for setting the settle mode.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SetSettleModeRequest {
+    pub settle_mode: SettleMode,
+}
+
+/// Response for settle mode queries.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SettleModeResponse {
+    pub settle_mode: SettleMode,
+}
+
+/// GET /physics/settle-mode -- return the default settle mode configuration.
+/// In a full integration this would read from the running simulation state;
+/// for now it returns the default so clients can discover the schema.
+pub async fn get_settle_mode() -> ActixResult<HttpResponse> {
+    ok_json!(SettleModeResponse {
+        settle_mode: SettleMode::default(),
+    })
+}
+
+/// POST /physics/settle-mode -- validate and echo back the requested mode.
+/// The actual mode is set when starting a simulation via `/physics/start`.
+pub async fn set_settle_mode(
+    req: web::Json<SetSettleModeRequest>,
+) -> ActixResult<HttpResponse> {
+    // Validate FastSettle parameters if applicable.
+    if let SettleMode::FastSettle {
+        damping_override,
+        max_settle_iterations,
+        energy_threshold,
+    } = &req.settle_mode
+    {
+        if *damping_override <= 0.0 || *damping_override > 1.0 {
+            return error_json!("damping_override must be in (0.0, 1.0], got {}", damping_override);
+        }
+        if *max_settle_iterations == 0 {
+            return error_json!("max_settle_iterations must be > 0");
+        }
+        if *energy_threshold <= 0.0 {
+            return error_json!("energy_threshold must be > 0.0, got {}", energy_threshold);
+        }
+    }
+
+    ok_json!(SettleModeResponse {
+        settle_mode: req.settle_mode.clone(),
+    })
+}
+
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/physics")
@@ -354,6 +413,8 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
             .route("/nodes/pin", web::post().to(pin_nodes))
             .route("/nodes/unpin", web::post().to(unpin_nodes))
             .route("/parameters", web::post().to(update_parameters))
-            .route("/reset", web::post().to(reset_simulation)),
+            .route("/reset", web::post().to(reset_simulation))
+            .route("/settle-mode", web::get().to(get_settle_mode))
+            .route("/settle-mode", web::post().to(set_settle_mode)),
     );
 }

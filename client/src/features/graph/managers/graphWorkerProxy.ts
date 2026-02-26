@@ -320,6 +320,17 @@ class GraphWorkerProxy {
   }
 
   /**
+   * Return per-node analytics data from binary protocol V3.
+   * Layout: Float32Array of [clusterId, anomalyScore, communityId] per node.
+   */
+  public async getAnalyticsBuffer(): Promise<Float32Array> {
+    if (!this.workerApi) {
+      return new Float32Array(0);
+    }
+    return await this.workerApi.getAnalyticsBuffer();
+  }
+
+  /**
    * Reheat the force simulation (restart physics from current positions).
    * Use this when user wants to re-layout or after significant changes.
    */
@@ -352,6 +363,25 @@ class GraphWorkerProxy {
       throw new Error('Worker not initialized');
     }
     return await this.workerApi.getForcePhysicsSettings();
+  }
+
+  /**
+   * Update client-side tweening configuration (does NOT affect server physics).
+   * Controls how smoothly the client interpolates toward server-computed positions.
+   */
+  public async setTweeningSettings(settings: Partial<{
+    enabled: boolean;
+    lerpBase: number;
+    snapThreshold: number;
+    maxDivergence: number;
+  }>): Promise<void> {
+    if (!this.workerApi) {
+      throw new Error('Worker not initialized');
+    }
+    await this.workerApi.setTweeningSettings(settings);
+    if (debugState.isEnabled()) {
+      logger.info('Tweening settings updated:', settings);
+    }
   }
 
   

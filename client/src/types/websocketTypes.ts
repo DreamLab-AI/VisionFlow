@@ -386,6 +386,45 @@ export interface ExplorationTourMessage extends BaseWebSocketMessage {
   };
 }
 
+// Node drag messages (server-side drag handling)
+export interface NodeDragStartMessage extends BaseWebSocketMessage {
+  type: 'nodeDragStart';
+  data: {
+    nodeId: number;
+    position: { x: number; y: number; z: number };
+  };
+}
+
+export interface NodeDragUpdateMessage extends BaseWebSocketMessage {
+  type: 'nodeDragUpdate';
+  data: {
+    nodeId: number;
+    position: { x: number; y: number; z: number };
+    timestamp: number;
+  };
+}
+
+export interface NodeDragEndMessage extends BaseWebSocketMessage {
+  type: 'nodeDragEnd';
+  data: {
+    nodeId: number;
+  };
+}
+
+export interface NodeDragStartAckMessage extends BaseWebSocketMessage {
+  type: 'nodeDragStartAck';
+  data: {
+    nodeId: number;
+  };
+}
+
+export interface NodeDragEndAckMessage extends BaseWebSocketMessage {
+  type: 'nodeDragEndAck';
+  data: {
+    nodeId: number;
+  };
+}
+
 // Connection and protocol messages
 export interface ConnectionEstablishedMessage extends BaseWebSocketMessage {
   type: 'connection_established';
@@ -461,6 +500,11 @@ export type WebSocketMessage =
   | CollaborationSessionMessage
   | VRARModeMessage
   | ExplorationTourMessage
+  | NodeDragStartMessage
+  | NodeDragUpdateMessage
+  | NodeDragEndMessage
+  | NodeDragStartAckMessage
+  | NodeDragEndAckMessage
   | ConnectionEstablishedMessage
   | ErrorMessage
   | FilterConfirmedMessage

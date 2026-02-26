@@ -29,7 +29,7 @@ use crate::actors::messages::{
 };
 use crate::models::constraints::ConstraintSet;
 use crate::models::graph::GraphData;
-use crate::models::simulation_params::SimulationParams;
+use crate::models::simulation_params::{SettleMode, SimulationParams};
 use crate::utils::socket_flow_messages::BinaryNodeData;
 use crate::utils::socket_flow_messages::BinaryNodeDataClient;
 
@@ -99,6 +99,30 @@ pub struct PhysicsOrchestratorActor {
 
 
     last_broadcast_time: Instant,
+
+    /// Tracks how many iterations have been run in the current fast-settle phase.
+    /// Reset to 0 when a new settle is triggered (graph upload, parameter change, resume).
+    fast_settle_iteration_count: u32,
+
+    /// Set to true once a fast-settle run has converged (energy below threshold or
+    /// iteration cap reached). Cleared when the settle is re-triggered.
+    fast_settle_complete: bool,
+
+    /// The original damping value saved before a fast-settle override, so it can be
+    /// restored after settling completes.
+    pre_settle_damping: Option<f32>,
+
+    /// True when the sequential pipeline has been kicked off and is waiting for
+    /// a PhysicsStepCompleted reply.  Prevents duplicate pipeline starts.
+    pipeline_step_pending: bool,
+
+    /// Timestamp when `pipeline_step_pending` was set to `true`.
+    /// Used by the heartbeat watchdog to detect stuck pipeline steps (>2s).
+    pipeline_step_pending_since: Option<Instant>,
+
+    /// Target interval for the physics pipeline.  In Continuous mode this is 16ms
+    /// (~60 fps).  In FastSettle mode it is 0 (fire as fast as GPU can compute).
+    pipeline_target_interval: Duration,
 }
 
 #[derive(Debug, Default, Clone)]
@@ -147,6 +171,12 @@ impl PhysicsOrchestratorActor {
             client_coordinator_addr: None,
             user_pinned_nodes: HashMap::new(),
             last_broadcast_time: Instant::now(),
+            fast_settle_iteration_count: 0,
+            fast_settle_complete: false,
+            pre_settle_damping: None,
+            pipeline_step_pending: false,
+            pipeline_step_pending_since: None,
+            pipeline_target_interval: Duration::from_millis(16),
         }
     }
 
@@ -157,20 +187,56 @@ impl PhysicsOrchestratorActor {
     }
 
     
-    fn start_simulation_loop(&self, ctx: &mut Context<Self>) {
+    fn start_simulation_loop(&mut self, ctx: &mut Context<Self>) {
         if self.simulation_running.load(Ordering::SeqCst) {
             warn!("Physics simulation already running");
             return;
         }
 
         self.simulation_running.store(true, Ordering::SeqCst);
-        info!("Starting physics simulation loop");
 
-        
-        ctx.run_interval(Duration::from_millis(16), |act, ctx| {
-            
+        // Reset pipeline state to avoid stale pending flag from previous run.
+        self.pipeline_step_pending = false;
+        self.pipeline_step_pending_since = None;
+
+        // Choose target interval based on settle mode.
+        // FastSettle: 0ms — fire as fast as the GPU can compute, each step
+        //   triggers a broadcast, until convergence then stop entirely.
+        // Continuous: 16ms (~60 fps) target cadence.
+        match &self.simulation_params.settle_mode {
+            SettleMode::FastSettle { .. } => {
+                self.fast_settle_iteration_count = 0;
+                self.fast_settle_complete = false;
+                self.pipeline_target_interval = Duration::ZERO;
+                info!("Starting physics simulation loop (FastSettle mode, sequential pipeline, 0ms sleep)");
+            }
+            SettleMode::Continuous => {
+                self.pipeline_target_interval = Duration::from_millis(16);
+                info!("Starting physics simulation loop (Continuous mode, sequential pipeline, 16ms target)");
+            }
+        };
+
+        // Kick off the first step immediately via the sequential pipeline.
+        // Subsequent steps are triggered by PhysicsStepCompleted messages.
+        self.schedule_next_pipeline_step(ctx, Duration::ZERO);
+    }
+
+    /// Schedule the next physics step in the sequential pipeline.
+    /// This uses `run_later` so that the pipeline proceeds only after the
+    /// previous step has completed and positions have been broadcast.
+    fn schedule_next_pipeline_step(&mut self, ctx: &mut Context<Self>, delay: Duration) {
+        if self.pipeline_step_pending {
+            return; // A step is already in flight
+        }
+        self.pipeline_step_pending = true;
+        self.pipeline_step_pending_since = Some(Instant::now());
+
+        ctx.run_later(delay, |act, ctx| {
+            act.pipeline_step_pending = false;
+            act.pipeline_step_pending_since = None;
+
             if !act.simulation_running.load(Ordering::SeqCst) {
-                return; 
+                return;
             }
 
             act.physics_step(ctx);
@@ -187,51 +253,131 @@ impl PhysicsOrchestratorActor {
     fn physics_step(&mut self, ctx: &mut Context<Self>) {
         let start_time = Instant::now();
 
-        
+        // In FastSettle mode, skip ticks once settling is complete.
+        if self.fast_settle_complete {
+            if self.simulation_params.is_physics_paused {
+                self.handle_physics_paused_state(ctx);
+            }
+            return;
+        }
+
         if self.simulation_params.is_physics_paused {
             self.handle_physics_paused_state(ctx);
             return;
         }
 
-        
-        self.interpolate_parameters();
+        // Parameter interpolation only makes sense in Continuous mode.
+        if matches!(self.simulation_params.settle_mode, SettleMode::Continuous) {
+            self.interpolate_parameters();
+        }
 
-        
         if !self.gpu_initialized && self.gpu_compute_addr.is_some() {
             self.initialize_gpu_if_needed(ctx);
+            // GPU not ready yet — re-schedule after a short delay so we don't
+            // stall the pipeline waiting for PhysicsStepCompleted that won't come.
+            self.schedule_next_pipeline_step(ctx, Duration::from_millis(100));
             return;
         }
 
-        
+        // Apply damping override on the first FastSettle iteration.
+        if let SettleMode::FastSettle { damping_override, .. } = self.simulation_params.settle_mode {
+            if self.fast_settle_iteration_count == 0 && self.gpu_initialized {
+                self.pre_settle_damping = Some(self.simulation_params.damping);
+                self.simulation_params.damping = damping_override;
+                self.target_params.damping = damping_override;
+                info!(
+                    "PhysicsOrchestratorActor: FastSettle started, damping overridden to {:.3}",
+                    damping_override
+                );
+                // Push the damping override to the GPU actor immediately.
+                if let Some(ref gpu_addr) = self.gpu_compute_addr {
+                    gpu_addr.do_send(UpdateSimulationParams {
+                        params: self.simulation_params.clone(),
+                    });
+                }
+            }
+        }
+
         if self.simulation_params.auto_balance {
             self.perform_auto_balance_check();
         }
 
-        
         if let Some(gpu_addr) = self.gpu_compute_addr.clone() {
-            // Use GPU for physics computation
+            // GPU path: ComputeForces is sent, and PhysicsStepCompleted will
+            // come back to drive the next step.
             self.execute_gpu_physics_step(&gpu_addr, ctx);
         } else {
-            // Fall back to CPU physics when GPU not available
+            // CPU fallback: no PhysicsStepCompleted will come back, so
+            // re-schedule the next step directly.
             self.execute_cpu_physics_step(ctx);
+            self.schedule_next_pipeline_step(ctx, self.pipeline_target_interval);
         }
 
-        
         let step_time = start_time.elapsed();
         self.update_performance_metrics(step_time);
 
-        
-        self.check_equilibrium_and_auto_pause();
+        // FastSettle convergence check: use kinetic energy from cached physics stats.
+        if let SettleMode::FastSettle {
+            max_settle_iterations,
+            energy_threshold,
+            ..
+        } = self.simulation_params.settle_mode
+        {
+            self.fast_settle_iteration_count += 1;
+
+            let energy = self
+                .physics_stats
+                .as_ref()
+                .map(|s| s.kinetic_energy as f64)
+                .unwrap_or(f64::MAX);
+
+            let converged = energy < energy_threshold;
+            let exhausted = self.fast_settle_iteration_count >= max_settle_iterations;
+
+            if converged || exhausted {
+                self.fast_settle_complete = true;
+                self.simulation_params.is_physics_paused = true;
+
+                // Restore original damping so that if the user switches to Continuous
+                // later, the value is sensible.
+                if let Some(original_damping) = self.pre_settle_damping.take() {
+                    self.simulation_params.damping = original_damping;
+                    self.target_params.damping = original_damping;
+                }
+
+                if converged {
+                    info!(
+                        "PhysicsOrchestratorActor: FastSettle converged after {} iterations (energy={:.6} < threshold={:.6})",
+                        self.fast_settle_iteration_count, energy, energy_threshold
+                    );
+                } else {
+                    info!(
+                        "PhysicsOrchestratorActor: FastSettle reached iteration cap {} (energy={:.6}, threshold={:.6})",
+                        max_settle_iterations, energy, energy_threshold
+                    );
+                }
+
+                self.broadcast_physics_paused();
+            } else if self.fast_settle_iteration_count % 100 == 0 {
+                debug!(
+                    "PhysicsOrchestratorActor: FastSettle progress: iter={}/{}, energy={:.6}",
+                    self.fast_settle_iteration_count, max_settle_iterations, energy
+                );
+            }
+        } else {
+            // Continuous mode: use existing equilibrium auto-pause logic.
+            self.check_equilibrium_and_auto_pause();
+        }
 
         self.last_step_time = Some(start_time);
     }
 
     
-    fn handle_physics_paused_state(&mut self, _ctx: &mut Context<Self>) {
-        
+    fn handle_physics_paused_state(&mut self, ctx: &mut Context<Self>) {
+
         if let Some(resume_time) = self.force_resume_timer {
             if resume_time.elapsed() > Duration::from_millis(500) {
-                self.resume_physics();
+                self.resume_physics(ctx);
                 self.force_resume_timer = None;
             }
         }
@@ -561,14 +707,22 @@ impl PhysicsOrchestratorActor {
     }
 
     
-    fn resume_physics(&mut self) {
+    fn resume_physics(&mut self, ctx: &mut Context<Self>) {
         if self.simulation_params.is_physics_paused {
             self.simulation_params.is_physics_paused = false;
             self.simulation_params.equilibrium_stability_counter = 0;
             info!("Physics simulation resumed");
 
-            
+            // Reset fast-settle state so a new settle cycle begins if in FastSettle mode.
+            self.fast_settle_iteration_count = 0;
+            self.fast_settle_complete = false;
+
             self.broadcast_physics_resumed();
+
+            // Re-kick the sequential pipeline since it stopped when physics paused.
+            if self.simulation_running.load(Ordering::SeqCst) {
+                self.schedule_next_pipeline_step(ctx, Duration::ZERO);
+            }
         }
     }
 
@@ -870,6 +1024,29 @@ impl Actor for PhysicsOrchestratorActor {
         if self.gpu_compute_addr.is_some() {
             self.initialize_gpu_if_needed(ctx);
         }
+
+        // Lightweight heartbeat that checks the force_resume_timer while physics
+        // is paused. The sequential pipeline stops scheduling steps when paused,
+        // so this interval ensures the auto-resume-after-interaction still works.
+        ctx.run_interval(Duration::from_millis(200), |act, ctx| {
+            if act.simulation_params.is_physics_paused {
+                act.handle_physics_paused_state(ctx);
+            }
+
+            // Watchdog: if pipeline_step_pending has been true for >2s, the
+            // run_later callback or GPU response is stuck. Force-reset and
+            // re-kick the pipeline to recover.
+            if act.pipeline_step_pending {
+                if let Some(since) = act.pipeline_step_pending_since {
+                    if since.elapsed() > Duration::from_secs(2) {
+                        warn!("[Physics] Pipeline step pending for >2s, forcing reset");
+                        act.pipeline_step_pending = false;
+                        act.pipeline_step_pending_since = None;
+                        act.schedule_next_pipeline_step(ctx, Duration::ZERO);
+                    }
+                }
+            }
+        });
     }
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
@@ -1004,13 +1181,13 @@ impl Handler<RequestPositionSnapshot> for PhysicsOrchestratorActor {
 impl Handler<PhysicsPauseMessage> for PhysicsOrchestratorActor {
     type Result = Result<(), VisionFlowError>;
 
-    fn handle(&mut self, msg: PhysicsPauseMessage, _ctx: &mut Self::Context) -> Self::Result {
+    fn handle(&mut self, msg: PhysicsPauseMessage, ctx: &mut Self::Context) -> Self::Result {
         info!("Physics pause requested: pause={}", msg.pause);
 
         if msg.pause {
             self.simulation_params.is_physics_paused = true;
         } else {
-            self.resume_physics();
+            self.resume_physics(ctx);
         }
 
         Ok(())
@@ -1020,20 +1197,18 @@ impl Handler<PhysicsPauseMessage> for PhysicsOrchestratorActor {
 impl Handler<NodeInteractionMessage> for PhysicsOrchestratorActor {
     type Result = Result<(), VisionFlowError>;
 
-    fn handle(&mut self, msg: NodeInteractionMessage, _ctx: &mut Self::Context) -> Self::Result {
+    fn handle(&mut self, msg: NodeInteractionMessage, ctx: &mut Self::Context) -> Self::Result {
         info!("Node interaction detected: {:?}", msg.interaction_type);
 
-        
         if self
             .simulation_params
             .auto_pause_config
             .resume_on_interaction
         {
             if self.simulation_params.is_physics_paused {
-                self.resume_physics();
+                self.resume_physics(ctx);
             }
 
-            
             self.force_resume_timer = Some(Instant::now());
         }
 
@@ -1044,11 +1219,11 @@ impl Handler<NodeInteractionMessage> for PhysicsOrchestratorActor {
 impl Handler<ForceResumePhysics> for PhysicsOrchestratorActor {
     type Result = Result<(), VisionFlowError>;
 
-    fn handle(&mut self, _msg: ForceResumePhysics, _ctx: &mut Self::Context) -> Self::Result {
+    fn handle(&mut self, _msg: ForceResumePhysics, ctx: &mut Self::Context) -> Self::Result {
         info!("Force resume physics requested");
 
         let _was_paused = self.simulation_params.is_physics_paused;
-        self.resume_physics();
+        self.resume_physics(ctx);
 
         Ok(())
     }
@@ -1079,22 +1254,30 @@ impl Handler<UpdateSimulationParams> for PhysicsOrchestratorActor {
     fn handle(&mut self, msg: UpdateSimulationParams, _ctx: &mut Self::Context) -> Self::Result {
         info!("Updating simulation parameters");
 
-        
         let auto_balance_just_enabled =
             !self.simulation_params.auto_balance && msg.params.auto_balance;
 
-        
+        // Detect settle_mode change so we can reset the fast-settle state.
+        let settle_mode_changed = self.simulation_params.settle_mode != msg.params.settle_mode;
+
         self.target_params = msg.params.clone();
 
-        
         self.simulation_params.enabled = msg.params.enabled;
         self.simulation_params.auto_balance = msg.params.auto_balance;
         self.simulation_params.auto_balance_config = msg.params.auto_balance_config.clone();
         self.simulation_params.auto_pause_config = msg.params.auto_pause_config.clone();
+        self.simulation_params.settle_mode = msg.params.settle_mode;
 
-        
         if auto_balance_just_enabled {
             self.auto_balance_last_check = None;
+        }
+
+        // Reset fast-settle state when the settle mode is changed so a new
+        // convergence cycle starts with the updated configuration.
+        if settle_mode_changed {
+            self.fast_settle_iteration_count = 0;
+            self.fast_settle_complete = false;
+            info!("PhysicsOrchestratorActor: settle_mode changed, resetting fast-settle state");
         }
 
         // NOTE: Do NOT send UpdateGPUGraphData here. The settings route already sends
@@ -1263,12 +1446,72 @@ impl Handler<MessageAck> for PhysicsOrchestratorActor {
 impl Handler<crate::actors::messages::GPUInitialized> for PhysicsOrchestratorActor {
     type Result = ();
 
-    fn handle(&mut self, _msg: crate::actors::messages::GPUInitialized, _ctx: &mut Self::Context) -> Self::Result {
-        info!("✅ GPU initialization CONFIRMED for PhysicsOrchestrator - GPUInitialized message received");
+    fn handle(&mut self, _msg: crate::actors::messages::GPUInitialized, ctx: &mut Self::Context) -> Self::Result {
+        info!("GPU initialization CONFIRMED for PhysicsOrchestrator - GPUInitialized message received");
         self.gpu_initialized = true;
         self.gpu_init_in_progress = false;
 
-        info!("Physics simulation GPU initialization complete - ready for simulation with non-zero velocities");
+        // Reset fast-settle state so the settle cycle starts fresh with new graph data.
+        self.fast_settle_iteration_count = 0;
+        self.fast_settle_complete = false;
+
+        // Wire up the sequential pipeline back-channel: send our address to the
+        // ForceComputeActor so it can reply with PhysicsStepCompleted messages.
+        if let Some(ref gpu_addr) = self.gpu_compute_addr {
+            gpu_addr.do_send(crate::actors::messages::SetPhysicsOrchestratorAddr {
+                addr: ctx.address(),
+            });
+            info!("PhysicsOrchestratorActor: Sent address to ForceComputeActor for sequential pipeline");
+        }
+
+        // GPU is ready -- kick the sequential pipeline if it's not already running.
+        if self.simulation_running.load(Ordering::SeqCst) && !self.simulation_params.is_physics_paused {
+            self.schedule_next_pipeline_step(ctx, Duration::ZERO);
+        }
+
+        info!("Physics simulation GPU initialization complete - ready for simulation");
+    }
+}
+
+/// Handler for PhysicsStepCompleted — closes the sequential pipeline loop.
+///
+/// When ForceComputeActor finishes a GPU physics step (including position readback
+/// and broadcast to GraphServiceSupervisor), it sends this message back to us.
+/// We then:
+///   1. Update performance metrics
+///   2. Compute how much time remains in the target interval
+///   3. Schedule the next physics step via run_later with the remaining delay
+///
+/// This guarantees that every broadcast contains fresh, complete data because the
+/// pipeline is sequential: [Physics Step] -> [Broadcast] -> [Wait] -> repeat.
+impl Handler<crate::actors::messages::PhysicsStepCompleted> for PhysicsOrchestratorActor {
+    type Result = ();
+
+    fn handle(&mut self, msg: crate::actors::messages::PhysicsStepCompleted, ctx: &mut Self::Context) -> Self::Result {
+        // Update performance metrics with the actual step duration
+        let step_duration = Duration::from_secs_f32(msg.step_duration_ms / 1000.0);
+        self.update_performance_metrics(step_duration);
+
+        if !self.simulation_running.load(Ordering::SeqCst) {
+            return;
+        }
+
+        // In FastSettle mode and settling is done, don't schedule more steps.
+        if self.fast_settle_complete {
+            return;
+        }
+
+        // If physics is paused (e.g. equilibrium auto-pause), don't schedule more
+        // steps.  The pipeline will be re-kicked when physics resumes.
+        if self.simulation_params.is_physics_paused {
+            return;
+        }
+
+        // Compute remaining time in the target interval.
+        // If the step took longer than the target, proceed immediately (Duration::ZERO).
+        let delay = self.pipeline_target_interval.saturating_sub(step_duration);
+
+        self.schedule_next_pipeline_step(ctx, delay);
     }
 }
 

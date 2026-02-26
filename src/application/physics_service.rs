@@ -14,6 +14,7 @@ use crate::events::domain_events::{
 use crate::events::event_bus::EventBus;
 use crate::models::graph::GraphData;
 use crate::models::node::Node;
+use crate::models::simulation_params::SettleMode;
 use crate::ports::gpu_physics_adapter::{
     GpuDeviceInfo, GpuPhysicsAdapter, PhysicsParameters, PhysicsStatistics,
     PhysicsStepResult, Result as PhysicsResult,
@@ -25,6 +26,8 @@ pub struct SimulationParams {
     pub profile_name: String,
     pub physics_params: PhysicsParameters,
     pub auto_stop_on_convergence: bool,
+    /// Controls simulation convergence behavior.
+    pub settle_mode: SettleMode,
 }
 
 impl Default for SimulationParams {
@@ -33,6 +36,7 @@ impl Default for SimulationParams {
             profile_name: "default".to_string(),
             physics_params: PhysicsParameters::default(),
             auto_stop_on_convergence: true,
+            settle_mode: SettleMode::default(),
         }
     }
 }

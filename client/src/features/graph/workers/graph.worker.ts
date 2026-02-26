@@ -1,7 +1,7 @@
 
 
 import { expose } from 'comlink';
-import { BinaryNodeData, parseBinaryNodeData, createBinaryNodeData, Vec3 } from '../../../types/binaryProtocol';
+import { BinaryNodeData, parseBinaryNodeData, parseBinaryFrameData, createBinaryNodeData, Vec3 } from '../../../types/binaryProtocol';
 import { stringToU32 } from '../../../types/idMapping';
 
 // Worker-safe logger (createLogger depends on localStorage/window which are unavailable in Workers)
@@ -258,6 +258,11 @@ class GraphWorker {
   private binaryOutputBuffer: Float32Array | null = null;
   private binaryOutputBufferSize: number = 0;
 
+  // Per-node analytics data from binary protocol V3 (clusterId, anomalyScore, communityId).
+  // Indexed by nodeIndex (same order as graphData.nodes). Updated every processBinaryData call.
+  // Layout: [clusterId_0, anomalyScore_0, communityId_0, clusterId_1, anomalyScore_1, ...]
+  private analyticsBuffer: Float32Array | null = null;
+
   
   async initialize(): Promise<void> {
     workerLogger.info('Initialize method called');
@@ -391,6 +396,9 @@ class GraphWorker {
     this.targetPositions = newTargetPositions;
     this.velocities = newVelocities;
 
+    // Allocate per-node analytics buffer (3 floats per node: clusterId, anomalyScore, communityId)
+    this.analyticsBuffer = new Float32Array(nodeCount * 3);
+
     // Write preserved positions back into graphData so that:
     // 1) Any consumer reading node.position gets current values, not stale DB positions
     // 2) Future setGraphData() calls have up-to-date fallback data
@@ -449,6 +457,17 @@ class GraphWorker {
       updateThreshold: (graphSettings?.updateThreshold as number | undefined) ?? 0.05
     };
 
+    // Also extract per-graph tweening settings if present in the settings payload
+    const tweening = graphs?.[this.graphType]?.tweening as Record<string, unknown> | undefined;
+    if (tweening) {
+      this.setTweeningSettings({
+        enabled: tweening.enabled as boolean | undefined,
+        lerpBase: tweening.lerpBase as number | undefined,
+        snapThreshold: tweening.snapThreshold as number | undefined,
+        maxDivergence: tweening.maxDivergence as number | undefined,
+      });
+    }
+
     // Physics settings for visionflow are now routed to the server via REST API.
     // The client stores them for reference but does not run local force simulation.
   }
@@ -457,18 +476,22 @@ class GraphWorker {
   async processBinaryData(data: ArrayBuffer): Promise<Float32Array> {
     // All graph types process binary position updates from the server.
     // Server is the single source of truth for positions.
-    
-    
+
+
     this.binaryUpdateCount = (this.binaryUpdateCount || 0) + 1;
     this.lastBinaryUpdate = Date.now();
 
-    
+
     if (isZlibCompressed(data)) {
       data = await decompressZlib(data);
     }
-    const nodeUpdates = parseBinaryNodeData(data);
 
-    
+    // Parse frame with delta awareness
+    const frame = parseBinaryFrameData(data);
+    const nodeUpdates = frame.nodes;
+    const isDelta = frame.type === 'delta';
+
+
     // Reuse binary output buffer, only reallocate if size changed
     const requiredBinarySize = nodeUpdates.length * 4;
     if (!this.binaryOutputBuffer || this.binaryOutputBufferSize !== requiredBinarySize) {
@@ -482,23 +505,52 @@ class GraphWorker {
       if (stringNodeId) {
         const nodeIndex = this.nodeIndexMap.get(stringNodeId);
         if (nodeIndex !== undefined && !this.pinnedNodeIds.has(update.nodeId)) {
-
           const i3 = nodeIndex * 3;
-          this.targetPositions![i3] = update.position.x;
-          this.targetPositions![i3 + 1] = update.position.y;
-          this.targetPositions![i3 + 2] = update.position.z;
 
+          if (isDelta) {
+            // Delta frame: ADD deltas to existing target positions
+            this.targetPositions![i3] += update.position.x;
+            this.targetPositions![i3 + 1] += update.position.y;
+            this.targetPositions![i3 + 2] += update.position.z;
+          } else {
+            // Full frame: SET absolute target positions
+            this.targetPositions![i3] = update.position.x;
+            this.targetPositions![i3 + 1] = update.position.y;
+            this.targetPositions![i3 + 2] = update.position.z;
+          }
+
+          // Store V3 analytics fields (clusterId, anomalyScore, communityId) per node
+          if (this.analyticsBuffer && update.clusterId !== undefined) {
+            this.analyticsBuffer[i3] = update.clusterId;
+            this.analyticsBuffer[i3 + 1] = update.anomalyScore ?? 0;
+            this.analyticsBuffer[i3 + 2] = update.communityId ?? 0;
+          }
         }
       }
 
       const arrayOffset = index * 4;
       positionArray[arrayOffset] = update.nodeId;
-      positionArray[arrayOffset + 1] = update.position.x;
-      positionArray[arrayOffset + 2] = update.position.y;
-      positionArray[arrayOffset + 3] = update.position.z;
+      if (isDelta && stringNodeId) {
+        // For delta frames, output the resulting absolute position (not the delta)
+        const nodeIndex = this.nodeIndexMap.get(stringNodeId);
+        if (nodeIndex !== undefined) {
+          const i3 = nodeIndex * 3;
+          positionArray[arrayOffset + 1] = this.targetPositions![i3];
+          positionArray[arrayOffset + 2] = this.targetPositions![i3 + 1];
+          positionArray[arrayOffset + 3] = this.targetPositions![i3 + 2];
+        } else {
+          positionArray[arrayOffset + 1] = update.position.x;
+          positionArray[arrayOffset + 2] = update.position.y;
+          positionArray[arrayOffset + 3] = update.position.z;
+        }
+      } else {
+        positionArray[arrayOffset + 1] = update.position.x;
+        positionArray[arrayOffset + 2] = update.position.y;
+        positionArray[arrayOffset + 3] = update.position.z;
+      }
     });
 
-    
+
     return positionArray;
   }
 
@@ -611,6 +663,15 @@ class GraphWorker {
     if (settings.snapThreshold !== undefined) this.tweenSettings.snapThreshold = Math.max(0.01, settings.snapThreshold);
     if (settings.maxDivergence !== undefined) this.tweenSettings.maxDivergence = Math.max(1, settings.maxDivergence);
     workerLogger.info(`Tweening settings updated: lerpBase=${this.tweenSettings.lerpBase}, snap=${this.tweenSettings.snapThreshold}`);
+  }
+
+  /**
+   * Return per-node analytics data from binary protocol V3.
+   * Layout: Float32Array of [clusterId, anomalyScore, communityId] per node,
+   * indexed by node position in graphData.nodes (i.e., index * 3 + offset).
+   */
+  async getAnalyticsBuffer(): Promise<Float32Array> {
+    return this.analyticsBuffer ?? new Float32Array(0);
   }
 
   /**

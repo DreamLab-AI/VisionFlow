@@ -110,6 +110,12 @@ pub struct ForceComputeActor {
     /// Graph data waiting to be uploaded to GPU (set by InitializeGPU/UpdateGPUGraphData,
     /// consumed when shared_context becomes available)
     pending_graph_data: Option<Arc<crate::models::graph::GraphData>>,
+
+    /// Back-channel to PhysicsOrchestratorActor for the sequential pipeline.
+    /// When set, a PhysicsStepCompleted message is sent after each ComputeForces
+    /// step, enabling the orchestrator to drive the next step instead of using
+    /// an independent timer.
+    physics_orchestrator_addr: Option<Addr<crate::actors::physics_orchestrator_actor::PhysicsOrchestratorActor>>,
 }
 
 impl ForceComputeActor {
@@ -133,10 +139,18 @@ impl ForceComputeActor {
             log_interval_frames: 60,
         };
 
+        let initial_params = SimulationParams::default();
+        info!(
+            "ForceComputeActor::new() — initial params: dt={}, damping={}, repel_k={}, spring_k={}, center_gravity_k={}, max_force={}, max_velocity={}",
+            initial_params.dt, initial_params.damping, initial_params.repel_k,
+            initial_params.spring_k, initial_params.center_gravity_k,
+            initial_params.max_force, initial_params.max_velocity
+        );
+
         Self {
             gpu_state: GPUState::default(),
             shared_context: None,
-            simulation_params: SimulationParams::default(),
+            simulation_params: initial_params,
             unified_params: SimParams::default(),
             compute_mode: ComputeMode::Basic,
             last_step_start: None,
@@ -163,6 +177,7 @@ impl ForceComputeActor {
             node_id_buffer: Vec::with_capacity(10000),
             gpu_index_to_node_id: Vec::new(),
             pending_graph_data: None,
+            physics_orchestrator_addr: None,
         }
     }
 
@@ -556,6 +571,19 @@ impl Handler<ComputeForces> for ForceComputeActor {
     type Result = ResponseActFuture<Self, Result<(), String>>;
 
     fn handle(&mut self, _msg: ComputeForces, _ctx: &mut Self::Context) -> Self::Result {
+        // Helper: notify orchestrator on early exit so the pipeline doesn't stall.
+        macro_rules! notify_skip {
+            ($self:ident) => {
+                if let Some(ref orch_addr) = $self.physics_orchestrator_addr {
+                    orch_addr.do_send(crate::actors::messages::PhysicsStepCompleted {
+                        step_duration_ms: 0.0,
+                        nodes_broadcast: 0,
+                        iteration: $self.gpu_state.iteration_count,
+                    });
+                }
+            };
+        }
+
         // Early checks that don't need async
         if self.gpu_state.is_gpu_overloaded() {
             self.skipped_frames += 1;
@@ -563,6 +591,7 @@ impl Handler<ComputeForces> for ForceComputeActor {
                 info!("ForceComputeActor: Skipped {} frames due to GPU overload (utilization: {:.1}%, concurrent ops: {})",
                       self.skipped_frames, self.gpu_state.get_average_utilization(), self.gpu_state.concurrent_access_count);
             }
+            notify_skip!(self);
             return Box::pin(futures::future::ready(Ok(())).into_actor(self));
         }
 
@@ -574,6 +603,7 @@ impl Handler<ComputeForces> for ForceComputeActor {
                     self.skipped_frames
                 );
             }
+            notify_skip!(self);
             return Box::pin(futures::future::ready(Ok(())).into_actor(self));
         }
 
@@ -582,6 +612,7 @@ impl Handler<ComputeForces> for ForceComputeActor {
             Some(ctx) => ctx.clone(),
             None => {
                 let error_msg = "GPU context not initialized".to_string();
+                notify_skip!(self);
                 return Box::pin(futures::future::ready(Err(error_msg)).into_actor(self));
             }
         };
@@ -592,6 +623,7 @@ impl Handler<ComputeForces> for ForceComputeActor {
                 debug!("ForceComputeActor: Skipping compute — no graph data uploaded to GPU yet (waiting for InitializeGPU)");
             }
             self.skipped_frames += 1;
+            notify_skip!(self);
             return Box::pin(futures::future::ready(Ok(())).into_actor(self));
         }
 
@@ -645,6 +677,16 @@ impl Handler<ComputeForces> for ForceComputeActor {
             self.stability_warmup_remaining -= 1;
         }
         let reheat_factor = self.reheat_factor;
+        let current_iteration = self.gpu_state.iteration_count;
+
+        // Log GPU params on first iteration to verify non-zero values
+        if current_iteration == 0 {
+            info!(
+                "ForceComputeActor: FIRST GPU step — dt={}, damping={}, repel_k={}, spring_k={}, center_gravity_k={}, stability_bypass={}",
+                sim_params.dt, sim_params.damping, sim_params.repel_k,
+                sim_params.spring_k, sim_params.center_gravity_k, stability_bypass
+            );
+        }
 
         // Use spawn_blocking to prevent Tokio thread starvation from blocking mutex locks
         // GPU operations are inherently blocking (waiting for GPU kernels), so we move them
@@ -760,6 +802,17 @@ impl Handler<ComputeForces> for ForceComputeActor {
                                     actor.node_id_buffer.push(node_id);
                                 }
 
+                                // Diagnostic: log first few positions on early frames (6 decimal places for velocity)
+                                if actor.gpu_state.iteration_count < 5 || actor.gpu_state.iteration_count % 300 == 0 {
+                                    let n = actor.position_velocity_buffer.len().min(3);
+                                    for i in 0..n {
+                                        let (p, v) = actor.position_velocity_buffer[i];
+                                        info!("ForceComputeActor: iter={} node[{}] pos=({:.2},{:.2},{:.2}) vel=({:.6},{:.6},{:.6})",
+                                            actor.gpu_state.iteration_count, actor.node_id_buffer[i],
+                                            p.x, p.y, p.z, v.x, v.y, v.z);
+                                    }
+                                }
+
                                 let (should_broadcast, filtered_indices) =
                                     actor.broadcast_optimizer.process_frame(&actor.position_velocity_buffer, &actor.node_id_buffer);
 
@@ -823,6 +876,16 @@ impl Handler<ComputeForces> for ForceComputeActor {
                                       actor.iteration_count(), actor.gpu_state.gpu_failure_count, actor.skipped_frames, actor.last_step_duration_ms);
                             }
 
+                            // Sequential pipeline: notify orchestrator that this step is done
+                            // so it can trigger broadcast and schedule the next step.
+                            if let Some(ref orch_addr) = actor.physics_orchestrator_addr {
+                                orch_addr.do_send(crate::actors::messages::PhysicsStepCompleted {
+                                    step_duration_ms: actor.last_step_duration_ms,
+                                    nodes_broadcast: actor.position_velocity_buffer.len() as u32,
+                                    iteration: actor.gpu_state.iteration_count,
+                                });
+                            }
+
                             actor.is_computing = false;
                             actor.gpu_state.complete_operation(&GPUOperation::ForceComputation);
                             Ok(())
@@ -831,6 +894,17 @@ impl Handler<ComputeForces> for ForceComputeActor {
                             let error_msg = format!("GPU force computation failed: {}", e);
                             error!("{}", error_msg);
                             actor.gpu_state.gpu_failure_count += 1;
+
+                            // Sequential pipeline: notify orchestrator even on failure
+                            // so the pipeline doesn't stall.
+                            if let Some(ref orch_addr) = actor.physics_orchestrator_addr {
+                                orch_addr.do_send(crate::actors::messages::PhysicsStepCompleted {
+                                    step_duration_ms: actor.last_step_duration_ms,
+                                    nodes_broadcast: 0,
+                                    iteration: actor.gpu_state.iteration_count,
+                                });
+                            }
+
                             actor.is_computing = false;
                             actor.gpu_state.complete_operation(&GPUOperation::ForceComputation);
                             Err(error_msg)
@@ -839,6 +913,18 @@ impl Handler<ComputeForces> for ForceComputeActor {
                 }
                 Err(e) => {
                     error!("GPU access failed: {}", e);
+
+                    // Sequential pipeline: notify orchestrator even on failure.
+                    // Note: step_start is not in scope here (only destructured in Ok arm),
+                    // so we report 0.0 since the GPU step never actually executed.
+                    if let Some(ref orch_addr) = actor.physics_orchestrator_addr {
+                        orch_addr.do_send(crate::actors::messages::PhysicsStepCompleted {
+                            step_duration_ms: 0.0,
+                            nodes_broadcast: 0,
+                            iteration: actor.gpu_state.iteration_count,
+                        });
+                    }
+
                     actor.is_computing = false;
                     actor.gpu_state.complete_operation(&GPUOperation::ForceComputation);
                     Err(e)
@@ -1042,6 +1128,12 @@ impl Handler<InitializeGPU> for ForceComputeActor {
         if msg.graph_service_addr.is_some() {
             self.graph_service_addr = msg.graph_service_addr;
             info!("ForceComputeActor: GraphServiceActor address stored for position updates");
+        }
+
+        // Store physics orchestrator address for sequential pipeline back-channel
+        if msg.physics_orchestrator_addr.is_some() && self.physics_orchestrator_addr.is_none() {
+            self.physics_orchestrator_addr = msg.physics_orchestrator_addr.clone();
+            info!("ForceComputeActor: PhysicsOrchestratorActor address stored for sequential pipeline");
         }
 
         // Store graph data for GPU upload (upload happens when shared_context is available)
@@ -1316,6 +1408,18 @@ impl Handler<SetSharedGPUContext> for ForceComputeActor {
         }
 
         Ok(())
+    }
+}
+
+/// Handler for SetPhysicsOrchestratorAddr — wires up the back-channel for the
+/// sequential physics pipeline so that PhysicsStepCompleted messages flow back
+/// to the orchestrator after each GPU step.
+impl Handler<crate::actors::messages::SetPhysicsOrchestratorAddr> for ForceComputeActor {
+    type Result = ();
+
+    fn handle(&mut self, msg: crate::actors::messages::SetPhysicsOrchestratorAddr, _ctx: &mut Self::Context) -> Self::Result {
+        info!("ForceComputeActor: PhysicsOrchestratorActor address set for sequential pipeline");
+        self.physics_orchestrator_addr = Some(msg.addr);
     }
 }
 

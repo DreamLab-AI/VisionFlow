@@ -1,7 +1,7 @@
 use actix::{Handler, Message};
-use log::{error, info, trace};
+use log::{debug, error, info, trace};
 
-use crate::utils::binary_protocol;
+use crate::utils::delta_encoding;
 use crate::utils::socket_flow_messages::BinaryNodeData;
 
 use super::types::SocketFlowServer;
@@ -29,12 +29,67 @@ impl Handler<BroadcastPositionUpdate> for SocketFlowServer {
     type Result = ();
 
     fn handle(&mut self, msg: BroadcastPositionUpdate, ctx: &mut Self::Context) -> Self::Result {
-        if !msg.0.is_empty() {
-            let binary_data = binary_protocol::encode_node_data(&msg.0);
-            ctx.binary(binary_data);
+        if msg.0.is_empty() {
+            return;
+        }
 
-            if self.should_log_update() {
-                trace!("[WebSocket] Position update sent: {} nodes", msg.0.len());
+        let frame = self.delta_frame_counter;
+        let is_full_sync = frame == 0; // Frame 0 and every 60th frame triggers full sync
+
+        // Filter to only nodes that have actually moved (epsilon check using squared distance)
+        let epsilon_sq = self.delta_epsilon_sq;
+        let changed_nodes: Vec<&(u32, BinaryNodeData)> = msg.0.iter().filter(|(node_id, node)| {
+            if let Some(prev) = self.delta_previous_nodes.get(node_id) {
+                let dx = node.x - prev.x;
+                let dy = node.y - prev.y;
+                let dz = node.z - prev.z;
+                (dx * dx + dy * dy + dz * dz) > epsilon_sq
+            } else {
+                true // New node, always include
+            }
+        }).collect();
+
+        // If graph has fully converged (0 nodes changed) and not a full sync frame, skip broadcast
+        if changed_nodes.is_empty() && !is_full_sync {
+            // Still advance frame counter so full sync cadence is maintained
+            self.delta_frame_counter = (frame + 1) % 60;
+            return;
+        }
+
+        // Encode using delta encoding (V4 for delta frames, V3 for full sync frames)
+        let binary_data = delta_encoding::encode_node_data_delta(
+            &msg.0,
+            &self.delta_previous_nodes,
+            frame,
+            &[], // agent_node_ids -- flags are already set on the node IDs by callers
+            &[], // knowledge_node_ids
+        );
+        ctx.binary(binary_data);
+
+        // Update previous state for next delta computation.
+        // On full sync frames, clear and repopulate to prevent stale entries for
+        // deleted nodes from accumulating (VULN-09 / Code Review #2).
+        if is_full_sync {
+            self.delta_previous_nodes.clear();
+        }
+        for (node_id, node) in &msg.0 {
+            self.delta_previous_nodes.insert(*node_id, *node);
+        }
+
+        // Advance frame counter (wraps at 60 for periodic full sync)
+        self.delta_frame_counter = (frame + 1) % 60;
+
+        if self.should_log_update() {
+            if is_full_sync {
+                debug!(
+                    "[WebSocket] Full sync sent (frame {}): {} nodes",
+                    frame, msg.0.len()
+                );
+            } else {
+                trace!(
+                    "[WebSocket] Delta update sent (frame {}): {} changed of {} total nodes",
+                    frame, changed_nodes.len(), msg.0.len()
+                );
             }
         }
     }

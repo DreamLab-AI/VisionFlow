@@ -184,6 +184,11 @@ visualisation:
         clusterCount: 5
         clusteringResolution: 1.0
         clusteringIterations: 50
+      tweening:
+        enabled: true
+        lerpBase: 0.0001
+        snapThreshold: 0.05
+        maxDivergence: 50.0
     visionflow:
       nodes:
         baseColor: '#40ff00'
@@ -304,6 +309,11 @@ visualisation:
         clusterCount: 5
         clusteringResolution: 1.0
         clusteringIterations: 50
+      tweening:
+        enabled: true
+        lerpBase: 0.0001
+        snapThreshold: 0.05
+        maxDivergence: 50.0
   camera:
     fov: 75.0
     near: 0.1
@@ -316,6 +326,11 @@ visualisation:
       x: 0.0
       y: 0.0
       z: 0.0
+clientTweening:
+  enabled: true
+  lerpBase: 0.0001
+  snapThreshold: 0.05
+  maxDivergence: 50.0
 system:
   network:
     bindAddress: 0.0.0.0

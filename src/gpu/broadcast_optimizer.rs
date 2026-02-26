@@ -85,10 +85,16 @@ impl DeltaCompressor {
         for (idx, &node_id) in node_ids.iter().enumerate() {
             let (pos, vel) = positions[idx];
 
+            // Skip NaN/Inf positions — GPU divergence produces these
+            if !pos.x.is_finite() || !pos.y.is_finite() || !pos.z.is_finite() {
+                continue;
+            }
+
             // Check if node moved beyond threshold
             let should_update = if let Some(&prev_pos) = self.previous_positions.get(&node_id) {
                 let distance = (pos - prev_pos).length();
-                distance > threshold
+                // NaN distance (from prev being NaN) should trigger update
+                !distance.is_finite() || distance > threshold
             } else {
                 true // First time seeing this node
             };

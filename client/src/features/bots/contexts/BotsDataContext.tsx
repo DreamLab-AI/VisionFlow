@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import type { BotsAgent, BotsEdge, BotsFullUpdateMessage } from '../types/BotsTypes';
 import { botsWebSocketIntegration } from '../services/BotsWebSocketIntegration';
-import { parseBinaryNodeData, isAgentNode, getActualNodeId } from '../../../types/binaryProtocol';
+import { parseBinaryNodeData, parseBinaryFrameData, isAgentNode, getActualNodeId } from '../../../types/binaryProtocol';
 import { useAgentPolling } from '../hooks/useAgentPolling';
 import { agentPollingService } from '../services/AgentPollingService';
 import { unifiedApiClient } from '../../../services/api/UnifiedApiClient';
@@ -192,40 +192,59 @@ export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   
   const updateFromBinaryPositions = (binaryData: ArrayBuffer) => {
     try {
-      
-      const nodeUpdates = parseBinaryNodeData(binaryData);
 
-      
-      const agentUpdates = nodeUpdates.filter(node => isAgentNode(node.nodeId));
+      const frame = parseBinaryFrameData(binaryData);
+      const isDelta = frame.type === 'delta';
+      const agentUpdates = frame.nodes.filter(node => isAgentNode(node.nodeId));
 
       if (agentUpdates.length === 0) {
-        return; 
+        return;
       }
 
-      logger.debug(`Processing ${agentUpdates.length} agent position updates from binary data`);
+      logger.debug(`Processing ${agentUpdates.length} agent position updates from binary data (${frame.type})`);
 
       setBotsData(prev => {
         if (!prev) return prev;
 
-        
+
         const updatedAgents = prev.agents.map(agent => {
-          
+
           const positionUpdate = agentUpdates.find(update => {
             const actualNodeId = getActualNodeId(update.nodeId);
-            
+
             return String(actualNodeId) === agent.id || actualNodeId.toString() === agent.id;
           });
 
           if (positionUpdate) {
-            
+            if (isDelta) {
+              // Delta frame: ADD deltas to existing agent position
+              const prevPos = agent.position || { x: 0, y: 0, z: 0 };
+              const prevVel = agent.velocity || { x: 0, y: 0, z: 0 };
+              return {
+                ...agent,
+                position: {
+                  x: prevPos.x + positionUpdate.position.x,
+                  y: prevPos.y + positionUpdate.position.y,
+                  z: prevPos.z + positionUpdate.position.z,
+                },
+                velocity: {
+                  x: prevVel.x + positionUpdate.velocity.x,
+                  y: prevVel.y + positionUpdate.velocity.y,
+                  z: prevVel.z + positionUpdate.velocity.z,
+                },
+                lastPositionUpdate: Date.now()
+              };
+            }
+
+            // Full frame: SET absolute positions
             return {
               ...agent,
               position: positionUpdate.position,
               velocity: positionUpdate.velocity,
-              
+
               ssspDistance: positionUpdate.ssspDistance,
               ssspParent: positionUpdate.ssspParent,
-              
+
               lastPositionUpdate: Date.now()
             };
           }

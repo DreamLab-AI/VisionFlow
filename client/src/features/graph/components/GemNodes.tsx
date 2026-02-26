@@ -7,10 +7,11 @@ import { createGemNodeMaterial, createTslGemMaterial, createGemGeometry } from '
 import { createCrystalOrbMaterial, createCrystalOrbGeometry } from '../../../rendering/materials/CrystalOrbMaterial';
 import { createAgentCapsuleMaterial, createAgentCapsuleGeometry } from '../../../rendering/materials/AgentCapsuleMaterial';
 import { useSettingsStore } from '../../../store/settingsStore';
-import type { GemMaterialSettings, GraphTypeVisualsSettings } from '../../settings/config/settings';
+import type { GemMaterialSettings, GraphTypeVisualsSettings, QualityGatesSettings } from '../../settings/config/settings';
 import type { Edge } from '../managers/graphDataManager';
 import type { ThreeEvent } from '@react-three/fiber';
 import { createLogger } from '../../../utils/loggerConfig';
+import { graphWorkerProxy } from '../managers/graphWorkerProxy';
 
 const logger = createLogger('GemNodes');
 import { computeNodeScale } from '../utils/nodeScaling';
@@ -114,6 +115,12 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
   const gemSettings = useSettingsStore(s => s.get<GemMaterialSettings>('visualisation.gemMaterial'));
   const lastGemSettingsRef = useRef<string>('');
 
+  // Quality gate toggles for cluster/anomaly/community coloring
+  const qualityGates = useSettingsStore(s => s.get<QualityGatesSettings>('qualityGates'));
+  // Per-node analytics data from binary protocol V3 (refreshed periodically)
+  const analyticsRef = useRef<Float32Array | null>(null);
+  const analyticsFrameRef = useRef(0);
+
   // Allocate a large buffer (4096 instances) so the mesh is created ONCE and
   // never recreated when nodes.length grows from 0→N on data load.
   // Only recreate when the visual mode (dominant) changes.
@@ -207,7 +214,35 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
     }
   }, [dominant, mesh, nodes.length]);
 
-  const computeColor = useCallback((node: GraphNode, mode: GraphVisualMode): THREE.Color => {
+  const computeColor = useCallback((node: GraphNode, mode: GraphVisualMode, nodeIndex?: number): THREE.Color => {
+    // Quality gate overrides: color-code by cluster/anomaly/community when enabled.
+    // These take precedence over standard mode coloring (but not SSSP highlight).
+    const analytics = analyticsRef.current;
+    if (analytics && nodeIndex !== undefined && nodeIndex * 3 + 2 < analytics.length) {
+      const a3 = nodeIndex * 3;
+      const clusterId = analytics[a3];
+      const anomalyScore = analytics[a3 + 1];
+      const communityId = analytics[a3 + 2];
+
+      // Anomaly highlighting: red intensity proportional to anomalyScore (0-1)
+      if (qualityGates?.showAnomalies && anomalyScore > 0.01) {
+        const intensity = Math.min(anomalyScore, 1.0);
+        return _col.setRGB(0.9 * intensity + 0.1, 0.15 * (1 - intensity), 0.1);
+      }
+
+      // Cluster coloring: deterministic hue from clusterId (non-zero means assigned)
+      if (qualityGates?.showClusters && clusterId > 0) {
+        const hue = ((clusterId * 137) % 360) / 360; // golden angle spacing
+        return _col.setHSL(hue, 0.7, 0.55);
+      }
+
+      // Community coloring: deterministic hue from communityId
+      if (qualityGates?.showCommunities && communityId > 0) {
+        const hue = ((communityId * 83) % 360) / 360;
+        return _col.setHSL(hue, 0.65, 0.5);
+      }
+    }
+
     if (ssspResult) {
       const d = ssspResult.distances?.[node.id] ?? NaN;
       if (String(node.id) === ssspResult.sourceNodeId) return _col.set('#00FFFF');
@@ -231,7 +266,7 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
     const lit = 0.45 + auth * 0.2;
     _col.setHSL(hue, Math.min(sat, 0.9), Math.min(lit, 0.75));
     return _col;
-  }, [ssspResult, hierarchyMap, connectionCountMap]);
+  }, [ssspResult, hierarchyMap, connectionCountMap, qualityGates]);
 
   // Progressive reveal: ramp up visible instance count over frames so nodes
   // appear in waves (~120 nodes/frame at 60fps → full 1090 in ~0.15s).
@@ -262,6 +297,16 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
 
     const positions = nodePositionsRef.current;
     frameCountRef.current++;
+
+    // Refresh per-node analytics from worker every ~30 frames (~0.5s at 60fps)
+    // to avoid Comlink overhead on every frame.
+    analyticsFrameRef.current++;
+    if (analyticsFrameRef.current % 30 === 1 &&
+        (qualityGates?.showClusters || qualityGates?.showAnomalies || qualityGates?.showCommunities)) {
+      graphWorkerProxy.getAnalyticsBuffer().then(buf => {
+        analyticsRef.current = buf.length > 0 ? buf : null;
+      }).catch(() => { /* ignore worker errors */ });
+    }
 
     // Delayed diagnostic — fires at frame 60 when positions are loaded (dev only)
     if (import.meta.env.DEV) {

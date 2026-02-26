@@ -100,7 +100,11 @@ export const ClusterHulls: React.FC<ClusterHullsProps> = ({
   const [tick, setTick] = useState(0);
 
   // ---- Early exit if feature is disabled ----
-  const enabled = settings?.visualisation?.clusterHulls?.enabled;
+  // Respect both the visual clusterHulls.enabled toggle AND qualityGates.showClusters
+  const clusterHullsEnabled = settings?.visualisation?.clusterHulls?.enabled;
+  const showClusters = settings?.qualityGates?.showClusters;
+  // If qualityGates.showClusters is explicitly false, disable hulls even if clusterHulls.enabled is true
+  const enabled = showClusters === false ? false : clusterHullsEnabled;
   const opacity = settings?.visualisation?.clusterHulls?.opacity ?? 0.08;
   const padding = settings?.visualisation?.clusterHulls?.padding ?? 0.15;
 

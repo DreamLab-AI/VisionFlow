@@ -774,6 +774,26 @@ pub async fn update_quality_gate_settings(
             }
             sim_params.enabled = settings.gpu_acceleration;
 
+            // Apply layout-mode-specific physics overrides.
+            // DAG modes enable center gravity + SSSP for hierarchical layout.
+            // Type-clustering enables cluster/alignment forces for grouping.
+            match settings.layout_mode.as_str() {
+                "dag-topdown" | "dag-radial" | "dag-leftright" => {
+                    info!("Quality gates: applying DAG layout overrides for mode: {}", settings.layout_mode);
+                    sim_params.center_gravity_k = sim_params.center_gravity_k.max(0.1);
+                    sim_params.use_sssp_distances = true;
+                    sim_params.sssp_alpha = Some(sim_params.sssp_alpha.unwrap_or(0.0).max(0.5));
+                }
+                "type-clustering" => {
+                    info!("Quality gates: applying type-clustering layout overrides");
+                    sim_params.cluster_strength = sim_params.cluster_strength.max(0.5);
+                    sim_params.alignment_strength = sim_params.alignment_strength.max(0.3);
+                }
+                _ => {
+                    // force-directed: use physics settings as-is
+                }
+            }
+
             let update_msg = UpdateSimulationParams { params: sim_params };
 
             if let Some(gpu_addr) = state.get_gpu_compute_addr().await {

@@ -39,8 +39,8 @@ const GraphCanvas: React.FC = () => {
     // only triggers re-renders when that specific value actually changes.
     const showStats = useSettingsStore(s => s.settings?.system?.debug?.enablePerformanceDebug ?? false);
     const enableGlow = useSettingsStore(s => s.settings?.visualisation?.glow?.enabled !== false);
-    const ambientLightIntensity = useSettingsStore(s => s.settings?.visualisation?.rendering?.ambientLightIntensity ?? 0.4);
-    const directionalLightIntensity = useSettingsStore(s => s.settings?.visualisation?.rendering?.directionalLightIntensity ?? 0.8);
+    const ambientLightIntensity = useSettingsStore(s => s.settings?.visualisation?.rendering?.ambientLightIntensity ?? 0.5);
+    const directionalLightIntensity = useSettingsStore(s => s.settings?.visualisation?.rendering?.directionalLightIntensity ?? 0.4);
     const sceneEffects = useSettingsStore(s => s.settings?.visualisation?.sceneEffects);
     
     // Lightweight subscription: only track counts to avoid storing full graph data in two places

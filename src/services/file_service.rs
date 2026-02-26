@@ -1187,17 +1187,71 @@ impl FileService {
             graph_data.edges.len()
         );
 
-        info!("Clearing existing graph data from Neo4j...");
-        if let Err(e) = neo4j_adapter.clear_graph().await {
-            return Err(format!("Failed to clear Neo4j graph: {}", e));
+        // Collect metadata_ids of all nodes we're about to upsert
+        let current_metadata_ids: Vec<String> = graph_data
+            .nodes
+            .iter()
+            .map(|n| n.metadata_id.clone())
+            .collect();
+
+        // Remove only nodes whose source files no longer exist (not in current set)
+        // This preserves nodes from prior syncs that still have valid source files
+        info!("Removing stale nodes from Neo4j (nodes whose source files were removed)...");
+        {
+            use neo4rs::BoltType;
+            let id_list: Vec<BoltType> = current_metadata_ids
+                .iter()
+                .map(|s| BoltType::from(s.clone()))
+                .collect();
+            let mut params = HashMap::new();
+            params.insert("current_ids".to_string(), BoltType::from(id_list));
+
+            match neo4j_adapter.execute_cypher_safe(
+                "MATCH (n:GraphNode)
+                 WHERE n.metadata_id IS NOT NULL
+                   AND NOT n.metadata_id IN $current_ids
+                 WITH n, n.metadata_id AS mid
+                 DETACH DELETE n
+                 RETURN count(*) AS removed, collect(mid) AS removed_ids",
+                params,
+            ).await {
+                Ok(rows) => {
+                    if let Some(row) = rows.first() {
+                        let removed = row.get("removed")
+                            .and_then(|v| v.as_i64())
+                            .unwrap_or(0);
+                        if removed > 0 {
+                            let removed_ids: Vec<&str> = row.get("removed_ids")
+                                .and_then(|v| v.as_array())
+                                .map(|arr| arr.iter()
+                                    .filter_map(|v| v.as_str())
+                                    .take(10)
+                                    .collect())
+                                .unwrap_or_default();
+                            info!(
+                                "Removed {} stale nodes from Neo4j: {:?}",
+                                removed, removed_ids
+                            );
+                        } else {
+                            info!("No stale nodes to remove.");
+                        }
+                    }
+                }
+                Err(e) => {
+                    warn!("Failed to remove stale nodes: {}. Continuing with upsert.", e);
+                }
+            }
         }
 
-        info!("Saving new graph data to Neo4j...");
+        info!("Upserting {} nodes into Neo4j (preserving existing physics state)...", graph_data.nodes.len());
         if let Err(e) = neo4j_adapter.save_graph(&graph_data).await {
             return Err(format!("Failed to save graph to Neo4j: {}", e));
         }
 
-        info!("✅ Successfully populated Neo4j from local files.");
+        info!(
+            "✅ Successfully synced Neo4j: {} nodes upserted from local files.",
+            graph_data.nodes.len()
+        );
         Ok(())
     }
 }

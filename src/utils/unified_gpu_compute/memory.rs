@@ -324,12 +324,15 @@ impl UnifiedGPUCompute {
         let actual_new_edges = ((new_num_edges as f32 * 1.5) as usize).max(self.num_edges);
 
 
-        let mut pos_x_data = vec![0.0f32; self.num_nodes];
-        let mut pos_y_data = vec![0.0f32; self.num_nodes];
-        let mut pos_z_data = vec![0.0f32; self.num_nodes];
-        let mut vel_x_data = vec![0.0f32; self.num_nodes];
-        let mut vel_y_data = vec![0.0f32; self.num_nodes];
-        let mut vel_z_data = vec![0.0f32; self.num_nodes];
+        // Use allocated_nodes (not num_nodes) to match actual device buffer size,
+        // which may be larger due to 1.5x overallocation from a previous resize.
+        let copy_size = self.allocated_nodes;
+        let mut pos_x_data = vec![0.0f32; copy_size];
+        let mut pos_y_data = vec![0.0f32; copy_size];
+        let mut pos_z_data = vec![0.0f32; copy_size];
+        let mut vel_x_data = vec![0.0f32; copy_size];
+        let mut vel_y_data = vec![0.0f32; copy_size];
+        let mut vel_z_data = vec![0.0f32; copy_size];
 
 
         self.pos_in_x.copy_to(&mut pos_x_data)?;

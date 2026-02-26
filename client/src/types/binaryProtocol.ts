@@ -10,7 +10,7 @@ const logger = createLogger('binaryProtocol');
  * Protocol Versions:
  * - V2: 36 bytes per node (basic pathfinding)
  * - V3: 48 bytes per node (adds cluster_id, anomaly_score, community_id)
- * - V4: Delta encoding (16 bytes per changed node) [client decoding pending]
+ * - V4: Delta encoding (20 bytes per changed node, only changed nodes sent)
  */
 
 export interface Vec3 {
@@ -30,6 +30,26 @@ export interface BinaryNodeData {
   anomalyScore?: number;
   communityId?: number;
 }
+
+/**
+ * Result of parsing binary node data, distinguishing full vs delta updates.
+ * - Full updates: nodes contain absolute positions (replace targetPositions)
+ * - Delta updates: nodes contain position/velocity DELTAS (add to targetPositions)
+ */
+export interface ParsedBinaryFrame {
+  /** 'full' for V2/V3 full state, 'delta' for V4 delta encoding */
+  type: 'full' | 'delta';
+  /** Parsed node data. For delta frames, position/velocity are DELTAS, not absolute. */
+  nodes: BinaryNodeData[];
+  /** V4 only: frame number within the delta cycle (0-59) */
+  frameNumber?: number;
+}
+
+// V4 delta encoding constants (must match server delta_encoding.rs)
+const DELTA_SCALE_FACTOR = 100.0;
+const DELTA_ITEM_SIZE = 20;
+const DELTA_POSITION_CHANGED = 0x01;
+const DELTA_VELOCITY_CHANGED = 0x02;
 
 // Protocol version constants (must match server)
 export const PROTOCOL_V2 = 2;
@@ -140,9 +160,9 @@ export function parseBinaryNodeData(buffer: ArrayBuffer): BinaryNodeData[] {
         hasAnalytics = true;
         break;
       case PROTOCOL_V4:
-        // Delta encoding - not yet implemented on client
-        logger.warn('Received Protocol V4 (delta encoding) frame — client decoding not yet implemented, skipping');
-        return [];
+        // Delta encoding - decode via parseBinaryFrameData() instead
+        // Return empty from this legacy function; callers should use parseBinaryFrameData()
+        return parseDeltaNodes(safeBuffer);
       default:
         // Unknown version - try to detect format by size
         logger.warn(`Unknown protocol version: ${protocolVersion}, attempting auto-detection`);
@@ -245,6 +265,102 @@ export function parseBinaryNodeData(buffer: ArrayBuffer): BinaryNodeData[] {
   }
 
   return nodes;
+}
+
+/**
+ * Parse V4 delta-encoded frame into BinaryNodeData entries.
+ * The returned nodes contain DELTA values (not absolute positions).
+ * Position and velocity fields represent the CHANGE from the previous frame.
+ *
+ * V4 wire format:
+ *   [1 byte: version=4][1 byte: frame_number][2 bytes: num_changed (u16 LE)]
+ *   For each changed node (20 bytes):
+ *     [4 bytes: node_id (u32 LE)][1 byte: change_flags][3 bytes: padding]
+ *     [2 bytes: dx (i16 LE)][2 bytes: dy][2 bytes: dz]
+ *     [2 bytes: dvx (i16 LE)][2 bytes: dvy][2 bytes: dvz]
+ */
+function parseDeltaNodes(buffer: ArrayBuffer): BinaryNodeData[] {
+  const view = new DataView(buffer);
+  const nodes: BinaryNodeData[] = [];
+
+  // Minimum size: 1 (version) + 1 (frame) + 2 (count) = 4 bytes
+  if (buffer.byteLength < 4) {
+    return [];
+  }
+
+  // Skip version byte (already validated as V4)
+  const _frameNumber = view.getUint8(1);
+  const numChanged = view.getUint16(2, true);
+
+  const expectedSize = 4 + numChanged * DELTA_ITEM_SIZE;
+  if (buffer.byteLength < expectedSize) {
+    logger.warn(`V4 delta frame truncated: expected ${expectedSize} bytes, got ${buffer.byteLength}`);
+    return [];
+  }
+
+  let offset = 4;
+  for (let i = 0; i < numChanged; i++) {
+    const nodeId = view.getUint32(offset, true);
+    const changeFlags = view.getUint8(offset + 4);
+    // offset + 5..7 = padding
+
+    const dxScaled = view.getInt16(offset + 8, true);
+    const dyScaled = view.getInt16(offset + 10, true);
+    const dzScaled = view.getInt16(offset + 12, true);
+    const dvxScaled = view.getInt16(offset + 14, true);
+    const dvyScaled = view.getInt16(offset + 16, true);
+    const dvzScaled = view.getInt16(offset + 18, true);
+
+    const dx = (changeFlags & DELTA_POSITION_CHANGED) ? dxScaled / DELTA_SCALE_FACTOR : 0;
+    const dy = (changeFlags & DELTA_POSITION_CHANGED) ? dyScaled / DELTA_SCALE_FACTOR : 0;
+    const dz = (changeFlags & DELTA_POSITION_CHANGED) ? dzScaled / DELTA_SCALE_FACTOR : 0;
+    const dvx = (changeFlags & DELTA_VELOCITY_CHANGED) ? dvxScaled / DELTA_SCALE_FACTOR : 0;
+    const dvy = (changeFlags & DELTA_VELOCITY_CHANGED) ? dvyScaled / DELTA_SCALE_FACTOR : 0;
+    const dvz = (changeFlags & DELTA_VELOCITY_CHANGED) ? dvzScaled / DELTA_SCALE_FACTOR : 0;
+
+    nodes.push({
+      nodeId,
+      position: { x: dx, y: dy, z: dz },
+      velocity: { x: dvx, y: dvy, z: dvz },
+      ssspDistance: Infinity,
+      ssspParent: -1,
+    });
+
+    offset += DELTA_ITEM_SIZE;
+  }
+
+  return nodes;
+}
+
+/**
+ * Parse binary data and return a typed frame that distinguishes full vs delta updates.
+ * This is the preferred entry point for callers that need to handle delta encoding.
+ *
+ * - Full frames (V2/V3): nodes contain absolute positions
+ * - Delta frames (V4): nodes contain position/velocity DELTAS
+ */
+export function parseBinaryFrameData(buffer: ArrayBuffer): ParsedBinaryFrame {
+  if (!buffer || buffer.byteLength === 0) {
+    return { type: 'full', nodes: [] };
+  }
+
+  const safeBuffer = buffer.slice(0);
+  const view = new DataView(safeBuffer);
+  const protocolVersion = view.getUint8(0);
+
+  if (protocolVersion === PROTOCOL_V4) {
+    const frameNumber = safeBuffer.byteLength >= 2 ? view.getUint8(1) : 0;
+    const deltaNodes = parseDeltaNodes(safeBuffer);
+    return {
+      type: 'delta',
+      nodes: deltaNodes,
+      frameNumber,
+    };
+  }
+
+  // V2/V3: delegate to existing full-state parser
+  const fullNodes = parseBinaryNodeData(buffer);
+  return { type: 'full', nodes: fullNodes };
 }
 
 /**

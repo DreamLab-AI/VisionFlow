@@ -4,6 +4,31 @@ use cudarc::driver::DeviceRepr;
 use cust_core::DeviceCopy;
 use serde::{Deserialize, Serialize};
 
+/// Controls how the physics simulation converges.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase", tag = "type")]
+pub enum SettleMode {
+    /// Standard continuous simulation driven by a fixed-rate timer tick.
+    Continuous,
+    /// Aggressive convergence: override damping, iterate as fast as the GPU can
+    /// compute until the system reaches the energy threshold (or hits the iteration
+    /// cap), then broadcast final positions and pause.
+    FastSettle {
+        /// Override damping to this value during the settle phase (e.g. 0.95).
+        damping_override: f32,
+        /// Maximum iterations before giving up on convergence.
+        max_settle_iterations: u32,
+        /// Total kinetic energy below which the system is considered settled.
+        energy_threshold: f64,
+    },
+}
+
+impl Default for SettleMode {
+    fn default() -> Self {
+        SettleMode::Continuous
+    }
+}
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum SimulationMode {
@@ -117,7 +142,7 @@ impl FeatureFlags {
     pub const ENABLE_SSSP_SPRING_ADJUST: u32 = 1 << 6; 
 }
 
-#[derive(Default, Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct SimulationParams {
     
@@ -180,13 +205,25 @@ pub struct SimulationParams {
     pub constraint_max_force_per_node: f32, 
 
     
-    pub phase: SimulationPhase, 
-    pub mode: SimulationMode,   
+    pub phase: SimulationPhase,
+    pub mode: SimulationMode,
+
+    /// Controls simulation convergence behavior.
+    /// `FastSettle` (default) runs tight iterations until energy drops below
+    /// threshold, then pauses. `Continuous` keeps the old timer-driven tick.
+    #[serde(default)]
+    pub settle_mode: SettleMode,
+}
+
+impl Default for SimulationParams {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl SimulationParams {
     pub fn new() -> Self {
-        
+
         let default_physics = PhysicsSettings::default();
         Self::from(&default_physics)
     }
@@ -346,6 +383,7 @@ impl SimParams {
             constraint_max_force_per_node: self.constraint_max_force_per_node,
             phase: SimulationPhase::Dynamic,
             mode: SimulationMode::Remote,
+            settle_mode: SettleMode::default(),
         }
     }
 }
@@ -472,6 +510,7 @@ impl From<&PhysicsSettings> for SimulationParams {
             constraint_max_force_per_node: physics.constraint_max_force_per_node,
             phase: SimulationPhase::Dynamic,
             mode: SimulationMode::Remote,
+            settle_mode: SettleMode::default(),
         }
     }
 }

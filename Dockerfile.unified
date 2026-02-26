@@ -93,10 +93,21 @@ COPY Cargo.toml build.rs ./
 COPY Cargo.lock* ./
 COPY whelk-rs ./whelk-rs
 
-# Create dummy source to build dependencies without real code
-RUN mkdir -p src && \
+# Copy CUDA source files needed by build.rs for PTX compilation
+COPY src/utils/*.cu src/utils/
+
+# Create dummy Rust source to build dependencies without real code
+# Must create placeholders for all [[bin]] targets in Cargo.toml
+RUN mkdir -p src/bin examples && \
     echo "fn main() {}" > src/main.rs && \
-    echo "pub fn lib() {}" > src/lib.rs
+    echo "pub fn lib() {}" > src/lib.rs && \
+    echo "fn main() {}" > src/bin/generate_types.rs && \
+    echo "fn main() {}" > src/bin/sync_local.rs && \
+    echo "fn main() {}" > src/bin/sync_github.rs && \
+    echo "fn main() {}" > examples/constraint_integration_debug.rs && \
+    echo "fn main() {}" > examples/metadata_debug.rs && \
+    echo "fn main() {}" > examples/ontology_constraints_example.rs && \
+    echo "fn main() {}" > examples/ontology_validation_example.rs
 
 # Fetch and build dependencies (this layer is cached unless deps change)
 RUN cargo fetch && \
@@ -111,6 +122,10 @@ FROM rust-deps AS rust-builder
 # Copy actual source code
 COPY src ./src
 COPY data/schema ./data/schema
+
+# Force cargo to recompile: Docker COPY preserves host mtimes which may be
+# older than Stage 2 build artifacts, causing cargo to skip recompilation
+RUN find src -name '*.rs' -exec touch {} + && touch build.rs
 
 # Build Rust backend with GPU features
 # This compiles the actual application code

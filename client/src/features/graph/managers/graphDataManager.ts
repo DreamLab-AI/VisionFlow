@@ -3,7 +3,7 @@ import { debugState } from '../../../utils/clientDebugState';
 import { unifiedApiClient } from '../../../services/api/UnifiedApiClient';
 import { WebSocketAdapter } from '../../../store/websocketStore';
 import { useSettingsStore } from '../../../store/settingsStore';
-import { BinaryNodeData, parseBinaryNodeData, createBinaryNodeData, Vec3, BINARY_NODE_SIZE } from '../../../types/binaryProtocol';
+import { BinaryNodeData, parseBinaryNodeData, createBinaryNodeData, Vec3, BINARY_NODE_SIZE, PROTOCOL_V4 } from '../../../types/binaryProtocol';
 import { stringToU32 } from '../../../types/idMapping';
 import { graphWorkerProxy } from './graphWorkerProxy';
 import type { GraphData, Node, Edge } from './graphWorkerProxy';
@@ -134,6 +134,21 @@ class GraphDataManager {
     window.addEventListener('physicsParametersUpdated', handlePhysicsUpdate);
     this.workerUnsubscribers.push(() => {
       window.removeEventListener('physicsParametersUpdated', handlePhysicsUpdate);
+    });
+
+    // Listen for client-side tweening setting changes and forward to worker.
+    // Tweening controls how smoothly the client interpolates toward server positions.
+    const handleTweeningUpdate = (e: Event) => {
+      const detail = (e as CustomEvent)?.detail;
+      if (detail && this.workerInitialized) {
+        graphWorkerProxy.setTweeningSettings(detail).catch((err: unknown) => {
+          logger.warn('Failed to forward tweening settings to worker:', createErrorMetadata(err));
+        });
+      }
+    };
+    window.addEventListener('tweeningSettingsUpdated', handleTweeningUpdate);
+    this.workerUnsubscribers.push(() => {
+      window.removeEventListener('tweeningSettingsUpdated', handleTweeningUpdate);
     });
   }
 
@@ -595,9 +610,13 @@ class GraphDataManager {
       if (debugState.isDataDebugEnabled()) {
         logger.debug(`Received binary data: ${positionData.byteLength} bytes`);
 
-        const remainder = positionData.byteLength % BINARY_NODE_SIZE;
-        if (remainder !== 0) {
-          logger.warn(`Binary data size (${positionData.byteLength} bytes) is not a multiple of ${BINARY_NODE_SIZE}. Remainder: ${remainder} bytes`);
+        // Skip size validation for V4 delta frames (variable-length format)
+        const protoVersion = positionData.byteLength >= 1 ? new DataView(positionData).getUint8(0) : 0;
+        if (protoVersion !== PROTOCOL_V4) {
+          const remainder = (positionData.byteLength - 1) % BINARY_NODE_SIZE; // -1 for version byte
+          if (remainder !== 0) {
+            logger.warn(`Binary data size (${positionData.byteLength} bytes) is not a multiple of ${BINARY_NODE_SIZE}. Remainder: ${remainder} bytes`);
+          }
         }
       }
 

@@ -215,7 +215,14 @@ export const UNIFIED_SETTINGS_CONFIG: Record<string, SectionConfig> = {
       { key: 'updateThreshold', label: 'Update Threshold', type: 'slider', min: 0, max: 0.5, step: 0.01, path: 'visualisation.graphs.logseq.physics.updateThreshold', description: 'Movement threshold for updates', isAdvanced: true },
       { key: 'maxForce', label: 'Max Force', type: 'slider', min: 1, max: 5000, step: 10, path: 'visualisation.graphs.logseq.physics.maxForce', description: 'Maximum force per node', isAdvanced: true },
       { key: 'temperature', label: 'Temperature', type: 'slider', min: 0.01, max: 10, step: 0.1, path: 'visualisation.graphs.logseq.physics.temperature', description: 'Simulation temperature (energy)', isAdvanced: true },
-      { key: 'massScale', label: 'Mass Scale', type: 'slider', min: 0.01, max: 10, step: 0.1, path: 'visualisation.graphs.logseq.physics.massScale', description: 'Node mass multiplier', isAdvanced: true }
+      { key: 'massScale', label: 'Mass Scale', type: 'slider', min: 0.01, max: 10, step: 0.1, path: 'visualisation.graphs.logseq.physics.massScale', description: 'Node mass multiplier', isAdvanced: true },
+
+      // Client-side tweening / interpolation - Basic
+      { key: 'tweeningEnabled', label: 'Smooth Node Movement', type: 'toggle', path: 'visualisation.graphs.logseq.tweening.enabled', description: 'Smoothly animate nodes toward server positions instead of snapping instantly' },
+      { key: 'tweeningLerpBase', label: 'Node Animation Speed', type: 'slider', min: 0.0001, max: 0.15, step: 0.001, path: 'visualisation.graphs.logseq.tweening.lerpBase', description: 'How quickly nodes reach their target positions (lower = faster, higher = smoother)' },
+      { key: 'tweeningMaxDivergence', label: 'Maximum Node Jump', type: 'slider', min: 1, max: 100, step: 1, path: 'visualisation.graphs.logseq.tweening.maxDivergence', description: 'Distance threshold above which nodes snap instantly instead of animating' },
+      // Client-side tweening - Advanced
+      { key: 'tweeningSnapThreshold', label: 'Snap Distance', type: 'slider', min: 0.01, max: 1.0, step: 0.01, path: 'visualisation.graphs.logseq.tweening.snapThreshold', description: 'Distance below which nodes snap to their target (sub-pixel precision)', isAdvanced: true }
     ]
   },
 

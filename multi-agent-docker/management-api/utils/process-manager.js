@@ -119,7 +119,7 @@ class ProcessManager {
         '--task', task,
         '--provider', provider
       ];
-      taskEnv = { ...process.env, ...userEnv, TASK_ID: taskId };
+      taskEnv = { ...process.env, ...userEnv, TASK_ID: taskId, COMPLETION_MODEL: process.env.COMPLETION_MODEL || 'gemini-2.0-flash' };
     }
 
     // Spawn process in isolated directory

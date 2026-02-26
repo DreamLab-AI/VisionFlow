@@ -349,6 +349,8 @@ export interface GraphSettings {
   edges: EdgeSettings;
   labels: LabelSettings;
   physics: PhysicsSettings;
+  /** Per-graph-type client-side tweening (overrides top-level clientTweening) */
+  tweening?: ClientTweeningSettings;
 }
 
 // Multi-graph namespace structure

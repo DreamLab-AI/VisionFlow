@@ -82,6 +82,15 @@ impl SocketFlowServer {
                     Some("ontology_reasoning") => {
                         super::filter_auth::handle_ontology_reasoning(self, &msg, ctx);
                     }
+                    Some("nodeDragStart") => {
+                        super::position_updates::handle_node_drag_start(self, &msg, ctx);
+                    }
+                    Some("nodeDragEnd") => {
+                        super::position_updates::handle_node_drag_end(self, &msg, ctx);
+                    }
+                    Some("nodeDragUpdate") => {
+                        super::position_updates::handle_node_drag_update(self, &msg, ctx);
+                    }
                     _ => {
                         warn!("[WebSocket] Unknown message type: {:?}", msg);
                     }

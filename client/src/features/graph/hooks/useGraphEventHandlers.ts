@@ -50,18 +50,24 @@ export const useGraphEventHandlers = (
   
   const throttledWebSocketUpdate = useRef(
     throttle((nodeId: string, position: { x: number; y: number; z: number }) => {
-      
+
       if (shouldSendPositionUpdates()) {
         const numericId = graphDataManager.nodeIdMap.get(nodeId);
         if (numericId !== undefined && graphDataManager.webSocketService?.isReady()) {
+          // Send server-side drag update (JSON) for pin-at-position + fast-settle
+          (graphDataManager.webSocketService as unknown as { sendMessage: (type: string, data?: unknown) => void }).sendMessage('nodeDragUpdate', {
+            nodeId: numericId,
+            position,
+            timestamp: Date.now()
+          });
+
+          // Also send legacy binary position update for backwards compatibility
           const update = {
             nodeId: numericId,
             position,
             velocity: { x: 0, y: 0, z: 0 }
           };
-
-          
-          if (graphDataManager.webSocketService && 'sendNodePositionUpdates' in graphDataManager.webSocketService) {
+          if ('sendNodePositionUpdates' in graphDataManager.webSocketService!) {
             (graphDataManager.webSocketService as unknown as { sendNodePositionUpdates: (updates: unknown[]) => void }).sendNodePositionUpdates([update]);
           }
 
@@ -135,6 +141,18 @@ export const useGraphEventHandlers = (
         const numericId = graphDataManager.nodeIdMap.get(drag.nodeId!);
         if (numericId !== undefined) {
           graphWorkerProxy.pinNode(numericId);
+
+          // Notify server of drag start so it can pin the node server-side
+          if (graphDataManager.webSocketService?.isReady()) {
+            (graphDataManager.webSocketService as unknown as { sendMessage: (type: string, data?: unknown) => void }).sendMessage('nodeDragStart', {
+              nodeId: numericId,
+              position: {
+                x: drag.startNodePos3D.x,
+                y: drag.startNodePos3D.y,
+                z: drag.startNodePos3D.z
+              }
+            });
+          }
         }
         if (debugState.isEnabled()) {
           logger.debug(`Drag started on node ${drag.nodeId}`);
@@ -219,6 +237,13 @@ export const useGraphEventHandlers = (
       if (numericId !== undefined) {
         graphWorkerProxy.unpinNode(numericId);
         flushPositionUpdates();
+
+        // Notify server of drag end so it can unpin the node and run final settle
+        if (graphDataManager.webSocketService?.isReady()) {
+          (graphDataManager.webSocketService as unknown as { sendMessage: (type: string, data?: unknown) => void }).sendMessage('nodeDragEnd', {
+            nodeId: numericId
+          });
+        }
       }
     } else {
       // Click action (not a drag) — select this node to highlight adjacent edges

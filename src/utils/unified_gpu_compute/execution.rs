@@ -517,6 +517,19 @@ impl UnifiedGPUCompute {
             sim_params.stability_threshold = 0.0;
         }
 
+        // Log GPU params on first iteration to confirm forces are enabled
+        if self.iteration == 0 {
+            info!(
+                "GPU execute_physics_step: FIRST iter — feature_flags=0b{:b} (repel={}, spring={}, center={}), dt={}, repel_k={}, spring_k={}, damping={}, stability_bypass={}",
+                feature_flags,
+                feature_flags & 1 != 0,
+                feature_flags & 2 != 0,
+                feature_flags & 4 != 0,
+                sim_params.dt, sim_params.repel_k, sim_params.spring_k,
+                sim_params.damping, stability_bypass
+            );
+        }
+
         self.execute(sim_params)
     }
 
