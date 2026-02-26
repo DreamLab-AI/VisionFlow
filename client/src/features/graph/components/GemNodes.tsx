@@ -363,6 +363,13 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
     const baseScale = ((nodeSettings?.nodeSize as number | undefined) ?? 0.5) / 0.5;
     const texBuf = metaTexRef.current?.image?.data as Float32Array | undefined;
 
+    // Read animation settings for pulse/wave control
+    const anims = visSettings?.animations as Record<string, unknown> | undefined;
+    const animEnabled = (anims?.enableNodeAnimations as boolean | undefined) ?? true;
+    const pEnabled = animEnabled && ((anims?.pulseEnabled as boolean | undefined) ?? true);
+    const pSpeed = (anims?.pulseSpeed as number | undefined) ?? 1.2;
+    const pStrength = (anims?.pulseStrength as number | undefined) ?? 0.8;
+
     // Per-frame emissive modulation (replaces TSL which breaks InstancedMesh on WebGPU).
     // Gentle breathing pulse on the shared material — all instances share it but
     // per-instance color variation comes from instanceColor.
@@ -373,13 +380,16 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
       const vis = settings?.visualisation as Record<string, unknown> | undefined;
       const glow = vis?.glow as Record<string, unknown> | undefined;
       const glowBase = (glow?.intensity as number | undefined) ?? 0.3;
-      if (dominant === 'agent' && u.activityLevel) {
-        const pulse = Math.pow((Math.sin(clock.elapsedTime * Math.PI) + 1) * 0.5, 4);
-        currentMat.emissiveIntensity = 0.15 + pulse * u.activityLevel.value * 0.2;
+      if (!pEnabled) {
+        // Pulse disabled — static emissive
+        currentMat.emissiveIntensity = dominant === 'agent' ? 0.15 : glowBase * 0.6;
+      } else if (dominant === 'agent' && u.activityLevel) {
+        const pulse = Math.pow((Math.sin(clock.elapsedTime * pSpeed * Math.PI) + 1) * 0.5, 4);
+        currentMat.emissiveIntensity = 0.15 + pulse * u.activityLevel.value * 0.2 * pStrength;
       } else {
         // Knowledge graph / ontology: subtle breathing emissive driven by glow setting
-        const breath = (Math.sin(clock.elapsedTime * 0.8) + 1) * 0.5;
-        currentMat.emissiveIntensity = glowBase * 0.6 + breath * glowBase * 0.4;
+        const breath = (Math.sin(clock.elapsedTime * pSpeed * 0.8) + 1) * 0.5;
+        currentMat.emissiveIntensity = glowBase * 0.6 + breath * glowBase * 0.4 * pStrength;
       }
     }
 
@@ -409,8 +419,10 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
       const mode = perNodeVisualModeMap.get(String(node.id)) || graphMode;
       const propsVis = props.settings?.visualisation as Record<string, unknown> | undefined;
       let s = computeNodeScale(node, connectionCountMap, mode, hierarchyMap, propsVis?.graphTypeVisuals as GraphTypeVisualsSettings | undefined) * baseScale;
-      if (selectedNodeId && String(node.id) === selectedNodeId) {
-        s *= 1 + Math.sin(clock.elapsedTime * 3) * 0.15;
+      const waveEnabled = animEnabled && ((anims?.selectionWaveEnabled as boolean | undefined) ?? true);
+      const wSpeed = (anims?.waveSpeed as number | undefined) ?? 1.0;
+      if (selectedNodeId && String(node.id) === selectedNodeId && waveEnabled) {
+        s *= 1 + Math.sin(clock.elapsedTime * 3 * wSpeed) * 0.15;
       }
 
       // Map from visibleNodes index to graphData.nodes index for correct position lookup

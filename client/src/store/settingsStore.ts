@@ -95,7 +95,15 @@ const ESSENTIAL_PATHS = [
   'qualityGates.showClusters',
   'qualityGates.showAnomalies',
   'qualityGates.showCommunities',
-  'qualityGates.layoutMode'
+  'qualityGates.layoutMode',
+
+  // Animation settings - needed for pulse/wave effects
+  'visualisation.animations.enableNodeAnimations',
+  'visualisation.animations.pulseEnabled',
+  'visualisation.animations.pulseSpeed',
+  'visualisation.animations.pulseStrength',
+  'visualisation.animations.selectionWaveEnabled',
+  'visualisation.animations.waveSpeed'
 ];
 
 
