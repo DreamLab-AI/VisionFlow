@@ -84,7 +84,7 @@ pub struct EdgeSettings {
     pub quality: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[derive(Debug, Serialize, Deserialize, Clone, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct RenderingSettings {
     #[serde(alias = "ambient_light_intensity")]
@@ -109,7 +109,24 @@ pub struct RenderingSettings {
     pub context: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+impl Default for RenderingSettings {
+    fn default() -> Self {
+        Self {
+            ambient_light_intensity: 0.5,
+            background_color: "#000000".to_string(),
+            directional_light_intensity: 0.4,
+            enable_ambient_occlusion: false,
+            enable_antialiasing: true,
+            enable_shadows: false,
+            environment_intensity: 0.3,
+            shadow_map_size: None,
+            shadow_bias: None,
+            context: None,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct AnimationSettings {
     #[serde(alias = "enable_motion_blur")]
@@ -128,6 +145,21 @@ pub struct AnimationSettings {
     pub pulse_strength: f32,
     #[serde(alias = "wave_speed")]
     pub wave_speed: f32,
+}
+
+impl Default for AnimationSettings {
+    fn default() -> Self {
+        Self {
+            enable_motion_blur: false,
+            enable_node_animations: true,
+            motion_blur_strength: 0.1,
+            selection_wave_enabled: true,
+            pulse_enabled: true,
+            pulse_speed: 1.2,
+            pulse_strength: 0.8,
+            wave_speed: 0.5,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Type, Validate)]

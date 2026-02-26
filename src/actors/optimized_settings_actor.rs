@@ -728,12 +728,48 @@ impl Actor for OptimizedSettingsActor {
     type Context = Context<Self>;
 
     fn started(&mut self, ctx: &mut Self::Context) {
-        info!("OptimizedSettingsActor started");
+        info!("OptimizedSettingsActor started — loading settings from repository");
 
-        
+        // Load settings from repository (Neo4j → YAML fallback → defaults)
+        // This replaces the in-memory defaults with persisted values
+        let repository = self.repository.clone();
+        let settings = self.settings.clone();
         let addr = ctx.address();
         ctx.spawn(
             async move {
+                match repository.load_all_settings().await {
+                    Ok(Some(mut loaded)) => {
+                        // Sanity check: detect stale zero-value rendering settings
+                        // that may have been persisted from a previous deployment with broken defaults
+                        let rendering = &loaded.visualisation.rendering;
+                        if rendering.ambient_light_intensity == 0.0
+                            && rendering.directional_light_intensity == 0.0
+                            && rendering.environment_intensity == 0.0
+                            && rendering.background_color.is_empty()
+                        {
+                            warn!("Loaded rendering settings have all-zero values — applying sane defaults");
+                            loaded.visualisation.rendering = crate::config::RenderingSettings::default();
+                        }
+
+                        let ambient = loaded.visualisation.rendering.ambient_light_intensity;
+                        let directional = loaded.visualisation.rendering.directional_light_intensity;
+                        let mut current = settings.write().await;
+                        *current = loaded;
+                        drop(current);
+                        info!(
+                            "Settings loaded from repository on startup (ambient_light={}, directional_light={})",
+                            ambient, directional
+                        );
+                    }
+                    Ok(None) => {
+                        warn!("No settings found in repository on startup, using defaults");
+                    }
+                    Err(e) => {
+                        error!("Failed to load settings from repository on startup: {}", e);
+                    }
+                }
+
+                // Warm the path cache after loading
                 if let Err(e) = addr.send(WarmCacheMessage).await {
                     warn!("Failed to warm cache on startup: {}", e);
                 }
