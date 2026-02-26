@@ -66,6 +66,11 @@ mod tests {
 .version 7.5
 .target sm_75
 .address_size 64
+
+.entry _test_kernel()
+{
+    ret;
+}
         "#;
 
         let result = validate_ptx(valid_ptx);

@@ -115,9 +115,16 @@ impl GitHubConfig {
 mod tests {
     use super::*;
     use std::env;
+    use std::sync::Mutex;
+
+    // Mutex to serialize tests that mutate environment variables.
+    // env::set_var / env::remove_var are not thread-safe; parallel test
+    // runners can race and cause spurious failures.
+    static ENV_LOCK: Mutex<()> = Mutex::new(());
 
     #[test]
     fn test_missing_required_vars() {
+        let _guard = ENV_LOCK.lock().unwrap();
         env::remove_var("GITHUB_TOKEN");
         env::remove_var("GITHUB_OWNER");
         env::remove_var("GITHUB_REPO");
@@ -135,6 +142,7 @@ mod tests {
 
     #[test]
     fn test_empty_values() {
+        let _guard = ENV_LOCK.lock().unwrap();
         env::set_var("GITHUB_TOKEN", "");
         env::set_var("GITHUB_OWNER", "owner");
         env::set_var("GITHUB_REPO", "repo");
@@ -152,10 +160,15 @@ mod tests {
 
     #[test]
     fn test_valid_config() {
+        let _guard = ENV_LOCK.lock().unwrap();
         env::set_var("GITHUB_TOKEN", "token");
         env::set_var("GITHUB_OWNER", "owner");
         env::set_var("GITHUB_REPO", "repo");
         env::set_var("GITHUB_BASE_PATH", "path");
+        // Reset optional vars to defaults
+        env::remove_var("GITHUB_BRANCH");
+        env::remove_var("GITHUB_RATE_LIMIT");
+        env::remove_var("GITHUB_API_VERSION");
 
         let config = GitHubConfig::from_env().unwrap();
         assert_eq!(config.token, "token");
@@ -169,6 +182,7 @@ mod tests {
 
     #[test]
     fn test_optional_settings() {
+        let _guard = ENV_LOCK.lock().unwrap();
         env::set_var("GITHUB_TOKEN", "token");
         env::set_var("GITHUB_OWNER", "owner");
         env::set_var("GITHUB_REPO", "repo");

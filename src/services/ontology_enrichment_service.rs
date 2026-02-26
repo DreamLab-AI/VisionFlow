@@ -175,17 +175,13 @@ impl OntologyEnrichmentService {
         }
 
         let lines: Vec<&str> = content.lines().collect();
-        let mut in_frontmatter = false;
-        let mut frontmatter_found = false;
+        // After confirming the first `---`, we are already inside frontmatter.
+        // The next `---` closes it.
+        let mut in_frontmatter = true;
 
         for line in lines.iter().skip(1) {
             if line.trim() == "---" {
-                if !in_frontmatter && !frontmatter_found {
-                    in_frontmatter = true;
-                    frontmatter_found = true;
-                } else {
-                    break; // End of frontmatter
-                }
+                break; // End of frontmatter
             } else if in_frontmatter {
                 if let Some((key, value)) = line.split_once(':') {
                     metadata.insert(

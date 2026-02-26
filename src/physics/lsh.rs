@@ -531,7 +531,15 @@ mod tests {
             },
         );
 
-        let index = LshIndex::build_from_nodes(&nodes, Some(&store));
+        // Use a high-recall config (many bands, 1 row each) so that any single hash
+        // collision makes the pair a candidate.  This avoids flaky results from the
+        // inherently probabilistic MinHash when the Jaccard similarity is moderate.
+        let high_recall_config = LshConfig {
+            num_bands: 100,
+            rows_per_band: 1,
+            shingle_size: 3,
+        };
+        let index = LshIndex::build_from_nodes_with_config(&nodes, Some(&store), high_recall_config);
         assert_eq!(index.len(), 2);
 
         // Both share the "artificial_intelligence" topic, so they should be candidates.

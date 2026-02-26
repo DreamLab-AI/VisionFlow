@@ -255,8 +255,9 @@ pub fn create_test_ontology_repo() -> Arc<MockOntologyRepository> {
         ("mv:Organization", "Organization"),
     ];
 
-    // Use blocking lock since this is called during test setup (not in async context)
-    let mut class_map = repo.classes.blocking_write();
+    // Use try_write since this may be called from within a tokio runtime (e.g. #[tokio::test])
+    // where blocking_write() would panic with "Cannot block the current thread"
+    let mut class_map = repo.classes.try_write().expect("RwLock should be available in test setup");
     for (iri, label) in classes {
         class_map.insert(
             iri.to_string(),
