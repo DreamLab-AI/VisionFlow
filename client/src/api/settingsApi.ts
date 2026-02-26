@@ -613,6 +613,9 @@ export const settingsApi = {
       } else if (path.startsWith('constraints')) {
         const key = path.split('.').pop()!;
         await settingsApi.updateConstraints({ [key]: value });
+      } else if (path.startsWith('analytics.clustering')) {
+        // Route clustering settings to the server clustering algorithm endpoint
+        await settingsApi.updateClusteringAlgorithm(path, value);
       } else if (isVisualSettingsPath(path)) {
         // Route visual settings to the server visual endpoint
         const visualKey = toVisualKey(path);
@@ -640,6 +643,7 @@ export const settingsApi = {
     const nodeFilterUpdates: Record<string, unknown> = {};
     const constraintsUpdates: Record<string, unknown> = {};
     const visualUpdates: Record<string, unknown> = {};
+    const clusteringUpdates: Record<string, unknown> = {};
     const localOnlyPaths: string[] = [];
 
     for (const { path, value } of updates) {
@@ -660,6 +664,11 @@ export const settingsApi = {
       } else if (path.startsWith('constraints.')) {
         const key = path.split('.').pop()!;
         constraintsUpdates[key] = value;
+      } else if (path.startsWith('analytics.clustering.')) {
+        // Collect clustering settings for batched API call
+        const key = path.split('.').pop()!;
+        clusteringUpdates[key] = value;
+        logger.debug(`[SETTINGS-DIAG] routing ${path} → clustering.${key} = ${value}`);
       } else if (isVisualSettingsPath(path)) {
         // Batch all visual paths into a single nested object for the visual endpoint
         const visualKey = toVisualKey(path);
@@ -695,6 +704,9 @@ export const settingsApi = {
     }
     if (Object.keys(visualUpdates).length > 0) {
       promises.push(settingsApi.updateVisualSettings(visualUpdates));
+    }
+    if (Object.keys(clusteringUpdates).length > 0) {
+      promises.push(axios.post(`${API_BASE}/api/clustering/algorithm`, clusteringUpdates));
     }
 
     if (promises.length > 0) {
@@ -815,6 +827,16 @@ export const settingsApi = {
     patch: Record<string, unknown>
   ): Promise<AxiosResponse<Record<string, unknown>>> =>
     axios.put(`${API_BASE}/api/settings/visual`, patch),
+
+  // Clustering algorithm settings -> POST /api/clustering/algorithm
+  // Accepts a single path update (e.g., analytics.clustering.algorithm = 'louvain')
+  // and sends the full clustering config to the server endpoint.
+  updateClusteringAlgorithm: async <T>(path: string, value: T): Promise<void> => {
+    const key = path.split('.').pop()!;
+    const payload: Record<string, unknown> = { [key]: value };
+    logger.debug(`[settingsApi] Sending clustering update: ${key} = ${value}`);
+    await axios.post(`${API_BASE}/api/clustering/algorithm`, payload);
+  },
 };
 
 // ============================================================================

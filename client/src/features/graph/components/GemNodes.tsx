@@ -436,8 +436,9 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
       _mat.setPosition(x, y, z);
       inst.setMatrixAt(i, _mat);
 
-      // Per-instance color via Three.js managed instanceColor
-      const c = computeColor(node, mode);
+      // Per-instance color via Three.js managed instanceColor.
+      // Pass posIdx so computeColor can look up analytics data for this node.
+      const c = computeColor(node, mode, posIdx);
       inst.setColorAt(i, c);
       colorsDirty = true;
     }
