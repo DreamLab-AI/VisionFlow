@@ -314,16 +314,18 @@ impl LocalFileSyncService {
 
     /// Fetch updated file from GitHub and save to local filesystem
     async fn fetch_and_update_file(&self, local_path: &Path, file_name: &str) -> Result<String, String> {
-        // Construct GitHub download URL
+        // Construct GitHub download URL from env vars (no hardcoded fallbacks)
+        let owner = std::env::var("GITHUB_OWNER")
+            .map_err(|_| "GITHUB_OWNER not set in .env".to_string())?;
+        let repo = std::env::var("GITHUB_REPO")
+            .map_err(|_| "GITHUB_REPO not set in .env".to_string())?;
+        let branch = std::env::var("GITHUB_BRANCH")
+            .map_err(|_| "GITHUB_BRANCH not set in .env".to_string())?;
+        let base_path = std::env::var("GITHUB_BASE_PATH")
+            .map_err(|_| "GITHUB_BASE_PATH not set in .env".to_string())?;
         let download_url = format!(
-            "https://raw.githubusercontent.com/{}/{}/{}/{}",
-            std::env::var("GITHUB_OWNER").unwrap_or_else(|_| "jjohare".to_string()),
-            std::env::var("GITHUB_REPO").unwrap_or_else(|_| "logseq".to_string()),
-            std::env::var("GITHUB_BRANCH").unwrap_or_else(|_| "main".to_string()),
-            format!("{}/{}",
-                std::env::var("GITHUB_BASE_PATH").unwrap_or_else(|_| "mainKnowledgeGraph/pages".to_string()),
-                file_name
-            )
+            "https://raw.githubusercontent.com/{}/{}/{}/{}/{}",
+            owner, repo, branch, base_path, file_name
         );
 
         // Fetch content from GitHub
