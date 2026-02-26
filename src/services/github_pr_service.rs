@@ -13,7 +13,7 @@
 //! Notes are per-user — each user's agents write to their own path namespace.
 
 use crate::types::ontology_tools::AgentContext;
-use log::info;
+use log::{info, warn};
 use reqwest::header::{ACCEPT, AUTHORIZATION, USER_AGENT};
 use serde::{Deserialize, Serialize};
 use std::env;
@@ -105,9 +105,21 @@ struct RefObject {
 impl GitHubPRService {
     pub fn new() -> Self {
         let token = env::var("GITHUB_TOKEN").unwrap_or_default();
-        let owner = env::var("GITHUB_REPO_OWNER").unwrap_or_else(|_| "DreamLab-AI".to_string());
-        let repo = env::var("GITHUB_REPO_NAME").unwrap_or_else(|_| "VisionFlow".to_string());
-        let base_branch = env::var("GITHUB_BASE_BRANCH").unwrap_or_else(|_| "main".to_string());
+        let owner = env::var("GITHUB_OWNER")
+            .or_else(|_| env::var("GITHUB_REPO_OWNER"))
+            .unwrap_or_else(|_| {
+                warn!("Neither GITHUB_OWNER nor GITHUB_REPO_OWNER set in .env");
+                String::new()
+            });
+        let repo = env::var("GITHUB_REPO")
+            .or_else(|_| env::var("GITHUB_REPO_NAME"))
+            .unwrap_or_else(|_| {
+                warn!("Neither GITHUB_REPO nor GITHUB_REPO_NAME set in .env");
+                String::new()
+            });
+        let base_branch = env::var("GITHUB_BRANCH")
+            .or_else(|_| env::var("GITHUB_BASE_BRANCH"))
+            .unwrap_or_else(|_| "main".to_string());
 
         Self {
             token,
