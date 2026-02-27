@@ -331,6 +331,17 @@ class GraphWorkerProxy {
   }
 
   /**
+   * Recompute client-side analytics (anomaly scores + community detection).
+   * Only computes if the server hasn't already provided analytics data.
+   */
+  public async recomputeAnalytics(): Promise<void> {
+    if (!this.workerApi) {
+      throw new Error('Worker not initialized');
+    }
+    await this.workerApi.recomputeAnalytics();
+  }
+
+  /**
    * Reheat the force simulation (restart physics from current positions).
    * Use this when user wants to re-layout or after significant changes.
    */

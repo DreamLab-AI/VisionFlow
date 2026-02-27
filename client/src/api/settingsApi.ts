@@ -815,7 +815,33 @@ export const settingsApi = {
     const current = await axios.get(`${API_BASE}/api/settings/quality-gates`);
     const currentData = current.data?.data ?? current.data ?? {};
     const merged = { ...currentData, ...settings };
-    return axios.put(`${API_BASE}/api/settings/quality-gates`, merged);
+    const result = await axios.put(`${API_BASE}/api/settings/quality-gates`, merged);
+
+    // Side-effect: toggle ontology physics on the server when the flag changes
+    if ('ontologyPhysics' in settings) {
+      settingsApi.toggleOntologyPhysics(!!settings.ontologyPhysics);
+    }
+
+    return result;
+  },
+
+  /** Toggle ontology physics forces on the server (fire-and-forget). */
+  toggleOntologyPhysics: async (enabled: boolean): Promise<void> => {
+    try {
+      const url = enabled
+        ? `${API_BASE}/api/ontology-physics/enable`
+        : `${API_BASE}/api/ontology-physics/disable`;
+
+      const payload = enabled ? { ontologyId: 'default', strength: 0.8 } : undefined;
+
+      const response = await axios.post(url, payload);
+      logger.info(
+        `[settingsApi] ontology physics ${enabled ? 'enabled' : 'disabled'}:`,
+        response.data
+      );
+    } catch (err) {
+      logger.warn('[settingsApi] ontology physics toggle error:', err);
+    }
   },
 
   // Visual settings (glow, hologram, graphTypeVisuals, gemMaterial, sceneEffects,

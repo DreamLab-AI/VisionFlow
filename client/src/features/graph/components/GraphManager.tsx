@@ -21,6 +21,7 @@ import { useAnalyticsStore, useCurrentSSSPResult } from '../../analytics/store/a
 import { AgentNodesLayer, useAgentNodes } from '../../visualisation/components/AgentNodesLayer'
 import { useGraphVisualState, type GraphVisualMode } from '../hooks/useGraphVisualState'
 import { useGraphFiltering } from '../hooks/useGraphFiltering'
+import { useFpsMonitor } from '../hooks/useFpsMonitor'
 import { computeNodeScale } from '../utils/nodeScaling'
 
 const logger = createLogger('GraphManager')
@@ -404,6 +405,9 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
 
   // Agent nodes overlay: polls /api/bots/agents for live agent telemetry
   const { agents: agentLayerNodes, connections: agentLayerConnections } = useAgentNodes();
+
+  // Auto-adjust quality when FPS drops below qualityGates.minFpsThreshold
+  useFpsMonitor();
 
   const nodePositionsRef = useRef<Float32Array | null>(null)
   const [edgePoints, setEdgePoints] = useState<number[]>([])
