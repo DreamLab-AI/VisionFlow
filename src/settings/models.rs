@@ -99,7 +99,33 @@ pub struct QualityGateSettings {
 
     /// Auto-adjust quality based on performance
     pub auto_adjust: bool,
+
+    /// Global strength of ontology constraint forces (0.0 - 1.0)
+    #[serde(default = "default_ontology_strength")]
+    pub ontology_strength: f32,
+
+    /// DAG hierarchy level attraction strength (0.0 - 2.0)
+    #[serde(default = "default_dag_level_attraction")]
+    pub dag_level_attraction: f32,
+
+    /// DAG sibling repulsion strength (0.0 - 2.0)
+    #[serde(default = "default_dag_sibling_repulsion")]
+    pub dag_sibling_repulsion: f32,
+
+    /// Type cluster attraction strength (0.0 - 2.0)
+    #[serde(default = "default_type_cluster_attraction")]
+    pub type_cluster_attraction: f32,
+
+    /// Type cluster radius (10.0 - 500.0)
+    #[serde(default = "default_type_cluster_radius")]
+    pub type_cluster_radius: f32,
 }
+
+fn default_ontology_strength() -> f32 { 0.5 }
+fn default_dag_level_attraction() -> f32 { 0.5 }
+fn default_dag_sibling_repulsion() -> f32 { 0.3 }
+fn default_type_cluster_attraction() -> f32 { 0.3 }
+fn default_type_cluster_radius() -> f32 { 100.0 }
 
 impl Default for QualityGateSettings {
     fn default() -> Self {
@@ -116,6 +142,11 @@ impl Default for QualityGateSettings {
             min_fps_threshold: 30,
             max_node_count: 500000,
             auto_adjust: true,       // Auto-adjust on by default
+            ontology_strength: 0.5,
+            dag_level_attraction: 0.5,
+            dag_sibling_repulsion: 0.3,
+            type_cluster_attraction: 0.3,
+            type_cluster_radius: 100.0,
         }
     }
 }

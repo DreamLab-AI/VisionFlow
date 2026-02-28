@@ -116,6 +116,11 @@ export interface QualityGateSettings {
   minFpsThreshold: number;
   maxNodeCount: number;
   autoAdjust: boolean;
+  ontologyStrength?: number;
+  dagLevelAttraction?: number;
+  dagSiblingRepulsion?: number;
+  typeClusterAttraction?: number;
+  typeClusterRadius?: number;
 }
 
 export interface AllSettings {
@@ -403,7 +408,12 @@ function transformApiToClientSettings(apiResponse: AllSettings): Record<string, 
       gnnPhysics: false,
       minFpsThreshold: 30,
       maxNodeCount: 100000,
-      autoAdjust: true
+      autoAdjust: true,
+      ontologyStrength: 0.5,
+      dagLevelAttraction: 0.5,
+      dagSiblingRepulsion: 0.3,
+      typeClusterAttraction: 0.3,
+      typeClusterRadius: 100,
     },
     nodeFilter: apiResponse.nodeFilter || {
       enabled: true,
@@ -822,6 +832,12 @@ export const settingsApi = {
       settingsApi.toggleOntologyPhysics(!!settings.ontologyPhysics);
     }
 
+    // Side-effect: configure semantic forces when relevant settings change
+    const semanticKeys = ['semanticForces', 'layoutMode', 'ontologyStrength', 'dagLevelAttraction', 'dagSiblingRepulsion', 'typeClusterAttraction', 'typeClusterRadius'];
+    if (semanticKeys.some(k => k in settings)) {
+      settingsApi.configureSemanticForces(settings);
+    }
+
     return result;
   },
 
@@ -841,6 +857,66 @@ export const settingsApi = {
       );
     } catch (err) {
       logger.warn('[settingsApi] ontology physics toggle error:', err);
+    }
+  },
+
+  /** Configure semantic forces on GPU based on current quality gate settings (fire-and-forget). */
+  configureSemanticForces: async (settings: Partial<QualityGateSettings>): Promise<void> => {
+    try {
+      const promises: Promise<unknown>[] = [];
+
+      // Configure DAG layout when semanticForces or layoutMode changes
+      if ('semanticForces' in settings || 'layoutMode' in settings || 'dagLevelAttraction' in settings || 'dagSiblingRepulsion' in settings) {
+        // Fetch current quality gates for full context
+        const current = await axios.get(`${API_BASE}/api/settings/quality-gates`);
+        const qg = current.data?.data ?? current.data ?? {};
+        const merged = { ...qg, ...settings };
+
+        const isDagMode = ['dag-topdown', 'dag-radial', 'dag-leftright'].includes(merged.layoutMode);
+        const isTypeClustering = merged.layoutMode === 'type-clustering';
+
+        // Map layoutMode to DAG mode string
+        const dagModeMap: Record<string, string> = {
+          'dag-topdown': 'top-down',
+          'dag-radial': 'radial',
+          'dag-leftright': 'left-right',
+        };
+
+        // Configure DAG layout
+        promises.push(
+          axios.post(`${API_BASE}/api/semantic-forces/dag/configure`, {
+            mode: dagModeMap[merged.layoutMode] || 'top-down',
+            enabled: merged.semanticForces && isDagMode,
+            level_attraction: merged.dagLevelAttraction ?? 0.5,
+            sibling_repulsion: merged.dagSiblingRepulsion ?? 0.3,
+          }).catch(err => logger.warn('[settingsApi] DAG configure failed:', err))
+        );
+
+        // Configure type clustering
+        promises.push(
+          axios.post(`${API_BASE}/api/semantic-forces/type-clustering/configure`, {
+            enabled: merged.semanticForces && (isTypeClustering || merged.layoutMode === 'force-directed'),
+            cluster_attraction: merged.typeClusterAttraction ?? 0.3,
+            cluster_radius: merged.typeClusterRadius ?? 100,
+          }).catch(err => logger.warn('[settingsApi] Type clustering configure failed:', err))
+        );
+      }
+
+      // Configure ontology physics weight
+      if ('ontologyStrength' in settings && settings.ontologyStrength !== undefined) {
+        promises.push(
+          axios.put(`${API_BASE}/api/ontology-physics/weights`, {
+            globalStrength: settings.ontologyStrength,
+          }).catch(err => logger.warn('[settingsApi] Ontology weights update failed:', err))
+        );
+      }
+
+      if (promises.length > 0) {
+        await Promise.all(promises);
+        logger.info('[settingsApi] Semantic forces configured:', Object.keys(settings));
+      }
+    } catch (err) {
+      logger.warn('[settingsApi] configureSemanticForces error:', err);
     }
   },
 

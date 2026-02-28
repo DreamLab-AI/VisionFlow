@@ -188,6 +188,20 @@ export const UNIFIED_SETTINGS_CONFIG: Record<string, SectionConfig> = {
       { key: 'repelK', label: 'Repulsion', type: 'slider', min: 0.1, max: 500, step: 1, path: 'visualisation.graphs.logseq.physics.repelK', description: 'Node repulsion strength' },
       { key: 'attractionK', label: 'Attraction', type: 'slider', min: 0, max: 50, step: 0.1, path: 'visualisation.graphs.logseq.physics.attractionK', description: 'Edge attraction strength' },
 
+      // --- Layout Mode (moved from Quality) ---
+      { key: 'layoutMode', label: 'Layout Mode', type: 'select', options: ['force-directed', 'dag-topdown', 'dag-radial', 'dag-leftright', 'type-clustering'], path: 'qualityGates.layoutMode', description: 'Graph layout algorithm — force-directed uses spring/repulsion, DAG modes add hierarchical layout, type-clustering groups by node type' },
+
+      // --- Ontology Forces (moved from Quality) ---
+      { key: 'ontologyPhysics', label: 'Ontology Forces', type: 'toggle', path: 'qualityGates.ontologyPhysics', description: 'Enable OWL ontology-derived constraint forces in the physics simulation' },
+      { key: 'ontologyStrength', label: 'Ontology Strength', type: 'slider', min: 0, max: 1, step: 0.05, path: 'qualityGates.ontologyStrength', description: 'Global strength of ontology constraint forces (lower = gentler, higher = stricter)', isAdvanced: true },
+
+      // --- Semantic Layout Forces (moved from Quality) ---
+      { key: 'semanticForces', label: 'Semantic Layout Forces', type: 'toggle', path: 'qualityGates.semanticForces', description: 'Enable DAG hierarchy layout and type-based clustering forces' },
+      { key: 'dagLevelAttraction', label: 'DAG Level Attraction', type: 'slider', min: 0, max: 2, step: 0.05, path: 'qualityGates.dagLevelAttraction', description: 'How strongly nodes pull toward their hierarchy level (active in DAG modes)', isAdvanced: true },
+      { key: 'dagSiblingRepulsion', label: 'DAG Sibling Repulsion', type: 'slider', min: 0, max: 2, step: 0.05, path: 'qualityGates.dagSiblingRepulsion', description: 'How strongly same-level nodes spread apart (prevents overlap)', isAdvanced: true },
+      { key: 'typeClusterAttraction', label: 'Type Cluster Attraction', type: 'slider', min: 0, max: 2, step: 0.05, path: 'qualityGates.typeClusterAttraction', description: 'How strongly same-type nodes group together', isAdvanced: true },
+      { key: 'typeClusterRadius', label: 'Type Cluster Radius', type: 'slider', min: 10, max: 500, step: 10, path: 'qualityGates.typeClusterRadius', description: 'Target radius for type-based cluster zones', isAdvanced: true },
+
       // Dynamics - Basic
       { key: 'maxVelocity', label: 'Max Velocity', type: 'slider', min: 0.1, max: 200, step: 1, path: 'visualisation.graphs.logseq.physics.maxVelocity', description: 'Maximum node speed' },
       { key: 'enableBounds', label: 'Enable Bounds', type: 'toggle', path: 'visualisation.graphs.logseq.physics.enableBounds', description: 'Constrain to bounds' },
@@ -334,11 +348,6 @@ export const UNIFIED_SETTINGS_CONFIG: Record<string, SectionConfig> = {
       { key: 'autoAdjust', label: 'Auto-Adjust Quality', type: 'toggle', path: 'qualityGates.autoAdjust', description: 'Automatic quality scaling' },
       { key: 'minFpsThreshold', label: 'Min FPS Threshold', type: 'slider', min: 15, max: 60, step: 5, path: 'qualityGates.minFpsThreshold', description: 'Minimum acceptable FPS' },
       { key: 'maxNodeCount', label: 'Max Node Count', type: 'slider', min: 1000, max: 500000, step: 5000, path: 'qualityGates.maxNodeCount', description: 'Maximum nodes to render (set high to show all)' },
-
-      // Physics Features - Basic
-      { key: 'ontologyPhysics', label: 'Ontology Physics', type: 'toggle', path: 'qualityGates.ontologyPhysics', description: 'Ontology-based forces' },
-      { key: 'semanticForces', label: 'Semantic Forces', type: 'toggle', path: 'qualityGates.semanticForces', description: 'DAG and semantic layout' },
-      { key: 'layoutMode', label: 'Layout Mode', type: 'select', options: ['force-directed', 'dag-topdown', 'dag-radial', 'dag-leftright', 'type-clustering'], path: 'qualityGates.layoutMode', description: 'Graph layout algorithm' },
 
       // Visualization - Basic
       { key: 'showClusters', label: 'Show Clusters', type: 'toggle', path: 'qualityGates.showClusters', description: 'Color-coded node groups' },

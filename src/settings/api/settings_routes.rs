@@ -818,6 +818,53 @@ pub async fn update_quality_gate_settings(
                   settings.gpu_acceleration,
                   if settings.gpu_acceleration { "Advanced" } else { "Basic" },
                   settings.layout_mode);
+
+            // --- Propagate semantic forces configuration to SemanticForcesActor ---
+            if let Some(ref gpu_manager) = state.gpu_manager_addr {
+                use crate::actors::messages::{ConfigureDAG, ConfigureTypeClustering, AdjustConstraintWeights};
+
+                let is_dag_mode = matches!(settings.layout_mode.as_str(),
+                    "dag-topdown" | "dag-radial" | "dag-leftright");
+                let is_type_clustering = settings.layout_mode == "type-clustering";
+
+                // Configure DAG layout forces
+                let dag_msg = ConfigureDAG {
+                    vertical_spacing: None,
+                    horizontal_spacing: None,
+                    level_attraction: Some(settings.dag_level_attraction),
+                    sibling_repulsion: Some(settings.dag_sibling_repulsion),
+                    enabled: Some(settings.semantic_forces && is_dag_mode),
+                };
+                if let Err(e) = gpu_manager.send(dag_msg).await {
+                    warn!("Quality gates: failed to propagate DAG config: {}", e);
+                }
+
+                // Configure type clustering forces
+                let cluster_msg = ConfigureTypeClustering {
+                    cluster_attraction: Some(settings.type_cluster_attraction),
+                    cluster_radius: Some(settings.type_cluster_radius),
+                    inter_cluster_repulsion: None,
+                    enabled: Some(settings.semantic_forces && (is_type_clustering || settings.layout_mode == "force-directed")),
+                };
+                if let Err(e) = gpu_manager.send(cluster_msg).await {
+                    warn!("Quality gates: failed to propagate type clustering config: {}", e);
+                }
+
+                // Adjust ontology constraint weights when strength changes
+                if settings.ontology_physics {
+                    let weight_msg = AdjustConstraintWeights {
+                        global_strength: settings.ontology_strength,
+                    };
+                    if let Err(e) = gpu_manager.send(weight_msg).await {
+                        warn!("Quality gates: failed to propagate ontology weights: {}", e);
+                    }
+                }
+
+                info!("Quality gates: semantic forces propagated — dag_enabled={}, clustering_enabled={}, ontology_strength={}",
+                      settings.semantic_forces && is_dag_mode,
+                      settings.semantic_forces && (is_type_clustering || settings.layout_mode == "force-directed"),
+                      settings.ontology_strength);
+            }
         }
         Ok(Err(e)) => {
             warn!("Quality gates persisted but failed to read settings for propagation: {}", e);

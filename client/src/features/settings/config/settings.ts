@@ -606,6 +606,12 @@ export interface QualityGatesSettings {
   minFpsThreshold: number;
   maxNodeCount: number;
   autoAdjust: boolean;
+  // Semantic force parameters (propagated to GPU actors)
+  ontologyStrength?: number;       // 0-1, default 0.5 — global ontology constraint weight
+  dagLevelAttraction?: number;     // 0-2, default 0.5 — DAG hierarchy level pull
+  dagSiblingRepulsion?: number;    // 0-2, default 0.3 — same-level spread force
+  typeClusterAttraction?: number;  // 0-2, default 0.3 — same-type grouping force
+  typeClusterRadius?: number;      // 10-500, default 100 — cluster zone radius
 }
 
 export interface DeveloperSettings {
