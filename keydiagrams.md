@@ -24,6 +24,7 @@ public:: true
 				      G["gemini-user<br/>UID 1001"]
 				      O["openai-user<br/>UID 1002"]
 				      Z["zai-user · Z.AI<br/>UID 1003"]
+				      DS["deepseek-user<br/>UID 1004"]
 				      RF["ruv-flow<br/>orchestrator"]
 				    end
 				    subgraph Ext["External Services"]
@@ -35,10 +36,12 @@ public:: true
 				    SUP --> G
 				    SUP --> O
 				    SUP --> Z
+				    SUP --> DS
 				    D --> RF
 				    G --> RF
 				    O --> RF
 				    Z --> RF
+				    DS --> RF
 				    RF -->|MCP memory| RV
 				    RF -->|ontology| NEO
 				    RF -->|PR loop| GH
@@ -49,6 +52,7 @@ public:: true
 				  | `gemini-user` | 1001 | Google Gemini | Research, cross-validation, URL context |
 				  | `openai-user` | 1002 | OpenAI Codex | Alternative reasoning, code generation |
 				  | `zai-user` | 1003 | Z.AI (port 9600) | Cost-effective batch work, 4-worker pool |
+				  | `deepseek-user` | 1004 | DeepSeek | Reasoning-specialist, API isolation |
 				- **Shared memory**: All users read/write the same RuVector PostgreSQL — 384-dim embeddings with HNSW indexing give O(log n) semantic search across 1.17M+ entries. Knowledge compounds across agents and sessions.
 				- **tmux workspace**: 8 windows — Claude-Main, Claude-Agent, Services, Development, Logs, System, VNC-Status, SSH-Shell — all visible via VNC or code-server.
 				- **Service ports**: SSH :22, VNC :5901, code-server :8080, Management API :9090, Z.AI :9600.
@@ -734,6 +738,7 @@ public:: true
 		    GM["Gemini"] -->|search| RV
 		    OA["OpenAI"] -->|retrieve| RV
 		    ZA["Z.AI"] -->|list| RV
+		    DS["DeepSeek"] -->|reason| RV
 		    RV -->|"384-dim HNSW<br/>O(log n)"| SEM["Semantic<br/>Match"]
 		  ```
 		- | Table | Purpose | Scale |
