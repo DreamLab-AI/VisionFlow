@@ -362,7 +362,46 @@ public:: true
 			    GPU --> EYE["User sees glow"]
 			  ```
 		- ### Agent Rendering
-			- `AgentGems.tsx` renders agents as instanced capsule meshes using `AgentCapsuleMaterial` — a `MeshPhysicalMaterial` with iridescence, clearcoat, and TSL Fresnel emissive nodes on WebGPU. Agent capsule size scales with workload (`1 + workload * 0.5`). A bioluminescent heartbeat pulse modulates emissive intensity based on swarm activity level.
+			- Two rendering paths serve different contexts:
+			- **AgentGems** (`AgentGems.tsx`) — lightweight instanced capsule meshes using `AgentCapsuleMaterial` (MeshPhysicalMaterial with iridescence, clearcoat, TSL Fresnel emissive on WebGPU). Scale = `1 + workload * 0.5`. Bioluminescent heartbeat pulse modulates emissive intensity by swarm activity level.
+			- **BotsVisualization** (`BotsVisualization.tsx`, 1,500+ lines) — multi-layered organisms with three concentric shells per agent:
+				- **Outer membrane** — translucent sphere (BackSide rendering, emissive glow scaled by health). Breathes asymmetrically: inhale faster than exhale, membrane follows core breath at 0.3-phase delay.
+				- **Inner nucleus** — additive-blended sphere pulsing on a separate oscillator (offset from breathing for organic feel). Opacity tracks activity level.
+				- **Corona ring** — queens only. Slowly counter-rotating gold torus (`#FFD700`, additive blending) that drifts in Z with sinusoidal wobble.
+			- **Status-driven geometry** — the main body mesh changes shape based on agent state:
+				- | Status | Geometry | Rationale |
+				  | ---- | ---- | ---- |
+				  | Active | Sphere (24-seg) | Default organic form |
+				  | Busy + Queen | Icosahedron | Faceted authority |
+				  | Busy + Coordinator | Dodecahedron | Complex polyhedron for coordination role |
+				  | Busy + Architect | Cone | Directed, structured intent |
+				  | Error | Tetrahedron | Minimal, distressed form |
+				  | Initializing | Box | Rigid, pre-birth |
+				  | Terminating | Octahedron | Collapsing symmetry |
+				  | Idle | Small sphere (12-seg) | Low-detail dormancy |
+				  | Offline | Cylinder | Inert |
+			- **Metabolic animations**: Token rate drives rotation speed and high-frequency vibration (>30 tokens/s). Memory pressure >80% triggers lateral shake. Critical health (<25%) produces alarm pulse. Error state uses irregular heartbeat (dual-frequency sine product) for visually distressed flicker.
+			- **Action connections** (`ActionConnectionsLayer.tsx`) — ephemeral bezier curves between agent and data nodes, colour-coded by action type (Query=blue, Update=yellow, Create=green, Delete=red, Link=purple, Transform=cyan). Animated particles travel the path in 500ms with spawn → travel → impact phases and a burst at the target. Max 50 concurrent connections; VR mode uses simplified geometry for Quest 3 at 72 FPS.
+			- ```mermaid
+			  graph TB
+			    subgraph Agent["Agent Organism"]
+			      M["Outer Membrane<br/>translucent, breathing"]
+			      B["Body Mesh<br/>status-driven geometry"]
+			      N["Inner Nucleus<br/>additive glow, offset pulse"]
+			      C["Corona Ring<br/>queen only, counter-rotating"]
+			    end
+			    subgraph Drivers["Animation Drivers"]
+			      TR["Token Rate"] --> ROT["Rotation Speed"]
+			      TR --> VIB["Vibration >30/s"]
+			      HP["Health %"] --> GC["Glow Colour"]
+			      HP --> AP["Alarm Pulse <25%"]
+			      MP["Memory %"] --> SH["Shake >80%"]
+			      ST["Status"] --> GEO["Geometry Switch"]
+			    end
+			    M --> B
+			    B --> N
+			    C -.-> M
+			  ```
 	- ![c35cc130-c7e0-449f-b584-08ceaaf7c25a.jpg](../assets/c35cc130-c7e0-449f-b584-08ceaaf7c25a_1770746757127_0.jpg)
 	-
 	- ![Generated Image January 29, 2026 - 2_21PM.jpeg](../assets/Generated_Image_January_29,_2026_-_2_21PM_1770741824733_0.jpeg)
