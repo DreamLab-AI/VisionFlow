@@ -60,7 +60,7 @@ mod constraint_system_tests {
         println!("  - Additional params [f32; 4]");
         println!("  - Priority weight (f32)");
         println!("  - Activation frame (i32)");
-        println!("  - Size: {} bytes (16-byte aligned)", 16 * 4);
+        println!("  - Size: 80 bytes (16-byte aligned)");
 
         // Test LOD system
         let lod_levels = vec![
@@ -92,9 +92,9 @@ mod constraint_system_tests {
     fn test_priority_weight_calculation() {
         // Priority weight formula: 10^(-(priority-1)/9)
         let test_cases = vec![
-            (1, 1.0),     // User-defined
-            (5, 0.5623),  // Asserted (approximate)
-            (10, 0.1),    // Default
+            (1, 1.0),      // User-defined: 10^0 = 1.0
+            (5, 0.3594),   // Asserted: 10^(-4/9) ≈ 0.3594
+            (10, 0.1),     // Default: 10^(-1) = 0.1
         ];
 
         for (priority, expected_weight) in test_cases {
@@ -157,7 +157,7 @@ mod constraint_system_tests {
             16 + // params2: [f32; 4]
             4 +  // weight: f32
             4 +  // activation_frame: i32
-            8;   // padding: [f32; 2]
+            16;  // padding: [f32; 4] — pad to 80 bytes (16-byte aligned)
 
         assert_eq!(constraint_size % 16, 0, "Constraint size must be 16-byte aligned");
     }

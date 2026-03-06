@@ -37,6 +37,7 @@ pub struct Node {
     pub owl_class_iri: Option<String>,
 
     
+    #[serde(default)]
     #[serde(skip_serializing_if = "HashMap::is_empty")]
     pub metadata: HashMap<String, String>,
     #[serde(skip)]

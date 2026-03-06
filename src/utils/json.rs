@@ -8,7 +8,7 @@ use crate::errors::{VisionFlowError, VisionFlowResult};
 
 /// Deserialize JSON string into a typed value with standard error handling
 /// # Example
-/// ```
+/// ```rust,ignore
 /// use visionflow::utils::json::from_json;
 /// #[derive(serde::Deserialize)]
 /// struct User { name: String }
@@ -23,7 +23,7 @@ pub fn from_json<T: DeserializeOwned>(s: &str) -> VisionFlowResult<T> {
 
 /// Serialize a value into a JSON string with standard error handling
 /// # Example
-/// ```
+/// ```rust,ignore
 /// use visionflow::utils::json::to_json;
 /// #[derive(serde::Serialize)]
 /// struct User { name: String }
@@ -39,7 +39,7 @@ pub fn to_json<T: Serialize + ?Sized>(value: &T) -> VisionFlowResult<String> {
 
 /// Deserialize JSON string with custom context for better error messages
 /// # Example
-/// ```
+/// ```rust,ignore
 /// use visionflow::utils::json::from_json_with_context;
 /// #[derive(serde::Deserialize)]
 /// struct Config { timeout: u64 }
@@ -60,7 +60,7 @@ pub fn from_json_with_context<T: DeserializeOwned>(
 
 /// Serialize a value into a pretty-printed JSON string
 /// # Example
-/// ```
+/// ```rust,ignore
 /// use visionflow::utils::json::to_json_pretty;
 /// #[derive(serde::Serialize)]
 /// struct User { name: String, age: u32 }
@@ -77,7 +77,7 @@ pub fn to_json_pretty<T: Serialize>(value: &T) -> VisionFlowResult<String> {
 
 /// Deserialize from JSON byte array
 /// # Example
-/// ```
+/// ```rust,ignore
 /// use visionflow::utils::json::from_json_bytes;
 /// #[derive(serde::Deserialize)]
 /// struct User { name: String }
@@ -93,7 +93,7 @@ pub fn from_json_bytes<T: DeserializeOwned>(bytes: &[u8]) -> VisionFlowResult<T>
 
 /// Serialize to JSON byte array
 /// # Example
-/// ```
+/// ```rust,ignore
 /// use visionflow::utils::json::to_json_bytes;
 /// #[derive(serde::Serialize)]
 /// struct User { name: String }

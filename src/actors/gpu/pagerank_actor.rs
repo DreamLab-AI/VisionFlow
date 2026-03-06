@@ -7,7 +7,7 @@
 //! ## Algorithm
 //!
 //! PageRank uses the power iteration method:
-//! ```
+//! ```text
 //! PR(v) = (1-d)/N + d * Σ(PR(u)/out_degree(u))
 //! ```
 //! where:

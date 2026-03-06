@@ -1,41 +1,51 @@
 #!/bin/bash
-# TURBO FLOW ALIASES v11 (Enhanced with upstream improvements)
+# TURBO FLOW ALIASES v12 (GPT-5.4 Codex first-class citizen)
 # Source this file or add to your shell profile: source turbo-flow-aliases.sh
 
 # === CLAUDE CODE ===
 alias claude-hierarchical="claude --dangerously-skip-permissions"
 alias dsp="claude --dangerously-skip-permissions"
 
-# === CLAUDE FLOW (orchestration) ===
-alias cf="npx -y @claude-flow/cli@latest"
-alias cf-init="npx -y @claude-flow/cli@latest init --force"
-alias cf-swarm="npx -y @claude-flow/cli@latest swarm"
-alias cf-hive="npx -y @claude-flow/cli@latest hive-mind spawn"
-alias cf-spawn="npx -y @claude-flow/cli@latest hive-mind spawn"
-alias cf-status="npx -y @claude-flow/cli@latest hive-mind status"
-alias cf-help="npx -y @claude-flow/cli@latest --help"
-alias cf-memory="npx -y @claude-flow/cli@latest memory"
-alias cf-hooks="npx -y @claude-flow/cli@latest hooks"
-alias cf-doctor="npx -y @claude-flow/cli@latest doctor --fix"
-alias cf-daemon="npx -y @claude-flow/cli@latest daemon start"
+# === RUFLO (orchestration, formerly claude-flow) ===
+alias rf="ruflo"
+alias rf-init="ruflo init --force"
+alias rf-swarm="ruflo swarm"
+alias rf-hive="ruflo hive-mind spawn"
+alias rf-spawn="ruflo hive-mind spawn"
+alias rf-status="ruflo hive-mind status"
+alias rf-help="ruflo --help"
+alias rf-memory="ruflo memory"
+alias rf-hooks="ruflo hooks"
+alias rf-doctor="ruflo doctor --fix"
+alias rf-daemon="ruflo daemon start"
+# Backwards-compat: cf-* aliases still work
+alias cf="ruflo"
+alias cf-init="ruflo init --force"
+alias cf-swarm="ruflo swarm"
+alias cf-hive="ruflo hive-mind spawn"
+alias cf-spawn="ruflo hive-mind spawn"
+alias cf-status="ruflo hive-mind status"
+alias cf-help="ruflo --help"
+alias cf-memory="ruflo memory"
+alias cf-hooks="ruflo hooks"
+alias cf-doctor="ruflo doctor --fix"
+alias cf-daemon="ruflo daemon start"
 
-cf-fix() {
-    echo "🔧 Fixing claude-flow better-sqlite3 dependency..."
-    NPX_CF_DIR=$(find ~/.npm/_npx -type d -name "claude-flow" 2>/dev/null | head -1)
-    if [ -n "$NPX_CF_DIR" ]; then
-        echo "📁 Found: $NPX_CF_DIR"
-        (cd "$NPX_CF_DIR" && npm install better-sqlite3) && echo "✅ Fixed!" || echo "❌ Failed"
+rf-fix() {
+    echo "🔧 Fixing ruflo better-sqlite3 dependency..."
+    RUFLO_DIR=$(find /usr/local/lib/node_modules/ruflo -type d -name "node_modules" 2>/dev/null | head -1)
+    if [ -n "$RUFLO_DIR" ]; then
+        echo "📁 Found: $RUFLO_DIR"
+        (cd "$RUFLO_DIR/.." && npm install better-sqlite3) && echo "✅ Fixed!" || echo "❌ Failed"
     else
-        echo "⚠️ claude-flow not in cache. Running: npx -y @claude-flow/cli@latest --version"
-        npx -y @claude-flow/cli@latest --version || true
-        NPX_CF_DIR=$(find ~/.npm/_npx -type d -name "claude-flow" 2>/dev/null | head -1)
-        if [ -n "$NPX_CF_DIR" ]; then
-            (cd "$NPX_CF_DIR" && npm install better-sqlite3) && echo "✅ Fixed!" || echo "❌ Failed"
-        fi
+        echo "⚠️ ruflo not found. Trying npx fallback..."
+        npx -y ruflo --version || true
     fi
 }
+alias cf-fix="rf-fix"
 
-cf-task() { npx -y @claude-flow/cli@latest swarm "$@"; }
+rf-task() { ruflo swarm "$@"; }
+cf-task() { ruflo swarm "$@"; }
 
 # === AGENTIC FLOW ===
 alias af="npx -y agentic-flow"
@@ -97,7 +107,7 @@ alias claudish-models="npx -y claudish --models"
 alias claudish-top="npx -y claudish --top-models"
 alias claudish-grok="npx -y claudish --model x-ai/grok-code-fast-1"
 alias claudish-gemini="npx -y claudish --model google/gemini-2.5-flash"
-alias claudish-gpt="npx -y claudish --model openai/gpt-4o"
+alias claudish-gpt="npx -y claudish --model openai/gpt-5.4"
 alias claudish-qwen="npx -y claudish --model qwen/qwen3-235b-a22b"
 
 # === AI AGENT SKILLS ===
@@ -205,6 +215,12 @@ alias gf-status="gemini-flow status"
 alias gf-monitor="gemini-flow monitor --protocols --performance"
 alias gf-health="gemini-flow health"
 
+# === OPENAI CODEX (GPT-5.4) ===
+alias cx="codex"
+alias cx-chat="openai api chat.completions.create -m gpt-5.4 -g user"
+alias cx-review="codex --model gpt-5.4"
+alias claudish-codex="npx -y claudish --model openai/gpt-5.4"
+
 # === Z.AI SERVICE ===
 alias zai-health="curl -s http://localhost:9600/health | jq"
 alias zai-chat="curl -X POST http://localhost:9600/chat -H 'Content-Type: application/json'"
@@ -220,7 +236,7 @@ generate-claude-md() { claude "Read the .specify/ directory and generate an opti
 turbo-init() {
     echo "🚀 Initializing Turbo Flow workspace..."
     specify init . --ai claude 2>/dev/null || echo "⚠️ spec-kit init skipped"
-    npx -y @claude-flow/cli@latest init --force 2>/dev/null || echo "⚠️ claude-flow init skipped"
+    ruflo init --force 2>/dev/null || echo "⚠️ ruflo init skipped"
     echo "✅ Workspace ready! Run: claude"
 }
 
@@ -229,10 +245,12 @@ turbo-help() {
     echo "─────────────────────────────"
     echo "claude          Start Claude Code"
     echo "dsp             Claude (skip permissions)"
-    echo "cf-swarm        Claude Flow swarm mode"
-    echo "cf-hive         Spawn hive-mind agents"
-    echo "cf-memory       Memory operations"
-    echo "cf-doctor       System diagnostics"
+    echo "rf-swarm        Ruflo swarm mode (cf-swarm also works)"
+    echo "rf-hive         Spawn hive-mind agents"
+    echo "rf-memory       Memory operations"
+    echo "rf-doctor       System diagnostics"
+    echo "cx / codex      OpenAI Codex CLI (GPT-5.4)"
+    echo "cx-chat         Quick GPT-5.4 chat"
     echo "af-coder        Agentic Flow coder"
     echo "aqe             Agentic QE testing"
     echo "aj              Agentic Jujutsu (git)"
@@ -274,5 +292,5 @@ agent-list() {
 # === PATH ===
 export PATH="$HOME/.local/bin:$HOME/.cargo/bin:/usr/local/bin:$PATH"
 
-echo "✅ Turbo Flow aliases v11 loaded! (120+ aliases, 8 functions)"
+echo "✅ Turbo Flow aliases v12 loaded! (125+ aliases, 8 functions)"
 echo "   Run 'turbo-help' for quick reference"

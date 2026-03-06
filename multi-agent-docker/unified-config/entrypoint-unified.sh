@@ -133,15 +133,16 @@ EOF
     echo "✓ Gemini API key configured for gemini-user"
 fi
 
-# openai-user - OpenAI configuration
+# openai-user - OpenAI / Codex configuration (GPT-5.4 first-class citizen)
 if [ -n "$OPENAI_API_KEY" ]; then
     sudo -u openai-user bash -c "mkdir -p ~/.config/openai && cat > ~/.config/openai/config.json" <<EOF
 {
   "apiKey": "$OPENAI_API_KEY",
-  "organization": "$OPENAI_ORG_ID"
+  "organization": "$OPENAI_ORG_ID",
+  "defaultModel": "${OPENAI_DEFAULT_MODEL:-gpt-5.4}"
 }
 EOF
-    echo "✓ OpenAI API key configured for openai-user"
+    echo "✓ OpenAI API key configured for openai-user (model: ${OPENAI_DEFAULT_MODEL:-gpt-5.4})"
 fi
 
 # zai-user - Z.AI service configuration
@@ -639,10 +640,10 @@ else
 fi
 
 # ============================================================================
-# Phase 6.5: Initialize Claude Flow V3 (Canonical System)
+# Phase 6.5: Initialize Ruflo V3 (Canonical System, formerly Claude Flow)
 # ============================================================================
 
-echo "[6.5/10] Initializing Claude Flow V3 (Canonical System)..."
+echo "[6.5/10] Initializing Ruflo V3 (Canonical System)..."
 
 # Clean any stale NPX caches from all users to prevent corruption
 rm -rf /home/devuser/.npm/_npx/* 2>/dev/null || true
@@ -655,15 +656,16 @@ rm -rf /root/.npm/_npx/* 2>/dev/null || true
 mkdir -p /home/devuser/.claude-flow
 chown -R devuser:devuser /home/devuser/.claude-flow
 
-# Fix 7: Create proper claude-flow wrapper script (prevents shebang corruption)
-# The npm-installed cli.js can have corrupted shebangs with literal \n characters
-echo "  Creating claude-flow wrapper script (Fix 7: shebang corruption prevention)..."
+# Fix 7: Create ruflo + claude-flow wrapper scripts (backwards compat)
+echo "  Creating ruflo/claude-flow wrapper scripts..."
+# ruflo is the primary binary (installed globally via npm)
+# claude-flow is a backwards-compat alias
 cat > /usr/local/bin/claude-flow << 'CFWRAPPER'
 #!/bin/bash
-exec npx @claude-flow/cli@latest "$@"
+exec ruflo "$@"
 CFWRAPPER
 chmod +x /usr/local/bin/claude-flow
-echo "  ✓ claude-flow wrapper installed at /usr/local/bin/claude-flow"
+echo "  ✓ ruflo CLI active, claude-flow alias preserved"
 
 # Create canonical claude-flow config if not exists
 if [ ! -f /home/devuser/.claude-flow/config.json ]; then
@@ -706,40 +708,43 @@ if [ ! -f /home/devuser/.claude-flow/config.json ]; then
 }
 CFCONFIG
     chown devuser:devuser /home/devuser/.claude-flow/config.json
-    echo "✓ Claude Flow V3 config created (external RuVector memory)"
+    echo "✓ Ruflo V3 config created (external RuVector memory)"
 fi
 
-# Run Claude-Flow V3 init as devuser IN BACKGROUND (non-blocking)
-# Uses global binary with fallback to npx
-echo "  Starting Claude Flow V3 initialization in background..."
+# Run Ruflo V3 init as devuser IN BACKGROUND (non-blocking)
+# Uses global ruflo binary with fallback to npx
+echo "  Starting Ruflo V3 initialization in background..."
 (sudo -u devuser bash -c "
     cd /home/devuser
     # Test if global binary works, fallback to npx if not
-    if command -v claude-flow >/dev/null 2>&1; then
-        echo '[INIT] Using global claude-flow binary'
-        claude-flow init --force --quiet 2>&1 || {
+    if command -v ruflo >/dev/null 2>&1; then
+        echo '[INIT] Using global ruflo binary'
+        ruflo init --force --quiet 2>&1 || {
             echo '[INIT] Global binary failed, trying npx fallback'
-            npx @claude-flow/cli@latest init --force 2>&1
+            npx ruflo init --force 2>&1
         }
     else
         echo '[INIT] Global binary not found, using npx'
-        npx @claude-flow/cli@latest init --force 2>&1
+        npx ruflo init --force 2>&1
     fi
 " > /var/log/claude-flow-init.log 2>&1 &) || true
 
-# Fix hooks to use global claude-flow binary and validate JSON (Fix 3)
+# Fix hooks to use global ruflo binary and validate JSON (Fix 3)
 if [ -f /home/devuser/.claude/settings.json ]; then
     # Create backup before modifications
     cp /home/devuser/.claude/settings.json /home/devuser/.claude/settings.json.backup
 
-    # Replace slow npx invocations with global binary
-    sed -i 's|npx @claude-flow/cli@[0-9.]*|claude-flow|g' /home/devuser/.claude/settings.json
-    sed -i 's|npx @claude-flow/cli|claude-flow|g' /home/devuser/.claude/settings.json
-    sed -i 's|npx claude-flow|claude-flow|g' /home/devuser/.claude/settings.json
+    # Replace slow npx invocations with ruflo global binary
+    sed -i 's|npx @claude-flow/cli@[0-9a-z.-]*|ruflo|g' /home/devuser/.claude/settings.json
+    sed -i 's|npx @claude-flow/cli|ruflo|g' /home/devuser/.claude/settings.json
+    sed -i 's|npx claude-flow|ruflo|g' /home/devuser/.claude/settings.json
+    sed -i 's|npx ruflo|ruflo|g' /home/devuser/.claude/settings.json
 
     # Clean up any remaining legacy formats
-    sed -i 's|claude-flow@v3alpha|claude-flow|g' /home/devuser/.claude/settings.json
-    sed -i 's|claude-flow@alpha|claude-flow|g' /home/devuser/.claude/settings.json
+    sed -i 's|claude-flow@v3alpha|ruflo|g' /home/devuser/.claude/settings.json
+    sed -i 's|claude-flow@alpha|ruflo|g' /home/devuser/.claude/settings.json
+    # Preserve "claude-flow" as command name (the wrapper calls ruflo)
+    # so both claude-flow and ruflo work in hooks
 
     # Fix JSON trailing commas that break validation
     sed -i 's|},\s*]|}\n    ]|g' /home/devuser/.claude/settings.json
@@ -749,7 +754,7 @@ if [ -f /home/devuser/.claude/settings.json ]; then
         echo "⚠️  Invalid JSON in settings.json, restoring backup"
         cp /home/devuser/.claude/settings.json.backup /home/devuser/.claude/settings.json
     else
-        echo "✓ Settings.json validated and updated to use global claude-flow binary"
+        echo "✓ Settings.json validated and updated to use ruflo binary"
         rm /home/devuser/.claude/settings.json.backup
     fi
 
@@ -981,8 +986,9 @@ fi
 # Fix MCP config files that might have wrong package names
 for mcp_file in /home/devuser/.mcp.json /home/devuser/workspace/.mcp.json /home/devuser/workspace/project/.mcp.json; do
     if [ -f "$mcp_file" ]; then
-        sed -i 's|"claude-flow@alpha"|"claude-flow"|g' "$mcp_file" 2>/dev/null || true
-        sed -i 's|claude-flow@alpha|@claude-flow/cli@latest|g' "$mcp_file" 2>/dev/null || true
+        sed -i 's|"claude-flow@alpha"|"ruflo"|g' "$mcp_file" 2>/dev/null || true
+        sed -i 's|claude-flow@alpha|ruflo|g' "$mcp_file" 2>/dev/null || true
+        sed -i 's|@claude-flow/cli@latest|ruflo|g' "$mcp_file" 2>/dev/null || true
         chown devuser:devuser "$mcp_file" 2>/dev/null || true
     fi
 done
@@ -997,7 +1003,7 @@ echo "  Initializing @claude-flow/guidance (Control Plane)..."
 
 # Compile CLAUDE.md into typed constitution
 echo "  Compiling CLAUDE.md into policy bundle..."
-(sudo -u devuser bash -c "cd /home/devuser/workspace/project && npx @claude-flow/cli@latest guidance compile 2>/dev/null" >> /var/log/claude-flow-init.log 2>&1 &) || true
+(sudo -u devuser bash -c "cd /home/devuser/workspace/project && ruflo guidance compile 2>/dev/null" >> /var/log/claude-flow-init.log 2>&1 &) || true
 
 # Create CLAUDE.local.md template for local experiments
 if [ ! -f /home/devuser/workspace/project/CLAUDE.local.md ]; then
@@ -1050,6 +1056,21 @@ fi
 
 # Copy statusline with guidance indicator to project .claude directory
 mkdir -p /home/devuser/workspace/project/.claude
+
+# Symlink helpers from home .claude into project .claude so hooks resolve correctly
+# (Claude Code runs hooks with CWD = project directory, so relative paths like
+#  .claude/helpers/hook-handler.cjs resolve under the project, not under $HOME)
+if [ -d /home/devuser/.claude/helpers ]; then
+    if [ -d /home/devuser/workspace/project/.claude/helpers ] && [ ! -L /home/devuser/workspace/project/.claude/helpers ]; then
+        # Real directory exists (stale copy) — replace with symlink
+        mv /home/devuser/workspace/project/.claude/helpers /home/devuser/workspace/project/.claude/helpers.old
+        ln -s /home/devuser/.claude/helpers /home/devuser/workspace/project/.claude/helpers
+        echo "  ✓ Replaced stale project .claude/helpers with symlink → ~/.claude/helpers"
+    elif [ ! -e /home/devuser/workspace/project/.claude/helpers ]; then
+        ln -s /home/devuser/.claude/helpers /home/devuser/workspace/project/.claude/helpers
+        echo "  ✓ Symlinked project .claude/helpers → ~/.claude/helpers"
+    fi
+fi
 if [ -f /opt/unified-config/statusline.sh ]; then
     cp /opt/unified-config/statusline.sh /home/devuser/workspace/project/.claude/statusline.sh
     chmod +x /home/devuser/workspace/project/.claude/statusline.sh
@@ -1810,7 +1831,7 @@ echo "+-------------------------------------------------------------│"
 echo "│ Users:                                                      │"
 echo "│   devuser (1000)      - Claude Code, development           │"
 echo "│   gemini-user (1001)  - Google Gemini CLI, gemini-flow     │"
-echo "│   openai-user (1002)  - OpenAI Codex                       │"
+echo "│   openai-user (1002)  - OpenAI Codex (GPT-5.4)             │"
 echo "│   zai-user (1003)     - Z.AI service                       │"
 echo "+-------------------------------------------------------------│"
 echo "│ Skills:           $SKILL_COUNT custom Claude Code skills             │"
@@ -1840,6 +1861,7 @@ echo "  ✓ Claude Z.AI service (port 9600)"
 echo "  ✓ ComfyUI skill (connects to external comfyui container)"
 echo "  ✓ @claude-flow/browser via claude-flow MCP (primary, 59 tools)"
 echo "  ✓ MCP servers (qgis, blender - on-demand: web-summary, imagemagick)"
+echo "  ✓ OpenAI Codex MCP (GPT-5.4 bridge for devuser)"
 echo "  ✓ Gemini-flow daemon"
 echo "  ✓ tmux workspace auto-start"
 echo ""

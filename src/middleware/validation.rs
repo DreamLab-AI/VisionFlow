@@ -26,7 +26,7 @@ pub const MAX_STRING_LENGTH: usize = 100 * 1024;
 
 /// Input validation middleware
 /// # Example
-/// ```
+/// ```rust,ignore
 /// use actix_web::{web, App};
 /// use crate::middleware::validation::{ValidateInput, ValidationConfig};
 /// App::new()

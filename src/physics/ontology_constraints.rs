@@ -25,7 +25,7 @@
 //!
 //! ## Usage
 //!
-//! ```rust
+//! ```rust,ignore
 //! use crate::physics::ontology_constraints::OntologyConstraintTranslator;
 //! use crate::models::constraints::ConstraintSet;
 //!

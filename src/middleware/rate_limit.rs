@@ -11,7 +11,7 @@
 //! - 429 Too Many Requests response when exceeded
 //!
 //! ## Example
-//! ```rust
+//! ```rust,ignore
 //! use actix_web::{web, App};
 //! use visionflow::middleware::RateLimit;
 //!

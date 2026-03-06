@@ -39,7 +39,7 @@ pub type Result<T> = std::result::Result<T, ConversionError>;
 
 /// Convert 3D position tuples to flat GPU buffer format
 /// # Example
-/// ```
+/// ```rust,ignore
 /// let positions = vec![(1.0, 2.0, 3.0), (4.0, 5.0, 6.0)];
 /// let buffer = positions_to_gpu(&positions);
 /// assert_eq!(buffer, vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);

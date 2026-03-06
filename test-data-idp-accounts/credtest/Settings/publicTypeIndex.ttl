@@ -1,0 +1,7 @@
+{
+  "@context": {
+    "solid": "http://www.w3.org/ns/solid/terms#"
+  },
+  "@id": "http://localhost:3101/credtest/Settings/publicTypeIndex.ttl",
+  "@type": "solid:TypeIndex"
+}

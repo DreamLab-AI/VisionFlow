@@ -11,7 +11,7 @@
 #
 # FEATURES:
 #   - CachyOS v3 base (x86-64-v3 optimized)
-#   - Claude Flow V3 with 62+ skills
+#   - Ruflo (formerly Claude Flow) V3 with 62+ skills
 #   - Multi-user isolation (devuser, gemini-user, openai-user, zai-user)
 #   - NVIDIA GPU support with CUDA 13.x
 #   - Full GUI environment (Hyprland/Openbox + VNC)
@@ -30,12 +30,12 @@ FROM cachyos/cachyos-v3:latest
 
 # Build metadata
 LABEL org.opencontainers.image.title="Agentic Workstation"
-LABEL org.opencontainers.image.description="Unified Claude Flow V3 Development Environment"
+LABEL org.opencontainers.image.description="Unified Ruflo V3 Development Environment"
 LABEL org.opencontainers.image.version="3.0.0"
 LABEL org.opencontainers.image.created="2026-01-31"
 LABEL org.opencontainers.image.vendor="Turbo Flow"
 LABEL com.turboflow.skills.count="62"
-LABEL com.turboflow.claude-flow.version="3.0"
+LABEL com.turboflow.ruflo.version="3.5"
 
 # ============================================================================
 # PHASE 1: Base System Packages
@@ -249,22 +249,23 @@ RUN npm install -g \
     # We use npm here for system-wide installation in Docker images
     @anthropic-ai/claude-code@2.1.47 \
     claude-usage-cli@latest \
-    # Claude-Flow V3 CLI (Global Install - Canonical v3.0)
-    @claude-flow/cli@3.1.0-alpha.44 \
+    # Ruflo V3 CLI (Global Install - formerly @claude-flow/cli)
+    ruflo@3.5.2 \
     # Postgres Driver (Fix 4)
     pg \
     @claude-flow/browser@latest \
     # Browser automation - PRIMARY tool (Vercel Labs)
-    # @claude-flow/browser provides MCP tools via claude-flow server
+    # @claude-flow/browser provides MCP tools via ruflo server
     # agent-browser provides direct CLI access (agent-browser open, snapshot, click, etc.)
     agent-browser@latest \
-    # AgentDB and RuVector ecosystem
-    agentdb@latest \
-    ruvector@0.1.96 \
+    # AgentDB v3 and RuVector ecosystem
+    agentdb@alpha \
+    ruvector@0.1.99 \
     @ruvector/gnn@latest \
+    @ruvector/graph-transformer@latest \
     @ruvector/postgres-cli@latest \
-    # Agentic-QE V3 Fleet (51 agents, 12 domains)
-    agentic-qe@3.6.13 \
+    # Agentic-QE V3 Fleet (60 agents, 14 domains)
+    agentic-qe@3.7.5 \
     # Agentic ecosystem
     agentic-flow@latest \
     agentic-jujutsu@latest \
@@ -278,9 +279,9 @@ RUN npm install -g \
     ts-node@latest \
     @types/node@latest
 
-# Fix 4/6: Install pg driver in claude-flow global package
-RUN cd /usr/local/lib/node_modules/@claude-flow/cli && npm install pg --save 2>/dev/null || \
-    cd /usr/local/lib/node_modules/claude-flow && npm install pg --save 2>/dev/null || true
+# Fix 4/6: Install pg driver in ruflo global package (and legacy claude-flow path)
+RUN cd /usr/local/lib/node_modules/ruflo/node_modules/@claude-flow/cli && npm install pg --save 2>/dev/null || \
+    cd /usr/local/lib/node_modules/@claude-flow/cli && npm install pg --save 2>/dev/null || true
 
 # Install Playwright browsers (skip system deps - already installed via pacman)
 RUN npx -y playwright install chromium
@@ -400,8 +401,12 @@ RUN npm install --prefix /home/gemini-user/.local gemini-flow
 USER root
 
 # ============================================================================
-# PHASE 9: openai-user Setup
+# PHASE 9: openai-user Setup (GPT-5.4 / Codex First-Class Citizen)
 # ============================================================================
+
+USER root
+# Install the official OpenAI Codex CLI and Node SDK globally
+RUN npm install -g @openai/codex openai
 
 USER openai-user
 WORKDIR /home/openai-user
@@ -409,7 +414,7 @@ WORKDIR /home/openai-user
 # Install Oh-My-Zsh for openai-user
 RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 
-# Install OpenAI tools (no --user flag with venv)
+# Install OpenAI Python library (no --user flag with venv)
 RUN /opt/venv/bin/pip install openai || echo "OpenAI install skipped"
 
 USER root
@@ -494,6 +499,11 @@ RUN cd /home/devuser/.claude/skills/perplexity/mcp-server && \
     npm install --production 2>/dev/null || echo "Perplexity deps optional" && \
     chmod +x server.js 2>/dev/null || true
 
+# OpenAI Codex MCP server (GPT-5.4 bridge for cross-agent delegation)
+RUN cd /home/devuser/.claude/skills/openai-codex/mcp-server && \
+    npm install --production 2>/dev/null || echo "OpenAI Codex deps optional" && \
+    chmod +x server.js 2>/dev/null || true
+
 # Host Webserver Debug MCP server (HTTPS bridge, screenshots, CORS debugging)
 RUN cd /home/devuser/.claude/skills/host-webserver-debug/mcp-server && \
     npm install --production 2>/dev/null || echo "Host debug deps optional" && \
@@ -565,18 +575,18 @@ RUN find /home/devuser/.claude/skills -name "*.py" -path "*/mcp-server/*" -exec 
     chown -R devuser:devuser /home/devuser/.claude/skills
 
 # ============================================================================
-# PHASE 13.5: Claude Flow V3 Canonical Setup
+# PHASE 13.5: Ruflo V3 Canonical Setup (formerly Claude Flow)
 # ============================================================================
 
-# Create claude-flow alias and verify installation
+# Create ruflo binary wrapper + claude-flow backwards-compat alias
 RUN ln -sf /usr/local/bin/npx /usr/local/bin/claude-flow-npx && \
-    echo '#!/bin/bash\nexec npx @claude-flow/cli@3.1.0-alpha.44 "$@"' > /usr/local/bin/claude-flow && \
+    echo '#!/bin/bash\nexec ruflo "$@"' > /usr/local/bin/claude-flow && \
     chmod +x /usr/local/bin/claude-flow && \
-    # Verify claude-flow package is installed and accessible
-    npx @claude-flow/cli@3.1.0-alpha.44 --version 2>/dev/null || echo "Claude Flow CLI verification: using dynamic resolution" && \
-    echo "✓ Claude Flow V3 CLI configured"
+    # Verify ruflo package is installed and accessible
+    ruflo --version 2>/dev/null || echo "Ruflo CLI verification: using dynamic resolution" && \
+    echo "✓ Ruflo V3 CLI configured (claude-flow alias preserved)"
 
-# Pre-initialize Claude Flow configuration
+# Pre-initialize Ruflo configuration
 RUN mkdir -p /home/devuser/.claude-flow && \
     cat > /home/devuser/.claude-flow/config.json << 'EOF'
 {
@@ -603,8 +613,10 @@ RUN mkdir -p /home/devuser/.claude-flow && \
 EOF
 RUN chown -R devuser:devuser /home/devuser/.claude-flow
 
-# Create global wrapper for quick access
-RUN echo '#!/bin/bash\n# Claude Flow V3 Quick Access\nexec claude-flow "$@"' > /usr/local/bin/cf && \
+# Create global wrapper for quick access (rf = ruflo, cf = backwards compat)
+RUN echo '#!/bin/bash\n# Ruflo V3 Quick Access\nexec ruflo "$@"' > /usr/local/bin/rf && \
+    chmod +x /usr/local/bin/rf && \
+    echo '#!/bin/bash\n# Claude Flow → Ruflo backwards compat\nexec ruflo "$@"' > /usr/local/bin/cf && \
     chmod +x /usr/local/bin/cf
 
 # ============================================================================

@@ -9,7 +9,7 @@
 //!
 //! ## Architecture
 //!
-//! ```
+//! ```text
 //! GraphServiceSupervisor
 //! ├── GraphStateActor          (State management & persistence)
 //! ├── PhysicsOrchestratorActor (Physics simulation & GPU compute)

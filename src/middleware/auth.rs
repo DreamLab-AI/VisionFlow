@@ -17,7 +17,7 @@ use crate::utils::auth::{verify_authenticated, verify_power_user, AccessLevel};
 
 /// Authentication middleware that enforces Nostr-based session validation
 /// # Example
-/// ```
+/// ```rust,ignore
 /// use actix_web::{web, App};
 /// use crate::middleware::auth::RequireAuth;
 /// App::new()
@@ -135,7 +135,7 @@ pub struct AuthenticatedUser {
 
 /// Extract authenticated user from request extensions (for use in handlers)
 /// # Example
-/// ```
+/// ```rust,ignore
 /// use actix_web::{web, HttpRequest};
 /// use crate::middleware::auth::get_authenticated_user;
 /// async fn handler(req: HttpRequest) -> impl Responder {

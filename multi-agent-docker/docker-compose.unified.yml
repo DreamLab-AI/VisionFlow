@@ -31,7 +31,7 @@ services:
     labels:
       com.turboflow.service: "agentic-workstation"
       com.turboflow.version: "3.0.0"
-      com.turboflow.claude-flow: "v3"
+      com.turboflow.ruflo: "v3.5"
       com.turboflow.skills.count: "62"
 
     # NVIDIA GPU support
@@ -132,6 +132,7 @@ services:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_ORG_ID: ${OPENAI_ORG_ID:-}
+      OPENAI_DEFAULT_MODEL: ${OPENAI_DEFAULT_MODEL:-gpt-5.4}
       GOOGLE_GEMINI_API_KEY: ${GOOGLE_GEMINI_API_KEY:-}
       GOOGLE_API_KEY: ${GOOGLE_GEMINI_API_KEY:-}
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}

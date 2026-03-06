@@ -15,7 +15,9 @@ use tokio::sync::RwLock;
 
 use async_trait::async_trait;
 use webxr::adapters::whelk_inference_engine::WhelkInferenceEngine;
-use webxr::models::graph::{Edge, GraphData, Node};
+use webxr::models::edge::Edge;
+use webxr::models::graph::GraphData;
+use webxr::models::node::Node;
 use webxr::ports::knowledge_graph_repository::{
     GraphStatistics, KnowledgeGraphRepository, Result as KGResult,
 };
@@ -40,18 +42,34 @@ impl KnowledgeGraphRepository for EmptyKGRepo {
     async fn batch_add_nodes(&self, _n: Vec<Node>) -> KGResult<Vec<u32>> { Ok(vec![]) }
     async fn update_node(&self, _n: &Node) -> KGResult<()> { Ok(()) }
     async fn batch_update_nodes(&self, _n: Vec<Node>) -> KGResult<()> { Ok(()) }
-    async fn batch_update_positions(&self, _u: Vec<(u32, [f32; 3])>) -> KGResult<()> { Ok(()) }
-    async fn delete_node(&self, _id: u32) -> KGResult<()> { Ok(()) }
+    async fn remove_node(&self, _id: u32) -> KGResult<()> { Ok(()) }
+    async fn batch_remove_nodes(&self, _ids: Vec<u32>) -> KGResult<()> { Ok(()) }
     async fn get_node(&self, _id: u32) -> KGResult<Option<Node>> { Ok(None) }
+    async fn get_nodes(&self, _ids: Vec<u32>) -> KGResult<Vec<Node>> { Ok(vec![]) }
+    async fn get_nodes_by_metadata_id(&self, _metadata_id: &str) -> KGResult<Vec<Node>> { Ok(vec![]) }
+    async fn get_nodes_by_owl_class_iri(&self, _iri: &str) -> KGResult<Vec<Node>> { Ok(vec![]) }
+    async fn search_nodes_by_label(&self, _label: &str) -> KGResult<Vec<Node>> { Ok(vec![]) }
     async fn add_edge(&self, _e: &Edge) -> KGResult<String> { Ok(String::new()) }
-    async fn get_edges_for_node(&self, _id: u32) -> KGResult<Vec<Edge>> { Ok(vec![]) }
+    async fn batch_add_edges(&self, _edges: Vec<Edge>) -> KGResult<Vec<String>> { Ok(vec![]) }
+    async fn update_edge(&self, _e: &Edge) -> KGResult<()> { Ok(()) }
+    async fn remove_edge(&self, _id: &str) -> KGResult<()> { Ok(()) }
+    async fn batch_remove_edges(&self, _ids: Vec<String>) -> KGResult<()> { Ok(()) }
+    async fn get_node_edges(&self, _id: u32) -> KGResult<Vec<Edge>> { Ok(vec![]) }
+    async fn get_edges_between(&self, _source: u32, _target: u32) -> KGResult<Vec<Edge>> { Ok(vec![]) }
+    async fn batch_update_positions(&self, _positions: Vec<(u32, f32, f32, f32)>) -> KGResult<()> { Ok(()) }
+    async fn get_all_positions(&self) -> KGResult<HashMap<u32, (f32, f32, f32)>> { Ok(HashMap::new()) }
+    async fn query_nodes(&self, _query: &str) -> KGResult<Vec<Node>> { Ok(vec![]) }
     async fn get_neighbors(&self, _id: u32) -> KGResult<Vec<Node>> { Ok(vec![]) }
-    async fn get_graph_statistics(&self) -> KGResult<GraphStatistics> {
-        Ok(GraphStatistics { node_count: 0, edge_count: 0, avg_degree: 0.0 })
+    async fn get_statistics(&self) -> KGResult<GraphStatistics> {
+        Ok(GraphStatistics {
+            node_count: 0,
+            edge_count: 0,
+            average_degree: 0.0,
+            connected_components: 0,
+            last_updated: chrono::Utc::now(),
+        })
     }
-    async fn begin_transaction(&self) -> KGResult<()> { Ok(()) }
-    async fn commit_transaction(&self) -> KGResult<()> { Ok(()) }
-    async fn rollback_transaction(&self) -> KGResult<()> { Ok(()) }
+    async fn clear_graph(&self) -> KGResult<()> { Ok(()) }
     async fn health_check(&self) -> KGResult<bool> { Ok(true) }
 }
 
@@ -74,7 +92,7 @@ fn build_mutation_service() -> OntologyMutationService {
 fn build_mutation_service_with_markdown() -> OntologyMutationService {
     let repo = create_test_ontology_repo();
     {
-        let mut classes = repo.classes.blocking_write();
+        let mut classes = repo.classes.try_write().expect("lock available in test setup");
         if let Some(person) = classes.get_mut("mv:Person") {
             person.markdown_content = Some(
                 "- Person\n  - ### OntologyBlock\n    - ontology:: true\n    - definition:: A human being\n"

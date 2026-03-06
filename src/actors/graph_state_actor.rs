@@ -38,14 +38,14 @@
 //!
 //! ## Usage Pattern
 //!
-//! ```rust
-//! 
+//! ```rust,ignore
+//!
 //! let graph_data = graph_state_actor.send(GetGraphData).await?;
 //!
-//! 
+//!
 //! graph_state_actor.send(AddNode { node }).await?;
 //!
-//! 
+//!
 //! graph_state_actor.send(BuildGraphFromMetadata { metadata }).await?;
 //! ```
 
@@ -357,6 +357,19 @@ impl GraphStateActor {
         // Classify all nodes into type sets
         self.reclassify_all_nodes();
 
+        // Persist edges to Neo4j so they survive restart
+        if !self.graph_data.edges.is_empty() {
+            let repo = Arc::clone(&self.repository);
+            let graph_snapshot = Arc::clone(&self.graph_data);
+            actix::spawn(async move {
+                if let Err(e) = repo.save_graph(&graph_snapshot).await {
+                    error!("Failed to persist graph with edges to Neo4j: {}", e);
+                } else {
+                    info!("Persisted {} edges to Neo4j after metadata build", graph_snapshot.edges.len());
+                }
+            });
+        }
+
         info!("Built graph from metadata: {} nodes, {} edges",
               self.graph_data.nodes.len(), self.graph_data.edges.len());
 
@@ -523,7 +536,46 @@ impl GraphStateActor {
               graph_data.edges.len());
     }
 
-    
+    /// Generate namespace edges from node labels alone (no metadata needed).
+    /// Used on startup / reload when edges weren't persisted to Neo4j.
+    fn generate_edges_from_labels(graph_data: &mut GraphData) {
+        let mut edge_set: HashSet<(u32, u32)> = HashSet::new();
+        // Collect existing edges to avoid duplicates
+        for edge in &graph_data.edges {
+            edge_set.insert((edge.source, edge.target));
+        }
+
+        // Group by namespace prefix (e.g., "material--merino" → "material")
+        let mut prefix_groups: HashMap<String, Vec<u32>> = HashMap::new();
+        for node in &graph_data.nodes {
+            let name = node.label.to_lowercase().trim_end_matches(".md").to_string();
+            if let Some(prefix) = name.split("--").next() {
+                if name.contains("--") {
+                    prefix_groups.entry(prefix.to_string()).or_default().push(node.id);
+                }
+            }
+        }
+
+        let mut generated = 0usize;
+        for (_, group_nodes) in &prefix_groups {
+            if group_nodes.len() > 1 && group_nodes.len() <= 50 {
+                for i in 0..group_nodes.len() {
+                    for j in (i + 1)..group_nodes.len() {
+                        if edge_set.insert((group_nodes[i], group_nodes[j])) {
+                            graph_data.edges.push(
+                                Edge::new(group_nodes[i], group_nodes[j], 0.3)
+                                    .with_edge_type("namespace".to_string()),
+                            );
+                            generated += 1;
+                        }
+                    }
+                }
+            }
+        }
+        info!("Generated {} namespace edges from node labels", generated);
+    }
+
+
     fn add_nodes_from_metadata(&mut self, metadata: MetadataStore) -> Result<(), String> {
         let mut added_count = 0;
         let mut current_id = self.next_node_id.load(std::sync::atomic::Ordering::SeqCst);
@@ -754,7 +806,28 @@ impl Actor for GraphStateActor {
                     // Classify all loaded nodes into type sets
                     act.reclassify_all_nodes();
 
-                    info!("GraphStateActor initialized with {} nodes from Neo4j", arc_graph_data.nodes.len());
+                    // If no edges were loaded but we have nodes, generate from labels and persist
+                    if act.graph_data.edges.is_empty() && !act.graph_data.nodes.is_empty() {
+                        info!("No edges loaded from Neo4j — generating from node labels");
+                        let graph_data_mut = Arc::make_mut(&mut act.graph_data);
+                        Self::generate_edges_from_labels(graph_data_mut);
+
+                        // Persist generated edges to Neo4j (fire-and-forget)
+                        let repo = Arc::clone(&act.repository);
+                        let edges_to_save = act.graph_data.edges.clone();
+                        let node_count = act.graph_data.nodes.len();
+                        actix::spawn(async move {
+                            for edge in &edges_to_save {
+                                if let Err(e) = repo.add_edge(edge).await {
+                                    error!("Failed to persist edge {}->{}: {}", edge.source, edge.target, e);
+                                }
+                            }
+                            info!("Persisted {} edges to Neo4j for {} nodes", edges_to_save.len(), node_count);
+                        });
+                    }
+
+                    info!("GraphStateActor initialized with {} nodes, {} edges from Neo4j",
+                          act.graph_data.nodes.len(), act.graph_data.edges.len());
                 } else {
                     warn!("GraphStateActor starting with empty graph due to load failure");
                 }
@@ -1079,6 +1152,25 @@ impl Handler<ReloadGraphFromDatabase> for GraphStateActor {
 
                         // Reclassify all nodes after reload
                         act.reclassify_all_nodes();
+
+                        // If no edges were loaded but we have nodes, generate from labels and persist
+                        if act.graph_data.edges.is_empty() && !act.graph_data.nodes.is_empty() {
+                            info!("ReloadGraphFromDatabase: No edges — generating from node labels");
+                            let graph_data_mut = Arc::make_mut(&mut act.graph_data);
+                            Self::generate_edges_from_labels(graph_data_mut);
+
+                            // Persist generated edges (fire-and-forget)
+                            let repo = Arc::clone(&act.repository);
+                            let edges_to_save = act.graph_data.edges.clone();
+                            actix::spawn(async move {
+                                for edge in &edges_to_save {
+                                    if let Err(e) = repo.add_edge(edge).await {
+                                        error!("Failed to persist edge: {}", e);
+                                    }
+                                }
+                                info!("Persisted {} generated edges to Neo4j", edges_to_save.len());
+                            });
+                        }
 
                         info!(
                             "GraphStateActor: State updated after reload - {} nodes, {} edges",

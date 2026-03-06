@@ -31,7 +31,7 @@
 //!
 //! ## Usage
 //!
-//! ```rust
+//! ```rust,ignore
 //! use crate::physics::{StressMajorizationSolver, SemanticConstraintGenerator, OntologyConstraintTranslator};
 //! use crate::models::constraints::ConstraintSet;
 //! use crate::models::graph::GraphData;

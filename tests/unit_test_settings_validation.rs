@@ -221,35 +221,9 @@ fn test_merge_auto_balance_physics() {
 
 #[test]
 fn test_file_io_error_scenarios() {
-    use std::env;
-    use std::fs;
-    use std::os::unix::fs::PermissionsExt;
-    use tempfile::TempDir;
-
-    // Create a temporary directory
-    let temp_dir = TempDir::new().unwrap();
-    let readonly_file = temp_dir.path().join("readonly_settings.yaml");
-
-    // Create a file and make it read-only
-    fs::write(&readonly_file, "test: value").unwrap();
-    let mut perms = fs::metadata(&readonly_file).unwrap().permissions();
-    perms.set_mode(0o444); // Read-only
-    fs::set_permissions(&readonly_file, perms).unwrap();
-
-    // Set the environment variable to use our read-only file
-    env::set_var("SETTINGS_FILE_PATH", readonly_file.to_str().unwrap());
-
-    // Attempt to save settings should fail
+    // Legacy YAML file persistence was removed — save() is now a no-op
+    // that returns Ok(()) for backwards compatibility (settings live in Neo4j).
     let settings = webxr::config::AppFullSettings::default();
     let result = settings.save();
-
-    assert!(result.is_err());
-    let err_msg = result.unwrap_err();
-    assert!(
-        err_msg.contains("Permission denied")
-            || err_msg.contains("Read-only file system")
-    );
-
-    // Clean up
-    env::remove_var("SETTINGS_FILE_PATH");
+    assert!(result.is_ok(), "save() should be a no-op returning Ok");
 }

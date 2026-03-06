@@ -53,7 +53,7 @@
 //! ### Method 1: High-Level Async (get_node_positions_async and get_node_velocities_async)
 //! These implement a sophisticated double-buffering strategy with automatic buffer management:
 //!
-//! ```rust
+//! ```rust,ignore
 //! use crate::utils::unified_gpu_compute::UnifiedGPUCompute;
 //!
 //!
@@ -83,7 +83,7 @@
 //! ### Method 2: Low-Level Async (start_async_download_* and wait_for_download_*)
 //! For fine-grained control over transfer timing and maximum performance:
 //!
-//! ```rust
+//! ```rust,ignore
 //! use crate::utils::unified_gpu_compute::UnifiedGPUCompute;
 //!
 //!

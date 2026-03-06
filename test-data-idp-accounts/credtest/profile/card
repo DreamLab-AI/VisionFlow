@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>credtest's Profile</title>
+  <link rel="stylesheet" href="https://javascriptsolidserver.github.io/mashlib-jss/dist/mash.css">
+  <script type="application/ld+json">
+{
+  "@context": {
+    "foaf": "http://xmlns.com/foaf/0.1/",
+    "solid": "http://www.w3.org/ns/solid/terms#",
+    "schema": "http://schema.org/",
+    "pim": "http://www.w3.org/ns/pim/space#",
+    "ldp": "http://www.w3.org/ns/ldp#",
+    "inbox": {
+      "@id": "ldp:inbox",
+      "@type": "@id"
+    },
+    "storage": {
+      "@id": "pim:storage",
+      "@type": "@id"
+    },
+    "oidcIssuer": {
+      "@id": "solid:oidcIssuer",
+      "@type": "@id"
+    },
+    "preferencesFile": {
+      "@id": "pim:preferencesFile",
+      "@type": "@id"
+    },
+    "publicTypeIndex": {
+      "@id": "solid:publicTypeIndex",
+      "@type": "@id"
+    },
+    "privateTypeIndex": {
+      "@id": "solid:privateTypeIndex",
+      "@type": "@id"
+    },
+    "mainEntityOfPage": {
+      "@id": "schema:mainEntityOfPage",
+      "@type": "@id"
+    }
+  },
+  "@id": "http://localhost:3101/credtest/profile/card#me",
+  "@type": [
+    "foaf:Person",
+    "schema:Person"
+  ],
+  "foaf:name": "credtest",
+  "mainEntityOfPage": "http://localhost:3101/credtest/profile/card",
+  "inbox": "http://localhost:3101/credtest/inbox/",
+  "storage": "http://localhost:3101/credtest/",
+  "oidcIssuer": "http://localhost:3101/",
+  "preferencesFile": "http://localhost:3101/credtest/Settings/Preferences.ttl",
+  "publicTypeIndex": "http://localhost:3101/credtest/Settings/publicTypeIndex.ttl",
+  "privateTypeIndex": "http://localhost:3101/credtest/Settings/privateTypeIndex.ttl"
+}
+  </script>
+  <style>
+    body { margin: 0; font-family: system-ui, sans-serif; }
+    .loading { padding: 2rem; text-align: center; color: #666; }
+  </style>
+</head>
+<body>
+  <div class="TabulatorOutline" id="DummyUUID" role="main">
+    <table id="outline"></table>
+    <div id="GlobalDashboard"></div>
+  </div>
+  <div class="loading" id="loading">Loading profile...</div>
+
+  <script src="https://javascriptsolidserver.github.io/mashlib-jss/dist/mashlib.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/solidos-lite/solidos-lite.js"></script>
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const loadingEl = document.getElementById('loading');
+
+    // Initialize solidos-lite to handle data islands
+    const success = SolidOSLite.init({ verbose: false });
+    if (!success) {
+      loadingEl.textContent = 'Failed to initialize. Please try refreshing.';
+      return;
+    }
+
+    // Parse data islands into the RDF store
+    SolidOSLite.parseAllIslands();
+
+    // Mark this document as already fetched
+    const pageBase = window.location.href.split('?')[0].split('#')[0];
+    const fetcher = SolidLogic.store.fetcher;
+    fetcher.requested[pageBase] = 'done';
+    fetcher.requested[pageBase.replace(/\/$/, '')] = 'done';
+
+    // Navigate to #me
+    const subject = $rdf.sym(pageBase + '#me');
+    const outliner = panes.getOutliner(document);
+    outliner.GotoSubject(subject, true, undefined, true, undefined);
+
+    loadingEl.style.display = 'none';
+  });
+  </script>
+</body>
+</html>

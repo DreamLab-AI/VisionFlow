@@ -12,6 +12,7 @@
   },
   "keywords": [
     "claude",
+    "ruflo",
     "claude-flow",
     "agentdb",
     "ruvector",
@@ -28,11 +29,12 @@
   "homepage": "https://github.com/jjohare/turbo-flow-claude#readme",
   "dependencies": {
     "@anthropic-ai/claude-code": "^2.1.47",
-    "@claude-flow/cli": "^3.1.0-alpha.44",
-    "agentdb": "latest",
-    "ruvector": "latest",
+    "ruflo": "^3.5.2",
+    "agentdb": "alpha",
+    "ruvector": "^0.1.99",
     "@ruvector/gnn": "latest",
-    "agentic-qe": "^3.6.13",
+    "@ruvector/graph-transformer": "^2.0.4",
+    "agentic-qe": "^3.7.5",
     "agentic-flow": "latest",
     "agentic-jujutsu": "latest"
   }

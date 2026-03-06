@@ -1,0 +1,12 @@
+{
+  "id": "a86e5e87-acd6-4271-87c1-ed958451023e",
+  "username": "credtest",
+  "email": "credtest@example.com",
+  "passwordHash": "$2b$10$BMPU0QWNi79mRGpsOGmoauouVtQnlhtHdTnfIwuAvUYFoXvFMBvg6",
+  "webId": "http://localhost:3101/credtest/profile/card#me",
+  "podName": "credtest",
+  "nostrPubkey": null,
+  "prfEnabled": false,
+  "createdAt": "2026-02-21T14:19:44.098Z",
+  "lastLogin": "2026-02-21T14:19:44.529Z"
+}

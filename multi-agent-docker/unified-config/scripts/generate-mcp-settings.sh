@@ -129,6 +129,12 @@ EOF
         "DEEPSEEK_BASE_URL": "https://api.deepseek.com/v1"
 EOF
             ;;
+        openai-codex)
+            cat <<EOF
+        "OPENAI_API_KEY": "\$OPENAI_API_KEY",
+        "OPENAI_DEFAULT_MODEL": "${OPENAI_DEFAULT_MODEL:-gpt-5.4}"
+EOF
+            ;;
         cuda)
             cat <<EOF
         "CUDA_HOME": "/opt/cuda",

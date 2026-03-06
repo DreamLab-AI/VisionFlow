@@ -1,0 +1,50 @@
+{
+  "@context": {
+    "acl": "http://www.w3.org/ns/auth/acl#",
+    "foaf": "http://xmlns.com/foaf/0.1/"
+  },
+  "@graph": [
+    {
+      "@id": "#owner",
+      "@type": "acl:Authorization",
+      "acl:agent": {
+        "@id": "http://localhost:3101/credtest/profile/card#me"
+      },
+      "acl:accessTo": {
+        "@id": "http://localhost:3101/credtest/public/"
+      },
+      "acl:default": {
+        "@id": "http://localhost:3101/credtest/public/"
+      },
+      "acl:mode": [
+        {
+          "@id": "acl:Read"
+        },
+        {
+          "@id": "acl:Write"
+        },
+        {
+          "@id": "acl:Control"
+        }
+      ]
+    },
+    {
+      "@id": "#public",
+      "@type": "acl:Authorization",
+      "acl:agentClass": {
+        "@id": "foaf:Agent"
+      },
+      "acl:accessTo": {
+        "@id": "http://localhost:3101/credtest/public/"
+      },
+      "acl:default": {
+        "@id": "http://localhost:3101/credtest/public/"
+      },
+      "acl:mode": [
+        {
+          "@id": "acl:Read"
+        }
+      ]
+    }
+  ]
+}

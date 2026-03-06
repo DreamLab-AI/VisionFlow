@@ -1,0 +1,37 @@
+{
+  "jwks": {
+    "keys": [
+      {
+        "kty": "RSA",
+        "n": "hk6YF63Jb8M9uB0qnvQ83_90NpSZ93yMtXKPA6s9FiuNmy3THc5RDn7pxQJCUhLRbButa7OiCSMziHJ-fVIPdbATry2-SSQYl5uYiu243_bAGur-TlYWFhAPn2GclBMa_xMRCYNPeLdbI2vXzRVLdpcRTyICk-jPeVXebvFiZl9G6HWnqbQUx-QJgZ2hTRbSY97Ir1AqFW5TVS3cvTZ6t4IHiUrNDDDyCAeVAZWDMN6qLYjeJRn6IwvVRY19BS_SKNqHNoSXniYwtOPt5uOz7lpMcU-78-wOyjjTjuU1OuSFO0nKIYVCnaa8V2Tup3NFHGQ0--s9rW3llc4IXgwlUw",
+        "e": "AQAB",
+        "d": "Av6xRFeBiWne8EJLCmmQPfJ4iSSkXLEJtjYZKE_8nogkGG5bw2ti9VUxKbQUl7eIG5M80vNms2UPwVHER-kfie4X0kbNdA-ty-h4hoiPudBklXUUbKZdlOpdkgR5AfhKS58FbAl7wsmPHhzjUaIEh8Vzz_VTMP2QOtI5kcHCNV3CqTRwqx7wkecMhpPa8eGhnYhtUjEHq6AUV9Fmn4L-zrQwSqwDp3y-WIBWmtYjdQyj6bTGSi6K53vENJegaeu9wMitV8BWdh4g-UgA1G0DTf28Vr1jrqcHJc2xHCTwHSG_51f23kBN6qIC6pBK7qebD1P0yUxv0DL2GBGI2DOoCQ",
+        "p": "u-EbHuaiUur7jBw4200_6aFq2FjZ3e0VDGnOUHc2JThlslZN_UCZaBN5XC19Ogw6KxCt6WSQ4PrWeOjsFMpIgiyPm3KlomDSD9LMC6wFO-dgBkfiZrzbzDgITJ_8HAZDjTW_2ZB4gitgrWPIdBuvLuNWCqGYmQQB0y4kbHmU9RU",
+        "q": "twDsr94mYH5Yfc_VP8G6Dv0p-H9kNWkILUG-fD4md1Km7oBTd0eCweXuaMK6PFKOZWgPVX2348tahGn5IitkGANLWq49g9JnYbIraeo_CYbHIqiC4B8CoaZ3xKiNVPaANHm81-Y5dkDjF_63OoLpurA0yfZURS94WlOMKOtHmsc",
+        "dp": "cy_L5OIZ2yReHMSgxzNRX_eq_gFbcYiNQxMLfqHX_HHbR79KCV61ru1hlnX9NL2SXBzZwyH5ATZIj9CeDREH62dOlEtx6V_a6gCfQPiyLMvqP2-LCtn3F_myfOgJNVVRzR2LBeRhPc1CdIuctjLS8LhIZDQ2znl6dPLxOeBAxxE",
+        "dq": "i5AM8WJ96gDxA6HIg8L-Xgf8RiMBDSp4resBlkbflwhVfnYnMUQ8GBt-Yi5_URm0tulRKGWkI_klou4erUxiHV4FzbYr-6guZ3c1XKTkRiOfInNYvAtqOlV16WiRwEXtKBffSNeu4txBVD9RBTJphZJz78IIKms1Yc1tipdEGGk",
+        "qi": "m5-KEl_T29XlImCmXGy2K3OVHoPTc_mJLQkLJY5VUqkcc7OvQpCFuhoWUMuJ4eFOM5g0wo4NFi_5yEEXQT93xAiewsZWP-P5f9CBfQhbzVHAB9PhjW211uijECVuHRTSJIejtCepR7PHPg70rv6AIUq1kZsuKspAwC44W0L4og8",
+        "kid": "f1d4e32c-c721-4fa0-abba-66db7fef99b9",
+        "use": "sig",
+        "alg": "RS256",
+        "iat": 1771683583
+      },
+      {
+        "kty": "EC",
+        "x": "WVT4QvtWurxNm6lE2I70_D3CwjnEkVI8B8ZMb4_IgXg",
+        "y": "14enaGtMAwpfUWd7R_cCM0KExUzOlsu3-M9BuT2gQm4",
+        "crv": "P-256",
+        "d": "zG1SPpVht_VtWa2U78B7D0zDYjOQ6k84I1FgGx7lvmU",
+        "kid": "98fea63c-a3d6-4d40-86d3-e64d9194d648",
+        "use": "sig",
+        "alg": "ES256",
+        "iat": 1771683583
+      }
+    ]
+  },
+  "cookieKeys": [
+    "u1nsDuhcMkTqvVL62xWQEGp4oTZ4jIyRT89xqEjLI-s",
+    "BnQxkDkM8xOfnr_MJEA1purYzkb3yEhZb6t148sZ8As"
+  ],
+  "createdAt": "2026-02-21T14:19:43.970Z"
+}

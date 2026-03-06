@@ -8,7 +8,7 @@
 //!
 //! ## Architecture
 //!
-//! ```
+//! ```text
 //! VisionFlow API Handler
 //!     ↓ (send CreateTask message)
 //! TaskOrchestratorActor

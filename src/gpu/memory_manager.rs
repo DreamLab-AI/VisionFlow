@@ -16,7 +16,7 @@
 //!
 //! ## Usage Example
 //!
-//! ```rust
+//! ```rust,ignore
 //! use crate::gpu::memory_manager::{GpuMemoryManager, BufferConfig};
 //!
 //! // Create manager

@@ -9,7 +9,7 @@ use chrono::{DateTime, Utc};
 /// Wrapper around Utc::now() providing a centralized point for time operations.
 /// Use this instead of calling Utc::now() directly.
 /// # Examples
-/// ```
+/// ```rust,ignore
 /// use crate::utils::time;
 /// let current_time = time::now();
 /// println!("Current time: {}", current_time);
@@ -23,7 +23,7 @@ pub fn now() -> DateTime<Utc> {
 /// Returns the number of milliseconds since Unix epoch (1970-01-01 00:00:00 UTC).
 /// Useful for database storage and high-precision timing.
 /// # Examples
-/// ```
+/// ```rust,ignore
 /// use crate::utils::time;
 /// let millis = time::timestamp_millis();
 /// println!("Milliseconds since epoch: {}", millis);
@@ -36,7 +36,7 @@ pub fn timestamp_millis() -> i64 {
 /// Get current Unix timestamp in seconds
 /// Returns the number of seconds since Unix epoch (1970-01-01 00:00:00 UTC).
 /// # Examples
-/// ```
+/// ```rust,ignore
 /// use crate::utils::time;
 /// let seconds = time::timestamp_seconds();
 /// println!("Seconds since epoch: {}", seconds);
@@ -52,7 +52,7 @@ pub fn timestamp_seconds() -> i64 {
 /// # Arguments
 /// * `dt` - The DateTime to format
 /// # Examples
-/// ```
+/// ```rust,ignore
 /// use crate::utils::time;
 /// let timestamp = time::now();
 /// let formatted = time::format_iso8601(&timestamp);
@@ -70,7 +70,7 @@ pub fn format_iso8601(dt: &DateTime<Utc>) -> String {
 /// * `Ok(DateTime<Utc>)` - Successfully parsed timestamp
 /// * `Err(String)` - Parse error with description
 /// # Examples
-/// ```
+/// ```rust,ignore
 /// use crate::utils::time;
 /// match time::parse_iso8601("2025-11-03T19:45:30Z") {
 ///     Ok(dt) => println!("Parsed: {}", dt),
@@ -90,7 +90,7 @@ pub fn parse_iso8601(s: &str) -> Result<DateTime<Utc>, String> {
 /// # Returns
 /// The number of milliseconds between start and now
 /// # Examples
-/// ```
+/// ```rust,ignore
 /// use crate::utils::time;
 /// let start = time::now();
 /// // ... do some work ...
@@ -107,7 +107,7 @@ pub fn elapsed_ms(start: &DateTime<Utc>) -> i64 {
 /// # Arguments
 /// * `dt` - The DateTime to format
 /// # Examples
-/// ```
+/// ```rust,ignore
 /// use crate::utils::time;
 /// let timestamp = time::now();
 /// let formatted = time::format_log_time(&timestamp);

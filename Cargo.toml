@@ -198,18 +198,3 @@ path = "src/bin/sync_github.rs"
 # name = "migrate_settings_to_neo4j"
 # path = "src/bin/migrate_settings_to_neo4j.rs"
 
-[[example]]
-name = "constraint_integration_debug"
-path = "examples/constraint_integration_debug.rs"
-
-[[example]]
-name = "metadata_debug"
-path = "examples/metadata_debug.rs"
-
-[[example]]
-name = "ontology_constraints_example"
-path = "examples/ontology_constraints_example.rs"
-
-[[example]]
-name = "ontology_validation_example"
-path = "examples/ontology_validation_example.rs"

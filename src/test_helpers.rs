@@ -73,12 +73,12 @@ macro_rules! skip_without_neo4j {
 /// In-memory `OntologyRepository` implementation for unit testing.
 /// No Neo4j connection required.
 pub struct MockOntologyRepository {
-    classes: RwLock<HashMap<String, OwlClass>>,
-    properties: RwLock<HashMap<String, OwlProperty>>,
-    axioms: RwLock<Vec<OwlAxiom>>,
-    next_axiom_id: RwLock<u64>,
-    graph: RwLock<Option<GraphData>>,
-    inference_results: RwLock<Option<InferenceResults>>,
+    pub classes: RwLock<HashMap<String, OwlClass>>,
+    pub properties: RwLock<HashMap<String, OwlProperty>>,
+    pub axioms: RwLock<Vec<OwlAxiom>>,
+    pub next_axiom_id: RwLock<u64>,
+    pub graph: RwLock<Option<GraphData>>,
+    pub inference_results: RwLock<Option<InferenceResults>>,
 }
 
 impl MockOntologyRepository {
@@ -264,6 +264,7 @@ pub fn create_test_ontology_repo() -> Arc<MockOntologyRepository> {
             OwlClass {
                 iri: iri.to_string(),
                 label: Some(label.to_string()),
+                preferred_term: Some(label.to_string()),
                 ..OwlClass::default()
             },
         );

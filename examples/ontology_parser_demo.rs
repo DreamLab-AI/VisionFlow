@@ -3,7 +3,7 @@
 //!
 //! Run with: cargo run --example ontology_parser_demo
 
-use visionflow::services::parsers::ontology_parser::{OntologyParser, OntologyBlock};
+use webxr::services::parsers::ontology_parser::{OntologyParser, OntologyBlock};
 
 fn main() {
     env_logger::init();
@@ -81,15 +81,14 @@ fn main() {
     match parser.parse_enhanced(example1, "AI-0850-llm.md") {
         Ok(block) => {
             print_ontology_block(&block);
-            println!("\n✅ Validation: {}",
-                if block.validate().is_empty() {
-                    "PASSED"
-                } else {
-                    format!("FAILED - {:?}", block.validate())
-                }
-            );
+            let errors = block.validate();
+            if errors.is_empty() {
+                println!("\nValidation: PASSED");
+            } else {
+                println!("\nValidation: FAILED - {:?}", errors);
+            }
         }
-        Err(e) => println!("❌ Error parsing: {}", e),
+        Err(e) => println!("Error parsing: {}", e),
     }
 
     // Example 2: Minimal valid block
@@ -115,15 +114,14 @@ fn main() {
     match parser.parse_enhanced(example2, "BC-0001-blockchain.md") {
         Ok(block) => {
             print_ontology_block(&block);
-            println!("\n✅ Validation: {}",
-                if block.validate().is_empty() {
-                    "PASSED"
-                } else {
-                    format!("FAILED - {:?}", block.validate())
-                }
-            );
+            let errors = block.validate();
+            if errors.is_empty() {
+                println!("\nValidation: PASSED");
+            } else {
+                println!("\nValidation: FAILED - {:?}", errors);
+            }
         }
-        Err(e) => println!("❌ Error parsing: {}", e),
+        Err(e) => println!("Error parsing: {}", e),
     }
 
     // Example 3: Invalid block (missing required fields)
@@ -137,25 +135,25 @@ fn main() {
     println!("\n\n=== Example 3: Invalid Block (Missing Required Fields) ===\n");
     match parser.parse_enhanced(example3, "RB-0001-service-robot.md") {
         Ok(block) => {
-            let errors = block.validate();
+            let errors: Vec<String> = block.validate();
             println!("Term ID: {:?}", block.term_id);
             println!("Preferred Term: {:?}", block.preferred_term);
             println!("Definition: {:?}", block.definition);
-            println!("\n❌ Validation FAILED:");
+            println!("\nValidation FAILED:");
             for (i, error) in errors.iter().enumerate() {
                 println!("  {}. {}", i + 1, error);
             }
         }
-        Err(e) => println!("❌ Error parsing: {}", e),
+        Err(e) => println!("Error parsing: {}", e),
     }
 }
 
 fn print_ontology_block(block: &OntologyBlock) {
-    println!("📄 File: {}", block.file_path);
-    println!("🔖 Term ID: {:?}", block.term_id);
-    println!("📌 Preferred Term: {:?}", block.preferred_term);
-    println!("🏷️  Domain: {:?}", block.get_domain());
-    println!("🔗 Full IRI: {:?}", block.get_full_iri());
+    println!("File: {}", block.file_path);
+    println!("Term ID: {:?}", block.term_id);
+    println!("Preferred Term: {:?}", block.preferred_term);
+    println!("Domain: {:?}", block.get_domain());
+    println!("Full IRI: {:?}", block.get_full_iri());
 
     println!("\n--- Tier 1 (Required) ---");
     println!("  Status: {:?}", block.status);

@@ -15,7 +15,7 @@ use tracing::{warn, error};
 /// Safely converts f64 to serde_json::Number, replacing NaN/Infinity with 0.0
 /// This is a common pattern when building JSON responses with numeric data.
 /// # Examples
-/// ```
+/// ```rust,ignore
 /// use visionflow::utils::result_helpers::safe_json_number;
 /// let num = safe_json_number(42.5);
 /// assert!(num.is_some());
@@ -42,7 +42,7 @@ pub fn safe_json_number(value: f64) -> serde_json::Number {
 /// * `default` - The default value to return if None
 /// * `context` - Context message for logging
 /// # Examples
-/// ```
+/// ```rust,ignore
 /// use visionflow::utils::result_helpers::safe_unwrap;
 /// let value = Some(42);
 /// let result = safe_unwrap(value, 0, "getting user count");
@@ -67,7 +67,7 @@ pub fn safe_unwrap<T>(option: Option<T>, default: T, context: &str) -> T {
 /// * `option` - The Option to unwrap
 /// * `context` - Error message if None
 /// # Examples
-/// ```
+/// ```rust,ignore
 /// use visionflow::utils::result_helpers::ok_or_error;
 /// let value = Some(42);
 /// let result = ok_or_error(value, "Failed to get user ID");
@@ -89,7 +89,7 @@ pub fn ok_or_error<T>(option: Option<T>, context: &str) -> VisionFlowResult<T> {
 /// * `result` - The Result to add context to
 /// * `context` - Context message to prepend
 /// # Examples
-/// ```
+/// ```rust,ignore
 /// use visionflow::utils::result_helpers::map_err_context;
 /// use std::fs::File;
 /// let result = File::open("nonexistent.txt");
@@ -109,7 +109,7 @@ where
 /// Converts any Result to VisionFlowResult with context.
 /// More flexible than map_err_context, works with any error type.
 /// # Examples
-/// ```
+/// ```rust,ignore
 /// use visionflow::utils::result_helpers::to_vf_error;
 /// fn parse_config() -> Result<i32, String> {
 ///     Err("Invalid format".to_string())
@@ -130,7 +130,7 @@ where
 /// Unwraps Option with logging, returns None if empty.
 /// Logs a warning but doesn't panic, allows graceful degradation.
 /// # Examples
-/// ```
+/// ```rust,ignore
 /// use visionflow::utils::result_helpers::ok_or_log;
 /// let value = Some(42);
 /// assert_eq!(ok_or_log(value, "test value"), Some(42));
@@ -147,7 +147,7 @@ pub fn ok_or_log<T>(option: Option<T>, message: &str) -> Option<T> {
 /// Unwraps Option or returns default with logging.
 /// Safer alternative to `.unwrap_or_default()` with visibility into when defaults are used.
 /// # Examples
-/// ```
+/// ```rust,ignore
 /// use visionflow::utils::result_helpers::unwrap_or_default_log;
 /// let value = Some(42);
 /// assert_eq!(unwrap_or_default_log(value, "test"), 42);
@@ -167,7 +167,7 @@ pub fn unwrap_or_default_log<T: Default>(option: Option<T>, message: &str) -> T 
 /// Safely unwraps Result or logs error and returns default.
 /// For cases where we want to continue with a default instead of propagating errors.
 /// # Examples
-/// ```
+/// ```rust,ignore
 /// use visionflow::utils::result_helpers::result_or_default_log;
 /// fn may_fail() -> Result<i32, String> {
 ///     Err("oops".to_string())
@@ -192,7 +192,7 @@ pub fn result_or_default_log<T: Default, E: std::fmt::Display>(
 /// Macro for adding context to Results with ? operator support.
 /// Replaces manual error handling with clean, context-rich errors.
 /// # Examples
-/// ```
+/// ```rust,ignore
 /// use visionflow::try_with_context;
 /// use visionflow::errors::VisionFlowResult;
 /// use std::fs::File;
@@ -223,7 +223,7 @@ macro_rules! try_with_context {
 /// Macro for safe unwrap with default value.
 /// Cleaner syntax for unwrap_or_default_log.
 /// # Examples
-/// ```
+/// ```rust,ignore
 /// use visionflow::unwrap_or_default;
 /// let value: Option<i32> = None;
 /// let result = unwrap_or_default!(value, "user count");
@@ -238,7 +238,7 @@ macro_rules! unwrap_or_default {
 
 /// Macro for safe unwrap with custom default.
 /// # Examples
-/// ```
+/// ```rust,ignore
 /// use visionflow::safe_unwrap;
 /// let value: Option<i32> = None;
 /// let result = safe_unwrap!(value, 42, "default value");

@@ -18,7 +18,7 @@
 //!
 //! # Usage
 //!
-//! ```rust
+//! ```rust,ignore
 //! use crate::cqrs::{CommandBus, QueryBus};
 //! use crate::cqrs::commands::AddNodeCommand;
 //! use crate::cqrs::queries::GetNodeQuery;

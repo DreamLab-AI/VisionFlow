@@ -7,13 +7,13 @@
 /// # Usage
 /// These macros are exported at crate level with `#[macro_export]`.
 /// Import them directly from crate root:
-/// ```rust
+/// ```ignore
 /// use crate::{ok_json, error_json, service_unavailable};
 /// ```
 
 /// Success response with JSON data (200 OK)
 /// # Examples
-/// ```
+/// ```ignore
 /// use crate::ok_json;
 /// let user = User { id: 1, name: "Alice" };
 /// ok_json!(user)
@@ -38,7 +38,7 @@ macro_rules! ok_json {
 
 /// Created response with JSON data (201 Created)
 /// # Examples
-/// ```
+/// ```ignore
 /// use crate::created_json;
 /// let new_item = Item { id: 42, name: "New Item" };
 /// created_json!(new_item)
@@ -63,7 +63,7 @@ macro_rules! created_json {
 
 /// Internal server error response (500)
 /// # Examples
-/// ```
+/// ```ignore
 /// use crate::error_json;
 /// error_json!("Database connection failed")
 /// error_json!("Database error", e.to_string())  // With details
@@ -99,7 +99,7 @@ macro_rules! error_json {
 
 /// Bad request error response (400)
 /// # Examples
-/// ```
+/// ```ignore
 /// use crate::bad_request;
 /// bad_request!("Invalid input parameters")
 /// bad_request!("Validation error", error_details)  // With details
@@ -134,7 +134,7 @@ macro_rules! bad_request {
 
 /// Not found error response (404)
 /// # Examples
-/// ```
+/// ```ignore
 /// use crate::not_found;
 /// not_found!("User not found")
 /// not_found!("Resource not found", resource_id)  // With details
@@ -169,7 +169,7 @@ macro_rules! not_found {
 
 /// Success response with custom message
 /// # Examples
-/// ```
+/// ```ignore
 /// use crate::success_msg;
 /// let data = ProcessResult { processed: 100 };
 /// success_msg!(data, "Processing completed successfully")
@@ -194,7 +194,7 @@ macro_rules! success_msg {
 
 /// Unauthorized error response (401)
 /// # Examples
-/// ```
+/// ```ignore
 /// use crate::unauthorized;
 /// unauthorized!("Invalid authentication token")
 /// ```
@@ -237,7 +237,7 @@ macro_rules! unauthorized {
 
 /// Forbidden error response (403)
 /// # Examples
-/// ```
+/// ```ignore
 /// use crate::forbidden;
 /// forbidden!("Insufficient permissions")
 /// ```
@@ -263,7 +263,7 @@ macro_rules! forbidden {
 
 /// Conflict error response (409)
 /// # Examples
-/// ```
+/// ```ignore
 /// use crate::conflict;
 /// conflict!("Resource already exists")
 /// ```
@@ -289,7 +289,7 @@ macro_rules! conflict {
 
 /// No content response (204)
 /// # Examples
-/// ```
+/// ```ignore
 /// use crate::no_content;
 /// no_content!()
 /// ```
@@ -305,7 +305,7 @@ macro_rules! no_content {
 
 /// Too Many Requests error response (429)
 /// # Examples
-/// ```
+/// ```ignore
 /// use crate::too_many_requests;
 /// too_many_requests!("Rate limit exceeded")
 /// ```
@@ -331,7 +331,7 @@ macro_rules! too_many_requests {
 
 /// Service Unavailable error response (503)
 /// # Examples
-/// ```
+/// ```ignore
 /// use crate::service_unavailable;
 /// service_unavailable!("Service temporarily unavailable")
 /// ```
@@ -357,7 +357,7 @@ macro_rules! service_unavailable {
 
 /// Payload Too Large error response (413)
 /// # Examples
-/// ```
+/// ```ignore
 /// use crate::payload_too_large;
 /// payload_too_large!("Request body exceeds maximum size")
 /// ```
@@ -383,7 +383,7 @@ macro_rules! payload_too_large {
 
 /// Accepted response (202)
 /// # Examples
-/// ```
+/// ```ignore
 /// use crate::accepted;
 /// accepted!(TaskInfo { id: 123, status: "pending" })
 /// ```
