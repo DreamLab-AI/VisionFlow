@@ -17,7 +17,7 @@ interface GlassEdgesProps {
 }
 
 export interface GlassEdgesHandle {
-  updatePoints(points: number[]): void;
+  updatePoints(points: number[], count?: number): void;
 }
 
 /** Pre-allocated temp objects for matrix composition -- avoids per-frame GC. */
@@ -30,9 +30,10 @@ const tmpQuat = new THREE.Quaternion();
 const tmpDir = new THREE.Vector3();
 const tmpScale = new THREE.Vector3();
 
-/** Compute up to `limit` edge matrices. Returns total edge count. */
-function computeInstanceMatrices(mesh: THREE.InstancedMesh, pts: number[], limit?: number): number {
-  const edgeCount = Math.min(Math.floor(pts.length / 6), MAX_EDGES);
+/** Compute up to `limit` edge matrices. Returns total edge count.
+ *  `dataLength` limits how many elements of `pts` to consider (avoids needing a sliced copy). */
+function computeInstanceMatrices(mesh: THREE.InstancedMesh, pts: number[], limit?: number, dataLength?: number): number {
+  const edgeCount = Math.min(Math.floor((dataLength ?? pts.length) / 6), MAX_EDGES);
   const renderCount = limit !== undefined ? Math.min(limit, edgeCount) : edgeCount;
   for (let i = 0; i < renderCount; i++) {
     const off = i * 6;
@@ -161,8 +162,9 @@ export const GlassEdges = forwardRef<GlassEdgesHandle, GlassEdgesProps>(
     // Uses dirty-flag hash to skip redundant GPU uploads when edge data
     // hasn't actually changed (the common case for static graphs).
     const updatePoints = useCallback(
-      (newPts: number[]) => {
-        if (newPts.length < 6) {
+      (newPts: number[], count?: number) => {
+        const len = count ?? newPts.length;
+        if (len < 6) {
           if (edgeDataHashRef.current !== '') {
             edgeDataHashRef.current = '';
             mesh.count = 0;
@@ -170,10 +172,10 @@ export const GlassEdges = forwardRef<GlassEdgesHandle, GlassEdgesProps>(
           }
           return;
         }
-        const hash = `${newPts.length}-${newPts[0]}-${newPts[newPts.length - 1]}`;
+        const hash = `${len}-${newPts[0]}-${newPts[len - 1]}`;
         if (hash === edgeDataHashRef.current) return;
         edgeDataHashRef.current = hash;
-        computeInstanceMatrices(mesh, newPts);
+        computeInstanceMatrices(mesh, newPts, undefined, len);
       },
       [mesh],
     );

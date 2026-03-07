@@ -1,7 +1,5 @@
-use log::{info, warn};
+use log::info;
 use std::env;
-use std::fs;
-use std::path::PathBuf;
 
 pub struct FeatureAccess {
     
@@ -63,37 +61,10 @@ impl FeatureAccess {
         
         self.openai_enabled.push(pubkey.clone());
 
-        
-        self.save_to_env_file();
+        // Feature access persisted in-memory only. Use database for production persistence.
 
         info!("Registered new user: {}", pubkey);
         true
-    }
-
-    
-    fn save_to_env_file(&self) {
-        let env_path = PathBuf::from(".env");
-        if let Ok(content) = fs::read_to_string(&env_path) {
-            let mut lines: Vec<String> = content.lines().map(|line| line.to_string()).collect();
-
-            
-            self.update_env_line(&mut lines, "APPROVED_PUBKEYS", &self.approved_pubkeys);
-            self.update_env_line(&mut lines, "RAGFLOW_ENABLED_PUBKEYS", &self.ragflow_enabled);
-            self.update_env_line(&mut lines, "OPENAI_ENABLED_PUBKEYS", &self.openai_enabled);
-
-            if let Err(e) = fs::write(&env_path, lines.join("\n")) {
-                warn!("Failed to update .env file: {}", e);
-            }
-        }
-    }
-
-    fn update_env_line(&self, lines: &mut Vec<String>, var_name: &str, pubkeys: &[String]) {
-        let new_line = format!("{}={}", var_name, pubkeys.join(","));
-        if let Some(pos) = lines.iter().position(|line| line.starts_with(var_name)) {
-            lines[pos] = new_line;
-        } else {
-            lines.push(new_line);
-        }
     }
 
     

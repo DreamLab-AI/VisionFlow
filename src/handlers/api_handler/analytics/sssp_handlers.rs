@@ -31,11 +31,6 @@ pub async fn toggle_sssp(
     }
 
 
-    let mut flags = FEATURE_FLAGS.lock().await;
-    flags.sssp_integration = request.enabled;
-    drop(flags);
-
-
     if let Some(gpu_addr) = app_state.get_gpu_compute_addr().await {
         let message = crate::actors::messages::UpdateSimulationParams {
             params: {
@@ -48,6 +43,11 @@ pub async fn toggle_sssp(
 
         match gpu_addr.send(message).await {
             Ok(Ok(_)) => {
+                // Update feature flag only after GPU succeeds
+                let mut flags = FEATURE_FLAGS.lock().await;
+                flags.sssp_integration = request.enabled;
+                drop(flags);
+
                 let message = if request.enabled {
                     format!(
                         "SSSP spring adjustment enabled with alpha={:.2}",
@@ -91,6 +91,11 @@ pub async fn toggle_sssp(
             }
         }
     } else {
+        // No GPU available — safe to update flag directly
+        let mut flags = FEATURE_FLAGS.lock().await;
+        flags.sssp_integration = request.enabled;
+        drop(flags);
+
         warn!("GPU compute actor not available - SSSP toggle only updated feature flags");
         ok_json!(SSSPToggleResponse {
             success: true,

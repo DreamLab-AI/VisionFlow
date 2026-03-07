@@ -847,9 +847,33 @@ pub async fn multi_mcp_visualization_ws(
     req: HttpRequest,
     stream: web::Payload,
     app_state: web::Data<AppState>,
-    _hybrid_manager: Option<()>, 
+    _hybrid_manager: Option<()>,
 ) -> ActixResult<HttpResponse> {
     debug!("Starting Multi-MCP visualization WebSocket connection");
+
+    // SECURITY: Require authentication before WebSocket upgrade
+    {
+        let token = req.headers().get("Authorization")
+            .and_then(|h| h.to_str().ok())
+            .and_then(|s| s.strip_prefix("Bearer "))
+            .map(|s| s.to_string())
+            .or_else(|| {
+                let query = req.query_string();
+                url::form_urlencoded::parse(query.as_bytes())
+                    .find(|(k, _)| k == "token")
+                    .map(|(_, v)| v.to_string())
+            });
+
+        if token.as_deref().unwrap_or("").is_empty() {
+            let client_ip = req.peer_addr().map(|a| a.to_string()).unwrap_or_else(|| "unknown".to_string());
+            warn!(
+                "SECURITY: Rejected unauthenticated WebSocket upgrade on /multi-mcp/ws from {}",
+                client_ip
+            );
+            return Ok(HttpResponse::Unauthorized().json(serde_json::json!({"error": "Authentication required"})));
+        }
+    }
+
     ws::start(MultiMcpVisualizationWs::new(app_state, None), &req, stream)
 }
 

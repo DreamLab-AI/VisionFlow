@@ -138,8 +138,39 @@ impl From<Result<(), VisionFlowError>> for OperationResult {
     }
 }
 
+/// Concrete buffered message variants that the supervisor can replay after actor restart.
+/// Each variant wraps a real message type that can be forwarded via `do_send()`.
+pub enum BufferedMessage {
+    // Graph operations
+    UpdateGraphData(msgs::UpdateGraphData),
+    ReloadGraphFromDatabase,
+    // Physics operations
+    StartSimulation,
+    StopSimulation,
+    SimulationStep,
+    UpdateSimulationParams(msgs::UpdateSimulationParams),
+    UpdateNodePositions(msgs::UpdateNodePositions),
+    // Client operations
+    BroadcastMessage(msgs::BroadcastMessage),
+}
+
+impl std::fmt::Debug for BufferedMessage {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::UpdateGraphData(_) => write!(f, "UpdateGraphData"),
+            Self::ReloadGraphFromDatabase => write!(f, "ReloadGraphFromDatabase"),
+            Self::StartSimulation => write!(f, "StartSimulation"),
+            Self::StopSimulation => write!(f, "StopSimulation"),
+            Self::SimulationStep => write!(f, "SimulationStep"),
+            Self::UpdateSimulationParams(_) => write!(f, "UpdateSimulationParams"),
+            Self::UpdateNodePositions(_) => write!(f, "UpdateNodePositions"),
+            Self::BroadcastMessage(_) => write!(f, "BroadcastMessage"),
+        }
+    }
+}
+
 pub struct SupervisedMessage {
-    pub message: Box<dyn Message<Result = ()> + Send>,
+    pub message: BufferedMessage,
     pub sender: Option<Recipient<OperationResult>>,
     pub timestamp: Instant,
     pub retry_count: u32,
@@ -148,6 +179,7 @@ pub struct SupervisedMessage {
 impl std::fmt::Debug for SupervisedMessage {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("SupervisedMessage")
+            .field("message", &self.message)
             .field("timestamp", &self.timestamp)
             .field("retry_count", &self.retry_count)
             .finish()
@@ -341,9 +373,36 @@ impl GraphServiceSupervisor {
         self.start_actor(ActorType::SemanticProcessor, ctx);
         self.start_actor(ActorType::GraphState, ctx); 
 
-        
+        // Health check interval for detecting stale heartbeats
         ctx.run_interval(self.health_check_interval, |act, ctx| {
             act.perform_health_check(ctx);
+        });
+
+        // Periodic heartbeat emission: every 15 seconds, send ActorHeartbeat for each
+        // child actor that is alive, keeping last_heartbeat fresh so the health check
+        // (60-second timeout) does not falsely mark actors as Degraded.
+        let heartbeat_interval = Duration::from_secs(15);
+        ctx.run_interval(heartbeat_interval, |act, ctx| {
+            let now = Instant::now();
+            let self_addr = ctx.address();
+
+            let actor_types = [
+                (ActorType::GraphState, act.graph_state.is_some()),
+                (ActorType::PhysicsOrchestrator, act.physics.is_some()),
+                (ActorType::SemanticProcessor, act.semantic.is_some()),
+                (ActorType::ClientCoordinator, act.client.is_some()),
+            ];
+
+            for (actor_type, is_alive) in &actor_types {
+                if *is_alive {
+                    self_addr.do_send(ActorHeartbeat {
+                        actor_type: actor_type.clone(),
+                        timestamp: now,
+                        health: ActorHealth::Healthy,
+                        stats: None,
+                    });
+                }
+            }
         });
 
         self.supervision_stats.actors_supervised = 4;
@@ -516,8 +575,68 @@ impl GraphServiceSupervisor {
                 actor_type
             );
 
-            
-            
+            for supervised_msg in messages {
+                let routed = match supervised_msg.message {
+                    // Graph operations → GraphStateActor
+                    BufferedMessage::UpdateGraphData(msg) => {
+                        if let Some(ref addr) = self.graph_state {
+                            addr.do_send(msg);
+                            true
+                        } else { false }
+                    }
+                    BufferedMessage::ReloadGraphFromDatabase => {
+                        if let Some(ref addr) = self.graph_state {
+                            addr.do_send(msgs::ReloadGraphFromDatabase);
+                            true
+                        } else { false }
+                    }
+                    // Physics operations → PhysicsOrchestratorActor
+                    BufferedMessage::StartSimulation => {
+                        if let Some(ref addr) = self.physics {
+                            addr.do_send(msgs::StartSimulation);
+                            true
+                        } else { false }
+                    }
+                    BufferedMessage::StopSimulation => {
+                        if let Some(ref addr) = self.physics {
+                            addr.do_send(msgs::StopSimulation);
+                            true
+                        } else { false }
+                    }
+                    BufferedMessage::SimulationStep => {
+                        if let Some(ref addr) = self.physics {
+                            addr.do_send(msgs::SimulationStep);
+                            true
+                        } else { false }
+                    }
+                    BufferedMessage::UpdateSimulationParams(msg) => {
+                        if let Some(ref addr) = self.physics {
+                            addr.do_send(msg);
+                            true
+                        } else { false }
+                    }
+                    BufferedMessage::UpdateNodePositions(msg) => {
+                        if let Some(ref addr) = self.physics {
+                            addr.do_send(msg);
+                            true
+                        } else { false }
+                    }
+                    // Client operations → ClientCoordinatorActor
+                    BufferedMessage::BroadcastMessage(msg) => {
+                        if let Some(ref addr) = self.client {
+                            addr.do_send(msg);
+                            true
+                        } else { false }
+                    }
+                };
+
+                if !routed {
+                    warn!(
+                        "Failed to replay buffered message for {:?}: actor still unavailable",
+                        actor_type
+                    );
+                }
+            }
         }
     }
 
@@ -554,11 +673,11 @@ impl GraphServiceSupervisor {
         let start_time = Instant::now();
 
         let result = match message {
-            SupervisorMessage::GraphOperation(_msg) => {
-                if let Some(ref _addr) = self.graph_state {
-                    
-                    
-                    debug!("Forwarding graph operation to GraphState actor");
+            // --- Graph operations → GraphStateActor ---
+            SupervisorMessage::UpdateGraphData(msg) => {
+                if let Some(ref addr) = self.graph_state {
+                    debug!("Forwarding UpdateGraphData to GraphStateActor");
+                    addr.do_send(msg);
                     Ok(())
                 } else {
                     Err(VisionFlowError::Actor(ActorError::ActorNotAvailable(
@@ -566,9 +685,22 @@ impl GraphServiceSupervisor {
                     )))
                 }
             }
-            SupervisorMessage::PhysicsOperation(_msg) => {
-                if let Some(ref _addr) = self.physics {
-                    debug!("Forwarding physics operation to Physics actor");
+            SupervisorMessage::ReloadGraphFromDatabase => {
+                if let Some(ref addr) = self.graph_state {
+                    debug!("Forwarding ReloadGraphFromDatabase to GraphStateActor");
+                    addr.do_send(msgs::ReloadGraphFromDatabase);
+                    Ok(())
+                } else {
+                    Err(VisionFlowError::Actor(ActorError::ActorNotAvailable(
+                        "GraphState".to_string(),
+                    )))
+                }
+            }
+            // --- Physics operations → PhysicsOrchestratorActor ---
+            SupervisorMessage::StartSimulation => {
+                if let Some(ref addr) = self.physics {
+                    debug!("Forwarding StartSimulation to PhysicsOrchestratorActor");
+                    addr.do_send(msgs::StartSimulation);
                     Ok(())
                 } else {
                     Err(VisionFlowError::Actor(ActorError::ActorNotAvailable(
@@ -576,19 +708,55 @@ impl GraphServiceSupervisor {
                     )))
                 }
             }
-            SupervisorMessage::SemanticOperation(_msg) => {
-                if let Some(ref _addr) = self.semantic {
-                    debug!("Forwarding semantic operation to Semantic actor");
+            SupervisorMessage::StopSimulation => {
+                if let Some(ref addr) = self.physics {
+                    debug!("Forwarding StopSimulation to PhysicsOrchestratorActor");
+                    addr.do_send(msgs::StopSimulation);
                     Ok(())
                 } else {
                     Err(VisionFlowError::Actor(ActorError::ActorNotAvailable(
-                        "Semantic".to_string(),
+                        "Physics".to_string(),
                     )))
                 }
             }
-            SupervisorMessage::ClientOperation(_msg) => {
-                if let Some(ref _addr) = self.client {
-                    debug!("Forwarding client operation to Client actor");
+            SupervisorMessage::SimulationStep => {
+                if let Some(ref addr) = self.physics {
+                    debug!("Forwarding SimulationStep to PhysicsOrchestratorActor");
+                    addr.do_send(msgs::SimulationStep);
+                    Ok(())
+                } else {
+                    Err(VisionFlowError::Actor(ActorError::ActorNotAvailable(
+                        "Physics".to_string(),
+                    )))
+                }
+            }
+            SupervisorMessage::UpdateSimulationParams(msg) => {
+                if let Some(ref addr) = self.physics {
+                    debug!("Forwarding UpdateSimulationParams to PhysicsOrchestratorActor");
+                    addr.do_send(msg);
+                    Ok(())
+                } else {
+                    Err(VisionFlowError::Actor(ActorError::ActorNotAvailable(
+                        "Physics".to_string(),
+                    )))
+                }
+            }
+            SupervisorMessage::UpdateNodePositions(msg) => {
+                if let Some(ref addr) = self.physics {
+                    debug!("Forwarding UpdateNodePositions to PhysicsOrchestratorActor");
+                    addr.do_send(msg);
+                    Ok(())
+                } else {
+                    Err(VisionFlowError::Actor(ActorError::ActorNotAvailable(
+                        "Physics".to_string(),
+                    )))
+                }
+            }
+            // --- Client operations → ClientCoordinatorActor ---
+            SupervisorMessage::BroadcastMessage(msg) => {
+                if let Some(ref addr) = self.client {
+                    debug!("Forwarding BroadcastMessage to ClientCoordinatorActor");
+                    addr.do_send(msg);
                     Ok(())
                 } else {
                     Err(VisionFlowError::Actor(ActorError::ActorNotAvailable(
@@ -598,12 +766,10 @@ impl GraphServiceSupervisor {
             }
         };
 
-        
         let routing_time = start_time.elapsed();
         self.total_messages_routed += 1;
         self.supervision_stats.messages_routed += 1;
 
-        
         let current_avg = self.supervision_stats.average_routing_time;
         let new_avg = (current_avg + routing_time) / 2;
         self.supervision_stats.average_routing_time = new_avg;
@@ -657,14 +823,23 @@ impl Actor for GraphServiceSupervisor {
 }
 
 // Message definitions for supervisor communication
+// Concrete enum variants replace boxed trait objects so the supervisor
+// can pattern-match and forward via `do_send()`.
 
 #[derive(Message)]
 #[rtype(result = "Result<(), VisionFlowError>")]
 pub enum SupervisorMessage {
-    GraphOperation(Box<dyn Message<Result = Result<(), VisionFlowError>> + Send>),
-    PhysicsOperation(Box<dyn Message<Result = Result<(), VisionFlowError>> + Send>),
-    SemanticOperation(Box<dyn Message<Result = Result<(), VisionFlowError>> + Send>),
-    ClientOperation(Box<dyn Message<Result = Result<(), VisionFlowError>> + Send>),
+    // --- Graph operations (→ GraphStateActor) ---
+    UpdateGraphData(msgs::UpdateGraphData),
+    ReloadGraphFromDatabase,
+    // --- Physics operations (→ PhysicsOrchestratorActor) ---
+    StartSimulation,
+    StopSimulation,
+    SimulationStep,
+    UpdateSimulationParams(msgs::UpdateSimulationParams),
+    UpdateNodePositions(msgs::UpdateNodePositions),
+    // --- Client operations (→ ClientCoordinatorActor) ---
+    BroadcastMessage(msgs::BroadcastMessage),
 }
 
 #[derive(Message)]

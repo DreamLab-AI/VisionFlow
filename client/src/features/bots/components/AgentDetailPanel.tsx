@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useBotsData } from '../contexts/BotsDataContext';
 import { Card } from '../../design-system/components/Card';
-import { Select } from '../../design-system/components/Select';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../design-system/components/Select';
 import { Button } from '../../design-system/components/Button';
 import { Input } from '../../design-system/components/Input';
 import type { BotsAgent } from '../types/BotsTypes';
@@ -100,12 +100,16 @@ export const AgentDetailPanel: React.FC<AgentDetailPanelProps> = ({
             value={selectedAgent?.id || ''}
             onValueChange={handleAgentChange}
           >
-            <option value="">Select Agent</option>
-            {botsData.agents.map(agent => (
-              <option key={agent.id} value={agent.id}>
-                {agent.name || agent.id} ({agent.type})
-              </option>
-            ))}
+            <SelectTrigger>
+              <SelectValue placeholder="Select Agent" />
+            </SelectTrigger>
+            <SelectContent>
+              {botsData.agents.map(agent => (
+                <SelectItem key={agent.id} value={agent.id}>
+                  {agent.name || agent.id} ({agent.type})
+                </SelectItem>
+              ))}
+            </SelectContent>
           </Select>
           </div>
         </div>

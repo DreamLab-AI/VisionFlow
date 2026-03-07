@@ -29,7 +29,7 @@ use actix_web::{
     Error, HttpMessage,
 };
 use futures::future::LocalBoxFuture;
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::future::{ready, Ready};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -85,8 +85,8 @@ pub struct RateLimit {
 /// Internal state for tracking request counts
 #[derive(Debug)]
 struct RateLimitState {
-    /// Map of identifier (IP or user ID) to request history
-    requests: HashMap<String, Vec<Instant>>,
+    /// Map of identifier (IP or user ID) to request history (bounded by max_requests)
+    requests: HashMap<String, VecDeque<Instant>>,
 
     /// Last cleanup time
     last_cleanup: Instant,
@@ -100,20 +100,27 @@ impl RateLimitState {
         }
     }
 
-    /// Check if a request should be allowed and record it
+    /// Check if a request should be allowed and record it.
+    /// Uses VecDeque with bounded capacity to prevent unbounded memory growth under flood.
     fn check_and_record(&mut self, identifier: &str, config: &RateLimitConfig) -> bool {
         let now = Instant::now();
         let window_start = now - config.window;
 
         // Get or create request history for this identifier
-        let history = self.requests.entry(identifier.to_string()).or_insert_with(Vec::new);
+        let history = self.requests.entry(identifier.to_string()).or_insert_with(VecDeque::new);
 
-        // Remove requests outside the window (sliding window)
-        history.retain(|&timestamp| timestamp > window_start);
+        // Pop expired entries from the front (oldest first)
+        while let Some(&front) = history.front() {
+            if front <= window_start {
+                history.pop_front();
+            } else {
+                break;
+            }
+        }
 
         // Check if we're under the limit
         if history.len() < config.max_requests {
-            history.push(now);
+            history.push_back(now);
             true
         } else {
             false

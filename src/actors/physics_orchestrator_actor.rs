@@ -145,7 +145,7 @@ impl PhysicsOrchestratorActor {
         let target_params = simulation_params.clone();
 
         // H4: Initialize message tracker with background timeout checker
-        let tracker = MessageTracker::new();
+        let mut tracker = MessageTracker::new();
         tracker.start_timeout_checker();
 
         Self {

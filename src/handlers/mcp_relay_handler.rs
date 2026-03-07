@@ -12,6 +12,17 @@ use std::time::{Duration, Instant};
 use tokio::sync::Mutex;
 use tokio_tungstenite::{connect_async, tungstenite::Message as TungsteniteMessage};
 
+type OrchestratorSink = Arc<
+    Mutex<
+        SplitSink<
+            tokio_tungstenite::WebSocketStream<
+                tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>,
+            >,
+            TungsteniteMessage,
+        >,
+    >,
+>;
+
 #[derive(Message)]
 #[rtype(result = "()")]
 struct OrchestratorText(String);
@@ -20,20 +31,13 @@ struct OrchestratorText(String);
 #[rtype(result = "()")]
 struct OrchestratorBinary(Vec<u8>);
 
+#[derive(Message)]
+#[rtype(result = "()")]
+struct SetOrchestratorTx(OrchestratorSink);
+
 pub struct MCPRelayActor {
     client_id: String,
-    orchestrator_tx: Option<
-        Arc<
-            Mutex<
-                SplitSink<
-                    tokio_tungstenite::WebSocketStream<
-                        tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>,
-                    >,
-                    TungsteniteMessage,
-                >,
-            >,
-        >,
-    >,
+    orchestrator_tx: Option<OrchestratorSink>,
     self_addr: Option<Addr<Self>>,
     
     circuit_breaker: Arc<CircuitBreaker>,
@@ -119,12 +123,13 @@ impl MCPRelayActor {
                     let (tx, mut rx) = ws_stream.split();
                     let tx = Arc::new(Mutex::new(tx));
 
-                    
+                    // Store the orchestrator sink in the actor for client→orchestrator forwarding
+                    addr.do_send(SetOrchestratorTx(tx.clone()));
+
                     let _health_check_result =
                         health_manager.check_service_now("orchestrator").await;
                     debug!("[MCP Relay] Health check performed for orchestrator");
 
-                    
                     addr.do_send(OrchestratorText("connected".to_string()));
 
                     
@@ -298,8 +303,21 @@ impl Handler<OrchestratorBinary> for MCPRelayActor {
     type Result = ();
 
     fn handle(&mut self, msg: OrchestratorBinary, ctx: &mut Self::Context) {
-        
+
         ctx.binary(msg.0);
+    }
+}
+
+impl Handler<SetOrchestratorTx> for MCPRelayActor {
+    type Result = ();
+
+    fn handle(&mut self, msg: SetOrchestratorTx, _ctx: &mut Self::Context) {
+        info!(
+            "[MCP Relay] Orchestrator tx stored for client: {}",
+            self.client_id
+        );
+        self.orchestrator_tx = Some(msg.0);
+        self.is_orchestrator_healthy = true;
     }
 }
 
@@ -470,10 +488,10 @@ pub async fn mcp_relay_handler(
         if token.as_deref().unwrap_or("").is_empty() {
             let client_ip = req.peer_addr().map(|a| a.to_string()).unwrap_or_else(|| "unknown".to_string());
             log::warn!(
-                "SECURITY: Unauthenticated WebSocket connection on /ws/mcp-relay from {}. \
-                 Allowing for now -- enforcement will come when clients send tokens.",
+                "SECURITY: Rejected unauthenticated WebSocket upgrade on /ws/mcp-relay from {}",
                 client_ip
             );
+            return Ok(HttpResponse::Unauthorized().json(serde_json::json!({"error": "Authentication required"})));
         }
     }
 

@@ -311,21 +311,24 @@ export interface SceneEffectsAPI {
   version: string;
 }
 
-// Module-level singleton to prevent double-init
+// Module-level singleton to prevent double-init.
+// State machine prevents thundering-herd retries on failure.
 let cachedAPI: SceneEffectsAPI | null = null;
 let initPromise: Promise<SceneEffectsAPI> | null = null;
+let initState: 'idle' | 'loading' | 'ready' | 'failed' = 'idle';
 
 /**
  * Initialize the WASM scene effects module.
  *
  * Safe to call multiple times -- returns the cached instance after the
- * first successful init. Returns null-like API if WASM fails to load
- * (graceful degradation).
+ * first successful init. On failure, the rejected promise is cached for
+ * 1 second to prevent concurrent callers from stampeding retries.
  */
 export async function initSceneEffects(): Promise<SceneEffectsAPI> {
   if (cachedAPI) return cachedAPI;
   if (initPromise) return initPromise;
 
+  initState = 'loading';
   initPromise = (async () => {
     try {
       // Dynamic import of the wasm-pack generated glue code.
@@ -350,12 +353,20 @@ export async function initSceneEffects(): Promise<SceneEffectsAPI> {
         version: wasmModule.version(),
       };
 
+      initState = 'ready';
       logger.info(`WASM loaded, version ${cachedAPI.version}`);
       return cachedAPI;
     } catch (err) {
-      // Reset initPromise so subsequent calls can retry (e.g., after a
-      // transient network error loading the .wasm file).
-      initPromise = null;
+      initState = 'failed';
+      cachedAPI = null;
+      // Keep the rejected promise cached for 1 second so concurrent
+      // callers receive the same rejection instead of stampeding retries.
+      setTimeout(() => {
+        if (initState === 'failed') {
+          initPromise = null;
+          initState = 'idle';
+        }
+      }, 1000);
       logger.warn('WASM failed to load, effects disabled:', err);
       throw err;
     }

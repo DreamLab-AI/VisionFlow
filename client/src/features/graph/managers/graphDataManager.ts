@@ -4,6 +4,7 @@ import { unifiedApiClient } from '../../../services/api/UnifiedApiClient';
 import { WebSocketAdapter } from '../../../store/websocketStore';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { BinaryNodeData, parseBinaryNodeData, createBinaryNodeData, Vec3, BINARY_NODE_SIZE, PROTOCOL_V4 } from '../../../types/binaryProtocol';
+import { binaryProtocol } from '../../../services/BinaryWebSocketProtocol';
 import { stringToU32 } from '../../../types/idMapping';
 import { graphWorkerProxy } from './graphWorkerProxy';
 import type { GraphData, Node, Edge } from './graphWorkerProxy';
@@ -831,32 +832,40 @@ class GraphDataManager {
   
   public setUserInteracting(isInteracting: boolean): void {
     if (this.isUserInteracting === isInteracting) {
-      return; 
+      return;
     }
 
     this.isUserInteracting = isInteracting;
 
     if (isInteracting) {
-      
+
       if (this.interactionTimeoutRef) {
         window.clearTimeout(this.interactionTimeoutRef);
         this.interactionTimeoutRef = null;
       }
 
+      binaryProtocol.setUserInteracting(true);
+
       if (debugState.isEnabled()) {
         logger.debug('User interaction started - WebSocket position updates enabled');
       }
     } else {
-      
-      
+
+
       this.interactionTimeoutRef = window.setTimeout(() => {
         this.isUserInteracting = false;
         this.interactionTimeoutRef = null;
 
+        // Flush any pending binary protocol position updates before disabling
+        const flushedBuffer = binaryProtocol.setUserInteracting(false);
+        if (flushedBuffer && this.webSocketService && this.webSocketService.isReady()) {
+          this.webSocketService.send(flushedBuffer);
+        }
+
         if (debugState.isEnabled()) {
           logger.debug('User interaction ended - WebSocket position updates disabled');
         }
-      }, 200); 
+      }, 200);
     }
   }
 

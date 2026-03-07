@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useState } from 'react';
+import React, { useRef, useMemo, useEffect, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { ConvexGeometry } from 'three/examples/jsm/geometries/ConvexGeometry.js';
@@ -179,11 +179,13 @@ export const ClusterHulls: React.FC<ClusterHullsProps> = ({
 
   // ---- Cleanup previous geometries when entries change ----
   const prevGeometries = useRef<THREE.BufferGeometry[]>([]);
-  useMemo(() => {
-    for (const geo of prevGeometries.current) {
-      geo.dispose();
-    }
+  useEffect(() => {
     prevGeometries.current = hullEntries.map((e) => e.geometry);
+    return () => {
+      for (const geo of prevGeometries.current) {
+        geo.dispose();
+      }
+    };
   }, [hullEntries]);
 
   if (!enabled) return null;

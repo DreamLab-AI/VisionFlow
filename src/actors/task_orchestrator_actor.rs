@@ -50,7 +50,7 @@ pub struct TaskOrchestratorActor {
 }
 
 impl TaskOrchestratorActor {
-    
+
     pub fn new(api_client: ManagementApiClient) -> Self {
         info!("[TaskOrchestratorActor] Initializing");
         Self {
@@ -60,76 +60,48 @@ impl TaskOrchestratorActor {
             retry_delay: Duration::from_secs(2),
         }
     }
+}
 
-    
-    async fn create_task_with_retry(
-        &mut self,
-        agent: String,
-        task: String,
-        provider: String,
-    ) -> Result<TaskResponse, ManagementApiError> {
-        let mut attempts = 0;
+/// Perform HTTP task creation with retry logic.
+///
+/// This is a free function (not a method) so it can be called from an async
+/// block without borrowing the actor. Only the HTTP client and retry
+/// parameters are captured — actor state is mutated later via
+/// `ResponseActFuture::map`.
+async fn create_task_with_retry(
+    client: ManagementApiClient,
+    agent: &str,
+    task: &str,
+    provider: &str,
+    max_retries: u32,
+    retry_delay: Duration,
+) -> Result<(TaskResponse, u32), ManagementApiError> {
+    let mut attempts = 0u32;
 
-        loop {
-            match self.api_client.create_task(&agent, &task, &provider).await {
-                Ok(response) => {
-                    info!(
-                        "[TaskOrchestratorActor] Task created successfully: {}",
-                        response.task_id
-                    );
-
-                    
-                    self.active_tasks.insert(
-                        response.task_id.clone(),
-                        TaskState {
-                            task_id: response.task_id.clone(),
-                            agent: agent.clone(),
-                            task_description: task.clone(),
-                            provider: provider.clone(),
-                            status: ApiTaskState::Running,
-                            created_at: time::now(),
-                            last_updated: time::now(),
-                            retry_count: attempts,
-                        },
-                    );
-
-                    return Ok(response);
-                }
-                Err(e) => {
-                    attempts += 1;
-                    if attempts >= self.max_retries {
-                        error!(
-                            "[TaskOrchestratorActor] Task creation failed after {} attempts: {}",
-                            attempts, e
-                        );
-                        return Err(e);
-                    }
-
-                    warn!(
-                        "[TaskOrchestratorActor] Task creation attempt {} failed: {}, retrying...",
+    loop {
+        match client.create_task(agent, task, provider).await {
+            Ok(response) => {
+                info!(
+                    "[TaskOrchestratorActor] Task created successfully: {}",
+                    response.task_id
+                );
+                return Ok((response, attempts));
+            }
+            Err(e) => {
+                attempts += 1;
+                if attempts >= max_retries {
+                    error!(
+                        "[TaskOrchestratorActor] Task creation failed after {} attempts: {}",
                         attempts, e
                     );
-                    tokio::time::sleep(self.retry_delay * attempts).await;
+                    return Err(e);
                 }
-            }
-        }
-    }
 
-    
-    #[allow(dead_code)]
-    fn update_task_status(&mut self, task_status: ApiTaskStatus) {
-        if let Some(task) = self.active_tasks.get_mut(&task_status.task_id) {
-            task.status = task_status.status.clone();
-            task.last_updated = time::now();
-
-            
-            if task_status.status == ApiTaskState::Completed
-                || task_status.status == ApiTaskState::Failed
-            {
-                debug!(
-                    "[TaskOrchestratorActor] Task {} finished with status: {:?}",
-                    task_status.task_id, task_status.status
+                warn!(
+                    "[TaskOrchestratorActor] Task creation attempt {} failed: {}, retrying...",
+                    attempts, e
                 );
+                tokio::time::sleep(retry_delay * attempts).await;
             }
         }
     }
@@ -230,7 +202,7 @@ pub struct SystemStatusInfo {
 // ========================================
 
 impl Handler<CreateTask> for TaskOrchestratorActor {
-    type Result = ResponseFuture<Result<TaskResponse, String>>;
+    type Result = ResponseActFuture<Self, Result<TaskResponse, String>>;
 
     fn handle(&mut self, msg: CreateTask, _ctx: &mut Self::Context) -> Self::Result {
         info!(
@@ -238,14 +210,52 @@ impl Handler<CreateTask> for TaskOrchestratorActor {
             msg.agent, msg.provider
         );
 
-        let mut actor = self.clone_for_async();
+        // Capture only non-actor data for the async block.
+        let client = self.api_client.clone();
+        let max_retries = self.max_retries;
+        let retry_delay = self.retry_delay;
+        let agent = msg.agent;
+        let task = msg.task;
+        let provider = msg.provider;
 
-        Box::pin(async move {
-            actor
-                .create_task_with_retry(msg.agent, msg.task, msg.provider)
+        Box::pin(
+            async move {
+                create_task_with_retry(
+                    client,
+                    &agent,
+                    &task,
+                    &provider,
+                    max_retries,
+                    retry_delay,
+                )
                 .await
+                .map(|(response, attempts)| (response, attempts, agent, task, provider))
                 .map_err(|e| e.to_string())
-        })
+            }
+            .into_actor(self)
+            .map(|result, act, _ctx| {
+                // This closure runs with &mut Self — mutations persist.
+                match result {
+                    Ok((response, attempts, agent, task_desc, provider)) => {
+                        act.active_tasks.insert(
+                            response.task_id.clone(),
+                            TaskState {
+                                task_id: response.task_id.clone(),
+                                agent,
+                                task_description: task_desc,
+                                provider,
+                                status: ApiTaskState::Running,
+                                created_at: time::now(),
+                                last_updated: time::now(),
+                                retry_count: attempts,
+                            },
+                        );
+                        Ok(response)
+                    }
+                    Err(e) => Err(e),
+                }
+            }),
+        )
     }
 }
 
@@ -327,19 +337,6 @@ impl Handler<GetSystemStatus> for TaskOrchestratorActor {
                 }
             }
         })
-    }
-}
-
-// Helper methods for TaskOrchestratorActor
-impl TaskOrchestratorActor {
-    
-    fn clone_for_async(&self) -> Self {
-        Self {
-            api_client: self.api_client.clone(),
-            active_tasks: self.active_tasks.clone(),
-            max_retries: self.max_retries,
-            retry_delay: self.retry_delay,
-        }
     }
 }
 

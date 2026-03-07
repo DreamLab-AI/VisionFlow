@@ -10,6 +10,9 @@ use std::time::Instant;
 use crate::app_state::AppState;
 use crate::handlers::api_handler::analytics::{ANOMALY_STATE, CLUSTERING_TASKS};
 
+const MIN_UPDATE_INTERVAL_MS: u64 = 100;
+const MAX_UPDATE_INTERVAL_MS: u64 = 60_000;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AnalyticsWebSocketMessage {
@@ -361,7 +364,10 @@ impl GpuAnalyticsWebSocket {
     }
 
     fn start_periodic_updates(&self, ctx: &mut ws::WebsocketContext<Self>) {
-        let interval = std::time::Duration::from_millis(self.subscription_prefs.update_interval_ms);
+        let clamped_ms = self.subscription_prefs.update_interval_ms
+            .max(MIN_UPDATE_INTERVAL_MS)
+            .min(MAX_UPDATE_INTERVAL_MS);
+        let interval = std::time::Duration::from_millis(clamped_ms);
 
         ctx.run_interval(interval, |act, ctx| {
             if std::time::Instant::now().duration_since(act.heartbeat)
@@ -434,9 +440,12 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for GpuAnalyticsWebSo
 
                         match ws_msg.message_type.as_str() {
                             "updateSubscriptions" => {
-                                if let Ok(prefs) =
+                                if let Ok(mut prefs) =
                                     serde_json::from_value::<SubscriptionPreferences>(ws_msg.data)
                                 {
+                                    prefs.update_interval_ms = prefs.update_interval_ms
+                                        .max(MIN_UPDATE_INTERVAL_MS)
+                                        .min(MAX_UPDATE_INTERVAL_MS);
                                     self.subscription_prefs = prefs;
                                     info!(
                                         "Updated subscription preferences for client: {}",
@@ -507,6 +516,29 @@ pub async fn gpu_analytics_websocket(
     app_state: actix_web::web::Data<AppState>,
 ) -> Result<actix_web::HttpResponse, actix_web::Error> {
     info!("New GPU Analytics WebSocket connection requested");
+
+    // SECURITY: Require authentication before WebSocket upgrade
+    {
+        let token = req.headers().get("Authorization")
+            .and_then(|h| h.to_str().ok())
+            .and_then(|s| s.strip_prefix("Bearer "))
+            .map(|s| s.to_string())
+            .or_else(|| {
+                let query = req.query_string();
+                url::form_urlencoded::parse(query.as_bytes())
+                    .find(|(k, _)| k == "token")
+                    .map(|(_, v)| v.to_string())
+            });
+
+        if token.as_deref().unwrap_or("").is_empty() {
+            let client_ip = req.peer_addr().map(|a| a.to_string()).unwrap_or_else(|| "unknown".to_string());
+            log::warn!(
+                "SECURITY: Rejected unauthenticated WebSocket upgrade on /analytics/ws from {}",
+                client_ip
+            );
+            return Ok(actix_web::HttpResponse::Unauthorized().json(serde_json::json!({"error": "Authentication required"})));
+        }
+    }
 
     ws::start(GpuAnalyticsWebSocket::new(app_state), &req, stream)
 }

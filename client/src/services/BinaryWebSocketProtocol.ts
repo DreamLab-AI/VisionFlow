@@ -507,6 +507,7 @@ export class BinaryWebSocketProtocol {
     const payload = new ArrayBuffer(totalSize);
     const view = new DataView(payload);
 
+    // TODO: agentId uses uint16 here but uint32 in position updates — needs protocol alignment with server
     view.setUint16(0, chunk.agentId, true);
     view.setUint16(2, chunk.chunkId, true);
     view.setUint8(4, chunk.format);
@@ -534,6 +535,7 @@ export class BinaryWebSocketProtocol {
     }
 
     return {
+      // TODO: agentId uses uint16 here but uint32 in position updates — needs protocol alignment with server
       agentId: view.getUint16(0, true),
       chunkId: view.getUint16(2, true),
       format: view.getUint8(4),
@@ -543,9 +545,42 @@ export class BinaryWebSocketProtocol {
   }
 
   
-  public setUserInteracting(interacting: boolean): void {
+  public setUserInteracting(interacting: boolean): ArrayBuffer | null {
+    if (this.isUserInteracting && !interacting) {
+      this.isUserInteracting = interacting;
+      logger.debug(`User interaction state: ${interacting}`);
+      return this.flushPositionUpdates();
+    }
     this.isUserInteracting = interacting;
     logger.debug(`User interaction state: ${interacting}`);
+    return null;
+  }
+
+  /**
+   * Flush any pending position updates without checking isUserInteracting.
+   * Used to drain accumulated updates when interaction ends, preventing
+   * orphaned updates that would leave collaborators with stale positions.
+   */
+  public flushPositionUpdates(): ArrayBuffer | null {
+    if (this.pendingPositionUpdates.length === 0) {
+      return null;
+    }
+    const allUpdates = [...this.pendingPositionUpdates];
+    this.pendingPositionUpdates = [];
+    this.lastPositionUpdate = performance.now();
+
+    const payload = new ArrayBuffer(allUpdates.length * AGENT_POSITION_SIZE_V2);
+    const view = new DataView(payload);
+    allUpdates.forEach((update, index) => {
+      const offset = index * AGENT_POSITION_SIZE_V2;
+      view.setUint32(offset, update.agentId, true);
+      view.setFloat32(offset + 4, update.position.x, true);
+      view.setFloat32(offset + 8, update.position.y, true);
+      view.setFloat32(offset + 12, update.position.z, true);
+      view.setUint32(offset + 16, update.timestamp, true);
+      view.setUint8(offset + 20, update.flags);
+    });
+    return this.createMessage(MessageType.POSITION_UPDATE, payload);
   }
 
   

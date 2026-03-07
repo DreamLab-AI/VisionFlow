@@ -175,6 +175,47 @@ impl FastWebSocketServer {
     async fn upgrade_handler(
         mut req: Request<Incoming>,
     ) -> Result<Response<Empty<Bytes>>, WebSocketError> {
+        // SECURITY: Validate Origin header to prevent cross-site WebSocket hijacking
+        if let Some(origin) = req.headers().get("origin") {
+            let origin_str = origin.to_str().unwrap_or("");
+            let allowed_origins = std::env::var("ALLOWED_WS_ORIGINS")
+                .unwrap_or_else(|_| "http://localhost,https://localhost,http://127.0.0.1,https://127.0.0.1".to_string());
+            let is_allowed = allowed_origins
+                .split(',')
+                .any(|allowed| origin_str.starts_with(allowed.trim()));
+            if !is_allowed {
+                warn!(
+                    "SECURITY: Rejected WebSocket upgrade from disallowed origin: {}",
+                    origin_str
+                );
+                let mut resp = Response::new(Empty::new());
+                *resp.status_mut() = hyper::StatusCode::FORBIDDEN;
+                return Ok(resp);
+            }
+        }
+
+        // SECURITY: Require authentication token before WebSocket upgrade
+        let token = req
+            .headers()
+            .get("authorization")
+            .and_then(|h| h.to_str().ok())
+            .and_then(|s| s.strip_prefix("Bearer "))
+            .map(|s| s.to_string())
+            .or_else(|| {
+                req.uri().query().and_then(|q| {
+                    url::form_urlencoded::parse(q.as_bytes())
+                        .find(|(k, _)| k == "token")
+                        .map(|(_, v)| v.to_string())
+                })
+            });
+
+        if token.as_deref().unwrap_or("").is_empty() {
+            warn!("SECURITY: Rejected unauthenticated WebSocket upgrade on fastwebsockets endpoint");
+            let mut resp = Response::new(Empty::new());
+            *resp.status_mut() = hyper::StatusCode::UNAUTHORIZED;
+            return Ok(resp);
+        }
+
         // Check if it's a WebSocket upgrade request and perform upgrade
         let (response, fut) = fastwebsockets::upgrade::upgrade(&mut req)?;
 

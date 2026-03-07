@@ -307,32 +307,35 @@ async function sendErrorTelemetry(errorData: Record<string, any>) {
   }
 }
 
-// Utility function for wrapping async functions with error handling
-export function withErrorHandler<T extends (...args: any[]) => Promise<any>>(
-  fn: T,
-  options?: ErrorOptions
-): T {
-  return (async (...args: Parameters<T>) => {
-    try {
-      return await fn(...args);
-    } catch (error) {
-      const { toast } = useToast();
+// Hook for wrapping async functions with error handling
+export function useWithErrorHandler() {
+  const { toast } = useToast();
 
-      
-      let message = 'An unexpected error occurred';
-      if (error instanceof Error) {
-        message = error.message;
-      } else if (typeof error === 'string') {
-        message = error;
+  const withErrorHandler = useCallback(<T extends (...args: any[]) => Promise<any>>(
+    fn: T,
+    options?: ErrorOptions
+  ): T => {
+    return (async (...args: Parameters<T>) => {
+      try {
+        return await fn(...args);
+      } catch (error) {
+        let message = 'An unexpected error occurred';
+        if (error instanceof Error) {
+          message = error.message;
+        } else if (typeof error === 'string') {
+          message = error;
+        }
+
+        toast({
+          title: options?.title || 'Error',
+          description: message,
+          variant: 'destructive',
+        });
+
+        throw error;
       }
+    }) as T;
+  }, [toast]);
 
-      toast({
-        title: options?.title || 'Error',
-        description: message,
-        variant: 'destructive',
-      });
-
-      throw error;
-    }
-  }) as T;
+  return { withErrorHandler };
 }

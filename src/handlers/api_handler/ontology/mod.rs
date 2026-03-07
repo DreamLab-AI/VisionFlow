@@ -1059,9 +1059,15 @@ pub async fn get_hierarchy(
                 iri: &str,
                 classes: &[crate::ports::ontology_repository::OwlClass],
                 memo: &mut HashMap<String, usize>,
+                visiting: &mut std::collections::HashSet<String>,
             ) -> usize {
                 if let Some(&depth) = memo.get(iri) {
                     return depth;
+                }
+
+                // Cycle detection: if already visiting this node, break the cycle
+                if !visiting.insert(iri.to_string()) {
+                    return 0;
                 }
 
                 let class = classes.iter().find(|c| c.iri == iri);
@@ -1071,7 +1077,7 @@ pub async fn get_hierarchy(
                     } else {
                         c.parent_classes
                             .iter()
-                            .map(|p| calculate_depth(p, classes, memo) + 1)
+                            .map(|p| calculate_depth(p, classes, memo, visiting) + 1)
                             .max()
                             .unwrap_or(0)
                     }
@@ -1079,6 +1085,7 @@ pub async fn get_hierarchy(
                     0
                 };
 
+                visiting.remove(iri);
                 memo.insert(iri.to_string(), depth);
                 depth
             }
@@ -1088,32 +1095,41 @@ pub async fn get_hierarchy(
                 iri: &str,
                 children_map: &HashMap<String, Vec<String>>,
                 memo: &mut HashMap<String, usize>,
+                visiting: &mut std::collections::HashSet<String>,
             ) -> usize {
                 if let Some(&count) = memo.get(iri) {
                     return count;
+                }
+
+                // Cycle detection: if already visiting this node, break the cycle
+                if !visiting.insert(iri.to_string()) {
+                    return 0;
                 }
 
                 let count = if let Some(children) = children_map.get(iri) {
                     children.len()
                         + children
                             .iter()
-                            .map(|child| count_descendants(child, children_map, memo))
+                            .map(|child| count_descendants(child, children_map, memo, visiting))
                             .sum::<usize>()
                 } else {
                     0
                 };
 
+                visiting.remove(iri);
                 memo.insert(iri.to_string(), count);
                 count
             }
 
             let mut depth_memo: HashMap<String, usize> = HashMap::new();
             let mut count_memo: HashMap<String, usize> = HashMap::new();
+            let mut depth_visiting = std::collections::HashSet::new();
+            let mut count_visiting = std::collections::HashSet::new();
 
 
             for class in &classes {
-                let depth = calculate_depth(&class.iri, &classes, &mut depth_memo);
-                let node_count = count_descendants(&class.iri, &children_map, &mut count_memo);
+                let depth = calculate_depth(&class.iri, &classes, &mut depth_memo, &mut depth_visiting);
+                let node_count = count_descendants(&class.iri, &children_map, &mut count_memo, &mut count_visiting);
                 let children_iris = children_map.get(&class.iri).cloned().unwrap_or_default();
 
                 let parent_iri = if class.parent_classes.is_empty() {

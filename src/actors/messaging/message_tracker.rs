@@ -118,21 +118,35 @@ pub struct RetryRequest {
 ///     3,
 /// ).await;
 /// ```
-#[derive(Clone)]
 pub struct MessageTracker {
     /// Pending messages awaiting acknowledgment
     pending: Arc<RwLock<HashMap<MessageId, PendingMessage>>>,
 
     /// Channel for retry requests
     retry_tx: mpsc::UnboundedSender<RetryRequest>,
-    #[allow(dead_code)]
-    retry_rx: Arc<RwLock<mpsc::UnboundedReceiver<RetryRequest>>>,
+
+    /// Receiver taken once when starting the background consumer
+    retry_rx: Option<mpsc::UnboundedReceiver<RetryRequest>>,
 
     /// Metrics for monitoring
     metrics: Arc<MessageMetrics>,
 
     /// Flag to stop background tasks
     shutdown: Arc<RwLock<bool>>,
+}
+
+impl Clone for MessageTracker {
+    fn clone(&self) -> Self {
+        Self {
+            pending: Arc::clone(&self.pending),
+            retry_tx: self.retry_tx.clone(),
+            // Clones do not get the receiver — it is consumed by the
+            // background task spawned on the original instance.
+            retry_rx: None,
+            metrics: Arc::clone(&self.metrics),
+            shutdown: Arc::clone(&self.shutdown),
+        }
+    }
 }
 
 impl MessageTracker {
@@ -143,7 +157,7 @@ impl MessageTracker {
         Self {
             pending: Arc::new(RwLock::new(HashMap::new())),
             retry_tx,
-            retry_rx: Arc::new(RwLock::new(retry_rx)),
+            retry_rx: Some(retry_rx),
             metrics: Arc::new(MessageMetrics::new()),
             shutdown: Arc::new(RwLock::new(false)),
         }
@@ -252,21 +266,32 @@ impl MessageTracker {
         }
     }
 
-    /// Check for timed out messages and trigger retries
+    /// Check for timed out messages and trigger retries.
+    ///
+    /// This is exposed for manual/test invocation. The background task
+    /// started by [`start_timeout_checker`] calls this automatically.
     pub async fn check_timeouts(&self) {
-        let mut pending = self.pending.write().await;
+        Self::check_timeouts_inner(&self.pending, &self.retry_tx, &self.metrics).await;
+    }
+
+    /// Shared timeout-check logic used by both `check_timeouts()` and the
+    /// background loop, avoiding duplicated code and double-locking.
+    async fn check_timeouts_inner(
+        pending: &Arc<RwLock<HashMap<MessageId, PendingMessage>>>,
+        retry_tx: &mpsc::UnboundedSender<RetryRequest>,
+        metrics: &Arc<MessageMetrics>,
+    ) {
+        let mut pending_write = pending.write().await;
         let mut timed_out = Vec::new();
 
-        // Find timed out messages
-        for (id, msg) in pending.iter() {
+        for (id, msg) in pending_write.iter() {
             if msg.is_timed_out() {
                 timed_out.push((*id, msg.kind, msg.retry_count));
             }
         }
 
-        // Handle timeouts
         for (id, kind, retry_count) in timed_out {
-            if let Some(mut msg) = pending.remove(&id) {
+            if let Some(mut msg) = pending_write.remove(&id) {
                 if msg.can_retry() {
                     warn!(
                         "Message {} ({}) timed out after {}ms, scheduling retry {}/{}",
@@ -277,8 +302,7 @@ impl MessageTracker {
                         msg.max_retries
                     );
 
-                    // Schedule retry
-                    if let Err(e) = self.retry_tx.send(RetryRequest {
+                    if let Err(e) = retry_tx.send(RetryRequest {
                         message_id: id,
                         kind,
                         attempt: retry_count + 1,
@@ -286,11 +310,10 @@ impl MessageTracker {
                         error!("Failed to schedule retry: {}", e);
                     }
 
-                    // Update retry count and reinsert
                     msg.retry_count += 1;
-                    msg.sent_at = Instant::now(); // Reset timeout
-                    pending.insert(id, msg);
-                    self.metrics.record_retry(kind);
+                    msg.sent_at = Instant::now();
+                    pending_write.insert(id, msg);
+                    metrics.record_retry(kind);
                 } else {
                     error!(
                         "Message {} ({}) exhausted retries after {} attempts",
@@ -298,79 +321,102 @@ impl MessageTracker {
                         kind.name(),
                         msg.max_retries
                     );
-                    self.metrics.record_failure(kind);
+                    metrics.record_failure(kind);
                 }
             }
         }
     }
 
-    /// Start background task to check for timeouts
-    pub fn start_timeout_checker(&self) {
+    /// Start background tasks for timeout checking and retry consumption.
+    ///
+    /// This takes `&mut self` to consume `retry_rx`. It must only be called
+    /// once on the original (non-cloned) instance.
+    pub fn start_timeout_checker(&mut self) {
         let pending = Arc::clone(&self.pending);
         let metrics = Arc::clone(&self.metrics);
         let retry_tx = self.retry_tx.clone();
         let shutdown = Arc::clone(&self.shutdown);
 
+        // --- Timeout checker loop ---
         tokio::spawn(async move {
             let mut interval = tokio::time::interval(Duration::from_millis(500));
 
             loop {
                 interval.tick().await;
 
-                // Check shutdown flag
                 if *shutdown.read().await {
                     info!("MessageTracker timeout checker shutting down");
                     break;
                 }
 
-                // Check for timeouts
-                let mut pending_write = pending.write().await;
-                let mut timed_out = Vec::new();
+                Self::check_timeouts_inner(&pending, &retry_tx, &metrics).await;
+            }
+        });
 
-                for (id, msg) in pending_write.iter() {
-                    if msg.is_timed_out() {
-                        timed_out.push((*id, msg.kind, msg.retry_count));
-                    }
-                }
+        // --- Retry consumer loop (BUG 1 fix) ---
+        if let Some(mut retry_rx) = self.retry_rx.take() {
+            let pending = Arc::clone(&self.pending);
+            let metrics = Arc::clone(&self.metrics);
+            let shutdown = Arc::clone(&self.shutdown);
 
-                // Handle timeouts
-                for (id, kind, retry_count) in timed_out {
-                    if let Some(mut msg) = pending_write.remove(&id) {
-                        if msg.can_retry() {
-                            warn!(
-                                "Message {} ({}) timed out, retrying {}/{}",
-                                id,
-                                kind.name(),
-                                retry_count + 1,
-                                msg.max_retries
-                            );
+            tokio::spawn(async move {
+                loop {
+                    tokio::select! {
+                        req = retry_rx.recv() => {
+                            match req {
+                                Some(retry) => {
+                                    let delay = Self::calculate_retry_delay(retry.attempt);
+                                    info!(
+                                        "Processing retry for message {} ({}), attempt {}, backoff {}ms",
+                                        retry.message_id,
+                                        retry.kind.name(),
+                                        retry.attempt,
+                                        delay.as_millis()
+                                    );
+                                    tokio::time::sleep(delay).await;
 
-                            // Schedule retry
-                            if let Err(e) = retry_tx.send(RetryRequest {
-                                message_id: id,
-                                kind,
-                                attempt: retry_count + 1,
-                            }) {
-                                error!("Failed to schedule retry: {}", e);
+                                    // Re-track the message with a fresh timeout for
+                                    // the retry attempt so it will be picked up again
+                                    // if this attempt also times out.
+                                    let timeout = retry.kind.default_timeout();
+                                    let msg = PendingMessage {
+                                        id: retry.message_id,
+                                        kind: retry.kind,
+                                        sent_at: Instant::now(),
+                                        timeout,
+                                        retry_count: retry.attempt,
+                                        max_retries: retry.kind.default_max_retries(),
+                                    };
+                                    pending.write().await.insert(retry.message_id, msg);
+                                    metrics.record_retry(retry.kind);
+                                    debug!(
+                                        "Retry {} re-tracked for message {}",
+                                        retry.attempt, retry.message_id
+                                    );
+                                }
+                                None => {
+                                    info!("Retry channel closed, consumer shutting down");
+                                    break;
+                                }
                             }
-
-                            // Update and reinsert
-                            msg.retry_count += 1;
-                            msg.sent_at = Instant::now();
-                            pending_write.insert(id, msg);
-                            metrics.record_retry(kind);
-                        } else {
-                            error!(
-                                "Message {} ({}) exhausted retries",
-                                id,
-                                kind.name()
-                            );
-                            metrics.record_failure(kind);
+                        }
+                        _ = async {
+                            loop {
+                                tokio::time::sleep(Duration::from_millis(500)).await;
+                                if *shutdown.read().await {
+                                    break;
+                                }
+                            }
+                        } => {
+                            info!("MessageTracker retry consumer shutting down");
+                            break;
                         }
                     }
                 }
-            }
-        });
+            });
+        } else {
+            warn!("retry_rx already consumed — start_timeout_checker called on a clone or called twice");
+        }
     }
 
     /// Calculate exponential backoff delay for retry

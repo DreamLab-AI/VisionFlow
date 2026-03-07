@@ -4,6 +4,21 @@ import { expose } from 'comlink';
 import { BinaryNodeData, parseBinaryNodeData, parseBinaryFrameData, createBinaryNodeData, Vec3 } from '../../../types/binaryProtocol';
 import { stringToU32 } from '../../../types/idMapping';
 
+const MAX_HASH_PROBES = 1000;
+
+function findFreeMappedId(nodeId: string, reverseNodeIdMap: Map<number, string>): number {
+  let h = stringToU32(nodeId);
+  let probe = 0;
+  while (reverseNodeIdMap.has(h) && reverseNodeIdMap.get(h) !== nodeId && probe < MAX_HASH_PROBES) {
+    probe += 1;
+    h = (h + probe * probe) >>> 0;
+  }
+  if (reverseNodeIdMap.has(h) && reverseNodeIdMap.get(h) !== nodeId) {
+    throw new Error(`Hash collision limit exceeded for node '${nodeId}'`);
+  }
+  return h;
+}
+
 // Worker-safe logger (createLogger depends on localStorage/window which are unavailable in Workers)
 // Only warn/error by default; set self.__WORKER_DEBUG = true in devtools to enable info/debug
 const workerSelf = self as unknown as Record<string, unknown>;
@@ -306,10 +321,7 @@ class GraphWorker {
             this.nodeIdMap.set(nodeId, numericId);
             this.reverseNodeIdMap.set(numericId, nodeId);
         } else {
-            let mappedId = stringToU32(nodeId);
-            while (this.reverseNodeIdMap.has(mappedId) && this.reverseNodeIdMap.get(mappedId) !== nodeId) {
-              mappedId = (mappedId + 1) >>> 0;
-            }
+            const mappedId = findFreeMappedId(nodeId, this.reverseNodeIdMap);
             this.nodeIdMap.set(nodeId, mappedId);
             this.reverseNodeIdMap.set(mappedId, nodeId);
         }
@@ -559,6 +571,18 @@ class GraphWorker {
 
   
   async getGraphData(): Promise<GraphData> {
+    if (this.currentPositions) {
+      this.graphData.nodes.forEach((node, i) => {
+        const i3 = i * 3;
+        if (i3 + 2 < this.currentPositions!.length) {
+          node.position = {
+            x: this.currentPositions![i3],
+            y: this.currentPositions![i3 + 1],
+            z: this.currentPositions![i3 + 2]
+          };
+        }
+      });
+    }
     return this.graphData;
   }
 
@@ -578,10 +602,7 @@ class GraphWorker {
         this.nodeIdMap.set(node.id, numericId);
         this.reverseNodeIdMap.set(numericId, node.id);
       } else {
-        let mappedId = stringToU32(node.id);
-        while (this.reverseNodeIdMap.has(mappedId) && this.reverseNodeIdMap.get(mappedId) !== node.id) {
-          mappedId = (mappedId + 1) >>> 0;
-        }
+        const mappedId = findFreeMappedId(node.id, this.reverseNodeIdMap);
         this.nodeIdMap.set(node.id, mappedId);
         this.reverseNodeIdMap.set(mappedId, node.id);
       }
@@ -602,12 +623,37 @@ class GraphWorker {
       this.nodeIdMap.delete(nodeId);
       this.reverseNodeIdMap.delete(numericId);
     }
-    this.nodeIndexMap.delete(nodeId);
+
+    this.reallocateNodeArraysAfterRemoval();
+  }
+
+  private reallocateNodeArraysAfterRemoval(): void {
+    const nodeCount = this.graphData.nodes.length;
+    const oldPos = this.currentPositions;
+    const oldTarget = this.targetPositions;
+    const oldVel = this.velocities;
+    const oldIndexMap = new Map(this.nodeIndexMap);
+
+    const newCurrent = new Float32Array(nodeCount * 3);
+    const newTarget = new Float32Array(nodeCount * 3);
+    const newVel = new Float32Array(nodeCount * 3);
 
     this.nodeIndexMap.clear();
-    this.graphData.nodes.forEach((node, index) => {
-      this.nodeIndexMap.set(node.id, index);
+    this.graphData.nodes.forEach((node, newIndex) => {
+      this.nodeIndexMap.set(node.id, newIndex);
+      const oldIndex = oldIndexMap.get(node.id);
+      if (oldIndex !== undefined && oldPos && oldTarget && oldVel) {
+        for (let k = 0; k < 3; ++k) {
+          newCurrent[newIndex * 3 + k] = oldPos[oldIndex * 3 + k];
+          newTarget[newIndex * 3 + k] = oldTarget[oldIndex * 3 + k];
+          newVel[newIndex * 3 + k] = oldVel[oldIndex * 3 + k];
+        }
+      }
     });
+
+    this.currentPositions = newCurrent;
+    this.targetPositions = newTarget;
+    this.velocities = newVel;
   }
 
   
@@ -1040,56 +1086,6 @@ class GraphWorker {
 
       return curPos;
     }
-
-
-    const { springStrength, damping, maxVelocity, updateThreshold } = this.physicsSettings;
-
-    for (let i = 0; i < this.graphData.nodes.length; i++) {
-      const numericId = this.nodeIdMap.get(this.graphData.nodes[i].id)!;
-      if (this.pinnedNodeIds.has(numericId)) continue;
-
-      const i3 = i * 3;
-
-      const dx = tgtPos[i3] - curPos[i3];
-      const dy = tgtPos[i3 + 1] - curPos[i3 + 1];
-      const dz = tgtPos[i3 + 2] - curPos[i3 + 2];
-
-      const distSq = dx * dx + dy * dy + dz * dz;
-
-      if (distSq < updateThreshold * updateThreshold) {
-        vel.fill(0, i3, i3 + 3);
-        continue;
-      }
-
-      const ax = dx * springStrength;
-      const ay = dy * springStrength;
-      const az = dz * springStrength;
-
-      vel[i3] += ax * dt;
-      vel[i3 + 1] += ay * dt;
-      vel[i3 + 2] += az * dt;
-
-      vel[i3] *= damping;
-      vel[i3 + 1] *= damping;
-      vel[i3 + 2] *= damping;
-
-      const currentVelSq = vel[i3] * vel[i3] +
-                          vel[i3 + 1] * vel[i3 + 1] +
-                          vel[i3 + 2] * vel[i3 + 2];
-      if (currentVelSq > maxVelocity * maxVelocity) {
-        const scale = maxVelocity / Math.sqrt(currentVelSq);
-        vel[i3] *= scale;
-        vel[i3 + 1] *= scale;
-        vel[i3 + 2] *= scale;
-      }
-
-      curPos[i3] += vel[i3] * dt;
-      curPos[i3 + 1] += vel[i3 + 1] * dt;
-      curPos[i3 + 2] += vel[i3 + 2] * dt;
-    }
-
-    this.syncToSharedBuffer();
-    return curPos;
   }
 }
 

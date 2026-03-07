@@ -610,9 +610,6 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
             }
           }
         });
-        // Slice the reusable buffer to the actual used length for consumers
-        const edgePointsSlice = newEdgePoints.slice(0, edgePointIdx);
-
         // Compute highlighted edges for the selected node
         if (selectedNodeId) {
           // Reuse pre-allocated highlight buffer -- only grow when needed
@@ -669,11 +666,10 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
               }
             }
           });
-          const highlightSlice = highlightBuf.slice(0, hlIdx);
           if (highlightEdgeFlowRef.current) {
-            highlightEdgeFlowRef.current.updatePoints(highlightSlice);
+            highlightEdgeFlowRef.current.updatePoints(highlightBuf, hlIdx);
           } else {
-            highlightEdgeUpdatePendingRef.current = highlightSlice;
+            highlightEdgeUpdatePendingRef.current = highlightBuf.slice(0, hlIdx);
           }
         } else if (highlightEdgePoints.length > 0) {
           if (highlightEdgeFlowRef.current) {
@@ -683,11 +679,11 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
           }
         }
 
-        // Imperative edge update: push directly to GlassEdges geometry buffer
+        // Imperative edge update: push buffer + count directly (no per-frame slice allocation)
         if (edgeFlowRef.current) {
-          edgeFlowRef.current.updatePoints(edgePointsSlice);
+          edgeFlowRef.current.updatePoints(newEdgePoints, edgePointIdx);
         } else {
-          edgeUpdatePendingRef.current = edgePointsSlice;
+          edgeUpdatePendingRef.current = newEdgePoints.slice(0, edgePointIdx);
         }
 
         // One-time diagnostic for edge/position pipeline

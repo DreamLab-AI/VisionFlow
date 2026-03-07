@@ -113,6 +113,7 @@ impl GraphExportHandler {
 
 pub async fn export_graph(
     app_state: web::Data<AppState>,
+    handler: web::Data<GraphExportHandler>,
     request: web::Json<ExportRequest>,
     req: HttpRequest,
 ) -> ActixResult<HttpResponse> {
@@ -121,10 +122,6 @@ pub async fn export_graph(
         .peer_addr()
         .unwrap_or("unknown")
         .to_string();
-
-
-    let handler = GraphExportHandler::new(std::path::PathBuf::from("data"));
-
 
     match handler.check_rate_limit(&client_ip).await {
         Ok(rate_info) if rate_info.remaining_exports == 0 => {
@@ -157,6 +154,7 @@ pub async fn export_graph(
 
 pub async fn share_graph(
     app_state: web::Data<AppState>,
+    handler: web::Data<GraphExportHandler>,
     request: web::Json<ShareRequest>,
     req: HttpRequest,
 ) -> ActixResult<HttpResponse> {
@@ -165,9 +163,6 @@ pub async fn share_graph(
         .peer_addr()
         .unwrap_or("unknown")
         .to_string();
-
-    let handler = GraphExportHandler::new(std::path::PathBuf::from("data"));
-
 
     match handler.check_rate_limit(&client_ip).await {
         Ok(rate_info) if rate_info.remaining_exports == 0 => {
@@ -207,6 +202,7 @@ pub async fn share_graph(
 }
 
 pub async fn get_shared_graph(
+    handler: web::Data<GraphExportHandler>,
     path: web::Path<String>,
     query: web::Query<HashMap<String, String>>,
 ) -> ActixResult<HttpResponse> {
@@ -216,8 +212,6 @@ pub async fn get_shared_graph(
             return bad_request!("Invalid share ID format");
         }
     };
-
-    let handler = GraphExportHandler::new(std::path::PathBuf::from("data"));
 
     
     let shared_graph = {
@@ -297,15 +291,16 @@ pub async fn publish_graph(
     })))
 }
 
-pub async fn delete_shared_graph(path: web::Path<String>) -> ActixResult<HttpResponse> {
+pub async fn delete_shared_graph(
+    handler: web::Data<GraphExportHandler>,
+    path: web::Path<String>,
+) -> ActixResult<HttpResponse> {
     let share_id = match Uuid::parse_str(&path.into_inner()) {
         Ok(id) => id,
         Err(_) => {
             return bad_request!("Invalid share ID format");
         }
     };
-
-    let handler = GraphExportHandler::new(std::path::PathBuf::from("data"));
 
     
     let removed_graph = {
@@ -336,10 +331,12 @@ pub async fn get_export_stats() -> ActixResult<HttpResponse> {
 }
 
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
+    let handler = GraphExportHandler::new(std::path::PathBuf::from("data"));
     // Note: Using /graph-export to avoid conflict with /graph scope from api_handler/graph/mod.rs
     // Routes become /api/graph-export/*
     cfg.service(
         web::scope("/graph-export")
+            .app_data(web::Data::new(handler))
             .wrap(RequireAuth::authenticated())
             .route("", web::post().to(export_graph))
             .route("/share", web::post().to(share_graph))

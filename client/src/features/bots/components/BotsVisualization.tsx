@@ -21,6 +21,9 @@ const QUEEN_GOLD = new THREE.Color('#FFD700');
 const ADDITIVE_BLENDING = THREE.AdditiveBlending;
 const BACK_SIDE = THREE.BackSide;
 
+// Preallocated particle base-T values (module scope to avoid per-render allocation)
+const PARTICLE_BASE_T = [0.15, 0.4, 0.65, 0.9] as const;
+
 // Lightweight line component using standard BufferGeometry (NOT InstancedBufferGeometry).
 // drei's <Line> uses Line2/LineGeometry which extends InstancedBufferGeometry — its default
 // instanceCount=Infinity crashes WebGPU's drawIndexed(). This is a three.js Line2/troika
@@ -504,6 +507,7 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
   const lastPositionRef = useRef<THREE.Vector3 | undefined>(undefined);
   const currentPositionRef = useRef<THREE.Vector3>(position.clone());
   const targetPositionRef = useRef<THREE.Vector3>(position.clone());
+  const elapsedTimeRef = useRef(0);
   const settings = useSettingsStore(state => state.settings);
 
   
@@ -609,6 +613,7 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
     groupRef.current.position.copy(currentPositionRef.current);
 
     const elapsedTime = state.clock.elapsedTime;
+    elapsedTimeRef.current = elapsedTime;
     const activity = agent.activity ?? 0;
     const healthPulse = agent.health ? (agent.health / 100) : 0.5;
     const tokenGlow = agent.tokenRate ? Math.min(agent.tokenRate / 20, 2) : 0;
@@ -878,8 +883,8 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
           ].map((_, i) => {
             const angle = (i / 8) * Math.PI * 2;
             const radius = clampedSize * 2;
-            const x = Math.cos(angle + Date.now() * 0.001) * radius;
-            const z = Math.sin(angle + Date.now() * 0.001) * radius;
+            const x = Math.cos(angle + elapsedTimeRef.current) * radius;
+            const z = Math.sin(angle + elapsedTimeRef.current) * radius;
             return (
               <mesh key={i} position={[x, 0, z]}>
                 <sphereGeometry args={[0.03, 6, 6]} />
@@ -1191,6 +1196,15 @@ const BotsEdgeComponent: React.FC<BotsEdgeProps> = ({
   targetAgent 
 }) => {
   const [isActive, setIsActive] = useState(false);
+  const particleVecs = useRef([
+    new THREE.Vector3(), new THREE.Vector3(),
+    new THREE.Vector3(), new THREE.Vector3(),
+  ]);
+  const elapsedRef = useRef(0);
+
+  useFrame((state) => {
+    elapsedRef.current = state.clock.elapsedTime;
+  });
 
   useEffect(() => {
     const checkActivity = () => {
@@ -1228,14 +1242,14 @@ const BotsEdgeComponent: React.FC<BotsEdgeProps> = ({
 
   const shouldAnimate = isActive && (avgTokenRate > 15 || edge.messageCount > 50);
   const animationSpeed = Math.min(avgTokenRate / 10, 3) + Math.min(edge.messageCount / 100, 2);
-  const dashOffset = shouldAnimate ? -Date.now() * 0.001 * animationSpeed : 0;
+  const dashOffset = shouldAnimate ? -elapsedRef.current * animationSpeed : 0;
 
   const shouldPulse = avgTokenRate > 40 || edge.messageCount > 200;
-  const pulseIntensity = shouldPulse ? Math.sin(Date.now() * 0.005) * 0.3 + 1 : 1;
+  const pulseIntensity = shouldPulse ? Math.sin(elapsedRef.current * 5) * 0.3 + 1 : 1;
 
   // Organic curve: compute a midpoint with slight perpendicular offset for tendril effect
   const distance = sourcePos.distanceTo(targetPos);
-  const now = Date.now() * 0.001;
+  const now = elapsedRef.current;
   const organicCurvePoints = useMemo(() => {
     const mid = new THREE.Vector3().copy(sourcePos).add(targetPos).multiplyScalar(0.5);
     const dir = new THREE.Vector3().subVectors(targetPos, sourcePos).normalize();
@@ -1288,14 +1302,17 @@ const BotsEdgeComponent: React.FC<BotsEdgeProps> = ({
       {/* Organic data particles flowing along tendril */}
       {isActive && shouldAnimate && (
         <group>
-          {[0.15, 0.4, 0.65, 0.9].map((baseT, i) => {
+          {PARTICLE_BASE_T.map((baseT, i) => {
             // Slightly varied speed per particle for organic feel
             const speedVar = 1 + (i * 0.13);
             const t = (baseT + (now * animationSpeed * speedVar * 0.15)) % 1;
-            // Lerp along the curve (source -> mid -> target based on t)
-            const particlePos = t < 0.5
-              ? _tempVec3A.clone().lerpVectors(sourcePos, organicCurvePoints[1], t * 2)
-              : _tempVec3A.clone().lerpVectors(organicCurvePoints[1], targetPos, (t - 0.5) * 2);
+            // Lerp along the curve using preallocated vectors (no per-render clone allocation)
+            const particlePos = particleVecs.current[i];
+            if (t < 0.5) {
+              particlePos.lerpVectors(sourcePos, organicCurvePoints[1], t * 2);
+            } else {
+              particlePos.lerpVectors(organicCurvePoints[1], targetPos, (t - 0.5) * 2);
+            }
             // Slight size variation per particle
             const sizeVar = 0.04 + Math.sin(now * 2 + i * 1.5) * 0.015;
             return (

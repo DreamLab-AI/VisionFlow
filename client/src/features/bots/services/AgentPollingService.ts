@@ -79,6 +79,7 @@ export class AgentPollingService {
   private activityLevel: 'active' | 'idle' = 'idle';
   private lastActivityCheck: number = 0;
   private performanceMonitor: PollingPerformanceMonitor;
+  private subscriberCount: number = 0;
 
   private constructor() {
     this.config = {
@@ -111,26 +112,33 @@ export class AgentPollingService {
     }
   }
 
-  
   public start(): void {
-    if (this.isPolling) {
-      logger.warn('Polling already active');
-      return;
+    this.subscriberCount++;
+    if (this.subscriberCount === 1) {
+      if (this.isPolling) {
+        logger.warn('Polling already active');
+        return;
+      }
+      logger.debug('Starting agent swarm polling');
+      this.isPolling = true;
+      this.poll();
+    } else {
+      logger.debug(`Polling subscriber added (count: ${this.subscriberCount})`);
     }
-
-    logger.debug('Starting agent swarm polling');
-    this.isPolling = true;
-    this.poll();
   }
 
-  
   public stop(): void {
-    if (this.pollingTimer) {
-      clearTimeout(this.pollingTimer);
-      this.pollingTimer = null;
+    this.subscriberCount = Math.max(0, this.subscriberCount - 1);
+    if (this.subscriberCount === 0) {
+      if (this.pollingTimer) {
+        clearTimeout(this.pollingTimer);
+        this.pollingTimer = null;
+      }
+      this.isPolling = false;
+      logger.debug('Agent swarm polling stopped');
+    } else {
+      logger.debug(`Polling subscriber removed (count: ${this.subscriberCount})`);
     }
-    this.isPolling = false;
-    logger.debug('Agent swarm polling stopped');
   }
 
   

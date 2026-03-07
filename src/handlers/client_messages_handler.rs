@@ -132,10 +132,10 @@ pub async fn websocket_client_messages(
         if token.as_deref().unwrap_or("").is_empty() {
             let client_ip = req.peer_addr().map(|a| a.to_string()).unwrap_or_else(|| "unknown".to_string());
             log::warn!(
-                "SECURITY: Unauthenticated WebSocket connection on /ws/client-messages from {}. \
-                 Allowing for now -- enforcement will come when clients send tokens.",
+                "SECURITY: Rejected unauthenticated WebSocket upgrade on /ws/client-messages from {}",
                 client_ip
             );
+            return Ok(HttpResponse::Unauthorized().json(serde_json::json!({"error": "Authentication required"})));
         }
     }
 

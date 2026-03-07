@@ -15,8 +15,78 @@ import { autoSaveManager } from './autoSaveManager';
 
 const logger = createLogger('SettingsStore')
 
-// Module-level subscribers map (kept outside Zustand to avoid serialization/diffing overhead)
-const subscribersMap = new Map<string, Set<() => void>>();
+// --- Subscriber trie (replaces flat subscribersMap for O(depth) prefix matching) ---
+type SubscriberCallback = () => void;
+
+interface SubscriberTrieNode {
+  subscribers: Set<SubscriberCallback>;
+  children: Map<string, SubscriberTrieNode>;
+}
+
+const subscriberTrieRoot: SubscriberTrieNode = {
+  subscribers: new Set(),
+  children: new Map(),
+};
+
+function getOrCreateTrieNode(path: string, create = true): SubscriberTrieNode | undefined {
+  if (!path) return subscriberTrieRoot;
+  const segments = path.split('.');
+  let node = subscriberTrieRoot;
+  for (const segment of segments) {
+    let next = node.children.get(segment);
+    if (!next && create) {
+      next = { subscribers: new Set(), children: new Map() };
+      node.children.set(segment, next);
+    }
+    if (!next) return undefined;
+    node = next;
+  }
+  return node;
+}
+
+function collectDescendants(node: SubscriberTrieNode, out: Set<SubscriberCallback>): void {
+  for (const cb of node.subscribers) out.add(cb);
+  for (const child of node.children.values()) {
+    collectDescendants(child, out);
+  }
+}
+
+function collectMatchedCallbacks(changedPaths: string[]): Set<SubscriberCallback> {
+  const result = new Set<SubscriberCallback>();
+  for (const path of changedPaths) {
+    const segments = path.split('.');
+    let node = subscriberTrieRoot;
+    // Walk down: collect all ancestor subscribers (prefix match)
+    for (let i = 0; i <= segments.length; i++) {
+      if (node.subscribers.size) {
+        for (const cb of node.subscribers) result.add(cb);
+      }
+      if (i === segments.length) break;
+      const next = node.children.get(segments[i]);
+      if (!next) break;
+      node = next;
+    }
+    // Also collect all descendant subscribers from the exact node
+    const exactNode = getOrCreateTrieNode(path, false);
+    if (exactNode) collectDescendants(exactNode, result);
+  }
+  return result;
+}
+
+// --- RAF-batched subscriber notification ---
+let pendingNotifyCallbacks = new Set<SubscriberCallback>();
+let notifyRafScheduled = false;
+
+function flushNotifyCallbacks(): void {
+  const callbacks = pendingNotifyCallbacks;
+  pendingNotifyCallbacks = new Set();
+  notifyRafScheduled = false;
+  for (const cb of callbacks) {
+    try { cb(); } catch (error) {
+      logger.error('Error in settings subscriber during updateSettings:', createErrorMetadata(error));
+    }
+  }
+}
 
 // Helper to wait for authentication to be ready
 async function waitForAuthReady(maxWaitMs: number = 3000): Promise<void> {
@@ -133,45 +203,35 @@ function deepMergeSettings(
   return result;
 }
 
-// Helper function to find changed paths between two objects
-function findChangedPaths(oldObj: unknown, newObj: unknown, path: string = ''): string[] {
-  const changedPaths: string[] = [];
-
-
-  if (oldObj === newObj) return changedPaths;
+// Helper function to find changed paths between two objects.
+// Uses a collector pattern (mutating `out`) to avoid intermediate array allocations
+// from spread operators. Leverages immer structural sharing: unchanged subtrees
+// share the same reference so `oldObj === newObj` short-circuits entire branches.
+function findChangedPaths(oldObj: unknown, newObj: unknown, path: string = '', out: string[] = []): string[] {
+  if (oldObj === newObj) return out;
   if (oldObj == null || newObj == null) {
-    if (path) changedPaths.push(path);
-    return changedPaths;
+    if (path) out.push(path);
+    return out;
   }
-
-
   if (typeof oldObj !== 'object' || typeof newObj !== 'object') {
-    if (oldObj !== newObj && path) {
-      changedPaths.push(path);
-    }
-    return changedPaths;
+    if (oldObj !== newObj && path) out.push(path);
+    return out;
   }
-
-
   const oldRecord = oldObj as Record<string, unknown>;
   const newRecord = newObj as Record<string, unknown>;
   const allKeys = new Set([...Object.keys(oldRecord), ...Object.keys(newRecord)]);
-
   for (const key of allKeys) {
     const currentPath = path ? `${path}.${key}` : key;
     const oldValue = oldRecord[key];
     const newValue = newRecord[key];
-
+    if (oldValue === newValue) continue; // Fast skip unchanged subtrees (immer structural sharing)
     if (typeof oldValue === 'object' && typeof newValue === 'object' && oldValue !== null && newValue !== null) {
-
-      changedPaths.push(...findChangedPaths(oldValue, newValue, currentPath));
-    } else if (oldValue !== newValue) {
-
-      changedPaths.push(currentPath);
+      findChangedPaths(oldValue, newValue, currentPath, out);
+    } else {
+      out.push(currentPath);
     }
   }
-
-  return changedPaths;
+  return out;
 }
 
 export interface SettingsState {
@@ -409,15 +469,15 @@ export const useSettingsStore = create<SettingsState>()(
       }),
 
       notifyViewportUpdate: (path: SettingsPath) => {
-        const callbacks = subscribersMap.get('viewport.update');
-        if (callbacks) {
-          Array.from(callbacks).forEach(callback => {
+        const node = getOrCreateTrieNode('viewport.update', false);
+        if (node && node.subscribers.size) {
+          for (const callback of node.subscribers) {
             try {
               callback();
             } catch (error) {
               logger.error(`Error in viewport update subscriber:`, createErrorMetadata(error));
             }
-          });
+          }
         }
       },
 
@@ -489,10 +549,7 @@ export const useSettingsStore = create<SettingsState>()(
       },
 
       subscribe: (path: SettingsPath, callback: () => void, immediate: boolean = true) => {
-        if (!subscribersMap.has(path)) {
-          subscribersMap.set(path, new Set());
-        }
-        subscribersMap.get(path)!.add(callback);
+        getOrCreateTrieNode(path)!.subscribers.add(callback);
 
         if (immediate && get().initialized) {
           callback();
@@ -502,13 +559,7 @@ export const useSettingsStore = create<SettingsState>()(
       },
 
       unsubscribe: (path: SettingsPath, callback: () => void) => {
-        if (subscribersMap.has(path)) {
-          const callbacks = subscribersMap.get(path)!;
-          callbacks.delete(callback);
-          if (callbacks.size === 0) {
-            subscribersMap.delete(path);
-          }
-        }
+        getOrCreateTrieNode(path, false)?.subscribers.delete(callback);
       },
 
 
@@ -666,37 +717,15 @@ export const useSettingsStore = create<SettingsState>()(
           }
         }
 
-        // Only notify subscribers registered to paths that actually changed.
-        // For each changedPath, fire callbacks on exact matches and on any
-        // registered prefix (parent path) so that e.g. a subscriber on
-        // "visualisation" is notified when "visualisation.glow.intensity" changes.
-        const matchedCallbacks = new Set<() => void>();
-        for (const changedPath of changedPaths) {
-          // Exact match
-          const exact = subscribersMap.get(changedPath);
-          if (exact) {
-            exact.forEach(cb => matchedCallbacks.add(cb));
-          }
-          // Prefix/parent matches: a subscriber on "a.b" should fire for "a.b.c.d"
-          // and a subscriber on "a.b.c.d" should fire for "a.b" (child matches parent)
-          subscribersMap.forEach((callbacks, subscribedPath) => {
-            if (
-              subscribedPath !== changedPath &&
-              (changedPath.startsWith(subscribedPath + '.') ||
-               subscribedPath.startsWith(changedPath + '.'))
-            ) {
-              callbacks.forEach(cb => matchedCallbacks.add(cb));
-            }
-          });
+        // Collect matched subscribers via trie walk (O(depth) per changed path
+        // instead of O(subscribers) with the old flat map) and batch via RAF
+        // so 60fps slider drags coalesce into a single notification per frame.
+        const matchedCallbacks = collectMatchedCallbacks(changedPaths);
+        for (const cb of matchedCallbacks) pendingNotifyCallbacks.add(cb);
+        if (!notifyRafScheduled) {
+          notifyRafScheduled = true;
+          requestAnimationFrame(flushNotifyCallbacks);
         }
-
-        matchedCallbacks.forEach(callback => {
-          try {
-            callback();
-          } catch (error) {
-            logger.error('Error in settings subscriber during updateSettings:', createErrorMetadata(error));
-          }
-        });
       },
 
 

@@ -219,7 +219,10 @@ pub mod validators {
         Ok(())
     }
 
-    /// Check for SQL injection patterns
+    /// Check for SQL injection patterns.
+    /// NOTE: String-matching is a defense-in-depth heuristic only. The proper defense
+    /// against SQL injection is parameterized queries / prepared statements at the
+    /// data-access layer. Do not rely on this filter as the primary protection.
     pub fn check_sql_injection(s: &str) -> Result<(), String> {
         let dangerous_patterns = [
             "DROP TABLE",

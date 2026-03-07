@@ -95,6 +95,10 @@ const DELTA_SCALE_FACTOR: f32 = 100.0; // Scale factor for i16 precision
 const DELTA_ITEM_SIZE: usize = 16;     // Size of DeltaNodeData in bytes
 const DELTA_RESYNC_INTERVAL: u64 = 60; // Full state every 60 frames
 
+// Safety limits for decode functions
+const MAX_PAYLOAD_SIZE: usize = 10 * 1024 * 1024; // 10 MB
+const MAX_NODE_COUNT: usize = 100_000;
+
 // Constants for wire format sizes (V1 removed)
 const WIRE_V2_ID_SIZE: usize = 4;
 const WIRE_VEC3_SIZE: usize = 12;
@@ -553,7 +557,14 @@ pub fn decode_node_data(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, Strin
         return Ok(Vec::new());
     }
 
-    
+    if data.len() > MAX_PAYLOAD_SIZE {
+        return Err(format!(
+            "Payload size {} exceeds maximum {}",
+            data.len(),
+            MAX_PAYLOAD_SIZE
+        ));
+    }
+
     if data.len() < 1 {
         return Err("Data too small for protocol version".to_string());
     }
@@ -572,7 +583,6 @@ pub fn decode_node_data(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, Strin
 // decode_node_data_v1 REMOVED - V1 protocol no longer supported
 
 fn decode_node_data_v2(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String> {
-    
     if data.len() % WIRE_V2_ITEM_SIZE != 0 {
         return Err(format!(
             "Data size {} is not a multiple of V2 wire item size {}",
@@ -582,6 +592,13 @@ fn decode_node_data_v2(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String
     }
 
     let expected_nodes = data.len() / WIRE_V2_ITEM_SIZE;
+    if expected_nodes > MAX_NODE_COUNT {
+        return Err(format!(
+            "Node count {} exceeds maximum {}",
+            expected_nodes, MAX_NODE_COUNT
+        ));
+    }
+
     debug!(
         "Decoding V2 binary data: size={} bytes, expected nodes={}",
         data.len(),
@@ -714,6 +731,13 @@ fn decode_node_data_v3(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String
     }
 
     let expected_nodes = data.len() / WIRE_V3_ITEM_SIZE;
+    if expected_nodes > MAX_NODE_COUNT {
+        return Err(format!(
+            "Node count {} exceeds maximum {}",
+            expected_nodes, MAX_NODE_COUNT
+        ));
+    }
+
     debug!(
         "Decoding V3 binary data with analytics: size={} bytes, expected nodes={}",
         data.len(),
@@ -1403,6 +1427,14 @@ pub fn decode_agent_actions(data: &[u8]) -> Result<Vec<AgentActionEvent>, String
         return Err("AgentAction batch data too small".to_string());
     }
 
+    if data.len() > MAX_PAYLOAD_SIZE {
+        return Err(format!(
+            "AgentAction payload size {} exceeds maximum {}",
+            data.len(),
+            MAX_PAYLOAD_SIZE
+        ));
+    }
+
     let event_count = u16::from_le_bytes([data[0], data[1]]) as usize;
     let mut events = Vec::with_capacity(event_count);
     let mut offset = 2;
@@ -1564,6 +1596,14 @@ impl BinaryProtocol {
     pub fn decode_message(data: &[u8]) -> Result<Message, ProtocolError> {
         if data.is_empty() {
             return Err(ProtocolError::DecodingError("Empty message".to_string()));
+        }
+
+        if data.len() > MAX_PAYLOAD_SIZE {
+            return Err(ProtocolError::InvalidPayloadSize(format!(
+                "Message size {} exceeds maximum {}",
+                data.len(),
+                MAX_PAYLOAD_SIZE
+            )));
         }
 
         let message_type = data[0];

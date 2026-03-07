@@ -1,26 +1,9 @@
-use std::sync::mpsc;
-use std::thread;
-
-pub async fn execute_in_thread<F, R>(handler_fn: F) -> Result<R, String>
+pub async fn execute_in_thread<F, R>(f: F) -> Result<R, String>
 where
     F: FnOnce() -> R + Send + 'static,
     R: Send + 'static,
 {
-    let (tx, rx) = mpsc::channel();
-
-    // Capture the tokio runtime handle so handlers can call block_on from the spawned thread
-    let handle = tokio::runtime::Handle::current();
-
-    thread::spawn(move || {
-        let _guard = handle.enter();
-        let result = handler_fn();
-        let _ = tx.send(result);
-    });
-
-    tokio::task::spawn_blocking(move || {
-        rx.recv()
-            .map_err(|e| format!("Thread communication error: {}", e))
-    })
-    .await
-    .map_err(|e| format!("Task join error: {}", e))?
+    tokio::task::spawn_blocking(f)
+        .await
+        .map_err(|e| format!("Task join error: {}", e))
 }

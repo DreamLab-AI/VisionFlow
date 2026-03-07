@@ -6,45 +6,6 @@ import { createLogger } from '../../../utils/loggerConfig';
 
 const logger = createLogger('AgentTelemetryStream');
 
-// Load GOAP widget script dynamically
-const loadGoapWidget = () => {
-  if (typeof window === 'undefined' || document.getElementById('goap-widget-script')) return;
-
-  (window as unknown as Record<string, unknown>).GOAPWidgetConfig = {
-    primaryColor: '#ff8800',
-    accentColor: '#fbbf24',
-    backgroundColor: '#1a1a1a',
-    cardBackgroundColor: '#262626',
-    cardBorderColor: '#ff8800',
-    textColor: '#ff8800',
-    secondaryTextColor: '#fbbf24',
-    successColor: '#22c55e',
-    title: 'Goal-Oriented Action Planning',
-    description: 'AI-powered research planning using A* pathfinding and dynamic agent coordination',
-    brandName: 'JunkieJarvis',
-    defaultGoal: 'Research Knowledge Graphs and Human Scale Spring Force Systems',
-    fontFamily: 'monospace',
-    borderRadius: '0.5rem',
-    animationSpeed: 'fast',
-    cardSpacing: '0.5rem',
-    showMetrics: true,
-    showStats: true,
-    compactMode: true,
-    enableAI: true,
-    aiModel: 'google/gemini-2.5-flash'
-  };
-
-  const script = document.createElement('script');
-  script.id = 'goap-widget-script';
-  script.src = 'https://goal.ruv.io/widget.js';
-  script.async = true;
-  script.crossOrigin = 'anonymous';
-  script.onerror = () => {
-    logger.warn('[GOAP] Widget script failed to load (may be blocked by COEP/CSP policy)');
-  };
-  document.body.appendChild(script);
-};
-
 interface TelemetryMessage {
   timestamp: number;
   agentId: string;
@@ -67,14 +28,6 @@ export const AgentTelemetryStream: React.FC = () => {
     }
   }, [messages]);
 
-  
-  useEffect(() => {
-    if (activeTab === 'goap') {
-      loadGoapWidget();
-    }
-  }, [activeTab]);
-
-  
   useEffect(() => {
     const pollTelemetry = async () => {
       try {

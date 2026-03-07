@@ -44,10 +44,18 @@ const InteractiveCodeBlock = ({ language, code, className }: { language: string;
 
 // Interactive link component
 const InteractiveLink = ({ href, children, ...props }: { href?: string, children: React.ReactNode }) => {
-  const isExternal = href?.startsWith('http');
+  const safeHref = (() => {
+    try {
+      const u = new URL(href!, window.location.origin);
+      return ['http:', 'https:', 'mailto:'].includes(u.protocol) ? u.href : '#';
+    } catch {
+      return '#';
+    }
+  })();
+  const isExternal = safeHref.startsWith('http');
   return (
     <a
-      href={href}
+      href={safeHref}
       target={isExternal ? "_blank" : undefined}
       rel={isExternal ? "noopener noreferrer" : undefined}
       className="text-primary hover:underline inline-flex items-center gap-1"

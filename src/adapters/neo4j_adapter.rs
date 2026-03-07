@@ -177,8 +177,8 @@ impl Neo4jAdapter {
         Ok(adapter)
     }
 
-    /// Get access to underlying Graph for direct queries
-    pub fn graph(&self) -> &Arc<Graph> {
+    /// Get access to underlying Graph for direct queries (crate-internal only)
+    pub(crate) fn graph(&self) -> &Arc<Graph> {
         &self.graph
     }
 
@@ -368,7 +368,7 @@ impl Neo4jAdapter {
     /// // UNSAFE - Don't do this!
     /// // let query = format!("MATCH (n:User {{name: '{}'}}) RETURN n", user_input);
     /// ```
-    pub async fn execute_cypher_safe(
+    pub(crate) async fn execute_cypher_safe(
         &self,
         query: &str,
         params: HashMap<String, neo4rs::BoltType>,
@@ -381,7 +381,7 @@ impl Neo4jAdapter {
     /// This method is deprecated in favor of execute_cypher_safe.
     /// Only use this for trusted, static queries. Never concatenate user input!
     #[deprecated(since = "0.1.0", note = "Use execute_cypher_safe instead")]
-    pub async fn execute_cypher(
+    pub(crate) async fn execute_cypher(
         &self,
         query: &str,
         params: HashMap<String, neo4rs::BoltType>,
@@ -1070,7 +1070,16 @@ impl KnowledgeGraphRepository for Neo4jAdapter {
     }
 
     async fn query_nodes(&self, cypher_query: &str) -> RepoResult<Vec<Node>> {
-        info!("query_nodes: executing custom Cypher query");
+        // SECURITY: Reject write operations through the read-only query_nodes path
+        let upper = cypher_query.to_uppercase();
+        for keyword in &["CREATE", "MERGE", "DELETE", "SET ", "REMOVE", "DROP", "CALL {", "LOAD CSV"] {
+            if upper.contains(keyword) {
+                return Err(KnowledgeGraphRepositoryError::InvalidData(
+                    format!("query_nodes rejects write/mutating Cypher keywords: {}", keyword.trim()),
+                ));
+            }
+        }
+        info!("query_nodes: executing read-only Cypher query");
 
         let query = Query::new(cypher_query.to_string());
 

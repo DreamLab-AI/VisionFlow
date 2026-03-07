@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Html } from '@react-three/drei';
 import {
   configurationMapper,
@@ -24,6 +24,8 @@ export const BotsControlPanel: React.FC<BotsControlPanelProps> = ({
   const [activeTab, setActiveTab] = useState<'colors' | 'animation' | 'physics' | 'rendering'>('colors');
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [agentCount, setAgentCount] = useState(12);
+  const swarmWsRef = useRef<WebSocket | null>(null);
+  const swarmWsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     
@@ -35,6 +37,14 @@ export const BotsControlPanel: React.FC<BotsControlPanelProps> = ({
 
     return () => {
       configurationMapper.unsubscribe(id);
+      if (swarmWsRef.current) {
+        swarmWsRef.current.close();
+        swarmWsRef.current = null;
+      }
+      if (swarmWsTimerRef.current) {
+        clearTimeout(swarmWsTimerRef.current);
+        swarmWsTimerRef.current = null;
+      }
     };
   }, [onConfigChange]);
 
@@ -110,16 +120,25 @@ export const BotsControlPanel: React.FC<BotsControlPanelProps> = ({
   };
 
   const startSwarmMonitoring = (swarmId: string) => {
-    
-    const ws = new WebSocket(`/ws/swarm-status/${swarmId}`);
+    // Close any previous swarm WebSocket
+    if (swarmWsRef.current) {
+      swarmWsRef.current.close();
+      swarmWsRef.current = null;
+    }
+    if (swarmWsTimerRef.current) {
+      clearTimeout(swarmWsTimerRef.current);
+      swarmWsTimerRef.current = null;
+    }
+
+    const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const ws = new WebSocket(`${proto}//${window.location.host}/ws/swarm-status/${swarmId}`);
+    swarmWsRef.current = ws;
 
     ws.onmessage = (event) => {
       const statusUpdate = JSON.parse(event.data);
       logger.info('Swarm status update:', statusUpdate);
 
-      
       if (statusUpdate.status === 'active') {
-        
         logger.info(`Swarm ${swarmId} is now active with ${statusUpdate.activeWorkers} workers`);
       } else if (statusUpdate.status === 'failed') {
         logger.error(`Swarm ${swarmId} failed:`, statusUpdate.error);
@@ -131,13 +150,14 @@ export const BotsControlPanel: React.FC<BotsControlPanelProps> = ({
       logger.error('Swarm monitoring WebSocket error:', error);
     };
 
-    
-    
-    setTimeout(() => {
+    swarmWsTimerRef.current = setTimeout(() => {
       if (ws.readyState === WebSocket.OPEN) {
         ws.close();
       }
-    }, 60000); 
+      if (swarmWsRef.current === ws) {
+        swarmWsRef.current = null;
+      }
+    }, 60000);
   };
 
   const showSpawnError = (type: string, message: string) => {
