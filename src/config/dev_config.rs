@@ -226,10 +226,10 @@ impl Default for DevConfig {
                 anomaly_detection_radius: 150.0,
                 learning_rate_default: 0.1,
                 min_velocity_threshold: 0.01,
-                stability_threshold: 1e-6,
+                stability_threshold: 1e-4,  // Relaxed: allows system to settle without over-damping
 
                 
-                norm_delta_cap: 1000.0,
+                norm_delta_cap: 100.0,  // Cap SSSP delta to prevent ideal > world bounds
                 position_constraint_attraction: 0.1,
                 lof_score_min: 0.1,
                 lof_score_max: 10.0,

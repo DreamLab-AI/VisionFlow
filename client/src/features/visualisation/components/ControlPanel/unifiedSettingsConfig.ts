@@ -130,6 +130,11 @@ export const UNIFIED_SETTINGS_CONFIG: Record<string, SectionConfig> = {
       { key: 'enableMetadataVis', label: 'Metadata Visual', type: 'toggle', path: 'visualisation.graphs.logseq.nodes.enableMetadataVisualisation', description: 'Visual encoding of metadata', isAdvanced: true },
       { key: 'nodeImportance', label: 'Show Importance', type: 'toggle', path: 'visualisation.graphs.logseq.nodes.enableImportance', description: 'Size by importance score', isAdvanced: true },
 
+      // Node Type Visibility
+      { key: 'showKnowledge', label: 'Knowledge Nodes', type: 'toggle', path: 'visualisation.graphs.logseq.nodes.nodeTypeVisibility.knowledge', description: 'Show knowledge graph nodes' },
+      { key: 'showOntology', label: 'Ontology Nodes', type: 'toggle', path: 'visualisation.graphs.logseq.nodes.nodeTypeVisibility.ontology', description: 'Show ontology nodes' },
+      { key: 'showAgents', label: 'Agent Nodes', type: 'toggle', path: 'visualisation.graphs.logseq.nodes.nodeTypeVisibility.agent', description: 'Show agent nodes' },
+
       // Edges - Basic
       { key: 'edgeColor', label: 'Edge Color', type: 'color', path: 'visualisation.graphs.logseq.edges.color', description: 'Base color for edges' },
       { key: 'edgeWidth', label: 'Edge Width', type: 'slider', min: 0.01, max: 2, step: 0.01, path: 'visualisation.graphs.logseq.edges.baseWidth', description: 'Width of edges' },
@@ -146,7 +151,7 @@ export const UNIFIED_SETTINGS_CONFIG: Record<string, SectionConfig> = {
 
       // Labels - Basic
       { key: 'enableLabels', label: 'Show Labels', type: 'toggle', path: 'visualisation.graphs.logseq.labels.enableLabels', description: 'Display node labels' },
-      { key: 'labelSize', label: 'Label Size', type: 'slider', min: 0.1, max: 20.0, step: 0.1, path: 'visualisation.graphs.logseq.labels.desktopFontSize', description: 'Font size for labels' },
+      { key: 'labelSize', label: 'Label Size', type: 'slider', min: 0.05, max: 3.0, step: 0.05, path: 'visualisation.graphs.logseq.labels.desktopFontSize', description: 'Font size for labels' },
       { key: 'labelColor', label: 'Label Color', type: 'color', path: 'visualisation.graphs.logseq.labels.textColor', description: 'Color of label text' },
       { key: 'showMetadata', label: 'Show Metadata', type: 'toggle', path: 'visualisation.graphs.logseq.labels.showMetadata', description: 'Show domain, links, and quality info under labels' },
       { key: 'labelStandoff', label: 'Label Standoff', type: 'slider', min: -1.0, max: 3.0, step: 0.05, path: 'visualisation.graphs.logseq.labels.textPadding', description: 'Gap between node surface and label' },

@@ -247,7 +247,12 @@ const DEFAULT_NODES_SETTINGS = {
   quality: 'high' as const,
   enableInstancing: true,
   enableMetadataShape: false,
-  enableMetadataVisualisation: true
+  enableMetadataVisualisation: true,
+  nodeTypeVisibility: {
+    knowledge: true,
+    ontology: true,
+    agent: true,
+  }
 };
 
 const DEFAULT_EDGES_SETTINGS = {
@@ -268,7 +273,7 @@ const DEFAULT_EDGES_SETTINGS = {
 };
 
 const DEFAULT_LABELS_SETTINGS = {
-  desktopFontSize: 1.41,
+  desktopFontSize: 0.4,
   enableLabels: true,
   labelDistanceThreshold: 500,
   textColor: '#676565',

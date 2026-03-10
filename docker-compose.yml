@@ -52,7 +52,7 @@ services:
       - BOTS_ORCHESTRATOR_URL=ws://agentic-workstation:3002
       - MANAGEMENT_API_HOST=agentic-workstation
       - MANAGEMENT_API_PORT=9090
-      - FORCE_FULL_SYNC=1
+      - FORCE_FULL_SYNC=0
     ports:
       - "3001:3001"  # Nginx entry point for dev
       - "4000:4000"  # API port for direct access

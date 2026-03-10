@@ -278,7 +278,7 @@ impl SimulationParams {
             warmup_iterations: self.warmup_iterations,
             cooling_rate: self.cooling_rate,
             spring_k: self.spring_k,
-            rest_length: self.separation_radius * 2.0, 
+            rest_length: crate::config::physics::PhysicsSettings::default().rest_length,
             repel_k: self.repel_k,
             repulsion_cutoff: self.max_repulsion_dist,
             repulsion_softening_epsilon: 1e-4, 
@@ -377,7 +377,7 @@ impl SimParams {
             boundary_force_strength: 1.0,
             warmup_iterations: self.warmup_iterations,
             cooling_rate: self.cooling_rate,
-            use_sssp_distances: false, 
+            use_sssp_distances: true,
             sssp_alpha: Some(self.sssp_alpha),
             constraint_ramp_frames: self.constraint_ramp_frames,
             constraint_max_force_per_node: self.constraint_max_force_per_node,
@@ -415,6 +415,8 @@ impl From<&PhysicsSettings> for SimParams {
         if physics.center_gravity_k > 0.0 {
             feature_flags |= FeatureFlags::ENABLE_CENTERING;
         }
+        // Enable SSSP spring adjustment for ontology-aware edge rest lengths
+        feature_flags |= FeatureFlags::ENABLE_SSSP_SPRING_ADJUST;
 
         SimParams {
             dt: physics.dt,
@@ -438,7 +440,7 @@ impl From<&PhysicsSettings> for SimParams {
             alignment_strength: physics.alignment_strength,
             temperature: physics.temperature,
             viewport_bounds: physics.bounds_size,
-            sssp_alpha: 0.0,
+            sssp_alpha: 1.5,  // Enable SSSP-adaptive rest lengths for ontology edges
             boundary_damping: physics.boundary_damping,
             constraint_ramp_frames: physics.constraint_ramp_frames,
             constraint_max_force_per_node: physics.constraint_max_force_per_node,
@@ -504,8 +506,8 @@ impl From<&PhysicsSettings> for SimulationParams {
             boundary_force_strength: physics.boundary_force_strength,
             warmup_iterations: physics.warmup_iterations,
             cooling_rate: physics.cooling_rate,
-            use_sssp_distances: false, 
-            sssp_alpha: None,          
+            use_sssp_distances: true,
+            sssp_alpha: Some(1.5),     // SSSP-adaptive rest lengths
             constraint_ramp_frames: physics.constraint_ramp_frames,
             constraint_max_force_per_node: physics.constraint_max_force_per_node,
             phase: SimulationPhase::Dynamic,

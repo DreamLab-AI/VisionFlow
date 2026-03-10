@@ -60,8 +60,8 @@ pub fn validate_physics_settings_complete(physics: &Value) -> Result<(), String>
     
     if let Some(sssp_alpha) = physics.get("ssspAlpha") {
         let val = sssp_alpha.as_f64().ok_or("ssspAlpha must be a number")?;
-        if val < 0.0 || val > 1.0 {
-            return Err("ssspAlpha must be between 0.0 and 1.0".to_string());
+        if val < 0.0 || val > 5.0 {
+            return Err("ssspAlpha must be between 0.0 and 5.0".to_string());
         }
     }
 

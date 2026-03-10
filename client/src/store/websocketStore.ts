@@ -686,18 +686,14 @@ export const useWebSocketStore = create<WebSocketState>()(
         logger.debug('Position update received', { graphType, dataSize: payload.byteLength, msgCount: binaryMessageCount });
       }
 
-      if (graphType === 'logseq') {
-        try {
-          await graphDataManager.updateNodePositions(payload);
-          if (binaryMessageCount % 100 === 1) {
-            logger.debug('Node positions updated successfully');
-          }
-        } catch (error) {
-          logger.error('[WebSocketStore] Error updating positions:', createErrorMetadata(error));
-          logger.error('Error processing position data in graphDataManager:', createErrorMetadata(error));
+      try {
+        await graphDataManager.updateNodePositions(payload);
+        if (binaryMessageCount % 100 === 1) {
+          logger.debug('Node positions updated successfully', { graphType });
         }
-      } else if (binaryMessageCount % 100 === 1) {
-        logger.debug('Skipping position update - graph type is', { graphType });
+      } catch (error) {
+        logger.error('[WebSocketStore] Error updating positions:', createErrorMetadata(error));
+        logger.error('Error processing position data in graphDataManager:', createErrorMetadata(error));
       }
 
       positionUpdateSequence++;
@@ -738,15 +734,13 @@ export const useWebSocketStore = create<WebSocketState>()(
         logger.debug('Legacy binary data received', { graphType, dataSize: data.byteLength, msgCount: binaryMessageCount });
       }
 
-      if (graphType === 'logseq') {
-        try {
-          await graphDataManager.updateNodePositions(data);
-          if (binaryMessageCount % 100 === 1) {
-            logger.debug('Node positions updated successfully (legacy)');
-          }
-        } catch (error) {
-          logger.error('Error processing legacy binary data:', createErrorMetadata(error));
+      try {
+        await graphDataManager.updateNodePositions(data);
+        if (binaryMessageCount % 100 === 1) {
+          logger.debug('Node positions updated successfully (legacy)', { graphType });
         }
+      } catch (error) {
+        logger.error('Error processing legacy binary data:', createErrorMetadata(error));
       }
 
       positionUpdateSequence++;

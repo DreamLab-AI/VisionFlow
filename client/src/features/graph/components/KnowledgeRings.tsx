@@ -92,7 +92,7 @@ export const KnowledgeRings: React.FC<KnowledgeRingsProps> = ({
 
     for (let i = 0; i < knowledgeNodes.length; i++) {
       const node = knowledgeNodes[i];
-      const idx = nodeIdToIndexMap.get(node.id);
+      const idx = nodeIdToIndexMap.get(String(node.id));
 
       if (idx === undefined) continue;
 

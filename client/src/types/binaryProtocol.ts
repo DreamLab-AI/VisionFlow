@@ -77,7 +77,9 @@ export const BINARY_COMMUNITY_ID_OFFSET = 44;
 // Node type flag constants (Protocol V2/V3 - must match server)
 export const AGENT_NODE_FLAG = 0x80000000;
 export const KNOWLEDGE_NODE_FLAG = 0x40000000;
-export const NODE_ID_MASK = 0x3FFFFFFF;
+// NODE_ID_MASK: bits 0-25 only (excludes ALL flag bits 26-31: agent, knowledge, ontology type)
+// Must match server's NODE_ID_MASK (0x03FFFFFF) to correctly strip ontology type flags
+export const NODE_ID_MASK = 0x03FFFFFF;
 
 // Ontology node type flags (bits 26-28)
 export const ONTOLOGY_TYPE_MASK = 0x1C000000;

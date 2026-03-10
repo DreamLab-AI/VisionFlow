@@ -121,12 +121,15 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
   const analyticsRef = useRef<Float32Array | null>(null);
   const analyticsFrameRef = useRef(0);
 
-  // Allocate a large buffer (4096 instances) so the mesh is created ONCE and
-  // never recreated when nodes.length grows from 0→N on data load.
-  // Only recreate when the visual mode (dominant) changes.
-  // useFrame sets inst.count to the actual node count each frame.
+  // Allocate instance buffer at next-power-of-2 of node count (minimum 4096).
+  // Recreate when visual mode changes OR nodes exceed current capacity.
+  const capacityRef = useRef(0);
+  const neededCapacity = nextPowerOf2(Math.max(nodes.length, 4096));
+  const capacityKey = neededCapacity > capacityRef.current ? neededCapacity : capacityRef.current;
+
   const { mesh, uniforms } = useMemo(() => {
-    const count = 4096;
+    const count = nextPowerOf2(Math.max(nodes.length, 4096));
+    capacityRef.current = count;
     const [geo, matResult] = dominant === 'ontology'
       ? [createCrystalOrbGeometry(), createCrystalOrbMaterial()] as const
       : dominant === 'agent'
@@ -155,7 +158,7 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
     meshRef.current = inst;
     return { mesh: inst, uniforms: matResult.uniforms };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dominant]);
+  }, [dominant, capacityKey]);
 
   // Dispose previous GPU resources when dominant mode changes or on unmount.
   // R3F <primitive> never auto-disposes, so manual cleanup is required.
@@ -276,6 +279,8 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
 
   const diagLoggedRef = useRef(false);
   const frameCountRef = useRef(0);
+  // Priority -1: run after GraphManager (-2) populates nodePositionsRef,
+  // but before InstancedLabels (0) reads positions for label placement.
   useFrame(({ clock, camera, scene }) => {
     const inst = meshRef.current;
     if (!inst || nodes.length === 0) return;
@@ -289,9 +294,15 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
 
     if (uniforms.time) uniforms.time.value = clock.elapsedTime;
 
-    // Reset progressive reveal when node count changes (new data loaded)
+    // Track node count changes. Only reset reveal to 0 on fresh data load
+    // (transitioning from 0 nodes). For incremental changes (filter toggles,
+    // websocket updates), just clamp to avoid all-nodes-vanish flicker.
     if (nodes.length !== prevNodeCountRef.current) {
-      revealedRef.current = 0;
+      if (prevNodeCountRef.current === 0) {
+        revealedRef.current = 0; // Fresh load: wave-in from zero
+      } else {
+        revealedRef.current = Math.min(revealedRef.current, nodes.length);
+      }
       prevNodeCountRef.current = nodes.length;
     }
 
@@ -407,8 +418,10 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
       currentMat.needsUpdate = true;
     }
 
-    // Progressive reveal: ramp up visible count each frame
-    if (revealedRef.current < nodes.length) {
+    // Progressive reveal: ramp up visible count each frame; clamp when nodes shrink
+    if (revealedRef.current > nodes.length) {
+      revealedRef.current = nodes.length;
+    } else if (revealedRef.current < nodes.length) {
       revealedRef.current = Math.min(revealedRef.current + REVEAL_BATCH, nodes.length);
     }
     const visCount = revealedRef.current;
@@ -481,7 +494,7 @@ const GemNodesInner: React.ForwardRefRenderFunction<GemNodesHandle, GemNodesProp
         prevMetaHashRef.current = metaHash;
       }
     }
-  });
+  }, -1);
 
   return (
     <primitive

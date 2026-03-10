@@ -28,6 +28,8 @@ export const useGraphEventHandlers = (
   dragDataRef: React.MutableRefObject<any>,
   setDragState: React.Dispatch<React.SetStateAction<{ nodeId: string | null; instanceId: number | null }>>,
   graphData: any,
+  /** The nodes array that GemNodes is actually rendering (may be a filtered subset of graphData.nodes) */
+  displayNodes: Node[],
   camera: THREE.Camera,
   size: { width: number; height: number },
   settings: any,
@@ -84,9 +86,9 @@ export const useGraphEventHandlers = (
     if (!meshRef.current) return;
 
     const instanceId = event.instanceId;
-    if (instanceId === undefined || instanceId < 0 || instanceId >= graphData.nodes.length) return;
+    if (instanceId === undefined || instanceId < 0 || instanceId >= displayNodes.length) return;
 
-    const node = graphData.nodes[instanceId];
+    const node = displayNodes[instanceId];
     if (!node || !node.position) return;
 
     // CRITICAL: Disable OrbitControls IMMEDIATELY on pointer down
@@ -123,7 +125,7 @@ export const useGraphEventHandlers = (
     if (debugState.isEnabled()) {
       logger.debug(`Started interaction tracking for node ${node.id}`);
     }
-  }, [graphData.nodes, meshRef, dragDataRef, startInteraction, onDragStateChange]);
+  }, [displayNodes, meshRef, dragDataRef, startInteraction, onDragStateChange]);
 
   const handlePointerMove = useCallback((event: ThreeEvent<PointerEvent>) => {
     const drag = dragDataRef.current;
@@ -272,7 +274,7 @@ export const useGraphEventHandlers = (
     if (debugState.isEnabled()) {
       logger.debug(`Ended interaction tracking for node ${drag.nodeId}`);
     }
-  }, [graphData.nodes, dragDataRef, setDragState, endInteraction, flushPositionUpdates, onDragStateChange, onNodeSelect]);
+  }, [displayNodes, dragDataRef, setDragState, endInteraction, flushPositionUpdates, onDragStateChange, onNodeSelect]);
 
   // Global pointer up listener as safety net
   // Ensures drag ends even if pointer is released outside the canvas

@@ -14,6 +14,11 @@ export interface NodeSettings {
   enableMetadataShape: boolean;
   enableMetadataVisualisation: boolean;
   enableImportance?: boolean;
+  nodeTypeVisibility?: {
+    knowledge: boolean;
+    ontology: boolean;
+    agent: boolean;
+  };
 }
 
 // Edge settings

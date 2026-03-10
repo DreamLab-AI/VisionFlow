@@ -1,8 +1,6 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react'
 import { useThree, useFrame, ThreeEvent } from '@react-three/fiber'
-import { Text, Billboard, Html } from '@react-three/drei'
 import * as THREE from 'three'
-import { isWebGPURenderer } from '../../../rendering/rendererFactory'
 import { graphDataManager, type GraphData, type Node as GraphNode } from '../managers/graphDataManager'
 import { graphWorkerProxy } from '../managers/graphWorkerProxy'
 import { usePlatformStore } from '../../../services/platformManager'
@@ -11,6 +9,7 @@ import { debugState } from '../../../utils/clientDebugState'
 import { useSettingsStore } from '../../../store/settingsStore'
 import { BinaryNodeData } from '../../../types/binaryProtocol'
 import { GemNodes, GemNodesHandle } from './GemNodes'
+import { InstancedLabels } from './InstancedLabels'
 import { MetadataShapes } from './MetadataShapes'
 import { GlassEdges, GlassEdgesHandle } from './GlassEdges'
 import { KnowledgeRings } from './KnowledgeRings'
@@ -149,56 +148,6 @@ const AGENT_STATUS_HEX: Record<string, string> = {
 };
 const getAgentStatusHex = (status?: string): string => {
   return AGENT_STATUS_HEX[status ?? 'idle'] ?? '#95A5A6';
-};
-
-// === WebGPU-safe label component ===
-// drei <Text> (troika-three-text) creates Line2 geometry with instanceCount=Infinity that
-// triggers drawIndexed(Infinity) on WebGPU. This is a troika limitation (not r182-specific).
-// When the renderer is WebGPU, we use <Html> instead (CSS overlay, never enters the GPU
-// pipeline). On WebGL, we keep <Text> + <Billboard> for native 3D text.
-const NodeLabel: React.FC<{
-  position: [number, number, number];
-  lines: Array<{ text: string; color: string; fontSize: number; }>;
-  maxWidth?: number;
-  thresholdOpacity?: number;
-}> = ({ position, lines, maxWidth = 8, thresholdOpacity = 1 }) => {
-  if (isWebGPURenderer) {
-    return (
-      <group position={position}>
-        <Html center distanceFactor={4} style={{ pointerEvents: 'none' }}>
-          <div style={{
-            display: 'flex', flexDirection: 'column', alignItems: 'center',
-            whiteSpace: 'nowrap', userSelect: 'none',
-            opacity: thresholdOpacity,
-            transition: 'opacity 0.15s ease-out',
-          }}>
-            {lines.map((line, i) => (
-              <span key={i} style={{
-                color: line.color,
-                fontSize: `${Math.round(line.fontSize * 28)}px`,
-                textShadow: '0 0 3px #000, 0 0 6px #000',
-                fontFamily: 'system-ui, sans-serif',
-                lineHeight: 1.3,
-              }}>{line.text}</span>
-            ))}
-          </div>
-        </Html>
-      </group>
-    );
-  }
-  return (
-    <Billboard position={position} follow lockX={false} lockY={false} lockZ={false}>
-      {lines.map((line, i) => (
-        <Text key={i}
-          position={[0, i === 0 ? 0 : -i * line.fontSize * 1.3, 0]}
-          fontSize={line.fontSize} color={line.color}
-          anchorX="center" anchorY={i === 0 ? 'bottom' : 'top'}
-          maxWidth={maxWidth} textAlign="center"
-          outlineWidth={0.02} outlineColor="#000000"
-        >{line.text}</Text>
-      ))}
-    </Billboard>
-  );
 };
 
 // === END METADATA OVERLAY HELPERS ===
@@ -367,6 +316,9 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   const glowIntensity = useSettingsStore(s => s.settings?.visualisation?.glow?.intensity ?? 0.3);
   const debugSettings = useSettingsStore(s => s.settings?.system?.debug);
   const nodeFilterSettings = useSettingsStore(s => s.settings?.nodeFilter);
+  const nodeTypeVisibility = useSettingsStore(
+    s => s.settings?.visualisation?.graphs?.logseq?.nodes?.nodeTypeVisibility
+  );
   // Stable ref for the full settings object — updated every render but doesn't trigger re-renders.
   // Used only by child components that need the broad settings (GemNodes, event handlers).
   const settingsRef = useRef(useSettingsStore.getState().settings);
@@ -393,15 +345,26 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   const tempSourceOffset = useMemo(() => new THREE.Vector3(), [])
   const tempTargetOffset = useMemo(() => new THREE.Vector3(), [])
 
-  // Frustum for label culling
-  const frustum = useMemo(() => new THREE.Frustum(), [])
-  const cameraViewProjectionMatrix = useMemo(() => new THREE.Matrix4(), [])
-
   const [graphData, setGraphData] = useState<GraphData>({ nodes: [], edges: [] })
 
   // === Decomposed hooks: visual state + filtering ===
   const { perNodeVisualModeMap, hierarchyMap, connectionCountMap, dominantMode: graphMode } = useGraphVisualState(graphData);
   const { visibleNodes, nodeIdToIndexMap, expansionState } = useGraphFiltering(graphData, hierarchyMap, connectionCountMap);
+
+  // Node-type visibility filtering: hide knowledge/ontology/agent nodes based on toggles
+  const typeFilteredNodes = useMemo(() => {
+    const vis = nodeTypeVisibility;
+    if (!vis || (vis.knowledge && vis.ontology && vis.agent)) {
+      return visibleNodes; // all visible, no filtering needed
+    }
+    return visibleNodes.filter(node => {
+      const mode = perNodeVisualModeMap.get(String(node.id)) || graphMode;
+      if (mode === 'knowledge_graph') return vis.knowledge !== false;
+      if (mode === 'ontology') return vis.ontology !== false;
+      if (mode === 'agent') return vis.agent !== false;
+      return true;
+    });
+  }, [visibleNodes, perNodeVisualModeMap, graphMode, nodeTypeVisibility]);
 
   // Agent nodes overlay: polls /api/bots/agents for live agent telemetry
   const { agents: agentLayerNodes, connections: agentLayerConnections } = useAgentNodes();
@@ -424,8 +387,6 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   const [nodesAreAtOrigin, setNodesAreAtOrigin] = useState(false)
 
   const [forceUpdate, setForceUpdate] = useState(0)
-  const [labelUpdateTick, setLabelUpdateTick] = useState(0)
-  const labelTickRef = useRef(0)
 
   const animationStateRef = useRef({
     time: 0,
@@ -491,19 +452,11 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   }, [physicsFingerprint]);
 
 
+  // Priority -2: run BEFORE child components (GemNodes, InstancedLabels) so
+  // nodePositionsRef.current is populated before consumers read it this frame.
+  // R3F executes lower priority numbers first.
   useFrame((state, delta) => {
     animationStateRef.current.time = state.clock.elapsedTime
-
-    // Periodic label frustum refresh (~4 updates/sec at 60fps)
-    // Uses ref-based counter to avoid React re-renders during drag.
-    // Labels re-render via useMemo deps (graphData, settings changes) not tick.
-    labelTickRef.current++;
-    if (labelTickRef.current >= 15) {
-      labelTickRef.current = 0;
-      cameraViewProjectionMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
-      frustum.setFromProjectionMatrix(cameraViewProjectionMatrix);
-      setLabelUpdateTick(prev => prev + 1);
-    }
 
     // Position reading from SharedArrayBuffer (GemNodes reads from nodePositionsRef)
     if (graphData.nodes.length > 0) {
@@ -562,6 +515,17 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
           const targetNodeIndex = nodeIdToIndexMap.get(targetStr);
 
           if (sourceNodeIndex !== undefined && targetNodeIndex !== undefined) {
+            // Skip edges connected to hidden node types
+            if (nodeTypeVisibility) {
+              const srcVis = perNodeVisualModeMap.get(sourceStr) || graphMode;
+              const tgtVis = perNodeVisualModeMap.get(targetStr) || graphMode;
+              if ((srcVis === 'knowledge_graph' && !nodeTypeVisibility.knowledge) ||
+                  (srcVis === 'ontology' && !nodeTypeVisibility.ontology) ||
+                  (srcVis === 'agent' && !nodeTypeVisibility.agent) ||
+                  (tgtVis === 'knowledge_graph' && !nodeTypeVisibility.knowledge) ||
+                  (tgtVis === 'ontology' && !nodeTypeVisibility.ontology) ||
+                  (tgtVis === 'agent' && !nodeTypeVisibility.agent)) return;
+            }
             const i3s = sourceNodeIndex * 3;
             const i3t = targetNodeIndex * 3;
 
@@ -623,6 +587,18 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
             const sourceStr = String(edge.source);
             const targetStr = String(edge.target);
             if (sourceStr !== selectedNodeId && targetStr !== selectedNodeId) return;
+
+            // Skip highlight edges connected to hidden node types
+            if (nodeTypeVisibility) {
+              const srcVis = perNodeVisualModeMap.get(sourceStr) || graphMode;
+              const tgtVis = perNodeVisualModeMap.get(targetStr) || graphMode;
+              if ((srcVis === 'knowledge_graph' && !nodeTypeVisibility.knowledge) ||
+                  (srcVis === 'ontology' && !nodeTypeVisibility.ontology) ||
+                  (srcVis === 'agent' && !nodeTypeVisibility.agent) ||
+                  (tgtVis === 'knowledge_graph' && !nodeTypeVisibility.knowledge) ||
+                  (tgtVis === 'ontology' && !nodeTypeVisibility.ontology) ||
+                  (tgtVis === 'agent' && !nodeTypeVisibility.agent)) return;
+            }
 
             const sourceIdx = nodeIdToIndexMap.get(sourceStr);
             const targetIdx = nodeIdToIndexMap.get(targetStr);
@@ -761,7 +737,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       highlightEdgeUpdatePendingRef.current = null;
       setHighlightEdgePoints(pendingHighlight);
     }
-  })
+  }, -2)
 
 
   useEffect(() => {
@@ -937,6 +913,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
     dragDataRef,
     setDragState,
     graphData,
+    typeFilteredNodes,
     camera,
     size,
     settings,
@@ -972,128 +949,8 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
 
   // nodeIdToIndex removed -- use nodeIdToIndexMap (line ~517) which computes the same Map
 
-  const NodeLabels = useMemo(() => {
-    const labelSettings = logseqSettings?.labels ?? settings?.visualisation?.labels;
-    if (!labelSettings?.enableLabels || visibleNodes.length === 0) return null;
-
-    const nodeSettings = logseqSettings?.nodes ?? settings?.visualisation?.nodes;
-    const nodeSize = nodeSettings?.nodeSize ?? 0.5;
-    const LABEL_DISTANCE_THRESHOLD = labelSettings?.labelDistanceThreshold ?? 500;
-    const METADATA_DISTANCE_THRESHOLD = LABEL_DISTANCE_THRESHOLD * 0.6;
-    const vrMode = isXRMode;
-    const metadataEnabled = labelSettings?.showMetadata !== false;
-
-    const currentLabelPositions = labelPositionsRef.current;
-    return visibleNodes.map((node) => {
-      const originalIndex = nodeIdToIndexMap.get(node.id) ?? -1;
-      const physicsPos = originalIndex !== -1 ? currentLabelPositions[originalIndex] : undefined;
-      const position = physicsPos || node.position || { x: 0, y: 0, z: 0 };
-
-      tempVec3.set(position.x, position.y, position.z);
-      if (!frustum.containsPoint(tempVec3)) return null;
-
-      const distanceToCamera = tempVec3.distanceTo(camera.position);
-      if (distanceToCamera > LABEL_DISTANCE_THRESHOLD) return null;
-      // Hide labels too close to the camera — they render disproportionately
-      // large via distanceFactor scaling and flash in/out during navigation
-      if (distanceToCamera < 2) return null;
-
-      // Soft fade: labels fade in/out over the last 15% of the visible range
-      // instead of snapping from fully visible to invisible at the boundary
-      const FADE_START = LABEL_DISTANCE_THRESHOLD * 0.85;
-      const thresholdOpacity = distanceToCamera > FADE_START
-        ? 1 - (distanceToCamera - FADE_START) / (LABEL_DISTANCE_THRESHOLD - FADE_START)
-        : 1;
-
-      const showMetadataLines = metadataEnabled && distanceToCamera <= METADATA_DISTANCE_THRESHOLD;
-      const nodeLabelVisualMode = perNodeVisualModeMap.get(String(node.id)) || graphMode;
-      const scale = computeNodeScale(node, connectionCountMap, nodeLabelVisualMode, hierarchyMap, graphTypeVisuals);
-      // Label sits above the node visual surface: visualRadius = scale * nodeSize (0.5s cancel)
-      const textPadding = labelSettings.textPadding ?? 0.3;
-      const labelOffsetY = scale * nodeSize + textPadding;
-
-      const maxWidth = labelSettings.maxLabelWidth ?? 5.0;
-      const fontSize = labelSettings.desktopFontSize ?? 0.4;
-      const metaFontSize = fontSize * 0.8;
-      const labelText = node.label && node.label.length > 40
-        ? node.label.substring(0, 37) + '...' : (node.label || node.id);
-      const textColor = labelSettings.textColor || '#ffffff';
-      const pos: [number, number, number] = [position.x, position.y + labelOffsetY, position.z];
-
-      // Build lines array for the unified NodeLabel component
-      const lines: Array<{ text: string; color: string; fontSize: number }> = [];
-
-      // SSSP distance overlay
-      let distanceInfo: string | null = null;
-      if (normalizedSSSPResult && normalizedSSSPResult.distances) {
-        const dist = normalizedSSSPResult.distances[node.id];
-        if (node.id === normalizedSSSPResult.sourceNodeId) distanceInfo = "Source (0)";
-        else if (dist === undefined || !isFinite(dist)) distanceInfo = "Unreachable";
-        else distanceInfo = `Distance: ${dist.toFixed(2)}`;
-      }
-
-      if (distanceInfo) {
-        const dColor = node.id === normalizedSSSPResult?.sourceNodeId ? '#00FFFF'
-          : (!isFinite(normalizedSSSPResult?.distances[node.id] || 0) ? '#666666' : '#FFFF00');
-        lines.push({ text: labelText, color: textColor, fontSize });
-        lines.push({ text: distanceInfo, color: dColor, fontSize: fontSize * 0.7 });
-      } else if (nodeLabelVisualMode === 'knowledge_graph') {
-        const sourceDomain = node.metadata?.source_domain ?? '';
-        const domainColor = getDomainColor(sourceDomain);
-        const qualityStars = getQualityStars(node.metadata?.quality ?? node.metadata?.quality_score);
-        const connectionCount = connectionCountMap.get(node.id) ?? 0;
-        const recencyField = node.metadata?.lastModified ?? node.metadata?.last_modified ?? node.metadata?.updated_at;
-        const recencyText = getRecencyText(recencyField);
-        const recencyColor = getRecencyColor(recencyField);
-
-        const line2Parts: string[] = [];
-        if (sourceDomain) line2Parts.push(`\u25CF ${sourceDomain}`);
-        if (qualityStars) line2Parts.push(qualityStars);
-        const line2 = line2Parts.join('  ');
-        const line3 = `\u27E8${connectionCount} link${connectionCount !== 1 ? 's' : ''}\u27E9`;
-
-        lines.push({ text: labelText, color: sourceDomain ? domainColor : textColor, fontSize });
-        if (showMetadataLines && line2) lines.push({ text: line2, color: sourceDomain ? domainColor : '#B0BEC5', fontSize: metaFontSize });
-        if (showMetadataLines && !vrMode) lines.push({ text: line3, color: '#B0BEC5', fontSize: metaFontSize * 0.9 });
-        if (showMetadataLines && !vrMode && recencyText) lines.push({ text: recencyText, color: recencyColor, fontSize: metaFontSize * 0.85 });
-      } else if (nodeLabelVisualMode === 'ontology') {
-        const depth = node.metadata?.hierarchyDepth ?? node.metadata?.depth ?? 0;
-        const instanceCount = node.metadata?.instanceCount ?? 0;
-        const category = getOntologyCategory(node);
-        const categoryDisplay = ONTOLOGY_CATEGORY_DISPLAY[category];
-        const depthColor = getOntologyDepthHex(depth);
-        const violations = node.metadata?.violations ?? 0;
-        const depthLine = `\u21B3 Depth ${depth} \u00B7 ${instanceCount} instance${instanceCount !== 1 ? 's' : ''}`;
-        const constraintLine = violations > 0
-          ? `\u26A0 ${violations} violation${violations !== 1 ? 's' : ''}`
-          : (node.metadata?.constraintValid !== undefined ? '\u2713 Valid' : '');
-        const constraintColor = violations > 0 ? '#F39C12' : '#2ECC71';
-
-        lines.push({ text: labelText, color: depthColor, fontSize });
-        if (showMetadataLines) lines.push({ text: depthLine, color: depthColor, fontSize: metaFontSize });
-        if (showMetadataLines && !vrMode) lines.push({ text: categoryDisplay, color: '#B0BEC5', fontSize: metaFontSize * 0.9 });
-        if (showMetadataLines && !vrMode && constraintLine) lines.push({ text: constraintLine, color: constraintColor, fontSize: metaFontSize * 0.85 });
-      } else if (nodeLabelVisualMode === 'agent') {
-        const agentType = (node.metadata?.agentType ?? node.metadata?.type ?? 'unknown').toUpperCase();
-        const status = node.metadata?.status ?? 'idle';
-        const statusColor = getAgentStatusHex(status);
-        const health = node.metadata?.health ?? 100;
-        const tokenRate = node.metadata?.tokenRate ?? 0;
-        const activeTasks = node.metadata?.tasksActive ?? node.metadata?.tasks ?? 0;
-        const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
-        const agentLine2 = `\u25CF ${statusLabel}  \u2665 ${health}%`;
-        const agentLine3 = `\u26A1 ${tokenRate} tok/min \u00B7 ${activeTasks} task${activeTasks !== 1 ? 's' : ''}`;
-
-        lines.push({ text: agentType, color: statusColor, fontSize });
-        if (showMetadataLines) lines.push({ text: agentLine2, color: statusColor, fontSize: metaFontSize });
-        if (showMetadataLines && !vrMode) lines.push({ text: agentLine3, color: '#B0BEC5', fontSize: metaFontSize * 0.9 });
-      } else {
-        lines.push({ text: labelText, color: textColor, fontSize });
-      }
-
-      return <NodeLabel key={`label-${node.id}`} position={pos} lines={lines} maxWidth={maxWidth} thresholdOpacity={thresholdOpacity} />;
-    }).filter(Boolean)
-  }, [visibleNodes, graphData.edges, connectionCountMap, labelUpdateTick, nodeIdToIndexMap, logseqSettings?.labels, logseqSettings?.nodes, normalizedSSSPResult, graphMode, perNodeVisualModeMap, hierarchyMap, isXRMode, graphTypeVisuals])
+  // Label positions are read directly from labelPositionsRef.current (updated every frame in useFrame).
+  // InstancedLabels handles all label rendering via GPU instancing (WebGL) or batched HTML (WebGPU).
 
   
   useEffect(() => {
@@ -1119,7 +976,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       {/* MetadataShapes: shape-based metadata visualization (opt-in via enableMetadataShape) */}
       {(logseqSettings?.nodes?.enableMetadataShape || settings?.visualisation?.nodes?.enableMetadataShape) && (
         <MetadataShapes
-          nodes={visibleNodes}
+          nodes={typeFilteredNodes}
           nodePositions={nodePositionsRef.current}
           settings={settings}
           ssspResult={normalizedSSSPResult}
@@ -1131,7 +988,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       {/* Gem node rendering */}
       <GemNodes
         ref={gemNodesRef}
-        nodes={visibleNodes}
+        nodes={typeFilteredNodes}
         edges={graphData.edges}
         graphMode={graphMode}
         perNodeVisualModeMap={perNodeVisualModeMap}
@@ -1152,8 +1009,8 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
           setSelectedNodeId(null);
         }}
         onDoubleClick={(event: ThreeEvent<MouseEvent>) => {
-          if (event.instanceId !== undefined && event.instanceId < visibleNodes.length) {
-            const node = visibleNodes[event.instanceId];
+          if (event.instanceId !== undefined && event.instanceId < typeFilteredNodes.length) {
+            const node = typeFilteredNodes[event.instanceId];
             if (node) {
               const pageUrl = node.metadata?.page_url || node.metadata?.pageUrl || node.metadata?.url;
               if (pageUrl) {
@@ -1226,8 +1083,21 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         <AgentNodesLayer agents={agentLayerNodes} connections={agentLayerConnections} />
       )}
 
-      {/* Node labels */}
-      {NodeLabels}
+      {/* Node labels — single-draw-call instanced rendering */}
+      <InstancedLabels
+        nodes={typeFilteredNodes}
+        nodeIdToIndexMap={nodeIdToIndexMap}
+        nodePositionsRef={nodePositionsRef}
+        labelPositionsRef={labelPositionsRef}
+        settings={settings}
+        graphMode={graphMode}
+        perNodeVisualModeMap={perNodeVisualModeMap}
+        connectionCountMap={connectionCountMap}
+        hierarchyMap={hierarchyMap}
+        graphTypeVisuals={graphTypeVisuals}
+        ssspResult={normalizedSSSPResult}
+        isXRMode={isXRMode}
+      />
     </>
   )
 }

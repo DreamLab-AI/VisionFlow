@@ -72,25 +72,25 @@ impl KnowledgeGraphParser {
         
         
         
-        let (linked_nodes, file_edges) = self.extract_links(content, &nodes[0].id);
-        for node in &linked_nodes {
-            id_to_metadata.insert(node.id.to_string(), node.metadata_id.clone());
-        }
-        nodes.extend(linked_nodes);
+        // Wikilink edges-only: create Edge objects for [[WikiLinks]] without
+        // inflating the node count. Only edges are emitted; target nodes are NOT
+        // created here. Edges whose target doesn't exist as a page node will
+        // still be stored — the Neo4j MERGE will create stubs or the edge will
+        // dangle harmlessly until the target page is synced.
+        let wikilink_edges = self.extract_wikilink_edges(content, &nodes[0].id);
 
-        
         let metadata = self.extract_metadata_store(content);
 
         debug!(
-            "Parsed {}: {} nodes, {} edges (linked nodes will be filtered)",
+            "Parsed {}: {} nodes, {} wikilink edges",
             filename,
             nodes.len(),
-            file_edges.len()
+            wikilink_edges.len(),
         );
 
         Ok(GraphData {
             nodes,
-            edges: file_edges,
+            edges: wikilink_edges,
             metadata,
             id_to_metadata,
         })
@@ -146,7 +146,43 @@ impl KnowledgeGraphParser {
         }
     }
 
-    /// Extract links from content, preserving existing positions
+    /// Extract wikilink edges only — no new nodes created.
+    /// Returns Edge objects for each [[WikiLink]] found in content.
+    /// Deduplicates by target to avoid multiple edges to the same page.
+    fn extract_wikilink_edges(&self, content: &str, source_id: &u32) -> Vec<Edge> {
+        let mut edges = Vec::new();
+        let mut seen_targets = std::collections::HashSet::new();
+
+        let link_pattern = regex::Regex::new(r"\[\[([^\]|]+)(?:\|[^\]]+)?\]\]")
+            .expect("Invalid regex pattern");
+
+        for cap in link_pattern.captures_iter(content) {
+            if let Some(link_match) = cap.get(1) {
+                let target_page = link_match.as_str().trim().to_string();
+                let target_id = self.page_name_to_id(&target_page);
+
+                // Skip self-loops and duplicates
+                if target_id == *source_id || !seen_targets.insert(target_id) {
+                    continue;
+                }
+
+                edges.push(Edge {
+                    id: format!("{}_{}", source_id, target_id),
+                    source: *source_id,
+                    target: target_id,
+                    weight: 1.0,
+                    edge_type: Some("explicit_link".to_string()),
+                    metadata: None,
+                    owl_property_iri: None,
+                });
+            }
+        }
+
+        edges
+    }
+
+    /// Extract links from content, preserving existing positions (legacy — creates nodes)
+    #[allow(dead_code)]
     fn extract_links(&self, content: &str, source_id: &u32) -> (Vec<Node>, Vec<Edge>) {
         let mut nodes = Vec::new();
         let mut edges = Vec::new();
@@ -254,7 +290,7 @@ impl KnowledgeGraphParser {
     }
 
     
-    fn page_name_to_id(&self, page_name: &str) -> u32 {
+    pub fn page_name_to_id(&self, page_name: &str) -> u32 {
         use std::collections::hash_map::DefaultHasher;
         use std::hash::{Hash, Hasher};
 
@@ -262,7 +298,10 @@ impl KnowledgeGraphParser {
         page_name.hash(&mut hasher);
         let hash_val = hasher.finish();
         
-        ((hash_val % 999999) as u32) + 1
+        // Use full u32 range to minimize collision probability (birthday paradox)
+        // Reserve 0 as sentinel; map to [1, u32::MAX]
+        let id = (hash_val & 0xFFFF_FFFE) as u32 + 1;
+        id
     }
 }
 

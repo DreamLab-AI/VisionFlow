@@ -1,7 +1,7 @@
 
 
 import { expose } from 'comlink';
-import { BinaryNodeData, parseBinaryNodeData, parseBinaryFrameData, createBinaryNodeData, Vec3 } from '../../../types/binaryProtocol';
+import { BinaryNodeData, parseBinaryNodeData, parseBinaryFrameData, createBinaryNodeData, Vec3, getActualNodeId } from '../../../types/binaryProtocol';
 import { stringToU32 } from '../../../types/idMapping';
 
 const MAX_HASH_PROBES = 1000;
@@ -516,10 +516,14 @@ class GraphWorker {
     const positionArray = this.binaryOutputBuffer;
 
     nodeUpdates.forEach((update, index) => {
-      const stringNodeId = this.reverseNodeIdMap.get(update.nodeId);
+      // Strip flag bits (agent/knowledge/ontology type) from binary wire ID
+      // to get the actual node ID that matches reverseNodeIdMap keys.
+      // Server sets bits 26-31 for node type classification; client must mask them off.
+      const actualNodeId = getActualNodeId(update.nodeId);
+      const stringNodeId = this.reverseNodeIdMap.get(actualNodeId);
       if (stringNodeId) {
         const nodeIndex = this.nodeIndexMap.get(stringNodeId);
-        if (nodeIndex !== undefined && !this.pinnedNodeIds.has(update.nodeId)) {
+        if (nodeIndex !== undefined && !this.pinnedNodeIds.has(actualNodeId)) {
           const i3 = nodeIndex * 3;
 
           if (isDelta) {
@@ -544,7 +548,7 @@ class GraphWorker {
       }
 
       const arrayOffset = index * 4;
-      positionArray[arrayOffset] = update.nodeId;
+      positionArray[arrayOffset] = actualNodeId;
       if (isDelta && stringNodeId) {
         // For delta frames, output the resulting absolute position (not the delta)
         const nodeIndex = this.nodeIndexMap.get(stringNodeId);

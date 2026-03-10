@@ -381,23 +381,122 @@ impl GitHubSyncService {
                 // Also check for and parse ontology blocks in this file
                 if content.contains("### OntologyBlock") {
                     debug!("🦉 Detected OntologyBlock in {}, extracting ontology data", file.name);
-                    match self.onto_parser.parse(&content, &file.name) {
-                        Ok(onto_data) => {
-                            info!("🦉 Extracted from {}: {} classes, {} properties, {} axioms",
-                                file.name,
-                                onto_data.classes.len(),
-                                onto_data.properties.len(),
-                                onto_data.axioms.len());
 
-                            // Save ontology data immediately
-                            if let Err(e) = self.save_ontology_data(onto_data).await {
-                                error!("Failed to save ontology data from {}: {}", file.name, e);
-                            } else {
-                                debug!("✓ Saved ontology data from {}", file.name);
+                    // Use parse_enhanced to get the full OntologyBlock with relationships
+                    match self.onto_parser.parse_enhanced(&content, &file.name) {
+                        Ok(block) => {
+                            // Convert OntologyBlock relationships into graph edges.
+                            // The source is this page's node; targets are resolved via page_name_to_id.
+                            let source_id = self.kg_parser.page_name_to_id(page_name);
+
+                            let relationship_types: Vec<(&str, &[String], f32, &str)> = vec![
+                                ("hierarchical",  &block.is_subclass_of, 2.5, "rdfs:subClassOf"),
+                                ("structural",    &block.has_part,       1.5, "mv:hasPart"),
+                                ("structural",    &block.is_part_of,     1.5, "mv:isPartOf"),
+                                ("dependency",    &block.requires,       1.5, "mv:requires"),
+                                ("dependency",    &block.depends_on,     1.5, "mv:dependsOn"),
+                                ("dependency",    &block.enables,        1.5, "mv:enables"),
+                                ("associative",   &block.relates_to,     1.0, "mv:relatedTo"),
+                                ("bridge",        &block.bridges_to,     1.0, "mv:bridgesTo"),
+                                ("bridge",        &block.bridges_from,   1.0, "mv:bridgesFrom"),
+                            ];
+
+                            let mut onto_edges_added = 0usize;
+                            for (edge_type, targets, weight, owl_iri) in &relationship_types {
+                                for target_name in *targets {
+                                    // Strip [[...]] brackets if present
+                                    let clean_name = target_name
+                                        .trim_start_matches("[[")
+                                        .trim_end_matches("]]")
+                                        .trim();
+                                    if clean_name.is_empty() { continue; }
+
+                                    let target_id = self.kg_parser.page_name_to_id(clean_name);
+                                    // Avoid self-loops
+                                    if target_id == source_id { continue; }
+
+                                    let edge_id = format!("{}_{}_{}",
+                                        source_id, target_id, edge_type);
+                                    let edge = crate::models::edge::Edge {
+                                        id: edge_id.clone(),
+                                        source: source_id,
+                                        target: target_id,
+                                        weight: *weight,
+                                        edge_type: Some(edge_type.to_string()),
+                                        owl_property_iri: Some(owl_iri.to_string()),
+                                        metadata: None,
+                                    };
+                                    edges.insert(edge_id, edge);
+                                    onto_edges_added += 1;
+                                }
+                            }
+
+                            // Also create edges from other_relationships
+                            for (rel_name, targets) in &block.other_relationships {
+                                for target_name in targets {
+                                    let clean_name = target_name
+                                        .trim_start_matches("[[")
+                                        .trim_end_matches("]]")
+                                        .trim();
+                                    if clean_name.is_empty() { continue; }
+
+                                    let target_id = self.kg_parser.page_name_to_id(clean_name);
+                                    if target_id == source_id { continue; }
+
+                                    let edge_id = format!("{}_{}_{}",
+                                        source_id, target_id, rel_name);
+                                    let edge = crate::models::edge::Edge {
+                                        id: edge_id.clone(),
+                                        source: source_id,
+                                        target: target_id,
+                                        weight: 1.0,
+                                        edge_type: Some("associative".to_string()),
+                                        owl_property_iri: Some(
+                                            format!("mv:{}", rel_name)),
+                                        metadata: None,
+                                    };
+                                    edges.insert(edge_id, edge);
+                                    onto_edges_added += 1;
+                                }
+                            }
+
+                            if onto_edges_added > 0 {
+                                let total_rels = block.is_subclass_of.len()
+                                    + block.has_part.len() + block.is_part_of.len()
+                                    + block.requires.len() + block.depends_on.len()
+                                    + block.enables.len() + block.relates_to.len()
+                                    + block.bridges_to.len() + block.bridges_from.len()
+                                    + block.other_relationships.values()
+                                        .map(|v| v.len()).sum::<usize>();
+                                info!("🔗 Created {} ontology edges from {} relationships in {}",
+                                    onto_edges_added, total_rels, file.name);
+                            }
+
+                            // Also save ontology data to Neo4j (legacy path)
+                            match self.onto_parser.parse(&content, &file.name) {
+                                Ok(onto_data) => {
+                                    info!("🦉 Extracted from {}: {} classes, {} properties, {} axioms",
+                                        file.name,
+                                        onto_data.classes.len(),
+                                        onto_data.properties.len(),
+                                        onto_data.axioms.len());
+                                    if let Err(e) = self.save_ontology_data(onto_data).await {
+                                        error!("Failed to save ontology data from {}: {}", file.name, e);
+                                    }
+                                }
+                                Err(e) => {
+                                    debug!("Failed to convert ontology block to data: {}", e);
+                                }
                             }
                         }
                         Err(e) => {
                             debug!("Failed to parse ontology block in {}: {}", file.name, e);
+                            // Fallback: try legacy parse
+                            if let Ok(onto_data) = self.onto_parser.parse(&content, &file.name) {
+                                if let Err(e2) = self.save_ontology_data(onto_data).await {
+                                    error!("Failed to save ontology data from {}: {}", file.name, e2);
+                                }
+                            }
                         }
                     }
                 }
@@ -655,30 +754,31 @@ impl GitHubSyncService {
 
     fn detect_file_type(&self, content: &str) -> FileType {
         let content = content.trim_start_matches('\u{feff}');
-        let lines: Vec<&str> = content.lines().take(20).collect();
 
-        let has_public = lines.iter().any(|line| {
-            let t = line.trim().trim_start_matches('-').trim();
-            t == "public:: true" || t == "public-access:: true"
-        }) || content.contains("public-access:: true");
+        // Check for public tags anywhere in the file.
+        // Logseq pages use "public:: true" (typically in first few lines)
+        // or "public-access:: true" (often deeper in metadata blocks).
+        let has_public = content.contains("public:: true")
+            || content.contains("public-access:: true");
 
         let has_ontology = content.contains("### OntologyBlock");
 
-        // Files with public:: true are knowledge-graph nodes first.
-        // The KG branch already has secondary OntologyBlock handling
-        // (process_fetched_file lines 381-403) so ontology data is
-        // still extracted — but KG nodes + wikilink edges are also
+        // Files with public:: true are knowledge-graph nodes.
+        // The KG branch also has secondary OntologyBlock handling
+        // (process_fetched_file) so ontology data is still extracted
+        // from public pages — but KG nodes + wikilink edges are also
         // created, which is essential for the force-directed layout.
         if has_public {
             return FileType::KnowledgeGraph;
         }
 
-        // Pure ontology files (no public flag) go through ontology-only path
+        // All remaining files are checked for ontology blocks.
+        // Ontology-headed data is pulled from every file in the repo,
+        // not just public:: true tagged ones.
         if has_ontology {
             return FileType::Ontology;
         }
 
-        // Default: skip regular notes
         FileType::Skip
     }
 
