@@ -856,6 +856,18 @@ impl Handler<UpdateNodePositions> for GraphStateActor {
         let pos_map: std::collections::HashMap<u32, &crate::utils::socket_flow_messages::BinaryNodeDataClient> =
             msg.positions.iter().map(|(id, data)| (*id, data)).collect();
 
+        // Diagnostic: log ID mismatch on first occurrence
+        if !self.graph_data.nodes.is_empty() && !msg.positions.is_empty() {
+            let first_gpu_id = msg.positions[0].0;
+            let first_graph_id = self.graph_data.nodes[0].id;
+            if !pos_map.contains_key(&first_graph_id) {
+                warn!(
+                    "GPU→GraphState ID mismatch: GPU sends id={}, graph has id={} (GPU count={}, graph count={})",
+                    first_gpu_id, first_graph_id, msg.positions.len(), self.graph_data.nodes.len()
+                );
+            }
+        }
+
         // Mutate the Arc<GraphData> in-place (clones on first mutation if shared)
         let graph_data = Arc::make_mut(&mut self.graph_data);
         let mut updated = 0usize;
@@ -884,7 +896,7 @@ impl Handler<UpdateNodePositions> for GraphStateActor {
             }
         }
 
-        debug!("GraphStateActor: Updated {} node positions from GPU", updated);
+        info!("GraphStateActor: Updated {} node positions from GPU", updated);
         Ok(())
     }
 }

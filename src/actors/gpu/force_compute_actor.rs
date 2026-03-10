@@ -98,6 +98,10 @@ pub struct ForceComputeActor {
     /// Network backpressure controller with token bucket algorithm
     backpressure: NetworkBackpressure,
 
+    /// Iteration count of the last full (non-delta) broadcast.
+    /// Used to periodically send ALL positions so late-connecting clients get state.
+    last_full_broadcast_iteration: u32,
+
     /// Pre-allocated buffer for position/velocity data (reused every frame to avoid 60Hz allocations)
     position_velocity_buffer: Vec<(Vec3, Vec3)>,
 
@@ -167,6 +171,7 @@ impl ForceComputeActor {
             // reach equilibrium quickly on repulsion+gravity alone and need more
             // runway before the stability kernel is allowed to halt physics.
             stability_warmup_remaining: 600,
+            last_full_broadcast_iteration: 0,
             graph_service_addr: None,
             ontology_constraint_addr: None,
             cached_constraint_buffer: Vec::new(),
@@ -858,13 +863,53 @@ impl Handler<ComputeForces> for ForceComputeActor {
                                     } else {
                                         actor.backpressure.record_skip();
                                     }
-                                } else if actor.stability_warmup_remaining > 295
-                                    || actor.gpu_state.iteration_count % 300 == 0
-                                {
-                                    info!(
-                                        "ForceComputeActor: broadcast_optimizer filtered out all updates (should_broadcast={}, filtered={}, warmup_remaining={})",
-                                        should_broadcast, filtered_indices.len(), actor.stability_warmup_remaining
-                                    );
+                                } else if should_broadcast && filtered_indices.is_empty() {
+                                    // Delta filter found no movement. Check if we need a
+                                    // periodic full broadcast for late-connecting clients.
+                                    let iters_since_full = actor.gpu_state.iteration_count
+                                        .saturating_sub(actor.last_full_broadcast_iteration);
+                                    if iters_since_full >= 300 {
+                                        // Build updates from ALL nodes, bypassing delta filter
+                                        if let Some(_sequence_id) = actor.backpressure.try_acquire() {
+                                            let mut node_updates = Vec::with_capacity(actor.node_id_buffer.len());
+                                            for idx in 0..actor.node_id_buffer.len() {
+                                                let node_id = actor.node_id_buffer[idx];
+                                                let (position, velocity) = actor.position_velocity_buffer[idx];
+                                                // Skip NaN/Inf positions
+                                                if !position.x.is_finite() || !position.y.is_finite() || !position.z.is_finite() {
+                                                    continue;
+                                                }
+                                                node_updates.push((node_id, BinaryNodeDataClient::new(
+                                                    node_id,
+                                                    glam_to_vec3data(position),
+                                                    glam_to_vec3data(velocity),
+                                                )));
+                                            }
+
+                                            if let Some(ref graph_addr) = actor.graph_service_addr {
+                                                info!(
+                                                    "ForceComputeActor: Periodic full broadcast — sending ALL {} positions (iter {}, last full at {})",
+                                                    node_updates.len(), actor.gpu_state.iteration_count,
+                                                    actor.last_full_broadcast_iteration
+                                                );
+                                                graph_addr.do_send(crate::actors::messages::UpdateNodePositions {
+                                                    positions: node_updates,
+                                                    correlation_id: Some(crate::actors::messaging::MessageId::new()),
+                                                });
+                                            }
+
+                                            actor.last_full_broadcast_iteration = actor.gpu_state.iteration_count;
+                                            // Reset delta state so next comparison starts fresh
+                                            actor.broadcast_optimizer.reset_delta_state();
+                                        }
+                                    } else if actor.stability_warmup_remaining > 295
+                                        || actor.gpu_state.iteration_count % 300 == 0
+                                    {
+                                        info!(
+                                            "ForceComputeActor: broadcast_optimizer filtered out all updates (should_broadcast={}, filtered={}, warmup_remaining={})",
+                                            should_broadcast, filtered_indices.len(), actor.stability_warmup_remaining
+                                        );
+                                    }
                                 }
                             }
 

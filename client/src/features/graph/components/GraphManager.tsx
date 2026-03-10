@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react'
 import { useThree, useFrame, ThreeEvent } from '@react-three/fiber'
-import { Text, Billboard, Html } from '@react-three/drei'
+// Text, Billboard, Html removed — InstancedLabels handles all label rendering
 import * as THREE from 'three'
 import { isWebGPURenderer } from '../../../rendering/rendererFactory'
 import { graphDataManager, type GraphData, type Node as GraphNode } from '../managers/graphDataManager'
@@ -23,6 +23,7 @@ import { useGraphVisualState, type GraphVisualMode } from '../hooks/useGraphVisu
 import { useGraphFiltering } from '../hooks/useGraphFiltering'
 import { useFpsMonitor } from '../hooks/useFpsMonitor'
 import { computeNodeScale } from '../utils/nodeScaling'
+import { InstancedLabels } from './InstancedLabels'
 
 const logger = createLogger('GraphManager')
 
@@ -72,136 +73,9 @@ const AGENT_TYPE_COLORS: Record<string, THREE.Color> = {
 
 // (Material mode presets removed -- GemNodes handles mode switching internally)
 
-// === MODE-SPECIFIC METADATA OVERLAY HELPERS ===
-
-// Quality score -> star rating string (1-5 filled stars, unicode)
-const getQualityStars = (quality?: number | string): string => {
-  if (quality === undefined || quality === null) return '';
-  const score = typeof quality === 'string' ? parseFloat(quality) : quality;
-  if (isNaN(score)) return '';
-  const normalized = score <= 1 ? score * 5 : Math.min(score, 5);
-  const filled = Math.round(normalized);
-  return '\u2605'.repeat(filled) + '\u2606'.repeat(5 - filled);
-};
-
-// Time-ago text from a date/timestamp
-const getRecencyText = (lastModified?: string | number | Date): string => {
-  if (!lastModified) return '';
-  const modDate = lastModified instanceof Date ? lastModified : new Date(lastModified);
-  if (isNaN(modDate.getTime())) return '';
-  const diffMs = Date.now() - modDate.getTime();
-  if (diffMs < 0) return 'Updated just now';
-  const minutes = Math.floor(diffMs / 60000);
-  if (minutes < 1) return 'Updated just now';
-  if (minutes < 60) return `Updated ${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `Updated ${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 30) return `Updated ${days}d ago`;
-  const months = Math.floor(days / 30);
-  if (months < 12) return `Updated ${months}mo ago`;
-  return `Updated ${Math.floor(months / 12)}y ago`;
-};
-
-// Recency color: warm (recent) -> cool (old)
-const getRecencyColor = (lastModified?: string | number | Date): string => {
-  if (!lastModified) return '#666666';
-  const modDate = lastModified instanceof Date ? lastModified : new Date(lastModified);
-  if (isNaN(modDate.getTime())) return '#666666';
-  const diffDays = (Date.now() - modDate.getTime()) / 86400000;
-  if (diffDays < 1) return '#4FC3F7';
-  if (diffDays < 7) return '#81C784';
-  if (diffDays < 30) return '#FFD54F';
-  if (diffDays < 90) return '#FFB74D';
-  return '#90A4AE';
-};
-
-// Ontology depth hex colors (string version for Text components)
-const ONTOLOGY_DEPTH_HEX = ['#FF6B6B', '#FFD93D', '#4ECDC4', '#AA96DA', '#95E1D3'];
-const getOntologyDepthHex = (depth: number): string => {
-  return ONTOLOGY_DEPTH_HEX[Math.min(depth, ONTOLOGY_DEPTH_HEX.length - 1)];
-};
-
-// Ontology node category detection
-const getOntologyCategory = (node: GraphNode): 'class' | 'property' | 'instance' => {
-  const meta = node.metadata ?? {};
-  const role = meta.role ?? meta.type ?? '';
-  const rawNodeType = (node as unknown as { nodeType?: string }).nodeType;
-  if (role === 'property' || rawNodeType === 'property') return 'property';
-  if (role === 'instance' || rawNodeType === 'instance') return 'instance';
-  return 'class';
-};
-
-// Category indicator symbols for ontology nodes
-const ONTOLOGY_CATEGORY_DISPLAY: Record<string, string> = {
-  class: '\u25C9 Class',
-  property: '\u25C7 Property',
-  instance: '\u25CB Instance',
-};
-
-// Agent status hex colors (string version for Text components)
-const AGENT_STATUS_HEX: Record<string, string> = {
-  active: '#2ECC71',
-  busy: '#F39C12',
-  idle: '#95A5A6',
-  error: '#E74C3C',
-  queen: '#FFD700',
-};
-const getAgentStatusHex = (status?: string): string => {
-  return AGENT_STATUS_HEX[status ?? 'idle'] ?? '#95A5A6';
-};
-
-// === END METADATA OVERLAY HELPERS ===
-
-// === WebGPU-safe label component ===
-// drei <Text> (troika-three-text) creates Line2 geometry with instanceCount=Infinity that
-// triggers drawIndexed(Infinity) on WebGPU. This is a troika limitation (not r182-specific).
-// When the renderer is WebGPU, we use <Html> instead (CSS overlay, never enters the GPU
-// pipeline). On WebGL, we keep <Text> + <Billboard> for native 3D text.
-const NodeLabel: React.FC<{
-  position: [number, number, number];
-  lines: Array<{ text: string; color: string; fontSize: number; }>;
-  maxWidth?: number;
-  thresholdOpacity?: number;
-}> = ({ position, lines, maxWidth = 8, thresholdOpacity = 1 }) => {
-  if (isWebGPURenderer) {
-    return (
-      <group position={position}>
-        <Html center distanceFactor={4} style={{ pointerEvents: 'none' }}>
-          <div style={{
-            display: 'flex', flexDirection: 'column', alignItems: 'center',
-            whiteSpace: 'nowrap', userSelect: 'none',
-            opacity: thresholdOpacity,
-            transition: 'opacity 0.15s ease-out',
-          }}>
-            {lines.map((line, i) => (
-              <span key={i} style={{
-                color: line.color,
-                fontSize: `${Math.round(line.fontSize * 28)}px`,
-                textShadow: '0 0 3px #000, 0 0 6px #000',
-                fontFamily: 'system-ui, sans-serif',
-                lineHeight: 1.3,
-              }}>{line.text}</span>
-            ))}
-          </div>
-        </Html>
-      </group>
-    );
-  }
-  return (
-    <Billboard position={position} follow lockX={false} lockY={false} lockZ={false}>
-      {lines.map((line, i) => (
-        <Text key={i}
-          position={[0, i === 0 ? 0 : -i * line.fontSize * 1.3, 0]}
-          fontSize={line.fontSize} color={line.color}
-          anchorX="center" anchorY={i === 0 ? 'bottom' : 'top'}
-          maxWidth={maxWidth} textAlign="center"
-          outlineWidth={0.02} outlineColor="#000000"
-        >{line.text}</Text>
-      ))}
-    </Billboard>
-  );
-};
+// Metadata overlay helpers (getQualityStars, getRecencyText, etc.) and the old
+// NodeLabel component have been removed. InstancedLabels.tsx contains its own
+// copies of these helpers to avoid circular imports.
 
 // Enhanced position calculation with better distribution
 const getPositionForNode = (node: GraphNode, index: number, totalNodes: number): [number, number, number] => {
@@ -1015,123 +889,10 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
 
   // nodeIdToIndex removed -- use nodeIdToIndexMap (line ~517) which computes the same Map
 
-  // Label positions are read directly from labelPositionsRef.current (updated every frame in useFrame).
-  // NodeLabels re-renders when labelUpdateTick changes (~4fps frustum culling).
-  const NodeLabels = useMemo(() => {
-    const labelSettings = logseqSettings?.labels ?? settings?.visualisation?.labels;
-    if (!labelSettings?.enableLabels || visibleNodes.length === 0) return null;
-
-    const nodeSettings = logseqSettings?.nodes ?? settings?.visualisation?.nodes;
-    const nodeSize = nodeSettings?.nodeSize ?? 0.5;
-    const LABEL_DISTANCE_THRESHOLD = labelSettings?.labelDistanceThreshold ?? 500;
-    const METADATA_DISTANCE_THRESHOLD = LABEL_DISTANCE_THRESHOLD * 0.6;
-    const vrMode = isXRMode;
-    const metadataEnabled = labelSettings?.showMetadata !== false;
-
-    const currentLabelPositions = labelPositionsRef.current;
-    return visibleNodes.map((node) => {
-      const originalIndex = nodeIdToIndexMap.get(String(node.id)) ?? -1;
-      const physicsPos = originalIndex !== -1 ? currentLabelPositions[originalIndex] : undefined;
-      const position = physicsPos || node.position || { x: 0, y: 0, z: 0 };
-
-      tempVec3.set(position.x, position.y, position.z);
-      if (!frustum.containsPoint(tempVec3)) return null;
-
-      const distanceToCamera = tempVec3.distanceTo(camera.position);
-      if (distanceToCamera > LABEL_DISTANCE_THRESHOLD) return null;
-      if (distanceToCamera < 2) return null;
-
-      const FADE_START = LABEL_DISTANCE_THRESHOLD * 0.85;
-      const thresholdOpacity = distanceToCamera > FADE_START
-        ? 1 - (distanceToCamera - FADE_START) / (LABEL_DISTANCE_THRESHOLD - FADE_START)
-        : 1;
-
-      const showMetadataLines = metadataEnabled && distanceToCamera <= METADATA_DISTANCE_THRESHOLD;
-      const nodeLabelVisualMode = perNodeVisualModeMap.get(String(node.id)) || graphMode;
-      const scale = computeNodeScale(node, connectionCountMap, nodeLabelVisualMode, hierarchyMap, graphTypeVisuals);
-      const textPadding = labelSettings.textPadding ?? 0.3;
-      const labelOffsetY = scale * nodeSize + textPadding;
-
-      const maxWidth = labelSettings.maxLabelWidth ?? 5.0;
-      const fontSize = labelSettings.desktopFontSize ?? 0.4;
-      const metaFontSize = fontSize * 0.8;
-      const labelText = node.label && node.label.length > 40
-        ? node.label.substring(0, 37) + '...' : (node.label || node.id);
-      const textColor = labelSettings.textColor || '#ffffff';
-      const pos: [number, number, number] = [position.x, position.y + labelOffsetY, position.z];
-
-      const lines: Array<{ text: string; color: string; fontSize: number }> = [];
-
-      let distanceInfo: string | null = null;
-      if (normalizedSSSPResult && normalizedSSSPResult.distances) {
-        const dist = normalizedSSSPResult.distances[node.id];
-        if (node.id === normalizedSSSPResult.sourceNodeId) distanceInfo = "Source (0)";
-        else if (dist === undefined || !isFinite(dist)) distanceInfo = "Unreachable";
-        else distanceInfo = `Distance: ${dist.toFixed(2)}`;
-      }
-
-      if (distanceInfo) {
-        const dColor = node.id === normalizedSSSPResult?.sourceNodeId ? '#00FFFF'
-          : (!isFinite(normalizedSSSPResult?.distances[node.id] || 0) ? '#666666' : '#FFFF00');
-        lines.push({ text: labelText, color: textColor, fontSize });
-        lines.push({ text: distanceInfo, color: dColor, fontSize: fontSize * 0.7 });
-      } else if (nodeLabelVisualMode === 'knowledge_graph') {
-        const sourceDomain = node.metadata?.source_domain ?? '';
-        const domainColor = getDomainColor(sourceDomain);
-        const qualityStars = getQualityStars(node.metadata?.quality ?? node.metadata?.quality_score);
-        const connectionCount = connectionCountMap.get(String(node.id)) ?? 0;
-        const recencyField = node.metadata?.lastModified ?? node.metadata?.last_modified ?? node.metadata?.updated_at;
-        const recencyText = getRecencyText(recencyField);
-        const recencyColor = getRecencyColor(recencyField);
-
-        const line2Parts: string[] = [];
-        if (sourceDomain) line2Parts.push(`\u25CF ${sourceDomain}`);
-        if (qualityStars) line2Parts.push(qualityStars);
-        const line2 = line2Parts.join('  ');
-        const line3 = `\u27E8${connectionCount} link${connectionCount !== 1 ? 's' : ''}\u27E9`;
-
-        lines.push({ text: labelText, color: sourceDomain ? domainColor : textColor, fontSize });
-        if (showMetadataLines && line2) lines.push({ text: line2, color: sourceDomain ? domainColor : '#B0BEC5', fontSize: metaFontSize });
-        if (showMetadataLines && !vrMode) lines.push({ text: line3, color: '#B0BEC5', fontSize: metaFontSize * 0.9 });
-        if (showMetadataLines && !vrMode && recencyText) lines.push({ text: recencyText, color: recencyColor, fontSize: metaFontSize * 0.85 });
-      } else if (nodeLabelVisualMode === 'ontology') {
-        const depth = node.metadata?.hierarchyDepth ?? node.metadata?.depth ?? 0;
-        const instanceCount = node.metadata?.instanceCount ?? 0;
-        const category = getOntologyCategory(node);
-        const categoryDisplay = ONTOLOGY_CATEGORY_DISPLAY[category];
-        const depthColor = getOntologyDepthHex(depth);
-        const violations = node.metadata?.violations ?? 0;
-        const depthLine = `\u21B3 Depth ${depth} \u00B7 ${instanceCount} instance${instanceCount !== 1 ? 's' : ''}`;
-        const constraintLine = violations > 0
-          ? `\u26A0 ${violations} violation${violations !== 1 ? 's' : ''}`
-          : (node.metadata?.constraintValid !== undefined ? '\u2713 Valid' : '');
-        const constraintColor = violations > 0 ? '#F39C12' : '#2ECC71';
-
-        lines.push({ text: labelText, color: depthColor, fontSize });
-        if (showMetadataLines) lines.push({ text: depthLine, color: depthColor, fontSize: metaFontSize });
-        if (showMetadataLines && !vrMode) lines.push({ text: categoryDisplay, color: '#B0BEC5', fontSize: metaFontSize * 0.9 });
-        if (showMetadataLines && !vrMode && constraintLine) lines.push({ text: constraintLine, color: constraintColor, fontSize: metaFontSize * 0.85 });
-      } else if (nodeLabelVisualMode === 'agent') {
-        const agentType = (node.metadata?.agentType ?? node.metadata?.type ?? 'unknown').toUpperCase();
-        const status = node.metadata?.status ?? 'idle';
-        const statusColor = getAgentStatusHex(status);
-        const health = node.metadata?.health ?? 100;
-        const tokenRate = node.metadata?.tokenRate ?? 0;
-        const activeTasks = node.metadata?.tasksActive ?? node.metadata?.tasks ?? 0;
-        const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
-        const agentLine2 = `\u25CF ${statusLabel}  \u2665 ${health}%`;
-        const agentLine3 = `\u26A1 ${tokenRate} tok/min \u00B7 ${activeTasks} task${activeTasks !== 1 ? 's' : ''}`;
-
-        lines.push({ text: agentType, color: statusColor, fontSize });
-        if (showMetadataLines) lines.push({ text: agentLine2, color: statusColor, fontSize: metaFontSize });
-        if (showMetadataLines && !vrMode) lines.push({ text: agentLine3, color: '#B0BEC5', fontSize: metaFontSize * 0.9 });
-      } else {
-        lines.push({ text: labelText, color: textColor, fontSize });
-      }
-
-      return <NodeLabel key={`label-${node.id}`} position={pos} lines={lines} maxWidth={maxWidth} thresholdOpacity={thresholdOpacity} />;
-    }).filter(Boolean);
-  }, [visibleNodes, graphData.edges, connectionCountMap, labelUpdateTick, nodeIdToIndexMap, logseqSettings?.labels, logseqSettings?.nodes, normalizedSSSPResult, graphMode, perNodeVisualModeMap, hierarchyMap, isXRMode, graphTypeVisuals]);
+  // OLD NodeLabels useMemo removed — replaced by <InstancedLabels> component which
+  // performs its own frustum culling and layout inside useFrame (zero React re-renders).
+  // labelPositionsRef, labelTickRef, and labelUpdateTick are kept as InstancedLabels
+  // reads labelPositionsRef as a fallback when SAB positions are unavailable.
 
   
   useEffect(() => {
@@ -1264,8 +1025,21 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         <AgentNodesLayer agents={agentLayerNodes} connections={agentLayerConnections} />
       )}
 
-      {/* Node labels */}
-      {NodeLabels}
+      {/* Node labels — GPU-instanced text rendering */}
+      <InstancedLabels
+        nodes={typeFilteredNodes}
+        nodeIdToIndexMap={nodeIdToIndexMap}
+        nodePositionsRef={nodePositionsRef}
+        labelPositionsRef={labelPositionsRef}
+        settings={settings}
+        graphMode={graphMode}
+        perNodeVisualModeMap={perNodeVisualModeMap}
+        connectionCountMap={connectionCountMap}
+        hierarchyMap={hierarchyMap}
+        graphTypeVisuals={graphTypeVisuals}
+        ssspResult={normalizedSSSPResult}
+        isXRMode={isXRMode}
+      />
     </>
   )
 }
