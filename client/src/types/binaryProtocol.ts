@@ -37,12 +37,14 @@ export interface BinaryNodeData {
  * - Delta updates: nodes contain position/velocity DELTAS (add to targetPositions)
  */
 export interface ParsedBinaryFrame {
-  /** 'full' for V2/V3 full state, 'delta' for V4 delta encoding */
+  /** 'full' for V2/V3/V5 full state, 'delta' for V4 delta encoding */
   type: 'full' | 'delta';
   /** Parsed node data. For delta frames, position/velocity are DELTAS, not absolute. */
   nodes: BinaryNodeData[];
   /** V4 only: frame number within the delta cycle (0-59) */
   frameNumber?: number;
+  /** V5 only: authoritative server broadcast sequence for backpressure ack correlation */
+  broadcastSequence?: number;
 }
 
 // V4 delta encoding constants (must match server delta_encoding.rs)
@@ -55,6 +57,10 @@ const DELTA_VELOCITY_CHANGED = 0x02;
 export const PROTOCOL_V2 = 2;
 export const PROTOCOL_V3 = 3;
 export const PROTOCOL_V4 = 4;
+export const PROTOCOL_V5 = 5;
+
+/** Last broadcast sequence received from server (V5 frames). Undefined until first V5 frame. */
+export let lastBroadcastSequence: number | undefined;
 
 // V2 wire format: 36 bytes per node
 export const BINARY_NODE_SIZE_V2 = 36;
@@ -165,6 +171,10 @@ export function parseBinaryNodeData(buffer: ArrayBuffer): BinaryNodeData[] {
         // Delta encoding - decode via parseBinaryFrameData() instead
         // Return empty from this legacy function; callers should use parseBinaryFrameData()
         return parseDeltaNodes(safeBuffer);
+      case PROTOCOL_V5:
+        // V5 = V3 node data with 8-byte broadcast sequence prefix
+        // Extract sequence, then parse remainder as V3
+        return parseV5Nodes(safeBuffer);
       default:
         // Unknown version - try to detect format by size
         logger.warn(`Unknown protocol version: ${protocolVersion}, attempting auto-detection`);
@@ -335,10 +345,38 @@ function parseDeltaNodes(buffer: ArrayBuffer): BinaryNodeData[] {
 }
 
 /**
+ * Parse V5 frame: [1 byte: version=5][8 bytes: broadcast_sequence LE][V3 node data without version byte]
+ * Extracts broadcast sequence, reconstructs a V3 buffer, and delegates to V3 parsing.
+ * Updates the module-level `lastBroadcastSequence` export.
+ */
+function parseV5Nodes(buffer: ArrayBuffer): BinaryNodeData[] {
+  // Minimum: 1 (version) + 8 (sequence) = 9 bytes
+  if (buffer.byteLength < 9) {
+    return [];
+  }
+  const view = new DataView(buffer);
+  // Read 8-byte LE u64 as Number (safe up to 2^53)
+  const seqLow = view.getUint32(1, true);
+  const seqHigh = view.getUint32(5, true);
+  lastBroadcastSequence = seqLow + seqHigh * 0x100000000;
+
+  // Reconstruct a V3 buffer: [version=3][node data from offset 9 onward]
+  const nodeDataLen = buffer.byteLength - 9;
+  if (nodeDataLen <= 0) {
+    return [];
+  }
+  const v3Buffer = new ArrayBuffer(1 + nodeDataLen);
+  const v3View = new Uint8Array(v3Buffer);
+  v3View[0] = PROTOCOL_V3;
+  v3View.set(new Uint8Array(buffer, 9), 1);
+  return parseBinaryNodeData(v3Buffer);
+}
+
+/**
  * Parse binary data and return a typed frame that distinguishes full vs delta updates.
  * This is the preferred entry point for callers that need to handle delta encoding.
  *
- * - Full frames (V2/V3): nodes contain absolute positions
+ * - Full frames (V2/V3/V5): nodes contain absolute positions
  * - Delta frames (V4): nodes contain position/velocity DELTAS
  */
 export function parseBinaryFrameData(buffer: ArrayBuffer): ParsedBinaryFrame {
@@ -357,6 +395,16 @@ export function parseBinaryFrameData(buffer: ArrayBuffer): ParsedBinaryFrame {
       type: 'delta',
       nodes: deltaNodes,
       frameNumber,
+    };
+  }
+
+  if (protocolVersion === PROTOCOL_V5) {
+    // V5: extract broadcast sequence, parse node data as V3
+    const v5Nodes = parseV5Nodes(safeBuffer);
+    return {
+      type: 'full',
+      nodes: v5Nodes,
+      broadcastSequence: lastBroadcastSequence,
     };
   }
 

@@ -530,6 +530,10 @@ pub struct PhysicsStepCompleted {
     pub nodes_broadcast: u32,
     /// Current physics iteration count
     pub iteration: u32,
+    /// Average kinetic energy from the velocity buffers after this step.
+    /// `KE = 0.5 * sum(vx^2 + vy^2 + vz^2)` averaged over node count.
+    /// Used by the convergence controller to detect equilibrium.
+    pub kinetic_energy: f64,
 }
 
 /// Sent by PhysicsOrchestratorActor to ForceComputeActor to wire up the

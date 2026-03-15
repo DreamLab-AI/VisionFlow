@@ -1,9 +1,9 @@
 # ============================================================================
-# AGENTIC WORKSTATION - Canonical Docker Compose v3.0
+# AGENTIC WORKSTATION - Canonical Docker Compose v4.0
 # ============================================================================
 #
-# VERSION:     3.0.0
-# UPDATED:     2026-01-31
+# VERSION:     4.0.0
+# UPDATED:     2026-03-12
 #
 # This is the CANONICAL docker-compose for the unified agentic workstation.
 #
@@ -14,6 +14,51 @@
 # ============================================================================
 
 services:
+  # RuVector PostgreSQL — persistent AI memory with vector search + in-DB embeddings
+  ruvector-postgres:
+    image: ruvnet/ruvector-postgres:latest
+    # NOTE: local build disabled — Rust build broken (missing aligned v0.4.3 crate).
+    # Use pre-built image which includes ruvector.so with all 112 SQL functions.
+    # build:
+    #   context: ./ruvector-postgres
+    #   dockerfile: Dockerfile
+    container_name: ruvector-postgres
+    hostname: ruvector-postgres
+
+    environment:
+      POSTGRES_USER: ${RUVECTOR_PG_USER:-ruvector}
+      POSTGRES_PASSWORD: ${RUVECTOR_PG_PASSWORD:-ruvector}
+      POSTGRES_DB: ${RUVECTOR_PG_DATABASE:-ruvector}
+      FASTEMBED_CACHE_DIR: /opt/ruvector/models
+
+    volumes:
+      - ruvector-data:/var/lib/postgresql/data
+
+    networks:
+      docker_ragflow:
+        aliases:
+          - ruvector-postgres
+
+    shm_size: 256m
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ruvector -d ruvector"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+    restart: unless-stopped
+
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '4'
+        reservations:
+          memory: 512M
+          cpus: '1'
+
   agentic-workstation:
     build:
       context: ..
@@ -21,18 +66,22 @@ services:
       args:
         BUILDKIT_INLINE_CACHE: 1
       labels:
-        - "com.turboflow.version=3.0.0"
+        - "com.turboflow.version=4.0.0"
         - "com.turboflow.canonical=true"
 
     container_name: agentic-workstation
     hostname: agentic-workstation
 
+    depends_on:
+      ruvector-postgres:
+        condition: service_healthy
+
     # Service labels
     labels:
       com.turboflow.service: "agentic-workstation"
-      com.turboflow.version: "3.0.0"
-      com.turboflow.ruflo: "v3.5"
-      com.turboflow.skills.count: "62"
+      com.turboflow.version: "4.0.0"
+      com.turboflow.ruflo: "v4.0"
+      com.turboflow.skills.count: "68"
 
     # NVIDIA GPU support
     runtime: nvidia
@@ -121,6 +170,9 @@ services:
       # Display
       DISPLAY: ":1"
 
+      # Agent Teams (V4 — enables multi-agent coordination)
+      CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1"
+
       # NVIDIA GPU Configuration (PyTorch bundles its own CUDA libraries)
       NVIDIA_VISIBLE_DEVICES: all
       NVIDIA_DRIVER_CAPABILITIES: compute,utility,graphics,display
@@ -152,11 +204,22 @@ services:
       CLAUDE_WORKER_POOL_SIZE: ${CLAUDE_WORKER_POOL_SIZE:-4}
       CLAUDE_MAX_QUEUE_SIZE: ${CLAUDE_MAX_QUEUE_SIZE:-50}
 
+      # DeepSeek API
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-https://api.deepseek.com}
+
+      # Private Local LLM (Nemotron 3 120B via llama.cpp OpenAI-compatible API)
+      LOCAL_LLM_HOST: ${LOCAL_LLM_HOST:-192.168.2.48}
+      LOCAL_LLM_PORT: ${LOCAL_LLM_PORT:-8080}
+      LOCAL_LLM_MODEL: ${LOCAL_LLM_MODEL:-NVIDIA-Nemotron-3-Super-120B-A12B-UD-IQ4_XS-00001-of-00003.gguf}
+      LOCAL_LLM_CONTEXT: ${LOCAL_LLM_CONTEXT:-262144}
+      LOCAL_LLM_API_URL: http://${LOCAL_LLM_HOST:-192.168.2.48}:${LOCAL_LLM_PORT:-8080}/v1
+
       # RuVector PostgreSQL Memory (external centralized storage)
       RUVECTOR_PG_HOST: ${RUVECTOR_PG_HOST:-ruvector-postgres}
       RUVECTOR_PG_PORT: ${RUVECTOR_PG_PORT:-5432}
       RUVECTOR_PG_USER: ${RUVECTOR_PG_USER:-ruvector}
-      RUVECTOR_PG_PASSWORD: ${RUVECTOR_PG_PASSWORD:-changeme}
+      RUVECTOR_PG_PASSWORD: ${RUVECTOR_PG_PASSWORD:-ruvector}
       RUVECTOR_PG_DATABASE: ${RUVECTOR_PG_DATABASE:-ruvector}
       RUVECTOR_USE_EXTERNAL: ${RUVECTOR_USE_EXTERNAL:-true}
 
@@ -183,7 +246,7 @@ services:
       NODE_ENV: ${NODE_ENV:-production}
 
       # PostgreSQL connection string (for psycopg compatibility)
-      RUVECTOR_PG_CONNINFO: "host=${RUVECTOR_PG_HOST:-ruvector-postgres} port=${RUVECTOR_PG_PORT:-5432} user=${RUVECTOR_PG_USER:-ruvector} password=${RUVECTOR_PG_PASSWORD:-changeme} dbname=${RUVECTOR_PG_DATABASE:-ruvector}"
+      RUVECTOR_PG_CONNINFO: "host=${RUVECTOR_PG_HOST:-ruvector-postgres} port=${RUVECTOR_PG_PORT:-5432} user=${RUVECTOR_PG_USER:-ruvector} password=${RUVECTOR_PG_PASSWORD:-ruvector} dbname=${RUVECTOR_PG_DATABASE:-ruvector}"
 
     # Security capabilities
     cap_add:
@@ -237,6 +300,9 @@ networks:
 # ============================================================================
 
 volumes:
+  ruvector-data:
+    external: true
+    name: ruvector_postgres_data_v2
   workspace:
     driver: local
   agents:

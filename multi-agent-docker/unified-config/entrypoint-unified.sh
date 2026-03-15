@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================================================
-# AGENTIC WORKSTATION - Canonical Entrypoint v3.0
+# AGENTIC WORKSTATION - Canonical Entrypoint v4.0
 # ============================================================================
 #
 # VERSION:     3.0.0
@@ -16,6 +16,9 @@
 #   4. Host Claude Configuration
 #   5. PostgreSQL Initialization
 #   5.5. RuVector Memory Setup
+#   5.6. Beads Cross-Session Memory (V4)
+#   5.7. GitNexus Codebase Knowledge Graph (V4)
+#   5.8. Agent Teams & Ruflo Plugin Verification (V4)
 #   6. Skills Setup
 #   6.5. Claude Flow V3 Initialization (CANONICAL)
 #   6.6. AISP Protocol
@@ -30,8 +33,8 @@
 set -e
 
 echo "╔══════════════════════════════════════════════════════════════════╗"
-echo "║     AGENTIC WORKSTATION v3.0 - Canonical Unified System         ║"
-echo "║     Claude Flow V3 | 62+ Skills | Multi-Agent Orchestration     ║"
+echo "║     AGENTIC WORKSTATION v4.0 - Canonical Unified System         ║"
+echo "║     Ruflo V4 | Beads | GitNexus | Multi-Agent Orchestration    ║"
 echo "╚══════════════════════════════════════════════════════════════════╝"
 echo ""
 
@@ -47,6 +50,7 @@ mkdir -p /home/gemini-user/{workspace,.config,.cache,.gemini-flow}
 mkdir -p /home/openai-user/{workspace,.config,.cache}
 mkdir -p /home/zai-user/{workspace,.config,.cache}
 mkdir -p /home/deepseek-user/{workspace,.config/deepseek,.cache}
+mkdir -p /home/local-private/{workspace,.config/local-llm,.cache,.claude}
 
 # Set SSH directory permissions (required for SSH to work)
 chmod 700 /home/devuser/.ssh
@@ -75,6 +79,7 @@ chown -R gemini-user:gemini-user /home/gemini-user 2>/dev/null
 chown -R openai-user:openai-user /home/openai-user 2>/dev/null
 chown -R zai-user:zai-user /home/zai-user 2>/dev/null
 chown -R deepseek-user:deepseek-user /home/deepseek-user 2>/dev/null
+chown -R local-private:local-private /home/local-private 2>/dev/null
 set -e
 
 # Configure Docker socket permissions for docker-manager skill
@@ -121,16 +126,33 @@ EOF
     echo "✓ Z.AI API key configured for devuser (web-summary skill)"
 fi
 
-# gemini-user - Google Gemini configuration
+# gemini-user - Google Gemini configuration (gemini-flow + Gemini CLI)
 if [ -n "$GOOGLE_GEMINI_API_KEY" ]; then
+    # Legacy gemini-flow config
     sudo -u gemini-user bash -c "mkdir -p ~/.config/gemini && cat > ~/.config/gemini/config.json" <<EOF
 {
   "apiKey": "$GOOGLE_GEMINI_API_KEY",
   "defaultModel": "gemini-2.0-flash"
 }
 EOF
+
+    # Gemini CLI (@google/gemini-cli) configuration
+    # Uses ~/.gemini/.env for API key and ~/.gemini/settings.json for defaults
+    sudo -u gemini-user bash -c "mkdir -p ~/.gemini && cat > ~/.gemini/.env" <<EOF
+GEMINI_API_KEY=$GOOGLE_GEMINI_API_KEY
+EOF
+    sudo -u gemini-user bash -c "cat > ~/.gemini/settings.json" <<EOF
+{
+  "model": {
+    "name": "gemini-2.5-pro"
+  }
+}
+EOF
+    chmod 600 /home/gemini-user/.gemini/.env
+    chown -R gemini-user:gemini-user /home/gemini-user/.gemini
+
     export GOOGLE_API_KEY="$GOOGLE_GEMINI_API_KEY"
-    echo "✓ Gemini API key configured for gemini-user"
+    echo "✓ Gemini API key configured for gemini-user (gemini-flow + Gemini CLI)"
 fi
 
 # openai-user - OpenAI / Codex configuration (GPT-5.4 first-class citizen)
@@ -179,6 +201,58 @@ EOF
     chown deepseek-user:deepseek-user /home/deepseek-user/.config/deepseek/config.json
     echo "✓ DeepSeek credentials configured for deepseek-user"
 fi
+
+# local-private user — Private LLM (Nemotron 3 120B via llama.cpp)
+LOCAL_LLM_HOST="${LOCAL_LLM_HOST:-192.168.2.48}"
+LOCAL_LLM_PORT="${LOCAL_LLM_PORT:-8080}"
+LOCAL_LLM_MODEL="${LOCAL_LLM_MODEL:-NVIDIA-Nemotron-3-Super-120B-A12B-UD-IQ4_XS-00001-of-00003.gguf}"
+LOCAL_LLM_CONTEXT="${LOCAL_LLM_CONTEXT:-262144}"
+LOCAL_LLM_API_URL="http://${LOCAL_LLM_HOST}:${LOCAL_LLM_PORT}/v1"
+
+sudo -u local-private bash -c "mkdir -p ~/.config/local-llm && cat > ~/.config/local-llm/config.json" <<EOF
+{
+  "apiUrl": "$LOCAL_LLM_API_URL",
+  "host": "$LOCAL_LLM_HOST",
+  "port": $LOCAL_LLM_PORT,
+  "model": "$LOCAL_LLM_MODEL",
+  "contextLength": $LOCAL_LLM_CONTEXT,
+  "provider": "openai-compatible",
+  "format": "llama.cpp",
+  "capabilities": ["completion", "chat"],
+  "parameters": "120B (A12B MoE active)",
+  "quantization": "IQ4_XS"
+}
+EOF
+chmod 600 /home/local-private/.config/local-llm/config.json
+chown local-private:local-private /home/local-private/.config/local-llm/config.json
+
+# Configure local-private .zshrc with LLM environment
+sudo -u local-private bash -c "cat >> ~/.zshrc" <<'ZSHRC'
+
+# Private Local LLM (Nemotron 3 120B)
+export LOCAL_LLM_API_URL="${LOCAL_LLM_API_URL}"
+export OPENAI_API_KEY="sk-local-no-key-needed"
+export OPENAI_BASE_URL="${LOCAL_LLM_API_URL}"
+
+# Convenience aliases
+alias llm-health='curl -s http://${LOCAL_LLM_HOST}:${LOCAL_LLM_PORT}/health | python3 -m json.tool'
+alias llm-models='curl -s ${LOCAL_LLM_API_URL}/models | python3 -m json.tool'
+alias llm-ask='function _llm_ask() { curl -s ${LOCAL_LLM_API_URL}/chat/completions -H "Content-Type: application/json" -d "{\"model\": \"${LOCAL_LLM_MODEL}\", \"messages\": [{\"role\": \"user\", \"content\": \"$*\"}], \"max_tokens\": 2048}" | python3 -c "import sys,json; r=json.load(sys.stdin); print(r[\"choices\"][0][\"message\"][\"content\"])"; }; _llm_ask'
+
+# Claude CLI via agentic-flow proxy (Anthropic → OpenAI translation)
+# The local-llm-proxy supervisord service must be running (sudo supervisorctl start local-llm-proxy)
+export ANTHROPIC_BASE_URL="http://localhost:3100"
+export ANTHROPIC_API_KEY="sk-ant-proxy-local"
+alias proxy-start='sudo supervisorctl start local-llm-proxy'
+alias proxy-stop='sudo supervisorctl stop local-llm-proxy'
+alias proxy-status='sudo supervisorctl status local-llm-proxy'
+alias proxy-logs='tail -f /var/log/local-llm-proxy.log'
+ZSHRC
+
+# Expand env vars in .zshrc
+sudo -u local-private bash -c "sed -i 's|\${LOCAL_LLM_API_URL}|$LOCAL_LLM_API_URL|g; s|\${LOCAL_LLM_HOST}|$LOCAL_LLM_HOST|g; s|\${LOCAL_LLM_PORT}|$LOCAL_LLM_PORT|g; s|\${LOCAL_LLM_MODEL}|$LOCAL_LLM_MODEL|g' ~/.zshrc"
+
+echo "✓ Local private LLM configured for local-private (Nemotron 3 120B @ $LOCAL_LLM_HOST:$LOCAL_LLM_PORT)"
 
 # GitHub token for all users
 if [ -n "$GITHUB_TOKEN" ]; then
@@ -454,10 +528,10 @@ if sudo -u postgres pg_isready -q; then
         echo "  ✓ ruvector database created"
     fi
 
-    # Install pgvector extension if available
-    sudo -u postgres psql -d ruvector -c "CREATE EXTENSION IF NOT EXISTS vector;" 2>/dev/null && \
-        echo "  ✓ pgvector extension installed" || \
-        echo "  ⚠️  pgvector extension not available (will use pure ruvector)"
+    # Install ruvector extension (replaces pgvector)
+    sudo -u postgres psql -d ruvector -c "CREATE EXTENSION IF NOT EXISTS ruvector;" 2>/dev/null && \
+        echo "  ✓ ruvector extension installed" || \
+        echo "  ⚠️  ruvector extension not available (will use client-side embeddings)"
 
     # Create unified memory schema
     sudo -u postgres psql -d ruvector << 'SCHEMA'
@@ -468,7 +542,7 @@ CREATE TABLE IF NOT EXISTS memory_entries (
     namespace VARCHAR(128) DEFAULT 'default',
     type VARCHAR(32) NOT NULL DEFAULT 'persistent',
     value JSONB NOT NULL,
-    embedding vector(384),  -- all-MiniLM-L6-v2 dimensions
+    embedding ruvector(384),  -- all-MiniLM-L6-v2 dimensions (native ruvector type)
     metadata JSONB DEFAULT '{}',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -487,7 +561,7 @@ CREATE INDEX IF NOT EXISTS idx_memory_metadata ON memory_entries USING gin(metad
 
 -- HNSW index for vector similarity search (150x-12,500x faster)
 CREATE INDEX IF NOT EXISTS idx_memory_embedding_hnsw
-    ON memory_entries USING hnsw (embedding vector_cosine_ops)
+    ON memory_entries USING hnsw (embedding ruvector_cosine_ops)
     WITH (m = 16, ef_construction = 64);
 
 -- ReasoningBank pattern storage
@@ -496,7 +570,7 @@ CREATE TABLE IF NOT EXISTS reasoning_patterns (
     pattern_key VARCHAR(512) UNIQUE NOT NULL,
     pattern_type VARCHAR(64) NOT NULL,
     description TEXT,
-    embedding vector(384),
+    embedding ruvector(384),
     confidence FLOAT DEFAULT 0.5,
     success_count INTEGER DEFAULT 0,
     failure_count INTEGER DEFAULT 0,
@@ -508,7 +582,7 @@ CREATE TABLE IF NOT EXISTS reasoning_patterns (
 CREATE INDEX IF NOT EXISTS idx_patterns_type ON reasoning_patterns(pattern_type);
 CREATE INDEX IF NOT EXISTS idx_patterns_confidence ON reasoning_patterns(confidence DESC);
 CREATE INDEX IF NOT EXISTS idx_patterns_embedding_hnsw
-    ON reasoning_patterns USING hnsw (embedding vector_cosine_ops)
+    ON reasoning_patterns USING hnsw (embedding ruvector_cosine_ops)
     WITH (m = 16, ef_construction = 64);
 
 -- SONA trajectory tracking
@@ -551,6 +625,19 @@ SCHEMA
 
     echo "  ✓ RuVector unified memory schema created"
 
+    # Verify in-DB embedding generation
+    set +e
+    EMBED_TEST=$(sudo -u postgres psql -d ruvector -t -c "SELECT ruvector_embed_vec('test', 'all-MiniLM-L6-v2')::text LIMIT 1;" 2>&1)
+    EMBED_STATUS=$?
+    set -e
+    if [ $EMBED_STATUS -eq 0 ] && [ -n "$EMBED_TEST" ]; then
+        echo "  ✓ ruvector_embed_vec() works — in-database embeddings available"
+        export RUVECTOR_EMBEDDINGS_AVAILABLE=true
+    else
+        echo "  ⚠️  ruvector_embed_vec() not available — using client-side ONNX embeddings"
+        export RUVECTOR_EMBEDDINGS_AVAILABLE=false
+    fi
+
     # Stop PostgreSQL (supervisord will manage it)
     sudo -u postgres pg_ctl -D "$PGDATA" stop -m fast
     echo "  ✓ PostgreSQL stopped (supervisord will restart)"
@@ -564,7 +651,95 @@ fi
 echo "✓ Local PostgreSQL initialization complete"
 fi  # End of local PostgreSQL block
 
+# Test in-DB embedding generation on external PG (if using external)
+if [ "$RUVECTOR_USE_EXTERNAL" = "true" ] && [ "${RUVECTOR_EMBEDDINGS_AVAILABLE:-}" != "true" ]; then
+    set +e
+    EMBED_TEST=$(PGPASSWORD="$RUVECTOR_PG_PASSWORD" psql -h "$RUVECTOR_PG_HOST" -p "$RUVECTOR_PG_PORT" -U "$RUVECTOR_PG_USER" -d "$RUVECTOR_PG_DATABASE" -t -c "SELECT ruvector_embed_vec('test', 'all-MiniLM-L6-v2')::text LIMIT 1;" 2>&1)
+    EMBED_STATUS=$?
+    set -e
+    if [ $EMBED_STATUS -eq 0 ] && [ -n "$EMBED_TEST" ]; then
+        echo "  ✓ External PG: ruvector_embed_vec() available"
+        export RUVECTOR_EMBEDDINGS_AVAILABLE=true
+    else
+        echo "  ⚠️  External PG: ruvector_embed_vec() not available — client-side ONNX fallback"
+        export RUVECTOR_EMBEDDINGS_AVAILABLE=false
+    fi
+fi
+
+# Create breadcrumb markers for deprecated local memory stores
+for db in .swarm/memory.db .hive-mind/hive.db .claude-flow/memory/store.json; do
+    dir=$(dirname "/home/devuser/workspace/$db")
+    mkdir -p "$dir"
+    cat > "/home/devuser/workspace/${db}.DEPRECATED" << 'BREADCRUMB'
+DEPRECATED: Local memory store replaced by RuVector PostgreSQL.
+All memory operations route through MCP: mcp__claude-flow__memory_*
+Connection: ruvector-postgres:5432/ruvector
+BREADCRUMB
+done
+echo "  ✓ Breadcrumb markers created for deprecated local stores"
+
 echo "✓ PostgreSQL initialization complete"
+
+# ============================================================================
+# Phase 5.6: Beads Cross-Session Memory Initialization (V4)
+# ============================================================================
+
+echo "[5.6/10] Initializing Beads cross-session memory..."
+
+# Initialize Beads in workspace if it's a git repo
+if command -v bd &>/dev/null; then
+    for ws_dir in /home/devuser/workspace/project*; do
+        if [ -d "$ws_dir/.git" ]; then
+            sudo -u devuser bash -c "cd '$ws_dir' && bd init 2>/dev/null" || true
+        fi
+    done
+    echo "✓ Beads initialized in project workspaces"
+else
+    echo "ℹ️  Beads CLI not found (install: npm i -g beads-cli)"
+fi
+
+# ============================================================================
+# Phase 5.7: GitNexus Codebase Knowledge Graph (V4)
+# ============================================================================
+
+echo "[5.7/10] Setting up GitNexus codebase indexing..."
+
+# Index workspace repos with GitNexus (background — non-blocking)
+if command -v gitnexus &>/dev/null; then
+    for ws_dir in /home/devuser/workspace/project*; do
+        if [ -d "$ws_dir/.git" ]; then
+            sudo -u devuser bash -c "cd '$ws_dir' && gitnexus analyze 2>/dev/null &" || true
+        fi
+    done
+    echo "✓ GitNexus indexing started (background)"
+else
+    echo "ℹ️  GitNexus not found (install: npm i -g gitnexus)"
+fi
+
+# ============================================================================
+# Phase 5.8: Agent Teams & Ruflo Plugin Verification (V4)
+# ============================================================================
+
+echo "[5.8/10] Verifying V4 systems..."
+
+# Verify Agent Teams is enabled
+export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
+echo "✓ Agent Teams enabled (CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1)"
+
+# Verify Ruflo plugins
+if command -v ruflo &>/dev/null; then
+    PLUGIN_COUNT=$(ruflo plugins list 2>/dev/null | grep -c "installed" || echo "0")
+    echo "✓ Ruflo plugins: $PLUGIN_COUNT installed"
+else
+    echo "ℹ️  Ruflo not found — using claude-flow compat"
+fi
+
+# Verify V4 tools availability
+V4_TOOLS=0
+command -v bd &>/dev/null && ((V4_TOOLS++)) || true
+command -v gitnexus &>/dev/null && ((V4_TOOLS++)) || true
+command -v ruflo &>/dev/null && ((V4_TOOLS++)) || true
+echo "✓ V4 systems verified: $V4_TOOLS/3 available"
 
 # ============================================================================
 # Phase 6: Setup Claude Skills
@@ -688,6 +863,8 @@ if [ ! -f /home/devuser/.claude-flow/config.json ]; then
       "connectionTimeout": 10000,
       "maxConnections": 20
     },
+    "embeddingsProvider": "ruvector-native",
+    "fallbackEmbeddings": "xenova-onnx",
     "fallback": "sqlite",
     "hnsw": true,
     "cacheSize": 256,
@@ -1165,6 +1342,50 @@ if [ "$EXTERNAL_READY" = "true" ]; then
 else
     echo "  ⚠️  External database unavailable, using local fallback"
     echo "  Configure RUVECTOR_PG_HOST in .env to connect to external memory"
+fi
+
+# Phase 6.6b: Install PG memory bridge + patched memory modules for direct PostgreSQL routing
+echo "  Installing PG memory bridge and patched memory modules..."
+RUFLO_MEMORY_DIR=$(find /usr/local/lib/node_modules -path "*/ruflo/node_modules/@claude-flow/cli/dist/src/memory" -type d 2>/dev/null | head -1)
+RUFLO_MCP_DIR=$(find /usr/local/lib/node_modules -path "*/ruflo/node_modules/@claude-flow/cli/dist/src/mcp-tools" -type d 2>/dev/null | head -1)
+
+if [ -n "$RUFLO_MEMORY_DIR" ]; then
+    # PG backend adapter
+    if [ -f "/opt/config/ruflo-pg-memory-bridge.js" ]; then
+        cp /opt/config/ruflo-pg-memory-bridge.js "$RUFLO_MEMORY_DIR/pg-backend.js"
+        echo "  ✓ pg-backend.js installed"
+    fi
+    # Patched memory-initializer.js (PG direct delegation)
+    if [ -f "/opt/config/ruflo-memory-initializer-pg.js" ]; then
+        cp /opt/config/ruflo-memory-initializer-pg.js "$RUFLO_MEMORY_DIR/memory-initializer.js"
+        echo "  ✓ memory-initializer.js patched (PG delegation)"
+    fi
+    # Patched memory-bridge.js (PG backend delegation)
+    if [ -f "/opt/config/ruflo-memory-bridge-pg.js" ]; then
+        cp /opt/config/ruflo-memory-bridge-pg.js "$RUFLO_MEMORY_DIR/memory-bridge.js"
+        echo "  ✓ memory-bridge.js patched (PG delegation)"
+    fi
+    # Symlink pg module if not already present
+    if [ ! -d "$RUFLO_MEMORY_DIR/../../../node_modules/pg" ] && [ -d "/usr/local/lib/node_modules/pg" ]; then
+        ln -sf /usr/local/lib/node_modules/pg "$(dirname "$RUFLO_MEMORY_DIR")/../../../node_modules/pg" 2>/dev/null || true
+    fi
+else
+    echo "  ⚠️  ruflo memory dir not found"
+fi
+
+if [ -n "$RUFLO_MCP_DIR" ]; then
+    # Patched memory-tools.js (backend label pass-through)
+    if [ -f "/opt/config/ruflo-memory-tools-pg.js" ]; then
+        cp /opt/config/ruflo-memory-tools-pg.js "$RUFLO_MCP_DIR/memory-tools.js"
+        echo "  ✓ memory-tools.js patched (PG backend labels)"
+    fi
+else
+    echo "  ⚠️  ruflo mcp-tools dir not found"
+fi
+
+# Export embeddings availability for the bridge
+if [ "${RUVECTOR_EMBEDDINGS_AVAILABLE:-false}" = "true" ]; then
+    echo "export RUVECTOR_EMBEDDINGS_AVAILABLE=true" >> /home/devuser/.zshenv
 fi
 
 # Store canonical system marker in memory (external or local)

@@ -67,11 +67,49 @@ RUN for attempt in 1 2 3; do \
     done && rm -rf /var/cache/pacman/pkg/*
 
 # Install CUDA via pacman (CachyOS installs to /opt/cuda)
+# --overwrite needed because base image ships nvidia-opencl libs that conflict
 RUN for attempt in 1 2 3; do \
         echo "=== CUDA install attempt $attempt/3 ===" && \
-        pacman -S --noconfirm --needed cuda \
+        pacman -S --noconfirm --needed --overwrite '/usr/lib/libnvidia-opencl*' cuda \
         && break || { echo "Attempt $attempt failed, retrying in 10s..."; sleep 10; pacman -Syy --noconfirm; }; \
-    done && rm -rf /var/cache/pacman/pkg/*
+    done && rm -rf /var/cache/pacman/pkg/* && \
+    echo "=== CUDA install verification ===" && \
+    ls -la /opt/cuda/bin/nvcc 2>/dev/null && echo "CUDA nvcc found" || echo "nvcc NOT found" && \
+    ls -la /opt/cuda/lib64/libcudart.so* 2>/dev/null | head -3 || echo "libcudart NOT found"
+
+# Verify and setup CUDA installation path
+# find_cuda_helper checks multiple standard CUDA locations
+# Ensure /usr/local/cuda also points to the correct CUDA installation
+RUN echo "=== CUDA Installation Check ===" && \
+    if [ ! -d /opt/cuda ]; then \
+        echo "Looking for CUDA installation..."; \
+        CUDA_ROOT=$(find / -maxdepth 3 -name "nvcc" -type f 2>/dev/null | head -1 | xargs dirname | xargs dirname); \
+        if [ -n "$CUDA_ROOT" ] && [ -d "$CUDA_ROOT" ]; then \
+            echo "Found CUDA at: $CUDA_ROOT"; \
+            mkdir -p /opt/cuda && ln -sf "$CUDA_ROOT"/* /opt/cuda/ 2>/dev/null || true; \
+        fi; \
+    fi && \
+    # Also link to /usr/local/cuda which find_cuda_helper prefers
+    if [ -d /opt/cuda ]; then \
+        ln -sf /opt/cuda /usr/local/cuda 2>/dev/null || true; \
+    fi && \
+    # Verify CUDA is findable
+    echo "Verifying CUDA locations:" && \
+    ls -lh /opt/cuda/bin/nvcc 2>/dev/null && echo "✓ /opt/cuda/bin/nvcc found" || echo "✗ /opt/cuda/bin/nvcc not found" && \
+    ls -lh /usr/local/cuda/bin/nvcc 2>/dev/null && echo "✓ /usr/local/cuda/bin/nvcc found" || echo "✗ /usr/local/cuda/bin/nvcc not found" && \
+    echo "CUDA path setup complete"
+
+# Configure environment for CUDA build tools
+# The find_cuda_helper crate checks CUDA_PATH, CUDA_HOME, /opt/cuda, and /usr/local/cuda
+# Set these explicitly so cargo build scripts can find CUDA
+ENV CUDA_PATH="/opt/cuda" \
+    CUDA_HOME="/opt/cuda" \
+    CUDA_INCLUDE_PATH="/opt/cuda/include" \
+    CUDA_LIB_PATH="/opt/cuda/lib64" \
+    LIBRARY_PATH="/opt/cuda/lib64:${LIBRARY_PATH}" \
+    CPATH="/opt/cuda/include:${CPATH}" \
+    CFLAGS="-I/opt/cuda/include" \
+    LDFLAGS="-L/opt/cuda/lib64"
 
 # Install Rust toolchain (stable channel)
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
@@ -110,7 +148,13 @@ RUN mkdir -p src/bin examples && \
     echo "fn main() {}" > examples/ontology_validation_example.rs
 
 # Fetch and build dependencies (this layer is cached unless deps change)
-RUN cargo fetch && \
+# Set CUDA env vars explicitly in RUN to ensure they're available to build scripts
+RUN export CUDA_PATH=/opt/cuda && \
+    export CUDA_HOME=/opt/cuda && \
+    export CUDA_INCLUDE_PATH=/opt/cuda/include && \
+    export CUDA_LIB_PATH=/opt/cuda/lib64 && \
+    export LD_LIBRARY_PATH=/opt/cuda/lib64:${LD_LIBRARY_PATH} && \
+    cargo fetch && \
     cargo build --release --features gpu && \
     rm -rf src
 
@@ -129,7 +173,12 @@ RUN find src -name '*.rs' -exec touch {} + && touch build.rs
 
 # Build Rust backend with GPU features
 # This compiles the actual application code
-RUN cargo build --release --features gpu && \
+RUN export CUDA_PATH=/opt/cuda && \
+    export CUDA_HOME=/opt/cuda && \
+    export CUDA_INCLUDE_PATH=/opt/cuda/include && \
+    export CUDA_LIB_PATH=/opt/cuda/lib64 && \
+    export LD_LIBRARY_PATH=/opt/cuda/lib64:${LD_LIBRARY_PATH} && \
+    cargo build --release --features gpu && \
     strip target/release/webxr && \
     # Verify binary was created
     ls -lh target/release/webxr
@@ -160,8 +209,10 @@ FROM node-deps AS node-builder
 COPY client ./
 
 # Build optimized production bundle
-# This is only used in the production target
-RUN npm run build && \
+# Call vite directly: npm's prebuild/build scripts run types:generate which
+# requires Cargo (available in rust-builder, not here). Generated types are
+# committed to source control, so vite can compile without regenerating them.
+RUN npx vite build && \
     # Verify build output
     ls -lh dist/
 

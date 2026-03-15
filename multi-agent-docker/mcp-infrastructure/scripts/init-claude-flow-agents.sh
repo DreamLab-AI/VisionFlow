@@ -19,18 +19,18 @@ WORKSPACE="${WORKSPACE_FOLDER:-/workspace}"
 [ -d "$WORKSPACE" ] || WORKSPACE="$HOME/workspace"
 cd "$WORKSPACE" || exit 1
 
-# Check if claude-flow is available
-if ! command_exists claude-flow; then
-    echo "⚠️  claude-flow not found. Installing @claude-flow/cli..."
-    npm install -g @claude-flow/cli@latest || {
-        echo "❌ Failed to install claude-flow"
+# Check if ruflo is available (claude-flow is a backwards-compat alias)
+if ! command_exists ruflo && ! command_exists claude-flow; then
+    echo "⚠️  ruflo not found. Installing ruflo..."
+    npm install -g ruflo@latest || {
+        echo "❌ Failed to install ruflo"
         exit 1
     }
 fi
 
 # Display version
 echo ""
-echo "📦 Version: $(claude-flow --version)"
+echo "📦 Version: $(ruflo --version 2>/dev/null || claude-flow --version)"
 
 # Run system diagnostics
 echo ""

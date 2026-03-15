@@ -15,6 +15,7 @@ Key benefits:
 | Container | Base Image | Purpose |
 |-----------|------------|---------|
 | agentic-workstation | cachyos/cachyos-v3 | Primary development environment with Claude Code, supervisord services |
+| ruvector-postgres | ruvnet/ruvector-postgres | Persistent AI memory with vector search (RuVector v2.0.0, 112 SQL functions) |
 | comfyui-cachyos | cachyos/cachyos-v3 | AI image generation with SAM3D, Stable Diffusion workflows |
 | claude-zai-cachyos | cachyos/cachyos-v3 | Cost-effective Claude API proxy with worker pool |
 
@@ -65,6 +66,7 @@ All services run inside the agentic-workstation container, managed by supervisor
 | code-server | 8080 | Direct access |
 | Management API | 9090 | Direct access |
 | Z.AI | 9600 | Internal only (localhost) |
+| Local LLM Proxy | 3100 | Internal only (Anthropic→OpenAI translation) |
 
 Configuration:
 ```yaml
@@ -129,10 +131,67 @@ fi
 | RUVECTOR_PG_HOST | ruvector-postgres | PostgreSQL host for RuVector memory |
 | RUVECTOR_PG_PORT | 5432 | PostgreSQL port |
 | RUVECTOR_PG_USER | ruvector | PostgreSQL username |
-| RUVECTOR_PG_DB | ruvector | PostgreSQL database name |
+| RUVECTOR_PG_PASSWORD | ruvector | PostgreSQL password |
+| RUVECTOR_PG_DATABASE | ruvector | PostgreSQL database name |
+| RUVECTOR_PG_CONNINFO | (computed) | Full PostgreSQL connection string |
+| LOCAL_LLM_HOST | 192.168.2.48 | llama.cpp server host (Nemotron 3 120B) |
+| LOCAL_LLM_PORT | 8080 | llama.cpp server port |
+| LOCAL_LLM_MODEL | NVIDIA-Nemotron-3-Super-120B-... | Model identifier for llama.cpp |
+| LOCAL_LLM_CONTEXT | 262144 | Model context window size |
 | ANTHROPIC_API_KEY | (required) | Anthropic API key for Claude |
 | CUDA_HOME | /opt/cuda | CUDA installation path |
 | DISPLAY | :1 | X11 display for VNC |
+
+## Multi-User System
+
+The container provides isolated user contexts for different AI providers:
+
+| User | UID | Purpose | Switch |
+|------|-----|---------|--------|
+| devuser | 1000 | Claude Code, primary development | (default) |
+| gemini-user | 1001 | Google Gemini CLI, gemini-flow | `as-gemini` |
+| openai-user | 1002 | OpenAI Codex | `as-openai` |
+| zai-user | 1003 | Z.AI service (port 9600) | `as-zai` |
+| deepseek-user | 1004 | DeepSeek API | `as-deepseek` |
+| local-private | 1005 | Private LLM (Nemotron 3 120B via llama.cpp) | `as-local` |
+
+Each user has isolated home directories, API credentials, and shell configuration. The `devuser` has passwordless sudo to all other users.
+
+## External Services
+
+### RuVector PostgreSQL
+
+Persistent AI memory with 384-dim vector search, HNSW indexing, and 112 SQL extension functions. Runs as a companion container with an external volume for data persistence across rebuilds.
+
+See [RUVECTOR-MEMORY.md](RUVECTOR-MEMORY.md) for full documentation.
+
+### Local LLM Proxy (Nemotron 3 120B)
+
+Agentic-flow's `AnthropicToOpenRouterProxy` translates Anthropic API format to OpenAI-compatible format, enabling Claude CLI to communicate with a locally-hosted Nemotron 3 120B running on llama.cpp. On-demand service (`autostart=false`) on port 3100.
+
+See [LOCAL-LLM-PROXY.md](LOCAL-LLM-PROXY.md) for full documentation.
+
+## tmux Workspace
+
+The container auto-creates a tmux session with 13 windows:
+
+| Window | Name | Purpose |
+|--------|------|---------|
+| 0 | Claude-Main | Primary Claude Code shell |
+| 1 | Claude-Agent | Agent coordination |
+| 2 | Services | supervisord monitoring |
+| 3 | Dev | Development workspace |
+| 4 | Logs | Log monitoring |
+| 5 | System | System administration |
+| 6 | VNC | VNC session info |
+| 7 | SSH | SSH session info |
+| 8 | Gemini-Shell | Gemini user (UID 1001) |
+| 9 | OpenAI-Shell | OpenAI user (UID 1002) |
+| 10 | ZAI-Shell | Z.AI user (UID 1003) |
+| 11 | DeepSeek-Shell | DeepSeek user (UID 1004) |
+| 12 | LocalLLM | Local private LLM (UID 1005) |
+
+Attach: `tmux attach -t workspace`
 
 ## Network Architecture
 
@@ -143,3 +202,20 @@ All containers connect to the shared `docker_ragflow` network for inter-service 
 | docker_ragflow | 172.19.0.0/16 | Shared container network |
 
 Service discovery uses Docker DNS with container names as hostnames.
+
+## Volumes
+
+| Volume | Type | Purpose |
+|--------|------|---------|
+| `ruvector_postgres_data_v2` | External | RuVector PostgreSQL data (persistent across rebuilds) |
+| `workspace` | Local | devuser workspace |
+| `agents` | Local | 610+ agent templates |
+| `gemini-workspace` | Local | Gemini user workspace |
+| `openai-workspace` | Local | OpenAI user workspace |
+| `model-cache` | Local | Shared model cache |
+| `logs` | Local | Service logs |
+
+External volumes must be created before first run:
+```bash
+docker volume create ruvector_postgres_data_v2
+```

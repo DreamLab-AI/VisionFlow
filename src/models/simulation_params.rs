@@ -25,7 +25,11 @@ pub enum SettleMode {
 
 impl Default for SettleMode {
     fn default() -> Self {
-        SettleMode::Continuous
+        SettleMode::FastSettle {
+            damping_override: 0.75,
+            max_settle_iterations: 2000,
+            energy_threshold: 0.005,
+        }
     }
 }
 
@@ -197,8 +201,9 @@ pub struct SimulationParams {
     pub cooling_rate: f32,
 
     
-    pub use_sssp_distances: bool, 
-    pub sssp_alpha: Option<f32>,  
+    pub rest_length: f32,
+    pub use_sssp_distances: bool,
+    pub sssp_alpha: Option<f32>,
 
     
     pub constraint_ramp_frames: u32, 
@@ -278,7 +283,7 @@ impl SimulationParams {
             warmup_iterations: self.warmup_iterations,
             cooling_rate: self.cooling_rate,
             spring_k: self.spring_k,
-            rest_length: crate::config::physics::PhysicsSettings::default().rest_length,
+            rest_length: self.rest_length,
             repel_k: self.repel_k,
             repulsion_cutoff: self.max_repulsion_dist,
             repulsion_softening_epsilon: 1e-4, 
@@ -377,6 +382,7 @@ impl SimParams {
             boundary_force_strength: 1.0,
             warmup_iterations: self.warmup_iterations,
             cooling_rate: self.cooling_rate,
+            rest_length: self.rest_length,
             use_sssp_distances: true,
             sssp_alpha: Some(self.sssp_alpha),
             constraint_ramp_frames: self.constraint_ramp_frames,
@@ -506,6 +512,7 @@ impl From<&PhysicsSettings> for SimulationParams {
             boundary_force_strength: physics.boundary_force_strength,
             warmup_iterations: physics.warmup_iterations,
             cooling_rate: physics.cooling_rate,
+            rest_length: physics.rest_length,
             use_sssp_distances: true,
             sssp_alpha: Some(1.5),     // SSSP-adaptive rest lengths
             constraint_ramp_frames: physics.constraint_ramp_frames,

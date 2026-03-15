@@ -201,13 +201,14 @@ impl ClientManager {
         &self,
         positions: &[BinaryNodeDataClient],
         node_type_arrays: &crate::actors::messages::NodeTypeArrays,
+        broadcast_sequence: u64,
     ) -> usize {
         if positions.is_empty() || self.clients.is_empty() {
             return 0;
         }
 
         // Pre-serialize the full unfiltered payload ONCE
-        let unfiltered_binary = self.serialize_positions(positions, node_type_arrays);
+        let unfiltered_binary = self.serialize_positions(positions, node_type_arrays, broadcast_sequence);
 
         let mut broadcast_count = 0;
         for (_, client_state) in &self.clients {
@@ -222,7 +223,7 @@ impl ClientManager {
                     .copied()
                     .collect();
                 if !filtered_positions.is_empty() {
-                    let binary_data = self.serialize_positions(&filtered_positions, node_type_arrays);
+                    let binary_data = self.serialize_positions(&filtered_positions, node_type_arrays, broadcast_sequence);
                     client_state.addr.do_send(SendToClientBinary(binary_data));
                     broadcast_count += 1;
                 }
@@ -231,10 +232,16 @@ impl ClientManager {
         broadcast_count
     }
 
+    /// Serialize positions into V5 binary frame format.
+    ///
+    /// V5 wire format: `[1 byte: version=5][8 bytes: broadcast_sequence LE][V3 node data without version byte]`
+    /// This embeds the authoritative server broadcast sequence so clients can echo it
+    /// back in acks, enabling true end-to-end backpressure correlation.
     fn serialize_positions(
         &self,
         positions: &[BinaryNodeDataClient],
         nta: &crate::actors::messages::NodeTypeArrays,
+        broadcast_sequence: u64,
     ) -> Vec<u8> {
         use crate::utils::binary_protocol::encode_node_data_extended;
         use crate::utils::socket_flow_messages::BinaryNodeData;
@@ -243,7 +250,15 @@ impl ClientManager {
             .iter()
             .map(|pos| (pos.node_id, *pos))
             .collect();
-        encode_node_data_extended(&nodes, &nta.agent_ids, &nta.knowledge_ids, &nta.ontology_class_ids, &nta.ontology_individual_ids, &nta.ontology_property_ids)
+        let encoded = encode_node_data_extended(&nodes, &nta.agent_ids, &nta.knowledge_ids, &nta.ontology_class_ids, &nta.ontology_individual_ids, &nta.ontology_property_ids);
+        // Build V5 frame: [version=5][8-byte sequence LE][V3 node data without version byte]
+        let mut result = Vec::with_capacity(1 + 8 + encoded.len().saturating_sub(1));
+        result.push(5u8); // Protocol V5 = V3 nodes + embedded broadcast sequence
+        result.extend_from_slice(&broadcast_sequence.to_le_bytes());
+        if encoded.len() > 1 {
+            result.extend_from_slice(&encoded[1..]); // node data without V3 version byte
+        }
+        result
     }
 
     pub fn broadcast_message(&self, message: String) -> usize {
@@ -569,6 +584,10 @@ impl ClientCoordinatorActor {
             return false;
         }
 
+        // Increment sequence BEFORE broadcast so it's embedded in the wire frame
+        self.broadcast_sequence += 1;
+        let current_sequence = self.broadcast_sequence;
+
         // Use per-client filtered broadcast for consistency with BroadcastPositions
         let broadcast_count = {
             let manager = match handle_rwlock_error(self.client_manager.read()) {
@@ -578,25 +597,20 @@ impl ClientCoordinatorActor {
                     return false;
                 }
             };
-            manager.broadcast_with_filter(&position_data, &self.node_type_arrays)
+            manager.broadcast_with_filter(&position_data, &self.node_type_arrays, current_sequence)
         };
 
-        // Approximate byte size (V3 protocol: 48 bytes per node + 1 header)
-        let approx_bytes = 1 + position_data.len() * 48;
+        // Approximate byte size (V5 protocol: 48 bytes per node + 1 header + 8 sequence)
+        let approx_bytes = 1 + 8 + position_data.len() * 48;
 
         self.broadcast_count += 1;
-        self.broadcast_sequence += 1;
         self.bytes_sent += approx_bytes as u64;
         self.last_broadcast = Instant::now();
         self.initial_positions_sent = true;
 
-        // Send acknowledgement to GPU actor for backpressure flow control
-        if let Some(ref gpu_addr) = self.gpu_compute_addr {
-            gpu_addr.do_send(PositionBroadcastAck {
-                correlation_id: self.broadcast_sequence,
-                clients_delivered: broadcast_count as u32,
-            });
-        }
+        // NOTE: No immediate PositionBroadcastAck here — that was a false ack
+        // (queue-enqueue, not client receipt). Real acks come from ClientBroadcastAck
+        // handler when clients confirm receipt, providing true end-to-end backpressure.
 
         if let Some(logger) = get_telemetry_logger() {
             let correlation_id = CorrelationId::new();
@@ -697,6 +711,10 @@ impl ClientCoordinatorActor {
             return Err("No position data available for broadcast".to_string());
         }
 
+        // Increment sequence BEFORE broadcast so it's embedded in the wire frame
+        self.broadcast_sequence += 1;
+        let current_sequence = self.broadcast_sequence;
+
         // Use per-client filtered broadcast for consistency with BroadcastPositions
         let broadcast_count = {
             let manager = match handle_rwlock_error(self.client_manager.read()) {
@@ -706,24 +724,19 @@ impl ClientCoordinatorActor {
                     return Err(format!("Failed to acquire client manager lock: {}", e));
                 }
             };
-            manager.broadcast_with_filter(&position_data, &self.node_type_arrays)
+            manager.broadcast_with_filter(&position_data, &self.node_type_arrays, current_sequence)
         };
 
-        // Approximate byte size (V3 protocol: 48 bytes per node + 1 header)
-        let approx_bytes = 1 + position_data.len() * 48;
+        // Approximate byte size (V5 protocol: 48 bytes per node + 1 header + 8 sequence)
+        let approx_bytes = 1 + 8 + position_data.len() * 48;
 
         self.broadcast_count += 1;
-        self.broadcast_sequence += 1;
         self.bytes_sent += approx_bytes as u64;
         self.last_broadcast = Instant::now();
 
-        // Send acknowledgement to GPU actor for backpressure flow control
-        if let Some(ref gpu_addr) = self.gpu_compute_addr {
-            gpu_addr.do_send(PositionBroadcastAck {
-                correlation_id: self.broadcast_sequence,
-                clients_delivered: broadcast_count as u32,
-            });
-        }
+        // NOTE: No immediate PositionBroadcastAck here — that was a false ack
+        // (queue-enqueue, not client receipt). Real acks come from ClientBroadcastAck
+        // handler when clients confirm receipt, providing true end-to-end backpressure.
 
         if force_broadcast {
             self.initial_positions_sent = true;
@@ -1107,6 +1120,10 @@ impl Handler<BroadcastPositions> for ClientCoordinatorActor {
     type Result = ();
 
     fn handle(&mut self, msg: BroadcastPositions, _ctx: &mut Self::Context) -> Self::Result {
+        // Increment sequence BEFORE broadcast so it's embedded in the wire frame
+        self.broadcast_sequence += 1;
+        let current_sequence = self.broadcast_sequence;
+
         let client_count = {
             let manager = match handle_rwlock_error(self.client_manager.read()) {
                 Ok(manager) => manager,
@@ -1115,24 +1132,19 @@ impl Handler<BroadcastPositions> for ClientCoordinatorActor {
                     return;
                 }
             };
-            manager.broadcast_with_filter(&msg.positions, &self.node_type_arrays)
+            manager.broadcast_with_filter(&msg.positions, &self.node_type_arrays, current_sequence)
         };
 
         if client_count > 0 {
             self.broadcast_count += 1;
-            self.broadcast_sequence += 1;
-            // Approximate byte size (V3 protocol: 48 bytes per node + 1 header)
-            let approx_bytes = 1 + msg.positions.len() * 48;
+            // Approximate byte size (V5 protocol: 48 bytes per node + 1 header + 8 sequence)
+            let approx_bytes = 1 + 8 + msg.positions.len() * 48;
             self.bytes_sent += approx_bytes as u64;
             self.last_broadcast = Instant::now();
 
-            // Send acknowledgement to GPU actor for backpressure flow control
-            if let Some(ref gpu_addr) = self.gpu_compute_addr {
-                gpu_addr.do_send(PositionBroadcastAck {
-                    correlation_id: self.broadcast_sequence,
-                    clients_delivered: client_count as u32,
-                });
-            }
+            // NOTE: No immediate PositionBroadcastAck here — that was a false ack
+            // (queue-enqueue, not client receipt). Real acks come from ClientBroadcastAck
+            // handler when clients confirm receipt, providing true end-to-end backpressure.
 
             debug!(
                 "Broadcasted {} node positions to {} clients (~{} bytes), seq: {}",

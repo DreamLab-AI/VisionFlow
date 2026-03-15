@@ -1,9 +1,9 @@
 # ============================================================================
-# UNIFIED AGENTIC WORKSTATION - Canonical Build System v3.0
+# UNIFIED AGENTIC WORKSTATION - Canonical Build System v4.0
 # ============================================================================
 #
-# VERSION:     3.0.0
-# UPDATED:     2026-01-31
+# VERSION:     4.0.0
+# UPDATED:     2026-03-12
 # MAINTAINER:  Turbo Flow Development Team
 #
 # This is the CANONICAL Docker build for the unified agentic development
@@ -11,12 +11,15 @@
 #
 # FEATURES:
 #   - CachyOS v3 base (x86-64-v3 optimized)
-#   - Ruflo (formerly Claude Flow) V3 with 62+ skills
+#   - Ruflo (formerly Claude Flow) V4 with 68+ skills
 #   - Multi-user isolation (devuser, gemini-user, openai-user, zai-user)
 #   - NVIDIA GPU support with CUDA 13.x
 #   - Full GUI environment (Hyprland/Openbox + VNC)
 #   - PostgreSQL with RuVector unified memory
 #   - Agentic-QE V3 (51 agents, 12 domains)
+#   - Beads (cross-session memory persistence)
+#   - GitNexus (codebase knowledge graph)
+#   - Agent Teams (collaborative multi-agent workflows)
 #
 # BUILD:
 #   docker build -f Dockerfile.unified -t agentic-workstation:latest .
@@ -30,11 +33,11 @@ FROM cachyos/cachyos-v3:latest
 
 # Build metadata
 LABEL org.opencontainers.image.title="Agentic Workstation"
-LABEL org.opencontainers.image.description="Unified Ruflo V3 Development Environment"
-LABEL org.opencontainers.image.version="3.0.0"
-LABEL org.opencontainers.image.created="2026-01-31"
+LABEL org.opencontainers.image.description="Unified Ruflo V4 Development Environment"
+LABEL org.opencontainers.image.version="4.0.0"
+LABEL org.opencontainers.image.created="2026-03-12"
 LABEL org.opencontainers.image.vendor="Turbo Flow"
-LABEL com.turboflow.skills.count="62"
+LABEL com.turboflow.skills.count="68"
 LABEL com.turboflow.ruflo.version="3.5"
 
 # ============================================================================
@@ -163,6 +166,7 @@ ENV NVCC_PREPEND_FLAGS='-ccbin /usr/bin/g++'
 ENV __NV_PRIME_RENDER_OFFLOAD=1
 ENV __VK_LAYER_NV_optimus=NVIDIA_only
 ENV LIBGL_ALWAYS_INDIRECT=0
+ENV CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 
 # Global PATH for CUDA and Rust (available to all users and processes)
 ENV PATH="/opt/cuda/bin:/usr/lib/rustup/bin:/usr/local/bin:/usr/bin:${PATH}"
@@ -224,8 +228,13 @@ RUN useradd -m -u 1004 -s /usr/bin/zsh deepseek-user && \
     mkdir -p /home/deepseek-user/{workspace,.config/deepseek,.cache} && \
     chown -R deepseek-user:deepseek-user /home/deepseek-user
 
-# Configure sudo for devuser to switch to other users (including deepseek-user for MCP bridges)
-RUN echo "devuser ALL=(gemini-user,openai-user,zai-user,deepseek-user) NOPASSWD: ALL" >> /etc/sudoers
+# Create local-private user (private LLM — Nemotron 3 120B via llama.cpp)
+RUN useradd -m -u 1005 -s /usr/bin/zsh local-private && \
+    mkdir -p /home/local-private/{workspace,.config/local-llm,.cache,.claude} && \
+    chown -R local-private:local-private /home/local-private
+
+# Configure sudo for devuser to switch to other users
+RUN echo "devuser ALL=(gemini-user,openai-user,zai-user,deepseek-user,local-private) NOPASSWD: ALL" >> /etc/sudoers
 
 # ============================================================================
 # PHASE 5: Node.js Global Packages (as root)
@@ -278,6 +287,11 @@ RUN npm install -g \
     typescript@latest \
     ts-node@latest \
     @types/node@latest
+
+# V4 New Systems: Beads (cross-session memory), GitNexus (codebase knowledge graph), OpenSpec
+# NOTE: These packages are planned but not yet published to npm. Skip for now.
+# When available, uncomment: npm install -g beads-cli@latest gitnexus@latest @fission-ai/openspec@latest
+RUN echo "⏭ V4 systems (beads-cli, gitnexus, openspec) - skipped (not yet published to npm)"
 
 # Fix 4/6: Install pg driver in ruflo global package (and legacy claude-flow path)
 RUN cd /usr/local/lib/node_modules/ruflo/node_modules/@claude-flow/cli && npm install pg --save 2>/dev/null || \
@@ -389,6 +403,9 @@ USER root
 # PHASE 8: gemini-user Setup
 # ============================================================================
 
+# Install Google Gemini CLI globally (available to all users, configured for gemini-user)
+RUN npm install -g @google/gemini-cli
+
 USER gemini-user
 WORKDIR /home/gemini-user
 
@@ -397,6 +414,15 @@ RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master
 
 # Install gemini-flow (will be configured with API key at runtime)
 RUN npm install --prefix /home/gemini-user/.local gemini-flow
+
+# Pre-create Gemini CLI config directories (populated at runtime by entrypoint)
+RUN mkdir -p /home/gemini-user/.gemini
+
+# Configure gemini-user .zshrc with Gemini CLI env
+RUN echo '' >> ~/.zshrc && \
+    echo '# Google Gemini CLI' >> ~/.zshrc && \
+    echo 'export PATH="/usr/local/bin:$PATH"' >> ~/.zshrc && \
+    echo '[ -f ~/.gemini/.env ] && export $(grep -v "^#" ~/.gemini/.env | xargs) 2>/dev/null' >> ~/.zshrc
 
 USER root
 
@@ -590,15 +616,20 @@ RUN ln -sf /usr/local/bin/npx /usr/local/bin/claude-flow-npx && \
 RUN mkdir -p /home/devuser/.claude-flow && \
     cat > /home/devuser/.claude-flow/config.json << 'EOF'
 {
-  "version": "3.0.0",
+  "version": "4.0.0",
   "topology": "hierarchical",
   "maxAgents": 8,
   "strategy": "specialized",
   "consensus": "raft",
   "memory": {
-    "backend": "hybrid",
+    "backend": "postgres",
+    "pgConnInfo": "${RUVECTOR_PG_CONNINFO}",
+    "embeddingsProvider": "ruvector-native",
+    "fallbackEmbeddings": "xenova-onnx",
     "hnsw": true,
-    "namespace": "default"
+    "namespace": "default",
+    "beads": true,
+    "threeTier": true
   },
   "neural": {
     "enabled": true,
@@ -608,6 +639,11 @@ RUN mkdir -p /home/devuser/.claude-flow && \
     "preTriggerHooks": true,
     "postTriggerHooks": true,
     "autoLearning": true
+  },
+  "agentTeams": {
+    "enabled": true,
+    "maxTeammates": 3,
+    "recursionDepth": 2
   }
 }
 EOF
@@ -618,6 +654,20 @@ RUN echo '#!/bin/bash\n# Ruflo V3 Quick Access\nexec ruflo "$@"' > /usr/local/bi
     chmod +x /usr/local/bin/rf && \
     echo '#!/bin/bash\n# Claude Flow → Ruflo backwards compat\nexec ruflo "$@"' > /usr/local/bin/cf && \
     chmod +x /usr/local/bin/cf
+
+# ============================================================================
+# PHASE 13.6: Ruflo V4 Plugins (6 development-relevant plugins)
+# ============================================================================
+
+# Install Ruflo plugins that extend core capabilities
+# Removed 9 redundant/domain-specific plugins from V3 (see ADR-001)
+RUN npx ruflo@latest plugins install -n "@claude-flow/plugin-agentic-qe" 2>/dev/null || true && \
+    npx ruflo@latest plugins install -n "@claude-flow/plugin-code-intelligence" 2>/dev/null || true && \
+    npx ruflo@latest plugins install -n "@claude-flow/plugin-test-intelligence" 2>/dev/null || true && \
+    npx ruflo@latest plugins install -n "@claude-flow/plugin-perf-optimizer" 2>/dev/null || true && \
+    npx ruflo@latest plugins install -n "@claude-flow/teammate-plugin" 2>/dev/null || true && \
+    npx ruflo@latest plugins install -n "@claude-flow/plugin-gastown-bridge" 2>/dev/null || true && \
+    echo "✓ Ruflo V4 plugins installed (6/6)"
 
 # ============================================================================
 # PHASE 14: REMOVED - ComfyUI now runs as external Docker container
@@ -661,6 +711,11 @@ COPY --chown=root:root multi-agent-docker/unified-config/scripts/ /usr/local/bin
 RUN chmod 755 /usr/local/bin/*.sh && \
     ls -la /usr/local/bin/generate-mcp-settings.sh 2>/dev/null && \
     echo "✓ MCP settings generator installed" || true
+
+# Copy local LLM proxy script (Anthropic-to-OpenAI translation for llama.cpp)
+RUN mkdir -p /opt/scripts
+COPY --chown=root:root multi-agent-docker/unified-config/scripts/local-llm-proxy.mjs /opt/scripts/local-llm-proxy.mjs
+RUN chmod 755 /opt/scripts/local-llm-proxy.mjs
 
 # Create SSH directory structure (will be mounted at runtime)
 RUN mkdir -p /home/devuser/.ssh && \
@@ -714,6 +769,12 @@ COPY --chown=devuser:devuser multi-agent-docker/unified-config/claude-flow-confi
 
 # Copy RuVector Initialization SQL
 COPY --chown=devuser:devuser multi-agent-docker/unified-config/init-ruvector.sql /home/devuser/.claude-flow/init-ruvector.sql
+
+# Copy PG Memory Bridge + patched memory modules (routes MCP memory ops to PostgreSQL)
+COPY --chown=root:root multi-agent-docker/unified-config/ruflo-pg-memory-bridge.js /opt/config/ruflo-pg-memory-bridge.js
+COPY --chown=root:root multi-agent-docker/unified-config/ruflo-memory-initializer-pg.js /opt/config/ruflo-memory-initializer-pg.js
+COPY --chown=root:root multi-agent-docker/unified-config/ruflo-memory-bridge-pg.js /opt/config/ruflo-memory-bridge-pg.js
+COPY --chown=root:root multi-agent-docker/unified-config/ruflo-memory-tools-pg.js /opt/config/ruflo-memory-tools-pg.js
 
 # Copy Statusline with Guidance Indicator (Fix 6: Guidance Control Plane)
 RUN mkdir -p /opt/unified-config

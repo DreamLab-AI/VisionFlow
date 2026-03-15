@@ -50,6 +50,7 @@ services:
       - ORCHESTRATOR_WS_URL=ws://mcp-orchestrator:9001/ws
       - MCP_RELAY_FALLBACK_TO_MOCK=true
       - BOTS_ORCHESTRATOR_URL=ws://agentic-workstation:3002
+      - SETTINGS_AUTH_BYPASS=true
       - MANAGEMENT_API_HOST=agentic-workstation
       - MANAGEMENT_API_PORT=9090
       - FORCE_FULL_SYNC=0

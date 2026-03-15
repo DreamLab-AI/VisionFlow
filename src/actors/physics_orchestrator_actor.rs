@@ -316,56 +316,10 @@ impl PhysicsOrchestratorActor {
         let step_time = start_time.elapsed();
         self.update_performance_metrics(step_time);
 
-        // FastSettle convergence check: use kinetic energy from cached physics stats.
-        if let SettleMode::FastSettle {
-            max_settle_iterations,
-            energy_threshold,
-            ..
-        } = self.simulation_params.settle_mode
-        {
-            self.fast_settle_iteration_count += 1;
-
-            let energy = self
-                .physics_stats
-                .as_ref()
-                .map(|s| s.kinetic_energy as f64)
-                .unwrap_or(f64::MAX);
-
-            let converged = energy < energy_threshold;
-            let exhausted = self.fast_settle_iteration_count >= max_settle_iterations;
-
-            if converged || exhausted {
-                self.fast_settle_complete = true;
-                self.simulation_params.is_physics_paused = true;
-
-                // Restore original damping so that if the user switches to Continuous
-                // later, the value is sensible.
-                if let Some(original_damping) = self.pre_settle_damping.take() {
-                    self.simulation_params.damping = original_damping;
-                    self.target_params.damping = original_damping;
-                }
-
-                if converged {
-                    info!(
-                        "PhysicsOrchestratorActor: FastSettle converged after {} iterations (energy={:.6} < threshold={:.6})",
-                        self.fast_settle_iteration_count, energy, energy_threshold
-                    );
-                } else {
-                    info!(
-                        "PhysicsOrchestratorActor: FastSettle reached iteration cap {} (energy={:.6}, threshold={:.6})",
-                        max_settle_iterations, energy, energy_threshold
-                    );
-                }
-
-                self.broadcast_physics_paused();
-            } else if self.fast_settle_iteration_count % 100 == 0 {
-                debug!(
-                    "PhysicsOrchestratorActor: FastSettle progress: iter={}/{}, energy={:.6}",
-                    self.fast_settle_iteration_count, max_settle_iterations, energy
-                );
-            }
-        } else {
-            // Continuous mode: use existing equilibrium auto-pause logic.
+        // Convergence for FastSettle is now checked in PhysicsStepCompleted handler
+        // (after GPU returns fresh KE), eliminating the one-step overshoot.
+        // Continuous mode still checks equilibrium here.
+        if matches!(self.simulation_params.settle_mode, SettleMode::Continuous) {
             self.check_equilibrium_and_auto_pause();
         }
 
@@ -728,14 +682,13 @@ impl PhysicsOrchestratorActor {
 
     
     fn broadcast_physics_paused(&self) {
-        
-        debug!("Broadcasting physics paused event");
+        info!("PhysicsOrchestratorActor: Physics settled/paused — server idle until next param change or interaction");
+        // The final position broadcast is triggered separately (via ComputeForces).
+        // Clients detect settled state when position updates stop arriving.
     }
 
-    
     fn broadcast_physics_resumed(&self) {
-        
-        debug!("Broadcasting physics resumed event");
+        info!("PhysicsOrchestratorActor: Physics resumed — new settle cycle started");
     }
 
     
@@ -1104,16 +1057,31 @@ impl Handler<UpdateNodePositions> for PhysicsOrchestratorActor {
             if now.duration_since(self.last_broadcast_time) >= broadcast_interval {
                 self.last_broadcast_time = now;
 
+                // Apply user pinning — override GPU positions for nodes being dragged
                 let client_positions: Vec<BinaryNodeDataClient> = msg.positions
                     .iter()
-                    .map(|(node_id, data)| BinaryNodeDataClient {
-                        node_id: *node_id,
-                        x: data.x,
-                        y: data.y,
-                        z: data.z,
-                        vx: data.vx,
-                        vy: data.vy,
-                        vz: data.vz,
+                    .map(|(node_id, data)| {
+                        if let Some(&(pin_x, pin_y, pin_z)) = self.user_pinned_nodes.get(node_id) {
+                            BinaryNodeDataClient {
+                                node_id: *node_id,
+                                x: pin_x,
+                                y: pin_y,
+                                z: pin_z,
+                                vx: 0.0,
+                                vy: 0.0,
+                                vz: 0.0,
+                            }
+                        } else {
+                            BinaryNodeDataClient {
+                                node_id: *node_id,
+                                x: data.x,
+                                y: data.y,
+                                z: data.z,
+                                vx: data.vx,
+                                vy: data.vy,
+                                vz: data.vz,
+                            }
+                        }
                     })
                     .collect();
 
@@ -1124,8 +1092,8 @@ impl Handler<UpdateNodePositions> for PhysicsOrchestratorActor {
 
                 if self.current_iteration % 300 == 0 {
                     info!(
-                        "PhysicsOrchestratorActor: Broadcasted {} GPU-computed positions to clients (step {})",
-                        node_count, self.current_iteration
+                        "PhysicsOrchestratorActor: Broadcasted {} GPU-computed positions to clients (step {}, {} pinned)",
+                        node_count, self.current_iteration, self.user_pinned_nodes.len()
                     );
                 }
             }
@@ -1251,7 +1219,7 @@ impl Handler<StoreGPUComputeAddress> for PhysicsOrchestratorActor {
 impl Handler<UpdateSimulationParams> for PhysicsOrchestratorActor {
     type Result = Result<(), String>;
 
-    fn handle(&mut self, msg: UpdateSimulationParams, _ctx: &mut Self::Context) -> Self::Result {
+    fn handle(&mut self, msg: UpdateSimulationParams, ctx: &mut Self::Context) -> Self::Result {
         info!("Updating simulation parameters");
 
         let auto_balance_just_enabled =
@@ -1260,24 +1228,82 @@ impl Handler<UpdateSimulationParams> for PhysicsOrchestratorActor {
         // Detect settle_mode change so we can reset the fast-settle state.
         let settle_mode_changed = self.simulation_params.settle_mode != msg.params.settle_mode;
 
+        // Detect if any physics-relevant params actually changed (not just meta fields).
+        let physics_changed = {
+            let cur = &self.simulation_params;
+            let new = &msg.params;
+            let eps = 1e-5_f32;
+            (cur.spring_k - new.spring_k).abs() > eps
+                || (cur.repel_k - new.repel_k).abs() > eps
+                || (cur.damping - new.damping).abs() > eps
+                || (cur.dt - new.dt).abs() > eps
+                || (cur.max_velocity - new.max_velocity).abs() > eps
+                || (cur.max_force - new.max_force).abs() > eps
+                || (cur.center_gravity_k - new.center_gravity_k).abs() > eps
+                || (cur.temperature - new.temperature).abs() > eps
+                || (cur.cluster_strength - new.cluster_strength).abs() > eps
+                || (cur.alignment_strength - new.alignment_strength).abs() > eps
+                || (cur.separation_radius - new.separation_radius).abs() > eps
+                || (cur.cooling_rate - new.cooling_rate).abs() > eps
+                || (cur.viewport_bounds - new.viewport_bounds).abs() > eps
+                || cur.use_sssp_distances != new.use_sssp_distances
+        };
+
         self.target_params = msg.params.clone();
 
-        self.simulation_params.enabled = msg.params.enabled;
-        self.simulation_params.auto_balance = msg.params.auto_balance;
-        self.simulation_params.auto_balance_config = msg.params.auto_balance_config.clone();
-        self.simulation_params.auto_pause_config = msg.params.auto_pause_config.clone();
-        self.simulation_params.settle_mode = msg.params.settle_mode;
+        // Preserve transient state fields that are managed by the orchestrator,
+        // not by user settings.
+        let saved_is_physics_paused = self.simulation_params.is_physics_paused;
+        let saved_equilibrium_counter = self.simulation_params.equilibrium_stability_counter;
+        let saved_phase = self.simulation_params.phase;
+        let saved_mode = self.simulation_params.mode;
+
+        // Copy ALL fields from the incoming params, then restore transient state.
+        self.simulation_params = msg.params.clone();
+        self.simulation_params.is_physics_paused = saved_is_physics_paused;
+        self.simulation_params.equilibrium_stability_counter = saved_equilibrium_counter;
+        self.simulation_params.phase = saved_phase;
+        self.simulation_params.mode = saved_mode;
 
         if auto_balance_just_enabled {
             self.auto_balance_last_check = None;
         }
 
-        // Reset fast-settle state when the settle mode is changed so a new
-        // convergence cycle starts with the updated configuration.
-        if settle_mode_changed {
+        // Reset fast-settle state when settle mode changed OR physics params changed.
+        // This triggers a new convergence cycle under the updated force parameters.
+        if settle_mode_changed || physics_changed {
             self.fast_settle_iteration_count = 0;
             self.fast_settle_complete = false;
-            info!("PhysicsOrchestratorActor: settle_mode changed, resetting fast-settle state");
+            info!(
+                "PhysicsOrchestratorActor: Resetting fast-settle state (settle_mode_changed={}, physics_changed={})",
+                settle_mode_changed, physics_changed
+            );
+
+            // If physics was paused (from previous settle or equilibrium), unpause
+            // and restart the pipeline so the GPU can re-converge under new params.
+            if self.simulation_params.is_physics_paused {
+                self.simulation_params.is_physics_paused = false;
+                info!("PhysicsOrchestratorActor: Unpausing physics for new settle cycle");
+            }
+
+            // Choose pipeline interval based on current settle mode.
+            match &self.simulation_params.settle_mode {
+                SettleMode::FastSettle { .. } => {
+                    self.pipeline_target_interval = Duration::ZERO;
+                }
+                SettleMode::Continuous => {
+                    self.pipeline_target_interval = Duration::from_millis(16);
+                }
+            }
+
+            // Re-kick the sequential pipeline to start the new settle cycle.
+            // Force-clear pipeline_step_pending: the in-flight step was computed under
+            // OLD params and its PhysicsStepCompleted may arrive with stale KE.
+            // Without this, schedule_next_pipeline_step silently drops the re-kick.
+            self.pipeline_step_pending = false;
+            if self.simulation_running.load(Ordering::SeqCst) && self.gpu_initialized {
+                self.schedule_next_pipeline_step(ctx, Duration::ZERO);
+            }
         }
 
         // NOTE: Do NOT send UpdateGPUGraphData here. The settings route already sends
@@ -1286,8 +1312,8 @@ impl Handler<UpdateSimulationParams> for PhysicsOrchestratorActor {
         // GPU positions with the stored initial positions, causing a visible position reset.
 
         info!(
-            "Physics parameters updated - repel_k: {}, damping: {}",
-            self.target_params.repel_k, self.target_params.damping
+            "Physics parameters updated - repel_k: {}, damping: {}, center_gravity_k: {}",
+            self.target_params.repel_k, self.target_params.damping, self.target_params.center_gravity_k
         );
 
         Ok(())
@@ -1492,6 +1518,31 @@ impl Handler<crate::actors::messages::PhysicsStepCompleted> for PhysicsOrchestra
         let step_duration = Duration::from_secs_f32(msg.step_duration_ms / 1000.0);
         self.update_performance_metrics(step_duration);
 
+        // Wire live GPU kinetic energy into physics_stats so the convergence
+        // controller in physics_step() sees real values instead of stale/empty data.
+        {
+            let stats = self.physics_stats.get_or_insert_with(|| {
+                PhysicsStats {
+                    iteration_count: 0,
+                    gpu_failure_count: 0,
+                    current_params: self.simulation_params.clone(),
+                    compute_mode: crate::utils::unified_gpu_compute::ComputeMode::Basic,
+                    nodes_count: 0,
+                    edges_count: 0,
+                    average_velocity: 0.0,
+                    kinetic_energy: 0.0,
+                    total_forces: 0.0,
+                    last_step_duration_ms: 0.0,
+                    fps: 0.0,
+                    num_edges: 0,
+                    total_force_calculations: 0,
+                }
+            });
+            stats.kinetic_energy = msg.kinetic_energy as f32;
+            stats.iteration_count = msg.iteration;
+            stats.last_step_duration_ms = msg.step_duration_ms;
+        }
+
         if !self.simulation_running.load(Ordering::SeqCst) {
             return;
         }
@@ -1505,6 +1556,75 @@ impl Handler<crate::actors::messages::PhysicsStepCompleted> for PhysicsOrchestra
         // steps.  The pipeline will be re-kicked when physics resumes.
         if self.simulation_params.is_physics_paused {
             return;
+        }
+
+        // --- FastSettle convergence check (evaluated HERE, not in physics_step()) ---
+        // physics_stats were JUST updated from the completed GPU step, so KE is fresh.
+        // Checking here instead of in physics_step() eliminates the one-step overshoot
+        // where a new GPU step was dispatched before convergence was detected.
+        //
+        // MINIMUM WARMUP: The first ~50 iterations after a param change may carry KE
+        // from steps computed under OLD parameters (pipeline was already in flight when
+        // UpdateSimulationParams arrived). Without this guard, a system at equilibrium
+        // under old params (KE≈0) would falsely converge on the first step.
+        const MIN_SETTLE_WARMUP: u32 = 50;
+
+        if let SettleMode::FastSettle {
+            max_settle_iterations,
+            energy_threshold,
+            ..
+        } = self.simulation_params.settle_mode
+        {
+            self.fast_settle_iteration_count += 1;
+
+            let energy = self
+                .physics_stats
+                .as_ref()
+                .map(|s| s.kinetic_energy as f64)
+                .unwrap_or(f64::MAX);
+
+            let past_warmup = self.fast_settle_iteration_count >= MIN_SETTLE_WARMUP;
+            let converged = past_warmup && energy < energy_threshold;
+            let exhausted = self.fast_settle_iteration_count >= max_settle_iterations;
+
+            if converged || exhausted {
+                self.fast_settle_complete = true;
+                self.simulation_params.is_physics_paused = true;
+
+                if let Some(original_damping) = self.pre_settle_damping.take() {
+                    self.simulation_params.damping = original_damping;
+                    self.target_params.damping = original_damping;
+                }
+
+                if converged {
+                    info!(
+                        "PhysicsOrchestratorActor: FastSettle converged after {} iterations (energy={:.6} < threshold={:.6})",
+                        self.fast_settle_iteration_count, energy, energy_threshold
+                    );
+                } else {
+                    info!(
+                        "PhysicsOrchestratorActor: FastSettle reached iteration cap {} (energy={:.6}, threshold={:.6})",
+                        max_settle_iterations, energy, energy_threshold
+                    );
+                }
+
+                // Pure snapshot broadcast: clients get final converged positions
+                // without running another integration step.
+                if let Some(ref gpu_addr) = self.gpu_compute_addr {
+                    use crate::actors::gpu::force_compute_actor::ForceFullBroadcast;
+                    info!("PhysicsOrchestratorActor: Sending ForceFullBroadcast after settle convergence (pure snapshot)");
+                    gpu_addr.do_send(ForceFullBroadcast);
+                }
+
+                self.broadcast_physics_paused();
+                // Do NOT schedule another step — settling is complete.
+                return;
+            } else if self.fast_settle_iteration_count % 100 == 0 {
+                debug!(
+                    "PhysicsOrchestratorActor: FastSettle progress: iter={}/{}, energy={:.6}",
+                    self.fast_settle_iteration_count, max_settle_iterations, energy
+                );
+            }
         }
 
         // Compute remaining time in the target interval.

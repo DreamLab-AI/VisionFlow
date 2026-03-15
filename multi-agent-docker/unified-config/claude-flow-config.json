@@ -2,6 +2,7 @@
   "version": "3.0.0",
   "memory": {
     "backend": "postgres",
+    "pgConnInfo": "${RUVECTOR_PG_CONNINFO}",
     "postgres": {
       "host": "ruvector-postgres",
       "port": 5432,
@@ -12,6 +13,8 @@
       "connectionTimeout": 10000,
       "maxConnections": 20
     },
+    "embeddingsProvider": "ruvector-native",
+    "fallbackEmbeddings": "xenova-onnx",
     "fallback": "sqlite",
     "enableHNSW": true,
     "cacheSize": 256,

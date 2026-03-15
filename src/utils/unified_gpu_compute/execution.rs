@@ -572,4 +572,28 @@ impl UnifiedGPUCompute {
 
         Ok((vel_x, vel_y, vel_z))
     }
+
+    /// Inject random velocity perturbation to break equilibrium after param changes.
+    /// `factor` scales magnitude (0.3 = mild re-layout, 1.0 = strong shake).
+    pub fn inject_velocity_perturbation(&mut self, factor: f32) -> Result<()> {
+        use rand::Rng;
+        let mut rng = rand::thread_rng();
+        let n = self.num_nodes.min(self.allocated_nodes);
+        let mut vx = vec![0.0f32; self.allocated_nodes];
+        let mut vy = vec![0.0f32; self.allocated_nodes];
+        let mut vz = vec![0.0f32; self.allocated_nodes];
+        self.vel_in_x.copy_to(&mut vx)?;
+        self.vel_in_y.copy_to(&mut vy)?;
+        self.vel_in_z.copy_to(&mut vz)?;
+        let magnitude = factor * 2.0;
+        for i in 0..n {
+            vx[i] += rng.gen_range(-magnitude..magnitude);
+            vy[i] += rng.gen_range(-magnitude..magnitude);
+            vz[i] += rng.gen_range(-magnitude..magnitude);
+        }
+        self.vel_in_x.copy_from(&vx)?;
+        self.vel_in_y.copy_from(&vy)?;
+        self.vel_in_z.copy_from(&vz)?;
+        Ok(())
+    }
 }

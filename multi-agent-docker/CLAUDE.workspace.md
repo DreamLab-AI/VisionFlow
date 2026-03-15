@@ -1,5 +1,8 @@
 # Turbo Flow Workspace
 
+## TurboFlow V4.0
+Orchestration: Ruflo v3.5 | Memory: Three-tier (Beads > Tasks > AgentDB) | Isolation: Git worktrees
+
 ## Discovery
 ```bash
 claude-flow doctor          # System diagnostics

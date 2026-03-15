@@ -233,13 +233,37 @@ tmux send-keys -t workspace:11 "echo '  npx agentic-flow --help'" C-m
 tmux send-keys -t workspace:11 "echo ''" C-m
 
 # ============================================================================
+# Window 12: LocalLLM-Shell - Private local LLM (Nemotron 3 120B)
+# ============================================================================
+
+tmux new-window -t workspace:12 -n "LocalLLM" -c "/home/local-private/workspace"
+tmux send-keys -t workspace:12 "sudo -u local-private -i" C-m
+tmux send-keys -t workspace:12 "clear" C-m
+tmux send-keys -t workspace:12 "echo '=== Local Private LLM Shell ==='" C-m
+tmux send-keys -t workspace:12 "echo 'Switched to: local-private (UID 1005)'" C-m
+tmux send-keys -t workspace:12 "echo ''" C-m
+tmux send-keys -t workspace:12 "echo 'Nemotron 3 Super 120B (A12B MoE, IQ4_XS, 262k context)'" C-m
+tmux send-keys -t workspace:12 "echo 'Endpoint: http://${LOCAL_LLM_HOST:-192.168.2.48}:${LOCAL_LLM_PORT:-8080}/v1'" C-m
+tmux send-keys -t workspace:12 "echo ''" C-m
+tmux send-keys -t workspace:12 "echo 'Commands:'" C-m
+tmux send-keys -t workspace:12 "echo '  llm-health          - Check server health'" C-m
+tmux send-keys -t workspace:12 "echo '  llm-models          - List loaded models'" C-m
+tmux send-keys -t workspace:12 "echo '  llm-ask \"question\"  - Quick chat completion'" C-m
+tmux send-keys -t workspace:12 "echo ''" C-m
+tmux send-keys -t workspace:12 "echo 'Claude CLI (via agentic-flow proxy on port 3100):'" C-m
+tmux send-keys -t workspace:12 "echo '  proxy-start         - Start Anthropic→OpenAI proxy'" C-m
+tmux send-keys -t workspace:12 "echo '  proxy-status        - Check proxy status'" C-m
+tmux send-keys -t workspace:12 "echo '  claude              - Claude CLI (auto-routes to Nemotron)'" C-m
+tmux send-keys -t workspace:12 "echo ''" C-m
+
+# ============================================================================
 # Select the first window (Claude-Main)
 # ============================================================================
 
 tmux select-window -t workspace:0
 
-echo "✅ TMux workspace 'workspace' created successfully with 12 windows!"
-echo "📝 Windows:"
+echo "TMux workspace 'workspace' created successfully with 13 windows!"
+echo "Windows:"
 echo "   0: Claude-Main     - Primary Claude Code workspace"
 echo "   1: Claude-Agent    - Agent execution and testing"
 echo "   2: Services        - Supervisord monitoring"
@@ -252,6 +276,7 @@ echo "   8: Gemini-Shell    - Gemini user (UID 1001)"
 echo "   9: OpenAI-Shell    - OpenAI user (UID 1002)"
 echo "  10: ZAI-Shell       - Z.AI user (UID 1003)"
 echo "  11: DeepSeek-Shell  - DeepSeek user (UID 1004)"
+echo "  12: LocalLLM        - Local private LLM (UID 1005)"
 echo ""
 echo "To attach: tmux attach-session -t workspace"
-echo "To navigate: Ctrl+B then window number (0-9, then :10, :11)"
+echo "To navigate: Ctrl+B then window number (0-9, then :10, :11, :12)"

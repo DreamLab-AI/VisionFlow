@@ -79,7 +79,6 @@ export const GlassEdges = forwardRef<GlassEdgesHandle, GlassEdgesProps>(
     const meshRef = useRef<THREE.InstancedMesh | null>(null);
     const edgeRevealRef = useRef(0);
     const totalEdgesRef = useRef(0);
-    const edgeDataHashRef = useRef('');
     const EDGE_REVEAL_BATCH = 80;
 
     const { mesh, uniforms } = useMemo(() => {
@@ -130,16 +129,14 @@ export const GlassEdges = forwardRef<GlassEdgesHandle, GlassEdgesProps>(
       mat.needsUpdate = true;
     }, [gemSettings, mesh]);
 
-    // Recompute when points prop changes -- reset progressive reveal and dirty flag
+    // Recompute when points prop changes -- reset progressive reveal
     useEffect(() => {
       if (points.length >= 6) {
         totalEdgesRef.current = Math.min(Math.floor(points.length / 6), MAX_EDGES);
         edgeRevealRef.current = 0; // Reset for progressive reveal in useFrame
-        edgeDataHashRef.current = ''; // Force recompute on next reveal cycle
       } else {
         mesh.count = 0;
         totalEdgesRef.current = 0;
-        edgeDataHashRef.current = '';
         mesh.instanceMatrix.needsUpdate = true;
       }
     }, [points, mesh]);
@@ -159,22 +156,21 @@ export const GlassEdges = forwardRef<GlassEdgesHandle, GlassEdgesProps>(
     }, [mesh]);
 
     // Imperative path for hot-loop updates from useFrame callers.
-    // Uses dirty-flag hash to skip redundant GPU uploads when edge data
-    // hasn't actually changed (the common case for static graphs).
+    // Always recompute instance matrices when called — the caller
+    // (GraphManager useFrame) already controls call frequency.
+    // Previous hash-based dedup (`${len}-first-last`) was too coarse:
+    // it only sampled 3 values, causing edges to freeze when those
+    // specific values were stable while interior edge positions changed.
     const updatePoints = useCallback(
       (newPts: number[], count?: number) => {
         const len = count ?? newPts.length;
         if (len < 6) {
-          if (edgeDataHashRef.current !== '') {
-            edgeDataHashRef.current = '';
+          if (mesh.count !== 0) {
             mesh.count = 0;
             mesh.instanceMatrix.needsUpdate = true;
           }
           return;
         }
-        const hash = `${len}-${newPts[0]}-${newPts[len - 1]}`;
-        if (hash === edgeDataHashRef.current) return;
-        edgeDataHashRef.current = hash;
         computeInstanceMatrices(mesh, newPts, undefined, len);
       },
       [mesh],
@@ -189,21 +185,13 @@ export const GlassEdges = forwardRef<GlassEdgesHandle, GlassEdgesProps>(
         mat.emissiveIntensity = 0.15 + Math.sin(clock.elapsedTime * 0.8) * 0.08;
       }
 
-      // Progressive edge reveal: ramp up each frame
+      // Progressive edge reveal: ramp up each frame (initial prop-based load only)
       if (edgeRevealRef.current < totalEdgesRef.current && points.length >= 6) {
         edgeRevealRef.current = Math.min(
           edgeRevealRef.current + EDGE_REVEAL_BATCH,
           totalEdgesRef.current,
         );
         computeInstanceMatrices(mesh, points, edgeRevealRef.current);
-        // Update hash after progressive reveal completes so imperative path
-        // can detect unchanged data and skip redundant GPU uploads.
-        if (edgeRevealRef.current >= totalEdgesRef.current) {
-          const pts = points;
-          edgeDataHashRef.current = pts.length >= 6
-            ? `${pts.length}-${pts[0]}-${pts[pts.length - 1]}`
-            : '';
-        }
       }
     });
 

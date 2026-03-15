@@ -232,9 +232,9 @@ class GraphWorker {
   //   lerpBase=0.0001 → factor≈0.14 (near-instant)
   private tweenSettings = {
     enabled: true,
-    lerpBase: 0.0001,     // Near-instant convergence — eliminates visible lag
+    lerpBase: 0.003,      // ~200ms smooth settle — clients interpolate to server targets
     snapThreshold: 0.05,  // Snap when within 0.05 units (sub-pixel)
-    maxDivergence: 50.0,  // Force snap on large jumps
+    maxDivergence: 50.0,  // Force snap on large jumps (topology change)
   };
   private positionBuffer: SharedArrayBuffer | null = null;
   private positionView: Float32Array | null = null;

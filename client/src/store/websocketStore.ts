@@ -4,7 +4,7 @@ import { createLogger, createErrorMetadata } from '../utils/loggerConfig';
 import { debugState } from '../utils/clientDebugState';
 import { useSettingsStore } from './settingsStore';
 import { graphDataManager } from '../features/graph/managers/graphDataManager';
-import { parseBinaryNodeData, isAgentNode, BinaryNodeData, getNodeType, getActualNodeId, NodeType } from '../types/binaryProtocol';
+import { parseBinaryNodeData, parseBinaryFrameData, isAgentNode, BinaryNodeData, getNodeType, getActualNodeId, NodeType, PROTOCOL_V2, PROTOCOL_V3, PROTOCOL_V5 } from '../types/binaryProtocol';
 import { NodePositionBatchQueue, createWebSocketBatchProcessor } from '../utils/BatchQueue';
 import { validateNodePositions, createValidationMiddleware } from '../utils/validation';
 import {
@@ -706,14 +706,17 @@ export const useWebSocketStore = create<WebSocketState>()(
     const handleLegacyBinaryData = async (data: ArrayBuffer) => {
       const estimatedNodeCount = Math.floor(data.byteLength / 28);
 
-      // P2 PERFORMANCE FIX: Parse once and reuse for bot detection.
-      let parsedNodes: BinaryNodeData[] | null = null;
+      // P2 PERFORMANCE FIX: Parse once via parseBinaryFrameData to get both nodes
+      // and the server's authoritative broadcast sequence (V5 frames).
+      let frame: ReturnType<typeof parseBinaryFrameData>;
       try {
-        parsedNodes = parseBinaryNodeData(data);
+        frame = parseBinaryFrameData(data);
       } catch (error) {
         logger.error('Error parsing legacy binary data:', createErrorMetadata(error));
         return;
       }
+
+      const parsedNodes = frame.nodes;
 
       // Build per-node type map from binary protocol flags (legacy path)
       updateNodeTypeMapFromParsed(parsedNodes);
@@ -744,8 +747,11 @@ export const useWebSocketStore = create<WebSocketState>()(
       }
 
       positionUpdateSequence++;
+      // Use server's authoritative broadcast sequence when available (V5),
+      // fall back to local counter for V3 backward compatibility.
+      const ackSequence = frame.broadcastSequence ?? positionUpdateSequence;
       if (positionUpdateSequence - lastAckSentSequence >= ACK_BATCH_SIZE) {
-        sendPositionAck(positionUpdateSequence, estimatedNodeCount);
+        sendPositionAck(ackSequence, estimatedNodeCount);
         lastAckSentSequence = positionUpdateSequence;
       }
     };
@@ -773,6 +779,23 @@ export const useWebSocketStore = create<WebSocketState>()(
       try {
         if (debugState.isDataDebugEnabled()) {
           logger.debug(`Processing binary data: ${data.byteLength} bytes`);
+        }
+
+        // Detect raw position frames: the server sends position data without a message
+        // framing header. Byte 0 is the binary protocol version (2, 3, or 5), not a
+        // MessageType. Route these directly to the position handler.
+        if (data.byteLength >= 1) {
+          const firstByte = new DataView(data).getUint8(0);
+          if (firstByte === PROTOCOL_V2 || firstByte === PROTOCOL_V3 || firstByte === PROTOCOL_V5) {
+            await handleLegacyBinaryData(data);
+
+            binaryMessageHandlers.forEach(handler => {
+              try { handler(data); } catch (error) {
+                logger.error('Error in binary message handler:', createErrorMetadata(error));
+              }
+            });
+            return;
+          }
         }
 
         const header = binaryProtocol.parseHeader(data);

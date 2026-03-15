@@ -230,6 +230,42 @@ check_prerequisites() {
     success "Prerequisites check complete"
 }
 
+# Detect Docker-in-Docker and compute host paths for bind mounts
+detect_dind() {
+    if [ -f /.dockerenv ] || grep -qsm1 'docker\|containerd' /proc/1/cgroup 2>/dev/null; then
+        info "Docker-in-Docker detected — resolving host paths for bind mounts"
+        # Find our container's name by matching hostname or known container name
+        local my_container="${HOSTNAME:-}"
+        if [ -z "$my_container" ] || ! docker inspect "$my_container" &>/dev/null; then
+            # Fallback: find container whose workspace mounts match our path
+            my_container=$(docker ps --format '{{.Names}}' | while read -r name; do
+                docker inspect "$name" --format '{{range .Mounts}}{{if eq .Destination "/home/devuser/workspace"}}{{$.Name}}{{end}}{{end}}' 2>/dev/null
+            done | head -1)
+        fi
+        if [ -n "$my_container" ]; then
+            # Check if the project directory has its own separate mount (e.g. mldata)
+            local host_project
+            host_project=$(docker inspect "$my_container" --format '{{range .Mounts}}{{if eq .Destination "/home/devuser/workspace/project"}}{{.Source}}{{end}}{{end}}' 2>/dev/null)
+            if [ -n "$host_project" ]; then
+                export HOST_PROJECT_ROOT="$host_project"
+                success "Host project root (dedicated mount): $HOST_PROJECT_ROOT"
+                return 0
+            fi
+            # Fallback: project is inside the workspace volume
+            local host_workspace
+            host_workspace=$(docker inspect "$my_container" --format '{{range .Mounts}}{{if eq .Destination "/home/devuser/workspace"}}{{.Source}}{{end}}{{end}}' 2>/dev/null)
+            if [ -n "$host_workspace" ]; then
+                export HOST_PROJECT_ROOT="${host_workspace}/project"
+                success "Host project root (workspace volume): $HOST_PROJECT_ROOT"
+                return 0
+            fi
+        fi
+        warning "Could not determine host path — bind mounts may fail"
+    fi
+    # Not DinD or detection failed: use relative paths (compose default)
+    export HOST_PROJECT_ROOT="."
+}
+
 # Detect and validate GPU
 detect_gpu() {
     log "Detecting GPU..."
@@ -1039,6 +1075,7 @@ main() {
     case "$COMMAND" in
         up)
             check_prerequisites
+            detect_dind
             detect_gpu
             if [[ "$WITH_AGENT" == "true" ]]; then
                 info "Starting with --with-agent flag"
@@ -1052,11 +1089,13 @@ main() {
             ;;
         build)
             check_prerequisites
+            detect_dind
             detect_gpu
             build_containers
             ;;
         rebuild)
             check_prerequisites
+            detect_dind
             detect_gpu
             # Explicit rebuild: clean all cargo caches and --no-cache image build
             clean_cargo_volumes
@@ -1070,6 +1109,7 @@ main() {
             ;;
         restart)
             check_prerequisites
+            detect_dind
             detect_gpu
             if [[ "$WITH_AGENT" == "true" ]]; then
                 info "Restarting with --with-agent flag"

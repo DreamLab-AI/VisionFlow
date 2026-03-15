@@ -60,8 +60,8 @@ $ARGUMENTS
 ```javascript
 // Initialize system (REQUIRED FIRST)
 Bash("mkdir -p docs/{specification,ddd,adr,sparc,implementation/{milestones,epics,tasks},testing,design/mockups}")
-Bash("npx @claude-flow/cli@latest init --no-color 2>/dev/null || true")
-Bash("npx @claude-flow/cli@latest memory init --force --no-color 2>/dev/null || true")
+Bash("ruflo init --no-color 2>/dev/null || true")
+Bash("ruflo memory init --force --no-color 2>/dev/null || true")
 
 // Spawn ALL documentation agents in PARALLEL (foreground mode)
 // They all run concurrently and block until ALL complete
@@ -313,7 +313,7 @@ This INDEX.md becomes THE SINGLE SOURCE OF TRUTH for implementation.
 if ("$ARGUMENTS" includes "--build") {
 
   // Step 1: Initialize swarm with mesh topology
-  Bash("npx @claude-flow/cli@latest swarm init --topology mesh --strategy adaptive --no-color 2>/dev/null || true")
+  Bash("ruflo swarm init --topology mesh --strategy adaptive --no-color 2>/dev/null || true")
 
   // Step 2: Spawn build swarm agents in BACKGROUND (parallel execution)
   // They will execute the build using all ADRs and DDDrs as reference

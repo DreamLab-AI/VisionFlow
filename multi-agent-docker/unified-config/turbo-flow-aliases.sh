@@ -1,296 +1,251 @@
 #!/bin/bash
-# TURBO FLOW ALIASES v12 (GPT-5.4 Codex first-class citizen)
-# Source this file or add to your shell profile: source turbo-flow-aliases.sh
+# ============================================================================
+# TurboFlow V4 Aliases — Comprehensive Shell UX
+# ============================================================================
+# VERSION: 4.0.0  |  UPDATED: 2026-03-12
+#
+# Alias families:
+#   rf-*      Ruflo orchestration (replaces cf-*)
+#   bd-*      Beads cross-session memory
+#   wt-*      Git worktree agent isolation
+#   gnx-*     GitNexus codebase knowledge graph
+#   aqe-*     Agentic QE quality engineering
+#   mem-*     Memory (ruflo native)
+#   hooks-*   Intelligence hooks
+#   neural-*  Neural patterns
+#   ruv-*     RuVector/AgentDB
+#   os-*      OpenSpec
+#
+# Backwards compat: cf-* aliases still work (mapped to rf-*)
+# ============================================================================
 
-# === CLAUDE CODE ===
-alias claude-hierarchical="claude --dangerously-skip-permissions"
-alias dsp="claude --dangerously-skip-permissions"
+# --- Agent Teams ---
+export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 
-# === RUFLO (orchestration, formerly claude-flow) ===
-alias rf="ruflo"
-alias rf-init="ruflo init --force"
-alias rf-swarm="ruflo swarm"
-alias rf-hive="ruflo hive-mind spawn"
-alias rf-spawn="ruflo hive-mind spawn"
-alias rf-status="ruflo hive-mind status"
-alias rf-help="ruflo --help"
-alias rf-memory="ruflo memory"
-alias rf-hooks="ruflo hooks"
-alias rf-doctor="ruflo doctor --fix"
-alias rf-daemon="ruflo daemon start"
-# Backwards-compat: cf-* aliases still work
-alias cf="ruflo"
-alias cf-init="ruflo init --force"
-alias cf-swarm="ruflo swarm"
-alias cf-hive="ruflo hive-mind spawn"
-alias cf-spawn="ruflo hive-mind spawn"
-alias cf-status="ruflo hive-mind status"
-alias cf-help="ruflo --help"
-alias cf-memory="ruflo memory"
-alias cf-hooks="ruflo hooks"
-alias cf-doctor="ruflo doctor --fix"
-alias cf-daemon="ruflo daemon start"
+# --- Claude Code ---
+alias dsp='claude --dangerously-skip-permissions'
 
-rf-fix() {
-    echo "🔧 Fixing ruflo better-sqlite3 dependency..."
-    RUFLO_DIR=$(find /usr/local/lib/node_modules/ruflo -type d -name "node_modules" 2>/dev/null | head -1)
-    if [ -n "$RUFLO_DIR" ]; then
-        echo "📁 Found: $RUFLO_DIR"
-        (cd "$RUFLO_DIR/.." && npm install better-sqlite3) && echo "✅ Fixed!" || echo "❌ Failed"
-    else
-        echo "⚠️ ruflo not found. Trying npx fallback..."
-        npx -y ruflo --version || true
+# === RUFLO (Core Orchestration) ===
+alias rf='ruflo'
+alias rf-init='ruflo init'
+alias rf-wizard='ruflo init --wizard'
+alias rf-doctor='ruflo doctor --fix'
+alias rf-swarm='ruflo swarm init --topology hierarchical --max-agents 8 --strategy specialized'
+alias rf-mesh='ruflo swarm init --topology mesh'
+alias rf-ring='ruflo swarm init --topology ring'
+alias rf-star='ruflo swarm init --topology star'
+alias rf-hybrid='ruflo swarm init --topology hierarchical-mesh --max-agents 15 --strategy specialized'
+alias rf-daemon='ruflo daemon start'
+alias rf-status='ruflo status'
+alias rf-migrate='ruflo migrate run --backup'
+alias rf-plugins='ruflo plugins list'
+alias rf-version='ruflo --version'
+
+rf-spawn() { ruflo agent spawn -t "${1:-coder}" --name "${2:-agent-$RANDOM}"; }
+rf-task() { ruflo swarm "$1" --parallel; }
+
+# Backwards compat: cf-* -> rf-*
+alias cf='ruflo'
+alias cf-init='ruflo init'
+alias cf-swarm='rf-swarm'
+alias cf-mesh='rf-mesh'
+alias cf-doctor='rf-doctor'
+alias cf-daemon='rf-daemon'
+alias cf-status='rf-status'
+alias cf-plugins='rf-plugins'
+alias claude-flow='ruflo'
+
+# === BEADS (Cross-Session Project Memory) ===
+alias bd-ready='bd ready'
+alias bd-add='bd add'
+alias bd-list='bd list'
+alias bd-status='bd status'
+bd-issue() { bd add --type issue "$@"; }
+bd-decision() { bd add --type decision "$@"; }
+bd-blocker() { bd add --type blocker "$@"; }
+
+# === GIT WORKTREES (Agent Isolation) ===
+wt-add() {
+    local name="${1:?Usage: wt-add <agent-name>}"
+    local branch_name="$name/$(date +%s)"
+    git worktree add ".worktrees/$name" -b "$branch_name"
+    echo "Worktree created: .worktrees/$name (branch: $branch_name)"
+    export DATABASE_SCHEMA="wt_${name}_$(date +%s)"
+    echo "Database schema: $DATABASE_SCHEMA"
+    # Auto-index with GitNexus if available
+    if command -v gitnexus &>/dev/null; then
+        (cd ".worktrees/$name" && gitnexus analyze 2>/dev/null &)
+        echo "GitNexus indexing in background..."
     fi
 }
-alias cf-fix="rf-fix"
+wt-remove() {
+    local name="${1:?Usage: wt-remove <agent-name>}"
+    git worktree remove ".worktrees/$name" --force 2>/dev/null
+    echo "Worktree removed: $name"
+}
+wt-list() { git worktree list; }
+wt-clean() { git worktree prune && echo "Stale worktrees pruned"; }
 
-rf-task() { ruflo swarm "$@"; }
-cf-task() { ruflo swarm "$@"; }
+# === GITNEXUS (Codebase Knowledge Graph) ===
+alias gnx='gitnexus'
+alias gnx-analyze='gitnexus analyze'
+alias gnx-analyze-force='gitnexus analyze --force'
+alias gnx-mcp='gitnexus mcp'
+alias gnx-serve='gitnexus serve'
+alias gnx-status='gitnexus status'
+alias gnx-wiki='gitnexus wiki'
+alias gnx-list='gitnexus list'
+alias gnx-clean='gitnexus clean'
 
-# === AGENTIC FLOW ===
-alias af="npx -y agentic-flow"
-alias af-run="npx -y agentic-flow --agent"
-alias af-coder="npx -y agentic-flow --agent coder"
-alias af-help="npx -y agentic-flow --help"
+# === AGENTIC QE (Quality Engineering) ===
+alias aqe='ruflo plugins run agentic-qe'
+alias aqe-generate='ruflo plugins run agentic-qe generate'
+alias aqe-gate='ruflo plugins run agentic-qe gate'
+alias aqe-report='ruflo plugins run agentic-qe report'
 
-af-task() { npx -y agentic-flow --agent "$1" --task "$2" --stream; }
+# === OPENSPEC (Spec-Driven Development) ===
+alias os-spec='npx @fission-ai/openspec'
+alias os-init='npx @fission-ai/openspec init'
 
-# === AGENTIC QE (testing) ===
-alias aqe="npx -y agentic-qe"
-alias aqe-init="npx -y agentic-qe init"
-alias aqe-generate="npx -y agentic-qe generate"
-alias aqe-flaky="npx -y agentic-qe flaky"
-alias aqe-gate="npx -y agentic-qe gate"
-alias aqe-mcp="npx -y aqe-mcp"
+# === RUVECTOR / AGENTDB ===
+alias ruv='ruflo agentdb'
+alias ruv-stats='ruflo agentdb stats'
+alias ruv-init='ruflo agentdb init'
+ruv-remember() { ruflo agentdb store --key "$1" --value "$2"; }
+ruv-recall() { ruflo agentdb query "$1"; }
 
-# === AGENTIC JUJUTSU (git) ===
-alias aj="npx -y agentic-jujutsu"
-alias aj-status="npx -y agentic-jujutsu status"
-alias aj-analyze="npx -y agentic-jujutsu analyze"
+# === MEMORY (Ruflo Native) ===
+alias mem-search='ruflo memory search'
+alias mem-store='ruflo memory store'
+alias mem-stats='ruflo memory stats'
+alias mem-list='ruflo memory list'
 
-# === CLAUDE USAGE ===
-alias cu="claude-usage"
-alias claude-usage="npx -y claude-usage-cli"
+# === HOOKS INTELLIGENCE ===
+alias hooks-pre='ruflo hooks pre-edit'
+alias hooks-post='ruflo hooks post-edit'
+alias hooks-train='ruflo hooks pretrain --depth deep'
+alias hooks-route='ruflo hooks route'
+alias hooks-metrics='ruflo hooks metrics'
 
-# === SPEC-KIT ===
-alias sk="specify"
-alias sk-init="specify init"
-alias sk-check="specify check"
-alias sk-here="specify init . --ai claude"
-alias sk-const="specify constitution"
-alias sk-spec="specify spec"
-alias sk-plan="specify plan"
-alias sk-tasks="specify tasks"
-alias sk-impl="specify implement"
+# === NEURAL ===
+alias neural-train='ruflo neural train'
+alias neural-status='ruflo neural status'
+alias neural-patterns='ruflo neural patterns'
 
-# === OPENSPEC (Fission-AI) ===
-alias os="openspec"
-alias os-init="openspec init"
-alias os-list="openspec list"
-alias os-view="openspec view"
-alias os-show="openspec show"
-alias os-validate="openspec validate"
-alias os-archive="openspec archive"
-alias os-update="openspec update"
-
-# === AGTRACE (Agent Observability) ===
-alias agt="agtrace"
-alias agt-init="agtrace init"
-alias agt-watch="agtrace watch"
-alias agt-sessions="agtrace session list"
-alias agt-grep="agtrace lab grep"
-alias agt-mcp="agtrace mcp serve"
-
-# === CLAUDISH (Multi-Model Proxy) ===
-alias claudish="npx -y claudish"
-alias claudish-models="npx -y claudish --models"
-alias claudish-top="npx -y claudish --top-models"
-alias claudish-grok="npx -y claudish --model x-ai/grok-code-fast-1"
-alias claudish-gemini="npx -y claudish --model google/gemini-2.5-flash"
-alias claudish-gpt="npx -y claudish --model openai/gpt-5.4"
-alias claudish-qwen="npx -y claudish --model qwen/qwen3-235b-a22b"
-
-# === AI AGENT SKILLS ===
-alias skills="npx ai-agent-skills"
-alias skills-list="npx ai-agent-skills list"
-alias skills-search="npx ai-agent-skills search"
-alias skills-install="npx ai-agent-skills install"
-alias skills-info="npx ai-agent-skills info"
-alias skills-update="npx ai-agent-skills update"
-alias skills-remove="npx ai-agent-skills remove"
-
-# === MCP SERVERS ===
-alias n8n-mcp="npx -y n8n-mcp"
-alias mcp-playwright="npx -y @playwright/mcp@latest"
-alias mcp-chrome="npx -y chrome-devtools-mcp@latest"
-
-# === PAL MCP (Multi-Model AI) ===
-alias pal="cd ~/.pal-mcp-server && ./run-server.sh"
-alias pal-setup="cd ~/.pal-mcp-server && uv sync"
-
-# === RUVECTOR (Vector Database) ===
-alias rv="npx -y @ruvector/cli"
-alias rv-init="npx -y @ruvector/cli init"
-alias rv-search="npx -y @ruvector/cli search"
-alias rv-postgres="npx -y @ruvector/postgres-cli"
-
-# === GITHUB CLI ===
-alias gh-pr="gh pr create"
-alias gh-prv="gh pr view --web"
-alias gh-prl="gh pr list"
-alias gh-prm="gh pr merge"
-alias gh-issue="gh issue create"
-alias gh-issuev="gh issue view --web"
-alias gh-issuel="gh issue list"
-alias gh-repo="gh repo view --web"
-
-# === TMUX - SESSIONS ===
-alias t="tmux"
-alias tn="tmux new"
-alias tns="tmux new-session -s"
-alias tnsa="tmux new-session -A -s"              # Start new or attach to existing session
-alias tks="tmux kill-session -t"                  # Kill session by name
-alias tksa="tmux kill-session -a"                 # Kill all sessions but current
-alias tksat="tmux kill-session -a -t"             # Kill all sessions but named one
-alias tl="tmux ls"
-alias tls="tmux list-sessions"
-alias ta="tmux attach-session"                    # Attach to last session
-alias tat="tmux attach-session -t"                # Attach to named session
-alias tad="tmux attach-session -d"                # Attach and detach others (maximize)
-
-# === TMUX - WINDOWS ===
-alias tnsw="tmux new -s"                          # New session with name (add -n for window name)
-alias tswap="tmux swap-window -s"                 # Swap windows: tswap 2 -t 1
-alias tmovew="tmux move-window -s"                # Move window between sessions
-alias trenumw="tmux move-window -r"               # Renumber windows (remove gaps)
-
-# === TMUX - PANES ===
-alias tsh="tmux split-window -h"                  # Split horizontal (vertical line)
-alias tsv="tmux split-window -v"                  # Split vertical (horizontal line)
-alias tjoin="tmux join-pane -s"                   # Join panes: tjoin 2 -t 1
-alias tsync="tmux setw synchronize-panes"         # Toggle sync (send to all panes)
-
-# === TMUX - COPY MODE & BUFFERS ===
-alias tvi="tmux setw -g mode-keys vi"             # Use vi keys in buffer
-alias tshow="tmux show-buffer"                    # Display buffer_0 contents
-alias tcap="tmux capture-pane"                    # Copy visible pane to buffer
-alias tbuf="tmux list-buffers"                    # Show all buffers
-alias tchoose="tmux choose-buffer"                # Show buffers and paste selected
-alias tsave="tmux save-buffer"                    # Save buffer: tsave buf.txt
-alias tdelbuf="tmux delete-buffer -b"             # Delete buffer: tdelbuf 1
-
-# === TMUX - SETTINGS ===
-alias tset="tmux set -g"                          # Set option for all sessions
-alias tsetw="tmux setw -g"                        # Set option for all windows
-alias tmouse="tmux set mouse on"                  # Enable mouse mode
-alias tnomouse="tmux set mouse off"               # Disable mouse mode
-
-# === SUPERVISORD ===
-alias svc="sudo /opt/venv/bin/supervisorctl"
-alias svc-status="sudo /opt/venv/bin/supervisorctl status"
-alias svc-restart="sudo /opt/venv/bin/supervisorctl restart"
-alias svc-start="sudo /opt/venv/bin/supervisorctl start"
-alias svc-stop="sudo /opt/venv/bin/supervisorctl stop"
-alias svc-tail="sudo /opt/venv/bin/supervisorctl tail -f"
-alias svc-log="sudo /opt/venv/bin/supervisorctl tail"
-
-# === POSTGRESQL (RuVector Storage) ===
-alias pg="sudo -u postgres psql"
-alias pg-rv="sudo -u postgres psql -d ruvector"
-alias pg-status="pg_isready"
-
-# === USER SWITCHING (Container-specific) ===
-alias as-gemini="sudo -u gemini-user -i"
-alias as-openai="sudo -u openai-user -i"
-alias as-zai="sudo -u zai-user -i"
-alias as-deepseek="sudo -u deepseek-user -i"
+# === GEMINI CLI (@google/gemini-cli) ===
+# Run Gemini CLI as gemini-user (API key loaded from ~/.gemini/.env)
+gemini-ask() { sudo -u gemini-user -i bash -c "gemini -p \"$*\""; }
+alias gemini-cli='sudo -u gemini-user -i bash -c "gemini"'
+alias gemini-version='sudo -u gemini-user -i bash -c "gemini --version"'
 
 # === GEMINI FLOW ===
-alias gf="gemini-flow"
-alias gf-init="gemini-flow init --protocols a2a,mcp --topology hierarchical"
-alias gf-swarm="gemini-flow swarm --agents 66 --intelligent"
-alias gf-architect="gemini-flow swarm --agents 5 --type system-architect"
-alias gf-coder="gemini-flow swarm --agents 12 --type master-coder"
-alias gf-status="gemini-flow status"
-alias gf-monitor="gemini-flow monitor --protocols --performance"
-alias gf-health="gemini-flow health"
+alias gf-init='sudo -u gemini-user -i bash -c "cd /home/gemini-user/workspace && npx gemini-flow init --protocols a2a,mcp --topology hierarchical"'
+alias gf-swarm='sudo -u gemini-user -i bash -c "cd /home/gemini-user/workspace && npx gemini-flow swarm --agents 66 --intelligent"'
+alias gf-architect='sudo -u gemini-user -i bash -c "cd /home/gemini-user/workspace && npx gemini-flow spawn --role architect --count 5"'
+alias gf-coder='sudo -u gemini-user -i bash -c "cd /home/gemini-user/workspace && npx gemini-flow spawn --role coder --count 12"'
+alias gf-status='sudo -u gemini-user -i bash -c "npx gemini-flow status"'
+alias gf-monitor='sudo -u gemini-user -i bash -c "npx gemini-flow monitor"'
+alias gf-health='sudo -u gemini-user -i bash -c "npx gemini-flow health"'
 
-# === OPENAI CODEX (GPT-5.4) ===
-alias cx="codex"
-alias cx-chat="openai api chat.completions.create -m gpt-5.4 -g user"
-alias cx-review="codex --model gpt-5.4"
-alias claudish-codex="npx -y claudish --model openai/gpt-5.4"
+# === LOCAL PRIVATE LLM (Nemotron 3 120B via llama.cpp) ===
+alias llm-health='curl -s http://${LOCAL_LLM_HOST:-192.168.2.48}:${LOCAL_LLM_PORT:-8080}/health | python3 -m json.tool'
+alias llm-models='curl -s http://${LOCAL_LLM_HOST:-192.168.2.48}:${LOCAL_LLM_PORT:-8080}/v1/models | python3 -m json.tool'
+llm-ask() {
+  curl -s "http://${LOCAL_LLM_HOST:-192.168.2.48}:${LOCAL_LLM_PORT:-8080}/v1/chat/completions" \
+    -H "Content-Type: application/json" \
+    -d "{\"model\": \"${LOCAL_LLM_MODEL}\", \"messages\": [{\"role\": \"user\", \"content\": \"$*\"}], \"max_tokens\": 2048}" \
+    | python3 -c "import sys,json; r=json.load(sys.stdin); print(r['choices'][0]['message']['content'])"
+}
 
-# === Z.AI SERVICE ===
-alias zai-health="curl -s http://localhost:9600/health | jq"
-alias zai-chat="curl -X POST http://localhost:9600/chat -H 'Content-Type: application/json'"
+# === LOCAL LLM PROXY (Anthropic → OpenAI translation) ===
+alias llm-proxy-start='sudo supervisorctl start local-llm-proxy'
+alias llm-proxy-stop='sudo supervisorctl stop local-llm-proxy'
+alias llm-proxy-status='sudo supervisorctl status local-llm-proxy'
+alias llm-proxy-logs='tail -f /var/log/local-llm-proxy.log'
 
-# === CUDA DEVELOPMENT ===
-alias nvcc-version="nvcc --version"
-alias cuda-info="nvidia-smi && echo && nvcc --version"
-alias ptx-compile="nvcc -ptx"
+# === USER SWITCHING ===
+alias as-gemini='sudo -u gemini-user -i'
+alias as-openai='sudo -u openai-user -i'
+alias as-zai='sudo -u zai-user -i'
+alias as-deepseek='sudo -u deepseek-user -i'
+alias as-local='sudo -u local-private -i'
 
-# === HELPER FUNCTIONS ===
-generate-claude-md() { claude "Read the .specify/ directory and generate an optimal CLAUDE.md for this project based on the specs, plan, and constitution."; }
+# === CUDA ===
+alias nvcc-version='nvcc --version'
+alias cuda-info='nvidia-smi && echo && nvcc --version'
+alias ptx-compile='nvcc -ptx'
+alias gpu-watch='watch -n1 nvidia-smi'
 
-turbo-init() {
-    echo "🚀 Initializing Turbo Flow workspace..."
-    specify init . --ai claude 2>/dev/null || echo "⚠️ spec-kit init skipped"
-    ruflo init --force 2>/dev/null || echo "⚠️ ruflo init skipped"
-    echo "✅ Workspace ready! Run: claude"
+# === USAGE ===
+alias claude-usage='claude usage 2>/dev/null || echo "Run inside claude session"'
+alias claude-monitor='~/.cargo/bin/claude-monitor'
+
+# === TURBOFLOW META ===
+turbo-status() {
+    echo "============================================"
+    echo "  TurboFlow 4.0 Status Check"
+    echo "============================================"
+    echo ""
+    echo "Core:"
+    claude --version 2>/dev/null | head -1 && echo "  ✓ Claude Code" || echo "  ✗ Claude Code"
+    ruflo --version 2>/dev/null && echo "  ✓ Ruflo" || echo "  ✗ Ruflo"
+    echo ""
+    echo "V4 Systems:"
+    command -v bd &>/dev/null && echo "  ✓ Beads (cross-session memory)" || echo "  ✗ Beads (npm i -g beads-cli)"
+    command -v gitnexus &>/dev/null && echo "  ✓ GitNexus (codebase graph)" || echo "  ✗ GitNexus (npm i -g gitnexus)"
+    echo "  Agent Teams: ${CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS:-off}"
+    echo ""
+    echo "Memory:"
+    [ -d ".beads" ] && echo "  ✓ Beads initialized" || echo "  ○ Beads not initialized (bd init)"
+    echo ""
+    echo "Plugins:"
+    ruflo plugins list 2>/dev/null | head -10 || echo "  Run: rf-plugins"
+    echo ""
+    echo "Services:"
+    sudo supervisorctl status 2>/dev/null | head -15 || echo "  supervisord not running"
+    echo ""
+    echo "Workspace:"
+    [ -f "CLAUDE.md" ] && echo "  ✓ CLAUDE.md" || echo "  ✗ CLAUDE.md missing"
+    git worktree list 2>/dev/null | head -5
+    echo ""
+    echo "Agents: $(ls -1 ~/agents/*.md 2>/dev/null | wc -l) subagent templates"
+    echo "Skills: $(ls -d ~/.claude/skills/*/ 2>/dev/null | wc -l) MCP skills"
 }
 
 turbo-help() {
-    echo "🚀 Turbo Flow Quick Reference"
-    echo "─────────────────────────────"
-    echo "claude          Start Claude Code"
-    echo "dsp             Claude (skip permissions)"
-    echo "rf-swarm        Ruflo swarm mode (cf-swarm also works)"
-    echo "rf-hive         Spawn hive-mind agents"
-    echo "rf-memory       Memory operations"
-    echo "rf-doctor       System diagnostics"
-    echo "cx / codex      OpenAI Codex CLI (GPT-5.4)"
-    echo "cx-chat         Quick GPT-5.4 chat"
-    echo "af-coder        Agentic Flow coder"
-    echo "aqe             Agentic QE testing"
-    echo "aj              Agentic Jujutsu (git)"
-    echo "sk-here         Init spec-kit in current dir"
-    echo "os-init         Init OpenSpec"
-    echo "agt-watch       Live agent observability"
-    echo "claudish        Multi-model proxy"
-    echo "skills-list     Browse AI skills"
-    echo "pal             Start PAL multi-model server"
-    echo "n8n-mcp         n8n workflow MCP"
-    echo "svc-status      Service status"
-    echo "pg-rv           PostgreSQL ruvector DB"
-    echo "gh-pr           GitHub create PR"
-}
-
-agent-load() {
-    if [ -z "$1" ]; then
-        echo "Usage: agent-load <agent-name>"
-        echo "Available agents: $(ls $AGENTS_DIR/*.md 2>/dev/null | wc -l)"
-        return 1
-    fi
-    local agent_file="$AGENTS_DIR/$1.md"
-    if [ -f "$agent_file" ]; then
-        cat "$agent_file"
-    else
-        echo "Agent not found: $1"
-        echo "Try: ls $AGENTS_DIR/*.md | head -20"
-    fi
-}
-
-agent-list() {
-    echo "📋 Available Agents ($(ls $AGENTS_DIR/*.md 2>/dev/null | wc -l) total)"
-    echo "─────────────────────────────────────────"
-    ls -1 $AGENTS_DIR/*.md 2>/dev/null | xargs -I {} basename {} .md | head -30
+    echo "TurboFlow 4.0 — Quick Reference"
     echo ""
-    echo "Use 'agent-load <name>' to view an agent"
+    echo "Orchestration (Ruflo):"
+    echo "  rf-wizard          Interactive setup"
+    echo "  rf-swarm           Hierarchical swarm (8 agents)"
+    echo "  rf-hybrid          Hierarchical-mesh swarm (15 agents)"
+    echo "  rf-spawn coder     Spawn a coder agent"
+    echo "  rf-doctor          Health check + auto-fix"
+    echo "  rf-plugins         List plugins"
+    echo ""
+    echo "Memory (3-tier):"
+    echo "  bd-ready           Check project state (session start)"
+    echo "  bd-add             Record issue/decision/blocker"
+    echo "  mem-search Q       Search ruflo memory"
+    echo "  ruv-remember K V   Store in AgentDB"
+    echo "  ruv-recall Q       Query AgentDB"
+    echo ""
+    echo "Isolation:"
+    echo "  wt-add agent-1     Create worktree for agent"
+    echo "  wt-remove agent-1  Clean up worktree"
+    echo "  wt-list            Show all worktrees"
+    echo ""
+    echo "Quality:"
+    echo "  aqe-generate       Generate tests (QE plugin)"
+    echo "  aqe-gate           Quality gate check"
+    echo "  os-init            Initialize OpenSpec"
+    echo ""
+    echo "Intelligence:"
+    echo "  gnx-analyze        Index repo (GitNexus)"
+    echo "  hooks-train        Deep pretrain on codebase"
+    echo "  neural-train       Train neural patterns"
+    echo ""
+    echo "Users: as-gemini | as-openai | as-zai | as-deepseek"
+    echo "GPU:   cuda-info | gpu-watch"
+    echo "Status: turbo-status"
 }
-
-# === PATH ===
-export PATH="$HOME/.local/bin:$HOME/.cargo/bin:/usr/local/bin:$PATH"
-
-echo "✅ Turbo Flow aliases v12 loaded! (125+ aliases, 8 functions)"
-echo "   Run 'turbo-help' for quick reference"

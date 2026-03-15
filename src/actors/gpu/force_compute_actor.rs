@@ -95,6 +95,13 @@ pub struct ForceComputeActor {
     /// Broadcast optimizer for delta compression and spatial culling
     broadcast_optimizer: BroadcastOptimizer,
 
+    /// When true, skip intermediate broadcasts (FastSettle burst in progress).
+    /// Cleared by `force_full_broadcast` flag to send final converged positions.
+    suppress_intermediate_broadcasts: bool,
+
+    /// Force next broadcast to include ALL nodes (bypass delta filter).
+    force_full_broadcast: bool,
+
     /// Network backpressure controller with token bucket algorithm
     backpressure: NetworkBackpressure,
 
@@ -177,6 +184,8 @@ impl ForceComputeActor {
             cached_constraint_buffer: Vec::new(),
             semantic_forces_addr: None,
             broadcast_optimizer: BroadcastOptimizer::new(broadcast_config),
+            suppress_intermediate_broadcasts: false,
+            force_full_broadcast: false,
             backpressure: NetworkBackpressure::new(backpressure_config),
             position_velocity_buffer: Vec::with_capacity(10000),
             node_id_buffer: Vec::with_capacity(10000),
@@ -347,16 +356,51 @@ impl ForceComputeActor {
             "  damping: {:.3} -> {:.3}",
             self.simulation_params.damping, params.damping
         );
+        info!(
+            "  center_gravity_k: {:.3} -> {:.3}",
+            self.simulation_params.center_gravity_k, params.center_gravity_k
+        );
+        info!(
+            "  cluster_strength: {:.3} -> {:.3}",
+            self.simulation_params.cluster_strength, params.cluster_strength
+        );
+        info!(
+            "  alignment_strength: {:.3} -> {:.3}",
+            self.simulation_params.alignment_strength, params.alignment_strength
+        );
+        info!(
+            "  temperature: {:.4} -> {:.4}",
+            self.simulation_params.temperature, params.temperature
+        );
 
         self.simulation_params = params;
 
-        
+        // Sync ALL GPU-relevant fields to unified_params
         {
             let unified_params = &mut self.unified_params;
             unified_params.spring_k = self.simulation_params.spring_k;
             unified_params.repel_k = self.simulation_params.repel_k;
             unified_params.damping = self.simulation_params.damping;
             unified_params.dt = self.simulation_params.dt;
+            unified_params.max_velocity = self.simulation_params.max_velocity;
+            unified_params.max_force = self.simulation_params.max_force;
+            unified_params.center_gravity_k = self.simulation_params.center_gravity_k;
+            unified_params.temperature = self.simulation_params.temperature;
+            unified_params.cluster_strength = self.simulation_params.cluster_strength;
+            unified_params.alignment_strength = self.simulation_params.alignment_strength;
+            unified_params.separation_radius = self.simulation_params.separation_radius;
+            unified_params.cooling_rate = self.simulation_params.cooling_rate;
+            unified_params.warmup_iterations = self.simulation_params.warmup_iterations;
+            unified_params.viewport_bounds = self.simulation_params.viewport_bounds;
+            unified_params.boundary_damping = self.simulation_params.boundary_damping;
+            unified_params.constraint_ramp_frames = self.simulation_params.constraint_ramp_frames;
+            unified_params.constraint_max_force_per_node = self.simulation_params.constraint_max_force_per_node;
+            // Rebuild feature flags from current params
+            let new_sim_params = self.simulation_params.to_sim_params();
+            unified_params.feature_flags = new_sim_params.feature_flags;
+            if let Some(alpha) = self.simulation_params.sssp_alpha {
+                unified_params.sssp_alpha = alpha;
+            }
         }
     }
 
@@ -584,6 +628,7 @@ impl Handler<ComputeForces> for ForceComputeActor {
                         step_duration_ms: 0.0,
                         nodes_broadcast: 0,
                         iteration: $self.gpu_state.iteration_count,
+                        kinetic_energy: f64::MAX, // Unknown — don't trigger false convergence
                     });
                 }
             };
@@ -725,6 +770,9 @@ impl Handler<ComputeForces> for ForceComputeActor {
                         "Reheating physics with factor {:.2} to break equilibrium after parameter change",
                         reheat_factor
                     );
+                    if let Err(e) = unified_compute.inject_velocity_perturbation(reheat_factor) {
+                        warn!("Failed to inject velocity perturbation: {}", e);
+                    }
                 }
 
                 let gpu_result = unified_compute.execute_physics_step_with_bypass(&sim_params, stability_bypass);
@@ -753,9 +801,15 @@ impl Handler<ComputeForces> for ForceComputeActor {
         Box::pin(fut.into_actor(self).map(move |result, actor, _ctx| {
             match result {
                 Ok((gpu_result, execution_duration, positions_result, velocities_result, _correlation_id, _iteration, step_start)) => {
-                    // Reset reheat factor
+                    // Decay reheat factor gradually over ~10 steps so dense subgraphs
+                    // (knowledge/ontology) accumulate enough energy to break free from
+                    // spring-dominated equilibrium. Multiply by 0.7 each step:
+                    // step 0: 1.0, step 1: 0.7, step 2: 0.49, ... step 9: 0.04 → cleared.
                     if actor.reheat_factor > 0.0 {
-                        actor.reheat_factor = 0.0;
+                        actor.reheat_factor *= 0.7;
+                        if actor.reheat_factor < 0.05 {
+                            actor.reheat_factor = 0.0;
+                        }
                     }
                     actor.stability_iterations += 1;
                     actor.last_step_duration_ms = execution_duration as f32;
@@ -818,54 +872,134 @@ impl Handler<ComputeForces> for ForceComputeActor {
                                     }
                                 }
 
-                                let (should_broadcast, filtered_indices) =
-                                    actor.broadcast_optimizer.process_frame(&actor.position_velocity_buffer, &actor.node_id_buffer);
+                                // FastSettle broadcast control:
+                                // - suppress_intermediate_broadcasts: skip during settle burst
+                                // - force_full_broadcast: send ALL nodes (final converged positions)
+                                if actor.force_full_broadcast {
+                                    // Final broadcast after settle — send ALL nodes, bypass delta filter
+                                    actor.force_full_broadcast = false;
+                                    actor.suppress_intermediate_broadcasts = false;
+                                    actor.broadcast_optimizer.reset_delta_state();
 
-                                if should_broadcast && !filtered_indices.is_empty() {
                                     if let Some(_sequence_id) = actor.backpressure.try_acquire() {
-                                        let mut node_updates = Vec::with_capacity(filtered_indices.len());
-                                        for &idx in &filtered_indices {
+                                        let mut node_updates = Vec::with_capacity(actor.node_id_buffer.len());
+                                        for idx in 0..actor.node_id_buffer.len() {
                                             let node_id = actor.node_id_buffer[idx];
                                             let (position, velocity) = actor.position_velocity_buffer[idx];
-
+                                            if !position.x.is_finite() || !position.y.is_finite() || !position.z.is_finite() {
+                                                continue;
+                                            }
                                             node_updates.push((node_id, BinaryNodeDataClient::new(
                                                 node_id,
                                                 glam_to_vec3data(position),
                                                 glam_to_vec3data(velocity),
                                             )));
                                         }
-
                                         if let Some(ref graph_addr) = actor.graph_service_addr {
-                                            // Log during warmup (first 5 broadcasts), after settings
-                                            // changes, and at regular 300-iteration intervals so
-                                            // position flow is always visible in logs.
-                                            if actor.stability_warmup_remaining > 295
-                                                || actor.gpu_state.iteration_count % 300 == 0
-                                            {
-                                                info!(
-                                                    "ForceComputeActor: Sending {} position updates (iter {}, warmup_remaining={})",
-                                                    node_updates.len(), actor.gpu_state.iteration_count,
-                                                    actor.stability_warmup_remaining
-                                                );
-                                            }
+                                            info!(
+                                                "ForceComputeActor: FINAL full broadcast — {} nodes (iter {})",
+                                                node_updates.len(), actor.gpu_state.iteration_count
+                                            );
                                             graph_addr.do_send(crate::actors::messages::UpdateNodePositions {
                                                 positions: node_updates,
                                                 correlation_id: Some(crate::actors::messaging::MessageId::new()),
                                             });
+                                        }
+                                    }
+                                } else if actor.suppress_intermediate_broadcasts {
+                                    // FastSettle burst in progress — skip intermediate broadcasts.
+                                    // Still call process_frame to keep delta state tracking.
+                                    let _ = actor.broadcast_optimizer.process_frame(&actor.position_velocity_buffer, &actor.node_id_buffer);
+                                } else {
+                                    // Normal broadcast path (Continuous mode or post-settle)
+                                    let (should_broadcast, filtered_indices) =
+                                        actor.broadcast_optimizer.process_frame(&actor.position_velocity_buffer, &actor.node_id_buffer);
+
+                                    if should_broadcast && !filtered_indices.is_empty() {
+                                        // Check if periodic full broadcast is due EVEN when some
+                                        // nodes are still moving. Without this, converged nodes
+                                        // never get their final positions sent to clients while
+                                        // other nodes (e.g. agents) keep moving.
+                                        let iters_since_full = actor.gpu_state.iteration_count
+                                            .saturating_sub(actor.last_full_broadcast_iteration);
+                                        let needs_full = iters_since_full >= 300;
+
+                                        if needs_full {
+                                            // Full broadcast: send ALL nodes, bypassing delta filter
+                                            if let Some(_sequence_id) = actor.backpressure.try_acquire() {
+                                                let mut node_updates = Vec::with_capacity(actor.node_id_buffer.len());
+                                                for idx in 0..actor.node_id_buffer.len() {
+                                                    let node_id = actor.node_id_buffer[idx];
+                                                    let (position, velocity) = actor.position_velocity_buffer[idx];
+                                                    if !position.x.is_finite() || !position.y.is_finite() || !position.z.is_finite() {
+                                                        continue;
+                                                    }
+                                                    node_updates.push((node_id, BinaryNodeDataClient::new(
+                                                        node_id,
+                                                        glam_to_vec3data(position),
+                                                        glam_to_vec3data(velocity),
+                                                    )));
+                                                }
+                                                if let Some(ref graph_addr) = actor.graph_service_addr {
+                                                    info!(
+                                                        "ForceComputeActor: Periodic full broadcast — ALL {} positions (iter {}, delta had {})",
+                                                        node_updates.len(), actor.gpu_state.iteration_count,
+                                                        filtered_indices.len()
+                                                    );
+                                                    graph_addr.do_send(crate::actors::messages::UpdateNodePositions {
+                                                        positions: node_updates,
+                                                        correlation_id: Some(crate::actors::messaging::MessageId::new()),
+                                                    });
+                                                }
+                                                actor.last_full_broadcast_iteration = actor.gpu_state.iteration_count;
+                                                actor.broadcast_optimizer.reset_delta_state();
+                                            } else {
+                                                actor.backpressure.record_skip();
+                                            }
                                         } else {
-                                            if actor.gpu_state.iteration_count % 60 == 0 {
-                                                warn!(
-                                                    "ForceComputeActor: graph_service_addr is None — {} position updates DROPPED (iter {})",
-                                                    node_updates.len(), actor.gpu_state.iteration_count
-                                                );
+                                            // Delta broadcast: send only moved nodes
+                                            if let Some(_sequence_id) = actor.backpressure.try_acquire() {
+                                                let mut node_updates = Vec::with_capacity(filtered_indices.len());
+                                                for &idx in &filtered_indices {
+                                                    let node_id = actor.node_id_buffer[idx];
+                                                    let (position, velocity) = actor.position_velocity_buffer[idx];
+
+                                                    node_updates.push((node_id, BinaryNodeDataClient::new(
+                                                        node_id,
+                                                        glam_to_vec3data(position),
+                                                        glam_to_vec3data(velocity),
+                                                    )));
+                                                }
+
+                                                if let Some(ref graph_addr) = actor.graph_service_addr {
+                                                    if actor.stability_warmup_remaining > 295
+                                                        || actor.gpu_state.iteration_count % 300 == 0
+                                                    {
+                                                        info!(
+                                                            "ForceComputeActor: Sending {} position updates (iter {}, warmup_remaining={})",
+                                                            node_updates.len(), actor.gpu_state.iteration_count,
+                                                            actor.stability_warmup_remaining
+                                                        );
+                                                    }
+                                                    graph_addr.do_send(crate::actors::messages::UpdateNodePositions {
+                                                        positions: node_updates,
+                                                        correlation_id: Some(crate::actors::messaging::MessageId::new()),
+                                                    });
+                                                } else {
+                                                    if actor.gpu_state.iteration_count % 60 == 0 {
+                                                        warn!(
+                                                            "ForceComputeActor: graph_service_addr is None — {} position updates DROPPED (iter {})",
+                                                            node_updates.len(), actor.gpu_state.iteration_count
+                                                        );
+                                                    }
+                                                }
+                                            } else {
+                                                actor.backpressure.record_skip();
                                             }
                                         }
-                                    } else {
-                                        actor.backpressure.record_skip();
-                                    }
-                                } else if should_broadcast && filtered_indices.is_empty() {
-                                    // Delta filter found no movement. Check if we need a
-                                    // periodic full broadcast for late-connecting clients.
+                                    } else if should_broadcast && filtered_indices.is_empty() {
+                                    // Delta filter found zero movement — periodic full broadcast
+                                    // for late-connecting clients.
                                     let iters_since_full = actor.gpu_state.iteration_count
                                         .saturating_sub(actor.last_full_broadcast_iteration);
                                     if iters_since_full >= 300 {
@@ -910,6 +1044,7 @@ impl Handler<ComputeForces> for ForceComputeActor {
                                             should_broadcast, filtered_indices.len(), actor.stability_warmup_remaining
                                         );
                                     }
+                                } // end normal broadcast else branch
                                 }
                             }
 
@@ -921,6 +1056,21 @@ impl Handler<ComputeForces> for ForceComputeActor {
                                       actor.iteration_count(), actor.gpu_state.gpu_failure_count, actor.skipped_frames, actor.last_step_duration_ms);
                             }
 
+                            // Compute kinetic energy from velocity buffer for convergence detection.
+                            // KE = 0.5 * sum(vx^2 + vy^2 + vz^2), averaged over node count.
+                            let step_kinetic_energy = if actor.position_velocity_buffer.is_empty() {
+                                0.0_f64
+                            } else {
+                                let total_ke: f64 = actor.position_velocity_buffer.iter()
+                                    .map(|(_pos, vel)| {
+                                        0.5 * (vel.x as f64 * vel.x as f64
+                                             + vel.y as f64 * vel.y as f64
+                                             + vel.z as f64 * vel.z as f64)
+                                    })
+                                    .sum();
+                                total_ke / actor.position_velocity_buffer.len() as f64
+                            };
+
                             // Sequential pipeline: notify orchestrator that this step is done
                             // so it can trigger broadcast and schedule the next step.
                             if let Some(ref orch_addr) = actor.physics_orchestrator_addr {
@@ -928,6 +1078,7 @@ impl Handler<ComputeForces> for ForceComputeActor {
                                     step_duration_ms: actor.last_step_duration_ms,
                                     nodes_broadcast: actor.position_velocity_buffer.len() as u32,
                                     iteration: actor.gpu_state.iteration_count,
+                                    kinetic_energy: step_kinetic_energy,
                                 });
                             }
 
@@ -947,6 +1098,7 @@ impl Handler<ComputeForces> for ForceComputeActor {
                                     step_duration_ms: actor.last_step_duration_ms,
                                     nodes_broadcast: 0,
                                     iteration: actor.gpu_state.iteration_count,
+                                    kinetic_energy: f64::MAX,
                                 });
                             }
 
@@ -967,6 +1119,7 @@ impl Handler<ComputeForces> for ForceComputeActor {
                             step_duration_ms: 0.0,
                             nodes_broadcast: 0,
                             iteration: actor.gpu_state.iteration_count,
+                            kinetic_energy: f64::MAX,
                         });
                     }
 
@@ -983,16 +1136,30 @@ impl Handler<UpdateSimulationParams> for ForceComputeActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: UpdateSimulationParams, _ctx: &mut Self::Context) -> Self::Result {
-        // Idempotency: skip reset if physics-relevant GPU params haven't changed.
+        // Idempotency: skip reset if ALL GPU-relevant params haven't changed.
         // The client autoSaveManager may fire redundant updates (GET-merge-PUT with same values).
+        // Compare the full set of GPU-relevant fields, not just the original 6.
         let cur = &self.simulation_params;
+        let eps = 1e-5_f32; // Slightly larger than EPSILON to catch floating-point round-trips
         let physics_unchanged =
-            (cur.spring_k - msg.params.spring_k).abs() < f32::EPSILON
-            && (cur.repel_k - msg.params.repel_k).abs() < f32::EPSILON
-            && (cur.damping - msg.params.damping).abs() < f32::EPSILON
-            && (cur.dt - msg.params.dt).abs() < f32::EPSILON
-            && (cur.max_velocity - msg.params.max_velocity).abs() < f32::EPSILON
-            && (cur.max_force - msg.params.max_force).abs() < f32::EPSILON;
+            (cur.spring_k - msg.params.spring_k).abs() < eps
+            && (cur.repel_k - msg.params.repel_k).abs() < eps
+            && (cur.damping - msg.params.damping).abs() < eps
+            && (cur.dt - msg.params.dt).abs() < eps
+            && (cur.max_velocity - msg.params.max_velocity).abs() < eps
+            && (cur.max_force - msg.params.max_force).abs() < eps
+            && (cur.center_gravity_k - msg.params.center_gravity_k).abs() < eps
+            && (cur.temperature - msg.params.temperature).abs() < eps
+            && (cur.cluster_strength - msg.params.cluster_strength).abs() < eps
+            && (cur.alignment_strength - msg.params.alignment_strength).abs() < eps
+            && (cur.separation_radius - msg.params.separation_radius).abs() < eps
+            && (cur.cooling_rate - msg.params.cooling_rate).abs() < eps
+            && (cur.viewport_bounds - msg.params.viewport_bounds).abs() < eps
+            && (cur.boundary_damping - msg.params.boundary_damping).abs() < eps
+            && cur.use_sssp_distances == msg.params.use_sssp_distances
+            && cur.warmup_iterations == msg.params.warmup_iterations
+            && cur.constraint_ramp_frames == msg.params.constraint_ramp_frames
+            && (cur.constraint_max_force_per_node - msg.params.constraint_max_force_per_node).abs() < eps;
 
         if physics_unchanged {
             debug!(
@@ -1001,18 +1168,14 @@ impl Handler<UpdateSimulationParams> for ForceComputeActor {
             return Ok(());
         }
 
-        info!("ForceComputeActor: UpdateSimulationParams received");
+        info!("ForceComputeActor: UpdateSimulationParams received — params CHANGED");
         info!(
-            "  New params - spring_k: {:.3}, repel_k: {:.3}, damping: {:.3}",
-            msg.params.spring_k, msg.params.repel_k, msg.params.damping
+            "  New params - spring_k: {:.3}, repel_k: {:.3}, damping: {:.3}, center_gravity_k: {:.3}, cluster: {:.3}, align: {:.3}",
+            msg.params.spring_k, msg.params.repel_k, msg.params.damping,
+            msg.params.center_gravity_k, msg.params.cluster_strength, msg.params.alignment_strength
         );
 
         self.update_simulation_parameters(msg.params);
-
-        // Parameters are updated smoothly via update_simulation_parameters() above.
-        // Do NOT reset iteration_count, stability_iterations, or inject reheat_factor
-        // here — that causes visible graph "jumps" on every settings slider change.
-        // The PhysicsOrchestratorActor handles interpolation via target_params.
 
         // Reset broadcast optimizer delta state so the next frame re-broadcasts ALL
         // positions. Without this, converged positions are delta-suppressed and clients
@@ -1024,14 +1187,137 @@ impl Handler<UpdateSimulationParams> for ForceComputeActor {
         // OLD state (before new forces). If the system was at equilibrium, KE ≈ 0 and the
         // kernel sets should_skip_physics=1, preventing new forces from ever being applied.
         self.stability_warmup_remaining = 600;
-        info!("ForceComputeActor: Stability warmup enabled for 600 frames (bypasses GPU skip)");
+
+        // Inject a strong reheat to break equilibrium. Without this, a fully converged
+        // system (KE≈0, temperature≈0.01) has no kinetic energy to redistribute nodes
+        // under the changed force parameters. Dense knowledge/ontology subgraphs need
+        // stronger reheat (1.0) because spring forces quickly damp mild perturbations.
+        // The value 1.0 provides enough energy for densely-connected nodes to visibly
+        // re-layout, while still being bounded by max_velocity.
+        self.reheat_factor = 1.0;
+
+        // DO NOT suppress intermediate broadcasts on param change.
+        // Users need to SEE the layout morphing in real-time, not wait for convergence
+        // then get a sudden jump. The 60fps throttle in PhysicsOrchestratorActor's
+        // UpdateNodePositions handler already rate-limits broadcasts.
+        self.suppress_intermediate_broadcasts = false;
+        self.force_full_broadcast = false;
 
         info!(
-            "ForceComputeActor: Parameters updated smoothly (iteration_count={}, stability={})",
+            "ForceComputeActor: Stability warmup=600, reheat=1.0, suppress_broadcasts=false (visible re-layout)"
+        );
+
+        info!(
+            "ForceComputeActor: Parameters updated (iteration_count={}, stability={})",
             self.gpu_state.iteration_count, self.stability_iterations
         );
 
         Ok(())
+    }
+}
+
+/// Message to force a full broadcast of ALL node positions (bypass delta filter).
+/// Sent by PhysicsOrchestratorActor after FastSettle convergence.
+///
+/// This performs an immediate position snapshot and broadcast WITHOUT running
+/// another physics integration step.  Before this fix, the handler merely set a
+/// flag and the orchestrator sent a follow-up `ComputeForces`, which ran one
+/// more integration pass — slightly moving nodes after the convergence decision.
+#[derive(actix::Message)]
+#[rtype(result = "()")]
+pub struct ForceFullBroadcast;
+
+impl Handler<ForceFullBroadcast> for ForceComputeActor {
+    type Result = ResponseActFuture<Self, ()>;
+
+    fn handle(&mut self, _msg: ForceFullBroadcast, _ctx: &mut Self::Context) -> Self::Result {
+        info!("ForceComputeActor: ForceFullBroadcast received — reading current GPU positions for immediate broadcast");
+
+        // Clear suppression state regardless of whether GPU is available
+        self.force_full_broadcast = false;
+        self.suppress_intermediate_broadcasts = false;
+        self.broadcast_optimizer.reset_delta_state();
+
+        let shared_context = match &self.shared_context {
+            Some(ctx) => ctx.clone(),
+            None => {
+                warn!("ForceComputeActor: ForceFullBroadcast — no GPU context, skipping");
+                return Box::pin(futures::future::ready(()).into_actor(self));
+            }
+        };
+
+        if self.gpu_state.num_nodes == 0 {
+            warn!("ForceComputeActor: ForceFullBroadcast — 0 nodes, skipping");
+            return Box::pin(futures::future::ready(()).into_actor(self));
+        }
+
+        let fut = async move {
+            // Acquire GPU access (non-blocking tokio RwLock)
+            let _gpu_guard = match shared_context.acquire_gpu_access().await {
+                Ok(guard) => guard,
+                Err(e) => {
+                    warn!("ForceComputeActor: ForceFullBroadcast — failed to acquire GPU lock: {}", e);
+                    return Err(());
+                }
+            };
+
+            let unified_compute_arc = shared_context.unified_compute.clone();
+
+            // Read positions and velocities on blocking thread — NO physics step
+            let blocking_result = tokio::task::spawn_blocking(move || {
+                let mut unified_compute = match unified_compute_arc.lock() {
+                    Ok(guard) => guard,
+                    Err(poisoned) => poisoned.into_inner(),
+                };
+
+                let positions_result = unified_compute.get_node_positions();
+                let velocities_result = unified_compute.get_node_velocities();
+                Ok((positions_result, velocities_result))
+            }).await;
+
+            match blocking_result {
+                Ok(inner) => inner,
+                Err(join_err) => {
+                    warn!("ForceComputeActor: ForceFullBroadcast — spawn_blocking panicked: {}", join_err);
+                    Err(())
+                }
+            }
+        };
+
+        Box::pin(fut.into_actor(self).map(move |result, actor, _ctx| {
+            match result {
+                Ok((Ok((pos_x, pos_y, pos_z)), Ok((vel_x, vel_y, vel_z)))) => {
+                    let mut node_updates = Vec::with_capacity(pos_x.len());
+                    for i in 0..pos_x.len() {
+                        let position = Vec3::new(pos_x[i], pos_y[i], pos_z[i]);
+                        let velocity = Vec3::new(vel_x[i], vel_y[i], vel_z[i]);
+                        if !position.x.is_finite() || !position.y.is_finite() || !position.z.is_finite() {
+                            continue;
+                        }
+                        let node_id = actor.gpu_index_to_node_id.get(i).copied().unwrap_or(i as u32);
+                        node_updates.push((node_id, BinaryNodeDataClient::new(
+                            node_id,
+                            glam_to_vec3data(position),
+                            glam_to_vec3data(velocity),
+                        )));
+                    }
+
+                    if let Some(ref graph_addr) = actor.graph_service_addr {
+                        info!(
+                            "ForceComputeActor: IMMEDIATE full broadcast — {} nodes (pure snapshot, no physics step)",
+                            node_updates.len()
+                        );
+                        graph_addr.do_send(crate::actors::messages::UpdateNodePositions {
+                            positions: node_updates,
+                            correlation_id: Some(crate::actors::messaging::MessageId::new()),
+                        });
+                    }
+                }
+                _ => {
+                    warn!("ForceComputeActor: ForceFullBroadcast — failed to read GPU positions/velocities");
+                }
+            }
+        }))
     }
 }
 
@@ -1069,25 +1355,27 @@ impl Handler<UpdateAdvancedParams> for ForceComputeActor {
         info!("  Advanced params - semantic_weight: {:.2}, temporal_weight: {:.2}, constraint_weight: {:.2}",
               msg.params.semantic_force_weight, msg.params.temporal_force_weight, msg.params.constraint_force_weight);
 
-        
-        
+        // Write through to simulation_params (the canonical source) so that the
+        // live physics step path — which clones simulation_params and rebuilds
+        // SimParams via to_sim_params() — picks up these changes.
         if msg.params.semantic_force_weight > 0.0 {
-            self.unified_params.temperature *= msg.params.semantic_force_weight;
+            self.simulation_params.temperature *= msg.params.semantic_force_weight;
         }
 
-        
         if msg.params.temporal_force_weight > 0.0 {
-            self.unified_params.alignment_strength *= msg.params.temporal_force_weight;
+            self.simulation_params.alignment_strength *= msg.params.temporal_force_weight;
         }
 
-        
         if msg.params.constraint_force_weight > 0.0 {
-            self.unified_params.cluster_strength *= msg.params.constraint_force_weight;
+            self.simulation_params.cluster_strength *= msg.params.constraint_force_weight;
         }
 
-        info!("Advanced physics parameters applied to unified compute params");
+        // Rebuild unified_params from the updated simulation_params so the
+        // derived cache stays in sync.
+        self.update_simulation_parameters(self.simulation_params.clone());
 
-        
+        info!("Advanced physics parameters written to simulation_params (canonical) and unified_params (cache)");
+
         if matches!(self.compute_mode, ComputeMode::Basic) {
             info!("ForceComputeActor: Switching to Advanced compute mode due to advanced params");
             self.compute_mode = ComputeMode::Advanced;

@@ -974,6 +974,7 @@ impl Handler<msgs::ReloadGraphFromDatabase> for GraphServiceSupervisor {
 
         let graph_state_addr = self.graph_state.clone();
         let physics_addr = self.physics.clone();
+        let gpu_manager_addr = self.gpu_manager.clone();
 
         Box::pin(async move {
             if let Some(graph_state) = graph_state_addr {
@@ -1016,6 +1017,19 @@ impl Handler<msgs::ReloadGraphFromDatabase> for GraphServiceSupervisor {
                             physics.do_send(crate::actors::messages::StartSimulation);
                         } else {
                             warn!("GraphServiceSupervisor: PhysicsOrchestratorActor not available to receive graph data");
+                        }
+
+                        // Also send UpdateGPUGraphData directly to GPUManagerActor
+                        // to ensure the GPU has the correct node IDs after reload.
+                        // The PhysicsOrchestratorActor path may skip re-init if gpu_initialized is already true,
+                        // leaving the GPU with stale data from the initial (possibly wrong) load.
+                        if let Some(ref gpu_manager) = gpu_manager_addr {
+                            info!("GraphServiceSupervisor: Sending UpdateGPUGraphData to GPUManagerActor with {} nodes",
+                                graph_data.nodes.len());
+                            gpu_manager.do_send(msgs::UpdateGPUGraphData {
+                                graph: graph_data.clone(),
+                                correlation_id: None,
+                            });
                         }
 
                         Ok(())

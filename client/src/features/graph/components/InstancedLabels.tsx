@@ -314,10 +314,41 @@ const InstancedLabelsWebGPU: React.FC<InstancedLabelsProps> = ({
   const { camera, size } = useThree();
   const webGPULabelsRef = useRef<WebGPULabel[]>([]);
   const frameCountRef = useRef(0);
+  const prevCameraRef = useRef({
+    x: 0, y: 0, z: 0,
+    qx: 0, qy: 0, qz: 0, qw: 1,
+  });
+  const motionStateRef = useRef({ lastFastTime: 0 });
 
   useFrame(() => {
     frameCountRef.current++;
-    // Update at ~4fps to match previous behavior
+
+    // Camera velocity tracking — hide labels during fast motion
+    const prev = prevCameraRef.current;
+    const dx = camera.position.x - prev.x;
+    const dy = camera.position.y - prev.y;
+    const dz = camera.position.z - prev.z;
+    const posDelta = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    const rotDot = Math.abs(
+      camera.quaternion.x * prev.qx + camera.quaternion.y * prev.qy +
+      camera.quaternion.z * prev.qz + camera.quaternion.w * prev.qw
+    );
+    const rotDelta = 1.0 - rotDot;
+    prev.x = camera.position.x; prev.y = camera.position.y; prev.z = camera.position.z;
+    prev.qx = camera.quaternion.x; prev.qy = camera.quaternion.y;
+    prev.qz = camera.quaternion.z; prev.qw = camera.quaternion.w;
+    const cameraMovingFast = posDelta > 0.5 || rotDelta > 0.001;
+
+    const now = performance.now();
+    if (cameraMovingFast) {
+      motionStateRef.current.lastFastTime = now;
+      // Hide labels during fast camera motion — nodes keep rendering
+      webGPULabelsRef.current = [];
+      return;
+    }
+    // Debounce: wait 150ms of stillness before rebuilding labels
+    if (now - motionStateRef.current.lastFastTime < 150) return;
+
     if (frameCountRef.current % 15 !== 0) return;
 
     const labelSettings = (settings as any)?.visualisation?.graphs?.logseq?.labels ?? (settings as any)?.visualisation?.labels;
@@ -401,6 +432,11 @@ const InstancedLabelsWebGL: React.FC<InstancedLabelsProps> = ({
   const meshRef = useRef<THREE.Mesh>(null);
   const frameCountRef = useRef(0);
   const diagLoggedRef = useRef(false);
+  const prevCameraRef = useRef({
+    x: 0, y: 0, z: 0,
+    qx: 0, qy: 0, qz: 0, qw: 1,
+  });
+  const motionStateRef = useRef({ lastFastTime: 0 });
 
   // Per-node glyph tracking: for each visible node, store the glyph index range
   // and the Y offset so positions can be patched every frame without full layout rebuild.
@@ -466,19 +502,43 @@ const InstancedLabelsWebGL: React.FC<InstancedLabelsProps> = ({
     const mesh = meshRef.current;
     if (!mesh) return;
 
-    // --- EVERY FRAME: update camera uniforms + patch label world positions ---
-    // Ensure matrixWorld is current for this frame (spacemouse/6DOF may update
-    // camera transform after the last render without triggering updateMatrixWorld).
+    // --- Camera uniforms (always needed for billboard orientation) ---
     camera.updateMatrixWorld();
     matResult.uniforms.uCamRight.value.setFromMatrixColumn(camera.matrixWorld, 0);
     matResult.uniforms.uCamUp.value.setFromMatrixColumn(camera.matrixWorld, 1);
 
+    // --- Camera motion detection: hide labels during fast movement ---
+    frameCountRef.current++;
+    const prev = prevCameraRef.current;
+    const cdx = camera.position.x - prev.x;
+    const cdy = camera.position.y - prev.y;
+    const cdz = camera.position.z - prev.z;
+    const posDelta = Math.sqrt(cdx * cdx + cdy * cdy + cdz * cdz);
+    const rotDot = Math.abs(
+      camera.quaternion.x * prev.qx + camera.quaternion.y * prev.qy +
+      camera.quaternion.z * prev.qz + camera.quaternion.w * prev.qw
+    );
+    const rotDelta = 1.0 - rotDot;
+    prev.x = camera.position.x; prev.y = camera.position.y; prev.z = camera.position.z;
+    prev.qx = camera.quaternion.x; prev.qy = camera.quaternion.y;
+    prev.qz = camera.quaternion.z; prev.qw = camera.quaternion.w;
+    const cameraMovingFast = posDelta > 0.5 || rotDelta > 0.001;
+
+    const now = performance.now();
+    if (cameraMovingFast) {
+      motionStateRef.current.lastFastTime = now;
+      // Hide all labels immediately — node spheres keep rendering at full framerate
+      geometry.instanceCount = 0;
+      return;
+    }
+    // Debounce: wait 150ms of stillness before rebuilding labels
+    if (now - motionStateRef.current.lastFastTime < 150) return;
+
+    // --- EVERY STILL FRAME: patch label world positions from SAB ---
     const labelPosAttr = geometry.getAttribute('aLabelPos') as THREE.InstancedBufferAttribute;
     const labelPosArr = labelPosAttr.array as Float32Array;
     const nodeMap = nodeGlyphMapRef.current;
 
-    // Fast path: read directly from SharedArrayBuffer (same source as GemNodes)
-    // This eliminates the one-frame lag from the intermediate labelPositionsRef
     const rawPositions = nodePositionsRef?.current;
     if (nodeMap.length > 0 && rawPositions && rawPositions.length > 0) {
       for (const entry of nodeMap) {
@@ -497,7 +557,6 @@ const InstancedLabelsWebGL: React.FC<InstancedLabelsProps> = ({
       }
       labelPosAttr.needsUpdate = true;
     } else if (nodeMap.length > 0) {
-      // Fallback: use labelPositionsRef if raw SAB not available
       const currentLabelPositions = labelPositionsRef.current;
       if (currentLabelPositions.length > 0) {
         for (const entry of nodeMap) {
@@ -517,11 +576,7 @@ const InstancedLabelsWebGL: React.FC<InstancedLabelsProps> = ({
       }
     }
 
-    // Layout rebuild: throttled to every 3 frames to reduce GC pressure from
-    // layoutText() allocations. Position patching (above) runs EVERY frame for
-    // smooth spacemouse/6DOF tracking — the layout just determines which nodes
-    // are visible and what text they display.
-    frameCountRef.current++;
+    // Layout rebuild: throttled to every 3 still frames
     if (frameCountRef.current % 3 !== 0 && nodeGlyphMapRef.current.length > 0) return;
 
     // Reuse rawPositions captured above (same SAB snapshot for consistency)
