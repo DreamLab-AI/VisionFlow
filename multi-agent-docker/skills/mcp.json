@@ -1,0 +1,166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "2.0.0",
+  "description": "MCP Server Registry for Agentic Workstation - Modernized Skills",
+  "mcpServers": {
+    "claude-flow": {
+      "command": "node",
+      "args": ["/app/scripts/stdio-to-tcp-bridge.js"],
+      "type": "stdio",
+      "env": {
+        "MCP_HOST": "127.0.0.1",
+        "MCP_PORT": "9500"
+      }
+    },
+    "ruv-swarm": {
+      "command": "npx",
+      "args": ["ruv-swarm@latest", "mcp", "start"],
+      "type": "stdio"
+    },
+    "imagemagick": {
+      "command": "python3",
+      "args": ["-u", "/home/devuser/.claude/skills/imagemagick/mcp-server/server.py"],
+      "type": "stdio",
+      "env": {
+        "IMAGEMAGICK_TIMEOUT": "300"
+      },
+      "description": "Image processing with format conversion, resizing, cropping, batch operations",
+      "protocol": "fastmcp",
+      "version": "2.0.0"
+    },
+    "qgis": {
+      "command": "python3",
+      "args": ["-u", "/home/devuser/.claude/skills/qgis/mcp-server/server.py"],
+      "type": "stdio",
+      "env": {
+        "QGIS_HOST": "localhost",
+        "QGIS_PORT": "9877",
+        "QGIS_TIMEOUT": "60"
+      },
+      "description": "Geospatial analysis and GIS operations via QGIS",
+      "protocol": "fastmcp",
+      "version": "2.0.0"
+    },
+    "playwright": {
+      "command": "node",
+      "args": ["/home/devuser/.claude/skills/playwright/mcp-server/server.js"],
+      "type": "stdio",
+      "env": {
+        "DISPLAY": ":1",
+        "CHROMIUM_PATH": "/usr/bin/chromium",
+        "PLAYWRIGHT_HEADLESS": "false",
+        "SCREENSHOT_DIR": "/tmp/playwright-screenshots",
+        "PLAYWRIGHT_TIMEOUT": "30000"
+      },
+      "description": "Browser automation and visual testing on Display :1",
+      "protocol": "mcp-sdk",
+      "version": "2.0.0"
+    },
+    "web-summary": {
+      "command": "python3",
+      "args": ["-u", "/home/devuser/.claude/skills/web-summary/mcp-server/server.py"],
+      "type": "stdio",
+      "env": {
+        "ZAI_URL": "http://localhost:9600/chat",
+        "ZAI_TIMEOUT": "60"
+      },
+      "description": "URL summarization with YouTube transcripts and topic generation",
+      "protocol": "fastmcp",
+      "version": "2.0.0"
+    },
+    "comfyui": {
+      "command": "node",
+      "args": ["/home/devuser/.claude/skills/comfyui/mcp-server/server.js"],
+      "type": "stdio",
+      "env": {
+        "COMFYUI_URL": "http://192.168.0.51:8188",
+        "COMFYUI_WS_URL": "ws://192.168.0.51:8188/ws",
+        "COMFYUI_OUTPUT_DIR": "/tmp/comfyui-outputs",
+        "ZAI_URL": "http://localhost:9600/chat",
+        "DISPLAY": ":1"
+      },
+      "description": "AI image and video generation with ComfyUI workflows (remote SAM3D GPU)",
+      "protocol": "mcp-sdk",
+      "version": "1.0.0"
+    },
+    "blender": {
+      "command": "node",
+      "args": ["/home/devuser/.claude/skills/blender/tools/mcp-blender-client.js"],
+      "type": "stdio",
+      "env": {
+        "BLENDER_HOST": "localhost",
+        "BLENDER_PORT": "9876"
+      },
+      "description": "3D modeling, scene creation, and rendering via Blender",
+      "protocol": "tcp-proxy",
+      "version": "1.0.0"
+    },
+    "gemini-url-context": {
+      "command": "python3",
+      "args": ["-u", "/home/devuser/.claude/skills/gemini-url-context/mcp-server/server.py"],
+      "type": "stdio",
+      "env": {
+        "GOOGLE_GEMINI_API_KEY": "${GOOGLE_GEMINI_API_KEY}",
+        "GEMINI_MODEL": "gemini-2.5-flash",
+        "GEMINI_TIMEOUT": "60"
+      },
+      "description": "URL expansion and analysis using Gemini 2.5 Flash URL Context API",
+      "protocol": "fastmcp",
+      "version": "1.0.0"
+    }
+  },
+  "visionflow": {
+    "tcp_bridge": {
+      "host": "multi-agent-container",
+      "port": 9500,
+      "protocol": "json-rpc"
+    },
+    "discovery": {
+      "enabled": true,
+      "resource_pattern": "{skill}://capabilities"
+    },
+    "tools": [
+      "session_status",
+      "session_agents",
+      "session_metrics",
+      "swarm_list",
+      "swarm_monitor",
+      "agent_metrics",
+      "performance_summary"
+    ]
+  },
+  "services": {
+    "zai": {
+      "url": "http://localhost:9600",
+      "internal_only": true,
+      "worker_pool": 4,
+      "max_queue": 50
+    },
+    "management_api": {
+      "url": "http://localhost:9090",
+      "auth_header": "X-API-Key"
+    },
+    "ruvector_postgres": {
+      "host": "ruvector-postgres",
+      "port": 5432,
+      "database": "ruvector",
+      "user": "ruvector",
+      "description": "Centralized vector memory storage for all Claude Flow agents",
+      "features": {
+        "pgvector": true,
+        "hnsw_indexing": true,
+        "embedding_dim": 384,
+        "model": "all-MiniLM-L6-v2"
+      },
+      "tables": [
+        "memory_entries",
+        "projects",
+        "patterns",
+        "reasoning_patterns",
+        "sona_trajectories",
+        "session_state"
+      ],
+      "env_var": "RUVECTOR_PG_CONNINFO"
+    }
+  }
+}

@@ -26,6 +26,13 @@ URL content summarization and topic extraction via FastMCP, using Z.AI service f
 - Create short, medium, or long summaries
 - Extract key concepts from text
 
+## When Not To Use
+
+- For interactive browser automation (clicking, filling forms, scraping) -- use the browser or playwright skills instead
+- For multi-URL comparison or structured data extraction from URLs -- use the gemini-url-context skill instead
+- For broad web search across many sources with citations -- use the perplexity-research skill instead
+- For content you already have as local text -- process it directly without the web summary pipeline
+
 ## Architecture
 
 ```

@@ -1,6 +1,8 @@
 ---
 name: "V3 DDD Architecture"
 description: "Domain-Driven Design architecture for claude-flow v3. Implements modular, bounded context architecture with clean separation of concerns and microkernel pattern."
+status: archived
+archived_reason: "V3 implementation-phase skill. Claude-flow v3 has shipped; this skill contains design blueprints and reference patterns from the v3 build phase."
 ---
 
 # V3 DDD Architecture
@@ -423,7 +425,7 @@ describe('Task Entity', () => {
 - `v3-core-implementation` - Implementation of DDD domains
 - `v3-memory-unification` - AgentDB integration within bounded contexts
 - `v3-swarm-coordination` - Swarm coordination as domain plugin
-- `v3-performance-optimization` - Performance optimization across domains
+- `v3-performance-optimisation` - Performance optimisation across domains
 
 ## Usage Examples
 

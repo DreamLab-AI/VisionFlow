@@ -27,6 +27,14 @@ Leverage Google's Gemini 2.5 Flash model to expand, summarize, and analyze web c
 - **Research Aggregation**: Gather information from multiple sources
 - **Content Grounding**: Get AI responses grounded in specific web sources
 
+## When Not To Use
+
+- For YouTube video transcript extraction -- use the web-summary skill instead (Gemini does not support YouTube)
+- For broad web search across many sources -- use the perplexity-research skill instead
+- For browser automation, form filling, or interactive page navigation -- use the browser or playwright skills instead
+- For summarising content you already have as text -- no URL expansion tool is needed; process it directly
+- For pages behind paywalls or requiring authentication -- Gemini URL Context cannot access restricted content
+
 ## Architecture
 
 ```

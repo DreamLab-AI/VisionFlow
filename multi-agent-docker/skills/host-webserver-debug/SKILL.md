@@ -26,6 +26,13 @@ triggers:
 
 Debug web applications running on the Docker host from inside containers.
 
+## When Not To Use
+
+- For general browser automation, form filling, or web scraping -- use the browser or playwright skills instead
+- For summarising web page content -- use the web-summary or gemini-url-context skills instead
+- For API testing without a browser -- use curl or httpx directly
+- For debugging applications that are not running on the Docker host -- use standard debugging tools
+
 ## Installation
 
 ```bash

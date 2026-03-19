@@ -11,6 +11,14 @@ tags: [authentication, sandboxes, deployment, payments, gamification, cloud]
 
 Comprehensive platform management for Flow Nexus - covering authentication, sandbox execution, app deployment, credit management, and coding challenges.
 
+## When Not To Use
+
+- For local swarm orchestration without cloud infrastructure -- use the swarm-advanced or hive-mind-advanced skills instead
+- For neural network training and model management -- use the flow-nexus-neural skill instead
+- For cloud swarm deployment and workflow automation -- use the flow-nexus-swarm skill instead
+- For GitHub-based project management and issue tracking -- use the github-project-management skill instead
+- For local sandbox development without Flow Nexus accounts -- standard Docker or local dev environments suffice
+
 ## Table of Contents
 1. [Authentication & User Management](#authentication--user-management)
 2. [Sandbox Management](#sandbox-management)
@@ -566,10 +574,10 @@ mcp__flow-nexus__app_store_earn_ruv({
 - White-label options
 - On-premise deployment
 
-### Cost Optimization Tips
+### Cost Optimisation Tips
 
 1. **Use Smaller Sandboxes**: Choose appropriate templates (base vs full-stack)
-2. **Optimize Neural Training**: Tune hyperparameters, reduce epochs
+2. **Optimise Neural Training**: Tune hyperparameters, reduce epochs
 3. **Batch Operations**: Group workflow executions together
 4. **Clean Up Resources**: Delete unused sandboxes and storage
 5. **Monitor Usage**: Check `user_stats` regularly
@@ -672,11 +680,11 @@ mcp__flow-nexus__achievements_list({
 - **algorithms**: Classic algorithm problems (sorting, searching, graphs)
 - **data-structures**: DS implementation (trees, heaps, tries)
 - **system-design**: Architecture and scalability challenges
-- **optimization**: Performance and efficiency problems
+- **optimisation**: Performance and efficiency problems
 - **security**: Security-focused vulnerabilities and fixes
 - **ml-basics**: Machine learning fundamentals
 - **distributed-systems**: Concurrency and distributed computing
-- **databases**: Query optimization and schema design
+- **databases**: Query optimisation and schema design
 
 ### Challenge Difficulty Rewards
 
@@ -700,7 +708,7 @@ mcp__flow-nexus__achievements_list({
 
 1. **Start Simple**: Begin with beginner challenges to build confidence
 2. **Review Solutions**: Study top solutions after completing
-3. **Optimize**: Aim for both correctness and performance
+3. **Optimise**: Aim for both correctness and performance
 4. **Daily Practice**: Complete daily challenges for bonus credits
 5. **Community**: Engage with discussions and learn from others
 6. **Track Progress**: Monitor achievements and leaderboard position
@@ -978,7 +986,7 @@ mcp__flow-nexus__challenge_submit({
 ### Performance
 1. Clean up unused sandboxes to save credits
 2. Use smaller sandbox templates when possible
-3. Optimize storage by deleting old files
+3. Optimise storage by deleting old files
 4. Batch operations to reduce API calls
 5. Monitor usage via `user_stats`
 6. Use temp buckets for transient data
@@ -1010,8 +1018,8 @@ mcp__flow-nexus__challenge_submit({
 
 ### Sandbox Issues
 - **Sandbox Won't Start**: Check template compatibility, verify credits
-- **Execution Timeout**: Increase timeout parameter or optimize code
-- **Out of Memory**: Use larger template or optimize memory usage
+- **Execution Timeout**: Increase timeout parameter or optimise code
+- **Out of Memory**: Use larger template or optimise memory usage
 - **Package Install Failed**: Check package name, verify npm/pip availability
 
 ### Payment Issues
@@ -1022,7 +1030,7 @@ mcp__flow-nexus__challenge_submit({
 ### Challenge Issues
 - **Submission Rejected**: Check code syntax, ensure all tests pass
 - **Wrong Answer**: Review test cases, check edge cases
-- **Performance Too Slow**: Optimize algorithm complexity
+- **Performance Too Slow**: Optimise algorithm complexity
 
 ---
 

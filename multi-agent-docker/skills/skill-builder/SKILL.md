@@ -1,6 +1,6 @@
 ---
 name: "Skill Builder"
-description: "Create new Claude Code Skills with proper YAML frontmatter, progressive disclosure structure, and complete directory organization. Use when you need to build custom skills for specific workflows, generate skill templates, or understand the Claude Skills specification."
+description: "Create new Claude Code Skills with proper YAML frontmatter, progressive disclosure structure, and complete directory organisation. Use when you need to build custom skills for specific workflows, generate skill templates, or understand the Claude Skills specification."
 ---
 
 # Skill Builder
@@ -8,6 +8,13 @@ description: "Create new Claude Code Skills with proper YAML frontmatter, progre
 ## What This Skill Does
 
 Creates production-ready Claude Code Skills with proper YAML frontmatter, progressive disclosure architecture, and complete file/folder structure. This skill guides you through building skills that Claude can autonomously discover and use across all surfaces (Claude.ai, Claude Code, SDK, API).
+
+## When Not To Use
+
+- For using an existing skill -- just invoke the skill directly; this skill is only for creating new ones
+- For documentation alignment and validation of existing docs -- use the docs-alignment skill instead
+- For project scaffolding from a PRD -- use the prd2build skill instead
+- For general code generation without skill packaging -- write code directly
 
 ## Prerequisites
 

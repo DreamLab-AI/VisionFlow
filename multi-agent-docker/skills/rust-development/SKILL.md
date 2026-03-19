@@ -27,6 +27,14 @@ Full Rust development environment with stable toolchain, formatters, linters, an
 - Network services
 - Embedded programming
 
+## When Not To Use
+
+- For WASM graphics with JS interop specifically -- use the wasm-js skill which covers the full WASM+JS architecture
+- For CUDA GPU kernel development -- use the cuda skill instead
+- For Python-based ML model training -- use the pytorch-ml skill instead
+- For general TypeScript/JavaScript development -- standard Claude Code editing suffices
+- For Rust WASM build targets already handled by wasm-js -- avoid duplicating configuration
+
 ## Commands
 
 ### Project Management

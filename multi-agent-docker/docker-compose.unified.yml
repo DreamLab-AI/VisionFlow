@@ -229,6 +229,12 @@ services:
       MANAGEMENT_API_PORT: 9090
       MANAGEMENT_API_HOST: 0.0.0.0
 
+      # Claude Telegram Mirror (ctm) — bidirectional Claude Code <-> Telegram bridge
+      # Set TELEGRAM_MIRROR=true to auto-start the daemon via supervisord
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+      TELEGRAM_MIRROR: ${TELEGRAM_MIRROR:-false}
+
       # System Configuration
       WORKSPACE: /home/devuser/workspace
       AGENTS_DIR: /home/devuser/agents

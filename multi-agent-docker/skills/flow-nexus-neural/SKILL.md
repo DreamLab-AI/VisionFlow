@@ -29,6 +29,14 @@ npx flow-nexus@latest register
 npx flow-nexus@latest login
 ```
 
+## When Not To Use
+
+- For local PyTorch model training with direct GPU access -- use the pytorch-ml skill instead
+- For custom CUDA kernel development and GPU profiling -- use the cuda skill instead
+- For AgentDB reinforcement learning plugins (Q-Learning, SARSA, etc.) -- use the agentdb-learning skill instead
+- For swarm orchestration without neural training -- use the flow-nexus-swarm skill instead
+- For platform account management, sandboxes, or payments -- use the flow-nexus-platform skill instead
+
 ## Core Capabilities
 
 ### 1. Single-Node Neural Training

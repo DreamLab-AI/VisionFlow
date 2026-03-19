@@ -28,6 +28,14 @@ Complete machine learning environment with PyTorch, CUDA, and data science stack
 - Research experiments
 - Production model deployment
 
+## When Not To Use
+
+- For custom CUDA kernel development and GPU profiling -- use the cuda skill instead
+- For distributed neural network training in cloud sandboxes -- use the flow-nexus-neural skill instead
+- For AgentDB reinforcement learning plugins (Q-Learning, Decision Transformer) -- use the agentdb-learning skill instead
+- For interactive data exploration in notebooks -- use the jupyter-notebooks skill instead
+- For AI image generation (Stable Diffusion, FLUX) -- use the comfyui skill instead
+
 ## Environment
 
 ```python
@@ -148,7 +156,7 @@ epoch = checkpoint['epoch']
 loss = checkpoint['loss']
 ```
 
-## CUDA Optimization
+## CUDA Optimisation
 
 ```python
 # Mixed precision training
@@ -244,7 +252,7 @@ if torch.cuda.is_available():
 3. Enable cudnn benchmarking: `torch.backends.cudnn.benchmark = True`
 4. Clear CUDA cache periodically
 5. Use gradient checkpointing for large models
-6. Profile with `torch.profiler` for optimization
+6. Profile with `torch.profiler` for optimisation
 
 ## Notes
 

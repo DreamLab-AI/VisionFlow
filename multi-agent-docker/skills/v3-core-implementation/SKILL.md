@@ -1,6 +1,8 @@
 ---
 name: "V3 Core Implementation"
 description: "Core module implementation for claude-flow v3. Implements DDD domains, clean architecture patterns, dependency injection, and modular TypeScript codebase with comprehensive testing."
+status: archived
+archived_reason: "V3 implementation-phase skill. Claude-flow v3 has shipped; this skill contains design blueprints and reference patterns from the v3 build phase."
 ---
 
 # V3 Core Implementation
@@ -774,7 +776,7 @@ export class EntityCache<T extends Entity<any>> {
 ## Related V3 Skills
 
 - `v3-ddd-architecture` - DDD architectural design
-- `v3-mcp-optimization` - MCP server integration
+- `v3-mcp-optimisation` - MCP server integration
 - `v3-memory-unification` - AgentDB repository integration
 - `v3-swarm-coordination` - Swarm domain implementation
 

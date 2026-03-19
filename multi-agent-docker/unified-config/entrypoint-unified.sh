@@ -1621,6 +1621,66 @@ echo "  - VisionFlow TCP bridge: localhost:9500"
 echo "  - Environment variables added to devuser's .zshrc"
 
 # ============================================================================
+# Phase 6.8: Claude Telegram Mirror (ctm) Configuration
+# ============================================================================
+
+if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
+    echo "[CTM] Configuring Claude Telegram Mirror..."
+
+    # Build ctm from workspace if binary not yet installed
+    if ! command -v ctm &>/dev/null; then
+        CTM_SRC="/home/devuser/workspace/claude-telegram-mirror"
+        if [ -f "$CTM_SRC/Cargo.toml" ]; then
+            echo "[CTM] Building ctm from source (first boot)..."
+            su - devuser -c "cd $CTM_SRC && cargo build --release" 2>&1 | tail -3
+            if [ -f "$CTM_SRC/target/release/ctm" ]; then
+                cp "$CTM_SRC/target/release/ctm" /usr/local/bin/ctm
+                chmod +x /usr/local/bin/ctm
+                echo "  ✓ ctm $(ctm --version 2>&1 | head -1) built and installed"
+            else
+                echo "  ✗ ctm build failed — Telegram mirroring will not be available"
+            fi
+        else
+            echo "  ✗ ctm source not found at $CTM_SRC — skipping build"
+        fi
+    else
+        echo "  ✓ ctm already installed: $(ctm --version 2>&1 | head -1)"
+    fi
+
+    CTM_CONFIG_DIR="/home/devuser/.config/claude-telegram-mirror"
+    mkdir -p "$CTM_CONFIG_DIR"
+    chmod 700 "$CTM_CONFIG_DIR"
+
+    cat > "$CTM_CONFIG_DIR/config.json" <<CTMEOF
+{
+  "bot_token": "$TELEGRAM_BOT_TOKEN",
+  "chat_id": $TELEGRAM_CHAT_ID,
+  "enabled": true,
+  "verbose": true,
+  "approvals": true,
+  "useThreads": true,
+  "rateLimit": 20,
+  "autoDeleteTopics": true,
+  "topicDeleteDelayMinutes": 1440,
+  "staleSessionTimeoutHours": 72
+}
+CTMEOF
+    chmod 600 "$CTM_CONFIG_DIR/config.json"
+
+    # Write initial status.json (mirroring ON by default)
+    cat > "$CTM_CONFIG_DIR/status.json" <<CTMEOF2
+{"enabled":true,"toggled_at":"$(date -u +%Y-%m-%dT%H:%M:%S+00:00)"}
+CTMEOF2
+    chmod 600 "$CTM_CONFIG_DIR/status.json"
+
+    chown -R devuser:devuser "$CTM_CONFIG_DIR"
+    echo "  ✓ CTM config written to $CTM_CONFIG_DIR/config.json"
+    echo "  ✓ Mirroring enabled — daemon will start via supervisord"
+else
+    echo "[CTM] Skipped — TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not set"
+fi
+
+# ============================================================================
 # Phase 7: Generate SSH Host Keys
 # ============================================================================
 

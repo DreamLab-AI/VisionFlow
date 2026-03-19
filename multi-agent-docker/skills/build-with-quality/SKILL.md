@@ -1,7 +1,7 @@
 ---
-skill: build-with-quality
+name: build-with-quality
+description: "Unified Claude Code V3 + Agentic QE meta-skill for optimal project building with 111+ specialized agents, unified learning (SONA + ReasoningBank), TinyDancer model routing (75% token reduction), and comprehensive quality gates. Supersedes agentic-qe, reasoningbank-*, and pair-programming skills."
 version: 1.1.0
-description: Unified Claude Code V3 + Agentic QE meta-skill for optimal project building with 111+ specialized agents, unified learning (SONA + ReasoningBank), TinyDancer model routing (75% token reduction), and comprehensive quality gates. Supersedes agentic-qe, reasoningbank-*, and pair-programming skills.
 author: Claude Flow
 tags: [meta-skill, development, qa, tdd, adr, ddd, agents, quality-gates, sona, hnsw, coverage, security, accessibility, chaos-testing]
 mcp_server: false
@@ -16,6 +16,14 @@ supersedes: [agentic-qe, reasoningbank-intelligence, reasoningbank-agentdb, pair
 **[Claude Flow V3](https://github.com/ruvnet/claude-flow/tree/main/v3) + [Agentic QE](https://github.com/proffesor-for-testing/agentic-qe) Combined**
 
 A comprehensive meta-skill that unifies development and quality engineering capabilities, replacing multiple specialized skills with a single cohesive system.
+
+## When Not To Use
+
+- For a quick code change that does not need quality gates or swarm coordination -- edit files directly with Claude Code
+- For GitHub-specific PR review without the full quality pipeline -- use the github-code-review skill instead
+- For standalone documentation validation and alignment -- use the docs-alignment skill instead
+- For SPARC methodology orchestration without quality engineering agents -- use the sparc-methodology skill instead
+- For simple unit test generation without the full 111-agent system -- write tests directly or use the TDD workflow in sparc-methodology
 
 ## What This Skill Supersedes
 
@@ -65,11 +73,11 @@ mcp__claude-flow__task_orchestrate { task: "[PROJECT]", strategy: "parallel" }
 
 ### Unified Learning System
 
-- **SONA (Self-Optimizing Neural Architecture)**: 5 modes (real-time, balanced, research, edge, batch)
+- **SONA (Self-Optimising Neural Architecture)**: 5 modes (real-time, balanced, research, edge, batch)
 - **ReasoningBank**: Pattern storage with confidence tiers (Bronze -> Platinum)
 - **HNSW Indexing**: O(log n) vector search - 150x faster than linear
 - **Dream Cycles**: Background pattern consolidation
-- **Q-Learning**: Coverage optimization with 12-dimensional state space
+- **Q-Learning**: Coverage optimisation with 12-dimensional state space
 
 ### Intelligent Model Routing (TinyDancer)
 
@@ -102,7 +110,7 @@ mcp__claude-flow__task_orchestrate { task: "[PROJECT]", strategy: "parallel" }
 #### Test-Driven Development (TDD)
 - **Red-Green-Refactor**: Strict cycle enforcement with TDD-specific agents
 - **Test Patterns**: Unit, integration, and contract test templates
-- **Best Practices**: Arrange-Act-Assert, descriptive naming, behavior-focused tests
+- **Best Practices**: Arrange-Act-Assert, descriptive naming, behaviour-focused tests
 
 ## Usage
 
@@ -218,11 +226,11 @@ Phase 5: LEARNING
 - `compliance-auditor` - Regulatory compliance validation
 
 ### Learning Domain (Shared)
-- `sona-optimizer` - SONA pattern optimization
+- `sona-optimizer` - SONA pattern optimisation
 - `memory-indexer` - HNSW indexing and vector operations
 - `trajectory-tracker` - Execution trajectory tracking
 - `reasoning-bank-manager` - ReasoningBank pattern management
-- `q-learning-optimizer` - Q-Learning for coverage optimization
+- `q-learning-optimizer` - Q-Learning for coverage optimisation
 - `cross-project-transfer` - Cross-project learning transfer
 
 ### TDD Subagents

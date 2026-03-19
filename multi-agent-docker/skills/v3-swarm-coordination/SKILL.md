@@ -1,6 +1,8 @@
 ---
 name: "V3 Swarm Coordination"
 description: "15-agent hierarchical mesh coordination for v3 implementation. Orchestrates parallel execution across security, core, and integration domains following 10 ADRs with 14-week timeline."
+status: archived
+archived_reason: "V3 implementation-phase skill. Claude-flow v3 has shipped; this skill contains design blueprints and reference patterns from the v3 build phase."
 ---
 
 # V3 Swarm Coordination
@@ -57,12 +59,12 @@ Task("Performance validation", "Validate 2.49x-7.47x targets", "v3-performance-e
 | 6 | Core Implementer | Core | Systems | Core module implementation |
 | 7 | Memory Specialist | Core | Systems | AgentDB unification |
 | 8 | Swarm Specialist | Core | Systems | Unified coordination engine |
-| 9 | MCP Specialist | Core | Systems | MCP server optimization |
+| 9 | MCP Specialist | Core | Systems | MCP server optimisation |
 | 10 | Integration Architect | Integration | Integration | agentic-flow@alpha deep integration |
 | 11 | CLI/Hooks Developer | Integration | Integration | CLI modernization |
 | 12 | Neural/Learning Dev | Integration | Integration | SONA integration |
 | 13 | TDD Test Engineer | Quality | All | London School TDD |
-| 14 | Performance Engineer | Performance | Optimization | Benchmarking validation |
+| 14 | Performance Engineer | Performance | Optimisation | Benchmarking validation |
 | 15 | Release Engineer | Deployment | Release | CI/CD and v3.0.0 release |
 
 ## Implementation Phases
@@ -312,7 +314,7 @@ class SwarmLoadBalancer {
 - `v3-security-overhaul` - Security domain coordination
 - `v3-memory-unification` - Memory system coordination
 - `v3-integration-deep` - Integration domain coordination
-- `v3-performance-optimization` - Performance domain coordination
+- `v3-performance-optimisation` - Performance domain coordination
 
 ## Usage Examples
 

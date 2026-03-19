@@ -16,6 +16,14 @@ arguments:
 
 **One command. Complete documentation. No complexity.**
 
+## When Not To Use
+
+- For existing documentation validation and alignment -- use the docs-alignment skill instead
+- For full code implementation with quality gates and testing -- use the build-with-quality skill instead
+- For SPARC-phase orchestration across development stages -- use the sparc-methodology skill instead
+- For LaTeX report generation with charts and bibliography -- use the report-builder skill instead
+- For simple feature implementation without formal documentation -- just write code directly
+
 ---
 
 ## What This Does
@@ -60,8 +68,8 @@ $ARGUMENTS
 ```javascript
 // Initialize system (REQUIRED FIRST)
 Bash("mkdir -p docs/{specification,ddd,adr,sparc,implementation/{milestones,epics,tasks},testing,design/mockups}")
-Bash("ruflo init --no-color 2>/dev/null || true")
-Bash("ruflo memory init --force --no-color 2>/dev/null || true")
+Bash("npx @claude-flow/cli@latest init --no-color 2>/dev/null || true")
+Bash("npx @claude-flow/cli@latest memory init --force --no-color 2>/dev/null || true")
 
 // Spawn ALL documentation agents in PARALLEL (foreground mode)
 // They all run concurrently and block until ALL complete
@@ -132,7 +140,7 @@ Generate docs/ddd/:
 - aggregates.md (aggregate roots, consistency boundaries)
 - entities.md (domain entities with identity)
 - value-objects.md (immutable value objects)
-- domain-events.md (event catalog with triggers)
+- domain-events.md (event catalogue with triggers)
 - sagas.md (long-running processes, compensating transactions)
 - repositories.md (repository interfaces)
 - services.md (domain and application services)
@@ -313,7 +321,7 @@ This INDEX.md becomes THE SINGLE SOURCE OF TRUTH for implementation.
 if ("$ARGUMENTS" includes "--build") {
 
   // Step 1: Initialize swarm with mesh topology
-  Bash("ruflo swarm init --topology mesh --strategy adaptive --no-color 2>/dev/null || true")
+  Bash("npx @claude-flow/cli@latest swarm init --topology mesh --strategy adaptive --no-color 2>/dev/null || true")
 
   // Step 2: Spawn build swarm agents in BACKGROUND (parallel execution)
   // They will execute the build using all ADRs and DDDrs as reference
@@ -436,7 +444,7 @@ docs/
 │   ├── aggregates.md                   # Aggregate roots
 │   ├── entities.md                     # Domain entities
 │   ├── value-objects.md                # Value objects
-│   ├── domain-events.md                # Event catalog
+│   ├── domain-events.md                # Event catalogue
 │   ├── sagas.md                        # Process managers
 │   ├── repositories.md                 # Repository interfaces
 │   ├── services.md                     # Domain/application services

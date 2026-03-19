@@ -5,18 +5,21 @@ description: "Master advanced AgentDB features including QUIC synchronization, m
 
 # AgentDB Advanced Features
 
-## What This Skill Does
+For AgentDB architecture, performance benchmarks, and common API patterns, see [AgentDB Overview](./docs/agentdb-overview.md).
 
-Covers advanced AgentDB capabilities for distributed systems, multi-database coordination, custom distance metrics, hybrid search (vector + metadata), QUIC synchronization, and production deployment patterns. Enables building sophisticated AI systems with sub-millisecond cross-node communication and advanced search capabilities.
+## What This Skill Covers
 
-**Performance**: <1ms QUIC sync, hybrid search with filters, custom distance metrics.
+QUIC synchronization for distributed systems, multi-database coordination, custom distance metrics, hybrid search (vector + metadata), MMR diversity, context synthesis, and production deployment patterns.
 
-## Prerequisites
+**Additional Prerequisites**: Understanding of distributed systems (for QUIC sync), vector search fundamentals.
 
-- Node.js 18+
-- AgentDB v1.0.7+ (via agentic-flow)
-- Understanding of distributed systems (for QUIC sync)
-- Vector search fundamentals
+## When Not To Use
+
+- For basic vector search or single-database setups -- use the agentdb-vector-search skill instead
+- For learning and reinforcement algorithms -- use the agentdb-learning skill instead
+- For simple agent memory patterns (session, long-term) -- use the agentdb-memory-patterns skill instead
+- For performance tuning without distributed features -- use the agentdb-vector-search skill instead
+- For non-AgentDB vector databases (pgvector, Pinecone, Weaviate) -- this skill is AgentDB-specific
 
 ---
 
@@ -455,7 +458,7 @@ npx agentdb@latest import ./backup.json.gz --decompress
 npx agentdb@latest merge ./db1.sqlite ./db2.sqlite ./merged.sqlite
 ```
 
-### Database Optimization
+### Database Optimisation
 
 ```bash
 # Vacuum database (reclaim space)
@@ -470,30 +473,15 @@ npx agentdb@latest reindex ./vectors.db
 
 ---
 
-## Environment Variables
+## QUIC Environment Variables
 
 ```bash
-# AgentDB configuration
-AGENTDB_PATH=.agentdb/reasoningbank.db
-AGENTDB_ENABLED=true
-
-# Performance tuning
-AGENTDB_QUANTIZATION=binary     # binary|scalar|product|none
-AGENTDB_CACHE_SIZE=2000
-AGENTDB_HNSW_M=16
-AGENTDB_HNSW_EF=100
-
-# Learning plugins
-AGENTDB_LEARNING=true
-
-# Reasoning agents
-AGENTDB_REASONING=true
-
-# QUIC synchronization
 AGENTDB_QUIC_SYNC=true
 AGENTDB_QUIC_PORT=4433
 AGENTDB_QUIC_PEERS=host1:4433,host2:4433
 ```
+
+For common AgentDB environment variables, see [AgentDB Overview](./docs/agentdb-overview.md#environment-variables).
 
 ---
 
@@ -540,8 +528,7 @@ const result = await adapter.retrieveWithReasoning(queryEmbedding, {
 
 - **QUIC Protocol**: docs/quic-synchronization.pdf
 - **Hybrid Search**: docs/hybrid-search-guide.md
-- **GitHub**: https://github.com/ruvnet/agentic-flow/tree/main/packages/agentdb
-- **Website**: https://agentdb.ruv.io
+- See [AgentDB Overview](./docs/agentdb-overview.md#links) for general links.
 
 ---
 

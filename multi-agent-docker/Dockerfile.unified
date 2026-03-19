@@ -286,7 +286,11 @@ RUN npm install -g \
     pm2@latest \
     typescript@latest \
     ts-node@latest \
-    @types/node@latest
+    @types/node@latest \
+    # Mermaid CLI for diagrams-as-code (used by report-builder skill)
+    @mermaid-js/mermaid-cli@latest
+    # PaperBanana academic diagram generator (used by report-builder skill)
+    # Installed via pip in Python venv, not npm
 
 # V4 New Systems: Beads (cross-session memory), GitNexus (codebase knowledge graph), OpenSpec
 # NOTE: These packages are planned but not yet published to npm. Skip for now.
@@ -599,6 +603,21 @@ RUN find /home/devuser/.claude/skills -name "*.py" -path "*/mcp-server/*" -exec 
     find /home/devuser/.claude/skills -name "*.py" -path "*/tools/*" -exec chmod +x {} \; && \
     find /home/devuser/.claude/skills -name "*.js" -path "*/tools/*" -exec chmod +x {} \; && \
     chown -R devuser:devuser /home/devuser/.claude/skills
+
+# ============================================================================
+# PHASE 13.4: Claude Telegram Mirror (ctm) — Bidirectional Claude Code <-> Telegram
+# ============================================================================
+
+# ctm binary is built from workspace source at first boot (entrypoint Phase 6.8)
+# because the source lives in the workspace volume, not the build context.
+# Once built, the binary is cached at /usr/local/bin/ctm across container restarts.
+# To pre-bake: uncomment the COPY + RUN lines below and add source to build context.
+#
+# COPY claude-telegram-mirror/ /tmp/ctm-src/
+# RUN cd /tmp/ctm-src && cargo build --release && \
+#     cp target/release/ctm /usr/local/bin/ctm && \
+#     rm -rf /tmp/ctm-src && \
+#     chmod +x /usr/local/bin/ctm && ctm --version
 
 # ============================================================================
 # PHASE 13.5: Ruflo V3 Canonical Setup (formerly Claude Flow)

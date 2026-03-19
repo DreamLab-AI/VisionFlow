@@ -1,13 +1,15 @@
 ---
-name: "V3 Performance Optimization"
-description: "Achieve aggressive v3 performance targets: 2.49x-7.47x Flash Attention speedup, 150x-12,500x search improvements, 50-75% memory reduction. Comprehensive benchmarking and optimization suite."
+name: "V3 Performance Optimisation"
+description: "Achieve aggressive v3 performance targets: 2.49x-7.47x Flash Attention speedup, 150x-12,500x search improvements, 50-75% memory reduction. Comprehensive benchmarking and optimisation suite."
+status: archived
+archived_reason: "V3 implementation-phase skill. Claude-flow v3 has shipped; this skill contains design blueprints and reference patterns from the v3 build phase."
 ---
 
-# V3 Performance Optimization
+# V3 Performance Optimisation
 
 ## What This Skill Does
 
-Validates and optimizes claude-flow v3 to achieve industry-leading performance through Flash Attention, AgentDB HNSW indexing, and comprehensive system optimization with continuous benchmarking.
+Validates and optimises claude-flow v3 to achieve industry-leading performance through Flash Attention, AgentDB HNSW indexing, and comprehensive system optimisation with continuous benchmarking.
 
 ## Quick Start
 
@@ -285,9 +287,9 @@ class PerformanceRegression {
 }
 ```
 
-## Optimization Strategies
+## Optimisation Strategies
 
-### Memory Optimization
+### Memory Optimisation
 ```typescript
 class MemoryOptimization {
   async optimizeMemoryUsage(): Promise<OptimizationResult> {
@@ -308,7 +310,7 @@ class MemoryOptimization {
 }
 ```
 
-### CPU Optimization
+### CPU Optimisation
 ```typescript
 class CPUOptimization {
   async optimizeCPUUsage(): Promise<OptimizationResult> {
@@ -355,7 +357,7 @@ class PerformanceGates {
 ### Primary Targets
 - [ ] **Flash Attention**: 2.49x-7.47x speedup validated
 - [ ] **Search Performance**: 150x-12,500x improvement confirmed
-- [ ] **Memory Reduction**: 50-75% usage optimization achieved
+- [ ] **Memory Reduction**: 50-75% usage optimisation achieved
 - [ ] **Startup Time**: <500ms cold start consistently
 - [ ] **SONA Adaptation**: <0.05ms learning response time
 - [ ] **15-Agent Coordination**: Efficient parallel execution
@@ -369,7 +371,7 @@ class PerformanceGates {
 ## Related V3 Skills
 
 - `v3-integration-deep` - Performance integration with agentic-flow
-- `v3-memory-unification` - Memory performance optimization
+- `v3-memory-unification` - Memory performance optimisation
 - `v3-swarm-coordination` - Swarm performance coordination
 - `v3-security-overhaul` - Secure performance patterns
 

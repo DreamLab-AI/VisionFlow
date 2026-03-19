@@ -1,6 +1,8 @@
 ---
 name: "V3 Deep Integration"
 description: "Deep agentic-flow@alpha integration implementing ADR-001. Eliminates 10,000+ duplicate lines by building claude-flow as specialized extension rather than parallel implementation."
+status: archived
+archived_reason: "V3 implementation-phase skill. Claude-flow v3 has shipped; this skill contains design blueprints and reference patterns from the v3 build phase."
 ---
 
 # V3 Deep Integration
@@ -236,6 +238,6 @@ class BackwardCompatibility {
 ## Related V3 Skills
 
 - `v3-memory-unification` - Memory system integration
-- `v3-performance-optimization` - Performance target validation
+- `v3-performance-optimisation` - Performance target validation
 - `v3-swarm-coordination` - Swarm system migration
 - `v3-security-overhaul` - Secure integration patterns

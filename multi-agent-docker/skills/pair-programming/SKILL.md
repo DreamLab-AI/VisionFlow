@@ -1,9 +1,29 @@
 ---
 name: Pair Programming
-description: AI-assisted pair programming with multiple modes (driver/navigator/switch), real-time verification, quality monitoring, and comprehensive testing. Supports TDD, debugging, refactoring, and learning sessions. Features automatic role switching, continuous code review, security scanning, and performance optimization with truth-score verification.
+description: AI-assisted pair programming with multiple modes (driver/navigator/switch), real-time verification, quality monitoring, and comprehensive testing. Supports TDD, debugging, refactoring, and learning sessions. Features automatic role switching, continuous code review, security scanning, and performance optimisation with truth-score verification.
+status: deprecated
+superseded_by: build-with-quality
 ---
 
-# Pair Programming
+# Pair Programming (DEPRECATED)
+
+**This skill has been superseded by `build-with-quality`.** The build-with-quality meta-skill provides all pair-programming capabilities (driver/navigator, TDD, code review, quality verification) through its integrated coder, reviewer, and TDD agents. Use `/build-with-quality` instead.
+
+## Migration
+
+```bash
+# Old
+claude-flow pair --start --mode tdd
+
+# New - Use TDD agents directly
+npx claude-flow@alpha agent spawn --type tdd-red-phase
+npx claude-flow@alpha agent spawn --type tdd-green-phase
+npx claude-flow@alpha agent spawn --type tdd-refactor-phase
+```
+
+---
+
+## Original Documentation (Archived)
 
 Collaborative AI pair programming with intelligent role management, real-time quality monitoring, and comprehensive development workflows.
 
@@ -801,9 +821,9 @@ claude-flow pair --start \
 /commit --message "refactor: modernize UserService with async/await"
 ```
 
-#### Example 5: Performance Optimization
+#### Example 5: Performance Optimisation
 
-Optimizing slow React application:
+Optimising slow React application:
 
 ```bash
 # Session setup
@@ -1094,7 +1114,7 @@ claude-flow pair --start --ide vscode
 1. **Test Early** - Run tests after each change
 2. **Verify Before Commit** - Check truth scores
 3. **Review Security** - Always for sensitive code
-4. **Profile Performance** - Use `/perf` for optimization
+4. **Profile Performance** - Use `/perf` for optimisation
 5. **Save Sessions** - For complex work
 6. **Learn from AI** - Ask questions frequently
 

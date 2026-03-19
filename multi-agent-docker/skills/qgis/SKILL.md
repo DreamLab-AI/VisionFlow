@@ -30,6 +30,13 @@ Geospatial analysis and GIS operations via FastMCP protocol, communicating with 
 - Query features with spatial filters
 - Style layers with categorized or graduated symbology
 
+## When Not To Use
+
+- For non-geographic image processing (resize, crop, filter) -- use the imagemagick skill instead
+- For 3D modelling and scene rendering -- use the blender skill instead
+- For generic diagrams and flowcharts -- use the mermaid-diagrams skill instead
+- For data analysis without a spatial component -- use the jupyter-notebooks or pytorch-ml skills instead
+
 ## Architecture
 
 ```
@@ -107,15 +114,6 @@ export_map({
 | `QGIS_PORT` | `9877` | QGIS MCP plugin port |
 | `QGIS_TIMEOUT` | `60` | Socket timeout in seconds |
 
-## Python 3.14 Support
-
-QGIS requires Python 3.14 site-packages in PYTHONPATH:
-```bash
-export PYTHONPATH=/usr/lib/python3.14/site-packages:$PYTHONPATH
-```
-
-The container automatically configures this in `.zshrc` and wrapper scripts.
-
 ## Troubleshooting
 
 **Connection refused:**
@@ -125,28 +123,6 @@ supervisorctl status qgis
 
 # Verify MCP plugin is loaded
 # In QGIS: Plugins → Manage Plugins → Search "MCP"
-```
-
-**"Couldn't load SIP module" error:**
-```bash
-# Verify PyQt5 is installed for Python 3.14
-python3.14 -c "from PyQt5 import QtCore; print('PyQt5 OK')"
-
-# Check PYTHONPATH includes site-packages
-echo $PYTHONPATH | grep python3.14/site-packages
-```
-
-**MCP server not starting:**
-```bash
-# Start standalone QGIS MCP server
-python3.14 /tmp/qgis_mcp_standalone.py
-
-# Test connection
-python3.14 -c "import socket, json
-s = socket.socket()
-s.connect(('localhost', 9877))
-s.send((json.dumps({'type': 'health_check'}) + '\n').encode())
-print(s.recv(4096).decode())"
 ```
 
 ## VisionFlow Integration

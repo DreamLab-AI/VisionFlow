@@ -17,6 +17,13 @@ Bridges OpenAI GPT-5.4 into the Ruflo multi-agent environment as a first-class M
 | `codex_generate` | Generate code, solve algorithmic problems, or get architectural advice from GPT-5.4 |
 | `codex_review` | Submit code for bug/security/performance review by GPT-5.4 |
 
+## When Not To Use
+
+- For tasks Claude can handle directly -- only delegate to Codex when you specifically need GPT-5.4 capabilities
+- For multi-step reasoning with chain-of-thought traces -- use the deepseek-reasoning skill instead
+- For web research or fetching live information -- use the perplexity-research or gemini-url-context skills instead
+- For code review on GitHub PRs with swarm coordination -- use the github-code-review skill instead
+
 ## Architecture
 
 - Runs as `devuser` via supervisord (skill files under ~/.claude/skills)

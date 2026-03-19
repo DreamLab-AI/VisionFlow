@@ -1,13 +1,15 @@
 ---
-name: "V3 MCP Optimization"
-description: "MCP server optimization and transport layer enhancement for claude-flow v3. Implements connection pooling, load balancing, tool registry optimization, and performance monitoring for sub-100ms response times."
+name: "V3 MCP Optimisation"
+description: "MCP server optimisation and transport layer enhancement for claude-flow v3. Implements connection pooling, load balancing, tool registry optimisation, and performance monitoring for sub-100ms response times."
+status: archived
+archived_reason: "V3 implementation-phase skill. Claude-flow v3 has shipped; this skill contains design blueprints and reference patterns from the v3 build phase."
 ---
 
-# V3 MCP Optimization
+# V3 MCP Optimisation
 
 ## What This Skill Does
 
-Optimizes claude-flow v3 MCP (Model Context Protocol) server implementation with advanced transport layer optimizations, connection pooling, load balancing, and comprehensive performance monitoring to achieve sub-100ms response times.
+Optimises claude-flow v3 MCP (Model Context Protocol) server implementation with advanced transport layer optimizations, connection pooling, load balancing, and comprehensive performance monitoring to achieve sub-100ms response times.
 
 ## Quick Start
 
@@ -420,7 +422,7 @@ export class MCPLoadBalancer {
 }
 ```
 
-## Transport Layer Optimization
+## Transport Layer Optimisation
 
 ### High-Performance Transport
 ```typescript
@@ -597,7 +599,7 @@ export class MCPMetricsCollector {
 }
 ```
 
-## Tool Registry Optimization
+## Tool Registry Optimisation
 
 ### Pre-compiled Tool Index
 ```typescript
@@ -754,13 +756,13 @@ const mcpDashboard = {
 ## Related V3 Skills
 
 - `v3-core-implementation` - Core domain integration with MCP
-- `v3-performance-optimization` - Overall performance optimization
+- `v3-performance-optimisation` - Overall performance optimisation
 - `v3-swarm-coordination` - MCP integration with swarm coordination
 - `v3-memory-unification` - Memory sharing via MCP tools
 
 ## Usage Examples
 
-### Complete MCP Optimization
+### Complete MCP Optimisation
 ```bash
 # Full MCP server optimization
 Task("MCP optimization implementation",
@@ -768,7 +770,7 @@ Task("MCP optimization implementation",
      "mcp-specialist")
 ```
 
-### Specific Optimization
+### Specific Optimisation
 ```bash
 # Connection pool optimization
 Task("MCP connection pooling",

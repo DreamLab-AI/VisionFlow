@@ -1,13 +1,15 @@
 ---
 name: "V3 CLI Modernization"
 description: "CLI modernization and hooks system enhancement for claude-flow v3. Implements interactive prompts, command decomposition, enhanced hooks integration, and intelligent workflow automation."
+status: archived
+archived_reason: "V3 implementation-phase skill. Claude-flow v3 has shipped; this skill contains design blueprints and reference patterns from the v3 build phase."
 ---
 
 # V3 CLI Modernization
 
 ## What This Skill Does
 
-Modernizes claude-flow v3 CLI with interactive prompts, intelligent command decomposition, enhanced hooks integration, performance optimization, and comprehensive workflow automation capabilities.
+Modernizes claude-flow v3 CLI with interactive prompts, intelligent command decomposition, enhanced hooks integration, performance optimisation, and comprehensive workflow automation capabilities.
 
 ## Quick Start
 
@@ -662,7 +664,7 @@ export class WorkflowOrchestrator {
 }
 ```
 
-## Performance Optimization
+## Performance Optimisation
 
 ### Command Performance Monitoring
 ```typescript
@@ -851,7 +853,7 @@ const cliImprovements = {
 - `v3-core-implementation` - Core domain integration
 - `v3-memory-unification` - Memory-backed command caching
 - `v3-swarm-coordination` - CLI swarm management integration
-- `v3-performance-optimization` - CLI performance monitoring
+- `v3-performance-optimisation` - CLI performance monitoring
 
 ## Usage Examples
 

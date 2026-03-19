@@ -23,6 +23,14 @@ Deploy and manage cloud-based AI agent swarms with event-driven workflow automat
 6. [Advanced Features](#advanced-features)
 7. [Best Practices](#best-practices)
 
+## When Not To Use
+
+- For local swarm coordination without cloud infrastructure -- use the swarm-advanced skill instead
+- For queen-led hive-mind consensus patterns -- use the hive-mind-advanced skill instead
+- For neural network training in distributed sandboxes -- use the flow-nexus-neural skill instead
+- For platform account management, billing, or challenges -- use the flow-nexus-platform skill instead
+- For GitHub-specific CI/CD workflow automation -- use the github-workflow-automation skill instead
+
 ## Overview
 
 Flow Nexus provides cloud-based orchestration for AI agent swarms with:
@@ -75,7 +83,7 @@ mcp__flow-nexus__agent_spawn({
 - **Researcher**: Information gathering, web search, analysis
 - **Coder**: Code generation, refactoring, implementation
 - **Analyst**: Data analysis, pattern recognition, insights
-- **Optimizer**: Performance tuning, resource optimization
+- **Optimizer**: Performance tuning, resource optimisation
 - **Coordinator**: Task delegation, progress tracking, integration
 
 ### Orchestrate Tasks
@@ -477,7 +485,7 @@ mcp__flow-nexus__swarm_init({ topology: "hierarchical", maxAgents: 10 })
 mcp__flow-nexus__swarm_init({ topology: "ring", maxAgents: 4 })
 ```
 
-### 2. Optimize Agent Assignment
+### 2. Optimise Agent Assignment
 
 ```javascript
 // Use vector similarity for optimal matching

@@ -1,6 +1,8 @@
 ---
 name: "V3 Memory Unification"
 description: "Unify 6+ memory systems into AgentDB with HNSW indexing for 150x-12,500x search improvements. Implements ADR-006 (Unified Memory Service) and ADR-009 (Hybrid Memory Backend)."
+status: archived
+archived_reason: "V3 implementation-phase skill. Claude-flow v3 has shipped; this skill contains design blueprints and reference patterns from the v3 build phase."
 ---
 
 # V3 Memory Unification
@@ -159,7 +161,7 @@ class SONAMemoryIntegration {
 ## Performance Targets
 
 - **Search Speed**: 150x-12,500x improvement via HNSW
-- **Memory Usage**: 50-75% reduction through optimization
+- **Memory Usage**: 50-75% reduction through optimisation
 - **Query Latency**: <100ms for 1M+ entries
 - **Cross-Agent Sharing**: Real-time memory synchronization
 - **SONA Integration**: <0.05ms adaptation time
