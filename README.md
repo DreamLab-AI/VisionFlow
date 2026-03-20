@@ -6,7 +6,7 @@
   <img alt="VisionFlow" src="./assets/logo-light.svg" width="400">
 </picture>
 
-# VisionFlow
+# VisionClaw
 
 ### Real-Time 3D Knowledge Graphs with Autonomous AI Agents
 
