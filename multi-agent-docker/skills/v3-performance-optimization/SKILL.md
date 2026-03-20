@@ -7,6 +7,12 @@ archived_reason: "V3 implementation-phase skill. Claude-flow v3 has shipped; thi
 
 # V3 Performance Optimisation
 
+
+## When Not To Use
+
+- For general performance profiling -- use performance-analysis instead
+- For non-v3 performance work -- use standard profiling tools
+
 ## What This Skill Does
 
 Validates and optimises claude-flow v3 to achieve industry-leading performance through Flash Attention, AgentDB HNSW indexing, and comprehensive system optimisation with continuous benchmarking.

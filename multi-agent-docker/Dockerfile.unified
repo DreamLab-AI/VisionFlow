@@ -266,7 +266,7 @@ RUN npm install -g \
     # Browser automation - PRIMARY tool (Vercel Labs)
     # @claude-flow/browser provides MCP tools via ruflo server
     # agent-browser provides direct CLI access (agent-browser open, snapshot, click, etc.)
-    agent-browser@latest \
+    agent-browser@0.21.2 \
     # AgentDB v3 and RuVector ecosystem
     agentdb@alpha \
     ruvector@0.1.99 \
@@ -886,14 +886,19 @@ VOLUME ["/home/devuser/workspace", \
         "/var/log"]
 
 # ============================================================================
-# PHASE 16.5: QGIS Python 3.14 Configuration
+# PHASE 16.5: QGIS MCP Plugin (nkarasiak/qgis-mcp)
 # ============================================================================
 
-# Copy QGIS MCP standalone server
-COPY --chown=devuser:devuser multi-agent-docker/skills/qgis/qgis_mcp_standalone.py /opt/qgis/qgis_mcp_standalone.py
-RUN chmod +x /opt/qgis/qgis_mcp_standalone.py && \
-    mkdir -p /opt/qgis && \
-    ln -s /opt/qgis/qgis_mcp_standalone.py /usr/local/bin/qgis-mcp-server
+# Clone qgis-mcp and symlink plugin into QGIS, patch default port to 9877
+RUN git clone --depth 1 https://github.com/nkarasiak/qgis-mcp /home/devuser/workspace/qgis-mcp && \
+    mkdir -p /home/devuser/.local/share/QGIS/QGIS3/profiles/default/python/plugins && \
+    ln -s /home/devuser/workspace/qgis-mcp/qgis_mcp_plugin \
+      /home/devuser/.local/share/QGIS/QGIS3/profiles/default/python/plugins/qgis_mcp_plugin && \
+    sed -i 's/_DEFAULT_PORT = 9876/_DEFAULT_PORT = 9877/' \
+      /home/devuser/workspace/qgis-mcp/qgis_mcp_plugin/plugin.py && \
+    sed -i 's/DEFAULT_PORT = 9876/DEFAULT_PORT = 9877/' \
+      /home/devuser/workspace/qgis-mcp/src/qgis_mcp/helpers.py && \
+    chown -R devuser:devuser /home/devuser/workspace/qgis-mcp
 
 # Install PyQt5 for Python 3.14 (runtime fix for SIP module)
 RUN python3.14 -m pip install --break-system-packages PyQt5-sip PyQt5 && \

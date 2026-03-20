@@ -1,19 +1,38 @@
 #!/usr/bin/env python3
 """
-QGIS MCP stdio Tool - A bridge to an external QGIS instance with the MCP plugin.
-Reads JSON requests from stdin, sends them to QGIS via TCP, and prints JSON responses to stdout.
+QGIS MCP Tool Bridge - Connects to the nkarasiak/qgis-mcp plugin via TCP.
+
+Uses length-prefixed framing: each message is preceded by a 4-byte big-endian
+unsigned int indicating the JSON payload size in bytes. This matches the
+qgis_mcp_plugin protocol (nkarasiak/qgis-mcp).
+
+For full MCP integration, use the FastMCP server instead:
+  uv run --project /home/devuser/workspace/qgis-mcp src/qgis_mcp/server.py
+
+This file is a lightweight fallback for direct TCP communication.
 """
 import sys
 import json
 import socket
+import struct
 import os
 import logging
 
-# Set up basic logging to stderr
-logging.basicConfig(level=logging.INFO, stream=sys.stderr, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO,
+    stream=sys.stderr,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger("QgisMCPClient")
 
+HEADER_STRUCT = struct.Struct(">I")  # 4-byte big-endian uint32
+RECV_CHUNK_SIZE = 65536
+MAX_RESPONSE_SIZE = 100 * 1024 * 1024  # 100 MB
+
+
 class QgisTCPClient:
+    """TCP client for qgis_mcp_plugin with length-prefixed framing."""
+
     def __init__(self, host, port):
         self.host = host
         self.port = int(port)
@@ -22,11 +41,12 @@ class QgisTCPClient:
     def connect(self):
         try:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.socket.settimeout(10) # 10 second timeout for connection
+            self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            self.socket.settimeout(10)
             self.socket.connect((self.host, self.port))
             return True
         except Exception as e:
-            logger.error(f"Error connecting to QGIS server at {self.host}:{self.port}: {e}")
+            logger.error(f"Error connecting to QGIS at {self.host}:{self.port}: {e}")
             return False
 
     def disconnect(self):
@@ -34,53 +54,81 @@ class QgisTCPClient:
             self.socket.close()
             self.socket = None
 
+    def _recv_exact(self, n):
+        """Read exactly n bytes from the socket."""
+        if n > MAX_RESPONSE_SIZE:
+            raise ValueError(f"Response too large: {n} bytes")
+        buf = bytearray(n)
+        view = memoryview(buf)
+        pos = 0
+        while pos < n:
+            nbytes = self.socket.recv_into(view[pos:], min(n - pos, RECV_CHUNK_SIZE))
+            if nbytes == 0:
+                raise ConnectionError("Connection closed")
+            pos += nbytes
+        return bytes(buf)
+
     def send_command(self, command):
+        """Send a length-prefixed JSON command and receive the response."""
         if not self.socket:
-            logger.error("Not connected to server")
-            return {"success": False, "error": "Not connected to QGIS server"}
+            return {"status": "error", "message": "Not connected to QGIS server"}
 
         try:
-            # The QGIS plugin expects a JSON string followed by a newline
-            self.socket.sendall((json.dumps(command) + '\n').encode('utf-8'))
+            # Encode and send with length prefix
+            payload = json.dumps(command).encode('utf-8')
+            header = HEADER_STRUCT.pack(len(payload))
+            self.socket.sendall(header + payload)
 
-            # Receive the response
-            response_data = b''
-            self.socket.settimeout(60) # 60 second timeout for response
-            while True:
-                chunk = self.socket.recv(4096)
-                if not chunk:
-                    break
-                response_data += chunk
-                # The QGIS plugin sends a single JSON object, so we can try to parse it
-                try:
-                    return json.loads(response_data.decode('utf-8'))
-                except json.JSONDecodeError:
-                    # Not a complete JSON object yet, continue receiving
-                    continue
-            # If the loop breaks and we have no data, it's an issue.
-            if not response_data:
-                return {"success": False, "error": "Received no data from QGIS server"}
-            return json.loads(response_data.decode('utf-8'))
+            # Receive length-prefixed response
+            self.socket.settimeout(60)
+            header_bytes = self._recv_exact(4)
+            msg_len = HEADER_STRUCT.unpack(header_bytes)[0]
+            response_bytes = self._recv_exact(msg_len)
+            return json.loads(response_bytes.decode('utf-8'))
 
         except socket.timeout:
-            return {"success": False, "error": "Socket timeout while communicating with QGIS"}
+            return {"status": "error", "message": "Socket timeout communicating with QGIS"}
         except Exception as e:
             logger.error(f"Error sending/receiving command: {e}")
-            return {"success": False, "error": f"An unexpected error occurred: {e}"}
+            return {"status": "error", "message": f"Unexpected error: {e}"}
+
+
+def ensure_plugin_installed():
+    """Check that the qgis_mcp_plugin is symlinked into QGIS plugins directory."""
+    plugin_path = os.path.expanduser(
+        "~/.local/share/QGIS/QGIS3/profiles/default/python/plugins/qgis_mcp_plugin"
+    )
+    repo_path = "/home/devuser/workspace/qgis-mcp/qgis_mcp_plugin"
+
+    if os.path.exists(plugin_path):
+        return True
+
+    if os.path.exists(repo_path):
+        os.makedirs(os.path.dirname(plugin_path), exist_ok=True)
+        os.symlink(repo_path, plugin_path)
+        logger.info(f"Symlinked plugin: {repo_path} -> {plugin_path}")
+        return True
+
+    logger.warning(
+        f"Plugin repo not found at {repo_path}. "
+        "Clone it: git clone https://github.com/nkarasiak/qgis-mcp /home/devuser/workspace/qgis-mcp"
+    )
+    return False
+
 
 def main():
-    """Main loop to handle MCP requests from stdin."""
-    qgis_host = os.environ.get("QGIS_HOST", "localhost")
-    qgis_port = os.environ.get("QGIS_PORT", 9877)
+    """Main loop: read JSON from stdin, send to QGIS, print response to stdout."""
+    qgis_host = os.environ.get("QGIS_MCP_HOST", os.environ.get("QGIS_HOST", "localhost"))
+    qgis_port = int(os.environ.get("QGIS_MCP_PORT", os.environ.get("QGIS_PORT", "9877")))
+
+    ensure_plugin_installed()
 
     for line in sys.stdin:
         try:
             request = json.loads(line)
-            # The actual tool call is nested inside the MCP request
             tool_name = request.get('tool')
             params = request.get('params', {})
 
-            # The QGIS plugin expects a 'type' and 'params' structure
             qgis_command = {
                 "type": tool_name,
                 "params": params
@@ -103,9 +151,10 @@ def main():
             sys.stdout.write(json.dumps(error_response) + '\n')
             sys.stdout.flush()
         except Exception as e:
-            error_response = {"error": f"An unexpected error occurred in the QGIS tool bridge: {e}"}
+            error_response = {"error": f"QGIS tool bridge error: {e}"}
             sys.stdout.write(json.dumps(error_response) + '\n')
             sys.stdout.flush()
+
 
 if __name__ == "__main__":
     main()

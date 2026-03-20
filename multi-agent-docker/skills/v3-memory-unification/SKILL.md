@@ -7,6 +7,12 @@ archived_reason: "V3 implementation-phase skill. Claude-flow v3 has shipped; thi
 
 # V3 Memory Unification
 
+
+## When Not To Use
+
+- For using memory (not unifying backends) -- use mcp__claude-flow__memory_* tools
+- For non-v3 memory work -- use agentdb-memory-patterns instead
+
 ## What This Skill Does
 
 Consolidates disparate memory systems into unified AgentDB backend with HNSW vector search, achieving 150x-12,500x search performance improvements while maintaining backward compatibility.

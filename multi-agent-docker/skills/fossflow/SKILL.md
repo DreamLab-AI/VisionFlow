@@ -1,6 +1,20 @@
+---
+name: fossflow
+description: >
+  Generate isometric network and architecture diagrams for FossFLOW visualisation.
+  Supports compact LLM-optimised format and full SVG/JSON. Use when creating network
+  topology diagrams, infrastructure maps, or architecture visualisations.
+---
+
 # FossFLOW Diagram Generator
 
 Generate isometric network and architecture diagrams for FossFLOW visualization.
+
+## When Not To Use
+
+- For standard flowcharts, sequence diagrams, or Mermaid-supported types -- use the mermaid-diagrams skill
+- For academic publication figures -- use the paperbanana skill
+- For general architecture documentation -- use the report-builder skill
 
 ## Two Supported Formats
 

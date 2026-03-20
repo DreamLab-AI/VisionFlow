@@ -24,7 +24,9 @@ Web browser automation using agent-browser with AI-optimised snapshots. Reduces 
 
 ## When Not To Use
 
+- For choosing between browser tools -- use the browser-automation meta skill for guided selection
 - For full Playwright API access with visual testing on Display :1 -- use the playwright skill instead
+- For inspecting live Chromium sessions via CDP -- use the chrome-cdp skill instead
 - For fetching and summarising web page content without interaction -- use the web-summary or gemini-url-context skills instead
 - For API testing or HTTP requests that do not require a browser -- use curl or httpx directly
 - For scraping JavaScript-heavy pages that need Playwright's full API -- use the playwright skill instead

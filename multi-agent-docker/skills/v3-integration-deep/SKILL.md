@@ -7,6 +7,12 @@ archived_reason: "V3 implementation-phase skill. Claude-flow v3 has shipped; thi
 
 # V3 Deep Integration
 
+
+## When Not To Use
+
+- For standard agentic-flow usage -- use claude-flow commands directly
+- For non-v3 integration work -- use swarm-advanced instead
+
 ## What This Skill Does
 
 Transforms claude-flow from parallel implementation to specialized extension of agentic-flow@alpha, eliminating massive code duplication while achieving performance improvements and feature parity.

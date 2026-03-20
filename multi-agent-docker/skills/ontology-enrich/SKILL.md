@@ -18,6 +18,12 @@ tags:
 
 # Ontology Enrich Skill
 
+## When Not To Use
+
+- For creating new ontology schemas from scratch -- use ontology-core instead
+- For general data validation unrelated to Logseq ontology -- use standard validation tools
+- For VisionFlow graph rendering -- this handles data, not display
+
 ## Purpose
 
 Validated enrichment and TTL generation for mainKnowledgeGraph corpus with VisionFlow/WebVOWL compatibility.

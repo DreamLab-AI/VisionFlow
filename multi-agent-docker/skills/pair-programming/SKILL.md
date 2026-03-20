@@ -7,6 +7,12 @@ superseded_by: build-with-quality
 
 # Pair Programming (DEPRECATED)
 
+
+## When Not To Use
+
+- For automated code generation without pairing -- use build-with-quality or sparc:code instead
+- For code review without real-time collaboration -- use sherlock-review or code-review-quality
+
 **This skill has been superseded by `build-with-quality`.** The build-with-quality meta-skill provides all pair-programming capabilities (driver/navigator, TDD, code review, quality verification) through its integrated coder, reviewer, and TDD agents. Use `/build-with-quality` instead.
 
 ## Migration

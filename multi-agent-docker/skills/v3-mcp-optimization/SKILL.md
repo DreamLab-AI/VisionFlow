@@ -7,6 +7,12 @@ archived_reason: "V3 implementation-phase skill. Claude-flow v3 has shipped; thi
 
 # V3 MCP Optimisation
 
+
+## When Not To Use
+
+- For using MCP tools (not optimising the server) -- invoke tools directly
+- For non-v3 MCP work -- use standard MCP configuration
+
 ## What This Skill Does
 
 Optimises claude-flow v3 MCP (Model Context Protocol) server implementation with advanced transport layer optimizations, connection pooling, load balancing, and comprehensive performance monitoring to achieve sub-100ms response times.

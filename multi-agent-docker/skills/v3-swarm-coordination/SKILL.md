@@ -7,6 +7,12 @@ archived_reason: "V3 implementation-phase skill. Claude-flow v3 has shipped; thi
 
 # V3 Swarm Coordination
 
+
+## When Not To Use
+
+- For running swarms (not coordinating v3 development) -- use swarm-advanced instead
+- For simple multi-agent tasks -- use claude-flow-swarm
+
 ## What This Skill Does
 
 Orchestrates the complete 15-agent hierarchical mesh swarm for claude-flow v3 implementation, coordinating parallel execution across domains while maintaining dependencies and timeline adherence.

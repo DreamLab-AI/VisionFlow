@@ -7,6 +7,12 @@ archived_reason: "V3 implementation-phase skill. Claude-flow v3 has shipped; thi
 
 # V3 DDD Architecture
 
+
+## When Not To Use
+
+- For using bounded contexts (not designing them) -- use standard development practices
+- For non-v3 architecture decisions -- use sparc-methodology instead
+
 ## What This Skill Does
 
 Designs and implements Domain-Driven Design (DDD) architecture for claude-flow v3, decomposing god objects into bounded contexts, implementing clean architecture patterns, and enabling modular, testable code structure.

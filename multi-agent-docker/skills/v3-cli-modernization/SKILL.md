@@ -7,6 +7,12 @@ archived_reason: "V3 implementation-phase skill. Claude-flow v3 has shipped; thi
 
 # V3 CLI Modernization
 
+
+## When Not To Use
+
+- For general CLI tool usage -- use standard bash commands
+- For non-v3 claude-flow work -- this skill is specific to v3 modernisation
+
 ## What This Skill Does
 
 Modernizes claude-flow v3 CLI with interactive prompts, intelligent command decomposition, enhanced hooks integration, performance optimisation, and comprehensive workflow automation capabilities.

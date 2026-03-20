@@ -7,6 +7,12 @@ archived_reason: "V3 implementation-phase skill. Claude-flow v3 has shipped; thi
 
 # V3 Security Overhaul
 
+
+## When Not To Use
+
+- For standard security auditing -- use security-testing instead
+- For non-v3 security work -- use build-with-quality's security agents
+
 ## What This Skill Does
 
 Orchestrates comprehensive security overhaul for claude-flow v3, addressing critical vulnerabilities and establishing security-first development practices using specialized v3 security agents.

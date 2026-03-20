@@ -1651,6 +1651,15 @@ if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
     mkdir -p "$CTM_CONFIG_DIR"
     chmod 700 "$CTM_CONFIG_DIR"
 
+    # Build LLM summarizer config fragment (optional)
+    CTM_LLM_FRAGMENT=""
+    if [ -n "$CTM_LLM_SUMMARIZE_URL" ]; then
+        CTM_LLM_FRAGMENT="$(printf ',\n  "llm_summarize_url": "%s"' "$CTM_LLM_SUMMARIZE_URL")"
+        if [ -n "$CTM_LLM_API_KEY" ]; then
+            CTM_LLM_FRAGMENT="$CTM_LLM_FRAGMENT$(printf ',\n  "llm_api_key": "%s"' "$CTM_LLM_API_KEY")"
+        fi
+    fi
+
     cat > "$CTM_CONFIG_DIR/config.json" <<CTMEOF
 {
   "bot_token": "$TELEGRAM_BOT_TOKEN",
@@ -1662,7 +1671,7 @@ if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
   "rateLimit": 20,
   "autoDeleteTopics": true,
   "topicDeleteDelayMinutes": 1440,
-  "staleSessionTimeoutHours": 72
+  "staleSessionTimeoutHours": 72${CTM_LLM_FRAGMENT}
 }
 CTMEOF
     chmod 600 "$CTM_CONFIG_DIR/config.json"

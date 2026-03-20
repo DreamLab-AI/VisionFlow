@@ -7,6 +7,12 @@ archived_reason: "V3 implementation-phase skill. Claude-flow v3 has shipped; thi
 
 # V3 Core Implementation
 
+
+## When Not To Use
+
+- For using claude-flow (not developing it) -- use standard claude-flow commands
+- For non-v3 architecture work -- use sparc-methodology or build-with-quality instead
+
 ## What This Skill Does
 
 Implements the core TypeScript modules for claude-flow v3 following Domain-Driven Design principles, clean architecture patterns, and modern TypeScript best practices with comprehensive test coverage.

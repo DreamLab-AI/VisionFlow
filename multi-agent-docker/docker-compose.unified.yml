@@ -234,6 +234,9 @@ services:
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
       TELEGRAM_MIRROR: ${TELEGRAM_MIRROR:-false}
+      # Optional: LLM-backed tool summarization (e.g. Z.AI endpoint or Anthropic API)
+      CTM_LLM_SUMMARIZE_URL: ${CTM_LLM_SUMMARIZE_URL:-}
+      CTM_LLM_API_KEY: ${CTM_LLM_API_KEY:-}
 
       # System Configuration
       WORKSPACE: /home/devuser/workspace
