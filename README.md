@@ -26,7 +26,7 @@
 
 ![VisionFlow Wardley Map — Strategic Positioning](assets/diagrams/wardley-map.png)
 
-*Strategic positioning: identity and provenance are custom-built protocol primitives; the coordination layer is genesis — no existing platform combines formal reasoning, sovereign identity, and agent governance at this architectural level.*
+*Every VisionFlow differentiator (left, red zone) sits where no competitor can follow. All 11 competing platforms cluster in the commodity zone (right, grey) where there is no structural differentiation. [Full analysis below.](#strategic-positioning)*
 
 </div>
 
@@ -534,10 +534,30 @@ flowchart LR
 
 ![VisionFlow Wardley Map](assets/diagrams/wardley-map.png)
 
-- **Identity and provenance** sit in the custom-built zone — `did:nostr` and content-addressed beads are novel protocol primitives, not yet commoditised.
-- **Agent runtime** (Agentbox) occupies the product space — reproducible containers and tool orchestration are maturing but not yet commodity.
-- **GPU compute and relay infrastructure** approach commodity — CUDA kernels and WebSocket relays are well-understood engineering, differentiated by domain-specific application.
-- **The coordination layer** (VisionFlow itself) is genesis — no existing platform combines formal reasoning, sovereign identity, and agent governance at this architectural level.
+### Reading This Map
+
+A Wardley map positions components along two axes: **evolution** (left = novel, right = commodity) and **value chain** (top = user-visible, bottom = invisible infrastructure). The strategic insight is in *where the empty space is*.
+
+**The red zone (left)** is VisionFlow's Strategic Advantage Zone. Every differentiating capability — OWL 2 formal reasoning, GPU semantic physics, the Judgment Broker, cryptographic agent identity, Immersive XR — sits here because *no competitor has built them*. This isn't a sign of immaturity; it's a moat. Genesis positioning means first-mover advantage in capabilities that take years to replicate.
+
+**The grey zone (right)** is the Competitor Cluster. All 11 competing platforms — Google Spark, OpenAI Codex, Devin, Claude Code, OpenClaw, Hermes, CrewAI, AutoGen, LangGraph, Cursor, Jules — cluster in the Product/Commodity space. They compete on execution speed, model quality, and pricing. They differentiate on nothing structural. Switch one for another and your architecture doesn't change.
+
+**The evolution arrows** show where VisionFlow is actively investing to move capabilities rightward — from Genesis toward Product — making them accessible to broader adoption without surrendering the structural advantage:
+
+| Component | Current | Evolving Toward | What This Means |
+|:----------|:--------|:----------------|:----------------|
+| **OWL 2 Reasoning** | Genesis | Custom-Built → Product | Making formal reasoning accessible through MCP tools and the Insight Ingestion Loop — non-ontologists use it without knowing it |
+| **Agent Control Surface** | Genesis | Custom-Built | Standardising kinds 31400-31405 for broader adoption; potential NIP proposal |
+| **GPU Semantic Physics** | Genesis | Custom-Built | Ontology-driven forces moving from research prototype to production feature |
+| **DID:Nostr** | Custom-Built | Product | Pushing the identity bridge toward ecosystem-wide adoption |
+| **Nostr Relay Mesh** | Custom-Built | Product | Moving from standalone to federated mode for enterprise-scale deployment |
+| **Web Ledger Payments** | Genesis | Custom-Built | Building agent micropayment infrastructure for token-priced services |
+
+### Why This Matters
+
+**Competitors can't move left.** Adding formal reasoning, cryptographic identity, or self-sovereign data to an existing platform requires rearchitecting from the protocol layer up. Google Spark can't bolt on OWL 2 EL reasoning — it would need to rebuild its data model. CrewAI can't add `did:nostr` identity — it has no identity layer at all. These aren't features; they're architectural decisions that compound over time.
+
+**VisionFlow moves right naturally.** As each Genesis component matures through use, it becomes more accessible without losing its structural advantage. The Insight Ingestion Loop makes formal reasoning invisible to end users. The passkey-first auth makes `did:nostr` feel like "just logging in." The governance dashboard makes the Judgment Broker feel like "just approving a request." The complexity is real; the user experience hides it.
 
 ---
 
