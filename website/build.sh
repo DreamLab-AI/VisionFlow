@@ -12,7 +12,7 @@ echo "==> Copying static assets..."
 cp -r static/* dist/
 
 echo "==> Writing CNAME..."
-echo "visionflow.info" > dist/CNAME
+echo "www.visionflow.info" > dist/CNAME
 
 echo "==> Copying repo images..."
 mkdir -p dist/img

@@ -1,5 +1,10 @@
 const WASM_BASE = './wasm';
 
+function debounce(fn, ms) {
+  let id;
+  return (...args) => { clearTimeout(id); id = setTimeout(() => fn(...args), ms); };
+}
+
 async function initMeshHero() {
   const canvas = document.getElementById('mesh-canvas');
   if (!canvas) return;
@@ -36,7 +41,7 @@ async function initMeshHero() {
     }
     requestAnimationFrame(animate);
 
-    window.addEventListener('resize', () => {
+    window.addEventListener('resize', debounce(() => {
       const r = canvas.parentElement.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
       canvas.width = r.width * dpr;
@@ -45,7 +50,7 @@ async function initMeshHero() {
       canvas.style.height = r.height + 'px';
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       hero.resize(r.width, r.height);
-    });
+    }, 150));
   } catch (e) {
     console.warn('Mesh hero WASM not available, skipping animation:', e.message);
   }
@@ -94,7 +99,7 @@ async function initParticleFields() {
     }
     requestAnimationFrame(animate);
 
-    window.addEventListener('resize', () => {
+    window.addEventListener('resize', debounce(() => {
       fields.forEach(({ canvas, ctx, field }) => {
         const r = canvas.parentElement.getBoundingClientRect();
         const dpr = window.devicePixelRatio || 1;
@@ -105,7 +110,7 @@ async function initParticleFields() {
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         field.resize(r.width, r.height);
       });
-    });
+    }, 150));
   } catch (e) {
     console.warn('Particle field WASM not available, skipping:', e.message);
   }
@@ -142,13 +147,23 @@ function initNavScroll() {
   });
 }
 
+function initNavToggle() {
+  const toggle = document.getElementById('nav-toggle');
+  const navLinks = document.getElementById('nav-links');
+  if (toggle && navLinks) {
+    toggle.addEventListener('click', () => navLinks.classList.toggle('open'));
+  }
+}
+
 function initSmoothScroll() {
   document.querySelectorAll('a[href^="#"]').forEach((link) => {
     link.addEventListener('click', (e) => {
-      const target = document.querySelector(link.getAttribute('href'));
+      const href = link.getAttribute('href');
+      const target = document.querySelector(href);
       if (target) {
         e.preventDefault();
         target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        history.replaceState(null, '', href);
         const navLinks = document.getElementById('nav-links');
         if (navLinks) navLinks.classList.remove('open');
       }
@@ -160,6 +175,7 @@ const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)
 
 document.addEventListener('DOMContentLoaded', () => {
   initNavScroll();
+  initNavToggle();
   initSmoothScroll();
   initScrollReveal();
 
