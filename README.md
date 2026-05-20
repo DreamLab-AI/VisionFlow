@@ -20,6 +20,16 @@
 
 **Federated coordination · Self-sovereign data · OWL 2 EL reasoning · Nostr message passing · Cryptographic provenance · Human-in-the-loop governance · GPU-accelerated sense-making**
 
+<br/>
+
+<div align="center">
+
+![VisionFlow Wardley Map — Strategic Positioning](assets/diagrams/wardley-map.png)
+
+*Strategic positioning: identity and provenance are custom-built protocol primitives; the coordination layer is genesis — no existing platform combines formal reasoning, sovereign identity, and agent governance at this architectural level.*
+
+</div>
+
 ---
 
 ## The Problem
@@ -42,6 +52,11 @@ VisionFlow solves all four simultaneously because the substrate handles identity
 ## The Evolution Line
 
 The AI industry has moved through a clear progression. Each stage solves the previous stage's limitation and reveals a new one:
+
+![Evolution Line — LLM to Coordination Harness](assets/generated/evolution-line.png)
+
+<details>
+<summary>View as interactive diagram</summary>
 
 ```mermaid
 flowchart LR
@@ -69,6 +84,8 @@ flowchart LR
     style CH fill:#1a1a2e,stroke:#e94560,color:#fff
 ```
 
+</details>
+
 | Stage | What It Adds | What It Still Lacks |
 |:------|:-------------|:--------------------|
 | **LLM** | Pattern recognition at scale | No interface, no memory, no tools |
@@ -88,6 +105,11 @@ flowchart LR
 ## Five Substrates, One Identity
 
 No single repository *is* VisionFlow. It emerges when five independent systems mesh together through a shared cryptographic identity spine.
+
+![Five Substrates Architecture](assets/generated/five-substrates.png)
+
+<details>
+<summary>View as interactive diagram</summary>
 
 ```mermaid
 flowchart TB
@@ -143,6 +165,8 @@ flowchart TB
     style EDGE fill:#2a1a0a,stroke:#f59e0b,color:#fff
 ```
 
+</details>
+
 Every actor — human, agent, server, worker — is identified by a single secp256k1 keypair expressed as `did:nostr:<hex-pubkey>`. This identity is:
 
 - **Verified at the relay** via NIP-42 AUTH challenge-response
@@ -152,6 +176,8 @@ Every actor — human, agent, server, worker — is identified by a single secp2
 - **Resolvable as a DID Document** at `/.well-known/did.json`
 
 No shared session store. No token exchange between tiers. The cryptographic primitive is the coordination primitive.
+
+![DID:Nostr Identity Spine](assets/generated/identity-spine.png)
 
 ---
 
@@ -279,6 +305,11 @@ The user-facing surface: [dreamlab-ai-website](https://github.com/DreamLab-AI/dr
 
 The Judgment Broker is VisionFlow's distributed business decision system. It spans three repositories — VisionClaw's `BrokerActor` (case triage + ontology grounding), nostr-rust-forum's governance dashboard (human decision surface), and Agentbox's Nostr Bridge (agent relay subscriber). Together they create a human-in-the-loop governance plane that is immutable by construction.
 
+![Judgment Broker — Agent Control Surface Protocol](assets/generated/judgment-broker.png)
+
+<details>
+<summary>View as interactive diagram</summary>
+
 ```mermaid
 sequenceDiagram
     participant Agent as Agent (Agentbox)
@@ -306,6 +337,8 @@ sequenceDiagram
     Relay-->>Broker: governance audit trail (immutable)
 ```
 
+</details>
+
 | Kind | Name | Direction | Purpose |
 |:-----|:-----|:----------|:--------|
 | 31400 | PanelDefinition | Agent → Relay | Declare a control panel (schema, fields, actions, layout) |
@@ -331,6 +364,11 @@ sequenceDiagram
 ---
 
 ## Coordination Topology
+
+![Coordination Topology](assets/generated/coordination-topology.png)
+
+<details>
+<summary>View as interactive diagram</summary>
 
 ```mermaid
 flowchart LR
@@ -368,6 +406,8 @@ flowchart LR
     style AB_HOST fill:#8b5cf615,stroke:#8b5cf6
     style TUNNEL fill:#10b98115,stroke:#10b981
 ```
+
+</details>
 
 ### Two-Tier Pod Architecture
 
