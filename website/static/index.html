@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VisionFlow — Coordination Engineering for Federated Human-AI Intelligence</title>
+  <meta name="description" content="VisionFlow is the coordination harness where diverse intelligence — human intuition, domain expertise, machine reasoning — collaborates across trust boundaries at scale." />
+  <meta property="og:title" content="VisionFlow — Coordination Engineering" />
+  <meta property="og:description" content="Federated coordination, self-sovereign data, formal reasoning, cryptographic provenance, human-in-the-loop governance." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://visionflow.info" />
+  <link rel="canonical" href="https://visionflow.info" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <!-- Navigation -->
+  <nav id="nav" class="nav">
+    <div class="nav-inner">
+      <a href="#hero" class="nav-brand">
+        <span class="brand-icon">&#x25C8;</span> VisionFlow
+      </a>
+      <button class="nav-toggle" aria-label="Toggle navigation" onclick="document.getElementById('nav-links').classList.toggle('open')">
+        <span></span><span></span><span></span>
+      </button>
+      <div id="nav-links" class="nav-links">
+        <a href="#problem">Problem</a>
+        <a href="#evolution">Evolution</a>
+        <a href="#substrates">Substrates</a>
+        <a href="#broker">Governance</a>
+        <a href="#economic">Economics</a>
+        <a href="#competitive">Landscape</a>
+        <a href="https://www.dreamlab-ai.com" target="_blank" rel="noopener" class="nav-cta">DreamLab AI &rarr;</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section id="hero" class="hero">
+    <canvas id="mesh-canvas" class="hero-canvas" aria-hidden="true"></canvas>
+    <div class="hero-content">
+      <div class="hero-badge">Coordination Engineering</div>
+      <h1>Federated Human&ndash;AI<br/>Intelligence</h1>
+      <p class="hero-sub">The coordination harness where diverse intelligence collaborates across trust boundaries at scale. Self-sovereign data. Formal reasoning. Cryptographic provenance. Human-in-the-loop governance.</p>
+      <div class="hero-actions">
+        <a href="#substrates" class="btn btn-primary">Explore the Architecture</a>
+        <a href="https://github.com/DreamLab-AI/VisionFlow" target="_blank" rel="noopener" class="btn btn-ghost">View on GitHub &rarr;</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><span class="stat-num">5</span><span class="stat-label">Federated Substrates</span></div>
+        <div class="stat"><span class="stat-num">92</span><span class="stat-label">CUDA Kernels</span></div>
+        <div class="stat"><span class="stat-num">180+</span><span class="stat-label">MCP Tools</span></div>
+        <div class="stat"><span class="stat-num">55x</span><span class="stat-label">GPU Speedup</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- The Problem -->
+  <section id="problem" class="section">
+    <canvas id="particle-canvas-1" class="bg-canvas" aria-hidden="true"></canvas>
+    <div class="container reveal">
+      <span class="section-tag">The Problem</span>
+      <h2>Hard problems share a common shape</h2>
+      <p class="section-lead">Climate modelling, drug discovery, organisational transformation, creative production at scale &mdash; they require diverse intelligence to collaborate across trust boundaries, at scales that defeat centralised coordination.</p>
+
+      <div class="problem-grid">
+        <div class="glass-card">
+          <div class="card-icon" style="color: var(--crimson)">&#x2716;</div>
+          <h3>Centralised AI</h3>
+          <p>Scales tokens but not trust. One vendor, one failure mode, one billing relationship.</p>
+        </div>
+        <div class="glass-card">
+          <div class="card-icon" style="color: var(--crimson)">&#x2716;</div>
+          <h3>Agent Frameworks</h3>
+          <p>Scale tasks but not governance. Fast and broken is still broken.</p>
+        </div>
+        <div class="glass-card">
+          <div class="card-icon" style="color: var(--crimson)">&#x2716;</div>
+          <h3>Knowledge Tools</h3>
+          <p>Scale information but not reasoning. More data doesn&rsquo;t mean better decisions.</p>
+        </div>
+        <div class="glass-card">
+          <div class="card-icon" style="color: var(--crimson)">&#x2716;</div>
+          <h3>Collaboration Platforms</h3>
+          <p>Scale communication but not coordination. More Slack channels don&rsquo;t solve alignment.</p>
+        </div>
+      </div>
+
+      <div class="callout">
+        <p><strong>73% of frontline AI adoption happens without management sign-off.</strong> Your workforce is already building shadow workflows, stitching together AI agents, automating procurement shortcuts. The question isn&rsquo;t whether your organisation is becoming an agentic mesh. It&rsquo;s whether you&rsquo;ll shape how it forms.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Evolution Line -->
+  <section id="evolution" class="section section-dark">
+    <div class="container reveal">
+      <span class="section-tag">The Evolution Line</span>
+      <h2>From LLM to Coordination Harness</h2>
+      <p class="section-lead">The AI industry has moved through a clear progression. Each stage solves the previous stage&rsquo;s limitation and reveals a new one.</p>
+
+      <div class="evolution-track">
+        <div class="evo-step">
+          <div class="evo-dot"></div>
+          <div class="evo-label">LLM</div>
+          <div class="evo-desc">Pattern recognition at scale</div>
+        </div>
+        <div class="evo-connector"></div>
+        <div class="evo-step">
+          <div class="evo-dot"></div>
+          <div class="evo-label">Chatbot</div>
+          <div class="evo-desc">Conversational access</div>
+        </div>
+        <div class="evo-connector"></div>
+        <div class="evo-step">
+          <div class="evo-dot"></div>
+          <div class="evo-label">Reasoning</div>
+          <div class="evo-desc">Chain-of-thought</div>
+        </div>
+        <div class="evo-connector"></div>
+        <div class="evo-step">
+          <div class="evo-dot"></div>
+          <div class="evo-label">Agent</div>
+          <div class="evo-desc">Tool use + planning</div>
+        </div>
+        <div class="evo-connector"></div>
+        <div class="evo-step">
+          <div class="evo-dot"></div>
+          <div class="evo-label">Agentics</div>
+          <div class="evo-desc">Multi-agent systems</div>
+        </div>
+        <div class="evo-connector"></div>
+        <div class="evo-step">
+          <div class="evo-dot"></div>
+          <div class="evo-label">Harness</div>
+          <div class="evo-desc">Sovereign runtimes</div>
+        </div>
+        <div class="evo-connector evo-connector-active"></div>
+        <div class="evo-step evo-step-active">
+          <div class="evo-dot evo-dot-active"></div>
+          <div class="evo-label">Coordination</div>
+          <div class="evo-desc">VisionFlow</div>
+        </div>
+      </div>
+
+      <div class="evolution-table">
+        <table>
+          <thead>
+            <tr><th>Stage</th><th>What It Adds</th><th>What It Still Lacks</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>LLM</td><td>Pattern recognition at scale</td><td>No interface, no memory, no tools</td></tr>
+            <tr><td>Chatbot</td><td>Conversational access</td><td>No structured reasoning</td></tr>
+            <tr><td>Reasoning</td><td>Chain-of-thought, self-correction</td><td>Can think but can&rsquo;t act</td></tr>
+            <tr><td>Agent</td><td>Tool use, planning, execution</td><td>No collaboration, no oversight</td></tr>
+            <tr><td>Agentics</td><td>Multi-agent coordination</td><td>No identity, no sovereignty, no governance</td></tr>
+            <tr><td>External Harness</td><td>Sovereign runtime, privacy</td><td>Individual agents governed, mesh is not</td></tr>
+            <tr class="table-highlight"><td>Coordination Harness</td><td>Shared semantics, federated identity, governance, provenance</td><td><strong>VisionFlow occupies this position</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Five Substrates -->
+  <section id="substrates" class="section">
+    <canvas id="particle-canvas-2" class="bg-canvas" aria-hidden="true"></canvas>
+    <div class="container reveal">
+      <span class="section-tag">Five Substrates, One Identity</span>
+      <h2>The architecture emerges when five independent systems mesh through a shared cryptographic identity spine</h2>
+
+      <div class="identity-callout">
+        <code>did:nostr:&lt;hex-pubkey&gt;</code>
+        <p>Every actor &mdash; human, agent, server, worker &mdash; identified by a single secp256k1 keypair. Verified at the relay, at every HTTP request, against WAC ACLs, in every provenance bead, and resolvable as a DID Document.</p>
+      </div>
+
+      <div class="substrate-grid">
+        <div class="substrate-card" style="--accent: var(--cyan)">
+          <div class="substrate-header">
+            <span class="substrate-icon">&#x2B22;</span>
+            <h3>VisionClaw</h3>
+            <span class="substrate-role">Knowledge Engineering</span>
+          </div>
+          <ul>
+            <li>OWL 2 EL formal reasoning (Whelk-rs)</li>
+            <li>92 CUDA kernels, 55x GPU speedup</li>
+            <li>Immersive XR (Quest 3 + desktop)</li>
+            <li>7 MCP ontology tools</li>
+            <li>934-node force-directed graph in real time</li>
+          </ul>
+          <a href="https://github.com/DreamLab-AI/VisionClaw" target="_blank" rel="noopener" class="substrate-link">View Repo &rarr;</a>
+        </div>
+
+        <div class="substrate-card" style="--accent: var(--purple)">
+          <div class="substrate-header">
+            <span class="substrate-icon">&#x2B22;</span>
+            <h3>Agentbox</h3>
+            <span class="substrate-role">Harness Engineering</span>
+          </div>
+          <ul>
+            <li>Manifest-driven Nix containers</li>
+            <li>90+ agent skills, 180+ MCP tools</li>
+            <li>BIP-340 sovereign identity at bootstrap</li>
+            <li>1.5B-parameter PII privacy filter</li>
+            <li>Standalone &#x2194; federated by editing TOML</li>
+          </ul>
+          <a href="https://github.com/DreamLab-AI/agentbox" target="_blank" rel="noopener" class="substrate-link">View Repo &rarr;</a>
+        </div>
+
+        <div class="substrate-card" style="--accent: var(--emerald)">
+          <div class="substrate-header">
+            <span class="substrate-icon">&#x2B22;</span>
+            <h3>solid-pod-rs</h3>
+            <span class="substrate-role">Cryptographic Foundation</span>
+          </div>
+          <ul>
+            <li>Rust port of JSS (~98% parity)</li>
+            <li>DID:Nostr + WAC + Web Ledgers</li>
+            <li>NIP-98 Schnorr + Solid-OIDC + WebAuthn</li>
+            <li>HTTP 402 micropayments (MRC20)</li>
+            <li>Dual compile: native Tokio + WASM CF Workers</li>
+          </ul>
+          <a href="https://github.com/DreamLab-AI/solid-pod-rs" target="_blank" rel="noopener" class="substrate-link">View Repo &rarr;</a>
+        </div>
+
+        <div class="substrate-card" style="--accent: var(--amber)">
+          <div class="substrate-header">
+            <span class="substrate-icon">&#x2B22;</span>
+            <h3>nostr-rust-forum</h3>
+            <span class="substrate-role">Governance UI + Relay Kit</span>
+          </div>
+          <ul>
+            <li>12 crates, passkey-first auth</li>
+            <li>5 Cloudflare Workers</li>
+            <li>Leptos WASM client (19 pages, 60+ components)</li>
+            <li>Agent Control Surface Protocol (kinds 31400-31405)</li>
+            <li>Federated NIP-05 resolution</li>
+          </ul>
+          <a href="https://github.com/DreamLab-AI/nostr-rust-forum" target="_blank" rel="noopener" class="substrate-link">View Repo &rarr;</a>
+        </div>
+
+        <div class="substrate-card" style="--accent: var(--crimson)">
+          <div class="substrate-header">
+            <span class="substrate-icon">&#x2B22;</span>
+            <h3>DreamLab Edge</h3>
+            <span class="substrate-role">Branded Deployment</span>
+          </div>
+          <ul>
+            <li>React SPA + Leptos WASM forum</li>
+            <li>Cloudflare Workers edge compute</li>
+            <li>Production at dreamlab-ai.com</li>
+            <li>Operator overlay configuration</li>
+            <li>Consumes all substrates as library crates</li>
+          </ul>
+          <a href="https://github.com/DreamLab-AI/dreamlab-ai-website" target="_blank" rel="noopener" class="substrate-link">View Repo &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Judgment Broker -->
+  <section id="broker" class="section section-dark">
+    <div class="container reveal">
+      <span class="section-tag">The Judgment Broker</span>
+      <h2>Human-in-the-loop governance that accelerates, not blocks</h2>
+      <p class="section-lead">When agents know their authority boundary and surface exceptions cleanly, 90% of decisions flow without friction. The 10% that need human judgment get clean, contextualised escalation with full provenance.</p>
+
+      <div class="broker-flow">
+        <div class="broker-step">
+          <div class="broker-num">1</div>
+          <h4>Agent Declares</h4>
+          <p>kind 31400 PanelDefinition &mdash; agent publishes a control panel with schema, fields, actions</p>
+        </div>
+        <div class="broker-arrow">&rarr;</div>
+        <div class="broker-step">
+          <div class="broker-num">2</div>
+          <h4>Agent Requests</h4>
+          <p>kind 31402 ActionRequest &mdash; &ldquo;I need approval to proceed with this procurement&rdquo;</p>
+        </div>
+        <div class="broker-arrow">&rarr;</div>
+        <div class="broker-step">
+          <div class="broker-num">3</div>
+          <h4>Human Decides</h4>
+          <p>kind 31403 ActionResponse &mdash; NIP-98 signed approve/reject/configure</p>
+        </div>
+        <div class="broker-arrow">&rarr;</div>
+        <div class="broker-step">
+          <div class="broker-num">4</div>
+          <h4>Immutable Trail</h4>
+          <p>Every decision is an immutable Nostr event with prior_decision_id chain &mdash; auditors traverse back to first principles</p>
+        </div>
+      </div>
+
+      <div class="broker-kinds">
+        <table>
+          <thead><tr><th>Kind</th><th>Name</th><th>Direction</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>31400</code></td><td>PanelDefinition</td><td>Agent &rarr; Relay</td><td>Declare control panel</td></tr>
+            <tr><td><code>31401</code></td><td>PanelState</td><td>Agent &rarr; Relay</td><td>Current data snapshot</td></tr>
+            <tr><td><code>31402</code></td><td>ActionRequest</td><td>Agent &rarr; Relay</td><td>Request human decision</td></tr>
+            <tr><td><code>31403</code></td><td>ActionResponse</td><td>Human &rarr; Relay</td><td>Signed decision</td></tr>
+            <tr><td><code>31404</code></td><td>PanelUpdate</td><td>Agent &rarr; Relay</td><td>Incremental state diff</td></tr>
+            <tr><td><code>31405</code></td><td>PanelRetired</td><td>Agent &rarr; Relay</td><td>Retire panel</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Economic Case -->
+  <section id="economic" class="section">
+    <canvas id="particle-canvas-3" class="bg-canvas" aria-hidden="true"></canvas>
+    <div class="container reveal">
+      <span class="section-tag">The Economic Case</span>
+      <h2>Why extreme token consumption against hard problems is rational</h2>
+
+      <div class="econ-grid">
+        <div class="glass-card econ-card">
+          <h3>The Cost of Not Coordinating</h3>
+          <p>A 50-person team running uncoordinated AI agents wastes <strong>60-80% of tokens</strong> on context rediscovery, duplicate reasoning, and contradictory outputs. Each agent session starts cold &mdash; no shared ontology, no provenance, no memory of what other agents concluded.</p>
+          <div class="econ-metric">
+            <span class="metric-value">5-8x</span>
+            <span class="metric-label">token waste from uncoordinated agent sprawl</span>
+          </div>
+        </div>
+
+        <div class="glass-card econ-card">
+          <h3>Coordination as Token Multiplier</h3>
+          <p>VisionFlow&rsquo;s shared ontology means agents don&rsquo;t re-derive domain vocabulary. The provenance chain means agents don&rsquo;t re-validate conclusions. The Judgment Broker means agents don&rsquo;t spin on decisions they lack authority to make.</p>
+          <div class="econ-metric">
+            <span class="metric-value">3-5x</span>
+            <span class="metric-label">effective token throughput gain from coordination</span>
+          </div>
+        </div>
+
+        <div class="glass-card econ-card">
+          <h3>Hard Problems Justify Deep Spend</h3>
+          <p>Drug discovery: $2.6B average cost per approved compound. Climate modelling: $50M+ per actionable simulation suite. Creative production: $100M+ per franchise. Against these stakes, spending $10K-100K on coordinated AI reasoning is a rounding error &mdash; if the coordination harness prevents even one wrong conclusion from propagating.</p>
+          <div class="econ-metric">
+            <span class="metric-value">10,000:1</span>
+            <span class="metric-label">problem-value to token-cost ratio on hard problems</span>
+          </div>
+        </div>
+
+        <div class="glass-card econ-card">
+          <h3>The Governance Dividend</h3>
+          <p>Every governance decision that flows through the Judgment Broker is an immutable, auditable event. In regulated industries (pharma, finance, defence), the cost of reconstructing decision provenance after the fact dwarfs the cost of generating it by construction.</p>
+          <div class="econ-metric">
+            <span class="metric-value">90%</span>
+            <span class="metric-label">reduction in audit reconstruction cost</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout econ-callout">
+        <h3>The Coordination Harness ROI Model</h3>
+        <p>For a team of N agents working on a problem of value V:</p>
+        <div class="formula">
+          <code>ROI = (V &times; coordination_multiplier &times; governance_dividend) / (token_cost &times; N)</code>
+        </div>
+        <p>Without coordination: agents compete, duplicate, and contradict. Each additional agent adds noise faster than signal. With VisionFlow: each agent amplifies the mesh. Shared semantics compound. Provenance eliminates re-validation. Governance prevents expensive mistakes from propagating.</p>
+        <p><strong>The break-even point is typically reached at 3 agents working on any problem valued above $50K.</strong> Beyond that, every additional coordinated agent produces net positive value &mdash; because the ontology, the identity spine, and the governance plane are shared infrastructure, not per-agent costs.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Case Studies -->
+  <section id="cases" class="section section-dark">
+    <div class="container reveal">
+      <span class="section-tag">Real-World Scenarios</span>
+      <h2>Federated problem-solving across trust boundaries</h2>
+
+      <div class="case-grid">
+        <div class="case-card">
+          <div class="case-icon">&#x1F30D;</div>
+          <h3>Climate Modelling Consortium</h3>
+          <p>Three universities, two government agencies, one NGO. Each institution runs its own VisionClaw with domain-specific ontologies. OWL 2 EL reasoning ensures &ldquo;sea surface temperature anomaly&rdquo; means the same thing across all ontologies. Data stays in sovereign pods; cross-institutional findings surface through the Judgment Broker.</p>
+          <div class="case-why"><strong>Why competitors can&rsquo;t:</strong> No other platform combines formal ontology alignment, cryptographic data sovereignty, and human-in-the-loop governance.</div>
+        </div>
+
+        <div class="case-card">
+          <div class="case-icon">&#x1F48A;</div>
+          <h3>Pharmaceutical Drug Discovery</h3>
+          <p>Biotech startup + CRO + regulatory consultancy. Literature mining agents parse 50K papers, chemistry agents run ADMET predictions, compliance agents map to ICH guidelines. Each organisation&rsquo;s agents operate within their Solid pod boundary. The CRO never sees the biotech&rsquo;s proprietary target list.</p>
+          <div class="case-why"><strong>Why competitors can&rsquo;t:</strong> No other platform provides per-organisation pod boundaries with cross-organisation semantic alignment and auditable provenance chains.</div>
+        </div>
+
+        <div class="case-card">
+          <div class="case-icon">&#x1F3AC;</div>
+          <h3>Creative Production at Scale</h3>
+          <p>12-episode series, five time zones. Production ontology maps episodes to scenes to shots to assets. VFX agents track pipeline stages. When a VFX shot depends on an unapproved 3D asset, the OWL 2 constraint propagates through the graph &mdash; the GPU physics engine makes the blocked dependency visually obvious.</p>
+          <div class="case-why"><strong>Why competitors can&rsquo;t:</strong> No other platform uses formal reasoning to propagate production constraints through a visual knowledge graph.</div>
+        </div>
+      </div>
+
+      <div class="validation-strip">
+        <h3>Real-World Validation</h3>
+        <div class="validation-items">
+          <div class="val-item"><strong>DreamLab Creative Hub</strong><br/>50-person team, ~998 graph nodes, daily production</div>
+          <div class="val-item"><strong>University of Salford</strong><br/>Research partnership, semantic force-directed layout</div>
+          <div class="val-item"><strong>THG World Record</strong><br/>250+ concurrent XR users, immersive data visualisation</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Competitive Landscape -->
+  <section id="competitive" class="section">
+    <canvas id="particle-canvas-4" class="bg-canvas" aria-hidden="true"></canvas>
+    <div class="container reveal">
+      <span class="section-tag">Strategic Positioning</span>
+      <h2>Three structural gaps no competitor can close</h2>
+      <p class="section-lead">Every differentiator sits where no competitor can follow. All 11 competing platforms cluster in the commodity zone where there is no structural differentiation.</p>
+
+      <div class="competitive-table-wrap">
+        <table class="competitive-table">
+          <thead>
+            <tr>
+              <th>Platform</th>
+              <th>Crypto Identity</th>
+              <th>Data Sovereignty</th>
+              <th>Governance</th>
+              <th>Formal Reasoning</th>
+              <th>Federation</th>
+              <th>OSS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="row-highlight">
+              <td><strong>VisionFlow</strong></td>
+              <td><span class="dot dot-green" title="Protocol-native"></span></td>
+              <td><span class="dot dot-green" title="Protocol-native"></span></td>
+              <td><span class="dot dot-green" title="Protocol-native"></span></td>
+              <td><span class="dot dot-green" title="Protocol-native"></span></td>
+              <td><span class="dot dot-green" title="Protocol-native"></span></td>
+              <td><span class="dot dot-green" title="Protocol-native"></span></td>
+            </tr>
+            <tr><td>Google Spark</td><td><span class="dot dot-red"></span></td><td><span class="dot dot-red"></span></td><td><span class="dot dot-yellow"></span></td><td><span class="dot dot-red"></span></td><td><span class="dot dot-red"></span></td><td><span class="dot dot-red"></span></td></tr>
+            <tr><td>OpenAI Codex</td><td><span class="dot dot-red"></span></td><td><span class="dot dot-red"></span></td><td><span class="dot dot-red"></span></td><td><span class="dot dot-red"></span></td><td><span class="dot dot-red"></span></td><td><span class="dot dot-yellow"></span></td></tr>
+            <tr><td>Claude Code</td><td><span class="dot dot-red"></span></td><td><span class="dot dot-yellow"></span></td><td><span class="dot dot-yellow"></span></td><td><span class="dot dot-red"></span></td><td><span class="dot dot-yellow"></span></td><td><span class="dot dot-yellow"></span></td></tr>
+            <tr><td>Devin</td><td><span class="dot dot-red"></span></td><td><span class="dot dot-red"></span></td><td><span class="dot dot-yellow"></span></td><td><span class="dot dot-red"></span></td><td><span class="dot dot-red"></span></td><td><span class="dot dot-red"></span></td></tr>
+            <tr><td>CrewAI</td><td><span class="dot dot-red"></span></td><td><span class="dot dot-yellow"></span></td><td><span class="dot dot-yellow"></span></td><td><span class="dot dot-red"></span></td><td><span class="dot dot-yellow"></span></td><td><span class="dot dot-green"></span></td></tr>
+            <tr><td>AutoGen</td><td><span class="dot dot-red"></span></td><td><span class="dot dot-yellow"></span></td><td><span class="dot dot-yellow"></span></td><td><span class="dot dot-red"></span></td><td><span class="dot dot-yellow"></span></td><td><span class="dot dot-green"></span></td></tr>
+            <tr><td>LangGraph</td><td><span class="dot dot-red"></span></td><td><span class="dot dot-yellow"></span></td><td><span class="dot dot-yellow"></span></td><td><span class="dot dot-red"></span></td><td><span class="dot dot-yellow"></span></td><td><span class="dot dot-green"></span></td></tr>
+            <tr><td>Cursor / Windsurf</td><td><span class="dot dot-red"></span></td><td><span class="dot dot-yellow"></span></td><td><span class="dot dot-yellow"></span></td><td><span class="dot dot-red"></span></td><td><span class="dot dot-red"></span></td><td><span class="dot dot-red"></span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="dot-legend">
+        <span><span class="dot dot-green"></span> Protocol-native</span>
+        <span><span class="dot dot-yellow"></span> Partial / add-on</span>
+        <span><span class="dot dot-red"></span> Absent</span>
+      </div>
+
+      <div class="gap-cards">
+        <div class="glass-card gap-card">
+          <h4>Formal Reasoning Column: Solid Red</h4>
+          <p>Every competitor relies on probabilistic LLM inference. VisionFlow&rsquo;s OWL 2 EL subsumption produces provably correct entailments &mdash; not confident guesses.</p>
+        </div>
+        <div class="glass-card gap-card">
+          <h4>Crypto Identity Column: Solid Red</h4>
+          <p>Only VisionFlow implements cryptographic agent identity at the protocol level. Every other platform ties identity to someone else&rsquo;s server.</p>
+        </div>
+        <div class="glass-card gap-card">
+          <h4>Federation Column: Solid Red</h4>
+          <p>No competitor supports sovereign nodes trusting each other via cryptographic identity rather than shared infrastructure.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Scaling Model -->
+  <section id="scaling" class="section section-dark">
+    <div class="container reveal">
+      <span class="section-tag">Scaling Model</span>
+      <h2>Three axes, one architecture</h2>
+
+      <div class="scale-grid">
+        <div class="scale-card">
+          <div class="scale-tier">Single Operator</div>
+          <h3>Token-Efficient</h3>
+          <p>One Agentbox, standalone mode. Local SQLite beads, local Solid pod, local events. 90+ skills, 180+ tools, privacy filter active.</p>
+          <div class="scale-cost">One API key. One container. Minutes to deploy.</div>
+        </div>
+        <div class="scale-card scale-card-mid">
+          <div class="scale-tier">Team</div>
+          <h3>Governed Collaboration</h3>
+          <p>VisionClaw + forum + Agentbox on a shared relay mesh. Shared ontology, Judgment Broker oversight. Every mutation passes through a GitHub PR.</p>
+          <div class="scale-cost">One GPU host + one agent container + CF Workers. 50-person team validated.</div>
+        </div>
+        <div class="scale-card">
+          <div class="scale-tier">Enterprise</div>
+          <h3>Federated Intelligence</h3>
+          <p>Multiple sovereign Agentbox instances via Nostr relay mesh. Each node independently hardened. Trust via did:nostr, not network topology.</p>
+          <div class="scale-cost">Horizontal. Add nodes. Each node owns its data.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Repository Map -->
+  <section id="repos" class="section">
+    <div class="container reveal">
+      <span class="section-tag">Repository Map</span>
+      <h2>Six federated repositories, one coordination architecture</h2>
+
+      <div class="repo-grid">
+        <a href="https://github.com/DreamLab-AI/VisionFlow" target="_blank" rel="noopener" class="repo-card">
+          <h4>VisionFlow</h4>
+          <p>Ecosystem guide and coordination architecture</p>
+          <span class="repo-tech">This repository</span>
+        </a>
+        <a href="https://github.com/DreamLab-AI/VisionClaw" target="_blank" rel="noopener" class="repo-card">
+          <h4>VisionClaw</h4>
+          <p>Knowledge engineering substrate</p>
+          <span class="repo-tech">OWL 2 EL &middot; CUDA &middot; XR &middot; MCP</span>
+        </a>
+        <a href="https://github.com/DreamLab-AI/agentbox" target="_blank" rel="noopener" class="repo-card">
+          <h4>Agentbox</h4>
+          <p>Harness engineering runtime</p>
+          <span class="repo-tech">Nix &middot; 90+ skills &middot; 180+ tools &middot; Solid pods</span>
+        </a>
+        <a href="https://github.com/DreamLab-AI/solid-pod-rs" target="_blank" rel="noopener" class="repo-card">
+          <h4>solid-pod-rs</h4>
+          <p>Cryptographic foundation</p>
+          <span class="repo-tech">JSS Rust port &middot; DID:Nostr &middot; WAC &middot; HTTP 402</span>
+        </a>
+        <a href="https://github.com/DreamLab-AI/nostr-rust-forum" target="_blank" rel="noopener" class="repo-card">
+          <h4>nostr-rust-forum</h4>
+          <p>Governance UI + relay kit</p>
+          <span class="repo-tech">12 crates &middot; Passkey auth &middot; Leptos WASM</span>
+        </a>
+        <a href="https://github.com/DreamLab-AI/dreamlab-ai-website" target="_blank" rel="noopener" class="repo-card">
+          <h4>dreamlab-ai-website</h4>
+          <p>Branded deployment</p>
+          <span class="repo-tech">React SPA &middot; WASM forum &middot; CF Workers</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <span class="brand-icon">&#x25C8;</span> VisionFlow
+          <p>Coordination engineering for federated human&ndash;AI intelligence.</p>
+        </div>
+        <div class="footer-links">
+          <div>
+            <h4>Ecosystem</h4>
+            <a href="https://github.com/DreamLab-AI" target="_blank" rel="noopener">GitHub Organisation</a>
+            <a href="https://www.dreamlab-ai.com" target="_blank" rel="noopener">DreamLab AI</a>
+          </div>
+          <div>
+            <h4>Protocol</h4>
+            <a href="https://github.com/JavaScriptSolidServer/JavaScriptSolidServer" target="_blank" rel="noopener">JSS Upstream</a>
+            <a href="https://webledgers.org" target="_blank" rel="noopener">Web Ledgers</a>
+            <a href="https://melvin.me/public/solid/" target="_blank" rel="noopener">Solid Guide</a>
+          </div>
+          <div>
+            <h4>Licensing</h4>
+            <p>VisionClaw: MPL 2.0</p>
+            <p>Protocol stack: AGPL 3.0</p>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>Built by <a href="https://www.dreamlab-ai.com" target="_blank" rel="noopener">DreamLab AI</a> &middot; Maintainer: <a href="https://github.com/jjohare" target="_blank" rel="noopener">John O&rsquo;Hare</a> &middot; Upstream IP: <a href="https://github.com/melvincarvalho" target="_blank" rel="noopener">Melvin Carvalho</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- WASM + JS -->
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
