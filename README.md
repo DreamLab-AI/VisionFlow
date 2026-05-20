@@ -541,6 +541,115 @@ flowchart LR
 
 ---
 
+## Competitive Landscape
+
+Every platform below solves part of the coordination problem. VisionFlow is the only architecture that combines cryptographic agent identity, formal reasoning, self-sovereign data, and human-in-the-loop governance as protocol-level primitives rather than application-layer add-ons.
+
+| | Identity | Data Sovereignty | Governance | Formal Reasoning | Federation | Persistent Memory | Open Source | Pricing |
+|:---|:---|:---|:---|:---|:---|:---|:---|:---|
+| **VisionFlow** | **Cryptographic** (`did:nostr` secp256k1) | **Self-sovereign** (Solid pods, WAC ACLs) | **Protocol-native** (Judgment Broker, kinds 31400-31405) | **OWL 2 EL** (Whelk-rs subsumption) | **Native** (Nostr relay mesh) | **Sovereign** (embedded pods + pgvector) | **Yes** (MPL-2.0 / AGPL-3.0) | Self-hosted |
+| **Google Spark** | Session (Google SSO) | Platform-owned (Google Cloud) | Payment approval only | LLM inference | Google ecosystem only | Yes (user preferences) | No | Google AI Ultra subscription |
+| **OpenClaw** | Enterprise SSO + verifiable tokens | Strong (self-hosted, no telemetry) | Community foundation (MIT) | LLM inference | Multi-provider, no org federation | Yes (cross-session) | Yes (MIT) | Free + API keys |
+| **Claude Code (Hosted)** | Session (SAML/OIDC) | Platform-managed | Permission system | LLM + extended thinking | MCP tool federation | Session-based | CLI open source | $100/mo Max, token-based |
+| **Claude Code (Local)** | API key / OAuth | Local files, remote inference | Local permission system | LLM + extended thinking | MCP tool federation | CLAUDE.md + MCP | CLI open source | API token costs |
+| **Hermes Agent** | Persistent agent identity | Strong (self-hosted, no tracking) | Container hardening + rollback | LLM inference | Multi-provider, no org federation | Core feature | Yes (MIT) | Free + API keys |
+| **OpenAI Codex** | Session (OpenAI account) | Cloud sandbox | Sandbox isolation | LLM inference | No | Per-task only | CLI open source | Pro/Team subscription |
+| **Google Jules** | Session (Google account) | Platform-owned (GCP VMs) | PR review (human) | LLM inference (Gemini) | Jules API for CI/CD | Per-task only | No | Free tier + paid |
+| **Devin** | Session (account) | Cloud-hosted (VPC option) | Human reviews output | LLM inference | No | Per-task | No | $20/mo Core |
+| **Cursor / Windsurf** | Session (account) | Local index, remote inference | Accept/reject in IDE | LLM inference | No | Project-level | No | $20/mo Pro |
+| **CrewAI** | None (framework-level) | Self-hostable (OSS core) | Hierarchical delegation | LLM inference | MCP + A2A protocols | Shared memory systems | Core: Yes (MIT) | Free OSS, Enterprise $75K/yr |
+| **AutoGen / MS Agent Framework** | Azure AD / Entra ID | Self-hostable + Azure | Checkpointing | LLM + structured planning | A2A + MCP protocols | State checkpointing | Yes (MIT) | Free OSS + Azure costs |
+| **LangGraph** | None (app-level) | Self-hostable (OSS core) | First-class human-in-loop API | LLM + graph control flow | Multi-provider | Durable state persistence | Yes (MIT) | Free OSS, LangSmith $39/seat |
+
+### What the Table Reveals
+
+Three structural gaps separate VisionFlow from the field:
+
+1. **No platform does formal reasoning.** Every competitor relies on probabilistic LLM inference. VisionFlow's OWL 2 EL subsumption checking produces provably correct answers within the Description Logic — when it says A is a subclass of B, that's a logical entailment, not a confident guess.
+
+2. **Identity is universally session-based.** Only VisionFlow implements cryptographic agent identity at the protocol level. Every other platform ties identity to an account on someone else's server. When the server goes away, so does the identity — and the audit trail.
+
+3. **No platform federates across organisations.** MCP and A2A enable tool interoperability, but no competitor supports sovereign nodes that trust each other via cryptographic identity verification rather than shared infrastructure. VisionFlow's Nostr relay mesh enables cross-organisational coordination where each node owns its data and sets its own trust thresholds.
+
+---
+
+## Federated Problem-Solving
+
+VisionFlow's architecture is designed for hard problems that require diverse intelligence across trust boundaries. Here's how the mesh operates on real multi-specialism challenges:
+
+### Scenario 1: Climate Modelling Consortium
+
+Three universities, two government agencies, one NGO — each with domain expertise, proprietary datasets, and different compliance requirements.
+
+```mermaid
+flowchart TB
+    subgraph UNI_A["University A — Atmospheric Science"]
+        VC_A["VisionClaw\n(climate ontology)"]
+        AB_A["Agentbox ×3\n(data ingestion, model calibration, paper drafting)"]
+    end
+
+    subgraph UNI_B["University B — Ocean Dynamics"]
+        VC_B["VisionClaw\n(oceanographic ontology)"]
+        AB_B["Agentbox ×2\n(satellite data processing, simulation)"]
+    end
+
+    subgraph GOV["Government Agency — Policy"]
+        AB_G["Agentbox ×2\n(regulatory compliance, impact assessment)"]
+        FORUM_G["Forum\n(governance dashboard)"]
+    end
+
+    subgraph RELAY["Nostr Relay Mesh"]
+        R["Shared event bus\n(31400-31405 governance\n38000-38201 agent intent)"]
+    end
+
+    UNI_A <-->|"did:nostr trust"| R
+    UNI_B <-->|"did:nostr trust"| R
+    GOV <-->|"did:nostr trust"| R
+
+    style UNI_A fill:#0a1a2a15,stroke:#00d4ff
+    style UNI_B fill:#0a1a2a15,stroke:#00d4ff
+    style GOV fill:#1a0a2a15,stroke:#8b5cf6
+    style RELAY fill:#1a1a2e15,stroke:#e94560
+```
+
+**How it works:**
+- Each institution runs its own VisionClaw with domain-specific ontologies. OWL 2 EL reasoning ensures "sea surface temperature anomaly" means the same thing across all three ontologies via shared upper ontology alignment.
+- Data agents at each institution process proprietary datasets locally — nothing leaves the sovereign pod unless the WAC ACL explicitly grants access to a specific `did:nostr` identity.
+- The policy agency's governance dashboard surfaces cross-institutional findings via the Judgment Broker. A human policy analyst approves or rejects agent-proposed conclusions before they enter the shared knowledge graph.
+- Every reasoning chain traces back through content-addressed provenance beads to source data. Peer reviewers traverse the chain to verify methodology.
+
+**Why competitors can't do this:** No other platform combines formal ontology alignment (ensuring cross-institution semantic consistency), cryptographic data sovereignty (each institution controls its own data), and human-in-the-loop governance (policy decisions require signed approval) in a single coordinated mesh.
+
+### Scenario 2: Pharmaceutical Drug Discovery Pipeline
+
+A biotech startup, a contract research organisation (CRO), and a regulatory affairs consultancy collaborating on a novel compound.
+
+| Phase | Agents | Ontology Role | Governance Gate |
+|:------|:-------|:-------------|:----------------|
+| **Target identification** | Literature mining agents (biotech Agentbox) parse 50K papers | VisionClaw aligns gene ontology + disease ontology | Judgment Broker: senior scientist approves target shortlist |
+| **Lead optimisation** | Chemistry agents (CRO Agentbox) run ADMET predictions | Molecular property ontology constrains valid modifications | Judgment Broker: medicinal chemist signs off on candidates |
+| **Regulatory pre-submission** | Compliance agents (consultancy Agentbox) map to ICH guidelines | Regulatory ontology maps compound data to required endpoints | Judgment Broker: regulatory affairs lead approves submission package |
+| **Audit** | Any auditor traverses provenance beads from submission back to source papers | Every decision is an immutable Nostr event with `prior_decision_id` chain | Full chain of custody without reconstruction |
+
+Each organisation's agents operate within their Solid pod boundary. Cross-organisation data sharing requires explicit WAC grants tied to `did:nostr` identities. The CRO never sees the biotech's proprietary target list; the biotech never sees the CRO's compound library. They collaborate through the shared ontology layer.
+
+### Scenario 3: Creative Production at Scale
+
+A media company producing a 12-episode series with distributed creative teams across five time zones.
+
+| Substrate | Role in Production |
+|:----------|:-------------------|
+| **VisionClaw** | Production ontology: episodes → scenes → shots → assets → deliverables. Semantic forces cluster related assets visually. |
+| **Agentbox (Editorial)** | Script analysis agents parse screenplays, extract entity relationships, flag continuity issues |
+| **Agentbox (VFX)** | Asset management agents track 3D models, textures, composites through pipeline stages |
+| **Agentbox (Compliance)** | Rights clearance agents verify music licensing, location permissions, talent contracts |
+| **Forum** | Governance dashboard: executive producer approves budget exceptions, schedule changes, creative pivots |
+| **Judgment Broker** | When VFX cost exceeds threshold → signed approval required. When script change affects continuity across episodes → flagged for showrunner review. |
+
+The ontology doesn't just organise — it *reasons*. If a VFX shot depends on a 3D asset that hasn't been approved, the `subClassOf` chain from "approved deliverable" propagates a constraint through the graph. The GPU physics engine makes the blocked dependency visually obvious — the shot node repels from the "approved" cluster.
+
+---
+
 ## Repository Map
 
 | Substrate | Repository | Role | Key Technology |
