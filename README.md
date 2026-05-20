@@ -532,9 +532,9 @@ flowchart LR
 
 ## Strategic Positioning
 
-![VisionFlow Wardley Map](assets/diagrams/wardley-map.png)
+*Refer to the [Wardley map above](#visionflow) for visual context.*
 
-### Reading This Map
+### Reading the Map
 
 A Wardley map positions components along two axes: **evolution** (left = novel, right = commodity) and **value chain** (top = user-visible, bottom = invisible infrastructure). The strategic insight is in *where the empty space is*.
 
