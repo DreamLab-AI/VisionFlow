@@ -563,33 +563,30 @@ A Wardley map positions components along two axes: **evolution** (left = novel, 
 
 ## Competitive Landscape
 
-Every platform below solves part of the coordination problem. VisionFlow is the only architecture that combines cryptographic agent identity, formal reasoning, self-sovereign data, and human-in-the-loop governance as protocol-level primitives rather than application-layer add-ons.
+> 🟢 Protocol-native &ensp; 🟡 Partial / add-on &ensp; 🔴 Absent &ensp; ⚫ N/A
 
-| | Identity | Data Sovereignty | Governance | Formal Reasoning | Federation | Persistent Memory | Open Source | Pricing |
-|:---|:---|:---|:---|:---|:---|:---|:---|:---|
-| **VisionFlow** | **Cryptographic** (`did:nostr` secp256k1) | **Self-sovereign** (Solid pods, WAC ACLs) | **Protocol-native** (Judgment Broker, kinds 31400-31405) | **OWL 2 EL** (Whelk-rs subsumption) | **Native** (Nostr relay mesh) | **Sovereign** (embedded pods + pgvector) | **Yes** (MPL-2.0 / AGPL-3.0) | Self-hosted |
-| **Google Spark** | Session (Google SSO) | Platform-owned (Google Cloud) | Payment approval only | LLM inference | Google ecosystem only | Yes (user preferences) | No | Google AI Ultra subscription |
-| **OpenClaw** | Enterprise SSO + verifiable tokens | Strong (self-hosted, no telemetry) | Community foundation (MIT) | LLM inference | Multi-provider, no org federation | Yes (cross-session) | Yes (MIT) | Free + API keys |
-| **Claude Code (Hosted)** | Session (SAML/OIDC) | Platform-managed | Permission system | LLM + extended thinking | MCP tool federation | Session-based | CLI open source | $100/mo Max, token-based |
-| **Claude Code (Local)** | API key / OAuth | Local files, remote inference | Local permission system | LLM + extended thinking | MCP tool federation | CLAUDE.md + MCP | CLI open source | API token costs |
-| **Hermes Agent** | Persistent agent identity | Strong (self-hosted, no tracking) | Container hardening + rollback | LLM inference | Multi-provider, no org federation | Core feature | Yes (MIT) | Free + API keys |
-| **OpenAI Codex** | Session (OpenAI account) | Cloud sandbox | Sandbox isolation | LLM inference | No | Per-task only | CLI open source | Pro/Team subscription |
-| **Google Jules** | Session (Google account) | Platform-owned (GCP VMs) | PR review (human) | LLM inference (Gemini) | Jules API for CI/CD | Per-task only | No | Free tier + paid |
-| **Devin** | Session (account) | Cloud-hosted (VPC option) | Human reviews output | LLM inference | No | Per-task | No | $20/mo Core |
-| **Cursor / Windsurf** | Session (account) | Local index, remote inference | Accept/reject in IDE | LLM inference | No | Project-level | No | $20/mo Pro |
-| **CrewAI** | None (framework-level) | Self-hostable (OSS core) | Hierarchical delegation | LLM inference | MCP + A2A protocols | Shared memory systems | Core: Yes (MIT) | Free OSS, Enterprise $75K/yr |
-| **AutoGen / MS Agent Framework** | Azure AD / Entra ID | Self-hostable + Azure | Checkpointing | LLM + structured planning | A2A + MCP protocols | State checkpointing | Yes (MIT) | Free OSS + Azure costs |
-| **LangGraph** | None (app-level) | Self-hostable (OSS core) | First-class human-in-loop API | LLM + graph control flow | Multi-provider | Durable state persistence | Yes (MIT) | Free OSS, LangSmith $39/seat |
+| Platform | Crypto Identity | Data Sovereignty | Governance | Formal Reasoning | Federation | OSS |
+|:---------|:---:|:---:|:---:|:---:|:---:|:---:|
+| **VisionFlow** | 🟢 `did:nostr` | 🟢 Solid pods | 🟢 Judgment Broker | 🟢 OWL 2 EL | 🟢 Relay mesh | 🟢 |
+| Google Spark | 🔴 Google SSO | 🔴 Google Cloud | 🟡 Payment only | 🔴 LLM | 🔴 Google only | 🔴 |
+| OpenClaw | 🟡 Verifiable tokens | 🟢 Self-hosted | 🟡 Foundation | 🔴 LLM | 🟡 Multi-provider | 🟢 |
+| Claude Code | 🔴 Session | 🟡 Local files | 🟡 Permissions | 🔴 LLM | 🟡 MCP tools | 🟡 |
+| Hermes Agent | 🟡 Persistent ID | 🟢 Self-hosted | 🟡 Container hardening | 🔴 LLM | 🟡 Multi-provider | 🟢 |
+| OpenAI Codex | 🔴 Session | 🔴 Cloud sandbox | 🔴 Sandbox only | 🔴 LLM | 🔴 | 🟡 |
+| Google Jules | 🔴 Session | 🔴 GCP VMs | 🟡 PR review | 🔴 LLM | 🔴 | 🔴 |
+| Devin | 🔴 Session | 🔴 Cloud-hosted | 🟡 Human review | 🔴 LLM | 🔴 | 🔴 |
+| Cursor / Windsurf | 🔴 Session | 🟡 Local index | 🟡 Accept/reject | 🔴 LLM | 🔴 | 🔴 |
+| CrewAI | 🔴 None | 🟡 Self-hostable | 🟡 Delegation | 🔴 LLM | 🟡 MCP + A2A | 🟢 |
+| AutoGen / MAF | 🔴 Azure AD | 🟡 Self-hostable | 🟡 Checkpointing | 🔴 LLM | 🟡 MCP + A2A | 🟢 |
+| LangGraph | 🔴 None | 🟡 Self-hostable | 🟡 Human-in-loop | 🔴 LLM | 🟡 Multi-provider | 🟢 |
 
-### What the Table Reveals
+**Three structural gaps** separate VisionFlow from the field:
 
-Three structural gaps separate VisionFlow from the field:
+1. **Formal reasoning column is solid red.** Every competitor relies on probabilistic LLM inference. VisionFlow's OWL 2 EL subsumption produces provably correct entailments — not confident guesses.
 
-1. **No platform does formal reasoning.** Every competitor relies on probabilistic LLM inference. VisionFlow's OWL 2 EL subsumption checking produces provably correct answers within the Description Logic — when it says A is a subclass of B, that's a logical entailment, not a confident guess.
+2. **Crypto identity column is solid red.** Only VisionFlow implements cryptographic agent identity at the protocol level. Every other platform ties identity to someone else's server.
 
-2. **Identity is universally session-based.** Only VisionFlow implements cryptographic agent identity at the protocol level. Every other platform ties identity to an account on someone else's server. When the server goes away, so does the identity — and the audit trail.
-
-3. **No platform federates across organisations.** MCP and A2A enable tool interoperability, but no competitor supports sovereign nodes that trust each other via cryptographic identity verification rather than shared infrastructure. VisionFlow's Nostr relay mesh enables cross-organisational coordination where each node owns its data and sets its own trust thresholds.
+3. **Federation column is solid red.** MCP and A2A enable tool interop, but no competitor supports sovereign nodes trusting each other via cryptographic identity rather than shared infrastructure.
 
 ---
 
