@@ -32,6 +32,8 @@ VisionFlow requires a public marketing website at visionflow.info. The site must
 
 ### 2. Tailwind CSS via Play CDN
 
+**2026-05-20 amendment:** The current implementation uses local static CSS rather than Tailwind Play CDN. Treat this decision as superseded in implementation until a follow-up ADR either adopts local CSS as the permanent path or reinstates a Tailwind build/CDN strategy.
+
 **Decision:** Style via Tailwind CSS Play CDN (`<script src="https://cdn.tailwindcss.com">`). No PostCSS build step.
 
 **Rationale:**

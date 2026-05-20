@@ -5,14 +5,14 @@
 ### Coordination Engineering for Federated Human–AI Intelligence
 
 [![License](https://img.shields.io/badge/License-MPL%202.0%20%2B%20AGPL%203.0-blue?style=flat-square)](docs/architecture/licensing.md)
-[![Repos](https://img.shields.io/badge/Repos-5%20federated-8b5cf6?style=flat-square)](docs/architecture/repository-map.md)
+[![Substrates](https://img.shields.io/badge/Substrates-5%20federated-8b5cf6?style=flat-square)](docs/architecture/repository-map.md)
 [![Identity](https://img.shields.io/badge/Identity-did%3Anostr-10b981?style=flat-square)](docs/protocol/identity-spine.md)
 
 **Maintainer**: [John O'Hare](https://github.com/jjohare) · **Upstream IP**: [Melvin Carvalho](https://github.com/melvincarvalho) ([JSS](https://github.com/JavaScriptSolidServer/JavaScriptSolidServer), [DID:Nostr](https://github.com/nicholasgasior/did-nostr), [Web Ledgers](https://webledgers.org)) · [MAINTAINERS.md](MAINTAINERS.md)
 
 <br/>
 
-[The Problem](#the-problem) · [Evolution Line](#the-evolution-line) · [Five Substrates](#five-substrates-one-identity) · [Judgment Broker](#the-judgment-broker) · [Scaling](#scaling-model) · [Repository Map](#repository-map) · [Wardley Map](#strategic-positioning)
+[The Problem](#the-problem) · [Evolution Line](#the-evolution-line) · [Five Substrates](#five-substrates-one-identity) · [Judgment Broker](#the-judgment-broker) · [Scaling](#scaling-model) · [Repository Map](#repository-map) · [Wardley Map](#strategic-positioning) · [Docs](docs/README.md)
 
 </div>
 
@@ -668,6 +668,8 @@ The ontology doesn't just organise — it *reasons*. If a VFX shot depends on a 
 ---
 
 ## Repository Map
+
+For the docs-only local ecosystem synthesis, see [Ecosystem Map](docs/ecosystem-map.md), [Repository Map](docs/architecture/repository-map.md), and [Identity Spine](docs/protocol/identity-spine.md).
 
 | Substrate | Repository | Role | Key Technology |
 |:----------|:-----------|:-----|:---------------|
