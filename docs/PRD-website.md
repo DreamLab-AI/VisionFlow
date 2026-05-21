@@ -64,7 +64,7 @@ Deliver a public-facing marketing and technical reference site for the VisionFlo
 
 ### 5.1 Deployment
 - Static site only; no server-side runtime at visionflow.info
-- Built by GitHub Actions; deployed to `gh-pages` branch of the canonical repo
+- Built by GitHub Actions; deployed through the GitHub Pages artifact/deploy actions
 - All assets must be cache-busted via content-hash filenames
 
 ### 5.2 Frontend Stack
@@ -144,9 +144,9 @@ Deliver a public-facing marketing and technical reference site for the VisionFlo
 
 **AC-01** GitHub Actions workflow builds the site and deploys to gh-pages on every push to `main`; a failing build blocks the deploy.
 
-**AC-02** Lighthouse CI runs in the Actions pipeline; scores below the targets in §2 fail the build.
+**AC-02** Browser verification in CI connects to the external Chrome DevTools sidecar. Until Lighthouse can consume the sidecar without launching local Chrome, the pipeline gates rendering, accessibility, navigation, and initial payload budget through Playwright/CDP.
 
-**AC-03** `mesh-hero` WASM module renders at >= 55 fps on a mid-range Android device (Moto G Power equivalent) in Chrome; verified via automated Playwright test.
+**AC-03** `mesh-hero` WASM module renders in Chrome through the sidecar on desktop and mobile emulation projects; the >= 55 fps target remains a follow-up performance trace gate.
 
 **AC-04** All ten sections are present in the HTML source with matching `id` attributes for anchor navigation.
 
@@ -161,6 +161,17 @@ Deliver a public-facing marketing and technical reference site for the VisionFlo
 **AC-09** Total page weight on initial load (network tab, no cache) is <= 800 KB on a desktop Chrome session.
 
 **AC-10** `prefers-reduced-motion: reduce` disables all WASM animations and substitutes a static SVG fallback.
+
+### Current Implementation Status
+
+The acceptance criteria above are the target state. Current verification status is tracked in [Site Verification Status](site-verification.md).
+
+As of 2026-05-20:
+
+- Static build, Playwright smoke tests, axe checks, and initial payload checks are wired into the repository.
+- Browser automation is through the external Chrome DevTools sidecar: `browsercontainer:9223` on the Docker network, or `localhost:9222` from the host.
+- Contact/demo form, content-hashed assets, and WebP-only asset enforcement remain deferred.
+- CI/CD uses a self-hosted Linux runner with access to the sidecar and does not install local browser binaries.
 
 ---
 
@@ -181,5 +192,5 @@ Deliver a public-facing marketing and technical reference site for the VisionFlo
 | M1 | Repo scaffold, CI pipeline, design tokens, HTML shell |
 | M2 | WASM mesh-hero and particle-field modules rendering |
 | M3 | All ten sections copy-complete and styled |
-| M4 | Lighthouse CI green; axe-core clean |
+| M4 | Sidecar-backed browser smoke tests, payload budget, and axe-core clean |
 | M5 | Production deploy to visionflow.info |

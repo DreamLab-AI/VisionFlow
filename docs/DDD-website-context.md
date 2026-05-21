@@ -80,15 +80,20 @@
 
 **Aggregate**
 
-- `BuildPipeline` — orchestrates `wasm-pack` compilation, static asset assembly, and `gh-pages` push. Identity: `pipelineRunId`.
+- `BuildPipeline` — orchestrates `wasm-pack` compilation, static asset assembly, verification, and GitHub Pages artifact deployment. Identity: `pipelineRunId`.
 
 **Value objects**
 
 - `WasmArtifact { hash, sizeByes, targetPath }` — the compiled `.wasm` + JS glue output from `wasm-pack`.
 - `StaticAsset { path, contentType, hash }` — any non-WASM file (HTML, CSS, fonts, images) included in the `dist/` bundle.
 - `CNAME { hostname }` — the custom domain record written to `dist/CNAME` on every build.
+- `BrowserSidecar { cdpEndpoint, siteBaseUrl, networkScope }` — the external Chrome DevTools runtime used for browser verification.
 
-**Domain rule:** A `BuildPipeline` run is only valid if `WasmArtifact.hash` differs from the previously deployed hash or any `StaticAsset.hash` has changed. No-op pushes are prohibited.
+**Domain rules**
+
+- Browser verification must connect to `BrowserSidecar`; the VisionFlow pipeline does not launch local Chrome.
+- A `BuildPipeline` run is deployable only after sidecar reachability, render smoke, navigation, accessibility, and payload-budget checks pass.
+- A deployable artifact is only valid if `WasmArtifact.hash` differs from the previously deployed hash or any `StaticAsset.hash` has changed. No-op pushes are prohibited.
 
 
 ## Context Map
@@ -97,6 +102,7 @@
 Presentation ──events──► Animation
 Presentation ──renders──► Content
 Deployment ──artefacts──► Presentation  (build time only)
+Deployment ──verifies──► BrowserSidecar (external dependency)
 ```
 
 All runtime cross-boundary communication uses domain events or read-only value objects. No aggregate leaks across a boundary.
@@ -117,4 +123,5 @@ All runtime cross-boundary communication uses domain events or read-only value o
 | **ComparisonRow** | One platform's row in the competitive feature matrix. |
 | **WasmArtifact** | The compiled binary and its JS glue produced by `wasm-pack build`. |
 | **CNAME** | The `visionflow.info` hostname record written into the static bundle for GitHub Pages routing. |
+| **BrowserSidecar** | The external `browsercontainer` Chrome DevTools runtime used for all browser automation. |
 | **Coordination engineering** | The discipline of designing systems that reliably orchestrate autonomous agents across heterogeneous substrates. |

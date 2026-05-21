@@ -10,7 +10,7 @@
 | Keep top-level docs linked and current | README claims are backed by local docs |
 | Maintain compatibility matrix | Operators can tell which repo versions work together |
 | Reconcile PRD status against implementation | Deferred features are not presented as shipped |
-| Record verification status for the website | Lighthouse, axe, form, and asset-hashing gaps are explicit |
+| Record verification status for the website | Sidecar browser testing is active; Lighthouse, form, and asset-hashing gaps are explicit |
 
 ## Phase 1: Mesh Contract
 
@@ -30,6 +30,8 @@
 | VisionClaw -> pod provenance write smoke test | Approved mutations are persisted with identity/provenance |
 | Cross-substrate fixture sync gate | Protocol drift is caught before release |
 
+The first smoke-test contract is defined in [Mesh Smoke Test](protocol/mesh-smoke-test.md).
+
 ## Phase 3: Operational Readiness
 
 | Work | Outcome |
@@ -38,4 +40,3 @@
 | Pod tier migration plan | Users can move from CF pods to native git-capable pods |
 | Unified health dashboard | Operators can see mesh, pod, relay, and broker status |
 | Backup and DR runbooks | Recovery is documented across Neo4j, pods, relay stores, D1/KV/R2 |
-

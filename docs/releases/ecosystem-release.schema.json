@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://visionflow.info/schemas/ecosystem-release.schema.json",
+  "title": "VisionFlow Ecosystem Release Manifest",
+  "type": "object",
+  "required": ["manifest_version", "generated_at", "status", "repositories", "compatibility"],
+  "properties": {
+    "manifest_version": { "type": "integer", "const": 1 },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "status": { "type": "string", "enum": ["local-draft", "candidate", "released"] },
+    "repositories": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["name", "path", "head", "branch"],
+        "properties": {
+          "name": { "type": "string" },
+          "path": { "type": "string" },
+          "head": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+          "branch": { "type": "string" },
+          "dirty": { "type": "boolean" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "compatibility": {
+      "type": "object",
+      "required": ["identity", "mesh", "pod", "governance", "verification"],
+      "properties": {
+        "identity": { "type": "string" },
+        "mesh": { "type": "string" },
+        "pod": { "type": "string" },
+        "governance": { "type": "string" },
+        "verification": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
+

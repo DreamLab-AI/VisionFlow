@@ -66,6 +66,8 @@ VisionFlow requires a public marketing website at visionflow.info. The site must
 
 ### 4. GitHub Actions Deployment to gh-pages
 
+**2026-05-20 amendment:** The current workflow uses GitHub Pages artifact upload/deploy actions rather than manually pushing a built `dist/` directory to the `gh-pages` branch. The deployment target remains GitHub Pages.
+
 **Decision:** CI/CD via GitHub Actions: build WASM with wasm-pack, assemble static assets, push to `gh-pages` branch. Domain mapped via CNAME record pointing visionflow.info at the Pages endpoint.
 
 **Rationale:**
@@ -77,6 +79,24 @@ VisionFlow requires a public marketing website at visionflow.info. The site must
 **Consequences:**
 - Deployment pipeline is coupled to GitHub Actions availability.
 - Cold CI runs require downloading the Rust toolchain and wasm-pack; caching `~/.cargo` and `target/` mitigates build time.
+
+---
+
+### 4A. Browser Verification Through External Chrome DevTools Sidecar
+
+**2026-05-21 amendment:** Browser automation uses the external `browsercontainer` Chrome DevTools sidecar from agentbox. From inside the Docker network the CDP endpoint is `http://browsercontainer:9223`; from the host it is `http://localhost:9222`.
+
+**Decision:** Playwright tests connect over CDP to the sidecar instead of installing or launching Chromium in the VisionFlow runtime. CI/CD runs on a self-hosted Linux runner that can reach the sidecar, serves `website/dist` on `0.0.0.0:4173`, and exposes the site to the sidecar through `SITE_BASE_URL` or the runner container's Docker-network IPv4 address.
+
+**Rationale:**
+- Agentbox has standardized browser automation on the GPU-backed sidecar; VisionFlow should not reintroduce a local browser dependency.
+- The sidecar is the environment used for Chrome DevTools, screenshots, DOM inspection, and accessibility checks across the ecosystem.
+- Removing `playwright install --with-deps chromium` avoids drift between CI and the operator runtime.
+
+**Consequences:**
+- Browser tests fail fast if the sidecar is not reachable via `/json/version`.
+- GitHub-hosted runners are not sufficient for the full browser gate unless they are connected to an equivalent sidecar network.
+- Lighthouse CI is deferred because its default launcher model conflicts with the no-local-Chrome decision; payload and accessibility gates remain active through CDP.
 
 ---
 
@@ -121,4 +141,4 @@ VisionFlow requires a public marketing website at visionflow.info. The site must
 
 ## Summary
 
-The stack (static HTML + Tailwind CDN + Rust WASM + gh-pages) prioritises deployment simplicity and technical demonstration over developer ergonomics. It is deliberately minimal: WASM replaces a framework's complexity budget with Rust's type system. The DreamLab design system ensures aesthetic consistency without bespoke design work.
+The current stack (static HTML/CSS + Rust WASM + GitHub Pages artifact deploy + external Chrome DevTools sidecar verification) prioritises deployment simplicity and technical demonstration over application-framework ergonomics. It is deliberately minimal: WASM replaces a framework's complexity budget with Rust's type system. The DreamLab design system ensures aesthetic consistency without bespoke design work.

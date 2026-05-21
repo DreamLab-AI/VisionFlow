@@ -16,9 +16,17 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux]
+    env:
+      CDP_ENDPOINT: ${{ vars.CDP_ENDPOINT || 'http://browsercontainer:9223' }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -43,6 +51,15 @@ jobs:
           cd website
           chmod +x build.sh
           ./build.sh
+
+      - name: Install verification dependencies
+        run: npm ci --include=dev
+
+      - name: Check Chrome DevTools sidecar
+        run: npm run check:sidecar
+
+      - name: Run site smoke, accessibility, and payload tests
+        run: npm run test:site
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

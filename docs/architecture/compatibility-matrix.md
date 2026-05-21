@@ -28,3 +28,12 @@ Every coordinated release should publish:
 | Test evidence | Fixture sync status, smoke test status, audit status |
 | Operations | Health endpoints, backup/restore plan, DR owner |
 
+## Release Manifest
+
+Generate the current local repository SHA set with:
+
+```sh
+scripts/generate-release-manifest.sh > docs/releases/ecosystem-release.local.json
+```
+
+See [Release Manifests](../releases/README.md) for the schema and promotion rules.

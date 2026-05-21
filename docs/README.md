@@ -9,6 +9,7 @@ VisionFlow is the coordination architecture spanning the DreamLab repositories. 
 | [Ecosystem Map](ecosystem-map.md) | Docs-only synthesis of the sibling repositories, system flows, and gap register |
 | [Repository Map](architecture/repository-map.md) | Local path and role map for the federated repositories |
 | [Compatibility Matrix](architecture/compatibility-matrix.md) | Current identity, mesh, pod, governance, deployment, and tests/ops posture |
+| [Status Reconciliation](architecture/status-reconciliation.md) | Current reading of older PRD/ADR claims versus implementation status |
 | [Identity Spine](protocol/identity-spine.md) | Shared `did:nostr` identity contract and compatibility checklist |
 | [Licensing](architecture/licensing.md) | Licence boundaries across the ecosystem |
 | [Roadmap](roadmap.md) | Phased roadmap from docs honesty to mesh proof and operations |

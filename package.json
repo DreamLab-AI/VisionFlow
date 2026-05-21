@@ -1,0 +1,18 @@
+{
+  "name": "visionflow-site-verification",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "cd website && ./build.sh",
+    "check:sidecar": "node scripts/check-cdp-sidecar.mjs",
+    "test:site": "playwright test",
+    "test:a11y": "playwright test tests/site.spec.js --grep @a11y",
+    "test:perf": "playwright test tests/site.spec.js --grep @perf",
+    "verify": "npm run build && npm run check:sidecar && npm run test:site"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
+    "@playwright/test": "^1.53.0"
+  }
+}

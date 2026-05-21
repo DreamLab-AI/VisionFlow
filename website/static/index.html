@@ -31,12 +31,16 @@
         <a href="#substrates">Substrates</a>
         <a href="#broker">Governance</a>
         <a href="#economic">Economics</a>
+        <a href="#cases">Cases</a>
         <a href="#competitive">Landscape</a>
+        <a href="#scaling">Scaling</a>
+        <a href="#repos">Repos</a>
         <a href="https://www.dreamlab-ai.com" target="_blank" rel="noopener" class="nav-cta">DreamLab AI &rarr;</a>
       </div>
     </div>
   </nav>
 
+  <main id="main-content">
   <!-- Hero Section -->
   <section id="hero" class="hero">
     <canvas id="mesh-canvas" class="hero-canvas" aria-hidden="true"></canvas>
@@ -145,7 +149,7 @@
         </div>
       </div>
 
-      <div class="evolution-table">
+      <div class="evolution-table" tabindex="0" aria-label="Evolution stage comparison">
         <table>
           <thead>
             <tr><th>Stage</th><th>What It Adds</th><th>What It Still Lacks</th></tr>
@@ -270,30 +274,30 @@
       <div class="broker-flow">
         <div class="broker-step">
           <div class="broker-num">1</div>
-          <h4>Agent Declares</h4>
+          <h3>Agent Declares</h3>
           <p>kind 31400 PanelDefinition &mdash; agent publishes a control panel with schema, fields, actions</p>
         </div>
         <div class="broker-arrow">&rarr;</div>
         <div class="broker-step">
           <div class="broker-num">2</div>
-          <h4>Agent Requests</h4>
+          <h3>Agent Requests</h3>
           <p>kind 31402 ActionRequest &mdash; &ldquo;I need approval to proceed with this procurement&rdquo;</p>
         </div>
         <div class="broker-arrow">&rarr;</div>
         <div class="broker-step">
           <div class="broker-num">3</div>
-          <h4>Human Decides</h4>
+          <h3>Human Decides</h3>
           <p>kind 31403 ActionResponse &mdash; NIP-98 signed approve/reject/configure</p>
         </div>
         <div class="broker-arrow">&rarr;</div>
         <div class="broker-step">
           <div class="broker-num">4</div>
-          <h4>Immutable Trail</h4>
+          <h3>Immutable Trail</h3>
           <p>Every decision is an immutable Nostr event with prior_decision_id chain &mdash; auditors traverse back to first principles</p>
         </div>
       </div>
 
-      <div class="broker-kinds">
+      <div class="broker-kinds" tabindex="0" aria-label="Judgment Broker event kinds">
         <table>
           <thead><tr><th>Kind</th><th>Name</th><th>Direction</th><th>Purpose</th></tr></thead>
           <tbody>
@@ -414,7 +418,7 @@
       <h2>Three structural gaps no competitor can close</h2>
       <p class="section-lead">Every differentiator sits where no competitor can follow. All 11 competing platforms cluster in the commodity zone where there is no structural differentiation.</p>
 
-      <div class="competitive-table-wrap">
+      <div class="competitive-table-wrap" tabindex="0" aria-label="Competitive landscape matrix">
         <table class="competitive-table">
           <thead>
             <tr>
@@ -456,15 +460,15 @@
 
       <div class="gap-cards">
         <div class="glass-card gap-card">
-          <h4>Formal Reasoning Column: Solid Red</h4>
+          <h3>Formal Reasoning Column: Solid Red</h3>
           <p>Every competitor relies on probabilistic LLM inference. VisionFlow&rsquo;s OWL 2 EL subsumption produces provably correct entailments &mdash; not confident guesses.</p>
         </div>
         <div class="glass-card gap-card">
-          <h4>Crypto Identity Column: Solid Red</h4>
+          <h3>Crypto Identity Column: Solid Red</h3>
           <p>Only VisionFlow implements cryptographic agent identity at the protocol level. Every other platform ties identity to someone else&rsquo;s server.</p>
         </div>
         <div class="glass-card gap-card">
-          <h4>Federation Column: Solid Red</h4>
+          <h3>Federation Column: Solid Red</h3>
           <p>No competitor supports sovereign nodes trusting each other via cryptographic identity rather than shared infrastructure.</p>
         </div>
       </div>
@@ -508,38 +512,39 @@
 
       <div class="repo-grid">
         <a href="https://github.com/DreamLab-AI/VisionFlow" target="_blank" rel="noopener" class="repo-card">
-          <h4>VisionFlow</h4>
+          <h3>VisionFlow</h3>
           <p>Ecosystem guide and coordination architecture</p>
           <span class="repo-tech">This repository</span>
         </a>
         <a href="https://github.com/DreamLab-AI/VisionClaw" target="_blank" rel="noopener" class="repo-card">
-          <h4>VisionClaw</h4>
+          <h3>VisionClaw</h3>
           <p>Knowledge engineering substrate</p>
           <span class="repo-tech">OWL 2 EL &middot; CUDA &middot; XR &middot; MCP</span>
         </a>
         <a href="https://github.com/DreamLab-AI/agentbox" target="_blank" rel="noopener" class="repo-card">
-          <h4>Agentbox</h4>
+          <h3>Agentbox</h3>
           <p>Harness engineering runtime</p>
           <span class="repo-tech">Nix &middot; 90+ skills &middot; 180+ tools &middot; Solid pods</span>
         </a>
         <a href="https://github.com/DreamLab-AI/solid-pod-rs" target="_blank" rel="noopener" class="repo-card">
-          <h4>solid-pod-rs</h4>
+          <h3>solid-pod-rs</h3>
           <p>Cryptographic foundation</p>
           <span class="repo-tech">JSS Rust port &middot; DID:Nostr &middot; WAC &middot; HTTP 402</span>
         </a>
         <a href="https://github.com/DreamLab-AI/nostr-rust-forum" target="_blank" rel="noopener" class="repo-card">
-          <h4>nostr-rust-forum</h4>
+          <h3>nostr-rust-forum</h3>
           <p>Governance UI + relay kit</p>
           <span class="repo-tech">12 crates &middot; Passkey auth &middot; Leptos WASM</span>
         </a>
         <a href="https://github.com/DreamLab-AI/dreamlab-ai-website" target="_blank" rel="noopener" class="repo-card">
-          <h4>dreamlab-ai-website</h4>
+          <h3>dreamlab-ai-website</h3>
           <p>Branded deployment</p>
           <span class="repo-tech">React SPA &middot; WASM forum &middot; CF Workers</span>
         </a>
       </div>
     </div>
   </section>
+  </main>
 
   <!-- Footer -->
   <footer class="footer">

@@ -1,0 +1,7 @@
+node_modules/
+.npm-cache/
+.playwright-browsers/
+playwright-report/
+test-results/
+.lighthouseci/
+docs/releases/ecosystem-release.local.json

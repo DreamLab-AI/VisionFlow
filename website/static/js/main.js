@@ -1,4 +1,4 @@
-const WASM_BASE = './wasm';
+const WASM_BASE = '/wasm';
 
 function debounce(fn, ms) {
   let id;

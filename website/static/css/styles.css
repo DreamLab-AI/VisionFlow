@@ -5,7 +5,7 @@
   --bg-glass: rgba(17, 24, 39, 0.6);
   --text: #f0eded;
   --text-muted: #9ca3af;
-  --text-dim: #6b7280;
+  --text-dim: #8b95a5;
   --border: rgba(55, 65, 81, 0.4);
 
   --bronze: #cd7f32;
@@ -528,7 +528,7 @@ body {
   font-weight: 700;
   margin-bottom: 10px;
 }
-.broker-step h4 { font-size: 0.95rem; margin-bottom: 6px; }
+.broker-step h3 { font-size: 0.95rem; margin-bottom: 6px; }
 .broker-step p { font-size: 0.8rem; color: var(--text-muted); }
 .broker-arrow {
   display: flex;
@@ -714,7 +714,7 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 16px;
 }
-.gap-card h4 {
+.gap-card h3 {
   font-size: 0.95rem;
   color: var(--crimson);
   margin-bottom: 8px;
@@ -779,7 +779,7 @@ body {
   border-color: var(--gold);
   transform: translateY(-2px);
 }
-.repo-card h4 {
+.repo-card h3 {
   font-size: 1rem;
   color: var(--text);
   margin-bottom: 4px;
