@@ -16,6 +16,11 @@
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
+  <!-- Background Video (activates on scroll past hero) -->
+  <video id="bg-video" muted loop playsinline preload="metadata" aria-hidden="true">
+    <source src="video/visionclaw.mp4" type="video/mp4" />
+  </video>
+
   <!-- Navigation -->
   <nav id="nav" class="nav">
     <div class="nav-inner">
@@ -275,20 +280,6 @@
     </div>
   </section>
 
-  <!-- VisionClaw Visualisation -->
-  <section class="section" style="padding-top:2rem;padding-bottom:2rem">
-    <div class="container reveal">
-      <div class="video-wrap">
-        <video autoplay muted loop playsinline preload="metadata"
-               poster="img/visionflow-triptych.jpg"
-               aria-label="VisionClaw knowledge graph visualisation">
-          <source src="video/visionclaw.mp4" type="video/mp4" />
-        </video>
-      </div>
-      <p class="video-caption">VisionClaw &mdash; 934-node force-directed knowledge graph with OWL 2 EL formal reasoning, GPU-accelerated at 55x</p>
-    </div>
-  </section>
-
   <!-- Video Overview -->
   <section id="video-overview" class="section section-dark">
     <div class="container reveal">
@@ -297,7 +288,6 @@
       <p class="section-lead">A cinematic walkthrough of why coordinated AI reasoning &mdash; not raw intelligence &mdash; is the limiting factor in high-stakes domains.</p>
       <div class="video-wrap video-wrap-featured">
         <video controls preload="metadata"
-               poster="img/visionflow-triptych.jpg"
                aria-label="VisionFlow: The Coordination Bottleneck — video overview">
           <source src="video/bottleneck.mp4" type="video/mp4" />
         </video>

@@ -808,6 +808,23 @@ body {
   font-family: var(--mono);
 }
 
+/* ── Background Video ── */
+#bg-video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+  pointer-events: none;
+}
+#bg-video.active {
+  opacity: 0.25;
+}
+
 /* ── Video ── */
 .video-wrap {
   position: relative;
@@ -825,13 +842,6 @@ body {
 .video-wrap-featured {
   border-color: var(--gold);
   box-shadow: 0 0 40px rgba(233, 69, 96, 0.08), 0 0 80px rgba(0, 212, 255, 0.04);
-}
-.video-caption {
-  font-size: 0.8rem;
-  color: var(--text-dim);
-  text-align: center;
-  margin-top: 12px;
-  font-style: italic;
 }
 
 /* ── Footer ── */

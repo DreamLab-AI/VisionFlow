@@ -171,6 +171,32 @@ function initSmoothScroll() {
   });
 }
 
+function initBackgroundVideo() {
+  const video = document.getElementById('bg-video');
+  const hero = document.getElementById('hero');
+  if (!video || !hero) return;
+
+  let videoActive = false;
+
+  const observer = new IntersectionObserver(
+    ([entry]) => {
+      const heroVisible = entry.isIntersecting;
+      if (heroVisible && videoActive) {
+        video.classList.remove('active');
+        video.pause();
+        videoActive = false;
+      } else if (!heroVisible && !videoActive) {
+        video.classList.add('active');
+        video.play().catch(() => {});
+        videoActive = true;
+      }
+    },
+    { threshold: 0.3 }
+  );
+
+  observer.observe(hero);
+}
+
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -182,5 +208,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!prefersReducedMotion) {
     initMeshHero();
     initParticleFields();
+    initBackgroundVideo();
   }
 });
