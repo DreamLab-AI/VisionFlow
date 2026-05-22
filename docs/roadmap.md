@@ -1,7 +1,9 @@
 # Roadmap
 
-**Status:** Working roadmap from docs-only ecosystem review
-**Date:** 2026-05-20
+**Status:** Working roadmap from ecosystem docs and code spot-check review
+**Date:** 2026-05-22
+
+This roadmap is governed by [Ecosystem Alignment PRD](PRD-ecosystem-alignment.md), [ADR-002](ADR-002-ecosystem-alignment-governance.md), and [Ecosystem Alignment DDD](DDD-ecosystem-alignment-context.md).
 
 ## Phase 0: Honesty and Traceability
 
@@ -11,6 +13,7 @@
 | Maintain compatibility matrix | Operators can tell which repo versions work together |
 | Reconcile PRD status against implementation | Deferred features are not presented as shipped |
 | Record verification status for the website | Sidecar browser testing is active; Lighthouse, form, and asset-hashing gaps are explicit |
+| Keep PRD/ADR/DDD alignment docs current | Cross-repo scope, decisions, and domain language are explicit |
 
 ## Phase 1: Mesh Contract
 

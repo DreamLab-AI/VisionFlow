@@ -1,9 +1,9 @@
 # Status Reconciliation
 
 **Status:** Cross-doc reconciliation note
-**Date:** 2026-05-20
+**Date:** 2026-05-22
 
-This note keeps older audit language from being mistaken for current runtime status. It is based on repository documentation and metadata only.
+This note keeps older audit language from being mistaken for current runtime status. Updated 2026-05-22 with cross-repo runtime research findings.
 
 ## VisionFlow Website Docs
 
@@ -27,8 +27,11 @@ This note keeps older audit language from being mistaken for current runtime sta
 
 | Item | Why it remains open |
 |---|---|
-| Full mesh federation by default | Current docs/config still show standalone defaults and optional federation modes |
-| IS-Envelope runtime ownership | Spec exists, but the canonical runtime/schema owner still needs to be pinned |
+| Mesh federation defaults vary by substrate | nostr-rust-forum (3.0.0-rc11) and dreamlab-ai-website default federated; agentbox and solid-pod-rs default standalone. Federation claims should be substrate-specific, not ecosystem-wide. |
+| IS-Envelope ownership resolved | VisionClaw owns the spec (ADR-075), JSON Schema, and 11 test vectors. agentbox implements runtime decode/dispatch. No longer an open item. |
 | Shared NIP-98 implementation | PRD-015 explicitly leaves this unchecked |
 | CF Workers/native pod convergence | Forum docs still describe two-tier behavior and portability blockers |
+| Judgment Broker runtime | VisionClaw presentation docs confirm no dedicated broker workbench exists. Domain model is specification-only. Do not cite as integrated evidence. |
+| Agent Control Surface completeness | Kinds 31400-31405 are fully implemented in nostr-rust-forum (`governance.rs`) and dreamlab-ai-website (`/governance` dashboard). agentbox publishes and subscribes via nostr-bridge. Status: `integrated`. |
+| Ontology bridge | 10 MCP tools in agentbox (`ontology-bridge.js`) proxy SPARQL to VisionClaw Oxigraph. Shipped cross-substrate integration not previously reflected in coordination docs. |
 | Browser verification sidecar reachability | The expected endpoint is `browsercontainer:9223` from Docker-network runtimes or `localhost:9222` from the host; sidecar CDP was verified on 2026-05-21 after resolving `browsercontainer` to its Docker-network IP |

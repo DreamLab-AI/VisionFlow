@@ -1,10 +1,10 @@
 # VisionFlow Ecosystem Map
 
-**Status:** Docs-only synthesis
-**Date:** 2026-05-20
-**Scope:** Recently modified sibling repositories under `/home/devuser/workspace`
+**Status:** Docs plus targeted code/manifest spot-checks, updated with runtime research 2026-05-22
+**Date:** 2026-05-22
+**Scope:** Repositories mounted under `/home/devuser/workspace`
 
-This document maps the VisionFlow ecosystem from repository documentation only. It does not verify implementation code. When a gap is listed, it means the docs either explicitly identify it or describe an architecture whose required counterpart is absent, deferred, or inconsistent in the available docs.
+This document maps the VisionFlow ecosystem from repository documentation, with targeted implementation checks for the integration claims that affect cross-repo alignment. When a gap is listed, it means the docs or spot-checked code/manifests identify an absent, deferred, or inconsistent counterpart.
 
 ## Source Set
 
@@ -12,7 +12,7 @@ This document maps the VisionFlow ecosystem from repository documentation only. 
 |---|---|---|
 | `../VisionFlow` | VisionFlow | README, website PRD/ADR/DDD |
 | `../project` | VisionClaw mount | README, PRD-010/014/015, ADRs, DDD/integration research docs |
-| `../agentbox` | agentbox | README, developer ecosystem/identity/sovereign mesh docs |
+| `../project/agentbox` | agentbox | README, developer ecosystem/identity/sovereign mesh docs, relay/pod bridge code |
 | `../solid-pod-rs` | solid-pod-rs | README, ecosystem integration, parity/gap analysis |
 | `../nostr-rust-forum` | nostr-rust-forum | README, architecture, consumer surface map, ADR-086/087/089/093 |
 | `../dreamlab-ai-website` | DreamLab deployment | README, deployment and forum-consumer docs |
@@ -24,8 +24,8 @@ VisionFlow is not a single executable. It is a coordination architecture that em
 | Substrate | Primary responsibility | Boundary |
 |---|---|---|
 | VisionFlow | Ecosystem narrative, public positioning, repository map, shared coordination model | Documentation and website surface |
-| VisionClaw | Knowledge engineering: OWL 2 EL reasoning, GPU graph physics, XR, ontology MCP tools, Judgment Broker | GPU host / graph backend / semantic workbench |
-| agentbox | Reproducible sovereign agent runtime with Nix, tools, skills, privacy filtering, Nostr/Solid identity | Agent container and harness |
+| VisionClaw | Knowledge engineering: OWL 2 EL reasoning, GPU graph physics, XR, 7 native MCP ontology tools, IS-Envelope spec owner (ADR-075), Judgment Broker (spec-only) | GPU host / graph backend / semantic workbench |
+| agentbox | Reproducible sovereign agent runtime with Nix, 90+ skills, 180+ MCP tools, 10-tool ontology bridge to VisionClaw SPARQL, browser setup wizard, privacy filtering, Nostr/Solid identity | Agent container and harness |
 | solid-pod-rs | Solid/JSS foundation: LDP, WAC, NIP-98, DID:Nostr, WebID, OIDC, git pods | Shared protocol library and native pod server |
 | nostr-rust-forum | Governance UI and relay kit: passkey auth, Cloudflare Workers, Agent Control Surface events | Human decision surface and Nostr relay edge |
 | dreamlab-ai-website | Branded DreamLab deployment and operator overlay for the forum kit | Public site and Cloudflare deployment config |
@@ -67,13 +67,13 @@ The VisionFlow README references richer documentation paths such as `docs/archit
 
 **Next action:** Keep this document, the repository map, and the identity spine as the top-level docs entry points.
 
-### G2: Mesh Federation Is Still Partly Aspirational
+### G2: Mesh Federation Maturity Varies by Substrate
 
-VisionClaw PRD-010 describes the target DID:Nostr mesh, relay federation modes, NIP-42 write gates, NIP-26 delegation, DID service endpoints, and IS-Envelope routing. PRD-014 explicitly defers major pieces: IS-Envelope runtime, full relay mesh, NIP-26 unification, distributed tracing, shared type crate, coordinated releases, and cross-substrate integration tests.
+nostr-rust-forum (3.0.0-rc11) defaults to federated NIP-05 mode. dreamlab-ai-website uses federated CF Workers relay fan-out. agentbox and solid-pod-rs default to standalone. VisionClaw PRD-010 describes the target mesh; PRD-014 defers some pieces (NIP-26 unification, distributed tracing, shared type crate).
 
-**Impact:** The ecosystem can be described as federation-ready, but not yet federation-complete.
+**Impact:** The ecosystem is federation-capable but maturity is substrate-specific, not uniform.
 
-**Next action:** Track a compatibility matrix for relay capabilities, supported NIPs, event kinds, and DID document service endpoints per substrate.
+**Next action:** The compatibility matrix now tracks mesh status per substrate. Promote agentbox and solid-pod-rs to federated defaults when smoke test evidence exists.
 
 ### G3: Protocol Implementations Are Duplicated
 
@@ -107,11 +107,11 @@ nostr-rust-forum ADR-093 defines a hybrid pod architecture: Cloudflare Workers p
 
 **Next action:** Maintain a pod tier matrix and a migration story for users moving from CF-tier pods to native git-capable pods.
 
-### G7: agentbox Mesh Docs Need Runtime Status Reconciliation
+### G7: agentbox Mesh Is Real but Still Needs Runtime Status Reconciliation
 
-agentbox docs describe the sovereign relay, pod inbox bridge, identity root, and Solid pod integration as core architecture. VisionClaw PRD-010 and earlier ecosystem audits call out relay exposure, boot wiring, allowlist, and identity bootstrap issues as gaps.
+agentbox docs describe the sovereign relay, pod inbox bridge, identity root, and Solid pod integration as core architecture. Spot checks found concrete implementation surfaces, including `mcp/nostr-bridge/relay-consumer.js`, `management-api/adapters/pods/local-solid-rs.js`, `management-api/routes/broker-bridge.js`, and manifest settings for governance kinds `31400-31405`. VisionClaw PRD-010 and earlier ecosystem audits still call out relay exposure, boot wiring, allowlist, and identity bootstrap issues as historical or unresolved gaps depending on deployment mode.
 
-**Impact:** It is unclear from docs alone which agentbox mesh items are currently shipped, fixed, or still deferred.
+**Impact:** agentbox is not merely aspirational, but the docs still need a single status table that distinguishes shipped loopback/private-mesh behavior from full federated operation.
 
 **Next action:** Add an agentbox mesh status table: embedded relay exposure, bridge boot wiring, NIP-42 support, allowed pubkey source, DID document relay endpoint, and multi-agent identity status.
 
@@ -137,7 +137,7 @@ dreamlab-ai-website owns branding, static React pages, Cloudflare config, and fo
 
 ## Open Questions
 
-1. Which repository owns the canonical IS-Envelope schema and event kind registry?
+1. IS-Envelope canonical ownership resolved: VisionClaw (ADR-075, JSON Schema, 11 test vectors). Runtime consumers: agentbox, solid-pod-rs, nostr-rust-forum. Event kind registry remains unowned.
 2. Is `did:nostr` resolution canonicalized in solid-pod-rs, forum core, or a new shared crate?
 3. Are Cloudflare Workers pods and native pods expected to converge, or remain separate tiers?
 4. What is the minimum supported deployment: single operator, team, or cross-organization federation?
