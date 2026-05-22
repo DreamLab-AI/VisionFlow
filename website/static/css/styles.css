@@ -808,6 +808,32 @@ body {
   font-family: var(--mono);
 }
 
+/* ── Video ── */
+.video-wrap {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--bg-dark);
+}
+.video-wrap video {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.video-wrap-featured {
+  border-color: var(--gold);
+  box-shadow: 0 0 40px rgba(233, 69, 96, 0.08), 0 0 80px rgba(0, 212, 255, 0.04);
+}
+.video-caption {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  text-align: center;
+  margin-top: 12px;
+  font-style: italic;
+}
+
 /* ── Footer ── */
 .footer {
   background: var(--bg-dark);
