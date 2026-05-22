@@ -24,7 +24,7 @@ VisionFlow is not a single executable. It is a coordination architecture that em
 | Substrate | Primary responsibility | Boundary |
 |---|---|---|
 | VisionFlow | Ecosystem narrative, public positioning, repository map, shared coordination model | Documentation and website surface |
-| VisionClaw | Knowledge engineering: OWL 2 EL reasoning, GPU graph physics, XR, 7 native MCP ontology tools, IS-Envelope spec owner (ADR-075), Judgment Broker (spec-only) | GPU host / graph backend / semantic workbench |
+| VisionClaw | Knowledge engineering: OWL 2 EL reasoning, GPU graph physics, XR, 7 native MCP ontology tools, IS-Envelope spec owner (ADR-075), Judgment Broker (distributed: enrichment gating, BrokerActor on crashbug branch) | GPU host / graph backend / semantic workbench |
 | agentbox | Reproducible sovereign agent runtime with Nix, 90+ skills, 180+ MCP tools, 10-tool ontology bridge to VisionClaw SPARQL, browser setup wizard, privacy filtering, Nostr/Solid identity | Agent container and harness |
 | solid-pod-rs | Solid/JSS foundation: LDP, WAC, NIP-98, DID:Nostr, WebID, OIDC, git pods | Shared protocol library and native pod server |
 | nostr-rust-forum | Governance UI and relay kit: passkey auth, Cloudflare Workers, Agent Control Surface events | Human decision surface and Nostr relay edge |
@@ -40,7 +40,7 @@ The common primitive is `did:nostr:<hex-pubkey>`. Docs consistently describe it 
 2. The Nostr relay mesh routes that event to the forum.
 3. The forum renders the event as a governance panel or action request.
 4. A human signs an approval/rejection response.
-5. VisionClaw's Judgment Broker and related enrichment/write-back flows use the decision as the control point before mutation. (Judgment Broker is specification-only; no runtime workbench exists as of 2026-05-22)
+5. VisionClaw's Judgment Broker and related enrichment/write-back flows use the decision as the control point before mutation. (Judgment Broker is 65% implemented as a distributed system; the decision loop is closed on the forum side, decision application to agents is the critical gap)
 
 ### Sovereign Data Access
 

@@ -40,7 +40,7 @@ Specifically:
 | `did:nostr` identity spine | VisionFlow protocol docs, with implementation evidence from solid-pod-rs and nostr-rust-forum | VisionClaw, agentbox, solid-pod-rs, nostr-rust-forum, dreamlab-ai-website |
 | Solid pod, WebID, WAC, NIP-98 pod auth | solid-pod-rs | VisionClaw, agentbox, dreamlab-ai-website |
 | Agent Control Surface event kinds `31400`-`31405` | nostr-rust-forum core governance model | agentbox, VisionClaw, dreamlab-ai-website |
-| Judgment Broker domain model | VisionClaw | agentbox, nostr-rust-forum, dreamlab-ai-website |
+| Judgment Broker domain model | nostr-rust-forum (domain model + human surface); VisionClaw (enrichment gating); agentbox (agent wiring + broker-bridge) | All substrates via Nostr relay mesh |
 | Release compatibility manifest | VisionFlow | All ecosystem repositories |
 | Shared fixture corpus | VisionClaw for master fixtures until a standalone fixture package exists | agentbox, solid-pod-rs, nostr-rust-forum |
 | Ontology bridge (SPARQL proxy) | agentbox (`mcp/servers/ontology-bridge.js`, 10 MCP tools) | VisionClaw (Oxigraph backend) |

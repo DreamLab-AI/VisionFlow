@@ -94,7 +94,7 @@ It does not own the implementation of agents, pods, relays, brokers, forums, or 
 - A repository with a dirty working tree can appear in a `local-draft` or `candidate` manifest, but not in a final `released` manifest unless the release policy explicitly allows it.
 - Historical docs must not be used as release evidence unless current implementation evidence is also linked.
 - A `ProtocolContract` for IS-Envelope must reference VisionClaw ADR-075 as canonical owner. Temporary VisionFlow ownership is superseded.
-- The Judgment Broker domain model cannot be cited as `integrated` evidence until runtime implementation exists beyond specification documents.
+- The Judgment Broker is a distributed capability at 65% implementation. The forum decision loop is closed; the agent decision application loop is not. Cite as `integrated` for the forum↔relay↔agent event flow, but `scaffolded` for decision application and provenance.
 
 ## Ubiquitous Language
 

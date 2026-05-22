@@ -19,6 +19,9 @@ VisionFlow is the coordination architecture spanning the DreamLab repositories. 
 | [Release Manifests](releases/README.md) | Machine-readable manifest process for coordinated ecosystem releases |
 | [Licensing](architecture/licensing.md) | Licence boundaries across the ecosystem |
 | [Roadmap](roadmap.md) | Phased roadmap from docs honesty to mesh proof and operations |
+| [Judgment Broker PRD](PRD-judgment-broker.md) | Distributed decision loop between agents and humans across the Nostr relay mesh |
+| [Judgment Broker ADR-003](ADR-003-judgment-broker-distributed-architecture.md) | Architecture decision: broker is distributed by design across 4 substrates |
+| [Judgment Broker DDD](DDD-judgment-broker-context.md) | Bounded context for the distributed decision loop |
 
 ## Website
 
