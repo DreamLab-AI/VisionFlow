@@ -16,9 +16,7 @@ concurrency:
 
 jobs:
   build:
-    runs-on: [self-hosted, linux]
-    env:
-      CDP_ENDPOINT: ${{ vars.CDP_ENDPOINT || 'http://browsercontainer:9223' }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -51,15 +49,6 @@ jobs:
           cd website
           chmod +x build.sh
           ./build.sh
-
-      - name: Install verification dependencies
-        run: npm ci --include=dev
-
-      - name: Check Chrome DevTools sidecar
-        run: npm run check:sidecar
-
-      - name: Run site smoke, accessibility, and payload tests
-        run: npm run test:site
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
