@@ -1,0 +1,117 @@
+# Fixture Drift Detection
+#
+# Checks that protocol fixture copies within VisionFlow stay in sync with
+# the canonical VisionClaw source. Cross-repo checks (solid-pod-rs,
+# nostr-rust-forum, agentbox) require running the script locally:
+#
+#   ./scripts/check-fixture-drift.sh /path/to/solid-pod-rs/crates/solid-pod-rs-nostr/tests/fixtures ...
+#
+# See scripts/check-fixture-drift.sh --help for full usage.
+
+name: Fixture Drift Check
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/specs/fixtures/**'
+      - 'tests/fixtures/**'
+      - 'scripts/check-fixture-drift.sh'
+  pull_request:
+    paths:
+      - 'docs/specs/fixtures/**'
+      - 'tests/fixtures/**'
+      - 'scripts/check-fixture-drift.sh'
+  # Allow manual trigger for on-demand cross-repo audits
+  workflow_dispatch:
+    inputs:
+      canonical_dir:
+        description: 'Override canonical fixture directory (relative to repo root)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  fixture-drift:
+    name: Check fixture drift
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout VisionFlow
+        uses: actions/checkout@v4
+
+      - name: Locate fixture directories
+        id: locate
+        run: |
+          # Canonical source lives in the VisionClaw monorepo. In CI we
+          # only have VisionFlow checked out, so we check for any fixture
+          # copies co-located within this repo.
+          CANONICAL=""
+          COPIES=()
+
+          # Check for canonical fixtures (if VisionFlow carries them)
+          for candidate in \
+            "docs/specs/fixtures" \
+            "fixtures" \
+          ; do
+            if [[ -d "$candidate" ]] && ls "$candidate"/*.json >/dev/null 2>&1; then
+              CANONICAL="$candidate"
+              break
+            fi
+          done
+
+          # Find all fixture copy directories within the repo
+          while IFS= read -r dir; do
+            # Skip canonical dir itself and node_modules / build artifacts
+            [[ "$dir" == "$CANONICAL" ]] && continue
+            [[ "$dir" == *node_modules* ]] && continue
+            [[ "$dir" == *target/* ]] && continue
+            [[ "$dir" == *.playwright* ]] && continue
+            COPIES+=("$dir")
+          done < <(find . -type f -name '*.json' -path '*/fixtures/*' -exec dirname {} \; | sort -u | sed 's|^\./||')
+
+          if [[ -z "$CANONICAL" ]]; then
+            echo "No canonical fixture directory found in this repo."
+            echo "Cross-repo drift checks require running locally with --canonical."
+            echo "has_canonical=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "has_canonical=true" >> "$GITHUB_OUTPUT"
+          echo "canonical=$CANONICAL" >> "$GITHUB_OUTPUT"
+
+          # Write copy dirs as newline-separated list
+          printf '%s\n' "${COPIES[@]}" > /tmp/copy-dirs.txt
+          echo "copy_count=${#COPIES[@]}" >> "$GITHUB_OUTPUT"
+
+      - name: Run drift check
+        if: steps.locate.outputs.has_canonical == 'true' && steps.locate.outputs.copy_count != '0'
+        run: |
+          chmod +x scripts/check-fixture-drift.sh
+
+          CANONICAL="${{ steps.locate.outputs.canonical }}"
+          OVERRIDE="${{ inputs.canonical_dir }}"
+          if [[ -n "$OVERRIDE" ]]; then
+            CANONICAL="$OVERRIDE"
+          fi
+
+          ARGS=(--canonical "$CANONICAL" --json)
+          while IFS= read -r dir; do
+            [[ -n "$dir" ]] && ARGS+=("$dir")
+          done < /tmp/copy-dirs.txt
+
+          ./scripts/check-fixture-drift.sh "${ARGS[@]}"
+
+      - name: No fixtures to check
+        if: steps.locate.outputs.has_canonical != 'true' || steps.locate.outputs.copy_count == '0'
+        run: |
+          echo "No co-located fixture copies found within VisionFlow."
+          echo ""
+          echo "For cross-repo drift detection, run locally:"
+          echo ""
+          echo "  ./scripts/check-fixture-drift.sh \\"
+          echo "    --canonical /path/to/VisionClaw/docs/specs/fixtures \\"
+          echo "    /path/to/agentbox/tests/contract/upstream_vectors \\"
+          echo "    /path/to/solid-pod-rs/crates/solid-pod-rs-nostr/tests/fixtures \\"
+          echo "    /path/to/nostr-rust-forum/tests/fixtures"

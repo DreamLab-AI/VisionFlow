@@ -1,0 +1,56 @@
+{
+  "manifest_version": 1,
+  "generated_at": "2026-05-22T16:16:12Z",
+  "status": "candidate",
+  "repositories": [
+    {
+      "name": "VisionFlow",
+      "path": "../VisionFlow",
+      "head": "470fc2c63cbb417dda56a76a6caa274826012571",
+      "branch": "main",
+      "dirty": false
+    },
+    {
+      "name": "VisionClaw",
+      "path": "../project",
+      "head": "5ee2c8994cb30f74b3f8acccf2b59a20cb632eab",
+      "branch": "main",
+      "dirty": true
+    },
+    {
+      "name": "agentbox",
+      "path": "../agentbox",
+      "head": "ca2b797ba73941cb7648a76ab45d66612bd588d8",
+      "branch": "main",
+      "dirty": false
+    },
+    {
+      "name": "solid-pod-rs",
+      "path": "../solid-pod-rs",
+      "head": "b94af9272ff0911cc9a51b6630d43e9c13c4c24a",
+      "branch": "main",
+      "dirty": true
+    },
+    {
+      "name": "nostr-rust-forum",
+      "path": "../nostr-rust-forum",
+      "head": "45f0dd7e9679f0e695aa58baeae91a9d13772299",
+      "branch": "main",
+      "dirty": true
+    },
+    {
+      "name": "dreamlab-ai-website",
+      "path": "../dreamlab-ai-website",
+      "head": "eba492657dd1ba80cf1dee7d83f3d1d7477662db",
+      "branch": "main",
+      "dirty": true
+    }
+  ],
+  "compatibility": {
+    "identity": "did:nostr with 64-char lowercase x-only secp256k1 BIP-340 pubkeys shared across all six repos; NIP-98 HTTP auth required for solid-pod-rs WAC and nostr-rust-forum event signing; agentbox mints identity via management-api/lib/uris.js as did:nostr:<hex-pubkey>; VisionClaw graph governance uses the same pubkey for urn:visionclaw scoped URNs; dreamlab-ai-website forum config references the shared identity mesh",
+    "mesh": "NIP-42 authenticated relay writes for nostr-rust-forum; IS-Envelope routing between solid-pod-rs pod-inbox bridge and relay; VisionClaw standalone by default (federation.mode=standalone in agentbox.toml); agentbox adapter slots (beads, pods, memory, events, orchestrator) resolve to local-* in standalone mode or external endpoints in client mode; dreamlab-ai-website operates independently with Cloudflare Workers tier",
+    "pod": "Two-tier architecture: solid-pod-rs v0.4.0-alpha.15 is canonical for native Solid pods with WAC and DPoP; Cloudflare Workers pod tier (dreamlab-ai-website) provides edge-cached read replicas with documented feature differences (no server-side SPARQL, simplified ACL); pod-inbox bridge in nostr-rust-forum relays NIP-42 events to pod LDP containers",
+    "governance": "Agent Control Surface event kinds 31400-31405 are the human decision plane; kind 31400 (policy), 31401 (override), 31402 (approval), 31403 (rejection), 31404 (delegation), 31405 (revocation); nostr-rust-forum is the relay substrate; VisionClaw governance adapter consumes these events for graph mutation authorization",
+    "verification": "Run npm run verify in VisionFlow for cross-repo consistency checks; cargo test in VisionClaw (v0.1.0), solid-pod-rs (v0.4.0-alpha.15), and nostr-rust-forum (v3.0-rc3); npm test in agentbox (v0.1.0) and dreamlab-ai-website (v1.0.0); contract tests in agentbox/tests/contract/ must pass for all three adapter implementation classes per slot; 4 repos have uncommitted changes that must be resolved before promoting to released"
+  }
+}

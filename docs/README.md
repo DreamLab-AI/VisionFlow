@@ -13,6 +13,7 @@ VisionFlow is the coordination architecture spanning the DreamLab repositories. 
 | [Repository Map](architecture/repository-map.md) | Local path and role map for the federated repositories |
 | [Compatibility Matrix](architecture/compatibility-matrix.md) | Current identity, mesh, pod, governance, deployment, and tests/ops posture |
 | [Status Reconciliation](architecture/status-reconciliation.md) | Current reading of older PRD/ADR claims versus implementation status |
+| [Pod Tier Matrix](architecture/pod-tier-matrix.md) | Capability comparison across Cloudflare Workers, embedded, native, and git-capable pod tiers |
 | [Identity Spine](protocol/identity-spine.md) | Shared `did:nostr` identity contract and compatibility checklist |
 | [Mesh Smoke Test](protocol/mesh-smoke-test.md) | End-to-end governance proof path and current blockers |
 | [Release Manifests](releases/README.md) | Machine-readable manifest process for coordinated ecosystem releases |

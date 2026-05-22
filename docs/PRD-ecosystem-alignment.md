@@ -83,11 +83,11 @@ The repositories are directionally aligned, but the alignment is unevenly visibl
 |---|---|---|
 | No committed coordinated release manifest | Release manifest schema and generator script exist (`scripts/generate-release-manifest.sh`); candidate manifests are generated but not yet part of release qualification | Add candidate manifests during release qualification |
 | Mesh defaults vary by substrate | nostr-rust-forum and dreamlab-ai-website are federated by default; agentbox and solid-pod-rs default standalone. Federation claims should be substrate-specific. | Track mesh status per substrate and only promote after smoke proof |
-| IS-Envelope ownership resolved | VisionClaw owns the spec (ADR-075), JSON Schema, and 11 fixture vectors. agentbox decodes at runtime. Ownership is no longer implicit. | Resolved — update coordination docs to reflect VisionClaw ownership |
+| ✓ IS-Envelope ownership resolved | VisionClaw owns the spec (ADR-075), JSON Schema, and 11 fixture vectors. agentbox decodes at runtime. Ownership is no longer implicit. | Resolved — update coordination docs to reflect VisionClaw ownership |
 | Fixture corpus lacks universal gates | Shared protocol changes can silently diverge | Add fixture sync checks to CI/release gates |
 | Pod tier capability matrix is scattered | solid-pod-rs alpha.15 ships native mesh with CORS and PSK admin provisioning. Cloudflare Workers tier has documented feature differences. Two-tier behavior is clearer but not fully reconciled. | Publish tier matrix and migration notes |
 | Historical docs are richer than current runtime | Readers can confuse aspiration with shipped behavior | Keep status reconciliation active and linked |
-| Ontology bridge not reflected in coordination docs | agentbox ships 10 MCP tools proxying to VisionClaw Oxigraph SPARQL (ontology-bridge.js). This cross-substrate integration is absent from compatibility and alignment docs. | Add to compatibility matrix and protocol ownership registry |
+| ✓ Ontology bridge reflected in coordination docs | agentbox ships 10 MCP tools proxying to VisionClaw Oxigraph SPARQL (ontology-bridge.js). This cross-substrate integration is absent from compatibility and alignment docs. | Resolved — added to compatibility matrix, ADR-002, and DDD |
 | Judgment Broker has no runtime implementation | VisionClaw presentation docs state no dedicated broker workbench exists. Domain model is specification-only. | Reclassify as planned; do not cite as integrated evidence |
 
 ## Milestones

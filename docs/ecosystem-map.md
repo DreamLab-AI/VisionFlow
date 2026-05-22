@@ -40,7 +40,7 @@ The common primitive is `did:nostr:<hex-pubkey>`. Docs consistently describe it 
 2. The Nostr relay mesh routes that event to the forum.
 3. The forum renders the event as a governance panel or action request.
 4. A human signs an approval/rejection response.
-5. VisionClaw's Judgment Broker and related enrichment/write-back flows use the decision as the control point before mutation.
+5. VisionClaw's Judgment Broker and related enrichment/write-back flows use the decision as the control point before mutation. (Judgment Broker is specification-only; no runtime workbench exists as of 2026-05-22)
 
 ### Sovereign Data Access
 
@@ -135,10 +135,13 @@ dreamlab-ai-website owns branding, static React pages, Cloudflare config, and fo
 | P2 | Coordinated release/version policy | Lets consumers know which repo versions work together; see [Roadmap](roadmap.md) |
 | P2 | Unified operations docs: health, backup, DR, pod tiers, relay status | Moves the ecosystem from impressive components to operable system |
 
+## Recently Resolved
+
+- **IS-Envelope canonical ownership:** Resolved. VisionClaw owns the spec (ADR-075, JSON Schema, 11 test vectors). Runtime consumers: agentbox, solid-pod-rs, nostr-rust-forum. Event kind registry remains unowned.
+
 ## Open Questions
 
-1. IS-Envelope canonical ownership resolved: VisionClaw (ADR-075, JSON Schema, 11 test vectors). Runtime consumers: agentbox, solid-pod-rs, nostr-rust-forum. Event kind registry remains unowned.
-2. Is `did:nostr` resolution canonicalized in solid-pod-rs, forum core, or a new shared crate?
-3. Are Cloudflare Workers pods and native pods expected to converge, or remain separate tiers?
-4. What is the minimum supported deployment: single operator, team, or cross-organization federation?
-5. What exact repo/version set defines the current production DreamLab deployment?
+1. Is `did:nostr` resolution canonicalized in solid-pod-rs, forum core, or a new shared crate?
+2. Are Cloudflare Workers pods and native pods expected to converge, or remain separate tiers?
+3. What is the minimum supported deployment: single operator, team, or cross-organization federation?
+4. What exact repo/version set defines the current production DreamLab deployment?
