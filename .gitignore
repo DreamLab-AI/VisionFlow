@@ -5,3 +5,5 @@ playwright-report/
 test-results/
 .lighthouseci/
 docs/releases/ecosystem-release.local.json
+
+.env

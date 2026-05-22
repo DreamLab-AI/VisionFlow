@@ -483,6 +483,72 @@ Multiple Agentbox instances federated via the Nostr relay mesh. Governance event
 
 ---
 
+## Federation Transports
+
+The five substrates communicate over three independent transport strata. Each stratum provides a different trust and reachability profile — operators choose which to enable based on their deployment.
+
+```mermaid
+graph TB
+    subgraph "Stratum 1 — Tailscale (Private Mesh)"
+        AB1["Agentbox A"] <-->|"WireGuard\nMagicDNS"| AB2["Agentbox B"]
+        AB1 <-->|"WireGuard"| SPR["solid-pod-rs"]
+    end
+
+    subgraph "Stratum 2 — Nostr Relays (All Components)"
+        AB3["Agentbox"] <-->|"NIP-01 WS"| RELAY["Nostr Relay\n(private or public)"]
+        NRF["nostr-rust-forum\n(CF Workers)"] <-->|"NIP-01 WS"| RELAY
+        VC["VisionClaw\nBrokerActor"] <-->|"NIP-01 WS"| RELAY
+        SPR2["solid-pod-rs\npod-inbox bridge"] <-->|"NIP-01 WS"| RELAY
+    end
+
+    subgraph "Stratum 3 — Cloudflare Tunnels (Edge ↔ Local)"
+        CF["Cloudflare Edge"] -->|"HTTPS tunnel"| SPR3["solid-pod-rs\n(local)"]
+        CF -->|"HTTPS tunnel"| AB4["Agentbox\n(local)"]
+        DW["dreamlab-ai-website\n(CF Pages)"] --> CF
+        NRF2["nostr-rust-forum\n(CF Workers)"] --> CF
+    end
+```
+
+### Stratum 1 — Tailscale (Private Mesh)
+
+WireGuard-encrypted overlay network for infrastructure-to-infrastructure traffic. Each agentbox container joins the tailnet with its own identity (`--tun=userspace-networking`). solid-pod-rs servers join at the host level. MagicDNS hostnames (`agentbox.tailnet-name.ts.net`, `solid-pods.tailnet-name.ts.net`) provide service discovery without DNS infrastructure.
+
+**Participants:** Agentbox ↔ Agentbox, Agentbox ↔ solid-pod-rs. CF Workers services (nostr-rust-forum, dreamlab-ai-website) cannot join a tailnet.
+
+**Trust model:** Tailscale ACLs control access. `did:nostr` signatures are not evaluated at this layer — the tailnet membership *is* the trust boundary.
+
+### Stratum 2 — Nostr Relays (All Components)
+
+The universal coordination bus. Every substrate speaks NIP-01 WebSocket and authenticates via NIP-98/NIP-42 `did:nostr` signatures. Operators can run private relays (embedded in agentbox at `:7777`) or use the public Nostr network for censorship-resistant message passing.
+
+**Participants:** All five substrates. The Judgment Broker (VisionClaw), governance dashboards (nostr-rust-forum), agent relay bridges (agentbox), pod-inbox bridges (solid-pod-rs), and forum workers (dreamlab-ai-website) all publish and subscribe to relay event streams.
+
+**Trust model:** Schnorr signatures over secp256k1 (`did:nostr`). Messages are authenticated regardless of transport — private relay, public relay, or relayed through multiple hops. This is the censorship-resistance layer: if Tailscale is unavailable and CF tunnels are blocked, Nostr relay traffic over the public internet still works.
+
+### Stratum 3 — Cloudflare Tunnels (Edge ↔ Local)
+
+HTTPS tunnels that expose local services (solid-pod-rs, agentbox management API) to Cloudflare's edge network. CF Workers and CF Pages services (nostr-rust-forum, dreamlab-ai-website) reach local infrastructure through these tunnels without exposing ports to the public internet.
+
+**Participants:** CF edge services → local solid-pod-rs, CF edge services → local agentbox. The tunnel is one-directional: local services don't initiate connections through the tunnel.
+
+**Trust model:** Cloudflare Access policies + NIP-98 signatures. The tunnel provides transport security; `did:nostr` provides request authentication.
+
+### Stratum Interaction
+
+The strata are complementary, not competing:
+
+| Scenario | Strata Used |
+|---|---|
+| Two agentboxes in the same org | 1 (Tailscale) + 2 (Nostr relay) |
+| Forum user reads a pod resource | 3 (CF tunnel to solid-pod-rs) |
+| Agent publishes governance event | 2 (Nostr relay to all subscribers) |
+| Agent pushes to its pod over tailnet | 1 (Tailscale to solid-pod-rs) |
+| External user clones a public pod | 3 (CF tunnel) |
+| Cross-org agent coordination | 2 (public Nostr relays for censorship resistance) |
+| Agent syncs with VisionClaw graph | 1 (Tailscale) + 2 (Nostr relay for events) |
+
+---
+
 ## Why This Architecture
 
 ### Platform Agnostic
