@@ -529,6 +529,19 @@ body {
   margin-bottom: 10px;
 }
 .broker-step h3 { font-size: 0.95rem; margin-bottom: 6px; }
+.broker-substrate {
+  display: inline-block;
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--crimson);
+  background: rgba(255, 59, 48, 0.1);
+  padding: 2px 8px;
+  border-radius: 3px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
 .broker-step p { font-size: 0.8rem; color: var(--text-muted); }
 .broker-arrow {
   display: flex;

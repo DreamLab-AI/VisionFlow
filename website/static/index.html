@@ -190,7 +190,7 @@
           <ul>
             <li>OWL 2 EL formal reasoning (Whelk-rs)</li>
             <li>92 CUDA kernels, 55x GPU speedup</li>
-            <li>Immersive XR (Quest 3 + desktop)</li>
+            <li>IS-Envelope spec owner + knowledge graph gating</li>
             <li>17 MCP ontology tools (7 native + 10 bridge)</li>
             <li>934-node force-directed graph in real time</li>
           </ul>
@@ -204,8 +204,8 @@
             <span class="substrate-role">Harness Engineering</span>
           </div>
           <ul>
-            <li>Manifest-driven Nix containers</li>
-            <li>90+ agent skills, 180+ MCP tools</li>
+            <li>Governance event relay + broker bridge to VisionClaw</li>
+            <li>90+ agent skills, 185+ MCP tools</li>
             <li>10-tool ontology bridge to VisionClaw SPARQL</li>
             <li>Browser-based setup wizard (zero dependencies)</li>
             <li>BIP-340 sovereign identity at bootstrap</li>
@@ -236,11 +236,11 @@
             <span class="substrate-role">Governance UI + Relay Kit</span>
           </div>
           <ul>
-            <li>12 crates, passkey-first auth</li>
-            <li>5 Cloudflare Workers</li>
-            <li>Leptos WASM client (19 pages, 60+ components)</li>
+            <li>Judgment Broker decision surface (1,015-line governance model)</li>
             <li>Agent Control Surface Protocol (kinds 31400-31405)</li>
-            <li>Federated NIP-05 resolution</li>
+            <li>Leptos WASM client (19 pages, 60+ components)</li>
+            <li>12 crates, passkey-first auth, 5 CF Workers</li>
+            <li>Federated NIP-05 resolution (default mode)</li>
           </ul>
           <a href="https://github.com/DreamLab-AI/nostr-rust-forum" target="_blank" rel="noopener" class="substrate-link">View Repo &rarr;</a>
         </div>
@@ -264,36 +264,46 @@
     </div>
   </section>
 
+  <!-- Architecture Triptych -->
+  <section class="section section-dark" style="padding-top:2rem;padding-bottom:2rem">
+    <div class="container reveal">
+      <img src="img/visionflow-triptych.jpg"
+           alt="VisionFlow architecture triptych: Identity Spine, Decision Loop, and Coordination Stack"
+           style="width:100%;border-radius:var(--radius);border:1px solid var(--border)"
+           loading="lazy" decoding="async" />
+    </div>
+  </section>
+
   <!-- Judgment Broker -->
   <section id="broker" class="section section-dark">
     <div class="container reveal">
       <span class="section-tag">The Judgment Broker</span>
       <h2>Human-in-the-loop governance that accelerates, not blocks</h2>
-      <p class="section-lead">When agents know their authority boundary and surface exceptions cleanly, 90% of decisions flow without friction. The 10% that need human judgment get clean, contextualised escalation with full provenance.</p>
+      <p class="section-lead">The Judgment Broker is not a service &mdash; it&rsquo;s what emerges when agents, humans, a knowledge graph, and a relay mesh coordinate through a shared cryptographic identity. No single repository owns the complete broker. The decision loop is distributed: agents publish through Agentbox, humans decide through the forum, knowledge is gated through VisionClaw, and provenance is anchored in sovereign pods.</p>
 
       <div class="broker-flow">
         <div class="broker-step">
           <div class="broker-num">1</div>
-          <h3>Agent Declares</h3>
-          <p>kind 31400 PanelDefinition &mdash; agent publishes a control panel with schema, fields, actions</p>
+          <h3>Agent Declares <span class="broker-substrate">Agentbox</span></h3>
+          <p>kind 31400 PanelDefinition &mdash; agent publishes a control panel with schema, fields, actions via the governance MCP tools</p>
         </div>
         <div class="broker-arrow">&rarr;</div>
         <div class="broker-step">
           <div class="broker-num">2</div>
-          <h3>Agent Requests</h3>
-          <p>kind 31402 ActionRequest &mdash; &ldquo;I need approval to proceed with this procurement&rdquo;</p>
+          <h3>Forum Renders <span class="broker-substrate">nostr-rust-forum</span></h3>
+          <p>kind 31402 ActionRequest &mdash; the forum&rsquo;s 1,015-line governance model renders the panel and routes it to the right human</p>
         </div>
         <div class="broker-arrow">&rarr;</div>
         <div class="broker-step">
           <div class="broker-num">3</div>
-          <h3>Human Decides</h3>
-          <p>kind 31403 ActionResponse &mdash; NIP-98 signed approve/reject/configure</p>
+          <h3>Human Decides <span class="broker-substrate">NIP-98 signed</span></h3>
+          <p>kind 31403 ActionResponse &mdash; cryptographically signed approve/reject/amend/delegate &mdash; the decision is an immutable Nostr event</p>
         </div>
         <div class="broker-arrow">&rarr;</div>
         <div class="broker-step">
           <div class="broker-num">4</div>
-          <h3>Immutable Trail</h3>
-          <p>Every decision is an immutable Nostr event with prior_decision_id chain &mdash; auditors traverse back to first principles</p>
+          <h3>Knowledge Gates <span class="broker-substrate">VisionClaw</span></h3>
+          <p>The decision flows back through the relay mesh. VisionClaw gates knowledge graph mutations; provenance beads anchor the audit trail in sovereign pods.</p>
         </div>
       </div>
 
