@@ -991,6 +991,36 @@ body {
 }
 .shot-label strong { color: var(--text); }
 
+a.substrate-shot {
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+a.substrate-shot:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+.showcase-links {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 48px;
+  flex-wrap: wrap;
+}
+.showcase-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.2s, color 0.2s;
+}
+.showcase-link:hover {
+  color: var(--text);
+  border-color: var(--text-muted);
+}
+
 /* ── Reveal Animation ── */
 .reveal {
   opacity: 0;
