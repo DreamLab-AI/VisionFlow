@@ -34,6 +34,7 @@
         <a href="#problem">Problem</a>
         <a href="#evolution">Evolution</a>
         <a href="#substrates">Substrates</a>
+        <a href="#immersive">Immersive</a>
         <a href="#video-overview">Video</a>
         <a href="#broker">Governance</a>
         <a href="#economic">Economics</a>
@@ -277,6 +278,74 @@
            alt="VisionFlow architecture triptych: Identity Spine, Decision Loop, and Coordination Stack"
            style="width:100%;border-radius:var(--radius);border:1px solid var(--border)"
            loading="lazy" decoding="async" />
+    </div>
+  </section>
+
+  <!-- Immersive Telecollaboration -->
+  <section id="immersive" class="section">
+    <canvas id="particle-canvas-5" class="bg-canvas" aria-hidden="true"></canvas>
+    <div class="container reveal">
+      <span class="section-tag">Immersive Telecollaboration</span>
+      <h2>Walk through the knowledge graph</h2>
+      <p class="section-lead">VisionClaw isn&rsquo;t just a screen-based tool. The same force-directed graph that renders in the browser also drives a full-room CAVE environment &mdash; stereoscopic projection on walls and floor, motion tracking, multi-user presence with spatial audio. People physically walk through the data.</p>
+
+      <div class="showcase-hero">
+        <img src="img/showcase/cave-knowledge-graph.webp"
+             alt="Multiple people walking through a CAVE environment surrounded by a projected 3D knowledge graph with coloured nodes and edges"
+             loading="lazy" decoding="async" />
+        <div class="showcase-hero-caption">
+          <strong>CAVE Knowledge Graph</strong> &mdash; THG world record: 250+ concurrent users in a single immersive data visualisation session
+        </div>
+      </div>
+
+      <div class="immersive-grid">
+        <div class="glass-card immersive-card">
+          <img src="img/showcase/octave-lab.webp" alt="Researcher interacting with projected 3D knowledge graph in stereoscopic CAVE environment" loading="lazy" decoding="async" />
+          <h3>Stereoscopic Data Exploration</h3>
+          <p>Researchers interact directly with projected knowledge graphs. Nodes are physical objects you can reach into. Relationships become spatial structures you navigate by walking.</p>
+        </div>
+        <div class="glass-card immersive-card">
+          <img src="img/showcase/hand-interaction.webp" alt="Hand tracking and drone interaction in immersive projected environment" loading="lazy" decoding="async" />
+          <h3>Embodied Interaction</h3>
+          <p>Hand tracking, drone teleoperation, and physical controllers. The interface dissolves &mdash; you manipulate data the way you manipulate physical objects.</p>
+        </div>
+        <div class="glass-card immersive-card">
+          <img src="img/showcase/photogrammetry-env.webp" alt="Two people standing in a photogrammetry-reconstructed landscape projected across walls and floor" loading="lazy" decoding="async" />
+          <h3>Photogrammetry Environments</h3>
+          <p>Real-world scenes reconstructed as walk-through spaces. Site surveys, heritage preservation, environmental monitoring &mdash; rendered at room scale with sub-centimetre fidelity.</p>
+        </div>
+        <div class="glass-card immersive-card">
+          <img src="img/showcase/telepresence.webp" alt="Telepresence session with remote participant projected life-size in studio environment" loading="lazy" decoding="async" />
+          <h3>Telecollaborative Presence</h3>
+          <p>Remote participants rendered life-size through projection. Not a video call &mdash; spatial co-presence where gesture, gaze, and pointing carry meaning. The Quest 3 native APK extends this to headset users anywhere.</p>
+        </div>
+      </div>
+
+      <div class="callout">
+        <p><strong>From CAVE to Quest 3.</strong> The immersive substrate is migrating from projector-based CAVE systems to a native Meta Quest 3 APK built on Godot 4 + godot-rust + OpenXR. Same binary protocol. Same force-directed physics. Same <code>did:nostr</code> identity. The CAVE validated the concept at scale; the headset makes it portable.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live Substrate Screenshots -->
+  <section class="section section-dark">
+    <div class="container reveal">
+      <span class="section-tag">Live Systems</span>
+      <h2>Shipped and running</h2>
+      <div class="substrate-screenshots">
+        <div class="substrate-shot">
+          <img src="img/showcase/visionclaw-graph-ui.webp" alt="VisionClaw browser-based knowledge graph with force-directed layout, control panel, and SpaceMouse integration" loading="lazy" decoding="async" />
+          <div class="shot-label"><span style="color:var(--cyan)">VisionClaw</span> &mdash; 934-node graph, GPU-accelerated physics, SpaceMouse 6DoF navigation</div>
+        </div>
+        <div class="substrate-shot">
+          <img src="img/showcase/nostr-forum.webp" alt="Nostr BBS decentralised forum with passkey authentication and encrypted messaging" loading="lazy" decoding="async" />
+          <div class="shot-label"><span style="color:var(--amber)">nostr-rust-forum</span> &mdash; Decentralised governance UI, passkey-first auth, Judgment Broker decision surface</div>
+        </div>
+        <div class="substrate-shot">
+          <img src="img/showcase/studio.webp" alt="DreamLab production studio with projection system and professional lighting" loading="lazy" decoding="async" />
+          <div class="shot-label"><span style="color:var(--crimson)">DreamLab Edge</span> &mdash; Production facility, Cumbria. Immersive projection, motion capture, spatial audio</div>
+        </div>
+      </div>
     </div>
   </section>
 
