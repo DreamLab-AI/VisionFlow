@@ -46,7 +46,7 @@
   \renewcommand{\headrulewidth}{0pt}
   \renewcommand{\footrulewidth}{0.4pt}
   \renewcommand{\footrule}{\hbox to\headwidth{\color{cyan}\leaders\hrule height \footrulewidth\hfill}}
-  \fancyfoot[L]{\tiny\color{textmuted}VisionFlow Ecosystem Pitch --- DreamLab AI}
+  \fancyfoot[L]{\tiny\color{textmuted}VisionFlow Ecosystem Pitch | DreamLab AI}
   \fancyfoot[R]{\tiny\color{textmuted}\thepage\,/\,\pageref{LastPage}}
 }
 \pagestyle{branded}
@@ -110,23 +110,23 @@
 \sectiontag{Executive Summary}
 
 {\small
-VisionFlow is an open-source coordination harness for federated human--AI intelligence. It solves the governance gap that emerges when organisations deploy multiple AI agents: without shared semantics, cryptographic identity, and human-in-the-loop oversight, agents waste 60--80\% of tokens on context rediscovery, duplicate reasoning, and contradictory outputs.
+VisionFlow is an open-source coordination harness for federated human--AI intelligence. It solves the governance gap that emerges when organisations deploy multiple AI agents. Without shared semantics, cryptographic identity, and human-in-the-loop oversight, agents waste 60--80\% of tokens on context rediscovery, duplicate reasoning, and contradictory outputs.
 
-The ecosystem comprises six federated repositories, 120K+ lines of Rust, 92 CUDA kernels, and 185+ MCP tools. Five independent substrates mesh through a single cryptographic identity spine (\texttt{did:nostr} secp256k1). Every actor---human, agent, server---is authenticated at every layer via the same keypair, enabling federation without centralised infrastructure.
+Six federated repositories. 120K+ lines of Rust. 92 CUDA kernels. 185+ MCP tools. Five independent substrates mesh through a single cryptographic identity spine (\texttt{did:nostr} secp256k1). Every actor (human, agent, server) authenticates at every layer via the same keypair, enabling federation without centralised infrastructure.
 
-\textbf{For token and model vendors}, VisionFlow represents the coordination layer that makes extreme token consumption against hard problems rational. Shared ontology eliminates re-derivation. Provenance chains eliminate re-validation. The Judgment Broker eliminates decision spin. The result: 3--5\texttimes{} effective token throughput gain, with every token producing auditable, governed, provenance-tracked reasoning rather than disposable chat.
+\textbf{For token and model vendors:} VisionFlow is the coordination layer that makes extreme token consumption against hard problems rational. Shared ontology eliminates re-derivation. Provenance chains eliminate re-validation. Judgment Broker eliminates decision spin. Result: 3--5\texttimes{} effective token throughput gain, with every token producing auditable, governed, provenance-tracked reasoning.
 }
 
 % ═══════════════════════════════════════════════
 % THE PROBLEM
 % ═══════════════════════════════════════════════
-\sectiontag{The Problem: Coordination Failure at Scale}
+\sectiontag{Coordination Failure at Scale}
 
 \begin{multicols}{2}
 \raggedright
 
 {\small
-The AI industry has moved through a clear progression: LLM $\to$ chatbot $\to$ reasoning $\to$ agent $\to$ agentics $\to$ external harness. Each stage solves the previous stage's limitation and reveals a new one. VisionFlow occupies the next position: the \textbf{coordination harness}---shared semantics, federated identity, governance, and cryptographic provenance.
+AI has moved through a clear progression: LLM $\to$ chatbot $\to$ reasoning $\to$ agent $\to$ agentics $\to$ external harness. Each stage solves the previous stage's limitation and reveals a new one. VisionFlow occupies the next position: the \textbf{coordination harness}, providing shared semantics, federated identity, governance, and cryptographic provenance.
 
 \textbf{73\% of frontline AI adoption happens without management sign-off.} Your workforce is already building shadow workflows, stitching together AI agents, automating procurement shortcuts. Your organisation is becoming an agentic mesh whether you plan for it or not.
 }
@@ -134,7 +134,7 @@ The AI industry has moved through a clear progression: LLM $\to$ chatbot $\to$ r
 \columnbreak
 
 {\small
-\textbf{The four failure modes of uncoordinated AI:}
+\textbf{Four failure modes of uncoordinated AI:}
 \begin{itemize}[leftmargin=8pt,itemsep=1pt,parsep=0pt,topsep=2pt,label={\color{crimson}\faTimes}]
   \item \textbf{Centralised AI} scales tokens but not trust. One vendor, one failure mode, one billing relationship.
   \item \textbf{Agent frameworks} scale tasks but not governance. Fast and broken is still broken.
@@ -156,7 +156,7 @@ The AI industry has moved through a clear progression: LLM $\to$ chatbot $\to$ r
 
 \vspace{2pt}
 
-{\small Every actor---human, agent, server, worker---shares a single \texttt{did:nostr:<hex-pubkey>} secp256k1 keypair. This keypair is verified at the Nostr relay, at every HTTP request (NIP-98 Schnorr), against WAC ACLs on Solid pods, in every provenance bead, and is resolvable as a W3C DID Document.}
+{\small Every actor (human, agent, server, worker) shares a single \texttt{did:nostr:<hex-pubkey>} secp256k1 keypair. Verified at the Nostr relay, at every HTTP request (NIP-98 Schnorr), against WAC ACLs on Solid pods, in every provenance bead, and resolvable as a W3C DID Document.}
 
 \vspace{4pt}
 
@@ -164,48 +164,48 @@ The AI industry has moved through a clear progression: LLM $\to$ chatbot $\to$ r
 \raggedright
 
 % ── SUBSTRATE 1: VisionClaw ──
-{\color{cyan}\faProjectDiagram}\;\;{\normalsize\bfseries\color{cyan}VisionClaw --- Knowledge Engineering}\\[2pt]
+{\color{cyan}\faProjectDiagram}\;\;{\normalsize\bfseries\color{cyan}VisionClaw | Knowledge Engineering}\\[2pt]
 {\small
 \begin{itemize}[leftmargin=8pt,itemsep=0pt,parsep=0pt,topsep=1pt,label={\color{cyan}\textbullet}]
-  \item OWL 2 EL formal reasoning via Whelk-rs (provably correct entailments, not probabilistic guesses)
+  \item OWL 2 EL formal reasoning via Whelk-rs: provably correct entailments from description logic, not statistical inference
   \item 92 CUDA kernels: semantic relationships become GPU physics forces (\texttt{subClassOf} $\to$ attraction, \texttt{disjointWith} $\to$ repulsion). 55\texttimes{} speedup vs CPU
   \item 934-node force-directed 3D graph with real-time rendering
   \item 17 MCP ontology tools (7 native + 10 bridge to SPARQL)
-  \item Immersive XR: 15 years of CAVE research at University of Salford, migrating to native Quest 3 APK (Godot 4 + godot-rust + OpenXR)
+  \item Immersive XR built on 15 years of CAVE research at University of Salford. Migrating to native Quest 3 APK (Godot 4 + godot-rust + OpenXR)
   \item THG world record: 250+ concurrent VR users in knowledge graph
   \item 10 DDD bounded contexts, 114 command/query handlers, CQRS architecture
 \end{itemize}
 \textbf{Maturity:} $\sim$120K LOC Rust. Production. GPU physics, graph rendering, ontology tools all operational. XR layer experimental.\\
-\textbf{Licence:} MPL 2.0 (commercial-friendly)
+\textbf{Licence:} MPL 2.0. Commercial use permitted. Modifications to MPL files must be shared.
 }
 
 \vspace{6pt}
 
 % ── SUBSTRATE 2: Agentbox ──
-{\color{purple}\faCogs}\;\;{\normalsize\bfseries\color{purple}Agentbox --- Harness Engineering}\\[2pt]
+{\color{purple}\faCogs}\;\;{\normalsize\bfseries\color{purple}Agentbox | Harness Engineering}\\[2pt]
 {\small
 \begin{itemize}[leftmargin=8pt,itemsep=0pt,parsep=0pt,topsep=1pt,label={\color{purple}\textbullet}]
-  \item Hardened Nix-built container: byte-for-byte reproducible, non-root, read-only filesystem, capabilities dropped
+  \item Hardened Nix-built container, byte-for-byte reproducible. Non-root, read-only filesystem, capabilities dropped
   \item 90+ agent skills, 185+ MCP tools (Playwright, ComfyUI, QGIS, Blender, LaTeX, Jupyter, PyTorch)
   \item Multi-runtime: Claude Code, Codex, Gemini, DeepSeek, Ruflo
   \item 5-slot pluggable adapter architecture: beads, pods, memory, events, orchestrator
   \item Embedded Solid Pod server (solid-pod-rs) + Nostr relay (nostr-rs-relay)
-  \item BIP-340 sovereign identity at bootstrap---agents own their keys
-  \item Privacy filter sidecar: PII redaction before any log or telemetry
-  \item Browser-based setup wizard (zero external dependencies)
+  \item BIP-340 sovereign identity at bootstrap. Agents own their keys
+  \item Privacy filter sidecar for PII redaction before any log or telemetry
+  \item Browser-based setup wizard, zero external dependencies
   \item 18 URN kinds for resource naming (\texttt{urn:agentbox:<kind>:[<scope>:]<local>})
 \end{itemize}
 \textbf{Maturity:} Production core. 620+ line manifest. 20+ architecture docs (ADRs/PRDs/DDDs). Security audit hardened May 2026.\\
-\textbf{Licence:} AGPL 3.0
+\textbf{Licence:} AGPL 3.0. Network-service copyleft (upstream JSS). Commercial licensing available via Melvin Carvalho.
 }
 
 \columnbreak
 
 % ── SUBSTRATE 3: solid-pod-rs ──
-{\color{emerald}\faLock}\;\;{\normalsize\bfseries\color{emerald}solid-pod-rs --- Cryptographic Foundation}\\[2pt]
+{\color{emerald}\faLock}\;\;{\normalsize\bfseries\color{emerald}solid-pod-rs | Cryptographic Foundation}\\[2pt]
 {\small
 \begin{itemize}[leftmargin=8pt,itemsep=0pt,parsep=0pt,topsep=1pt,label={\color{emerald}\textbullet}]
-  \item Faithful Rust port of JavaScriptSolidServer (JSS): 98\% parity (201 rows tracked, 158 present, 5 partial, 3 missing)
+  \item Rust port of JavaScriptSolidServer (JSS), 98\% parity. 201 rows tracked: 158 present, 5 partial, 3 missing
   \item W3C Solid Protocol: LDP, WAC access control, conditional requests, glob GET
   \item Dual auth: NIP-98 Schnorr (stateless) + Solid-OIDC with DPoP (RFC 9449)
   \item Full identity provider crate: OIDC authorization-code flow, dynamic client registration, WebAuthn passkeys, NIP-07 Schnorr SSO
@@ -217,20 +217,20 @@ The AI industry has moved through a clear progression: LLM $\to$ chatbot $\to$ r
   \item 870+ tests, SSRF hardened, dotfile allowlist, path traversal protection
 \end{itemize}
 \textbf{Maturity:} v0.4.0-alpha.15. $\sim$20K LOC across 6 crates. Feature-complete, pre-1.0 stabilisation.\\
-\textbf{Licence:} AGPL 3.0
+\textbf{Licence:} AGPL 3.0. Network-service copyleft (upstream JSS). Commercial licensing available via Melvin Carvalho.
 }
 
 \vspace{6pt}
 
 % ── SUBSTRATE 4: nostr-rust-forum ──
-{\color{gold}\faBalanceScale}\;\;{\normalsize\bfseries\color{gold}nostr-rust-forum --- Governance UI \& Relay Kit}\\[2pt]
+{\color{gold}\faBalanceScale}\;\;{\normalsize\bfseries\color{gold}nostr-rust-forum | Governance UI \& Relay Kit}\\[2pt]
 {\small
 \begin{itemize}[leftmargin=8pt,itemsep=0pt,parsep=0pt,topsep=1pt,label={\color{gold}\textbullet}]
   \item 12 Rust crates: core protocol, 5 Cloudflare Workers, Leptos WASM client, mesh federation, rate limiting, config, search, setup
   \item Judgment Broker decision surface: 1,015-line governance model
   \item Agent Control Surface Protocol: kinds 31400--31405 (PanelDefinition, PanelState, ActionRequest, ActionResponse, PanelUpdate, PanelRetired)
   \item REST governance API: 7 NIP-98-gated endpoints (agent registry, broker cases/decisions, roles)
-  \item Passkey-first auth: WebAuthn PRF derives Nostr keys deterministically---no passwords stored
+  \item Passkey-first auth: WebAuthn PRF derives Nostr keys deterministically. No passwords stored
   \item 3-zone access: public, members, private (runtime configurable)
   \item Leptos WASM client: 19 pages, 60+ components, governance dashboard, admin panel
   \item 15 NIP implementations (NIP-01/07/09/29/33/40/42/44/45/50/52/98 + custom 31400--31405)
@@ -238,23 +238,23 @@ The AI industry has moved through a clear progression: LLM $\to$ chatbot $\to$ r
   \item Vector search (NIP-50): in-memory cosine k-NN, RVF binary format
 \end{itemize}
 \textbf{Maturity:} v3.0.0-rc7. Phase 1 sprint complete (federated NIP-05, pod-resident keys, data export). Actively deployed.\\
-\textbf{Licence:} MIT / Apache-2.0
+\textbf{Licence:} Dual MIT / Apache-2.0. Permissive. No copyleft obligation on the forum crate itself.
 }
 
 \end{multicols}
 
 % ── SUBSTRATE 5: DreamLab Edge ──
 \vspace{2pt}
-{\color{crimson}\faGlobe}\;\;{\normalsize\bfseries\color{crimson}DreamLab Edge --- Branded Deployment} {\small\color{textmuted}| React SPA + Leptos WASM forum on Cloudflare Workers | Operator overlay configuration | Live at \href{https://dreamlab-ai.com}{dreamlab-ai.com} | Consumes all substrates as library crates}
+{\color{crimson}\faGlobe}\;\;{\normalsize\bfseries\color{crimson}DreamLab Edge | Branded Deployment} {\small\color{textmuted}| React SPA + Leptos WASM forum on Cloudflare Workers | Operator overlay configuration | Live at \href{https://dreamlab-ai.com}{dreamlab-ai.com} | Consumes all substrates as library crates}
 
 % ═══════════════════════════════════════════════
 % JUDGMENT BROKER
 % ═══════════════════════════════════════════════
 \newpage
 
-\sectiontag{The Judgment Broker: Human-in-the-Loop Governance That Accelerates}
+\sectiontag{Judgment Broker: Human-in-the-Loop Governance}
 
-{\small The Judgment Broker is an emergent property of agents, humans, a knowledge graph, and a relay mesh coordinating through shared cryptographic identity. No single repository owns the broker.}
+{\small Judgment Broker is an emergent property of agents, humans, a knowledge graph, and a relay mesh coordinating through shared cryptographic identity. No single repository owns it.}
 
 \vspace{4pt}
 
@@ -294,7 +294,7 @@ The AI industry has moved through a clear progression: LLM $\to$ chatbot $\to$ r
 }
 
 \vspace{2pt}
-{\small Every decision is an immutable Nostr event. In regulated industries (pharma, finance, defence), the cost of reconstructing decision provenance after the fact dwarfs the cost of generating it by construction. The Judgment Broker provides \textbf{90\% reduction in audit reconstruction cost}.}
+{\small Every decision is an immutable Nostr event. In regulated industries (pharma, finance, defence), reconstructing decision provenance after the fact costs orders of magnitude more than generating it by construction. Result: \textbf{90\% reduction in audit reconstruction cost}.}
 
 % ═══════════════════════════════════════════════
 % TOKEN ECONOMICS
@@ -305,9 +305,9 @@ The AI industry has moved through a clear progression: LLM $\to$ chatbot $\to$ r
 \raggedright
 
 {\small
-\textbf{The cost of not coordinating.} A 50-person team running uncoordinated AI agents wastes \textbf{5--8\texttimes{} tokens} on context rediscovery, duplicate reasoning, and contradictory outputs. Each agent session starts cold---no shared ontology, no provenance, no memory of what other agents concluded.
+\textbf{Cost of not coordinating.} A 50-person team running uncoordinated AI agents wastes \textbf{5--8\texttimes{} tokens} on context rediscovery, duplicate reasoning, and contradictory outputs. Each agent session starts cold: no shared ontology, no provenance, no memory of what other agents concluded.
 
-\textbf{Coordination as token multiplier.} VisionFlow's shared ontology means agents don't re-derive domain vocabulary. The provenance chain means agents don't re-validate conclusions. The Judgment Broker means agents don't spin on decisions they lack authority to make. Result: \textbf{3--5\texttimes{} effective throughput gain}.
+\textbf{Coordination as token multiplier.} Shared ontology means agents stop re-deriving domain vocabulary. Provenance chain means agents stop re-validating conclusions. Judgment Broker means agents stop spinning on decisions they lack authority to make. Result: \textbf{3--5\texttimes{} effective throughput gain}.
 
 \textbf{Hard problems justify deep spend.}
 \begin{itemize}[leftmargin=8pt,itemsep=1pt,parsep=0pt,topsep=2pt,label={\color{cyan}\textbullet}]
@@ -315,7 +315,7 @@ The AI industry has moved through a clear progression: LLM $\to$ chatbot $\to$ r
   \item Climate modelling: \$50M+ per actionable simulation suite
   \item Creative production: \$100M+ per franchise
 \end{itemize}
-Against these stakes, \$10K--100K on coordinated AI reasoning is a rounding error---provided the coordination harness prevents even one wrong conclusion from propagating.
+Against these stakes, \$10K--100K on coordinated AI reasoning is a rounding error, provided the coordination harness prevents even one wrong conclusion from propagating.
 }
 
 \columnbreak
@@ -341,11 +341,11 @@ Against these stakes, \$10K--100K on coordinated AI reasoning is a rounding erro
 
 \vspace{4pt}
 
-{\small\textbf{The ROI model:}}\\
+{\small\textbf{ROI model:}}\\
 {\small $\mathrm{ROI} = \dfrac{V \times \mathrm{coordination\_mult} \times \mathrm{governance\_div}}{\mathrm{token\_cost} \times N}$}
 
 \vspace{4pt}
-{\small The break-even point is typically reached at \textbf{3 agents} working on any problem valued above \textbf{\$50K}. Beyond that, every additional coordinated agent produces net positive value because the ontology, identity spine, and governance plane are shared infrastructure.}
+{\small Break-even at \textbf{3 agents} on any problem valued above \textbf{\$50K}. Beyond that, every additional coordinated agent produces net positive value. Ontology, identity spine, and governance plane are shared infrastructure.}
 
 \end{multicols}
 
@@ -464,7 +464,7 @@ Multiple sovereign Agentbox instances via Nostr relay mesh. Three transport stra
         inner xsep=14pt,inner ysep=8pt] {
     \textbf{\Large\color{brightgold}Open source. Model-agnostic. Federation-ready.}\\[4pt]
     Every token spent through VisionFlow produces auditable, governed,\\
-    provenance-tracked reasoning---not disposable chat.\\[6pt]
+    provenance-tracked reasoning.\\[6pt]
     {\color{cyan}\href{https://github.com/DreamLab-AI}{github.com/DreamLab-AI}} \quad\quad
     {\color{gold}\href{https://www.visionflow.info}{visionflow.info}} \quad\quad
     {\color{emerald}\href{mailto:anthropic@xrsystems.uk}{anthropic@xrsystems.uk}}

@@ -61,7 +61,7 @@
 \begin{minipage}[t]{0.60\linewidth}
   {\color{cyan}\Large$\diamondsuit$}\;\;{\LARGE\bfseries\color{textmain}VisionFlow}\\[1pt]
   {\normalsize\color{gold}Coordination Engineering for Federated Human--AI Intelligence}\\[2pt]
-  {\scriptsize\color{textmuted}The open-source coordination harness where diverse intelligence collaborates across trust boundaries at scale. Self-sovereign data. Formal reasoning. Cryptographic provenance. Human-in-the-loop governance.}
+  {\scriptsize\color{textmuted}Open-source coordination harness. Diverse intelligence collaborates across trust boundaries at scale. Self-sovereign data. Formal reasoning. Cryptographic provenance. Human-in-the-loop governance.}
 \end{minipage}%
 \hfill
 \begin{minipage}[t]{0.36\linewidth}
@@ -73,7 +73,8 @@
     \color{textmuted}Org & \bfseries DreamLab AI \\
     \color{textmuted}Web & \href{https://www.visionflow.info}{visionflow.info} \\
     \color{textmuted}GitHub & \href{https://github.com/DreamLab-AI}{DreamLab-AI} \\
-    \color{textmuted}Licence & MPL 2.0 / AGPL 3.0 \\
+    \color{textmuted}Licence & VisionClaw: MPL 2.0 \\
+    & Protocol stack: AGPL 3.0 \\
   \end{tabular}}
 \end{minipage}
 
@@ -114,9 +115,9 @@
 \raggedright
 \setstretch{0.92}
 
-\sectiontag{The Problem}
+\sectiontag{Problem}
 {\small\bfseries Hard problems share a common shape}\\[1pt]
-{\scriptsize Climate modelling, drug discovery, creative production at scale --- these require diverse intelligence collaborating across trust boundaries where centralised coordination breaks down.}
+{\scriptsize Climate modelling, drug discovery, creative production at scale. All require diverse intelligence collaborating across trust boundaries where centralised coordination breaks down.}
 
 \vspace{1pt}
 {\scriptsize\color{crimson}\bfseries 73\% of frontline AI adoption happens without management sign-off.} {\scriptsize\color{textmuted}Uncoordinated agents waste \textbf{60--80\% of tokens} on context rediscovery, duplicate reasoning, and contradictory outputs.}
@@ -127,17 +128,17 @@
 {\small\bfseries Coordination is the token multiplier}\\[1pt]
 
 \begin{itemize}[leftmargin=8pt,itemsep=0pt,parsep=0pt,topsep=1pt,label={}]
-  \item {\color{cyan}\textbullet} {\scriptsize\bfseries 3--5\texttimes{} effective throughput gain} {\scriptsize\color{textmuted}--- shared ontology eliminates re-derivation; provenance eliminates re-validation; governance prevents decision spin}
-  \item {\color{emerald}\textbullet} {\scriptsize\bfseries 10,000:1 problem-to-token ratio} {\scriptsize\color{textmuted}--- \$2.6B drug compounds justify \$10K--100K coordinated reasoning if one wrong conclusion is prevented}
-  \item {\color{gold}\textbullet} {\scriptsize\bfseries Break-even at 3 agents} {\scriptsize\color{textmuted}--- ontology, identity spine, governance are shared infra, not per-agent costs}
-  \item {\color{purple}\textbullet} {\scriptsize\bfseries Model-agnostic} {\scriptsize\color{textmuted}--- any LLM behind MCP tools. Multi-vendor consumption scales with problem complexity, not lock-in}
+  \item {\color{cyan}\textbullet} {\scriptsize\bfseries 3--5\texttimes{} effective throughput gain.} {\scriptsize\color{textmuted}Shared ontology eliminates re-derivation. Provenance eliminates re-validation. Governance prevents decision spin.}
+  \item {\color{emerald}\textbullet} {\scriptsize\bfseries 10,000:1 problem-to-token ratio.} {\scriptsize\color{textmuted}\$2.6B drug compounds justify \$10K--100K in coordinated reasoning if one wrong conclusion is prevented.}
+  \item {\color{gold}\textbullet} {\scriptsize\bfseries Break-even at 3 agents.} {\scriptsize\color{textmuted}Ontology, identity spine, governance are shared infra, not per-agent costs.}
+  \item {\color{purple}\textbullet} {\scriptsize\bfseries Model-agnostic.} {\scriptsize\color{textmuted}Any LLM behind MCP tools. Multi-vendor consumption scales with problem complexity, not lock-in.}
 \end{itemize}
 
 \vspace{4pt}
 
 \sectiontag{Architecture}
 {\small\bfseries Five substrates, one cryptographic identity spine}\\[1pt]
-{\scriptsize Every actor---human, agent, server---shares a \texttt{did:nostr} secp256k1 keypair verified at every layer.}
+{\scriptsize Every actor (human, agent, server) shares a single \texttt{did:nostr} secp256k1 keypair, verified at every layer.}
 
 \vspace{3pt}
 
@@ -166,13 +167,13 @@
 \vspace{4pt}
 
 \sectiontag{Human-in-the-Loop Governance}
-{\small\bfseries The Judgment Broker}\\[1pt]
+{\small\bfseries Judgment Broker}\\[1pt]
 {\scriptsize Agent publishes control panel (kind\,31400) $\to$ forum renders to human $\to$ NIP-98 signed decision $\to$ VisionClaw gates knowledge mutations. Every decision is an immutable Nostr event. \textbf{90\% reduction in audit reconstruction cost.}}
 
 \columnbreak
 
 % ── RIGHT COLUMN ──
-\sectiontag{Strategic Positioning --- Wardley Map}
+\sectiontag{Strategic Positioning: Wardley Map}
 {\small\bfseries Every differentiator sits where no competitor can follow}\\[2pt]
 
 \vspace{1pt}
@@ -182,7 +183,7 @@
 
 \vspace{1pt}
 {\scriptsize\color{textmuted}%
-VisionFlow's core differentiators ({\color{crimson}red zone, left}) occupy the genesis/custom-built quadrant: OWL\,2 formal reasoning, GPU semantic physics, the Judgment Broker, cryptographic identity (DID:Nostr), and immersive XR. No competitor has built here. All 11 competing platforms ({\color{textmuted}grey cluster, right}) sit in the commodity zone --- interchangeable agent frameworks with no structural differentiation. The red dashed boundary marks the \textbf{strategic advantage zone}: capabilities that require deep protocol engineering and cannot be replicated by wrapping an API.}
+VisionFlow's core differentiators ({\color{crimson}red zone, left}) occupy the genesis/custom-built quadrant: OWL\,2 formal reasoning, GPU semantic physics, Judgment Broker, cryptographic identity (DID:Nostr), immersive XR. No competitor has built here. All 11 competing platforms ({\color{textmuted}grey cluster, right}) sit in the commodity zone, interchangeable agent frameworks with no structural differentiation. The red dashed boundary marks the \textbf{strategic advantage zone}: capabilities that require deep protocol engineering. Cannot be replicated by wrapping an API.}
 
 \vspace{4pt}
 
@@ -210,13 +211,13 @@ VisionFlow's core differentiators ({\color{crimson}red zone, left}) occupy the g
 
 \sectiontag{Scaling}
 {\scriptsize
-\textcolor{emerald}{\faUser}\;\textbf{Single Operator} {\color{textmuted}--- One API key, one container, minutes to deploy}
+\textcolor{emerald}{\faUser}\;\textbf{Single Operator} {\color{textmuted}| One API key, one container, minutes to deploy.}
 
 \vspace{1pt}
-\textcolor{gold}{\faUsers}\;\textbf{Team (50+)} {\color{textmuted}--- Shared relay mesh, Judgment Broker oversight, validated at scale}
+\textcolor{gold}{\faUsers}\;\textbf{Team (50+)} {\color{textmuted}| Shared relay mesh, Judgment Broker oversight. Validated at scale.}
 
 \vspace{1pt}
-\textcolor{cyan}{\faNetworkWired}\;\textbf{Federated Enterprise} {\color{textmuted}--- Sovereign nodes, trust via did:nostr, horizontal scaling}
+\textcolor{cyan}{\faNetworkWired}\;\textbf{Federated Enterprise} {\color{textmuted}| Sovereign nodes, trust via did:nostr. Horizontal scaling.}
 }
 
 \vspace{4pt}
