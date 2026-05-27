@@ -14,6 +14,8 @@
 
 [The Problem](#the-problem) · [Evolution Line](#the-evolution-line) · [Five Substrates](#five-substrates-one-identity) · [Judgment Broker](#the-judgment-broker) · [Scaling](#scaling-model) · [Repository Map](#repository-map) · [Wardley Map](#strategic-positioning) · [Docs](docs/README.md)
 
+**PDF Reports:** [One-Pager Pitch](pdf-reports/visionflow-onepager.pdf) · [Ecosystem Technical Pitch](pdf-reports/visionflow-ecosystem-pitch.pdf)
+
 </div>
 
 ---
