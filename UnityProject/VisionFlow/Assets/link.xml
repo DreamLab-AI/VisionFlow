@@ -1,0 +1,3 @@
+<linker>
+  <assembly fullname="NBitcoin.Secp256k1" preserve="all" />
+</linker>

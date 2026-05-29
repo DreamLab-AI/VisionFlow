@@ -1,0 +1,14 @@
+FROM rust:1.88-bookworm AS builder
+WORKDIR /src
+COPY . .
+RUN cargo build --release -p solid-pod-rs-server
+
+FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl \
+    && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /src/target/release/solid-pod-rs-server /usr/local/bin/solid-pod-rs-server
+RUN mkdir -p /data/pod-root /config
+EXPOSE 8484
+HEALTHCHECK --interval=15s --timeout=5s --retries=5 \
+  CMD curl -fsS http://127.0.0.1:8484/.well-known/solid || exit 1
+ENTRYPOINT ["solid-pod-rs-server", "--config", "/config/pod-config.json"]
