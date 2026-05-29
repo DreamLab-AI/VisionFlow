@@ -24,7 +24,7 @@ VisionFlow is not a single executable. It is a coordination architecture that em
 | Substrate | Primary responsibility | Boundary |
 |---|---|---|
 | VisionFlow | Ecosystem narrative, public positioning, repository map, shared coordination model | Documentation and website surface |
-| VisionClaw | Knowledge engineering: OWL 2 EL reasoning, GPU graph physics, XR, 7 native MCP ontology tools, IS-Envelope spec owner (ADR-075), Judgment Broker (distributed: enrichment gating, BrokerActor on crashbug branch) | GPU host / graph backend / semantic workbench |
+| VisionClaw | Knowledge engineering: OWL 2 EL reasoning, GPU graph physics, XR, 7 native MCP ontology tools, IS-Envelope spec owner (ADR-075), Judgment Broker (distributed: enrichment gating, BrokerActor on crashbug branch), embodied agent-loop renderer (beam + gluon over `/wss/agent-events`, ADR-059) | GPU host / graph backend / semantic workbench / embodiment surface |
 | agentbox | Reproducible sovereign agent runtime with Nix, 90+ skills, 180+ MCP tools, 10-tool ontology bridge to VisionClaw SPARQL, browser setup wizard, privacy filtering, Nostr/Solid identity | Agent container and harness |
 | solid-pod-rs | Solid/JSS foundation: LDP, WAC, NIP-98, DID:Nostr, WebID, OIDC, git pods | Shared protocol library and native pod server |
 | nostr-rust-forum | Governance UI and relay kit: passkey auth, Cloudflare Workers, Agent Control Surface events | Human decision surface and Nostr relay edge |
@@ -57,6 +57,45 @@ The common primitive is `did:nostr:<hex-pubkey>`. Docs consistently describe it 
 4. Human decisions gate mutation.
 5. Provenance beads and URNs preserve attribution.
 
+### Embodied Agent Loop (voice → action → pod → KG → ontology → visualisation)
+
+The flagship cross-substrate journey, formerly absent from this canon. A human speaks, an agent
+forms intent and acts on a sovereign Solid pod and personal knowledge graph, the action is visibly
+embodied in the VisionClaw GPU/XR graph, the KG mutates, and high-value personal concepts are
+elevated into the shared ontology under governance — all federated over the private Nostr relay
+mesh. Substrate roles: agentbox runs the agents; VisionClaw renders the embodiment; solid-pod-rs
+stores sovereignly; the forum and website provide governance/operator surfaces; VisionFlow is the
+canon.
+
+1. **Voice → selected actor (VisionClaw).** A push-to-talk command (PTT → Whisper STT → Kokoro
+   TTS) captures the currently-selected agent node and dispatches a *scoped* agent command rather
+   than a generic swarm intent.
+2. **Intent → agentbox.** The scoped command is published as a signed ACSP `ActionRequest`
+   (kind 31402) addressed to the target agent's `did:nostr`.
+3. **Action on the pod (solid-pod-rs).** The agent writes the personal KG to the user's pod **as
+   itself**, under a scoped, revocable WAC `acl:agent` mandate (`urn:agentbox:mandate`), with a
+   per-request signed NIP-98 header — never by holding the user's nsec.
+4. **Embodiment (VisionClaw).** The agent's action crosses the federation boundary as a canonical
+   `notifications/agent_action` event over the `/wss/agent-events` WebSocket and renders as a
+   **beam** (transient coloured edge, agent → target) plus a **gluon** (the attractive spring force
+   that same transient edge exerts — no new GPU buffer; the earlier `class_charge`-modulation
+   design is retracted, VisionClaw ADR-059 §4).
+5. **Elevation under governance.** A BC22 extractor reads the pod KG and proposes candidate
+   concepts through VisionClaw's governed pipeline: Whelk EL++ consistency gate (correctness) →
+   ACSP human approval (policy) → GitHub PR → merge → `ConceptElevated`. The ungoverned
+   `/api/ontology/load` backdoor is closed.
+6. **Continuous provenance.** Identity is preserved end to end by the BC20 anti-corruption layer
+   (`urn:agentbox:activity` ⇄ `urn:visionclaw:execution`, `agent` ⇄ `did:nostr`), with
+   `owner_did` constant at every hop.
+
+Contracts: agentbox **ADR-014** + VisionClaw **ADR-059** (the `/wss/agent-events` channel),
+agentbox **ADR-026** (cross-substrate seams), agentbox **PRD-014** (driving spec). As of
+2026-05-29 the action-signal seam is wired and verified end-to-end (Phase 2a): canonical producer
+on the agentbox side, authenticated ingest + broadcast hub on the VisionClaw side; the beam+gluon
+render is the Phase-2b increment. Identity rides the JSON ingest envelope (the `0x23` binary frame
+is identity-blind by design). The legacy MCP-TCP `:9500` path carries agent **state** snapshots, a
+payload distinct from the agent **action** push, and is retired in favour of the one socket.
+
 ## Gap Register
 
 ### G1: The Umbrella Docs Are Sparse
@@ -85,7 +124,21 @@ VisionClaw PRD-015 identifies cross-substrate duplication in NIP-98 auth, Solid 
 
 ### G4: VisionClaw Has Documented Integration Debt
 
-VisionClaw docs identify several still-important risks: URI resolver redirects to missing routes, BC20 anti-corruption layer described as paper-only in PRD-010, historical multi-keypair drift, missing or incomplete NIP-42 support, auth hardening gaps, dead/stub code, and parallel service implementations.
+VisionClaw docs identify several still-important risks: URI resolver redirects to missing routes, historical multi-keypair drift, missing or incomplete NIP-42 support, auth hardening gaps, dead/stub code, and parallel service implementations.
+
+**BC20 update (2026-05-29):** the BC20 anti-corruption layer was flagged "paper-only" in PRD-010.
+That is now **resolved** — BC20 is real, owned, bidirectional code. The executable contract lives
+in agentbox (`management-api/lib/bc20-provenance-bridge.js`, 20 tests) with a closed kind map
+(`activity` ⇄ `execution`, `agent` ⇄ `did:nostr`, `thing` ⇄ `kg`, `memory` ⇄ `concept`) and a
+durable `UrnMapping` that round-trips identity with zero loss; VisionClaw mirrors the canonical
+ingest schema (`src/agent_events/schema.rs`) and consumes the pushed events over the authenticated
+`/wss/agent-events` socket (Phase 2a, cargo-verified). See agentbox ADR-026 D1 and the Embodied
+Agent Loop core flow above.
+
+**Still open in VisionClaw:** the beam+gluon render actor (ADR-059 Phase 2b), did:nostr-keyed live
+agent-actor nodes (currently mock-polled), the `ConceptElevated` event, the personal-vs-shared
+(owner) node distinction, and a real ACSP 31402 client dispatcher (the divergent one-way
+`AgentActionEnvelope` is to be retired). Tracked in agentbox PRD-014 §3 Seam E.
 
 **Impact:** VisionClaw is the semantic center of the ecosystem, so gaps there block end-to-end provenance and governance flows.
 
@@ -131,6 +184,7 @@ dreamlab-ai-website owns branding, static React pages, Cloudflare config, and fo
 | P0 | Cross-substrate compatibility matrix | Makes mesh readiness explicit and testable; see [Compatibility Matrix](architecture/compatibility-matrix.md) |
 | P1 | Shared protocol contracts for NIP-98, DID:Nostr, WAC, IS-Envelope | Reduces drift and duplicated security-sensitive logic |
 | P1 | End-to-end governance smoke test: agentbox -> relay -> forum -> VisionClaw -> pod/provenance | Validates the central VisionFlow claim |
+| P1 | End-to-end embodied-loop smoke test: voice (VisionClaw) -> ACSP ActionRequest -> agentbox actor -> signed NIP-98 pod write -> personal-KG node -> ACSP elevation prompt -> governed PR -> ConceptElevated, with one continuous `urn:agentbox:activity` ⇄ `urn:visionclaw` provenance chain | Validates the flagship cross-substrate journey (PRD-014 §7) |
 | P1 | solid-pod-rs CF Workers portability decision | Determines whether duplication is temporary or permanent |
 | P2 | Coordinated release/version policy | Lets consumers know which repo versions work together; see [Roadmap](roadmap.md) |
 | P2 | Unified operations docs: health, backup, DR, pod tiers, relay status | Moves the ecosystem from impressive components to operable system |
@@ -138,6 +192,8 @@ dreamlab-ai-website owns branding, static React pages, Cloudflare config, and fo
 ## Recently Resolved
 
 - **IS-Envelope canonical ownership:** Resolved. VisionClaw owns the spec (ADR-075, JSON Schema, 11 test vectors). Runtime consumers: agentbox, solid-pod-rs, nostr-rust-forum. Event kind registry remains unowned.
+- **BC20 anti-corruption layer (2026-05-29):** Resolved from "paper-only" to real, owned, bidirectional code. Agentbox holds the executable contract (`bc20-provenance-bridge.js`); VisionClaw mirrors the ingest schema and consumes pushed `agent_action` events over the authenticated `/wss/agent-events` socket (Phase 2a, cargo-verified). The beam+gluon render is the remaining Phase-2b increment. See agentbox ADR-026 D1 / PRD-014.
+- **Embodied agent-loop documentation (2026-05-29):** Resolved the canon silence on voice ingress and personal→shared elevation flagged in earlier audits (PRD-014 X7) — the Embodied Agent Loop core flow is now documented above, and the BC20 namespace grammar is in agentbox's `CLAUDE.md` and ecosystem docs.
 
 ## Open Questions
 
