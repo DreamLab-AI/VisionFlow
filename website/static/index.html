@@ -200,6 +200,7 @@
             <li>IS-Envelope spec owner + knowledge graph gating</li>
             <li>17 MCP ontology tools (7 native + 10 bridge)</li>
             <li>934-node force-directed graph in real time</li>
+            <li>Embodied agent loop: agent actions render as live <code>0x23</code> beams over <code>/wss/agent-events</code></li>
           </ul>
           <a href="https://github.com/DreamLab-AI/VisionClaw" target="_blank" rel="noopener" class="substrate-link">View Repo &rarr;</a>
         </div>
@@ -216,6 +217,7 @@
             <li>10-tool ontology bridge to VisionClaw SPARQL</li>
             <li>Browser-based setup wizard (zero dependencies)</li>
             <li>BIP-340 sovereign identity at bootstrap</li>
+            <li>Emits agent-action signals to VisionClaw; pod writes under revocable WAC mandates</li>
           </ul>
           <a href="https://github.com/DreamLab-AI/agentbox" target="_blank" rel="noopener" class="substrate-link">View Repo &rarr;</a>
         </div>
@@ -415,6 +417,11 @@
             <tr><td><code>31405</code></td><td>PanelRetired</td><td>Agent &rarr; Relay</td><td>Retire panel</td></tr>
           </tbody>
         </table>
+      </div>
+
+      <div class="identity-callout">
+        <code>voice &rarr; intent &rarr; pod + KG &rarr; embodiment &rarr; elevation</code>
+        <p>The embodied agent loop is wired end to end. A spoken command selects an agent and dispatches a scoped ACSP <code>ActionRequest</code> (kind 31402). The agent writes the personal knowledge graph to the user&rsquo;s Solid pod as itself, under a revocable WAC mandate with a per-request NIP-98 signature. The action crosses into VisionClaw over <code>/wss/agent-events</code> and renders as a transient <code>0x23</code> beam, with memory and agent activity mapped to colour, shape, and motion in the live graph. High-value personal concepts are then proposed for elevation into the shared ontology through the Whelk consistency gate and human governance, all federated over the Nostr relay mesh.</p>
       </div>
     </div>
   </section>
