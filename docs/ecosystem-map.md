@@ -1,6 +1,6 @@
 # VisionFlow Ecosystem Map
 
-**Status:** Docs plus targeted code/manifest spot-checks, updated with runtime research 2026-05-22
+**Status:** Docs plus targeted code/manifest spot-checks, updated with runtime research 2026-05-22; three provenance loops runtime-verified on the rebuilt local stack 2026-05-30 (commits local, pending merge — see Recently Resolved)
 **Date:** 2026-05-22
 **Scope:** Repositories mounted under `/home/devuser/workspace`
 
@@ -40,7 +40,7 @@ The common primitive is `did:nostr:<hex-pubkey>`. Docs consistently describe it 
 2. The Nostr relay mesh routes that event to the forum.
 3. The forum renders the event as a governance panel or action request.
 4. A human signs an approval/rejection response.
-5. VisionClaw's Judgment Broker and related enrichment/write-back flows use the decision as the control point before mutation. (Judgment Broker is 65% implemented as a distributed system; the decision loop is closed on the forum side, decision application to agents is the critical gap)
+5. VisionClaw's Judgment Broker and related enrichment/write-back flows use the decision as the control point before mutation. (Judgment Broker is 65% implemented as a distributed system; the decision loop is closed on the forum side. The write-back endpoint `POST /api/enrichment-proposals/{id}/decide` now exists and is runtime-verified — HTTP 200 with PROV-O provenance, 2026-05-30, commit local/unmerged; agent-side *application* of the returned decision is the remaining gap.)
 
 ### Sovereign Data Access
 
@@ -92,7 +92,9 @@ Contracts: agentbox **ADR-014** + VisionClaw **ADR-059** (the `/wss/agent-events
 agentbox **ADR-026** (cross-substrate seams), agentbox **PRD-014** (driving spec). As of
 2026-05-29 the action-signal seam is wired and verified end-to-end (Phase 2a): canonical producer
 on the agentbox side, authenticated ingest + broadcast hub on the VisionClaw side; the beam+gluon
-render is the Phase-2b increment. Identity rides the JSON ingest envelope (the `0x23` binary frame
+render is the Phase-2b increment. As of 2026-05-30 the VisionClaw-side ingest is runtime-verified
+(WS-probed live over `/wss/agent-events`, with BC20 provenance stamped on the hot path), upgrading
+this seam from cargo-verified to runtime-verified (commits local/unmerged — see Recently Resolved). Identity rides the JSON ingest envelope (the `0x23` binary frame
 is identity-blind by design). The legacy MCP-TCP `:9500` path carries agent **state** snapshots, a
 payload distinct from the agent **action** push, and is retired in favour of the one socket.
 
@@ -135,10 +137,17 @@ ingest schema (`src/agent_events/schema.rs`) and consumes the pushed events over
 `/wss/agent-events` socket (Phase 2a, cargo-verified). See agentbox ADR-026 D1 and the Embodied
 Agent Loop core flow above.
 
+**Verified 2026-05-30 (local/unmerged):** the `urn:visionclaw` minter (`src/uri/mod.rs`) now
+exists and runs — it was previously absent on main, blocking native minting of crossed URNs; and
+the broker write-back endpoint (`POST /api/enrichment-proposals/{id}/decide`) is live (HTTP 200,
+PROV-O provenance), closing the 404 that made the resolver redirect to a missing route. WS ingest
+provenance is runtime-verified on the hot path (see Recently Resolved).
+
 **Still open in VisionClaw:** the beam+gluon render actor (ADR-059 Phase 2b), did:nostr-keyed live
 agent-actor nodes (currently mock-polled), the `ConceptElevated` event, the personal-vs-shared
-(owner) node distinction, and a real ACSP 31402 client dispatcher (the divergent one-way
-`AgentActionEnvelope` is to be retired). Tracked in agentbox PRD-014 §3 Seam E.
+(owner) node distinction, agent-side application of a returned broker decision, and a real ACSP
+31402 client dispatcher (the divergent one-way `AgentActionEnvelope` is to be retired). Tracked in
+agentbox PRD-014 §3 Seam E.
 
 **Impact:** VisionClaw is the semantic center of the ecosystem, so gaps there block end-to-end provenance and governance flows.
 
@@ -191,6 +200,23 @@ dreamlab-ai-website owns branding, static React pages, Cloudflare config, and fo
 
 ## Recently Resolved
 
+- **Three provenance loops runtime-verified (2026-05-30).** On the rebuilt local stack, three
+  previously paper/cargo-only seams were exercised against a running VisionClaw backend (commits
+  **local, pending merge** to VisionClaw main):
+  - **`urn:visionclaw` minter** (`src/uri/mod.rs`, +13 tests) — was absent on main; now mints
+    typed `concept`/`kg`/`bead`/`execution`/`group` URNs + `did:nostr`. Runtime mint observed:
+    `urn:visionclaw:execution:sha256-12-44ec4693df02` (sha256-12 byte-equal to the agentbox minter).
+  - **Broker write-back endpoint** `POST /api/enrichment-proposals/{id}/decide`
+    (`src/handlers/enrichment_proposals_handler.rs`, +5 tests) — was **404** (the "decision
+    application to agents" critical gap, G4); now returns **HTTP 200**, mints PROV-O provenance,
+    persists to the decision log, and broadcasts an `enrichment_decision` WS event.
+    Unattributed payloads → `attributed:false` (recorded, not rejected).
+  - **WS ingest BC20 provenance on the hot path** (`src/agent_events/ingest.rs` +
+    `provenance.rs`, +12 tests) — `process_frame()` now records provenance, crosses foreign
+    `urn:agentbox:*` via `uri::cross_from_agentbox`, and stamps Signed/Malformed/Anonymous on
+    `IngestOutcome::Published`. WS-probed live over `/wss/agent-events` (subprotocol
+    `vc-agent-events.v1`): canonical-foreign frame published silently, malformed + non-canonical
+    frames echo errors. Promotes the seam from "cargo-verified" to runtime-verified.
 - **IS-Envelope canonical ownership:** Resolved. VisionClaw owns the spec (ADR-075, JSON Schema, 11 test vectors). Runtime consumers: agentbox, solid-pod-rs, nostr-rust-forum. Event kind registry remains unowned.
 - **BC20 anti-corruption layer (2026-05-29):** Resolved from "paper-only" to real, owned, bidirectional code. Agentbox holds the executable contract (`bc20-provenance-bridge.js`); VisionClaw mirrors the ingest schema and consumes pushed `agent_action` events over the authenticated `/wss/agent-events` socket (Phase 2a, cargo-verified). The beam+gluon render is the remaining Phase-2b increment. See agentbox ADR-026 D1 / PRD-014.
 - **Embodied agent-loop documentation (2026-05-29):** Resolved the canon silence on voice ingress and personal→shared elevation flagged in earlier audits (PRD-014 X7) — the Embodied Agent Loop core flow is now documented above, and the BC20 namespace grammar is in agentbox's `CLAUDE.md` and ecosystem docs.

@@ -199,7 +199,7 @@
             <li>92 CUDA kernels, 55x GPU speedup</li>
             <li>IS-Envelope spec owner + knowledge graph gating</li>
             <li>17 MCP ontology tools (7 native + 10 bridge)</li>
-            <li>934-node force-directed graph in real time</li>
+            <li>31,000+ node force-directed graph in real time</li>
             <li>Embodied agent loop: agent actions render as live <code>0x23</code> beams over <code>/wss/agent-events</code></li>
           </ul>
           <a href="https://github.com/DreamLab-AI/VisionClaw" target="_blank" rel="noopener" class="substrate-link">View Repo &rarr;</a>
@@ -339,11 +339,19 @@
     <div class="container reveal">
       <span class="section-tag">Live Systems</span>
       <h2>Shipped and running</h2>
-      <p class="section-lead">VisionClaw and Agentbox are used daily by the <a href="https://dreamlab.org.uk" target="_blank" rel="noopener" style="color:var(--gold)">dreamlab.org.uk</a> collective.</p>
+      <p class="section-lead">VisionClaw and Agentbox are used daily by the <a href="https://dreamlab.org.uk" target="_blank" rel="noopener" style="color:var(--gold)">dreamlab.org.uk</a> collective. The screenshots below are live captures of the running browser client, taken 2026-05-30.</p>
       <div class="substrate-screenshots">
+        <div class="substrate-shot">
+          <img src="img/vc-graph-hero.png" alt="VisionClaw live browser client: 31,220-node force-directed knowledge and ontology graph rendered with GPU-accelerated physics" loading="lazy" decoding="async" />
+          <div class="shot-label"><span style="color:var(--cyan)">VisionClaw</span> // live capture: 31,220-node graph, GPU force-directed physics, knowledge + ontology + agent layers</div>
+        </div>
+        <div class="substrate-shot">
+          <img src="img/vc-control-center.png" alt="VisionClaw Control Center showing live System Status: WebSocket and metadata connected, 31,220 nodes synced, knowledge/ontology/agent layers enabled" loading="lazy" decoding="async" />
+          <div class="shot-label"><span style="color:var(--gold)">Control Center</span> // live system status: WS &amp; metadata connected, VisionClaw LIVE, knowledge/ontology/agent layers on</div>
+        </div>
         <a href="https://youtu.be/vi900pZlJMA" target="_blank" rel="noopener" class="substrate-shot">
           <img src="img/showcase/visionclaw-graph-ui.webp" alt="VisionClaw browser-based knowledge graph with force-directed layout, control panel, and SpaceMouse integration" loading="lazy" decoding="async" />
-          <div class="shot-label"><span style="color:var(--cyan)">VisionClaw</span> // 934-node graph, GPU-accelerated physics, SpaceMouse 6DoF navigation. <span style="color:var(--cyan)">Watch demo &rarr;</span></div>
+          <div class="shot-label"><span style="color:var(--cyan)">VisionClaw</span> // GPU-accelerated physics, SpaceMouse 6DoF navigation. <span style="color:var(--cyan)">Watch demo &rarr;</span></div>
         </a>
         <a href="https://github.com/JavaScriptSolidServer/JavaScriptSolidServer" target="_blank" rel="noopener" class="substrate-shot">
           <img src="img/showcase/jss-architecture.svg" alt="JavaScript Solid Server architecture diagram showing WAC, LDP, and WebSocket layers" loading="lazy" decoding="async" />
