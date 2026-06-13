@@ -195,7 +195,7 @@ The shared semantic substrate where humans and agents reason together. [VisionCl
 |:-----------|:-------|
 | **Ontology reasoning** | OWL 2 EL inference engine (Whelk-rs) — `subClassOf` → attraction, `disjointWith` → repulsion in GPU physics |
 | **GPU physics** | 92 CUDA kernels across 11 files (6,585 LOC), 55x speedup vs CPU, force-directed + semantic forces + stress majorisation |
-| **Immersive XR** | Babylon.js WebXR (Quest 3 optimised) + React Three Fiber (desktop), Vircadia World Server for multi-user presence |
+| **Immersive XR** | Native Godot 4 + godot-rust + OpenXR client (Meta Quest 3 APK) + React Three Fiber (desktop), same binary protocol and `did:nostr` identity for multi-user presence |
 | **MCP tools** | 7 ontology tools: discover, read, query, traverse, propose, validate, status |
 | **Hexagonal architecture** | 9 ports, 12 adapters, 114 CQRS handlers, 23 Actix actors |
 | **GPU analytics** | K-Means clustering, Louvain communities, LOF anomaly detection, PageRank centrality — all on GPU |
@@ -250,7 +250,7 @@ flowchart TB
 
 ### solid-pod-rs — Cryptographic Foundation
 
-The Rust-native port of [JavaScriptSolidServer (JSS)](https://github.com/JavaScriptSolidServer/JavaScriptSolidServer), Melvin Carvalho's AGPL-3.0 reference implementation of the Solid Protocol. [solid-pod-rs](https://github.com/DreamLab-AI/solid-pod-rs) delivers ~98% strict parity with JSS as a framework-agnostic Rust library.
+The Rust-native port of [JavaScriptSolidServer (JSS)](https://github.com/JavaScriptSolidServer/JavaScriptSolidServer), Melvin Carvalho's AGPL-3.0 reference implementation of the Solid Protocol. [solid-pod-rs](https://github.com/DreamLab-AI/solid-pod-rs) (`0.5.0-alpha.0`) delivers ~98% strict parity with JSS as a framework-agnostic Rust library.
 
 ![solid-pod-rs Architecture](assets/diagrams/solid-pod-rs-architecture.png)
 
@@ -259,12 +259,13 @@ The Rust-native port of [JavaScriptSolidServer (JSS)](https://github.com/JavaScr
 | **Solid Protocol** | LDP CRUD, WAC access control, WebID profiles, content negotiation (Turtle ↔ JSON-LD) |
 | **DID:Nostr** | Tier 1 (pubkey → DID Doc), Tier 3 (DID ↔ WebID cross-verification via `alsoKnownAs`) |
 | **Authentication** | NIP-98 Schnorr, Solid-OIDC (DPoP), LWS 1.0 / W3C CID v1, WebAuthn passkeys |
-| **HTTP 402 Web Ledgers** | PaymentCondition in WAC ACLs, per-read micropayments, MRC20 token chains, BIP-341 Bitcoin anchoring |
+| **Block-trails** | Bitcoin taproot-anchored (BIP-341), JCS-canonicalised, hash-chained provenance — tamper-evident, externally verifiable. MRC20 token chains are one instance of the general `ProvenanceTrail` |
+| **Git-marks** | Write-as-commit provenance — every pod mutation lands as a git commit, so the pod is its own append-only audit log |
+| **HTTP 402 Web Ledgers** | PaymentCondition in WAC ACLs, per-read micropayments, MRC20 token chains, `did:nostr`-keyed balances |
 | **Dual compile** | Native (Tokio) and WASM (Cloudflare Workers) via `core` feature flag — same crate, edge and server |
 | **Git-auto-init** | Pods are clone-able git repositories at provisioning (native deployments) |
-| **7 Cargo crates** | core, server, idp, activitypub, nostr, git, didkey |
 
-**Key insight:** solid-pod-rs doesn't just store data — it makes data *sovereign*. WAC ACLs evaluated against `did:nostr` identities mean the pod owner controls access cryptographically. If an organisation leaves the mesh, it takes its data with it. No migration. No export. The data was always theirs.
+**Key insight:** solid-pod-rs doesn't just store data — it makes data *sovereign and verifiable*. WAC ACLs evaluated against `did:nostr` identities mean the pod owner controls access cryptographically. Two provenance primitives live at the lowest level of the substrate: **git-marks** (cheap, every write is a commit) and **block-trails** (a Bitcoin taproot anchor for high-value or disputed records). Together they make the pod layer a **global trust ledger** — a sovereign, Bitcoin-settled, value-transfer and provenance substrate across the whole VisionFlow ecosystem. If an organisation leaves the mesh, it takes its data — and its verifiable history — with it.
 
 <details>
 <summary><strong>JSS Protocol Extensions (beyond core Solid spec)</strong></summary>
@@ -273,9 +274,10 @@ These extensions originate from Melvin Carvalho's upstream JSS work. solid-pod-r
 
 - **ActivityPub federation** — pods federate with Mastodon-compatible servers via HTTP Signatures
 - **Embedded identity provider** — full Solid-OIDC IdP (authorization-code flow, DPoP, JWKS)
-- **Git HTTP backend** — clone/push to pod containers directly
+- **Git HTTP backend** — clone/push to pod containers directly; git-marks turn every write into a commit
 - **Nostr integration** — NIP-98 auth, `did:nostr` resolution, embedded NIP-01 relay
-- **HTTP 402 payments** — webledger balances, MRC20 token trails, BIP-341 anchoring, AMM liquidity pools
+- **HTTP 402 payments** — `did:nostr`-keyed webledger balances, MRC20 token trails, BIP-341 anchoring
+- **Block-trails** — Bitcoin taproot-anchored, hash-chained `ProvenanceTrail` for tamper-evident records
 - **End-to-end encryption** — NIP-44 client-side via `did:nostr` keys (zero server-side changes)
 - **LWS 1.0 / W3C CID v1** — self-signed JWT auth aligned with W3C Linked Web Storage spec
 
@@ -563,11 +565,42 @@ Every actor owns a Solid pod. WAC ACLs — evaluated against `did:nostr` identit
 
 ### Provenance by Construction
 
-Every write is signed. Every event is content-addressed. Every governance decision is an immutable Nostr event with a `prior_decision_id` provenance chain. Auditors traverse the chain from any point back to first principles. This isn't an audit log — it's a structural guarantee.
+Every write is signed. Every event is content-addressed. Every governance decision is an immutable Nostr event with a `prior_decision_id` provenance chain. At the pod substrate, **git-marks** record each write as a commit and **block-trails** anchor high-value records to Bitcoin via taproot (BIP-341) — a global trust ledger that any party, including an adversarial one, can independently verify. Auditors traverse the chain from any point back to first principles. This isn't an audit log — it's a structural guarantee.
+
+### Value Transfer on the Agentic Mesh
+
+Provenance and value travel the same rails. Once every actor is a `did:nostr` identity and every write is anchored, the mesh can move not just messages but **value and trust** between sovereign parties — without an EVM, a bridge, or a custodian.
+
+Think of it as **agentic mycelia**, a research arc the project has pursued since 2023: sovereign pods are the *nodes*, `did:nostr` agents are the connective *hyphae*, and block-trails are the *nutrient and signal flow* between them. Across that living Nostr mesh:
+
+- **Identity is the key.** A single secp256k1 keypair (`did:nostr`) is the WAC principal, the relay identity, the payment account, and the provenance author. No OIDC redirect, no token exchange.
+- **Settlement is Bitcoin-native.** A `did:nostr`-keyed HTTP 402 web-ledger and MRC20 trails meter value per request; Lightning / L402 rails carry the micropayments. Sats, not gas. No EVM, no speculative token.
+- **Trust is portable.** A block-trail anchored to a taproot UTXO is a single-use, externally verifiable commitment. The receipt for an agent's action is as durable as the Bitcoin chain it settles on.
+
+The tooling is real, not a roadmap: [solid-pod-rs](https://github.com/DreamLab-AI/solid-pod-rs) pods hold the data and the trails; the Oxigraph-backed knowledge graph holds the shared meaning; [ACSP](#the-judgment-broker) keeps a human in the loop for elevation and high-stakes spend; the native Godot 4 XR client renders the mesh at room scale; and [Agentbox](#agentbox--harness-engineering) agents are the actors that earn, spend, and sign.
+
+```mermaid
+sequenceDiagram
+    participant Agent as did:nostr Agent (Agentbox)
+    participant Pod as Sovereign Pod (solid-pod-rs)
+    participant Ledger as 402 Web Ledger (MRC20 / L402)
+    participant Chain as Bitcoin (taproot anchor)
+
+    Agent->>Pod: write result (NIP-98 signed)
+    Pod->>Pod: git-mark — commit the write
+    Agent->>Ledger: request gated resource (HTTP 402)
+    Ledger->>Ledger: debit did:nostr balance / settle over Lightning
+    Ledger-->>Agent: 200 + spend receipt
+    Pod->>Chain: anchor block-trail state (high-value record)
+    Chain-->>Pod: taproot UTXO commitment
+    Note over Agent,Chain: provenance + value share one did:nostr-keyed rail
+```
 
 ### Privacy by Default
 
 Every Agentbox runs an embedded privacy filter — a 1.5B-parameter MoE model that intercepts every persistent write and redacts PII before it reaches storage, logs, or the mesh. The filter operates at the adapter layer, not the application layer, so it cannot be bypassed by new code paths.
+
+A sovereign, on-device **Private Email MCP Gateway** extends the same principle to the operator's personal mail: a *local* model reasons over the inbox and returns only privacy-sanitised, schema-abstracted results — never raw mail — so an agent can answer "did the supplier invoice me?" without the contents ever leaving the box.
 
 ### Formal Reasoning, Not Just Search
 

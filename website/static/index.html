@@ -37,6 +37,7 @@
         <a href="#immersive">Immersive</a>
         <a href="#video-overview">Video</a>
         <a href="#broker">Governance</a>
+        <a href="#trust-ledger">Trust Ledger</a>
         <a href="#economic">Economics</a>
         <a href="#cases">Cases</a>
         <a href="#competitive">Landscape</a>
@@ -217,6 +218,7 @@
             <li>10-tool ontology bridge to VisionClaw SPARQL</li>
             <li>Browser-based setup wizard (zero dependencies)</li>
             <li>BIP-340 sovereign identity at bootstrap</li>
+            <li>Private Email MCP Gateway: local-model email intelligence, returns only privacy-sanitised results &mdash; never raw mail</li>
             <li>Emits agent-action signals to VisionClaw; pod writes under revocable WAC mandates</li>
           </ul>
           <a href="https://github.com/DreamLab-AI/agentbox" target="_blank" rel="noopener" class="substrate-link">View Repo &rarr;</a>
@@ -232,7 +234,9 @@
             <li>Rust port of JSS (~98% parity)</li>
             <li>DID:Nostr + WAC + Web Ledgers</li>
             <li>NIP-98 Schnorr + Solid-OIDC + WebAuthn</li>
-            <li>HTTP 402 micropayments (MRC20)</li>
+            <li>HTTP 402 micropayments (MRC20, did:nostr-keyed)</li>
+            <li>Block-trails: Bitcoin taproot-anchored, tamper-evident provenance</li>
+            <li>Git-marks: every pod write is a commit</li>
             <li>Dual compile: native Tokio + WASM CF Workers</li>
           </ul>
           <a href="https://github.com/DreamLab-AI/solid-pod-rs" target="_blank" rel="noopener" class="substrate-link">View Repo &rarr;</a>
@@ -431,6 +435,49 @@
         <code>voice &rarr; intent &rarr; pod + KG &rarr; embodiment &rarr; elevation</code>
         <p>The embodied agent loop is wired end to end. A spoken command selects an agent and dispatches a scoped ACSP <code>ActionRequest</code> (kind 31402). The agent writes the personal knowledge graph to the user&rsquo;s Solid pod as itself, under a revocable WAC mandate with a per-request NIP-98 signature. The action crosses into VisionClaw over <code>/wss/agent-events</code> and renders as a transient <code>0x23</code> beam, with memory and agent activity mapped to colour, shape, and motion in the live graph. High-value personal concepts are then proposed for elevation into the shared ontology through the Whelk consistency gate and human governance, all federated over the Nostr relay mesh.</p>
       </div>
+    </div>
+  </section>
+
+  <!-- Trust Ledger / Value Transfer -->
+  <section id="trust-ledger" class="section">
+    <canvas id="particle-canvas-6" class="bg-canvas" aria-hidden="true"></canvas>
+    <div class="container reveal">
+      <span class="section-tag">Global Trust Ledger</span>
+      <h2>Provenance and value travel the same rails</h2>
+      <p class="section-lead">Once every actor is a <code>did:nostr</code> identity and every write is anchored, the mesh can move not just messages but <strong>value and trust</strong> between sovereign parties &mdash; with no EVM, no bridge, no custodian. Sovereign, Bitcoin-settled, verifiable by construction.</p>
+
+      <div class="identity-callout">
+        <code>agent &rarr; pod &rarr; 402 web-ledger settle &rarr; block-trail &rarr; did:nostr</code>
+        <p>Think of it as <strong>agentic mycelia</strong>, a research arc the project has pursued since 2023. Sovereign pods are the <em>nodes</em>; <code>did:nostr</code> agents are the connective <em>hyphae</em>; block-trails are the <em>nutrient and signal flow</em> between them. A single secp256k1 key is the WAC principal, the relay identity, the payment account, and the provenance author at once &mdash; so an agent can earn, spend, and sign across the whole living Nostr mesh without a single token exchange.</p>
+      </div>
+
+      <div class="broker-flow">
+        <div class="broker-step">
+          <div class="broker-num">1</div>
+          <h3>Agent Acts <span class="broker-substrate">Agentbox</span></h3>
+          <p>A <code>did:nostr</code> agent does work and writes the result to its sovereign pod with a per-request NIP-98 signature.</p>
+        </div>
+        <div class="broker-arrow">&rarr;</div>
+        <div class="broker-step">
+          <div class="broker-num">2</div>
+          <h3>Pod Records <span class="broker-substrate">git-mark</span></h3>
+          <p>The write lands as a git commit. The pod is its own append-only audit log &mdash; provenance without an external service.</p>
+        </div>
+        <div class="broker-arrow">&rarr;</div>
+        <div class="broker-step">
+          <div class="broker-num">3</div>
+          <h3>Value Settles <span class="broker-substrate">HTTP 402 / L402</span></h3>
+          <p>Gated resources meter value against a <code>did:nostr</code>-keyed web-ledger; MRC20 trails and Lightning carry the micropayment. Sats, not gas.</p>
+        </div>
+        <div class="broker-arrow">&rarr;</div>
+        <div class="broker-step">
+          <div class="broker-num">4</div>
+          <h3>Trust Anchors <span class="broker-substrate">Bitcoin taproot</span></h3>
+          <p>High-value records anchor as a block-trail state to a taproot UTXO (BIP-341) &mdash; a single-use, externally verifiable commitment as durable as the chain.</p>
+        </div>
+      </div>
+
+      <p class="section-lead" style="margin-top:2rem">The tooling is real, not a roadmap: <strong>solid-pod-rs</strong> pods hold the data and the trails, the Oxigraph knowledge graph holds the shared meaning, <strong>ACSP</strong> keeps a human in the loop for elevation and high-stakes spend, the native <strong>Godot 4</strong> XR client renders the mesh at room scale, and <strong>Agentbox</strong> agents are the actors that earn, spend, and sign.</p>
     </div>
   </section>
 
