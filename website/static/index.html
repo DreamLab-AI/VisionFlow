@@ -39,6 +39,7 @@
         <a href="#broker">Governance</a>
         <a href="#trust-ledger">Trust Ledger</a>
         <a href="#economic">Economics</a>
+        <a href="#evidence">Evidence</a>
         <a href="#cases">Cases</a>
         <a href="#competitive">Landscape</a>
         <a href="#scaling">Scaling</a>
@@ -534,6 +535,51 @@
         </div>
         <p>Without coordination, agents compete, duplicate, and contradict. Each additional agent adds noise faster than signal. With VisionFlow, each agent amplifies the mesh. Shared semantics compound. Provenance eliminates re-validation. Governance catches expensive mistakes early.</p>
         <p><strong>The break-even point is typically reached at 3 agents working on any problem valued above $50K.</strong> Beyond that, every additional coordinated agent produces net positive value because the ontology, the identity spine, and the governance plane are shared infrastructure, not per-agent costs.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ontology Evidence -->
+  <section id="evidence" class="section section-dark">
+    <div class="container reveal">
+      <span class="section-tag">Empirical Evidence</span>
+      <h2>Ontology grounding: measured, not claimed</h2>
+      <p class="section-lead">We ran 672 isolated LLM sessions across 7 models to measure whether VisionClaw&rsquo;s OWL ontology improves factual recall. Gold-standard answers were derived from the knowledge graph itself, so scoring is objective by construction. The results have caveats; the <a href="https://github.com/DreamLab-AI/VisionClaw/blob/main/docs/eval/report.pdf" target="_blank" rel="noopener" style="color:var(--gold)">full report</a> covers them in detail.</p>
+
+      <div class="competitive-table-wrap" tabindex="0" aria-label="Ontology benchmark results across 7 models">
+        <table class="competitive-table">
+          <thead>
+            <tr><th>Model</th><th>With Ontology (F1)</th><th>Without (F1)</th><th>Lift</th><th>Hallucination Drop</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Claude Opus 4.8</td><td><strong>0.770</strong></td><td>0.350</td><td style="color:var(--gold)">+0.420</td><td style="color:var(--cyan)">&minus;0.529</td></tr>
+            <tr><td>Claude Sonnet 4.6</td><td>0.755</td><td>0.373</td><td style="color:var(--gold)">+0.382</td><td style="color:var(--cyan)">&minus;0.480</td></tr>
+            <tr><td>Claude Haiku 4.5</td><td>0.713</td><td>0.250</td><td style="color:var(--gold)">+0.463</td><td style="color:var(--cyan)">&minus;0.608</td></tr>
+            <tr><td>Gemini 3.5 Flash</td><td>0.595</td><td>0.423</td><td style="color:var(--gold)">+0.172</td><td style="color:var(--cyan)">&minus;0.210</td></tr>
+            <tr><td>Gemini 2.5 Flash Lite</td><td>0.583</td><td>0.384</td><td style="color:var(--gold)">+0.199</td><td style="color:var(--cyan)">&minus;0.232</td></tr>
+            <tr><td>Z.AI (GLM-4.6)</td><td>0.449</td><td>0.342</td><td style="color:var(--gold)">+0.108</td><td style="color:var(--cyan)">&minus;0.206</td></tr>
+            <tr class="row-highlight"><td><strong>DiffusionGemma 26B (local)</strong></td><td><strong>0.505</strong></td><td>0.397</td><td style="color:var(--gold)">+0.108</td><td style="color:var(--cyan)">&minus;0.199</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="gap-cards">
+        <div class="glass-card gap-card">
+          <h3>Local model, grounded, beats frontier bare</h3>
+          <p>DiffusionGemma 26B runs on a single local GPU with zero API cost and no data exfiltration. Grounded in the ontology, it scores 0.505, above every frontier cloud model running without grounding. For regulated environments where data cannot leave the organisation, this is the relevant comparison.</p>
+        </div>
+        <div class="glass-card gap-card">
+          <h3>Frontier models gain more</h3>
+          <p>Claude Opus with ontology reaches 0.770. DiffusionGemma&rsquo;s own lift from grounding is +0.108 vs. Opus&rsquo;s +0.420. The ontology is a capability multiplier that scales with the base model. Grounding does not make a small model equivalent to a large one; it makes both better, and the large one benefits more.</p>
+        </div>
+        <div class="glass-card gap-card">
+          <h3>Hallucination halves</h3>
+          <p>Across all 7 models, grounding drops hallucination from 0.529 to 0.177. Models with ontology access reproduce the KG&rsquo;s exact class names; models without it generate plausible but off-vocabulary terms.</p>
+        </div>
+      </div>
+
+      <div class="callout">
+        <p>16 questions, 7 models, 3 repetitions, 7,445 OWL classes, deterministic grading. These are domain-specific factual recall results on a single ontology, not a general-purpose benchmark. The <a href="https://github.com/DreamLab-AI/VisionClaw/blob/main/docs/eval/report.pdf" target="_blank" rel="noopener" style="color:var(--gold)">full report (PDF)</a> covers method, per-question breakdowns, cost analysis, and detailed caveats on interpreting the lift.</p>
       </div>
     </div>
   </section>
