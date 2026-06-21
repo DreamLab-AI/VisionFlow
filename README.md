@@ -20,7 +20,7 @@
 
 ---
 
-**Federated coordination · Self-sovereign data · OWL 2 EL reasoning · Nostr message passing · Cryptographic provenance · Human-in-the-loop governance · GPU-accelerated sense-making**
+**Federated coordination · Self-sovereign data · OWL 2 EL + SHACL reasoning · W3C PROV-O provenance · Nostr message passing · Human-in-the-loop governance · GPU-accelerated sense-making**
 
 <br/>
 
@@ -124,7 +124,7 @@ flowchart TB
     end
 
     subgraph VC["VisionClaw — Knowledge Engineering"]
-        OWL["OWL 2 EL Reasoning\n(Whelk-rs)"]
+        OWL["OWL 2 EL + SHACL\n(Whelk-rs + PROV-O)"]
         GPU["92 CUDA Kernels\n(semantic physics)"]
         XR["Immersive XR\n(multi-user)"]
         MCP_VC["7 MCP Ontology Tools"]
@@ -193,10 +193,11 @@ The shared semantic substrate where humans and agents reason together. [VisionCl
 
 | Capability | Detail |
 |:-----------|:-------|
-| **Ontology reasoning** | OWL 2 EL inference engine (Whelk-rs) — `subClassOf` → attraction, `disjointWith` → repulsion in GPU physics |
+| **Ontology reasoning** | OWL 2 EL inference engine (Whelk-rs) + W3C SHACL shape validation (dual-mode gate) — `subClassOf` → attraction, `disjointWith` → repulsion in GPU physics |
 | **GPU physics** | 92 CUDA kernels across 11 files (6,585 LOC), 55x speedup vs CPU, force-directed + semantic forces + stress majorisation |
 | **Immersive XR** | Native Godot 4 + godot-rust + OpenXR client (Meta Quest 3 APK) + React Three Fiber (desktop), same binary protocol and `did:nostr` identity for multi-user presence |
 | **MCP tools** | 7 ontology tools: discover, read, query, traverse, propose, validate, status |
+| **W3C provenance** | PROV-O reified as queryable RDF in append-only named graph — every decision traceable via SPARQL |
 | **Hexagonal architecture** | 9 ports, 12 adapters, 114 CQRS handlers, 23 Actix actors |
 | **GPU analytics** | K-Means clustering, Louvain communities, LOF anomaly detection, PageRank centrality — all on GPU |
 

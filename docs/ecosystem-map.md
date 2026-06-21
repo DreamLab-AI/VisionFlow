@@ -24,7 +24,7 @@ VisionFlow is not a single executable. It is a coordination architecture that em
 | Substrate | Primary responsibility | Boundary |
 |---|---|---|
 | VisionFlow | Ecosystem narrative, public positioning, repository map, shared coordination model | Documentation and website surface |
-| VisionClaw | Knowledge engineering: OWL 2 EL reasoning, GPU graph physics, XR, 7 native MCP ontology tools, IS-Envelope spec owner (ADR-075), Judgment Broker (distributed: enrichment gating, BrokerActor on crashbug branch), embodied agent-loop renderer (beam + gluon over `/wss/agent-events`, ADR-059) | GPU host / graph backend / semantic workbench / embodiment surface |
+| VisionClaw | Knowledge engineering: OWL 2 EL + W3C SHACL reasoning, W3C PROV-O provenance reification, GPU graph physics, XR, 7 native MCP ontology tools, IS-Envelope spec owner (ADR-075), Judgment Broker (distributed: enrichment gating, BrokerActor on crashbug branch), embodied agent-loop renderer (beam + gluon over `/wss/agent-events`, ADR-059) | GPU host / graph backend / semantic workbench / embodiment surface |
 | agentbox | Reproducible sovereign agent runtime with Nix, 90+ skills, 180+ MCP tools, 10-tool ontology bridge to VisionClaw SPARQL, browser setup wizard, privacy filtering, Nostr/Solid identity | Agent container and harness |
 | solid-pod-rs | Solid/JSS foundation: LDP, WAC, NIP-98, DID:Nostr, WebID, OIDC, git pods | Shared protocol library and native pod server |
 | nostr-rust-forum | Governance UI and relay kit: passkey auth, Cloudflare Workers, Agent Control Surface events | Human decision surface and Nostr relay edge |

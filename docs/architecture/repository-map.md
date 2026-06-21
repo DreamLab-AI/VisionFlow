@@ -8,7 +8,7 @@ VisionFlow is a federated ecosystem. No single repository contains the whole run
 | Repository | Local path | Role | Primary docs entry |
 |---|---|---|---|
 | VisionFlow | `../VisionFlow` | Ecosystem guide, public website, coordination architecture | `README.md`, `docs/ecosystem-map.md` |
-| VisionClaw | `../project` | Knowledge engineering, OWL reasoning, GPU graph physics, XR, MCP tools, Judgment Broker, embodied agent-loop renderer (beam + gluon over `/wss/agent-events`, ADR-059) | `README.md`, `docs/PRD-010-did-nostr-mesh-federation.md`, `docs/PRD-014-ecosystem-productionisation.md`, `docs/PRD-015-ecosystem-code-hygiene.md` |
+| VisionClaw | `../project` | Knowledge engineering, OWL + SHACL reasoning, W3C PROV-O provenance, GPU graph physics, XR, MCP tools, Judgment Broker, embodied agent-loop renderer (beam + gluon over `/wss/agent-events`, ADR-059) | `README.md`, `docs/PRD-010-did-nostr-mesh-federation.md`, `docs/PRD-014-ecosystem-productionisation.md`, `docs/PRD-015-ecosystem-code-hygiene.md` |
 | agentbox | `../project/agentbox` | Sovereign agent runtime, Nix container, skills/tools, Solid pod and Nostr bridge | `README.md`, `docs/developer/ecosystem.md`, `docs/developer/identity-mesh.md` |
 | solid-pod-rs | `../solid-pod-rs` | Solid/JSS foundation library and server: LDP, WAC, NIP-98, DID:Nostr, git pods | `README.md`, `crates/solid-pod-rs/docs/explanation/ecosystem-integration.md`, `crates/solid-pod-rs/GAP-ANALYSIS.md` |
 | nostr-rust-forum | `../nostr-rust-forum` | Forum kit, Cloudflare Workers, passkey auth, relay, governance UI | `README.md`, `docs/architecture.md`, `docs/consumer-surface-map.md` |
