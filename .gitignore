@@ -7,3 +7,52 @@ test-results/
 docs/releases/ecosystem-release.local.json
 
 .env
+.env.*
+
+# Dev backend stubs (install deps locally)
+scripts/dev-backends/node_modules/
+
+# ── Unity (VisionFlow Quest module) ─────────────────────────────────────────
+UnityProject/**/[Ll]ibrary/
+UnityProject/**/[Tt]emp/
+UnityProject/**/[Oo]bj/
+UnityProject/**/[Bb]uild/
+UnityProject/**/[Bb]uilds/
+UnityProject/**/[Ll]ogs/
+UnityProject/**/[Uu]ser[Ss]ettings/
+UnityProject/**/MemoryCaptures/
+UnityProject/**/Recordings/
+UnityProject/**/AssetStoreTools/
+
+# IDE / OS
+UnityProject/**/.vs/
+UnityProject/**/.vscode/
+UnityProject/**/.cursor/
+UnityProject/**/*.csproj
+UnityProject/**/*.sln
+UnityProject/**/*.suo
+UnityProject/**/*.user
+UnityProject/**/*.userprefs
+UnityProject/**/*.pidb
+UnityProject/**/*.booproj
+UnityProject/**/*.svd
+UnityProject/**/*.pdb
+UnityProject/**/*.mdb
+UnityProject/**/*.opendb
+UnityProject/**/*.VC.db
+
+# Bulk template / sample content (restore via Package Manager + Bootstrap menu)
+UnityProject/VisionFlow/Assets/Samples/
+UnityProject/VisionFlow/Assets/MRTabletopAssets/
+UnityProject/VisionFlow/Assets/JsonDotNet/
+UnityProject/VisionFlow/Assets/CompositionLayers/
+UnityProject/VisionFlow/Assets/XR/
+UnityProject/VisionFlow/Assets/XRI/
+UnityProject/VisionFlow/Assets/XRMP/
+UnityProject/VisionFlow/Assets/Editor/
+UnityProject/VisionFlow/Assets/Scenes/
+UnityProject/VisionFlow/Assets/Resources/
+UnityProject/VisionFlow/Assets/TextMesh Pro/
+
+# Keep only VisionFlow module assets + crypto plugin + IL2CPP link.xml
+# (VisionFlow/, Plugins/, link.xml are NOT ignored)

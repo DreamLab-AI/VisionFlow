@@ -1,0 +1,15 @@
+{
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8484
+  },
+  "storage": {
+    "kind": "fs",
+    "root": "/data/pod-root"
+  },
+  "auth": {
+    "nip98": {
+      "enabled": true
+    }
+  }
+}
