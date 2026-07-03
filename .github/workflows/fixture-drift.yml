@@ -1,11 +1,28 @@
 # Fixture Drift Detection
 #
-# Checks that protocol fixture copies within VisionFlow stay in sync with
-# the canonical VisionClaw source. Cross-repo checks (solid-pod-rs,
-# nostr-rust-forum, agentbox) require running the script locally:
+# HONEST SCOPE (2026-07-03): in GitHub Actions this workflow is a LOCAL-ONLY
+# TOOL, not an enforcing cross-repo gate. VisionFlow carries no canonical
+# fixture corpus of its own, so in CI the locate step below always sets
+# has_canonical=false and the job exits green via the "No fixtures to check"
+# branch. It can never diff against the sibling repos from CI as configured.
 #
-#   ./scripts/check-fixture-drift.sh /path/to/solid-pod-rs/crates/solid-pod-rs-nostr/tests/fixtures ...
+# The canonical corpus lives in the VisionClaw monorepo. It was relocated on
+# 2026-06-29 from `docs/specs/fixtures/` to `tests/fixtures/` — the old path
+# no longer exists (this is why the paths list below still names the removed
+# `docs/specs/fixtures/**`; that trigger is now dead until repointed).
 #
+# To make this an ACTUAL cross-repo gate, either:
+#   (a) add sibling-repo checkouts (deploy key / PAT) for VisionClaw,
+#       agentbox, solid-pod-rs and nostr-rust-forum, then pass their fixture
+#       dirs to the script with an explicit --canonical, OR
+#   (b) run the script locally, e.g.:
+#         ./scripts/check-fixture-drift.sh \
+#           --canonical /path/to/VisionClaw/tests/fixtures \
+#           /path/to/agentbox/tests/contract/upstream_vectors \
+#           /path/to/solid-pod-rs/crates/solid-pod-rs-nostr/tests/fixtures \
+#           /path/to/nostr-rust-forum/tests/fixtures
+#
+# Until (a) is wired, treat this as a convenience runner, not a merge gate.
 # See scripts/check-fixture-drift.sh --help for full usage.
 
 name: Fixture Drift Check
@@ -103,15 +120,18 @@ jobs:
 
           ./scripts/check-fixture-drift.sh "${ARGS[@]}"
 
-      - name: No fixtures to check
+      - name: No fixtures to check (local-only tool, not an enforcing gate)
         if: steps.locate.outputs.has_canonical != 'true' || steps.locate.outputs.copy_count == '0'
         run: |
-          echo "No co-located fixture copies found within VisionFlow."
+          echo "No co-located fixture copies found within VisionFlow — this is expected."
+          echo "In CI this workflow is a LOCAL-ONLY tool: VisionFlow carries no canonical"
+          echo "corpus, so no cross-repo drift is enforced here. It always reaches this branch."
           echo ""
-          echo "For cross-repo drift detection, run locally:"
+          echo "For real cross-repo drift detection, run locally against the current"
+          echo "canonical location (VisionClaw tests/fixtures, moved there 2026-06-29):"
           echo ""
           echo "  ./scripts/check-fixture-drift.sh \\"
-          echo "    --canonical /path/to/VisionClaw/docs/specs/fixtures \\"
+          echo "    --canonical /path/to/VisionClaw/tests/fixtures \\"
           echo "    /path/to/agentbox/tests/contract/upstream_vectors \\"
           echo "    /path/to/solid-pod-rs/crates/solid-pod-rs-nostr/tests/fixtures \\"
           echo "    /path/to/nostr-rust-forum/tests/fixtures"
