@@ -118,7 +118,7 @@ Deliver a public-facing marketing and technical reference site for the VisionFlo
 
 | Substrate | Key facts to surface |
 |---|---|
-| VisionClaw | Knowledge engineering; OWL 2 EL reasoning; 92 CUDA kernels |
+| VisionClaw | Knowledge engineering; OWL 2 EL reasoning; 82 CUDA kernels (9 `.cu` files, 5,854 LOC) |
 | Agentbox | Hardened agent runtime; 90+ skills; 180+ tools |
 | solid-pod-rs | Rust Solid Protocol implementation; DID:Nostr identity; WAC; Web Ledgers |
 | nostr-rust-forum | Governance UI; passkey authentication; Agent Control Surface Protocol |

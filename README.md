@@ -4,7 +4,7 @@
 
 ### Coordination Engineering for Federated Human–AI Intelligence
 
-[![License](https://img.shields.io/badge/License-MPL%202.0%20%2B%20AGPL%203.0-blue?style=flat-square)](docs/architecture/licensing.md)
+[![License](https://img.shields.io/badge/License-MPL%202.0%20%2B%20AGPL%203.0%20(proposed)-blue?style=flat-square)](docs/architecture/licensing.md)
 [![Substrates](https://img.shields.io/badge/Substrates-5%20federated-8b5cf6?style=flat-square)](docs/architecture/repository-map.md)
 [![Identity](https://img.shields.io/badge/Identity-did%3Anostr-10b981?style=flat-square)](docs/protocol/identity-spine.md)
 
@@ -125,7 +125,7 @@ flowchart TB
 
     subgraph VC["VisionClaw — Knowledge Engineering"]
         OWL["OWL 2 EL + SHACL\n(Whelk-rs + PROV-O)"]
-        GPU["92 CUDA Kernels\n(semantic physics)"]
+        GPU["82 CUDA Kernels\n(semantic physics)"]
         XR["Immersive XR\n(multi-user)"]
         MCP_VC["7 MCP Ontology Tools"]
     end
@@ -187,18 +187,18 @@ No shared session store. No token exchange between tiers. The cryptographic prim
 
 ![VisionClaw GPU-accelerated graph](assets/screenshots/visionclaw-graph-live.png)
 
-*GPU-accelerated force-directed graph — 934 nodes responding to spring, repulsion, and ontology-driven semantic forces in real time*
+*GPU-accelerated force-directed graph — the live 17,000+-node nucleus responding to spring, repulsion, and ontology-driven semantic forces in real time*
 
 The shared semantic substrate where humans and agents reason together. [VisionClaw](https://github.com/DreamLab-AI/VisionClaw) ingests knowledge from Logseq notebooks via GitHub, applies OWL 2 EL formal reasoning through [Whelk-rs](https://github.com/INCATools/whelk-rs), renders it as an interactive 3D graph where nodes attract or repel based on semantic relationships, and exposes everything to AI agents through 7 Model Context Protocol tools.
 
 | Capability | Detail |
 |:-----------|:-------|
 | **Ontology reasoning** | OWL 2 EL inference engine (Whelk-rs) + W3C SHACL shape validation (dual-mode gate) — `subClassOf` → attraction, `disjointWith` → repulsion in GPU physics |
-| **GPU physics** | 92 CUDA kernels across 11 files (6,585 LOC), 55x speedup vs CPU, force-directed + semantic forces + stress majorisation |
+| **GPU physics** | 82 CUDA kernels across 9 files (5,854 LOC), 55x speedup vs CPU, force-directed + semantic forces + stress majorisation |
 | **Immersive XR** | Native Godot 4 + godot-rust + OpenXR client (Meta Quest 3 APK) + React Three Fiber (desktop), same binary protocol and `did:nostr` identity for multi-user presence |
 | **MCP tools** | 7 ontology tools: discover, read, query, traverse, propose, validate, status |
 | **W3C provenance** | PROV-O reified as queryable RDF in append-only named graph — every decision traceable via SPARQL |
-| **Hexagonal architecture** | 9 ports, 12 adapters, 114 CQRS handlers, 23 Actix actors |
+| **Hexagonal architecture** | 9 ports, 12 adapters, 44 hexser handlers (19 directive + 25 query), no CQRS bus (ADR-089), 35 Actix actors |
 | **GPU analytics** | K-Means clustering, Louvain communities, LOF anomaly detection, PageRank centrality — all on GPU |
 
 **Key insight:** The ontology isn't just metadata. When `subClassOf` creates attraction and `disjointWith` creates repulsion in the GPU physics engine, the graph's spatial layout *is* the reasoning result. Humans see patterns emerge; agents traverse them algorithmically. The same formal vocabulary means "Deliverable" has the same meaning for a Creative Production agent and a Governance agent.
@@ -776,7 +776,7 @@ For the docs-only local ecosystem synthesis, see [Ecosystem Map](docs/ecosystem-
 | Substrate | Repository | Role | Key Technology |
 |:----------|:-----------|:-----|:---------------|
 | **VisionFlow** | [DreamLab-AI/VisionFlow](https://github.com/DreamLab-AI/VisionFlow) | Ecosystem guide and coordination architecture | This repository |
-| **VisionClaw** | [DreamLab-AI/VisionClaw](https://github.com/DreamLab-AI/VisionClaw) | Knowledge engineering substrate | OWL 2 EL, 92 CUDA kernels, multi-user XR, 7 MCP tools |
+| **VisionClaw** | [DreamLab-AI/VisionClaw](https://github.com/DreamLab-AI/VisionClaw) | Knowledge engineering substrate | OWL 2 EL, 82 CUDA kernels, multi-user XR, 7 MCP tools |
 | **Agentbox** | [DreamLab-AI/agentbox](https://github.com/DreamLab-AI/agentbox) | Harness engineering runtime | Nix flakes, 90+ skills, 180+ tools, sovereign Solid pods |
 | **solid-pod-rs** | [DreamLab-AI/solid-pod-rs](https://github.com/DreamLab-AI/solid-pod-rs) | Cryptographic foundation | JSS Rust port, DID:Nostr, WAC, Web Ledgers, HTTP 402 |
 | **nostr-rust-forum** | [DreamLab-AI/nostr-rust-forum](https://github.com/DreamLab-AI/nostr-rust-forum) | Forum kit | 12 crates, passkey auth, governance event routing |
@@ -788,7 +788,7 @@ For the docs-only local ecosystem synthesis, see [Ecosystem Map](docs/ecosystem-
 
 | Deployment | Context | Scale |
 |:-----------|:--------|:------|
-| **DreamLab Creative Hub** | 50-person creative technology team — live production | ~998 knowledge graph nodes, daily ontology mutations |
+| **DreamLab Creative Hub** | 50-person creative technology team — live production | 17,000+ knowledge graph nodes, daily ontology mutations |
 | **University of Salford** | Research partnership validating semantic force-directed layout | Multi-institution ontology |
 | **THG World Record** | Large-scale multi-user immersive data visualisation | 250+ concurrent XR users |
 
