@@ -1,7 +1,7 @@
 # ADR-001: visionflow.info Website Technology Stack
 
 **Date:** 2026-05-20
-**Status:** Accepted
+**Status:** Accepted (Decisions 2 and 4 superseded/amended in implementation — see their per-decision Status lines)
 **Deciders:** DreamLab AI
 
 ---
@@ -30,11 +30,11 @@ VisionFlow requires a public marketing website at visionflow.info. The site must
 
 ---
 
-### 2. Tailwind CSS via Play CDN
+### 2. Tailwind CSS via Play CDN — Superseded in Implementation
 
-**2026-05-20 amendment:** The current implementation uses local static CSS rather than Tailwind Play CDN. Treat this decision as superseded in implementation until a follow-up ADR either adopts local CSS as the permanent path or reinstates a Tailwind build/CDN strategy.
+**Status:** Superseded in implementation (2026-05-20). The site ships **local static CSS**, not the Tailwind Play CDN. The decision text below is retained for history only — do not read it as the current approach. A follow-up ADR should either adopt local CSS as the permanent path or reinstate a Tailwind build/CDN strategy.
 
-**Decision:** Style via Tailwind CSS Play CDN (`<script src="https://cdn.tailwindcss.com">`). No PostCSS build step.
+**Decision (original, superseded):** Style via Tailwind CSS Play CDN (`<script src="https://cdn.tailwindcss.com">`). No PostCSS build step.
 
 **Rationale:**
 - Eliminates a Node.js build pipeline for CSS, keeping the toolchain to Rust/wasm-pack only.
@@ -64,11 +64,11 @@ VisionFlow requires a public marketing website at visionflow.info. The site must
 
 ---
 
-### 4. GitHub Actions Deployment to gh-pages
+### 4. GitHub Actions Deployment to gh-pages — Amended in Implementation
 
-**2026-05-20 amendment:** The current workflow uses GitHub Pages artifact upload/deploy actions rather than manually pushing a built `dist/` directory to the `gh-pages` branch. The deployment target remains GitHub Pages.
+**Status:** Amended in implementation (2026-05-20). The workflow deploys via the **GitHub Pages artifact upload/deploy actions**, not a manual push of a built `dist/` directory to the `gh-pages` branch. The deployment target (GitHub Pages) and the CNAME mapping are unchanged; only the publish mechanism below is superseded.
 
-**Decision:** CI/CD via GitHub Actions: build WASM with wasm-pack, assemble static assets, push to `gh-pages` branch. Domain mapped via CNAME record pointing visionflow.info at the Pages endpoint.
+**Decision (publish mechanism superseded — see Status):** CI/CD via GitHub Actions: build WASM with wasm-pack, assemble static assets, push to `gh-pages` branch. Domain mapped via CNAME record pointing visionflow.info at the Pages endpoint.
 
 **Rationale:**
 - Zero hosting cost; fully managed TLS via GitHub Pages.

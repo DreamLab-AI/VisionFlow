@@ -1,9 +1,11 @@
 # ADR-003: Judgment Broker Distributed Architecture
 
-**Status:** Accepted
+**Status:** Accepted (2026-07-03: 2 of 3 identified gaps closed — see amendment below)
 **Date:** 2026-05-22
 **Decision Owners:** DreamLab AI maintainers
-**Related:** [ADR-002 Ecosystem Alignment Governance](ADR-002-ecosystem-alignment-governance.md), [ADR-075 IS-Envelope (VisionClaw)](https://github.com/DreamLab-AI/VisionClaw), [agentbox ADR-005 Pluggable Adapters](https://github.com/DreamLab-AI/agentbox/blob/main/docs/reference/adr/ADR-005-pluggable-adapter-architecture.md)
+**Related:** [ADR-002 Ecosystem Alignment Governance](ADR-002-ecosystem-alignment-governance.md), [ADR-075 IS-Envelope (VisionClaw)](https://github.com/DreamLab-AI/VisionClaw), [agentbox ADR-005 Pluggable Adapters](https://github.com/DreamLab-AI/agentbox/blob/main/docs/reference/adr/ADR-005-pluggable-adapter-architecture.md), [closeout final-design](closeout/final-design.md)
+
+> **2026-07-03 closeout amendment.** The "35% gap" inventory below is stale: 2 of its 3 gaps are closed. Gap 1 (decision application) is **implemented** — `handleGovernanceDecision` mints PROV-O activity/receipt URNs and dispatches to agent stdin or the pod (`agentbox/management-api/adapters/orchestrator/local-process-manager.js:122`, `stdio-bridge.js:72`), merged 2026-05-22 (`e1a8d716`). Gap 2 (agent MCP tools) is **shipped** — five governance tools (`publish_panel`/`request_action`/`update_panel`/`retire_panel`/`list_decisions`) ship in `agentbox/mcp/mcp.json`. Only Gap 3 (the distributed BrokerActor merge, D5) remains open, and note that main shipped a *different* architecture — an inline decide/inbox handler + ADR-110 ElevationActor with a real Oxigraph write-back — so the distributed BrokerActor on `crashbug` is now an unmerged alternative, not the only path to closure. The "65% implemented" framing understates current completion.
 
 ## Context
 
@@ -25,11 +27,11 @@ The implementation is not concentrated in one place because the broker's respons
 | VisionClaw | BrokerActor (crashbug branch) | ~400 | scaffolded |
 | VisionClaw | IS-Envelope spec (ADR-075) | -- | integrated |
 
-### Identified Gaps (35%)
+### Identified Gaps (original inventory — see 2026-07-03 amendment above for current status)
 
-1. **Decision application.** `handleGovernanceDecision` on the agentbox orchestrator adapter is stubbed. Decisions reach agentbox via relay but are not dispatched to any adapter method.
-2. **Agent MCP tools.** No composable tool interface exists for agents to publish panels or request actions. Agents can write to the outbox directory, but this is not a stable API.
-3. **BrokerActor merge.** The VisionClaw BrokerActor lives on the crashbug branch and has not been merged to main.
+1. **Decision application.** ~~`handleGovernanceDecision` on the agentbox orchestrator adapter is stubbed.~~ **RESOLVED (2026-05-22, `e1a8d716`).** `handleGovernanceDecision` is fully implemented: it parses the decision, mints PROV-O activity/receipt URNs, and dispatches to agent stdin or persists to the pod.
+2. **Agent MCP tools.** ~~No composable tool interface exists for agents to publish panels or request actions.~~ **RESOLVED.** Five governance MCP tools ship in `agentbox/mcp/mcp.json` (`publish_panel`, `request_action`, `update_panel`, `retire_panel`, `list_decisions`).
+3. **BrokerActor merge.** The VisionClaw BrokerActor lives on the `crashbug` branch and has not been merged to main. **OPEN** — but main shipped an inline decide/inbox + ElevationActor architecture instead (with a real Oxigraph write-back), so this is now a choice between merging the distributed actor or descoping it, not a blocking gap in the decision loop.
 
 ## Decision
 
@@ -68,11 +70,11 @@ VisionClaw's BrokerActor (crashbug branch, ~400 lines) publishes PanelDefinition
 
 ### D6: Decision application is the critical gap
 
-The `handleGovernanceDecision` method on the agentbox orchestrator adapter must be implemented. Without it, human decisions reach agentbox but are silently dropped. Agents do not learn from human judgments.
+**Resolved (2026-05-22).** The `handleGovernanceDecision` method on the agentbox orchestrator adapter is implemented, minting PROV-O provenance and dispatching decisions to agent stdin or the pod. The original premise that decisions were "silently dropped" no longer holds. (Note: agentbox-*originated* cases still route to a BrokerActor absent from main — see GOV-3 in the closeout register — but forum-originated decisions are applied.)
 
 ### D7: Agent MCP tools for governance are needed
 
-Agents need composable MCP tools to publish panels and request actions. The current outbox-directory mechanism is an implementation detail, not a stable interface.
+**Resolved.** Five composable governance MCP tools ship in `agentbox/mcp/mcp.json` (`publish_panel`, `request_action`, `update_panel`, `retire_panel`, `list_decisions`), superseding the outbox-directory mechanism as a stable interface.
 
 ## Alternatives Considered
 
@@ -98,8 +100,8 @@ Agents need composable MCP tools to publish panels and request actions. The curr
 
 ### Risks
 
-- The 35% implementation gap means decisions currently reach agentbox but are not applied. Until D6 and D7 are addressed, the broker is observe-only from the agent's perspective.
-- BrokerActor remaining on a feature branch (D5) means VisionClaw's canonical event publishing path is not part of any release.
+- ~~The 35% implementation gap means decisions currently reach agentbox but are not applied.~~ **Superseded (2026-07-03):** D6 and D7 are resolved; forum-originated decisions are applied with provenance. The residual risk is narrower — agentbox-originated cases still lack a consumer on main (closeout GOV-3), and the flagship elevation loop has no `ConceptElevated` closing event (GOV-2).
+- BrokerActor remaining on a feature branch (D5) means the distributed event-publishing path is not part of any release; main runs the inline decide/inbox + ElevationActor path instead.
 
 ## Substrate Ownership Summary
 
