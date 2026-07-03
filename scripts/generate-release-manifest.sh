@@ -8,13 +8,15 @@ repo_json() {
   local name="$1"
   local path="$2"
   local abs="$WORKSPACE/$path"
-  if [[ ! -d "$abs/.git" ]]; then
+  local head branch dirty
+  # Detect a repo with `git rev-parse`, not `-d "$abs/.git"`: a git submodule's
+  # .git is a gitdir *file* (not a directory), so the old check flagged the
+  # agentbox submodule as "missing" even at its correct path.
+  if ! head="$(git -C "$abs" rev-parse HEAD 2>/dev/null)"; then
     printf '    {"name":"%s","path":"../%s","head":"%040d","branch":"missing","dirty":true}' "$name" "$path" 0
     return
   fi
 
-  local head branch dirty
-  head="$(git -C "$abs" rev-parse HEAD)"
   branch="$(git -C "$abs" branch --show-current)"
   if [[ -n "$(git -C "$abs" status --short)" ]]; then
     dirty=true
@@ -32,7 +34,7 @@ cat <<JSON
   "repositories": [
 $(repo_json "VisionFlow" "VisionFlow"),
 $(repo_json "VisionClaw" "project"),
-$(repo_json "agentbox" "agentbox"),
+$(repo_json "agentbox" "project/agentbox"),
 $(repo_json "solid-pod-rs" "solid-pod-rs"),
 $(repo_json "nostr-rust-forum" "nostr-rust-forum"),
 $(repo_json "dreamlab-ai-website" "dreamlab-ai-website")
