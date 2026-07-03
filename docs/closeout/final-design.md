@@ -4,20 +4,22 @@
 **Date:** 2026-07-03
 **Method:** Ruflo mesh (`swarm_1783067180317_99wd065`), Fable queen coordination. 22 Opus gap analysts + 10 Sonnet 5 / agentic-qe auditors (32 agents, ~3.1M tokens, 1,045 tool invocations), two GLM-5.2 adversarial collaboration passes. Every finding carries file:line or command-output evidence; the two swarms ran independently and converged on the same systemic diagnosis.
 **Supersedes:** the Gap Register (G1–G8) in `docs/ecosystem-map.md` (dated 2026-05-22/30), which this analysis found stale in both directions.
-**Machine-readable register:** [`unified-findings-register.json`](unified-findings-register.json) — 286 findings (25 P0 / 79 P1 / 110 P2 / 72 P3), tagged by source swarm, scope, kind, severity, evidence.
+**Machine-readable register:** [`unified-findings-register.json`](unified-findings-register.json) — 286 findings across the initial sweep, tagged by source swarm, scope, kind, severity, evidence.
+
+**Scope (revised 2026-07-03):** This closeout covers the **six VisionFlow substrates** — VisionFlow, VisionClaw, agentbox, nostr-rust-forum, solid-pod-rs, dreamlab-ai-website. The initial analysis also swept two adjacent repositories, **ruvector** (the vector-memory backend) and **RuView** (WiFi-DensePose sensing). Both are **descoped**: they are external products the ecosystem *consumes*, not VisionFlow code. Their findings are retained below for reference and their closeout branches (ruvector 8 commits, RuView 6 commits) remain on their own repositories for independent disposition, but they are **excluded from the VisionFlow totals, triage, and roadmap**. Numbers below are for the six substrates only unless a line is explicitly marked *(descoped)*.
 
 ---
 
 ## 1. Executive Summary
 
-The VisionFlow ecosystem is **substantially built and dangerously misdescribed**. Across 323 ADRs audited in nine repo slices, 202 (63%) are genuinely implemented and verify in code — including work the canon still lists as open. The governance decision loop, the BC20 provenance bridge, the no-Tokio pod core extraction, and the 2026-05-30 provenance loops all shipped and merged. This is a real system, not vapourware.
+The VisionFlow ecosystem is **substantially built and dangerously misdescribed**. Across 187 ADRs audited in the six substrates, 110 (59%) are genuinely implemented and verify in code — including work the canon still lists as open. The governance decision loop, the BC20 provenance bridge, the no-Tokio pod core extraction, and the 2026-05-30 provenance loops all shipped and merged. This is a real system, not vapourware.
 
 The closeout problem is not missing product code. It is a **failed immune system**. The 25 P0 findings cluster almost entirely in enforcement and truth infrastructure:
 
 - **CI theatre** — thousands of tests exist that no CI trigger ever runs.
 - **Truth decay** — 90 doc-drift findings; the canonical ecosystem map simultaneously understates shipped work and asserts capabilities (mesh federation, NIP-42, IS-Envelope routing, NIP-26) that exist nowhere.
 - **Trust-layer overstatement** — the PROV-O provenance emitter is dead code with zero production callers, and the SHACL shapes are never loaded, while current marketing commits advertise both.
-- **Silent degradation** — the ecosystem's semantic memory runs on hash-placeholder embeddings, and RuView's sensing/inference runs on simulated data and rule-based heuristics, all reporting success.
+- **Silent degradation (adjacent deps)** — the vector-memory and sensing backends the ecosystem consumes ship degraded default paths (hash-placeholder embeddings; simulated sensing) that report success silently. These live in the descoped ruvector/RuView repos; the operational reconciliation is in §3 T8.
 
 **Closeout verdict:** the system can be honestly closed out in one focused push, but the sequence matters. Enforcement first (Step Zero), then truth reconciliation, then the six remaining mechanism gaps. Fixing docs before CI, or features before either, re-drifts within weeks.
 
@@ -36,9 +38,9 @@ The audit's most consistent surprise: the ecosystem **understates its own progre
 | "G1: umbrella docs sparse" | Referenced entry-point docs now exist; premise resolved |
 | "G5: CF-portability core extraction undecided" | The no-Tokio `core` feature shipped; forum consumes published solid-pod-rs `0.5.0-alpha.3` with `default-features=false` |
 | ADR-003 "Judgment Broker 65% / 35% gap" | 2 of 3 listed gaps closed; only the BrokerActor main-merge remains |
-| ~40 "Proposed" ADRs across RuView, ruvector, agentbox, VisionClaw | Fully implemented in code (e.g. RuView ADR-029/030/031/033, ruvector ADR-045/057, agentbox ADR-023/034, VisionClaw ADR-112) |
+| ~25 "Proposed" ADRs across agentbox, VisionClaw | Fully implemented in code (e.g. agentbox ADR-023/034, VisionClaw ADR-112) |
 
-**ADR closeout table (per audited slice):**
+**ADR closeout table (six substrates):**
 
 | Repo slice | ADRs | Implemented | Partial | Unimplemented | Stale/superseded |
 |---|---|---|---|---|---|
@@ -48,12 +50,11 @@ The audit's most consistent surprise: the ecosystem **understates its own progre
 | agentbox | 35 | 27 | 6 | 0 | 2 |
 | nostr-rust-forum | 20 | 13 | 1 | 3 | 3 |
 | solid-pod-rs + website | 30 | 18 | 4 | 5 | 3 |
-| ruvector (first half) | 58 | 47 | 4 | 5 | 2 |
-| ruvector (second half) | 36 | 29 | 3 | 0 | 4 |
-| RuView | 42 | 16 | 15 | 10 | 1 |
-| **Total** | **323** | **202 (63%)** | **49** | **52** | **20** |
+| **Total (in scope)** | **187** | **110 (59%)** | **27** | **37** | **13** |
+| *ruvector (descoped)* | *94* | *76* | *7* | *5* | *6* |
+| *RuView (descoped)* | *42* | *16* | *15* | *10* | *1* |
 
-The unimplemented cluster is concentrated and legible: VisionClaw's second-half ADR range (the forum-kit convergence cluster 078–085, self-improving ontology stack 121–123, mobile bridge 092–097) and RuView's speculative security/consensus specs (007/008/010) account for most of it.
+The unimplemented cluster is concentrated and legible: VisionClaw's second-half ADR range (the forum-kit convergence cluster 078–085, self-improving ontology stack 121–123, mobile bridge 092–097) accounts for most of it.
 
 ---
 
@@ -66,7 +67,6 @@ The canon is stale **in both directions**. `ecosystem-map.md` misreports merged 
 
 ### T2 — Enforcement theatre (21 ci-gap findings; the P0 cluster)
 - VisionClaw: ~163 Rust test files + 42 Vitest suites, **no CI workflow builds or tests the backend at all**; the README build badge cites a `ci.yml` that has never existed.
-- ruvector: full workspace tests run **only on tag push** (not since v0.1.16); RVF, hyperbolic-HNSW and micro-hnsw crates are workspace-excluded — their suites can never run.
 - solid-pod-rs: CI never builds/tests/lints 6 of 7 workspace crates.
 - agentbox: ADR-005's "a red contract suite blocks merge" is contradicted by the actual required-check list; the nine SLO assertions are `it.todo()` stubs.
 - dreamlab-ai-website: the `ci-pass` aggregator gates on a `continue-on-error` Vitest job — structurally always green.
@@ -87,10 +87,11 @@ Real progress (see §2), but: **(bleed)** agentbox `broker-bridge` reports false
 ### T7 — Trust layer overstated (the Opus P0)
 The PROV-O reification emitter is **dead code: zero production callers** — no ingest, inference or BC20 crossing produces queryable provenance triples. The five `.shacl.ttl` NodeShapes are never loaded; the running validator is a hardcoded SHACL-lite Rust matcher. The ingest write path runs the SHACL gate **advisory-only** while the trust-status endpoint reports `writePaths='enforcing'`. VisionFlow's most recent commits advertise exactly these capabilities.
 
-### T8 — Silently degraded ML/infra substrates
-- ruvector: the default AgentDB embedding pipeline is a **hash placeholder, not MiniLM-L6-v2** (the local Candle MiniLM path is a stub that errors) — semantic search is degraded ecosystem-wide, including the RuVector memory system this workspace itself relies on. `ruvector-dag` ships forgeable placeholder ML-DSA/ML-KEM by default. Postgres multi-tenancy is a facade (quota accounting, no data movement). IVFFlat indexing reports success while indexing nothing; mincut gating decides on a hardcoded constant.
-- RuView: every real WiFi-CSI hardware adapter is unimplemented — sensing runs exclusively on simulated data; the NN inference layer silently substitutes rule-based heuristics while faking model loading; RVF export writes sine-wave placeholder weights; "hardware-validated on ESP32-S3" claims have no in-repo artifact.
-- All of this **succeeds silently**. Nothing warns operators that they are running degraded paths.
+### T8 — Silently degraded ML/infra substrates *(descoped — adjacent deps, retained for reference)*
+Both repos below are **external to VisionFlow** and descoped from this closeout (2026-07-03); their fixes are committed on their own branches. Findings retained because the ecosystem consumes them.
+- ruvector: the crate-*default* AgentDB embedding path is a **hash placeholder, not a semantic model** (the local Candle MiniLM path is a stub that errors). **Operational reconciliation:** the live VisionFlow deployment does **not** run this default — it embeds via the Xinference GPU sidecar (`bge-small-en-v1.5`, 384-dim), and `ruvector-postgres` holds 2.06M entries at 99.98% embedded with real vectors. So production semantic memory is **not** degraded; the risk is for standalone crate users, and the docs' "MiniLM-L6-v2" claim is a doc error (the deployment uses bge-small). `ruvector-dag` also ships forgeable placeholder ML-DSA/ML-KEM by default. All flagged with WARN logs on the ruvector closeout branch.
+- RuView: every real WiFi-CSI hardware adapter is unimplemented — sensing runs on simulated data; NN inference silently substitutes rule-based heuristics; RVF export writes placeholder weights. Simulation-first is now disclosed with WARN logs on the RuView closeout branch.
+- The generative lesson **kept in scope**: silent degraded-mode success is the anti-pattern; the in-scope response is F8 (loud degradation) applied to any VisionFlow substrate that adopts a fallback path.
 
 ### T9 — Harness engineering uncommitted and double-broken
 ADR-004 (Accepted) and ADR-005, the `docs/engineering/` template tree, `scripts/harness-audit.sh`, and the harness-fitness-gates CI workflow are **all untracked in git** — the gate has never run and cannot run. The pairing ratio contradicts across three sources (30% in ADR-004, 60% in the compatibility matrix, 100% from the audit script) — and the 100% is vacuous: it counts ID cross-references in hand-authored JSON whose `source` paths mostly do not exist. ADR-004's founding premise (`handleGovernanceDecision` stubbed) was disproven by code committed a month before the ADR was written.
@@ -109,7 +110,7 @@ Framework (adopted from GLM-5.2 collaboration, corrected by queen review): **Arc
 | # | Work | Why / contents |
 |---|---|---|
 | F0 | **Stop the bleed:** broker-bridge false write-back closure | Silent data loss on the governance write-back; honour `writeback_committed`, propagate real `broker_pubkey` |
-| F1 | **CI immune system (T2)** | Step Zero for everything else. VisionClaw backend CI; ruvector workspace tests on PR; solid-pod-rs all-crate CI; remove `continue-on-error` from gating jobs; un-exclude or explicitly quarantine excluded crates. A red suite must actually block merge |
+| F1 | **CI immune system (T2)** | Step Zero for everything else. VisionClaw backend CI; solid-pod-rs all-crate CI; remove `continue-on-error` from dreamlab gating jobs. A red suite must actually block merge |
 | F2 | **Trust layer minimal viable path (T7)** | Wire the PROV-O emitter into ingest/inference/BC20 crossings; load the real `.shacl.ttl` shapes; make the write-path gate enforce or make the status endpoint stop claiming it does |
 | F3 | **Identity spine minimal (T4)** | Adopt the shared solid-pod-rs 0.5.0 verifier in all four substrates; compile-guard Schnorr verification on; replay nonce on the native pod tier; real signature verification (or explicit unauthenticated downgrade) on `/wss/agent-events`; delete the NIP-26 row from the matrix until code exists |
 | F4 | **Fixture re-canonicalisation (T3)** | Pick the canonical `did-doc-conformance.json`, fix `sync-fixtures.sh` paths in all three consumers, un-skip crypto verification, make missing fixtures fail, fix the release-manifest generator, assign an owner to the event-kind registry |
