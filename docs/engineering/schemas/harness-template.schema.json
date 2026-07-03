@@ -1,0 +1,214 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://visionflow.dreamlab.ai/schemas/harness-template/v1",
+  "title": "HarnessTemplate",
+  "description": "Declarative bundle of guides, sensors, and their pairings for a specific substrate topology. Defined by ADR-004 and PRD-harness-engineering M2.",
+  "type": "object",
+  "required": ["version", "topology", "structure", "guides", "sensors", "pairings"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Optional reference to this schema for editor tooling"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version of this template instance"
+    },
+    "topology": {
+      "type": "string",
+      "description": "Named topology this template governs (e.g. agentbox-agent-task, governance-decision)"
+    },
+    "maturity": {
+      "type": "string",
+      "enum": ["planned", "scaffolded", "standalone", "integrated", "verified"],
+      "description": "Maturity level: planned (design only), scaffolded (schema exists), standalone (works in isolation), integrated (cross-substrate wired), verified (smoke-tested end-to-end)"
+    },
+    "structure": {
+      "type": "object",
+      "description": "Declares what exists in this topology: substrates, event kinds, and data flow graph",
+      "required": ["substrates"],
+      "additionalProperties": false,
+      "properties": {
+        "substrates": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "Repository substrates involved in this topology"
+        },
+        "event_kinds": {
+          "type": "array",
+          "items": { "type": "integer" },
+          "description": "Nostr event kinds consumed or produced (if applicable)"
+        },
+        "data_flows": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Flow" },
+          "description": "Directed data movement edges between substrates or components"
+        }
+      }
+    },
+    "guides": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Guide" },
+      "description": "Feedforward controls that shape behaviour before acting"
+    },
+    "sensors": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Sensor" },
+      "description": "Feedback controls that observe and correct after acting"
+    },
+    "pairings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Pairing" },
+      "description": "Bindings between guides and sensors declaring validation discipline"
+    },
+    "escalation_rules": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/EscalationRule" },
+      "description": "Actions triggered when sensor readings cross thresholds"
+    }
+  },
+  "$defs": {
+    "Flow": {
+      "type": "object",
+      "required": ["from", "to", "protocol", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "from": {
+          "type": "string",
+          "description": "Source substrate or component"
+        },
+        "to": {
+          "type": "string",
+          "description": "Destination substrate or component"
+        },
+        "protocol": {
+          "type": "string",
+          "description": "Wire protocol or transport (e.g. nostr-relay, HTTP-LDP, MCP, SPARQL)"
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of what flows along this edge"
+        }
+      }
+    },
+    "Guide": {
+      "type": "object",
+      "required": ["id", "type", "source", "applies_to", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_-]*$",
+          "description": "Unique identifier within this template"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["instruction", "schema", "constraint", "hook", "ontology_axiom"],
+          "description": "Classification: instruction (prose/config), schema (JSON Schema/OWL), constraint (invariant/threshold), hook (executable pre-check), ontology_axiom (OWL 2 EL axiom)"
+        },
+        "source": {
+          "type": "string",
+          "description": "File path, MCP tool name, or URL where the guide is defined"
+        },
+        "source_status": {
+          "type": "string",
+          "enum": ["present", "planned"],
+          "description": "Whether the source resolves to a real artifact in the named substrate today. present (default when omitted): the file/tool exists. planned: the guide is declared but its source does not yet exist — the pairing is aspirational, not backed by code."
+        },
+        "applies_to": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "Substrates this guide governs"
+        },
+        "description": {
+          "type": "string",
+          "description": "What this guide constrains or instructs"
+        }
+      }
+    },
+    "Sensor": {
+      "type": "object",
+      "required": ["id", "type", "source", "applies_to", "frequency", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_-]*$",
+          "description": "Unique identifier within this template"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["computational", "inferential"],
+          "description": "Computational: deterministic, fast, CPU-bound. Inferential: probabilistic, slower, LLM/GPU-bound."
+        },
+        "source": {
+          "type": "string",
+          "description": "Test file, MCP tool, CI script, or hook that implements this sensor"
+        },
+        "source_status": {
+          "type": "string",
+          "enum": ["present", "planned"],
+          "description": "Whether the source resolves to a real artifact in the named substrate today. present (default when omitted): the test/tool/monitor exists. planned: the sensor is declared but its implementation does not yet exist — the pairing is aspirational, not backed by code."
+        },
+        "applies_to": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "Substrates this sensor monitors"
+        },
+        "frequency": {
+          "type": "string",
+          "enum": ["per_change", "per_commit", "per_release", "continuous"],
+          "description": "How often the sensor runs: per_change (on save/edit), per_commit (CI), per_release (release gate), continuous (runtime monitor)"
+        },
+        "description": {
+          "type": "string",
+          "description": "What this sensor measures or validates"
+        }
+      }
+    },
+    "Pairing": {
+      "type": "object",
+      "required": ["guide_id", "sensor_id", "validation_mode"],
+      "additionalProperties": false,
+      "properties": {
+        "guide_id": {
+          "type": "string",
+          "description": "Reference to a Guide.id in this template"
+        },
+        "sensor_id": {
+          "type": "string",
+          "description": "Reference to a Sensor.id in this template"
+        },
+        "validation_mode": {
+          "type": "string",
+          "enum": ["blocking", "advisory", "learning"],
+          "description": "blocking: sensor failure prevents progression. advisory: sensor reports but does not block. learning: sensor feeds the learning service for future improvement."
+        }
+      }
+    },
+    "EscalationRule": {
+      "type": "object",
+      "required": ["sensor_id", "threshold", "action"],
+      "additionalProperties": false,
+      "properties": {
+        "sensor_id": {
+          "type": "string",
+          "description": "Reference to a Sensor.id in this template"
+        },
+        "threshold": {
+          "description": "Value or condition that triggers escalation (type depends on sensor)"
+        },
+        "action": {
+          "type": "string",
+          "enum": ["block", "warn", "file_issue", "auto_fix", "escalate_human"],
+          "description": "What happens when the threshold is crossed"
+        }
+      }
+    }
+  }
+}

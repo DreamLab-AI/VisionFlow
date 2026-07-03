@@ -1,0 +1,172 @@
+{
+  "$schema": "../schemas/harness-template.schema.json",
+  "version": "1.0.0",
+  "topology": "visionclaw-enrichment",
+  "maturity": "standalone",
+  "structure": {
+    "substrates": ["visionclaw"],
+    "data_flows": [
+      {
+        "from": "enrichment-proposal",
+        "to": "decide-endpoint",
+        "protocol": "internal",
+        "description": "Agent or external source submits an enrichment proposal (new triples, axiom changes); the decide endpoint gates it on attribution and consistency"
+      },
+      {
+        "from": "decide-endpoint",
+        "to": "oxigraph",
+        "protocol": "SPARQL",
+        "description": "Attributed, approved enrichment written to Oxigraph store via append_derived_summary after gating and OWL 2 EL consistency check"
+      },
+      {
+        "from": "oxigraph",
+        "to": "provenance-store",
+        "protocol": "internal",
+        "description": "PROV-O provenance is minted only on attributed broker approvals today; general ingest/BC20 crossings do not yet reify triples (see closeout T7)"
+      }
+    ]
+  },
+  "guides": [
+    {
+      "id": "owl2-el-constraints",
+      "type": "ontology_axiom",
+      "source": "visionclaw:crates/visionclaw-ontology/src/services/jsonld_validator/owl_el_profile.rs",
+      "source_status": "present",
+      "applies_to": ["visionclaw"],
+      "description": "OWL 2 EL profile constraints enforced by Whelk-rs reasoner. Enrichment proposals must not introduce inconsistency."
+    },
+    {
+      "id": "is-envelope-schema",
+      "type": "schema",
+      "source": "visionclaw:docs/adr/ADR-075-is-envelope-message-contract.md",
+      "source_status": "present",
+      "applies_to": ["visionclaw"],
+      "description": "IS-Envelope schema (ADR-075): canonical envelope for inter-substrate event payloads with version, schema hash, and DID attribution. Vectors are canonical; envelope routing over a mesh transport is not yet implemented in any substrate."
+    },
+    {
+      "id": "enrichment-proposal-schema",
+      "type": "schema",
+      "source": "visionclaw:tests/fixtures/schemas/enrichment-proposal.schema.json",
+      "source_status": "planned",
+      "applies_to": ["visionclaw"],
+      "description": "JSON Schema for enrichment proposals: required fields include subject IRI, predicate, object, provenance source, and confidence score. PLANNED — the proposal shape is defined in code (src/handlers/enrichment_proposals_handler.rs + migrations/sqlite/0003_enrichment_proposals.sql) but no standalone JSON Schema fixture exists yet."
+    },
+    {
+      "id": "ontology-bridge-mcp-constraints",
+      "type": "constraint",
+      "source": "agentbox:mcp/servers/ontology-bridge.js",
+      "source_status": "present",
+      "applies_to": ["visionclaw"],
+      "description": "12 MCP tools constrain how agents query and propose mutations to the knowledge graph via the ontology bridge (health, search, class_get/list, axiom_add, propose, validate, graph_query, kg_node_search, kg_neighbors, kg_pathfind, ontology_ask)"
+    },
+    {
+      "id": "prov-o-schema",
+      "type": "schema",
+      "source": "visionclaw:crates/visionclaw-adapters/src/provenance_emitter.rs",
+      "source_status": "present",
+      "applies_to": ["visionclaw"],
+      "description": "W3C PROV-O reification emitter (reify_activity): produces an Activity linking wasGeneratedBy, wasAssociatedWith, and used relations. The emitter exists but is currently wired only to attributed broker approvals, not to general ingest (see closeout T7)."
+    }
+  ],
+  "sensors": [
+    {
+      "id": "oxigraph-health-check",
+      "type": "computational",
+      "source": "visionclaw:src/handlers/api_handler/ontology_physics/mod.rs",
+      "source_status": "present",
+      "applies_to": ["visionclaw"],
+      "frequency": "continuous",
+      "description": "Oxigraph SPARQL store health via the trust-status endpoint: query reachability, shapes-loaded count, reasoner status"
+    },
+    {
+      "id": "is-envelope-fixture-validation",
+      "type": "computational",
+      "source": "visionclaw:tests/fixtures/is-envelope-v1.json",
+      "source_status": "present",
+      "applies_to": ["visionclaw"],
+      "frequency": "per_commit",
+      "description": "IS-Envelope test vectors validated against the ADR-075 schema. Fixture parity with downstream consumers verified via SHA-256 checksums."
+    },
+    {
+      "id": "enrichment-gating",
+      "type": "computational",
+      "source": "visionclaw:src/handlers/enrichment_proposals_handler.rs",
+      "source_status": "present",
+      "applies_to": ["visionclaw"],
+      "frequency": "per_change",
+      "description": "Enrichment gating: the decide endpoint validates attribution (hex did:nostr), runs the OWL 2 EL consistency path, and only commits a fenced Oxigraph write on attributed approval"
+    },
+    {
+      "id": "ontology-bridge-health",
+      "type": "computational",
+      "source": "agentbox:tests/sovereign/ontology-propose.test.js",
+      "source_status": "present",
+      "applies_to": ["visionclaw"],
+      "frequency": "per_commit",
+      "description": "Ontology bridge health: the 12 MCP tools respond correctly, the SPARQL proxy reaches Oxigraph, and the propose path enforces the governance gate"
+    },
+    {
+      "id": "provenance-chain-integrity",
+      "type": "computational",
+      "source": "visionclaw:tests/integration/provenance_chain.rs",
+      "source_status": "planned",
+      "applies_to": ["visionclaw"],
+      "frequency": "per_commit",
+      "description": "PROV-O chain integrity: every enrichment has a complete provenance bead linking agent DID, source event, broker case, and resulting triples. PLANNED — the emitter has unit tests but the end-to-end chain is not yet reified on the ingest path (see closeout T7)."
+    }
+  ],
+  "pairings": [
+    {
+      "guide_id": "owl2-el-constraints",
+      "sensor_id": "oxigraph-health-check",
+      "validation_mode": "blocking"
+    },
+    {
+      "guide_id": "is-envelope-schema",
+      "sensor_id": "is-envelope-fixture-validation",
+      "validation_mode": "blocking"
+    },
+    {
+      "guide_id": "ontology-bridge-mcp-constraints",
+      "sensor_id": "ontology-bridge-health",
+      "validation_mode": "blocking"
+    },
+    {
+      "guide_id": "enrichment-proposal-schema",
+      "sensor_id": "enrichment-gating",
+      "validation_mode": "blocking"
+    },
+    {
+      "guide_id": "prov-o-schema",
+      "sensor_id": "provenance-chain-integrity",
+      "validation_mode": "blocking"
+    }
+  ],
+  "escalation_rules": [
+    {
+      "sensor_id": "oxigraph-health-check",
+      "threshold": { "unavailable_seconds": 30 },
+      "action": "escalate_human"
+    },
+    {
+      "sensor_id": "is-envelope-fixture-validation",
+      "threshold": "any_failure",
+      "action": "block"
+    },
+    {
+      "sensor_id": "enrichment-gating",
+      "threshold": { "consistency_violation": true },
+      "action": "block"
+    },
+    {
+      "sensor_id": "ontology-bridge-health",
+      "threshold": "any_failure",
+      "action": "block"
+    },
+    {
+      "sensor_id": "provenance-chain-integrity",
+      "threshold": { "missing_bead": true },
+      "action": "file_issue"
+    }
+  ]
+}

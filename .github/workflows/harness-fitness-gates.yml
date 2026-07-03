@@ -1,0 +1,131 @@
+name: Harness Fitness Gates
+
+on:
+  pull_request:
+    paths:
+      - 'docs/engineering/templates/**'
+      - 'docs/engineering/schemas/**'
+      - 'docs/architecture/compatibility-matrix.md'
+      - 'scripts/harness-audit.sh'
+  push:
+    branches: [main]
+    paths:
+      - 'docs/engineering/templates/**'
+      - 'docs/engineering/schemas/**'
+      - 'docs/architecture/compatibility-matrix.md'
+      - 'scripts/harness-audit.sh'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  harness-audit:
+    name: Pairing ratio audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq jq
+
+      - name: Run harness pairing audit
+        id: audit
+        run: |
+          chmod +x scripts/harness-audit.sh
+          # Capture output for later steps; allow failure so we can report
+          set +e
+          OUTPUT=$(bash scripts/harness-audit.sh --target 50 2>&1)
+          EXIT_CODE=$?
+          set -e
+          echo "$OUTPUT"
+          echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
+
+      - name: Check pairing ratio threshold
+        run: |
+          if [[ "${{ steps.audit.outputs.exit_code }}" != "0" ]]; then
+            echo "::error::Harness pairing ratio is below the minimum threshold (50%)"
+            exit 1
+          fi
+          echo "Pairing ratio meets the minimum threshold"
+
+  fixture-parity:
+    name: Template schema validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq jq
+
+      - name: Validate template JSON syntax
+        run: |
+          TEMPLATE_DIR="docs/engineering/templates"
+          if [[ ! -d "$TEMPLATE_DIR" ]]; then
+            echo "No template directory found at $TEMPLATE_DIR — skipping"
+            exit 0
+          fi
+
+          ERRORS=0
+          for f in "$TEMPLATE_DIR"/*.json; do
+            [[ -e "$f" ]] || continue
+            echo "Validating $f..."
+
+            # Check valid JSON
+            if ! jq empty "$f" 2>/dev/null; then
+              echo "::error file=$f::Invalid JSON syntax"
+              ERRORS=$((ERRORS + 1))
+              continue
+            fi
+
+            # Check required top-level fields
+            MISSING=$(jq -r '
+              [ "topology", "version", "guides", "sensors", "pairings" ]
+              | map(select(. as $k | input_line_number == 0 or true))
+              | . as $required
+              | $required - (keys_unsorted | map(select(. == $required[])))
+            ' "$f" 2>/dev/null || echo "[]")
+
+            if ! jq -e '.topology and .version and .guides and .sensors and .pairings' "$f" > /dev/null 2>&1; then
+              echo "::error file=$f::Missing required fields (need: topology, version, guides, sensors, pairings)"
+              ERRORS=$((ERRORS + 1))
+              continue
+            fi
+
+            # Validate guide IDs are unique
+            DUPES=$(jq -r '[.guides[].id] | group_by(.) | map(select(length > 1)) | .[0][0] // empty' "$f")
+            if [[ -n "$DUPES" ]]; then
+              echo "::error file=$f::Duplicate guide ID: $DUPES"
+              ERRORS=$((ERRORS + 1))
+            fi
+
+            # Validate sensor IDs are unique
+            DUPES=$(jq -r '[.sensors[].id] | group_by(.) | map(select(length > 1)) | .[0][0] // empty' "$f")
+            if [[ -n "$DUPES" ]]; then
+              echo "::error file=$f::Duplicate sensor ID: $DUPES"
+              ERRORS=$((ERRORS + 1))
+            fi
+
+            # Validate pairing references point to existing IDs
+            INVALID_REFS=$(jq -r '
+              ([.guides[].id] | sort) as $gids |
+              ([.sensors[].id] | sort) as $sids |
+              [.pairings[] | select(.guide_id as $g | $gids | index($g) | not) | .guide_id] +
+              [.pairings[] | select(.sensor_id as $s | $sids | index($s) | not) | .sensor_id]
+              | join(", ")
+            ' "$f")
+            if [[ -n "$INVALID_REFS" ]]; then
+              echo "::error file=$f::Pairing references non-existent IDs: $INVALID_REFS"
+              ERRORS=$((ERRORS + 1))
+            fi
+
+            echo "  OK"
+          done
+
+          if [[ $ERRORS -gt 0 ]]; then
+            echo "::error::$ERRORS template(s) failed validation"
+            exit 1
+          fi
+          echo "All templates passed schema validation"

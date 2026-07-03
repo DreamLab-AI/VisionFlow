@@ -1,0 +1,172 @@
+{
+  "$schema": "../schemas/harness-template.schema.json",
+  "version": "1.0.0",
+  "topology": "agentbox-agent-task",
+  "maturity": "standalone",
+  "structure": {
+    "substrates": ["agentbox"],
+    "data_flows": [
+      {
+        "from": "task-router",
+        "to": "agent-runtime",
+        "protocol": "internal",
+        "description": "Router classifies task and dispatches to agent with injected spec, skills, and memory"
+      },
+      {
+        "from": "agent-runtime",
+        "to": "mcp-tools",
+        "protocol": "MCP",
+        "description": "Agent invokes MCP tools (file, shell, memory, ontology bridge) during execution"
+      },
+      {
+        "from": "agent-runtime",
+        "to": "learning-service",
+        "protocol": "internal",
+        "description": "Post-execution trajectory stored in learning service for pattern extraction"
+      }
+    ]
+  },
+  "guides": [
+    {
+      "id": "agent-spec-hooks-pre",
+      "type": "hook",
+      "source": "agentbox:~/.claude/agents/*.md#hooks.pre",
+      "source_status": "present",
+      "applies_to": ["agentbox"],
+      "description": "Agent specification hooks.pre phase: pattern search, memory injection, context priming before execution. Sourced from host-level agent config, not a repo file."
+    },
+    {
+      "id": "claude-md-hierarchy",
+      "type": "instruction",
+      "source": "agentbox:~/.claude/CLAUDE.md + ~/workspace/CLAUDE.md + project/CLAUDE.md",
+      "source_status": "present",
+      "applies_to": ["agentbox"],
+      "description": "Three-tier instruction hierarchy: global behavioural rules, workspace config, project overrides. Each layer overrides the previous. Sourced from host-level agent config."
+    },
+    {
+      "id": "skill-routing",
+      "type": "instruction",
+      "source": "agentbox:~/.claude/helpers/router.js",
+      "source_status": "present",
+      "applies_to": ["agentbox"],
+      "description": "Task-to-agent classification across 9 agent types with skill decision tree for tool selection. Sourced from host-level agent config."
+    },
+    {
+      "id": "mcp-tool-constraints",
+      "type": "constraint",
+      "source": "agentbox:~/.claude/settings.json#permissions",
+      "source_status": "present",
+      "applies_to": ["agentbox"],
+      "description": "MCP tool allowlist and permission boundaries. Agents may only invoke tools within their declared permission scope. Sourced from host-level agent config."
+    },
+    {
+      "id": "adapter-slo-thresholds",
+      "type": "constraint",
+      "source": "agentbox:docs/reference/adr/ADR-005-pluggable-adapter-architecture.md",
+      "source_status": "present",
+      "applies_to": ["agentbox"],
+      "description": "SLO thresholds per adapter slot: p95 latency ceiling, throughput floor, error rate ceiling (agentbox ADR-005 — the pluggable-adapter architecture, distinct from VisionFlow ADR-005)"
+    }
+  ],
+  "sensors": [
+    {
+      "id": "adapter-contract-tests",
+      "type": "computational",
+      "source": "agentbox:tests/contract/",
+      "source_status": "present",
+      "applies_to": ["agentbox"],
+      "frequency": "per_commit",
+      "description": "Adapter contract test suites validate slot conformance per agentbox ADR-031"
+    },
+    {
+      "id": "hooks-validate-trajectory",
+      "type": "inferential",
+      "source": "agentbox:~/.claude/agents/*.md#hooks.validate",
+      "source_status": "planned",
+      "applies_to": ["agentbox"],
+      "frequency": "per_change",
+      "description": "Post-execution trajectory check: validates whether agent respected guide constraints during execution. PLANNED — the hooks.validate phase (ADR-004 decision D3) is not wired in any production agent spec; the three-phase lifecycle currently runs pre -> execution -> post only."
+    },
+    {
+      "id": "task-router-confidence",
+      "type": "computational",
+      "source": "agentbox:~/.claude/helpers/router.js#confidence",
+      "source_status": "present",
+      "applies_to": ["agentbox"],
+      "frequency": "per_change",
+      "description": "Router classification confidence score. Low confidence triggers fallback to general agent or human escalation. Sourced from host-level agent config."
+    },
+    {
+      "id": "bc20-drop-counter",
+      "type": "computational",
+      "source": "agentbox:management-api/lib/bc20-provenance-bridge.js",
+      "source_status": "present",
+      "applies_to": ["agentbox"],
+      "frequency": "continuous",
+      "description": "BC20 anti-corruption bridge counters: dropped events and boundary crossing violations across the provenance bridge"
+    },
+    {
+      "id": "slo-ci-gate",
+      "type": "computational",
+      "source": "agentbox:.github/workflows/adapter-slo.yml",
+      "source_status": "planned",
+      "applies_to": ["agentbox"],
+      "frequency": "per_commit",
+      "description": "CI gate enforcing adapter SLO thresholds from agentbox ADR-005. PLANNED — no adapter-slo.yml workflow exists; the SLO assertions are currently it.todo() stubs (see closeout T2)."
+    }
+  ],
+  "pairings": [
+    {
+      "guide_id": "agent-spec-hooks-pre",
+      "sensor_id": "adapter-contract-tests",
+      "validation_mode": "blocking"
+    },
+    {
+      "guide_id": "claude-md-hierarchy",
+      "sensor_id": "hooks-validate-trajectory",
+      "validation_mode": "advisory"
+    },
+    {
+      "guide_id": "adapter-slo-thresholds",
+      "sensor_id": "slo-ci-gate",
+      "validation_mode": "blocking"
+    },
+    {
+      "guide_id": "skill-routing",
+      "sensor_id": "task-router-confidence",
+      "validation_mode": "advisory"
+    },
+    {
+      "guide_id": "mcp-tool-constraints",
+      "sensor_id": "bc20-drop-counter",
+      "validation_mode": "advisory"
+    }
+  ],
+  "escalation_rules": [
+    {
+      "sensor_id": "adapter-contract-tests",
+      "threshold": "any_failure",
+      "action": "block"
+    },
+    {
+      "sensor_id": "slo-ci-gate",
+      "threshold": "any_failure",
+      "action": "block"
+    },
+    {
+      "sensor_id": "task-router-confidence",
+      "threshold": { "below": 0.6 },
+      "action": "escalate_human"
+    },
+    {
+      "sensor_id": "bc20-drop-counter",
+      "threshold": { "drops_per_minute": 10 },
+      "action": "warn"
+    },
+    {
+      "sensor_id": "hooks-validate-trajectory",
+      "threshold": { "violation_count": 3 },
+      "action": "file_issue"
+    }
+  ]
+}

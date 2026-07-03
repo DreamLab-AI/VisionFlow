@@ -1,0 +1,172 @@
+{
+  "$schema": "../schemas/harness-template.schema.json",
+  "version": "1.0.0",
+  "topology": "pod-mutation",
+  "maturity": "standalone",
+  "structure": {
+    "substrates": ["solid-pod-rs"],
+    "data_flows": [
+      {
+        "from": "client",
+        "to": "ldp-server",
+        "protocol": "HTTP-LDP",
+        "description": "Client issues LDP requests (POST, PUT, PATCH, DELETE) to Solid pod resources with NIP-98 authentication headers"
+      },
+      {
+        "from": "ldp-server",
+        "to": "wac-engine",
+        "protocol": "internal",
+        "description": "LDP server delegates access control evaluation to WAC engine against did:nostr ACL rules"
+      },
+      {
+        "from": "ldp-server",
+        "to": "git-store",
+        "protocol": "internal",
+        "description": "Successful mutations recorded in git-backed pod storage with content-addressed history"
+      }
+    ]
+  },
+  "guides": [
+    {
+      "id": "solid-ldp-protocol",
+      "type": "schema",
+      "source": "solid-pod-rs:crates/solid-pod-rs/src/ldp.rs",
+      "source_status": "present",
+      "applies_to": ["solid-pod-rs"],
+      "description": "Solid Linked Data Platform protocol: container management, resource CRUD, content-negotiation, slug handling, containment triples"
+    },
+    {
+      "id": "nip98-signing",
+      "type": "constraint",
+      "source": "solid-pod-rs:crates/solid-pod-rs/src/auth/nip98.rs",
+      "source_status": "present",
+      "applies_to": ["solid-pod-rs"],
+      "description": "NIP-98 HTTP authentication: every mutation request must carry a valid Schnorr-signed authorization event. Schnorr verification is behind the off-by-default nip98-schnorr feature; replay protection is not yet enforced on this tier (see closeout T4)."
+    },
+    {
+      "id": "content-negotiation-rules",
+      "type": "constraint",
+      "source": "solid-pod-rs:crates/solid-pod-rs/src/ldp.rs",
+      "source_status": "present",
+      "applies_to": ["solid-pod-rs"],
+      "description": "Content-negotiation rules: Accept/Content-Type headers govern Turtle/JSON-LD/N-Triples serialisation. Unsupported media types return 415."
+    },
+    {
+      "id": "git-marks-invariant",
+      "type": "constraint",
+      "source": "solid-pod-rs:crates/solid-pod-rs-git/src/mark.rs",
+      "source_status": "present",
+      "applies_to": ["solid-pod-rs"],
+      "description": "Git-marks invariant: every pod mutation produces a git commit. Commit history is append-only; force-push is rejected. Export via git-fast-export preserves marks. Git logic lives in the separate solid-pod-rs-git crate."
+    },
+    {
+      "id": "block-trail-rules",
+      "type": "constraint",
+      "source": "solid-pod-rs:crates/solid-pod-rs/src/auth/taproot.rs",
+      "source_status": "planned",
+      "applies_to": ["solid-pod-rs"],
+      "description": "BIP-341 Taproot block-trail rules: high-value mutations optionally produce a Taproot commitment for external auditability. PLANNED — no taproot implementation exists in solid-pod-rs today (documentation only)."
+    }
+  ],
+  "sensors": [
+    {
+      "id": "wac-acl-evaluation",
+      "type": "computational",
+      "source": "solid-pod-rs:crates/solid-pod-rs/tests/wac_basic.rs",
+      "source_status": "present",
+      "applies_to": ["solid-pod-rs"],
+      "frequency": "per_commit",
+      "description": "WAC ACL evaluation tests: verify that acl:Read, acl:Write, acl:Control, and acl:Append permissions are correctly enforced against did:nostr agent identities"
+    },
+    {
+      "id": "schnorr-verification",
+      "type": "computational",
+      "source": "solid-pod-rs:crates/solid-pod-rs/tests/schnorr_nip98.rs",
+      "source_status": "present",
+      "applies_to": ["solid-pod-rs"],
+      "frequency": "per_commit",
+      "description": "Schnorr signature verification: NIP-98 auth events validated for correct pubkey, timestamp freshness, and URL binding. Exercises the nip98-schnorr feature path; replay rejection is not yet part of this tier."
+    },
+    {
+      "id": "content-type-validation",
+      "type": "computational",
+      "source": "solid-pod-rs:crates/solid-pod-rs-server/tests/get_content_negotiation_integration.rs",
+      "source_status": "present",
+      "applies_to": ["solid-pod-rs"],
+      "frequency": "per_commit",
+      "description": "Content-type validation: LDP endpoints negotiate Turtle, JSON-LD, N-Triples. 415 returned for unsupported types. Round-trip fidelity verified."
+    },
+    {
+      "id": "git-history-check",
+      "type": "computational",
+      "source": "solid-pod-rs:crates/solid-pod-rs-server/tests/git_marks.rs",
+      "source_status": "present",
+      "applies_to": ["solid-pod-rs"],
+      "frequency": "per_commit",
+      "description": "Git history integrity: every mutation produces a commit, history is append-only, git-fast-export produces valid marks, force-push attempts are rejected"
+    },
+    {
+      "id": "taproot-verification",
+      "type": "computational",
+      "source": "solid-pod-rs:crates/solid-pod-rs/tests/taproot_verification.rs",
+      "source_status": "planned",
+      "applies_to": ["solid-pod-rs"],
+      "frequency": "per_release",
+      "description": "BIP-341 Taproot commitment verification: block-trail anchors are valid, Merkle path resolves, external audit can independently verify commitment. PLANNED — pairs with the planned block-trail-rules guide; no implementation exists yet."
+    }
+  ],
+  "pairings": [
+    {
+      "guide_id": "solid-ldp-protocol",
+      "sensor_id": "wac-acl-evaluation",
+      "validation_mode": "blocking"
+    },
+    {
+      "guide_id": "nip98-signing",
+      "sensor_id": "schnorr-verification",
+      "validation_mode": "blocking"
+    },
+    {
+      "guide_id": "git-marks-invariant",
+      "sensor_id": "git-history-check",
+      "validation_mode": "blocking"
+    },
+    {
+      "guide_id": "content-negotiation-rules",
+      "sensor_id": "content-type-validation",
+      "validation_mode": "blocking"
+    },
+    {
+      "guide_id": "block-trail-rules",
+      "sensor_id": "taproot-verification",
+      "validation_mode": "advisory"
+    }
+  ],
+  "escalation_rules": [
+    {
+      "sensor_id": "wac-acl-evaluation",
+      "threshold": "any_failure",
+      "action": "block"
+    },
+    {
+      "sensor_id": "schnorr-verification",
+      "threshold": "any_failure",
+      "action": "block"
+    },
+    {
+      "sensor_id": "git-history-check",
+      "threshold": { "append_only_violation": true },
+      "action": "block"
+    },
+    {
+      "sensor_id": "content-type-validation",
+      "threshold": { "round_trip_failure": true },
+      "action": "file_issue"
+    },
+    {
+      "sensor_id": "taproot-verification",
+      "threshold": { "merkle_path_invalid": true },
+      "action": "escalate_human"
+    }
+  ]
+}

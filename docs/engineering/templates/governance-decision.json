@@ -1,0 +1,185 @@
+{
+  "$schema": "../schemas/harness-template.schema.json",
+  "version": "1.0.0",
+  "topology": "governance-decision",
+  "maturity": "integrated",
+  "structure": {
+    "substrates": ["agentbox", "nostr-rust-forum", "visionclaw"],
+    "event_kinds": [31400, 31401, 31402, 31403, 31404, 31405],
+    "data_flows": [
+      {
+        "from": "agentbox",
+        "to": "nostr-relay",
+        "protocol": "nostr-relay",
+        "description": "Agent publishes kind 31400 ControlPanel or kind 31402 ActionRequest to the relay. The forum relay gates writes by signed-event pubkey whitelist, not by a forced NIP-42 AUTH round-trip."
+      },
+      {
+        "from": "nostr-relay",
+        "to": "nostr-rust-forum",
+        "protocol": "nostr-relay",
+        "description": "Forum governance UI subscribes to kinds 31400-31405 and renders pending action requests for human review"
+      },
+      {
+        "from": "nostr-rust-forum",
+        "to": "nostr-relay",
+        "protocol": "nostr-relay",
+        "description": "Human publishes kind 31403 ActionResponse with NIP-98 signed decision (Approve/Reject/Modify/Defer/Promote)"
+      },
+      {
+        "from": "nostr-relay",
+        "to": "agentbox",
+        "protocol": "nostr-relay",
+        "description": "Agentbox relay-consumer receives decision and dispatches to handleGovernanceDecision() on the orchestrator adapter"
+      },
+      {
+        "from": "agentbox",
+        "to": "visionclaw",
+        "protocol": "MCP",
+        "description": "Governance decision provenance and enrichment gating forwarded to VisionClaw via ontology bridge for PROV-O recording"
+      }
+    ]
+  },
+  "guides": [
+    {
+      "id": "control-surface-kinds-schema",
+      "type": "schema",
+      "source": "nostr-rust-forum:crates/nostr-bbs-core/src/governance.rs",
+      "source_status": "present",
+      "applies_to": ["agentbox", "nostr-rust-forum", "visionclaw"],
+      "description": "Agent Control Surface event kinds 31400-31405 schema: ControlPanel, PanelUpdate, ActionRequest, ActionResponse, CaseRecord, Precedent"
+    },
+    {
+      "id": "panel-definition-schema",
+      "type": "schema",
+      "source": "nostr-rust-forum:crates/nostr-bbs-core/src/governance.rs#ControlPanel",
+      "source_status": "present",
+      "applies_to": ["agentbox", "nostr-rust-forum"],
+      "description": "Kind 31400 ControlPanel definition: declares agent capabilities, constraints, and available actions for human governance"
+    },
+    {
+      "id": "decision-outcome-enum",
+      "type": "constraint",
+      "source": "agentbox:management-api/adapters/orchestrator/local-process-manager.js",
+      "source_status": "present",
+      "applies_to": ["agentbox", "nostr-rust-forum"],
+      "description": "Decision-outcome handling: Approve, Reject, Modify, Defer, Promote, Precedent. handleGovernanceDecision parses the outcome, mints PROV-O activity/receipt URNs, and dispatches to the agent or persists to the pod."
+    },
+    {
+      "id": "precedent-library",
+      "type": "instruction",
+      "source": "ruvector:governance-precedents namespace",
+      "source_status": "present",
+      "applies_to": ["agentbox"],
+      "description": "Standing precedents stored in RuVector with semantic embeddings. Matching precedents auto-apply decisions without human routing. The governance-precedents namespace is write-protected (IR2 mandate-at-grant)."
+    },
+    {
+      "id": "mesh-smoke-test-protocol",
+      "type": "instruction",
+      "source": "VisionFlow:docs/protocol/mesh-smoke-test.md",
+      "source_status": "present",
+      "applies_to": ["agentbox", "nostr-rust-forum", "visionclaw"],
+      "description": "End-to-end mesh smoke test protocol: agent publishes, relay gates, forum renders, human decides, broker receives, pod writes, traceability verified"
+    }
+  ],
+  "sensors": [
+    {
+      "id": "relay-gating-nip42-nip98",
+      "type": "computational",
+      "source": "nostr-rust-forum:crates/nostr-bbs-relay-worker/src/auth.rs",
+      "source_status": "present",
+      "applies_to": ["nostr-rust-forum"],
+      "frequency": "continuous",
+      "description": "Relay write gate: the edge relay advertises auth_required:false and gates on the signed event's pubkey being whitelisted (is_whitelisted), not on a forced NIP-42 AUTH round-trip. NIP-42 answering exists only in the WASM browser client. NIP-98 gates HTTP governance endpoints."
+    },
+    {
+      "id": "governance-ui-rendering",
+      "type": "computational",
+      "source": "nostr-rust-forum:tests/integration/governance_render.rs",
+      "source_status": "planned",
+      "applies_to": ["nostr-rust-forum"],
+      "frequency": "per_commit",
+      "description": "Governance UI rendering validation: all 6 event kinds render correctly, action buttons emit valid signed responses, panel state reflects latest updates. PLANNED — the UI lives in the nostr-bbs-bbs-client WASM screens; no dedicated render test exists yet."
+    },
+    {
+      "id": "decision-chain-integrity",
+      "type": "computational",
+      "source": "agentbox:tests/contract/governance-flow.spec.js",
+      "source_status": "present",
+      "applies_to": ["agentbox"],
+      "frequency": "per_commit",
+      "description": "Decision chain integrity: every ActionResponse references a valid ActionRequest, outcome is a valid decision variant, PROV-O bead minted"
+    },
+    {
+      "id": "precedent-match",
+      "type": "inferential",
+      "source": "agentbox:management-api/lib/precedent-service.js",
+      "source_status": "present",
+      "applies_to": ["agentbox"],
+      "frequency": "per_change",
+      "description": "Precedent matching sensor: semantic similarity search against the governance-precedents namespace. Reports match confidence and auto-application eligibility."
+    },
+    {
+      "id": "e2e-smoke-test",
+      "type": "computational",
+      "source": "VisionFlow:scripts/mesh-smoke-preflight.sh",
+      "source_status": "present",
+      "applies_to": ["agentbox", "nostr-rust-forum", "visionclaw"],
+      "frequency": "per_release",
+      "description": "End-to-end mesh smoke test: validates the full decision loop across all substrates per docs/protocol/mesh-smoke-test.md assertions"
+    }
+  ],
+  "pairings": [
+    {
+      "guide_id": "control-surface-kinds-schema",
+      "sensor_id": "relay-gating-nip42-nip98",
+      "validation_mode": "blocking"
+    },
+    {
+      "guide_id": "decision-outcome-enum",
+      "sensor_id": "decision-chain-integrity",
+      "validation_mode": "blocking"
+    },
+    {
+      "guide_id": "mesh-smoke-test-protocol",
+      "sensor_id": "e2e-smoke-test",
+      "validation_mode": "blocking"
+    },
+    {
+      "guide_id": "panel-definition-schema",
+      "sensor_id": "governance-ui-rendering",
+      "validation_mode": "advisory"
+    },
+    {
+      "guide_id": "precedent-library",
+      "sensor_id": "precedent-match",
+      "validation_mode": "learning"
+    }
+  ],
+  "escalation_rules": [
+    {
+      "sensor_id": "relay-gating-nip42-nip98",
+      "threshold": { "unauthenticated_write_attempt": true },
+      "action": "block"
+    },
+    {
+      "sensor_id": "decision-chain-integrity",
+      "threshold": { "orphaned_response": true },
+      "action": "block"
+    },
+    {
+      "sensor_id": "e2e-smoke-test",
+      "threshold": "any_failure",
+      "action": "block"
+    },
+    {
+      "sensor_id": "governance-ui-rendering",
+      "threshold": { "render_failure_count": 1 },
+      "action": "file_issue"
+    },
+    {
+      "sensor_id": "precedent-match",
+      "threshold": { "false_positive_rate_percent": 5 },
+      "action": "warn"
+    }
+  ]
+}
