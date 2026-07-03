@@ -1,8 +1,10 @@
 # VisionFlow Ecosystem Map
 
-**Status:** Docs plus targeted code/manifest spot-checks, updated with runtime research 2026-05-22; three provenance loops runtime-verified on the rebuilt local stack 2026-05-30 (commits local, pending merge — see Recently Resolved)
-**Date:** 2026-05-22
+**Status:** Docs plus targeted code/manifest spot-checks, updated with runtime research 2026-05-22; three provenance loops runtime-verified 2026-05-30 and **merged to VisionClaw main** (see Recently Resolved). Register reconciled against code 2026-07-03.
+**Date:** 2026-05-22, register reconciled 2026-07-03
 **Scope:** Repositories mounted under `/home/devuser/workspace`
+
+> **Superseded by the closeout.** This Gap Register (G1–G8) is retained for history but is **superseded by [`docs/closeout/final-design.md`](closeout/final-design.md)** (2026-07-03), which re-audited all nine repo slices against code and found this register stale in both directions. Where a gap here disagrees with the closeout, the closeout wins. The 2026-07-03 pass corrected the merged-provenance, mesh-tally, beam/dispatcher and open-question entries below.
 
 This document maps the VisionFlow ecosystem from repository documentation, with targeted implementation checks for the integration claims that affect cross-repo alignment. When a gap is listed, it means the docs or spot-checked code/manifests identify an absent, deferred, or inconsistent counterpart.
 
@@ -24,8 +26,8 @@ VisionFlow is not a single executable. It is a coordination architecture that em
 | Substrate | Primary responsibility | Boundary |
 |---|---|---|
 | VisionFlow | Ecosystem narrative, public positioning, repository map, shared coordination model | Documentation and website surface |
-| VisionClaw | Knowledge engineering: OWL 2 EL + W3C SHACL reasoning, W3C PROV-O provenance reification, GPU graph physics, XR, 7 native MCP ontology tools, IS-Envelope spec owner (ADR-075), Judgment Broker (distributed: enrichment gating, BrokerActor on crashbug branch), embodied agent-loop renderer (beam + gluon over `/wss/agent-events`, ADR-059) | GPU host / graph backend / semantic workbench / embodiment surface |
-| agentbox | Reproducible sovereign agent runtime with Nix, 90+ skills, 180+ MCP tools, 10-tool ontology bridge to VisionClaw SPARQL, browser setup wizard, privacy filtering, Nostr/Solid identity | Agent container and harness |
+| VisionClaw | Knowledge engineering: OWL 2 EL reasoning, GPU graph physics (82 CUDA kernels / 9 `.cu` files / 5,854 LOC), XR, native MCP ontology tools, IS-Envelope spec owner (ADR-075), governance (main runs the inline decide/inbox handler + ADR-110 ElevationActor; the distributed BrokerActor lives on the unmerged `crashbug` branch), embodied agent-loop renderer (beam shipped over `/wss/agent-events`, ADR-059; gluon deferred) | GPU host / graph backend / semantic workbench / embodiment surface |
+| agentbox | Reproducible sovereign agent runtime with Nix, 90+ skills, 180+ MCP tools, 12-tool ontology bridge to VisionClaw SPARQL, browser setup wizard, privacy filtering, Nostr/Solid identity | Agent container and harness |
 | solid-pod-rs | Solid/JSS foundation: LDP, WAC, NIP-98, DID:Nostr, WebID, OIDC, git pods | Shared protocol library and native pod server |
 | nostr-rust-forum | Governance UI and relay kit: passkey auth, Cloudflare Workers, Agent Control Surface events | Human decision surface and Nostr relay edge |
 | dreamlab-ai-website | Branded DreamLab deployment and operator overlay for the forum kit | Public site and Cloudflare deployment config |
@@ -40,7 +42,7 @@ The common primitive is `did:nostr:<hex-pubkey>`. Docs consistently describe it 
 2. The Nostr relay mesh routes that event to the forum.
 3. The forum renders the event as a governance panel or action request.
 4. A human signs an approval/rejection response.
-5. VisionClaw's Judgment Broker and related enrichment/write-back flows use the decision as the control point before mutation. (Judgment Broker is 65% implemented as a distributed system; the decision loop is closed on the forum side. The write-back endpoint `POST /api/enrichment-proposals/{id}/decide` now exists and is runtime-verified — HTTP 200 with PROV-O provenance, 2026-05-30, commit local/unmerged; agent-side *application* of the returned decision is the remaining gap.)
+5. VisionClaw's governance and related enrichment/write-back flows use the decision as the control point before mutation. The write-back endpoint `POST /api/enrichment-proposals/{id}/decide` is **merged to main** (`023c847b0`, gated `72bd6ec05`, hardened `bed156583`): on an attributed approval it performs a real fenced Oxigraph write (`append_derived_summary`) and flips `writeback_committed`. Agent-side application of forum-originated decisions is implemented (`handleGovernanceDecision`); the residual gaps are agentbox-*originated* cases (closeout GOV-3) and the missing `ConceptElevated` closing event (GOV-2).
 
 ### Sovereign Data Access
 
@@ -77,13 +79,16 @@ canon.
    per-request signed NIP-98 header — never by holding the user's nsec.
 4. **Embodiment (VisionClaw).** The agent's action crosses the federation boundary as a canonical
    `notifications/agent_action` event over the `/wss/agent-events` WebSocket and renders as a
-   **beam** (transient coloured edge, agent → target) plus a **gluon** (the attractive spring force
-   that same transient edge exerts — no new GPU buffer; the earlier `class_charge`-modulation
-   design is retracted, VisionClaw ADR-059 §4).
+   **beam** (transient coloured edge, agent → target). The **beam actor is shipped and wired at boot**
+   (`AgentBeamActor`, ADR-059 Phase 2b). The **gluon** (the attractive spring force that same
+   transient edge would exert) is **deferred** — a documented no-op today (`gluon_deferral_note()`);
+   no incremental GPU transient-edge path exists yet.
 5. **Elevation under governance.** A BC22 extractor reads the pod KG and proposes candidate
-   concepts through VisionClaw's governed pipeline: Whelk EL++ consistency gate (correctness) →
-   ACSP human approval (policy) → GitHub PR → merge → `ConceptElevated`. The ungoverned
-   `/api/ontology/load` backdoor is closed.
+   concepts through VisionClaw's governed pipeline: human approval (policy) → GitHub PR. The
+   documented terminus `→ merge → ConceptElevated` is **not yet implemented**: `ElevationActor`
+   opens the PR at creation and emits no `ConceptElevated` event (grep returns zero across every
+   repo), and the Whelk EL++ consistency gate is not invoked before the human-approval case is
+   opened (closeout GOV-2/GOV-7). The ungoverned `/api/ontology/load` backdoor is closed.
 6. **Continuous provenance.** Identity is preserved end to end by the BC20 anti-corruption layer
    (`urn:agentbox:activity` ⇄ `urn:visionclaw:execution`, `agent` ⇄ `did:nostr`), with
    `owner_did` constant at every hop.
@@ -91,30 +96,31 @@ canon.
 Contracts: agentbox **ADR-014** + VisionClaw **ADR-059** (the `/wss/agent-events` channel),
 agentbox **ADR-026** (cross-substrate seams), agentbox **PRD-014** (driving spec). As of
 2026-05-29 the action-signal seam is wired and verified end-to-end (Phase 2a): canonical producer
-on the agentbox side, authenticated ingest + broadcast hub on the VisionClaw side; the beam+gluon
-render is the Phase-2b increment. As of 2026-05-30 the VisionClaw-side ingest is runtime-verified
-(WS-probed live over `/wss/agent-events`, with BC20 provenance stamped on the hot path), upgrading
-this seam from cargo-verified to runtime-verified (commits local/unmerged — see Recently Resolved). Identity rides the JSON ingest envelope (the `0x23` binary frame
+on the agentbox side, authenticated ingest + broadcast hub on the VisionClaw side. The Phase-2b
+**beam render actor is shipped and wired at boot**; the gluon force remains deferred. As of
+2026-05-30 the VisionClaw-side ingest is runtime-verified (WS-probed live over `/wss/agent-events`,
+with BC20 provenance stamped on the hot path), upgrading this seam from cargo-verified to
+runtime-verified, and these commits are now **merged to main** (see Recently Resolved). Identity rides the JSON ingest envelope (the `0x23` binary frame
 is identity-blind by design). The legacy MCP-TCP `:9500` path carries agent **state** snapshots, a
 payload distinct from the agent **action** push, and is retired in favour of the one socket.
 
 ## Gap Register
 
-### G1: The Umbrella Docs Are Sparse
+### G1: The Umbrella Docs Are Sparse — RESOLVED
 
-The VisionFlow README references richer documentation paths such as `docs/architecture/repository-map.md`, `docs/protocol/identity-spine.md`, and licensing architecture. The local checkout only contained website PRD/ADR/DDD docs before this synthesis. That creates a trust gap between the top-level narrative and navigable technical reference.
+**Resolved (2026-07-03).** The referenced entry-point docs now exist in the checkout: `docs/architecture/repository-map.md`, `docs/protocol/identity-spine.md`, `docs/roadmap.md` and `docs/releases/README.md` are all present. The original premise (canonical technical reference missing) is stale.
 
-**Impact:** New contributors cannot easily find the canonical ecosystem contract from the VisionFlow repo alone.
+**Residual:** a maintenance/cross-linking concern only — keep this document, the repository map, and the identity spine cross-linked as the top-level docs entry points.
 
-**Next action:** Keep this document, the repository map, and the identity spine as the top-level docs entry points.
+### G2: Mesh Federation Is Scaffold — Standalone-First Is the Supported Mode (FROZEN)
 
-### G2: Mesh Federation Maturity Varies by Substrate
+**Corrected (2026-07-03).** The earlier tally was wrong. **Three of four runtime substrates default standalone** (agentbox `[mesh] mode="standalone"`, solid-pod-rs standalone with an embedded NIP-01 relay, and nostr-rust-forum — `forum.example.toml` and `wrangler.toml` both default `standalone`/`d1`). Only dreamlab-ai-website fans out. The federated-by-default tally is **1/4, not 2/4**.
 
-nostr-rust-forum (3.0.0-rc11) defaults to federated NIP-05 mode. dreamlab-ai-website uses federated CF Workers relay fan-out. agentbox and solid-pod-rs default to standalone. VisionClaw PRD-010 describes the target mesh; PRD-014 defers some pieces (NIP-26 unification, distributed tracing, shared type crate).
+The forum's `nostr-bbs-mesh` crate is **scaffold-only** (no `MeshTransport` implementation, not even a dependency of the relay-worker; lands Sprint v12+). The relay advertises `auth_required:false` and gates by pubkey whitelist — the claimed **NIP-42 gate is false**. **IS-Envelope routing (ADR-075) is unimplemented in every substrate** (only conformance vectors exist). solid-pod-rs "native mesh in alpha.15" is not a real feature.
 
-**Impact:** The ecosystem is federation-capable but maturity is substrate-specific, not uniform.
+**Closeout decision (FREEZE):** declare **standalone-first** as the supported deployment mode. Mesh federation (ADR-073/PRD-010, the forum-kit convergence cluster, IS-Envelope routing) is *designed, not shipped* and parked. The IS-Envelope spec and vectors remain canonical.
 
-**Next action:** The compatibility matrix now tracks mesh status per substrate. Promote agentbox and solid-pod-rs to federated defaults when smoke test evidence exists.
+**Next action:** the compatibility matrix records mesh as "designed, not shipped". Do not list peer discovery, NIP-42 gate, or IS-Envelope routing as operational until a `MeshTransport` impl is wired into `relay_do`.
 
 ### G3: Protocol Implementations Are Duplicated
 
@@ -137,29 +143,43 @@ ingest schema (`src/agent_events/schema.rs`) and consumes the pushed events over
 `/wss/agent-events` socket (Phase 2a, cargo-verified). See agentbox ADR-026 D1 and the Embodied
 Agent Loop core flow above.
 
-**Verified 2026-05-30 (local/unmerged):** the `urn:visionclaw` minter (`src/uri/mod.rs`) now
-exists and runs — it was previously absent on main, blocking native minting of crossed URNs; and
-the broker write-back endpoint (`POST /api/enrichment-proposals/{id}/decide`) is live (HTTP 200,
-PROV-O provenance), closing the 404 that made the resolver redirect to a missing route. WS ingest
-provenance is runtime-verified on the hot path (see Recently Resolved).
+**Merged to main (verified 2026-05-30, merged since):** the `urn:visionclaw` minter (`src/uri/mod.rs`,
+`afb072cfa`) now exists and runs — it was previously absent on main, blocking native minting of
+crossed URNs; and the broker write-back endpoint (`POST /api/enrichment-proposals/{id}/decide`,
+`023c847b0`) is live (HTTP 200, PROV-O provenance), closing the 404 that made the resolver redirect
+to a missing route. WS ingest provenance (`src/agent_events/ingest.rs`, `2d94cd2fc`) is
+runtime-verified on the hot path (see Recently Resolved). All three are on main with clean working trees.
 
-**Still open in VisionClaw:** the beam+gluon render actor (ADR-059 Phase 2b), did:nostr-keyed live
-agent-actor nodes (currently mock-polled), the `ConceptElevated` event, the personal-vs-shared
-(owner) node distinction, agent-side application of a returned broker decision, and a real ACSP
-31402 client dispatcher (the divergent one-way `AgentActionEnvelope` is to be retired). Tracked in
-agentbox PRD-014 §3 Seam E.
+**Resolved since (2026-07-03 reconciliation):**
+- **Beam render actor — shipped.** `AgentBeamActor` (ADR-059 Phase 2b) is started at boot
+  (`app_state.rs:577`) and fans out `0x23` frames. Only the **gluon** attractive-force sub-feature
+  remains a deferred no-op.
+- **ACSP 31402 dispatcher — shipped.** `AcspClient` signs and publishes kind-31402 requests, wired
+  via `ElevationActor`. The framing that `AgentActionEnvelope` "is to be retired" was **incorrect**:
+  ACSP governance panels (31400–31403) and the binary `AgentActionEnvelope` embodiment frame are
+  distinct concerns and **coexist by design**.
+- **Agent-side decision application — implemented.** `handleGovernanceDecision` applies
+  forum-originated decisions with PROV-O URNs; the decide endpoint performs a real Oxigraph write.
+
+**Still open in VisionClaw:** the **gluon** force + despawn reaper (ADR-059 §4/2b), **did:nostr-keying
+of agent-actor nodes** (now **live-polled** from the management API — an improvement over "mock-polled"
+— but keyed by `task_id`, not `did:nostr`, so a node cannot yet be addressed by ACSP 31402), the
+`ConceptElevated` closing event, the personal-vs-shared (owner) node distinction (owner_did exists at
+the URN/enrichment layer but not on the render-layer graph `Node`), agent-side application of
+**agentbox-originated** cases (closeout GOV-3), and the Whelk EL++ consistency gate before elevation
+(GOV-7). Tracked in agentbox PRD-014 §3 Seam E and the closeout register.
 
 **Impact:** VisionClaw is the semantic center of the ecosystem, so gaps there block end-to-end provenance and governance flows.
 
 **Next action:** Reconcile PRD-010/014/015 status against current code and update docs with completed versus open items.
 
-### G5: Cloudflare Workers Portability Drives Duplication
+### G5: Cloudflare Workers Portability Drives Duplication — Core Extraction SHIPPED
 
-solid-pod-rs docs and forum ADRs repeatedly identify the same structural issue: native/Tokio features cannot be linked directly into Cloudflare Workers. The forum therefore mirrors or reimplements pod behavior for edge deployment.
+**Resolved for pure-logic surfaces (2026-07-03).** The decision is made and the extraction has happened: solid-pod-rs ships a no-Tokio `core` feature (`Cargo.toml` `core=[std, dep:js-sys, did-nostr-types]`), and nostr-rust-forum consumes the **published `solid-pod-rs 0.5.0-alpha.3`** with `default-features=false, features=[core]` (Cargo.lock pinned). The wac/webid/did pure-logic surfaces are shared, not reimplemented.
 
-**Impact:** The forum gets edge deployment benefits, but duplicates protocol logic and cannot expose every native pod feature.
+**Still open:** NIP-98 remains triplicated (solid-pod-rs, `nostr-bbs-core` which adds D1 replay, and the forum client) — the D1 replay store keeps the forum verifier edge-local, so a single shared NIP-98 verifier is not yet achieved (G3). Server-framework-bound surfaces stay two-tier.
 
-**Next action:** Decide whether to extract no-Tokio `core` surfaces in solid-pod-rs or accept permanent two-tier behavior.
+**Next action:** move the replay-store abstraction into solid-pod-rs `core` so all tiers can share one NIP-98 verifier, or accept the documented edge-local exception.
 
 ### G6: Two-Tier Pods Add Operational Complexity
 
@@ -200,30 +220,36 @@ dreamlab-ai-website owns branding, static React pages, Cloudflare config, and fo
 
 ## Recently Resolved
 
-- **Three provenance loops runtime-verified (2026-05-30).** On the rebuilt local stack, three
-  previously paper/cargo-only seams were exercised against a running VisionClaw backend (commits
-  **local, pending merge** to VisionClaw main):
-  - **`urn:visionclaw` minter** (`src/uri/mod.rs`, +13 tests) — was absent on main; now mints
+- **Three provenance loops merged to main (verified 2026-05-30, merged since).** Three
+  previously paper/cargo-only seams were exercised against a running VisionClaw backend and are now
+  **merged to VisionClaw main with clean working trees** (no longer "local/pending"):
+  - **`urn:visionclaw` minter** (`src/uri/mod.rs`, `afb072cfa`, +13 tests) — was absent on main; now mints
     typed `concept`/`kg`/`bead`/`execution`/`group` URNs + `did:nostr`. Runtime mint observed:
     `urn:visionclaw:execution:sha256-12-44ec4693df02` (sha256-12 byte-equal to the agentbox minter).
   - **Broker write-back endpoint** `POST /api/enrichment-proposals/{id}/decide`
-    (`src/handlers/enrichment_proposals_handler.rs`, +5 tests) — was **404** (the "decision
-    application to agents" critical gap, G4); now returns **HTTP 200**, mints PROV-O provenance,
-    persists to the decision log, and broadcasts an `enrichment_decision` WS event.
-    Unattributed payloads → `attributed:false` (recorded, not rejected).
+    (`src/handlers/enrichment_proposals_handler.rs`, `023c847b0`, gated `72bd6ec05`, hardened `bed156583`) —
+    was **404**; now returns **HTTP 200**, and on an *attributed* approval performs a real fenced
+    Oxigraph write (`append_derived_summary`) and flips `writeback_committed`, in addition to
+    minting PROV-O provenance and broadcasting an `enrichment_decision` WS event.
+    Unattributed (non-hex pubkey) payloads → `attributed:false` (recorded, not written).
   - **WS ingest BC20 provenance on the hot path** (`src/agent_events/ingest.rs` +
-    `provenance.rs`, +12 tests) — `process_frame()` now records provenance, crosses foreign
+    `provenance.rs`, `2d94cd2fc`, +12 tests) — `process_frame()` now records provenance, crosses foreign
     `urn:agentbox:*` via `uri::cross_from_agentbox`, and stamps Signed/Malformed/Anonymous on
-    `IngestOutcome::Published`. WS-probed live over `/wss/agent-events` (subprotocol
-    `vc-agent-events.v1`): canonical-foreign frame published silently, malformed + non-canonical
-    frames echo errors. Promotes the seam from "cargo-verified" to runtime-verified.
-- **IS-Envelope canonical ownership:** Resolved. VisionClaw owns the spec (ADR-075, JSON Schema, 11 test vectors). Runtime consumers: agentbox, solid-pod-rs, nostr-rust-forum. Event kind registry remains unowned.
+    `IngestOutcome::Published`. (Note: "Signed" is stamped from a structural pubkey-hex check, not a
+    signature verification — closeout T4/security; treat as "asserted" until NIP-26 verification lands.)
+- **Beam render actor + ACSP 31402 dispatcher shipped (2026-07-03 reconciliation):** `AgentBeamActor`
+  (ADR-059 Phase 2b) is wired at boot and the `AcspClient` 31402 dispatcher is live via `ElevationActor`.
+  Gluon force remains deferred; `AgentActionEnvelope` coexists with ACSP by design (not retired).
+- **did:nostr canonicalisation answered by ADR-125:** VisionClaw ADR-125 (`a579bf353`, 2026-06-15)
+  ratifies a single canonical Multikey/`publicKeyMultibase` DID-document form re-converging
+  forum/agentbox/VisionClaw/solid-pod-rs — resolving Open Question 1 (see below).
+- **IS-Envelope canonical ownership:** Resolved. VisionClaw owns the spec (ADR-075, JSON Schema, test vectors). Runtime consumers: agentbox, solid-pod-rs, nostr-rust-forum consume the vectors, but **envelope routing over a mesh transport is not implemented in any substrate**. Event kind registry remains unowned (agentbox federates 38300–38304; the forum relay drops everything above 38100).
 - **BC20 anti-corruption layer (2026-05-29):** Resolved from "paper-only" to real, owned, bidirectional code. Agentbox holds the executable contract (`bc20-provenance-bridge.js`); VisionClaw mirrors the ingest schema and consumes pushed `agent_action` events over the authenticated `/wss/agent-events` socket (Phase 2a, cargo-verified). The beam+gluon render is the remaining Phase-2b increment. See agentbox ADR-026 D1 / PRD-014.
 - **Embodied agent-loop documentation (2026-05-29):** Resolved the canon silence on voice ingress and personal→shared elevation flagged in earlier audits (PRD-014 X7) — the Embodied Agent Loop core flow is now documented above, and the BC20 namespace grammar is in agentbox's `CLAUDE.md` and ecosystem docs.
 
 ## Open Questions
 
-1. Is `did:nostr` resolution canonicalized in solid-pod-rs, forum core, or a new shared crate?
+1. ~~Is `did:nostr` resolution canonicalized in solid-pod-rs, forum core, or a new shared crate?~~ **Answered (ADR-125).** `did:nostr` is canonicalised on the Multikey form across all four substrates by VisionClaw ADR-125 (`a579bf353`, 2026-06-15), correcting the earlier ADR-074 2019-suite target. Residual: solid-pod-rs owns DID-document rendering, but VisionClaw and the forum still have independent handling paths — promote `solid_pod_rs::did_nostr_types` (or a `no_std` shared crate) as the single resolver/minter (closeout contract:identity).
 2. Are Cloudflare Workers pods and native pods expected to converge, or remain separate tiers?
 3. What is the minimum supported deployment: single operator, team, or cross-organization federation?
 4. What exact repo/version set defines the current production DreamLab deployment?
