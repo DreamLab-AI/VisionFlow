@@ -69,3 +69,29 @@ These carry `source_status: planned` in the templates and are tracked for implem
 Fitness-gate ADR citations are repo-qualified to avoid ADR-number collisions: agentbox SLO thresholds are **agentbox** ADR-005 (pluggable-adapter architecture), a different document from **VisionFlow** ADR-005 (mandate-at-grant governance).
 
 Run `scripts/harness-audit.sh` for current status.
+
+## Gap-Close Sprint — P0 Item Tiers
+
+The area rows above record per-area compatibility posture. Per ADR-002 and the
+Gap-Close Canon PRD, each gap-close item is also reflected here at its **evidenced
+tier** once its wave closes. This table is the P0 wave; it is authoritative to
+[`docs/registers/gap-register-v1.1.md`](../registers/gap-register-v1.1.md) (the
+immutable status register cut at the P0→P1 boundary). Tiers use the ADR-002
+vocabulary; `scaffolded` here means the mechanism is complete and its canary is
+proven locally but has **not** fired in a live session (a canon loop item is not
+scored `integrated` until its canary fires live — DDD Gap-Close Invariant 4).
+
+| Item | Owner(s) | Closure SHA(s) | Evidenced tier | Canary state |
+|---|---|---|---|---|
+| RES-a KG liveness + canary harness | VisionClaw | `6f4eb1b0a`, `1492bc17b` | `integrated` | Harness live; Nostr-tap round-trip PENDING-LIVE |
+| RES-b diagram render gate | VisionFlow (canon) | `f72d173cd` | `scaffolded` | `CANARY-CANON-DIAGRAM` proven locally; live CI fire PENDING |
+| COM-13 agent disclosure | nostr-rust-forum (+ canon norm) | forum `7157a92`, `fb7826859`; canon `identity-spine.md` | Forum impl `integrated`; canon clause `standalone` | Badge census-verified; live render PENDING-LIVE |
+| COM-14 `did:nostr` keying | VisionClaw + agentbox | VC `4a595cc8f`; AB `6189f47d` | `integrated` | Live Schnorr round-trip PENDING-LIVE |
+| REC-2 broker kernel + case queue | VisionClaw | `c9f2e3539` | `integrated` (P0 slice) | Case e2e PENDING (COM-15 batch) |
+| D5 MCP-status honesty | VisionClaw | `6f4eb1b0a` | `integrated` | Real WS + `check_mcp_metrics`; landed |
+| REC-1 governed-writeback floor | VisionClaw · solid-pod-rs · forum | `6f4eb1b0a`; solid-pod `791977a` | `integrated` / `reconciled` | Route-guard tests green; PATCH + NIP-42 reconciled pre-sprint |
+| RES-d drift counter (canon) | VisionFlow (canon) | this wave (P1) | `scaffolded` | `CANARY-CANON-DRIFT` proven locally; live CI fire PENDING |
+
+The forward-chained corrections behind REC-1a/1b, PATCH, NIP-42, D1 and D5 are
+recorded in `gap-register-v1.1.md` §"Forward-chained corrections", not edited into
+the v1.0 inventory in place (register immutability, DDD Gap-Close Invariant 5).
