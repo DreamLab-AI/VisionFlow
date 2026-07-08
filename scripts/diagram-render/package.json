@@ -1,0 +1,14 @@
+{
+  "name": "visionflow-diagram-render",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Diagram-as-code render gate (RES-b). Renders presentation/report/diagrams/*.mmd to light-theme SVG in a real headless Chrome via raw Chrome DevTools Protocol over node's built-in WebSocket (no npm runtime dependency), using a locally vendored mermaid bundle with no CDN dependency. LIGHT default theme; bakes the browser-computed text fill and a white background into every SVG.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "render": "node render.mjs",
+    "check": "node ../check-diagram-text.js"
+  }
+}

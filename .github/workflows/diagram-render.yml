@@ -1,0 +1,85 @@
+name: Diagram render gate (RES-b)
+
+# Diagram-as-code gate. The shipped defect this stops: mermaid diagrams authored
+# for a dark theme were exported onto the white page of the report PDF with
+# near-white text on a transparent background, so every label was invisible.
+#
+# Two guards run on any PR that touches the diagram sources or the gate itself:
+#   1. the committed rendered/ baseline must have visible text + its key labels
+#      (portable, deterministic, no browser — the authoritative guard);
+#   2. re-rendering the .mmd sources from scratch, with the same light-theme
+#      engine that produced the baseline, must still produce visible text and
+#      must not drift (in visible words) from the committed baseline — this
+#      catches an edited .mmd whose baseline was never regenerated.
+
+on:
+  pull_request:
+    paths:
+      - 'presentation/report/diagrams/**'
+      - 'scripts/diagram-render/**'
+      - 'scripts/check-diagram-text.js'
+      - '.github/workflows/diagram-render.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  render-gate:
+    runs-on: ubuntu-latest
+    env:
+      # Pinned to the mermaid-cli whose bundled mermaid (^11.14 -> 11.16.0)
+      # matches scripts/diagram-render/vendor/mermaid.min.js (11.16.0). Installed
+      # for the pinned toolchain + a working chromium via its puppeteer peer.
+      MERMAID_CLI_VERSION: '11.16.0'
+      PUPPETEER_VERSION: '23.11.1'
+      PUPPETEER_CACHE_DIR: ${{ github.workspace }}/.puppeteer-cache
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # (1) Authoritative guard — runs with no browser, fully deterministic.
+      - name: Validate committed baseline (visible text + key labels)
+        run: node scripts/check-diagram-text.js presentation/report/diagrams/rendered
+
+      # (2) Pinned mermaid toolchain + its puppeteer peer, which downloads a
+      #     chromium into PUPPETEER_CACHE_DIR.
+      - name: Install pinned @mermaid-js/mermaid-cli (+ puppeteer chromium)
+        run: |
+          npm install -g \
+            "@mermaid-js/mermaid-cli@${MERMAID_CLI_VERSION}" \
+            "puppeteer@${PUPPETEER_VERSION}"
+
+      - name: Resolve a Chrome binary
+        id: chrome
+        run: |
+          set -euo pipefail
+          bin="$(find "$PUPPETEER_CACHE_DIR" -type f -name chrome 2>/dev/null | head -1 || true)"
+          if [ -z "${bin:-}" ] || [ ! -x "$bin" ]; then
+            bin="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium-browser || command -v chromium || true)"
+          fi
+          if [ -z "${bin:-}" ]; then
+            echo "::error::no Chrome/Chromium binary found (puppeteer cache or system)"; exit 1
+          fi
+          echo "Using Chrome: $bin"
+          "$bin" --version || true
+          echo "bin=$bin" >> "$GITHUB_OUTPUT"
+
+      # (3) Re-render from source with the vendored light-theme engine, re-check,
+      #     and diff visible words against the committed baseline.
+      - name: Re-render from source and check for drift
+        env:
+          DIAGRAM_CHROME_BIN: ${{ steps.chrome.outputs.bin }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/baseline"
+          cp presentation/report/diagrams/rendered/*.svg "$RUNNER_TEMP/baseline/"
+          node scripts/diagram-render/render.mjs
+          node scripts/check-diagram-text.js presentation/report/diagrams/rendered
+          node scripts/check-diagram-text.js --diff "$RUNNER_TEMP/baseline" presentation/report/diagrams/rendered
+          echo '--- byte-level drift (informational; sub-pixel font metrics differ across environments) ---'
+          git --no-pager diff --stat -- presentation/report/diagrams/rendered/ || true
