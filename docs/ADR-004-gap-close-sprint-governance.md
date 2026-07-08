@@ -1,9 +1,11 @@
 # ADR-004: Gap-Close Sprint Governance
 
-**Status:** Proposed
+**Status:** Accepted (ratified 2026-07-08)
 **Date:** 2026-07-08
 **Decision Owners:** DreamLab AI maintainers
 **Related:** [PRD Gap-Close Sprint](PRD-gap-close-sprint.md), [DDD Gap-Close Context](DDD-gap-close-context.md), [ADR-002 Ecosystem Alignment Governance](ADR-002-ecosystem-alignment-governance.md), [ADR-003 Judgment Broker Distributed Architecture](ADR-003-judgment-broker-distributed-architecture.md), book chapters "The Gap Register" (14b) and "Evaluating the Living Experiment" (14a)
+
+**Acceptance evidence:** This decision is Accepted because it is already being enforced, not merely proposed. Its Decision 3 liveness-canary gate has held six P0 loop closures below `integrated` — D1 beam traffic, COM-14 live Schnorr round-trip, COM-15 e2e, RES-a live relay-tap round-trip, forum badge live render, and RES-b CI fire — each recorded PENDING-LIVE in [`docs/registers/gap-register-v1.1.md`](registers/gap-register-v1.1.md) (§"Canary ledger"; "6 P0 canaries seeded") rather than being scored as documentation-only closures. A governance rule that has already caught false closures is enforced, and an enforced rule is Accepted.
 
 ## Context
 

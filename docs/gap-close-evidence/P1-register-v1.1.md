@@ -7,7 +7,7 @@
 | Canary | none — a register publication, not a loop item |
 | Branch | `gap-close/2026-07` |
 | Base commit at work start | `f72d173cd57d48fcf66c1a8c42628e6e6d11511c` |
-| Maturity (honest) | `RegisterKeeper` reaches `integrated` on first publish + supersede with a forward-chained correction. v1.0 = the meta-PRD inventory (published); v1.1 = this supersession with forward-chained corrections → the publish+supersede condition is met. |
+| Maturity (honest) | `RegisterKeeper` reaches `integrated` on first publish + supersede with a forward-chained correction. v1.0 = the meta-PRD inventory (published); v1.1 = this supersession with forward-chained corrections → the publish+supersede condition is met. **See the 2026-07-08 correction below: this "published" claim carried an unmet precondition (meta-PRD ratification) now closed.** |
 
 ## What was cut
 
@@ -88,3 +88,37 @@ Falsified if any P0 item is claimed above its evidenced tier (RES-b and RES-d he
 at `scaffolded`; canaries stated PENDING-LIVE), if a correction edits the v1.0
 inventory in place (it does not — corrections chain forward into v1.1), or if a
 canon loop item is scored `integrated` without its canary firing live (none is).
+
+## Correction — 2026-07-08 (RegisterKeeper publish precondition)
+
+*Visible correction to the "Maturity (honest)" row above; the original claim is
+left in place and this note qualifies it.*
+
+**Defect (adversarially verified).** The `integrated` claim for `RegisterKeeper`
+rests on v1.0 (the meta-PRD inventory) being **published**. In the DDD Gap-Close
+model, `RegisterPublished` fires only on **"Meta-PRD inventory ratified"**
+(`docs/DDD-gap-close-context.md` §6; `docs/DDD-gap-close-canon-context.md` §6). At
+the time v1.1 was cut, `docs/PRD-gap-close-sprint.md` read **Status: Proposed** —
+the inventory was not ratified, so the publish precondition was unmet and the
+`integrated` claim was unsupported.
+
+**Resolution.** Ratified within the canon's own ADR-004 authority, matching the
+sprint's actual state (in execution on the `gap-close/2026-07` branches):
+`docs/PRD-gap-close-sprint.md` and `docs/ADR-004-gap-close-sprint-governance.md`
+moved **Status: Proposed → Accepted** (dated 2026-07-08). The `RegisterPublished`
+trigger now has its precondition; v1.0 is validly published; and
+`RegisterKeeper`'s publish-and-supersede (v1.0 → v1.1) supports the `integrated`
+tier. The register's own visible correction note is in
+`docs/registers/gap-register-v1.1.md` §"Correction note — 2026-07-08". No P0 status
+row, tier or canary state is changed by this correction.
+
+**Receipt (status-line diff):**
+```
+docs/PRD-gap-close-sprint.md
+-**Status:** Proposed
++**Status:** Accepted (ratified 2026-07-08; execution commenced same day)
+
+docs/ADR-004-gap-close-sprint-governance.md
+-**Status:** Proposed
++**Status:** Accepted (ratified 2026-07-08)
+```

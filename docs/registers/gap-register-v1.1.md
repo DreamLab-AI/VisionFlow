@@ -30,6 +30,29 @@ is the first `RegisterKeeper` publish-and-supersede: v1.0 published (the meta-PR
 inventory), v1.1 supersedes it with the P0-close status and the forward-chained
 corrections below.
 
+## Correction note — 2026-07-08 (RegisterKeeper precondition)
+
+*Added post-publication as a visible correction (not a silent edit); the "Cut by"
+and "Immutability" claims above are left in place as originally written.*
+
+**Defect (adversarially verified).** The claim above that this is the first
+`RegisterKeeper` publish-and-supersede — the basis for `RegisterKeeper` reaching
+`integrated` (`PRD-gap-close-canon.md` §"Register Stewardship"; `DDD-gap-close-canon-context.md`
+§9) — rested on v1.0 (the meta-PRD inventory) having been **published**. Under the
+DDD Gap-Close model the `RegisterPublished` event fires only on **"Meta-PRD
+inventory ratified"** (`DDD-gap-close-context.md` §6; `DDD-gap-close-canon-context.md`
+§6). At v1.1's cut, `PRD-gap-close-sprint.md` still read **Status: Proposed**, so
+the inventory was not ratified, the `RegisterPublished` precondition was unmet, and
+the `integrated` claim for `RegisterKeeper` was unsupported.
+
+**Resolution.** `PRD-gap-close-sprint.md` and `ADR-004-gap-close-sprint-governance.md`
+were ratified (**Status: Proposed → Accepted**, dated 2026-07-08) within the canon's
+own authority under ADR-004 — matching reality, the sprint being already in execution
+on the `gap-close/2026-07` branches. The `RegisterPublished` trigger now has its
+precondition; v1.0 is validly published; and `RegisterKeeper`'s publish-and-supersede
+(v1.0 → v1.1) is a supportable basis for the `integrated` tier. No P0 status row,
+maturity tier or canary state below is changed by this correction.
+
 ## P0 item status (post-wave)
 
 The floor. Maturity uses the ADR-002 vocabulary. **Maturity** is the evidenced
