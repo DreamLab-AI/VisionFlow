@@ -1,0 +1,180 @@
+\chapter{VisionClaw: the Embodiment Surface}
+\label{ch:technical-substrate}
+
+\epigraph{The honest version is more defensible and more credible.}{}
+
+\section{A Working Knowledge Substrate}
+
+VisionClaw is not a prototype, a whitepaper, or a concept rendering. It is the knowledge substrate of the DreamLab ecosystem: a Rust server with GPU-accelerated graph physics, an OWL~2 ontology engine with Whelk reasoning, and a multi-user WebXR client, in daily use by a creative technology team at DreamLab in Fairfield, Eskdale.
+
+Within the ecosystem it plays a specific role. It is the embodiment and observation surface: the place where agent action is meant to become visible, so that a human can watch what the mesh is doing and see which parts need a human. Judgment happens elsewhere. The nostr-rust-forum (Chapter~\ref{ch:forum-governance}) owns the signed human decision. VisionClaw is where the operator looks; the forum is where the operator rules.
+
+This chapter describes what the system is, what it does, and what it does not yet do. Every claim here is reconciled against the codebase as surveyed in July 2026, and where the shipping documentation and the code disagree, the code wins and the chapter says so at the point of the claim.
+
+The embodiment surface has a longer ancestry than the codebase. It descends from a fifteen-year telepresence research programme run through the Octave mixed-reality laboratory at NICVE, and the constructs that programme measured --- co-presence, mutual gaze, proxemics, and the collaboration group size beyond which shared presence degrades --- are the same ones Chapter~\ref{ch:four-surfaces} uses to judge what this surface owes an operator. The question VisionClaw's desktop and headset put to a human, how to make distributed activity legible and shared inside one space, is the question that research pursued across two decades.
+
+The ancestry has a precise first artefact. In 2017, Professor Rob Aspin ran an unpublished precursor in the Octave: a knowledge graph rendered and manipulated inside the laboratory's immersive space, nine years before the dual-graph demonstrations this chapter verifies (Figure~\ref{fig:chloe-octave}). The VisionClaw repository's own README credits that work directly. The through line from that room to this codebase is unusually literal --- the same idea, standing inside shared knowledge, carried from a physical multi-modal facility into a WebXR renderer, with the intervening years spent building the substrate the 2017 system had no access to: cryptographic identity, sovereign storage, and a mesh of agents to populate the graph.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.92\textwidth]{shot-chloe-octave-2017.jpg}
+\caption{Chloe Nevitt interacting with Professor Rob Aspin's unpublished precursor to VisionClaw in the Octave multi-modal laboratory, University of Salford, 2017. Laboratory photograph; the earliest artefact in this system's lineage.}
+\label{fig:chloe-octave}
+\end{figure}
+
+That heritage came with a platform bet. The 2022 monograph that preceded this report \parencite{OHare2022Convergence} recommended Vircadia as the open substrate for shared virtual worlds, and the ecosystem took the recommendation literally before retiring it; Chapter~\ref{ch:2022-wager} grades that call among the book's cleanest misses and records Vircadia's remnant here as the uninstantiated avatar and presence bridge named later in this chapter. The live surface has moved to the single shared React Three Fiber renderer this chapter verifies below. Naming the migration matters because the shipping documentation kept describing an interim path the code had already left behind, and that kind of espoused-versus-actual drift is exactly what the canon's reconciliation machinery (Chapter~\ref{ch:visionflow-canon}) exists to catch at source.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\textwidth]{nb-embodiment-pipeline.jpg}
+\caption{VisionClaw's embodiment channel: authenticated \texttt{/wss/agent-events} ingest, hub, beam actor, and client render --- wired end to end, inert at one join (the starved position poll). Illustration in the ecosystem's house sketch style.}
+\label{fig:visionclaw-embodiment}
+\end{figure}
+
+\section{Watch Here, Judge There}
+
+The ecosystem draws a deliberate line between where agent work is observed and where it is decided. Coordination theory holds that oversight depends on activity being passively and continuously visible in the shared space, and that judgment demands a distinct, deliberate act with the evidence attached. VisionClaw takes the first responsibility and hands the second to the forum. The desktop and headset make agent action legible; the forum makes a human decision cryptographically real. Splitting the two is defensible. It keeps signing authority off the rendering surface, where a stray gesture should never approve anything, and it concentrates the audit trail in one place.
+
+The split carries a cost this edition states plainly. Because the observation surface holds no ambient cue that a judgment case is pending, an escalation raised on the server is invisible to the operator until they leave for the forum. Watching and ruling are correctly separated; they are not yet connected by so much as a badge. Chapter~\ref{ch:gap-register} carries this as a canon omission rather than a mere bug: nothing in the current design gives the surface an operator actually watches a pointer to the surface where a decision waits.
+
+\section{Architecture Stack}
+
+The system comprises five subsystems, each verified against the production codebase.
+
+\subsection{OWL~2 Ontology Engine}
+
+The knowledge graph uses formal OWL~2 ontology via \texttt{horned-owl} and \texttt{whelk-rs} EL inference. The engine parses OWL/XML, Manchester, RDF/XML, and Turtle. This provides shared semantics for agent skill routing: task decomposition uses ontological subsumption rather than keyword matching, so the system treats ``risk assessment'' as a sub-task of ``governance review'' and routes accordingly. Formal ontology gives two properties that informal representations lack: compositionality, so new concepts are constructed from existing ones with guaranteed semantic consistency, and inference, so the system derives relationships that were never stated. These properties make the governance and provenance mechanisms of Chapter~\ref{ch:governance} possible, and the ontology binding of Chapter~\ref{ch:ontology-binding} exposes them to agents at reasoning time.
+
+\subsection{GPU Physics and the Dual Graph}
+
+The visualisation layer runs a Rust/CUDA backend of 82 CUDA kernels for GPU-accelerated graph physics, including clustering, anomaly detection, and PageRank. A published dual-graph demonstration settles 21,038 nodes and 94,702 edges --- a dense knowledge-graph nucleus wrapped in an ontology shell --- under spring, repulsion, and ontology-driven semantic forces in real time. Degree-one dangling wikilink stubs are pruned at ingest, so what settles is navigable structure rather than citation noise.
+
+That is a real advance on the April 2026 position, where production screenshots showed roughly 934 nodes. The 100,000-node-at-60fps figure remains a design target and a unit-test case, not sustained multi-user production load.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\textwidth]{shot-visionclaw-live.png}
+\caption{The live VisionClaw client: GPU-settled knowledge graph with the control surface open. Production screenshot, July 2026.}
+\label{fig:visionclaw-live}
+\end{figure}
+
+\subsection{WebXR Visualisation}
+
+The client is a single React Three Fiber renderer. The same \texttt{GraphManager} component drives the desktop 2D screen and, wrapped in \texttt{@react-three/xr}, the in-headset view --- shared verbatim rather than duplicated. Earlier documentation described a separate Babylon.js immersive path; the code-verified reality is one shared renderer, which is the stronger engineering position and the one this chapter states. That renderer sits third in a deliberate succession across two technology generations of the same practice: Vircadia, the 2022 platform named above; the Babylon.js path just described, documented but never built as a separate system; and the shared React Three Fiber renderer verified here.
+
+\subsection{Nostr Agent Identity}
+
+Agent and human identities use the Nostr protocol with NIP-98 HTTP authentication. A single \texttt{did:nostr} keypair is the intended universal principal across every trust boundary: relay identity, HTTP auth, provenance author, and DID subject. The design is genuine and ahead of a still-draft industry standard. The gap, examined below and in Chapter~\ref{ch:gap-register}, is that agent nodes on the embodiment surface are still keyed by ephemeral task identifiers, not by their \texttt{did:nostr}, so cryptographic addressing is not yet usable where an operator would select an agent.
+
+\subsection{RuVector Memory}
+
+The persistent memory layer holds over 1.17 million vector embeddings in PostgreSQL with pgvector and HNSW indexing, giving agents memory across sessions. This addresses one of the limitations of Every's agent-colony model, where memory gaps cause context loss between sessions \parencite{Shipper2026}.
+
+\section{Agent Events Reach the Server, Not Yet the Screen}
+
+Since the April 2026 edition, the largest single change to VisionClaw is the agent-events pipe specified in \texttt{ADR-059}. An authenticated \texttt{/wss/agent-events} WebSocket now ingests agent actions from the runtime; a process-global hub fans them to an \texttt{AgentBeamActor}, which broadcasts a compact binary frame that the client decodes into a transient store and renders as a coloured beam from the acting agent to the knowledge node it touched. The beam render actor, listed as entirely missing in the previous edition, has shipped and is wired at boot, and the same code path runs verbatim inside the headset.
+
+A companion \texttt{AcspClient} and \texttt{ElevationActor} dispatcher shipped alongside it: the server genuinely produces kind-31402 broker cases and consumes kind-31403 admin decisions over the forum relay, and a separate \texttt{AgentMonitorActor} live-polls agentbox's management API for real running-task status and lays the agents out in the graph. On paper, the embodiment channel is built.
+
+It does not yet reach the screen. The embodiment channel exists in code, but live agent activity is invisible to the operator, starved by a single unstarted poll rather than by missing infrastructure. The beam's source-position lookup reads \texttt{/api/bots/agents}, an endpoint backed by a polling loop whose only trigger, \texttt{BotsClient::connect()}, is called nowhere in the server bootstrap; the resolver therefore always fails and no beam is ever drawn, and the dedicated agent-avatar layer, reading the same starved endpoint, shows zero agents even while real tasks run.
+
+The live data does exist, one hop away. \texttt{AgentMonitorActor} polls agentbox for genuine task status each cycle and lays the agents out in a golden-angle spiral served at \texttt{/api/bots/data}, but the avatar hook that could consume it extracts only the edges and discards the real node payload. So two independent reasons keep running agents off the screen: a poll that never starts and a consumer that throws away the half it needs. The transient attractive edge --- the ``gluon'' pull the ADR specified --- was retracted in code as infeasible on the current GPU buffer layout and deferred, with the deferral documented honestly at the point of the decision, and the despawn actor the ADR designed was replaced by a simpler client-side expiry the ADR never mentions. The 2026-07-03 closeout marks the beam actor as wired at boot; the code-verified survey shows the transport wired and the live data source unstarted, and this chapter states the second. Chapter~\ref{ch:gap-register} records this as the desktop surface's headline gap and traces the one-line fix.
+
+One further honesty flag belongs here rather than buried in the register. The ``MCP Connected'' status dot on the spawn modal is hardcoded to report connected, never calling the connection test that sits available in the same file, so a down backend still reads as healthy. A status signal decoupled from ground truth miscalibrates trust exactly when intervention is needed, and it is the direct opposite of the honesty the same codebase models in its gluon-deferral comment. The fix is a few lines; the reason to name it is that a fabricated green light on an observation surface is a governance defect, not a cosmetic one.
+
+The re-imagined control centre (\texttt{ADR-129}) is, at present, a settings surface rather than a governance one. It drives per-type node toggles, force parameters, and live connection status, and a natural-language command box dispatches view and physics intents to a real settings assistant. It carries no broker inbox, no approve-or-reject affordance, and no in-scene indicator that a judgment case is pending. An operator watching the graph must leave for the forum to see, let alone decide, anything a human is being asked to rule on. The desktop is deliberately observation-only; the honest consequence is that an escalation the server just raised is invisible on the surface the operator is actually watching.
+
+\section{Immersive WebXR}
+
+In the headset, the working half genuinely works. A user can enter an \texttt{immersive-vr} session, see the live knowledge graph rendered by the same \texttt{GraphManager} the desktop uses, see the live agent nodes, and grab and drag ordinary graph nodes with a controller ray that round-trips real drag events over the WebSocket. The beam pipeline renders in-headset exactly as on the desktop, subject to the same starved-poll caveat above.
+
+Agent interaction does not work. The custom agent-targeting scene never reads a real headset pose, so its selection ray originates at the world origin and finds the right node only by coincidence; the select callback is wired to nothing; hand-tracking sets flags but never a pose; gaze selection is absent. No command panel, agent-detail panel, or ACSP case view is imported anywhere in the immersive tree, so there is no way to inspect, steer, approve, or command an agent from inside mixed reality.
+
+The surface is identity-blind in the same way the desktop is: agent nodes carry no verifiable \texttt{did:nostr}, so a headset user cannot confirm which cryptographic actor produced a beam. Only \texttt{immersive-vr} is reachable in practice; the passthrough \texttt{immersive-ar} path exists as real code but is orphaned from the renderer and disabled by default. A quieter defect sits underneath: the working VR entry never sets the platform's own \texttt{isXRMode} flag, so during a live session the app renders as though it were on the desktop --- a state-model error invisible in documentation and surfacing only on the device. Multi-user copresence sits in the same drawer as the voice binding: an avatar renderer and presence bridge are complete but never connected, so the space is solo by default. Chapter~\ref{ch:gap-register} records the immersive surface's headline gaps as identity-blindness and the absence of any reachable agent-interaction affordance.
+
+\section{Voice}
+
+VisionClaw carries real voice capability, layered and internally uneven. Speech-to-text runs through Whisper-WebUI and text-to-speech through Kokoros, both external services reached over a dedicated speech WebSocket. One loop is fully closed: a \texttt{VoiceInterfaceActor} (\texttt{ADR-110}) subscribes to the transcription stream, matches a conservative verb-and-noun grammar for interface and settings requests, routes them to the same settings assistant the typed command box drives, and confirms the change aloud through Kokoro. A companion \texttt{ElevationActor} harvests spoken concept mentions into a governed elevation ledger, gated off by default.
+
+The step the ecosystem's own design story leads with, speaking to a selected agent, is not consumed. A complete \texttt{PushToTalkService} exists on the client with push and toggle modes and target guarding, but it is imported nowhere in the shipped application, and it has no concept of a selected agent as its target; voice always routes to a generic command pipeline.
+
+A deterministic transcript-to-action producer built in agentbox (\texttt{/v1/voice-intent}) is real and unit-tested but disabled by default and never called by VisionClaw's own speech pipeline; it also has no selection awareness, taking only a flat actor name. Voice is present as capability and closed for settings; the push-to-talk binding to an addressed actor remains built, disabled, and disconnected, and it sits atop the same missing \texttt{did:nostr} keying that blocks addressing an agent anywhere on the surface.
+
+\section{Embodiment Across the Surfaces}
+
+Table~\ref{tab:embodiment-surfaces} summarises the position. Each surface has a genuine working core and a specific thing that does not yet reach the operator, and the pattern is consistent: the infrastructure is present, the last join is not made.
+
+\begin{table}[h]
+\centering
+\caption{Embodiment state across VisionClaw's surfaces, July 2026}
+\label{tab:embodiment-surfaces}
+\begin{tabularx}{\textwidth}{L{3.4cm} X L{4.2cm}}
+\toprule
+\textbf{Surface} & \textbf{What a human can do today} & \textbf{What does not yet reach the operator} \\
+\midrule
+Desktop 3D (2D screen) & Spawn a real agentbox task; issue view and physics commands; inspect any node & Beams and agent avatars (starved poll); steer, interrupt, or approve in scene; a pending-judgment cue \\
+\addlinespace
+Immersive WebXR (Quest-class) & Enter \texttt{immersive-vr}; see the live graph and agent nodes; grab and drag nodes & Select or command an agent; verify actor identity; passthrough AR \\
+\addlinespace
+Voice (Whisper-WebUI, Kokoros) & Speak a settings change and hear it confirmed (\texttt{ADR-110}) & Address a selected agent; voice-to-actor intent binding \\
+\addlinespace
+Forum (nostr-rust-forum) & Sign a kind-31403 approve or reject decision & By design, judgment lives here, not on the observation surfaces (Chapter~\ref{ch:forum-governance}) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{What Is Real and Verified}
+
+Verified against the July 2026 codebase:
+
+\begin{itemize}
+  \item OWL~2 reasoning with Whelk-rs EL inference --- functional, and unusual in the agentic space.
+  \item GPU-accelerated graph physics across 82 CUDA kernels, with a published dual-graph demonstration settling 21,038 nodes and 94,702 edges in real time.
+  \item A single React Three Fiber renderer shared verbatim between desktop and headset, with working \texttt{immersive-vr} entry, live graph, and node manipulation.
+  \item Nostr NIP-98 authentication and signing.
+  \item The \texttt{ADR-059} agent-events transport, wired ingest-to-render at boot, with its live position source unstarted.
+  \item A closed voice-to-settings loop (\texttt{ADR-110}) and a server-side ACSP producer and consumer for the forum's judgment flow.
+  \item RuVector memory holding over 1.17 million embeddings with HNSW indexing.
+\end{itemize}
+
+\section{What Was Previously Overclaimed}
+
+\begin{cautionbox}[title={Corrected Claims, with Their July 2026 Status}]
+An April 2026 codebase audit identified several claims in earlier versions of this document that exceeded what the code supported. The corrections are kept because the history matters; each now carries its July 2026 status.
+\begin{itemize}
+  \item ``101 specialist skills'' was corrected to a smaller integrated set. \emph{July 2026: the correction stands, but the exact figure is still in motion --- the project README states 88 agent skills while other repositories in the tree report different counts on the same day. Every skill count is a point-in-time snapshot of a fast-moving system.}
+  \item Multi-model orchestration via Jarvis, Gemini, and GLM-4 DAG pipelines did not exist; the system used Claude-Flow only. \emph{July 2026: still accurate for VisionClaw. AgentBox now fronts several foundation models, but engineered verification diversity across them is not yet the practice (Chapter~\ref{ch:ecosystem-roadmap}).}
+  \item W3C-compliant DID key rotation was not implemented. \emph{July 2026: unchanged. A \texttt{did:nostr} identity spine is designed and intended as the universal principal, yet agent nodes on this surface are still keyed by ephemeral task identifiers, and no W3C DID rotation code exists.}
+  \item ``100,000+ nodes at 60fps'' was a unit-test case, not a validated production capability; screenshots showed roughly 934 nodes. \emph{July 2026: materially improved --- the dual-graph demonstration now settles about 21,000 nodes in real time --- but the 100,000-node target and sustained multi-user load at that scale remain unproven.}
+  \item ``4M+ tokens of live knowledge graph'' could not be verified. \emph{July 2026: unchanged; 1.17 million vector entries exist, no token-counting infrastructure does.}
+  \item ``96GB VRAM --- Dual A6000 Ada'' appeared only in skill examples; the README specified RTX 4080+ (16GB). \emph{July 2026: unchanged; the README still targets RTX 4080-class hardware.}
+  \item ``Stratified unidirectional links'' had no supporting code or documentation. \emph{July 2026: unchanged; still not found.}
+\end{itemize}
+\end{cautionbox}
+
+The corrected picture is still strong. A working OWL~2 plus CUDA plus WebXR plus Nostr plus Claude-Flow substrate, with over a million vector embeddings and a shipped agent-events transport, is genuinely novel at this scale.
+
+It does not need inflation, and the one honest weakness --- that the embodiment channel is wired but starved --- is a single unstarted call away from closing, which is a far more defensible position than a hidden gap would be. The pattern the code review found is consistent across every surface: the hard infrastructure is built, and the failures are joins left unmade, which is the kind of gap a team can close and report against rather than the kind it must quietly explain away.
+
+\section{VisionClaw in Liu's Taxonomy}
+
+Chapter~\ref{ch:coordination-economics} introduced Liu's taxonomy of organisational forms for agent collectives, in which agent-native forms decisively outperform human-imitation ones \parencite{Liu2026}. VisionClaw's subsystems map onto that taxonomy with some precision.
+
+The RuVector memory layer is a blackboard: agents coordinate by reading and writing shared, durable state rather than relaying context through manager agents, the form Liu finds achieves the highest quality of any he tests. Claude-Flow's ontology-grounded routing is a partial adaptive meta-organisation: task decomposition restructures the collective per task, using ontological subsumption as the routing signal, without the explicit contextual-transaction-cost awareness of Liu's orchestrator. The declarative governance layer combined with the judgment broker is an interface organisation: it specifies what may cross from the agentic side into human accountability, and with what evidence attached.
+
+This mapping is interpretive, not measured. Taxonomic resemblance is evidence that the architecture points the right way; it is not evidence that VisionClaw's shared-state coordination pays the context tax at the favourable rates Liu's simulations report. Testing that needs production instrumentation of contextual transaction cost, and the honest position is narrow: the trace plumbing exists, the accounting fields do not, so the measurement Chapter~\ref{ch:ecosystem-roadmap} commits to is close but not yet taken.
+
+\section{Positioning Guidance}
+
+In any external presentation, the following guidelines govern how VisionClaw is described.
+
+\begin{enumerate}
+  \item Keep the two names distinct. VisionClaw is the knowledge substrate and embodiment surface described in this chapter; VisionFlow is the umbrella coordination canon (Chapter~\ref{ch:visionflow-canon}). They are not interchangeable, and earlier documents that used them as synonyms were wrong to.
+  \item Lead with what is verified. Frame the 100,000-node target, on-screen live embodiment, and multi-provider verification as roadmap items, not current reality.
+  \item Position VisionClaw as an existence proof under favourable conditions rather than a proof, honest about the distance between a small technically fluent team and a several-hundred-person firm.
+  \item The audience for this document includes people who will check. Overclaiming undermines the genuine strengths of the system and the credibility of the wider argument.
+\end{enumerate}
+
+\begin{keyinsight}
+The value of VisionClaw to the coordination argument is not that it is the largest or most powerful agentic system. It is that a specific architectural approach --- ontology-grounded orchestration with embedded governance and a designated surface for making agent action visible --- exists in running code. The embodiment channel is built end to end and inert at one join, which is exactly the kind of gap this report insists on naming rather than hiding. A working substrate, even with its beams not yet drawing, moves the argument from ``this could work in theory'' to ``this works in practice, and the remaining question is how far it scales and how fast the last joins close.''
+\end{keyinsight}

@@ -1,0 +1,216 @@
+\chapter{Shared Semantics on a Budget: The Ontology Binding}
+\label{ch:ontology-binding}
+
+\epigraph{A shared vocabulary is only shared if every agent can afford to read it.}{}
+
+\section{What the Binding Is}
+
+Every other chapter in this part describes infrastructure that one agent owns. This
+chapter describes the one piece all of them share: a formal ontology, and a mechanism for
+reaching it that reaches every agent turn without asking any agent to carry the whole
+graph in its head. The mechanism is the pervasive ontology binding, specified in
+\texttt{PRD-020} and its keystone decision record \texttt{ADR-112}.
+
+The corpus is a formal OWL~2 ontology held in VisionClaw's Oxigraph store (RocksDB-backed
+RDF, materialised inference), with Whelk EL++ as the reasoner. The live semantic index
+carried 5,975 class summaries when captured for the skill documentation on 14 June 2026.
+That headline needs a caveat the book's ethic demands: the authored terminology is roughly
+4,952 \texttt{owl:Class} definitions plus about 9,766 label-only stubs, and the retrieval
+index is sized for around 14,718 entries once stubs are counted. Three numbers describe one
+corpus at different levels of authoring, and the honest citation is \emph{roughly six
+thousand authored classes over a moving base}; Chapter~\ref{ch:gap-register} holds the
+reconciliation this ecosystem cannot reliably perform on itself.
+
+That corpus has a lineage worth stating plainly. It is extracted, through a
+Logseq-to-OWL tool, from the operator's own multi-year research notebook rather than
+from a scraped or third-party dataset, which is why it carries classes for the operator's
+former laboratories, \texttt{nicve-virtual-reality-research-centre} and
+\texttt{octave-immersive-research-facility}, beside a numbered telepresence taxonomy of
+co-presence, mutual gaze, proxemics, and common-ground theory. That taxonomy is a formal
+encoding of the same literature this report's 2022 predecessor \parencite{OHare2022Convergence}
+drew on for its telepresence chapter. The honest limit of the claim is that no class in the
+local snapshot cites that book by name or DOI: a search for the title and its arXiv
+identifier returned nothing, and the live graph was unreachable during this reconciliation
+pass (see the fail-open section below), so the evidence rests on the static snapshot rather
+than a live traversal. The defensible reading is shared authorial descent from one
+continuing research programme, where the ontology is the later and much larger encoding of
+notes that also fed the book, a corpus since grown well past book-era scope into robotics,
+supply-chain, and security domains the book never covered.
+
+The binding's central design choice is a refusal to add a service. A sixteen-agent design
+pass first proposed a fresh HTTP route (an ``ontology ask'' endpoint inside the management
+API), and adversarial review took that form apart: the management API is Fastify, so the
+proposed Express router would not have mounted; it would have forced a second secret domain
+onto every isolated consultant subprocess; and a per-turn network round-trip is heavier
+than the sub-fifteen-millisecond local lookup the injection hook already budgets for. The
+corrected design makes the retrieval logic a shared in-process library
+(\texttt{agentbox/mcp/servers/lib/ontology-retrieval.js}) that each caller constructs its
+own copy of. One module and two shared backing stores, with no extra authentication wall
+between an agent and the graph.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.88\textwidth]{diag-mcp-radial.png}
+\caption{The ontology tool surface: MCP tools arranged around the Oxigraph store and Whelk EL++ reasoner. Rendered from the ecosystem's diagram-as-code corpus.}
+\label{fig:ontology-tools}
+\end{figure}
+
+\section{Two Channels: Ambient Push, Deliberate Pull}
+
+The binding reaches an agent through two channels with deliberately different economics.
+\textbf{PUSH} is ambient. On every interactive turn, a synchronous hook
+(\texttt{claude-flow-hook-adapter.cjs}) scores the prompt against a pre-warmed class
+index using trigram Jaccard similarity and, only when the top score clears a relevance
+floor (\texttt{ONTOLOGY\_PUSH\_MIN\_RELEVANCE}, default \texttt{0.11}), emits one line of
+about 80 tokens naming the most relevant seed class with its maturity and domain. The
+floor is the point of the channel. An on-topic prompt gets a breadcrumb; an off-topic one
+gets silence. ``Remind me where we are up to please'' scores below the floor and produces
+nothing, while ``design an escrow contract with an oracle'' surfaces the
+\texttt{optimistic-oracle} class. No agent invokes PUSH; it appears, or it does not. It
+never touches the network on the hot path: a breadcrumb waiting on an embedding round-trip
+would blow the hook's latency budget and emit nothing at all.
+
+\textbf{PULL} is deliberate. An agent that wants grounding calls \texttt{ontology\_ask}
+and receives a provenance-scoped Turtle subgraph, budget-bounded by the calling model's
+tier. The tier does the rationing: a cheaper model gets a tighter subgraph, an expensive
+one gets depth and inferred closure, and the budget is enforced in the library after
+serialisation rather than left to each caller's discretion (\texttt{ADR-116}).
+Table~\ref{tab:ontology-tiers} states the ceilings.
+
+\begin{table}[h]
+\centering
+\caption{Model-tier budgets for \texttt{ontology\_ask} (ADR-116)}
+\label{tab:ontology-tiers}
+\begin{tabularx}{\textwidth}{L{2.6cm} X L{2.4cm}}
+\toprule
+\textbf{Tier} & \textbf{Retrieval mode} & \textbf{Token ceiling} \\
+\midrule
+booster (PUSH) & breadcrumb; synchronous local trigram match; depth 0; asserted graph & $\leq$80 \\
+\addlinespace
+haiku & class-summary menu; depth 0; asserted graph & $\leq$500 \\
+\addlinespace
+sonnet & depth-1 neighbourhood in terse Turtle; asserted; full page bodies chunked to budget & $\leq$2{,}000 \\
+\addlinespace
+opus & depth-2 plus inferred closure, layer-labelled & $\leq$6{,}000 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+One detail of the expand path looks trivial and is not. Because the asserted graph stores
+only \texttt{child subClassOf parent}, a seed's subclasses are incoming edges that a purely
+outgoing expansion missed; the query now fetches children first and places them ahead of
+the budget clamp so they survive it (a measured gap, fixed 14 June). Terse Turtle over
+SPARQL-results JSON buys a two-to-ninefold token reduction (\texttt{ADR-115}), most of why
+a six-thousand-class corpus fits a two-thousand-token sonnet budget at all.
+
+\begin{evidencebox}[title={A captured pull: matching by meaning}]
+Asked for ``escrow oracle payment settlement'' at sonnet tier, \texttt{ontology\_ask}
+returned a 146-token subgraph seeded on \texttt{price-oracle} and
+\texttt{cbdc-cross-border-settlement}, classes whose labels share no literal term with the
+query. The retrieval is embedding-seeded against the class index, so it finds the
+contract domain by meaning rather than by string match. The same query at haiku tier
+returns a tighter subgraph: the tier drives the budget, and the budget drives how much of
+the graph the agent ever sees. (Live capture, \texttt{visionclaw-server}, 14 June 2026.)
+\end{evidencebox}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.92\textwidth]{nb-ontology-binding.jpg}
+\caption{Two channels to shared semantics: an ambient, relevance-gated PUSH breadcrumb and a deliberate, budget-bounded PULL, with writes routed through the Whelk consistency gate and ACSP human approval. Illustration in the house sketch style.}
+\label{fig:ontology-binding}
+\end{figure}
+
+\section{Read Pervasive, Write Governed}
+
+Reading is the pervasive half. Writing is the governed half, and the asymmetry is the
+whole design. The retrieval brain is read-only; it cannot mutate the graph, only survey
+it. The single path to asserted truth runs through \texttt{ontology\_propose}: a proposal
+is authenticated, checked by the Whelk EL++ consistency gate for logical soundness, and
+then queued to the broker inbox where a human administrator signs the decision through the
+forum's Agent Control Surface Protocol (Chapter~\ref{ch:forum-governance}). Derived
+material an agent generates for itself (class summaries, usage telemetry) is fenced to a
+\texttt{:summary} named graph; a write aimed at \texttt{:assert} or \texttt{:inferred}
+is rejected server-side with a ``fenced graph'' error. Agent-derived facts stay out of the
+truth layers until a human promotes them.
+
+That asymmetry is the interface organisation \textcite{Liu2026} formalises, rendered in
+code rather than in prose. Liu's account of agent collectives requires agent output to
+enter a human workflow only with evidence attached and human judgment mandatory at defined
+points. The chain \texttt{ontology\_propose} $\rightarrow$ Whelk consistency reasoning
+$\rightarrow$ broker approval is that requirement expressed in three gates: correctness
+before policy, policy before merge, evidence carried the whole way.
+Chapter~\ref{ch:ecosystem-roadmap} names this same path as the one row in its findings
+table that is architecture rather than aspiration.
+
+The security of that path is a live gap, and the freshest ground truth says so plainly. As
+of the 3 July 2026 closeout, the \texttt{propose} endpoint still
+accepts unauthenticated proposals and a \texttt{/api/ontology/load} backdoor still bypasses
+Whelk entirely, which is why the first recommendation of
+Chapter~\ref{ch:ecosystem-roadmap} is to close both before anything downstream is worth
+measuring. The authentication fix (\texttt{ADR-120}) is written but not yet landed and
+verified on the Rust side. A governance pipeline with an unauthenticated front door is a
+design for governance, and Chapter~\ref{ch:gap-register} records it as such.
+
+\section{Fail-Open by Contract}
+
+The binding's load-bearing promise is what happens when the backend is unreachable. Every
+call is wrapped so that a backend failure degrades to an empty result and the turn
+continues. A seed lookup that cannot reach the store returns \texttt{degraded:true} and
+nothing else; an expand that fails after a good seed degrades to the seed menu rather than
+failing the whole call. Grounding is an augmentation the agent may or may not receive,
+never a dependency the agent waits on. The one discipline this imposes is interpretive: a
+\texttt{degraded:true} empty result means the backend was unreachable, not that the concept
+is absent, and treating the two as the same is the documented anti-pattern.
+
+\begin{cautionbox}[title={Fail-open, observed on this book}]
+This edition was itself produced with the binding in play. During one working session the
+KG backend was unreachable, and every ontology call made while drafting these chapters
+degraded to empty exactly as the contract specifies: no error surfaced to the turn, no
+draft stalled, and the writing continued from the decision records and skill documentation
+instead. The fail-open guarantee is not reported here from a test rig. It was observed in
+the field, on the production of this book, and the chapter you are reading is one of the
+turns that continued ungrounded when the graph went dark. A second field observation
+records the same behaviour on a later date. During the July 2026 reconciliation pass for
+this edition, four \texttt{ontology\_ask} calls across the book's core domains
+(telepresence, distributed identity, Bitcoin value rails, and digital-society governance)
+each returned \texttt{degraded:true} with \texttt{seed\_unavailable} in about four seconds,
+one more logged instance of the fail-open contract holding rather than blocking the turn.
+\end{cautionbox}
+
+Fail-open also carries an honesty cost the book insists on paying. A silent
+degrade-to-empty is indistinguishable, from the outside, from a binding that was never
+wired at all. That is the exact failure an earlier workstream (\texttt{PRD-018}) shipped,
+where ontology forces were compiled and inert for months because nobody proved the consumer
+invoked them. The binding answers this with per-channel liveness counters and a startup
+canary that drives a non-zero injection through each enabled channel and asserts it landed
+(\texttt{ADR-119}): a green-but-zero dashboard is treated as failure. The three read
+channels are built and verified in the agentbox Node layer (eighteen of eighteen unit tests
+passing), while the server-side workstreams (the SPARQL row clamp, the propose
+authentication, the fenced derived-graph endpoint) were written pending the Rust host
+build. In the governed vocabulary of \texttt{ADR-002}, the binding is integrated on its
+read path and still hardening on its write path.
+
+\section{One Honest Gap in the Write Path}
+
+The governed-write story has a seam the register records, and it belongs in this chapter
+rather than only in the gap register because it is the point where canon and practice
+diverge most instructively. The canon commits to a clear ordering: ontology mutation
+crosses a formal correctness gate before it crosses a human-policy gate, Whelk first, then
+ACSP. The general agentbox \texttt{ontology\_propose} path implements that ordering. The
+\emph{personal-to-shared elevation path} (the \texttt{ElevationActor} that promotes a
+concept out of an individual's knowledge graph into the shared ontology) currently skips
+the Whelk consistency gate (finding GOV-7, open at the 3 July closeout). A concept can
+therefore reach the human-policy gate without first clearing the correctness gate the canon
+places ahead of it. The espoused sequence and the wired sequence disagree on exactly one of
+the two elevation routes, and the register records the disagreement rather than smoothing
+it over.
+
+The wider writeback ambition sits further out. The self-improving elevation flywheel
+(\texttt{ADR-121}), the two-speed routing that would send volatile facts to a fenced
+\texttt{:observed} graph while structural changes route to the human gate (\texttt{ADR-122}),
+and voice-mediated sign-off (\texttt{ADR-123}) are written designs marked spec-only, and the
+codebase still carries a \texttt{writeback\_triggered} flag that reports writes it never
+performs, the ghost \texttt{ADR-121} exists to delete. What ships today is the read binding
+and the governed single-proposal path; the flywheel that would close the loop between them
+is named, specified, and frozen. Stating that altitude here is cheaper than letting a reader
+find it in the code.

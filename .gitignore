@@ -6,4 +6,26 @@ test-results/
 .lighthouseci/
 docs/releases/ecosystem-release.local.json
 
+# Swarm / agent tooling state
+.claude-flow/
+.agentic-qe/
+
 .env
+
+# Book (presentation/report) LaTeX build artifacts
+presentation/report/*.aux
+presentation/report/*.log
+presentation/report/*.fls
+presentation/report/*.fdb_latexmk
+presentation/report/*.bbl
+presentation/report/*.bcf
+presentation/report/*.blg
+presentation/report/*.run.xml
+presentation/report/*.toc
+presentation/report/*.lof
+presentation/report/*.lot
+presentation/report/*.out
+presentation/report/*.xdv
+
+# NotebookLM derived media — too large for git (podcast.wav 88MB et al.)
+presentation/report/notebooklm/

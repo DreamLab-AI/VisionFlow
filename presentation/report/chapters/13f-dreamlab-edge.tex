@@ -1,0 +1,107 @@
+\chapter{DreamLab Edge: the Operator Overlay}
+\label{ch:dreamlab-edge}
+
+\epigraph{Standing up a community should cost a configuration file, not a codebase.}{}
+
+DreamLab Edge is the branded public face of the ecosystem, the \texttt{dreamlab-ai-website} repository that renders at dreamlab-ai.com. It is the surface a visitor actually meets: a React marketing site at the origin and a Rust/Leptos WASM forum at \texttt{/community/}, both served from GitHub Pages and backed by five Rust Cloudflare Workers. Of the six substrates this Part examines, it is the one built to hold the least of its own logic. The design goal is deliberate poverty. Edge should own its branding, a handful of Cloudflare resource identifiers, and a policy of who may read which zone, and nothing more. Everything that makes the forum a forum lives upstream in the kit examined in Chapter~\ref{ch:forum-governance}.
+
+\section{A Branded Face on a Shared Kit}
+
+Edge consumes the \texttt{nostr-rust-forum} kit as its backend. The separation follows \texttt{PRD-012} (kit adoption) and \texttt{ADR-085} (the \texttt{forum-config} package): the five Rust workers and the Leptos client live in the kit repository, and this repository holds only an operator overlay under \texttt{forum-config/}. Continuous integration clones the kit at a pinned commit and lays DreamLab's own worker manifests over it at build time. Table~\ref{tab:edge-ownership} states the split that this arrangement enforces.
+
+\begin{table}[h]
+\centering
+\caption{What the kit owns and what the operator owns}
+\label{tab:edge-ownership}
+\begin{tabularx}{\textwidth}{L{5.4cm} X}
+\toprule
+\textbf{Concern} & \textbf{Owner} \\
+\midrule
+Worker source; Leptos forum client & \texttt{nostr-rust-forum} kit \\
+\addlinespace
+Cloudflare resource IDs (D1, KV, R2, AI) & \texttt{forum-config/deploy/*.wrangler.toml} \\
+\addlinespace
+Branding, zones, feature flags, governance & \texttt{forum-config/dreamlab.toml} \\
+\addlinespace
+React marketing site; smoke and integration tests & this repository \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Identity is \texttt{did:nostr} throughout, obtained by passkey, browser extension, or direct key entry. Access divides into four zones: a public MiniMooNoir landing, plus locked Friends, Family, and DreamLab-business zones. Those zones are authored once, in the \texttt{[[zones]]} tables of \texttt{dreamlab.toml}, and projected into two enforcement points that must stay in step: the relay worker's \texttt{ZONE\_CONFIG} variable gates reads and writes server-side, and the same JSON is injected into the client's \texttt{window.\_\_ENV\_\_} to render zone tiles. The Family zone is NIP-44 encrypted; the others are relay-ACL gated. A non-member sees a visible-but-locked tile rather than nothing, so the shape of the community is legible before entry.
+
+Beneath the branding the deployment is two single-page applications on one origin. The React marketing site and the Leptos forum share dreamlab-ai.com and nothing else; the forum's five workers, for authentication, pod storage, link preview, relay transport, and semantic search, run as separate Rust WASM Cloudflare Workers. Authentication carries no password and stores no key: a WebAuthn passkey's PRF output is fed through HKDF to derive a secp256k1 private key deterministically, the key lives only inside a Rust closure and is zeroized on page unload, and every write to a worker is a NIP-98 signed request checked for replay in a shared D1 table. None of that mechanism is DreamLab's to maintain. It arrives with the kit, and the overlay selects it.
+
+A single feature shows what config-driven policy buys. The forum's NIP-52 calendar projects each event differently per viewer cohort. An administrator and family members see full detail; a friends-cohort viewer sees redacted free/busy blocks for family and business events, carrying start, end, and a busy flag but never titles or notes; a business viewer is unaware the family and friends calendars exist at all. Table~\ref{tab:edge-calendar} states the matrix. The projection runs server-side at the relay, so redacted material never reaches an unauthorised client, and the whole visibility scheme follows from the cohort assignments authored in \texttt{dreamlab.toml}. Changing who sees what is a configuration edit, not a code change.
+
+\begin{table}[h]
+\centering
+\caption{Per-cohort projection of the NIP-52 calendar}
+\label{tab:edge-calendar}
+\begin{tabularx}{\textwidth}{L{3.2cm} X X X}
+\toprule
+\textbf{Viewer cohort} & \textbf{Family events} & \textbf{Business events} & \textbf{Friends events} \\
+\midrule
+Administrator & full detail & full detail & full detail \\
+\addlinespace
+Family & full detail & full detail & full detail \\
+\addlinespace
+Friends & free/busy only & free/busy only & full detail \\
+\addlinespace
+Business & none (unaware) & full detail & none (unaware) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The kit relationship carries a licence seam as well. The branded React shell is proprietary; the forum surfaces, meaning the \texttt{forum-config/} overlay, the deployed workers, and the Leptos client, are combined works of the AGPL-3.0 kit that \texttt{forum-config} statically links, and are therefore AGPL-3.0. A visitor interacting with the forum over the network is entitled under AGPL~\S13 to the corresponding source: the pinned upstream kit plus the local overlay. This dual-licence-by-surface split is the legal shadow of the kit-and-overlay architecture. What DreamLab wrote stays proprietary, what it configures stays open.
+
+\section{What an Operator Owns}
+
+\begin{keyinsight}[title={A Community as a Configuration Act}]
+What an operator of a DreamLab-style forum owns reduces to one TOML file and a set of deploy manifests. \texttt{dreamlab.toml} is the authored source of truth for zones, branding, feature flags, and governance parameters; \texttt{forum-config/deploy/*.wrangler.toml} carry the Cloudflare resource identifiers. To stand up a second community, an operator writes a second \texttt{dreamlab.toml} and a second set of manifests. No fork of the forum, no new client code, no new workers. The kit-and-overlay split is the ecosystem's scaling model: making a new community is a configuration act, not an engineering one, and that is precisely how a six-substrate mesh proposes to grow past the one team that built it.
+\end{keyinsight}
+
+The split is machine-checked, which is what raises it above aspiration. The kit is pinned in four load-bearing places that must move together: the \texttt{KIT\_REF} variable in each of three GitHub workflows, and the \texttt{rev} on every \texttt{nostr-bbs-*} dependency in \texttt{forum-config/Cargo.toml}. A dedicated continuous-integration dual-pin check asserts that all four agree, because bumping one alone ships a client, worker, and test skew. That guard is real and it works. The prose around it does not keep pace: the repository's two README files quote two different, stale kit revisions (\texttt{25ca8a1} in one, \texttt{3c16c21} in the other) while the enforced pin is \texttt{a149da4}. Machine-synchronised config, documentation that drifts around it. Owning almost nothing still leaves prose to rot, and a chapter committed to the honest version records the rot rather than the README.
+
+The overlay also ships the means to prove a deployment behaves. \texttt{forum-config} carries a suite of seed and probe scripts an operator runs against the live four-zone deployment. One seeds the whole fixture: whitelisting tier users into cohorts, posting a message as each tier to validate the write gates, and publishing calendar events that exercise the projection matrix above. Others probe NIP-42 AUTH and zone reads, the per-tier calendar projection, and pod conditional-request handling. The admin key is read from the environment and never printed. The overlay owning its own verification is the right boundary: the kit proves the kit, the operator proves the deployment.
+
+That honesty extends to the config's own rough edges, stated in place rather than hidden. The \texttt{[admin]} section currently lists the \texttt{visionclaw-server} key as the primary forum administrator, even though \texttt{forum-config}'s own identity roster documents that same key as a non-admin service identity whose job is to publish governance panels. It stays there only to remain in lockstep with the pubkey mirrored into the relay, search, and auth workers' \texttt{ADMIN\_PUBKEYS}, which a continuous-integration check requires to agree; removing it in one place alone would split the admin set. A standing \texttt{TODO} in the file records that a dedicated admin keypair should replace it. A service identity doubling as the top human administrator is the kind of expedient a thin overlay accretes precisely because it owns so little, and writing it down costs less than pretending it is absent.
+
+\section{Where the Cutover Stands}
+
+Edge is live as a deployment and, as an independent artefact, the earliest-stage of the six. Those two facts describe different moments, and the distance between them is the de-specialisation still in flight. The overlay exists (Phase X3 in \texttt{PRD-012}): the legacy in-repository forum \texttt{community-forum-rs} has been renamed \texttt{community-forum-rs.frozen} and is pending deletion, but the route-level cutover from legacy workers to the overlay workers has not happened. Phase X4 waits on the kit exposing a \texttt{nostr-bbs-*-worker::dispatch} extension API; until it lands, \texttt{forum-config/src} carries per-worker entry shims that stand in for a dispatch surface the kit does not yet publish. So the clean thin-consumer separation that this chapter describes as the model is a target the codebase is refactoring toward, not a finished state. In the governed maturity vocabulary of \texttt{ADR-002}, Edge runs as a live deployment while sitting short of \emph{federation-verified} as a component in its own right. Recommendation~12 of Chapter~\ref{ch:ecosystem-roadmap} ties completing this cutover to the first pilot of the stack outside DreamLab.
+
+\section{Declared, Dark Federation}
+
+One small fact is worth stating precisely, because it sits on the ecosystem's outward edge. The overlay declares relay federation configuration that it does not exercise. \texttt{dreamlab.toml} carries a full \texttt{[mesh]} block: peer relay URLs, a \texttt{federated\_kinds} allow-list that includes the governance kinds 31400--31405, an \texttt{allowed\_remote\_dids} roster of trusted peers. Yet \texttt{mode} is \texttt{standalone} and \texttt{peer\_relays} is empty, so none of it fires. The relay is loopback in practice; the deployment reaches its own backend over HTTPS and WSS to Cloudflare Workers, and as a GitHub Pages and Workers deployment it cannot join a Tailscale tailnet at all. The federation block is present, complete, and dark.
+
+Edge participates in two of the ecosystem's three federation transport strata, and cannot reach the third. Table~\ref{tab:edge-transport} states which and why. Its relay worker bridges browser clients to the Nostr relay, and, when the \texttt{[native\_pod]} section is enabled, its auth worker forwards pod provisioning to an agentbox-hosted \texttt{solid-pod-rs} server (Chapter~\ref{ch:solid-pod}) through a Cloudflare Tunnel. A Tailscale tailnet is closed to it outright, because a GitHub Pages and Workers deployment has no host on which to run the tailnet daemon.
+
+\begin{table}[h]
+\centering
+\caption{Edge across the three federation transport strata}
+\label{tab:edge-transport}
+\begin{tabularx}{\textwidth}{L{3.4cm} L{4.0cm} X}
+\toprule
+\textbf{Stratum} & \textbf{Edge participation} & \textbf{Reason} \\
+\midrule
+1: Tailscale tailnet & Not applicable & GitHub Pages and Workers cannot join a tailnet \\
+\addlinespace
+2: Nostr relays & Relay worker (Durable Objects) & Browser-to-relay bridge; governance kinds surface in the forum \\
+\addlinespace
+3: Cloudflare Tunnel & Auth worker, when \texttt{[native\_pod]} is enabled & Reach the agentbox-hosted native pod tier \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The reason this matters more than a dormant config stanza usually would: relay federation is where the six substrates would pass governance events to one another, the point at which agentbox and VisionClaw governance panels reach the forum a human reads. The declared \texttt{[mesh]} block (\texttt{PRD-010} Phase 3, \texttt{ADR-073}) is a promise the wire does not yet keep, populated only when peers come online. A thin consumer inherits both the kit's economy and the kit's overstatements, and Edge inherits one worth naming: the relay it renders describes its gate as NIP-42 AUTH, while the code-verified behaviour is a pubkey allowlist with \texttt{auth\_required} set false, a whitelist check rather than a full AUTH round-trip. Closing that overstatement before the relay is ever exposed to peers is exactly the security front-loading that distinguishes deployments which compound from those which stall \parencite{Pereira2026Playbook}. The gap belongs to the forum kit and is catalogued in Chapter~\ref{ch:gap-register}; Edge carries it forward because carrying the kit forward is its whole job.
+
+\begin{cautionbox}[title={What Edge Is Not Yet}]
+\begin{itemize}
+  \item Live as a deployment, but the earliest-stage of the six as an independent artefact: the thin-consumer separation is a refactor in progress, not a shipped state.
+  \item The \texttt{PRD-012} cutover is mid-flight. The legacy forum is frozen and pending deletion; the D2 route handover waits on a kit dispatch API that does not yet exist.
+  \item Relay federation is declared and dark. The \texttt{[mesh]} block is authored in full but runs \texttt{standalone}, so no governance event crosses to a peer today.
+\end{itemize}
+\end{cautionbox}
+
+Edge is the ecosystem's answer to the question every other chapter defers: how does any of this reach a second team? The answer offered here is to make standing up a community a matter of writing one configuration file, so that the marginal cost of the next deployment is closer to editing a TOML than to running a project. That answer is only half-delivered while the cutover is unfinished and the mesh block runs dark, and this report records both the design and the honest distance still to close.

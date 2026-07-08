@@ -1,0 +1,106 @@
+\chapter{The 2022 Wager}
+\label{ch:2022-wager}
+
+\epigraph{Anyone can be right in a conversation; a bet only counts once it is printed, dated, and left where the future can find it.}{}
+
+\section{Scoring a four-year-old bet}
+
+Chapter~\ref{ch:gap-register} scored this ecosystem's code against its own canon and against the published literature, and typed every gap by where it broke. That discipline predates the code. In 2022, well before VisionFlow existed, the same author published, with Allen Fairchild and Umran Ali, a 515-page survey of the converging stack: money, secure communication, digital objects, and generative AI in spatial mixed reality \parencite{OHare2022Convergence}. It made roughly 150 falsifiable calls across sixteen chapters. Four years is long enough to score them, and scoring them is the same exercise the register runs on the code: state the bet, check it against what actually happened, and mark the misses first.
+
+This chapter does exactly that, and it is deliberately the least defensive in the book. The 2022 book's own stated ethic was to enable, test, and let evidence adjudicate, rather than protect a thesis. Held to that standard, the honest summary is that the loud, headline calls aged badly and the quiet, structural ones held. Figure~\ref{fig:stack-pyramid} shows the bet as printed: the layered stack the book proposed, from transport and Tor at the base through Bitcoin, Lightning, and Nostr to spatial engines, machine-learning agents, and the human interface at the apex. Table~\ref{tab:wager} grades the headline predictions; the prose that follows takes the most instructive on each side, and then the two things a book written to anticipate 2026 did not see coming at all.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{b22-stack-pyramid.jpg}
+\caption{The wager as printed: the 2022 book's layered stack --- network and Tor at the base, Bitcoin and Nostr as the identity and value layer, spatial engines above them, machine agents and webs of trust, and the human interface at the apex \parencite{OHare2022Convergence}. Four years on, the ecosystem this book audits runs on the second layer and is still building the third and fourth.}
+\label{fig:stack-pyramid}
+\end{figure}
+
+\begin{table}[ht]
+\centering
+\caption{Headline calls from \textit{Convergence and Disruption in Digital Society} (2022), graded against July 2026}
+\label{tab:wager}
+\begin{tabularx}{\textwidth}{L{4.6cm} X L{2.4cm}}
+\toprule
+\textbf{The 2022 call} & \textbf{The 2026 reckoning} & \textbf{Verdict} \\
+\midrule
+Vircadia's server architecture persists as the canonical metaverse model & Abandoned upstream; retired inside the author's own VisionFlow ecosystem & REFUTED \\
+\addlinespace
+Two billion people in the metaverse and a \$200\,bn virtual-goods market by 2026 & Metaverse hype collapsed; Meta itself dropped the branding & REFUTED \\
+\addlinespace
+Ordinals and RGB overtake Ethereum as the dominant NFT chain & The whole category shrank from its 2022 peak; RGB stayed niche & REFUTED \\
+\addlinespace
+Web5/ION wins a share of decentralised identity & Block shut it down in 2024; Nostr is the survivor & REFUTED \\
+\addlinespace
+2023 as the year of CBDC emergence & Digital euro and pound still unissued; the US banned domestic CBDC work & REFUTED \\
+\addlinespace
+A Bitcoin-and-Nostr DAO layer ends ``organisational mutexes'' & No traction; DAOs did not become mainstream governance & REFUTED \\
+\addlinespace
+Autonomous AI agents settle on Bitcoin rails & Right in direction; the market chose USDC-class rails (x402) & PARTLY \\
+\addlinespace
+White-collar automation at Goldman's 25 per cent scale & Direction right; the RLI's 2.5-to-16.1 per cent climb is still building toward it & PARTLY \\
+\addlinespace
+Most internet interactions synthetic within two decades ($\sim$2042) & Trending toward it on 2026 volumes; the deadline has not arrived & TOO-EARLY \\
+\addlinespace
+Real-estate savings deal office work its ``final blow'' by 2030 & The 2024--25 return-to-office reversals cut against it early & TOO-EARLY \\
+\addlinespace
+Meta-style corporate metaverse fails at audience capture; the opportunity is federated small-group collaboration & Horizons and Decentraland stagnated as predicted; the surviving practice is federated and small-group & CONFIRMED \\
+\addlinespace
+Nostr's web of trust beats classical DID/SSI standards & \texttt{did:nostr} is this ecosystem's production identity spine & CONFIRMED \\
+\addlinespace
+Sovereign states accumulate Bitcoin as a game-theoretic hedge & US Strategic Bitcoin Reserve; El Salvador and Bhutan continue & CONFIRMED \\
+\addlinespace
+Open-source LLMs reach GPT-4 parity by mid-2024 & Llama, DeepSeek, and Qwen met or beat the timeline & CONFIRMED \\
+\addlinespace
+Asynchronous coordination tooling becomes critical-path & Anticipates the 2026 escalation-over-approval finding & CONFIRMED \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Where the map held}
+
+The hits cluster in one place: infrastructure the book expected to be built quietly and correctly, rather than launched loudly. The sharpest was identity. \textcite{OHare2022Convergence} bet against classical decentralised-identity and self-sovereign-identity standards and for Nostr's key-based web of trust, and that bet is now load-bearing in the author's own systems. \texttt{did:nostr} is the single production identity primitive across all six components of the VisionFlow ecosystem (Chapter~\ref{ch:visionflow-canon}), the exact choice the 2022 book argued for over Web5 and ION. The Bitcoin thread runs parallel. The claim that autonomous agents would need trustless settlement rails survives, in this ecosystem, as block-trails: Bitcoin-taproot-anchored, hash-chained provenance that lets an adversarial party verify an agent's audit record against the chain (Chapter~\ref{ch:visionflow-canon}). The market did not settle machine-to-machine payments on Bitcoin specifically, which is why the same prediction is graded a partial miss below; the anchoring instinct was right even where the currency call was not.
+
+Three more held on their stated timelines. Open-source models reached GPT-4 parity close to the eighteen-month window the book named, as Llama, DeepSeek, and Qwen matched or beat it, which is arguably the sharpest technical call in the book. The Chinchilla-derived claim that data quality bound harder than parameter count became consensus the same year. The thread that connects the 2022 book most directly to this one is the telecollaboration thesis: the prediction, out of the author's two decades in human-scale mixed-reality telecollaboration, that asynchronous coordination tooling would become the critical-path technology for distributed teams. \textcite{Pereira2026Playbook} reports that in agentic workflows escalation beats approval by 71 to 30 per cent, the same asynchronous-over-synchronous logic the book named, arriving a chapter early and one substrate over.
+
+Two smaller calls belong in the same column. The book predicted that Bitcoin mining would act as a grid-balancing load that withdraws when the grid needs peak power, and documented demand-response deployment on the Texas grid by 2025 bears that out. It also expected DAO-structured fundraising to keep drawing regulatory enforcement, which continued. Both are minor beside the identity and coordination threads, and both were right for the same reason those were: they described how a piece of infrastructure would behave under pressure, rather than how large a market would grow by a named year.
+
+\section{Where it broke}
+
+\begin{keyinsight}[title={A miss the author paid for personally}]
+The cleanest way to trust a scorecard is to find the author's worst call and check that it is graded honestly. Here it is. The book bet its own deployment chapters on Vircadia's domain and metaverse-server architecture persisting as the canonical model for shared worlds. Vircadia was abandoned upstream, and the presence bridge built on that model inside VisionClaw now sits in the codebase disconnected by default, recorded in Chapter~\ref{ch:gap-register} as an avatar renderer and Vircadia bridge that exist as code but are never instantiated. The platform the book backed died under the system the author later built on it. That is platform risk stated from the inside.
+\end{keyinsight}
+
+The metaverse forecast is the book's single cleanest falsification, and it splits in a way the scorecard should preserve. The headline numbers, two billion people in the metaverse by 2026 and a \$200\,bn virtual-goods market, were industry forecasts the book carried from McCann Worldgroup and its peers; they collapsed hard enough that Meta itself quietly dropped the branding. The book's own analysis, written from decades of laboratory telecollaboration, bet the other way: it held that large-scale social virtual reality was underperforming ordinary video calls, that the value lay in federated small-group collaboration rather than spectacle, and it named Horizons and Decentraland as continuing failures in audience capture. The reported forecasts were refuted; the authors' contrarian read of them was confirmed. Carrying a forecast you disbelieve is still a form of endorsement, so the refuted rows stand in the table, but the split matters for calibration: the misses concentrate where the book deferred to the era's consensus, and thin out where it argued from its own laboratory evidence.
+
+The NFT chapter aged badly with no such split: the bet that Bitcoin-native Ordinals and RGB would overtake Ethereum lost twice over, because the whole category shrank from its 2022 peak and Ethereum kept the diminished remainder. An authorship note belongs here, stated the way the lead author states it: the NFT chapter was a co-author's, and the lead author's scepticism of the category predates the collapse. The wager stands regardless. A book signed by three names is a bet by all three, and the score is recorded as printed rather than reallocated in hindsight. Two monetary predictions reversed outright rather than merely running late. The book had 2023 as the year of central-bank digital-currency emergence; by 2026 the digital euro and the digital pound remain unissued and the United States has banned domestic CBDC development. It expected a proposed 30 per cent US mining tax to gut domestic mining; the tax never passed and 2025 turned pro-mining instead, into executive orders and a Strategic Bitcoin Reserve, which is the opposite of the forecast direction.
+
+One miss is the exact mirror of one of the hits. The book hedged its identity bet across Nostr and Jack Dorsey's Web5/ION; Block shut Web5 down in 2024, and the surviving half of that hedge is the half this ecosystem runs on. The DAO chapter proposed a Bitcoin-and-Nostr coordination layer, ``Stackerstan'', that would dissolve what it called organisational mutexes through votepower and asynchronous problem-claiming. It never gained traction, and DAOs did not become the governance substrate the book expected. The mechanism failed. What it was built to solve outlived it, and the next section is where that matters.
+
+\section{Partial credit}
+
+Between the clean hits and the clean misses sit the calls that were right in direction and wrong in detail, and the honesty ethic requires scoring the detail. The agent-settlement prediction is the sharpest of these. The book was right that autonomous agents would need trustless settlement rails, and wrong about the instrument: the 2026 agent-commerce market gravitated to USDC-class stablecoins and protocols such as x402, not to Bitcoin. The author's own ecosystem, anchoring provenance to Bitcoin through block-trails, is the exception that proves the market rule rather than a refutation of it. Two more sit alongside. The claim that Ethereum's move to proof-of-stake would concentrate control in a handful of entities is directionally right, given staking concentration around Lido and the large exchanges, and overstated how politically salient that concentration would become. And the white-collar-automation forecast, pitched at Goldman's 25 per cent displacement figure, has the direction right while the scale is still building toward it: the Remote Labor Index's climb from 2.5 to 16.1 per cent in eight months is consistent with the trajectory without yet reaching the number.
+
+\section{What 2022 could not see}
+
+Two of the most consequential features of the 2026 landscape are absent from a 515-page book written to anticipate it. The first is the subject of this book. Stackerstan tried to remove organisational mutexes with blockchain votepower and failed; four years later the multi-agent literature documents the identical structural problem in a new substrate, where coordination without a hierarchy substitute breaks under load. \textcite{Cemri2025} measures failure rates of 41 to 86.7 per cent across seven state-of-the-art frameworks. The 2022 book wrote a chapter about coordinating autonomous parties without a manager and never connected it forward to what would become the defining failure mode of agentic systems. It described the problem in one costume and did not recognise it in the next.
+
+The second blind spot is more personal, and this book will not dress it up. The 2022 book theorised AI as an economic actor and imagined agents holding wallets and settling payments. Nothing in it anticipated that the author, a non-programmer, would use agentic AI collaboration to build a roughly 600,000-line, six-repository production ecosystem in eighteen months: the same ecosystem this book audits. The book saw AI as a party to the economy. It missed AI as a coding collaborator that erases the line between the programmer and the person who cannot program, which is the precondition for everything in Part~\ref{part:visionflow}.
+
+A third gap is narrower but sharp. The book's strongest technical instinct, that data quality rather than parameter count was the binding constraint on model capability, was right, and it became industry consensus by 2024. It had no model for what came next: inference-time reasoning compute, the chain-of-thought reinforcement learning of the 2024--25 frontier, an axis orthogonal to both parameters and training data. Getting the last constraint right buys no view of the next one.
+
+\section{The through line}
+
+Read the hits and misses together and a single design decision falls out of them. The 2022 book's metaverse scepticism was not a mood; it was the conclusion of a research programme that had spent two decades measuring why virtual environments failed to gain traction. The diagnosis it reached was that the blocker was never rendering or immersion. It was the substrate underneath: no verifiable identity, no sovereign shared data, no native way to move value, and communication channels that discarded the gaze, spatiality, and turn-taking cues that trust rides on. The book named three jointly unsolved problems --- value transmission without gatekeepers, provable distributed identity for mixed reality, and generative-AI access for the excluded --- and those three problems are, one for one, the pillars of the ecosystem in Part~\ref{part:visionflow}: the 402 web-ledger with its block-trails, the \texttt{did:nostr} spine, and an agent mesh built for roughly four thousand pounds.
+
+VisionFlow is therefore not a metaverse play that kept the faith through the collapse. It is the autopsy, acted on: substrate first, embodiment second. That ordering also reframes the sharpest finding in Chapter~\ref{ch:gap-register}. The register found that the mesh acts and mostly cannot yet be seen acting --- the governance and identity layers run ahead of the visible surfaces. Read against the 2022 diagnosis, that asymmetry is the signature of a four-year-old sequencing decision rather than an oversight: the visible layer was never the blocker, so it was deliberately built last. The gap is real and scheduled (Chapter~\ref{ch:ecosystem-roadmap}); what the lineage adds is the documented reason the schedule runs in that order.
+
+\section{Calibration for what comes next}
+
+Add the columns up and the pattern does not flatter in the usual way. The book's confident, headline-grabbing calls, the metaverse at scale, CBDCs imminent, DAOs as governance, Bitcoin NFTs winning, are where it was most wrong. Its quiet infrastructure calls held: Nostr over classical identity standards, Bitcoin as a sovereign hedge, open-source model parity, data quality over scale, and asynchronous coordination becoming the thing that matters. The hits are the plumbing; the misses are the marketing.
+
+That is what the scorecard is for. It calibrates this book's forward claims rather than conferring authority on them by seniority. When Chapter~\ref{ch:ecosystem-roadmap} commits, in print, to measurable compounding in the DreamLab ecosystem within two quarters, a reader is entitled to price in the author's demonstrated failure rate on four-year horizons, and to discount the confident register more steeply than the quiet one. The falsifiable-predictions ethic this book asks of itself in Chapter~\ref{ch:gap-register} and Chapter~\ref{ch:open-questions} is a habit with receipts, run once already and scored here rather than buried.
+
+\begin{cautionbox}[title={How to read this book's forward claims}]
+Trust the infrastructure register, discount the headline register. The 2022 calls that held were quiet and structural; the calls that failed were confident and dated to a year. Where this book makes a confident, dated forward claim, weigh it against that pattern before acting on it. A book that grades its author's last set of public bets, and grades the misses first, is asking to be read at a discount it has itself calculated.
+\end{cautionbox}

@@ -1,0 +1,166 @@
+\chapter{VisionFlow: Coordination Engineering}
+\label{ch:visionflow-canon}
+
+\epigraph{Six repositories cannot agree on what they are unless something outside all six is permitted to say so.}{}
+
+\section{Why a Canon Exists}
+
+Chapters~\ref{ch:introduction} and~\ref{ch:role-transformation} argued the case in the abstract: hierarchy was an information-routing protocol, the routing function is being taken over by machines, and the human role that survives is judgment at the boundary. Part~\ref{part:visionflow} tests that argument against a system that exists. DreamLab AI has built an ecosystem meant to embody the report's own prescriptions, and this part examines it component by component, at the level of files and commits, with the same honesty the earlier chapters asked of the evidence. This chapter is the umbrella. It describes the thing that binds the other five components into one system, and why that thing had to be built at all.
+
+VisionFlow is not an executable. It is a coordination architecture that emerges from six components: five product substrates and one branded deployment. There is no VisionFlow binary, no VisionFlow server, no port it listens on. What VisionFlow owns is the canon: the architecture decision records, product requirement documents, domain models, the cross-repository compatibility matrix, and the release manifests that the other components are measured against.
+
+The components coordinate humans and agents; the canon coordinates the components. It is coordination of coordination.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.98\textwidth]{ecosystem-topology-hero.jpg}
+\caption{The VisionFlow ecosystem: six components federated over one \texttt{did:nostr} identity spine, with sovereign pods, the forum governance surface, the VisionClaw embodiment substrate, and the AgentBox runtime bound by the canon's contracts. Illustration in the house sketch style.}
+\label{fig:ecosystem-topology}
+\end{figure}
+
+\texttt{ADR-002} states the arrangement plainly. VisionFlow owns the umbrella alignment process; repository-local documentation remains authoritative for implementation detail, but VisionFlow owns the cross-repository view of compatibility, maturity, and release evidence. The ownership is specific rather than nominal: the \texttt{did:nostr} identity spine is owned by the VisionFlow protocol docs, the Solid pod, WebID, WAC, and NIP-98 contracts by solid-pod-rs, the Agent Control Surface event kinds by nostr-rust-forum, and the IS-Envelope by VisionClaw. Each contract has one named owner and a listed set of consumers, so a security-sensitive change has exactly one place to be made and one place to be checked for drift.
+
+The motivation is a specific failure mode: without a coordination decision, each repository can remain locally correct while the ecosystem-level story drifts. A canon exists because six teams shipping six honest local truths will, left alone, assemble one collective lie. The canon is the ecosystem's \meshterm{contract layer} --- the place where the shared claims are written down, owned, and made falsifiable. Chapter~\ref{ch:governance} argued that governance embedded as code accelerates rather than constrains; the canon applies that same discipline one level up, to the federation of components itself.
+
+The drift is concrete, not hypothetical. The 2026-07-03 reconciliation found the earlier ecosystem tally simply wrong on a load-bearing number: three of the four runtime substrates default to standalone operation, so the count of components that federate by default is one of four, where an earlier canon revision had claimed two. On the same day, three different agent-skill counts were live in one repository tree. Each individual document was locally defensible; the ecosystem-level claim was drifting away from any of them. The canon is the mechanism by which that drift becomes visible and gets corrected in print rather than compounding silently across editions.
+
+\section{Six Components, One Governed Vocabulary}
+
+Before naming the components, the canon fixes the words used to describe them. \texttt{ADR-002} defines a seven-tier maturity vocabulary (Table~\ref{tab:maturity-vocab}), and treats it as governed language rather than marketing copy. A claim that a capability is \texttt{federation-verified} requires evidence from the end-to-end smoke path, not a design document; a mesh capability that only has conformance vectors is \texttt{scaffolded}, no matter how complete its specification reads. This vocabulary is used throughout this report, and every maturity label in the chapters that follow traces back to this table.
+
+The vocabulary's most consequential use is a subtraction. The 2026-07-03 reconciliation applied it to the mesh itself and concluded that federation is \texttt{designed, not shipped}: the \texttt{nostr-bbs-mesh} crate is scaffold-only, IS-Envelope routing is unimplemented in every substrate, and only conformance vectors exist. The canon's response was to declare standalone-first the supported deployment mode and park the federation cluster rather than describe it as operational. Naming a shipped capability honestly is easy; the discipline is in refusing to call an unshipped one \texttt{federation-verified} when the specification is complete and only the code is missing.
+
+\begin{table}[h]
+\centering
+\caption{The \texttt{ADR-002} maturity vocabulary: the ecosystem's governed language for capability claims}
+\label{tab:maturity-vocab}
+\begin{tabularx}{\textwidth}{L{3.4cm} X}
+\toprule
+\textbf{Status} & \textbf{Meaning} \\
+\midrule
+\texttt{historical} & Documented for context; not a current implementation claim \\
+\addlinespace
+\texttt{planned} & Product or architecture intent, without implementation evidence \\
+\addlinespace
+\texttt{scaffolded} & Code or config shape exists, but end-to-end behaviour is not proven \\
+\addlinespace
+\texttt{standalone} & Works locally, without cross-service federation guarantees \\
+\addlinespace
+\texttt{integrated} & A cross-repository contract implemented by at least two substrates \\
+\addlinespace
+\texttt{federation-verified} & End-to-end runtime proof exists across the required substrates \\
+\addlinespace
+\texttt{released} & Pinned in a coordinated release manifest \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The six components divide the labour as follows. Each has its own chapter in this part; here they get a paragraph.
+
+\textbf{VisionFlow} is the canon described above. It runs no code and makes the most modest maturity claim of the six: it is \texttt{integrated} as a coordination contract and nothing more. It ships no federated mesh, and the canon is explicit that it must not claim one.
+
+\textbf{VisionClaw} (Chapter~\ref{ch:technical-substrate}) is the knowledge substrate and embodiment surface: a Rust server with an OWL~2 EL reasoner (Whelk), GPU graph physics across 82 CUDA kernels, a multi-user XR client, and seven MCP ontology tools. Agent actions become visible there as beams; the beam actor is shipped and wired at boot, while the attractive-force ``gluon'' remains deferred.
+
+\textbf{AgentBox} (Chapter~\ref{ch:agentbox}) is the sovereign agent runtime: a reproducible Nix container that hosts the agents themselves, with a skills-and-tools routing surface, RuVector vector memory, and a Nostr session mirror that streams each running session to the operator's phone as encrypted self-messages.
+
+\textbf{solid-pod-rs} (Chapter~\ref{ch:solid-pod}) is the sovereign data layer: a seven-crate Rust implementation of the W3C Solid protocol --- LDP, WAC, NIP-98, DID:Nostr, WebID, and git-backed pods --- giving every human and agent portable, access-controlled storage rooted in their own key. It is pre-1.0 software, actively hardening.
+
+\textbf{nostr-rust-forum} (Chapter~\ref{ch:forum-governance}) is the governance surface. It owns the Agent Control Surface event kinds \texttt{31400}--\texttt{31405}, the governance domain model, panel rendering, and response signing. It is the ecosystem's one production human-in-the-loop mechanism, and the only component the canon calls a locus of human judgment.
+
+\textbf{DreamLab Edge} (the \texttt{dreamlab-ai-website} repository, Chapter~\ref{ch:dreamlab-edge}) is the operator overlay: the Cloudflare-edge-deployed public face that renders the forum and consumes the pod layer. As an independent artefact it is the earliest-stage of the six, being de-specialised into a thin consumer of the forum kit.
+
+A seventh chapter (Chapter~\ref{ch:ontology-binding}) covers the ontology binding that cuts across VisionClaw and AgentBox rather than living in any single component.
+
+\section{One Keypair, Five Signing Participants}
+
+The primitive that lets six components behave as one system is a single identity form: \texttt{did:nostr:<hex-pubkey>}. The identity spine documents five classes of signing participant --- humans, agents, servers, workers, and relays --- and every one of them is identified by one secp256k1 keypair, expressed as a 64-character lowercase hex public key.
+
+The \texttt{npub} encoding is a boundary at the UI edge; the hex form is the canonical internal representation.
+
+The design claim is that a single keypair fills five roles at once. The same key is verified at the relay via NIP-42 AUTH, verified at every HTTP request via NIP-98 Schnorr signatures binding URL, method, and body hash, evaluated against Solid WAC ACLs on every pod read and write, embedded in every provenance bead as the event author, and resolvable as a DID Document at \texttt{/.well-known/did.json}. There is no shared session store and no token exchange between tiers. The cryptographic primitive is the coordination primitive.
+
+The primitive was chosen in print before it was chosen in code. The author's 2022 book assessed Nostr as a candidate for exactly this decentralised-identity role, against the classical DID and self-sovereign-identity standards it judged too heavy to ship \parencite{OHare2022Convergence}; Chapter~\ref{ch:2022-wager} scores that call, four years on, as one of the wager's cleanest wins.
+
+The DID Document is where the single key advertises where the rest of the actor lives. It carries service entries for a preferred Solid pod (\texttt{\#solid-pod}), a preferred relay inbox and outbox (\texttt{\#nostr-relay}), and a WebID cross-verification link (\texttt{\#webid}). An actor's storage endpoint, its message endpoint, and its identity document are therefore all discoverable from the one hex string, which is what lets a component that has never met an actor before route to its pod and its relay without a directory service in between.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.88\textwidth]{diag-identity-spine.png}
+\caption{The dual-tier identity spine: one secp256k1 keypair serving as relay identity, HTTP-auth identity, WAC principal, provenance author, and DID subject. Rendered from the ecosystem's diagram-as-code corpus.}
+\label{fig:identity-spine}
+\end{figure}
+
+\begin{definitionbox}[title={The identity collapse}]
+Conventional systems carry a different identity at each trust boundary: a session cookie for the web tier, an OAuth token for the API, a service account for storage, a signing key for audit. Each boundary needs a translation step, and each translation step is a place where identity can be lost, forged, or confused. The \texttt{did:nostr} spine collapses all of these into one secp256k1 keypair. The relay identity, the HTTP-auth identity, the WAC principal, the provenance author, and the DID subject are the same 64 hex characters. Provenance, access control, and message routing then share one answer to the question ``who did this?''
+\end{definitionbox}
+
+The canon asserts NIP-42 relay authentication more strongly than the code currently enforces it. The 2026-07-03 reconciliation found that the forum relay advertises \texttt{auth\_required:false} and gates by a pubkey allowlist rather than completing a NIP-42 AUTH challenge-response round-trip. The relay-identity surface, in other words, is asserted at the level of the design and approximated at the level of the deployed worker. Chapter~\ref{ch:forum-governance} carries the detail; the point here is that the identity spine is a strong contract with one currently soft enforcement point.
+
+\section{Judgment Broker as a Distributed Capability}
+
+Chapter~\ref{ch:role-transformation} coined the \meshterm{judgment broker} role and Chapter~\ref{ch:governance} described the embedded governance that gives it teeth. The canon turns both into structure. \texttt{ADR-003} and the judgment-broker PRD state the design in one sentence: the broker is a capability that emerges from the coordination of four substrates, not a service that any one of them runs. nostr-rust-forum owns the domain model, the human decision surface, and the relay gating rules; AgentBox owns the agent runtime, the relay consumer, and decision application; VisionClaw owns enrichment gating over the knowledge graph; and the Nostr relay mesh is the transport. The event kinds \texttt{31400}--\texttt{31405} are the wire protocol that binds them. Agents write \texttt{31400} (PanelDefinition) and \texttt{31402} (ActionRequest); humans write \texttt{31403} (ActionResponse); the relay enforces the separation, so an agent key cannot sign a decision and a human key is required for one.
+
+The decision itself carries one of six outcomes in the domain model --- approve, reject, amend, delegate, promote, and precedent --- though the canon is honest that only approve and reject are handled at runtime today, with the remaining four logging a warning and deferring their workflows to a follow-up specification. The promote and precedent outcomes in particular imply a precedent-replay system, letting an agent query past decisions rather than re-ask, that does not yet exist.
+
+\begin{keyinsight}[title={Why no single repository owns the broker}]
+\texttt{ADR-003} records three rejected alternatives, each rejected for a structural reason. A \emph{single-service broker} was rejected because it recreates the centralised bottleneck the federation exists to avoid --- every decision would route through one service regardless of domain. A \emph{broker inside VisionClaw only} was rejected because the human decision surface, panel rendering, and response signing belong to the forum, and VisionClaw has no user-facing decision UI. A \emph{broker inside AgentBox only} was rejected because enrichment review needs knowledge-graph context that only VisionClaw holds, and duplicating the graph into AgentBox would break the single-source-of-truth principle. The broker is distributed because its responsibilities genuinely live in different places, and forcing them into one repository would fight the architecture rather than serve it.
+\end{keyinsight}
+
+The completion story is more honest in the third edition than in the first. Earlier documents described the broker as ``65 per cent implemented,'' and the 2026-07-03 closeout found that framing understates current state: two of the three named gaps are closed. Decision application (\texttt{handleGovernanceDecision}) is implemented and mints PROV-O provenance; five governance MCP tools ship in AgentBox.
+
+What remains open is the distributed BrokerActor, which still lives on an unmerged branch, while main shipped a different architecture in its place: an inline decide-and-inbox handler plus an \texttt{ElevationActor} with a real fenced Oxigraph write-back. The distributed actor is now an unmerged alternative, not a blocking gap in the decision loop. Chapter~\ref{ch:role-transformation} carries the front-end story, where a larger gap remains: the broker still has no decision canvas inside VisionClaw's own client.
+
+\section{Provenance by Construction}
+
+The canon's provenance claim is structural: every write is signed, every event is content-addressed, and every governance decision is an immutable Nostr event carrying a \texttt{prior\_decision\_id} chain that an auditor can traverse back to first principles. Provenance beads (kind \texttt{30001}) are content-addressed records; PROV-O activity records link a decision event to the agent action it authorised; git-marks record each pod write as a commit; and block-trails optionally anchor high-value records to Bitcoin via a taproot commitment (BIP-341), giving an externally verifiable receipt that even an adversarial party can check.
+
+Provenance is a property present at the moment of writing, not a log appended afterwards. The graph is the audit trail.
+
+Decisions inherit the same append-only discipline as the ledger beneath them. The judgment-broker domain model states it as an invariant: a \texttt{DecisionOutcome} is immutable once published, the Nostr event is the audit trail, and there is no undo --- only new events that supersede. Correction happens forward. A mistaken approval is not deleted or edited; a later signed event references it and overrides it, and both remain visible in the chain. This is the same guarantee git and the block-trail provide, applied to the governance layer: history accumulates, it does not rewrite.
+
+That guarantee has one unspecified edge, and the canon is candid about it. The model says a Decision may be superseded but never says who holds the authority to publish the superseding event, or under what conditions. The mechanism for correction exists; the policy governing who may invoke it does not.
+
+Provenance and value are designed to travel the same rails. Once every actor is a \texttt{did:nostr} identity and every write is anchored, the canon argues, the mesh can move value and trust between sovereign parties without an EVM, a bridge, or a custodian. The single keypair that authors provenance is also the WAC principal, the relay identity, and a payment account: a \texttt{did:nostr}-keyed HTTP~402 web-ledger meters value per request, Lightning and L402 rails carry the micropayments, and a taproot anchor makes a spend receipt as durable as the Bitcoin chain it settles on. This is the ecosystem's longest-horizon claim, and it is the least proven; the point for this chapter is only that identity, provenance, and settlement are designed to be one keyed rail rather than three, so that the audit trail and the money trail cannot diverge.
+
+\section{Where Judgment Happens, and Where It Only Shows}
+
+The canon draws a sharp line between the surface where a human rules and the surfaces where a human watches. Judgment happens in exactly one place: the forum. nostr-rust-forum owns the domain model, renders the panel, and signs the \texttt{31403} Decision, and only a human key may produce that event. Every scenario the canon walks through --- climate consortium, drug discovery, creative production --- routes the human decision through the same forum chokepoint.
+
+That single locus is deliberate: it keeps the one authority-bearing action in one auditable place rather than scattering approval across every client.
+
+The other surfaces are for observation and command, not decision. VisionClaw's desktop and XR clients render agent actions as beams and make blocked or approved states visually obvious through semantic physics, but no canon text gives them decision authority; a human watching the graph sees the consequences of decisions made in the forum. Voice occupies a third position that the canon added deliberately in 2026: a push-to-talk command captures the currently selected agent node and dispatches a \emph{scoped} ActionRequest to that agent's \texttt{did:nostr}, which is a least-authority choice --- voice is agent-command ingress and never a channel for the human Decision itself.
+
+Two honesty notes belong here. The voice-to-actor binding is documented more firmly than the code shows, and it depends on a contract that is currently broken, because live agent-actor nodes are keyed by \texttt{task\_id} rather than by \texttt{did:nostr} and so cannot yet be addressed by an ActionRequest. And the canon is silent on whether a decision observed in XR carries any different assurance than one rendered in the 2D forum, given that both ride the same relay transport. Chapters~\ref{ch:technical-substrate} and~\ref{ch:forum-governance} carry the surface-by-surface detail.
+
+\section{Governance as an Accelerant}
+
+The canon's wager, stated in the README and inherited directly from Chapter~\ref{ch:governance}, is that clean escalation makes the mesh faster. When an agent knows its authority boundary and surfaces exceptions cleanly, the roughly 90 per cent of decisions that need no human judgment flow without friction, and the roughly 10 per cent that cross a boundary arrive as a signed ActionRequest carrying context, evidence, and provenance. The human is asked a well-formed question at exactly the moment their judgment is load-bearing, rather than being asked to rubber-stamp everything or trust everything.
+
+The wager has empirical support the report develops elsewhere. \textcite{Pereira2026Playbook}, surveying successful enterprise deployments, found that an escalation operating model, where agents act by default and surface exceptions, produced roughly 71 per cent median gains against roughly 30 per cent for an approval-on-every-output model. The canon's authority-boundary contract is the mechanism that makes escalation the default rather than the exception, and Chapter~\ref{ch:ecosystem-roadmap} commits to measuring whether it delivers that gain in DreamLab's own deployment.
+
+This is the point of the whole part. The judgment broker of Chapter~\ref{ch:role-transformation} and the embedded governance of Chapter~\ref{ch:governance} are, in the canon, not slideware. They are an authority-boundary contract and a six-kind wire protocol with relay-enforced signing rules. The canon is those two chapters made structural --- the human side of what \textcite{Liu2026} calls an interface organisation (Chapter~\ref{ch:coordination-economics}), written down as code contracts rather than as policy. The measure of whether the wager pays off is empirical, and Chapter~\ref{ch:ecosystem-roadmap} states the falsification conditions in advance.
+
+\section{How the Canon Keeps Itself Honest}
+
+A contract layer is only worth the enforcement behind it. \texttt{ADR-002} gives the canon three instruments for keeping its own claims from inflating. The compatibility matrix is the human-readable source of truth for cross-repository identity, mesh, pod, governance, and verification posture, kept short enough to review in one sitting. Coordinated releases must publish a machine-readable manifest under \texttt{docs/releases/}, so a release claim becomes auditable against specific repository SHAs rather than a paragraph of prose.
+
+And the mesh smoke test is the promotion gate: a capability moves from \texttt{integrated} to \texttt{federation-verified} only when the end-to-end path runs, not when the design document reads complete. Shared fixtures are checked byte-for-byte against SHA-256 checksums during release qualification, so a protocol contract cannot drift between substrates without the drift being caught mechanically.
+
+The instruments work because they are used adversarially against the canon's own optimism. Two reconciliation passes bracket this edition. The 2026-05-29 pass closed several long-standing gaps with runtime evidence: the beam actor wired at boot, the \texttt{31402} dispatcher shipped, forum-originated decisions applied with PROV-O provenance. The 2026-07-03 pass then found the register stale in both directions: it confirmed those closures and it sharpened the evidence on what remains open, correcting an over-optimistic federation tally downward in the same document that recorded genuine progress. A canon that only ever revised its claims upward would be a marketing instrument. This one revises in whichever direction the code points, which is what makes its remaining claims worth trusting.
+
+\section{What the Canon Asserts and the Code Does Not Yet Enforce}
+
+The canon has become notably more self-critical across its reconciliations. The 2026-07-03 closeout confirmed several prior gaps closed with sharper evidence, and confirmed that others remain open, also with sharper evidence. Two of the open ones are principles the canon asserts as design commitments while the code enforces something weaker, and both belong to the sovereignty story the ecosystem sells.
+
+\begin{cautionbox}[title={Two principles the canon states but the code does not yet enforce}]
+\begin{itemize}
+  \item \textbf{The pod mandate is not revocable in code.} The canon specifies that an agent writes to a user's pod \emph{as itself}, under a scoped, revocable WAC \texttt{acl:agent} mandate (\texttt{urn:agentbox:mandate}), never by holding the user's private key. The least-authority design is real and important. What is missing is the revocation: in solid-pod-rs's WAC evaluator the mandate is a static, non-expiring ACL grant with no expiry field and no revocation path. The revocability is espoused in prose and unwired in the evaluator.
+  \item \textbf{No authority is defined for superseding a Decision.} Decisions are immutable-but-supersedable, yet the canon never names who may publish a superseding event, nor under what conditions. There is no specified appeal or revocation mechanism once a Decision is signed, and no rule for resolving two humans who respond to the same request.
+\end{itemize}
+\end{cautionbox}
+
+These are named here, at the point where the principles are introduced, so that a reader is not left believing the canon and the code say the same thing. Related overstatements appear in place above: the NIP-42 relay gate is currently a pubkey allowlist, and the flagship elevation loop still opens its human-approval case without invoking the Whelk consistency gate and emits no \texttt{ConceptElevated} closing event. The systematic four-surface accounting of every such gap lives in Chapter~\ref{ch:gap-register}; the component chapters name their headline gaps and point there rather than reproduce it.
+
+One silence is worth naming because it bounds the whole design. Every documented escalation path in the canon terminates at a human. There is no canon-level position on agent-to-agent judgment, on whether one agent's action can require another agent's sign-off rather than a person's. The judgment broker is, by construction, a human-in-the-loop mechanism, and the ecosystem has not yet asked what a mesh does when the volume of boundary-crossing actions outruns the humans available to judge them. That is a question for a later edition, and Chapter~\ref{ch:open-questions} is where the report keeps its unanswered ones.
+
+The pattern across all of these is the one this report has argued for throughout. The canon states a strong principle, the code implements a weaker approximation, and the canon says so in its own reconciliation files rather than waiting to be caught. That is the discipline a contract layer is for. The honest version of what the ecosystem does is more defensible than the aspirational one, and it is the version the rest of this part reports.

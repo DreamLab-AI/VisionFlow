@@ -1,0 +1,361 @@
+% !TEX program = xelatex
+% After the Collapse: Mapping the Solution Space for Human–Agent Collaboration
+% (First edition published as "The Coordination Collapse", April 2026)
+% Dr. John O'Hare, DreamLab AI Consulting Ltd
+%
+% Compile with: xelatex -> biber -> xelatex -> xelatex
+
+\documentclass[12pt,a4paper,openright]{book}
+
+% ─── Encoding & Fonts ───────────────────────────────────────────────────────
+\usepackage{fontspec}
+\setmainfont{FreeSerif}
+\setsansfont{FreeSans}
+\setmonofont{FreeMono}
+
+% ─── Page Geometry ───────────────────────────────────────────────────────────
+\usepackage[
+  a4paper,
+  top=30mm,
+  bottom=30mm,
+  left=30mm,
+  right=25mm,
+  headheight=15pt
+]{geometry}
+
+% ─── Colour Scheme ───────────────────────────────────────────────────────────
+\usepackage[dvipsnames,svgnames,x11names]{xcolor}
+\definecolor{navyblue}{HTML}{1B2A4A}
+\definecolor{accentgold}{HTML}{C9A84C}
+\definecolor{lightgray}{HTML}{F5F5F5}
+\definecolor{medgray}{HTML}{E0E0E0}
+\definecolor{darktext}{HTML}{2C2C2C}
+
+% ─── Typography & Spacing ───────────────────────────────────────────────────
+\usepackage{microtype}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{parskip}
+\setlength{\parskip}{0.5\baselineskip}
+\setlength{\parindent}{0pt}
+
+% ─── Headers & Footers ──────────────────────────────────────────────────────
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE]{\small\textcolor{navyblue}{\leftmark}}
+\fancyhead[RO]{\small\textcolor{navyblue}{\rightmark}}
+\fancyfoot[C]{\textcolor{navyblue}{\thepage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{%
+  \color{accentgold}\leaders\hrule height \headrulewidth\hfill}}
+\renewcommand{\footrulewidth}{0pt}
+
+% ─── Chapter & Section Styling ───────────────────────────────────────────────
+\usepackage{titlesec}
+
+\titleformat{\part}[display]
+  {\centering\normalfont\huge\bfseries\color{navyblue}}
+  {{\color{accentgold}\rule{0.3\textwidth}{1pt}}\\[6mm]\partname\ \thepart}{16pt}{\Huge}
+
+\titleformat{\chapter}[display]
+  {\normalfont\Huge\bfseries\color{navyblue}}
+  {\chaptertitlename\ \thechapter}{20pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{-20pt}{30pt}
+
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{navyblue}}
+  {\thesection}{1em}{}
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\color{navyblue!80!black}}
+  {\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\bfseries\color{navyblue!60!black}}
+  {\thesubsubsection}{1em}{}
+
+% ─── Callout Boxes ───────────────────────────────────────────────────────────
+\usepackage[most]{tcolorbox}
+
+\newtcolorbox{keyinsight}[1][]{%
+  enhanced,
+  colback=navyblue!5!white,
+  colframe=navyblue,
+  coltitle=white,
+  fonttitle=\bfseries,
+  title={Key Insight},
+  left=4mm,
+  right=4mm,
+  top=2mm,
+  bottom=2mm,
+  arc=1mm,
+  boxrule=0.5pt,
+  #1
+}
+
+\newtcolorbox{evidencebox}[1][]{%
+  enhanced,
+  colback=accentgold!8!white,
+  colframe=accentgold!80!black,
+  coltitle=navyblue,
+  fonttitle=\bfseries,
+  title={Evidence},
+  left=4mm,
+  right=4mm,
+  top=2mm,
+  bottom=2mm,
+  arc=1mm,
+  boxrule=0.5pt,
+  #1
+}
+
+\newtcolorbox{cautionbox}[1][]{%
+  enhanced,
+  colback=red!5!white,
+  colframe=red!60!black,
+  coltitle=white,
+  fonttitle=\bfseries,
+  title={Caution},
+  left=4mm,
+  right=4mm,
+  top=2mm,
+  bottom=2mm,
+  arc=1mm,
+  boxrule=0.5pt,
+  #1
+}
+
+\newtcolorbox{definitionbox}[1][]{%
+  enhanced,
+  colback=lightgray,
+  colframe=navyblue!40!black,
+  coltitle=navyblue,
+  fonttitle=\bfseries,
+  title={Definition},
+  left=4mm,
+  right=4mm,
+  top=2mm,
+  bottom=2mm,
+  arc=1mm,
+  boxrule=0.5pt,
+  #1
+}
+
+% ─── Tables ──────────────────────────────────────────────────────────────────
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{array}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+
+% ─── Figures & Graphics ─────────────────────────────────────────────────────
+\usepackage{graphicx}
+\graphicspath{{images/}{diagrams/}{wardley/}}
+\usepackage{float}
+\usepackage{caption}
+\captionsetup{
+  font={small},
+  labelfont={bf,color=navyblue},
+  format=hang,
+  margin=10pt
+}
+
+% ─── TikZ for Diagrams ──────────────────────────────────────────────────────
+\usepackage{tikz}
+\usetikzlibrary{
+  arrows.meta,
+  positioning,
+  shapes.geometric,
+  shapes.misc,
+  calc,
+  fit,
+  backgrounds,
+  decorations.pathmorphing,
+  shadows
+}
+
+% ─── Mathematics ─────────────────────────────────────────────────────────────
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% ─── Lists ───────────────────────────────────────────────────────────────────
+\usepackage{enumitem}
+\setlist[itemize]{left=0pt..1.5em, itemsep=2pt, parsep=2pt}
+\setlist[enumerate]{left=0pt..1.5em, itemsep=2pt, parsep=2pt}
+
+% ─── Bibliography ────────────────────────────────────────────────────────────
+\usepackage[
+  backend=biber,
+  style=authoryear-comp,
+  sorting=nyt,
+  maxcitenames=3,
+  mincitenames=1,
+  maxbibnames=99,
+  uniquelist=false,
+  dashed=false,
+  url=true,
+  doi=false
+]{biblatex}
+\addbibresource{references.bib}
+
+% ─── Hyperlinks ──────────────────────────────────────────────────────────────
+\usepackage[
+  colorlinks=true,
+  linkcolor=navyblue,
+  citecolor=navyblue!70!black,
+  urlcolor=accentgold!80!black,
+  bookmarks=true,
+  bookmarksnumbered=true,
+  pdfauthor={Dr. John O'Hare},
+  pdftitle={After the Collapse: Mapping the Solution Space for Human-Agent Collaboration},
+  pdfsubject={Human-agent collaboration, coordination engineering, and the VisionFlow living experiment},
+  pdfkeywords={AI, organisational design, agentic mesh, human-agent collaboration, coordination, VisionFlow, governance}
+]{hyperref}
+
+% ─── Epigraphs ───────────────────────────────────────────────────────────────
+\usepackage{epigraph}
+\setlength{\epigraphwidth}{0.75\textwidth}
+\setlength{\epigraphrule}{0pt}
+
+% ─── Custom Commands ─────────────────────────────────────────────────────────
+\newcommand{\meshterm}[1]{\textbf{\textcolor{navyblue}{#1}}}
+\newcommand{\foreign}[1]{\textit{#1}}
+
+% ══════════════════════════════════════════════════════════════════════════════
+%  DOCUMENT BEGIN
+% ══════════════════════════════════════════════════════════════════════════════
+\begin{document}
+
+% ─── Title Page ──────────────────────────────────────────────────────────────
+\begin{titlepage}
+\begin{center}
+
+\vspace*{2cm}
+
+{\color{accentgold}\rule{\textwidth}{2pt}}
+
+\vspace{1.5cm}
+
+{\fontsize{28}{34}\selectfont\bfseries\color{navyblue}
+After the Collapse}
+
+\vspace{0.8cm}
+
+{\fontsize{16}{20}\selectfont\color{navyblue!80!black}
+Mapping the Solution Space\\
+for Human--Agent Collaboration}
+
+\vspace{1.2cm}
+
+{\color{accentgold}\rule{0.4\textwidth}{1pt}}
+
+\vspace{0.9cm}
+
+\includegraphics[width=0.86\textwidth]{hero-agentic-mycelia.jpg}
+
+\vspace{0.9cm}
+
+{\Large\bfseries Dr.\ John O'Hare}
+
+\vspace{0.4cm}
+
+{\large\color{navyblue!70!black}
+DreamLab AI Consulting Ltd\\
+DreamLab, Fairfield, Eskdale}
+
+\vspace{1.5cm}
+
+{\large Third Edition --- July 2026}
+\vspace{0.3cm}
+
+{\small\color{navyblue!60!black}First edition, as \textit{The Coordination Collapse}: April 2026}
+
+\vspace{2cm}
+
+{\color{accentgold}\rule{\textwidth}{2pt}}
+
+\vfill
+
+{\small\color{navyblue!50!black}
+A book-length thesis in five movements: an emerging coordination problem,\\
+the research mapping its solution space across four interaction surfaces,\\
+the VisionFlow ecosystem built to occupy that space, an honest gap analysis\\
+of theory against running code, and the evaluation plan the gaps demand.}
+
+\end{center}
+\end{titlepage}
+
+% ─── Front Matter ────────────────────────────────────────────────────────────
+\frontmatter
+\pagestyle{plain}
+
+\tableofcontents
+\listoffigures
+\listoftables
+
+% ─── Main Matter ─────────────────────────────────────────────────────────────
+\mainmatter
+\pagestyle{fancy}
+
+\input{chapters/01-introduction}
+
+\part{An Emerging Problem}
+\label{part:problem}
+
+\input{chapters/02-historical-context}
+\input{chapters/03-collapse-point}
+\input{chapters/04-jagged-frontier}
+\input{chapters/05-vigilance-problem}
+
+\part{Mapping the Solution Space}
+\label{part:solution-space}
+
+\input{chapters/06-three-models}
+\input{chapters/06a-coordination-economics}
+\input{chapters/07-compounding-org}
+\input{chapters/08-new-kpis}
+\input{chapters/09-governance}
+\input{chapters/10-change-problem}
+\input{chapters/11-industry-landscape}
+\input{chapters/12-role-transformation}
+\input{chapters/14-implementation}
+\input{chapters/12a-four-surfaces}
+
+\part{VisionFlow: A Living Experiment}
+\label{part:visionflow}
+
+\input{chapters/13-visionflow-canon}
+\input{chapters/13b-forum-governance}
+\input{chapters/13-technical-substrate}
+\input{chapters/13c-agentbox}
+\input{chapters/13d-solid-pod}
+\input{chapters/13e-ontology-binding}
+\input{chapters/13f-dreamlab-edge}
+
+\part{An Honest Assessment}
+\label{part:assessment}
+
+\input{chapters/14b-gap-register}
+\input{chapters/14c-2022-wager}
+\input{chapters/15-open-questions}
+
+\part{Next Steps}
+\label{part:next-steps}
+
+\input{chapters/14a-ecosystem-roadmap}
+\input{chapters/16-conclusion}
+
+% ─── Back Matter ─────────────────────────────────────────────────────────────
+\backmatter
+
+% Bibliography
+\printbibliography[heading=bibintoc, title={References}]
+
+% Appendices
+\appendix
+\input{appendices/appendix-a-methodology}
+\input{appendices/appendix-b-competitor-matrix}
+\input{appendices/appendix-c-glossary}
+
+\end{document}

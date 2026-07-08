@@ -1,0 +1,160 @@
+\chapter{Forum: Where Judgment Lives}
+\label{ch:forum-governance}
+
+\epigraph{An approval that leaves no signature is a rumour. Judgment lives where the decision is signed, timestamped, and cannot be quietly rewritten.}{}
+
+\section{Why Judgment Belongs in Async Text}
+
+Every earlier chapter that argued for keeping a human in the loop reached the same practical question and left it open: where does the loop physically close? The vigilance problem of Chapter~\ref{ch:vigilance} shows that a human asked to watch a fast, mostly-correct agent in real time will drift into rubber-stamping. The governance argument of Chapter~\ref{ch:governance} asks for approval to be an accelerant rather than a bottleneck. Neither is achievable at a live console watching actions stream past faster than a person can read them. The forum answers with a deliberately slower medium: asynchronous, signed text.
+
+Async text earns the role on three properties. It is legible, because a decision is a written artefact a second person can read months later and understand without replaying a session. It is auditable, because every request and every response is a signed Nostr event appended to a relay, so the record of who decided what, on what evidence, is the primary object rather than a log emitted beside it. And it is rate-limited by construction: the throughput of readable prose bounds how fast decisions can be demanded of a human, which is exactly the property a real-time dashboard lacks and exactly the property the vigilance literature says oversight needs. This is where \textcite{Liu2026}'s interface organisation stops being an abstraction. Their specification is that agent outputs enter human workflows only with evidence attached and human judgment mandatory at defined points; the forum is a literal implementation of that specification over a public-key message bus.
+
+The medium also makes the signed record the object of coordination rather than a by-product of it. A request for a decision, the decision itself, and every later supersession are events with the same shape and the same signature discipline, so the trail a regulator or a teammate would want to reconstruct already exists as data the moment the decision is made. That is the strong form of the claim. Its honest weakness sits at the other end of the same pipe. The panel a human signs against today carries a title, a description, and action buttons, but no reasoning trace, no confidence figure, and no provenance from the agent that raised it, and the decision history the relay writes to \texttt{broker\_decisions} has no read endpoint at all. The audit substrate is genuinely present; the human-facing view into it, at the moment it would most help a person decide well, is the part still to build.
+
+The forum's claim to be \emph{where} judgment lives is not rhetorical. VisionClaw's immersive client, surveyed in Chapter~\ref{ch:technical-substrate}, produces real \texttt{kind-31402} broker cases from its own runtime and then renders no surface for them at all: a human must leave the 3D scene entirely and open the forum web page to decide. Among the ecosystem's surfaces the forum is not one option for closing the loop. Today it is the only one that draws the decision on a screen a human can act on.
+
+\section{Identity Without a Password Database}
+
+The forum's identity model removes the asset every credential breach targets. There is no password store and no email column, because a WebAuthn passkey \emph{is} the account. The passkey's PRF extension deterministically derives the member's root Nostr key on-device, and that key never reaches the server. Identity is a \texttt{did:nostr} Multikey DID (\texttt{did:nostr:<x-only-hex>} with a single \texttt{Multikey} verification method), the same canonical form the wider did-nostr and create-agent tooling speaks, so a member's identity is portable across every system that implements the method. Purpose-scoped subkeys derive from the root through \texttt{derive\_subkey}, an HMAC-SHA-256 primitive tested identically in native and WASM builds (\texttt{ADR-094}), giving rotatable device and capability keys recoverable from the root alone. Signup issues a fully client-side printable recovery sheet (\texttt{ADR-095}); the private key is minted in WASM and does not touch the network.
+
+One design choice keeps the identity portable without making the cryptography fragile: authentication reads the raw signature, never the document. NIP-98 for HTTP and NIP-42 for the relay verify a Schnorr signature against the raw event pubkey, so re-encoding the DID document can never move the auth path. Agents sit on the same substrate. An agent is a \texttt{did:nostr} subject exactly as a human is, commonly an \texttt{ADR-094}-derived subkey of an operator key, and it is admitted to the governance kinds only after an admin writes it into a registry (below). This is the substrate that Chapter~\ref{ch:gap-register} confirms is genuinely ahead of 2026 industry practice: cryptographic agent identity with relay-enforced registry gating and self-sovereign key custody, in a landscape where most production agents act with no verifiable identity of any kind and no ratified standard for agent self-identification yet exists.
+
+The lifecycle around the root key is built for loss and rotation rather than assuming neither happens. A member may tear off per-device subkeys so that a stolen device is revocable without rotating the root identity (\texttt{ADR-099}), and the relay resolves a device key to its owning principal at the AUTH gate, so revocation takes effect at the enforcement point rather than only in a UI. There are no hardcoded admin keys: the first registrant becomes admin, and an operator onboards further members through single-use \texttt{/connect} magic links that generate the invitee's key in WASM without ever exposing an admin seed (\texttt{ADR-098}). Each of these is a place where a conventional forum would reach for a password reset, an email loop, or a server-held secret, and where this kit reaches for a signature instead.
+
+\section{Access Is Data, Not Code}
+
+Who may see and post to what is described entirely in one operator file, not in the kit's source. A deployment copies \texttt{forum.example.toml} to \texttt{forum.toml}, fills in its zones and cohorts, and changes no code. The zone list is serialised to a single \texttt{ZONE\_CONFIG} JSON blob that fans out to both enforcement points: the relay reads it as an environment variable and gates deny-by-default; the client reads the same JSON from \texttt{window.\_\_ENV\_\_} and draws the banner tiles. Because both sides read one description, the picture a member sees never lies about what they can reach.
+
+Visibility has three settings and the relay honours all of them (Table~\ref{tab:zone-visibility}). A \texttt{public} zone is readable without authentication; a \texttt{locked} zone, the default, shows a greyed tile whose kind-40 definition is served so the tile can draw while its content stays withheld; a \texttt{hidden} zone is not enumerable at all, so a non-member cannot learn it exists. Read and write cohorts are separate, which yields the common pattern of an openly readable landing zone that only an inner circle may post to. When the config is absent the relay denies non-public reads: the system fails closed, so a misconfiguration cannot silently open a private zone. Cohorts gate an agent's ordinary board content the same way they gate a human's; they are orthogonal to the governance privilege described next, which the relay scopes by registry and admin status regardless of zone.
+
+\begin{table}[h]
+\centering
+\caption{Zone visibility settings and what a non-member perceives}
+\label{tab:zone-visibility}
+\begin{tabularx}{\textwidth}{L{3.2cm} L{3.4cm} X}
+\toprule
+\textbf{Visibility} & \textbf{Listed to non-members} & \textbf{Definition and content served} \\
+\midrule
+\texttt{public} & Yes & Content readable without authentication \\
+\addlinespace
+\texttt{locked} (default) & Yes, as a greyed tile & Definition served so the tile draws; content withheld \\
+\addlinespace
+\texttt{hidden} & No & Neither definition nor content; existence not enumerable \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The member reads the access model as furniture rather than as policy text. On arrival the client draws a wall of zone tiles generated from the same \texttt{ZONE\_CONFIG} the relay enforces from: enterable tiles for zones the viewer's cohorts open, greyed locked tiles for those they do not, and nothing at all for hidden zones. Inside a cohort-gated section the relay streams the group chat only after a NIP-42 AUTH handshake proves the cohort, and every identity in the room flows through one reactive resolver (display name, then profile name, then NIP-05, then a short pubkey), so a freshly seeded member with no metadata shows as a truncated key and fills in live the moment their kind-0 profile arrives. No raw hex lingers in the interface, and that single resolver path is the seam where an agent-disclosure badge belongs, once the canon requires agents to be visibly distinct from the humans they sit beside.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.72\textwidth]{shot-forum-zones.png}
+\caption{The zone wall as a member sees it: enterable, greyed, and absent tiles drawn from the same \texttt{ZONE\_CONFIG} the relay enforces. Production screenshot.}
+\label{fig:forum-zones}
+\end{figure}
+
+\section{Agent Control Surface Protocol}
+
+The load-bearing mechanism is a six-kind protocol that turns any agent's request for a human decision into a signed, rendered card and turns the human's answer into a signed, appended event. It is wired end-to-end in shipping code, not relay-side scaffolding: an agent publishes a \texttt{PanelDefinition} and an \texttt{ActionRequest}, a reactive store in the Leptos client ingests the governance subscription, a human clicks Approve or Reject, and the client signs and publishes a \texttt{kind-31403} \texttt{ActionResponse} under the member's own \texttt{did:nostr} key. The response is a real cryptographic decision, not a UI toggle.
+
+\begin{definitionbox}[title={The Agent Control Surface Protocol (ACSP)}]
+Six parameterised-replaceable event kinds carry the human-in-the-loop loop. Kinds 31400 (\texttt{PanelDefinition}), 31401 (\texttt{PanelState}), 31402 (\texttt{ActionRequest}), 31404 (\texttt{PanelUpdate}) and 31405 (\texttt{PanelRetired}) are published by an agent and admitted only from a pubkey holding an active \texttt{agent\_registry} row. Kind 31403 (\texttt{ActionResponse}) is the human's signed decision. The kinds are declared once in \texttt{nostr-bbs-core} and enforced at relay ingress; the NIP-11 document advertises them under a \texttt{nostr\_bbs.agent\_control\_surface} block so an agent can discover the surface and its registry gate.
+\end{definitionbox}
+
+Table~\ref{tab:acsp-kinds} states the admission rule for each kind. The role separation is the point: agent keys carry the requests, and no agent key can sign an approval, because the relay hard-gates \texttt{kind-31403} to admins through a \texttt{governance\_response\_blocked} check that fires independently of what either client's UI permits the user to attempt.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.92\textwidth]{nb-acsp-workbench.jpg}
+\caption{The judgment loop: an agent's signed \texttt{kind-31402} ActionRequest arrives as a rendered card; the human's Approve or Reject returns as a signed \texttt{kind-31403} decision and lands on the provenance trail. Illustration in the house sketch style.}
+\label{fig:acsp-workbench}
+\end{figure}
+
+\begin{table}[h]
+\centering
+\caption{ACSP event kinds and their relay admission rules}
+\label{tab:acsp-kinds}
+\begin{tabularx}{\textwidth}{L{1.8cm} L{3.0cm} X}
+\toprule
+\textbf{Kind} & \textbf{Name} & \textbf{Publisher and relay admission rule} \\
+\midrule
+31400 & PanelDefinition & Registered agent; rejected at ingress without an active \texttt{agent\_registry} row \\
+\addlinespace
+31401 & PanelState & Registered agent \\
+\addlinespace
+31402 & ActionRequest & Registered agent; projected to \texttt{broker\_cases} on admission \\
+\addlinespace
+31403 & ActionResponse & Human, admin only; \texttt{governance\_response\_blocked} rejects any non-admin key, agent or member \\
+\addlinespace
+31404 & PanelUpdate & Registered agent \\
+\addlinespace
+31405 & PanelRetired & Registered agent \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Awareness is push-based and the persistence is deliberately plain. A live subscription over the relay WebSocket feeds the client's reactive \texttt{PanelRegistry}, so a new panel or action appears without a refresh. On admission the relay projects each \texttt{ActionRequest} into a \texttt{broker\_cases} row and each accepted \texttt{ActionResponse} into an append-only \texttt{broker\_decisions} row, with \texttt{broker\_roles} recording who may broker. The tables co-reside in one D1, which is what makes the whole loop of request, projection, decision and state update a set of ordinary rows a query can walk rather than a bespoke workflow engine. The auth worker exposes read APIs for cases and roles. The gap the survey flags, which the repository's own flow diagrams also flag as Finding~5, is that \texttt{broker\_decisions} has no read endpoint, so the one table that is the audit trail is the one table with no supported way to read it back.
+
+Bringing an agent identity online was once a four-call seed script with a partial-failure window between allowlisting a pubkey and registering it. \texttt{ADR-097} collapses the two admin-side writes into one operation: \texttt{POST /api/governance/agents/provision} upserts the \texttt{whitelist} and \texttt{agent\_registry} rows in a single D1 \texttt{batch()}, all-or-nothing and idempotent on the pubkey, so a re-provision is a safe way to update an agent's cohorts. The endpoint never receives the agent's private key; key material and the agent's own signed kind-0 profile stay client-side, keeping the self-sovereign identity boundary clean while the server owns only membership and registry state. Whether an agent may act at all is therefore an admin-only \texttt{curl} or config-file act with no calling UI in the kit, which places the governance-of-governance step of deciding who governs outside the very surface the human-facing documentation presents as the operator's console.
+
+\begin{keyinsight}[title={The relay is the sole enforcement point}]
+Neither client's UI is trusted. A non-admin who reaches an Approve button in the retro client still has their \texttt{kind-31403} rejected server-side with an inline reason (\texttt{blocked: admin-only governance action response}); an unregistered agent's panel is dropped at ingress. Every governance guarantee, meaning who may request and who may decide, is a property of \texttt{nip\_handlers.rs} on the relay Durable Object, not of anything the browser renders. This defence-in-depth posture, never trusting the client, is what lets the decisions form an immutable signed audit trail rather than a record of what a UI happened to allow.
+\end{keyinsight}
+
+Two honest limits sit under the polished parts, and the code-verified survey is blunter than the architecture document. First, the richer case lifecycle the documentation advertises is not reachable. \texttt{nostr-bbs-core} defines a fully unit-tested \texttt{DecisionOrchestrator} with delegate, promote and precedent transitions, but nothing outside its own test module calls it; the live relay projection understands only \texttt{approve} to resolved and \texttt{reject} to rejected, and any other action a panel might expose parks the case in \texttt{under\_review} indefinitely. The \texttt{architecture.md} state diagram depicts transitions that no end-to-end path can trigger. Second, and more consequential for the ecosystem's framing, the shipping forum client gates the entire \texttt{/governance} route to admins: \texttt{AdminGatedGovernance} bounces any authenticated non-admin to the forums with a toast before the page mounts, which contradicts the same document's Trust and Gating table granting ordinary members a panel view. The kit advertises a universal human-in-the-loop plane; what ships is an \meshterm{operator-in-the-loop} plane, where the flagship chokepoint reads ``forum, then an admin decides'' in place of ``forum, then a human decides''. Chapter~\ref{ch:gap-register} carries this as a headline gap alongside the absence of any visible agent badge, the one point on which the disclosure literature is unanimous.
+
+A subtler provenance defect compounds the first. The forum client publishes the signed \texttt{kind-31403} fire-and-forget and flips the card to ``Response sent'' the instant local signing succeeds, without waiting for the relay's NIP-01 OK frame. Because the relay independently rejects invalid responses, an operator can believe they governed an action when nothing was accepted. The retro BBS client already does this correctly through \texttt{publish\_with\_ack}, surfacing the rejection reason inline; on a governance surface, confirming a decision the relay refused is a trust-calibration failure, not a cosmetic one.
+
+\section{Calendars Projected Per Viewer}
+
+The tiered NIP-52 calendar shows that the same config-as-access model extends to time. Calendar events bind to a zone and optionally to a shared venue, and the relay's projector decides, for every viewer-and-event pair, one of three outcomes: the full signed event, an anonymised free/busy block, or omission so complete the viewer never learns the event exists. A member of a neighbouring cohort holding an event at a shared venue is projected down to \texttt{to\_free\_busy()} output of start, end, venue and a busy flag, with title, location, participants, content and even the signature stripped server-side, so the result is a derived view rather than the signed original. Off-site private events are simply omitted. The trust boundary is that neighbours can see the room is booked without seeing whose party it is.
+
+Table~\ref{tab:calendar-projection} is the operator-approved projection matrix, pinned in place by twenty-five unit tests. Two details make the boundary hold under adversarial input rather than only in the common case. RSVPs are served only when the viewer's tier for the target event is Full, so a participant list cannot leak through a free/busy block; and the target event's zone and venue resolve exclusively from the stored referenced event, so a spoofed zone tag mirrored onto an RSVP cannot widen access. The projection is the complete access decision for calendar kinds and is deny-by-default for unknown zones, which is the enforcement discipline the security-front-loading finding of Chapter~\ref{ch:ecosystem-roadmap} calls for.
+
+\begin{table}[h]
+\centering
+\caption{Calendar projection outcome per viewer cohort and event zone}
+\label{tab:calendar-projection}
+\begin{tabularx}{\textwidth}{L{2.8cm} X X X X X}
+\toprule
+\textbf{Viewer} & \textbf{family} & \textbf{business} & \textbf{friends} & \textbf{public} & \textbf{unknown} \\
+\midrule
+admin / owner & full & full & full & full & full \\
+\addlinespace
+family & full & full & full & full & full \\
+\addlinespace
+friends & free/busy* & free/busy* & full & full & omit \\
+\addlinespace
+business & omit & full & omit & full & omit \\
+\addlinespace
+no cohort / anon & omit & omit & omit & full & omit \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The asterisk marks the one conditional cell: friends see family and business events as free/busy only at a recognised shared venue, and off-site events are omitted, so a friend learns of venue blocking but never of private off-site time. Shared venues are operator-defined in \texttt{forum.toml}; the kit ships generic \texttt{primary} and \texttt{secondary} examples so nothing about a real deployment's places is baked into the source.
+
+\section{Moderation and the Retro Write Path}
+
+Moderation is relay-enforced rather than advisory: NIP-56 reports (kind-1984) are validated at ingress by the relay worker, and the inactivity-demotion sweep runs on a cron against the whitelist, so a report or a lapse changes what the relay will serve rather than merely annotating a UI. The forum also ships a second, deliberately minimal client (a phosphor-CRT retro BBS surface at \texttt{/community/bbs/}), and its write path is instructive precisely because it was documented honestly when it diverged from its own plan.
+
+\texttt{ADR-105} draws a principle before it draws a feature: a BBS surface requires identity only when it reads private data or writes a signed event. Everything else, including the masthead, the help screen, read-only board and roster rendering, and the door games, must work for a logged-out viewer. Door games are the sharp case. The first of them, a faithful sentry-gun deck adapted from an MIT-licensed project, is a pure client-side overlay launched by a custom DOM event and touching no relay, no signer and no key, which is the seam by which further self-contained toys attach without dragging any of them through the identity path. The line the ADR draws is that public surfaces stay public and only signed writes demand a key.
+
+The write path itself is the honest part. \texttt{ADR-105} originally decided the BBS would never hold key material and would delegate signing to the forum through a same-origin \texttt{sign()} seam. The shipped M2 write path instead holds a \texttt{Keypair} directly through the kit's NCC-audited \texttt{PrfSigner}, and the ADR's 2026-07-03 amendment records the change in place. Because the two clients are served same-origin, any script that could reach a \texttt{sign()} bridge can already read the session key, so a direct hold and a delegated seam sit on the identical trust boundary, and the in-memory path fails closed when no signer is present. The amendment also flags, rather than letting the divergence pass silently, the residual boundary it did not close: a passkey user who generates a fresh in-memory key signs under a distinct key, not the PRF-derived root. The retro client's governance action button signs and publishes its \texttt{kind-31403} through \texttt{publish\_with\_ack}, which is the relay-confirmed pattern the forum client still needs to adopt.
+
+\section{One Use Case, Stated Plainly}
+
+The README describes a universal human-in-the-loop control plane for any agent system. The distance between that phrase and current use should be stated without softening. Today the governance plane serves exactly one use case: ontology concept elevation, capped at five concurrent cases, decided on the forum web page by a single administrator role. Everything else the protocol makes possible, from multiple agent systems and multiple communities to graduated decisions richer than approve-or-reject and ordinary members participating in judgment, is either scaffolded, admin-gated, or unbuilt. The nine-endpoint governance REST API has no calling UI anywhere in the kit; provisioning and revoking the agents that may act is a \texttt{curl} or config-file operation, so the single most authority-laden step in the whole design sits outside the product surface the human-facing documentation advertises.
+
+\begin{cautionbox}[title={What the governance plane does not yet do}]
+\begin{itemize}
+  \item Ordinary members can neither view nor decide governance panels in the forum client; the route is admin-only, so the ``distributed human judgment'' claim is presently a single-operator approval queue.
+  \item Decisions are binary approve or reject; the delegate, promote and precedent lifecycle is unit-tested dead code, and a non-binary action parks a case in \texttt{under\_review} permanently.
+  \item The forum client reports a decision as sent before the relay confirms it, so a rejected \texttt{kind-31403} can still read as success.
+  \item A published decision is immutable by design, yet no supersede or appeal path is specified or built, so an operator who approves in error, or a member who would contest a call, has no defined recourse.
+  \item Agents are visually indistinguishable from humans: no bot badge, and no display of the principal that authorised each agent.
+  \item Governance events cannot cross relays. The \texttt{nostr-bbs-mesh} crate is scaffold-only, is not a dependency of the relay worker, and holds no agent-federation path, so each community's governance plane is an island (Chapter~\ref{ch:gap-register}).
+\end{itemize}
+\end{cautionbox}
+
+The strengths and the gaps point the same way. The cryptographic substrate is real and ahead of the field: passkey-derived \texttt{did:nostr} identity, relay-enforced registry gating, atomic idempotent provisioning, and admin-only signed responses. The collaboration surface built on top of it is narrower than the canon claims, and in three places the survey verifies by direct read, narrower than the architecture document claims. The escalation-beats-approval evidence of \textcite{Pereira2026Playbook}, the vigilance evidence of \textcite{DellAcqua2023}, and the failure-taxonomy discipline of \textcite{Cemri2025} all argue for risk-tiered, evidence-carrying, confirmed decisions; the substrate to build them exists here, and the accounting of how much remains unbuilt is the subject of Chapter~\ref{ch:gap-register}.

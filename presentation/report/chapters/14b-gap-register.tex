@@ -1,0 +1,200 @@
+\chapter{The Gap Register: Theory Meets Practice}
+\label{ch:gap-register}
+
+\epigraph{A capability you have built but cannot see acting is, to the person who needs it, indistinguishable from one you never built.}{}
+
+Chapter~\ref{ch:ecosystem-roadmap} committed DreamLab, in print, to running its own prescriptions on its own systems. This chapter supplies the measurement that makes such a commitment falsifiable. It reports a systematic audit of the four surfaces through which humans and agents actually meet in the VisionClaw ecosystem --- the async governance forum, the desktop 3D client, the mixed-reality headset, and voice --- scored against both what the canon promises and what the published research says a collaboration surface must do. The finding, stated plainly before the detail: the substrate is stronger than the interaction. Real cryptographic governance and a designed identity spine sit underneath surfaces on which, today, an operator can watch a count and fire a form, and little else.
+
+\section{How the register was built}
+
+The four surfaces are the ones defined and weighted in Chapter~\ref{ch:four-surfaces}. Each received the same treatment from a twelve-agent \meshterm{analysis mesh}: one agent extracted the canon (what the README, the ADR and PRD corpus, and the 2026-07-03 closeout files actually claim); four surveyed the shipping code, one per surface, recording every capability as \emph{working}, \emph{partial}, \emph{scaffolded}, \emph{absent} or \emph{docs-only} against the governed maturity vocabulary of \texttt{ADR-002}; three researched the human-computer-interaction and multi-agent literature on independent search engines, so no single index shaped the theory; and four adversarial judges, one per surface, ranked each surface's canon and code against that literature. Findings were weighted 40/30/20/10 across forum, desktop, mixed reality and voice, matching the weighting fixed in Chapter~\ref{ch:four-surfaces}: the forum carries the governance load, so it carries the most scrutiny.
+
+Every gap is typed by where the break sits, because the remedy differs by type.
+
+\begin{definitionbox}[title={Three kinds of gap}]
+\begin{description}[style=nextline, leftmargin=1.5em]
+  \item[Theory-to-canon] Published knowledge our own documents never adopted. The fix is a design position, written down.
+  \item[Canon-to-practice] Our documents promise a capability the code does not deliver. The fix is engineering, or an honest retraction of the claim.
+  \item[Theory-to-practice] Nobody wrote it down and the code lacks it. The fix is both.
+\end{description}
+\end{definitionbox}
+
+The register holds 28 gaps: 7 rated critical, 17 major, 4 minor. Those counts are reported here exactly as the judges set them, without rounding or dramatisation. Strengths were recorded with the same discipline, and two of them matter to the argument as much as any gap: relay-enforced separation of who may ask from who may decide, and a cryptographic \texttt{did:nostr} agent identity, both of which sit ahead of common 2026 industry practice, against a landscape in which deployed agent governance and self-disclosure are documented as inconsistent and frequently absent \parencite{AgentIndex2025}.
+
+A note on the honesty of the exercise. The auditor and the audited are the same organisation, and selection bias cuts both ways: an author examining their own system may be harsher than an outsider, or blinder. The register mitigates this by tying every gap to a file and line the reader can open, and by scoring against external literature the authors did not write. It does not eliminate the conflict, which Chapter~\ref{ch:open-questions} names directly. The register is offered as a checkable claim, not a verdict.
+
+\section{Forum: a governance plane for one operator}
+
+The forum is the ecosystem's one production human-in-the-loop mechanism, and its foundations are genuinely good. The Agent Control Surface Protocol (ACSP, Nostr kinds 31400--31405) is wired end to end: an agent publishes a signed \texttt{PanelDefinition} or \texttt{ActionRequest} only after an admin has provisioned it atomically into the \texttt{agent\_registry} (\texttt{ADR-097}), and a human approval is a real signer-backed kind-31403 event, not a UI toggle. The relay is the sole enforcement point, so a non-admin who reaches an Approve button still has the event rejected server-side (\texttt{nip\_handlers.rs:360-368}). That defence-in-depth posture, plus content-addressed decisions aligned with the PROV-AGENT direction of provenance research \parencite{Souza2025ProvAgent}, is the substrate for a real audit trail. What sits on top of it is narrower than the canon advertises.
+
+\begin{table}[h]
+\centering
+\caption{Forum surface: 10 gaps (2 critical, 7 major, 1 minor)}
+\label{tab:gaps-forum}
+\begin{tabularx}{\textwidth}{X L{3.2cm} L{1.6cm}}
+\toprule
+\textbf{Gap} & \textbf{Type} & \textbf{Severity} \\
+\midrule
+Governance plane is admin-only, excluding ordinary humans & canon-to-practice & Critical \\
+\addlinespace
+No agent disclosure: agents indistinguishable from humans & theory-to-practice & Critical \\
+\addlinespace
+Decisions binary; graduated-escalation lifecycle is dead code & canon-to-practice & Major \\
+\addlinespace
+Forum-client decisions optimistic-only; a rejected decision reads as sent & canon-to-practice & Major \\
+\addlinespace
+No trust-calibration context at decision time; no decision-audit read API & theory-to-practice & Major \\
+\addlinespace
+No revoke, appeal or supersede authority for a published decision & theory-to-canon & Major \\
+\addlinespace
+No design response to approval fatigue / automation complacency & theory-to-canon & Major \\
+\addlinespace
+No web UI for agent-roster administration & canon-to-practice & Major \\
+\addlinespace
+Cross-relay federation of governance events absent & canon-to-practice & Major \\
+\addlinespace
+Silent on multi-agent social influence in threads & theory-to-canon & Minor \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The most serious finding is that this is an operator-in-the-loop plane, not a community one. The forum-client \texttt{/governance} route is wrapped in \texttt{AdminGatedGovernance}, which bounces any authenticated non-admin to \texttt{/forums} with a toast before the governance page ever mounts (\texttt{app.rs:1135-1143}), and the relay hard-gates kind-31403 responses to admins. The canon's \texttt{architecture.md} Trust and Gating table explicitly grants members the right to view panels; the shipping code shows them nothing. The flagship chokepoint the canon renders in every scenario as ``Forum $\rightarrow$ Human decides'' is, in the product, ``Forum $\rightarrow$ Admin decides,'' and the distributed-judgment claim collapses to a single-operator approval queue. This directly undercuts the ambient-awareness model the canon leans on, in which coordination depends on shared-workspace visibility \parencite{DourishBellotti1992}.
+
+The second critical gap is disclosure. Agent public keys resolve through the identical display-name cache used for every human member, with no bot badge anywhere in either client (\texttt{governance.rs:134-135}, \texttt{user\_display.rs}). An ordinary reader cannot tell an agent from a human at the point of reading its output or its governance panel. This is the one place the external literature is unanimous: the agentic web requires agents to identify themselves and their authorising principal \parencite{AgenticWebNorms2026}, and deployed practice remains inconsistent enough that disclosure failures have already produced public scandals \parencite{AgentIndex2025}. The canon names agents as distinct \texttt{did:nostr} subjects but requires no visible disclosure, and neither does the code.
+
+The seven major forum gaps compound the two critical ones. The decision model is binary in practice. A fully unit-tested \texttt{DecisionOrchestrator} with delegate, promote and precedent transitions exists in \texttt{nostr-bbs-core}, but it is referenced only inside its own test module, and the live relay projection maps only approve to resolved and reject to rejected, parking any other action in \texttt{under\_review} permanently (\texttt{nip\_handlers.rs:1316-1320}). Both the external consensus on risk-tiered graduated delegation \parencite{Tomasev2026Delegation} and the ecosystem's own richer domain model exceed what ships, and \texttt{architecture.md} documents the unreachable lifecycle as if it were live.
+
+Forum-client decisions are optimistic-only. \texttt{PanelCard} fires a fire-and-forget \texttt{relay.publish()} and flips the UI to ``sent'' the moment local signing succeeds, before any NIP-01 acceptance frame returns (\texttt{governance.rs:206-221}). Because the relay independently rejects non-admin and other invalid events, a user can believe they governed an agent action when nothing was accepted --- a false-positive success signal that miscalibrates trust exactly where calibration matters most. The sibling BBS client already does this correctly with \texttt{publish\_with\_ack}.
+
+At the decision moment the human is shown title, description and buttons, but no reasoning trace, confidence, risk tier or provenance, and there is no \texttt{GET /api/governance/decisions} read path to review precedent afterwards --- a gap the repository documents against itself as Finding 5. Exposing reasoning and disagreement, rather than only a final ask, is what the calibrated-trust literature identifies as the precondition for appropriate reliance \parencite{TrustingTeammates2025}, and reliability does not scale with capability, so per-request evidence is not optional.
+
+Three further major gaps are governance omissions the canon never resolved. There is no revoke, appeal or supersede path: the domain model declares a decision immutable, correctable only by a superseding event, yet neither canon nor code specifies who may publish that event or under what authority, leaving an operator who approves in error with no defined recourse against a settled decision that interruptible-agent research treats as a routine need \parencite{Interruptible2026}. The canon frames governance as an accelerant while offering no safeguard against the accelerant becoming a rubber stamp: a single admin facing an undifferentiated stream of binary panels is the textbook trigger for the approval fatigue and automation complacency the empirical record identifies as the first oversight mechanism to fail \parencite{AutomationBias2012}.
+
+The single most authority-laden act, deciding who may act as a governing agent and revoking them, lives entirely outside the product. None of the nine governance REST endpoints is called from any forum-client page, the admin panel carries Channels, Users, NativePods and DangerZone tabs but no Agents tab (\texttt{admin.rs:108-826}), and operators provision agents through \texttt{curl} and the \texttt{dreamlab.toml} roster, precisely the out-of-band configuration the community-moderation literature warns makes bot authority illegible \parencite{Kuo2026Botender}. Cross-relay federation is absent: \texttt{nostr-bbs-mesh} is scaffold-only with zero agent references and is not a dependency of the relay worker, no 38xxx federation handler exists anywhere, and each community's governance plane is therefore an island against a canon that commits to federated substrates. The minor gap rounds out the register: the canon is silent on the emergent social influence of several agents co-present in one thread, a measurable effect given the live six-agent DreamLab roster \parencite{Song2025SocialGroups}.
+
+\section{Desktop: embodiment that never reaches the screen}
+
+The desktop client is the designated observation layer: humans watch here, they judge in the forum. Its bones are strong. The \texttt{ADR-059} embodiment transport is built end to end, from ingest WebSocket through the \texttt{AgentBeamActor} to a binary broadcast and a mounted client render layer, and real live agent data exists server-side, where \texttt{AgentMonitorActor} polls the agentbox Management API for genuine task statuses. The module docstrings that name the deferred gluon force and give a concrete follow-on design model engineering honesty most observability tooling does not meet. Yet almost nothing reaches the screen.
+
+\begin{table}[h]
+\centering
+\caption{Desktop surface: 8 gaps (2 critical, 5 major, 1 minor)}
+\label{tab:gaps-desktop}
+\begin{tabularx}{\textwidth}{X L{3.2cm} L{1.6cm}}
+\toprule
+\textbf{Gap} & \textbf{Type} & \textbf{Severity} \\
+\midrule
+Embodiment channel inert: live agent activity never reaches the screen & canon-to-practice & Critical \\
+\addlinespace
+No steering, interruption or approval affordance in the running client & theory-to-practice & Critical \\
+\addlinespace
+No client-side ACSP case surface; pending judgment invisible in-scene & theory-to-canon & Major \\
+\addlinespace
+Agent nodes keyed by \texttt{task\_id}, not \texttt{did:nostr} & canon-to-practice & Major \\
+\addlinespace
+Fabricated ``MCP Connected'' status miscalibrates trust & canon-to-practice & Major \\
+\addlinespace
+Push-to-talk globally scoped, not directed at a selected agent & canon-to-practice & Major \\
+\addlinespace
+No pre-action intent legibility; embodiment shows only the past & theory-to-canon & Major \\
+\addlinespace
+No swarm-level observability layer versus 2026 AgentOps table stakes & theory-to-practice & Minor \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The surface's entire reason to exist is inert. The beam pipeline is wired transport-to-render, but its source-position resolver and the agent-avatar renderer both read \texttt{/api/bots/agents}, whose polling loop starts only inside \texttt{BotsClient::start\_polling()}, reachable only via \texttt{BotsClient::connect()} --- a call that exists nowhere in the boot path (\texttt{bots\_client.rs:111,144} against \texttt{app\_state.rs:1055}). The resolver therefore always returns false, beams never draw, and the avatar layer additionally discards the real \texttt{.nodes} payload that \texttt{AgentMonitorActor} does produce. Running agents are invisible on screen. This is a live-versus-mock legibility failure rather than a mock-data problem: a dead wire returning an empty array, one missing \texttt{connect()} call away from working, while the 2026-07-03 closeout claims the beam actor is ``wired at boot.'' Continuous passive visibility of activity in the shared space is the bedrock requirement for any oversight surface \parencite{DourishBellotti1992, Epperson2025Debugging}, and the closeout claim should be downgraded to ``transport wired, position source unstarted.''
+
+The second critical gap is that no steering, interruption or approval affordance is reachable in the running client. \texttt{AgentDetailPanel} and \texttt{BotsControlPanel} are complete but imported nowhere, and \texttt{AgentDetailPanel} additionally posts to \texttt{/bots/submit-task} and \texttt{/bots/task-status} routes that do not exist server-side. The mounted command box changes only view and physics settings. Against the dominant 2025--2026 pattern of graduated, interruptible autonomy with checkpoint-reset \parencite{Epperson2025Debugging}, the operator watching agents work cannot pause, redirect or veto anything in-scene; the actual loop is fire a form, then wait. This falls into a hole between forum and desktop, because the canon assigns in-flight steering authority to no surface the operator actually watches.
+
+Five major gaps sharpen the picture. No client-side ACSP case surface exists: the server genuinely produces kind-31402 cases and consumes kind-31403 decisions over the forum relay, but a grep of the client for the governance kinds returns zero hits, so an escalation the server just raised is invisible until the human context-switches to a separate app. In-context escalation is what mixed-initiative theory requires so the operator can act inside the cost-of-interruption window \parencite{Horvitz1999Principles}, and the canon never assigns even an ambient pending-case indicator to the surface the operator is actually watching.
+
+Agent nodes are keyed by ephemeral \texttt{task\_id}, not \texttt{did:nostr} (\texttt{bots\_client.rs:14-39}). Because they carry no key, they cannot be addressed by ACSP nor targeted by voice, and the canonical ``one identity across every boundary'' claim is unrealised precisely on the surface where an operator would select an agent \parencite{AuthenticatedDelegation2025}. The identity spine exists in design and is not the addressing primitive here.
+
+The one health signal on the surface is fabricated. \texttt{get\_status()} sets \texttt{connected = true} unconditionally (\texttt{bots\_client.rs:212}) and never calls the \texttt{test\_connection()} that sits at line 231, so the green ``MCP Connected'' dot polled every three seconds reads healthy while the backend is down. This is a direct violation of the \texttt{ADR-002} maturity-honesty rule and the opposite of the honesty the same codebase models in its gluon-deferral comment; a status decoupled from ground truth drives over-reliance exactly when intervention is needed. The fix is one line.
+
+Push-to-talk is well-built but globally scoped, routing to a generic command pipeline with no concept of a selected agent as target, blocked upstream by the same missing \texttt{did:nostr} keying. The last major gap is a canon omission: embodiment renders only what already happened, so beams show that an agent touched a node but never what an agent is about to do, and with no plan-preview or intent overlay the human can react to consequences without pre-empting them, forgoing the intervention window that intent-legibility practice targets \parencite{Nielsen2025Intent}. A minor gap notes that against the swarm-observability baseline now shipping industry-wide \parencite{AgentOps2024}, the operator gets a count and a fabricated health dot, though the underlying per-task data already exists server-side and is merely unsurfaced.
+
+\section{Mixed reality: presence without identity}
+
+The headset is more built than earlier gap maps implied. A user can enter an immersive session, see the live knowledge graph rendered by the same \texttt{GraphManager} the desktop uses, see live agent nodes fed by real telemetry, watch embodiment beams, and grab and drag generic nodes through a real WebSocket round-trip. The cryptographic identity designed into the wire schema is again ahead of a still-draft industry standard. Past observation, the surface is a one-directional window.
+
+\begin{table}[h]
+\centering
+\caption{Mixed-reality surface: 6 gaps (2 critical, 3 major, 1 minor)}
+\label{tab:gaps-mr}
+\begin{tabularx}{\textwidth}{X L{3.2cm} L{1.6cm}}
+\toprule
+\textbf{Gap} & \textbf{Type} & \textbf{Severity} \\
+\midrule
+Identity-blind: agent nodes carry no \texttt{did:nostr}, no in-headset actor verifiable & canon-to-practice & Critical \\
+\addlinespace
+No agent-interaction or governance affordance reachable in MR & theory-to-canon & Critical \\
+\addlinespace
+Embodiment/copresence theory unrepresented (no avatar, gaze, proxemics) & theory-to-canon & Major \\
+\addlinespace
+Input layer broken: targeting ray at world-origin, gaze absent & canon-to-practice & Major \\
+\addlinespace
+Voice PTT-to-actor binding is complete code with zero consumers & canon-to-practice & Major \\
+\addlinespace
+\texttt{enterVR()} never sets \texttt{isXRMode}; XR rendering runs as desktop & canon-to-practice & Minor \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The surface is identity-blind. The \texttt{Agent} struct carries \texttt{id}, name, type, status, position, health and workload, and no public-key or DID field (\texttt{bots\_client.rs:15-38}); the wire schema reserves the identity fields but marks them optional until a later phase. A headset user watching a beam has no cryptographic way to know which actor performed the action, so the canon's central trust primitive is absent exactly where embodiment makes actions visible, and ``the graph IS the audit trail'' does not hold in MR against the disclosure-and-registry direction of provenance research \parencite{Souza2025ProvAgent}. The second critical gap is that no agent-interaction or governance affordance is reachable at all: there is zero import of any command or detail panel anywhere under \texttt{client/src/immersive}, and ACSP has no client dispatcher, so a user can see agents act but cannot inspect, steer, approve or command anything from within the headset. Even a monitoring surface needs a legible intervention path \parencite{Epperson2025Debugging}, and the canon treats XR as pure rendering rather than assigning it one.
+
+The three major gaps follow from those two. Copresence theory is unrepresented: agents render as graph nodes with no avatar, gaze or proxemic semantics, and the multi-user avatar renderer and Vircadia presence bridge exist as code but are never instantiated (\texttt{autoConnect=false}), so the one surface where spatialised copresence is native uses a desktop-2D mental model at room scale, forgoing the trust and legibility that spatial embodiment materially changes \parencite{Schmid2024Objects}. The severity is sharpened by provenance: this is a regression against the author's own quantified 2022 design brief, which fixed the gaze-offset tolerances and turn-passing costs a credible copresence system must respect \parencite{OHare2022Convergence} --- the constructs are not merely unmet 2024 standards, they are the operator's own published numbers, unimplemented on the operator's own surface.
+
+The input layer that would support in-headset steering is broken. The agent-targeting ray in \texttt{VRAgentActionScene} never receives a real XR pose and so originates at world-origin, its select callback is never wired through \texttt{VRGraphCanvas}, hand-tracking sets \texttt{isTracking}/\texttt{isPointing} booleans only with a code comment conceding it ``would need XRFrame to get actual pose,'' and gaze is entirely absent. Every downstream step --- scoped command, ACSP request, voice binding --- is therefore built on a selection that does not work \parencite{SpeakStaySilent2026}.
+
+Voice push-to-talk and the LiveKit service are complete, well-written classes with zero consumers, survivors of a July 2026 dead-code pass that deleted 44 sibling orphans; even wired, they would sit atop the two broken preconditions above. The minor gap is a silent state defect: the working VR entry point never flips \texttt{isXRMode}, so XR-conditional rendering runs in desktop mode throughout a live session, invisible at the documentation layer and surfacing only on-device.
+
+\section{Voice: one closed loop, narrowly scoped}
+
+One genuine end-to-end voice loop exists, and it is honestly the best-behaved thing in the register. \texttt{VoiceInterfaceActor} (\texttt{ADR-110}) subscribes at boot to the Whisper transcription broadcast, gates on a conservative verb-plus-noun grammar, routes to the same settings-assistant LLM the typed control centre uses, and confirms aloud through Kokoro TTS. That is a real human-speaks, agent-hears, agent-responds-by-voice turn, with two strengths that exceed industry practice: identity is asserted from the operator's configured key and never from the transcript (``a transcript cannot assert an identity it does not hold''), and an unrecognised utterance falls back to a read-only query rather than a silent mutation. The loop is scoped to interface tweaks, not agent dialogue or governed action.
+
+\begin{table}[h]
+\centering
+\caption{Voice surface: 4 gaps (1 critical, 2 major, 1 minor)}
+\label{tab:gaps-voice}
+\begin{tabularx}{\textwidth}{X L{3.2cm} L{1.6cm}}
+\toprule
+\textbf{Gap} & \textbf{Type} & \textbf{Severity} \\
+\midrule
+Canonical PTT voice-to-selected-actor governed-action loop does not exist & canon-to-practice & Critical \\
+\addlinespace
+No multi-agent addressing or turn-taking model & theory-to-canon & Major \\
+\addlinespace
+No conversational grounding or repair & theory-to-canon & Major \\
+\addlinespace
+Docs describe a deprecated voice-to-swarm path as live & canon-to-practice & Minor \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The canon documents push-to-talk capturing the selected agent node and dispatching a scoped, signed ACSP request to that agent's \texttt{did:nostr} as step one of its flagship journey. No wired path connects live speech to a selection-aware, signed, addressed agent action. The one producer built for it, agentbox's \texttt{/v1/voice-intent}, is gated off by default (\texttt{agentbox.toml:34}), accepts only a flat optional actor string with no scene-selection binding, and has zero callers in VisionFlow's own STT pipeline; the addressing key it would need does not exist, because agent nodes remain \texttt{task\_id}-keyed \parencite{AuthenticatedDelegation2025}. The canon prose for this step notably lacks the file-and-line evidence that surrounds every genuinely shipped claim elsewhere in the same document.
+
+The two major gaps are theory the canon never adopted. Nothing tells the human which agent is listening: awareness cues are one-directional, two competing swarm-keyword paths fire on the same audio with no floor management, and multi-party addressing has no convention here at all \parencite{SpeakStaySilent2026}. And there is no grounding or repair move --- unrecognised speech degrades to silence or a read-only default, never a clarifying question, exactly the failure the grounding literature names as central for voice agents, which issue repair requests far less often than humans do \parencite{GroundingRifts2025}. The minor gap is documentation drift: the how-to still describes a voice-to-swarm path that the code has actively deprecated to a canned ``use REST API instead.''
+
+\section{Four surfaces, four recurring patterns}
+
+Read across the surfaces, the 28 gaps resolve into four patterns, and the pattern is more instructive than any single gap.
+
+First, the mesh acts but cannot yet be seen acting. The desktop beam pipeline is complete and inert, the MR surface renders beams without a verifiable actor behind them, and no surface offers the swarm-level observability that is now table stakes. Real agent activity exists server-side on every surface and reaches the operator's eye on none. This is the signature failure of the whole register: capabilities built to the point of one missing wire, then left unstarted.
+
+Second, the identity spine is strong at rest and unused in interaction. The \texttt{did:nostr} identity is designed into the provisioning path, the relay gating and the wire schema, and it is ahead of a still-draft industry standard \parencite{AIIdentity2026}. At the point of interaction it disappears: agent nodes are keyed by \texttt{task\_id} on desktop, on MR and in voice, so the one identity that is meant to cross every trust boundary is never the addressing primitive on any surface where a human would select an agent. Three separate gaps --- ACSP addressing, voice targeting and MR verification --- share this single root.
+
+\begin{keyinsight}[title={The register's through line}]
+The ecosystem's failures are rarely ``it does not work.'' They are ``it is built, and unwired.'' A cryptographic identity that is never read at interaction time; a governance plane real enough to reject a forged approval yet open to only one operator; a beam transport complete to the last actor and starved by an absent \texttt{connect()} call. The distance between the substrate and the surface is the distance this edition asks to be measured on.
+\end{keyinsight}
+
+Third, governance is real but admin-only. The forum enforces, at the relay, who may ask and who may decide, an achievement most deployed agent systems lack. It also confines every decision to a single administrator role, with a binary control, no risk-tiering, no disclosure of the deciding actor, and no appeal. Distributed human judgment, the report's own premise, collapses to a single approval queue that the automation-complacency literature predicts will be the first thing to fail.
+
+Fourth, every surface's voice story ends at the same unconsumed binding. Desktop push-to-talk is globally scoped; MR push-to-talk has zero consumers; the voice surface's flagship loop is gated off and uncalled. All three block on the identical pair of missing preconditions, \texttt{did:nostr}-keyed agent nodes and a working selection, so what looks like four independent voice gaps is one unbuilt binding seen from four angles. The type distribution says the same thing another way: of the 28 gaps, the largest class is canon-to-practice, documents promising what the code does not yet deliver. That is a more recoverable position than a system whose theory is wrong, and a more embarrassing one to leave standing in print.
+
+\section{Handing off to remediation}
+
+This chapter measures; it does not prescribe. The remediation sits in Chapter~\ref{ch:ecosystem-roadmap}, and the mapping is close to one-to-one. The roadmap's first priority, closing the governed-writeback security gaps, must precede everything the forum register flags. Finishing the \texttt{BrokerActor} and surfacing its case queue inside the client answers the desktop ``no ACSP surface'' gap and the forum ``admin-only, binary'' gaps together. Threading a \texttt{did:nostr} onto agent nodes is the shared unblocker for the identity-spine pattern across desktop, MR and voice.
+
+Chapter~\ref{ch:open-questions} then takes up the gaps that no engineering ticket closes: the ones where the canon itself is silent and the theory is unsettled, from multi-human decision conflict to XR-specific consent. This chapter's job was narrower and prior to that one. It fixed the numbers. Whether those commitments are met, or conspicuously not met, is what the next edition will report against this register, which is the point of stating the counts, the file paths and the severities exactly, now, before the work is done.

@@ -1,0 +1,177 @@
+\chapter{Evaluating the Living Experiment}
+\label{ch:ecosystem-roadmap}
+
+\epigraph{A consultancy that will not run its own prescriptions on its own systems is selling a diet it does not eat.}{}
+
+\section{From Register to Schedule}
+
+Chapter~\ref{ch:gap-register} did the diagnostic work: a four-surface audit of DreamLab's own systems, read against both the published collaboration literature and the ecosystem's own canon, verified line by line in the code the week this edition went to press. It found a system with strong bones and an uneven surface --- a cryptographic identity spine ahead of any ratified industry standard sitting above surfaces where that identity is not yet the addressing primitive; a genuine end-to-end governance protocol serving exactly one use case through a single operator; an embodiment channel wired transport-to-render and then starved of live data by one missing function call. This chapter converts that register into a schedule.
+
+The reason for doing so is the structural conflict Chapter~\ref{ch:open-questions} names and does not resolve: DreamLab AI Consulting is at once the analyst producing the analysis, the framework author proposing the Dynamic Agentic Mesh, and the vendor operating VisionClaw. Acknowledgement is cheap. The stronger answer to a positioning conflict is falsifiability: commit, in print, to specific and checkable changes in the author's own systems, derived from the report's own findings, and let the next edition report which commitments were met. If the mesh thesis is right, applying the July 2026 evidence base to this ecosystem should produce measurable compounding within two quarters. If it is wrong, the same instrumentation will show that too, and this report's brand of intellectual honesty obliges us to publish either result.
+
+This chapter therefore turns the report's prescriptions inward. Each recommendation below names real components, real endpoints, and real architecture decision records in the DreamLab codebase. What gets built --- or conspicuously fails to get built --- is evidence either way.
+
+\section{The Ecosystem as It Stands}
+
+DreamLab's ecosystem comprises six components, bound together by a shared \texttt{did:nostr} identity mesh that currently has five active signing participants.
+
+\textbf{VisionFlow} is the umbrella coordination canon: the architectural doctrine, product-requirement corpus, and cross-repository contracts that bind the other five components into one system. It is where the mesh federation design (\texttt{PRD-010}) lives, and where the decision records this chapter repeatedly cites are filed.
+
+\textbf{VisionClaw} is the knowledge substrate described in Chapter~\ref{ch:technical-substrate}: a Rust server with GPU-accelerated graph physics, an OWL~2 ontology engine with Whelk reasoning, and a multi-user WebXR client. Since the April 2026 audit it has grown a live agent-telemetry pipe --- an authenticated \texttt{/wss/agent-events} WebSocket (\texttt{ADR-059}) through which agent actions flow in from the runtime and are rendered as beams in the GPU graph --- and a re-imagined control centre (\texttt{ADR-129}) that is, at present, a settings surface rather than a governance one.
+
+\textbf{AgentBox} is the sovereign agent runtime: a hardened, reproducible container hosting the agents themselves, with a full-lifecycle hook surface for telemetry that is fail-open by enforced convention, RuVector vector memory holding over 1.17 million embeddings, and a Nostr session mirror that streams every running session to the operator's phone as encrypted self-messages. Its memory-and-learning workstream (\texttt{PRD-018}) landed in production in early July 2026 --- with a caveat examined in Recommendation~7.
+
+\textbf{solid-pod-rs} is the sovereign data layer: a seven-crate Rust implementation of the W3C Solid protocol, giving every human and agent a pod --- portable, access-controlled storage rooted in their own cryptographic identity, with every write recorded as a git commit carrying provenance. It is pre-1.0 software actively hardening: its 2026-07-03 closeout fixed four security issues, and an independent audit the same week found the shipped server binds only a slice of what the library implements.
+
+\textbf{nostr-rust-forum} is the governance surface: a self-hostable forum kit whose Agent Control Surface Protocol (ACSP, kinds 31400--31405) lets an agent publish a signed request for a human decision, and lets only an administrator sign the response --- the relay rejects approval events from any agent key. This is the ecosystem's one production human-in-the-loop mechanism, and today it serves exactly one use case: ontology concept elevation, capped at five concurrent cases.
+
+\textbf{DreamLab Edge} (the \texttt{dreamlab-ai-website} repository) is the operator overlay: the branded, Cloudflare-edge-deployed public face that renders the forum and consumes the pod layer. It is live, but as an independent component it is the earliest-stage of the six --- it is being de-specialised into a thin consumer of the forum kit (\texttt{PRD-012}), and that cutover is still mid-flight.
+
+\begin{keyinsight}[title={The Broker Is Already Half-Built}]
+The most striking fact the audit surfaced: the judgment broker --- the role this report coined in Chapter~\ref{ch:role-transformation} --- already partially exists in code. A \texttt{BrokerActor} governance component with a \texttt{handleGovernanceDecision()} loop sits at roughly 65 per cent completion; its backend (\texttt{ADR-041}) ships a \texttt{BrokerCase} aggregate, a decision orchestrator, six decision outcomes (approve, reject, amend, delegate, promote, precedent), and a REST inbox. What does not exist is the front half: no broker inbox or decision canvas appears in VisionClaw's own client, and every live decision round-trips through an external forum page decided by a single administrator role. The report's central role is 65 per cent of a backend and no daily practice --- which is the gap this chapter exists to close, or to report honestly as unclosed.
+\end{keyinsight}
+
+\section{Fitting the Findings to the Architecture}
+
+The July 2026 evidence base maps onto this architecture with unusual directness. Table~\ref{tab:findings-fit} pairs each load-bearing finding with its architectural implication and the component where that implication lands.
+
+\begin{table}[h]
+\centering
+\caption{Mapping the revised report's findings onto the DreamLab ecosystem}
+\label{tab:findings-fit}
+\begin{tabularx}{\textwidth}{L{4.6cm} X L{3.6cm}}
+\toprule
+\textbf{Finding} & \textbf{Architectural implication} & \textbf{Ecosystem locus} \\
+\midrule
+Escalation beats approval: 71 vs 30 per cent median gains \parencite{Pereira2026Playbook} & Default authority boundaries to escalation; reserve approval for zero-tolerance actions & VisionClaw control centre; \texttt{BrokerActor} \\
+\addlinespace
+Contextual transaction cost governs collective efficiency \parencite{Liu2026} & Instrument handoffs, compression loss and verification burden per workflow & AgentBox hooks; agent-events trace schema \\
+\addlinespace
+Human-imitation forms underperform agent-native forms \parencite{Liu2026} & Shared-state coordination and adaptive orchestration, not role-played committees & RuVector memory; Claude-Flow routing \\
+\addlinespace
+Multi-agent failure is taxonomisable: 14 MAST modes \parencite{Cemri2025} & Failure telemetry tagged to a standard taxonomy, not free-text error logs & Agent-events envelope; QE fleet \\
+\addlinespace
+Diversity must be engineered, not assumed \parencite{Liu2026} & Multi-model verification with independent retrieval and evidence paths & AgentBox model routing \\
+\addlinespace
+Interface organisations connect agent context to human accountability \parencite{Liu2026} & Evidence-carrying escalation with mandatory human judgment points & Governed ontology writeback; forum ACSP \\
+\addlinespace
+Proprietary data is the moat; save everything \parencite{Pereira2026Playbook} & Durable, provenance-carrying memory across every substrate & RuVector; solid-pod-rs \\
+\addlinespace
+Security front-loading enables rather than blocks \parencite{Pereira2026Playbook} & Close authentication gaps before expanding features & solid-pod-rs PATCH; ontology endpoints \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Two rows carry the register's sharpest findings. The interface-organisation row is a literal implementation, not a metaphor: the governed writeback path --- \texttt{ontology\_propose}, then Whelk consistency reasoning, then judgment-broker approval --- puts agent outputs into human workflows only with evidence attached and judgment mandatory at defined points, exactly as Liu specifies. The security row is not hygiene housekeeping: the audit that found the writeback path also found the ways around it, which is why the first recommendation is the first recommendation.
+
+\section{Twelve Tangible Recommendations}
+
+Each recommendation names what to build or change, the finding that motivates it, and a priority. P0 items gate everything else; P1 items create the measurement layer; P2 items extend the loop outward. Where the four-surface register of Chapter~\ref{ch:gap-register} confirms, sharpens or complicates a recommendation, that is stated in place.
+
+\begin{enumerate}
+  \item \textbf{Close the governed-writeback security gaps (P0).} Authenticate the \texttt{/api/ontology/propose} endpoint, which currently accepts unauthenticated proposals; remove or hard-gate the \texttt{/api/ontology/load} backdoor, which bypasses Whelk validation entirely; and fix the solid-pod-rs non-destructive PATCH bug. The Playbook's finding is that security front-loaded early becomes an enabler rather than a blocker \parencite{Pereira2026Playbook}; the sharper point is internal: a governance pipeline with an unauthenticated front door and a validation bypass is theatre. The register adds a third open door the April audit missed --- the forum relay's advertised NIP-42 authentication is not performed, gating governance publishers by pubkey whitelist with \texttt{auth\_required} set false, so the canon's ``only an authenticated human signs the Decision'' guarantee rests on a weaker mechanism than the prose claims. Reconcile the claim with the mechanism or implement the AUTH round-trip. Nothing else here is worth measuring until these close.
+
+  \item \textbf{Finish the BrokerActor (P0).} Complete the \texttt{handleGovernanceDecision()} loop from its current 65 per cent, and surface the broker case queue inside VisionClaw's control centre as an escalation-first review surface --- each case carrying the evidence, provenance, and uncertainty that motivated it. This is Liu's interface organisation made concrete \parencite{Liu2026}. The register makes the recommendation load-bearing for two surfaces at once: its desktop audit rates ``no steering, interruption, or approval affordance reachable in the running 3D client'' as critical, with the components that would provide it (\texttt{AgentDetailPanel}, \texttt{BotsControlPanel}) built but imported nowhere. The broker queue this recommendation surfaces is the same missing affordance the operator needs where they actually watch agents work.
+
+  \item \textbf{Instrument contextual transaction cost (P1).} Extend the agent-events envelope (\texttt{ADR-059}'s trace schema in \texttt{src/agent\_events/schema.rs}) to record handoff counts, token burden, compression events, and verification outcomes per workflow, and report a CTC figure per DAG alongside Mesh Velocity. Chapter~\ref{ch:open-questions} names the absence of production CTC measurement as an open question in Liu's framework \parencite{Liu2026}; the trace plumbing exists and only the accounting fields are missing, so this ecosystem is positioned to produce the first production CTC instrumentation anywhere.
+
+  \item \textbf{Ship the four KPIs as a control-centre dashboard (P1).} This is not a design task: \texttt{ADR-043}, accepted in April 2026, already specifies Mesh Velocity, Augmentation Ratio, Trust Variance, and HITL Precision verbatim with a complete lineage data model --- and three months later not one line of implementation exists. Resurrect \texttt{ADR-043} and compute the four metrics from live agent-events and ACSP escalation telemetry. The Playbook finds that organisations defining KPIs before deployment are markedly more likely to demonstrate value \parencite{Pereira2026Playbook}; this report proposed the KPIs in Chapter~\ref{ch:new-kpis} and must now be measured by them.
+
+  \item \textbf{Adopt MAST-aligned failure telemetry (P1).} Tag every agent failure flowing through the agent-events pipeline and the QE fleet with one of the fourteen MAST failure modes \parencite{Cemri2025} --- specification issues, inter-agent misalignment, task verification --- rather than free-text error strings. This makes the ecosystem's failure data comparable to the published taxonomy and enables the failure-mode analysis Chapter~\ref{ch:open-questions} calls for.
+
+  \item \textbf{Default AgentBox authority boundaries to escalation (P1).} New agent skills should default to the escalation operating model, with each skill's actions classified as recoverable or zero-tolerance; approval-on-every-output should be reserved for the zero-tolerance class. The ACSP wire protocol already carries the vocabulary; what is missing is that escalation is not discoverable and there is no supported pattern for an agent to block on the human's signed response. The register hardens the case from the governance surface itself: the forum's own \texttt{DecisionOrchestrator} implements delegate, promote and precedent transitions, but the relay projects only approve and reject, parking every other action in \texttt{under\_review} permanently --- and no design answers approval fatigue, so a single admin faces an undifferentiated stream of identical clicks. Fix escalation discoverability, blocking, and the binary itself. The motivating evidence is the Playbook's 71-versus-30 result \parencite{Pereira2026Playbook}.
+
+  \item \textbf{Make outcome learning real (P1).} The July 2026 audit verified, uncomfortably, that the memory system's advertised outcome learning does not yet run: the intelligence banner is text-relevance matching, and the router's confidence figure is a hardcoded constant. Remediation has begun honestly --- trajectory recording of graded outcomes landed on 5 July 2026 --- but the two consumers that would let outcomes influence retrieval and routing (\texttt{feed\_retrieval}, \texttt{feed\_routing}) remain gated off pending a statistical sample floor. Wire post-task success signals into pattern reuse once the floor clears, and delete the stale comments that still claim the old path learns. The compounding organisation of Chapter~\ref{ch:compounding-org} is a claim about closed loops; this one must close with evidence, not intention.
+
+  \item \textbf{Engineer diversity in orchestration (P2).} Route verification and critique agents to different foundation models with independent retrieval paths. AgentBox already fronts Claude, Codex, Gemini, and DeepSeek, so the plumbing exists; the discipline does not. Liu's pseudo-diversity result --- same model, same tools, same retrieval equals one judge asked three times \parencite{Liu2026} --- says a reviewer drawn from the reviewed agent's own model family is decoration, not verification.
+
+  \item \textbf{Carry provenance to the human's pocket (P2).} Enrich the Nostr session mirror and the end-of-session digest so that every escalated decision reaches the operator's mobile surface with its evidence and uncertainty attached, not just its conclusion. Liu's interface-organisation specification makes uncertainty disclosure a design requirement \parencite{Liu2026}; the encrypted per-turn mirror and the durable digest exist, so this is envelope enrichment, not new infrastructure. The register extends the requirement to the decision moment itself (Register commitment~17).
+
+  \item \textbf{Run the Insight Ingestion Loop v1 across the mesh (P2).} Wire the loop end to end: forum and pods as the discovery surface, \texttt{ontology\_propose} (\texttt{ADR-049}) as codification, the BrokerActor as validation --- measuring Mesh Velocity across the whole path for the first time. This means engaging with, not ignoring, the frozen designs: the self-improving writeback flywheel (\texttt{ADR-121}) and the two-speed governance routing (\texttt{ADR-122}) were fully specified and shelved in early July 2026, and the codebase carries a ghost flag (\texttt{writeback\_triggered} in \texttt{enrichment\_proposals\_handler.rs}) that reports writes it never performs. Any v1 must ship with a liveness canary --- the codebase's own hard-won precedent, after an earlier workstream left an entire constraint pipeline wired, flagged live, and inert for months.
+
+  \item \textbf{Consolidate the data moat (P2).} Unify provenance across RuVector memory, the pods' git-mark and block-trail records, and the ontology's PROV-O reification (around 65 per cent complete, cross-repository receipt crossing still test-only) into one queryable trace. The Playbook found 47 per cent of successful deployments citing accumulated data as a moat and counselled saving everything \parencite{Pereira2026Playbook}; in an agentic ecosystem the moat is the trace --- who proposed what, on what evidence, and what the human decided.
+
+  \item \textbf{Pilot the stack beyond one team (P2).} Complete the DreamLab Edge kit cutover (\texttt{PRD-012}) and the mesh federation prerequisites (\texttt{PRD-010}'s Phase~0 cryptographic fixes, which currently block all cross-system messaging), then run one external pilot of the escalation-plus-KPI stack in a non-DreamLab context. Chapter~\ref{ch:open-questions} identifies bridging evidence as the thesis's largest missing piece; a single pilot outside the favourable home environment is worth more to the argument than any further refinement within it.
+\end{enumerate}
+
+\section{What the Register Adds}
+
+Six findings in Chapter~\ref{ch:gap-register} sit outside the twelve because they concern legibility, addressing, and in-scene intervention rather than measurement --- the conditions under which an ordinary human can see, verify, reach, and act on an agent at all. They are the register's contribution to the schedule, and they carry the same priority-and-exit-criterion discipline.
+
+\begin{enumerate}[start=13]
+  \item \textbf{Agent disclosure for ordinary forum users (P0).} Agent pubkeys resolve through the identical display-name cache used for humans, with no bot badge anywhere; an ordinary user cannot tell an agent from a person at the point of reading its output or its governance panel. This is the one place the disclosure literature the register surveys is unanimous. Add an agent badge in the forum client driven by \texttt{agent\_registry} membership, surfaced on every agent-authored post and every ACSP panel, naming the authorising principal, and write disclosure into the identity-spine canon as a MUST. \emph{Exit criterion:} every agent-authored item and panel renders a badge plus the provisioning admin, verified by inspection of the live forum.
+
+  \item \textbf{Key the actor nodes by \texttt{did:nostr} (P0).} Desktop, MR, and voice all fail the same way: agent-actor nodes are keyed by ephemeral \texttt{task\_id}, so cryptographic addressing does not work where humans look, and ACSP~31402 cannot address the agent an operator selects. Thread a stable \texttt{did:nostr} onto the agent record at spawn time, key nodes and the registry by it, and verify the envelope pubkey signature before treating it as identity. This is the shared blocker for commitments~15 and~16. \emph{Exit criterion:} selecting any agent node yields a verified \texttt{did:nostr} addressable by a signed 31402.
+
+  \item \textbf{Close the PTT voice-to-selected-actor loop (P1).} The canon's flagship journey opens with push-to-talk capturing the selected agent node and dispatching a scoped, signed ACSP request to that agent's \texttt{did:nostr}. No wired path connects live speech to a selection-aware addressed action: the one producer, agentbox \texttt{/v1/voice-intent}, is gated off by default, takes a flat actor string, and has zero callers in the STT pipeline. Bind the push-to-talk service to the current graph selection, resolve its \texttt{did:nostr} (commitment~14), and dispatch the request with audible confirmation. \emph{Exit criterion:} a spoken command to a selected agent produces an accepted, signed 31402 and a Kokoro TTS acknowledgement, demonstrated end to end.
+
+  \item \textbf{Graduated escalation and an approval-fatigue response (P1).} The forum's \texttt{DecisionOrchestrator} already implements delegate, promote and precedent, but only approve and reject are reachable, and a single admin clicking a stream of identical binary panels is the textbook trigger for rubber-stamping the automation-bias literature documents. Wire the richer transitions into the relay's 31403 projection, and introduce risk-tiering into the ACSP schema so low-risk reversible actions auto-resolve with logging while only high-blast-radius actions demand explicit approval. \emph{Exit criterion:} at least three decision outcomes reachable end to end, and a documented risk tier that suppresses low-risk panels from the operator queue.
+
+  \item \textbf{Decision-audit read API and trust-calibration context (P1).} The human is asked to sign an authoritative decision from a panel showing title and description but no reasoning trace, confidence, or risk tier; separately, every decision is written to storage but no endpoint reads it back, so the ``graph is the audit trail'' claim has no human-facing read path. Extend the panel schema to carry an agent-reasoning and confidence field and render it at the approve/reject point, and add the missing \texttt{GET /api/governance/decisions} endpoint with a history view. Fix the forum client's optimistic-send bug in the same pass so a relay-rejected decision no longer reads as ``sent''. \emph{Exit criterion:} a panel displays reasoning and confidence at decision time, and an operator can query decision history through a read API.
+
+  \item \textbf{Give the headset an intervention affordance and verifiable identity (P2).} The mixed-reality surface renders the live graph and \texttt{0x23} beams in-headset, but it is an observation window: no command, detail, or ACSP panel is imported anywhere under \texttt{client/src/immersive}; the agent-targeting ray in \texttt{VRAgentActionScene} originates at world-origin because no XR pose is ever read, hand-tracking sets booleans only and gaze is absent, so the selection every downstream step depends on does not resolve; and \texttt{enterVR()} never sets \texttt{isXRMode}, so XR-conditional rendering silently runs in desktop mode through a live session. Mount a spatial agent-detail panel behind a hand- or gaze-resolved selection, surface the selected agent's verified \texttt{did:nostr} (commitment~14) in-headset, add an ambient pending-ACSP indicator, and set \texttt{isXRMode} on session start. This is Recommendation~2's desktop steering affordance carried to room scale, where the ecosystem's headline concurrency claim lives. \emph{Exit criterion:} in a live VR session with \texttt{isXRMode} true, targeting an agent resolves a real node, displays its verified identity, and opens a read-only intervention panel with an ambient escalation indicator.
+\end{enumerate}
+
+\section{Measurement Commitments}
+
+Recommendations without measurement are marketing. Table~\ref{tab:measurement-commitments} states, for each of the four KPIs and for contextual transaction cost, the concrete data source in the stack and the review cadence to which DreamLab commits.
+
+\begin{table}[h]
+\centering
+\caption{Measurement commitments for the ecosystem roadmap}
+\label{tab:measurement-commitments}
+\begin{tabularx}{\textwidth}{L{3.2cm} X L{2.6cm}}
+\toprule
+\textbf{Measure} & \textbf{Concrete data source} & \textbf{Cadence} \\
+\midrule
+Mesh Velocity & Timestamps across the insight loop: \texttt{ontology\_propose} event to broker decision to merged enrichment & Quarterly \\
+\addlinespace
+Augmentation Ratio & Agent-action volume from \texttt{/wss/agent-events} against ACSP escalation volume & Monthly roll-up \\
+\addlinespace
+Trust Variance & Dispersion of broker decision outcomes (approve, amend, reject rates) over a rolling 30-day window & Monthly \\
+\addlinespace
+HITL Precision & Proportion of ACSP escalations where the human decision materially changed the outcome, from decision-outcome records & Monthly \\
+\addlinespace
+Contextual transaction cost & Handoff counts, token burden and verification outcomes per DAG from the extended agent-events envelope & Quarterly \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{The Evaluation Lens}
+
+The next edition needs a single frame for scoring progress, and Chapter~\ref{ch:four-surfaces} supplies one: the four collaboration surfaces do not carry equal load. Weighting them 40 (forum), 30 (desktop), 20 (mixed reality), and 10 (voice) reflects how much of the human-agent judgment burden each surface is expected to bear --- the forum owns the decision, the desktop owns observation, the headset extends it at room scale, and voice is the narrowest ingress. That weighting becomes the evaluation lens. Table~\ref{tab:evaluation-lens} states, per surface, what ``closed'' will mean when the next edition audits the same code.
+
+\begin{table}[h]
+\centering
+\caption{The evaluation lens: what ``closed'' means per surface}
+\label{tab:evaluation-lens}
+\begin{tabularx}{\textwidth}{L{2.6cm} c X}
+\toprule
+\textbf{Surface} & \textbf{Weight} & \textbf{What ``closed'' will mean} \\
+\midrule
+Forum & 40 & Ordinary members see agent badges and read-only panels; at least three decision outcomes reachable; decision-audit read API live; relay-confirmed decisions replace optimistic-send; agent roster manageable in-UI; the NIP-42 claim reconciled with the mechanism. \\
+\addlinespace
+Desktop & 30 & Live agent activity reaches the screen (the beam and avatar poll actually starts); node selection opens per-agent steering and approval controls; the MCP status dot reflects real reachability; agent nodes carry a verified \texttt{did:nostr}. \\
+\addlinespace
+Mixed reality & 20 & In-headset actor identity verifiable on a selected agent; a spatial intervention affordance plus an ambient ACSP indicator; hand or gaze targeting that resolves a real selection; \texttt{isXRMode} set correctly during a session. \\
+\addlinespace
+Voice & 10 & The PTT-to-selected-actor governed loop wired end to end with audible confirmation; a clarification turn on low-confidence input; documentation matching shipped behaviour. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The commitment is plain: if, two quarters from publication, the instrumented KPIs cannot be computed from the sources in Table~\ref{tab:measurement-commitments} --- or can be computed and show no compounding --- and the four surfaces still score as they do in Chapter~\ref{ch:gap-register}, that is evidence against the mesh thesis as deployed here, and the next edition will say so in these terms. The falsification condition and the scoring frame are both fixed now, before the data exists, precisely so that neither can be quietly redefined afterwards.
+
+\section{Honest Limits}
+
+\begin{cautionbox}[title={What This Chapter Does Not Claim}]
+\begin{itemize}
+  \item Everything above unfolds in the same favourable context flagged in Chapters~\ref{ch:technical-substrate} and~\ref{ch:open-questions}: a small, technically fluent team where the system architect is the primary user. Success here bridges nothing on its own; that is what Recommendation~12 is for.
+  \item These are commitments, not results. The codebase's own history shows accepted designs sitting unbuilt for months (the KPI model), fully specified designs frozen days before this edition (the writeback flywheel and governance routing), and wiring that reported itself live while doing nothing. Every loop-closing item carries a liveness-verification requirement for that reason.
+  \item The register's headline finding is that even observation overstates itself: the desktop embodiment channel --- the surface's entire reason to exist --- is inert today, starved by one unstarted \texttt{connect()} call despite live data existing server-side. ``Observation works'' holds only once commitment~14 and the desktop row of Table~\ref{tab:evaluation-lens} are met.
+  \item The BrokerActor at 65 per cent is not a working judgment-broker practice. The only production escalation loop serves one use case, capped at five concurrent cases, decided on an external forum page by a single administrator role, with no disclosure that the panels come from agents at all.
+  \item Relay federation across the mesh remains designed, not shipped; each community's governance plane is an island. Scale and status claims here are point-in-time snapshots of a fast-moving system, and selection bias cuts both ways: an author auditing their own system may be harsher than an outsider, or blinder.
+\end{itemize}
+\end{cautionbox}
+
+The report has argued throughout that the honest version is more defensible and more credible. This chapter is where that principle stops being a stance and becomes a schedule, and Chapter~\ref{ch:gap-register} is the register it will be marked against.

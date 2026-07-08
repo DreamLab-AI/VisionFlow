@@ -1,0 +1,136 @@
+\chapter{solid-pod-rs: Data That Belongs to Its Actor}
+\label{ch:solid-pod}
+
+\epigraph{The exit right has to sit in the floor, not be granted at the door.}{}
+
+\section{Why Every Actor Needs a Pod}
+
+Part~\ref{part:problem} diagnosed hierarchy as an information-routing protocol and showed how AI collapses the cost of the routing function that hierarchy was built to serve. A quieter claim sits underneath that diagnosis, and it becomes load-bearing the moment collaboration crosses an organisational boundary: the platforms that host today's collaboration scale tokens, not trust.
+
+A centralised system can hand out a billion API credentials in an afternoon. What it cannot manufacture is a counterparty's justified confidence that its data will not be read, retained, retrained on, or held hostage by the platform operator. Trust of that kind does not come from the platform. It comes from the counterparty being able to leave with everything that is theirs, at any time, without asking.
+
+solid-pod-rs is DreamLab's answer to that constraint: a place where every actor's data lives under the actor's own cryptographic control, portable by construction. In the ecosystem's division of labour (Chapter~\ref{ch:ecosystem-roadmap}) it is the sovereign data layer, the canonical store the other components read from and write to. The design commitment is uniform across the human/agent line. A person gets a pod, and so does each agent, each rooted in the same \texttt{did:nostr} identity it uses everywhere else in the mesh. Storage is the actor's own, and access to it is decided by the actor's own key, rather than a service an operator grants and may withdraw.
+
+The exit right this produces is structural rather than contractual. Leaving the mesh is not a data-export request that an operator may slow-walk or deny. It is the actor already holding the keys to storage that was theirs the whole time. That property is the trust precondition for collaboration between organisations that do not, and need not, trust each other's infrastructure. It is also the precondition for the data moat that Chapter~\ref{ch:compounding-org} argues for: the durable, provenance-carrying record that \textcite{Pereira2026Playbook} found 47~per~cent of successful deployments citing as their defensible asset is only an asset if its owner cannot be separated from it.
+
+The interface-organisation model that \textcite{Liu2026} places at the centre of agent-collective efficiency needs a data layer it does not itself describe. An interface organisation connects an agent's context to a human's accountability across a boundary, and it can do so only if both the context and the accountability attach to principals each side can verify without trusting the other's servers. A pod supplies exactly that. The agent's evidence lives under an addressable, signed identity; the human's decision is recorded against storage the human controls; and coordination across organisational lines then rests on cryptography both parties can check rather than on a shared operator both parties must trust.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.9\textwidth]{hero-pod-boundary.jpg}
+\caption{The pod trust boundary: WAC access control around actor-owned storage, with zoned access gated by \texttt{did:nostr} credentials. Illustration in the house sketch style.}
+\label{fig:pod-boundary}
+\end{figure}
+
+\section{What a Pod Is}
+
+\begin{definitionbox}[title={Pod}]
+A personal data server the actor owns or chooses, storing data as RDF and gating every resource with a Web Access Control (WAC) list keyed to the actor's identity. Applications ask the pod for permission to read or write; the actor decides who gets access to what. Because the data format and the access rules are standardised, the actor can change applications without migrating data.
+\end{definitionbox}
+
+Solid (Social Linked Data) is a W3C specification, incubated by Tim Berners-Lee at MIT and now carried by the W3C Solid Community Group, whose reference implementation is JavaScriptSolidServer (JSS). solid-pod-rs is that reference implementation rewritten in Rust: a Cargo workspace of seven crates reporting roughly 96~per~cent strict parity with JSS on its own 207-row conformance tracker. The core crate carries the protocol primitives; sibling crates add identity, federation, and transport features (Table~\ref{tab:solid-crates}). The output is a single static binary with no Node.js dependency, deterministic RDF serialisation, and compile-time feature gating. Figure~\ref{fig:solidpod-arch} shows the three-layer architecture as rendered from the repository's own diagram-as-code sources.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\textwidth]{diag-solidpod-arch.png}
+\caption{solid-pod-rs architecture overview, rendered from the repository's maintained mermaid sources.}
+\label{fig:solidpod-arch}
+\end{figure}
+
+\begin{table}[h]
+\centering
+\caption{The seven-crate workspace}
+\label{tab:solid-crates}
+\begin{tabularx}{\textwidth}{L{4.6cm} X}
+\toprule
+\textbf{Crate} & \textbf{Role} \\
+\midrule
+\texttt{solid-pod-rs} & Core library: LDP verbs, WAC evaluator, WebID, auth, notifications, storage \\
+\addlinespace
+\texttt{solid-pod-rs-server} & Drop-in server binary (actix-web + CLI) \\
+\addlinespace
+\texttt{solid-pod-rs-idp} & Solid-OIDC identity provider \\
+\addlinespace
+\texttt{solid-pod-rs-activitypub} & ActivityPub federation with HTTP Signatures \\
+\addlinespace
+\texttt{solid-pod-rs-nostr} & \texttt{did:nostr} resolver and NIP-01 relay \\
+\addlinespace
+\texttt{solid-pod-rs-git} & Git smart-HTTP backend behind WAC gates \\
+\addlinespace
+\texttt{solid-pod-rs-didkey} & \texttt{did:key} plus self-signed JWT verifier \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Every pod speaks the Linked Data Platform. Each URL is a resource or a container, addressed with plain HTTP verbs: \texttt{GET} to read, \texttt{PUT} to create or replace, \texttt{POST} to add to a container, \texttt{PATCH} to edit in place, \texttt{DELETE} to remove. Access to each is decided by a WAC list that denies by default: no ACL means no access, and a policy set once at a container cascades to its descendants through \texttt{acl:default}. The modes are \texttt{acl:Read}, \texttt{acl:Write}, \texttt{acl:Append}, and \texttt{acl:Control}, and the principal a list names is a WebID or a \texttt{did:nostr}, evaluated against the same key the requester signed with.
+
+In the governed maturity vocabulary of \texttt{ADR-002}, solid-pod-rs sits between \texttt{standalone} and \texttt{integrated}. It runs as a standalone pod server today; its wiring into the wider mesh, reachable over the same three federation transports as every other component (a private Tailscale tailnet, the Nostr relay strata, and Cloudflare tunnels), is real but incomplete for reasons the closeout audit made precise and this chapter states plainly below.
+
+It is pre-1.0 software, still hardening, and licensed AGPL-3.0. Operating a pod as a network service, which by the nature of a pod an operator almost always will, obliges that operator to provide corresponding source to its users. Copyleft is here a sovereignty mechanism, not a licensing footnote.
+
+\section{One Keypair, Every Boundary}
+
+The identity model is the reason a pod in this ecosystem amounts to more than storage. One secp256k1 keypair, the actor's \texttt{did:nostr}, is at once the relay identity, the HTTP authentication identity, the WAC principal that access-control lists name, the author recorded in every provenance record, and the subject of the DID document. There are no session stores, no token-exchange dance, no per-service credential to provision or rotate. An agent that authenticates to a pod with a NIP-98 request signature (a per-request Nostr event, kind 27235, binding URL, method, and body hash) is authenticated as exactly the principal that a WAC list grants or denies, and as exactly the principal a provenance record will attribute the write to.
+
+This collapses a class of trust problem that federated systems usually solve with brokered credentials. When the WAC evaluator asks who is making a request, the answer is a public key that verified a Schnorr signature moments earlier, not a bearer token minted by an intermediary both parties must trust.
+
+The 2026-07-03 closeout release made that path fail-closed. BIP-340 signature verification, which previously ran only under an optional feature and would silently degrade to structural checks without it, is now unconditional; a build that drops the verification code fails to compile rather than accepting forged public keys. The same release added a single-use replay guard so a captured authentication header cannot be re-presented inside its timestamp window, and wired \texttt{acl:origin} enforcement into the request path so cross-origin ACL restrictions stop being inert. Four security issues were closed in that one release, and the identity spine they protect is the whole point of the component.
+
+\section{Every Write a Commit}
+
+A pod records who changed what, when, and on whose authority. solid-pod-rs makes that record first-class through two composable provenance primitives, cost-tiered so the cheap one is always on.
+
+\emph{git-marks} run on every LDP write. Each \texttt{PUT}, \texttt{POST}, and \texttt{PATCH} becomes a git commit, captured and persisted as a PROV-O sidecar at \texttt{<resource>.prov.ttl}. The result is content-addressed, append-only, tamper-evident ordering of every write and a queryable history of who wrote each resource, for free, on every pod.
+
+\emph{block-trails} are the opt-in high-value tier: a Bitcoin-taproot-anchored, hash-chained state trail that irreversibly timestamps a record against the Bitcoin chain, so no single party, not even the pod operator, can forge or silently rewrite it. To keep on-chain cost amortised, an epoch Merkle root over a batch of commits is anchored in a single transaction, and anchoring is reserved for records whose ACL flags them anchor-worthy.
+
+This is the concrete substrate behind the canon's claim that ``the graph is the audit trail'' (Chapter~\ref{ch:visionflow-canon}). Provenance here is a structural guarantee of the write path rather than a log the write path emits alongside its real work and might forget to. Every change is attributable to a commit; every high-value change carries an external proof anyone can check without trusting the pod. That property is what lets an escalated agent action reach a human judgment broker (Chapter~\ref{ch:role-transformation}) with its evidence and its authorship intact, and what makes the ecosystem's data moat a moat of \emph{trace}, who proposed what on what evidence and what a human decided, rather than of raw data alone.
+
+\section{Acting Under a Mandate}
+
+The hardest question a shared data layer has to answer is how an agent writes to a human's pod without becoming the human. The canon's answer is the mandate model, and it is a good answer. An agent acts as itself, under a scoped WAC \texttt{acl:agent} grant named \texttt{urn:agentbox:mandate}, and never by holding the human's \texttt{nsec}. The agent's own \texttt{did:nostr} appears in the human's pod ACL with specific modes on specific resources; the agent authenticates with its own key; and every write it makes is attributed, in the provenance trail, to the agent and not to the human who delegated to it.
+
+The espoused model and the shipped mechanism diverge on one axis, and the 2026-07-03 closeout names the divergence rather than papering over it. A mandate has three properties that distinguish it from a handed-over key. Two hold today; one does not (Table~\ref{tab:mandate-properties}).
+
+\begin{table}[h]
+\centering
+\caption{The mandate model, espoused versus shipped}
+\label{tab:mandate-properties}
+\begin{tabularx}{\textwidth}{L{3.2cm} X L{2.4cm}}
+\toprule
+\textbf{Property} & \textbf{What it requires} & \textbf{Shipped?} \\
+\midrule
+Attribution & Agent authenticates and is provenance-logged as its own \texttt{did:nostr}, never the human's & Yes \\
+\addlinespace
+Least authority & Grant is scoped to declared \texttt{acl:mode} on declared resources & Yes \\
+\addlinespace
+Revocability & Expiry field the WAC evaluator enforces; a revocation event; a reconciler that propagates withdrawal & No \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Revocability is asserted in prose but not enforced in code. The mandate is currently a static, non-expiring ACL grant: the WAC evaluator reads it and honours it, but there is no expiry field it checks, no replaceable-event revocation semantics it observes, and no reconciler that would propagate a withdrawal to the pod's access-control state. The canon names the primitive without specifying how revocation reaches the evaluator that would have to act on it.
+
+\begin{cautionbox}[title={Delegation versus impersonation}]
+A mandate with no revocation clock is a standing grant. It is materially better than key-sharing on two of three axes, since the agent is attributable as itself and its authority is scoped, so it is not impersonation. A delegation the human cannot withdraw is, even so, not yet the revocable mandate the canon promises. The gap is named here, at the point of the claim, because revocation is the exact property that separates lending authority from surrendering it. Closing it needs an expiry field the evaluator enforces, a replaceable-event revocation path, and a reconciler cadence; none of the three is wired today. Chapter~\ref{ch:gap-register} carries this in the systematic register; this chapter's job is only to refuse to let the espoused version stand in for the shipped one.
+\end{cautionbox}
+
+\section{A Rich Library Behind a Thin Server}
+
+The independent closeout deep-dive of 2026-07-03 (ten comparison dimensions, each analysed and then adversarially re-verified against JSS as baseline) returned a verdict worth quoting in shape.
+
+\begin{evidencebox}[title={Library present is not server wired}]
+solid-pod-rs is a high-quality library port behind a thin reference server. The crate-level modules are, in several places, richer and more hardened than the JSS original: a single-use replay cache, argon2 password hashing, SSRF classification, durable federation delivery with backoff, an ACL-lockout guard the reference lacks, and correct deny-by-default access control. The shipped \texttt{solid-pod-rs-server} binds only a slice of what the libraries implement, and the parity checklist measures library \emph{presence}, not deployed HTTP \emph{behaviour}, so the headline parity figure overstates what a running pod actually serves.
+\end{evidencebox}
+
+The examples are specific:
+
+\begin{itemize}
+  \item The ActivityPub crate is a workspace member but not a dependency of the server binary, so federation is fully built, unit-tested, and unreachable over HTTP.
+  \item The Solid-OIDC provider implements discovery, JWKS, and the full authorisation-code flow but exposes an axum router the actix server never mounts, so OIDC discovery is broken end to end while the checklist marks the rows present.
+  \item \texttt{acl:agentGroup} is the sharpest case. The library implements group-based access control, but the server passes an empty resolver at every call-site, so at runtime it is a no-op identical to the reference implementation's stub.
+\end{itemize}
+
+The audit's discipline is the one this whole report argues for. For each unwired surface the choice is binary: finish the wiring, or relabel the row honestly as \emph{library-only, not server-wired}. What is not acceptable is a checklist claiming ``present'' for a capability a deployed pod cannot serve.
+
+That posture is why solid-pod-rs earns a chapter in Part~\ref{part:visionflow} rather than a line in a product sheet. The cryptographic foundation is real, the provenance is real, the identity model is the right one, and the four security fixes landed. The gaps, an unenforced mandate and a server that binds a subset of its own library, are named at the point of the claim, in print, before the next edition can quietly close or quietly forget them. Data that belongs to its actor is the correct design. Making the deployed server enforce all of what the library already knows how to do is the work between the design and the promise.

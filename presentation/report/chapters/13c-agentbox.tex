@@ -1,0 +1,193 @@
+\chapter{AgentBox: a Sovereign Home for Agents}
+\label{ch:agentbox}
+
+\epigraph{An agent you cannot reproduce, audit, or unplug belongs to whoever can. Sovereignty is the standing to say, at any moment, who that is.}{}
+
+\section{Sovereignty as a Governance Property}
+
+The other chapters of Part~\ref{part:visionflow} describe surfaces where a human meets an agent: the forum where a decision gets signed, the desktop where
+activity gets watched, the pod where an agent's data lives. AgentBox is the room the agents themselves occupy. It is the container that boots them, hands them
+tools, records what they do, and routes their durable writes through identity and redaction before anything reaches storage.
+Chapter~\ref{ch:role-transformation} argued that the human's job becomes brokering the judgment agents cannot supply; that job is only defensible if the
+operator can see, reproduce, and revoke what the agents actually did. AgentBox exists to make those three verbs true at once.
+
+Sovereignty here is a claim about governance, not about where a server sits. A managed agent platform can run in your own cloud tenancy and still be opaque: you
+cannot rebuild its image byte-for-byte, you cannot enumerate every action back to a signing key, and you cannot detach it from the vendor's control plane
+without losing your state. AgentBox inverts each of those. The whole environment derives from one \texttt{agentbox.toml} manifest and one Nix flake, producing a
+reproducible image; every resource and action is rooted in a cryptographic identity the operator holds; and the runtime is designed to run standalone on a
+laptop with local fallbacks, federating into a mesh only when a manifest switch is flipped.
+
+\begin{definitionbox}[title={Sovereignty, operationally}]
+An agent runtime is \emph{sovereign} when the operator can independently (1)~\textbf{reproduce} it --- rebuild the exact image from a declared manifest with no
+hidden state; (2)~\textbf{audit} it --- attribute every durable write to a signing identity with a provenance trail; and (3)~\textbf{control} it --- run it
+disconnected, and revoke or federate it by configuration rather than by permission. Sovereignty is the conjunction. A system that offers any two without the
+third leaves the operator dependent on a party they do not govern.
+\end{definitionbox}
+
+\section{One Manifest, One Reproducible Image}
+
+Reproducibility is the precondition for the other two properties, because an image you cannot rebuild is an image you cannot audit. AgentBox is built with Nix
+flakes, so the manifest that declares which agents, tools, and storage backends are present also fixes the bytes of the resulting container. Capabilities absent
+from \texttt{agentbox.toml} add nothing to the image; enabling one gates both its package set and its supervised service block together, so there is no drift
+between what the manifest claims and what the container runs. One residual runtime-fetch path remains, a small set of \texttt{npx -y} CLI aliases pending
+subresource-integrity pinning, and the documentation names it rather than hiding it, which is the posture the whole report asks of its own systems.
+
+The security posture is stated in \texttt{ADR-027} and is deliberately conservative: the container runs as non-root (uid~1000) with a read-only root filesystem,
+\texttt{cap\_drop:~ALL}, \texttt{no-new-privileges:true}, and a supplemental seccomp denylist of forty-seven high-risk syscalls layered on Docker's default
+profile. That denylist is honestly labelled a supplement, not a replacement allowlist; the container runtime remains the security boundary. Published ports bind
+host-loopback only. None of this is exotic, and that is the point. A sovereign home is built from ordinary, inspectable hardening rather than a bespoke sandbox
+nobody else can reason about.
+
+Identity is the spine that makes auditing possible. At bootstrap AgentBox generates a BIP-340 secp256k1 keypair whose public key becomes a \texttt{did:nostr}
+identity, and every resource, action, and event roots in it through an eighteen-kind \texttt{urn:agentbox:} grammar minted in one place
+(\texttt{management-api/lib/uris.js}). Owner-scoped identifiers embed the hex pubkey, so a credential or an activity record names the agent that issued it and
+no other. Beneath the identity layer, the pod substrate described in Chapter~\ref{ch:solid-pod} makes provenance the default: since the
+\texttt{solid-pod-rs}~0.5.0 provenance release every pod write lands as a git-mark (a commit plus a PROV-O sidecar recording who wrote what, when), and
+high-value or disputed records can escalate to hash-chained block-trails with an optional Bitcoin anchor. Traceability scales from free to settlement-grade per
+record, which is the material form of ``audit'' in the definition above.
+
+Table~\ref{tab:agentbox-sovereignty} sets each sovereignty property against the mechanism that delivers it, and against an honest maturity read in the governed
+vocabulary of \texttt{ADR-002}. Two rows are staged rather than shipped, and this chapter says so where they appear.
+
+\begin{table}[h]
+\centering \caption{AgentBox against the three sovereignty properties}
+\label{tab:agentbox-sovereignty}
+\begin{tabularx}{\textwidth}{L{2.7cm} X L{2.4cm}}
+\toprule
+\textbf{Property} & \textbf{Mechanism in AgentBox} & \textbf{Maturity} \\
+\midrule
+Reproduce & Nix flake plus \texttt{agentbox.toml} manifest; package and service blocks gated together; one \texttt{npx} runtime-fetch path pending SRI pinning & Integrated \\
+\addlinespace
+Audit & \texttt{did:nostr} identity root; eighteen-kind \texttt{urn:agentbox} grammar; per-write git-marks with PROV-O sidecars; opt-in block-trails & Integrated \\
+\addlinespace
+Control: disconnect & Five pluggable adapters resolving to local, external, or off; standalone (SQLite plus local JSONL) or federated by manifest switch & Integrated \\
+\addlinespace
+Control: disclose & Per-slot privacy filter (strict for memory and pods) before durable writes; NIP-59 session mirror sealed to the operator alone & Integrated \\
+\addlinespace
+Learn from outcomes & Trajectory producer live; \texttt{feed\_retrieval} and \texttt{feed\_routing} consumers corpus-gated off & Scaffolded \\
+\addlinespace
+Engineered diversity & Four model families fronted; independent-model verification routing available but not enforced & Scaffolded \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The two ``control'' rows earn a sentence each, because they are where sovereignty stops being a slogan. Disconnection is real: five adapter slots (beads, pods,
+memory, events, orchestrator) each resolve to a local implementation, an external one, or off, so a manifest set to \texttt{standalone} ships a complete product
+with local fallbacks and the same image federates into a mesh by flipping one switch to \texttt{client}. Disclosure is enforced in the write path: an embedded
+privacy filter (\texttt{ADR-008}) sits in the adapter dispatch, redacting PII and secrets before durable writes reach memory or pods, under a per-slot policy
+that is strict and fail-closed for memory and pods, soft for events and beads, and off for the orchestrator control plane. The honest boundary is stated in the
+same decision record: the filter is not a universal interceptor on every tool call, so ``redacted before storage'' is a claim about the durable-write slots, not
+about the whole runtime.
+
+\section{Skills, and Three Counts in One Tree}
+
+Agents in AgentBox reach their tools through skills: manifest-gated capability bundles, each a directory carrying a \texttt{SKILL.md} contract, routed to the
+model through the Model Context Protocol. They cover browser automation via the external sidecar, three-dimensional rendering, geospatial analysis, document
+typesetting, a payment router, and a source-grounded knowledge corpus, among others. A skill absent from the manifest costs the image nothing, so the routing
+surface is both large and gated.
+
+How large is a fair question, and the honest answer is a small cautionary tale about the difference between a document and a fact. On one day in July~2026, a
+single checkout of the repository advertised the skill count three different ways: the top-level \texttt{README.md} said ``90+ skills'', the documentation hub
+said ``113 skills'', and the filesystem held 115 directories carrying a \texttt{SKILL.md}. All three were written in good faith; none was a lie; and no two
+agreed. The verifiable count is the one you can enumerate, 115, and the two prose figures are a rounded floor and a stale snapshot respectively. This report
+treats that drift as instructive rather than embarrassing. A reproducible image guarantees that the tree is identical everywhere, and it guarantees nothing
+about whether the prose describing the tree kept pace with it. The skill \emph{routing} is sovereign; the skill \emph{count} in the docs was merely approximate,
+and the gap between those two claims is exactly the kind of thing an honest audit surfaces and a marketing page conceals.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.92\textwidth]{nb-agentbox-dashboard.jpg}
+\caption{The AgentBox operations surface: manifest-gated services with live status, rooted in the operator's \texttt{did:nostr} identity. Illustration in the house sketch style.}
+\label{fig:agentbox-dashboard}
+\end{figure}
+
+\section{Hooks as a Telemetry Spine}
+
+Every stage of an agent's lifecycle fires a hook. AgentBox registers handlers on \texttt{SessionStart}, \texttt{UserPromptSubmit}, \texttt{PreToolUse},
+\texttt{PostToolUse}, \texttt{SubagentStop}, \texttt{Stop}, and \texttt{SessionEnd}, and these are where grounding directives get injected, sessions get
+mirrored, and trajectories get recorded. The surface is fail-open by enforced convention: any hook that errors is expected to exit zero and never block the
+model. ``Enforced convention'' is a precise and slightly uncomfortable phrase. The guarantee lives in code review and handler discipline, not in a runtime that
+sandboxes a misbehaving hook, so the fail-open property is a promise the maintainers keep rather than one the platform imposes.
+
+This spine is where the coordination economics of Chapter~\ref{ch:coordination-economics} would become measurable. \textcite{Liu2026} formalises the contextual
+transaction cost that coordination between agents imposes: the handoffs, the compression loss at each boundary, the verification burden. A collective's
+efficiency is governed by that cost rather than by any single agent's capability. The \texttt{PostToolUse} and \texttt{SubagentStop} hooks see every handoff and
+every verification outcome as they happen, which makes them the natural place to record a contextual-transaction-cost figure per workflow. The instrumentation
+is not yet wired: the July~2026 audit found that the one hook seam where a tool outcome could be observed, the \texttt{post-bash} case, currently falls through
+to a bare log line and touches nothing. The plumbing exists; the accounting does not. Recommendation~3 of Chapter~\ref{ch:ecosystem-roadmap} commits to closing
+that gap and to reporting the first production contextual-transaction-cost figure the framework has, and the same spine is the right place to tag failures to
+the fourteen-mode taxonomy of \parencite{Cemri2025} instead of to free-text error strings.
+
+\section{Memory That Must Embed to Exist}
+
+Durable agent memory lives in RuVector, a Postgres sidecar with a genuine vector extension. Writes go through the \texttt{memory\_store} MCP tool, which
+computes a 384-dimension embedding client-side via Xinference (model \texttt{bge-small-en-v1.5}, not the MiniLM that older architecture decision records
+claimed) and inserts the vector directly; reads go through \texttt{memory\_search} over an HNSW index with SIMD acceleration confirmed active. The store holds
+over 1.17~million embeddings. The 2026-07-04 audit counted roughly two million rows in all, most of them frozen legacy telemetry that is written and never read
+back, a reminder that corpus size and useful corpus are different measurements.
+
+\begin{keyinsight}[title={The pipeline is the contract}]
+An entry with no embedding is invisible to search. HNSW retrieval walks vectors, so a row inserted by raw SQL that skips the embedding step is present in the
+table, counted in the totals, and unreachable by every agent that will ever look for it. The audit found 429 such null-embedding rows, sixteen of them raw-SQL
+bypasses as recent as June~2026: the exact anti-pattern the workspace conventions warn against, recurring in practice. The rule that follows is not a
+preference. Write through \texttt{memory\_store} or do not write, because the embedding pipeline, and not the table, is where a memory becomes a memory.
+\end{keyinsight}
+
+The store is strong and the retrieval is real. What the store does not yet do is learn, and this is the chapter's load-bearing correction, because the
+compounding organisation of Chapter~\ref{ch:compounding-org} is a claim about closed loops, and a loop that does not close compounds nothing.
+
+\begin{cautionbox}[title={What the memory system does not do yet}]
+Three advertised behaviours do not run as described, verified against live code and the live database:
+\begin{itemize}
+  \item The session-start ``\texttt{[INTELLIGENCE]}'' banner ranks memory by text relevance,
+a blend of trigram similarity and PageRank over the local \texttt{MEMORY.md} index. It is useful relevance surfacing. It is text similarity, not outcome
+learning, and it never touches Postgres.
+  \item The router's ``Confidence: 80\%'' figure is a hardcoded constant:
+literal \texttt{0.8} on a regex match, \texttt{0.5} otherwise. No state is read or written to produce it.
+  \item Trajectory recording of graded outcomes landed on 5~July~2026:
+\texttt{config/hooks/trajectory-recorder.cjs} writes real trajectories and the producer gate is live. The two consumers that would let those outcomes influence
+retrieval and routing, \texttt{feed\_retrieval} and \texttt{feed\_routing}, remain gated off until the trajectory corpus clears a statistical sample floor.
+\end{itemize}
+The remediation is scheduled honestly rather than claimed as done. Recommendation~7 of Chapter~\ref{ch:ecosystem-roadmap} tracks it, and
+Chapter~\ref{ch:gap-register} places it in the systematic register; this chapter names the gap once and points there rather than restating the whole account.
+\end{cautionbox}
+
+\section{A Whole Session in the Operator's Pocket}
+
+Auditability is worthless if the audit trail lives somewhere the operator never looks. AgentBox mirrors every running session to the operator's phone. A hook
+(\texttt{config/hooks/nostr-live-mirror.cjs}) emits one message per turn: the user's prompt on \texttt{UserPromptSubmit}, the assistant's last message on
+\texttt{Stop}, and lifecycle markers on \texttt{SessionStart} and \texttt{SessionEnd}. Each is a NIP-59 gift-wrapped self-message, a kind-1059 wrap around a
+kind-14 direct-message rumour, end-to-end sealed to the operator's own key, with the encrypted wrap to the cloud relay as the only network egress. In any Nostr
+client the session reads as a single note-to-self thread that only the recipient key can decrypt, and the relay gates reads behind authentication.
+
+The design choices matter for sovereignty. The message stream is sealed to a key the operator holds, not to a vendor dashboard; the recipient is a key derived
+from the operator's root identity, so the root secret never leaves the container; and the whole mechanism is a silent no-op when no recipient pubkey is
+configured, so it discloses to exactly one party by construction. A curated end-of-session digest (a kind-30840 summary) rides the same spine as the slower,
+edited sibling of the per-turn stream. Together they give the operator two views of what their agents did, the live feed and the retrospective, on a device they
+carry, sealed to a key they control. Recommendation~9 of Chapter~\ref{ch:ecosystem-roadmap} extends this so that an escalated decision reaches the phone
+carrying its evidence and uncertainty, not merely its conclusion, which is what \textcite{Liu2026}'s interface-organisation specification requires of any
+uncertainty disclosure.
+
+\section{Multi-Model Fronting and Engineered Diversity}
+
+AgentBox fronts four foundation-model families out of the box (Claude, Codex, Gemini, and DeepSeek) plus a meta-router for named external consultations. This is
+the plumbing for a specific and easily-missed requirement from the coordination literature. \textcite{Liu2026} shows that diversity in an agent collective must
+be engineered rather than assumed: a reviewer drawn from the reviewed agent's own model family, running the same tools over the same retrieval, is one judge
+asked three times. Genuine verification needs independent models with independent evidence paths.
+
+The plumbing being present is a weaker fact than the discipline being practised, and this report will not conflate them. Fronting four models makes it possible
+to route a verification agent to a different family than the one that produced the work; nothing in the current configuration requires it. Recommendation~8 of
+Chapter~\ref{ch:ecosystem-roadmap} names the gap and commits to routing critique and verification agents onto foundations independent of the agent under review.
+The distinction is the one this part of the book keeps returning to: capability in the substrate is a precondition for the behaviour and never a replacement for
+it.
+
+\section{What Is Solid, and What Is Staged}
+
+AgentBox is the most operationally mature component of the ecosystem. The runtime, the identity spine, the reproducible build, the secure posture, the memory
+store, and the session mirror are integrated and running, and the memory-and-learning workstream (\texttt{PRD-018}) landed in production in early July~2026. Two
+things are honestly staged rather than shipped. The learning loop records outcomes and does not yet consume them, so ``memory that compounds'' remains a
+scheduled property rather than a demonstrated one. Multi-model verification is available and not enforced, so ``engineered diversity'' is a capability awaiting
+a discipline. Both gaps are entered in the register of Chapter~\ref{ch:gap-register} and carry dated commitments in Chapter~\ref{ch:ecosystem-roadmap}. A
+sovereign home for agents is worth building while parts of it are still under construction, provided the building notices which rooms are finished and says so
+out loud. The proprietary trace an agentic system accumulates is its durable advantage \parencite{Pereira2026Playbook}, and a trace is only an advantage if
+every write that composes it is attributable, reproducible, and reachable. That is the whole case for giving agents a home you govern.
