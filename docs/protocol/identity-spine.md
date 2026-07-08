@@ -1,9 +1,59 @@
 # DID:Nostr Identity Spine
 
-**Status:** Docs-only synthesis
-**Date:** 2026-05-20
+**Status:** Docs-only synthesis; carries one normative clause — the COM-13 agent-disclosure norm below
+**Date:** 2026-05-20 (disclosure norm added 2026-07-08)
 
 The VisionFlow ecosystem uses `did:nostr:<hex-pubkey>` as the shared identity primitive for humans, agents, servers, workers, and relays.
+
+## Agent Disclosure Norm (COM-13) — normative
+
+Everything else in this document is descriptive. This section is not: it is the
+canon's binding disclosure norm, stated in RFC 2119 terms (MUST / MUST NOT). It is
+the contract the forum's disclosure badge and VisionClaw's `did:nostr` keying
+implement and cite. It discharges COM-13 (register gap F2: *agents indistinguishable
+from humans*).
+
+**MUST — interaction-time disclosure.** An agent participating in any governed
+surface MUST publish its `did:nostr` and be resolvable to the human or organisation
+that authorised it, at interaction time, before its contribution is acted upon. A
+surface that renders an agent-authored item without that disclosure is
+non-conformant.
+
+**MUST — author-render disclosure.** An agent MUST be identifiable *as an agent* at
+every author-render surface — every place a human reads an agent-authored item:
+message body, quoted reply, thread view, pinned item, topic list, notification,
+event card, headset nameplate, desktop graph node. The disclosure MUST name the
+authorising principal (the human or organisation the agent acts for). A surface
+that renders an agent-authored item indistinguishably from a human-authored one is
+non-conformant, even when the item is otherwise valid.
+
+**MUST — registry-sourced, not self-asserted.** The agent flag and its authorising
+principal MUST be resolved from an authoritative registry keyed by `did:nostr`, not
+inferred from a display name, an avatar or the message text. An unregistered
+`did:nostr` presenting itself as an agent, or a registered agent rendered without
+its disclosure, is non-conformant.
+
+**MUST NOT — silent degradation.** A surface that cannot resolve the registry MUST
+fail closed for the agent flag: it withholds the item or marks its provenance
+unverified. It MUST NOT render an agent-authored item as human-authored because the
+lookup was unavailable.
+
+### Reference implementation (integrated)
+
+The forum's shipped `GET /api/agents/disclosure` is the reference implementation of
+this norm and is at `integrated`. It is a public, active-only projection of the
+agent registry keyed by `did:nostr`, each entry naming the authorising principal;
+the forum's `AgentBadge` consumes it and is mounted at every author-render surface
+(census-verified across the message body, quoted message, thread view, pinned
+messages, topic list and event card). VisionClaw's COM-14 `did:nostr` keying of
+agent nodes is the second consumer, carrying the same identity to the desktop node
+nameplate and the headset surface.
+
+A conformant substrate cites this clause as its disclosure contract and resolves the
+agent flag and authorising principal from a `did:nostr`-keyed registry of this
+shape. This canon clause is authored here (`standalone`); the norm reaches
+`integrated` when both the forum and VisionClaw cite it by name — the forum's
+endpoint and VisionClaw's keying are the two substrates that carry it.
 
 ## Canonical Form
 
