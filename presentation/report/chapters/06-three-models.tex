@@ -20,7 +20,7 @@ Three distinct models have emerged. They are not competitors in the commercial s
 
 \subsection{Source and Core Thesis}
 
-``From Hierarchy to Intelligence,'' published by Jack Dorsey and Roelof Botha on 31 March 2026 \parencite{DorseyBotha2026}, proposes the most radical of the three models: replace middle management entirely. Build a ``Company World Model'' --- an AI system continuously tracking what is being built, what is blocked, and where resources are allocated --- alongside a ``Customer World Model'' constructed from transaction data. An ``Intelligence Layer'' composes capabilities into solutions proactively. Three roles remain: Individual Contributors (deep specialists), Directly Responsible Individuals (who own cross-cutting problems for fixed periods), and Player-Coaches (who build things while developing people).
+``From Hierarchy to Intelligence,'' published by Jack Dorsey and Roelof Botha on 31 March 2026 \parencite{DorseyBotha2026}, proposes the most radical of the three models: replace middle management entirely. Build a ``Company World Model'' --- an AI system continuously tracking what is being built, what is blocked, and where resources are allocated, alongside a ``Customer World Model'' constructed from transaction data. An ``Intelligence Layer'' composes capabilities into solutions proactively. Three roles remain: Individual Contributors (deep specialists), Directly Responsible Individuals (who own cross-cutting problems for fixed periods), and Player-Coaches (who build things while developing people).
 
 \subsection{The Case For}
 
@@ -60,9 +60,9 @@ Several features of the Every experiment are genuinely instructive:
 
 \subsection{What Does Not Work}
 
-\textbf{The ant death spiral.} If one agent messages a channel monitored by other agents and the configurations are imprecise, the agents will respond to each other indefinitely --- ``burning millions of tokens'' until a human intervenes. This is a failure of coordination at the system level, precisely the function that hierarchy was designed to provide.
+\textbf{The ant death spiral.} If one agent messages a channel monitored by other agents and the configurations are imprecise, the agents will respond to each other indefinitely: ``burning millions of tokens'' until a human intervenes. This is a failure of coordination at the system level, precisely the function that hierarchy was designed to provide.
 
-\textbf{Error multiplication.} Errors in one agent's output propagate and amplify through downstream agents. The first edition cited a community-sourced 17-times multiplication figure \parencite{TDS2026}; the peer-reviewed grounding is now stronger and starker --- \textcite{Cemri2025} document failure rates of 41 to 86.7 per cent across seven state-of-the-art open-source multi-agent frameworks, with inter-agent misalignment one of the three principal failure categories (Chapter~\ref{ch:coordination-economics}).
+\textbf{Error multiplication.} Errors in one agent's output propagate and amplify through downstream agents. The first edition cited a community-sourced 17-times multiplication figure \parencite{TDS2026}; the peer-reviewed grounding is now stronger and starker; \textcite{Cemri2025} document failure rates of 41 to 86.7 per cent across seven state-of-the-art open-source multi-agent frameworks, with inter-agent misalignment one of the three principal failure categories (Chapter~\ref{ch:coordination-economics}).
 
 \textbf{Scale limitations.} Every's experiment involved approximately twenty people. Cultural self-organisation works at this scale. At two hundred people, you need structure. At two thousand, you need architecture. The experiment is an existence proof of a dynamic that has not yet been shown to generalise.
 
@@ -83,7 +83,7 @@ The Dynamic Agentic Mesh retains human judgment at intersection points. Middle m
 
 The mesh operates through three integrated layers.
 
-\textbf{The Discovery Engine} captures bottom-up insight. Passive agent monitoring of communication channels surfaces shadow workflows --- the unofficial optimisations that staff have already invented. Natural-language Insight Portals allow anyone to propose cross-functional shortcuts. Tacit knowledge is automatically codified into agentic instructions.
+\textbf{The Discovery Engine} captures bottom-up insight. Passive agent monitoring of communication channels surfaces shadow workflows, the unofficial optimisations that staff have already invented. Natural-language Insight Portals allow anyone to propose cross-functional shortcuts. Tacit knowledge is automatically codified into agentic instructions.
 
 \textbf{The Orchestration Layer} provides agentic coordination. Directed Acyclic Graphs re-route tasks in real time based on human and agent availability. Data transforms from ``dashboard view'' to ``data product,'' carrying its own service-level agreements, readiness checks, and freshness guarantees. Specialist agents execute defined skill domains with ontological precision.
 
@@ -98,7 +98,7 @@ The mesh converts individual discoveries into organisational capability through 
   \item \textbf{Codification}: The system maps the new path as a proposed DAG, formalised with provenance and dependency checks.
   \item \textbf{Validation}: The judgment broker reviews for strategic fit, bias risk, and compliance.
   \item \textbf{Integration}: The validated workflow is promoted into the live mesh with SLAs and ownership.
-  \item \textbf{Amplification}: The mesh propagates the pattern to other teams. Mesh velocity --- insight-to-integration time --- becomes a strategic KPI.
+  \item \textbf{Amplification}: The mesh propagates the pattern to other teams. Mesh velocity (insight-to-integration time) becomes a strategic KPI.
 \end{enumerate}
 
 \subsection{Honest Limitations}
@@ -139,6 +139,6 @@ Primary risk & Falling asleep at the wheel & Correlated multi-agent failure at s
 \end{tabularx}
 \end{table}
 
-The evidence from Chapter~\ref{ch:jagged-frontier} indicates that Self-Automator organisations --- those that delegate wholesale to AI --- produce the weakest outcomes. This is the empirical case against Block's model and for organisational designs that maintain active human engagement at the frontier boundary.
+The evidence from Chapter~\ref{ch:jagged-frontier} indicates that Self-Automator organisations, those that delegate wholesale to AI, produce the weakest outcomes. This is the empirical case against Block's model and for organisational designs that maintain active human engagement at the frontier boundary.
 
 Until now, this comparison has rested on case evidence and the jagged frontier alone. \textcite{Liu2026}'s formal treatment of agent-collective organisation, developed in Chapter~\ref{ch:coordination-economics}, gives the three models a fourth lens: Block's Intelligence Layer maps onto the hierarchy-manager form, which underperforms a single competent agent on both efficiency and quality; Every's agent colony risks the committee-debate dynamic that Liu finds has an optimal scale of one agent, unless its public channels are deliberately kept closer to structured blackboard communication than free-text deliberation; and the Dynamic Agentic Mesh maps onto the combination Liu's simulation ranks highest --- blackboard memory and adaptive meta-organisation, governed by an interface organisation.

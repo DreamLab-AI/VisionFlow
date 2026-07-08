@@ -5,7 +5,7 @@
 
 \section{Governance as Accelerator, Not Brake}
 
-The conventional relationship between governance and velocity is adversarial. Governance imposes constraints --- approval workflows, compliance reviews, audit requirements --- that slow execution. Organisations accept this cost as the price of safety, regulatory compliance, and risk management. The faster you want to go, the more governance you must sacrifice; the more governance you impose, the slower you become.
+The conventional relationship between governance and velocity is adversarial. Governance imposes constraints (approval workflows, compliance reviews, audit requirements) that slow execution. Organisations accept this cost as the price of safety, regulatory compliance, and risk management. The faster you want to go, the more governance you must sacrifice; the more governance you impose, the slower you become.
 
 The Dynamic Agentic Mesh inverts this relationship. In an agentic architecture, governance is not a constraint applied to the system from outside. It is a property of the system itself --- embedded in the architecture, enforced automatically, and operating at the speed of the mesh rather than the speed of human review.
 
@@ -15,7 +15,7 @@ Formula 1 cars are the fastest production-adjacent vehicles on earth. They go fa
 
 An F1 car without telemetry, traction control, and pit-wall governance does not win. It crashes on lap three.
 
-The analogy is precise. An agentic mesh without embedded governance --- without real-time monitoring, without authority boundaries, without continuous trust measurement --- does not produce faster organisational outcomes. It produces the ant death spiral, the correlated-failure cascades documented across state-of-the-art multi-agent frameworks \parencite{Cemri2025}, and the catastrophic failures that cause organisations to retreat to hierarchical control.
+The analogy is precise. An agentic mesh without embedded governance lacks real-time monitoring, authority boundaries, and continuous trust measurement. It does not produce faster organisational outcomes. It produces the ant death spiral, the correlated-failure cascades documented across state-of-the-art multi-agent frameworks \parencite{Cemri2025}, and the catastrophic failures that cause organisations to retreat to hierarchical control.
 
 \begin{keyinsight}
 Speed and governance are not in tension. Speed \emph{requires} governance. The question is not whether to govern the mesh, but how to architect governance so that it operates at mesh speed rather than human-review speed.
@@ -62,7 +62,7 @@ Critically, the mesh learns from each human decision. When the judgment broker o
 
 \section{Ontological Provenance}
 
-Every decision in the mesh traces back through the knowledge graph. Auditors can traverse the full reasoning chain --- agent by agent, task by task --- from a final output back to the original inputs, policy constraints, and human decisions that produced it.
+Every decision in the mesh traces back through the knowledge graph. Auditors can traverse the full reasoning chain: agent by agent, task by task, from a final output back to the original inputs, policy constraints, and human decisions that produced it.
 
 This provenance is grounded in formal ontology. The OWL~2 knowledge representation provides shared semantics across all agent skills. The same concept of ``deliverable'' means the same thing to a Creative Production agent and a Governance agent. The same concept of ``risk assessment'' is understood by the orchestration layer as a sub-task of ``governance review'' and routed accordingly --- through ontological subsumption, not keyword matching.
 
@@ -71,12 +71,12 @@ In a conventional organisation, the audit trail for a decision is reconstructed 
 
 In an agentic mesh with ontological provenance, the audit trail is a by-product of normal operation. Every agent decision is grounded in an OWL~2 concept. Every task transition is recorded with its governing policies. The reasoning chain is available in real time, not reconstructed months later by forensic accountants.
 
-For regulated industries --- financial services, healthcare, defence --- this is a significant governance advantage. Regulatory compliance becomes a query against the knowledge graph, not a multi-week audit exercise.
+For regulated industries (financial services, healthcare, defence), this is a significant governance advantage. Regulatory compliance becomes a query against the knowledge graph, not a multi-week audit exercise.
 \end{evidencebox}
 
 \section{Cascading Trust Hierarchies}
 
-Agent identities in the mesh operate with compliant key rotation. Each agent has a cryptographic identity that establishes its authority to perform specific actions. When an agent is revoked --- because it has been compromised, because its scope has changed, or because the policy constraints governing its behaviour have been updated --- the revocation cascades automatically through all agents that depend on the revoked agent's authority.
+Agent identities in the mesh operate with compliant key rotation. Each agent has a cryptographic identity that establishes its authority to perform specific actions. An agent may be revoked because it has been compromised, because its scope has changed, or because the policy constraints governing its behaviour have been updated; the revocation then cascades automatically through all agents that depend on the revoked agent's authority.
 
 This cascading trust model prevents the accumulation of stale permissions that characterises most enterprise identity systems. In a conventional organisation, access controls accumulate over time: employees change roles but retain their old permissions; systems are decommissioned but their service accounts persist. The result is a growing attack surface of orphaned permissions.
 
@@ -84,13 +84,13 @@ This cascading trust model prevents the accumulation of stale permissions that c
 
 \section{Security as Foundation, Not Friction}
 
-The claim that governance accelerates rather than brakes is not just architectural reasoning; it is now a field finding. Across the 51 mature deployments Stanford studied, security was never the sole reason a project was killed \parencite{Pereira2026Playbook}. More strikingly, requirements that initially blocked a project routinely went on to enable use cases that competitors without the same obligations could not touch. A large retail bank's PII-scrubbing and synthetic-substitution pipeline --- built to satisfy regulators before any customer data could go near a cloud model --- became the infrastructure that let it serve sensitive, regulated customer interactions with agentic AI at all.
+The claim that governance accelerates rather than brakes is not just architectural reasoning; it is now a field finding. Across the 51 mature deployments Stanford studied, security was never the sole reason a project was killed \parencite{Pereira2026Playbook}. More strikingly, requirements that initially blocked a project routinely went on to enable use cases that competitors without the same obligations could not touch. A large retail bank's PII-scrubbing and synthetic-substitution pipeline (built to satisfy regulators before any customer data could go near a cloud model) became the infrastructure that let it serve sensitive, regulated customer interactions with agentic AI at all.
 
 The security tax is real, but it is front-loaded. Once the scrubbing pipelines, the vendor contracts, and the archival and audit systems exist, every subsequent use case inherits them at close to zero marginal cost. This is the same compounding logic as the data moat described in Chapter~\ref{ch:compounding-org}, applied to governance infrastructure rather than data: the first regulated use case is expensive; the tenth is nearly free.
 
 Shadow AI is what happens when that tax goes unpaid rather than front-loaded. One manufacturer in the Playbook sample discovered 1,500 to 1,600 unauthorised AI tools already in use across the organisation before it built an internal platform to bring them into the light \parencite{Pereira2026Playbook}. The tools were being used regardless of governance; the only question was whether the organisation paid the security cost deliberately, once, or paid it chaotically, tool by tool, indefinitely. This is the governance paradox showing up in field data rather than architecture diagrams: the organisations with the strictest data obligations, having already made the investment, are the ones now running customer-facing agentic systems that their less-regulated competitors cannot build at all.
 
-The same field data revises who resists and why, and it matters for how the mesh's governance role should be presented. Staff functions --- Legal, HR, Risk, Compliance --- were the single largest source of resistance to AI programmes, at 35 per cent of cases, ahead of internal end-users at 23 per cent \parencite{Pereira2026Playbook}. But the Playbook found these functions converted into enablers, not obstacles, the moment they were given a governance role rather than a veto. Declarative governance is the mechanism that gives them exactly that role inside the mesh: their constraints stop being a review queue that runs at committee speed and become code that runs at mesh speed, checked on every transition rather than sampled at an audit. The staff function that used to be a phase gate becomes a co-author of the policy the mesh enforces automatically.
+The same field data revises who resists and why, and it matters for how the mesh's governance role should be presented. Staff functions, including Legal, HR, Risk, and Compliance, were the single largest source of resistance to AI programmes, at 35 per cent of cases, ahead of internal end-users at 23 per cent \parencite{Pereira2026Playbook}. But the Playbook found these functions converted into enablers, not obstacles, the moment they were given a governance role rather than a veto. Declarative governance is the mechanism that gives them exactly that role inside the mesh: their constraints stop being a review queue that runs at committee speed and become code that runs at mesh speed, checked on every transition rather than sampled at an audit. The staff function that used to be a phase gate becomes a co-author of the policy the mesh enforces automatically.
 
 \section{The Governance Paradox Resolved}
 

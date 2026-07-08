@@ -47,7 +47,7 @@ The knowledge graph uses formal OWL~2 ontology via \texttt{horned-owl} and \text
 
 \subsection{GPU Physics and the Dual Graph}
 
-The visualisation layer runs a Rust/CUDA backend of 82 CUDA kernels for GPU-accelerated graph physics, including clustering, anomaly detection, and PageRank. A published dual-graph demonstration settles 21,038 nodes and 94,702 edges --- a dense knowledge-graph nucleus wrapped in an ontology shell --- under spring, repulsion, and ontology-driven semantic forces in real time. Degree-one dangling wikilink stubs are pruned at ingest, so what settles is navigable structure rather than citation noise.
+The visualisation layer runs a Rust/CUDA backend of 82 CUDA kernels for GPU-accelerated graph physics, including clustering, anomaly detection, and PageRank. A published dual-graph demonstration settles 21,038 nodes and 94,702 edges, a dense knowledge-graph nucleus wrapped in an ontology shell, under spring, repulsion, and ontology-driven semantic forces in real time. Degree-one dangling wikilink stubs are pruned at ingest, so what settles is navigable structure rather than citation noise.
 
 That is a real advance on the April 2026 position, where production screenshots showed roughly 934 nodes. The 100,000-node-at-60fps figure remains a design target and a unit-test case, not sustained multi-user production load.
 
@@ -60,7 +60,7 @@ That is a real advance on the April 2026 position, where production screenshots 
 
 \subsection{WebXR Visualisation}
 
-The client is a single React Three Fiber renderer. The same \texttt{GraphManager} component drives the desktop 2D screen and, wrapped in \texttt{@react-three/xr}, the in-headset view --- shared verbatim rather than duplicated. Earlier documentation described a separate Babylon.js immersive path; the code-verified reality is one shared renderer, which is the stronger engineering position and the one this chapter states. That renderer sits third in a deliberate succession across two technology generations of the same practice: Vircadia, the 2022 platform named above; the Babylon.js path just described, documented but never built as a separate system; and the shared React Three Fiber renderer verified here.
+The client is a single React Three Fiber renderer. The same \texttt{GraphManager} component drives the desktop 2D screen and, wrapped in \texttt{@react-three/xr}, the in-headset view: shared verbatim rather than duplicated. Earlier documentation described a separate Babylon.js immersive path; the code-verified reality is one shared renderer, which is the stronger engineering position and the one this chapter states. That renderer sits third in a deliberate succession across two technology generations of the same practice: Vircadia, the 2022 platform named above; the Babylon.js path just described, documented but never built as a separate system; and the shared React Three Fiber renderer verified here.
 
 \subsection{Nostr Agent Identity}
 
