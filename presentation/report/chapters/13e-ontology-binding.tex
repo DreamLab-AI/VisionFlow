@@ -142,14 +142,15 @@ before policy, policy before merge, evidence carried the whole way.
 Chapter~\ref{ch:ecosystem-roadmap} names this same path as the one row in its findings
 table that is architecture rather than aspiration.
 
-The security of that path is a live gap, and the freshest ground truth says so plainly. As
-of the 3 July 2026 closeout, the \texttt{propose} endpoint still
-accepts unauthenticated proposals and a \texttt{/api/ontology/load} backdoor still bypasses
-Whelk entirely, which is why the first recommendation of
-Chapter~\ref{ch:ecosystem-roadmap} is to close both before anything downstream is worth
-measuring. The authentication fix (\texttt{ADR-120}) is written but not yet landed and
-verified on the Rust side. A governance pipeline with an unauthenticated front door is a
-design for governance, and Chapter~\ref{ch:gap-register} records it as such.
+The security of that path was a live gap through the 3 July closeout, and the gap-close
+reconciliation found it already shut on main. The \texttt{propose} endpoint now requires an
+authenticated principal behind a rate limit (\texttt{ontology\_agent\_handler.rs}), and the
+\texttt{/api/ontology/load} backdoor that once bypassed Whelk is collapsed to a single
+power-user, mutations-only scope with the weaker duplicate deleted. The sprint added a
+route-guard regression test that pins both (\texttt{6f4eb1b0a}), so the front door the first
+recommendation of Chapter~\ref{ch:ecosystem-roadmap} named is closed and verified rather than
+merely designed (\texttt{ADR-120}). Chapter~\ref{ch:gap-register} now carries this as a closed
+item rather than an open one.
 
 \section{Fail-Open by Contract}
 
@@ -175,6 +176,9 @@ this edition, four \texttt{ontology\_ask} calls across the book's core domains
 (telepresence, distributed identity, Bitcoin value rails, and digital-society governance)
 each returned \texttt{degraded:true} with \texttt{seed\_unavailable} in about four seconds,
 one more logged instance of the fail-open contract holding rather than blocking the turn.
+What both observations lacked at the time was a way to tell a degraded turn from a dead
+binding without a human noticing the empty results; the gap-close sprint closed that blind
+spot, and the next section records the monitor it added.
 \end{cautionbox}
 
 Fail-open also carries an honesty cost the book insists on paying. A silent
@@ -183,12 +187,20 @@ wired at all. That is the exact failure an earlier workstream (\texttt{PRD-018})
 where ontology forces were compiled and inert for months because nobody proved the consumer
 invoked them. The binding answers this with per-channel liveness counters and a startup
 canary that drives a non-zero injection through each enabled channel and asserts it landed
-(\texttt{ADR-119}): a green-but-zero dashboard is treated as failure. The three read
-channels are built and verified in the agentbox Node layer (eighteen of eighteen unit tests
-passing), while the server-side workstreams (the SPARQL row clamp, the propose
-authentication, the fenced derived-graph endpoint) were written pending the Rust host
-build. In the governed vocabulary of \texttt{ADR-002}, the binding is integrated on its
-read path and still hardening on its write path.
+(\texttt{ADR-119}): a green-but-zero dashboard is treated as failure. The gap-close sprint
+extended that discipline to the knowledge-graph backend itself, which is the one dependency
+the fail-open contract silently tolerates losing. Because the server is the KG backend and
+its \texttt{/api/health} and \texttt{/healthz} endpoints existed but were polled by nothing,
+the sprint added a watchdog that polls them and drives a \texttt{kg\_backend\_up} gauge, plus
+a liveness harness that registers, observes, and re-arms canaries on a thirty-day staleness
+clock, seeded with six standing P0 canaries (\texttt{6f4eb1b0a}); a companion tap maps a Nostr
+kind-1 heartbeat into the same harness so an external prover can confirm liveness fail-open
+(\texttt{1492bc17b}). The backend-down day recorded above would now trip the gauge rather than
+pass unnoticed. The three read channels remain built and verified in the agentbox Node layer
+(eighteen of eighteen unit tests passing), and the server-side workstreams the earlier edition
+listed as pending the Rust host build now sit behind that live watchdog. In the governed
+vocabulary of \texttt{ADR-002}, the binding is integrated on its read path, monitored at its
+backend, and still hardening on its write path.
 
 \section{One Honest Gap in the Write Path}
 

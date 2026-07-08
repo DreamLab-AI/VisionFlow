@@ -29,3 +29,7 @@ presentation/report/*.xdv
 
 # NotebookLM derived media — too large for git (podcast.wav 88MB et al.)
 presentation/report/notebooklm/
+
+# copyrighted source material for the transition chapter — never commit
+luddites.txt
+doctorow.txt

@@ -41,7 +41,10 @@ nobody else can reason about.
 Identity is the spine that makes auditing possible. At bootstrap AgentBox generates a BIP-340 secp256k1 keypair whose public key becomes a \texttt{did:nostr}
 identity, and every resource, action, and event roots in it through an eighteen-kind \texttt{urn:agentbox:} grammar minted in one place
 (\texttt{management-api/lib/uris.js}). Owner-scoped identifiers embed the hex pubkey, so a credential or an activity record names the agent that issued it and
-no other. Beneath the identity layer, the pod substrate described in Chapter~\ref{ch:solid-pod} makes provenance the default: since the
+no other. The gap-close sprint pushed that identity down to the individual agent: where an earlier tree stamped a placeholder \texttt{did:nostr:local} at
+spawn, each agent now mints its own secp256k1 key at spawn through \texttt{agent-identity.js}, holds it in a \texttt{0600} keyfile stable across a profile, and
+carries the resulting \texttt{did:nostr} in its spawn payload (\texttt{6189f47d}), so the principal a downstream surface verifies is the agent's own and not the
+box's. Beneath the identity layer, the pod substrate described in Chapter~\ref{ch:solid-pod} makes provenance the default: since the
 \texttt{solid-pod-rs}~0.5.0 provenance release every pod write lands as a git-mark (a commit plus a PROV-O sidecar recording who wrote what, when), and
 high-value or disputed records can escalate to hash-chained block-trails with an optional Bitcoin anchor. Traceability scales from free to settlement-grade per
 record, which is the material form of ``audit'' in the definition above.
@@ -64,7 +67,7 @@ Control: disconnect & Five pluggable adapters resolving to local, external, or o
 \addlinespace
 Control: disclose & Per-slot privacy filter (strict for memory and pods) before durable writes; NIP-59 session mirror sealed to the operator alone & Integrated \\
 \addlinespace
-Learn from outcomes & Trajectory producer live; \texttt{feed\_retrieval} and \texttt{feed\_routing} consumers corpus-gated off & Scaffolded \\
+Learn from outcomes & Trajectory producer live; \texttt{feed\_retrieval} and \texttt{feed\_routing} consumers held behind a Wilson-score sample floor until the corpus clears it & Scaffolded \\
 \addlinespace
 Engineered diversity & Four model families fronted; independent-model verification routing available but not enforced & Scaffolded \\
 \bottomrule
@@ -112,11 +115,19 @@ sandboxes a misbehaving hook, so the fail-open property is a promise the maintai
 This spine is where the coordination economics of Chapter~\ref{ch:coordination-economics} would become measurable. \textcite{Liu2026} formalises the contextual
 transaction cost that coordination between agents imposes: the handoffs, the compression loss at each boundary, the verification burden. A collective's
 efficiency is governed by that cost rather than by any single agent's capability. The \texttt{PostToolUse} and \texttt{SubagentStop} hooks see every handoff and
-every verification outcome as they happen, which makes them the natural place to record a contextual-transaction-cost figure per workflow. The instrumentation
-is not yet wired: the July~2026 audit found that the one hook seam where a tool outcome could be observed, the \texttt{post-bash} case, currently falls through
-to a bare log line and touches nothing. The plumbing exists; the accounting does not. Recommendation~3 of Chapter~\ref{ch:ecosystem-roadmap} commits to closing
-that gap and to reporting the first production contextual-transaction-cost figure the framework has, and the same spine is the right place to tag failures to
-the fourteen-mode taxonomy of \parencite{Cemri2025} instead of to free-text error strings.
+every verification outcome as they happen, which makes them the natural place to record a contextual-transaction-cost figure per workflow. The April~2026 audit
+found that seam unwired: the one hook case where a tool outcome could be observed, \texttt{post-bash}, fell through to a bare log line and touched nothing. The
+gap-close sprint wired it. A contextual-transaction-cost emitter now runs on the spine and forwards a token-count-and-handoff envelope end to end
+(\texttt{9673624}, \texttt{ceb3401b}), so the accounting the plumbing always allowed is finally taken, and failures are tagged to Cemri and colleagues'
+fourteen-mode taxonomy at each of the four emit sites through a shared \texttt{failure-taxonomy.js} rather than to free-text error strings (\texttt{9673624})
+\parencite{Cemri2025}. Recommendation~3 of Chapter~\ref{ch:ecosystem-roadmap} still owns the reporting of the first production contextual-transaction-cost
+figure, now that the figure is being produced.
+
+The same envelope now carries an authority axis. Each recorded action is tagged with an \texttt{authority\_class} (\texttt{9673624}), and a
+\texttt{buildAuthorityGate} check sits in front of \texttt{POST /v1/llm/revoke}: an agent's model access blocks the moment a \texttt{kind-31402} escalation is
+raised against it and releases only on a verified \texttt{kind-31403} decision (\texttt{ceb3401b}). This is a live runtime lever for the ``control'' property the
+sovereignty definition names, binding an agent's right to act to the forum's signed judgment rather than to a config edit. It is honestly tiered
+\texttt{standalone}: the gate runs and is tested, but it has not been exercised against a live multi-relay decision flow.
 
 \section{Memory That Must Embed to Exist}
 
@@ -146,7 +157,9 @@ learning, and it never touches Postgres.
 literal \texttt{0.8} on a regex match, \texttt{0.5} otherwise. No state is read or written to produce it.
   \item Trajectory recording of graded outcomes landed on 5~July~2026:
 \texttt{config/hooks/trajectory-recorder.cjs} writes real trajectories and the producer gate is live. The two consumers that would let those outcomes influence
-retrieval and routing, \texttt{feed\_retrieval} and \texttt{feed\_routing}, remain gated off until the trajectory corpus clears a statistical sample floor.
+retrieval and routing, \texttt{feed\_retrieval} and \texttt{feed\_routing}, are now held behind an explicit Wilson-score confidence floor rather than an ad-hoc
+switch (\texttt{9673624}): they stay gated off until the trajectory corpus clears the lower Wilson bound, which is the honest way to say ``not enough evidence
+yet'' rather than learning from noise.
 \end{itemize}
 The remediation is scheduled honestly rather than claimed as done. Recommendation~7 of Chapter~\ref{ch:ecosystem-roadmap} tracks it, and
 Chapter~\ref{ch:gap-register} places it in the systematic register; this chapter names the gap once and points there rather than restating the whole account.

@@ -95,3 +95,61 @@ scored `integrated` until its canary fires live — DDD Gap-Close Invariant 4).
 The forward-chained corrections behind REC-1a/1b, PATCH, NIP-42, D1 and D5 are
 recorded in `gap-register-v1.1.md` §"Forward-chained corrections", not edited into
 the v1.0 inventory in place (register immutability, DDD Gap-Close Invariant 5).
+
+## Gap-Close Sprint — P1/P2 Item Tiers
+
+The P1 and P2 waves closed the remaining 41 line items. This table reflects them
+at their evidenced tiers and is authoritative to
+[`docs/registers/gap-register-v1.2.md`](../registers/gap-register-v1.2.md) (the
+immutable status register cut at the P1/P2 boundary, superseding v1.1). Tiers use
+the ADR-002 vocabulary. `standalone` means the mechanism runs within one substrate
+but is not yet cross-substrate-proven; `scaffolded` means the mechanism is complete
+and proven locally but its live gate has not fired; a canon loop item is not scored
+`integrated` until its canary fires in a live session (DDD Gap-Close Invariant 4).
+The P0 table above is authoritative to v1.1 and is left in place; the two do not
+overwrite one another.
+
+| Item | Owner(s) | Closure SHA(s) | Evidenced tier | Canary state |
+|---|---|---|---|---|
+| F1 member read-only governance view | nostr-rust-forum | `0b8a1c`, `6986276` | `integrated` | fired-in-test |
+| F3/F7 via COM-16 graduated escalation | nostr-rust-forum | `0b8a1c`, `6986276` | `integrated` | fired-in-test |
+| F4/F5 via COM-17 decision-audit API | nostr-rust-forum | `0b8a1c`, `6986276` | `integrated` | fired-in-test |
+| F6 supersession authority | nostr-rust-forum · canon | forum `35dbb1b`, `696fd233`; canon `7513e58` | `scaffolded` (canon-gated) | fired-in-test |
+| F8 roster admin UI | nostr-rust-forum | `0b8a1c`, `6986276` | `integrated` | fired-in-test |
+| F9 cross-relay federation | VisionFlow (canon) | `7513e58` (fork record) | `planned` | parked (criteria unmet) |
+| F10 multi-agent social influence | VisionFlow (canon) | `7513e58` | `standalone` (position authored) | n/a |
+| D1 embodiment beam liveness | VisionClaw | `4aca6f729` | `integrated` (wired at boot; drift correction) | PENDING-LIVE (beam traffic) |
+| D2/D3/D8 steering + case surface + observability | VisionClaw | `e0f582403`, `453bd41b1`, `b6c1c43b5` | `integrated` | fired-in-test; case e2e PENDING-LIVE; MCP-native interrupt a documented boundary |
+| D6 PTT directed at selected actor (via COM-15) | VisionClaw · agentbox | `f6e1d58f9`; AB `9673624`, `1fc47a14` | `integrated` | PENDING-LIVE (voice e2e) |
+| D7 pre-action intent legibility | VisionClaw · canon | `774ffa05e`; canon `2511f994` | `standalone` | fired-in-test |
+| M1–M6 / COM-18 headset copresence + intervention | VisionClaw (Godot XR) | `57b32faee`, `0f3a1b60c`, `348172d7d` (merged `485bb8f9f`) | `standalone` (no headset in box) | PENDING-LIVE (`M4-RAY`, `COM18-INTERV`; `M1-HUD` rides P0) |
+| V1/M5 via COM-15 PTT governed loop | VisionClaw · agentbox | `f6e1d58f9`; AB `9673624`, `1fc47a14` | `integrated` | PENDING-LIVE (voice e2e) |
+| V2 multi-agent voice addressing | VisionFlow (canon) | `7513e58` | `standalone` (position authored) | n/a |
+| V3 conversational grounding/repair | VisionClaw | `774ffa05e` | `standalone` | fired-in-test |
+| V4 voice-docs honesty | VisionClaw | `774ffa05e` | `integrated` (docs) | n/a |
+| REC-2 broker case queue (P1 slice) | VisionClaw | `e0f582403` | `integrated` | case e2e PENDING-LIVE |
+| REC-3 contextual transaction cost | VisionClaw · agentbox | `4aca6f729`, `453bd41b1`; AB `9673624`, `ceb3401b` | `integrated` | fired-in-test |
+| REC-4 four-KPI dashboard (ADR-043) | VisionClaw | `4aca6f729` | `integrated` (2 KPIs live; 2 honest pending tiles) | fired-in-test |
+| REC-5 MAST failure telemetry | agentbox · VisionClaw | AB `9673624`, `1fc47a14`, `ceb3401b` | `integrated` | fired-in-test |
+| REC-6 escalation-default authority | agentbox | `9673624`, `1fc47a14`, `ceb3401b` | `standalone` (re-tiered honestly) | fired-in-test |
+| REC-7 outcome learning | agentbox | `9673624`, `1fc47a14` | `standalone` (consumers gated pending floor) | fired-in-test |
+| REC-8 orchestration diversity | agentbox | `9ebff750`, `a8dd21a5` | `standalone` (re-tiered) | fired-in-test |
+| REC-9 provenance-to-pocket | agentbox | `9ebff750`, `a8dd21a5` | `standalone` (re-tiered) | fired-in-test |
+| REC-10 Insight Ingestion Loop v1 | VisionClaw · agentbox · forum | `1c462f492` | `integrated` | fired-in-test |
+| REC-11 data-moat unified trace | VisionClaw · solid-pod-rs | `1c462f492`; SP `40043b0` (+WP-2) | `standalone` (pod `_prov/` contract-only) | fired-in-test |
+| REC-12 kit cutover + external pilot | dreamlab-ai-website | `ca06ab3` | `standalone` (pilot blocked-operational) | registered (D3 key-split runbook) |
+| COM-15 PTT voice-to-actor loop | VisionClaw · agentbox | `f6e1d58f9`; AB `9673624`, `1fc47a14` | `integrated` | PENDING-LIVE (voice e2e) |
+| COM-16 graduated escalation + fatigue | nostr-rust-forum | `0b8a1c`, `6986276` | `integrated` | fired-in-test |
+| COM-17 decision-audit + trust-calibration | nostr-rust-forum | `0b8a1c`, `6986276` | `integrated` | fired-in-test |
+| COM-18 headset intervention + identity | VisionClaw (Godot XR) | `57b32faee`, `0f3a1b60c`, `348172d7d` | `standalone` (no headset) | PENDING-LIVE (`COM18-INTERV`) |
+| RES-c solid-pod-rs diagram refresh | solid-pod-rs | `40043b0` (+WP-2) | `integrated` (9 diagrams re-rendered) | fired-in-test |
+| RES-d self-description drift counter + CI | VisionFlow (canon) | `b47c5fd`; sources VC `4aca6f729`, AB `d13f8688` | `scaffolded` | PENDING-LIVE (`CANARY-CANON-DRIFT` CI fire) |
+| RES-e Wardley export quality | VisionFlow (canon) | `7513e58` | `integrated` | n/a |
+
+The P1/P2 forward-chained corrections (REC-2/ADR-041 "Implemented" claim, the D2
+MCP-native interrupt boundary, and the REC-6/REC-8/REC-9/F6 tier re-derivations)
+are recorded in `gap-register-v1.2.md` §"Forward-chained corrections", not edited
+into v1.1 or the v1.0 inventory in place. The pending-live canaries are batched to
+one stack-up session at sprint end (a recorded deviation from strict wave gating,
+because no live stack, headset or GitHub Actions push runs in the build
+container); see `gap-register-v1.2.md` §"Pending-live-session batch".
