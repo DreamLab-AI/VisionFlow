@@ -1,8 +1,9 @@
 # DDD: Judgment Broker Bounded Context
 
 **Status:** Living document
-**Date:** 2026-05-22
+**Date:** 2026-05-22 (F6 supersession-authority spec added 2026-07-08)
 **Scope:** Cross-substrate decision loop between agents and humans
+**Amendment:** §7a (Supersession Authority) added per [ADR-005](ADR-005-gap-close-canon-decisions.md) §Decision 5, discharging register gap **F6**; extends Invariant 5. The canon states this authority model here; nostr-rust-forum, which owns `DecisionOutcome` and the decision surface, implements against it (`PRD-gap-close-forum.md`).
 
 ---
 
@@ -105,11 +106,100 @@ The Judgment Broker Context governs the decision loop between agents and humans.
 
 4. **Human-only decisions.** Only NIP-42 authenticated humans may publish kind 31403.
 
-5. **Decision immutability.** A `DecisionOutcome` is immutable once published. The Nostr event is the audit trail. There is no "undo" --- only new events that supersede.
+5. **Decision immutability and supersession authority.** A `DecisionOutcome` is immutable once published. The Nostr event is the audit trail. There is no "undo" --- only new events that supersede. **Supersession is authority-gated (F6, §7a):** only the original human signer, or a human holding a governance role above the original at the time of supersession, may supersede a published `DecisionOutcome`, and only by publishing a *new signed kind-31403* that references the superseded event and carries a stated reason. No other party may change a published decision, and no published event is ever mutated.
 
 6. **Relay as ordering authority.** The relay mesh is the source of truth for governance event ordering, not any single substrate's local store. Pod persistence is a cache, not the canonical timeline.
 
 7. **Decision loop closure.** `handleGovernanceDecision()` on the orchestrator adapter MUST exist before the decision loop can be considered closed. **This is currently missing** --- the loop is open-ended on the agent side.
+
+---
+
+## 7a. Supersession Authority (F6)
+
+Invariant 5 says a published `DecisionOutcome` is superseded, never mutated, but
+until now named no authority: it did not say *who* may supersede a decision or
+*how*. This section supplies that model, discharging register gap **F6** per
+ADR-005 §Decision 5. It extends Invariant 5; it does not weaken immutability.
+Supersession remains a new signed event referencing the old — this section only
+constrains who may sign it and what states result.
+
+### 7a.1 Who may supersede
+
+A published `DecisionOutcome` (kind 31403) may be superseded by exactly one of:
+
+| Authorised party | Condition |
+|---|---|
+| **The original human signer** | The `did:nostr` that signed the original kind-31403, acting on their own decision |
+| **A higher governance role** | A human holding a governance role *above* the original signer's role at the time of supersession (per the forum's role model, e.g. an admin over a member/moderator) |
+
+No other party may supersede. In particular, **an authenticated human of equal or
+lower governance role than the original signer MUST NOT supersede** that signer's
+decision — the authority gradient the governance plane exists to hold is not
+collapsed by supersession. An agent MUST NOT supersede a decision (Invariant 4:
+only humans publish kind 31403). The relay `RelayGovernanceGate` enforces this: a
+superseding kind-31403 whose signer is neither the original signer nor a
+higher-role human is rejected as an unauthorised supersession, exactly as it
+rejects an orphan response under Invariant 2.
+
+### 7a.2 How a decision is superseded
+
+Supersession is a **new signed kind-31403** (`ActionResponse`) that:
+
+1. references the superseded event by Nostr event tag (`e`-tag), the same
+   reference-integrity mechanism Invariant 2 already requires;
+2. carries the superseding signer's own `DecisionOutcome`; and
+3. carries a **stated reason** for the supersession.
+
+The original event is untouched and remains on the relay as the audit record; the
+superseding event points back at it. Reading the two together reconstructs the full
+history — no state is lost, and nothing is edited in place (Invariant 5).
+
+Two named conformance shapes:
+
+- **Revoke** is supersession by a `Reject` that references a prior `Approve`. It
+  withdraws a previously granted decision. The original `Approve` stays on the
+  audit trail; the `Reject` supersedes it under §7a.1 authority.
+- **Appeal** is *not* a supersession by the appellant. It is a fresh
+  `ActionRequest` (kind 31402) that cites the superseded (or to-be-reviewed)
+  decision, re-opening the case for a new human decision. An appeal reopens; it
+  does not itself overturn. The overturning, if any, is a subsequent kind-31403
+  under §7a.1 authority.
+
+### 7a.3 Decision and case lifecycle — Superseded / Reopened
+
+Supersession introduces two lifecycle states on top of the existing
+`CaseState { Open, PendingReview, Resolved, Rejected }`:
+
+| State | Meaning | Entered by |
+|---|---|---|
+| **Superseded** | A previously published `DecisionOutcome` has been referenced and replaced by a newer authorised kind-31403 | A superseding kind-31403 under §7a.1 (includes Revoke) |
+| **Reopened** | A `Resolved`/`Rejected`/`Superseded` case is under review again after an appeal | A fresh kind-31402 (§7a.2) citing the prior decision |
+
+Lifecycle transitions:
+
+```
+Resolved/Rejected --(superseding 31403, §7a.1)--> Superseded
+Resolved/Rejected/Superseded --(appeal 31402, §7a.2)--> Reopened
+Reopened --(new 31403 decision)--> Resolved / Rejected / Superseded
+```
+
+A `Superseded` decision is terminal *for that event* — it is never mutated — but
+its **case** is not terminal: an appeal can reopen the case, and a new decision can
+supersede the superseding one, chaining forward exactly as the register does under
+Invariant 5. The current effective decision for a case is the most recent
+authorised kind-31403 in the reference chain; superseded events remain visible as
+history.
+
+### 7a.4 Ownership and integration
+
+The canon states this authority model; **nostr-rust-forum owns `DecisionOutcome`,
+the `CaseState` machine and the decision surface**, and implements §7a against this
+spec (`PRD-gap-close-forum.md`), citing it as its canon contract. Reaches
+`integrated` when the forum cites this section and a superseding decision is
+demonstrated end to end (an authorised supersede accepted, an unauthorised
+supersede rejected by `RelayGovernanceGate`). This is a cross-context extension of
+the Judgment Broker model through its owner, not a parallel model (DDD Gap-Close
+Canon Context §10).
 
 ---
 
@@ -126,6 +216,11 @@ The Judgment Broker Context governs the decision loop between agents and humans.
 | **Governance Event** | Any Nostr event of kinds 31400--31405 |
 | **Case** | A `BrokerCase` --- the aggregate that tracks one decision from request to resolution |
 | **Enrichment Proposal** | A VisionClaw knowledge graph mutation submitted for human review via the broker bridge |
+| **Supersession** | Replacing a published decision with a new signed kind-31403 that references the old event and states a reason; authority-gated (§7a). Never a mutation |
+| **Revoke** | A supersession by a `Reject` referencing a prior `Approve` — withdrawing a granted decision (§7a.2) |
+| **Appeal** | A fresh kind-31402 citing a prior decision, reopening the case for a new human decision; does not itself overturn (§7a.2) |
+| **Superseded** | Lifecycle state of a published decision that a newer authorised kind-31403 has referenced and replaced (§7a.3) |
+| **Reopened** | Lifecycle state of a resolved/rejected/superseded case under review again after an appeal (§7a.3) |
 
 ---
 
