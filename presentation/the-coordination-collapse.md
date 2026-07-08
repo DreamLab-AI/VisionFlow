@@ -467,7 +467,7 @@ The standard framing: governance slows you down but keeps you safe. The agentic 
 
 > **[META — VISIONCLAW AS EVIDENCE]**
 > This is where VisionClaw becomes concrete evidence, not theoretical architecture:
-> - OWL 2 ontology provides shared semantics across 101 agent skills — the same concept of "deliverable" means the same thing to a Creative Production agent and a Governance agent
+> - OWL 2 ontology provides shared semantics across 115 agent skills — the same concept of "deliverable" means the same thing to a Creative Production agent and a Governance agent
 > - Stratified unidirectional links prevent circular dependencies — a clean epistemic architecture
 > - Task decomposition uses ontological subsumption, not keyword matching — the orchestration layer knows that "risk assessment" is a sub-task of "governance review" and routes accordingly
 > - Every agent decision is grounded in an OWL 2 concept — auditable reasoning chains
@@ -617,7 +617,7 @@ VisionClaw is not a prototype or a whitepaper. It is an operational Agentic Mesh
 > - GPU-accelerated graph physics — 92 CUDA kernels, proven at ~1K node scale
 > - Multi-user WebXR visualisation via Babylon.js — working in production
 > - Nostr identity/signing (NIP-98) — working
-> - Claude-Flow skill integration — 83+ skills in production
+> - Claude-Flow skill integration — 115 skills in production
 > - RuVector memory — 1.17M+ embeddings with HNSW
 >
 > **What was previously overclaimed and is now corrected:**
@@ -791,7 +791,7 @@ If three of hierarchy's five core functions persist, "coordination collapse" is 
 
 **Change managers** will object: "You attacked Kotter and ADKAR for being phased plans, then gave me a 90-day phased roadmap." The document does not resolve this contradiction. **Possible resolution**: frame the 90-day roadmap not as the change plan but as the *bootstrap sequence* for the perpetual change infrastructure. The roadmap launches the loop; the loop is the plan.
 
-**AI leaders** will ask: "What does this cost? What is the TCO of an OWL 2 ontology engine, 83 agent skills, and GPU infrastructure for a 500-person org? What is the ROI timeline?" Zero financial modelling is provided. **Action needed**: develop at minimum a cost-tier model (small/medium/large org).
+**AI leaders** will ask: "What does this cost? What is the TCO of an OWL 2 ontology engine, 115 agent skills, and GPU infrastructure for a 500-person org? What is the ROI timeline?" Zero financial modelling is provided. **Action needed**: develop at minimum a cost-tier model (small/medium/large org).
 
 **All three audiences** will notice that DreamLab is simultaneously the analyst, framework creator, and vendor — a classic consulting positioning conflict. **Mitigation**: acknowledge this explicitly. "We built this because we believe it. Here is the evidence for and against. Judge the framework on its merits, not its provenance."
 

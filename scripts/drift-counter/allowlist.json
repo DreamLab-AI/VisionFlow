@@ -1,0 +1,54 @@
+{
+  "_doc": "RES-d self-description drift allowlist (PRD-gap-close-canon §Automated Self-Description Counter; ADR-005 §Decision 2). Each axis reads its truth from a substrate-exposed source; every policed site below must agree with that truth. Allowlist-anchored, not a blind tree grep — the tree legitimately carries distinct 'N skills' / 'N MCP tools' figures about other subjects (a Ramp/Glass case study's 350 skills; VisionClaw's native 7 MCP tools; agentbox's 180+ MCP tools total), none of which describe a tracked axis.",
+  "truth_as_of": "2026-07-08",
+  "axes": {
+    "skills": {
+      "label": "agentbox skill count",
+      "source": { "kind": "agentbox-skill-count", "invoke": "scripts/skill-count-check.js", "jsonKey": "count" },
+      "match": "scan",
+      "pattern": "\\b(\\d+)\\+?\\s+(?:[Aa]gent\\s+|active\\s+)?[Ss]kills?\\b",
+      "_files_note": "The live self-description surface only. The book/report prose under presentation/ is a dated narrative artifact that uses 'N agent skills' rhetorically (e.g. a '10-15 agent skills' pilot-selection range, a TCO example) and is NOT whole-file scanned; its current-count references are reconciled by hand and recorded in the evidence file.",
+      "files": [
+        "README.md",
+        "docs/ecosystem-map.md",
+        "docs/PRD-website.md",
+        "docs/engineering/ADR-004-harness-engineering-framework.md"
+      ]
+    },
+    "mcp-ontology-tools": {
+      "label": "agentbox ontology-bridge MCP tool count",
+      "source": { "kind": "js-array-length", "file": "mcp/servers/ontology-bridge.js", "array": "TOOLS" },
+      "match": "sites",
+      "sites": [
+        { "file": "README.md", "pattern": "(\\d+)\\s+MCP Ontology Tools" },
+        { "file": "docs/ecosystem-map.md", "pattern": "(\\d+)-tool ontology bridge" },
+        { "file": "docs/architecture/compatibility-matrix.md", "pattern": "\\*\\*(\\d+)-tool\\*\\* ontology bridge" },
+        { "file": "docs/architecture/compatibility-matrix.md", "pattern": "\\*\\*(\\d+) MCP tools\\*\\* \\(`mcp/servers/ontology-bridge.js`\\)" },
+        { "file": "docs/DDD-ecosystem-alignment-context.md", "pattern": "(\\d+) MCP tools in agentbox" },
+        { "file": "docs/DDD-ecosystem-alignment-context.md", "pattern": "(\\d+)-tool MCP server in agentbox" },
+        { "file": "docs/architecture/status-reconciliation.md", "pattern": "(\\d+) MCP tools in agentbox \\(`ontology-bridge.js`\\)" },
+        { "file": "docs/ADR-002-ecosystem-alignment-governance.md", "pattern": "`mcp/servers/ontology-bridge.js`, (\\d+) MCP tools" },
+        { "file": "docs/ADR-002-ecosystem-alignment-governance.md", "pattern": "The ontology bridge \\((\\d+) MCP tools" },
+        { "file": "docs/engineering/DDD-harness-engineering-context.md", "pattern": "Ontology bridge health check \\((\\d+) tools respond\\)" },
+        { "file": "docs/engineering/PRD-harness-engineering.md", "pattern": "\\| (\\d+) MCP tools, Oxigraph availability" },
+        { "file": "docs/protocol/mesh-smoke-test.md", "pattern": "(\\d+) MCP tools proxy SPARQL" },
+        { "file": "docs/PRD-ecosystem-alignment.md", "pattern": "agentbox ships (\\d+) MCP tools proxying" }
+      ]
+    },
+    "ontology-classes": {
+      "label": "VisionClaw ontology owl:Class count",
+      "source": { "kind": "visionclaw-class-count", "env": "DRIFT_VISIONCLAW_CLASS_COUNT", "file_env": "DRIFT_VISIONCLAW_CLASS_COUNT_FILE" },
+      "status": "unavailable-this-wave",
+      "reason": "VisionClaw ClassCountSource (ddd-gap-close-visionclaw-context.md:155) is `planned`, not published as a script-queryable committed count this wave. Partial-source failure mode (ADR-005 §Decision 2): axis reported UNAVAILABLE, not enforced; a source being down blocks the axis, not the whole gate.",
+      "match": "sites",
+      "sites": []
+    },
+    "roster": {
+      "label": "forum agent_registry roster size",
+      "status": "planned",
+      "reason": "Not yet single-sourced; the forum must expose agent_registry as script-queryable before the counter can track it (DDD-gap-close-canon-context §12 open issue 3). Distinct from the 610 external turbo-flow templates and from the skill count.",
+      "match": "sites",
+      "sites": []
+    }
+  }
+}

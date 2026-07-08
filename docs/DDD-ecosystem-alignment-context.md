@@ -21,7 +21,7 @@ It does not own the implementation of agents, pods, relays, brokers, forums, or 
 | solid-pod-rs Pod Platform | Upstream for pod, WebID, WAC, and auth capability |
 | nostr-rust-forum Collaboration Middleware | Upstream for governance event model and forum/mesh behavior |
 | dreamlab-ai-website Brand/Test Surface | Downstream consumer of ecosystem status and deployment posture |
-| Ontology Bridge (agentbox ↔ VisionClaw) | Cross-cutting integration: 10 MCP tools in agentbox proxy SPARQL queries to VisionClaw's Oxigraph store |
+| Ontology Bridge (agentbox ↔ VisionClaw) | Cross-cutting integration: 12 MCP tools in agentbox proxy SPARQL queries to VisionClaw's Oxigraph store |
 
 ## Core Domain Concepts
 
@@ -109,7 +109,7 @@ It does not own the implementation of agents, pods, relays, brokers, forums, or 
 | Standalone | Local or single-service operation without federation guarantees |
 | Release Manifest | Machine-readable artifact pinning the compatible repository set |
 | Protocol Owner | The canonical place where a shared contract is defined and versioned |
-| Ontology Bridge | The 10-tool MCP server in agentbox that proxies SPARQL queries to VisionClaw's Oxigraph knowledge graph |
+| Ontology Bridge | The 12-tool MCP server in agentbox that proxies SPARQL queries to VisionClaw's Oxigraph knowledge graph |
 | Browser Setup Wizard | The standalone SPA in agentbox that edits `agentbox.toml` before container boot, with zero compiled dependencies |
 
 ## Services

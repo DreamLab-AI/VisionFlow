@@ -43,7 +43,7 @@ Specifically:
 | Judgment Broker domain model | nostr-rust-forum (domain model + human surface); VisionClaw (enrichment gating); agentbox (agent wiring + broker-bridge) | All substrates via Nostr relay mesh |
 | Release compatibility manifest | VisionFlow | All ecosystem repositories |
 | Shared fixture corpus | VisionClaw for master fixtures until a standalone fixture package exists | agentbox, solid-pod-rs, nostr-rust-forum |
-| Ontology bridge (SPARQL proxy) | agentbox (`mcp/servers/ontology-bridge.js`, 10 MCP tools) | VisionClaw (Oxigraph backend) |
+| Ontology bridge (SPARQL proxy) | agentbox (`mcp/servers/ontology-bridge.js`, 12 MCP tools) | VisionClaw (Oxigraph backend) |
 | IS-Envelope | VisionClaw (ADR-075, JSON Schema, 11 test vectors). agentbox implements runtime decode/dispatch. | VisionClaw, agentbox, nostr-rust-forum |
 
 ## Maturity Vocabulary
@@ -80,7 +80,7 @@ Tradeoffs:
 - Treat the mesh smoke test as the promotion gate from `integrated` to `federation-verified`.
 - Do not remove historical PRDs solely because they are aspirational; route them through current status reconciliation.
 - The agentbox upstream fixture corpus (`tests/contract/upstream_vectors/`, 54 vectors) includes SHA-256 checksums (`CHECKSUMS.txt`) and upstream pin tracking (`UPSTREAM_PINS.md`). Use these as the baseline for fixture drift detection.
-- The ontology bridge (10 MCP tools in `agentbox/mcp/servers/ontology-bridge.js`) is a shipped cross-substrate integration between agentbox and VisionClaw. Include it in compatibility evidence.
+- The ontology bridge (12 MCP tools in `agentbox/mcp/servers/ontology-bridge.js`) is a shipped cross-substrate integration between agentbox and VisionClaw. Include it in compatibility evidence.
 
 ## Deferred Decisions
 

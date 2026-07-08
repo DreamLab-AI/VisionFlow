@@ -220,7 +220,7 @@ Agents without `hooks.validate` continue in two-phase mode. The three-phase life
 | OWL 2 EL ontology constraints (domain/range) | Oxigraph health check (class count, axiom count) | Blocking |
 | IS-Envelope schema (ADR-075) | IS-Envelope fixture validation (11 vectors) | Blocking |
 | Enrichment proposal schema | BrokerActor enrichment gating | Blocking |
-| Ontology bridge MCP tool constraints | Ontology bridge health check (10 tools respond) | Blocking |
+| Ontology bridge MCP tool constraints | Ontology bridge health check (12 tools respond) | Blocking |
 | PROV-O activity record schema | Provenance chain integrity check | Advisory |
 
 ### 11.3 `governance-decision`

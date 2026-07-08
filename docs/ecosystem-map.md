@@ -27,7 +27,7 @@ VisionFlow is not a single executable. It is a coordination architecture that em
 |---|---|---|
 | VisionFlow | Ecosystem narrative, public positioning, repository map, shared coordination model | Documentation and website surface |
 | VisionClaw | Knowledge engineering: OWL 2 EL reasoning, GPU graph physics (82 CUDA kernels / 9 `.cu` files / 5,854 LOC), XR, native MCP ontology tools, IS-Envelope spec owner (ADR-075), governance (main runs the inline decide/inbox handler + ADR-110 ElevationActor; the distributed BrokerActor lives on the unmerged `crashbug` branch), embodied agent-loop renderer (beam shipped over `/wss/agent-events`, ADR-059; gluon deferred) | GPU host / graph backend / semantic workbench / embodiment surface |
-| agentbox | Reproducible sovereign agent runtime with Nix, 90+ skills, 180+ MCP tools, 12-tool ontology bridge to VisionClaw SPARQL, browser setup wizard, privacy filtering, Nostr/Solid identity | Agent container and harness |
+| agentbox | Reproducible sovereign agent runtime with Nix, 115 skills, 180+ MCP tools, 12-tool ontology bridge to VisionClaw SPARQL, browser setup wizard, privacy filtering, Nostr/Solid identity | Agent container and harness |
 | solid-pod-rs | Solid/JSS foundation: LDP, WAC, NIP-98, DID:Nostr, WebID, OIDC, git pods | Shared protocol library and native pod server |
 | nostr-rust-forum | Governance UI and relay kit: passkey auth, Cloudflare Workers, Agent Control Surface events | Human decision surface and Nostr relay edge |
 | dreamlab-ai-website | Branded DreamLab deployment and operator overlay for the forum kit | Public site and Cloudflare deployment config |

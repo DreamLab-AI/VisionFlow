@@ -87,7 +87,7 @@ The repositories are directionally aligned, but the alignment is unevenly visibl
 | Fixture corpus lacks universal gates | Shared protocol changes can silently diverge | Add fixture sync checks to CI/release gates |
 | Pod tier capability matrix is scattered | solid-pod-rs alpha.15 ships native mesh with CORS and PSK admin provisioning. Cloudflare Workers tier has documented feature differences. Two-tier behavior is clearer but not fully reconciled. | Publish tier matrix and migration notes |
 | Historical docs are richer than current runtime | Readers can confuse aspiration with shipped behavior | Keep status reconciliation active and linked |
-| ✓ Ontology bridge reflected in coordination docs | agentbox ships 10 MCP tools proxying to VisionClaw Oxigraph SPARQL (ontology-bridge.js). This cross-substrate integration is absent from compatibility and alignment docs. | Resolved — added to compatibility matrix, ADR-002, and DDD |
+| ✓ Ontology bridge reflected in coordination docs | agentbox ships 12 MCP tools proxying to VisionClaw Oxigraph SPARQL (ontology-bridge.js). This cross-substrate integration is absent from compatibility and alignment docs. | Resolved — added to compatibility matrix, ADR-002, and DDD |
 | Judgment Broker is 65% implemented as a distributed system | The decision loop is closed on the forum side (nostr-rust-forum governance.rs, 1015 lines). agentbox relays events and bridges VisionClaw enrichment review. Critical gaps: decision→agent application (handleGovernanceDecision missing), agent MCP tools for panel publishing, BrokerActor not on main. | Close the 35% gap per PRD-judgment-broker.md milestones |
 
 ## Milestones

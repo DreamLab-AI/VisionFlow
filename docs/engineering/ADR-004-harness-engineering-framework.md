@@ -10,7 +10,7 @@
 
 ## Context
 
-The VisionFlow ecosystem governs agent behaviour through an extensive but informally structured collection of feedforward controls (110 agent specs, 106 skills, 139 commands, 3-tier CLAUDE.md hierarchy, Judgment Broker control panels) and feedback sensors (contract tests, fixture parity, IS-Envelope validation, learning service). These controls grew organically as the ecosystem expanded from one repo to six.
+The VisionFlow ecosystem governs agent behaviour through an extensive but informally structured collection of feedforward controls (110 agent specs, 115 skills, 139 commands, 3-tier CLAUDE.md hierarchy, Judgment Broker control panels) and feedback sensors (contract tests, fixture parity, IS-Envelope validation, learning service). These controls grew organically as the ecosystem expanded from one repo to six.
 
 Fowler's harness engineering framework provides the missing organising principle: the distinction between **guides** (feedforward — shape behaviour before acting) and **sensors** (feedback — observe and correct after acting), their **pairing** (every guide should have a corresponding sensor), and their **bundling** into **harness templates** per topology.
 

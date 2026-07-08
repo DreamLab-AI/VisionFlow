@@ -25,7 +25,7 @@ Runtime research (2026-05-22) found the following status per substrate:
 | **agentbox** | Standalone | Embedded relay at `:7777` with pod-bridge; publishes/subscribes 31400-31405 via `mcp/nostr-bridge/relay-consumer.js`; federated/client modes available | Standalone default means relay is loopback-only without config change |
 | **solid-pod-rs** alpha.15 | Standalone (native mesh, CORS, PSK admin) | NIP-98 verify at `auth::nip98::verify_schnorr_signature` | WAC + NIP-98 integration not exercised in cross-service smoke |
 | **VisionClaw** | N/A (enrichment gating, BrokerActor on crashbug branch) | IS-Envelope spec owner (ADR-075); IRI parser for `did:nostr`; BrokerActor publishes 31400/31402 (not on main) | Judgment Broker is 65% implemented as a distributed system; VisionClaw owns enrichment gating |
-| **Ontology bridge** | N/A (agentbox addon) | 10 MCP tools proxy SPARQL to VisionClaw Oxigraph | Not part of governance path; included for completeness |
+| **Ontology bridge** | N/A (agentbox addon) | 12 MCP tools proxy SPARQL to VisionClaw Oxigraph | Not part of governance path; included for completeness |
 
 ## Full End-to-End Path
 

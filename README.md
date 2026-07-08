@@ -127,11 +127,11 @@ flowchart TB
         OWL["OWL 2 EL + SHACL\n(Whelk-rs + PROV-O)"]
         GPU["82 CUDA Kernels\n(semantic physics)"]
         XR["Immersive XR\n(multi-user)"]
-        MCP_VC["7 MCP Ontology Tools"]
+        MCP_VC["12 MCP Ontology Tools"]
     end
 
     subgraph AB["Agentbox — Harness Engineering"]
-        AGENTS["90+ Agent Skills\n(manifest-driven)"]
+        AGENTS["115 Agent Skills\n(manifest-driven)"]
         NIX["Reproducible Runtime\n(Nix flakes)"]
         TOOLS["180+ MCP Tools\n(browser, 3D, media, data)"]
         PRIV["Privacy Filter\n(PII redaction)"]
@@ -216,7 +216,7 @@ The reproducible, hardened runtime for sovereign AI agents. [Agentbox](https://g
 | **Privacy filter** | Embedded 1.5B-parameter MoE model redacts PII before any data reaches storage or logs |
 | **Five-slot adapters** | Swap standalone (SQLite + local JSONL) ↔ federated (PostgreSQL pgvector + VisionClaw beads) by editing TOML |
 | **180+ tools** | Browser automation, 3D modelling, geospatial, media, data science — all Nix packages, gated by manifest |
-| **90+ skills** | Claude Code, Codex, Gemini, DeepSeek, ruflo — with Playwright, ComfyUI, QGIS, Blender, LaTeX, Jupyter |
+| **115 skills** | Claude Code, Codex, Gemini, DeepSeek, ruflo — with Playwright, ComfyUI, QGIS, Blender, LaTeX, Jupyter |
 
 **Key insight:** Most agent runtimes are tool collections with no provenance, privacy, or reproducible state. Agentbox generates a cryptographic identity root at bootstrap and stamps every action, memory, and event with that identity. When the agent writes to its embedded Solid pod, the data is cryptographically owned. When it leaves the mesh, it takes its data with it.
 
@@ -392,7 +392,7 @@ flowchart LR
     subgraph AB_HOST["Agentbox (Agent Container)"]
         NB["Nostr Bridge\n(relay subscriber)"]
         SP["Solid Pod Server\n(:8484)"]
-        MA["Management API\n(:9090, 90+ skills)"]
+        MA["Management API\n(:9090, 115 skills)"]
     end
 
     subgraph TUNNEL["Cloudflare Tunnel"]
@@ -470,7 +470,7 @@ flowchart TB
 
 ### Token Efficiency (Single Operator)
 
-One Agentbox in standalone mode. Local SQLite beads, local Solid pod, local JSONL events. 90+ skills available, 180+ tools, privacy filter active. A single operator solving tasks with AI agents — token-efficient because the agent has sovereign tools, persistent memory, and doesn't need to rediscover context each session.
+One Agentbox in standalone mode. Local SQLite beads, local Solid pod, local JSONL events. 115 skills available, 180+ tools, privacy filter active. A single operator solving tasks with AI agents — token-efficient because the agent has sovereign tools, persistent memory, and doesn't need to rediscover context each session.
 
 **Cost profile:** One API key. One container. Minutes to deploy.
 
@@ -777,7 +777,7 @@ For the docs-only local ecosystem synthesis, see [Ecosystem Map](docs/ecosystem-
 |:----------|:-----------|:-----|:---------------|
 | **VisionFlow** | [DreamLab-AI/VisionFlow](https://github.com/DreamLab-AI/VisionFlow) | Ecosystem guide and coordination architecture | This repository |
 | **VisionClaw** | [DreamLab-AI/VisionClaw](https://github.com/DreamLab-AI/VisionClaw) | Knowledge engineering substrate | OWL 2 EL, 82 CUDA kernels, multi-user XR, 7 MCP tools |
-| **Agentbox** | [DreamLab-AI/agentbox](https://github.com/DreamLab-AI/agentbox) | Harness engineering runtime | Nix flakes, 90+ skills, 180+ tools, sovereign Solid pods |
+| **Agentbox** | [DreamLab-AI/agentbox](https://github.com/DreamLab-AI/agentbox) | Harness engineering runtime | Nix flakes, 115 skills, 180+ tools, sovereign Solid pods |
 | **solid-pod-rs** | [DreamLab-AI/solid-pod-rs](https://github.com/DreamLab-AI/solid-pod-rs) | Cryptographic foundation | JSS Rust port, DID:Nostr, WAC, Web Ledgers, HTTP 402 |
 | **nostr-rust-forum** | [DreamLab-AI/nostr-rust-forum](https://github.com/DreamLab-AI/nostr-rust-forum) | Forum kit | 12 crates, passkey auth, governance event routing |
 | **dreamlab-ai-website** | [DreamLab-AI/dreamlab-ai-website](https://github.com/DreamLab-AI/dreamlab-ai-website) | Branded deployment | React SPA, WASM forum, operator overlay, Cloudflare Workers |

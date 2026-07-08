@@ -1,0 +1,64 @@
+name: Self-description drift gate (RES-d)
+
+# Canon self-description drift counter (RES-d). The shipped defect this stops:
+# three skill counts (90+ / 83+ / 106) and two MCP-ontology-bridge tool counts
+# (7 / 10 vs the real 12) were live in one tree on one day, with no single source
+# and nothing enforcing agreement. This job reads each counted axis from its
+# substrate-exposed source of truth (agentbox skill-count-check.js; the
+# ontology-bridge.js TOOLS registry length) and fails any PR whose canon figures
+# disagree with that truth, or that introduces a second distinct figure at a
+# policed site.
+#
+# CANARY-CANON-DRIFT fires here: an injected second skill/MCP figure on a probe
+# branch turns this build red (proven locally in the RES-d evidence file). The
+# gate is allowlist-anchored (scripts/drift-counter/allowlist.json), not a blind
+# tree grep — the tree legitimately carries distinct "N skills" / "N MCP tools"
+# figures about other subjects (a Ramp/Glass case study, VisionClaw's native MCP
+# tools, agentbox's 180+ tools total) that do not describe a tracked axis.
+#
+# The ontology-classes axis is UNAVAILABLE until VisionClaw publishes its
+# ClassCountSource, and the roster axis is PLANNED (forum agent_registry not yet
+# script-queryable): both are reported, neither is enforced, per the ADR-005
+# §Decision 2 partial-source failure mode. Set DRIFT_VISIONCLAW_CLASS_COUNT (or
+# the *_FILE form) once VisionClaw exposes the source to enforce that axis too.
+
+on:
+  pull_request:
+    paths:
+      - 'README.md'
+      - 'docs/**'
+      - 'presentation/the-coordination-collapse.md'
+      - 'presentation/google-analysis.md'
+      - 'scripts/drift-counter/**'
+      - '.github/workflows/drift-counter.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  drift-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the canon (VisionFlow)
+        uses: actions/checkout@v4
+
+      # The counter reads its count sources from agentbox: the skill manifest
+      # (scripts/skill-count-check.js, invoked) and the ontology-bridge.js TOOLS
+      # registry length. agentbox is a sibling repository, not a submodule here,
+      # so it is checked out beside the canon and pointed at by DRIFT_AGENTBOX_DIR.
+      - name: Check out agentbox (count sources)
+        uses: actions/checkout@v4
+        with:
+          repository: DreamLab-AI/agentbox
+          path: _agentbox
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Run the drift counter
+        env:
+          DRIFT_AGENTBOX_DIR: ${{ github.workspace }}/_agentbox
+        run: node scripts/drift-counter/drift-counter.mjs
