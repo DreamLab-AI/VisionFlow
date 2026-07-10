@@ -1,0 +1,48 @@
+name: Copyright Source Guard
+
+# Defence-in-depth beyond .gitignore: hard-fail if copyrighted source texts
+# used for the book's transition chapter (luddites.txt / doctorow.txt, or any
+# other root-level *.txt not on the allowlist) are ever committed/tracked in
+# this public repo. .gitignore alone does not stop a `git add -f`.
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fail if copyrighted source texts are tracked
+        run: |
+          # Explicit named copyrighted sources.
+          blocked="$(git ls-files -- 'luddites.txt' 'doctorow.txt' '**/luddites.txt' '**/doctorow.txt' || true)"
+          if [ -n "$blocked" ]; then
+            echo "::error::Copyrighted source text is tracked in git — remove it before pushing:"
+            echo "$blocked"
+            exit 1
+          fi
+
+          # Any other root-level *.txt is presumed copyrighted source unless
+          # explicitly allowlisted here. Add safe root .txt files to this list.
+          allow="LICENSE.txt requirements.txt"
+          rogue=""
+          for f in $(git ls-files -- '*.txt' | grep -E '^[^/]+\.txt$' || true); do
+            case " $allow " in
+              *" $f "*) : ;;
+              *) rogue="$rogue $f" ;;
+            esac
+          done
+          if [ -n "$rogue" ]; then
+            echo "::error::Unallowlisted root-level *.txt tracked (possible copyrighted source leak):$rogue"
+            echo "If legitimate, add the filename to the 'allow' list in .github/workflows/copyright-guard.yml"
+            exit 1
+          fi
+
+          echo "OK: no copyrighted source texts tracked."
