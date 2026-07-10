@@ -110,7 +110,7 @@ The Judgment Broker Context governs the decision loop between agents and humans.
 
 6. **Relay as ordering authority.** The relay mesh is the source of truth for governance event ordering, not any single substrate's local store. Pod persistence is a cache, not the canonical timeline.
 
-7. **Decision loop closure.** `handleGovernanceDecision()` on the orchestrator adapter MUST exist before the decision loop can be considered closed. **This is currently missing** --- the loop is open-ended on the agent side.
+7. **Decision loop closure.** `handleGovernanceDecision()` on the orchestrator adapter MUST exist before the decision loop can be considered closed. **SATISFIED (2026-05-22, `e1a8d716`; verified 2026-07-10)** --- implemented at `agentbox/management-api/adapters/orchestrator/local-process-manager.js:133`, invoked from `relay-consumer.js:318`. Forum-originated decisions are applied with provenance; the agent side is no longer open-ended for that path.
 
 ---
 
@@ -273,7 +273,7 @@ VisionClaw               Broker Bridge            Management API         Human
 
 ## 11. Open Issues
 
-1. **Decision loop is not closed.** `handleGovernanceDecision()` does not exist on the orchestrator adapter. Human decisions arrive at agentbox via `relay-consumer.js` but are persisted to pods without being acted upon. This is the highest-priority gap.
+1. **Decision loop closed (2026-05-22, `e1a8d716`; verified 2026-07-10).** ~~`handleGovernanceDecision()` does not exist on the orchestrator adapter.~~ **Resolved.** It is implemented at `agentbox/management-api/adapters/orchestrator/local-process-manager.js:133`: a human decision arriving via `relay-consumer.js:318` is parsed, minted a PROV-O activity/receipt URN, and dispatched to a matched running agent's stdin — or persisted to the pod governance directory for later pickup. **Invariant 7 is now SATISFIED.** Residual (not this gap): agentbox-*originated* cases still lack agent-side application on VisionClaw main — that loop-join landed 2026-07-10 (`ca145a1ce`); see closeout GOV-3 and the register v1.3 addendum.
 
 2. **No PROV-O linkage.** Governance decisions are not linked to PROV-O activity records. The `ProvenanceRecorded` domain event has no publisher. This breaks the audit trail for downstream compliance.
 
@@ -311,3 +311,43 @@ The `relay-consumer.js` file translates raw Nostr events into domain events (`De
 | **VisionClaw** | Enrichment proposals, KG mutation model, BrokerActor | Governance protocol, human decision surface, relay transport |
 | **Nostr relay mesh** | Event ordering, transport, NIP-42 authentication | Domain semantics, decision logic, persistence |
 | **Solid pods** | Durable per-identity storage of governance events | Event creation, validation, ordering |
+
+---
+
+## 14. Kind 31403 (ActionResponse) consumer map — verified 2026-07-10
+
+A signed kind-31403 `ActionResponse` fans out to **three** independently
+verified consumers. This is the authoritative map; each row is code-cited.
+
+| # | Consumer | Path | Effect on a decision |
+|---|---|---|---|
+| a | VisionClaw `ElevationActor` | `src/actors/elevation_actor.rs:698` (`impl Handler<Decision>`) | On **Approve** of a `vc-elev-` case, drafts a class page and opens a **GitHub PR** to the corpus repo via `GitHubPRService` (`last_pr_url` set); replayed/foreign decisions are dropped |
+| b | Forum relay decision projector | `nostr-rust-forum` `crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs` → `project_action_response()` (dispatched from the kind-31403 gate branch) | Routes the response through `DecisionOrchestrator` into **D1** `broker_decisions` / `broker_cases` |
+| c | agentbox orchestrator | `agentbox/management-api/adapters/orchestrator/local-process-manager.js:133` `handleGovernanceDecision()`, invoked from `mcp/nostr-bridge/relay-consumer.js:318` | Parses the outcome, **mints PROV-O activity/receipt URNs**, and dispatches to a matched running **agent's stdin** — else persists to the pod governance directory |
+
+> Citation note: an earlier recon cited the forum consumer as
+> `nip_handlers.rs:1581`. That line is a kind-1059 relay-gate **test** in the
+> pinned checkout; the real consumer `project_action_response()` sits near
+> `:1196` and moves by revision, so it is cited here by function name, not by a
+> brittle line number.
+
+### Honest gaps landing today (2026-07-10) — sibling repos
+
+- **VisionClaw (main).** Loop-join landed: pending-case producer + REST
+  decision → forum projection (`ca145a1ce`, closes the GOV-3 residual — there is
+  **no** distributed `BrokerActor` by design per ADR-130; the residual was the
+  loop-join, not a missing actor). `/api/ingest/writeback` registered, closing
+  the git-bridge `WriteBackSaga` 404 (`78759494e`, GOV-4).
+- **agentbox (local, being pushed today).** Authority gate on the broker decide
+  path (ADR-037 D2, `a70dc4fb`) — broker-bridge now keys write-back closure off
+  VisionClaw's `writeback_committed` and forwards the real deciding pubkey
+  (GOV-1); plus the wait-registry seam `management-api/lib/governance-decision-waiter.js`
+  (reuses the one relay-consumer 31403 subscription to resolve the gate,
+  fail-closed to DENY on timeout).
+- **Still open.** GOV-2 (no `ConceptElevated` event — elevation is claimed at
+  PR-*creation*, not merge; grep across all four repos = 0 hits),
+  GOV-7 (ElevationActor opens approval cases without the documented Whelk EL++
+  consistency gate), and the C4 `ShareOrchestratorActor` executor — a
+  `ShareTransitionPlan` is *produced* by `src/domain/broker/broker_decision.rs:139-167`
+  but has **no executor** (see the `:202` NOTE: "execution ... lives in
+  `ShareOrchestratorActor` (agent C4 — follow-up sprint)"; scaffold only).

@@ -1,15 +1,35 @@
 # PRD: Judgment Broker
 
 **Owner:** DreamLab AI
-**Status:** Active
+**Status:** Active (2026-07-10 truth-pass: 2 of 3 M1/M2 gaps closed — see amendment)
 **Date:** 2026-05-22
 **Version:** 1.0
+
+> **2026-07-10 truth-pass amendment.** The "65% / 45%" status framing below
+> understates current completion; rows are corrected inline only where a prior
+> claim is now false. Aligning with the
+> [ADR-003 2026-07-03 closeout amendment](ADR-003-judgment-broker-distributed-architecture.md),
+> **2 of the 3 identified gaps are closed**:
+> - **FR1 (decision routing) — SHIPPED.** `handleGovernanceDecision()` is
+>   implemented at
+>   `agentbox/management-api/adapters/orchestrator/local-process-manager.js:133`,
+>   mints PROV-O activity/receipt URNs, and is invoked from
+>   `agentbox/mcp/nostr-bridge/relay-consumer.js:318` (merged 2026-05-22, `e1a8d716`).
+>   The earlier "calls nonexistent `orchestrator.handleGovernanceDecision()`" note
+>   was stale.
+> - **FR2 (agent MCP tools) — SHIPPED.** Five governance tools
+>   (`governance_publish_panel` / `request_action` / `update_panel` /
+>   `retire_panel` / `list_decisions`) ship in `agentbox/mcp/mcp.json`.
+> - **FR3 (BrokerActor on main) — OPEN, reframed.** Main shipped a *different*
+>   architecture — an inline decide/inbox handler plus the ADR-110 ElevationActor
+>   with a real Oxigraph write-back — so the `crashbug` BrokerActor is an unmerged
+>   *alternative*, not the only path to closure (see ADR-130 / closeout GOV-3).
 
 ## TL;DR
 
 The Judgment Broker is not a service. It is an emergent capability produced by the coordination of four repositories: VisionClaw (case submission), agentbox (agent orchestration and MCP tooling), nostr-rust-forum (human decision UI and relay gating), and dreamlab-ai-website (panel visibility). No single repo owns the full loop. The broker exists when all four substrates correctly publish, relay, gate, decide, and route governance events across Nostr kinds 31400--31405.
 
-65% of this capability is implemented today. The forum-side loop is closed: agents publish action requests, humans render decisions in the governance UI, signed responses propagate back through the relay. What remains is the last-mile wiring: routing decisions back into agent behaviour, giving agents MCP tools to compose governance events, merging VisionClaw's BrokerActor to main, recording provenance, and proving the full loop end-to-end.
+65% of this capability was implemented at authoring; the 2026-07-10 amendment above records that as an undercount. The forum-side loop is closed: agents publish action requests, humans render decisions in the governance UI, signed responses propagate back through the relay. Two of the three M1/M2 gaps are now closed (2026-05-22, `e1a8d716`): decisions route back into agent behaviour via `handleGovernanceDecision()`, and agents hold five governance MCP tools. What remains is FR3 — reframed, because main shipped a *different* inline decide/inbox + ADR-110 ElevationActor (Oxigraph write-back) architecture, making the `crashbug` BrokerActor an unmerged alternative rather than a required merge — plus recording provenance and proving the full loop end-to-end in a live session.
 
 ## Goals
 
@@ -34,22 +54,22 @@ The Judgment Broker is not a service. It is an emergent capability produced by t
 | Relay gating (agents: 31400/31402, humans: 31403) | `crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs` | Shipped |
 | Response signing (human click -> kind 31403 -> relay -> D1 broker_decisions) | Auth worker + forum client | Shipped |
 
-### Agentbox (45%)
+### Agentbox (45% at authoring → decision loop + MCP tools now shipped, see 2026-07-10 amendment)
 
 | Component | Path | Status |
 |---|---|---|
 | Kind constants 31400--31405, subscribe/publish | `mcp/servers/nostr-bridge.js` (577 lines) | Shipped |
-| Relay consumer (subscribes governance kinds, writes to pods, calls orchestrator) | `mcp/nostr-bridge/relay-consumer.js` (683 lines) | Shipped, but calls nonexistent `orchestrator.handleGovernanceDecision()` |
-| Broker bridge (proxies BrokerActor REST, SSE relay, content enrichment) | `management-api/routes/broker-bridge.js` (598 lines) | Shipped |
+| Relay consumer (subscribes governance kinds, writes to pods, calls orchestrator) | `mcp/nostr-bridge/relay-consumer.js` (dispatch at :318) | Shipped — dispatches kind 31403 to `orchestrator.handleGovernanceDecision()` (now implemented) |
+| Broker bridge (proxies BrokerActor REST, SSE relay, content enrichment) | `management-api/routes/broker-bridge.js` | Shipped; write-back closure now keyed off VisionClaw's `writeback_committed` + real deciding pubkey (GOV-1, `a70dc4fb`) |
 | Agent unsigned event outbox -> signed publish | Nostr bridge pipeline | Shipped |
-| `handleGovernanceDecision()` on orchestrator adapter | -- | **Missing** |
-| MCP tools for `governance_publish_panel` / `governance_request_action` | -- | **Missing** |
+| `handleGovernanceDecision()` on orchestrator adapter | `management-api/adapters/orchestrator/local-process-manager.js:133` | **Shipped** (merged 2026-05-22, `e1a8d716`; mints PROV-O URNs, dispatches to agent stdin or pod) |
+| MCP tools (`governance_publish_panel` / `request_action` / `update_panel` / `retire_panel` / `list_decisions`) | `mcp/mcp.json` | **Shipped** (five governance tools) |
 
 ### VisionClaw (40%)
 
 | Component | Path | Status |
 |---|---|---|
-| BrokerActor (~400 lines, publishes 31400 on startup, 31402 on case submission) | `crashbug` branch | Not on main |
+| BrokerActor (~400 lines, publishes 31400 on startup, 31402 on case submission) | `crashbug` branch | Not on main — and superseded: main ships the ADR-110 ElevationActor + inline decide/inbox instead (ADR-130 / GOV-3). Loop-join (pending-case producer + REST decision projection) landed on main 2026-07-10 (`ca145a1ce`); `/api/ingest/writeback` registered (`78759494e`, GOV-4) |
 | NIP-98 + enterprise role middleware | `enterprise_auth.rs` | Shipped |
 | IS-Envelope spec ownership (ADR-075) | Docs + fixtures | Shipped |
 | Enterprise drawer UI | `docs/design/2026-04-17-enterprise-drawer.md` (design doc only) | Deferred (ADR-090) |
