@@ -99,3 +99,45 @@ loop items (including the broker case e2e that clears GOV-1/GOV-3 liveness) to
 `integrated` on green canaries, and re-opening any observation that fails to
 fire. No status row, tier or canary state in v1.2 or in this v1.3 code-landing
 section is edited by that promotion; it appends.
+
+---
+
+## Forward-stamp — 2026-07-11 (post-cut landings + in-container live-loop canary)
+
+Appended per this document's own rule ("it appends"); no row above is edited.
+
+### Code landings after the 2026-07-10 cut
+
+| Item | Disposition (2026-07-11) | Maturity | Canary | Evidence |
+|---|---|---|---|---|
+| **GOV-2** `ConceptElevated` terminal event | **Closed at code.** kind-31404 `CaseStatusUpdate` builder (`acsp/events.rs`), per-case PR tracking, 120s `GitHubPRService::pr_state` merge poll; merged → `concept_elevated` + store status `elevated`; closed-unmerged → `elevation_abandoned` + `abandoned`; degraded-visible when no GitHub token. Supersedes the `planned` row above. | `integrated` (code) | registered (merge-poll observation not yet fired — needs a real PR merge) | VisionClaw `ada2069a9` + `43a12e401` |
+| **GOV-7** Whelk EL++ consistency gate | **Closed at code.** `WhelkInferenceEngine::check_axiom_set` (fresh reasoner, Arc-safe) gates the ElevationActor approve arm; base ∪ draft checked; inconsistent OR gate-unavailable → fail-closed reject with recorded reason, no PR. No advisory pass. | `integrated` (code) | registered (unit canaries: contradictory pair blocks; gate-unavailable blocks) | VisionClaw `43a12e401` (`elevation_actor.rs`, `whelk_inference_engine.rs`) |
+| GOV-1 evidence note | The `governance-decision-waiter.js` listed above as "uncommitted" is committed and pushed in agentbox `a70dc4fb` (11/11 broker-bridge + 13/13 authority tests green); agentbox `main` == `origin/main`, tree clean. VisionClaw submodule pointer bumped at `ce8c78524`. | — | — | agentbox `a70dc4fb`; VisionClaw `ce8c78524` |
+
+### In-container live-loop canary (2026-07-11, evidence — NOT the live-session promotion)
+
+A full REST-loop pass was fired against a **live server process + live local relay**
+(VisionClaw `43a12e401` debug build, `ELEVATION_ACTOR_ENABLED=1`,
+`FORUM_RELAY_URL=ws://127.0.0.1:7777` embedded nostr-pod-bridge relay):
+
+1. ElevationActor started; ACSP decision-projection client connected (boot log).
+2. `POST /api/ingest/writeback` (GOV-4 route, git-bridge payload shape) →
+   `{success:true, attributed:true, writeback_triggered:true, writeback_committed:true,
+   forum_projection:"published"}` with PROV-O activity URN
+   `urn:visionclaw:execution:sha256-12-16ffed302021`.
+3. `GET /api/broker/inbox` shows the case `canary-case-e2e-001` decided (loop-join read side).
+4. kind-31403 event `40aebfb815a2…` **read back from the relay by an independent
+   WS subscriber** (`REQ kinds:[31403]` → EVENT match) — the `published` claim is
+   verified at the relay layer, not just client-ACKed.
+
+Finding recorded en route: the local pod-bridge "not allow-listed" rejection is the
+**pod-ingress consumer** declining pod-inbox ingestion of broadcast events — the
+relay itself accepts and serves them. On the **production forum relay**, however,
+write gating is real: the ACSP panel pubkey must be registered in the relay
+`agent_registry` / allowlist before the stack-up session (operator item; allowlist
+work observed in progress in a parallel session, 2026-07-10).
+
+**Boundary honoured:** this run used a local relay and a curl-driven decision, not
+the production forum relay + forum-UI human. The **case e2e canary therefore stays
+`pending-live-session`**; this stamp contributes fired-in-test-grade evidence that
+the loop mechanics (persist → attribute → commit → project → subscribe) are sound.
