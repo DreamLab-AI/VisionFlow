@@ -12,7 +12,8 @@
         "README.md",
         "docs/ecosystem-map.md",
         "docs/PRD-website.md",
-        "docs/engineering/ADR-004-harness-engineering-framework.md"
+        "docs/engineering/ADR-004-harness-engineering-framework.md",
+        "website/static/index.html"
       ]
     },
     "mcp-ontology-tools": {
