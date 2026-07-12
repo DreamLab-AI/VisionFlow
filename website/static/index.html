@@ -63,7 +63,7 @@
       </div>
       <div class="hero-stats">
         <div class="stat"><span class="stat-num">5</span><span class="stat-label">Federated Substrates</span></div>
-        <div class="stat"><span class="stat-num">92</span><span class="stat-label">CUDA Kernels</span></div>
+        <div class="stat"><span class="stat-num">82</span><span class="stat-label">CUDA Kernels</span></div>
         <div class="stat"><span class="stat-num">180+</span><span class="stat-label">MCP Tools</span></div>
         <div class="stat"><span class="stat-num">55x</span><span class="stat-label">GPU Speedup</span></div>
       </div>
@@ -197,12 +197,12 @@
             <span class="substrate-role">Knowledge Engineering</span>
           </div>
           <ul>
-            <li>OWL 2 EL formal reasoning (Whelk-rs) + W3C SHACL validation</li>
+            <li>OWL 2 EL formal reasoning (Whelk-rs) + W3C SHACL shapes (advisory validation)</li>
             <li>82 CUDA kernels, 55x GPU speedup</li>
             <li>W3C PROV-O provenance &mdash; every decision queryable via SPARQL</li>
-            <li>IS-Envelope spec owner + knowledge graph gating</li>
-            <li>7 native MCP ontology tools</li>
-            <li>31,000+ node force-directed graph in real time</li>
+            <li>IS-Envelope spec owner + governed knowledge graph gating</li>
+            <li>6 native MCP ontology tools</li>
+            <li>21,000+ node force-directed graph in real time, benchmarked to 100K</li>
             <li>Embodied agent loop: agent actions render as live <code>0x23</code> beams over <code>/wss/agent-events</code></li>
           </ul>
           <a href="https://github.com/DreamLab-AI/VisionClaw" target="_blank" rel="noopener" class="substrate-link">View Repo &rarr;</a>
@@ -216,11 +216,11 @@
           </div>
           <ul>
             <li>Governance event relay + broker bridge to VisionClaw</li>
-            <li>90+ agent skills, 185+ MCP tools</li>
+            <li>115 agent skills, 180+ MCP tools</li>
             <li>12-tool ontology bridge to VisionClaw SPARQL</li>
             <li>Browser-based setup wizard (zero dependencies)</li>
             <li>BIP-340 sovereign identity at bootstrap</li>
-            <li>Private Email MCP Gateway: local-model email intelligence, returns only privacy-sanitised results &mdash; never raw mail</li>
+            <li>Private Email MCP Gateway: local-model email intelligence, privacy-sanitised by default; raw access only via an owner-key-gated capability</li>
             <li>Emits agent-action signals to VisionClaw; pod writes under revocable WAC mandates</li>
           </ul>
           <a href="https://github.com/DreamLab-AI/agentbox" target="_blank" rel="noopener" class="substrate-link">View Repo &rarr;</a>
@@ -233,9 +233,9 @@
             <span class="substrate-role">Cryptographic Foundation</span>
           </div>
           <ul>
-            <li>Rust port of JSS (~98% parity)</li>
+            <li>Rust port of JSS (~96% strict parity, 207-row tracker)</li>
             <li>DID:Nostr + WAC + Web Ledgers</li>
-            <li>NIP-98 Schnorr + Solid-OIDC + WebAuthn</li>
+            <li>NIP-98 Schnorr (fail-closed, compile-guarded) + Solid-OIDC + WebAuthn</li>
             <li>HTTP 402 micropayments (MRC20, did:nostr-keyed)</li>
             <li>Block-trails: Bitcoin taproot-anchored, tamper-evident provenance</li>
             <li>Git-marks: every pod write is a commit</li>
@@ -251,11 +251,11 @@
             <span class="substrate-role">Governance UI + Relay Kit</span>
           </div>
           <ul>
-            <li>Judgment Broker decision surface (1,015-line governance model)</li>
+            <li>Judgment Broker decision surface (2,100-line governance model)</li>
             <li>Agent Control Surface Protocol (kinds 31400-31405)</li>
-            <li>Leptos WASM client (19 pages, 60+ components)</li>
-            <li>12 crates, passkey-first auth, 5 CF Workers</li>
-            <li>Federated NIP-05 resolution (default mode)</li>
+            <li>Leptos WASM client (20 pages, 60+ components)</li>
+            <li>14 crates, passkey-first auth, 5 CF Workers</li>
+            <li>Standalone-first; federated NIP-05 resolution available</li>
           </ul>
           <a href="https://github.com/DreamLab-AI/nostr-rust-forum" target="_blank" rel="noopener" class="substrate-link">View Repo &rarr;</a>
         </div>
@@ -271,7 +271,7 @@
             <li>Cloudflare Workers edge compute</li>
             <li>Production at dreamlab-ai.com</li>
             <li>Operator overlay configuration</li>
-            <li>Consumes all substrates as library crates</li>
+            <li>Consumes the forum kit as git-pinned library crates</li>
           </ul>
           <a href="https://github.com/DreamLab-AI/dreamlab-ai-website" target="_blank" rel="noopener" class="substrate-link">View Repo &rarr;</a>
         </div>
@@ -403,7 +403,7 @@
         <div class="broker-step">
           <div class="broker-num">2</div>
           <h3>Forum Renders <span class="broker-substrate">nostr-rust-forum</span></h3>
-          <p>kind 31402 ActionRequest: the forum&rsquo;s 1,015-line governance model renders the panel and routes it to the right human</p>
+          <p>kind 31402 ActionRequest: the forum&rsquo;s 2,100-line governance model renders the request and routes it to the right human</p>
         </div>
         <div class="broker-arrow">&rarr;</div>
         <div class="broker-step">
@@ -545,7 +545,7 @@
     <div class="container reveal">
       <span class="section-tag">Empirical Evidence</span>
       <h2>Ontology grounding: measured, not claimed</h2>
-      <p class="section-lead">We ran 672 isolated LLM sessions across 7 models to measure whether VisionClaw&rsquo;s OWL ontology improves factual recall. Gold-standard answers were derived from the knowledge graph itself, so scoring is objective by construction. The results have caveats; the <a href="https://github.com/DreamLab-AI/VisionClaw/blob/main/docs/eval/report.pdf" target="_blank" rel="noopener" style="color:var(--gold)">full report</a> covers them in detail.</p>
+      <p class="section-lead">We ran 672 isolated LLM sessions across 7 models to measure whether VisionClaw&rsquo;s OWL ontology improves factual recall. Gold-standard answers were derived from the knowledge graph itself, so scoring is objective by construction. The results have caveats; the <a href="https://github.com/DreamLab-AI/VisionClaw/blob/main/archive/visionclaw-docs/eval/report.pdf" target="_blank" rel="noopener" style="color:var(--gold)">full report</a> covers them in detail.</p>
 
       <div class="competitive-table-wrap" tabindex="0" aria-label="Ontology benchmark results across 7 models">
         <table class="competitive-table">
@@ -580,7 +580,7 @@
       </div>
 
       <div class="callout">
-        <p>16 questions, 7 models, 3 repetitions, 7,445 OWL classes, deterministic grading. These are domain-specific factual recall results on a single ontology, not a general-purpose benchmark. The <a href="https://github.com/DreamLab-AI/VisionClaw/blob/main/docs/eval/report.pdf" target="_blank" rel="noopener" style="color:var(--gold)">full report (PDF)</a> covers method, per-question breakdowns, cost analysis, and detailed caveats on interpreting the lift.</p>
+        <p>16 questions, 7 models, 3 repetitions, 7,445 OWL classes, deterministic grading. These are domain-specific factual recall results on a single ontology, not a general-purpose benchmark. The <a href="https://github.com/DreamLab-AI/VisionClaw/blob/main/archive/visionclaw-docs/eval/report.pdf" target="_blank" rel="noopener" style="color:var(--gold)">full report (PDF)</a> covers method, per-question breakdowns, cost analysis, and detailed caveats on interpreting the lift.</p>
       </div>
     </div>
   </section>
@@ -700,19 +700,19 @@
         <div class="scale-card">
           <div class="scale-tier">Single Operator</div>
           <h3>Token-Efficient</h3>
-          <p>One Agentbox, standalone mode. Local SQLite beads, local Solid pod, local events. 90+ skills, 180+ tools, privacy filter active.</p>
+          <p>One Agentbox, standalone mode. Local SQLite beads, local Solid pod, local events. 115 skills, 180+ tools, privacy filter active.</p>
           <div class="scale-cost">One API key. One container. Minutes to deploy.</div>
         </div>
         <div class="scale-card scale-card-mid">
           <div class="scale-tier">Team</div>
           <h3>Governed Collaboration</h3>
-          <p>VisionClaw + forum + Agentbox on a shared relay mesh. Shared ontology, Judgment Broker oversight. Every mutation passes through a GitHub PR.</p>
+          <p>VisionClaw + forum + Agentbox on a shared relay. Shared ontology, Judgment Broker oversight. Knowledge-graph writes are gated by signed human decisions; ontology changes ship as consistency-gated GitHub PRs.</p>
           <div class="scale-cost">One GPU host + one agent container + CF Workers. 50-person team validated.</div>
         </div>
         <div class="scale-card">
           <div class="scale-tier">Enterprise</div>
           <h3>Federated Intelligence</h3>
-          <p>Multiple sovereign Agentbox instances via Nostr relay mesh. Each node independently hardened. Trust via did:nostr, not network topology.</p>
+          <p>Multiple sovereign Agentbox instances federating over the Nostr relay mesh (standalone-first today; mesh federation is designed, not yet shipped). Each node independently hardened. Trust via did:nostr, not network topology.</p>
           <div class="scale-cost">Horizontal. Add nodes. Each node owns its data.</div>
         </div>
       </div>
@@ -739,7 +739,7 @@
         <a href="https://github.com/DreamLab-AI/agentbox" target="_blank" rel="noopener" class="repo-card">
           <h3>Agentbox</h3>
           <p>Harness engineering runtime</p>
-          <span class="repo-tech">Nix &middot; 90+ skills &middot; 180+ tools &middot; Solid pods</span>
+          <span class="repo-tech">Nix &middot; 115 skills &middot; 180+ tools &middot; Solid pods</span>
         </a>
         <a href="https://github.com/DreamLab-AI/solid-pod-rs" target="_blank" rel="noopener" class="repo-card">
           <h3>solid-pod-rs</h3>
@@ -749,7 +749,7 @@
         <a href="https://github.com/DreamLab-AI/nostr-rust-forum" target="_blank" rel="noopener" class="repo-card">
           <h3>nostr-rust-forum</h3>
           <p>Governance UI + relay kit</p>
-          <span class="repo-tech">12 crates &middot; Passkey auth &middot; Leptos WASM</span>
+          <span class="repo-tech">14 crates &middot; Passkey auth &middot; Leptos WASM</span>
         </a>
         <a href="https://github.com/DreamLab-AI/dreamlab-ai-website" target="_blank" rel="noopener" class="repo-card">
           <h3>dreamlab-ai-website</h3>
@@ -786,7 +786,7 @@
           </div>
           <div>
             <h4>Licensing</h4>
-            <p>VisionClaw: MPL 2.0</p>
+            <p>VisionClaw: AGPL 3.0</p>
             <p>Protocol stack: AGPL 3.0</p>
           </div>
         </div>
