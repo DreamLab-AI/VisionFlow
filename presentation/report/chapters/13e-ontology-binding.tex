@@ -210,12 +210,17 @@ diverge most instructively. The canon commits to a clear ordering: ontology muta
 crosses a formal correctness gate before it crosses a human-policy gate, Whelk first, then
 ACSP. The general agentbox \texttt{ontology\_propose} path implements that ordering. The
 \emph{personal-to-shared elevation path} (the \texttt{ElevationActor} that promotes a
-concept out of an individual's knowledge graph into the shared ontology) currently skips
-the Whelk consistency gate (finding GOV-7, open at the 3 July closeout). A concept can
-therefore reach the human-policy gate without first clearing the correctness gate the canon
-places ahead of it. The espoused sequence and the wired sequence disagree on exactly one of
-the two elevation routes, and the register records the disagreement rather than smoothing
-it over.
+concept out of an individual's knowledge graph into the shared ontology) skipped
+the Whelk consistency gate at the 3 July closeout (finding GOV-7): a concept could
+reach the human-policy gate without first clearing the correctness gate the canon
+places ahead of it. That divergence closed in code on 11 July 2026. The approve arm now
+checks the base ontology unioned with the drafted axioms through
+\texttt{WhelkInferenceEngine::check\_axiom\_set} and fails closed --- an inconsistent draft,
+or a reasoner that cannot be constructed, records a reject and opens no PR (VisionClaw
+\texttt{43a12e401}). The espoused sequence and the wired sequence now agree on both
+elevation routes; the register records the closure with the candour it recorded the gap,
+and the residual honesty is that the gate's blocking behaviour is proven by unit canary,
+not yet by a live elevation.
 
 The wider writeback ambition sits further out. The self-improving elevation flywheel
 (\texttt{ADR-121}), the two-speed routing that would send volatile facts to a fenced

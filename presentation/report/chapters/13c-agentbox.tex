@@ -127,7 +127,10 @@ The same envelope now carries an authority axis. Each recorded action is tagged 
 \texttt{buildAuthorityGate} check sits in front of \texttt{POST /v1/llm/revoke}: an agent's model access blocks the moment a \texttt{kind-31402} escalation is
 raised against it and releases only on a verified \texttt{kind-31403} decision (\texttt{ceb3401b}). This is a live runtime lever for the ``control'' property the
 sovereignty definition names, binding an agent's right to act to the forum's signed judgment rather than to a config edit. It is honestly tiered
-\texttt{standalone}: the gate runs and is tested, but it has not been exercised against a live multi-relay decision flow.
+\texttt{standalone}: the gate runs and is tested, but it has not been exercised against a live multi-relay decision flow. Shortly after this edition's
+snapshot the same gate was carried onto the broker decide path itself (\texttt{a70dc4fb}), where a zero-tolerance or escalation action blocks until a verified
+approving \texttt{kind-31403} releases it, and the broker-bridge that reports a decision back to VisionClaw was corrected to key case closure on the real
+\texttt{writeback\_committed} response and forward the actual deciding pubkey rather than a placeholder \texttt{'unknown'} (finding GOV-1 closed).
 
 \section{Memory That Must Embed to Exist}
 
