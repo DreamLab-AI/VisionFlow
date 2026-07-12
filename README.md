@@ -117,7 +117,7 @@ No single repository *is* VisionFlow. It emerges when five independent systems m
 flowchart TB
     subgraph VF["VisionFlow Coordination Layer"]
         direction LR
-        MESH["Nostr Relay Mesh\n(NIP-42 AUTH, bidirectional)"]
+        MESH["Nostr Relay Mesh\n(NIP-01 WS · pubkey allowlist)"]
         DID["DID:Nostr Identity Spine\n(secp256k1 everywhere)"]
         WAC["WAC Access Control\n(Solid Protocol)"]
         PROV["Immutable Provenance\n(content-addressed beads)"]
@@ -127,18 +127,19 @@ flowchart TB
         OWL["OWL 2 EL + SHACL\n(Whelk-rs + PROV-O)"]
         GPU["82 CUDA Kernels\n(semantic physics)"]
         XR["Immersive XR\n(multi-user)"]
-        MCP_VC["12 MCP Ontology Tools"]
+        MCP_VC["7 Ontology MCP Tools\n(native)"]
     end
 
     subgraph AB["Agentbox — Harness Engineering"]
         AGENTS["115 Agent Skills\n(manifest-driven)"]
         NIX["Reproducible Runtime\n(Nix flakes)"]
         TOOLS["180+ MCP Tools\n(browser, 3D, media, data)"]
+        BRIDGE["12 MCP Ontology Tools\n(SPARQL bridge → VisionClaw)"]
         PRIV["Privacy Filter\n(PII redaction)"]
     end
 
     subgraph PROTO["Protocol Infrastructure"]
-        SPR["solid-pod-rs\n(JSS Rust port, ~98% parity)"]
+        SPR["solid-pod-rs\n(JSS Rust port, ~96% parity)"]
         NRF["nostr-rust-forum\n(12 nostr-bbs-* crates)"]
         FC["forum-config\n(operator overlay)"]
     end
@@ -171,7 +172,7 @@ flowchart TB
 
 Every actor — human, agent, server, worker — is identified by a single secp256k1 keypair expressed as `did:nostr:<hex-pubkey>`. This identity is:
 
-- **Verified at the relay** via NIP-42 AUTH challenge-response
+- **Gated at the relay** by a pubkey allowlist (the relay advertises `auth_required:false`; NIP-42 AUTH answering exists in the WASM client, not the edge relay)
 - **Verified at every HTTP request** via NIP-98 Schnorr signatures (URL + method + body hash binding)
 - **Evaluated against WAC ACLs** on every Solid pod read/write
 - **Embedded in every provenance bead** as the event author
@@ -229,7 +230,7 @@ flowchart TB
 
     subgraph surfaces["Identity Surfaces"]
         POD["Solid pod (WAC agent)"]
-        RELAY["Nostr relay (NIP-42/98)"]
+        RELAY["Nostr relay (NIP-98 + allowlist)"]
         DIDDOC["DID Document\n(/.well-known/did.json)"]
     end
 
@@ -251,7 +252,7 @@ flowchart TB
 
 ### solid-pod-rs — Cryptographic Foundation
 
-The Rust-native port of [JavaScriptSolidServer (JSS)](https://github.com/JavaScriptSolidServer/JavaScriptSolidServer), Melvin Carvalho's AGPL-3.0 reference implementation of the Solid Protocol. [solid-pod-rs](https://github.com/DreamLab-AI/solid-pod-rs) (`0.5.0-alpha.0`) delivers ~98% strict parity with JSS as a framework-agnostic Rust library.
+The Rust-native port of [JavaScriptSolidServer (JSS)](https://github.com/JavaScriptSolidServer/JavaScriptSolidServer), Melvin Carvalho's AGPL-3.0 reference implementation of the Solid Protocol. [solid-pod-rs](https://github.com/DreamLab-AI/solid-pod-rs) (`0.5.0-alpha.4`) delivers ~96% strict parity with JSS as a framework-agnostic Rust library. (Parity is measured against the 207-row `PARITY-CHECKLIST.md` tracker; the earlier "~98%" headline predates the tracker's row additions and denominator recount.)
 
 ![solid-pod-rs Architecture](assets/diagrams/solid-pod-rs-architecture.png)
 
@@ -308,7 +309,9 @@ The user-facing surface: [dreamlab-ai-website](https://github.com/DreamLab-AI/dr
 
 ## The Judgment Broker
 
-The Judgment Broker is VisionFlow's distributed business decision system. It spans three repositories — VisionClaw's `BrokerActor` (case triage + ontology grounding), nostr-rust-forum's governance dashboard (human decision surface), and Agentbox's Nostr Bridge (agent relay subscriber). Together they create a human-in-the-loop governance plane that is immutable by construction.
+The Judgment Broker is VisionFlow's cross-substrate business decision system. It spans three repositories — VisionClaw's broker domain kernel and case queue (case triage + ontology grounding through the `ElevationActor` and the `/api/broker` inbox/decide surface, ADR-110), nostr-rust-forum's governance dashboard (human decision surface), and Agentbox's Nostr Bridge (agent relay subscriber). Together they create a human-in-the-loop governance plane that is immutable by construction.
+
+The broker kernel, case queue and per-agent steering surface ship on VisionClaw `main` (commit `c9f2e3539`, cherry-picked this sprint). The earlier *distributed* `BrokerActor` design (a Neo4j-backed actor on the unmerged `crashbug` branch) is **superseded** (ADR-130) and is not the shipped architecture — main runs the inline `ElevationActor` + decide/inbox handler. The end-to-end case round-trip has been exercised in-container against a live relay; the production live-session canary is still pending.
 
 ![Judgment Broker — Agent Control Surface Protocol](assets/generated/judgment-broker.png)
 
@@ -319,7 +322,7 @@ The Judgment Broker is VisionFlow's distributed business decision system. It spa
 sequenceDiagram
     participant Agent as Agent (Agentbox)
     participant Relay as Nostr Relay Mesh
-    participant Broker as BrokerActor (VisionClaw)
+    participant Broker as Broker Kernel (VisionClaw)
     participant Forum as Governance Dashboard (Forum)
     participant Human as Human Decision-Maker
 
@@ -378,13 +381,13 @@ sequenceDiagram
 ```mermaid
 flowchart LR
     subgraph SITE["dreamlab-ai.com (Cloudflare Edge)"]
-        RW["Relay Worker\n(NIP-42 WebSocket)"]
+        RW["Relay Worker\n(NIP-01 WS · pubkey allowlist)"]
         AW["Auth Worker\n(WebAuthn + NIP-98)"]
         PW["Pod Worker\n(R2 Solid Pods)"]
     end
 
     subgraph VC_HOST["VisionClaw (GPU Host)"]
-        BA["BrokerActor\n(case triage)"]
+        BA["Broker Kernel + Case Queue\n(ElevationActor, /api/broker)"]
         SNA["ServerNostrActor\n(signs 31400/31402)"]
         PHYSICS["ForceComputeActor\n(60Hz CUDA)"]
     end
@@ -399,8 +402,8 @@ flowchart LR
         CFT["cloudflared-pod\n→ agentbox:8484"]
     end
 
-    RW <-->|"NIP-42 AUTH\ngovernance kinds\n31400-31405"| SNA
-    RW <-->|"NIP-42 AUTH\nagent kinds\n38000-38201"| NB
+    RW <-->|"pubkey allowlist\ngovernance kinds\n31400-31405"| SNA
+    RW <-->|"pubkey allowlist\nagent kinds\n38000-38201"| NB
     BA -->|"kind 31400\nPanelDefinition"| SNA
     AW -->|"PSK provision\n/_admin/provision"| SP
     SP <-->|"CF Tunnel"| CFT
@@ -484,6 +487,8 @@ VisionClaw + forum + Agentbox on a shared relay mesh. The ontology provides shar
 
 Multiple Agentbox instances federated via the Nostr relay mesh. Governance event kinds (31400-31405) propagate across substrates. Each node is independently hardened (Nix reproducible, read-only filesystem, capability-dropped, seccomp-profiled). Nodes trust each other via `did:nostr` identity verification, not network topology.
 
+**Shipped vs designed:** single-operator and team deployments run today; this cross-organisation mesh is *designed, not shipped*. Standalone-first is the supported deployment mode (canon F9 fork decision) — the `nostr-bbs-mesh` `MeshTransport`, cross-relay peer discovery and IS-Envelope routing are scaffold-only and parked until a transport implementation is wired into the relay.
+
 **Cost profile:** Horizontal. Add nodes. Each node is sovereign — it owns its data, controls its agents, sets its trust thresholds. The mesh coordinates; no node controls.
 
 ---
@@ -491,6 +496,8 @@ Multiple Agentbox instances federated via the Nostr relay mesh. Governance event
 ## Federation Transports
 
 The five substrates communicate over three independent transport strata. Each stratum provides a different trust and reachability profile — operators choose which to enable based on their deployment.
+
+**Standalone-first is the supported mode.** Three of the four runtime substrates default to standalone (agentbox `[mesh] mode = "standalone"`, solid-pod-rs with an embedded NIP-01 relay, and nostr-rust-forum); only the DreamLab website fans out (a 1/4 federated-by-default tally). The per-substrate relay clients described below are real, but the *cross-relay mesh that federates them* — peer discovery and the `nostr-bbs-mesh` `MeshTransport` — is **designed, not shipped** (canon F9). Relay writes are gated by a pubkey allowlist, not a NIP-42 AUTH challenge: the relay deliberately advertises `auth_required:false` and enforces the whitelist instead (documented reconciliation).
 
 ```mermaid
 graph TB
@@ -502,7 +509,7 @@ graph TB
     subgraph "Stratum 2 — Nostr Relays (All Components)"
         AB3["Agentbox"] <-->|"NIP-01 WS"| RELAY["Nostr Relay\n(private or public)"]
         NRF["nostr-rust-forum\n(CF Workers)"] <-->|"NIP-01 WS"| RELAY
-        VC["VisionClaw\nBrokerActor"] <-->|"NIP-01 WS"| RELAY
+        VC["VisionClaw\nBroker Kernel"] <-->|"NIP-01 WS"| RELAY
         SPR2["solid-pod-rs\npod-inbox bridge"] <-->|"NIP-01 WS"| RELAY
     end
 
@@ -524,7 +531,7 @@ WireGuard-encrypted overlay network for infrastructure-to-infrastructure traffic
 
 ### Stratum 2 — Nostr Relays (All Components)
 
-The universal coordination bus. Every substrate speaks NIP-01 WebSocket and authenticates via NIP-98/NIP-42 `did:nostr` signatures. Operators can run private relays (embedded in agentbox at `:7777`) or use the public Nostr network for censorship-resistant message passing.
+The universal coordination bus. Every substrate speaks NIP-01 WebSocket; HTTP requests are authenticated with NIP-98 `did:nostr` signatures, and relay writes are gated by a pubkey allowlist (`auth_required:false` — the NIP-42 AUTH gate is not enforced at the edge relay). Operators can run private relays (embedded in agentbox at `:7777`) or use the public Nostr network for censorship-resistant message passing.
 
 **Participants:** All five substrates. The Judgment Broker (VisionClaw), governance dashboards (nostr-rust-forum), agent relay bridges (agentbox), pod-inbox bridges (solid-pod-rs), and forum workers (dreamlab-ai-website) all publish and subscribe to relay event streams.
 
@@ -669,7 +676,7 @@ A Wardley map positions components along two axes: **evolution** (left = novel, 
 
 | Platform | Crypto Identity | Data Sovereignty | Governance | Formal Reasoning | Federation | OSS |
 |:---------|:---:|:---:|:---:|:---:|:---:|:---:|
-| **VisionFlow** | 🟢 `did:nostr` | 🟢 Solid pods | 🟢 Judgment Broker | 🟢 OWL 2 EL | 🟢 Relay mesh | 🟢 |
+| **VisionFlow** | 🟢 `did:nostr` | 🟢 Solid pods | 🟢 Judgment Broker | 🟢 OWL 2 EL | 🟡 Relay mesh (designed) | 🟢 |
 | Google Spark | 🔴 Google SSO | 🔴 Google Cloud | 🟡 Payment only | 🔴 LLM | 🔴 Google only | 🔴 |
 | OpenClaw | 🟡 Verifiable tokens | 🟢 Self-hosted | 🟡 Foundation | 🔴 LLM | 🟡 Multi-provider | 🟢 |
 | Claude Code | 🔴 Session | 🟡 Local files | 🟡 Permissions | 🔴 LLM | 🟡 MCP tools | 🟡 |
@@ -688,7 +695,7 @@ A Wardley map positions components along two axes: **evolution** (left = novel, 
 
 2. **Crypto identity column is solid red.** Only VisionFlow implements cryptographic agent identity at the protocol level. Every other platform ties identity to someone else's server.
 
-3. **Federation column is solid red.** MCP and A2A enable tool interop, but no competitor supports sovereign nodes trusting each other via cryptographic identity rather than shared infrastructure.
+3. **Federation is architecturally native, not bolted on.** MCP and A2A enable tool interop, but no competitor is *designed* around sovereign nodes trusting each other via cryptographic identity rather than shared infrastructure. VisionFlow's relay mesh is built for exactly this — standalone-first today, with cross-relay federation designed but not yet shipped (see [Federation Transports](#federation-transports)).
 
 ---
 

@@ -89,6 +89,8 @@ model through the Model Context Protocol. They cover browser automation via the 
 typesetting, a payment router, and a source-grounded knowledge corpus, among others. A skill absent from the manifest costs the image nothing, so the routing
 surface is both large and gated.
 
+The skills also deserve naming rather than only counting, because several are load-bearing for claims made elsewhere in this report. \texttt{hermes-scheduler} is a persistent cron and interval daemon that wakes an agent to run unattended on a schedule; it is the concrete answer to the proactive, always-on agent fleet the compounding-organisation argument (Chapter~\ref{ch:compounding-org}) assumes but never otherwise locates in code. \texttt{ruvnet-brain} exposes a second source-grounded corpus through \texttt{search\_ruvnet}, baked into the sidecar so grounding does not rest on one retrieval stack. \texttt{pdf-signing} emits signed documents; \texttt{ceramic-search} and \texttt{harness-bridge} are web-research and harness-inspection clients; and \texttt{build-with-quality} carries the evidence-driven-development discipline the report argues for. Listed this way, the routing surface reads as a capability substrate, which is what it is, rather than a number three documents disagreed about.
+
 How large is a fair question, and the honest answer is a small cautionary tale about the difference between a document and a fact. On one day in July~2026, a
 single checkout of the repository advertised the skill count three different ways: the top-level \texttt{README.md} said ``90+ skills'', the documentation hub
 said ``113 skills'', and the filesystem held 115 directories carrying a \texttt{SKILL.md}. All three were written in good faith; none was a lie; and no two
