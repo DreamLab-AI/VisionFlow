@@ -63,7 +63,7 @@ These carry `source_status: planned` in the templates and are tracked for implem
 
 - `agentbox-agent-task`: `hooks-validate-trajectory` (the ADR-004 D3 `hooks.validate` phase, explicitly deferred), `slo-ci-gate` (no `adapter-slo.yml`; the SLO assertions are `it.todo()` stubs)
 - `governance-decision`: `governance-ui-rendering` (no dedicated render test; the governance UI lives in the WASM client)
-- `pod-mutation`: `block-trail-rules` + `taproot-verification` (no Taproot implementation exists in solid-pod-rs — documentation only)
+- `pod-mutation`: `block-trail-rules` + `taproot-verification` (the solid-pod-rs Taproot implementation DOES exist — `crates/solid-pod-rs/src/bitcoin_tx.rs` BIP-341/P2TR + `provenance.rs` `BlockTrailAnchor::anchor()`; the remaining gap is the VisionFlow-side harness sensor/pairing, not the upstream implementation)
 - `visionclaw-enrichment`: `enrichment-proposal-schema` (no standalone JSON Schema fixture yet), `provenance-chain-integrity` (PROV-O is not yet reified on the ingest path — see closeout T7)
 
 Fitness-gate ADR citations are repo-qualified to avoid ADR-number collisions: agentbox SLO thresholds are **agentbox** ADR-005 (pluggable-adapter architecture), a different document from **VisionFlow** ADR-005 (mandate-at-grant governance).
