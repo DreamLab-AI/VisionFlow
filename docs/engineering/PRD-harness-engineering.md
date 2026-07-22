@@ -51,7 +51,7 @@ This PRD formalises the upgrade from ad-hoc guide and sensor accumulation to a *
 | ADR compliance scoring | Shipped | `adr-compliance.sh`, 4h throttle |
 | Ontology bridge health | Shipped | 12 MCP tools, Oxigraph availability |
 | BC20 anti-corruption metrics | Shipped | Drop/crossing Prometheus counters |
-| Learning service | Shipped | HNSW + MiniLM-L6-v2, pattern lifecycle |
+| Learning service | Shipped | HNSW + bge-small-en-v1.5 (384-dim), pattern lifecycle |
 | AI code review | Shipped | `/code-review` skill, multi-effort |
 | Mutation testing | **Missing** | No mutation score gates |
 | Linter/type-checker gates | **Missing** | No ESLint, Prettier, clippy CI gates |
