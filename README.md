@@ -4,150 +4,95 @@
 
 ### Coordination Engineering for Federated Human–AI Intelligence
 
-[![License](https://img.shields.io/badge/License-MPL%202.0%20%2B%20AGPL%203.0%20(proposed)-blue?style=flat-square)](docs/architecture/licensing.md)
+[![License](https://img.shields.io/badge/License-AGPL--3.0%20%28MPL%202.0%20relicense%20proposed%29-blue?style=flat-square)](docs/architecture/licensing.md)
 [![Substrates](https://img.shields.io/badge/Substrates-5%20federated-8b5cf6?style=flat-square)](docs/architecture/repository-map.md)
 [![Identity](https://img.shields.io/badge/Identity-did%3Anostr-10b981?style=flat-square)](docs/protocol/identity-spine.md)
 
 **Maintainer**: [John O'Hare](https://github.com/jjohare) · **Upstream IP**: [Melvin Carvalho](https://github.com/melvincarvalho) ([JSS](https://github.com/JavaScriptSolidServer/JavaScriptSolidServer), [DID:Nostr](https://github.com/nicholasgasior/did-nostr), [Web Ledgers](https://webledgers.org)) · [MAINTAINERS.md](MAINTAINERS.md)
 
-<br/>
+[Ecosystem](#the-ecosystem) · [Architecture](#five-substrates-one-identity) · [Quickstart](#quickstart) · [Docs](docs/README.md) · [Status](#status--remaining-work)
 
-[The Problem](#the-problem) · [Evolution Line](#the-evolution-line) · [Five Substrates](#five-substrates-one-identity) · [Judgment Broker](#the-judgment-broker) · [Scaling](#scaling-model) · [Repository Map](#repository-map) · [Wardley Map](#strategic-positioning) · [Docs](docs/README.md)
-
-**PDF Reports:** [One-Pager Pitch](pdf-reports/visionflow-onepager.pdf) · [Ecosystem Technical Pitch](pdf-reports/visionflow-ecosystem-pitch.pdf)
+**PDF pitch:** [One-Pager](pdf-reports/visionflow-onepager.pdf) · [Ecosystem Technical Pitch](pdf-reports/visionflow-ecosystem-pitch.pdf)
 
 </div>
 
 ---
 
-**Federated coordination · Self-sovereign data · OWL 2 EL + SHACL reasoning · W3C PROV-O provenance · Nostr message passing · Human-in-the-loop governance · GPU-accelerated sense-making**
+## What this repository is
 
-<br/>
+Hierarchy was an information-routing protocol bounded by human bandwidth. AI is collapsing the cost of that routing towards zero, so the human role is not eliminated — it is promoted from **router** to **judgment broker**: the person who holds the decision at the intersections a machine should not close on its own.
+
+**VisionFlow is the canon for that thesis.** This repository is the coordination-of-coordination layer for five federated substrates — the ADRs and PRDs, the ecosystem map, the maturity vocabulary, the marketing website, the vision report and the pitch decks. It is the thing that stops five honest local truths from assembling into one collective lie.
+
+**This repo is documentation and website — not a runtime.** The running systems live in the sibling repositories linked below; VisionFlow holds the story, the compatibility record and the honest status ledger that grades those systems against their own code. Its own maturity claim is deliberately the most modest of the set: it ships words, and it is accountable for their accuracy.
 
 <div align="center">
 
-![VisionFlow Wardley Map — Strategic Positioning](assets/diagrams/wardley-map.png)
+![VisionFlow Wardley Map — strategic positioning](assets/diagrams/wardley-map.png)
 
-*Every VisionFlow differentiator (left, red zone) sits where no competitor can follow. All 11 competing platforms cluster in the commodity zone (right, grey) where there is no structural differentiation. [Full analysis below.](#strategic-positioning)*
+*The differentiating capabilities (OWL reasoning, GPU semantic physics, cryptographic agent identity, human-in-the-loop governance) sit in the genesis-to-custom zone where competitors cluster in commodity execution. Full competitive analysis lives in [`presentation/report`](presentation/report/) and the [ecosystem pitch PDF](pdf-reports/visionflow-ecosystem-pitch.pdf), not here — it is high-churn content and does not belong in the front door.*
 
 </div>
 
 ---
 
-## The Problem
+## The ecosystem
 
-Hard problems — climate modelling, drug discovery, organisational transformation, creative production at scale — share a common shape: they require diverse intelligence (human intuition, domain expertise, machine pattern recognition, formal reasoning) to collaborate across trust boundaries, at scales that defeat centralised coordination.
+No single repository *is* VisionFlow. The siblings call the whole the **Dynamic Agentic Mesh** — seven repositories, five running substrates, this canon, and the published corpus. It emerges when five independent systems mesh through one cryptographic identity spine — every actor, human or agent or server, is a single secp256k1 keypair expressed as `did:nostr:<hex-pubkey>`.
 
-Existing approaches fail in predictable ways:
+| Substrate | Role | Where to run it |
+|:----------|:-----|:----------------|
+| **[VisionClaw](https://github.com/DreamLab-AI/VisionClaw)** | Flagship engine — ontology-grounded immersive 3D knowledge graph. OWL 2 EL + Whelk reasoning, 82 CUDA kernels of GPU physics, one renderer shared desktop↔headset. *Watch here, judge there — it observes, it never signs a decision.* | Clone the repo; needs a CUDA host. |
+| **[agentbox](https://github.com/DreamLab-AI/agentbox)** | Sovereign agent runtime — reproducible Nix container, a `did:nostr` key minted per agent at spawn, 116 skills, RuVector semantic memory, NIP-59 session mirror, Solid pod bridge. *Reproduce, audit, control.* | Clone the repo; `nix` build. |
+| **[solid-pod-rs](https://github.com/DreamLab-AI/solid-pod-rs)** | Personal-data-sovereignty layer — Rust Solid pod server (LDP, WAC, NIP-98, DID:Nostr, WebID). Every write is a git-mark commit; high-value writes anchor to Bitcoin. *The exit right sits in the floor, not granted at the door.* | Clone the repo; `cargo` build. |
+| **[nostr-rust-forum](https://github.com/DreamLab-AI/nostr-rust-forum)** | Human+agent communication substrate — Nostr-native forum + relay in Rust. The one place a human decision is cryptographically signed (ACSP kinds 31400–31405). *The one place a decision gets signed.* | Clone the repo; Cloudflare Workers + Leptos WASM. |
+| **[dreamlab-ai-website](https://github.com/DreamLab-AI/dreamlab-ai-website)** | Commercial face — DreamLab AI company site, a thin consumer of the forum kit at the Cloudflare edge. | Clone the repo. |
 
-- **Centralised AI platforms** scale tokens but not trust. One vendor, one failure mode, one billing relationship.
-- **Agent frameworks** scale tasks but not governance. Fast and broken is still broken.
-- **Knowledge management tools** scale information but not reasoning. More data doesn't mean better decisions.
-- **Collaboration platforms** scale communication but not coordination. More Slack channels don't solve alignment.
+Supporting corpus: **[narrativegoldmine](https://github.com/DreamLab-AI/knowledgeGraph)** publishes the readable `public:: true` knowledge graph at [narrativegoldmine.com](https://narrativegoldmine.com) — the same corpus VisionClaw renders in 3D.
 
-VisionFlow solves all four simultaneously because the substrate handles identity, provenance, access control, and semantic reasoning as first-class architectural primitives — not bolted-on features.
+### Independent convergence — Block's Buzz
 
-![DreamLab AI Ecosystem](assets/diagrams/ecosystem-overview.png)
+In July 2026 Block (Jack Dorsey) released [**Buzz**](https://github.com/block/buzz), a self-hosted, Nostr-native team-chat + AI-agent + git platform written in Rust. It arrives independently at the substrate this ecosystem has been building since 2022: Nostr events as the source of truth, agents as first-class signed participants with their own keypairs, NIP-42/98 authentication, kind-based extensibility. Read it as industry validation of the direction, stated plainly.
 
----
-
-## The Evolution Line
-
-The AI industry has moved through a clear progression. Each stage solves the previous stage's limitation and reveals a new one:
-
-![Evolution Line — LLM to Coordination Harness](assets/generated/evolution-line.png)
-
-<details>
-<summary>View as interactive diagram</summary>
-
-```mermaid
-flowchart LR
-    LLM["LLM\n(Foundation Models)"]
-    CB["Chatbots\n(Conversational UI)"]
-    RE["Reasoning\n(Chain-of-Thought)"]
-    AG["Agents\n(Tool Use + Planning)"]
-    AE["Agentics\n(Multi-Agent Systems)"]
-    EH["External Harnesses\n(Agent Runtimes)"]
-    CH["Coordination Harness\n(VisionFlow)"]
-
-    LLM -->|"add interface"| CB
-    CB -->|"add thinking"| RE
-    RE -->|"add tools"| AG
-    AG -->|"add collaboration"| AE
-    AE -->|"add sovereignty"| EH
-    EH -->|"add governance\n+ shared semantics\n+ federated identity"| CH
-
-    style LLM fill:#374151,stroke:#6b7280,color:#fff
-    style CB fill:#374151,stroke:#6b7280,color:#fff
-    style RE fill:#374151,stroke:#9ca3af,color:#fff
-    style AG fill:#1e3a5f,stroke:#3b82f6,color:#fff
-    style AE fill:#1e3a5f,stroke:#3b82f6,color:#fff
-    style EH fill:#1a0a2a,stroke:#8b5cf6,color:#fff
-    style CH fill:#1a1a2e,stroke:#e94560,color:#fff
-```
-
-</details>
-
-| Stage | What It Adds | What It Still Lacks |
-|:------|:-------------|:--------------------|
-| **LLM** | Pattern recognition at scale | No interface, no memory, no tools |
-| **Chatbot** | Conversational access to the model | No structured reasoning, hallucinates confidently |
-| **Reasoning** | Chain-of-thought, self-correction | Can think but can't act |
-| **Agent** | Tool use, planning, execution | Acts alone — no collaboration, no oversight |
-| **Agentics** | Multi-agent coordination, task decomposition | No persistent identity, no data sovereignty, no governance |
-| **External Harness** | Sovereign runtime, privacy, reproducibility | Individual agents are governed but the mesh is not |
-| **Coordination Harness** | Shared semantics, federated identity, human-in-the-loop governance, provenance by construction | **VisionFlow occupies this position** |
-
-73% of frontline AI adoption happens without management sign-off. Your workforce is already building shadow workflows, stitching together AI agents, automating procurement shortcuts, inventing cross-functional pipelines that don't appear on any org chart. The question isn't whether your organisation is becoming an agentic mesh. It's whether you'll shape how it forms.
-
-**The personal agent revolution has a governance problem.** Autonomous AI agents are powerful, popular, and ready to act. They've also shown what happens without shared semantics, formal reasoning, or organisational guardrails: unauthorised actions, prompt injection attacks, and enterprises deploying security scanners just to detect rogue agent instances on their own networks.
+Where Buzz is ahead: its NIP-42 relay gate and git forge are wired end-to-end today, whereas the forum's NIP-42 gate is currently a pubkey allowlist and cross-relay mesh federation is designed, not shipped, on both sides. What Buzz does not carry: OWL 2 EL knowledge-graph grounding, Solid-pod personal-data sovereignty, immersive 3D embodiment, and closed memory/learning loops. That set is the differentiation — not a claim to win by default.
 
 ---
 
 ## Five Substrates, One Identity
 
-No single repository *is* VisionFlow. It emerges when five independent systems mesh together through a shared cryptographic identity spine.
-
-![Five Substrates Architecture](assets/generated/five-substrates.png)
-
-<details>
-<summary>View as interactive diagram</summary>
+One canonical diagram. The identity spine is the coordination primitive: no shared session store, no token exchange between tiers — the same `did:nostr` keypair is login, WAC principal, provenance author, DID subject and payment account at once.
 
 ```mermaid
 flowchart TB
-    subgraph VF["VisionFlow Coordination Layer"]
+    subgraph VF["VisionFlow Coordination Canon"]
         direction LR
         MESH["Nostr Relay Mesh\n(NIP-01 WS · pubkey allowlist)"]
-        DID["DID:Nostr Identity Spine\n(secp256k1 everywhere)"]
+        DID["did:nostr Identity Spine\n(secp256k1 everywhere)"]
         WAC["WAC Access Control\n(Solid Protocol)"]
-        PROV["Immutable Provenance\n(content-addressed beads)"]
+        PROV["Provenance\n(content-addressed beads)"]
     end
 
-    subgraph VC["VisionClaw — Knowledge Engineering"]
-        OWL["OWL 2 EL + SHACL\n(Whelk-rs + PROV-O)"]
+    subgraph VC["VisionClaw — Embodiment / Observation"]
+        OWL["OWL 2 EL + Whelk\n(SHACL-lite advisory)"]
         GPU["82 CUDA Kernels\n(semantic physics)"]
-        XR["Immersive XR\n(multi-user)"]
-        MCP_VC["7 Ontology MCP Tools\n(native)"]
+        XR["Immersive XR\n(multi-user, one renderer)"]
+        MCP_VC["7 Ontology MCP Tools"]
     end
 
-    subgraph AB["Agentbox — Harness Engineering"]
-        AGENTS["115 Agent Skills\n(manifest-driven)"]
+    subgraph AB["agentbox — Sovereign Runtime"]
+        AGENTS["116 Agent Skills\n(manifest-driven)"]
         NIX["Reproducible Runtime\n(Nix flakes)"]
-        TOOLS["180+ MCP Tools\n(browser, 3D, media, data)"]
-        BRIDGE["12 MCP Ontology Tools\n(SPARQL bridge → VisionClaw)"]
-        PRIV["Privacy Filter\n(PII redaction)"]
+        MEM["RuVector Memory\n(1.17M+ embeddings)"]
+        BRIDGE["12 MCP Ontology Tools\n(SPARQL bridge)"]
     end
 
-    subgraph PROTO["Protocol Infrastructure"]
+    subgraph PROTO["Protocol Layer"]
         SPR["solid-pod-rs\n(JSS Rust port, ~96% parity)"]
-        NRF["nostr-rust-forum\n(12 nostr-bbs-* crates)"]
-        FC["forum-config\n(operator overlay)"]
+        NRF["nostr-rust-forum\n(ACSP 31400-31405)"]
     end
 
-    subgraph EDGE["DreamLab Edge Deployment"]
-        CF["Cloudflare Workers\n(5 Rust workers)"]
-        FORUM["Leptos Forum\n(WASM, 19 routes)"]
-        SITE["React Marketing\n(Vite SPA)"]
+    subgraph EDGE["DreamLab Edge"]
+        SITE["dreamlab-ai-website\n(thin forum-kit consumer)"]
     end
 
     VC <--> VF
@@ -155,8 +100,7 @@ flowchart TB
     PROTO <--> VF
     EDGE <--> VF
 
-    VC <-.->|"Broker Bridge\ngraph-state ingress\ngit enrichment"| AB
-    PROTO -->|"kit crates"| EDGE
+    VC <-.->|"case queue\ngraph-state ingress"| AB
     SPR -->|"dep"| NRF
     SPR -->|"dep"| AB
     SPR -->|"dep"| VC
@@ -168,657 +112,85 @@ flowchart TB
     style EDGE fill:#2a1a0a,stroke:#f59e0b,color:#fff
 ```
 
-</details>
-
-Every actor — human, agent, server, worker — is identified by a single secp256k1 keypair expressed as `did:nostr:<hex-pubkey>`. This identity is:
-
-- **Gated at the relay** by a pubkey allowlist (the relay advertises `auth_required:false`; NIP-42 AUTH answering exists in the WASM client, not the edge relay)
-- **Verified at every HTTP request** via NIP-98 Schnorr signatures (URL + method + body hash binding)
-- **Evaluated against WAC ACLs** on every Solid pod read/write
-- **Embedded in every provenance bead** as the event author
-- **Resolvable as a DID Document** at `/.well-known/did.json`
-
-No shared session store. No token exchange between tiers. The cryptographic primitive is the coordination primitive.
-
-![DID:Nostr Identity Spine](assets/generated/identity-spine.png)
+That single keypair is gated at the relay by a pubkey allowlist, verified at every HTTP request via NIP-98 Schnorr signatures, evaluated against WAC ACLs on every pod read/write, embedded in every provenance bead as author, and resolvable as a DID Document at `/.well-known/did.json`. The full contract is in [`docs/protocol/identity-spine.md`](docs/protocol/identity-spine.md).
 
 ---
 
-### VisionClaw — Knowledge Engineering
+## Quickstart
 
-![VisionClaw GPU-accelerated graph](assets/screenshots/visionclaw-graph-live.png)
+VisionFlow has no application runtime of its own — it is the canon repo. There are two honest things to do here.
 
-*GPU-accelerated force-directed graph — the live 17,000+-node nucleus responding to spring, repulsion, and ontology-driven semantic forces in real time*
+**1. Build and verify the marketing website locally.** The site is a Rust/WASM build under `website/`, driven from `package.json`:
 
-The shared semantic substrate where humans and agents reason together. [VisionClaw](https://github.com/DreamLab-AI/VisionClaw) ingests knowledge from Logseq notebooks via GitHub, applies OWL 2 EL formal reasoning through [Whelk-rs](https://github.com/INCATools/whelk-rs), renders it as an interactive 3D graph where nodes attract or repel based on semantic relationships, and exposes everything to AI agents through 7 Model Context Protocol tools.
-
-| Capability | Detail |
-|:-----------|:-------|
-| **Ontology reasoning** | OWL 2 EL inference engine (Whelk-rs) + W3C SHACL shape validation (dual-mode gate) — `subClassOf` → attraction, `disjointWith` → repulsion in GPU physics |
-| **GPU physics** | 82 CUDA kernels across 9 files (5,854 LOC), 55x speedup vs CPU, force-directed + semantic forces + stress majorisation |
-| **Immersive XR** | Native Godot 4 + godot-rust + OpenXR client (Meta Quest 3 APK) + React Three Fiber (desktop), same binary protocol and `did:nostr` identity for multi-user presence |
-| **MCP tools** | 7 ontology tools: discover, read, query, traverse, propose, validate, status |
-| **W3C provenance** | PROV-O reified as queryable RDF in append-only named graph — every decision traceable via SPARQL |
-| **Hexagonal architecture** | 9 ports, 12 adapters, 44 hexser handlers (19 directive + 25 query), no CQRS bus (ADR-089), 35 Actix actors |
-| **GPU analytics** | K-Means clustering, Louvain communities, LOF anomaly detection, PageRank centrality — all on GPU |
-
-**Key insight:** The ontology isn't just metadata. When `subClassOf` creates attraction and `disjointWith` creates repulsion in the GPU physics engine, the graph's spatial layout *is* the reasoning result. Humans see patterns emerge; agents traverse them algorithmically. The same formal vocabulary means "Deliverable" has the same meaning for a Creative Production agent and a Governance agent.
-
-### Agentbox — Harness Engineering
-
-![Agentbox](assets/diagrams/agentbox-overview.png)
-
-The reproducible, hardened runtime for sovereign AI agents. [Agentbox](https://github.com/DreamLab-AI/agentbox) provides the container, the tools, the cryptographic identity, and the privacy guarantees.
-
-| Capability | Detail |
-|:-----------|:-------|
-| **Manifest-driven** | One `agentbox.toml`, one Nix flake — byte-for-byte identical containers. No `npm install` at runtime |
-| **Sovereign data** | BIP-340 secp256k1 keypair at bootstrap → `did:nostr` identity root → 18 URN kinds for every entity |
-| **Privacy filter** | Embedded 1.5B-parameter MoE model redacts PII before any data reaches storage or logs |
-| **Five-slot adapters** | Swap standalone (SQLite + local JSONL) ↔ federated (PostgreSQL pgvector + VisionClaw beads) by editing TOML |
-| **180+ tools** | Browser automation, 3D modelling, geospatial, media, data science — all Nix packages, gated by manifest |
-| **115 skills** | Claude Code, Codex, Gemini, DeepSeek, ruflo — with Playwright, ComfyUI, QGIS, Blender, LaTeX, Jupyter |
-
-**Key insight:** Most agent runtimes are tool collections with no provenance, privacy, or reproducible state. Agentbox generates a cryptographic identity root at bootstrap and stamps every action, memory, and event with that identity. When the agent writes to its embedded Solid pod, the data is cryptographically owned. When it leaves the mesh, it takes its data with it.
-
-```mermaid
-flowchart TB
-    KP["secp256k1 keypair\n(BIP-340 x-only)"]
-    HEX["64-char hex pubkey"]
-    DID["did:nostr:hex-pubkey"]
-    KP --> HEX --> DID
-
-    subgraph surfaces["Identity Surfaces"]
-        POD["Solid pod (WAC agent)"]
-        RELAY["Nostr relay (NIP-98 + allowlist)"]
-        DIDDOC["DID Document\n(/.well-known/did.json)"]
-    end
-
-    subgraph urns["Owner-Scoped URNs"]
-        CRED["urn:agentbox:credential"]
-        ACTIVITY["urn:agentbox:activity"]
-        BEAD["urn:agentbox:bead"]
-        MANDATE["urn:agentbox:mandate"]
-    end
-
-    DID --> surfaces
-    DID --> urns
-
-    style KP fill:#0a2a1a,stroke:#10b981,color:#fff
-    style DID fill:#1a1a2e,stroke:#e94560,color:#fff
-    style surfaces fill:#0a1a2a15,stroke:#00d4ff
-    style urns fill:#1a0a2a15,stroke:#8b5cf6
+```bash
+npm ci
+npm run build     # runs website/build.sh — wasm-pack builds both WASM crates, writes website/dist/
+npm run verify    # build + CDP sidecar check + Playwright site tests (see docs/site-verification.md)
 ```
 
-### solid-pod-rs — Cryptographic Foundation
+`npm run verify` expects the external Chrome sidecar (`npm run check:sidecar` probes `/json/version`); CI uses the same sidecar and installs no local Chromium. Verification status against the website PRD lives in [`docs/site-verification.md`](docs/site-verification.md).
 
-The Rust-native port of [JavaScriptSolidServer (JSS)](https://github.com/JavaScriptSolidServer/JavaScriptSolidServer), Melvin Carvalho's AGPL-3.0 reference implementation of the Solid Protocol. [solid-pod-rs](https://github.com/DreamLab-AI/solid-pod-rs) (`0.5.0-alpha.4`) delivers ~96% strict parity with JSS as a framework-agnostic Rust library. (Parity is measured against the 207-row `PARITY-CHECKLIST.md` tracker; the earlier "~98%" headline predates the tracker's row additions and denominator recount.)
+**2. Run the real systems — from their own repositories.** The runtime lives in the siblings, each with its own README and build path:
 
-![solid-pod-rs Architecture](assets/diagrams/solid-pod-rs-architecture.png)
-
-| Capability | Detail |
-|:-----------|:-------|
-| **Solid Protocol** | LDP CRUD, WAC access control, WebID profiles, content negotiation (Turtle ↔ JSON-LD) |
-| **DID:Nostr** | Tier 1 (pubkey → DID Doc), Tier 3 (DID ↔ WebID cross-verification via `alsoKnownAs`) |
-| **Authentication** | NIP-98 Schnorr, Solid-OIDC (DPoP), LWS 1.0 / W3C CID v1, WebAuthn passkeys |
-| **Block-trails** | Bitcoin taproot-anchored (BIP-341), JCS-canonicalised, hash-chained provenance — tamper-evident, externally verifiable. MRC20 token chains are one instance of the general `ProvenanceTrail` |
-| **Git-marks** | Write-as-commit provenance — every pod mutation lands as a git commit, so the pod is its own append-only audit log |
-| **HTTP 402 Web Ledgers** | PaymentCondition in WAC ACLs, per-read micropayments, MRC20 token chains, `did:nostr`-keyed balances |
-| **Dual compile** | Native (Tokio) and WASM (Cloudflare Workers) via `core` feature flag — same crate, edge and server |
-| **Git-auto-init** | Pods are clone-able git repositories at provisioning (native deployments) |
-
-**Key insight:** solid-pod-rs doesn't just store data — it makes data *sovereign and verifiable*. WAC ACLs evaluated against `did:nostr` identities mean the pod owner controls access cryptographically. Two provenance primitives live at the lowest level of the substrate: **git-marks** (cheap, every write is a commit) and **block-trails** (a Bitcoin taproot anchor for high-value or disputed records). Together they make the pod layer a **global trust ledger** — a sovereign, Bitcoin-settled, value-transfer and provenance substrate across the whole VisionFlow ecosystem. If an organisation leaves the mesh, it takes its data — and its verifiable history — with it.
-
-<details>
-<summary><strong>JSS Protocol Extensions (beyond core Solid spec)</strong></summary>
-
-These extensions originate from Melvin Carvalho's upstream JSS work. solid-pod-rs tracks all of them:
-
-- **ActivityPub federation** — pods federate with Mastodon-compatible servers via HTTP Signatures
-- **Embedded identity provider** — full Solid-OIDC IdP (authorization-code flow, DPoP, JWKS)
-- **Git HTTP backend** — clone/push to pod containers directly; git-marks turn every write into a commit
-- **Nostr integration** — NIP-98 auth, `did:nostr` resolution, embedded NIP-01 relay
-- **HTTP 402 payments** — `did:nostr`-keyed webledger balances, MRC20 token trails, BIP-341 anchoring
-- **Block-trails** — Bitcoin taproot-anchored, hash-chained `ProvenanceTrail` for tamper-evident records
-- **End-to-end encryption** — NIP-44 client-side via `did:nostr` keys (zero server-side changes)
-- **LWS 1.0 / W3C CID v1** — self-signed JWT auth aligned with W3C Linked Web Storage spec
-
-The SAND stack (Solid + ActivityPub + Nostr + DID) creates a verifiable identity link across all four ecosystems through the `alsoKnownAs` triple on ActivityPub Actor profiles.
-
-</details>
-
-### nostr-rust-forum — Governance UI and Relay Kit
-
-The full-stack forum kit built on Nostr. [nostr-rust-forum](https://github.com/DreamLab-AI/nostr-rust-forum) provides passkey-first authentication, zone-based access control, and the Agent Control Surface Protocol — the governance bridge between agents and humans.
-
-| Capability | Detail |
-|:-----------|:-------|
-| **12 crates** | core, config, mesh, setup-skill, auth-worker, pod-worker, preview-worker, relay-worker, search-worker, rate-limit, forum-client, upstream-canary |
-| **Passkey-first auth** | WebAuthn PRF → HKDF → secp256k1 — passkey *is* the Nostr keypair |
-| **5 Cloudflare Workers** | Auth, pod, relay (Durable Objects), preview, vector search |
-| **Leptos WASM client** | 19 pages, 60+ components, admin panel, governance dashboard with PanelRegistry |
-| **Agent Control Surface** | Kinds 31400-31405 — agents publish control panels, humans approve/reject with NIP-98 signatures |
-| **Federated NIP-05** | Resolves against D1 whitelist first, falls back to user's pod over HTTP |
-| **Governance D1 schema** | 4 tables: agent_registry, broker_cases, governance_roles, governance_actions |
-
-### DreamLab Edge — Branded Deployment
-
-The user-facing surface: [dreamlab-ai-website](https://github.com/DreamLab-AI/dreamlab-ai-website) — React SPA, Leptos WASM forum, and five Cloudflare Workers. Consumes protocol infrastructure as library crates. Demonstrates VisionFlow at production scale on [dreamlab-ai.com](https://www.dreamlab-ai.com).
+| Want to run… | Clone | Build path |
+|:-------------|:------|:-----------|
+| The 3D knowledge-graph engine | [VisionClaw](https://github.com/DreamLab-AI/VisionClaw) | Docker + CUDA host |
+| A sovereign agent runtime | [agentbox](https://github.com/DreamLab-AI/agentbox) | Nix flake container |
+| A personal Solid pod server | [solid-pod-rs](https://github.com/DreamLab-AI/solid-pod-rs) | `cargo build` |
+| The forum + relay + governance UI | [nostr-rust-forum](https://github.com/DreamLab-AI/nostr-rust-forum) | Cloudflare Workers + Leptos |
 
 ---
 
-## The Judgment Broker
+## Documentation
 
-The Judgment Broker is VisionFlow's cross-substrate business decision system. It spans three repositories — VisionClaw's broker domain kernel and case queue (case triage + ontology grounding through the `ElevationActor` and the `/api/broker` inbox/decide surface, ADR-110), nostr-rust-forum's governance dashboard (human decision surface), and Agentbox's Nostr Bridge (agent relay subscriber). Together they create a human-in-the-loop governance plane that is immutable by construction.
+Everything below is local to this repository and verified present on disk.
 
-The broker kernel, case queue and per-agent steering surface ship on VisionClaw `main` (commit `c9f2e3539`, cherry-picked this sprint). The earlier *distributed* `BrokerActor` design (a Neo4j-backed actor on the unmerged `crashbug` branch) is **superseded** (ADR-130) and is not the shipped architecture — main runs the inline `ElevationActor` + decide/inbox handler. The end-to-end case round-trip has been exercised in-container against a live relay; the production live-session canary is still pending.
+| Document | What it holds |
+|:---------|:--------------|
+| [`docs/README.md`](docs/README.md) | Docs index — ADR-002, the PRDs, compatibility matrix, roadmap |
+| [`docs/ecosystem-map.md`](docs/ecosystem-map.md) | Synthesis of the sibling repositories, system flows and gap register |
+| [`docs/roadmap.md`](docs/roadmap.md) | Phased roadmap from docs honesty to mesh proof and operations |
+| [`docs/architecture/repository-map.md`](docs/architecture/repository-map.md) | Local path and role map for the federated repositories |
+| [`docs/architecture/licensing.md`](docs/architecture/licensing.md) | Licence boundaries across the ecosystem |
+| [`docs/protocol/identity-spine.md`](docs/protocol/identity-spine.md) | The shared `did:nostr` identity contract |
+| [`docs/site-verification.md`](docs/site-verification.md) | Website verification status against the PRD acceptance criteria |
+| [`docs/closeout/final-design.md`](docs/closeout/final-design.md) | The 2026-07-03 closeout audit — the honest source for what is shipped versus overstated |
+| [`MAINTAINERS.md`](MAINTAINERS.md) | Maintainers and upstream IP attribution |
 
-![Judgment Broker — Agent Control Surface Protocol](assets/generated/judgment-broker.png)
-
-<details>
-<summary>View as interactive diagram</summary>
-
-```mermaid
-sequenceDiagram
-    participant Agent as Agent (Agentbox)
-    participant Relay as Nostr Relay Mesh
-    participant Broker as Broker Kernel (VisionClaw)
-    participant Forum as Governance Dashboard (Forum)
-    participant Human as Human Decision-Maker
-
-    Agent->>Relay: kind 31400 PanelDefinition
-    Note over Agent,Relay: Agent declares a control panel<br/>(schema, fields, actions, layout)
-    Relay-->>Broker: subscription (31400-31405)
-    Relay-->>Forum: subscription (31400-31405)
-
-    Agent->>Relay: kind 31402 ActionRequest
-    Note over Agent,Relay: "I need approval to proceed<br/>with this procurement"
-    Relay-->>Forum: render decision surface
-    Forum->>Human: contextualised escalation with provenance
-
-    Human->>Forum: approve/reject/configure
-    Forum->>Relay: kind 31403 ActionResponse (NIP-98 signed)
-    Note over Forum,Relay: Cryptographically signed by<br/>human's secp256k1 key
-
-    Relay-->>Agent: subscription on kind 31403
-    Agent->>Agent: execute or abort based on response
-    Relay-->>Broker: governance audit trail (immutable)
-```
-
-</details>
-
-| Kind | Name | Direction | Purpose |
-|:-----|:-----|:----------|:--------|
-| 31400 | PanelDefinition | Agent → Relay | Declare a control panel (schema, fields, actions, layout) |
-| 31401 | PanelState | Agent → Relay | Publish current panel data snapshot |
-| 31402 | ActionRequest | Agent → Relay | Request a human decision (approve/reject/configure) |
-| 31403 | ActionResponse | Human → Relay | Respond with NIP-98 signed decision |
-| 31404 | PanelUpdate | Agent → Relay | Incremental state diff |
-| 31405 | PanelRetired | Agent → Relay | Retire a control panel |
-
-**Governance is an accelerant, not a bottleneck.** When agents know their authority boundary and surface exceptions cleanly, the 90% of decisions that don't need human judgment flow without friction. The 10% that do get clean, contextualised escalation with full provenance. Every governance decision is an immutable Nostr event with a `prior_decision_id` chain — auditors traverse from any point back to first principles. This isn't an audit log; it's a structural guarantee.
-
-### Cross-Substrate Event Kinds
-
-| Kind Range | Owner | Purpose |
-|:-----------|:------|:--------|
-| 1, 4, 42 | Forum users | Text notes, DMs, channel messages |
-| 27235 | Any authenticated actor | NIP-98 HTTP auth tokens |
-| 30001 | VisionClaw | Provenance beads (content-addressed) |
-| 30910-30916 | Forum admins | Moderation (ban, mute, warning, report) |
-| 31400-31405 | Registered agents | Agent Control Surface (panel, state, action, response) |
-| 38000-38201 | Agentbox agents | Agent intent, job estimates, settlements |
+Longer-form: the canonical vision report is under [`presentation/report`](presentation/report/) (LaTeX `main.tex`), the pitch decks in [`pitch/`](pitch/), and the packaged PDFs in [`pdf-reports/`](pdf-reports/).
 
 ---
 
-## Coordination Topology
+## Status & remaining work
 
-![Coordination Topology](assets/generated/coordination-topology.png)
+*Dated 2026-07-22. Maturity words pinned to the ADR-002 ladder (historical / planned / scaffolded / standalone / integrated / federation-verified / released). The canonical work register is VisionClaw's `docs/TODO-unified.md`; this table cites it and does not contradict it. Where the running code falls short of the principle, that is stated in the same breath — that is the house voice, not a footnote.*
 
-<details>
-<summary>View as interactive diagram</summary>
+| Capability | Maturity | Honest boundary |
+|:-----------|:---------|:----------------|
+| OWL 2 EL + Whelk reasoning (VisionClaw) | integrated | Real and running — 5,975 classes. |
+| W3C SPARQL query | integrated | Real (Oxigraph). No Neo4j anywhere — that is retired. |
+| **SHACL shape validation** | **scaffolded** | **"Lite" — an inline Rust matcher, advisory-only gating. The five `.shacl.ttl` NodeShapes are authored but not loaded into Oxigraph. It is not a "dual-mode gate".** |
+| **PROV-O provenance** | **scaffolded** | **URN-based today, not yet reified as queryable RDF triples. The reification emitter has zero production callers. Do not read "every decision traceable via SPARQL" into this.** |
+| GPU graph physics | released | 82 CUDA kernels / 9 `.cu` files / 5,854 LOC. ~17k nodes live (17,147 captured); higher figures are benchmarked capacity, not live count. |
+| Hexser handlers / Actix actors | released | 44 handlers (19 directive + 25 query); 35 Actix actors; 9 ports / 12 adapters — re-verified against the live tree. |
+| `did:nostr` identity spine | integrated | One keypair as login + WAC principal + provenance author + DID subject + payment account. |
+| ACSP signed governance (kinds 31400–31405) | integrated | Six-kind protocol live; only the admin key publishes a Decision (31403). Serves one use case today — ontology concept elevation, capped at 5 concurrent — narrower than "universal human-in-the-loop". |
+| agentbox skills | released | **116** skills (validator schema fix landed 2026-07-22, C-6). Every "115" copy is stale. |
+| RuVector semantic memory | released | 1.17M+ embeddings. |
+| Sovereign mesh (agentbox, allowlisted relay) | integrated (single-node) | Condense scheduler + relay allowlist live. Allowlist baked but inert until the T-6 image rebuild for full exposure. Cross-relay / cross-org federation: designed, not shipped. |
+| Cross-org mesh federation | planned | Designed, not shipped — the `nostr-bbs-mesh` `MeshTransport`, peer discovery and IS-Envelope routing are scaffold-only, parked until a transport is wired into the relay. |
+| Judgment Broker | integrated | Runs as an `ElevationActor` / case queue on VisionClaw `main` — not the originally designed distributed `BrokerActor` (superseded, ADR-130). The case round-trip has been exercised in-container; the production live-session canary is still pending. |
+| Forum NIP-42 relay AUTH | scaffolded | Currently a pubkey allowlist, not enforced NIP-42 challenge/response. Buzz is ahead here. |
 
-```mermaid
-flowchart LR
-    subgraph SITE["dreamlab-ai.com (Cloudflare Edge)"]
-        RW["Relay Worker\n(NIP-01 WS · pubkey allowlist)"]
-        AW["Auth Worker\n(WebAuthn + NIP-98)"]
-        PW["Pod Worker\n(R2 Solid Pods)"]
-    end
-
-    subgraph VC_HOST["VisionClaw (GPU Host)"]
-        BA["Broker Kernel + Case Queue\n(ElevationActor, /api/broker)"]
-        SNA["ServerNostrActor\n(signs 31400/31402)"]
-        PHYSICS["ForceComputeActor\n(60Hz CUDA)"]
-    end
-
-    subgraph AB_HOST["Agentbox (Agent Container)"]
-        NB["Nostr Bridge\n(relay subscriber)"]
-        SP["Solid Pod Server\n(:8484)"]
-        MA["Management API\n(:9090, 115 skills)"]
-    end
-
-    subgraph TUNNEL["Cloudflare Tunnel"]
-        CFT["cloudflared-pod\n→ agentbox:8484"]
-    end
-
-    RW <-->|"pubkey allowlist\ngovernance kinds\n31400-31405"| SNA
-    RW <-->|"pubkey allowlist\nagent kinds\n38000-38201"| NB
-    BA -->|"kind 31400\nPanelDefinition"| SNA
-    AW -->|"PSK provision\n/_admin/provision"| SP
-    SP <-->|"CF Tunnel"| CFT
-    MA <-->|"Broker Bridge\ngit enrichment"| BA
-
-    style SITE fill:#f59e0b15,stroke:#f59e0b
-    style VC_HOST fill:#00d4ff15,stroke:#00d4ff
-    style AB_HOST fill:#8b5cf615,stroke:#8b5cf6
-    style TUNNEL fill:#10b98115,stroke:#10b981
-```
-
-</details>
-
-### Two-Tier Pod Architecture
-
-| Tier | Host | Storage | Git | Provisioning | Identity |
-|:-----|:-----|:--------|:----|:-------------|:---------|
-| **CF Workers** | Cloudflare edge | R2 + KV | No (runtime limitation) | Auto at registration | `did:nostr` |
-| **Native (Agentbox)** | Docker + CF Tunnel | Host filesystem | Yes (`/_git/<pk>/`) | Admin PSK via auth-worker | `did:nostr` |
-
-Both tiers verify NIP-98 independently. Same passkey-derived keypair authenticates to both. No shared session store, no token exchange. The identity is portable because the cryptographic primitive is portable.
+For the full grading and the wager — every open gap becoming a dated, falsifiable commitment — see [`docs/closeout/final-design.md`](docs/closeout/final-design.md) (2026-07-03 audit, Theme T7) and VisionClaw's `docs/TODO-unified.md`.
 
 ---
 
-## Scaling Model
+## Upstream & licence
 
-VisionFlow scales along three axes simultaneously:
+VisionFlow's protocol layer builds on [Melvin Carvalho](https://github.com/melvincarvalho)'s [JavaScriptSolidServer (JSS)](https://github.com/JavaScriptSolidServer/JavaScriptSolidServer) and [DID:Nostr](https://github.com/nicholasgasior/did-nostr). solid-pod-rs is a Rust port; protocol-level decisions defer to upstream JSS. The SAND stack — **S**olid + **A**ctivityPub + **N**ostr + **D**ID — binds a WebID, a Nostr pubkey and a DID document into one verifiable identity chain via the `alsoKnownAs` triple.
 
-```mermaid
-flowchart TB
-    subgraph SINGLE["Single Operator"]
-        AB1["Agentbox\n(standalone)"]
-    end
-
-    subgraph TEAM["Team (50 people)"]
-        VC1["VisionClaw\n(shared ontology)"]
-        AB2["Agentbox\n(agent pool)"]
-        FORUM1["Forum\n(governance UI)"]
-        VC1 <--> AB2
-        VC1 <--> FORUM1
-    end
-
-    subgraph ENTERPRISE["Federated Enterprise"]
-        subgraph ORG_A["Organisation A"]
-            VC_A["VisionClaw"]
-            AB_A["Agentbox ×N"]
-        end
-        subgraph ORG_B["Organisation B"]
-            VC_B["VisionClaw"]
-            AB_B["Agentbox ×N"]
-        end
-        subgraph ORG_C["Organisation C"]
-            AB_C["Agentbox ×N"]
-        end
-        ORG_A <-->|"relay mesh\ndid:nostr trust"| ORG_B
-        ORG_B <-->|"relay mesh\ndid:nostr trust"| ORG_C
-        ORG_A <-->|"relay mesh"| ORG_C
-    end
-
-    SINGLE -.->|"add VisionClaw\n+ forum"| TEAM
-    TEAM -.->|"federate\nrelay mesh"| ENTERPRISE
-
-    style SINGLE fill:#0a2a1a15,stroke:#10b981
-    style TEAM fill:#0a1a2a15,stroke:#00d4ff
-    style ENTERPRISE fill:#1a0a2a15,stroke:#8b5cf6
-```
-
-### Token Efficiency (Single Operator)
-
-One Agentbox in standalone mode. Local SQLite beads, local Solid pod, local JSONL events. 115 skills available, 180+ tools, privacy filter active. A single operator solving tasks with AI agents — token-efficient because the agent has sovereign tools, persistent memory, and doesn't need to rediscover context each session.
-
-**Cost profile:** One API key. One container. Minutes to deploy.
-
-### Governed Collaboration (Team)
-
-VisionClaw + forum + Agentbox on a shared relay mesh. The ontology provides shared vocabulary. The Judgment Broker provides human oversight. Agents publish control panels; humans approve actions. Every mutation passes through a GitHub PR. Every agent decision traces back through provenance beads.
-
-**Cost profile:** One GPU host (VisionClaw), one agent container (Agentbox), Cloudflare Workers (forum). 50-person team validated at DreamLab.
-
-### Federated Intelligence (Enterprise / Cross-Organisation)
-
-Multiple Agentbox instances federated via the Nostr relay mesh. Governance event kinds (31400-31405) propagate across substrates. Each node is independently hardened (Nix reproducible, read-only filesystem, capability-dropped, seccomp-profiled). Nodes trust each other via `did:nostr` identity verification, not network topology.
-
-**Shipped vs designed:** single-operator and team deployments run today; this cross-organisation mesh is *designed, not shipped*. Standalone-first is the supported deployment mode (canon F9 fork decision) — the `nostr-bbs-mesh` `MeshTransport`, cross-relay peer discovery and IS-Envelope routing are scaffold-only and parked until a transport implementation is wired into the relay.
-
-**Cost profile:** Horizontal. Add nodes. Each node is sovereign — it owns its data, controls its agents, sets its trust thresholds. The mesh coordinates; no node controls.
-
----
-
-## Federation Transports
-
-The five substrates communicate over three independent transport strata. Each stratum provides a different trust and reachability profile — operators choose which to enable based on their deployment.
-
-**Standalone-first is the supported mode.** Three of the four runtime substrates default to standalone (agentbox `[mesh] mode = "standalone"`, solid-pod-rs with an embedded NIP-01 relay, and nostr-rust-forum); only the DreamLab website fans out (a 1/4 federated-by-default tally). The per-substrate relay clients described below are real, but the *cross-relay mesh that federates them* — peer discovery and the `nostr-bbs-mesh` `MeshTransport` — is **designed, not shipped** (canon F9). Relay writes are gated by a pubkey allowlist, not a NIP-42 AUTH challenge: the relay deliberately advertises `auth_required:false` and enforces the whitelist instead (documented reconciliation).
-
-```mermaid
-graph TB
-    subgraph "Stratum 1 — Tailscale (Private Mesh)"
-        AB1["Agentbox A"] <-->|"WireGuard\nMagicDNS"| AB2["Agentbox B"]
-        AB1 <-->|"WireGuard"| SPR["solid-pod-rs"]
-    end
-
-    subgraph "Stratum 2 — Nostr Relays (All Components)"
-        AB3["Agentbox"] <-->|"NIP-01 WS"| RELAY["Nostr Relay\n(private or public)"]
-        NRF["nostr-rust-forum\n(CF Workers)"] <-->|"NIP-01 WS"| RELAY
-        VC["VisionClaw\nBroker Kernel"] <-->|"NIP-01 WS"| RELAY
-        SPR2["solid-pod-rs\npod-inbox bridge"] <-->|"NIP-01 WS"| RELAY
-    end
-
-    subgraph "Stratum 3 — Cloudflare Tunnels (Edge ↔ Local)"
-        CF["Cloudflare Edge"] -->|"HTTPS tunnel"| SPR3["solid-pod-rs\n(local)"]
-        CF -->|"HTTPS tunnel"| AB4["Agentbox\n(local)"]
-        DW["dreamlab-ai-website\n(CF Pages)"] --> CF
-        NRF2["nostr-rust-forum\n(CF Workers)"] --> CF
-    end
-```
-
-### Stratum 1 — Tailscale (Private Mesh)
-
-WireGuard-encrypted overlay network for infrastructure-to-infrastructure traffic. Each agentbox container joins the tailnet with its own identity (`--tun=userspace-networking`). solid-pod-rs servers join at the host level. MagicDNS hostnames (`agentbox.tailnet-name.ts.net`, `solid-pods.tailnet-name.ts.net`) provide service discovery without DNS infrastructure.
-
-**Participants:** Agentbox ↔ Agentbox, Agentbox ↔ solid-pod-rs. CF Workers services (nostr-rust-forum, dreamlab-ai-website) cannot join a tailnet.
-
-**Trust model:** Tailscale ACLs control access. `did:nostr` signatures are not evaluated at this layer — the tailnet membership *is* the trust boundary.
-
-### Stratum 2 — Nostr Relays (All Components)
-
-The universal coordination bus. Every substrate speaks NIP-01 WebSocket; HTTP requests are authenticated with NIP-98 `did:nostr` signatures, and relay writes are gated by a pubkey allowlist (`auth_required:false` — the NIP-42 AUTH gate is not enforced at the edge relay). Operators can run private relays (embedded in agentbox at `:7777`) or use the public Nostr network for censorship-resistant message passing.
-
-**Participants:** All five substrates. The Judgment Broker (VisionClaw), governance dashboards (nostr-rust-forum), agent relay bridges (agentbox), pod-inbox bridges (solid-pod-rs), and forum workers (dreamlab-ai-website) all publish and subscribe to relay event streams.
-
-**Trust model:** Schnorr signatures over secp256k1 (`did:nostr`). Messages are authenticated regardless of transport — private relay, public relay, or relayed through multiple hops. This is the censorship-resistance layer: if Tailscale is unavailable and CF tunnels are blocked, Nostr relay traffic over the public internet still works.
-
-### Stratum 3 — Cloudflare Tunnels (Edge ↔ Local)
-
-HTTPS tunnels that expose local services (solid-pod-rs, agentbox management API) to Cloudflare's edge network. CF Workers and CF Pages services (nostr-rust-forum, dreamlab-ai-website) reach local infrastructure through these tunnels without exposing ports to the public internet.
-
-**Participants:** CF edge services → local solid-pod-rs, CF edge services → local agentbox. The tunnel is one-directional: local services don't initiate connections through the tunnel.
-
-**Trust model:** Cloudflare Access policies + NIP-98 signatures. The tunnel provides transport security; `did:nostr` provides request authentication.
-
-### Stratum Interaction
-
-The strata are complementary, not competing:
-
-| Scenario | Strata Used |
-|---|---|
-| Two agentboxes in the same org | 1 (Tailscale) + 2 (Nostr relay) |
-| Forum user reads a pod resource | 3 (CF tunnel to solid-pod-rs) |
-| Agent publishes governance event | 2 (Nostr relay to all subscribers) |
-| Agent pushes to its pod over tailnet | 1 (Tailscale to solid-pod-rs) |
-| External user clones a public pod | 3 (CF tunnel) |
-| Cross-org agent coordination | 2 (public Nostr relays for censorship resistance) |
-| Agent syncs with VisionClaw graph | 1 (Tailscale) + 2 (Nostr relay for events) |
-
----
-
-## Why This Architecture
-
-### Platform Agnostic
-
-solid-pod-rs compiles to both native Rust (Tokio) and WASM (Cloudflare Workers). The same crate powers edge pods on R2 and native pods on host filesystems. Agents run in Nix containers on any Linux host. The forum runs on CF Workers. VisionClaw runs on any CUDA-capable machine. No vendor lock-in at any layer.
-
-### Self-Sovereign Data
-
-Every actor owns a Solid pod. WAC ACLs — evaluated against `did:nostr` identities — control access. The pod is the canonical data store; the relay mesh is the coordination transport. If an organisation leaves the mesh, it takes its data with it. No migration. No export. The data was always theirs.
-
-### Provenance by Construction
-
-Every write is signed. Every event is content-addressed. Every governance decision is an immutable Nostr event with a `prior_decision_id` provenance chain. At the pod substrate, **git-marks** record each write as a commit and **block-trails** anchor high-value records to Bitcoin via taproot (BIP-341) — a global trust ledger that any party, including an adversarial one, can independently verify. Auditors traverse the chain from any point back to first principles. This isn't an audit log — it's a structural guarantee.
-
-### Value Transfer on the Agentic Mesh
-
-Provenance and value travel the same rails. Once every actor is a `did:nostr` identity and every write is anchored, the mesh can move not just messages but **value and trust** between sovereign parties — without an EVM, a bridge, or a custodian.
-
-Think of it as **agentic mycelia**, a research arc the project has pursued since 2023: sovereign pods are the *nodes*, `did:nostr` agents are the connective *hyphae*, and block-trails are the *nutrient and signal flow* between them. Across that living Nostr mesh:
-
-- **Identity is the key.** A single secp256k1 keypair (`did:nostr`) is the WAC principal, the relay identity, the payment account, and the provenance author. No OIDC redirect, no token exchange.
-- **Settlement is Bitcoin-native.** A `did:nostr`-keyed HTTP 402 web-ledger and MRC20 trails meter value per request; Lightning / L402 rails carry the micropayments. Sats, not gas. No EVM, no speculative token.
-- **Trust is portable.** A block-trail anchored to a taproot UTXO is a single-use, externally verifiable commitment. The receipt for an agent's action is as durable as the Bitcoin chain it settles on.
-
-The tooling is real, not a roadmap: [solid-pod-rs](https://github.com/DreamLab-AI/solid-pod-rs) pods hold the data and the trails; the Oxigraph-backed knowledge graph holds the shared meaning; [ACSP](#the-judgment-broker) keeps a human in the loop for elevation and high-stakes spend; the native Godot 4 XR client renders the mesh at room scale; and [Agentbox](#agentbox--harness-engineering) agents are the actors that earn, spend, and sign.
-
-```mermaid
-sequenceDiagram
-    participant Agent as did:nostr Agent (Agentbox)
-    participant Pod as Sovereign Pod (solid-pod-rs)
-    participant Ledger as 402 Web Ledger (MRC20 / L402)
-    participant Chain as Bitcoin (taproot anchor)
-
-    Agent->>Pod: write result (NIP-98 signed)
-    Pod->>Pod: git-mark — commit the write
-    Agent->>Ledger: request gated resource (HTTP 402)
-    Ledger->>Ledger: debit did:nostr balance / settle over Lightning
-    Ledger-->>Agent: 200 + spend receipt
-    Pod->>Chain: anchor block-trail state (high-value record)
-    Chain-->>Pod: taproot UTXO commitment
-    Note over Agent,Chain: provenance + value share one did:nostr-keyed rail
-```
-
-### Privacy by Default
-
-Every Agentbox runs an embedded privacy filter — a 1.5B-parameter MoE model that intercepts every persistent write and redacts PII before it reaches storage, logs, or the mesh. The filter operates at the adapter layer, not the application layer, so it cannot be bypassed by new code paths.
-
-A sovereign, on-device **Private Email MCP Gateway** extends the same principle to the operator's personal mail: a *local* model reasons over the inbox and returns only privacy-sanitised, schema-abstracted results — never raw mail — so an agent can answer "did the supplier invoice me?" without the contents ever leaving the box.
-
-### Formal Reasoning, Not Just Search
-
-VisionClaw doesn't do keyword search — it does OWL 2 EL subsumption checking. When an agent asks "what is related to X?", the answer comes from a formal reasoner that understands `subClassOf`, `equivalentClass`, transitivity, and existential restrictions. The inference is provably correct within the Description Logic, not probabilistically approximate.
-
----
-
-## The Insight Ingestion Loop
-
-How shadow workflows become sanctioned organisational intelligence:
-
-```mermaid
-flowchart LR
-    D["DISCOVERY\nPassive agent monitoring\ndetects the pattern"]
-    C["CODIFICATION\nMaps the new path\nas a proposed DAG —\nOWL 2 formalised\nwith provenance"]
-    V["VALIDATION\nThe Judgment Broker\nreviews for strategic\nfit & bias"]
-    I["INTEGRATION\nPromoted to live mesh\nwith SLAs, ownership,\nquality"]
-    A["AMPLIFICATION\nMesh propagates\npattern to other\nteams where it applies"]
-
-    D --> C --> V --> I --> A
-
-    style D fill:#0A2A1A,stroke:#10B981
-    style C fill:#0A1A2A,stroke:#00D4FF
-    style V fill:#1A0A2A,stroke:#8B5CF6
-    style I fill:#0A1A2A,stroke:#00D4FF
-    style A fill:#0A2A1A,stroke:#10B981
-```
-
----
-
-## Strategic Positioning
-
-*Refer to the [Wardley map above](#visionflow) for visual context.*
-
-### Reading the Map
-
-A Wardley map positions components along two axes: **evolution** (left = novel, right = commodity) and **value chain** (top = user-visible, bottom = invisible infrastructure). The strategic insight is in *where the empty space is*.
-
-**The red zone (left)** is VisionFlow's Strategic Advantage Zone. Every differentiating capability — OWL 2 formal reasoning, GPU semantic physics, the Judgment Broker, cryptographic agent identity, Immersive XR — sits here because *no competitor has built them*. This isn't a sign of immaturity; it's a moat. Genesis positioning means first-mover advantage in capabilities that take years to replicate.
-
-**The grey zone (right)** is the Competitor Cluster. All 11 competing platforms — Google Spark, OpenAI Codex, Devin, Claude Code, OpenClaw, Hermes, CrewAI, AutoGen, LangGraph, Cursor, Jules — cluster in the Product/Commodity space. They compete on execution speed, model quality, and pricing. They differentiate on nothing structural. Switch one for another and your architecture doesn't change.
-
-**The evolution arrows** show where VisionFlow is actively investing to move capabilities rightward — from Genesis toward Product — making them accessible to broader adoption without surrendering the structural advantage:
-
-| Component | Current | Evolving Toward | What This Means |
-|:----------|:--------|:----------------|:----------------|
-| **OWL 2 Reasoning** | Genesis | Custom-Built → Product | Making formal reasoning accessible through MCP tools and the Insight Ingestion Loop — non-ontologists use it without knowing it |
-| **Agent Control Surface** | Genesis | Custom-Built | Standardising kinds 31400-31405 for broader adoption; potential NIP proposal |
-| **GPU Semantic Physics** | Genesis | Custom-Built | Ontology-driven forces moving from research prototype to production feature |
-| **DID:Nostr** | Custom-Built | Product | Pushing the identity bridge toward ecosystem-wide adoption |
-| **Nostr Relay Mesh** | Custom-Built | Product | Moving from standalone to federated mode for enterprise-scale deployment |
-| **Web Ledger Payments** | Genesis | Custom-Built | Building agent micropayment infrastructure for token-priced services |
-
-### Why This Matters
-
-**Competitors can't move left.** Adding formal reasoning, cryptographic identity, or self-sovereign data to an existing platform requires rearchitecting from the protocol layer up. Google Spark can't bolt on OWL 2 EL reasoning — it would need to rebuild its data model. CrewAI can't add `did:nostr` identity — it has no identity layer at all. These aren't features; they're architectural decisions that compound over time.
-
-**VisionFlow moves right naturally.** As each Genesis component matures through use, it becomes more accessible without losing its structural advantage. The Insight Ingestion Loop makes formal reasoning invisible to end users. The passkey-first auth makes `did:nostr` feel like "just logging in." The governance dashboard makes the Judgment Broker feel like "just approving a request." The complexity is real; the user experience hides it.
-
----
-
-## Competitive Landscape
-
-> 🟢 Protocol-native &ensp; 🟡 Partial / add-on &ensp; 🔴 Absent &ensp; ⚫ N/A
-
-| Platform | Crypto Identity | Data Sovereignty | Governance | Formal Reasoning | Federation | OSS |
-|:---------|:---:|:---:|:---:|:---:|:---:|:---:|
-| **VisionFlow** | 🟢 `did:nostr` | 🟢 Solid pods | 🟢 Judgment Broker | 🟢 OWL 2 EL | 🟡 Relay mesh (designed) | 🟢 |
-| Google Spark | 🔴 Google SSO | 🔴 Google Cloud | 🟡 Payment only | 🔴 LLM | 🔴 Google only | 🔴 |
-| OpenClaw | 🟡 Verifiable tokens | 🟢 Self-hosted | 🟡 Foundation | 🔴 LLM | 🟡 Multi-provider | 🟢 |
-| Claude Code | 🔴 Session | 🟡 Local files | 🟡 Permissions | 🔴 LLM | 🟡 MCP tools | 🟡 |
-| Hermes Agent | 🟡 Persistent ID | 🟢 Self-hosted | 🟡 Container hardening | 🔴 LLM | 🟡 Multi-provider | 🟢 |
-| OpenAI Codex | 🔴 Session | 🔴 Cloud sandbox | 🔴 Sandbox only | 🔴 LLM | 🔴 | 🟡 |
-| Google Jules | 🔴 Session | 🔴 GCP VMs | 🟡 PR review | 🔴 LLM | 🔴 | 🔴 |
-| Devin | 🔴 Session | 🔴 Cloud-hosted | 🟡 Human review | 🔴 LLM | 🔴 | 🔴 |
-| Cursor / Windsurf | 🔴 Session | 🟡 Local index | 🟡 Accept/reject | 🔴 LLM | 🔴 | 🔴 |
-| CrewAI | 🔴 None | 🟡 Self-hostable | 🟡 Delegation | 🔴 LLM | 🟡 MCP + A2A | 🟢 |
-| AutoGen / MAF | 🔴 Azure AD | 🟡 Self-hostable | 🟡 Checkpointing | 🔴 LLM | 🟡 MCP + A2A | 🟢 |
-| LangGraph | 🔴 None | 🟡 Self-hostable | 🟡 Human-in-loop | 🔴 LLM | 🟡 Multi-provider | 🟢 |
-
-**Three structural gaps** separate VisionFlow from the field:
-
-1. **Formal reasoning column is solid red.** Every competitor relies on probabilistic LLM inference. VisionFlow's OWL 2 EL subsumption produces provably correct entailments — not confident guesses.
-
-2. **Crypto identity column is solid red.** Only VisionFlow implements cryptographic agent identity at the protocol level. Every other platform ties identity to someone else's server.
-
-3. **Federation is architecturally native, not bolted on.** MCP and A2A enable tool interop, but no competitor is *designed* around sovereign nodes trusting each other via cryptographic identity rather than shared infrastructure. VisionFlow's relay mesh is built for exactly this — standalone-first today, with cross-relay federation designed but not yet shipped (see [Federation Transports](#federation-transports)).
-
----
-
-## Federated Problem-Solving
-
-VisionFlow's architecture is designed for hard problems that require diverse intelligence across trust boundaries. Here's how the mesh operates on real multi-specialism challenges:
-
-### Scenario 1: Climate Modelling Consortium
-
-Three universities, two government agencies, one NGO — each with domain expertise, proprietary datasets, and different compliance requirements.
-
-```mermaid
-flowchart TB
-    subgraph UNI_A["University A — Atmospheric Science"]
-        VC_A["VisionClaw\n(climate ontology)"]
-        AB_A["Agentbox ×3\n(data ingestion, model calibration, paper drafting)"]
-    end
-
-    subgraph UNI_B["University B — Ocean Dynamics"]
-        VC_B["VisionClaw\n(oceanographic ontology)"]
-        AB_B["Agentbox ×2\n(satellite data processing, simulation)"]
-    end
-
-    subgraph GOV["Government Agency — Policy"]
-        AB_G["Agentbox ×2\n(regulatory compliance, impact assessment)"]
-        FORUM_G["Forum\n(governance dashboard)"]
-    end
-
-    subgraph RELAY["Nostr Relay Mesh"]
-        R["Shared event bus\n(31400-31405 governance\n38000-38201 agent intent)"]
-    end
-
-    UNI_A <-->|"did:nostr trust"| R
-    UNI_B <-->|"did:nostr trust"| R
-    GOV <-->|"did:nostr trust"| R
-
-    style UNI_A fill:#0a1a2a15,stroke:#00d4ff
-    style UNI_B fill:#0a1a2a15,stroke:#00d4ff
-    style GOV fill:#1a0a2a15,stroke:#8b5cf6
-    style RELAY fill:#1a1a2e15,stroke:#e94560
-```
-
-**How it works:**
-- Each institution runs its own VisionClaw with domain-specific ontologies. OWL 2 EL reasoning ensures "sea surface temperature anomaly" means the same thing across all three ontologies via shared upper ontology alignment.
-- Data agents at each institution process proprietary datasets locally — nothing leaves the sovereign pod unless the WAC ACL explicitly grants access to a specific `did:nostr` identity.
-- The policy agency's governance dashboard surfaces cross-institutional findings via the Judgment Broker. A human policy analyst approves or rejects agent-proposed conclusions before they enter the shared knowledge graph.
-- Every reasoning chain traces back through content-addressed provenance beads to source data. Peer reviewers traverse the chain to verify methodology.
-
-**Why competitors can't do this:** No other platform combines formal ontology alignment (ensuring cross-institution semantic consistency), cryptographic data sovereignty (each institution controls its own data), and human-in-the-loop governance (policy decisions require signed approval) in a single coordinated mesh.
-
-### Scenario 2: Pharmaceutical Drug Discovery Pipeline
-
-A biotech startup, a contract research organisation (CRO), and a regulatory affairs consultancy collaborating on a novel compound.
-
-| Phase | Agents | Ontology Role | Governance Gate |
-|:------|:-------|:-------------|:----------------|
-| **Target identification** | Literature mining agents (biotech Agentbox) parse 50K papers | VisionClaw aligns gene ontology + disease ontology | Judgment Broker: senior scientist approves target shortlist |
-| **Lead optimisation** | Chemistry agents (CRO Agentbox) run ADMET predictions | Molecular property ontology constrains valid modifications | Judgment Broker: medicinal chemist signs off on candidates |
-| **Regulatory pre-submission** | Compliance agents (consultancy Agentbox) map to ICH guidelines | Regulatory ontology maps compound data to required endpoints | Judgment Broker: regulatory affairs lead approves submission package |
-| **Audit** | Any auditor traverses provenance beads from submission back to source papers | Every decision is an immutable Nostr event with `prior_decision_id` chain | Full chain of custody without reconstruction |
-
-Each organisation's agents operate within their Solid pod boundary. Cross-organisation data sharing requires explicit WAC grants tied to `did:nostr` identities. The CRO never sees the biotech's proprietary target list; the biotech never sees the CRO's compound library. They collaborate through the shared ontology layer.
-
-### Scenario 3: Creative Production at Scale
-
-A media company producing a 12-episode series with distributed creative teams across five time zones.
-
-| Substrate | Role in Production |
-|:----------|:-------------------|
-| **VisionClaw** | Production ontology: episodes → scenes → shots → assets → deliverables. Semantic forces cluster related assets visually. |
-| **Agentbox (Editorial)** | Script analysis agents parse screenplays, extract entity relationships, flag continuity issues |
-| **Agentbox (VFX)** | Asset management agents track 3D models, textures, composites through pipeline stages |
-| **Agentbox (Compliance)** | Rights clearance agents verify music licensing, location permissions, talent contracts |
-| **Forum** | Governance dashboard: executive producer approves budget exceptions, schedule changes, creative pivots |
-| **Judgment Broker** | When VFX cost exceeds threshold → signed approval required. When script change affects continuity across episodes → flagged for showrunner review. |
-
-The ontology doesn't just organise — it *reasons*. If a VFX shot depends on a 3D asset that hasn't been approved, the `subClassOf` chain from "approved deliverable" propagates a constraint through the graph. The GPU physics engine makes the blocked dependency visually obvious — the shot node repels from the "approved" cluster.
-
----
-
-## Repository Map
-
-For the docs-only local ecosystem synthesis, see [Ecosystem Map](docs/ecosystem-map.md), [Repository Map](docs/architecture/repository-map.md), and [Identity Spine](docs/protocol/identity-spine.md).
-
-| Substrate | Repository | Role | Key Technology |
-|:----------|:-----------|:-----|:---------------|
-| **VisionFlow** | [DreamLab-AI/VisionFlow](https://github.com/DreamLab-AI/VisionFlow) | Ecosystem guide and coordination architecture | This repository |
-| **VisionClaw** | [DreamLab-AI/VisionClaw](https://github.com/DreamLab-AI/VisionClaw) | Knowledge engineering substrate | OWL 2 EL, 82 CUDA kernels, multi-user XR, 7 MCP tools |
-| **Agentbox** | [DreamLab-AI/agentbox](https://github.com/DreamLab-AI/agentbox) | Harness engineering runtime | Nix flakes, 115 skills, 180+ tools, sovereign Solid pods |
-| **solid-pod-rs** | [DreamLab-AI/solid-pod-rs](https://github.com/DreamLab-AI/solid-pod-rs) | Cryptographic foundation | JSS Rust port, DID:Nostr, WAC, Web Ledgers, HTTP 402 |
-| **nostr-rust-forum** | [DreamLab-AI/nostr-rust-forum](https://github.com/DreamLab-AI/nostr-rust-forum) | Forum kit | 12 crates, passkey auth, governance event routing |
-| **dreamlab-ai-website** | [DreamLab-AI/dreamlab-ai-website](https://github.com/DreamLab-AI/dreamlab-ai-website) | Branded deployment | React SPA, WASM forum, operator overlay, Cloudflare Workers |
-
----
-
-## Real-World Validation
-
-| Deployment | Context | Scale |
-|:-----------|:--------|:------|
-| **DreamLab Creative Hub** | 50-person creative technology team — live production | 17,000+ knowledge graph nodes, daily ontology mutations |
-| **University of Salford** | Research partnership validating semantic force-directed layout | Multi-institution ontology |
-| **THG World Record** | Large-scale multi-user immersive data visualisation | 250+ concurrent XR users |
-
----
-
-## Upstream
-
-VisionFlow's protocol layer is built on [Melvin Carvalho](https://github.com/melvincarvalho)'s [JavaScriptSolidServer (JSS)](https://github.com/JavaScriptSolidServer/JavaScriptSolidServer) and [DID:Nostr](https://github.com/nicholasgasior/did-nostr). JSS is the AGPL-3.0 reference implementation of the Solid Protocol and the canonical source for the feature set, protocol extensions, and Web Ledger micropayment system. solid-pod-rs is a Rust port; protocol-level decisions defer to the upstream JSS repository.
-
-![JSS Architecture](assets/upstream/jss-architecture.svg)
-
-The SAND stack — **S**olid + **A**ctivityPub + **N**ostr + **D**ID — creates a verifiable identity link across four ecosystems. The `alsoKnownAs` triple on an ActivityPub Actor profile binds the Solid WebID, the Nostr pubkey, and the DID document into a single cryptographically verifiable identity chain.
-
-See [Melvin Carvalho's Practical Guide to Solid](https://melvin.me/public/solid/) for a 10-part walkthrough of the JSS payment system.
-
----
-
-## License
-
-VisionFlow combines components under two licenses:
-
-- **VisionClaw**: [Mozilla Public License 2.0](https://github.com/DreamLab-AI/VisionClaw/blob/main/LICENSE) — use commercially, modify freely, share changes to MPL files
-- **solid-pod-rs, Agentbox, nostr-rust-forum**: [AGPL-3.0](https://github.com/DreamLab-AI/solid-pod-rs/blob/main/LICENSE) — network-service copyleft preserving the upstream JSS ecosystem. Commercial licensing available via [Melvin Carvalho](mailto:melvincarvalho@gmail.com)
+Licensing today is **AGPL-3.0-only across all four code repos** — VisionClaw's `LICENSE` and `Cargo.toml` say AGPL-3.0-only, as do solid-pod-rs, agentbox and nostr-rust-forum — a network-service copyleft that preserves the upstream JSS ecosystem. A **proposed** relicense would move VisionClaw to [MPL 2.0](https://github.com/DreamLab-AI/VisionClaw/blob/main/LICENSE.MPL) (the file ships in-tree but is not yet operative). Boundaries and commercial-licensing routes: [`docs/architecture/licensing.md`](docs/architecture/licensing.md) and [MAINTAINERS.md](MAINTAINERS.md).
 
 ---
 
@@ -826,6 +198,6 @@ VisionFlow combines components under two licenses:
 
 **VisionFlow is built by [DreamLab AI](https://www.dreamlab-ai.com) — coordination engineering for federated human–AI intelligence.**
 
-[VisionClaw](https://github.com/DreamLab-AI/VisionClaw) · [Agentbox](https://github.com/DreamLab-AI/agentbox) · [solid-pod-rs](https://github.com/DreamLab-AI/solid-pod-rs) · [nostr-rust-forum](https://github.com/DreamLab-AI/nostr-rust-forum) · [dreamlab-ai.com](https://www.dreamlab-ai.com)
+[VisionClaw](https://github.com/DreamLab-AI/VisionClaw) · [agentbox](https://github.com/DreamLab-AI/agentbox) · [solid-pod-rs](https://github.com/DreamLab-AI/solid-pod-rs) · [nostr-rust-forum](https://github.com/DreamLab-AI/nostr-rust-forum) · [dreamlab-ai-website](https://github.com/DreamLab-AI/dreamlab-ai-website)
 
 </div>

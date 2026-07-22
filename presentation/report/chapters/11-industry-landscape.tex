@@ -95,6 +95,28 @@ This gap between deployment velocity and governance capability is the defining c
 
 Deployment data adds a second gap alongside it. \textcite{Pereira2026Playbook} found that true agentic implementations --- autonomous, end-to-end, performing a role rather than answering a prompt, were still only 20 per cent of the 51 studied deployments, despite delivering a 71 per cent median productivity gain against 40 per cent for high-automation-but-human-supervised approaches. The premium for going fully agentic is large and the uptake is still small: organisations are racing to deploy AI but remain reluctant, or unready, to hand it the whole loop. That gap between what agentic AI can already return and how rarely organisations commit to it is the adoption-side mirror of the governance gap above.
 
+\section{Block Ships the Thesis: Buzz}
+
+In the April edition of this report, the Dorsey--Botha essay \parencite{DorseyBotha2026} was a piece of organisational theory: a diagnosis and a prescription, argued but not built. That changed on 21 July 2026, when Block released \textbf{Buzz} --- a self-hostable, Nostr-native team workspace in which humans and AI agents are first-class equals, licensed Apache~2.0 and shipped as a desktop application (version 0.4.21).\footnote{Repository and architecture at \url{https://github.com/block/buzz}; launch coverage by RuntimeWire, 21 July 2026. The comparisons below are drawn against DreamLab's own architecture as recorded in \texttt{docs/ecosystem-map.md}, Gap Register \S G2 (mesh federation and NIP-42 status) and \S G7 (agentbox mesh status).} Block moved from arguing the thesis to shipping a working slice of its operational architecture.
+
+That architecture is a near-exact structural double of the substrate this report's own stack --- \texttt{nostr-rust-forum} plus \texttt{agentbox} --- has been building since 2022. The relay is the single source of truth: every message, reaction, workflow step, canvas edit, huddle event, and git patch is a cryptographically signed Nostr event (NIP-01), keyed by a \texttt{kind} integer. Buzz defines 81 kinds, with a custom range at 40000--49999, and adds a feature by defining a new kind rather than migrating a schema. Humans and agents share one identity model: an agent receives its own secp256k1 keypair, its own channel memberships, and its own hash-chain audit trail, participating as a member rather than a bot. Authentication is NIP-42 (WebSocket challenge/response) for socket clients and NIP-98 (HTTP \texttt{kind:27235}) for request signing. Native git hosting runs over NIP-34 patches plus Git Smart HTTP, so a feature branch becomes a channel where patches, CI, review, and the merge decision share one record. YAML workflow automation (message, reaction, schedule, and webhook triggers) and an agent-bridging harness (ACP/JSON-RPC to Goose, Codex, and Claude Code) complete the surface. The whole is a Rust monorepo over Postgres, Redis, and object storage.
+
+Point for point, these are the same bets. Relay-as-single-source-of-truth is identical to the forum's relay kit. Signed agent participants, each with their own keypair and audit trail, is precisely the design DreamLab uses for its Agent Control Surface agents. Kind-based extensibility --- ``new kind, new feature, zero breaking changes'' --- is the same philosophy as the mesh's ACSP kinds (31400--31405) and agentbox's federated 38300--38304 range. Both stacks lean on NIP-42 for socket auth and NIP-98 for HTTP request signing, and both integrate git over Nostr. This is not rivalry; it is independent architectural validation --- a well-resourced, independent actor arriving, from a different starting point, at the same protocol conclusion.
+
+Honesty about the comparison cuts both ways, and in one respect Buzz is currently ahead. Its NIP-42 gate and its git forge are both wired end-to-end today. DreamLab's own forum presently advertises \texttt{auth\_required:false} and gates by pubkey allowlist --- its NIP-42 gate is not yet live --- and its git-pod capability inside solid-pod-rs is nascent (ecosystem-map \S G2 and \S G7). On pure relay-auth and forge maturity, the shipped Buzz relay is more complete than the shipped DreamLab forum. This report states that plainly rather than assume a default win.
+
+What Buzz does \emph{not} have marks the remaining, narrower differentiation. Each gap anchors to a DreamLab capability with no Buzz analogue:
+
+\begin{itemize}
+  \item \textbf{No ontology or KG grounding.} Buzz search is Postgres full-text keyword matching over a generated \texttt{tsvector} column --- no OWL~2~EL reasoning, no Oxigraph/Whelk, no structured retrieval. VisionClaw grounds retrieval, and even its GPU physics, in a 5,975-class formal ontology with \texttt{subClassOf}/\texttt{disjointWith} semantics.
+  \item \textbf{No sovereign personal data.} Buzz has channel and role-based access control only (Owner, Admin, Member, Guest, Bot); there is no per-user WebID, LDP, or WAC ACL layer. solid-pod-rs is DreamLab's sovereign-data substrate, with no Buzz equivalent.
+  \item \textbf{No immersive embodiment.} Buzz is a 2D Tauri/React desktop app; there is nothing like VisionClaw's GPU semantic-physics XR graph.
+  \item \textbf{No memory or learning loop.} Buzz's flagship ``incident memory'' story is keyword search over six months of history --- the same flat retrieval this report's own case for structured, ontology-aware retrieval is written against. There is no embedding or HNSW semantic memory, and no trajectory-to-judgment distillation loop.
+  \item \textbf{No sovereign mesh --- but neither, yet, does DreamLab.} Buzz is explicitly single-relay per community, with ``no peer-to-peer event exchange, gossip layer or replication between relays.'' DreamLab's own mesh (IS-Envelope, ADR-073/PRD-010) is likewise not shipped --- frozen standalone-first (ecosystem-map \S G2). The only distinction is that DreamLab has a federation \emph{design} spanning heterogeneous substrates, where Buzz's decentralisation story is scoped to ``self-host your own island,'' with no stated cross-relay roadmap. This is a nuance, not a clean win.
+\end{itemize}
+
+The consequence for this chapter's positioning is that Block no longer only proves the diagnosis; via Buzz it now proves a substantial part of the operational architecture too. What remains genuinely unshared is the combination of formal ontology, sovereign personal data, embodied observation, and a closed learning loop --- and even there, the mesh-federation frontier is one both stacks have still to cross.
+
 \section{Comparative Positioning}
 
 \begin{table}[h]
@@ -121,7 +143,7 @@ Liu (UCL) & Formal theory: contextual transaction cost, interface organisations 
 \addlinespace
 CAIS RLI & Longitudinal client-quality frontier measurement & Tasks, not jobs; freelance work only \\
 \addlinespace
-Block & Correct diagnosis; radical prescription & Ignores jagged frontier and vigilance \\
+Block & Correct diagnosis; radical prescription; ships Buzz (Jul 2026), a structurally convergent relay-as-truth agent workspace & Ignores jagged frontier/vigilance; post-Buzz, no ontology/KG grounding, no Solid-pod sovereignty, no immersive 3D, no closed learning loop, single-relay (no mesh federation) \\
 \addlinespace
 Every & Cultural dynamics; personal agent model & Unproven beyond 20-person scale \\
 \addlinespace
@@ -137,7 +159,7 @@ The Dynamic Agentic Mesh sits between the consultancy frameworks (which are stra
   \item BCG quantifies the shift; DreamLab provides the governance model.
   \item Deloitte measures maturity; DreamLab provides the KPIs.
   \item Every proves the cultural dynamics; DreamLab provides the structural framework for scaling them.
-  \item Block proves the diagnosis; DreamLab corrects the prescription.
+  \item Block proves the diagnosis and, via Buzz (July 2026), now proves a large part of the operational architecture too --- relay-as-source-of-truth, signed agent participants, kind-based extensibility --- independently converging on the same protocol bet nostr-rust-forum and agentbox made. DreamLab's remaining differentiation is narrower but still real: formal ontology and KG grounding (OWL~2~EL, Oxigraph/Whelk), Solid-pod sovereign personal data, GPU/XR embodiment, and a closed memory/learning loop --- none of which Buzz has --- while both stacks still share the unresolved mesh-federation frontier.
   \item Liu supplies the theory the mesh anticipated: contextual transaction cost gives the coordination tax a name and a formalism at the agent layer, developed fully in Chapter~\ref{ch:coordination-economics} \parencite{Liu2026}.
   \item Stanford's Playbook supplies deployment evidence for design rules the mesh predicted in isolation --- escalation-based oversight, iterative-only delivery, active sponsorship, now corroborated in the field rather than argued from first principles \parencite{Pereira2026Playbook}.
 \end{itemize}

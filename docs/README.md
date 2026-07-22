@@ -2,6 +2,8 @@
 
 VisionFlow is the coordination architecture spanning the DreamLab repositories. Start here for the local, repo-owned documentation entry points.
 
+Back to the [top-level README](../README.md) for the ecosystem overview, quickstart, and dated status ledger.
+
 ## Ecosystem
 
 | Document | Purpose |

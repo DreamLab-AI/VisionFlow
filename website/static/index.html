@@ -56,7 +56,7 @@
     <div class="hero-content">
       <div class="hero-badge">Coordination Engineering</div>
       <h1>Federated Human&ndash;AI<br/>Intelligence</h1>
-      <p class="hero-sub">The coordination harness where diverse intelligence collaborates across trust boundaries at scale. Self-sovereign data. Formal reasoning. Cryptographic provenance. Human-in-the-loop governance.</p>
+      <p class="hero-sub">Coordination engineering is the discipline of designing systems that reliably orchestrate autonomous agents across heterogeneous substrates. As AI collapses the cost of routing work, the human is promoted from router to judgment broker. Self-sovereign data. Formal reasoning. Cryptographic provenance. Human-in-the-loop governance.</p>
       <div class="hero-actions">
         <a href="#substrates" class="btn btn-primary">Explore the Architecture</a>
         <a href="https://github.com/DreamLab-AI/VisionFlow" target="_blank" rel="noopener" class="btn btn-ghost">View on GitHub &rarr;</a>
@@ -197,12 +197,12 @@
             <span class="substrate-role">Knowledge Engineering</span>
           </div>
           <ul>
-            <li>OWL 2 EL formal reasoning (Whelk-rs) + W3C SHACL shapes (advisory validation)</li>
-            <li>82 CUDA kernels, 55x GPU speedup</li>
-            <li>W3C PROV-O provenance &mdash; every decision queryable via SPARQL</li>
+            <li>OWL 2 EL formal reasoning (Whelk-rs) + SHACL shapes (lite, advisory-only)</li>
+            <li>82 CUDA kernels (9 .cu files, 5,854 LOC), 55x GPU speedup</li>
+            <li>Oxigraph triple store + W3C SPARQL; PROV-O provenance beads (URN-based, RDF reification in progress)</li>
             <li>IS-Envelope spec owner + governed knowledge graph gating</li>
             <li>6 native MCP ontology tools</li>
-            <li>21,000+ node force-directed graph in real time, benchmarked to 100K</li>
+            <li>17,000+ node force-directed graph live (17,147 captured); benchmarked far higher</li>
             <li>Embodied agent loop: agent actions render as live <code>0x23</code> beams over <code>/wss/agent-events</code></li>
           </ul>
           <a href="https://github.com/DreamLab-AI/VisionClaw" target="_blank" rel="noopener" class="substrate-link">View Repo &rarr;</a>
@@ -216,7 +216,7 @@
           </div>
           <ul>
             <li>Governance event relay + broker bridge to VisionClaw</li>
-            <li>115 agent skills, 180+ MCP tools</li>
+            <li>116 agent skills, 180+ MCP tools</li>
             <li>12-tool ontology bridge to VisionClaw SPARQL</li>
             <li>Browser-based setup wizard (zero dependencies)</li>
             <li>BIP-340 sovereign identity at bootstrap</li>
@@ -345,7 +345,7 @@
     <div class="container reveal">
       <span class="section-tag">Live Systems</span>
       <h2>Shipped and running</h2>
-      <p class="section-lead">VisionClaw and Agentbox are used daily by the <a href="https://dreamlab.org.uk" target="_blank" rel="noopener" style="color:var(--gold)">dreamlab.org.uk</a> collective. The screenshots below are live captures of the running browser client, taken 2026-06-11.</p>
+      <p class="section-lead">VisionClaw, Agentbox, and the nostr-rust-forum &mdash; live in production at <a href="https://dreamlab-ai.com" target="_blank" rel="noopener" style="color:var(--gold)">dreamlab-ai.com</a> &mdash; are used daily by the <a href="https://dreamlab.org.uk" target="_blank" rel="noopener" style="color:var(--gold)">dreamlab.org.uk</a> collective. The screenshots below are live captures of the running browser client, taken 2026-06-11.</p>
       <div class="substrate-screenshots">
         <div class="substrate-shot">
           <img src="img/vc-graph-hero.png" alt="VisionClaw live browser client: 17,147-node force-directed knowledge and ontology graph rendered with GPU-accelerated physics" loading="lazy" decoding="async" />
@@ -365,7 +365,7 @@
         </a>
         <div class="substrate-shot">
           <img src="img/showcase/nostr-forum.webp" alt="Nostr BBS decentralised forum with passkey authentication and encrypted messaging" loading="lazy" decoding="async" />
-          <div class="shot-label"><span style="color:var(--crimson)">DreamLab Edge</span> // Nostr BBS governance interface, passkey-first auth, Judgment Broker decision surface</div>
+          <div class="shot-label"><span style="color:var(--crimson)">DreamLab Edge</span> // Nostr BBS governance interface, passkey-first auth, Judgment Broker decision surface &mdash; live in production at dreamlab-ai.com</div>
         </div>
       </div>
     </div>
@@ -664,6 +664,7 @@
             <tr><td>AutoGen</td><td><span class="dot dot-red"></span></td><td><span class="dot dot-yellow"></span></td><td><span class="dot dot-yellow"></span></td><td><span class="dot dot-red"></span></td><td><span class="dot dot-yellow"></span></td><td><span class="dot dot-green"></span></td></tr>
             <tr><td>LangGraph</td><td><span class="dot dot-red"></span></td><td><span class="dot dot-yellow"></span></td><td><span class="dot dot-yellow"></span></td><td><span class="dot dot-red"></span></td><td><span class="dot dot-yellow"></span></td><td><span class="dot dot-green"></span></td></tr>
             <tr><td>Cursor / Windsurf</td><td><span class="dot dot-red"></span></td><td><span class="dot dot-yellow"></span></td><td><span class="dot dot-yellow"></span></td><td><span class="dot dot-red"></span></td><td><span class="dot dot-red"></span></td><td><span class="dot dot-red"></span></td></tr>
+            <tr><td>Buzz (Block)</td><td><span class="dot dot-green" title="Nostr keypairs, protocol-native"></span></td><td><span class="dot dot-yellow" title="Self-host, but no per-actor pod"></span></td><td><span class="dot dot-red"></span></td><td><span class="dot dot-red"></span></td><td><span class="dot dot-red" title="Single relay per deployment; no cross-relay replication"></span></td><td><span class="dot dot-green"></span></td></tr>
           </tbody>
         </table>
       </div>
@@ -679,13 +680,17 @@
           <p>Every competitor relies on probabilistic LLM inference. VisionFlow&rsquo;s OWL 2 EL subsumption produces provably correct entailments, not confident guesses.</p>
         </div>
         <div class="glass-card gap-card">
-          <h3>Crypto Identity Column: Solid Red</h3>
-          <p>Only VisionFlow implements cryptographic agent identity at the protocol level. Every other platform ties identity to someone else&rsquo;s server.</p>
+          <h3>Beyond a Bare Keypair</h3>
+          <p>Cryptographic agent identity is necessary but no longer unique &mdash; Nostr-native peers now issue agents their own keypairs too. The defensible ground is what sits on top: per-actor Solid-pod data sovereignty and Bitcoin-anchored value settlement bound to that same <code>did:nostr</code> identity.</p>
         </div>
         <div class="glass-card gap-card">
           <h3>Federation Column: Solid Red</h3>
-          <p>No competitor supports sovereign nodes trusting each other via cryptographic identity rather than shared infrastructure.</p>
+          <p>No competitor supports sovereign nodes trusting each other via cryptographic identity rather than shared infrastructure. Even Nostr-native peers keep a single authoritative relay per deployment.</p>
         </div>
+      </div>
+
+      <div class="callout" style="margin-top:2rem">
+        <p><strong>Independent convergence.</strong> In July 2026 Block (Jack Dorsey) launched <a href="https://github.com/block/buzz" target="_blank" rel="noopener" style="color:var(--gold)">Buzz</a>, a self-hostable, Nostr-native team-chat, AI-agent, and git platform in Rust. It arrives independently at the same substrate this ecosystem has built since 2022: Nostr events as source of truth, agents as first-class signed participants with their own keypairs, kind-based extensibility. A well-funded team reaching the same coordination thesis validates the direction rather than threatening it. What Buzz does not carry: OWL 2 EL ontology grounding, Solid-pod data sovereignty, immersive 3D embodiment, and closed memory and learning loops. Where Buzz is ahead: its relay AUTH gate and git forge are wired end to end today, whereas the forum&rsquo;s relay AUTH is still a pubkey allowlist &mdash; and cross-relay federation is designed, not shipped, on both sides.</p>
       </div>
     </div>
   </section>
@@ -700,7 +705,7 @@
         <div class="scale-card">
           <div class="scale-tier">Single Operator</div>
           <h3>Token-Efficient</h3>
-          <p>One Agentbox, standalone mode. Local SQLite beads, local Solid pod, local events. 115 skills, 180+ tools, privacy filter active.</p>
+          <p>One Agentbox, standalone mode. Local SQLite beads, local Solid pod, local events. 116 skills, 180+ tools, privacy filter active.</p>
           <div class="scale-cost">One API key. One container. Minutes to deploy.</div>
         </div>
         <div class="scale-card scale-card-mid">
@@ -712,7 +717,7 @@
         <div class="scale-card">
           <div class="scale-tier">Enterprise</div>
           <h3>Federated Intelligence</h3>
-          <p>Multiple sovereign Agentbox instances federating over the Nostr relay mesh (standalone-first today; mesh federation is designed, not yet shipped). Each node independently hardened. Trust via did:nostr, not network topology.</p>
+          <p>Sovereign Agentbox instances on the Nostr relay mesh. The single-node sovereign mesh is live &mdash; allowlisted relay and condense scheduler active; cross-org relay federation is designed, not yet shipped. Each node independently hardened. Trust via did:nostr, not network topology.</p>
           <div class="scale-cost">Horizontal. Add nodes. Each node owns its data.</div>
         </div>
       </div>
@@ -723,7 +728,7 @@
   <section id="repos" class="section">
     <div class="container reveal">
       <span class="section-tag">Repository Map</span>
-      <h2>Six federated repositories, one coordination architecture</h2>
+      <h2>The five substrates, plus this ecosystem-guide repository</h2>
 
       <div class="repo-grid">
         <a href="https://github.com/DreamLab-AI/VisionFlow" target="_blank" rel="noopener" class="repo-card">
@@ -739,7 +744,7 @@
         <a href="https://github.com/DreamLab-AI/agentbox" target="_blank" rel="noopener" class="repo-card">
           <h3>Agentbox</h3>
           <p>Harness engineering runtime</p>
-          <span class="repo-tech">Nix &middot; 115 skills &middot; 180+ tools &middot; Solid pods</span>
+          <span class="repo-tech">Nix &middot; 116 skills &middot; 180+ tools &middot; Solid pods</span>
         </a>
         <a href="https://github.com/DreamLab-AI/solid-pod-rs" target="_blank" rel="noopener" class="repo-card">
           <h3>solid-pod-rs</h3>
