@@ -1,0 +1,21 @@
+flowchart TB
+    WEB["dreamlab-ai-website\n(Leptos/WASM, programme heroes)"]
+    FORUM["nostr-rust-forum\n(zones, NIP-52 calendar, ACSP surface)"]
+    POD["solid-pod-rs\n(LDP/WAC, did:nostr, 402/webledger,\nblock-trails + git-marks)"]
+    BOX["agentbox\n(90+ skills, elevation-publisher,\nMRC20 settlement, sovereign mesh)"]
+    VC["VisionClaw / project\n(Oxigraph KG, Whelk-rs, GPU physics,\nbroker kernel + ACSP, Godot XR client)"]
+    VF["VisionFlow\n(pitch / ecosystem narrative)"]
+
+    POD ---|"identity + provenance primitives"| BOX
+    POD ---|"WAC pods + 402"| FORUM
+    BOX ---|"kind-31402 elevation"| FORUM
+    FORUM ---|"relay events"| VC
+    BOX ---|"broker bridge (X-Agent-Key)"| VC
+    BOX ===|"ontology augmentation: every AI call may query Oxigraph KG (OAS §4.6, PRD-020/ADR-112)"| VC
+    VC ---|"KG views"| WEB
+    FORUM ---|"zone heroes"| WEB
+    VF -. narrates .- WEB
+    VF -. narrates .- VC
+
+    classDef teal fill:#1A6B6B,stroke:#0f4747,color:#fff
+    class POD,VC teal

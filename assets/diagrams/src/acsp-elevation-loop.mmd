@@ -1,0 +1,29 @@
+sequenceDiagram
+    autonumber
+    participant AG as Agent (agentbox, did:nostr)
+    participant EP as elevation-publisher.js
+    participant RL as Nostr relay (nostr-rust-forum)
+    participant BR as Broker (VisionClaw)
+    participant FM as Forum control surface
+    participant HU as Human reviewer
+    participant PT as ProvenanceTrail
+
+    AG->>EP: governed proposal<br/>(urn:agentbox:thing:proposal-*)
+    EP->>RL: publish kind-31402 ActionRequest<br/>(NIP-33 d-tag, signed, NIP-98)
+    RL->>BR: deliver control-surface event (31400-31405)
+    BR->>FM: render proposal in Judgment Broker workbench
+    FM->>HU: present for approval (diff, rationale, blast radius)
+
+    alt Human approves
+        HU->>FM: approve
+        FM->>BR: decision = approved
+        BR->>PT: append decision (git-mark, anchor if high-value)
+        BR-->>AG: write-back POST /api/enrichment-proposals/{id}/decide (200)
+        AG->>AG: apply action (now provenance-stamped)
+    else Human rejects / edits
+        HU->>FM: reject or amend
+        FM-->>BR: decision = rejected/amended
+        BR-->>AG: no-apply / revised constraints
+    end
+
+    Note over EP,RL: publisher is inert no-op when standalone<br/>(closes elevation -> Nostr federation loop only when wired)

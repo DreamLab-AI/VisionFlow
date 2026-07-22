@@ -1,0 +1,28 @@
+flowchart TD
+    subgraph WRITE["Any provenance-bearing event"]
+        A["Agent action / receipt / credential / ACSP decision\nurn:agentbox:activity|receipt|credential (lib/uris.js)"]
+        L["LDP write (PUT/POST/PATCH) on a Solid pod"]
+    end
+
+    A --> CANON
+    L --> CANON
+    CANON["Canonicalise payload (JCS / RFC 8785)\nstate.prev = SHA256(JCS(prevState)); seq++ enforced"]
+
+    CANON --> TRAIL["ProvenanceTrail state appended\n(hash-chained, tamper-evident, append-only)"]
+
+    TRAIL --> TIER{"Value / dispute risk?"}
+
+    TIER -->|"every write — cheap tier"| GIT["git-mark\nwrite-as-commit (auto-init,\nreceive.denyCurrentBranch=updateInstead)\ncommit hash anchors the state"]
+    TIER -->|"high-value / disputed — strong tier"| BT["block-trail (BIP-341)\nbtDeriveChainedPubkey -> per-state P2TR addr\n(bt_address) -> broadcast UTXO"]
+
+    BT --> MEM["Bitcoin mempool / chain\nverify_mrc20_anchor: P2TR addr present in UTXO set"]
+
+    GIT --> VERIFY["Verification (any party)\nreplay JCS hash-chain (verify_state_link)\n+ optionally confirm taproot UTXO"]
+    MEM --> VERIFY
+
+    VERIFY --> MRC20["MRC20 token (mono.mrc20.v0.1)\n= ONE instance of ProvenanceTrail\n(balances/ops as trail states)"]
+
+    classDef teal fill:#1A6B6B,stroke:#0f4747,color:#fff
+    classDef orange fill:#C85A2A,stroke:#8f3d1c,color:#fff
+    class GIT teal
+    class BT,MEM orange

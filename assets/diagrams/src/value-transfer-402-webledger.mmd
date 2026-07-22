@@ -1,0 +1,33 @@
+sequenceDiagram
+    autonumber
+    participant C as Consumer agent (did:nostr)
+    participant P as Solid pod / resource (402-gated)
+    participant WL as WebLedger (multi-currency, keyed by did:nostr)
+    participant LN as Lightning / L402
+    participant MR as MRC20 rail (block-trail)
+    participant PT as ProvenanceTrail (spend receipt)
+
+    C->>P: GET /resource
+    P-->>C: 402 Payment Required<br/>PaymentCondition { amount, currency, scheme }
+    Note over C,P: scheme grammar per agentbox ADR-032<br/>(global trust ledger + value transfer)
+
+    alt Lightning / L402
+        C->>LN: pay invoice (sats)
+        LN-->>C: preimage / L402 token
+        C->>WL: present proof -> credit did:nostr balance
+    else MRC20 webledger (Bitcoin-anchored)
+        C->>MR: transfer (JCS state, seq++, prev-hash)
+        MR->>MR: optional BIP-341 taproot anchor
+        MR-->>WL: settled -> debit/credit balance
+    end
+
+    WL->>WL: check_replay / record_replay (no double-spend)
+    WL->>PT: append spend receipt as trail state<br/>(urn:*:receipt, git-mark always)
+    PT-->>WL: receipt hash (verifiable)
+
+    C->>P: GET /resource  (Authorization: settled)
+    P->>WL: verify balance / receipt
+    WL-->>P: ok
+    P-->>C: 200 + resource
+
+    Note over WL: order book (/pay/.offers, .sell, .swap) + constant-product AMM<br/>(/pay/.pool) — trading.rs, routed in ADR-059 Phase 0, webledger keyed by did:nostr

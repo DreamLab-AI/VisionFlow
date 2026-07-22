@@ -1,0 +1,36 @@
+flowchart LR
+    subgraph POD_A["Sovereign pod A (solid-pod-rs)"]
+        IA["did:nostr identity"]
+        WA["WebLedger balance"]
+        TA["ProvenanceTrail (git-mark + block-trail)"]
+    end
+    subgraph POD_B["Sovereign pod B"]
+        IB["did:nostr identity"]
+        WB["WebLedger balance"]
+        TB["ProvenanceTrail"]
+    end
+    subgraph POD_C["Sovereign pod C"]
+        IC["did:nostr identity"]
+        WC["WebLedger balance"]
+        TC["ProvenanceTrail"]
+    end
+
+    RELAY(("Nostr relay mesh\n(NIP-98 auth, gift-wrapped NIP-59)"))
+
+    IA <-->|signed events / value xfer| RELAY
+    IB <-->|signed events / value xfer| RELAY
+    IC <-->|signed events / value xfer| RELAY
+
+    RELAY --> BROKER["Broker + Forum\nACSP human-in-the-loop"]
+    BROKER --> KG["Oxigraph KG + Whelk-rs (OWL 2 EL)\n-> Godot XR client"]
+
+    WA -. "402 / MRC20 / L402 settle" .- WB
+    WB -. settle .- WC
+    TA == "block-trail anchors (BIP-341)" ==> CHAIN[("Bitcoin\nglobal trust ledger")]
+    TB ==> CHAIN
+    TC ==> CHAIN
+
+    classDef teal fill:#1A6B6B,stroke:#0f4747,color:#fff
+    classDef orange fill:#C85A2A,stroke:#8f3d1c,color:#fff
+    class RELAY,KG teal
+    class CHAIN orange
