@@ -48,7 +48,7 @@ No single repository *is* VisionFlow. The siblings call the whole the **Dynamic 
 | **[nostr-rust-forum](https://github.com/DreamLab-AI/nostr-rust-forum)** | Human+agent communication substrate — Nostr-native forum + relay in Rust. The one place a human decision is cryptographically signed (ACSP kinds 31400–31405). *The one place a decision gets signed.* | Clone the repo; Cloudflare Workers + Leptos WASM. |
 | **[dreamlab-ai-website](https://github.com/DreamLab-AI/dreamlab-ai-website)** | Commercial face — DreamLab AI company site, a thin consumer of the forum kit at the Cloudflare edge. | Clone the repo. |
 
-Supporting corpus: **[narrativegoldmine](https://github.com/DreamLab-AI/knowledgeGraph)** publishes the readable `public:: true` knowledge graph at [narrativegoldmine.com](https://narrativegoldmine.com) — the same corpus VisionClaw renders in 3D.
+Published corpus: **[knowledgeGraph](https://github.com/DreamLab-AI/knowledgeGraph)** serves the readable `public:: true` knowledge graph at [narrativegoldmine.com](https://narrativegoldmine.com), the same corpus VisionClaw renders in 3D. Since July 2026 it also releases the corpus itself: 7,457 pages under ODbL-1.0, the seven-stage rdflib pipeline (AGPL-3.0) that builds them into 252,974 triples and 96,377 edges across 6 domains in 18 seconds, the WasmVOWL explorer (MIT), the prebuilt artefacts, and [the method write-up](https://github.com/DreamLab-AI/knowledgeGraph/blob/main/docs/methodology/the-hybrid-approach.md). The corpus is mostly AI-generated synthetic content produced under human direction, by design: an ontology testbed, not an authoritative encyclopaedia. 4,498 of the 7,457 classes are uncategorised and 961 validation warnings stand.
 
 ### Independent convergence — Block's Buzz
 
