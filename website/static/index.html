@@ -182,8 +182,8 @@
   <section id="substrates" class="section">
     <canvas id="particle-canvas-2" class="bg-canvas" aria-hidden="true"></canvas>
     <div class="container reveal">
-      <span class="section-tag">Five Substrates, One Identity</span>
-      <h2>Five independent systems mesh through one cryptographic identity spine</h2>
+      <span class="section-tag">Six Substrates, One Identity</span>
+      <h2>Six independent systems mesh through one cryptographic identity spine</h2>
 
       <div class="identity-callout">
         <code>did:nostr:&lt;hex-pubkey&gt;</code>
@@ -275,6 +275,24 @@
             <li>Consumes the forum kit as git-pinned library crates</li>
           </ul>
           <a href="https://github.com/DreamLab-AI/dreamlab-ai-website" target="_blank" rel="noopener" class="substrate-link">View Repo &rarr;</a>
+        </div>
+
+        <div class="substrate-card" style="--accent: var(--gold)">
+          <div class="substrate-header">
+            <span class="substrate-icon">&#x2B22;</span>
+            <h3>Ontology Loom</h3>
+            <span class="substrate-role">Grounding &amp; Serving Node</span>
+          </div>
+          <ul>
+            <li>Model-swappable, OpenAI-compatible fa&ccedil;ade &mdash; the model is a URL (Gemma and Muse-Glimmer both proven behind the same contract)</li>
+            <li>Static ontology scaffold lifts grounded recall ~0.15&ndash;0.27 &rarr; 0.94 (3&ndash;6&times;) across two models; prose adds nothing</li>
+            <li>In-process pyoxigraph read-truth store: 286,500-triple reasoned closure, read-only SPARQL + node search</li>
+            <li>Confidence-aware selective injection (live): strong match &rarr; full budget, weak &rarr; scaled, off-topic &rarr; gated &mdash; avoids context interference</li>
+            <li>Reasoning-model safe: server-side <code>max_tokens</code> floor so a model never truncates to empty</li>
+            <li>Agentbox &ldquo;one brain&rdquo; retrieval resolves through the Loom (live, agentbox <code>ADR-051</code>)</li>
+            <li>Governed elevation live: workingGraph &rarr; ontology via ACSP <code>31402</code> propose &rarr; admin <code>31403</code></li>
+          </ul>
+          <a href="https://github.com/DreamLab-AI/loom" target="_blank" rel="noopener" class="substrate-link">View Repo &rarr;</a>
         </div>
       </div>
 
@@ -600,7 +618,7 @@
 
       <div class="identity-callout">
         <code>model = a URL behind a stable fa&ccedil;ade &middot; swap without consumer change</code>
-        <p>Model identity is carried <em>in the results</em>, never in the endpoint. A consumer &mdash; an agent, a workflow, any OpenAI-compatible client &mdash; asks the same fa&ccedil;ade the same way whether a local GPU model or a cloud model answers. In agentbox the &ldquo;one brain&rdquo; retrieval path resolves through the Loom (agentbox <code>ADR-051</code>, harness-side loom-client, proposed), so grounding is uniform across the harness without wiring an ontology into each agent.</p>
+        <p>Model identity is carried <em>in the results</em>, never in the endpoint. A consumer &mdash; an agent, a workflow, any OpenAI-compatible client &mdash; asks the same fa&ccedil;ade the same way whether a local GPU model or a cloud model answers. In agentbox the &ldquo;one brain&rdquo; retrieval path resolves through the Loom (agentbox <code>ADR-051</code>, harness-side loom-client &mdash; live), so grounding is uniform across the harness without wiring an ontology into each agent.</p>
       </div>
 
       <div class="broker-flow">
@@ -654,6 +672,23 @@
         </div>
       </div>
 
+      <p class="section-lead" style="margin-top:2rem">Shipped since the benchmark &mdash; the node hardened into infrastructure:</p>
+
+      <div class="gap-cards">
+        <div class="glass-card gap-card">
+          <h3>Confidence-aware injection, live</h3>
+          <p>Grounding only helps when the query is on-ontology &mdash; injecting context on a weak match can <em>displace</em> the model&rsquo;s own knowledge (the &ldquo;context interference&rdquo; effect: Lin et&nbsp;al. 2026, Yoran et&nbsp;al. 2024). The Loom scales injection by retrieval confidence: a strong exact-title hit gets the full scaffold (verified <em>rollup</em> &rarr; full budget), a weak match a scaled fraction (<em>digital-asset transfer</em>, score&nbsp;2.3 &rarr; 0.4&times;), an off-topic query nothing at all (<em>banana pancakes</em> &rarr; gated, zero tokens).</p>
+        </div>
+        <div class="glass-card gap-card">
+          <h3>A single read-truth</h3>
+          <p>The Loom holds the reasoned generation in an in-process pyoxigraph store &mdash; 286,500 triples of assertion-plus-closure &mdash; and answers read-only SPARQL and node search over it. One queryable source of ontological truth behind the fa&ccedil;ade, never the working graph (boundary invariant I11).</p>
+        </div>
+        <div class="glass-card gap-card">
+          <h3>Governed elevation, end to end</h3>
+          <p>New knowledge reaches the ontology through one governed door: an agent distils a note, grounds it against the Loom, and proposes an enrichment as an ACSP <code>31402</code> request; a human admin approves with <code>31403</code>; only then does it publish. The first elevation ran this way &mdash; proposed, approved, and live in the served generation the same day.</p>
+        </div>
+      </div>
+
       <div class="scale-grid" style="margin-top:2rem">
         <div class="scale-card">
           <div class="scale-tier">Topology A</div>
@@ -670,7 +705,7 @@
       </div>
 
       <div class="callout" style="margin-top:2rem">
-        <p><strong>Honest scope.</strong> These numbers are domain-specific factual recall on a single, <em>mostly AI-generated synthetic</em> corpus &mdash; an ontology testbed, not a general benchmark. The Loom is a portable <strong>node</strong> today, of which the HP-Desktop deployment is the reference; the &ldquo;connector platform&rdquo; claim is deliberately <strong>deferred until a second grounding provider lands</strong> behind the same fa&ccedil;ade. Named for citation discipline: the fa&ccedil;ade contract is VisionClaw <code>ADR-135</code>; the node design is VisionClaw <code>PRD-025</code>; the harness client is agentbox <code>ADR-051</code> (proposed). Repo: <a href="https://github.com/DreamLab-AI/loom" target="_blank" rel="noopener" style="color:var(--gold)">github.com/DreamLab-AI/loom</a>.</p>
+        <p><strong>Honest scope.</strong> The recall numbers are domain-specific factual recall on a single, <em>mostly AI-generated synthetic</em> corpus &mdash; an ontology testbed, not a general benchmark. That is the one caveat that stays. Everything else has shipped: the model-swap seam is proven across two very different models behind one fa&ccedil;ade, the read-truth store and confidence-aware injection run in the deployed node, the agentbox &ldquo;one brain&rdquo; grounds through it live, and the first governed elevation is published. Named for citation discipline: the fa&ccedil;ade contract is VisionClaw <code>ADR-135</code>; the node design is VisionClaw <code>PRD-025</code>; the harness client is agentbox <code>ADR-051</code>. Repo: <a href="https://github.com/DreamLab-AI/loom" target="_blank" rel="noopener" style="color:var(--gold)">github.com/DreamLab-AI/loom</a>.</p>
       </div>
     </div>
   </section>
