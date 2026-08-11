@@ -40,6 +40,7 @@
         <a href="#trust-ledger">Trust Ledger</a>
         <a href="#economic">Economics</a>
         <a href="#evidence">Evidence</a>
+        <a href="#loom">Loom</a>
         <a href="#cases">Cases</a>
         <a href="#competitive">Landscape</a>
         <a href="#scaling">Scaling</a>
@@ -589,6 +590,91 @@
     </div>
   </section>
 
+  <!-- Ontology Loom -->
+  <section id="loom" class="section">
+    <canvas id="particle-canvas-7" class="bg-canvas" aria-hidden="true"></canvas>
+    <div class="container reveal">
+      <span class="section-tag">Grounding &amp; Serving Node</span>
+      <h2>The Ontology Loom: grounding held behind a model-swappable fa&ccedil;ade</h2>
+      <p class="section-lead">The evidence above proves that ontology grounding works. The <a href="https://github.com/DreamLab-AI/loom" target="_blank" rel="noopener" style="color:var(--gold)">Ontology Loom</a> is the node that turns it into infrastructure. It <strong>consumes the corpus generations</strong> that <a href="https://github.com/DreamLab-AI/knowledgeGraph" target="_blank" rel="noopener" style="color:var(--gold)">knowledgeGraph</a> publishes, weaves them into a reasoned ontology it holds as canonical, and <strong>serves that grounding</strong> to any LLM behind a stable, OpenAI-compatible fa&ccedil;ade. The model is a URL: swap Gemma for Muse-Glimmer for whatever lands next, with zero consumer change. VisionClaw supplies the GPU engine and the OWL 2 EL reasoner; knowledgeGraph builds the corpus; the Loom serves the grounding.</p>
+
+      <div class="identity-callout">
+        <code>model = a URL behind a stable fa&ccedil;ade &middot; swap without consumer change</code>
+        <p>Model identity is carried <em>in the results</em>, never in the endpoint. A consumer &mdash; an agent, a workflow, any OpenAI-compatible client &mdash; asks the same fa&ccedil;ade the same way whether a local GPU model or a cloud model answers. In agentbox the &ldquo;one brain&rdquo; retrieval path resolves through the Loom (agentbox <code>ADR-051</code>, harness-side loom-client, proposed), so grounding is uniform across the harness without wiring an ontology into each agent.</p>
+      </div>
+
+      <div class="broker-flow">
+        <div class="broker-step">
+          <div class="broker-num">1</div>
+          <h3>Corpus Generates <span class="broker-substrate">knowledgeGraph</span></h3>
+          <p>The rdflib pipeline builds an atomic, sha-pinned <em>generation</em> of the corpus &mdash; page JSON, scaffold index, inferred superclasses, ontology triples &mdash; and publishes it.</p>
+        </div>
+        <div class="broker-arrow">&rarr;</div>
+        <div class="broker-step">
+          <div class="broker-num">2</div>
+          <h3>Loom Weaves &amp; Serves <span class="broker-substrate">the Loom</span></h3>
+          <p>The Loom syncs the generation, runs EL closure, and serves a pre-computed structured <em>scaffold</em> as the primary grounding product behind the fa&ccedil;ade.</p>
+        </div>
+        <div class="broker-arrow">&rarr;</div>
+        <div class="broker-step">
+          <div class="broker-num">3</div>
+          <h3>Any Model Answers Grounded <span class="broker-substrate">OpenAI-compatible</span></h3>
+          <p>The scaffold is injected into the model&rsquo;s context. A bare local model that scored near-random on corpus recall now answers at parity with the graph &mdash; provably, on the same generation.</p>
+        </div>
+      </div>
+
+      <p class="section-lead" style="margin-top:2rem">A held-out 37-question benchmark (seed-42, objective graph-derived gold, bootstrap 95% CIs) ran two local models across four grounding axes on this synthetic corpus. Static structured scaffold is the dominant win for both; prose adds nothing over it; agentic tool-traversal is model-dependent.</p>
+
+      <div class="competitive-table-wrap" tabindex="0" aria-label="Ontology Loom grounding uplift across two local models">
+        <table class="competitive-table">
+          <thead>
+            <tr><th>Grounding axis</th><th>Gemma (recall)</th><th>Muse-Glimmer (recall)</th><th>What it shows</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Raw &mdash; no grounding</td><td>0.15</td><td>0.27</td><td>Bare model on synthetic-corpus recall: near random</td></tr>
+            <tr class="row-highlight"><td><strong>Scaffold &mdash; static structured injection</strong></td><td><strong>0.94</strong></td><td><strong>0.94</strong></td><td style="color:var(--gold)">The dominant win &mdash; roughly 6&times; (Gemma) / 3.5&times; (Muse) the baseline</td></tr>
+            <tr><td>Prose-enriched scaffold</td><td>~0.94</td><td>0.95</td><td>Adds ~nothing over structured; prose stays optional</td></tr>
+            <tr><td>Tools &mdash; agentic graph traversal</td><td>0.97</td><td>0.65</td><td style="color:var(--cyan)">Model-dependent: helps Gemma, hurts Muse</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="gap-cards">
+        <div class="glass-card gap-card">
+          <h3>Grounding is model-agnostic; the lift is huge</h3>
+          <p>The static scaffold lifts <em>both</em> models to ~0.94 grounded recall: Gemma +0.793 (CI [0.68, 0.89]) from 0.15, Muse-Glimmer +0.671 (CI [0.53, 0.80]) from 0.27. The value lives in the structured generation, not the model &mdash; which is exactly why the model can be a swappable URL.</p>
+        </div>
+        <div class="glass-card gap-card">
+          <h3>Prose is a complement, not the driver</h3>
+          <p>Prose-enriched grounding scores level with the structured scaffold. The taxonomy, typed relations, and definitions do the work; narrative text is a cheap optional extra. The Loom prioritises the structured generation and treats prose as secondary.</p>
+        </div>
+        <div class="glass-card gap-card">
+          <h3>Feed the model; don&rsquo;t send it traversing</h3>
+          <p>Letting a model walk the graph with tools is model-dependent &mdash; strong for Gemma (0.97), below static injection for Muse (0.65). So the Loom serves a pre-computed scaffold as the primary path and keeps live traversal tools secondary, rather than betting grounding on one model&rsquo;s agentic behaviour.</p>
+        </div>
+      </div>
+
+      <div class="scale-grid" style="margin-top:2rem">
+        <div class="scale-card">
+          <div class="scale-tier">Topology A</div>
+          <h3>Co-located with the model</h3>
+          <p>Fa&ccedil;ade and distillation on one GPU host. The reference deployment: lifecycle, reasoning, and the local model share a box, serving grounding LAN-local with no external hop.</p>
+          <div class="scale-cost">One GPU host. Model and fa&ccedil;ade together.</div>
+        </div>
+        <div class="scale-card scale-card-mid">
+          <div class="scale-tier">Topology B</div>
+          <h3>Sidecar, model delegated</h3>
+          <p>The lightweight fa&ccedil;ade and lifecycle facet run as a container; distillation is delegated to a configured backend URL &mdash; a GPU host, a local container, or a cloud model. No GPU in the sidecar; the model is a config line, not an architecture change.</p>
+          <div class="scale-cost">Stdlib-portable container. Backend is a URL.</div>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top:2rem">
+        <p><strong>Honest scope.</strong> These numbers are domain-specific factual recall on a single, <em>mostly AI-generated synthetic</em> corpus &mdash; an ontology testbed, not a general benchmark. The Loom is a portable <strong>node</strong> today, of which the HP-Desktop deployment is the reference; the &ldquo;connector platform&rdquo; claim is deliberately <strong>deferred until a second grounding provider lands</strong> behind the same fa&ccedil;ade. Named for citation discipline: the fa&ccedil;ade contract is VisionClaw <code>ADR-135</code>; the node design is VisionClaw <code>PRD-025</code>; the harness client is agentbox <code>ADR-051</code> (proposed). Repo: <a href="https://github.com/DreamLab-AI/loom" target="_blank" rel="noopener" style="color:var(--gold)">github.com/DreamLab-AI/loom</a>.</p>
+      </div>
+    </div>
+  </section>
+
   <!-- Case Studies -->
   <section id="cases" class="section section-dark">
     <div class="container reveal">
@@ -732,7 +818,7 @@
   <section id="repos" class="section">
     <div class="container reveal">
       <span class="section-tag">Repository Map</span>
-      <h2>The five substrates, this ecosystem-guide repository, and the published corpus</h2>
+      <h2>The five substrates, this ecosystem-guide repository, the published corpus, and the serving node</h2>
 
       <div class="repo-grid">
         <a href="https://github.com/DreamLab-AI/VisionFlow" target="_blank" rel="noopener" class="repo-card">
@@ -769,6 +855,11 @@
           <h3>knowledgeGraph</h3>
           <p>Published corpus, pipeline and explorer</p>
           <span class="repo-tech">7,457 pages &middot; ODbL &middot; rdflib &middot; WasmVOWL</span>
+        </a>
+        <a href="https://github.com/DreamLab-AI/loom" target="_blank" rel="noopener" class="repo-card">
+          <h3>Loom</h3>
+          <p>Ontology grounding and serving node</p>
+          <span class="repo-tech">Model-swap fa&ccedil;ade &middot; OpenAI-compatible &middot; ~0.94 recall</span>
         </a>
       </div>
     </div>
