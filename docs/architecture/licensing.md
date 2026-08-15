@@ -7,7 +7,7 @@ VisionFlow combines repositories with different licence obligations. This page i
 
 | Repository | Licence described in docs | Practical boundary |
 |---|---|---|
-| VisionFlow | Public docs describe mixed MPL 2.0 + AGPL 3.0 ecosystem | Documentation and static website assets |
+| VisionFlow | AGPL 3.0 (MPL 2.0 relicense proposed); the code ecosystem it documents is AGPL-3.0-only across all four code repos | Documentation and static website assets |
 | VisionClaw | AGPL 3.0 only (`LICENSE` + `Cargo.toml`); an MPL 2.0 relicense is proposed — `LICENSE.MPL` ships in-tree but is not operative | Knowledge engineering substrate and GPU/XR application code |
 | agentbox | AGPL 3.0 | Networked agent runtime and management API |
 | solid-pod-rs | AGPL 3.0 | Solid/JSS foundation library and server |
