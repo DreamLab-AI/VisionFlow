@@ -251,28 +251,47 @@ body {
   position: relative;
   padding: 100px 0;
   overflow: hidden;
-  background: rgba(14, 14, 17, 0.9);
+  background: rgba(14, 14, 17, 0.5);
 }
-.section-dark { background: rgba(9, 9, 12, 0.92); }
-/* Body copy sitting directly on a section keeps a text shadow so it stays legible
-   over any mesh glow that bleeds through — belt and braces with the opaque overlay. */
+.section-dark { background: rgba(9, 9, 12, 0.82); }
+/* Body copy over the ambient video keeps a text shadow for legibility. */
 .section-lead, .section > .container > p { text-shadow: 0 1px 3px rgba(9, 9, 12, 0.85); }
 
-/* Fixed living-mesh WebGL backdrop — behind the content column, above the page ground. */
+/* Figure sections: dark behind the left-hand text, transparent on the right so the
+   scroll-driven ontology figure (and the ambient video) show in the dead space. */
+.section-figure {
+  background: linear-gradient(90deg, rgba(9, 9, 12, 0.93) 0%, rgba(9, 9, 12, 0.9) 48%, rgba(9, 9, 12, 0.35) 66%, rgba(9, 9, 12, 0) 78%);
+}
+.section-figure > .container { max-width: 640px; margin-left: max(24px, 7vw); margin-right: 0; }
+
+/* Fixed WebGL layer sits above the ambient video, below the content column. */
 #mesh-gl {
   position: fixed;
   inset: 0;
   width: 100vw;
   height: 100vh;
-  z-index: 0;
+  z-index: 1;
   pointer-events: none;
   opacity: 0;
   transition: opacity 1.2s ease;
 }
 #mesh-gl.ready { opacity: 1; }
-/* Content column and footer sit above both fixed backdrops (mesh + video). */
-#main-content { position: relative; z-index: 1; }
-.footer { position: relative; z-index: 1; background: var(--bg-dark); }
+#main-content { position: relative; z-index: 3; }
+.footer { position: relative; z-index: 3; background: var(--bg-dark); }
+
+/* Projected labels for the ontology figures. */
+.mesh-label {
+  position: absolute; left: 0; top: 0; white-space: nowrap;
+  font-family: var(--mono); line-height: 1.15;
+  text-shadow: 0 1px 8px rgba(9, 9, 12, 0.95); transition: opacity 0.2s;
+}
+.mesh-label .ml-nm { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text); font-family: var(--font); }
+.mesh-label .ml-rl { display: block; font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); }
+@media (max-width: 900px) {
+  .section-figure { background: rgba(9, 9, 12, 0.82); }
+  .section-figure > .container { max-width: 1200px; margin: 0 auto; }
+  .mesh-label { display: none; }
+}
 .section-tag {
   display: inline-block;
   font-size: 0.75rem;
@@ -836,7 +855,7 @@ body {
   pointer-events: none;
 }
 #bg-video.active {
-  opacity: 0.16;
+  opacity: 0.28;
 }
 
 /* ── Video ── */

@@ -52,7 +52,6 @@
   <!-- Hero Section -->
   <section id="hero" class="hero">
     <div class="hero-content">
-      <div class="hero-badge">Coordination Engineering</div>
       <h1>Federated Human&ndash;AI<br/>Intelligence</h1>
       <p class="hero-sub">Coordination engineering is the discipline of designing systems that reliably orchestrate autonomous agents across heterogeneous substrates. As AI collapses the cost of routing work, the human is promoted from router to judgment broker. Thin agents on a shared formal semantic layer &mdash; the architecture the industry now calls neurosymbolic &mdash; with self-sovereign data, cryptographic provenance, and human-in-the-loop governance.</p>
       <div class="hero-actions">
@@ -109,7 +108,7 @@
   </section>
 
   <!-- Evolution Line -->
-  <section id="evolution" class="section section-dark">
+  <section id="evolution" class="section section-figure">
     <div class="container reveal">
       <span class="section-tag">Evolution Line</span>
       <h2>From LLM to Coordination Harness</h2>
@@ -274,7 +273,7 @@
             <li>In-process pyoxigraph read-truth store: 286,500-triple reasoned closure, read-only SPARQL + node search</li>
             <li>Confidence-aware selective injection (live): strong match &rarr; full budget, weak &rarr; scaled, off-topic &rarr; gated &mdash; avoids context interference</li>
             <li>Reasoning-model safe: server-side <code>max_tokens</code> floor so a model never truncates to empty</li>
-            <li>Agentbox &ldquo;one brain&rdquo; retrieval resolves through the Loom (live, agentbox <code>ADR-051</code>)</li>
+            <li>Agentbox &ldquo;one brain&rdquo; retrieval resolves through the Loom, live</li>
             <li>Governed elevation live: workingGraph &rarr; ontology via ACSP <code>31402</code> propose &rarr; admin <code>31403</code></li>
           </ul>
           <a href="https://github.com/DreamLab-AI/loom" target="_blank" rel="noopener" class="substrate-link">View Repo &rarr;</a>
@@ -505,7 +504,7 @@
   </section>
 
   <!-- Ontology Evidence -->
-  <section id="loom" class="section section-dark">
+  <section id="loom" class="section section-figure">
     <div class="container reveal">
       <span class="section-tag">Grounding &amp; Serving Node</span>
       <h2>The Ontology Loom: measured grounding behind a model-swappable fa&ccedil;ade</h2>
@@ -533,7 +532,7 @@
 
       <div class="identity-callout">
         <code>model = a URL behind a stable fa&ccedil;ade &middot; swap without consumer change</code>
-        <p>Model identity is carried <em>in the results</em>, never in the endpoint. A consumer &mdash; an agent, a workflow, any OpenAI-compatible client &mdash; asks the same fa&ccedil;ade the same way whether a local GPU model or a cloud model answers. In agentbox the &ldquo;one brain&rdquo; retrieval path resolves through the Loom (agentbox <code>ADR-051</code>, harness-side loom-client &mdash; live), so grounding is uniform across the harness without wiring an ontology into each agent.</p>
+        <p>Model identity is carried <em>in the results</em>, never in the endpoint. A consumer &mdash; an agent, a workflow, any OpenAI-compatible client &mdash; asks the same fa&ccedil;ade the same way whether a local GPU model or a cloud model answers. In agentbox the &ldquo;one brain&rdquo; retrieval path resolves through the Loom&rsquo;s harness-side client, live, so grounding is uniform across the harness without wiring an ontology into each agent.</p>
       </div>
 
       <p class="section-lead" style="margin-top:2rem">Beyond the benchmark, the node has hardened into infrastructure:</p>
@@ -545,7 +544,7 @@
         </div>
         <div class="glass-card gap-card">
           <h3>A single read-truth</h3>
-          <p>The Loom holds the reasoned generation in an in-process pyoxigraph store &mdash; 286,500 triples of assertion-plus-closure &mdash; and answers read-only SPARQL and node search over it. One queryable source of ontological truth behind the fa&ccedil;ade, never the working graph (boundary invariant I11).</p>
+          <p>The Loom holds the reasoned generation in an in-process pyoxigraph store &mdash; 286,500 triples of assertion-plus-closure &mdash; and answers read-only SPARQL and node search over it. One queryable source of ontological truth behind the fa&ccedil;ade, never the working graph.</p>
         </div>
         <div class="glass-card gap-card">
           <h3>Governed elevation, end to end</h3>
@@ -554,7 +553,7 @@
       </div>
 
       <div class="callout" style="margin-top:2rem">
-        <p><strong>What the numbers measure.</strong> The recall figures are domain-specific factual recall on a <em>mostly synthetic</em> corpus &mdash; the corpus is a testbed for the pipeline and its grounding, which is exactly what makes it a fair reading of the mechanism. The rest runs in the deployed node: the model-swap seam works across two very different models behind one fa&ccedil;ade, the read-truth store and confidence-aware injection are live, the agentbox &ldquo;one brain&rdquo; grounds through it, and governed elevation publishes into the served generation. Named for citation discipline: the fa&ccedil;ade contract is VisionClaw <code>ADR-135</code>; the node design is VisionClaw <code>PRD-025</code>; the harness client is agentbox <code>ADR-051</code>. Repo: <a href="https://github.com/DreamLab-AI/loom" target="_blank" rel="noopener" style="color:var(--gold)">github.com/DreamLab-AI/loom</a>.</p>
+        <p><strong>What the numbers measure.</strong> The recall figures are domain-specific factual recall on a <em>mostly synthetic</em> corpus &mdash; the corpus is a testbed for the pipeline and its grounding, which is exactly what makes it a fair reading of the mechanism. The rest runs in the deployed node: the model-swap seam works across two very different models behind one fa&ccedil;ade, the read-truth store and confidence-aware injection are live, the agentbox &ldquo;one brain&rdquo; grounds through it, and governed elevation publishes into the served generation. Repo: <a href="https://github.com/DreamLab-AI/loom" target="_blank" rel="noopener" style="color:var(--gold)">github.com/DreamLab-AI/loom</a>.</p>
       </div>
     </div>
   </section>
