@@ -91,183 +91,134 @@ function initBackgroundVideo() {
   observer.observe(hero);
 }
 
-const plainLanguageSections = {
-  hero: {
-    label: 'What VisionFlow does',
-    title: 'Make AI teams accountable, even across organisations',
-    problem: 'AI agents can now do useful work, but most organisations cannot see who authorised an action, which information it used, or who owns the result.',
-    solution: 'VisionFlow gives people and AI agents a shared way to work. It keeps data with its owner, checks important claims, records decisions and sends risky actions to a person.',
-    outcomes: ['Use several AI tools without handing control to one vendor', 'Keep a clear record of who decided what', 'Work with partners while each organisation keeps its own data']
-  },
-  problem: {
-    label: 'Business problem',
-    title: 'More AI creates more coordination work',
-    problem: 'Teams are connecting AI tools faster than leaders can set rules for them. The result is duplicated work, invisible risk and decisions nobody can properly explain.',
-    solution: 'VisionFlow puts identity, ownership and approval around the work itself, so independent tools can cooperate without creating another central bottleneck.',
-    outcomes: ['See which person or agent took each action', 'Set approval points for consequential decisions', 'Replace shadow workflows with an auditable process']
-  },
-  evolution: {
-    label: 'Why this matters now',
-    title: 'AI has moved from answering questions to taking action',
-    problem: 'A chatbot can be checked one answer at a time. A group of agents can make hundreds of linked decisions, so plausible-sounding text is no longer a sufficient control.',
-    solution: 'VisionFlow gives every agent the same checked vocabulary and business rules. The system can reject contradictions before they become accepted facts.',
-    outcomes: ['Apply the same definitions across teams and tools', 'Catch incompatible claims automatically', 'Change AI models without rebuilding the control layer']
-  },
-  substrates: {
-    label: 'Practical solution',
-    title: 'Six focused services, one accountable workflow',
-    problem: 'Large all-in-one AI platforms are convenient until a team needs to change a model, move its data or work with an outside organisation.',
-    solution: 'VisionFlow separates knowledge, agent work, private data, human approval, delivery and model grounding. A shared identity joins the services without giving any one of them total control.',
-    outcomes: ['Replace one part without replacing the whole system', 'Keep sensitive data in the right organisation', 'Trace work across the full process']
-  },
-  guarantees: {
-    label: 'Operational controls',
-    title: 'Important actions require proof, not trust',
-    problem: 'Policies written in a handbook do not stop an automated system from acting outside them.',
-    solution: 'VisionFlow checks permissions when work happens, verifies the sender, records the evidence and routes decisions to a person when authority is required.',
-    outcomes: ['Block unauthorised changes before they land', 'Produce an audit trail from existing operations', 'Give external partners access without creating a shared master account']
-  },
-  immersive: {
-    label: 'Human understanding',
-    title: 'Make complex relationships visible and discussable',
-    problem: 'Large knowledge networks are hard to understand on a flat dashboard, especially when several specialists need to inspect the same evidence together.',
-    solution: 'VisionFlow turns connected information into a shared spatial view. People can explore relationships, compare interpretations and point to the same structure in the same session.',
-    outcomes: ['Find important connections in dense information', 'Review complex evidence with remote colleagues', 'Give non-specialists a usable view of the system']
-  },
-  broker: {
-    label: 'Decision governance',
-    title: 'Let AI prepare the decision; keep authority with people',
-    problem: 'Human approval often becomes a rubber stamp because the reviewer receives too little context, too late.',
-    solution: 'An agent submits a clear proposal with its evidence and requested authority. The right person can approve, reject or revise it, and the signed decision controls what happens next.',
-    outcomes: ['Send only material decisions for review', 'Give reviewers the evidence behind each request', 'Connect approval directly to the permitted action']
-  },
-  economic: {
-    label: 'Business case',
-    title: 'Spend computing power where a better decision is worth more',
-    problem: 'AI cost is easy to count; the cost of a missed interaction, a repeated experiment or a poorly governed decision is usually hidden.',
-    solution: 'VisionFlow lets organisations use deeper analysis on high-value problems while reducing waste from agents repeating work or acting on conflicting information.',
-    outcomes: ['Measure value against the decision, not token volume', 'Reuse checked knowledge across future work', 'Reduce the cost of rework and preventable mistakes']
-  },
-  loom: {
-    label: 'Reliable answers',
-    title: 'Give any AI model the facts it needs before it answers',
-    problem: 'A capable model can still invent details when it lacks the right organisational knowledge.',
-    solution: 'The Ontology Loom supplies a compact set of checked, relevant facts before each answer. The underlying model can change without changing the applications that depend on it.',
-    outcomes: ['Improve factual recall with measured grounding', 'Run the same service with local or hosted models', 'Keep contradictory information out of the trusted knowledge base']
-  },
-  cases: {
-    label: 'Where it helps',
-    title: 'Coordinate work no single team can own',
-    problem: 'Climate research, drug discovery and large creative programmes depend on organisations that need to cooperate but cannot pool every dataset or surrender authority.',
-    solution: 'Each participant keeps its own information and operating rules while sharing signed requests, approved findings and evidence across the group.',
-    outcomes: ['Collaborate without copying all data into one platform', 'Keep ownership clear across institutional boundaries', 'Build a shared result from independently governed work']
-  },
-  competitive: {
-    label: 'Why it is different',
-    title: 'Agent communication is common; accountable coordination is not',
-    problem: 'Most agent products can connect tools and pass messages. Few can prove identity, preserve data ownership, enforce human decisions and check shared facts together.',
-    solution: 'VisionFlow combines those controls in an open, federated system. Organisations can inspect the implementation and keep operating their own part of the network.',
-    outcomes: ['Avoid dependence on one platform owner', 'Carry governance across organisational boundaries', 'Check claims against formal business knowledge']
-  },
-  scaling: {
-    label: 'Adoption path',
-    title: 'Start with one operator and grow without changing the rules',
-    problem: 'Pilot systems often work for one expert, then need a costly redesign when a team or partner organisation joins.',
-    solution: 'VisionFlow uses the same identity, data ownership and approval model for an individual, a team and a federation of organisations.',
-    outcomes: ['Begin in a single controlled environment', 'Add team governance when it becomes useful', 'Connect independent organisations without centralising them']
-  },
-  repos: {
-    label: 'Open implementation',
-    title: 'Inspect, run or replace every major part',
-    problem: 'A governance promise is weak when customers cannot see how it is enforced or move away from its supplier.',
-    solution: 'VisionFlow is built from open repositories with clear responsibilities. Technical teams can audit the controls, deploy the services they need and integrate them with existing systems.',
-    outcomes: ['Review the code behind security and governance claims', 'Adopt the system in stages', 'Retain a practical exit route']
-  }
+// Plain-English versions of each section intro (heading + lead). Sharp and
+// executive, not simplified to death — the same claim, in fewer moving parts.
+const PLAIN = {
+  hero: { lead: 'AI agents now do real work &mdash; but most organisations can&rsquo;t say who authorised an action, what it drew on, or who owns the result. VisionFlow gives people and AI a shared, accountable way to work: data stays with its owner, key claims are checked, every decision is recorded, and anything consequential goes to a person.' },
+  problem: { title: 'More AI means more coordination, not less', lead: 'Teams are wiring AI tools together faster than anyone can govern them &mdash; duplicated effort, invisible risk, and decisions no one can explain. VisionFlow wraps identity, ownership and approval around the work itself, so independent tools cooperate without a new central bottleneck.' },
+  evolution: { title: 'AI stopped answering and started acting', lead: 'You can check a chatbot one reply at a time. You can&rsquo;t check a swarm of agents making hundreds of linked decisions &mdash; plausible text is no longer a control. VisionFlow gives every agent the same checked vocabulary and rules, and rejects contradictions before they become accepted facts.' },
+  substrates: { title: 'Six focused services, one accountable workflow', lead: 'All-in-one AI platforms are convenient until you need to change a model, move your data, or work with another organisation. VisionFlow keeps knowledge, agents, private data, human approval, delivery and grounding as separate services, joined by one shared identity &mdash; so no single part holds all the control.' },
+  guarantees: { title: 'Important actions need proof, not trust', lead: 'A policy in a handbook won&rsquo;t stop an automated system acting outside it. VisionFlow checks permissions as the work happens, verifies who is asking, records the evidence, and routes the decision to a person whenever real authority is required.' },
+  immersive: { title: 'Make complex relationships something people can see', lead: 'Dense knowledge networks are hard to grasp on a flat dashboard &mdash; harder still when specialists need to inspect the same evidence together. VisionFlow turns connected information into a shared space you can walk through, compare, and point at in the same session.' },
+  broker: { title: 'Let AI prepare the decision; keep the authority with people', lead: 'Human sign-off becomes a rubber stamp when the reviewer gets too little, too late. Here an agent submits a clear proposal with its evidence and the authority it is asking for; the right person approves, rejects or revises &mdash; and that signed decision is what actually runs.' },
+  economic: { title: 'Spend compute where a better decision is worth it', lead: 'AI cost is easy to count. The cost of a missed insight, a repeated experiment, or an ungoverned decision usually isn&rsquo;t. VisionFlow puts deeper analysis on the problems that justify it, and cuts the waste of agents redoing work or acting on conflicting information.' },
+  loom: { title: 'Give any model the facts before it answers', lead: 'A strong model still invents details when it lacks your organisation&rsquo;s knowledge. The Ontology Loom hands it a compact set of checked, relevant facts before each answer &mdash; and you can swap the underlying model without touching what depends on it.' },
+  cases: { title: 'Coordinate work no single team can own', lead: 'Climate research, drug discovery and large productions all depend on organisations that must cooperate but can&rsquo;t pool every dataset or hand over control. Each keeps its own data and rules while sharing signed requests, approved findings and evidence across the group.' },
+  competitive: { title: 'Connecting agents is common. Accountable coordination isn&rsquo;t.', lead: 'Most agent products can pass messages between tools. Few can prove identity, keep data with its owner, enforce human decisions and check shared facts at the same time &mdash; in the open, across organisations. That combination is the whole point.' },
+  scaling: { title: 'Start with one operator; grow without changing the rules', lead: 'Pilots that work for one expert often need a costly rebuild when a team or partner joins. VisionFlow uses the same identity, ownership and approval model for an individual, a team, and a federation of organisations.' },
+  repos: { title: 'Inspect, run, or replace every major part', lead: 'A governance promise means little if you can&rsquo;t see how it&rsquo;s enforced or leave the supplier. VisionFlow is built from open repositories with clear responsibilities &mdash; audit the controls, deploy what you need, and keep a real exit route.' }
 };
 
-function technicalIcon() {
-  return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 9-3 3 3 3M16 9l3 3-3 3M14 5l-4 14"/></svg>`;
-}
+function initReadingSwitch() {
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const panels = [];
 
-function createBlockTranslation(original, text, label, index) {
-  const block = document.createElement('div');
-  const technicalId = `technical-block-${index}`;
-  original.id = technicalId;
-  original.classList.add('technical-copy');
-  block.className = 'translation-block';
-  block.innerHTML = `
-    <div class="plain-copy">
-      <span class="plain-label">${label}</span>
-      <p>${text}</p>
-    </div>
-    <button class="detail-toggle" type="button" aria-expanded="false" aria-controls="${technicalId}">
-      ${technicalIcon()}<span>Technical detail</span>
-    </button>
-  `;
-  original.before(block);
-  block.append(original);
-  return block;
-}
+  function measureFace(face, sibling) {
+    const prev = face.style.cssText;
+    sibling.style.display = 'none';
+    face.style.cssText = 'position:static;transform:none;backface-visibility:visible;display:flex;';
+    const h = face.offsetHeight;
+    face.style.cssText = prev;
+    sibling.style.display = '';
+    return h;
+  }
 
-function initPlainLanguagePanels() {
-  const blocks = [];
-  let index = 0;
+  function makePanel(anchor, extra, plainHTML) {
+    const panel = document.createElement('div');
+    panel.className = 'rl-panel';
+    const inner = document.createElement('div');
+    inner.className = 'rl-inner';
+    const tech = document.createElement('div');
+    tech.className = 'rl-face rl-face-tech';
+    const plain = document.createElement('div');
+    plain.className = 'rl-face rl-face-plain';
+    anchor.replaceWith(panel);
+    tech.appendChild(anchor);
+    if (extra) tech.appendChild(extra);
+    plain.innerHTML = plainHTML;
+    inner.append(tech, plain);
+    panel.appendChild(inner);
+    const i = panels.length;
+    const r = Math.abs(Math.sin((i + 1) * 12.9898) * 43758.5453) % 1; // stable pseudo-random
+    panel.style.setProperty('--d', (r * 0.32).toFixed(3) + 's');
+    panel.style.setProperty('--dur', (0.92 + r * 0.42).toFixed(3) + 's');
+    panels.push({ panel, inner, tech, plain, techH: 0, plainH: 0 });
+  }
 
-  Object.entries(plainLanguageSections).forEach(([id, copy]) => {
+  const heroSub = document.querySelector('#hero .hero-sub');
+  if (heroSub) makePanel(heroSub, null, `<p class="hero-sub">${PLAIN.hero.lead}</p>`);
+  Object.entries(PLAIN).forEach(([id, copy]) => {
+    if (id === 'hero') return;
     const section = document.getElementById(id);
     if (!section) return;
+    const h2 = section.querySelector('h2');
+    if (!h2) return;
+    const lead = section.querySelector('.section-lead');
+    const plainHTML = `<h2>${copy.title}</h2>` + (lead && copy.lead ? `<p class="section-lead">${copy.lead}</p>` : '');
+    makePanel(h2, lead && copy.lead ? lead : null, plainHTML);
+  });
 
-    const candidates = [];
-    if (id === 'hero') {
-      const heroCopy = section.querySelector('.hero-sub');
-      if (heroCopy) candidates.push({ element: heroCopy, text: copy.solution, label: copy.label });
-    } else {
-      section.querySelectorAll('.section-lead').forEach((element, leadIndex) => {
-        candidates.push({
-          element,
-          text: leadIndex === 0 ? copy.problem : copy.solution,
-          label: leadIndex === 0 ? 'In plain language' : 'What this means'
-        });
-      });
-      section.querySelectorAll('.glass-card > p, .substrate-card > p, .ledger-card > p, .case-card > p, .scale-card > p, .gap-card > p').forEach((element, cardIndex) => {
-        candidates.push({
-          element,
-          text: copy.outcomes[cardIndex % copy.outcomes.length],
-          label: 'Business value'
-        });
-      });
-      section.querySelectorAll('.callout > p').forEach((element) => {
-        candidates.push({ element, text: copy.solution, label: 'Practical answer' });
-      });
+  function sizeAll(active) {
+    panels.forEach((p) => {
+      p.techH = measureFace(p.tech, p.plain);
+      p.plainH = measureFace(p.plain, p.tech);
+      p.inner.style.height = (active === 'plain' ? p.plainH : p.techH) + 'px';
+    });
+  }
+
+  let liveT;
+  function setMode(plain, animate) {
+    document.body.classList.toggle('reading-plain', plain);
+    panels.forEach((p) => {
+      p.inner.style.height = (plain ? p.plainH : p.techH) + 'px';
+      p.tech.setAttribute('aria-hidden', plain ? 'true' : 'false');
+      p.plain.setAttribute('aria-hidden', plain ? 'false' : 'true');
+      if (animate && !reduced) p.panel.classList.add('rl-live');
+    });
+    if (animate && !reduced) {
+      clearTimeout(liveT);
+      liveT = setTimeout(() => panels.forEach((p) => p.panel.classList.remove('rl-live')), 1700);
     }
+    try { localStorage.setItem('vf-reading', plain ? 'plain' : 'tech'); } catch (e) { /* ignore */ }
+  }
 
-    candidates.forEach(({ element, text, label }) => {
-      if (element.closest('.translation-block')) return;
-      blocks.push(createBlockTranslation(element, text, label, index++));
-    });
+  // floating switch
+  const sw = document.createElement('div');
+  sw.id = 'reading-switch';
+  sw.setAttribute('role', 'group');
+  sw.setAttribute('aria-label', 'Reading level');
+  sw.innerHTML = '<span class="rl-thumb"></span><button type="button" data-plain="false">Technical</button><button type="button" data-plain="true">Plain English</button>';
+  document.body.appendChild(sw);
+  const btns = Array.prototype.slice.call(sw.querySelectorAll('button'));
+  const thumb = sw.querySelector('.rl-thumb');
+  function paintSwitch(plain) {
+    const active = plain ? btns[1] : btns[0];
+    thumb.style.width = active.offsetWidth + 'px';
+    thumb.style.transform = 'translateX(' + active.offsetLeft + 'px)';
+    btns.forEach((b) => b.setAttribute('aria-pressed', String((b.dataset.plain === 'true') === plain)));
+  }
+  btns.forEach((b) => b.addEventListener('click', () => {
+    const plain = b.dataset.plain === 'true';
+    setMode(plain, true);
+    paintSwitch(plain);
+  }));
+
+  let startPlain = false;
+  try { startPlain = localStorage.getItem('vf-reading') === 'plain'; } catch (e) { /* ignore */ }
+  document.body.classList.add('rl-init');
+  sizeAll(startPlain ? 'plain' : 'tech');
+  setMode(startPlain, false);
+  paintSwitch(startPlain);
+  requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('rl-init')));
+
+  let rt;
+  addEventListener('resize', () => {
+    clearTimeout(rt);
+    rt = setTimeout(() => {
+      sizeAll(document.body.classList.contains('reading-plain') ? 'plain' : 'tech');
+      paintSwitch(document.body.classList.contains('reading-plain'));
+    }, 160);
   });
-
-  blocks.forEach((block) => {
-    const button = block.querySelector('.detail-toggle');
-    button.addEventListener('click', () => {
-      const technical = block.classList.toggle('show-technical');
-      button.setAttribute('aria-expanded', String(technical));
-      button.querySelector('span').textContent = technical ? 'Plain-language view' : 'Technical detail';
-    });
-  });
-
-  const resetObserver = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting || !entry.target.classList.contains('show-technical')) return;
-      const button = entry.target.querySelector('.detail-toggle');
-      entry.target.classList.remove('show-technical');
-      button?.setAttribute('aria-expanded', 'false');
-      const label = button?.querySelector('span');
-      if (label) label.textContent = 'Technical detail';
-    });
-  }, { threshold: 0 });
-
-  blocks.forEach((block) => resetObserver.observe(block));
 }
 
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -277,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initNavToggle();
   initSmoothScroll();
   initScrollReveal();
-  initPlainLanguagePanels();
+  initReadingSwitch();
   initMeshBackdrop(); // renders one calm frame under reduced-motion; full flight otherwise
   if (!prefersReducedMotion) {
     initBackgroundVideo();

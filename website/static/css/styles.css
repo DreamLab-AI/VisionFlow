@@ -315,73 +315,77 @@ body {
   margin-bottom: 48px;
 }
 
-/* Block-level translations keep diagrams and page structure in view. */
-.translation-block {
+/* ── Reading-level glass panels ──
+   Each section intro (heading + lead) is a panel that rotates to swap between the
+   technical voice and plain English. At rest the panel is invisible — just text;
+   thick dark translucent glass with a soft light sweep appears only while it turns. */
+.rl-panel { perspective: 1700px; margin: 0; }
+.rl-inner {
   position: relative;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 18px;
-  max-width: 700px;
-  margin-bottom: 32px;
-  padding: 18px 18px 18px 20px;
-  border-left: 2px solid var(--gold);
-  background: rgba(10, 10, 13, 0.72);
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  transform-style: preserve-3d;
+  transition: transform var(--dur, 1s) cubic-bezier(0.62, 0.03, 0.18, 1) var(--d, 0s),
+              height var(--dur, 1s) cubic-bezier(0.62, 0.03, 0.18, 1) var(--d, 0s);
+  will-change: transform;
 }
-.plain-copy { min-width: 0; }
-.plain-label {
-  font-family: var(--mono);
-  color: var(--gold);
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+body.reading-plain .rl-inner { transform: rotateX(-180deg); }
+body.rl-init .rl-inner { transition: none !important; }
+.rl-face {
+  position: absolute; inset: 0;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  display: flex; flex-direction: column; justify-content: center;
 }
-.plain-copy p {
-  margin-top: 8px;
-  color: var(--text);
-  font-size: 1rem;
-  line-height: 1.55;
+.rl-face > :first-child { margin-top: 0; }
+.rl-face > :last-child { margin-bottom: 0; }
+.rl-face-plain { transform: rotateX(180deg); }
+/* thick dark glass — hidden until the panel is live (mid-rotation) */
+.rl-face::before {
+  content: ""; position: absolute; inset: -16px -24px; border-radius: 18px;
+  opacity: 0; transition: opacity 0.45s ease; pointer-events: none; z-index: -1;
+  background: linear-gradient(155deg, rgba(32, 34, 44, 0.74), rgba(8, 9, 13, 0.86));
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.13),
+              inset 0 -34px 64px rgba(0, 0, 0, 0.32),
+              0 26px 74px rgba(0, 0, 0, 0.58);
+  -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
 }
-.detail-toggle {
-  flex: none;
-  min-width: 44px;
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-  padding: 8px 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: rgba(14, 14, 17, 0.82);
-  color: var(--text-muted);
-  font: 500 0.72rem var(--mono);
-  cursor: pointer;
-  transition: color 0.2s, border-color 0.2s, background 0.2s;
+/* subtle light sweep across the glass while it turns */
+.rl-face::after {
+  content: ""; position: absolute; inset: -16px -24px; border-radius: 18px;
+  opacity: 0; transition: opacity 0.45s ease; pointer-events: none; z-index: -1;
+  background: linear-gradient(118deg, transparent 34%, rgba(212, 165, 116, 0.16) 49%, rgba(255, 255, 255, 0.06) 52%, transparent 68%);
 }
-.detail-toggle svg {
-  width: 19px;
-  height: 19px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.7;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.detail-toggle:hover {
-  color: var(--bright-gold);
-  border-color: var(--gold);
-  background: var(--bg);
-}
-.translation-block > .technical-copy { display: none; margin: 0; }
-.translation-block.show-technical > .plain-copy { display: none; }
-.translation-block.show-technical > .technical-copy { display: block; }
+.rl-panel.rl-live .rl-face::before,
+.rl-panel.rl-live .rl-face::after { opacity: 1; }
 
-@media (max-width: 700px) {
-  .translation-block { padding: 16px; }
-  .detail-toggle span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+/* Floating reading switch */
+#reading-switch {
+  position: fixed; right: 22px; bottom: 22px; z-index: 60;
+  display: inline-flex; align-items: center; padding: 4px;
+  border-radius: 100px; border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(12, 13, 17, 0.72); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+  box-shadow: 0 12px 44px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+#reading-switch button {
+  position: relative; z-index: 1; border: 0; background: transparent; cursor: pointer;
+  font: 600 0.8rem var(--font); color: var(--text-muted);
+  padding: 9px 17px; border-radius: 100px; min-height: 40px; white-space: nowrap;
+  transition: color 0.3s;
+}
+#reading-switch button[aria-pressed="true"] { color: #0e0e11; }
+#reading-switch .rl-thumb {
+  position: absolute; top: 4px; bottom: 4px; left: 0; z-index: 0; border-radius: 100px;
+  background: linear-gradient(135deg, var(--bright-gold), var(--bronze));
+  box-shadow: 0 2px 12px rgba(205, 127, 50, 0.42);
+  transition: transform 0.42s cubic-bezier(0.6, 0.05, 0.2, 1), width 0.42s cubic-bezier(0.6, 0.05, 0.2, 1);
+}
+@media (max-width: 600px) {
+  #reading-switch { right: 12px; bottom: 12px; }
+  #reading-switch button { padding: 8px 13px; font-size: 0.72rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rl-inner { transition: none; }
+  .rl-face::before, .rl-face::after { transition: none; }
+  #reading-switch .rl-thumb { transition: none; }
 }
 
 /* ── Glass Cards ── */
