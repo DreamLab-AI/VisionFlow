@@ -109,6 +109,68 @@ const PLAIN = {
   repos: { title: 'Inspect, run, or replace every major part', lead: 'A governance promise means little if you can&rsquo;t see how it&rsquo;s enforced or leave the supplier. VisionFlow is built from open repositories with clear responsibilities &mdash; audit the controls, deploy what you need, and keep a real exit route.' }
 };
 
+// Plain-English versions of the detail panes (cards, callouts with diagrams).
+// Matched to each section's panes in document order; a missing entry is left as-is.
+const PANES = [
+  { id: 'substrates', sel: '.substrate-card ul', plains: [
+    'The knowledge engine. It holds the shared, machine-checked model of your field, shows it as a 3D graph you can explore, and runs the reasoning and physics that keep it consistent &mdash; fast, on the graphics card.',
+    'Where the AI agents live. Each runs in its own sealed workspace with its own identity, a library of skills and a shared memory &mdash; and everything it does can be checked and approved.',
+    'Personal data storage that stays yours. Each person or organisation keeps its own data privately, with fine-grained access control and a tamper-evident record of every change.',
+    'Where people make the calls. Agents post proposals here and the right person approves, rejects or revises &mdash; and every decision is cryptographically signed.',
+    'The public-facing product: the company site, built from the same forum kit and running at the edge &mdash; proof the parts are reusable in a real deployment.',
+    'The fact-supplier. It hands any AI model a compact set of checked, relevant facts before it answers, and lets you swap the model behind one stable interface.'
+  ] },
+  { id: 'substrates', sel: '.identity-callout p', plains: [
+    'One key, one identity. The same cryptographic key is a person&rsquo;s login, their permissions, the signature on what they do and their payment account &mdash; so identity is never guessed or re-issued as work moves between systems.'
+  ] },
+  { id: 'guarantees', sel: '.ledger-card p', plains: [
+    'Every claim is checked against the rules as it is written. Anything malformed is turned away at the door, not caught later in review.',
+    'Every recorded decision keeps a searchable trail &mdash; who claimed what, and when, is a simple lookup rather than a dig through logs.',
+    'The network checks identity: each participant proves who they are before they can publish, so trust holds at the edges as well as the centre.',
+    'Organisations connect without a middleman. Trust travels on each actor&rsquo;s own key, so two organisations can work together while each keeps its own data.',
+    'New knowledge reaches the shared model through one governed door &mdash; an agent proposes, a person approves, and only then is it published, checked for contradictions on the way in.',
+    'The picture moves the way the work does: as agents act, related ideas are physically drawn together on screen, so activity is something you can see, not just log.'
+  ] },
+  { id: 'immersive', sel: '.immersive-card p', plains: [
+    'Data becomes objects you can reach into, and relationships become spaces you walk through &mdash; surfacing patterns you would miss on a flat screen.',
+    'Hand tracking and physical controllers: you handle data the way you handle real objects.',
+    'Real places, rebuilt as walk-through spaces at room scale &mdash; useful for surveys, heritage and environmental monitoring.',
+    'Remote colleagues appear life-size, so gesture and gaze carry meaning &mdash; and a standalone headset extends it to anyone, anywhere.'
+  ] },
+  { id: 'broker', sel: '.identity-callout p', plains: [
+    'The whole loop, end to end: someone speaks, an agent acts as itself and writes to that person&rsquo;s own store, the action appears live in the shared 3D view, and anything worth keeping is proposed for a person to approve.',
+    'Value moves on the same rails as everything else. The identity that signs the work can also be paid; settlement is in US-dollar stablecoins, and high-value records borrow Bitcoin&rsquo;s security &mdash; with no token of our own.'
+  ] },
+  { id: 'economic', sel: '.econ-card > p', plains: [
+    'Uncoordinated agents waste most of their effort rediscovering context, repeating reasoning and contradicting each other &mdash; every session starts from cold.',
+    'A shared model and record means agents stop re-deriving vocabulary, re-checking conclusions and stalling on decisions they cannot make &mdash; so each one adds signal, not noise.',
+    'On problems worth millions &mdash; a drug, a climate model, a franchise &mdash; spending thousands on well-governed AI is a rounding error, if it stops one wrong conclusion spreading.',
+    'Every decision is already an auditable record. In regulated industries, reconstructing that after the fact costs far more than capturing it as you go.'
+  ] },
+  { id: 'loom', sel: '.gap-card p', plains: [
+    'Extra facts only help when they are relevant. On a weak match, feeding in context can crowd out what the model already knows &mdash; so the Loom sends the full set on a strong match, a little on a weak one, and nothing when the question is off-topic.',
+    'The Loom keeps one checked, queryable store of facts behind its interface &mdash; the trusted source, never the messy working draft.',
+    'New facts enter through a single governed door: an agent proposes, a person approves, and only then does it publish &mdash; proven end to end.'
+  ] },
+  { id: 'loom', sel: '.identity-callout p', plains: [
+    'The model is just a setting. Every application talks to one stable interface; whether a local or hosted model answers is carried in the result, not wired into each app &mdash; so you can change the model without changing anything that uses it.'
+  ] },
+  { id: 'cases', sel: '.case-card > p', plains: [
+    'Several universities, agencies and an NGO each run their own copy with their own definitions &mdash; and shared reasoning makes sure a term like &ldquo;sea-surface temperature anomaly&rdquo; means the same thing to all of them. Data stays put; only agreed findings cross.',
+    'A biotech, a research partner and a regulatory consultancy each keep their own agents inside their own boundary. The partner never sees the biotech&rsquo;s proprietary targets; findings and evidence move only under signed permission.',
+    'A 12-episode series across five time zones, mapped from episodes down to individual assets. When a shot depends on an unapproved asset, the rule propagates and the blocked dependency becomes visually obvious.'
+  ] },
+  { id: 'competitive', sel: '.gap-card p', plains: [
+    'Everyone else has their AI guess from patterns. VisionFlow checks conclusions against a formal model and rejects contradictions before they land &mdash; the one column no competitor fills.',
+    'Rivals each match one piece &mdash; Buzz on identity and federation, Palantir on governance. Only VisionFlow carries all of it at once, bound to a single key.'
+  ] },
+  { id: 'scaling', sel: '.scale-card p', plains: [
+    'One workspace, running on its own: local storage, local decisions, privacy on by default &mdash; one key, minutes to deploy.',
+    'Engine, forum and agents on a shared relay, with a common model and human oversight. Changes are gated by signed approvals.',
+    'Independent instances trusting each other over the network &mdash; each organisation keeps and hardens its own, with trust carried by identity rather than shared infrastructure.'
+  ] }
+];
+
 function initReadingSwitch() {
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const panels = [];
@@ -160,6 +222,14 @@ function initReadingSwitch() {
       const callP = section.querySelector('.callout p');
       if (callP) makePanel(callP, null, `<p>${copy.callout}</p>`);
     }
+  });
+
+  PANES.forEach(({ id, sel, plains }) => {
+    const section = document.getElementById(id);
+    if (!section) return;
+    section.querySelectorAll(sel).forEach((el, i) => {
+      if (plains[i] && !el.closest('.rl-panel')) makePanel(el, null, `<p>${plains[i]}</p>`);
+    });
   });
 
   function sizeAll(active) {
