@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="en-GB">
+<meta charset="utf-8">
+<title>VisionFlow — Enter the Mesh</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --ink:#0C0F18; --ink-2:#171B28; --ink-line:#2A2F42;
+    --snow:#EDECF4; --snow-soft:#A9A6BE; --snow-mute:#6E6B85;
+    --violet:#8B5CF6; --teal:#18A5BC; --gold:#E0B34A;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono","Cascadia Code","JetBrains Mono",Menlo,Consolas,monospace;
+  }
+  html,body{background:var(--ink);color:var(--snow)}
+  body{font-family:var(--serif);overflow-x:hidden}
+  #gl{position:fixed;inset:0;width:100%;height:100%;display:block}
+  #track{height:760vh}
+  a{color:var(--violet);text-decoration:none;border-bottom:1px solid rgba(139,92,246,.4)}
+  a:hover{border-bottom-color:var(--violet)}
+  a:focus-visible{outline:2px solid var(--violet);outline-offset:2px}
+
+  /* top bar */
+  #topbar{
+    position:fixed;top:0;left:0;right:0;z-index:30;display:flex;justify-content:space-between;align-items:center;
+    padding:18px 26px;pointer-events:none;
+  }
+  #topbar .mark{font-family:var(--mono);font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--snow-soft)}
+  #topbar .mark b{color:var(--violet);font-weight:500}
+  #topbar a{pointer-events:auto;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--snow-mute);border-bottom:none}
+  #topbar a:hover{color:var(--snow)}
+
+  /* chapter panels */
+  .panel{
+    position:fixed;left:5vw;top:50%;transform:translateY(-46%);z-index:20;
+    width:min(460px,88vw);opacity:0;pointer-events:none;
+    background:rgba(12,15,24,.68);border:1px solid var(--ink-line);border-radius:12px;
+    padding:26px 30px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    transition:none;
+  }
+  .panel.on{pointer-events:auto}
+  .panel .eyebrow{
+    font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--violet);margin-bottom:12px;display:flex;align-items:center;gap:10px;
+  }
+  .panel .eyebrow::after{content:"";height:1px;flex:0 0 36px;background:currentColor;opacity:.45}
+  .panel h2{font-size:clamp(22px,2.6vw,30px);font-weight:500;line-height:1.18;text-wrap:balance;margin-bottom:12px}
+  .panel h2 em{font-style:italic;color:var(--violet)}
+  .panel p{font-family:var(--sans);font-size:14.5px;line-height:1.6;color:var(--snow-soft);margin-bottom:10px}
+  .panel p strong{color:var(--snow);font-weight:600}
+  .panel .quote{font-family:var(--serif);font-style:italic;font-size:15.5px;color:var(--snow);border-left:3px solid var(--violet);padding-left:14px;margin:14px 0 6px}
+  .panel .who{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--snow-mute)}
+  .panel .mono{font-family:var(--mono);font-size:12px;color:var(--teal)}
+  .panel .ministats{display:flex;gap:22px;margin-top:16px;padding-top:14px;border-top:1px solid var(--ink-line)}
+  .panel .ministats div{font-family:var(--sans)}
+  .panel .ministats .n{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+  .panel .ministats .l{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--snow-mute);margin-top:2px}
+  .panel .legend{display:flex;gap:16px;margin-top:12px}
+  .panel .legend span{display:inline-flex;align-items:center;gap:7px;font-family:var(--sans);font-size:12px;color:var(--snow-soft)}
+  .panel .legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+  .hint{
+    position:fixed;bottom:26px;left:50%;transform:translateX(-50%);z-index:20;
+    font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--snow-mute);
+    animation:bob 2.4s ease-in-out infinite;
+  }
+  @keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,7px)}}
+  @media (prefers-reduced-motion:reduce){.hint{animation:none}}
+
+  /* progress rail */
+  #rail{position:fixed;right:22px;top:50%;transform:translateY(-50%);z-index:30;display:flex;flex-direction:column;gap:14px}
+  #rail button{
+    all:unset;cursor:pointer;display:flex;align-items:center;gap:10px;flex-direction:row-reverse;
+  }
+  #rail .dot{width:8px;height:8px;border-radius:50%;background:var(--ink-line);transition:background .25s,transform .25s}
+  #rail button.on .dot{background:var(--violet);transform:scale(1.35)}
+  #rail .rlab{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--snow-mute);opacity:0;transition:opacity .2s}
+  #rail button:hover .rlab,#rail button.on .rlab{opacity:1}
+  #rail button:focus-visible .dot{outline:2px solid var(--violet);outline-offset:3px}
+
+  /* 3d labels */
+  #labels{position:fixed;inset:0;z-index:10;pointer-events:none;overflow:hidden}
+  .lab{position:absolute;left:0;top:0;transform:translate(-50%,-110%);white-space:nowrap;opacity:0;text-align:center}
+  .lab .nm{font-family:var(--sans);font-weight:700;font-size:14px;color:var(--snow);text-shadow:0 1px 8px rgba(12,15,24,.9)}
+  .lab .rl{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin-top:1px;text-shadow:0 1px 8px rgba(12,15,24,.9)}
+  .lab.ring .nm{font-weight:600;font-size:13px}
+  .lab.ring .rl{color:var(--violet)}
+  .lab.val .nm{font-variant-numeric:tabular-nums;font-size:15px}
+  .lab.cap .nm{font-weight:500;font-size:11.5px;color:var(--snow-soft);font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase}
+  .lab.gold .nm{color:var(--gold)}.lab.gold .rl{color:var(--gold)}
+
+  #fallback{
+    position:fixed;inset:0;display:none;place-items:center;z-index:40;background:var(--ink);padding:30px;text-align:center;
+  }
+  #fallback p{max-width:46ch;color:var(--snow-soft);line-height:1.6}
+
+  @media (max-width:760px){
+    .panel{left:50%;transform:translate(-50%,0);top:auto;bottom:14px;width:calc(100vw - 24px);padding:18px 20px}
+    .panel h2{font-size:20px}
+    #rail{display:none}
+    .hint{bottom:auto;top:14px}
+  }
+</style>
+
+<canvas id="gl" aria-hidden="true"></canvas>
+<div id="track"></div>
+<div id="labels" aria-hidden="true"></div>
+
+<div id="topbar">
+  <span class="mark"><b>VisionFlow</b> · Dynamic Agentic Mesh</span>
+  <a href="https://claude.ai/code/artifact/fc580f43-eb2e-4f7c-ab14-5fd65dbd9604">Read the canon page →</a>
+</div>
+
+<div class="panel" id="p0">
+  <div class="eyebrow">VisionFlow · the pitch, embodied</div>
+  <h2>Coordination engineering for federated <em>human–AI</em> intelligence</h2>
+  <p>Six independent systems mesh through one cryptographic identity spine — every actor, human or agent or server, a single secp256k1 keypair: <span class="mono">did:nostr:&lt;hex-pubkey&gt;</span>.</p>
+  <p>AI collapses the cost of routing information; the human is promoted from <strong>router</strong> to <strong>judgment broker</strong>.</p>
+  <div class="ministats">
+    <div><div class="n">6</div><div class="l">substrates</div></div>
+    <div><div class="n">8</div><div class="l">repositories</div></div>
+    <div><div class="n">1</div><div class="l">identity spine</div></div>
+  </div>
+</div>
+
+<div class="panel" id="p1">
+  <div class="eyebrow">The knowledge stack</div>
+  <h2>Written once, checked twice, served grounded.</h2>
+  <p>A corpus of <strong>8,100+ pages</strong> compiles losslessly into an OWL 2 EL ontology — <strong>286,533 machine-checked triples</strong>. At runtime, knowledge graphs populate it with live instances under Whelk's gate, and the Ontology Loom serves the checked graph into any model's context.</p>
+  <p class="quote">The published corpus is the ontology; the runtime graph is the knowledge graph.</p>
+  <span class="who">Terminology canon</span>
+</div>
+
+<div class="panel" id="p2">
+  <div class="eyebrow">The runtime</div>
+  <h2>Six substrates, one identity.</h2>
+  <p>No single repository <strong>is</strong> VisionFlow. The mesh emerges when six systems coordinate through the same keypair — no shared session store, no token exchange between tiers.</p>
+  <p>One key is simultaneously <strong>login, access principal, provenance author, DID subject and payment account</strong>.</p>
+</div>
+
+<div class="panel" id="p3">
+  <div class="eyebrow">Governance · kind 31402</div>
+  <h2>Agents act. Humans sign.</h2>
+  <p>Watch the loop: an agent stages an action in <strong>agentbox</strong>, a signed ACSP request crosses the relay mesh to the <strong>forum</strong>, a human signs the decision — <span style="color:var(--gold)">gold</span> — and <strong>VisionClaw</strong> performs the fenced write with a receipt.</p>
+  <p class="quote">Silence indistinguishable from success is the exact property a signing loop must not have.</p>
+  <span class="who">ADR-007 · close the governance loop</span>
+</div>
+
+<div class="panel" id="p4">
+  <div class="eyebrow">Measured, not claimed</div>
+  <h2>Grounding is evaluated. The numbers are published.</h2>
+  <p>Serving the reasoned ontology into the model's context lifts <strong>F1 from 0.350 to 0.770</strong> on the strongest model tested, and cuts <strong>hallucination from 0.529 to 0.177</strong> across seven models — <a href="https://github.com/DreamLab-AI/VisionClaw/blob/main/archive/visionclaw-docs/eval/report.pdf">eval report</a>.</p>
+  <div class="legend">
+    <span><i style="background:var(--teal)"></i>Without grounding</span>
+    <span><i style="background:var(--violet)"></i>With Loom grounding</span>
+  </div>
+</div>
+
+<div class="panel" id="p5">
+  <div class="eyebrow">The canon</div>
+  <h2>It ships words — and is accountable for their accuracy.</h2>
+  <p>VisionFlow is the coordination-of-coordination layer: the ADRs, the ecosystem map, the honest status ledger that grades each system against its own code. All four code substrates are <strong>AGPL-3.0-only</strong>; corpus pages ODbL-1.0; explorer MIT.</p>
+  <p><a href="https://claude.ai/code/artifact/fc580f43-eb2e-4f7c-ab14-5fd65dbd9604">Read the canon page</a> · <a href="https://narrativegoldmine.com">narrativegoldmine.com</a> · <a href="https://github.com/DreamLab-AI">github.com/DreamLab-AI</a></p>
+</div>
+
+<div class="hint" id="hint">Scroll to enter the mesh ↓</div>
+
+<div id="rail" role="navigation" aria-label="Chapters"></div>
+
+<div id="fallback"><p>This experience needs WebGL2, which this browser has disabled. The full written pitch lives at <a href="https://claude.ai/code/artifact/fc580f43-eb2e-4f7c-ab14-5fd65dbd9604">the VisionFlow canon page</a>.</p></div>
+
+<script>
+(function(){
+"use strict";
+var cv = document.getElementById('gl');
+var gl = cv.getContext('webgl2', {antialias:true, alpha:false});
+if (!gl){ document.getElementById('fallback').style.display='grid'; return; }
+var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- tiny mat4 ---------- */
+function persp(fov, asp, n, f){
+  var t = 1/Math.tan(fov/2), d = 1/(n-f);
+  return [t/asp,0,0,0, 0,t,0,0, 0,0,(n+f)*d,-1, 0,0,2*n*f*d,0];
+}
+function sub(a,b){return [a[0]-b[0],a[1]-b[1],a[2]-b[2]];}
+function cross(a,b){return [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];}
+function norm(a){var l=Math.hypot(a[0],a[1],a[2])||1;return [a[0]/l,a[1]/l,a[2]/l];}
+function lookAt(e,c,u){
+  var z = norm(sub(e,c)), x = norm(cross(u,z)), y = cross(z,x);
+  return [x[0],y[0],z[0],0, x[1],y[1],z[1],0, x[2],y[2],z[2],0,
+          -(x[0]*e[0]+x[1]*e[1]+x[2]*e[2]), -(y[0]*e[0]+y[1]*e[1]+y[2]*e[2]), -(z[0]*e[0]+z[1]*e[1]+z[2]*e[2]), 1];
+}
+function mul(a,b){
+  var o = new Array(16);
+  for (var c=0;c<4;c++) for (var r=0;r<4;r++)
+    o[c*4+r] = a[r]*b[c*4] + a[4+r]*b[c*4+1] + a[8+r]*b[c*4+2] + a[12+r]*b[c*4+3];
+  return o;
+}
+function tf(m,v){ // vec3 -> clip vec4
+  return [m[0]*v[0]+m[4]*v[1]+m[8]*v[2]+m[12],
+          m[1]*v[0]+m[5]*v[1]+m[9]*v[2]+m[13],
+          m[2]*v[0]+m[6]*v[1]+m[10]*v[2]+m[14],
+          m[3]*v[0]+m[7]*v[1]+m[11]*v[2]+m[15]];
+}
+function rotY(a){var c=Math.cos(a),s=Math.sin(a);return [c,0,-s,0, 0,1,0,0, s,0,c,0, 0,0,0,1];}
+var IDENT = [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1];
+function lerp(a,b,t){return a+(b-a)*t;}
+function lerp3(a,b,t){return [lerp(a[0],b[0],t),lerp(a[1],b[1],t),lerp(a[2],b[2],t)];}
+function clamp(x,a,b){return x<a?a:(x>b?b:x);}
+function smooth(t){return t*t*(3-2*t);}
+function near(x,c,w){return clamp(1-Math.abs(x-c)/(w||0.75),0,1);}
+
+/* ---------- shaders ---------- */
+function mk(type, src){
+  var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw gl.getShaderInfoLog(s);
+  return s;
+}
+function prog(vs, fs){
+  var p = gl.createProgram();
+  gl.attachShader(p, mk(gl.VERTEX_SHADER, vs)); gl.attachShader(p, mk(gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw gl.getProgramInfoLog(p);
+  return p;
+}
+var PT = prog(
+"#version 300 es\nlayout(location=0) in vec3 aPos; layout(location=1) in vec4 aCol; layout(location=2) in float aSize;\n"+
+"uniform mat4 uVP, uModel; uniform float uScale, uAlpha;\nout vec4 vCol;\n"+
+"void main(){ vec4 wp = uModel*vec4(aPos,1.0); gl_Position = uVP*wp; float w = max(gl_Position.w, .1);\n"+
+"gl_PointSize = clamp(aSize*uScale/w, 1.0, 150.0); vCol = vec4(aCol.rgb, aCol.a*uAlpha); }",
+"#version 300 es\nprecision mediump float; in vec4 vCol; out vec4 o;\n"+
+"void main(){ vec2 d = gl_PointCoord - .5; float r = length(d)*2.0;\n"+
+"float a = exp(-r*r*5.0)*smoothstep(1.0,.6,r); o = vec4(vCol.rgb*a*vCol.a, 1.0); }");
+var LN = prog(
+"#version 300 es\nlayout(location=0) in vec3 aPos; layout(location=1) in vec4 aCol;\n"+
+"uniform mat4 uVP, uModel; uniform float uAlpha;\nout vec4 vCol;\n"+
+"void main(){ gl_Position = uVP*uModel*vec4(aPos,1.0); vCol = vec4(aCol.rgb, aCol.a*uAlpha); }",
+"#version 300 es\nprecision mediump float; in vec4 vCol; out vec4 o;\n"+
+"void main(){ o = vec4(vCol.rgb*vCol.a, 1.0); }");
+var uPT = {vp:gl.getUniformLocation(PT,'uVP'), m:gl.getUniformLocation(PT,'uModel'), s:gl.getUniformLocation(PT,'uScale'), a:gl.getUniformLocation(PT,'uAlpha')};
+var uLN = {vp:gl.getUniformLocation(LN,'uVP'), m:gl.getUniformLocation(LN,'uModel'), a:gl.getUniformLocation(LN,'uAlpha')};
+
+/* ---------- geometry helpers ---------- */
+function buf(data, dyn){
+  var b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b);
+  gl.bufferData(gl.ARRAY_BUFFER, data, dyn?gl.DYNAMIC_DRAW:gl.STATIC_DRAW);
+  return b;
+}
+// interleaved: pos3 col4 size1  (points) | pos3 col4 (lines/tris)
+function vaoPoints(data, dyn){
+  var v = gl.createVertexArray(); gl.bindVertexArray(v);
+  var b = buf(data, dyn);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,32,0);
+  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,4,gl.FLOAT,false,32,12);
+  gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,1,gl.FLOAT,false,32,28);
+  return {vao:v, buf:b, n:data.length/8};
+}
+function vaoLines(data, dyn){
+  var v = gl.createVertexArray(); gl.bindVertexArray(v);
+  var b = buf(data, dyn);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,28,0);
+  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,4,gl.FLOAT,false,28,12);
+  return {vao:v, buf:b, n:data.length/7};
+}
+var VIOLET = [0.545,0.361,0.965], TEAL = [0.094,0.647,0.737], GOLD = [0.878,0.702,0.29], SNOW = [0.86,0.85,0.93];
+function R(s){ // deterministic-ish rng
+  var x = Math.sin(s*127.1+311.7)*43758.5453; return x - Math.floor(x);
+}
+
+/* dust */
+(function(){})();
+var dustArr = [];
+for (var i=0;i<700;i++){
+  var th = R(i)*6.283, ph = Math.acos(2*R(i+900)-1), rr = 18 + R(i+1800)*28;
+  var c = R(i+40)<0.2 ? TEAL : (R(i+41)<0.5 ? VIOLET : SNOW);
+  dustArr.push(rr*Math.sin(ph)*Math.cos(th), (rr*Math.cos(ph))*0.7, rr*Math.sin(ph)*Math.sin(th),
+               c[0],c[1],c[2], 0.35, 0.05+R(i+7)*0.05);
+}
+var dust = vaoPoints(new Float32Array(dustArr));
+
+/* lattice nodes + edges */
+var NODES = 240, npos = [], nodeArr = [];
+for (var i=0;i<NODES;i++){
+  var th = R(i*3+1)*6.283, ph = Math.acos(2*R(i*3+2)-1);
+  var rr = 6 + Math.pow(R(i*3+3),0.7)*8;
+  var p = [rr*Math.sin(ph)*Math.cos(th), rr*Math.cos(ph)*0.85, rr*Math.sin(ph)*Math.sin(th)];
+  npos.push(p);
+  var c = R(i+55)<0.16 ? TEAL : VIOLET;
+  var bright = 0.7 + R(i+9)*0.5;
+  nodeArr.push(p[0],p[1],p[2], c[0]*bright,c[1]*bright,c[2]*bright, 0.85, 0.11+R(i+13)*0.08);
+}
+var latNodes = vaoPoints(new Float32Array(nodeArr));
+var edgeArr = [];
+for (var i=0;i<NODES;i++){
+  var d1=1e9,d2=1e9,j1=-1,j2=-1;
+  for (var j=0;j<NODES;j++){
+    if (j===i) continue;
+    var dx=npos[i][0]-npos[j][0], dy=npos[i][1]-npos[j][1], dz=npos[i][2]-npos[j][2];
+    var dd=dx*dx+dy*dy+dz*dz;
+    if (dd<d1){d2=d1;j2=j1;d1=dd;j1=j;} else if (dd<d2){d2=dd;j2=j;}
+  }
+  [j1,j2].forEach(function(j){
+    if (j<0) return;
+    edgeArr.push(npos[i][0],npos[i][1],npos[i][2], VIOLET[0],VIOLET[1],VIOLET[2], 0.10,
+                 npos[j][0],npos[j][1],npos[j][2], VIOLET[0],VIOLET[1],VIOLET[2], 0.03);
+  });
+}
+var latEdges = vaoLines(new Float32Array(edgeArr));
+
+/* spine */
+var spineArr = [];
+for (var i=0;i<=60;i++){
+  var t = i/60, y = -9 + t*18;
+  var x = Math.sin(t*3.1)*0.8, z = Math.cos(t*2.4)*0.8;
+  var c = lerp3(VIOLET, TEAL, t);
+  spineArr.push(x,y,z, c[0],c[1],c[2], 0.5);
+}
+var spine = vaoLines(new Float32Array(spineArr));
+
+/* knowledge-stack rings */
+var RINGDEFS = [
+  {y:-6.0, r:6.5, nm:"Corpus",          rl:"8,100+ pages · pure TBox"},
+  {y:-3.0, r:5.6, nm:"Ontology",        rl:"OWL 2 EL · 286,533 triples"},
+  {y: 0.0, r:4.7, nm:"Knowledge graph", rl:"live instances · runtime only"},
+  {y: 3.0, r:3.8, nm:"Reasoning",       rl:"EL-profile + Whelk EL++"},
+  {y: 6.0, r:3.0, nm:"Grounding",       rl:"the Ontology Loom"}
+];
+var ringArr = [];
+RINGDEFS.forEach(function(rd, ri){
+  var col = lerp3(VIOLET, TEAL, ri/4);
+  for (var i=0;i<64;i++){
+    var a1 = i/64*6.283, a2 = (i+1)/64*6.283;
+    ringArr.push(rd.r*Math.cos(a1), rd.y, rd.r*Math.sin(a1), col[0],col[1],col[2], 0.5,
+                 rd.r*Math.cos(a2), rd.y, rd.r*Math.sin(a2), col[0],col[1],col[2], 0.5);
+  }
+});
+var rings = vaoLines(new Float32Array(ringArr));
+
+/* substrate hubs on helix */
+var HUBDEFS = [
+  {nm:"VisionClaw",         rl:"flagship engine · 82 CUDA kernels", col:VIOLET},
+  {nm:"agentbox",           rl:"sovereign runtime · 116 skills",    col:VIOLET},
+  {nm:"solid-pod-rs",       rl:"data sovereignty · Solid + WAC",    col:TEAL},
+  {nm:"nostr-rust-forum",   rl:"decisions get signed · ACSP",       col:TEAL},
+  {nm:"loom",               rl:"the grounding door",                col:VIOLET},
+  {nm:"dreamlab-ai-website",rl:"commercial edge",                   col:TEAL}
+];
+var hubPos = [];
+HUBDEFS.forEach(function(h,i){
+  var a = i*1.05 + 0.5;
+  hubPos.push([7*Math.cos(a), -6 + i*2.8, 7*Math.sin(a)]);
+});
+var hubArr = [];
+hubPos.forEach(function(p,i){
+  var c = HUBDEFS[i].col;
+  hubArr.push(p[0],p[1],p[2], c[0]*1.4,c[1]*1.4,c[2]*1.4, 1.0, 0.5);   // core
+  hubArr.push(p[0],p[1],p[2], c[0],c[1],c[2], 0.28, 1.5);              // halo
+});
+var hubs = vaoPoints(new Float32Array(hubArr));
+/* hub-to-lattice tethers + hub-to-spine */
+var tethArr = [];
+hubPos.forEach(function(p,i){
+  var c = HUBDEFS[i].col;
+  var spx = [Math.sin(((p[1]+9)/18)*3.1)*0.8, p[1], Math.cos(((p[1]+9)/18)*2.4)*0.8];
+  tethArr.push(p[0],p[1],p[2], c[0],c[1],c[2], 0.35, spx[0],spx[1],spx[2], c[0],c[1],c[2], 0.06);
+  var best=[], bd=[];
+  for (var j=0;j<NODES;j++){
+    var dx=p[0]-npos[j][0],dy=p[1]-npos[j][1],dz=p[2]-npos[j][2], dd=dx*dx+dy*dy+dz*dz;
+    if (best.length<4){best.push(j);bd.push(dd);}
+    else { var mi=0; for(var k=1;k<4;k++) if(bd[k]>bd[mi]) mi=k; if (dd<bd[mi]){best[mi]=j;bd[mi]=dd;} }
+  }
+  best.forEach(function(j){
+    tethArr.push(p[0],p[1],p[2], c[0],c[1],c[2], 0.14, npos[j][0],npos[j][1],npos[j][2], c[0],c[1],c[2], 0.02);
+  });
+});
+var tethers = vaoLines(new Float32Array(tethArr));
+
+/* governance: human node + pulse */
+var forumP = hubPos[3], agentP = hubPos[1], clawP = hubPos[0];
+var humanP = [forumP[0]*1.18, forumP[1]+0.9, forumP[2]*1.18];
+var goldPt = vaoPoints(new Float32Array([
+  humanP[0],humanP[1],humanP[2], GOLD[0]*1.5,GOLD[1]*1.5,GOLD[2]*1.5, 1.0, 0.42,
+  humanP[0],humanP[1],humanP[2], GOLD[0],GOLD[1],GOLD[2], 0.3, 1.3
+]));
+var govArr = [];
+[[agentP,forumP],[forumP,humanP],[humanP,forumP],[forumP,clawP]].forEach(function(seg){
+  govArr.push(seg[0][0],seg[0][1],seg[0][2], GOLD[0],GOLD[1],GOLD[2], 0.16,
+              seg[1][0],seg[1][1],seg[1][2], GOLD[0],GOLD[1],GOLD[2], 0.16);
+});
+var govLines = vaoLines(new Float32Array(govArr));
+var pulseData = new Float32Array([0,0,0, 1,1,1, 1.0, 0.55]);
+var pulse = vaoPoints(pulseData, true);
+
+/* evidence bars (rebuilt per frame) */
+var BARS = [
+  {x:17.7, v:0.350, h:0.350*8, col:TEAL},
+  {x:19.0, v:0.770, h:0.770*8, col:VIOLET},
+  {x:21.4, v:0.529, h:0.529*8, col:TEAL},
+  {x:22.7, v:0.177, h:0.177*8, col:VIOLET}
+];
+var BARW = 0.55, BARBASE = -3;
+var barData = new Float32Array(BARS.length*6*7);
+var bars = vaoLines(barData, true);
+function rebuildBars(grow){
+  var o = 0;
+  BARS.forEach(function(b){
+    var h = BARBASE + b.h*grow, x0 = b.x-BARW, x1 = b.x+BARW;
+    var lo = [b.col[0]*0.55,b.col[1]*0.55,b.col[2]*0.55], hi = [b.col[0]*1.35,b.col[1]*1.35,b.col[2]*1.35];
+    var q = [
+      [x0,BARBASE,lo],[x1,BARBASE,lo],[x1,h,hi],
+      [x0,BARBASE,lo],[x1,h,hi],[x0,h,hi]
+    ];
+    q.forEach(function(v){
+      barData[o++]=v[0]; barData[o++]=v[1]; barData[o++]=0;
+      barData[o++]=v[2][0]; barData[o++]=v[2][1]; barData[o++]=v[2][2]; barData[o++]=0.5;
+    });
+  });
+  gl.bindBuffer(gl.ARRAY_BUFFER, bars.buf);
+  gl.bufferSubData(gl.ARRAY_BUFFER, 0, barData);
+}
+
+/* ---------- HTML labels ---------- */
+var labWrap = document.getElementById('labels');
+function mkLab(cls, nm, rl){
+  var d = document.createElement('div');
+  d.className = 'lab '+cls;
+  d.innerHTML = '<div class="nm"></div>' + (rl!==undefined?'<div class="rl"></div>':'');
+  d.firstChild.textContent = nm;
+  if (rl!==undefined) d.lastChild.textContent = rl;
+  labWrap.appendChild(d);
+  return d;
+}
+var hubLabs = HUBDEFS.map(function(h){return mkLab('hub', h.nm, h.rl);});
+var ringLabs = RINGDEFS.map(function(r){return mkLab('ring', r.nm, r.rl);});
+var humanLab = mkLab('hub gold', 'human', 'signs the decision');
+var valLabs = BARS.map(function(b){return mkLab('val', b.v.toFixed(3));});
+var capLabs = [mkLab('cap','Answer accuracy (F1) · higher better'), mkLab('cap','Hallucination · lower better')];
+var didLab = mkLab('cap','did:nostr · one keypair, every tier');
+
+/* ---------- chapters & camera ---------- */
+var KEYS = [
+  {pos:[0,3,30],    tgt:[0,0,0]},
+  {pos:[11,-6.5,13],tgt:[0,-2.5,0]},
+  {pos:[13,4,15],   tgt:[0,1,0]},
+  {pos:[-8,1,16],   tgt:[0,-1.2,1.5]},
+  {pos:[16.8,1.5,12.5], tgt:[17.45,0.8,0]},
+  {pos:[0,7,40],    tgt:[0,1,0]}
+];
+var N = KEYS.length;
+var panels = [];
+for (var i=0;i<N;i++) panels.push(document.getElementById('p'+i));
+var rail = document.getElementById('rail');
+var RAILNAMES = ['Mesh','Stack','Substrates','Governance','Evidence','Canon'];
+var railBtns = RAILNAMES.map(function(nm,i){
+  var b = document.createElement('button');
+  b.innerHTML = '<span class="dot"></span><span class="rlab"></span>';
+  b.querySelector('.rlab').textContent = nm;
+  b.setAttribute('aria-label', nm);
+  b.addEventListener('click', function(){
+    var vh = innerHeight, H = document.getElementById('track').offsetHeight;
+    scrollTo({top: i/(N-1)*(H-vh), behavior: reduced?'auto':'smooth'});
+  });
+  rail.appendChild(b);
+  return b;
+});
+
+/* ---------- state & loop ---------- */
+var W=0, H=0, dpr=1, P=IDENT, targC=0, c=reduced?0:0, mx=0, my=0;
+function resize(){
+  dpr = Math.min(devicePixelRatio||1, 2);
+  W = innerWidth; H = innerHeight;
+  cv.width = W*dpr; cv.height = H*dpr;
+  gl.viewport(0,0,cv.width,cv.height);
+  P = persp(50*Math.PI/180, W/H, 0.1, 200);
+}
+resize(); addEventListener('resize', resize);
+function onScroll(){
+  var trackH = document.getElementById('track').offsetHeight;
+  targC = clamp(scrollY/(trackH-innerHeight), 0, 1) * (N-1);
+}
+addEventListener('scroll', onScroll, {passive:true}); onScroll();
+addEventListener('pointermove', function(e){
+  mx = (e.clientX/W - 0.5); my = (e.clientY/H - 0.5);
+}, {passive:true});
+
+gl.enable(gl.BLEND);
+gl.blendFunc(gl.ONE, gl.ONE);
+gl.clearColor(0.047, 0.059, 0.094, 1);
+
+function drawPts(o, model, alpha, scale){
+  gl.useProgram(PT);
+  gl.uniformMatrix4fv(uPT.vp, false, VP);
+  gl.uniformMatrix4fv(uPT.m, false, model);
+  gl.uniform1f(uPT.s, scale);
+  gl.uniform1f(uPT.a, alpha);
+  gl.bindVertexArray(o.vao);
+  gl.drawArrays(gl.POINTS, 0, o.n);
+}
+function drawLin(o, model, alpha, mode){
+  gl.useProgram(LN);
+  gl.uniformMatrix4fv(uLN.vp, false, VP);
+  gl.uniformMatrix4fv(uLN.m, false, model);
+  gl.uniform1f(uLN.a, alpha);
+  gl.bindVertexArray(o.vao);
+  gl.drawArrays(mode, 0, o.n);
+}
+function place(el, wp, op){
+  if (op < 0.02){ el.style.display='none'; return; }
+  var cl = tf(VP, wp);
+  if (cl[3] <= 0.1){ el.style.display='none'; return; }
+  el.style.display='block';
+  el.style.opacity = op;
+  el.style.transform = 'translate(-50%,-110%) translate('+((cl[0]/cl[3]*0.5+0.5)*W)+'px,'+((1-(cl[1]/cl[3]*0.5+0.5))*H)+'px)';
+}
+var VP = IDENT, t0 = performance.now();
+function frame(now){
+  var t = (now-t0)/1000;
+  c += (targC-c) * (reduced ? 1 : 0.07);
+  var cc = clamp(c, 0, N-1);
+  var i = Math.min(Math.floor(cc), N-2), f = smooth(cc-i);
+  var eye = lerp3(KEYS[i].pos, KEYS[i+1].pos, f);
+  var tgt = lerp3(KEYS[i].tgt, KEYS[i+1].tgt, f);
+  if (!reduced){
+    eye[0] += mx*1.4; eye[1] -= my*0.9;
+    eye[1] += Math.sin(t*0.4)*0.15;
+  }
+  var V = lookAt(eye, tgt, [0,1,0]);
+  VP = mul(P, V);
+  var ptScale = 0.5 * cv.height * P[5];
+  var rot = reduced ? IDENT : rotY(t*0.02);
+
+  /* group alphas from chapter position */
+  var aHero = near(cc,0,1.2);
+  var aStack = near(cc,1);
+  var aSubs = near(cc,2,0.9);
+  var aGov = near(cc,3,0.8);
+  var aBars = near(cc,4,0.9);
+  var aEnd = near(cc,5,1.0);
+  var dimLat = 1 - aBars*0.85;
+
+  gl.clear(gl.COLOR_BUFFER_BIT);
+
+  drawPts(dust, rot, 0.5, ptScale);
+  drawLin(latEdges, rot, (0.5 + aHero*0.5 + aEnd*0.9)*dimLat, gl.LINES);
+  drawPts(latNodes, rot, (0.55 + aHero*0.45 + aEnd*0.9)*dimLat, ptScale);
+  drawLin(rings, IDENT, 0.05 + aStack*0.95, gl.LINES);
+  drawLin(spine, IDENT, 0.18 + aStack*0.25 + aSubs*0.5 + aGov*0.35, gl.LINE_STRIP);
+  drawLin(tethers, IDENT, 0.15 + aSubs*0.85 + aGov*0.4, gl.LINES);
+  drawPts(hubs, IDENT, 0.3 + aSubs*0.7 + aGov*0.5, ptScale);
+  drawLin(govLines, IDENT, aGov*0.8, gl.LINES);
+
+  /* governance pulse: agentbox -> forum (2s) -> human flash (1s) -> claw (2s) -> flash (1s) */
+  var goldFlash = 0.35;
+  if (!reduced){
+    var cyc = t % 6;
+    var pp, pa = 1;
+    if (cyc < 2)      pp = lerp3(agentP, forumP, smooth(cyc/2));
+    else if (cyc < 3){ pp = forumP; goldFlash = 0.5 + Math.sin((cyc-2)*Math.PI)*1.4; pa = 0.4; }
+    else if (cyc < 5) pp = lerp3(forumP, clawP, smooth((cyc-3)/2));
+    else             { pp = clawP; pa = 1 + Math.sin((cyc-5)*Math.PI)*1.5; }
+    pulseData[0]=pp[0]; pulseData[1]=pp[1]; pulseData[2]=pp[2];
+    gl.bindBuffer(gl.ARRAY_BUFFER, pulse.buf);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, pulseData);
+    drawPts(pulse, IDENT, (0.15 + aGov*0.85)*pa, ptScale);
+  }
+  drawPts(goldPt, IDENT, (0.1 + aGov*0.9)*goldFlash, ptScale);
+
+  var grow = smooth(clamp((cc-3.45)/0.55, 0, 1));
+  if (grow > 0.001 && aBars > 0.001){
+    rebuildBars(grow);
+    drawLin(bars, IDENT, aBars, gl.TRIANGLES);
+  }
+
+  /* labels */
+  hubPos.forEach(function(p,k){ place(hubLabs[k], [p[0],p[1]+0.95,p[2]], aSubs + aGov*(k===0||k===1||k===3?0.9:0)); });
+  RINGDEFS.forEach(function(r,k){
+    var a = 0.4;
+    place(ringLabs[k], [r.r*Math.cos(a), r.y+0.25, r.r*Math.sin(a)], aStack);
+  });
+  place(humanLab, [humanP[0],humanP[1]+0.9,humanP[2]], aGov);
+  BARS.forEach(function(b,k){ place(valLabs[k], [b.x, BARBASE + b.h*grow + 0.45, 0], aBars*grow); });
+  place(capLabs[0], [18.35, BARBASE-0.9, 0], aBars*grow);
+  place(capLabs[1], [22.05, BARBASE-0.9, 0], aBars*grow);
+  place(didLab, [0,-9.8,0], aSubs*0.9);
+
+  /* panels + rail + hint */
+  for (var k=0;k<N;k++){
+    var op = near(cc, k, 0.55);
+    panels[k].style.opacity = op;
+    panels[k].classList.toggle('on', op>0.5);
+    var live = Math.round(cc)===k;
+    railBtns[k].classList.toggle('on', live);
+  }
+  document.getElementById('hint').style.opacity = clamp(1-cc*2.2, 0, 1);
+
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>
+
+</html>

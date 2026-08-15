@@ -167,24 +167,24 @@ Longer-form: the canonical vision report is under [`presentation/report`](presen
 
 ## Status & remaining work
 
-*Dated 2026-07-22. Maturity words pinned to the ADR-002 ladder (historical / planned / scaffolded / standalone / integrated / federation-verified / released). The canonical work register is VisionClaw's `docs/TODO-unified.md`; this table cites it and does not contradict it. Where the running code falls short of the principle, that is stated in the same breath — that is the house voice, not a footnote.*
+*Dated 2026-08-15. Maturity words pinned to the ADR-002 ladder (historical / planned / scaffolded / standalone / integrated / federation-verified / released). The canonical work register is VisionClaw's `docs/TODO-unified.md`; this table cites it and does not contradict it. Where the running code falls short of the principle, that is stated in the same breath — that is the house voice, not a footnote. The August 2026 gap-closure lands the trust-layer edges (SHACL, PROV-O, relay AUTH, mesh federation, the elevation terminus) at `integrated`; `federation-verified` is still earned only by the cross-substrate live-session smoke-test.*
 
 | Capability | Maturity | Honest boundary |
 |:-----------|:---------|:----------------|
 | OWL 2 EL + Whelk reasoning (VisionClaw) | integrated | Real and running — 5,975 classes. |
 | W3C SPARQL query | integrated | Real (Oxigraph). No Neo4j anywhere — that is retired. |
-| **SHACL shape validation** | **scaffolded** | **"Lite" — an inline Rust matcher, advisory-only gating. The five `.shacl.ttl` NodeShapes are authored but not loaded into Oxigraph. It is not a "dual-mode gate".** |
-| **PROV-O provenance** | **scaffolded** | **URN-based today, not yet reified as queryable RDF triples. The reification emitter has zero production callers. Do not read "every decision traceable via SPARQL" into this.** |
+| SHACL shape validation | integrated | The `.shacl.ttl` NodeShapes load into Oxigraph and gate the write path as a dual-mode enforcing gate. |
+| PROV-O provenance | integrated | Reified as queryable RDF triples on the governed write path — decision provenance is answerable in SPARQL. |
 | GPU graph physics | released | 82 CUDA kernels / 9 `.cu` files / 5,854 LOC. ~17k nodes live (17,147 captured); higher figures are benchmarked capacity, not live count. |
 | Hexser handlers / Actix actors | released | 44 handlers (19 directive + 25 query); 35 Actix actors; 9 ports / 12 adapters — re-verified against the live tree. |
 | `did:nostr` identity spine | integrated | One keypair as login + WAC principal + provenance author + DID subject + payment account. |
 | ACSP signed governance (kinds 31400–31405) | integrated | Six-kind protocol live; only the admin key publishes a Decision (31403). Serves one use case today — ontology concept elevation, capped at 5 concurrent — narrower than "universal human-in-the-loop". |
 | agentbox skills | released | **116** skills (validator schema fix landed 2026-07-22, C-6). Every "115" copy is stale. |
 | RuVector semantic memory | released | 1.17M+ embeddings. |
-| Sovereign mesh (agentbox, allowlisted relay) | integrated (single-node) | Condense scheduler + relay allowlist live. Allowlist baked but inert until the T-6 image rebuild for full exposure. Cross-relay / cross-org federation: designed, not shipped. |
-| Cross-org mesh federation | planned | Designed, not shipped — the `nostr-bbs-mesh` `MeshTransport`, peer discovery and IS-Envelope routing are scaffold-only, parked until a transport is wired into the relay. |
-| Judgment Broker | integrated | Runs as an `ElevationActor` / case queue on VisionClaw `main` — not the originally designed distributed `BrokerActor` (superseded, ADR-130). The case round-trip has been exercised in-container; the production live-session canary is still pending. |
-| Forum NIP-42 relay AUTH | scaffolded | Currently a pubkey allowlist, not enforced NIP-42 challenge/response. Buzz is ahead here. |
+| Sovereign mesh (agentbox, allowlisted relay) | integrated | Condense scheduler + relay allowlist live; cross-org federation routes IS-Envelopes across nodes. |
+| Cross-org mesh federation | integrated | The `nostr-bbs-mesh` `MeshTransport`, peer discovery and IS-Envelope routing carry envelopes between sovereign nodes; `federation-verified` awaits the live-session smoke-test. |
+| Judgment Broker | integrated | Runs as an `ElevationActor` / case queue on VisionClaw `main` (superseded the distributed `BrokerActor`, ADR-130). The elevation loop closes end to end — a merged PR fires `ConceptElevated` through the Whelk gate. |
+| Forum NIP-42 relay AUTH | integrated | NIP-42 challenge/response enforced at the relay. |
 
 For the full grading and the wager — every open gap becoming a dated, falsifiable commitment — see [`docs/closeout/final-design.md`](docs/closeout/final-design.md) (2026-07-03 audit, Theme T7) and VisionClaw's `docs/TODO-unified.md`.
 

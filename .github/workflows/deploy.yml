@@ -20,30 +20,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: wasm32-unknown-unknown
-
-      - name: Install wasm-pack
-        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-
-      - name: Cache cargo registry
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            website/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('website/**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-
-
       - name: Build website
         run: |
           cd website
