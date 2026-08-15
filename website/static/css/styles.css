@@ -315,6 +315,75 @@ body {
   margin-bottom: 48px;
 }
 
+/* Block-level translations keep diagrams and page structure in view. */
+.translation-block {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  max-width: 700px;
+  margin-bottom: 32px;
+  padding: 18px 18px 18px 20px;
+  border-left: 2px solid var(--gold);
+  background: rgba(10, 10, 13, 0.72);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+.plain-copy { min-width: 0; }
+.plain-label {
+  font-family: var(--mono);
+  color: var(--gold);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.plain-copy p {
+  margin-top: 8px;
+  color: var(--text);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+.detail-toggle {
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: rgba(14, 14, 17, 0.82);
+  color: var(--text-muted);
+  font: 500 0.72rem var(--mono);
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+.detail-toggle svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.detail-toggle:hover {
+  color: var(--bright-gold);
+  border-color: var(--gold);
+  background: var(--bg);
+}
+.translation-block > .technical-copy { display: none; margin: 0; }
+.translation-block.show-technical > .plain-copy { display: none; }
+.translation-block.show-technical > .technical-copy { display: block; }
+
+@media (max-width: 700px) {
+  .translation-block { padding: 16px; }
+  .detail-toggle span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+}
+
 /* ── Glass Cards ── */
 .glass-card {
   background: var(--bg-card);

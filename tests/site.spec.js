@@ -65,6 +65,23 @@ test('mobile menu opens and links remain reachable', async ({ page }) => {
   await expect(page).toHaveURL(/#repos$/);
 });
 
+test('plain-language blocks reveal technical detail and reset after scrolling away', async ({ page }) => {
+  await page.goto('/');
+
+  const problem = page.locator('#problem');
+  await expect(problem.getByRole('heading', { name: 'Hard problems share a common shape' })).toBeVisible();
+  const block = problem.locator('.translation-block').first();
+  await expect(block.getByText('Teams are connecting AI tools faster')).toBeVisible();
+
+  const toggle = block.locator('.detail-toggle');
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  await expect(block.getByText('Climate modelling, drug discovery')).toBeVisible();
+
+  await page.locator('#loom').scrollIntoViewIfNeeded();
+  await expect(block).not.toHaveClass(/show-technical/);
+});
+
 test('@a11y has no automatically detectable accessibility violations', async ({ page }) => {
   await page.goto('/');
   const results = await new AxeBuilder({ page }).analyze();
