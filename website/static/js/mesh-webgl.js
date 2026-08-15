@@ -106,7 +106,7 @@ export function initMesh(canvas) {
   const heroHubs = vaoP(new Float32Array(hubArr));
 
   // ---- FIGURE: knowledge-stack rings (labelled spiral), parked screen-right ----
-  const FIG = [5.6, 0, -1];              // world origin, projects to the right
+  const FIG = [5.0, -0.3, -1];           // world origin, projects to the right
   const RINGS = [
     { nm: 'Corpus', rl: '8,100+ pages', col: GOLD },
     { nm: 'Ontology', rl: 'OWL 2 EL', col: l3(GOLD, PURPLE, 0.4) },
@@ -116,21 +116,21 @@ export function initMesh(canvas) {
   ];
   const ringArr = [], ringNodeArr = [];
   RINGS.forEach((rd, ri) => {
-    const y = FIG[1] - 4 + ri * 2.0, rad = 3.1 - ri * 0.42, twist = ri * 0.5;
+    const y = FIG[1] - 4.8 + ri * 2.4, rad = 4.0 - ri * 0.5, twist = ri * 0.5;
     for (let i = 0; i < 60; i++) {
       const a1 = i / 60 * 6.283 + twist, a2 = (i + 1) / 60 * 6.283 + twist;
-      ringArr.push(FIG[0] + rad * Math.cos(a1), y, FIG[2] + rad * Math.sin(a1), rd.col[0], rd.col[1], rd.col[2], 0.6,
-        FIG[0] + rad * Math.cos(a2), y, FIG[2] + rad * Math.sin(a2), rd.col[0], rd.col[1], rd.col[2], 0.6);
+      ringArr.push(FIG[0] + rad * Math.cos(a1), y, FIG[2] + rad * Math.sin(a1), rd.col[0] * 1.3, rd.col[1] * 1.3, rd.col[2] * 1.3, 1.0,
+        FIG[0] + rad * Math.cos(a2), y, FIG[2] + rad * Math.sin(a2), rd.col[0] * 1.3, rd.col[1] * 1.3, rd.col[2] * 1.3, 1.0);
     }
     // a marker node on each ring (label anchor at the near-front)
-    ringNodeArr.push(FIG[0] + rad, y, FIG[2], rd.col[0] * 1.6, rd.col[1] * 1.6, rd.col[2] * 1.6, 1.0, 0.5);
-    ringNodeArr.push(FIG[0] + rad, y, FIG[2], rd.col[0], rd.col[1], rd.col[2], 0.3, 1.5);
+    ringNodeArr.push(FIG[0] + rad, y, FIG[2], rd.col[0] * 1.7, rd.col[1] * 1.7, rd.col[2] * 1.7, 1.0, 0.75);
+    ringNodeArr.push(FIG[0] + rad, y, FIG[2], rd.col[0], rd.col[1], rd.col[2], 0.34, 2.2);
   });
   // vertical thread through the ring centres
-  for (let i = 0; i < 5; i++) { const y = FIG[1] - 4 + i * 2.0; ringArr.push(FIG[0], y, FIG[2], BRIGHT[0], BRIGHT[1], BRIGHT[2], 0.3, FIG[0], y + 2, FIG[2], GOLD[0], GOLD[1], GOLD[2], 0.3); }
+  for (let i = 0; i < 4; i++) { const y = FIG[1] - 4.8 + i * 2.4; ringArr.push(FIG[0], y, FIG[2], BRIGHT[0], BRIGHT[1], BRIGHT[2], 0.85, FIG[0], y + 2.4, FIG[2], GOLD[0], GOLD[1], GOLD[2], 0.85); }
   const ringLines = vaoL(new Float32Array(ringArr));
   const ringNodes = vaoP(new Float32Array(ringNodeArr));
-  const ringAnchor = RINGS.map((rd, ri) => { const rad = 3.1 - ri * 0.42; return [FIG[0] + rad, FIG[1] - 4 + ri * 2.0, FIG[2]]; });
+  const ringAnchor = RINGS.map((rd, ri) => { const rad = 4.0 - ri * 0.5; return [FIG[0] + rad, FIG[1] - 4.8 + ri * 2.4, FIG[2]]; });
 
   // ---- FIGURE: substrate helix (labelled), parked screen-right ----
   const SUBS = [
@@ -139,16 +139,19 @@ export function initMesh(canvas) {
   ];
   const helixArr = [], helixPos = [];
   SUBS.forEach((s, i) => {
-    const a = i * 1.02, y = FIG[1] - 4.4 + i * 1.8, r = 2.7;
+    const a = i * 1.02, y = FIG[1] - 5.0 + i * 2.1, r = 3.4;
     const p = [FIG[0] + r * Math.cos(a), y, FIG[2] + r * Math.sin(a)];
     helixPos.push(p);
-    helixArr.push(p[0], p[1], p[2], s.col[0] * 1.6, s.col[1] * 1.6, s.col[2] * 1.6, 1.0, 0.6);
-    helixArr.push(p[0], p[1], p[2], s.col[0], s.col[1], s.col[2], 0.3, 1.9);
+    helixArr.push(p[0], p[1], p[2], s.col[0] * 1.7, s.col[1] * 1.7, s.col[2] * 1.7, 1.0, 0.82);
+    helixArr.push(p[0], p[1], p[2], s.col[0], s.col[1], s.col[2], 0.34, 2.5);
   });
   const helixNodes = vaoP(new Float32Array(helixArr));
   const helixSpineArr = [];
-  for (let i = 0; i <= 40; i++) { const t = i / 40, y = FIG[1] - 4.6 + t * 9.2; helixSpineArr.push(FIG[0], y, FIG[2], GOLD[0], GOLD[1], GOLD[2], 0.35); }
+  for (let i = 0; i <= 44; i++) { const t = i / 44, y = FIG[1] - 5.0 + t * 11.0; helixSpineArr.push(FIG[0], y, FIG[2], GOLD[0] * 1.2, GOLD[1] * 1.2, GOLD[2] * 1.2, 0.9); }
   const helixSpine = vaoL(new Float32Array(helixSpineArr));
+  const helixSpokesArr = [];
+  helixPos.forEach((p, i) => { const c = SUBS[i].col; helixSpokesArr.push(FIG[0], p[1], FIG[2], GOLD[0], GOLD[1], GOLD[2], 0.5, p[0], p[1], p[2], c[0] * 1.4, c[1] * 1.4, c[2] * 1.4, 0.85); });
+  const helixSpokes = vaoL(new Float32Array(helixSpokesArr));
 
   // ---- HTML labels ----
   const labelHost = document.createElement('div');
@@ -169,7 +172,7 @@ export function initMesh(canvas) {
   // ---- figures wired to sections ----
   const FIGURES = [
     { sel: '#evolution', lines: ringLines, nodes: ringNodes, anchors: ringAnchor, labels: ringLabels },
-    { sel: '#loom', lines: helixSpine, nodes: helixNodes, anchors: helixPos, labels: helixLabels, extra: helixSpine },
+    { sel: '#loom', lines: helixSpokes, nodes: helixNodes, anchors: helixPos, labels: helixLabels, extra: helixSpine },
   ];
   let heroTop = 0, heroBot = 1;
   function measure() {
@@ -242,9 +245,9 @@ export function initMesh(canvas) {
       const env = smooth(clamp((prog + 0.15) / 0.3, 0, 1)) * smooth(clamp((1.15 - prog) / 0.3, 0, 1)); // fade in/out
       const spin = reduced ? 0.4 : prog * 2.2;   // scroll drives the spin
       const model = transRotY(FIG[0], 0, FIG[2], spin, 0);
-      if (f.extra) dln(f.extra, model, env * 0.5, gl.LINE_STRIP);
-      dln(f.lines, model, env * 0.8, gl.LINES);
-      dpt(f.nodes, model, env, ptScale);
+      if (f.extra) dln(f.extra, model, env * 1.6, gl.LINE_STRIP);
+      dln(f.lines, model, env * 1.9, gl.LINES);
+      dpt(f.nodes, model, env * 1.2, ptScale);
       f.anchors.forEach((a, i) => placeLabel(f.labels[i], a, env, spin));
     });
 

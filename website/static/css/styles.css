@@ -285,8 +285,8 @@ body {
   font-family: var(--mono); line-height: 1.15;
   text-shadow: 0 1px 8px rgba(9, 9, 12, 0.95); transition: opacity 0.2s;
 }
-.mesh-label .ml-nm { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text); font-family: var(--font); }
-.mesh-label .ml-rl { display: block; font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); }
+.mesh-label .ml-nm { display: block; font-size: 1rem; font-weight: 600; color: var(--text); font-family: var(--font); }
+.mesh-label .ml-rl { display: block; font-size: 0.68rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--gold); margin-top: 1px; }
 @media (max-width: 900px) {
   .section-figure { background: rgba(9, 9, 12, 0.82); }
   .section-figure > .container { max-width: 1200px; margin: 0 auto; }
