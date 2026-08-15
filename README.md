@@ -5,12 +5,12 @@
 ### Coordination Engineering for Federated Human–AI Intelligence
 
 [![License](https://img.shields.io/badge/License-AGPL--3.0%20%28MPL%202.0%20relicense%20proposed%29-blue?style=flat-square)](docs/architecture/licensing.md)
-[![Substrates](https://img.shields.io/badge/Substrates-5%20federated-8b5cf6?style=flat-square)](docs/architecture/repository-map.md)
+[![Substrates](https://img.shields.io/badge/Substrates-6%20federated-8b5cf6?style=flat-square)](docs/architecture/repository-map.md)
 [![Identity](https://img.shields.io/badge/Identity-did%3Anostr-10b981?style=flat-square)](docs/protocol/identity-spine.md)
 
 **Maintainer**: [John O'Hare](https://github.com/jjohare) · **Upstream IP**: [Melvin Carvalho](https://github.com/melvincarvalho) ([JSS](https://github.com/JavaScriptSolidServer/JavaScriptSolidServer), [DID:Nostr](https://github.com/nicholasgasior/did-nostr), [Web Ledgers](https://webledgers.org)) · [MAINTAINERS.md](MAINTAINERS.md)
 
-[Ecosystem](#the-ecosystem) · [Architecture](#five-substrates-one-identity) · [Quickstart](#quickstart) · [Docs](docs/README.md) · [Status](#status--remaining-work)
+[Ecosystem](#the-ecosystem) · [Architecture](#six-substrates-one-identity) · [Quickstart](#quickstart) · [Docs](docs/README.md) · [Terminology](docs/terminology.md) · [Status](#status--remaining-work)
 
 **PDF pitch:** [One-Pager](pdf-reports/visionflow-onepager.pdf) · [Ecosystem Technical Pitch](pdf-reports/visionflow-ecosystem-pitch.pdf)
 
@@ -22,9 +22,9 @@
 
 Hierarchy was an information-routing protocol bounded by human bandwidth. AI is collapsing the cost of that routing towards zero, so the human role is not eliminated — it is promoted from **router** to **judgment broker**: the person who holds the decision at the intersections a machine should not close on its own.
 
-**VisionFlow is the canon for that thesis.** This repository is the coordination-of-coordination layer for five federated substrates — the ADRs and PRDs, the ecosystem map, the maturity vocabulary, the marketing website, the vision report and the pitch decks. It is the thing that stops five honest local truths from assembling into one collective lie.
+**VisionFlow is the canon for that thesis.** This repository is the coordination-of-coordination layer for six federated substrates — the ADRs and PRDs, the ecosystem map, the maturity vocabulary, the marketing website, the vision report and the pitch decks. It is the thing that stops six honest local truths from assembling into one collective lie.
 
-In 2026 the wider industry converged on the same design from the other direction: agent loops are unbounded by construction, and ontologies — formal, machine-checkable semantics shared across a mesh rather than wired into each agent — are the way to bound them. The vocabulary is new (**neurosymbolic AI**; thin agents on a shared semantic layer); the architecture is what these repositories already run. An OWL 2 EL reasoner (Whelk) gates what enters the shared graph, and the grounding is measured, not claimed: F1 0.770 with the ontology against 0.350 without on the strongest model tested, hallucination cut from 0.529 to 0.177 across seven models ([eval report](https://github.com/DreamLab-AI/VisionClaw/blob/main/archive/visionclaw-docs/eval/report.pdf)).
+In 2026 the wider industry converged on the same design from the other direction: agent loops are unbounded by construction, and an ontology — the formal vocabulary of classes, typed properties and rules that defines what *can* be said — shared across a mesh rather than wired into each agent, is the way to bound them. The vocabulary is new (**neurosymbolic AI**: thin agents over a shared formal semantic layer); the architecture is what these repositories already run, in named pieces: an OWL 2 ontology, a Whelk reasoner, a knowledge graph, and the Ontology Loom. The knowledge graph is that vocabulary populated at scale: the pages and typed links you can traverse, query and cite. Reasoning here is a machine check, not an LLM thinking hard: the Whelk EL++ reasoner classifies the graph and rejects contradictions before they enter it. And the grounding is measured, not claimed: the Ontology Loom serves the checked graph into a model's context at query time, so answers restate verified facts rather than guesses. With that grounding, F1 rises to 0.770 against 0.350 without on the strongest model tested, and hallucination falls from 0.529 to 0.177 across seven models ([eval report](https://github.com/DreamLab-AI/VisionClaw/blob/main/archive/visionclaw-docs/eval/report.pdf)).
 
 **This repo is documentation and website — not a runtime.** The running systems live in the sibling repositories linked below; VisionFlow holds the story, the compatibility record and the honest status ledger that grades those systems against their own code. Its own maturity claim is deliberately the most modest of the set: it ships words, and it is accountable for their accuracy.
 
@@ -40,7 +40,7 @@ In 2026 the wider industry converged on the same design from the other direction
 
 ## The ecosystem
 
-No single repository *is* VisionFlow. The siblings call the whole the **Dynamic Agentic Mesh** — seven repositories, five running substrates, this canon, and the published corpus. It emerges when five independent systems mesh through one cryptographic identity spine — every actor, human or agent or server, is a single secp256k1 keypair expressed as `did:nostr:<hex-pubkey>`.
+No single repository *is* VisionFlow. The siblings call the whole the **Dynamic Agentic Mesh** — eight repositories, six running substrates, this canon, and the published corpus. It emerges when six independent systems mesh through one cryptographic identity spine — every actor, human or agent or server, is a single secp256k1 keypair expressed as `did:nostr:<hex-pubkey>`.
 
 | Substrate | Role | Where to run it |
 |:----------|:-----|:----------------|
@@ -49,8 +49,9 @@ No single repository *is* VisionFlow. The siblings call the whole the **Dynamic 
 | **[solid-pod-rs](https://github.com/DreamLab-AI/solid-pod-rs)** | Personal-data-sovereignty layer — Rust Solid pod server (LDP, WAC, NIP-98, DID:Nostr, WebID). Every write is a git-mark commit; high-value writes anchor to Bitcoin. *The exit right sits in the floor, not granted at the door.* | Clone the repo; `cargo` build. |
 | **[nostr-rust-forum](https://github.com/DreamLab-AI/nostr-rust-forum)** | Human+agent communication substrate — Nostr-native forum + relay in Rust. The one place a human decision is cryptographically signed (ACSP kinds 31400–31405). *The one place a decision gets signed.* | Clone the repo; Cloudflare Workers + Leptos WASM. |
 | **[dreamlab-ai-website](https://github.com/DreamLab-AI/dreamlab-ai-website)** | Commercial face — DreamLab AI company site, a thin consumer of the forum kit at the Cloudflare edge. | Clone the repo. |
+| **[loom](https://github.com/DreamLab-AI/loom)** | Grounding node — a portable, model-swappable façade that serves the reasoned knowledge graph into any model's context at query time (the context-assembly layer). *The stable door; models swap behind it.* | Clone the repo; `docker compose up`. |
 
-Published corpus: **[knowledgeGraph](https://github.com/DreamLab-AI/knowledgeGraph)** serves the readable `public:: true` knowledge graph at [narrativegoldmine.com](https://narrativegoldmine.com), the same corpus VisionClaw renders in 3D. Since July 2026 it also releases the corpus itself: 7,874 pages under ODbL-1.0, the seven-stage rdflib pipeline (AGPL-3.0) that builds them into 258,200 triples and 98,776 resolvable edges across 6 domains in 18 seconds, the WasmVOWL explorer (MIT), the prebuilt artefacts, and [the method write-up](https://github.com/DreamLab-AI/knowledgeGraph/blob/main/docs/methodology/the-hybrid-approach.md). The corpus is mostly AI-generated synthetic content produced under human direction, by design: an ontology testbed, not an authoritative encyclopaedia. Validation stands at 0 errors and 0 warnings; 1,401 classes deliberately declare more than one parent — the taxonomy is a lattice, not a tree, and the overlap is published as data.
+Published corpus: **[knowledgeGraph](https://github.com/DreamLab-AI/knowledgeGraph)** serves the readable `public:: true` knowledge graph at [narrativegoldmine.com](https://narrativegoldmine.com), the same corpus VisionClaw renders in 3D. Since July 2026 it also releases the corpus itself: 8,138 public pages under ODbL-1.0 (dataset 2026-08-11), the seven-stage rdflib pipeline (AGPL-3.0) that builds them into 286,533 triples (with the Whelk-inferred closure) and 101,313 resolvable edges across 6 domains, the WasmVOWL explorer (MIT), the prebuilt artefacts, and [the method write-up](https://github.com/DreamLab-AI/knowledgeGraph/blob/main/docs/methodology/the-hybrid-approach.md). The corpus is mostly synthetic content, generated by agents under human direction by design: a testbed for the pipeline and the grounding stack it feeds, not an authoritative encyclopaedia. (The ontology proper is the schema the pipeline compiles out; the corpus is what exercises it.) Validation stands at 0 errors and 0 warnings; 1,396 classes deliberately declare more than one parent — the taxonomy is a lattice, not a tree, and the overlap is published as data.
 
 ### Independent convergence — Block's Buzz
 
@@ -60,7 +61,7 @@ Where Buzz is ahead: its NIP-42 relay gate and git forge are wired end-to-end to
 
 ---
 
-## Five Substrates, One Identity
+## Six Substrates, One Identity
 
 One canonical diagram. The identity spine is the coordination primitive: no shared session store, no token exchange between tiers — the same `did:nostr` keypair is login, WAC principal, provenance author, DID subject and payment account at once.
 
@@ -151,6 +152,7 @@ Everything below is local to this repository and verified present on disk.
 |:---------|:--------------|
 | [`docs/README.md`](docs/README.md) | Docs index — ADR-002, the PRDs, compatibility matrix, roadmap |
 | [`docs/ecosystem-map.md`](docs/ecosystem-map.md) | Synthesis of the sibling repositories, system flows and gap register |
+| [`docs/terminology.md`](docs/terminology.md) | The terminology playbook — ontology, knowledge graph, reasoning and grounding, each defined once and used that way across every surface |
 | [`docs/roadmap.md`](docs/roadmap.md) | Phased roadmap from docs honesty to mesh proof and operations |
 | [`docs/architecture/repository-map.md`](docs/architecture/repository-map.md) | Local path and role map for the federated repositories |
 | [`docs/architecture/licensing.md`](docs/architecture/licensing.md) | Licence boundaries across the ecosystem |
