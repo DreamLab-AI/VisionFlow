@@ -1,5 +1,9 @@
 # PRD: visionflow.info Website
 
+> **Amendment 2026-08-15:** the substrate count is now **six** — the Ontology Loom joined as
+> the grounding substrate (see ADR-006 and `docs/terminology.md`). Requirements below that
+> read "five substrates" (§4, §6.1, AC-06) read as six; the shipped site already renders six.
+
 **Owner:** Dr John O'Hare, DreamLab AI
 **Status:** Draft
 **Date:** 2026-05-20
