@@ -8,7 +8,7 @@ VisionFlow combines repositories with different licence obligations. This page i
 | Repository | Licence described in docs | Practical boundary |
 |---|---|---|
 | VisionFlow | Public docs describe mixed MPL 2.0 + AGPL 3.0 ecosystem | Documentation and static website assets |
-| VisionClaw | MPL 2.0 | Knowledge engineering substrate and GPU/XR application code |
+| VisionClaw | AGPL 3.0 only (relicensed from MPL 2.0; see VisionClaw `LICENSE`) | Knowledge engineering substrate and GPU/XR application code |
 | agentbox | AGPL 3.0 | Networked agent runtime and management API |
 | solid-pod-rs | AGPL 3.0 | Solid/JSS foundation library and server |
 | nostr-rust-forum | AGPL 3.0 per ecosystem docs; workspace crates may carry crate-level terms | Forum kit, Cloudflare Workers, relay/governance UI |
@@ -16,7 +16,7 @@ VisionFlow combines repositories with different licence obligations. This page i
 
 ## Boundary Rule
 
-Treat protocol and server components derived from or linked against the JSS/Solid stack as AGPL-sensitive unless the owning repository states otherwise. Treat VisionClaw MPL code as a separate boundary, with explicit review required when importing AGPL libraries into MPL-distributed artifacts.
+Treat protocol and server components derived from or linked against the JSS/Solid stack as AGPL-sensitive unless the owning repository states otherwise. VisionClaw has relicensed to AGPL 3.0 only, so the former MPL/AGPL import boundary no longer applies; the ecosystem's substrates are uniformly AGPL-sensitive.
 
 ## Open Licensing Questions
 
