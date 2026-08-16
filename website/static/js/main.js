@@ -345,8 +345,10 @@ function initIndex() {
     toggle.setAttribute('aria-expanded', 'true');
     if (main) main.setAttribute('inert', '');
     document.body.style.overflow = 'hidden';
-    const first = overlay.querySelector('a, button');
-    if (first) first.focus();
+    // defer focus: the overlay is visibility:hidden until the .open style applies,
+    // and a visibility:hidden element cannot receive focus.
+    const first = overlay.querySelector('button, a');
+    if (first) requestAnimationFrame(() => requestAnimationFrame(() => first.focus()));
     document.addEventListener('keydown', onKey);
   }
   function close() {
@@ -439,6 +441,8 @@ function initSheet() {
     scrim.classList.add('open');
     sheet.classList.add('open');
     if (main) main.setAttribute('inert', '');
+    const first = sheet.querySelector('a, button');
+    if (first) requestAnimationFrame(() => first.focus());
     document.addEventListener('keydown', onKey);
   }
   function close() {
