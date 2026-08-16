@@ -1409,6 +1409,8 @@ a.substrate-shot:hover {
   .hero-content { padding: 0 var(--m-gutter-r) 0 var(--m-gutter-l); max-width: none; }
   .hero h1 { font-size: 36px; line-height: 1.08; letter-spacing: -0.025em; margin-bottom: 22px; }
   .hero-sub { font-size: 17px; line-height: 1.6; color: var(--m-body); }
+  .hero-m-drop { display: none; }                        /* trim the technical hero sub to its last clauses on mobile */
+  .hero-m-only { display: inline; }
   .hero-actions { display: none; }                       /* the sticky bar carries the one action */
   .hero-stats {
     display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; margin-top: 26px;
@@ -1590,4 +1592,5 @@ a.substrate-shot:hover {
    overrides the mobile block by source order) */
 @media (min-width: 769px) {
   .m-progress, .m-rail, #m-index, .m-bar, .m-scrim, #m-sheet, .m-reading { display: none !important; }
+  .hero-m-only { display: none; }   /* mobile-only hero clause hidden on desktop */
 }
