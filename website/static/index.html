@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VisionFlow — Coordination Engineering for Federated Human-AI Intelligence</title>
+  <title>VisionFlow: Coordination Engineering for Federated Human-AI Intelligence</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230e0e11'/%3E%3Cpath d='M16 4l10 12-10 12L6 16z' fill='%23ffd700'/%3E%3C/svg%3E" />
   <meta name="description" content="VisionFlow is a coordination harness for federated human-AI intelligence. Self-sovereign data, formal reasoning, cryptographic provenance, human-in-the-loop governance." />
-  <meta property="og:title" content="VisionFlow — Coordination Engineering" />
+  <meta property="og:title" content="VisionFlow: Coordination Engineering" />
   <meta property="og:description" content="Federated coordination, self-sovereign data, formal reasoning, cryptographic provenance, human-in-the-loop governance." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://www.visionflow.info" />
@@ -73,7 +73,7 @@
   <section id="hero" class="hero">
     <div class="hero-content" data-num="01">
       <h1>Federated Human&ndash;AI<br/>Intelligence</h1>
-      <p class="hero-sub"><span class="hero-m-drop">Coordination engineering is the discipline of designing systems that reliably orchestrate autonomous agents across heterogeneous substrates. </span>As AI collapses the cost of routing work, the human is promoted from router to judgment broker. Thin agents on a shared formal semantic layer<span class="hero-m-drop"> &mdash; the architecture the industry now calls neurosymbolic &mdash; with self-sovereign data, cryptographic provenance, and human-in-the-loop governance.</span><span class="hero-m-only">, with self-sovereign data and cryptographic provenance.</span></p>
+      <p class="hero-sub"><span class="hero-m-drop">Coordination engineering is the discipline of designing systems that reliably orchestrate autonomous agents across heterogeneous substrates. </span>As AI collapses the cost of routing work, the human is promoted from router to judgment broker. Thin agents on a shared formal semantic layer<span class="hero-m-drop"> (the architecture the industry now calls neurosymbolic), with self-sovereign data, cryptographic provenance, and human-in-the-loop governance.</span><span class="hero-m-only">, with self-sovereign data and cryptographic provenance.</span></p>
       <div class="hero-actions">
         <a href="#substrates" class="btn btn-primary">Explore the Architecture</a>
         <a href="https://github.com/DreamLab-AI/VisionFlow" target="_blank" rel="noopener" class="btn btn-ghost">View on GitHub &rarr;</a>
@@ -132,9 +132,9 @@
     <div class="container reveal">
       <span class="section-tag">Evolution Line</span>
       <h2>From LLM to Coordination Harness</h2>
-      <p class="section-lead">The AI industry has moved through a clear progression. Each stage solves the previous stage&rsquo;s limitation and reveals a new one. The newest turn is a return of symbolic structure: agent loops are unbounded by construction, and the industry is converging on formal semantics &mdash; ontologies shared across the mesh, rather than wired into each agent &mdash; as the way to bound them.</p>
+      <p class="section-lead">The AI industry has moved through a clear progression. Each stage solves the previous stage&rsquo;s limitation and reveals a new one. The newest turn is a return of symbolic structure: agent loops are unbounded by construction, and the industry is converging on formal semantics (ontologies shared across the mesh, rather than wired into each agent) as the way to bound them.</p>
 
-      <p class="section-lead" style="margin-top:1rem">Three layers, kept distinct. The <strong>ontology</strong> is the formal vocabulary: the classes, typed properties and rules that define what can be said. The published corpus at narrativegoldmine.com is that ontology in readable form &mdash; pure TBox, every page a class, zero individuals by design. The <strong>knowledge graph</strong> is the ontology populated with live instances at runtime: VisionClaw&rsquo;s running graph, agents&rsquo; working graphs, the personal graphs written into Solid pods. And the <strong>grounding layer</strong>, the Ontology Loom, serves the checked graph into a model&rsquo;s context at query time, so answers restate verified facts rather than guesses. Holding it honest is a machine check at two points: the pipeline&rsquo;s EL-profile reasoner gates the published closure at build, and a Whelk EL++ reasoner classifies the shared runtime graph and rejects contradictions before they enter it. When these pages say &ldquo;reasoned&rdquo;, they mean machine-checked, not an LLM thinking hard.</p>
+      <p class="section-lead" style="margin-top:1rem">Three layers, kept distinct. The <strong>ontology</strong> is the formal vocabulary: the classes, typed properties and rules that define what can be said. The published corpus at narrativegoldmine.com is that ontology in readable form: pure TBox, every page a class, zero individuals by design. The <strong>knowledge graph</strong> is the ontology populated with live instances at runtime: VisionClaw&rsquo;s running graph, agents&rsquo; working graphs, the personal graphs written into Solid pods. And the <strong>grounding layer</strong>, the Ontology Loom, serves the checked graph into a model&rsquo;s context at query time, so answers restate verified facts rather than guesses. Holding it honest is a machine check at two points: the pipeline&rsquo;s EL-profile reasoner gates the published closure at build, and a Whelk EL++ reasoner classifies the shared runtime graph and rejects contradictions before they enter it. When these pages say &ldquo;reasoned&rdquo;, they mean machine-checked, not an LLM thinking hard.</p>
 
       <div class="evolution-track">
         <div class="evo-step">
@@ -288,10 +288,10 @@
             <span class="substrate-role">Grounding &amp; Serving Node</span>
           </div>
           <ul>
-            <li>Model-swappable, OpenAI-compatible fa&ccedil;ade &mdash; the model is a URL (Qwen3.8-27B today), swapped behind the fa&ccedil;ade with no consumer change</li>
-            <li>Static ontology scaffold lifts grounded recall roughly 3&times; &mdash; a near-random baseline to graph parity &mdash; and the gain reproduces across every model behind the fa&ccedil;ade; prose adds nothing</li>
+            <li>Model-swappable, OpenAI-compatible fa&ccedil;ade: the model is a URL (Qwen3.8-27B today), swapped behind the fa&ccedil;ade with no consumer change</li>
+            <li>Static ontology scaffold lifts grounded recall roughly 3&times; (a near-random baseline to graph parity), and the gain reproduces across every model behind the fa&ccedil;ade; prose adds nothing</li>
             <li>In-process pyoxigraph read-truth store: 286,500-triple reasoned closure, read-only SPARQL + node search</li>
-            <li>Confidence-aware selective injection (live): strong match &rarr; full budget, weak &rarr; scaled, off-topic &rarr; gated &mdash; avoids context interference</li>
+            <li>Confidence-aware selective injection (live): strong match &rarr; full budget, weak &rarr; scaled, off-topic &rarr; gated: avoids context interference</li>
             <li>Reasoning-model safe: server-side <code>max_tokens</code> floor so a model never truncates to empty</li>
             <li>Agentbox &ldquo;one brain&rdquo; retrieval resolves through the Loom, live</li>
             <li>Governed elevation live: workingGraph &rarr; ontology via ACSP <code>31402</code> propose &rarr; admin <code>31403</code></li>
@@ -301,7 +301,7 @@
       </div>
 
       <div class="callout" style="margin-top:2rem">
-        <p><strong>Published corpus.</strong> <a href="https://github.com/DreamLab-AI/knowledgeGraph" target="_blank" rel="noopener" style="color:var(--gold)">knowledgeGraph</a> serves the readable <code>public:: true</code> corpus &mdash; a Logseq corpus that is also an OWL ontology &mdash; at <a href="https://narrativegoldmine.com" target="_blank" rel="noopener" style="color:var(--gold)">narrativegoldmine.com</a>, the same ontology VisionClaw renders in 3D. Since July 2026 it also releases the corpus itself: 8,100+ public pages under ODbL-1.0, the seven-stage rdflib pipeline (AGPL-3.0) that compiles them losslessly into the formal ontology &mdash; 286,533 triples with the pipeline's EL-inferred closure and 101,313 resolvable edges across 6 domains at dataset 2026-08-11; live figures in <a href="https://narrativegoldmine.com/data/graph/stats.json" target="_blank" rel="noopener" style="color:var(--gold)">stats.json</a> &mdash; the WasmVOWL explorer (MIT), and the prebuilt artefacts. The corpus is mostly synthetic content, generated by agents under human direction by design: a testbed for the pipeline and the grounding stack it feeds, not an authoritative encyclopaedia. The corpus is the ontology in markdown form &mdash; pure TBox, every page a class, zero individuals by design; the pipeline compiles it in losslessly. Validation stands at 0 errors and 0 warnings; 1,396 classes deliberately declare more than one parent &mdash; the taxonomy is a lattice, not a tree, and the overlap is published as data.</p>
+        <p><strong>Published corpus.</strong> <a href="https://github.com/DreamLab-AI/knowledgeGraph" target="_blank" rel="noopener" style="color:var(--gold)">knowledgeGraph</a> serves the readable <code>public:: true</code> corpus (a Logseq corpus that is also an OWL ontology) at <a href="https://narrativegoldmine.com" target="_blank" rel="noopener" style="color:var(--gold)">narrativegoldmine.com</a>, the same ontology VisionClaw renders in 3D. Since July 2026 it also releases the corpus itself: 8,100+ public pages under ODbL-1.0, the seven-stage rdflib pipeline (AGPL-3.0) that compiles them losslessly into the formal ontology (286,533 triples with the pipeline's EL-inferred closure and 101,313 resolvable edges across 6 domains at dataset 2026-08-11; live figures in <a href="https://narrativegoldmine.com/data/graph/stats.json" target="_blank" rel="noopener" style="color:var(--gold)">stats.json</a>), the WasmVOWL explorer (MIT), and the prebuilt artefacts. The corpus is mostly synthetic content, generated by agents under human direction by design: a testbed for the pipeline and the grounding stack it feeds, not an authoritative encyclopaedia. The corpus is the ontology in markdown form: pure TBox, every page a class, zero individuals by design; the pipeline compiles it in losslessly. Validation stands at 0 errors and 0 warnings; 1,396 classes deliberately declare more than one parent: the taxonomy is a lattice, not a tree, and the overlap is published as data.</p>
       </div>
     </div>
   </section>
@@ -401,7 +401,7 @@
       </div>
       <details class="video-summary" id="video-summary">
         <summary>Text summary of the film</summary>
-        <p>In high-stakes domains &mdash; drug discovery, climate modelling, large creative productions &mdash; the binding constraint is not the raw intelligence of any single model but whether many agents and people can reason together without losing provenance, shared meaning, or governance. VisionFlow treats coordination itself as the infrastructure: one cryptographic identity spine, a shared formal ontology that keeps terms meaning the same thing across parties, and human judgment held at the decisions a machine should not close alone.</p>
+        <p>In high-stakes domains (drug discovery, climate modelling, large creative productions) the binding constraint is not the raw intelligence of any single model but whether many agents and people can reason together without losing provenance, shared meaning, or governance. VisionFlow treats coordination itself as the infrastructure: one cryptographic identity spine, a shared formal ontology that keeps terms meaning the same thing across parties, and human judgment held at the decisions a machine should not close alone.</p>
       </details>
     </div>
   </section>
@@ -459,10 +459,10 @@
       </div>
 
       <h3 style="margin-top:3rem;font-size:1.6rem;color:var(--gold)">Provenance and value travel the same rails</h3>
-      <p class="section-lead">Once every actor is a <code>did:nostr</code> identity and every write is anchored, <strong>value and trust</strong> travel the same rails as the mesh&rsquo;s messages &mdash; no EVM, no bridge, no custodian, and no token of our own.</p>
+      <p class="section-lead">Once every actor is a <code>did:nostr</code> identity and every write is anchored, <strong>value and trust</strong> travel the same rails as the mesh&rsquo;s messages: no EVM, no bridge, no custodian, and no token of our own.</p>
       <div class="identity-callout">
         <code>agent &rarr; pod &rarr; 402 settle &rarr; anchor &rarr; did:nostr</code>
-        <p>The same <code>did:nostr</code> key that is a WAC principal, a relay identity and a provenance author is also a payment account, so an agent can earn, spend and sign across the mesh as one actor. Payments settle in <strong>USD stablecoins</strong> over HTTP 402; private digital objects and contracts stay in the owner&rsquo;s pod and inherit <strong>Bitcoin&rsquo;s security model</strong> through taproot-anchored commitments &mdash; borrowing the strongest settlement guarantee available rather than minting anything of our own.</p>
+        <p>The same <code>did:nostr</code> key that is a WAC principal, a relay identity and a provenance author is also a payment account, so an agent can earn, spend and sign across the mesh as one actor. Payments settle in <strong>USD stablecoins</strong> over HTTP 402; private digital objects and contracts stay in the owner&rsquo;s pod and inherit <strong>Bitcoin&rsquo;s security model</strong> through taproot-anchored commitments, borrowing the strongest settlement guarantee available rather than minting anything of our own.</p>
       </div>
     </div>
   </section>
@@ -528,7 +528,7 @@
     <div class="container reveal" data-num="08">
       <span class="section-tag">Grounding &amp; Serving Node</span>
       <h2>The Ontology Loom: measured grounding behind a model-swappable fa&ccedil;ade</h2>
-      <p class="section-lead">We tested whether a formal ontology improves an LLM&rsquo;s factual recall, objectively, with gold answers derived from the knowledge graph itself. Across every model we have put behind the fa&ccedil;ade &mdash; a frontier model at one end, a small local one at the other &mdash; grounding raised recall and cut hallucination in <em>every</em> case, roughly halving hallucination on the set (<a href="https://github.com/DreamLab-AI/VisionClaw/blob/main/archive/visionclaw-docs/eval/report.pdf" target="_blank" rel="noopener" style="color:var(--gold)">full report</a>). The result is about the architecture, not the model: probabilistic agents bounded by machine-checkable semantics, with contradictions rejected at the Whelk gate before they enter the graph. We re-run the benchmark on each new model we deploy; the shape holds, and it keeps improving.</p>
+      <p class="section-lead">We tested whether a formal ontology improves an LLM&rsquo;s factual recall, objectively, with gold answers derived from the knowledge graph itself. Across every model we have put behind the fa&ccedil;ade (a frontier model at one end, a small local one at the other), grounding raised recall and cut hallucination in <em>every</em> case, roughly halving hallucination on the set (<a href="https://github.com/DreamLab-AI/VisionClaw/blob/main/archive/visionclaw-docs/eval/report.pdf" target="_blank" rel="noopener" style="color:var(--gold)">full report</a>). The result is about the architecture, not the model: probabilistic agents bounded by machine-checkable semantics, with contradictions rejected at the Whelk gate before they enter the graph. We re-run the benchmark on each new model we deploy; the shape holds, and it keeps improving.</p>
 
       <p class="section-lead" style="margin-top:1.5rem">A held-out graph-derived benchmark (objective gold, bootstrapped intervals) on the current model, <strong>Qwen3.8-27B</strong>, across four grounding modes:</p>
 
@@ -538,21 +538,21 @@
             <tr><th>Grounding mode</th><th>Recall</th><th>What it shows</th></tr>
           </thead>
           <tbody>
-            <tr><td>Raw &mdash; no grounding</td><td>~0.3</td><td>Bare model on synthetic-corpus recall: near random</td></tr>
-            <tr class="row-highlight"><td><strong>Scaffold &mdash; static structured injection</strong></td><td><strong>~0.9</strong></td><td style="color:var(--gold)">The win &mdash; roughly 3&times; the baseline, from a pre-computed injection</td></tr>
+            <tr><td>Raw: no grounding</td><td>~0.3</td><td>Bare model on synthetic-corpus recall: near random</td></tr>
+            <tr class="row-highlight"><td><strong>Scaffold: static structured injection</strong></td><td><strong>~0.9</strong></td><td style="color:var(--gold)">The win: roughly 3&times; the baseline, from a pre-computed injection</td></tr>
             <tr><td>Prose-enriched scaffold</td><td>~0.9</td><td>Adds ~nothing over structured; prose stays optional</td></tr>
-            <tr><td>Tools &mdash; agentic graph traversal</td><td>mid</td><td style="color:var(--cyan)">Below static injection &mdash; and model-dependent; letting the model traverse can hurt it</td></tr>
+            <tr><td>Tools: agentic graph traversal</td><td>mid</td><td style="color:var(--cyan)">Below static injection, and model-dependent; letting the model traverse can hurt it</td></tr>
           </tbody>
         </table>
       </div>
 
-      <p class="section-lead" style="margin-top:1.5rem">The static structured <strong>scaffold is the whole win</strong> &mdash; a bare model near random on the corpus answers at graph parity once the scaffold is injected, prose adds nothing, and letting the model walk the graph with tools tends to make it worse. The scaffold, not the model, does the work &mdash; which is exactly why the model can be a swappable URL. (The interference from injecting on weak matches is a known effect in the retrieval literature; the Loom gates for it, below.)</p>
+      <p class="section-lead" style="margin-top:1.5rem">The static structured <strong>scaffold is the whole win</strong>: a bare model near random on the corpus answers at graph parity once the scaffold is injected, prose adds nothing, and letting the model walk the graph with tools tends to make it worse. The scaffold, not the model, does the work, which is exactly why the model can be a swappable URL. (The interference from injecting on weak matches is a known effect in the retrieval literature; the Loom gates for it, below.)</p>
       <h3 style="margin-top:3rem;font-size:1.6rem;color:var(--gold)">The Loom turns that result into infrastructure</h3>
-      <p class="section-lead">The <a href="https://github.com/DreamLab-AI/loom" target="_blank" rel="noopener" style="color:var(--gold)">Ontology Loom</a> is the node that serves this grounding as infrastructure. It <strong>consumes the corpus generations</strong> that <a href="https://github.com/DreamLab-AI/knowledgeGraph" target="_blank" rel="noopener" style="color:var(--gold)">knowledgeGraph</a> publishes, weaves them into a reasoned ontology it holds as canonical, and <strong>serves that grounding</strong> to any LLM behind a stable, OpenAI-compatible fa&ccedil;ade. The model is a URL &mdash; Qwen3.8-27B today, swap for whatever benchmarks best next, with zero consumer change. VisionClaw supplies the GPU engine and the OWL 2 EL reasoner; knowledgeGraph builds the corpus; the Loom serves the grounding.</p>
+      <p class="section-lead">The <a href="https://github.com/DreamLab-AI/loom" target="_blank" rel="noopener" style="color:var(--gold)">Ontology Loom</a> is the node that serves this grounding as infrastructure. It <strong>consumes the corpus generations</strong> that <a href="https://github.com/DreamLab-AI/knowledgeGraph" target="_blank" rel="noopener" style="color:var(--gold)">knowledgeGraph</a> publishes, weaves them into a reasoned ontology it holds as canonical, and <strong>serves that grounding</strong> to any LLM behind a stable, OpenAI-compatible fa&ccedil;ade. The model is a URL: Qwen3.8-27B today, swap for whatever benchmarks best next, with zero consumer change. VisionClaw supplies the GPU engine and the OWL 2 EL reasoner; knowledgeGraph builds the corpus; the Loom serves the grounding.</p>
 
       <div class="identity-callout">
         <code>model = a URL behind a stable fa&ccedil;ade &middot; swap without consumer change</code>
-        <p>Model identity is carried <em>in the results</em>, never in the endpoint. A consumer &mdash; an agent, a workflow, any OpenAI-compatible client &mdash; asks the same fa&ccedil;ade the same way whether a local GPU model or a cloud model answers. In agentbox the &ldquo;one brain&rdquo; retrieval path resolves through the Loom&rsquo;s harness-side client, live, so grounding is uniform across the harness without wiring an ontology into each agent.</p>
+        <p>Model identity is carried <em>in the results</em>, never in the endpoint. A consumer (an agent, a workflow, any OpenAI-compatible client) asks the same fa&ccedil;ade the same way whether a local GPU model or a cloud model answers. In agentbox the &ldquo;one brain&rdquo; retrieval path resolves through the Loom&rsquo;s harness-side client, live, so grounding is uniform across the harness without wiring an ontology into each agent.</p>
       </div>
 
       <p class="section-lead" style="margin-top:2rem">Beyond the benchmark, the node has hardened into infrastructure:</p>
@@ -560,20 +560,20 @@
       <div class="gap-cards">
         <div class="glass-card gap-card">
           <h3>Confidence-aware injection, live</h3>
-          <p>Grounding only helps when the query is on-ontology &mdash; injecting context on a weak match can <em>displace</em> the model&rsquo;s own knowledge (the &ldquo;context interference&rdquo; effect: Lin et&nbsp;al. 2026, Yoran et&nbsp;al. 2024). The Loom scales injection by retrieval confidence: a strong exact-title hit gets the full scaffold (verified <em>rollup</em> &rarr; full budget), a weak match a scaled fraction (<em>digital-asset transfer</em>, score&nbsp;2.3 &rarr; 0.4&times;), an off-topic query nothing at all (<em>banana pancakes</em> &rarr; gated, zero tokens).</p>
+          <p>Grounding only helps when the query is on-ontology: injecting context on a weak match can <em>displace</em> the model&rsquo;s own knowledge (the &ldquo;context interference&rdquo; effect: Lin et&nbsp;al. 2026, Yoran et&nbsp;al. 2024). The Loom scales injection by retrieval confidence: a strong exact-title hit gets the full scaffold (verified <em>rollup</em> &rarr; full budget), a weak match a scaled fraction (<em>digital-asset transfer</em>, score&nbsp;2.3 &rarr; 0.4&times;), an off-topic query nothing at all (<em>banana pancakes</em> &rarr; gated, zero tokens).</p>
         </div>
         <div class="glass-card gap-card">
           <h3>A single read-truth</h3>
-          <p>The Loom holds the reasoned generation in an in-process pyoxigraph store &mdash; 286,500 triples of assertion-plus-closure &mdash; and answers read-only SPARQL and node search over it. One queryable source of ontological truth behind the fa&ccedil;ade, never the working graph.</p>
+          <p>The Loom holds the reasoned generation in an in-process pyoxigraph store (286,500 triples of assertion-plus-closure) and answers read-only SPARQL and node search over it. One queryable source of ontological truth behind the fa&ccedil;ade, never the working graph.</p>
         </div>
         <div class="glass-card gap-card">
           <h3>Governed elevation, end to end</h3>
-          <p>New knowledge reaches the ontology through one governed door: an agent distils a note, grounds it against the Loom, and proposes an enrichment as an ACSP <code>31402</code> request; a human admin approves with <code>31403</code>; only then does it publish. The first elevation ran this way &mdash; proposed, approved, and live in the served generation the same day.</p>
+          <p>New knowledge reaches the ontology through one governed door: an agent distils a note, grounds it against the Loom, and proposes an enrichment as an ACSP <code>31402</code> request; a human admin approves with <code>31403</code>; only then does it publish. The first elevation ran this way: proposed, approved, and live in the served generation the same day.</p>
         </div>
       </div>
 
       <div class="callout" style="margin-top:2rem">
-        <p><strong>What the numbers measure.</strong> The recall figures are domain-specific factual recall on a <em>mostly synthetic</em> corpus &mdash; the corpus is a testbed for the pipeline and its grounding, which is exactly what makes it a fair reading of the mechanism. The rest runs in the deployed node: the model-swap seam works across two very different models behind one fa&ccedil;ade, the read-truth store and confidence-aware injection are live, the agentbox &ldquo;one brain&rdquo; grounds through it, and governed elevation publishes into the served generation. Repo: <a href="https://github.com/DreamLab-AI/loom" target="_blank" rel="noopener" style="color:var(--gold)">github.com/DreamLab-AI/loom</a>.</p>
+        <p><strong>What the numbers measure.</strong> The recall figures are domain-specific factual recall on a <em>mostly synthetic</em> corpus. The corpus is a testbed for the pipeline and its grounding, which is exactly what makes it a fair reading of the mechanism. The rest runs in the deployed node: the model-swap seam works across two very different models behind one fa&ccedil;ade, the read-truth store and confidence-aware injection are live, the agentbox &ldquo;one brain&rdquo; grounds through it, and governed elevation publishes into the served generation. Repo: <a href="https://github.com/DreamLab-AI/loom" target="_blank" rel="noopener" style="color:var(--gold)">github.com/DreamLab-AI/loom</a>.</p>
       </div>
     </div>
   </section>
@@ -623,7 +623,7 @@
     <div class="container reveal" data-num="10">
       <span class="section-tag">Landscape &middot; 2026</span>
       <h2>The frontier moved to coordination guarantees</h2>
-      <p class="section-lead">Through 2025&ndash;2026 the industry standardised how agents talk &mdash; Anthropic&rsquo;s MCP and Google&rsquo;s A2A, now both stewarded by the Linux Foundation&rsquo;s Agentic AI Foundation. &ldquo;Having agents&rdquo; is table stakes. The real question is coordination: who each actor cryptographically <em>is</em>, who owns the data, how decisions are governed and audited, whether reasoning is formally grounded or merely generated, and whether organisations federate without a central authority. On those axes the field thins fast.</p>
+      <p class="section-lead">Through 2025&ndash;2026 the industry standardised how agents talk: Anthropic&rsquo;s MCP and Google&rsquo;s A2A, now both stewarded by the Linux Foundation&rsquo;s Agentic AI Foundation. &ldquo;Having agents&rdquo; is table stakes. The real question is coordination: who each actor cryptographically <em>is</em>, who owns the data, how decisions are governed and audited, whether reasoning is formally grounded or merely generated, and whether organisations federate without a central authority. On those axes the field thins fast.</p>
 
       <div class="competitive-table-wrap" tabindex="0" aria-label="Competitive landscape matrix">
         <table class="competitive-table">
@@ -672,12 +672,12 @@
         </div>
         <div class="glass-card gap-card">
           <h3>Others match one axis; VisionFlow holds all six</h3>
-          <p>Block&rsquo;s Buzz matches on identity, governance and federation; Palantir owns governance; A2A owns federation. Only VisionFlow carries sovereign identity, self-owned data, signed governance, formal reasoning, cross-org federation and open source at once &mdash; and binds them to one <code>did:nostr</code> key.</p>
+          <p>Block&rsquo;s Buzz matches on identity, governance and federation; Palantir owns governance; A2A owns federation. Only VisionFlow carries sovereign identity, self-owned data, signed governance, formal reasoning, cross-org federation and open source at once, and binds them to one <code>did:nostr</code> key.</p>
         </div>
       </div>
 
       <div class="callout" style="margin-top:2rem">
-        <p><strong>The closest convergence.</strong> Block (Jack Dorsey) shipped <a href="https://github.com/block/buzz" target="_blank" rel="noopener" style="color:var(--gold)">Buzz</a> &mdash; a self-hostable, Nostr-native platform where humans and agents share channels, every actor holds a secp256k1 keypair, and every action is a signed Nostr event with an append-only audit log. A well-funded team arriving independently at the same substrate this ecosystem has built since 2022 validates the thesis rather than threatening it. The one axis Buzz does not carry is the decisive one: formal, ontology-backed reasoning. That, with Solid-pod data sovereignty and immersive 3D embodiment, is the moat.</p>
+        <p><strong>The closest convergence.</strong> Block (Jack Dorsey) shipped <a href="https://github.com/block/buzz" target="_blank" rel="noopener" style="color:var(--gold)">Buzz</a>, a self-hostable, Nostr-native platform where humans and agents share channels, every actor holds a secp256k1 keypair, and every action is a signed Nostr event with an append-only audit log. A well-funded team arriving independently at the same substrate this ecosystem has built since 2022 validates the thesis rather than threatening it. The one axis Buzz does not carry is the decisive one: formal, ontology-backed reasoning. That, with Solid-pod data sovereignty and immersive 3D embodiment, is the moat.</p>
       </div>
     </div>
   </section>
@@ -806,7 +806,7 @@
   <div id="m-sheet" role="dialog" aria-modal="true" aria-label="Talk to us">
     <div class="m-sheet-grab" aria-hidden="true"></div>
     <h2>Talk to us</h2>
-    <p class="m-sheet-lead">Tell us the problem you can&rsquo;t coordinate. We reply from DreamLab AI &mdash; the studio behind VisionFlow &mdash; not a CRM.</p>
+    <p class="m-sheet-lead">Tell us the problem you can&rsquo;t coordinate. We reply from DreamLab AI, the studio behind VisionFlow, not a CRM.</p>
     <a class="m-sheet-action primary" href="https://www.dreamlab-ai.com" target="_blank" rel="noopener">DreamLab AI &rarr;</a>
     <a class="m-sheet-action secondary" href="https://github.com/DreamLab-AI/VisionFlow" target="_blank" rel="noopener">View on GitHub</a>
     <button class="m-sheet-dismiss" type="button">Not now</button>

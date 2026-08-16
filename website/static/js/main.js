@@ -107,80 +107,80 @@ function initBackgroundVideo() {
 // Plain-English versions of each section intro (heading + lead). Sharp and
 // executive, not simplified to death — the same claim, in fewer moving parts.
 const PLAIN = {
-  hero: { lead: 'AI agents now do real work &mdash; but most organisations can&rsquo;t say who authorised an action, what it drew on, or who owns the result. VisionFlow gives people and AI a shared, accountable way to work: data stays with its owner, key claims are checked, every decision is recorded, and anything consequential goes to a person.' },
-  problem: { title: 'More AI means more coordination, not less', lead: 'Teams are wiring AI tools together faster than anyone can govern them &mdash; duplicated effort, invisible risk, and decisions no one can explain. VisionFlow wraps identity, ownership and approval around the work itself, so independent tools cooperate without a new central bottleneck.', callout: '<strong>It is already happening.</strong> Most frontline AI use starts without management sign-off. Your people are stitching agents together and automating shortcuts on their own &mdash; the organisation is becoming an agentic mesh whether you planned it or not. The only real choice is whether it is governed.' },
-  evolution: { title: 'AI stopped answering and started acting', lead: 'You can check a chatbot one reply at a time. You can&rsquo;t check a swarm of agents making hundreds of linked decisions &mdash; plausible text is no longer a control. VisionFlow gives every agent the same checked vocabulary and rules, and rejects contradictions before they become accepted facts.' },
-  substrates: { title: 'Six focused services, one accountable workflow', lead: 'All-in-one AI platforms are convenient until you need to change a model, move your data, or work with another organisation. VisionFlow keeps knowledge, agents, private data, human approval, delivery and grounding as separate services, joined by one shared identity &mdash; so no single part holds all the control.', callout: '<strong>The knowledge is public.</strong> An open corpus of more than 8,000 pages doubles as a formal, machine-checked vocabulary &mdash; readable on the web, rendered in 3D, and released for anyone to inspect. It is a testbed built to prove the method, not an encyclopaedia.' },
+  hero: { lead: 'AI agents now do real work, but most organisations can&rsquo;t say who authorised an action, what it drew on, or who owns the result. VisionFlow gives people and AI a shared, accountable way to work: data stays with its owner, key claims are checked, every decision is recorded, and anything consequential goes to a person.' },
+  problem: { title: 'More AI means more coordination, not less', lead: 'Teams are wiring AI tools together faster than anyone can govern them: duplicated effort, invisible risk, and decisions no one can explain. VisionFlow wraps identity, ownership and approval around the work itself, so independent tools cooperate without a new central bottleneck.', callout: '<strong>It is already happening.</strong> Most frontline AI use starts without management sign-off. Your people are stitching agents together and automating shortcuts on their own. The organisation is becoming an agentic mesh whether you planned it or not. The only real choice is whether it is governed.' },
+  evolution: { title: 'AI stopped answering and started acting', lead: 'You can check a chatbot one reply at a time. You can&rsquo;t check a swarm of agents making hundreds of linked decisions. Plausible text is no longer a control. VisionFlow gives every agent the same checked vocabulary and rules, and rejects contradictions before they become accepted facts.' },
+  substrates: { title: 'Six focused services, one accountable workflow', lead: 'All-in-one AI platforms are convenient until you need to change a model, move your data, or work with another organisation. VisionFlow keeps knowledge, agents, private data, human approval, delivery and grounding as separate services, joined by one shared identity, so no single part holds all the control.', callout: '<strong>The knowledge is public.</strong> An open corpus of more than 8,000 pages doubles as a formal, machine-checked vocabulary: readable on the web, rendered in 3D, and released for anyone to inspect. It is a testbed built to prove the method, not an encyclopaedia.' },
   guarantees: { title: 'Important actions need proof, not trust', lead: 'A policy in a handbook won&rsquo;t stop an automated system acting outside it. VisionFlow checks permissions as the work happens, verifies who is asking, records the evidence, and routes the decision to a person whenever real authority is required.' },
-  immersive: { title: 'Make complex relationships something people can see', lead: 'Dense knowledge networks are hard to grasp on a flat dashboard &mdash; harder still when specialists need to inspect the same evidence together. VisionFlow turns connected information into a shared space you can walk through, compare, and point at in the same session.', callout: '<strong>From lab to headset.</strong> The immersive view is moving from room-sized projection labs to a standalone Meta Quest 3 headset &mdash; same data, same physics, same identity, now portable. The lab proved it at scale; the headset takes it anywhere.' },
-  broker: { title: 'Let AI prepare the decision; keep the authority with people', lead: 'Human sign-off becomes a rubber stamp when the reviewer gets too little, too late. Here an agent submits a clear proposal with its evidence and the authority it is asking for; the right person approves, rejects or revises &mdash; and that signed decision is what actually runs.' },
+  immersive: { title: 'Make complex relationships something people can see', lead: 'Dense knowledge networks are hard to grasp on a flat dashboard, and harder still when specialists need to inspect the same evidence together. VisionFlow turns connected information into a shared space you can walk through, compare, and point at in the same session.', callout: '<strong>From lab to headset.</strong> The immersive view is moving from room-sized projection labs to a standalone Meta Quest 3 headset: same data, same physics, same identity, now portable. The lab proved it at scale; the headset takes it anywhere.' },
+  broker: { title: 'Let AI prepare the decision; keep the authority with people', lead: 'Human sign-off becomes a rubber stamp when the reviewer gets too little, too late. Here an agent submits a clear proposal with its evidence and the authority it is asking for; the right person approves, rejects or revises. That signed decision is what actually runs.' },
   economic: { title: 'Spend compute where a better decision is worth it', lead: 'AI cost is easy to count. The cost of a missed insight, a repeated experiment, or an ungoverned decision usually isn&rsquo;t. VisionFlow puts deeper analysis on the problems that justify it, and cuts the waste of agents redoing work or acting on conflicting information.' },
-  loom: { title: 'Give any model the facts before it answers', lead: 'A strong model still invents details when it lacks your organisation&rsquo;s knowledge. The Ontology Loom hands it a compact set of checked, relevant facts before each answer &mdash; and you can swap the underlying model without touching what depends on it.', callout: '<strong>One honest caveat.</strong> The recall numbers come from a mostly synthetic test corpus &mdash; which is what makes them a fair read of the method rather than any one model. Everything else runs in the deployed system today: swapping models behind one interface, the checked fact store, and sending each model only the facts it needs.' },
+  loom: { title: 'Give any model the facts before it answers', lead: 'A strong model still invents details when it lacks your organisation&rsquo;s knowledge. The Ontology Loom hands it a compact set of checked, relevant facts before each answer, and you can swap the underlying model without touching what depends on it.', callout: '<strong>One honest caveat.</strong> The recall numbers come from a mostly synthetic test corpus, which is what makes them a fair read of the method rather than any one model. Everything else runs in the deployed system today: swapping models behind one interface, the checked fact store, and sending each model only the facts it needs.' },
   cases: { title: 'Coordinate work no single team can own', lead: 'Climate research, drug discovery and large productions all depend on organisations that must cooperate but can&rsquo;t pool every dataset or hand over control. Each keeps its own data and rules while sharing signed requests, approved findings and evidence across the group.' },
-  competitive: { title: 'Connecting agents is common. Accountable coordination isn&rsquo;t.', lead: 'Most agent products can pass messages between tools. Few can prove identity, keep data with its owner, enforce human decisions and check shared facts at the same time &mdash; in the open, across organisations. That combination is the whole point.', callout: '<strong>The closest parallel.</strong> Block&rsquo;s Buzz is an open, Nostr-native platform where people and agents share channels and every action is signed. A serious team reaching the same foundation is a good sign for the direction. The piece it does not have is formal, checked reasoning &mdash; which, with owner-held data and immersive views, is where VisionFlow is different.' },
+  competitive: { title: 'Connecting agents is common. Accountable coordination isn&rsquo;t.', lead: 'Most agent products can pass messages between tools. Few can prove identity, keep data with its owner, enforce human decisions and check shared facts at the same time, in the open, across organisations. That combination is the whole point.', callout: '<strong>The closest parallel.</strong> Block&rsquo;s Buzz is an open, Nostr-native platform where people and agents share channels and every action is signed. A serious team reaching the same foundation is a good sign for the direction. The piece it does not have is formal, checked reasoning. With owner-held data and immersive views, that is where VisionFlow is different.' },
   scaling: { title: 'Start with one operator; grow without changing the rules', lead: 'Pilots that work for one expert often need a costly rebuild when a team or partner joins. VisionFlow uses the same identity, ownership and approval model for an individual, a team, and a federation of organisations.' },
-  repos: { title: 'Inspect, run, or replace every major part', lead: 'A governance promise means little if you can&rsquo;t see how it&rsquo;s enforced or leave the supplier. VisionFlow is built from open repositories with clear responsibilities &mdash; audit the controls, deploy what you need, and keep a real exit route.' }
+  repos: { title: 'Inspect, run, or replace every major part', lead: 'A governance promise means little if you can&rsquo;t see how it&rsquo;s enforced or leave the supplier. VisionFlow is built from open repositories with clear responsibilities: audit the controls, deploy what you need, and keep a real exit route.' }
 };
 
 // Plain-English versions of the detail panes (cards, callouts with diagrams).
 // Matched to each section's panes in document order; a missing entry is left as-is.
 const PANES = [
   { id: 'substrates', sel: '.substrate-card ul', plains: [
-    'The knowledge engine. It holds the shared, machine-checked model of your field, shows it as a 3D graph you can explore, and runs the reasoning and physics that keep it consistent &mdash; fast, on the graphics card.',
-    'Where the AI agents live. Each runs in its own sealed workspace with its own identity, a library of skills and a shared memory &mdash; and everything it does can be checked and approved.',
+    'The knowledge engine. It holds the shared, machine-checked model of your field, shows it as a 3D graph you can explore, and runs the reasoning and physics that keep it consistent, running fast on the graphics card.',
+    'Where the AI agents live. Each runs in its own sealed workspace with its own identity, a library of skills and a shared memory, and everything it does can be checked and approved.',
     'Personal data storage that stays yours. Each person or organisation keeps its own data privately, with fine-grained access control and a tamper-evident record of every change.',
-    'Where people make the calls. Agents post proposals here and the right person approves, rejects or revises &mdash; and every decision is cryptographically signed.',
-    'The public-facing product: the company site, built from the same forum kit and running at the edge &mdash; proof the parts are reusable in a real deployment.',
+    'Where people make the calls. Agents post proposals here and the right person approves, rejects or revises. Every decision is cryptographically signed.',
+    'The public-facing product: the company site, built from the same forum kit and running at the edge: proof the parts are reusable in a real deployment.',
     'The fact-supplier. It hands any AI model a compact set of checked, relevant facts before it answers, and lets you swap the model behind one stable interface.'
   ] },
   { id: 'substrates', sel: '.identity-callout p', plains: [
-    'One key, one identity. The same cryptographic key is a person&rsquo;s login, their permissions, the signature on what they do and their payment account &mdash; so identity is never guessed or re-issued as work moves between systems.'
+    'One key, one identity. The same cryptographic key is a person&rsquo;s login, their permissions, the signature on what they do and their payment account, so identity is never guessed or re-issued as work moves between systems.'
   ] },
   { id: 'guarantees', sel: '.ledger-card p', plains: [
     'Every claim is checked against the rules as it is written. Anything malformed is turned away at the door, not caught later in review.',
-    'Every recorded decision keeps a searchable trail &mdash; who claimed what, and when, is a simple lookup rather than a dig through logs.',
+    'Every recorded decision keeps a searchable trail: who claimed what, and when, is a simple lookup rather than a dig through logs.',
     'The network checks identity: each participant proves who they are before they can publish, so trust holds at the edges as well as the centre.',
     'Organisations connect without a middleman. Trust travels on each actor&rsquo;s own key, so two organisations can work together while each keeps its own data.',
-    'New knowledge reaches the shared model through one governed door &mdash; an agent proposes, a person approves, and only then is it published, checked for contradictions on the way in.',
+    'New knowledge reaches the shared model through one governed door: an agent proposes, a person approves, and only then is it published, checked for contradictions on the way in.',
     'The picture moves the way the work does: as agents act, related ideas are physically drawn together on screen, so activity is something you can see, not just log.'
   ] },
   { id: 'immersive', sel: '.immersive-card p', plains: [
-    'Data becomes objects you can reach into, and relationships become spaces you walk through &mdash; surfacing patterns you would miss on a flat screen.',
+    'Data becomes objects you can reach into, and relationships become spaces you walk through, surfacing patterns you would miss on a flat screen.',
     'Hand tracking and physical controllers: you handle data the way you handle real objects.',
-    'Real places, rebuilt as walk-through spaces at room scale &mdash; useful for surveys, heritage and environmental monitoring.',
-    'Remote colleagues appear life-size, so gesture and gaze carry meaning &mdash; and a standalone headset extends it to anyone, anywhere.'
+    'Real places, rebuilt as walk-through spaces at room scale, useful for surveys, heritage and environmental monitoring.',
+    'Remote colleagues appear life-size, so gesture and gaze carry meaning, and a standalone headset extends it to anyone, anywhere.'
   ] },
   { id: 'broker', sel: '.identity-callout p', plains: [
     'The whole loop, end to end: someone speaks, an agent acts as itself and writes to that person&rsquo;s own store, the action appears live in the shared 3D view, and anything worth keeping is proposed for a person to approve.',
-    'Value moves on the same rails as everything else. The identity that signs the work can also be paid; settlement is in US-dollar stablecoins, and high-value records borrow Bitcoin&rsquo;s security &mdash; with no token of our own.'
+    'Value moves on the same rails as everything else. The identity that signs the work can also be paid; settlement is in US-dollar stablecoins, and high-value records borrow Bitcoin&rsquo;s security, with no token of our own.'
   ] },
   { id: 'economic', sel: '.econ-card > p', plains: [
-    'Uncoordinated agents waste most of their effort rediscovering context, repeating reasoning and contradicting each other &mdash; every session starts from cold.',
-    'A shared model and record means agents stop re-deriving vocabulary, re-checking conclusions and stalling on decisions they cannot make &mdash; so each one adds signal, not noise.',
-    'On problems worth millions &mdash; a drug, a climate model, a franchise &mdash; spending thousands on well-governed AI is a rounding error, if it stops one wrong conclusion spreading.',
+    'Uncoordinated agents waste most of their effort rediscovering context, repeating reasoning and contradicting each other. Every session starts from cold.',
+    'A shared model and record means agents stop re-deriving vocabulary, re-checking conclusions and stalling on decisions they cannot make, so each one adds signal, not noise.',
+    'On problems worth millions (a drug, a climate model, a franchise), spending thousands on well-governed AI is a rounding error, if it stops one wrong conclusion spreading.',
     'Every decision is already an auditable record. In regulated industries, reconstructing that after the fact costs far more than capturing it as you go.'
   ] },
   { id: 'loom', sel: '.gap-card p', plains: [
-    'Extra facts only help when they are relevant. On a weak match, feeding in context can crowd out what the model already knows &mdash; so the Loom sends the full set on a strong match, a little on a weak one, and nothing when the question is off-topic.',
-    'The Loom keeps one checked, queryable store of facts behind its interface &mdash; the trusted source, never the messy working draft.',
-    'New facts enter through a single governed door: an agent proposes, a person approves, and only then does it publish &mdash; proven end to end.'
+    'Extra facts only help when they are relevant. On a weak match, feeding in context can crowd out what the model already knows, so the Loom sends the full set on a strong match, a little on a weak one, and nothing when the question is off-topic.',
+    'The Loom keeps one checked, queryable store of facts behind its interface: the trusted source, never the messy working draft.',
+    'New facts enter through a single governed door: an agent proposes, a person approves, and only then does it publish. Proven end to end.'
   ] },
   { id: 'loom', sel: '.identity-callout p', plains: [
-    'The model is just a setting. Every application talks to one stable interface; whether a local or hosted model answers is carried in the result, not wired into each app &mdash; so you can change the model without changing anything that uses it.'
+    'The model is just a setting. Every application talks to one stable interface; whether a local or hosted model answers is carried in the result, not wired into each app, so you can change the model without changing anything that uses it.'
   ] },
   { id: 'cases', sel: '.case-card > p', plains: [
-    'Several universities, agencies and an NGO each run their own copy with their own definitions &mdash; and shared reasoning makes sure a term like &ldquo;sea-surface temperature anomaly&rdquo; means the same thing to all of them. Data stays put; only agreed findings cross.',
+    'Several universities, agencies and an NGO each run their own copy with their own definitions, and shared reasoning makes sure a term like &ldquo;sea-surface temperature anomaly&rdquo; means the same thing to all of them. Data stays put; only agreed findings cross.',
     'A biotech, a research partner and a regulatory consultancy each keep their own agents inside their own boundary. The partner never sees the biotech&rsquo;s proprietary targets; findings and evidence move only under signed permission.',
     'A 12-episode series across five time zones, mapped from episodes down to individual assets. When a shot depends on an unapproved asset, the rule propagates and the blocked dependency becomes visually obvious.'
   ] },
   { id: 'competitive', sel: '.gap-card p', plains: [
-    'Everyone else has their AI guess from patterns. VisionFlow checks conclusions against a formal model and rejects contradictions before they land &mdash; the one column no competitor fills.',
-    'Rivals each match one piece &mdash; Buzz on identity and federation, Palantir on governance. Only VisionFlow carries all of it at once, bound to a single key.'
+    'Everyone else has their AI guess from patterns. VisionFlow checks conclusions against a formal model and rejects contradictions before they land: the one column no competitor fills.',
+    'Rivals each match one piece: Buzz on identity and federation, Palantir on governance. Only VisionFlow carries all of it at once, bound to a single key.'
   ] },
   { id: 'scaling', sel: '.scale-card p', plains: [
-    'One workspace, running on its own: local storage, local decisions, privacy on by default &mdash; one key, minutes to deploy.',
+    'One workspace, running on its own: local storage, local decisions, privacy on by default. One key, minutes to deploy.',
     'Engine, forum and agents on a shared relay, with a common model and human oversight. Changes are gated by signed approvals.',
-    'Independent instances trusting each other over the network &mdash; each organisation keeps and hardens its own, with trust carried by identity rather than shared infrastructure.'
+    'Independent instances trusting each other over the network: each organisation keeps and hardens its own, with trust carried by identity rather than shared infrastructure.'
   ] }
 ];
 
