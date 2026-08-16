@@ -61,6 +61,10 @@ Where Buzz is ahead: its NIP-42 relay gate and git forge are wired end-to-end to
 
 ---
 
+### Self-improvement: the nightly dream
+
+The mesh improves itself the way it governs — agents propose, a human signs. Every repository here can run a nightly **dream cycle**: form one falsifiable hypothesis against tonight's rotation surface, measure it on the repo's real evaluators, and open a *draft* PR a human merges. The judgment-broker boundary wired into development — *evaluation is not promotion*. It is a cross-cutting loop, not a seventh substrate: it runs on **this** repository today (`dream.config.json`, a link-integrity evaluator, a dated `docs/dream-cycle/LEDGER.md`); the estate-wide orchestrator over the [agentbox](https://github.com/DreamLab-AI/agentbox) fleet, and a `did:nostr` identity per cycle, are in progress. Engine: **[dream-engine](https://github.com/DreamLab-AI/dream-engine)** — DreamLab's tracking fork of rUv's [`ruvnet/dream-machine`](https://github.com/ruvnet/dream-machine), following *AutoDesign: Meta-Harness Optimization* ([arXiv:2608.13560](https://arxiv.org/abs/2608.13560)): *freeze the model, evolve the harness.*
+
 ## Six Substrates, One Identity
 
 One canonical diagram. The identity spine is the coordination primitive: no shared session store, no token exchange between tiers — the same `did:nostr` keypair is login, WAC principal, provenance author, DID subject and payment account at once.
