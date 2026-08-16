@@ -48,10 +48,30 @@
     </div>
   </nav>
 
+  <!-- Mobile chrome: scroll progress bar + section rail (populated by main.js) -->
+  <div class="m-progress" aria-hidden="true"><span></span></div>
+  <div class="m-rail" aria-hidden="true"></div>
+
+  <!-- Mobile full-screen index (rows populated by main.js) -->
+  <div id="m-index" role="dialog" aria-modal="true" aria-label="Site index">
+    <div class="m-index-head">
+      <span class="nav-brand"><span class="brand-icon">&#x25C8;</span> VisionFlow</span>
+      <button class="m-index-close" type="button" aria-label="Close index">&#x2715;</button>
+    </div>
+    <nav class="m-index-list" aria-label="Sections"></nav>
+    <div class="m-index-divider"></div>
+    <div class="m-index-ext">
+      <a href="https://github.com/DreamLab-AI" target="_blank" rel="noopener">GitHub organisation &rarr;</a>
+      <a href="https://www.dreamlab-ai.com" target="_blank" rel="noopener">DreamLab AI &rarr;</a>
+      <a href="https://narrativegoldmine.com" target="_blank" rel="noopener">narrativegoldmine.com &rarr;</a>
+    </div>
+    <div class="m-index-foot"><button type="button" class="m-index-contact">Talk to us &rarr;</button></div>
+  </div>
+
   <main id="main-content">
   <!-- Hero Section -->
   <section id="hero" class="hero">
-    <div class="hero-content">
+    <div class="hero-content" data-num="01">
       <h1>Federated Human&ndash;AI<br/>Intelligence</h1>
       <p class="hero-sub">Coordination engineering is the discipline of designing systems that reliably orchestrate autonomous agents across heterogeneous substrates. As AI collapses the cost of routing work, the human is promoted from router to judgment broker. Thin agents on a shared formal semantic layer &mdash; the architecture the industry now calls neurosymbolic &mdash; with self-sovereign data, cryptographic provenance, and human-in-the-loop governance.</p>
       <div class="hero-actions">
@@ -73,7 +93,7 @@
 
   <!-- The Problem -->
   <section id="problem" class="section">
-    <div class="container reveal">
+    <div class="container reveal" data-num="02">
       <span class="section-tag">Problem</span>
       <h2>Hard problems share a common shape</h2>
       <p class="section-lead">Climate modelling, drug discovery, organisational transformation, creative production at scale. These problems all require diverse intelligence collaborating across trust boundaries, at scales where centralised coordination breaks down.</p>
@@ -165,7 +185,7 @@
 
   <!-- Six Substrates -->
   <section id="substrates" class="section">
-    <div class="container reveal">
+    <div class="container reveal" data-num="03">
       <span class="section-tag">Six Substrates, One Identity</span>
       <h2>Six independent systems mesh through one cryptographic identity spine</h2>
 
@@ -288,7 +308,7 @@
 
   <!-- Guarantees — the hard parts, running in the live path -->
   <section id="guarantees" class="section">
-    <div class="container reveal">
+    <div class="container reveal" data-num="04">
       <span class="section-tag">Verifiable by Construction</span>
       <h2>Guarantees that hold at runtime</h2>
       <p class="section-lead">Coordination is only worth trusting when its guarantees survive production. These are the parts that are hardest to fake and easiest to hand-wave past, and in VisionFlow they run in the live path.</p>
@@ -324,7 +344,7 @@
 
   <!-- Immersive Telecollaboration -->
   <section id="immersive" class="section">
-    <div class="container reveal">
+    <div class="container reveal" data-num="05">
       <span class="section-tag">Immersive Telecollaboration</span>
       <h2>Walk through the knowledge graph</h2>
       <p class="section-lead">VisionClaw grew out of 15 years of immersive data research at the University of Salford&rsquo;s Centre for Virtual Environments. Dr John O&rsquo;Hare designed and ran the Octave Multimodal Lab, gaining a PhD in telecollaboration, while Prof Rob Aspin&rsquo;s research pioneered the stereoscopic CAVE infrastructure. Walking through data and reaching into graph structures at room scale shaped VisionClaw&rsquo;s force-directed engine, its physics model, and its interaction design.</p>
@@ -388,7 +408,7 @@
 
   <!-- Judgment Broker -->
   <section id="broker" class="section section-dark">
-    <div class="container reveal">
+    <div class="container reveal" data-num="06">
       <span class="section-tag">Judgment Broker</span>
       <h2>Human-in-the-loop governance that accelerates, not blocks</h2>
       <p class="section-lead">The Judgment Broker is an emergent property of agents, humans, a knowledge graph, and a relay mesh coordinating through shared cryptographic identity. No single repository owns the broker. Agents publish through Agentbox, humans decide through the forum, knowledge is gated through VisionClaw, provenance is anchored in sovereign pods.</p>
@@ -449,7 +469,7 @@
 
   <!-- Economic Case -->
   <section id="economic" class="section">
-    <div class="container reveal">
+    <div class="container reveal" data-num="07">
       <span class="section-tag">Economic Case</span>
       <h2>Why extreme token consumption against hard problems is rational</h2>
 
@@ -505,7 +525,7 @@
 
   <!-- Ontology Evidence -->
   <section id="loom" class="section section-figure">
-    <div class="container reveal">
+    <div class="container reveal" data-num="08">
       <span class="section-tag">Grounding &amp; Serving Node</span>
       <h2>The Ontology Loom: measured grounding behind a model-swappable fa&ccedil;ade</h2>
       <p class="section-lead">We tested whether a formal ontology improves an LLM&rsquo;s factual recall, objectively, with gold answers derived from the knowledge graph itself. Across every model we have put behind the fa&ccedil;ade &mdash; a frontier model at one end, a small local one at the other &mdash; grounding raised recall and cut hallucination in <em>every</em> case, roughly halving hallucination on the set (<a href="https://github.com/DreamLab-AI/VisionClaw/blob/main/archive/visionclaw-docs/eval/report.pdf" target="_blank" rel="noopener" style="color:var(--gold)">full report</a>). The result is about the architecture, not the model: probabilistic agents bounded by machine-checkable semantics, with contradictions rejected at the Whelk gate before they enter the graph. We re-run the benchmark on each new model we deploy; the shape holds, and it keeps improving.</p>
@@ -560,7 +580,7 @@
 
   <!-- Case Studies -->
   <section id="cases" class="section section-dark">
-    <div class="container reveal">
+    <div class="container reveal" data-num="09">
       <span class="section-tag">Real-World Scenarios</span>
       <h2>Federated problem-solving across trust boundaries</h2>
 
@@ -600,7 +620,7 @@
 
   <!-- Competitive Landscape -->
   <section id="competitive" class="section">
-    <div class="container reveal">
+    <div class="container reveal" data-num="10">
       <span class="section-tag">Landscape &middot; 2026</span>
       <h2>The frontier moved to coordination guarantees</h2>
       <p class="section-lead">Through 2025&ndash;2026 the industry standardised how agents talk &mdash; Anthropic&rsquo;s MCP and Google&rsquo;s A2A, now both stewarded by the Linux Foundation&rsquo;s Agentic AI Foundation. &ldquo;Having agents&rdquo; is table stakes. The real question is coordination: who each actor cryptographically <em>is</em>, who owns the data, how decisions are governed and audited, whether reasoning is formally grounded or merely generated, and whether organisations federate without a central authority. On those axes the field thins fast.</p>
@@ -664,7 +684,7 @@
 
   <!-- Scaling Model -->
   <section id="scaling" class="section section-dark">
-    <div class="container reveal">
+    <div class="container reveal" data-num="11">
       <span class="section-tag">Scaling Model</span>
       <h2>Three axes, one architecture</h2>
 
@@ -693,7 +713,7 @@
 
   <!-- Repository Map -->
   <section id="repos" class="section">
-    <div class="container reveal">
+    <div class="container reveal" data-num="12">
       <span class="section-tag">Repository Map</span>
       <h2>The six substrates, this ecosystem-guide repository, and the published corpus</h2>
 
@@ -780,7 +800,19 @@
     </div>
   </footer>
 
-  <!-- WASM + JS -->
+  <!-- Mobile sticky action bar + contact sheet -->
+  <div class="m-bar"><button id="m-contact" type="button">Talk to us &rarr;</button></div>
+  <div class="m-scrim"></div>
+  <div id="m-sheet" role="dialog" aria-modal="true" aria-label="Talk to us">
+    <div class="m-sheet-grab" aria-hidden="true"></div>
+    <h2>Talk to us</h2>
+    <p class="m-sheet-lead">Tell us the problem you can&rsquo;t coordinate. We reply from DreamLab AI &mdash; the studio behind VisionFlow &mdash; not a CRM.</p>
+    <a class="m-sheet-action primary" href="https://www.dreamlab-ai.com" target="_blank" rel="noopener">DreamLab AI &rarr;</a>
+    <a class="m-sheet-action secondary" href="https://github.com/DreamLab-AI/VisionFlow" target="_blank" rel="noopener">View on GitHub</a>
+    <button class="m-sheet-dismiss" type="button">Not now</button>
+  </div>
+
+  <!-- JS -->
   <script type="module" src="js/main.js"></script>
 </body>
 </html>

@@ -71,7 +71,7 @@ export function initMesh(canvas) {
   const vaoL = (data) => { const v = gl.createVertexArray(); gl.bindVertexArray(v); const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 28, 0); gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 4, gl.FLOAT, false, 28, 12); return { vao: v, buf: b, n: data.length / 7 }; };
 
   // ---- hero stars (bounce-in) ----
-  const NSTAR = 460;
+  const NSTAR = innerWidth <= 768 ? 160 : 460; // lighter node budget on phones
   const starHome = [], starStart = [];
   const starArr = new Float32Array(NSTAR * 8);
   for (let i = 0; i < NSTAR; i++) {

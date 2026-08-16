@@ -1,5 +1,19 @@
 import { initMesh } from './mesh-webgl.js';
 
+const MOBILE = () => matchMedia('(max-width: 768px)').matches;
+
+// One source of truth for the twelve mobile sections. The index rows and the
+// rail pips are two renderings of this list, so they can never drift.
+const SECTIONS = [
+  ['hero', 'The offer'], ['problem', 'Problem'], ['substrates', 'Six substrates'],
+  ['guarantees', 'Guarantees'], ['immersive', 'Immersive'], ['broker', 'Judgment Broker'],
+  ['economic', 'Economics'], ['loom', 'Ontology Loom'], ['cases', 'Case studies'],
+  ['competitive', 'Landscape'], ['scaling', 'Scaling'], ['repos', 'Repositories']
+];
+
+// Assigned by initSheet(); called from the sticky bar and the index footer.
+let openSheet = () => {};
+
 async function initMeshBackdrop() {
   const canvas = document.getElementById('mesh-gl');
   if (!canvas) return;
@@ -40,15 +54,13 @@ function initNavScroll() {
   }, { passive: true });
 }
 
-function initNavToggle() {
-  const toggle = document.getElementById('nav-toggle');
-  const navLinks = document.getElementById('nav-links');
-  if (toggle && navLinks) {
-    toggle.addEventListener('click', () => {
-      const open = navLinks.classList.toggle('open');
-      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    });
-  }
+// scrollIntoView({block:'start'}) lands section headings underneath the fixed
+// nav. Scroll to offsetTop minus the live nav height instead (fixes both surfaces).
+function scrollToTarget(target) {
+  const nav = document.getElementById('nav');
+  const navH = nav ? nav.offsetHeight : 64;
+  const y = target.getBoundingClientRect().top + window.pageYOffset - navH - 8;
+  window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
 }
 
 function initSmoothScroll() {
@@ -59,7 +71,7 @@ function initSmoothScroll() {
       const target = document.querySelector(href);
       if (target) {
         e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        scrollToTarget(target);
         history.replaceState(null, '', href);
         const navLinks = document.getElementById('nav-links');
         if (navLinks) navLinks.classList.remove('open');
@@ -69,6 +81,7 @@ function initSmoothScroll() {
 }
 
 function initBackgroundVideo() {
+  if (MOBILE()) return; // the ambient video is dropped below 768px (CSS hides it; skip the decode)
   const video = document.getElementById('bg-video');
   const hero = document.getElementById('hero');
   if (!video || !hero) return;
@@ -233,6 +246,7 @@ function initReadingSwitch() {
   });
 
   function sizeAll(active) {
+    if (MOBILE()) return; // no 3D flip on mobile — faces flow statically, CSS forces height:auto
     panels.forEach((p) => {
       p.techH = measureFace(p.tech, p.plain);
       p.plainH = measureFace(p.plain, p.tech);
@@ -242,14 +256,15 @@ function initReadingSwitch() {
 
   let liveT;
   function setMode(plain, animate) {
+    const mob = MOBILE();
     document.body.classList.toggle('reading-plain', plain);
     panels.forEach((p) => {
-      p.inner.style.height = (plain ? p.plainH : p.techH) + 'px';
+      if (!mob) p.inner.style.height = (plain ? p.plainH : p.techH) + 'px';
       p.tech.setAttribute('aria-hidden', plain ? 'true' : 'false');
       p.plain.setAttribute('aria-hidden', plain ? 'false' : 'true');
-      if (animate && !reduced) p.panel.classList.add('rl-live');
+      if (animate && !reduced && !mob) p.panel.classList.add('rl-live');
     });
-    if (animate && !reduced) {
+    if (animate && !reduced && !mob) {
       clearTimeout(liveT);
       liveT = setTimeout(() => panels.forEach((p) => p.panel.classList.remove('rl-live')), 1700);
     }
@@ -271,11 +286,24 @@ function initReadingSwitch() {
     thumb.style.transform = 'translateX(' + active.offsetLeft + 'px)';
     btns.forEach((b) => b.setAttribute('aria-pressed', String((b.dataset.plain === 'true') === plain)));
   }
-  btns.forEach((b) => b.addEventListener('click', () => {
-    const plain = b.dataset.plain === 'true';
+  // nav knob — the reading switch's mobile home (the floating pill is CSS-hidden <768px)
+  const knob = document.createElement('button');
+  knob.type = 'button';
+  knob.id = 'm-reading';
+  knob.className = 'm-reading';
+  knob.setAttribute('aria-label', 'Reading level: technical or plain English');
+  knob.innerHTML = '<span class="m-rl-tech">Tech</span><span class="m-rl-track"><span class="m-rl-knob"></span></span><span class="m-rl-plain">Plain</span>';
+  const navInner = document.querySelector('.nav .nav-inner');
+  const navToggleEl = document.getElementById('nav-toggle');
+  if (navInner && navToggleEl) navInner.insertBefore(knob, navToggleEl);
+
+  function applyMode(plain) {
     setMode(plain, true);
     paintSwitch(plain);
-  }));
+    knob.setAttribute('aria-pressed', String(plain));
+  }
+  knob.addEventListener('click', () => applyMode(!document.body.classList.contains('reading-plain')));
+  btns.forEach((b) => b.addEventListener('click', () => applyMode(b.dataset.plain === 'true')));
 
   let startPlain = false;
   try { startPlain = localStorage.getItem('vf-reading') === 'plain'; } catch (e) { /* ignore */ }
@@ -283,6 +311,7 @@ function initReadingSwitch() {
   sizeAll(startPlain ? 'plain' : 'tech');
   setMode(startPlain, false);
   paintSwitch(startPlain);
+  knob.setAttribute('aria-pressed', String(startPlain));
   requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('rl-init')));
 
   let rt;
@@ -295,16 +324,150 @@ function initReadingSwitch() {
   });
 }
 
+// Full-screen index overlay (mobile). Replaces the hamburger dropdown: the same
+// nav-toggle button now opens a flat, numbered 01–12 list built from SECTIONS.
+function initIndex() {
+  const overlay = document.getElementById('m-index');
+  const toggle = document.getElementById('nav-toggle');
+  const list = overlay && overlay.querySelector('.m-index-list');
+  if (!overlay || !toggle || !list) return;
+  const main = document.getElementById('main-content');
+
+  list.innerHTML = SECTIONS.map(([id, label], i) =>
+    `<a class="m-index-row" href="#${id}"><span class="n">${String(i + 1).padStart(2, '0')}</span>` +
+    `<span class="l">${label}</span><span class="c" aria-hidden="true">&rarr;</span></a>`
+  ).join('');
+
+  let lastFocus = null;
+  function open() {
+    lastFocus = document.activeElement;
+    overlay.classList.add('open');
+    toggle.setAttribute('aria-expanded', 'true');
+    if (main) main.setAttribute('inert', '');
+    document.body.style.overflow = 'hidden';
+    const first = overlay.querySelector('a, button');
+    if (first) first.focus();
+    document.addEventListener('keydown', onKey);
+  }
+  function close() {
+    overlay.classList.remove('open');
+    toggle.setAttribute('aria-expanded', 'false');
+    if (main) main.removeAttribute('inert');
+    document.body.style.overflow = '';
+    document.removeEventListener('keydown', onKey);
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  function onKey(e) {
+    if (e.key === 'Escape') { close(); return; }
+    if (e.key !== 'Tab') return;
+    const f = overlay.querySelectorAll('a[href], button');
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+
+  toggle.addEventListener('click', (e) => {
+    if (!MOBILE()) return; // the toggle is only visible <768px; desktop keeps the full nav
+    e.preventDefault();
+    overlay.classList.contains('open') ? close() : open();
+  });
+  overlay.querySelector('.m-index-close').addEventListener('click', close);
+
+  // rows own their navigation (close, then offset-scroll on the next frame so the
+  // body's overflow lock is lifted first) — the global smooth-scroll handler is
+  // not attached to them because initIndex runs after initSmoothScroll.
+  list.querySelectorAll('.m-index-row').forEach((a) => a.addEventListener('click', (e) => {
+    e.preventDefault();
+    const id = a.getAttribute('href');
+    close();
+    const target = document.querySelector(id);
+    if (target) requestAnimationFrame(() => { scrollToTarget(target); history.replaceState(null, '', id); });
+  }));
+
+  const contact = overlay.querySelector('.m-index-contact');
+  if (contact) contact.addEventListener('click', () => { close(); openSheet(); });
+}
+
+// Scroll progress: a top bar (fraction scrolled) + a right-edge rail whose active
+// pip is the section crossing the viewport centre.
+function initProgress() {
+  const bar = document.querySelector('.m-progress > span');
+  const rail = document.querySelector('.m-rail');
+  if (!bar || !rail) return;
+
+  rail.innerHTML = SECTIONS.map(() => '<span></span>').join('');
+  const pips = Array.prototype.slice.call(rail.children);
+  const secs = SECTIONS.map(([id]) => document.getElementById(id)).filter(Boolean);
+
+  let ticking = false;
+  function updateBar() {
+    const h = document.documentElement.scrollHeight - window.innerHeight;
+    bar.style.width = (h > 0 ? (window.scrollY / h) * 100 : 0).toFixed(2) + '%';
+    ticking = false;
+  }
+  window.addEventListener('scroll', () => {
+    if (!ticking) { requestAnimationFrame(updateBar); ticking = true; }
+  }, { passive: true });
+  updateBar();
+
+  // -50%/-50% collapses the root to a line at the viewport centre, so a section
+  // "intersects" exactly while it spans the middle — robust even for sections
+  // taller than the viewport (where a ratio threshold never fires).
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((en) => {
+      if (!en.isIntersecting) return;
+      const idx = secs.indexOf(en.target);
+      if (idx >= 0) pips.forEach((p, i) => p.classList.toggle('on', i === idx));
+    });
+  }, { rootMargin: '-50% 0px -50% 0px', threshold: 0 });
+  secs.forEach((s) => io.observe(s));
+}
+
+// Contact bottom sheet — the one primary action. No form submission exists in
+// this repo (the contact endpoint is deferred), so the sheet routes to the real
+// front door rather than faking a send.
+function initSheet() {
+  const sheet = document.getElementById('m-sheet');
+  const scrim = document.querySelector('.m-scrim');
+  const bar = document.getElementById('m-contact');
+  const main = document.getElementById('main-content');
+  if (!sheet || !scrim) return;
+  const dismiss = sheet.querySelector('.m-sheet-dismiss');
+
+  function open() {
+    scrim.classList.add('open');
+    sheet.classList.add('open');
+    if (main) main.setAttribute('inert', '');
+    document.addEventListener('keydown', onKey);
+  }
+  function close() {
+    scrim.classList.remove('open');
+    sheet.classList.remove('open');
+    if (main) main.removeAttribute('inert');
+    document.removeEventListener('keydown', onKey);
+  }
+  function onKey(e) { if (e.key === 'Escape') close(); }
+
+  if (bar) bar.addEventListener('click', open);
+  scrim.addEventListener('click', close);
+  if (dismiss) dismiss.addEventListener('click', close);
+  sheet.querySelectorAll('a').forEach((a) => a.addEventListener('click', close));
+  openSheet = open;
+}
+
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 document.addEventListener('DOMContentLoaded', () => {
   initNavScroll();
-  initNavToggle();
-  initSmoothScroll();
+  initSmoothScroll();     // binds #-anchors before initIndex builds its own rows
   initScrollReveal();
   initReadingSwitch();
-  initMeshBackdrop(); // renders one calm frame under reduced-motion; full flight otherwise
+  initIndex();
+  initProgress();
+  initSheet();
+  initMeshBackdrop();     // renders one calm frame under reduced-motion; full flight otherwise
   if (!prefersReducedMotion) {
-    initBackgroundVideo();
+    initBackgroundVideo(); // early-returns on mobile
   }
 });
