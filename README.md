@@ -18,6 +18,10 @@
 
 ---
 
+> **Six honest systems can still assemble one collective lie — VisionFlow is the canon that stops that.** It holds the ADRs, PRDs, compatibility matrix and honest status ledger for a seven-repo human–AI mesh built on one wager: AI collapses the cost of routing information, so the human is promoted from router to judgment broker. This repo ships words, not runtime — and it is graded on their accuracy.
+
+---
+
 ## What this repository is
 
 Hierarchy was an information-routing protocol bounded by human bandwidth. AI is collapsing the cost of that routing towards zero, so the human role is not eliminated — it is promoted from **router** to **judgment broker**: the person who holds the decision at the intersections a machine should not close on its own.
@@ -50,6 +54,64 @@ No single repository *is* VisionFlow. The siblings call the whole the **Dynamic 
 | **[nostr-rust-forum](https://github.com/DreamLab-AI/nostr-rust-forum)** | Human+agent communication substrate — Nostr-native forum + relay in Rust. The one place a human decision is cryptographically signed (ACSP kinds 31400–31405). *The one place a decision gets signed.* | Clone the repo; Cloudflare Workers + Leptos WASM. |
 | **[dreamlab-ai-website](https://github.com/DreamLab-AI/dreamlab-ai-website)** | Commercial face — DreamLab AI company site, a thin consumer of the forum kit at the Cloudflare edge. | Clone the repo. |
 | **[loom](https://github.com/DreamLab-AI/loom)** | Grounding node — a portable, model-swappable façade that serves the reasoned knowledge graph into any model's context at query time (the context-assembly layer). *The stable door; models swap behind it.* | Clone the repo; `docker compose up`. |
+
+Each sibling in its own words:
+
+<details>
+<summary><b>VisionClaw</b> — <em>flagship engine, ontology-grounded immersive 3D knowledge graph</em></summary>
+<br/>
+
+> **Agent swarms are invisible; VisionClaw makes them something you can stand inside and watch.** It reasons over a curated corpus with an OWL 2 EL engine (Whelk, 5,975 classes), settles the result as a 3D graph under GPU physics, and renders agents acting inside it — desktop and Quest 3 alike, every agent action drawn as a beam to the concept it touched. It observes and never signs: the engine you can watch is deliberately not the surface that can commit.
+
+</details>
+
+<details>
+<summary><b>agentbox</b> — <em>sovereign agent runtime</em></summary>
+<br/>
+
+> **An agent runtime you can't reproduce is an audit you can't run — Agentbox is a byte-for-byte reproducible Nix container driven by one TOML manifest.** Every agent is minted its own `did:nostr` key at spawn, every durable write passes a privacy filter into a cryptographic audit trail, and what agents may touch is bounded by explicit fail-closed gates. Reproduce the runtime, audit every action, control every capability.
+
+</details>
+
+<details>
+<summary><b>solid-pod-rs</b> — <em>personal-data-sovereignty layer</em></summary>
+<br/>
+
+> **Your data's exit right should sit in the floor, not be granted at the door — solid-pod-rs gives every human and agent a self-owned RDF pod under their own key.** A Rust-native Solid Protocol server with WAC access control and `did:nostr` identity; every write is a git-mark commit and high-value writes anchor to Bitcoin. Standards-based sovereignty: leave at any time, and take everything with you.
+
+</details>
+
+<details>
+<summary><b>nostr-rust-forum</b> — <em>human+agent communication substrate</em></summary>
+<br/>
+
+> **Machine coordination is cheap; accountable decisions are not — this forum is the one place in the mesh where a decision gets signed.** Humans and agents are the same kind of participant: each holds a `did:nostr` keypair and publishes Schnorr-signed events to an immutable log, so every governance outcome carries a human signature by construction. The kit ships vanilla — one TOML file stands up a community, no forking.
+
+</details>
+
+<details>
+<summary><b>dreamlab-ai-website</b> — <em>commercial face, a thin consumer of the forum kit</em></summary>
+<br/>
+
+> **The commercial face of the mesh, running on the mesh's own rails.** A React marketing site and a Rust/Leptos WASM community forum share one Cloudflare-edge origin, end-to-end encrypted where it matters. It is deliberately a thin consumer of the nostr-rust-forum kit — branding and zone config live here, the protocol lives upstream — living proof the kit stands up a real community without a fork.
+
+</details>
+
+<details>
+<summary><b>loom</b> — <em>grounding node, the stable model-swappable door</em></summary>
+<br/>
+
+> **Your LLM doesn't know your data — Loom makes any LLM answer from it, verifiably.** Point any OpenAI-compatible client at one URL and every answer is grounded in your curated, reasoner-checked private corpus: recall on in-domain questions rises from as low as 0.15 to ~0.94, faster than the bare model, with every claim traceable to a corpus generation. The model is just a URL behind the door — swap it for the next one and nothing else changes, because the knowledge lives in the corpus you govern, not the weights you rent.
+
+</details>
+
+<details>
+<summary><b>knowledgeGraph</b> — <em>the published corpus at narrativegoldmine.com</em></summary>
+<br/>
+
+> **8,100+ ordinary Logseq markdown pages that compile losslessly into a formal OWL 2 ontology — pure TBox, every page a class, zero individuals by design.** Corpus, pipeline, viewer and method ship as one open release (ODbL-1.0 data, AGPL-3.0 pipeline) published at narrativegoldmine.com; siblings reason over it (VisionClaw) and serve it as measured LLM grounding (Loom, ~0.94 grounded recall). Rigorous curation is amortised once and reused per query — this repo is the once.
+
+</details>
 
 Published corpus: **[knowledgeGraph](https://github.com/DreamLab-AI/knowledgeGraph)** serves the readable `public:: true` corpus — a Logseq corpus that is also an OWL ontology — at [narrativegoldmine.com](https://narrativegoldmine.com), the same ontology VisionClaw renders in 3D. Since July 2026 it also releases the corpus itself: 8,100+ public pages under ODbL-1.0, the seven-stage rdflib pipeline (AGPL-3.0) that compiles them losslessly into the formal ontology — 286,533 triples with the pipeline's EL-inferred closure and 101,313 resolvable edges across 6 domains at dataset 2026-08-11; live figures in [stats.json](https://narrativegoldmine.com/data/graph/stats.json) — the WasmVOWL explorer (MIT), the prebuilt artefacts, and [the method write-up](https://github.com/DreamLab-AI/knowledgeGraph/blob/main/docs/methodology/the-hybrid-approach.md). The corpus is mostly synthetic content, generated by agents under human direction by design: a testbed for the pipeline and the grounding stack it feeds, not an authoritative encyclopaedia. (The corpus *is* the ontology in markdown form — pure TBox, every page a class, zero individuals by design; the pipeline compiles it in losslessly.) Validation stands at 0 errors and 0 warnings; 1,396 classes deliberately declare more than one parent — the taxonomy is a lattice, not a tree, and the overlap is published as data.
 
