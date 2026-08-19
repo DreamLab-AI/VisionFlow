@@ -148,7 +148,7 @@
 <div class="panel" id="p4">
   <div class="eyebrow">Measured, not claimed</div>
   <h2>Grounding is evaluated. The numbers are published.</h2>
-  <p>Serving the reasoned ontology into the model's context lifts <strong>F1 from 0.350 to 0.770</strong> on the strongest model tested, and cuts <strong>hallucination from 0.529 to 0.177</strong> across seven models — <a href="https://github.com/DreamLab-AI/loom/blob/main/docs/research/paper-v3/main.pdf">eval report</a>.</p>
+  <p>Serving a static ontology scaffold into the model's context lifts <strong>grounded recall to ~0.94</strong> across every model tested (0.15&rarr;0.94 on Gemma, 0.27&rarr;0.94 on Muse, paired uplift with bootstrap 95% CIs), and it runs faster than the bare model. An input-exposure control shows the measured product is faithful delivery of curated, checked facts — a judged negative-control ladder confirms the lift is content-specific — <a href="https://github.com/DreamLab-AI/loom/blob/main/docs/research/paper-v3/main.pdf">the paper</a>.</p>
   <div class="legend">
     <span><i style="background:var(--teal)"></i>Without grounding</span>
     <span><i style="background:var(--violet)"></i>With Loom grounding</span>
@@ -392,10 +392,10 @@ var pulse = vaoPoints(pulseData, true);
 
 /* evidence bars (rebuilt per frame) */
 var BARS = [
-  {x:17.7, v:0.350, h:0.350*8, col:TEAL},
-  {x:19.0, v:0.770, h:0.770*8, col:VIOLET},
-  {x:21.4, v:0.529, h:0.529*8, col:TEAL},
-  {x:22.7, v:0.177, h:0.177*8, col:VIOLET}
+  {x:17.7, v:0.15, h:0.15*8, col:TEAL},
+  {x:19.0, v:0.94, h:0.94*8, col:VIOLET},
+  {x:21.4, v:0.27, h:0.27*8, col:TEAL},
+  {x:22.7, v:0.94, h:0.94*8, col:VIOLET}
 ];
 var BARW = 0.55, BARBASE = -3;
 var barData = new Float32Array(BARS.length*6*7);
@@ -433,7 +433,7 @@ var hubLabs = HUBDEFS.map(function(h){return mkLab('hub', h.nm, h.rl);});
 var ringLabs = RINGDEFS.map(function(r){return mkLab('ring', r.nm, r.rl);});
 var humanLab = mkLab('hub gold', 'human', 'signs the decision');
 var valLabs = BARS.map(function(b){return mkLab('val', b.v.toFixed(3));});
-var capLabs = [mkLab('cap','Answer accuracy (F1) · higher better'), mkLab('cap','Hallucination · lower better')];
+var capLabs = [mkLab('cap','Grounded recall · Gemma · higher better'), mkLab('cap','Grounded recall · Muse · higher better')];
 var didLab = mkLab('cap','did:nostr · one keypair, every tier');
 
 /* ---------- chapters & camera ---------- */

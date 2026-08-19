@@ -306,50 +306,50 @@
 <section style="padding-top:0">
   <div class="wrap">
     <div class="eyebrow">Measured, not claimed</div>
-    <h2>Grounding is evaluated, and the numbers are published.<span class="delta good">F1 +0.42</span></h2>
-    <p class="prose">Serving the reasoned ontology into the model's context — instead of letting it answer from parametric memory — was benchmarked across seven models. The static scaffold alone lifts grounded recall roughly 3–6×.</p>
+    <h2>Grounding is evaluated, and the numbers are published.<span class="delta good">recall ~0.94</span></h2>
+    <p class="prose">Serving a static ontology scaffold into the model's context — instead of letting it answer from parametric memory — was benchmarked across every model put behind the façade. The scaffold alone lifts grounded recall to roughly 0.94, and runs faster than the bare model. An input-exposure control shows the measured product is faithful delivery of curated, checked facts, not model reasoning over injected structure — exactly what private-knowledge grounding needs.</p>
     <div class="figrow">
       <figure class="chart">
-        <h3>Answer accuracy (F1)</h3>
-        <div class="sub">Strongest model tested · higher is better</div>
+        <h3>Grounded recall</h3>
+        <div class="sub">Ontology scaffold on/off · higher is better</div>
         <div class="bars">
-          <div class="brow" data-tip="Without grounding: the model answers from parametric memory alone. F1 = 0.350">
-            <span class="blab">Without grounding</span>
-            <span class="btrack"><span class="bfill" style="width:45.5%;background:var(--teal)"></span></span>
-            <span class="bval">0.350</span>
+          <div class="brow" data-tip="Without the scaffold: the model answers from parametric memory alone. Recall ≈ 0.15 (Gemma)">
+            <span class="blab">Without scaffold</span>
+            <span class="btrack"><span class="bfill" style="width:16%;background:var(--teal)"></span></span>
+            <span class="bval">0.15</span>
           </div>
-          <div class="brow" data-tip="With Loom grounding: the checked ontology is served into context at query time. F1 = 0.770">
-            <span class="blab">With Loom grounding</span>
+          <div class="brow" data-tip="With the static scaffold served into context at query time. Recall ≈ 0.94 (Gemma)">
+            <span class="blab">With scaffold</span>
             <span class="btrack"><span class="bfill" style="width:100%;background:var(--accent)"></span></span>
-            <span class="bval">0.770</span>
+            <span class="bval">0.94</span>
           </div>
         </div>
         <div class="legend">
           <span><i style="background:var(--teal)"></i>Parametric only</span>
-          <span><i style="background:var(--accent)"></i>Loom-grounded</span>
+          <span><i style="background:var(--accent)"></i>Scaffold-grounded</span>
         </div>
-        <figcaption>F1 on the strongest model tested; grounded answers restate verified facts rather than guesses.</figcaption>
+        <figcaption>Grounded recall, Gemma; the paired uplift (with bootstrap 95% CIs) holds across models — Muse rises 0.27&rarr;0.94 too.</figcaption>
       </figure>
       <figure class="chart">
-        <h3>Hallucination rate</h3>
-        <div class="sub">Mean across seven models · lower is better</div>
+        <h3>Input-exposure control</h3>
+        <div class="sub">Copy ceiling vs scaffold · higher is better</div>
         <div class="bars">
-          <div class="brow" data-tip="Without grounding: hallucination rate 0.529 averaged across seven models">
-            <span class="blab">Without grounding</span>
+          <div class="brow" data-tip="Copy ceiling: the highest recall attainable when the answer text is exposed directly. 0.964 on this node">
+            <span class="blab">Copy ceiling</span>
             <span class="btrack"><span class="bfill" style="width:100%;background:var(--teal)"></span></span>
-            <span class="bval">0.529</span>
+            <span class="bval">0.964</span>
           </div>
-          <div class="brow" data-tip="With Loom grounding: hallucination rate falls to 0.177 — a 67% reduction">
-            <span class="blab">With Loom grounding</span>
-            <span class="btrack"><span class="bfill" style="width:33.5%;background:var(--accent)"></span></span>
-            <span class="bval">0.177</span>
+          <div class="brow" data-tip="Scaffold-grounded: gain over copy is uniformly slightly negative across ten models from five providers">
+            <span class="blab">With scaffold</span>
+            <span class="btrack"><span class="bfill" style="width:97.5%;background:var(--accent)"></span></span>
+            <span class="bval">0.94</span>
           </div>
         </div>
         <div class="legend">
-          <span><i style="background:var(--teal)"></i>Parametric only</span>
-          <span><i style="background:var(--accent)"></i>Loom-grounded</span>
+          <span><i style="background:var(--teal)"></i>Copy ceiling</span>
+          <span><i style="background:var(--accent)"></i>Scaffold-grounded</span>
         </div>
-        <figcaption>Hallucination falls from 0.529 to 0.177 across seven models. Full method and per-model results in the <a href="https://github.com/DreamLab-AI/loom/blob/main/docs/research/paper-v3/main.pdf">eval report</a>.</figcaption>
+        <figcaption>Gain over copy is uniformly slightly negative across ten models from five providers — the product is faithful delivery of checked facts, and a judged negative-control ladder confirms the lift is content-specific (true arm +0.59, p=0.026). Full method in <a href="https://github.com/DreamLab-AI/loom/blob/main/docs/research/paper-v3/main.pdf">the paper</a>.</figcaption>
       </figure>
     </div>
     <div class="statgrid">
