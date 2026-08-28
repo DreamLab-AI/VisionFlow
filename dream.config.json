@@ -4,19 +4,31 @@
   "slots": [
     {
       "deep": "content-integrity",
-      "scan": ["internal-links", "asset-refs"]
+      "scan": [
+        "internal-links",
+        "asset-refs"
+      ]
     },
     {
       "deep": "build-pipeline",
-      "scan": ["static-build", "cname-domain"]
+      "scan": [
+        "static-build",
+        "cname-domain"
+      ]
     },
     {
       "deep": "webgl-mesh",
-      "scan": ["shader-source", "canvas-fallback"]
+      "scan": [
+        "shader-source",
+        "canvas-fallback"
+      ]
     },
     {
       "deep": "seo-and-meta",
-      "scan": ["meta-tags", "structured-data"]
+      "scan": [
+        "meta-tags",
+        "structured-data"
+      ]
     }
   ],
   "bonusModuli": {
@@ -32,7 +44,7 @@
     "degradeOnWasmFailure": false
   },
   "evaluatorEntrypoints": {
-    "build-check": "cd website/dist 2>/dev/null && test -f index.html && echo \"pages: $(find . -name '*.html' | wc -l)  bytes: $(du -sb . | cut -f1)\" && echo BUILD-OK || echo BUILD-FAIL",
+    "build-check": "bash scripts/dream-build-check.sh",
     "links": "bash scripts/dream-link-check.sh 2>&1 | tail -6"
   },
   "competitors": [],
@@ -44,6 +56,9 @@
   ],
   "ledgerPath": "docs/dream-cycle/LEDGER.md",
   "branchPrefix": "dream/",
-  "labels": ["dream-cycle", "marketing-site"],
+  "labels": [
+    "dream-cycle",
+    "marketing-site"
+  ],
   "autoMerge": false
 }
