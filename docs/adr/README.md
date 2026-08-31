@@ -24,8 +24,13 @@ precisely because it drifted from the code; see
 `BASELINE-visionflow.md` **in the same change**, and regenerate this index
 (`node scripts/adr-index-gen.cjs docs/adr` — it fails CI on invalid frontmatter).
 
-_1 record(s). Regenerate with_ `node scripts/adr-index-gen.cjs docs/adr`.
+_6 record(s). Regenerate with_ `node scripts/adr-index-gen.cjs docs/adr`.
 
 | ID | Title | Date | Decision | Impl | Activation | Supersedes | Superseded by | Owner | Repo |
 |----|-------|------|----------|------|------------|------------|---------------|-------|------|
 | [ADR-2001](ADR-2001-corpus-consolidation.md) | Consolidate the ADR corpus into a living baseline plus a thin ledger | 2026-08-31 | accepted | complete | live | — | — | DreamLab AI maintainers | visionflow |
+| [ADR-2002](ADR-2002-static-copy-only-website.md) | Ship the website as a copy-only static build — no compiler, bundler, or WASM | 2026-08-31 | accepted | complete | live | — | — | jjohare | visionflow |
+| [ADR-2003](ADR-2003-pages-artifact-deploy.md) | Deploy the website via the GitHub Pages artifact/deploy actions, never a gh-pages branch | 2026-08-31 | accepted | complete | live | — | — | jjohare | visionflow |
+| [ADR-2004](ADR-2004-diagram-baseline-vendored-render-gate.md) | Gate diagrams on a committed light-theme baseline rendered by a vendored Mermaid; re-render only to detect drift | 2026-08-31 | accepted | complete | live | — | — | jjohare | visionflow |
+| [ADR-2005](ADR-2005-drift-counter-allowlist-substrate-sourced.md) | Police canon self-description counts with an allowlist-anchored, substrate-sourced, fail-open drift counter | 2026-08-31 | accepted | partial | live | — | — | jjohare | visionflow |
+| [ADR-2006](ADR-2006-canon-owns-crossrepo-view-not-implementation.md) | VisionFlow is canon-only — it owns the cross-repo view and evidence-bounded maturity, never substrate implementation truth | 2026-08-31 | accepted | complete | live | — | — | jjohare | visionflow |
