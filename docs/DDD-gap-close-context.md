@@ -3,7 +3,7 @@
 **Status:** Living document
 **Date:** 2026-07-08
 **Scope:** The cross-repository sprint that closes the four-surface gap register
-**Governed by:** [PRD Gap-Close Sprint](PRD-gap-close-sprint.md), [ADR-004 Gap-Close Sprint Governance](ADR-004-gap-close-sprint-governance.md)
+**Governed by:** [PRD Gap-Close Sprint](PRD-gap-close-sprint.md), [ADR-004 Gap-Close Sprint Governance](archive/adr/ADR-004-gap-close-sprint-governance.md)
 
 ---
 
@@ -20,8 +20,8 @@ It is deliberately downstream of two existing contexts. The **Ecosystem Alignmen
 | Context | Relationship | Notes |
 |---|---|---|
 | **Gap-Close Sprint** (this context) | Coordinates remediation flow across substrates | Defines the register-to-closure lifecycle |
-| **Ecosystem Alignment** ([DDD](DDD-ecosystem-alignment-context.md), [ADR-002](ADR-002-ecosystem-alignment-governance.md)) | Upstream | Owns the maturity vocabulary, compatibility matrix, and canon-owns-cross-repo rule this context obeys |
-| **Judgment Broker** ([DDD](DDD-judgment-broker-context.md), [ADR-003](ADR-003-judgment-broker-distributed-architecture.md)) | Upstream | Owns the decision-loop domain most critical gaps sit within (forum admin-only, desktop no-ACSP-surface, voice loop) |
+| **Ecosystem Alignment** ([DDD](DDD-ecosystem-alignment-context.md), [ADR-002](archive/adr/ADR-002-ecosystem-alignment-governance.md)) | Upstream | Owns the maturity vocabulary, compatibility matrix, and canon-owns-cross-repo rule this context obeys |
+| **Judgment Broker** ([DDD](DDD-judgment-broker-context.md), [ADR-003](archive/adr/ADR-003-judgment-broker-distributed-architecture.md)) | Upstream | Owns the decision-loop domain most critical gaps sit within (forum admin-only, desktop no-ACSP-surface, voice loop) |
 | **VisionClaw / agentbox / solid-pod-rs / nostr-rust-forum / dreamlab-ai-website** | Downstream (Supplier) | Each supplies a RepoWorkPackage and its child documents; this context defines the closure protocol they follow |
 
 ### Relationship Types

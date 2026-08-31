@@ -5,7 +5,7 @@ from their substrate-exposed sources of truth and fails CI when any canon figure
 disagrees, or when a second distinct figure appears at a policed site.
 
 - **PRD:** [`docs/PRD-gap-close-canon.md`](../../docs/PRD-gap-close-canon.md) §"Automated Self-Description Counter (RES-d)"
-- **ADR:** [`docs/ADR-005-gap-close-canon-decisions.md`](../../docs/ADR-005-gap-close-canon-decisions.md) §Decision 2
+- **ADR:** [`docs/ADR-005-gap-close-canon-decisions.md`](../../docs/archive/adr/ADR-005-gap-close-canon-decisions.md) §Decision 2
 - **DDD:** [`docs/DDD-gap-close-canon-context.md`](../../docs/DDD-gap-close-canon-context.md) §9 (`DriftCounter`)
 - **Canary:** `CANARY-CANON-DRIFT`
 - **Evidence:** [`docs/gap-close-evidence/P1-RES-d.md`](../../docs/gap-close-evidence/P1-RES-d.md)

@@ -1,0 +1,44 @@
+name: ADR frontmatter gate
+
+# Enforces the claim made in docs/adr/PREAMBLE.md and ADR-2001: the ledger's
+# index generator fails CI on invalid/malformed frontmatter. Runs the generator
+# in --check mode (validates required fields, non-empty scalars, enum membership,
+# list-typed supersedes/superseded_by, and duplicate ids; exits 1 on any error)
+# and then verifies the committed README.md index is in sync with the records.
+
+on:
+  pull_request:
+    paths:
+      - 'docs/adr/**'
+      - 'scripts/adr-index-gen.cjs'
+      - '.github/workflows/adr-index.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  adr-index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # (1) Validate frontmatter — exits 1 on any invalid/malformed record.
+      - name: Validate ADR frontmatter
+        run: node scripts/adr-index-gen.cjs docs/adr --check
+
+      # (2) Regenerate the index and fail if the committed README.md drifted.
+      - name: Verify README.md index is in sync
+        run: |
+          set -euo pipefail
+          node scripts/adr-index-gen.cjs docs/adr
+          if ! git diff --quiet -- docs/adr/README.md; then
+            echo "::error::docs/adr/README.md is out of date — run: node scripts/adr-index-gen.cjs docs/adr"
+            git --no-pager diff -- docs/adr/README.md
+            exit 1
+          fi

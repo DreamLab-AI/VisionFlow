@@ -3,7 +3,7 @@
 **Status:** Canon position (`standalone`); `theory→canon`. Carries normative clauses (RFC 2119 MUST / MUST NOT) on multi-agent social influence in forum threads
 **Date:** 2026-07-08
 **Discharges:** register gap **F10** — *silent on multi-agent social influence in threads* (`theory→canon`, Minor)
-**Governed by:** [PRD Gap-Close Canon](../PRD-gap-close-canon.md) §"Position Documents (F10, V2)"; [ADR-005](../ADR-005-gap-close-canon-decisions.md) §Decision 4
+**Governed by:** [PRD Gap-Close Canon](../PRD-gap-close-canon.md) §"Position Documents (F10, V2)"; [ADR-005](../archive/adr/ADR-005-gap-close-canon-decisions.md) §Decision 4
 **Builds on:** [DID:Nostr Identity Spine](identity-spine.md) §"Agent Disclosure Norm (COM-13)"
 **Book cross-reference:** "The Gap Register" (Chapter 14b), "The Vigilance Problem" (Chapter 5)
 

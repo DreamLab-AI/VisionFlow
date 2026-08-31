@@ -3,7 +3,7 @@
 **Status:** Canon position (`standalone`); `theory→canon`. Carries normative clauses (RFC 2119 MUST / MUST NOT) on multi-agent voice addressing, turn-taking and repair
 **Date:** 2026-07-08
 **Discharges:** register gap **V2** — *no multi-agent addressing or turn-taking model* (`theory→canon`, Major)
-**Governed by:** [PRD Gap-Close Canon](../PRD-gap-close-canon.md) §"Position Documents (F10, V2)"; [ADR-005](../ADR-005-gap-close-canon-decisions.md) §Decision 4
+**Governed by:** [PRD Gap-Close Canon](../PRD-gap-close-canon.md) §"Position Documents (F10, V2)"; [ADR-005](../archive/adr/ADR-005-gap-close-canon-decisions.md) §Decision 4
 **Builds on:** [DID:Nostr Identity Spine](identity-spine.md) (identity primitive); COM-14 `did:nostr` keying of agent nodes (the addressing key)
 **Book cross-reference:** "The Gap Register" (Chapter 14b, voice register)
 

@@ -8,8 +8,8 @@
 authoritative for every P0/P1/P2 status row, tier and canary state. Per v1.2
 §Immutability and §"Next version", corrections **chain forward** into this cut;
 v1.2 is not edited.
-**Governed by:** [ADR-004 Gap-Close Sprint Governance](../ADR-004-gap-close-sprint-governance.md),
-[ADR-003 Judgment Broker Distributed Architecture](../ADR-003-judgment-broker-distributed-architecture.md)
+**Governed by:** [ADR-004 Gap-Close Sprint Governance](../archive/adr/ADR-004-gap-close-sprint-governance.md),
+[ADR-003 Judgment Broker Distributed Architecture](../archive/adr/ADR-003-judgment-broker-distributed-architecture.md)
 (2026-07-03 closeout amendment); VisionClaw ADR-130 Gap-Close VisionClaw Decisions
 (`project/docs/adr/ADR-130-gap-close-visionclaw-decisions.md`, sibling repo — cited, not linked cross-tree)
 **Closeout source:** [`docs/closeout/unified-findings-register.json`](../closeout/unified-findings-register.json)

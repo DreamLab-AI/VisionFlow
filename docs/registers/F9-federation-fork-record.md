@@ -2,7 +2,7 @@
 
 **Item:** F9 federation rescope fork (`canon reconciliation`, P2)
 **Status:** Fork evaluated 2026-07-08 — **all three build criteria fail → federation stays `planned`**
-**Governed by:** [ADR-005](../ADR-005-gap-close-canon-decisions.md) §Decision 6; [PRD Gap-Close Canon](../PRD-gap-close-canon.md) §"Federation Rescope Fork (F9)"
+**Governed by:** [ADR-005](../archive/adr/ADR-005-gap-close-canon-decisions.md) §Decision 6; [PRD Gap-Close Canon](../PRD-gap-close-canon.md) §"Federation Rescope Fork (F9)"
 **Register trail:** Forward-chains into the next `RegisterKeeper` cut (v1.2, P2 boundary). Does **not** edit `gap-register-v1.1.md` in place (Invariant 5) or `PRD-gap-close-sprint.md`.
 
 ## What this is

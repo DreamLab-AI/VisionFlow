@@ -8,7 +8,7 @@
 > **2026-07-10 truth-pass amendment.** The "65% / 45%" status framing below
 > understates current completion; rows are corrected inline only where a prior
 > claim is now false. Aligning with the
-> [ADR-003 2026-07-03 closeout amendment](ADR-003-judgment-broker-distributed-architecture.md),
+> [ADR-003 2026-07-03 closeout amendment](archive/adr/ADR-003-judgment-broker-distributed-architecture.md),
 > **2 of the 3 identified gaps are closed**:
 > - **FR1 (decision routing) — SHIPPED.** `handleGovernanceDecision()` is
 >   implemented at

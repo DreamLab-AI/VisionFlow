@@ -3,7 +3,7 @@
 **Status:** Working roadmap from ecosystem docs and code spot-check review
 **Date:** 2026-05-22
 
-This roadmap is governed by [Ecosystem Alignment PRD](PRD-ecosystem-alignment.md), [ADR-002](ADR-002-ecosystem-alignment-governance.md), and [Ecosystem Alignment DDD](DDD-ecosystem-alignment-context.md).
+This roadmap is governed by [Ecosystem Alignment PRD](PRD-ecosystem-alignment.md), [ADR-002](archive/adr/ADR-002-ecosystem-alignment-governance.md), and [Ecosystem Alignment DDD](DDD-ecosystem-alignment-context.md).
 
 ## Phase 0: Honesty and Traceability
 

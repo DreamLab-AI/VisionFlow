@@ -4,12 +4,14 @@ VisionFlow is the coordination architecture spanning the DreamLab repositories. 
 
 Back to the [top-level README](../README.md) for the ecosystem overview, quickstart, and dated status ledger.
 
+**Architecture ground truth (consolidated 2026-08-31):** the living baseline for what this repo is and runs is [`BASELINE-visionflow.md`](BASELINE-visionflow.md); new decisions go in the [`adr/`](adr/) ledger. The legacy ADR-001..007 corpus is archived (read-only) under [`archive/adr/`](archive/adr/README.md) — cite it for history, never as current authority.
+
 ## Ecosystem
 
 | Document | Purpose |
 |---|---|
 | [Ecosystem Alignment PRD](PRD-ecosystem-alignment.md) | Requirements for compatibility, maturity, ownership, fixture, and release-readiness work |
-| [Ecosystem Alignment ADR-002](ADR-002-ecosystem-alignment-governance.md) | Decision record for cross-repo alignment governance and maturity vocabulary |
+| [Ecosystem Alignment ADR-002](archive/adr/ADR-002-ecosystem-alignment-governance.md) _(archived)_ | Decision record for cross-repo alignment governance and maturity vocabulary |
 | [Ecosystem Alignment DDD](DDD-ecosystem-alignment-context.md) | Bounded context, aggregates, invariants, and language for ecosystem alignment |
 | [Ecosystem Map](ecosystem-map.md) | Docs and spot-check synthesis of the sibling repositories, system flows, and gap register |
 | [Repository Map](architecture/repository-map.md) | Local path and role map for the federated repositories |
@@ -22,7 +24,7 @@ Back to the [top-level README](../README.md) for the ecosystem overview, quickst
 | [Licensing](architecture/licensing.md) | Licence boundaries across the ecosystem |
 | [Roadmap](roadmap.md) | Phased roadmap from docs honesty to mesh proof and operations |
 | [Judgment Broker PRD](PRD-judgment-broker.md) | Distributed decision loop between agents and humans across the Nostr relay mesh |
-| [Judgment Broker ADR-003](ADR-003-judgment-broker-distributed-architecture.md) | Architecture decision: broker is distributed by design across 4 substrates |
+| [Judgment Broker ADR-003](archive/adr/ADR-003-judgment-broker-distributed-architecture.md) _(archived)_ | Architecture decision: broker is distributed by design across 4 substrates |
 | [Judgment Broker DDD](DDD-judgment-broker-context.md) | Bounded context for the distributed decision loop |
 
 ## Website
@@ -31,5 +33,5 @@ Back to the [top-level README](../README.md) for the ecosystem overview, quickst
 |---|---|
 | [Website PRD](PRD-website.md) | Product requirements for `visionflow.info` |
 | [Website DDD](DDD-website-context.md) | Bounded contexts for the website |
-| [Website ADR-001](ADR-001-website-technology.md) | Static site and Rust/WASM technology decision |
+| [Website ADR-001](archive/adr/ADR-001-website-technology.md) _(archived — superseded by [`BASELINE-visionflow.md`](BASELINE-visionflow.md); the shipped site is static HTML/CSS/JS, no WASM)_ | Static site technology decision |
 | [Site Verification](site-verification.md) | Current verification status against website PRD acceptance criteria |

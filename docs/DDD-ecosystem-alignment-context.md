@@ -3,7 +3,7 @@
 **Owner:** DreamLab AI
 **Status:** Draft
 **Date:** 2026-05-22
-**Related:** [Ecosystem Alignment PRD](PRD-ecosystem-alignment.md), [ADR-002](ADR-002-ecosystem-alignment-governance.md)
+**Related:** [Ecosystem Alignment PRD](PRD-ecosystem-alignment.md), [ADR-002](archive/adr/ADR-002-ecosystem-alignment-governance.md)
 
 ## Bounded Context
 

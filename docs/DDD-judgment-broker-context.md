@@ -3,7 +3,7 @@
 **Status:** Living document
 **Date:** 2026-05-22 (F6 supersession-authority spec added 2026-07-08)
 **Scope:** Cross-substrate decision loop between agents and humans
-**Amendment:** §7a (Supersession Authority) added per [ADR-005](ADR-005-gap-close-canon-decisions.md) §Decision 5, discharging register gap **F6**; extends Invariant 5. The canon states this authority model here; nostr-rust-forum, which owns `DecisionOutcome` and the decision surface, implements against it (`PRD-gap-close-forum.md`).
+**Amendment:** §7a (Supersession Authority) added per [ADR-005](archive/adr/ADR-005-gap-close-canon-decisions.md) §Decision 5, discharging register gap **F6**; extends Invariant 5. The canon states this authority model here; nostr-rust-forum, which owns `DecisionOutcome` and the decision surface, implements against it (`PRD-gap-close-forum.md`).
 
 ---
 

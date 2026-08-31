@@ -4,10 +4,10 @@
 **Status:** Accepted (ratified 2026-07-08; execution commenced same day)
 **Date:** 2026-07-08
 **Version:** 1.0
-**Governed by:** [ADR-004 Gap-Close Sprint Governance](ADR-004-gap-close-sprint-governance.md), [ADR-002 Ecosystem Alignment Governance](ADR-002-ecosystem-alignment-governance.md)
+**Governed by:** [ADR-004 Gap-Close Sprint Governance](archive/adr/ADR-004-gap-close-sprint-governance.md), [ADR-002 Ecosystem Alignment Governance](archive/adr/ADR-002-ecosystem-alignment-governance.md)
 **Bounded context:** [DDD Gap-Close Context](DDD-gap-close-context.md)
 **Book cross-reference:** Chapter "The Gap Register" (chapters/14b), "Evaluating the Living Experiment" (chapters/14a), "The Four Surfaces" weighting (chapters/12a)
-**Ratification:** This inventory is ratified as the sprint's authoritative register under [ADR-004](ADR-004-gap-close-sprint-governance.md); the P0/P1 work on the `gap-close/2026-07` branches (per-repo) is the execution record, and satisfies the DDD Gap-Close `RegisterPublished` trigger ("Meta-PRD inventory ratified") that `RegisterKeeper`'s first publish depends on.
+**Ratification:** This inventory is ratified as the sprint's authoritative register under [ADR-004](archive/adr/ADR-004-gap-close-sprint-governance.md); the P0/P1 work on the `gap-close/2026-07` branches (per-repo) is the execution record, and satisfies the DDD Gap-Close `RegisterPublished` trigger ("Meta-PRD inventory ratified") that `RegisterKeeper`'s first publish depends on.
 
 ## TL;DR
 

@@ -5,7 +5,7 @@
 **Date:** 2026-07-08
 **Cut by:** `RegisterKeeper` (VisionFlow canon)
 **Supersedes:** v1.0 = the meta-PRD consolidated inventory in [`PRD-gap-close-sprint.md`](../PRD-gap-close-sprint.md) §"Consolidated Inventory"
-**Governed by:** [ADR-004 Gap-Close Sprint Governance](../ADR-004-gap-close-sprint-governance.md) (§Governance Cadence — "promotion cuts a new register version"), [ADR-005 Gap-Close Canon Decisions](../ADR-005-gap-close-canon-decisions.md), [PRD Gap-Close Canon](../PRD-gap-close-canon.md)
+**Governed by:** [ADR-004 Gap-Close Sprint Governance](../archive/adr/ADR-004-gap-close-sprint-governance.md) (§Governance Cadence — "promotion cuts a new register version"), [ADR-005 Gap-Close Canon Decisions](../archive/adr/ADR-005-gap-close-canon-decisions.md), [PRD Gap-Close Canon](../PRD-gap-close-canon.md)
 **DDD:** [DDD Gap-Close Canon Context](../DDD-gap-close-canon-context.md) §3 (`GapRegister` aggregate), Invariant 5 (immutable once published)
 
 ## What this is

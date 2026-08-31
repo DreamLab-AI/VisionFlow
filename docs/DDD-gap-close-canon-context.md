@@ -3,8 +3,8 @@
 **Status:** Living document
 **Date:** 2026-07-08
 **Scope:** The VisionFlow canon's owned slice of the gap-close sprint — the register, the counter, the diagram gate, the position documents, the reconciliations
-**Governed by:** [PRD Gap-Close Canon](PRD-gap-close-canon.md), [ADR-005 Gap-Close Canon Decisions](ADR-005-gap-close-canon-decisions.md)
-**Conformist to:** [DDD Gap-Close Context](DDD-gap-close-context.md) (parent), [ADR-002 Ecosystem Alignment](ADR-002-ecosystem-alignment-governance.md), [DDD Judgment Broker Context](DDD-judgment-broker-context.md)
+**Governed by:** [PRD Gap-Close Canon](PRD-gap-close-canon.md), [ADR-005 Gap-Close Canon Decisions](archive/adr/ADR-005-gap-close-canon-decisions.md)
+**Conformist to:** [DDD Gap-Close Context](DDD-gap-close-context.md) (parent), [ADR-002 Ecosystem Alignment](archive/adr/ADR-002-ecosystem-alignment-governance.md), [DDD Judgment Broker Context](DDD-judgment-broker-context.md)
 
 ---
 
@@ -21,7 +21,7 @@ The canon owns claims, counts, renders and adjudication about the whole. It does
 | Context | Relationship | Notes |
 |---|---|---|
 | **Gap-Close Sprint** ([DDD](DDD-gap-close-context.md)) | Parent (Conformist) | This slice conforms to the parent's aggregates, events and invariants verbatim; it specialises `RegisterKeeper`, `WaveGate` and `DriftCounter` to the canon owner |
-| **Ecosystem Alignment** ([ADR-002](ADR-002-ecosystem-alignment-governance.md)) | Upstream (Conformist) | Supplies the seven-tier maturity vocabulary, the compatibility matrix, the release-manifest machinery, and the canon-owns-cross-repo rule |
+| **Ecosystem Alignment** ([ADR-002](archive/adr/ADR-002-ecosystem-alignment-governance.md)) | Upstream (Conformist) | Supplies the seven-tier maturity vocabulary, the compatibility matrix, the release-manifest machinery, and the canon-owns-cross-repo rule |
 | **Judgment Broker** ([DDD](DDD-judgment-broker-context.md)) | Upstream (Conformist) | Owns `DecisionOutcome` and Invariant 5; the canon's F6 supersession authority extends §7 of that context through its owner (the forum), not here |
 | **agentbox / VisionClaw / nostr-rust-forum** | Downstream (Supplier) | Expose script-queryable count sources to the `DriftCounter`; cite the canon's position documents and disclosure norm |
 

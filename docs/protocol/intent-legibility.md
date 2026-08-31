@@ -3,7 +3,7 @@
 **Status:** Canon position (`standalone`); `theory→canon`. Carries normative clauses (RFC 2119 MUST / MUST NOT) on pre-action intent declaration in agent embodiment surfaces
 **Date:** 2026-07-08
 **Discharges:** register gap **D7** — *No pre-action intent legibility; embodiment shows only the past* (`theory→canon`, Major)
-**Governed by:** [PRD Gap-Close Canon](../PRD-gap-close-canon.md) §"Owned Items" (D7 row); reconciled as a protocol position page per [ADR-005](../ADR-005-gap-close-canon-decisions.md) §Decision 4 (position documents as protocol pages, standalone-first)
+**Governed by:** [PRD Gap-Close Canon](../PRD-gap-close-canon.md) §"Owned Items" (D7 row); reconciled as a protocol position page per [ADR-005](../archive/adr/ADR-005-gap-close-canon-decisions.md) §Decision 4 (position documents as protocol pages, standalone-first)
 **Builds on:** [DID:Nostr Identity Spine](identity-spine.md) (identity primitive); the `did:nostr`-keyed agent-events envelope (COM-14, the attribution root)
 **Book cross-reference:** "The Gap Register" (Chapter 14b, desktop register); "Four Surfaces" (Chapter 12a)
 

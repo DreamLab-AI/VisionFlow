@@ -5,7 +5,7 @@
 **Date:** 2026-07-08
 **Version:** 1.0
 **Parent:** [PRD Gap-Close Sprint](PRD-gap-close-sprint.md) (meta-register)
-**Governed by:** [ADR-005 Gap-Close Canon Decisions](ADR-005-gap-close-canon-decisions.md), [ADR-004 Gap-Close Sprint Governance](ADR-004-gap-close-sprint-governance.md), [ADR-002 Ecosystem Alignment Governance](ADR-002-ecosystem-alignment-governance.md)
+**Governed by:** [ADR-005 Gap-Close Canon Decisions](archive/adr/ADR-005-gap-close-canon-decisions.md), [ADR-004 Gap-Close Sprint Governance](archive/adr/ADR-004-gap-close-sprint-governance.md), [ADR-002 Ecosystem Alignment Governance](archive/adr/ADR-002-ecosystem-alignment-governance.md)
 **Bounded context:** [DDD Gap-Close Canon Context](DDD-gap-close-canon-context.md), conformist to [DDD Gap-Close Context](DDD-gap-close-context.md)
 **Book cross-reference:** Chapter "The Gap Register" (14b), "Evaluating the Living Experiment" (14a)
 
