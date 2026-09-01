@@ -37,6 +37,7 @@
       <div id="nav-links" class="nav-links">
         <a href="#problem">Problem</a>
         <a href="#substrates">Substrates</a>
+        <a href="#dreaming">Dreaming</a>
         <a href="#guarantees">Guarantees</a>
         <a href="#immersive">Immersive</a>
         <a href="#broker">Governance</a>
@@ -306,6 +307,15 @@
     </div>
   </section>
 
+  <!-- Dreaming — the mesh improves itself nightly, human-merged -->
+  <section id="dreaming" class="section">
+    <div class="container reveal">
+      <span class="section-tag">Self-improvement</span>
+      <h2>The mesh improves itself &mdash; nightly, and human-merged</h2>
+      <p class="section-lead">Dreaming is the estate&rsquo;s nightly self-improvement loop. Each night a repository forms one falsifiable hypothesis, measures it against its own evaluators, and opens a <em>draft</em> pull request &mdash; evidence-gated, witnessed, and never self-merged. It is the rule the mesh governs by, turned on the code itself: an agent proposes, a human signs the merge. <strong>Evaluation is not promotion.</strong> It runs on this repository today; the estate-wide orchestrator over the agentbox fleet, and a <code>did:nostr</code> identity per cycle, are in progress. Engine: <a href="https://github.com/DreamLab-AI/dream-engine" target="_blank" rel="noopener">dream-engine</a>, DreamLab&rsquo;s tracking fork of rUv&rsquo;s <a href="https://github.com/ruvnet/dream-machine" target="_blank" rel="noopener">dream-machine</a>, after <em>AutoDesign: Meta-Harness Optimization</em> (<a href="https://arxiv.org/abs/2608.13560" target="_blank" rel="noopener">arXiv:2608.13560</a>) &mdash; <em>freeze the model, evolve the harness.</em></p>
+    </div>
+  </section>
+
   <!-- Guarantees — the hard parts, running in the live path -->
   <section id="guarantees" class="section">
     <div class="container reveal" data-num="04">
@@ -363,7 +373,7 @@
         <a href="https://github.com/DreamLab-AI/THG-world-record-attempt" target="_blank" rel="noopener" class="showcase-link"><span style="color:var(--gold)">&#x25C8;</span> Repository</a>
       </div>
 
-      <div class="immersive-grid">
+      <div class="immersive-grid" tabindex="0" role="region" aria-label="Immersive visualisation projects (scrollable)">
         <div class="glass-card immersive-card">
           <img src="img/showcase/octave-lab.webp" alt="Researcher in stereoscopic CAVE exploring a 3D knowledge graph with node and edge structures projected at room scale" loading="lazy" decoding="async" />
           <h3>Stereoscopic Data Exploration</h3>
@@ -528,7 +538,7 @@
     <div class="container reveal" data-num="08">
       <span class="section-tag">Grounding &amp; Serving Node</span>
       <h2>The Ontology Loom: measured grounding behind a model-swappable fa&ccedil;ade</h2>
-      <p class="section-lead">We tested whether a formal ontology improves an LLM&rsquo;s factual recall, objectively, with gold answers derived from the knowledge graph itself. Across every model we have put behind the fa&ccedil;ade (a frontier model at one end, a small local one at the other), grounding raised recall and cut hallucination in <em>every</em> case, roughly halving hallucination on the set (<a href="https://github.com/DreamLab-AI/loom/blob/main/docs/research/ontology-uplift-report.pdf" target="_blank" rel="noopener" style="color:var(--gold)">full report</a>). The result is about the architecture, not the model: probabilistic agents bounded by machine-checkable semantics, with contradictions rejected at the Whelk gate before they enter the graph. We re-run the benchmark on each new model we deploy; the shape holds, and it keeps improving.</p>
+      <p class="section-lead">We tested whether a formal ontology improves an LLM&rsquo;s factual recall, objectively, with gold answers derived from the knowledge graph itself. Across every model we have put behind the fa&ccedil;ade (a frontier model at one end, a small local one at the other), a static ontology scaffold lifts grounded recall to roughly 0.94 in <em>every</em> case (for example 0.15&rarr;0.94 on Gemma, 0.27&rarr;0.94 on Muse, paired uplift with bootstrap 95% CIs), and it runs faster than the bare model (<a href="https://github.com/DreamLab-AI/loom/blob/main/docs/research/paper-v5/main.pdf" target="_blank" rel="noopener" style="color:var(--gold)">full report</a>). An input-exposure control makes the reading honest: the copy ceiling on this node is 0.964 and gain over copy is uniformly slightly negative across ten models from five providers, so the measured product is faithful delivery of curated, checked facts, not model reasoning over injected structure &mdash; exactly what private-knowledge grounding needs, with a judged negative-control ladder confirming the lift is content-specific. The result is about the architecture, not the model: probabilistic agents bounded by machine-checkable semantics, with contradictions rejected at the Whelk gate before they enter the graph. We re-run the benchmark on each new model we deploy; the shape holds.</p>
 
       <p class="section-lead" style="margin-top:1.5rem">A held-out graph-derived benchmark (objective gold, bootstrapped intervals) on the current model, <strong>Qwen3.8-27B</strong>, across four grounding modes:</p>
 
@@ -584,7 +594,7 @@
       <span class="section-tag">Real-World Scenarios</span>
       <h2>Federated problem-solving across trust boundaries</h2>
 
-      <div class="case-grid">
+      <div class="case-grid" tabindex="0" role="region" aria-label="Real-world scenarios (scrollable)">
         <div class="case-card">
           <div class="case-icon">&#x1F30D;</div>
           <h3>Climate Modelling Consortium</h3>

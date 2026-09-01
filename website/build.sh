@@ -25,3 +25,7 @@ cp -r ../assets/screenshots/* dist/img/ 2>/dev/null || true
 
 echo "==> Build complete. Output in dist/"
 ls -la dist/
+
+# Terminal completion sentinel — proves build.sh ran to completion from a bare
+# `tail` of its own stdout (byte-identity target for dream-build-check.sh).
+echo "BUILD-COMPLETE bytes: $(du -sb dist | cut -f1)"

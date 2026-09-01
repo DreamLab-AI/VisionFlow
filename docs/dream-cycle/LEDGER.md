@@ -7,3 +7,4 @@
 | 2026-08-29 | build-pipeline | Given the 2026-08-28 operator conversion of evaluators to checked-in scripts (`s | NONE | NONE | yes | ACCEPT |  | 22ffea27b4bf |  |
 | 2026-08-30 | webgl-mesh | Given the WebGL2 mesh is self-contained in the hand-written site, when its shade | NONE | NONE | yes | INCONCLUSIVE |  | 330422a39b66 |  |
 | 2026-08-31 | seo-and-meta | Given the 2026-08-30 carry-over that CNAME propagation into build output was unv | NONE | NONE | yes | ACCEPT |  | 063e903dfbf7 |  |
+| 2026-09-01 | build-pipeline | Given commit `9f024d0` with a static-site pipeline whose only evaluators are `sc | NONE | NONE | yes | ACCEPT |  | 96ab16eaeebd |  |

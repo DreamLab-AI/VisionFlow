@@ -45,14 +45,16 @@
   },
   "evaluatorEntrypoints": {
     "build-check": "bash scripts/dream-build-check.sh",
-    "links": "bash scripts/dream-link-check.sh 2>&1 | tail -6"
+    "links": "bash scripts/dream-link-check.sh 2>&1 | tail -6",
+    "meta-tags": "bash scripts/dream-meta-tags-scan.sh",
+    "structured-data": "bash scripts/dream-structured-data-scan.sh"
   },
   "competitors": [],
   "adrConvention": "4-digit",
   "extraDisciplines": [
-    "static-site-only: this is a hand-written HTML/CSS/JS site with a self-contained WebGL2 mesh — no bundler, no WASM, no compile. Hypotheses must respect that; do not propose introducing a build framework.",
-    "browser-checks-out-of-annexe: accessibility, performance (Lighthouse), and playwright visual tests need the browsercontainer sidecar, which the HP annexe does NOT have. Never invent a browser evaluator here — record such findings as 'HANDOFF (browser):' notes for a sidecar-equipped run (npm run test:a11y / test:perf locally).",
-    "content-is-the-product: copy, messaging, and asset integrity are the surfaces that matter for a marketing site — weight them above code-structure concerns."
+    "static-site-only: this is a hand-written HTML/CSS/JS site with a self-contained WebGL2 mesh \u2014 no bundler, no WASM, no compile. Hypotheses must respect that; do not propose introducing a build framework.",
+    "browser-checks-out-of-annexe: accessibility, performance (Lighthouse), and playwright visual tests need the browsercontainer sidecar, which the HP annexe does NOT have. Never invent a browser evaluator here \u2014 record such findings as 'HANDOFF (browser):' notes for a sidecar-equipped run (npm run test:a11y / test:perf locally).",
+    "content-is-the-product: copy, messaging, and asset integrity are the surfaces that matter for a marketing site \u2014 weight them above code-structure concerns."
   ],
   "ledgerPath": "docs/dream-cycle/LEDGER.md",
   "branchPrefix": "dream/",

@@ -274,7 +274,9 @@ function initReadingSwitch() {
   // floating switch
   const sw = document.createElement('div');
   sw.id = 'reading-switch';
-  sw.setAttribute('role', 'group');
+  // region (a labelled landmark): the pill is appended to <body> outside any
+  // landmark, and axe's region rule requires all content to live inside one
+  sw.setAttribute('role', 'region');
   sw.setAttribute('aria-label', 'Reading level');
   sw.innerHTML = '<span class="rl-thumb"></span><button type="button" data-plain="false">Technical</button><button type="button" data-plain="true">Plain English</button>';
   document.body.appendChild(sw);
