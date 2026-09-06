@@ -225,6 +225,7 @@ const PANES = [
     'Running and answering, but without automated checks on a hosted build yet.',
     'A new fact has gone the whole way through: proposed by an agent, approved by a person, published the same day.',
     'Tamper-evident records and shared custody are available now. The stronger trust levels wait for an independent audit.',
+    'Balances, charges, exchange and token issuing work today on Bitcoin&rsquo;s test network. The Lightning rail is chosen but not yet built in.',
     'Organisations can connect their own instances, but a full live test between two of them has not been run yet, so a single instance remains the supported setup.',
     'Each night the code proposes one improvement to itself and a person decides whether to merge it. That runs here; extending it across every part is in progress.',
     'There is no contact form yet. The button on this page takes you straight to DreamLab AI.'
@@ -256,7 +257,7 @@ const PANES = [
   ] },
   { id: 'broker', sel: '.identity-callout p', plains: [
     'The whole loop, end to end: someone speaks, an agent acts as itself and writes to that person&rsquo;s own store, the action appears live in the shared 3D view, and anything worth keeping is proposed for a person to approve.',
-    'Value moves on the same rails as everything else. The identity that signs the work can also be paid; settlement is in US-dollar stablecoins, and high-value records borrow Bitcoin&rsquo;s security, with no token of our own.'
+    'Value moves on the same rails as everything else. The identity that signs the work can also be paid. Balances are kept in satoshis, access is charged through the web&rsquo;s own payment-required response, and the chosen real-money rail is Lightning. The same machinery can issue tokens on Bitcoin; DREAM, the operator&rsquo;s own token, has been minted experimentally on the test network. High-value records borrow Bitcoin&rsquo;s security, on the test network by default.'
   ] },
   { id: 'economic', sel: '.econ-card > p', plains: [
     'Uncoordinated agents waste most of their effort rediscovering context, repeating reasoning and contradicting each other. Every session starts from cold.',
