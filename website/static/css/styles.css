@@ -1663,6 +1663,15 @@ a.substrate-shot:hover {
 .figcap { font-size: 0.82rem; color: var(--text-dim); margin: 12px 0 0; max-width: 72ch; }
 .figcap a { color: var(--gold); text-decoration: none; }
 .figcap a:hover { color: var(--bright-gold); }
+/* A bare <a> in a section lead had no rule at all, so the user-agent default
+   #0000EE won — about 2.3:1 on this ground, under the 3:1 large-text floor.
+   Three links in the #dreaming lead rendered blue in prose for exactly that
+   reason; three others only escaped it by carrying an inline
+   style="color:var(--gold)", which masked the missing rule rather than fixing
+   it. Same treatment as .figcap a. Keyboard focus is already covered by the
+   global :focus-visible rule, so no separate focus style is needed here. */
+.section-lead a { color: var(--gold); text-decoration: none; }
+.section-lead a:hover { color: var(--bright-gold); }
 
 /* ── Three doors ── */
 .door-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
@@ -1724,15 +1733,8 @@ a.substrate-shot:hover {
 .estate-repo a { color: var(--text); text-decoration: none; font-weight: 600; }
 .estate-repo a:hover { color: var(--bright-gold); }
 .estate-meta { display: block; font-family: var(--mono); font-size: 0.68rem; color: var(--text-dim); margin-top: 3px; letter-spacing: 0.02em; }
-/* These are the first bare <a> elements ever placed in a .section-lead and in a
-   stamp caption, so nothing in the stylesheet targeted them and the UA default
-   #0000EE won — roughly 2.3:1 on this ground, under the 3:1 large-text floor.
-   Colour only, no underline, matching .figcap a and the inline-styled lead
-   links elsewhere. Scoped to #estate on purpose: three other section leads
-   carry the same unstyled links and are a separate, wider fix. */
-#estate .section-lead a,
+/* Matches .figcap a; the bare-<a>-in-a-lead case is handled site-wide up there. */
 .estate-stamp a { color: var(--gold); text-decoration: none; }
-#estate .section-lead a:hover,
 .estate-stamp a:hover { color: var(--bright-gold); }
 
 .estate-pages, .estate-note-line { line-height: 1.4; }
