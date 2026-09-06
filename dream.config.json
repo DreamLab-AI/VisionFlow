@@ -29,6 +29,13 @@
         "meta-tags",
         "structured-data"
       ]
+    },
+    {
+      "deep": "estate-health",
+      "scan": [
+        "snapshot-freshness",
+        "persistent-reds"
+      ]
     }
   ],
   "bonusModuli": {
@@ -47,14 +54,16 @@
     "build-check": "bash scripts/dream-build-check.sh",
     "links": "bash scripts/dream-link-check.sh 2>&1 | tail -6",
     "meta-tags": "bash scripts/dream-meta-tags-scan.sh",
-    "structured-data": "bash scripts/dream-structured-data-scan.sh"
+    "structured-data": "bash scripts/dream-structured-data-scan.sh",
+    "estate-health": "node scripts/estate-health.mjs check"
   },
   "competitors": [],
   "adrConvention": "4-digit",
   "extraDisciplines": [
     "static-site-only: this is a hand-written HTML/CSS/JS site with a self-contained WebGL2 mesh \u2014 no bundler, no WASM, no compile. Hypotheses must respect that; do not propose introducing a build framework.",
     "browser-checks-out-of-annexe: accessibility, performance (Lighthouse), and playwright visual tests need the browsercontainer sidecar, which the HP annexe does NOT have. Never invent a browser evaluator here \u2014 record such findings as 'HANDOFF (browser):' notes for a sidecar-equipped run (npm run test:a11y / test:perf locally).",
-    "content-is-the-product: copy, messaging, and asset integrity are the surfaces that matter for a marketing site \u2014 weight them above code-structure concerns."
+    "content-is-the-product: copy, messaging, and asset integrity are the surfaces that matter for a marketing site \u2014 weight them above code-structure concerns.",
+    "estate-health-is-read-not-collected: the nightly estate snapshot (website/static/data/estate-health.json) is collected by CI (.github/workflows/estate-health.yml at 02:30 UTC) and committed as data. A dream night READS it through `node scripts/estate-health.mjs check` and forms hypotheses about persistent reds, stale snapshots or roster drift; it never re-collects, never adds tokens, and never edits the snapshot by hand."
   ],
   "ledgerPath": "docs/dream-cycle/LEDGER.md",
   "branchPrefix": "dream/",

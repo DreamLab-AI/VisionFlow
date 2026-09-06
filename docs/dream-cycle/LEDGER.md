@@ -13,3 +13,4 @@
 | 2026-09-04 | content-integrity | Given the meta-scan baseline `twitter-tags: 0` alongside `og-tags: 4` on the han | NONE | NONE | yes | ACCEPT |  | 9db384a9b268 |  |
 | 2026-09-05 | build-pipeline | Given the 2026-09-01 sentinel baseline (build.sh emits `BUILD-COMPLETE bytes:N`; | NONE | NONE | yes | ACCEPT |  | f76334fc892e |  |
 | 2026-09-06 | webgl-mesh | Given the WebGL2 hero mesh is self-contained inline hand-written JS (ledger 2026 | NONE | NONE | yes | INCONCLUSIVE |  | d9a0030a0b03 |  |
+| 2026-09-06 | operator-handoff | OPERATOR ADD: estate-health evaluator, a fifth rotation slot bound to `node scripts/estate-health.mjs check`. The nightly estate snapshot is collected by CI at 02:30 UTC (.github/workflows/estate-health.yml), committed as data and published with the site; the annexe READS it offline and never collects, never holds a token. Verdicts: OK / STALE (>36 h) / RED. Governed by ADR-2008. | NONE | NONE | n/a | OPERATOR |  | session-017UpCFJ |  |
