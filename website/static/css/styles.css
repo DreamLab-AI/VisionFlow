@@ -1716,14 +1716,30 @@ a.substrate-shot:hover {
 /* ── Nightly estate check (#estate) ──────────────────────────────────────── */
 /* The repo table borrows .status-table's row rules but has five columns, so it
    must restate the widths .status-table sets for its own three. */
-.estate-table th:nth-child(1) { width: 22%; }
-.estate-table th:nth-child(2) { width: 30%; }
+.estate-table th:nth-child(1) { width: 26%; }
+.estate-table th:nth-child(2) { width: 27%; }
 .estate-table th:nth-child(3) { width: 84px; }
 .estate-table th:nth-child(4) { width: 132px; }
 .estate-table td { vertical-align: top; }
 .estate-repo a { color: var(--text); text-decoration: none; font-weight: 600; }
 .estate-repo a:hover { color: var(--bright-gold); }
 .estate-meta { display: block; font-family: var(--mono); font-size: 0.68rem; color: var(--text-dim); margin-top: 3px; letter-spacing: 0.02em; }
+/* These are the first bare <a> elements ever placed in a .section-lead and in a
+   stamp caption, so nothing in the stylesheet targeted them and the UA default
+   #0000EE won — roughly 2.3:1 on this ground, under the 3:1 large-text floor.
+   Colour only, no underline, matching .figcap a and the inline-styled lead
+   links elsewhere. Scoped to #estate on purpose: three other section leads
+   carry the same unstyled links and are a separate, wider fix. */
+#estate .section-lead a,
+.estate-stamp a { color: var(--gold); text-decoration: none; }
+#estate .section-lead a:hover,
+.estate-stamp a:hover { color: var(--bright-gold); }
+
+.estate-pages, .estate-note-line { line-height: 1.4; }
+.estate-pages a, .estate-note-line a { color: var(--text-dim); text-decoration: none; }
+.estate-pages a:hover, .estate-note-line a:hover { color: var(--bright-gold); }
+.estate-pages .r-red { color: var(--crimson); }
+.estate-pages .r-amber { color: var(--amber); }
 .estate-runs { list-style: none; margin: 8px 0 0; padding: 0; }
 .estate-runs li { margin: 0 0 3px; line-height: 1.35; }
 .estate-runs a { font-family: var(--mono); font-size: 0.7rem; color: var(--text-dim); text-decoration: none; }

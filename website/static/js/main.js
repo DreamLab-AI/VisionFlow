@@ -662,6 +662,40 @@ function estateRun(run) {
   return `<li><a class="${tone.trim()}" href="${esc(href)}" target="_blank" rel="noopener">${text}</a></li>`;
 }
 
+// GitHub reports no build status for a Pages site deployed by a workflow, so a
+// null status with build_type "workflow" means live-but-unreported, not broken.
+// Only "errored" is a defect and only it is painted red; an unreported status
+// stays dim so the page never invents a failure the estate does not have.
+function estatePages(pages) {
+  if (!pages || !pages.url) return '';
+  let label = 'status not reported';
+  let tone = '';
+  if (pages.status === 'built') {
+    label = 'built';
+  } else if (pages.status === 'errored') {
+    label = 'errored';
+    tone = 'r-red';
+  } else if (pages.status === 'building') {
+    label = 'building';
+    tone = 'r-amber';
+  } else if (pages.build_type === 'workflow') {
+    label = 'deployed by workflow, status not reported';
+  }
+
+  let shown = pages.url;
+  try {
+    const parsed = new URL(pages.url);
+    shown = parsed.host + (parsed.pathname === '/' ? '' : parsed.pathname.replace(/\/$/, ''));
+  } catch (error) {
+    shown = pages.url;
+  }
+  const href = safeUrl(pages.url);
+  const link = href
+    ? `<a href="${esc(href)}" target="_blank" rel="noopener">${esc(shown)}</a>`
+    : esc(shown);
+  return `<span class="estate-meta estate-pages">Pages: ${link} · <span class="${tone}">${esc(label)}</span></span>`;
+}
+
 function estateRepoRow(repo) {
   const ci = repo.ci || {};
   const pill = CI_PILLS[ci.state] || CI_PILLS.unknown;
@@ -690,8 +724,11 @@ function estateRepoRow(repo) {
     ? `<span class="estate-num on">${esc(num(repo.open_prs))}</span>`
     : `<span class="estate-num">${esc(num(repo.open_prs))}</span>`;
 
+  const notes = (Array.isArray(repo.notes) ? repo.notes : [])
+    .map((note) => `<span class="estate-meta estate-note-line">${esc(note)}</span>`).join('');
+
   return `<tr>
-    <td class="estate-repo" data-label="Repository">${name}<span class="estate-meta">${esc(provenance)}</span></td>
+    <td class="estate-repo" data-label="Repository">${name}<span class="estate-meta">${esc(provenance)}</span>${estatePages(repo.pages)}${notes}</td>
     <td data-label="CI on ${esc(repo.default_branch || 'default branch')}">
       <span class="st-pill ${pill[0]}">${esc(pill[1])}</span>
       ${runs.length ? `<ul class="estate-runs">${runs.map(estateRun).join('')}</ul>` : ''}
@@ -724,11 +761,14 @@ function estateRegistry(entry) {
   const name = href
     ? `<a href="${esc(href)}" target="_blank" rel="noopener">${esc(entry.name)}</a>`
     : esc(entry.name);
-  const published = entry.published_at ? ' · published ' + relTime(entry.published_at) : '';
+  const detail = [
+    entry.published_at ? 'published ' + relTime(entry.published_at) : null,
+    entry.note || null
+  ].filter(Boolean).join(' · ');
   return `<li>${name} <span class="estate-meta">${esc(entry.registry)}</span>
     <span class="spacer"></span>
     <span class="estate-num">${esc(entry.version || '—')}</span>
-    <span class="estate-meta">${esc(published)}</span></li>`;
+    <span class="estate-meta">${detail ? '· ' + esc(detail) : ''}</span></li>`;
 }
 
 function estateMarkup(data) {
