@@ -178,7 +178,7 @@ the URN/enrichment layer but not on the render-layer graph `Node`), agent-side a
 
 ### G5: Cloudflare Workers Portability Drives Duplication — Core Extraction SHIPPED
 
-**Resolved for pure-logic surfaces (2026-07-03).** The decision is made and the extraction has happened: solid-pod-rs ships a no-Tokio `core` feature (`Cargo.toml` `core=[std, dep:js-sys, did-nostr-types]`), and nostr-rust-forum consumes the **published `solid-pod-rs 0.5.0-alpha.3`** with `default-features=false, features=[core]` (Cargo.lock pinned). The wac/webid/did pure-logic surfaces are shared, not reimplemented.
+**Resolved for pure-logic surfaces (2026-07-03).** The decision is made and the extraction has happened: solid-pod-rs ships a no-Tokio `core` feature (`Cargo.toml` `core=[std, dep:js-sys, did-nostr-types]`), and nostr-rust-forum consumes the **published `solid-pod-rs`** with `default-features=false, features=[core]` (Cargo.lock pinned; `=0.5.0-alpha.7` at kit `1.0.0-beta.10`, with `0.5.0-alpha.9` released 2026-09-06 and verified to compile for the next kit release). The wac/webid/did pure-logic surfaces are shared, not reimplemented.
 
 **Still open:** NIP-98 remains triplicated (solid-pod-rs, `nostr-bbs-core` which adds D1 replay, and the forum client) — the D1 replay store keeps the forum verifier edge-local, so a single shared NIP-98 verifier is not yet achieved (G3). Server-framework-bound surfaces stay two-tier.
 
