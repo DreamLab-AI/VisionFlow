@@ -14,9 +14,10 @@
 > note-to-canon six-stage timeline (§Guarantees), the web-contract trust ladder (§Judgment
 > Broker, ADR-124 rungs L0–L3) and the read-pervasive / write-governed augmentation diagram
 > (§Ontology Loom). Every new block carries a plain-English face on the reading switch. Figures
-> from the explainer that conflicted with canon were not adopted: five repositories, 92 kernels,
-> 88 skills, 100k nodes at 60 fps, the 0.35 expiry threshold, the "one call in ten" broker
-> load, and the sats-only settlement rail (the site's stablecoin statement and the triptych's
+> from the explainer that conflicted with canon were not adopted: a five-repository frame, a
+> kernel count of ninety-two, a skill count of eighty-eight, a hundred-thousand-node / 60 fps
+> render claim, the 0.35 expiry threshold, the "one call in ten" broker load, and the sats-only
+> settlement rail (the site's stablecoin statement and the triptych's
 > sats statement are both unbacked in this repo; neither was changed).
 
 **Owner:** Dr John O'Hare, DreamLab AI

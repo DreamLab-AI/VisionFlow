@@ -49,6 +49,7 @@
         <a href="#broker">Governance</a>
         <a href="#loom">Grounding</a>
         <a href="#competitive">Landscape</a>
+        <a href="#status">Status</a>
         <a href="#repos">Repos</a>
         <a href="https://www.dreamlab-ai.com" target="_blank" rel="noopener" class="nav-cta">DreamLab AI &rarr;</a>
       </div>
@@ -92,15 +93,59 @@
         <div class="stat"><span class="stat-num">55x</span><span class="stat-label">GPU Speedup</span></div>
       </div>
     </div>
-    <a href="#problem" class="scroll-cue" aria-label="Scroll to enter the mesh">
+    <a href="#questions" class="scroll-cue" aria-label="Scroll to enter the mesh">
       <span>Enter the mesh</span>
       <span class="scroll-cue-arrow">&darr;</span>
     </a>
   </section>
 
+  <!-- Straight answers -->
+  <section id="questions" class="section section-dark">
+    <div class="container reveal" data-num="02">
+      <span class="section-tag">Short version</span>
+      <h2>Seven questions, answered once</h2>
+      <p class="section-lead">Everything below expands on these. If you read nothing else, read this.</p>
+
+      <div class="q-grid">
+        <div class="q-card">
+          <h3><span class="q-n">01</span>What is this?</h3>
+          <p>Six open-source substrates that turn an organisation&rsquo;s knowledge into a governed, queryable, visible asset. One identity, <code>did:nostr</code>, runs through all of them: the same key signs a request, holds a pod, approves a decision and gets paid.</p>
+        </div>
+        <div class="q-card">
+          <h3><span class="q-n">02</span>What can you do with it?</h3>
+          <p>Ask a formal ontology a question from inside any agent turn. Watch a seventeen-thousand-node graph settle live under GPU physics. Review what agents propose and sign it into canon with your own key. Stand inside the same graph with colleagues, in a CAVE today and on a Quest 3 as the native client lands.</p>
+        </div>
+        <div class="q-card">
+          <h3><span class="q-n">03</span>Why was it built?</h3>
+          <p>Agent output is cheap and trusted knowledge is not. Teams need agents working at machine speed while people keep authority over what counts as true, with a record of who decided.</p>
+        </div>
+        <div class="q-card">
+          <h3><span class="q-n">04</span>What problems does it solve?</h3>
+          <p>Ungoverned writes to shared knowledge, provenance nobody can query, a runtime with no declared capabilities or spend limits, and knowledge that lives in documents nobody reads twice.</p>
+        </div>
+        <div class="q-card">
+          <h3><span class="q-n">05</span>One end-to-end example?</h3>
+          <p>A note is written and marked public. VisionClaw&rsquo;s discovery engine scores it, a reviewer reads the diff in the broker inbox, the Whelk reasoner checks the new axioms for consistency, the class merges by pull request, and the graph re-settles around the new canon. <a href="#guarantees">See the six stages.</a></p>
+        </div>
+        <div class="q-card">
+          <h3><span class="q-n">06</span>Where else does it apply?</h3>
+          <p>Regulated research corpora, engineering handover, executive intelligence over a living knowledge base, and immersive teaching of complex domains. <a href="#cases">Three worked scenarios.</a></p>
+        </div>
+        <div class="q-card">
+          <h3><span class="q-n">07</span>How do I run it?</h3>
+          <p>Docker Compose brings up the knowledge engine and a Nix-built container brings up the agent runtime, on your own GPU hardware. Every substrate is AGPL-3.0 on GitHub under DreamLab-AI. <a href="#repos">The repository map.</a></p>
+        </div>
+        <div class="q-card">
+          <h3><span class="q-n">+</span>Who is behind it?</h3>
+          <p>DreamLab AI Consulting Ltd, a UK creative technology studio, with fifteen years of immersive data research at the University of Salford behind the graph engine. The stack is Rust, CUDA, TypeScript and Godot, developed in the open.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- The Problem -->
   <section id="problem" class="section">
-    <div class="container reveal" data-num="02">
+    <div class="container reveal" data-num="03">
       <span class="section-tag">Problem</span>
       <h2>Hard problems share a common shape</h2>
       <p class="section-lead">Climate modelling, drug discovery, organisational transformation, creative production at scale. These problems all require diverse intelligence collaborating across trust boundaries, at scales where centralised coordination breaks down.</p>
@@ -192,7 +237,7 @@
 
   <!-- Six Substrates -->
   <section id="substrates" class="section">
-    <div class="container reveal" data-num="03">
+    <div class="container reveal" data-num="04">
       <span class="section-tag">Six Substrates, One Identity</span>
       <h2>Six independent systems mesh through one cryptographic identity spine</h2>
 
@@ -325,7 +370,7 @@
 
   <!-- Guarantees — the hard parts, running in the live path -->
   <section id="guarantees" class="section">
-    <div class="container reveal" data-num="04">
+    <div class="container reveal" data-num="05">
       <span class="section-tag">Verifiable by Construction</span>
       <h2>Guarantees that hold at runtime</h2>
       <p class="section-lead">Coordination is only worth trusting when its guarantees survive production. These are the parts that are hardest to fake and easiest to hand-wave past, and in VisionFlow they run in the live path.</p>
@@ -356,12 +401,72 @@
           <p class="ledger-trans">Agent activity drives the GPU physics directly. A transient-edge attractive force draws related concepts together as work happens, so the graph moves the way the reasoning does.</p>
         </div>
       </div>
+
+      <h3 class="sub-head">Every agent turn can ask; nothing asserts truth without a person</h3>
+      <p class="section-lead fig-lead">Pervasive ontology augmentation gives every AI call in the harness one shared retrieval brain. A push channel adds a short breadcrumb to each agent turn, synchronously, with no network hop. A pull channel, the <code>ontology_ask</code> tool, returns budget-bounded answers on demand. Reading is pervasive. Writing is governed: only a proposal that passes the reasoner and earns a signed human decision can assert truth.</p>
+      <div class="fig-wrap">
+        <svg class="fig" viewBox="0 0 860 300" role="img" aria-label="Diagram: an agent turn reaches one retrieval brain over a push channel and a pull channel; the brain reads from the ontology core; writes take a separate governed path through a proposal, the Whelk reasoner gate and a signed human decision before reaching the core.">
+          <defs>
+            <marker id="fa-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--purple)"/></marker>
+            <marker id="fa-arg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--amber)"/></marker>
+          </defs>
+          <g class="f-node" style="--i:0"><rect class="f-box" x="20" y="66" width="190" height="58" rx="10" stroke="var(--purple)"/><text x="115" y="90" text-anchor="middle" font-size="13" font-weight="600">agent turn</text><text class="f-mono" x="115" y="108" text-anchor="middle" font-size="9.5" fill="var(--purple)">any AI call in agentbox</text></g>
+          <g class="f-node" style="--i:1"><circle class="f-box" cx="410" cy="100" r="54" stroke="var(--gold)" stroke-width="1.6"/><text x="410" y="96" text-anchor="middle" font-size="13" font-weight="600">one retrieval</text><text x="410" y="113" text-anchor="middle" font-size="13" font-weight="600">brain</text></g>
+          <g class="f-node" style="--i:2"><rect class="f-box" x="640" y="46" width="200" height="108" rx="12" stroke="var(--cyan)" stroke-width="1.6"/><text x="740" y="76" text-anchor="middle" font-size="13" font-weight="600">ontology core</text><text class="f-mute" x="740" y="96" text-anchor="middle" font-size="11">Oxigraph + Whelk OWL 2 EL</text><text class="f-mute" x="740" y="114" text-anchor="middle" font-size="11">consistency checked on write</text><text class="f-mono" x="740" y="136" text-anchor="middle" font-size="9.5" fill="var(--cyan)">VisionClaw</text></g>
+          <line class="f-draw" pathLength="100" x1="210" y1="84" x2="352" y2="94" stroke="var(--purple)" stroke-width="1.8" marker-end="url(#fa-arr)"/>
+          <text class="f-mono" x="218" y="62" font-size="9.5" fill="var(--purple)">push · per-turn breadcrumb</text>
+          <line class="f-draw" pathLength="100" x1="352" y1="122" x2="210" y2="108" stroke="var(--purple)" stroke-width="1.8" marker-end="url(#fa-arr)"/>
+          <text class="f-mono" x="218" y="150" font-size="9.5" fill="var(--purple)">pull · ontology_ask on demand</text>
+          <line class="f-draw" pathLength="100" x1="464" y1="100" x2="634" y2="100" stroke="var(--cyan)" stroke-width="1.8"/>
+          <text class="f-mono" x="549" y="90" text-anchor="middle" font-size="9.5" fill="var(--cyan)">read · pervasive</text>
+          <g class="f-node" style="--i:3"><rect class="f-box" x="300" y="220" width="120" height="44" rx="8" stroke="var(--amber)"/><text x="360" y="246" text-anchor="middle" font-size="12">propose</text></g>
+          <g class="f-node" style="--i:4"><rect class="f-box" x="470" y="220" width="130" height="44" rx="8" stroke="var(--amber)"/><text x="535" y="240" text-anchor="middle" font-size="12">reasoner gate</text><text class="f-mute" x="535" y="256" text-anchor="middle" font-size="10">Whelk consistency</text></g>
+          <g class="f-node" style="--i:5"><rect class="f-box" x="650" y="220" width="160" height="44" rx="8" stroke="var(--bright-gold)"/><text x="730" y="240" text-anchor="middle" font-size="12">signed human decision</text><text class="f-mute" x="730" y="256" text-anchor="middle" font-size="10">then, and only then, canon</text></g>
+          <g stroke="var(--amber)" stroke-width="1.6" fill="none">
+            <path class="f-draw" pathLength="100" d="M110 124 V242 H294" marker-end="url(#fa-arg)"/>
+            <line class="f-draw" pathLength="100" x1="420" y1="242" x2="464" y2="242" marker-end="url(#fa-arg)"/>
+            <line class="f-draw" pathLength="100" x1="600" y1="242" x2="644" y2="242" marker-end="url(#fa-arg)"/>
+            <path class="f-draw" pathLength="100" d="M730 220 L740 160" marker-end="url(#fa-arg)"/>
+          </g>
+          <text class="f-mono" x="126" y="232" font-size="9.5" fill="var(--amber)">write · governed</text>
+          <circle class="f-pulse" r="4" fill="var(--bright-gold)" style="offset-path: path('M110 124 V242 H740 L740 160')"/>
+        </svg>
+      </div>
+      <p class="figcap">Read pervasive, write governed. Agents may always ask; nothing asserts truth without a reasoner pass and a signed human decision.</p>
+
+
+      <h3 class="sub-head" id="migration">From note to canon, in six stages</h3>
+      <p class="section-lead fig-lead">Knowledge lives in two tiers. Vault pages hold working notes; OWL classes hold canon. When a note matters enough it migrates, and every migration walks the same six stages of VisionClaw&rsquo;s insight-migration loop.</p>
+      <div class="fig-wrap">
+        <svg class="fig" viewBox="0 0 900 236" role="img" aria-label="Six-stage timeline from a written note to a live ontology class: authoring, detection, review, approval, merge, physics, with a dashed return arrow labelled new notes observe the canon.">
+          <defs>
+            <marker id="fb-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--text-dim)"/></marker>
+          </defs>
+          <g class="f-node" style="--i:0"><rect class="f-box" x="10" y="70" width="128" height="72" rx="10" stroke="var(--emerald)"/><text x="74" y="96" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--emerald)">1 · Authoring</text><text class="f-mute" x="74" y="115" text-anchor="middle" font-size="11">a vault note is written</text><text class="f-mute" x="74" y="130" text-anchor="middle" font-size="11">and marked public</text></g>
+          <g class="f-node" style="--i:1"><rect class="f-box" x="160" y="70" width="128" height="72" rx="10" stroke="var(--cyan)"/><text x="224" y="96" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--cyan)">2 · Detection</text><text class="f-mute" x="224" y="115" text-anchor="middle" font-size="11">the discovery engine</text><text class="f-mute" x="224" y="130" text-anchor="middle" font-size="11">scores and surfaces it</text></g>
+          <g class="f-node" style="--i:2"><rect class="f-box" x="310" y="70" width="128" height="72" rx="10" stroke="var(--amber)"/><text x="374" y="96" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--amber)">3 · Review</text><text class="f-mute" x="374" y="115" text-anchor="middle" font-size="11">a person reads the diff</text><text class="f-mute" x="374" y="130" text-anchor="middle" font-size="11">in the broker inbox</text></g>
+          <g class="f-node" style="--i:3"><rect class="f-box" x="460" y="70" width="128" height="72" rx="10" stroke="var(--bright-gold)"/><text x="524" y="96" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--bright-gold)">4 · Approval</text><text class="f-mute" x="524" y="115" text-anchor="middle" font-size="11">signed, after Whelk</text><text class="f-mute" x="524" y="130" text-anchor="middle" font-size="11">checks the axioms</text></g>
+          <g class="f-node" style="--i:4"><rect class="f-box" x="610" y="70" width="128" height="72" rx="10" stroke="var(--purple)"/><text x="674" y="96" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--purple)">5 · Merge</text><text class="f-mute" x="674" y="115" text-anchor="middle" font-size="11">the pull request lands;</text><text class="f-mute" x="674" y="130" text-anchor="middle" font-size="11">the class goes live</text></g>
+          <g class="f-node" style="--i:5"><rect class="f-box" x="760" y="70" width="128" height="72" rx="10" stroke="var(--cyan)"/><text x="824" y="96" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--cyan)">6 · Physics</text><text class="f-mute" x="824" y="115" text-anchor="middle" font-size="11">the graph re-settles</text><text class="f-mute" x="824" y="130" text-anchor="middle" font-size="11">around new canon</text></g>
+          <g stroke="var(--text-dim)" stroke-width="1.6">
+            <line class="f-draw" pathLength="100" x1="138" y1="106" x2="156" y2="106" marker-end="url(#fb-arr)"/>
+            <line class="f-draw" pathLength="100" x1="288" y1="106" x2="306" y2="106" marker-end="url(#fb-arr)"/>
+            <line class="f-draw" pathLength="100" x1="438" y1="106" x2="456" y2="106" marker-end="url(#fb-arr)"/>
+            <line class="f-draw" pathLength="100" x1="588" y1="106" x2="606" y2="106" marker-end="url(#fb-arr)"/>
+            <line class="f-draw" pathLength="100" x1="738" y1="106" x2="756" y2="106" marker-end="url(#fb-arr)"/>
+          </g>
+          <path class="f-draw f-return" pathLength="100" d="M824 142 C 824 206, 74 206, 74 148" stroke="var(--text-dim)" stroke-width="1.4" stroke-dasharray="5 5" fill="none" marker-end="url(#fb-arr)"/>
+          <text class="f-dim f-mono" x="449" y="222" text-anchor="middle" font-size="10">new notes observe the canon</text>
+          <circle class="f-pulse" r="4" fill="var(--bright-gold)" style="offset-path: path('M74 106 H824')"/>
+        </svg>
+      </div>
+      <p class="figcap">Nothing drifts into canon by accident, and nothing lands there without a signature on it. The closing merge event is the one edge still to be wired.</p>
     </div>
   </section>
 
   <!-- Immersive Telecollaboration -->
   <section id="immersive" class="section">
-    <div class="container reveal" data-num="05">
+    <div class="container reveal" data-num="06">
       <span class="section-tag">Immersive Telecollaboration</span>
       <h2>Walk through the knowledge graph</h2>
       <p class="section-lead">VisionClaw grew out of 15 years of immersive data research at the University of Salford&rsquo;s Centre for Virtual Environments. Dr John O&rsquo;Hare designed and ran the Octave Multimodal Lab, gaining a PhD in telecollaboration, while Prof Rob Aspin&rsquo;s research pioneered the stereoscopic CAVE infrastructure. Walking through data and reaching into graph structures at room scale shaped VisionClaw&rsquo;s force-directed engine, its physics model, and its interaction design.</p>
@@ -425,7 +530,7 @@
 
   <!-- Judgment Broker -->
   <section id="broker" class="section section-dark">
-    <div class="container reveal" data-num="06">
+    <div class="container reveal" data-num="07">
       <span class="section-tag">Judgment Broker</span>
       <h2>Human-in-the-loop governance that accelerates, not blocks</h2>
       <p class="section-lead">The Judgment Broker is an emergent property of agents, humans, a knowledge graph, and a relay mesh coordinating through shared cryptographic identity. No single repository owns the broker. Agents publish through Agentbox, humans decide through the forum, knowledge is gated through VisionClaw, provenance is anchored in sovereign pods.</p>
@@ -481,12 +586,31 @@
         <code>agent &rarr; pod &rarr; 402 settle &rarr; anchor &rarr; did:nostr</code>
         <p>The same <code>did:nostr</code> key that is a WAC principal, a relay identity and a provenance author is also a payment account, so an agent can earn, spend and sign across the mesh as one actor. Payments settle in <strong>USD stablecoins</strong> over HTTP 402; private digital objects and contracts stay in the owner&rsquo;s pod and inherit <strong>Bitcoin&rsquo;s security model</strong> through taproot-anchored commitments, borrowing the strongest settlement guarantee available rather than minting anything of our own.</p>
       </div>
+
+      <h3 class="sub-head">The web-contract trust ladder</h3>
+      <p class="section-lead fig-lead">Smart-contract trust is a declared spectrum, not a binary. Every web contract in a pod stands on a named rung: signed and anchored under an honest-or-caught operator at L0, reducible custody with m-of-n multisig and a true single-use seal at L1. The upper rungs, a trustless oracle and client-side validation, arrive only after independent audit.</p>
+      <div class="fig-wrap">
+        <svg class="fig" viewBox="0 0 860 200" role="img" aria-label="Four-rung trust ladder rising left to right: L0 honest-or-caught and L1 reducible custody are available today; L2 trustless oracle and L3 client-side validation are future and audit gated.">
+          <text class="f-mute" x="20" y="34" font-size="12">Every contract says which rung it stands on.</text>
+          <text class="f-dim" x="20" y="52" font-size="12">Two rungs ship today; the upper two wait for an independent audit.</text>
+          <g class="f-node" style="--i:0"><rect class="f-box" x="20" y="120" width="190" height="58" rx="9" stroke="var(--emerald)"/><text x="115" y="144" text-anchor="middle" font-size="12.5" font-weight="700">L0 honest-or-caught</text><text class="f-mono" x="115" y="163" text-anchor="middle" font-size="9.5" fill="var(--emerald)">available</text></g>
+          <g class="f-node" style="--i:1"><rect class="f-box" x="235" y="92" width="190" height="58" rx="9" stroke="var(--emerald)"/><text x="330" y="116" text-anchor="middle" font-size="12.5" font-weight="700">L1 reducible custody</text><text class="f-mono" x="330" y="135" text-anchor="middle" font-size="9.5" fill="var(--emerald)">available · m-of-n multisig</text></g>
+          <g class="f-node" style="--i:2"><rect class="f-box" x="450" y="64" width="190" height="58" rx="9" stroke="var(--amber)" stroke-dasharray="7 5"/><text x="545" y="88" text-anchor="middle" font-size="12.5" font-weight="700">L2 trustless oracle</text><text class="f-mono" x="545" y="107" text-anchor="middle" font-size="9.5" fill="var(--amber)">future · audit gated</text></g>
+          <g class="f-node" style="--i:3"><rect class="f-box" x="665" y="36" width="190" height="58" rx="9" stroke="var(--amber)" stroke-dasharray="7 5"/><text x="760" y="60" text-anchor="middle" font-size="12.5" font-weight="700">L3 client-side validation</text><text class="f-mono" x="760" y="79" text-anchor="middle" font-size="9.5" fill="var(--amber)">future · audit gated</text></g>
+          <g stroke="var(--text-dim)" stroke-width="1.6" fill="none">
+            <path class="f-draw" pathLength="100" d="M210 146 L235 122"/>
+            <path class="f-draw" pathLength="100" d="M425 118 L450 94" stroke-dasharray="5 5"/>
+            <path class="f-draw" pathLength="100" d="M640 90 L665 66" stroke-dasharray="5 5"/>
+          </g>
+        </svg>
+      </div>
+      <p class="figcap">Rungs L0 and L1 ship in VisionClaw&rsquo;s web-contract substrate (ADR-124). L2 and L3 are deliberately deferred.</p>
     </div>
   </section>
 
   <!-- Economic Case -->
   <section id="economic" class="section">
-    <div class="container reveal" data-num="07">
+    <div class="container reveal" data-num="08">
       <span class="section-tag">Economic Case</span>
       <h2>Why extreme token consumption against hard problems is rational</h2>
 
@@ -542,7 +666,7 @@
 
   <!-- Ontology Evidence -->
   <section id="loom" class="section section-figure">
-    <div class="container reveal" data-num="08">
+    <div class="container reveal" data-num="09">
       <span class="section-tag">Grounding &amp; Serving Node</span>
       <h2>The Ontology Loom: measured grounding behind a model-swappable fa&ccedil;ade</h2>
       <p class="section-lead">We tested whether a formal ontology improves an LLM&rsquo;s factual recall, objectively, with gold answers derived from the knowledge graph itself. Across every model we have put behind the fa&ccedil;ade (a frontier model at one end, a small local one at the other), a static ontology scaffold lifts grounded recall to roughly 0.94 in <em>every</em> case (for example 0.15&rarr;0.94 on Gemma, 0.27&rarr;0.94 on Muse, paired uplift with bootstrap 95% CIs), and it runs faster than the bare model (<a href="https://github.com/DreamLab-AI/loom/blob/main/docs/research/paper-v5/main.pdf" target="_blank" rel="noopener" style="color:var(--gold)">full report</a>). An input-exposure control makes the reading honest: the copy ceiling on this node is 0.964 and gain over copy is uniformly slightly negative across ten models from five providers, so the measured product is faithful delivery of curated, checked facts, not model reasoning over injected structure &mdash; exactly what private-knowledge grounding needs, with a judged negative-control ladder confirming the lift is content-specific. The result is about the architecture, not the model: probabilistic agents bounded by machine-checkable semantics, with contradictions rejected at the Whelk gate before they enter the graph. We re-run the benchmark on each new model we deploy; the shape holds.</p>
@@ -597,7 +721,7 @@
 
   <!-- Case Studies -->
   <section id="cases" class="section section-dark">
-    <div class="container reveal" data-num="09">
+    <div class="container reveal" data-num="10">
       <span class="section-tag">Real-World Scenarios</span>
       <h2>Federated problem-solving across trust boundaries</h2>
 
@@ -637,7 +761,7 @@
 
   <!-- Competitive Landscape -->
   <section id="competitive" class="section">
-    <div class="container reveal" data-num="10">
+    <div class="container reveal" data-num="11">
       <span class="section-tag">Landscape &middot; 2026</span>
       <h2>The frontier moved to coordination guarantees</h2>
       <p class="section-lead">Through 2025&ndash;2026 the industry standardised how agents talk: Anthropic&rsquo;s MCP and Google&rsquo;s A2A, now both stewarded by the Linux Foundation&rsquo;s Agentic AI Foundation. &ldquo;Having agents&rdquo; is table stakes. The real question is coordination: who each actor cryptographically <em>is</em>, who owns the data, how decisions are governed and audited, whether reasoning is formally grounded or merely generated, and whether organisations federate without a central authority. On those axes the field thins fast.</p>
@@ -701,7 +825,7 @@
 
   <!-- Scaling Model -->
   <section id="scaling" class="section section-dark">
-    <div class="container reveal" data-num="11">
+    <div class="container reveal" data-num="12">
       <span class="section-tag">Scaling Model</span>
       <h2>Three axes, one architecture</h2>
 
@@ -728,9 +852,180 @@
     </div>
   </section>
 
+  <!-- Three doors -->
+  <section id="doors" class="section">
+    <div class="container reveal" data-num="13">
+      <span class="section-tag">Three doors</span>
+      <h2>One system, explained for your seat</h2>
+      <p class="section-lead">Pick the description that matches how you will meet it.</p>
+
+      <div class="doors">
+        <div class="door-tabs" role="tablist" aria-label="Choose your audience">
+          <button class="door-tab" role="tab" id="tab-users" aria-controls="panel-users" aria-selected="true" type="button">I will use it</button>
+          <button class="door-tab" role="tab" id="tab-devs" aria-controls="panel-devs" aria-selected="false" tabindex="-1" type="button">I will inherit the code</button>
+          <button class="door-tab" role="tab" id="tab-execs" aria-controls="panel-execs" aria-selected="false" tabindex="-1" type="button">I will sign it off</button>
+        </div>
+
+        <div class="door-panel" role="tabpanel" id="panel-users" aria-labelledby="tab-users">
+          <div class="door-block">
+            <h3>Your day with VisionFlow</h3>
+            <p>You work in three places: your notes, the live graph, and a review inbox. You write notes the way you always have. The system watches for the ones that matter, and when one crosses the line it appears in your inbox as a plain diff: the note, the class it would become, and the evidence.</p>
+          </div>
+          <div class="door-block">
+            <h3>What happens when you ask for something</h3>
+            <ul>
+              <li><strong>Ask a question.</strong> Any agent you talk to can consult the ontology mid-answer, so replies are grounded in your team&rsquo;s agreed canon rather than a model&rsquo;s general recollection.</li>
+              <li><strong>Review a proposal.</strong> You read the diff and approve or reject with one signed action. Approval means a reasoner has already confirmed the change breaks nothing.</li>
+              <li><strong>Step inside.</strong> In the CAVE, or on a Quest 3 once the native client lands, the same graph surrounds you with colleagues present in it. You explore, select and discuss; changes to canon still go through your inbox, on purpose.</li>
+            </ul>
+          </div>
+          <div class="door-block">
+            <h3>What a refusal means</h3>
+            <p>When the system declines to do something, a gate held. An agent reached for a capability it was not granted, a spend cap, or a write it was not allowed to make. A refusal is the design working, and each one leaves a signed trace you can inspect.</p>
+          </div>
+          <div class="door-block">
+            <h3>What you cannot do</h3>
+            <p>You cannot write canon directly, and neither can any agent. Everything true in the ontology got there through detection, review, a consistency check and a signed merge. That is the point.</p>
+          </div>
+        </div>
+
+        <div class="door-panel" role="tabpanel" id="panel-devs" aria-labelledby="tab-devs" hidden>
+          <div class="door-block">
+            <h3>What you are looking at</h3>
+            <p class="door-dev">Six substrates with one concern each. <code>VisionClaw</code> is a Rust server with a CUDA physics path, an Oxigraph and Whelk knowledge pipeline, a React client and a Godot XR client in progress. <code>agentbox</code> is a Nix-built container runtime that supervises agents, tools and sidecars. <code>solid-pod-rs</code> is consumed as a pinned crate, never as a checkout. The forum, the branded edge deployment and the Loom are peers on the relay mesh; this repository is the canon over all of them.</p>
+          </div>
+          <div class="door-block">
+            <h3>Runtime topology, in four facts</h3>
+            <ul class="door-dev">
+              <li>Two compose stacks join one external Docker bridge, so the engine and the runtime address each other by service name.</li>
+              <li>Nearly every published port binds loopback. The runtime exposes one LAN door, <code>:9096</code>, and it demands NIP-98 signed requests: unsigned traffic gets a 401.</li>
+              <li>Browser and headset consume the same binary WebSocket position stream, a fixed 52-byte record per node, plus one REST surface.</li>
+              <li>State lives in named volumes: vector memory in Postgres, pods, secrets and events each in their own, so a container is disposable and its knowledge is not.</li>
+            </ul>
+          </div>
+          <div class="door-block">
+            <h3>Where to start reading</h3>
+            <ul class="door-dev">
+              <li><strong>Start with the diagrams.</strong> More than seventy sequence and flow diagrams in VisionClaw, each participant carrying a <code>path:line</code> citation and each file naming a verified commit. Paths, Mermaid and citations are linted in CI.</li>
+              <li><strong>Then the design record.</strong> Decisions live in ADRs, and the house rule is that a record is amended by dated addenda, never rewritten. A decision&rsquo;s history is part of the decision.</li>
+              <li><strong>Then one trace to internalise.</strong> Follow a single agent action from the runtime, over a signed event, into the engine, and out as a rendered beam. Once you can narrate that path, the rest of the estate is variations on it.</li>
+            </ul>
+          </div>
+          <div class="door-block">
+            <h3>Habits that keep it safe</h3>
+            <p class="door-dev">Capabilities are declared in a manifest and enforced at dispatch. Secrets stay in custody volumes, not in images. New network exposure lands on a sanctioned list and is CI-enforced. If your change wants a new door, the review will ask why, and it should.</p>
+          </div>
+        </div>
+
+        <div class="door-panel" role="tabpanel" id="panel-execs" aria-labelledby="tab-execs" hidden>
+          <div class="door-block">
+            <h3>Two paragraphs on the problem</h3>
+            <p>Your organisation&rsquo;s knowledge lives in documents nobody reads twice and in the heads of people who leave. AI agents can now produce and act on knowledge at machine speed, which makes the real question sharper, not easier: who decided this was true, and what is it allowed to touch?</p>
+            <p>VisionFlow answers with structure. Agents do the fast work inside a container with declared limits. People hold a small, well-lit approval loop. The agreed knowledge becomes a formal, queryable model your team can stand inside and inspect.</p>
+          </div>
+          <div class="door-block">
+            <h3>How it earns trust</h3>
+            <ul>
+              <li><strong>Nothing becomes canon without a person.</strong> Every change to agreed knowledge passes an automated consistency check and a signed human approval.</li>
+              <li><strong>Every action has a name on it.</strong> Agents and people act under cryptographic identities, so the trail shows who did what.</li>
+              <li><strong>Agents run inside declared limits.</strong> The runtime grants capabilities and budgets explicitly and refuses the rest.</li>
+              <li><strong>Your data stays yours.</strong> Knowledge and records sit in pods on your own hardware, under your access rules, with no platform holding them.</li>
+              <li><strong>High-value decisions are tamper-evident.</strong> Decision records carry commit marks and can anchor to the Bitcoin chain, so alteration is detectable by outsiders.</li>
+            </ul>
+          </div>
+          <div class="door-block">
+            <h3>What it costs</h3>
+            <p>Every substrate is open source under AGPL-3.0, so running it yourself carries no licence fee. You provide the hardware, a GPU-equipped server, and the engineering time to operate it; DreamLab AI offers the engineering. Where the platform meters paid usage it does so in signed, auditable ledger entries rather than an opaque invoice.</p>
+          </div>
+          <div class="door-block">
+            <h3>Decisions we need from you</h3>
+            <ul>
+              <li>Which knowledge tree migrates first, and who owns its canon.</li>
+              <li>Who sits on the approval rota, and how many signatures high-value changes need.</li>
+              <li>Which deployment profile fits your risk appetite: private LAN, tunnelled, or public-facing.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- What ships today -->
+  <section id="status" class="section section-dark">
+    <div class="container reveal" data-num="14">
+      <span class="section-tag">Built, in progress, deferred</span>
+      <h2>What ships today, plainly</h2>
+      <p class="section-lead">A page like this is worth reading only if it also says what does not exist yet. Here is the shape of the estate as the engineering record states it, verified against source on 6 September 2026, with maturity words from the ADR-002 ladder.</p>
+
+      <div class="status-wrap" tabindex="0" role="region" aria-label="Estate status table">
+        <table class="status-table">
+          <thead><tr><th scope="col">Area</th><th scope="col">Where it stands</th><th scope="col">Maturity</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="st-area"><strong>Semantic core</strong>Oxigraph store, OWL 2 EL reasoning with Whelk, SHACL shapes gating writes</td>
+              <td class="st-what"><p>Running. The consistency gate is real on the elevation path, and a malformed claim is refused at the door.</p></td>
+              <td><span class="st-pill st-integrated">integrated</span></td>
+            </tr>
+            <tr>
+              <td class="st-area"><strong>GPU graph</strong>82 CUDA kernels, semantic forces, one binary position wire to the browser</td>
+              <td class="st-what"><p>Running. 13,165 nodes and 153,957 edges rendered live in the September 2026 browser receipt.</p></td>
+              <td><span class="st-pill st-released">released</span></td>
+            </tr>
+            <tr>
+              <td class="st-area"><strong>XR client</strong>Godot 4, godot-rust, OpenXR on Quest 3</td>
+              <td class="st-what"><p>In progress. The CAVE validated the concept at scale; the native headset client is migrating onto the same wire and physics.</p></td>
+              <td><span class="st-pill st-progress">in progress</span></td>
+            </tr>
+            <tr>
+              <td class="st-area"><strong>Governance loop</strong>ACSP kinds 31400 to 31405, signed decisions, NIP-42 at the relay</td>
+              <td class="st-what"><p>Running, for one use case today: ontology concept elevation. The closing <code>ConceptElevated</code> event on merge is still to be wired.</p></td>
+              <td><span class="st-pill st-integrated">integrated</span></td>
+            </tr>
+            <tr>
+              <td class="st-area"><strong>Agent runtime</strong>Nix-built container, 126 skills, manifest-gated capabilities, one NIP-98 door</td>
+              <td class="st-what"><p>Running. Unauthenticated requests to the LAN door are refused, verified in the browser receipt.</p></td>
+              <td><span class="st-pill st-released">released</span></td>
+            </tr>
+            <tr>
+              <td class="st-area"><strong>Ontology grounding</strong>The Loom fa&ccedil;ade, confidence-aware injection, model swap behind one interface</td>
+              <td class="st-what"><p>Running. The fa&ccedil;ade answers healthy at 8,146 classes; hosted CI for the Loom is still open.</p></td>
+              <td><span class="st-pill st-integrated">integrated</span></td>
+            </tr>
+            <tr>
+              <td class="st-area"><strong>Governed elevation</strong>Propose, approve, publish, end to end</td>
+              <td class="st-what"><p>Running. The first elevation ran proposed, approved and live in the served generation the same day.</p></td>
+              <td><span class="st-pill st-integrated">integrated</span></td>
+            </tr>
+            <tr>
+              <td class="st-area"><strong>Provenance and value</strong>Git-marks, taproot block-trails, HTTP 402 gating</td>
+              <td class="st-what"><p>Partly. Web-contract rungs L0 and L1 ship; L2 and L3 wait for independent audit.</p></td>
+              <td><span class="st-pill st-progress">L0 and L1</span></td>
+            </tr>
+            <tr>
+              <td class="st-area"><strong>Cross-org mesh federation</strong>IS-Envelopes between sovereign nodes</td>
+              <td class="st-what"><p>Built, not yet federation-verified. The transport and relay auth exist; standalone-first stays the supported mode until the live cross-substrate smoke test runs.</p></td>
+              <td><span class="st-pill st-progress">integrated, unverified</span></td>
+            </tr>
+            <tr>
+              <td class="st-area"><strong>Dreaming</strong>The nightly self-improvement loop</td>
+              <td class="st-what"><p>Running on this repository. The estate-wide orchestrator over the agent fleet is in progress.</p></td>
+              <td><span class="st-pill st-standalone">standalone</span></td>
+            </tr>
+            <tr>
+              <td class="st-area"><strong>Contact form on this site</strong></td>
+              <td class="st-what"><p>Deferred. The one action routes to DreamLab AI directly; no form endpoint exists yet.</p></td>
+              <td><span class="st-pill st-deferred">deferred</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="figcap">Source: the 2026-09-06 post-sprint closeout table and the README status ladder in <a href="https://github.com/DreamLab-AI/VisionFlow/tree/main/docs/estate-closeout" target="_blank" rel="noopener">docs/estate-closeout</a>. A maturity claim above the tier its evidence supports is a governance defect here, not a footnote.</p>
+    </div>
+  </section>
+
   <!-- Repository Map -->
   <section id="repos" class="section">
-    <div class="container reveal" data-num="12">
+    <div class="container reveal" data-num="15">
       <span class="section-tag">Repository Map</span>
       <h2>The six substrates, this ecosystem-guide repository, and the published corpus</h2>
 
