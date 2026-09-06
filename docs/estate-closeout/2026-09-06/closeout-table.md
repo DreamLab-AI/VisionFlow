@@ -66,12 +66,16 @@ Not moved: the forum kit's own `solid-pod-rs =0.5.0-alpha.7` (compiles against a
 
 ## Operator actions
 
-- Decide pod delivery for the VisionClaw ontology (row 23): pull model at launch (recommended), or LAN self-hosted runner plus `vars.SOLID_POD_URL`. Until then run artefacts are the deliverable. Delete the stale `agentbox/.github/workflows/ontology-publish.yml` fork.
-1. Push the local commits above (VisionFlow x3, agentbox, loom, dream-machine), then bump and push the VisionClaw submodule pointer. VisionFlow's push runs the rewritten deploy, drift-counter, harness-fitness and fixture-drift workflows on hosted CI for the first time; fixture-drift is expected red until sibling credentials exist.
-2. Dispatch `deploy.yml` and `workers-deploy.yml` in dreamlab-ai-website to publish the six-days-stale site.
-3. Add `ONTOLOGY_SOURCE_TOKEN` (fine-grained PAT, Contents: read on jjohare/logseq) to DreamLab-AI/VisionClaw.
-4. Decide the agentbox solid-pod-rs nix pin (alpha.3 held or bump to alpha.8) and the Loom model-identity doc.
-5. Merge or close dream-engine dependabot PRs #1 to #6.
+Status at 17:10Z. Done items are kept so the morning list still reads.
+
+1. DONE 11:00 to 12:00Z: local commits pushed, VisionClaw submodule pointer bumped (see Release rollout).
+2. DONE 11:44Z: dreamlab-ai-website Pages and five Workers redeployed, health green.
+3. DONE 16:20Z: `ONTOLOGY_SOURCE_TOKEN` minted by the operator, verified to read `jjohare/visionGraph` only, stored as a VisionClaw repository secret (row 23).
+4. DONE: agentbox solid-pod-rs nix pin moved to alpha.9 (cda60e7a0). OPEN: Loom model-identity doc.
+5. DONE 16:00Z: `@dreamlab-ai/webvowl-wasm` deleted from npm; trusted publisher for `@dreamlab-ai/vowl-wasm` configured on npmjs.com (row 22; first OIDC publish still to be exercised by the next tag).
+6. OPEN: merge or close dream-engine dependabot PRs #1 to #6.
+7. OPEN: decide pod delivery for the VisionClaw ontology (row 23): pull model at launch (recommended), or a LAN self-hosted runner plus `vars.SOLID_POD_URL`. Until then the run artefacts are the deliverable.
+8. OPEN: delete the stale `agentbox/.github/workflows/ontology-publish.yml` fork (fails on every push, no agentbox consumer).
 
 ## Method notes for the next mesh
 
