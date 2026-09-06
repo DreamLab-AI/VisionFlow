@@ -1,0 +1,52 @@
+{
+  "captured_at": "2026-09-04T20:37:40.116467+00:00",
+  "head": "fabcdbcc9fd67951087a9492fb45780bd379134b",
+  "branch": "main",
+  "scope": "Current authored corpus producer, synthetic pipeline probes and existing tests; no publication.",
+  "probe": {
+    "command": [
+      "/home/devuser/workspace/knowledgeGraph/.venv/bin/python",
+      "-B",
+      "/home/devuser/workspace/VisionFlow/docs/estate-review/evidence/knowledge-probes.py",
+      "visionGraph"
+    ],
+    "exit_code": 0,
+    "stdout": "{\"repo\": \"visionGraph\", \"census\": {\"markdown_files\": 8435, \"recursive_markdown_files\": 8672, \"parsed_pages\": 8447, \"public_pages\": 8433, \"non_boolean_public_values\": 0, \"entities\": 8447, \"source_individuals\": 0, \"validation\": {\"total_pages\": 8447, \"pages_with_ontology\": 8447, \"public_pages\": 8433, \"total_issues\": 1482, \"errors\": 1, \"warnings\": 84, \"info\": 1397, \"by_code\": {\"MULTI_PARENT\": 1397, \"INVALID_DOMAIN\": 84, \"DUPLICATE_IRI\": 1}}}, \"malformed_fence\": {\"input_files\": 1, \"parsed_pages\": 0, \"validation\": {\"total_pages\": 0, \"pages_with_ontology\": 0, \"public_pages\": 0, \"total_issues\": 0, \"errors\": 0, \"warnings\": 0, \"info\": 0, \"by_code\": {}}}, \"string_false_public\": {\"parsed_type\": \"str\", \"validation\": {\"total_pages\": 1, \"pages_with_ontology\": 0, \"public_pages\": 1, \"total_issues\": 0, \"errors\": 0, \"warnings\": 0, \"info\": 0, \"by_code\": {}}, \"page_published\": true}, \"private_ancestor_probe\": {\"public_page_inferred_superclasses\": [{\"id\": \"urn:ngm:class:private-grandparent\", \"label\": \"private-grandparent\", \"slug\": \"private-grandparent\"}], \"public_page_keys\": [\"id\", \"title\", \"slug\", \"public\", \"classIri\", \"domain\", \"definition\", \"subClassOf\", \"entityType\", \"qualityScore\", \"maturity\", \"relationships\", \"inferredSuperClasses\", \"inheritedRelations\", \"wikilinks\", \"backlinks\"], \"private_grandparent_present_in_public_page\": true, \"scaffold_inferred_ancestors\": [\"private-grandparent\"], \"private_ancestor_present_in_inferred_turtle\": true, \"private_page_published\": false}, \"iri_representation\": {\"asserted_turtle\": \"https://narrativegoldmine.com/class/public-child\", \"closure_iri\": \"urn:ngm:class:public-child\"}}\n",
+    "stderr": ""
+  },
+  "tests": {
+    "command": [
+      "/home/devuser/workspace/knowledgeGraph/.venv/bin/python",
+      "-B",
+      "-m",
+      "pytest",
+      "pipeline/tests",
+      "-q",
+      "-p",
+      "no:cacheprovider"
+    ],
+    "exit_code": 1,
+    "stdout": ".........................................................F               [100%]\n=================================== FAILURES ===================================\n_________________ test_real_corpus_publishes_nothing_from_misc _________________\n\n    @pytest.mark.skipif(not _CORPUS.is_dir(), reason=\"corpus not checked out\")\n    def test_real_corpus_publishes_nothing_from_misc() -> None:\n        \"\"\"The owner decision, pinned against the corpus itself.\n    \n        `_misc/` is populated with public pages and stays that way \u2014 VisionClaw\n        still ingests them. What must never drift is that *publishing* skips them,\n        so this asserts both halves: the directory is non-empty and public, and it\n        contributes exactly zero pages to the published walk.\n    \n        Deliberately not pinning the absolute published total: that legitimately\n        moves whenever the owner writes a page, and a test that must be bumped on\n        every content commit is a test that gets bumped without being read. The\n        split-time value was 8,433.\n        \"\"\"\n        published = list(iter_page_files(_CORPUS))\n        assert published, \"corpus present but no pages discovered\"\n        assert not any(p.relative_to(_CORPUS).parts[0] == \"_misc\"\n                       for p in published)\n    \n        # ...and _misc really does hold public pages that we are choosing not to\n        # publish, so the assertion above is a decision, not an empty directory.\n        misc = [p for p in (_CORPUS / \"_misc\").rglob(\"*.md\")]\n>       assert len(misc) >= 14\nE       AssertionError: assert 8 >= 14\nE        +  where 8 = len([PosixPath('/home/devuser/workspace/visionGraph/knowledge/pages/_misc/ONTOLOGY_ANALYSIS_REPORT.md'), PosixPath('/home/...and jobs.md'), PosixPath('/home/devuser/workspace/visionGraph/knowledge/pages/_misc/HRI_SAFETY_TERMS_SUMMARY.md'), ...])\n\npipeline/tests/test_vault_layout.py:165: AssertionError\n=========================== short test summary info ============================\nFAILED pipeline/tests/test_vault_layout.py::test_real_corpus_publishes_nothing_from_misc\n1 failed, 57 passed in 1.20s\n",
+    "stderr": ""
+  },
+  "source_sha256": {
+    "visionGraph/pipeline/validate.py": "2ac804877079b7293cff931ad5a6eaa3fb9f7d2a842ea397458648c008fdd060",
+    "visionGraph/pipeline/prose_index.py": "b84d7ceaf2271f60d60a13bae0501ab99a43ddbfc1c05450bb7d12f53968f04b",
+    "visionGraph/pipeline/jsonld_to_page_api.py": "afe8e8cde457e9c4b07a04d314de202ae2991286098f74c338256990af52eff3",
+    "visionGraph/pipeline/jsonld_parser.py": "709a54466616727909af665c4eebd05fad478a5b4ee03a77b4abfd20d1fc8a3c",
+    "visionGraph/pipeline/scaffold_index.py": "1c2cd81ae4e18a4e23a5fe5a48c137013abd9e38678945ebfbc162e0997de5fd",
+    "visionGraph/pipeline/emit_graph_tiers.py": "447a64be8accfc3b36ca2d35e71e856a5058d64da6059f1cef32a2cfc3d83903",
+    "visionGraph/pipeline/backlinks.py": "36ed62b355938bf470bbfc62262564b6658f7afc9463252bef69e5ae23f0e67c",
+    "visionGraph/pipeline/jsonld_to_webvowl.py": "a715126d9f519ce0f2f537dd179ccf72f230d6772767f219be9de164c01b4388",
+    "visionGraph/pipeline/reason.py": "f82cb9ee9f7d21c79532bb42446bd16fc8f080fbd953f357279c35132f20bfeb",
+    "visionGraph/pipeline/__init__.py": "2eadf77e378cafece16d0dc388891bb5a31771ebd22b4d6c6db58384d81d3ced",
+    "visionGraph/pipeline/jsonld_to_turtle.py": "796e383a602e4c8bcc74d42eb3fcf7af1f6863d8a540187448049714c6a68faa",
+    "visionGraph/pipeline/conflicts.py": "8e30412e16a945618cbf54e482fc42c324e5074b10df43136184d82efdfbf9d2",
+    "visionGraph/pipeline/gate.py": "58aef4ee83dcfdd1402c39bf86eaabd76d82adf09d27c328497ca89db20ff2ff",
+    "visionGraph/pipeline/iri_integrity.py": "85bed354b73f19295591584dcdd39f91b3c7625e8528210bacc52084f599f861",
+    "visionGraph/pipeline/build.py": "4afa04f86c3d6bf435765ca8ffea64f83101182e79920410c0cb0fce753ca05f",
+    "visionGraph/pipeline/jsonld_to_search.py": "7a450a496fc3a05827cd4bec328be395ea2412742cf81871afd05c9cb67dd2c3",
+    "visionGraph/README.md": "612c0dfd9613dc1390fce055483b97f105847d5723dc91e934fc27bd221d0348",
+    "visionGraph/.github/workflows/publish.yml": "23db3850970d40a471270788b3b7ec58efc001b29f23af00f76b46901deb37b7"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "date": "2026-09-04",
+  "scope": "Current source call-site review and prior synthetic helper source-hash revalidation. No new signature, mint/persistence, graph rewrite or live federation test.",
+  "prior_probe_hashes_match": {
+    "project/src/uri/mod.rs": true,
+    "project/agentbox/management-api/lib/bc20-provenance-bridge.js": true,
+    "project/agentbox/management-api/lib/uris.js": true
+  },
+  "source_sha256": {
+    "src/uri/mod.rs": "8526f9b8c42a6b362f64b811f63f53ab6f90be38e299cb4864a38d674e7f4745",
+    "src/services/nostr_identity_verifier.rs": "371f81b34d90ecfc248dde4c80bbd9c4c943e0af4b11d910ba273713bda1e5f4",
+    "src/services/ontology_mutation_service.rs": "4e6c2ddb6aa1ee218c23f97ec0d5bf27dce84890e23a0e68e90557805b6c9964",
+    "src/adapters/oxigraph_graph_repository.rs": "15d0445f284f92d8b1b3e8bec4cf762c3d12768b270a525cca387a150cba9d7e",
+    "src/types/user_context.rs": "556aa8af11f1e0102d2a432146f790bec1177dc583f381ab90e4b87d4cdb9f47"
+  }
+}

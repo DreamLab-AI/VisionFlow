@@ -1,0 +1,65 @@
+{
+  "date": "2026-09-04",
+  "scope": "Extracted unchanged predicate and one existing test, compiled with rustc; HUD/config source review. No full actor suite, Godot engine, controller or headset execution.",
+  "existing_predicate_test": {
+    "exit_code": 101,
+    "failure": "hierarchical must NOT be treated as directed hierarchy"
+  },
+  "hud_constructor_sites": [
+    {
+      "line": 251,
+      "source": "var b := Button.new()"
+    },
+    {
+      "line": 404,
+      "source": "var exec := Button.new()"
+    },
+    {
+      "line": 415,
+      "source": "var clr := Button.new()"
+    },
+    {
+      "line": 482,
+      "source": "var btn := Button.new()"
+    },
+    {
+      "line": 525,
+      "source": "var join := Button.new()"
+    },
+    {
+      "line": 531,
+      "source": "_mute_toggle = CheckButton.new()"
+    },
+    {
+      "line": 539,
+      "source": "var reconnect := Button.new()"
+    },
+    {
+      "line": 629,
+      "source": "var b := Button.new()"
+    },
+    {
+      "line": 646,
+      "source": "var b := Button.new()"
+    },
+    {
+      "line": 683,
+      "source": "var up := Button.new()"
+    },
+    {
+      "line": 688,
+      "source": "var dn := Button.new()"
+    }
+  ],
+  "explicit_press_mode_lines": [
+    252,
+    637,
+    647
+  ],
+  "source_sha256": {
+    "src/actors/gpu/force_compute_actor.rs": "39d42ffd8f6a3aefd9f3f6a1ecc1f18b34c5c2c24792785e154065d310620ddf",
+    "xr-client/scripts/hud.gd": "3bf19d7de5d1388569c6b7947fdf7c45aa13f3079def5cbc16808ae312c48981",
+    "xr-client/project.godot": "d736e7df5d2d91fc00d31086b530c46c8511f22629ba92f46f7e21e284cea7b8",
+    "xr-client/scripts/xr_boot.gd": "d84cd02a5d8a57d37a4c31904092842fa091d05dd792e9b607aadc75c08d851f"
+  }
+}

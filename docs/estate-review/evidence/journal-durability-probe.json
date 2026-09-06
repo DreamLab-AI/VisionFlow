@@ -1,0 +1,13 @@
+{
+  "date": "2026-09-04",
+  "scope": "Actual journal plus actual local adapter with temporary file blocking log directory creation. No production journal, model request or server.",
+  "first_seq": 0,
+  "retry_duplicate": true,
+  "subscriber_notifications": 1,
+  "changed_content_citing_unpersisted_seq_accepted": true,
+  "durable_event_written": false,
+  "source_sha256": {
+    "management-api/lib/execution-journal.js": "d7df480fb31f0c1307530be0964973011325a80f703f329fd627a363eb8767ba",
+    "management-api/adapters/events/local-jsonl.js": "1077b5d834fd5a1b6776064747742c098e87d3c6c160635c71096e6b733f17b8"
+  }
+}

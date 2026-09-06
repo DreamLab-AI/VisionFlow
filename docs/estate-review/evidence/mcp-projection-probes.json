@@ -1,0 +1,48 @@
+{
+  "date": "2026-09-04",
+  "scope": "actual projector with temporary registry/target and fresh environment; no real MCP configuration change or server launch",
+  "results": [
+    {
+      "case": "gate_on",
+      "exit_code": 0,
+      "managed_present": true,
+      "managed_command": "fixture-no-execution",
+      "bespoke_preserved": true
+    },
+    {
+      "case": "gate_off",
+      "exit_code": 0,
+      "managed_present": false,
+      "managed_command": null,
+      "bespoke_preserved": true
+    },
+    {
+      "case": "deleted_registry_entry",
+      "exit_code": 0,
+      "managed_present": true,
+      "managed_command": "old-fixture",
+      "bespoke_preserved": true
+    },
+    {
+      "case": "missing_requires",
+      "exit_code": 0,
+      "managed_present": false,
+      "managed_command": null,
+      "bespoke_preserved": true
+    },
+    {
+      "case": "malformed_registry",
+      "exit_code": 0,
+      "managed_present": true,
+      "managed_command": "old-fixture",
+      "bespoke_preserved": true
+    }
+  ],
+  "source_sha256": {
+    "scripts/project-mcp-servers.mjs": "23f8ab24b928e8241adcfe38efcb480036c99d9dc86c97f638d8c4197a3110ef",
+    "skills/mcp.json": "c3e6c5cd41d8d717ffa0627cf9749d33d9316619a6859ce76daec7a5cfa60ad6",
+    "config/entrypoint-unified.sh": "a7b5d992d53e0ab331010bf1a8656c578651635c7b62c8e4401e40e277293858",
+    "management-api/lib/system-manifest.js": "a58073ab032f273253b35d9f46033b1105640f07608c99adc38957bb44e282db"
+  },
+  "current_registry_managed_entries_without_requires_array": []
+}

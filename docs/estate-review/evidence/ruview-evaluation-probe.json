@@ -1,0 +1,33 @@
+{
+  "date": "2026-09-05",
+  "scope": "Unchanged eval.rs compiled with rustc; isolated metric assertions only, no dataset/model/training",
+  "sources": {
+    "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-train/src/eval.rs": "268264cba81f7de509657e8a2e000984314e51e6dd86e056b37f305fb233a52b",
+    "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-train/src/bin/train.rs": "042cf1df147d2b697927dcaf64a04b62e7ef9116a22d7b39f5f2beb1a308c922",
+    "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-train/src/dataset.rs": "a02adc02b26f873369ecc780712439f753a545c475093a831caabc57d0bb425e",
+    "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-train/src/trainer.rs": "2fc9f62bf1fedc61df2fc027162677bcf999d96a95c8449f6c87f7466a50db2f",
+    "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-train/src/proof.rs": "2a4bd6548bb9b79c21f2181a116c57c20738880ceb0213476cecf84799a451b1"
+  },
+  "commands": [
+    {
+      "argv": [
+        "rustc",
+        "--edition=2021",
+        "/home/devuser/workspace/.tmp/tmpdehsxz28/probe.rs",
+        "-o",
+        "/home/devuser/workspace/.tmp/tmpdehsxz28/probe"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "warning: field `in_domain_mpjpe` is never read\n  --> /home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-train/src/eval.rs:12:9\n   |\n10 | pub struct CrossDomainMetrics {\n   |            ------------------ field in this struct\n11 |     /// In-domain (source) MPJPE (mm).\n12 |     pub in_domain_mpjpe: f32,\n   |         ^^^^^^^^^^^^^^^\n   |\n   = note: `CrossDomainMetrics` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis\n   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\nwarning: 1 warning emitted\n\n"
+    },
+    {
+      "argv": [
+        "/home/devuser/workspace/.tmp/tmpdehsxz28/probe"
+      ],
+      "exit_code": 0,
+      "stdout": "6 assertions passed: imputed metrics, error-ratio speedup, empty-coordinate and empty-domain defaults\n",
+      "stderr": ""
+    }
+  ]
+}

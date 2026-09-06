@@ -1,0 +1,37 @@
+{
+  "date": "2026-09-04",
+  "head": "36105cc3ad04a91415b889799e8608b08cf68b45",
+  "sources": {
+    "modern/package.json": "b950207d9a06d09691700f10f7bffd0ffa290592d4c836a962da069d4f9bfacb",
+    "modern/src/hooks/useWasmSimulation.ts": "ced7083e36a389badbcfd953374ce912c08505bb2ecdaeaa85c247fe8b2f6863",
+    "modern/src/stores/useGraphStore.ts": "b9196d949623081ba2d4d5b6d642a9562aea37d232fbc63121a138a2f1ae5645",
+    "modern/src/main.tsx": "6e9e5807fcbd48b75a96db5cbef36c996262196be42e6d4760dc86babbe61ad2",
+    "modern/src/components/UI/FileDropZone.tsx": "2f5e9cfa97d4bfcf1ff31a62c509b25d145472268b11c777f8e5ee5875cec87d",
+    "rust-wasm/src/ontology/parser.rs": "9a2ee2a32f776c6e1d907b807fcf0fc5df9d06b225fe35ce6b00fad66933fd5a",
+    "rust-wasm/src/bindings/mod.rs": "0c3ba5e81d8492004ee4a0a0bd10accfa093283aa34e668466e86c3ba83b1862"
+  },
+  "checks": [
+    {
+      "command": "cargo test --manifest-path rust-wasm/Cargo.toml --lib",
+      "exit_code": 0,
+      "passed": 47,
+      "failed": 0
+    },
+    {
+      "cwd": "modern",
+      "command": "node node_modules/vitest/vitest.mjs run",
+      "exit_code": 1,
+      "passed": 19,
+      "failed": 60,
+      "files_failed": 4
+    },
+    {
+      "cwd": "modern",
+      "command": "node node_modules/vitest/vitest.mjs run tests/unit/useGraphStore.test.ts --reporter=dot",
+      "exit_code": 1,
+      "failed": 32,
+      "cause": "Immer getPlugin error at state.nodes.clear(), useGraphStore.ts:125"
+    }
+  ],
+  "limitations": "Native Rust tests and mock frontend tests; no browser/WebGL or real WASM integration validation; not a test of publisher copies."
+}

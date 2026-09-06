@@ -47,16 +47,32 @@ jobs:
       # (scripts/skill-count-check.js, invoked) and the ontology-bridge.js TOOLS
       # registry length. agentbox is a sibling repository, not a submodule here,
       # so it is checked out beside the canon and pointed at by DRIFT_AGENTBOX_DIR.
-      - name: Check out agentbox (count sources)
+      #
+      # PINNED. Unpinned, this step fetched whatever agentbox HEAD existed at run
+      # time, so the same canon commit could pass one day and fail the next with
+      # no canon change — the gate measured the sibling's motion, not the canon's
+      # drift. `ref` MUST equal scripts/drift-counter/allowlist.json .source_pin
+      # .revision; the counter verifies this and fails on mismatch. Moving the
+      # truth is therefore a reviewed two-line diff, not a silent Tuesday.
+      - name: Check out agentbox (count sources, pinned)
         uses: actions/checkout@v4
         with:
           repository: DreamLab-AI/agentbox
+          ref: eb7794b17892d9032b4f9ce0ed22ea0d9dac3497
           path: _agentbox
 
       - name: Install Node
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+
+      # Prove the gate can still fail before trusting it to pass: the suite
+      # drives an intentional mismatch, a moved policed site and a pin mismatch
+      # through the counter and asserts each one goes red.
+      - name: Prove the counter detects an intentional mismatch
+        env:
+          DRIFT_AGENTBOX_DIR: ${{ github.workspace }}/_agentbox
+        run: bash tests/gates/drift-counter.test.sh
 
       - name: Run the drift counter
         env:

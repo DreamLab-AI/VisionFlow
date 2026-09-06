@@ -1,0 +1,17 @@
+{
+  "date": "2026-09-04",
+  "scope": "Source trace plus existing 19 tests; route fixtures disable agent-event auth and inject fake mandate verification/dispatcher. No real signature, relay, microphone, scene action or full-server auth path.",
+  "tests": {
+    "command": "node node_modules/jest/bin/jest.js --config rootDir=.,testEnvironment=node --runTestsByPath tests/sovereign/voice-intent.test.js --runInBand --silent",
+    "passed": 19,
+    "duration_seconds": 1.04,
+    "initial_attempt": "Default repository Jest configuration found no matching tests; explicit node/root config ran the existing file."
+  },
+  "source_sha256": {
+    "management-api/routes/voice-intent.js": "56f1c3a2c5fa9d0300324589155ba1e0e3b53fb80822f9964bba45f913d7be6b",
+    "management-api/lib/mandate.js": "4342dc460566a8dbb2301acb69939c71e5a8b96902b026fef42eb6d05c663514",
+    "management-api/lib/agent-control-surface.js": "6094a98821b27171b0511bcbd306f59cbbcefc3e06366f3c638db984dd34fe36",
+    "management-api/server.js": "0098d9b3e2df4f5c5dee4330fa7c2826c5b6113a558bcb8b5e790d0ae42204ed",
+    "tests/sovereign/voice-intent.test.js": "7299d2220f470763e1e6c54caec976d8d1cd6c7532b486cdf3da579ad6166de7"
+  }
+}

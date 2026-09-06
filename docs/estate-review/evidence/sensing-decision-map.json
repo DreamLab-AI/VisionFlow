@@ -1,0 +1,301 @@
+{
+  "scope": "Local RuView decision packs; excludes vendored decisions",
+  "counts": {
+    "evidence-review-required": 13,
+    "evidence-backed-open": 32
+  },
+  "records": [
+    {
+      "path": "docs/adr/ADR-001-wifi-mat-disaster-detection.md",
+      "review_state": "evidence-review-required",
+      "assessment_links": []
+    },
+    {
+      "path": "docs/adr/ADR-002-ruvector-rvf-integration-strategy.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../historical-decision-reconciliation.md#ruview-strategy-supersession-and-surviving-domains"
+      ]
+    },
+    {
+      "path": "docs/adr/ADR-003-rvf-cognitive-containers-csi.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../sensing-extension.md#cognitive-container-contract-and-durable-lifecycle"
+      ]
+    },
+    {
+      "path": "docs/adr/ADR-004-hnsw-vector-search-fingerprinting.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../sensing-extension.md#fingerprint-retrieval-and-hnsw-acceptance"
+      ]
+    },
+    {
+      "path": "docs/adr/ADR-005-sona-self-learning-pose-estimation.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../sensing-extension.md#sona-feedback-admission-and-profile-lifecycle"
+      ]
+    },
+    {
+      "path": "docs/adr/ADR-006-gnn-enhanced-csi-pattern-recognition.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../sensing-extension.md#gnn-mode-coverage-and-learning-evidence"
+      ]
+    },
+    {
+      "path": "docs/adr/ADR-007-post-quantum-cryptography-secure-sensing.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../sensing-extension.md#secure-sensing-claims-and-model-admission"
+      ]
+    },
+    {
+      "path": "docs/adr/ADR-008-distributed-consensus-multi-ap.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../sensing-extension.md#multi-device-agreement-and-replicated-state"
+      ]
+    },
+    {
+      "path": "docs/adr/ADR-009-rvf-wasm-runtime-edge-deployment.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../sensing-extension.md#edge-runtime-implementation-and-isolation-boundaries"
+      ]
+    },
+    {
+      "path": "docs/adr/ADR-010-witness-chains-audit-trail-integrity.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../sensing-extension.md#witness-segments-and-audit-completeness"
+      ]
+    },
+    {
+      "path": "docs/adr/ADR-011-python-proof-of-reality-mock-elimination.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../sensing-extension.md#python-proof-replay-and-mock-boundaries"
+      ]
+    },
+    {
+      "path": "docs/adr/ADR-012-esp32-csi-sensor-mesh.md",
+      "review_state": "evidence-review-required",
+      "assessment_links": []
+    },
+    {
+      "path": "docs/adr/ADR-013-feature-level-sensing-commodity-gear.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../sensing-extension.md#commodity-sensing-capabilities-and-observation-readiness"
+      ]
+    },
+    {
+      "path": "docs/adr/ADR-014-sota-signal-processing.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../sensing-extension.md#signal-algorithm-semantics-and-runtime-adoption"
+      ]
+    },
+    {
+      "path": "docs/adr/ADR-015-public-dataset-training-strategy.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../sensing-extension.md#dataset-separation-and-evaluation-meaning"
+      ]
+    },
+    {
+      "path": "docs/adr/ADR-016-ruvector-integration.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../sensing-extension.md#training-integration-and-model-evidence"
+      ]
+    },
+    {
+      "path": "docs/adr/ADR-017-ruvector-signal-mat-integration.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../sensing-extension.md#signal-and-mat-integration-helper-availability-versus-execution"
+      ]
+    },
+    {
+      "path": "docs/adr/ADR-018-esp32-dev-implementation.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../sensing-extension.md"
+      ]
+    },
+    {
+      "path": "docs/adr/ADR-019-sensing-only-ui-mode.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../sensing-extension.md#sensing-ui-source-and-freshness-contract"
+      ]
+    },
+    {
+      "path": "docs/adr/ADR-020-rust-ruvector-ai-model-migration.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../sensing-extension.md#rust-primary-backend-migration"
+      ]
+    },
+    {
+      "path": "docs/adr/ADR-021-vital-sign-detection-rvdna-pipeline.md",
+      "review_state": "evidence-review-required",
+      "assessment_links": []
+    },
+    {
+      "path": "docs/adr/ADR-022-windows-wifi-enhanced-fidelity-ruvector.md",
+      "review_state": "evidence-review-required",
+      "assessment_links": []
+    },
+    {
+      "path": "docs/adr/ADR-023-trained-densepose-model-ruvector-pipeline.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../sensing-extension.md"
+      ]
+    },
+    {
+      "path": "docs/adr/ADR-024-contrastive-csi-embedding-model.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../sensing-extension.md#contrastive-training-objective-and-consolidation-boundary",
+        "../sensing-extension.md#embedding-augmentation-and-projection-state",
+        "../sensing-extension.md#embedding-quantisation-and-deployment-evidence",
+        "../sensing-extension.md#aether-cumulative-closeout-contract"
+      ]
+    },
+    {
+      "path": "docs/adr/ADR-025-macos-corewlan-wifi-sensing.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../sensing-extension.md#macos-helper-and-runtime-contract"
+      ]
+    },
+    {
+      "path": "docs/adr/ADR-026-survivor-track-lifecycle.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../sensing-extension.md#survivor-tracking-and-operational-integration"
+      ]
+    },
+    {
+      "path": "docs/adr/ADR-027-cross-environment-domain-generalization.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../sensing-extension.md#cross-environment-adaptation-and-readiness"
+      ]
+    },
+    {
+      "path": "docs/adr/ADR-028-esp32-capability-audit.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../sensing-extension.md"
+      ]
+    },
+    {
+      "path": "docs/adr/ADR-029-ruvsense-multistatic-sensing-mode.md",
+      "review_state": "evidence-review-required",
+      "assessment_links": []
+    },
+    {
+      "path": "docs/adr/ADR-030-ruvsense-persistent-field-model.md",
+      "review_state": "evidence-review-required",
+      "assessment_links": []
+    },
+    {
+      "path": "docs/adr/ADR-031-ruview-sensing-first-rf-mode.md",
+      "review_state": "evidence-review-required",
+      "assessment_links": []
+    },
+    {
+      "path": "docs/adr/ADR-032-multistatic-mesh-security-hardening.md",
+      "review_state": "evidence-review-required",
+      "assessment_links": []
+    },
+    {
+      "path": "docs/adr/ADR-033-crv-signal-line-sensing-integration.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../sensing-extension.md#crv-stage-facade-and-identity-evidence"
+      ]
+    },
+    {
+      "path": "docs/adr/ADR-034-expo-mobile-app.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../mobile-sensing.md"
+      ]
+    },
+    {
+      "path": "docs/adr/ADR-035-live-sensing-ui-accuracy.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../sensing-extension.md"
+      ]
+    },
+    {
+      "path": "docs/adr/ADR-036-rvf-training-pipeline-ui.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../sensing-extension.md#training-ui-and-model-operation-contracts"
+      ]
+    },
+    {
+      "path": "docs/adr/ADR-037-multi-person-pose-detection.md",
+      "review_state": "evidence-review-required",
+      "assessment_links": []
+    },
+    {
+      "path": "docs/adr/ADR-038-sublinear-goal-oriented-action-planning.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../sensing-extension.md#roadmap-planning-design-and-evidence-state"
+      ]
+    },
+    {
+      "path": "docs/adr/ADR-039-esp32-edge-intelligence.md",
+      "review_state": "evidence-review-required",
+      "assessment_links": []
+    },
+    {
+      "path": "docs/adr/ADR-040-wasm-programmable-sensing.md",
+      "review_state": "evidence-review-required",
+      "assessment_links": []
+    },
+    {
+      "path": "docs/adr/ADR-041-wasm-module-collection.md",
+      "review_state": "evidence-review-required",
+      "assessment_links": []
+    },
+    {
+      "path": "docs/adr/ADR-042-coherent-human-channel-imaging.md",
+      "review_state": "evidence-review-required",
+      "assessment_links": []
+    },
+    {
+      "path": "rust-port/wifi-densepose-rs/docs/adr/ADR-001-workspace-structure.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../sensing-extension.md#workspace-structure"
+      ]
+    },
+    {
+      "path": "rust-port/wifi-densepose-rs/docs/adr/ADR-002-signal-processing.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../sensing-extension.md#signal-library-and-algorithm-selection"
+      ]
+    },
+    {
+      "path": "rust-port/wifi-densepose-rs/docs/adr/ADR-003-neural-network-inference.md",
+      "review_state": "evidence-backed-open",
+      "assessment_links": [
+        "../sensing-extension.md#neural-backend-selection"
+      ]
+    }
+  ]
+}

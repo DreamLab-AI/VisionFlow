@@ -1,0 +1,28 @@
+{
+  "date": "2026-09-05",
+  "source": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/graph_transformer.rs",
+  "sha256": "7a1e328a78a9eda1ddbf32d5a164ee7e929f1e97a47f867a858f67ff52cbb8fd",
+  "scope": "Unchanged standalone native graph module tests; no trained model, real CSI, server or hardware",
+  "test_command": "rustc --edition=2021 --test graph_transformer.rs; execute temporary binary",
+  "test_exit": 0,
+  "test_output": "\nrunning 28 tests\ntest tests::body_graph_adjacency_symmetric ... ok\ntest tests::antenna_graph_node_count ... ok\ntest tests::body_graph_has_16_edges ... ok\ntest tests::antenna_graph_adjacency ... ok\ntest tests::body_graph_self_loops_and_specific_edges ... ok\ntest tests::body_graph_has_17_nodes ... ok\ntest tests::body_graph_normalized_adjacency_finite ... ok\ntest tests::cross_attention_empty_keys ... ok\ntest tests::deterministic_rng_and_linear ... ok\ntest tests::cross_attention_single_head_vs_multi ... ok\ntest tests::cross_attention_flatten_unflatten_roundtrip ... ok\ntest tests::gnn_preserves_isolated_node ... ok\ntest tests::linear_flatten_unflatten_roundtrip ... ok\ntest tests::linear_layer_output_size ... ok\ntest tests::linear_layer_set_weights_identity ... ok\ntest tests::cross_attention_output_shape ... ok\ntest tests::linear_layer_zero_weights ... ok\ntest tests::relu_activation ... ok\ntest tests::scaled_dot_product_softmax_sums_to_one ... ok\ntest tests::gnn_stack_flatten_unflatten ... ok\ntest tests::sigmoid_bounds ... ok\ntest tests::softmax_edge_cases ... ok\ntest tests::gnn_message_passing_shape ... ok\ntest tests::transformer_config_defaults ... ok\ntest tests::transformer_keypoints_are_finite ... ok\ntest tests::transformer_forward_output_17_keypoints ... ok\ntest tests::transformer_weight_roundtrip ... ok\ntest tests::transformer_param_count_positive ... ok\n\ntest result: ok. 28 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+  "proposed_interface_search": {
+    "exit_code": 1,
+    "output": "",
+    "scope": "Exact three ADR mode type spellings in Rust crates"
+  },
+  "additional_sources": [
+    {
+      "path": "/home/devuser/workspace/RuView/docs/adr/ADR-006-gnn-enhanced-csi-pattern-recognition.md",
+      "sha256": "af6dc286155fe26b4fc307095ee05b43177e4567bb393c7d5ba6c06cc5a08674"
+    },
+    {
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/main.rs",
+      "sha256": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3"
+    },
+    {
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/embedding.rs",
+      "sha256": "9d3565d9c4c7d06c92ec9324193b91a1a95c3c618873499306ef8f2b6f4d1305"
+    }
+  ]
+}

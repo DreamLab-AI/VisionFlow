@@ -1,0 +1,35 @@
+
+HARNESS PAIRING AUDIT
+=====================
+Topology                       | Guides | Sensors | Edges |  Cover | Maturity
+agentbox-agent-task            |      5 |       5 |     5 | 100.0% | standalone
+governance-decision            |      5 |       5 |     5 | 100.0% | integrated
+pod-mutation                   |      5 |       5 |     5 | 100.0% | standalone
+visionclaw-enrichment          |      5 |       5 |     5 | 100.0% | standalone
+--------------------------------------------------------------------------------
+TOTAL                          |     20 |      20 |    20 | 100.0% |
+Coverage counts DISTINCT paired controls (40 of 40) over de-duplicated edges.
+
+SOURCE BACKING (distinct sources, resolved against substrate checkouts)
+  distinct sources declared : 39  (across 40 controls)
+  resolved (source-backed)  : 31
+  unresolved (declared present, path absent) : 0
+  planned (declared not yet built)           : 7
+  descriptor (not a filesystem path)         : 1
+  unverifiable (substrate not checked out)   : 0
+  backing = 31/39 = 79.5% of resolvable sources
+  per-control: 32 resolved, 0 unresolved, 7 planned, 1 descriptor, 0 unverifiable
+
+Planned (source not yet resolvable):
+  solid-pod-rs:crates/solid-pod-rs/src/auth/taproot.rs  <- [pod-mutation] guide block-trail-rules; 
+  solid-pod-rs:crates/solid-pod-rs/tests/taproot_verification.rs  <- [pod-mutation] sensor taproot-verification; 
+  agentbox:.github/workflows/adapter-slo.yml  <- [agentbox-agent-task] sensor slo-ci-gate; 
+  visionclaw:tests/integration/provenance_chain.rs  <- [visionclaw-enrichment] sensor provenance-chain-integrity; 
+  agentbox:agents/*.md#hooks.validate  <- [agentbox-agent-task] sensor hooks-validate-trajectory; 
+  nostr-rust-forum:tests/integration/governance_render.rs  <- [governance-decision] sensor governance-ui-rendering; 
+  visionclaw:tests/fixtures/schemas/enrichment-proposal.schema.json  <- [visionclaw-enrichment] guide enrichment-proposal-schema; 
+
+Descriptor (no filesystem artefact to check):
+  ruvector:governance-precedents namespace  <- [governance-decision] guide precedent-library; 
+
+PASS: pairing coverage 100.0% meets target 80%

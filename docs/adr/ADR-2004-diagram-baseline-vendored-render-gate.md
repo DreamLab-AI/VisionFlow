@@ -58,3 +58,59 @@ to resolve a Chrome binary; `:74-83` re-renders via `render.mjs` and word-diffs 
 a copied baseline. `scripts/diagram-render/vendor/mermaid.min.js` contains
 `"11.16.0"`; `render.mjs` header confirms the vendored no-CDN bundle and `htmlLabels`
 handling. No `scripts/render-diagrams.sh` exists.
+
+## Closeout extension — 2026-09-04
+
+Retain accepted/complete/live for the committed-baseline guard. The current browserless probe passes all ten checked-in diagrams for visible text and required labels. Workflow source runs that guard before rendering and word comparison. This pass did not render with Chrome or run hosted CI; the local result does not certify arbitrary diagram semantics or source-to-baseline parity.
+
+**Closeout (CP-08/09):** For changed diagrams, retain the exact renderer/toolchain identity, source-to-baseline word-diff receipt and output inspection. Ensure the intended release entry point requires the gate. A passing checked-in baseline alone cannot close source drift.
+
+[Canon assessment](../estate-review/canon-and-verification.md), [source hashes and local check receipt](../estate-review/evidence/canon-operative-closeout.json), [execution sequence](../estate-review/closeout/execution-sequence.md). Historical verification above is preserved; this annex assesses the current working tree.
+
+## Acceptance progress — 2026-09-05
+
+Retain accepted/complete/live. The decision is unchanged. The gap the previous
+annex recorded — "This pass did not render with Chrome or run hosted CI" — is
+now closed locally: the full three-stage gate has been executed against a real
+Chrome, so source-to-baseline parity is measured rather than assumed.
+
+**Implemented and executed.** `scripts/diagram-render/render.mjs` already
+supported an explicit DevTools endpoint and this environment's sidecar; that
+path was exercised. All three stages ran in sequence:
+
+1. **Baseline guard** (browser-free): all 10 committed diagrams pass for visible
+   text and required labels.
+2. **Re-render from source** via Chrome 151 on the browsercontainer sidecar
+   (`ws://…:9223`), using the vendored `mermaid.min.js` 11.16.0 light-theme
+   engine — 10/10 diagrams rendered, every text node visible (e.g.
+   `07-change-architecture`: 140 nodes, 140 visible).
+3. **Drift comparison**: `check-diagram-text.js --diff` reports *all rendered
+   diagrams match the committed baseline's visible words*, and `git diff --stat`
+   over `rendered/` reports **no byte-level drift at all** — the committed
+   baseline is reproducible from source in this environment, not merely
+   word-equivalent.
+
+The committed baseline was copied aside before rendering and restored
+afterwards, so the working tree is unchanged (`git status` over `rendered/` is
+empty). This is the same sequence `diagram-render.yml` runs, executed by hand
+because that workflow has not run hosted.
+
+**Release entry point.** The closeout asks that the intended release entry point
+require the gate. The browser-free baseline guard is now a **blocking** step in
+`.github/workflows/deploy.yml`, so no site publication can proceed past a
+diagram with invisible text. The re-render half stays in `diagram-render.yml`,
+because it needs a Chrome the deploy runner does not otherwise provision.
+
+Receipts: [full render log, all three stages](../estate-closeout/2026-09-05/logs/diagram-render-chrome.log),
+[gate closeout receipt](../estate-closeout/2026-09-05/gate-closeout-receipt.json) (`gates.diagram_render_chrome`).
+
+**Remaining.** Still no hosted CI run: `diagram-render.yml` provisions its own
+pinned `@mermaid-js/mermaid-cli` and puppeteer chromium on the runner, which is
+a different toolchain instance from the sidecar Chrome used here, so
+cross-environment byte parity remains untested. The gate continues to certify
+text visibility and label presence only — it does not, and is not intended to,
+certify that a diagram is semantically correct.
+
+Governed paths changed: `.github/workflows/deploy.yml` (adds the baseline guard
+as a blocking publication gate). No change to `scripts/diagram-render/`,
+`scripts/check-diagram-text.js` or the committed baseline.

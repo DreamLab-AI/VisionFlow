@@ -1,0 +1,48 @@
+{
+  "date": "2026-09-05",
+  "scope": "Local proposal review and mathematical counterexamples; no planner implementation executed, no CLI/memory/swarm mutation",
+  "sources": {
+    "docs/adr/ADR-038-sublinear-goal-oriented-action-planning.md": "985d4ded7315cf75ae0bcfc736cde7e5e48a569c61365f53d164aaddbb96d942"
+  },
+  "planned_modules": {
+    ".claude-flow/goap/state.ts": false,
+    ".claude-flow/goap/actions.ts": false,
+    ".claude-flow/goap/planner.ts": false,
+    ".claude-flow/goap/goals.ts": false,
+    ".claude-flow/goap/executor.ts": false,
+    ".claude-flow/goap/pagerank.ts": false,
+    ".claude-flow/goap/visualize.ts": false
+  },
+  "heuristic_counterexample": {
+    "goals": [
+      "a=true",
+      "b=true"
+    ],
+    "single_action_effects": [
+      "a=true",
+      "b=true"
+    ],
+    "action_cost": 5,
+    "parallelism": 1,
+    "proposed_h": 10.0,
+    "optimal_remaining_cost": 5
+  },
+  "pagerank_counterexample": {
+    "edges": [
+      "foundation->middle",
+      "middle->leaf"
+    ],
+    "damping": 0.85,
+    "iterations": 200,
+    "dangling_policy": "redistribute uniformly",
+    "ranks": [
+      0.1844167819271554,
+      0.3411710465652375,
+      0.4744121715076073
+    ]
+  },
+  "action_catalog": "| Action ID | ADR | Cost (days) | Preconditions | Effects | Hardware |\n|-----------|-----|-------------|---------------|---------|----------|\n| `adr037_p1_person_count` | 037 | 3 | `sota_signal_processing` | `person_count_estimation = true` | None |\n| `adr037_p2_nmf_decomp` | 037 | 5 | `person_count_estimation` | `signal_decomposition = true` | None |\n| `adr037_p3_multi_skel` | 037 | 4 | `signal_decomposition`, `pose_tracker_17kp` | `multi_skeleton_generation = true`, `max_persons_tracked += 2` | None |\n| `adr037_p4_neural_multi` | 037 | 10 | `signal_decomposition`, `aether_embeddings`, `gpu_available` | `multi_person_neural = true`, `pose_accuracy_pck02 = 0.6` | GPU |\n| `adr021_vital_core` | 021 | 3 | `sota_signal_processing` | `vital_signs_extraction = true` | None |\n| `adr021_vital_esp32` | 021 | 5 | `vital_signs_extraction`, `esp32_connected` | `vital_signs_esp32_validated = true`, `breathing_snr_db = 10.0` | ESP32 |\n| `adr030_persist_field` | 030 | 2 | `ruvector_signal_integrated` | `persistent_field_model = true` | None |\n| `adr022_p2_concurrent` | 022 | 4 | `multi_bssid_scan`, `wifi_adapter_present` | `multi_bssid_concurrent = true` | WiFi adapter |\n| `adr029_p1_ch_hop` | 029 | 5 | `esp32_firmware_base`, `esp32_connected` | `esp32_channel_hopping = true` | ESP32 |\n| `adr029_p2_multiband` | 029 | 5 | `esp32_channel_hopping` | `multi_band_fusion = true` | ESP32 |\n| `adr029_p3_multistatic` | 029 | 5 | `multi_band_fusion`, `esp32_multistatic_ready` | `multistatic_mesh = true` | 2+ ESP32 |\n| `adr029_p67_coherence` | 029 | 3 | `multi_band_fusion` | `coherence_gating = true` | None |\n| `adr029_p4_tracker` | 029 | 3 | `multistatic_mesh`, `coherence_gating` | `pose_tracker_17kp = true`, `torso_jitter_mm = 30.0` | None |\n| `adr024_aether_train` | 024 | 8 | `sota_signal_processing`, `gpu_available` | `aether_embeddings = true` | GPU |\n| `adr024_aether_reid` | 024 | 4 | `aether_embeddings`, `pose_tracker_17kp` | `aether_reid = true` | None |\n| `adr027_meridian` | 027 | 10 | `aether_embeddings`, `gpu_available` | `meridian_generalization = true` | GPU |\n| `adr025_wasm` | 025 | 5 | `sota_signal_processing` | `wasm_deployment = true` | None |\n| `adr011_mat` | 011 | 8 | `vital_signs_extraction`, `person_count_estimation` | `mat_survivor_detection = true` | None |\n| `adr031_ruview` | 031 | 4 | `persistent_field_model`, `coherence_gating` | `ruview_sensing_ui = true` | None |\n| `adr032_mesh_security` | 032 | 5 | `multistatic_mesh` | `mesh_security_hardened = true` | None |",
+  "world_state_tables": "Feature Implementation Flags (Boolean)\n\n| Property | Source of Truth | Description |\n|----------|----------------|-------------|\n| `sota_signal_processing` | `cargo test -p wifi-densepose-signal` passes | ADR-014 SOTA algorithms implemented |\n| `ruvector_training_integrated` | `train/` crate builds with ruvector deps | ADR-016 RuVector training pipeline |\n| `ruvector_signal_integrated` | `signal/src/ruvsense/` module exists | ADR-017 RuVector signal integration |\n| `esp32_firmware_base` | `firmware/esp32-csi-node/` compiles | ADR-018 ESP32 base firmware |\n| `esp32_channel_hopping` | Firmware supports multi-channel | ADR-029 Phase 1 |\n| `multi_band_fusion` | `ruvsense/multiband.rs` passes tests | ADR-029 Phase 2 |\n| `multistatic_mesh` | Multi-node fusion operational | ADR-029 Phase 3 |\n| `coherence_gating` | `ruvsense/coherence_gate.rs` passes tests | ADR-029 Phase 6-7 |\n| `pose_tracker_17kp` | `ruvsense/pose_tracker.rs` passes tests | ADR-029 Phase 4 |\n| `vital_signs_extraction` | `vitals/` crate passes tests | ADR-021 |\n| `vital_signs_esp32_validated` | ESP32 breathing detection verified | ADR-021 Phase 2 |\n| `multi_bssid_scan` | `wifiscan/` crate passes tests | ADR-022 Phase 1 |\n| `multi_bssid_concurrent` | Concurrent BSSID scanning | ADR-022 Phase 2 |\n| `aether_embeddings` | Contrastive CSI encoder trained | ADR-024 |\n| `aether_reid` | Person re-identification via embeddings | ADR-024 Phase 3 |\n| `meridian_generalization` | Cross-environment transfer working | ADR-027 |\n| `persistent_field_model` | Field model serializes/deserializes | ADR-030 |\n| `person_count_estimation` | Eigenvalue occupancy estimator | ADR-037 Phase 1 |\n| `signal_decomposition` | NMF per-person separation | ADR-037 Phase 2 |\n| `multi_skeleton_generation` | Multiple skeletons per frame | ADR-037 Phase 3 |\n| `multi_person_neural` | Neural multi-person model | ADR-037 Phase 4 |\n| `wasm_deployment` | WebAssembly build functional | ADR-025 |\n| `mat_survivor_detection` | MAT disaster detection operational | ADR-011/ADR-026 |\n| `ruview_sensing_ui` | Sensing-first RF UI mode | ADR-031 |\n| `mesh_security_hardened` | Multistatic mesh security layer | ADR-032 |\n\n#### 2.1.2 Hardware Availability Flags (Boolean)\n\n| Property | Detection Method | Description |\n|----------|-----------------|-------------|\n| `esp32_connected` | USB serial probe (`/dev/ttyUSB*` or `COM*`) | At least one ESP32 on USB |\n| `esp32_count` | Count USB serial devices with ESP32 VID/PID | Number of ESP32 nodes |\n| `esp32_multistatic_ready` | `esp32_count >= 2` | Sufficient for multistatic |\n| `gpu_available` | `nvidia-smi` or CUDA probe | GPU for neural training |\n| `wifi_adapter_present` | OS WiFi interface enumeration | Host WiFi for multi-BSSID |\n\n#### 2.1.3 Quality Metrics (Numeric)\n\n| Property | Source | Description |\n|----------|--------|-------------|\n| `pose_accuracy_pck02` | Benchmark suite output | PCK@0.2 accuracy (0.0-1.0) |\n| `update_rate_hz` | Pipeline timing measurement | Effective output frame rate |\n| `max_persons_tracked` | Multi-person test result | Maximum simultaneous persons |\n| `breathing_snr_db` | Vital signs test output | Breathing detection SNR |\n| `torso_jitter_mm` | Tracking benchmark | RMS torso keypoint jitter |\n| `rust_test_count` | `cargo test --workspace` output | Total passing Rust tests |",
+  "goal_templates": "| Goal | Conditions | Typical Plan Length |\n|------|-----------|---------------------|\n| Multi-person tracking | `multi_skeleton_generation = true`, `max_persons_tracked >= 3` | 4-6 actions |\n| Vital sign monitoring | `vital_signs_esp32_validated = true`, `breathing_snr_db >= 10` | 2-3 actions |\n| Production accuracy | `pose_accuracy_pck02 >= 0.6`, `torso_jitter_mm <= 30` | 5-8 actions |\n| Browser deployment | `wasm_deployment = true` | 1-2 actions |\n| Disaster response (MAT) | `mat_survivor_detection = true`, `multi_skeleton_generation = true` | 5-7 actions |\n| Full multistatic mesh | `multistatic_mesh = true`, `coherence_gating = true`, `pose_tracker_17kp = true` | 5-7 actions |\n| Cross-environment robustness | `meridian_generalization = true` | 3-5 actions |",
+  "performance_budgets": "| Operation | Budget | Method |\n|-----------|--------|--------|\n| World state observation (cached) | < 100ms | Read from memory cache |\n| World state observation (fresh) | < 30s | Run cargo test + hardware probes |\n| Plan generation (sublinear) | < 5ms | Backward pruning + tier A* |\n| PageRank prioritization | < 2ms | Sparse matrix iteration |\n| Incremental replan | < 1ms | Delta patch on existing plan |\n| DOT graph generation | < 1ms | Traverse action catalog |\n\n---"
+}

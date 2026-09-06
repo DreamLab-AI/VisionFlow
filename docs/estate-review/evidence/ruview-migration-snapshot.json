@@ -1,0 +1,78 @@
+{
+  "date": "2026-09-05",
+  "scope": "Manifest and source inspection; no Cargo resolution/build, binary/link inspection, model export or runtime acceptance",
+  "sources": {
+    "Cargo.toml": "6c9d77466bfaeb8b377fb0063b8befa2c6b4d0e02383038c31c015c79ee9b298",
+    "crates/wifi-densepose-mat/Cargo.toml": "830e4cf9764eb8924bb2a5d87dee5ca58c0ba15182f20ffe913c8d847e6181b0",
+    "crates/wifi-densepose-signal/Cargo.toml": "bc4e97ce997ca8d74eea799c533e186aa75f588172c63063b29e0f3a36372ae0",
+    "crates/wifi-densepose-nn/Cargo.toml": "aefeea6dbca690562d6f98d34cddb50005915d20073538086f91627c706140ba",
+    "crates/wifi-densepose-nn/src/lib.rs": "114d2cd90ff8932187bc7e9a70fffed04f853fc70cb21e2e3731926ad60d66dc",
+    "crates/wifi-densepose-mat/src/api/mod.rs": "f23e1972620fb0bf3c58de1745f08fa84aed894573a9265bf731e696e3ea32a0",
+    "crates/wifi-densepose-sensing-server/src/main.rs": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3"
+  },
+  "workspace_member_count": 15,
+  "mat_features": {
+    "default": [
+      "std",
+      "api",
+      "ruvector"
+    ],
+    "ruvector": [
+      "dep:ruvector-solver",
+      "dep:ruvector-temporal-tensor"
+    ],
+    "std": [],
+    "api": [
+      "dep:serde",
+      "chrono/serde",
+      "geo/use-serde"
+    ],
+    "portable": [
+      "low-power"
+    ],
+    "low-power": [],
+    "distributed": [
+      "tokio/sync"
+    ],
+    "drone": [
+      "distributed"
+    ],
+    "serde": [
+      "dep:serde",
+      "chrono/serde",
+      "geo/use-serde"
+    ]
+  },
+  "nn_features": {
+    "default": [
+      "onnx"
+    ],
+    "onnx": [
+      "ort"
+    ],
+    "tch-backend": [
+      "tch"
+    ],
+    "candle-backend": [
+      "candle-core",
+      "candle-nn"
+    ],
+    "cuda": [
+      "onnx"
+    ],
+    "tensorrt": [
+      "onnx"
+    ],
+    "all-backends": [
+      "onnx",
+      "tch-backend",
+      "candle-backend"
+    ]
+  },
+  "mat_explicit_bins": [],
+  "mat_implicit_main_exists": false,
+  "mat_implicit_bin_directory_exists": false,
+  "workspace_ort": {
+    "version": "2.0.0-rc.11"
+  }
+}

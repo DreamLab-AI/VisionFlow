@@ -1,0 +1,76 @@
+{
+  "date": "2026-09-05",
+  "sources": [
+    {
+      "path": "/home/devuser/workspace/project/agentbox/management-api/lib/failure-taxonomy.js",
+      "sha256": "849acb777724a2b82215fd6d1f88e272deb50406b552d8369d3a333faf61c64d"
+    },
+    {
+      "path": "/home/devuser/workspace/project/agentbox/management-api/utils/agent-event-publisher.js",
+      "sha256": "488ebb0e5f89d2416834f562ea494f373c157417eefc4c9126006153227106b8"
+    },
+    {
+      "path": "/home/devuser/workspace/project/agentbox/management-api/routes/agent-events.js",
+      "sha256": "1da3e69491530e70771ea4a14b9e3a1f6be0e66f96563bed2e9ce73b93d1687f"
+    },
+    {
+      "path": "/home/devuser/workspace/project/agentbox/config/hooks/trajectory-recorder.cjs",
+      "sha256": "e7cc79bdc5595f7d6cf2dd829dd20b7845d15b4e91b3066800f28388005e4ecb"
+    },
+    {
+      "path": "/home/devuser/workspace/project/agentbox/config/hooks/lib/trajectory-util.cjs",
+      "sha256": "76d7ee4d6efc5e274e4ea5935c7beff8a5a18b2dc008ff7a0d7199cb62e5719b"
+    },
+    {
+      "path": "/home/devuser/workspace/project/agentbox/tests/sovereign/failure-taxonomy.test.js",
+      "sha256": "0c72680f0af8a410f4e8cca4252b7f4aa4dd868ec6231c32a644ceb69f9f6069"
+    },
+    {
+      "path": "/home/devuser/workspace/project/agentbox/tests/sovereign/agent-events-taxonomy.test.js",
+      "sha256": "07d1e3a59dabd78b525ad87d77f0cd3b0b39feb4689bcb3c3eeef99e8513c59a"
+    },
+    {
+      "path": "/home/devuser/workspace/project/src/agent_events/schema.rs",
+      "sha256": "0cd32cd89bb4981facf9157c3a028e1312e301cffb107b7be34af783cd927c32"
+    },
+    {
+      "path": "/home/devuser/workspace/project/src/services/kpi_compute.rs",
+      "sha256": "7de3995807e0677d694fe2972aabaa9ddb5cd54bf5f3a7e17bb47f592f720bd4"
+    },
+    {
+      "path": "/home/devuser/workspace/project/src/adapters/sqlite_kpi_repository.rs",
+      "sha256": "b19df4f95860edd39ff1c828cd495651594e60354ccb9fdf6adefd3f736c6241"
+    },
+    {
+      "path": "/home/devuser/workspace/project/client/src/features/bots/swarmObservability.ts",
+      "sha256": "9475e4c82a59de09d54ff01422c2a35c403b1a93a521b87ce9ec64a8d2a18219"
+    },
+    {
+      "path": "/home/devuser/workspace/project/client/src/features/bots/components/SwarmObservabilityPanel.tsx",
+      "sha256": "bf77eb9dc62b79bea1c9f5b5a70aa205dc797bff6c9fc6e078dfbfb7b3852086"
+    }
+  ],
+  "existing_tests": {
+    "command": "node node_modules/jest/bin/jest.js --config '{\"testEnvironment\":\"node\",\"roots\":[\"<rootDir>/tests/sovereign\"],\"testMatch\":[\"**/failure-taxonomy.test.js\",\"**/agent-events-taxonomy.test.js\"]}' --runInBand",
+    "cwd": "/home/devuser/workspace/project/agentbox",
+    "exit_code": 0,
+    "suites": 2,
+    "passed": 16,
+    "scope": "Actual classifier and in-process route with mocked auth for branch tests"
+  },
+  "route_probe": {
+    "assertions": 6,
+    "invalid_status": 400,
+    "invalid_failure_tag": null,
+    "invalid_emitted_events": 0,
+    "mapped_status": 200,
+    "metadata_tag": "FM-1.2",
+    "top_level_tag": "unmapped",
+    "scope": "Actual Fastify route, mapper and publisher; auth off; no socket/database/consumer"
+  },
+  "search_limits": [
+    "No mastFailureTags producer reference in agentbox management-api/config/mcp/lib/scripts outside node_modules",
+    "No failure_mode field declared in current VisionClaw AgentActionEnvelope; metadata retained",
+    "QE fleet source/producers and independent runtime/crash census remain unexamined"
+  ]
+}

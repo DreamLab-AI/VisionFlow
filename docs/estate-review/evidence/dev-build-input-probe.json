@@ -1,0 +1,24 @@
+{
+  "date": "2026-09-04",
+  "scope": "Extracted timestamp decision block with /app replaced by temporary root; no compiler, clean, service launch or Docker operation.",
+  "cases": [
+    {
+      "case": "rust_change",
+      "changed_input": "crates/test/src/lib.rs",
+      "needs_build": "true"
+    },
+    {
+      "case": "cuda_change",
+      "changed_input": "crates/test/src/kernel.cu",
+      "needs_build": "false"
+    },
+    {
+      "case": "crate_manifest_change",
+      "changed_input": "crates/test/Cargo.toml",
+      "needs_build": "false"
+    }
+  ],
+  "source_sha256": {
+    "scripts/rust-backend-wrapper.sh": "766cac36b2b13f3c9ad541cdb06af9c9eb29db2996c4192eb2cfc1499706db3e"
+  }
+}

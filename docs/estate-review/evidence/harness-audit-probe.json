@@ -1,0 +1,35 @@
+{
+  "date": "2026-09-05",
+  "scope": "Actual audit script over current templates and temporary synthetic templates; no hosted CI or runtime governance",
+  "source_sha256": "fca258a4f60780d6f6693931b74f7500caf68b0481742ea946b4c4033b94e905",
+  "cases": [
+    {
+      "label": "current_templates",
+      "exit_code": 0,
+      "stdout": "\nHARNESS PAIRING AUDIT\n=====================\nTopology                       | Guides | Sensors | Paired |  Ratio | Maturity\nagentbox-agent-task            |      5 |       5 |      5 | 100.0% | standalone\ngovernance-decision            |      5 |       5 |      5 | 100.0% | integrated\npod-mutation                   |      5 |       5 |      5 | 100.0% | standalone\nvisionclaw-enrichment          |      5 |       5 |      5 | 100.0% | standalone\n--------------------------------------------------------------------------------\nTOTAL                          |     20 |      20 |     20 | 100.0% |\n\nSource backing: 33/40 controls source-backed (82.5% present, 7 planned)\n\nPlanned (source not yet resolvable):\n  [agentbox-agent-task] sensor hooks-validate-trajectory\n  [agentbox-agent-task] sensor slo-ci-gate\n  [governance-decision] sensor governance-ui-rendering\n  [pod-mutation] guide block-trail-rules\n  [pod-mutation] sensor taproot-verification\n  [visionclaw-enrichment] guide enrichment-proposal-schema\n  [visionclaw-enrichment] sensor provenance-chain-integrity\n\nPASS: Overall pairing ratio 100.0% meets target 80%\n",
+      "stderr": ""
+    },
+    {
+      "label": "missing_sources_default_present",
+      "exit_code": 0,
+      "stdout": "\nHARNESS PAIRING AUDIT\n=====================\nTopology                       | Guides | Sensors | Paired |  Ratio | Maturity\nfixture                        |      1 |       1 |      1 | 100.0% | unknown\n--------------------------------------------------------------------------------\nTOTAL                          |      1 |       1 |      1 | 100.0% |\n\nSource backing: 2/2 controls source-backed (100.0% present, 0 planned)\n\nPASS: Overall pairing ratio 100.0% meets target 80%\n",
+      "stderr": ""
+    },
+    {
+      "label": "duplicate_pairings",
+      "exit_code": 0,
+      "stdout": "\nHARNESS PAIRING AUDIT\n=====================\nTopology                       | Guides | Sensors | Paired |  Ratio | Maturity\nfixture                        |      1 |       1 |      2 | 200.0% | unknown\n--------------------------------------------------------------------------------\nTOTAL                          |      1 |       1 |      2 | 200.0% |\n\nSource backing: 2/2 controls source-backed (100.0% present, 0 planned)\n\nPASS: Overall pairing ratio 200.0% meets target 80%\n",
+      "stderr": ""
+    }
+  ],
+  "supporting_sources": {
+    "/home/devuser/workspace/VisionFlow/.github/workflows/harness-fitness-gates.yml": "1479006d9640dca64b7365397ca8de35e3100c492d3ea23d03094e3549ee9f0b",
+    "/home/devuser/workspace/VisionFlow/docs/engineering/schemas/harness-template.schema.json": "08b1f2846287c9b3a1e79978e58bd153b9a20a8d86029f4efbe3cabf23d7c85d",
+    "/home/devuser/workspace/VisionFlow/docs/engineering/templates/pod-mutation.json": "6fed929fa68492d8372a57f0221fedbf6cbf7bf925a26c7701551427a5518700",
+    "/home/devuser/workspace/VisionFlow/docs/engineering/templates/visionclaw-enrichment.json": "50728d2bfb428d1cf683d6d329abd54c7e5a05f15a5065e8b9b37e2bdc252d27",
+    "/home/devuser/workspace/VisionFlow/docs/engineering/templates/governance-decision.json": "3430b364eadeb0d3dad60cc770e5bf56850c6a2b5df347311e0b3a7248b8b459",
+    "/home/devuser/workspace/VisionFlow/docs/engineering/templates/agentbox-agent-task.json": "1252128cabf84abc0a84f085fc2742140e33ea10da20a95fec020313e0164461",
+    "/home/devuser/workspace/project/agentbox/management-api/lib/precedent-service.js": "1d2a048389c0ea2b8c1312f0632938243e28dfb5121ac7dba459abf4b1352c20",
+    "/home/devuser/workspace/project/agentbox/agentbox.toml": "008da44421abc52481ea11c77bf0800cc6c1b8b051b0759766d7a4f160e86bc9"
+  }
+}

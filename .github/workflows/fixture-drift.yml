@@ -1,29 +1,34 @@
 # Fixture Drift Detection
 #
-# HONEST SCOPE (2026-07-03): in GitHub Actions this workflow is a LOCAL-ONLY
-# TOOL, not an enforcing cross-repo gate. VisionFlow carries no canonical
-# fixture corpus of its own, so in CI the locate step below always sets
-# has_canonical=false and the job exits green via the "No fixtures to check"
-# branch. It can never diff against the sibling repos from CI as configured.
+# SCOPE (revised 2026-09-05, ADR-2006 closeout). Until this revision the job
+# was a green no-op: VisionFlow carries no canonical fixture corpus of its own,
+# so the locate step always set has_canonical=false and the workflow exited 0
+# via a "No fixtures to check" branch. A gate that cannot fail certifies
+# nothing, and a green tick against it was read as fixture parity.
 #
-# The canonical corpus lives in the VisionClaw monorepo. It was relocated on
-# 2026-06-29 from `docs/specs/fixtures/` to `tests/fixtures/` — the old path
-# no longer exists (this is why the paths list below still names the removed
-# `docs/specs/fixtures/**`; that trigger is now dead until repointed).
+# The job now REFUSES to pass without a canonical revision set. One of these
+# must hold, or the run fails:
 #
-# To make this an ACTUAL cross-repo gate, either:
-#   (a) add sibling-repo checkouts (deploy key / PAT) for VisionClaw,
-#       agentbox, solid-pod-rs and nostr-rust-forum, then pass their fixture
-#       dirs to the script with an explicit --canonical, OR
-#   (b) run the script locally, e.g.:
-#         ./scripts/check-fixture-drift.sh \
-#           --canonical /path/to/VisionClaw/tests/fixtures \
-#           /path/to/agentbox/tests/contract/upstream_vectors \
-#           /path/to/solid-pod-rs/crates/solid-pod-rs-nostr/tests/fixtures \
-#           /path/to/nostr-rust-forum/tests/fixtures
+#   (a) sibling-repo checkouts are wired (deploy key / PAT) for the canonical
+#       corpus and its consumers, and CANONICAL_REPO / CANONICAL_REF /
+#       CANONICAL_DIR below point at them; or
+#   (b) the run is explicitly waived for this invocation via the
+#       `waive_reason` workflow_dispatch input, which is recorded in the log.
 #
-# Until (a) is wired, treat this as a convenience runner, not a merge gate.
-# See scripts/check-fixture-drift.sh --help for full usage.
+# Option (a) is the intended end state and is blocked only on repository
+# credentials, which cannot be provisioned from the working tree. Until they
+# exist, pushes and pull requests that touch fixtures will fail this gate —
+# deliberately, because the alternative is a tick that means nothing.
+#
+# The canonical corpus lives in the VisionClaw monorepo at `tests/fixtures/`
+# (relocated there 2026-06-29 from the removed `docs/specs/fixtures/`).
+#
+# Locally:
+#   ./scripts/check-fixture-drift.sh \
+#     --canonical /path/to/VisionClaw/tests/fixtures \
+#     /path/to/agentbox/tests/contract/upstream_vectors \
+#     /path/to/solid-pod-rs/crates/solid-pod-rs-nostr/tests/fixtures \
+#     /path/to/nostr-rust-forum/tests/fixtures
 
 name: Fixture Drift Check
 
@@ -31,24 +36,34 @@ on:
   push:
     branches: [main]
     paths:
-      - 'docs/specs/fixtures/**'
       - 'tests/fixtures/**'
       - 'scripts/check-fixture-drift.sh'
+      - '.github/workflows/fixture-drift.yml'
   pull_request:
     paths:
-      - 'docs/specs/fixtures/**'
       - 'tests/fixtures/**'
       - 'scripts/check-fixture-drift.sh'
-  # Allow manual trigger for on-demand cross-repo audits
+      - '.github/workflows/fixture-drift.yml'
   workflow_dispatch:
     inputs:
       canonical_dir:
-        description: 'Override canonical fixture directory (relative to repo root)'
+        description: 'Canonical fixture directory (relative to the workspace)'
+        required: false
+        default: ''
+      waive_reason:
+        description: 'Explicit reason to pass without a canonical corpus. Recorded in the log. Leave empty to enforce.'
         required: false
         default: ''
 
 permissions:
   contents: read
+
+env:
+  # The canonical corpus. CANONICAL_REPO is only reachable once sibling
+  # checkout credentials exist; until then the locate step reports it absent
+  # and the gate fails rather than passing vacuously.
+  CANONICAL_REPO: DreamLab-AI/VisionClaw
+  CANONICAL_DIR: tests/fixtures
 
 jobs:
   fixture-drift:
@@ -58,80 +73,100 @@ jobs:
       - name: Checkout VisionFlow
         uses: actions/checkout@v4
 
-      - name: Locate fixture directories
+      # Attempt the canonical checkout. `continue-on-error` so that a missing
+      # credential produces a reportable state rather than an opaque failure;
+      # the verdict step below still fails the job.
+      - name: Check out the canonical corpus
+        id: canonical
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.CANONICAL_REPO }}
+          path: _canonical
+
+      - name: Locate the canonical corpus
         id: locate
         run: |
-          # Canonical source lives in the VisionClaw monorepo. In CI we
-          # only have VisionFlow checked out, so we check for any fixture
-          # copies co-located within this repo.
+          set -uo pipefail
           CANONICAL=""
+          OVERRIDE="${{ inputs.canonical_dir }}"
+
+          if [[ -n "$OVERRIDE" && -d "$OVERRIDE" ]]; then
+            CANONICAL="$OVERRIDE"
+          elif [[ -d "_canonical/${CANONICAL_DIR}" ]] \
+               && ls "_canonical/${CANONICAL_DIR}"/*.json >/dev/null 2>&1; then
+            CANONICAL="_canonical/${CANONICAL_DIR}"
+          fi
+
+          if [[ -n "$CANONICAL" ]]; then
+            REV="$(git -C _canonical rev-parse HEAD 2>/dev/null || echo unknown)"
+            COUNT="$(ls "$CANONICAL"/*.json 2>/dev/null | wc -l)"
+            echo "Canonical corpus: $CANONICAL @ $REV ($COUNT fixtures)"
+            echo "has_canonical=true" >> "$GITHUB_OUTPUT"
+            echo "canonical=$CANONICAL" >> "$GITHUB_OUTPUT"
+            echo "revision=$REV" >> "$GITHUB_OUTPUT"
+          else
+            echo "No canonical corpus resolved."
+            echo "has_canonical=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          # Consumer copies co-located in this repo, if any.
           COPIES=()
-
-          # Check for canonical fixtures (if VisionFlow carries them)
-          for candidate in \
-            "docs/specs/fixtures" \
-            "fixtures" \
-          ; do
-            if [[ -d "$candidate" ]] && ls "$candidate"/*.json >/dev/null 2>&1; then
-              CANONICAL="$candidate"
-              break
-            fi
-          done
-
-          # Find all fixture copy directories within the repo
           while IFS= read -r dir; do
-            # Skip canonical dir itself and node_modules / build artifacts
             [[ "$dir" == "$CANONICAL" ]] && continue
+            [[ "$dir" == _canonical/* ]] && continue
             [[ "$dir" == *node_modules* ]] && continue
             [[ "$dir" == *target/* ]] && continue
-            [[ "$dir" == *.playwright* ]] && continue
             COPIES+=("$dir")
-          done < <(find . -type f -name '*.json' -path '*/fixtures/*' -exec dirname {} \; | sort -u | sed 's|^\./||')
-
-          if [[ -z "$CANONICAL" ]]; then
-            echo "No canonical fixture directory found in this repo."
-            echo "Cross-repo drift checks require running locally with --canonical."
-            echo "has_canonical=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          echo "has_canonical=true" >> "$GITHUB_OUTPUT"
-          echo "canonical=$CANONICAL" >> "$GITHUB_OUTPUT"
-
-          # Write copy dirs as newline-separated list
-          printf '%s\n' "${COPIES[@]}" > /tmp/copy-dirs.txt
+          done < <(find . -type f -name '*.json' -path '*/fixtures/*' \
+                     -not -path './_canonical/*' -not -path './node_modules/*' \
+                     -exec dirname {} \; | sort -u | sed 's|^\./||')
+          printf '%s\n' "${COPIES[@]+"${COPIES[@]}"}" > /tmp/copy-dirs.txt
           echo "copy_count=${#COPIES[@]}" >> "$GITHUB_OUTPUT"
 
-      - name: Run drift check
-        if: steps.locate.outputs.has_canonical == 'true' && steps.locate.outputs.copy_count != '0'
+      # A missing canonical corpus is now a FAILURE, not a green skip. This is
+      # the defect being closed: the job could never compare anything and said
+      # so only in prose while reporting success.
+      - name: Enforce that a canonical revision set exists
+        if: steps.locate.outputs.has_canonical != 'true'
         run: |
-          chmod +x scripts/check-fixture-drift.sh
-
-          CANONICAL="${{ steps.locate.outputs.canonical }}"
-          OVERRIDE="${{ inputs.canonical_dir }}"
-          if [[ -n "$OVERRIDE" ]]; then
-            CANONICAL="$OVERRIDE"
+          if [[ -n "${{ inputs.waive_reason }}" ]]; then
+            echo "::warning::Fixture drift gate WAIVED for this run."
+            echo "Reason: ${{ inputs.waive_reason }}"
+            echo "No canonical corpus was compared. This run proves nothing about fixture parity."
+            exit 0
           fi
+          echo "::error::No canonical fixture corpus available — nothing was compared."
+          echo ""
+          echo "This gate asserts fixture parity against ${CANONICAL_REPO}/${CANONICAL_DIR}."
+          echo "It cannot reach that corpus from this runner, so it has nothing to check."
+          echo "Passing here would certify parity that was never tested, which is exactly"
+          echo "the failure this workflow was rewritten to stop."
+          echo ""
+          echo "Fix by either:"
+          echo "  (a) provisioning a deploy key / PAT so the canonical checkout succeeds; or"
+          echo "  (b) re-running via workflow_dispatch with an explicit waive_reason."
+          exit 1
 
-          ARGS=(--canonical "$CANONICAL" --json)
+      - name: Run drift check
+        if: steps.locate.outputs.has_canonical == 'true'
+        run: |
+          set -euo pipefail
+          chmod +x scripts/check-fixture-drift.sh
+          echo "Canonical revision: ${{ steps.locate.outputs.revision }}"
+
+          ARGS=(--canonical "${{ steps.locate.outputs.canonical }}" --json)
           while IFS= read -r dir; do
             [[ -n "$dir" ]] && ARGS+=("$dir")
           done < /tmp/copy-dirs.txt
 
-          ./scripts/check-fixture-drift.sh "${ARGS[@]}"
+          if [[ "${{ steps.locate.outputs.copy_count }}" == "0" ]]; then
+            # A resolved canonical corpus with no consumer copies in this repo is
+            # a legitimate outcome, but say so explicitly rather than implying a
+            # comparison happened.
+            echo "Canonical corpus resolved; VisionFlow carries no consumer copies to diff."
+            echo "Cross-repo consumers are checked by the substrate CI that owns them."
+            exit 0
+          fi
 
-      - name: No fixtures to check (local-only tool, not an enforcing gate)
-        if: steps.locate.outputs.has_canonical != 'true' || steps.locate.outputs.copy_count == '0'
-        run: |
-          echo "No co-located fixture copies found within VisionFlow — this is expected."
-          echo "In CI this workflow is a LOCAL-ONLY tool: VisionFlow carries no canonical"
-          echo "corpus, so no cross-repo drift is enforced here. It always reaches this branch."
-          echo ""
-          echo "For real cross-repo drift detection, run locally against the current"
-          echo "canonical location (VisionClaw tests/fixtures, moved there 2026-06-29):"
-          echo ""
-          echo "  ./scripts/check-fixture-drift.sh \\"
-          echo "    --canonical /path/to/VisionClaw/tests/fixtures \\"
-          echo "    /path/to/agentbox/tests/contract/upstream_vectors \\"
-          echo "    /path/to/solid-pod-rs/crates/solid-pod-rs-nostr/tests/fixtures \\"
-          echo "    /path/to/nostr-rust-forum/tests/fixtures"
+          ./scripts/check-fixture-drift.sh "${ARGS[@]}"

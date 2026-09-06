@@ -1,0 +1,16 @@
+{
+  "date": "2026-09-04",
+  "scope": "Six native domain-helper tests and handler source review. No metadata ingest, socket session, client rendering or deployed visibility/revocation test.",
+  "check": {
+    "command": "cargo test --locked --offline -p visionclaw-domain visibility_filter --lib",
+    "exit_code": 0,
+    "passed": 6,
+    "filtered_out": 253,
+    "warnings": 6
+  },
+  "source_sha256": {
+    "crates/visionclaw-domain/src/utils/visibility_filter.rs": "d2497427d2af3a1b053460df40ef1cb78aff634fea319a5a90083cfd49bf4a0a",
+    "src/handlers/socket_flow_handler/position_updates.rs": "47f20b481f11fce1a55396ce9618d1cc647f2678f94169d49957a0864683b38c",
+    "src/handlers/socket_flow_handler/types.rs": "ac4be6df7fcc92723b1ab69a27342ffdaf44d8902bf8df7aa7cdeee736448e05"
+  }
+}

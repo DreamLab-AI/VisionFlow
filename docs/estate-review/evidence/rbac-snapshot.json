@@ -1,0 +1,12 @@
+{
+  "date": "2026-09-04",
+  "scope": "Current source trace only. No role database access/mutation, HTTP request, race reproduction or deployment verification.",
+  "source_sha256": {
+    "src/models/rbac.rs": "80902cdd92ea4b2461a88b24f305523fd53a50b2539390f0c2e8ac64ba2114bc",
+    "src/services/role_store.rs": "199a6e0b2d0b4be23d8b5b6a98d4fee2de50d99001782a4acd56183a0bd67580",
+    "src/utils/auth.rs": "32eb4d6ff3a6a1346b5408a692a23e8c152f92cd81fa2456de9b34c29cb03f59",
+    "src/middleware/rbac_gate.rs": "7dbc044f3ac1ca24fea35abe03d9d8fbb2733236b869341b4d517b5a17fe43eb",
+    "src/handlers/admin_rbac_handler.rs": "93517886cee033803d33c4aa33ab8087c2ba3eb476c5538605e056a358fb6d8d",
+    "src/main.rs": "4a2a1546bdef22a823a28157ccc07ee6a0a0c9886bef5c51a5f98ca0738d02dc"
+  }
+}

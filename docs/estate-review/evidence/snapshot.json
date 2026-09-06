@@ -1,0 +1,211 @@
+{
+  "captured_at": "2026-09-04T20:24:35.420500+00:00",
+  "scope": "Local checkout identity, source hashes, canon drift check and isolated evaluator probes; no federation or production verification.",
+  "repositories": [
+    {
+      "name": "VisionFlow",
+      "workspace_path": "VisionFlow",
+      "resolved_path": "/home/devuser/workspace/VisionFlow",
+      "head": "8cf1a1bf9e4ef2ef98ee6c7bf56ef361aa8d0304",
+      "branch": "main",
+      "tracked_change_count": 7,
+      "tracked_status_available": true,
+      "untracked_files_counted": false
+    },
+    {
+      "name": "VisionClaw",
+      "workspace_path": "project",
+      "resolved_path": "/home/devuser/workspace/project",
+      "head": "b00c28a0d766c8cf46cd00b100dab60ef2dd74a4",
+      "branch": "main",
+      "tracked_change_count": 15,
+      "tracked_status_available": true,
+      "untracked_files_counted": false
+    },
+    {
+      "name": "agentbox",
+      "workspace_path": "project/agentbox",
+      "resolved_path": "/home/devuser/workspace/project/agentbox",
+      "head": "89301ec7c911eab270c00a0cf81596d0d4f15535",
+      "branch": "main",
+      "tracked_change_count": 0,
+      "tracked_status_available": true,
+      "untracked_files_counted": false
+    },
+    {
+      "name": "solid-pod-rs",
+      "workspace_path": "solid-pod-rs",
+      "resolved_path": "/home/devuser/workspace/solid-pod-rs",
+      "head": "d6ac7f5108686ad1c13b6e6e783d272515aaa72f",
+      "branch": "main",
+      "tracked_change_count": 0,
+      "tracked_status_available": true,
+      "untracked_files_counted": false
+    },
+    {
+      "name": "nostr-rust-forum",
+      "workspace_path": "nostr-rust-forum",
+      "resolved_path": "/home/devuser/workspace/nostr-rust-forum",
+      "head": "f18b471e499b029d93cb14152edb6fb966abd274",
+      "branch": "main",
+      "tracked_change_count": 0,
+      "tracked_status_available": true,
+      "untracked_files_counted": false
+    },
+    {
+      "name": "dreamlab-ai-website",
+      "workspace_path": "dreamlab-ai-website",
+      "resolved_path": "/home/devuser/workspace/dreamlab-ai-website",
+      "head": "7e243741c8eaf61506ef86a70b8dd44d80722c11",
+      "branch": "main",
+      "tracked_change_count": 2,
+      "tracked_status_available": true,
+      "untracked_files_counted": false
+    },
+    {
+      "name": "loom",
+      "workspace_path": "loom",
+      "resolved_path": "/home/devuser/workspace/loom",
+      "head": "8cdef36bb571f0aed2d599d97a3efab02760b6d5",
+      "branch": "main",
+      "tracked_change_count": 1,
+      "tracked_status_available": true,
+      "untracked_files_counted": false
+    },
+    {
+      "name": "knowledgeGraph",
+      "workspace_path": "knowledgeGraph",
+      "resolved_path": "/home/devuser/workspace/knowledgeGraph",
+      "head": "7bbf0aae2b60a63c2714b750e3b381bce6be7ad8",
+      "branch": "main",
+      "tracked_change_count": 0,
+      "tracked_status_available": true,
+      "untracked_files_counted": false
+    },
+    {
+      "name": "WasmVOWL",
+      "workspace_path": "WasmVOWL",
+      "resolved_path": "/home/devuser/workspace/WasmVOWL",
+      "head": "36105cc3ad04a91415b889799e8608b08cf68b45",
+      "branch": "master",
+      "tracked_change_count": 0,
+      "tracked_status_available": true,
+      "untracked_files_counted": false
+    },
+    {
+      "name": "dream-engine",
+      "workspace_path": "dream-machine",
+      "resolved_path": "/home/devuser/workspace/dream-machine",
+      "head": "7c30573a2d73c8fa4c67a43042d7c0b204eefa13",
+      "branch": "main",
+      "tracked_change_count": 1,
+      "tracked_status_available": true,
+      "untracked_files_counted": false
+    },
+    {
+      "name": "RuView",
+      "workspace_path": "RuView",
+      "resolved_path": "/home/devuser/workspace/RuView",
+      "head": "b48ab7dada5002414ec18d36a5d652e0f1bd4a67",
+      "branch": "closeout/2026-07-03",
+      "tracked_change_count": 5,
+      "tracked_status_available": true,
+      "untracked_files_counted": false
+    },
+    {
+      "name": "ruvector",
+      "workspace_path": "ruvector",
+      "resolved_path": "/home/devuser/workspace/ruvector",
+      "head": "677b2475409c50cb964be8a3b848da2952390535",
+      "branch": "report/agentbox-field-2026-07",
+      "tracked_change_count": 46,
+      "tracked_status_available": true,
+      "untracked_files_counted": false
+    }
+  ],
+  "source_sha256": {
+    "VisionFlow/README.md": "5e20cc655deb4e83878b95fd76d8253b2d22aa055a90ec8e9c4dab812e010b79",
+    "VisionFlow/docs/README.md": "0f083e0658dbb4d306524a1ef96ce5d47eb8bec5734522bd7032fd56c00bee34",
+    "VisionFlow/docs/BASELINE-visionflow.md": "10d07d56027ec5e9d8c77d19c3c7b486452f6e360e52cba4a221684b5178bd4b",
+    "VisionFlow/docs/architecture/repository-map.md": "48ba6a5934da77ef06ce7390120bfc3ae1a8b702a4033851e2860780524b22c3",
+    "VisionFlow/docs/ecosystem-map.md": "4f5cc804ee4a60cf66685153ac8b59d6b2d309db02b2424a650025e3bb07677c",
+    "VisionFlow/docs/registers/gap-register-v1.2.md": "5a112660e1d6af10a6f8c3542acf12823916fb0d1cb07c84aacc974cce351ee9",
+    "VisionFlow/presentation/report/chapters/13-visionflow-canon.tex": "5faa59e2c56bc025f18d7f67acc2f0d9691dbae8691109d27968025bf6f3f0bb",
+    "VisionFlow/presentation/report/chapters/15-open-questions.tex": "7d7c89c5771809b2b435b2f4b735a133290d519f3d27400d8cba7325f5d70fd1",
+    "VisionFlow/website/build.sh": "9feb01595a2dca874e6ee0ddb84e381fc60379b61a96a7d6058e52ab42a78bac",
+    "VisionFlow/package.json": "a402735bc932e97af6659b8859e7ea732223916afc4b6551f159c879d60c7f53",
+    "VisionFlow/.github/workflows/deploy.yml": "9a528b0b53e647d7d938e7f813dbb20a33c008a662e9cdea24bf8836d50ab089",
+    "VisionFlow/.github/workflows/fixture-drift.yml": "aa2928caf661a9c6ef52832453f8d4ff6515e820535d6095bce5709804a4c491",
+    "VisionFlow/.github/workflows/drift-counter.yml": "fffa7f2fce696acd87d84ee0bea56d22003a9af0d07fd0e4478afa3760d8284e",
+    "VisionFlow/scripts/drift-counter/drift-counter.mjs": "26ce974175bd48316cb07c417b0c50097b2116e1a79774b77ea632403bd9debf",
+    "VisionFlow/scripts/drift-counter/allowlist.json": "8fde90c547070cd746b7713df5141b15197edee58dc139b0783a6c296e159460",
+    "VisionFlow/scripts/generate-release-manifest.sh": "edca52497aecff8f940d04e66c75c49285c881c786533e917bcb9dc704beda0d",
+    "VisionFlow/dream.config.json": "9866c30d69f2ed6b32f45ec4390d1d20cbc1f5f4231c34ef74311c4a23977787",
+    "VisionFlow/docs/dream-cycle/LEDGER.md": "b28e2e3b4528550ec78895c7b9620ec6d6c92257011c1fb919648294e6d70df2",
+    "VisionFlow/scripts/dream-link-check.sh": "9593e118b54c3e728c72927910cd2efca413a6f509c52e8b76a2d147d01adfd9",
+    "VisionFlow/scripts/dream-build-check.sh": "06653d81e74c9f0014667d36b988fd89819e3a47149ef49e8ddc49d5107902b9",
+    "VisionFlow/scripts/dream-meta-tags-scan.sh": "b3d0342724bcd84680b9788fed0768d58d5297e1de6dd1c457704099b63d7390",
+    "VisionFlow/scripts/dream-structured-data-scan.sh": "5d978823e0638760697d339a13287701dc3ffff267f2799bd4714da65b056216",
+    "project/agentbox/scripts/skill-count-check.js": "cb5e32f95b84ed7b1c88c34a5c68c121a45c65ae16eb80a466f78cce828038ad",
+    "project/agentbox/mcp/servers/ontology-bridge.js": "51b9f325ec0a1f014db5929e0673fdfe61af275e0a189c9770a9911ab526e8c3",
+    "loom/README.md": "d80ac25f0cfcfb9b77105c2cfbe24ff1db3b54c459bdc8a04c44f3cd58a79e3c",
+    "loom/Cargo.toml": "05f7febd27a7fab3493b1ccc8c2affa539b45bcd95d2c008b1edb6ea2420a661",
+    "knowledgeGraph/README.md": "21fdba11c8e484f7c4244e0e09632daf36cb13d09e42180144b334dbc9f70ea9",
+    "WasmVOWL/README.md": "e0b1e70f99bf170abd77891a0442514ab833b052e841f46be95ba5615b9ed239",
+    "dream-machine/README.md": "a32e4df59cdfea60616d356c27adaf25922ac486f450a25d6c23ac5b4be841c3",
+    "ruvector/Cargo.toml": "9c71e9dd9fa6c266ca1ef5edb493ec0ffee537cab50e5d961ed3ba32bb76f51f",
+    "RuView/README.md": "4253696f2e2214dfb854bb493f640fd3b02839737bfa7a092e0f88bf3ff839da"
+  },
+  "evaluator_probes": [
+    {
+      "command": [
+        "bash",
+        "scripts/dream-link-check.sh"
+      ],
+      "exit_code": 0,
+      "stdout": "MISSING: ./index.html -> missing.png\ninternal-refs-checked: 1  missing: 1\nLINK-INTEGRITY-FAIL\n",
+      "stderr": "",
+      "fixture": "HTML with missing.png, no required metadata and malformed JSON-LD"
+    },
+    {
+      "command": [
+        "bash",
+        "scripts/dream-meta-tags-scan.sh"
+      ],
+      "exit_code": 0,
+      "stdout": "title: 0\nMISSING-REQUIRED: title\nmeta-description: 0\nMISSING-REQUIRED: meta-description\ncanonical: 0\nMISSING-REQUIRED: canonical\nviewport: 0\nMISSING-REQUIRED: viewport\nog-tags: 0\ntwitter-tags: 0\nrobots: 0\nrequired-missing: 4\nMETA-SCAN-FAIL\n",
+      "stderr": "",
+      "fixture": "HTML with missing.png, no required metadata and malformed JSON-LD"
+    },
+    {
+      "command": [
+        "bash",
+        "scripts/dream-structured-data-scan.sh"
+      ],
+      "exit_code": 0,
+      "stdout": "PARSE-ERROR: block 1: Expected property name or '}' in JSON at position 1 (line 1 column 2)\njson-ld-blocks: 1  parse-errors: 1\nSD-SCAN-FAIL\n",
+      "stderr": "",
+      "fixture": "HTML with missing.png, no required metadata and malformed JSON-LD"
+    },
+    {
+      "command": [
+        "bash",
+        "scripts/dream-build-check.sh"
+      ],
+      "exit_code": 0,
+      "stdout": "BUILD-FAIL\n",
+      "stderr": "",
+      "fixture": "missing index.html"
+    }
+  ],
+  "drift_counter": {
+    "command": [
+      "node",
+      "scripts/drift-counter/drift-counter.mjs",
+      "--json"
+    ],
+    "exit_code": 1,
+    "stdout": "{\n  \"ok\": false,\n  \"truth_as_of\": \"2026-07-08\",\n  \"agentbox\": \"/home/devuser/workspace/agentbox\",\n  \"strict\": false,\n  \"axes\": [\n    {\n      \"axis\": \"skills\",\n      \"state\": \"enforced\",\n      \"truth\": 126,\n      \"source\": \"/home/devuser/workspace/agentbox/scripts/skill-count-check.js (.count)\",\n      \"enforced\": true,\n      \"findings\": [\n        {\n          \"axis\": \"skills\",\n          \"file\": \"README.md\",\n          \"line\": 52,\n          \"stated\": 124,\n          \"truth\": 126,\n          \"ok\": false,\n          \"text\": \"| **[agentbox](https://github.com/DreamLab-AI/agentbox)** | Sovereign agent runtime \u2014 reproducible Nix container, a `did\"\n        },\n        {\n          \"axis\": \"skills\",\n          \"file\": \"README.md\",\n          \"line\": 152,\n          \"stated\": 124,\n          \"truth\": 126,\n          \"ok\": false,\n          \"text\": \"AGENTS[\\\"124 Agent Skills\\\\n(manifest-driven)\\\"]\"\n        },\n        {\n          \"axis\": \"skills\",\n          \"file\": \"docs/ecosystem-map.md\",\n          \"line\": 30,\n          \"stated\": 124,\n          \"truth\": 126,\n          \"ok\": false,\n          \"text\": \"| agentbox | Reproducible sovereign agent runtime with Nix, 124 skills, 180+ MCP tools, 12-tool ontology bridge to Visio\"\n        },\n        {\n          \"axis\": \"skills\",\n          \"file\": \"docs/PRD-website.md\",\n          \"line\": 126,\n          \"stated\": 115,\n          \"truth\": 126,\n          \"ok\": false,\n          \"text\": \"| Agentbox | Hardened agent runtime; 115 skills; 180+ tools |\"\n        },\n        {\n          \"axis\": \"skills\",\n          \"file\": \"docs/engineering/ADR-004-harness-engineering-framework.md\",\n          \"line\": 13,\n          \"stated\": 115,\n          \"truth\": 126,\n          \"ok\": false,\n          \"text\": \"The VisionFlow ecosystem governs agent behaviour through an extensive but informally structured collection of feedforwar\"\n        },\n        {\n          \"axis\": \"skills\",\n          \"file\": \"website/static/index.html\",\n          \"line\": 225,\n          \"stated\": 124,\n          \"truth\": 126,\n          \"ok\": false,\n          \"text\": \"<li>124 agent skills, 180+ MCP tools</li>\"\n        },\n        {\n          \"axis\": \"skills\",\n          \"file\": \"website/static/index.html\",\n          \"line\": 706,\n          \"stated\": 124,\n          \"truth\": 126,\n          \"ok\": false,\n          \"text\": \"<p>One Agentbox, standalone mode. Local SQLite beads, local Solid pod, local events. 124 skills, 180+ tools, privacy fil\"\n        },\n        {\n          \"axis\": \"skills\",\n          \"file\": \"website/static/index.html\",\n          \"line\": 745,\n          \"stated\": 124,\n          \"truth\": 126,\n          \"ok\": false,\n          \"text\": \"<span class=\\\"repo-tech\\\">Nix &middot; 124 skills &middot; 180+ tools &middot; Solid pods</span>\"\n        }\n      ]\n    },\n    {\n      \"axis\": \"mcp-ontology-tools\",\n      \"state\": \"enforced\",\n      \"truth\": 12,\n      \"source\": \"/home/devuser/workspace/agentbox/mcp/servers/ontology-bridge.js (TOOLS.length)\",\n      \"enforced\": true,\n      \"findings\": [\n        {\n          \"axis\": \"mcp-ontology-tools\",\n          \"file\": \"README.md\",\n          \"line\": 155,\n          \"stated\": 12,\n          \"truth\": 12,\n          \"ok\": true,\n          \"text\": \"12 MCP Ontology Tools\"\n        },\n        {\n          \"axis\": \"mcp-ontology-tools\",\n          \"file\": \"docs/ecosystem-map.md\",\n          \"line\": 30,\n          \"stated\": 12,\n          \"truth\": 12,\n          \"ok\": true,\n          \"text\": \"12-tool ontology bridge\"\n        },\n        {\n          \"axis\": \"mcp-ontology-tools\",\n          \"file\": \"docs/architecture/compatibility-matrix.md\",\n          \"line\": 13,\n          \"stated\": 12,\n          \"truth\": 12,\n          \"ok\": true,\n          \"text\": \"**12-tool** ontology bridge\"\n        },\n        {\n          \"axis\": \"mcp-ontology-tools\",\n          \"file\": \"docs/architecture/compatibility-matrix.md\",\n          \"line\": 15,\n          \"stated\": 12,\n          \"truth\": 12,\n          \"ok\": true,\n          \"text\": \"**12 MCP tools** (`mcp/servers/ontology-bridge.js`)\"\n        },\n        {\n          \"axis\": \"mcp-ontology-tools\",\n          \"file\": \"docs/DDD-ecosystem-alignment-context.md\",\n          \"line\": 24,\n          \"stated\": 12,\n          \"truth\": 12,\n          \"ok\": true,\n          \"text\": \"12 MCP tools in agentbox\"\n        },\n        {\n          \"axis\": \"mcp-ontology-tools\",\n          \"file\": \"docs/DDD-ecosystem-alignment-context.md\",\n          \"line\": 112,\n          \"stated\": 12,\n          \"truth\": 12,\n          \"ok\": true,\n          \"text\": \"12-tool MCP server in agentbox\"\n        },\n        {\n          \"axis\": \"mcp-ontology-tools\",\n          \"file\": \"docs/architecture/status-reconciliation.md\",\n          \"line\": 36,\n          \"stated\": 12,\n          \"truth\": 12,\n          \"ok\": true,\n          \"text\": \"12 MCP tools in agentbox (`ontology-bridge.js`)\"\n        },\n        {\n          \"axis\": \"mcp-ontology-tools\",\n          \"file\": \"docs/ADR-002-ecosystem-alignment-governance.md\",\n          \"ok\": false,\n          \"kind\": \"file-missing\"\n        },\n        {\n          \"axis\": \"mcp-ontology-tools\",\n          \"file\": \"docs/ADR-002-ecosystem-alignment-governance.md\",\n          \"ok\": false,\n          \"kind\": \"file-missing\"\n        },\n        {\n          \"axis\": \"mcp-ontology-tools\",\n          \"file\": \"docs/engineering/DDD-harness-engineering-context.md\",\n          \"line\": 223,\n          \"stated\": 12,\n          \"truth\": 12,\n          \"ok\": true,\n          \"text\": \"Ontology bridge health check (12 tools respond)\"\n        },\n        {\n          \"axis\": \"mcp-ontology-tools\",\n          \"file\": \"docs/engineering/PRD-harness-engineering.md\",\n          \"line\": 52,\n          \"stated\": 12,\n          \"truth\": 12,\n          \"ok\": true,\n          \"text\": \"| 12 MCP tools, Oxigraph availability\"\n        },\n        {\n          \"axis\": \"mcp-ontology-tools\",\n          \"file\": \"docs/protocol/mesh-smoke-test.md\",\n          \"line\": 28,\n          \"stated\": 12,\n          \"truth\": 12,\n          \"ok\": true,\n          \"text\": \"12 MCP tools proxy SPARQL\"\n        },\n        {\n          \"axis\": \"mcp-ontology-tools\",\n          \"file\": \"docs/PRD-ecosystem-alignment.md\",\n          \"line\": 90,\n          \"stated\": 12,\n          \"truth\": 12,\n          \"ok\": true,\n          \"text\": \"agentbox ships 12 MCP tools proxying\"\n        }\n      ]\n    },\n    {\n      \"axis\": \"ontology-classes\",\n      \"state\": \"unavailable\",\n      \"reason\": \"VisionClaw ClassCountSource is `planned`, not published as a script-queryable committed count this wave (ddd-gap-close-visionclaw-context.md:155). Partial-source mode: axis not enforced (ADR-005 \u00a7Decision 2).\",\n      \"enforced\": false,\n      \"findings\": []\n    },\n    {\n      \"axis\": \"roster\",\n      \"state\": \"planned\",\n      \"reason\": \"Not yet single-sourced; the forum must expose agent_registry as script-queryable before the counter can track it (DDD-gap-close-canon-context \u00a712 open issue 3). Distinct from the 610 external turbo-flow templates and from the skill count.\",\n      \"findings\": []\n    }\n  ]\n}\n",
+    "stderr": ""
+  }
+}

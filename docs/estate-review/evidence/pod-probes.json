@@ -1,0 +1,6 @@
+{
+  "command": "temporary cargo run --offline against local native helpers",
+  "exit_code": 0,
+  "stdout": "malformed_specific_acl_broader_grant=true\nsame_id_rejected=true\nevicted_id_accepted_within_ttl=true\n",
+  "stderr": ""
+}

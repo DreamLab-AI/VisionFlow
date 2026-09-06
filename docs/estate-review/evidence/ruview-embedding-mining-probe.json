@@ -1,0 +1,15 @@
+{
+  "date": "2026-09-05",
+  "scope": "Three isolated hard-negative-miner assertions against four unchanged Rust modules; no full training, suite or model evaluation",
+  "sources": {
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/embedding.rs": "9d3565d9c4c7d06c92ec9324193b91a1a95c3c618873499306ef8f2b6f4d1305",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/graph_transformer.rs": "7a1e328a78a9eda1ddbf32d5a164ee7e929f1e97a47f867a858f67ff52cbb8fd",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/sona.rs": "3a979445a47e1a340616b56c2a254e52839eb793d4b8e5442920c88885050f85",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/trainer.rs": "0ce56df389c71bd17d4fb2de294c63723ee2726deed5379d730dd3d92ec5e2d4",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/main.rs": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/rvf_container.rs": "37092b456f28054f5e8a13dd0e9f302c7f1d21e63eb4785f3c7117ec8ac1a3d9",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/sparse_inference.rs": "7be93abe27bae154bbc81827148ee88214060914ff72c0070e2849c76097ad05"
+  },
+  "assertions_passed": 3,
+  "stdout": "3 assertions passed; warmup=12 selected=[(0, 1), (0, 2), (0, 3)]; all selected negatives belong to anchor0\n"
+}

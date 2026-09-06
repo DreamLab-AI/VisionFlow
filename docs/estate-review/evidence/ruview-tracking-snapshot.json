@@ -1,0 +1,32 @@
+{
+  "date": "2026-09-05",
+  "scope": "Unchanged std-only lifecycle and Kalman module unit tests; other findings source-only; no full MAT or hardware execution",
+  "sources": {
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-mat/src/tracking/lifecycle.rs": "217bf87a31c1e2db29db2c5907d0c3f3e3c0306bc93214ea9b4597679413dd5d",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-mat/src/tracking/kalman.rs": "f6f6b5924b71bda29c9478df42c4e1efe1cd2631ff685c07dd6c52ee1f0b4184",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-mat/src/tracking/fingerprint.rs": "a93c87fc3ff59a8d333bf08e896a77e77d53cbd068f9a57daab5655b869b1277",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-mat/src/tracking/tracker.rs": "8d176b382674ae095cdbe0a778f07de9bdba820dca23c1c8361b0a7034a5b325",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-mat/src/lib.rs": "2314edcc9db209295830e581b6372cb7436635bd8a4a1201fcb1d2376499607a",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-mat/src/domain/events.rs": "4a73fe42259d0f9e28d78d22c2647fe9764f38684f93ac2856dfc6c3a117d4aa"
+  },
+  "tests": [
+    {
+      "file": "rust-port/wifi-densepose-rs/crates/wifi-densepose-mat/src/tracking/lifecycle.rs",
+      "compile_stderr": "warning: field `max_lost_age_secs` is never read\n  --> /home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-mat/src/tracking/lifecycle.rs:67:5\n   |\n63 | pub struct TrackLifecycle {\n   |            -------------- field in this struct\n...\n67 |     max_lost_age_secs: f64,\n   |     ^^^^^^^^^^^^^^^^^\n   |\n   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\nwarning: 1 warning emitted\n\n",
+      "exit_code": 0,
+      "stdout": "\nrunning 6 tests\ntest tests::test_active_to_lost ... ok\ntest tests::test_lost_expiry ... ok\ntest tests::test_lost_to_active_via_hit ... ok\ntest tests::test_rescue ... ok\ntest tests::test_tentative_miss_terminates ... ok\ntest tests::test_tentative_confirmation ... ok\n\ntest result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "file": "rust-port/wifi-densepose-rs/crates/wifi-densepose-mat/src/tracking/kalman.rs",
+      "compile_stderr": "",
+      "exit_code": 0,
+      "stdout": "\nrunning 4 tests\ntest tests::test_kalman_stationary ... ok\ntest tests::test_mahalanobis_close_observation ... ok\ntest tests::test_mahalanobis_far_observation ... ok\ntest tests::test_kalman_update_converges ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    }
+  ],
+  "assignment_probe": {
+    "scope": "Unchanged extracted hungarian_assign and augment functions; no full tracker execution",
+    "source": "fn hungarian_assign(costs: &[Vec<f64>], n_tracks: usize, n_obs: usize) -> Vec<Option<usize>> {\n    // Build adjacency: for each track, list the observations it can match.\n    let adj: Vec<Vec<usize>> = (0..n_tracks)\n        .map(|ti| {\n            (0..n_obs)\n                .filter(|&oi| costs[ti][oi] < f64::MAX)\n                .collect()\n        })\n        .collect();\n\n    // match_obs[oi] = track index that observation oi is matched to, or None\n    let mut match_obs: Vec<Option<usize>> = vec![None; n_obs];\n\n    // For each track, try to find an augmenting path via DFS\n    for ti in 0..n_tracks {\n        let mut visited = vec![false; n_obs];\n        augment(ti, &adj, &mut match_obs, &mut visited);\n    }\n\n    // Invert the matching: build track\u2192obs assignment\n    let mut assignment = vec![None; n_tracks];\n    for (oi, matched_ti) in match_obs.iter().enumerate() {\n        if let Some(ti) = matched_ti {\n            assignment[*ti] = Some(oi);\n        }\n    }\n    assignment\n}\n\n/// Recursive DFS augmenting path for the Hungarian algorithm.\n///\n/// Attempts to match track `ti` to some observation, using previously matched\n/// tracks as alternating-path intermediate nodes.\nfn augment(\n    ti: usize,\n    adj: &[Vec<usize>],\n    match_obs: &mut Vec<Option<usize>>,\n    visited: &mut Vec<bool>,\n) -> bool {\n    for &oi in &adj[ti] {\n        if visited[oi] {\n            continue;\n        }\n        visited[oi] = true;\n\n        // If observation oi is unmatched, or its current match can be re-routed\n        let can_match = match match_obs[oi] {\n            None => true,\n            Some(other_ti) => augment(other_ti, adj, match_obs, visited),\n        };\n\n        if can_match {\n            match_obs[oi] = Some(ti);\n            return true;\n        }\n    }\n    false\n}\n\n\nfn main() { let c=vec![vec![1.0,100.0],vec![100.0,1.0]]; let a=hungarian_assign(&c,2,2); assert_eq!(a,vec![Some(1),Some(0)]); let total:f64=a.iter().enumerate().map(|(i,j)|c[i][j.unwrap()]).sum(); assert_eq!(total,200.0); println!(\"PASS: 2 assertions; cost=200, available diagonal cost=2\"); }\n",
+    "stdout": "PASS: 2 assertions; cost=200, available diagonal cost=2\n",
+    "exit_code": 0
+  }
+}

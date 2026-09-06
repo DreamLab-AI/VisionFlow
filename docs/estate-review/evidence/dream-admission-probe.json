@@ -1,0 +1,15 @@
+{
+  "date": "2026-09-04",
+  "scope": "Unchanged validate method extracted into minimal typed harness; no evaluator command, SSH, schedule or model invocation.",
+  "cases": [
+    "empty true",
+    "inline true",
+    "missing_script true",
+    "darwin_without_mode false"
+  ],
+  "source_sha256": {
+    "services/dream-engine/src/config.rs": "e4657494ed55409cb589438870a21c28f6678b2c3213c3655d71212a56d82017",
+    "services/dream-engine/src/engine.rs": "90e73e39cc679325a2c25bf4b46e66390115c9f0bf77b20618799d3d347802ec",
+    "services/dream-engine/src/compile.rs": "ab3991eaa6a98cc97d73d27002ea4f617f00f7ca3f5ba446b8639029d9441661"
+  }
+}

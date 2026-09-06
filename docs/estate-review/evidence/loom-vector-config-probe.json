@@ -1,0 +1,41 @@
+{
+  "date": "2026-09-04",
+  "scope": "actual local Loom adapter and consumed ruvector-core; temporary redb files with synthetic vectors; no shared-memory DB, embedding provider, serving process or remote mutation",
+  "command": "cargo run --locked --manifest-path ../loom/Cargo.toml -p loom-vector-ruvector --example estate_config_probe",
+  "exit_code": 0,
+  "probe_source": "loom-vector-config-probe.rs",
+  "reproduction": "Copy the probe source to loom/crates/loom-vector-ruvector/examples/estate_config_probe.rs, run the command from VisionFlow, then remove the temporary example. The probe creates and removes its own temporary artefact directory.",
+  "results": [
+    {
+      "case": "cosine",
+      "ready": true,
+      "results": 1,
+      "score": 1.0
+    },
+    {
+      "case": "euclidean",
+      "ready": true,
+      "results": 1,
+      "score": 0.5
+    },
+    {
+      "case": "wrong_width",
+      "error": "semantic index not ready: hnsw search failed: Dimension mismatch: expected 384, got 3",
+      "ready": true
+    }
+  ],
+  "source_sha256": {
+    "loom/Cargo.toml": "05f7febd27a7fab3493b1ccc8c2affa539b45bcd95d2c008b1edb6ea2420a661",
+    "loom/Cargo.lock": "7a29ebdb78e9e9fc5c07031139d8f12f3800a359fa9432dc41a2bc679ffb9bf5",
+    "loom/crates/loom-vector-ruvector/src/hnsw.rs": "df3946996303ff75d811064b32f90cd4116cf7045df74fd361f67870135f336c",
+    "loom/crates/loom-vector-ruvector/src/lib.rs": "50750c4d6a7481859a05f18167173c1870e79618976e7ac673888a74f7ecd7c7",
+    "ruvector/crates/ruvector-core/src/vector_db.rs": "075c80056bc88ab14de102d159e37f8bd9b54952886110b374892023dcab650a",
+    "ruvector/crates/ruvector-core/src/storage.rs": "02ebb3b4afab8b80a36663d9b3b7c0258c11844053b768b267c7fb84fee6ab5f",
+    "ruvector/crates/ruvector-core/src/index/flat.rs": "4eb8eb2fe8c99f4c910cf9edbe74c3b773520f01bde444df10c8fbc84ac04ed8",
+    "ruvector/crates/ruvector-core/src/types.rs": "8be33c9812ca149a39bfc9f4ae1699302907645b6926dac4e7f017d64e118989"
+  },
+  "heads": {
+    "loom": "8cdef36bb571f0aed2d599d97a3efab02760b6d5",
+    "ruvector": "677b2475409c50cb964be8a3b848da2952390535"
+  }
+}

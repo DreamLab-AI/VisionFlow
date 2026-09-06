@@ -1,0 +1,26 @@
+{
+  "date": "2026-09-04",
+  "scope": "Native alias tests, client migration tests and source inspection. No browser persistence, server load/save, live settings patch or mixed-version transport test.",
+  "checks": [
+    {
+      "command": "cargo test --locked --offline -p visionclaw-domain config::graph_type --lib",
+      "exit_code": 0,
+      "passed": 3,
+      "filtered_out": 256
+    },
+    {
+      "command": "./node_modules/.bin/vitest run src/features/settings/__tests__/settingsMigration.test.ts",
+      "cwd": "client",
+      "exit_code": 0,
+      "passed": 8
+    }
+  ],
+  "source_sha256": {
+    "crates/visionclaw-domain/src/config/graph_type.rs": "6454d698146daa74ed88a2e968f9d08ed172b9c4ac8b88e275417beae7595e31",
+    "crates/visionclaw-domain/src/config/visualisation.rs": "97c7a7e30b08e5637f924d32c508fa01a4c391a7a3470793bdaecd4dbf5abc93",
+    "src/protocols/binary_settings_protocol.rs": "77d392c1eed8fcf042742c20c94651953f492d48e71bb82d18577dc8bf509814",
+    "client/src/store/settings/settingsHelpers.ts": "487ba3c5558b526fc30fd8719c236f1c8169a6297e498c6f803cae90b155420c",
+    "client/src/store/settingsStore.ts": "f4f14ec23cd1ec7ed99ff12fca4b5664fa39a2becfcae8dd83c679e4f9ff416f",
+    "client/src/features/settings/__tests__/settingsMigration.test.ts": "8fae6f64d5fc688db6b714cb359fc329f0ed960968b447989f86e2ec25bbb529"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "date": "2026-09-04",
+  "scope": "Actual gate copied unchanged into temporary roots; invented compose inputs. JSON flow parsed with Python json; no Docker Compose evaluation, service launch or port binding.",
+  "current_tree": {
+    "exit_code": 0,
+    "stdout": "PASS (check-ports-loopback): all compose publishes loopback-only or explicitly sanctioned"
+  },
+  "results": [
+    {
+      "case": "loopback_block",
+      "exit_code": 0,
+      "fixture": "services:\n  fixture:\n    image: fixture:no-launch\n    ports:\n      - \"127.0.0.1:45678:45678\"\n",
+      "output": "PASS (check-ports-loopback): all compose publishes loopback-only or explicitly sanctioned",
+      "errors": ""
+    },
+    {
+      "case": "public_block",
+      "exit_code": 1,
+      "fixture": "services:\n  fixture:\n    image: fixture:no-launch\n    ports:\n      - \"0.0.0.0:45678:45678\"\n",
+      "output": "",
+      "errors": "FAIL (check-ports-loopback): ports entries that are not loopback, not\n  sanctioned, or not plain short syntax (anchors/aliases/interpolation/\n  ranges/IPv6/bare ports are rejected as unauditable):\ndocker-compose.yml: BAD unsanctioned-or-unparseable 0.0.0.0:45678:45678\n  Bind 127.0.0.1:, or add the exact mapping to the SANCTIONED list in\n  this script with a citation to the governing decision record."
+    },
+    {
+      "case": "public_json_flow",
+      "exit_code": 0,
+      "fixture": "{\"services\": {\"fixture\": {\"image\": \"fixture:no-launch\", \"ports\": [\"0.0.0.0:45678:45678\"]}}}\n",
+      "output": "PASS (check-ports-loopback): all compose publishes loopback-only or explicitly sanctioned",
+      "errors": ""
+    },
+    {
+      "case": "public_service_flow",
+      "exit_code": 0,
+      "fixture": "services:\n  fixture: {image: \"fixture:no-launch\", ports: [\"0.0.0.0:45678:45678\"]}\n",
+      "output": "PASS (check-ports-loopback): all compose publishes loopback-only or explicitly sanctioned",
+      "errors": ""
+    }
+  ],
+  "flow_fixture_parsed": {
+    "services": {
+      "fixture": {
+        "image": "fixture:no-launch",
+        "ports": [
+          "0.0.0.0:45678:45678"
+        ]
+      }
+    }
+  },
+  "source_sha256": {
+    "scripts/ci/check-ports-loopback.sh": "4703d071dc2ba49687e896ca9c9198eec6edb40fc542a6b33021f883d2f3bbaf",
+    ".github/workflows/invariants.yml": "ba89b0253ee2da59ef29c260ef0af445998e62ed233cb36601197391a9f79d38",
+    "docker-compose.yml": "e80e442593061ddf0f28015ec9729f636a680e7ada8d84c8a2b9c501e465a1c1"
+  }
+}

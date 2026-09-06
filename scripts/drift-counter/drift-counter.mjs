@@ -55,12 +55,14 @@ import { dirname, join, resolve } from 'node:path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, '..', '..');
-const ALLOWLIST = JSON.parse(readFileSync(join(__dirname, 'allowlist.json'), 'utf8'));
+const ALLOWLIST_PATH = process.env.DRIFT_ALLOWLIST || join(__dirname, 'allowlist.json');
+const ALLOWLIST = JSON.parse(readFileSync(ALLOWLIST_PATH, 'utf8'));
 
 const argv = new Set(process.argv.slice(2));
 const OUT_JSON = argv.has('--json');
 const QUIET = argv.has('--quiet');
 const STRICT = argv.has('--strict');
+const ALLOW_PIN_DRIFT = argv.has('--allow-pin-drift');
 
 /** Resolve the agentbox checkout that exposes the skill + mcp count sources. */
 function resolveAgentbox() {
@@ -75,6 +77,47 @@ function resolveAgentbox() {
     if (c && existsSync(join(c, 'mcp', 'servers', 'ontology-bridge.js'))) return c;
   }
   return null;
+}
+
+/**
+ * Verify the sibling count-source checkout sits at the pinned revision.
+ *
+ * Unpinned, this gate compared canon prose against whatever agentbox HEAD the
+ * runner happened to fetch: the same canon commit could pass one day and fail
+ * the next with no canon change, because the counter was measuring the
+ * sibling's motion rather than the canon's drift. The pin makes a change of
+ * truth a reviewed diff in allowlist.json.
+ *
+ * Returns { state, pinned, actual, reason }, state ∈
+ *   pinned-ok | pin-mismatch | pin-unverifiable | no-pin
+ */
+function checkSourcePin(agentbox) {
+  const pin = ALLOWLIST.source_pin;
+  if (!pin || !pin.revision) {
+    return { state: 'no-pin', reason: 'allowlist declares no source_pin' };
+  }
+  if (!agentbox) {
+    return { state: 'pin-unverifiable', pinned: pin.revision, reason: 'agentbox checkout not found' };
+  }
+  let actual = null;
+  try {
+    actual = execFileSync('git', ['-C', agentbox, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+  } catch (err) {
+    return {
+      state: 'pin-unverifiable', pinned: pin.revision,
+      reason: `cannot read HEAD of ${agentbox}: ${err.message}`,
+    };
+  }
+  if (actual === pin.revision) {
+    return { state: 'pinned-ok', pinned: pin.revision, actual };
+  }
+  return {
+    state: 'pin-mismatch', pinned: pin.revision, actual,
+    reason: `agentbox checkout is at ${actual}, allowlist pins ${pin.revision}. `
+      + 'The counted truth may differ from the reviewed truth. Re-pin allowlist.json '
+      + '(and the checkout ref: in .github/workflows/drift-counter.yml) after reviewing '
+      + 'the new counts, or pass --allow-pin-drift to downgrade this to a warning.',
+  };
 }
 
 /** Skills axis — invoke agentbox's own single-source-of-truth counter. */
@@ -195,6 +238,7 @@ function checkSites(axis, truth, spec) {
 
 function run() {
   const agentbox = resolveAgentbox();
+  const pin = checkSourcePin(agentbox);
   const sources = {
     'skills': querySkills(agentbox),
     'mcp-ontology-tools': queryMcpTools(agentbox),
@@ -204,16 +248,27 @@ function run() {
   const axisReports = [];
   let hardFail = false;
 
+  // A sibling checkout that has moved off the pin invalidates the counted
+  // truth for every axis that reads from it — fail before comparing figures.
+  if (pin.state === 'pin-mismatch' && !ALLOW_PIN_DRIFT) hardFail = true;
+  if (pin.state === 'pin-unverifiable' && STRICT) hardFail = true;
+
   for (const [axis, spec] of Object.entries(ALLOWLIST.axes)) {
     // Roster: declared planned in the allowlist, no source, no sites.
     if (spec.status === 'planned') {
-      axisReports.push({ axis, state: 'planned', reason: spec.reason, findings: [] });
+      axisReports.push({
+        axis, state: 'planned', reason: spec.reason,
+        denominator: spec.denominator || null, resolution: spec.resolution || null, findings: [],
+      });
       continue;
     }
     const src = sources[axis] || { status: 'unavailable', reason: 'no source query registered' };
     if (src.status !== 'available') {
       if (STRICT) hardFail = true;
-      axisReports.push({ axis, state: 'unavailable', reason: src.reason, enforced: false, findings: [] });
+      axisReports.push({
+        axis, state: 'unavailable', reason: src.reason, enforced: false,
+        denominator: spec.denominator || null, resolution: spec.resolution || null, findings: [],
+      });
       continue;
     }
     const findings = spec.match === 'scan'
@@ -221,14 +276,19 @@ function run() {
       : checkSites(axis, src.truth, spec);
     const drift = findings.filter((f) => !f.ok);
     if (drift.length) hardFail = true;
-    axisReports.push({ axis, state: 'enforced', truth: src.truth, source: src.source, enforced: true, findings });
+    axisReports.push({
+      axis, state: 'enforced', truth: src.truth, source: src.source, enforced: true,
+      denominator: spec.denominator || null, findings,
+    });
   }
 
   const result = {
     ok: !hardFail,
     truth_as_of: ALLOWLIST.truth_as_of,
     agentbox: agentbox || null,
+    source_pin: pin,
     strict: STRICT,
+    allow_pin_drift: ALLOW_PIN_DRIFT,
     axes: axisReports,
   };
 
@@ -244,11 +304,30 @@ function printHuman(result) {
   out.push(`  truth as of : ${result.truth_as_of}`);
   out.push(`  agentbox    : ${result.agentbox || '(not found)'}`);
   out.push(`  strict      : ${result.strict}`);
+  const p = result.source_pin;
+  if (p.state === 'pinned-ok') {
+    out.push(`  source pin  : OK — agentbox @ ${p.pinned.slice(0, 12)}`);
+  } else if (p.state === 'pin-mismatch') {
+    out.push(`  source pin  : ${result.allow_pin_drift ? 'WARN' : 'FAIL'} — ${p.reason}`);
+  } else if (p.state === 'pin-unverifiable') {
+    out.push(`  source pin  : UNVERIFIABLE — ${p.reason}`);
+  } else {
+    out.push('  source pin  : NONE — sibling count sources are unpinned');
+  }
   out.push('');
   for (const a of result.axes) {
-    if (a.state === 'planned') { out.push(`  [PLANNED]     ${a.axis} — ${a.reason}`); continue; }
-    if (a.state === 'unavailable') { out.push(`  [UNAVAILABLE] ${a.axis} — ${a.reason}`); continue; }
+    if (a.state === 'planned') {
+      out.push(`  [PLANNED]     ${a.axis} — ${a.reason}`);
+      if (a.resolution) out.push(`                resolves when: ${a.resolution.blocked_on} (owner: ${a.resolution.owner})`);
+      continue;
+    }
+    if (a.state === 'unavailable') {
+      out.push(`  [UNAVAILABLE] ${a.axis} — ${a.reason}`);
+      if (a.resolution) out.push(`                resolves when: ${a.resolution.blocked_on} (owner: ${a.resolution.owner})`);
+      continue;
+    }
     out.push(`  [ENFORCED]    ${a.axis} = ${a.truth}   (source: ${a.source})`);
+    if (a.denominator) out.push(`                counts: ${a.denominator.counts}`);
     for (const f of a.findings) {
       if (f.ok) { out.push(`      ok    ${f.file}:${f.line ?? '?'}  states ${f.stated}`); continue; }
       if (f.kind) { out.push(`      FAIL  ${f.file}  ${f.kind}${f.note ? ' — ' + f.note : ''}`); continue; }

@@ -1,0 +1,66 @@
+{
+  "date": "2026-09-04",
+  "scope": "Actual build.rs PTX phase extracted unchanged; native phase omitted. Synthetic nvcc executable/output and temporary bundled files. No real CUDA compilation, PTX validation, driver load or production build.",
+  "kernel_count": 9,
+  "cases": [
+    {
+      "case": "missing_nvcc",
+      "exit_code": 101,
+      "fallback_reported": false,
+      "downgrade_warnings": 0,
+      "produced_text": null,
+      "failure_lines": [
+        "Failed to execute nvcc \u2014 is the CUDA toolkit installed?: Os { code: 2, kind: NotFound, message: \"No such file or directory\" }"
+      ]
+    },
+    {
+      "case": "failed_nvcc_fallback",
+      "exit_code": 0,
+      "fallback_reported": true,
+      "downgrade_warnings": 9,
+      "produced_text": ".version 9.0\n.target sm_75\n",
+      "failure_lines": []
+    },
+    {
+      "case": "invalid_nonempty",
+      "exit_code": 0,
+      "fallback_reported": false,
+      "downgrade_warnings": 0,
+      "produced_text": "NOT PTX\n",
+      "failure_lines": []
+    },
+    {
+      "case": "empty",
+      "exit_code": 101,
+      "fallback_reported": false,
+      "downgrade_warnings": 0,
+      "produced_text": "",
+      "failure_lines": [
+        "PTX file visionclaw_unified is empty after compilation"
+      ]
+    },
+    {
+      "case": "already_9_0",
+      "exit_code": 0,
+      "fallback_reported": false,
+      "downgrade_warnings": 9,
+      "produced_text": ".version 9.0\n.target sm_75\n",
+      "failure_lines": []
+    },
+    {
+      "case": "future_minor",
+      "exit_code": 0,
+      "fallback_reported": false,
+      "downgrade_warnings": 9,
+      "produced_text": ".version 9.00\n.target sm_75\n",
+      "failure_lines": []
+    }
+  ],
+  "source_sha256": {
+    "crates/visionclaw-gpu/build.rs": "bfd9aefcefa8608493eed641f3ae0a52d6af46504cdaac8a85c2624cd6e69e86"
+  },
+  "runtime_source_sha256": {
+    "crates/visionclaw-gpu/src/ptx_loader.rs": "7d7467b388eb4abf48c6a96d9e4e7f6bc25d7063f86cd931b6d2e313dc2d491c",
+    "src/utils/unified_gpu_compute/construction.rs": "aea9fe1988b5e02abea781b320dbdb550b0c7d0e22f903fcd0071db142269194"
+  }
+}

@@ -30,7 +30,7 @@
     {
       "id": "agent-spec-hooks-pre",
       "type": "hook",
-      "source": "agentbox:~/.claude/agents/*.md#hooks.pre",
+      "source": "agentbox:agents/*.md#hooks.pre",
       "source_status": "present",
       "applies_to": ["agentbox"],
       "description": "Agent specification hooks.pre phase: pattern search, memory injection, context priming before execution. Sourced from host-level agent config, not a repo file."
@@ -38,7 +38,7 @@
     {
       "id": "claude-md-hierarchy",
       "type": "instruction",
-      "source": "agentbox:~/.claude/CLAUDE.md + ~/workspace/CLAUDE.md + project/CLAUDE.md",
+      "source": "agentbox:~/.claude/CLAUDE.md + ~/workspace/CLAUDE.md + ~/workspace/project/CLAUDE.md",
       "source_status": "present",
       "applies_to": ["agentbox"],
       "description": "Three-tier instruction hierarchy: global behavioural rules, workspace config, project overrides. Each layer overrides the previous. Sourced from host-level agent config."
@@ -62,7 +62,7 @@
     {
       "id": "adapter-slo-thresholds",
       "type": "constraint",
-      "source": "agentbox:docs/reference/adr/ADR-005-pluggable-adapter-architecture.md",
+      "source": "agentbox:docs/archive/adr/ADR-005-pluggable-adapter-architecture.md",
       "source_status": "present",
       "applies_to": ["agentbox"],
       "description": "SLO thresholds per adapter slot: p95 latency ceiling, throughput floor, error rate ceiling (agentbox ADR-005 — the pluggable-adapter architecture, distinct from VisionFlow ADR-005)"
@@ -81,7 +81,7 @@
     {
       "id": "hooks-validate-trajectory",
       "type": "inferential",
-      "source": "agentbox:~/.claude/agents/*.md#hooks.validate",
+      "source": "agentbox:agents/*.md#hooks.validate",
       "source_status": "planned",
       "applies_to": ["agentbox"],
       "frequency": "per_change",

@@ -1,0 +1,12 @@
+{
+  "date": "2026-09-04",
+  "scope": "Actual extracted claim_in and constants; synthetic maps/monotonic times and minimal error enum. No signature validator, mutex race, HTTP route or deployment exercised.",
+  "stdout": "six claim assertions passed; live entry retained at capacity",
+  "compile_exit": 0,
+  "run_exit": 0,
+  "source_sha256": {
+    "src/utils/nip98.rs": "c27514d1a8fd2a990a3a8228d6a9d6f6fd88103821297b0303e1872d8202fe51",
+    "src/services/nostr_service.rs": "074f94e99d11dc6f8b16c53e1e1d48c6da3dec05958fd23a388568d913a57133",
+    "src/handlers/solid_proxy_handler.rs": "45b3f387e8c778e61f10c5921d554f42013477d6482ce9bffd17b170c0f4dc6d"
+  }
+}

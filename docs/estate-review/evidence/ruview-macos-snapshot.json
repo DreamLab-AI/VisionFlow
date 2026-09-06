@@ -1,0 +1,15 @@
+{
+  "date": "2026-09-05",
+  "scope": "Source-only; no macOS/Swift/helper execution or external platform/research validation",
+  "sources": {
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-wifiscan/src/adapter/macos_scanner.rs": "923cde784f2bfe2e88e1b45b570ca022c6938e6c6c8cf4fde9d814102dd19077",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-wifiscan/src/adapter/mod.rs": "aaaba8c2553ca04935d160e136510cc1a82629ddfb0edc00bdfaae7df6a17da2",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-wifiscan/src/domain/bssid.rs": "3587d5901cd882a851ffe1da99adbe74f7651d94260a5fcbf16b962fd0214ef1",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-wifiscan/src/adapter/linux_scanner.rs": "1827cffed25f4f55d200a575dea8b881b45b70a4f3d38ff4866dbb1e43f389ec",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/main.rs": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+    "v1/src/sensing/mac_wifi.swift": "65e609b01e14939c6377980d25682ebebb9198bc1f9010d7ef85a54d6d82de03",
+    "v1/src/sensing/rssi_collector.py": "491aa9a89582b8d9c2e87c997177919eb7e1f4c656704a6be5bbf086d5e458ec",
+    "v1/src/sensing/ws_server.py": "48e92603591e21bd742a7cee9ffffce7bb0cdcd069667de8116b7659a129c219"
+  },
+  "planned_helper_directory_exists": false
+}

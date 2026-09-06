@@ -1,0 +1,32 @@
+{
+  "date": "2026-09-05",
+  "scope": "Source and ADR design inspection only; no training, crypto, container roundtrip or runtime tests executed",
+  "sources": [
+    {
+      "path": "/home/devuser/workspace/RuView/docs/adr/ADR-010-witness-chains-audit-trail-integrity.md",
+      "sha256": "f1d33899297ef3b65d87d8dcae0209678b5fd07dcb7aa4bdb41e1a4a3b201398"
+    },
+    {
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/rvf_container.rs",
+      "sha256": "37092b456f28054f5e8a13dd0e9f302c7f1d21e63eb4785f3c7117ec8ac1a3d9"
+    },
+    {
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/training_api.rs",
+      "sha256": "0298272248edb7f0f54eb21abb56e7862867bc00ea9f1c21942439060600eeb5"
+    },
+    {
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/rvf_pipeline.rs",
+      "sha256": "1da194405b039b641c27d1ccde030895d74061ab7b52489d8a20173db8934db1"
+    },
+    {
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/tests/rvf_container_test.rs",
+      "sha256": "7c30d2d1bb9d57879a0d44f019f71907f5e5d48345747c90b6d517677c5268bd"
+    }
+  ],
+  "exact_symbol_search": {
+    "command": "rg -n WitnessChainStore|WitnessEntry|WitnessedEvent|append_witness|verify_chain rust-port/wifi-densepose-rs/crates --glob *.rs",
+    "exit_code": 1,
+    "output": "",
+    "limitation": "Exact named chain surface in Rust crates; not every alias, external dependency or language"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "head": "89301ec7c911eab270c00a0cf81596d0d4f15535",
+  "source_sha256": {
+    "config/nip98-proxy/proxy.mjs": "72e18f0593ec2677c651f8c0affa60495efba4d5f78ed7db8b9e678fe2d53539",
+    "config/nip98-proxy/selftest.mjs": "5d24f66992e43d3b0b0801d151ec7c20fc8e74ba46a91a3d4e8736e064c27ce3",
+    "scripts/aoe-curl.sh": "5caebaf2089194f1b9a421dfa8f8e9d84fb3efd3bf919e6b7950af9c7074bcee",
+    "flake.nix": "f20ac15c7c9e7a503338bc8dbb48a0368365573351b630380f8af0b7f4eee9b9",
+    "management-api/lib/agent-identity.js": "6483b854ad27293cb5870a5322bc3773dce56aee784a7c9ce0655535f2d4050d",
+    "mcp/servers/nostr-bridge.js": "bc3ad19c4711b1817194496a6c459c5b03670306201c6e0f3b04792018b07942",
+    "mcp/servers/ontology-bridge.js": "51b9f325ec0a1f014db5929e0673fdfe61af275e0a189c9770a9911ab526e8c3",
+    "mcp/servers/lib/ontology-local.js": "c932a92340fa3b69a28070ca25fbddb02955082726e32e484d0637fedf014663",
+    "agentbox.toml": "008da44421abc52481ea11c77bf0800cc6c1b8b051b0759766d7a4f160e86bc9"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "exit_code": 0,
+  "requested_databases": 2,
+  "copied_databases": 1,
+  "default_destination_inside_source": true,
+  "stderr": "2026-09-04T21:06:43Z [backup-sqlite] mode=host keep=14 dbs=[settings.sqlite3 missing.sqlite3]\n2026-09-04T21:06:43Z [backup-sqlite] destination: ./data/backups/20260904T210643Z\n2026-09-04T21:06:43Z [backup-sqlite] backed up settings.sqlite3 (8.0K) integrity=ok\n2026-09-04T21:06:43Z [backup-sqlite] skip missing.sqlite3 (not present at <temporary>/data/missing.sqlite3)\n2026-09-04T21:06:43Z [backup-sqlite] wrote ./data/backups/20260904T210643Z/MANIFEST.txt (1 databases)\n2026-09-04T21:06:43Z [backup-sqlite] rotation: 1 backups present, under keep=14, nothing to prune\n2026-09-04T21:06:43Z [backup-sqlite] DONE \u2014 1 databases in ./data/backups/20260904T210643Z\n",
+  "restored_value": "committed-in-wal",
+  "integrity_check": "ok"
+}

@@ -1,0 +1,28 @@
+{
+  "date": "2026-09-04",
+  "repo_head": "89301ec7c911eab270c00a0cf81596d0d4f15535",
+  "scope": "Source review and four existing native helper tests. No process discovery command, daemon launch, signal, PID file or runtime configuration mutation. Source findings are not reproduced races.",
+  "checks": [
+    {
+      "command": "cargo test --locked --offline procs::tests --lib",
+      "cwd": "services/agentbox-ops",
+      "exit_code": 0,
+      "passed": 3,
+      "filtered_out": 137
+    },
+    {
+      "command": "cargo test --locked --offline --bin ruflo-daemon-gc",
+      "cwd": "services/agentbox-ops",
+      "exit_code": 0,
+      "passed": 1
+    }
+  ],
+  "source_sha256": {
+    "services/agentbox-ops/src/procs.rs": "e969839f4d725399c8b40ae25517712dd0acf08fee4ceae2ef32dc5d535da988",
+    "services/agentbox-ops/src/bin/ruflo-daemon-gc.rs": "1142a36f7508af5f5293de159f49988f67116fed2cdc997eaddc5f585d9dcebf",
+    "services/agentbox-ops/src/hermes/mod.rs": "bab1ac85437c5f8f597c89f1ce76ded5ed944a0e634598611c8b0ae0298bf98b",
+    "services/agentbox-ops/src/bin/hermes-scheduler.rs": "7f2d073bb75eeba90b70deb44e320ebec4a7cc89632835757b1dfb3b6901e93c",
+    "services/agentbox-ops/src/token_audit/report.rs": "38cb27256b9f155921d3a4411637de7b81cd1cb1d66c694555da9ca5de97bd0b",
+    "services/agentbox-ops/Cargo.lock": "8e1bdb9970db277c403226e50ce819b8756a9cf6fba7a30153684b709ab0e31c"
+  }
+}

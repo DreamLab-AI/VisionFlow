@@ -1,0 +1,11 @@
+{
+  "date": "2026-09-04",
+  "scope": "Source review only; no credential files or process environments read, no backup/rotation/revocation/SSH invoked. Register entries are proposed responsibility assignments, not verified custody.",
+  "source_sha256": {
+    "project/agentbox/config/nip98-proxy/proxy.mjs": "72e18f0593ec2677c651f8c0affa60495efba4d5f78ed7db8b9e678fe2d53539",
+    "project/agentbox/services/dream-engine/src/dispatch.rs": "c8a9bdc8cfea5d248e11ad81be5660ea6b700ad87cbe66a67248f3bb53b5f19a",
+    "project/agentbox/services/nostr-pod-bridge/src/lib.rs": "dfd48f362b1d03b86395c2f5c79a30b8946ff5cee36d8036eefad720daf737c6",
+    "project/agentbox/management-api/lib/agent-identity.js": "6483b854ad27293cb5870a5322bc3773dce56aee784a7c9ce0655535f2d4050d",
+    "project/scripts/backup-secrets.sh": "6961fde8f04f1af6130c71fbc96fbb5948bcfa0dd2f0924091f38ee8fbd0015e"
+  }
+}

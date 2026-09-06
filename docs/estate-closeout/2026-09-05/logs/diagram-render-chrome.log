@@ -1,0 +1,27 @@
+# RES-b diagram render gate — full run with real Chrome (browsercontainer sidecar)
+# date: 2026-09-05
+## (1) baseline guard, browser-free
+
+All 10 diagram(s) passed: visible text + key labels present.
+## (2) re-render from .mmd source via sidecar Chrome
+browser: connected ws://172.20.0.6:9223/devtools/browser/6aebe0d6-ec7b-4c26-8043-bbe60dea5018
+  rendered 01-hierarchy-evolution.mmd -> rendered/01-hierarchy-evolution.svg  (text nodes: 124, visible: 124)
+  rendered 02-three-models-comparison.mmd -> rendered/02-three-models-comparison.svg  (text nodes: 120, visible: 120)
+  rendered 03-insight-ingestion-loop.mmd -> rendered/03-insight-ingestion-loop.svg  (text nodes: 62, visible: 62)
+  rendered 04-compound-flywheel.mmd -> rendered/04-compound-flywheel.svg  (text nodes: 56, visible: 56)
+  rendered 05-kpi-dashboard.mmd -> rendered/05-kpi-dashboard.svg  (text nodes: 13, visible: 13)
+  rendered 06-collaboration-modes.mmd -> rendered/06-collaboration-modes.svg  (text nodes: 119, visible: 119)
+  rendered 07-change-architecture.mmd -> rendered/07-change-architecture.svg  (text nodes: 140, visible: 140)
+  rendered 08-mesh-architecture-stack.mmd -> rendered/08-mesh-architecture-stack.svg  (text nodes: 120, visible: 120)
+  rendered 09-resistance-patterns.mmd -> rendered/09-resistance-patterns.svg  (text nodes: 16, visible: 16)
+  rendered 10-1-9-90-adoption.mmd -> rendered/10-1-9-90-adoption.svg  (text nodes: 78, visible: 78)
+
+Rendered 10 diagram(s) to /home/devuser/workspace/VisionFlow/presentation/report/diagrams/rendered
+## (3) re-check re-rendered output
+
+All 10 diagram(s) passed: visible text + key labels present.
+## (4) visible-word diff vs committed baseline
+
+All rendered diagrams match the committed baseline's visible words.
+## (5) byte-level drift vs committed baseline
+(no diffstat above = byte-identical)

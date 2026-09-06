@@ -1,0 +1,6 @@
+{
+  "command": "node scripts/adr-index-gen.js docs/adr --check",
+  "exit_code": 1,
+  "stdout": "",
+  "stderr": "error: ADR-2004-oxigraph-sqlite-persistence.md: STALE \u2014 governed paths changed since verified_commit 4fed5663dfbc0940c6b19a175dfcc8a9c67f2ab8: Cargo.toml (re-verify and bump verified_commit)\nerror: ADR-2005-hexagonal-crate-split.md: STALE \u2014 governed paths changed since verified_commit 9423abdb37e5a7a59840a06dc587fd423b8c9e53: Cargo.toml (re-verify and bump verified_commit)\nerror: ADR-2008-dev-image-recompiles.md: STALE \u2014 governed paths changed since verified_commit f326a3b1172df4fea8183e6a4344d3f55c575013: docker-compose.unified.yml (re-verify and bump verified_commit)\nerror: ADR-2027-three-deployment-profiles.md: STALE \u2014 governed paths changed since verified_commit f326a3b1172df4fea8183e6a4344d3f55c575013: docker-compose.unified.yml (re-verify and bump verified_commit)\nerror: 4 validation error(s); README not generated\n"
+}

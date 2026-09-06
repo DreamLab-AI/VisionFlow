@@ -1,0 +1,61 @@
+{
+  "date": "2026-09-04",
+  "scope": "Actual shell checker with fake curl only; no network, event, server, rendered beam or promotion operation. Dashboard source review only.",
+  "cases": [
+    {
+      "case": "empty",
+      "exit_code": 2,
+      "calls": [
+        [
+          "-fsS",
+          "http://fixture.invalid/api/bots/agents"
+        ]
+      ]
+    },
+    {
+      "case": "count_only",
+      "exit_code": 0,
+      "calls": [
+        [
+          "-fsS",
+          "http://fixture.invalid/api/bots/agents"
+        ],
+        [
+          "-fsS",
+          "-X",
+          "POST",
+          "http://fixture.invalid/api/canary/observe/CANARY-VC-D1-BEAM",
+          "-H",
+          "Content-Type: application/json",
+          "-d",
+          "{\"evidence\":\"live agent roster observed: 1 agent(s) via GET /api/bots/agents (the AgentNodesLayer client data path) \u2014 live agent activity reaching the client\"}"
+        ]
+      ]
+    },
+    {
+      "case": "false_receipt",
+      "exit_code": 0,
+      "calls": [
+        [
+          "-fsS",
+          "http://fixture.invalid/api/bots/agents"
+        ],
+        [
+          "-fsS",
+          "-X",
+          "POST",
+          "http://fixture.invalid/api/canary/observe/CANARY-VC-D1-BEAM",
+          "-H",
+          "Content-Type: application/json",
+          "-d",
+          "{\"evidence\":\"live agent roster observed: 1 agent(s) via GET /api/bots/agents (the AgentNodesLayer client data path) \u2014 live agent activity reaching the client\"}"
+        ]
+      ]
+    }
+  ],
+  "source_sha256": {
+    "scripts/canary/d1-beam-check.sh": "86c91403457c5b3f2f4eb516015848a379804e82b839d8fba10e0fa7bedd269c",
+    "client/src/services/livenessCanary.ts": "c7f5d0264713d08f74a6503464e926f452eda3676257cd207f75c5865ab57405",
+    "client/src/features/bots/components/SwarmObservabilityPanel.tsx": "bf77eb9dc62b79bea1c9f5b5a70aa205dc797bff6c9fc6e078dfbfb7b3852086"
+  }
+}

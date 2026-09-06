@@ -1,0 +1,30 @@
+{
+  "date": "2026-09-05",
+  "scope": "Source inspection only; no server, HTTP request, database fixture or existing Rust tests executed",
+  "sources": [
+    {
+      "path": "/home/devuser/workspace/project/src/handlers/trace_handler.rs",
+      "sha256": "c0bf06ebe164862820b302f1bbcb4e6e8410ba125a5d79f38d11a9a594c0be0a"
+    },
+    {
+      "path": "/home/devuser/workspace/project/src/services/provenance_trace.rs",
+      "sha256": "c20b7d8f873e68180210ef885b31facf428e42b6a8f04cb54482bf4083037504"
+    },
+    {
+      "path": "/home/devuser/workspace/project/src/adapters/sqlite_kpi_repository.rs",
+      "sha256": "b19df4f95860edd39ff1c828cd495651594e60354ccb9fdf6adefd3f736c6241"
+    },
+    {
+      "path": "/home/devuser/workspace/project/src/adapters/sqlite_enrichment_repository.rs",
+      "sha256": "4002eb468afc3cf4ed9e0ff3d7a780bb161c29e2cb3d06d1583267ea4ad0f9c9"
+    },
+    {
+      "path": "/home/devuser/workspace/project/src/middleware/rbac_gate.rs",
+      "sha256": "7dbc044f3ac1ca24fea35abe03d9d8fbb2733236b869341b4d517b5a17fe43eb"
+    },
+    {
+      "path": "/home/devuser/workspace/project/src/main.rs",
+      "sha256": "4a2a1546bdef22a823a28157ccc07ee6a0a0c9886bef5c51a5f98ca0738d02dc"
+    }
+  ]
+}

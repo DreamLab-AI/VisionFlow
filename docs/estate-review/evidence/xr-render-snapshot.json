@@ -1,0 +1,32 @@
+{
+  "date": "2026-09-04",
+  "head": "b00c28a0d766c8cf46cd00b100dab60ef2dd74a4",
+  "sources": {
+    "src/agent_events/ingest.rs": "2839a3b75d27f3a57461bd0caa736ff468b7e247ef27a63fc764cdc9de170bb7",
+    "src/agent_events/provenance.rs": "231eabd123fd9a5d3e2e6dc9a3eb0c790af2020e59df7758ba55c97ea683ebce",
+    "src/actors/agent_beam_actor.rs": "980046f66d08ed36b633c527a657f0dd70aac0d7587357535d2e254963824c4b",
+    "src/utils/binary_protocol.rs": "e968a81d569473ac9f763e6b9d70f7fd92cd332d6c6fd838f3d7fc0d5db26382",
+    "xr-client/rust/src/binary_protocol.rs": "b74ec402b55a21644775196650238718a465fd2bde0a78568ba8142f8ea5f244",
+    "xr-client/rust/src/render_store.rs": "5a373c84ee413bc7f13b5ff45c114b21e70a52c387926d0da2968dfb00be140f",
+    "xr-client/rust/src/webrtc_audio.rs": "3a96b0fc2d68b52fd8f05ce76b25ed6e1980a59f5cf2c586adbdb34820ba71f2",
+    "xr-client/scripts/graph_scene.gd": "d5474bf15770ce9bc821800dada68ea91c16ca8bd769b88e41151697c82ef923",
+    "xr-client/scripts/query_builder.gd": "2e5a1ebe33b20ef0d1f8c58454fc144ec5ad9a10f2930332807a9c3b5c2589ae",
+    "xr-client/scripts/xr_boot.gd": "d84cd02a5d8a57d37a4c31904092842fa091d05dd792e9b607aadc75c08d851f",
+    "crates/visionclaw-xr-presence/src/agent_presence.rs": "26585446d3f7becb41ba08237fd8f9d7fe526806e462b3cb97b988797debee67"
+  },
+  "test": {
+    "command": "cargo test --manifest-path xr-client/rust/Cargo.toml --lib",
+    "exit_code": 0,
+    "passed": 218,
+    "failed": 0,
+    "ignored": 0,
+    "duration_seconds": 0.01,
+    "build_seconds": 37.6,
+    "warning": "Cargo global cache cleanup permission warning; compilation and tests succeeded."
+  },
+  "limitations": [
+    "Rust library unit tests only; cfg(test) excludes Godot-facing runtime class implementations.",
+    "No Godot scene, shader, browser, headset, GPU performance, live authenticated action or deployment test.",
+    "Ordering, attribution and stale-state findings are source evidence, not exploit or live reproductions."
+  ]
+}

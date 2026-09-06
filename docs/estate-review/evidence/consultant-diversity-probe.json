@@ -1,0 +1,38 @@
+{
+  "date": "2026-09-04",
+  "scope": "Actual pure selection/record helpers only; no consultant invocation, network, provider cost or acceptance decision.",
+  "cases": [
+    {
+      "name": "unknown_producer",
+      "result": {
+        "kind": "anti-fox-verification",
+        "task": "closure-verification",
+        "producer_family": "unknown",
+        "verifier": "codex",
+        "verifier_family": "openai",
+        "anti_fox_ok": true,
+        "at": "2026-09-04T23:45:30.510Z"
+      }
+    },
+    {
+      "name": "same_family",
+      "result": {
+        "kind": "anti-fox-verification",
+        "task": "closure-verification",
+        "producer_family": "openai",
+        "verifier": "codex",
+        "verifier_family": "openai",
+        "anti_fox_ok": false,
+        "at": "2026-09-04T23:45:30.510Z"
+      }
+    },
+    {
+      "name": "no_diverse_available",
+      "result": null
+    }
+  ],
+  "source_sha256": {
+    "mcp/consultants/shared/model-diversity.js": "0555e581c194f4029bee7284674f71d5e1eb0045bc9d4913ee6ada280bbbb012",
+    "mcp/consultants/shared/consultant-base.js": "66e9adc276c703a0dee1c0768cc1197df7b7c92a892f1b305cd33b90ad2cd9e8"
+  }
+}

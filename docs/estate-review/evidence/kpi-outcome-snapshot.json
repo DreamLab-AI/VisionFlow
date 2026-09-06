@@ -1,0 +1,11 @@
+{
+  "date": "2026-09-04",
+  "scope": "Source trace of metric definition, sequential persistence, tap and client polling; no HTTP, source event, SQLite write or browser execution.",
+  "source_sha256": {
+    "src/services/kpi_compute.rs": "7de3995807e0677d694fe2972aabaa9ddb5cd54bf5f3a7e17bb47f592f720bd4",
+    "src/adapters/sqlite_kpi_repository.rs": "b19df4f95860edd39ff1c828cd495651594e60354ccb9fdf6adefd3f736c6241",
+    "src/handlers/kpi_handler.rs": "f206b405aace69c6f3c12c42d0acc7d19c29a68a0a1c643a914f811d358562de",
+    "client/src/features/control-center/kpi/useKpiSummary.ts": "392d41753e36a912915ad5fdb66da5d80550bb2c179b3a2b6d8e00d1e605e1c0",
+    "client/src/features/control-center/kpi/KpiPanel.tsx": "5ef9eee261ef854580f2c7e089e58923b0398db3297daf94c73dfbba529ff12d"
+  }
+}

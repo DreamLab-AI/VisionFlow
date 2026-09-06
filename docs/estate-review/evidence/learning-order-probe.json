@@ -1,0 +1,62 @@
+{
+  "date": "2026-09-04",
+  "scope": "actual validator with temporary minimal manifests; actual hybrid factory with injected pool and embedding stubs. No SQL execution, external memory access, hook execution or deployed-route test.",
+  "validation": [
+    {
+      "case": "off",
+      "exit_code": 0,
+      "w066": false,
+      "other_codes": []
+    },
+    {
+      "case": "retrieval_before_producer",
+      "exit_code": 0,
+      "w066": true,
+      "other_codes": []
+    },
+    {
+      "case": "routing_before_producer",
+      "exit_code": 0,
+      "w066": true,
+      "other_codes": []
+    },
+    {
+      "case": "both_before_producer",
+      "exit_code": 0,
+      "w066": true,
+      "other_codes": []
+    },
+    {
+      "case": "producer_and_consumers",
+      "exit_code": 0,
+      "w066": false,
+      "other_codes": []
+    }
+  ],
+  "consumer": [
+    {
+      "master_enabled": false,
+      "producer_enabled": false,
+      "feed_retrieval": true,
+      "mock_pool_calls": 2,
+      "score": 0.5800000000000001,
+      "effectiveness_bonus": 0.08000000000000002
+    },
+    {
+      "master_enabled": true,
+      "producer_enabled": false,
+      "feed_retrieval": true,
+      "mock_pool_calls": 2,
+      "score": 0.5800000000000001,
+      "effectiveness_bonus": 0.08000000000000002
+    }
+  ],
+  "source_sha256": {
+    "scripts/agentbox-config-validate.js": "d356e6d96a6d2b9cdb645065b8c989b25a9413ebf761c18fa12e61504c482d63",
+    "schema/agentbox.toml.schema.json": "cb7e411da855451c0eb9b4a6aceef8c6cfe0750877d06403b98eafc533a6d3ad",
+    "scripts/skill-count-check.js": "cb5e32f95b84ed7b1c88c34a5c68c121a45c65ae16eb80a466f78cce828038ad",
+    "mcp/servers/lib/ruvector-gates.js": "b8fdafae4bd33ed33ff4e664a867c1fca7003a8e1c9669b51f052d9480fc996d",
+    "mcp/servers/lib/memory-hybrid.js": "ef2070d2fa93790a1c6feff2df254c911962e079d79a0bc95489803b4fc5fa42",
+    "config/hooks/trajectory-recorder.cjs": "e7cc79bdc5595f7d6cf2dd829dd20b7845d15b4e91b3066800f28388005e4ecb"
+  }
+}

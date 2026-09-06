@@ -1,0 +1,62 @@
+{
+  "scope": "actual verdict module; synthetic reports; no LLM, SSH, push or memory write",
+  "source_sha256": {
+    "engine.rs": "90e73e39cc679325a2c25bf4b46e66390115c9f0bf77b20618799d3d347802ec",
+    "dispatch.rs": "c8a9bdc8cfea5d248e11ad81be5660ea6b700ad87cbe66a67248f3bb53b5f19a",
+    "verdict.rs": "63a38fbe4714e00533957893cb44d5c57fd95b379a9cd0962e6a8da15fa9787a",
+    "persist.rs": "899ab3521835cf1081bd8caf7acd38dc08bf668bdeae00a4a35a1758936ecdd9",
+    "witness.rs": "218719aa6f1236ca73671a7d297570a026103920e92e62e70c88f10b27a803ad",
+    "compile.rs": "ab3991eaa6a98cc97d73d27002ea4f617f00f7ca3f5ba446b8639029d9441661",
+    "config.rs": "e4657494ed55409cb589438870a21c28f6678b2c3213c3655d71212a56d82017",
+    "main.rs": "d375f25be107d23b5eaebed0cbf97f81a29ed669da251341ea60005b2c59153d",
+    "context.rs": "e9ff12947779903f88f5b845e9f39330ff434f9e9976d836a5a66fa353540705",
+    "llm.rs": "9b75f9890ec2eabf190e618b0f8ead21c04c6c4be5840b0adb2c3681757156b7",
+    "ruvector.rs": "29bfae5ba859edc8fff1df86783eee85e61be8cedd99083f6c9e05049f727b70"
+  },
+  "reports": {
+    "explicit_accept_after_failure": "Evaluator: FAIL\nVERDICT: ACCEPT",
+    "all_blocked_with_accept": "All evaluators BLOCKED\nVERDICT: ACCEPT",
+    "negated_fallback": "No evidence justifies ACCEPT",
+    "explicit_inconclusive": "ACCEPT considered\nVERDICT: INCONCLUSIVE",
+    "malformed_explicit_fallback": "VERDICT: unknown\nExample: ACCEPT"
+  },
+  "result": {
+    "explicit_accept_after_failure": "ACCEPT",
+    "all_blocked_with_accept": "ACCEPT",
+    "negated_fallback": "ACCEPT",
+    "explicit_inconclusive": "INCONCLUSIVE",
+    "malformed_explicit_fallback": "ACCEPT"
+  },
+  "date": "2026-09-04",
+  "existing_tests": [
+    {
+      "cwd": "project/agentbox/services/dream-engine",
+      "command": "cargo test --locked --lib",
+      "exit_code": 0,
+      "passed": 78,
+      "failed": 0,
+      "note": "Cargo cache cleanup emitted a permission warning; compilation and tests completed."
+    },
+    {
+      "cwd": "dream-machine",
+      "command": "node node_modules/vitest/vitest.mjs run --reporter=dot",
+      "exit_code": 0,
+      "test_files": 7,
+      "passed": 125,
+      "failed": 0,
+      "note": "Initial npm wrapper failed ENOSPC writing npm metadata; directly invoking installed Vitest succeeded."
+    }
+  ],
+  "repo_heads": {
+    "project/agentbox": "89301ec7c911eab270c00a0cf81596d0d4f15535",
+    "dream-machine": "7c30573a2d73c8fa4c67a43042d7c0b204eefa13"
+  },
+  "toolkit_source_sha256": {
+    "FORK.md": "9174da6e4bafda5b27fc70e1577e9bce8a3f7b63fc13e42221293391f7852a1c",
+    "scripts/dream-nightly.mjs": "83b206210e40156fac39c3bf3423029202c1f3be2907c4a6ee3f7e04551907bf",
+    "packages/cli/src/entrypoint.ts": "a48465c0f17205074a3f80e0dc239d5f6b16024c83bbe7422683579513eb719e",
+    "packages/cli/src/index.ts": "360a1625f52b36157d43c9dbd2c860e1c929f2d1ed22b2820a038a956c131185",
+    "packages/memory/src/index.ts": "3a540fe3cd07edff6d02d126c3dc43ec001103da89d90ec1986b177cd614bc8c",
+    "packages/compile/src/index.ts": "ceca83d525971726f1a60336369d213f33a209ee2df0cf5ec3c743b981979997"
+  }
+}

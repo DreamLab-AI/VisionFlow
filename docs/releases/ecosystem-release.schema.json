@@ -2,27 +2,89 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://visionflow.info/schemas/ecosystem-release.schema.json",
   "title": "VisionFlow Ecosystem Release Manifest",
+  "description": "Coordinated release manifest for the estate. Version 2 (2026-09-05, ADR-2006 closeout) widens the roster from six repositories to the fourteen in the ADR inventory, flags each one's provenance, and adds a `fixtures` block so a candidate cannot claim fixture parity it never checked.",
   "type": "object",
-  "required": ["manifest_version", "generated_at", "status", "repositories", "compatibility"],
+  "required": ["manifest_version", "generated_at", "status", "repositories", "fixtures", "compatibility"],
   "properties": {
-    "manifest_version": { "type": "integer", "const": 1 },
+    "manifest_version": { "type": "integer", "const": 2 },
     "generated_at": { "type": "string", "format": "date-time" },
     "status": { "type": "string", "enum": ["local-draft", "candidate", "released"] },
     "repositories": {
       "type": "array",
-      "minItems": 6,
+      "description": "Every inventoried repository. minItems is 14 — the count in docs/estate-review/evidence/adr-inventory.json. A manifest listing fewer is not a coordinated view of the estate; it is a coordinated view of part of it, which is what version 1 silently shipped.",
+      "minItems": 14,
       "items": {
         "type": "object",
-        "required": ["name", "path", "head", "branch"],
+        "required": ["name", "path", "head", "branch", "provenance"],
         "properties": {
           "name": { "type": "string" },
           "path": { "type": "string" },
           "head": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
           "branch": { "type": "string" },
-          "dirty": { "type": "boolean" }
+          "dirty": { "type": "boolean" },
+          "present": {
+            "type": "boolean",
+            "description": "Whether the checkout resolved at generation time. An absent repository is recorded with an all-zero head and branch \"missing\" rather than omitted."
+          },
+          "provenance": {
+            "type": "string",
+            "enum": ["first-party", "imported", "upstream"],
+            "description": "first-party: authored and released by the estate. imported: a fork or adaptation of an external project, carried and modified here. upstream: an external project consumed as-is and not released by the estate. Release qualification applies to first-party and imported repositories; upstream repositories are pinned, not qualified."
+          },
+          "upstream": {
+            "type": ["string", "null"],
+            "description": "The external project this repository derives from or tracks, when any."
+          },
+          "role": { "type": "string", "description": "What this repository contributes to the estate." }
         },
         "additionalProperties": false
       }
+    },
+    "fixtures": {
+      "type": "object",
+      "description": "Protocol-fixture qualification. A candidate or released manifest MUST carry status \"compared\" against a named canonical revision set; the generator refuses to emit one otherwise (exit 3).",
+      "required": ["status"],
+      "oneOf": [
+        {
+          "properties": {
+            "status": { "const": "not-compared" },
+            "canonical": { "type": "null" },
+            "consumers": { "type": "array", "maxItems": 0 },
+            "reason": { "type": "string" }
+          },
+          "required": ["status", "reason"],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "status": { "const": "compared" },
+            "canonical": {
+              "type": "object",
+              "required": ["repo", "revision", "dir", "corpus_sha256", "fixture_count"],
+              "properties": {
+                "repo": { "type": "string", "description": "Roster name of the repository holding the canonical corpus." },
+                "revision": { "type": "string", "pattern": "^[0-9a-f]{40}$", "description": "The resolved canonical revision. HEAD is resolved at generation time so the manifest names a commit, not a moving reference." },
+                "dir": { "type": "string" },
+                "corpus_sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$",
+                  "description": "SHA-256 over the sorted \"sha256␠filename\" lines of the corpus. Two manifests agree iff they qualified against byte-identical fixtures."
+                },
+                "fixture_count": { "type": "integer", "minimum": 1 }
+              },
+              "additionalProperties": false
+            },
+            "verdict": {
+              "type": "string",
+              "enum": ["match", "drift", "not-run"],
+              "description": "match: every consumer copy equals the canonical corpus. drift: at least one differs. not-run: the comparison tool was unavailable in this environment."
+            },
+            "consumers": { "type": "array", "items": { "type": "object" } }
+          },
+          "required": ["status", "canonical", "verdict"],
+          "additionalProperties": false
+        }
+      ]
     },
     "compatibility": {
       "type": "object",
@@ -39,4 +101,3 @@
   },
   "additionalProperties": false
 }
-

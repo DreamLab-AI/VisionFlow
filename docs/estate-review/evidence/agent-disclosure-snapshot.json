@@ -1,0 +1,137 @@
+{
+  "date": "2026-09-05",
+  "scope": "Source-only; literal Rust view mount census, not exhaustive author-surface or rendered coverage; no Worker/D1/browser/test execution",
+  "sources": [
+    {
+      "path": "/home/devuser/workspace/nostr-rust-forum/crates/nostr-bbs-auth-worker/src/governance_api.rs",
+      "sha256": "97a6661e902ef73a09bef309420a9c9e7cab646871caedacb1b8323b63cbea22"
+    },
+    {
+      "path": "/home/devuser/workspace/nostr-rust-forum/crates/nostr-bbs-forum-client/src/admin/calendar.rs",
+      "sha256": "d3d85a9faa0831a1fd307087be26bd26b022bfc8e16e0c7d52af36959b5474a1"
+    },
+    {
+      "path": "/home/devuser/workspace/nostr-rust-forum/crates/nostr-bbs-forum-client/src/app.rs",
+      "sha256": "51c5cffae1380fd754d84b0a551799b1b85c9f433efcacf2ee5a64e09fb8bd2b"
+    },
+    {
+      "path": "/home/devuser/workspace/nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/agent_badge.rs",
+      "sha256": "7818080e0b8386ee0145edc663fa6df490ea8b9716b9d404725a05d5ef2a2602"
+    },
+    {
+      "path": "/home/devuser/workspace/nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/bookmarks_modal.rs",
+      "sha256": "0b0ae00cc8c6f58712afd4f36553a60189524a044dc1a470c80f3d19e66033e3"
+    },
+    {
+      "path": "/home/devuser/workspace/nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/event_card.rs",
+      "sha256": "33041aa9219d60538894888ac1ec14c887ae8ce69adfc4415b4b620b149a4e2c"
+    },
+    {
+      "path": "/home/devuser/workspace/nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/message_bubble.rs",
+      "sha256": "29a783b7eb9ed935e084dd85da94fab725eda7d703d2270d41590bde427e5e42"
+    },
+    {
+      "path": "/home/devuser/workspace/nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/pinned_messages.rs",
+      "sha256": "04dfe60985fd511e4dd4784e6a76e2c50f53d6dfa0c9a36ac4df2f024d1da278"
+    },
+    {
+      "path": "/home/devuser/workspace/nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/quoted_message.rs",
+      "sha256": "8441cedba9baf71402bb8f4c3c4e7c79f5ac23eb83bc464db0a92b00b89f6b78"
+    },
+    {
+      "path": "/home/devuser/workspace/nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/thread_view.rs",
+      "sha256": "9e932387754dff6d79194da858ed4451ccc2ac8d2390ce488024d42c42d4cb93"
+    },
+    {
+      "path": "/home/devuser/workspace/nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/topic_list.rs",
+      "sha256": "08334742a4a36d5106eda67e301cf92d8bca6432321a0b3051de0ecf7d3c330c"
+    },
+    {
+      "path": "/home/devuser/workspace/nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/governance.rs",
+      "sha256": "c414e7be70b4cab19bbbdd8fb7143cee631e34dae42b8e555f532285dab5a6e9"
+    },
+    {
+      "path": "/home/devuser/workspace/nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/note_view.rs",
+      "sha256": "5b973f79129ca4e0f8a6d91060b211835d806786f924d85eb18e965cad1b549d"
+    },
+    {
+      "path": "/home/devuser/workspace/nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/thread.rs",
+      "sha256": "534d6e7cadc0f5d92b2dbe4c8e093d7ad7e4b50fcf001639b8da78c912491d27"
+    },
+    {
+      "path": "/home/devuser/workspace/nostr-rust-forum/crates/nostr-bbs-relay-worker/src/agent_disclosure.rs",
+      "sha256": "d1b57c35edd2f712531de8187f224469cc35ab190ea476447e1617819ed51179"
+    },
+    {
+      "path": "/home/devuser/workspace/nostr-rust-forum/crates/nostr-bbs-relay-worker/src/lib.rs",
+      "sha256": "71e9f1806475b927780f2e401a6791c40080c164f861f07b736ecaadc50395cf"
+    }
+  ],
+  "badge_mounts": [
+    {
+      "path": "crates/nostr-bbs-forum-client/src/admin/calendar.rs",
+      "line": 270
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/components/bookmarks_modal.rs",
+      "line": 229
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/components/event_card.rs",
+      "line": 205
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/components/message_bubble.rs",
+      "line": 184
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/components/pinned_messages.rs",
+      "line": 238
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/components/quoted_message.rs",
+      "line": 98
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/components/thread_view.rs",
+      "line": 211
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/components/topic_list.rs",
+      "line": 266
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/components/topic_list.rs",
+      "line": 287
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/pages/governance.rs",
+      "line": 281
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/pages/governance.rs",
+      "line": 555
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/pages/governance.rs",
+      "line": 639
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/pages/governance.rs",
+      "line": 713
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/pages/note_view.rs",
+      "line": 241
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/pages/thread.rs",
+      "line": 1185
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/pages/thread.rs",
+      "line": 1298
+    }
+  ],
+  "mount_count": 16
+}

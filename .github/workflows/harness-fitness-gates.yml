@@ -7,6 +7,9 @@ on:
       - 'docs/engineering/schemas/**'
       - 'docs/architecture/compatibility-matrix.md'
       - 'scripts/harness-audit.sh'
+      - 'scripts/generate-release-manifest.sh'
+      - 'docs/releases/ecosystem-release.schema.json'
+      - 'tests/gates/**'
   push:
     branches: [main]
     paths:
@@ -14,6 +17,9 @@ on:
       - 'docs/engineering/schemas/**'
       - 'docs/architecture/compatibility-matrix.md'
       - 'scripts/harness-audit.sh'
+      - 'scripts/generate-release-manifest.sh'
+      - 'docs/releases/ecosystem-release.schema.json'
+      - 'tests/gates/**'
   workflow_dispatch:
 
 permissions:
@@ -30,11 +36,22 @@ jobs:
       - name: Install jq
         run: sudo apt-get update -qq && sudo apt-get install -y -qq jq
 
+      # Prove the audit can still fail before trusting it to pass. The suite
+      # drives a duplicate-pairing template, a fabricated source path and a
+      # dangling edge through the script and asserts each is caught — all three
+      # scored a clean PASS before 2026-09-05.
+      - name: Prove the audit detects seeded defects
+        run: bash tests/gates/harness-audit.test.sh
+
       - name: Run harness pairing audit
         id: audit
         run: |
           chmod +x scripts/harness-audit.sh
-          # Capture output for later steps; allow failure so we can report
+          # Capture output for later steps; allow failure so we can report.
+          # --strict-sources is deliberately NOT set here: the sibling substrate
+          # checkouts are absent on this runner, so every cross-substrate source
+          # is unverifiable and strict mode would fail for the environment
+          # rather than for the templates. Source backing is still reported.
           set +e
           OUTPUT=$(bash scripts/harness-audit.sh --target 50 2>&1)
           EXIT_CODE=$?
@@ -129,3 +146,21 @@ jobs:
             exit 1
           fi
           echo "All templates passed schema validation"
+
+  release-manifest:
+    name: Release manifest roster and fixture gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq jq
+
+      # Asserts the roster covers every repository in the ADR inventory, that
+      # each carries a provenance flag, and that a candidate manifest is
+      # REFUSED when no canonical fixture revision set is supplied — the
+      # manifest previously claimed fixture parity in prose with nothing behind
+      # it, and covered six of fourteen repositories.
+      - name: Release manifest regression tests
+        run: bash tests/gates/release-manifest.test.sh

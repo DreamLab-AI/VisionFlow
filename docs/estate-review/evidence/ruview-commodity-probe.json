@@ -1,0 +1,30 @@
+{
+  "scope": "Four isolated assertions on unchanged AST-selected classes/methods; no NumPy/SciPy execution, live collector, complete suite or accuracy validation",
+  "assertions_passed": 4,
+  "empty_result": {
+    "presence": false,
+    "confidence": 1.0
+  },
+  "threshold_result": {
+    "motion": "active",
+    "confidence": 1.0
+  },
+  "old_sample_timestamps_retained": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "declared_test_methods": 36,
+  "commodity_proof_directory_exists": false,
+  "sources": {
+    "v1/src/sensing/backend.py": "47f9416c984416cb979cda922549e0f896c11fde35c5caf06f0e34e12307fa66",
+    "v1/src/sensing/classifier.py": "24f82fd4779d08461c976838c8819bb07816690f630ca2a65358f6d75c58b43b",
+    "v1/src/sensing/feature_extractor.py": "6e3ed9e5ffe56c4c7429780c54cd287e3f77312d8d77691a49f840bb60ca2d8e",
+    "v1/src/sensing/rssi_collector.py": "491aa9a89582b8d9c2e87c997177919eb7e1f4c656704a6be5bbf086d5e458ec",
+    "v1/src/sensing/ws_server.py": "48e92603591e21bd742a7cee9ffffce7bb0cdcd069667de8116b7659a129c219",
+    "v1/src/cli.py": "7206b6b0574d26a295d6b22d21820995275a403b7968790397ff2470ca21b342",
+    "v1/setup.py": "34f8ef48c46cae8113f9bb8b281f00b7d0a0798de646255583016b474b1bc939",
+    "v1/tests/unit/test_sensing.py": "9f6afb6eeab4a399039f7ca10a4e161681f1ee8eb6bbd329c4d83b57ca8e1811"
+  }
+}

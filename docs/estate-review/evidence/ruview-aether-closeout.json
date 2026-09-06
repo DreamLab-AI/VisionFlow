@@ -1,0 +1,146 @@
+{
+  "date": "2026-09-05",
+  "scope": "Cumulative ADR024 requirements disposition; source review plus separately linked bounded probes, not implementation completion",
+  "sources": {
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/embedding.rs": "9d3565d9c4c7d06c92ec9324193b91a1a95c3c618873499306ef8f2b6f4d1305",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/trainer.rs": "0ce56df389c71bd17d4fb2de294c63723ee2726deed5379d730dd3d92ec5e2d4",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/main.rs": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/sona.rs": "3a979445a47e1a340616b56c2a254e52839eb793d4b8e5442920c88885050f85",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/rvf_container.rs": "37092b456f28054f5e8a13dd0e9f302c7f1d21e63eb4785f3c7117ec8ac1a3d9",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/lib.rs": "929c93cea8a966747ef2baeebf77ce0d89dc2b4c9bf59bde6211ca195148fe18"
+  },
+  "phases_1_to_6": {
+    "1": {
+      "title": "Embedding Module (2-3 days)",
+      "requirements": [
+        "`embedding.rs` (NEW): `ProjectionHead`, `CsiAugmenter`, `EmbeddingExtractor`, loss functions, metrics",
+        "`rvf_container.rs` (MODIFY): Add `SEG_EMBED`, `add_embedding_config()`, `embedding_config()`",
+        "`lib.rs` (MODIFY): Add `pub mod embedding;`",
+        "`ProjectionHead` with `forward()`, `forward_train()`, `flatten_into()`, `unflatten_from()`",
+        "`CsiAugmenter` with all 7 augmentation strategies",
+        "`info_nce_loss()`, `variance_loss()`, `covariance_loss()`, `aether_loss()`",
+        "`EmbeddingExtractor` with `embed()` and `forward_dual()`",
+        "`alignment_metric()` and `uniformity_metric()`",
+        "Unit tests: augmentation output shape, loss gradient direction, L2-normalization, projection head roundtrip",
+        "**Lines**: ~450"
+      ],
+      "acceptance": "open; see cumulative phase mapping"
+    },
+    "2": {
+      "title": "Self-Supervised Pretraining (1-2 days)",
+      "requirements": [
+        "`trainer.rs` (MODIFY): Add `pretrain_epoch()`, `run_pretraining()`, contrastive loss to composite",
+        "`embedding.rs` (EXTEND): Add `PretrainEpochStats`, `PretrainResult`",
+        "`Trainer::pretrain_epoch()` running SimCLR+VICReg on raw CSI windows",
+        "`Trainer::run_pretraining()` full loop with monitoring",
+        "Contrastive weight in `LossComponents` and `LossWeights`",
+        "Integration test: pretrain 10 epochs on synthetic CSI, verify alignment improves",
+        "**Lines**: ~200 additions to `trainer.rs`"
+      ],
+      "acceptance": "open; see cumulative phase mapping"
+    },
+    "3": {
+      "title": "HNSW Fingerprint Pipeline (2-3 days)",
+      "requirements": [
+        "`embedding.rs` (EXTEND): Add `EmbeddingIndex` trait, `EmbeddingMetadata`, index management",
+        "`main.rs` or new `api_embedding.rs` (MODIFY/NEW): REST endpoints for embedding search",
+        "Four HNSW index types with insert/search/prune operations",
+        "Environment switching via embedding comparison (replaces statistical drift)",
+        "Anomaly detection via baseline distance threshold",
+        "REST API: `/api/v1/embedding/extract`, `/api/v1/embedding/search`",
+        "Integration with existing SONA `EnvironmentDetector`",
+        "**Lines**: ~300"
+      ],
+      "acceptance": "open; see cumulative phase mapping"
+    },
+    "4": {
+      "title": "Cross-Modal Alignment (1 day, optional)",
+      "requirements": [
+        "`embedding.rs` (EXTEND): Add `PoseEncoder`, `cross_modal_loss()`",
+        "`PoseEncoder`: Linear(51 -> 128) -> ReLU -> Linear(128 -> 128) -> L2-norm",
+        "Cross-modal InfoNCE loss on paired CSI + pose data",
+        "Evaluation script for pose retrieval from CSI query",
+        "**Lines**: ~150"
+      ],
+      "acceptance": "open; see cumulative phase mapping"
+    },
+    "5": {
+      "title": "Quantized Embedding Validation (1 day)",
+      "requirements": [
+        "`sparse_inference.rs` (EXTEND): Add `SpearmanRankCorrelation`, embedding-specific quantization tests",
+        "`rvf_pipeline.rs` (MODIFY): Package AETHER model into RVF with SEG_EMBED",
+        "Spearman rank correlation test for INT8 vs FP32 embeddings",
+        "Mixed-precision fallback (INT8 backbone + FP16 projection head)",
+        "ESP32 latency benchmark target verification",
+        "RVF packaging of complete AETHER model",
+        "**Lines**: ~150"
+      ],
+      "acceptance": "open; see cumulative phase mapping"
+    },
+    "6": {
+      "title": "Integration Testing & Benchmarks (1-2 days)",
+      "requirements": [
+        "End-to-end test: CSI -> embed -> HNSW insert -> HNSW search -> verify nearest neighbor correctness",
+        "Pretraining convergence benchmark on MM-Fi dataset",
+        "Quantization rank preservation benchmark",
+        "ESP32 simulation latency benchmark",
+        "All performance targets verified"
+      ],
+      "acceptance": "open; see cumulative phase mapping"
+    }
+  },
+  "named_acceptance_tests": {
+    "unit": [
+      "projection_head_output_is_128_dim",
+      "projection_head_output_is_l2_normalized",
+      "projection_head_zero_input_does_not_nan",
+      "projection_head_flatten_unflatten_roundtrip",
+      "projection_head_param_count_correct",
+      "augmenter_output_same_shape_as_input",
+      "augmenter_two_views_differ",
+      "augmenter_deterministic_with_same_seed",
+      "temporal_jitter_shifts_window",
+      "subcarrier_masking_zeros_expected_fraction",
+      "gaussian_noise_changes_values",
+      "amplitude_scaling_within_range",
+      "info_nce_zero_for_identical_embeddings",
+      "info_nce_positive_for_different_embeddings",
+      "info_nce_decreases_with_closer_positives",
+      "variance_loss_zero_when_variance_at_target",
+      "variance_loss_positive_when_variance_below_target",
+      "covariance_loss_zero_for_uncorrelated_dims",
+      "aether_loss_finite_for_random_embeddings",
+      "alignment_zero_for_identical_pairs",
+      "uniformity_decreases_with_uniform_distribution",
+      "extractor_embed_output_shape",
+      "extractor_dual_forward_produces_both_outputs",
+      "extractor_flatten_unflatten_preserves_output"
+    ],
+    "integration": [
+      "pretrain_5_epochs_alignment_improves",
+      "pretrain_loss_is_finite_throughout",
+      "pretrain_embeddings_not_collapsed",
+      "joint_train_contrastive_plus_pose_loss_finite",
+      "joint_train_pose_accuracy_not_degraded",
+      "rvf_embed_config_round_trip",
+      "rvf_full_aether_model_package",
+      "int8_embedding_rank_correlation_above_095",
+      "fp16_embedding_rank_correlation_above_099"
+    ]
+  },
+  "named_test_disposition": "All require requirement-matched acceptance; declarations/isolated probes do not close full model, data, target or complete-suite claims",
+  "phase7_subphases": [
+    "MicroLoRA",
+    "EWC consolidation",
+    "environment drift",
+    "hard-negative mining",
+    "RVF embedding/LoRA profiles"
+  ],
+  "future_dispositions": {
+    "masked_autoencoder": "defer pending explicit adoption",
+    "hyperbolic_embeddings": "defer pending explicit adoption",
+    "temporal_CPC": "defer pending explicit adoption",
+    "federated_AETHER": "defer pending explicit adoption",
+    "advanced_attention": "defer pending explicit adoption"
+  }
+}

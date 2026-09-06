@@ -1,0 +1,17 @@
+{
+  "date": "2026-09-04",
+  "scope": "Source trace only; no relay, approval, actor restart, persistence failure or PR operation executed.",
+  "source_sha256": {
+    "src/services/acsp/client.rs": "d951855bccf07a1f6a4c40589e9400d4efe79d41e55f2045eaf4888a8e54aa23",
+    "src/services/acsp/events.rs": "26992c1c1e53405fb4e2dbd5a744bd7bb9d40c91299ba4a9d53d5aba55f571ad",
+    "src/actors/elevation_actor.rs": "ffdde9f5134a5216af34cd4801842736c4494a703ee5248e2f6fe1bb8c39fcd5",
+    "src/handlers/broker_inbox_handler.rs": "99eb03d553cc0b78f622cee46f6aff8855fc0f0a328576078e2d20f6c2f18f5f",
+    "src/domain/broker/broker_decision.rs": "a744506be6dfef59f53e4e99ec52e26e6102b5bd3b777073205beebf0795df56"
+  },
+  "findings": [
+    "Subscription begins since now and logs lag without replay in this loop.",
+    "CaseDecision contains case_id, action, reasoning and responder_pubkey, without event ID/request reference.",
+    "Elevation decision handler removes pending case before branch persistence; non-approve actions share a record-and-skip path.",
+    "Broker inbox projects enrichment proposal storage; its local BrokerCase DTO is not the retained domain aggregate."
+  ]
+}

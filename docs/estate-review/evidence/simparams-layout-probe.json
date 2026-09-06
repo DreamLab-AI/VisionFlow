@@ -1,0 +1,84 @@
+{
+  "date": "2026-09-04",
+  "scope": "Extracted declarations and original size assertions compiled with host rustc/C++; no CUDA compiler, driver, device copy, shipped PTX or client runtime exercised.",
+  "field_count": 53,
+  "current_layouts_equal": true,
+  "host_layout": [
+    "size 212 align 4",
+    "dt 0",
+    "damping 4",
+    "warmup_iterations 8",
+    "cooling_rate 12",
+    "spring_k 16",
+    "rest_length 20",
+    "repel_k 24",
+    "repulsion_cutoff 28",
+    "repulsion_softening_epsilon 32",
+    "center_gravity_k 36",
+    "max_force 40",
+    "max_velocity 44",
+    "grid_cell_size 48",
+    "feature_flags 52",
+    "seed 56",
+    "iteration 60",
+    "separation_radius 64",
+    "cluster_strength 68",
+    "alignment_strength 72",
+    "temperature 76",
+    "viewport_bounds 80",
+    "sssp_alpha 84",
+    "boundary_damping 88",
+    "constraint_ramp_frames 92",
+    "constraint_max_force_per_node 96",
+    "stability_threshold 100",
+    "min_velocity_threshold 104",
+    "world_bounds_min 108",
+    "world_bounds_max 112",
+    "cell_size_lod 116",
+    "k_neighbors_max 120",
+    "anomaly_detection_radius 124",
+    "learning_rate_default 128",
+    "norm_delta_cap 132",
+    "position_constraint_attraction 136",
+    "lof_score_min 140",
+    "lof_score_max 144",
+    "weight_precision_multiplier 148",
+    "gravity 152",
+    "lin_log_mode 156",
+    "scaling_ratio 160",
+    "adaptive_speed 164",
+    "global_speed 168",
+    "dag_bias_k 172",
+    "dag_level_distance 176",
+    "layout_mode 180",
+    "plane_bias_k 184",
+    "plane_spacing 188",
+    "radial_center_x 192",
+    "radial_center_y 196",
+    "radial_center_z 200",
+    "layer_bias_k 204",
+    "layer_spacing 208"
+  ],
+  "same_size_mutation": {
+    "change": "Swap CUDA dt and damping declaration order in temporary fixture only",
+    "original_size_assertion_passes": true,
+    "changed_offsets": [
+      {
+        "rust": "dt 0",
+        "mutated_cpp": "dt 4"
+      },
+      {
+        "rust": "damping 4",
+        "mutated_cpp": "damping 0"
+      }
+    ]
+  },
+  "compilers": {
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+    "cpp": "g++ (GCC) 15.2.0"
+  },
+  "source_sha256": {
+    "src/models/simulation_params.rs": "14ef780229c54d339897335b0d6d2e909a426c3a789b938ce61c9d0af3c5e070",
+    "crates/visionclaw-gpu/src/cuda_sources/visionclaw_unified.cu": "eef6fc47f439831ec57f25d5b1fc0c9dfc00bdeaa1d751a5db5e61e18a23ab74"
+  }
+}

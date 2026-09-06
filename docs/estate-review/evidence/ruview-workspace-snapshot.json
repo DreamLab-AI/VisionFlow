@@ -1,0 +1,256 @@
+{
+  "date": "2026-09-05",
+  "scope": "TOML parsing and source inspection; no cargo resolution/build, model, signal parity or target execution",
+  "members": [
+    {
+      "path": "crates/wifi-densepose-core",
+      "package": "wifi-densepose-core",
+      "features": {
+        "default": [
+          "std"
+        ],
+        "std": [],
+        "serde": [
+          "dep:serde",
+          "ndarray/serde"
+        ],
+        "async": [
+          "dep:async-trait"
+        ]
+      },
+      "sha256": "b7e607ceeeb7ad242d60e7bb7cb4eaf795eea6e02e9661c5d0b47e37c46f2e72"
+    },
+    {
+      "path": "crates/wifi-densepose-signal",
+      "package": "wifi-densepose-signal",
+      "features": {},
+      "sha256": "bc4e97ce997ca8d74eea799c533e186aa75f588172c63063b29e0f3a36372ae0"
+    },
+    {
+      "path": "crates/wifi-densepose-nn",
+      "package": "wifi-densepose-nn",
+      "features": {
+        "default": [
+          "onnx"
+        ],
+        "onnx": [
+          "ort"
+        ],
+        "tch-backend": [
+          "tch"
+        ],
+        "candle-backend": [
+          "candle-core",
+          "candle-nn"
+        ],
+        "cuda": [
+          "onnx"
+        ],
+        "tensorrt": [
+          "onnx"
+        ],
+        "all-backends": [
+          "onnx",
+          "tch-backend",
+          "candle-backend"
+        ]
+      },
+      "sha256": "aefeea6dbca690562d6f98d34cddb50005915d20073538086f91627c706140ba"
+    },
+    {
+      "path": "crates/wifi-densepose-api",
+      "package": "wifi-densepose-api",
+      "features": {},
+      "sha256": "209ce181006954b93f0a12d9c4f6382ea8879854ba581e0e612d6096343fb7b8"
+    },
+    {
+      "path": "crates/wifi-densepose-db",
+      "package": "wifi-densepose-db",
+      "features": {},
+      "sha256": "0873b49149f0201fc789e246c87e5dbee71c92617d4229d55eaeac75164493b9"
+    },
+    {
+      "path": "crates/wifi-densepose-config",
+      "package": "wifi-densepose-config",
+      "features": {},
+      "sha256": "2602cb07d54503bd57685c1eaab395cb956a2c424853f576254ea06350378403"
+    },
+    {
+      "path": "crates/wifi-densepose-hardware",
+      "package": "wifi-densepose-hardware",
+      "features": {
+        "default": [
+          "std"
+        ],
+        "std": [],
+        "esp32": [],
+        "intel5300": [],
+        "linux-wifi": []
+      },
+      "sha256": "1555842c2a9f21cf2bd49a64b7a32df7a41dbef2823922483c8ae96f6c1d526f"
+    },
+    {
+      "path": "crates/wifi-densepose-wasm",
+      "package": "wifi-densepose-wasm",
+      "features": {
+        "default": [
+          "console_error_panic_hook"
+        ],
+        "mat": [
+          "wifi-densepose-mat"
+        ]
+      },
+      "sha256": "6fc7c44b01998c381932d84c6fdb93ed7be6add6eebb63b8424370c6aba40fc5"
+    },
+    {
+      "path": "crates/wifi-densepose-cli",
+      "package": "wifi-densepose-cli",
+      "features": {
+        "default": [
+          "mat"
+        ],
+        "mat": []
+      },
+      "sha256": "0d73eeb699cd957c67b8559b3b1f3503901d6add7ae855e0ec3fa7e2aa4d7875"
+    },
+    {
+      "path": "crates/wifi-densepose-mat",
+      "package": "wifi-densepose-mat",
+      "features": {
+        "default": [
+          "std",
+          "api",
+          "ruvector"
+        ],
+        "ruvector": [
+          "dep:ruvector-solver",
+          "dep:ruvector-temporal-tensor"
+        ],
+        "std": [],
+        "api": [
+          "dep:serde",
+          "chrono/serde",
+          "geo/use-serde"
+        ],
+        "portable": [
+          "low-power"
+        ],
+        "low-power": [],
+        "distributed": [
+          "tokio/sync"
+        ],
+        "drone": [
+          "distributed"
+        ],
+        "serde": [
+          "dep:serde",
+          "chrono/serde",
+          "geo/use-serde"
+        ]
+      },
+      "sha256": "830e4cf9764eb8924bb2a5d87dee5ca58c0ba15182f20ffe913c8d847e6181b0"
+    },
+    {
+      "path": "crates/wifi-densepose-train",
+      "package": "wifi-densepose-train",
+      "features": {
+        "default": [],
+        "tch-backend": [
+          "tch"
+        ],
+        "cuda": [
+          "tch-backend"
+        ]
+      },
+      "sha256": "4c579a9860df80b5089c2dbcbf4a91d97f6b046ad2d1d2bb1f72565e20b43dc0"
+    },
+    {
+      "path": "crates/wifi-densepose-sensing-server",
+      "package": "wifi-densepose-sensing-server",
+      "features": {},
+      "sha256": "2c33565d5d7e13b0950cf96c88d486b97ed21e72efccb1b0b4405f30d0b3ad1e"
+    },
+    {
+      "path": "crates/wifi-densepose-wifiscan",
+      "package": "wifi-densepose-wifiscan",
+      "features": {
+        "default": [
+          "serde",
+          "pipeline"
+        ],
+        "serde": [
+          "dep:serde"
+        ],
+        "pipeline": [],
+        "wlanapi": [
+          "dep:tokio"
+        ]
+      },
+      "sha256": "a2e256567ce79a6c7ee115f6e65502909fd2fd9ea3053058cd5b3209d8273739"
+    },
+    {
+      "path": "crates/wifi-densepose-vitals",
+      "package": "wifi-densepose-vitals",
+      "features": {
+        "default": [
+          "serde"
+        ],
+        "serde": [
+          "dep:serde"
+        ]
+      },
+      "sha256": "a097061a158262411dfb2915bb6ed1228e11a7d440b572fb52ea658762243b5c"
+    },
+    {
+      "path": "crates/wifi-densepose-ruvector",
+      "package": "wifi-densepose-ruvector",
+      "features": {
+        "default": [],
+        "crv": [
+          "dep:ruvector-crv",
+          "dep:ruvector-gnn",
+          "dep:serde",
+          "dep:serde_json"
+        ]
+      },
+      "sha256": "1fd549292bfb56b588964042b0f4ef86b0e0fd0dc7e9b09306a570f8964766a7"
+    }
+  ],
+  "excluded": [
+    "crates/wifi-densepose-wasm-edge"
+  ],
+  "sources": [
+    {
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/Cargo.toml",
+      "sha256": "6c9d77466bfaeb8b377fb0063b8befa2c6b4d0e02383038c31c015c79ee9b298"
+    },
+    {
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-nn/src/onnx.rs",
+      "sha256": "7780a07499e864dc247d2f76fe65bb2ad89cedbf6f890e89805bfa383fc85917"
+    },
+    {
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-nn/src/inference.rs",
+      "sha256": "b11876291b5dbdb1e389fab1e936e0f69e9f267154f8024577a1bc366de8136a"
+    },
+    {
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-nn/src/lib.rs",
+      "sha256": "114d2cd90ff8932187bc7e9a70fffed04f853fc70cb21e2e3731926ad60d66dc"
+    },
+    {
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/phase_sanitizer.rs",
+      "sha256": "4f7eb5931885349f5996b99c57e6280aaa853972bd0d01822a897c748f514fa8"
+    },
+    {
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/csi_processor.rs",
+      "sha256": "64f374aaeab3e03ebf4b09c158ab644cb76c106146dca386c8257a446eb788eb"
+    },
+    {
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/motion.rs",
+      "sha256": "944453b493d1b19945805f24e9bd99751195d846b009257ae3896fa47491e90d"
+    },
+    {
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/features.rs",
+      "sha256": "b5fbb59c53a2a77ca9da35fce8683e2a8a986dcc44e9c3b97537b7f02cd074ce"
+    }
+  ]
+}

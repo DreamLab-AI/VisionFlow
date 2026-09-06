@@ -1,0 +1,28 @@
+{
+  "date": "2026-09-04",
+  "scope": "Current source and mocked client interceptor tests; no live authentication, relay, session revocation or federation deployment.",
+  "tests": {
+    "command": "node node_modules/vitest/vitest.mjs run src/services/api/__tests__/authInterceptor.test.ts",
+    "cwd": "project/client",
+    "passed": 11,
+    "failed": 0,
+    "duration_seconds": 0.865,
+    "initial_attempt": "npx failed before running tests with npm ENOSPC; direct installed runner succeeded."
+  },
+  "findings": [
+    "Server retains legacy session headers; current browser API interceptor signs NIP-98.",
+    "Nostr-prefixed invalid authentication returns an error before legacy fallback.",
+    "validate_session compares token and age against mutable last_seen; it does not itself refresh last_seen.",
+    "NIP-98 authority is verified event pubkey, not a delegated principal. Bridge verifies source signature and signs a new service event with source_event reference."
+  ],
+  "source_sha256": {
+    "src/utils/auth.rs": "32eb4d6ff3a6a1346b5408a692a23e8c152f92cd81fa2456de9b34c29cb03f59",
+    "src/utils/nip98.rs": "c27514d1a8fd2a990a3a8228d6a9d6f6fd88103821297b0303e1872d8202fe51",
+    "src/services/nostr_service.rs": "074f94e99d11dc6f8b16c53e1e1d48c6da3dec05958fd23a388568d913a57133",
+    "src/services/nostr_bridge.rs": "0c8e068d7f0d52c641bd33edc445e0bc67bee421ff7747e72cca88debb12d822",
+    "client/src/services/api/authInterceptor.ts": "857cb4ce14ce3cd72a6fe6abe9fe6049935084ee6684ad1573d55a09a69a7458",
+    "client/src/services/api/__tests__/authInterceptor.test.ts": "bcb016c99bd194a1228e3ac74730191eec3e807fa71b7b1d884531d5f2e41d13",
+    "client/src/api/settings/endpoints.ts": "2d33f168ed49c84d2327fc0e8e82f08d4207a8d70e0e5e9cfe9d6a87b020778f",
+    "client/src/services/solidPod/ldpClient.ts": "70faac8426e2678dba5eb06641333a6b1944a14674d9362cf737c072e7d37f44"
+  }
+}

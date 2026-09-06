@@ -1,0 +1,12 @@
+{
+  "date": "2026-09-05",
+  "scope": "Partial ADR024 review: projection, objective and pretraining/fine-tuning boundary only. Three unchanged-function assertions, no full training or dataset evaluation. Remaining ADR requirements are pending.",
+  "sources": {
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/embedding.rs": "9d3565d9c4c7d06c92ec9324193b91a1a95c3c618873499306ef8f2b6f4d1305",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/trainer.rs": "0ce56df389c71bd17d4fb2de294c63723ee2726deed5379d730dd3d92ec5e2d4",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/main.rs": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+    "docs/adr/ADR-024-contrastive-csi-embedding-model.md": "eaeab1d5a1490b7b74e6e28644706f9e3fce915c8b4c7b77b6a101a6e758b469"
+  },
+  "assertions_passed": 3,
+  "stdout": "3 assertions passed: singleton=0; collapsed4=1.3862944; AtoB=1.1269281 BtoA=0.6931472\n"
+}

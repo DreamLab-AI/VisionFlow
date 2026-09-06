@@ -186,3 +186,19 @@ a CI gate requires: (1) updating the affected section here with the new `file:li
 (`node scripts/adr-index-gen.cjs docs/adr`). Legacy ADR-001..007 prose in
 `docs/archive/adr/` is citable evidence, never authority — cite it, do not defer to
 it.
+
+## Proposed estate closeout extension (2026-09-04)
+
+[ADR-2007](adr/ADR-2007-estate-closeout-evidence-roadmap.md) proposes an
+[estate-wide ADR closeout roadmap](estate-review/closeout/README.md), requested
+as an extension of the current implementation review. It adds a candidate
+inventory, dependency-ordered work packages and system acceptance journeys.
+The proposal is staged: existing governing decisions remain in force, declared
+completion is not treated as runtime proof, and frozen records retain their
+historical role. Cross-repository amendments and acceptance evidence remain
+work in progress; this section does not declare the estate closed out.
+
+
+## Estate closeout qualification — 2026-09-04
+
+The seven operative records now link to the [current canon assessment](estate-review/canon-and-verification.md#visionflow-operative-closeout-scope) and [ordered delivery sequence](estate-review/closeout/execution-sequence.md). Historical verification remains dated. The accepted build/deploy/diagram mechanisms do not certify publication quality or complete-system acceptance. ADR-2005 remains partial, ADR-2007 proposed/partial/staged, and the separate engineering decisions retain outstanding section-level review. Use the assessment's source and execution receipts when interpreting the earlier baseline claims.

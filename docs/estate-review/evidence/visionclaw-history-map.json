@@ -1,0 +1,1213 @@
+{
+  "date": "2026-09-04",
+  "scope": "All inventory-classified VisionClaw historical candidates; exact numeric tokens in operative lineage fields only. Range expansion, aliases and semantic supersession are not inferred. Same-number cross-repository references require human interpretation.",
+  "historical_count": 137,
+  "with_explicit_mention": 43,
+  "rows": [
+    {
+      "path": "archive/visionclaw-docs/data-sprint/ADR-D01-canonical-source-schema.md",
+      "sha256": "49256bde39db8d9cf9f185016fa61d97271c42e7a1818291f17de066ee8d5522",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "archive/visionclaw-docs/migration-sprint/01-gpu-physics/ADR-01.md",
+      "sha256": "1f20ab9b491346840f7f7e84877f6ea3657290aadb1c0dfe05bfb603cb251dae",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "archive/visionclaw-docs/migration-sprint/02-binary-protocol/ADR-02.md",
+      "sha256": "986f7aeef6a3541f8e5da15def53d9bf31a0542d25a8614c307157f4c8ef0ad3",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "archive/visionclaw-docs/migration-sprint/03-client-state/ADR-03.md",
+      "sha256": "1c080374653c4b22af56362d2fa895e70e949baf154751bc000a852a54365b28",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "archive/visionclaw-docs/migration-sprint/04-rendering/ADR-04.md",
+      "sha256": "6da5f4311193e38e90e24766c3dca8c30d326952b023dcdd0fa7d6fc5684b495",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "archive/visionclaw-docs/migration-sprint/05-settings/ADR-05.md",
+      "sha256": "724f62fa7f6b823eb5b355c6c4f5ec64793789df90f4abba7fd9adb01b0964ce",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "archive/visionclaw-docs/migration-sprint/06-auth-security/ADR-06.md",
+      "sha256": "fe73315c8102310c05afab5a81b493098acf2b867dbcaa296652f25f89485e63",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2039-visionclaw-dev-mode-lan-local-bypass.md",
+          "lineage": "ADR-06 \u00a7D11 (release refuses dev env/argv), ADR-2012 (Bearer dev-session-token triple-gated to loopback+opt-in), ADR-2037 (release images built without dev-auth, CI-asserted), ADR-142 (RBAC lattice), ADR-060 (pubkey visibility filter)."
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "archive/visionclaw-docs/migration-sprint/07-bots-telemetry/ADR-07.md",
+      "sha256": "565b39c58ed65518b7ddfa1ff02d7d2595cf378e0cace6ea9803e1228791664e",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "archive/visionclaw-docs/migration-sprint/08-ontology-graph-data/ADR-08.md",
+      "sha256": "43898a78e65007ebfc58d029e05c351e8d25fee13547e0de90db42764a4b3b04",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "archive/visionclaw-docs/migration-sprint/09-ecosystem-services/ADR-09.md",
+      "sha256": "df83243f115f65d1bc6d6a00015b1d1e3c4af285e790b80da3c70c10122e78b2",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "archive/visionclaw-docs/migration-sprint/10-external-integrations/ADR-10.md",
+      "sha256": "af2498ea102a20e95c51fd4af303d4482d48d1d5ed982ca2dc86e04a0e851f83",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "archive/visionclaw-docs/migration-sprint/11-persistence-migration/ADR-11.md",
+      "sha256": "515189e941511aafc090edb52846b301dd8d92ee6bf55dcc6bf76d03ec0212dc",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2009-dual-request-auth-realms.md",
+          "lineage": "\"legacy ADR-011, ADR-142; corrects the aspiration that NIP-98 is the sole request-auth realm\""
+        },
+        {
+          "path": "docs/adr/ADR-2011-central-rbac-gate.md",
+          "lineage": "Distils legacy ADR-011 (enforce at scope config not handler) + ADR-142 ('15+ endpoints missing auth' gap)."
+        },
+        {
+          "path": "docs/adr/ADR-2012-dev-bypass-triple-gated.md",
+          "lineage": "Distils legacy ADR-011's dev-bypass exception clause; a Codex HIGH finding fenced the literal token behind three compiled-out gates."
+        },
+        {
+          "path": "docs/adr/ADR-2026-fail-closed-security-posture.md",
+          "lineage": "legacy ADR-011 (no log-and-allow, fail closed), ADR-142 (fail-closed flag defaults), T2-auth-gating V3 resolution"
+        },
+        {
+          "path": "docs/adr/ADR-2027-three-deployment-profiles.md",
+          "lineage": "legacy ADR-142 (RBAC lattice + flag surface), ADR-011 (auth-enforcement exceptions the profiles honour)"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "archive/visionclaw-docs/migration-sprint/12-xr-client/ADR-12.md",
+      "sha256": "bb131f5440ec66f234cf43d57484878ea094d1b514fed6b7c15d616709769986",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/ADR-LANDING-PLAN-2026-08-21.md",
+      "sha256": "2389abb5b1ec05e4d38084e7425fb1bcf526934b4c8934dc3606422b85858061",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-011-auth-enforcement.md",
+      "sha256": "0c26629c767b7c4b9e76e70f0f8fd295257b9f9ae9b5bd62352e4bd68eb50b4c",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2009-dual-request-auth-realms.md",
+          "lineage": "\"legacy ADR-011, ADR-142; corrects the aspiration that NIP-98 is the sole request-auth realm\""
+        },
+        {
+          "path": "docs/adr/ADR-2011-central-rbac-gate.md",
+          "lineage": "Distils legacy ADR-011 (enforce at scope config not handler) + ADR-142 ('15+ endpoints missing auth' gap)."
+        },
+        {
+          "path": "docs/adr/ADR-2012-dev-bypass-triple-gated.md",
+          "lineage": "Distils legacy ADR-011's dev-bypass exception clause; a Codex HIGH finding fenced the literal token behind three compiled-out gates."
+        },
+        {
+          "path": "docs/adr/ADR-2026-fail-closed-security-posture.md",
+          "lineage": "legacy ADR-011 (no log-and-allow, fail closed), ADR-142 (fail-closed flag defaults), T2-auth-gating V3 resolution"
+        },
+        {
+          "path": "docs/adr/ADR-2027-three-deployment-profiles.md",
+          "lineage": "legacy ADR-142 (RBAC lattice + flag surface), ADR-011 (auth-enforcement exceptions the profiles honour)"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-012-websocket-store-decomposition.md",
+      "sha256": "96313f9f9dd07ce4598f801bbd51e218141854aa8206b600b758ada332aeb8c0",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-013-render-performance.md",
+      "sha256": "35a8a2f191b1bdb7e3fd1e14374a62af671eb668677957acb8c23841f3124219",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-014-semantic-pipeline-unification.md",
+      "sha256": "0690378981e18d53e0366b6b7b1f79774e01a3bf166ba38b01abba62fefa42d0",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-027-pod-backed-graph-views.md",
+      "sha256": "b0b5e028a0c3712f74fefdb85e439ef5b5fdaaa0fab57ca8f8970a2a3f3e7c95",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-028-ext-optional-auth.md",
+      "sha256": "23f37189cbe2c3f3346e46a8d9631da29e7d68845d4e4357e55acdb0f722f232",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-029-type-index-discovery.md",
+      "sha256": "5f47b9e71edb8f152bc2c1fb7e316e4ecdc92942fa77944305deca8091719a18",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-030-agent-memory-pods.md",
+      "sha256": "042a4b178e333284af32a0343d6da9ed5bd42e043aa6b9028386e0555cdb165b",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2017-write-master-backup-posture.md",
+          "lineage": "legacy ADR-030 (agent memory in external RuVector), ADR-132 (Oxigraph sole triple store), ADR-050/052 (Pod-as-write-master, resolved to GitHub-upstream + disposable projection), PRD-014 / TODO-unified C-3 (SQLite had no backup)"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-031-gpu-analytics-correctness-and-wiring.md",
+      "sha256": "81621625162966919d0f32e770b3dbc1b01a4de6f83640115b9555e37b2c47bb",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2018-frozen-52-byte-v3-record-v5-envelope.md",
+          "lineage": "\"Retires legacy ADR-061 D1/D2 (28B forever + separate JSON analytics channel); ADR-031 (36->52B tail); ADR-102 \u00a72 (shipped 52B WireNodeDataItemV3); ADR-137 \u00a75 (V5 wrapper).\""
+        },
+        {
+          "path": "docs/adr/ADR-2028-simparams-212-byte-abi.md",
+          "lineage": "legacy ADR-138 (flat repr(C) SimParams + dual static_asserts), ADR-141 (grew 180\u2192212 in lockstep), ADR-098 D2 (constraints ride a separate buffer, not a struct field); ADR-031/ADR-061 wire sizes stale."
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-032-embed-solid-pod-rs-library.md",
+      "sha256": "9afd4e22abcc9d472f62229b84292ffe9883c8e60883ab2a152e01ed03a6db15",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2032-godot-native-compatibility-renderer.md",
+          "lineage": "distils legacy ADR-071 (Godot/gdext/OpenXR replacement, superseding ADR-032 RATK and ADR-033 Vircadia), ADR-136 (desktop OpenXR / VIVE Pro close-out), ADR-102 (wire = Protocol V3)"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-033-git-bead-provenance.md",
+      "sha256": "2648a9eb932d2c46e99d6a2e18f3a1f39ebbbb43937e3b177738c30b01efab72",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2016-provenance-append-only.md",
+          "lineage": "legacy ADR-033 (git-bead provenance), ADR-034 (needle-bead), ADR-124/ADR-128 (web-contract / gitmark blocktrails)"
+        },
+        {
+          "path": "docs/adr/ADR-2032-godot-native-compatibility-renderer.md",
+          "lineage": "distils legacy ADR-071 (Godot/gdext/OpenXR replacement, superseding ADR-032 RATK and ADR-033 Vircadia), ADR-136 (desktop OpenXR / VIVE Pro close-out), ADR-102 (wire = Protocol V3)"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-034-needle-bead-provenance.md",
+      "sha256": "bea366dd3ea1b052d24e3f1519da796cbe8bd29723d24fa10c151f22cd7e1ddb",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2016-provenance-append-only.md",
+          "lineage": "legacy ADR-033 (git-bead provenance), ADR-034 (needle-bead), ADR-124/ADR-128 (web-contract / gitmark blocktrails)"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-036-node-type-consolidation.md",
+      "sha256": "57a47e624b6657d3a0354204cab0c500d60fecad64f73394a6089b4c8c66ced2",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-038-position-flow-consolidation.md",
+      "sha256": "8ed4ce9f5ff0caf79bc5ee36021f20cd453592f1389a53a6543fe1ce50f0d42f",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-039-settings-consolidation.md",
+      "sha256": "66e0d5ebc1b2f914ada29b60ace1ac6cbf397f3d6c9df74554fccf5cfaa1f337",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-040-enterprise-identity-strategy.md",
+      "sha256": "a71f7785563febcc7f4cd7431b492d11c3567b23d16e7dc4d802c25df3bbcec6",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2013-federation-delegation-deferred.md",
+          "lineage": "Distils legacy ADR-040 (enterprise identity \u2014 OIDC-alongside-Nostr, half superseded by ADR-142, half unbuilt) + ADR-094 (NIP-26 phone delegation, frozen 2026-07-03) + ADR-081 (federation key custody, frozen same date)."
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-041-judgment-broker-workbench.md",
+      "sha256": "e1b73c1849fc668053bb3a01b503aeffd9a2e09e511c999753ff5aa78c621ec8",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2006-acsp-human-approval.md",
+          "lineage": "Distils legacy ADR-110 (ACSP control surfaces, 2026-06-12) + ADR-130 Decision 2 (supersede crashbug BrokerActor, cherry-pick 936-LOC kernel); marks ADR-041 broker workbench superseded-in-part."
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-042-workflow-proposal-object-model.md",
+      "sha256": "15c2b974e1eb82b80ec150fe4955c130569d36543fc54214f3831168996b855c",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-043-kpi-lineage-model.md",
+      "sha256": "2708e7b11b0f612d2002607f018f926cbc3df1861b71929e676bb45db218f048",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-044-connector-governance-privacy.md",
+      "sha256": "8f9ab00081b7865f9e0db1b452036347fbdb80be3105721bbfda931e4eefacf1",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-045-policy-engine-approach.md",
+      "sha256": "0aed7f97af25511fc73b29dff5faad6cb026061d586ddf3b9d8fbff0a150c69b",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-046-enterprise-ui-architecture.md",
+      "sha256": "b93fdb72003ef45269345d143d6ab2c2b360e4f7c2a0f60f9064d785423cf619",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-047-wasm-visualization-components.md",
+      "sha256": "9fc98cda6d3a6e3da3c1073b41c8701d66f3b5605988caa4f458897e854dbf1f",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-048-dual-tier-identity-model.md",
+      "sha256": "f02cae8c0d76ad077790472a9dfabacf18c3d9529d8709dbe029a75e2df61ed2",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-049-insight-migration-broker-workflow.md",
+      "sha256": "e3c925f451a1d666ad12319cb003a97a17a41f041154d61cecbb97ef2b9ab75c",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-050-pod-backed-kgnode-schema.md",
+      "sha256": "2d1ad8bc05bf2d4af3c9d5f66a7e3b6f012a45688b5ced0814b72bc7ff5c75ac",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2014-public-kg-inclusion-gate.md",
+          "lineage": "legacy ADR-050 (Pod-backed :KGNode visibility), ADR-051 (publish/unpublish saga; GitHub `public:: true` as arbiter, re-checked server-side)"
+        },
+        {
+          "path": "docs/adr/ADR-2017-write-master-backup-posture.md",
+          "lineage": "legacy ADR-030 (agent memory in external RuVector), ADR-132 (Oxigraph sole triple store), ADR-050/052 (Pod-as-write-master, resolved to GitHub-upstream + disposable projection), PRD-014 / TODO-unified C-3 (SQLite had no backup)"
+        },
+        {
+          "path": "docs/adr/ADR-2022-did-nostr-hex-identity.md",
+          "lineage": "legacy ADR-074/ADR-074-D2 (cross-system did:nostr canonicalisation), ADR-125 (did:nostr multikey convergence), ADR-050 (superseded owner-scoped npub path); converges with agentbox ADR-2011 hex-canonical ingress"
+        },
+        {
+          "path": "docs/adr/ADR-2040-obsidian-vault-frontmatter-gate.md",
+          "lineage": "ADR-2014 (GitHub `public:: true` gate; `owl:class::` bypass), legacy ADR-050/051 (publish arbiter), PRD-LCR-01 in the corpus repo (JSON-LD canonical blocks)"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-051-visibility-transitions.md",
+      "sha256": "decd0bd30f580b3117aebefa7e41ab1843cce4ced4a905098d52feb84b931d27",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2014-public-kg-inclusion-gate.md",
+          "lineage": "legacy ADR-050 (Pod-backed :KGNode visibility), ADR-051 (publish/unpublish saga; GitHub `public:: true` as arbiter, re-checked server-side)"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-052-pod-default-wac-public-container.md",
+      "sha256": "aae3eafe3cfb013d17febd3494377c871400d21843d4627fdb46f78f35dc75ae",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-053-solid-pod-rs-crate-extraction.md",
+      "sha256": "b92b64e70a5b6b67365be9c76103473f123cfe364a5f54a75eeeb3d93dddd2c5",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-054-urn-solid-and-solid-apps-alignment.md",
+      "sha256": "f76f9710e1e5ea96fc583ed371afdc180729a8b79eccddb3d5545682a640889a",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-055-sovereign-debt-payoff-sprint.md",
+      "sha256": "58354c40a42fd950e8a8fe1b8b3d3793bbba46edd7e90812bb249de493520e6b",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-056-jss-parity-migration.md",
+      "sha256": "fe8657ab37ea261f307e985de25a3364782f79114331eea8f34957aefc85a5ce",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-057-contributor-enablement-platform.md",
+      "sha256": "0f332f73193ac26a5d2b3366bcf40af99e32d46a013ed606e7a3586a3f8bf75f",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-058-mad-to-agentbox-migration.md",
+      "sha256": "3e55d8a70fd24c7551d67c6230d23e1dfe1ef95bd722325a0aae1f443f5e93b5",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-059-bidirectional-agent-channel-server.md",
+      "sha256": "898692501c5af6bbe25f5c844f91c2e6e7bebdcb69457db2b1c872d06ea11523",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2019-tag-byte-registry-governed-dispatch.md",
+          "lineage": "\"Reverses legacy ADR-061 D4 (versioning-vocabulary-removed); distils ADR-059 (0x23 agent channel) + ADR-102 (presence handshake) tag fragmentation into a single allocation authority.\""
+        },
+        {
+          "path": "docs/adr/ADR-2034-renderstore-instance-math-stride-16.md",
+          "lineage": "distils legacy ADR-137 (XR render offload + quality dials, RenderStore owns per-frame math) and ADR-140 (agent-swarm motion-authority split, beam reuse Pillar 2), consuming ADR-059's server-side 0x23 beam wire"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-060-pubkey-filtered-binary-encoder.md",
+      "sha256": "bdf73d3250605e4ae54c471a69f5fcdeef9804eff172157f9cdd3162c4ff7d8c",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2039-visionclaw-dev-mode-lan-local-bypass.md",
+          "lineage": "ADR-06 \u00a7D11 (release refuses dev env/argv), ADR-2012 (Bearer dev-session-token triple-gated to loopback+opt-in), ADR-2037 (release images built without dev-auth, CI-asserted), ADR-142 (RBAC lattice), ADR-060 (pubkey visibility filter)."
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-061-binary-protocol-unification.md",
+      "sha256": "0eaef606df7c2d532dbdf5aa67676158e434dae34854a7f82a5652a7b15d1bdd",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2018-frozen-52-byte-v3-record-v5-envelope.md",
+          "lineage": "\"Retires legacy ADR-061 D1/D2 (28B forever + separate JSON analytics channel); ADR-031 (36->52B tail); ADR-102 \u00a72 (shipped 52B WireNodeDataItemV3); ADR-137 \u00a75 (V5 wrapper).\""
+        },
+        {
+          "path": "docs/adr/ADR-2019-tag-byte-registry-governed-dispatch.md",
+          "lineage": "\"Reverses legacy ADR-061 D4 (versioning-vocabulary-removed); distils ADR-059 (0x23 agent channel) + ADR-102 (presence handshake) tag fragmentation into a single allocation authority.\""
+        },
+        {
+          "path": "docs/adr/ADR-2028-simparams-212-byte-abi.md",
+          "lineage": "legacy ADR-138 (flat repr(C) SimParams + dual static_asserts), ADR-141 (grew 180\u2192212 in lockstep), ADR-098 D2 (constraints ride a separate buffer, not a struct field); ADR-031/ADR-061 wire sizes stale."
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-062-qe-prd-adr-ddd-graph-scaffolding.md",
+      "sha256": "cbaedc8fba5bef5d8f89dd7e5a24d37339e4a5a6f81347e8b0677f94f3488e7b",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-063-urn-traced-operations.md",
+      "sha256": "a7cf9e1d695ff49685953caf47f5a7d6db8b4adbabdb4c3bea5486d1605b13a5",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2025-cross-from-agentbox-closed-map.md",
+          "lineage": "legacy ADR-063 (minted URNs may return null), ADR-105 (convergence); distils agentbox B04 closed-map discipline"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-064-typed-graph-schema.md",
+      "sha256": "6a889703841c01df4180749f29a3878b574fd2246f259d7a4a839b06a7df1a79",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-065-rust-code-analysis-pipeline.md",
+      "sha256": "fd0be48298acb30e237fe6ba3717491534d1bc722cd0a9f806d9e669b2d860cf",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-066-pod-federated-graph-storage.md",
+      "sha256": "9b227912d623b8f24879ff27bb3203ab035bf7a9402bec6b363a3d5544fa7474",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-067-ontobricks-mcp-bridge.md",
+      "sha256": "1a2b387fb3f0187560fbdb2f36798ede440fd5ee59535d70c96d96e5a8e06917",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-068-logseq-block-level-fidelity.md",
+      "sha256": "a33e3868abddcc440a5359f0593c34b5c98cdac28fa69bfcb8e08a924962fb3e",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-069-force-preset-system.md",
+      "sha256": "a787246941393468bbc27abd52888b9e407d392344a06222248a7577057893dc",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-070-cuda-integration-hardening.md",
+      "sha256": "30b6d6de75339f50f24ca531c48b3b52d152595a85f8da3ec352365c43d44129",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2030-ptx-isa-downgrade.md",
+          "lineage": "legacy ADR-070 (CUDA integration hardening \u2014 toolkit/driver ISA skew on CachyOS); distils the project-memory PTX-version-mismatch fingerprint."
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-071-godot-rust-xr-replacement.md",
+      "sha256": "d0ded6c76aab10b5d45310c12d149c8e5ac21ebdd18650dfffb458dbc6a56d66",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2032-godot-native-compatibility-renderer.md",
+          "lineage": "distils legacy ADR-071 (Godot/gdext/OpenXR replacement, superseding ADR-032 RATK and ADR-033 Vircadia), ADR-136 (desktop OpenXR / VIVE Pro close-out), ADR-102 (wire = Protocol V3)"
+        },
+        {
+          "path": "docs/adr/ADR-2036-defensive-openxr-boot.md",
+          "lineage": "distils legacy ADR-071 (OpenXR runtime choice) and ADR-139 (immersive interaction); guards Godot upstream hazard #113717"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-072-autordf2gml-feature-engineering.md",
+      "sha256": "6c2130804502ddd2067dbed0377d707dbd4578ba207e24a262f2e1c9b1890073",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-073-private-nostr-relay-mesh-topology.md",
+      "sha256": "274420230c5c0236f90023cc31837f37b8528ab5b797f1975aa3f0a392de202d",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-074-D2-supersession-multikey-convergence.md",
+      "sha256": "6930a23da7158bef51b82a52f38e554079ff72fc577acc41701b66eb2fc8de59",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2022-did-nostr-hex-identity.md",
+          "lineage": "legacy ADR-074/ADR-074-D2 (cross-system did:nostr canonicalisation), ADR-125 (did:nostr multikey convergence), ADR-050 (superseded owner-scoped npub path); converges with agentbox ADR-2011 hex-canonical ingress"
+        },
+        {
+          "path": "docs/adr/ADR-2022-did-nostr-hex-identity.md",
+          "lineage": "legacy ADR-074/ADR-074-D2 (cross-system did:nostr canonicalisation), ADR-125 (did:nostr multikey convergence), ADR-050 (superseded owner-scoped npub path); converges with agentbox ADR-2011 hex-canonical ingress"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-074-cross-system-did-nostr-canonicalisation.md",
+      "sha256": "271563c48c30adda7f6daaf1df500cf2dc9d75d1941a004ab745201a3d5357a8",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2022-did-nostr-hex-identity.md",
+          "lineage": "legacy ADR-074/ADR-074-D2 (cross-system did:nostr canonicalisation), ADR-125 (did:nostr multikey convergence), ADR-050 (superseded owner-scoped npub path); converges with agentbox ADR-2011 hex-canonical ingress"
+        },
+        {
+          "path": "docs/adr/ADR-2022-did-nostr-hex-identity.md",
+          "lineage": "legacy ADR-074/ADR-074-D2 (cross-system did:nostr canonicalisation), ADR-125 (did:nostr multikey convergence), ADR-050 (superseded owner-scoped npub path); converges with agentbox ADR-2011 hex-canonical ingress"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-075-is-envelope-message-contract.md",
+      "sha256": "9440584a26bb77e8575eaa128bde74d1a6632d84ddb99f962a43c0ae5614a34a",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-076-nostr-core-absorption-into-upstream.md",
+      "sha256": "5bbca3ec8aecfbe5fd03b8914d346a5127aa3abe361c3af059b63792fa58c9fb",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-077-ecosystem-qe-policy.md",
+      "sha256": "b4d931149f9f6075ff60545ecd9d9bca859d04bab91a662dd023a8d25e67ee8a",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-078-cross-substrate-library-convergence.md",
+      "sha256": "06c28b67f4705fcdc800fded28afeea748c1acfc06231b6347d8731c0a231823",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-079-forum-setup-skill-provider-abstraction.md",
+      "sha256": "015f6a9e6d225f34332a28bfab4311dab735b2ab04b444ee050234093ac4cbd9",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-080-forum-kit-deployment-topology-patterns.md",
+      "sha256": "8dd2b2235a6c1beadb759ec8c69781ed26e3fdcd424bc7a2d361444d53774784",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-081-federation-key-custody-rotation.md",
+      "sha256": "ad92bae1b7f5761bb21e3df7844b0872a354db52ec78a8b752b84fe1343fcef8",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2013-federation-delegation-deferred.md",
+          "lineage": "Distils legacy ADR-040 (enterprise identity \u2014 OIDC-alongside-Nostr, half superseded by ADR-142, half unbuilt) + ADR-094 (NIP-26 phone delegation, frozen 2026-07-03) + ADR-081 (federation key custody, frozen same date)."
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-082-cross-substrate-test-fixture-sharing.md",
+      "sha256": "29009977ff516735525a17b2a9a9d0da95860c461b15386e6c99d092f0cb1858",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-083-dreamlab-ai-website-cutover-migration.md",
+      "sha256": "7b11a945ea3849d0722009ad72f21bdb3171e69621de60e6c07efac7fb2461da",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-084-cloud-infrastructure-mapping-for-kit-consumers.md",
+      "sha256": "4fe8b12a7d7a83c6d8f4cbcd55abdf30783d87445d1dcc383896f216236851c1",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-085-forum-config-package-architecture.md",
+      "sha256": "93cf0b99e6f8fa7d65e1a4044d0907fe0a179d6d3f646a344a671e7ff1eaa175",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-086-git-over-http-ingest-unification.md",
+      "sha256": "0868b6ba9ac88bf7f7c708b62850ae15040ddcb52866e8c9a59eda7d16f2a369",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-087-rate-limit-consolidation.md",
+      "sha256": "21c5e385d4fa157a0c9d5ce98903f75333bab431dfee5d63d90c510e85aeb7c6",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-088-auth-service-extraction.md",
+      "sha256": "aa55897c6b03615824b54443add1cea479d966e37031b96954a9bd81893facea",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-089-cqrs-bus-removal.md",
+      "sha256": "c9ab21b8c71b61b6af7998400854d589ae0626e7bd036cb592b7938be83b1361",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-090-hexagonal-crate-modularisation.md",
+      "sha256": "d982b442a1a8a8205602177a027cd33dad30ae092e7e14e1affab2ae46bcd234",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2005-hexagonal-crate-split.md",
+          "lineage": "Distils legacy ADR-090 (hexagonal crate modularisation, 2026-05-28) + parent PRD-016; ADR-090 amendment folded the planned visionclaw-server crate back into the thin root binary."
+        },
+        {
+          "path": "docs/adr/ADR-2005-hexagonal-crate-split.md",
+          "lineage": "Distils legacy ADR-090 (hexagonal crate modularisation, 2026-05-28) + parent PRD-016; ADR-090 amendment folded the planned visionclaw-server crate back into the thin root binary."
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-091-fixture-sync-enforcement.md",
+      "sha256": "a58483eda73d39b32ea819248ff1b1021bb46d0ef806f4dbbc0546699be7afa4",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-092-android-nostr-client-and-signer.md",
+      "sha256": "33fc92ac5d74fa65c5ba74903fab6503a60bc7d149c5ee3ba7519748512041dd",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-093-mobile-bridge-messaging-substrate.md",
+      "sha256": "8d4cc3783300697470ae8b22f4fdb3526b2bcf6f444b6435bb95f251a2340795",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-094-admin-pubkey-permission-and-delegation.md",
+      "sha256": "19e4e4c7c1bef5ae246765bf6e628ac85f1c60fca04c0d8c86f4edd4c5863c2a",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2010-rbac-lattice-atomic-mutations.md",
+          "lineage": "Distils legacy ADR-142 (multi-user RBAC bound to NIP-98 pubkeys), ADR-131 \u00a73 (branch-only enterprise_auth rejected), ADR-094 (admin-pubkey privilege intent); hardened per Codex round-2 (three checks folded into one transaction)."
+        },
+        {
+          "path": "docs/adr/ADR-2013-federation-delegation-deferred.md",
+          "lineage": "Distils legacy ADR-040 (enterprise identity \u2014 OIDC-alongside-Nostr, half superseded by ADR-142, half unbuilt) + ADR-094 (NIP-26 phone delegation, frozen 2026-07-03) + ADR-081 (federation key custody, frozen same date)."
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-095-session-summary-event-scheme.md",
+      "sha256": "169cf788604c1a3fadc61bf5ab3ca9a70cc2fa01b68ea02f136f5b7b4e98b890",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-096-solid-pod-persistence-boundary.md",
+      "sha256": "425dc512d1e92492c0c11664bbd74d7c2976625340d64db393442929a019ca5a",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-097-mobile-bridge-relay-topology.md",
+      "sha256": "0de67ec7b519f23cbd89045e99466c635f9085cc384802b8606ced00112585cf",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-098-semantic-constraint-path-reuse.md",
+      "sha256": "a67c10e53475f9a9a50f1dc2fadfd09b3d4d45a865f0ebb4712ac386de6c1174",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2004-oxigraph-sqlite-persistence.md",
+          "lineage": "Distils legacy ADR-132 (Neo4j removal, Oxigraph+SQLite adoption; cutover 2026-05-20) and its ADR-101 versioning regime / ADR-098-100 IRI-provenance migrations."
+        },
+        {
+          "path": "docs/adr/ADR-2028-simparams-212-byte-abi.md",
+          "lineage": "legacy ADR-138 (flat repr(C) SimParams + dual static_asserts), ADR-141 (grew 180\u2192212 in lockstep), ADR-098 D2 (constraints ride a separate buffer, not a struct field); ADR-031/ADR-061 wire sizes stale."
+        },
+        {
+          "path": "docs/adr/ADR-2029-force-channel-flag-derivation.md",
+          "lineage": "legacy ADR-098 (keystone residency wire \u2014 flip the already-allocated bit from residency; 18,933 constraints live), ADR-138 (mapping-layer-now / array-backed-later + guarded Constraints round-trip), ADR-141 (phased programme consuming the seam)."
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-099-reasoner-posture-whelk-el-primary.md",
+      "sha256": "a779fbdc83e6f4d5ca279c5882458b43f1b88dac762d98e7f5df604a83be3463",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2015-derived-writeback-fence.md",
+          "lineage": "legacy WS-9 derived-graph work-stream, ADR-099 (inferred-graph lifecycle / clear-inferred)"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-100-canonical-iri-and-vocabulary-alignment.md",
+      "sha256": "dae5e1ec180c1146b1186b373dcb45e3b67f60c0769880cb9e1822b6e733dc9c",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2021-typed-urn-mint-parse-dual.md",
+          "lineage": "legacy ADR-105 (urn convergence + ngm cutover), ADR-100 (named-graph IRIs retained); distils the agentbox uris.js mint-only mandate"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-101-triple-store-migration-framework.md",
+      "sha256": "e0568ebdd660d0e305968e8f152c95c5bc46a9eeac54736c1a1866313a762d34",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2004-oxigraph-sqlite-persistence.md",
+          "lineage": "Distils legacy ADR-132 (Neo4j removal, Oxigraph+SQLite adoption; cutover 2026-05-20) and its ADR-101 versioning regime / ADR-098-100 IRI-provenance migrations."
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-102-xr-client-backend-transport-completion.md",
+      "sha256": "6a65de16d35e5112fa45094aeba24d082644496715ba0e0f42f56574383b8d29",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2018-frozen-52-byte-v3-record-v5-envelope.md",
+          "lineage": "\"Retires legacy ADR-061 D1/D2 (28B forever + separate JSON analytics channel); ADR-031 (36->52B tail); ADR-102 \u00a72 (shipped 52B WireNodeDataItemV3); ADR-137 \u00a75 (V5 wrapper).\""
+        },
+        {
+          "path": "docs/adr/ADR-2019-tag-byte-registry-governed-dispatch.md",
+          "lineage": "\"Reverses legacy ADR-061 D4 (versioning-vocabulary-removed); distils ADR-059 (0x23 agent channel) + ADR-102 (presence handshake) tag fragmentation into a single allocation authority.\""
+        },
+        {
+          "path": "docs/adr/ADR-2020-agent-copresence-additive-sibling-opcode.md",
+          "lineage": "\"Distils ADR-102 (server-initiated presence handshake) + ADR-130 D4 (copresence AgentAvatar/Gaze/Proxemics layer).\""
+        },
+        {
+          "path": "docs/adr/ADR-2032-godot-native-compatibility-renderer.md",
+          "lineage": "distils legacy ADR-071 (Godot/gdext/OpenXR replacement, superseding ADR-032 RATK and ADR-033 Vircadia), ADR-136 (desktop OpenXR / VIVE Pro close-out), ADR-102 (wire = Protocol V3)"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-103-enterprise-dashboard-removal.md",
+      "sha256": "c15f0e2b57d7e52ef08c04111ab501e591f4cd60d5a63304590354a702c20dcf",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-104-shared-math-utilities.md",
+      "sha256": "5e852e0b9e46d273c69de44cd6864495240c29f81aac77839e6981ba29f5d61e",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-105-urn-visionclaw-convergence-and-ngm-cutover.md",
+      "sha256": "9c8ec655958551ab3427a9e685f113e13e2ccd49fb4b701db9fb0c6c0b971e64",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2021-typed-urn-mint-parse-dual.md",
+          "lineage": "legacy ADR-105 (urn convergence + ngm cutover), ADR-100 (named-graph IRIs retained); distils the agentbox uris.js mint-only mandate"
+        },
+        {
+          "path": "docs/adr/ADR-2023-sha256-12-content-address.md",
+          "lineage": "legacy ADR-105 (convergence); distils the agentbox bc20-provenance-bridge sha12 contract"
+        },
+        {
+          "path": "docs/adr/ADR-2025-cross-from-agentbox-closed-map.md",
+          "lineage": "legacy ADR-063 (minted URNs may return null), ADR-105 (convergence); distils agentbox B04 closed-map discipline"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-106-sparql-patch-ontology.md",
+      "sha256": "d4e027c848441e8f842928a510a2669abd8b11d7b80e60cd16c37794f2a595c5",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-107-github-creds-in-pod.md",
+      "sha256": "bfa1d1968364a0af6dade4a75438f0d44aa493ceaa88ea76850dd8bb345a26e5",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-108-layout-mode-system.md",
+      "sha256": "b10311bd65597f9b4f7a7b484d3f8a3c67976183e9febcd5e3ef691968233267",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-109-sops-secrets-management.md",
+      "sha256": "d57977d36360905169dcb05da88aa065c274569d9f27fd23686b392904e2df0f",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-110-agentic-actors-acsp-control-surfaces.md",
+      "sha256": "059f322698f4efc275edd12397d15380aa336d952705f1c11421976659e9bda2",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2006-acsp-human-approval.md",
+          "lineage": "Distils legacy ADR-110 (ACSP control surfaces, 2026-06-12) + ADR-130 Decision 2 (supersede crashbug BrokerActor, cherry-pick 936-LOC kernel); marks ADR-041 broker workbench superseded-in-part."
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-111-ecosystem-infographic-modernisation.md",
+      "sha256": "4d8bd0bc87a50461cbc3cd05a088146d89b87ffe7e05ce024e5c726eb0a22898",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-112-ontology-augmentation-retrieval-spine.md",
+      "sha256": "2d292c80c49bb7e62c32b7c403ea87b7e9a6fda658f7ef9768e043e5a7b73a49",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-113-ontology-condensation-mesh.md",
+      "sha256": "25123c9893fdab154ad46f5ed24e35a0afde902c88e3efe2508b42cf2f347d9c",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-114-ontology-class-index-memory-substrate.md",
+      "sha256": "d8115e793d74f058272c5f3a81cfe0cb2b60bd355f3029372dfa0a083c66ce97",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-115-turtle-serialisation.md",
+      "sha256": "89829d309919f326deb23bd080aa8635aba75dd5e246835619a53c264a6d33cf",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-116-tiered-token-budgets.md",
+      "sha256": "99370131be53eb0ba04becf6bff1e588b175f44b69dd20e51f108973c1fef4cc",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-117-server-side-sparql-clamp.md",
+      "sha256": "e73fc18ab0b294a8d1649fdf53b0b7ef4d918e1e1015382ac0e52b3daba19f8c",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-118-load-endpoint-hardening.md",
+      "sha256": "4313ca8222a7acfce9ca07fcaf24892bf85ff76e55b368d7d92c1591015f6038",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-119-verifiable-liveness-telemetry.md",
+      "sha256": "268e743b2821e6a23c095c59cceebe5ff51fb6317a6310b2b0cf6601cdd8defa",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-120-propose-p0-auth.md",
+      "sha256": "292454602a29ded429ce203253487681a0d5bd645b638222d26be0211171aa98",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-121-self-improving-ontology-writeback-loop.md",
+      "sha256": "3c2d627b8f2f8c919bd5e410881dfe273603ced4397cc14fe1d1e21dceba17af",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-122-two-speed-writeback-governance-routing.md",
+      "sha256": "e48455f8846d9846a93412e5dccbacc07341fab2eaf7eba53f9a712fd7b50a2b",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-123-voice-mediated-governance-signoff.md",
+      "sha256": "0933fabc4dda88211ba4eefe8904bd8f4fe1be404c6906b14cae469760726fc0",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-124-smart-contract-features-web-contracts.md",
+      "sha256": "3562fe32fc3982c443ec9efee27c23af28e9798c515547a49ec58c4e0e0d3da6",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2016-provenance-append-only.md",
+          "lineage": "legacy ADR-033 (git-bead provenance), ADR-034 (needle-bead), ADR-124/ADR-128 (web-contract / gitmark blocktrails)"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-125-did-nostr-multikey-convergence.md",
+      "sha256": "08352b71a26a5bbc6633e462737ba7d3054a162309ff4a641fb9addeac52db8b",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2022-did-nostr-hex-identity.md",
+          "lineage": "legacy ADR-074/ADR-074-D2 (cross-system did:nostr canonicalisation), ADR-125 (did:nostr multikey convergence), ADR-050 (superseded owner-scoped npub path); converges with agentbox ADR-2011 hex-canonical ingress"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-126-omb-adoption-posture.md",
+      "sha256": "051726096932730d123bc001fe120a8e2f9585af6e965461c22b2dd816474349",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-127-semantic-trust-layer.md",
+      "sha256": "2349382a1aa690e03bc022a2ad16978f13895a252444ed4e05a4c142ea502728",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-128-build-out-canonical-gitmark-blocktrails.md",
+      "sha256": "f8768a758d7fb7d91d3603f318053483ae584739ae5b88b28537b9962c9e352a",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2016-provenance-append-only.md",
+          "lineage": "legacy ADR-033 (git-bead provenance), ADR-034 (needle-bead), ADR-124/ADR-128 (web-contract / gitmark blocktrails)"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-129-control-center-reimagination.md",
+      "sha256": "5c4ca0891a19f44cc92baffe2b41407e895c64d9ca7f048e3098eff06e29c546",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-130-gap-close-visionclaw-decisions.md",
+      "sha256": "52a88c5dc5a147741fb6b481b55611694b268b4979b47ee8ee2efa222d6d8877",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2006-acsp-human-approval.md",
+          "lineage": "Distils legacy ADR-110 (ACSP control surfaces, 2026-06-12) + ADR-130 Decision 2 (supersede crashbug BrokerActor, cherry-pick 936-LOC kernel); marks ADR-041 broker workbench superseded-in-part."
+        },
+        {
+          "path": "docs/adr/ADR-2020-agent-copresence-additive-sibling-opcode.md",
+          "lineage": "\"Distils ADR-102 (server-initiated presence handshake) + ADR-130 D4 (copresence AgentAvatar/Gaze/Proxemics layer).\""
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-131-doc-drift-reconciliation-2026-07.md",
+      "sha256": "762b8dfa804d0b8905c1a80c7a82e2fd084b3652aa9ab1297eaa7824d8f1b5cc",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2010-rbac-lattice-atomic-mutations.md",
+          "lineage": "Distils legacy ADR-142 (multi-user RBAC bound to NIP-98 pubkeys), ADR-131 \u00a73 (branch-only enterprise_auth rejected), ADR-094 (admin-pubkey privilege intent); hardened per Codex round-2 (three checks folded into one transaction)."
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-132-neo4j-removal-oxigraph-adoption.md",
+      "sha256": "f02030f69451bffca9aa0c8832254db52abc6988b837d2e261258f6560fe7543",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2004-oxigraph-sqlite-persistence.md",
+          "lineage": "Distils legacy ADR-132 (Neo4j removal, Oxigraph+SQLite adoption; cutover 2026-05-20) and its ADR-101 versioning regime / ADR-098-100 IRI-provenance migrations."
+        },
+        {
+          "path": "docs/adr/ADR-2017-write-master-backup-posture.md",
+          "lineage": "legacy ADR-030 (agent memory in external RuVector), ADR-132 (Oxigraph sole triple store), ADR-050/052 (Pod-as-write-master, resolved to GitHub-upstream + disposable projection), PRD-014 / TODO-unified C-3 (SQLite had no backup)"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-133-final-mile-sprint.md",
+      "sha256": "22e545ef18ab856e9002e28ce8b020805ad84a0e6c773823e0bad1708d37f900",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-134-voice-plane-relocated-to-agentbox.md",
+      "sha256": "b545e994dbeb5a1fa2e77e5fcab6569b3c64347984a3f70585e6638a54a0119e",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-135-ontology-loom-node.md",
+      "sha256": "8ea955ebb0eee102dd22233ca209bac5237cf77f560e0c4d2182f51e1db86062",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-136-desktop-openxr-vive-validation-target.md",
+      "sha256": "3a8d8f540b5ced5708fc1fbbfcc4b6aec938c6a7395f926b3c57bfcf3422849b",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2032-godot-native-compatibility-renderer.md",
+          "lineage": "distils legacy ADR-071 (Godot/gdext/OpenXR replacement, superseding ADR-032 RATK and ADR-033 Vircadia), ADR-136 (desktop OpenXR / VIVE Pro close-out), ADR-102 (wire = Protocol V3)"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-137-xr-render-offload-and-runtime-quality-dials.md",
+      "sha256": "048a4c410f8547ee105c5f1b4d42beb36f140001ce1550a698349978d09b9af6",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2018-frozen-52-byte-v3-record-v5-envelope.md",
+          "lineage": "\"Retires legacy ADR-061 D1/D2 (28B forever + separate JSON analytics channel); ADR-031 (36->52B tail); ADR-102 \u00a72 (shipped 52B WireNodeDataItemV3); ADR-137 \u00a75 (V5 wrapper).\""
+        },
+        {
+          "path": "docs/adr/ADR-2034-renderstore-instance-math-stride-16.md",
+          "lineage": "distils legacy ADR-137 (XR render offload + quality dials, RenderStore owns per-frame math) and ADR-140 (agent-swarm motion-authority split, beam reuse Pillar 2), consuming ADR-059's server-side 0x23 beam wire"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-138-gpu-force-channel-registry.md",
+      "sha256": "c407e397057a6aa538a472eb523124c9d1cd3e72aa345cc4d118028519f9b692",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2028-simparams-212-byte-abi.md",
+          "lineage": "legacy ADR-138 (flat repr(C) SimParams + dual static_asserts), ADR-141 (grew 180\u2192212 in lockstep), ADR-098 D2 (constraints ride a separate buffer, not a struct field); ADR-031/ADR-061 wire sizes stale."
+        },
+        {
+          "path": "docs/adr/ADR-2029-force-channel-flag-derivation.md",
+          "lineage": "legacy ADR-098 (keystone residency wire \u2014 flip the already-allocated bit from residency; 18,933 constraints live), ADR-138 (mapping-layer-now / array-backed-later + guarded Constraints round-trip), ADR-141 (phased programme consuming the seam)."
+        },
+        {
+          "path": "docs/adr/ADR-2035-dag-rank-accepts-hierarchical-label.md",
+          "lineage": "distils legacy ADR-141 (constrained-layout engine) and ADR-138 (GPU force-channel registry); label-accept landed 73540faa0, stale doc-comment corrected eac01130"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-139-immersive-interaction-adoption-programme.md",
+      "sha256": "91192a5cd483e7169f085abe4d543b9ae91f65bd9120c23de66f379debf98e04",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2033-hud-buttons-fire-on-press.md",
+          "lineage": "distils legacy ADR-139 (immersive interaction programme), hardened by live VIVE bring-up (commit ae9c6ac60)"
+        },
+        {
+          "path": "docs/adr/ADR-2036-defensive-openxr-boot.md",
+          "lineage": "distils legacy ADR-071 (OpenXR runtime choice) and ADR-139 (immersive interaction); guards Godot upstream hazard #113717"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-140-xr-agent-swarm-visualisation.md",
+      "sha256": "c3c6993ddd9f39cfc82028861a0d18ff71c79b6f443ba8ef744e934b751b932d",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2034-renderstore-instance-math-stride-16.md",
+          "lineage": "distils legacy ADR-137 (XR render offload + quality dials, RenderStore owns per-frame math) and ADR-140 (agent-swarm motion-authority split, beam reuse Pillar 2), consuming ADR-059's server-side 0x23 beam wire"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-141-constrained-layout-engine-programme.md",
+      "sha256": "06cf4be33224ba5602bded2230bad32214a89a6025bbc93b9fee994e31f37e29",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2028-simparams-212-byte-abi.md",
+          "lineage": "legacy ADR-138 (flat repr(C) SimParams + dual static_asserts), ADR-141 (grew 180\u2192212 in lockstep), ADR-098 D2 (constraints ride a separate buffer, not a struct field); ADR-031/ADR-061 wire sizes stale."
+        },
+        {
+          "path": "docs/adr/ADR-2029-force-channel-flag-derivation.md",
+          "lineage": "legacy ADR-098 (keystone residency wire \u2014 flip the already-allocated bit from residency; 18,933 constraints live), ADR-138 (mapping-layer-now / array-backed-later + guarded Constraints round-trip), ADR-141 (phased programme consuming the seam)."
+        },
+        {
+          "path": "docs/adr/ADR-2035-dag-rank-accepts-hierarchical-label.md",
+          "lineage": "distils legacy ADR-141 (constrained-layout engine) and ADR-138 (GPU force-channel registry); label-accept landed 73540faa0, stale doc-comment corrected eac01130"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-142-multi-user-rbac.md",
+      "sha256": "b2f51197ef4896785890ab8540e5c8638bd420007386ce5fa99388a9830f2c32",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2009-dual-request-auth-realms.md",
+          "lineage": "\"legacy ADR-011, ADR-142; corrects the aspiration that NIP-98 is the sole request-auth realm\""
+        },
+        {
+          "path": "docs/adr/ADR-2010-rbac-lattice-atomic-mutations.md",
+          "lineage": "Distils legacy ADR-142 (multi-user RBAC bound to NIP-98 pubkeys), ADR-131 \u00a73 (branch-only enterprise_auth rejected), ADR-094 (admin-pubkey privilege intent); hardened per Codex round-2 (three checks folded into one transaction)."
+        },
+        {
+          "path": "docs/adr/ADR-2011-central-rbac-gate.md",
+          "lineage": "Distils legacy ADR-011 (enforce at scope config not handler) + ADR-142 ('15+ endpoints missing auth' gap)."
+        },
+        {
+          "path": "docs/adr/ADR-2013-federation-delegation-deferred.md",
+          "lineage": "Distils legacy ADR-040 (enterprise identity \u2014 OIDC-alongside-Nostr, half superseded by ADR-142, half unbuilt) + ADR-094 (NIP-26 phone delegation, frozen 2026-07-03) + ADR-081 (federation key custody, frozen same date)."
+        },
+        {
+          "path": "docs/adr/ADR-2026-fail-closed-security-posture.md",
+          "lineage": "legacy ADR-011 (no log-and-allow, fail closed), ADR-142 (fail-closed flag defaults), T2-auth-gating V3 resolution"
+        },
+        {
+          "path": "docs/adr/ADR-2027-three-deployment-profiles.md",
+          "lineage": "legacy ADR-142 (RBAC lattice + flag surface), ADR-011 (auth-enforcement exceptions the profiles honour)"
+        },
+        {
+          "path": "docs/adr/ADR-2039-visionclaw-dev-mode-lan-local-bypass.md",
+          "lineage": "ADR-06 \u00a7D11 (release refuses dev env/argv), ADR-2012 (Bearer dev-session-token triple-gated to loopback+opt-in), ADR-2037 (release images built without dev-auth, CI-asserted), ADR-142 (RBAC lattice), ADR-060 (pubkey visibility filter)."
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/rvf-integration-afd.md",
+      "sha256": "f32562f58a1aa2babf9cedb979081a467dd0202792fcd9a61c85f84b892171cc",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/rvf-integration-ddd.md",
+      "sha256": "28f2863cb8c6b42ac06245de882dc2b4a04e8701a0241ef57f9db5eef1df2ef0",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/rvf-integration-prd.md",
+      "sha256": "98fb84bfbab8e8cd4a0e7e6996d49d675c6194cb085bc282f07783bb8bd2a978",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/superseded/ADR-037-binary-protocol-consolidation.md",
+      "sha256": "94358102df94bd7123d4a493a1da612a9bc2bf328b060a6bc20bda02018c0af3",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    }
+  ]
+}

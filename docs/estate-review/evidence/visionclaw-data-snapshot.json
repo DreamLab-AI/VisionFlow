@@ -1,0 +1,15 @@
+{
+  "date": "2026-09-04",
+  "head": "b00c28a0d766c8cf46cd00b100dab60ef2dd74a4",
+  "scope": "source trace and temporary SQLite backup only; no runtime graph or production store",
+  "source_sha256": {
+    "src/app_state.rs": "9b8d2c6820f4eebf60fe3cf9207a6bb5af76d4fabaee651e4a8442f7869dad4c",
+    "src/services/github_sync_service.rs": "902b2c787f0ce216da2eff9219f4881703cf77a067260807742a9718cd9869ef",
+    "src/adapters/oxigraph_graph_repository.rs": "15d0445f284f92d8b1b3e8bec4cf762c3d12768b270a525cca387a150cba9d7e",
+    "crates/visionclaw-adapters/src/oxigraph_ontology_repository.rs": "4e4206e0348faf6cfb3540d84e6484036fe87499cdb9bb94e73e18c736ff1378",
+    "crates/visionclaw-adapters/src/provenance_emitter.rs": "bdc56a72313d5ddc3355f8154c358fc6cc520d0679f8f18a48f6566e11d9f0f8",
+    "crates/visionclaw-adapters/Cargo.toml": "4f90fe31e56dc1edfb63ca68a34e5a69228c77ad14b1804a2fcc8740abed50b4",
+    "scripts/backup-sqlite.sh": "d86638ba27ed09d0eb5c0f5710c2be20390da7224a6f991ccca653dcafad2f95"
+  },
+  "probe": "visionclaw-backup-probe.json"
+}

@@ -1,0 +1,41 @@
+{
+  "date": "2026-09-04",
+  "repo": "dreamlab-ai-website",
+  "head": "7e243741c8eaf61506ef86a70b8dd44d80722c11",
+  "verification_level": "source inspection and local existing tests; no deployment or real messages",
+  "sources": {
+    ".github/workflows/ci.yml": "0ab33d163cb73107bc0398ab26c00e627f42cdb53e1885d8831c267c83880e43",
+    ".github/workflows/deploy.yml": "2a58d9382e45057fb3812c8b4f7f96c1306b11633cf0b9a45e828cef17eddbb3",
+    ".github/workflows/workers-deploy.yml": "ad47696456e5dbbe73b7abb9ccf3e3a018c5e6e55a09855901a526c1029e9d01",
+    ".github/workflows/test-and-lint.yml": "5ab03e18037b734dfc88d081ccbe4e27be5c8756af079eefe292168262f9c18a",
+    ".github/workflows/rust-ci.yml": "024117429621740839dd1ca7929a46378e740287376592a433560d9859329032",
+    "forum-config/Cargo.toml": "287b6c159c993178e0c5e3a6210ae2d16aea6c752e6b9db7386458392aa9d461",
+    "forum-config/Cargo.lock": "9457d36e6aa3e2fcf1c9cef142e8403040dfacb23fbaeab9e84e5f4488bc6a21",
+    "forum-config/dreamlab.toml": "d3f308ed5c183b8c01146347d3e81b7c6523b906e7ae0e8579791025a9c6c959",
+    "src/components/AIChatFab.tsx": "d92b3c73f77c95434af3b08e2c86d675b082bd382e0aa1d77a33a1b7c7e59696",
+    "src/lib/nostr.ts": "b7d977b2109173fb65ba47ebb3d1fef0febf1b583af9d63d624bff9dc628c15e",
+    "scripts/pin-parity-check.sh": "f1a49984e6f09985b2308f09dce0fd20953f7f33de837aa1e533b51d5484254e",
+    "docs/architecture/kit-compatibility-record.md": "e05cf38b5da27ebab97d24b848a69ba944634a5e393b03682f40bf6290a8cdcd"
+  },
+  "checks": [
+    {
+      "command": "node node_modules/vitest/vitest.mjs run",
+      "exit_code": 0,
+      "files_passed": 7,
+      "tests_passed": 97,
+      "limitations": "Mocked transport/component tests, not a browser-to-agent journey; React Router future warnings."
+    },
+    {
+      "command": "bash scripts/pin-parity-check.sh",
+      "exit_code": 0,
+      "result": "PIN-PARITY-OK",
+      "sha": "a7544687b4d1c09807862d749b27f8c8da307a12",
+      "version": "1.0.0-beta.9"
+    },
+    {
+      "command": "node scripts/adr-index-gen.cjs docs/adr --check",
+      "exit_code": 0,
+      "records_valid": 8
+    }
+  ]
+}

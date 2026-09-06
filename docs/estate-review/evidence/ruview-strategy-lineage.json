@@ -1,0 +1,22 @@
+{
+  "date": "2026-09-05",
+  "scope": "Supersession scope and current local integration surface; no package-publication verification, runtime or benchmark",
+  "sources": {
+    "docs/adr/ADR-002-ruvector-rvf-integration-strategy.md": "566f4b2ab8a493f75fc1da32e4a866ac47f070dd7c16b791860ee794b6dcfdac",
+    "docs/adr/ADR-016-ruvector-integration.md": "8dbf185883289ffb8895b600fe1b62260127522b99d22e0ff3507c31833a9f5f",
+    "docs/adr/ADR-017-ruvector-signal-mat-integration.md": "90a97c7b1516486acf09deaebd314b3357b472b8fb99d4c9d1cfc405ad854bea",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-ruvector/src/lib.rs": "d52c7b6ea18183ac068bb16cd470a0edcd12a2f957e3cdf827a3a794ffaa5702",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-ruvector/Cargo.toml": "1fd549292bfb56b588964042b0f4ef86b0e0fd0dc7e9b09306a570f8964766a7",
+    "rust-port/wifi-densepose-rs/Cargo.toml": "6c9d77466bfaeb8b377fb0063b8befa2c6b4d0e02383038c31c015c79ee9b298"
+  },
+  "proposed_rvf_crate_directory_exists": false,
+  "current_integration_features": {
+    "default": [],
+    "crv": [
+      "dep:ruvector-crv",
+      "dep:ruvector-gnn",
+      "dep:serde",
+      "dep:serde_json"
+    ]
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "date": "2026-09-04",
+  "scope": "Current source review; existing backend test attempted and skipped. No Nix evaluation/build, library resolution trace, GPU render, CUDA workload or sidecar validation.",
+  "checks": [
+    {
+      "command": "bash tests/flake/gpu-backend.test.sh",
+      "exit_code": 77,
+      "stdout": "1..0 # SKIP nix not available",
+      "passed": 0
+    }
+  ],
+  "findings": [
+    "Wrapper appends driver directories and sets default GLX/EGL/Vulkan selection; flake gates wrappers on local-cuda.",
+    "Backend dispatcher takes backend and toolchainsCudaEnabled; existing test expressions supply backend only.",
+    "Supervisor environment uses assigned LD_LIBRARY_PATH/VK_ICD_FILENAMES values, not wrapper set-default/suffix operations."
+  ],
+  "source_sha256": {
+    "lib/gpu-wrap.nix": "fe52df23c61be368c4c503517254f050c95958049f5fd5c12833e83e930f6102",
+    "lib/gpu-backend.nix": "f06658ee811a76cdfcca6d2b1e2427bd7c047a2dd1ad39b700a0f0575c02fa94",
+    "flake.nix": "f20ac15c7c9e7a503338bc8dbb48a0368365573351b630380f8af0b7f4eee9b9",
+    "flake.lock": "bba10de3b9a03204ede7df31c30d0226f00dda0ee7d0d73683f0fc2ec5f8dfc7",
+    "tests/flake/gpu-backend.test.sh": "1826648bdf187c992c590a6e9f22a3c35c7c226a7cf258694c9370206abfc395",
+    "docker-compose.browsercontainer.yml": "e17fd0eaa3eba6600f2a602aae048ff19eac606b49fa1520602bff8ceb205315",
+    "docker-compose.gui-tools.yml": "2940abb2a9b2af222cd0d9fd73e44b2393f1db5a1d2244f5e0ab28481b677565",
+    "docker-compose.xr-runtime.yml": "9caa780a9b60615d7c0a8fc278c2fe99f200adaa09c1fab1a8f0415cf8d02547"
+  }
+}

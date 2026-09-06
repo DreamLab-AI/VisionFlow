@@ -1,0 +1,42 @@
+{
+  "date": "2026-09-04",
+  "scope": "Source trace and local library tests only; no service or deployment mutation",
+  "source_sha256": {
+    "project/agentbox/lib/solid-pod-rs.nix": "c30d18632d3ad9a20c66a428139a425457f27e4046d5b03f150b316464fb233f",
+    "project/Cargo.toml": "ce1efa50bfe823242fdb1c6f59655e9bf7e9c75ba6dbde7cf217ab6d253e7ab7",
+    "project/Cargo.lock": "1620c574d8e3f8b512eed61cf5eba4455778602c6ef7c0dc99fb8b143ed655aa",
+    "nostr-rust-forum/Cargo.toml": "b305c92b466b1076f9f71f448e283eeccf0434f4a7e758c0df59783e55c79cec",
+    "nostr-rust-forum/Cargo.lock": "b363ab69416396b4988584abeb68c3d7a84e6786624f11ac6c56034881c66303",
+    "nostr-rust-forum/crates/nostr-bbs-pod-worker/src/lib.rs": "76dca2c644ffea5185e6a60c50c626bb585e69273cf8e9acb485f1a21f094742",
+    "nostr-rust-forum/crates/nostr-bbs-pod-worker/src/acl.rs": "d58185315d125e9edad3ae9dd996459ac015d31b207ae86b39891dd9381dea80",
+    "nostr-rust-forum/crates/nostr-bbs-pod-worker/src/auth.rs": "d959a3cd6ea1ea3d12a6eb5d780dd416dea25d7158498e7149d334995c927870",
+    "nostr-rust-forum/crates/nostr-bbs-rate-limit/src/replay.rs": "eddc18535089376a838ad96524563af8fe2134a9e83977ec030fcdd9dafa47c2",
+    "solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs": "36c8258884ae32a7078d07b2e15e4b6515a7464a32639588d187aa5f7216a414",
+    "solid-pod-rs/crates/solid-pod-rs/src/auth/nip98.rs": "abfb1b02644991bc4243a199daba2adc888c4478d72d4115292954f538f7ee1a",
+    "solid-pod-rs/crates/solid-pod-rs/src/auth/replay.rs": "3bca53a0bc3b35f8bfd685ef91c7d01bea2086fc435455d6a3d2464d67dc260a",
+    "solid-pod-rs/crates/solid-pod-rs/src/auth/replay_store.rs": "ce580e5ac54264f33d0aaeb31e0390e603a42acc1d6280775e9826c8ab547a90",
+    "solid-pod-rs/crates/solid-pod-rs/src/wac/resolver.rs": "b2227cedde36db2f25a9294d06df29522270e8d533c503de57deb5bb1bfa0b29",
+    "solid-pod-rs/crates/solid-pod-rs/src/wac/evaluator.rs": "b026765ac42bfa42c31c713095c82b5558d71eef3cd0b16d339a0be09a9b47a9",
+    "solid-pod-rs/crates/solid-pod-rs/src/storage/fs.rs": "6c7602ba6bcf53b923384cc4d2513b8723f1f81733c8f418d4acf22ad0754868"
+  },
+  "heads": {
+    "solid-pod-rs": "d6ac7f5108686ad1c13b6e6e783d272515aaa72f",
+    "project": "b00c28a0d766c8cf46cd00b100dab60ef2dd74a4",
+    "project/agentbox": "89301ec7c911eab270c00a0cf81596d0d4f15535",
+    "nostr-rust-forum": "f18b471e499b029d93cb14152edb6fb966abd274"
+  },
+  "tests": {
+    "command": "cargo test --locked -p solid-pod-rs --test schnorr_nip98 --test nip98_extended --test wac_validate_for_write --test wac_inheritance --test wac_basic",
+    "exit_code": 0,
+    "counts": {
+      "schnorr_nip98": 2,
+      "nip98_extended": 4,
+      "wac_validate_for_write": 3,
+      "wac_inheritance": 31,
+      "wac_basic": 6
+    },
+    "note": "Cargo cache-cleanup permission warning; build and tests completed."
+  },
+  "probe_receipt": "pod-probes.json",
+  "probe_development_note": "First scratch harness failed unresolved MemoryBackend import; corrected module-qualified import, then exit0. No library code changed."
+}

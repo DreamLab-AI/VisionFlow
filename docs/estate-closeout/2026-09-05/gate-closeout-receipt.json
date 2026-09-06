@@ -1,0 +1,145 @@
+{
+  "date": "2026-09-05",
+  "scope": "Local execution of every gate advanced in this pass, on the working tree. No hosted CI run, no GitHub Pages deployment, no DNS change.",
+  "repo_head": "8cf1a1bf9e4ef2ef98ee6c7bf56ef361aa8d0304",
+  "gates": {
+    "website_asset_inventory": {
+      "command": "website/build.sh (stage + verify)",
+      "exit_code": 0,
+      "required_assets": 13,
+      "optional_groups": 4,
+      "dist_files": 50,
+      "dist_bytes": 60145148,
+      "dist_tree_sha256": "9b9c998687047d127c105a1eea16ca16c171652714bce9b6bdecd13f534dba2d",
+      "negative_test": "tests/gates/website-assets.test.sh cases [3] and [4]: a removed and a zero-byte required asset each exit 1"
+    },
+    "website_browser": {
+      "command": "node scripts/website-browser-check.mjs --url http://agentbox:8099/",
+      "exit_code": 0,
+      "checks_passed": 26,
+      "checks_total": 26,
+      "browser": "Chrome/151.0.7922.47",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA NVIDIA RTX A6000 (0x00002230)), NVIDIA)",
+      "receipt": "docs/estate-closeout/2026-09-05/website-browser-receipt.json"
+    },
+    "link_integrity": {
+      "command": "scripts/dream-link-check.sh",
+      "result": [
+        "internal-refs-checked: 9  missing: 0",
+        "LINK-INTEGRITY-OK"
+      ]
+    },
+    "meta_tags": {
+      "command": "scripts/dream-meta-tags-scan.sh",
+      "result": [
+        "robots: 0",
+        "required-missing: 0",
+        "META-SCAN-OK"
+      ]
+    },
+    "structured_data": {
+      "command": "scripts/dream-structured-data-scan.sh",
+      "result": [
+        "json-ld-blocks: 0  parse-errors: 0",
+        "SD-SCAN-OK"
+      ]
+    },
+    "diagram_baseline": {
+      "command": "node scripts/check-diagram-text.js presentation/report/diagrams/rendered",
+      "exit_code": 0,
+      "result": [
+        "",
+        "All 10 diagram(s) passed: visible text + key labels present."
+      ]
+    },
+    "harness_audit": {
+      "command": "bash scripts/harness-audit.sh",
+      "exit_code": 0,
+      "result": [
+        "  ruvector:governance-precedents namespace  <- [governance-decision] guide precedent-library; ",
+        "",
+        "PASS: pairing coverage 100.0% meets target 80%"
+      ],
+      "note": "Source backing fell from a self-declared 33/40 controls (82.5%) to a resolved 31/39 distinct sources (79.5%) once paths were actually checked; four stale declarations were repaired to their archived locations, leaving zero unresolved."
+    },
+    "drift_counter": {
+      "command": "node scripts/drift-counter/drift-counter.mjs",
+      "exit_code": 0,
+      "result": [
+        "",
+        "RESULT: PASS \u2014 no drift on any enforced axis."
+      ],
+      "note": "Two policed sites repointed from docs/ADR-002-... to docs/archive/adr/ADR-002-... (previously file-missing on every run); agentbox pinned at 89301ec7c911eab270c00a0cf81596d0d4f15535; seven canon figures corrected from 124/115 to the sourced truth 126."
+    },
+    "release_manifest": {
+      "command": "bash scripts/generate-release-manifest.sh",
+      "exit_code": 0,
+      "manifest_version": 2,
+      "repositories": 14,
+      "provenance_counts": {
+        "first-party": 10,
+        "imported": 2,
+        "upstream": 2
+      },
+      "fixtures_status": "not-compared",
+      "negative_test": "--status candidate without --fixtures-canonical exits 3"
+    },
+    "gate_self_tests": {
+      "command": "bash tests/gates/run-all.sh",
+      "exit_code": 0,
+      "result": [
+        "==================================================",
+        "ALL GATE SUITES PASSED (4)",
+        "GATE-TESTS-OK"
+      ],
+      "suites": [
+        "harness-audit.test.sh",
+        "drift-counter.test.sh",
+        "release-manifest.test.sh",
+        "website-assets.test.sh"
+      ]
+    },
+    "diagram_render_chrome": {
+      "command": "node scripts/diagram-render/render.mjs (sidecar Chrome) + check-diagram-text.js + --diff",
+      "exit_code": 0,
+      "browser": "Chrome/151.0.7922.47 via browsercontainer:9223 (DIAGRAM_CDP_URL/sidecar path)",
+      "diagrams": 10,
+      "result": [
+        "All 10 diagram(s) passed: visible text + key labels present.",
+        "All rendered diagrams match the committed baseline's visible words.",
+        "Byte-level drift vs committed baseline: none."
+      ],
+      "note": "Closes the ADR-2004 finding that the render half of the gate had not been run with Chrome in this environment. The committed baseline was copied aside, the sources re-rendered from scratch, all three checks run, and the baseline restored so the working tree is unchanged.",
+      "log": "docs/estate-closeout/2026-09-05/logs/diagram-render-chrome.log"
+    }
+  },
+  "not_done": [
+    "No hosted CI run: the rewritten deploy.yml, fixture-drift.yml, drift-counter.yml and harness-fitness-gates.yml are unexecuted on GitHub Actions.",
+    "No GitHub Pages deployment and no DNS change; website/build-receipt.json records revision.published = null locally.",
+    "fixture-drift.yml now FAILS without a canonical corpus. It stays red on hosted CI until sibling-repo credentials exist or a run is explicitly waived \u2014 deliberate, since the previous green tick certified nothing.",
+    "drift-counter axes ontology-classes (unavailable) and roster (planned) remain unenforced pending their substrate sources; each now records an owner and an exit condition.",
+    "Diagram re-render was executed locally against the sidecar Chrome; it has still not run on a hosted CI runner (diagram-render.yml installs its own pinned mermaid-cli/puppeteer chromium there)."
+  ],
+  "source_sha256": {
+    "website/build.sh": "f66b6d5a72f7615177a505462dc3fc04ce700be67b212228d9bae490f1e4eca4",
+    "website/assets.manifest.json": "6e811c34e1a5891ef35637380e9001731b7637e5647682c9fbef22aa006200bb",
+    "scripts/website-assets.mjs": "57aeffc0aa9c7cfe2fd682abdef4c180a3751b36f5d41489e05a5ed676880e60",
+    "scripts/website-browser-check.mjs": "40c70f19671c1c9b24e5b376416f39091165c700c00d36d1d09166a4666f2530",
+    "scripts/harness-audit.sh": "f02a8c211fff35149701f7ea3570f74353601d91abaf628cb5530589bba7abcb",
+    "scripts/drift-counter/drift-counter.mjs": "6b4764366043d98f3a9a96220b72b350665c211c892fa55dc82e64b3bbef59c5",
+    "scripts/drift-counter/allowlist.json": "1433067bff56147aa3994563d449783c13dfe7ecc94eeb150cf7ce9512a1cd74",
+    "scripts/generate-release-manifest.sh": "229d75682c13a1c8656c54ec6263981069dfe9947da8efd26a1f6db775cbfb0e",
+    "docs/releases/ecosystem-release.schema.json": "e739c519081038662af99081d0fb4881338cbe05a15ed5634c40376bfa482b31",
+    ".github/workflows/deploy.yml": "06bcce31189084cdd6bf0347409a8f4cc45594e3ca942059d33a3eedb974a328",
+    ".github/workflows/drift-counter.yml": "4fb906e4c02106ff66f8e950a1e5e1f1dd8fd4a7e5c7c3816479e6ab4698d7ec",
+    ".github/workflows/fixture-drift.yml": "1bc4eaa4a4d4eea1835bcc7d8fd30884c293aa8576496e71727d90ec1e2f3882",
+    ".github/workflows/harness-fitness-gates.yml": "2c80bfb2d0078d292f90aefecccfd384f686c32d3c109acab5672ae5842e8c37",
+    "tests/gates/run-all.sh": "09de244c10e608435eec79a8daa50d5de4c042f7ff8bd037d10929ce2b08f8d2",
+    "tests/gates/harness-audit.test.sh": "d71381f07c53e1219215e717116a6a337ac38247dbb7a69517c276fe24238a08",
+    "tests/gates/drift-counter.test.sh": "3514351e6b391385c650b5f0184baea64ece0babc970c2c331f6ac92114b1df4",
+    "tests/gates/release-manifest.test.sh": "fdd8a44ad8c18e696658c5dcdc23ba56f09ad401ac3c2e395bea69613c24896a",
+    "tests/gates/website-assets.test.sh": "938437faeefbe9656e692f7bc7068b6e3d797b57a9b3f94e231e4218780b2c31",
+    "docs/engineering/templates/agentbox-agent-task.json": "48b695672d6f0d77d1332832756202552da68880b3df149af846a22cf70fa06b",
+    "docs/engineering/templates/visionclaw-enrichment.json": "3146cc6fe9c3a7d3de71957921f8d9dc36b244515d6ff61340f712a38c6aa5c8"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "date": "2026-09-05",
+  "scope": "Source inspection only; no Worker/D1, NIP-98 request, relay, browser or existing test suite executed",
+  "sources": [
+    {
+      "path": "/home/devuser/workspace/nostr-rust-forum/crates/nostr-bbs-auth-worker/src/governance_api.rs",
+      "sha256": "97a6661e902ef73a09bef309420a9c9e7cab646871caedacb1b8323b63cbea22"
+    },
+    {
+      "path": "/home/devuser/workspace/nostr-rust-forum/crates/nostr-bbs-auth-worker/src/admin.rs",
+      "sha256": "e8d8a4d9229a30564c983adff12a9d6c890c65fc0c0d812ac5d3fa6f71f5e529"
+    },
+    {
+      "path": "/home/devuser/workspace/nostr-rust-forum/crates/nostr-bbs-auth-worker/src/lib.rs",
+      "sha256": "27d889b26e05fdd716c5c1ca74edd641ab7c97b8a3263ce67d27b91c0e554293"
+    },
+    {
+      "path": "/home/devuser/workspace/nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/governance.rs",
+      "sha256": "c414e7be70b4cab19bbbdd8fb7143cee631e34dae42b8e555f532285dab5a6e9"
+    },
+    {
+      "path": "/home/devuser/workspace/nostr-rust-forum/crates/nostr-bbs-forum-client/src/stores/panel_registry.rs",
+      "sha256": "7cdea81fc3522c19e7b3099437ac5e52df65f8fb8506abb626cf110478053186"
+    },
+    {
+      "path": "/home/devuser/workspace/nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs",
+      "sha256": "8f2f33117d97e7de0f77e14bc533e0386e82e66d4340db76407a597b63b56273"
+    }
+  ]
+}

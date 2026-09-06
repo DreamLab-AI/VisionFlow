@@ -1,0 +1,14 @@
+{
+  "date": "2026-09-04",
+  "scope": "source-extracted SELECT, local in-memory SQLite; synthetic qualifying updates; no D1, real users or deployed scheduler",
+  "source_sha256": "0a7ca3df6b2d15b98ba5cf6f93e2720289891f9adbe15d2e431299ce02a7bb00",
+  "query": "SELECT pubkey FROM whitelist  WHERE trust_level >= ?1 AND trust_level <= ?2  AND COALESCE(last_active_at, 0) <= ?3  AND COALESCE(is_admin, 0) = 0  ORDER BY last_active_at ASC  LIMIT ?4 OFFSET ?5",
+  "batch_size": 200,
+  "initial_eligible": 400,
+  "page_sizes": [
+    200,
+    0
+  ],
+  "scanned": 200,
+  "remaining_eligible": 200
+}

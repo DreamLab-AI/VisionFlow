@@ -1,0 +1,27 @@
+{
+  "date": "2026-09-05",
+  "scope": "Source/design only; no WASM compile, firmware, browser, interruption or persistence tests executed",
+  "sources": [
+    {
+      "path": "/home/devuser/workspace/RuView/docs/adr/ADR-009-rvf-wasm-runtime-edge-deployment.md",
+      "sha256": "7d38a37b6c9b585d8a7e375ca613a6005876a0687823c580869c35ad7c848f3e"
+    },
+    {
+      "path": "/home/devuser/workspace/RuView/firmware/esp32-csi-node/main/wasm_runtime.c",
+      "sha256": "a0bc6536b3231376c9d4b5e5489f96fcc4f35287a93ab470c0252e2c217d827d"
+    },
+    {
+      "path": "/home/devuser/workspace/RuView/firmware/esp32-csi-node/main/wasm_upload.c",
+      "sha256": "b5172adbeffd43d1684d91dcb2289ff2103a03ef5b8a065ef0396d18e0980f06"
+    },
+    {
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-wasm-edge/src/lib.rs",
+      "sha256": "e8c5f7f8787848f3ff7f07122df4c8fce9874dc410b8a357ffa291484d2b28ea"
+    }
+  ],
+  "portable_interface_search": {
+    "exit_code": 1,
+    "output": "",
+    "scope": "Selected ADR class/storage/container spellings in Rust/JS/TS under rust-port"
+  }
+}

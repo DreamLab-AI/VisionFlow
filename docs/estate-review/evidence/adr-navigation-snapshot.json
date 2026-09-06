@@ -1,0 +1,21 @@
+{
+  "date": "2026-09-04",
+  "scope": "actual record validator and temporary fixture; no source verification fields changed or generated index edited",
+  "current_validator_exit": 1,
+  "stale_records": [
+    "ADR-2012",
+    "ADR-2013",
+    "ADR-2019",
+    "ADR-2020",
+    "ADR-2023",
+    "ADR-2030"
+  ],
+  "fixture": {
+    "exit_code": 0,
+    "stale_readme_unchanged": true,
+    "verified_paths_declared": false
+  },
+  "source_sha256": {
+    "scripts/adr-index-gen.js": "38b7643de4590bb16068ef2d25f301718ae22c1c4b4ad3a54fb32373a3b8361b"
+  }
+}

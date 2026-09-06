@@ -3,7 +3,7 @@
 **Status:** Speculative — implementation is not committed (kind 31406 MandateGrant is absent from `agentbox.toml` `allowed_kinds`, and the harness schema has no `mandates` section)
 **Date:** 2026-06-23
 **Decision Owners:** DreamLab AI maintainers
-**Related:** [ADR-004 Harness Engineering Framework](ADR-004-harness-engineering-framework.md), [ADR-122 Two-Speed Governance](../../project/docs/adr/ADR-122-two-speed-writeback-governance-routing.md), [PRD-mandate-at-grant](PRD-mandate-at-grant.md), [PRD-harness-engineering](PRD-harness-engineering.md), [closeout final-design](../closeout/final-design.md)
+**Related:** [ADR-004 Harness Engineering Framework](ADR-004-harness-engineering-framework.md), [ADR-122 Two-Speed Governance](../../../project/docs/archive/adr/ADR-122-two-speed-writeback-governance-routing.md), [PRD-mandate-at-grant](PRD-mandate-at-grant.md), [PRD-harness-engineering](PRD-harness-engineering.md), [closeout final-design](../closeout/final-design.md)
 **Provenance:** "The Moment of Authorisation" principle (Sheridan et al.) cross-referenced against VisionFlow governance architecture audit, 2026-06-23. Five-agent mesh examination across agent bootstrap, governance bridge, file/pod access, MCP tool surface, and harness template schema.
 
 > **2026-07-03 closeout amendment.** This ADR remains **Speculative** (not built), but one Context claim is now stale and corrected below: the `governance-precedents` namespace **is** write-protected. `mcp/servers/lib/memory-tools.js:60-68` defines `PROTECTED_NAMESPACES` (default `governance-precedents`) and rejects writes with `namespace "…" is write-protected (IR2 mandate-at-grant)`. The precedent-poisoning vector this ADR cites as its most critical motivation is therefore already mitigated at the capability channel; the remaining account/file/env-secret grant channels are unchanged. This note is not a build commitment — D2's `mandates` schema section and kind 31406 remain unimplemented.
@@ -292,3 +292,54 @@ This ADR is speculative — implementation is not committed. If progressed:
 4. **Phase 4 (sustain):** Multi-stakeholder review. Mandate TTLs. Janitor audits mandate drift.
 
 Each phase is independently valuable and can be shipped without committing to later phases.
+
+
+## Closeout extension — 2026-09-05
+
+The [section-level engineering assessment](../estate-review/engineering-governance.md) supplies current dispositions and CP-01/04/05/07/08/09 acceptance obligations. Preserve this record's original accepted/deferred/speculative distinctions. Declared pairing, existing helper code and signed mandate primitives are not complete runtime governance evidence.
+
+The [actual audit-script probes](../estate-review/evidence/harness-audit-probe.json) show that nonexistent source paths still count as source-backed and repeated pairing edges can yield 200% coverage. The workflow adds ID/reference checks but does not resolve control sources or invoke the full schema. No hosted CI, agent provisioning, precedent write or mandate operation ran.
+
+Closeout requires source-bound distinct coverage, actual consumer enforcement, authorised durable outcomes and revocation/recovery evidence. See the assessment table for every numbered decision in this record; unresolved proposals must retain explicit adoption or deferral.
+
+## Acceptance progress — 2026-09-05
+
+**Status unchanged: Speculative.** Nothing in this pass built any part of this
+ADR. Kind 31406 `MandateGrant` is still absent from `agentbox.toml`
+`allowed_kinds`, the harness schema still has no `mandates` section, and D2
+remains unimplemented. No mandate was granted, exercised or revoked; no agent
+was provisioned. This annex records only what touched this record's
+neighbourhood, so that a reader does not mistake adjacent work for progress
+here.
+
+**What was done nearby.** Two shared obligations from the 2026-09-05 closeout
+were discharged in the gates this ADR is assessed alongside, and both are
+reported under their own records rather than claimed here:
+
+- The **source-bound distinct coverage** obligation shared with ADR-004 is
+  discharged — `scripts/harness-audit.sh` now resolves control sources,
+  de-duplicates pairing edges and caps backing at distinct sources. See
+  [ADR-004 §Acceptance progress — 2026-09-05](ADR-004-harness-engineering-framework.md#acceptance-progress--2026-09-05).
+- This record's **§Decision 2 partial-source failure mode** — an axis whose
+  source is unavailable is reported and not enforced, so a source being down
+  blocks that axis rather than the whole gate — was reused as the governing
+  pattern in two further gates: the harness audit's `unverifiable` state for
+  substrates that are not checked out, and the drift counter's
+  reported-not-blocking mode in `deploy.yml` where the pinned agentbox checkout
+  is unavailable. The pattern is load-bearing in three gates now; the mandate
+  machinery it was written for is still not built.
+
+The `governance-precedents` write protection cited in the 2026-07-03 amendment
+was **not** re-verified in this pass. The harness audit classifies the
+`ruvector:governance-precedents namespace` guide as a `descriptor` — a source no
+filesystem check can settle — which is an honest statement that this control is
+unbacked by any evidence the audit can produce, not a claim that the protection
+is absent.
+
+**Remaining.** Everything this ADR proposes. Consumer enforcement, authorised
+durable outcomes and revocation/recovery evidence all require a runtime that
+does not exist; a green script is not a governed grant. If D2 is to move off
+Speculative it needs `mandates` in the harness schema, kind 31406 admitted, and
+a grant/exercise/revoke trace — none of which this pass attempted.
+
+Governed paths changed: none in this record's scope.

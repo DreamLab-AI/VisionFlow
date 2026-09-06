@@ -38,7 +38,7 @@
     {
       "id": "is-envelope-schema",
       "type": "schema",
-      "source": "visionclaw:docs/adr/ADR-075-is-envelope-message-contract.md",
+      "source": "visionclaw:docs/archive/adr/ADR-075-is-envelope-message-contract.md",
       "source_status": "present",
       "applies_to": ["visionclaw"],
       "description": "IS-Envelope schema (ADR-075): canonical envelope for inter-substrate event payloads with version, schema hash, and DID attribution. Vectors are canonical; envelope routing over a mesh transport is not yet implemented in any substrate."

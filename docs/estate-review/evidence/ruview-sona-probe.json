@@ -1,0 +1,27 @@
+{
+  "date": "2026-09-05",
+  "source": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/sona.rs",
+  "sha256": "3a979445a47e1a340616b56c2a254e52839eb793d4b8e5442920c88885050f85",
+  "scope": "Unchanged standalone SONA Rust module native tests and six synthetic assertions; no actual model/environment/persistence or deployment",
+  "test_command": "rustc --edition=2021 --test sona.rs then execute temporary binary",
+  "test_output": "\nrunning 20 tests\ntest tests::environment_detector_detects_large_shift ... ok\ntest tests::environment_detector_reset_baseline ... ok\ntest tests::ewc_consolidate_updates_reference ... ok\ntest tests::ewc_penalty_gradient_direction ... ok\ntest tests::environment_detector_no_drift_initially ... ok\ntest tests::ewc_fisher_positive ... ok\ntest tests::ewc_online_update_decays ... ok\ntest tests::ewc_penalty_positive_away_from_reference ... ok\ntest tests::ewc_penalty_zero_at_reference ... ok\ntest tests::lora_adapter_forward_shape ... ok\ntest tests::lora_adapter_merge_unmerge_roundtrip ... ok\ntest tests::lora_adapter_param_count ... ok\ntest tests::lora_adapter_rank_1_outer_product ... ok\ntest tests::lora_scale_factor ... ok\ntest tests::sona_adapter_converges_on_simple_task ... ok\ntest tests::lora_adapter_zero_init_produces_zero_delta ... ok\ntest tests::sona_config_defaults ... ok\ntest tests::sona_profile_save_load_roundtrip ... ok\ntest tests::sona_adapter_respects_max_steps ... ok\ntest tests::temporal_consistency_zero_for_static ... ok\n\ntest result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+  "test_exit": 0,
+  "probe_source": "#[path=\"/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/sona.rs\"] mod sona;\nfn main(){let mut a=sona::SonaAdapter::new(sona::SonaConfig::default(),4);let r=a.adapt(&[1.0,2.0,3.0,4.0],&[]);assert!(r.converged);assert_eq!(r.final_loss,0.0);assert_eq!(r.steps_taken,0);assert_eq!(a.adaptation_count,0);let profile=a.save_profile(\"env\");let mut b=sona::SonaAdapter::new(sona::SonaConfig::default(),2);b.load_profile(&profile);assert_eq!(b.lora.a.len(),4);assert_eq!(b.param_count,2);println!(\"6 assertions passed: no-data convergence and incompatible profile accepted\");}",
+  "probe_output": "6 assertions passed: no-data convergence and incompatible profile accepted\n",
+  "probe_exit": 0,
+  "additional_sources": [
+    {
+      "path": "/home/devuser/workspace/RuView/docs/adr/ADR-005-sona-self-learning-pose-estimation.md",
+      "sha256": "009c2bb5202b4c03009ecc47efe7f4badeef2c5fd9649d0eba4831fbc78cf367"
+    },
+    {
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/rvf_pipeline.rs",
+      "sha256": "1da194405b039b641c27d1ccde030895d74061ab7b52489d8a20173db8934db1"
+    }
+  ],
+  "bounded_caller_search": {
+    "scope": "Exact type spellings in Rust crates, not all aliases/external runtimes",
+    "output": "rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/sona.rs:222:pub struct SonaAdapter {\nrust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/sona.rs:230:impl SonaAdapter {\nrust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/sona.rs:572:        let mut adapter = SonaAdapter::new(cfg, 1);\nrust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/sona.rs:585:        let mut a = SonaAdapter::new(cfg, 4);\nrust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/sona.rs:592:        let mut a = SonaAdapter::new(SonaConfig::default(), 8);\nrust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/sona.rs:600:        let mut a2 = SonaAdapter::new(SonaConfig::default(), 8);\n",
+    "exit_code": 0
+  }
+}

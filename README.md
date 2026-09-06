@@ -49,7 +49,7 @@ No single repository *is* VisionFlow. The siblings call the whole the **Dynamic 
 | Substrate | Role | Where to run it |
 |:----------|:-----|:----------------|
 | **[VisionClaw](https://github.com/DreamLab-AI/VisionClaw)** | Flagship engine — ontology-grounded immersive 3D knowledge graph. OWL 2 EL + Whelk reasoning, 82 CUDA kernels of GPU physics, one renderer shared desktop↔headset. *Watch here, judge there — it observes, it never signs a decision.* | Clone the repo; needs a CUDA host. |
-| **[agentbox](https://github.com/DreamLab-AI/agentbox)** | Sovereign agent runtime — reproducible Nix container, a `did:nostr` key minted per agent at spawn, 116 skills, RuVector semantic memory, NIP-59 session mirror, Solid pod bridge. *Reproduce, audit, control.* | Clone the repo; `nix` build. |
+| **[agentbox](https://github.com/DreamLab-AI/agentbox)** | Sovereign agent runtime — reproducible Nix container, a `did:nostr` key minted per agent at spawn, 126 skills, RuVector semantic memory, NIP-59 session mirror, Solid pod bridge. *Reproduce, audit, control.* | Clone the repo; `nix` build. |
 | **[solid-pod-rs](https://github.com/DreamLab-AI/solid-pod-rs)** | Personal-data-sovereignty layer — Rust Solid pod server (LDP, WAC, NIP-98, DID:Nostr, WebID). Every write is a git-mark commit; high-value writes anchor to Bitcoin. *The exit right sits in the floor, not granted at the door.* | Clone the repo; `cargo` build. |
 | **[nostr-rust-forum](https://github.com/DreamLab-AI/nostr-rust-forum)** | Human+agent communication substrate — Nostr-native forum + relay in Rust. The one place a human decision is cryptographically signed (ACSP kinds 31400–31405). *The one place a decision gets signed.* | Clone the repo; Cloudflare Workers + Leptos WASM. |
 | **[dreamlab-ai-website](https://github.com/DreamLab-AI/dreamlab-ai-website)** | Commercial face — DreamLab AI company site, a thin consumer of the forum kit at the Cloudflare edge. | Clone the repo. |
@@ -149,7 +149,7 @@ flowchart TB
     end
 
     subgraph AB["agentbox — Sovereign Runtime"]
-        AGENTS["116 Agent Skills\n(manifest-driven)"]
+        AGENTS["126 Agent Skills\n(manifest-driven)"]
         NIX["Reproducible Runtime\n(Nix flakes)"]
         MEM["RuVector Memory\n(1.17M+ embeddings)"]
         BRIDGE["12 MCP Ontology Tools\n(SPARQL bridge)"]
@@ -245,7 +245,7 @@ Longer-form: the canonical vision report is under [`presentation/report`](presen
 | Hexser handlers / Actix actors | released | 44 handlers (19 directive + 25 query); 35 Actix actors; 9 ports / 12 adapters — re-verified against the live tree. |
 | `did:nostr` identity spine | integrated | One keypair as login + WAC principal + provenance author + DID subject + payment account. |
 | ACSP signed governance (kinds 31400–31405) | integrated | Six-kind protocol live; only the admin key publishes a Decision (31403). Serves one use case today — ontology concept elevation, capped at 5 concurrent — narrower than "universal human-in-the-loop". |
-| agentbox skills | released | **116** skills (validator schema fix landed 2026-07-22, C-6). Every "115" copy is stale. |
+| agentbox skills | released | **124** skills (skills estate audit 2026-08-21; re-counted 2026-09-04 against the rebuilt image). Every "115"/"116" copy is stale. |
 | RuVector semantic memory | released | 1.17M+ embeddings. |
 | Sovereign mesh (agentbox, allowlisted relay) | integrated | Condense scheduler + relay allowlist live; cross-org federation routes IS-Envelopes across nodes. |
 | Cross-org mesh federation | integrated | The `nostr-bbs-mesh` `MeshTransport`, peer discovery and IS-Envelope routing carry envelopes between sovereign nodes; `federation-verified` awaits the live-session smoke-test. |

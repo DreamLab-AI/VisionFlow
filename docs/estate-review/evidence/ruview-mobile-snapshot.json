@@ -1,0 +1,190 @@
+{
+  "date": "2026-09-05",
+  "scope": "Source review and unchanged WsService body after TypeScript erasure/import substitution; fake sockets/stores/timers only; no network/native/browser/Jest/tsc run",
+  "sources": {
+    "package.json": "4c1f9d9a05a1cae9d124c641e55a5679b7704fdecb8675d5dbd79dd938fdb0ac",
+    "src/services/ws.service.ts": "6d48f0e5139fc86e09bd5df62b7a25c4a24701222fef5e7547ba5e83233b0ca0",
+    "src/constants/websocket.ts": "4ba94519ab4f7c76603ed2bb0ef23d52fdde27debe050fd4d733b1accd93bd1b",
+    "src/constants/simulation.ts": "efd7742044bc3e449e930ead369490f1cf1ca9dffbb8fd6ad1db1187aa35eb36",
+    "src/stores/poseStore.ts": "b97f8b8a5ebc1bd322e7bce7b2bf84632f0c8811e91b410553ceccad64e05db5",
+    "src/stores/settingsStore.ts": "7deede6710b2d0730d4800b6d6bd990efa611dc1cdf0819721a8f8a9b60c1b17",
+    "src/stores/matStore.ts": "d8068bd83e1e43fe9370f2296003f93e3536dcb1d281d9d16438d2688e1e70ab",
+    "src/hooks/usePoseStream.ts": "784f5c070941937920a776df9a10f594f2685466d1ab506e6a314fc5901c79ae",
+    "src/screens/MATScreen/index.tsx": "8fb9677c884646d027ae278d777a8686a6d30e186c64af752ed8ba5f2907851c",
+    "src/assets/webview/mat-dashboard.html": "6fc619cd566eb130aa82175982bb829357bfae0faf9201dee6485e59bed43f30",
+    "src/screens/LiveScreen/GaussianSplatWebView.web.tsx": "14fa6ba350c154db330682052f64ca5b4ca60aef25627ae4c4783d59ba48dea6",
+    "src/screens/LiveScreen/GaussianSplatWebView.tsx": "c963374026bb11ff3aebe8f52386b20aba7799c88e3a488cfc6cb1ad21f3bd6b",
+    "src/screens/VitalsScreen/BreathingGauge.tsx": "6e3a86acb7d936d80a9fe9d238247e91be4aca578005602875d64f810339bb4f",
+    "src/screens/VitalsScreen/HeartRateGauge.tsx": "6502718b3fc98bf8a8ae9b6d3f44b48d33dcbc63e9fe7f1f15cd54e4ef9578df",
+    "src/screens/ZonesScreen/useOccupancyGrid.ts": "5904e21c4bb152e01c20ec0fb11bdd5a5dcbbf331c7439a3c551847d960fcf4c",
+    "src/services/rssi.service.ios.ts": "abd72e64f092a12979a7d1538c6e7727270afcc5a6ae9e7f98c07296b308b3e9",
+    "src/services/rssi.service.android.ts": "5465a31bbdb8f7cb6bcfd150a4434617438a888951e0b7e1017240ba7a6283e3",
+    "src/services/api.service.ts": "78555d4000881e557cdbe2133458b78b56058a45f4e327916bd090157ae1c126",
+    "src/screens/SettingsScreen/index.tsx": "5137ef4a74d8a1869c2201dc0352d46ee1ba10a347356a306d86c008e885d1fd",
+    "src/navigation/MainTabs.tsx": "ddf30d4476623428d4779a2a59ec980336622a64f99bf9dd18c7d6b25cc28b55"
+  },
+  "maestro_file_bytes": {
+    "e2e/mat_screen.yaml": 0,
+    "e2e/live_screen.yaml": 0,
+    "e2e/vitals_screen.yaml": 0,
+    "e2e/settings_screen.yaml": 0,
+    "e2e/offline_fallback.yaml": 0,
+    "e2e/zones_screen.yaml": 0
+  },
+  "probe": "import {stripTypeScriptTypes} from 'node:module';\nimport fs from 'node:fs'; import vm from 'node:vm'; import assert from 'node:assert/strict';\nconst root='/home/devuser/workspace/RuView/ui/mobile/src/';\nlet code=fs.readFileSync(root+'services/ws.service.ts','utf8').replace(/^import .*;\\n/gm,'').replace('export const wsService','globalThis.wsService');\nconst delays=[], timers=[]; let simulationTicks=0; const sockets=[];\nclass Socket { static OPEN=1; static CONNECTING=0; readyState=0; constructor(url){this.url=url;sockets.push(this);} }\nconst ctx={URL,WebSocket:Socket,MAX_RECONNECT_ATTEMPTS:10,RECONNECT_DELAYS:[1000,2000,4000,8000,16000],WS_PATH:'/api/v1/stream/pose',SIMULATION_TICK_INTERVAL_MS:500,usePoseStore:{getState:()=>({setConnectionStatus:()=>{}})},generateSimulatedData:()=>({source:'simulated'}),setTimeout:(fn,d)=>{timers.push(fn);delays.push(d);return timers.length;},clearTimeout:()=>{},setInterval:()=>{simulationTicks++;return 1;},clearInterval:()=>{}};\nvm.createContext(ctx); vm.runInContext(stripTypeScriptTypes(code),ctx);\nconst s=ctx.wsService;s.connect('http://example.test:3000');assert.equal(sockets[0].url,'ws://example.test:3001/ws/sensing');\nsockets[0].onclose({code:1006});assert.equal(simulationTicks,1);\ntimers.shift()();sockets[1].onclose({code:1006});assert.deepEqual(delays,[1000,1000]);\ntimers.shift()();const held=sockets.length;s.connect('http://other.test:8080');assert.equal(sockets.length,held);\nlet forwarded;s.subscribe(v=>forwarded=v);sockets.at(-1).onmessage({data:'{\"arbitrary\":true}'});assert.equal(forwarded.arbitrary,true);\nconsole.log('PASS: 5 assertions: port remap; simulation on first failure; repeated 1s retries; new URL retains connecting socket; arbitrary JSON forwarded');\n",
+  "stdout": "PASS: 5 assertions: port remap; simulation on first failure; repeated 1s retries; new URL retains connecting socket; arbitrary JSON forwarded\n",
+  "stderr": "(node:887583) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n",
+  "exit_code": 0,
+  "test_inventory": [
+    {
+      "path": "src/__tests__/components/ConnectionBanner.test.tsx",
+      "bytes": 94,
+      "placeholder": true,
+      "sha256": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959"
+    },
+    {
+      "path": "src/__tests__/components/GaugeArc.test.tsx",
+      "bytes": 94,
+      "placeholder": true,
+      "sha256": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959"
+    },
+    {
+      "path": "src/__tests__/components/HudOverlay.test.tsx",
+      "bytes": 94,
+      "placeholder": true,
+      "sha256": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959"
+    },
+    {
+      "path": "src/__tests__/components/OccupancyGrid.test.tsx",
+      "bytes": 94,
+      "placeholder": true,
+      "sha256": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959"
+    },
+    {
+      "path": "src/__tests__/components/SignalBar.test.tsx",
+      "bytes": 94,
+      "placeholder": true,
+      "sha256": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959"
+    },
+    {
+      "path": "src/__tests__/components/SparklineChart.test.tsx",
+      "bytes": 94,
+      "placeholder": true,
+      "sha256": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959"
+    },
+    {
+      "path": "src/__tests__/components/StatusDot.test.tsx",
+      "bytes": 94,
+      "placeholder": true,
+      "sha256": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959"
+    },
+    {
+      "path": "src/__tests__/hooks/usePoseStream.test.ts",
+      "bytes": 94,
+      "placeholder": true,
+      "sha256": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959"
+    },
+    {
+      "path": "src/__tests__/hooks/useRssiScanner.test.ts",
+      "bytes": 94,
+      "placeholder": true,
+      "sha256": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959"
+    },
+    {
+      "path": "src/__tests__/hooks/useServerReachability.test.ts",
+      "bytes": 94,
+      "placeholder": true,
+      "sha256": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959"
+    },
+    {
+      "path": "src/__tests__/screens/LiveScreen.test.tsx",
+      "bytes": 94,
+      "placeholder": true,
+      "sha256": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959"
+    },
+    {
+      "path": "src/__tests__/screens/MATScreen.test.tsx",
+      "bytes": 94,
+      "placeholder": true,
+      "sha256": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959"
+    },
+    {
+      "path": "src/__tests__/screens/SettingsScreen.test.tsx",
+      "bytes": 94,
+      "placeholder": true,
+      "sha256": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959"
+    },
+    {
+      "path": "src/__tests__/screens/VitalsScreen.test.tsx",
+      "bytes": 94,
+      "placeholder": true,
+      "sha256": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959"
+    },
+    {
+      "path": "src/__tests__/screens/ZonesScreen.test.tsx",
+      "bytes": 94,
+      "placeholder": true,
+      "sha256": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959"
+    },
+    {
+      "path": "src/__tests__/services/api.service.test.ts",
+      "bytes": 94,
+      "placeholder": true,
+      "sha256": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959"
+    },
+    {
+      "path": "src/__tests__/services/rssi.service.test.ts",
+      "bytes": 94,
+      "placeholder": true,
+      "sha256": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959"
+    },
+    {
+      "path": "src/__tests__/services/simulation.service.test.ts",
+      "bytes": 94,
+      "placeholder": true,
+      "sha256": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959"
+    },
+    {
+      "path": "src/__tests__/services/ws.service.test.ts",
+      "bytes": 94,
+      "placeholder": true,
+      "sha256": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959"
+    },
+    {
+      "path": "src/__tests__/stores/matStore.test.ts",
+      "bytes": 94,
+      "placeholder": true,
+      "sha256": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959"
+    },
+    {
+      "path": "src/__tests__/stores/poseStore.test.ts",
+      "bytes": 94,
+      "placeholder": true,
+      "sha256": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959"
+    },
+    {
+      "path": "src/__tests__/stores/settingsStore.test.ts",
+      "bytes": 94,
+      "placeholder": true,
+      "sha256": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959"
+    },
+    {
+      "path": "src/__tests__/utils/colorMap.test.ts",
+      "bytes": 94,
+      "placeholder": true,
+      "sha256": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959"
+    },
+    {
+      "path": "src/__tests__/utils/ringBuffer.test.ts",
+      "bytes": 94,
+      "placeholder": true,
+      "sha256": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959"
+    },
+    {
+      "path": "src/__tests__/utils/urlValidator.test.ts",
+      "bytes": 94,
+      "placeholder": true,
+      "sha256": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959"
+    }
+  ]
+}

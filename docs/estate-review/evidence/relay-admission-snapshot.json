@@ -1,0 +1,37 @@
+{
+  "date": "2026-09-04",
+  "scope": "Source review across bridge and consumed relay; three native authorisation helper tests. No relay launch/event send, pod write, Nix evaluation or standalone relay execution.",
+  "checks": [
+    {
+      "command": "cargo test --locked --offline --lib allowlist",
+      "cwd": "project/agentbox/services/nostr-pod-bridge",
+      "exit_code": 0,
+      "passed": 1,
+      "filtered_out": 27
+    },
+    {
+      "command": "cargo test --locked --offline --lib unknown_pubkey_rejected",
+      "cwd": "project/agentbox/services/nostr-pod-bridge",
+      "exit_code": 0,
+      "passed": 1,
+      "filtered_out": 27
+    },
+    {
+      "command": "cargo test --locked --offline --lib delegation_tag_no_longer_grants_access",
+      "cwd": "project/agentbox/services/nostr-pod-bridge",
+      "exit_code": 0,
+      "passed": 1,
+      "filtered_out": 27
+    }
+  ],
+  "source_sha256": {
+    "project/agentbox/flake.nix": "f20ac15c7c9e7a503338bc8dbb48a0368365573351b630380f8af0b7f4eee9b9",
+    "project/agentbox/scripts/agentbox-config-validate.js": "d356e6d96a6d2b9cdb645065b8c989b25a9413ebf761c18fa12e61504c482d63",
+    "project/agentbox/services/nostr-pod-bridge/src/lib.rs": "dfd48f362b1d03b86395c2f5c79a30b8946ff5cee36d8036eefad720daf737c6",
+    "project/agentbox/services/nostr-pod-bridge/src/main.rs": "81ce872abbeafc040896b07840bb9624ff1f298fd09076ec0b29c5a721a31fe5",
+    "project/agentbox/services/nostr-pod-bridge/Cargo.lock": "72163e19ca5def754b571582eef0dc5cd74e84e161e5c431f0df066b0f5626bd",
+    "solid-pod-rs/crates/solid-pod-rs-nostr/src/relay.rs": "ed0290cda4047c026d94244d94e41324997ca4ee9c802fdc80da6784ef2f0802",
+    "solid-pod-rs/crates/solid-pod-rs-nostr/src/ws.rs": "fad4fb237c39c65c98c52f85263c68dc4b81ca57da4c52cac4c7dce990e7b39b",
+    "solid-pod-rs/crates/solid-pod-rs-nostr/src/typestate.rs": "65bc922b0dc94e68249afec99db6a8cc78dd9fa4f2ceacda86aaa7fa72530762"
+  }
+}

@@ -1,0 +1,610 @@
+{
+  "date": "2026-09-04",
+  "scope": "All inventory-classified agentbox historical candidates; exact numeric tokens in operative lineage fields only. Range expansion, aliases and semantic supersession are not inferred. Same-number cross-repository references require human interpretation.",
+  "historical_count": 72,
+  "with_explicit_mention": 26,
+  "rows": [
+    {
+      "path": "docs/archive/adr/ADR-001-nixos-flakes.md",
+      "sha256": "7bd3e484540a9dbb984e1c705fc7e6a3de816efe0c8e1bbd57f07bdbb9aae869",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2003-nix-flake-composition.md",
+          "lineage": "legacy ADR-001 (nixos-flakes), PRD-002 (immutable runtime bootstrap), ADR-039 (docbox-backported apply-class + system-manifest)"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-002-ruvector-standalone.md",
+      "sha256": "57cb5e704e8fcc9b0a9d201488be7b8873e9a9ca197a7ffe597ad4bff3be76c8",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-003-guidance-control-plane.md",
+      "sha256": "d1c9690090dabc8dea6820133c527ed7a1a732ed34b8fbf26bbf279a2b8b8546",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-004-upstream-sync.md",
+      "sha256": "1288ebf81712a695475afdc30e140c59495db45827e4a10fea41f39225b004c6",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-005-pluggable-adapter-architecture.md",
+      "sha256": "72c9789bd05420e45c6312fb2ace2cb4bb681d75d89ca9f1f9a113e31df4941a",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2004-five-adapter-slots.md",
+          "lineage": "legacy ADR-005 (pluggable adapters), PRD-001 (capabilities and adapters), ADR-031 (adapter contract enforcement)"
+        },
+        {
+          "path": "docs/adr/ADR-2005-dispatch-middleware-order.md",
+          "lineage": "legacy ADR-005 (observability), ADR-008 (privacy filter routing), ADR-012 (jsonld federation grammar), DDD-004 \u00a7L08"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-006-immutable-runtime-bootstrap.md",
+      "sha256": "9f2fadf95a0f8aea47d7e00b57e60447d8f24f636d00b1cc5100eb72f90542a7",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-007-runtime-contract-and-container-hardening.md",
+      "sha256": "a526312748479681200fdf6af3260e8304359fff12ccc523a3d7206ca886603b",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-008-privacy-filter-routing.md",
+      "sha256": "fb65dec82ffc48532e118fdd8797aa4a09fb16c7a34db083752f1187590619b7",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2005-dispatch-middleware-order.md",
+          "lineage": "legacy ADR-005 (observability), ADR-008 (privacy filter routing), ADR-012 (jsonld federation grammar), DDD-004 \u00a7L08"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-009-embedded-nostr-relay.md",
+      "sha256": "7539da820bced4d52c4e818e1928dc12487f9bb30a9d0f95c8e6a7b97ffb2407",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-010-rust-solid-pod-adoption.md",
+      "sha256": "f85ce5beb68cea3d5307584f73d56d325e8d38b5aa0548c8ac9ec1e00d43eac5",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-011-consultation-mcps.md",
+      "sha256": "30178dd611f5060e3f598e4c69eaec45d728a769b82bf385eeb0e017033c5cd4",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2008-mcp-projector-reconcile.md",
+          "lineage": "legacy ADR-039 (docbox-backported / system-manifest), ADR-011 (consultation MCPs); closes audits MCP-1/MCP-2/MCP-6"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-012-jsonld-federation-grammar.md",
+      "sha256": "ea161d1c43492c2b56be2f9cd16b266c875708eab15e0ea9bea247bb8ddab80c",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2005-dispatch-middleware-order.md",
+          "lineage": "legacy ADR-005 (observability), ADR-008 (privacy filter routing), ADR-012 (jsonld federation grammar), DDD-004 \u00a7L08"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-013-canonical-uri-grammar.md",
+      "sha256": "9c6f4c2681e745a25e7a8a54d7f51ac22242fc1ee1f1d99ea21939f062be1bba",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-014-bidirectional-graph-state-ingress.md",
+      "sha256": "61baea261b3f3c588651cedf0096a81580106b9a56899556ccedd3283d9a98ac",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-015-mcp-ruvector-mandate.md",
+      "sha256": "c9d440ab1c074745f6a53e30bdc47f7cae8a2b90683f8d8efcb048d9f9392554",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2014-memory-mcp-only-fail-closed.md",
+          "lineage": "\"legacy ADR-015 (MCP-RuVector mandate, amended 2026-07-04 to drop sql.js), DDD-016 I03 (raw INSERTs \u2192 NULL-embedding rows invisible to HNSW).\""
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-016-license-consolidation.md",
+      "sha256": "c99e68799378644399bfee4c2a17b73d8c2bff8d363f9595156a317d665a3fa3",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-017-multi-tenant-did-nostr-pods.md",
+      "sha256": "89c13a49cd9191a27f92f101f94c2ce9561e175230f615f1d6076000e8b5f1e7",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-018-persistent-code-interpreter-mcp.md",
+      "sha256": "e2c94d46f2c3cf4b5b57c6fa05415bcab8a866b4894e2736ec74414779fb2d09",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-019-experiential-skill-learning.md",
+      "sha256": "a1a7b3129dcc8d7b7c274b7a5abfd9121ae6e819ae6e32d07a80230a23df91a9",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-020-aci-mcp-tree-search.md",
+      "sha256": "b3a24b3c2a5062b6f3363e95a5a6e1d25e086df2cb8f1d88ceded003e5282e35",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2020-capability-gating.md",
+          "lineage": "legacy ADR-039 (system-manifest apply-class catalogue), ADR-020 (ACI MCP + execution-gated tree-search, Surface 2 spend/route posture); manifest mechanism in BASELINE-container ADR-2003"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-021-llm-resource-marketplace-kinds.md",
+      "sha256": "9e170f02cee2df07bcc8a80437dea341d981676e48d0c74405c34a678c2ac73d",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-022-runtime-integrity-hardening.md",
+      "sha256": "30c90cc1f0a569b83f01f26a4c3de28a194e39cc1189b69ec07815be17f515cd",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-023-ontology-bridge.md",
+      "sha256": "ca890c5ac992a07d86edc2fe465a64f55e667cd3c6a63e2ff8a9f0b7ce510833",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2022-governed-ontology-writes.md",
+          "lineage": "legacy ADR-023 (ontology bridge), ADR-054 (ontology-bridge write-path findings), PRD-014 Seam D/D2"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-024-setup-dashboard.md",
+      "sha256": "0082240eb6d1f49e1a229c0bee1ab807d48483bcac64a78d26f5729c9565bcb7",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-025-multi-harness-tmux-architecture.md",
+      "sha256": "f56b4475ecfe6e833429bb5094e9bb744add2ca968122ac33b849fc2b8dc0b25",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2007-profile-isolation.md",
+          "lineage": "legacy ADR-025 (multi-harness tmux architecture), supersedes ADR-028 (per-user agent fabric); PRD-021 N-01"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-026-cross-substrate-agent-loop-seams.md",
+      "sha256": "ec14275a537ea251ef4c33c395a4ee05cc74e998765f111844f8ddba13a3043c",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-027-default-secure-posture.md",
+      "sha256": "ea783c3e2092299b339555321f298ea911149291698f582646b719dc818426c1",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-028-per-user-agent-fabric.md",
+      "sha256": "04ab221be87f9cda8d1c7c63032191fa32ee05fd0b9d0e178dd18ac116a775e4",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2007-profile-isolation.md",
+          "lineage": "legacy ADR-025 (multi-harness tmux architecture), supersedes ADR-028 (per-user agent fabric); PRD-021 N-01"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-029-session-mirror-live-egress.md",
+      "sha256": "e4f257c53ae3f6e7dcc1aa22261acafd0a24c5819fd09d05b8c2bc492dc63189",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-030-sovereign-mesh-manifest-boundary.md",
+      "sha256": "4bd87274108834eef0a78f08b193cd85bc89874cda7b1e5078de28ab9b2c5f8b",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-031-adapter-contract-enforcement.md",
+      "sha256": "9bdcb45266a1c31816533e2693e0dd46b38b570fa19072f99d0d01ee631d2d9b",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2004-five-adapter-slots.md",
+          "lineage": "legacy ADR-005 (pluggable adapters), PRD-001 (capabilities and adapters), ADR-031 (adapter contract enforcement)"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-032-402-scheme-grammar.md",
+      "sha256": "daf7568800fcf86f3912c2c655ca13a54361524767375543c2bb6932167e42a1",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-033-did-nostr-multikey-convergence.md",
+      "sha256": "5123e711bb0d4cff76648e403884fc6364047117656ad578a95c1330edef6209",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2011-hex-canonical-identity.md",
+          "lineage": "legacy ADR-053 (hex-canonical pod naming), ADR-033 (did:nostr / Multikey convergence, D3\u2032)"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-034-headroom-rust-crate-integration.md",
+      "sha256": "cd68b59a266093dace5c6a73e22c11fbb0b739e3f873e7d74308f85a5e0b91d2",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-035-project-tracking-telemetry-and-nostr-kind.md",
+      "sha256": "1ac381bbbff6941045a5df69fa7aa5b27f388a9cc6fd491d03f5237a5e59ef64",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-036-ruvector-capability-adoption-and-learning-loop.md",
+      "sha256": "2ee3db7442c8567206c5d86132cf239e98cb052a8d46cfc20cd66ac56102a375",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2015-trajectory-recorder-transcript-driven.md",
+          "lineage": "\"legacy PRD-018 / ADR-036 (honest producer), DDD-016 (I04 outcome honesty, I10 privacy fail-closed).\""
+        },
+        {
+          "path": "docs/adr/ADR-2017-consumer-behind-producer-w066.md",
+          "lineage": "\"legacy ADR-036 D6, PRD-020.\""
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-037-gap-close-agentbox-decisions.md",
+      "sha256": "c3e516b4f9b428fb4376fad194b0b0e8e59e26c00416f29773b62d3ff3f25025",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2016-wilson-lower-bound-raw-floor.md",
+          "lineage": "\"legacy PRD-020 / ADR-040, ADR-037 D3 (sample floor), DDD-018 (I06).\""
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-038-aict-structured-coreutils-mcp.md",
+      "sha256": "b308c68e79909b662af976580f800101d718723c9881e92a37ed8a6d936e2034",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-039-docbox-backported-surfaces.md",
+      "sha256": "3b733482ff3c4f4eb764196ccf9cd5b5b520831665bcdf62a8b7f0c0d8b19bb0",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2003-nix-flake-composition.md",
+          "lineage": "legacy ADR-001 (nixos-flakes), PRD-002 (immutable runtime bootstrap), ADR-039 (docbox-backported apply-class + system-manifest)"
+        },
+        {
+          "path": "docs/adr/ADR-2008-mcp-projector-reconcile.md",
+          "lineage": "legacy ADR-039 (docbox-backported / system-manifest), ADR-011 (consultation MCPs); closes audits MCP-1/MCP-2/MCP-6"
+        },
+        {
+          "path": "docs/adr/ADR-2020-capability-gating.md",
+          "lineage": "legacy ADR-039 (system-manifest apply-class catalogue), ADR-020 (ACI MCP + execution-gated tree-search, Surface 2 spend/route posture); manifest mechanism in BASELINE-container ADR-2003"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-040-learning-consumers-model-lifecycle-and-legacy-mining.md",
+      "sha256": "a166925389553bf305db98d13f2c18703930ffe485b9d7dfce876a6c8caa4574",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2012-relay-allowlist-only-ingress.md",
+          "lineage": "legacy ADR-040 (learning consumers / governance publisher key-split), sovereign-mesh relay posture (DDD-003)"
+        },
+        {
+          "path": "docs/adr/ADR-2016-wilson-lower-bound-raw-floor.md",
+          "lineage": "\"legacy PRD-020 / ADR-040, ADR-037 D3 (sample floor), DDD-018 (I06).\""
+        },
+        {
+          "path": "docs/adr/ADR-2018-recall-harness-merge-gate.md",
+          "lineage": "\"legacy PRD-020 / ADR-040 D2 (I14).\""
+        },
+        {
+          "path": "docs/adr/ADR-2019-model-lifecycle-384-dim-freeze.md",
+          "lineage": "\"legacy PRD-020 / ADR-040 (model lifecycle), DDD-018 (I22).\""
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-041-model-routing-one-policy-many-projections.md",
+      "sha256": "30dcb3c16d70761018e63d3096a5b3d4913ae31f0d9220ccf5a13b19bc155746",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-042-agent-of-empires-interaction-plane.md",
+      "sha256": "843621cb88ccb9f22308f3b883a624457fcf2b3b2886ec44c15f34b2ab1b0e76",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2009-nip98-proxy-identity-boundary.md",
+          "lineage": "legacy ADR-042 (AoE interaction plane), ADR-043 (session identity binding), ADR-045 (sovereign npub front door)"
+        },
+        {
+          "path": "docs/adr/ADR-2029-rune-markdown-tui-notes-window.md",
+          "lineage": "ADR-2003 (manifest-gated Nix composition), legacy ADR-042 (AoE Sessions window and its presence-detect fallback pattern), lib/systemscape.nix (pinned buildRustPackage precedent)"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-043-session-identity-binding.md",
+      "sha256": "d174fd129b38facc2ae1524ce3a041e36c4675e5db1f4445d7d4c17d4ac17e34",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2009-nip98-proxy-identity-boundary.md",
+          "lineage": "legacy ADR-042 (AoE interaction plane), ADR-043 (session identity binding), ADR-045 (sovereign npub front door)"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-044-voice-plane-aoe-repoint.md",
+      "sha256": "d361f7e9382c4c9d9fdc14dba91c56c8592bc0466f80d149b394970533238ac1",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-045-sovereign-ingress-npub-front-door.md",
+      "sha256": "3ec869ff7f9e7c8c55e806df94581e00b05b99409298ea9703813ec057e638de",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2009-nip98-proxy-identity-boundary.md",
+          "lineage": "legacy ADR-042 (AoE interaction plane), ADR-043 (session identity binding), ADR-045 (sovereign npub front door)"
+        },
+        {
+          "path": "docs/adr/ADR-2013-loopback-publish-except-9096.md",
+          "lineage": "legacy ADR-045 (sovereign ingress front door), R-003 (loopback publish rule); scope extended to all overlays 2026-08-31 (external review closure 3)"
+        },
+        {
+          "path": "docs/adr/ADR-2023-loom-facade.md",
+          "lineage": "legacy ADR-051 (Loom client + deferred distillation, status 'proposed'), ADR-045 (sovereign ingress / one front door)"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-046-semantica-complement.md",
+      "sha256": "9591443d89fecc2af4e3d098d7cd7474ae8d5a223452743f14c96843d818c716",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-047-semantica-tenant-integration-boundary.md",
+      "sha256": "260362d2d5342c2512a5c02d6a84ef4532905108351ddafa458f27b0c7e6d2dc",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-048-decision-records-as-graph-nodes.md",
+      "sha256": "e917be2cfcd50f44499acbe23f1df637aa8abe43b97632418973870b3c6d046b",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-049-bitemporal-facts-and-runtime-provenance.md",
+      "sha256": "226f2514181cf3520c0850cc8c17b880ca4d7674dcf1656f0c2ab7cc1c773824",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-050-decision-elevation-inverse-corpus-path.md",
+      "sha256": "1daa9f35a98c37d978ac29b07495b98e3918306e7e91e3b48556a648b85dfc55",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-051-loom-client-and-deferred-distillation.md",
+      "sha256": "3e451b94fee9fa4641819a5e81d59d199ae94fb0efead2aa1afe087b18278de8",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2023-loom-facade.md",
+          "lineage": "legacy ADR-051 (Loom client + deferred distillation, status 'proposed'), ADR-045 (sovereign ingress / one front door)"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-052-dream-machine-hp-annexe.md",
+      "sha256": "41c188c8c1187b059cea645ba25e10888089fd1b62a18be269a878a8fad3d392",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2024-dream-cycle-gating.md",
+          "lineage": "legacy ADR-052 (dream machine HP annexe), ADR-065 (darwin evaluator liveness contract), ADR-070 (self-GC dream evidence governance); recall band reuses the LEARNING harness gate (ADR-2018)"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-053-hex-canonical-pod-naming.md",
+      "sha256": "efe414f422090235e10f21ebc0ddc75b68d5efa499adfe0cf332011998dda73a",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2011-hex-canonical-identity.md",
+          "lineage": "legacy ADR-053 (hex-canonical pod naming), ADR-033 (did:nostr / Multikey convergence, D3\u2032)"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-054-ontology-bridge-write-path-findings.md",
+      "sha256": "697289721603c6b53e22913d7a8121868e1db256676e509c37aed183ed22f86b",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2022-governed-ontology-writes.md",
+          "lineage": "legacy ADR-023 (ontology bridge), ADR-054 (ontology-bridge write-path findings), PRD-014 Seam D/D2"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-055-dream-cockpit-panel.md",
+      "sha256": "1bebb84ad428f01ac60bd21d715065c8e9ae642180eede137dcc38e3952f250f",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-056-dream-decision-surface.md",
+      "sha256": "d4f56fa25c7a33b00d83d7647346f104065bb15ac9337df1f470c10ab139e73a",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-057-replayable-agent-execution-journal.md",
+      "sha256": "7edf36688bc4da08bba8d29f433f9dcf81548c720ebcc6541e62e0be0c152aed",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-058-lifecycle-scoped-capability-composition.md",
+      "sha256": "c40e3fd461efcb61d60b168e4eeb14cd14d501ba69301e92318ba2fc8c4c115a",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-059-monotonic-agent-action-policy-pipeline.md",
+      "sha256": "87b094243e45291416d88185d5c09807e82d908b0c19be518a30545b2fe52b35",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-060-dream-annexe-path-dependencies.md",
+      "sha256": "562a89e20c803962f9b03dac04e43d089070e7d9a9a7a5da396e5510fbb66de4",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-061-dream-persist-accept-as-draft-pr.md",
+      "sha256": "4ca2b4fcf431c064bdc026994d01cdb5a1ce2ff3ba559e2f5ff703d3100f56ac",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-062-metaharness-adoption-posture.md",
+      "sha256": "87cbe56436fd1c82320948bb37ebfa88348d0a7b893d9bcf1eb991c584c601c5",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-063-enable-ruflo-metaharness-plugin.md",
+      "sha256": "402f7a703d272c046587727842b44a8ebeb6a6dbf9141978d4279f65ca74b05d",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-064-bake-metaharness-runtime-binaries.md",
+      "sha256": "2f64386a1884955b2fbb1536be665de90ab8bf5553df08d10a2726ff8d9868a7",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-065-dream-darwin-evaluator-liveness.md",
+      "sha256": "db5bc5029c0960a7a695d22e3276e3dae0edd7f247f1252e143bfff9b988c54f",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2024-dream-cycle-gating.md",
+          "lineage": "legacy ADR-052 (dream machine HP annexe), ADR-065 (darwin evaluator liveness contract), ADR-070 (self-GC dream evidence governance); recall band reuses the LEARNING harness gate (ADR-2018)"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-066-metaharness-governance-boundaries.md",
+      "sha256": "20a4f74a5387a33eb434182536fe5c0d3e2d003d7ae87b8df2955184e5aa512b",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-067-metaharness-pin-discipline.md",
+      "sha256": "922ede369e17d9b0d8e89bb78a853df20085fb7273e735c6cbf804c633bff3bf",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-068-kernel-tooldispatcher-deferral.md",
+      "sha256": "86d28f5ea31777d378fe1879de569e92fc40b2d423e24d11986ae38ffa43f0be",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-069-unified-operator-auth-dreamlab-adoption.md",
+      "sha256": "6f5c3f2d658ce6ef9430c2ea737680b679fcd1a45d6586d602738dcb6360dbce",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2010-bearer-gated-behind-nip98.md",
+          "lineage": "legacy ADR-069 (unified operator auth / DreamLab adoption)"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-070-self-gc-dream-evidence-governance.md",
+      "sha256": "21bcf63ed5a044063dbbd8b65bd156e56fafa93c3b81267b302851d2cf58c128",
+      "explicit_lineage_mentions": [
+        {
+          "path": "docs/adr/ADR-2024-dream-cycle-gating.md",
+          "lineage": "legacy ADR-052 (dream machine HP annexe), ADR-065 (darwin evaluator liveness contract), ADR-070 (self-GC dream evidence governance); recall band reuses the LEARNING harness gate (ADR-2018)"
+        }
+      ],
+      "disposition": "section-level-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-071-swarm-telemetry-contract-for-xr.md",
+      "sha256": "2eb9a9c4234ba5bbacfeafc543e6cdc4729ac2fe6207995817ea1f776ef52e87",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    },
+    {
+      "path": "docs/archive/adr/ADR-072-evaluator-before-schedule.md",
+      "sha256": "83bc412a394ed72b9c6ecb3f28dac1a1b92ce8d5133f85d93957c280a1c9544a",
+      "explicit_lineage_mentions": [],
+      "disposition": "successor-or-retirement-review-required"
+    }
+  ]
+}

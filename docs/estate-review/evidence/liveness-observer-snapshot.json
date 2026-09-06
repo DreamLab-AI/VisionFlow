@@ -1,0 +1,11 @@
+{
+  "date": "2026-09-04",
+  "scope": "Current registration/observation/status and boot source trace; no HTTP, relay, watchdog, database mutation or deployment test.",
+  "source_sha256": {
+    "src/services/liveness_harness.rs": "1ad1401fffab76635a35f51f4ee3a7e5b2b0f103821572718d5763f637b52a1f",
+    "src/handlers/liveness_harness_handler.rs": "e6622218b8c4b7d9cfc0e12b02d1b6ac3758908a8d8ceb294d4dac22cef5557d",
+    "src/adapters/sqlite_canary_repository.rs": "1ad782ec6b23cd90b84bd40ea7654f307c9cbd6a0cc2ae1b9b73b866eb081ee5",
+    "src/services/canary_nostr_tap.rs": "4e3f884f16d6a216ff451514a4d63bfb1b1433a0a8b26ac7acaaf780cf1d55e6",
+    "src/main.rs": "4a2a1546bdef22a823a28157ccc07ee6a0a0c9886bef5c51a5f98ca0738d02dc"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "date": "2026-09-04",
+  "scope": "actual lint script copied to isolated synthetic skill trees; no skill invocation, rebuild, provider or code execution by a model",
+  "results": [
+    {
+      "case": "long_without_references",
+      "exit_code": 1,
+      "stdout": "MONOLITH fixture (304 lines, no references/)\n"
+    },
+    {
+      "case": "long_empty_references",
+      "exit_code": 0,
+      "stdout": "OK \u2014 skills estate clean\n"
+    },
+    {
+      "case": "fields_outside_frontmatter",
+      "exit_code": 0,
+      "stdout": "OK \u2014 skills estate clean\n"
+    }
+  ],
+  "source_sha256": {
+    "skills/lint-skills.sh": "50a22ce28ab500ee41077f0b25ffff7ea52b09219157cf56a297ca0463ed4255",
+    "skills/tree-search-coder/SKILL.md": "1599c5959c079dd47fba3e44a419caa2c57e8d2e273d03c2d21fa94fe9d2f31c",
+    "skills/tree-search-coder/references/algorithm.md": "3e502efe4dea8351555a81e4a514fe858e2aea34e02a5cd4a288576c1ca0586c",
+    "flake.nix": "f20ac15c7c9e7a503338bc8dbb48a0368365573351b630380f8af0b7f4eee9b9",
+    ".github/workflows/invariants.yml": "ba89b0253ee2da59ef29c260ef0af445998e62ed233cb36601197391a9f79d38"
+  }
+}

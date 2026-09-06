@@ -1,0 +1,28 @@
+{
+  "date": "2026-09-04",
+  "head": "fabcdbcc9fd67951087a9492fb45780bd379134b",
+  "scope": "source hash revalidation and proposed documentation; no new test run, corpus edit or remote deployment",
+  "prior_source_matches": {
+    "visionGraph/pipeline/validate.py": true,
+    "visionGraph/pipeline/prose_index.py": true,
+    "visionGraph/pipeline/jsonld_to_page_api.py": true,
+    "visionGraph/pipeline/jsonld_parser.py": true,
+    "visionGraph/pipeline/scaffold_index.py": true,
+    "visionGraph/pipeline/emit_graph_tiers.py": true,
+    "visionGraph/pipeline/backlinks.py": true,
+    "visionGraph/pipeline/jsonld_to_webvowl.py": true,
+    "visionGraph/pipeline/reason.py": true,
+    "visionGraph/pipeline/__init__.py": true,
+    "visionGraph/pipeline/jsonld_to_turtle.py": true,
+    "visionGraph/pipeline/conflicts.py": true,
+    "visionGraph/pipeline/gate.py": true,
+    "visionGraph/pipeline/iri_integrity.py": true,
+    "visionGraph/pipeline/build.py": true,
+    "visionGraph/pipeline/jsonld_to_search.py": true,
+    "visionGraph/README.md": true,
+    "visionGraph/.github/workflows/publish.yml": true
+  },
+  "preexisting_worktree_status": " D \"knowledge/pages/_misc/Comparison of GPT4 and Gemini Ultra.md\"\n D \"knowledge/pages/_misc/Comparison of SDXL and Midjourney v6.md\"\n D \"knowledge/pages/_misc/Contracts and jobs.md\"\n D knowledge/pages/_misc/Could.md\n D \"knowledge/pages/_misc/Create RAG from public pages.md\"\n D \"knowledge/pages/_misc/DELIVERY MANIFEST.md\"\n D \"knowledge/pages/_misc/Daily Driver Prompt.md\"\n D \"knowledge/pages/_misc/Daniel AI creative technologist.md\"\n D \"knowledge/pages/_misc/Daresbury Data Conference.md\"\n D \"knowledge/pages/_misc/Debug Test Page.md\"\n D \"knowledge/pages/_misc/FILE LISTING.md\"\n",
+  "current_misc_markdown_count": 8,
+  "note": "Prior receipt remains dated test/census evidence; existing corpus deletions preserved."
+}

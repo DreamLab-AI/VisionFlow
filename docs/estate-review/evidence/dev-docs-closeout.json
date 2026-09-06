@@ -1,0 +1,24 @@
+{
+  "date": "2026-09-04",
+  "scope": "Source review and actual read-only ADR validator; no image or service execution.",
+  "validator": {
+    "command": "node scripts/adr-index-gen.js docs/adr --check",
+    "exit_code": 1,
+    "stale_records": [
+      "ADR-2004",
+      "ADR-2005",
+      "ADR-2008",
+      "ADR-2027"
+    ],
+    "readme_written": false
+  },
+  "source_sha256": {
+    "scripts/dev-entrypoint.sh": "333e2f34cc80ee54fedde11e1bd9c2ed9757989ba7fa400908fd0136cf71dace",
+    "scripts/rust-backend-wrapper.sh": "766cac36b2b13f3c9ad541cdb06af9c9eb29db2996c4192eb2cfc1499706db3e",
+    "supervisord.dev.conf": "af371cbbaf646426413eb3c9a7d25c7b1d8e62b755dec2a958771859b2f8aebb",
+    "Dockerfile.unified": "c2bdc7872afabd06ea9e5d537304618a9420d39a1ad190b10f317024d86115e2",
+    "docker-compose.unified.yml": "99c909de518d99bb8e818c4caef49d1be3a10274ad8f377cf13e164b29371774",
+    "scripts/adr-index-gen.js": "38b7643de4590bb16068ef2d25f301718ae22c1c4b4ad3a54fb32373a3b8361b",
+    ".github/workflows/docs-ci.yml": "af777d620e99a6bc4350f6221d8949ce51ed2eaeeb12487c1ddc5fb3d127e32c"
+  }
+}

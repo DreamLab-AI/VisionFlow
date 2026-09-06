@@ -55,3 +55,6 @@ presentation/report/notebooklm/
 # copyrighted source material for the transition chapter — never commit
 luddites.txt
 doctorow.txt
+
+# agent-tooling session state (settings.local.json is ignored globally; the rest is per-session)
+.claude/

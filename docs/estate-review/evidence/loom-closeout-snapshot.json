@@ -1,0 +1,32 @@
+{
+  "date": "2026-09-04",
+  "head": "8cdef36bb571f0aed2d599d97a3efab02760b6d5",
+  "ruvector_head": "677b2475409c50cb964be8a3b848da2952390535",
+  "sources": {
+    "Cargo.toml": "05f7febd27a7fab3493b1ccc8c2affa539b45bcd95d2c008b1edb6ea2420a661",
+    "crates/loom-facade/src/mirror.rs": "bdaccf9503c6d32f57464d71bd56e885c246acb25db2951646e291aaa9dfaeb2",
+    "crates/loom-facade/src/routes/mod.rs": "85a596a8a6cbe8076ab782d74d06252f4e54cafb65dba0fdbc2061e726d88ae8",
+    "crates/loom-facade/src/routes/grounding.rs": "224d1a9bc63712bba5187c3450eb73f21faad1700b0b1daccdd71326bf2d3ff8",
+    "crates/loom-facade/tests/exp009_generation.rs": "fa274acb78c757f01c62a0e31b9c1e3171252ed3cfe6d908e91360258020f1b4"
+  },
+  "checks": [
+    {
+      "command": "cargo test --workspace --lib",
+      "exit_code": 0,
+      "scope": "default-feature library tests; includes temporary local vector DB tests, not external Postgres",
+      "selected_suite_counts": {
+        "loom-domain": 29,
+        "loom-scaffold": 56,
+        "loom-vector-ruvector": 6
+      }
+    },
+    {
+      "command": "cargo test -p loom-facade --test exp009_generation",
+      "exit_code": 0,
+      "passed": 7,
+      "failed": 0,
+      "scope": "temporary fixtures and generation/fusion helpers; not a running service reload"
+    }
+  ],
+  "limitations": "No live deployment, profile parity, recall-gate or complete HTTP consumer journey tested."
+}

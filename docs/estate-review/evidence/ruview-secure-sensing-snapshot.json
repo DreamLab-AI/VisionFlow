@@ -1,0 +1,40 @@
+{
+  "date": "2026-09-05",
+  "scope": "Source inspection only; no crypto, firmware build, upload, network or security acceptance executed",
+  "sources": [
+    {
+      "path": "/home/devuser/workspace/RuView/docs/adr/ADR-007-post-quantum-cryptography-secure-sensing.md",
+      "sha256": "5a5c68f72572e54c9d157e396dabac18a336f5e1b9494e269918c1a2a749954c"
+    },
+    {
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/rvf_container.rs",
+      "sha256": "37092b456f28054f5e8a13dd0e9f302c7f1d21e63eb4785f3c7117ec8ac1a3d9"
+    },
+    {
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/rvf_pipeline.rs",
+      "sha256": "1da194405b039b641c27d1ccde030895d74061ab7b52489d8a20173db8934db1"
+    },
+    {
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/Cargo.toml",
+      "sha256": "2c33565d5d7e13b0950cf96c88d486b97ed21e72efccb1b0b4405f30d0b3ad1e"
+    },
+    {
+      "path": "/home/devuser/workspace/RuView/firmware/esp32-csi-node/main/rvf_parser.c",
+      "sha256": "b2f9a3467f1ebd8e679ff81ee8ebff98bc7963d6359873c5afb433d252502f30"
+    },
+    {
+      "path": "/home/devuser/workspace/RuView/firmware/esp32-csi-node/main/wasm_upload.c",
+      "sha256": "b5172adbeffd43d1684d91dcb2289ff2103a03ef5b8a065ef0396d18e0980f06"
+    },
+    {
+      "path": "/home/devuser/workspace/RuView/firmware/esp32-csi-node/main/nvs_config.c",
+      "sha256": "e5c395f1bee0894a29a0da2e96d222807708ed8383875f6eae9508393250fa41"
+    }
+  ],
+  "bounded_pq_search": {
+    "exit_code": 1,
+    "output": "",
+    "stderr": "",
+    "scope": "Rust/TOML/Python/C/headers in rust-port, firmware and v1 excluding vendor; selected algorithm and ADR interface spellings"
+  }
+}

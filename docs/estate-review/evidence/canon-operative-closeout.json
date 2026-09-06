@@ -1,0 +1,39 @@
+{
+  "date": "2026-09-04",
+  "scope": "VisionFlow operative ADR consolidation; source and local checks only; no browser, CI or deployment run",
+  "head": "8cf1a1bf9e4ef2ef98ee6c7bf56ef361aa8d0304",
+  "sources": {
+    "website/build.sh": "9feb01595a2dca874e6ee0ddb84e381fc60379b61a96a7d6058e52ab42a78bac",
+    ".github/workflows/deploy.yml": "9a528b0b53e647d7d938e7f813dbb20a33c008a662e9cdea24bf8836d50ab089",
+    ".github/workflows/diagram-render.yml": "b3529c75e5ae28e263ef690c005273b80a72e1770f008dbcbe93615b8d320c87",
+    "scripts/check-diagram-text.js": "284a10654c6de4c8b84eee31eb56f0bc480ead169c6c23729a322e452eb5ae58",
+    "scripts/adr-index-gen.cjs": "53b25448c4ef188d673ab5cf4a8efb33e3d49d91c25bf3d911ac28e8ebdd4598",
+    "scripts/drift-counter/drift-counter.mjs": "26ce974175bd48316cb07c417b0c50097b2116e1a79774b77ea632403bd9debf",
+    "scripts/drift-counter/allowlist.json": "8fde90c547070cd746b7713df5141b15197edee58dc139b0783a6c296e159460",
+    "scripts/generate-release-manifest.sh": "edca52497aecff8f940d04e66c75c49285c881c786533e917bcb9dc704beda0d",
+    ".github/workflows/fixture-drift.yml": "aa2928caf661a9c6ef52832453f8d4ff6515e820535d6095bce5709804a4c491"
+  },
+  "checks": [
+    {
+      "argv": [
+        "node",
+        "scripts/adr-index-gen.cjs",
+        "docs/adr",
+        "--check"
+      ],
+      "exit_code": 0,
+      "stdout": "ok: 7 ADR(s) valid (--check, README not written)\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "node",
+        "scripts/check-diagram-text.js",
+        "presentation/report/diagrams/rendered"
+      ],
+      "exit_code": 0,
+      "stdout": "  ok    01-hierarchy-evolution.svg: 84 visible text nodes, 46/46 label words\n  ok    02-three-models-comparison.svg: 78 visible text nodes, 55/55 label words\n  ok    03-insight-ingestion-loop.svg: 42 visible text nodes, 26/26 label words\n  ok    04-compound-flywheel.svg: 36 visible text nodes, 29/29 label words\n  ok    05-kpi-dashboard.svg: 13 visible text nodes, 17/17 label words\n  ok    06-collaboration-modes.svg: 65 visible text nodes, 44/44 label words\n  ok    07-change-architecture.svg: 81 visible text nodes, 48/48 label words\n  ok    08-mesh-architecture-stack.svg: 96 visible text nodes, 59/59 label words\n  ok    09-resistance-patterns.svg: 16 visible text nodes, 21/21 label words\n  ok    10-1-9-90-adoption.svg: 52 visible text nodes, 34/34 label words\n\nAll 10 diagram(s) passed: visible text + key labels present.\n",
+      "stderr": ""
+    }
+  ]
+}

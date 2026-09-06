@@ -1,0 +1,82 @@
+{
+  "captured_at": "2026-09-04T20:28:39.121939+00:00",
+  "scope": "Source hashes and local lineage inspection; no Loom runtime proof",
+  "sources": {
+    "loom/Cargo.toml": "05f7febd27a7fab3493b1ccc8c2affa539b45bcd95d2c008b1edb6ea2420a661",
+    "loom/crates/loom-facade/src/lib.rs": "9de2b53d0300743d549a4eb3d15c88db853426af15bf1620adabba9c1ac749a6",
+    "loom/crates/loom-facade/src/config.rs": "a751c7a7cbcbf9c76b51b5a89887215365034d12bf3fe942453658b692523ae6",
+    "loom/crates/loom-facade/src/fusion.rs": "1c59955e2a838e329971916c1096c1d6872c874012ca63167f0aff5ea92718ec",
+    "loom/crates/loom-facade/src/mirror.rs": "bdaccf9503c6d32f57464d71bd56e885c246acb25db2951646e291aaa9dfaeb2",
+    "loom/crates/loom-facade/src/routes/mod.rs": "85a596a8a6cbe8076ab782d74d06252f4e54cafb65dba0fdbc2061e726d88ae8",
+    "loom/crates/loom-facade/src/routes/grounding.rs": "224d1a9bc63712bba5187c3450eb73f21faad1700b0b1daccdd71326bf2d3ff8",
+    "loom/crates/loom-facade/src/routes/health.rs": "b030d31163e54e4b281ed2d8366290b764b08bd7cc424cb66047c7a1a79b8fcd",
+    "loom/crates/loom-facade/src/bin/generation_check.rs": "c29b59b72e485520776cf541df398a9d52f6c189c15224f0ae27f350aca81a33",
+    "loom/crates/loom-scaffold/src/lib.rs": "38ba9e76f8cc0f8bbe5ff00e87087dd5eafc30fa63ab33a80e84ff5a7033a498",
+    "loom/crates/loom-graph-oxigraph/src/lib.rs": "264f093c2cae8f6d39bb8810df5e58be55755e37d76effbd29fc3540a7b421fe",
+    "loom/app/mirror.sh": "62daa5d200e86b39b03f93ef543f7b95dd3034d356973750e4999e721ffea5d1",
+    "loom/deploy/compose.profile-a.yml": "2f4fdce361c00acd37903996be999b000cc18e0653cfc3a42077c33e4ccf7d13",
+    "loom/deploy/entrypoint.sh": "9088d82caf0a480fdccb1bf4b39ac5b6f7095551492874dfe792981d0e5316ae"
+  },
+  "copies": [
+    {
+      "path": "logseq",
+      "resolved_path": "/home/devuser/workspace/project4",
+      "git_toplevel": "/home/devuser/workspace/project4",
+      "head": "4f233f3210972fe4d8b919b9aabac9bb774d0b8d",
+      "branch": "obsidian",
+      "sample_hashes": {
+        "modern/package.json": null,
+        "rust-wasm/Cargo.toml": null,
+        "modern/src/App.tsx": null
+      }
+    },
+    {
+      "path": "WasmVOWL",
+      "resolved_path": "/home/devuser/workspace/WasmVOWL",
+      "git_toplevel": "/home/devuser/workspace/WasmVOWL",
+      "head": "36105cc3ad04a91415b889799e8608b08cf68b45",
+      "branch": "master",
+      "sample_hashes": {
+        "modern/package.json": "b950207d9a06d09691700f10f7bffd0ffa290592d4c836a962da069d4f9bfacb",
+        "rust-wasm/Cargo.toml": "7c95598cb640fd733d9c42eb08e1d9303ea74e9c25a0be6d679f05a6ea0bd791",
+        "modern/src/App.tsx": "bf940a3f5edc5eaa013c636a3384974069961ba0ec7f086d1f51274f30dbc8b7"
+      }
+    },
+    {
+      "path": "knowledgeGraph/explorer",
+      "resolved_path": "/home/devuser/workspace/knowledgeGraph/explorer",
+      "git_toplevel": "/home/devuser/workspace/knowledgeGraph",
+      "head": "7bbf0aae2b60a63c2714b750e3b381bce6be7ad8",
+      "branch": "main",
+      "sample_hashes": {
+        "modern/package.json": "e95771a6cdf8753b83c8dc9767f48d3420d933335bf919551dcc9e3cd9529107",
+        "rust-wasm/Cargo.toml": "4cfc80e52d0530dcc499a6e2adfd912fd3af6e83bc1f07ef080ff49784a6d3b4",
+        "modern/src/App.tsx": "d28ae23d1e8946d3f966e4d5faf86d0124b56a3eac5a38dfe9f8a58d00340a60"
+      }
+    },
+    {
+      "path": "logseq/publishing-tools/WasmVOWL",
+      "resolved_path": "/home/devuser/workspace/project4/publishing-tools/WasmVOWL",
+      "git_toplevel": "/home/devuser/workspace/project4",
+      "head": "4f233f3210972fe4d8b919b9aabac9bb774d0b8d",
+      "branch": "obsidian",
+      "sample_hashes": {
+        "modern/package.json": "e95771a6cdf8753b83c8dc9767f48d3420d933335bf919551dcc9e3cd9529107",
+        "rust-wasm/Cargo.toml": "4cfc80e52d0530dcc499a6e2adfd912fd3af6e83bc1f07ef080ff49784a6d3b4",
+        "modern/src/App.tsx": "d28ae23d1e8946d3f966e4d5faf86d0124b56a3eac5a38dfe9f8a58d00340a60"
+      }
+    },
+    {
+      "path": "loom",
+      "resolved_path": "/home/devuser/workspace/loom",
+      "git_toplevel": "/home/devuser/workspace/loom",
+      "head": "8cdef36bb571f0aed2d599d97a3efab02760b6d5",
+      "branch": "main",
+      "sample_hashes": {
+        "modern/package.json": null,
+        "rust-wasm/Cargo.toml": null,
+        "modern/src/App.tsx": null
+      }
+    }
+  ]
+}

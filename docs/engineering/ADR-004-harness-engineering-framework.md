@@ -156,3 +156,104 @@ Build a dedicated harness service that mediates all agent-guide-sensor interacti
 Use LLM-as-judge for all validation, eliminating the computational/inferential split.
 
 **Rejected:** Non-deterministic validation as a merge gate creates flaky pipelines. Computational sensors are cheap, fast, and reliable — they should be the default gate. Inferential sensors complement but do not replace them.
+
+
+## Closeout extension — 2026-09-05
+
+The [section-level engineering assessment](../estate-review/engineering-governance.md) supplies current dispositions and CP-01/04/05/07/08/09 acceptance obligations. Preserve this record's original accepted/deferred/speculative distinctions. Declared pairing, existing helper code and signed mandate primitives are not complete runtime governance evidence.
+
+The [actual audit-script probes](../estate-review/evidence/harness-audit-probe.json) show that nonexistent source paths still count as source-backed and repeated pairing edges can yield 200% coverage. The workflow adds ID/reference checks but does not resolve control sources or invoke the full schema. No hosted CI, agent provisioning, precedent write or mandate operation ran.
+
+Closeout requires source-bound distinct coverage, actual consumer enforcement, authorised durable outcomes and revocation/recovery evidence. See the assessment table for every numbered decision in this record; unresolved proposals must retain explicit adoption or deferral.
+
+## Acceptance progress — 2026-09-05
+
+The **source-bound distinct coverage** obligation is discharged. The other three
+(consumer enforcement, authorised durable outcomes, revocation/recovery) are
+runtime-governance obligations and remain open; nothing here converts a script
+result into runtime evidence.
+
+`scripts/harness-audit.sh` had three defects, each reproduced in
+[harness-audit-probe.json](../estate-review/evidence/harness-audit-probe.json):
+
+**1. Source paths were never resolved.** A control counted as "source-backed"
+whenever `source_status` was absent or `"present"` — an unchecked
+self-declaration. The probe's `missing_sources_default_present` case scored a
+template naming two fabricated files at "2/2 controls source-backed (100.0%
+present)". Sources are now **resolved** against the substrate checkouts. The
+resolver handles the `SUBSTRATE:LOCATOR` form actually in use: `#anchor`
+fragments, `~/`-anchored runtime paths, globs, directories, and `' + '`-joined
+composites where every part must exist. Each source lands in one of five states
+— `resolved`, `unresolved` (declared present, path absent — **not**
+source-backed), `planned`, `descriptor` (a non-filesystem artefact such as an
+MCP namespace, which no path check can settle), or `unverifiable` (the substrate
+is not checked out).
+
+Running it immediately found four declared-present sources that did not exist,
+all the same "moved to archive" class as the ADR-2005 allowlist defect. All four
+repaired in the templates: `agentbox:docs/reference/adr/ADR-005-…` →
+`docs/archive/adr/…`; `visionclaw:docs/adr/ADR-075-…` → `docs/archive/adr/…`;
+`agentbox:~/.claude/agents/*.md` → the in-repo `agentbox:agents/*.md` (the home
+path is empty in this container, the repo path is real and checkable); and the
+CLAUDE.md-hierarchy composite's ambiguous `project/CLAUDE.md` third tier
+disambiguated to `~/workspace/project/CLAUDE.md`.
+
+**2. Pairing edges were counted with duplicates.** The ratio was
+`raw_pairing_count / max(guides, sensors)`, so the probe's `duplicate_pairings`
+case — one guide, one sensor, the same pairing twice — scored **200.0%** and
+passed any target. Edges are now de-duplicated on `(guide_id, sensor_id)`, and
+coverage counts **distinct paired guides and sensors** over the controls that
+exist. Since the paired sets are subsets of the declared sets, the ratio is
+bounded by 100% by construction rather than by hoping nobody repeats an edge.
+Edges referencing a non-existent control are reported as dangling and cannot
+evidence coverage.
+
+**3. Backing was counted per control, not per source.** Two controls naming one
+file counted as two backed controls. Backing is now capped at **distinct
+sources**; per-control figures are still printed alongside.
+
+Substrate availability follows the estate's partial-source failure mode
+(ADR-005 §Decision 2, as the drift counter already uses it): an absent checkout
+yields `unverifiable`, excluded from the denominator and reported, rather than
+counted as failure. `--strict-sources` turns unresolved and unverifiable into
+exit 1 for environments where every substrate is present.
+
+**Result.** The honest figure is lower than the fabricated one, which is the
+point: the old script reported 33/40 controls source-backed (82.5%); the audit
+now reports **31/39 distinct sources resolved (79.5%)** with **zero unresolved**,
+7 planned and 1 descriptor. Pairing coverage stays 100% (40 of 40 distinct
+paired controls over 20 de-duplicated edges) — that figure was always true, it
+just could not previously be distinguished from a false one.
+
+**Tests.** `tests/gates/harness-audit.test.sh`, 26 assertions, all passing, and
+wired into `harness-fitness-gates.yml` to run *before* the audit so CI proves the
+gate can fail before trusting it to pass. It replays both probe cases: [1] the
+duplicate-pairing template now scores 100% with the duplicate reported and no
+200% anywhere; [2] the fabricated-source template scores 0/2 backed and lists
+both, with [2b] exiting 1 under `--strict-sources`. [4] pins distinct-source
+capping, [5] the unverifiable-substrate path, [6] dangling edges, [7] the real
+templates at zero unresolved.
+
+Receipts: [harness audit log](../estate-closeout/2026-09-05/logs/harness-audit.log),
+[gate self-test log](../estate-closeout/2026-09-05/logs/gate-tests.log),
+[gate closeout receipt](../estate-closeout/2026-09-05/gate-closeout-receipt.json).
+
+**Remaining.** No hosted CI run; no agent provisioning, precedent write or
+mandate operation was executed, so consumer enforcement and durable-outcome
+evidence are untouched. The audit still does not validate templates against
+`harness-template.schema.json` — `harness-fitness-gates.yml` checks required
+fields, ID uniqueness and pairing references by hand rather than invoking a JSON
+Schema validator. D3 (`hooks.validate`) remains **Deferred**: its two dependent
+controls stay `source_status: planned`, now with resolvable paths. The
+`ruvector:governance-precedents namespace` guide is classified `descriptor` —
+honestly unverifiable by a filesystem check, and it needs a queryable source to
+become backed. §Context's "115 skills" is left as written: it is a dated
+statement of the situation at decision time, and the drift counter's scan list
+was narrowed to exclude ADR Context paragraphs for exactly that reason (the
+current sourced figure is 126).
+
+Governed paths changed: `scripts/harness-audit.sh`,
+`docs/engineering/templates/agentbox-agent-task.json`,
+`docs/engineering/templates/visionclaw-enrichment.json`,
+`.github/workflows/harness-fitness-gates.yml`,
+`tests/gates/harness-audit.test.sh` (new).

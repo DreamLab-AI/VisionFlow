@@ -1,0 +1,85 @@
+{
+  "date": "2026-09-04",
+  "scope": "actual Rust URI module in temporary offline crate and actual JS bridge; synthetic identifiers; no server or persistence",
+  "inputs": {
+    "texts": [
+      "",
+      "hello",
+      "\u00e9",
+      "e\u0301",
+      "{\"a\":1,\"b\":2}"
+    ],
+    "urns": [
+      "urn:agentbox:agent:1111111111111111111111111111111111111111111111111111111111111111:fixture",
+      "urn:agentbox:activity:1111111111111111111111111111111111111111111111111111111111111111:fixture",
+      "urn:agentbox:thing:1111111111111111111111111111111111111111111111111111111111111111:fixture",
+      "urn:agentbox:bead:1111111111111111111111111111111111111111111111111111111111111111:sha256-12-0123456789ab",
+      "urn:agentbox:memory:1111111111111111111111111111111111111111111111111111111111111111:fixture"
+    ],
+    "addresses": [
+      "sha256-12-0123456789ab",
+      "sha256-12-",
+      "sha256-12-nothex",
+      "sha256-12-0123456789ABCDEF"
+    ]
+  },
+  "rust": {
+    "addresses": [
+      {
+        "address": "sha256-12-0123456789ab",
+        "constructor_accepts": true,
+        "parser_accepts": true
+      },
+      {
+        "address": "sha256-12-",
+        "constructor_accepts": true,
+        "parser_accepts": true
+      },
+      {
+        "address": "sha256-12-nothex",
+        "constructor_accepts": true,
+        "parser_accepts": true
+      },
+      {
+        "address": "sha256-12-0123456789ABCDEF",
+        "constructor_accepts": true,
+        "parser_accepts": true
+      }
+    ],
+    "crossings": [
+      "did:nostr:1111111111111111111111111111111111111111111111111111111111111111",
+      "urn:visionclaw:execution:sha256-12-1f1697686c86",
+      "urn:visionclaw:kg:1111111111111111111111111111111111111111111111111111111111111111:sha256-12-86d16a5b3204",
+      null,
+      null
+    ],
+    "hashes": [
+      "sha256-12-e3b0c44298fc",
+      "sha256-12-2cf24dba5fb0",
+      "sha256-12-4a99557e4033",
+      "sha256-12-bf12767b0f2a",
+      "sha256-12-43258cff783f"
+    ]
+  },
+  "agentbox": {
+    "hashes": [
+      "sha256-12-e3b0c44298fc",
+      "sha256-12-2cf24dba5fb0",
+      "sha256-12-4a99557e4033",
+      "sha256-12-bf12767b0f2a",
+      "sha256-12-43258cff783f"
+    ],
+    "crossings": [
+      "did:nostr:1111111111111111111111111111111111111111111111111111111111111111",
+      "urn:visionclaw:execution:sha256-12-1f1697686c86",
+      "urn:visionclaw:kg:1111111111111111111111111111111111111111111111111111111111111111:sha256-12-86d16a5b3204",
+      "urn:visionclaw:bead:1111111111111111111111111111111111111111111111111111111111111111:sha256-12-0123456789ab",
+      null
+    ]
+  },
+  "source_sha256": {
+    "project/src/uri/mod.rs": "8526f9b8c42a6b362f64b811f63f53ab6f90be38e299cb4864a38d674e7f4745",
+    "project/agentbox/management-api/lib/bc20-provenance-bridge.js": "410189e97a70d6726ac0a510b6a0ee8a31cd6894a6e67b0464dda2bcd90980ec",
+    "project/agentbox/management-api/lib/uris.js": "83a418e3ebd7f03ed30d5163276ec0b0f62b699dbb2bbdfbdddad855050b32b4"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "date": "2026-09-05",
+  "scope": "Source review; actual model service with mocked successful transport resolving error JSON; no server/model/training/browser execution",
+  "sources": {
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/Cargo.toml": "2c33565d5d7e13b0950cf96c88d486b97ed21e72efccb1b0b4405f30d0b3ad1e",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/main.rs": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/lib.rs": "929c93cea8a966747ef2baeebf77ce0d89dc2b4c9bf59bde6211ca195148fe18",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/training_api.rs": "0298272248edb7f0f54eb21abb56e7862867bc00ea9f1c21942439060600eeb5",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/recording.rs": "e521f1132d93eb742c0ba01ef22cfa4145907dffcf8de09eecb377f5bfa42529",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/model_manager.rs": "6a4079d75be7be6b7d09da361f27075f145529b162484521277229f64b038120",
+    "ui/app.js": "b2bf1cc38ad4b592da255cf06e23b231d8cdc0a9ef704b87097ab6b669949cdf",
+    "ui/components/TrainingPanel.js": "96b3285d3a6020e30059e3f617b5737fa5fa00ce6d2a189ff1efb9858c5b087b",
+    "ui/components/ModelPanel.js": "41060024f2555d26bf7205cd54dc8e9d4d6b345420bcdb68ddce44525e045b9d",
+    "ui/components/SettingsPanel.js": "0c393d3111022daf5c3d723fa60ef3101a9d8fb783a8a21f76e57ddee60f8e1f",
+    "ui/components/LiveDemoTab.js": "70eeef57f8f00240874e2b818b4cede2697c4afbb49bda5cd54ca3da934d293e",
+    "ui/services/model.service.js": "b71bcabd010aa59f48a7bc7a8c94d66150fec5d55a5af5e4672a9d66b0c60292",
+    "ui/services/training.service.js": "1c0c7cc4d53e4127d2f826a92095b9b0fbaa4322f763eaffae9e9a6946b2ce99"
+  },
+  "probe": "import fs from 'node:fs';import assert from 'node:assert/strict';\nlet src=fs.readFileSync('/home/devuser/workspace/RuView/ui/services/model.service.js','utf8').replace(\"import { apiService } from './api.service.js';\",\"const apiService={post:async()=>({status:'error',message:'rejected'})};\");\nconst {ModelService}=await import('data:text/javascript;base64,'+Buffer.from(src).toString('base64'));const s=new ModelService();s.logger={info:()=>{},error:()=>{}};let event;s.on('model-loaded',v=>event=v);await s.loadModel('absent');assert.equal(s.activeModel.model_id,'absent');assert.equal(event.model_id,'absent');console.log('PASS: 2 assertions; resolved error body still sets activeModel and emits model-loaded');\n",
+  "stdout": "PASS: 2 assertions; resolved error body still sets activeModel and emits model-loaded\n",
+  "exit_code": 0,
+  "entrypoint_module_search": ""
+}

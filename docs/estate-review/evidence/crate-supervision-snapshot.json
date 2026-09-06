@@ -1,0 +1,40 @@
+{
+  "date": "2026-09-04",
+  "scope": "Manifest and source review only; no build timing, actor crash, mailbox saturation, context replacement or GPU execution.",
+  "workspace_members": [
+    ".",
+    "crates/visionclaw-contracts",
+    "crates/visionclaw-domain",
+    "crates/visionclaw-protocol",
+    "crates/visionclaw-adapters",
+    "crates/visionclaw-gpu",
+    "crates/visionclaw-ontology",
+    "crates/visionclaw-actors",
+    "crates/visionclaw-xr-presence",
+    "crates/visionclaw-analytics-oracle",
+    "crates/vault-migrate",
+    "crates/visionclaw-integration-tests"
+  ],
+  "workspace_exclude": [
+    "xr-client/rust",
+    "agentbox/crates/headroom-napi"
+  ],
+  "actor_source_counts": {
+    "src/actors": {
+      "direct_rs": 25,
+      "recursive_rs": 61
+    },
+    "crates/visionclaw-actors/src": {
+      "direct_rs": 4,
+      "recursive_rs": 11
+    }
+  },
+  "source_sha256": {
+    "Cargo.toml": "ce1efa50bfe823242fdb1c6f59655e9bf7e9c75ba6dbde7cf217ab6d253e7ab7",
+    "crates/visionclaw-actors/src/lib.rs": "bd70242bd551e150794a94f1a7912e89074c46f222d9b9d2eb771880abc4d565",
+    "src/actors/gpu/gpu_manager_actor.rs": "c8572022a3ef9e7cca342c0b9837be9ddd1ca210a1565327a3d1671c37e30f83",
+    "src/actors/gpu/resource_supervisor.rs": "cac76967265314f7d2333d7d969ebfa71adc5f8641470b9a16de41b7f486d53a",
+    "src/actors/gpu/physics_supervisor.rs": "33815e4bcc89fc9665a8d1f2321e79e0b256f4dd26b01339e78a600a73759153",
+    "src/actors/gpu/context_bus.rs": "e56ac7e20eb398a7971ce8a932508efe77d86baa705d035ab5684fc1e9c9070b"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "date": "2026-09-04",
+  "scope": "Actual locally built CLI with invented temporary pages; no real vault or in-place conversion.",
+  "tests": {
+    "command": "cargo test --locked --offline -p vault-migrate",
+    "exit_code": 0,
+    "unit_passed": 70,
+    "integration_passed": 16
+  },
+  "results": [
+    {
+      "case": "colliding_page_paths",
+      "exit_code": 0,
+      "namespace_body_retained": true,
+      "folder_body_retained": false,
+      "source_unchanged": true
+    },
+    {
+      "case": "dry_run_explicit_report",
+      "exit_code": 0,
+      "report_written": true,
+      "vault_output_created": false
+    }
+  ],
+  "source_sha256": {
+    "crates/vault-migrate/src/lib.rs": "77867f5bb70c9ce6c3013951f72533875604c55bec90a83ff426d6360b6e989a",
+    "crates/vault-migrate/src/main.rs": "c5956c434b5570bd6c0e48787a0f612e6ca8f086c82a3a917a9853cebda5848e",
+    "crates/vault-migrate/src/paths.rs": "47ad39815281f557d65606abf4ea3780661d4aeacd1bd12460574c1e89430b09",
+    "crates/vault-migrate/src/convert.rs": "bd21b61414590229509dd6d496b1f2bc098c7616a2a53d393ac9f23e7b4941ea"
+  }
+}

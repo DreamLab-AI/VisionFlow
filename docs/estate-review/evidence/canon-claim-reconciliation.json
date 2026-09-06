@@ -1,0 +1,14 @@
+{
+  "date": "2026-09-05",
+  "scope": "Local book claims compared with existing scoped implementation evidence; no external literature verification or runtime run",
+  "sources": {
+    "presentation/report/chapters/13-visionflow-canon.tex": "5faa59e2c56bc025f18d7f67acc2f0d9691dbae8691109d27968025bf6f3f0bb",
+    "presentation/report/chapters/15-open-questions.tex": "7d7c89c5771809b2b435b2f4b735a133290d519f3d27400d8cba7325f5d70fd1",
+    "docs/estate-review/role-authority.md": "866c7e026f5e1c3d918da5531358f05aabf085cd124821fb6637af9f5eb023e2",
+    "docs/estate-review/forum-decisions.md": "8c93a76e50d58260b5ec136abaaad7b23ae3351c4a3e9ca30d8560128cae5e52",
+    "docs/estate-review/canon-and-verification.md": "ef529b65f1c9c828f8df19bb7191364ae75deae68b75ae5e3e3aa525b1cb8d18",
+    "docs/estate-review/engineering-governance.md": "92097a74227d1cfc5189274cfebff0d12c082fc5f549f87f3426d9c45a2556bd",
+    "docs/estate-review/kpi-outcomes.md": "f6583bb73da497866a8c8b344a226432638d4b44d624b697636ee7b88925f360",
+    "docs/estate-review/agent-grounding-and-governance.md": "f7e8e35bdcc3cd18f0f8323d2323cc0c451445c652897698d40169fac9544654"
+  }
+}

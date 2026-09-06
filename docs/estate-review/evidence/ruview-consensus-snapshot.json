@@ -1,0 +1,24 @@
+{
+  "date": "2026-09-05",
+  "scope": "Source and ADR design inspection; no distributed process, partition, hardware or algorithm test executed",
+  "sources": [
+    {
+      "path": "/home/devuser/workspace/RuView/docs/adr/ADR-008-distributed-consensus-multi-ap.md",
+      "sha256": "9cbfef4df4aee240a3fd9d7f12e2d8b331608be7426e56ad03fb95bff155c201"
+    },
+    {
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/ruvsense/multistatic.rs",
+      "sha256": "6055ee010888c3e999f7888d51fcbebf9d2ddb41babf8b8684d73b9d9ac3d51e"
+    },
+    {
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/ruvsense/multiband.rs",
+      "sha256": "2fa5c4ff5482fc735e3fd2062bba2fecfae130ca9d0eacd0d43d8030a3df0e3f"
+    }
+  ],
+  "bounded_search": {
+    "expression": "raft|paxos|byzantine|VectorClock|CrdtMerge|ApCluster|consensus",
+    "scope": "Rust files in rust-port/wifi-densepose-rs/crates",
+    "exit_code": 0,
+    "output": "rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/ruvsense/multistatic.rs:238:/// Each node's contribution is weighted by its agreement with the consensus.\nrust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/ruvsense/multistatic.rs:248:    // Compute mean amplitude as consensus reference\nrust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/ruvsense/multistatic.rs:259:    // Compute attention weights based on similarity to consensus\n"
+  }
+}

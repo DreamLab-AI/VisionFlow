@@ -1,0 +1,18 @@
+{
+  "date": "2026-09-04",
+  "scope": "56 native domain vault tests and source trace; no real corpus scan, GitHub sync, graph ingest or rendered/publication test. Scalar/fallback findings are source-derived.",
+  "check": {
+    "command": "cargo test --locked --offline -p visionclaw-domain vault:: --lib",
+    "exit_code": 0,
+    "passed": 56,
+    "filtered_out": 203
+  },
+  "source_sha256": {
+    "crates/visionclaw-domain/src/vault/mod.rs": "9472885757154f0cb6d7c745505a892021c951f80b13846c73d7c179cc01f641",
+    "crates/visionclaw-domain/src/vault/link.rs": "59442b8cb8444d2d6f6a996f0424a710b99ab9cc4865ae4000bc00919c538ca8",
+    "src/services/file_service.rs": "8ab1c1578573b52d28996acdc7ee360de8ef8344313497e6e387cfafea33cd8c",
+    "src/services/github_sync_service.rs": "902b2c787f0ce216da2eff9219f4881703cf77a067260807742a9718cd9869ef",
+    "src/services/parsers/knowledge_graph_parser.rs": "e9ddcdf467aba929c1119ddb2fd258514feb420d7532b76733973d3d5747c1da",
+    "src/main.rs": "4a2a1546bdef22a823a28157ccc07ee6a0a0c9886bef5c51a5f98ca0738d02dc"
+  }
+}

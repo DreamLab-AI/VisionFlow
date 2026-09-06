@@ -1,0 +1,14 @@
+{
+  "date": "2026-09-05",
+  "scope": "Source-only path/count/deep-link review; no browser, relay, authentication, service-worker or runtime test",
+  "head": "f18b471e499b029d93cb14152edb6fb966abd274",
+  "sources": {
+    "crates/nostr-bbs-forum-client/src/app.rs": "51c5cffae1380fd754d84b0a551799b1b85c9f433efcacf2ee5a64e09fb8bd2b",
+    "crates/nostr-bbs-forum-client/src/main.rs": "27f7bd99e97a63040da421759685e17e213933227d279dfe0167ba4b57b46383",
+    "crates/nostr-bbs-forum-client/src/pages/login.rs": "96f48b15259bbc22f0f3d89acbf82c9ebd6f8b92b2627bfa17c5e808de71255a",
+    "crates/nostr-bbs-forum-client/src/pages/channel.rs": "53d8a8415b10494a93bc31539b3d293bd8ff0b19a8f86606e4a9d83dd4dcf9c9",
+    "crates/nostr-bbs-forum-client/src/stores/channels.rs": "e631f4452634f26e79736fe88401d56e4b37dcd7229516fb46b89c19d64f670a",
+    "crates/nostr-bbs-forum-client/src/pages/category.rs": "1dae2b7474afceb5b6b2f2e425dd143ea623b121d8016a317362a11904a829f9",
+    "crates/nostr-bbs-forum-client/src/pages/section.rs": "5812d6710336b82184c43ba24bc01363a8a9b80e8daf080a7d93819baa2f0371"
+  }
+}

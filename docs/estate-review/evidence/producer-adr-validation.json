@@ -1,0 +1,22 @@
+{
+  "date": "2026-09-04",
+  "repo": "knowledgeGraph",
+  "head": "7bbf0aae2b60a63c2714b750e3b381bce6be7ad8",
+  "checks": [
+    {
+      "command": "python3 -B -m pytest pipeline/tests -q -p no:cacheprovider",
+      "exit_code": 1,
+      "reason": "system Python lacks pytest"
+    },
+    {
+      "command": ".venv/bin/python -B -m pytest pipeline/tests -q -p no:cacheprovider",
+      "exit_code": 0,
+      "passed": 13
+    },
+    {
+      "command": "node scripts/adr-index-gen.js docs/adr",
+      "exit_code": 0,
+      "records_valid": 4
+    }
+  ]
+}

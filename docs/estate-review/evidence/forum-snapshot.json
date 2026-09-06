@@ -1,0 +1,18 @@
+{
+  "date": "2026-09-04",
+  "scope": "source only plus core domain tests; no live signing or publication",
+  "tests": {
+    "command": "cargo test --locked -p nostr-bbs-core governance --lib",
+    "exit_code": 0,
+    "passed": 47,
+    "filtered": 290
+  },
+  "source_sha256": {
+    "crates/nostr-bbs-core/src/governance.rs": "32bd70f308ae905dc4799aa449eab40d1e3bd790934530c5ad98083b9665a342",
+    "crates/nostr-bbs-forum-client/src/pages/governance.rs": "c414e7be70b4cab19bbbdd8fb7143cee631e34dae42b8e555f532285dab5a6e9",
+    "crates/nostr-bbs-forum-client/src/relay.rs": "899e39ee6160d3648415e1b353229b6496ba83afa79fa4b316ec560a016b0a5c",
+    "crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs": "8f2f33117d97e7de0f77e14bc533e0386e82e66d4340db76407a597b63b56273",
+    "crates/nostr-bbs-relay-worker/src/relay_do/storage.rs": "678b9216f594a854cb39595c26f7ca166b9a945e205652ad2bcc129b0fe6f246",
+    "crates/nostr-bbs-auth-worker/src/governance_api.rs": "97a6661e902ef73a09bef309420a9c9e7cab646871caedacb1b8323b63cbea22"
+  }
+}

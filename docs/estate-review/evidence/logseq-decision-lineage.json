@@ -1,0 +1,62 @@
+{
+  "date": "2026-09-04",
+  "historical_head": "4f233f3210972fe4d8b919b9aabac9bb774d0b8d",
+  "scope": "historical decision-theme/routing review, source inspection; no historical mutation or runtime test",
+  "records": [
+    {
+      "path": "docs/adr/ADR-NG-001-explorer-architecture.md",
+      "sha256": "eaac09671c83ba13ece576bda8da18ba6c620bed180108afdeb86eb6eaf57708",
+      "historical_declaration": "Accepted",
+      "packages": "CP-02/06/08",
+      "continuing_theme": "Tiered data, worker physics, instanced rendering and measured interaction budgets.",
+      "acceptance": "The current embedded explorer remains in visionGraph; standalone WasmVOWL is a separate tree. Establish code lineage and browser performance for each consumed variant; native codec tests do not prove worker transport, rendering or accessibility."
+    },
+    {
+      "path": "docs/adr/ADR-NG-002-iri-integrity-gate.md",
+      "sha256": "8587f801fc36bba28824a8de80bc6878cbd132d382f39a1e1311e8701cd4f77c",
+      "historical_declaration": "Proposed, with implementation note",
+      "packages": "CP-02/03/08",
+      "continuing_theme": "Baseline-aware orphan detection plus bounded-latency Loom reload.",
+      "acceptance": "visionGraph retains the IRI gate. Its baseline exempts existing page/IRI pairs; maintainers must remove repaired entries to prevent recurrence being accepted. Gate presence does not prove debt reduction or serving reload. Bind loaded Loom generation to the successful release and test a removed/reintroduced orphan."
+    },
+    {
+      "path": "docs/prd/ADR-014-enrichment-swarm-architecture.md",
+      "sha256": "d1eec329b999220c6099ad70fee1c88e0f1666666755e2a638f2d7db8dea5183",
+      "historical_declaration": "Accepted",
+      "packages": "CP-02/07/08",
+      "continuing_theme": "Partitioned enrichment, slug reservations and phased quality gates.",
+      "acceptance": "Historical model names, agent counts and review sampling are execution choices, not current mandates. Require per-page source/provenance, semantic validation, reservation recovery and evidence against each phase criterion before accepting generated enrichment."
+    },
+    {
+      "path": "docs/prd/ADR-015-jsonld-native-pipeline.md",
+      "sha256": "4ffe09654586143b8bc97c9abfc552a3b32ffe8310ea2f88bc9033cd8da4ba19",
+      "historical_declaration": "Accepted",
+      "packages": "CP-02/06/08",
+      "continuing_theme": "Replace old property converters with JSON-LD publishing; retain compatible consumers and validate exports.",
+      "acceptance": "Current publisher retains the Python lineage but the Obsidian/frontmatter interface adds a distinct policy. RDF parsing alone cannot prove OWL profile conformance or reasoner closure. Verify deletion/inclusion, export identities and actual explorer compatibility; frozen notes no longer has the old live publishing role."
+    },
+    {
+      "path": "docs/prd/ADR-016-website-ux-architecture.md",
+      "sha256": "d0c0a298c20104d8a27ccf36fdd6b1f2fb71271f3ef041f09641162059161030",
+      "historical_declaration": "Proposed",
+      "packages": "CP-02/06/08",
+      "continuing_theme": "Deep-link routing, readable Markdown, metadata disclosure, filtering and notes integration.",
+      "acceptance": "Proposed UX must be evaluated against the deployed embedded client. Test cold routes, query/hash preservation, namespace links, accessible controls and safe metadata rendering. Frozen notes needs explicit historical presentation; documentation does not prove browser behaviour."
+    },
+    {
+      "path": "mainKnowledgeGraph/ADR-LCR-01-swarm-refactor-strategy.md",
+      "sha256": "295ecb2627e06558caa2a6f8136b6a959c784fe9a9ecaea6a887bb7746e90eb3",
+      "historical_declaration": "Amended; structural conversion complete, enrichment ongoing",
+      "packages": "CP-01/02/07/08",
+      "continuing_theme": "Manifest-led corpus conversion, bounded batches and provenance with human review for ambiguity.",
+      "acceptance": "Preserve pre-split commit identity in archived history. Structural conversion is not content enrichment or semantic acceptance. Trace transformed-page manifest entries, unresolved review cases and source identity into current namespace paths; do not restart the historical swarm from this assessment."
+    }
+  ],
+  "source_sha256": {
+    "visionGraph/pipeline/iri_integrity.py": "85bed354b73f19295591584dcdd39f91b3c7625e8528210bacc52084f599f861",
+    "visionGraph/pipeline/iri_integrity_baseline.json": "1bdc1d7237efa44df2cc78d2896d1ef52aa27e93b21d72a09bfedc6d32bde9df",
+    "visionGraph/.github/workflows/publish.yml": "23db3850970d40a471270788b3b7ec58efc001b29f23af00f76b46901deb37b7",
+    "project4/www/api/markdown/adr-008.md": "6f1b00f8f88eb33bd4b9a3e0fb47bf04cee4d9d23d15a71f2a0e3fae7ababc3d",
+    "project4/www/api/markdown/adr-012.md": "8e2b6570515cd5c828fc034857fdb407df8ced4cc16dc9f378180851a992f6a5"
+  }
+}

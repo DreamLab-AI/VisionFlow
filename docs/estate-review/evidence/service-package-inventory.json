@@ -1,0 +1,85 @@
+{
+  "date": "2026-09-04",
+  "scope": "Tracked and nonignored local service manifests, adjacent files and document source. No package archive creation, registry lookup/publication or legal compatibility assessment.",
+  "packages": [
+    {
+      "manifest": "services/agentbox-manifest/Cargo.toml",
+      "name": "agentbox-manifest",
+      "declared_license": "MIT OR Apache-2.0",
+      "publish": "unspecified",
+      "adjacent_license_files": [],
+      "adjacent_readmes": [],
+      "sha256": "168c16971a7da7e7964106f5f838c4410abb281ac2aecc20357ffbaa721305b4"
+    },
+    {
+      "manifest": "services/agentbox-mcp/Cargo.toml",
+      "name": "agentbox-mcp",
+      "declared_license": "MIT OR Apache-2.0",
+      "publish": "unspecified",
+      "adjacent_license_files": [],
+      "adjacent_readmes": [],
+      "sha256": "e5f93ec1960f07110d61faa8d6b9fef1b4b0458620e799400d6f5cd12da29b30"
+    },
+    {
+      "manifest": "services/agentbox-ops/Cargo.toml",
+      "name": "agentbox-ops",
+      "declared_license": "MIT OR Apache-2.0",
+      "publish": "unspecified",
+      "adjacent_license_files": [],
+      "adjacent_readmes": [],
+      "sha256": "bb665750c37bb3fb9c7eeb8640a4f235abb3c8a407e2a972a6f3acad405603f4"
+    },
+    {
+      "manifest": "services/dream-engine/Cargo.toml",
+      "name": "dream-engine",
+      "declared_license": "MIT OR Apache-2.0",
+      "publish": "unspecified",
+      "adjacent_license_files": [],
+      "adjacent_readmes": [],
+      "sha256": "3fa9f19798dbc4c3fac4412cc64d7564409231e8f8bc668f23234e88e35d43b6"
+    },
+    {
+      "manifest": "services/nostr-pod-bridge/Cargo.toml",
+      "name": "nostr-pod-bridge",
+      "declared_license": "AGPL-3.0-only",
+      "publish": "unspecified",
+      "adjacent_license_files": [],
+      "adjacent_readmes": [],
+      "sha256": "4380b0188e5fa87010b9853429cbc6b07afb520e60e6537d13d15a0767bd0427"
+    },
+    {
+      "manifest": "services/ontology-tools/Cargo.toml",
+      "name": "ontology-tools",
+      "declared_license": "MIT OR Apache-2.0",
+      "publish": "unspecified",
+      "adjacent_license_files": [],
+      "adjacent_readmes": [],
+      "sha256": "3a1a658fe8d0b3a1425952c962f788ff20b473cc7de2519cd5ecfc397a52aa52"
+    },
+    {
+      "manifest": "services/podcast-ingest/Cargo.toml",
+      "name": "podcast-ingest",
+      "declared_license": "MIT OR Apache-2.0",
+      "publish": "unspecified",
+      "adjacent_license_files": [],
+      "adjacent_readmes": [],
+      "sha256": "e68dcf3d0c5fc7b61feba563e9251693c1772b50eae0d53c0b5059069829b7ff"
+    },
+    {
+      "manifest": "services/skill-tools/Cargo.toml",
+      "name": "skill-tools",
+      "declared_license": "MIT OR Apache-2.0",
+      "publish": "unspecified",
+      "adjacent_license_files": [],
+      "adjacent_readmes": [],
+      "sha256": "5f1f6c408b4501743b795b10f0c4145ff7b6215f8a2c03c92ba75949a280fc5d"
+    }
+  ],
+  "document_sha256": {
+    "services/LICENSING-NOTICE.md": "d4e919e28528a7d6ec07b09b8f17df8a38a2478ac51ecf84e397370248038359",
+    "docs/developer/licensing.md": "5a34c982b667a05c1c66bba8b548fde261c3968fdfbf0446871a2a144b7c6de9",
+    "docs/developer/ecosystem.md": "8d342e13e3806dfff60118a2adf5f91f84fe1c3a9139017815acccd9dd46128a",
+    "lib/prose-sanitiser.nix": "5ea0174be2e22935b9074f173eb008648a95fc37a519774ede88acde3f7ea9d4",
+    "lib/diagram-ir.nix": "9512ffd18eea9b9916bc14c0d57ad6a040925bf662939a68fbd566ec6ff8c663"
+  }
+}

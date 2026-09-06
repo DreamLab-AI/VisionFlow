@@ -1,0 +1,17 @@
+{
+  "date": "2026-09-05",
+  "scope": "Unchanged service imported in isolated Node process; fetch stub only; no browser, WebSocket, hardware or model execution",
+  "sources": {
+    "ui/services/sensing.service.js": "44722ec346ae6ee8ba62f8cd2bfde9be1d93a20b7d8c6cd72f60689b95384f27",
+    "ui/components/SensingTab.js": "0f741a877b728540cdc35042ba8fcd5ec5a5fd4e3a01b77d8c9841befd99f04d",
+    "ui/components/gaussian-splats.js": "b663350d6e0877f641e5bd5f616c0a7ce9461cece4873eda5838d8794113c896",
+    "ui/utils/backend-detector.js": "b251384143bc7de59b18e8454e10a505be31cef81f72ba159c91db4874df004b",
+    "ui/services/api.service.js": "0e38d5d4ef14dba2cbd475e0374e6ab66bbbf8f67ed04ae145c915691eeda9d3",
+    "ui/services/health.service.js": "b6db9edf7276b3737bb17dc916cf81f3be2470ff2c82665e11b5dbed28139e86",
+    "ui/app.js": "b2bf1cc38ad4b592da255cf06e23b231d8cdc0a9ef704b87097ab6b669949cdf"
+  },
+  "probe": "import fs from 'node:fs';\nimport assert from 'node:assert/strict';\nconst src=fs.readFileSync('/home/devuser/workspace/RuView/ui/services/sensing.service.js','utf8');\nconst {sensingService:s}=await import('data:text/javascript;base64,'+Buffer.from(src).toString('base64'));\nglobalThis.fetch=async()=>({ok:false});\nawait s._detectServerSource();\nassert.equal(s.dataSource,'live');\ns._applyServerSource('wifi');\nassert.equal(s.dataSource,'live');\ns._applyServerSource('esp32');\ns._setState('reconnecting'); s._setDataSource('reconnecting'); s._setState('connected');\ns._handleData({source:'esp32',timestamp:1,features:{mean_rssi:-40}});\nassert.equal(s.dataSource,'reconnecting');\ns._setState('disconnected');\nlet retained; s.onData(v=>retained=v);\nassert.equal(retained.timestamp,1);\nconsole.log('PASS: 4 assertions: failed status labels live; wifi maps live; repeated source after reconnect retains reconnecting; disconnected subscriber receives retained frame');\n",
+  "exit_code": 0,
+  "stdout": "PASS: 4 assertions: failed status labels live; wifi maps live; repeated source after reconnect retains reconnecting; disconnected subscriber receives retained frame\n",
+  "stderr": ""
+}

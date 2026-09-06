@@ -1,0 +1,384 @@
+{
+  "captured_at": "2026-09-04T20:27:00.424879+00:00",
+  "scope": "Local source pipelines, existing tests and synthetic publication-boundary fixtures; no production or credential reads.",
+  "repositories": {
+    "knowledgeGraph": {
+      "head": "7bbf0aae2b60a63c2714b750e3b381bce6be7ad8",
+      "tracked_changes": []
+    },
+    "logseq": {
+      "head": "4f233f3210972fe4d8b919b9aabac9bb774d0b8d",
+      "tracked_changes": [
+        " M .agentic-qe/llm-config.json",
+        " M .claude-flow/data/pending-insights.jsonl",
+        " M .claude-flow/metrics/codebase-map.json",
+        " M .claude-flow/metrics/consolidation.json",
+        " M .claude-flow/metrics/performance.json",
+        " M ai-daily-brief-transcripts/.ingest-log.txt",
+        " M mainKnowledgeGraph/.agentic-qe/llm-config.json",
+        " M mainKnowledgeGraph/pages/.claude-flow/metrics/codebase-map.json",
+        " M mainKnowledgeGraph/pages/.claude-flow/metrics/consolidation.json",
+        " M mainKnowledgeGraph/pages/.claude-flow/metrics/performance.json"
+      ]
+    }
+  },
+  "workers": [
+    {
+      "command": [
+        "/home/devuser/workspace/knowledgeGraph/.venv/bin/python",
+        "-B",
+        "/home/devuser/workspace/VisionFlow/docs/estate-review/evidence/knowledge-probes.py",
+        "knowledgeGraph"
+      ],
+      "cwd": "/home/devuser/workspace/knowledgeGraph",
+      "exit_code": 0,
+      "stderr": "",
+      "result": {
+        "repo": "knowledgeGraph",
+        "census": {
+          "markdown_files": 8138,
+          "parsed_pages": 8138,
+          "public_pages": 8138,
+          "non_boolean_public_values": 0,
+          "entities": 8138,
+          "source_individuals": 0,
+          "validation": {
+            "total_pages": 8138,
+            "pages_with_ontology": 8138,
+            "public_pages": 8138,
+            "total_issues": 1403,
+            "errors": 0,
+            "warnings": 0,
+            "info": 1403,
+            "by_code": {
+              "MULTI_PARENT": 1403
+            }
+          }
+        },
+        "malformed_fence": {
+          "input_files": 1,
+          "parsed_pages": 0,
+          "validation": {
+            "total_pages": 0,
+            "pages_with_ontology": 0,
+            "public_pages": 0,
+            "total_issues": 0,
+            "errors": 0,
+            "warnings": 0,
+            "info": 0,
+            "by_code": {}
+          }
+        },
+        "string_false_public": {
+          "parsed_type": "str",
+          "validation": {
+            "total_pages": 1,
+            "pages_with_ontology": 0,
+            "public_pages": 1,
+            "total_issues": 0,
+            "errors": 0,
+            "warnings": 0,
+            "info": 0,
+            "by_code": {}
+          },
+          "page_published": true
+        },
+        "full_build": {
+          "validation": {
+            "total_pages": 8138,
+            "pages_with_ontology": 8138,
+            "public_pages": 8138,
+            "total_issues": 1403,
+            "errors": 0,
+            "warnings": 0,
+            "info": 1403,
+            "by_code": {
+              "MULTI_PARENT": 1403
+            }
+          },
+          "stats": {
+            "pipelineVersion": "ng-1.0.0",
+            "attributedTo": "did:nostr:jjohare",
+            "provenance": {
+              "did": "did:nostr:jjohare",
+              "label": "DreamLab AI",
+              "corpusNature": "synthetic-ai-generated-human-directed"
+            },
+            "corpus": {
+              "nature": "synthetic",
+              "description": "Mostly AI-generated synthetic content, produced under human direction, by design \u2014 this corpus exists to exercise and demonstrate the VisionFlow pipeline and VisionClaw engine on a medium-scale ontology (~7.4k classes, ~100k relations). Provenance (did:nostr, generatedAtTime, URNs) attests traceable generation under human direction, not human authorship."
+            },
+            "datasetDate": "2026-09-04",
+            "pages": 8134,
+            "classes": 8138,
+            "individuals": 0,
+            "nodes": 8138,
+            "domains": 6,
+            "categories": 34,
+            "uncategorised": 66,
+            "domainless": 0,
+            "bridging": {
+              "multiParent": 1403,
+              "crossCategory": 479,
+              "crossDomain": 156
+            },
+            "edges": {
+              "declared": 113506,
+              "declaredBackbone": 9749,
+              "declaredRelations": 103757,
+              "resolvable": 101321,
+              "backbone": 9621,
+              "relations": 91700
+            },
+            "scopes": {
+              "full": {
+                "nodes": 8138,
+                "backbone": 9621,
+                "relations": 91700,
+                "shipped": 101321,
+                "relationsCapped": 0,
+                "bytes": 1380011
+              },
+              "domain-artificial-intelligence": {
+                "nodes": 1500,
+                "backbone": 1724,
+                "relations": 10387,
+                "shipped": 12111,
+                "relationsCapped": 7309,
+                "bytes": 222259,
+                "nodesTruncated": 483
+              },
+              "domain-blockchain": {
+                "nodes": 1455,
+                "backbone": 1458,
+                "relations": 8150,
+                "shipped": 9608,
+                "relationsCapped": 5359,
+                "bytes": 200697,
+                "nodesTruncated": 0
+              },
+              "domain-spatial-computing": {
+                "nodes": 1231,
+                "backbone": 1324,
+                "relations": 4699,
+                "shipped": 6023,
+                "relationsCapped": 1518,
+                "bytes": 164313,
+                "nodesTruncated": 0
+              },
+              "domain-robotics": {
+                "nodes": 601,
+                "backbone": 703,
+                "relations": 3068,
+                "shipped": 3771,
+                "relationsCapped": 1166,
+                "bytes": 82925,
+                "nodesTruncated": 0
+              },
+              "domain-distributed-collaboration": {
+                "nodes": 145,
+                "backbone": 137,
+                "relations": 425,
+                "shipped": 562,
+                "relationsCapped": 19,
+                "bytes": 18958,
+                "nodesTruncated": 0
+              },
+              "domain-infrastructure": {
+                "nodes": 1500,
+                "backbone": 1286,
+                "relations": 10413,
+                "shipped": 11699,
+                "relationsCapped": 5245,
+                "bytes": 217216,
+                "nodesTruncated": 1223
+              }
+            }
+          },
+          "rdf_triples": 265796,
+          "rdf_named_individuals": 5,
+          "rdf_named_individual_iris": [
+            "https://narrativegoldmine.com/individual/maturity-deprecated",
+            "https://narrativegoldmine.com/individual/maturity-draft",
+            "https://narrativegoldmine.com/individual/maturity-emerging",
+            "https://narrativegoldmine.com/individual/maturity-established",
+            "https://narrativegoldmine.com/individual/maturity-stub"
+          ],
+          "rdf_classes": 8140,
+          "scaffold_index_emitted": false,
+          "inferred_turtle_emitted": false
+        }
+      }
+    },
+    {
+      "command": [
+        "/home/devuser/workspace/knowledgeGraph/.venv/bin/python",
+        "-B",
+        "/home/devuser/workspace/VisionFlow/docs/estate-review/evidence/knowledge-probes.py",
+        "logseq"
+      ],
+      "cwd": "/home/devuser/workspace/logseq",
+      "exit_code": 0,
+      "stderr": "",
+      "result": {
+        "repo": "logseq",
+        "census": {
+          "markdown_files": 8435,
+          "parsed_pages": 8434,
+          "public_pages": 8420,
+          "non_boolean_public_values": 0,
+          "entities": 8434,
+          "source_individuals": 0,
+          "validation": {
+            "total_pages": 8434,
+            "pages_with_ontology": 8434,
+            "public_pages": 8420,
+            "total_issues": 1481,
+            "errors": 1,
+            "warnings": 84,
+            "info": 1396,
+            "by_code": {
+              "MULTI_PARENT": 1396,
+              "INVALID_DOMAIN": 84,
+              "DUPLICATE_IRI": 1
+            }
+          }
+        },
+        "malformed_fence": {
+          "input_files": 1,
+          "parsed_pages": 0,
+          "validation": {
+            "total_pages": 0,
+            "pages_with_ontology": 0,
+            "public_pages": 0,
+            "total_issues": 0,
+            "errors": 0,
+            "warnings": 0,
+            "info": 0,
+            "by_code": {}
+          }
+        },
+        "string_false_public": {
+          "parsed_type": "str",
+          "validation": {
+            "total_pages": 1,
+            "pages_with_ontology": 0,
+            "public_pages": 1,
+            "total_issues": 0,
+            "errors": 0,
+            "warnings": 0,
+            "info": 0,
+            "by_code": {}
+          },
+          "page_published": true
+        },
+        "private_ancestor_probe": {
+          "public_page_inferred_superclasses": [
+            {
+              "id": "urn:ngm:class:private-grandparent",
+              "label": "private-grandparent",
+              "slug": "private-grandparent"
+            }
+          ],
+          "public_page_keys": [
+            "id",
+            "title",
+            "slug",
+            "public",
+            "classIri",
+            "domain",
+            "definition",
+            "subClassOf",
+            "entityType",
+            "qualityScore",
+            "maturity",
+            "relationships",
+            "inferredSuperClasses",
+            "inheritedRelations",
+            "wikilinks",
+            "backlinks"
+          ],
+          "private_grandparent_present_in_public_page": true,
+          "scaffold_inferred_ancestors": [
+            "private-grandparent"
+          ],
+          "private_ancestor_present_in_inferred_turtle": true,
+          "private_page_published": false
+        },
+        "iri_representation": {
+          "asserted_turtle": "https://narrativegoldmine.com/class/public-child",
+          "closure_iri": "urn:ngm:class:public-child"
+        }
+      }
+    }
+  ],
+  "tests": [
+    {
+      "command": [
+        "/home/devuser/workspace/knowledgeGraph/.venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "pipeline/tests",
+        "-q",
+        "-p",
+        "no:cacheprovider"
+      ],
+      "cwd": "/home/devuser/workspace/knowledgeGraph",
+      "exit_code": 0,
+      "stdout": ".............                                                            [100%]\n13 passed in 0.26s\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/home/devuser/workspace/knowledgeGraph/.venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "pipeline/tests",
+        "-q",
+        "-p",
+        "no:cacheprovider"
+      ],
+      "cwd": "/home/devuser/workspace/logseq",
+      "exit_code": 0,
+      "stdout": "....................................................                     [100%]\n52 passed in 0.36s\n",
+      "stderr": ""
+    }
+  ],
+  "source_sha256": {
+    "knowledgeGraph/pipeline/__init__.py": "2eadf77e378cafece16d0dc388891bb5a31771ebd22b4d6c6db58384d81d3ced",
+    "knowledgeGraph/pipeline/backlinks.py": "36ed62b355938bf470bbfc62262564b6658f7afc9463252bef69e5ae23f0e67c",
+    "knowledgeGraph/pipeline/build.py": "134724e6275cf38bf6236c4b9c1d1e2f6e7dd22f052986e22465e6de8e18dba0",
+    "knowledgeGraph/pipeline/emit_graph_tiers.py": "43f4a80a3028d942b2cada03e824fc6d9beb063af5907ae25cd9116bc5b60197",
+    "knowledgeGraph/pipeline/jsonld_parser.py": "0c7b4379c2c18e1da4bb88124a275c03f8a9e752642594d1816f621e39b1ba5d",
+    "knowledgeGraph/pipeline/jsonld_to_page_api.py": "e28b47829d2215ef18f3235be59deef86404afcc0082836b68cc3613a196e552",
+    "knowledgeGraph/pipeline/jsonld_to_search.py": "bbd72a7c55d74c5d1020cb4cb544bb654bef1259bf3b40bbdda172ddf510be4f",
+    "knowledgeGraph/pipeline/jsonld_to_turtle.py": "d868b4314014e833435a6033dd81a9c4ceea1cbbd15cfbedf74aea2a0d48b79a",
+    "knowledgeGraph/pipeline/jsonld_to_webvowl.py": "34ce427214322dc691cc02f31c57074341fc2133416916f27bdea0f41cefebfa",
+    "knowledgeGraph/pipeline/ontocast_import.py": "ada148732c5961ccdddd8ae481d5f58eb127a68e84a7e47f92d28f5f0e28397f",
+    "knowledgeGraph/pipeline/validate.py": "42d24541cf2ceeb785413966d95e6543765af9076b68a7e5d89256c04ebc141e",
+    "knowledgeGraph/.github/workflows/build.yml": "6251f6c55a4bca059d3471be95a42ecf70f0ff24a351fe8be16a10491200c33b",
+    "logseq/pipeline/__init__.py": "2eadf77e378cafece16d0dc388891bb5a31771ebd22b4d6c6db58384d81d3ced",
+    "logseq/pipeline/backlinks.py": "36ed62b355938bf470bbfc62262564b6658f7afc9463252bef69e5ae23f0e67c",
+    "logseq/pipeline/build.py": "955ecd34b476c0ee9d0e62de48cb492771c015c48eb1a7905a883610e24b8d91",
+    "logseq/pipeline/conflicts.py": "ce721ec6c30308ba24baaa12c9a4e03a6bffe5199ca809724aa479bd36b7b83e",
+    "logseq/pipeline/emit_graph_tiers.py": "88900219c8e3a2c8b141b837a5c60eb6fe3cda86141309e12ecff0cb80b48557",
+    "logseq/pipeline/gate.py": "15a3297df968874f48e979875868c52770300a4070d8b461df7d2bca07d3d600",
+    "logseq/pipeline/iri_integrity.py": "309a459f3e993ec2790eb8b5300194e08993c663aeea5f91e95f48e240e239aa",
+    "logseq/pipeline/jsonld_parser.py": "9ff9208ded224515299d260c1d8e800bab664eec481ff816ad80d87c5d75b8d3",
+    "logseq/pipeline/jsonld_to_page_api.py": "845874c4537a1f5fab56c9d9f807e4275994f8982be961251b890192527cfd9c",
+    "logseq/pipeline/jsonld_to_search.py": "bbd72a7c55d74c5d1020cb4cb544bb654bef1259bf3b40bbdda172ddf510be4f",
+    "logseq/pipeline/jsonld_to_turtle.py": "9e8ae23e544ae96a8feda270f1ff193fc369ed628cf77a2f7a08d7c599a29887",
+    "logseq/pipeline/jsonld_to_webvowl.py": "34ce427214322dc691cc02f31c57074341fc2133416916f27bdea0f41cefebfa",
+    "logseq/pipeline/prose_index.py": "8a57b4463ba00f3923a55dfb1b461d80beeb04759f3ba40453bf85589397dfa1",
+    "logseq/pipeline/reason.py": "9b51a3e77f918244e128a292b84317cc2034d6dafeebeb28a611fad7f8d00f69",
+    "logseq/pipeline/scaffold_index.py": "1c2cd81ae4e18a4e23a5fe5a48c137013abd9e38678945ebfbc162e0997de5fd",
+    "logseq/pipeline/validate.py": "42d24541cf2ceeb785413966d95e6543765af9076b68a7e5d89256c04ebc141e",
+    "logseq/.github/workflows/enrich-gate.yml": "db5192f5eb6262d8b22a731f691f6f437283716559d2ec74eb6a30a83914639b",
+    "logseq/.github/workflows/publish-logseq-spa.yml": "ebe9526bca867ff6f85621f2f609e7eec7e344ff6b483f904418c7d6f8eecde9",
+    "logseq/.github/workflows/publish.yml": "1ffe7a2b3681430c568c1c7cc6db0184c0f3d9ed8314cbc896c215f3f8863f87",
+    "logseq/.github/workflows/sync-from-mobile.yml": "94e2a8d6f2eacac3cf77e04db2b8c6b7c33d33b248ee440cb0683e730828d637",
+    "logseq/.github/workflows/sync-to-mobile.yml": "fdec436158fc26a7f207d7333c93d9ac1f875f02cf0100288a0cd6fe91253688"
+  }
+}

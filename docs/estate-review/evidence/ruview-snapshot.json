@@ -1,0 +1,26 @@
+{
+  "date": "2026-09-04",
+  "head": "b48ab7dada5002414ec18d36a5d652e0f1bd4a67",
+  "sources": {
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/main.rs": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-hardware/src/esp32_parser.rs": "da9ebc660fbed213b4d5d9f6319fc461ac9b48117b035747263245f02966f974",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-mat/src/integration/hardware_adapter.rs": "3e1518eb06f18d1db9707e9565c1e55bd9cae1d97b62509a3cac251dc13c158c",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-mat/src/integration/neural_adapter.rs": "55c8c8ce6cf50b36ae060b61940aff2e4ac07773adf57b56269fc0632c6cb61a",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/rvf_container.rs": "37092b456f28054f5e8a13dd0e9f302c7f1d21e63eb4785f3c7117ec8ac1a3d9",
+    "firmware/esp32-csi-node/main/csi_collector.c": "6ad22fbe047f789dce3f25dd7ceb44be31c48dcb62564224d3367bcb5bf8fbbf"
+  },
+  "tests": {
+    "command": "cargo test --manifest-path rust-port/wifi-densepose-rs/Cargo.toml -p wifi-densepose-hardware --lib --no-default-features",
+    "exit_code": 0,
+    "passed": 100,
+    "failed": 0,
+    "ignored": 0,
+    "scope": "hardware crate unit tests including loopback UDP; no physical hardware"
+  },
+  "consumer_search": {
+    "VisionClaw": "No ruview/wifi-densepose matches in Cargo.toml, docker-compose*.yml, crates or src",
+    "agentbox": "No matches in agentbox.toml or flake.nix",
+    "limitation": "Does not exclude separately configured external consumers or differently named adapters"
+  },
+  "upstream_reference": "ruvnet-kb search retrieved later upstream desktop/hardware documentation; local checkout used for all implementation conclusions"
+}

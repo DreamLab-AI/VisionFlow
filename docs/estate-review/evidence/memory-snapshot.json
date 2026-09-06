@@ -1,0 +1,26 @@
+{
+  "date": "2026-09-04",
+  "head": "89301ec7c911eab270c00a0cf81596d0d4f15535",
+  "sources": {
+    "mcp/servers/ruvector-mcp.cjs": "94bf64157ed67e6fd5fadf0aff7d141c1a9297f1f59f354acfbb184605c2da5b",
+    "mcp/servers/lib/memory-tools.js": "6be25b6d99ea4172620a184b2736027814f16144ea239df18071375df778edca",
+    "mcp/servers/lib/memory-metadata.js": "b580be0eaf4416a3e94f65b62eaf2e5450c87ed8efa9a3a9660c134d4ffb0e9d",
+    "mcp/servers/lib/ruvector-gates.js": "b8fdafae4bd33ed33ff4e664a867c1fca7003a8e1c9669b51f052d9480fc996d",
+    "agentbox.toml": "008da44421abc52481ea11c77bf0800cc6c1b8b051b0759766d7a4f160e86bc9",
+    "scripts/ruvector-recall-harness.mjs": "69740b43a0972a800395615f942d505a4fa7aea25721e31ffe513e50736b1a2b"
+  },
+  "checks": [
+    {
+      "command": "node mcp/servers/lib/memory-tools.test.js",
+      "exit_code": 0,
+      "passed": 10,
+      "scope": "mock dependencies, response shapes"
+    },
+    {
+      "command": "node docs/estate-review/evidence/memory-store-probes.cjs",
+      "exit_code": 0,
+      "scope": "production factory with injected mocks; SQL captured, never executed"
+    }
+  ],
+  "limitations": "No real memory data queried beyond mandatory MCP orientation; no DB mutation, migration, index rebuild or recall benchmark."
+}

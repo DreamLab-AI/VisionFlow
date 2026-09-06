@@ -1,5 +1,36 @@
 name: Deploy to GitHub Pages
 
+# Publication gate (ADR-2003 closeout, 2026-09-05).
+#
+# The previous version built the site and uploaded it. Nothing between those two
+# steps could reject a defective candidate: a build that produced a page with
+# missing media, broken internal links, absent meta tags or a stale diagram
+# baseline was published exactly as readily as a correct one, and the repo's
+# verify sequence (`npm run verify`, the dream-cycle evaluators, the diagram
+# guard, the drift counter) ran only in other workflows or by hand.
+#
+# The build job now runs those gates BEFORE `upload-pages-artifact`, so a
+# candidate that fails any of them never reaches the deploy job. The gates are
+# split into two classes:
+#
+#   BLOCKING  asset inventory, build sentinel, internal-link integrity, meta
+#             tags, structured data, diagram baseline. All are self-contained:
+#             they need only this checkout, so they are enforceable here and a
+#             failure is a genuine defect in the candidate.
+#
+#   REPORTED  the self-description drift counter, which reads its truth from a
+#             pinned agentbox checkout. Where that sibling checkout is
+#             unavailable (no credentials on this runner) the axis cannot be
+#             evaluated, so the counter runs in reported mode and does not block
+#             — the partial-source failure mode of ADR-005 §Decision 2. When the
+#             checkout succeeds it blocks, because then it is measuring
+#             something real.
+#
+# The build receipt (website/build-receipt.json) records the published artefact
+# revision, the dist tree digest, per-asset hashes, and each gate's verdict, and
+# is uploaded alongside the site so a published page can be traced to the
+# revision and the checks that admitted it.
+
 on:
   push:
     branches: [main]
@@ -20,12 +51,131 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # Pinned to the same revision as scripts/drift-counter/allowlist.json
+      # .source_pin.revision. Optional: without credentials this step fails and
+      # the drift counter degrades to reported mode rather than blocking.
+      - name: Check out agentbox (drift-counter count sources, pinned)
+        id: agentbox
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          repository: DreamLab-AI/agentbox
+          ref: 89301ec7c911eab270c00a0cf81596d0d4f15535
+          path: _agentbox
+
+      # ── build ───────────────────────────────────────────────────────────
+      # build.sh itself fails on any missing REQUIRED asset declared in
+      # website/assets.manifest.json.
       - name: Build website
         run: |
           cd website
           chmod +x build.sh
           ./build.sh
 
+      # ── BLOCKING gate 1: asset inventory, stamped with the published revision
+      - name: Gate — asset inventory and build receipt
+        run: |
+          node scripts/website-assets.mjs verify \
+            --published-revision "${GITHUB_SHA}"
+
+      # ── BLOCKING gate 2: the build output exists and is a site
+      - name: Gate — build output
+        run: |
+          set -euo pipefail
+          OUT="$(bash scripts/dream-build-check.sh)"
+          echo "$OUT"
+          grep -q '^BUILD-OK$' <<< "$OUT" || { echo "::error::build output check failed"; exit 1; }
+
+      # ── BLOCKING gate 3: every internal link and asset reference resolves
+      - name: Gate — internal link integrity
+        run: |
+          set -euo pipefail
+          OUT="$(bash scripts/dream-link-check.sh)"
+          echo "$OUT"
+          grep -q '^LINK-INTEGRITY-OK$' <<< "$OUT" \
+            || { echo "::error::internal links or assets are missing from dist/"; exit 1; }
+
+      # ── BLOCKING gate 4: required meta tags are present
+      - name: Gate — meta tags
+        run: |
+          set -euo pipefail
+          OUT="$(bash scripts/dream-meta-tags-scan.sh)"
+          echo "$OUT"
+          grep -q '^META-SCAN-OK$' <<< "$OUT" \
+            || { echo "::error::required meta tags missing from the built page"; exit 1; }
+
+      # ── BLOCKING gate 5: structured data parses
+      - name: Gate — structured data
+        run: |
+          set -euo pipefail
+          OUT="$(bash scripts/dream-structured-data-scan.sh)"
+          echo "$OUT"
+          grep -q '^SD-SCAN-OK$' <<< "$OUT" \
+            || { echo "::error::structured data on the built page does not parse"; exit 1; }
+
+      # ── BLOCKING gate 6: committed diagram baseline still has visible text
+      # The browser-free authoritative guard from the RES-b render gate; the
+      # re-render half needs Chrome and stays in diagram-render.yml.
+      - name: Gate — diagram baseline (text visibility)
+        run: node scripts/check-diagram-text.js presentation/report/diagrams/rendered
+
+      # ── REPORTED (or blocking, when the sibling checkout landed) ─────────
+      - name: Gate — self-description drift counter
+        id: drift
+        env:
+          DRIFT_AGENTBOX_DIR: ${{ github.workspace }}/_agentbox
+        run: |
+          set -uo pipefail
+          if [[ "${{ steps.agentbox.outcome }}" != "success" ]]; then
+            echo "::warning::agentbox checkout unavailable — drift counter runs in REPORTED mode and does not block."
+            node scripts/drift-counter/drift-counter.mjs || true
+            echo "verdict=reported" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          node scripts/drift-counter/drift-counter.mjs
+          echo "verdict=enforced-pass" >> "$GITHUB_OUTPUT"
+
+      # ── record the gate verdicts in the receipt ──────────────────────────
+      - name: Record gate verdicts in the build receipt
+        run: |
+          set -euo pipefail
+          node -e '
+            const fs = require("node:fs");
+            const p = "website/build-receipt.json";
+            const r = JSON.parse(fs.readFileSync(p, "utf8"));
+            r.gates = {
+              asset_inventory:   "blocking-pass",
+              build_output:      "blocking-pass",
+              link_integrity:    "blocking-pass",
+              meta_tags:         "blocking-pass",
+              structured_data:   "blocking-pass",
+              diagram_baseline:  "blocking-pass",
+              drift_counter:     process.env.DRIFT_VERDICT || "reported",
+            };
+            r.published = {
+              target: "github-pages",
+              revision: process.env.GITHUB_SHA,
+              workflow_run: process.env.GITHUB_RUN_ID,
+              ref: process.env.GITHUB_REF,
+            };
+            fs.writeFileSync(p, JSON.stringify(r, null, 2) + "\n");
+            console.log(JSON.stringify(r.gates, null, 2));
+          '
+        env:
+          DRIFT_VERDICT: ${{ steps.drift.outputs.verdict }}
+
+      - name: Upload build receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-build-receipt
+          path: website/build-receipt.json
+
+      # Only reached when every blocking gate passed.
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

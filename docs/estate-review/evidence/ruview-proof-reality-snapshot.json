@@ -1,0 +1,34 @@
+{
+  "date": "2026-09-05",
+  "scope": "Source audit and failed default Python replay; no dependencies installed, expected hashes regenerated, Docker builds or hardware runs",
+  "sources": {
+    "v1/src/core/csi_processor.py": "776fe66a93f520c0dd30f670fa63db6817d8839f70627bf3af05bf1236f27af1",
+    "v1/src/hardware/csi_extractor.py": "ce8c95f568df60e3e662e33331234a87239cb6e245477958b832bde3afcc2c8b",
+    "v1/src/hardware/router_interface.py": "a1a87dd505ef04ad4b612a703e9f9f699f9782090801ee95c990a2dc61296d1f",
+    "v1/src/core/router_interface.py": "aca33f0e0d65d96c3c317bf155d2a898d0ccb3042d8c06a8900efca4fc5488aa",
+    "v1/src/services/pose_service.py": "e12c896305090b54ec2593356bb6d9f6ac3e9d4f8b3cf802b4ec729917114e3f",
+    "v1/src/api/dependencies.py": "74db6e61b7276089700fb504b27a0bac8a864c78aed8ddd93548629191ae2e15",
+    "v1/src/config/settings.py": "ea5bc795f1246e4f0f6b9cb97dcfa817d71da99e29d6aefd59ecea1f950828f3",
+    "v1/src/testing/__init__.py": "ff79dcd158c872da9179b9fdbc674141ea27f7632a29cddb5f504080d1467fba",
+    "v1/src/api/routers/health.py": "01aaf7facda1b1092e373209f978f02a94a8d8db895d3a8a251a6920497af4fc",
+    "v1/data/proof/verify.py": "764dea46f3fbbedda33b7b7472d82f1fac41dcc2a51154db9a2d9836bfda87a5",
+    "v1/data/proof/generate_reference_signal.py": "800113e738f419659c8f72444056dff815b39a4359078e9f569019c5a5cee6b2",
+    "v1/data/proof/sample_csi_meta.json": "ef8ef49fe83e9e453dc86eec5d63eed1ca1c7802b029f8a428c5aa4167555342",
+    "v1/data/proof/expected_features.sha256": "d313cfe09d6ba6ce3d0fcc91808113b48f7b08911cd1a51b27667b15375ecadb",
+    "v1/requirements-lock.txt": "1c3409d519315be8c9a1ececd618df2050eb57607ac2641d317f4d1d25c7bba7",
+    ".github/workflows/verify-pipeline.yml": "7297ef666fb370b776fcf18d77ecbac6d94bac9ee8709da89a3e6b16b82340b5",
+    "docker/Dockerfile.python": "618dea409602e5d9ed6f9cd16904bc622cb235b58f5564a86eeb30c2b764280e",
+    "ui/config/api.config.js": "a3a71a52fa39fb6bcf7d223036168e9e9b8d2251e1dff362184dbaedd9eb192e"
+  },
+  "replay": {
+    "command": "python3 v1/data/proof/verify.py",
+    "exit_code": 1,
+    "stdout": "",
+    "stderr": "Traceback (most recent call last):\n  File \"/home/devuser/workspace/RuView/v1/data/proof/verify.py\", line 46, in <module>\n    import numpy as np\nModuleNotFoundError: No module named 'numpy'\n"
+  },
+  "missing_planned_paths": [
+    "Dockerfile",
+    "v1/docs/hardware-setup.md",
+    "v1/data/proof/sample_csi_capture.bin"
+  ]
+}

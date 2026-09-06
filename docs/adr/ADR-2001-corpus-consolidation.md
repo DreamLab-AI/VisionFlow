@@ -54,3 +54,11 @@ Established at `c205575`: `git mv` of the seven `docs/ADR-00{1..7}-*.md` into
 written with citations verified against `website/build.sh`, `website/static/index.html`,
 `.github/workflows/deploy.yml`, `scripts/diagram-render/` and `scripts/drift-counter/`;
 index regenerated with `node scripts/adr-index-gen.cjs docs/adr` exiting 0.
+
+## Closeout extension — 2026-09-04
+
+Retain accepted/complete/live for the repository consolidation mechanism. The local validator accepts all seven operative records, and the archive and thin ledger exist. This does not complete historical section-level reconciliation, resolve the separate engineering sequence or establish generated-index freshness. The current check explicitly does not write README.
+
+**Closeout (CP-01/09):** Close when each candidate has an explicit governing scope and disposition, frozen history has traceable successors or continuing obligations, and generated navigation agrees with the reviewed records. Keep canon and engineering IDs qualified by path. The estate assessment remains open.
+
+[Canon assessment](../estate-review/canon-and-verification.md), [source hashes and local check receipt](../estate-review/evidence/canon-operative-closeout.json), [execution sequence](../estate-review/closeout/execution-sequence.md). Historical verification above is preserved; this annex assesses the current working tree.

@@ -1,0 +1,70 @@
+{
+  "date": "2026-09-05",
+  "sources": [
+    {
+      "path": "/home/devuser/workspace/project/agentbox/config/hooks/trajectory-recorder.cjs",
+      "sha256": "e7cc79bdc5595f7d6cf2dd829dd20b7845d15b4e91b3066800f28388005e4ecb"
+    },
+    {
+      "path": "/home/devuser/workspace/project/agentbox/config/hooks/lib/trajectory-util.cjs",
+      "sha256": "76d7ee4d6efc5e274e4ea5935c7beff8a5a18b2dc008ff7a0d7199cb62e5719b"
+    },
+    {
+      "path": "/home/devuser/workspace/project/agentbox/management-api/routes/agent-events.js",
+      "sha256": "1da3e69491530e70771ea4a14b9e3a1f6be0e66f96563bed2e9ce73b93d1687f"
+    },
+    {
+      "path": "/home/devuser/workspace/project/agentbox/management-api/utils/agent-event-publisher.js",
+      "sha256": "488ebb0e5f89d2416834f562ea494f373c157417eefc4c9126006153227106b8"
+    },
+    {
+      "path": "/home/devuser/workspace/project/agentbox/tests/sovereign/ctc-emitter-wire.test.js",
+      "sha256": "7d4192bccd8616e4fd07f3d1f9f7b8a6238c79812aa628b509f9950535d14522"
+    },
+    {
+      "path": "/home/devuser/workspace/project/agentbox/tests/sovereign/trajectory-util.test.js",
+      "sha256": "eae4b9ca393d55361020823d8c2ec8e74edb6a71a2dcb9610f838697490872d5"
+    },
+    {
+      "path": "/home/devuser/workspace/project/src/agent_events/schema.rs",
+      "sha256": "0cd32cd89bb4981facf9157c3a028e1312e301cffb107b7be34af783cd927c32"
+    },
+    {
+      "path": "/home/devuser/workspace/project/src/agent_events/ingest.rs",
+      "sha256": "2839a3b75d27f3a57461bd0caa736ff468b7e247ef27a63fc764cdc9de170bb7"
+    },
+    {
+      "path": "/home/devuser/workspace/project/src/services/kpi_compute.rs",
+      "sha256": "7de3995807e0677d694fe2972aabaa9ddb5cd54bf5f3a7e17bb47f592f720bd4"
+    },
+    {
+      "path": "/home/devuser/workspace/project/src/adapters/sqlite_kpi_repository.rs",
+      "sha256": "b19df4f95860edd39ff1c828cd495651594e60354ccb9fdf6adefd3f736c6241"
+    },
+    {
+      "path": "/home/devuser/workspace/project/src/services/provenance_trace.rs",
+      "sha256": "c20b7d8f873e68180210ef885b31facf428e42b6a8f04cb54482bf4083037504"
+    }
+  ],
+  "validation": {
+    "command": "node node_modules/jest/bin/jest.js --config '{\"testEnvironment\":\"node\",\"roots\":[\"<rootDir>/tests/sovereign\"],\"testMatch\":[\"**/ctc-emitter-wire.test.js\",\"**/trajectory-util.test.js\"]}' --runInBand",
+    "cwd": "/home/devuser/workspace/project/agentbox",
+    "exit_code": 0,
+    "suites_passed": 2,
+    "tests_passed": 17,
+    "scope": "Pure utility and in-process Fastify injection/publisher; no actual recorder HTTP, live DB, VisionClaw WS or UI"
+  },
+  "helper_probe": {
+    "assertions": 5,
+    "turn_tokens": 150,
+    "two_step_sum": 300,
+    "verification_present": false,
+    "chain_only_emits": true,
+    "scope": "Actual helper synthetic inputs; scanner assignment source-reviewed, not executed"
+  },
+  "search_scope": {
+    "agentbox": "Hidden JS/CJS/TS/TSX/HTML source excluding node_modules, git, dist and vendor; contextual.transaction|handoff_count|ctcEmit|ctc.figure|ctc.dashboard",
+    "visionclaw": "client/src TS/TSX exact CTC/token_count/handoff_count/handoff_id: no matches; kpi_compute and kpi_handler matching token_count only capture assignment",
+    "limitation": "No claim of absence in every language, external dashboard or deployment"
+  }
+}

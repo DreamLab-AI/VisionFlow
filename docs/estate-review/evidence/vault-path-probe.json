@@ -1,0 +1,29 @@
+{
+  "date": "2026-09-04",
+  "scope": "actual extracted resolver with stub empty manifest reader and fresh environment; no real vault, terminal or consumer changed",
+  "results": [
+    {
+      "case": "no_vault_no_override",
+      "exit_code": 0,
+      "enabled": "0",
+      "vault_pages": "",
+      "legacy_override": ""
+    },
+    {
+      "case": "no_vault_legacy_override",
+      "exit_code": 0,
+      "enabled": "0",
+      "vault_pages": "",
+      "legacy_override": "/fixture/old-pages"
+    }
+  ],
+  "source_sha256": {
+    "config/entrypoint-unified.sh": "a7b5d992d53e0ab331010bf1a8656c578651635c7b62c8e4401e40e277293858",
+    "config/tmux-autostart.sh": "013e00e9d8f9d705196e90b598a92101edb1d192148f4be5c8ce2037883ca9b5",
+    "mcp/servers/lib/ontology-local.js": "c932a92340fa3b69a28070ca25fbddb02955082726e32e484d0637fedf014663",
+    "mcp/servers/lib/ontology-index-build.js": "271e76e60315c1cd92b01977d56100e172c230428141257d99463dfd47fe13ec",
+    "scripts/ontology-condense-scheduler.mjs": "bb2f6d4f989c3c11d660ee1cf44c510477773330e4fb67785008bd0f81ebeb98",
+    "scripts/ontology-condense-refresh.sh": "bc0b60806948c538894b172a5b480800b986121ee7bc31a02647764f9162f99a",
+    "lib/rune.nix": "080d312b6af3ec2ae1e72d1af19b04c212f38972a437269571325661a32cc419"
+  }
+}

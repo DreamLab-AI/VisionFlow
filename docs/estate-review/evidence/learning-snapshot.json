@@ -1,0 +1,16 @@
+{
+  "date": "2026-09-04",
+  "head": "89301ec7c911eab270c00a0cf81596d0d4f15535",
+  "sources": {
+    "config/hooks/trajectory-recorder.cjs": "e7cc79bdc5595f7d6cf2dd829dd20b7845d15b4e91b3066800f28388005e4ecb",
+    "config/hooks/lib/trajectory-util.cjs": "76d7ee4d6efc5e274e4ea5935c7beff8a5a18b2dc008ff7a0d7199cb62e5719b",
+    "mcp/servers/lib/aggregate-effectiveness.js": "0c9aaac134c645e1073ba3a37b10a54088126d1cb221f2816f957805ea645f1e"
+  },
+  "tests": {
+    "command": "node node_modules/jest/bin/jest.js tests/sovereign/trajectory-util.test.js tests/sovereign/effectiveness-learning.test.js --runInBand --config '{\"testEnvironment\":\"node\",\"testMatch\":[\"**/tests/sovereign/*.test.js\"]}'",
+    "passed": 27,
+    "failed": 0,
+    "exit_code": 0
+  },
+  "limitations": "Source, helper tests and invented redaction sentinels only; no actual transcripts, database writes or learning-loop deployment tested."
+}

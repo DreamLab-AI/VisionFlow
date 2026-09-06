@@ -1,0 +1,44 @@
+{
+  "date": "2026-09-05",
+  "sources": [
+    {
+      "path": "/home/devuser/workspace/project/agentbox/config/hooks/nostr-live-mirror.cjs",
+      "sha256": "b8b31f57810580f81cced3a0b4875754a1904a8fb75771ecd0fb71c47ce93274"
+    },
+    {
+      "path": "/home/devuser/workspace/project/agentbox/services/nostr-pod-bridge/src/session_summary.rs",
+      "sha256": "2829c5e12c75bc5d8ace64165fab1edcbc311b6a519abb3bf9240aca0419da02"
+    },
+    {
+      "path": "/home/devuser/workspace/project/agentbox/management-api/routes/uri-resolver.js",
+      "sha256": "eb14834909a2064af74ee9c6ed37b53586a5de5b7ff1e95560f7101237e2a046"
+    },
+    {
+      "path": "/home/devuser/workspace/project/agentbox/management-api/routes/agent-events.js",
+      "sha256": "1da3e69491530e70771ea4a14b9e3a1f6be0e66f96563bed2e9ce73b93d1687f"
+    },
+    {
+      "path": "/home/devuser/workspace/project/agentbox/management-api/utils/agent-event-publisher.js",
+      "sha256": "488ebb0e5f89d2416834f562ea494f373c157417eefc4c9126006153227106b8"
+    },
+    {
+      "path": "/home/devuser/workspace/project/agentbox/tests/sovereign/nostr-live-mirror-provenance.test.js",
+      "sha256": "7c52b761c7dc0c9938f301876f87b80e0f712e50b837d5ed8a59dd1de5867805"
+    }
+  ],
+  "existing_tests": {
+    "suite": "tests/sovereign/nostr-live-mirror-provenance.test.js",
+    "runner": "node node_modules/jest/bin/jest.js, explicit node environment and sovereign roots, runInBand",
+    "passed": 9,
+    "exit_code": 0,
+    "scope": "Body composition and deterministic minter/URL structure only"
+  },
+  "route_probe": {
+    "assertions": 5,
+    "minted_without_record": 404,
+    "latest_of_two": 200,
+    "returned_records": 1,
+    "after_1000_other_events": 404,
+    "scope": "Actual Fastify and publisher in isolated process with synthetic events; no message, socket or database"
+  }
+}

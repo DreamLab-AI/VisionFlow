@@ -1,0 +1,42 @@
+{
+  "date": "2026-09-04",
+  "scope": "actual privacy wrapper, synthetic calls and injected fetch; no OPF, real adapter, persistence or network",
+  "results": [
+    {
+      "method": "store",
+      "opf_calls": 1,
+      "received": {
+        "key": "INVENTED_DISPATCH_SENTINEL",
+        "value": "REDACTED_FIXTURE",
+        "metadata": {
+          "note": "INVENTED_DISPATCH_SENTINEL"
+        }
+      },
+      "value_type": "string"
+    },
+    {
+      "method": "createEpic",
+      "opf_calls": 0,
+      "received": {
+        "title": "INVENTED_DISPATCH_SENTINEL"
+      },
+      "value_type": "undefined"
+    },
+    {
+      "method": "store",
+      "opf_calls": 1,
+      "received": {
+        "key": "fixture",
+        "value": "REDACTED_FIXTURE"
+      },
+      "value_type": "string"
+    }
+  ],
+  "source_sha256": {
+    "management-api/middleware/privacy-filter.js": "5246a1026fc807130302adbf77a0cf8ef48b55e0f5c2a1dc1630ea0f7857fcd2",
+    "management-api/observability/metrics.js": "6c46c134bd45cdc8da540b9a46548c8a8825bbda72bd075d4b9ee84a88c3c307",
+    "management-api/adapters/index.js": "f299c334ebd7caea773cf3a0f1e783305d4ccdadf55ccdaee169a8df0840edd0",
+    "management-api/server.js": "0098d9b3e2df4f5c5dee4330fa7c2826c5b6113a558bcb8b5e790d0ae42204ed",
+    "management-api/middleware/linked-data/encoder.js": "90e0b06154d29af64c3437d5f1ae3276a31a49e1cc943f369f7f18bf9917bebd"
+  }
+}

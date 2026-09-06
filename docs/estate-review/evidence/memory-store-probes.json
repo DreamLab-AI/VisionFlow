@@ -1,0 +1,65 @@
+{
+  "method": "production factory, injected mock database and embedding failure; no external mutation",
+  "stored": {
+    "success": true,
+    "action": "store",
+    "key": "synthetic",
+    "namespace": "probe",
+    "stored": true,
+    "embedded": false,
+    "storage": "ruvector-postgres",
+    "metadata": {
+      "memory_type": "semantic",
+      "ttl_seconds": 1,
+      "expires_at": "2026-09-04T21:25:22.229Z"
+    }
+  },
+  "metadata": {
+    "memory_type": "semantic",
+    "ttl_seconds": 1,
+    "expires_at": "2026-09-04T21:25:22.229Z"
+  },
+  "queries": [
+    {
+      "sql": "INSERT INTO memory_entries (id, namespace, key, value, source_type, metadata, embedding)\n         VALUES ($1, $2, $3, $4::jsonb, $5, $6::jsonb, NULL)\n         ON CONFLICT (id) DO UPDATE SET value = EXCLUDED.value, metadata = EXCLUDED.metadata, embedding = COALESCE(EXCLUDED.embedding, memory_entries.embedding), updated_at = NOW()",
+      "params": [
+        "agentbox:probe:synthetic",
+        "probe",
+        "synthetic",
+        "\"new value\"",
+        "agentbox",
+        "{\"memory_type\":\"semantic\",\"ttl_seconds\":1,\"expires_at\":\"2026-09-04T21:25:22.229Z\"}"
+      ]
+    },
+    {
+      "sql": "SELECT key, value, source_type FROM memory_entries WHERE namespace = $1 AND key = $2 ORDER BY updated_at DESC LIMIT 1",
+      "params": [
+        "probe",
+        "synthetic"
+      ]
+    },
+    {
+      "sql": "SELECT key, value, source_type FROM memory_entries WHERE namespace = $1 ORDER BY created_at DESC LIMIT $2",
+      "params": [
+        "probe",
+        2
+      ]
+    },
+    {
+      "sql": "DELETE FROM memory_entries\n        WHERE (metadata->>'memory_type') = 'episodic'\n          AND (metadata->>'expires_at') IS NOT NULL\n          AND (metadata->>'expires_at')::timestamptz < now()\n          AND namespace = $1 AND NOT (namespace = ANY($2))",
+      "params": [
+        "probe",
+        [
+          "governance-precedents"
+        ]
+      ]
+    }
+  ],
+  "observations": {
+    "nullEmbeddingInsert": true,
+    "retainOldEmbeddingOnReplacement": true,
+    "retrieveFiltersExpiry": false,
+    "listFiltersExpiry": false,
+    "sweepRequiresEpisodic": true
+  }
+}

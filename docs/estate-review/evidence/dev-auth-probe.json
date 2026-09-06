@@ -1,0 +1,68 @@
+{
+  "date": "2026-09-04",
+  "scope": "Actual extracted helper and boot-hygiene functions with original cfg attributes; synthetic fresh environments and three rustc feature/debug combinations. No full Cargo/image build, listener, HTTP or headset test.",
+  "results": [
+    {
+      "build": "release",
+      "dev_mode": null,
+      "exit_code": 0,
+      "bypass": "false"
+    },
+    {
+      "build": "release",
+      "dev_mode": "0",
+      "exit_code": 2,
+      "bypass": null
+    },
+    {
+      "build": "release",
+      "dev_mode": "1",
+      "exit_code": 2,
+      "bypass": null
+    },
+    {
+      "build": "release_dev_auth",
+      "dev_mode": null,
+      "exit_code": 0,
+      "bypass": "false"
+    },
+    {
+      "build": "release_dev_auth",
+      "dev_mode": "0",
+      "exit_code": 0,
+      "bypass": "false"
+    },
+    {
+      "build": "release_dev_auth",
+      "dev_mode": "1",
+      "exit_code": 0,
+      "bypass": "true"
+    },
+    {
+      "build": "debug",
+      "dev_mode": null,
+      "exit_code": 0,
+      "bypass": "false"
+    },
+    {
+      "build": "debug",
+      "dev_mode": "0",
+      "exit_code": 0,
+      "bypass": "false"
+    },
+    {
+      "build": "debug",
+      "dev_mode": "1",
+      "exit_code": 0,
+      "bypass": "true"
+    }
+  ],
+  "source_sha256": {
+    "src/utils/auth.rs": "32eb4d6ff3a6a1346b5408a692a23e8c152f92cd81fa2456de9b34c29cb03f59",
+    "src/main.rs": "4a2a1546bdef22a823a28157ccc07ee6a0a0c9886bef5c51a5f98ca0738d02dc",
+    "src/handlers/socket_flow_handler/filter_auth.rs": "39575ab7900b0df78b77a126cd6b059038eae1f1e479d7845e81cab893e3f01a",
+    "Cargo.toml": "ce1efa50bfe823242fdb1c6f59655e9bf7e9c75ba6dbde7cf217ab6d253e7ab7",
+    "Dockerfile.unified": "c2bdc7872afabd06ea9e5d537304618a9420d39a1ad190b10f317024d86115e2",
+    "Dockerfile.production": "57d1ea0e1737db05edbdb35e77a895ae7573323b9b92a492a15616482e501018"
+  }
+}

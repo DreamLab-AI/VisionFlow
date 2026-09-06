@@ -1,0 +1,66 @@
+{
+  "captured_at": "2026-09-04T20:36:10.730080+00:00",
+  "scope": "Synthetic helper/transport probes and existing local test suites. No live relay or real signature proof.",
+  "head": "89301ec7c911eab270c00a0cf81596d0d4f15535",
+  "tests": [
+    {
+      "command": [
+        "node",
+        "--test",
+        "mcp/servers/lib/ontology-retrieval.test.js"
+      ],
+      "exit_code": 0,
+      "stdout": "TAP version 13\n# [ontology-telemetry] CANARY FALLBACK: /var/lib/agentbox/telemetry/ontology-retrieval.jsonl unwritable (ENOENT: no such file or directory, mkdir '/var/lib/agentbox/telemetry'); telemetry now at /home/devuser/workspace/.tmp/agentbox-ontology-retrieval.jsonl\n# [ontology-telemetry] CANARY FALLBACK: /var/lib/agentbox/telemetry/ontology-retrieval.jsonl unwritable (ENOENT: no such file or directory, mkdir '/var/lib/agentbox/telemetry'); telemetry now at /home/devuser/workspace/.tmp/agentbox-ontology-retrieval.jsonl\n# [ontology-telemetry] CANARY FALLBACK: /var/lib/agentbox/telemetry/ontology-retrieval.jsonl unwritable (ENOENT: no such file or directory, mkdir '/var/lib/agentbox/telemetry'); telemetry now at /home/devuser/workspace/.tmp/agentbox-ontology-retrieval.jsonl\n# [ontology-telemetry] CANARY FALLBACK: /var/lib/agentbox/telemetry/ontology-retrieval.jsonl unwritable (ENOENT: no such file or directory, mkdir '/var/lib/agentbox/telemetry'); telemetry now at /home/devuser/workspace/.tmp/agentbox-ontology-retrieval.jsonl\n# [ontology-telemetry] CANARY FALLBACK: /var/lib/agentbox/telemetry/ontology-retrieval.jsonl unwritable (ENOENT: no such file or directory, mkdir '/var/lib/agentbox/telemetry'); telemetry now at /home/devuser/workspace/.tmp/agentbox-ontology-retrieval.jsonl\n# [ontology-telemetry] CANARY FALLBACK: /var/lib/agentbox/telemetry/ontology-retrieval.jsonl unwritable (ENOENT: no such file or directory, mkdir '/var/lib/agentbox/telemetry'); telemetry now at /home/devuser/workspace/.tmp/agentbox-ontology-retrieval.jsonl\n# Subtest: budget: clampToBudget never exceeds tier ceiling\nok 1 - budget: clampToBudget never exceeds tier ceiling\n  ---\n  duration_ms: 1.523911\n  type: 'test'\n  ...\n# Subtest: budget: max_tokens override can only LOWER, never raise the ceiling\nok 2 - budget: max_tokens override can only LOWER, never raise the ceiling\n  ---\n  duration_ms: 0.231538\n  type: 'test'\n  ...\n# Subtest: budget: full:true forbidden below sonnet\nok 3 - budget: full:true forbidden below sonnet\n  ---\n  duration_ms: 0.165753\n  type: 'test'\n  ...\n# Subtest: retrieval: full:true downgraded (not rejected) below sonnet\nok 4 - retrieval: full:true downgraded (not rejected) below sonnet\n  ---\n  duration_ms: 6.495268\n  type: 'test'\n  ...\n# Subtest: retrieval: tokens_used within tier budget even with many seeds\nok 5 - retrieval: tokens_used within tier budget even with many seeds\n  ---\n  duration_ms: 5.877111\n  type: 'test'\n  ...\n# Subtest: retrieval: maturity gate drops draft, keeps mature + unknown(page)\nok 6 - retrieval: maturity gate drops draft, keeps mature + unknown(page)\n  ---\n  duration_ms: 4.379023\n  type: 'test'\n  ...\n# Subtest: retrieval: fail-open on throwing seedFn \u2192 degraded empty, no throw\nok 7 - retrieval: fail-open on throwing seedFn \u2192 degraded empty, no throw\n  ---\n  duration_ms: 4.228287\n  type: 'test'\n  ...\n# Subtest: retrieval: expand fail-open degrades to menu (still returns seeds)\nok 8 - retrieval: expand fail-open degrades to menu (still returns seeds)\n  ---\n  duration_ms: 4.032321\n  type: 'test'\n  ...\n# Subtest: retrieval: cache hit on identical request\nok 9 - retrieval: cache hit on identical request\n  ---\n  duration_ms: 4.128065\n  type: 'test'\n  ...\n# Subtest: retrieval: empty query returns empty without calling seedFn\nok 10 - retrieval: empty query returns empty without calling seedFn\n  ---\n  duration_ms: 0.585923\n  type: 'test'\n  ...\n# Subtest: breadcrumb: <= 80 token PUSH line, single line\nok 11 - breadcrumb: <= 80 token PUSH line, single line\n  ---\n  duration_ms: 0.227165\n  type: 'test'\n  ...\n# Subtest: ttl cache: expires after ttl\nok 12 - ttl cache: expires after ttl\n  ---\n  duration_ms: 0.155941\n  type: 'test'\n  ...\n# Subtest: classifyCause: splits auth/validation from availability\nok 13 - classifyCause: splits auth/validation from availability\n  ---\n  duration_ms: 0.145967\n  type: 'test'\n  ...\n# Subtest: serialise: renders urn: IRIs as full angle-bracket (no vc: prefix mismatch)\nok 14 - serialise: renders urn: IRIs as full angle-bracket (no vc: prefix mismatch)\n  ---\n  duration_ms: 0.115037\n  type: 'test'\n  ...\n# Subtest: breadcrumb: clean local-name for urn: IRI\nok 15 - breadcrumb: clean local-name for urn: IRI\n  ---\n  duration_ms: 0.122586\n  type: 'test'\n  ...\n# Subtest: defaultSeedFn: unwraps the {success,data:{results}} VisionClaw envelope\nok 16 - defaultSeedFn: unwraps the {success,data:{results}} VisionClaw envelope\n  ---\n  duration_ms: 0.308051\n  type: 'test'\n  ...\n# Subtest: telemetry: fail_open increments fail_open_count AND lands in the JSONL (ADR-119)\nok 17 - telemetry: fail_open increments fail_open_count AND lands in the JSONL (ADR-119)\n  ---\n  duration_ms: 0.674152\n  type: 'test'\n  ...\n# Subtest: telemetry: canary fails OPEN to tmp when the primary dir is unwritable\nok 18 - telemetry: canary fails OPEN to tmp when the primary dir is unwritable\n  ---\n  duration_ms: 3.880045\n  type: 'test'\n  ...\n# Subtest: telemetry: ask + cache_hit events are counted and observable\nok 19 - telemetry: ask + cache_hit events are counted and observable\n  ---\n  duration_ms: 0.743804\n  type: 'test'\n  ...\n# Subtest: defaultExpandFn: unwraps responses, merges outgoing + children (children first)\nok 20 - defaultExpandFn: unwraps responses, merges outgoing + children (children first)\n  ---\n  duration_ms: 0.55001\n  type: 'test'\n  ...\n1..20\n# tests 20\n# suites 0\n# pass 20\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 138.58596\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "node_modules/jest/bin/jest.js",
+        "--config",
+        "{\"testEnvironment\": \"node\", \"rootDir\": \"/home/devuser/workspace/project/agentbox\", \"roots\": [\"/home/devuser/workspace/project/agentbox/tests/sovereign\"], \"testMatch\": [\"**/*.test.js\"]}",
+        "--runInBand",
+        "--runTestsByPath",
+        "tests/sovereign/ontology-propose.test.js",
+        "tests/sovereign/authority.test.js",
+        "tests/sovereign/authority-consumer.test.js",
+        "tests/sovereign/authority-consumer-decided.test.js"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "PASS tests/sovereign/authority.test.js\nPASS tests/sovereign/authority-consumer.test.js\nPASS tests/sovereign/authority-consumer-decided.test.js\nPASS tests/sovereign/ontology-propose.test.js\n\nTest Suites: 4 passed, 4 total\nTests:       35 passed, 35 total\nSnapshots:   0 total\nTime:        0.864 s, estimated 1 s\nRan all test suites within paths \"tests/sovereign/ontology-propose.test.js\", \"tests/sovereign/authority.test.js\", \"tests/sovereign/authority-consumer.test.js\", \"tests/sovereign/authority-consumer-decided.test.js\".\n"
+    }
+  ],
+  "probes": {
+    "command": [
+      "node",
+      "/home/devuser/workspace/VisionFlow/docs/estate-review/evidence/agent-boundary-probes.cjs"
+    ],
+    "exit_code": 0,
+    "stdout": "{\n  \"local_mode\": {\n    \"remote_direct_load_guarded\": true,\n    \"helper_write_result\": {\n      \"backend\": \"local-markdown\",\n      \"changed\": true,\n      \"subject\": \"urn:ngm:class:alpha\",\n      \"relation\": \"__parent__\",\n      \"object\": \"urn:ngm:class:private\",\n      \"file\": \"alpha.md\",\n      \"frontmatter_converted\": false\n    },\n    \"markdown_changed\": true,\n    \"private_class_visible\": true,\n    \"namespaced_class_visible\": false\n  },\n  \"cache_constraints\": {\n    \"first\": {\n      \"tokens\": 830,\n      \"seeds\": [\n        \"urn:test:alpha\"\n      ]\n    },\n    \"second\": {\n      \"tokens\": 830,\n      \"seeds\": [\n        \"urn:test:alpha\"\n      ],\n      \"cache_hit\": true\n    },\n    \"second_requested_domain\": \"robotics\",\n    \"second_requested_max_tokens\": 50\n  },\n  \"expand_failure\": {\n    \"degraded\": false,\n    \"tokens\": 830,\n    \"error\": null\n  },\n  \"decision_before_wait\": {\n    \"recorded_decided\": true,\n    \"wait_returned_decision\": false,\n    \"wait_result\": null\n  }\n}\n",
+    "stderr": ""
+  },
+  "source_sha256": {
+    "project/agentbox/mcp/servers/ontology-bridge.js": "51b9f325ec0a1f014db5929e0673fdfe61af275e0a189c9770a9911ab526e8c3",
+    "project/agentbox/mcp/servers/ontology-propose.js": "4751686b440b51615c1bbed94af0642a3734437d9598f8652c9c1d79c9e82924",
+    "project/agentbox/mcp/servers/lib/ontology-local.js": "c932a92340fa3b69a28070ca25fbddb02955082726e32e484d0637fedf014663",
+    "project/agentbox/mcp/servers/lib/ontology-retrieval.js": "005525d10b9bc6ee25983d22ce4f17497a44a97ca489624ca4cd8f7457a99cba",
+    "project/agentbox/mcp/servers/lib/ontology-budget.js": "1a02045c93dbd060150d117c312815e8d8fc49529bf53ae7d63eee75e7968cf1",
+    "project/agentbox/management-api/lib/authority.js": "38496dea29366d44d277459946fee7618a3c8a008d45491df4f4c1faddd12bca",
+    "project/agentbox/management-api/lib/authority-consumer.js": "e01c3eacb4c74606760da83ae717d55df0e17eead22229c29297c4b9e598f32a",
+    "project/agentbox/management-api/lib/governance-decision-waiter.js": "3767451734405b1a0c82a33a39346edd5caa6b4c76adba9dbe41ae63e451a04f",
+    "project/agentbox/management-api/lib/authz.js": "7269bc1df0731108841eca4bac05ef23c3e9a113a378b76ddfc9b46960e25e01",
+    "project/agentbox/management-api/lib/agent-identity.js": "6483b854ad27293cb5870a5322bc3773dce56aee784a7c9ce0655535f2d4050d",
+    "project/agentbox/management-api/routes/approvals.js": "07b40dd0fd20264b316f76de33a2b839561ebf46ffdc6440b3d5487a60bab9cf",
+    "project/agentbox/management-api/routes/broker-bridge.js": "c6e36d86391e399f4d2fcbc29ac1d23d714c6dfb88d49f9ca438b9dc4d7bcf74",
+    "project/agentbox/management-api/server.js": "0098d9b3e2df4f5c5dee4330fa7c2826c5b6113a558bcb8b5e790d0ae42204ed",
+    "project/agentbox/mcp/nostr-bridge/relay-consumer.js": "84360a9c026c24e1517d50cedb9fd39f8cd64f4b75aefd245bd9faeb85514800",
+    "project/src/handlers/ontology_agent_handler.rs": "e441085b7366e95ed35b98e0ff3deba71188bfabad308ec72c9728e1551e1e9b",
+    "project/src/services/ontology_mutation_service.rs": "4e6c2ddb6aa1ee218c23f97ec0d5bf27dce84890e23a0e68e90557805b6c9964",
+    "project/crates/visionclaw-domain/src/types/ontology_tools.rs": "2d36dd1802f6c1db3036457fd1e8f7b786727813d983aee7aa343c89a0fd10a9",
+    "project/agentbox/agentbox.toml": "008da44421abc52481ea11c77bf0800cc6c1b8b051b0759766d7a4f160e86bc9",
+    "project/agentbox/config/entrypoint-unified.sh": "a7b5d992d53e0ab331010bf1a8656c578651635c7b62c8e4401e40e277293858",
+    "project/agentbox/management-api/adapters/orchestrator/local-process-manager.js": "40e89efc6c6b3eb23ba597b83a7401147a7b995c18c87d1695ddb054cc0660f8",
+    "project/docs/VAULT-corpus-format.md": "f820d04fc2a77f94559166b7fb9a719e69d9ac9e03ba6e98acc71f01179b0bbc"
+  }
+}

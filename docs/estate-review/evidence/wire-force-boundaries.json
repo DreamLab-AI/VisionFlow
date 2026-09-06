@@ -1,0 +1,18 @@
+{
+  "date": "2026-09-04",
+  "scope": "Source review only; no overflow frame, GPU constraint transition or deployed client exercise.",
+  "findings": [
+    "Five typed flag setters log and mask overflow in release. Untyped encoder branch has debug_assert then unchanged ID; to_wire_id_v2 is identity.",
+    "Rust XR and TypeScript NODE_ID_MASK agree with server on 26 bits.",
+    "execute_physics_step_with_bypass rebuilds final feature word before execute; Constraints.apply is a no-op, residency derives enablement. Actor parameter mirror also assigns converter feature word; this is not proof of a conflicting executed tick."
+  ],
+  "source_sha256": {
+    "src/utils/binary_protocol.rs": "e968a81d569473ac9f763e6b9d70f7fd92cd332d6c6fd838f3d7fc0d5db26382",
+    "xr-client/rust/src/binary_protocol.rs": "b74ec402b55a21644775196650238718a465fd2bde0a78568ba8142f8ea5f244",
+    "client/src/types/binaryProtocol.ts": "adc3144ab5aa06dc4f78a0a7548f01efa0b471a3c530eb1862eded289587e00a",
+    "src/models/force_channels.rs": "4b6c1be709f8170298c05e5058b75c3493d0750c52af2c22ca402baabc26b0fa",
+    "src/models/simulation_params.rs": "14ef780229c54d339897335b0d6d2e909a426c3a789b938ce61c9d0af3c5e070",
+    "src/utils/unified_gpu_compute/execution.rs": "6f01eef8bcbee8504feca49fc3b2d5ed994253904ede19224ff5504bc981a396",
+    "src/actors/gpu/force_compute_actor.rs": "39d42ffd8f6a3aefd9f3f6a1ecc1f18b34c5c2c24792785e154065d310620ddf"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "date": "2026-09-04",
+  "head": "f18b471e499b029d93cb14152edb6fb966abd274",
+  "scope": "source review, native key tests and isolated SQLite query fixture; no browser, D1, deployment, registry or real identity mutation",
+  "source_sha256": {
+    "Cargo.toml": "b305c92b466b1076f9f71f448e283eeccf0434f4a7e758c0df59783e55c79cec",
+    ".github/workflows/ci.yml": "55854bd7feb68a27de931bd67ff1bcc7bdba706d7440647ad9069aa4d57a1ffa",
+    "crates/nostr-bbs-core/src/keys.rs": "29dd5dbe17566bc7e67eff8bc9a0965004a7b9f77162094d4dfcb02d89e1163b",
+    "crates/nostr-bbs-auth-worker/src/devices.rs": "f10b8b4925a4982ec4c2083242767bbf9be7e265e6ab5ed5b59c310ebe67cd0a",
+    "crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs": "8f2f33117d97e7de0f77e14bc533e0386e82e66d4340db76407a597b63b56273",
+    "crates/nostr-bbs-relay-worker/src/trust.rs": "6e355b45f776f98da02677f481e21b154fc12e53bffc6a51ce08a1acbdd7728b",
+    "crates/nostr-bbs-relay-worker/src/cron.rs": "0a7ca3df6b2d15b98ba5cf6f93e2720289891f9adbe15d2e431299ce02a7bb00",
+    "crates/nostr-bbs-pod-worker/src/acl.rs": "d58185315d125e9edad3ae9dd996459ac015d31b207ae86b39891dd9381dea80",
+    "crates/nostr-bbs-bbs-client/src/signer.rs": "b081d7745f3b44a10f64165d27828601c687cc9e9e94e28f91a9d2bb43746435",
+    "crates/nostr-bbs-upstream-canary/src/lib.rs": "e0fe5612b0f47733953fa7199521188239411e22d2cae1575844245886200987"
+  },
+  "tests": {
+    "command": "cargo test --locked -p nostr-bbs-core keys::tests --lib",
+    "passed": 22,
+    "failed": 0,
+    "exit_code": 0,
+    "note": "Cargo cache cleanup permission warning did not prevent tests."
+  },
+  "probe": "forum-trust-probe.json"
+}

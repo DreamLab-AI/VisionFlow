@@ -6,10 +6,13 @@
   "scripts": {
     "build": "cd website && ./build.sh",
     "check:sidecar": "node scripts/check-cdp-sidecar.mjs",
+    "check:assets": "node scripts/website-assets.mjs verify",
     "test:site": "playwright test",
     "test:a11y": "playwright test tests/site.spec.js --grep @a11y",
     "test:perf": "playwright test tests/site.spec.js --grep @perf",
-    "verify": "npm run build && npm run check:sidecar && npm run test:site"
+    "test:gates": "bash tests/gates/run-all.sh",
+    "test:browser": "node scripts/website-browser-check.mjs",
+    "verify": "npm run build && npm run check:assets && npm run test:gates && npm run check:sidecar && npm run test:site"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.2",

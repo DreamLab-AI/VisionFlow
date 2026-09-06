@@ -1,0 +1,207 @@
+{
+  "date": "2026-09-04",
+  "scope": "source hash revalidation and historical routing; no new runtime test or live event",
+  "forum_source_matches_previous_receipt": {
+    "crates/nostr-bbs-core/src/governance.rs": true,
+    "crates/nostr-bbs-forum-client/src/pages/governance.rs": true,
+    "crates/nostr-bbs-forum-client/src/relay.rs": true,
+    "crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs": true,
+    "crates/nostr-bbs-relay-worker/src/relay_do/storage.rs": true,
+    "crates/nostr-bbs-auth-worker/src/governance_api.rs": true
+  },
+  "historical_records": [
+    {
+      "path": "docs/archive/adr/ADR-086-nip05-pod-federation.md",
+      "sha256": "6b33c75adf9a02983d409f3ba748b81ee843d6f6f1d8444a4e3cc2c7839bb834",
+      "governing_document": "docs/BASELINE-architecture.md",
+      "canonical_sprint": null,
+      "disposition": "frozen-history; current acceptance remains open",
+      "closeout_requirement": "CP-01/04/08: demonstrate authoritative discovery and fallback across both pod tiers."
+    },
+    {
+      "path": "docs/archive/adr/ADR-087-cf-workers-portable-cores.md",
+      "sha256": "fc331988127331e6fe319351cec7c9c07915c8eccfdeeaa2187fde6447713e53",
+      "governing_document": "docs/BASELINE-architecture.md",
+      "canonical_sprint": null,
+      "disposition": "frozen-history; current acceptance remains open",
+      "closeout_requirement": "CP-01/04/08: resolve portable-core ownership and prove the selected WASM surface; historical deferral remains open."
+    },
+    {
+      "path": "docs/archive/adr/ADR-088-wac-turtle-serializer-quirk.md",
+      "sha256": "fbf30a9b9be93203feb6b5d38c39d764d99c0f62d16f1509cfaf91165e329354",
+      "governing_document": "docs/BASELINE-architecture.md",
+      "canonical_sprint": null,
+      "disposition": "frozen-history; current acceptance remains open",
+      "closeout_requirement": "CP-04: establish whether Turtle round-tripping is consumed before choosing a serializer remedy."
+    },
+    {
+      "path": "docs/archive/adr/ADR-089-git-pods-cf-workers-limitation.md",
+      "sha256": "45298c404cf227bde789e08210fd9f3052cf9ec877891323361aea66589ed4ed",
+      "governing_document": "docs/BASELINE-architecture.md",
+      "canonical_sprint": null,
+      "disposition": "frozen-history; current acceptance remains open",
+      "closeout_requirement": "CP-04/08: retain the recorded ADR-093 supersession; prove native-tier restore and routing separately from CF constraints."
+    },
+    {
+      "path": "docs/archive/adr/ADR-090-forum-base-path-discipline.md",
+      "sha256": "b3fbedbb3768efdb230e5cd9ed2ef580d8dde80e30e848519c37d6100e60c1b6",
+      "governing_document": "docs/BASELINE-architecture.md",
+      "canonical_sprint": "docs/sprint/2026-05-17-ux-audit/ADR-090-forum-base-path-discipline.md",
+      "disposition": "frozen-history; current acceptance remains open",
+      "closeout_requirement": "CP-06: verify direct and nested routes under the actual deployment base."
+    },
+    {
+      "path": "docs/archive/adr/ADR-091-channel-counts-derived-from-events.md",
+      "sha256": "b886753980dadb0fd96866181818fbce783b4048cf2071f3096fbb66f21744e9",
+      "governing_document": "docs/BASELINE-architecture.md",
+      "canonical_sprint": "docs/sprint/2026-05-17-ux-audit/ADR-091-channel-counts-derived-from-events.md",
+      "disposition": "frozen-history; current acceptance remains open",
+      "closeout_requirement": "CP-06: verify counts after event replacement, deletion and reconnect."
+    },
+    {
+      "path": "docs/archive/adr/ADR-092-deeplink-self-bootstrap.md",
+      "sha256": "33e76f49464e584a1adfb1cec7de1517ea3a129a3ad1d05c3b497e3c84928b2d",
+      "governing_document": "docs/BASELINE-architecture.md",
+      "canonical_sprint": "docs/sprint/2026-05-17-ux-audit/ADR-092-deeplink-self-bootstrap.md",
+      "disposition": "frozen-history; current acceptance remains open",
+      "closeout_requirement": "CP-06: verify cold deep-link entry without prior navigation state."
+    },
+    {
+      "path": "docs/archive/adr/ADR-093-native-pod-mesh.md",
+      "sha256": "2fca158f4164a20f0bc12d1c8d65ef3d560f82b54d77839cc386b80445c2a686",
+      "governing_document": "docs/BASELINE-architecture.md",
+      "canonical_sprint": null,
+      "disposition": "frozen-history; current acceptance remains open",
+      "closeout_requirement": "CP-04/08: test discovery, authentication, fallback and restoration across native and CF tiers."
+    },
+    {
+      "path": "docs/archive/adr/ADR-094-deterministic-subkey-derivation.md",
+      "sha256": "12b7953de09183a7208a28d8081f6738364cef9c2e482a2976bc7638c33c39b2",
+      "governing_document": "docs/IDENTITY-keys-and-trust.md",
+      "canonical_sprint": null,
+      "disposition": "frozen-history; current acceptance remains open",
+      "closeout_requirement": "CP-04: ADR-2003; execute current Rust and JS against a common identity vector set."
+    },
+    {
+      "path": "docs/archive/adr/ADR-095-recovery-device-onboarding-sheet.md",
+      "sha256": "b35c5b605655673852b2b2322dca042cad8d4c4d81a913f0659ba45834f27aaf",
+      "governing_document": "docs/IDENTITY-keys-and-trust.md",
+      "canonical_sprint": null,
+      "disposition": "frozen-history; current acceptance remains open",
+      "closeout_requirement": "CP-04/06: exercise recovery-sheet generation, storage and recovery without retaining unintended credentials."
+    },
+    {
+      "path": "docs/archive/adr/ADR-096-acl-container-resolution-and-delegation.md",
+      "sha256": "4283b843435e9a3ea298793e22b84a2a1ae3d6d93749eb00d4f5b8cdd26e5552",
+      "governing_document": "docs/BASELINE-architecture.md",
+      "canonical_sprint": null,
+      "disposition": "frozen-history; current acceptance remains open",
+      "closeout_requirement": "CP-04: ADR-2009; test sidecar control, delegation and malformed-policy handling on the consumed version."
+    },
+    {
+      "path": "docs/archive/adr/ADR-097-agent-identity-provisioning.md",
+      "sha256": "c83ff58030bb333201d9b01af2cc29c3b672e46c8c28f35f68592feba1e844d8",
+      "governing_document": "docs/IDENTITY-keys-and-trust.md",
+      "canonical_sprint": null,
+      "disposition": "frozen-history; current acceptance remains open",
+      "closeout_requirement": "CP-04/05: verify membership/registry atomicity and idempotent provisioning; a same-worker boundary alone is not a transaction receipt."
+    },
+    {
+      "path": "docs/archive/adr/ADR-098-connect-magic-link-onboarding.md",
+      "sha256": "f012dbd5cc3f5536fc640fbd12902261afd0c6273c0f4a5d318557f2132b605b",
+      "governing_document": "docs/IDENTITY-keys-and-trust.md",
+      "canonical_sprint": null,
+      "disposition": "frozen-history; current acceptance remains open",
+      "closeout_requirement": "CP-04/06: exercise connect-link consumption, browser history/storage and recovery boundaries."
+    },
+    {
+      "path": "docs/archive/adr/ADR-099-revocable-device-keys.md",
+      "sha256": "731db07943b03f6527417969301a82c978df27a5c61c4c40f9eabcfa5ba80580",
+      "governing_document": "docs/IDENTITY-keys-and-trust.md",
+      "canonical_sprint": null,
+      "disposition": "frozen-history; current acceptance remains open",
+      "closeout_requirement": "CP-04: ADR-2004; prove dual-worker activation and revocation, keeping deferred multi-device delivery explicit."
+    },
+    {
+      "path": "docs/archive/adr/ADR-100-key-lifecycle.md",
+      "sha256": "32e8a15f34edbf2bd4554bfd94842f4ab85723940f4be786b7c73a86d6bee7c0",
+      "governing_document": "docs/IDENTITY-keys-and-trust.md",
+      "canonical_sprint": null,
+      "disposition": "frozen-history; current acceptance remains open",
+      "closeout_requirement": "CP-04/08: ADR-2003/2004; prove rotation, re-derivation, revocation and recovery across consumers."
+    },
+    {
+      "path": "docs/archive/adr/ADR-101-multi-device-dm-delivery.md",
+      "sha256": "c4fc10e84d246a1443618033f4a4c74c59b241c4ebc1a15fbece6abc87285c44",
+      "governing_document": "docs/IDENTITY-keys-and-trust.md",
+      "canonical_sprint": null,
+      "disposition": "frozen-history; current acceptance remains open",
+      "closeout_requirement": "CP-04/06: retain multi-device DM delivery as unverified; test per-device private delivery before closing."
+    },
+    {
+      "path": "docs/archive/adr/ADR-102-trust-demotion-inactivity-sweep.md",
+      "sha256": "9396b22723401b3b9f743418a062a1d35a4575e5fff608a9121bd17f40e3556b",
+      "governing_document": "docs/IDENTITY-keys-and-trust.md",
+      "canonical_sprint": null,
+      "disposition": "frozen-history; current acceptance remains open",
+      "closeout_requirement": "CP-04/05/08: ADR-2006; fix or explicitly resolve pagination and committed/audit outcome gaps."
+    },
+    {
+      "path": "docs/archive/adr/ADR-103-kit-semver-publish-yank-policy.md",
+      "sha256": "4a11dee573bba05c7668a5f8dfe37bd4d5c91c6e4c72a5cf428191ffbeb65872",
+      "governing_document": "docs/BASELINE-architecture.md",
+      "canonical_sprint": null,
+      "disposition": "frozen-history; current acceptance remains open",
+      "closeout_requirement": "CP-01/08: ADR-2007; reconcile exact dependency, published kit and consumed lockfiles."
+    },
+    {
+      "path": "docs/archive/adr/ADR-104-gift-wrap-recipient-admission.md",
+      "sha256": "7b3bae4bafe84b841d7f33aff5a47235b6cf924c292b9df077e52541fdd80c98",
+      "governing_document": "docs/IDENTITY-keys-and-trust.md",
+      "canonical_sprint": null,
+      "disposition": "frozen-history; current acceptance remains open",
+      "closeout_requirement": "CP-04: ADR-2005; distinguish recipient admission from private read visibility and delivery."
+    },
+    {
+      "path": "docs/archive/adr/ADR-105-bbs-door-games-and-write-architecture.md",
+      "sha256": "84bc9ecf722948876bdf1e208003850bf268a9f5b5be2dd31595de9c02deb286",
+      "governing_document": "docs/BASELINE-architecture.md",
+      "canonical_sprint": null,
+      "disposition": "frozen-history; current acceptance remains open",
+      "closeout_requirement": "CP-04/06: ADR-2008 records signer divergence; verify each custody backend and interactive write path."
+    },
+    {
+      "path": "docs/archive/adr/ADR-106-gap-close-forum-governance-surfaces.md",
+      "sha256": "d8e7fd13018c308288dab4479e7e9c96db8561b23a304fd80bdca497fa686c5a",
+      "governing_document": "docs/BASELINE-architecture.md",
+      "canonical_sprint": null,
+      "disposition": "frozen-history; current acceptance remains open",
+      "closeout_requirement": "CP-05/08: proposed ADR-2010; demonstrate durable projection and downstream application receipts."
+    },
+    {
+      "path": "docs/archive/adr/ADR-107-zone-first-landing-and-scoped-navigation.md",
+      "sha256": "198763dcc083cf80323dbb738829223184da48543f6a3d5061399db853e5d6ac",
+      "governing_document": "docs/BASELINE-architecture.md",
+      "canonical_sprint": null,
+      "disposition": "frozen-history; current acceptance remains open",
+      "closeout_requirement": "CP-06: exercise home-zone selection, multi-zone navigation and direct URLs."
+    },
+    {
+      "path": "docs/archive/adr/ADR-108-bbs-mobile-first-redesign.md",
+      "sha256": "c4c92c23176c6a0e240789ec8b7ce50bc407c042620fc287ce6122ffb1ef6950",
+      "governing_document": "docs/BASELINE-architecture.md",
+      "canonical_sprint": null,
+      "disposition": "frozen-history; current acceptance remains open",
+      "closeout_requirement": "CP-06: verify mobile interaction and accessibility by tranche; historical shipped labels do not certify the current client."
+    },
+    {
+      "path": "docs/archive/adr/ADR-109-zone-bound-bbs-pwa-install.md",
+      "sha256": "3941f82cf43c11b026fb6090b97cbaf28152f857ff0a76add9cfcb7e8fe5bac0",
+      "governing_document": "docs/BASELINE-architecture.md",
+      "canonical_sprint": null,
+      "disposition": "frozen-history; current acceptance remains open",
+      "closeout_requirement": "CP-04/06/08: verify installation, boot profile, zone binding, device forgetting and rotation in each supported browser."
+    }
+  ],
+  "proposed_adr": "docs/adr/ADR-2010-durable-governance-outcome-receipts.md"
+}

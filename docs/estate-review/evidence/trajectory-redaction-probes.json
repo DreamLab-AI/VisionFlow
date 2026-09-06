@@ -1,0 +1,17 @@
+{
+  "method": "actual redactor; invented sentinel strings only; no transcripts or real secrets read",
+  "cases": [
+    {
+      "input": "curl --password 'synthetic alpha secret' https://example.invalid",
+      "output": "curl --password <redacted> alpha secret' https://example.invalid"
+    },
+    {
+      "input": "echo {\"password\":\"synthetic-short-secret\"}",
+      "output": "echo {\"password\":\"synthetic-short-secret\"}"
+    },
+    {
+      "input": "TOKEN=synthetic-value echo safe",
+      "output": "TOKEN=<redacted> echo safe"
+    }
+  ]
+}

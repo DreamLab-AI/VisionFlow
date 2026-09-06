@@ -1,0 +1,21 @@
+{
+  "date": "2026-09-04",
+  "head": "d6ac7f5108686ad1c13b6e6e783d272515aaa72f",
+  "scope": "source inspection and revalidation of prior local evidence; no new runtime test, deployment or external transaction",
+  "prior_pod_source_matches": {
+    "solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs": true,
+    "solid-pod-rs/crates/solid-pod-rs/src/auth/nip98.rs": true,
+    "solid-pod-rs/crates/solid-pod-rs/src/auth/replay.rs": true,
+    "solid-pod-rs/crates/solid-pod-rs/src/auth/replay_store.rs": true,
+    "solid-pod-rs/crates/solid-pod-rs/src/wac/resolver.rs": true,
+    "solid-pod-rs/crates/solid-pod-rs/src/wac/evaluator.rs": true,
+    "solid-pod-rs/crates/solid-pod-rs/src/storage/fs.rs": true
+  },
+  "additional_source_sha256": {
+    "crates/solid-pod-rs-server/src/mempool.rs": "8cf966fdd403713f3957edfdf9fd8a73f598fea0543ccdf7b7c624cf8842de5d",
+    "crates/solid-pod-rs-server/Cargo.toml": "3aabcf0a6de038e79a8432258684a4bf5d96f0d4207789854c61c37a6e45e662",
+    "crates/solid-pod-rs/src/oidc/mod.rs": "da1c9343cec368b6724e02d74f87d4bc13e1d8d2797a03b6e5d06e0c41d0dc1e"
+  },
+  "prior_tests": "pod-snapshot.json",
+  "prior_isolated_probes": "pod-probes.json"
+}

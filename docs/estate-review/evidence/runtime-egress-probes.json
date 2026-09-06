@@ -1,0 +1,71 @@
+{
+  "date": "2026-09-04",
+  "scope": "actual wrappers with temporary profiles and stub claude; mirror CLI dry-run with fresh environment and invented inputs; no real secrets, transcript reads, provider calls or sends",
+  "wrapper_results": [
+    {
+      "wrapper": "openrouter",
+      "case": "expected",
+      "exit_code": 0,
+      "stub_launched": true
+    },
+    {
+      "wrapper": "openrouter",
+      "case": "wrong_host_with_expected_substring",
+      "exit_code": 0,
+      "stub_launched": true
+    },
+    {
+      "wrapper": "openrouter",
+      "case": "unrelated",
+      "exit_code": 1,
+      "stub_launched": false
+    },
+    {
+      "wrapper": "zai",
+      "case": "expected",
+      "exit_code": 0,
+      "stub_launched": true
+    },
+    {
+      "wrapper": "zai",
+      "case": "wrong_host_with_expected_substring",
+      "exit_code": 0,
+      "stub_launched": true
+    },
+    {
+      "wrapper": "zai",
+      "case": "unrelated",
+      "exit_code": 1,
+      "stub_launched": false
+    }
+  ],
+  "mirror_results": [
+    {
+      "case": "no_identity",
+      "exit_code": 0,
+      "composed_body_contains_sentinel": false
+    },
+    {
+      "case": "explicit_recipient",
+      "exit_code": 0,
+      "composed_body_contains_sentinel": true
+    },
+    {
+      "case": "off",
+      "exit_code": 0,
+      "composed_body_contains_sentinel": false
+    },
+    {
+      "case": "derived_child",
+      "exit_code": 0,
+      "composed_body_contains_sentinel": true
+    }
+  ],
+  "source_sha256": {
+    "config/hooks/nostr-live-mirror.cjs": "b8b31f57810580f81cced3a0b4875754a1904a8fb75771ecd0fb71c47ce93274",
+    "config/harness-wrappers/openrouter.sh": "3465f94ee4a6802dd676bae60c3759ee78c8c85f1635bba2d7f865465524f62c",
+    "config/harness-wrappers/zai.sh": "cc04b74c0bd1af480980be691dfe75d9bcf0fd328db7304f22f2b11ff4950cca",
+    "services/nostr-pod-bridge/src/session_summary.rs": "2829c5e12c75bc5d8ace64165fab1edcbc311b6a519abb3bf9240aca0419da02",
+    "services/nostr-pod-bridge/src/lib.rs": "dfd48f362b1d03b86395c2f5c79a30b8946ff5cee36d8036eefad720daf737c6"
+  }
+}

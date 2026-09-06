@@ -1,0 +1,63 @@
+{
+  "date": "2026-09-05",
+  "scope": "Three isolated unchanged Fresnel algorithm assertions; thiserror derive/attributes removed only; excludes later solver helper, full crate, FFT, captured data and performance validation",
+  "sources": {
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/csi_ratio.rs": "dd4b6b88a75f36e5bf74d5100a0f47c7ba1157aef7426b05dd7a94dc2d97d8f6",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/hampel.rs": "9cde358d5c9470247d489d0d48339b493fdafed3dd1702eb745ebb618611b2ab",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/fresnel.rs": "a9b4a8bb4c5ae97c65227496db78e08bd4a68e7527d3ad7286cbd64e5c4d54b0",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/spectrogram.rs": "7e928b77bd3a8db6e046903f844f7306cd8e937f9b703bdd33e52897ee1135f2",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/subcarrier_selection.rs": "f807be52f2efe0307616a6656c60754b88784c3b0af1f4af2a0d14bac625668d",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/bvp.rs": "892963df28e55ef0f5e00811318877d8743f41e32a17c8c9ce5b09d78b27fb90",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/lib.rs": "288a5f441a45487856b8a89f26848e126da588b79abda5a6ca36705e97091796"
+  },
+  "named_api_files_in_local_crate_rust": {
+    "conjugate_multiply": [
+      "rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/csi_ratio.rs"
+    ],
+    "compute_ratio_matrix": [
+      "rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/csi_ratio.rs"
+    ],
+    "hampel_filter": [
+      "rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/hampel.rs"
+    ],
+    "hampel_filter_2d": [
+      "rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/hampel.rs"
+    ],
+    "FresnelBreathingEstimator": [
+      "rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/fresnel.rs"
+    ],
+    "compute_spectrogram": [
+      "rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/spectrogram.rs"
+    ],
+    "compute_multi_subcarrier_spectrogram": [
+      "rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/spectrogram.rs"
+    ],
+    "select_sensitive_subcarriers": [
+      "rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/subcarrier_selection.rs"
+    ],
+    "select_by_variance": [
+      "rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/subcarrier_selection.rs"
+    ],
+    "extract_bvp": [
+      "rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/bvp.rs"
+    ]
+  },
+  "module_test_declarations": {
+    "csi_ratio": 5,
+    "hampel": 7,
+    "fresnel": 10,
+    "spectrogram": 8,
+    "subcarrier_selection": 8,
+    "bvp": 8
+  },
+  "csi_data_exact_mentions": {
+    "csi_ratio": 0,
+    "hampel": 0,
+    "fresnel": 0,
+    "spectrogram": 0,
+    "subcarrier_selection": 0,
+    "bvp": 0
+  },
+  "probe_stdout": "3 assertions passed; both geometries rate=15 confidence=0.7387185656103405\n",
+  "assertions_passed": 3
+}

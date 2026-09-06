@@ -1,0 +1,19 @@
+{
+  "source": "RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/main.rs",
+  "sha256": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+  "method": "actual extracted Rust struct/parser; synthetic bytes matching firmware/csi_collector.c layout; no device",
+  "expected": {
+    "sequence": 42,
+    "rssi": -45,
+    "noise_floor": -95,
+    "subcarriers": 64,
+    "first_amplitude": 5
+  },
+  "observed": {
+    "sequence": 2752512,
+    "rssi": 0,
+    "noise_floor": 0,
+    "subcarriers": 64,
+    "first_amplitude": 5
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "date": "2026-09-05",
+  "scope": "Source review only; no Cargo, filesystem failure, device or benchmark execution",
+  "sources": {
+    "docs/adr/ADR-003-rvf-cognitive-containers-csi.md": "d18204715f264b5c6965e89824f43e96b1cfc476e89126b728e53a0971218bd2",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/rvf_container.rs": "37092b456f28054f5e8a13dd0e9f302c7f1d21e63eb4785f3c7117ec8ac1a3d9",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/rvf_pipeline.rs": "1da194405b039b641c27d1ccde030895d74061ab7b52489d8a20173db8934db1",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/recording.rs": "e521f1132d93eb742c0ba01ef22cfa4145907dffcf8de09eecb377f5bfa42529",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/main.rs": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+    "rust-port/wifi-densepose-rs/crates/wifi-densepose-wasm-edge/src/rvf.rs": "42808d90af8165b75c6da22ff5d5797eb7e9ea6d2a94423ecc6cfa22886d365b"
+  },
+  "proposed_symbols_in_local_crate_rust_sources": {
+    "CsiFingerprintContainer": [],
+    "ModelContainer": [],
+    "SessionContainer": [],
+    "RvfVectorizable": [],
+    "CowMapSegment": []
+  },
+  "arithmetic": {
+    "vector_dimensions": 329,
+    "f32_bytes_per_vector": 1316,
+    "one_hour_100_hz_vectors": 360000,
+    "one_hour_uncompressed_vector_bytes": 473760000,
+    "branch_delta_vectors": 8300,
+    "branch_uncompressed_vector_bytes": 10922800
+  }
+}

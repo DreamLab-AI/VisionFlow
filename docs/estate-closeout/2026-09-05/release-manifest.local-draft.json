@@ -1,0 +1,174 @@
+{
+  "manifest_version": 2,
+  "generated_at": "2026-09-05T14:18:04Z",
+  "status": "local-draft",
+  "repositories": [
+    {
+      "name": "VisionFlow",
+      "path": "../VisionFlow",
+      "head": "8cf1a1bf9e4ef2ef98ee6c7bf56ef361aa8d0304",
+      "branch": "main",
+      "dirty": true,
+      "present": true,
+      "provenance": "first-party",
+      "upstream": null,
+      "role": "canon — cross-repo view, release machinery, governing ADRs"
+    },
+    {
+      "name": "VisionClaw",
+      "path": "../project",
+      "head": "b00c28a0d766c8cf46cd00b100dab60ef2dd74a4",
+      "branch": "main",
+      "dirty": true,
+      "present": true,
+      "provenance": "first-party",
+      "upstream": "github.com/JavaScriptSolidServer/JavaScriptSolidServer (jss component)",
+      "role": "GPU engine, OWL 2 EL reasoner, IS-Envelope contract"
+    },
+    {
+      "name": "agentbox",
+      "path": "../project/agentbox",
+      "head": "89301ec7c911eab270c00a0cf81596d0d4f15535",
+      "branch": "main",
+      "dirty": true,
+      "present": true,
+      "provenance": "first-party",
+      "upstream": null,
+      "role": "sovereign agent runtime; skill and MCP count sources"
+    },
+    {
+      "name": "solid-pod-rs",
+      "path": "../solid-pod-rs",
+      "head": "d6ac7f5108686ad1c13b6e6e783d272515aaa72f",
+      "branch": "main",
+      "dirty": true,
+      "present": true,
+      "provenance": "first-party",
+      "upstream": null,
+      "role": "canonical native Solid pod implementation"
+    },
+    {
+      "name": "nostr-rust-forum",
+      "path": "../nostr-rust-forum",
+      "head": "f18b471e499b029d93cb14152edb6fb966abd274",
+      "branch": "main",
+      "dirty": true,
+      "present": true,
+      "provenance": "first-party",
+      "upstream": null,
+      "role": "governance plane, agent registry, relay"
+    },
+    {
+      "name": "dreamlab-ai-website",
+      "path": "../dreamlab-ai-website",
+      "head": "7e243741c8eaf61506ef86a70b8dd44d80722c11",
+      "branch": "main",
+      "dirty": true,
+      "present": true,
+      "provenance": "first-party",
+      "upstream": null,
+      "role": "commercial surface"
+    },
+    {
+      "name": "loom",
+      "path": "../loom",
+      "head": "8cdef36bb571f0aed2d599d97a3efab02760b6d5",
+      "branch": "main",
+      "dirty": true,
+      "present": true,
+      "provenance": "first-party",
+      "upstream": null,
+      "role": "Ontology Loom — model-swappable grounding facade"
+    },
+    {
+      "name": "knowledgeGraph",
+      "path": "../knowledgeGraph",
+      "head": "7bbf0aae2b60a63c2714b750e3b381bce6be7ad8",
+      "branch": "main",
+      "dirty": true,
+      "present": true,
+      "provenance": "first-party",
+      "upstream": null,
+      "role": "corpus generation feeding the Loom"
+    },
+    {
+      "name": "WasmVOWL",
+      "path": "../WasmVOWL",
+      "head": "36105cc3ad04a91415b889799e8608b08cf68b45",
+      "branch": "master",
+      "dirty": true,
+      "present": true,
+      "provenance": "first-party",
+      "upstream": null,
+      "role": "WASM ontology visualiser"
+    },
+    {
+      "name": "visionGraph",
+      "path": "../visionGraph",
+      "head": "fabcdbcc9fd67951087a9492fb45780bd379134b",
+      "branch": "main",
+      "dirty": true,
+      "present": true,
+      "provenance": "first-party",
+      "upstream": null,
+      "role": "graph surface"
+    },
+    {
+      "name": "dream-engine",
+      "path": "../dream-machine",
+      "head": "7c30573a2d73c8fa4c67a43042d7c0b204eefa13",
+      "branch": "main",
+      "dirty": true,
+      "present": true,
+      "provenance": "imported",
+      "upstream": "github.com/ruvnet/dream-machine",
+      "role": "dream-cycle engine, forked from ruvnet upstream"
+    },
+    {
+      "name": "logseq",
+      "path": "../project4",
+      "head": "4f233f3210972fe4d8b919b9aabac9bb774d0b8d",
+      "branch": "obsidian",
+      "dirty": true,
+      "present": true,
+      "provenance": "imported",
+      "upstream": "github.com/logseq/logseq",
+      "role": "authored vault tooling, forked from logseq upstream"
+    },
+    {
+      "name": "ruvector",
+      "path": "../ruvector",
+      "head": "677b2475409c50cb964be8a3b848da2952390535",
+      "branch": "report/agentbox-field-2026-07",
+      "dirty": true,
+      "present": true,
+      "provenance": "upstream",
+      "upstream": "github.com/ruvnet/ruvector",
+      "role": "vector memory substrate consumed by the estate"
+    },
+    {
+      "name": "RuView",
+      "path": "../RuView",
+      "head": "b48ab7dada5002414ec18d36a5d652e0f1bd4a67",
+      "branch": "closeout/2026-07-03",
+      "dirty": true,
+      "present": true,
+      "provenance": "upstream",
+      "upstream": "github.com/ruvnet/RuView",
+      "role": "sensing/consensus research substrate consumed by the estate"
+    }
+  ],
+  "fixtures": {
+    "status": "not-compared",
+    "canonical": null,
+    "consumers": [],
+    "reason": "No canonical revision set supplied; this local draft asserts no fixture parity. Pass --fixtures-canonical REPO@REV:DIR to qualify a candidate."
+  },
+  "compatibility": {
+    "identity": "did:nostr with 64-char lowercase x-only secp256k1 pubkeys; NIP-98 HTTP auth expected across mesh participants",
+    "mesh": "Designed around NIP-42 relay writes and IS-Envelope routing; current default deployments may remain standalone",
+    "pod": "solid-pod-rs is canonical for native pods; Cloudflare Workers pod tier has documented feature differences",
+    "governance": "Agent Control Surface event kinds 31400-31405 are the human decision plane",
+    "verification": "Run npm run verify in VisionFlow plus substrate-specific CI before promoting candidate to released. A candidate additionally requires fixtures.status=\"compared\" against a named canonical revision set."
+  }
+}

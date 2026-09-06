@@ -1,0 +1,62 @@
+{
+  "manifest_version": 1,
+  "_doc": "Required/optional asset inventory for the copy-only static build (ADR-2002). The build previously staged repo image directories with `cp ... || true`, so a completed build certified nothing about the media actually present. Every entry under `required` MUST exist in dist/ after a build or the build fails; every entry under `optional` is staged best-effort and its presence or absence is recorded explicitly in the build receipt. Adding a new hard dependency to the page means adding it here, not relying on the copy step happening to succeed.",
+  "site_root": "static",
+  "output": "dist",
+  "required": [
+    { "dest": "index.html", "why": "the page itself" },
+    { "dest": "CNAME", "why": "custom-domain binding for GitHub Pages (www.visionflow.info)" },
+    { "dest": "css/styles.css", "why": "sole stylesheet, referenced by index.html" },
+    { "dest": "js/main.js", "why": "sole module entrypoint, referenced by index.html" },
+    { "dest": "js/mesh-webgl.js", "why": "WebGL2 mesh module imported by js/main.js" },
+    { "dest": "img/og-card.png", "why": "og:image / twitter:image social card referenced by index.html" },
+    { "dest": "img/showcase/cave-knowledge-graph.webp", "why": "showcase figure referenced by index.html" },
+    { "dest": "img/showcase/hand-interaction.webp", "why": "showcase figure referenced by index.html" },
+    { "dest": "img/showcase/octave-lab.webp", "why": "showcase figure referenced by index.html" },
+    { "dest": "img/showcase/photogrammetry-env.webp", "why": "showcase figure referenced by index.html" },
+    { "dest": "img/showcase/telepresence.webp", "why": "showcase figure referenced by index.html" },
+    { "dest": "video/bottleneck.mp4", "why": "background video source referenced by index.html" },
+    { "dest": "video/visionclaw.mp4", "why": "background video source referenced by index.html" }
+  ],
+  "optional": [
+    {
+      "id": "repo-diagrams",
+      "kind": "directory",
+      "from": "../assets/diagrams",
+      "dest": "img",
+      "include": "*.png",
+      "why": "architecture diagrams staged for deep links and future figures; the page does not reference them today"
+    },
+    {
+      "id": "repo-generated",
+      "kind": "directory",
+      "from": "../assets/generated",
+      "dest": "img",
+      "include": "*.png",
+      "why": "generated concept art staged for deep links; not referenced by the page today"
+    },
+    {
+      "id": "repo-heroes",
+      "kind": "directory",
+      "from": "../assets/heroes",
+      "dest": "img",
+      "include": "*.webp",
+      "why": "hero imagery staged for deep links and future layouts; not referenced by the page today"
+    },
+    {
+      "id": "repo-screenshots",
+      "kind": "directory",
+      "from": "../assets/screenshots",
+      "dest": "img",
+      "include": "*",
+      "why": "product screenshots staged for deep links; the og:image is copied from here as a required asset"
+    }
+  ],
+  "derived": [
+    {
+      "dest": "img/og-card.png",
+      "from": "../assets/screenshots/visionflow-final.png",
+      "why": "social-card image. Sourced from the repo screenshot set rather than duplicated into static/, so the card cannot silently diverge from the shipped product shot."
+    }
+  ]
+}

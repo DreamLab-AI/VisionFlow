@@ -1,0 +1,24 @@
+# Historical Logseq decision lineage
+
+The current authored repository is visionGraph. Its README identifies Logseq as archived history and explains that split commits have new hashes. This companion preserves that boundary: no historical file is edited and no historical accepted/proposed status is transferred automatically. Accountable roles are current corpus, publisher, explorer and grounding maintainers; historical authors are not assigned new delivery commitments.
+
+## Record-by-record closeout
+
+| Historical record | Historical declaration | Work packages | Continuing decision and required evidence |
+|---|---|---|---|
+| [ADR-NG-001-explorer-architecture](../../../../project4/docs/adr/ADR-NG-001-explorer-architecture.md) | Accepted | CP-02/06/08 | Tiered data, worker physics, instanced rendering and measured interaction budgets. The current embedded explorer remains in visionGraph; standalone WasmVOWL is a separate tree. Establish code lineage and browser performance for each consumed variant; native codec tests do not prove worker transport, rendering or accessibility. |
+| [ADR-NG-002-iri-integrity-gate](../../../../project4/docs/adr/ADR-NG-002-iri-integrity-gate.md) | Proposed, with implementation note | CP-02/03/08 | Baseline-aware orphan detection plus bounded-latency Loom reload. visionGraph retains the IRI gate. Its baseline exempts existing page/IRI pairs; maintainers must remove repaired entries to prevent recurrence being accepted. Gate presence does not prove debt reduction or serving reload. Bind loaded Loom generation to the successful release and test a removed/reintroduced orphan. |
+| [ADR-014-enrichment-swarm-architecture](../../../../project4/docs/prd/ADR-014-enrichment-swarm-architecture.md) | Accepted | CP-02/07/08 | Partitioned enrichment, slug reservations and phased quality gates. Historical model names, agent counts and review sampling are execution choices, not current mandates. Require per-page source/provenance, semantic validation, reservation recovery and evidence against each phase criterion before accepting generated enrichment. |
+| [ADR-015-jsonld-native-pipeline](../../../../project4/docs/prd/ADR-015-jsonld-native-pipeline.md) | Accepted | CP-02/06/08 | Replace old property converters with JSON-LD publishing; retain compatible consumers and validate exports. Current publisher retains the Python lineage but the Obsidian/frontmatter interface adds a distinct policy. RDF parsing alone cannot prove OWL profile conformance or reasoner closure. Verify deletion/inclusion, export identities and actual explorer compatibility; frozen notes no longer has the old live publishing role. |
+| [ADR-016-website-ux-architecture](../../../../project4/docs/prd/ADR-016-website-ux-architecture.md) | Proposed | CP-02/06/08 | Deep-link routing, readable Markdown, metadata disclosure, filtering and notes integration. Proposed UX must be evaluated against the deployed embedded client. Test cold routes, query/hash preservation, namespace links, accessible controls and safe metadata rendering. Frozen notes needs explicit historical presentation; documentation does not prove browser behaviour. |
+| [ADR-LCR-01-swarm-refactor-strategy](../../../../project4/mainKnowledgeGraph/ADR-LCR-01-swarm-refactor-strategy.md) | Amended; structural conversion complete, enrichment ongoing | CP-01/02/07/08 | Manifest-led corpus conversion, bounded batches and provenance with human review for ambiguity. Preserve pre-split commit identity in archived history. Structural conversion is not content enrichment or semantic acceptance. Trace transformed-page manifest entries, unresolved review cases and source identity into current namespace paths; do not restart the historical swarm from this assessment. |
+
+## Current authority
+
+[visionGraph publication contract](../../../../visionGraph/docs/PUBLICATION-contract.md) and its proposed ADR-VG-001/002 cover current policy and generation identity. The [producer review](../knowledge-production.md), [current vault review](../authored-vault-transition.md), [grounding review](../grounding-delivery.md) and [explorer review](../ontology-explorer.md) provide scoped implementation evidence. No one record closes the producer-to-consumer journey.
+
+The ADR-008/012 pages in the historical source vault and their `www/api/markdown` mirrors describe ontology concepts. They are content, not two additional architecture decisions. Their inclusion in the inventory is retained with that classification.
+
+## Evidence limits
+
+The [receipt](../evidence/logseq-decision-lineage.json) pins these six records, the two rendered ontology pages and selected current IRI-gate files. This is a decision-theme and routing review; full historical requirement verification, embedded explorer browser tests, enrichment provenance and loaded-generation recovery remain open. Prior tests keep their original scope and date. No corpus enrichment or deployment ran.
