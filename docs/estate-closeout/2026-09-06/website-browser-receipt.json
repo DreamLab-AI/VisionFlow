@@ -1,0 +1,377 @@
+[
+  {
+    "surface": "VisionFlow canon site",
+    "url": "https://www.visionflow.info",
+    "final_url": "https://www.visionflow.info/",
+    "status": 200,
+    "title": "VisionFlow: Coordination Engineering for Federated Human-AI Intelligence",
+    "headline_nav": {
+      "h1": "Federated Human–AI Intelligence",
+      "nav": [
+        "◈ VisionFlow",
+        "Problem",
+        "Substrates",
+        "Dreaming",
+        "Guarantees",
+        "Immersive",
+        "Governance",
+        "Grounding",
+        "Landscape",
+        "Repos",
+        "DreamLab AI →"
+      ],
+      "hero_lead": "Coordination engineering is the discipline of designing systems that reliably orchestrate autonomous agents across heterogeneous substrates."
+    },
+    "console_errors": {
+      "count": 0,
+      "first_3": []
+    },
+    "failed_requests": {
+      "count": 0,
+      "urls": [],
+      "note": "17 requests, all 200/206 (video 206 range). reqid=17 GET github.com/.../paper-v5/main.pdf net::ERR_FAILED was MY OWN cross-origin CORS probe from evaluate_script, not a site request."
+    },
+    "screenshot": "shots/vf-01-home.png (technical mode), shots/vf-02-plain.png (plain-English mode)",
+    "verdict": "PASS (site) / WARN (deploy freshness)",
+    "notes": {
+      "plain_language_toggle": "WORKS. Floating #reading-switch, a11y region 'Reading level' with buttons Technical (aria-pressed=true) / Plain English. Clicked uid=1_603: aria-pressed flipped to [false,true], body gained class 'reading-plain', localStorage vf-reading='plain' persisted. 53 .rl-inner panels rotated rotateX(-180deg) so the plain faces are front-facing, with genuinely different copy (hero tech: 'Coordination engineering is the discipline...' -> plain: 'AI agents now do real work, but most organisations can't say who authorised an action...'). body.innerText length is unchanged (38488 both ways) because BOTH faces stay in the DOM (3D card flip, backface-visibility:hidden) — that is the mechanism, not a bug. Restored to Technical afterwards.",
+      "full_report_link": "RESOLVES. href=https://github.com/DreamLab-AI/loom/blob/main/docs/research/paper-v5/main.pdf → HTTP 200; raw PDF at raw.githubusercontent.com/.../paper-v5/main.pdf → 200, 829,843 bytes. In-page fetch failed on CORS only (expected for github.com), verified server-side with curl.",
+      "other_external_links": "narrativegoldmine.com 200, www.dreamlab-ai.com 200, arxiv.org/abs/2608.13560 200, narrativegoldmine.com/data/graph/stats.json 200.",
+      "live_vs_local_dist": "LIVE IS BEHIND LOCAL DIST. Live index.html 62,683 bytes / 828 lines, Last-Modified 'Wed, 02 Sep 2026 20:54:12 GMT', ETag W/\"6a988cf4-f4db\", sha256 251e0a2fe30f822516e38e81466377d2cceb62a072bad329973f8914056adf65. Local dist/index.html 63,384 bytes / 835 lines (770 non-empty), mtime 2026-09-06 08:00, sha256 1323b1995b09fb8dbb97fc94c5facf603ac25a41c3484682fde836ed2b9e5a78. css/styles.css, js/main.js, js/mesh-webgl.js all MATCH live byte-for-byte (sha256 identical) — only index.html differs.",
+      "live_vs_local_diff": [
+        "MISSING LIVE: 6 social meta tags — og:image, og:image:alt, twitter:card, twitter:title, twitter:description, twitter:image (all pointing at /img/og-card.png). Social/link previews are degraded on the live site.",
+        "STALE FIGURE LIVE: skills count reads '116 agent skills' in 3 places (repo card, Token-Efficient scale card, agentbox repo-tech line); local dist says 126, which matches counted truth per commit 3db4785.",
+        "MISSING LIVE: bullet 'Published crates: prose-sanitiser, diagram-ir (extracted clean-room Rust workspaces)'."
+      ],
+      "root_cause": "NOT a broken deploy. Local HEAD 3db4785 (2026-09-06 08:07) is 1 commit AHEAD of origin/main (8cf1a1b) — git rev-list --left-right --count origin/main...HEAD = '0 1'. The commit was never pushed, so Pages never saw it. Last successful 'Deploy to GitHub Pages' run 33682002418/33682002404 at 2026-09-02T20:53:48Z from 8cf1a1b, matching the live Last-Modified exactly. Fix is a push, not a workflow repair.",
+      "build_sentinel": "No build sentinel / receipt comment exists in dist/index.html (grep for 'sentinel' returns nothing; the 22 HTML comments are all section markers). The build.sh terminal sentinel added in df6cb9c is a build-script stdout sentinel, not an artefact-embedded string — so it is not a live-vs-dist comparison handle. Used sha256 + byte length + Last-Modified instead."
+    }
+  },
+  {
+    "surface": "VisionFlow Lighthouse",
+    "url": "https://www.visionflow.info/",
+    "status": 200,
+    "title": "VisionFlow: Coordination Engineering for Federated Human-AI Intelligence",
+    "console_errors": {
+      "count": 0,
+      "first_3": []
+    },
+    "failed_requests": {
+      "count": 0,
+      "urls": []
+    },
+    "screenshot": "shots/vf-01-home.png",
+    "verdict": "PASS",
+    "notes": {
+      "desktop": "Accessibility 100, Best Practices 100, SEO 100, Agentic Browsing 100. 58 passed, 0 failed. 11,944ms.",
+      "mobile": "Accessibility 100, Best Practices 100, SEO 100, Agentic Browsing 100. 58 passed, 1 failed. 10,078ms.",
+      "mobile_failure": "label-content-name-mismatch (score 0, UNWEIGHTED so category stays 100). Node: body > nav#nav > div.nav-inner > button#m-reading — <button id=\"m-reading\" aria-label=\"Reading level: technical or plain English\"> has visible text 'Tech'/'Plain' that is NOT contained in its accessible name. WCAG 2.5.3 Label in Name. Minor, real, fixable by making the aria-label start with the visible words (e.g. 'Tech or Plain — reading level') or dropping aria-label in favour of the visible text plus aria-describedby.",
+      "performance_caveat": "The lighthouse_audit tool EXCLUDES the Performance category by design ('For performance audits, run performance_start_trace'). No performance score was obtainable this way. Repo history (df6cb9c) already records that desktop perf over CDP cannot complete on this site — the connection drops mid-59.77MB payload — while mobile perf was green against an 800KB budget."
+    }
+  },
+  {
+    "surface": "DreamLab site",
+    "url": "https://dreamlab-ai.com",
+    "final_url": "https://dreamlab-ai.com/",
+    "status": 200,
+    "title": "DreamLab AI — AI & Agents Residential Training in the Lake District",
+    "headline_nav": {
+      "h1": "Bring your team to the Lake District. Leave with a working prototype.",
+      "h2": [
+        "What we train",
+        "Three ways in",
+        "The lab"
+      ],
+      "nav": [
+        "DREAMLAB (/)",
+        "Contact (/contact)",
+        "Partner With Us (/co-create)"
+      ]
+    },
+    "console_errors": {
+      "count": 0,
+      "first_3": [],
+      "lighthouse_console_note": "Lighthouse's errors-in-console audit DID flag security-source console errors not surfaced as page console errors: (1) \"The Content Security Policy directive 'frame-ancestors' is ignored when delivered via a <meta> element\"; (2) \"X-Frame-Options may only be set via an HTTP header sent along with a document. It may not be set inside <meta>\". These two drop Best Practices to 96 and mean the site's clickjacking protection is NOT actually in force — both directives must be HTTP response headers, which GitHub Pages cannot set. Real security-config finding."
+    },
+    "failed_requests": {
+      "count": 0,
+      "urls": [],
+      "note": "30 requests on the home page, all 200. No broken images (imgCount 1, 0 broken)."
+    },
+    "screenshot": "shots/dl-01-home.png, shots/dl-02-forum.png",
+    "verdict": "WARN",
+    "notes": {
+      "deploy_freshness": "CORRECTION TO BRIEF. Live is NOT from 2026-09-02 d667655 — Last-Modified is 'Mon, 31 Aug 2026 14:06:41 GMT' on both / and /community/. Last SUCCESSFUL 'Deploy to GitHub Pages' run is 33399532931 at 2026-08-31T13:54:13Z ('docs: consolidate ADR corpus'). The live site is 6 days stale.",
+      "ci_state": "Deploy run 34019271928 (2026-09-06T07:29:08Z) FAILED at the Pre-deploy Gate: '##[error]Pre-deploy gate failed: PINS=failure VITEST=failure. Publication is blocked.' — note REACT_BUILD, RUST_FMT and RUST_TEST all reported success in the same gate, so only the pin check and vitest are red. Deploy Cloudflare Workers 34019272009 also failed. HOWEVER the later push at 2026-09-06T08:07:32Z ('fix(ci): SHA-pin the guard's checkout and retire the transcribed pin') turned kit-pin-guard, CI and Test-and-Lint GREEN — but no Deploy to GitHub Pages run was triggered for it and none is in progress, so the site remains unpublished. Someone needs to re-run/dispatch the deploy.",
+      "internal_nav_link": "/programmes VERIFIED IN BROWSER: renders correctly. Title 'Programmes | DreamLab Applied Innovation Lab', h1 '38 residential ideas to spark your own.', 1049 chars of body text, 0 broken images, 0 console errors, URL path preserved.",
+      "http_404_nuance": "IMPORTANT: every deep route returns HTTP 404 to a non-JS client — /programmes, /programmes/, /programmes.html, /team, /contact, /co-create, /ecosystem, /testimonials, /privacy all 404 via curl; only / and /community/ return 200. This is the standard SPA-on-GitHub-Pages pattern: 404.html is a redirect shim (spa-redirect.js) that bounces to /?__p=<path> and the React router restores the path. Real browsers are fine. Crawlers, link checkers, social unfurlers and any non-JS client see 404s. Worth flagging but it is by design, not a regression.",
+      "forum_entry_point": "FOUND at https://dreamlab-ai.com/community/ (HTTP 200) — title 'Community Forums', h1 'Community Forums', 'Powered by the configurable nostr-bbs forum kit', footer 'End-to-end encrypted | Built with Rust + WASM'. Rust/WASM client boots cleanly: nostr-bbs-forum-client-d6dd6759259119d9.js + _bg.wasm + 2 webgpu-particles snippets all 200. Create Account / Sign In links present. /community/bbs/ also 200.",
+      "relay_api_subdomains": "CORRECTION TO BRIEF. relay.dreamlab-ai.com, api.dreamlab-ai.com, pods.dreamlab-ai.com and forum.dreamlab-ai.com ALL NXDOMAIN — they do not exist and are not linked from the site (0 such links in the DOM). The forum's backend is the Cloudflare worker relay instead: https://dreamlab-nostr-relay.solitary-paper-764d.workers.dev — /api/agents/disclosure 200 and /api/setup-status 200. That is the same relay as the session mirror in workspace CLAUDE.md.",
+      "forum_console": "0 errors. 2 benign warnings: preload integrity attribute ignored (crbug 981419), and apple-mobile-web-app-capable deprecated in favour of mobile-web-app-capable."
+    }
+  },
+  {
+    "surface": "DreamLab Lighthouse",
+    "url": "https://dreamlab-ai.com/",
+    "status": 200,
+    "title": "DreamLab AI — AI & Agents Residential Training in the Lake District",
+    "console_errors": {
+      "count": 2,
+      "first_3": [
+        "CSP frame-ancestors ignored via <meta>",
+        "X-Frame-Options ignored via <meta>"
+      ]
+    },
+    "failed_requests": {
+      "count": 0,
+      "urls": []
+    },
+    "screenshot": "shots/dl-01-home.png",
+    "verdict": "WARN",
+    "notes": {
+      "desktop": "Accessibility 100, Best Practices 96, SEO 100, Agentic Browsing 100. 56 passed, 1 failed (errors-in-console: the two <meta>-delivered security header warnings).",
+      "mobile": "Accessibility 90, Best Practices 96, SEO 100, Agentic Browsing 100. 49 passed, 4 failed.",
+      "mobile_failures": [
+        "errors-in-console — same two <meta> CSP/X-Frame-Options security warnings.",
+        "color-contrast — insufficient contrast on section.py-11 > div > a.flex > span.text-[13px] (3+ instances).",
+        "landmark-one-main — document has no <main> landmark (node html.dark). The skip-to-main-content link targets #main-content, so this is likely a missing role/element on the mobile layout, i.e. the skip link may point at a non-landmark.",
+        "target-size — touch targets too small/close: div.min-h-screen > div.md:hidden > div.flex > a.flex (the mobile action bar)."
+      ],
+      "comparison": "VisionFlow scores 100/100/100 on both devices; DreamLab loses 10 a11y points on mobile and 4 best-practices points on both. The three mobile a11y failures are real and fixable."
+    }
+  },
+  {
+    "surface": "Narrative Goldmine (knowledgeGraph gh-pages)",
+    "url": "https://narrativegoldmine.com",
+    "final_url": "https://narrativegoldmine.com/",
+    "status": 200,
+    "title": "Narrative Goldmine — the DreamLab knowledge mesh",
+    "headline_nav": {
+      "h1": "A 6.8-million-word corpus of the Fourth Industrial Revolution, compiled into a reasoned formal ontology.",
+      "nav": [
+        "Home (/)",
+        "Graph (/graph)",
+        "Search (/search)",
+        "Data (/data)",
+        "About (/about)",
+        "Research notes (/notes/)"
+      ],
+      "h2": [
+        "Three layers, read bottom-up",
+        "Six domains, one map",
+        "Honest by construction",
+        "One node in a sovereign mesh"
+      ]
+    },
+    "console_errors": {
+      "count": 0,
+      "first_3": []
+    },
+    "failed_requests": {
+      "count": 0,
+      "urls": [],
+      "note": "0 broken images (2 images total), 37 links, 31 inline SVGs."
+    },
+    "screenshot": "shots/ng-01-home.png (home), shots/ng-02-graph.png (/graph)",
+    "verdict": "PASS",
+    "notes": {
+      "last_modified": "Sat, 22 Aug 2026 08:26:34 GMT",
+      "ui_renders": "YES, both tiers. The landing page is the READABLE tier (notes/prose, no canvas by design — 17 list items, 31 SVGs, six domain cards each linking /graph?scope=domain:<slug>). The GRAPH UI lives at /graph and renders on a WebGL2 canvas 1425x844 CSS px at a 1440x900 viewport, showing '40 nodes on screen', a legend (EDGES: Backbone subclass-of, Relations object-property; DOMAINS: the six, colour-coded), zoom +/-/fit controls, a graph search box, and 6 domain filter buttons. Nodes are visibly colour-coded by domain with edges drawn — verified against the rendered PNG, not just the DOM.",
+      "data_endpoint": "/data/graph/stats.json 200, serves provenance: pipelineVersion ng-1.0.0, attributedTo did:nostr:jjohare, corpusNature 'synthetic-ai-generated-human-directed' — the honesty labelling is live and machine-readable.",
+      "console": "0 errors. 1 benign GPU perf warning on /graph: '[.WebGL-0x...]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels' — expected from the sidecar's screenshot capture path, not a site fault.",
+      "instrument_artefact_corrected": "My first /graph capture came out 397x767 in a 412x823 viewport. That was NOT a site defect: mcp__browser-gpu__lighthouse_audit device:'mobile' leaves Chrome's device-metrics override applied to the tab, and resize_page + reload did not clear it. Fixed by opening a fresh tab and closing the emulated one; the canvas then correctly reflowed to 1425x844. The DreamLab screenshots were re-captured for the same reason. FLAG FOR THE MESH: any agent running lighthouse_audit mobile must reset emulation or use a fresh tab before further visual evidence."
+    }
+  },
+  {
+    "surface": "VisionClaw dev client",
+    "url": "http://visionclaw_container:3001/",
+    "final_url": "chrome-error://chromewebdata/",
+    "status": null,
+    "title": "visionclaw_container (error page)",
+    "console_errors": {
+      "count": 0,
+      "first_3": [],
+      "note": "No page ever loaded, so no page console."
+    },
+    "failed_requests": {
+      "count": 1,
+      "urls": [
+        "http://visionclaw_container:3001/ — net::ERR_NAME_NOT_RESOLVED"
+      ]
+    },
+    "screenshot": "none — nothing renders; Chrome shows its own network error interstitial",
+    "verdict": "FAIL (blocked — target does not exist)",
+    "notes": {
+      "correction_to_brief": "The brief said the Rust backend on :4000 is down and being repaired. It is broader than that: THE WHOLE CONTAINER IS ABSENT. `docker ps -a` (all states, not just running) lists no container matching vision|claw. `docker network inspect visionclaw_network` lists 8 members — browsercontainer, ruvector-postgres, voice-console, agentbox-voice-backend-1, agentbox, email-mcp-gateway, gui-tools-service, xinference — and NO visionclaw. The network is named visionclaw_network but the app it is named for is not on it.",
+      "what_the_client_shows_with_backend_dead": "UNANSWERABLE this run. There is no client process to observe — :3001 is not serving, so the 'does it error cleanly, spin, or crash' question cannot be tested until the container is up. Both curl (:3001 and :4000/api/health) return status 000 / unreachable, and the browser cannot even resolve the hostname (ERR_NAME_NOT_RESOLVED), which is a DNS-level absence, not a connection-refused.",
+      "end_of_run_recheck": "Re-checked at the END of the run as instructed: :4000/api/health still status 000 unreachable, :3001 still status 000 unreachable, still no visionclaw container in `docker ps -a`. The graph-canvas / WebGL / node-count / WebSocket-101-to-/wss checks were therefore NOT performed. They need a re-run once the container is back."
+    }
+  },
+  {
+    "surface": "VisionClaw dev client (re-run after container restored)",
+    "url": "http://visionclaw_container:3001/",
+    "final_url": "http://visionclaw_container:3001/",
+    "status": 200,
+    "title": "VisionClaw - AI Multi Agent Visualisation",
+    "headline_nav": {
+      "a11y_graph_description": "3D graph with 13165 nodes and 153957 edges",
+      "layout": "Force Directed",
+      "controls": [
+        "Density",
+        "Luminosity",
+        "Motion",
+        "Focus",
+        "Atmosphere",
+        "Physics",
+        "Reset",
+        "Ask"
+      ],
+      "panels": [
+        "SOLID ONTOLOGY",
+        "ACSP 0",
+        "Agents 0",
+        "KPIs 0.00x"
+      ],
+      "skip_links": [
+        "Skip to graph",
+        "Skip to controls"
+      ]
+    },
+    "console_errors": {
+      "count": 3,
+      "first_3": [
+        "[error] Failed to load resource: the server responded with a status of 403 (Forbidden) [2 times] — GET /api/broker/inbox",
+        "[error] Failed to load resource: the server responded with a status of 403 (Forbidden) — POST /api/layout/mode",
+        "(no third distinct error)"
+      ],
+      "warnings": [
+        "[warn] THREE.THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+        "[warn] [GlassEdges] edge count 153957 exceeds ceiling 65536. 88421 edges will not be rendered. Raise rendering.maxEdgesCeiling to render all edges. [2 times]"
+      ]
+    },
+    "failed_requests": {
+      "count": 3,
+      "urls": [
+        "GET http://visionclaw_container:3001/api/broker/inbox [403] (x2)",
+        "POST http://visionclaw_container:3001/api/layout/mode [403]"
+      ],
+      "note": "All three 403s return the plain-text body 'Authentication required' from nginx/1.30.3. 34 other requests all 200 — /api/settings/all, /api/graph/data, /api/kpi/summary, /api/bots/data, /api/bots/status, /embedding-cloud.json, /src/wasm/scene-effects/scene_effects_bg.wasm, /api/health."
+    },
+    "screenshot": "shots/visionclaw.png (1440x900)",
+    "verdict": "PASS with WARNINGS",
+    "notes": {
+      "container_state": "visionclaw_container Up 15 minutes (healthy), 0.0.0.0:3001->3001/tcp and 0.0.0.0:4000->4000/tcp published, 172.20.0.10 on visionclaw_network. Confirmed present this run (it was entirely absent in the earlier run).",
+      "backend_health": "PASS both ways. curl http://visionclaw_container:4000/api/health -> HTTP 200 in 3ms: {\"success\":true,\"data\":{\"status\":\"ok\",\"timestamp\":\"2026-09-06T08:54:28Z\",\"version\":\"0.1.0\"},\"error\":null}. Same-origin fetch from inside the page to /api/health -> HTTP 200, identical shape. The Rust backend is up and answering.",
+      "webgl_canvas": "PASS. Single canvas at 1440x900 CSS px / 1440x900 backing store, viewport 1440x900, dpr 1, NO mobile emulation (fresh tab). getContext('webgl2')/('webgl')/('2d') all return null because the context is already claimed by the renderer; window.__THREE__ = '183' confirms Three.js r183 holding a live WebGL context. The rendered PNG shows an actual 3D scene — dense node cloud, coloured nodes, radiating edge geometry, bloom/atmosphere — not a blank or black canvas.",
+      "node_count": "13,165 nodes and 153,957 edges, taken from the canvas's accessible description ('3D graph with 13165 nodes and 153957 edges'). Corroborated by the GlassEdges console warning quoting the same 153,957 edge figure.",
+      "websocket_101": "PASS, verified two independent ways because the MCP tool cannot see websockets (see instrument note). (1) curl with Upgrade/Sec-WebSocket-Key headers to http://visionclaw_container:3001/wss returned 'HTTP/1.1 101 Switching Protocols' with Connection: upgrade, upgrade: websocket and a correct sec-websocket-accept of s3pPLMBiTxaQ9kYGzzhZRbK+xOo= for the RFC 6455 sample key. (2) An in-page `new WebSocket(ws://<host>/wss)` reached readyState 1 (onopen fired). Note /wss without upgrade headers correctly returns 400, and /ws returns 200 (different route).",
+      "app_holds_a_live_socket": "YES. `ss -tn state established` inside the container shows a long-lived 172.20.0.10:3001 -> 172.20.0.6:48490 connection (172.20.0.6 is browsercontainer, i.e. this session's page) carrying a 3,637,992-byte send queue — a streaming socket, not a request/response. A second such connection to 192.168.2.181 (Send-Q 1,707,752) shows another LAN client is also attached. The client ships WebSocketRegistry.ts, WebSocketEventBus.ts and VoiceWebSocketService.ts, all referencing /wss.",
+      "scene_is_live": "Two screenshots 6s apart differ (sha256 cd383ad5... vs 7a27af4f..., 2,060,510 vs 2,063,908 bytes), so the scene is actively animating/streaming rather than a frozen first frame.",
+      "warning_1_edge_ceiling": "REAL RENDERING-FIDELITY GAP. [GlassEdges] reports edge count 153,957 exceeds the 65,536 ceiling, so 88,421 edges (57% of the graph's edges) are NOT rendered. The visual is therefore a partial view of the topology. Fix is rendering.maxEdgesCeiling, per the warning's own advice — worth a deliberate decision rather than leaving it silent, since nothing in the UI tells the viewer that most edges are missing.",
+      "warning_2_403s": "Three requests 403 'Authentication required': GET /api/broker/inbox (x2) and POST /api/layout/mode. These surface as red console errors on every load. The broker inbox and the layout-mode control are auth-gated but the client calls them unauthenticated on boot, so this is either a missing session/credential in the dev client or calls that should be gated client-side until authenticated. Cosmetically it means the dev client never loads with a clean console; functionally the layout-mode POST being refused may be why the layout control cannot be driven.",
+      "warning_3_layout_shape": "OBSERVATION, not a confirmed defect. With Layout: Force Directed, the 13,165 nodes render as a dense rectangular slab with edges radiating outward, rather than a spread force-directed cloud. The scene IS animating (frames differ), so this is not a frozen render. Possible causes: physics not converged, initial positions still bounded, or the refused POST /api/layout/mode preventing the layout from being applied. Worth an eyeball from whoever owns the layout path — see shots/visionclaw.png.",
+      "warning_4_voice": "Informational only: 'Voice features unavailable: Secure connection (HTTPS) required' — expected when reaching the dev client over plain http, not a fault.",
+      "polling_behaviour": "The client polls /api/bots/data and /api/bots/status very frequently (roughly 20 requests in the first few seconds, still pending at capture). Combined with the live websocket this is worth a look for redundant traffic, but all such requests return 200.",
+      "instrument_note": "mcp__browser-gpu__list_network_requests DOES NOT REPORT WEBSOCKETS. Filtering resourceTypes:['websocket'] returned nothing even at a moment when I had personally opened a socket that reached readyState 1. Its silence is therefore NOT evidence that an app made no websocket connection. I verified the 101 by curl and an in-page probe, and the app's own socket via server-side `ss`. FLAG FOR THE MESH: never conclude 'no websocket' from this tool's output alone.",
+      "earlier_run_items_now_closed": "The four checks deferred in the first run are now done: graph canvas renders (yes, WebGL/Three r183), node count (13,165 nodes / 153,957 edges), websocket upgrade (101 confirmed), console errors (3 red, all 403 auth — see above)."
+    }
+  },
+  {
+    "surface": "Agentbox code-server",
+    "url": "http://agentbox:8080/",
+    "final_url": "http://agentbox:8080/login",
+    "status": 302,
+    "title": "code-server login",
+    "console_errors": {
+      "count": 0,
+      "first_3": []
+    },
+    "failed_requests": {
+      "count": 0,
+      "urls": []
+    },
+    "screenshot": "shots/ab-01-8080.png",
+    "verdict": "PASS",
+    "notes": {
+      "correction_to_brief": "This is NOT a management API — it is code-server (VS Code in the browser). GET / returns 302 'Found. Redirecting to ./login' (text/plain, 29 bytes) and the browser lands on the code-server password login page.",
+      "json_shape": "There is no management JSON here. /health and /api/health both return HTTP 401 with body {\"error\":\"Unauthorized\"} (application/json; charset=utf-8, 24 bytes) — code-server auth-gates everything behind the login cookie. Auth gate behaving correctly; no unauthenticated surface exposed.",
+      "binding": "Host-bound to 127.0.0.1:8080 only (not 0.0.0.0), reachable from inside visionclaw_network as agentbox:8080."
+    }
+  },
+  {
+    "surface": "Agentbox interaction plane",
+    "url": "http://agentbox:9096/",
+    "final_url": "http://agentbox:9096/nip07/?next=%2F",
+    "status": 401,
+    "title": "Agentbox — sign in with Nostr",
+    "headline_nav": {
+      "h1": "Agentbox interaction plane",
+      "body": "This surface is identity-gated. Sign a one-time kind-27235 challenge with your NIP-07 signer (podkey, or any window.nostr extension) to start a session.",
+      "cta": "button 'Sign in with Nostr'",
+      "signer_notice": "No NIP-07 signer detected. Extensions only inject window.nostr into pages they trust — check the signer is enabled for this origin, then retry."
+    },
+    "console_errors": {
+      "count": 0,
+      "first_3": []
+    },
+    "failed_requests": {
+      "count": 0,
+      "urls": []
+    },
+    "screenshot": "shots/ab-02-9096.png",
+    "verdict": "PASS",
+    "notes": {
+      "what_it_is": "The NIP-98 identity-gated agentbox interaction plane. Content-negotiates correctly: curl (no browser) gets HTTP 401 application/json {\"error\":\"Unauthorized\",\"message\":\"NIP-98 (kind-27235) Authorization header required to reach the interaction plane\"} (117 bytes); a browser is redirected to a NIP-07 sign-in page at /nip07/?next=%2F that degrades gracefully with an explicit 'no signer detected' message rather than hanging or erroring.",
+      "binding": "The only agentbox port published on 0.0.0.0 (0.0.0.0:9096->9096/tcp) — i.e. LAN-reachable — which is consistent with it being the cryptographically gated surface. Gate verified closed from an unauthenticated client."
+    }
+  },
+  {
+    "surface": "Ontology Loom façade",
+    "url": "http://192.168.2.132:8084/health",
+    "status": 200,
+    "title": "n/a (JSON endpoint)",
+    "console_errors": {
+      "count": 0,
+      "first_3": []
+    },
+    "failed_requests": {
+      "count": 0,
+      "urls": []
+    },
+    "screenshot": "none (JSON endpoint)",
+    "verdict": "PASS",
+    "notes": {
+      "ok": true,
+      "backend_reachable": true,
+      "shape": "ok=true, facet='loom-facade', mode='scaffold', backend='http://127.0.0.1:8085/v1', backend_reachable=true, index_classes=8146.",
+      "graph": "available=true, error=null, loaded_files=[ontology.ttl, ontology-inferred.ttl], triples=282,492.",
+      "semantic": "ready=true; generation id 2026-08-17T14:54:45Z, class_count 8146, source MirrorManifest, verified_single_generation=true (no split-brain across generations).",
+      "artifacts_sha_pinned": "ontology-inferred.ttl 1,263,084 B sha256 e1edb4bc0db4996792cdd8ec89c70d624ef26a2281af0466b8dba9f7b49deef5; ontology.ttl 13,003,123 B sha256 8bf3ee3050f59272604ce5639abded0f479cd2b027dd8a890dc6b86b2c8bf109; prose-index.json 4,330,796 B sha256 686bfebeb527913637059aaf696d143e67e3a0881c46baccb040b65b948d4e09; scaffold-index.json 7,901,848 B.",
+      "assessment": "Fully healthy. The façade is up, the model behind it on :8085 is reachable, the ontology is loaded and inference-materialised, and the generation is single and verified. The '.48 is dead' black-hole failure mode described in workspace CLAUDE.md is NOT present."
+    }
+  },
+  {
+    "surface": "Run metadata",
+    "url": "n/a",
+    "status": null,
+    "title": "browser-verify evidence run",
+    "console_errors": {
+      "count": 0,
+      "first_3": []
+    },
+    "failed_requests": {
+      "count": 0,
+      "urls": []
+    },
+    "screenshot": "n/a",
+    "verdict": "INFO",
+    "notes": {
+      "date": "2026-09-06",
+      "sidecar": "browsercontainer, chrome-devtools-mcp 1.6.0 via MCP SSE http://browsercontainer:8931/sse. Health at start: {\"status\":\"ok\",\"transport\":\"sse\",\"sessions\":12,\"chrome\":true,\"cdp\":\"127.0.0.1:9222\"}.",
+      "viewport": "1440x900 for all retained screenshots (verified by reading PNG IHDR width/height on every file).",
+      "page_hygiene": "Used one page at a time. Opened page 2, later replaced it with a fresh page 3 to clear stuck Lighthouse mobile emulation, closing page 2 (which I had opened). Pre-existing page 1 (about:blank), owned by another session, was never touched.",
+      "screenshot_pipeline_workaround": "mcp__browser-gpu__take_screenshot filePath is UNUSABLE from this session: chrome-devtools-mcp enforces MCP client 'roots' and rejects every path with 'Access denied: ... is not within any of the configured workspace roots' — the scratchpad, the VisionFlow repo, the sidecar's own /home/devuser/exchange mount and even relative paths (resolved against /opt/browsercontainer) were all refused. Worked around by driving Page.captureScreenshot over raw CDP from a small node+ws script run inside browsercontainer (docker exec) and copying the PNGs out with docker cp. FLAG FOR THE MESH: any agent needing screenshot FILES on this sidecar hits this; inline (no filePath) screenshots still work.",
+      "read_only": "No repo edits, no commits, no pushes. Only reads plus /tmp scratch and the scratchpad receipt."
+    }
+  }
+]

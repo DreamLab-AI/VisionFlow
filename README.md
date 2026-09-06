@@ -249,7 +249,7 @@ Longer-form: the canonical vision report is under [`presentation/report`](presen
 | RuVector semantic memory | released | 1.17M+ embeddings. |
 | Sovereign mesh (agentbox, allowlisted relay) | integrated | Condense scheduler + relay allowlist live; cross-org federation routes IS-Envelopes across nodes. |
 | Cross-org mesh federation | integrated | The `nostr-bbs-mesh` `MeshTransport`, peer discovery and IS-Envelope routing carry envelopes between sovereign nodes; `federation-verified` awaits the live-session smoke-test. |
-| Judgment Broker | integrated | Runs as an `ElevationActor` / case queue on VisionClaw `main` (superseded the distributed `BrokerActor`, ADR-130). The elevation loop closes end to end — a merged PR fires `ConceptElevated` through the Whelk gate. |
+| Judgment Broker | integrated | Runs as an `ElevationActor` / case queue on VisionClaw `main` (superseded the distributed `BrokerActor`, ADR-130). On approve, the Whelk EL++ consistency gate runs before the PR opens (GOV-7); elevation terminates at PR creation — no `ConceptElevated` event fires on merge yet (verified absent in source 2026-09-06). |
 | Forum NIP-42 relay AUTH | integrated | NIP-42 challenge/response enforced at the relay. |
 
 For the full grading and the wager — every open gap becoming a dated, falsifiable commitment — see [`docs/closeout/final-design.md`](docs/closeout/final-design.md) (2026-07-03 audit, Theme T7) and VisionClaw's `docs/TODO-unified.md`.

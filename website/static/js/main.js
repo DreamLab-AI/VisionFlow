@@ -293,7 +293,9 @@ function initReadingSwitch() {
   knob.type = 'button';
   knob.id = 'm-reading';
   knob.className = 'm-reading';
-  knob.setAttribute('aria-label', 'Reading level: technical or plain English');
+  // Accessible name derives from the visible "Tech" / "Plain" text (WCAG 2.5.3 Label in Name);
+  // the explanation rides as a description instead of overriding the name.
+  knob.title = 'Reading level: technical or plain English';
   knob.innerHTML = '<span class="m-rl-tech">Tech</span><span class="m-rl-track"><span class="m-rl-knob"></span></span><span class="m-rl-plain">Plain</span>';
   const navInner = document.querySelector('.nav .nav-inner');
   const navToggleEl = document.getElementById('nav-toggle');

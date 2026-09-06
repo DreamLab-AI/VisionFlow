@@ -115,6 +115,8 @@ payload distinct from the agent **action** push, and is retired in favour of the
 
 ### G2: Mesh Federation Is Scaffold — Standalone-First Is the Supported Mode (FROZEN)
 
+> **2026-09-06 re-verification:** the scaffold and NIP-42 claims below are now stale. `nostr-bbs-mesh` carries a `MeshTransport` trait and `RelayTransport` implementation (`crates/nostr-bbs-mesh/src/transport.rs:249,323`) and is a dependency of the relay worker; NIP-42 AUTH is implemented in `crates/nostr-bbs-relay-worker/src/relay_do/nip42.rs` with `auth_required` derived from relay mode (`nip11.rs:155`). Standalone-first remains the default posture. Text below retained as history.
+
 **Corrected (2026-07-03).** The earlier tally was wrong. **Three of four runtime substrates default standalone** (agentbox `[mesh] mode="standalone"`, solid-pod-rs standalone with an embedded NIP-01 relay, and nostr-rust-forum — `forum.example.toml` and `wrangler.toml` both default `standalone`/`d1`). Only dreamlab-ai-website fans out. The federated-by-default tally is **1/4, not 2/4**.
 
 The forum's `nostr-bbs-mesh` crate is **scaffold-only** (no `MeshTransport` implementation, not even a dependency of the relay-worker; lands Sprint v12+). The relay advertises `auth_required:false` and gates by pubkey whitelist — the claimed **NIP-42 gate is false**. **IS-Envelope routing (ADR-075) is unimplemented in every substrate** (only conformance vectors exist). solid-pod-rs "native mesh in alpha.15" is not a real feature.
