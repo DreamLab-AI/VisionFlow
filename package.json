@@ -7,6 +7,8 @@
     "build": "cd website && ./build.sh",
     "check:sidecar": "node scripts/check-cdp-sidecar.mjs",
     "check:assets": "node scripts/website-assets.mjs verify",
+    "health:collect": "node scripts/estate-health.mjs collect",
+    "health:check": "node scripts/estate-health.mjs check",
     "test:site": "playwright test",
     "test:a11y": "playwright test tests/site.spec.js --grep @a11y",
     "test:perf": "playwright test tests/site.spec.js --grep @perf",

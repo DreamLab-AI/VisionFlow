@@ -1,0 +1,810 @@
+{
+  "schema": "visionflow.estate-health/1",
+  "generated_at": "2026-09-06T19:13:49.997Z",
+  "generator": {
+    "revision": "82a17499727dfb36e6ea5686bc69cb1c52eafa58",
+    "workflow_run": null,
+    "collector": "scripts/estate-health.mjs"
+  },
+  "summary": {
+    "repos": 14,
+    "green": 9,
+    "red": 3,
+    "amber": 0,
+    "none": 2,
+    "unreadable": 0,
+    "open_prs": 0,
+    "surfaces_ok": 6,
+    "surfaces_total": 6
+  },
+  "repos": [
+    {
+      "name": "VisionFlow",
+      "full_name": "DreamLab-AI/VisionFlow",
+      "url": "https://github.com/DreamLab-AI/VisionFlow",
+      "provenance": "first-party",
+      "role": "canon — cross-repo view, release machinery, governing ADRs",
+      "visibility": "public",
+      "archived": false,
+      "readable": true,
+      "default_branch": "main",
+      "head": {
+        "sha": "c301c81775c768cd608a6850c02065f275959f65",
+        "short": "c301c81",
+        "date": "2026-09-06T18:24:33Z",
+        "message": "docs(closeout): update 2026-09-06 table — narrativegoldmine deployed, PR stack cleared",
+        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/c301c81775c768cd608a6850c02065f275959f65"
+      },
+      "ci": {
+        "state": "green",
+        "runs": [
+          {
+            "workflow": "Copyright Source Guard",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34051625756",
+            "updated_at": "2026-09-06T18:24:55Z"
+          },
+          {
+            "workflow": "Deploy to GitHub Pages",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34051625841",
+            "updated_at": "2026-09-06T18:25:22Z"
+          },
+          {
+            "workflow": "Fixture Drift Check",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34029408337",
+            "updated_at": "2026-09-06T11:09:23Z"
+          },
+          {
+            "workflow": "Harness Fitness Gates",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34029408319",
+            "updated_at": "2026-09-06T11:09:28Z"
+          }
+        ]
+      },
+      "open_prs": 0,
+      "open_issues": 1,
+      "release": null,
+      "pages": {
+        "url": "https://www.visionflow.info/",
+        "status": null,
+        "build_type": "workflow"
+      },
+      "notes": []
+    },
+    {
+      "name": "VisionClaw",
+      "full_name": "DreamLab-AI/VisionClaw",
+      "url": "https://github.com/DreamLab-AI/VisionClaw",
+      "provenance": "first-party",
+      "role": "GPU engine, OWL 2 EL reasoner, IS-Envelope contract",
+      "visibility": "public",
+      "archived": false,
+      "readable": true,
+      "default_branch": "main",
+      "head": {
+        "sha": "cbf4097b1ea3d627f9cd62d97f8dab58999383e5",
+        "short": "cbf4097",
+        "date": "2026-09-06T17:06:40Z",
+        "message": "feat(pod): pull the published ontology into the embedded pod at boot (ADR-2106)",
+        "url": "https://github.com/DreamLab-AI/VisionClaw/commit/cbf4097b1ea3d627f9cd62d97f8dab58999383e5"
+      },
+      "ci": {
+        "state": "red",
+        "runs": [
+          {
+            "workflow": "CI",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/34047570284",
+            "updated_at": "2026-09-06T17:09:33Z"
+          },
+          {
+            "workflow": "Documentation Quality CI",
+            "conclusion": "failure",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/34047570303",
+            "updated_at": "2026-09-06T17:11:21Z"
+          },
+          {
+            "workflow": "Ontology Federation CI/CD",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/34047570300",
+            "updated_at": "2026-09-06T17:09:35Z"
+          },
+          {
+            "workflow": "XR Godot CI",
+            "conclusion": "cancelled",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/34029044722",
+            "updated_at": "2026-09-06T17:02:01Z"
+          }
+        ]
+      },
+      "open_prs": 0,
+      "open_issues": 1,
+      "release": null,
+      "pages": {
+        "url": "https://dreamlab-ai.github.io/VisionClaw/",
+        "status": null,
+        "build_type": "workflow"
+      },
+      "notes": []
+    },
+    {
+      "name": "agentbox",
+      "full_name": "DreamLab-AI/agentbox",
+      "url": "https://github.com/DreamLab-AI/agentbox",
+      "provenance": "first-party",
+      "role": "sovereign agent runtime; skill and MCP count sources",
+      "visibility": "public",
+      "archived": false,
+      "readable": true,
+      "default_branch": "main",
+      "head": {
+        "sha": "7b28112727dd1d4e83a97c989bd544aab3c8a2d5",
+        "short": "7b28112",
+        "date": "2026-09-06T18:14:40Z",
+        "message": "chore: delete stale ontology-publish workflow",
+        "url": "https://github.com/DreamLab-AI/agentbox/commit/7b28112727dd1d4e83a97c989bd544aab3c8a2d5"
+      },
+      "ci": {
+        "state": "red",
+        "runs": [
+          {
+            "workflow": "CI",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/34051265432",
+            "updated_at": "2026-09-06T18:19:36Z"
+          },
+          {
+            "workflow": "Contract tests",
+            "conclusion": "failure",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/33997923773",
+            "updated_at": "2026-09-05T23:10:34Z"
+          },
+          {
+            "workflow": "Manifest validate",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/33997923771",
+            "updated_at": "2026-09-05T23:12:10Z"
+          },
+          {
+            "workflow": "Ontology Federation CI/CD",
+            "conclusion": "failure",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/33862998777",
+            "updated_at": "2026-09-04T10:24:07Z"
+          },
+          {
+            "workflow": "Secret Scan",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/34051265433",
+            "updated_at": "2026-09-06T18:19:30Z"
+          },
+          {
+            "workflow": "Security Invariants",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/34030291667",
+            "updated_at": "2026-09-06T11:27:57Z"
+          },
+          {
+            "workflow": "ShellCheck",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/33997923788",
+            "updated_at": "2026-09-05T23:10:24Z"
+          },
+          {
+            "workflow": "TUI helper tests",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/33990924207",
+            "updated_at": "2026-09-05T20:44:58Z"
+          }
+        ]
+      },
+      "open_prs": 0,
+      "open_issues": 0,
+      "release": null,
+      "pages": null,
+      "notes": []
+    },
+    {
+      "name": "solid-pod-rs",
+      "full_name": "DreamLab-AI/solid-pod-rs",
+      "url": "https://github.com/DreamLab-AI/solid-pod-rs",
+      "provenance": "first-party",
+      "role": "canonical native Solid pod implementation",
+      "visibility": "public",
+      "archived": false,
+      "readable": true,
+      "default_branch": "main",
+      "head": {
+        "sha": "1d9da527076e733d6a5571f474a573c16e5a6047",
+        "short": "1d9da52",
+        "date": "2026-09-06T11:01:08Z",
+        "message": "release: 0.5.0-alpha.9",
+        "url": "https://github.com/DreamLab-AI/solid-pod-rs/commit/1d9da527076e733d6a5571f474a573c16e5a6047"
+      },
+      "ci": {
+        "state": "green",
+        "runs": [
+          {
+            "workflow": "CI",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/solid-pod-rs/actions/runs/34029212467",
+            "updated_at": "2026-09-06T11:31:47Z"
+          },
+          {
+            "workflow": "Release",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/solid-pod-rs/actions/runs/32358543220",
+            "updated_at": "2026-08-20T10:24:47Z"
+          }
+        ]
+      },
+      "open_prs": 0,
+      "open_issues": 1,
+      "release": null,
+      "pages": null,
+      "notes": []
+    },
+    {
+      "name": "nostr-rust-forum",
+      "full_name": "DreamLab-AI/nostr-rust-forum",
+      "url": "https://github.com/DreamLab-AI/nostr-rust-forum",
+      "provenance": "first-party",
+      "role": "governance plane, agent registry, relay",
+      "visibility": "public",
+      "archived": false,
+      "readable": true,
+      "default_branch": "main",
+      "head": {
+        "sha": "931898a3d82da5dbf573b6b6dccdc76513046875",
+        "short": "931898a",
+        "date": "2026-09-06T11:02:22Z",
+        "message": "release: 1.0.0-beta.10",
+        "url": "https://github.com/DreamLab-AI/nostr-rust-forum/commit/931898a3d82da5dbf573b6b6dccdc76513046875"
+      },
+      "ci": {
+        "state": "green",
+        "runs": [
+          {
+            "workflow": "CI",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/nostr-rust-forum/actions/runs/34029607835",
+            "updated_at": "2026-09-06T11:15:17Z"
+          },
+          {
+            "workflow": "Security Audit",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/nostr-rust-forum/actions/runs/34029607936",
+            "updated_at": "2026-09-06T11:16:48Z"
+          }
+        ]
+      },
+      "open_prs": 0,
+      "open_issues": 0,
+      "release": null,
+      "pages": {
+        "url": "https://dreamlab-ai.github.io/nostr-rust-forum/",
+        "status": null,
+        "build_type": "workflow"
+      },
+      "notes": []
+    },
+    {
+      "name": "dreamlab-ai-website",
+      "full_name": "DreamLab-AI/dreamlab-ai-website",
+      "url": "https://github.com/DreamLab-AI/dreamlab-ai-website",
+      "provenance": "first-party",
+      "role": "commercial surface",
+      "visibility": "public",
+      "archived": false,
+      "readable": true,
+      "default_branch": "main",
+      "head": {
+        "sha": "f3ee5405b79f221b2b6e6671673c66bba1124563",
+        "short": "f3ee540",
+        "date": "2026-09-06T11:34:42Z",
+        "message": "kit: pin nostr-bbs 1.0.0-beta.10 (931898a) across all five sites",
+        "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/commit/f3ee5405b79f221b2b6e6671673c66bba1124563"
+      },
+      "ci": {
+        "state": "green",
+        "runs": [
+          {
+            "workflow": "CI",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/34030651356",
+            "updated_at": "2026-09-06T11:35:37Z"
+          },
+          {
+            "workflow": "Deploy Cloudflare Workers",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/34030651497",
+            "updated_at": "2026-09-06T11:41:06Z"
+          },
+          {
+            "workflow": "Deploy to GitHub Pages",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/34030651468",
+            "updated_at": "2026-09-06T11:44:11Z"
+          },
+          {
+            "workflow": "Documentation Auto-Update",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/33344213876",
+            "updated_at": "2026-08-31T00:19:11Z"
+          },
+          {
+            "workflow": "kit-pin-guard",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/34030651377",
+            "updated_at": "2026-09-06T11:35:12Z"
+          },
+          {
+            "workflow": "Rust CI",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/32354920875",
+            "updated_at": "2026-08-20T09:41:31Z"
+          },
+          {
+            "workflow": "Supabase archive dump (one-shot)",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/32893935700",
+            "updated_at": "2026-08-25T20:12:01Z"
+          },
+          {
+            "workflow": "Test and Lint (Reusable)",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/34030651372",
+            "updated_at": "2026-09-06T11:36:05Z"
+          }
+        ]
+      },
+      "open_prs": 0,
+      "open_issues": 2,
+      "release": null,
+      "pages": {
+        "url": "https://dreamlab-ai.com/",
+        "status": "built",
+        "build_type": "legacy"
+      },
+      "notes": []
+    },
+    {
+      "name": "loom",
+      "full_name": "DreamLab-AI/loom",
+      "url": "https://github.com/DreamLab-AI/loom",
+      "provenance": "first-party",
+      "role": "Ontology Loom — model-swappable grounding facade",
+      "visibility": "public",
+      "archived": false,
+      "readable": true,
+      "default_branch": "main",
+      "head": {
+        "sha": "ba9f6bf9da003c407017288501ba3c7d35878626",
+        "short": "ba9f6bf",
+        "date": "2026-09-06T08:49:40Z",
+        "message": "style: rustfmt the c86f462 landing (19 files, whitespace only)",
+        "url": "https://github.com/DreamLab-AI/loom/commit/ba9f6bf9da003c407017288501ba3c7d35878626"
+      },
+      "ci": {
+        "state": "none",
+        "runs": []
+      },
+      "open_prs": 0,
+      "open_issues": 0,
+      "release": null,
+      "pages": null,
+      "notes": []
+    },
+    {
+      "name": "knowledgeGraph",
+      "full_name": "DreamLab-AI/knowledgeGraph",
+      "url": "https://github.com/DreamLab-AI/knowledgeGraph",
+      "provenance": "first-party",
+      "role": "published corpus mirror and narrativegoldmine.com Pages host",
+      "visibility": "public",
+      "archived": false,
+      "readable": true,
+      "default_branch": "main",
+      "head": {
+        "sha": "2791111fc4ae301fdc5843ed2ad88b2e67d643fb",
+        "short": "2791111",
+        "date": "2026-09-06T14:18:30Z",
+        "message": "chore(explorer): move the vowl-wasm pin to 0.1.1",
+        "url": "https://github.com/DreamLab-AI/knowledgeGraph/commit/2791111fc4ae301fdc5843ed2ad88b2e67d643fb"
+      },
+      "ci": {
+        "state": "green",
+        "runs": [
+          {
+            "workflow": "Build and verify",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/knowledgeGraph/actions/runs/34038750902",
+            "updated_at": "2026-09-06T14:19:29Z"
+          }
+        ]
+      },
+      "open_prs": 0,
+      "open_issues": 0,
+      "release": null,
+      "pages": {
+        "url": "https://narrativegoldmine.com/",
+        "status": "built",
+        "build_type": "legacy"
+      },
+      "notes": []
+    },
+    {
+      "name": "WasmVOWL",
+      "full_name": "DreamLab-AI/WasmVOWL",
+      "url": "https://github.com/DreamLab-AI/WasmVOWL",
+      "provenance": "first-party",
+      "role": "WASM ontology visualiser (demo shell; default branch master)",
+      "visibility": "public",
+      "archived": false,
+      "readable": true,
+      "default_branch": "master",
+      "head": {
+        "sha": "b359aa016cf041db6f2a6d3c7f111f4c07693be4",
+        "short": "b359aa0",
+        "date": "2026-09-06T14:12:22Z",
+        "message": "feat(modern): consume the published vowl-wasm 0.1.1 engine, delete the vendored crate",
+        "url": "https://github.com/DreamLab-AI/WasmVOWL/commit/b359aa016cf041db6f2a6d3c7f111f4c07693be4"
+      },
+      "ci": {
+        "state": "none",
+        "runs": []
+      },
+      "open_prs": 0,
+      "open_issues": 0,
+      "release": null,
+      "pages": null,
+      "notes": []
+    },
+    {
+      "name": "visionGraph",
+      "full_name": "jjohare/visionGraph",
+      "url": "https://github.com/jjohare/visionGraph",
+      "provenance": "first-party",
+      "role": "the vault: source of the published ontology (private — needs ESTATE_READ_TOKEN, else readable:false)",
+      "visibility": "private",
+      "archived": false,
+      "readable": true,
+      "default_branch": "main",
+      "head": {
+        "sha": "9e308164cc477567941e079c67049bd2ea9e7a05",
+        "short": "9e30816",
+        "date": "2026-09-06T17:39:59Z",
+        "message": "fix(publish): correct stale logseq reference in deploy commit message",
+        "url": "https://github.com/jjohare/visionGraph/commit/9e308164cc477567941e079c67049bd2ea9e7a05"
+      },
+      "ci": {
+        "state": "green",
+        "runs": [
+          {
+            "workflow": "Publish Ontology (JSON-LD Pipeline v3)",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/jjohare/visionGraph/actions/runs/34049824503",
+            "updated_at": "2026-09-06T17:55:42Z"
+          }
+        ]
+      },
+      "open_prs": 0,
+      "open_issues": 0,
+      "release": null,
+      "pages": null,
+      "notes": []
+    },
+    {
+      "name": "vowl-wasm",
+      "full_name": "DreamLab-AI/vowl-wasm",
+      "url": "https://github.com/DreamLab-AI/vowl-wasm",
+      "provenance": "first-party",
+      "role": "published VOWL engine crate + npm bundle",
+      "visibility": "public",
+      "archived": false,
+      "readable": true,
+      "default_branch": "main",
+      "head": {
+        "sha": "65e2d1e784bf5eb04b3cbc122d36d6926d889c22",
+        "short": "65e2d1e",
+        "date": "2026-09-06T14:10:07Z",
+        "message": "perf: drop markdown-ontology from the published bundle; 1.48 MB -> 232 KB",
+        "url": "https://github.com/DreamLab-AI/vowl-wasm/commit/65e2d1e784bf5eb04b3cbc122d36d6926d889c22"
+      },
+      "ci": {
+        "state": "green",
+        "runs": [
+          {
+            "workflow": "CI",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/vowl-wasm/actions/runs/34038316355",
+            "updated_at": "2026-09-06T14:11:13Z"
+          }
+        ]
+      },
+      "open_prs": 0,
+      "open_issues": 1,
+      "release": {
+        "tag": "v0.1.2",
+        "date": "2026-09-06T14:11:12Z",
+        "url": "https://github.com/DreamLab-AI/vowl-wasm/releases/tag/v0.1.2"
+      },
+      "pages": null,
+      "notes": []
+    },
+    {
+      "name": "prose-sanitiser",
+      "full_name": "DreamLab-AI/prose-sanitiser",
+      "url": "https://github.com/DreamLab-AI/prose-sanitiser",
+      "provenance": "first-party",
+      "role": "published crate",
+      "visibility": "public",
+      "archived": false,
+      "readable": true,
+      "default_branch": "main",
+      "head": {
+        "sha": "e6d456d0294db03b7bd00e69dda461bfb8ac7d04",
+        "short": "e6d456d",
+        "date": "2026-09-06T07:26:34Z",
+        "message": "chore: estate-closeout and release receipts, crate updates",
+        "url": "https://github.com/DreamLab-AI/prose-sanitiser/commit/e6d456d0294db03b7bd00e69dda461bfb8ac7d04"
+      },
+      "ci": {
+        "state": "green",
+        "runs": [
+          {
+            "workflow": "CI",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/prose-sanitiser/actions/runs/34019158801",
+            "updated_at": "2026-09-06T07:31:52Z"
+          }
+        ]
+      },
+      "open_prs": 0,
+      "open_issues": 0,
+      "release": {
+        "tag": "v0.1.1",
+        "date": "2026-09-03T21:49:44Z",
+        "url": "https://github.com/DreamLab-AI/prose-sanitiser/releases/tag/v0.1.1"
+      },
+      "pages": null,
+      "notes": []
+    },
+    {
+      "name": "diagram-ir",
+      "full_name": "DreamLab-AI/diagram-ir",
+      "url": "https://github.com/DreamLab-AI/diagram-ir",
+      "provenance": "first-party",
+      "role": "published crate",
+      "visibility": "public",
+      "archived": false,
+      "readable": true,
+      "default_branch": "main",
+      "head": {
+        "sha": "16e325489df518dd3f951f090cb3f5f07929aebf",
+        "short": "16e3254",
+        "date": "2026-09-03T19:59:43Z",
+        "message": "ci: prove the declared MSRV on every push",
+        "url": "https://github.com/DreamLab-AI/diagram-ir/commit/16e325489df518dd3f951f090cb3f5f07929aebf"
+      },
+      "ci": {
+        "state": "green",
+        "runs": [
+          {
+            "workflow": "CI",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/diagram-ir/actions/runs/33799653254",
+            "updated_at": "2026-09-03T20:02:06Z"
+          }
+        ]
+      },
+      "open_prs": 0,
+      "open_issues": 0,
+      "release": {
+        "tag": "v0.1.0",
+        "date": "2026-09-03T18:15:01Z",
+        "url": "https://github.com/DreamLab-AI/diagram-ir/releases/tag/v0.1.0"
+      },
+      "pages": null,
+      "notes": []
+    },
+    {
+      "name": "dream-engine",
+      "full_name": "DreamLab-AI/dream-engine",
+      "url": "https://github.com/DreamLab-AI/dream-engine",
+      "provenance": "imported",
+      "role": "dream-cycle engine, fork of ruvnet/dream-machine",
+      "visibility": "public",
+      "archived": false,
+      "readable": true,
+      "default_branch": "main",
+      "head": {
+        "sha": "ce59ade705152ff4c33b127837f3a9f5c8b2830e",
+        "short": "ce59ade",
+        "date": "2026-09-06T18:07:19Z",
+        "message": "Merge pull request #4 from DreamLab-AI/dependabot/github_actions/actions/upload-pages-artifact-5",
+        "url": "https://github.com/DreamLab-AI/dream-engine/commit/ce59ade705152ff4c33b127837f3a9f5c8b2830e"
+      },
+      "ci": {
+        "state": "red",
+        "runs": [
+          {
+            "workflow": "CI",
+            "conclusion": "failure",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/dream-engine/actions/runs/34050709094",
+            "updated_at": "2026-09-06T18:07:40Z"
+          },
+          {
+            "workflow": "CodeQL",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/dream-engine/actions/runs/34050709115",
+            "updated_at": "2026-09-06T18:08:31Z"
+          },
+          {
+            "workflow": "Deploy Pages",
+            "conclusion": "failure",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/dream-engine/actions/runs/34050709201",
+            "updated_at": "2026-09-06T18:07:31Z"
+          }
+        ]
+      },
+      "open_prs": 0,
+      "open_issues": 0,
+      "release": null,
+      "pages": null,
+      "notes": []
+    }
+  ],
+  "surfaces": [
+    {
+      "name": "www.visionflow.info",
+      "url": "https://www.visionflow.info/",
+      "status": 200,
+      "ok": true,
+      "content_type": "text/html; charset=utf-8",
+      "latency_ms": 98,
+      "note": null
+    },
+    {
+      "name": "narrativegoldmine.com",
+      "url": "https://narrativegoldmine.com/",
+      "status": 200,
+      "ok": true,
+      "content_type": "text/html; charset=utf-8",
+      "latency_ms": 232,
+      "note": null
+    },
+    {
+      "name": "narrativegoldmine.com/ns/v2.jsonld",
+      "url": "https://narrativegoldmine.com/ns/v2.jsonld",
+      "status": 200,
+      "ok": true,
+      "content_type": "application/ld+json",
+      "latency_ms": 206,
+      "note": null
+    },
+    {
+      "name": "narrativegoldmine.com/data/graph/stats.json",
+      "url": "https://narrativegoldmine.com/data/graph/stats.json",
+      "status": 200,
+      "ok": true,
+      "content_type": "application/json; charset=utf-8",
+      "latency_ms": 187,
+      "note": "classes=8432 pages=8428 nodes=8432"
+    },
+    {
+      "name": "www.dreamlab-ai.com",
+      "url": "https://www.dreamlab-ai.com/",
+      "status": 200,
+      "ok": true,
+      "content_type": "text/html; charset=utf-8",
+      "latency_ms": 228,
+      "note": null
+    },
+    {
+      "name": "VisionClaw ontology-latest/index.jsonld",
+      "url": "https://github.com/DreamLab-AI/VisionClaw/releases/download/ontology-latest/index.jsonld",
+      "status": 200,
+      "ok": true,
+      "content_type": "application/octet-stream",
+      "latency_ms": 320,
+      "note": null
+    }
+  ],
+  "registries": [
+    {
+      "registry": "crates.io",
+      "name": "vowl-wasm",
+      "version": "0.1.2",
+      "published_at": "2026-09-06T14:10:20.035293Z",
+      "url": "https://crates.io/crates/vowl-wasm",
+      "note": null
+    },
+    {
+      "registry": "crates.io",
+      "name": "prose-sanitiser",
+      "version": "0.1.1",
+      "published_at": "2026-09-03T21:38:30.238954Z",
+      "url": "https://crates.io/crates/prose-sanitiser",
+      "note": null
+    },
+    {
+      "registry": "crates.io",
+      "name": "diagram-ir",
+      "version": "0.1.0",
+      "published_at": "2026-09-03T17:33:39.367700Z",
+      "url": "https://crates.io/crates/diagram-ir",
+      "note": null
+    },
+    {
+      "registry": "crates.io",
+      "name": "solid-pod-rs",
+      "version": "0.5.0-alpha.9",
+      "published_at": "2026-09-06T11:07:34.074922Z",
+      "url": "https://crates.io/crates/solid-pod-rs",
+      "note": null
+    },
+    {
+      "registry": "crates.io",
+      "name": "solid-pod-rs-server",
+      "version": "0.5.0-alpha.9",
+      "published_at": "2026-09-06T11:18:59.229456Z",
+      "url": "https://crates.io/crates/solid-pod-rs-server",
+      "note": null
+    },
+    {
+      "registry": "crates.io",
+      "name": "nostr-bbs-core",
+      "version": "1.0.0-beta.10",
+      "published_at": "2026-09-06T11:21:57.943505Z",
+      "url": "https://crates.io/crates/nostr-bbs-core",
+      "note": null
+    },
+    {
+      "registry": "npm",
+      "name": "@dreamlab-ai/vowl-wasm",
+      "version": "0.1.2",
+      "published_at": "2026-09-06T15:44:22.667Z",
+      "url": "https://www.npmjs.com/package/@dreamlab-ai/vowl-wasm",
+      "note": null
+    }
+  ]
+}

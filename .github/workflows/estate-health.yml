@@ -1,0 +1,159 @@
+name: Nightly estate health
+
+# Estate health collection (ADR-2008).
+#
+# The estate's health used to live in a hand-maintained closeout table: a claim
+# about the past that went stale the moment a workflow went red, with nothing
+# anywhere to notice. This job replaces the claim with a nightly measurement —
+# CI on every default branch, open PRs, releases, published surfaces, registry
+# versions — committed as data at website/static/data/estate-health.json and
+# published through the deploy.yml gates like any other asset.
+#
+# WHY COLLECTION LIVES HERE AND NOWHERE ELSE
+#
+# The 03:00 UTC dream cycle is the natural consumer, but it runs in an annexe
+# that holds no credentials and must stay offline-safe. So the split is: this
+# workflow COLLECTS (it is where the tokens are), and a dream night READS the
+# committed snapshot through `node scripts/estate-health.mjs check`. 02:30 UTC is
+# chosen so the snapshot is at most thirty minutes old when the dream cycle
+# reads it, well inside the collector's 36-hour staleness limit.
+#
+# WHY THE JOB DOES NOT FAIL ON RED
+#
+# A red estate is the expected, useful output of a working sensor, not a failure
+# of the sensor. Failing the job on RED would abort before the commit and push,
+# so the one night the estate breaks would be the one night no snapshot is
+# published — the page would keep showing yesterday's green. The verdict is
+# therefore REPORTED into the step summary and the snapshot always lands. The
+# job fails only when collection itself could not run.
+#
+# WHY THE DEPLOY IS DISPATCHED EXPLICITLY
+#
+# "When you use the repository's GITHUB_TOKEN... events triggered by the
+# GITHUB_TOKEN will not create a new workflow run, with the following
+# exceptions: workflow_dispatch and repository_dispatch events always create
+# workflow runs." (docs.github.com, Triggering a workflow.) The push below is
+# made with GITHUB_TOKEN, so deploy.yml's `on: push` will NOT fire and the fresh
+# snapshot would sit in main, unpublished, until somebody pushed by hand. The
+# last step therefore dispatches deploy.yml explicitly, which IS honoured for a
+# GITHUB_TOKEN-initiated event. That dispatch is what `actions: write` is for;
+# `contents: write` is for the push (checkout itself needs only read).
+#
+# WHY THE CHANGE GUARD IS A SAFETY NET, NOT AN OPTIMISATION
+#
+# The snapshot carries `generated_at`, so an unchanged estate still produces a
+# changed file — and that is deliberate: freshness is part of the payload, and a
+# night with no commit is a night the published snapshot ages towards STALE. The
+# guard exists for the degenerate case (collection wrote nothing new at all), so
+# that a broken collector cannot spend a commit and a deploy saying nothing.
+
+on:
+  schedule:
+    # 02:30 UTC — thirty minutes ahead of the 03:00 UTC dream cycle
+    # (dream.config.json), so the dream night reads a snapshot collected tonight.
+    - cron: '30 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write   # commit and push the snapshot
+  actions: write    # dispatch deploy.yml (GITHUB_TOKEN pushes do not trigger on:push)
+
+concurrency:
+  group: estate-health
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      # persist-credentials is the default, and stated here because the push
+      # step below depends on it: checkout leaves the token in the local git
+      # config, so `git push` authenticates with no further login.
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 1
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # ── collect ─────────────────────────────────────────────────────────
+      # ESTATE_READ_TOKEN is OPTIONAL and may be unset. The job's GITHUB_TOKEN is
+      # scoped to this repository alone, so it cannot see a private repository
+      # under another owner and gets a 404 on jjohare/visionGraph; that row then
+      # lands in the snapshot as readable:false with ci.state "unknown" and null
+      # counts, rather than failing the run. To make it readable, the operator
+      # adds ESTATE_READ_TOKEN as a secret on DreamLab-AI/VisionFlow: a
+      # FINE-GRAINED PAT scoped to jjohare/visionGraph with Contents:read,
+      # Actions:read and Metadata:read — no write scope, and no access to any
+      # other repository. Note that a local run by a maintainer whose gh token is
+      # a full-scope user PAT reads visionGraph WITHOUT the fallback, so a
+      # readable row in a locally produced snapshot does not evidence this path.
+      - name: Collect the estate snapshot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ESTATE_READ_TOKEN: ${{ secrets.ESTATE_READ_TOKEN }}
+        run: node scripts/estate-health.mjs collect
+
+      # ── REPORTED: the verdict, into the step summary ─────────────────────
+      - name: Check the snapshot (reported, never blocking)
+        id: check
+        run: |
+          set -uo pipefail
+          OUT="$(node scripts/estate-health.mjs check)" || true
+          echo "$OUT"
+          VERDICT="$(grep -oE '^ESTATE-HEALTH-(OK|STALE|RED)$' <<< "$OUT" | tail -n 1)"
+          echo "verdict=${VERDICT:-ESTATE-HEALTH-UNKNOWN}" >> "$GITHUB_OUTPUT"
+          {
+            echo "## Nightly estate check"
+            echo ""
+            echo "**${VERDICT:-ESTATE-HEALTH-UNKNOWN}**"
+            echo ""
+            node -e '
+              const s = require("./website/static/data/estate-health.json").summary;
+              console.log(`| repos | green | red | amber | none | unreadable | open PRs | surfaces |`);
+              console.log(`|---:|---:|---:|---:|---:|---:|---:|---:|`);
+              console.log(`| ${s.repos} | ${s.green} | ${s.red} | ${s.amber} | ${s.none}`
+                + ` | ${s.unreadable} | ${s.open_prs} | ${s.surfaces_ok}/${s.surfaces_total} |`);
+            '
+            echo ""
+            echo '```'
+            echo "$OUT"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # ── commit, only when the snapshot actually changed ──────────────────
+      # Staged first, so the test catches a first-ever snapshot (untracked) as
+      # readily as a changed one; `git diff --quiet` alone would miss it.
+      - name: Commit the snapshot
+        id: commit
+        run: |
+          set -euo pipefail
+          git add -- website/static/data/estate-health.json
+          if git diff --cached --quiet -- website/static/data/estate-health.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "snapshot unchanged — nothing to commit, deploy not dispatched"
+            exit 0
+          fi
+          SUMMARY="$(node -e '
+            const s = require("./website/static/data/estate-health.json");
+            const d = s.generated_at.slice(0, 10);
+            console.log(`${d} — ${s.summary.green}/${s.summary.repos} green`);
+          ')"
+          git config user.name  "estate-health[bot]"
+          git config user.email "estate-health@users.noreply.github.com"
+          git commit -m "chore(estate-health): nightly snapshot ${SUMMARY}"
+          git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      # ── publish: dispatch deploy.yml, which on:push will not do for us ───
+      - name: Dispatch the site deploy
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh workflow run deploy.yml --ref main
+          echo "deploy.yml dispatched for the new snapshot (verdict: ${{ steps.check.outputs.verdict }})"

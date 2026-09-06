@@ -1,0 +1,64 @@
+{
+  "roster_version": 1,
+  "_doc": "The declared estate: which repositories, public surfaces and package registries the nightly estate-health snapshot measures. This file is the ONLY place the estate is enumerated — scripts/estate-health.mjs holds no repository names. Provenance follows scripts/generate-release-manifest.sh: 'first-party' is written here, 'imported' is a fork or vendored upstream. Adding a repository to the estate means adding a row here; the collector, the page and the dream evaluator all follow. Output order is roster order, so this file also fixes the display order of the published snapshot.",
+  "repos": [
+    { "name": "VisionFlow",          "full_name": "DreamLab-AI/VisionFlow",          "provenance": "first-party", "role": "canon — cross-repo view, release machinery, governing ADRs" },
+    { "name": "VisionClaw",          "full_name": "DreamLab-AI/VisionClaw",          "provenance": "first-party", "role": "GPU engine, OWL 2 EL reasoner, IS-Envelope contract" },
+    { "name": "agentbox",            "full_name": "DreamLab-AI/agentbox",            "provenance": "first-party", "role": "sovereign agent runtime; skill and MCP count sources" },
+    { "name": "solid-pod-rs",        "full_name": "DreamLab-AI/solid-pod-rs",        "provenance": "first-party", "role": "canonical native Solid pod implementation" },
+    { "name": "nostr-rust-forum",    "full_name": "DreamLab-AI/nostr-rust-forum",    "provenance": "first-party", "role": "governance plane, agent registry, relay" },
+    { "name": "dreamlab-ai-website", "full_name": "DreamLab-AI/dreamlab-ai-website", "provenance": "first-party", "role": "commercial surface" },
+    { "name": "loom",                "full_name": "DreamLab-AI/loom",                "provenance": "first-party", "role": "Ontology Loom — model-swappable grounding facade" },
+    { "name": "knowledgeGraph",      "full_name": "DreamLab-AI/knowledgeGraph",      "provenance": "first-party", "role": "published corpus mirror and narrativegoldmine.com Pages host" },
+    { "name": "WasmVOWL",            "full_name": "DreamLab-AI/WasmVOWL",            "provenance": "first-party", "role": "WASM ontology visualiser (demo shell; default branch master)" },
+    { "name": "visionGraph",         "full_name": "jjohare/visionGraph",             "provenance": "first-party", "role": "the vault: source of the published ontology (private — needs ESTATE_READ_TOKEN, else readable:false)" },
+    { "name": "vowl-wasm",           "full_name": "DreamLab-AI/vowl-wasm",           "provenance": "first-party", "role": "published VOWL engine crate + npm bundle" },
+    { "name": "prose-sanitiser",     "full_name": "DreamLab-AI/prose-sanitiser",     "provenance": "first-party", "role": "published crate" },
+    { "name": "diagram-ir",          "full_name": "DreamLab-AI/diagram-ir",          "provenance": "first-party", "role": "published crate" },
+    { "name": "dream-engine",        "full_name": "DreamLab-AI/dream-engine",        "provenance": "imported",    "role": "dream-cycle engine, fork of ruvnet/dream-machine" }
+  ],
+  "surfaces": [
+    {
+      "name": "www.visionflow.info",
+      "url": "https://www.visionflow.info/",
+      "why": "the canon site this snapshot is published to"
+    },
+    {
+      "name": "narrativegoldmine.com",
+      "url": "https://narrativegoldmine.com/",
+      "why": "published corpus surface (knowledgeGraph Pages host)"
+    },
+    {
+      "name": "narrativegoldmine.com/ns/v2.jsonld",
+      "url": "https://narrativegoldmine.com/ns/v2.jsonld",
+      "expect_content_type": "application/ld+json",
+      "why": "the published ontology namespace document — the contract consumers dereference"
+    },
+    {
+      "name": "narrativegoldmine.com/data/graph/stats.json",
+      "url": "https://narrativegoldmine.com/data/graph/stats.json",
+      "expect_content_type": "json",
+      "parse": "json",
+      "why": "corpus size signal; classes/pages recorded in the note when the body parses"
+    },
+    {
+      "name": "www.dreamlab-ai.com",
+      "url": "https://www.dreamlab-ai.com/",
+      "why": "commercial surface"
+    },
+    {
+      "name": "VisionClaw ontology-latest/index.jsonld",
+      "url": "https://github.com/DreamLab-AI/VisionClaw/releases/download/ontology-latest/index.jsonld",
+      "why": "pull-model ontology release asset (ADR-2106) — the artefact consumers fetch rather than a served endpoint"
+    }
+  ],
+  "registries": [
+    { "registry": "crates.io", "name": "vowl-wasm" },
+    { "registry": "crates.io", "name": "prose-sanitiser" },
+    { "registry": "crates.io", "name": "diagram-ir" },
+    { "registry": "crates.io", "name": "solid-pod-rs" },
+    { "registry": "crates.io", "name": "solid-pod-rs-server" },
+    { "registry": "crates.io", "name": "nostr-bbs-core" },
+    { "registry": "npm",       "name": "@dreamlab-ai/vowl-wasm" }
+  ]
+}
