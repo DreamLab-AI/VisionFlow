@@ -1377,25 +1377,27 @@ a.substrate-shot:hover {
 
   /* ── Rule 2: glass cards become hairline-separated rows ────────────────── */
   .glass-card, .substrate-card, .case-card, .scale-card,
-  .econ-card, .gap-card, .ledger-card {
+  .econ-card, .gap-card, .ledger-card, .estate-tile {
     background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none;
     border: 0; border-bottom: 1px solid var(--m-hairline); border-radius: 0;
     padding: 16px 0;
   }
   .ledger-card { border-left: 2px solid var(--emerald); border-bottom: 1px solid var(--m-hairline); padding-left: 16px; }
-  .problem-grid .glass-card, .econ-card, .scale-card { border-bottom: 0; border-top: 1px solid var(--m-foil); }
+  .problem-grid .glass-card, .econ-card, .scale-card, .estate-tile { border-bottom: 0; border-top: 1px solid var(--m-foil); }
   .card-icon { display: none; }                          /* four crimson × in a column reads as an error state */
   .glass-card h3, .substrate-card h3, .ledger-card h3, .econ-card h3,
   .scale-card h3, .gap-card h3, .case-card h3 { font-size: 17px; line-height: 1.35; font-weight: 600; }
   .glass-card p, .ledger-card p, .econ-card p, .scale-card p, .gap-card p, .case-card p { color: var(--m-support); font-size: 14px; line-height: 1.55; }
   /* no hover paint on touch */
   .glass-card:hover, .substrate-card:hover, .case-card:hover, .scale-card:hover,
-  .repo-card:hover, .ledger-card:hover, .econ-card:hover, .gap-card:hover {
+  .repo-card:hover, .ledger-card:hover, .econ-card:hover, .gap-card:hover, .estate-tile:hover {
     transform: none; box-shadow: none; border-color: var(--m-hairline);
   }
 
   /* grids collapse to single-column stacks (carousels overridden below) */
   .problem-grid, .ledger-grid, .econ-grid, .scale-grid, .gap-cards, .repo-grid { display: block; }
+  /* .estate-summary-grid deliberately stays a grid here: six short counts read
+     better two-up than as six full-width rows in an already very tall section. */
 
   /* ── Reading-switch face swap (no 3D flip on mobile) ───────────────────── */
   .rl-panel { perspective: none; }
@@ -1704,6 +1706,64 @@ a.substrate-shot:hover {
 .st-standalone { color: var(--cyan); background: rgba(0, 212, 255, 0.08); border: 1px solid rgba(0, 212, 255, 0.3); }
 .st-progress { color: var(--amber); background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.32); }
 .st-deferred { color: var(--text-dim); background: rgba(139, 149, 165, 0.08); border: 1px solid rgba(139, 149, 165, 0.3); }
+/* CI verdicts. .st-integrated reads wrong on a build result, so green is named
+   for what it is; red is new (--crimson expanded), amber/none reuse the tokens above. */
+.st-green { color: var(--emerald); background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); }
+.st-red { color: var(--crimson); background: rgba(233, 69, 96, 0.1); border: 1px solid rgba(233, 69, 96, 0.32); }
+.st-amber { color: var(--amber); background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.32); }
+.st-none { color: var(--text-dim); background: rgba(139, 149, 165, 0.08); border: 1px solid rgba(139, 149, 165, 0.3); }
+
+/* ── Nightly estate check (#estate) ──────────────────────────────────────── */
+/* The repo table borrows .status-table's row rules but has five columns, so it
+   must restate the widths .status-table sets for its own three. */
+.estate-table th:nth-child(1) { width: 22%; }
+.estate-table th:nth-child(2) { width: 30%; }
+.estate-table th:nth-child(3) { width: 84px; }
+.estate-table th:nth-child(4) { width: 132px; }
+.estate-table td { vertical-align: top; }
+.estate-repo a { color: var(--text); text-decoration: none; font-weight: 600; }
+.estate-repo a:hover { color: var(--bright-gold); }
+.estate-meta { display: block; font-family: var(--mono); font-size: 0.68rem; color: var(--text-dim); margin-top: 3px; letter-spacing: 0.02em; }
+.estate-runs { list-style: none; margin: 8px 0 0; padding: 0; }
+.estate-runs li { margin: 0 0 3px; line-height: 1.35; }
+.estate-runs a { font-family: var(--mono); font-size: 0.7rem; color: var(--text-dim); text-decoration: none; }
+.estate-runs a:hover { color: var(--bright-gold); }
+.estate-runs .r-red { color: var(--crimson); }
+.estate-runs .r-amber { color: var(--amber); }
+.estate-num { font-family: var(--mono); font-size: 0.85rem; color: var(--text-muted); }
+.estate-num.on { color: var(--bright-gold); }
+.estate-table a.estate-link { color: var(--gold); text-decoration: none; font-family: var(--mono); font-size: 0.78rem; }
+.estate-table a.estate-link:hover { color: var(--bright-gold); }
+.estate-dash { color: var(--text-dim); }
+
+/* initScrollReveal() observes .container.reveal at threshold 0.1. This container
+   is ~7,600px tall — over nine viewport heights on a laptop — so the fraction of
+   it that can ever be on screen at once (viewport / height) falls below 0.1 and
+   the observer never fires, leaving the whole section at opacity 0. A section
+   this tall cannot be faded in as one unit, so it opts out of the reveal, the
+   same way the reduced-motion rule already neutralises it page-wide. */
+#estate .container.reveal { opacity: 1; transform: none; }
+
+.estate-summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 28px; }
+.estate-tile { padding: 18px 20px; }
+.estate-tile .metric-value { font-size: 1.6rem; }
+.estate-tile.t-green .metric-value { color: var(--emerald); }
+.estate-tile.t-red .metric-value { color: var(--crimson); }
+.estate-tile.t-amber .metric-value { color: var(--amber); }
+.estate-tile.t-dim .metric-value { color: var(--text-dim); }
+
+.estate-stamp { font-family: var(--mono); font-size: 0.72rem; color: var(--text-dim); margin: 0 0 22px; letter-spacing: 0.02em; }
+.estate-note { font-size: 0.9rem; color: var(--text-muted); margin: 0; }
+.estate-note a { color: var(--gold); text-decoration: none; }
+.estate-note a:hover { color: var(--bright-gold); }
+.estate-sub { font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-dim); margin: 32px 0 12px; }
+.estate-list { list-style: none; margin: 0; padding: 0; }
+.estate-list li { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; color: var(--text-muted); }
+.estate-list li:last-child { border-bottom: 0; }
+.estate-list a { color: var(--text); text-decoration: none; }
+.estate-list a:hover { color: var(--bright-gold); }
+.estate-list .estate-meta { display: inline; margin: 0; }
+.estate-list .spacer { flex: 1 1 auto; }
 
 @media (prefers-reduced-motion: reduce) {
   .fig .f-draw { stroke-dashoffset: 0; transition: none; }
@@ -1736,4 +1796,12 @@ a.substrate-shot:hover {
   .status-table td { border: 0; padding: 3px 0; }
   .st-area { width: auto; }
   .st-what p { font-size: 14px; color: var(--m-support); }
+  /* .status-table's collapse drops the thead, so each estate cell has to carry
+     its own label — the four terse columns are not self-describing the way the
+     status table's prose columns are. */
+  .estate-table td::before { content: attr(data-label); display: block; font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-dim); margin-bottom: 2px; }
+  .estate-table td.estate-repo::before { content: none; }
+  .estate-table td { padding: 6px 0; }
+  .estate-tile .metric-value { font-size: 1.5rem; }
+  .estate-list li { font-size: 14px; color: var(--m-support); }
 }

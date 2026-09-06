@@ -1028,9 +1028,24 @@
     </div>
   </section>
 
+  <!-- Nightly estate check -->
+  <section id="estate" class="section">
+    <div class="container reveal" data-num="15">
+      <span class="section-tag">Nightly estate check</span>
+      <h2>Every repository, every night</h2>
+      <p class="section-lead">CI on the default branch, open pull requests, the latest release, the last commit, public surface reachability and published registry versions, collected for every repository in the estate by <a href="https://github.com/DreamLab-AI/VisionFlow/blob/main/.github/workflows/estate-health.yml" target="_blank" rel="noopener">a workflow that runs at 02:30 UTC</a> and committed as data. What you read below is that committed snapshot, deployed through the same publication gates as this page — not a live query made while you scroll. The dream cycle reads the same file at 03:00, so a repository shown red here becomes a hypothesis the next night.</p>
+
+      <div id="estate-body">
+        <p class="estate-note">Loading the nightly snapshot… or read <a href="data/estate-health.json">data/estate-health.json</a></p>
+      </div>
+
+      <p class="figcap">Source: <a href="data/estate-health.json">data/estate-health.json</a>, collected by <a href="https://github.com/DreamLab-AI/VisionFlow/blob/main/.github/workflows/estate-health.yml" target="_blank" rel="noopener">.github/workflows/estate-health.yml</a>. A repository shown red here is a defect in the estate, not in the page.</p>
+    </div>
+  </section>
+
   <!-- Repository Map -->
   <section id="repos" class="section">
-    <div class="container reveal" data-num="15">
+    <div class="container reveal" data-num="16">
       <span class="section-tag">Repository Map</span>
       <h2>The six substrates, this ecosystem-guide repository, and the published corpus</h2>
 

@@ -2,14 +2,15 @@ import { initMesh } from './mesh-webgl.js';
 
 const MOBILE = () => matchMedia('(max-width: 768px)').matches;
 
-// One source of truth for the fifteen mobile sections. The index rows and the
+// One source of truth for the sixteen mobile sections. The index rows and the
 // rail pips are two renderings of this list, so they can never drift.
 const SECTIONS = [
   ['hero', 'The offer'], ['questions', 'Straight answers'], ['problem', 'Problem'],
   ['substrates', 'Six substrates'], ['guarantees', 'Guarantees'], ['immersive', 'Immersive'],
   ['broker', 'Judgment Broker'], ['economic', 'Economics'], ['loom', 'Ontology Loom'],
   ['cases', 'Case studies'], ['competitive', 'Landscape'], ['scaling', 'Scaling'],
-  ['doors', 'Your seat'], ['status', 'What ships'], ['repos', 'Repositories']
+  ['doors', 'Your seat'], ['status', 'What ships'], ['estate', 'Nightly check'],
+  ['repos', 'Repositories']
 ];
 
 // Assigned by initSheet(); called from the sticky bar and the index footer.
@@ -576,6 +577,230 @@ function initSheet() {
 
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+// ── Nightly estate check ───────────────────────────────────────────────────
+// Renders website/static/data/estate-health.json: the snapshot CI committed at
+// 02:30 UTC, not a live query. Two rules govern this code.
+//   1. The section's .container.reveal wrapper is already observed by
+//      initScrollReveal(); replacing it would detach the observed node and
+//      leave the section permanently at opacity 0. Everything here writes into
+//      #estate-body, a plain child, and never touches the wrapper.
+//   2. Every string below comes from the GitHub API by way of the collector, so
+//      nothing reaches innerHTML without passing through esc().
+
+const CI_PILLS = {
+  green: ['st-green', 'green'],
+  red: ['st-red', 'red'],
+  amber: ['st-amber', 'amber'],
+  none: ['st-none', 'no workflows'],
+  unknown: ['st-none', 'unreadable']
+};
+
+function esc(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// esc() neutralises markup but not a URL scheme: a "javascript:" href survives
+// escaping intact. Every link below is built from collector data, so href values
+// go through this allowlist and anything that is not http(s) renders as plain
+// text rather than as a link.
+function safeUrl(value) {
+  if (!value) return '';
+  try {
+    const url = new URL(value, document.baseURI);
+    return (url.protocol === 'https:' || url.protocol === 'http:') ? url.href : '';
+  } catch (error) {
+    return '';
+  }
+}
+
+// Relative times are computed here rather than baked into the JSON, so a stale
+// deploy reads as stale ("29 h ago") instead of quietly claiming freshness.
+function relTime(iso) {
+  if (!iso) return '';
+  const then = Date.parse(iso);
+  if (Number.isNaN(then)) return '';
+  const secs = Math.round((Date.now() - then) / 1000);
+  if (secs < 0) return 'just now';
+  if (secs < 90) return 'just now';
+  const mins = Math.round(secs / 60);
+  if (mins < 90) return mins + ' min ago';
+  const hours = Math.round(mins / 60);
+  if (hours < 36) return hours + ' h ago';
+  const days = Math.round(hours / 24);
+  if (days < 60) return days + ' d ago';
+  return Math.round(days / 30) + ' mo ago';
+}
+
+function num(value) {
+  return (typeof value === 'number' && Number.isFinite(value)) ? String(value) : '—';
+}
+
+function estateTile(value, label, tone) {
+  return `<div class="glass-card estate-tile ${tone}">
+    <span class="metric-value">${esc(num(value))}</span>
+    <span class="metric-label">${esc(label)}</span>
+  </div>`;
+}
+
+function estateRun(run) {
+  const verdict = run.conclusion || run.status || 'unknown';
+  let tone = '';
+  if (verdict === 'failure' || verdict === 'timed_out') {
+    tone = ' r-red';
+  } else if (verdict !== 'success' && verdict !== 'skipped') {
+    tone = ' r-amber';   // cancelled, action_required, queued, or still running
+  }
+  const name = esc(run.workflow || 'workflow');
+  const text = `${name} · ${esc(verdict)}`;
+  const href = safeUrl(run.url);
+  if (!href) return `<li><span class="${tone.trim()}">${text}</span></li>`;
+  return `<li><a class="${tone.trim()}" href="${esc(href)}" target="_blank" rel="noopener">${text}</a></li>`;
+}
+
+function estateRepoRow(repo) {
+  const ci = repo.ci || {};
+  const pill = CI_PILLS[ci.state] || CI_PILLS.unknown;
+  const runs = Array.isArray(ci.runs) ? ci.runs : [];
+  const provenance = [repo.provenance, repo.visibility, repo.archived ? 'archived' : null]
+    .filter(Boolean).join(' · ');
+
+  const repoHref = safeUrl(repo.url);
+  const name = repoHref
+    ? `<a href="${esc(repoHref)}" target="_blank" rel="noopener">${esc(repo.name)}</a>`
+    : esc(repo.name);
+
+  const releaseHref = repo.release ? safeUrl(repo.release.url) || repoHref : '';
+  const release = repo.release && repo.release.tag && releaseHref
+    ? `<a class="estate-link" href="${esc(releaseHref)}" target="_blank" rel="noopener">${esc(repo.release.tag)}</a>
+       <span class="estate-meta">${esc(relTime(repo.release.date))}</span>`
+    : '<span class="estate-dash">no release</span>';
+
+  const headHref = repo.head ? safeUrl(repo.head.url) || repoHref : '';
+  const head = repo.head && repo.head.short && headHref
+    ? `<a class="estate-link" href="${esc(headHref)}" target="_blank" rel="noopener">${esc(repo.head.short)}</a>
+       <span class="estate-meta">${esc(relTime(repo.head.date))}${repo.head.message ? ' · ' + esc(repo.head.message) : ''}</span>`
+    : '<span class="estate-dash">—</span>';
+
+  const prs = typeof repo.open_prs === 'number' && repo.open_prs > 0
+    ? `<span class="estate-num on">${esc(num(repo.open_prs))}</span>`
+    : `<span class="estate-num">${esc(num(repo.open_prs))}</span>`;
+
+  return `<tr>
+    <td class="estate-repo" data-label="Repository">${name}<span class="estate-meta">${esc(provenance)}</span></td>
+    <td data-label="CI on ${esc(repo.default_branch || 'default branch')}">
+      <span class="st-pill ${pill[0]}">${esc(pill[1])}</span>
+      ${runs.length ? `<ul class="estate-runs">${runs.map(estateRun).join('')}</ul>` : ''}
+    </td>
+    <td data-label="Open PRs">${prs}</td>
+    <td data-label="Latest release">${release}</td>
+    <td data-label="Last commit">${head}</td>
+  </tr>`;
+}
+
+function estateSurface(surface) {
+  const ok = surface.ok === true;
+  const detail = [
+    surface.status == null ? 'no response' : String(surface.status),
+    typeof surface.latency_ms === 'number' ? surface.latency_ms + ' ms' : null,
+    surface.content_type || null,
+    surface.note || null
+  ].filter(Boolean).join(' · ');
+  const href = safeUrl(surface.url);
+  const name = href
+    ? `<a href="${esc(href)}" target="_blank" rel="noopener">${esc(surface.name)}</a>`
+    : esc(surface.name);
+  return `<li>${name}
+    <span class="st-pill ${ok ? 'st-green' : 'st-red'}">${ok ? 'up' : 'down'}</span>
+    <span class="spacer"></span><span class="estate-meta">${esc(detail)}</span></li>`;
+}
+
+function estateRegistry(entry) {
+  const href = safeUrl(entry.url);
+  const name = href
+    ? `<a href="${esc(href)}" target="_blank" rel="noopener">${esc(entry.name)}</a>`
+    : esc(entry.name);
+  const published = entry.published_at ? ' · published ' + relTime(entry.published_at) : '';
+  return `<li>${name} <span class="estate-meta">${esc(entry.registry)}</span>
+    <span class="spacer"></span>
+    <span class="estate-num">${esc(entry.version || '—')}</span>
+    <span class="estate-meta">${esc(published)}</span></li>`;
+}
+
+function estateMarkup(data) {
+  const summary = data.summary || {};
+  const repos = Array.isArray(data.repos) ? data.repos : [];
+  const surfaces = Array.isArray(data.surfaces) ? data.surfaces : [];
+  const registries = Array.isArray(data.registries) ? data.registries : [];
+  const generator = data.generator || {};
+
+  const surfacesUp = (typeof summary.surfaces_ok === 'number' && typeof summary.surfaces_total === 'number')
+    ? `${summary.surfaces_ok}/${summary.surfaces_total}`
+    : '—';
+
+  const stamp = [
+    data.generated_at ? 'collected ' + relTime(data.generated_at) : 'collection time unknown',
+    data.generated_at || null,
+    generator.revision ? 'revision ' + generator.revision : null
+  ].filter(Boolean).map(esc).join(' · ');
+
+  const collectorHref = safeUrl(generator.workflow_run);
+  const runLink = collectorHref
+    ? ` · <a href="${esc(collectorHref)}" target="_blank" rel="noopener">collector run</a>`
+    : '';
+
+  return `<div class="estate-summary-grid">
+      ${estateTile(summary.green, 'repositories green', 't-green')}
+      ${estateTile(summary.red, 'red', 't-red')}
+      ${estateTile(summary.amber, 'amber', 't-amber')}
+      ${estateTile(summary.unreadable, 'unreadable', 't-dim')}
+      ${estateTile(summary.open_prs, 'open pull requests', 't-dim')}
+      <div class="glass-card estate-tile t-green">
+        <span class="metric-value">${esc(surfacesUp)}</span>
+        <span class="metric-label">public surfaces up</span>
+      </div>
+    </div>
+    <p class="estate-stamp">${stamp}${runLink}</p>
+
+    <div class="status-wrap" tabindex="0" role="region" aria-label="Nightly estate check: repository table">
+      <table class="status-table estate-table">
+        <thead><tr>
+          <th scope="col">Repository</th>
+          <th scope="col">CI on default branch</th>
+          <th scope="col">Open PRs</th>
+          <th scope="col">Latest release</th>
+          <th scope="col">Last commit</th>
+        </tr></thead>
+        <tbody>${repos.map(estateRepoRow).join('')}</tbody>
+      </table>
+    </div>
+
+    <h3 class="estate-sub">Public surfaces</h3>
+    <ul class="estate-list">${surfaces.map(estateSurface).join('')}</ul>
+
+    <h3 class="estate-sub">Published registry versions</h3>
+    <ul class="estate-list">${registries.map(estateRegistry).join('')}</ul>`;
+}
+
+async function initEstateHealth() {
+  const body = document.getElementById('estate-body');
+  if (!body) return;
+  try {
+    const response = await fetch('data/estate-health.json', { cache: 'no-cache' });
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    const data = await response.json();
+    body.innerHTML = estateMarkup(data);
+  } catch (error) {
+    // Failing loudly beats a blank section: the file is the record, so say so.
+    body.innerHTML = '<p class="estate-note">The nightly snapshot could not be read in this browser. ' +
+      'It is committed at <a href="data/estate-health.json">data/estate-health.json</a>.</p>';
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initNavScroll();
   initSmoothScroll();     // binds #-anchors before initIndex builds its own rows
@@ -586,6 +811,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initIndex();
   initProgress();
   initSheet();
+  initEstateHealth();     // async; the section renders at rest without it
   initMeshBackdrop();     // renders one calm frame under reduced-motion; full flight otherwise
   if (!prefersReducedMotion) {
     initBackgroundVideo(); // early-returns on mobile
