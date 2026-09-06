@@ -1,7 +1,7 @@
 ---
 title: VisionFlow Baseline — What This Repo Is and Runs Today
 doc_id: VF-BASELINE
-version: 0.1.0
+version: 0.2.0
 status: draft-for-ratification
 verified_commit: c205575
 sources:
@@ -12,12 +12,15 @@ sources:
   - .github/workflows/deploy.yml
   - .github/workflows/diagram-render.yml
   - .github/workflows/drift-counter.yml
+  - .github/workflows/estate-health.yml
   - scripts/diagram-render/render.mjs
   - scripts/drift-counter/drift-counter.mjs
+  - scripts/estate-health.mjs
   - scripts/generate-release-manifest.sh
   - docs/architecture/compatibility-matrix.md
   - docs/README.md
   - package.json
+  - dream.config.json
 date: 2026-08-31
 ---
 
@@ -104,6 +107,49 @@ Release coordination uses `scripts/generate-release-manifest.sh` against
 `docs/releases/ecosystem-release.schema.json`; the human-readable cross-repo posture
 lives in `docs/architecture/compatibility-matrix.md`.
 
+### The estate snapshot is collected nightly by CI and read offline by the dream cycle
+
+`scripts/estate-health.mjs` is a zero-dependency Node collector. In `collect` mode it
+queries the fourteen repositories listed in `scripts/estate-health/roster.json` — each
+one's default-branch CI state, open PRs, latest release, head commit and Pages status —
+together with the six public surfaces and the crates.io and npm entries, and writes one
+snapshot, `website/static/data/estate-health.json`, against schema id
+`visionflow.estate-health/1`.
+
+- **Collection belongs to CI, at 02:30 UTC.** `.github/workflows/estate-health.yml` runs
+  `collect` on a `30 2 * * *` cron (plus `workflow_dispatch`), commits the snapshot as
+  `estate-health[bot]` when it changed, and then **explicitly dispatches** `deploy.yml`:
+  a push made with `GITHUB_TOKEN` fires no `on: push` trigger, so the deploy does not
+  start itself. The snapshot reaches the site through the ordinary publication gates of
+  the subsection above, not by a privileged path.
+- **The page reads the committed file and nothing else.** The `#estate` section of
+  `website/static/index.html` renders `data/estate-health.json` from the deployed
+  artefact and performs no live queries. The file is a required entry in
+  `website/assets.manifest.json`, so a missing snapshot fails the asset gate.
+- **The dream cycle reads; it never collects.** `dream.config.json` carries a fifth
+  rotation slot — `{"deep": "estate-health", "scan": ["snapshot-freshness",
+  "persistent-reds"]}` — whose evaluator is `node scripts/estate-health.mjs check`. That
+  mode is offline: it reads the committed snapshot and prints one verdict line,
+  `ESTATE-HEALTH-OK`, `ESTATE-HEALTH-STALE` when `generated_at` is older than 36 hours,
+  or `ESTATE-HEALTH-RED`, exiting 0 on the first and 1 on the others. The HP annexe the
+  cycle runs on holds no credentials, and the matching `extraDisciplines` entry
+  (`estate-health-is-read-not-collected`) binds a dream night to reading that snapshot —
+  never re-collecting one, adding a token, or editing it by hand.
+- **One roster entry is unreadable.** `visionGraph` is owned by `jjohare`, so the
+  workflow's repo-scoped `GITHUB_TOKEN` returns 404 for it. Without an
+  `ESTATE_READ_TOKEN` secret the collector records `readable: false`,
+  `ci.state: "unknown"` and null counts rather than failing the run, and the page shows
+  the repository as unreadable.
+- **Estate health reports; it does not gate.** No publication gate in `deploy.yml`
+  consults the snapshot, and the workflow does not fail on a `check` exit of 1 — a red
+  snapshot still deploys.
+
+Decision of record:
+[ADR-2008](adr/ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md)
+(accepted / complete / live). Its `verified_commit` is `pending` until the change lands;
+the facts in this subsection are verified at that landing commit, not at the `c205575`
+recorded in this document's frontmatter.
+
 ## Known divergences & open items
 
 - **The website is not a Rust/WASM build — the docs still say it is.** Legacy
@@ -174,6 +220,11 @@ lives in `docs/architecture/compatibility-matrix.md`.
 5. **Every count claimed in canon prose has one queryable source.** The drift gate
    must stay green; a second distinct figure for one axis anywhere in the tree is a
    failure, not a footnote.
+6. **Estate health is collected by CI and read by the dream cycle.** The nightly
+   snapshot is written by `.github/workflows/estate-health.yml` and committed as data; a
+   dream night reads it offline through `node scripts/estate-health.mjs check` and never
+   collects one, acquires a token, or edits the snapshot by hand. The annexe staying
+   credential-free is what this protects (ADR-2008).
 
 ## Change process
 
