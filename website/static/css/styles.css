@@ -536,6 +536,8 @@ body.rl-init .rl-inner { transition: none !important; }
   margin: 0 auto;
   font-size: 0.9rem;
 }
+/* inline code inside the callout body stays inline; only the headline code is a block */
+.identity-callout p code { display: inline; font-size: 0.88em; color: var(--gold); margin: 0; }
 
 /* ── Substrate Grid ── */
 .substrate-grid {
