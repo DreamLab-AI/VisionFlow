@@ -65,6 +65,25 @@
  *                      does NOT evidence the CI path.
  *   Tokens are read, never printed: no log line in this file interpolates one.
  *
+ * JUDGEMENT CALLS — the semantics this collector chose, each defined at the code
+ * that implements it and listed here so the whole set is readable in one place:
+ *
+ *   1. The collector's own workflow run is EXCLUDED from its own repository's CI
+ *      state, matched by run ID (never by workflow name, so a genuinely failed
+ *      previous nightly still counts red). Measured on the first nightly run:
+ *      without this, VisionFlow scores amber every night because the run list
+ *      contains the in-progress run doing the collecting — the observer effect,
+ *      reporting nothing but the act of observation. See SELF_RUN_ID.
+ *   2. `startup_failure` counts RED. A workflow that could not start did not pass.
+ *   3. An unrecognised future conclusion counts AMBER, never green: something new
+ *      is a thing to look at, not a thing to wave through.
+ *   4. A surface's `ok` is STATUS ONLY. A wrong content-type is noted but does not
+ *      mark the surface down — served-but-mislabelled is a lesser defect than
+ *      unreachable, and conflating them makes the page cry wolf.
+ *   5. An unreachable surface counts towards ESTATE-HEALTH-RED: a dead published
+ *      surface deserves to become a dream hypothesis.
+ *   6. RED beats STALE. A stale snapshot showing a failure still shows a failure.
+ *
  * Contract additions beyond the published schema, all additive (a consumer that
  * ignores them reads the documented schema unchanged):
  *
@@ -114,6 +133,21 @@ const CONCLUSION_AMBER = new Set(['cancelled', 'action_required', 'stale']);
 
 /** Only runs GitHub attributes to the branch itself count; PR runs do not. */
 const CI_EVENTS = new Set(['push', 'schedule', 'workflow_dispatch']);
+
+/**
+ * This collector's OWN workflow run, when running inside Actions.
+ *
+ * The observer effect, measured on the first nightly run: collecting the estate
+ * includes collecting the repository the collector lives in, whose run list
+ * contains the in-progress run doing the collecting. VisionFlow therefore scored
+ * amber every night — "some run is still in progress" — describing nothing but
+ * the act of observation.
+ *
+ * Excluded by run ID and never by workflow name, so a genuinely failed PREVIOUS
+ * nightly still counts red. Unset outside Actions, where there is no self to
+ * exclude.
+ */
+const SELF_RUN_ID = process.env.GITHUB_RUN_ID || null;
 
 // ── argument parsing ─────────────────────────────────────────────────────
 const argv = process.argv.slice(2);
@@ -272,12 +306,20 @@ async function resolveRepoAccess(fullName, primary, fallback) {
  * of the default branch, and counting it would make a repository red because
  * somebody opened a Dependabot PR.
  *
+ * It also excludes this collector's own run (see SELF_RUN_ID). Both filters run
+ * BEFORE grouping, so an excluded run cannot become a workflow's "latest" and
+ * mask the last real result for that workflow.
+ *
+ * @param {any[]} runs
+ * @param {string|null} [selfRunId] run ID to exclude; defaults to SELF_RUN_ID
  * @returns {Map<string, any>} workflow_id (as string) -> run
  */
-function latestRunPerWorkflow(runs) {
+function latestRunPerWorkflow(runs, selfRunId = SELF_RUN_ID) {
   const latest = new Map();
   for (const run of runs) {
     if (!CI_EVENTS.has(run.event)) continue;
+    // String comparison: the API's `id` is a number, GITHUB_RUN_ID is a string.
+    if (selfRunId && String(run.id) === selfRunId) continue;
     const key = String(run.workflow_id ?? run.name ?? 'unknown');
     const prev = latest.get(key);
     if (!prev || isNewerRun(run, prev)) latest.set(key, run);
@@ -466,6 +508,12 @@ async function collectCi(fullName, branch, token, notes) {
   const runs = [...latest.values()]
     .map(runRecord)
     .sort((a, b) => a.workflow.localeCompare(b.workflow));
+  // Recorded, not silent: a reader comparing this state against the repository's
+  // Actions tab should be told which run was left out. The run's ID is not
+  // repeated here because generator.workflow_run already carries it.
+  if (SELF_RUN_ID && all.some((r) => String(r.id) === SELF_RUN_ID)) {
+    notes.push("excluded this collector's own in-progress run from the CI state");
+  }
   if (all.length > 0 && runs.length === 0) {
     notes.push('runs exist on the default branch but none from push/schedule/workflow_dispatch');
   }
