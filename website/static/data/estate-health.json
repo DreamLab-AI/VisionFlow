@@ -1,18 +1,18 @@
 {
   "schema": "visionflow.estate-health/1",
-  "generated_at": "2026-09-06T19:13:49.997Z",
+  "generated_at": "2026-09-06T19:30:17.277Z",
   "generator": {
-    "revision": "82a17499727dfb36e6ea5686bc69cb1c52eafa58",
-    "workflow_run": null,
+    "revision": "1f43d8929cb4318473e34d6574d016f22215d4a8",
+    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34055073094",
     "collector": "scripts/estate-health.mjs"
   },
   "summary": {
     "repos": 14,
-    "green": 9,
+    "green": 7,
     "red": 3,
-    "amber": 0,
+    "amber": 1,
     "none": 2,
-    "unreadable": 0,
+    "unreadable": 1,
     "open_prs": 0,
     "surfaces_ok": 6,
     "surfaces_total": 6
@@ -29,28 +29,28 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "c301c81775c768cd608a6850c02065f275959f65",
-        "short": "c301c81",
-        "date": "2026-09-06T18:24:33Z",
-        "message": "docs(closeout): update 2026-09-06 table — narrativegoldmine deployed, PR stack cleared",
-        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/c301c81775c768cd608a6850c02065f275959f65"
+        "sha": "1f43d8929cb4318473e34d6574d016f22215d4a8",
+        "short": "1f43d89",
+        "date": "2026-09-06T19:28:02Z",
+        "message": "docs(adr): ADR-2008 verified at landing commit",
+        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/1f43d8929cb4318473e34d6574d016f22215d4a8"
       },
       "ci": {
-        "state": "green",
+        "state": "amber",
         "runs": [
           {
             "workflow": "Copyright Source Guard",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34051625756",
-            "updated_at": "2026-09-06T18:24:55Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34055012382",
+            "updated_at": "2026-09-06T19:28:54Z"
           },
           {
             "workflow": "Deploy to GitHub Pages",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34051625841",
-            "updated_at": "2026-09-06T18:25:22Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34055012263",
+            "updated_at": "2026-09-06T19:29:18Z"
           },
           {
             "workflow": "Fixture Drift Check",
@@ -65,6 +65,13 @@
             "status": "completed",
             "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34029408319",
             "updated_at": "2026-09-06T11:09:28Z"
+          },
+          {
+            "workflow": "Nightly estate health",
+            "conclusion": null,
+            "status": "in_progress",
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34055073094",
+            "updated_at": "2026-09-06T19:30:05Z"
           }
         ]
       },
@@ -497,34 +504,22 @@
       "url": "https://github.com/jjohare/visionGraph",
       "provenance": "first-party",
       "role": "the vault: source of the published ontology (private — needs ESTATE_READ_TOKEN, else readable:false)",
-      "visibility": "private",
-      "archived": false,
-      "readable": true,
-      "default_branch": "main",
-      "head": {
-        "sha": "9e308164cc477567941e079c67049bd2ea9e7a05",
-        "short": "9e30816",
-        "date": "2026-09-06T17:39:59Z",
-        "message": "fix(publish): correct stale logseq reference in deploy commit message",
-        "url": "https://github.com/jjohare/visionGraph/commit/9e308164cc477567941e079c67049bd2ea9e7a05"
-      },
+      "visibility": null,
+      "archived": null,
+      "readable": false,
+      "default_branch": null,
+      "head": null,
       "ci": {
-        "state": "green",
-        "runs": [
-          {
-            "workflow": "Publish Ontology (JSON-LD Pipeline v3)",
-            "conclusion": "success",
-            "status": "completed",
-            "url": "https://github.com/jjohare/visionGraph/actions/runs/34049824503",
-            "updated_at": "2026-09-06T17:55:42Z"
-          }
-        ]
+        "state": "unknown",
+        "runs": []
       },
-      "open_prs": 0,
-      "open_issues": 0,
+      "open_prs": null,
+      "open_issues": null,
       "release": null,
       "pages": null,
-      "notes": []
+      "notes": [
+        "repository not readable: HTTP 404 (no ESTATE_READ_TOKEN configured)"
+      ]
     },
     {
       "name": "vowl-wasm",
@@ -700,7 +695,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 98,
+      "latency_ms": 206,
       "note": null
     },
     {
@@ -709,7 +704,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 232,
+      "latency_ms": 209,
       "note": null
     },
     {
@@ -718,7 +713,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/ld+json",
-      "latency_ms": 206,
+      "latency_ms": 219,
       "note": null
     },
     {
@@ -727,7 +722,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/json; charset=utf-8",
-      "latency_ms": 187,
+      "latency_ms": 221,
       "note": "classes=8432 pages=8428 nodes=8432"
     },
     {
@@ -736,7 +731,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 228,
+      "latency_ms": 462,
       "note": null
     },
     {
@@ -745,7 +740,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/octet-stream",
-      "latency_ms": 320,
+      "latency_ms": 327,
       "note": null
     }
   ],
