@@ -17,8 +17,19 @@
 > from the explainer that conflicted with canon were not adopted: a five-repository frame, a
 > kernel count of ninety-two, a skill count of eighty-eight, a hundred-thousand-node / 60 fps
 > render claim, the 0.35 expiry threshold, the "one call in ten" broker load, and the sats-only
-> settlement rail (the site's stablecoin statement and the triptych's
-> sats statement are both unbacked in this repo; neither was changed).
+> settlement rail as first drafted. Same-day follow-up: the rail was re-verified against
+> solid-pod-rs (`payments.rs` default currency `satoshi`; routed 402 / order book / AMM;
+> `bitcoin_tx.rs::mint_token`, the JSS `token.js` MRC20 genesis on a taproot output;
+> `testnet4` default) and agentbox PRD-015 v1.2 (Lightning/L402/NWC chosen; x402 stays
+> in the grammar, payable by delegation; C10 NWC rail still open) and ADR-061 (resident
+> Bitcoin node, mainnet + testnet4 + Core-Lightning, which the operator reports as now
+> running). The site's earlier "USD stablecoins" line was unbacked and is replaced by the
+> sats statement, with DREAM named as the operator's internal token (ticker in
+> `agentbox.toml` and the edge pod worker). Stablecoin rails are stated as a later choice,
+> not a rejection. Two operator statements have no filed evidence yet: no testnet mint
+> txid for DREAM is recorded in any repo, and the node at 192.168.2.27 did not answer
+> from the agentbox container on 2026-09-06; ADR-061's acceptance checklist should be
+> dated when it is.
 
 **Owner:** Dr John O'Hare, DreamLab AI
 **Status:** Draft

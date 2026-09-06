@@ -581,10 +581,10 @@
       </div>
 
       <h3 style="margin-top:3rem;font-size:1.6rem;color:var(--gold)">Provenance and value travel the same rails</h3>
-      <p class="section-lead">Once every actor is a <code>did:nostr</code> identity and every write is anchored, <strong>value and trust</strong> travel the same rails as the mesh&rsquo;s messages: no EVM, no bridge, no custodian, and no stablecoin counterparty.</p>
+      <p class="section-lead">Once every actor is a <code>did:nostr</code> identity and every write is anchored, <strong>value and trust</strong> travel the same rails as the mesh&rsquo;s messages: no EVM, no bridge, no custodian.</p>
       <div class="identity-callout">
         <code>agent &rarr; pod &rarr; 402 settle &rarr; anchor &rarr; did:nostr</code>
-        <p>The same <code>did:nostr</code> key that is a WAC principal, a relay identity and a provenance author is also a payment account, so an agent can earn, spend and sign across the mesh as one actor. The unit of account is the <strong>satoshi</strong>: a Web Ledger in sats, HTTP 402 gating, an order book and a constant-product exchange, all routed through one ledger path with replay protection, with <strong>Lightning</strong> over L402 and NWC as the chosen rail (agentbox PRD-015 v1.2). The same taproot core mints <strong>MRC20 tokens</strong> on Bitcoin, inherited from JSS; DREAM, the operator&rsquo;s internal token at ten per sat, is configured across the runtime and the edge and has been minted experimentally on testnet. Private digital objects and contracts stay in the owner&rsquo;s pod and inherit <strong>Bitcoin&rsquo;s security model</strong> through taproot-anchored commitments, on testnet4 by default and mainnet by explicit operator choice.</p>
+        <p>The same <code>did:nostr</code> key that is a WAC principal, a relay identity and a provenance author is also a payment account, so an agent can earn, spend and sign across the mesh as one actor. The unit of account is the <strong>satoshi</strong>: a Web Ledger in sats, HTTP 402 gating, an order book and a constant-product exchange, all routed through one ledger path with replay protection, with <strong>Lightning</strong> over L402 and NWC as the rail today, served by a resident Bitcoin node in the estate that runs mainnet and testnet4 side by side with Core-Lightning (ADR-061). Stablecoin rails are not ruled out: x402 challenges sit in the same 402 grammar and are payable by delegation, a later choice rather than a closed door. The same taproot core mints <strong>MRC20 tokens</strong> on Bitcoin, inherited from JSS; DREAM, the operator&rsquo;s internal token at ten per sat, is configured across the runtime and the edge and has been minted experimentally on testnet. Private digital objects and contracts stay in the owner&rsquo;s pod and inherit <strong>Bitcoin&rsquo;s security model</strong> through taproot-anchored commitments, on testnet4 by default and mainnet by explicit operator choice.</p>
       </div>
 
       <h3 class="sub-head">The web-contract trust ladder</h3>
@@ -1003,8 +1003,8 @@
             </tr>
             <tr>
               <td class="st-area"><strong>Value rail</strong>Sats Web Ledger, HTTP 402 gating, MRC20 mint, Lightning over L402 and NWC</td>
-              <td class="st-what"><p>Ledger, gating, exchange and mint are routed and test-proven, on testnet4 by default. L402 challenges are recognised and payable by delegation; the native NWC rail is a planned phase.</p></td>
-              <td><span class="st-pill st-progress">sats live, NWC planned</span></td>
+              <td class="st-what"><p>Ledger, gating, exchange and mint are routed and test-proven, on testnet4 by default. The estate now runs its own Bitcoin node, mainnet and testnet4, for anchoring and Lightning. L402 challenges are recognised and payable by delegation; the native NWC rail is the next phase.</p></td>
+              <td><span class="st-pill st-progress">sats live, NWC next</span></td>
             </tr>
             <tr>
               <td class="st-area"><strong>Cross-org mesh federation</strong>IS-Envelopes between sovereign nodes</td>
