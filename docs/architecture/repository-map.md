@@ -13,6 +13,9 @@ VisionFlow is a federated ecosystem. No single repository contains the whole run
 | solid-pod-rs | `../solid-pod-rs` | Solid/JSS foundation library and server: LDP, WAC, NIP-98, DID:Nostr, git pods | `README.md`, `crates/solid-pod-rs/docs/explanation/ecosystem-integration.md`, `crates/solid-pod-rs/GAP-ANALYSIS.md` |
 | nostr-rust-forum | `../nostr-rust-forum` | Forum kit, Cloudflare Workers, passkey auth, relay, governance UI | `README.md`, `docs/architecture.md`, `docs/consumer-surface-map.md` |
 | dreamlab-ai-website | `../dreamlab-ai-website` | DreamLab branded deployment and operator overlay for forum kit | `README.md`, `forum-config/` docs |
+| vowl-wasm | `../vowl-wasm` | Ontology visualisation WASM engine (clean-room Rust reimplementation of the VOWL notation, MIT, outside the AGPL boundary): OWL parsing, Barnes-Hut and SIMD force layout, render data; consumed by the corpus explorer; NGG1 and markdown-ontology paths feature-gated | `README.md` |
+| knowledgeGraph | `../knowledgeGraph` | Published public knowledge graph corpus and build pipeline (ODbL-1.0 data, AGPL-3.0 pipeline); the OWL 2 TBox VisionClaw renders and the Loom grounds on; explorer frontend consumes vowl-wasm | `README.md` |
+| visionGraph | `../visionGraph` | Authoring vault and publishing pipeline for narrativegoldmine.com; its `publish.yml` builds the corpus explorer against the published vowl-wasm bundle (the only live consumer) | `README.md`, `.github/workflows/publish.yml` |
 
 ## Dependency Direction
 
@@ -24,11 +27,18 @@ flowchart TB
     SPR["solid-pod-rs\nSolid foundation"]
     NRF["nostr-rust-forum\nforum kit"]
     DLW["dreamlab-ai-website\nbranded deployment"]
+    VW["vowl-wasm\nVOWL WASM engine (MIT)"]
+    KG["knowledgeGraph\npublished corpus + pipeline"]
+    VG["visionGraph\nauthoring vault + narrativegoldmine.com"]
 
     SPR --> VC
     SPR --> AB
     SPR --> NRF
     NRF --> DLW
+    VW --> VG
+    VW --> KG
+    KG --> VG
+    KG --> VC
 
     VC <-->|"Nostr relay mesh\nAgent Control Surface\nJudgment Broker"| AB
     VC <-->|"governance events\nhuman decisions"| NRF
@@ -39,6 +49,9 @@ flowchart TB
     VF -.-> SPR
     VF -.-> NRF
     VF -.-> DLW
+    VF -.-> VW
+    VF -.-> KG
+    VF -.-> VG
 ```
 
 ## Ownership Rule

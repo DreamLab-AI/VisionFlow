@@ -13,6 +13,9 @@ VisionFlow combines repositories with different licence obligations. This page i
 | solid-pod-rs | AGPL 3.0 | Solid/JSS foundation library and server |
 | nostr-rust-forum | AGPL 3.0 per ecosystem docs; workspace crates may carry crate-level terms | Forum kit, Cloudflare Workers, relay/governance UI |
 | dreamlab-ai-website | Deployment repo; inherits obligations from consumed kit/components | Branded site, operator config, deployment workflows |
+| vowl-wasm | MIT (clean-room reimplementation of the VOWL notation; carries the upstream WebVOWL MIT notice for attribution) | Standalone library outside the AGPL boundary, like prose-sanitiser and diagram-ir; consumed as a crates.io / npm dependency, never linked into an AGPL substrate |
+| knowledgeGraph | ODbL-1.0 data, AGPL-3.0 pipeline | Published corpus and build pipeline; explorer frontend consumes vowl-wasm as a dependency |
+| visionGraph | Authoring vault; publishing pipeline under the knowledgeGraph terms | Deploys narrativegoldmine.com from the published vowl-wasm bundle |
 
 ## Boundary Rule
 
