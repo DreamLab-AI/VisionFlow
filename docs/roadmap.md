@@ -1,45 +1,33 @@
 # Roadmap
 
-**Status:** Working roadmap from ecosystem docs and code spot-check review
-**Date:** 2026-05-22
+**Status:** Rewritten 2026-09-06. The 2026-05-22 four-phase plan is superseded; the prior text is at `git show 3db4785:docs/roadmap.md`.
+**Governed by:** [ADR-2007 Estate Closeout Evidence Roadmap](adr/ADR-2007-estate-closeout-evidence-roadmap.md) and the [closeout programme](estate-review/closeout/README.md), which now own estate-wide sequencing. This file is the short VisionFlow-side pointer, not a second plan.
 
-This roadmap is governed by [Ecosystem Alignment PRD](PRD-ecosystem-alignment.md), [ADR-002](archive/adr/ADR-002-ecosystem-alignment-governance.md), and [Ecosystem Alignment DDD](DDD-ecosystem-alignment-context.md).
+## Why this changed
 
-## Phase 0: Honesty and Traceability
+Phases 0 to 3 were written before the estate review existed. The closeout corpus replaced the phase model with nine completion packages (CP-01 to CP-09) that carry named owners, dependencies and exit criteria. Tracking the same work twice, in two shapes, was producing drift rather than progress.
 
-| Work | Outcome |
-|---|---|
-| Keep top-level docs linked and current | README claims are backed by local docs |
-| Maintain compatibility matrix | Operators can tell which repo versions work together |
-| Reconcile PRD status against implementation | Deferred features are not presented as shipped |
-| Record verification status for the website | Sidecar browser testing is active; Lighthouse, form, and asset-hashing gaps are explicit |
-| Keep PRD/ADR/DDD alignment docs current | Cross-repo scope, decisions, and domain language are explicit |
+## Phase 0, honesty and traceability: subsumed
 
-## Phase 1: Mesh Contract
+Fully absorbed by the estate-review and closeout corpus, committed at `3db4785`. The closeout programme's CP-01 (decision and release identity) and CP-08 (delivery and recovery) carry this intent with stricter criteria than the original table. VisionFlow's own sprint work lands the same goal: the drift counter is repaired and re-pinned to agentbox `eb7794b1`, the release roster grew from 6 to 14 repositories with provenance, and the harness audit was de-duplicated from 82.5% to 79.5%. Do not re-open this section; raise gaps against CP-01 or CP-08.
 
-| Work | Outcome |
-|---|---|
-| Define canonical IS-Envelope schema owner | One event envelope contract across repos |
-| Publish event kind registry | Agent Control Surface and mesh event kinds are unambiguous |
-| Normalize DID document service fields | Pod, WebID, and relay discovery work without out-of-band config |
-| Add NIP-42/NIP-98/NIP-26 status per substrate | Mesh auth is inspectable |
+## Phase 1, mesh contract: still the live gap
 
-## Phase 2: End-to-End Proof
+The only phase whose substance is genuinely unfinished, and the reason this file still exists.
 
-| Work | Outcome |
-|---|---|
-| agentbox -> relay -> forum governance smoke test | Agents can ask humans for decisions |
-| forum -> VisionClaw broker response smoke test | Human decisions reach the semantic substrate |
-| VisionClaw -> pod provenance write smoke test | Approved mutations are persisted with identity/provenance |
-| Cross-substrate fixture sync gate | Protocol drift is caught before release |
+- **IS-Envelope schema owner.** IS-Envelope v1 types, JCS canonicalisation, validation and LDN/AS2 mapping exist in `nostr-rust-forum` (`crates/nostr-bbs-mesh`, ADR-075). No repo outside the forum routes them, and no cross-repo canonical owner is declared, so the contract is implemented but not adopted.
+- **Transport and auth.** `MeshTransport`, `PeerManager`, gift-wrapped kind-1059 send/receive and NIP-42 all exist in the same crate. This is new since the original roadmap and closes the "NIP status per substrate" line for the forum specifically.
+- **Consumer routing.** Still unimplemented. agentbox's `[mesh]` keys (`peer_relays`, `federated_kinds`, `allowed_remote_dids`) have no code consumers and relay fan-out defaults off. Tracked as M-4 in the unified register (`docs/TODO-unified.md` in the VisionClaw repo).
+- **DID document service fields.** Unchanged. The federation-identifier work that landed (agentbox ADR-2025 and ADR-2061, a protocol and event-kind registry with a CI parity fixture) is adjacent but does not normalise pod, WebID or relay discovery fields.
 
-The first smoke-test contract is defined in [Mesh Smoke Test](protocol/mesh-smoke-test.md).
+## Phase 2, end-to-end proof: partial
 
-## Phase 3: Operational Readiness
+A real agentbox to agentbox smoke test now exists: the machinelearn to HP-Desktop NIP-98 door was exercised under live traffic (401 `pubkey_not_allowed`, then 200 after allowlisting) with the reverse relay direction correctly rejected while unlisted. That is not the agentbox to relay to forum to VisionClaw chain this phase specified. The cross-substrate fixture sync gate is the one line that did land, as agentbox ADR-2061's schema-file contract test. Exit criteria now live under CP-03 (grounded execution) and CP-05 (human judgement and governance); the original contract is still readable at [Mesh Smoke Test](protocol/mesh-smoke-test.md).
 
-| Work | Outcome |
-|---|---|
-| Versioned ecosystem release manifest | Deployments can pin compatible repo SHAs |
-| Pod tier migration plan | Users can move from CF pods to native git-capable pods |
-| Unified health dashboard | Operators can see mesh, pod, relay, and broker status |
-| Backup and DR runbooks | Recovery is documented across Neo4j, pods, relay stores, D1/KV/R2 |
+## Phase 3, operational readiness: partial
+
+The versioned release manifest advanced (roster 6 to 14 with provenance; draft at `estate-closeout/2026-09-05/release-manifest.local-draft.json`). Pod tier migration, the unified health dashboard and backup/DR runbooks show no evidence of movement and are unchanged. These now sit under CP-08.
+
+## Where to look instead
+
+All nine closeout packages remain open by the programme's own exit criteria. CP-07 (memory and improvement) is worth singling out: its blocking RuVector recall-gate question was re-measured on 2026-09-06 and passes (self-recall 189/200, true-recall 115/120, gate exit 0), which retires the contradiction but not the package. Read [the closeout README](estate-review/closeout/README.md) for the current gate table, and the VisionClaw repo's `docs/TODO-unified.md` for the row-level board.
