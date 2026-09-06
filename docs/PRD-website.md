@@ -4,6 +4,21 @@
 > the grounding substrate (see ADR-006 and `docs/terminology.md`). Requirements below that
 > read "five substrates" (§4, §6.1, AC-06) read as six; the shipped site already renders six.
 
+> **Amendment 2026-09-06 (explainer adoption):** three sections and three inline figures were
+> adopted from the VisionClaw hero-triptych explainer, restated against canon (six substrates,
+> drift-counter figures, ADR-002 maturity words). Added to §4: `#questions` "Seven questions,
+> answered once" immediately after the hero (US-01's ten-second test), `#doors` "One system,
+> explained for your seat" (user / inheritor / sign-off tabs, WAI-ARIA tablist) and `#status`
+> "What ships today, plainly" (an evidence-bounded status table sourced from the 2026-09-06
+> closeout table and the README status ladder) before the Repository Map. Figures: the
+> note-to-canon six-stage timeline (§Guarantees), the web-contract trust ladder (§Judgment
+> Broker, ADR-124 rungs L0–L3) and the read-pervasive / write-governed augmentation diagram
+> (§Ontology Loom). Every new block carries a plain-English face on the reading switch. Figures
+> from the explainer that conflicted with canon were not adopted: five repositories, 92 kernels,
+> 88 skills, 100k nodes at 60 fps, the 0.35 expiry threshold, the "one call in ten" broker
+> load, and the sats-only settlement rail (the site's stablecoin statement and the triptych's
+> sats statement are both unbacked in this repo; neither was changed).
+
 **Owner:** Dr John O'Hare, DreamLab AI
 **Status:** Draft
 **Date:** 2026-05-20

@@ -2,13 +2,14 @@ import { initMesh } from './mesh-webgl.js';
 
 const MOBILE = () => matchMedia('(max-width: 768px)').matches;
 
-// One source of truth for the twelve mobile sections. The index rows and the
+// One source of truth for the fifteen mobile sections. The index rows and the
 // rail pips are two renderings of this list, so they can never drift.
 const SECTIONS = [
-  ['hero', 'The offer'], ['problem', 'Problem'], ['substrates', 'Six substrates'],
-  ['guarantees', 'Guarantees'], ['immersive', 'Immersive'], ['broker', 'Judgment Broker'],
-  ['economic', 'Economics'], ['loom', 'Ontology Loom'], ['cases', 'Case studies'],
-  ['competitive', 'Landscape'], ['scaling', 'Scaling'], ['repos', 'Repositories']
+  ['hero', 'The offer'], ['questions', 'Straight answers'], ['problem', 'Problem'],
+  ['substrates', 'Six substrates'], ['guarantees', 'Guarantees'], ['immersive', 'Immersive'],
+  ['broker', 'Judgment Broker'], ['economic', 'Economics'], ['loom', 'Ontology Loom'],
+  ['cases', 'Case studies'], ['competitive', 'Landscape'], ['scaling', 'Scaling'],
+  ['doors', 'Your seat'], ['status', 'What ships'], ['repos', 'Repositories']
 ];
 
 // Assigned by initSheet(); called from the sticky bar and the index footer.
@@ -38,6 +39,70 @@ function initScrollReveal() {
     { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
   );
   document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+}
+
+// Inline SVG figures: drawn in once when they enter the viewport (the same
+// observer pattern as .reveal), then eased by scroll. --p runs 0 → 1 as the
+// figure crosses the viewport; the CSS drifts the boxes a few pixels and walks
+// the pulse along the governed path, so the figure reads as part of the page's
+// motion rather than a looping animation. Under reduced motion the figures are
+// static (CSS) and --p is never written.
+function initFigures() {
+  const figs = Array.prototype.slice.call(document.querySelectorAll('svg.fig'));
+  if (!figs.length) return;
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((en) => {
+      if (en.isIntersecting) { en.target.classList.add('visible'); io.unobserve(en.target); }
+    });
+  }, { threshold: 0.35 });
+  figs.forEach((f) => io.observe(f));
+
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  let ticking = false;
+  function ease() {
+    const vh = window.innerHeight;
+    figs.forEach((f) => {
+      const r = f.getBoundingClientRect();
+      if (r.bottom < -40 || r.top > vh + 40) return;
+      const p = (vh - r.top) / (vh + r.height);
+      f.style.setProperty('--p', Math.max(0, Math.min(1, p)).toFixed(3));
+    });
+    ticking = false;
+  }
+  window.addEventListener('scroll', () => {
+    if (!ticking) { requestAnimationFrame(ease); ticking = true; }
+  }, { passive: true });
+  ease();
+}
+
+// Three doors: a WAI-ARIA tab set. Arrow keys, Home and End move between
+// tabs; the panels are plain `hidden` toggles so the reading switch can still
+// measure and flip the copy inside them.
+function initDoors() {
+  const list = document.querySelector('.door-tabs[role="tablist"]');
+  if (!list) return;
+  const tabs = Array.prototype.slice.call(list.querySelectorAll('[role="tab"]'));
+  function select(tab, focus) {
+    tabs.forEach((t) => {
+      const on = t === tab;
+      t.setAttribute('aria-selected', String(on));
+      t.tabIndex = on ? 0 : -1;
+      const panel = document.getElementById(t.getAttribute('aria-controls'));
+      if (panel) panel.hidden = !on;
+    });
+    if (focus) tab.focus();
+  }
+  tabs.forEach((t, i) => {
+    t.addEventListener('click', () => select(t, false));
+    t.addEventListener('keydown', (e) => {
+      let j = null;
+      if (e.key === 'ArrowRight') j = (i + 1) % tabs.length;
+      if (e.key === 'ArrowLeft') j = (i - 1 + tabs.length) % tabs.length;
+      if (e.key === 'Home') j = 0;
+      if (e.key === 'End') j = tabs.length - 1;
+      if (j !== null) { e.preventDefault(); select(tabs[j], true); }
+    });
+  });
 }
 
 function initNavScroll() {
@@ -107,6 +172,9 @@ function initBackgroundVideo() {
 // Plain-English versions of each section intro (heading + lead). Sharp and
 // executive, not simplified to death — the same claim, in fewer moving parts.
 const PLAIN = {
+  questions: { title: 'What this is, on one screen', lead: 'Everything after this block is detail. This is the whole thing.' },
+  doors: { title: 'Read the version written for you', lead: 'One system, three readers: the person who will use it, the engineer who will inherit it, and the person who has to sign it off.' },
+  status: { title: 'What is real today', lead: 'Every claim on this page is either running, part-built or deliberately parked. This table says which, checked against the engineering record on 6 September 2026.' },
   hero: { lead: 'AI agents now do real work, but most organisations can&rsquo;t say who authorised an action, what it drew on, or who owns the result. VisionFlow gives people and AI a shared, accountable way to work: data stays with its owner, key claims are checked, every decision is recorded, and anything consequential goes to a person.' },
   problem: { title: 'More AI means more coordination, not less', lead: 'Teams are wiring AI tools together faster than anyone can govern them: duplicated effort, invisible risk, and decisions no one can explain. VisionFlow wraps identity, ownership and approval around the work itself, so independent tools cooperate without a new central bottleneck.', callout: '<strong>It is already happening.</strong> Most frontline AI use starts without management sign-off. Your people are stitching agents together and automating shortcuts on their own. The organisation is becoming an agentic mesh whether you planned it or not. The only real choice is whether it is governed.' },
   evolution: { title: 'AI stopped answering and started acting', lead: 'You can check a chatbot one reply at a time. You can&rsquo;t check a swarm of agents making hundreds of linked decisions. Plausible text is no longer a control. VisionFlow gives every agent the same checked vocabulary and rules, and rejects contradictions before they become accepted facts.' },
@@ -125,6 +193,42 @@ const PLAIN = {
 // Plain-English versions of the detail panes (cards, callouts with diagrams).
 // Matched to each section's panes in document order; a missing entry is left as-is.
 const PANES = [
+  { id: 'questions', sel: '.q-card p', plains: [
+    'Six open-source services that turn what your organisation knows into something checked, searchable and visible. One cryptographic identity runs through all of them, so the person who signs a request is the same one who owns the data and approves the outcome.',
+    'Ask the shared model a question mid-task. Watch the knowledge graph move as work happens. Review what an AI proposes and approve it with your own signature. Walk through the same graph with colleagues in a shared 3D space.',
+    'AI can now produce work faster than anyone can check it. This keeps the speed and puts a person, with a signature, at every decision that matters.',
+    'Changes nobody approved, decisions nobody can trace, AI tools with no limits on what they may touch or spend, and knowledge locked in documents and in people&rsquo;s heads.',
+    'Someone writes a note. The system notices it matters, a person reviews the proposed change, a consistency check confirms it breaks nothing, it is approved and merged, and the shared picture updates. <a href="#guarantees">See the six stages.</a>',
+    'Research that regulators audit, handing a system from one team to another, leadership questions over a live knowledge base, and teaching complex subjects in a shared space. <a href="#cases">Three worked scenarios.</a>',
+    'You run it on your own hardware with a graphics card. Each part is open source and free to run; DreamLab AI offers the engineering. <a href="#repos">The repositories.</a>',
+    'DreamLab AI, a UK studio, building on fifteen years of immersive data research at the University of Salford. Everything is developed in the open.'
+  ] },
+  { id: 'guarantees', sel: '.fig-lead', plains: [
+    'Every AI task can consult the shared model as it works: a small hint arrives automatically with each step, and a fuller answer is available on request within a fixed budget. Reading is always allowed. Writing never is: a change only lands after a consistency check and a signed approval.',
+    'There are two kinds of knowledge here: working notes, which change freely, and the agreed vocabulary, which changes only through review. When a note earns its place, it moves from one to the other in six steps.'
+  ] },
+  { id: 'broker', sel: '.fig-lead', plains: [
+    'Not every agreement needs the same level of trust, so each one says which level it has. The first two levels ship today: signed records an operator cannot quietly alter, and shared custody where several keys must agree. The stronger levels wait for an independent audit.'
+  ] },
+  { id: 'doors', sel: '.door-dev', plains: [
+    'Six services, one job each: the knowledge engine, the agent runtime, the data-store library, the human decision forum, the public edge deployment and the fact-supplier. This repository describes how they fit together.',
+    'Engine and runtime run side by side and find each other by name. Almost nothing is exposed to the network, and the one door that is demands a signed request. Browser and headset read the same compact live feed. Knowledge lives in storage that survives any container being thrown away.',
+    'Start with the diagrams, which cite the exact code they describe. Then the decision records, which are never rewritten, only added to. Then follow one action end to end.',
+    'What an agent may do is written down and enforced as it runs. Secrets never ship inside images. Opening anything new to the network needs a reason and a review.'
+  ] },
+  { id: 'status', sel: '.st-what p', plains: [
+    'Running, with its checks. A change that would contradict the shared model is refused before it lands.',
+    'Running in the browser, with more than thirteen thousand nodes on screen in the latest check.',
+    'Being built. A room-scale lab version proved the idea; the portable one is on its way.',
+    'People approve or reject AI proposals with a signature today, for one kind of change: adding to the shared vocabulary. The final confirmation step after a merge is not yet wired.',
+    'Running, with a fixed list of what agents may do and one guarded way in from the network.',
+    'Running and answering, but without automated checks on a hosted build yet.',
+    'A new fact has gone the whole way through: proposed by an agent, approved by a person, published the same day.',
+    'Tamper-evident records and shared custody are available now. The stronger trust levels wait for an independent audit.',
+    'Organisations can connect their own instances, but a full live test between two of them has not been run yet, so a single instance remains the supported setup.',
+    'Each night the code proposes one improvement to itself and a person decides whether to merge it. That runs here; extending it across every part is in progress.',
+    'There is no contact form yet. The button on this page takes you straight to DreamLab AI.'
+  ] },
   { id: 'substrates', sel: '.substrate-card ul', plains: [
     'The knowledge engine. It holds the shared, machine-checked model of your field, shows it as a 3D graph you can explore, and runs the reasoning and physics that keep it consistent, running fast on the graphics card.',
     'Where the AI agents live. Each runs in its own sealed workspace with its own identity, a library of skills and a shared memory, and everything it does can be checked and approved.',
@@ -247,11 +351,16 @@ function initReadingSwitch() {
 
   function sizeAll(active) {
     if (MOBILE()) return; // no 3D flip on mobile — faces flow statically, CSS forces height:auto
+    // Panels inside a hidden tab (the three doors) measure as zero height, so the
+    // hidden tab panels are shown invisibly for the duration of the measurement.
+    const hid = Array.prototype.slice.call(document.querySelectorAll('[role="tabpanel"][hidden]'));
+    hid.forEach((el) => { el.hidden = false; el.style.visibility = 'hidden'; });
     panels.forEach((p) => {
       p.techH = measureFace(p.tech, p.plain);
       p.plainH = measureFace(p.plain, p.tech);
       p.inner.style.height = (active === 'plain' ? p.plainH : p.techH) + 'px';
     });
+    hid.forEach((el) => { el.hidden = true; el.style.visibility = ''; });
   }
 
   let liveT;
@@ -470,6 +579,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initNavScroll();
   initSmoothScroll();     // binds #-anchors before initIndex builds its own rows
   initScrollReveal();
+  initFigures();
+  initDoors();            // before the reading switch, so the tab panels exist to be measured
   initReadingSwitch();
   initIndex();
   initProgress();
