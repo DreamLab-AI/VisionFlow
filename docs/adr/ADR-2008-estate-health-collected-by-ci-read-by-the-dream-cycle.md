@@ -7,7 +7,7 @@ implementation_status: complete
 activation_status: live
 supersedes: []
 superseded_by: []
-verified_commit: pending
+verified_commit: d42eec56157cd7e3ce1a724793116d90c2ddd293
 owner: jjohare
 review_trigger: a change to the estate roster (scripts/estate-health/roster.json), a change to the snapshot schema, or the dream cycle acquiring credentials of its own
 repo: visionflow
