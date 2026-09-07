@@ -21,6 +21,15 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/styles.css" />
+  <script type="application/ld+json">
+  {"@context":"https://schema.org",
+   "@type":"Organization",
+   "name":"DreamLab AI",
+   "url":"https://www.visionflow.info",
+   "logo":"https://www.visionflow.info/img/og-card.png",
+   "sameAs":["https://github.com/DreamLab-AI"],
+   "description":"VisionFlow is a coordination harness for federated human-AI intelligence. Self-sovereign data, formal reasoning, cryptographic provenance, human-in-the-loop governance."}
+  </script>
 </head>
 <body>
   <!-- Living-mesh WebGL backdrop (fixed, textless, scroll-flown) -->
@@ -581,10 +590,10 @@
       </div>
 
       <h3 style="margin-top:3rem;font-size:1.6rem;color:var(--gold)">Provenance and value travel the same rails</h3>
-      <p class="section-lead">Once every actor is a <code>did:nostr</code> identity and every write is anchored, <strong>value and trust</strong> travel the same rails as the mesh&rsquo;s messages: no EVM, no bridge, no custodian, and no token of our own.</p>
+      <p class="section-lead">Once every actor is a <code>did:nostr</code> identity and every write is anchored, <strong>value and trust</strong> travel the same rails as the mesh&rsquo;s messages: no EVM, no bridge, no custodian.</p>
       <div class="identity-callout">
         <code>agent &rarr; pod &rarr; 402 settle &rarr; anchor &rarr; did:nostr</code>
-        <p>The same <code>did:nostr</code> key that is a WAC principal, a relay identity and a provenance author is also a payment account, so an agent can earn, spend and sign across the mesh as one actor. Payments settle in <strong>USD stablecoins</strong> over HTTP 402; private digital objects and contracts stay in the owner&rsquo;s pod and inherit <strong>Bitcoin&rsquo;s security model</strong> through taproot-anchored commitments, borrowing the strongest settlement guarantee available rather than minting anything of our own.</p>
+        <p>The same <code>did:nostr</code> key that is a WAC principal, a relay identity and a provenance author is also a payment account, so an agent can earn, spend and sign across the mesh as one actor. The unit of account is the <strong>satoshi</strong>: a Web Ledger in sats, HTTP 402 gating, an order book and a constant-product exchange, all routed through one ledger path with replay protection, with <strong>Lightning</strong> over L402 and NWC as the rail today, served by a resident Bitcoin node in the estate that runs mainnet and testnet4 side by side with Core-Lightning (ADR-061). Stablecoin rails are not ruled out: x402 challenges sit in the same 402 grammar and are payable by delegation, a later choice rather than a closed door. The same taproot core mints <strong>MRC20 tokens</strong> on Bitcoin, inherited from JSS; DREAM, the operator&rsquo;s internal token at ten per sat, is configured across the runtime and the edge and has been minted experimentally on testnet. Private digital objects and contracts stay in the owner&rsquo;s pod and inherit <strong>Bitcoin&rsquo;s security model</strong> through taproot-anchored commitments, on testnet4 by default and mainnet by explicit operator choice.</p>
       </div>
 
       <h3 class="sub-head">The web-contract trust ladder</h3>
@@ -935,7 +944,7 @@
           </div>
           <div class="door-block">
             <h3>What it costs</h3>
-            <p>Every substrate is open source under AGPL-3.0, so running it yourself carries no licence fee. You provide the hardware, a GPU-equipped server, and the engineering time to operate it; DreamLab AI offers the engineering. Where the platform meters paid usage it does so in signed, auditable ledger entries rather than an opaque invoice.</p>
+            <p>Every substrate is open source under AGPL-3.0, so running it yourself carries no licence fee. You provide the hardware, a GPU-equipped server, and the engineering time to operate it; DreamLab AI offers the engineering. Where the platform meters paid usage it does so in signed, auditable ledger entries denominated in sats rather than an opaque invoice.</p>
           </div>
           <div class="door-block">
             <h3>Decisions we need from you</h3>
@@ -1002,6 +1011,11 @@
               <td><span class="st-pill st-progress">L0 and L1</span></td>
             </tr>
             <tr>
+              <td class="st-area"><strong>Value rail</strong>Sats Web Ledger, HTTP 402 gating, MRC20 mint, Lightning over L402 and NWC</td>
+              <td class="st-what"><p>Ledger, gating, exchange and mint are routed and test-proven, on testnet4 by default. The estate now runs its own Bitcoin node, mainnet and testnet4, for anchoring and Lightning. L402 challenges are recognised and payable by delegation; the native NWC rail is the next phase.</p></td>
+              <td><span class="st-pill st-progress">sats live, NWC next</span></td>
+            </tr>
+            <tr>
               <td class="st-area"><strong>Cross-org mesh federation</strong>IS-Envelopes between sovereign nodes</td>
               <td class="st-what"><p>Built, not yet federation-verified. The transport and relay auth exist; standalone-first stays the supported mode until the live cross-substrate smoke test runs.</p></td>
               <td><span class="st-pill st-progress">integrated, unverified</span></td>
@@ -1023,9 +1037,24 @@
     </div>
   </section>
 
+  <!-- Nightly estate check -->
+  <section id="estate" class="section">
+    <div class="container reveal" data-num="15">
+      <span class="section-tag">Nightly estate check</span>
+      <h2>Every repository, every night</h2>
+      <p class="section-lead">CI on the default branch, open pull requests, the latest release, the last commit, public surface reachability and published registry versions, collected for every repository in the estate by <a href="https://github.com/DreamLab-AI/VisionFlow/blob/main/.github/workflows/estate-health.yml" target="_blank" rel="noopener">a workflow that runs at 02:30 UTC</a> and committed as data. What you read below is that committed snapshot, deployed through the same publication gates as this page — not a live query made while you scroll. The dream cycle reads the same file at 03:00, so a repository shown red here becomes a hypothesis the next night.</p>
+
+      <div id="estate-body">
+        <p class="estate-note">Loading the nightly snapshot… or read <a href="data/estate-health.json">data/estate-health.json</a></p>
+      </div>
+
+      <p class="figcap">Source: <a href="data/estate-health.json">data/estate-health.json</a>, collected by <a href="https://github.com/DreamLab-AI/VisionFlow/blob/main/.github/workflows/estate-health.yml" target="_blank" rel="noopener">.github/workflows/estate-health.yml</a>. A repository shown red here is a defect in the estate, not in the page.</p>
+    </div>
+  </section>
+
   <!-- Repository Map -->
   <section id="repos" class="section">
-    <div class="container reveal" data-num="15">
+    <div class="container reveal" data-num="16">
       <span class="section-tag">Repository Map</span>
       <h2>The six substrates, this ecosystem-guide repository, and the published corpus</h2>
 
