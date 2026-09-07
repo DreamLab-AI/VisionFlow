@@ -1,0 +1,118 @@
+{
+  "at": "2026-09-07T11:04:14.018Z",
+  "browser": "sidecar Chrome via CDP 9223",
+  "scope": "Read-only public/candidate journeys; no identity credentials, submissions or device acceptance",
+  "records": [
+    {
+      "name": "notes",
+      "url": "https://narrativegoldmine.com/notes/",
+      "checks": [
+        {
+          "name": "content",
+          "ok": true,
+          "detail": 2579
+        },
+        {
+          "name": "images",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "mobile-no-overflow",
+          "ok": false,
+          "detail": {
+            "viewport": 375,
+            "width": 406,
+            "bodyWidth": 406
+          }
+        },
+        {
+          "name": "no-uncaught-exceptions",
+          "ok": true,
+          "detail": []
+        }
+      ],
+      "page": {
+        "url": "https://narrativegoldmine.com/notes/#/all-pages",
+        "title": "All pages",
+        "text": 2579,
+        "headings": [
+          "All pages"
+        ],
+        "brokenImages": []
+      },
+      "mobile": {
+        "viewport": 375,
+        "width": 406,
+        "bodyWidth": 406
+      },
+      "screenshot": {
+        "path": "notes-mobile.png",
+        "sha256": "9354e76be04f4459cfd0df88c56fc0e1333e192d369905a21cf221be78f82a4e"
+      },
+      "exceptions": [],
+      "httpStatuses": [
+        {
+          "url": "https://narrativegoldmine.com/notes/",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "name": "forum",
+      "url": "https://www.dreamlab-ai.com/community/",
+      "checks": [
+        {
+          "name": "content",
+          "ok": true,
+          "detail": 610
+        },
+        {
+          "name": "images",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "mobile-no-overflow",
+          "ok": true,
+          "detail": {
+            "viewport": 375,
+            "width": 375,
+            "bodyWidth": 375
+          }
+        },
+        {
+          "name": "no-uncaught-exceptions",
+          "ok": true,
+          "detail": []
+        }
+      ],
+      "page": {
+        "url": "https://dreamlab-ai.com/community/",
+        "title": "Community Forums",
+        "text": 610,
+        "headings": [
+          "Community Forums",
+          "Bookmarks"
+        ],
+        "brokenImages": []
+      },
+      "mobile": {
+        "viewport": 375,
+        "width": 375,
+        "bodyWidth": 375
+      },
+      "screenshot": {
+        "path": "forum-mobile.png",
+        "sha256": "f9a60543894668a369ed82bdf7cecf999a42a0611d4213e34aedd79db2179b5e"
+      },
+      "exceptions": [],
+      "httpStatuses": [
+        {
+          "url": "https://dreamlab-ai.com/community/",
+          "status": 200
+        }
+      ]
+    }
+  ]
+}

@@ -34,7 +34,7 @@ sources:
   - ../project/agentbox/management-api/lib/llm-marketplace.js
   - ../project/agentbox/agentbox.sh
   - ../project/agentbox/management-api/lib/agent-control-surface.js
-verified_commit: 2c521c5bb
+verified_commit: be0fc078a3dc0eab32af57f1eaf170fa58157bf9
 ---
 
 ## AB-13.1 Nostr topology — relay, gateway, pod bridge, mirror, mesh

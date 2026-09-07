@@ -1,0 +1,1353 @@
+contracts	Set up job	﻿2026-09-07T12:25:59.1632397Z Current runner version: '2.337.0'
+contracts	Set up job	2026-09-07T12:25:59.1651122Z ##[group]Runner Image Provisioner
+contracts	Set up job	2026-09-07T12:25:59.1651946Z Hosted Compute Agent
+contracts	Set up job	2026-09-07T12:25:59.1652445Z Version: 20260828.587
+contracts	Set up job	2026-09-07T12:25:59.1653002Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+contracts	Set up job	2026-09-07T12:25:59.1653630Z Build Date: 2026-08-28T16:44:25Z
+contracts	Set up job	2026-09-07T12:25:59.1654238Z Worker ID: {f00db333-a72f-4364-8578-442cc089ca6d}
+contracts	Set up job	2026-09-07T12:25:59.1654817Z Azure Region: centralus
+contracts	Set up job	2026-09-07T12:25:59.1655316Z ##[endgroup]
+contracts	Set up job	2026-09-07T12:25:59.1656520Z ##[group]Operating System
+contracts	Set up job	2026-09-07T12:25:59.1657052Z Ubuntu
+contracts	Set up job	2026-09-07T12:25:59.1657483Z 24.04.4
+contracts	Set up job	2026-09-07T12:25:59.1657902Z LTS
+contracts	Set up job	2026-09-07T12:25:59.1658349Z ##[endgroup]
+contracts	Set up job	2026-09-07T12:25:59.1658817Z ##[group]Runner Image
+contracts	Set up job	2026-09-07T12:25:59.1659308Z Image: ubuntu-24.04
+contracts	Set up job	2026-09-07T12:25:59.1659785Z Version: 20260831.293.1
+contracts	Set up job	2026-09-07T12:25:59.1660766Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260831.293/images/ubuntu/Ubuntu2404-Readme.md
+contracts	Set up job	2026-09-07T12:25:59.1662231Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260831.293
+contracts	Set up job	2026-09-07T12:25:59.1663264Z ##[endgroup]
+contracts	Set up job	2026-09-07T12:25:59.1664246Z ##[group]GITHUB_TOKEN Permissions
+contracts	Set up job	2026-09-07T12:25:59.1666090Z Contents: read
+contracts	Set up job	2026-09-07T12:25:59.1666615Z Metadata: read
+contracts	Set up job	2026-09-07T12:25:59.1667092Z ##[endgroup]
+contracts	Set up job	2026-09-07T12:25:59.1668731Z Secret source: Actions
+contracts	Set up job	2026-09-07T12:25:59.1669549Z Prepare workflow directory
+contracts	Set up job	2026-09-07T12:25:59.2030598Z Prepare all required actions
+contracts	Set up job	2026-09-07T12:25:59.2071356Z Getting action download info
+contracts	Set up job	2026-09-07T12:25:59.4119858Z Download action repository 'actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683' (SHA:11bd71901bbe5b1630ceea73d27597364c9af683)
+contracts	Set up job	2026-09-07T12:25:59.8528254Z Complete job name: contracts
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	﻿2026-09-07T12:25:59.9101276Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:25:59.9108501Z ##[group]Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:25:59.9109296Z with:
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:25:59.9109734Z   path: loom
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:25:59.9110206Z   repository: DreamLab-AI/loom
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:25:59.9113577Z   token: ***
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:25:59.9114011Z   ssh-strict: true
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:25:59.9114700Z   ssh-user: git
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:25:59.9115128Z   persist-credentials: true
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:25:59.9115640Z   clean: true
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:25:59.9116093Z   sparse-checkout-cone-mode: true
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:25:59.9116586Z   fetch-depth: 1
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:25:59.9117021Z   fetch-tags: false
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:25:59.9117449Z   show-progress: true
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:25:59.9118005Z   lfs: false
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:25:59.9118411Z   submodules: false
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:25:59.9118856Z   set-safe-directory: true
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:25:59.9119436Z ##[endgroup]
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:25:59.9998370Z Syncing repository: DreamLab-AI/loom
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0000960Z ##[group]Getting Git version info
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0002118Z Working directory is '/home/runner/work/loom/loom/loom'
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0004161Z [command]/usr/bin/git version
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0055597Z git version 2.55.0
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0070497Z ##[endgroup]
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0079611Z Temporarily overriding HOME='/home/runner/work/_temp/7991c0a6-d55d-4b54-8e95-bda1fcb40601' before making global git config changes
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0081606Z Adding repository directory to the temporary git global config as a safe directory
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0083302Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/loom/loom/loom
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0313234Z ##[group]Initializing the repository
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0314128Z [command]/usr/bin/git init /home/runner/work/loom/loom/loom
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0537248Z hint: Using 'master' as the name for the initial branch. This default branch name
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0538710Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0542608Z hint: to use in all of your new repositories, which will suppress this warning,
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0544025Z hint: call:
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0545213Z hint:
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0546046Z hint: 	git config --global init.defaultBranch <name>
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0547014Z hint:
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0547849Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0549185Z hint: 'development'. The just-created branch can be renamed via this command:
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0550457Z hint:
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0551363Z hint: 	git branch -m <name>
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0552158Z hint:
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0553046Z hint: Disable this message with "git config set advice.defaultBranchName false"
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0554447Z Initialized empty Git repository in /home/runner/work/loom/loom/loom/.git/
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0557156Z [command]/usr/bin/git remote add origin https://github.com/DreamLab-AI/loom
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0714719Z ##[endgroup]
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0715863Z ##[group]Disabling automatic garbage collection
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0718606Z [command]/usr/bin/git config --local gc.auto 0
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0822847Z ##[endgroup]
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0824433Z ##[group]Setting up auth
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0825160Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.0847366Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.1128089Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.1152776Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.1317669Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.1514050Z ##[endgroup]
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.1514937Z ##[group]Fetching the repository
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:00.1523575Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +397b86c0124e2f4ece40b9db46352179730c2c46:refs/remotes/origin/main
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.0046332Z From https://github.com/DreamLab-AI/loom
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.0048786Z  * [new ref]         397b86c0124e2f4ece40b9db46352179730c2c46 -> origin/main
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.0058638Z ##[endgroup]
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.0060071Z ##[group]Determining the checkout info
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.0062126Z ##[endgroup]
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.0063213Z [command]/usr/bin/git sparse-checkout disable
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.0101371Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.0123030Z ##[group]Checking out the ref
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.0127384Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.1625472Z Switched to a new branch 'main'
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.1629335Z branch 'main' set up to track 'origin/main'.
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.1637907Z ##[endgroup]
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.1667702Z [command]/usr/bin/git log -1 --format=%H
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.1687280Z 397b86c0124e2f4ece40b9db46352179730c2c46
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	﻿2026-09-07T12:26:02.2026254Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2031779Z ##[group]Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2033199Z with:
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2034046Z   repository: jjohare/ruvector
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2035191Z   ref: 677b2475409c50cb964be8a3b848da2952390535
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2036485Z   path: ruvector
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2044789Z   token: ***
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2045715Z   ssh-strict: true
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2046633Z   ssh-user: git
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2047555Z   persist-credentials: true
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2048529Z   clean: true
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2049438Z   sparse-checkout-cone-mode: true
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2050490Z   fetch-depth: 1
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2051477Z   fetch-tags: false
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2052510Z   show-progress: true
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2053436Z   lfs: false
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2054288Z   submodules: false
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2055195Z   set-safe-directory: true
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2056211Z ##[endgroup]
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2783443Z Syncing repository: jjohare/ruvector
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2787435Z ##[group]Getting Git version info
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2789922Z Working directory is '/home/runner/work/loom/loom/ruvector'
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2823442Z [command]/usr/bin/git version
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2838916Z git version 2.55.0
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2855647Z ##[endgroup]
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2866261Z Temporarily overriding HOME='/home/runner/work/_temp/696cb72c-77a2-44c3-aca8-c042d8965271' before making global git config changes
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2870472Z Adding repository directory to the temporary git global config as a safe directory
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2873926Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/loom/loom/ruvector
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2896449Z ##[group]Initializing the repository
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2900138Z [command]/usr/bin/git init /home/runner/work/loom/loom/ruvector
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2931920Z hint: Using 'master' as the name for the initial branch. This default branch name
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2935125Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2938212Z hint: to use in all of your new repositories, which will suppress this warning,
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2940893Z hint: call:
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2942359Z hint:
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2944018Z hint: 	git config --global init.defaultBranch <name>
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2946222Z hint:
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2947868Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2950929Z hint: 'development'. The just-created branch can be renamed via this command:
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2953366Z hint:
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2954757Z hint: 	git branch -m <name>
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2956189Z hint:
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2958234Z hint: Disable this message with "git config set advice.defaultBranchName false"
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2961886Z Initialized empty Git repository in /home/runner/work/loom/loom/ruvector/.git/
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2966456Z [command]/usr/bin/git remote add origin https://github.com/jjohare/ruvector
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2969919Z ##[endgroup]
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2971941Z ##[group]Disabling automatic garbage collection
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2975889Z [command]/usr/bin/git config --local gc.auto 0
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.2999772Z ##[endgroup]
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.3001568Z ##[group]Setting up auth
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.3006936Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.3035782Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.3199714Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.3227336Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.3405623Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.3458648Z ##[endgroup]
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.3461373Z ##[group]Fetching the repository
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:02.3467197Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin 677b2475409c50cb964be8a3b848da2952390535
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:08.5481156Z From https://github.com/jjohare/ruvector
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:08.5482278Z  * branch            677b2475409c50cb964be8a3b848da2952390535 -> FETCH_HEAD
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:08.5487916Z ##[endgroup]
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:08.5488742Z ##[group]Determining the checkout info
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:08.5489666Z ##[endgroup]
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:08.5496355Z [command]/usr/bin/git sparse-checkout disable
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:08.5529429Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:08.5552999Z ##[group]Checking out the ref
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:08.5557372Z [command]/usr/bin/git checkout --progress --force 677b2475409c50cb964be8a3b848da2952390535
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:09.5464521Z Note: switching to '677b2475409c50cb964be8a3b848da2952390535'.
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:09.5465111Z 
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:09.5465448Z You are in 'detached HEAD' state. You can look around, make experimental
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:09.5466468Z changes and commit them, and you can discard any commits you make in this
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:09.5467350Z state without impacting any branches by switching back to a branch.
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:09.5467781Z 
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:09.5468153Z If you want to create a new branch to retain commits you create, you may
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:09.5468810Z do so (now or later) by using -c with the switch command. Example:
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:09.5469210Z 
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:09.5469373Z   git switch -c <new-branch-name>
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:09.5469697Z 
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:09.5469865Z Or undo this operation with:
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:09.5470120Z 
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:09.5470288Z   git switch -
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:09.5471668Z 
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:09.5472045Z Turn off this advice by setting config variable advice.detachedHead to false
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:09.5472517Z 
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:09.5473487Z HEAD is now at 677b247 docs(reports): agentbox field report — CONCURRENTLY double-insert, SONA dim hardcode, ef_search GUC question
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:09.5483931Z ##[endgroup]
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:09.5519394Z [command]/usr/bin/git log -1 --format=%H
+contracts	Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:26:09.5544384Z 677b2475409c50cb964be8a3b848da2952390535
+contracts	Select Rust 1.98.0	﻿2026-09-07T12:26:09.5662830Z ##[group]Run rustup toolchain install 1.98.0 --profile minimal --component rustfmt
+contracts	Select Rust 1.98.0	2026-09-07T12:26:09.5663551Z ^[[36;1mrustup toolchain install 1.98.0 --profile minimal --component rustfmt^[[0m
+contracts	Select Rust 1.98.0	2026-09-07T12:26:09.5689660Z shell: /usr/bin/bash -e {0}
+contracts	Select Rust 1.98.0	2026-09-07T12:26:09.5690050Z ##[endgroup]
+contracts	Select Rust 1.98.0	2026-09-07T12:26:09.6196793Z info: syncing channel updates for 1.98.0-x86_64-unknown-linux-gnu
+contracts	Select Rust 1.98.0	2026-09-07T12:26:09.8924416Z info: latest update on 2026-08-20 for version 1.98.0 (88d9e12ae 2026-08-18)
+contracts	Select Rust 1.98.0	2026-09-07T12:26:09.8938472Z info: downloading 4 components
+contracts	Select Rust 1.98.0	2026-09-07T12:26:18.0084796Z 
+contracts	Select Rust 1.98.0	2026-09-07T12:26:18.0150111Z   1.98.0-x86_64-unknown-linux-gnu installed - rustc 1.98.0 (88d9e12ae 2026-08-18)
+contracts	Select Rust 1.98.0	2026-09-07T12:26:18.0150470Z 
+contracts	Verify selected dependency source	﻿2026-09-07T12:26:18.0210040Z ##[group]Run bash scripts/check-ruvector-source.sh
+contracts	Verify selected dependency source	2026-09-07T12:26:18.0210455Z ^[[36;1mbash scripts/check-ruvector-source.sh^[[0m
+contracts	Verify selected dependency source	2026-09-07T12:26:18.0233480Z shell: /usr/bin/bash -e {0}
+contracts	Verify selected dependency source	2026-09-07T12:26:18.0233904Z ##[endgroup]
+contracts	Verify selected dependency source	2026-09-07T12:26:18.0366241Z PASS RuVector consumer source 677b2475409c50cb964be8a3b848da2952390535
+contracts	Format	﻿2026-09-07T12:26:18.0393633Z ##[group]Run cargo +1.98.0 fmt --check
+contracts	Format	2026-09-07T12:26:18.0394030Z ^[[36;1mcargo +1.98.0 fmt --check^[[0m
+contracts	Format	2026-09-07T12:26:18.0412708Z shell: /usr/bin/bash -e {0}
+contracts	Format	2026-09-07T12:26:18.0413023Z ##[endgroup]
+contracts	Hermetic Rust contracts	﻿2026-09-07T12:26:18.2078841Z ##[group]Run cargo +1.98.0 test --workspace --locked
+contracts	Hermetic Rust contracts	2026-09-07T12:26:18.2079213Z ^[[36;1mcargo +1.98.0 test --workspace --locked^[[0m
+contracts	Hermetic Rust contracts	2026-09-07T12:26:18.2096771Z shell: /usr/bin/bash -e {0}
+contracts	Hermetic Rust contracts	2026-09-07T12:26:18.2097128Z ##[endgroup]
+contracts	Hermetic Rust contracts	2026-09-07T12:26:18.2450553Z     Updating crates.io index
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.4938319Z  Downloading crates ...
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.5487143Z   Downloaded parking_lot_core v0.9.12
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.5580780Z   Downloaded oxsdatatypes v0.2.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.5689476Z   Downloaded parking_lot v0.12.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.5746167Z   Downloaded futures-core v0.3.34
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.5765555Z   Downloaded form_urlencoded v1.2.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.5784275Z   Downloaded oxrdfxml v0.1.7
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.5837880Z   Downloaded same-file v1.0.6
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.5845375Z   Downloaded futures-executor v0.3.34
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.5856890Z   Downloaded rancor v0.1.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.5886054Z   Downloaded tower-layer v0.3.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.5906633Z   Downloaded futures v0.3.34
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.5950423Z   Downloaded sha1 v0.10.7
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.5958846Z   Downloaded siphasher v1.0.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.5977758Z   Downloaded rand_core v0.6.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.5984846Z   Downloaded rand_core v0.10.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.5994252Z   Downloaded futures-channel v0.3.34
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6011387Z   Downloaded subtle v2.6.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6021783Z   Downloaded mime v0.3.17
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6047168Z   Downloaded sync_wrapper v1.0.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6066749Z   Downloaded rend v0.5.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6076986Z   Downloaded stable_deref_trait v1.2.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6104699Z   Downloaded tokio-macros v2.7.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6119005Z   Downloaded idna v1.1.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6160435Z   Downloaded oxttl v0.1.8
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6176834Z   Downloaded rand_core v0.9.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6188505Z   Downloaded scopeguard v1.2.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6195794Z   Downloaded synstructure v0.13.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6201946Z   Downloaded serde_urlencoded v0.7.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6209297Z   Downloaded is-terminal v0.4.17
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6216954Z   Downloaded is_terminal_polyfill v1.70.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6223742Z   Downloaded percent-encoding v2.3.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6228908Z   Downloaded ptr_meta_derive v0.3.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6235217Z   Downloaded tinyvec_macros v0.1.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6239236Z   Downloaded rand_chacha v0.3.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6246834Z   Downloaded rawpointer v0.2.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6251852Z   Downloaded potential_utf v0.1.6
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6287979Z   Downloaded ptr_meta v0.3.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6295475Z   Downloaded tower-service v0.3.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6306235Z   Downloaded rustc-hash v2.1.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6314023Z   Downloaded thread_local v1.1.10
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6321140Z   Downloaded futures-io v0.3.34
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6326725Z   Downloaded num_cpus v1.17.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6342297Z   Downloaded peg-runtime v0.8.6
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6362657Z   Downloaded idna_adapter v1.2.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6368066Z   Downloaded itoa v1.0.18
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6375225Z   Downloaded lru-slab v0.1.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6384505Z   Downloaded ppv-lite86 v0.2.21
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6391675Z   Downloaded rustversion v1.0.23
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6409631Z   Downloaded sha2 v0.10.9
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6429327Z   Downloaded serde_path_to_error v0.1.20
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6439453Z   Downloaded shlex v1.3.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6448656Z   Downloaded shlex v2.0.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6455858Z   Downloaded signal-hook-registry v1.4.8
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6462814Z   Downloaded yoke-derive v0.8.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6469628Z   Downloaded md-5 v0.10.6
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6478614Z   Downloaded quinn-udp v0.5.15
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6488817Z   Downloaded zerofrom-derive v0.1.7
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6496627Z   Downloaded bincode_derive v2.0.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6501968Z   Downloaded rkyv_derive v0.8.18
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6515825Z   Downloaded simdutf8 v0.1.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6538145Z   Downloaded slab v0.4.12
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6547842Z   Downloaded sysctl v0.6.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6559214Z   Downloaded thiserror v1.0.69
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6585812Z   Downloaded thiserror-impl v1.0.69
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6593598Z   Downloaded thiserror-impl v2.0.20
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6600878Z   Downloaded tinystr v0.8.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6612987Z   Downloaded tinytemplate v1.2.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6627317Z   Downloaded fastrand v2.5.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6651860Z   Downloaded icu_properties_data v2.3.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6711928Z   Downloaded pin-project-lite v0.2.17
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6749394Z   Downloaded quote v1.0.47
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6778358Z   Downloaded rand_pcg v0.10.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6787787Z   Downloaded sparopt v0.2.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6796370Z   Downloaded peg v0.8.6
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6819550Z   Downloaded rand_chacha v0.9.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6826584Z   Downloaded matchers v0.2.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6833171Z   Downloaded bytecheck v0.8.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6838534Z   Downloaded smallvec v1.15.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6856916Z   Downloaded spareval v0.1.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6890862Z   Downloaded spargebra v0.3.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6929609Z   Downloaded futures-sink v0.3.34
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6930104Z   Downloaded tokio-rustls v0.26.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6931174Z   Downloaded bytecheck_derive v0.8.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6936910Z   Downloaded rand_distr v0.4.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6953141Z   Downloaded cfg_aliases v0.2.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.6975559Z   Downloaded ryu v1.0.23
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7027475Z   Downloaded anndists v0.1.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7040476Z   Downloaded cpu-time v1.0.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7050604Z   Downloaded crossbeam v0.8.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7059382Z   Downloaded sparesults v0.2.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7086368Z   Downloaded thiserror v2.0.20
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7160235Z   Downloaded untrusted v0.9.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7184005Z   Downloaded peg-macros v0.8.6
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7193506Z   Downloaded hex v0.4.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7201063Z   Downloaded rustls-pki-types v1.15.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7238793Z   Downloaded tracing-serde v0.2.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7256272Z   Downloaded serde_core v1.0.229
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7273299Z   Downloaded tempfile v3.27.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7287009Z   Downloaded atomic-waker v1.1.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7293118Z   Downloaded try-lock v0.2.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7297292Z   Downloaded generic-array v0.14.7
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7304359Z   Downloaded munge v0.4.7
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7320856Z   Downloaded munge_macro v0.4.7
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7353540Z   Downloaded criterion-plot v0.5.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7376413Z   Downloaded sharded-slab v0.1.7
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7394665Z   Downloaded dashmap v6.2.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7406145Z   Downloaded tinyvec v1.12.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7421390Z   Downloaded proc-macro2 v1.0.107
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7436807Z   Downloaded rustls-webpki v0.103.14
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7454389Z   Downloaded serde v1.0.229
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7473327Z   Downloaded serde_derive v1.0.229
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7488583Z   Downloaded socket2 v0.6.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7499870Z   Downloaded unty v0.0.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7505142Z   Downloaded equivalent v1.0.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7509953Z   Downloaded errno v0.3.14
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7517097Z   Downloaded cfg-if v1.0.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7523133Z   Downloaded either v1.17.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7530291Z   Downloaded futures-task v0.3.34
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7536096Z   Downloaded heck v0.5.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7541864Z   Downloaded httpdate v1.0.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7547065Z   Downloaded prettyplease v0.2.37
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7564706Z   Downloaded rand v0.8.7
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7582798Z   Downloaded rayon-core v1.13.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7601254Z   Downloaded version_check v0.9.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7607459Z   Downloaded zmij v1.0.23
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7616813Z   Downloaded byteorder v1.5.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7625004Z   Downloaded url v2.5.8
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7640851Z   Downloaded bitflags v1.3.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7654870Z   Downloaded ciborium-ll v0.2.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7660773Z   Downloaded clap_lex v1.1.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7667062Z   Downloaded futures-macro v0.3.34
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7672478Z   Downloaded http-body v1.1.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7676959Z   Downloaded lock_api v0.4.14
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7684015Z   Downloaded rand v0.9.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7705289Z   Downloaded simsimd v5.9.11
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7732164Z   Downloaded ipnet v2.12.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7735432Z   Downloaded base64 v0.22.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7756008Z   Downloaded tower v0.5.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7831868Z   Downloaded wiremock v0.6.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7832361Z   Downloaded allocator-api2 v0.2.21
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7833351Z   Downloaded quinn v0.11.11
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7853523Z   Downloaded find-msvc-tools v0.1.11
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7863207Z   Downloaded rand v0.10.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7884674Z   Downloaded aho-corasick v1.1.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7916562Z   Downloaded reqwest v0.12.28
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7949989Z   Downloaded tokio-util v0.7.19
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.7989589Z   Downloaded nu-ansi-term v0.50.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8001880Z   Downloaded regex v1.13.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8032567Z   Downloaded serde_json v1.0.151
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8069477Z   Downloaded tower-http v0.6.11
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8114946Z   Downloaded lazy_static v1.5.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8123489Z   Downloaded anstyle v1.0.14
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8131338Z   Downloaded anstyle-parse v1.0.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8140121Z   Downloaded matchit v0.7.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8150042Z   Downloaded oorandom v11.1.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8155603Z   Downloaded zerovec v0.11.7
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8186507Z   Downloaded json-event-parser v0.2.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8196092Z   Downloaded quick-xml v0.37.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8227135Z   Downloaded rayon v1.12.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8272563Z   Downloaded glob v0.3.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8280950Z   Downloaded http-body-util v0.1.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8290550Z   Downloaded libloading v0.8.9
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8304038Z   Downloaded anstyle-query v1.1.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8311400Z   Downloaded rkyv v0.8.18
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8369219Z   Downloaded num-complex v0.4.6
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8378152Z   Downloaded oxiri v0.2.11
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8387593Z   Downloaded tracing-log v0.2.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8395155Z   Downloaded cast v0.3.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8401265Z   Downloaded crossbeam-channel v0.5.16
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8423627Z   Downloaded redb v2.6.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8465265Z   Downloaded utf8_iter v1.0.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8471034Z   Downloaded want v0.3.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8475824Z   Downloaded zerofrom v0.1.8
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8481293Z   Downloaded anyhow v1.0.104
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8501453Z   Downloaded block-buffer v0.10.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8506565Z   Downloaded defmt-parser v1.0.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8511545Z   Downloaded walkdir v2.5.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8520208Z   Downloaded async-trait v0.1.92
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8536703Z   Downloaded autocfg v1.5.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8545726Z   Downloaded cpufeatures v0.3.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8553060Z   Downloaded criterion v0.5.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8587467Z   Downloaded crossbeam-queue v0.3.13
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8594682Z   Downloaded writeable v0.6.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8605485Z   Downloaded zeroize v1.9.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8614566Z   Downloaded anstream v1.0.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8627653Z   Downloaded assert-json-diff v2.0.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8635383Z   Downloaded deadpool-runtime v0.1.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8639952Z   Downloaded crossbeam-utils v0.8.22
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8654269Z   Downloaded defmt v1.1.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8675042Z   Downloaded enum-as-inner v0.6.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8684799Z   Downloaded quinn-proto v0.11.16
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8725205Z   Downloaded yoke v0.8.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8735926Z   Downloaded bytes v1.12.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8755455Z   Downloaded deadpool v0.12.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8770886Z   Downloaded jobserver v0.1.35
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8780583Z   Downloaded oxrdfio v0.1.8
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8789852Z   Downloaded zerotrie v0.2.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8813148Z   Downloaded zerovec-derive v0.11.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8821405Z   Downloaded bincode v2.0.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8845920Z   Downloaded cc v1.4.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8864208Z   Downloaded crypto-common v0.1.7
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8869020Z   Downloaded iana-time-zone v0.1.65
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8882773Z   Downloaded syn v2.0.119
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.8942090Z   Downloaded syn v3.0.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9003935Z   Downloaded zerocopy-derive v0.8.56
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9046335Z   Downloaded cpufeatures v0.2.17
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9053389Z   Downloaded crossbeam-deque v0.8.7
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9061301Z   Downloaded defmt-macros v1.1.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9077812Z   Downloaded fnv v1.0.7
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9082403Z   Downloaded hyper-rustls v0.27.9
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9089950Z   Downloaded regex-syntax v0.8.11
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9135263Z   Downloaded utf8parse v0.2.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9140109Z   Downloaded anes v0.1.6
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9154927Z   Downloaded axum v0.7.9
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9195388Z   Downloaded bincode v1.3.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9206702Z   Downloaded colorchoice v1.0.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9212998Z   Downloaded getrandom v0.2.17
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9227951Z   Downloaded cexpr v0.6.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9237283Z   Downloaded clang-sys v1.9.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9250139Z   Downloaded crossbeam-epoch v0.9.20
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9263899Z   Downloaded env_logger v0.11.11
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9276903Z   Downloaded once_cell v1.21.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9289901Z   Downloaded bitflags v2.13.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9310921Z   Downloaded env_filter v2.0.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9319162Z   Downloaded litemap v0.8.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9333106Z   Downloaded rustls v0.23.43
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9400326Z   Downloaded rustix v1.1.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9525652Z   Downloaded httparse v1.10.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9539688Z   Downloaded bindgen v0.71.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9579244Z   Downloaded chrono v0.4.45
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9620128Z   Downloaded regex-automata v0.4.18
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9710484Z   Downloaded num-integer v0.1.47
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9719885Z   Downloaded matrixmultiply v0.3.11
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9735378Z   Downloaded memmap2 v0.9.11
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9744711Z   Downloaded mmap-rs v0.7.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9755293Z   Downloaded oxilangtag v0.1.6
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9763252Z   Downloaded oxrdf v0.2.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9774820Z   Downloaded ciborium-io v0.2.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9779034Z   Downloaded chacha20 v0.10.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9791831Z   Downloaded displaydoc v0.2.7
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9802270Z   Downloaded getrandom v0.3.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9820167Z   Downloaded getrandom v0.4.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9840182Z   Downloaded icu_provider v2.3.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9855837Z   Downloaded log v0.4.33
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9870073Z   Downloaded num-traits v0.2.19
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9884221Z   Downloaded oxjsonld v0.1.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9895546Z   Downloaded tracing-attributes v0.1.31
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9910034Z   Downloaded unicode-ident v1.0.24
+contracts	Hermetic Rust contracts	2026-09-07T12:26:19.9924602Z   Downloaded tokio v1.53.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.0145225Z   Downloaded axum-core v0.4.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.0155386Z   Downloaded digest v0.10.7
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.0163981Z   Downloaded icu_locale_core v2.3.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.0195574Z   Downloaded ring v0.17.14
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.0437537Z   Downloaded virtue v0.0.18
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.0449711Z   Downloaded half v2.7.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.0464400Z   Downloaded icu_normalizer_data v2.3.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.0477319Z   Downloaded hnsw_rs v0.3.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.0493387Z   Downloaded tracing-core v0.1.36
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.0508006Z   Downloaded foldhash v0.1.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.0514705Z   Downloaded uuid v1.24.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.0531221Z   Downloaded minimal-lexical v0.2.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.0557706Z   Downloaded indexmap v2.14.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.0580502Z   Downloaded ciborium v0.2.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.0593099Z   Downloaded oxigraph v0.4.11
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.0617035Z   Downloaded clap v4.6.6
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.0660054Z   Downloaded icu_properties v2.3.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.0679880Z   Downloaded hyper-util v0.1.20
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.0712258Z   Downloaded icu_collections v2.3.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.0743236Z   Downloaded memchr v2.8.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.0770064Z   Downloaded typenum v1.20.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.0790803Z   Downloaded nom v7.1.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.0818098Z   Downloaded jiff-core v0.1.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.0839625Z   Downloaded mio v1.2.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.0869580Z   Downloaded http v1.5.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.0890082Z   Downloaded itertools v0.10.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.0921635Z   Downloaded hashbrown v0.15.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.0949492Z   Downloaded oxrocksdb-sys v0.4.11
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.1676101Z   Downloaded itertools v0.13.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.1710502Z   Downloaded hashbrown v0.14.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.1737249Z   Downloaded hashbrown v0.17.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.1767213Z   Downloaded libm v0.2.16
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.1817132Z   Downloaded h2 v0.4.16
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.1851416Z   Downloaded futures-util v0.3.34
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.1909820Z   Downloaded combine v4.6.7
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.1939744Z   Downloaded hyper v1.11.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.1977178Z   Downloaded clap_builder v4.6.6
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.2012969Z   Downloaded webpki-roots v1.0.9
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.2036165Z   Downloaded tracing-subscriber v0.3.23
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.2080581Z   Downloaded zerocopy v0.8.56
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.2180177Z   Downloaded ndarray v0.16.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.2246665Z   Downloaded nix v0.30.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.2309407Z   Downloaded tracing v0.1.44
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.2400498Z   Downloaded icu_normalizer v2.3.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.2468791Z   Downloaded jiff v0.2.35
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.2565233Z   Downloaded libc v0.2.189
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.2766661Z   Downloaded linux-raw-sys v0.12.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.7870039Z    Compiling proc-macro2 v1.0.107
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.7870774Z    Compiling quote v1.0.47
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.7871346Z    Compiling unicode-ident v1.0.24
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.7893689Z    Compiling libc v0.2.189
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.8344255Z    Compiling cfg-if v1.0.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:20.8641500Z    Compiling memchr v2.8.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:21.0259776Z    Compiling serde_core v1.0.229
+contracts	Hermetic Rust contracts	2026-09-07T12:26:21.5171848Z    Compiling itoa v1.0.18
+contracts	Hermetic Rust contracts	2026-09-07T12:26:21.5862297Z    Compiling syn v3.0.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:21.6131434Z    Compiling syn v2.0.119
+contracts	Hermetic Rust contracts	2026-09-07T12:26:22.1317724Z    Compiling once_cell v1.21.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:22.2631648Z    Compiling serde v1.0.229
+contracts	Hermetic Rust contracts	2026-09-07T12:26:22.4151807Z    Compiling pin-project-lite v0.2.17
+contracts	Hermetic Rust contracts	2026-09-07T12:26:22.4441763Z    Compiling bytes v1.12.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:22.9321978Z    Compiling zmij v1.0.23
+contracts	Hermetic Rust contracts	2026-09-07T12:26:23.0629541Z    Compiling getrandom v0.2.17
+contracts	Hermetic Rust contracts	2026-09-07T12:26:23.1741645Z    Compiling serde_json v1.0.151
+contracts	Hermetic Rust contracts	2026-09-07T12:26:23.7302529Z    Compiling errno v0.3.14
+contracts	Hermetic Rust contracts	2026-09-07T12:26:23.8111916Z    Compiling zerocopy v0.8.56
+contracts	Hermetic Rust contracts	2026-09-07T12:26:24.0264517Z    Compiling signal-hook-registry v1.4.8
+contracts	Hermetic Rust contracts	2026-09-07T12:26:24.2131266Z    Compiling jobserver v0.1.35
+contracts	Hermetic Rust contracts	2026-09-07T12:26:24.4305030Z    Compiling socket2 v0.6.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:24.5311983Z    Compiling mio v1.2.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:24.8361827Z    Compiling find-msvc-tools v0.1.11
+contracts	Hermetic Rust contracts	2026-09-07T12:26:24.8731898Z    Compiling shlex v2.0.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:24.9656544Z    Compiling smallvec v1.15.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:24.9701736Z    Compiling cc v1.4.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:25.0851431Z    Compiling thiserror v1.0.69
+contracts	Hermetic Rust contracts	2026-09-07T12:26:25.2281636Z    Compiling serde_derive v1.0.229
+contracts	Hermetic Rust contracts	2026-09-07T12:26:25.2391846Z    Compiling tokio-macros v2.7.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:25.5085351Z    Compiling zerocopy-derive v0.8.56
+contracts	Hermetic Rust contracts	2026-09-07T12:26:25.6301956Z    Compiling tokio v1.53.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:26.2342169Z    Compiling thiserror-impl v1.0.69
+contracts	Hermetic Rust contracts	2026-09-07T12:26:27.0711952Z    Compiling aho-corasick v1.1.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:27.8341979Z    Compiling regex-syntax v0.8.11
+contracts	Hermetic Rust contracts	2026-09-07T12:26:28.9552166Z    Compiling synstructure v0.13.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:29.3662415Z    Compiling regex-automata v0.4.18
+contracts	Hermetic Rust contracts	2026-09-07T12:26:29.4282201Z    Compiling log v0.4.33
+contracts	Hermetic Rust contracts	2026-09-07T12:26:29.5582054Z    Compiling async-trait v0.1.92
+contracts	Hermetic Rust contracts	2026-09-07T12:26:30.1358178Z    Compiling zerofrom-derive v0.1.7
+contracts	Hermetic Rust contracts	2026-09-07T12:26:30.1692132Z    Compiling futures-core v0.3.34
+contracts	Hermetic Rust contracts	2026-09-07T12:26:30.2391752Z    Compiling yoke-derive v0.8.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:30.8071660Z    Compiling tracing-core v0.1.36
+contracts	Hermetic Rust contracts	2026-09-07T12:26:30.9341945Z    Compiling hashbrown v0.17.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:31.0331537Z    Compiling zerofrom v0.1.8
+contracts	Hermetic Rust contracts	2026-09-07T12:26:31.0961617Z    Compiling equivalent v1.0.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:31.1251600Z    Compiling stable_deref_trait v1.2.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:31.1489927Z    Compiling bitflags v2.13.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:31.2448967Z    Compiling yoke v0.8.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:31.2961798Z    Compiling futures-sink v0.3.34
+contracts	Hermetic Rust contracts	2026-09-07T12:26:31.3330098Z    Compiling loom-domain v0.1.0 (/home/runner/work/loom/loom/loom/crates/loom-domain)
+contracts	Hermetic Rust contracts	2026-09-07T12:26:31.3581696Z    Compiling indexmap v2.14.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:31.3681579Z    Compiling ppv-lite86 v0.2.21
+contracts	Hermetic Rust contracts	2026-09-07T12:26:31.6001594Z    Compiling regex v1.13.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:31.8771535Z    Compiling tracing-attributes v0.1.31
+contracts	Hermetic Rust contracts	2026-09-07T12:26:31.9241790Z    Compiling zerovec-derive v0.11.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:32.3791774Z    Compiling displaydoc v0.2.7
+contracts	Hermetic Rust contracts	2026-09-07T12:26:32.6481896Z    Compiling zerovec v0.11.7
+contracts	Hermetic Rust contracts	2026-09-07T12:26:32.6911587Z    Compiling tracing v0.1.44
+contracts	Hermetic Rust contracts	2026-09-07T12:26:32.7951626Z    Compiling slab v0.4.12
+contracts	Hermetic Rust contracts	2026-09-07T12:26:32.8552188Z    Compiling thiserror v2.0.20
+contracts	Hermetic Rust contracts	2026-09-07T12:26:32.8911619Z    Compiling futures-channel v0.3.34
+contracts	Hermetic Rust contracts	2026-09-07T12:26:33.0141300Z    Compiling thiserror-impl v2.0.20
+contracts	Hermetic Rust contracts	2026-09-07T12:26:33.0365606Z    Compiling futures-macro v0.3.34
+contracts	Hermetic Rust contracts	2026-09-07T12:26:33.0937260Z    Compiling rand_core v0.6.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:33.2221616Z    Compiling http v1.5.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:33.5091624Z    Compiling autocfg v1.5.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:33.7761650Z    Compiling futures-io v0.3.34
+contracts	Hermetic Rust contracts	2026-09-07T12:26:33.8576221Z    Compiling futures-task v0.3.34
+contracts	Hermetic Rust contracts	2026-09-07T12:26:33.9071294Z    Compiling crossbeam-utils v0.8.22
+contracts	Hermetic Rust contracts	2026-09-07T12:26:33.9512058Z    Compiling futures-util v0.3.34
+contracts	Hermetic Rust contracts	2026-09-07T12:26:34.0311413Z    Compiling rand_chacha v0.3.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:34.0371332Z    Compiling tinystr v0.8.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:34.0701662Z    Compiling writeable v0.6.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:34.1486397Z    Compiling litemap v0.8.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:34.2231596Z    Compiling rand v0.8.7
+contracts	Hermetic Rust contracts	2026-09-07T12:26:34.2652035Z    Compiling icu_locale_core v2.3.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:34.7420271Z    Compiling http-body v1.1.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:34.7471657Z    Compiling potential_utf v0.1.6
+contracts	Hermetic Rust contracts	2026-09-07T12:26:34.8091561Z    Compiling zerotrie v0.2.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:34.8211584Z    Compiling tokio-util v0.7.19
+contracts	Hermetic Rust contracts	2026-09-07T12:26:35.0021835Z    Compiling utf8_iter v1.0.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:35.0631789Z    Compiling icu_properties_data v2.3.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:35.1341778Z    Compiling percent-encoding v2.3.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:35.2111574Z    Compiling icu_normalizer_data v2.3.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:35.2371785Z    Compiling icu_collections v2.3.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:35.2871361Z    Compiling icu_provider v2.3.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:35.3291487Z    Compiling ring v0.17.14
+contracts	Hermetic Rust contracts	2026-09-07T12:26:35.4861714Z    Compiling httparse v1.10.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:35.6021639Z    Compiling tower-service v0.3.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:35.6157767Z    Compiling libm v0.2.16
+contracts	Hermetic Rust contracts	2026-09-07T12:26:35.6316751Z    Compiling version_check v0.9.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:35.7931756Z    Compiling generic-array v0.14.7
+contracts	Hermetic Rust contracts	2026-09-07T12:26:35.8491769Z    Compiling num-traits v0.2.19
+contracts	Hermetic Rust contracts	2026-09-07T12:26:35.8521489Z    Compiling fnv v1.0.7
+contracts	Hermetic Rust contracts	2026-09-07T12:26:35.8821406Z    Compiling atomic-waker v1.1.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:35.9111522Z    Compiling zeroize v1.9.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:35.9301374Z    Compiling try-lock v0.2.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:35.9654798Z    Compiling want v0.3.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:36.0052049Z    Compiling rustls-pki-types v1.15.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:36.0149192Z    Compiling h2 v0.4.16
+contracts	Hermetic Rust contracts	2026-09-07T12:26:36.0471589Z    Compiling icu_properties v2.3.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:36.2921770Z    Compiling icu_normalizer v2.3.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:37.2682334Z    Compiling form_urlencoded v1.2.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:37.3370888Z    Compiling typenum v1.20.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:37.3891716Z    Compiling lazy_static v1.5.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:37.4202660Z    Compiling untrusted v0.9.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:37.4621421Z    Compiling httpdate v1.0.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:38.0262251Z    Compiling idna_adapter v1.2.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:38.0563162Z    Compiling http-body-util v0.1.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:38.0644810Z    Compiling sync_wrapper v1.0.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:38.0971822Z    Compiling rustls v0.23.43
+contracts	Hermetic Rust contracts	2026-09-07T12:26:38.1485941Z    Compiling ipnet v2.12.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:38.2063281Z    Compiling base64 v0.22.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:38.4041275Z    Compiling tower-layer v0.3.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:38.4931833Z    Compiling idna v1.1.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:38.5004489Z    Compiling num_cpus v1.17.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:38.7411524Z    Compiling hyper v1.11.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:38.9886208Z    Compiling parking_lot_core v0.9.12
+contracts	Hermetic Rust contracts	2026-09-07T12:26:39.0651525Z    Compiling anstyle v1.0.14
+contracts	Hermetic Rust contracts	2026-09-07T12:26:39.1504617Z    Compiling subtle v2.6.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:39.1991399Z    Compiling getrandom v0.4.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:39.2939125Z    Compiling url v2.5.8
+contracts	Hermetic Rust contracts	2026-09-07T12:26:39.8200093Z    Compiling hyper-util v0.1.20
+contracts	Hermetic Rust contracts	2026-09-07T12:26:39.8666637Z    Compiling tower v0.5.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:40.1275599Z    Compiling block-buffer v0.10.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:40.1841003Z    Compiling crypto-common v0.1.7
+contracts	Hermetic Rust contracts	2026-09-07T12:26:40.2239146Z    Compiling oxsdatatypes v0.2.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:40.2265316Z    Compiling scopeguard v1.2.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:40.2601929Z    Compiling oxiri v0.2.11
+contracts	Hermetic Rust contracts	2026-09-07T12:26:40.4261942Z    Compiling ryu v1.0.23
+contracts	Hermetic Rust contracts	2026-09-07T12:26:40.5151599Z    Compiling oxilangtag v0.1.6
+contracts	Hermetic Rust contracts	2026-09-07T12:26:40.6702035Z    Compiling either v1.17.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:40.7271904Z    Compiling oxrdf v0.2.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:40.7998358Z    Compiling serde_urlencoded v0.7.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:40.9491907Z    Compiling lock_api v0.4.14
+contracts	Hermetic Rust contracts	2026-09-07T12:26:41.0941525Z    Compiling digest v0.10.7
+contracts	Hermetic Rust contracts	2026-09-07T12:26:41.2871579Z    Compiling webpki-roots v1.0.9
+contracts	Hermetic Rust contracts	2026-09-07T12:26:41.3291616Z    Compiling crossbeam-epoch v0.9.20
+contracts	Hermetic Rust contracts	2026-09-07T12:26:41.3361440Z    Compiling same-file v1.0.6
+contracts	Hermetic Rust contracts	2026-09-07T12:26:41.4071145Z    Compiling glob v0.3.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:41.4271586Z    Compiling walkdir v2.5.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:41.6061740Z    Compiling clang-sys v1.9.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:41.6906149Z    Compiling rustls-webpki v0.103.14
+contracts	Hermetic Rust contracts	2026-09-07T12:26:41.7611654Z    Compiling tower-http v0.6.11
+contracts	Hermetic Rust contracts	2026-09-07T12:26:42.6001931Z    Compiling cpufeatures v0.2.17
+contracts	Hermetic Rust contracts	2026-09-07T12:26:42.6101899Z    Compiling prettyplease v0.2.37
+contracts	Hermetic Rust contracts	2026-09-07T12:26:42.6302896Z    Compiling crossbeam-deque v0.8.7
+contracts	Hermetic Rust contracts	2026-09-07T12:26:42.6924568Z    Compiling getrandom v0.3.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:42.8231844Z    Compiling minimal-lexical v0.2.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:42.8941831Z    Compiling hashbrown v0.14.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:43.3501742Z    Compiling dashmap v6.2.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:43.4661799Z    Compiling nom v7.1.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:44.2651925Z    Compiling sha2 v0.10.9
+contracts	Hermetic Rust contracts	2026-09-07T12:26:44.5351984Z    Compiling ptr_meta_derive v0.3.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:44.6441849Z    Compiling libloading v0.8.9
+contracts	Hermetic Rust contracts	2026-09-07T12:26:44.7271582Z    Compiling peg-runtime v0.8.6
+contracts	Hermetic Rust contracts	2026-09-07T12:26:44.7481851Z    Compiling utf8parse v0.2.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:44.7841621Z    Compiling rayon-core v1.13.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:44.8501939Z    Compiling bindgen v0.71.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:44.9541690Z    Compiling rustc-hash v2.1.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:44.9812803Z    Compiling cfg_aliases v0.2.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:44.9991418Z    Compiling tokio-rustls v0.26.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:45.0091345Z    Compiling nix v0.30.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:45.1583501Z    Compiling hyper-rustls v0.27.9
+contracts	Hermetic Rust contracts	2026-09-07T12:26:45.2121988Z    Compiling itertools v0.13.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:45.3391413Z    Compiling reqwest v0.12.28
+contracts	Hermetic Rust contracts	2026-09-07T12:26:45.3614555Z    Compiling peg-macros v0.8.6
+contracts	Hermetic Rust contracts	2026-09-07T12:26:46.0131716Z    Compiling anstyle-parse v1.0.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:46.3062005Z    Compiling ptr_meta v0.3.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:46.4039257Z    Compiling cexpr v0.6.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:47.8032147Z    Compiling quick-xml v0.37.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:47.9551955Z    Compiling colorchoice v1.0.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:48.0861844Z    Compiling json-event-parser v0.2.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:48.3261986Z    Compiling shlex v1.3.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:48.4291817Z    Compiling jiff-core v0.1.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:48.4731770Z    Compiling anyhow v1.0.104
+contracts	Hermetic Rust contracts	2026-09-07T12:26:48.8192270Z    Compiling is_terminal_polyfill v1.70.2
+contracts	Hermetic Rust contracts	2026-09-07T12:26:48.8511562Z    Compiling heck v0.5.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:49.0635882Z    Compiling anstyle-query v1.1.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:49.0981834Z    Compiling anstream v1.0.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:49.3516486Z    Compiling jiff v0.2.35
+contracts	Hermetic Rust contracts	2026-09-07T12:26:49.3591836Z    Compiling enum-as-inner v0.6.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:49.3921461Z    Compiling peg v0.8.6
+contracts	Hermetic Rust contracts	2026-09-07T12:26:49.4587143Z    Compiling rand_core v0.9.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:49.5771655Z    Compiling rancor v0.1.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:49.6682316Z    Compiling matrixmultiply v0.3.11
+contracts	Hermetic Rust contracts	2026-09-07T12:26:49.7481872Z    Compiling env_filter v2.0.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:49.9741524Z    Compiling bytecheck_derive v0.8.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:50.1637623Z    Compiling byteorder v1.5.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:50.3141528Z    Compiling simdutf8 v0.1.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:50.3478622Z    Compiling sysctl v0.6.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:50.4091402Z    Compiling bytecheck v0.8.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:50.5431600Z    Compiling rayon v1.12.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:51.4168686Z    Compiling env_logger v0.11.11
+contracts	Hermetic Rust contracts	2026-09-07T12:26:51.7171819Z    Compiling rand_chacha v0.9.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:52.0966511Z    Compiling spargebra v0.3.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:52.3391961Z    Compiling simsimd v5.9.11
+contracts	Hermetic Rust contracts	2026-09-07T12:26:52.4332054Z    Compiling munge_macro v0.4.7
+contracts	Hermetic Rust contracts	2026-09-07T12:26:52.4421649Z    Compiling combine v4.6.7
+contracts	Hermetic Rust contracts	2026-09-07T12:26:52.7251706Z    Compiling cpu-time v1.0.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:52.7915544Z    Compiling rustix v1.1.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:52.9891792Z    Compiling virtue v0.0.18
+contracts	Hermetic Rust contracts	2026-09-07T12:26:53.4401924Z    Compiling foldhash v0.1.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:53.5341932Z    Compiling allocator-api2 v0.2.21
+contracts	Hermetic Rust contracts	2026-09-07T12:26:53.7621793Z    Compiling oxrocksdb-sys v0.4.11
+contracts	Hermetic Rust contracts	2026-09-07T12:26:53.7661876Z    Compiling redb v2.6.3
+contracts	Hermetic Rust contracts	2026-09-07T12:26:53.8380951Z    Compiling rawpointer v0.2.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:54.3671685Z    Compiling hashbrown v0.15.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:54.7912263Z    Compiling sparopt v0.2.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:54.9861705Z    Compiling bincode_derive v2.0.1
+contracts	Hermetic Rust contracts	2026-09-07T12:26:55.3711820Z    Compiling mmap-rs v0.7.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:55.4241801Z    Compiling anndists v0.1.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:55.6821918Z    Compiling munge v0.4.7
+contracts	Hermetic Rust contracts	2026-09-07T12:26:55.7661806Z    Compiling rand v0.9.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:56.1510236Z    Compiling rend v0.5.4
+contracts	Hermetic Rust contracts	2026-09-07T12:26:56.3310585Z    Compiling sparesults v0.2.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:57.1208530Z    Compiling oxjsonld v0.1.0
+contracts	Hermetic Rust contracts	2026-09-07T12:26:58.1091822Z    Compiling oxrdfxml v0.1.7
+contracts	Hermetic Rust contracts	2026-09-07T12:26:58.5662070Z    Compiling sha1 v0.10.7
+contracts	Hermetic Rust contracts	2026-09-07T12:26:58.6976992Z    Compiling parking_lot v0.12.5
+contracts	Hermetic Rust contracts	2026-09-07T12:26:59.0259890Z    Compiling oxttl v0.1.8
+contracts	Hermetic Rust contracts	2026-09-07T12:26:59.0891596Z    Compiling md-5 v0.10.6
+contracts	Hermetic Rust contracts	2026-09-07T12:26:59.1504759Z    Compiling num-integer v0.1.47
+contracts	Hermetic Rust contracts	2026-09-07T12:26:59.3977018Z    Compiling num-complex v0.4.6
+contracts	Hermetic Rust contracts	2026-09-07T12:26:59.6384483Z    Compiling crossbeam-queue v0.3.13
+contracts	Hermetic Rust contracts	2026-09-07T12:26:59.7271662Z    Compiling crossbeam-channel v0.5.16
+contracts	Hermetic Rust contracts	2026-09-07T12:26:59.9909951Z    Compiling bincode v1.3.3
+contracts	Hermetic Rust contracts	2026-09-07T12:27:00.0090447Z    Compiling rkyv_derive v0.8.18
+contracts	Hermetic Rust contracts	2026-09-07T12:27:00.1898705Z    Compiling linux-raw-sys v0.12.1
+contracts	Hermetic Rust contracts	2026-09-07T12:27:00.4154979Z    Compiling unty v0.0.4
+contracts	Hermetic Rust contracts	2026-09-07T12:27:00.4436807Z    Compiling iana-time-zone v0.1.65
+contracts	Hermetic Rust contracts	2026-09-07T12:27:00.6071796Z    Compiling hex v0.4.3
+contracts	Hermetic Rust contracts	2026-09-07T12:27:00.7621519Z    Compiling spareval v0.1.4
+contracts	Hermetic Rust contracts	2026-09-07T12:27:00.9978972Z    Compiling rkyv v0.8.18
+contracts	Hermetic Rust contracts	2026-09-07T12:27:01.6012251Z    Compiling chrono v0.4.45
+contracts	Hermetic Rust contracts	2026-09-07T12:27:02.0451800Z    Compiling bincode v2.0.1
+contracts	Hermetic Rust contracts	2026-09-07T12:27:02.7262309Z    Compiling hnsw_rs v0.3.4
+contracts	Hermetic Rust contracts	2026-09-07T12:27:02.9206257Z    Compiling crossbeam v0.8.4
+contracts	Hermetic Rust contracts	2026-09-07T12:27:02.9398306Z    Compiling ndarray v0.16.1
+contracts	Hermetic Rust contracts	2026-09-07T12:27:04.1722337Z    Compiling oxrdfio v0.1.8
+contracts	Hermetic Rust contracts	2026-09-07T12:27:05.0312045Z    Compiling uuid v1.24.1
+contracts	Hermetic Rust contracts	2026-09-07T12:27:05.3422521Z    Compiling rand_distr v0.4.3
+contracts	Hermetic Rust contracts	2026-09-07T12:27:05.6367604Z    Compiling memmap2 v0.9.11
+contracts	Hermetic Rust contracts	2026-09-07T12:27:05.7562297Z    Compiling siphasher v1.0.3
+contracts	Hermetic Rust contracts	2026-09-07T12:27:05.8297142Z    Compiling fastrand v2.5.0
+contracts	Hermetic Rust contracts	2026-09-07T12:27:05.9578867Z    Compiling tempfile v3.27.0
+contracts	Hermetic Rust contracts	2026-09-07T12:27:06.2392009Z    Compiling rustversion v1.0.23
+contracts	Hermetic Rust contracts	2026-09-07T12:27:06.4061565Z    Compiling futures-executor v0.3.34
+contracts	Hermetic Rust contracts	2026-09-07T12:27:06.5872237Z    Compiling deadpool-runtime v0.1.4
+contracts	Hermetic Rust contracts	2026-09-07T12:27:06.6311905Z    Compiling deadpool v0.12.3
+contracts	Hermetic Rust contracts	2026-09-07T12:27:06.8332060Z    Compiling futures v0.3.34
+contracts	Hermetic Rust contracts	2026-09-07T12:27:07.1742334Z    Compiling loom-embed-xinference v0.1.0 (/home/runner/work/loom/loom/loom/crates/loom-embed-xinference)
+contracts	Hermetic Rust contracts	2026-09-07T12:27:08.2532541Z    Compiling loom-backend-openai v0.1.0 (/home/runner/work/loom/loom/loom/crates/loom-backend-openai)
+contracts	Hermetic Rust contracts	2026-09-07T12:27:08.6545073Z    Compiling ruvector-core v2.0.5 (/home/runner/work/loom/loom/ruvector/crates/ruvector-core)
+contracts	Hermetic Rust contracts	2026-09-07T12:27:09.1062147Z    Compiling loom-scaffold v0.1.0 (/home/runner/work/loom/loom/loom/crates/loom-scaffold)
+contracts	Hermetic Rust contracts	2026-09-07T12:27:10.2023326Z    Compiling assert-json-diff v2.0.2
+contracts	Hermetic Rust contracts	2026-09-07T12:27:10.5236680Z    Compiling mime v0.3.17
+contracts	Hermetic Rust contracts	2026-09-07T12:27:10.6757313Z    Compiling axum-core v0.4.5
+contracts	Hermetic Rust contracts	2026-09-07T12:27:10.8161775Z    Compiling wiremock v0.6.5
+contracts	Hermetic Rust contracts	2026-09-07T12:27:11.5602273Z    Compiling loom-vector-ruvector v0.1.0 (/home/runner/work/loom/loom/loom/crates/loom-vector-ruvector)
+contracts	Hermetic Rust contracts	2026-09-07T12:27:12.2090905Z    Compiling sharded-slab v0.1.7
+contracts	Hermetic Rust contracts	2026-09-07T12:27:12.3051447Z    Compiling matchers v0.2.0
+contracts	Hermetic Rust contracts	2026-09-07T12:27:12.3511665Z    Compiling tracing-log v0.2.0
+contracts	Hermetic Rust contracts	2026-09-07T12:27:12.4541600Z    Compiling tracing-serde v0.2.0
+contracts	Hermetic Rust contracts	2026-09-07T12:27:12.5234335Z    Compiling serde_path_to_error v0.1.20
+contracts	Hermetic Rust contracts	2026-09-07T12:27:12.5895223Z    Compiling thread_local v1.1.10
+contracts	Hermetic Rust contracts	2026-09-07T12:27:12.7261374Z    Compiling nu-ansi-term v0.50.3
+contracts	Hermetic Rust contracts	2026-09-07T12:27:12.7671455Z    Compiling matchit v0.7.3
+contracts	Hermetic Rust contracts	2026-09-07T12:27:12.9071980Z    Compiling loom-facade v0.1.0 (/home/runner/work/loom/loom/loom/crates/loom-facade)
+contracts	Hermetic Rust contracts	2026-09-07T12:27:12.9297185Z    Compiling axum v0.7.9
+contracts	Hermetic Rust contracts	2026-09-07T12:27:13.2683643Z    Compiling tracing-subscriber v0.3.23
+contracts	Hermetic Rust contracts	2026-09-07T12:27:14.8541900Z    Compiling half v2.7.1
+contracts	Hermetic Rust contracts	2026-09-07T12:27:15.0532084Z    Compiling ciborium-io v0.2.2
+contracts	Hermetic Rust contracts	2026-09-07T12:27:15.0831867Z    Compiling clap_lex v1.1.0
+contracts	Hermetic Rust contracts	2026-09-07T12:27:15.2181902Z    Compiling clap_builder v4.6.6
+contracts	Hermetic Rust contracts	2026-09-07T12:27:15.3911698Z    Compiling ciborium-ll v0.2.2
+contracts	Hermetic Rust contracts	2026-09-07T12:27:15.5045049Z    Compiling itertools v0.10.5
+contracts	Hermetic Rust contracts	2026-09-07T12:27:16.2469385Z    Compiling cast v0.3.0
+contracts	Hermetic Rust contracts	2026-09-07T12:27:16.3422156Z    Compiling clap v4.6.6
+contracts	Hermetic Rust contracts	2026-09-07T12:27:16.3712260Z    Compiling criterion-plot v0.5.0
+contracts	Hermetic Rust contracts	2026-09-07T12:27:16.3849100Z    Compiling ciborium v0.2.2
+contracts	Hermetic Rust contracts	2026-09-07T12:27:16.7002287Z    Compiling tinytemplate v1.2.1
+contracts	Hermetic Rust contracts	2026-09-07T12:27:16.8492942Z    Compiling is-terminal v0.4.17
+contracts	Hermetic Rust contracts	2026-09-07T12:27:16.8851776Z    Compiling oorandom v11.1.5
+contracts	Hermetic Rust contracts	2026-09-07T12:27:16.9351592Z    Compiling anes v0.1.6
+contracts	Hermetic Rust contracts	2026-09-07T12:27:17.0461889Z    Compiling criterion v0.5.1
+contracts	Hermetic Rust contracts	2026-09-07T12:27:17.0591964Z    Compiling loom-attest-proofgate v0.1.0 (/home/runner/work/loom/loom/loom/crates/loom-attest-proofgate)
+contracts	Hermetic Rust contracts	2026-09-07T12:31:47.4355978Z    Compiling oxigraph v0.4.11
+contracts	Hermetic Rust contracts	2026-09-07T12:31:48.3061541Z    Compiling loom-graph-oxigraph v0.1.0 (/home/runner/work/loom/loom/loom/crates/loom-graph-oxigraph)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.3593998Z     Finished `test` profile [unoptimized + debuginfo] target(s) in 5m 58s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.4258850Z      Running unittests src/lib.rs (target/debug/deps/loom_attest_proofgate-98661fb8432f5bb1)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.4279795Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.4280518Z running 0 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.4280930Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.4281494Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.4282120Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.4282437Z      Running tests/ledger.rs (target/debug/deps/ledger-3e99f993e54f91c6)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.4291115Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.4291746Z running 7 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.4297416Z test gate_verdict_serialises_with_expected_shape ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.4363330Z test attest_is_deterministic_given_fixed_inputs ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5384512Z test verify_chain_false_when_head_missing_on_nonempty_ledger ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5386370Z test verify_chain_true_on_missing_file ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5473424Z test chain_grows_and_links ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5477086Z test verify_chain_false_after_truncating_last_entry ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5479652Z test verify_chain_false_after_byte_flip_mid_file ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5480491Z      Running unittests src/lib.rs (target/debug/deps/loom_backend_openai-61a2b3fe4c106ff3)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5481177Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5481571Z test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5483572Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5488800Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5488987Z running 0 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5489295Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5489733Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5490046Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5490473Z      Running tests/backend.rs (target/debug/deps/backend-f86653cc6bd0c128)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5501989Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5502203Z running 15 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5524049Z test empty_endpoint_is_retrieval_only ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5536323Z test floor_raises_sub_floor_max_tokens ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5537012Z test floor_disabled_at_zero_leaves_body_untouched ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5542209Z test absent_token_fields_get_default_floor_inserted ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5543360Z test higher_ask_is_preserved ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5549929Z test max_completion_tokens_is_floored_too ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5550789Z test models_passes_through ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5551624Z test raise_integer_token_floor_semantics ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5562061Z test negative_integer_is_floored ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5562683Z test non_2xx_maps_to_backend_http ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5563340Z test reachable_false_on_5xx ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5564672Z test reachable_true_on_2xx ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5569148Z test stream_is_stripped ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5569787Z test u64_overflow_number_is_left_untouched ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5570282Z test string_typed_ask_is_left_untouched ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5570756Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5573068Z test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5573536Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5576142Z      Running unittests src/lib.rs (target/debug/deps/loom_domain-bd9396b90a84c03b)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5582076Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5582479Z running 41 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5590551Z test artefact::tests::changed_model_at_equal_width_is_rejected ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5591582Z test artefact::tests::every_disagreement_is_reported_not_just_the_first ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5592213Z test artefact::tests::matching_artefact_qualifies ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5592809Z test artefact::tests::euclidean_artefact_is_rejected_not_relabelled ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5593455Z test bundle::tests::bundle_errors_name_both_sides ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5594144Z test artefact::tests::unknown_model_rejects_under_strict_contract_and_passes_when_relaxed ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5595002Z test artefact::tests::unopened_artefact_is_unqualified_with_a_named_reason ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5595686Z test artefact::tests::wrong_width_artefact_is_rejected_before_query ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5596323Z test bundle::tests::digest_input_changes_when_content_changes ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5596964Z test bundle::tests::digest_input_is_order_independent ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5597608Z test bundle::tests::same_generation_different_content_is_a_different_bundle ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5598313Z test bundle::tests::phase_advances_but_never_regresses ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5598853Z test grounding_tests::confidence_guards_the_divide ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5599472Z test grounding_tests::confidence_clamps_to_zero_below_nothing ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5600168Z test grounding_tests::confidence_clamps_to_one_above_strong_match ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5600900Z test grounding_tests::confidence_is_zero_without_a_score ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5601843Z test grounding_tests::confidence_is_the_plain_ratio_in_range ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5602447Z test grounding_tests::enums_serialise_lowercase_and_kebab ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5603112Z test grounding_tests::decision_enums_are_hashable_for_counters ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5603752Z test grounding_tests::from_parts_derives_confidence_and_threshold ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5604383Z test grounding_tests::from_parts_marks_a_skip_disengaged ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5605067Z test grounding_tests::none_grounding_is_an_honest_zero ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5605442Z test grounding_tests::none_signal_never_claims_confidence ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5605890Z test grounding_tests::seed_grounding_from_match_converts_both_scales ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5606308Z test grounding_tests::grounding_round_trips_through_json ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5606748Z test grounding_tests::semantic_confidence_passes_the_cosine_through ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5607176Z test grounding_tests::with_engaged_corrects_an_empty_block ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5607615Z test grounding_tests::with_signal_restates_every_confidence_on_the_new_scale ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5608111Z test grounding_tests::with_threshold_carries_the_verbatim_bar ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5608501Z test model_tests::generation_equality_is_identity ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5608906Z test model_tests::concept_match_score_normalised_is_identity ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5609284Z test model_tests::exposure_report_shape ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5609624Z test model_tests::generation_id_equality ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5609969Z test model_tests::iri_bare_slug_tolerance ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5610289Z test model_tests::iri_serde_roundtrip ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5611119Z test model_tests::iri_slug_roundtrip ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5611508Z test model_tests::match_provenance_wire_spelling ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5611887Z test model_tests::relation_kind_other_tail ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5612258Z test model_tests::relation_kind_predicate_roundtrip ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5612609Z test model_tests::scaffold_empty_shape ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5612969Z test model_tests::served_mode_serialises_lowercase ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5613356Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5613659Z test result: ok. 41 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5614122Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5614451Z      Running unittests src/lib.rs (target/debug/deps/loom_embed_xinference-7706fa5939e74491)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5614851Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5615034Z running 7 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5625364Z test tests::empty_batch_short_circuits ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5640598Z test tests::model_and_dimensions_are_locked ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5641441Z test tests::connection_refused_is_embed_error ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5641944Z test tests::server_500_is_embed_error ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5642493Z test tests::single_embed_delegates_and_checks_dimension ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5643113Z test tests::happy_path_returns_vectors_in_input_order ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5646238Z test tests::wrong_width_is_dimension_error ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5646580Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5646810Z test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5647144Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5651165Z      Running tests/live.rs (target/debug/deps/live-21674fd827241a81)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5662475Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5662902Z running 1 test
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5663266Z test live_embed_is_384_unit_norm ... ignored, requires a live XINFERENCE_URL
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5663545Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5663876Z test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5664356Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5664805Z      Running unittests src/lib.rs (target/debug/deps/loom_facade-120a757281b72283)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5692089Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5692423Z running 16 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5694614Z test build_info::tests::build_info_pins_both_checkouts ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5695488Z test build_info::tests::build_info_records_the_explicit_ruvector_features ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5696134Z test build_info::tests::build_info_records_the_compiler ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5696759Z test bundle::tests::civil_from_days_matches_known_dates ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5697341Z test build_info::tests::effective_config_round_trips_through_json ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5697973Z test bundle::tests::rfc3339_stamp_is_well_formed ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5698716Z test build_info::tests::retrieval_identity_excludes_every_profile_divergent_key ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5699338Z test serving::tests::answer_text_joins_choices ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5699864Z test serving::tests::delivery_lookup_shape_gating ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5700428Z test serving::tests::append_not_covered_mutates_first_choice ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5701225Z test serving::tests::thinking_controls_no_think_injects_kwargs ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5701904Z test serving::tests::opt_out_and_streaming ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5702234Z test serving::tests::strip_wrapper_and_content ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5702670Z test serving::tests::thinking_controls_client_override_keeps_thinking_and_floors ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5703127Z test serving::tests::thinking_controls_no_think_off_floors_only ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5703554Z test serving::tests::verbatim_completion_is_openai_shaped ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5703798Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5704009Z test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5704313Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5706403Z      Running unittests src/bin/confidence_check.rs (target/debug/deps/confidence_check-c666a022887ad79c)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5713506Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5713763Z running 0 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5713974Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5714400Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5714932Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5715477Z      Running unittests src/bin/generation_check.rs (target/debug/deps/generation_check-a8061753450e5ecb)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5723908Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5724255Z running 3 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5726167Z test tests::clean_health_reports_no_drift ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5726853Z test tests::stale_served_generation_is_drift ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5727382Z test tests::parses_both_stamp_shapes_the_mirror_emits ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5727706Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5728126Z test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5728476Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5728809Z      Running unittests src/bin/graph_check.rs (target/debug/deps/graph_check-37f8f5c9bfcab4d9)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5735519Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5735910Z running 0 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5736179Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5737021Z      Running unittests src/main.rs (target/debug/deps/loom_facade-929c5ea973e48168)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5737795Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5738168Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5743851Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5744355Z running 0 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5744652Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5745033Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5745533Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5745849Z      Running tests/contract_live.rs (target/debug/deps/contract_live-0ce8c69309abc8a8)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5755946Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5756308Z running 1 test
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5765760Z test grounding_contract_holds_on_the_live_facade ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5766074Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5766430Z test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5766930Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5768595Z      Running tests/exp005_routes.rs (target/debug/deps/exp005_routes-9a3d1f9e221c55d4)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5804002Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5804739Z running 20 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5861368Z test health_superset_shape ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5877621Z test health_typed_response_deserialises ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5890949Z test generation_and_alias_answer ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5901616Z test graph_absent_degrades_but_scaffold_serves ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5911792Z test nobackend_503_on_v1 ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5927891Z test scaffold_grounding_contract_shape ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5928586Z test health_confidence_counters_advance_with_probes ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5943648Z test scaffold_missing_prompt_is_400 ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5944288Z test scaffold_and_alias_engage ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5944855Z test scaffold_irrelevant_is_empty ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5945494Z test scaffold_no_match_grounding_is_present_not_null ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5957335Z test semantic_search_disabled_by_default_is_404 ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5958180Z test semantic_search_enabled_and_ready_returns_labelled_hits ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.5992972Z test search_missing_q_is_400 ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6001475Z test sparql_badquery_is_400 ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6002195Z test sparql_missing_query_is_400 ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6002649Z test semantic_search_enabled_reports_not_ready ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6006024Z test unknown_route_is_404 ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6035163Z test sparql_select_works_with_graph ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6046786Z test search_and_alias_answer ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6047215Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6047549Z test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6047973Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6054420Z      Running tests/exp006_chat.rs (target/debug/deps/exp006_chat-858281920e3dda41)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6090243Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6090807Z running 7 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6172418Z test chat_verbatim_grounding_reports_the_verbatim_threshold ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6183298Z test chat_grounding_present_when_not_engaged ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6184169Z test chat_grounding_present_when_engaged ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6194163Z test backend_failure_propagates_502 ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6194977Z test max_tokens_floored_by_adapter ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6206177Z test scaffold_inserted_at_zero_when_no_system_message ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6206738Z test scaffold_merged_into_system_message_and_annotated ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6206971Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6207276Z test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6207563Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6216291Z      Running tests/exp007_fusion.rs (target/debug/deps/exp007_fusion-2c5154788658f2c4)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6248822Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6248990Z running 5 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6321308Z test fallback_on_miss_below_threshold_does_not_inject ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6321981Z test disabled_embedder_on_fallback_degrades_not_5xx ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6322571Z test fallback_off_never_calls_vector_on_miss ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6323344Z test fallback_on_lexical_hit_never_calls_vector ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6323975Z test fallback_on_miss_flows_through_assemble_as_markdown ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6324338Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6324630Z test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6325049Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6329334Z      Running tests/exp009_generation.rs (target/debug/deps/exp009_generation-9c75ff000d601a35)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6360517Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6360994Z running 7 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6368722Z test generation_store_falls_to_mirror_manifest ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6371265Z test generation_store_falls_to_scaffold_index ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6371794Z test generation_store_prefers_build_manifest ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6374480Z test verify_atomicity_ok_without_manifest ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6375291Z test verify_atomicity_flags_a_tampered_artifact ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6415505Z test generation_mismatch_skips_fallback ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6420160Z test generation_match_admits_fallback ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6420850Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6421403Z test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6421863Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6426649Z      Running tests/exp012_serving.rs (target/debug/deps/exp012_serving-04f55ef81fd1c876)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6458167Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6458557Z running 14 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6522994Z test f1_multi_turn_bypasses_verbatim ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6523830Z test f1_opt_out_bypasses_verbatim ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6524363Z test f1_streaming_bypasses_verbatim ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6561756Z test f1_default_off_preserves_delegation ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6568240Z test f1_verbatim_serves_without_backend ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6568863Z test f1_threshold_boundary_gates_verbatim ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6581264Z test f2_append_adds_not_covered_line ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6581988Z test f2_exposure_block_reports_drops ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6613696Z test f2_no_exposure_when_not_engaged ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6615578Z test f3_client_override_keeps_thinking_and_floors ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6616251Z test f3_default_off_leaves_engaged_max_tokens_untouched ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6621850Z test f3_floor_not_applied_to_passthrough ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6642094Z test f3_no_think_injects_kwargs_when_engaged ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6642639Z test f3_no_think_not_injected_when_not_engaged ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6643017Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6643377Z test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6643771Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6650902Z      Running tests/exp013_bundle.rs (target/debug/deps/exp013_bundle-d03298af3d880d4e)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6684712Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6685058Z running 13 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6695032Z test activation_captures_one_identity_over_verified_content ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6695836Z test a_directory_mid_promotion_is_refused ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6699120Z test incomplete_download_is_rejected_by_name ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6700552Z test marker_less_directory_activates_degraded_but_still_content_bound ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6701879Z test marker_with_no_artefact_digests_is_unverifiable_not_verified ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6742599Z test generation_route_invokes_the_verifier_and_publishes_the_result ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6759700Z test mixed_generation_is_rejected_with_both_digests_named ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6761474Z test promotion_refuses_an_incomplete_staging_set_without_touching_the_target ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6761989Z test same_generation_over_different_content_yields_different_identities ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6765990Z test phase_advances_from_activated_to_served_on_first_request ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6974287Z test verify_atomicity_runs_per_request_and_reports_post_activation_drift ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.6974775Z test promotion_stages_verifies_and_swaps_as_one_commit ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.7010451Z test a_promotion_after_activation_does_not_change_what_a_running_process_serves ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.7011000Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.7011255Z test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.7011529Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.7018886Z      Running tests/exp014_grounding_contract.rs (target/debug/deps/exp014_grounding_contract-7c88f396db75e2e8)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.7052081Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.7052278Z running 11 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.7121515Z test absent_backend_is_a_labelled_failure_with_the_contract_attached ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.7161743Z test an_unattested_bundle_is_declared_on_the_response ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.7168443Z test backend_failure_carries_the_contract_and_is_never_corpus_backed ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.7171458Z test degradations_are_named_on_the_response_that_suffered_them ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.7172260Z test delegated_success_is_corpus_backed_when_engaged ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.7173128Z test corpus_backed_is_true_exactly_when_evidence_and_answer_both_exist ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.7173864Z test scaffold_route_no_match_carries_the_same_contract ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.7182103Z test no_match_reports_an_honest_zero_and_is_not_corpus_backed ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.7182721Z test opt_out_is_distinguishable_from_an_ordinary_delegation ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.7183295Z test semantic_fallback_reports_its_own_status_and_score_scale ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.7188757Z test verbatim_serve_carries_the_contract_and_names_its_own_threshold ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.7189047Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.7189371Z test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.7189648Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.7196735Z      Running tests/exp015_profile_parity.rs (target/debug/deps/exp015_profile_parity-d78c425e4bd0d5f8)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.7231027Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.7231617Z running 8 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.7571055Z test delivery_mode_diverges_while_the_evidence_stays_identical ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.7571674Z test backend_failure_recovery_is_identical_across_profiles ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.7671131Z test both_profiles_activate_the_same_loaded_generation_and_content ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.7715538Z test a_miss_behaves_identically_on_both_profiles ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.7716779Z test the_release_receipt_is_profile_independent ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.7769122Z test profiles_differ_only_in_the_declared_divergent_keys ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.8116923Z test the_injection_gate_is_reported_identically_by_both_profiles ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.8133877Z test scaffold_output_is_byte_identical_across_profiles ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.8134265Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.8134608Z test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.8135058Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.8142116Z      Running tests/live_smoke.rs (target/debug/deps/live_smoke-789074d99fb9238f)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.8175649Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.8175796Z running 5 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.8176506Z test live_chat_delegates_to_wiremock_and_annotates ... ignored, live: real corpus + wiremock backend (real distill backend is down)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.8177615Z test live_health_reports_real_corpus ... ignored, live: runs against the real committed corpus + a wiremock backend
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.8178875Z test live_retrieval_only_is_503 ... ignored, live: honesty path — retrieval-only node returns 503 on /v1/*
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.8179559Z test live_scaffold_engages ... ignored, live: runs against the real committed corpus
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.8180075Z test live_sparql_count_works ... ignored, live: runs against the real committed corpus
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.8180521Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.8180925Z test result: ok. 0 passed; 0 failed; 5 ignored; 0 measured; 0 filtered out; finished in 0.00s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.8181456Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.8181869Z      Running tests/mirror_generation.rs (target/debug/deps/mirror_generation-17e72ed2455df225)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.8188774Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:16.8189858Z running 4 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.0513951Z test rejects_failed_fetch_with_no_prior ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.0529133Z test current_when_nothing_downloaded ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.0530525Z test rejects_mixed_build ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.0707131Z test promotes_consistent_new_build ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.0707588Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.0708008Z test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.25s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.0708562Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.0709379Z      Running tests/served_identity.rs (target/debug/deps/served_identity-51de5072d7d8cb3c)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.0740428Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.0740589Z running 2 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.0878713Z test graph_reads_report_the_same_loaded_identity_as_generation ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.0997408Z test disk_change_does_not_relabel_the_loaded_graph ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.0997783Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.0998389Z test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.0998801Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1004854Z      Running unittests src/lib.rs (target/debug/deps/loom_graph_oxigraph-c3cada316b1e6ae7)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1034202Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1034348Z running 17 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1072111Z test tests::each_forbidden_verb_is_rejected ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1092527Z test tests::each_read_form_is_accepted ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1105535Z test tests::ask_returns_boolean ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1114373Z test tests::limit_injected_for_base_and_prefix_chain ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1119500Z test tests::limit_injected_for_prefix_led_select ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1119878Z test tests::limit_injected_exactly_once_when_absent ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1120457Z test tests::injected_limit_actually_caps_results ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1121378Z test tests::limit_injection_strips_trailing_semicolon ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1123185Z test tests::limit_not_injected_for_prefix_led_non_select ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1123992Z test tests::limit_not_injected_for_prefix_led_select_with_existing_limit ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1124872Z test tests::limit_not_injected_for_non_select_read_forms ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1125539Z test tests::term_str_strips_decoration ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1126100Z test tests::limit_not_injected_when_present ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1126683Z test tests::unavailable_store_fails_open ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1131521Z test tests::write_query_is_bad_query_not_executed ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1132780Z test tests::row_cap_sets_truncated ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1133265Z test tests::non_read_form_is_rejected ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1133517Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1133872Z test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1134296Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1140985Z      Running tests/integration.rs (target/debug/deps/integration-54fdd33934131b90)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1169607Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1169822Z running 6 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1171849Z test real_data_smoke ... ignored, requires app/data/ontology*.ttl (282k triples)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1185301Z test loads_only_the_allowlist ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1264048Z test relationship_pattern_returns_typed_rows ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1264805Z test aggregation_count_is_nonzero ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1265318Z test working_graph_triples_are_absent ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1265645Z test label_search_returns_hits_with_predicate ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1265879Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1266133Z test result: ok. 5 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.01s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1266408Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1271296Z      Running unittests src/lib.rs (target/debug/deps/loom_scaffold-c3e5ed2e13dc9448)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1280932Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1281197Z running 56 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1284308Z test exposure::tests::normalise_matches_python_semantics ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1285344Z test exposure::tests::not_covered_line_only_on_drops ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1286141Z test exposure::tests::exposure_counts_only_served_titles ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1286808Z test exposure::tests::title_hit_short_words_need_substring ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1287633Z test grounding_tests::decide_at_or_above_strong_is_full ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1288268Z test exposure::tests::exposure_dedupes_and_caps ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1288766Z test exposure::tests::title_hit_substring_and_word_overlap ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1289304Z test grounding_tests::decide_gate_off_is_always_full_budget ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1289787Z test grounding_tests::decide_below_min_is_a_skip ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1290281Z test grounding_tests::decide_is_byte_identical_to_effective_budget ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1291055Z test grounding_tests::decide_midrange_is_scaled ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1291677Z test grounding_tests::decide_no_score_is_a_skip_when_gated ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1292500Z test grounding_tests::domain_default_threshold_matches_the_gate ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1312245Z test grounding_tests::grounding_present_on_no_match ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1313019Z test grounding_tests::grounding_reports_a_gated_skip_with_its_evidence ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1321692Z test grounding_tests::grounding_scaled_decision_carries_the_reduced_budget ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1322934Z test grounding_tests::grounding_present_on_a_full_lexical_hit ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1330929Z test grounding_tests::assemble_stamps_lexical_grounding_onto_the_scaffold ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1332400Z test grounding_tests::seed_injected_reflects_clamp_survivors ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1333266Z test grounding_tests::seed_quality_comes_from_the_index ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1334027Z test policy_tests::gate_on_at_or_above_strong_full_budget ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1334780Z test policy_tests::gate_off_returns_full_budget_regardless_of_score ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1335574Z test policy_tests::gate_on_below_min_skips ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1336293Z test policy_tests::gate_on_fraction_floor_clamps ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1337112Z test policy_tests::gate_on_midrange_scales_budget ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1337645Z test policy_tests::gate_on_min_one_budget_floor ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1338216Z test policy_tests::gate_on_strong_zero_avoids_div ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1338868Z test grounding_tests::semantic_fallback_is_restated_on_the_cosine_scale ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1339528Z test tests::assemble_block_reports_telemetry ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1340069Z test tests::block_has_wrapper ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1340536Z test tests::empty_prompt_empty ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1341138Z test tests::clamp_shrinks_output ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1341610Z test tests::clamp_respects_budget ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1342054Z test tests::golden_budget60_empty ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1345211Z test tests::golden_irrelevant_empty ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1349105Z test tests::hops0_suppresses_neighbour_defs ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1353549Z test tests::impossible_budget_empty ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1354271Z test tests::iri_ref_to_slug ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1356871Z test tests::irrelevant_prompt_empty ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1361353Z test tests::is_a_line_present ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1580313Z test tests::golden_default_via_port_api ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1599899Z test tests::golden_hops0_byte_identical ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1604928Z test tests::golden_default_byte_identical ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1605513Z test tests::messages_insert_system_at_zero ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1606067Z test tests::messages_no_match_unchanged ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1606592Z test tests::messages_instruction_preamble_present ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1607229Z test tests::messages_merge_into_existing_system ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1607610Z test tests::neighbour_def_ontology_present ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1607962Z test tests::messages_parts_content_last_user ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1608322Z test tests::real_index_smoke_when_present ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1608732Z test tests::neighbour_def_vector_database_present ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1609087Z test tests::relations_line_present ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1609451Z test tests::seed_not_repeated_as_neighbour_def ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1609790Z test tests::seed_section_present ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:17.1610099Z test tests::slugify_kebab_case ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:19.3355336Z test tests::match_8k_under_50ms_p99 ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:19.3355724Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:19.3356143Z test result: ok. 56 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.21s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:19.3356466Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:19.3360792Z      Running unittests src/bin/build_concept_records.rs (target/debug/deps/build_concept_records-0c2266da69894dd9)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:19.3369957Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:19.3370493Z running 6 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:19.3374025Z test tests::python_separators_and_raw_unicode ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:19.3376071Z test tests::iri_relation_target_is_not_resolved ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:19.3376747Z test tests::records_are_sorted_by_slug ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:19.3377150Z test tests::empty_strings_collapse_to_null_but_zero_quality_survives ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:19.3377557Z test tests::titles_dedup_by_title_and_cap ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:19.3535555Z test tests::golden_byte_parity_with_python ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:19.3535956Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:19.3536408Z test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:19.3537059Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:19.3537908Z      Running unittests src/lib.rs (target/debug/deps/loom_vector_ruvector-e1d693f412ad015a)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:19.3549340Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:19.3549546Z running 15 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:19.3557329Z test hnsw::tests::absent_artifact_is_not_ready_and_fails_open ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:19.3558195Z test hnsw::tests::every_engine_metric_maps_to_a_domain_metric ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:19.3559013Z test hnsw::tests::generation_sidecar_parses_to_mirror_manifest ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:19.3559477Z test hnsw::tests::missing_sidecar_is_unavailable_generation ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:21.6609975Z test hnsw::tests::changed_model_at_equal_width_is_rejected ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:21.6611308Z test hnsw::tests::euclidean_artefact_is_rejected_not_served_as_cosine ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:21.6612190Z test hnsw::tests::off_width_query_fails_open ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:21.6612987Z test hnsw::tests::sidecar_path_appends_suffix ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:22.7511582Z test hnsw::tests::qualified_artefact_round_trips_with_cosine_ordering_and_iri ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:22.7513090Z test hnsw::tests::sidecar_without_model_fields_still_parses ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:22.7517674Z test hnsw::tests::qualification_is_stable_across_reopen ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:23.6185192Z test hnsw::tests::sidecar_that_contradicts_the_database_is_rejected ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:23.6189410Z test hnsw::tests::restart_onto_a_degraded_artefact_rejects_it ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:23.6192677Z test hnsw::tests::undeclared_model_is_strict_by_default_and_relaxable ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:23.8945765Z test hnsw::tests::wrong_width_artefact_is_rejected_at_open_not_at_query ... ok
+contracts	Hermetic Rust contracts	2026-09-07T12:32:23.8946218Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:23.8951516Z test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.54s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:23.8952160Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:23.8956992Z      Running tests/recall_gate.rs (target/debug/deps/recall_gate-e2fdac9805635c83)
+contracts	Hermetic Rust contracts	2026-09-07T12:32:23.8966330Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:23.8967002Z running 0 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:23.8967270Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:23.8967632Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:23.8968149Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:23.8968330Z    Doc-tests loom_attest_proofgate
+contracts	Hermetic Rust contracts	2026-09-07T12:32:24.8534148Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:24.8534976Z running 0 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:24.8535245Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:24.8535492Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:24.8535992Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:24.8545158Z    Doc-tests loom_backend_openai
+contracts	Hermetic Rust contracts	2026-09-07T12:32:24.9741443Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:24.9741999Z running 0 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:24.9742313Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:24.9742873Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:24.9743331Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:24.9751471Z    Doc-tests loom_domain
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.1346138Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.1346849Z running 0 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.1347198Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.1347458Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.1347775Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.1355103Z    Doc-tests loom_embed_xinference
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.1673241Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.1673909Z running 0 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.1674125Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.1674500Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.1674965Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.1682547Z    Doc-tests loom_facade
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.4180906Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.4181371Z running 0 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.4181660Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.4182154Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.4182696Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.4191358Z    Doc-tests loom_graph_oxigraph
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.4723845Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.4724401Z running 0 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.4724653Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.4725057Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.4725760Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.4731524Z    Doc-tests loom_scaffold
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.5329333Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.5329779Z running 0 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.5329995Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.5330355Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.5330938Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.5337255Z    Doc-tests loom_vector_ruvector
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.5754391Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.5754902Z running 0 tests
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.5755268Z 
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.5755597Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+contracts	Hermetic Rust contracts	2026-09-07T12:32:25.5755918Z 
+contracts	Published-generation reload guard	﻿2026-09-07T12:32:25.5874812Z ##[group]Run python3 tests/test_reload_published_generation.py
+contracts	Published-generation reload guard	2026-09-07T12:32:25.5875263Z ^[[36;1mpython3 tests/test_reload_published_generation.py^[[0m
+contracts	Published-generation reload guard	2026-09-07T12:32:25.5935786Z shell: /usr/bin/bash -e {0}
+contracts	Published-generation reload guard	2026-09-07T12:32:25.5936153Z ##[endgroup]
+contracts	Published-generation reload guard	2026-09-07T12:32:26.0411726Z ........
+contracts	Published-generation reload guard	2026-09-07T12:32:26.0412332Z ----------------------------------------------------------------------
+contracts	Published-generation reload guard	2026-09-07T12:32:26.0413071Z Ran 8 tests in 0.352s
+contracts	Published-generation reload guard	2026-09-07T12:32:26.0413369Z 
+contracts	Published-generation reload guard	2026-09-07T12:32:26.0413507Z OK
+contracts	Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	﻿2026-09-07T12:32:26.0592116Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+contracts	Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:32:26.0593097Z Post job cleanup.
+contracts	Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:32:26.7892311Z [command]/usr/bin/git version
+contracts	Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:32:26.7929958Z git version 2.55.0
+contracts	Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:32:26.7960751Z Temporarily overriding HOME='/home/runner/work/_temp/b1f06fe4-f133-4556-8e47-fbb3b085b529' before making global git config changes
+contracts	Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:32:26.7962005Z Adding repository directory to the temporary git global config as a safe directory
+contracts	Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:32:26.7965017Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/loom/loom/ruvector
+contracts	Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:32:26.7993922Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+contracts	Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:32:26.8021743Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+contracts	Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:32:26.8234577Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+contracts	Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:32:26.8253219Z http.https://github.com/.extraheader
+contracts	Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:32:26.8262489Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+contracts	Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:32:26.8285681Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+contracts	Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	﻿2026-09-07T12:32:26.8723445Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+contracts	Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:32:26.8724386Z Post job cleanup.
+contracts	Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:32:26.9418883Z [command]/usr/bin/git version
+contracts	Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:32:26.9449373Z git version 2.55.0
+contracts	Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:32:26.9478209Z Temporarily overriding HOME='/home/runner/work/_temp/36e9ce7e-f9af-4043-be7b-e3dd9829c942' before making global git config changes
+contracts	Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:32:26.9479425Z Adding repository directory to the temporary git global config as a safe directory
+contracts	Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:32:26.9482933Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/loom/loom/loom
+contracts	Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:32:26.9509126Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+contracts	Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:32:26.9535329Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+contracts	Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:32:26.9703560Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+contracts	Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:32:26.9719584Z http.https://github.com/.extraheader
+contracts	Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:32:26.9728324Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+contracts	Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683	2026-09-07T12:32:26.9751377Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+contracts	Complete job	﻿2026-09-07T12:32:27.0048790Z Cleaning up orphan processes
+contracts	Complete job	2026-09-07T12:32:27.0269462Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

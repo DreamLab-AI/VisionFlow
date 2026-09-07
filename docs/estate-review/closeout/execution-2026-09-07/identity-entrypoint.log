@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: valid persisted mint proceeds
+ok 1 - valid persisted mint proceeds
+  ---
+  duration_ms: 76.452414
+  type: 'test'
+  ...
+# Subtest: failed mint aborts even with valid-looking output
+ok 2 - failed mint aborts even with valid-looking output
+  ---
+  duration_ms: 52.688045
+  type: 'test'
+  ...
+# Subtest: extra executable output is refused, not evaluated
+ok 3 - extra executable output is refused, not evaluated
+  ---
+  duration_ms: 57.760707
+  type: 'test'
+  ...
+# Subtest: mismatched public components abort
+ok 4 - mismatched public components abort
+  ---
+  duration_ms: 74.865236
+  type: 'test'
+  ...
+# Subtest: empty mint and configured malformed identity abort
+ok 5 - empty mint and configured malformed identity abort
+  ---
+  duration_ms: 110.794293
+  type: 'test'
+  ...
+# Subtest: canonical operator identity remains usable without mint
+ok 6 - canonical operator identity remains usable without mint
+  ---
+  duration_ms: 9.6386
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 480.120661

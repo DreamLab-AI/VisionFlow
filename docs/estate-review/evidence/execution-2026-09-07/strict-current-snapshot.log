@@ -1,0 +1,36 @@
+parsed 130 topic files, 1403 mermaid diagrams
+cite-check: 16 warning(s)
+  ! agentbox/01-nix-flake-composition.md:AB-01.1 — ../project/agentbox/flake.nix:652 is blank
+  ! agentbox/01-nix-flake-composition.md:AB-01.9 — ../project/agentbox/flake.nix:3723 is punctuation only ('};')
+  ! agentbox/01-nix-flake-composition.md:AB-01.9 — ../project/agentbox/flake.nix:3702 is punctuation only ('];')
+  ! agentbox/01-nix-flake-composition.md:AB-01.10 — ../project/agentbox/flake.nix:652 is blank
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.11 — ../project/agentbox/management-api/routes/broker-bridge.js:776 is punctuation only ('}')
+  ! agentbox/13-nostr-relay-gateway-bridge-mirror.md:AB-13.1 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:374 is blank
+  ! agentbox/13-nostr-relay-gateway-bridge-mirror.md:AB-13.9 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:374 is blank
+  ! agentbox/13-nostr-relay-gateway-bridge-mirror.md:AB-13.17 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:374 is blank
+  ! visionclaw/05-handlers-governance-and-identity.md:VC-05.8 — ../project/agentbox/management-api/routes/broker-bridge.js:290 is punctuation only ('}')
+  ! visionclaw/05-handlers-governance-and-identity.md:VC-05.15 — ../project/src/handlers/solid_proxy_handler.rs:1789 is blank
+  ! visionclaw/05-handlers-governance-and-identity.md:VC-05.15 — ../project/src/handlers/solid_proxy_handler.rs:381 is blank
+  ! visionclaw/05-handlers-governance-and-identity.md:VC-05.15 — ../project/src/handlers/solid_proxy_handler.rs:1609 is blank
+  ! visionclaw/05-handlers-governance-and-identity.md:VC-05.15 — ../project/src/handlers/solid_proxy_handler.rs:1369 is blank
+  ! visionclaw/05-handlers-governance-and-identity.md:VC-05.15 — ../project/src/handlers/solid_proxy_handler.rs:1348 is blank
+  ! visionclaw/05-handlers-governance-and-identity.md:VC-05.17 — ../project/src/services/acsp/client.rs:22 is blank
+  ! visionclaw/05-handlers-governance-and-identity.md:VC-05.17 — ../project/src/services/acsp/client.rs:67 is punctuation only ('}')
+
+16 error(s):
+  - citation: agentbox/01-nix-flake-composition.md:AB-01.1 — ../project/agentbox/flake.nix:652 is blank
+  - citation: agentbox/01-nix-flake-composition.md:AB-01.9 — ../project/agentbox/flake.nix:3723 is punctuation only ('};')
+  - citation: agentbox/01-nix-flake-composition.md:AB-01.9 — ../project/agentbox/flake.nix:3702 is punctuation only ('];')
+  - citation: agentbox/01-nix-flake-composition.md:AB-01.10 — ../project/agentbox/flake.nix:652 is blank
+  - citation: agentbox/03-management-api-request-lifecycle.md:AB-03.11 — ../project/agentbox/management-api/routes/broker-bridge.js:776 is punctuation only ('}')
+  - citation: agentbox/13-nostr-relay-gateway-bridge-mirror.md:AB-13.1 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:374 is blank
+  - citation: agentbox/13-nostr-relay-gateway-bridge-mirror.md:AB-13.9 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:374 is blank
+  - citation: agentbox/13-nostr-relay-gateway-bridge-mirror.md:AB-13.17 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:374 is blank
+  - citation: visionclaw/05-handlers-governance-and-identity.md:VC-05.8 — ../project/agentbox/management-api/routes/broker-bridge.js:290 is punctuation only ('}')
+  - citation: visionclaw/05-handlers-governance-and-identity.md:VC-05.15 — ../project/src/handlers/solid_proxy_handler.rs:1789 is blank
+  - citation: visionclaw/05-handlers-governance-and-identity.md:VC-05.15 — ../project/src/handlers/solid_proxy_handler.rs:381 is blank
+  - citation: visionclaw/05-handlers-governance-and-identity.md:VC-05.15 — ../project/src/handlers/solid_proxy_handler.rs:1609 is blank
+  - citation: visionclaw/05-handlers-governance-and-identity.md:VC-05.15 — ../project/src/handlers/solid_proxy_handler.rs:1369 is blank
+  - citation: visionclaw/05-handlers-governance-and-identity.md:VC-05.15 — ../project/src/handlers/solid_proxy_handler.rs:1348 is blank
+  - citation: visionclaw/05-handlers-governance-and-identity.md:VC-05.17 — ../project/src/services/acsp/client.rs:22 is blank
+  - citation: visionclaw/05-handlers-governance-and-identity.md:VC-05.17 — ../project/src/services/acsp/client.rs:67 is punctuation only ('}')

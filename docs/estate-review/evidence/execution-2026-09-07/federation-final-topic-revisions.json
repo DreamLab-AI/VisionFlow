@@ -1,0 +1,73 @@
+[
+  {
+    "topic": "estate/05-governance-loop-across-estate.md",
+    "heads": {
+      "agentbox": "be0fc078a3dc0eab32af57f1eaf170fa58157bf9",
+      "visionclaw": "dd82a07b0c54defc469a85e9d57fb15d29dc5e07"
+    },
+    "dirty_sources": []
+  },
+  {
+    "topic": "estate/11-publishing-axis.md",
+    "heads": {
+      "visionclaw": "dd82a07b0c54defc469a85e9d57fb15d29dc5e07",
+      "visionflow": "bdd370e74a32844b141d61a98b014022bbbc5427",
+      "visiongraph": "482ba593bcffddca7d564d0b6c4b1fea225154fb",
+      "knowledgegraph": "d09a476124caa14aa0165c642d0950f6026c46fb",
+      "vowl-wasm": "65e2d1e784bf5eb04b3cbc122d36d6926d889c22",
+      "dreamlab-ai-website": "9a3dd88306b5414c3522ff9909294b811733b938"
+    },
+    "dirty_sources": []
+  },
+  {
+    "topic": "knowledgegraph/02-corpus-to-ontology-pipeline.md",
+    "heads": {
+      "knowledgegraph": "d09a476124caa14aa0165c642d0950f6026c46fb"
+    },
+    "dirty_sources": [
+      "../knowledgeGraph/docs/BASELINE-narrativegoldmine.md",
+      "../knowledgeGraph/docs/BASELINE-narrativegoldmine.md"
+    ]
+  },
+  {
+    "topic": "knowledgegraph/04-explorer-and-site-build.md",
+    "heads": {
+      "knowledgegraph": "d09a476124caa14aa0165c642d0950f6026c46fb",
+      "visiongraph": "482ba593bcffddca7d564d0b6c4b1fea225154fb"
+    },
+    "dirty_sources": [
+      "../knowledgeGraph/docs/BASELINE-narrativegoldmine.md",
+      "../knowledgeGraph/docs/BASELINE-narrativegoldmine.md"
+    ]
+  },
+  {
+    "topic": "knowledgegraph/05-ci-cd-and-publish.md",
+    "heads": {
+      "knowledgegraph": "d09a476124caa14aa0165c642d0950f6026c46fb"
+    },
+    "dirty_sources": [
+      "../knowledgeGraph/docs/ci-cd/build-and-gates.md",
+      "../knowledgeGraph/docs/ci-cd/build-and-gates.md",
+      "../knowledgeGraph/docs/BASELINE-narrativegoldmine.md"
+    ]
+  },
+  {
+    "topic": "nostr-rust-forum/10-invariants-and-anomaly-register.md",
+    "heads": {
+      "nostr-rust-forum": "380a595f150dd96bfe27ff278fff9ded1be7fbd0"
+    },
+    "dirty_sources": [
+      "../nostr-rust-forum/.github/workflows/ci.yml"
+    ]
+  },
+  {
+    "topic": "visiongraph/04-downstream-contracts.md",
+    "heads": {
+      "visiongraph": "482ba593bcffddca7d564d0b6c4b1fea225154fb",
+      "visionclaw": "dd82a07b0c54defc469a85e9d57fb15d29dc5e07"
+    },
+    "dirty_sources": [
+      "../visionGraph/README.md"
+    ]
+  }
+]

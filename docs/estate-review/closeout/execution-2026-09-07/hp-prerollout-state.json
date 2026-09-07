@@ -1,0 +1,144 @@
+{
+  "image_id": "sha256:c64e5acaf902cbda96cced5665f9bda7dd18f1a067545c3ea0dc41105a79bc55",
+  "image_ref": "agentbox:runtime-x86_64-linux",
+  "health": "healthy",
+  "status": "running",
+  "compose_project": "agentbox",
+  "mounts": [
+    {
+      "destination": "/etc/agentbox.toml",
+      "source": "/home/john/githubs/visionflow-hp/agentbox/agentbox.toml",
+      "rw": false
+    },
+    {
+      "destination": "/home/devuser/.claude",
+      "source": "/home/john/.claude",
+      "rw": true
+    },
+    {
+      "destination": "/home/devuser/.claude.json",
+      "source": "/home/john/.claude.json",
+      "rw": true
+    },
+    {
+      "destination": "/home/devuser/.config/claude",
+      "source": "/home/john/.config/claude",
+      "rw": true
+    },
+    {
+      "destination": "/home/devuser/.local/share/code-server",
+      "source": "/var/lib/docker/volumes/agentbox-codeserver-config/_data",
+      "rw": true
+    },
+    {
+      "destination": "/home/devuser/workspace",
+      "source": "/home/john/githubs/visionflow-hp/agentbox/workspace",
+      "rw": true
+    },
+    {
+      "destination": "/projects",
+      "source": "/home/john/githubs/visionflow-hp/agentbox/projects",
+      "rw": true
+    },
+    {
+      "destination": "/var/lib/agentbox/code-harness",
+      "source": "/var/lib/docker/volumes/agentbox-code-harness-data/_data",
+      "rw": true
+    },
+    {
+      "destination": "/var/lib/agentbox/consultations",
+      "source": "/var/lib/docker/volumes/agentbox-consultations-data/_data",
+      "rw": true
+    },
+    {
+      "destination": "/var/lib/agentbox/events",
+      "source": "/var/lib/docker/volumes/agentbox-events/_data",
+      "rw": true
+    },
+    {
+      "destination": "/var/lib/agentbox/identities",
+      "source": "/var/lib/docker/volumes/agentbox-sovereign-identities/_data",
+      "rw": true
+    },
+    {
+      "destination": "/var/lib/agentbox/secrets",
+      "source": "/var/lib/docker/volumes/agentbox-secrets/_data",
+      "rw": true
+    },
+    {
+      "destination": "/var/lib/nostr-relay",
+      "source": "/var/lib/docker/volumes/agentbox-nostr-relay-data/_data",
+      "rw": true
+    },
+    {
+      "destination": "/var/lib/ruvector",
+      "source": "/var/lib/docker/volumes/agentbox-ruvector-data/_data",
+      "rw": true
+    },
+    {
+      "destination": "/var/lib/solid",
+      "source": "/var/lib/docker/volumes/agentbox-solid-data/_data",
+      "rw": true
+    },
+    {
+      "destination": "/var/lib/tailscale",
+      "source": "/var/lib/docker/volumes/agentbox-tailscale-state/_data",
+      "rw": true
+    }
+  ],
+  "published_ports": {
+    "5901/tcp": [
+      {
+        "HostIp": "127.0.0.1",
+        "HostPort": "5901"
+      }
+    ],
+    "8080/tcp": [
+      {
+        "HostIp": "127.0.0.1",
+        "HostPort": "8080"
+      }
+    ],
+    "8484/tcp": [
+      {
+        "HostIp": "127.0.0.1",
+        "HostPort": "8484"
+      }
+    ],
+    "8888/tcp": [
+      {
+        "HostIp": "127.0.0.1",
+        "HostPort": "8888"
+      }
+    ],
+    "9090/tcp": [
+      {
+        "HostIp": "127.0.0.1",
+        "HostPort": "9090"
+      }
+    ],
+    "9091/tcp": [
+      {
+        "HostIp": "127.0.0.1",
+        "HostPort": "9091"
+      }
+    ],
+    "9096/tcp": [
+      {
+        "HostIp": "0.0.0.0",
+        "HostPort": "9096"
+      },
+      {
+        "HostIp": "::",
+        "HostPort": "9096"
+      }
+    ],
+    "9222/tcp": null,
+    "9700/tcp": [
+      {
+        "HostIp": "127.0.0.1",
+        "HostPort": "9700"
+      }
+    ]
+  }
+}

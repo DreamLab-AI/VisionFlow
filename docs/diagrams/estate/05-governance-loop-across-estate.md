@@ -28,7 +28,7 @@ sources:
   - ../project/agentbox/management-api/routes/broker-bridge.js
   - ../project/agentbox/management-api/routes/kg-elevation.js
   - ../project/agentbox/mcp/nostr-bridge/relay-consumer.js
-verified_commit: worktree-2026-09-07
+verified_commit: {agentbox: be0fc078a3dc0eab32af57f1eaf170fa58157bf9, visionclaw: dd82a07b0c54defc469a85e9d57fb15d29dc5e07}
 ---
 ## ES-05.1 Approval crosses independently durable systems
 ```mermaid

@@ -19,7 +19,7 @@ sources:
   - .github/workflows/drift-counter.yml
   - ../project/.github/workflows/ontology-publish.yml
   - ../project/src/services/ontology_pull.rs
-verified_commit: worktree-2026-09-07
+verified_commit: {dreamlab-ai-website: 9a3dd88306b5414c3522ff9909294b811733b938, knowledgegraph: d09a476124caa14aa0165c642d0950f6026c46fb, visionclaw: dd82a07b0c54defc469a85e9d57fb15d29dc5e07, visionflow: bdd370e74a32844b141d61a98b014022bbbc5427, visiongraph: 482ba593bcffddca7d564d0b6c4b1fea225154fb, vowl-wasm: 65e2d1e784bf5eb04b3cbc122d36d6926d889c22}
 ---
 ## ES-11.1 The publishing axis — five cross-repo edges, each previously drawn from one side only
 ```mermaid

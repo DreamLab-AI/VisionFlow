@@ -1,0 +1,11 @@
+error: ADR-2002-nip98-single-use-replay-cache.md: STALE — governed paths changed since verified_commit 4d1a698e70f60c19d8c83fa8c6caef193866978e: docs/SECURITY-profiles.md, src/utils/nip98.rs (re-verify and bump verified_commit)
+error: ADR-2007-gpu-coordinator-supervisors.md: STALE — governed paths changed since verified_commit 4d1a698e70f60c19d8c83fa8c6caef193866978e: docs/GPU-wire-abi.md (re-verify and bump verified_commit)
+error: ADR-2008-dev-image-recompiles.md: STALE — governed paths changed since verified_commit 4d1a698e70f60c19d8c83fa8c6caef193866978e: docker-compose.unified.yml (re-verify and bump verified_commit)
+error: ADR-2009-dual-request-auth-realms.md: STALE — governed paths changed since verified_commit b0bc275f6501aae7751b85a72ce15fe1e730e7e8: src/services/nostr_service.rs (re-verify and bump verified_commit)
+error: ADR-2026-fail-closed-security-posture.md: STALE — governed paths changed since verified_commit 4d1a698e70f60c19d8c83fa8c6caef193866978e: src/main.rs (re-verify and bump verified_commit)
+error: ADR-2027-three-deployment-profiles.md: STALE — governed paths changed since verified_commit 4d1a698e70f60c19d8c83fa8c6caef193866978e: docker-compose.unified.yml, src/config/security_profile.rs, src/main.rs (re-verify and bump verified_commit)
+error: ADR-2028-simparams-212-byte-abi.md: STALE — governed paths changed since verified_commit b0bc275f6501aae7751b85a72ce15fe1e730e7e8: crates/visionclaw-gpu/src/cuda_sources/visionclaw_unified.cu (re-verify and bump verified_commit)
+error: ADR-2029-force-channel-flag-derivation.md: STALE — governed paths changed since verified_commit b0bc275f6501aae7751b85a72ce15fe1e730e7e8: src/utils/unified_gpu_compute/execution.rs (re-verify and bump verified_commit)
+error: ADR-2038-boot-time-profile-assertion.md: STALE — governed paths changed since verified_commit 4d1a698e70f60c19d8c83fa8c6caef193866978e: src/config/security_profile.rs, src/main.rs (re-verify and bump verified_commit)
+error: ADR-2106-ontology-pull-model-into-the-embedded-pod.md: STALE — governed paths changed since verified_commit 4d1a698e70f60c19d8c83fa8c6caef193866978e: client/src/features/ontology/services/jss/schemaParser.ts, src/main.rs, src/services/ontology_pull.rs (re-verify and bump verified_commit)
+error: 10 validation error(s); README not generated

@@ -1,0 +1,2 @@
+PASS exact archive membership and SHA256 for 24361 files; colon paths retained; 1068 casefold collisions retained
+Command: tar -czf dist-ci.tar.gz dist-ci; no filenames normalised

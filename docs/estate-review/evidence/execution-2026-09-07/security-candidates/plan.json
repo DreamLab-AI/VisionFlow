@@ -1,0 +1,28 @@
+{
+  "mode": "scan-only",
+  "diff_ref": "",
+  "files_from": "",
+  "root": "/home/devuser/workspace/VisionFlow",
+  "project_id": "VisionFlow",
+  "workspace": "/home/devuser/workspace/VisionFlow/.deepsec-gate",
+  "report_dir": "/home/devuser/workspace/VisionFlow/docs/estate-review/evidence/execution-2026-09-07/security-candidates",
+  "revision": "fd5a12e6b2143a44651d7433b52b13bebc44d401",
+  "dirty": "true",
+  "deepsec_version": "2.3.9",
+  "policy_source": "/etc/agentbox.toml",
+  "agent": "claude",
+  "model_auth": "local",
+  "model": "",
+  "thinking_level": "high",
+  "fail_on": "HIGH",
+  "max_duration": "45m",
+  "batch_size": "5",
+  "concurrency": "2",
+  "ai_provider": "",
+  "ai_api_key_env": "",
+  "ai_base_url": "",
+  "route": {
+    "mode": "local",
+    "provider": "local"
+  }
+}

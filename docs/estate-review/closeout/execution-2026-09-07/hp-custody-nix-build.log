@@ -1,0 +1,595 @@
+these 70 derivations will be built:
+  /nix/store/5vsrzdx8ycriz1ycr2f8343vqkmldcsy-crate-basic-toml-0.1.10.tar.gz.drv
+  /nix/store/0xx4afx4ispfh3z6vcw49wvqqb7bi0wd-basic-toml-0.1.10.drv
+  /nix/store/didymrddkjn1rvl2k963y2jy5q4ngpsn-crate-tinystr-0.8.4.tar.gz.drv
+  /nix/store/2siz59cb58hd0ff31hazy4f4xjvb5d3i-tinystr-0.8.4.drv
+  /nix/store/3azhdz3123ml7dj7ip6n4c361px5m1xr-futures-0.3.34.drv
+  /nix/store/4g2gwib62vdag8h94ssz9y3y7937wn41-fluent-0.16.1.drv
+  /nix/store/fhfmgxd51w4sngj0rf1zhkh0wvjv3zyf-crate-futures-executor-0.3.34.tar.gz.drv
+  /nix/store/4pvjmkbd75cnmm8490n6jl2ha7j295gh-futures-executor-0.3.34.drv
+  /nix/store/4rxysgqhyyjasl22irqrd07v98lbdqxr-secrecy-0.10.3.drv
+  /nix/store/5bj4zdmbgx31li46hb2my76ir2w4vvyh-fluent-bundle-0.15.3.drv
+  /nix/store/nq6xfi4jd23iwncz4z4jpix0g36f7gan-crate-zeroize_derive-1.5.0.tar.gz.drv
+  /nix/store/5njkca0cjih9fr78f3c0bqr257ay7bvj-zeroize_derive-1.5.0.drv
+  /nix/store/n6sibg9gwslvlkybmr74jzpcpf7ajzxz-crate-i18n-config-0.4.8.tar.gz.drv
+  /nix/store/5zca6ddh087mf077n2da6d46314a0gv4-i18n-config-0.4.8.drv
+  /nix/store/709vjxgvdf2w3gdg8i5is4nbd5mzcb7p-crate-rust-embed-8.12.0.tar.gz.drv
+  /nix/store/76r0004mn6409srskx0aisxb2rfsdcyn-hybrid-array-0.4.14.drv
+  /nix/store/yya3mbq0dfhjqp8aslchz01dvxqbah7l-crate-zerocopy-derive-0.8.56.tar.gz.drv
+  /nix/store/7h5j02k5nkn1ls6xh216bwmmbzfijl3x-zerocopy-derive-0.8.56.drv
+  /nix/store/7i738f943kwr81sy3bk3vs4bkcra1m5h-crate-zerocopy-0.8.56.tar.gz.drv
+  /nix/store/8ylg3w8qk35vf6fkgq5gdcpj5l7dmzpq-rust-embed-8.12.0.drv
+  /nix/store/v3zdxgjak70j6pzs56nb1jaghi083rky-crate-log-0.4.34.tar.gz.drv
+  /nix/store/9l5xc7ypy8r682x38vkym6lcvi2ibcpp-log-0.4.34.drv
+  /nix/store/9vvlskb9vwxs2fsvxnmpra0xk7li999h-futures-task-0.3.34.drv
+  /nix/store/a94kv7ggxkhc6ry3c9rr72s2ifrxbxmb-clap-4.6.6.drv
+  /nix/store/aacy5f34jwmhrkkpkz99maphvbxcq6q7-futures-sink-0.3.34.drv
+  /nix/store/ar5qjq3a2d8fcbadzygb61z0sv1h3i3h-crypto-common-0.2.2.drv
+  /nix/store/l1kawymg6m9vz94jxal55aqqhp5f4q47-crate-rand-0.8.8.tar.gz.drv
+  /nix/store/bjhpsx52dkdhaawmihbam4qj8sw3xkfk-rand-0.8.8.drv
+  /nix/store/ddybvzqvp2cijvlmq3p3ghb9lrcivjf3-bech32-0.9.1.drv
+  /nix/store/dm8mqlzp367z0vn1pasr2g4aa17b31w4-fluent-syntax-0.11.1.drv
+  /nix/store/wj17aha7chnmcvym0ahslpaq8sp8m8f8-crate-zerovec-0.11.8.tar.gz.drv
+  /nix/store/dy9zcpzr019r9m5dbd6c012mfshil0j7-zerovec-0.11.8.drv
+  /nix/store/cvhx75al3an0jq6dyry0lnhr4myisfsx-crate-rust-embed-utils-8.12.0.tar.gz.drv
+  /nix/store/fll8fn5n6s12j74sjjz5l49p7sa1gybq-rust-embed-utils-8.12.0.drv
+  /nix/store/fvfkrxx2952q7np5fqpf7051pxnbhyy8-clap_derive-4.6.4.drv
+  /nix/store/jirawbzk0xpap7fhzvyj54p26rfxy349-crate-futures-core-0.3.34.tar.gz.drv
+  /nix/store/gxmcd7s40gg23yx7cnzb26198z1ghhhb-futures-core-0.3.34.drv
+  /nix/store/ha6nakq3nbqf590yjkmpi22npjcwav2q-zerocopy-0.8.56.drv
+  /nix/store/wpg7n780v302g8qz9wim0yld5nhsgyms-crate-futures-macro-0.3.34.tar.gz.drv
+  /nix/store/izap87076wjfnp94p9f3jh2cbz7v1whi-futures-macro-0.3.34.drv
+  /nix/store/jc2vbcdwqzjxpk527pzbz0vixx7zwm80-crate-age-core-0.11.0.tar.gz.drv
+  /nix/store/j3fpcqghjp6xjym9d4l06wjskcsc9lja-age-core-0.11.0.drv
+  /nix/store/jnd9gszapm9ygn9p5iq1sg946mppsszj-i18n-embed-impl-0.8.4.drv
+  /nix/store/lgysf0xyba8s8rivqp7fmnl6035dv2gf-crate-fluent-langneg-0.13.1.tar.gz.drv
+  /nix/store/kph80ciggscnkqgp9snvvwfyxlfz28yc-fluent-langneg-0.13.1.drv
+  /nix/store/l0gnh7542lfy570agmvxl26nn9l506s3-io_tee-0.1.1.drv
+  /nix/store/kpvx5cz1ppx5ilpk0i8srzckaaqw7b13-crate-age-0.11.5.tar.gz.drv
+  /nix/store/l7mxzzq8gxf498djk2gi9i5nq15vrxbc-age-0.11.5.drv
+  /nix/store/i8rj41v1gqx2wpf39145dw9qn2wrchjc-crate-i18n-embed-0.15.4.tar.gz.drv
+  /nix/store/m5lml224nx87gjcj14fmm5ygnqsids82-i18n-embed-0.15.4.drv
+  /nix/store/zamcx1saqcjxjxx1j0g7vdjlwclb8bpd-crate-syn-3.0.5.tar.gz.drv
+  /nix/store/n5gyfpmrh224rdwsb1jfrbd66yblwny0-syn-3.0.5.drv
+  /nix/store/nhs25yprdzijpv9cgfkpd4s7pjdgz49j-x25519-dalek-2.0.1.drv
+  /nix/store/nq65qp396dgshlnf7m5xldysm0jsaqw5-find-crate-0.6.3.drv
+  /nix/store/g5ngl8r6kkhhaxhnzysybal3dapjsn76-crate-rust-embed-impl-8.12.0.tar.gz.drv
+  /nix/store/ns5zkjinh8laq11yxlaksgw2pzdgawjk-rust-embed-impl-8.12.0.drv
+  /nix/store/pw09dvp49m5a3dxh2pjmnkhhfybqb2ph-self_cell-0.10.3.drv
+  /nix/store/s2jj0nspps47fvdix9mx9y4wyxy43z9j-fastrand-2.5.0.drv
+  /nix/store/xmc0vsfrikdlxqh4f4sgn84pdgm22cyr-crate-smallvec-1.16.0.tar.gz.drv
+  /nix/store/vp8ydbc4ap8w56f105b4k1hqlczb695a-smallvec-1.16.0.drv
+  /nix/store/w7w3qyim7c25pz9fx91iga72zha605fl-clap_builder-4.6.6.drv
+  /nix/store/dzyfzqrh0vzjbkzij0xkf6k3kqifp4b2-crate-self_cell-1.3.0.tar.gz.drv
+  /nix/store/w8ad2vr19b2cgn47ycv0k8lr6z4xkmfj-self_cell-1.3.0.drv
+  /nix/store/xlgg49n4wnjhjl41k2596fcsjsbwh6xd-universal-hash-0.5.1.drv
+  /nix/store/y1gc805iwr501sm42833457lqssakhs5-futures-io-0.3.34.drv
+  /nix/store/qwjy39wg3vb5gxbsgnx2lpb0s8b640wc-crate-i18n-embed-fl-0.9.4.tar.gz.drv
+  /nix/store/y9ikdifyws9p63l7p0p1w53bksrn8sp7-i18n-embed-fl-0.9.4.drv
+  /nix/store/zg5hwj74yi3pi9bpz37c9af6gv7l8y4a-chacha20poly1305-0.10.1.drv
+  /nix/store/cn1w38ynznibplwbn73cwzhcahwz6clr-cargo-vendor-dir.drv
+  /nix/store/x7llcc67936xwjn8bdnj06q7lhw2g6hh-agentbox-secret-backup-0.1.0.drv
+these 27 paths will be fetched (740.7 KiB download, 2.9 MiB unpacked):
+  /nix/store/6sx0m86javza2i7vxxk7z3xdzq7cyml3-arc-swap-1.9.2
+  /nix/store/hfv9l2lg9gqpwrmv917r58g278crxp9m-auditable-cargo-1.96.1
+  /nix/store/01p3ii31kpiwf2il58i87bzpirw0bd05-cookie-factory-0.3.3
+  /nix/store/q2ajssavw15kqd6qari584i1fgmqa6hw-crate-bech32-0.9.1.tar.gz
+  /nix/store/gsil736p4snf9r89jbyc9ch5vc45c6k4-crate-find-crate-0.6.3.tar.gz
+  /nix/store/b6xpyw2yyigisk619jzh5146xglvz819-crate-fluent-0.16.1.tar.gz
+  /nix/store/19hvpjffs3k7lb8kv0wi4f9r8q2vs9dy-crate-fluent-bundle-0.15.3.tar.gz
+  /nix/store/klmkhls7rkn1f92qh9zy5gq4qcxwpib0-crate-fluent-syntax-0.11.1.tar.gz
+  /nix/store/5l0w2w9jzy45rcnamv7y324f3mxll7bq-crate-i18n-embed-impl-0.8.4.tar.gz
+  /nix/store/8makw9wq2snfwbihnk573cdh1l3i3hzk-crate-io_tee-0.1.1.tar.gz
+  /nix/store/hqq47jjl9rzmahybd1h24j39lqnjcdkw-crate-secrecy-0.10.3.tar.gz
+  /nix/store/ha33whpf354dfcncz4flfr98qszn2f8j-crate-self_cell-0.10.3.tar.gz
+  /nix/store/51is9vi07vkknan6hgc9449k5r1xi589-crate-x25519-dalek-2.0.1.tar.gz
+  /nix/store/15gvvn83zj68hbr22p9bixqh3mh80na5-intl-memoizer-0.5.3
+  /nix/store/2cvr4j6s0jhpqsix7r6wgzijn4w5dpjj-intl_pluralrules-7.0.2
+  /nix/store/ljxz84bix6b372qhs2mz8mfpayfnnazk-pin-project-1.1.13
+  /nix/store/ynf9qn35p5zam34f6b3d1l7a7vphnin1-pin-project-internal-1.1.13
+  /nix/store/9hs6r3j12f6la9nrv7054c1xjdayrq1l-proc-macro-error-attr2-2.0.0
+  /nix/store/hbzymifxkv8vvirkys42gnh0a8flyrik-proc-macro-error2-2.0.1
+  /nix/store/l3pcrm7yhhsr9qjb84r0pigy9sy75lba-rustc-hash-1.1.0
+  /nix/store/l2kjkfarh2ymawpj0ghr33rfzdhvxfmk-secrecy-0.8.0
+  /nix/store/d36hc6pmlx4nbass5yic5rdah76d2nhq-tar-0.4.46
+  /nix/store/k2h8wij3jlsa0jxrij8l0rfp8h0knngk-toml-0.5.11
+  /nix/store/ap0gr0m7a029bn2f8xg94cv84caxcbwa-type-map-0.5.1
+  /nix/store/5vdjd6a6zjfxy7rzccy7l23hylrjx7s8-unic-langid-0.9.6
+  /nix/store/vpqsqqgj1az7szz0fhh961lc8k3w1wgx-unic-langid-impl-0.9.6
+  /nix/store/rdx35cxqrh9lrvm2sbx5w0xibc4asq7y-xattr-1.6.1
+copying path '/nix/store/hfv9l2lg9gqpwrmv917r58g278crxp9m-auditable-cargo-1.96.1' from 'https://cache.nixos.org'...
+copying path '/nix/store/6sx0m86javza2i7vxxk7z3xdzq7cyml3-arc-swap-1.9.2' from 'https://cache.nixos.org'...
+copying path '/nix/store/l3pcrm7yhhsr9qjb84r0pigy9sy75lba-rustc-hash-1.1.0' from 'https://cache.nixos.org'...
+copying path '/nix/store/15gvvn83zj68hbr22p9bixqh3mh80na5-intl-memoizer-0.5.3' from 'https://cache.nixos.org'...
+copying path '/nix/store/hbzymifxkv8vvirkys42gnh0a8flyrik-proc-macro-error2-2.0.1' from 'https://cache.nixos.org'...
+copying path '/nix/store/01p3ii31kpiwf2il58i87bzpirw0bd05-cookie-factory-0.3.3' from 'https://cache.nixos.org'...
+copying path '/nix/store/l2kjkfarh2ymawpj0ghr33rfzdhvxfmk-secrecy-0.8.0' from 'https://cache.nixos.org'...
+copying path '/nix/store/ljxz84bix6b372qhs2mz8mfpayfnnazk-pin-project-1.1.13' from 'https://cache.nixos.org'...
+copying path '/nix/store/9hs6r3j12f6la9nrv7054c1xjdayrq1l-proc-macro-error-attr2-2.0.0' from 'https://cache.nixos.org'...
+copying path '/nix/store/2cvr4j6s0jhpqsix7r6wgzijn4w5dpjj-intl_pluralrules-7.0.2' from 'https://cache.nixos.org'...
+copying path '/nix/store/vpqsqqgj1az7szz0fhh961lc8k3w1wgx-unic-langid-impl-0.9.6' from 'https://cache.nixos.org'...
+copying path '/nix/store/d36hc6pmlx4nbass5yic5rdah76d2nhq-tar-0.4.46' from 'https://cache.nixos.org'...
+copying path '/nix/store/ynf9qn35p5zam34f6b3d1l7a7vphnin1-pin-project-internal-1.1.13' from 'https://cache.nixos.org'...
+copying path '/nix/store/5vdjd6a6zjfxy7rzccy7l23hylrjx7s8-unic-langid-0.9.6' from 'https://cache.nixos.org'...
+copying path '/nix/store/k2h8wij3jlsa0jxrij8l0rfp8h0knngk-toml-0.5.11' from 'https://cache.nixos.org'...
+copying path '/nix/store/ap0gr0m7a029bn2f8xg94cv84caxcbwa-type-map-0.5.1' from 'https://cache.nixos.org'...
+building '/nix/store/zg5hwj74yi3pi9bpz37c9af6gv7l8y4a-chacha20poly1305-0.10.1.drv'...
+copying path '/nix/store/q2ajssavw15kqd6qari584i1fgmqa6hw-crate-bech32-0.9.1.tar.gz' from 'https://cache.nixos.org'...
+copying path '/nix/store/gsil736p4snf9r89jbyc9ch5vc45c6k4-crate-find-crate-0.6.3.tar.gz' from 'https://cache.nixos.org'...
+copying path '/nix/store/b6xpyw2yyigisk619jzh5146xglvz819-crate-fluent-0.16.1.tar.gz' from 'https://cache.nixos.org'...
+copying path '/nix/store/19hvpjffs3k7lb8kv0wi4f9r8q2vs9dy-crate-fluent-bundle-0.15.3.tar.gz' from 'https://cache.nixos.org'...
+copying path '/nix/store/rdx35cxqrh9lrvm2sbx5w0xibc4asq7y-xattr-1.6.1' from 'https://cache.nixos.org'...
+copying path '/nix/store/8makw9wq2snfwbihnk573cdh1l3i3hzk-crate-io_tee-0.1.1.tar.gz' from 'https://cache.nixos.org'...
+copying path '/nix/store/51is9vi07vkknan6hgc9449k5r1xi589-crate-x25519-dalek-2.0.1.tar.gz' from 'https://cache.nixos.org'...
+copying path '/nix/store/hqq47jjl9rzmahybd1h24j39lqnjcdkw-crate-secrecy-0.10.3.tar.gz' from 'https://cache.nixos.org'...
+copying path '/nix/store/klmkhls7rkn1f92qh9zy5gq4qcxwpib0-crate-fluent-syntax-0.11.1.tar.gz' from 'https://cache.nixos.org'...
+copying path '/nix/store/5l0w2w9jzy45rcnamv7y324f3mxll7bq-crate-i18n-embed-impl-0.8.4.tar.gz' from 'https://cache.nixos.org'...
+copying path '/nix/store/ha33whpf354dfcncz4flfr98qszn2f8j-crate-self_cell-0.10.3.tar.gz' from 'https://cache.nixos.org'...
+building '/nix/store/709vjxgvdf2w3gdg8i5is4nbd5mzcb7p-crate-rust-embed-8.12.0.tar.gz.drv'...
+crate-rust-embed> structuredAttrs is enabled
+crate-rust-embed> 
+crate-rust-embed> trying https://static.crates.io/crates/rust-embed/8.12.0/download
+crate-rust-embed>   % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+crate-rust-embed>                                  Dload  Upload  Total   Spent   Left   Speed
+crate-rust-embed> 100 881.4k 100 881.4k   0      0  4.13M      0                              0
+building '/nix/store/4g2gwib62vdag8h94ssz9y3y7937wn41-fluent-0.16.1.drv'...
+building '/nix/store/dm8mqlzp367z0vn1pasr2g4aa17b31w4-fluent-syntax-0.11.1.drv'...
+building '/nix/store/yya3mbq0dfhjqp8aslchz01dvxqbah7l-crate-zerocopy-derive-0.8.56.tar.gz.drv'...
+crate-zerocopy-derive> structuredAttrs is enabled
+crate-zerocopy-derive> 
+crate-zerocopy-derive> trying https://static.crates.io/crates/zerocopy-derive/0.8.56/download
+crate-zerocopy-derive>   % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+crate-zerocopy-derive>                                  Dload  Upload  Total   Spent   Left   Speed
+crate-zerocopy-derive> 100 102.5k 100 102.5k   0      0  1.09M      0                              0
+building '/nix/store/xlgg49n4wnjhjl41k2596fcsjsbwh6xd-universal-hash-0.5.1.drv'...
+building '/nix/store/76r0004mn6409srskx0aisxb2rfsdcyn-hybrid-array-0.4.14.drv'...
+building '/nix/store/g5ngl8r6kkhhaxhnzysybal3dapjsn76-crate-rust-embed-impl-8.12.0.tar.gz.drv'...
+crate-rust-embed-impl> structuredAttrs is enabled
+crate-rust-embed-impl> 
+crate-rust-embed-impl> trying https://static.crates.io/crates/rust-embed-impl/8.12.0/download
+crate-rust-embed-impl>   % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+crate-rust-embed-impl>                                  Dload  Upload  Total   Spent   Left   Speed
+crate-rust-embed-impl> 100  10451 100  10451   0      0 159.2k      0                              0
+building '/nix/store/5bj4zdmbgx31li46hb2my76ir2w4vvyh-fluent-bundle-0.15.3.drv'...
+building '/nix/store/didymrddkjn1rvl2k963y2jy5q4ngpsn-crate-tinystr-0.8.4.tar.gz.drv'...
+crate-tinystr> structuredAttrs is enabled
+crate-tinystr> 
+crate-tinystr> trying https://static.crates.io/crates/tinystr/0.8.4/download
+crate-tinystr>   % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+crate-tinystr>                                  Dload  Upload  Total   Spent   Left   Speed
+crate-tinystr> 100  25003 100  25003   0      0 339.4k      0                              0
+building '/nix/store/ddybvzqvp2cijvlmq3p3ghb9lrcivjf3-bech32-0.9.1.drv'...
+building '/nix/store/aacy5f34jwmhrkkpkz99maphvbxcq6q7-futures-sink-0.3.34.drv'...
+building '/nix/store/y1gc805iwr501sm42833457lqssakhs5-futures-io-0.3.34.drv'...
+building '/nix/store/nq65qp396dgshlnf7m5xldysm0jsaqw5-find-crate-0.6.3.drv'...
+building '/nix/store/zamcx1saqcjxjxx1j0g7vdjlwclb8bpd-crate-syn-3.0.5.tar.gz.drv'...
+crate-syn> structuredAttrs is enabled
+crate-syn> 
+crate-syn> trying https://static.crates.io/crates/syn/3.0.5/download
+crate-syn>   % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+crate-syn>                                  Dload  Upload  Total   Spent   Left   Speed
+crate-syn> 100 305.8k 100 305.8k   0      0  2.47M      0                              0
+building '/nix/store/cvhx75al3an0jq6dyry0lnhr4myisfsx-crate-rust-embed-utils-8.12.0.tar.gz.drv'...
+crate-rust-embed-utils> structuredAttrs is enabled
+crate-rust-embed-utils> 
+crate-rust-embed-utils> trying https://static.crates.io/crates/rust-embed-utils/8.12.0/download
+crate-rust-embed-utils>   % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+crate-rust-embed-utils>                                  Dload  Upload  Total   Spent   Left   Speed
+crate-rust-embed-utils> 100   8218 100   8218   0      0 120.8k      0                              0
+building '/nix/store/n5gyfpmrh224rdwsb1jfrbd66yblwny0-syn-3.0.5.drv'...
+building '/nix/store/fll8fn5n6s12j74sjjz5l49p7sa1gybq-rust-embed-utils-8.12.0.drv'...
+building '/nix/store/9vvlskb9vwxs2fsvxnmpra0xk7li999h-futures-task-0.3.34.drv'...
+building '/nix/store/fvfkrxx2952q7np5fqpf7051pxnbhyy8-clap_derive-4.6.4.drv'...
+building '/nix/store/l1kawymg6m9vz94jxal55aqqhp5f4q47-crate-rand-0.8.8.tar.gz.drv'...
+crate-rand> structuredAttrs is enabled
+crate-rand> 
+crate-rand> trying https://static.crates.io/crates/rand/0.8.8/download
+crate-rand>   % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+crate-rand>                                  Dload  Upload  Total   Spent   Left   Speed
+crate-rand> 100  84217 100  84217   0      0  1.00M      0                              0
+building '/nix/store/dzyfzqrh0vzjbkzij0xkf6k3kqifp4b2-crate-self_cell-1.3.0.tar.gz.drv'...
+crate-self_cell> structuredAttrs is enabled
+crate-self_cell> 
+crate-self_cell> trying https://static.crates.io/crates/self_cell/1.3.0/download
+crate-self_cell>   % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+crate-self_cell>                                  Dload  Upload  Total   Spent   Left   Speed
+crate-self_cell> 100  23869 100  23869   0      0 349.8k      0                              0
+building '/nix/store/bjhpsx52dkdhaawmihbam4qj8sw3xkfk-rand-0.8.8.drv'...
+building '/nix/store/w8ad2vr19b2cgn47ycv0k8lr6z4xkmfj-self_cell-1.3.0.drv'...
+building '/nix/store/2siz59cb58hd0ff31hazy4f4xjvb5d3i-tinystr-0.8.4.drv'...
+building '/nix/store/v3zdxgjak70j6pzs56nb1jaghi083rky-crate-log-0.4.34.tar.gz.drv'...
+crate-log> structuredAttrs is enabled
+crate-log> 
+crate-log> trying https://static.crates.io/crates/log/0.4.34/download
+crate-log>   % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+crate-log>                                  Dload  Upload  Total   Spent   Left   Speed
+crate-log> 100  53395 100  53395   0      0 602.8k      0                              0
+building '/nix/store/qwjy39wg3vb5gxbsgnx2lpb0s8b640wc-crate-i18n-embed-fl-0.9.4.tar.gz.drv'...
+crate-i18n-embed-fl> structuredAttrs is enabled
+crate-i18n-embed-fl> 
+crate-i18n-embed-fl> trying https://static.crates.io/crates/i18n-embed-fl/0.9.4/download
+crate-i18n-embed-fl>   % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+crate-i18n-embed-fl>                                  Dload  Upload  Total   Spent   Left   Speed
+crate-i18n-embed-fl> 100  11741 100  11741   0      0 164.7k      0                              0
+building '/nix/store/9l5xc7ypy8r682x38vkym6lcvi2ibcpp-log-0.4.34.drv'...
+building '/nix/store/y9ikdifyws9p63l7p0p1w53bksrn8sp7-i18n-embed-fl-0.9.4.drv'...
+building '/nix/store/ns5zkjinh8laq11yxlaksgw2pzdgawjk-rust-embed-impl-8.12.0.drv'...
+building '/nix/store/w7w3qyim7c25pz9fx91iga72zha605fl-clap_builder-4.6.6.drv'...
+building '/nix/store/3azhdz3123ml7dj7ip6n4c361px5m1xr-futures-0.3.34.drv'...
+building '/nix/store/i8rj41v1gqx2wpf39145dw9qn2wrchjc-crate-i18n-embed-0.15.4.tar.gz.drv'...
+crate-i18n-embed> structuredAttrs is enabled
+crate-i18n-embed> 
+crate-i18n-embed> trying https://static.crates.io/crates/i18n-embed/0.15.4/download
+crate-i18n-embed>   % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+crate-i18n-embed>                                  Dload  Upload  Total   Spent   Left   Speed
+crate-i18n-embed> 100  27660 100  27660   0      0 380.0k      0                              0
+building '/nix/store/n6sibg9gwslvlkybmr74jzpcpf7ajzxz-crate-i18n-config-0.4.8.tar.gz.drv'...
+crate-i18n-config> structuredAttrs is enabled
+crate-i18n-config> 
+crate-i18n-config> trying https://static.crates.io/crates/i18n-config/0.4.8/download
+crate-i18n-config>   % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+crate-i18n-config>                                  Dload  Upload  Total   Spent   Left   Speed
+crate-i18n-config> 100   9082 100   9082   0      0 128.4k      0                              0
+building '/nix/store/m5lml224nx87gjcj14fmm5ygnqsids82-i18n-embed-0.15.4.drv'...
+building '/nix/store/5zca6ddh087mf077n2da6d46314a0gv4-i18n-config-0.4.8.drv'...
+building '/nix/store/8ylg3w8qk35vf6fkgq5gdcpj5l7dmzpq-rust-embed-8.12.0.drv'...
+building '/nix/store/wpg7n780v302g8qz9wim0yld5nhsgyms-crate-futures-macro-0.3.34.tar.gz.drv'...
+crate-futures-macro> structuredAttrs is enabled
+crate-futures-macro> 
+crate-futures-macro> trying https://static.crates.io/crates/futures-macro/0.3.34/download
+crate-futures-macro>   % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+crate-futures-macro>                                  Dload  Upload  Total   Spent   Left   Speed
+crate-futures-macro> 100  11926 100  11926   0      0 186.3k      0                              0
+building '/nix/store/fhfmgxd51w4sngj0rf1zhkh0wvjv3zyf-crate-futures-executor-0.3.34.tar.gz.drv'...
+crate-futures-executor> structuredAttrs is enabled
+crate-futures-executor> 
+crate-futures-executor> trying https://static.crates.io/crates/futures-executor/0.3.34/download
+crate-futures-executor>   % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+crate-futures-executor>                                  Dload  Upload  Total   Spent   Left   Speed
+crate-futures-executor> 100  18560 100  18560   0      0 262.3k      0                              0
+building '/nix/store/izap87076wjfnp94p9f3jh2cbz7v1whi-futures-macro-0.3.34.drv'...
+building '/nix/store/4pvjmkbd75cnmm8490n6jl2ha7j295gh-futures-executor-0.3.34.drv'...
+building '/nix/store/xmc0vsfrikdlxqh4f4sgn84pdgm22cyr-crate-smallvec-1.16.0.tar.gz.drv'...
+crate-smallvec> structuredAttrs is enabled
+crate-smallvec> 
+crate-smallvec> trying https://static.crates.io/crates/smallvec/1.16.0/download
+crate-smallvec>   % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+crate-smallvec>                                  Dload  Upload  Total   Spent   Left   Speed
+crate-smallvec> 100  32647 100  32647   0      0 462.7k      0                              0
+building '/nix/store/s2jj0nspps47fvdix9mx9y4wyxy43z9j-fastrand-2.5.0.drv'...
+building '/nix/store/vp8ydbc4ap8w56f105b4k1hqlczb695a-smallvec-1.16.0.drv'...
+building '/nix/store/jirawbzk0xpap7fhzvyj54p26rfxy349-crate-futures-core-0.3.34.tar.gz.drv'...
+crate-futures-core> structuredAttrs is enabled
+crate-futures-core> 
+crate-futures-core> trying https://static.crates.io/crates/futures-core/0.3.34/download
+crate-futures-core>   % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+crate-futures-core>                                  Dload  Upload  Total   Spent   Left   Speed
+crate-futures-core> 100  14692 100  14692   0      0 208.0k      0                              0
+building '/nix/store/wj17aha7chnmcvym0ahslpaq8sp8m8f8-crate-zerovec-0.11.8.tar.gz.drv'...
+crate-zerovec> structuredAttrs is enabled
+crate-zerovec> 
+crate-zerovec> trying https://static.crates.io/crates/zerovec/0.11.8/download
+crate-zerovec>   % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+crate-zerovec>                                  Dload  Upload  Total   Spent   Left   Speed
+crate-zerovec> 100 127.7k 100 127.7k   0      0  1.33M      0                              0
+building '/nix/store/gxmcd7s40gg23yx7cnzb26198z1ghhhb-futures-core-0.3.34.drv'...
+building '/nix/store/kpvx5cz1ppx5ilpk0i8srzckaaqw7b13-crate-age-0.11.5.tar.gz.drv'...
+crate-age> structuredAttrs is enabled
+crate-age> 
+crate-age> trying https://static.crates.io/crates/age/0.11.5/download
+crate-age>   % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+crate-age>                                  Dload  Upload  Total   Spent   Left   Speed
+crate-age> 100 153.4k 100 153.4k   0      0  1.46M      0                              0
+building '/nix/store/jnd9gszapm9ygn9p5iq1sg946mppsszj-i18n-embed-impl-0.8.4.drv'...
+building '/nix/store/l7mxzzq8gxf498djk2gi9i5nq15vrxbc-age-0.11.5.drv'...
+building '/nix/store/l0gnh7542lfy570agmvxl26nn9l506s3-io_tee-0.1.1.drv'...
+building '/nix/store/4rxysgqhyyjasl22irqrd07v98lbdqxr-secrecy-0.10.3.drv'...
+building '/nix/store/pw09dvp49m5a3dxh2pjmnkhhfybqb2ph-self_cell-0.10.3.drv'...
+building '/nix/store/7h5j02k5nkn1ls6xh216bwmmbzfijl3x-zerocopy-derive-0.8.56.drv'...
+building '/nix/store/7i738f943kwr81sy3bk3vs4bkcra1m5h-crate-zerocopy-0.8.56.tar.gz.drv'...
+crate-zerocopy> structuredAttrs is enabled
+crate-zerocopy> 
+crate-zerocopy> trying https://static.crates.io/crates/zerocopy/0.8.56/download
+crate-zerocopy>   % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+crate-zerocopy>                                  Dload  Upload  Total   Spent   Left   Speed
+crate-zerocopy> 100 278.2k 100 278.2k   0      0  2.34M      0                              0
+building '/nix/store/jc2vbcdwqzjxpk527pzbz0vixx7zwm80-crate-age-core-0.11.0.tar.gz.drv'...
+crate-age-core> structuredAttrs is enabled
+crate-age-core> 
+crate-age-core> trying https://static.crates.io/crates/age-core/0.11.0/download
+crate-age-core>   % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+crate-age-core>                                  Dload  Upload  Total   Spent   Left   Speed
+crate-age-core> 100  14308 100  14308   0      0 207.5k      0                              0
+building '/nix/store/ha6nakq3nbqf590yjkmpi22npjcwav2q-zerocopy-0.8.56.drv'...
+building '/nix/store/j3fpcqghjp6xjym9d4l06wjskcsc9lja-age-core-0.11.0.drv'...
+building '/nix/store/5vsrzdx8ycriz1ycr2f8343vqkmldcsy-crate-basic-toml-0.1.10.tar.gz.drv'...
+crate-basic-toml> structuredAttrs is enabled
+crate-basic-toml> 
+crate-basic-toml> trying https://static.crates.io/crates/basic-toml/0.1.10/download
+crate-basic-toml>   % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+crate-basic-toml>                                  Dload  Upload  Total   Spent   Left   Speed
+crate-basic-toml> 100  50648 100  50648   0      0 573.3k      0                              0
+building '/nix/store/lgysf0xyba8s8rivqp7fmnl6035dv2gf-crate-fluent-langneg-0.13.1.tar.gz.drv'...
+crate-fluent-langneg> structuredAttrs is enabled
+crate-fluent-langneg> 
+crate-fluent-langneg> trying https://static.crates.io/crates/fluent-langneg/0.13.1/download
+crate-fluent-langneg>   % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+crate-fluent-langneg>                                  Dload  Upload  Total   Spent   Left   Speed
+crate-fluent-langneg> 100  11383 100  11383   0      0 165.5k      0                              0
+building '/nix/store/0xx4afx4ispfh3z6vcw49wvqqb7bi0wd-basic-toml-0.1.10.drv'...
+building '/nix/store/kph80ciggscnkqgp9snvvwfyxlfz28yc-fluent-langneg-0.13.1.drv'...
+building '/nix/store/ar5qjq3a2d8fcbadzygb61z0sv1h3i3h-crypto-common-0.2.2.drv'...
+building '/nix/store/a94kv7ggxkhc6ry3c9rr72s2ifrxbxmb-clap-4.6.6.drv'...
+building '/nix/store/nhs25yprdzijpv9cgfkpd4s7pjdgz49j-x25519-dalek-2.0.1.drv'...
+building '/nix/store/dy9zcpzr019r9m5dbd6c012mfshil0j7-zerovec-0.11.8.drv'...
+building '/nix/store/nq6xfi4jd23iwncz4z4jpix0g36f7gan-crate-zeroize_derive-1.5.0.tar.gz.drv'...
+crate-zeroize_derive> structuredAttrs is enabled
+crate-zeroize_derive> 
+crate-zeroize_derive> trying https://static.crates.io/crates/zeroize_derive/1.5.0/download
+crate-zeroize_derive>   % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+crate-zeroize_derive>                                  Dload  Upload  Total   Spent   Left   Speed
+crate-zeroize_derive> 100  12034 100  12034   0      0 179.7k      0                              0
+building '/nix/store/5njkca0cjih9fr78f3c0bqr257ay7bvj-zeroize_derive-1.5.0.drv'...
+building '/nix/store/cn1w38ynznibplwbn73cwzhcahwz6clr-cargo-vendor-dir.drv'...
+cargo-vendor-dir> structuredAttrs is enabled
+building '/nix/store/x7llcc67936xwjn8bdnj06q7lhw2g6hh-agentbox-secret-backup-0.1.0.drv'...
+agentbox-secret-backup> Running phase: unpackPhase
+agentbox-secret-backup> unpacking source archive /nix/store/z6rcfqsxn7f2kp380q9ahvn7a95vjlr6-source
+agentbox-secret-backup> source root is source
+agentbox-secret-backup> Executing cargoSetupPostUnpackHook
+agentbox-secret-backup> Finished cargoSetupPostUnpackHook
+agentbox-secret-backup> Running phase: patchPhase
+agentbox-secret-backup> Executing cargoSetupPostPatchHook
+agentbox-secret-backup> Validating consistency between /build/source/Cargo.lock and /build/cargo-vendor-dir/Cargo.lock
+agentbox-secret-backup> Finished cargoSetupPostPatchHook
+agentbox-secret-backup> Running phase: updateAutotoolsGnuConfigScriptsPhase
+agentbox-secret-backup> Running phase: configurePhase
+agentbox-secret-backup> Running phase: buildPhase
+agentbox-secret-backup> Executing cargoBuildHook
+agentbox-secret-backup> cargoBuildHook flags: -j 48 --target x86_64-unknown-linux-gnu --offline --profile release
+agentbox-secret-backup>    Compiling proc-macro2 v1.0.107
+agentbox-secret-backup>    Compiling quote v1.0.47
+agentbox-secret-backup>    Compiling unicode-ident v1.0.24
+agentbox-secret-backup>    Compiling typenum v1.20.1
+agentbox-secret-backup>    Compiling cfg-if v1.0.4
+agentbox-secret-backup>    Compiling libc v0.2.189
+agentbox-secret-backup>    Compiling version_check v0.9.5
+agentbox-secret-backup>    Compiling serde_core v1.0.229
+agentbox-secret-backup>    Compiling serde v1.0.229
+agentbox-secret-backup>    Compiling thiserror v1.0.69
+agentbox-secret-backup>    Compiling subtle v2.6.1
+agentbox-secret-backup>    Compiling const-oid v0.10.2
+agentbox-secret-backup>    Compiling parking_lot_core v0.9.12
+agentbox-secret-backup>    Compiling unicase v2.9.0
+agentbox-secret-backup>    Compiling cpufeatures v0.2.17
+agentbox-secret-backup>    Compiling same-file v1.0.6
+agentbox-secret-backup>    Compiling cpufeatures v0.3.1
+agentbox-secret-backup>    Compiling mime v0.3.17
+agentbox-secret-backup>    Compiling rustversion v1.0.23
+agentbox-secret-backup>    Compiling futures-core v0.3.34
+agentbox-secret-backup>    Compiling smallvec v1.16.0
+agentbox-secret-backup>    Compiling rustc-hash v2.1.3
+agentbox-secret-backup>    Compiling futures-sink v0.3.34
+agentbox-secret-backup>    Compiling zerocopy v0.8.56
+agentbox-secret-backup>    Compiling memchr v2.8.3
+agentbox-secret-backup>    Compiling futures-io v0.3.34
+agentbox-secret-backup>    Compiling self_cell v1.3.0
+agentbox-secret-backup>    Compiling slab v0.4.12
+agentbox-secret-backup>    Compiling log v0.4.34
+agentbox-secret-backup>    Compiling futures-task v0.3.34
+agentbox-secret-backup>    Compiling pin-project-lite v0.2.17
+agentbox-secret-backup>    Compiling semver v1.0.28
+agentbox-secret-backup>    Compiling rustc-hash v1.1.0
+agentbox-secret-backup>    Compiling scopeguard v1.2.0
+agentbox-secret-backup>    Compiling rustix v1.1.4
+agentbox-secret-backup>    Compiling linux-raw-sys v0.12.1
+agentbox-secret-backup>    Compiling utf8parse v0.2.2
+agentbox-secret-backup>    Compiling bitflags v2.13.1
+agentbox-secret-backup>    Compiling opaque-debug v0.3.1
+agentbox-secret-backup>    Compiling minimal-lexical v0.2.1
+agentbox-secret-backup>    Compiling colorchoice v1.0.5
+agentbox-secret-backup>    Compiling is_terminal_polyfill v1.70.2
+agentbox-secret-backup>    Compiling walkdir v2.5.0
+agentbox-secret-backup>    Compiling self_cell v0.10.3
+agentbox-secret-backup>    Compiling lock_api v0.4.14
+agentbox-secret-backup>    Compiling anstyle-query v1.1.5
+agentbox-secret-backup>    Compiling futures-channel v0.3.34
+agentbox-secret-backup>    Compiling type-map v0.5.1
+agentbox-secret-backup>    Compiling getrandom v0.4.3
+agentbox-secret-backup>    Compiling anstyle v1.0.14
+agentbox-secret-backup>    Compiling anstyle-parse v1.0.0
+agentbox-secret-backup>    Compiling strsim v0.11.1
+agentbox-secret-backup>    Compiling heck v0.5.0
+agentbox-secret-backup>    Compiling io_tee v0.1.1
+agentbox-secret-backup>    Compiling clap_lex v1.1.0
+agentbox-secret-backup>    Compiling base64 v0.21.7
+agentbox-secret-backup>    Compiling anyhow v1.0.104
+agentbox-secret-backup>    Compiling lazy_static v1.5.0
+agentbox-secret-backup>    Compiling once_cell v1.21.4
+agentbox-secret-backup>    Compiling bech32 v0.9.1
+agentbox-secret-backup>    Compiling fastrand v2.5.0
+agentbox-secret-backup>    Compiling mime_guess v2.0.5
+agentbox-secret-backup>    Compiling generic-array v0.14.7
+agentbox-secret-backup>    Compiling rustc_version v0.4.1
+agentbox-secret-backup>    Compiling anstream v1.0.0
+agentbox-secret-backup>    Compiling curve25519-dalek v4.1.3
+agentbox-secret-backup>    Compiling nom v7.1.3
+agentbox-secret-backup>    Compiling clap_builder v4.6.6
+agentbox-secret-backup>    Compiling arc-swap v1.9.2
+agentbox-secret-backup>    Compiling hybrid-array v0.4.14
+agentbox-secret-backup>    Compiling syn v3.0.5
+agentbox-secret-backup>    Compiling syn v2.0.119
+agentbox-secret-backup>    Compiling proc-macro-error-attr2 v2.0.0
+agentbox-secret-backup>    Compiling getrandom v0.2.17
+agentbox-secret-backup>    Compiling filetime v0.2.29
+agentbox-secret-backup>    Compiling crypto-common v0.2.2
+agentbox-secret-backup>    Compiling block-buffer v0.12.1
+agentbox-secret-backup>    Compiling rand_core v0.6.4
+agentbox-secret-backup>    Compiling parking_lot v0.12.5
+agentbox-secret-backup>    Compiling crypto-common v0.1.7
+agentbox-secret-backup>    Compiling block-buffer v0.10.4
+agentbox-secret-backup>    Compiling inout v0.1.4
+agentbox-secret-backup>    Compiling universal-hash v0.5.1
+agentbox-secret-backup>    Compiling aead v0.5.2
+agentbox-secret-backup>    Compiling digest v0.10.7
+agentbox-secret-backup>    Compiling poly1305 v0.8.0
+agentbox-secret-backup>    Compiling hmac v0.12.1
+agentbox-secret-backup>    Compiling sha2 v0.10.9
+agentbox-secret-backup>    Compiling hkdf v0.12.4
+agentbox-secret-backup>    Compiling pbkdf2 v0.12.2
+agentbox-secret-backup>    Compiling digest v0.11.3
+agentbox-secret-backup>    Compiling xattr v1.6.1
+agentbox-secret-backup>    Compiling tempfile v3.27.0
+agentbox-secret-backup>    Compiling sha2 v0.11.0
+agentbox-secret-backup>    Compiling tar v0.4.46
+agentbox-secret-backup>    Compiling rust-embed-utils v8.12.0
+agentbox-secret-backup>    Compiling displaydoc v0.2.7
+agentbox-secret-backup>    Compiling serde_derive v1.0.229
+agentbox-secret-backup>    Compiling futures-macro v0.3.34
+agentbox-secret-backup>    Compiling clap_derive v4.6.4
+agentbox-secret-backup>    Compiling proc-macro-error2 v2.0.1
+agentbox-secret-backup>    Compiling ppv-lite86 v0.2.21
+agentbox-secret-backup>    Compiling tinystr v0.8.4
+agentbox-secret-backup>    Compiling futures-util v0.3.34
+agentbox-secret-backup>    Compiling unic-langid-impl v0.9.6
+agentbox-secret-backup>    Compiling rand_chacha v0.3.1
+agentbox-secret-backup>    Compiling thiserror-impl v1.0.69
+agentbox-secret-backup>    Compiling zeroize_derive v1.5.0
+agentbox-secret-backup>    Compiling rust-embed-impl v8.12.0
+agentbox-secret-backup>    Compiling curve25519-dalek-derive v0.1.1
+agentbox-secret-backup>    Compiling pin-project-internal v1.1.13
+agentbox-secret-backup>    Compiling unic-langid v0.9.6
+agentbox-secret-backup>    Compiling intl_pluralrules v7.0.2
+agentbox-secret-backup>    Compiling fluent-langneg v0.13.1
+agentbox-secret-backup>    Compiling intl-memoizer v0.5.3
+agentbox-secret-backup>    Compiling rand v0.8.8
+agentbox-secret-backup>    Compiling zeroize v1.9.0
+agentbox-secret-backup>    Compiling clap v4.6.6
+agentbox-secret-backup>    Compiling cipher v0.4.4
+agentbox-secret-backup>    Compiling secrecy v0.10.3
+agentbox-secret-backup>    Compiling secrecy v0.8.0
+agentbox-secret-backup>    Compiling rust-embed v8.12.0
+agentbox-secret-backup>    Compiling chacha20 v0.9.1
+agentbox-secret-backup>    Compiling salsa20 v0.10.2
+agentbox-secret-backup>    Compiling scrypt v0.11.0
+agentbox-secret-backup>    Compiling pin-project v1.1.13
+agentbox-secret-backup>    Compiling fluent-syntax v0.11.1
+agentbox-secret-backup>    Compiling chacha20poly1305 v0.10.1
+agentbox-secret-backup>    Compiling fluent-bundle v0.15.3
+agentbox-secret-backup>    Compiling x25519-dalek v2.0.1
+agentbox-secret-backup>    Compiling fluent v0.16.1
+agentbox-secret-backup>    Compiling toml v0.5.11
+agentbox-secret-backup>    Compiling basic-toml v0.1.10
+agentbox-secret-backup>    Compiling i18n-config v0.4.8
+agentbox-secret-backup>    Compiling futures-executor v0.3.34
+agentbox-secret-backup>    Compiling futures v0.3.34
+agentbox-secret-backup>    Compiling cookie-factory v0.3.3
+agentbox-secret-backup>    Compiling find-crate v0.6.3
+agentbox-secret-backup>    Compiling age-core v0.11.0
+agentbox-secret-backup>    Compiling i18n-embed-impl v0.8.4
+agentbox-secret-backup>    Compiling i18n-embed v0.15.4
+agentbox-secret-backup>    Compiling i18n-embed-fl v0.9.4
+agentbox-secret-backup>    Compiling age v0.11.5
+agentbox-secret-backup>    Compiling agentbox-secret-backup v0.1.0 (/build/source)
+agentbox-secret-backup> warning: unused import: `ExposeSecret`
+agentbox-secret-backup>   --> src/main.rs:50:20
+agentbox-secret-backup>    |
+agentbox-secret-backup> 50 | use age::secrecy::{ExposeSecret, SecretString};
+agentbox-secret-backup>    |                    ^^^^^^^^^^^^
+agentbox-secret-backup>    |
+agentbox-secret-backup>    = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+agentbox-secret-backup> 
+agentbox-secret-backup> warning: `agentbox-secret-backup` (bin "agentbox-secret-backup") generated 1 warning (run `cargo fix --bin "agentbox-secret-backup" -p agentbox-secret-backup` to apply 1 suggestion)
+agentbox-secret-backup>     Finished `release` profile [optimized] target(s) in 18.43s
+agentbox-secret-backup> Executing cargoInstallPostBuildHook
+agentbox-secret-backup> Finished cargoInstallPostBuildHook
+agentbox-secret-backup> Finished cargoBuildHook
+agentbox-secret-backup> Running phase: checkPhase
+agentbox-secret-backup> Executing cargoCheckHook
+agentbox-secret-backup> cargoCheckHook flags: -j 48 --profile release --target x86_64-unknown-linux-gnu --offline --
+agentbox-secret-backup>    Compiling agentbox-secret-backup v0.1.0 (/build/source)
+agentbox-secret-backup>     Finished `release` profile [optimized] target(s) in 1.59s
+agentbox-secret-backup>      Running unittests src/main.rs (target/x86_64-unknown-linux-gnu/release/deps/agentbox_secret_backup-df9f2be1210fa863)
+agentbox-secret-backup> 
+agentbox-secret-backup> running 7 tests
+agentbox-secret-backup> test tests::refuses_to_write_a_plaintext_archive ... ok
+agentbox-secret-backup> test tests::restore_rejects_paths_that_escape_the_destination ... ok
+agentbox-secret-backup> test tests::templates_and_vendored_trees_are_excluded ... FAILED
+agentbox-secret-backup> test tests::a_recipient_encrypted_archive_needs_an_identity ... FAILED
+agentbox-secret-backup> test tests::the_archive_is_owner_only_on_disk ... FAILED
+agentbox-secret-backup> test tests::a_wrong_passphrase_fails_rather_than_returning_rubbish ... FAILED
+agentbox-secret-backup> test tests::synthetic_backup_restores_byte_for_byte ... FAILED
+agentbox-secret-backup> 
+agentbox-secret-backup> failures:
+agentbox-secret-backup> 
+agentbox-secret-backup> ---- tests::templates_and_vendored_trees_are_excluded stdout ----
+agentbox-secret-backup> 
+agentbox-secret-backup> thread 'tests::templates_and_vendored_trees_are_excluded' (3167) panicked at src/main.rs:490:9:
+agentbox-secret-backup> assertion `left == right` failed
+agentbox-secret-backup>   left: []
+agentbox-secret-backup>  right: [".env"]
+agentbox-secret-backup> 
+agentbox-secret-backup> ---- tests::a_recipient_encrypted_archive_needs_an_identity stdout ----
+agentbox-secret-backup> 
+agentbox-secret-backup> thread 'tests::a_recipient_encrypted_archive_needs_an_identity' (3162) panicked at src/main.rs:529:75:
+agentbox-secret-backup> called `Result::unwrap()` on an `Err` value: no secret-class files found under /build/.tmpnfuq6F/t
+agentbox-secret-backup> note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+agentbox-secret-backup> 
+agentbox-secret-backup> ---- tests::the_archive_is_owner_only_on_disk stdout ----
+agentbox-secret-backup> 
+agentbox-secret-backup> thread 'tests::the_archive_is_owner_only_on_disk' (3168) panicked at src/main.rs:557:60:
+agentbox-secret-backup> called `Result::unwrap()` on an `Err` value: no secret-class files found under /build/.tmpZ4UlGP/t
+agentbox-secret-backup> 
+agentbox-secret-backup> ---- tests::a_wrong_passphrase_fails_rather_than_returning_rubbish stdout ----
+agentbox-secret-backup> 
+agentbox-secret-backup> thread 'tests::a_wrong_passphrase_fails_rather_than_returning_rubbish' (3163) panicked at src/main.rs:513:59:
+agentbox-secret-backup> called `Result::unwrap()` on an `Err` value: no secret-class files found under /build/.tmpVLtkOu/t
+agentbox-secret-backup> 
+agentbox-secret-backup> ---- tests::synthetic_backup_restores_byte_for_byte stdout ----
+agentbox-secret-backup> 
+agentbox-secret-backup> thread 'tests::synthetic_backup_restores_byte_for_byte' (3166) panicked at src/main.rs:461:35:
+agentbox-secret-backup> synthetic round trip: no secret-class files found under /build/.tmpCZQ6fl/tree
+agentbox-secret-backup> 
+agentbox-secret-backup> 
+agentbox-secret-backup> failures:
+agentbox-secret-backup>     tests::a_recipient_encrypted_archive_needs_an_identity
+agentbox-secret-backup>     tests::a_wrong_passphrase_fails_rather_than_returning_rubbish
+agentbox-secret-backup>     tests::synthetic_backup_restores_byte_for_byte
+agentbox-secret-backup>     tests::templates_and_vendored_trees_are_excluded
+agentbox-secret-backup>     tests::the_archive_is_owner_only_on_disk
+agentbox-secret-backup> 
+agentbox-secret-backup> test result: FAILED. 2 passed; 5 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.10s
+agentbox-secret-backup> 
+agentbox-secret-backup> error: test failed, to rerun pass `--bin agentbox-secret-backup`
+error: Cannot build '/nix/store/x7llcc67936xwjn8bdnj06q7lhw2g6hh-agentbox-secret-backup-0.1.0.drv'.
+       Reason: builder failed with exit code 101.
+       Output paths:
+         /nix/store/p70hww1i676k468d1zk7jj18aslx8rv8-agentbox-secret-backup-0.1.0
+       Last 25 log lines:
+       >
+       > thread 'tests::the_archive_is_owner_only_on_disk' (3168) panicked at src/main.rs:557:60:
+       > called `Result::unwrap()` on an `Err` value: no secret-class files found under /build/.tmpZ4UlGP/t
+       >
+       > ---- tests::a_wrong_passphrase_fails_rather_than_returning_rubbish stdout ----
+       >
+       > thread 'tests::a_wrong_passphrase_fails_rather_than_returning_rubbish' (3163) panicked at src/main.rs:513:59:
+       > called `Result::unwrap()` on an `Err` value: no secret-class files found under /build/.tmpVLtkOu/t
+       >
+       > ---- tests::synthetic_backup_restores_byte_for_byte stdout ----
+       >
+       > thread 'tests::synthetic_backup_restores_byte_for_byte' (3166) panicked at src/main.rs:461:35:
+       > synthetic round trip: no secret-class files found under /build/.tmpCZQ6fl/tree
+       >
+       >
+       > failures:
+       >     tests::a_recipient_encrypted_archive_needs_an_identity
+       >     tests::a_wrong_passphrase_fails_rather_than_returning_rubbish
+       >     tests::synthetic_backup_restores_byte_for_byte
+       >     tests::templates_and_vendored_trees_are_excluded
+       >     tests::the_archive_is_owner_only_on_disk
+       >
+       > test result: FAILED. 2 passed; 5 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.10s
+       >
+       > error: test failed, to rerun pass `--bin agentbox-secret-backup`
+       For full logs, run:
+         nix-store -l /nix/store/x7llcc67936xwjn8bdnj06q7lhw2g6hh-agentbox-secret-backup-0.1.0.drv

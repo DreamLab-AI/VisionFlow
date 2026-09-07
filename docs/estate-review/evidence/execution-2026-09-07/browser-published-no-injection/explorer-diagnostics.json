@@ -1,0 +1,86 @@
+{
+  "at": "2026-09-07T13:03:24.923Z",
+  "requestedMobileWidth": 375,
+  "before": {
+    "inputs": [
+      {
+        "html": "<input placeholder=\"Search concepts, definitions, relations…\" aria-label=\"Search the corpus\" autocomplete=\"off\" type=\"search\" value=\"\">",
+        "parent": "<div class=\"ng-searchbox\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"10.5\" cy=\"10.5\" r=\"6\"></circle><path d=\"m20 20-5.2-5.2\"></path></svg><input placeholder=\"Search concepts, definitions, relations…\" aria-label=\"Search the corpus\" autocomplete=\"off\" type=\"search\" value=\"\"><button type=\"submit\" class=\"ng-btn ng-btn--primary ng-btn--sm\">Search <svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M5 12h14m-6-6 6 6-6 6\"></path></svg></button></div>"
+      }
+    ],
+    "links": [
+      {
+        "text": " Explore the graph",
+        "href": "https://narrativegoldmine.com/graph"
+      }
+    ]
+  },
+  "search": true,
+  "after": {
+    "url": "https://narrativegoldmine.com/",
+    "results": [
+      {
+        "id": "",
+        "class": "ng-hero__search",
+        "text": "Search"
+      },
+      {
+        "id": "",
+        "class": "ng-searchbox",
+        "text": "Search"
+      }
+    ]
+  },
+  "mobile": {
+    "innerWidth": 502,
+    "screenWidth": 375,
+    "clientWidth": 375,
+    "scrollWidth": 502,
+    "visualViewport": {
+      "width": 502,
+      "scale": 0.7470119595527649
+    },
+    "meta": [
+      "width=device-width, initial-scale=1.0"
+    ],
+    "offenders": [
+      {
+        "tag": "BUTTON",
+        "class": "ng-btn ng-btn--primary ng-btn--sm",
+        "right": 414.75,
+        "width": 89.75
+      },
+      {
+        "tag": "svg",
+        "class": {},
+        "right": 401.75,
+        "width": 15
+      },
+      {
+        "tag": "path",
+        "class": {},
+        "right": 398.625,
+        "width": 8.75
+      },
+      {
+        "tag": "P",
+        "class": "ng-hero__prov",
+        "right": 501.890625,
+        "width": 477.890625
+      },
+      {
+        "tag": "CODE",
+        "class": "",
+        "right": 399.859375,
+        "width": 64.8125
+      },
+      {
+        "tag": "PROTONPASS-ROOT-E9E0",
+        "class": "",
+        "right": 502,
+        "width": 502
+      }
+    ]
+  },
+  "cssInjection": false
+}

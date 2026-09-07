@@ -1,0 +1,49 @@
+[1mScanning[0m /home/devuser/workspace/VisionFlow for project [1mVisionFlow[0m
+[2m  Discovering files… 1/34[0m
+[2m  Discovering files… 34/34[0m
+[2m  Running matchers…[0m
+[2m  Progress 1/74 matchers — 0 hits so far[0m
+[2m  Progress 19/74 matchers — 169 hits so far[0m
+[2m  Progress 37/74 matchers — 218 hits so far[0m
+[2m  Progress 56/74 matchers — 243 hits so far[0m
+[2m  Progress 74/74 matchers — 302 hits so far[0m
+[2m  Progress 74/74 matchers — 302 hits so far[0m
+
+[1mDetected tech[0m
+  github-actions, node
+  [2m74/198 matchers active[0m [2m(124 dormant — your repo doesn't use those frameworks)[0m
+
+[1mCoverage by language[0m
+  python      41 files     38 hits      92.7%
+  javascript  24 files     14 hits      58.3%
+  rust        1 files      0 hits       0.00%
+
+[1mMatchers that fired[0m
+  secrets-exposure                     [2m139 matches[0m
+  crypto-usage                         [2m47 matches[0m
+  secret-in-log                        [2m45 matches[0m
+  non-atomic-read-delete               [2m21 matches[0m
+  dangerous-html                       [2m13 matches[0m
+  github-workflow-security             [2m9 matches[0m
+  xss                                  [2m7 matches[0m
+  insecure-crypto                      [2m6 matches[0m
+  url-regex-validation                 [2m3 matches[0m
+  process-env-access                   [2m2 matches[0m
+  untrusted-redirect-following         [2m2 matches[0m
+  rce                                  [2m1 match[0m
+  [2m… and 7 more matcher(s) with hits[0m
+
+[1mTop files by candidate count[0m
+  scripts/diagram-render/vendor/mermaid.min.js             [2m86 hits (xss, rce, ssrf, insecure-crypto, …)[0m
+  website/static/js/main.js                                [2m10 hits (xss, insecure-crypto, dangerous-html)[0m
+  website/static/js/mesh-webgl.js                          [2m3 hits (xss, insecure-crypto, dangerous-html)[0m
+  playwright.config.js                                     [2m3 hits (insecure-crypto, process-env-access)[0m
+  scripts/check-diagram-text.js                            [2m2 hits (xss, insecure-crypto)[0m
+
+[32mScan complete[0m [2min 5.9s[0m [2m—[0m [1m202[0m file(s) with candidates, [1m302[0m total matches
+[2mRun ID: 20260907113503-1fb94a3d1c035fc2[0m
+
+[1mNext[0m
+  [36mpnpm deepsec process --project-id VisionFlow[0m
+  [2mLarge candidate set — consider --only-slugs or --filter <path> to focus the AI run[0m
+deepsec-gate: SCANNED — 0 finding(s) {'CRITICAL': 0, 'HIGH': 0, 'MEDIUM': 0, 'HIGH_BUG': 0, 'BUG': 0, 'LOW': 0}, 0 at/above HIGH; candidates=292; receipt /home/devuser/workspace/VisionFlow/docs/estate-review/evidence/execution-2026-09-07/security-candidates/receipt.json

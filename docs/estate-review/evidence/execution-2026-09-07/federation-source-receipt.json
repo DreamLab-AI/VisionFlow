@@ -1,0 +1,244 @@
+{
+  "date": "2026-09-07",
+  "scope": "working-tree source; HEAD alone does not identify edited bytes",
+  "files": [
+    {
+      "repository": "visionGraph",
+      "head": "e2f0bae3cf45e2a5712795d2e00ac807f305dcb7",
+      "path": "pipeline/build.py",
+      "sha256": "47205c160caf9549cfb5bf2210ca495f505c5dfa58be537675d67739474eb4b8",
+      "bytes": 5985
+    },
+    {
+      "repository": "visionGraph",
+      "head": "e2f0bae3cf45e2a5712795d2e00ac807f305dcb7",
+      "path": "pipeline/public_projection.py",
+      "sha256": "fc4ae312c6467237797edadb3d47712f15eef3e0664454b8ac6d092bd9697404",
+      "bytes": 10276
+    },
+    {
+      "repository": "visionGraph",
+      "head": "e2f0bae3cf45e2a5712795d2e00ac807f305dcb7",
+      "path": "pipeline/tests/test_public_build_boundary.py",
+      "sha256": "e373944fd4531c6d477d7a96adc14b18ed1b0d70e946ed83596ff3eabd57542c",
+      "bytes": 5602
+    },
+    {
+      "repository": "visionGraph",
+      "head": "e2f0bae3cf45e2a5712795d2e00ac807f305dcb7",
+      "path": "pipeline/patch_notes_export.py",
+      "sha256": "10e4fd00f5d068297c9235119f5137b8e5f940278a3485ad49cc7d0f4e007246",
+      "bytes": 786
+    },
+    {
+      "repository": "visionGraph",
+      "head": "e2f0bae3cf45e2a5712795d2e00ac807f305dcb7",
+      "path": "pipeline/tests/test_notes_export.py",
+      "sha256": "a0aeb5b52d3e8700c10e186fa43a62cc68f82d65446faf9e2e8a3eec08cf9d6c",
+      "bytes": 831
+    },
+    {
+      "repository": "visionGraph",
+      "head": "e2f0bae3cf45e2a5712795d2e00ac807f305dcb7",
+      "path": "pipeline/tests/test_vault_layout.py",
+      "sha256": "76bae880ad7c1c8e91880f4018b22de34f8b34ed8cfc27e3018cc9cb2c5cc4f4",
+      "bytes": 6503
+    },
+    {
+      "repository": "visionGraph",
+      "head": "e2f0bae3cf45e2a5712795d2e00ac807f305dcb7",
+      "path": "publishing-tools/notes-mobile.css",
+      "sha256": "d4a7112c219e11554e18e8503b906cd6ca3b2e6afb60d34bad9a568b694f1f29",
+      "bytes": 765
+    },
+    {
+      "repository": "visionGraph",
+      "head": "e2f0bae3cf45e2a5712795d2e00ac807f305dcb7",
+      "path": ".github/workflows/publish.yml",
+      "sha256": "f8ffe69967874bf48d928ff9701a0e3a69b7aab45f0ba6fa4d9869c65f1d72ba",
+      "bytes": 12186
+    },
+    {
+      "repository": "visionGraph",
+      "head": "e2f0bae3cf45e2a5712795d2e00ac807f305dcb7",
+      "path": "working/pages/Two Heads Are Better Than One.md",
+      "sha256": "a115931c525772959af2c31c548166bec52d13572ddf55a0ed7f7754fe34521c",
+      "bytes": 139
+    },
+    {
+      "repository": "visionGraph",
+      "head": "e2f0bae3cf45e2a5712795d2e00ac807f305dcb7",
+      "path": "working/assets/01-three-layer-mesh.mmd",
+      "sha256": "fcc47ea05cf463f55b114dcc961c9c3a960cec2b5958ab951e09ef34169a8032",
+      "bytes": 793
+    },
+    {
+      "repository": "visionGraph",
+      "head": "e2f0bae3cf45e2a5712795d2e00ac807f305dcb7",
+      "path": "working/assets/01-three-layer-mesh.png",
+      "sha256": "c5afaed780904c79bba31278a1277dd07bc81f76e6ffbbd365aad0161c78eeff",
+      "bytes": 151426
+    },
+    {
+      "repository": "visionGraph",
+      "head": "e2f0bae3cf45e2a5712795d2e00ac807f305dcb7",
+      "path": "working/assets/04-mcp-tools-radial.mmd",
+      "sha256": "7ce9efd8bad84ec9f2c2634e05cfd783f3950cce19bb21cc0d5d505ddf88c769",
+      "bytes": 549
+    },
+    {
+      "repository": "visionGraph",
+      "head": "e2f0bae3cf45e2a5712795d2e00ac807f305dcb7",
+      "path": "working/assets/04-mcp-tools-radial.png",
+      "sha256": "a03b3bdd486e683c1ff095fb1935db4e9a43e29af0123408b0cbf0d167121ed9",
+      "bytes": 37382
+    },
+    {
+      "repository": "visionGraph",
+      "head": "e2f0bae3cf45e2a5712795d2e00ac807f305dcb7",
+      "path": "working/assets/06-migration-event.mmd",
+      "sha256": "cf835263e8f629dc548ab8047a4d2c3307d04ea95ce2ec921c0d368ecfc3fe89",
+      "bytes": 533
+    },
+    {
+      "repository": "visionGraph",
+      "head": "e2f0bae3cf45e2a5712795d2e00ac807f305dcb7",
+      "path": "working/assets/06-migration-event.png",
+      "sha256": "339762576f3a0d65dae36b12dd7b3c27ccf8f4b5493574cf250fb88f88557ff8",
+      "bytes": 34759
+    },
+    {
+      "repository": "visionGraph",
+      "head": "e2f0bae3cf45e2a5712795d2e00ac807f305dcb7",
+      "path": "working/assets/07-dual-tier-identity.mmd",
+      "sha256": "95b52ebc4d512f579077f63f8de488d4ae725b95865f97de513ebb02e92fe905",
+      "bytes": 654
+    },
+    {
+      "repository": "visionGraph",
+      "head": "e2f0bae3cf45e2a5712795d2e00ac807f305dcb7",
+      "path": "working/assets/07-dual-tier-identity.png",
+      "sha256": "156441e0919ac51bf855ae73a7e6cb5709c2edeb268848c88b5f247d0be80ec1",
+      "bytes": 102043
+    },
+    {
+      "repository": "knowledgeGraph",
+      "head": "2791111fc4ae301fdc5843ed2ad88b2e67d643fb",
+      "path": "pipeline/build.py",
+      "sha256": "955ed8c0350bf6bb661eb40ba61718663cab408cc34491d684a23c3b22170e34",
+      "bytes": 11244
+    },
+    {
+      "repository": "knowledgeGraph",
+      "head": "2791111fc4ae301fdc5843ed2ad88b2e67d643fb",
+      "path": "pipeline/public_projection.py",
+      "sha256": "fc4ae312c6467237797edadb3d47712f15eef3e0664454b8ac6d092bd9697404",
+      "bytes": 10276
+    },
+    {
+      "repository": "knowledgeGraph",
+      "head": "2791111fc4ae301fdc5843ed2ad88b2e67d643fb",
+      "path": "pipeline/census.py",
+      "sha256": "e14bfc528823101f6a4d45407ac45bdcd436bbc9798448a383e2713e0f7454da",
+      "bytes": 6036
+    },
+    {
+      "repository": "knowledgeGraph",
+      "head": "2791111fc4ae301fdc5843ed2ad88b2e67d643fb",
+      "path": "pipeline/tests/test_public_build_boundary.py",
+      "sha256": "e373944fd4531c6d477d7a96adc14b18ed1b0d70e946ed83596ff3eabd57542c",
+      "bytes": 5602
+    },
+    {
+      "repository": "knowledgeGraph",
+      "head": "2791111fc4ae301fdc5843ed2ad88b2e67d643fb",
+      "path": "pipeline/tests/test_release_gate.py",
+      "sha256": "bc4a6212a1b344df123daada0f99a287af64312c060b2721275b02b73afd33db",
+      "bytes": 8543
+    },
+    {
+      "repository": "knowledgeGraph",
+      "head": "2791111fc4ae301fdc5843ed2ad88b2e67d643fb",
+      "path": "pipeline/tests/test_census.py",
+      "sha256": "608e00004a71fc8e4cffb260f5838b035d7049e18aeb00450a1c6154cf32e9e7",
+      "bytes": 4909
+    },
+    {
+      "repository": "knowledgeGraph",
+      "head": "2791111fc4ae301fdc5843ed2ad88b2e67d643fb",
+      "path": "pipeline/tests/test_publication_flags.py",
+      "sha256": "0d50408e594e3d081f8308a251de853823db733d9a4887165327d5da26775df1",
+      "bytes": 4191
+    },
+    {
+      "repository": "knowledgeGraph",
+      "head": "2791111fc4ae301fdc5843ed2ad88b2e67d643fb",
+      "path": "pipeline/tests/test_visibility.py",
+      "sha256": "669d3dfc7b42629f14d2e28d32ddd7644606536c35f2fdee40a12f5e53aee250",
+      "bytes": 8528
+    },
+    {
+      "repository": "nostr-rust-forum",
+      "head": "4f96f54ddecfd45a2a0684a3c04909690b5e2e17",
+      "path": "crates/nostr-bbs-relay-worker/src/trust_sweep.rs",
+      "sha256": "3cc06b790b2d1ee0423641f52940c2fcebf29edb1d10332c7da74b3574a9aebc",
+      "bytes": 42642
+    },
+    {
+      "repository": "nostr-rust-forum",
+      "head": "4f96f54ddecfd45a2a0684a3c04909690b5e2e17",
+      "path": "crates/nostr-bbs-relay-worker/src/relay_do/receipts.rs",
+      "sha256": "1ad258fa8a1a9f249af2185d205c553fe942c4ef7cc4aa6e4fc7dd39de719188",
+      "bytes": 49143
+    },
+    {
+      "repository": "nostr-rust-forum",
+      "head": "4f96f54ddecfd45a2a0684a3c04909690b5e2e17",
+      "path": "crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs",
+      "sha256": "3b855d37a3025fb08b7e235b488fec93b49e436ff38599a9c059e46a02e3c3b7",
+      "bytes": 131132
+    },
+    {
+      "repository": "nostr-rust-forum",
+      "head": "4f96f54ddecfd45a2a0684a3c04909690b5e2e17",
+      "path": "scripts/tests/test_trust_transaction.py",
+      "sha256": "29ffc3a5daa12c4214a32de087df22fe024d79378744e45f9a0215ee14e97e3a",
+      "bytes": 3472
+    },
+    {
+      "repository": "nostr-rust-forum",
+      "head": "4f96f54ddecfd45a2a0684a3c04909690b5e2e17",
+      "path": "scripts/tests/test_governance_transaction.py",
+      "sha256": "665364f3665dc307496fc594d2fc1b132a7f24763145c79aac3ebbab62d0b4d6",
+      "bytes": 3442
+    },
+    {
+      "repository": "nostr-rust-forum",
+      "head": "4f96f54ddecfd45a2a0684a3c04909690b5e2e17",
+      "path": "scripts/tests/test_dream_config.py",
+      "sha256": "cd175e0f793b5440ea74f1939acb2ebfac82437ebe62bdb66474b9102005d030",
+      "bytes": 1025
+    },
+    {
+      "repository": "nostr-rust-forum",
+      "head": "4f96f54ddecfd45a2a0684a3c04909690b5e2e17",
+      "path": "dream.config.json",
+      "sha256": "ebf706ee4c307221ddae73f6863e17ad9a8c8cff8aad0c04785359e1d0ce0b6e",
+      "bytes": 1854
+    },
+    {
+      "repository": "visionGraph",
+      "path": "pipeline/jsonld_to_page_api.py",
+      "head": "e2f0bae3cf45e2a5712795d2e00ac807f305dcb7",
+      "sha256": "d032bd8fdd3cb92aaec4c6973c4a4d05dfccdc6bcac384e1848d18a282bf73cc",
+      "bytes": 5553
+    },
+    {
+      "repository": "knowledgeGraph",
+      "path": ".github/workflows/build.yml",
+      "head": "2791111fc4ae301fdc5843ed2ad88b2e67d643fb",
+      "sha256": "cbf71c6b8134b7b01dce4c129319d9802927210a38cc09e20dd3fb0e2d21637a",
+      "bytes": 14083
+    }
+  ]
+}

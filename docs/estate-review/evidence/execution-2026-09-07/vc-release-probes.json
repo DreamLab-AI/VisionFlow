@@ -1,0 +1,20 @@
+{
+  "artifact": "/home/devuser/workspace/project/target/release/visionclaw-server",
+  "sha256": "4e403c8a929a5311c1c10ff6f575528f8100708f1174036e25b18064bae0725b",
+  "buildCommand": "cargo build --locked --offline --release --bin visionclaw-server",
+  "contains_dev_session_literal": false,
+  "probes": [
+    {
+      "variable": "SETTINGS_AUTH_BYPASS",
+      "value": "0",
+      "exit": 2,
+      "stderr": "FATAL: dev env var 'SETTINGS_AUTH_BYPASS' set in release build. Refusing to start (ADR-06 \u00a7D11).\nThese env vars cannot enable bypass (release binary has no corresponding codepath) but their presence indicates a dev configuration was promoted to production. Remove them and retry.\n"
+    },
+    {
+      "variable": "ALLOW_INSECURE_DEFAULTS",
+      "value": "0",
+      "exit": 2,
+      "stderr": "FATAL: dev env var 'ALLOW_INSECURE_DEFAULTS' set in release build. Refusing to start (ADR-06 \u00a7D11).\nThese env vars cannot enable bypass (release binary has no corresponding codepath) but their presence indicates a dev configuration was promoted to production. Remove them and retry.\n"
+    }
+  ]
+}

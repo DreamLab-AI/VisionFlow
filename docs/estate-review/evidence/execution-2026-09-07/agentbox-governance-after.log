@@ -1,0 +1,136 @@
+TAP version 13
+# Subtest: attributed approval that commits reports success + writeback_committed
+ok 1 - attributed approval that commits reports success + writeback_committed
+  ---
+  duration_ms: 138.349895
+  type: 'test'
+  ...
+# Subtest: attributed approval that does NOT commit returns 502 writeback-not-committed
+ok 2 - attributed approval that does NOT commit returns 502 writeback-not-committed
+  ---
+  duration_ms: 82.06768
+  type: 'test'
+  ...
+# Subtest: broker_pubkey propagates the real deciding pubkey, never the literal "unknown"
+ok 3 - broker_pubkey propagates the real deciding pubkey, never the literal "unknown"
+  ---
+  duration_ms: 62.428607
+  type: 'test'
+  ...
+# Subtest: non-writeback decision (reject) reports honest not-committed state
+ok 4 - non-writeback decision (reject) reports honest not-committed state
+  ---
+  duration_ms: 32.757192
+  type: 'test'
+  ...
+# Subtest: AUTHORITY: an approved write-back decision RELEASES on a verified 31403 and stamps the class
+ok 5 - AUTHORITY: an approved write-back decision RELEASES on a verified 31403 and stamps the class
+  ---
+  duration_ms: 64.359074
+  type: 'test'
+  ...
+# Subtest: AUTHORITY: a write-back decision with NO signed decision (timeout) is DENIED 403 and never proxied
+ok 6 - AUTHORITY: a write-back decision with NO signed decision (timeout) is DENIED 403 and never proxied
+  ---
+  duration_ms: 29.149595
+  type: 'test'
+  ...
+# Subtest: AUTHORITY: a REJECTED signed decision (31403 outcome=reject) DENIES the write-back 403
+ok 7 - AUTHORITY: a REJECTED signed decision (31403 outcome=reject) DENIES the write-back 403
+  ---
+  duration_ms: 26.375525
+  type: 'test'
+  ...
+# Subtest: AUTHORITY: a recoverable decision (reject) passes UNGATED even with no decision surface
+ok 8 - AUTHORITY: a recoverable decision (reject) passes UNGATED even with no decision surface
+  ---
+  duration_ms: 24.455013
+  type: 'test'
+  ...
+# Subtest: WAITER: notify() with a matching 31403 resolves an awaitDecision by request e-tag
+ok 9 - WAITER: notify() with a matching 31403 resolves an awaitDecision by request e-tag
+  ---
+  duration_ms: 1.245071
+  type: 'test'
+  ...
+# Subtest: WAITER: matching case_id cannot release without the exact signed-request e-tag
+ok 10 - WAITER: matching case_id cannot release without the exact signed-request e-tag
+  ---
+  duration_ms: 31.155446
+  type: 'test'
+  ...
+# Subtest: WAITER: an unrelated 31403 does not resolve a pending waiter
+ok 11 - WAITER: an unrelated 31403 does not resolve a pending waiter
+  ---
+  duration_ms: 30.359842
+  type: 'test'
+  ...
+# Subtest: EA04: repeated signed approval never repeats the committed upstream operation
+ok 12 - EA04: repeated signed approval never repeats the committed upstream operation
+  ---
+  duration_ms: 121.962192
+  type: 'test'
+  ...
+# Subtest: committed acknowledgement produces a persistent applied receipt and replay is read-only
+ok 13 - committed acknowledgement produces a persistent applied receipt and replay is read-only
+  ---
+  duration_ms: 34.609319
+  type: 'test'
+  ...
+# Subtest: crash after received claim requires reconciliation after restart
+ok 14 - crash after received claim requires reconciliation after restart
+  ---
+  duration_ms: 8.211133
+  type: 'test'
+  ...
+# Subtest: mismatched payload or request cannot reuse an approval
+ok 15 - mismatched payload or request cannot reuse an approval
+  ---
+  duration_ms: 20.670867
+  type: 'test'
+  ...
+# Subtest: refusal and unknown outcome can never become applied without committed acknowledgement
+ok 16 - refusal and unknown outcome can never become applied without committed acknowledgement
+  ---
+  duration_ms: 39.686832
+  type: 'test'
+  ...
+# Subtest: receipt storage failure prevents an operation claim
+ok 17 - receipt storage failure prevents an operation claim
+  ---
+  duration_ms: 1.306166
+  type: 'test'
+  ...
+# Subtest: only an exact unambiguous request reference can release its operation
+ok 18 - only an exact unambiguous request reference can release its operation
+  ---
+  duration_ms: 1.241897
+  type: 'test'
+  ...
+# Subtest: two operations sharing a panel never consume each others approval
+ok 19 - two operations sharing a panel never consume each others approval
+  ---
+  duration_ms: 40.653044
+  type: 'test'
+  ...
+# Subtest: operation digest is stable across object order and sensitive to mutation
+ok 20 - operation digest is stable across object order and sensitive to mutation
+  ---
+  duration_ms: 1.127252
+  type: 'test'
+  ...
+# Subtest: gate signs the concrete operation and refuses changed publisher content
+ok 21 - gate signs the concrete operation and refuses changed publisher content
+  ---
+  duration_ms: 2.123424
+  type: 'test'
+  ...
+1..21
+# tests 21
+# suites 0
+# pass 21
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 874.802097

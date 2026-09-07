@@ -87,3 +87,9 @@ added as dated evidence.
 The [2026-09-07 estate audit](../estate-review/2026-09-07-estate-audit.md), [workspace/ADR census](../estate-review/evidence/2026-09-07/estate-inventory.md) and [closeout sprint](../estate-review/closeout/2026-09-07-sprint.md) extend this programme. The row-level board remains VisionClaw `docs/TODO-unified.md`; this canon owns cross-repository dependencies and acceptance evidence, not a duplicate completion counter.
 
 Every claim must name its repository, record/path, source revision plus dirty-tree source hashes, evidence class, and acceptance boundary. Bare ADR numbers and a green index are insufficient. Historic/imported records retain lineage and consumer scope; unadopted decisions do not become estate implementation promises through inventory membership. The sprint prioritises public-data exclusion, generation publication, truthful transactional receipts, custody, consumer identity and runtime verification. No proposal is ratified, no feature is declared deployed and no implementation gap is closed merely by this audit. Retain proposed/partial/staged.
+
+## Closeout execution — 2026-09-07
+
+The [execution report](../estate-review/2026-09-07-estate-closeout-execution.md) links tested production repairs, the 61-item master reconciliation, source-hashed ADR graph, current diagram checks and real-browser receipts. It distinguishes closed source obligations from live activation and explicit excluded profiles. RuView is excluded by user instruction. Actual release and GPU checks are recorded alongside original failures; the seven-surface public/candidate browser run is not the six complete system journeys.
+
+Retain proposed/partial/staged for this coordinating roadmap. The remaining custody, credential, runtime identity, device, elapsed observation and historical disposition problems are carried in the master register. Source closure cannot erase them or turn a held profile on.

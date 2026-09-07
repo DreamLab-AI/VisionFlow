@@ -1,0 +1,47 @@
+# Canon, workflow and browser closeout execution — 2026-09-07
+
+This is implementation/verification evidence after the source audit, not a replacement for the dated audit snapshot. The master TODO remains the single current board. Other editors' existing changes are preserved.
+
+| Item | Result | Evidence or remaining problem |
+|---|---|---|
+| G-15 | Closed: status policy explicit | `docs/architecture/adr-status-contract.md` defines independent decision/implementation/activation axes, evidence requirements and lineage versus supersession; linked by VF/VC/AB ledger preambles. Existing enum validation passes. No invented ratification or deployment. |
+| G-18 | Implemented; current-source reconciliation pending | `--strict-citations` rejects diagnostics and refuses `--no-source-paths`. Regression tests cover bad/passing citations, bypass rejection and repository-qualified ADR identity; hosted diagram workflow runs those tests. Actual source references must be re-anchored after implementation changes. Source hashes and claim-level audit remain necessary. |
+| G-21 | Closed: stale premise | GitHub reports all six named dependency PRs merged. `dream-prs.json` preserves states/dates; the unrelated new dream PR #11 is not part of this dependency task. |
+| G-22 | Source closure, hosted acceptance separate | 299 external `uses:` references resolve to full commit hashes across the declared checkout workflows; all YAML parses. `action-pins.json` records each old ref/resolved SHA. The nonexistent Trivy ref `0.28.0` was corrected to actual `v0.28.0`, then pinned. No upstream action version was otherwise upgraded. |
+| G-23 | Blocked: scoped credential absent | GitHub secret-name listing is empty. No fine-grained token scoped to private visionGraph has been supplied. The interactive GitHub credential is not copied into CI. Owner must provision the specified read-only credential; keep unreadable explicit. |
+| G-26 | Closed in candidate; publication verification pending | Scroll reveal uses intersection threshold 0, preserving the bottom margin and one-time reveal. Real Chrome exercises all revealed sections, reading-level toggle and a 15,000px tall regression fixture. GPU/reduced-motion/no-WebGL suite passes 26/26. |
+| G-27 | Closed in source | Dream Engine CLI Node minimum now 20, matching root policy and CI 20/22/24; workspace lock entries aligned. Ledger/CLI focused suite passes 94 tests. No package publication claimed. |
+| G-28 | Closed: stale premise | Current Dream Engine ledger has no dirty edit; the real-ledger contract and selected CLI tests pass94/94. Prior failure remains historical evidence. No ledger finding rewritten unnecessarily. |
+| C-11 | Closed: retain valuable history | The three named remote research branches still resolve. Retain them for provenance; this task does not require destructive branch deletion. `retained-branches.txt` records identities. |
+| EA-07 | Excluded from this closeout | User explicitly directed skipping RuView. Programmable sensing is not adopted or enabled by this execution. Reported signature/preemption defects remain unresolved upstream; exclusion is not a security fix. |
+| E-1 | Blocked: service absent | Current container roster contains no ComfyUI service. Do not declare integration acceptance without the intended GPU service/profile. |
+| G-14 | Closed: graph and current routing reconciled | The source-hashed graph resolves 224 in-scope operative nodes and 322 typed edges, with zero unresolved references; 45 RuView records remain excluded. [Historical disposition annex](2026-09-07-historical-disposition-annex.md) routes the requested compound sections to current authority and concrete feature acceptance triggers. ADR-2001 makes migration incremental and supersession opt-in: empty lists were not missing replacements. No frozen proposal was retrospectively ratified or retired. |
+| G-19 | Closed: Loom hosted CI verified | Rust contracts [run 34121825633](https://github.com/DreamLab-AI/loom/actions/runs/34121825633) passes at `397b86c0124e2f4ece40b9db46352179730c2c46`: exact fork guard, owned-workspace format, locked workspace tests and reload tests. The earlier format-scope failure is retained. [Receipt](execution-2026-09-07/loom-hosted-success.json); EA-05 activation remains separate. |
+| G-25 | Closed: Agentbox hosted contracts verified | Contract tests [run 34120897048](https://github.com/DreamLab-AI/agentbox/actions/runs/34120897048) passes at `7bf2382c031d696b0b2f5eb466f7e6615c88cc2c`; local selection has 29 suites, 580 passing tests and 34 TODOs. CI, Security Invariants and Secret Scan subsequently pass at `be0fc078a`, after the documented ADR-anchor correction. [Receipt](execution-2026-09-07/agentbox-hosted-after-adr-refresh.json). This does not certify every workflow. |
+
+## Browser boundary
+
+Real Chrome runs on browsercontainer CDP 9223; the documented 9222 endpoint is not reachable in this container. `scripts/estate-browser-journeys.mjs` creates and closes only its own tabs. It checks the local candidate, published canon, ontology explorer, historical notes, commercial site, forum entry and Dream Engine site. Public checks do not submit messages, enrol identities or modify user data. Screenshots, console exceptions, viewport measurements and per-check outcomes are recorded.
+
+The initial 3s `/notes/` and forum checks were insufficient for loading. The longer readiness poll loads both; the then-published notes mobile overflow was reproducible (406px document at 375px viewport). Preserve the initial observations and the corrected interpretation. A passing public page is not an authenticated federation or headset journey.
+
+Evidence: [execution directory](../evidence/execution-2026-09-07/), [browser receipt](../evidence/execution-2026-09-07/browser-journeys/receipt.json), [readiness recheck](../evidence/execution-2026-09-07/browser-recheck/receipt.json), [GPU/fallback candidate receipt](../evidence/execution-2026-09-07/visionflow-browser/website-browser-receipt.json).
+
+## Final browser candidate result
+
+The [final seven-surface receipt](../evidence/execution-2026-09-07/browser-final/receipt.json) passes every recorded check. The notes result includes the final source-hashed stylesheet injected into the public export: it proves the candidate correction, not deployment. The local canon candidate also passes all reveal sections, the reading toggle, and the 15,000px regression fixture. Explorer search returns real results. All seven surfaces fit the 375px viewport and report no uncaught exceptions in these journeys. Earlier failing candidate receipts are retained.
+
+The optional DeepSec regex scan completed and produced candidates, including vendored and unchanged code. It is a scan-only result, not a passed vulnerability assessment; the emitted zero adjudicated findings means no investigation ran. The source changes received targeted diff review and contract tests. See [scan receipt](../evidence/execution-2026-09-07/security-candidates/receipt.json).
+
+## WasmVOWL remote integration
+
+The initial push found non-fast-forward remote history: `b359aa0` had already extracted the vendored engine and added position accessors. Merge `51a1484` preserves that remote implementation, local hygiene/rebranding history and the scoped ADR. It was pushed normally to `master`; no force push was used. The standalone manifest consumes the integrity-locked v0.1.1 release archive, separately from the publisher pins.
+
+Fresh validation of the merged variant reproduces **19 passing / 60 failing frontend tests** and a TypeScript build failure. The [actual installed WASM probe](../evidence/execution-2026-09-07/wasmvowl-schema-probe.log) records the binary hash, rejects the hook's `nodes`/`edges` input and accepts `class`/`property` with one class. The standalone variant remains held; this is a concrete problem, not a successful integration claim. Historical local Rust counts apply to the removed vendored engine. [Tests](../evidence/execution-2026-09-07/wasmvowl-tests.log), [build](../evidence/execution-2026-09-07/wasmvowl-build.log), and the updated ES-90 diagram preserve the current boundary.
+
+
+## Published notes artifact verification
+
+A read-only HTTP recheck at **2026-09-07 12:58 UTC** returns 200 for the home page, `/notes/`, and `/notes/estate-mobile.css`. The published notes HTML links the override, and its served CSS SHA-256 `d4a7112c219e11554e18e8503b906cd6ca3b2e6afb60d34bad9a568b694f1f29` exactly matches the browser-tested candidate. The notes correction is therefore deployed as an artifact. This check does not rerun the viewport journey or claim a rebuild of the historical SPA. [HTTP receipt](../evidence/execution-2026-09-07/published-notes-recheck/receipt.json).
+
+VisionGraph publisher runs 34118956334 and 34118955405 succeed at `482ba593bcffddca7d564d0b6c4b1fea225154fb`. KnowledgeGraph Build and verify run 34119362502 succeeds at archive fix `d09a476124caa14aa0165c642d0950f6026c46fb`; Pages deployment run 34119895932 succeeds at publication commit `f02152765f559232f5fc15ffe22f189bad73c2b4`. [VisionGraph hosted receipt](../evidence/execution-2026-09-07/published-notes-recheck/visiongraph-hosted.json), [knowledgeGraph hosted receipt](../evidence/execution-2026-09-07/published-notes-recheck/knowledgegraph-hosted.json). Earlier failure and candidate-only evidence remain historical observations.

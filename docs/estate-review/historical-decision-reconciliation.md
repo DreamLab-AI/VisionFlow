@@ -7,6 +7,8 @@ type: explanation
 
 # Historical decisions and surviving obligations
 
+The [2026-09-07 disposition annex](closeout/2026-09-07-historical-disposition-annex.md) qualifies the older routing counts and consumer gaps below against current operative authority and source. Empty supersession lists are not missing decisions; the annex separates completed graph/routing work from named feature acceptance.
+
 An operative ADR can distil a narrow choice from a much larger historical programme. Its implementation status applies to that choice, not every commitment in its predecessors. Estate closeout therefore requires section-level disposition: carried into an operative decision, deliberately retired, deferred with an owner and trigger, or still awaiting assessment. A reference alone establishes none of those outcomes.
 
 ## VisionClaw routing coverage

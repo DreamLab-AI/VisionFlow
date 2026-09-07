@@ -1,0 +1,8 @@
+{
+  "repository": "ruvnet/ruflo",
+  "revision": "277c7bc03ad192eef6d6f57e59ab7bab69a5728d",
+  "path": "v3/docs/adr/ADR-148-fastgrnn-router-artifact-lifecycle.md",
+  "url": "https://github.com/ruvnet/ruflo/blob/277c7bc03ad192eef6d6f57e59ab7bab69a5728d/v3/docs/adr/ADR-148-fastgrnn-router-artifact-lifecycle.md",
+  "sha256": "5c420abee4755f479543aab6cf1826cc6cfd1d6eea900bc160419ddf9699ca68",
+  "scope": "Reference identity only; proposed upstream lifecycle decision, not estate activation evidence"
+}

@@ -1,0 +1,70 @@
+{
+  "ok": true,
+  "backend": "http://127.0.0.1:8085/v1",
+  "generation": {
+    "artifacts": [
+      {
+        "bytes": 1263084,
+        "name": "ontology-inferred.ttl",
+        "sha256": "e1edb4bc0db4996792cdd8ec89c70d624ef26a2281af0466b8dba9f7b49deef5"
+      },
+      {
+        "bytes": 13003123,
+        "name": "ontology.ttl",
+        "sha256": "8bf3ee3050f59272604ce5639abded0f479cd2b027dd8a890dc6b86b2c8bf109"
+      },
+      {
+        "bytes": 4330796,
+        "name": "prose-index.json",
+        "sha256": "686bfebeb527913637059aaf696d143e67e3a0881c46baccb040b65b948d4e09"
+      },
+      {
+        "bytes": 7901848,
+        "name": "scaffold-index.json",
+        "sha256": "3fc99ede34c79ad08360f215d2e0b23774e04e538858ce6c59c3170d04b4e936"
+      }
+    ],
+    "class_count": null,
+    "cluster_span_seconds": 6.464,
+    "commit_sha": null,
+    "generated_at": "2026-08-22T08:19:43.776950+00:00",
+    "id": "2026-08-22T08:19:43.776950+00:00",
+    "promoted_at": "2026-09-01T09:56:41.244829+00:00",
+    "source": "MirrorManifest",
+    "verified_single_generation": true
+  },
+  "semantic": {
+    "generation": {
+      "artifacts": [],
+      "class_count": 8146,
+      "cluster_span_seconds": null,
+      "commit_sha": null,
+      "generated_at": "2026-08-17T14:54:45Z",
+      "id": "2026-08-17T14:54:45Z",
+      "promoted_at": null,
+      "source": "MirrorManifest",
+      "verified_single_generation": true
+    },
+    "ready": true
+  },
+  "graph": {
+    "available": true,
+    "error": null,
+    "loaded_files": [
+      "ontology.ttl",
+      "ontology-inferred.ttl"
+    ],
+    "triples": 282492
+  },
+  "confidence": {
+    "window": 1000,
+    "requests": 187,
+    "engaged": 184,
+    "skipped": 3,
+    "scaled": 0,
+    "full": 11,
+    "verbatim": 173,
+    "mean_confidence": 0.983957219251337
+  },
+  "model": null
+}

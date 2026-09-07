@@ -1,0 +1,91 @@
+{
+  "date": "2026-09-07",
+  "scope": "read-only source and authority qualification; no new runtime tests",
+  "files": [
+    {
+      "path": "../project/docs/adr/ADR-2001-corpus-consolidation.md",
+      "sha256": "321f4ec95d6950ddf9faaf7bc26692b6aec499234613ba8b41d505d3b0b7e5d7",
+      "bytes": 3712
+    },
+    {
+      "path": "../project/agentbox/docs/adr/ADR-2001-corpus-consolidation.md",
+      "sha256": "fd3f57ab2d8a96088dba73741a8de493419c4c440e8141167896218ecd79c7b6",
+      "bytes": 7205
+    },
+    {
+      "path": "../project/docs/adr/PREAMBLE.md",
+      "sha256": "95859636795d62089d3ea2a8a6bbac8277014482f1d721710a6a7742a19ce770",
+      "bytes": 2618
+    },
+    {
+      "path": "../project/agentbox/docs/adr/PREAMBLE.md",
+      "sha256": "7ddf550c8531c87f41c46b0db8421457466bad3652a82d2e954b19b2bcefbd1b",
+      "bytes": 2125
+    },
+    {
+      "path": "../project/docs/archive/adr/ADR-130-gap-close-visionclaw-decisions.md",
+      "sha256": "52a88c5dc5a147741fb6b481b55611694b268b4979b47ee8ee2efa222d6d8877",
+      "bytes": 20448
+    },
+    {
+      "path": "../project/agentbox/docs/archive/adr/ADR-037-gap-close-agentbox-decisions.md",
+      "sha256": "c3e516b4f9b428fb4376fad194b0b0e8e59e26c00416f29773b62d3ff3f25025",
+      "bytes": 17051
+    },
+    {
+      "path": "../project/agentbox/docs/archive/adr/ADR-057-replayable-agent-execution-journal.md",
+      "sha256": "7edf36688bc4da08bba8d29f433f9dcf81548c720ebcc6541e62e0be0c152aed",
+      "bytes": 7905
+    },
+    {
+      "path": "../project/agentbox/docs/archive/adr/ADR-072-evaluator-before-schedule.md",
+      "sha256": "83bc412a394ed72b9c6ecb3f28dac1a1b92ce8d5133f85d93957c280a1c9544a",
+      "bytes": 2505
+    },
+    {
+      "path": "../project/agentbox/docs/adr/ADR-2071-journal-the-nightly-dream-cycle.md",
+      "sha256": "da580727c215c8d5042622f1aba69b6aa8adf9e790aec8119383bb2d15b86694",
+      "bytes": 6686
+    },
+    {
+      "path": "../project/agentbox/docs/adr/ADR-2024-dream-cycle-gating.md",
+      "sha256": "9c350ddcac159d865fb2b0fd44a2632d99e216e47495355f2a8e74edf0a917d2",
+      "bytes": 10627
+    },
+    {
+      "path": "../project/agentbox/services/dream-engine/src/engine.rs",
+      "sha256": "c0d1de4a5f609ce006fa7e7cdf914b0dccc45d1e5b15255009a7d49804ebf820",
+      "bytes": 70919
+    },
+    {
+      "path": "../project/agentbox/services/dream-engine/src/readiness.rs",
+      "sha256": "35fb695d1ec0cea449bc6a3bf31f710e5a6cd52610795ec23282804594d8a6c9",
+      "bytes": 14717
+    },
+    {
+      "path": "../project/agentbox/management-api/lib/action-plane.js",
+      "sha256": "9b2d92a638b7e9874e60335974031389e2b5e3db59ad2144011daa8b122b3b66",
+      "bytes": 14034
+    },
+    {
+      "path": "../project/agentbox/management-api/lib/execution-journal.js",
+      "sha256": "d7df480fb31f0c1307530be0964973011325a80f703f329fd627a363eb8767ba",
+      "bytes": 13631
+    },
+    {
+      "path": "../project/src/services/kpi_compute.rs",
+      "sha256": "7de3995807e0677d694fe2972aabaa9ddb5cd54bf5f3a7e17bb47f592f720bd4",
+      "bytes": 20995
+    },
+    {
+      "path": "../project/src/services/liveness_harness.rs",
+      "sha256": "1ad1401fffab76635a35f51f4ee3a7e5b2b0f103821572718d5763f637b52a1f",
+      "bytes": 21835
+    },
+    {
+      "path": "docs/estate-review/evidence/execution-2026-09-07/adr-graph.json",
+      "sha256": "e704e772aa1694ef822c2b5296831ff33f592695c7e946f5bae865fee841f953",
+      "bytes": 172800
+    }
+  ]
+}

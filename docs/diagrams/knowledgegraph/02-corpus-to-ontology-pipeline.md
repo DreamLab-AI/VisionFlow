@@ -23,7 +23,7 @@ sources:
   - ../knowledgeGraph/docs/BASELINE-narrativegoldmine.md
   - ../knowledgeGraph/README.md
   - ../knowledgeGraph/.github/workflows/build.yml
-verified_commit: worktree-2026-09-07
+verified_commit: {knowledgegraph: d09a476124caa14aa0165c642d0950f6026c46fb}
 ---
 
 ## KG-02.1 Canonical build — safety boundary before every exporter

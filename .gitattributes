@@ -1,3 +1,6 @@
 
 # Preserve byte-exact audit command output, including diagnostic whitespace.
 docs/estate-review/evidence/**/*.log -whitespace
+docs/estate-review/closeout/execution-2026-09-07/**/*.log -whitespace
+docs/estate-review/closeout/execution-2026-09-07/**/*.patch -whitespace
+docs/estate-review/evidence/execution-2026-09-07/**/*.patch -whitespace

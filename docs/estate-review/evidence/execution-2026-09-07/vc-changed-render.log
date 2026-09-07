@@ -1,0 +1,45 @@
+parsed 1 topic files, 15 mermaid diagrams
+rendered 15/15 diagrams via mmdc
+parsed 1 topic files, 17 mermaid diagrams
+rendered 15/17 diagrams via mmdc
+
+2 error(s):
+  - visionclaw/03-request-lifecycle-and-rbac.md:VC-03.5 (md line 217) — mermaid line 9: ...t only with explicit<br/>VISIONCLAW_LEGA | -----------------------^ | Expecting 'NEWLINE', ',', '()', 'SOLID_OPEN_ARROW', 'DOTTED_OPEN_ARROW', 'SOLID_ARROW', 'SOLID_ARROW_TOP', 'SOLID_ARROW_BOTTOM', 'STICK_ARROW_TOP', 'STICK_ARROW_BOTTOM', 'SOLID_ARROW_TOP_DOTTED', 'SOLID_ARROW_BOTTOM_DOTTED', 'STICK_ARROW_TOP_DOTTED', 'STICK_ARROW_BOTTOM_DOTTED', 'SOLID_ARROW_TOP_REVERSE', 'SOLID_ARROW_BOTTOM_REVERSE', 'STICK_ARROW_TOP_REVERSE', 'STICK_ARROW_BOTTOM_REVERSE', 'SOLID_ARROW_TOP_REVERSE_DOTTED', 'SOLID_ARROW_BOTTOM_REVERSE_DOTTED', 'STICK_ARROW_TOP_REVERSE_DOTTED', 'STICK_ARROW_BOTTOM_REVERSE_DOTTED', 'BIDIRECTIONAL_SOLID_ARROW', 'DOTTED_ARROW', 'BIDIRECTIONAL_DOTTED_ARROW', 'SOLID_CROSS', 'DOTTED_CROSS', 'SOLID_POINT', 'DOTTED_POINT', 'TXT', got 'INVALID'
+  - visionclaw/03-request-lifecycle-and-rbac.md:VC-03.17 (md line 572) — mermaid line 15: ...iate visionclaw only        end    end | -----------------------^ | Expecting '()', 'SOLID_OPEN_ARROW', 'DOTTED_OPEN_ARROW', 'SOLID_ARROW', 'SOLID_ARROW_TOP', 'SOLID_ARROW_BOTTOM', 'STICK_ARROW_TOP', 'STICK_ARROW_BOTTOM', 'SOLID_ARROW_TOP_DOTTED', 'SOLID_ARROW_BOTTOM_DOTTED', 'STICK_ARROW_TOP_DOTTED', 'STICK_ARROW_BOTTOM_DOTTED', 'SOLID_ARROW_TOP_REVERSE', 'SOLID_ARROW_BOTTOM_REVERSE', 'STICK_ARROW_TOP_REVERSE', 'STICK_ARROW_BOTTOM_REVERSE', 'SOLID_ARROW_TOP_REVERSE_DOTTED', 'SOLID_ARROW_BOTTOM_REVERSE_DOTTED', 'STICK_ARROW_TOP_REVERSE_DOTTED', 'STICK_ARROW_BOTTOM_REVERSE_DOTTED', 'BIDIRECTIONAL_SOLID_ARROW', 'DOTTED_ARROW', 'BIDIRECTIONAL_DOTTED_ARROW', 'SOLID_CROSS', 'DOTTED_CROSS', 'SOLID_POINT', 'DOTTED_POINT', got 'NEWLINE'
+parsed 1 topic files, 18 mermaid diagrams
+rendered 18/18 diagrams via mmdc
+parsed 1 topic files, 12 mermaid diagrams
+rendered 12/12 diagrams via mmdc
+parsed 1 topic files, 15 mermaid diagrams
+rendered 15/15 diagrams via mmdc
+parsed 1 topic files, 10 mermaid diagrams
+rendered 10/10 diagrams via mmdc
+parsed 1 topic files, 7 mermaid diagrams
+rendered 7/7 diagrams via mmdc
+parsed 1 topic files, 8 mermaid diagrams
+rendered 8/8 diagrams via mmdc
+parsed 1 topic files, 13 mermaid diagrams
+rendered 13/13 diagrams via mmdc
+parsed 1 topic files, 11 mermaid diagrams
+rendered 11/11 diagrams via mmdc
+parsed 1 topic files, 11 mermaid diagrams
+rendered 11/11 diagrams via mmdc
+parsed 1 topic files, 13 mermaid diagrams
+rendered 13/13 diagrams via mmdc
+parsed 1 topic files, 14 mermaid diagrams
+rendered 14/14 diagrams via mmdc
+parsed 1 topic files, 13 mermaid diagrams
+rendered 13/13 diagrams via mmdc
+parsed 1 topic files, 9 mermaid diagrams
+rendered 9/9 diagrams via mmdc
+parsed 1 topic files, 12 mermaid diagrams
+rendered 12/12 diagrams via mmdc
+parsed 1 topic files, 16 mermaid diagrams
+rendered 16/16 diagrams via mmdc
+parsed 1 topic files, 9 mermaid diagrams
+rendered 9/9 diagrams via mmdc
+parsed 1 topic files, 12 mermaid diagrams
+rendered 12/12 diagrams via mmdc
+parsed 1 topic files, 19 mermaid diagrams
+rendered 19/19 diagrams via mmdc
+changed-topic failures: ['visionclaw/03-request-lifecycle-and-rbac.md']

@@ -1,0 +1,7 @@
+notes [
+  {
+    name: 'mobile-no-overflow',
+    ok: false,
+    detail: { viewport: 375, width: 379, bodyWidth: 379 }
+  }
+]

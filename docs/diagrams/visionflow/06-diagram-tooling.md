@@ -278,7 +278,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant CLI as main IIFE<br/>diagram-index-gen.cjs:553
+    participant CLI as main IIFE<br/>diagram-index-gen.cjs:566
     participant W as walk<br/>diagram-index-gen.cjs:97
     participant P as parseTopic<br/>diagram-index-gen.cjs:150
     participant F as parseFrontmatter<br/>diagram-index-gen.cjs:126
@@ -299,13 +299,13 @@ sequenceDiagram
 flowchart TB
     I["Topic input"] --> P["Structural parse and duplicate checks<br/>diagram-index-gen.cjs:150"]
     P --> ERR["Accumulated errors"]
-    I --> C["Citation and symbol diagnostics<br/>diagram-index-gen.cjs:280<br/>diagram-index-gen.cjs:371"]
+    I --> C["Citation and symbol diagnostics<br/>diagram-index-gen.cjs:293<br/>diagram-index-gen.cjs:384"]
     C --> STRICT{"strict-citations?"}
     STRICT -->|yes| ERR
     STRICT -->|no| WARN["Advisory warnings remain visible"]
-    I --> R["Optional render and width checks<br/>diagram-index-gen.cjs:442"]
+    I --> R["Optional render and width checks<br/>diagram-index-gen.cjs:455"]
     R --> ERR
-    ERR --> FAIL["Exit 1 when errors exist<br/>diagram-index-gen.cjs:581"]
+    ERR --> FAIL["Exit 1 when errors exist<br/>diagram-index-gen.cjs:594"]
     MODE["Strict citations reject no-source-paths<br/>diagram-index-gen.cjs:92"] --> STRICT
     LIMIT["A strict pass establishes citation hygiene;<br/>semantic and deployment evidence remain separate."]
     WARN --> LIMIT
@@ -314,27 +314,27 @@ flowchart TB
 ## VF-06.10 Citation resolution and inference limits
 ```mermaid
 flowchart TB
-    A["Mermaid source"] --> SCAN["Dotted path plus line/range scan<br/>diagram-index-gen.cjs:218"]
-    SCAN --> MATCH["Exact source entry wins; otherwise resolve unique suffix<br/>diagram-index-gen.cjs:296"]
-    MATCH --> MODE["Choose source bytes<br/>diagram-index-gen.cjs:263"]
+    A["Mermaid source"] --> SCAN["Dotted path plus line/range scan<br/>diagram-index-gen.cjs:231"]
+    SCAN --> MATCH["Exact source entry wins; otherwise resolve unique suffix<br/>diagram-index-gen.cjs:309"]
+    MATCH --> MODE["Choose source bytes<br/>diagram-index-gen.cjs:276"]
     MODE --> PIN["Default: declared revision via git show;<br/>unavailable revision falls back to working tree"]
     MODE --> WT["worktree-citations: current working tree only"]
-    PIN --> READ["Check line bounds and anchors<br/>diagram-index-gen.cjs:301"]
+    PIN --> READ["Check line bounds and anchors<br/>diagram-index-gen.cjs:314"]
     WT --> READ
-    A --> BARE["Bare-line context from explicit citations and participant bindings<br/>diagram-index-gen.cjs:329"]
+    A --> BARE["Bare-line context from explicit citations and participant bindings<br/>diagram-index-gen.cjs:342"]
     BARE --> READ
-    A --> SYMBOL["Function-labelled participant checked against a unique definition<br/>diagram-index-gen.cjs:371"]
+    A --> SYMBOL["Function-labelled participant checked against a unique definition<br/>diagram-index-gen.cjs:384"]
     READ --> DIAG["Diagnostic: ambiguous, missing, unreadable, out of bounds or empty anchor"]
     SYMBOL --> DIAG
-    DIAG --> EXIT["Strict mode adds diagnostics to errors<br/>diagram-index-gen.cjs:574"]
+    DIAG --> EXIT["Strict mode adds diagnostics to errors<br/>diagram-index-gen.cjs:587"]
     LIMIT["Context inference and brace counting are heuristics.<br/>A real source line can still support the wrong claim."] --> EXIT
 ```
 
 ## VF-06.11 Render invocation and width boundary
 ```mermaid
 sequenceDiagram
-    participant G as renderAll<br/>diagram-index-gen.cjs:442
-    participant R as renderOne<br/>diagram-index-gen.cjs:417
+    participant G as renderAll<br/>diagram-index-gen.cjs:455
+    participant R as renderOne<br/>diagram-index-gen.cjs:430
     participant M as mmdc
     participant O as rendered topic directory
     G->>G: queue blocks with bounded worker concurrency
@@ -356,7 +356,7 @@ sequenceDiagram
 sequenceDiagram
     participant CI as diagram-index.yml
     participant T as diagram-index.test.cjs
-    participant G as writeIndexes<br/>diagram-index-gen.cjs:470
+    participant G as writeIndexes<br/>diagram-index-gen.cjs:483
     participant RM as README.md
     participant CV as COVERAGE.md
     CI->>T: exercise namespace collisions and strict citation refusal
@@ -364,10 +364,10 @@ sequenceDiagram
     CI->>CV: retain pre-generation content
     CI->>G: regenerate coverage from topic metadata
     G->>RM: emit topic tables and regeneration command
-    G->>CV: qualify ADR identities by repository<br/>diagram-index-gen.cjs:507
+    G->>CV: qualify ADR identities by repository<br/>diagram-index-gen.cjs:520
     G->>CV: label revisions as author declarations
     CI->>CI: compare regenerated coverage with committed content
-    Note over G,RM: check and only suppress index writes<br/>diagram-index-gen.cjs:586
+    Note over G,RM: check and only suppress index writes<br/>diagram-index-gen.cjs:599
     Note over CI,CV: Hosted structural success does not check sibling source behaviour.<br/>Run strict citations in a source-accessible checkout and preserve claim evidence.
 ```
 

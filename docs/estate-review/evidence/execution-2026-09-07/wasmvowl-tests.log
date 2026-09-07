@@ -1,0 +1,166 @@
+
+> wasmvowl@2.0.0 test
+> vitest run --reporter=dot
+
+
+ RUN  v4.0.8 /home/devuser/workspace/WasmVOWL/modern
+
+xxxxxxxxxxx······x·········xxx····xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 60 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/integration/wasm-integration.test.ts > WASM Integration > Ontology Loading > should load a simple ontology
+ FAIL  tests/integration/wasm-integration.test.ts > WASM Integration > Ontology Loading > should handle complex ontology with multiple properties
+ FAIL  tests/integration/wasm-integration.test.ts > WASM Integration > Ontology Loading > should handle ontology with datatype properties
+ FAIL  tests/integration/wasm-integration.test.ts > WASM Integration > Graph Statistics > should calculate correct statistics for loaded ontology
+ FAIL  tests/integration/wasm-integration.test.ts > WASM Integration > Graph Statistics > should update statistics when graph changes
+ FAIL  tests/integration/wasm-integration.test.ts > WASM Integration > Filter Integration > should filter by node type
+ FAIL  tests/integration/wasm-integration.test.ts > WASM Integration > Filter Integration > should filter by degree range
+ FAIL  tests/integration/wasm-integration.test.ts > WASM Integration > Filter Integration > should apply multiple filters
+ FAIL  tests/integration/wasm-integration.test.ts > WASM Integration > Data Export > should export graph data correctly
+ FAIL  tests/integration/wasm-integration.test.ts > WASM Integration > Performance > should handle large ontologies efficiently
+ FAIL  tests/integration/wasm-integration.test.ts > WASM Integration > Performance > should handle many filter operations efficiently
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Initial State > should have empty nodes and edges initially
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Initial State > should have no selection initially
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Initial State > should have no active filters initially
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Initial State > should have null statistics initially
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Node Operations > should add a node
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Node Operations > should update a node
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Node Operations > should remove a node
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Node Operations > should update node position
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Edge Operations > should add an edge
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Edge Operations > should update an edge
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Edge Operations > should remove an edge
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Selection Operations > should select a node
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Selection Operations > should select an edge
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Selection Operations > should deselect node when null is passed
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Selection Operations > should hover a node
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Selection Operations > should hover an edge
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Filter Operations > should add a filter
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Filter Operations > should filter nodes by type
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Filter Operations > should filter nodes by degree
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Filter Operations > should remove a filter
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Filter Operations > should clear all filters
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Filter Operations > should filter edges with invisible nodes
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Ontology Loading > should load ontology data
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Ontology Loading > should handle ontology with default labels
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Ontology Loading > should skip edges with missing source or target
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Ontology Loading > should update statistics after loading
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Statistics > should calculate node counts by type
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Statistics > should calculate edge counts by type
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Statistics > should calculate max degree
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Statistics > should calculate average degree
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Statistics > should handle empty graph
+ FAIL  tests/unit/useGraphStore.test.ts > useGraphStore > Clear Operation > should clear all data
+ FAIL  tests/unit/useWasmSimulation.test.ts > useWasmSimulation > Initialization > should initialize with default state
+ FAIL  tests/unit/useWasmSimulation.test.ts > useWasmSimulation > Initialization > should auto-start simulation when autoStart is true
+ FAIL  tests/unit/useWasmSimulation.test.ts > useWasmSimulation > Initialization > should not auto-start when autoStart is false
+ FAIL  tests/unit/useWasmSimulation.test.ts > useWasmSimulation > Control Functions > should start simulation
+ FAIL  tests/unit/useWasmSimulation.test.ts > useWasmSimulation > Control Functions > should stop simulation
+ FAIL  tests/unit/useWasmSimulation.test.ts > useWasmSimulation > Control Functions > should reset simulation
+ FAIL  tests/unit/useWasmSimulation.test.ts > useWasmSimulation > Control Functions > should perform single step
+ FAIL  tests/unit/useWasmSimulation.test.ts > useWasmSimulation > Settings Updates > should update simulation when settings change
+ FAIL  tests/unit/useWasmSimulation.test.ts > useWasmSimulation > Graph Data Loading > should load graph data when nodes are added
+ FAIL  tests/unit/useWasmSimulation.test.ts > useWasmSimulation > Graph Data Loading > should handle empty graph gracefully
+ FAIL  tests/unit/useWasmSimulation.test.ts > useWasmSimulation > Error Handling > should handle WASM initialization failure
+ FAIL  tests/unit/useWasmSimulation.test.ts > useWasmSimulation > Error Handling > should handle simulation tick errors
+ FAIL  tests/unit/useWasmSimulation.test.ts > useWasmSimulation > Cleanup > should cleanup on unmount
+Error: [Immer] minified error nr: 0. Full error at: https://bit.ly/3cXEKWf
+ ❯ die node_modules/immer/dist/immer.mjs:44:9
+ ❯ getPlugin node_modules/immer/dist/immer.mjs:202:5
+ ❯ createProxy node_modules/immer/dist/immer.mjs:730:32
+ ❯ Object.get node_modules/immer/dist/immer.mjs:437:34
+ ❯ src/stores/useGraphStore.ts:125:13
+    123| 
+    124|     clear: () => set((state) => {
+    125|       state.nodes.clear();
+       |             ^
+    126|       state.edges.clear();
+    127|       state.filteredNodes.clear();
+ ❯ node_modules/immer/dist/immer.mjs:601:56
+ ❯ Immer2.produce node_modules/immer/dist/immer.mjs:614:20
+ ❯ curriedProduce node_modules/immer/dist/immer.mjs:601:23
+ ❯ setState node_modules/zustand/esm/vanilla.mjs:5:55
+ ❯ store.setState node_modules/zustand/esm/middleware/immer.mjs:6:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/60]⎯
+
+ FAIL  tests/unit/useUIStore.test.ts > useUIStore > View Mode > should toggle view mode from 3d to 2d
+AssertionError: expected '3d' to be '2d' // Object.is equality
+
+Expected: "2d"
+Received: "3d"
+
+ ❯ tests/unit/useUIStore.test.ts:62:29
+     60| 
+     61|       const { viewport } = useUIStore.getState();
+     62|       expect(viewport.mode).toBe('2d');
+       |                             ^
+     63|     });
+     64|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/60]⎯
+
+ FAIL  tests/unit/useUIStore.test.ts > useUIStore > Notifications > should add multiple notifications
+AssertionError: expected [ { type: 'info', …(3) }, …(2) ] to have a length of 2 but got 3
+
+- Expected
++ Received
+
+- 2
++ 3
+
+ ❯ tests/unit/useUIStore.test.ts:181:29
+    179| 
+    180|       const { notifications } = useUIStore.getState();
+    181|       expect(notifications).toHaveLength(2);
+       |                             ^
+    182|     });
+    183| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/60]⎯
+
+ FAIL  tests/unit/useUIStore.test.ts > useUIStore > Notifications > should remove a notification by id
+AssertionError: expected [ { type: 'info', …(3) }, …(2) ] to have a length of +0 but got 3
+
+- Expected
++ Received
+
+- 0
++ 3
+
+ ❯ tests/unit/useUIStore.test.ts:199:34
+    197| 
+    198|       const finalNotifications = useUIStore.getState().notifications;
+    199|       expect(finalNotifications).toHaveLength(0);
+       |                                  ^
+    200|     });
+    201| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/60]⎯
+
+ FAIL  tests/unit/useUIStore.test.ts > useUIStore > Notifications > should handle different notification types
+AssertionError: expected [ { type: 'info', …(3) }, …(6) ] to have a length of 4 but got 7
+
+- Expected
++ Received
+
+- 4
++ 7
+
+ ❯ tests/unit/useUIStore.test.ts:215:29
+    213| 
+    214|       const { notifications } = useUIStore.getState();
+    215|       expect(notifications).toHaveLength(4);
+       |                             ^
+    216|       expect(notifications[0].type).toBe('info');
+    217|       expect(notifications[1].type).toBe('success');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/60]⎯
+
+
+ Test Files  4 failed (4)
+      Tests  60 failed | 19 passed (79)
+   Start at  12:46:00
+   Duration  1.17s (transform 751ms, setup 615ms, collect 786ms, tests 116ms, environment 2.14s, prepare 35ms)
+

@@ -1,0 +1,10 @@
+PASS (check-ports-loopback): 10 compose file(s), 7 ports block(s) — all publishes loopback-only or explicitly sanctioned
+LISTENERS (check-listeners, ADR-2062): 8 declared bind address(es) across the generated supervisor blocks
+    [program:jupyter-lab] --ip                     0.0.0.0  [NON-LOOPBACK; sanctioned: ADR-2040 — binds 0.0.0.0:8888 but authenticates: JUPYTER_TOKEN minted 0600 at boot, empty --IdentityProvider.token= removed]  flake.nix:1954
+    [program:wayvnc] (positional)                  0.0.0.0  [NON-LOOPBACK; sanctioned: ADR-2040 follow-on — VNC desktop server, unauthenticated, docker-network only; host publish is loopback-only (127.0.0.1:5901)]  flake.nix:2042
+    [program:nostr-relay] env AGENTBOX_RELAY_BIND  127.0.0.1:7777  [loopback; manifest-overridable]  flake.nix:2223
+    [program:code-server] --bind-addr              0.0.0.0:8080  [NON-LOOPBACK; sanctioned: ADR-2040 — binds 0.0.0.0:8080 but authenticates: --auth password, credential minted 0600 at boot]  flake.nix:2288
+    [program:comfyui-builtin] --listen             127.0.0.1  [loopback]  flake.nix:2305
+    [program:aoe-serve] --allowed-host             127.0.0.1  [loopback]  flake.nix:2355
+    [program:aoe-serve] --host                     127.0.0.1  [loopback]  flake.nix:2355
+    [program:agentbox-mcp-hub] --bind              127.0.0.1:9720  [loopback; manifest-overridable]  flake.nix:2477

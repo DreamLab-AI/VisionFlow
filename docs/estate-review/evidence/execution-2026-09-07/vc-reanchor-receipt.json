@@ -1,0 +1,277 @@
+{
+  "method": "unique exact prior source line with neighbour-context disambiguation, warning anchors only",
+  "resolved": [
+    {
+      "path": "../project/client/src/features/ontology/services/jss/schemaParser.ts",
+      "old": 93,
+      "new": 129
+    },
+    {
+      "path": "../project/crates/visionclaw-gpu/src/cuda_sources/gpu_clustering_kernels.cu",
+      "old": 1079,
+      "new": 1104
+    },
+    {
+      "path": "../project/src/config/security_profile.rs",
+      "old": 55,
+      "new": 54
+    },
+    {
+      "path": "../project/src/config/security_profile.rs",
+      "old": 107,
+      "new": 106
+    },
+    {
+      "path": "../project/src/config/security_profile.rs",
+      "old": 363,
+      "new": 368
+    },
+    {
+      "path": "../project/src/config/security_profile.rs",
+      "old": 422,
+      "new": 427
+    },
+    {
+      "path": "../project/src/config/security_profile.rs",
+      "old": 453,
+      "new": 458
+    },
+    {
+      "path": "../project/src/main.rs",
+      "old": 688,
+      "new": 694
+    },
+    {
+      "path": "../project/src/main.rs",
+      "old": 735,
+      "new": 764
+    },
+    {
+      "path": "../project/src/main.rs",
+      "old": 840,
+      "new": 869
+    },
+    {
+      "path": "../project/src/main.rs",
+      "old": 848,
+      "new": 877
+    },
+    {
+      "path": "../project/src/main.rs",
+      "old": 938,
+      "new": 967
+    },
+    {
+      "path": "../project/src/main.rs",
+      "old": 979,
+      "new": 1008
+    },
+    {
+      "path": "../project/src/main.rs",
+      "old": 982,
+      "new": 1011
+    },
+    {
+      "path": "../project/src/main.rs",
+      "old": 983,
+      "new": 1012
+    },
+    {
+      "path": "../project/src/main.rs",
+      "old": 1004,
+      "new": 1033
+    },
+    {
+      "path": "../project/src/main.rs",
+      "old": 1058,
+      "new": 1087
+    },
+    {
+      "path": "../project/src/main.rs",
+      "old": 1133,
+      "new": 1162
+    },
+    {
+      "path": "../project/src/main.rs",
+      "old": 1185,
+      "new": 1214
+    },
+    {
+      "path": "../project/src/main.rs",
+      "old": 1186,
+      "new": 1215
+    },
+    {
+      "path": "../project/src/main.rs",
+      "old": 1195,
+      "new": 1224
+    },
+    {
+      "path": "../project/src/services/ontology_pull.rs",
+      "old": 45,
+      "new": 48
+    },
+    {
+      "path": "../project/src/services/ontology_pull.rs",
+      "old": 304,
+      "new": 307
+    },
+    {
+      "path": "../project/src/services/ontology_pull.rs",
+      "old": 313,
+      "new": 318
+    },
+    {
+      "path": "../project/src/services/ontology_pull.rs",
+      "old": 345,
+      "new": 350
+    },
+    {
+      "path": "../project/src/services/ontology_pull.rs",
+      "old": 354,
+      "new": 359
+    },
+    {
+      "path": "../project/src/services/ontology_pull.rs",
+      "old": 393,
+      "new": 396
+    },
+    {
+      "path": "../project/src/services/ontology_pull.rs",
+      "old": 411,
+      "new": 414
+    },
+    {
+      "path": "../project/src/settings/auth_extractor.rs",
+      "old": 127,
+      "new": 143
+    },
+    {
+      "path": "../project/src/settings/auth_extractor.rs",
+      "old": 195,
+      "new": 211
+    },
+    {
+      "path": "../project/src/utils/nip98.rs",
+      "old": 524,
+      "new": 577
+    }
+  ],
+  "unresolved": [
+    [
+      "../project/src/agent_events/ingest.rs",
+      251,
+      "old anchor not substantive"
+    ],
+    [
+      "../project/src/services/github_sync_service.rs",
+      371,
+      "old anchor not substantive"
+    ],
+    [
+      "../project/src/services/ontology_pull.rs",
+      307,
+      "ambiguous exact content"
+    ],
+    [
+      "../project/src/services/github_sync_service.rs",
+      578,
+      "old anchor not substantive"
+    ],
+    [
+      "../project/src/agent_events/provenance.rs",
+      22,
+      "old anchor not substantive"
+    ],
+    [
+      "../project/voice-stack/README.md",
+      13,
+      "old anchor not substantive"
+    ],
+    [
+      "../project/src/handlers/bots_visualization_handler.rs",
+      78,
+      "old anchor not substantive"
+    ],
+    [
+      "../project/src/handlers/bots_visualization_handler.rs",
+      498,
+      "old anchor not substantive"
+    ],
+    [
+      "../project/src/handlers/bots_visualization_handler.rs",
+      68,
+      "old anchor not substantive"
+    ],
+    [
+      "../project/src/agent_events/ingest.rs",
+      285,
+      "old anchor not substantive"
+    ],
+    [
+      "../project/src/agent_events/ingest.rs",
+      233,
+      "old anchor not substantive"
+    ],
+    [
+      "../project/src/services/ontology_pull.rs",
+      355,
+      "ambiguous exact content"
+    ],
+    [
+      "../project/src/handlers/bots_visualization_handler.rs",
+      73,
+      "old anchor not substantive"
+    ],
+    [
+      "../project/src/handlers/enrichment_proposals_handler.rs",
+      571,
+      "old anchor not substantive"
+    ],
+    [
+      "../project/src/services/agent_visualization_processor.rs",
+      211,
+      "old anchor not substantive"
+    ],
+    [
+      "../project/src/handlers/bots_visualization_handler.rs",
+      163,
+      "old anchor not substantive"
+    ],
+    [
+      "../project/src/main.rs",
+      717,
+      "old anchor not substantive"
+    ],
+    [
+      "../project/src/actors/decision_elevation_actor.rs",
+      300,
+      "old anchor not substantive"
+    ],
+    [
+      "../project/src/agent_events/ingest.rs",
+      305,
+      "old anchor not substantive"
+    ],
+    [
+      "../project/src/agent_events/ingest.rs",
+      201,
+      "old anchor not substantive"
+    ],
+    [
+      "../project/src/agent_events/ingest.rs",
+      223,
+      "old anchor not substantive"
+    ]
+  ],
+  "changed": [
+    "visionclaw/08-observability-health-and-dev-loop.md",
+    "visionclaw/01-boot-and-app-state.md",
+    "visionclaw/26-solid-pod-and-jss.md",
+    "visionclaw/05-handlers-governance-and-identity.md",
+    "visionclaw/22-data-authority-provenance-erasure.md",
+    "visionclaw/03-request-lifecycle-and-rbac.md",
+    "visionclaw/15-gpu-analytics.md",
+    "visionclaw/09-config-and-env-flags.md"
+  ]
+}

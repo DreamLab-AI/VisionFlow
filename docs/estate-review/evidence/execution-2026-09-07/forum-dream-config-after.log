@@ -1,0 +1,6 @@
+test_all_build_and_evaluation_pipelines_propagate_failure (test_dream_config.DreamEvaluatorStatus.test_all_build_and_evaluation_pipelines_propagate_failure) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.055s
+
+OK

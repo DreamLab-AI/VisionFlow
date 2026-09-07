@@ -1,0 +1,27 @@
+==> Preparing dist/...
+==> Copying static assets...
+==> Writing CNAME...
+==> Staging manifest assets (required + optional)...
+    derived  img/og-card.png  <- ../assets/screenshots/visionflow-final.png
+    optional repo-diagrams: 17 file(s), 12876785 bytes
+    optional repo-generated: 5 file(s), 5765178 bytes
+    optional repo-heroes: 5 file(s), 1087718 bytes
+    optional repo-screenshots: 3 file(s), 1273200 bytes
+==> Verifying asset inventory and writing build receipt...
+    required : 14/14 present
+    dist     : 51 files, 60241514 bytes
+    tree     : sha256:6aa29ea00a2a99930d79ad5271bd9495636d2ef1e68d7c2ea6afd8b0b1dcbe73
+    receipt  : website/build-receipt.json
+ASSET-INVENTORY-OK
+==> Build complete. Output in dist/
+total 128
+drwxr-xr-x 7 devuser devuser  4096 Sep  7 10:59 .
+drwxr-xr-x 8 devuser devuser  4096 Sep  7 10:59 ..
+-rw-r--r-- 1 devuser devuser    20 Sep  7 10:59 CNAME
+drwxr-xr-x 2 devuser devuser  4096 Sep  7 10:59 css
+drwxr-xr-x 2 devuser devuser  4096 Sep  7 10:59 data
+drwxr-xr-x 4 devuser devuser  4096 Sep  7 10:59 img
+-rw-r--r-- 1 devuser devuser 96984 Sep  7 10:59 index.html
+drwxr-xr-x 2 devuser devuser  4096 Sep  7 10:59 js
+drwxr-xr-x 2 devuser devuser  4096 Sep  7 10:59 video
+BUILD-COMPLETE bytes: 60241514

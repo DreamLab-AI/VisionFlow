@@ -159,6 +159,19 @@ function parseTopic(file, errors) {
   const areaDir = rel.split(path.sep)[0];
   if (fm.area && areaDir !== fm.area) errors.push(`${rel}: area '${fm.area}' does not match directory '${areaDir}'`);
   if (fm.id && !/^[A-Z]{2,3}-\d{2,3}$/.test(fm.id)) errors.push(`${rel}: id '${fm.id}' must match /^[A-Z]{2,3}-\\d{2,3}$/`);
+  {
+    // verified_commit must be a git sha (7-40 hex) or a {repo: sha} map of them. A
+    // label such as `worktree-2026-09-07` is not a revision and cannot be checked.
+    const v = fm.verified_commit;
+    const SHA = /^[0-9a-f]{7,40}$/;
+    let ok = false;
+    if (typeof v === 'string' && v.trim().startsWith('{')) {
+      const pairs = v.trim().slice(1, -1).split(',').map((x) => x.split(':').map((y) => y.trim()));
+      ok = pairs.length > 0 && pairs.every(([k, sha]) => k && SHA.test(sha || ''));
+    } else if (v && typeof v === 'object') ok = Object.values(v).every((sha) => SHA.test(String(sha)));
+    else ok = SHA.test(String(v || ''));
+    if (!ok) errors.push(`${rel}: verified_commit '${v}' is not a git sha (7-40 hex) or a {repo: sha} map`);
+  }
   for (const s of fm.sources || []) {
     const p = s.split(':')[0];
     if (!flags.noSourcePaths && !fs.existsSync(path.join(repoRoot, p))) errors.push(`${rel}: source path does not exist: ${p}`);

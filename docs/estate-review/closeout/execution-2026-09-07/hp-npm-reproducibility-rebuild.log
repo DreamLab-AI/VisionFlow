@@ -1,0 +1,142 @@
+warning: Git tree '/home/john/githubs/visionflow-hp/agentbox-closeout-2026-09-07' is dirty
+evaluation warning: cudaPackages.cuda_cccl is deprecated, use cccl instead
+checking outputs of '/nix/store/8xynia80l553wgragk60qav5rdmkrhf4-agentic-qe-with-deps-3.13.12.drv'...
+agentic-qe-with-deps> Running phase: unpackPhase
+agentic-qe-with-deps> unpacking source archive /nix/store/19asrhkb8lilm46rzf36r00knxiqjmq8-agentic-qe-3.13.12.tgz
+agentic-qe-with-deps> source root is package
+agentic-qe-with-deps> setting SOURCE_DATE_EPOCH to timestamp 499162500 of file "package/scripts/validator-lib.cjs"
+agentic-qe-with-deps> Running phase: patchPhase
+agentic-qe-with-deps> Running phase: updateAutotoolsGnuConfigScriptsPhase
+agentic-qe-with-deps> Running phase: configurePhase
+agentic-qe-with-deps> no configure script, doing nothing
+agentic-qe-with-deps> Running phase: installPhase
+agentic-qe-with-deps> npm warn config production Use `--omit=dev` instead.
+agentic-qe-with-deps> npm warn deprecated prebuild-install@7.1.3: No longer maintained. Please contact the author of the relevant native addon; alternatives are available.
+agentic-qe-with-deps> 
+agentic-qe-with-deps> added 134 packages in 7s
+agentic-qe-with-deps> npm notice
+agentic-qe-with-deps> npm notice New major version of npm available! 10.9.8 -> 12.0.2
+agentic-qe-with-deps> npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.0.2
+agentic-qe-with-deps> npm notice To update run: npm install -g npm@12.0.2
+agentic-qe-with-deps> npm notice
+checking outputs of '/nix/store/w8cm302wsnrh7c64048bcjx3nk7s5lrx-ruflo-with-deps-3.38.20.drv'...
+ruflo-with-deps> Running phase: unpackPhase
+ruflo-with-deps> unpacking source archive /nix/store/p835x619m7fspshkjwmlms8fqm9a7yg6-ruflo-3.38.20.tgz
+ruflo-with-deps> source root is package
+ruflo-with-deps> setting SOURCE_DATE_EPOCH to timestamp 499162500 of file "package/src/scripts/package-rvf.sh"
+ruflo-with-deps> Running phase: patchPhase
+ruflo-with-deps> Running phase: updateAutotoolsGnuConfigScriptsPhase
+ruflo-with-deps> Running phase: configurePhase
+ruflo-with-deps> no configure script, doing nothing
+ruflo-with-deps> Running phase: installPhase
+ruflo-with-deps> npm warn config production Use `--omit=dev` instead.
+ruflo-with-deps> npm warn deprecated prebuild-install@7.1.3: No longer maintained. Please contact the author of the relevant native addon; alternatives are available.
+ruflo-with-deps> npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+ruflo-with-deps> npm warn deprecated koa-router@14.0.0: Please use @koa/router instead, starting from v9!
+ruflo-with-deps> npm warn deprecated boolean@3.2.0: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+ruflo-with-deps> 
+ruflo-with-deps> added 543 packages in 1m
+ruflo-with-deps> npm notice
+ruflo-with-deps> npm notice New major version of npm available! 10.9.8 -> 12.0.2
+ruflo-with-deps> npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.0.2
+ruflo-with-deps> npm notice To update run: npm install -g npm@12.0.2
+ruflo-with-deps> npm notice
+ruflo-with-deps> installPhase completed in 1 minutes 31 seconds
+checking outputs of '/nix/store/wgvvmknc0fhv5aa0k143a5f73d3ba485-wrangler-with-deps-4.125.0.drv'...
+wrangler-with-deps> Running phase: unpackPhase
+wrangler-with-deps> unpacking source archive /nix/store/1f9khhl0n796jnabns7zfr2dqsjmxcgb-wrangler-4.125.0.tgz
+wrangler-with-deps> source root is package
+wrangler-with-deps> setting SOURCE_DATE_EPOCH to timestamp 499162500 of file "package/wrangler-dist/metafile-cjs.json"
+wrangler-with-deps> Running phase: patchPhase
+wrangler-with-deps> Running phase: updateAutotoolsGnuConfigScriptsPhase
+wrangler-with-deps> Running phase: configurePhase
+wrangler-with-deps> no configure script, doing nothing
+wrangler-with-deps> Running phase: installPhase
+wrangler-with-deps> npm warn config production Use `--omit=dev` instead.
+wrangler-with-deps> 
+wrangler-with-deps> added 39 packages in 8s
+wrangler-with-deps> npm notice
+wrangler-with-deps> npm notice New major version of npm available! 10.9.8 -> 12.0.2
+wrangler-with-deps> npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.0.2
+wrangler-with-deps> npm notice To update run: npm install -g npm@12.0.2
+wrangler-with-deps> npm notice
+checking outputs of '/nix/store/bfpw9c11ixa206w4sghab7cx3mfhjw20-ruvector-with-deps-0.3.0.drv'...
+ruvector-with-deps> Running phase: unpackPhase
+ruvector-with-deps> unpacking source archive /nix/store/dpd2ndsj26cw5dmyymmqm1ylgrr0a13x-ruvector-0.3.0.tgz
+ruvector-with-deps> source root is package
+ruvector-with-deps> setting SOURCE_DATE_EPOCH to timestamp 499162500 of file "package/wasm/ruvector_decompiler_wasm_bg.wasm.d.ts"
+ruvector-with-deps> Running phase: patchPhase
+ruvector-with-deps> Running phase: updateAutotoolsGnuConfigScriptsPhase
+ruvector-with-deps> Running phase: configurePhase
+ruvector-with-deps> no configure script, doing nothing
+ruvector-with-deps> Running phase: installPhase
+ruvector-with-deps> npm warn config production Use `--omit=dev` instead.
+ruvector-with-deps> 
+ruvector-with-deps> added 162 packages in 2s
+ruvector-with-deps> npm notice
+ruvector-with-deps> npm notice New major version of npm available! 10.9.8 -> 12.0.2
+ruvector-with-deps> npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.0.2
+ruvector-with-deps> npm notice To update run: npm install -g npm@12.0.2
+ruvector-with-deps> npm notice
+checking outputs of '/nix/store/bahbmxlpjbl1307a8jxlqwfsyk5dpn8x-metaharness-with-deps-0.3.2.drv'...
+metaharness-with-deps> Running phase: unpackPhase
+metaharness-with-deps> unpacking source archive /nix/store/dmhnafmpkd0l4jc78wqkdn1jr8mfxv70-metaharness-0.3.2.tgz
+metaharness-with-deps> source root is package
+metaharness-with-deps> setting SOURCE_DATE_EPOCH to timestamp 499162500 of file "package/templates/vertical_trading/vitest.config.ts.tmpl"
+metaharness-with-deps> Running phase: patchPhase
+metaharness-with-deps> Running phase: updateAutotoolsGnuConfigScriptsPhase
+metaharness-with-deps> Running phase: configurePhase
+metaharness-with-deps> no configure script, doing nothing
+metaharness-with-deps> Running phase: installPhase
+metaharness-with-deps> npm warn config production Use `--omit=dev` instead.
+metaharness-with-deps> 
+metaharness-with-deps> added 41 packages in 614ms
+metaharness-with-deps> npm notice
+metaharness-with-deps> npm notice New major version of npm available! 10.9.8 -> 12.0.2
+metaharness-with-deps> npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.0.2
+metaharness-with-deps> npm notice To update run: npm install -g npm@12.0.2
+metaharness-with-deps> npm notice
+checking outputs of '/nix/store/v3l4dn9vks9sv9nqg4s75w2k2jisd4zr-metaharness-darwin-with-deps-0.8.3.drv'...
+metaharness-darwin-with-deps> Running phase: unpackPhase
+metaharness-darwin-with-deps> unpacking source archive /nix/store/xklqccrmmnwvsnz2m9lkfnxyv3bjzpmk-darwin-0.8.3.tgz
+metaharness-darwin-with-deps> source root is package
+metaharness-darwin-with-deps> setting SOURCE_DATE_EPOCH to timestamp 499162500 of file "package/package.json"
+metaharness-darwin-with-deps> Running phase: patchPhase
+metaharness-darwin-with-deps> Running phase: updateAutotoolsGnuConfigScriptsPhase
+metaharness-darwin-with-deps> Running phase: configurePhase
+metaharness-darwin-with-deps> no configure script, doing nothing
+metaharness-darwin-with-deps> Running phase: installPhase
+metaharness-darwin-with-deps> npm warn config production Use `--omit=dev` instead.
+metaharness-darwin-with-deps> 
+metaharness-darwin-with-deps> up to date in 217ms
+checking outputs of '/nix/store/v6m3zys198s0x5ixpg8m8bpj66vavyr5-mermaid-js-mermaid-cli-with-deps-11.16.0.drv'...
+mermaid-js-mermaid-cli-with-deps> Running phase: unpackPhase
+mermaid-js-mermaid-cli-with-deps> unpacking source archive /nix/store/si3j48l2pp9rqa13pgvi7pixg6c287j0-mermaid-cli-11.16.0.tgz
+mermaid-js-mermaid-cli-with-deps> source root is package
+mermaid-js-mermaid-cli-with-deps> setting SOURCE_DATE_EPOCH to timestamp 499162500 of file "package/src/version.js"
+mermaid-js-mermaid-cli-with-deps> Running phase: patchPhase
+mermaid-js-mermaid-cli-with-deps> Running phase: updateAutotoolsGnuConfigScriptsPhase
+mermaid-js-mermaid-cli-with-deps> Running phase: configurePhase
+mermaid-js-mermaid-cli-with-deps> no configure script, doing nothing
+mermaid-js-mermaid-cli-with-deps> Running phase: installPhase
+mermaid-js-mermaid-cli-with-deps> 
+mermaid-js-mermaid-cli-with-deps> added 228 packages in 13s
+mermaid-js-mermaid-cli-with-deps> npm notice
+mermaid-js-mermaid-cli-with-deps> npm notice New major version of npm available! 10.9.8 -> 12.0.2
+mermaid-js-mermaid-cli-with-deps> npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.0.2
+mermaid-js-mermaid-cli-with-deps> npm notice To update run: npm install -g npm@12.0.2
+mermaid-js-mermaid-cli-with-deps> npm notice
+checking outputs of '/nix/store/gpnn4pj5ydbqb36i67m9b9y70kd6kvmp-codebase-memory-mcp-with-deps-0.10.8.drv'...
+codebase-memory-mcp-with-deps> Running phase: unpackPhase
+codebase-memory-mcp-with-deps> unpacking source archive /nix/store/hmmvn1rhsfcisp3hn5lmsj2y76lp0m5z-codebase-memory-mcp-0.10.8.tgz
+codebase-memory-mcp-with-deps> source root is package
+codebase-memory-mcp-with-deps> setting SOURCE_DATE_EPOCH to timestamp 499162500 of file "package/package.json"
+codebase-memory-mcp-with-deps> Running phase: patchPhase
+codebase-memory-mcp-with-deps> Running phase: updateAutotoolsGnuConfigScriptsPhase
+codebase-memory-mcp-with-deps> Running phase: configurePhase
+codebase-memory-mcp-with-deps> no configure script, doing nothing
+codebase-memory-mcp-with-deps> Running phase: installPhase
+codebase-memory-mcp-with-deps> npm warn config production Use `--omit=dev` instead.
+codebase-memory-mcp-with-deps> 
+codebase-memory-mcp-with-deps> up to date in 184ms
+ALL_NPM_LOCKED_OUTPUTS_REPRODUCIBLE

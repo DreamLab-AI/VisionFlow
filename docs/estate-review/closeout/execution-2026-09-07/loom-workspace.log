@@ -1,0 +1,517 @@
+   Compiling loom-facade v0.1.0 (/home/devuser/workspace/loom/crates/loom-facade)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 29.41s
+     Running unittests src/lib.rs (target/debug/deps/loom_attest_proofgate-3b21b7ccd115a67c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/ledger.rs (target/debug/deps/ledger-cc3f580300e95b49)
+
+running 7 tests
+test gate_verdict_serialises_with_expected_shape ... ok
+test verify_chain_true_on_missing_file ... ok
+test attest_is_deterministic_given_fixed_inputs ... ok
+test verify_chain_false_when_head_missing_on_nonempty_ledger ... ok
+test chain_grows_and_links ... ok
+test verify_chain_false_after_truncating_last_entry ... ok
+test verify_chain_false_after_byte_flip_mid_file ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running unittests src/lib.rs (target/debug/deps/loom_backend_openai-799295c97fc79815)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/backend.rs (target/debug/deps/backend-9c8a5ec5886c7e10)
+
+running 15 tests
+test raise_integer_token_floor_semantics ... ok
+test empty_endpoint_is_retrieval_only ... ok
+test reachable_false_on_5xx ... ok
+test stream_is_stripped ... ok
+test reachable_true_on_2xx ... ok
+test models_passes_through ... ok
+test max_completion_tokens_is_floored_too ... ok
+test floor_raises_sub_floor_max_tokens ... ok
+test absent_token_fields_get_default_floor_inserted ... ok
+test negative_integer_is_floored ... ok
+test string_typed_ask_is_left_untouched ... ok
+test higher_ask_is_preserved ... ok
+test u64_overflow_number_is_left_untouched ... ok
+test floor_disabled_at_zero_leaves_body_untouched ... ok
+test non_2xx_maps_to_backend_http ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running unittests src/lib.rs (target/debug/deps/loom_domain-65ba0474dafc28aa)
+
+running 41 tests
+test artefact::tests::changed_model_at_equal_width_is_rejected ... ok
+test artefact::tests::euclidean_artefact_is_rejected_not_relabelled ... ok
+test artefact::tests::every_disagreement_is_reported_not_just_the_first ... ok
+test artefact::tests::matching_artefact_qualifies ... ok
+test artefact::tests::unknown_model_rejects_under_strict_contract_and_passes_when_relaxed ... ok
+test artefact::tests::unopened_artefact_is_unqualified_with_a_named_reason ... ok
+test artefact::tests::wrong_width_artefact_is_rejected_before_query ... ok
+test bundle::tests::bundle_errors_name_both_sides ... ok
+test bundle::tests::digest_input_changes_when_content_changes ... ok
+test bundle::tests::digest_input_is_order_independent ... ok
+test bundle::tests::phase_advances_but_never_regresses ... ok
+test bundle::tests::same_generation_different_content_is_a_different_bundle ... ok
+test grounding_tests::confidence_clamps_to_one_above_strong_match ... ok
+test grounding_tests::confidence_clamps_to_zero_below_nothing ... ok
+test grounding_tests::confidence_guards_the_divide ... ok
+test grounding_tests::confidence_is_the_plain_ratio_in_range ... ok
+test grounding_tests::confidence_is_zero_without_a_score ... ok
+test grounding_tests::decision_enums_are_hashable_for_counters ... ok
+test grounding_tests::enums_serialise_lowercase_and_kebab ... ok
+test grounding_tests::from_parts_derives_confidence_and_threshold ... ok
+test grounding_tests::none_signal_never_claims_confidence ... ok
+test grounding_tests::grounding_round_trips_through_json ... ok
+test grounding_tests::with_engaged_corrects_an_empty_block ... ok
+test grounding_tests::with_signal_restates_every_confidence_on_the_new_scale ... ok
+test grounding_tests::with_threshold_carries_the_verbatim_bar ... ok
+test model_tests::concept_match_score_normalised_is_identity ... ok
+test grounding_tests::none_grounding_is_an_honest_zero ... ok
+test grounding_tests::semantic_confidence_passes_the_cosine_through ... ok
+test grounding_tests::seed_grounding_from_match_converts_both_scales ... ok
+test grounding_tests::from_parts_marks_a_skip_disengaged ... ok
+test model_tests::exposure_report_shape ... ok
+test model_tests::generation_equality_is_identity ... ok
+test model_tests::generation_id_equality ... ok
+test model_tests::iri_bare_slug_tolerance ... ok
+test model_tests::iri_serde_roundtrip ... ok
+test model_tests::iri_slug_roundtrip ... ok
+test model_tests::match_provenance_wire_spelling ... ok
+test model_tests::relation_kind_other_tail ... ok
+test model_tests::scaffold_empty_shape ... ok
+test model_tests::relation_kind_predicate_roundtrip ... ok
+test model_tests::served_mode_serialises_lowercase ... ok
+
+test result: ok. 41 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/loom_embed_xinference-bdef0d3abfee6925)
+
+running 7 tests
+test tests::model_and_dimensions_are_locked ... ok
+test tests::empty_batch_short_circuits ... ok
+test tests::connection_refused_is_embed_error ... ok
+test tests::server_500_is_embed_error ... ok
+test tests::wrong_width_is_dimension_error ... ok
+test tests::single_embed_delegates_and_checks_dimension ... ok
+test tests::happy_path_returns_vectors_in_input_order ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/live.rs (target/debug/deps/live-58ec129a219cd708)
+
+running 1 test
+test live_embed_is_384_unit_norm ... ignored, requires a live XINFERENCE_URL
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/loom_facade-08a6d13d4587ac39)
+
+running 16 tests
+test build_info::tests::build_info_pins_both_checkouts ... ok
+test build_info::tests::build_info_records_the_compiler ... ok
+test build_info::tests::build_info_records_the_explicit_ruvector_features ... ok
+test build_info::tests::retrieval_identity_excludes_every_profile_divergent_key ... ok
+test bundle::tests::civil_from_days_matches_known_dates ... ok
+test build_info::tests::effective_config_round_trips_through_json ... ok
+test bundle::tests::rfc3339_stamp_is_well_formed ... ok
+test serving::tests::answer_text_joins_choices ... ok
+test serving::tests::append_not_covered_mutates_first_choice ... ok
+test serving::tests::delivery_lookup_shape_gating ... ok
+test serving::tests::opt_out_and_streaming ... ok
+test serving::tests::strip_wrapper_and_content ... ok
+test serving::tests::thinking_controls_no_think_injects_kwargs ... ok
+test serving::tests::thinking_controls_client_override_keeps_thinking_and_floors ... ok
+test serving::tests::thinking_controls_no_think_off_floors_only ... ok
+test serving::tests::verbatim_completion_is_openai_shaped ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/confidence_check.rs (target/debug/deps/confidence_check-a3b5e13bb2f7ebf3)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/generation_check.rs (target/debug/deps/generation_check-09ee495a35b83dcf)
+
+running 3 tests
+test tests::clean_health_reports_no_drift ... ok
+test tests::parses_both_stamp_shapes_the_mirror_emits ... ok
+test tests::stale_served_generation_is_drift ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/graph_check.rs (target/debug/deps/graph_check-43081ac06333783e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running unittests src/main.rs (target/debug/deps/loom_facade-cbca5b0d593ae9f8)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/contract_live.rs (target/debug/deps/contract_live-789c8e86aeea0b3c)
+
+running 1 test
+test grounding_contract_holds_on_the_live_facade ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/exp005_routes.rs (target/debug/deps/exp005_routes-37830735c42fe871)
+
+running 20 tests
+test health_typed_response_deserialises ... ok
+test scaffold_missing_prompt_is_400 ... ok
+test scaffold_grounding_contract_shape ... ok
+test nobackend_503_on_v1 ... ok
+test health_superset_shape ... ok
+test scaffold_irrelevant_is_empty ... ok
+test generation_and_alias_answer ... ok
+test graph_absent_degrades_but_scaffold_serves ... ok
+test scaffold_and_alias_engage ... ok
+test semantic_search_disabled_by_default_is_404 ... ok
+test health_confidence_counters_advance_with_probes ... ok
+test scaffold_no_match_grounding_is_present_not_null ... ok
+test semantic_search_enabled_and_ready_returns_labelled_hits ... ok
+test search_missing_q_is_400 ... ok
+test sparql_missing_query_is_400 ... ok
+test semantic_search_enabled_reports_not_ready ... ok
+test unknown_route_is_404 ... ok
+test sparql_badquery_is_400 ... ok
+test sparql_select_works_with_graph ... ok
+test search_and_alias_answer ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/exp006_chat.rs (target/debug/deps/exp006_chat-3a89b53e2561ccb6)
+
+running 7 tests
+test scaffold_merged_into_system_message_and_annotated ... ok
+test chat_verbatim_grounding_reports_the_verbatim_threshold ... ok
+test backend_failure_propagates_502 ... ok
+test chat_grounding_present_when_engaged ... ok
+test chat_grounding_present_when_not_engaged ... ok
+test scaffold_inserted_at_zero_when_no_system_message ... ok
+test max_tokens_floored_by_adapter ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/exp007_fusion.rs (target/debug/deps/exp007_fusion-346ee735af676bbd)
+
+running 5 tests
+test fallback_on_miss_below_threshold_does_not_inject ... ok
+test fallback_off_never_calls_vector_on_miss ... ok
+test disabled_embedder_on_fallback_degrades_not_5xx ... ok
+test fallback_on_miss_flows_through_assemble_as_markdown ... ok
+test fallback_on_lexical_hit_never_calls_vector ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/exp009_generation.rs (target/debug/deps/exp009_generation-6ea2a6823bafe4e4)
+
+running 7 tests
+test generation_store_falls_to_scaffold_index ... ok
+test generation_store_falls_to_mirror_manifest ... ok
+test generation_store_prefers_build_manifest ... ok
+test verify_atomicity_ok_without_manifest ... ok
+test verify_atomicity_flags_a_tampered_artifact ... ok
+test generation_mismatch_skips_fallback ... ok
+test generation_match_admits_fallback ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/exp012_serving.rs (target/debug/deps/exp012_serving-a6631f32819d09e5)
+
+running 14 tests
+test f3_default_off_leaves_engaged_max_tokens_untouched ... ok
+test f1_default_off_preserves_delegation ... ok
+test f2_no_exposure_when_not_engaged ... ok
+test f1_verbatim_serves_without_backend ... ok
+test f1_streaming_bypasses_verbatim ... ok
+test f3_no_think_not_injected_when_not_engaged ... ok
+test f2_append_adds_not_covered_line ... ok
+test f2_exposure_block_reports_drops ... ok
+test f1_multi_turn_bypasses_verbatim ... ok
+test f3_floor_not_applied_to_passthrough ... ok
+test f1_opt_out_bypasses_verbatim ... ok
+test f1_threshold_boundary_gates_verbatim ... ok
+test f3_client_override_keeps_thinking_and_floors ... ok
+test f3_no_think_injects_kwargs_when_engaged ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/exp013_bundle.rs (target/debug/deps/exp013_bundle-eafe0bb129ca7a89)
+
+running 13 tests
+test marker_with_no_artefact_digests_is_unverifiable_not_verified ... ok
+test incomplete_download_is_rejected_by_name ... ok
+test a_directory_mid_promotion_is_refused ... ok
+test marker_less_directory_activates_degraded_but_still_content_bound ... ok
+test activation_captures_one_identity_over_verified_content ... ok
+test promotion_refuses_an_incomplete_staging_set_without_touching_the_target ... ok
+test mixed_generation_is_rejected_with_both_digests_named ... ok
+test verify_atomicity_runs_per_request_and_reports_post_activation_drift ... ok
+test same_generation_over_different_content_yields_different_identities ... ok
+test promotion_stages_verifies_and_swaps_as_one_commit ... ok
+test generation_route_invokes_the_verifier_and_publishes_the_result ... ok
+test phase_advances_from_activated_to_served_on_first_request ... ok
+test a_promotion_after_activation_does_not_change_what_a_running_process_serves ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/exp014_grounding_contract.rs (target/debug/deps/exp014_grounding_contract-1d70e9c81ec28683)
+
+running 11 tests
+test scaffold_route_no_match_carries_the_same_contract ... ok
+test absent_backend_is_a_labelled_failure_with_the_contract_attached ... ok
+test an_unattested_bundle_is_declared_on_the_response ... ok
+test verbatim_serve_carries_the_contract_and_names_its_own_threshold ... ok
+test no_match_reports_an_honest_zero_and_is_not_corpus_backed ... ok
+test backend_failure_carries_the_contract_and_is_never_corpus_backed ... ok
+test delegated_success_is_corpus_backed_when_engaged ... ok
+test degradations_are_named_on_the_response_that_suffered_them ... ok
+test semantic_fallback_reports_its_own_status_and_score_scale ... ok
+test opt_out_is_distinguishable_from_an_ordinary_delegation ... ok
+test corpus_backed_is_true_exactly_when_evidence_and_answer_both_exist ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/exp015_profile_parity.rs (target/debug/deps/exp015_profile_parity-9a3ffc78e98960b0)
+
+running 8 tests
+test the_release_receipt_is_profile_independent ... ok
+test both_profiles_activate_the_same_loaded_generation_and_content ... ok
+test profiles_differ_only_in_the_declared_divergent_keys ... ok
+test backend_failure_recovery_is_identical_across_profiles ... ok
+test the_injection_gate_is_reported_identically_by_both_profiles ... ok
+test a_miss_behaves_identically_on_both_profiles ... ok
+test delivery_mode_diverges_while_the_evidence_stays_identical ... ok
+test scaffold_output_is_byte_identical_across_profiles ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/live_smoke.rs (target/debug/deps/live_smoke-68afb7d316894e0a)
+
+running 5 tests
+test live_chat_delegates_to_wiremock_and_annotates ... ignored, live: real corpus + wiremock backend (real distill backend is down)
+test live_health_reports_real_corpus ... ignored, live: runs against the real committed corpus + a wiremock backend
+test live_retrieval_only_is_503 ... ignored, live: honesty path — retrieval-only node returns 503 on /v1/*
+test live_scaffold_engages ... ignored, live: runs against the real committed corpus
+test live_sparql_count_works ... ignored, live: runs against the real committed corpus
+
+test result: ok. 0 passed; 0 failed; 5 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/mirror_generation.rs (target/debug/deps/mirror_generation-8d62d69074b5daba)
+
+running 4 tests
+test rejects_failed_fetch_with_no_prior ... ok
+test rejects_mixed_build ... ok
+test current_when_nothing_downloaded ... ok
+test promotes_consistent_new_build ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/served_identity.rs (target/debug/deps/served_identity-34d9c849f637063d)
+
+running 2 tests
+test disk_change_does_not_relabel_the_loaded_graph ... ok
+test graph_reads_report_the_same_loaded_identity_as_generation ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running unittests src/lib.rs (target/debug/deps/loom_graph_oxigraph-459f2e3389f643c4)
+
+running 17 tests
+test tests::term_str_strips_decoration ... ok
+test tests::unavailable_store_fails_open ... ok
+test tests::write_query_is_bad_query_not_executed ... ok
+test tests::non_read_form_is_rejected ... ok
+test tests::each_read_form_is_accepted ... ok
+test tests::each_forbidden_verb_is_rejected ... ok
+test tests::limit_not_injected_for_non_select_read_forms ... ok
+test tests::limit_not_injected_for_prefix_led_non_select ... ok
+test tests::ask_returns_boolean ... ok
+test tests::limit_injected_exactly_once_when_absent ... ok
+test tests::limit_injection_strips_trailing_semicolon ... ok
+test tests::limit_injected_for_prefix_led_select ... ok
+test tests::limit_injected_for_base_and_prefix_chain ... ok
+test tests::limit_not_injected_for_prefix_led_select_with_existing_limit ... ok
+test tests::limit_not_injected_when_present ... ok
+test tests::row_cap_sets_truncated ... ok
+test tests::injected_limit_actually_caps_results ... ok
+
+test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/integration.rs (target/debug/deps/integration-9391a264c8859268)
+
+running 6 tests
+test real_data_smoke ... ignored, requires app/data/ontology*.ttl (282k triples)
+test loads_only_the_allowlist ... ok
+test aggregation_count_is_nonzero ... ok
+test relationship_pattern_returns_typed_rows ... ok
+test label_search_returns_hits_with_predicate ... ok
+test working_graph_triples_are_absent ... ok
+
+test result: ok. 5 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running unittests src/lib.rs (target/debug/deps/loom_scaffold-8f6f2a2e17522796)
+
+running 56 tests
+test exposure::tests::normalise_matches_python_semantics ... ok
+test exposure::tests::not_covered_line_only_on_drops ... ok
+test exposure::tests::title_hit_short_words_need_substring ... ok
+test exposure::tests::exposure_counts_only_served_titles ... ok
+test exposure::tests::title_hit_substring_and_word_overlap ... ok
+test grounding_tests::decide_at_or_above_strong_is_full ... ok
+test grounding_tests::decide_below_min_is_a_skip ... ok
+test exposure::tests::exposure_dedupes_and_caps ... ok
+test grounding_tests::decide_gate_off_is_always_full_budget ... ok
+test grounding_tests::decide_is_byte_identical_to_effective_budget ... ok
+test grounding_tests::decide_midrange_is_scaled ... ok
+test grounding_tests::decide_no_score_is_a_skip_when_gated ... ok
+test grounding_tests::domain_default_threshold_matches_the_gate ... ok
+test policy_tests::gate_off_returns_full_budget_regardless_of_score ... ok
+test policy_tests::gate_on_at_or_above_strong_full_budget ... ok
+test policy_tests::gate_on_below_min_skips ... ok
+test policy_tests::gate_on_fraction_floor_clamps ... ok
+test policy_tests::gate_on_midrange_scales_budget ... ok
+test policy_tests::gate_on_min_one_budget_floor ... ok
+test policy_tests::gate_on_strong_zero_avoids_div ... ok
+test tests::real_index_smoke_when_present ... ok
+test tests::iri_ref_to_slug ... ok
+test tests::slugify_kebab_case ... ok
+test grounding_tests::grounding_present_on_no_match ... ok
+test tests::empty_prompt_empty ... ok
+test tests::messages_no_match_unchanged ... ok
+test grounding_tests::grounding_reports_a_gated_skip_with_its_evidence ... ok
+test tests::messages_insert_system_at_zero ... ok
+test tests::messages_parts_content_last_user ... ok
+test grounding_tests::grounding_scaled_decision_carries_the_reduced_budget ... ok
+test tests::irrelevant_prompt_empty ... ok
+test grounding_tests::semantic_fallback_is_restated_on_the_cosine_scale ... ok
+test tests::golden_budget60_empty ... ok
+test tests::seed_section_present ... ok
+test tests::impossible_budget_empty ... ok
+test tests::messages_instruction_preamble_present ... ok
+test tests::golden_irrelevant_empty ... ok
+test tests::golden_hops0_byte_identical ... ok
+test tests::clamp_respects_budget ... ok
+test tests::block_has_wrapper ... ok
+test tests::neighbour_def_vector_database_present ... ok
+test grounding_tests::grounding_present_on_a_full_lexical_hit ... ok
+test tests::is_a_line_present ... ok
+test tests::assemble_block_reports_telemetry ... ok
+test grounding_tests::assemble_stamps_lexical_grounding_onto_the_scaffold ... ok
+test tests::golden_default_byte_identical ... ok
+test tests::golden_default_via_port_api ... ok
+test tests::hops0_suppresses_neighbour_defs ... ok
+test tests::seed_not_repeated_as_neighbour_def ... ok
+test tests::messages_merge_into_existing_system ... ok
+test tests::relations_line_present ... ok
+test tests::clamp_shrinks_output ... ok
+test grounding_tests::seed_quality_comes_from_the_index ... ok
+test tests::neighbour_def_ontology_present ... ok
+test grounding_tests::seed_injected_reflects_clamp_survivors ... ok
+test tests::match_8k_under_50ms_p99 ... ok
+
+test result: ok. 56 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.98s
+
+     Running unittests src/bin/build_concept_records.rs (target/debug/deps/build_concept_records-5b50015e06a79069)
+
+running 6 tests
+test tests::empty_strings_collapse_to_null_but_zero_quality_survives ... ok
+test tests::python_separators_and_raw_unicode ... ok
+test tests::iri_relation_target_is_not_resolved ... ok
+test tests::records_are_sorted_by_slug ... ok
+test tests::titles_dedup_by_title_and_cap ... ok
+test tests::golden_byte_parity_with_python ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/loom_vector_ruvector-c529c184c65bc397)
+
+running 15 tests
+test hnsw::tests::every_engine_metric_maps_to_a_domain_metric ... ok
+test hnsw::tests::missing_sidecar_is_unavailable_generation ... ok
+test hnsw::tests::sidecar_path_appends_suffix ... ok
+test hnsw::tests::generation_sidecar_parses_to_mirror_manifest ... ok
+test hnsw::tests::absent_artifact_is_not_ready_and_fails_open ... ok
+test hnsw::tests::sidecar_without_model_fields_still_parses ... ok
+test hnsw::tests::sidecar_that_contradicts_the_database_is_rejected ... ok
+test hnsw::tests::off_width_query_fails_open ... ok
+test hnsw::tests::euclidean_artefact_is_rejected_not_served_as_cosine ... ok
+test hnsw::tests::changed_model_at_equal_width_is_rejected ... ok
+test hnsw::tests::restart_onto_a_degraded_artefact_rejects_it ... ok
+test hnsw::tests::undeclared_model_is_strict_by_default_and_relaxable ... ok
+test hnsw::tests::qualified_artefact_round_trips_with_cosine_ordering_and_iri ... ok
+test hnsw::tests::qualification_is_stable_across_reopen ... ok
+test hnsw::tests::wrong_width_artefact_is_rejected_at_open_not_at_query ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.30s
+
+     Running tests/recall_gate.rs (target/debug/deps/recall_gate-a36d8662ec75061d)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests loom_attest_proofgate
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests loom_backend_openai
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests loom_domain
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests loom_embed_xinference
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests loom_facade
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests loom_graph_oxigraph
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests loom_scaffold
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests loom_vector_ruvector
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

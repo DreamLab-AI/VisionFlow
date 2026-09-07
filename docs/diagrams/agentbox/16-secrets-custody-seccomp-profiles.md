@@ -21,7 +21,7 @@ sources:
   - ../project/scripts/backup-secrets.sh
   - ../project/agentbox/services/secret-backup/src/main.rs
   - ../project/agentbox/services/secret-backup/README.md
-verified_commit: 2c521c5bb
+verified_commit: be0fc078a3dc0eab32af57f1eaf170fa58157bf9
 ---
 
 ## AB-16.1 Container hardening posture — what actually confines the box
@@ -411,22 +411,22 @@ AB-16.2 corrects an upstream comment as well as the previous drawing: Docker exp
 ```mermaid
 flowchart TB
     subgraph cli["agentbox-secret-backup — standalone Cargo bin, services/secret-backup"]
-        BACKUP["Backup #123;root, out, recipients, manifest#125;<br/>src/main.rs:96-110"]
-        RESTORE["Restore #123;archive, dest, identity#125;<br/>src/main.rs:112-121"]
-        PLAN["Plan #123;root#125;<br/>src/main.rs:123-126 — list only, reads no content"]
-        SELFTEST["SelfTest<br/>src/main.rs:128-132 — round trip on SYNTHETIC data"]
+        BACKUP["Backup #123;root, out, recipients, manifest#125;<br/>services/secret-backup/src/main.rs:107-120"]
+        RESTORE["Restore #123;archive, dest, identity#125;<br/>services/secret-backup/src/main.rs:123-132"]
+        PLAN["Plan #123;root#125;<br/>services/secret-backup/src/main.rs:135-138 — list only, reads no content"]
+        SELFTEST["SelfTest<br/>services/secret-backup/src/main.rs:139-143 — round trip on SYNTHETIC data"]
     end
-    BACKUP --> COLLECT["collect#40;root#41; — walks the tree, is_pruned#40;#41; skips<br/>src/main.rs:135,143"]
-    COLLECT --> ENCRYPTOR["encryptor#40;recipients, passphrase#41;<br/>src/main.rs:174 — age::x25519 recipients OR scrypt passphrase, never both silently"]
-    ENCRYPTOR --> ARCHIVE["tar stream, age-encrypted<br/>src/main.rs:204 backup#40;#41;"]
-    ARCHIVE --> MANIFEST["optional manifest: file NAMES + sizes + SHA-256 only<br/>src/main.rs:245-247 — NEVER file contents"]
-    RESTORE --> DECRYPT["age::Decryptor::new_buffered<br/>src/main.rs:300 — branches on is_scrypt#40;#41; vs identity file"]
-    DECRYPT --> UNSAFE["is_unsafe_entry_path#40;#41; guard<br/>src/main.rs:279-284 — rejects absolute paths and .. components<br/>a hand-crafted hostile archive could still carry"]
-    UNSAFE --> HARDEN["harden#40;path#41; — chmod 0600 on every extracted file<br/>src/main.rs:264-273"]
+    ENCRYPTOR --> COLLECT["collect#40;root#41; — walks the tree; exclusions apply relative to the requested root<br/>services/secret-backup/src/main.rs:154-167"]
+    BACKUP --> ENCRYPTOR["encryptor#40;recipients, passphrase#41;<br/>services/secret-backup/src/main.rs:191 — age::x25519 recipients OR scrypt passphrase, never both silently"]
+    COLLECT --> ARCHIVE["tar stream, age-encrypted<br/>services/secret-backup/src/main.rs:224 backup#40;#41;"]
+    ARCHIVE --> MANIFEST["optional manifest: file names plus root/archive/encryption/count metadata<br/>services/secret-backup/src/main.rs:264-275 — NEVER file contents"]
+    RESTORE --> DECRYPT["age::Decryptor::new_buffered<br/>services/secret-backup/src/main.rs:322 — branches on is_scrypt#40;#41; vs identity file"]
+    DECRYPT --> UNSAFE["is_unsafe_entry_path#40;#41; guard<br/>services/secret-backup/src/main.rs:298-307 — rejects absolute paths and .. components<br/>a hand-crafted hostile archive could still carry"]
+    UNSAFE --> HARDEN["harden#40;path#41; — chmod 0600 on every extracted file<br/>services/secret-backup/src/main.rs:283-291"]
     subgraph notes["Invariants and drift"]
         direction TB
         N1["INVARIANT: the tool CANNOT write a plaintext archive — age encryption is<br/>mandatory on every Backup path, not optional (README.md)"]
-        N2["G17 source closeout: lib/secret-backup.nix packages the locked Rust CLI with checks.<br/>flake.nix includes secretBackupPkg in knowledgeToolPackages.<br/>Explicit operator invocation remains required. No key rotation or restore is implied.<br/>The active container has not been rebuilt with this source change."]
+        N2["G17 source closeout: lib/secret-backup.nix packages the locked Rust CLI with checks.<br/>flake.nix includes secretBackupPkg in knowledgeToolPackages.<br/>Explicit operator invocation remains required. Eight synthetic tests pass locally and in the standalone Nix package.<br/>No real-key rotation or recovery is implied.<br/>The active container has not been rebuilt with this source change."]
         N3["ADR-2030: AGPL-3.0-only, publish#61;false, NOT dual-licensed like the sibling<br/>services/ crates #40;MIT OR Apache-2.0#41; — an operator-internal tool, never published"]
         N4["ADR-2027 acceptance gap: retention, off-host placement and the recovery-authority<br/>test remain the operator's responsibility — SelfTest proves restore works on<br/>synthetic data only, never on a real secret"]
         N1 ~~~ N2 ~~~ N3 ~~~ N4

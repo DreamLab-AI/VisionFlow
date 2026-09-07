@@ -1,0 +1,5 @@
+647aabb1023371c25ef6d84206fda8e093f93cac
+ M agentbox.toml
+nix (Nix) 2.35.2
+build-subcommand-status=0
+647aabb10 feat(mesh): HP-Desktop peer node overlay, docs, and proxy allowlist admission

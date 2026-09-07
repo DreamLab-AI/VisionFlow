@@ -1,0 +1,90 @@
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Auto-detected GPU sm_86
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Building for sm_86
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Compiling 9 CUDA kernels to PTX
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: visionclaw_unified source=src/cuda_sources/visionclaw_unified.cu provenance=compiled isa=8.8 original=d907f63a57046677 rewritten=d907f63a57046677
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_clustering_kernels source=src/cuda_sources/gpu_clustering_kernels.cu provenance=compiled isa=8.8 original=8d45ec1d4b2450e8 rewritten=8d45ec1d4b2450e8
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: dynamic_grid source=src/cuda_sources/dynamic_grid.cu provenance=compiled isa=8.8 original=3b5a8fca62e1e6b3 rewritten=3b5a8fca62e1e6b3
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_aabb_reduction source=src/cuda_sources/gpu_aabb_reduction.cu provenance=compiled isa=8.8 original=fbeb10b8613a4ecf rewritten=fbeb10b8613a4ecf
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_landmark_apsp source=src/cuda_sources/gpu_landmark_apsp.cu provenance=compiled isa=8.8 original=a8293ea28f5cf94d rewritten=a8293ea28f5cf94d
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: sssp_compact source=src/cuda_sources/sssp_compact.cu provenance=compiled isa=8.8 original=968bd5dd10ca37b8 rewritten=968bd5dd10ca37b8
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: semantic_forces source=src/cuda_sources/semantic_forces.cu provenance=compiled isa=8.8 original=e096eacd94289510 rewritten=e096eacd94289510
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: pagerank source=src/cuda_sources/pagerank.cu provenance=compiled isa=8.8 original=f0cc4ef336684beb rewritten=f0cc4ef336684beb
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_connected_components source=src/cuda_sources/gpu_connected_components.cu provenance=compiled isa=8.8 original=dfb1fad6f6696d4d rewritten=dfb1fad6f6696d4d
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: All PTX compilation done (9 modules)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Native CUDA linking complete
+warning: use of deprecated field `models::protected_settings::NetworkSettings::enable_http2`: Not enforced by server - use reverse proxy
+   --> crates/visionclaw-domain/src/models/protected_settings.rs:114:17
+    |
+114 |                 enable_http2: true,
+    |                 ^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated field `models::protected_settings::NetworkSettings::min_tls_version`: Not enforced by server - use reverse proxy
+   --> crates/visionclaw-domain/src/models/protected_settings.rs:116:17
+    |
+116 |                 min_tls_version: "TLS1.2".to_string(),
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated field `models::protected_settings::SecuritySettings::cookie_httponly`: Not enforced by server
+   --> crates/visionclaw-domain/src/models/protected_settings.rs:126:17
+    |
+126 |                 cookie_httponly: true,
+    |                 ^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated field `models::protected_settings::SecuritySettings::cookie_samesite`: Not enforced by server
+   --> crates/visionclaw-domain/src/models/protected_settings.rs:127:17
+    |
+127 |                 cookie_samesite: "Lax".to_string(),
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated field `models::protected_settings::SecuritySettings::cookie_secure`: Not enforced by server
+   --> crates/visionclaw-domain/src/models/protected_settings.rs:128:17
+    |
+128 |                 cookie_secure: false,
+    |                 ^^^^^^^^^^^^^^^^^^^^
+
+warning: `visionclaw-domain` (lib) generated 5 warnings
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.22s
+     Running tests/analytics_oracle_conformance.rs (target/debug/deps/analytics_oracle_conformance-5f40f96d63917897)
+
+running 1 test
+test adr_2061_lof_matches_oracle ...   lof/n=8 k=3
+    p0 [0.0, 0.0]  gpu=1.159883  oracle=0.965271  Δ=1.946e-1
+    p1 [1.0, 0.2]  gpu=1.182423  oracle=0.860701  Δ=3.217e-1
+    p2 [0.3, 1.1]  gpu=1.205840  oracle=0.894189  Δ=3.117e-1
+    p3 [1.2, 1.3]  gpu=0.689584  oracle=1.240407  Δ=5.508e-1
+    p4 [0.6, 0.5]  gpu=0.689526  oracle=1.118729  Δ=4.292e-1
+    p5 [2.1, 0.9]  gpu=1.650811  oracle=1.087800  Δ=5.630e-1
+    p6 [0.9, 2.2]  gpu=1.825685  oracle=1.123285  Δ=7.024e-1
+    p7 [8.0, 8.0]  gpu=7.123973  oracle=6.883014  Δ=2.410e-1
+    max|Δ|=7.024006e-1 at point 6
+    >p95 set: gpu=[7] oracle=[7]
+    k-distance-ratio model vs gpu: max|Δ|=5.636e-7
+
+thread 'adr_2061_lof_matches_oracle' (1287767) panicked at crates/visionclaw-gpu/tests/analytics_oracle_conformance.rs:791:5:
+LOF max|Δ|=7.024006e-1 at point 6 exceeds the ADR-2061 bar of 1e-3 (gpu=1.825685, oracle=1.123285).
+Root cause (verified above to <1e-5 on every point): gpu_clustering_kernels.cu:404-417 `lof_lrd_from_neighbors` floors every reachability distance at the QUERY's k-distance rather than each NEIGHBOUR's, so lrd(p) collapses to 1/k_distance(p) and the kernel computes k_distance(p)*mean_o(1/k_distance(o)), not Breunig LOF. Per ADR-2061 the threshold is NOT to be loosened: the kernel is recorded BROKEN in the docs/GPU-wire-abi.md trust table.
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/48a229ceaefd4985c50990b14116b6d856af0985/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/48a229ceaefd4985c50990b14116b6d856af0985/library/core/src/panicking.rs:80:14
+   2: analytics_oracle_conformance::adr_2061_lof_matches_oracle
+   3: analytics_oracle_conformance::adr_2061_lof_matches_oracle::{closure#0}
+             at ./tests/analytics_oracle_conformance.rs:622:33
+   4: <analytics_oracle_conformance::adr_2061_lof_matches_oracle::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/5z8a51mk41ic4b55m5y8c85kgsaa7cv2-rust-minimal-1.98.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   5: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/48a229ceaefd4985c50990b14116b6d856af0985/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+FAILED
+
+failures:
+
+failures:
+    adr_2061_lof_matches_oracle
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 3 filtered out; finished in 2.31s
+
+error: test failed, to rerun pass `-p visionclaw-gpu --test analytics_oracle_conformance`

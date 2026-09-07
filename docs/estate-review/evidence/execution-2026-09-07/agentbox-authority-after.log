@@ -1,0 +1,11 @@
+PASS tests/sovereign/llm-marketplace-authority.test.js
+PASS tests/sovereign/authority-consumer.test.js
+PASS tests/sovereign/approvals-concurrency.test.js
+PASS tests/sovereign/authority.test.js
+PASS tests/sovereign/authority-consumer-decided.test.js
+
+Test Suites: 5 passed, 5 total
+Tests:       29 passed, 29 total
+Snapshots:   0 total
+Time:        1.207 s, estimated 2 s
+Ran all test suites matching /tests\/sovereign\/authority.test.js|tests\/sovereign\/authority-consumer.test.js|tests\/sovereign\/authority-consumer-decided.test.js|tests\/sovereign\/approvals-concurrency.test.js|tests\/sovereign\/llm-marketplace-authority.test.js/i.

@@ -1,0 +1,876 @@
+   Compiling proc-macro2 v1.0.101
+   Compiling unicode-ident v1.0.18
+   Compiling libc v0.2.175
+   Compiling cfg-if v1.0.3
+   Compiling autocfg v1.5.0
+   Compiling memchr v2.7.5
+   Compiling serde_core v1.0.228
+   Compiling version_check v0.9.5
+   Compiling shlex v1.3.0
+   Compiling log v0.4.29
+   Compiling serde v1.0.228
+   Compiling smallvec v1.15.1
+   Compiling once_cell v1.21.3
+   Compiling pin-project-lite v0.2.16
+   Compiling typenum v1.18.0
+   Compiling bytes v1.10.1
+   Compiling zerocopy v0.8.26
+   Compiling scopeguard v1.2.0
+   Compiling parking_lot_core v0.9.11
+   Compiling itoa v1.0.15
+   Compiling futures-core v0.3.31
+   Compiling thiserror v2.0.16
+   Compiling stable_deref_trait v1.2.0
+   Compiling icu_normalizer_data v2.0.0
+   Compiling icu_properties_data v2.0.1
+   Compiling futures-sink v0.3.31
+   Compiling pkg-config v0.3.32
+   Compiling equivalent v1.0.2
+   Compiling allocator-api2 v0.2.21
+   Compiling fnv v1.0.7
+   Compiling foldhash v0.1.5
+   Compiling percent-encoding v2.3.1
+   Compiling slab v0.4.11
+   Compiling pin-utils v0.1.0
+   Compiling writeable v0.6.1
+   Compiling litemap v0.8.0
+   Compiling futures-io v0.3.31
+   Compiling futures-task v0.3.31
+   Compiling httparse v1.10.1
+   Compiling cpufeatures v0.2.17
+   Compiling zmij v1.0.21
+   Compiling utf8_iter v1.0.4
+   Compiling libm v0.2.15
+   Compiling serde_json v1.0.149
+   Compiling regex-syntax v0.8.5
+   Compiling thiserror v1.0.69
+   Compiling getrandom v0.3.3
+   Compiling zeroize v1.8.1
+   Compiling vcpkg v0.2.15
+   Compiling crc32fast v1.5.0
+   Compiling base64 v0.22.1
+   Compiling subtle v2.6.1
+   Compiling glob v0.3.3
+   Compiling oxilangtag v0.1.5
+   Compiling oxiri v0.2.11
+   Compiling crossbeam-utils v0.8.21
+   Compiling untrusted v0.9.0
+   Compiling rustls v0.23.31
+   Compiling foreign-types-shared v0.1.1
+   Compiling lazy_static v1.5.0
+   Compiling utf-8 v0.7.6
+   Compiling openssl v0.10.73
+   Compiling adler2 v2.0.1
+   Compiling ryu v1.0.20
+   Compiling syn v1.0.109
+   Compiling data-encoding v2.9.0
+   Compiling strsim v0.11.1
+   Compiling tracing-core v0.1.34
+   Compiling form_urlencoded v1.2.1
+   Compiling semver v1.0.26
+   Compiling generic-array v0.14.7
+   Compiling hashbrown v0.15.5
+   Compiling futures-channel v0.3.31
+   Compiling ahash v0.8.12
+   Compiling native-tls v0.2.14
+   Compiling httpdate v1.0.3
+   Compiling byteorder v1.5.0
+   Compiling ident_case v1.0.1
+   Compiling lock_api v0.4.13
+   Compiling aho-corasick v1.1.3
+   Compiling num-traits v0.2.19
+   Compiling rustls-pki-types v1.12.0
+   Compiling foreign-types v0.3.2
+   Compiling openssl-probe v0.1.6
+   Compiling proc-macro-error-attr v1.0.4
+   Compiling bitflags v2.13.0
+   Compiling ucd-trie v0.1.7
+   Compiling indexmap v1.9.3
+   Compiling proc-macro-error v1.0.4
+   Compiling encoding_rs v0.8.35
+   Compiling iana-time-zone v0.1.63
+   Compiling tinyvec_macros v0.1.1
+   Compiling http v1.3.1
+   Compiling miniz_oxide v0.8.9
+   Compiling clang-sys v1.8.1
+   Compiling prettyplease v0.2.37
+   Compiling Inflector v0.11.4
+   Compiling zstd-safe v7.2.4
+   Compiling either v1.15.0
+   Compiling powerfmt v0.2.0
+   Compiling local-waker v0.1.4
+   Compiling time-core v0.1.8
+   Compiling mime v0.3.17
+   Compiling alloc-no-stdlib v2.0.4
+   Compiling minimal-lexical v0.2.1
+   Compiling webpki-roots v1.0.2
+   Compiling tinyvec v1.10.0
+   Compiling base64 v0.21.7
+   Compiling crunchy v0.2.4
+   Compiling hashbrown v0.12.3
+   Compiling num-conv v0.2.1
+   Compiling http v0.2.12
+   Compiling libloading v0.8.8
+   Compiling unicode-bidi v0.3.18
+   Compiling peg-runtime v0.8.6
+   Compiling atomic-waker v1.1.2
+   Compiling tiny-keccak v2.0.2
+   Compiling bindgen v0.71.1
+   Compiling unicode-xid v0.2.6
+   Compiling quote v1.0.40
+   Compiling webpki-roots v0.26.11
+   Compiling alloc-stdlib v0.2.2
+   Compiling deranged v0.5.8
+   Compiling nom v7.1.3
+   Compiling bitflags v1.3.2
+   Compiling utf8parse v0.2.2
+   Compiling jobserver v0.1.33
+   Compiling getrandom v0.2.16
+   Compiling signal-hook-registry v1.4.6
+   Compiling socket2 v0.6.0
+   Compiling mio v1.0.4
+   Compiling flate2 v1.1.2
+   Compiling time-macros v0.2.27
+   Compiling arrayvec v0.7.6
+   Compiling try-lock v0.2.5
+   Compiling tower-service v0.3.3
+   Compiling actix-utils v3.0.1
+   Compiling find_cuda_helper v0.2.0
+   Compiling bytestring v1.4.0
+   Compiling syn v2.0.106
+   Compiling regex-automata v0.4.9
+   Compiling http-body v1.0.1
+   Compiling unicode-normalization v0.1.24
+   Compiling peg-macros v0.8.6
+   Compiling crossbeam-channel v0.5.15
+   Compiling anstyle-parse v0.2.7
+   Compiling brotli-decompressor v5.0.0
+   Compiling quick-xml v0.37.5
+   Compiling cookie v0.16.2
+   Compiling actix-service v2.0.3
+   Compiling rustc-hash v2.1.1
+   Compiling colorchoice v1.0.4
+   Compiling unicase v2.8.1
+   Compiling anstyle v1.0.11
+   Compiling regex-lite v0.1.6
+   Compiling is_terminal_polyfill v1.70.1
+   Compiling anstyle-query v1.1.4
+   Compiling json-event-parser v0.2.3
+   Compiling cc v1.2.33
+   Compiling parking_lot v0.12.4
+   Compiling rand_core v0.6.4
+   Compiling rand_core v0.9.3
+   Compiling rustc_version v0.4.1
+   Compiling tracing v0.1.41
+   Compiling itertools v0.13.0
+   Compiling want v0.3.1
+   Compiling bitcoin-io v0.1.3
+   Compiling unsafe-libyaml v0.2.11
+   Compiling crossbeam-epoch v0.9.18
+   Compiling socket2 v0.5.10
+   Compiling local-channel v0.1.5
+   Compiling enum_meta v0.6.0
+   Compiling zlib-rs v0.5.5
+   Compiling rayon-core v1.13.0
+   Compiling language-tags v0.3.2
+   Compiling crypto-common v0.1.6
+   Compiling block-buffer v0.10.4
+   Compiling inout v0.1.4
+   Compiling ipnet v2.11.0
+   Compiling rio_api v0.8.5
+   Compiling idna v0.5.0
+   Compiling anstream v0.6.20
+   Compiling mime_guess v2.0.5
+   Compiling hex-conservative v0.2.1
+   Compiling bitmaps v2.1.0
+   Compiling quick-xml v0.36.2
+   Compiling quick-xml v0.31.0
+   Compiling im v15.1.0
+   Compiling digest v0.10.7
+   Compiling cipher v0.4.4
+   Compiling vek v0.15.10
+   Compiling crossbeam-deque v0.8.6
+   Compiling simd-adler32 v0.3.8
+   Compiling heck v0.5.0
+   Compiling ppv-lite86 v0.2.21
+   Compiling rustix v1.0.8
+   Compiling unicode-width v0.1.14
+   Compiling same-file v1.0.6
+   Compiling paste v1.0.15
+   Compiling bumpalo v3.19.0
+   Compiling typeid v1.0.3
+   Compiling clap_lex v0.7.6
+   Compiling rio_api v0.6.2
+   Compiling sha1 v0.10.6
+   Compiling sha2 v0.10.9
+   Compiling blowfish v0.9.1
+   Compiling impl-more v0.1.9
+   Compiling md-5 v0.10.6
+   Compiling walkdir v2.5.0
+   Compiling hashbrown v0.14.5
+   Compiling time v0.3.47
+   Compiling const-random-macro v0.1.16
+   Compiling rand_xoshiro v0.6.0
+   Compiling cust_raw v0.11.3
+   Compiling http-body-util v0.1.3
+   Compiling atty v0.2.14
+   Compiling is-terminal v0.4.17
+   Compiling quick-xml v0.22.0
+   Compiling quick-xml v0.21.0
+   Compiling matrixmultiply v0.3.10
+   Compiling rand_chacha v0.3.1
+   Compiling rand_chacha v0.9.0
+   Compiling cexpr v0.6.0
+   Compiling approx v0.5.1
+   Compiling num-integer v0.1.46
+   Compiling bcrypt v0.15.1
+   Compiling brotli v8.0.2
+   Compiling rio_xml v0.8.5
+   Compiling sized-chunks v0.6.5
+   Compiling pretty_rdf v0.8.0
+   Compiling clap_builder v4.5.49
+   Compiling zopfli v0.8.3
+   Compiling textwrap v0.11.0
+   Compiling sync_wrapper v1.0.2
+   Compiling indexmap v2.10.0
+   Compiling strsim v0.8.0
+   Compiling winnow v0.7.12
+   Compiling anyhow v1.0.99
+   Compiling tower-layer v0.3.3
+   Compiling rand v0.8.5
+   Compiling rand v0.9.2
+   Compiling bech32 v0.11.0
+   Compiling ansi_term v0.12.1
+   Compiling hex v0.4.3
+   Compiling vec_map v0.8.2
+   Compiling linux-raw-sys v0.9.4
+   Compiling humantime v2.3.0
+   Compiling termcolor v1.4.1
+   Compiling const-random v0.1.18
+   Compiling rio_xml v0.6.2
+   Compiling rayon v1.11.0
+   Compiling rust-embed-utils v8.9.0
+   Compiling num-complex v0.4.6
+   Compiling peg v0.8.6
+   Compiling glam v0.20.5
+   Compiling heapless v0.7.17
+   Compiling cust v0.3.2
+   Compiling itertools v0.10.5
+   Compiling dashmap v6.1.0
+   Compiling dlv-list v0.5.2
+   Compiling siphasher v1.0.1
+   Compiling cudarc v0.12.1
+   Compiling mint v0.5.9
+   Compiling clap v2.34.0
+   Compiling lru v0.16.0
+   Compiling rawpointer v0.2.1
+   Compiling iri-string v0.7.8
+   Compiling fastrand v2.3.0
+   Compiling v_htmlescape v0.15.8
+   Compiling slurp v1.0.1
+   Compiling toml_writer v1.0.6+spec-1.1.0
+   Compiling hashlink v0.9.1
+   Compiling num-rational v0.4.2
+   Compiling spin v0.9.9
+   Compiling inotify-sys v0.1.5
+   Compiling hashlink v0.10.0
+   Compiling hash32 v0.2.1
+   Compiling tracing-log v0.2.0
+   Compiling ring v0.17.14
+   Compiling openssl-sys v0.9.109
+   Compiling zstd-sys v2.0.15+zstd.1.5.7
+   Compiling secp256k1-sys v0.10.1
+   Compiling libsqlite3-sys v0.28.0
+   Compiling blake3 v1.8.2
+   Compiling pretty_rdf v0.1.2
+   Compiling ordered-multimap v0.7.3
+   Compiling actix-router v0.5.3
+   Compiling uuid v1.18.0
+   Compiling sharded-slab v0.1.7
+   Compiling thread_local v1.1.9
+   Compiling arrayref v0.3.9
+   Compiling unicode-segmentation v1.12.0
+   Compiling visionclaw-gpu v0.1.0 (/home/devuser/workspace/project/crates/visionclaw-gpu)
+   Compiling regex v1.11.2
+   Compiling convert_case v0.4.0
+   Compiling arraydeque v0.5.1
+   Compiling negentropy v0.5.0
+   Compiling constant_time_eq v0.3.1
+   Compiling atomic-destructor v0.3.0
+   Compiling fallible-iterator v0.3.0
+   Compiling nu-ansi-term v0.50.1
+   Compiling fallible-streaming-iterator v0.1.9
+   Compiling inotify v0.9.6
+   Compiling filetime v0.2.26
+   Compiling mio v0.8.11
+   Compiling lru v0.12.5
+   Compiling simdutf8 v0.1.5
+   Compiling http-range v0.1.5
+   Compiling xml-rs v0.8.27
+   Compiling static_assertions v1.1.0
+   Compiling pathdiff v0.2.3
+   Compiling inventory v0.3.21
+   Compiling jiff v0.2.15
+   Compiling ordered-float v4.6.0
+   Compiling sysinfo v0.37.0
+   Compiling glam v0.30.5
+   Compiling dotenvy v0.15.7
+   Compiling cust_derive v0.2.0
+   Compiling urlencoding v2.1.3
+   Compiling yaml-rust2 v0.10.3
+   Compiling rust-ini v0.21.3
+   Compiling pollster v0.4.0
+   Compiling notify v6.1.1
+   Compiling convert_case v0.6.0
+   Compiling libz-rs-sys v0.5.5
+   Compiling zip v3.0.0
+   Compiling xml v0.8.20
+   Compiling synstructure v0.13.2
+   Compiling darling_core v0.20.11
+   Compiling matchers v0.2.0
+   Compiling toml_parser v1.0.2
+   Compiling tempfile v3.20.0
+   Compiling env_logger v0.10.2
+   Compiling env_filter v0.1.3
+   Compiling serde_derive v1.0.228
+   Compiling zerofrom-derive v0.1.6
+   Compiling yoke-derive v0.8.0
+   Compiling zerovec-derive v0.11.1
+   Compiling displaydoc v0.2.5
+   Compiling tokio-macros v2.5.0
+   Compiling thiserror-impl v2.0.16
+   Compiling futures-macro v0.3.31
+   Compiling tracing-attributes v0.1.30
+   Compiling thiserror-impl v1.0.69
+   Compiling openssl-macros v0.1.1
+   Compiling specta-macros v2.0.0-rc.18
+   Compiling bytemuck_derive v1.10.1
+   Compiling ctor v0.2.9
+   Compiling async-trait v0.1.89
+   Compiling actix-macros v0.2.4
+   Compiling derive_more-impl v2.0.1
+   Compiling actix-web-codegen v4.3.0
+   Compiling actix_derive v0.6.2
+   Compiling clap_derive v4.5.49
+   Compiling nalgebra-macros v0.3.0
+   Compiling utoipa-gen v5.4.0
+   Compiling pin-project-internal v1.1.10
+   Compiling rust-embed-impl v8.9.0
+   Compiling visionclaw-server v0.1.0 (/home/devuser/workspace/project)
+   Compiling cust_core v0.1.1
+   Compiling derive_more v0.99.20
+   Compiling tokio v1.47.1
+   Compiling futures-util v0.3.31
+warning: visionclaw-server@0.1.0: webxr build.rs: GPU feature not enabled
+   Compiling rust-embed v8.9.0
+   Compiling zerofrom v0.1.6
+   Compiling specta v2.0.0-rc.22
+   Compiling bytemuck v1.23.2
+   Compiling yoke v0.8.0
+   Compiling oxsdatatypes v0.2.2
+   Compiling pest v2.8.1
+   Compiling cobs v0.3.0
+   Compiling darling_macro v0.20.11
+   Compiling safe_arch v0.7.4
+   Compiling zerovec v0.11.4
+   Compiling zerotrie v0.2.2
+   Compiling pin-project v1.1.10
+   Compiling darling v0.20.11
+   Compiling specta-serde v0.0.9
+   Compiling validator_derive v0.18.2
+   Compiling hexser_macros v0.4.7
+   Compiling wide v0.7.33
+   Compiling clap v4.5.49
+   Compiling specta-typescript v0.0.9
+   Compiling oxrdf v0.2.4
+   Compiling derive_more v2.0.1
+   Compiling tinystr v0.8.1
+   Compiling potential_utf v0.1.2
+   Compiling icu_collections v2.0.0
+   Compiling pest_meta v2.8.1
+   Compiling icu_locale_core v2.0.0
+   Compiling env_logger v0.11.8
+   Compiling spargebra v0.3.5
+   Compiling oxjsonld v0.1.0
+   Compiling oxttl v0.1.8
+   Compiling sparesults v0.2.5
+   Compiling oxrdfxml v0.1.7
+   Compiling chrono v0.4.42
+   Compiling serde_urlencoded v0.7.1
+   Compiling bitcoin_hashes v0.14.0
+   Compiling serde_spanned v1.0.0
+   Compiling toml_datetime v0.7.0
+   Compiling tracing-serde v0.2.0
+   Compiling erased-serde v0.4.6
+   Compiling ron v0.8.1
+   Compiling icu_provider v2.0.0
+   Compiling pest_generator v2.8.1
+   Compiling toml v0.9.5
+   Compiling icu_normalizer v2.0.0
+   Compiling icu_properties v2.0.1
+   Compiling serde-untagged v0.1.8
+   Compiling oxrdfio v0.1.8
+   Compiling postcard v1.1.3
+   Compiling futures-executor v0.3.31
+   Compiling pest_derive v2.8.1
+   Compiling futures v0.3.31
+   Compiling serde_yaml v0.9.34+deprecated
+   Compiling curie v0.1.4
+   Compiling simba v0.9.0
+   Compiling json5 v0.4.1
+   Compiling horned-owl v0.11.0
+   Compiling tracing-subscriber v0.3.20
+   Compiling idna_adapter v1.2.1
+   Compiling idna v1.0.3
+   Compiling oxrocksdb-sys v0.4.11
+   Compiling config v0.15.15
+   Compiling url v2.5.4
+   Compiling secp256k1 v0.29.1
+   Compiling utoipa v5.4.0
+   Compiling sparopt v0.2.1
+   Compiling tungstenite v0.21.0
+   Compiling validator v0.18.1
+   Compiling utoipa-swagger-ui v9.0.2
+   Compiling nostr v0.43.1
+   Compiling spareval v0.1.4
+   Compiling tracing-appender v0.2.3
+   Compiling tokio-util v0.7.16
+   Compiling actix-rt v2.11.0
+   Compiling tokio-native-tls v0.3.1
+   Compiling tokio-socks v0.5.2
+   Compiling tower v0.5.2
+   Compiling async-utility v0.3.1
+   Compiling hexser v0.4.7
+   Compiling tokio-stream v0.1.17
+   Compiling actix-server v2.6.0
+   Compiling visionclaw-domain v0.1.0 (/home/devuser/workspace/project/crates/visionclaw-domain)
+   Compiling tokio-tungstenite v0.21.0
+   Compiling horned-functional v0.4.0
+   Compiling h2 v0.4.12
+   Compiling h2 v0.3.27
+   Compiling actix-codec v0.5.2
+   Compiling actix v0.13.5
+   Compiling tower-http v0.6.6
+   Compiling rustls-webpki v0.103.4
+   Compiling nalgebra v0.34.0
+   Compiling nostr-database v0.43.0
+warning: use of deprecated field `models::protected_settings::NetworkSettings::enable_http2`: Not enforced by server - use reverse proxy
+   --> crates/visionclaw-domain/src/models/protected_settings.rs:114:17
+    |
+114 |                 enable_http2: true,
+    |                 ^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated field `models::protected_settings::NetworkSettings::min_tls_version`: Not enforced by server - use reverse proxy
+   --> crates/visionclaw-domain/src/models/protected_settings.rs:116:17
+    |
+116 |                 min_tls_version: "TLS1.2".to_string(),
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated field `models::protected_settings::SecuritySettings::cookie_httponly`: Not enforced by server
+   --> crates/visionclaw-domain/src/models/protected_settings.rs:126:17
+    |
+126 |                 cookie_httponly: true,
+    |                 ^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated field `models::protected_settings::SecuritySettings::cookie_samesite`: Not enforced by server
+   --> crates/visionclaw-domain/src/models/protected_settings.rs:127:17
+    |
+127 |                 cookie_samesite: "Lax".to_string(),
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated field `models::protected_settings::SecuritySettings::cookie_secure`: Not enforced by server
+   --> crates/visionclaw-domain/src/models/protected_settings.rs:128:17
+    |
+128 |                 cookie_secure: false,
+    |                 ^^^^^^^^^^^^^^^^^^^^
+
+   Compiling hyper v1.7.0
+   Compiling tokio-rustls v0.26.2
+   Compiling tungstenite v0.26.2
+   Compiling ureq v2.12.1
+   Compiling hyper-util v0.1.16
+   Compiling tokio-tungstenite v0.26.2
+   Compiling horned-owl v1.2.0
+   Compiling async-wsocket v0.13.1
+   Compiling nostr-relay-pool v0.43.0
+   Compiling zstd v0.13.3
+   Compiling actix-http v3.11.0
+   Compiling hyper-rustls v0.27.7
+   Compiling hyper-tls v0.6.0
+   Compiling fastwebsockets v0.8.0
+   Compiling reqwest v0.12.23
+   Compiling nostr-sdk v0.43.0
+   Compiling visionclaw-xr-presence v0.2.1 (/home/devuser/workspace/project/crates/visionclaw-xr-presence)
+   Compiling visionclaw-actors v0.1.0 (/home/devuser/workspace/project/crates/visionclaw-actors)
+   Compiling visionclaw-protocol v0.1.0 (/home/devuser/workspace/project/crates/visionclaw-protocol)
+warning: unused variable: `old`
+   --> crates/visionclaw-protocol/src/protocols/binary_settings_protocol.rs:588:9
+    |
+588 |         old: &BinaryValue,
+    |         ^^^ help: if this is intentional, prefix it with an underscore: `_old`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: method `compute_value_delta` is never used
+   --> crates/visionclaw-protocol/src/protocols/binary_settings_protocol.rs:586:8
+    |
+130 | impl BinarySettingsProtocol {
+    | --------------------------- method in this implementation
+...
+586 |     fn compute_value_delta(
+    |        ^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+   Compiling actix-web v4.11.0
+   Compiling whelk v0.1.0 (https://github.com/jjohare/whelk-rs?rev=79a1ee21789add5a66faa0ec1a830c32dba9b539#79a1ee21)
+warning: `visionclaw-protocol` (lib) generated 2 warnings (run `cargo fix --lib -p visionclaw-protocol` to apply 1 suggestion)
+   Compiling actix-cors v0.7.1
+   Compiling actix-web-actors v4.3.1+deprecated
+   Compiling actix-files v0.6.6
+warning: `visionclaw-domain` (lib) generated 5 warnings
+   Compiling oxigraph v0.4.11
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Auto-detected GPU sm_86
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Building for sm_86
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Compiling 9 CUDA kernels to PTX
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: visionclaw_unified source=src/cuda_sources/visionclaw_unified.cu provenance=compiled isa=8.8 original=d907f63a57046677 rewritten=d907f63a57046677
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_clustering_kernels source=src/cuda_sources/gpu_clustering_kernels.cu provenance=compiled isa=8.8 original=3d61cff573e6643e rewritten=3d61cff573e6643e
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: dynamic_grid source=src/cuda_sources/dynamic_grid.cu provenance=compiled isa=8.8 original=3b5a8fca62e1e6b3 rewritten=3b5a8fca62e1e6b3
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_aabb_reduction source=src/cuda_sources/gpu_aabb_reduction.cu provenance=compiled isa=8.8 original=fbeb10b8613a4ecf rewritten=fbeb10b8613a4ecf
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_landmark_apsp source=src/cuda_sources/gpu_landmark_apsp.cu provenance=compiled isa=8.8 original=a8293ea28f5cf94d rewritten=a8293ea28f5cf94d
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: sssp_compact source=src/cuda_sources/sssp_compact.cu provenance=compiled isa=8.8 original=968bd5dd10ca37b8 rewritten=968bd5dd10ca37b8
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: semantic_forces source=src/cuda_sources/semantic_forces.cu provenance=compiled isa=8.8 original=e096eacd94289510 rewritten=e096eacd94289510
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: pagerank source=src/cuda_sources/pagerank.cu provenance=compiled isa=8.8 original=f0cc4ef336684beb rewritten=f0cc4ef336684beb
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_connected_components source=src/cuda_sources/gpu_connected_components.cu provenance=compiled isa=8.8 original=dfb1fad6f6696d4d rewritten=dfb1fad6f6696d4d
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: All PTX compilation done (9 modules)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Native CUDA linking complete
+   Compiling visionclaw-ontology v0.1.0 (/home/devuser/workspace/project/crates/visionclaw-ontology)
+   Compiling visionclaw-adapters v0.1.0 (/home/devuser/workspace/project/crates/visionclaw-adapters)
+warning: unused import: `std::collections::HashMap`
+ --> crates/visionclaw-ontology/src/inference/owl_parser.rs:8:5
+  |
+8 | use std::collections::HashMap;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unexpected `cfg` condition value: `nostr-verify`
+   --> crates/visionclaw-ontology/src/services/jsonld_validator/signature.rs:198:11
+    |
+198 |     #[cfg(feature = "nostr-verify")]
+    |           ^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: expected values for `feature` are: `default`
+    = help: consider adding `nostr-verify` as a feature in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+    = note: `#[warn(unexpected_cfgs)]` on by default
+
+warning: unexpected `cfg` condition value: `nostr-verify`
+   --> crates/visionclaw-ontology/src/services/jsonld_validator/signature.rs:212:15
+    |
+212 |     #[cfg(not(feature = "nostr-verify"))]
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: expected values for `feature` are: `default`
+    = help: consider adding `nostr-verify` as a feature in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition value: `gpu`
+   --> crates/visionclaw-ontology/src/validation/actor_validation.rs:136:23
+    |
+136 |         "gpu" => cfg!(feature = "gpu"),
+    |                       ^^^^^^^^^^^^^^^
+    |
+    = note: expected values for `feature` are: `default`
+    = help: consider adding `gpu` as a feature in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition value: `ontology`
+   --> crates/visionclaw-ontology/src/validation/actor_validation.rs:137:28
+    |
+137 |         "ontology" => cfg!(feature = "ontology"),
+    |                            ^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: expected values for `feature` are: `default`
+    = help: consider adding `ontology` as a feature in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: variable does not need to be mutable
+    --> crates/visionclaw-adapters/src/oxigraph_ontology_repository.rs:1360:13
+     |
+1360 |         let mut alloc_id = |iri: &str, table: &mut HashMap<String, u32>, nx: &mut u32| -> u32 {
+     |             ----^^^^^^^^
+     |             |
+     |             help: remove this `mut`
+     |
+     = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: constant `P_COMMENT` is never used
+   --> crates/visionclaw-adapters/src/oxigraph_ontology_repository.rs:497:7
+    |
+497 | const P_COMMENT: &str = "http://www.w3.org/2000/01/rdf-schema#comment";
+    |       ^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+   Compiling rusqlite v0.31.0
+   Compiling tokio-rusqlite v0.5.1
+warning: `visionclaw-ontology` (lib) generated 5 warnings (run `cargo fix --lib -p visionclaw-ontology` to apply 1 suggestion)
+warning: `visionclaw-adapters` (lib) generated 2 warnings (run `cargo fix --lib -p visionclaw-adapters` to apply 1 suggestion)
+warning: unused imports: `error` and `info`
+ --> src/handlers/api_handler/analytics/community.rs:1:11
+  |
+1 | use log::{error, info};
+  |           ^^^^^  ^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused imports: `CommunityDetectionAlgorithm` and `RunCommunityDetection`
+ --> src/handlers/api_handler/analytics/community.rs:7:5
+  |
+7 |     CommunityDetectionAlgorithm, CommunityDetectionParams, RunCommunityDetection,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^                            ^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::AppState`
+  --> src/handlers/api_handler/analytics/community.rs:10:5
+   |
+10 | use crate::AppState;
+   |     ^^^^^^^^^^^^^^^
+
+warning: unused import: `ClusteringParams`
+  --> src/handlers/api_handler/analytics/clustering_handlers.rs:16:35
+   |
+16 |     Cluster, ClusterFocusRequest, ClusteringParams, ClusteringRequest, ClusteringResponse,
+   |                                   ^^^^^^^^^^^^^^^^
+
+warning: unused import: `ClusteringParams`
+ --> src/handlers/api_handler/analytics/clustering.rs:3:22
+  |
+3 | use super::{Cluster, ClusteringParams, ClusteringRequest};
+  |                      ^^^^^^^^^^^^^^^^
+
+warning: unused import: `GetNodeData as GetGpuNodeData`
+ --> src/handlers/api_handler/files/mod.rs:2:27
+  |
+2 |     AddNodesFromMetadata, GetNodeData as GetGpuNodeData, GetSettings, UpdateMetadata,
+  |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `GetGPUStatus`
+ --> src/handlers/consolidated_health_handler.rs:1:31
+  |
+1 | use crate::actors::messages::{GetGPUStatus, GetGraphData, GetMetadata, GetSettings};
+  |                               ^^^^^^^^^^^^
+
+warning: unnecessary parentheses around `if` condition
+   --> src/services/github/api.rs:146:23
+    |
+146 |             } else if (raw_path == raw_base || raw_path.starts_with(&format!("{raw_base}/"))) {
+    |                       ^                                                                     ^
+    |
+    = note: `#[warn(unused_parens)]` (part of `#[warn(unused)]`) on by default
+help: remove these parentheses
+    |
+146 -             } else if (raw_path == raw_base || raw_path.starts_with(&format!("{raw_base}/"))) {
+146 +             } else if raw_path == raw_base || raw_path.starts_with(&format!("{raw_base}/")) {
+    |
+
+warning: unused imports: `AxiomType`, `OntologyRepositoryError`, `PathfindingCacheEntry`, `PropertyType`, and `ValidationReport`
+  --> src/test_helpers.rs:15:5
+   |
+15 |     AxiomType, InferenceResults, OntologyMetrics, OntologyRepository, OntologyRepositoryError,
+   |     ^^^^^^^^^                                                         ^^^^^^^^^^^^^^^^^^^^^^^
+16 |     OwlAxiom, OwlClass, OwlProperty, PathfindingCacheEntry, PropertyType, Result as OntResult,
+   |                                      ^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^
+17 |     ValidationReport,
+   |     ^^^^^^^^^^^^^^^^
+   |
+help: if this is a test module, consider adding a `#[cfg(test)]` to the containing module
+  --> src/lib.rs:47:1
+   |
+47 | pub mod test_helpers;
+   | ^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated module `visionclaw_gpu::memory`: Use crate::gpu::memory_manager::GpuMemoryManager instead
+  --> src/utils/mod.rs:16:25
+   |
+16 | pub use visionclaw_gpu::memory as gpu_memory;
+   |                         ^^^^^^
+   |
+   = note: `#[warn(deprecated)]` on by default
+
+warning: unused import: `crate::ports::knowledge_graph_repository::KnowledgeGraphRepository`
+ --> src/services/file_service.rs:3:5
+  |
+3 | use crate::ports::knowledge_graph_repository::KnowledgeGraphRepository;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `ToSimParams`
+  --> src/models/force_channels.rs:47:83
+   |
+47 | use crate::models::simulation_params::{FeatureFlags, SimParams, SimulationParams, ToSimParams};
+   |                                                                                   ^^^^^^^^^^^
+
+warning: variable does not need to be mutable
+    --> src/actors/gpu/force_compute_actor.rs:1167:25
+     |
+1167 |                     let mut class_masses = vec![1.0f32; num_nodes];
+     |                         ----^^^^^^^^^^^^
+     |                         |
+     |                         help: remove this `mut`
+     |
+     = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `gpu_manager_addr`
+    --> src/actors/graph_service_supervisor.rs:1546:13
+     |
+1546 |         let gpu_manager_addr = self.gpu_manager.clone();
+     |             ^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_gpu_manager_addr`
+     |
+     = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: variable does not need to be mutable
+    --> src/actors/semantic_processor_actor.rs:1608:13
+     |
+1608 |         let mut gpu_analyzer = match self.gpu_analyzer.take() {
+     |             ----^^^^^^^^^^^^
+     |             |
+     |             help: remove this `mut`
+
+warning: variable does not need to be mutable
+    --> src/actors/semantic_processor_actor.rs:1656:13
+     |
+1656 |         let mut gpu_analyzer = match self.gpu_analyzer.take() {
+     |             ----^^^^^^^^^^^^
+     |             |
+     |             help: remove this `mut`
+
+warning: unused variable: `members`
+   --> src/services/github_sync_service.rs:880:17
+    |
+880 |             let members = match domain_members.get(slug) {
+    |                 ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_members`
+
+warning: type `AssignRoleRequest` is more private than the item `assign_role`
+   --> src/handlers/admin_rbac_handler.rs:123:1
+    |
+123 | / pub async fn assign_role(
+124 | |     req: HttpRequest,
+125 | |     path: web::Path<String>,
+126 | |     body: web::Json<AssignRoleRequest>,
+127 | |     nostr: web::Data<NostrService>,
+128 | | ) -> impl Responder {
+    | |___________________^ function `assign_role` is reachable at visibility `pub`
+    |
+note: but type `AssignRoleRequest` is only usable at visibility `pub(self)`
+   --> src/handlers/admin_rbac_handler.rs:59:1
+    |
+ 59 | struct AssignRoleRequest {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^
+    = note: `#[warn(private_interfaces)]` on by default
+
+warning: associated items `apply_ontology_constraints` and `report_axioms_to_domain` are never used
+   --> src/actors/gpu/ontology_constraint_actor.rs:183:8
+    |
+154 | impl OntologyConstraintActor {
+    | ---------------------------- associated items in this implementation
+...
+183 |     fn apply_ontology_constraints(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+368 |     fn report_axioms_to_domain(report: &OntologyReasoningReport) -> Vec<DomainOwlAxiom> {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `validate_community_params` is never used
+   --> src/handlers/api_handler/analytics/community.rs:139:4
+    |
+139 | fn validate_community_params(params: &CommunityDetectionParams) -> Result<(), String> {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `convert_gpu_result_to_communities` is never used
+   --> src/handlers/api_handler/analytics/community.rs:153:4
+    |
+153 | fn convert_gpu_result_to_communities(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `generate_community_color` is never used
+   --> src/handlers/api_handler/analytics/community.rs:193:4
+    |
+193 | fn generate_community_color(community_id: usize) -> String {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: method `has_node_changed_significantly` is never used
+   --> src/handlers/socket_flow_handler/types.rs:238:19
+    |
+145 | impl SocketFlowServer {
+    | --------------------- method in this implementation
+...
+238 |     pub(crate) fn has_node_changed_significantly(
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: field `dev_bypass_ok` is never read
+   --> src/handlers/speech_socket_handler.rs:106:5
+    |
+ 89 | pub struct SpeechSocket {
+    |            ------------ field in this struct
+...
+106 |     dev_bypass_ok: bool,
+    |     ^^^^^^^^^^^^^
+
+warning: associated items `authenticate_request`, `storage_path`, `pod_base_url`, and `pod_structure` are never used
+   --> src/handlers/solid_proxy_handler.rs:246:8
+    |
+124 | impl SolidPodState {
+    | ------------------ associated items in this implementation
+...
+246 |     fn authenticate_request(&self, req: &HttpRequest) -> Result<Option<String>, HttpResponse> {
+    |        ^^^^^^^^^^^^^^^^^^^^
+...
+261 |     fn storage_path(target_path: &str) -> String {
+    |        ^^^^^^^^^^^^
+...
+271 |     fn pod_base_url(req: &HttpRequest) -> String {
+    |        ^^^^^^^^^^^^
+...
+287 |     fn pod_structure(pod_base_url: &str, npub: &str) -> PodStructure {
+    |        ^^^^^^^^^^^^^
+
+warning: field `topology_cache` is never read
+   --> src/services/agent_visualization_protocol.rs:439:5
+    |
+434 | pub struct AgentVisualizationProtocol {
+    |            -------------------------- field in this struct
+...
+439 |     topology_cache: std::collections::HashMap<String, SwarmTopologyData>,
+    |     ^^^^^^^^^^^^^^
+
+warning: variant `NoOp` is never constructed
+   --> src/services/role_store.rs:773:5
+    |
+771 | enum TxOutcome {
+    |      --------- variant in this enum
+772 |     Ok,
+773 |     NoOp,
+    |     ^^^^
+
+warning: `visionclaw-server` (lib) generated 27 warnings (run `cargo fix --lib -p visionclaw-server` to apply 14 suggestions)
+error[E0432]: unresolved import `visionclaw_server::adapters::actix_physics_adapter`
+   --> src/main.rs:792:42
+    |
+792 |         use visionclaw_server::adapters::actix_physics_adapter::ActixPhysicsAdapter;
+    |                                          ^^^^^^^^^^^^^^^^^^^^^ could not find `actix_physics_adapter` in `adapters`
+    |
+note: found an item that was configured out
+   --> src/adapters/mod.rs:38:9
+    |
+ 37 | #[cfg(feature = "gpu")]
+    |       --------------- the item is gated behind the `gpu` feature
+ 38 | pub mod actix_physics_adapter;
+    |         ^^^^^^^^^^^^^^^^^^^^^
+
+For more information about this error, try `rustc --explain E0432`.
+warning: visionclaw-server@0.1.0: webxr build.rs: GPU feature not enabled
+error: could not compile `visionclaw-server` (bin "visionclaw-server") due to 1 previous error

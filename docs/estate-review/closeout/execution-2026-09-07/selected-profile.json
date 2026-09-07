@@ -1,0 +1,33 @@
+{
+  "sovereign_mesh.relay.expose": false,
+  "sovereign_mesh.mobile_bridge.enabled": false,
+  "sovereign_mesh.multi_user": {
+    "enabled": false,
+    "provisioning_policy": "closed",
+    "invite_kind": 30910,
+    "invite_validity_seconds": 86400,
+    "max_users": 100,
+    "suspend_inactive_after_days": 90,
+    "admin_pubkeys": []
+  },
+  "sovereign_mesh.per_user_agents": false,
+  "sovereign_mesh.git.read_public": false,
+  "networking.host_gateway": false,
+  "payments.consumer": {
+    "enabled": false,
+    "max_sats_per_call": 100,
+    "daily_budget_sats": 1000,
+    "approval_threshold_sats": 50,
+    "allow_origins": [],
+    "deny_origins": [],
+    "external_router": "off"
+  },
+  "integrations.solid_pod_rs.enable_oidc": false,
+  "integrations.solid_pod_rs.enable_mcp": false,
+  "skills.code_interpreter.allow_pip_install": false,
+  "memory_learning.feed_retrieval": true,
+  "memory_learning.feed_routing": false,
+  "toolchains.nagual_qe": false,
+  "sovereign_mesh.kg_elevation": true,
+  "skills.ontology.direct_axiom_load": false
+}

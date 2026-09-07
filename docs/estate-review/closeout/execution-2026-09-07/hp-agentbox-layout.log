@@ -1,0 +1,18 @@
+sha256:c64e5acaf902cbda96cced5665f9bda7dd18f1a067545c3ea0dc41105a79bc55 2026-09-02T19:23:15.015044337Z /home/john/githubs/visionflow-hp/agentbox /home/john/githubs/visionflow-hp/agentbox/docker-compose.yml,/home/john/githubs/visionflow-hp/agentbox/docker-compose.hp.yml
+/home/john/githubs/visionflow-hp/agentbox/projects -> /projects
+/home/john/githubs/visionflow-hp/agentbox/agentbox.toml -> /etc/agentbox.toml
+/var/lib/docker/volumes/agentbox-codeserver-config/_data -> /home/devuser/.local/share/code-server
+/var/lib/docker/volumes/agentbox-ruvector-data/_data -> /var/lib/ruvector
+/home/john/.config/claude -> /home/devuser/.config/claude
+/var/lib/docker/volumes/agentbox-sovereign-identities/_data -> /var/lib/agentbox/identities
+/var/lib/docker/volumes/agentbox-code-harness-data/_data -> /var/lib/agentbox/code-harness
+/var/lib/docker/volumes/agentbox-nostr-relay-data/_data -> /var/lib/nostr-relay
+/var/lib/docker/volumes/agentbox-solid-data/_data -> /var/lib/solid
+/home/john/.claude -> /home/devuser/.claude
+/home/john/githubs/visionflow-hp/agentbox/workspace -> /home/devuser/workspace
+/home/john/.claude.json -> /home/devuser/.claude.json
+/var/lib/docker/volumes/agentbox-events/_data -> /var/lib/agentbox/events
+/var/lib/docker/volumes/agentbox-consultations-data/_data -> /var/lib/agentbox/consultations
+/var/lib/docker/volumes/agentbox-tailscale-state/_data -> /var/lib/tailscale
+/var/lib/docker/volumes/agentbox-secrets/_data -> /var/lib/agentbox/secrets
+

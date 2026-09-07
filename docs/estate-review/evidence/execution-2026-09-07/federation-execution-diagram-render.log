@@ -1,0 +1,27 @@
+visiongraph/02- 0 parsed 1 topic files, 7 mermaid diagrams
+cite-check: 0 warning(s)
+rendered 7/7 diagrams via mmdc
+ 
+visiongraph/03- 0 parsed 1 topic files, 4 mermaid diagrams
+cite-check: 0 warning(s)
+rendered 4/4 diagrams via mmdc
+ 
+knowledgegraph/02- 0 parsed 1 topic files, 6 mermaid diagrams
+cite-check: 0 warning(s)
+rendered 6/6 diagrams via mmdc
+ 
+knowledgegraph/05- 0 parsed 1 topic files, 4 mermaid diagrams
+cite-check: 0 warning(s)
+rendered 4/4 diagrams via mmdc
+ 
+nostr-rust-forum/06- 0 parsed 1 topic files, 11 mermaid diagrams
+cite-check: 0 warning(s)
+rendered 11/11 diagrams via mmdc
+ 
+nostr-rust-forum/10- 1 parsed 1 topic files, 10 mermaid diagrams
+cite-check: 0 warning(s)
+rendered 9/10 diagrams via mmdc
+ 
+1 error(s):
+  - nostr-rust-forum/10-invariants-and-anomaly-register.md:NF-10.10 (md line 150) — mermaid line 16: ... a separate receipt. | -----------------------^ | Expecting '()', 'SOLID_OPEN_ARROW', 'DOTTED_OPEN_ARROW', 'SOLID_ARROW', 'SOLID_ARROW_TOP', 'SOLID_ARROW_BOTTOM', 'STICK_ARROW_TOP', 'STICK_ARROW_BOTTOM', 'SOLID_ARROW_TOP_DOTTED', 'SOLID_ARROW_BOTTOM_DOTTED', 'STICK_ARROW_TOP_DOTTED', 'STICK_ARROW_BOTTOM_DOTTED', 'SOLID_ARROW_TOP_REVERSE', 'SOLID_ARROW_BOTTOM_REVERSE', 'STICK_ARROW_TOP_REVERSE', 'STICK_ARROW_BOTTOM_REVERSE', 'SOLID_ARROW_TOP_REVERSE_DOTTED', 'SOLID_ARROW_BOTTOM_REVERSE_DOTTED', 'STICK_ARROW_TOP_REVERSE_DOTTED', 'STICK_ARROW_BOTTOM_REVERSE_DOTTED', 'BIDIRECTIONAL_SOLID_ARROW', 'DOTTED_ARROW', 'BIDIRECTIONAL_DOTTED_ARROW', 'SOLID_CROSS', 'DOTTED_CROSS', 'SOLID_POINT', 'DOTTED_POINT', got 'NEWLINE'
+

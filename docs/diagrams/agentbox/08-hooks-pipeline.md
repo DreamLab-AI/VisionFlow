@@ -30,7 +30,7 @@ sources:
   - ../project/agentbox/flake.nix
   - ../project/agentbox/mcp/servers/lib/ontology-push.js
   - ../project/agentbox/scripts/dream-inbox.mjs
-verified_commit: 2c521c5bb
+verified_commit: be0fc078a3dc0eab32af57f1eaf170fa58157bf9
 ---
 
 Registration ground truth (2026-09-07): `~/.claude/settings.json` is boot-generated and never tracked, so AB-08.1–AB-08.7

@@ -1,0 +1,172 @@
+TAP version 13
+# Subtest: verified identity precedes cache hits and binds changed content
+ok 1 - verified identity precedes cache hits and binds changed content
+  ---
+  duration_ms: 13.470959
+  type: 'test'
+  ...
+# Subtest: unavailable identity never returns previously cached grounding
+ok 2 - unavailable identity never returns previously cached grounding
+  ---
+  duration_ms: 3.366959
+  type: 'test'
+  ...
+# Subtest: model, dimension, drift and explicit generation mismatches fail closed
+ok 3 - model, dimension, drift and explicit generation mismatches fail closed
+  ---
+  duration_ms: 10.99199
+  type: 'test'
+  ...
+# Subtest: mixed-generation response cannot enter grounding or cache
+ok 4 - mixed-generation response cannot enter grounding or cache
+  ---
+  duration_ms: 1.021141
+  type: 'test'
+  ...
+# Subtest: HTTP transport keeps Rust array hits and checks response identity headers
+ok 5 - HTTP transport keeps Rust array hits and checks response identity headers
+  ---
+  duration_ms: 109.457986
+  type: 'test'
+  ...
+# Subtest: an expansion response from another bundle discards even valid seeds
+ok 6 - an expansion response from another bundle discards even valid seeds
+  ---
+  duration_ms: 1.193753
+  type: 'test'
+  ...
+# Subtest: backend-selection: LOOM_FACADE_URL set → the Loom answers and says so
+ok 7 - backend-selection: LOOM_FACADE_URL set → the Loom answers and says so
+  ---
+  duration_ms: 4.287436
+  type: 'test'
+  ...
+# Subtest: backend-selection: LOOM_FACADE_URL unset → VisionClaw by design, not a fault
+ok 8 - backend-selection: LOOM_FACADE_URL unset → VisionClaw by design, not a fault
+  ---
+  duration_ms: 5.179677
+  type: 'test'
+  ...
+# Subtest: backend-selection: an injected vcFetch overrides a set Loom URL, visibly
+ok 9 - backend-selection: an injected vcFetch overrides a set Loom URL, visibly
+  ---
+  duration_ms: 0.416589
+  type: 'test'
+  ...
+# Subtest: backend-selection: the selected backend is carried on every result
+ok 10 - backend-selection: the selected backend is carried on every result
+  ---
+  duration_ms: 14.307384
+  type: 'test'
+  ...
+# Subtest: cache key: EVERY enumerated constraint changes the key (an omission is a bug)
+ok 11 - cache key: EVERY enumerated constraint changes the key (an omission is a bug)
+  ---
+  duration_ms: 4.078318
+  type: 'test'
+  ...
+# Subtest: cache key: absent, null and empty collapse to one sentinel (no aliasing)
+ok 12 - cache key: absent, null and empty collapse to one sentinel (no aliasing)
+  ---
+  duration_ms: 0.420542
+  type: 'test'
+  ...
+# Subtest: cache-hit: identical request is served from cache with its constraints intact
+ok 13 - cache-hit: identical request is served from cache with its constraints intact
+  ---
+  duration_ms: 3.18336
+  type: 'test'
+  ...
+# Subtest: cache-hit: a stored PARTIAL result stays partial when replayed
+ok 14 - cache-hit: a stored PARTIAL result stays partial when replayed
+  ---
+  duration_ms: 3.005184
+  type: 'test'
+  ...
+# Subtest: cache-hit: a stale-constraint entry is MISSED, never truncated into shape
+ok 15 - cache-hit: a stale-constraint entry is MISSED, never truncated into shape
+  ---
+  duration_ms: 2.470925
+  type: 'test'
+  ...
+# Subtest: low-budget: a 50-token cap after an 830-token hit for the SAME domain re-retrieves and clamps
+ok 16 - low-budget: a 50-token cap after an 830-token hit for the SAME domain re-retrieves and clamps
+  ---
+  duration_ms: 3.434525
+  type: 'test'
+  ...
+# Subtest: domain-change: a robotics request never inherits the cached AI answer
+ok 17 - domain-change: a robotics request never inherits the cached AI answer
+  ---
+  duration_ms: 3.089902
+  type: 'test'
+  ...
+# Subtest: expansion-failure: degraded:true and the failing stage is named
+ok 18 - expansion-failure: degraded:true and the failing stage is named
+  ---
+  duration_ms: 1.096751
+  type: 'test'
+  ...
+# Subtest: expansion-failure: a transport fault also names backend-unavailable
+ok 19 - expansion-failure: a transport fault also names backend-unavailable
+  ---
+  duration_ms: 2.606258
+  type: 'test'
+  ...
+# Subtest: complete result: no failure ⇒ degraded:false and an empty stage list
+ok 20 - complete result: no failure ⇒ degraded:false and an empty stage list
+  ---
+  duration_ms: 0.587382
+  type: 'test'
+  ...
+# Subtest: two-generation: the same query against two bundles yields two distinct entries
+ok 21 - two-generation: the same query against two bundles yields two distinct entries
+  ---
+  duration_ms: 5.221821
+  type: 'test'
+  ...
+# Subtest: two-generation: a per-request generation pin overrides the backend default
+ok 22 - two-generation: a per-request generation pin overrides the backend default
+  ---
+  duration_ms: 0.853687
+  type: 'test'
+  ...
+# Subtest: configured-but-unavailable: a dead Loom is a NAMED outcome, not a quiet fallback
+ok 23 - configured-but-unavailable: a dead Loom is a NAMED outcome, not a quiet fallback
+  ---
+  duration_ms: 4.341565
+  type: 'test'
+  ...
+# Subtest: configured-but-unavailable: a timeout is the same named outcome
+ok 24 - configured-but-unavailable: a timeout is the same named outcome
+  ---
+  duration_ms: 0.536295
+  type: 'test'
+  ...
+# Subtest: not-configured: no backend at all is a DIFFERENT named outcome
+ok 25 - not-configured: no backend at all is a DIFFERENT named outcome
+  ---
+  duration_ms: 2.138099
+  type: 'test'
+  ...
+# Subtest: configured-but-unavailable: an auth rejection is NOT an availability fault
+ok 26 - configured-but-unavailable: an auth rejection is NOT an availability fault
+  ---
+  duration_ms: 2.124887
+  type: 'test'
+  ...
+# Subtest: configured-but-unavailable: a transport fault is never cached
+ok 27 - configured-but-unavailable: a transport fault is never cached
+  ---
+  duration_ms: 7.095314
+  type: 'test'
+  ...
+1..27
+# tests 27
+# suites 0
+# pass 27
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 446.864803

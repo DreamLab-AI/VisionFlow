@@ -1,0 +1,4405 @@
+{
+  "method": "Repository-qualified declared supersession and frontmatter lineage graph, read from current bytes. A lineage mention is not promoted to supersession or acceptance. Missing/ambiguous historical references require section-level disposition.",
+  "excluded": [
+    {
+      "key": "RuView:docs/adr/ADR-001-wifi-mat-disaster-detection.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-002-ruvector-rvf-integration-strategy.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-003-rvf-cognitive-containers-csi.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-004-hnsw-vector-search-fingerprinting.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-005-sona-self-learning-pose-estimation.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-006-gnn-enhanced-csi-pattern-recognition.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-007-post-quantum-cryptography-secure-sensing.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-008-distributed-consensus-multi-ap.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-009-rvf-wasm-runtime-edge-deployment.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-010-witness-chains-audit-trail-integrity.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-011-python-proof-of-reality-mock-elimination.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-012-esp32-csi-sensor-mesh.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-013-feature-level-sensing-commodity-gear.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-014-sota-signal-processing.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-015-public-dataset-training-strategy.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-016-ruvector-integration.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-017-ruvector-signal-mat-integration.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-018-esp32-dev-implementation.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-019-sensing-only-ui-mode.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-020-rust-ruvector-ai-model-migration.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-021-vital-sign-detection-rvdna-pipeline.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-022-windows-wifi-enhanced-fidelity-ruvector.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-023-trained-densepose-model-ruvector-pipeline.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-024-contrastive-csi-embedding-model.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-025-macos-corewlan-wifi-sensing.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-026-survivor-track-lifecycle.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-027-cross-environment-domain-generalization.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-028-esp32-capability-audit.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-029-ruvsense-multistatic-sensing-mode.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-030-ruvsense-persistent-field-model.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-031-ruview-sensing-first-rf-mode.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-032-multistatic-mesh-security-hardening.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-033-crv-signal-line-sensing-integration.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-034-expo-mobile-app.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-035-live-sensing-ui-accuracy.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-036-rvf-training-pipeline-ui.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-037-multi-person-pose-detection.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-038-sublinear-goal-oriented-action-planning.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-039-esp32-edge-intelligence.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-040-wasm-programmable-sensing.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-041-wasm-module-collection.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:docs/adr/ADR-042-coherent-human-channel-imaging.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:rust-port/wifi-densepose-rs/docs/adr/ADR-001-workspace-structure.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:rust-port/wifi-densepose-rs/docs/adr/ADR-002-signal-processing.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    },
+    {
+      "key": "RuView:rust-port/wifi-densepose-rs/docs/adr/ADR-003-neural-network-inference.md",
+      "reason": "Excluded from execution by user instruction; no current source read."
+    }
+  ],
+  "nodes": [
+    {
+      "key": "VisionFlow:docs/adr/ADR-2001-corpus-consolidation.md",
+      "id": "VisionFlow:ADR-2001",
+      "source_sha256": "1255304b527e282b1568d8af21c15647b5130a4478ce86ba20b3bd19f7d83ade",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "VisionFlow:docs/adr/ADR-2002-static-copy-only-website.md",
+      "id": "VisionFlow:ADR-2002",
+      "source_sha256": "39de594dd72bac3623c4bf3aff57fd3921271c38e34e98ced0867d1e1ebae4d5",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "VisionFlow:docs/adr/ADR-2003-pages-artifact-deploy.md",
+      "id": "VisionFlow:ADR-2003",
+      "source_sha256": "2dbc34dccd2ea62a3dacfb591a953296b101fc2cd0720b208837894459fc1066",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "VisionFlow:docs/adr/ADR-2004-diagram-baseline-vendored-render-gate.md",
+      "id": "VisionFlow:ADR-2004",
+      "source_sha256": "1b8419499a0f1e4a81320b5b2eb4da50cddb3e3f1b255c8dac6048909d3ebf82",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "VisionFlow:docs/adr/ADR-2005-drift-counter-allowlist-substrate-sourced.md",
+      "id": "VisionFlow:ADR-2005",
+      "source_sha256": "a9db06270a12488d5f3b3059501205a17b7f039986c666afd4e016ec3ef98060",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "VisionFlow:docs/adr/ADR-2006-canon-owns-crossrepo-view-not-implementation.md",
+      "id": "VisionFlow:ADR-2006",
+      "source_sha256": "39e7d2bdfc82af836fa35948b7c8db83c5f33aaf891b5896401cfc354ad11450",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "VisionFlow:docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md",
+      "id": "VisionFlow:ADR-2007",
+      "source_sha256": "7011e2538fca87a318377bbcf03c2b4da367a4bb3aa9b3800329d8ddc168d165",
+      "status": {
+        "decision": "proposed",
+        "implementation": "partial",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "VisionFlow:docs/adr/ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md",
+      "id": "VisionFlow:ADR-2008",
+      "source_sha256": "1d7b84b53eba17b86a484b2bb524c43d6742dbb980fe042b9b64fdbd9b0aa06c",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "VisionFlow:docs/adr/ADR-2009-webgl-mesh-deep-is-sidecar-only.md",
+      "id": "VisionFlow:ADR-2009",
+      "source_sha256": "3d6555ba9cdc1f41646444a4fb9c7b3ad2184ec2787b67a314943d7f0f32f4cd",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "VisionFlow:docs/engineering/ADR-004-harness-engineering-framework.md",
+      "id": "VisionFlow:ADR-004",
+      "source_sha256": "6d83338f8c60f6a7d59647392d567b2e10d8dfd079cbac1a4cd7bdf6b643f512",
+      "status": {
+        "decision": null,
+        "implementation": null,
+        "activation": null
+      }
+    },
+    {
+      "key": "VisionFlow:docs/engineering/ADR-005-mandate-at-grant-governance.md",
+      "id": "VisionFlow:ADR-005",
+      "source_sha256": "cdc4bcfbbdd249fa37cc2d7214ab4758d457592523d6206201e2695feab5a369",
+      "status": {
+        "decision": null,
+        "implementation": null,
+        "activation": null
+      }
+    },
+    {
+      "key": "WasmVOWL:docs/adr/ADR-001-explorer-consumer-contract-closeout.md",
+      "id": "WasmVOWL:ADR-001",
+      "source_sha256": "0fd53c1e8b39fe99079c443afe1b27045af00da2187ca7b9097b7ddef80e8997",
+      "status": {
+        "decision": "proposed",
+        "implementation": "partial",
+        "activation": "inactive"
+      }
+    },
+    {
+      "key": "dream-machine:docs/adrs/ADR-0001-dream-machine-engine.md",
+      "id": "dream-machine:ADR-0001",
+      "source_sha256": "e201ce16b94683d99aa317de739466baec6780c882cfb4e7723b4e14ee0c034c",
+      "status": {
+        "decision": null,
+        "implementation": null,
+        "activation": null
+      }
+    },
+    {
+      "key": "dream-machine:docs/adrs/ADR-0002-dream-cycle-security-adversarial-entrypoint-liveness.md",
+      "id": "dream-machine:ADR-0002",
+      "source_sha256": "78cb0cf4f5f96cfbd3b3563dda03dbdba0dedf66a3c68aa70f7973d5e480c23a",
+      "status": {
+        "decision": null,
+        "implementation": null,
+        "activation": null
+      }
+    },
+    {
+      "key": "dream-machine:docs/adrs/ADR-0003-darwin-bound-guard.md",
+      "id": "dream-machine:ADR-0003",
+      "source_sha256": "256f3ce5dcd7e2ef26c1d01e843f3a9fd33e5d9af2b076ee8e25c509260c1993",
+      "status": {
+        "decision": null,
+        "implementation": null,
+        "activation": null
+      }
+    },
+    {
+      "key": "dream-machine:docs/dream-engine/ADR-DL-001-meta-harness-optimisation.md",
+      "id": "dream-machine:ADR-DL-001",
+      "source_sha256": "08aff7268a58f49dbc678b0bf38d7445d8443150d76c2db63ac6c3ae50d98885",
+      "status": {
+        "decision": null,
+        "implementation": null,
+        "activation": null
+      }
+    },
+    {
+      "key": "dreamlab-ai-website:docs/adr/ADR-2001-corpus-consolidation.md",
+      "id": "dreamlab-ai-website:ADR-2001",
+      "source_sha256": "13c6569fc0f94b4cfd6ab5d2934c12770829734d8558f49613d6d12d5af0859d",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "dreamlab-ai-website:docs/adr/ADR-2002-split-hosting-pages-workers.md",
+      "id": "dreamlab-ai-website:ADR-2002",
+      "source_sha256": "ee3d38bfbd9302f7298588e5322c6e2b64271c78653869bfedc4b81103496dec",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "dreamlab-ai-website:docs/adr/ADR-2003-three-frontends-one-origin.md",
+      "id": "dreamlab-ai-website:ADR-2003",
+      "source_sha256": "30d0b1c7b6b15100f136b6d450469fd54d292da784a5a8ff72a87e563312daaf",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "dreamlab-ai-website:docs/adr/ADR-2004-kit-pin-version-and-sha-lockstep.md",
+      "id": "dreamlab-ai-website:ADR-2004",
+      "source_sha256": "2ed8236d66213748f1e8b33d0b86f737d8fa30a03e965f3d6ab16529491c86ae",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "dreamlab-ai-website:docs/adr/ADR-2005-config-hand-synced-mirrors.md",
+      "id": "dreamlab-ai-website:ADR-2005",
+      "source_sha256": "ae14358f5abd33222a281595bc0a440763c7c038044dc0ebbbf2e0d04be15318",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "dreamlab-ai-website:docs/adr/ADR-2006-raw-schnorr-nip42-identity.md",
+      "id": "dreamlab-ai-website:ADR-2006",
+      "source_sha256": "40ed3cc50bbf9d2d13f4d2c760605153f92d99ccaea8f97a4198ba8ba39a125e",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "dreamlab-ai-website:docs/adr/ADR-2007-four-zone-dual-accept-cohorts.md",
+      "id": "dreamlab-ai-website:ADR-2007",
+      "source_sha256": "17edf983084ca1f52ef4e3dba59103893a268907ec0ae0a52abf9dea9422f27a",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "dreamlab-ai-website:docs/adr/ADR-2008-talk-to-ai-nostr-dm-routing.md",
+      "id": "dreamlab-ai-website:ADR-2008",
+      "source_sha256": "223a07474e5872b45b0241afaa1cf811ca1eb250ced8c476730828d9ff3c43dd",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "knowledgeGraph:docs/adr/ADR-2001-corpus-consolidation.md",
+      "id": "knowledgeGraph:ADR-2001",
+      "source_sha256": "018555c08d3e387ecfffa1864414303c9d928eed8ce9b65d0542ae032ee2704d",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "knowledgeGraph:docs/adr/ADR-2002-corpus-is-the-ontology.md",
+      "id": "knowledgeGraph:ADR-2002",
+      "source_sha256": "a4df93596fa4a9ecbaa1e4ef0c31a43defa4957bbb1054ca2c8920b18b8cfef4",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "knowledgeGraph:docs/adr/ADR-2003-expected-classes-tripwire.md",
+      "id": "knowledgeGraph:ADR-2003",
+      "source_sha256": "554977e7e4ab1b854eaf6d7d36ac5851c1aa8bd571b83f85c3ceb31cfb669fc8",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "knowledgeGraph:docs/adr/ADR-2004-corpus-page-identity-immutable.md",
+      "id": "knowledgeGraph:ADR-2004",
+      "source_sha256": "7f702a5c539717bac662c2a45ac0229706c3c9e81c066ac07d966e12b1a1f846",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "loom:docs/design/ADR-135-ontology-loom-node.md",
+      "id": "loom:ADR-135",
+      "source_sha256": "0bc9647b988471c3d94b812d0558bcf85816a37d9ac3688c4ea71d2e0366a03e",
+      "status": {
+        "decision": null,
+        "implementation": null,
+        "activation": null
+      }
+    },
+    {
+      "key": "loom:docs/design/ADR-136-loom-tooling-allocation.md",
+      "id": "loom:ADR-136",
+      "source_sha256": "01127dc58112037058b3d4fe37b4745cc7d8e5e67591c652b70957147e39d02d",
+      "status": {
+        "decision": null,
+        "implementation": null,
+        "activation": null
+      }
+    },
+    {
+      "key": "loom:docs/design/ADR-137-loom-rust-replatform.md",
+      "id": "loom:ADR-137",
+      "source_sha256": "ba03db44262e7773c16429e9fb3b0047fa84fdca4f7f434d4d321106edb91ac6",
+      "status": {
+        "decision": null,
+        "implementation": null,
+        "activation": null
+      }
+    },
+    {
+      "key": "loom:docs/design/ADR-138-confidence-surfacing-contract.md",
+      "id": "loom:ADR-138",
+      "source_sha256": "3987320a5a1e63125bc9bc1935f3013a3fe5485c7fc8da90920be0547a358cd7",
+      "status": {
+        "decision": null,
+        "implementation": null,
+        "activation": null
+      }
+    },
+    {
+      "key": "nostr-rust-forum:docs/adr/ADR-2001-corpus-consolidation.md",
+      "id": "nostr-rust-forum:ADR-2001",
+      "source_sha256": "b475976afe908f4ded0313572bdec581d9f7e8a8b8332027a98b800ee47d5440",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "nostr-rust-forum:docs/adr/ADR-2002-canary-first-upstream-nostr-absorption.md",
+      "id": "nostr-rust-forum:ADR-2002",
+      "source_sha256": "f1af81842a0b3ea48cbaa5674a5bb4b3e6f265f66ff1be23d591ed070d34ccb7",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "nostr-rust-forum:docs/adr/ADR-2003-derive-subkey-raw-hmac-js-parity.md",
+      "id": "nostr-rust-forum:ADR-2003",
+      "source_sha256": "83e3d793163492c6b2b2cefe732c2fb1293e9fb80b74f3054b3224fc96bb510b",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "nostr-rust-forum:docs/adr/ADR-2004-device-keys-default-off-dual-worker-gate.md",
+      "id": "nostr-rust-forum:ADR-2004",
+      "source_sha256": "14c577e5a02286e6fe4b455f656f406c965c708ff0d2df1a445b6d061e9ac51f",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "nostr-rust-forum:docs/adr/ADR-2005-gift-wrap-recipient-tag-admission.md",
+      "id": "nostr-rust-forum:ADR-2005",
+      "source_sha256": "0a5651aebb75c60a2eb9b3eb44c5ddc314b843171b7ccd5a528d0ff5a4ccdece",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "nostr-rust-forum:docs/adr/ADR-2006-trust-demotion-cron-tl3-never.md",
+      "id": "nostr-rust-forum:ADR-2006",
+      "source_sha256": "5576b5374b5b351e123addf1a7bebf98a0745f14e17092a5a50466384b86d35a",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "nostr-rust-forum:docs/adr/ADR-2007-kit-exact-pin-beta-channel.md",
+      "id": "nostr-rust-forum:ADR-2007",
+      "source_sha256": "bd9f824c63a64ca22312306bdf9801dfacbb20e5a6daf82dfe338dd0387b6094",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "nostr-rust-forum:docs/adr/ADR-2008-bbs-signer-holds-key-directly.md",
+      "id": "nostr-rust-forum:ADR-2008",
+      "source_sha256": "db0e48d9e02ac3299e227cd38f614d16a6fdb4fdc402b551812626662fa8116d",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "nostr-rust-forum:docs/adr/ADR-2009-acl-sidecar-coerce-to-control.md",
+      "id": "nostr-rust-forum:ADR-2009",
+      "source_sha256": "e71209bec4fbcbb0b6f728c3d3c9bd4856a7f665f5ac5c7cb05cad30e7afeb9f",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "nostr-rust-forum:docs/adr/ADR-2010-durable-governance-outcome-receipts.md",
+      "id": "nostr-rust-forum:ADR-2010",
+      "source_sha256": "5aba4e79dc72cf61279c12e75a657bfc42447562ed095a5d4efa56cbe25d6d5f",
+      "status": {
+        "decision": "proposed",
+        "implementation": "partial",
+        "activation": "inactive"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2001-corpus-consolidation.md",
+      "id": "project:ADR-2001",
+      "source_sha256": "321f4ec95d6950ddf9faaf7bc26692b6aec499234613ba8b41d505d3b0b7e5d7",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2002-nip98-single-use-replay-cache.md",
+      "id": "project:ADR-2002",
+      "source_sha256": "eaa52b4ad4436a1ca5e6152493ee627b4186fc7614c787e6197ad6b7deef86f2",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2003-visibility-filter-default-on.md",
+      "id": "project:ADR-2003",
+      "source_sha256": "1a4479fae4882049a3685884e9746fdb7418733bf9c4be9f706aebb0c70dcea2",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2004-oxigraph-sqlite-persistence.md",
+      "id": "project:ADR-2004",
+      "source_sha256": "8409fa5d3f366a691b7f3b9cfc94158d0fd856d0bf361af4be3c3eb29af28f7e",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2005-hexagonal-crate-split.md",
+      "id": "project:ADR-2005",
+      "source_sha256": "2e3617a74bc0579237cb889d27caa32b63d40790daab5a813c0ab8c6661dc3da",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2006-acsp-human-approval.md",
+      "id": "project:ADR-2006",
+      "source_sha256": "9734dda96358a51452fa99082c1da3daa075c5858d0634b306aca8a8074a20c4",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2007-gpu-coordinator-supervisors.md",
+      "id": "project:ADR-2007",
+      "source_sha256": "08bb097ea86874b95a4b94e6a5c8d9d68140bc562a0b15fedf903e8e3ab9f7f3",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2008-dev-image-recompiles.md",
+      "id": "project:ADR-2008",
+      "source_sha256": "e675f8249042d1d2f72e34f0017151b9efb937c27b156fdef6392d7953791a51",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2009-dual-request-auth-realms.md",
+      "id": "project:ADR-2009",
+      "source_sha256": "05ce3565565fca82b87dbf7f7c697112e157ab5c55d94d2719dbd1597223feb2",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2010-rbac-lattice-atomic-mutations.md",
+      "id": "project:ADR-2010",
+      "source_sha256": "2a50f480394b9d6e943761d376149d60da4dfe93dc49e3d740da9ad711b99201",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2011-central-rbac-gate.md",
+      "id": "project:ADR-2011",
+      "source_sha256": "72db3aee36aad14073e4085853fa6daca2bae502507e70f9a4ff71afc7ea4fa8",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2012-dev-bypass-triple-gated.md",
+      "id": "project:ADR-2012",
+      "source_sha256": "d6ad197214b379aaac15cdce0ca432bcbfc409aa51c44bdd5d91ee97ea7bcc7a",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2013-federation-delegation-deferred.md",
+      "id": "project:ADR-2013",
+      "source_sha256": "69acb5c21a9d27b8fb4790e1c8c8841f2424620d765ac6b92db55d7e7f5c2796",
+      "status": {
+        "decision": "accepted",
+        "implementation": "none",
+        "activation": "inactive"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2014-public-kg-inclusion-gate.md",
+      "id": "project:ADR-2014",
+      "source_sha256": "3d51a81670a0c1399c4c1601803f310d39a2641883101eb6aa4a6b4bcd8f00b9",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2015-derived-writeback-fence.md",
+      "id": "project:ADR-2015",
+      "source_sha256": "ebeb75d851a468ae70d24762f69438e6df9455b8f8b864f7f5f790fd73868cbf",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2016-provenance-append-only.md",
+      "id": "project:ADR-2016",
+      "source_sha256": "c7ad5ca1be40170c6615bb36c6ee2a56f0e47fbe8ff4744391cc8944abb8e755",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2017-write-master-backup-posture.md",
+      "id": "project:ADR-2017",
+      "source_sha256": "072482ef8403dfc90274c3944746d9380a65393354ffd3dc5c4a53618932503b",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2018-frozen-52-byte-v3-record-v5-envelope.md",
+      "id": "project:ADR-2018",
+      "source_sha256": "a5b14d31e8df8a444dfa37d22b70d4e6bb4160a612fd981d96553db51bec7028",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2019-tag-byte-registry-governed-dispatch.md",
+      "id": "project:ADR-2019",
+      "source_sha256": "0cf834153261296656039dfc590068359ce555dd9ce0e1fb1bba7acc964ee8a8",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2020-agent-copresence-additive-sibling-opcode.md",
+      "id": "project:ADR-2020",
+      "source_sha256": "231662b95a0b361116255625a46e2b29795abd9544906e5d68958b0de1ecbbcc",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2021-typed-urn-mint-parse-dual.md",
+      "id": "project:ADR-2021",
+      "source_sha256": "82217a893a5abc8c32b3a1f8011a99b6e80b7bab13c49f47d188be0c37436764",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2022-did-nostr-hex-identity.md",
+      "id": "project:ADR-2022",
+      "source_sha256": "6b798f6d0d4862a65ac26516e0eb8f74db21a894f7c20705df4830d836fcf5ad",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2023-sha256-12-content-address.md",
+      "id": "project:ADR-2023",
+      "source_sha256": "0682f94997f5dc12473937c94cd202a7ba4b72a2386a2673979e177b6be867a6",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2024-wire-node-id-26bit.md",
+      "id": "project:ADR-2024",
+      "source_sha256": "d78f1410645c0e15116858672ae19683f015c7a825dac13513ff7ba83ff0c976",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2025-cross-from-agentbox-closed-map.md",
+      "id": "project:ADR-2025",
+      "source_sha256": "375da8605b523f76463666e446b34702aadbd7d66d399dc26d7af4e6731084a5",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2026-fail-closed-security-posture.md",
+      "id": "project:ADR-2026",
+      "source_sha256": "4b2e0b21f88dd5c29578a3b1512dad10e1791c248299b3ada554c4618f62a1ee",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2027-three-deployment-profiles.md",
+      "id": "project:ADR-2027",
+      "source_sha256": "06d2912f9dd4adf4c602eddf80d7477f15c5bec1b92f0be3e75749fdb183cf11",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2028-simparams-212-byte-abi.md",
+      "id": "project:ADR-2028",
+      "source_sha256": "e412d6859eb8e4aff21f5e1af0ff05106564389c161a938b0f890034b802ee91",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2029-force-channel-flag-derivation.md",
+      "id": "project:ADR-2029",
+      "source_sha256": "248a15df88e88440293bca04f0af2985735faad0908a61064881cb7c20152a5b",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2030-ptx-isa-downgrade.md",
+      "id": "project:ADR-2030",
+      "source_sha256": "39b5a329bc20a463dfacd40cfc59e78032f43e4fc6ab429646f93cc0f469fa91",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2031-withdrawn-reserved.md",
+      "id": "project:ADR-2031",
+      "source_sha256": "07bfc14dfa6a39187c57350615d6ce066d608d2d3ebd167b795996278891a75a",
+      "status": {
+        "decision": "rejected",
+        "implementation": "none",
+        "activation": "inactive"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2032-godot-native-compatibility-renderer.md",
+      "id": "project:ADR-2032",
+      "source_sha256": "e73d5d99581755c8def66a52ed07deef1aef665e8312b4865bdfc9d046444999",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2033-hud-buttons-fire-on-press.md",
+      "id": "project:ADR-2033",
+      "source_sha256": "0d27a535b68b09754c164cfd888f728ab45ff01ea9743a067624a7107b4c3fa7",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2034-renderstore-instance-math-stride-16.md",
+      "id": "project:ADR-2034",
+      "source_sha256": "92f6cc666267b78d0caf5b4c8744aaffeb934db658e9b36992445da2919ab26b",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2035-dag-rank-accepts-hierarchical-label.md",
+      "id": "project:ADR-2035",
+      "source_sha256": "a6725722be06b98d8e8af42b8fbf44ce5e6d5e6696683ae1d20617c74813d49a",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2036-defensive-openxr-boot.md",
+      "id": "project:ADR-2036",
+      "source_sha256": "b518adfd2763cdb287c337b8e9853820911e4704bbddc3292f75707c1c6474d5",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2037-production-build-excludes-dev-auth.md",
+      "id": "project:ADR-2037",
+      "source_sha256": "baae678f8e07a6f452b44cdfd5d6a4af48f4607f798f4cb2d9853812f3059a92",
+      "status": {
+        "decision": "proposed",
+        "implementation": "partial",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2038-boot-time-profile-assertion.md",
+      "id": "project:ADR-2038",
+      "source_sha256": "244a2428de6fe0b0b8f81b8008120880c11c17e5dc8dc36733389c4650bb1a6a",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2039-visionclaw-dev-mode-lan-local-bypass.md",
+      "id": "project:ADR-2039",
+      "source_sha256": "fe7760c948e6239ded05f5014d03c08c172bed5852d850a718f8087365021722",
+      "status": {
+        "decision": "proposed",
+        "implementation": "complete",
+        "activation": "inactive"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2040-obsidian-vault-frontmatter-gate.md",
+      "id": "project:ADR-2040",
+      "source_sha256": "fea5844ce5b40bcc646580608529aae47de40e963fc61e8b54617c4687d4c732",
+      "status": {
+        "decision": "proposed",
+        "implementation": "partial",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2041-graph-settings-key-knowledge.md",
+      "id": "project:ADR-2041",
+      "source_sha256": "fce41f38fbe4a4785de3e2c4c503cf65ecf9c30c68b0a2f5384c95b1c59cb437",
+      "status": {
+        "decision": "proposed",
+        "implementation": "complete",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2042-vault-migrate-converter.md",
+      "id": "project:ADR-2042",
+      "source_sha256": "9cb21e24de08b55aab4fcffaabfd161459bd90d6591a9c9d2885fa7e809f72f2",
+      "status": {
+        "decision": "proposed",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2043-reject-full-disclosure-flag-pair-at-boot.md",
+      "id": "project:ADR-2043",
+      "source_sha256": "057f05cef17de5145da678dc1c07106eb424894b0b8f5a83a46a020e5afe245b",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2044-session-credentials-fail-closed.md",
+      "id": "project:ADR-2044",
+      "source_sha256": "45e4179bd8666a4dab50d91017a90ccc2b56e4828d8a024a71470ce26563d596",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2045-remove-dead-supervision-machinery.md",
+      "id": "project:ADR-2045",
+      "source_sha256": "cee8fd52af9a2f73482987e3f5b7e7744d5896ae53f8b425c5a75f248b88e970",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2046-remove-dead-settings-and-orphaned-config.md",
+      "id": "project:ADR-2046",
+      "source_sha256": "5bc62d0bfaeff80890dea0bcb8f046640cc72e5c1b77505b6ef4d07f719224eb",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2047-single-settings-broadcast-emitter.md",
+      "id": "project:ADR-2047",
+      "source_sha256": "bda9432070224b099a3834fdb0b0fce80caedbb465708d05396c2be1370867b2",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2048-correct-drifted-governing-doc-citations.md",
+      "id": "project:ADR-2048",
+      "source_sha256": "d8fe80834502758dcc0e77cc7f126558f5940c5ee877521e8d47b396387d8086",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2049-production-image-build-must-be-able-to-fail.md",
+      "id": "project:ADR-2049",
+      "source_sha256": "31820468dc88694d50239d4f9fa882ef34d7ecad77bb2421b3c88f9fd5ee0494",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2053-gpu-context-delivery-and-actor-residency.md",
+      "id": "project:ADR-2053",
+      "source_sha256": "b53cc5d98cb0b8a6557cfb0d3dd56078c5a1339563931a6be466cb2085b28b2d",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2054-remove-dead-gpu-and-analytics-code.md",
+      "id": "project:ADR-2054",
+      "source_sha256": "2fc77f4a733a94680a52090d9b72f5ab3d5dcd977a6152e82588381a0e81e39d",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2055-retire-physics-v2-layout-engines.md",
+      "id": "project:ADR-2055",
+      "source_sha256": "1f006746d35188ae3a783b443629528f0c943965dcb6783a0d8b6acb962ee072",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2056-single-ptx-isa-rewrite-implementation.md",
+      "id": "project:ADR-2056",
+      "source_sha256": "110879b20ffcc24c5a8a9a170c55d846507cd2a431b3b9082d3ba48b7728c62a",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2057-compile-time-wire-size-lock.md",
+      "id": "project:ADR-2057",
+      "source_sha256": "6298baf01983c1c014c7a8c586ae022bbf1c3970f31a7576405ee31dc0f46230",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2058-websocket-auth-header-only.md",
+      "id": "project:ADR-2058",
+      "source_sha256": "35dae95768061b53d48aaab36244440cca3bfc916d7044936031bdf319cc556a",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2059-remove-inert-analytics-feature-flags.md",
+      "id": "project:ADR-2059",
+      "source_sha256": "7d40b103c1911ccd854451a705def57180069000dc3da597f4b75fbdf5698783",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2060-correct-gpu-and-wire-doc-citations.md",
+      "id": "project:ADR-2060",
+      "source_sha256": "f906eb3a093394030fce4ab869413f4b50e793aec31749f57ec2ddd9ff2fffd6",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2061-validate-analytics-kernels-against-oracle.md",
+      "id": "project:ADR-2061",
+      "source_sha256": "24ef5f24e3f35d2ddb3e00876df3f0f1591922b28dc53f1839bb4b3e34373d09",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2063-nlq-sparql-against-oxigraph.md",
+      "id": "project:ADR-2063",
+      "source_sha256": "7c2f2bcf0f0b5ca5369094a5a99b54e2f5340af461386f6743ba79e844973ba2",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2064-ontology-loader-real-corpus.md",
+      "id": "project:ADR-2064",
+      "source_sha256": "f5ad6c2f1d98d9b69f73c067b4ea493e8d2bf34fccd2077a6759247c52a00ee7",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2065-remove-dead-ontology-validation-code.md",
+      "id": "project:ADR-2065",
+      "source_sha256": "3c5f6ad9cba87a46d2083a690626e4d9b77a863fab260b57b3bf7f5126becdfe",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2066-remove-unreachable-handler-surfaces.md",
+      "id": "project:ADR-2066",
+      "source_sha256": "982632cb3668c738a951a5efaea6e1eb41922aa7488e25e9d09df12016bc65a5",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2067-solid-feature-off-registers-no-routes.md",
+      "id": "project:ADR-2067",
+      "source_sha256": "365bed9623a8a53b448d14b41a57d48d120dc70d237949123ff54b822aec58fb",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2068-remove-superseded-vendored-assets.md",
+      "id": "project:ADR-2068",
+      "source_sha256": "4ba73cf45f766b54bc30e3618ba53fd9c679c76573ded71d5ff31e550d399dc0",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2069-backup-membership-required-optional.md",
+      "id": "project:ADR-2069",
+      "source_sha256": "9fecc778b661e15698d18ec18d4292129dd7693c2f904df233f5658d0b3eb341",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2070-correct-identifier-and-vault-doc-drift.md",
+      "id": "project:ADR-2070",
+      "source_sha256": "9a780a4fc17c207b9ae302c0a9282d4858bcc47e4ab508e6d83438a464c547fc",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2071-consolidate-inferred-edge-materialisation.md",
+      "id": "project:ADR-2071",
+      "source_sha256": "f28f78b0385dd5e2f09a99b26982e5bcbe177c72fbc75a45c75ce6dbb69c0ff0",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2072-cross-from-agentbox-maps-bead.md",
+      "id": "project:ADR-2072",
+      "source_sha256": "a5eb7b894ac591d18ab61a5d5fe4cc3438578b537b62111f641f7bcbdf3109b1",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2074-single-nip98-signing-helper.md",
+      "id": "project:ADR-2074",
+      "source_sha256": "e98f3df1b0e516d6f18871a05be3c429eb2328476df6fa6488dd615d7e84af58",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2075-ws-speech-post-upgrade-nip98-auth.md",
+      "id": "project:ADR-2075",
+      "source_sha256": "90a3b85babab2f5b4abe17b3d6f9c36aafa8cd30562171ebf45794bf9da0fe12",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2076-xr-client-drops-query-token-auth.md",
+      "id": "project:ADR-2076",
+      "source_sha256": "227b36b9122560918daedb737334e47cb8a17478a109e7992c136bbc58e4b691",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2077-delete-dead-client-surfaces.md",
+      "id": "project:ADR-2077",
+      "source_sha256": "fee565c96331bb391d6245d4417fff70fb8586d5419939501135d0bb09b00783",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2078-ts-decoder-fails-closed-on-v2-and-unknown-versions.md",
+      "id": "project:ADR-2078",
+      "source_sha256": "870191947584cff6a61aede22b5683f05c1b5f2db467d40132e73a5a86787d3c",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2079-xr-closeout-narrative-corrections.md",
+      "id": "project:ADR-2079",
+      "source_sha256": "5b4495a1b6e52803845ab86eb174777841309464cf3f2a909f4b3b51c0becd68",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2080-client-consumes-settingsupdated-broadcast.md",
+      "id": "project:ADR-2080",
+      "source_sha256": "ab3b83b85f3531e3112cfb3199c7f3215dab8db0c1ce48565566aa7a2ea27aec",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2081-remove-dead-browser-xr-surface.md",
+      "id": "project:ADR-2081",
+      "source_sha256": "a601a5c80c6fd502d6987ac39577eee1ef3f5638cd3b04b54eac9be8148c8a55",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2083-multi-mcp-discovery-interval-wired.md",
+      "id": "project:ADR-2083",
+      "source_sha256": "31e05a005d4031664b53d2ea7263404e3538790dfa8ab7c04dcc0a9c7c7e057b",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2084-9500-load-bearing-doc-correct-plan-ws-cutover.md",
+      "id": "project:ADR-2084",
+      "source_sha256": "ea3e6c6ef2b03ee647d0a404a8b3669e84da2cf02a8951b203796396f8097c5e",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2085-briefing-workflow-server-route-gap.md",
+      "id": "project:ADR-2085",
+      "source_sha256": "42a38119856312c505d49a1d5526f65a152b5b565204f214478141b63754fde5",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2086-ci-gate-dev-auth-excluded-from-release.md",
+      "id": "project:ADR-2086",
+      "source_sha256": "c0aa7bf1e62de424637f7028920741501534dbbf19985388b24b638d4ae150c8",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2087-deployment-profile-doc-correctness.md",
+      "id": "project:ADR-2087",
+      "source_sha256": "c5885f69d743843bf171fc39b00ac332beac750e98bf0777599dba2c87c9b432",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2088-bots-client-status-resolved-values.md",
+      "id": "project:ADR-2088",
+      "source_sha256": "d7dc5a65371884f5e953c9ff494de91de09d7118cd98dd2569e1ff65e60ac722",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2089-remove-dead-visualization-subscriber-api.md",
+      "id": "project:ADR-2089",
+      "source_sha256": "ff48389e4bbcec48231295dea56018841d1735f2005bdf02121d05ccf6cf012a",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2090-ws-upgrade-resolves-token-through-session-realm.md",
+      "id": "project:ADR-2090",
+      "source_sha256": "21f3e66ac62d6c0f65b14b69c2b4c708367c01e75218e76c7500c3cfec8b5f29",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2091-remove-fictional-mcp-status-routes.md",
+      "id": "project:ADR-2091",
+      "source_sha256": "d036f8b98660ec68192325859dccb439b24591fa56409ae56503ff90e7ab6851",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2093-agent-key-fail-closed-constant-time.md",
+      "id": "project:ADR-2093",
+      "source_sha256": "5babb5e70905f2e63e39665a9c1574056a6af6eb091fdeee0271ecb68a916635",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2094-fail-closed-management-api-credential-and-cached-mcp-health.md",
+      "id": "project:ADR-2094",
+      "source_sha256": "b1ca7f9647a60b36e7eb146d69e0c12e0fed2633de7118be91420fb05207547f",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2095-typed-legacy-ngm-class-mint.md",
+      "id": "project:ADR-2095",
+      "source_sha256": "8dbe0d2f0668439d4b5741b02ba5a7536b87726a6c280134ffca99d1baaa0bfe",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2096-local-file-sync-uses-the-vault-parsing-entry-point.md",
+      "id": "project:ADR-2096",
+      "source_sha256": "e3124780e50c38d90bb21a690544fe2aa89ad0e5447f181becbddfc5508c5a0a",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2097-delete-the-metadata-refresh-stub.md",
+      "id": "project:ADR-2097",
+      "source_sha256": "476c600307339341d293efd7f40fc5c45b551deea1bc7bf7a180afbd87f6e64a",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2098-solid-pod-url-names-the-in-process-endpoint.md",
+      "id": "project:ADR-2098",
+      "source_sha256": "ed6838bb8265bf78f2e9922716aeced931849cf2f5c4c198a3047180dd100b43",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2099-delete-unreachable-framed-agent-action-branch.md",
+      "id": "project:ADR-2099",
+      "source_sha256": "7ff4e2ed9a56803f97e48926a1b51d89bd0bd61a39f62eeea7463434ba27d87f",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2100-one-solid-jss-notification-client.md",
+      "id": "project:ADR-2100",
+      "source_sha256": "45580db01a46263d3311c9e6f00759535932051ee242edb21519e5016e5e6ce7",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2101-durable-decision-elevation-case-state.md",
+      "id": "project:ADR-2101",
+      "source_sha256": "42e9a6fc0bf65df32bfd6bb0c5ff2617da4d6fdc089c76cc0cc077ca134e90b5",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2102-estate-wide-cross-store-erasure-orchestration.md",
+      "id": "project:ADR-2102",
+      "source_sha256": "f0f17334a40616d3984bc9e1c716c7a1abcbd9b357fca6facda1d0b2e7a7bad0",
+      "status": {
+        "decision": "proposed",
+        "implementation": "none",
+        "activation": "inactive"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2103-oxigraph-point-in-time-backup.md",
+      "id": "project:ADR-2103",
+      "source_sha256": "fb6fbc6af01c79b47fba557647db1f66f4ad9cb50815daf11c73295b3933429c",
+      "status": {
+        "decision": "proposed",
+        "implementation": "none",
+        "activation": "inactive"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2104-sops-execute-or-withdraw.md",
+      "id": "project:ADR-2104",
+      "source_sha256": "f31245e0d701ee7c2a992aec4196db3a4af237e339337e7850f648a5919f90ad",
+      "status": {
+        "decision": "proposed",
+        "implementation": "none",
+        "activation": "inactive"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2105-correlated-promotion-chain-end-to-end.md",
+      "id": "project:ADR-2105",
+      "source_sha256": "cb3c3687e430bda42a7d938ca8cb5d81aec674bf39dbc2cd713478b0e8af4086",
+      "status": {
+        "decision": "proposed",
+        "implementation": "none",
+        "activation": "inactive"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2106-ontology-pull-model-into-the-embedded-pod.md",
+      "id": "project:ADR-2106",
+      "source_sha256": "8897c4cf491c651fb49d0839f8c2d4b75ca7d9a7540de42ba8c4b0d734d663a9",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2001-corpus-consolidation.md",
+      "id": "project/agentbox:ADR-2001",
+      "source_sha256": "fd3f57ab2d8a96088dba73741a8de493419c4c440e8141167896218ecd79c7b6",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2002-aoe-token-auth-boundary.md",
+      "id": "project/agentbox:ADR-2002",
+      "source_sha256": "23e641a015e3b0f7f951dc5b092a815e7f5653116910a476896dd7a9b547dc5e",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2003-nix-flake-composition.md",
+      "id": "project/agentbox:ADR-2003",
+      "source_sha256": "089c3f0c039b1d9c6a3ea8266b86dd715d74123e4409d848a533626734c71d61",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2004-five-adapter-slots.md",
+      "id": "project/agentbox:ADR-2004",
+      "source_sha256": "c41e12716b552eceb5dc892f46f7ab545702a52a560e5ab89be9462fc5ecd6b6",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2005-dispatch-middleware-order.md",
+      "id": "project/agentbox:ADR-2005",
+      "source_sha256": "1bab9570d064f73c64aabaff428cd14ad671af17257c7354492678ed0ba9c7f2",
+      "status": {
+        "decision": "superseded",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2006-nixgl-gpu-wrap.md",
+      "id": "project/agentbox:ADR-2006",
+      "source_sha256": "c80959a83d3fae8bcd4be36c4989b5ec756fa2446b55d4915c9eb83362d68cd2",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2007-profile-isolation.md",
+      "id": "project/agentbox:ADR-2007",
+      "source_sha256": "d2b68ba3f82d1c32ab93655ceabebd5bf2bb1f7f8d76f118613a1a0b188e8dd7",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2008-mcp-projector-reconcile.md",
+      "id": "project/agentbox:ADR-2008",
+      "source_sha256": "ef7e5932f0f853119cb6f53bb646633fa83dc2d298357cf71370d265283e0eab",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2009-nip98-proxy-identity-boundary.md",
+      "id": "project/agentbox:ADR-2009",
+      "source_sha256": "affe493a558a20a26e2eb9d2e71f964ba9a7dd4bb36a436e81b7f385cc3875b9",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2010-bearer-gated-behind-nip98.md",
+      "id": "project/agentbox:ADR-2010",
+      "source_sha256": "4087cfb6af62cab17754961724b6180aad841e65d31f037f153b0e6cf46a1fa5",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2011-hex-canonical-identity.md",
+      "id": "project/agentbox:ADR-2011",
+      "source_sha256": "4b5338822c5e18217907448670b9c9e48300cb8148fd46c30cab4cc153c53625",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2012-relay-allowlist-only-ingress.md",
+      "id": "project/agentbox:ADR-2012",
+      "source_sha256": "9ad01bfc35d8c7a8e9120adf02219de32dc5b42a5522d0de4f6f5c4f801f1587",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2013-loopback-publish-except-9096.md",
+      "id": "project/agentbox:ADR-2013",
+      "source_sha256": "1e0dae163d2ec7d3d5465f1ce0ff6bdbc4697e7cf99259444f4330ee5160da41",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2014-memory-mcp-only-fail-closed.md",
+      "id": "project/agentbox:ADR-2014",
+      "source_sha256": "f0bcfb7dd01a184d59cce5c8041bf5894a05bc7ac1eef9cd98cc801cc89eb81d",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2015-trajectory-recorder-transcript-driven.md",
+      "id": "project/agentbox:ADR-2015",
+      "source_sha256": "502270a537138fc4e1c6204f3b3207a25c0132cf6cc2f0e6b7a6ebb51a0dd757",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2016-wilson-lower-bound-raw-floor.md",
+      "id": "project/agentbox:ADR-2016",
+      "source_sha256": "8100ad97467ad7c545dac9a85907ff18d5624e103b5729af0416e0ad8845e2ee",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2017-consumer-behind-producer-w066.md",
+      "id": "project/agentbox:ADR-2017",
+      "source_sha256": "aa80f9434a946fa5f14b907047296e235ec91eb970e5a2f2763e9a667c01f099",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2018-recall-harness-merge-gate.md",
+      "id": "project/agentbox:ADR-2018",
+      "source_sha256": "e27131ded3bb0b6c725a1deb4f89c228406622888f18300a73c78efe859eab8a",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2019-model-lifecycle-384-dim-freeze.md",
+      "id": "project/agentbox:ADR-2019",
+      "source_sha256": "5806e04efcd9562b00662ccaa9c5fbdc8b81897d7c5314ff8f29cc3d1d68fdfe",
+      "status": {
+        "decision": "accepted",
+        "implementation": "none",
+        "activation": "inactive"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2020-capability-gating.md",
+      "id": "project/agentbox:ADR-2020",
+      "source_sha256": "903ce95080041b4d3969de348443f4aaeaee7cb7b52cf7a1e9f6773cd1b42fb8",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2021-skills-jit-context-lint.md",
+      "id": "project/agentbox:ADR-2021",
+      "source_sha256": "2f6ba1ea22e985d05ae456c35900c4e7f8306c246295b493d4c638176a298092",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2022-governed-ontology-writes.md",
+      "id": "project/agentbox:ADR-2022",
+      "source_sha256": "ada1a12e088c538760fc2ab693c6789ab790f9a7fe87bc81016c7e166e20b278",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2023-loom-facade.md",
+      "id": "project/agentbox:ADR-2023",
+      "source_sha256": "120092926507ce129f55829dfa290d25f13f053b2ee78d0c5dacc4a878a1c068",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2024-dream-cycle-gating.md",
+      "id": "project/agentbox:ADR-2024",
+      "source_sha256": "9c350ddcac159d865fb2b0fd44a2632d99e216e47495355f2a8e74edf0a917d2",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2025-cross-repo-federation-contract.md",
+      "id": "project/agentbox:ADR-2025",
+      "source_sha256": "d029f89ff4261c10aa9e0eff685e1d01470854d9dbe30fe409f70a9d7952c0be",
+      "status": {
+        "decision": "proposed",
+        "implementation": "partial",
+        "activation": "inactive"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2026-session-mirror-egress-boundary.md",
+      "id": "project/agentbox:ADR-2026",
+      "source_sha256": "ae11d3b1ca9659c4299a83571101e79d500854dab3f5111c6b68c068edd5ec99",
+      "status": {
+        "decision": "proposed",
+        "implementation": "partial",
+        "activation": "inactive"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2027-secret-custody-rotation-break-glass.md",
+      "id": "project/agentbox:ADR-2027",
+      "source_sha256": "bbbfbe7a1e66b393fd0081c38cf1e57895d611f97d406d726da754e70f1e597b",
+      "status": {
+        "decision": "proposed",
+        "implementation": "none",
+        "activation": "inactive"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2028-vault-manifest-path-authority.md",
+      "id": "project/agentbox:ADR-2028",
+      "source_sha256": "879f1c5196c1cce2d2cde5a6a830442763820c540b969eb2b230fcac2a599402",
+      "status": {
+        "decision": "proposed",
+        "implementation": "partial",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2029-rune-markdown-tui-notes-window.md",
+      "id": "project/agentbox:ADR-2029",
+      "source_sha256": "be4fb134eb70824aca3f3dff05987e1e4642fbf8117030601799acfe35180b23",
+      "status": {
+        "decision": "proposed",
+        "implementation": "complete",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2030-permissive-licensing-for-publishable-service-crates.md",
+      "id": "project/agentbox:ADR-2030",
+      "source_sha256": "9d92513612d1924d6b8e18a811069b0f9a950900c2000f519a70ca9a2887ec26",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2031-consultant-model-manifest-projection.md",
+      "id": "project/agentbox:ADR-2031",
+      "source_sha256": "82de0aa0b1d614dbf42383eb57df37dfffad6e23daf85c540ed2a7d3b8cdaf83",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2032-daemon-identification-argv-boundaries.md",
+      "id": "project/agentbox:ADR-2032",
+      "source_sha256": "9c1ae55cb7f9f59512016e3c6d0338b63ddd98d7b545dfbf5d295299a09c399e",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2033-deepsec-security-gate.md",
+      "id": "project/agentbox:ADR-2033",
+      "source_sha256": "025aac9ee689e299098733e66b0d5603a98ba6fd1b5246b429064644c280ead5",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2034-resource-topology-hook-shim-mcp-hub.md",
+      "id": "project/agentbox:ADR-2034",
+      "source_sha256": "1af6d9fa799e58d2889ac2a7b2cc20e738306afd489a07353877b318ff8283c3",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2035-adapter-connect-per-slot-deadline-quarantine.md",
+      "id": "project/agentbox:ADR-2035",
+      "source_sha256": "c647f7f89aebaef2602cb5df50138c643ceafbf0ea885d72761d21fe59ac8b6b",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2036-dispatch-two-layer-encoder-is-a-gated-surface.md",
+      "id": "project/agentbox:ADR-2036",
+      "source_sha256": "63dbea55945f109e64e55d21a2ede6796a5700ee88c2dec8a7acb94a8dec7f34",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2037-health-exit-code-reads-adapters-not-services.md",
+      "id": "project/agentbox:ADR-2037",
+      "source_sha256": "50aaa35fb414b7460cd6cad71a487eefa893daae5f97733a766f6c52375078d3",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2038-cli-surface-truth-shell-path-and-ruvector-recall.md",
+      "id": "project/agentbox:ADR-2038",
+      "source_sha256": "2dd65826036836ad8959eb5776a92dbcef54d88fc00e802f542a502323050906",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2039-baseline-cites-program-names-not-line-numbers.md",
+      "id": "project/agentbox:ADR-2039",
+      "source_sha256": "794efab640482254762d8f259354555a644e15899818562a32d8c5bd7c5a64b5",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2040-no-unauthenticated-supervised-listener.md",
+      "id": "project/agentbox:ADR-2040",
+      "source_sha256": "46aadb97d2d56d7e8d27f7ddda19b2a433b796f4c145d3af495759406d982146",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2041-wire-execution-journal-and-action-pipeline.md",
+      "id": "project/agentbox:ADR-2041",
+      "source_sha256": "de95ac3b4b61075c81390a80635492b2a68dfd939a19bd8ddbe9d9e238248bb8",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2046-seccomp-gate-protects-every-denial.md",
+      "id": "project/agentbox:ADR-2046",
+      "source_sha256": "c16d5f4521f9616b3360525c8150bfcfb6e536df72279d75ebf217c419c01842",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2047-correct-the-ingress-door-inventory-and-stale-bullets.md",
+      "id": "project/agentbox:ADR-2047",
+      "source_sha256": "5201d411e8b0b38c05cfe4368e09d0b2fd16fa63e13e01aac2eb3d351ef0bbd4",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2049-withdraw-unreachable-410-and-scope-the-501-claim.md",
+      "id": "project/agentbox:ADR-2049",
+      "source_sha256": "2bf6723b2fea69da83eb59bf0ecaf06884145bde9c9a93bf5e2067073ff14c65",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2051-learning-invariants-match-enforcement.md",
+      "id": "project/agentbox:ADR-2051",
+      "source_sha256": "c0cfa8b4a4e4f8fecc4ca627fa17f629cfc14487b1686c2125d5988331299451",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2052-cite-manifest-by-key-not-line.md",
+      "id": "project/agentbox:ADR-2052",
+      "source_sha256": "b41b33cfb9a8379b1e8315ef76308f1a3679e2bac3a62d769e137fe5c5fbf871",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2053-dream-default-provider-is-zai.md",
+      "id": "project/agentbox:ADR-2053",
+      "source_sha256": "3624c69dab30dbdc1d8ad067d802353332ec21376269cea6d76fe548e8663e77",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2054-every-ontology-authoring-caller-crosses-the-gate.md",
+      "id": "project/agentbox:ADR-2054",
+      "source_sha256": "52a9357349a8d497f4800bf8c3244d8f8b0afe8ba05943943efae5d2067a1537",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2055-baseline-must-not-conflate-privacy-filter-with-loom.md",
+      "id": "project/agentbox:ADR-2055",
+      "source_sha256": "8c6455bf57aa434be5fdb05a43c822c7aa1fa1be7e36422d2a6068920a39eec9",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2056-skill-directory-facts-and-router-fixture.md",
+      "id": "project/agentbox:ADR-2056",
+      "source_sha256": "3fbe1b0d9312fabc6b7b68dfd283ccb8f68ff25ce85200c1b2f4d54acc411601",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2057-close-the-capability-gate-gaps.md",
+      "id": "project/agentbox:ADR-2057",
+      "source_sha256": "d0234ba744efed0c814518937a95e375b3f740da54c0072ea05ada6ac8797aed",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2058-clear-verification-anchors-stale-in-the-uncommitted-tree.md",
+      "id": "project/agentbox:ADR-2058",
+      "source_sha256": "8e5b49cc4c0fc8f0ae377695e6d8f0199620a32207e34bbfe9be9056cd301fc2",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2059-reasoner-preflight-on-the-email-gateway.md",
+      "id": "project/agentbox:ADR-2059",
+      "source_sha256": "508eb22e490d9a9a250ddbc079fc732c7e912fcd76b62ee0f8c27a036666cfb9",
+      "status": {
+        "decision": "proposed",
+        "implementation": "none",
+        "activation": "inactive"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2060-cross-store-erasure-needs-a-reverse-tombstone.md",
+      "id": "project/agentbox:ADR-2060",
+      "source_sha256": "9b7b989b71c3cb097989443b7fff354fe455554c1979874f6cac7490ca81fa00",
+      "status": {
+        "decision": "proposed",
+        "implementation": "none",
+        "activation": "inactive"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2061-federation-kind-map-parity.md",
+      "id": "project/agentbox:ADR-2061",
+      "source_sha256": "a19237f55cabdc81ed31ae7743088c65b9af3b930eb95398d3d2d475a0ecb395",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2062-container-internal-bind-surface.md",
+      "id": "project/agentbox:ADR-2062",
+      "source_sha256": "b492d7aba44b925b29812af006874b7a4883b25961b111cdba72761cfe2059e0",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2063-interaction-plane-post-rebuild-fixes.md",
+      "id": "project/agentbox:ADR-2063",
+      "source_sha256": "32b52c6dbb25be262e692ee5202b1bb9a29b919c615dc724a6895c791503b353",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2064-pod-request-signing-fails-closed.md",
+      "id": "project/agentbox:ADR-2064",
+      "source_sha256": "fd451d7a47f3e2001b0e1928eb68dbe7c2cd653ef1f60ed23ad85f5003e5c296",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2065-one-writer-for-the-pod-inbox.md",
+      "id": "project/agentbox:ADR-2065",
+      "source_sha256": "28b3b3f14572d3fd15b83254410b0fef30cd50fb16adbb107db8b6f5dc28a4bc",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2066-pod-signing-key-path-is-reachable.md",
+      "id": "project/agentbox:ADR-2066",
+      "source_sha256": "cea72deff80418cf8e42d6479ec4e66837dfe018eb12d48e1e03c2921a20fc98",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "inactive"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2068-root-session-runs-its-gated-session-hooks.md",
+      "id": "project/agentbox:ADR-2068",
+      "source_sha256": "722f1708306ac5232103ced35587d100cbe70b266e6afd51eb71137a4e263023",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2069-uncatalogued-gate-key-fails-the-build.md",
+      "id": "project/agentbox:ADR-2069",
+      "source_sha256": "0e19a747cd3565fa4150b3d8636864806a2acb917fd3d5ce4813b036258614c4",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2070-one-front-door-is-ingress-the-loom-raw-port-is-a-named-egress-door.md",
+      "id": "project/agentbox:ADR-2070",
+      "source_sha256": "56734e6f54024024cb0fd297dd8bbeadfc1c634768a13b0041fc19270be26829",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2071-journal-the-nightly-dream-cycle.md",
+      "id": "project/agentbox:ADR-2071",
+      "source_sha256": "da580727c215c8d5042622f1aba69b6aa8adf9e790aec8119383bb2d15b86694",
+      "status": {
+        "decision": "proposed",
+        "implementation": "none",
+        "activation": "inactive"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2072-briefing-workflow-route-surface.md",
+      "id": "project/agentbox:ADR-2072",
+      "source_sha256": "74048da341a51bca9724d6c04ff20870ef21b3da03ee9008a24c65292649dfca",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2073-loom-asserted-inferred-graph-isolation.md",
+      "id": "project/agentbox:ADR-2073",
+      "source_sha256": "85d68bae856413aaade0221392b1771204d36dc04dba396615770b71004d8855",
+      "status": {
+        "decision": "proposed",
+        "implementation": "none",
+        "activation": "inactive"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2074-deferred-distillation-mcp-server.md",
+      "id": "project/agentbox:ADR-2074",
+      "source_sha256": "4251e86e18cb43078bd9882c6dc756f97fc386c196828636855a04e487ab09c0",
+      "status": {
+        "decision": "proposed",
+        "implementation": "none",
+        "activation": "inactive"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2075-loom-attested-generation-identity.md",
+      "id": "project/agentbox:ADR-2075",
+      "source_sha256": "7acd18bc074c64d4d6840f984bd90a3dc9b72c0d19273ce3e27d5370f85aa244",
+      "status": {
+        "decision": "proposed",
+        "implementation": "partial",
+        "activation": "inactive"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2076-benchmark-the-agent-retrieval-path.md",
+      "id": "project/agentbox:ADR-2076",
+      "source_sha256": "c68967366bf85af410407d73a0dd05a08375e9fcca0f263e9e71e7f7153cc682",
+      "status": {
+        "decision": "proposed",
+        "implementation": "none",
+        "activation": "inactive"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2077-byte-identical-when-off-rebuild-proof.md",
+      "id": "project/agentbox:ADR-2077",
+      "source_sha256": "a0aff01ca902101709bcd2ce407e76549d5e6881db5648adb59c6db147d3def0",
+      "status": {
+        "decision": "proposed",
+        "implementation": "none",
+        "activation": "inactive"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2078-provision-pods-signer-from-sovereign-identity.md",
+      "id": "project/agentbox:ADR-2078",
+      "source_sha256": "7005458a6b0d5af17ad72151451a638e5d7e1e1ac88db8c2fc7de9be74efe775",
+      "status": {
+        "decision": "proposed",
+        "implementation": "none",
+        "activation": "inactive"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2079-aoe-is-the-dispatch-plane-of-a-fleet-model-router.md",
+      "id": "project/agentbox:ADR-2079",
+      "source_sha256": "f97f87e2b8c558a4b6475aa985dc9fdff94755a130ef9a0bbcbe319706b24ed6",
+      "status": {
+        "decision": "proposed",
+        "implementation": "none",
+        "activation": "inactive"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2080-metaharness-router-console-under-aoe.md",
+      "id": "project/agentbox:ADR-2080",
+      "source_sha256": "11f8d2775524ec73c172b933d8ac25bffafe5624722a131f3f796b7bdb517c92",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "project/agentbox:docs/adr/ADR-2081-annexe-depth-law-and-honest-evaluator-receipts.md",
+      "id": "project/agentbox:ADR-2081",
+      "source_sha256": "3ad0d46605545bfe76477690a5e904f974935bf14b10dc0b56b542d918a89c57",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "solid-pod-rs:crates/solid-pod-rs/docs/adr/ADR-2001-corpus-consolidation.md",
+      "id": "solid-pod-rs:ADR-2001",
+      "source_sha256": "97b28586b5896c95e15adc72e6f6e4273a3303bb2dfaea4aee5845bb949aa62b",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "solid-pod-rs:crates/solid-pod-rs/docs/adr/ADR-2002-wac-access-model.md",
+      "id": "solid-pod-rs:ADR-2002",
+      "source_sha256": "05b2c6fbe4578d70c7e48b11365b18be8d908cf81d544c6d64dfd6479888e7ad",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "solid-pod-rs:crates/solid-pod-rs/docs/adr/ADR-2003-solid-oidc-01-defer-lws10.md",
+      "id": "solid-pod-rs:ADR-2003",
+      "source_sha256": "88d18379d059283b1a67c5e5d46566785e2818eb567c0067a5dcca5edcc25500",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "solid-pod-rs:crates/solid-pod-rs/docs/adr/ADR-2004-provenance-off-by-default.md",
+      "id": "solid-pod-rs:ADR-2004",
+      "source_sha256": "7e34d28968b79b31b22c0fbff9580fb6d2332b84219f8b991737e91c12aee97b",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "solid-pod-rs:crates/solid-pod-rs/docs/adr/ADR-2005-fail-closed-untrusted-parsing.md",
+      "id": "solid-pod-rs:ADR-2005",
+      "source_sha256": "a6784404f92efce17645ee3df0a4588b886f94692e99eee49beb713bf7a85381",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "solid-pod-rs:crates/solid-pod-rs/docs/adr/ADR-2006-nip98-replaystore-seam.md",
+      "id": "solid-pod-rs:ADR-2006",
+      "source_sha256": "ca25676edb372749f1e0c60867889a8d929045e9d12829bbf2644a2506d7133e",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "staged"
+      }
+    },
+    {
+      "key": "solid-pod-rs:crates/solid-pod-rs/docs/adr/ADR-2007-mempool-single-url-no-fallback.md",
+      "id": "solid-pod-rs:ADR-2007",
+      "source_sha256": "31fa070d4a60dcf3fc0f9de8ddcf3be266e35613877229778ea472c4001dbbad",
+      "status": {
+        "decision": "accepted",
+        "implementation": "complete",
+        "activation": "live"
+      }
+    },
+    {
+      "key": "visionGraph:docs/adr/ADR-VG-001-publication-policy-boundaries.md",
+      "id": "visionGraph:ADR-VG-001",
+      "source_sha256": "4a673e8d7d36705eb6889f1b496f199f0392432a9a9ffecd4dc15df4fc743d57",
+      "status": {
+        "decision": "proposed",
+        "implementation": "partial",
+        "activation": "inactive"
+      }
+    },
+    {
+      "key": "visionGraph:docs/adr/ADR-VG-002-generation-and-consumer-identity.md",
+      "id": "visionGraph:ADR-VG-002",
+      "source_sha256": "1f85f4e53e01bc91d22f7d1ca7110826fdff5381e2fb181f9d4cca11b55be7bd",
+      "status": {
+        "decision": "proposed",
+        "implementation": "partial",
+        "activation": "inactive"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "VisionFlow:docs/adr/ADR-2002-static-copy-only-website.md",
+      "relation": "lineage-mention",
+      "reference": "VisionFlow:ADR-001",
+      "to": "VisionFlow:docs/archive/adr/ADR-001-website-technology.md"
+    },
+    {
+      "from": "VisionFlow:docs/adr/ADR-2003-pages-artifact-deploy.md",
+      "relation": "lineage-mention",
+      "reference": "VisionFlow:ADR-001",
+      "to": "VisionFlow:docs/archive/adr/ADR-001-website-technology.md"
+    },
+    {
+      "from": "VisionFlow:docs/adr/ADR-2003-pages-artifact-deploy.md",
+      "relation": "lineage-mention",
+      "reference": "VisionFlow:ADR-001",
+      "to": "VisionFlow:docs/archive/adr/ADR-001-website-technology.md"
+    },
+    {
+      "from": "VisionFlow:docs/adr/ADR-2004-diagram-baseline-vendored-render-gate.md",
+      "relation": "lineage-mention",
+      "reference": "VisionFlow:ADR-005",
+      "to": "VisionFlow:docs/archive/adr/ADR-005-gap-close-canon-decisions.md",
+      "scope": "Decision3 historical divergence, not engineering ADR005",
+      "resolved_by": "explicit-file-reference",
+      "target_sha256": "e7c62f94a1c3e4256673b9a10e0f7cc0a0176b6d6e6b95360b75bc7974ebd258"
+    },
+    {
+      "from": "VisionFlow:docs/adr/ADR-2005-drift-counter-allowlist-substrate-sourced.md",
+      "relation": "lineage-mention",
+      "reference": "VisionFlow:ADR-005",
+      "to": "VisionFlow:docs/archive/adr/ADR-005-gap-close-canon-decisions.md",
+      "scope": "Decision2 historical implementation lineage",
+      "resolved_by": "explicit-file-reference",
+      "target_sha256": "e7c62f94a1c3e4256673b9a10e0f7cc0a0176b6d6e6b95360b75bc7974ebd258"
+    },
+    {
+      "from": "VisionFlow:docs/adr/ADR-2006-canon-owns-crossrepo-view-not-implementation.md",
+      "relation": "lineage-mention",
+      "reference": "VisionFlow:ADR-002",
+      "to": "VisionFlow:docs/archive/adr/ADR-002-ecosystem-alignment-governance.md"
+    },
+    {
+      "from": "VisionFlow:docs/adr/ADR-2006-canon-owns-crossrepo-view-not-implementation.md",
+      "relation": "lineage-mention",
+      "reference": "VisionFlow:ADR-004",
+      "to": "VisionFlow:docs/archive/adr/ADR-004-gap-close-sprint-governance.md",
+      "scope": "Historical evidenced-tier register, not engineering ADR004",
+      "resolved_by": "explicit-file-reference",
+      "target_sha256": "b5f2cc9c052336ab20b739738cac0b4208d8f0de80d3ada306356d4215aee128"
+    },
+    {
+      "from": "VisionFlow:docs/adr/ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md",
+      "relation": "lineage-mention",
+      "reference": "VisionFlow:ADR-2006",
+      "to": "VisionFlow:docs/adr/ADR-2006-canon-owns-crossrepo-view-not-implementation.md"
+    },
+    {
+      "from": "VisionFlow:docs/adr/ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md",
+      "relation": "lineage-mention",
+      "reference": "VisionFlow:ADR-2007",
+      "to": "VisionFlow:docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md"
+    },
+    {
+      "from": "VisionFlow:docs/adr/ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md",
+      "relation": "lineage-mention",
+      "reference": "VisionFlow:ADR-2003",
+      "to": "VisionFlow:docs/adr/ADR-2003-pages-artifact-deploy.md"
+    },
+    {
+      "from": "VisionFlow:docs/adr/ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md",
+      "relation": "lineage-mention",
+      "reference": "VisionFlow:ADR-2002",
+      "to": "VisionFlow:docs/adr/ADR-2002-static-copy-only-website.md"
+    },
+    {
+      "from": "VisionFlow:docs/adr/ADR-2009-webgl-mesh-deep-is-sidecar-only.md",
+      "relation": "lineage-mention",
+      "reference": "VisionFlow:ADR-2008",
+      "to": "VisionFlow:docs/adr/ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md"
+    },
+    {
+      "from": "VisionFlow:docs/adr/ADR-2009-webgl-mesh-deep-is-sidecar-only.md",
+      "relation": "lineage-mention",
+      "reference": "VisionFlow:ADR-2008",
+      "to": "VisionFlow:docs/adr/ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md"
+    },
+    {
+      "from": "knowledgeGraph:docs/adr/ADR-2002-corpus-is-the-ontology.md",
+      "relation": "lineage-mention",
+      "reference": "knowledgeGraph:ADR-NG-001",
+      "to": "project4:docs/adr/ADR-NG-001-explorer-architecture.md",
+      "scope": "Archived Logseq explorer architecture lineage",
+      "resolved_by": "explicit-file-reference",
+      "target_sha256": "eaac09671c83ba13ece576bda8da18ba6c620bed180108afdeb86eb6eaf57708"
+    },
+    {
+      "from": "knowledgeGraph:docs/adr/ADR-2002-corpus-is-the-ontology.md",
+      "relation": "lineage-mention",
+      "reference": "knowledgeGraph:ADR-LCR-01",
+      "to": "project4:mainKnowledgeGraph/ADR-LCR-01-swarm-refactor-strategy.md",
+      "scope": "Frozen corpus-generation rationale; 2003 citesD11 only",
+      "resolved_by": "explicit-file-reference",
+      "target_sha256": "295ecb2627e06558caa2a6f8136b6a959c784fe9a9ecaea6a887bb7746e90eb3"
+    },
+    {
+      "from": "knowledgeGraph:docs/adr/ADR-2002-corpus-is-the-ontology.md",
+      "relation": "lineage-mention",
+      "reference": "knowledgeGraph:ADR-008",
+      "to": "knowledgeGraph:ontology/pages/ADR-008.md",
+      "scope": "Corpus specimen expressly not an operative decision",
+      "resolved_by": "explicit-file-reference",
+      "target_sha256": "afce747389457921ed40af486ad041f52ac64bfed721bf19c4d2ab57ee13ebfb"
+    },
+    {
+      "from": "knowledgeGraph:docs/adr/ADR-2002-corpus-is-the-ontology.md",
+      "relation": "lineage-mention",
+      "reference": "knowledgeGraph:ADR-012",
+      "to": "knowledgeGraph:ontology/pages/ADR-012.md",
+      "scope": "Corpus specimen expressly not an operative decision",
+      "resolved_by": "explicit-file-reference",
+      "target_sha256": "4fa1e11b9616549b78416d374e57bd63d4215356f74b6e5bbaec9879adfceb91"
+    },
+    {
+      "from": "knowledgeGraph:docs/adr/ADR-2003-expected-classes-tripwire.md",
+      "relation": "lineage-mention",
+      "reference": "knowledgeGraph:ADR-LCR-01",
+      "to": "project4:mainKnowledgeGraph/ADR-LCR-01-swarm-refactor-strategy.md",
+      "scope": "Frozen corpus-generation rationale; 2003 citesD11 only",
+      "resolved_by": "explicit-file-reference",
+      "target_sha256": "295ecb2627e06558caa2a6f8136b6a959c784fe9a9ecaea6a887bb7746e90eb3"
+    },
+    {
+      "from": "knowledgeGraph:docs/adr/ADR-2004-corpus-page-identity-immutable.md",
+      "relation": "lineage-mention",
+      "reference": "knowledgeGraph:ADR-2001",
+      "to": "knowledgeGraph:docs/adr/ADR-2001-corpus-consolidation.md"
+    },
+    {
+      "from": "knowledgeGraph:docs/adr/ADR-2004-corpus-page-identity-immutable.md",
+      "relation": "lineage-mention",
+      "reference": "knowledgeGraph:ADR-008",
+      "to": "knowledgeGraph:ontology/pages/ADR-008.md",
+      "scope": "Corpus specimen expressly not an operative decision",
+      "resolved_by": "explicit-file-reference",
+      "target_sha256": "afce747389457921ed40af486ad041f52ac64bfed721bf19c4d2ab57ee13ebfb"
+    },
+    {
+      "from": "knowledgeGraph:docs/adr/ADR-2004-corpus-page-identity-immutable.md",
+      "relation": "lineage-mention",
+      "reference": "knowledgeGraph:ADR-012",
+      "to": "knowledgeGraph:ontology/pages/ADR-012.md",
+      "scope": "Corpus specimen expressly not an operative decision",
+      "resolved_by": "explicit-file-reference",
+      "target_sha256": "4fa1e11b9616549b78416d374e57bd63d4215356f74b6e5bbaec9879adfceb91"
+    },
+    {
+      "from": "nostr-rust-forum:docs/adr/ADR-2002-canary-first-upstream-nostr-absorption.md",
+      "relation": "lineage-mention",
+      "reference": "nostr-rust-forum:ADR-076",
+      "to": "project:docs/archive/adr/ADR-076-nostr-core-absorption-into-upstream.md",
+      "scope": "Upstream VisionClaw absorption decision; qualification applies toD5",
+      "resolved_by": "explicit-file-reference",
+      "target_sha256": "5bbca3ec8aecfbe5fd03b8914d346a5127aa3abe361c3af059b63792fa58c9fb"
+    },
+    {
+      "from": "nostr-rust-forum:docs/adr/ADR-2002-canary-first-upstream-nostr-absorption.md",
+      "relation": "lineage-mention",
+      "reference": "nostr-rust-forum:ADR-093",
+      "to": "nostr-rust-forum:docs/archive/adr/ADR-093-native-pod-mesh.md"
+    },
+    {
+      "from": "nostr-rust-forum:docs/adr/ADR-2002-canary-first-upstream-nostr-absorption.md",
+      "relation": "lineage-mention",
+      "reference": "nostr-rust-forum:ADR-076",
+      "to": "project:docs/archive/adr/ADR-076-nostr-core-absorption-into-upstream.md",
+      "scope": "Upstream VisionClaw absorption decision; qualification applies toD5",
+      "resolved_by": "explicit-file-reference",
+      "target_sha256": "5bbca3ec8aecfbe5fd03b8914d346a5127aa3abe361c3af059b63792fa58c9fb"
+    },
+    {
+      "from": "nostr-rust-forum:docs/adr/ADR-2003-derive-subkey-raw-hmac-js-parity.md",
+      "relation": "lineage-mention",
+      "reference": "nostr-rust-forum:ADR-094",
+      "to": "nostr-rust-forum:docs/archive/adr/ADR-094-deterministic-subkey-derivation.md"
+    },
+    {
+      "from": "nostr-rust-forum:docs/adr/ADR-2003-derive-subkey-raw-hmac-js-parity.md",
+      "relation": "lineage-mention",
+      "reference": "nostr-rust-forum:ADR-100",
+      "to": "nostr-rust-forum:docs/archive/adr/ADR-100-key-lifecycle.md"
+    },
+    {
+      "from": "nostr-rust-forum:docs/adr/ADR-2004-device-keys-default-off-dual-worker-gate.md",
+      "relation": "lineage-mention",
+      "reference": "nostr-rust-forum:ADR-099",
+      "to": "nostr-rust-forum:docs/archive/adr/ADR-099-revocable-device-keys.md"
+    },
+    {
+      "from": "nostr-rust-forum:docs/adr/ADR-2004-device-keys-default-off-dual-worker-gate.md",
+      "relation": "lineage-mention",
+      "reference": "nostr-rust-forum:ADR-100",
+      "to": "nostr-rust-forum:docs/archive/adr/ADR-100-key-lifecycle.md"
+    },
+    {
+      "from": "nostr-rust-forum:docs/adr/ADR-2004-device-keys-default-off-dual-worker-gate.md",
+      "relation": "lineage-mention",
+      "reference": "nostr-rust-forum:ADR-2003",
+      "to": "nostr-rust-forum:docs/adr/ADR-2003-derive-subkey-raw-hmac-js-parity.md"
+    },
+    {
+      "from": "nostr-rust-forum:docs/adr/ADR-2005-gift-wrap-recipient-tag-admission.md",
+      "relation": "lineage-mention",
+      "reference": "nostr-rust-forum:ADR-104",
+      "to": "nostr-rust-forum:docs/archive/adr/ADR-104-gift-wrap-recipient-admission.md"
+    },
+    {
+      "from": "nostr-rust-forum:docs/adr/ADR-2006-trust-demotion-cron-tl3-never.md",
+      "relation": "lineage-mention",
+      "reference": "nostr-rust-forum:ADR-102",
+      "to": "nostr-rust-forum:docs/archive/adr/ADR-102-trust-demotion-inactivity-sweep.md"
+    },
+    {
+      "from": "nostr-rust-forum:docs/adr/ADR-2006-trust-demotion-cron-tl3-never.md",
+      "relation": "lineage-mention",
+      "reference": "nostr-rust-forum:ADR-100",
+      "to": "nostr-rust-forum:docs/archive/adr/ADR-100-key-lifecycle.md"
+    },
+    {
+      "from": "nostr-rust-forum:docs/adr/ADR-2007-kit-exact-pin-beta-channel.md",
+      "relation": "lineage-mention",
+      "reference": "nostr-rust-forum:ADR-103",
+      "to": "nostr-rust-forum:docs/archive/adr/ADR-103-kit-semver-publish-yank-policy.md"
+    },
+    {
+      "from": "nostr-rust-forum:docs/adr/ADR-2008-bbs-signer-holds-key-directly.md",
+      "relation": "lineage-mention",
+      "reference": "nostr-rust-forum:ADR-105",
+      "to": "nostr-rust-forum:docs/archive/adr/ADR-105-bbs-door-games-and-write-architecture.md"
+    },
+    {
+      "from": "nostr-rust-forum:docs/adr/ADR-2009-acl-sidecar-coerce-to-control.md",
+      "relation": "lineage-mention",
+      "reference": "nostr-rust-forum:ADR-096",
+      "to": "nostr-rust-forum:docs/archive/adr/ADR-096-acl-container-resolution-and-delegation.md"
+    },
+    {
+      "from": "nostr-rust-forum:docs/adr/ADR-2010-durable-governance-outcome-receipts.md",
+      "relation": "lineage-mention",
+      "reference": "nostr-rust-forum:ADR-106",
+      "to": "nostr-rust-forum:docs/archive/adr/ADR-106-gap-close-forum-governance-surfaces.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2004-oxigraph-sqlite-persistence.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-132",
+      "to": "project:docs/archive/adr/ADR-132-neo4j-removal-oxigraph-adoption.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2004-oxigraph-sqlite-persistence.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-101",
+      "to": "project:docs/archive/adr/ADR-101-triple-store-migration-framework.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2004-oxigraph-sqlite-persistence.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-098",
+      "to": "project:docs/archive/adr/ADR-098-semantic-constraint-path-reuse.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2004-oxigraph-sqlite-persistence.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-099",
+      "to": "project:docs/archive/adr/ADR-099-reasoner-posture-whelk-el-primary.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2004-oxigraph-sqlite-persistence.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-100",
+      "to": "project:docs/archive/adr/ADR-100-canonical-iri-and-vocabulary-alignment.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2005-hexagonal-crate-split.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-090",
+      "to": "project:docs/archive/adr/ADR-090-hexagonal-crate-modularisation.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2005-hexagonal-crate-split.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-090",
+      "to": "project:docs/archive/adr/ADR-090-hexagonal-crate-modularisation.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2006-acsp-human-approval.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-110",
+      "to": "project:docs/archive/adr/ADR-110-agentic-actors-acsp-control-surfaces.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2006-acsp-human-approval.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-130",
+      "to": "project:docs/archive/adr/ADR-130-gap-close-visionclaw-decisions.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2006-acsp-human-approval.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-041",
+      "to": "project:docs/archive/adr/ADR-041-judgment-broker-workbench.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2009-dual-request-auth-realms.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-011",
+      "to": "project:docs/archive/adr/ADR-011-auth-enforcement.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2009-dual-request-auth-realms.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-142",
+      "to": "project:docs/archive/adr/ADR-142-multi-user-rbac.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2010-rbac-lattice-atomic-mutations.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-142",
+      "to": "project:docs/archive/adr/ADR-142-multi-user-rbac.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2010-rbac-lattice-atomic-mutations.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-131",
+      "to": "project:docs/archive/adr/ADR-131-doc-drift-reconciliation-2026-07.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2010-rbac-lattice-atomic-mutations.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-094",
+      "to": "project:docs/archive/adr/ADR-094-admin-pubkey-permission-and-delegation.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2011-central-rbac-gate.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-011",
+      "to": "project:docs/archive/adr/ADR-011-auth-enforcement.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2011-central-rbac-gate.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-142",
+      "to": "project:docs/archive/adr/ADR-142-multi-user-rbac.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2012-dev-bypass-triple-gated.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-011",
+      "to": "project:docs/archive/adr/ADR-011-auth-enforcement.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2013-federation-delegation-deferred.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-040",
+      "to": "project:docs/archive/adr/ADR-040-enterprise-identity-strategy.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2013-federation-delegation-deferred.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-142",
+      "to": "project:docs/archive/adr/ADR-142-multi-user-rbac.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2013-federation-delegation-deferred.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-094",
+      "to": "project:docs/archive/adr/ADR-094-admin-pubkey-permission-and-delegation.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2013-federation-delegation-deferred.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-081",
+      "to": "project:docs/archive/adr/ADR-081-federation-key-custody-rotation.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2014-public-kg-inclusion-gate.md",
+      "relation": "superseded_by",
+      "reference": "project:ADR-2040",
+      "to": "project:docs/adr/ADR-2040-obsidian-vault-frontmatter-gate.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2014-public-kg-inclusion-gate.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-050",
+      "to": "project:docs/archive/adr/ADR-050-pod-backed-kgnode-schema.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2014-public-kg-inclusion-gate.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-051",
+      "to": "project:docs/archive/adr/ADR-051-visibility-transitions.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2015-derived-writeback-fence.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-099",
+      "to": "project:docs/archive/adr/ADR-099-reasoner-posture-whelk-el-primary.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2016-provenance-append-only.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-033",
+      "to": "project:docs/archive/adr/ADR-033-git-bead-provenance.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2016-provenance-append-only.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-034",
+      "to": "project:docs/archive/adr/ADR-034-needle-bead-provenance.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2016-provenance-append-only.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-124",
+      "to": "project:docs/archive/adr/ADR-124-smart-contract-features-web-contracts.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2016-provenance-append-only.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-128",
+      "to": "project:docs/archive/adr/ADR-128-build-out-canonical-gitmark-blocktrails.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2017-write-master-backup-posture.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-030",
+      "to": "project:docs/archive/adr/ADR-030-agent-memory-pods.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2017-write-master-backup-posture.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-132",
+      "to": "project:docs/archive/adr/ADR-132-neo4j-removal-oxigraph-adoption.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2017-write-master-backup-posture.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-050",
+      "to": "project:docs/archive/adr/ADR-050-pod-backed-kgnode-schema.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2018-frozen-52-byte-v3-record-v5-envelope.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-061",
+      "to": "project:docs/archive/adr/ADR-061-binary-protocol-unification.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2018-frozen-52-byte-v3-record-v5-envelope.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-031",
+      "to": "project:docs/archive/adr/ADR-031-gpu-analytics-correctness-and-wiring.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2018-frozen-52-byte-v3-record-v5-envelope.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-102",
+      "to": "project:docs/archive/adr/ADR-102-xr-client-backend-transport-completion.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2018-frozen-52-byte-v3-record-v5-envelope.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-137",
+      "to": "project:docs/archive/adr/ADR-137-xr-render-offload-and-runtime-quality-dials.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2019-tag-byte-registry-governed-dispatch.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-061",
+      "to": "project:docs/archive/adr/ADR-061-binary-protocol-unification.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2019-tag-byte-registry-governed-dispatch.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-059",
+      "to": "project:docs/archive/adr/ADR-059-bidirectional-agent-channel-server.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2019-tag-byte-registry-governed-dispatch.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-102",
+      "to": "project:docs/archive/adr/ADR-102-xr-client-backend-transport-completion.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2020-agent-copresence-additive-sibling-opcode.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-102",
+      "to": "project:docs/archive/adr/ADR-102-xr-client-backend-transport-completion.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2020-agent-copresence-additive-sibling-opcode.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-130",
+      "to": "project:docs/archive/adr/ADR-130-gap-close-visionclaw-decisions.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2021-typed-urn-mint-parse-dual.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-105",
+      "to": "project:docs/archive/adr/ADR-105-urn-visionclaw-convergence-and-ngm-cutover.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2021-typed-urn-mint-parse-dual.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-100",
+      "to": "project:docs/archive/adr/ADR-100-canonical-iri-and-vocabulary-alignment.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2022-did-nostr-hex-identity.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-074",
+      "to": "project:docs/archive/adr/ADR-074-cross-system-did-nostr-canonicalisation.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2022-did-nostr-hex-identity.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-074",
+      "to": "project:docs/archive/adr/ADR-074-cross-system-did-nostr-canonicalisation.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2022-did-nostr-hex-identity.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-125",
+      "to": "project:docs/archive/adr/ADR-125-did-nostr-multikey-convergence.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2022-did-nostr-hex-identity.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-050",
+      "to": "project:docs/archive/adr/ADR-050-pod-backed-kgnode-schema.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2022-did-nostr-hex-identity.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2011",
+      "to": "project:docs/adr/ADR-2011-central-rbac-gate.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2023-sha256-12-content-address.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-105",
+      "to": "project:docs/archive/adr/ADR-105-urn-visionclaw-convergence-and-ngm-cutover.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2025-cross-from-agentbox-closed-map.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-063",
+      "to": "project:docs/archive/adr/ADR-063-urn-traced-operations.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2025-cross-from-agentbox-closed-map.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-105",
+      "to": "project:docs/archive/adr/ADR-105-urn-visionclaw-convergence-and-ngm-cutover.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2026-fail-closed-security-posture.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-011",
+      "to": "project:docs/archive/adr/ADR-011-auth-enforcement.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2026-fail-closed-security-posture.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-142",
+      "to": "project:docs/archive/adr/ADR-142-multi-user-rbac.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2027-three-deployment-profiles.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-142",
+      "to": "project:docs/archive/adr/ADR-142-multi-user-rbac.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2027-three-deployment-profiles.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-011",
+      "to": "project:docs/archive/adr/ADR-011-auth-enforcement.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2028-simparams-212-byte-abi.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-138",
+      "to": "project:docs/archive/adr/ADR-138-gpu-force-channel-registry.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2028-simparams-212-byte-abi.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-141",
+      "to": "project:docs/archive/adr/ADR-141-constrained-layout-engine-programme.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2028-simparams-212-byte-abi.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-098",
+      "to": "project:docs/archive/adr/ADR-098-semantic-constraint-path-reuse.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2028-simparams-212-byte-abi.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-031",
+      "to": "project:docs/archive/adr/ADR-031-gpu-analytics-correctness-and-wiring.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2028-simparams-212-byte-abi.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-061",
+      "to": "project:docs/archive/adr/ADR-061-binary-protocol-unification.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2029-force-channel-flag-derivation.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-098",
+      "to": "project:docs/archive/adr/ADR-098-semantic-constraint-path-reuse.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2029-force-channel-flag-derivation.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-138",
+      "to": "project:docs/archive/adr/ADR-138-gpu-force-channel-registry.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2029-force-channel-flag-derivation.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-141",
+      "to": "project:docs/archive/adr/ADR-141-constrained-layout-engine-programme.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2030-ptx-isa-downgrade.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-070",
+      "to": "project:docs/archive/adr/ADR-070-cuda-integration-hardening.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2032-godot-native-compatibility-renderer.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-071",
+      "to": "project:docs/archive/adr/ADR-071-godot-rust-xr-replacement.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2032-godot-native-compatibility-renderer.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-032",
+      "to": "project:docs/archive/adr/ADR-032-embed-solid-pod-rs-library.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2032-godot-native-compatibility-renderer.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-033",
+      "to": "project:docs/archive/adr/ADR-033-git-bead-provenance.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2032-godot-native-compatibility-renderer.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-136",
+      "to": "project:docs/archive/adr/ADR-136-desktop-openxr-vive-validation-target.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2032-godot-native-compatibility-renderer.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-102",
+      "to": "project:docs/archive/adr/ADR-102-xr-client-backend-transport-completion.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2033-hud-buttons-fire-on-press.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-139",
+      "to": "project:docs/archive/adr/ADR-139-immersive-interaction-adoption-programme.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2034-renderstore-instance-math-stride-16.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-137",
+      "to": "project:docs/archive/adr/ADR-137-xr-render-offload-and-runtime-quality-dials.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2034-renderstore-instance-math-stride-16.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-140",
+      "to": "project:docs/archive/adr/ADR-140-xr-agent-swarm-visualisation.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2034-renderstore-instance-math-stride-16.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-059",
+      "to": "project:docs/archive/adr/ADR-059-bidirectional-agent-channel-server.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2035-dag-rank-accepts-hierarchical-label.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-141",
+      "to": "project:docs/archive/adr/ADR-141-constrained-layout-engine-programme.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2035-dag-rank-accepts-hierarchical-label.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-138",
+      "to": "project:docs/archive/adr/ADR-138-gpu-force-channel-registry.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2036-defensive-openxr-boot.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-071",
+      "to": "project:docs/archive/adr/ADR-071-godot-rust-xr-replacement.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2036-defensive-openxr-boot.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-139",
+      "to": "project:docs/archive/adr/ADR-139-immersive-interaction-adoption-programme.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2038-boot-time-profile-assertion.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2027",
+      "to": "project:docs/adr/ADR-2027-three-deployment-profiles.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2038-boot-time-profile-assertion.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2003",
+      "to": "project:docs/adr/ADR-2003-visibility-filter-default-on.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2038-boot-time-profile-assertion.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2010",
+      "to": "project:docs/adr/ADR-2010-rbac-lattice-atomic-mutations.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2038-boot-time-profile-assertion.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2026",
+      "to": "project:docs/adr/ADR-2026-fail-closed-security-posture.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2039-visionclaw-dev-mode-lan-local-bypass.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-06",
+      "to": "project:archive/visionclaw-docs/migration-sprint/06-auth-security/ADR-06.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2039-visionclaw-dev-mode-lan-local-bypass.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2012",
+      "to": "project:docs/adr/ADR-2012-dev-bypass-triple-gated.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2039-visionclaw-dev-mode-lan-local-bypass.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2037",
+      "to": "project:docs/adr/ADR-2037-production-build-excludes-dev-auth.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2039-visionclaw-dev-mode-lan-local-bypass.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-142",
+      "to": "project:docs/archive/adr/ADR-142-multi-user-rbac.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2039-visionclaw-dev-mode-lan-local-bypass.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-060",
+      "to": "project:docs/archive/adr/ADR-060-pubkey-filtered-binary-encoder.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2040-obsidian-vault-frontmatter-gate.md",
+      "relation": "supersedes",
+      "reference": "project:ADR-2014",
+      "to": "project:docs/adr/ADR-2014-public-kg-inclusion-gate.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2040-obsidian-vault-frontmatter-gate.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2014",
+      "to": "project:docs/adr/ADR-2014-public-kg-inclusion-gate.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2040-obsidian-vault-frontmatter-gate.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-050",
+      "to": "project:docs/archive/adr/ADR-050-pod-backed-kgnode-schema.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2043-reject-full-disclosure-flag-pair-at-boot.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2003",
+      "to": "project:docs/adr/ADR-2003-visibility-filter-default-on.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2043-reject-full-disclosure-flag-pair-at-boot.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2027",
+      "to": "project:docs/adr/ADR-2027-three-deployment-profiles.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2043-reject-full-disclosure-flag-pair-at-boot.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2038",
+      "to": "project:docs/adr/ADR-2038-boot-time-profile-assertion.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2044-session-credentials-fail-closed.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2009",
+      "to": "project:docs/adr/ADR-2009-dual-request-auth-realms.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2044-session-credentials-fail-closed.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2026",
+      "to": "project:docs/adr/ADR-2026-fail-closed-security-posture.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2044-session-credentials-fail-closed.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-011",
+      "to": "project:docs/archive/adr/ADR-011-auth-enforcement.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2044-session-credentials-fail-closed.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2058",
+      "to": "project:docs/adr/ADR-2058-websocket-auth-header-only.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2049-production-image-build-must-be-able-to-fail.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2008",
+      "to": "project:docs/adr/ADR-2008-dev-image-recompiles.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2074-single-nip98-signing-helper.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2002",
+      "to": "project:docs/adr/ADR-2002-nip98-single-use-replay-cache.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2074-single-nip98-signing-helper.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2009",
+      "to": "project:docs/adr/ADR-2009-dual-request-auth-realms.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2075-ws-speech-post-upgrade-nip98-auth.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2002",
+      "to": "project:docs/adr/ADR-2002-nip98-single-use-replay-cache.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2075-ws-speech-post-upgrade-nip98-auth.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2039",
+      "to": "project:docs/adr/ADR-2039-visionclaw-dev-mode-lan-local-bypass.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2076-xr-client-drops-query-token-auth.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2032",
+      "to": "project:docs/adr/ADR-2032-godot-native-compatibility-renderer.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2078-ts-decoder-fails-closed-on-v2-and-unknown-versions.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2057",
+      "to": "project:docs/adr/ADR-2057-compile-time-wire-size-lock.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2079-xr-closeout-narrative-corrections.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2033",
+      "to": "project:docs/adr/ADR-2033-hud-buttons-fire-on-press.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2079-xr-closeout-narrative-corrections.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2035",
+      "to": "project:docs/adr/ADR-2035-dag-rank-accepts-hierarchical-label.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2079-xr-closeout-narrative-corrections.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2033",
+      "to": "project:docs/adr/ADR-2033-hud-buttons-fire-on-press.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2080-client-consumes-settingsupdated-broadcast.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2047",
+      "to": "project:docs/adr/ADR-2047-single-settings-broadcast-emitter.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2080-client-consumes-settingsupdated-broadcast.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2047",
+      "to": "project:docs/adr/ADR-2047-single-settings-broadcast-emitter.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2081-remove-dead-browser-xr-surface.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2032",
+      "to": "project:docs/adr/ADR-2032-godot-native-compatibility-renderer.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2087-deployment-profile-doc-correctness.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2027",
+      "to": "project:docs/adr/ADR-2027-three-deployment-profiles.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2087-deployment-profile-doc-correctness.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2026",
+      "to": "project:docs/adr/ADR-2026-fail-closed-security-posture.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2087-deployment-profile-doc-correctness.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2010",
+      "to": "project:docs/adr/ADR-2010-rbac-lattice-atomic-mutations.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2087-deployment-profile-doc-correctness.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2003",
+      "to": "project:docs/adr/ADR-2003-visibility-filter-default-on.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2087-deployment-profile-doc-correctness.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2038",
+      "to": "project:docs/adr/ADR-2038-boot-time-profile-assertion.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2090-ws-upgrade-resolves-token-through-session-realm.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2044",
+      "to": "project:docs/adr/ADR-2044-session-credentials-fail-closed.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2090-ws-upgrade-resolves-token-through-session-realm.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2058",
+      "to": "project:docs/adr/ADR-2058-websocket-auth-header-only.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2090-ws-upgrade-resolves-token-through-session-realm.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2026",
+      "to": "project:docs/adr/ADR-2026-fail-closed-security-posture.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2090-ws-upgrade-resolves-token-through-session-realm.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2011",
+      "to": "project:docs/adr/ADR-2011-central-rbac-gate.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2091-remove-fictional-mcp-status-routes.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2083",
+      "to": "project:docs/adr/ADR-2083-multi-mcp-discovery-interval-wired.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2091-remove-fictional-mcp-status-routes.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2090",
+      "to": "project:docs/adr/ADR-2090-ws-upgrade-resolves-token-through-session-realm.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2094-fail-closed-management-api-credential-and-cached-mcp-health.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-06",
+      "to": "project:archive/visionclaw-docs/migration-sprint/06-auth-security/ADR-06.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2096-local-file-sync-uses-the-vault-parsing-entry-point.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2040",
+      "to": "project:docs/adr/ADR-2040-obsidian-vault-frontmatter-gate.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2096-local-file-sync-uses-the-vault-parsing-entry-point.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2014",
+      "to": "project:docs/adr/ADR-2014-public-kg-inclusion-gate.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2098-solid-pod-url-names-the-in-process-endpoint.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-032",
+      "to": "project:docs/archive/adr/ADR-032-embed-solid-pod-rs-library.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2098-solid-pod-url-names-the-in-process-endpoint.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2100",
+      "to": "project:docs/adr/ADR-2100-one-solid-jss-notification-client.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2102-estate-wide-cross-store-erasure-orchestration.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2016",
+      "to": "project:docs/adr/ADR-2016-provenance-append-only.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2102-estate-wide-cross-store-erasure-orchestration.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2017",
+      "to": "project:docs/adr/ADR-2017-write-master-backup-posture.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2102-estate-wide-cross-store-erasure-orchestration.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2060",
+      "to": "project:docs/adr/ADR-2060-correct-gpu-and-wire-doc-citations.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2103-oxigraph-point-in-time-backup.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2017",
+      "to": "project:docs/adr/ADR-2017-write-master-backup-posture.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2103-oxigraph-point-in-time-backup.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2069",
+      "to": "project:docs/adr/ADR-2069-backup-membership-required-optional.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2104-sops-execute-or-withdraw.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-109",
+      "to": "project:docs/archive/adr/ADR-109-sops-secrets-management.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2104-sops-execute-or-withdraw.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2027",
+      "to": "project:docs/adr/ADR-2027-three-deployment-profiles.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2105-correlated-promotion-chain-end-to-end.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2022",
+      "to": "project:docs/adr/ADR-2022-did-nostr-hex-identity.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2105-correlated-promotion-chain-end-to-end.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2054",
+      "to": "project:docs/adr/ADR-2054-remove-dead-gpu-and-analytics-code.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2106-ontology-pull-model-into-the-embedded-pod.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2098",
+      "to": "project:docs/adr/ADR-2098-solid-pod-url-names-the-in-process-endpoint.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2106-ontology-pull-model-into-the-embedded-pod.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-032",
+      "to": "project:docs/archive/adr/ADR-032-embed-solid-pod-rs-library.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2106-ontology-pull-model-into-the-embedded-pod.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2040",
+      "to": "project:docs/adr/ADR-2040-obsidian-vault-frontmatter-gate.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2106-ontology-pull-model-into-the-embedded-pod.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2005",
+      "to": "project:docs/adr/ADR-2005-hexagonal-crate-split.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2106-ontology-pull-model-into-the-embedded-pod.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2006",
+      "to": "project:docs/adr/ADR-2006-acsp-human-approval.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2003-nix-flake-composition.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-001",
+      "to": "project/agentbox:docs/archive/adr/ADR-001-nixos-flakes.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2003-nix-flake-composition.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-039",
+      "to": "project/agentbox:docs/archive/adr/ADR-039-docbox-backported-surfaces.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2004-five-adapter-slots.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-005",
+      "to": "project/agentbox:docs/archive/adr/ADR-005-pluggable-adapter-architecture.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2004-five-adapter-slots.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-031",
+      "to": "project/agentbox:docs/archive/adr/ADR-031-adapter-contract-enforcement.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2005-dispatch-middleware-order.md",
+      "relation": "superseded_by",
+      "reference": "project/agentbox:ADR-2036",
+      "to": "project/agentbox:docs/adr/ADR-2036-dispatch-two-layer-encoder-is-a-gated-surface.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2005-dispatch-middleware-order.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-005",
+      "to": "project/agentbox:docs/archive/adr/ADR-005-pluggable-adapter-architecture.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2005-dispatch-middleware-order.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-008",
+      "to": "project/agentbox:docs/archive/adr/ADR-008-privacy-filter-routing.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2005-dispatch-middleware-order.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-012",
+      "to": "project/agentbox:docs/archive/adr/ADR-012-jsonld-federation-grammar.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2007-profile-isolation.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-025",
+      "to": "project/agentbox:docs/archive/adr/ADR-025-multi-harness-tmux-architecture.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2007-profile-isolation.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-028",
+      "to": "project/agentbox:docs/archive/adr/ADR-028-per-user-agent-fabric.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2008-mcp-projector-reconcile.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-039",
+      "to": "project/agentbox:docs/archive/adr/ADR-039-docbox-backported-surfaces.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2008-mcp-projector-reconcile.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-011",
+      "to": "project/agentbox:docs/archive/adr/ADR-011-consultation-mcps.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2009-nip98-proxy-identity-boundary.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-042",
+      "to": "project/agentbox:docs/archive/adr/ADR-042-agent-of-empires-interaction-plane.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2009-nip98-proxy-identity-boundary.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-043",
+      "to": "project/agentbox:docs/archive/adr/ADR-043-session-identity-binding.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2009-nip98-proxy-identity-boundary.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-045",
+      "to": "project/agentbox:docs/archive/adr/ADR-045-sovereign-ingress-npub-front-door.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2010-bearer-gated-behind-nip98.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-069",
+      "to": "project/agentbox:docs/archive/adr/ADR-069-unified-operator-auth-dreamlab-adoption.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2011-hex-canonical-identity.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-053",
+      "to": "project/agentbox:docs/archive/adr/ADR-053-hex-canonical-pod-naming.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2011-hex-canonical-identity.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-033",
+      "to": "project/agentbox:docs/archive/adr/ADR-033-did-nostr-multikey-convergence.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2012-relay-allowlist-only-ingress.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-040",
+      "to": "project/agentbox:docs/archive/adr/ADR-040-learning-consumers-model-lifecycle-and-legacy-mining.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2013-loopback-publish-except-9096.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-045",
+      "to": "project/agentbox:docs/archive/adr/ADR-045-sovereign-ingress-npub-front-door.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2014-memory-mcp-only-fail-closed.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-015",
+      "to": "project/agentbox:docs/archive/adr/ADR-015-mcp-ruvector-mandate.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2015-trajectory-recorder-transcript-driven.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-036",
+      "to": "project/agentbox:docs/archive/adr/ADR-036-ruvector-capability-adoption-and-learning-loop.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2016-wilson-lower-bound-raw-floor.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-040",
+      "to": "project/agentbox:docs/archive/adr/ADR-040-learning-consumers-model-lifecycle-and-legacy-mining.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2016-wilson-lower-bound-raw-floor.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-037",
+      "to": "project/agentbox:docs/archive/adr/ADR-037-gap-close-agentbox-decisions.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2017-consumer-behind-producer-w066.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-036",
+      "to": "project/agentbox:docs/archive/adr/ADR-036-ruvector-capability-adoption-and-learning-loop.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2018-recall-harness-merge-gate.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-040",
+      "to": "project/agentbox:docs/archive/adr/ADR-040-learning-consumers-model-lifecycle-and-legacy-mining.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2019-model-lifecycle-384-dim-freeze.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-040",
+      "to": "project/agentbox:docs/archive/adr/ADR-040-learning-consumers-model-lifecycle-and-legacy-mining.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2020-capability-gating.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-039",
+      "to": "project/agentbox:docs/archive/adr/ADR-039-docbox-backported-surfaces.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2020-capability-gating.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-020",
+      "to": "project/agentbox:docs/archive/adr/ADR-020-aci-mcp-tree-search.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2020-capability-gating.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2003",
+      "to": "project/agentbox:docs/adr/ADR-2003-nix-flake-composition.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2022-governed-ontology-writes.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-023",
+      "to": "project/agentbox:docs/archive/adr/ADR-023-ontology-bridge.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2022-governed-ontology-writes.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-054",
+      "to": "project/agentbox:docs/archive/adr/ADR-054-ontology-bridge-write-path-findings.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2023-loom-facade.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-051",
+      "to": "project/agentbox:docs/archive/adr/ADR-051-loom-client-and-deferred-distillation.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2023-loom-facade.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-045",
+      "to": "project/agentbox:docs/archive/adr/ADR-045-sovereign-ingress-npub-front-door.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2024-dream-cycle-gating.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-052",
+      "to": "project/agentbox:docs/archive/adr/ADR-052-dream-machine-hp-annexe.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2024-dream-cycle-gating.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-065",
+      "to": "project/agentbox:docs/archive/adr/ADR-065-dream-darwin-evaluator-liveness.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2024-dream-cycle-gating.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-070",
+      "to": "project/agentbox:docs/archive/adr/ADR-070-self-gc-dream-evidence-governance.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2024-dream-cycle-gating.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2018",
+      "to": "project/agentbox:docs/adr/ADR-2018-recall-harness-merge-gate.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2028-vault-manifest-path-authority.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2003",
+      "to": "project/agentbox:docs/adr/ADR-2003-nix-flake-composition.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2028-vault-manifest-path-authority.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2008",
+      "to": "project/agentbox:docs/adr/ADR-2008-mcp-projector-reconcile.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2028-vault-manifest-path-authority.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-113",
+      "to": "project:docs/archive/adr/ADR-113-ontology-condensation-mesh.md",
+      "scope": "Cross-repository condensation trigger rationale",
+      "resolved_by": "explicit-file-reference",
+      "target_sha256": "25123c9893fdab154ad46f5ed24e35a0afde902c88e3efe2508b42cf2f347d9c"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2029-rune-markdown-tui-notes-window.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2003",
+      "to": "project/agentbox:docs/adr/ADR-2003-nix-flake-composition.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2029-rune-markdown-tui-notes-window.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-042",
+      "to": "project/agentbox:docs/archive/adr/ADR-042-agent-of-empires-interaction-plane.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2035-adapter-connect-per-slot-deadline-quarantine.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2004",
+      "to": "project/agentbox:docs/adr/ADR-2004-five-adapter-slots.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2036-dispatch-two-layer-encoder-is-a-gated-surface.md",
+      "relation": "supersedes",
+      "reference": "project/agentbox:ADR-2005",
+      "to": "project/agentbox:docs/adr/ADR-2005-dispatch-middleware-order.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2036-dispatch-two-layer-encoder-is-a-gated-surface.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2005",
+      "to": "project/agentbox:docs/adr/ADR-2005-dispatch-middleware-order.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2036-dispatch-two-layer-encoder-is-a-gated-surface.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-005",
+      "to": "project/agentbox:docs/archive/adr/ADR-005-pluggable-adapter-architecture.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2036-dispatch-two-layer-encoder-is-a-gated-surface.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-008",
+      "to": "project/agentbox:docs/archive/adr/ADR-008-privacy-filter-routing.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2036-dispatch-two-layer-encoder-is-a-gated-surface.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-012",
+      "to": "project/agentbox:docs/archive/adr/ADR-012-jsonld-federation-grammar.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2036-dispatch-two-layer-encoder-is-a-gated-surface.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-031",
+      "to": "project/agentbox:docs/archive/adr/ADR-031-adapter-contract-enforcement.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2039-baseline-cites-program-names-not-line-numbers.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2003",
+      "to": "project/agentbox:docs/adr/ADR-2003-nix-flake-composition.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2039-baseline-cites-program-names-not-line-numbers.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2008",
+      "to": "project/agentbox:docs/adr/ADR-2008-mcp-projector-reconcile.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2039-baseline-cites-program-names-not-line-numbers.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2032",
+      "to": "project/agentbox:docs/adr/ADR-2032-daemon-identification-argv-boundaries.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2039-baseline-cites-program-names-not-line-numbers.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2055",
+      "to": "project/agentbox:docs/adr/ADR-2055-baseline-must-not-conflate-privacy-filter-with-loom.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2040-no-unauthenticated-supervised-listener.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2013",
+      "to": "project/agentbox:docs/adr/ADR-2013-loopback-publish-except-9096.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2040-no-unauthenticated-supervised-listener.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2003",
+      "to": "project/agentbox:docs/adr/ADR-2003-nix-flake-composition.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2046-seccomp-gate-protects-every-denial.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-007",
+      "to": "project/agentbox:docs/archive/adr/ADR-007-runtime-contract-and-container-hardening.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2046-seccomp-gate-protects-every-denial.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-027",
+      "to": "project/agentbox:docs/archive/adr/ADR-027-default-secure-posture.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2047-correct-the-ingress-door-inventory-and-stale-bullets.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2013",
+      "to": "project/agentbox:docs/adr/ADR-2013-loopback-publish-except-9096.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2047-correct-the-ingress-door-inventory-and-stale-bullets.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2009",
+      "to": "project/agentbox:docs/adr/ADR-2009-nip98-proxy-identity-boundary.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2047-correct-the-ingress-door-inventory-and-stale-bullets.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-069",
+      "to": "project/agentbox:docs/archive/adr/ADR-069-unified-operator-auth-dreamlab-adoption.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2049-withdraw-unreachable-410-and-scope-the-501-claim.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-013",
+      "to": "project/agentbox:docs/archive/adr/ADR-013-canonical-uri-grammar.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2051-learning-invariants-match-enforcement.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2014",
+      "to": "project/agentbox:docs/adr/ADR-2014-memory-mcp-only-fail-closed.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2051-learning-invariants-match-enforcement.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2017",
+      "to": "project/agentbox:docs/adr/ADR-2017-consumer-behind-producer-w066.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2052-cite-manifest-by-key-not-line.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2014",
+      "to": "project/agentbox:docs/adr/ADR-2014-memory-mcp-only-fail-closed.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2052-cite-manifest-by-key-not-line.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2017",
+      "to": "project/agentbox:docs/adr/ADR-2017-consumer-behind-producer-w066.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2052-cite-manifest-by-key-not-line.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2018",
+      "to": "project/agentbox:docs/adr/ADR-2018-recall-harness-merge-gate.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2052-cite-manifest-by-key-not-line.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2023",
+      "to": "project/agentbox:docs/adr/ADR-2023-loom-facade.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2052-cite-manifest-by-key-not-line.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2024",
+      "to": "project/agentbox:docs/adr/ADR-2024-dream-cycle-gating.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2053-dream-default-provider-is-zai.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2023",
+      "to": "project/agentbox:docs/adr/ADR-2023-loom-facade.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2053-dream-default-provider-is-zai.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2024",
+      "to": "project/agentbox:docs/adr/ADR-2024-dream-cycle-gating.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2053-dream-default-provider-is-zai.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-052",
+      "to": "project/agentbox:docs/archive/adr/ADR-052-dream-machine-hp-annexe.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2054-every-ontology-authoring-caller-crosses-the-gate.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2022",
+      "to": "project/agentbox:docs/adr/ADR-2022-governed-ontology-writes.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2055-baseline-must-not-conflate-privacy-filter-with-loom.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-008",
+      "to": "project/agentbox:docs/archive/adr/ADR-008-privacy-filter-routing.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2055-baseline-must-not-conflate-privacy-filter-with-loom.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2023",
+      "to": "project/agentbox:docs/adr/ADR-2023-loom-facade.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2056-skill-directory-facts-and-router-fixture.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2021",
+      "to": "project/agentbox:docs/adr/ADR-2021-skills-jit-context-lint.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2056-skill-directory-facts-and-router-fixture.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-037",
+      "to": "project/agentbox:docs/archive/adr/ADR-037-gap-close-agentbox-decisions.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2057-close-the-capability-gate-gaps.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2020",
+      "to": "project/agentbox:docs/adr/ADR-2020-capability-gating.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2057-close-the-capability-gate-gaps.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-039",
+      "to": "project/agentbox:docs/archive/adr/ADR-039-docbox-backported-surfaces.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2057-close-the-capability-gate-gaps.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2021",
+      "to": "project/agentbox:docs/adr/ADR-2021-skills-jit-context-lint.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2058-clear-verification-anchors-stale-in-the-uncommitted-tree.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2019",
+      "to": "project/agentbox:docs/adr/ADR-2019-model-lifecycle-384-dim-freeze.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2058-clear-verification-anchors-stale-in-the-uncommitted-tree.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2023",
+      "to": "project/agentbox:docs/adr/ADR-2023-loom-facade.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2058-clear-verification-anchors-stale-in-the-uncommitted-tree.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2030",
+      "to": "project/agentbox:docs/adr/ADR-2030-permissive-licensing-for-publishable-service-crates.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2059-reasoner-preflight-on-the-email-gateway.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2023",
+      "to": "project/agentbox:docs/adr/ADR-2023-loom-facade.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2059-reasoner-preflight-on-the-email-gateway.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2055",
+      "to": "project/agentbox:docs/adr/ADR-2055-baseline-must-not-conflate-privacy-filter-with-loom.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2061-federation-kind-map-parity.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2025",
+      "to": "project/agentbox:docs/adr/ADR-2025-cross-repo-federation-contract.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2061-federation-kind-map-parity.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2023",
+      "to": "project/agentbox:docs/adr/ADR-2023-loom-facade.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2062-container-internal-bind-surface.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2013",
+      "to": "project/agentbox:docs/adr/ADR-2013-loopback-publish-except-9096.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2062-container-internal-bind-surface.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2009",
+      "to": "project/agentbox:docs/adr/ADR-2009-nip98-proxy-identity-boundary.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2062-container-internal-bind-surface.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2040",
+      "to": "project/agentbox:docs/adr/ADR-2040-no-unauthenticated-supervised-listener.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2064-pod-request-signing-fails-closed.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2009",
+      "to": "project/agentbox:docs/adr/ADR-2009-nip98-proxy-identity-boundary.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2064-pod-request-signing-fails-closed.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2010",
+      "to": "project/agentbox:docs/adr/ADR-2010-bearer-gated-behind-nip98.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2064-pod-request-signing-fails-closed.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-005",
+      "to": "project/agentbox:docs/archive/adr/ADR-005-pluggable-adapter-architecture.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2064-pod-request-signing-fails-closed.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2041",
+      "to": "project/agentbox:docs/adr/ADR-2041-wire-execution-journal-and-action-pipeline.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2065-one-writer-for-the-pod-inbox.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-009",
+      "to": "project/agentbox:docs/archive/adr/ADR-009-embedded-nostr-relay.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2065-one-writer-for-the-pod-inbox.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2012",
+      "to": "project/agentbox:docs/adr/ADR-2012-relay-allowlist-only-ingress.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2065-one-writer-for-the-pod-inbox.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-037",
+      "to": "project/agentbox:docs/archive/adr/ADR-037-gap-close-agentbox-decisions.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2065-one-writer-for-the-pod-inbox.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-039",
+      "to": "project/agentbox:docs/archive/adr/ADR-039-docbox-backported-surfaces.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2066-pod-signing-key-path-is-reachable.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2064",
+      "to": "project/agentbox:docs/adr/ADR-2064-pod-request-signing-fails-closed.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2066-pod-signing-key-path-is-reachable.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2027",
+      "to": "project/agentbox:docs/adr/ADR-2027-secret-custody-rotation-break-glass.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2068-root-session-runs-its-gated-session-hooks.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2020",
+      "to": "project/agentbox:docs/adr/ADR-2020-capability-gating.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2068-root-session-runs-its-gated-session-hooks.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-011",
+      "to": "project/agentbox:docs/archive/adr/ADR-011-consultation-mcps.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2069-uncatalogued-gate-key-fails-the-build.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-039",
+      "to": "project/agentbox:docs/archive/adr/ADR-039-docbox-backported-surfaces.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2069-uncatalogued-gate-key-fails-the-build.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2057",
+      "to": "project/agentbox:docs/adr/ADR-2057-close-the-capability-gate-gaps.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2069-uncatalogued-gate-key-fails-the-build.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2052",
+      "to": "project/agentbox:docs/adr/ADR-2052-cite-manifest-by-key-not-line.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2070-one-front-door-is-ingress-the-loom-raw-port-is-a-named-egress-door.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-045",
+      "to": "project/agentbox:docs/archive/adr/ADR-045-sovereign-ingress-npub-front-door.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2070-one-front-door-is-ingress-the-loom-raw-port-is-a-named-egress-door.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-051",
+      "to": "project/agentbox:docs/archive/adr/ADR-051-loom-client-and-deferred-distillation.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2070-one-front-door-is-ingress-the-loom-raw-port-is-a-named-egress-door.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2023",
+      "to": "project/agentbox:docs/adr/ADR-2023-loom-facade.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2070-one-front-door-is-ingress-the-loom-raw-port-is-a-named-egress-door.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2055",
+      "to": "project/agentbox:docs/adr/ADR-2055-baseline-must-not-conflate-privacy-filter-with-loom.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2071-journal-the-nightly-dream-cycle.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2041",
+      "to": "project/agentbox:docs/adr/ADR-2041-wire-execution-journal-and-action-pipeline.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2071-journal-the-nightly-dream-cycle.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-057",
+      "to": "project/agentbox:docs/archive/adr/ADR-057-replayable-agent-execution-journal.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2071-journal-the-nightly-dream-cycle.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-059",
+      "to": "project/agentbox:docs/archive/adr/ADR-059-monotonic-agent-action-policy-pipeline.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2071-journal-the-nightly-dream-cycle.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2053",
+      "to": "project/agentbox:docs/adr/ADR-2053-dream-default-provider-is-zai.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2073-loom-asserted-inferred-graph-isolation.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2023",
+      "to": "project/agentbox:docs/adr/ADR-2023-loom-facade.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2074-deferred-distillation-mcp-server.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-051",
+      "to": "project/agentbox:docs/archive/adr/ADR-051-loom-client-and-deferred-distillation.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2074-deferred-distillation-mcp-server.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2023",
+      "to": "project/agentbox:docs/adr/ADR-2023-loom-facade.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2075-loom-attested-generation-identity.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2023",
+      "to": "project/agentbox:docs/adr/ADR-2023-loom-facade.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2075-loom-attested-generation-identity.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-051",
+      "to": "project/agentbox:docs/archive/adr/ADR-051-loom-client-and-deferred-distillation.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2076-benchmark-the-agent-retrieval-path.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2023",
+      "to": "project/agentbox:docs/adr/ADR-2023-loom-facade.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2076-benchmark-the-agent-retrieval-path.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-040",
+      "to": "project/agentbox:docs/archive/adr/ADR-040-learning-consumers-model-lifecycle-and-legacy-mining.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2076-benchmark-the-agent-retrieval-path.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2073",
+      "to": "project/agentbox:docs/adr/ADR-2073-loom-asserted-inferred-graph-isolation.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2077-byte-identical-when-off-rebuild-proof.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2020",
+      "to": "project/agentbox:docs/adr/ADR-2020-capability-gating.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2077-byte-identical-when-off-rebuild-proof.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2057",
+      "to": "project/agentbox:docs/adr/ADR-2057-close-the-capability-gate-gaps.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2077-byte-identical-when-off-rebuild-proof.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2033",
+      "to": "project/agentbox:docs/adr/ADR-2033-deepsec-security-gate.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2077-byte-identical-when-off-rebuild-proof.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-039",
+      "to": "project/agentbox:docs/archive/adr/ADR-039-docbox-backported-surfaces.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2079-aoe-is-the-dispatch-plane-of-a-fleet-model-router.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-041",
+      "to": "project/agentbox:docs/archive/adr/ADR-041-model-routing-one-policy-many-projections.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2079-aoe-is-the-dispatch-plane-of-a-fleet-model-router.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-042",
+      "to": "project/agentbox:docs/archive/adr/ADR-042-agent-of-empires-interaction-plane.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2079-aoe-is-the-dispatch-plane-of-a-fleet-model-router.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2031",
+      "to": "project/agentbox:docs/adr/ADR-2031-consultant-model-manifest-projection.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2079-aoe-is-the-dispatch-plane-of-a-fleet-model-router.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2070",
+      "to": "project/agentbox:docs/adr/ADR-2070-one-front-door-is-ingress-the-loom-raw-port-is-a-named-egress-door.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2080-metaharness-router-console-under-aoe.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2079",
+      "to": "project/agentbox:docs/adr/ADR-2079-aoe-is-the-dispatch-plane-of-a-fleet-model-router.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2080-metaharness-router-console-under-aoe.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-041",
+      "to": "project/agentbox:docs/archive/adr/ADR-041-model-routing-one-policy-many-projections.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2080-metaharness-router-console-under-aoe.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2031",
+      "to": "project/agentbox:docs/adr/ADR-2031-consultant-model-manifest-projection.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2080-metaharness-router-console-under-aoe.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2070",
+      "to": "project/agentbox:docs/adr/ADR-2070-one-front-door-is-ingress-the-loom-raw-port-is-a-named-egress-door.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2080-metaharness-router-console-under-aoe.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-2026",
+      "to": "project/agentbox:docs/adr/ADR-2026-session-mirror-egress-boundary.md"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2080-metaharness-router-console-under-aoe.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-148",
+      "to": "https://github.com/ruvnet/ruflo/blob/277c7bc03ad192eef6d6f57e59ab7bab69a5728d/v3/docs/adr/ADR-148-fastgrnn-router-artifact-lifecycle.md",
+      "scope": "Reference identity only; proposed upstream lifecycle decision, not estate activation evidence",
+      "resolved_by": "pinned-upstream-receipt",
+      "target_sha256": "5c420abee4755f479543aab6cf1826cc6cfd1d6eea900bc160419ddf9699ca68"
+    },
+    {
+      "from": "project/agentbox:docs/adr/ADR-2080-metaharness-router-console-under-aoe.md",
+      "relation": "lineage-mention",
+      "reference": "project/agentbox:ADR-040",
+      "to": "project/agentbox:docs/archive/adr/ADR-040-learning-consumers-model-lifecycle-and-legacy-mining.md"
+    },
+    {
+      "from": "solid-pod-rs:crates/solid-pod-rs/docs/adr/ADR-2002-wac-access-model.md",
+      "relation": "lineage-mention",
+      "reference": "solid-pod-rs:ADR-058",
+      "to": "solid-pod-rs:crates/solid-pod-rs/docs/archive/adr/ADR-058-jss-v060-v071-drift.md"
+    },
+    {
+      "from": "solid-pod-rs:crates/solid-pod-rs/docs/adr/ADR-2002-wac-access-model.md",
+      "relation": "lineage-mention",
+      "reference": "solid-pod-rs:ADR-059",
+      "to": "solid-pod-rs:crates/solid-pod-rs/docs/archive/adr/ADR-059-provenance-primitives-block-trails-git-marks.md"
+    },
+    {
+      "from": "solid-pod-rs:crates/solid-pod-rs/docs/adr/ADR-2003-solid-oidc-01-defer-lws10.md",
+      "relation": "lineage-mention",
+      "reference": "solid-pod-rs:ADR-057",
+      "to": "solid-pod-rs:crates/solid-pod-rs/docs/archive/adr/ADR-057-lws10-oidc-delta.md"
+    },
+    {
+      "from": "solid-pod-rs:crates/solid-pod-rs/docs/adr/ADR-2004-provenance-off-by-default.md",
+      "relation": "lineage-mention",
+      "reference": "solid-pod-rs:ADR-059",
+      "to": "solid-pod-rs:crates/solid-pod-rs/docs/archive/adr/ADR-059-provenance-primitives-block-trails-git-marks.md"
+    },
+    {
+      "from": "solid-pod-rs:crates/solid-pod-rs/docs/adr/ADR-2004-provenance-off-by-default.md",
+      "relation": "lineage-mention",
+      "reference": "solid-pod-rs:ADR-060",
+      "to": "solid-pod-rs:crates/solid-pod-rs/docs/archive/adr/ADR-060-gap-close-solid-pod-slice.md"
+    },
+    {
+      "from": "solid-pod-rs:crates/solid-pod-rs/docs/adr/ADR-2005-fail-closed-untrusted-parsing.md",
+      "relation": "lineage-mention",
+      "reference": "solid-pod-rs:ADR-058",
+      "to": "solid-pod-rs:crates/solid-pod-rs/docs/archive/adr/ADR-058-jss-v060-v071-drift.md"
+    },
+    {
+      "from": "solid-pod-rs:crates/solid-pod-rs/docs/adr/ADR-2006-nip98-replaystore-seam.md",
+      "relation": "lineage-mention",
+      "reference": "solid-pod-rs:ADR-060",
+      "to": "solid-pod-rs:crates/solid-pod-rs/docs/archive/adr/ADR-060-gap-close-solid-pod-slice.md"
+    },
+    {
+      "from": "solid-pod-rs:crates/solid-pod-rs/docs/adr/ADR-2006-nip98-replaystore-seam.md",
+      "relation": "lineage-mention",
+      "reference": "solid-pod-rs:ADR-059",
+      "to": "solid-pod-rs:crates/solid-pod-rs/docs/archive/adr/ADR-059-provenance-primitives-block-trails-git-marks.md"
+    },
+    {
+      "from": "solid-pod-rs:crates/solid-pod-rs/docs/adr/ADR-2007-mempool-single-url-no-fallback.md",
+      "relation": "lineage-mention",
+      "reference": "solid-pod-rs:ADR-061",
+      "to": "solid-pod-rs:crates/solid-pod-rs/docs/archive/adr/ADR-061-lan-bitcoin-node.md"
+    },
+    {
+      "from": "solid-pod-rs:crates/solid-pod-rs/docs/adr/ADR-2007-mempool-single-url-no-fallback.md",
+      "relation": "lineage-mention",
+      "reference": "solid-pod-rs:ADR-059",
+      "to": "solid-pod-rs:crates/solid-pod-rs/docs/archive/adr/ADR-059-provenance-primitives-block-trails-git-marks.md"
+    }
+  ],
+  "unresolved": [],
+  "readErrors": []
+}

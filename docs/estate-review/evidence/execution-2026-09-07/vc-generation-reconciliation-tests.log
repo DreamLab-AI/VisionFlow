@@ -1,0 +1,2005 @@
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Auto-detected GPU sm_86
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Building for sm_86
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Compiling 9 CUDA kernels to PTX
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: visionclaw_unified source=src/cuda_sources/visionclaw_unified.cu provenance=compiled isa=8.8 original=0f0c64913c302c51 rewritten=0f0c64913c302c51
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_clustering_kernels source=src/cuda_sources/gpu_clustering_kernels.cu provenance=compiled isa=8.8 original=3d61cff573e6643e rewritten=3d61cff573e6643e
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: dynamic_grid source=src/cuda_sources/dynamic_grid.cu provenance=compiled isa=8.8 original=3b5a8fca62e1e6b3 rewritten=3b5a8fca62e1e6b3
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_aabb_reduction source=src/cuda_sources/gpu_aabb_reduction.cu provenance=compiled isa=8.8 original=fbeb10b8613a4ecf rewritten=fbeb10b8613a4ecf
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_landmark_apsp source=src/cuda_sources/gpu_landmark_apsp.cu provenance=compiled isa=8.8 original=a8293ea28f5cf94d rewritten=a8293ea28f5cf94d
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: sssp_compact source=src/cuda_sources/sssp_compact.cu provenance=compiled isa=8.8 original=968bd5dd10ca37b8 rewritten=968bd5dd10ca37b8
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: semantic_forces source=src/cuda_sources/semantic_forces.cu provenance=compiled isa=8.8 original=e096eacd94289510 rewritten=e096eacd94289510
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: pagerank source=src/cuda_sources/pagerank.cu provenance=compiled isa=8.8 original=f0cc4ef336684beb rewritten=f0cc4ef336684beb
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_connected_components source=src/cuda_sources/gpu_connected_components.cu provenance=compiled isa=8.8 original=dfb1fad6f6696d4d rewritten=dfb1fad6f6696d4d
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: All PTX compilation done (9 modules)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Native CUDA linking complete
+warning: visionclaw-server@0.1.0: webxr build.rs: GPU feature not enabled
+warning: use of deprecated field `models::protected_settings::NetworkSettings::enable_http2`: Not enforced by server - use reverse proxy
+   --> crates/visionclaw-domain/src/models/protected_settings.rs:114:17
+    |
+114 |                 enable_http2: true,
+    |                 ^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated field `models::protected_settings::NetworkSettings::min_tls_version`: Not enforced by server - use reverse proxy
+   --> crates/visionclaw-domain/src/models/protected_settings.rs:116:17
+    |
+116 |                 min_tls_version: "TLS1.2".to_string(),
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated field `models::protected_settings::SecuritySettings::cookie_httponly`: Not enforced by server
+   --> crates/visionclaw-domain/src/models/protected_settings.rs:126:17
+    |
+126 |                 cookie_httponly: true,
+    |                 ^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated field `models::protected_settings::SecuritySettings::cookie_samesite`: Not enforced by server
+   --> crates/visionclaw-domain/src/models/protected_settings.rs:127:17
+    |
+127 |                 cookie_samesite: "Lax".to_string(),
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated field `models::protected_settings::SecuritySettings::cookie_secure`: Not enforced by server
+   --> crates/visionclaw-domain/src/models/protected_settings.rs:128:17
+    |
+128 |                 cookie_secure: false,
+    |                 ^^^^^^^^^^^^^^^^^^^^
+
+warning: `visionclaw-domain` (lib) generated 5 warnings
+warning: unused variable: `old`
+   --> crates/visionclaw-protocol/src/protocols/binary_settings_protocol.rs:588:9
+    |
+588 |         old: &BinaryValue,
+    |         ^^^ help: if this is intentional, prefix it with an underscore: `_old`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: method `compute_value_delta` is never used
+   --> crates/visionclaw-protocol/src/protocols/binary_settings_protocol.rs:586:8
+    |
+130 | impl BinarySettingsProtocol {
+    | --------------------------- method in this implementation
+...
+586 |     fn compute_value_delta(
+    |        ^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `visionclaw-protocol` (lib) generated 2 warnings (run `cargo fix --lib -p visionclaw-protocol` to apply 1 suggestion)
+warning: unused import: `std::collections::HashMap`
+ --> crates/visionclaw-ontology/src/inference/owl_parser.rs:8:5
+  |
+8 | use std::collections::HashMap;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unexpected `cfg` condition value: `nostr-verify`
+   --> crates/visionclaw-ontology/src/services/jsonld_validator/signature.rs:198:11
+    |
+198 |     #[cfg(feature = "nostr-verify")]
+    |           ^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: expected values for `feature` are: `default`
+    = help: consider adding `nostr-verify` as a feature in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+    = note: `#[warn(unexpected_cfgs)]` on by default
+
+warning: unexpected `cfg` condition value: `nostr-verify`
+   --> crates/visionclaw-ontology/src/services/jsonld_validator/signature.rs:212:15
+    |
+212 |     #[cfg(not(feature = "nostr-verify"))]
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: expected values for `feature` are: `default`
+    = help: consider adding `nostr-verify` as a feature in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition value: `gpu`
+   --> crates/visionclaw-ontology/src/validation/actor_validation.rs:136:23
+    |
+136 |         "gpu" => cfg!(feature = "gpu"),
+    |                       ^^^^^^^^^^^^^^^
+    |
+    = note: expected values for `feature` are: `default`
+    = help: consider adding `gpu` as a feature in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition value: `ontology`
+   --> crates/visionclaw-ontology/src/validation/actor_validation.rs:137:28
+    |
+137 |         "ontology" => cfg!(feature = "ontology"),
+    |                            ^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: expected values for `feature` are: `default`
+    = help: consider adding `ontology` as a feature in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: variable does not need to be mutable
+    --> crates/visionclaw-adapters/src/oxigraph_ontology_repository.rs:1360:13
+     |
+1360 |         let mut alloc_id = |iri: &str, table: &mut HashMap<String, u32>, nx: &mut u32| -> u32 {
+     |             ----^^^^^^^^
+     |             |
+     |             help: remove this `mut`
+     |
+     = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: constant `P_COMMENT` is never used
+   --> crates/visionclaw-adapters/src/oxigraph_ontology_repository.rs:497:7
+    |
+497 | const P_COMMENT: &str = "http://www.w3.org/2000/01/rdf-schema#comment";
+    |       ^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `visionclaw-ontology` (lib) generated 5 warnings (run `cargo fix --lib -p visionclaw-ontology` to apply 1 suggestion)
+warning: `visionclaw-adapters` (lib) generated 2 warnings (run `cargo fix --lib -p visionclaw-adapters` to apply 1 suggestion)
+   Compiling visionclaw-server v0.1.0 (/home/devuser/workspace/project)
+warning: unused import: `std::collections::HashMap`
+   --> src/actors/client_filter.rs:146:9
+    |
+146 |     use std::collections::HashMap;
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `MetadataStore`
+   --> src/actors/client_filter.rs:147:57
+    |
+147 |     use visionclaw_domain::models::metadata::{Metadata, MetadataStore};
+    |                                                         ^^^^^^^^^^^^^
+
+warning: unused import: `crate::physics::ontology_constraints::OWLAxiomType`
+   --> src/actors/gpu/ontology_constraint_actor.rs:775:9
+    |
+775 |     use crate::physics::ontology_constraints::OWLAxiomType;
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `chrono::Utc`
+   --> src/actors/event_coordination.rs:130:9
+    |
+130 |     use chrono::Utc;
+    |         ^^^^^^^^^^^
+
+warning: unused import: `super::*`
+   --> src/adapters/actor_graph_repository.rs:185:9
+    |
+185 |     use super::*;
+    |         ^^^^^^^^
+
+warning: unused imports: `from_json` and `to_json`
+   --> src/client/mcp_tcp_client.rs:336:30
+    |
+336 |     use crate::utils::json::{from_json, to_json};
+    |                              ^^^^^^^^^  ^^^^^^^
+
+warning: unused import: `chrono::Utc`
+   --> src/events/bus.rs:351:9
+    |
+351 |     use chrono::Utc;
+    |         ^^^^^^^^^^^
+
+warning: unused import: `chrono::Utc`
+   --> src/events/store.rs:380:9
+    |
+380 |     use chrono::Utc;
+    |         ^^^^^^^^^^^
+
+warning: unused imports: `error` and `info`
+ --> src/handlers/api_handler/analytics/community.rs:1:11
+  |
+1 | use log::{error, info};
+  |           ^^^^^  ^^^^
+
+warning: unused imports: `CommunityDetectionAlgorithm` and `RunCommunityDetection`
+ --> src/handlers/api_handler/analytics/community.rs:7:5
+  |
+7 |     CommunityDetectionAlgorithm, CommunityDetectionParams, RunCommunityDetection,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^                            ^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::AppState`
+  --> src/handlers/api_handler/analytics/community.rs:10:5
+   |
+10 | use crate::AppState;
+   |     ^^^^^^^^^^^^^^^
+
+warning: unused import: `ClusteringParams`
+  --> src/handlers/api_handler/analytics/clustering_handlers.rs:16:35
+   |
+16 |     Cluster, ClusterFocusRequest, ClusteringParams, ClusteringRequest, ClusteringResponse,
+   |                                   ^^^^^^^^^^^^^^^^
+
+warning: unused import: `ClusteringParams`
+ --> src/handlers/api_handler/analytics/clustering.rs:3:22
+  |
+3 | use super::{Cluster, ClusteringParams, ClusteringRequest};
+  |                      ^^^^^^^^^^^^^^^^
+
+warning: unused import: `GetNodeData as GetGpuNodeData`
+ --> src/handlers/api_handler/files/mod.rs:2:27
+  |
+2 |     AddNodesFromMetadata, GetNodeData as GetGpuNodeData, GetSettings, UpdateMetadata,
+  |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `App` and `test`
+    --> src/handlers/api_handler/ontology/mod.rs:1717:21
+     |
+1717 |     use actix_web::{test, App};
+     |                     ^^^^  ^^^
+
+warning: unused import: `serde_json::Value`
+    --> src/handlers/api_handler/ontology/mod.rs:1718:9
+     |
+1718 |     use serde_json::Value;
+     |         ^^^^^^^^^^^^^^^^^
+
+warning: unused import: `super::*`
+   --> src/handlers/api_handler/ontology_physics/mod.rs:513:9
+    |
+513 |     use super::*;
+    |         ^^^^^^^^
+
+warning: unused import: `GetGPUStatus`
+ --> src/handlers/consolidated_health_handler.rs:1:31
+  |
+1 | use crate::actors::messages::{GetGPUStatus, GetGraphData, GetMetadata, GetSettings};
+  |                               ^^^^^^^^^^^^
+
+warning: unused imports: `App` and `test`
+   --> src/handlers/graph_export_handler.rs:334:21
+    |
+334 |     use actix_web::{test, App};
+    |                     ^^^^  ^^^
+
+warning: unused import: `AccessMode`
+  --> src/handlers/solid_proxy_handler.rs:63:58
+   |
+63 | use solid_pod_rs::wac::{evaluate_access, method_to_mode, AccessMode};
+   |                                                          ^^^^^^^^^^
+
+warning: unused import: `crate::types::vec3::Vec3Data`
+   --> src/physics/ontology_constraints.rs:642:9
+    |
+642 |     use crate::types::vec3::Vec3Data;
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::utils::socket_flow_messages::BinaryNodeData`
+   --> src/physics/semantic_constraints.rs:926:9
+    |
+926 |     use crate::utils::socket_flow_messages::BinaryNodeData;
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::utils::socket_flow_messages::BinaryNodeData`
+   --> src/physics/stress_majorization.rs:912:9
+    |
+912 |     use crate::utils::socket_flow_messages::BinaryNodeData;
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `AdvancedParams`
+ --> src/physics/integration_tests.rs:9:23
+  |
+9 |         constraints::{AdvancedParams, ConstraintSet},
+  |                       ^^^^^^^^^^^^^^
+
+warning: unused import: `crate::utils::socket_flow_messages::BinaryNodeData`
+  --> src/physics/integration_tests.rs:16:9
+   |
+16 |     use crate::utils::socket_flow_messages::BinaryNodeData;
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::collections::HashMap`
+  --> src/physics/integration_tests.rs:17:9
+   |
+17 |     use std::collections::HashMap;
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unnecessary parentheses around `if` condition
+   --> src/services/github/api.rs:146:23
+    |
+146 |             } else if (raw_path == raw_base || raw_path.starts_with(&format!("{raw_base}/"))) {
+    |                       ^                                                                     ^
+    |
+    = note: `#[warn(unused_parens)]` (part of `#[warn(unused)]`) on by default
+help: remove these parentheses
+    |
+146 -             } else if (raw_path == raw_base || raw_path.starts_with(&format!("{raw_base}/"))) {
+146 +             } else if raw_path == raw_base || raw_path.starts_with(&format!("{raw_base}/")) {
+    |
+
+warning: unused imports: `from_json` and `to_json`
+   --> src/services/graph_serialization.rs:362:30
+    |
+362 |     use crate::utils::json::{from_json, to_json};
+    |                              ^^^^^^^^^  ^^^^^^^
+
+warning: unused import: `super::*`
+   --> src/services/ontology_enrichment_service.rs:261:9
+    |
+261 |     use super::*;
+    |         ^^^^^^^^
+
+warning: unused import: `super::*`
+   --> src/services/ontology_reasoner.rs:585:9
+    |
+585 |     use super::*;
+    |         ^^^^^^^^
+
+warning: unused import: `super::*`
+   --> src/services/ontology_reasoning_service.rs:466:9
+    |
+466 |     use super::*;
+    |         ^^^^^^^^
+
+warning: unused imports: `from_json` and `to_json`
+   --> src/types/mcp_responses.rs:181:30
+    |
+181 |     use crate::utils::json::{from_json, to_json};
+    |                              ^^^^^^^^^  ^^^^^^^
+
+warning: unused import: `actix::prelude::*`
+   --> src/utils/actor_timeout.rs:121:9
+    |
+121 |     use actix::prelude::*;
+    |         ^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `from_json` and `to_json`
+   --> src/utils/audio_processor.rs:148:30
+    |
+148 |     use crate::utils::json::{from_json, to_json};
+    |                              ^^^^^^^^^  ^^^^^^^
+
+warning: unused import: `super::*`
+   --> src/utils/response_macros.rs:396:9
+    |
+396 |     use super::*;
+    |         ^^^^^^^^
+
+warning: unused import: `crate::utils::time`
+   --> src/utils/response_macros.rs:397:9
+    |
+397 |     use crate::utils::time;
+    |         ^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `sleep`
+   --> src/utils/network/health_check.rs:578:23
+    |
+578 |     use tokio::time::{sleep, Duration};
+    |                       ^^^^^
+
+warning: unused imports: `Duration` and `sleep`
+   --> src/utils/network/mod.rs:337:23
+    |
+337 |     use tokio::time::{sleep, Duration};
+    |                       ^^^^^  ^^^^^^^^
+
+warning: unused import: `std::thread`
+   --> src/utils/validation/rate_limit.rs:509:9
+    |
+509 |     use std::thread;
+    |         ^^^^^^^^^^^
+
+warning: unused imports: `AxiomType`, `OntologyRepositoryError`, `PathfindingCacheEntry`, `PropertyType`, and `ValidationReport`
+  --> src/test_helpers.rs:15:5
+   |
+15 |     AxiomType, InferenceResults, OntologyMetrics, OntologyRepository, OntologyRepositoryError,
+   |     ^^^^^^^^^                                                         ^^^^^^^^^^^^^^^^^^^^^^^
+16 |     OwlAxiom, OwlClass, OwlProperty, PathfindingCacheEntry, PropertyType, Result as OntResult,
+   |                                      ^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^
+17 |     ValidationReport,
+   |     ^^^^^^^^^^^^^^^^
+
+warning: use of deprecated constant `gpu::dynamic_buffer_manager::tests::test_buffer_config_creation`: Use crate::gpu::memory_manager::GpuMemoryManager instead
+   --> src/gpu/dynamic_buffer_manager.rs:411:5
+    |
+411 | /     fn test_buffer_config_creation() {
+412 | |         let config = BufferConfig::for_positions();
+413 | |         assert_eq!(config.bytes_per_node, 12);
+414 | |         assert!(config.growth_factor > 1.0);
+415 | |     }
+    | |_____^
+    |
+    = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated constant `gpu::dynamic_buffer_manager::tests::test_buffer_stats`: Use crate::gpu::memory_manager::GpuMemoryManager instead
+   --> src/gpu/dynamic_buffer_manager.rs:429:5
+    |
+429 | /     fn test_buffer_stats() {
+430 | |         let handler = get_global_cuda_error_handler();
+431 | |         let config = BufferConfig::default();
+432 | |         let buffer = DynamicGpuBuffer::new("test".to_string(), config, handler);
+...   |
+437 | |         assert_eq!(stats.utilization, 0.0);
+438 | |     }
+    | |_____^
+
+warning: use of deprecated constant `gpu::dynamic_buffer_manager::tests::test_dynamic_buffer_manager`: Use crate::gpu::memory_manager::GpuMemoryManager instead
+   --> src/gpu/dynamic_buffer_manager.rs:418:5
+    |
+418 | /     fn test_dynamic_buffer_manager() {
+419 | |         let handler = get_global_cuda_error_handler();
+420 | |         let mut manager = DynamicBufferManager::new(handler);
+...   |
+425 | |         assert!(!buffer.is_allocated());
+426 | |     }
+    | |_____^
+
+warning: use of deprecated module `visionclaw_gpu::memory`: Use crate::gpu::memory_manager::GpuMemoryManager instead
+  --> src/utils/mod.rs:16:25
+   |
+16 | pub use visionclaw_gpu::memory as gpu_memory;
+   |                         ^^^^^^
+
+warning: unused import: `crate::ports::knowledge_graph_repository::KnowledgeGraphRepository`
+ --> src/services/file_service.rs:3:5
+  |
+3 | use crate::ports::knowledge_graph_repository::KnowledgeGraphRepository;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: variable does not need to be mutable
+    --> src/actors/client_coordinator_actor.rs:2053:13
+     |
+2053 |         let mut manager = ClientManager::new();
+     |             ----^^^^^^^
+     |             |
+     |             help: remove this `mut`
+     |
+     = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: variable does not need to be mutable
+    --> src/actors/gpu/force_compute_actor.rs:1167:25
+     |
+1167 |                     let mut class_masses = vec![1.0f32; num_nodes];
+     |                         ----^^^^^^^^^^^^
+     |                         |
+     |                         help: remove this `mut`
+
+warning: unused variable: `gpu_manager_addr`
+    --> src/actors/graph_service_supervisor.rs:1546:13
+     |
+1546 |         let gpu_manager_addr = self.gpu_manager.clone();
+     |             ^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_gpu_manager_addr`
+     |
+     = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: variable does not need to be mutable
+    --> src/actors/semantic_processor_actor.rs:1608:13
+     |
+1608 |         let mut gpu_analyzer = match self.gpu_analyzer.take() {
+     |             ----^^^^^^^^^^^^
+     |             |
+     |             help: remove this `mut`
+
+warning: variable does not need to be mutable
+    --> src/actors/semantic_processor_actor.rs:1656:13
+     |
+1656 |         let mut gpu_analyzer = match self.gpu_analyzer.take() {
+     |             ----^^^^^^^^^^^^
+     |             |
+     |             help: remove this `mut`
+
+warning: unused variable: `members`
+   --> src/services/github_sync_service.rs:880:17
+    |
+880 |             let members = match domain_members.get(slug) {
+    |                 ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_members`
+
+warning: unused variable: `axiom`
+   --> src/constraints/axiom_mapper.rs:489:13
+    |
+489 |         let axiom = OWLAxiom::asserted(AxiomType::DisjointClasses {
+    |             ^^^^^ help: if this is intentional, prefix it with an underscore: `_axiom`
+
+warning: unused variable: `axiom`
+   --> src/constraints/axiom_mapper.rs:544:13
+    |
+544 |         let axiom = OWLAxiom::asserted(AxiomType::EquivalentClasses {
+    |             ^^^^^ help: if this is intentional, prefix it with an underscore: `_axiom`
+
+warning: unused variable: `axiom`
+   --> src/constraints/axiom_mapper.rs:595:13
+    |
+595 |         let axiom = OWLAxiom::asserted(AxiomType::DisjointUnion {
+    |             ^^^^^ help: if this is intentional, prefix it with an underscore: `_axiom`
+
+warning: unused variable: `axiom`
+   --> src/constraints/axiom_mapper.rs:609:13
+    |
+609 |         let axiom = OWLAxiom::asserted(AxiomType::PartOf {
+    |             ^^^^^ help: if this is intentional, prefix it with an underscore: `_axiom`
+
+warning: variable does not need to be mutable
+   --> src/constraints/constraint_lod.rs:416:13
+    |
+416 |         let mut constraints = vec![
+    |             ----^^^^^^^^^^^
+    |             |
+    |             help: remove this `mut`
+
+warning: variable does not need to be mutable
+   --> src/gpu/visual_analytics.rs:639:13
+    |
+639 |         let mut layer = IsolationLayer::new(-1);
+    |             ----^^^^^
+    |             |
+    |             help: remove this `mut`
+
+warning: type `AssignRoleRequest` is more private than the item `assign_role`
+   --> src/handlers/admin_rbac_handler.rs:123:1
+    |
+123 | / pub async fn assign_role(
+124 | |     req: HttpRequest,
+125 | |     path: web::Path<String>,
+126 | |     body: web::Json<AssignRoleRequest>,
+127 | |     nostr: web::Data<NostrService>,
+128 | | ) -> impl Responder {
+    | |___________________^ function `assign_role` is reachable at visibility `pub`
+    |
+note: but type `AssignRoleRequest` is only usable at visibility `pub(self)`
+   --> src/handlers/admin_rbac_handler.rs:59:1
+    |
+ 59 | struct AssignRoleRequest {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^
+    = note: `#[warn(private_interfaces)]` on by default
+
+warning: type `FileLockGuard` is more private than the item `pay_handler::FsPaymentStore::acquire_file_lock`
+   --> src/handlers/pay_handler.rs:251:5
+    |
+251 |     pub(crate) fn acquire_file_lock(&self) -> Result<FileLockGuard, PaymentError> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ method `pay_handler::FsPaymentStore::acquire_file_lock` is reachable at visibility `pub(crate)`
+    |
+note: but type `FileLockGuard` is only usable at visibility `pub(self)`
+   --> src/handlers/pay_handler.rs:206:1
+    |
+206 | struct FileLockGuard {
+    | ^^^^^^^^^^^^^^^^^^^^
+
+warning: associated items `apply_ontology_constraints` and `report_axioms_to_domain` are never used
+   --> src/actors/gpu/ontology_constraint_actor.rs:183:8
+    |
+154 | impl OntologyConstraintActor {
+    | ---------------------------- associated items in this implementation
+...
+183 |     fn apply_ontology_constraints(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+368 |     fn report_axioms_to_domain(report: &OntologyReasoningReport) -> Vec<DomainOwlAxiom> {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `validate_community_params` is never used
+   --> src/handlers/api_handler/analytics/community.rs:139:4
+    |
+139 | fn validate_community_params(params: &CommunityDetectionParams) -> Result<(), String> {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `convert_gpu_result_to_communities` is never used
+   --> src/handlers/api_handler/analytics/community.rs:153:4
+    |
+153 | fn convert_gpu_result_to_communities(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `generate_community_color` is never used
+   --> src/handlers/api_handler/analytics/community.rs:193:4
+    |
+193 | fn generate_community_color(community_id: usize) -> String {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: method `has_node_changed_significantly` is never used
+   --> src/handlers/socket_flow_handler/types.rs:238:19
+    |
+145 | impl SocketFlowServer {
+    | --------------------- method in this implementation
+...
+238 |     pub(crate) fn has_node_changed_significantly(
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: field `value` is never read
+   --> src/handlers/websocket_utils.rs:468:13
+    |
+467 |         struct TestData {
+    |                -------- field in this struct
+468 |             value: String,
+    |             ^^^^^
+
+warning: field `params` is never read
+   --> src/handlers/pay_handler.rs:837:5
+    |
+834 | struct EstimateRequest {
+    |        --------------- field in this struct
+...
+837 |     params: Option<serde_json::Value>,
+    |     ^^^^^^
+    |
+    = note: `EstimateRequest` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: field `topology_cache` is never read
+   --> src/services/agent_visualization_protocol.rs:439:5
+    |
+434 | pub struct AgentVisualizationProtocol {
+    |            -------------------------- field in this struct
+...
+439 |     topology_cache: std::collections::HashMap<String, SwarmTopologyData>,
+    |     ^^^^^^^^^^^^^^
+
+warning: variant `NoOp` is never constructed
+   --> src/services/role_store.rs:773:5
+    |
+771 | enum TxOutcome {
+    |      --------- variant in this enum
+772 |     Ok,
+773 |     NoOp,
+    |     ^^^^
+
+warning: `visionclaw-server` (lib test) generated 68 warnings (run `cargo fix --lib -p visionclaw-server --tests` to apply 52 suggestions)
+    Finished `test` profile [optimized + debuginfo] target(s) in 1m 13s
+warning: the following packages contain code that will be rejected by a future version of Rust: quick-xml v0.21.0, quick-xml v0.22.0
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src/lib.rs (target/debug/deps/visionclaw_server-36747ce5af3c2b9b)
+
+running 1361 tests
+test actors::agent_beam_actor::tests::agent_flag_is_set_and_idempotent ... ok
+test actors::agent_beam_actor::tests::coalesces_a_burst_into_one_ordered_frame ... ok
+test actors::agent_beam_actor::tests::drops_oldest_past_capacity_and_counts_it ... ok
+test actors::agent_beam_actor::tests::empty_backlog_encodes_to_none_and_clear_empties ... ok
+test actors::agent_beam_actor::tests::flag_preserves_full_low_bits ... ok
+test actors::agent_beam_actor::tests::project_action_stamps_agent_flag_and_passes_target_through ... ok
+test actors::agent_beam_actor::tests::single_action_encodes_a_decodable_0x23_batch_of_one ... ok
+test actors::agent_monitor_actor::tests::empties_after_confirmed_clear_are_suppressed ... ok
+test actors::agent_monitor_actor::tests::first_empty_after_nonempty_is_suppressed ... ok
+test actors::agent_monitor_actor::tests::invalid_key_disables_the_client_under_dev_relaxation ... ok
+test actors::agent_monitor_actor::tests::invalid_key_is_a_boot_error_when_fail_closed ... ok
+test actors::agent_monitor_actor::tests::no_decision_path_yields_an_empty_credential ... ok
+test actors::agent_monitor_actor::tests::populated_poll_always_emits_and_resets ... ok
+test actors::agent_monitor_actor::tests::second_consecutive_empty_confirms_and_emits_clear ... ok
+test actors::agent_monitor_actor::tests::transient_blip_between_populated_polls_never_clobbers ... ok
+test actors::agent_monitor_actor::tests::valid_key_enables_the_client ... ok
+test actors::client_coordinator_actor::tests::test_broadcast_timing ... ok
+test actors::client_coordinator_actor::tests::test_client_manager_registration ... ok
+test actors::client_coordinator_actor::tests::test_position_serialization ... ok
+test actors::client_filter::tests::test_default_values_for_missing_metadata ... ok
+test actors::client_filter::tests::test_filter_and_mode ... ok
+test actors::client_filter::tests::test_filter_by_authority_only ... ok
+test actors::client_filter::tests::test_filter_by_quality_only ... ok
+test actors::client_filter::tests::test_filter_disabled_shows_all ... ok
+test actors::client_filter::tests::test_filter_or_mode ... ok
+test actors::client_filter::tests::test_include_linked_pages_false_excludes_stubs ... ok
+test actors::client_filter::tests::test_include_linked_pages_true_passes_stubs ... ok
+test actors::decision_elevation_actor::tests::a_stale_stored_case_plans_an_expiry ... ok
+test actors::decision_elevation_actor::tests::a_tracked_pr_is_never_expired_however_old ... ok
+test actors::decision_elevation_actor::tests::decision_record_correlates_on_the_signed_event_id ... ok
+test actors::decision_elevation_actor::tests::decision_record_falls_back_for_a_locally_minted_decision ... ok
+test actors::decision_elevation_actor::tests::open_cases_survive_a_restart_and_plan_correctly ... ok
+test actors::decision_elevation_actor::tests::pending_from_rehydrates_the_in_process_case ... ok
+test actors::decision_elevation_actor::tests::production_gate_defaults_dev_on_prod_off ... ok
+test actors::decision_elevation_actor::tests::reconciliation_expires_stale_unanswered_cases ... ok
+test actors::decision_elevation_actor::tests::reconciliation_rearms_a_case_still_awaiting_a_human ... ok
+test actors::decision_elevation_actor::tests::reconciliation_reopens_an_approval_that_never_got_a_pr ... ok
+test actors::decision_elevation_actor::tests::reconciliation_resumes_a_tracked_pr ... ok
+test actors::decision_elevation_actor::tests::reconciliation_skips_terminal_and_unknown_rows ... ok
+test actors::decision_elevation_actor::tests::terminal_case_status_maps_the_31404_status ... ok
+test actors::decision_elevation_actor::tests::terminal_pr_state_maps_merge_and_abandon ... ok
+test actors::elevation_actor::tests::canonical_name_title_cases ... ok
+test actors::elevation_actor::tests::draft_page_has_canonical_identity_and_draft_maturity ... ok
+test actors::elevation_actor::tests::frontier_selection_honours_skip_list_and_limit ... ok
+test actors::elevation_actor::tests::frontier_selection_ranks_by_degree_and_skips_authored ... ok
+test actors::elevation_actor::tests::gate_blocks_draft_inconsistent_with_base ... ok
+test actors::elevation_actor::tests::gate_unavailable_fails_closed ... ok
+test actors::elevation_actor::tests::parse_draft_axioms_reads_class_and_subclass ... ok
+test actors::elevation_actor::tests::production_gate_defaults_dev_on_prod_off ... ok
+test actors::elevation_actor::tests::slugify_matches_corpus_convention ... ok
+test actors::elevation_actor::tests::terminal_for_pr_state_maps_merge_and_abandon ... ok
+test actors::elevation_voice::tests::explicit_intents_parse ... ok
+test actors::elevation_voice::tests::harvest_finds_multiword_concepts_in_speech ... ok
+test actors::elevation_voice::tests::harvest_prefers_longest_match_and_dedupes ... ok
+test actors::elevation_voice::tests::index_excludes_short_single_words ... ok
+test actors::elevation_voice::tests::ledger_decays_and_accumulates ... ok
+test actors::elevation_voice::tests::ledger_prunes_stale_entries ... ok
+test actors::event_coordination::tests::test_event_coordinator_creation ... ok
+test actors::event_coordination::tests::test_graph_saved_event ... ok
+test actors::gpu::analytics_telemetry::tests::every_kernel_has_a_distinct_index ... ok
+test actors::gpu::analytics_telemetry::tests::fallback_records_as_gated_and_increments_fallback_counter ... ok
+test actors::gpu::analytics_telemetry::tests::gpu_run_records_as_gpu_and_increments_counter ... ok
+test actors::gpu::clustering_actor::gate_tests::accepts_at_or_above_gate_and_populates ... ok
+test actors::gpu::clustering_actor::gate_tests::boundary_exactly_at_gate_accepts ... ok
+test actors::gpu::clustering_actor::gate_tests::negative_label_maps_to_zero ... ok
+test actors::gpu::clustering_actor::gate_tests::populates_entries_absent_from_prior_map ... ok
+test actors::gpu::clustering_actor::gate_tests::rejects_below_gate_and_resets_all_to_zero ... ok
+test actors::gpu::clustering_actor::precondition_tests::accepts_when_any_axis_has_spread ... ok
+test actors::gpu::clustering_actor::precondition_tests::node_count_refusal_takes_precedence_over_spread ... ok
+test actors::gpu::clustering_actor::precondition_tests::refuses_below_min_node_count ... ok
+test actors::gpu::clustering_actor::precondition_tests::refuses_coincident_positions ... ok
+test actors::gpu::clustering_actor::precondition_tests::refuses_zero_nodes ... ok
+test actors::gpu::context_bus::tests::test_bus_clone ... ok
+test actors::gpu::context_bus::tests::test_bus_subscribe_publish ... ok
+test actors::gpu::context_bus::tests::test_subscriber_count ... ok
+test actors::gpu::force_compute_actor::dag_rank_tests::a_domain_membership_fixture_ranks_identically_under_the_collapsed_label ... ok
+test actors::gpu::force_compute_actor::dag_rank_tests::a_subclass_fixture_ranks_by_depth_from_its_root ... ok
+test actors::gpu::force_compute_actor::dag_rank_tests::a_wholly_cyclic_hierarchy_is_seeded_deterministically ... ok
+test actors::gpu::force_compute_actor::dag_rank_tests::back_edge_does_not_inflate_or_loop ... ok
+test actors::gpu::force_compute_actor::dag_rank_tests::diamond_takes_shortest_depth ... ok
+test actors::gpu::force_compute_actor::dag_rank_tests::directed_hierarchy_accepts_subsumption_and_the_collapsed_label ... ok
+test actors::gpu::force_compute_actor::dag_rank_tests::empty_hierarchy_yields_all_unranked ... ok
+test actors::gpu::force_compute_actor::dag_rank_tests::mixed_subclass_and_membership_edges_share_one_rank_space ... ok
+test actors::gpu::force_compute_actor::dag_rank_tests::multiple_roots_form_a_forest ... ok
+test actors::gpu::force_compute_actor::dag_rank_tests::nodes_outside_any_hierarchy_edge_stay_unranked ... ok
+test actors::gpu::force_compute_actor::dag_rank_tests::out_of_range_indices_are_ignored ... ok
+test actors::gpu::force_compute_actor::dag_rank_tests::simple_chain_ranks_by_depth ... ok
+test actors::gpu::force_compute_actor::dag_rank_tests::tree_assigns_shared_depth_to_siblings ... ok
+test actors::gpu::force_compute_actor::dag_rank_tests::unreachable_node_stays_unranked ... ok
+test actors::gpu::force_compute_actor::pinning_tests::empty_pin_set_yields_all_zero_mask ... ok
+test actors::gpu::force_compute_actor::pinning_tests::mask_sets_bit_only_for_pinned_gpu_indices ... ok
+test actors::gpu::force_compute_actor::pinning_tests::moving_a_pin_reports_change ... ok
+test actors::gpu::force_compute_actor::pinning_tests::pin_and_unpin_in_one_op ... ok
+test actors::gpu::force_compute_actor::pinning_tests::pin_inserts_and_reports_change ... ok
+test actors::gpu::force_compute_actor::pinning_tests::pinned_id_absent_from_gpu_map_sets_no_bit ... ok
+test actors::gpu::force_compute_actor::pinning_tests::repinning_same_position_is_not_a_change ... ok
+test actors::gpu::force_compute_actor::pinning_tests::unpin_absent_node_is_not_a_change ... ok
+test actors::gpu::force_compute_actor::pinning_tests::unpin_removes_and_reports_change ... ok
+test actors::gpu::force_compute_actor::settlement_tests::counter_saturates_without_overflow ... ok
+test actors::gpu::force_compute_actor::settlement_tests::ke_at_or_above_epsilon_resets_the_run ... ok
+test actors::gpu::force_compute_actor::settlement_tests::non_finite_ke_resets_the_run ... ok
+test actors::gpu::force_compute_actor::settlement_tests::pause_latch_reports_settled_with_full_count ... ok
+test actors::gpu::force_compute_actor::settlement_tests::pause_then_resume_end_to_end ... ok
+test actors::gpu::force_compute_actor::settlement_tests::reheat_flips_settled_false_and_resets_counter ... ok
+test actors::gpu::force_compute_actor::settlement_tests::settled_only_at_or_past_threshold_when_running ... ok
+test actors::gpu::force_compute_actor::settlement_tests::sub_epsilon_ke_increments_the_run ... ok
+test actors::gpu::force_compute_actor::z_scale_tests::clamp_z_scale_bounds ... ok
+test actors::gpu::force_compute_actor::z_scale_tests::face_scale_derived_from_axis_compression_flattens_disc ... ok
+test actors::gpu::force_compute_actor::z_scale_tests::face_scale_one_preserves_z_in_disc_mode ... ok
+test actors::gpu::ontology_constraint_actor::tests::test_actor_creation ... ok
+test actors::gpu::ontology_constraint_actor::tests::test_constraint_buffer_conversion ... ok
+test actors::gpu::ontology_constraint_actor::tests::test_nan_guard_drops_constraints_on_nonfinite_nodes ... ok
+test actors::gpu::ontology_constraint_actor::tests::test_stats_default ... ok
+test actors::gpu::pagerank_actor::tests::test_calculate_statistics ... ok
+test actors::gpu::pagerank_actor::tests::test_extract_top_nodes ... ok
+test actors::gpu::pagerank_actor::tests::test_pagerank_params_default ... ok
+test actors::gpu::pagerank_actor::tests::test_publish_centrality_all_zero_pagerank ... ok
+test actors::gpu::pagerank_actor::tests::test_publish_centrality_normalises_and_resets_stale ... ok
+test actors::gpu::physics_bounds::tests::bounds_are_ordered ... ok
+test actors::gpu::physics_bounds::tests::canonical_defaults_are_within_bounds ... ok
+test actors::gpu::physics_bounds::tests::divergent_fields_accept_canonical_defaults ... ok
+test actors::graph_service_supervisor::cadence_tests::defaults_when_env_absent ... ok
+test actors::graph_service_supervisor::cadence_tests::enabled_flag_falsey_tokens_disable ... ok
+test actors::graph_service_supervisor::cadence_tests::garbage_falls_back_to_defaults ... ok
+test actors::graph_service_supervisor::cadence_tests::initial_and_interval_override ... ok
+test actors::graph_service_supervisor::cadence_tests::interval_zero_means_one_shot_no_refresh ... ok
+test actors::messaging::message_ack::tests::test_ack_status_checks ... ok
+test actors::messaging::message_ack::tests::test_message_ack_builders ... ok
+test actors::messaging::message_ack::tests::test_message_ack_metadata ... ok
+test actors::messaging::message_id::tests::test_message_id_display ... ok
+test actors::messaging::message_id::tests::test_message_id_serialization ... ok
+test actors::messaging::message_id::tests::test_message_id_uniqueness ... ok
+test actors::messaging::message_tracker::tests::test_message_kind_defaults ... ok
+test actors::messaging::message_tracker::tests::test_retry_delay_calculation ... ok
+test actors::messaging::message_tracker::tests::test_timeout_detection ... ok
+test actors::messaging::message_tracker::tests::test_track_and_acknowledge ... ok
+test actors::messaging::metrics::tests::test_metrics_recording ... ok
+test actors::messaging::metrics::tests::test_metrics_summary ... ok
+test actors::messaging::metrics::tests::test_success_rate_calculation ... ok
+test actors::metadata_actor::tests::update_replaces_the_whole_store ... ok
+test actors::metadata_actor::tests::update_to_empty_leaves_no_residue ... ok
+test actors::ontology_actor::tests::completed_report_retrievable_by_job_id_and_ontology_id ... ok
+test actors::ontology_actor::tests::health_loaded_ontologies_increments_after_load ... ok
+test actors::ontology_actor::tests::validate_report_retrievable_via_messages ... ok
+test actors::ontology_actor::tests::validate_transitions_pending_to_complete_over_loaded_ontology ... ok
+test actors::physics_orchestrator_actor::tests::fast_settle_converges_on_energy_plateau ... ok
+test actors::physics_orchestrator_actor::tests::fast_settle_does_not_converge_during_warmup ... ok
+test actors::physics_orchestrator_actor::tests::gpu_init_timeout_resets_in_progress_flag ... ok
+test actors::physics_orchestrator_actor::tests::gpu_initialized_confirmation_transitions_state ... ok
+test actors::physics_orchestrator_actor::tests::parameter_interpolation_blends_toward_target ... ok
+test actors::physics_orchestrator_actor::tests::pipeline_step_pending_blocks_duplicate_schedule ... ok
+test actors::physics_orchestrator_actor::tests::resume_clears_fast_settle_state ... ok
+test actors::presence_actor::tests::a_changed_field_broadcasts_only_that_field ... ok
+test actors::presence_actor::tests::a_member_that_left_can_no_longer_publish ... ok
+test actors::presence_actor::tests::a_non_member_cannot_publish_presence ... ok
+test actors::presence_actor::tests::agent_presence_is_encoded_as_0x44_and_reaches_peers_not_the_publisher ... ok
+test actors::presence_actor::tests::an_attention_node_outside_the_wire_id_space_is_refused ... ok
+test actors::presence_actor::tests::an_unchanged_republication_puts_nothing_on_the_wire ... ok
+test actors::presence_actor::tests::attention_correlates_to_a_graph_node_id ... ok
+test actors::presence_actor::tests::configured_hand_reach_defaults_when_unset ... ok
+test actors::presence_actor::tests::ingest_drops_single_out_of_reach_hand_without_kick ... ok
+test actors::presence_actor::tests::ingest_rejects_out_of_bounds ... ok
+test actors::presence_actor::tests::ingest_validates_and_broadcasts_to_peers_only ... ok
+test actors::presence_actor::tests::join_then_leave_emits_events_and_shuts_down ... ok
+test actors::presence_actor::tests::presence_and_pose_operate_independently ... ok
+test actors::presence_actor::tests::stale_presence_is_retired_and_announced ... ok
+test actors::task_orchestrator_actor::tests::test_actor_creation ... ok
+test actors::voice_commands::tests::test_parse_spawn_agent ... ok
+test actors::voice_commands::tests::test_parse_status_query ... ok
+test actors::voice_commands::tests::test_voice_preamble ... ok
+test actors::voice_commands::tests::test_wrap_instruction ... ok
+test actors::voice_interface_actor::tests::config_verb_plus_interface_noun_triggers ... ok
+test actors::voice_interface_actor::tests::ordinary_speech_does_not_trigger ... ok
+test adapters::actor_graph_repository::tests::test_repository_construction ... ok
+test adapters::decision_elevation_store::tests::get_ignores_rows_from_another_case_family ... ok
+test adapters::decision_elevation_store::tests::marking_an_unknown_case_is_a_no_op ... ok
+test adapters::decision_elevation_store::tests::open_case_round_trips_every_field ... ok
+test adapters::decision_elevation_store::tests::open_cases_survive_a_restart_of_the_process ... ok
+test adapters::decision_elevation_store::tests::record_decision_sets_case_status_atomically ... ok
+test adapters::decision_elevation_store::tests::terminal_statuses_are_exactly_the_closed_set ... ok
+test adapters::decision_elevation_store::tests::transitions_persist_pending_elevating_published ... ok
+test adapters::oxigraph_graph_repository::upsert_tests::if_absent_never_overwrites_authored_node ... ok
+test adapters::oxigraph_graph_repository::upsert_tests::re_added_node_replaces_prior_triples ... ok
+test adapters::physics_orchestrator_adapter::tests::test_constraint_conversion ... ok
+test adapters::physics_orchestrator_adapter::tests::test_params_conversion ... ok
+test adapters::sqlite_enrichment_repository::tests::a_pre_adr_2006_store_is_migrated_on_open ... ok
+test adapters::sqlite_enrichment_repository::tests::a_redelivered_signed_decision_is_recorded_once ... ok
+test adapters::sqlite_enrichment_repository::tests::decisions_since_windows_on_decided_at ... ok
+test adapters::sqlite_enrichment_repository::tests::distinct_signed_decisions_are_both_recorded ... ok
+test adapters::sqlite_enrichment_repository::tests::duplicate_suppression_survives_a_reopen ... ok
+test adapters::sqlite_enrichment_repository::tests::local_decisions_without_an_event_id_are_not_deduplicated ... ok
+test adapters::sqlite_enrichment_repository::tests::loop_trace_for_pending_proposal_has_no_decision ... ok
+test adapters::sqlite_enrichment_repository::tests::loop_trace_joins_proposal_to_terminal_decision_with_monotonic_stamps ... ok
+test adapters::sqlite_enrichment_repository::tests::mark_writeback_committed_flips_truth_bit ... ok
+test adapters::sqlite_enrichment_repository::tests::provenance_decisions_since_carries_owner_did_and_activity ... ok
+test adapters::sqlite_enrichment_repository::tests::record_decision_transitions_status_atomically ... ok
+test adapters::sqlite_enrichment_repository::tests::set_status_marks_terminal_elevated_and_abandoned ... ok
+test adapters::sqlite_enrichment_repository::tests::signed_event_id_round_trips ... ok
+test adapters::sqlite_enrichment_repository::tests::status_mapping_matches_outcomes ... ok
+test adapters::sqlite_enrichment_repository::tests::upsert_get_and_list_roundtrip ... ok
+test adapters::sqlite_kpi_repository::tests::agent_event_volume_window_count ... ok
+test adapters::sqlite_kpi_repository::tests::snapshot_persists_with_queryable_lineage ... ok
+test adapters::sqlite_settings_repository::user_filter_persistence_tests::user_filter_is_isolated_per_owner ... ok
+test adapters::sqlite_settings_repository::user_filter_persistence_tests::user_filter_round_trips_within_owner_scope ... ok
+test agent_events::ingest::tests::canonical_frame_publishes_to_hub_and_round_trips ... ok
+test agent_events::ingest::tests::ctc_bearing_frame_reports_ctc_present ... ok
+test agent_events::ingest::tests::foreign_urns_recorded_and_unauthenticated_frame_still_published ... ok
+test agent_events::ingest::tests::malformed_frame_is_rejected ... ok
+test agent_events::ingest::tests::non_canonical_frame_is_rejected ... ok
+test agent_events::provenance::tests::classify_signed_malformed_anonymous ... ok
+test agent_events::provenance::tests::did_nostr_source_passes_through_as_crossing ... ok
+test agent_events::provenance::tests::native_visionclaw_urn_is_not_a_crossing ... ok
+test agent_events::provenance::tests::records_foreign_agentbox_source_crossing ... ok
+test agent_events::schema::tests::ctc_absent_deserialises_as_none_and_has_ctc_false ... ok
+test agent_events::schema::tests::ctc_deserialises_from_canonical_agentbox_names ... ok
+test agent_events::schema::tests::ctc_deserialises_from_draft_prd_alias_names ... ok
+test agent_events::schema::tests::ctc_round_trips_through_serde ... ok
+test agent_events::schema::tests::declared_intent_deserialises_and_is_optional ... ok
+test agent_events::schema::tests::deserialises_identity_attribution_end_to_end ... ok
+test agent_events::schema::tests::identity_absent_deserialises_as_none_not_error ... ok
+test agent_events::schema::tests::projects_onto_identity_blind_binary_frame ... ok
+test agent_events::schema::tests::round_trips_through_serde ... ok
+test application::events::tests::test_event_display ... ok
+test application::events::tests::test_event_name ... ok
+test application::events::tests::test_event_serialization ... ok
+test application::events::tests::test_event_timestamp ... ok
+test application::events::tests::test_now_timestamp ... ok
+test application::physics_service::tests::test_get_gpu_status ... ok
+test application::physics_service::tests::test_physics_service_creation ... ok
+test client::mcp_tcp_client::tests::test_mcp_client_creation ... ok
+test client::mcp_tcp_client::tests::test_mcp_client_with_timeout ... ok
+test config::feature_access::tests::test_available_features ... ok
+test config::feature_access::tests::test_basic_access ... ok
+test config::feature_access::tests::test_feature_access ... ok
+test config::feature_access::tests::test_power_user_status ... ok
+test config::path_access::tests::test_batch_update_scenario ... ok
+test config::path_access::tests::test_case_conversion ... ok
+test config::path_access::tests::test_json_path_get ... ok
+test config::path_access::tests::test_json_path_set ... ok
+test config::path_access::tests::test_nested_json_path ... ok
+test config::path_access::tests::test_parse_path ... ok
+test config::path_access::tests::test_path_validation ... ok
+test config::security_profile::tests::a_development_build_with_findings_may_bind ... ok
+test config::security_profile::tests::a_production_artefact_with_findings_may_not_bind ... ok
+test config::security_profile::tests::absent_flags_do_not_trip_the_rule ... ok
+test config::security_profile::tests::acknowledged_report_mode_is_still_rejected_in_production ... ok
+test config::security_profile::tests::allow_skip_auth_argv_is_rejected ... ok
+test config::security_profile::tests::blank_flag_values_are_treated_as_unset ... ok
+test config::security_profile::tests::build_identity_labels_are_distinct ... ok
+test config::security_profile::tests::clean_single_tenant_profile_is_accepted ... ok
+test config::security_profile::tests::debug_build_acknowledges_implicitly_and_continues ... ok
+test config::security_profile::tests::debug_build_does_not_report_a_dev_auth_artefact ... ok
+test config::security_profile::tests::declared_profile_drift_is_rejected ... ok
+test config::security_profile::tests::dev_auth_loopback_is_covered ... ok
+test config::security_profile::tests::development_container_fingerprint_is_rejected ... ok
+test config::security_profile::tests::either_flag_alone_is_not_the_pair ... ok
+test config::security_profile::tests::empty_valued_forbidden_variable_is_rejected ... ok
+test config::security_profile::tests::enforce_and_unset_gate_mode_are_clean ... ok
+test config::security_profile::tests::every_drifted_flag_is_reported_not_just_the_first ... ok
+test config::security_profile::tests::every_ratified_profile_classifies_itself ... ok
+test config::security_profile::tests::every_ratified_profile_is_free_of_the_pair ... ok
+test config::security_profile::tests::full_disclosure_is_fatal_in_a_production_artefact ... ok
+test config::security_profile::tests::full_disclosure_pair_is_rejected_with_a_declared_profile_too ... ok
+test config::security_profile::tests::full_disclosure_pair_is_rejected_without_a_declared_profile ... ok
+test config::security_profile::tests::future_dated_acknowledgement_does_not_acknowledge ... ok
+test config::security_profile::tests::missing_forbidden_variable_is_not_a_finding ... ok
+test config::security_profile::tests::profile_names_round_trip ... ok
+test config::security_profile::tests::public_reads_reader_matches_the_rbac_gate_semantics ... ok
+test config::security_profile::tests::release_dev_auth_artefact_is_rejected ... ok
+test config::security_profile::tests::release_dev_auth_build_cannot_bind ... ok
+test config::security_profile::tests::report_mode_acknowledgement_expires_at_the_date_rollover ... ok
+test config::security_profile::tests::report_mode_is_re_evaluated_on_every_boot ... ok
+test config::security_profile::tests::the_receipt_records_every_profile_flag ... ok
+test config::security_profile::tests::truthy_forbidden_variable_is_rejected ... ok
+test config::security_profile::tests::undeclared_environment_classifies_but_cannot_bind ... ok
+test config::security_profile::tests::unknown_declared_profile_is_rejected ... ok
+test config::security_profile::tests::unnamed_flag_soup_is_classified_as_unnamed ... ok
+test config::security_profile::tests::visibility_reader_matches_parse_visibility_flag_semantics ... ok
+test config::security_profile::tests::zero_valued_forbidden_variable_is_rejected ... ok
+test constraints::axiom_mapper::tests::test_batch_translation ... ok
+test constraints::axiom_mapper::tests::test_custom_config ... ok
+test constraints::axiom_mapper::tests::test_disjoint_classes_translation ... ok
+test constraints::axiom_mapper::tests::test_disjoint_union_translation ... ok
+test constraints::axiom_mapper::tests::test_equivalent_classes_translation ... ok
+test constraints::axiom_mapper::tests::test_inferred_axiom_priority ... ok
+test constraints::axiom_mapper::tests::test_part_of_translation ... ok
+test constraints::axiom_mapper::tests::test_subclass_of_translation ... ok
+test constraints::axiom_mapper::tests::test_user_defined_axiom_priority ... ok
+test constraints::constraint_blender::tests::test_clustering_constraint_blending ... ok
+test constraints::constraint_blender::tests::test_empty_constraints ... ok
+test constraints::constraint_blender::tests::test_maximum_strategy ... ok
+test constraints::constraint_blender::tests::test_median_strategy ... ok
+test constraints::constraint_blender::tests::test_minimum_strategy ... ok
+test constraints::constraint_blender::tests::test_no_significant_conflict ... ok
+test constraints::constraint_blender::tests::test_single_constraint_no_blending ... ok
+test constraints::constraint_blender::tests::test_user_defined_preserved ... ok
+test constraints::constraint_blender::tests::test_weighted_average_blending ... ok
+test constraints::constraint_lod::tests::test_adaptive_lod_frame_time ... ok
+test constraints::constraint_lod::tests::test_close_lod_all_active ... ok
+test constraints::constraint_lod::tests::test_custom_config ... ok
+test constraints::constraint_lod::tests::test_empty_constraints ... ok
+test constraints::constraint_lod::tests::test_far_lod_reduction ... ok
+test constraints::constraint_lod::tests::test_hierarchical_always_active ... ok
+test constraints::constraint_lod::tests::test_lod_level_calculation ... ok
+test constraints::constraint_lod::tests::test_lod_stats ... ok
+test constraints::constraint_lod::tests::test_medium_lod ... ok
+test constraints::constraint_lod::tests::test_near_lod ... ok
+test constraints::constraint_lod::tests::test_reduction_percentage ... ok
+test constraints::constraint_lod::tests::test_user_defined_always_active ... ok
+test constraints::gpu_converter::tests::test_activation_frame ... ok
+test constraints::gpu_converter::tests::test_batch_conversion ... ok
+test constraints::gpu_converter::tests::test_boundary_constraint_conversion ... ok
+test constraints::gpu_converter::tests::test_buffer_overflow ... ok
+test constraints::gpu_converter::tests::test_clustering_constraint_conversion ... ok
+test constraints::gpu_converter::tests::test_constraint_data_size ... ok
+test constraints::gpu_converter::tests::test_constraint_stats ... ok
+test constraints::gpu_converter::tests::test_containment_conversion ... ok
+test constraints::gpu_converter::tests::test_gpu_buffer ... ok
+test constraints::gpu_converter::tests::test_hierarchical_layer_conversion ... ok
+test constraints::gpu_converter::tests::test_priority_weight ... ok
+test constraints::gpu_converter::tests::test_separation_constraint_conversion ... ok
+test constraints::physics_constraint::tests::test_clustering_constraint ... ok
+test constraints::physics_constraint::tests::test_constraint_affects_node ... ok
+test constraints::physics_constraint::tests::test_containment_constraint ... ok
+test constraints::physics_constraint::tests::test_hierarchical_layer_constraint ... ok
+test constraints::physics_constraint::tests::test_priority_weight_calculation ... ok
+test constraints::physics_constraint::tests::test_separation_constraint_creation ... ok
+test constraints::physics_constraint::tests::test_user_defined_override ... ok
+test constraints::physics_constraint::tests::test_with_activation_frame ... ok
+test constraints::physics_constraint::tests::test_with_axiom_id ... ok
+test constraints::priority_resolver::tests::test_boundary_blending ... ok
+test constraints::priority_resolver::tests::test_clear_constraints ... ok
+test constraints::priority_resolver::tests::test_different_constraint_types ... ok
+test constraints::priority_resolver::tests::test_get_conflicts ... ok
+test constraints::priority_resolver::tests::test_no_conflict_single_constraint ... ok
+test constraints::priority_resolver::tests::test_node_pair_creation ... ok
+test constraints::priority_resolver::tests::test_priority_weight_calculation ... ok
+test constraints::priority_resolver::tests::test_user_defined_override ... ok
+test constraints::priority_resolver::tests::test_weighted_blending ... ok
+test constraints::semantic_axiom_translator::tests::test_disjoint_classes_translation ... ok
+test constraints::semantic_axiom_translator::tests::test_equivalent_classes_with_bidirectional ... ok
+test constraints::semantic_axiom_translator::tests::test_node_id_mapping ... ok
+test constraints::semantic_axiom_translator::tests::test_part_of_translation ... ok
+test constraints::semantic_axiom_translator::tests::test_priority_calculation ... ok
+test constraints::semantic_axiom_translator::tests::test_subclass_of_translation ... ok
+test constraints::semantic_gpu_buffer::tests::test_alignment_constraint ... ok
+test constraints::semantic_gpu_buffer::tests::test_buffer_overflow ... ok
+test constraints::semantic_gpu_buffer::tests::test_buffer_stats ... ok
+test constraints::semantic_gpu_buffer::tests::test_gpu_constraint_size_alignment ... ok
+test constraints::semantic_gpu_buffer::tests::test_iri_registration ... ok
+test constraints::semantic_gpu_buffer::tests::test_priority_weight_precomputed ... ok
+test constraints::semantic_gpu_buffer::tests::test_separation_constraint_conversion ... ok
+test constraints::semantic_physics_types::tests::test_alignment_constraint ... ok
+test constraints::semantic_physics_types::tests::test_bidirectional_edge ... ok
+test constraints::semantic_physics_types::tests::test_hierarchical_attraction ... ok
+test constraints::semantic_physics_types::tests::test_priority_weight ... ok
+test constraints::semantic_physics_types::tests::test_separation_constraint ... ok
+test constraints::tests::test_adaptive_lod ... ok
+test constraints::tests::test_complete_pipeline ... ok
+test constraints::tests::test_lod_reduction ... ok
+test domain::broker::broker_case::tests::amend_requires_diff ... ok
+test domain::broker::broker_case::tests::approval_flow_records_history ... ok
+test domain::broker::broker_case::tests::delegate_requires_target ... ok
+test domain::broker::broker_case::tests::new_case_is_open_with_no_history ... ok
+test domain::broker::broker_case::tests::provenance_chain_links_prior_decision ... ok
+test domain::broker::broker_case::tests::self_review_rejected_on_claim ... ok
+test domain::broker::broker_case::tests::self_review_rejected_on_decide ... ok
+test domain::broker::broker_case::tests::share_state_monotonic ... ok
+test domain::broker::broker_case::tests::terminal_state_rejects_further_decisions ... ok
+test domain::broker::broker_decision::tests::all_six_variants_have_stable_action_str ... ok
+test domain::broker::broker_decision::tests::approve_on_contributor_mesh_share_emits_plan ... ok
+test domain::broker::broker_decision::tests::delegate_flow_transitions_state ... ok
+test domain::broker::broker_decision::tests::from_action_maps_acsp_vocabulary ... ok
+test domain::broker::broker_decision::tests::from_action_round_trips_action_str ... ok
+test domain::broker::broker_decision::tests::invalid_share_transition_rejected ... ok
+test domain::broker::broker_decision::tests::reject_produces_no_share_plan ... ok
+test domain::broker::broker_decision::tests::self_review_rejected_via_orchestrator ... ok
+test domain::broker::broker_decision::tests::share_intent_adapter_produces_correct_category ... ok
+test domain::broker::precedent_registry::tests::register_and_qualify ... ok
+test domain::broker::precedent_registry::tests::scope_from_metadata_extracts_class ... ok
+test domain::broker::precedent_registry::tests::scope_from_metadata_handles_missing_prefix ... ok
+test errors::tests::test_error_context ... ok
+test errors::tests::test_error_display ... ok
+test events::bus::tests::test_disabled_bus ... ok
+test events::bus::tests::test_event_bus_publish ... ok
+test events::bus::tests::test_multiple_subscribers ... ok
+test events::bus::tests::test_unsubscribe ... ok
+test events::domain_events::tests::test_node_added_event ... ok
+test events::domain_events::tests::test_ontology_imported_event ... ok
+test events::domain_events::tests::test_simulation_events ... ok
+test events::handlers::audit_handler::tests::test_audit_logging ... ok
+test events::handlers::audit_handler::tests::test_data_summarization ... ok
+test events::handlers::audit_handler::tests::test_get_entries_for_aggregate ... ok
+test events::handlers::graph_handler::tests::test_edge_added_event ... ok
+test events::handlers::graph_handler::tests::test_graph_cleared_event ... ok
+test events::handlers::graph_handler::tests::test_node_added_event ... ok
+test events::handlers::notification_handler::tests::test_message_formatting ... ok
+test events::handlers::notification_handler::tests::test_notification_creation ... ok
+test events::handlers::notification_handler::tests::test_unsent_notifications ... ok
+test events::handlers::ontology_handler::tests::test_class_added_triggers_inference ... ok
+test events::handlers::ontology_handler::tests::test_inference_completed_clears_pending ... ok
+test events::middleware::tests::test_enrichment_middleware ... ok
+test events::middleware::tests::test_logging_middleware ... ok
+test events::middleware::tests::test_metrics_middleware ... ok
+test events::middleware::tests::test_validation_middleware ... ok
+test events::store::tests::test_event_store ... ok
+test events::store::tests::test_get_events_after ... ok
+test events::store::tests::test_get_events_by_type ... ok
+test events::store::tests::test_in_memory_repository ... ok
+test events::types::tests::test_event_metadata_builder ... ok
+test events::types::tests::test_event_metadata_creation ... ok
+test gpu::backpressure::tests::test_backpressure_congestion ... ok
+test gpu::backpressure::tests::test_backpressure_sequence ... ok
+test gpu::backpressure::tests::test_token_bucket_acquire ... ok
+test gpu::backpressure::tests::test_token_bucket_refill ... ok
+test gpu::backpressure::tests::test_token_bucket_restore ... ok
+test gpu::broadcast_optimizer::tests::test_broadcast_optimizer_integration ... ok
+test gpu::broadcast_optimizer::tests::test_spatial_culling ... ok
+test gpu::conversion_utils::tests::test_allocate_gpu_buffer ... ok
+test gpu::conversion_utils::tests::test_calculate_buffer_size ... ok
+test gpu::conversion_utils::tests::test_calculate_memory_footprint ... ok
+test gpu::conversion_utils::tests::test_extract_position_3d ... ok
+test gpu::conversion_utils::tests::test_extract_position_vec4 ... ok
+test gpu::conversion_utils::tests::test_get_element_count ... ok
+test gpu::conversion_utils::tests::test_gpu_node_conversion ... ok
+test gpu::conversion_utils::tests::test_gpu_to_positions ... ok
+test gpu::conversion_utils::tests::test_gpu_to_positions_invalid_stride ... ok
+test gpu::conversion_utils::tests::test_nodes_to_gpu_buffer ... ok
+test gpu::conversion_utils::tests::test_positions_4d_conversions ... ok
+test gpu::conversion_utils::tests::test_positions_to_gpu ... ok
+test gpu::conversion_utils::tests::test_validate_buffer_size ... ok
+test gpu::conversion_utils::tests::test_validate_buffer_stride ... ok
+test gpu::conversion_utils::tests::test_validate_render_data ... ok
+test gpu::conversion_utils::tests::test_validate_render_data_mismatch ... ok
+test gpu::dynamic_buffer_manager::tests::test_buffer_config_creation ... ok
+test gpu::dynamic_buffer_manager::tests::test_buffer_stats ... ok
+test gpu::dynamic_buffer_manager::tests::test_dynamic_buffer_manager ... ok
+test gpu::kernel_bridge::tests::test_fallback_get_max_relationship_types ... ok
+test gpu::kernel_bridge::tests::test_fallback_hierarchy_levels_propagation ... ok
+test gpu::kernel_bridge::tests::test_fallback_set_dynamic_buffer_returns_zero ... ok
+test gpu::kernel_bridge::tests::test_fallback_type_centroids ... ok
+test gpu::kernel_bridge::tests::test_gpu_available_reflects_feature ... ok
+test gpu::memory_manager::tests::test_allocation_and_free ... ignored
+test gpu::memory_manager::tests::test_async_transfers ... ignored
+test gpu::memory_manager::tests::test_buffer_config_defaults ... ok
+test gpu::memory_manager::tests::test_buffer_config_presets ... ok
+test gpu::memory_manager::tests::test_dynamic_resizing ... ignored
+test gpu::memory_manager::tests::test_leak_detection ... ignored
+test gpu::memory_manager::tests::test_memory_limit_enforcement ... ignored
+test gpu::memory_manager::tests::test_memory_manager_creation ... ignored
+test gpu::semantic_forces::tests::test_dynamic_buffer_manager_creation ... ok
+test gpu::semantic_forces::tests::test_dynamic_force_config_default ... ok
+test gpu::semantic_forces::tests::test_dynamic_force_config_from_relationship_config ... ok
+test gpu::semantic_forces::tests::test_dynamic_force_config_struct_size ... ok
+test gpu::semantic_forces::tests::test_engine_creation ... ok
+test gpu::semantic_forces::tests::test_engine_initialization ... ok
+test gpu::semantic_forces::tests::test_hierarchy_calculation ... ok
+test gpu::semantic_forces::tests::test_semantic_config_defaults ... ok
+test gpu::semantic_forces::tests::test_type_clustering ... ok
+test gpu::types::tests::test_binary_node_data_validation ... ok
+test gpu::types::tests::test_render_data_node_count ... ok
+test gpu::types::tests::test_render_data_validation ... ok
+test gpu::visual_analytics::tests::test_isolation_layer_validation ... ok
+test gpu::visual_analytics::tests::test_vec4_validation ... ok
+test gpu::visual_analytics::tests::test_visual_analytics_params_validation ... ok
+test handlers::api_handler::graph::fold::tests::collapsed_hierarchical_label_folds ... ok
+test handlers::api_handler::graph::fold::tests::community_folds_into_highest_centrality_medoid ... ok
+test handlers::api_handler::graph::fold::tests::generation_changes_with_topology ... ok
+test handlers::api_handler::graph::fold::tests::group_dissolves_when_all_members_pinned ... ok
+test handlers::api_handler::graph::fold::tests::l1_degrades_to_degree_when_analytics_are_cold ... ok
+test handlers::api_handler::graph::fold::tests::l3_excludes_subclass_members_from_community_fold ... ok
+test handlers::api_handler::graph::fold::tests::level_zero_is_empty ... ok
+test handlers::api_handler::graph::fold::tests::low_signal_empty_without_analytics ... ok
+test handlers::api_handler::graph::fold::tests::low_signal_hides_bottom_quartile ... ok
+test handlers::api_handler::graph::fold::tests::multiple_pins_lift_extras_out_of_the_fold ... ok
+test handlers::api_handler::graph::fold::tests::non_hierarchy_edges_never_fold ... ok
+test handlers::api_handler::graph::fold::tests::pinned_member_is_promoted_to_representative ... ok
+test handlers::api_handler::graph::fold::tests::pinned_node_is_never_hidden ... ok
+test handlers::api_handler::graph::fold::tests::population_filter_scopes_the_fold ... ok
+test handlers::api_handler::graph::fold::tests::subclass_chain_folds_into_root ... ok
+test handlers::api_handler::graph::pattern_query_tests::chain_join_threads_a_shared_variable ... ok
+test handlers::api_handler::graph::pattern_query_tests::clamp_query_limit_defaults_and_ceilings ... ok
+test handlers::api_handler::graph::pattern_query_tests::concrete_only_pattern_is_boolean ... ok
+test handlers::api_handler::graph::pattern_query_tests::count_only_parity_with_full ... ok
+test handlers::api_handler::graph::pattern_query_tests::cycle_pattern_closes_back_to_anchor ... ok
+test handlers::api_handler::graph::pattern_query_tests::empty_pattern_is_rejected ... ok
+test handlers::api_handler::graph::pattern_query_tests::empty_predicate_matches_untyped_edges ... ok
+test handlers::api_handler::graph::pattern_query_tests::empty_variable_name_is_rejected ... ok
+test handlers::api_handler::graph::pattern_query_tests::limit_caps_returned_bindings_but_not_count ... ok
+test handlers::api_handler::graph::pattern_query_tests::max_triples_boundary_is_accepted ... ok
+test handlers::api_handler::graph::pattern_query_tests::parallel_edges_collapse_to_one_binding ... ok
+test handlers::api_handler::graph::pattern_query_tests::scan_cap_sets_truncated ... ok
+test handlers::api_handler::graph::pattern_query_tests::single_triple_binds_all_matching_edges ... ok
+test handlers::api_handler::graph::pattern_query_tests::too_many_triples_is_rejected ... ok
+test handlers::api_handler::graph::pattern_query_tests::too_many_variables_is_rejected ... ok
+test handlers::api_handler::graph::pattern_query_tests::wildcard_edge_matches_any_predicate ... ok
+test handlers::api_handler::graph::population_filter_tests::absent_or_unknown_graph_type_yields_no_filter ... ok
+test handlers::api_handler::graph::population_filter_tests::agent_matches_agent_bot_and_agenttype_metadata ... ok
+test handlers::api_handler::graph::population_filter_tests::knowledge_matches_pages_and_untyped ... ok
+test handlers::api_handler::graph::population_filter_tests::ontology_matches_owl_and_class_iri_metadata ... ok
+test handlers::api_handler::graph::relations_expand_tests::aggregate_counts_group_by_type_and_direction ... ok
+test handlers::api_handler::graph::relations_expand_tests::aggregate_orders_heaviest_count_first ... ok
+test handlers::api_handler::graph::relations_expand_tests::aggregate_self_loop_counts_both_directions ... ok
+test handlers::api_handler::graph::relations_expand_tests::aggregate_unknown_node_yields_empty ... ok
+test handlers::api_handler::graph::relations_expand_tests::clamp_defaults_and_caps ... ok
+test handlers::api_handler::graph::relations_expand_tests::expand_direction_isolates_matches ... ok
+test handlers::api_handler::graph::relations_expand_tests::expand_incoming_reads_source_side ... ok
+test handlers::api_handler::graph::relations_expand_tests::expand_no_matching_type_is_empty ... ok
+test handlers::api_handler::graph::relations_expand_tests::expand_node_and_edge_serialise_camel_case ... ok
+test handlers::api_handler::graph::relations_expand_tests::expand_outgoing_filters_by_type_and_orders_by_weight ... ok
+test handlers::api_handler::graph::relations_expand_tests::expand_request_deserialises_camel_case ... ok
+test handlers::api_handler::graph::relations_expand_tests::expand_respects_limit_heaviest_first ... ok
+test handlers::api_handler::graph::relations_expand_tests::expand_untyped_edges_addressable_as_linked ... ok
+test handlers::api_handler::graph::relations_expand_tests::node_id_mask_strips_wire_flags ... ok
+test handlers::api_handler::graph::relations_expand_tests::prettify_edge_label_title_cases_tokens ... ok
+test handlers::api_handler::graph::relations_expand_tests::relation_count_serialises_camel_case ... ok
+test handlers::api_handler::graph::relations_expand_tests::untyped_edges_group_under_linked ... ok
+test handlers::api_handler::ontology::tests::build_state_at_sparql_adds_recorded_clause_when_some ... ok
+test handlers::api_handler::ontology::tests::build_state_at_sparql_is_bounded_half_open_read ... ok
+test handlers::api_handler::ontology::tests::build_state_at_sparql_omits_recorded_clause_when_none ... ok
+test handlers::api_handler::ontology::tests::map_state_at_rows_empty_on_no_data ... ok
+test handlers::api_handler::ontology::tests::map_state_at_rows_maps_contract_shape_with_open_and_closed_intervals ... ok
+test handlers::api_handler::ontology::tests::map_state_at_rows_skips_rows_missing_required_bindings ... ok
+test handlers::api_handler::ontology::tests::parse_rfc3339_accepts_z_and_offset_forms ... ok
+test handlers::api_handler::ontology::tests::parse_rfc3339_rejects_malformed ... ok
+test handlers::api_handler::ontology::tests::test_health_endpoint_structure ... ok
+test handlers::api_handler::ontology::tests::test_rdf_triple_conversion ... ok
+test handlers::api_handler::ontology::tests::test_validation_config_conversion ... ok
+test handlers::api_handler::ontology_physics::tests::test_merge_mode_parsing ... ok
+test handlers::api_handler::ontology_physics::tests::test_strength_clamping ... ok
+test handlers::bots_handler::steering_tests::interrupt_request_accepts_task_and_agent_id_aliases ... ok
+test handlers::bots_handler::steering_tests::submit_task_request_parses_camel_case ... ok
+test handlers::broker_inbox_handler::tests::inbox_envelope_carries_cases_and_total ... ok
+test handlers::broker_inbox_handler::tests::projects_proposal_into_bridge_case_shape ... ok
+test handlers::enrichment_proposals_handler::agent_key_tests::only_exact_match_authorises ... ok
+test handlers::enrichment_proposals_handler::agent_key_tests::unset_or_empty_key_fails_closed ... ok
+test handlers::enrichment_proposals_handler::tests::attributed_approval_mints_provenance_and_triggers_writeback ... ok
+test handlers::enrichment_proposals_handler::tests::classify_matches_status_mapping ... ok
+test handlers::enrichment_proposals_handler::tests::empty_inputs_are_rejected ... ok
+test handlers::enrichment_proposals_handler::tests::kernel_decision_degrades_for_unknown_verb ... ok
+test handlers::enrichment_proposals_handler::tests::kernel_decision_yields_canonical_action ... ok
+test handlers::enrichment_proposals_handler::tests::malformed_pubkey_downgrades_to_unattributed ... ok
+test handlers::enrichment_proposals_handler::tests::outcome_alias_decision_deserialises ... ok
+test handlers::enrichment_proposals_handler::tests::unattributed_decision_is_recorded_not_rejected ... ok
+test handlers::fastwebsockets_handler::tests::test_protocol_negotiation_legacy ... ok
+test handlers::fastwebsockets_handler::tests::test_protocol_negotiation_postcard ... ok
+test handlers::fastwebsockets_handler::tests::test_protocol_negotiation_quic ... ok
+test handlers::graph_export_handler::tests::test_rate_limiting ... ok
+test handlers::image_gen_handler::agent_key_tests::constant_time_eq_matches_equality_semantics ... ok
+test handlers::image_gen_handler::agent_key_tests::empty_key_fails_closed ... ok
+test handlers::image_gen_handler::agent_key_tests::exact_match_authorises_and_mismatch_does_not ... ok
+test handlers::image_gen_handler::agent_key_tests::missing_header_fails_closed ... ok
+test handlers::image_gen_handler::agent_key_tests::unset_key_fails_closed ... ok
+test handlers::ingest_writeback_handler::tests::attribution_accepts_bare_hex_and_did_nostr ... ok
+test handlers::ingest_writeback_handler::tests::attribution_rejects_malformed_and_absent ... ok
+test handlers::ingest_writeback_handler::tests::writeback_payload_deserialises_git_bridge_shape ... ok
+test handlers::liveness_harness_handler::auth_tests::empty_key_config_fails_closed ... ok
+test handlers::liveness_harness_handler::auth_tests::matching_key_authorised ... ok
+test handlers::liveness_harness_handler::auth_tests::mismatched_or_missing_header_rejected ... ok
+test handlers::liveness_harness_handler::auth_tests::missing_key_config_fails_closed ... ok
+test handlers::multi_mcp_websocket_handler::tests::all_healthy_warns_about_nothing ... ok
+test handlers::multi_mcp_websocket_handler::tests::all_services_unhealthy_is_not_usable ... ok
+test handlers::multi_mcp_websocket_handler::tests::cached_verdict_reads_are_pure_and_stable ... ok
+test handlers::multi_mcp_websocket_handler::tests::monitor_stops_when_the_client_is_dropped ... ok
+test handlers::multi_mcp_websocket_handler::tests::no_probe_yet_is_optimistic ... ok
+test handlers::multi_mcp_websocket_handler::tests::one_healthy_service_keeps_the_gate_open ... ok
+test handlers::ontology_handler::sparql_validation_tests::allows_read_only_forms ... ok
+test handlers::ontology_handler::sparql_validation_tests::rejects_mutating_sparql ... ok
+test handlers::ontology_handler::sparql_validation_tests::rejects_unknown_first_token ... ok
+test handlers::pay_handler::tests::cost_for_endpoint_analytics ... ok
+test handlers::pay_handler::tests::cost_for_endpoint_default ... ok
+test handlers::pay_handler::tests::cost_for_endpoint_image_gen ... ok
+test handlers::pay_handler::tests::cost_for_endpoint_inference ... ok
+test handlers::pay_handler::tests::fs_store_credit_and_balance ... ok
+test handlers::pay_handler::tests::fs_store_debit_insufficient ... ok
+test handlers::pay_handler::tests::fs_store_debit_success ... ok
+test handlers::pay_handler::tests::fs_store_debit_unknown_did ... ok
+test handlers::pay_handler::tests::fs_store_multiple_identities ... ok
+test handlers::pay_handler::tests::fs_store_persistence ... ok
+test handlers::pay_handler::tests::info_endpoint_shape ... ok
+test handlers::pay_handler::tests::pay_config_defaults ... ok
+test handlers::pay_handler::tests::pay_config_from_env ... ok
+test handlers::pay_handler::tests::upstream_config_conversion ... ok
+test handlers::presence_handler::nonce_tests::csprng_nonce_is_nonzero_and_distinct ... ok
+test handlers::presence_handler::nonce_tests::replay_lru_allows_distinct_nonces ... ok
+test handlers::presence_handler::nonce_tests::replay_lru_rejects_second_use_of_same_nonce ... ok
+test handlers::presence_handler::nonce_tests::seen_nonce_cache_is_bounded ... ok
+test handlers::quic_transport_handler::tests::test_postcard_node_update_roundtrip ... ok
+test handlers::settings_handler::routes::redaction_tests::no_panic_when_provider_section_absent_or_keyless ... ok
+test handlers::settings_handler::routes::redaction_tests::redacts_provider_api_keys_but_keeps_non_secret_config ... ok
+test handlers::settings_validation_fix::tests::test_camel_to_snake_case ... ok
+test handlers::settings_validation_fix::tests::test_constraint_validation ... ok
+test handlers::settings_validation_fix::tests::test_physics_validation_bounds ... ok
+test handlers::socket_flow_handler::position_updates::visibility_flag_tests::parse_visibility_flag_defaults_on_and_honours_opt_out ... ok
+test handlers::socket_flow_handler::types::initial_node_limit_tests::explicit_value_is_honoured ... ok
+test handlers::socket_flow_handler::types::initial_node_limit_tests::value_above_ceiling_is_clamped ... ok
+test handlers::socket_flow_handler::types::initial_node_limit_tests::zero_uses_builtin_default ... ok
+test handlers::socket_flow_handler::types::sync_generation_tests::delivery_time_check_catches_toctou_after_presend_passed ... ok
+test handlers::socket_flow_handler::types::sync_generation_tests::fresh_sync_is_current ... ok
+test handlers::socket_flow_handler::types::sync_generation_tests::reauth_bump_discards_prior_identity_sync ... ok
+test handlers::socket_flow_handler::types::sync_generation_tests::superseded_sync_is_discarded ... ok
+test handlers::websocket_utils::tests::test_current_timestamp ... ok
+test handlers::websocket_utils::tests::test_heartbeat_timeout ... ok
+test handlers::websocket_utils::tests::test_heartbeat_tracking ... ok
+test handlers::websocket_utils::tests::test_metrics_tracking ... ok
+test handlers::websocket_utils::tests::test_parse_message ... ok
+test handlers::websocket_utils::tests::test_parse_message_invalid ... ok
+test handlers::websocket_utils::tests::test_websocket_connection_creation ... ok
+test handlers::websocket_utils::tests::test_websocket_connection_with_client_id ... ok
+test handlers::websocket_utils::tests::test_websocket_message_creation ... ok
+test handlers::workspace_handler::tests::test_build_filter_from_query_empty ... ok
+test handlers::workspace_handler::tests::test_build_filter_from_query_with_values ... ok
+test middleware::auth::tests::test_access_level_permissions ... ok
+test middleware::auth::tests::test_require_auth_levels ... ok
+test middleware::public_demo::tests::allows_get_when_enabled ... ok
+test middleware::public_demo::tests::blocks_post_when_enabled ... ok
+test middleware::public_demo::tests::passthrough_when_disabled ... ok
+test middleware::rate_limit::tests::test_rate_limit_allows_under_limit ... ok
+test middleware::rate_limit::tests::test_rate_limit_blocks_over_limit ... ok
+test middleware::rate_limit::tests::test_rate_limit_custom_message ... ok
+test middleware::rate_limit::tests::test_rate_limit_sliding_window ... ok
+test middleware::rbac_gate::tests::admin_surface_requires_admin_for_all_methods ... ok
+test middleware::rbac_gate::tests::auth_endpoints_are_public ... ok
+test middleware::rbac_gate::tests::reads_public_only_when_flag_enabled ... ok
+test middleware::rbac_gate::tests::segment_matching_does_not_leak_prefixes ... ok
+test middleware::rbac_gate::tests::settings_writes_require_write_settings ... ok
+test middleware::rbac_gate::tests::writes_are_gated_at_write_graph_not_mere_authenticated ... ok
+test middleware::timeout::tests::test_timeout_middleware_success ... ok
+test middleware::timeout::tests::test_timeout_middleware_timeout ... ok
+test middleware::validation::tests::test_check_sql_injection ... ok
+test middleware::validation::tests::test_validate_enum ... ok
+test middleware::validation::tests::test_validate_iri ... ok
+test middleware::validation::tests::test_validate_range ... ok
+test middleware::validation::tests::test_validate_url ... ok
+test models::force_channels::adr_2029_dispatch_authority::constraint_enablement_follows_residency_through_zero_nonzero_zero ... ok
+test models::force_channels::adr_2029_dispatch_authority::each_scalar_gates_only_its_own_term ... ok
+test models::force_channels::adr_2029_dispatch_authority::gathering_from_settings_matches_a_hand_built_input ... ok
+test models::force_channels::adr_2029_dispatch_authority::no_bit_outside_the_declared_feature_set_is_ever_produced ... ok
+test models::force_channels::adr_2029_dispatch_authority::residency_alone_decides_constraints_regardless_of_settings ... ok
+test models::force_channels::adr_2029_dispatch_authority::scalar_boundaries_are_strictly_positive ... ok
+test models::force_channels::adr_2029_dispatch_authority::the_dispatch_word_overrides_whatever_the_converter_produced ... ok
+test models::force_channels::adr_2029_dispatch_authority::the_runtime_sssp_toggle_changes_the_word_without_a_settings_change ... ok
+test models::force_channels::tests::all_channels_have_unique_keys ... ok
+test models::force_channels::tests::constraints_apply_is_a_noop ... ok
+test models::force_channels::tests::disabled_channel_with_positive_scalar_stays_disabled_after_roundtrip ... ok
+test models::force_channels::tests::disabling_a_channel_zeroes_scalar_and_clears_flag ... ok
+test models::force_channels::tests::enabled_but_zero_strength_leaves_flag_clear ... ok
+test models::force_channels::tests::enabling_a_channel_sets_scalar_and_flag ... ok
+test models::force_channels::tests::flag_gated_channels_report_flag_state ... ok
+test models::force_channels::tests::non_flag_channel_enabled_tracks_positive_strength ... ok
+test models::force_channels::tests::only_constraints_is_read_only ... ok
+test models::force_channels::tests::snapshot_covers_every_channel_in_order ... ok
+test models::force_channels::tests::state_apply_roundtrip_preserves_effective_state_for_all_channels ... ok
+test models::rbac::tests::access_level_mapping_preserves_privilege ... ok
+test models::rbac::tests::assignment_rules_prevent_privilege_escalation ... ok
+test models::rbac::tests::default_authenticated_is_editor ... ok
+test models::rbac::tests::lattice_ordering_is_monotonic ... ok
+test models::rbac::tests::parse_roundtrips_and_accepts_aliases ... ok
+test models::rbac::tests::satisfies_is_reflexive_and_hierarchical ... ok
+test models::rbac::tests::serde_uses_lowercase_wire_form ... ok
+test models::simulation_params::adr_2028_abi_manifest::a_same_size_field_swap_still_passes_the_size_assertion ... ok
+test models::simulation_params::adr_2028_abi_manifest::manifest_field_names_are_unique ... ok
+test models::simulation_params::adr_2028_abi_manifest::manifest_offsets_are_dense_ascending_and_in_range ... ok
+test models::simulation_params::adr_2028_abi_manifest::the_digest_covers_the_feature_bits ... ok
+test models::simulation_params::adr_2028_abi_manifest::the_digest_is_stable_and_order_sensitive ... ok
+test models::simulation_params::adr_2028_abi_manifest::the_frozen_size_and_alignment_hold ... ok
+test models::simulation_params::adr_2028_abi_manifest::the_manifest_catches_a_same_size_retype ... ok
+test models::simulation_params::adr_2028_abi_manifest::the_manifest_catches_a_tail_append_that_grows_the_struct ... ok
+test models::simulation_params::adr_2028_abi_manifest::the_manifest_catches_the_same_size_field_swap ... ok
+test models::simulation_params::adr_2028_abi_manifest::the_manifest_covers_the_fields_the_force_derivation_reads ... ok
+test models::simulation_params::adr_2028_abi_manifest::the_real_struct_matches_the_declared_manifest ... ok
+test physics::integration_tests::tests::test_constraint_satisfaction_scoring ... ok
+test physics::integration_tests::tests::test_full_physics_pipeline ... ok
+test physics::integration_tests::tests::test_hierarchical_constraint_generation ... ok
+test physics::integration_tests::tests::test_performance_with_large_graph ... ok
+test physics::integration_tests::tests::test_semantic_clustering_accuracy ... ok
+test physics::lsh::tests::test_build_with_metadata ... ok
+test physics::lsh::tests::test_custom_config ... ok
+test physics::lsh::tests::test_dissimilar_nodes_less_likely_candidates ... ok
+test physics::lsh::tests::test_empty_label_handling ... ok
+test physics::lsh::tests::test_estimate_similarity_disjoint ... ok
+test physics::lsh::tests::test_estimate_similarity_identical ... ok
+test physics::lsh::tests::test_identical_nodes_are_candidates ... ok
+test physics::lsh::tests::test_lsh_index_creation ... ok
+test physics::lsh::tests::test_query_candidates_returns_self_and_similar ... ok
+test physics::lsh::tests::test_scale_candidate_count ... ok
+test physics::lsh::tests::test_signature_length ... ok
+test physics::lsh::tests::test_similar_nodes_are_candidates ... ok
+test physics::ontology_constraint_mapper::tests::haspart_property_assertion_maps_to_attract ... ok
+test physics::ontology_constraint_mapper::tests::maps_three_axiom_kinds_to_live_kernel_kinds ... ok
+test physics::ontology_constraint_mapper::tests::sameas_property_assertion_maps_to_colocate ... ok
+test physics::ontology_constraint_mapper::tests::siblings_yield_kind7_alignment_constraint ... ok
+test physics::ontology_constraint_mapper::tests::single_child_yields_no_alignment ... ok
+test physics::ontology_constraint_mapper::tests::unresolved_endpoints_are_counted_and_skipped ... ok
+test physics::ontology_constraints::tests::test_cache_functionality ... ok
+test physics::ontology_constraints::tests::test_constraint_strength_calculation ... ok
+test physics::ontology_constraints::tests::test_disjoint_classes_translation ... ok
+test physics::ontology_constraints::tests::test_sameas_translation ... ok
+test physics::semantic_constraints::tests::test_constraint_application_to_set ... ok
+test physics::semantic_constraints::tests::test_constraint_generation ... ok
+test physics::semantic_constraints::tests::test_cosine_similarity ... ok
+test physics::semantic_constraints::tests::test_generator_creation ... ok
+test physics::semantic_constraints::tests::test_shared_topics_identification ... ok
+test physics::semantic_constraints::tests::test_string_similarity ... ok
+test physics::semantic_constraints::tests::test_topic_similarity_computation ... ok
+test physics::simd_forces::tests::test_accumulate_forces ... ok
+test physics::simd_forces::tests::test_compute_distances_basic ... ok
+test physics::simd_forces::tests::test_compute_distances_simd_large ... ok
+test physics::simd_forces::tests::test_dot_product ... ok
+test physics::simd_forces::tests::test_dot_product_large ... ok
+test physics::simd_forces::tests::test_finalize_centroids ... ok
+test physics::simd_forces::tests::test_integrate_positions ... ok
+test physics::simd_forces::tests::test_simd_feature_name ... ok
+test physics::simd_forces::tests::test_stress_batch ... ok
+test physics::stress_majorization::tests::test_constraint_score_computation ... ok
+test physics::stress_majorization::tests::test_distance_matrix_computation ... ok
+test physics::stress_majorization::tests::test_position_extraction_and_application ... ok
+test physics::stress_majorization::tests::test_solver_creation ... ok
+test services::acsp::client::tests::ignores_foreign_namespace_and_other_kinds ... ok
+test services::acsp::client::tests::parses_matching_decision ... ok
+test services::acsp::events::broker_kernel_reconciliation::action_response_parses_into_kernel_outcome ... ok
+test services::acsp::events::broker_kernel_reconciliation::case_category_vocabulary_is_single_sourced ... ok
+test services::acsp::events::broker_kernel_reconciliation::knowledge_enrichment_case_projects_to_matching_tags ... ok
+test services::acsp::events::broker_kernel_reconciliation::subject_kind_vocabulary_is_single_sourced ... ok
+test services::acsp::events::tests::action_request_split_matches_doc_example ... ok
+test services::acsp::events::tests::action_response_parses_forum_shape ... ok
+test services::acsp::events::tests::case_status_update_wire_shape ... ok
+test services::acsp::events::tests::d_tag_is_always_first_and_non_empty ... ok
+test services::acsp::events::tests::knowledge_enrichment_category_tag_value ... ok
+test services::acsp::events::tests::panel_definition_wire_shape_matches_consumer ... ok
+test services::audio_router::tests::binding_clears_on_deselect_and_survives_bare_toggle ... ok
+test services::audio_router::tests::non_did_target_is_refused ... ok
+test services::audio_router::tests::ptt_binds_the_selected_agent_did ... ok
+test services::audio_router::tests::ptt_is_not_globally_scoped ... ok
+test services::bots_client::tests::get_status_reflects_actual_connection_state_not_a_constant ... ok
+test services::bots_client::tests::get_status_reports_resolved_host_and_port_not_literals ... ok
+test services::briefing_service::tests::request_debrief_posts_role_responses_and_returns_the_debrief_path ... ok
+test services::briefing_service::tests::submit_brief_creates_then_executes_against_the_agentbox_contract ... ok
+test services::briefing_service::tests::submit_brief_fails_when_execute_rejects_after_a_successful_create ... ok
+test services::briefing_service::tests::submit_brief_surfaces_a_server_error_instead_of_a_silent_success ... ok
+test services::broker_events::tests::case_decided_envelope_channels_on_case_id ... ok
+test services::broker_events::tests::case_decided_envelope_embeds_share_plan ... ok
+test services::broker_events::tests::new_case_envelope_carries_type_channel_payload ... ok
+test services::data_reconciliation::checkpoint_tests::open_writer_checkpoint_restores_authored_provenance_after_source_loss ... ok
+test services::data_reconciliation::tests::missing_adapter_or_changed_optional_store_cannot_report_success ... ok
+test services::data_reconciliation::tests::restart_retries_failed_member_without_repeating_completed_member ... ok
+test services::decision_elevation::tests::a_summaryless_decision_gets_no_title_key ... ok
+test services::decision_elevation::tests::causal_or_mutation_or_approved_decision_is_significant ... ok
+test services::decision_elevation::tests::decision_page_quads_match_the_runtime_write_door_projection ... ok
+test services::decision_elevation::tests::draft_decision_page_path_is_namespaced_and_deterministic ... ok
+test services::decision_elevation::tests::draft_round_trips_type_edges_and_urn ... ok
+test services::decision_elevation::tests::drafted_page_is_vault_frontmatter_and_passes_the_inclusion_gate ... ok
+test services::decision_elevation::tests::non_decision_page_is_ignored_by_the_read_half ... ok
+test services::decision_elevation::tests::parse_tolerates_bare_iri_and_object_edge_forms ... ok
+test services::decision_elevation::tests::routine_edgeless_decision_is_not_significant ... ok
+test services::decision_service::tests::bfs_branching_shortest_depth_wins ... ok
+test services::decision_service::tests::bfs_depth_zero_is_root_only ... ok
+test services::decision_service::tests::bfs_every_path_length_matches_depth ... ok
+test services::decision_service::tests::bfs_is_cycle_safe ... ok
+test services::decision_service::tests::bfs_respects_max_depth_bound ... ok
+test services::decision_service::tests::bfs_two_hop_never_reports_transitive_edge ... ok
+test services::decision_service::tests::bfs_unknown_root_yields_single_hop ... ok
+test services::decision_service::tests::decision_idempotency_replay_and_divergent_conflict_via_spine ... ok
+test services::decision_service::tests::elevation_trigger_is_fail_open_for_significant_decision ... ok
+test services::decision_service::tests::frontier_query_direction_flips_pattern ... ok
+test services::decision_service::tests::frontier_query_is_length_one_not_transitive ... ok
+test services::decision_service::tests::frontier_query_sanitises_injection ... ok
+test services::decision_service::tests::quads_no_provenance_or_attribution_leaks_into_assert ... ok
+test services::decision_service::tests::quads_type_and_direct_edges_only ... ok
+test services::decision_service::tests::record_decision_forwards_supplied_idempotency_key_to_receipt ... ok
+test services::decision_service::tests::replayed_decision_does_not_re_elevate ... ok
+test services::decision_service::tests::routine_edgeless_decision_does_not_elevate ... ok
+test services::decision_service::tests::urn_accepts_did_nostr_scope ... ok
+test services::decision_service::tests::urn_golden_core_payload ... ok
+test services::decision_service::tests::urn_golden_key_order_independent ... ok
+test services::decision_service::tests::urn_golden_nested_scalars_arrays_bools ... ok
+test services::decision_service::tests::urn_rejects_non_hex_pubkey ... ok
+test services::decision_service::tests::urn_scope_is_content_addressed_and_stable ... ok
+test services::edge_classifier::tests::test_ceo_classification ... ok
+test services::edge_classifier::tests::test_class_based_fallback ... ok
+test services::edge_classifier::tests::test_no_classification ... ok
+test services::edge_classifier::tests::test_works_at_classification ... ok
+test services::github::api::closeout_path_tests::base_prefix_requires_a_directory_boundary ... ok
+test services::github::config::tests::test_empty_values ... ok
+test services::github::config::tests::test_missing_required_vars ... ok
+test services::github::config::tests::test_optional_settings ... ok
+test services::github::config::tests::test_valid_config ... ok
+test services::github::url_path::tests::a_branch_containing_a_space_is_encoded_in_both_builders ... ok
+test services::github::url_path::tests::a_branch_slash_survives_but_a_percent_in_it_is_escaped ... ok
+test services::github::url_path::tests::a_literal_percent_becomes_percent_25_exactly_once ... ok
+test services::github::url_path::tests::ordinary_names_are_unchanged_or_only_space_encoded ... ok
+test services::github::url_path::tests::separators_survive_but_a_slash_inside_a_segment_does_not ... ok
+test services::github::url_path::tests::the_contents_url_addresses_every_name_correctly ... ok
+test services::github::url_path::tests::the_contents_url_keeps_the_literal_percent_escaped ... ok
+test services::github::url_path::tests::the_contents_url_omits_the_ref_when_none_is_given ... ok
+test services::github::url_path::tests::the_raw_download_url_addresses_every_name_correctly ... ok
+test services::github::url_path::tests::the_unencoded_url_produced_an_invalid_escape ... ok
+test services::github::url_path::tests::the_unencoded_url_silently_decoded_a_literal_escape ... ok
+test services::github_pr_service::tests::classify_pr_state_covers_merged_closed_open ... ok
+test services::github_pr_service::tests::pr_number_parses_url_and_bare_number ... ok
+test services::github_sync_service::adr_2071_inferred_edge_tests::asserted_pairs_are_suppressed_on_the_sync_path ... ok
+test services::github_sync_service::adr_2071_inferred_edge_tests::emitted_edges_carry_the_inferred_flag_the_client_reads ... ok
+test services::github_sync_service::adr_2071_inferred_edge_tests::legacy_loop_emitted_the_long_range_edge_the_shared_path_suppresses ... ok
+test services::github_sync_service::adr_2071_inferred_edge_tests::per_child_cap_applies_to_the_sync_path ... ok
+test services::github_sync_service::adr_2071_inferred_edge_tests::selection_is_deterministic_regardless_of_axiom_order ... ok
+test services::github_sync_service::adr_2071_inferred_edge_tests::shadow_comparison_over_real_whelk_output ... ok
+test services::github_sync_service::adr_2071_inferred_edge_tests::three_level_hierarchy_drops_the_long_range_grandparent_edge ... ok
+test services::github_sync_service::adr_2071_inferred_edge_tests::vacuous_axioms_and_unresolved_endpoints_are_accounted_for ... ok
+test services::graph_serialization::tests::test_json_serialization ... ok
+test services::inferred_edge_materialiser::tests::build_inferred_edge_is_tagged_and_hierarchical ... ok
+test services::inferred_edge_materialiser::tests::caps_inferred_parents_per_child ... ok
+test services::inferred_edge_materialiser::tests::deterministic_order_regardless_of_input_order ... ok
+test services::inferred_edge_materialiser::tests::does_not_regress_asserted_edges ... ok
+test services::inferred_edge_materialiser::tests::drops_pairs_already_asserted_either_direction ... ok
+test services::inferred_edge_materialiser::tests::materialise_end_to_end_when_enabled ... ok
+test services::inferred_edge_materialiser::tests::materialise_is_gated_off_by_default ... ok
+test services::inferred_edge_materialiser::tests::mirror_of_asserted_pair_is_never_materialised ... ok
+test services::inferred_edge_materialiser::tests::pairs_front_door_filters_then_reduces ... ok
+test services::inferred_edge_materialiser::tests::pairs_front_door_matches_manual_map_construction ... ok
+test services::inferred_edge_materialiser::tests::skips_self_loops_and_dedups ... ok
+test services::inferred_edge_materialiser::tests::transitive_reduction_handles_diamond ... ok
+test services::inferred_edge_materialiser::tests::transitive_reduction_keeps_only_immediate_parents ... ok
+test services::inferred_edge_materialiser::tests::vacuous_subclass_pairs_are_rejected ... ok
+test services::insight_loop::tests::closed_loop_has_five_stages_monotonic_and_a_velocity ... ok
+test services::insight_loop::tests::empty_batch_reports_no_velocity ... ok
+test services::insight_loop::tests::pending_proposal_has_pending_decision_and_no_velocity ... ok
+test services::insight_loop::tests::propose_instant_falls_back_to_created_at_when_body_unstamped ... ok
+test services::insight_loop::tests::rejection_marks_merge_not_applicable_not_pending ... ok
+test services::insight_loop::tests::summary_means_velocity_over_closed_loops_only ... ok
+test services::kpi_compute::tests::augmentation_ratio_divides_volume_by_escalations ... ok
+test services::kpi_compute::tests::augmentation_ratio_low_sample_scales_confidence ... ok
+test services::kpi_compute::tests::augmentation_ratio_zero_escalations_is_zero_confidence ... ok
+test services::kpi_compute::tests::trust_variance_empty_is_zero ... ok
+test services::kpi_compute::tests::trust_variance_even_split_is_maximal ... ok
+test services::kpi_compute::tests::trust_variance_skewed_is_between_zero_and_one ... ok
+test services::kpi_compute::tests::trust_variance_three_way_even_is_maximal ... ok
+test services::kpi_compute::tests::trust_variance_uniform_outcome_is_zero ... ok
+test services::liveness_harness::probe_tests::healthy_status_is_up ... ok
+test services::liveness_harness::probe_tests::non_2xx_is_down ... ok
+test services::liveness_harness::probe_tests::terse_2xx_without_status_field_is_up ... ok
+test services::liveness_harness::probe_tests::unhealthy_status_is_down ... ok
+test services::liveness_harness::probe_tests::unparseable_2xx_body_is_down ... ok
+test services::local_file_sync_service::tests::a_page_with_no_metadata_is_private ... ok
+test services::local_file_sync_service::tests::explicit_public_false_is_not_included ... ok
+test services::local_file_sync_service::tests::leading_logseq_public_property_is_included ... ok
+test services::local_file_sync_service::tests::obsidian_frontmatter_is_included ... ok
+test services::local_file_sync_service::tests::quoted_or_mid_body_marker_is_not_included ... ok
+test services::management_api_client::tests::test_client_creation ... ok
+test services::multi_mcp_agent_discovery::discovery_interval_tests::disabled_servers_are_ignored ... ok
+test services::multi_mcp_agent_discovery::discovery_interval_tests::falls_back_to_default_when_no_server_is_enabled ... ok
+test services::multi_mcp_agent_discovery::discovery_interval_tests::floor_is_applied_to_a_too_small_configured_value ... ok
+test services::multi_mcp_agent_discovery::discovery_interval_tests::selects_minimum_across_enabled_servers ... ok
+test services::multi_mcp_agent_discovery::discovery_interval_tests::value_above_floor_is_unchanged ... ok
+test services::natural_language_query_service::tests::test_extract_sparql_block ... ok
+test services::natural_language_query_service::tests::test_extract_sparql_block_missing_is_error ... ok
+test services::natural_language_query_service::tests::test_mutating_sparql_rejected ... ok
+test services::natural_language_query_service::tests::test_query_patterns ... ok
+test services::natural_language_query_service::tests::test_select_accepted ... ok
+test services::nostr_identity_verifier::tests::accepts_matching_did_over_real_schnorr_signature ... ok
+test services::nostr_identity_verifier::tests::rejects_non_did_payload_before_crypto ... ok
+test services::nostr_identity_verifier::tests::rejects_payload_did_for_a_different_key ... ok
+test services::nostr_identity_verifier::tests::rejects_tampered_signature ... ok
+test services::nostr_service::session_expiry_tests::fresh_session_inside_the_window_is_accepted ... ok
+test services::nostr_service::session_expiry_tests::future_last_seen_beyond_the_window_is_rejected_not_granted ... ok
+test services::nostr_service::session_expiry_tests::session_exactly_at_the_boundary_is_accepted ... ok
+test services::nostr_service::session_expiry_tests::session_past_the_window_is_rejected ... ok
+test services::nostr_service::session_expiry_tests::small_forward_skew_stays_inside_the_window ... ok
+test services::ontology_class_index::tests::canary_empty_when_unbuilt ... ok
+test services::ontology_class_index::tests::canary_ok_when_populated ... ok
+test services::ontology_class_index::tests::canary_reports_transport_error ... ok
+test services::ontology_class_index::tests::clamp_words_is_panic_free_across_all_multibyte_offsets ... ok
+test services::ontology_class_index::tests::condense_clamps_long_text_on_word_boundary ... ok
+test services::ontology_class_index::tests::condense_clamps_multibyte_utf8_without_panic ... ok
+test services::ontology_class_index::tests::condense_falls_back_to_iri_segment_when_no_label ... ok
+test services::ontology_class_index::tests::condense_prefers_label_and_includes_relationships ... ok
+test services::ontology_class_index::tests::config_defaults_off ... ok
+test services::ontology_class_index::tests::event_serialises ... ok
+test services::ontology_class_index::tests::hit_count_extraction_handles_shapes ... ok
+test services::ontology_class_index::tests::key_is_stable_and_sanitised ... ok
+test services::ontology_class_index::tests::last_segment_extraction ... ok
+test services::ontology_class_index::tests::refresh_counts_writes_and_is_failopen ... ok
+test services::ontology_conflict_gate::tests::blocking_semantics_cycle_type_relation ... ok
+test services::ontology_conflict_gate::tests::candidate_folding_introduces_cycle ... ok
+test services::ontology_conflict_gate::tests::clean_corpus_empty_report ... ok
+test services::ontology_conflict_gate::tests::delta_gate_blocks_only_the_introduced_contradiction ... ok
+test services::ontology_conflict_gate::tests::delta_gate_blocks_proposal_joining_pre_existing_duplicate ... ok
+test services::ontology_conflict_gate::tests::delta_gate_passes_clean_proposal_over_dirty_corpus ... ok
+test services::ontology_conflict_gate::tests::duplicate_concept_counter_distinct_labels ... ok
+test services::ontology_conflict_gate::tests::duplicate_concept_empty_labels_not_flagged ... ok
+test services::ontology_conflict_gate::tests::duplicate_concept_positive_with_differing_definitions ... ok
+test services::ontology_conflict_gate::tests::duplicate_is_non_blocking_and_routes_to_merge ... ok
+test services::ontology_conflict_gate::tests::exit_code_and_ok_helpers ... ok
+test services::ontology_conflict_gate::tests::norm_label_normalises_case_and_punctuation ... ok
+test services::ontology_conflict_gate::tests::norm_label_unicode_and_punctuation_only_becomes_empty ... ok
+test services::ontology_conflict_gate::tests::relation_contradiction_counter ... ok
+test services::ontology_conflict_gate::tests::relation_contradiction_positive ... ok
+test services::ontology_conflict_gate::tests::report_serialises_with_frozen_kind_strings ... ok
+test services::ontology_conflict_gate::tests::subclass_cycle_counter_clean_chain ... ok
+test services::ontology_conflict_gate::tests::subclass_cycle_positive ... ok
+test services::ontology_conflict_gate::tests::subclass_cycle_real_corpus_fixture ... ok
+test services::ontology_conflict_gate::tests::type_conflict_counter ... ok
+test services::ontology_conflict_gate::tests::type_conflict_positive ... ok
+test services::ontology_enrichment_service::tests::test_extract_frontmatter ... ok
+test services::ontology_enrichment_service::tests::test_extract_link_context ... ok
+test services::ontology_file_cache::tests::test_cache_hit_rate ... ok
+test services::ontology_file_cache::tests::test_cache_invalidation_on_sha_mismatch ... ok
+test services::ontology_file_cache::tests::test_cache_put_and_get ... ok
+test services::ontology_file_cache::tests::test_get_by_priority ... ok
+test services::ontology_file_cache::tests::test_lru_eviction ... ok
+test services::ontology_generation::tests::corrupt_pointer_fails_closed_and_acl_stays_separate ... ok
+test services::ontology_generation::tests::every_pre_activation_failure_preserves_prior_generation_after_restart ... ok
+test services::ontology_mutation_service::provenance_wiring_tests::class_urn_round_trips_through_provenance ... ok
+test services::ontology_mutation_service::provenance_wiring_tests::no_store_injected_is_provenance_noop ... ok
+test services::ontology_mutation_service::provenance_wiring_tests::propose_create_emits_queryable_provenance_chain ... ok
+test services::ontology_mutation_service::vault_writer_tests::generated_page_is_frontmatter_and_passes_the_gate ... ok
+test services::ontology_mutation_service::vault_writer_tests::generated_page_preserves_the_ontology_properties_verbatim ... ok
+test services::ontology_mutation_service::vault_writer_tests::the_body_carries_the_heading_and_definition ... ok
+test services::ontology_mutation_service::vault_writer_tests::wikilink_list_skips_blanks_and_wraps_each_target ... ok
+test services::ontology_pipeline_service::tests::test_default_config ... ok
+test services::ontology_pipeline_service::tests::test_pipeline_creation ... ok
+test services::ontology_pull::tests::acl_probe_failure_preserves_operator_acl_and_content ... ok
+test services::ontology_pull::tests::digest_mismatch_writes_nothing ... ok
+test services::ontology_pull::tests::disabled_config_short_circuits ... ok
+test services::ontology_pull::tests::env_config_defaults_and_overrides ... ok
+test services::ontology_pull::tests::first_pull_writes_everything_with_acl_and_manifest_last ... ok
+test services::ontology_pull::tests::manifest_requires_build_sha_and_the_three_resources ... ok
+test services::ontology_pull::tests::missing_sum_entry_writes_nothing ... ok
+test services::ontology_pull::tests::new_build_sha_replaces_content_but_keeps_operator_acl ... ok
+test services::ontology_pull::tests::same_build_sha_is_a_no_op_without_downloading_content ... ok
+test services::ontology_pull::tests::sums_parser_tolerates_binary_marker_and_dot_slash ... ok
+test services::ontology_pull::tests::unreachable_release_leaves_pod_untouched ... ok
+test services::ontology_reasoner::tests::test_infer_from_path_company ... ok
+test services::ontology_reasoner::tests::test_infer_from_path_person ... ok
+test services::ontology_reasoner::tests::test_type_to_class_iri ... ok
+test services::ontology_reasoning_service::tests::test_create_service ... ok
+test services::ontology_reasoning_service::tests::test_descendant_counting ... ok
+test services::ontology_reasoning_service::tests::test_hierarchy_depth_calculation ... ok
+test services::owl_extractor_service::tests::test_parse_owl_blocks ... ok
+test services::parsers::knowledge_graph_parser::tests::a_root_page_is_unchanged_by_the_leaf_rule ... ok
+test services::parsers::knowledge_graph_parser::tests::a_subfolder_page_with_a_title_is_labelled_by_that_title ... ok
+test services::parsers::knowledge_graph_parser::tests::a_subfolder_page_without_a_title_is_labelled_by_its_leaf ... ok
+test services::parsers::knowledge_graph_parser::tests::a_title_that_merely_echoes_the_identity_falls_back_to_the_leaf ... ok
+test services::parsers::knowledge_graph_parser::tests::identity_is_not_affected_by_the_label_rule ... ok
+test services::parsers::knowledge_graph_parser::tests::test_fallback_to_random ... ok
+test services::parsers::knowledge_graph_parser::tests::test_position_preservation ... ok
+test services::pathfinding::tests::test_astar_nonexistent_source ... ok
+test services::pathfinding::tests::test_astar_same_node ... ok
+test services::pathfinding::tests::test_astar_shortest_path ... ok
+test services::pathfinding::tests::test_bidirectional_no_path ... ok
+test services::pathfinding::tests::test_bidirectional_same_node ... ok
+test services::pathfinding::tests::test_bidirectional_shortest_path ... ok
+test services::pathfinding::tests::test_embedding_provider_default_cosine ... ok
+test services::pathfinding::tests::test_euclidean_3d ... ok
+test services::pathfinding::tests::test_jaccard_similarity ... ok
+test services::pathfinding::tests::test_semantic_pathfinder ... ok
+test services::proposal_spine::tests::canonicalization_is_field_order_independent ... ok
+test services::proposal_spine::tests::canonicalization_preserves_array_order ... ok
+test services::proposal_spine::tests::envelope_absent_and_not_required_is_ok ... ok
+test services::proposal_spine::tests::envelope_absent_and_required_fails_closed ... ok
+test services::proposal_spine::tests::envelope_malformed_hex_fails_closed ... ok
+test services::proposal_spine::tests::envelope_present_but_invalid_not_required_still_rejects ... ok
+test services::proposal_spine::tests::envelope_tampered_payload_fails ... ok
+test services::proposal_spine::tests::envelope_valid_signature_passes ... ok
+test services::proposal_spine::tests::envelope_wrong_pubkey_fails ... ok
+test services::proposal_spine::tests::gate_summary_builder_maps_whelk_verdict ... ok
+test services::proposal_spine::tests::gate_summary_serialises_lowercase_wire_contract ... ok
+test services::proposal_spine::tests::governed_commit_same_key_divergent_payload_is_conflict_via_spine ... ok
+test services::proposal_spine::tests::governed_commit_same_key_same_payload_replays_without_double_write ... ok
+test services::proposal_spine::tests::governed_commit_writes_both_graphs_in_one_transaction ... ok
+test services::proposal_spine::tests::idempotency_fresh_then_replay_returns_prior_receipt ... ok
+test services::proposal_spine::tests::idempotency_inflight_retry_same_payload_is_fresh ... ok
+test services::proposal_spine::tests::idempotency_same_key_different_payload_is_conflict ... ok
+test services::proposal_spine::tests::intent_crash_between_record_and_mark_surfaces_pending ... ok
+test services::proposal_spine::tests::intent_failed_before_commit_is_not_recovered_as_pending ... ok
+test services::proposal_spine::tests::intent_pending_then_committed_leaves_no_recovery_work ... ok
+test services::proposal_spine::tests::payload_hash_is_stable_and_distinguishes_content ... ok
+test services::proposal_spine::tests::receipt_build_is_deterministic ... ok
+test services::proposal_spine::tests::receipt_envelope_hash_tracks_envelope ... ok
+test services::proposal_spine::tests::receipt_hashes_are_order_independent_but_content_sensitive ... ok
+test services::proposal_spine::tests::sha256_12_matches_prefix_of_full_digest ... ok
+test services::provenance_trace::tests::anonymous_records_never_join ... ok
+test services::provenance_trace::tests::joins_two_live_source_kinds_under_one_did ... ok
+test services::provenance_trace::tests::pod_mark_parses_from_contract_json ... ok
+test services::provenance_trace::tests::pod_source_incorporated_when_available ... ok
+test services::provenance_trace::tests::single_source_does_not_join ... ok
+test services::provenance_writer::tests::asserted_triple_lands_in_assert_graph_only ... ok
+test services::provenance_writer::tests::closed_interval_includes_valid_to ... ok
+test services::provenance_writer::tests::content_address_is_deterministic_and_agent_independent_in_hash ... ok
+test services::provenance_writer::tests::emits_exact_prov_o_domains ... ok
+test services::provenance_writer::tests::entity_urn_matches_uris_js_golden ... ok
+test services::provenance_writer::tests::invalid_iri_is_rejected ... ok
+test services::provenance_writer::tests::iso_utc_is_second_precision_z_form ... ok
+test services::provenance_writer::tests::late_arriving_fact_separates_recorded_and_valid_time ... ok
+test services::provenance_writer::tests::mint_rejects_non_pubkey_agent ... ok
+test services::provenance_writer::tests::never_emits_wrong_prov_domain ... ok
+test services::provenance_writer::tests::no_rdf_star_and_no_signature_triple ... ok
+test services::provenance_writer::tests::open_interval_omits_valid_to ... ok
+test services::provenance_writer::tests::retraction_closes_interval_without_deleting_history ... ok
+test services::provenance_writer::tests::stable_stringify_matches_uris_js ... ok
+test services::provenance_writer::tests::state_at_boundary_start_inclusive_end_exclusive ... ok
+test services::provenance_writer::tests::state_at_correction_keeps_history_shows_only_latest ... ok
+test services::provenance_writer::tests::state_at_open_interval ... ok
+test services::provenance_writer::tests::state_at_overlapping_claims_both_valid ... ok
+test services::provenance_writer::tests::state_at_sparql_is_bounded_half_open ... ok
+test services::role_store::tests::assign_checked_enforces_can_assign ... ok
+test services::role_store::tests::caller_row_removed_mid_request_is_a_demotion ... ok
+test services::role_store::tests::check_constraint_rejects_unknown_role ... ok
+test services::role_store::tests::concurrent_caller_demotion_is_refused ... ok
+test services::role_store::tests::concurrent_caller_demotion_is_refused_on_removal ... ok
+test services::role_store::tests::concurrent_caller_promotion_does_not_escalate ... ok
+test services::role_store::tests::corrupt_caller_row_mid_request_fails_closed ... ok
+test services::role_store::tests::default_role_parse_lattice ... ok
+test services::role_store::tests::demoting_last_owner_is_rejected ... ok
+test services::role_store::tests::demotion_is_reported_distinctly_from_denial ... ok
+test services::role_store::tests::explicit_role_overrides_power_user_flag ... ok
+test services::role_store::tests::explicit_viewer_assignment_is_the_real_revocation ... ok
+test services::role_store::tests::has_owner_tracks_owner_presence ... ok
+test services::role_store::tests::invalid_stored_role_is_hard_error_and_fails_closed ... ok
+test services::role_store::tests::legacy_table_migration_applies_constraints ... ok
+test services::role_store::tests::list_returns_all_assignments ... ok
+test services::role_store::tests::mixed_case_pubkey_hits_same_row ... ok
+test services::role_store::tests::power_user_without_row_maps_to_admin ... ok
+test services::role_store::tests::removal_semantics_follow_the_configured_default ... ok
+test services::role_store::tests::remove_reverts_to_default ... ok
+test services::role_store::tests::removing_a_nonexistent_assignment_reports_ambient_authority ... ok
+test services::role_store::tests::removing_a_power_user_assignment_restores_admin ... ok
+test services::role_store::tests::removing_a_viewer_assignment_is_not_a_revocation ... ok
+test services::role_store::tests::removing_an_admin_assignment_reduces_authority ... ok
+test services::role_store::tests::set_get_roundtrip_and_upsert ... ok
+test services::role_store::tests::set_rejects_non_hex_pubkey ... ok
+test services::role_store::tests::unassigned_default_is_store_configured_not_hardcoded ... ok
+test services::role_store::tests::unassigned_user_gets_editor_default ... ok
+test services::role_store::tests::unchanged_caller_authority_proceeds ... ok
+test services::schema_service::tests::test_llm_context_generation ... ok
+test services::schema_service::tests::test_schema_extraction ... ok
+test services::semantic_analyzer::tests::test_domain_classification ... ok
+test services::semantic_analyzer::tests::test_language_detection ... ok
+test services::semantic_analyzer::tests::test_semantic_analyzer_creation ... ok
+test services::semantic_analyzer::tests::test_similarity_computation ... ok
+test services::semantic_pathfinding_service::tests::test_adjacency_list ... ok
+test services::semantic_pathfinding_service::tests::test_query_relevance ... ok
+test services::semantic_pathfinding_service::tests::test_semantic_pathfinding_creation ... ok
+test services::semantic_type_registry::tests::test_default_types_registered ... ok
+test services::semantic_type_registry::tests::test_edge_type_to_int ... ok
+test services::semantic_type_registry::tests::test_get_config ... ok
+test services::semantic_type_registry::tests::test_get_or_register_id ... ok
+test services::semantic_type_registry::tests::test_gpu_buffer ... ok
+test services::semantic_type_registry::tests::test_register_new_type ... ok
+test services::semantic_type_registry::tests::test_registry_creation ... ok
+test services::semantic_type_registry::tests::test_update_config ... ok
+test services::voice_clarification::tests::a_non_spawn_command_with_no_slot_dispatches ... ok
+test services::voice_clarification::tests::from_token_rejects_foreign_values ... ok
+test services::voice_clarification::tests::high_confidence_clear_command_dispatches ... ok
+test services::voice_clarification::tests::low_confidence_holds_and_names_what_it_heard ... ok
+test services::voice_clarification::tests::low_confidence_repair_reutterance_merges_and_dispatches ... ok
+test services::voice_clarification::tests::missing_agent_id_on_stop_is_a_clarification ... ok
+test services::voice_clarification::tests::missing_agent_type_is_an_intent_gate_clarification ... ok
+test services::voice_clarification::tests::missing_confidence_does_not_block_a_clear_command ... ok
+test services::voice_clarification::tests::missing_slot_repair_fills_the_slot_and_dispatches ... ok
+test services::voice_clarification::tests::pending_token_round_trips ... ok
+test services::voice_clarification::tests::repair_that_is_still_ambiguous_clarifies_again ... ok
+test services::voice_clarification::tests::threshold_is_clamped ... ok
+test services::voice_clarification::tests::threshold_is_configurable ... ok
+test services::voice_context_manager::tests::test_conversation_turns ... ok
+test services::voice_context_manager::tests::test_pending_clarification_is_assigned_and_taken ... ok
+test services::voice_context_manager::tests::test_pending_operations ... ok
+test services::voice_context_manager::tests::test_session_creation ... ok
+test services::voice_intent_client::tests::ack_sentence_names_agent_and_intent ... ok
+test services::voice_intent_client::tests::builds_31402_targeted_at_the_did ... ok
+test services::voice_intent_client::tests::canonical_did_gate_matches_uri_primitive ... ok
+test services::voice_intent_client::tests::non_did_target_is_refused_before_http ... ok
+test services::voice_intent_client::tests::signs_31402_verifiably ... ok
+test services::voice_tag_manager::tests::test_cleanup ... ok
+test services::voice_tag_manager::tests::test_response_processing ... ok
+test services::voice_tag_manager::tests::test_tag_generation ... ok
+test settings::auth_extractor::tests::middleware_identity_is_reused_but_token_cannot_cross_requests ... ok
+test settings::auth_extractor::tests::test_authenticated_user_power_check ... ok
+test settings::auth_extractor::tests::try_dev_bypass_is_loopback_and_optin_gated ... ok
+test telemetry::agent_telemetry::tests::test_correlation_id ... ok
+test telemetry::agent_telemetry::tests::test_position_3d ... ok
+test telemetry::agent_telemetry::tests::test_telemetry_event_creation ... ok
+test types::mcp_responses::tests::test_mcp_response_parsing ... ok
+test types::mcp_responses::tests::test_mcp_text_content_parsing ... ok
+test types::vec3::tests::test_array_conversion ... ok
+test types::vec3::tests::test_vec3_data_conversions ... ok
+test types::vec3::tests::test_zero ... ok
+test uri::tests::a_minted_edge_iri_ends_with_its_bare_id ... ok
+test uri::tests::all_lowercase_hex_digits_are_accepted ... ok
+test uri::tests::avatar_shape_and_roundtrip ... ok
+test uri::tests::bc20_bead_crossing_rejects_invalid_scope ... ok
+test uri::tests::bc20_crosses_agentbox_kinds_per_closed_map ... ok
+test uri::tests::bc20_crosses_bead_structurally_preserving_content_address ... ok
+test uri::tests::bead_shape_and_roundtrip ... ok
+test uri::tests::concept_shape_and_roundtrip ... ok
+test uri::tests::content_address_is_12_lowercase_hex ... ok
+test uri::tests::did_nostr_shape_and_roundtrip ... ok
+test uri::tests::edge_lookup_distinguishes_a_full_iri_from_a_bare_id ... ok
+test uri::tests::emitted_addresses_satisfy_the_grammar ... ok
+test uri::tests::execution_shape_and_roundtrip ... ok
+test uri::tests::federation_artefact_is_versioned_and_embedded ... ok
+test uri::tests::federation_crossings_match_declared_grammar ... ok
+test uri::tests::federation_identity_passthrough_matches_artefact ... ok
+test uri::tests::federation_kind_artefact_matches_translator ... ok
+test uri::tests::federation_refusals_are_recorded_not_absent ... ok
+test uri::tests::federation_targets_all_have_an_arm ... ok
+test uri::tests::federation_unscoped_inputs_are_refused ... ok
+test uri::tests::group_shape_and_roundtrip ... ok
+test uri::tests::kg_shape_and_roundtrip ... ok
+test uri::tests::kg_with_precomputed_address_roundtrip ... ok
+test uri::tests::legacy_class_iri_parser_rejects_other_schemes ... ok
+test uri::tests::legacy_class_iri_preserves_the_previous_literal ... ok
+test uri::tests::legacy_class_iri_round_trips ... ok
+test uri::tests::legacy_edge_iri_rejects_foreign_input ... ok
+test uri::tests::legacy_edge_iri_round_trips ... ok
+test uri::tests::legacy_identifiers_are_not_converged_urns ... ok
+test uri::tests::legacy_node_iri_rejects_foreign_input ... ok
+test uri::tests::legacy_node_iri_round_trips ... ok
+test uri::tests::malformed_precomputed_addresses_are_rejected ... ok
+test uri::tests::matches_agentbox_kg_target_urn_fixture ... ok
+test uri::tests::mutation_service_execution_urn_shape_parses ... ok
+test uri::tests::parse_dual_accepts_converged_and_legacy_ngm ... ok
+test uri::tests::parser_rejects_malformed_addresses_in_kg_and_bead_urns ... ok
+test uri::tests::parser_rejects_malformed_execution_and_room_addresses ... ok
+test uri::tests::precomputed_address_survives_a_persistence_round_trip ... ok
+test uri::tests::pubkey_validation ... ok
+test uri::tests::rejects_other_namespaces_including_legacy_ngm ... ok
+test uri::tests::room_shape_and_roundtrip ... ok
+test uri::tests::slugify_matches_agentbox_shape ... ok
+test uri::tests::well_formed_precomputed_address_round_trips ... ok
+test utils::actor_timeout::tests::test_send_with_default_timeout ... ok
+test utils::actor_timeout::tests::test_send_with_timeout_success ... ok
+test utils::audio_processor::tests::test_process_json_response_invalid_wav ... ok
+test utils::audio_processor::tests::test_process_json_response_valid ... ok
+test utils::auth::access_level_tests::admin_power_user_satisfies_everything ... ok
+test utils::auth::access_level_tests::authenticated_user_cannot_reach_power_user_or_admin ... ok
+test utils::auth::access_level_tests::read_only_cannot_write ... ok
+test utils::auth::dev_bypass_tests::dev_bypass_requires_loopback_and_optin ... ok
+test utils::auth::dev_bypass_tests::dev_full_bypass_respects_env_flag ... ok
+test utils::binary_protocol::adr_2019_shared_fixture_equivalence::the_action_fixture_matches_the_real_batch_encoder_byte_for_byte ... ok
+test utils::binary_protocol::adr_2019_shared_fixture_equivalence::the_fixture_record_size_matches_the_frozen_wire_item ... ok
+test utils::binary_protocol::adr_2019_shared_fixture_equivalence::the_server_action_decoder_bounds_an_overstated_count ... ok
+test utils::binary_protocol::adr_2019_shared_fixture_equivalence::the_server_action_decoder_refuses_a_truncated_batch_whole ... ok
+test utils::binary_protocol::adr_2019_shared_fixture_equivalence::the_server_decoder_reads_the_shared_v5_fixture ... ok
+test utils::binary_protocol::adr_2019_shared_fixture_equivalence::the_server_decoder_rejects_a_truncated_v5_sequence ... ok
+test utils::binary_protocol::adr_2019_shared_fixture_equivalence::the_server_decoder_rejects_unknown_position_versions ... ok
+test utils::binary_protocol::adr_2019_shared_fixture_equivalence::the_v3_fixture_matches_the_real_position_encoder_byte_for_byte ... ok
+test utils::binary_protocol::adr_2019_shared_fixture_equivalence::the_v5_envelope_is_purely_additive_over_the_real_v3_body ... ok
+test utils::binary_protocol::adr_2024_wire_id_bounds::a_remapped_id_never_leaks_into_the_class_flag_bits ... ok
+test utils::binary_protocol::adr_2024_wire_id_bounds::each_typed_setter_stamps_only_its_own_class ... ok
+test utils::binary_protocol::adr_2024_wire_id_bounds::in_range_ids_pass_through_every_class_untouched ... ok
+test utils::binary_protocol::adr_2024_wire_id_bounds::the_boundary_is_exact ... ok
+test utils::binary_protocol::adr_2024_wire_id_bounds::the_release_path_remaps_every_over_range_id_and_reports_it ... ok
+test utils::binary_protocol::adr_2024_wire_id_bounds::the_untyped_encoder_branch_emits_a_bounded_wire_id ... ok
+test utils::binary_protocol::control_frame_tests::test_agent_action_batch_encode_decode ... ok
+test utils::binary_protocol::control_frame_tests::test_agent_action_decode_error ... ok
+test utils::binary_protocol::control_frame_tests::test_agent_action_event_encode_decode ... ok
+test utils::binary_protocol::control_frame_tests::test_agent_action_event_with_payload ... ok
+test utils::binary_protocol::control_frame_tests::test_agent_action_type_conversion ... ok
+test utils::binary_protocol::control_frame_tests::test_control_frame_serialization ... ok
+test utils::binary_protocol::control_frame_tests::test_message_type_values ... ok
+test utils::binary_protocol::control_frame_tests::test_multiplexed_agent_action ... ok
+test utils::binary_protocol::control_frame_tests::test_multiplexed_message ... ok
+test utils::binary_protocol::control_frame_tests::test_protocol_error_handling ... ok
+test utils::binary_protocol::control_frame_tests::test_simplified_protocol_voice_data ... ok
+test utils::binary_protocol::tests::test_agent_flag_functions ... ok
+test utils::binary_protocol::tests::test_decode_invalid_data ... ok
+test utils::binary_protocol::tests::test_encode_decode_roundtrip ... ok
+test utils::binary_protocol::tests::test_encode_with_agent_flags ... ok
+test utils::binary_protocol::tests::test_encode_with_ontology_types ... ok
+test utils::binary_protocol::tests::test_large_node_id_no_truncation ... ok
+test utils::binary_protocol::tests::test_message_size_calculation ... ok
+test utils::binary_protocol::tests::test_ontology_flags_preserved_in_wire_format ... ok
+test utils::binary_protocol::tests::test_ontology_node_flags ... ok
+test utils::binary_protocol::tests::test_v1_protocol_rejected ... ok
+test utils::binary_protocol::tests::test_wire_format_size ... ok
+test utils::binary_protocol::tests::test_wire_id_conversion ... ok
+test utils::cache::tests::test_get_missing_key ... ok
+test utils::cache::tests::test_invalidate ... ok
+test utils::cache::tests::test_invalidate_all ... ok
+test utils::cache::tests::test_len_and_is_empty ... ok
+test utils::cache::tests::test_max_entries_eviction ... ok
+test utils::cache::tests::test_overwrite_existing_key ... ok
+test utils::cache::tests::test_set_and_get ... ok
+test utils::cache::tests::test_ttl_expiration ... ok
+test utils::client_message_extractor::tests::test_extract_basic_message ... ok
+test utils::client_message_extractor::tests::test_extract_multiple_messages ... ok
+test utils::client_message_extractor::tests::test_extract_with_session_info ... ok
+test utils::client_message_extractor::tests::test_extract_without_asterisks ... ok
+test utils::client_message_extractor::tests::test_multiline_message ... ok
+test utils::client_message_extractor::tests::test_no_messages ... ok
+test utils::client_message_extractor::tests::test_short_form_message ... ok
+test utils::client_message_extractor::tests::test_stream_processor ... ok
+test utils::cuda_error_handling::tests::test_cuda_error_conversion ... ok
+test utils::cuda_error_handling::tests::test_error_handler_creation ... ok
+test utils::cuda_error_handling::tests::test_fallback_threshold ... ok
+test utils::gpu_safety::tests::test_buffer_bounds_validation ... ok
+test utils::gpu_safety::tests::test_cpu_fallback ... ok
+test utils::gpu_safety::tests::test_kernel_params_validation ... ok
+test utils::gpu_safety::tests::test_memory_tracking ... ok
+test utils::json::tests::test_from_json_bytes ... ok
+test utils::json::tests::test_from_json_error ... ok
+test utils::json::tests::test_from_json_success ... ok
+test utils::json::tests::test_from_json_with_context ... ok
+test utils::json::tests::test_round_trip ... ok
+test utils::json::tests::test_round_trip_bytes ... ok
+test utils::json::tests::test_to_json_bytes ... ok
+test utils::json::tests::test_to_json_pretty ... ok
+test utils::json::tests::test_to_json_success ... ok
+test utils::mcp_client_utils::tests::test_config_builder ... ok
+test utils::mcp_client_utils::tests::test_pool_stats ... ok
+test utils::memory_bounds::tests::test_alignment_checking ... ok
+test utils::memory_bounds::tests::test_bounds_registry ... ok
+test utils::memory_bounds::tests::test_memory_bounds_validation ... ok
+test utils::memory_bounds::tests::test_safe_array_access ... ok
+test utils::memory_bounds::tests::test_safe_array_copy_from_slice ... ok
+test utils::memory_bounds::tests::test_safe_array_copy_from_slice_with_bounds_checker ... ok
+test utils::network::circuit_breaker::tests::test_circuit_breaker_closed_state ... ok
+test utils::network::circuit_breaker::tests::test_circuit_breaker_half_open_transition ... ok
+test utils::network::circuit_breaker::tests::test_circuit_breaker_opens_on_failures ... ok
+test utils::network::circuit_breaker::tests::test_execute_function ... ok
+test utils::network::connection_pool::tests::test_connection_expiry ... ok
+test utils::network::connection_pool::tests::test_connection_pool_creation ... ok
+test utils::network::connection_pool::tests::test_connection_pool_registry ... ok
+test utils::network::connection_pool::tests::test_pooled_connection_validation ... ok
+test utils::network::graceful_degradation::tests::test_cache_and_retrieve ... ok
+test utils::network::graceful_degradation::tests::test_degradation_manager_creation ... ok
+test utils::network::graceful_degradation::tests::test_queue_request ... ok
+test utils::network::health_check::tests::test_health_check_manager_creation ... ok
+test utils::network::health_check::tests::test_health_status_methods ... ok
+test utils::network::health_check::tests::test_service_endpoint_creation ... ok
+test utils::network::health_check::tests::test_service_registration ... ok
+test utils::network::retry::tests::test_all_attempts_exhausted ... ok
+test utils::network::retry::tests::test_delay_calculation ... ok
+test utils::network::retry::tests::test_non_retryable_error ... ok
+test utils::network::retry::tests::test_retry_until_success ... ok
+test utils::network::retry::tests::test_successful_operation ... ok
+test utils::network::tests::test_resilience_manager_creation ... ok
+test utils::network::tests::test_service_config_creation ... ok
+test utils::network::tests::test_service_registration ... ok
+test utils::network::timeout::tests::test_adaptive_timeout ... ok
+test utils::network::timeout::tests::test_batch_timeout_manager ... ok
+test utils::network::timeout::tests::test_timeout_config_presets ... ok
+test utils::network::timeout::tests::test_timeout_guard ... ok
+test utils::network::timeout::tests::test_timeout_guard_expiry ... ok
+test utils::network::timeout::tests::test_timeout_result_success ... ok
+test utils::network::timeout::tests::test_timeout_result_timeout ... ok
+test utils::nip98::tests::a_backward_clock_step_does_not_expire_an_entry ... ok
+test utils::nip98::tests::a_reclaim_restarts_the_ttl ... ok
+test utils::nip98::tests::a_rejected_binding_does_not_burn_the_event_id ... ok
+test utils::nip98::tests::capacity_boundary_is_exact_and_fails_closed ... ok
+test utils::nip98::tests::expired_entries_free_capacity ... ok
+test utils::nip98::tests::no_body_binding_rejects_a_payload_tag ... ok
+test utils::nip98::tests::required_binding_accepts_a_matching_body ... ok
+test utils::nip98::tests::required_binding_rejects_a_substituted_body ... ok
+test utils::nip98::tests::required_binding_rejects_a_tag_without_a_body ... ok
+test utils::nip98::tests::required_binding_rejects_an_unbound_body ... ok
+test utils::nip98::tests::signer_admission_preserves_other_signers_and_replay_entries ... ok
+test utils::nip98::tests::test_build_auth_header ... ok
+test utils::nip98::tests::test_claim_event_id_atomic_under_concurrency ... ok
+test utils::nip98::tests::test_claim_event_id_distinct_ids_unaffected ... ok
+test utils::nip98::tests::test_claim_event_id_expires_after_window ... ok
+test utils::nip98::tests::test_claim_in_cap_boundary_fails_closed ... ok
+test utils::nip98::tests::test_failed_checks_do_not_burn_id ... ok
+test utils::nip98::tests::test_generate_nip98_token ... ok
+test utils::nip98::tests::test_generate_nip98_token_with_body ... ok
+test utils::nip98::tests::test_invalid_signature_does_not_burn_id ... ok
+test utils::nip98::tests::test_normalize_url ... ok
+test utils::nip98::tests::test_parse_auth_header ... ok
+test utils::nip98::tests::test_payload_hash ... ok
+test utils::nip98::tests::test_replay_same_token_rejected ... ok
+test utils::nip98::tests::test_urls_match_api_prefix_strip ... ok
+test utils::nip98::tests::test_urls_match_case_insensitive_host ... ok
+test utils::nip98::tests::test_urls_match_direct ... ok
+test utils::nip98::tests::test_urls_match_rejects_different_host ... ok
+test utils::nip98::tests::test_urls_match_relative_path ... ok
+test utils::nip98::tests::test_urls_match_relative_vs_absolute_allowed ... ok
+test utils::nip98::tests::test_validate_nip98_token_future_dated_rejected ... ok
+test utils::nip98::tests::test_validate_nip98_token_invalid_base64 ... ok
+test utils::nip98::tests::test_validate_nip98_token_method_mismatch ... ok
+test utils::nip98::tests::test_validate_nip98_token_url_mismatch ... ok
+test utils::nip98::tests::test_validate_nip98_token_valid ... ok
+test utils::nip98::tests::test_validate_nip98_token_with_payload ... ok
+test utils::nip98::tests::test_validate_nip98_token_within_future_tolerance_accepted ... ok
+test utils::nip98::tests::the_default_policy_is_strict_and_legacy_callers_are_unchanged ... ok
+test utils::nip98::tests::ttl_boundary_is_exact_and_half_open ... ok
+test utils::nip98::tests::ttl_covers_the_entire_freshness_window ... ok
+test utils::response_macros::tests::test_bad_request_macro ... ok
+test utils::response_macros::tests::test_created_json_macro ... ok
+test utils::response_macros::tests::test_error_json_macro ... ok
+test utils::response_macros::tests::test_error_json_with_formatting ... ok
+test utils::response_macros::tests::test_forbidden_macro ... ok
+test utils::response_macros::tests::test_no_content_macro ... ok
+test utils::response_macros::tests::test_not_found_macro ... ok
+test utils::response_macros::tests::test_ok_json_macro ... ok
+test utils::response_macros::tests::test_unauthorized_macro ... ok
+test utils::result_helpers::tests::test_map_err_context ... ok
+test utils::result_helpers::tests::test_ok_or_error_with_none ... ok
+test utils::result_helpers::tests::test_ok_or_error_with_value ... ok
+test utils::result_helpers::tests::test_option_ext_context ... ok
+test utils::result_helpers::tests::test_result_ext_context ... ok
+test utils::result_helpers::tests::test_result_or_default_log ... ok
+test utils::result_helpers::tests::test_safe_unwrap_with_none ... ok
+test utils::result_helpers::tests::test_safe_unwrap_with_value ... ok
+test utils::result_helpers::tests::test_to_vf_error ... ok
+test utils::result_helpers::tests::test_unwrap_or_default_log ... ok
+test utils::time::tests::test_elapsed_ms ... ok
+test utils::time::tests::test_format_iso8601 ... ok
+test utils::time::tests::test_format_log_time ... ok
+test utils::time::tests::test_now ... ok
+test utils::time::tests::test_parse_iso8601_invalid ... ok
+test utils::time::tests::test_parse_iso8601_valid ... ok
+test utils::time::tests::test_round_trip_formatting ... ok
+test utils::time::tests::test_timestamp_millis ... ok
+test utils::time::tests::test_timestamp_seconds ... ok
+test utils::unified_gpu_compute::community::tests::barbell_k3_two_communities_is_five_fourteenths ... ok
+test utils::unified_gpu_compute::community::tests::empty_or_degenerate_is_zero ... ok
+test utils::unified_gpu_compute::community::tests::k4_all_singletons_is_minus_quarter ... ok
+test utils::unified_gpu_compute::community::tests::k4_single_community_is_zero ... ok
+test utils::unified_gpu_compute::community::tests::matches_independent_oracle_on_all_fixtures_and_partitions ... ok
+test utils::unified_gpu_compute::community::tests::triangle_all_singletons_is_minus_one_third ... ok
+test utils::unified_gpu_compute::community::tests::triangle_single_community_is_zero ... ok
+test utils::unified_gpu_compute::community::tests::two_disjoint_k3_is_half ... ok
+test utils::unified_gpu_compute::community::tests::two_k4_bridge_two_communities_is_eleven_twentysixths ... ok
+test utils::unified_gpu_compute::execution::peripheral_shell_tests::bounds_anchored_target_converges ... ok
+test utils::unified_gpu_compute::execution::peripheral_shell_tests::bounds_disabled_falls_back_but_stays_capped ... ok
+test utils::unified_gpu_compute::execution::peripheral_shell_tests::bounds_enabled_target_is_constant_and_inside_the_soft_zone ... ok
+test utils::unified_gpu_compute::execution::peripheral_shell_tests::escaped_shell_is_recovered ... ok
+test utils::unified_gpu_compute::execution::peripheral_shell_tests::fix_inverts_force_direction_for_an_escaped_shell ... ok
+test utils::unified_gpu_compute::execution::peripheral_shell_tests::legacy_aabb_diagonal_target_diverges ... ok
+test utils::unified_gpu_compute::execution::peripheral_shell_tests::legacy_target_always_exceeds_current_radius ... ok
+test utils::unified_gpu_compute::execution::peripheral_shell_tests::non_finite_extent_does_not_produce_a_nan_target ... ok
+test utils::validation::position_validator::tests::test_validate_position_invalid ... ok
+test utils::validation::position_validator::tests::test_validate_position_number ... ok
+test utils::validation::position_validator::tests::test_validate_position_numeric_string ... ok
+test utils::validation::position_validator::tests::test_validate_position_object ... ok
+test utils::validation::rate_limit::tests::test_ban_after_violations ... ok
+test utils::validation::rate_limit::tests::test_rate_limiter_basic ... ok
+test utils::validation::rate_limit::tests::test_rate_limiter_refill ... ok
+test utils::validation::sanitization::tests::test_sanitize_filename ... ok
+test utils::validation::sanitization::tests::test_sanitize_string ... ok
+test utils::validation::sanitization::tests::test_sanitize_url ... ok
+test web_contract::ledger::tests::equal_content_serialises_byte_identically ... ok
+test web_contract::ledger::tests::ledger_emits_webledgers_context_and_sorted_balances ... ok
+test web_contract::ledger::tests::shares_convert_at_one_thousand_sats ... ok
+test web_contract::reducer::tests::replay_is_deterministic_and_byte_stable ... ok
+test web_contract::reducer::tests::transition_rejects_overflow_without_panicking ... ok
+test web_contract::reducer::tests::validate_flags_owner_drift_i1_guard ... ok
+test web_contract::ritual::tests::full_verify_passes_at_l0 ... ok
+test web_contract::ritual::tests::l1_requires_single_use_seal_close ... ok
+test web_contract::ritual::tests::substrate_disablement_blocks_money_moves ... ok
+test web_contract::ritual::tests::tampered_state_hash_fails_reducer_replay ... ok
+test web_contract::ritual::tests::three_gate_checks_agree_when_deterministic ... ok
+test web_contract::ritual::tests::trustless_levels_are_hard_refused ... ok
+test web_contract::state::tests::different_states_hash_differently ... ok
+test web_contract::state::tests::equal_states_hash_identically ... ok
+test web_contract::tests::assembles_a_contract_referencing_gitmark_at_id ... ok
+test web_contract::tests::cannot_assemble_a_hard_refused_trust_level ... ok
+test web_contract::trail::tests::blocktrails_reference_shape_and_single_use_seal_chain ... ok
+test web_contract::trail::tests::gitmark_byte_matches_carvalho_ground_truth ... ok
+test web_contract::trail::tests::gitmark_genesis_emits_exactly_five_ground_truth_keys ... ok
+test web_contract::trail::tests::malformed_trail_detected_when_seal_chain_diverges ... ok
+
+test result: ok. 1355 passed; 0 failed; 6 ignored; 0 measured; 0 filtered out; finished in 11.15s
+

@@ -1,0 +1,98 @@
+{
+  "at": "2026-09-07T11:18:42.979Z",
+  "browser": "sidecar Chrome via CDP 9223",
+  "scope": "Read-only public/candidate journeys; no identity credentials, submissions or device acceptance",
+  "records": [
+    {
+      "name": "notes",
+      "url": "https://narrativegoldmine.com/notes/",
+      "checks": [
+        {
+          "name": "content",
+          "ok": true,
+          "detail": 2579
+        },
+        {
+          "name": "images",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "mobile-no-overflow",
+          "ok": false,
+          "detail": {
+            "viewport": 375,
+            "width": 406,
+            "bodyWidth": 406
+          }
+        },
+        {
+          "name": "no-uncaught-exceptions",
+          "ok": true,
+          "detail": []
+        }
+      ],
+      "page": {
+        "url": "https://narrativegoldmine.com/notes/#/all-pages",
+        "title": "All pages",
+        "text": 2579,
+        "headings": [
+          "All pages"
+        ],
+        "brokenImages": []
+      },
+      "candidateStyle": {
+        "path": "../visionGraph/publishing-tools/notes-mobile.css",
+        "sha256": "91605c86ee87c83fd978e821c3cb2954f9c3898f6056c2869be5ecbe7c7cdd74"
+      },
+      "mobile": {
+        "viewport": 375,
+        "width": 406,
+        "bodyWidth": 406
+      },
+      "overflow": [
+        {
+          "tag": "DIV",
+          "class": "r flex drag-region",
+          "right": 405.65625,
+          "width": 159.65625
+        },
+        {
+          "tag": "DIV",
+          "class": "relative ui__dropdown-trigger",
+          "right": 399.65625,
+          "width": 32
+        },
+        {
+          "tag": "BUTTON",
+          "class": "button icon toolbar-dots-btn",
+          "right": 399.65625,
+          "width": 32
+        },
+        {
+          "tag": "SPAN",
+          "class": "ui__icon ti ti-dots",
+          "right": 393.75,
+          "width": 20.203125
+        },
+        {
+          "tag": "DIV",
+          "class": "resizer",
+          "right": 379,
+          "width": 3
+        }
+      ],
+      "screenshot": {
+        "path": "notes-mobile.png",
+        "sha256": "2ea5ff850a1dae2dbc605777920a147962709d7392c149dc58f0b07414e569e9"
+      },
+      "exceptions": [],
+      "httpStatuses": [
+        {
+          "url": "https://narrativegoldmine.com/notes/",
+          "status": 200
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+[
+  {
+    "package": "deepsec",
+    "version": "2.3.9",
+    "source": "/nix/store/smn70iigr1sr9j87fgrlfvwhry346j8h-deepsec-2.3.9/lib/deepsec/package-lock.json",
+    "lock_sha256": "b54c5360e3d60fe9f75e8458a3880e58c0904df517d441687e54d4e48ca06c19"
+  },
+  {
+    "package": "wrangler",
+    "version": "4.125.0",
+    "source": "/nix/store/bkg4bcy1h0ixm3s9k3pc4az1za2j30n4-wrangler-4.125.0/lib/wrangler/package-lock.json",
+    "lock_sha256": "74ed7f859eb93ba9eb25cf6965698f5d0abbef52b176cc8a8f3ee61d16b59eaa"
+  },
+  {
+    "package": "@mermaid-js/mermaid-cli",
+    "version": "11.16.0",
+    "source": "/nix/store/bq7xd1ragph40vghb293dlrs7jmkixd7-mermaid-js-mermaid-cli-11.16.0/lib/mermaid-js-mermaid-cli/package-lock.json",
+    "lock_sha256": "cb5993c696c1129bb305f6e038a4102ae5ca6e990102684a1e0388f36029293c"
+  },
+  {
+    "package": "codebase-memory-mcp",
+    "version": "0.10.8",
+    "source": "/nix/store/qrcaq89ji2asbr485ziyxhpbaz2qa6l6-codebase-memory-mcp-0.10.8/lib/codebase-memory-mcp/package-lock.json",
+    "lock_sha256": "c25a2dc545e4c5f004d6a78944af7608e84b3bd293f76f8478a1ee24be04458a"
+  },
+  {
+    "package": "agentic-qe",
+    "version": "3.13.12",
+    "source": "/nix/store/59hxglsyzbx3ff42yfmgqiw13npf5kmh-agentic-qe-3.13.12/lib/agentic-qe/package-lock.json",
+    "lock_sha256": "123ca59478ecae65b4d82ec73e720ed6dc48fafc55c3822584d9248771903a1b"
+  },
+  {
+    "package": "@metaharness/darwin",
+    "version": "0.8.3",
+    "source": "/nix/store/p7madqqlqqqmkr8cc9mqldwm0fg94zqb-metaharness-darwin-0.8.3/lib/metaharness-darwin/package-lock.json",
+    "lock_sha256": "479b57f108d8d4b20277a941d27d13b035ef3412be610f762f25b8ae99745697"
+  },
+  {
+    "package": "metaharness",
+    "version": "0.3.2",
+    "source": "/nix/store/ckvfv88vm6zcx7q52qxp3dy1j5k9hci1-metaharness-0.3.2/lib/metaharness/package-lock.json",
+    "lock_sha256": "71491232b156d81fd59d111cd2a6a6cd252ddc0ec48eaef00d6768c4bc2d170a"
+  },
+  {
+    "package": "ruflo",
+    "version": "3.38.20",
+    "source": "/nix/store/h7qsy09anx4235x7l362k6qiyw4z2gy8-ruflo-3.38.20/lib/ruflo/package-lock.json",
+    "lock_sha256": "cae9f26fa0da1ac7bea53ed370fa0762c81e40469ca139753f6bf9e14a2ac8b5"
+  },
+  {
+    "package": "ruvector",
+    "version": "0.3.0",
+    "source": "/nix/store/sl8sdhdglfznx7idz0n9c075wmsk1biw-ruvector-0.3.0/lib/ruvector/package-lock.json",
+    "lock_sha256": "5f45d0deb7119923acae01f1de9f4a0ada07f11121bf494ae979fc59aa4a5e07"
+  }
+]

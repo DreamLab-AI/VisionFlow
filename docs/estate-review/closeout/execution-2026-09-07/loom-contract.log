@@ -1,0 +1,32 @@
+   Compiling loom-facade v0.1.0 (/home/devuser/workspace/loom/crates/loom-facade)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.77s
+     Running tests/exp009_generation.rs (/home/devuser/workspace/loom/target/debug/deps/exp009_generation-406a63c6b94ab761)
+
+running 7 tests
+test generation_store_falls_to_scaffold_index ... ok
+test generation_store_falls_to_mirror_manifest ... ok
+test generation_store_prefers_build_manifest ... ok
+test verify_atomicity_ok_without_manifest ... ok
+test verify_atomicity_flags_a_tampered_artifact ... ok
+test generation_mismatch_skips_fallback ... ok
+test generation_match_admits_fallback ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/exp014_grounding_contract.rs (/home/devuser/workspace/loom/target/debug/deps/exp014_grounding_contract-9254d4ca79f51d62)
+
+running 11 tests
+test scaffold_route_no_match_carries_the_same_contract ... ok
+test absent_backend_is_a_labelled_failure_with_the_contract_attached ... ok
+test an_unattested_bundle_is_declared_on_the_response ... ok
+test no_match_reports_an_honest_zero_and_is_not_corpus_backed ... ok
+test verbatim_serve_carries_the_contract_and_names_its_own_threshold ... ok
+test degradations_are_named_on_the_response_that_suffered_them ... ok
+test semantic_fallback_reports_its_own_status_and_score_scale ... ok
+test backend_failure_carries_the_contract_and_is_never_corpus_backed ... ok
+test delegated_success_is_corpus_backed_when_engaged ... ok
+test opt_out_is_distinguishable_from_an_ordinary_delegation ... ok
+test corpus_backed_is_true_exactly_when_evidence_and_answer_both_exist ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+

@@ -1,0 +1,377 @@
+{
+  "date": "2026-09-07",
+  "scope": "committed source content; every working-tree file matched git show commit:path",
+  "commits": {
+    "visionGraph": "482ba593bcffddca7d564d0b6c4b1fea225154fb",
+    "knowledgeGraph": "d09a476124caa14aa0165c642d0950f6026c46fb",
+    "nostr-rust-forum": "380a595f150dd96bfe27ff278fff9ded1be7fbd0",
+    "agentbox": "3ab56fe2871ce86584f139430df4ec0f679fc7ce",
+    "visionclaw": "e299114056c0bf3ff7ccc22f7a68efe65068e183"
+  },
+  "files": [
+    {
+      "repository": "visionGraph",
+      "commit": "482ba593bcffddca7d564d0b6c4b1fea225154fb",
+      "path": ".github/workflows/publish.yml",
+      "sha256": "f8ffe69967874bf48d928ff9701a0e3a69b7aab45f0ba6fa4d9869c65f1d72ba",
+      "bytes": 12186
+    },
+    {
+      "repository": "visionGraph",
+      "commit": "482ba593bcffddca7d564d0b6c4b1fea225154fb",
+      "path": "pipeline/build.py",
+      "sha256": "47205c160caf9549cfb5bf2210ca495f505c5dfa58be537675d67739474eb4b8",
+      "bytes": 5985
+    },
+    {
+      "repository": "visionGraph",
+      "commit": "482ba593bcffddca7d564d0b6c4b1fea225154fb",
+      "path": "pipeline/jsonld_to_page_api.py",
+      "sha256": "d032bd8fdd3cb92aaec4c6973c4a4d05dfccdc6bcac384e1848d18a282bf73cc",
+      "bytes": 5553
+    },
+    {
+      "repository": "visionGraph",
+      "commit": "482ba593bcffddca7d564d0b6c4b1fea225154fb",
+      "path": "pipeline/patch_notes_export.py",
+      "sha256": "10e4fd00f5d068297c9235119f5137b8e5f940278a3485ad49cc7d0f4e007246",
+      "bytes": 786
+    },
+    {
+      "repository": "visionGraph",
+      "commit": "482ba593bcffddca7d564d0b6c4b1fea225154fb",
+      "path": "pipeline/public_projection.py",
+      "sha256": "fc4ae312c6467237797edadb3d47712f15eef3e0664454b8ac6d092bd9697404",
+      "bytes": 10276
+    },
+    {
+      "repository": "visionGraph",
+      "commit": "482ba593bcffddca7d564d0b6c4b1fea225154fb",
+      "path": "pipeline/tests/test_notes_export.py",
+      "sha256": "a0aeb5b52d3e8700c10e186fa43a62cc68f82d65446faf9e2e8a3eec08cf9d6c",
+      "bytes": 831
+    },
+    {
+      "repository": "visionGraph",
+      "commit": "482ba593bcffddca7d564d0b6c4b1fea225154fb",
+      "path": "pipeline/tests/test_public_build_boundary.py",
+      "sha256": "e373944fd4531c6d477d7a96adc14b18ed1b0d70e946ed83596ff3eabd57542c",
+      "bytes": 5602
+    },
+    {
+      "repository": "visionGraph",
+      "commit": "482ba593bcffddca7d564d0b6c4b1fea225154fb",
+      "path": "pipeline/tests/test_vault_layout.py",
+      "sha256": "76bae880ad7c1c8e91880f4018b22de34f8b34ed8cfc27e3018cc9cb2c5cc4f4",
+      "bytes": 6503
+    },
+    {
+      "repository": "visionGraph",
+      "commit": "482ba593bcffddca7d564d0b6c4b1fea225154fb",
+      "path": "publishing-tools/notes-mobile.css",
+      "sha256": "d4a7112c219e11554e18e8503b906cd6ca3b2e6afb60d34bad9a568b694f1f29",
+      "bytes": 765
+    },
+    {
+      "repository": "visionGraph",
+      "commit": "482ba593bcffddca7d564d0b6c4b1fea225154fb",
+      "path": "working/assets/01-three-layer-mesh.mmd",
+      "sha256": "fcc47ea05cf463f55b114dcc961c9c3a960cec2b5958ab951e09ef34169a8032",
+      "bytes": 793
+    },
+    {
+      "repository": "visionGraph",
+      "commit": "482ba593bcffddca7d564d0b6c4b1fea225154fb",
+      "path": "working/assets/01-three-layer-mesh.png",
+      "sha256": "c5afaed780904c79bba31278a1277dd07bc81f76e6ffbbd365aad0161c78eeff",
+      "bytes": 151426
+    },
+    {
+      "repository": "visionGraph",
+      "commit": "482ba593bcffddca7d564d0b6c4b1fea225154fb",
+      "path": "working/assets/04-mcp-tools-radial.mmd",
+      "sha256": "7ce9efd8bad84ec9f2c2634e05cfd783f3950cce19bb21cc0d5d505ddf88c769",
+      "bytes": 549
+    },
+    {
+      "repository": "visionGraph",
+      "commit": "482ba593bcffddca7d564d0b6c4b1fea225154fb",
+      "path": "working/assets/04-mcp-tools-radial.png",
+      "sha256": "a03b3bdd486e683c1ff095fb1935db4e9a43e29af0123408b0cbf0d167121ed9",
+      "bytes": 37382
+    },
+    {
+      "repository": "visionGraph",
+      "commit": "482ba593bcffddca7d564d0b6c4b1fea225154fb",
+      "path": "working/assets/06-migration-event.mmd",
+      "sha256": "cf835263e8f629dc548ab8047a4d2c3307d04ea95ce2ec921c0d368ecfc3fe89",
+      "bytes": 533
+    },
+    {
+      "repository": "visionGraph",
+      "commit": "482ba593bcffddca7d564d0b6c4b1fea225154fb",
+      "path": "working/assets/06-migration-event.png",
+      "sha256": "339762576f3a0d65dae36b12dd7b3c27ccf8f4b5493574cf250fb88f88557ff8",
+      "bytes": 34759
+    },
+    {
+      "repository": "visionGraph",
+      "commit": "482ba593bcffddca7d564d0b6c4b1fea225154fb",
+      "path": "working/assets/07-dual-tier-identity.mmd",
+      "sha256": "95b52ebc4d512f579077f63f8de488d4ae725b95865f97de513ebb02e92fe905",
+      "bytes": 654
+    },
+    {
+      "repository": "visionGraph",
+      "commit": "482ba593bcffddca7d564d0b6c4b1fea225154fb",
+      "path": "working/assets/07-dual-tier-identity.png",
+      "sha256": "156441e0919ac51bf855ae73a7e6cb5709c2edeb268848c88b5f247d0be80ec1",
+      "bytes": 102043
+    },
+    {
+      "repository": "visionGraph",
+      "commit": "482ba593bcffddca7d564d0b6c4b1fea225154fb",
+      "path": "working/pages/Two Heads Are Better Than One.md",
+      "sha256": "a115931c525772959af2c31c548166bec52d13572ddf55a0ed7f7754fe34521c",
+      "bytes": 139
+    },
+    {
+      "repository": "knowledgeGraph",
+      "commit": "d09a476124caa14aa0165c642d0950f6026c46fb",
+      "path": ".github/workflows/build.yml",
+      "sha256": "41fe0f4ebce52fb8da7e99b82758616209db3b5294da912eda0084297a28a3da",
+      "bytes": 14524
+    },
+    {
+      "repository": "knowledgeGraph",
+      "commit": "d09a476124caa14aa0165c642d0950f6026c46fb",
+      "path": "docs/ci-cd/artifact-transport.md",
+      "sha256": "911db0cb964b85e194bd011d66f903bb394a23a8278f5aff577b804c1407bdcf",
+      "bytes": 661
+    },
+    {
+      "repository": "knowledgeGraph",
+      "commit": "d09a476124caa14aa0165c642d0950f6026c46fb",
+      "path": "pipeline/build.py",
+      "sha256": "955ed8c0350bf6bb661eb40ba61718663cab408cc34491d684a23c3b22170e34",
+      "bytes": 11244
+    },
+    {
+      "repository": "knowledgeGraph",
+      "commit": "d09a476124caa14aa0165c642d0950f6026c46fb",
+      "path": "pipeline/census.py",
+      "sha256": "e14bfc528823101f6a4d45407ac45bdcd436bbc9798448a383e2713e0f7454da",
+      "bytes": 6036
+    },
+    {
+      "repository": "knowledgeGraph",
+      "commit": "d09a476124caa14aa0165c642d0950f6026c46fb",
+      "path": "pipeline/public_projection.py",
+      "sha256": "fc4ae312c6467237797edadb3d47712f15eef3e0664454b8ac6d092bd9697404",
+      "bytes": 10276
+    },
+    {
+      "repository": "knowledgeGraph",
+      "commit": "d09a476124caa14aa0165c642d0950f6026c46fb",
+      "path": "pipeline/tests/test_census.py",
+      "sha256": "608e00004a71fc8e4cffb260f5838b035d7049e18aeb00450a1c6154cf32e9e7",
+      "bytes": 4909
+    },
+    {
+      "repository": "knowledgeGraph",
+      "commit": "d09a476124caa14aa0165c642d0950f6026c46fb",
+      "path": "pipeline/tests/test_public_build_boundary.py",
+      "sha256": "e373944fd4531c6d477d7a96adc14b18ed1b0d70e946ed83596ff3eabd57542c",
+      "bytes": 5602
+    },
+    {
+      "repository": "knowledgeGraph",
+      "commit": "d09a476124caa14aa0165c642d0950f6026c46fb",
+      "path": "pipeline/tests/test_publication_flags.py",
+      "sha256": "0d50408e594e3d081f8308a251de853823db733d9a4887165327d5da26775df1",
+      "bytes": 4191
+    },
+    {
+      "repository": "knowledgeGraph",
+      "commit": "d09a476124caa14aa0165c642d0950f6026c46fb",
+      "path": "pipeline/tests/test_release_gate.py",
+      "sha256": "bc4a6212a1b344df123daada0f99a287af64312c060b2721275b02b73afd33db",
+      "bytes": 8543
+    },
+    {
+      "repository": "knowledgeGraph",
+      "commit": "d09a476124caa14aa0165c642d0950f6026c46fb",
+      "path": "pipeline/tests/test_visibility.py",
+      "sha256": "669d3dfc7b42629f14d2e28d32ddd7644606536c35f2fdee40a12f5e53aee250",
+      "bytes": 8528
+    },
+    {
+      "repository": "nostr-rust-forum",
+      "commit": "380a595f150dd96bfe27ff278fff9ded1be7fbd0",
+      "path": "crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs",
+      "sha256": "3b855d37a3025fb08b7e235b488fec93b49e436ff38599a9c059e46a02e3c3b7",
+      "bytes": 131132
+    },
+    {
+      "repository": "nostr-rust-forum",
+      "commit": "380a595f150dd96bfe27ff278fff9ded1be7fbd0",
+      "path": "crates/nostr-bbs-relay-worker/src/relay_do/receipts.rs",
+      "sha256": "1ad258fa8a1a9f249af2185d205c553fe942c4ef7cc4aa6e4fc7dd39de719188",
+      "bytes": 49143
+    },
+    {
+      "repository": "nostr-rust-forum",
+      "commit": "380a595f150dd96bfe27ff278fff9ded1be7fbd0",
+      "path": "crates/nostr-bbs-relay-worker/src/trust_sweep.rs",
+      "sha256": "3cc06b790b2d1ee0423641f52940c2fcebf29edb1d10332c7da74b3574a9aebc",
+      "bytes": 42642
+    },
+    {
+      "repository": "nostr-rust-forum",
+      "commit": "380a595f150dd96bfe27ff278fff9ded1be7fbd0",
+      "path": "dream.config.json",
+      "sha256": "ebf706ee4c307221ddae73f6863e17ad9a8c8cff8aad0c04785359e1d0ce0b6e",
+      "bytes": 1854
+    },
+    {
+      "repository": "nostr-rust-forum",
+      "commit": "380a595f150dd96bfe27ff278fff9ded1be7fbd0",
+      "path": "scripts/tests/test_dream_config.py",
+      "sha256": "cd175e0f793b5440ea74f1939acb2ebfac82437ebe62bdb66474b9102005d030",
+      "bytes": 1025
+    },
+    {
+      "repository": "nostr-rust-forum",
+      "commit": "380a595f150dd96bfe27ff278fff9ded1be7fbd0",
+      "path": "scripts/tests/test_governance_transaction.py",
+      "sha256": "665364f3665dc307496fc594d2fc1b132a7f24763145c79aac3ebbab62d0b4d6",
+      "bytes": 3442
+    },
+    {
+      "repository": "nostr-rust-forum",
+      "commit": "380a595f150dd96bfe27ff278fff9ded1be7fbd0",
+      "path": "scripts/tests/test_trust_transaction.py",
+      "sha256": "29ffc3a5daa12c4214a32de087df22fe024d79378744e45f9a0215ee14e97e3a",
+      "bytes": 3472
+    },
+    {
+      "repository": "agentbox",
+      "commit": "3ab56fe2871ce86584f139430df4ec0f679fc7ce",
+      "path": "docs/developer/governance-operation-receipts.md",
+      "sha256": "23da48c4d041b3eb8bd1feb20ec38f3a21175f42ec1c6dd37b0e144542dddffe",
+      "bytes": 2569
+    },
+    {
+      "repository": "agentbox",
+      "commit": "3ab56fe2871ce86584f139430df4ec0f679fc7ce",
+      "path": "management-api/lib/authority-consumer.js",
+      "sha256": "a9459b369ffdfe6061ebab177e6ec04caa7f9cb723b3f105a02d4d859bee910b",
+      "bytes": 20509
+    },
+    {
+      "repository": "agentbox",
+      "commit": "3ab56fe2871ce86584f139430df4ec0f679fc7ce",
+      "path": "management-api/lib/authority.js",
+      "sha256": "6376d250c90121147463ce1aa83d72e530afa6965ff2756549631b5417a5af52",
+      "bytes": 14735
+    },
+    {
+      "repository": "agentbox",
+      "commit": "3ab56fe2871ce86584f139430df4ec0f679fc7ce",
+      "path": "management-api/lib/governance-application-receipts.js",
+      "sha256": "7f0d1c5eff6f3004f0133f8c98edaec184cc8c6d3f96ad5b7af8b20175ef7c22",
+      "bytes": 3171
+    },
+    {
+      "repository": "agentbox",
+      "commit": "3ab56fe2871ce86584f139430df4ec0f679fc7ce",
+      "path": "management-api/lib/governance-correlation.js",
+      "sha256": "9a08c4753dd9ea52e108966cef1fb5edf760cf13d9d78369f3e3ccc138f89546",
+      "bytes": 2121
+    },
+    {
+      "repository": "agentbox",
+      "commit": "3ab56fe2871ce86584f139430df4ec0f679fc7ce",
+      "path": "management-api/lib/governance-decision-waiter.js",
+      "sha256": "f19518f25ddf2192aa244bb9eb7f1c99253d8c9f0ff207e37c3baef21e120b2f",
+      "bytes": 5703
+    },
+    {
+      "repository": "agentbox",
+      "commit": "3ab56fe2871ce86584f139430df4ec0f679fc7ce",
+      "path": "management-api/routes/broker-bridge.js",
+      "sha256": "06cc561e17a9d805e99aa6a6b4173e126f36d9ce19b9470dabf224072543d867",
+      "bytes": 32476
+    },
+    {
+      "repository": "agentbox",
+      "commit": "3ab56fe2871ce86584f139430df4ec0f679fc7ce",
+      "path": "management-api/routes/llm-marketplace.js",
+      "sha256": "ead260e1b7b05cd7acb2197a4155b31d8ef4a78ac541295da1fb6dd0f45e87d5",
+      "bytes": 20949
+    },
+    {
+      "repository": "agentbox",
+      "commit": "3ab56fe2871ce86584f139430df4ec0f679fc7ce",
+      "path": "management-api/tests/broker-bridge.test.js",
+      "sha256": "a715e30348d3319bdfe76d53ab54ba76308b375ff22bb57d79cc35b4ed2261b3",
+      "bytes": 16070
+    },
+    {
+      "repository": "agentbox",
+      "commit": "3ab56fe2871ce86584f139430df4ec0f679fc7ce",
+      "path": "management-api/tests/governance-application-receipts.test.js",
+      "sha256": "c5e00a6dd8c3abdb43ea4bf9f8316ee6a13a0ca825b0048ff2e0a6bf4534320d",
+      "bytes": 2611
+    },
+    {
+      "repository": "agentbox",
+      "commit": "3ab56fe2871ce86584f139430df4ec0f679fc7ce",
+      "path": "management-api/tests/governance-correlation.test.js",
+      "sha256": "c5183d4a31ad96d35e8eb53e120b2dcced3d56c3c5d04344a61aca58453d2c1d",
+      "bytes": 3058
+    },
+    {
+      "repository": "agentbox",
+      "commit": "3ab56fe2871ce86584f139430df4ec0f679fc7ce",
+      "path": "tests/sovereign/authority.test.js",
+      "sha256": "f156ed18647125ceb3c9e6058e8940603b1e38500426418370d10849702b1b4f",
+      "bytes": 8745
+    },
+    {
+      "repository": "visionclaw",
+      "commit": "e299114056c0bf3ff7ccc22f7a68efe65068e183",
+      "path": "docs/explanation/governance-operation-receipts.md",
+      "sha256": "deba4e51efbf30a1f670e05f053493ba525f5af45506136027b959db063d9a78",
+      "bytes": 2408
+    },
+    {
+      "repository": "visionclaw",
+      "commit": "e299114056c0bf3ff7ccc22f7a68efe65068e183",
+      "path": "src/actors/decision_elevation_actor.rs",
+      "sha256": "3064e4d6bca1cd27aba48615f1e836ea8e4920c02f466dc8380bb8c4e29fb83b",
+      "bytes": 55178
+    },
+    {
+      "repository": "visionclaw",
+      "commit": "e299114056c0bf3ff7ccc22f7a68efe65068e183",
+      "path": "src/adapters/decision_elevation_store.rs",
+      "sha256": "79d029398746317bdcbc05b6fc720a1eb44df4af3373b9d1d1b451406dd8c35d",
+      "bytes": 20678
+    },
+    {
+      "repository": "visionclaw",
+      "commit": "e299114056c0bf3ff7ccc22f7a68efe65068e183",
+      "path": "src/adapters/sqlite_enrichment_repository.rs",
+      "sha256": "0874c6ee8415c64b0f20f7bd28bcdb85d29f09dcd42bde2c8599736a0ee551fa",
+      "bytes": 54366
+    },
+    {
+      "repository": "visionclaw",
+      "commit": "e299114056c0bf3ff7ccc22f7a68efe65068e183",
+      "path": "src/services/acsp/client.rs",
+      "sha256": "13f30d258d996a2f7a2cde2291be69e5654d9f15f602e6fb06a90ee7c88ab8d8",
+      "bytes": 15831
+    }
+  ]
+}

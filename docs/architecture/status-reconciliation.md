@@ -1,5 +1,7 @@
 # Status Reconciliation
 
+**Execution follow-up:** [2026-09-07 source repairs, tests and runtime limits](../estate-review/2026-09-07-estate-closeout-execution.md) updates this dated audit view. The master register owns current task dispositions; earlier observations remain historical.
+
 **Status:** Source-reconciled current view with dated historical notes
 **Reviewed:** 2026-09-07
 

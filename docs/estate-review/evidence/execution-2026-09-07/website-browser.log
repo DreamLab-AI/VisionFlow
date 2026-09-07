@@ -1,0 +1,62 @@
+==> scenario: baseline
+==> scenario: reduced-motion
+==> scenario: no-webgl
+
+BROWSER CHECKS
+==============
+  ok    page-loads
+          http 200, readyState complete
+  ok    title-present
+          VisionFlow: Coordination Engineering for Federated Human-AI Intelligence
+  ok    content-rendered
+          18 sections, 43500 chars of text
+  ok    no-console-errors:baseline
+          none
+  ok    no-failed-requests:baseline
+          none
+  ok    no-broken-images:baseline
+          none
+  ok    no-console-errors:reduced-motion
+          none
+  ok    no-failed-requests:reduced-motion
+          none
+  ok    no-broken-images:reduced-motion
+          none
+  ok    no-console-errors:no-webgl
+          none
+  ok    no-failed-requests:no-webgl
+          none
+  ok    no-broken-images:no-webgl
+          none
+  ok    meta-description
+          VisionFlow is a coordination harness for federated
+  ok    canonical
+          https://www.visionflow.info/
+  ok    og-core-tags
+          og:title, og:description, og:type, og:url, og:image, og:image:alt
+  ok    og-image
+          https://www.visionflow.info/img/og-card.png
+  ok    twitter-card
+          summary_large_image
+  ok    webgl2-available-baseline
+          ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA NVIDIA RTX A6000 (0x00002230)), NVIDIA)
+  ok    mesh-animates-baseline
+          rAF delta 23 over ~1.2s
+  ok    webgl2-absent-in-fallback
+          webgl2Available=false
+  ok    fallback-still-renders-content
+          18 sections, 43304 chars
+  ok    fallback-does-not-throw
+          none
+  ok    mesh-paints-pixels
+          baseline canvas sha 7377ec3a85b3 (271677B) vs fallback 917280e3e99a (247728B)
+  ok    reduced-motion-detected
+          matchMedia=true
+  ok    reduced-motion-no-animation-loop
+          rAF delta 0 over ~1.2s (baseline 23)
+  ok    reduced-motion-still-renders
+          18 sections, 43500 chars
+
+receipt: docs/estate-review/evidence/execution-2026-09-07/visionflow-browser/website-browser-receipt.json
+passed 26/26
+BROWSER-CHECK-OK

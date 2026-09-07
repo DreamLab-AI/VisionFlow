@@ -1,0 +1,439 @@
+   Compiling subtle v2.6.1
+   Compiling const-oid v0.9.6
+   Compiling base64ct v1.8.0
+   Compiling generic-array v0.14.7
+   Compiling base16ct v0.2.0
+   Compiling num-bigint-dig v0.8.6
+   Compiling darling_core v0.23.0
+   Compiling curve25519-dalek v4.1.3
+   Compiling curve25519-dalek-derive v0.1.1
+   Compiling ordered-float v2.10.1
+   Compiling serde_path_to_error v0.1.20
+   Compiling toml_write v0.1.2
+   Compiling ring v0.17.14
+   Compiling lazy_static v1.5.0
+   Compiling num-iter v0.1.45
+   Compiling num-bigint v0.4.6
+   Compiling clap_builder v4.5.49
+   Compiling pem v3.0.6
+   Compiling dyn-clone v1.0.20
+   Compiling ff v0.13.1
+   Compiling enum_meta v0.6.0
+   Compiling serde_spanned v0.6.9
+   Compiling toml_datetime v0.6.11
+   Compiling serde_plain v1.0.2
+   Compiling sharded-slab v0.1.7
+   Compiling horned-owl v0.11.0
+   Compiling pem-rfc7468 v0.7.0
+   Compiling group v0.13.0
+   Compiling password-hash v0.5.0
+   Compiling visionclaw-gpu v0.1.0 (/home/devuser/workspace/project/crates/visionclaw-gpu)
+   Compiling visionclaw-server v0.1.0 (/home/devuser/workspace/project)
+   Compiling serde-value v0.7.0
+   Compiling toml_edit v0.22.27
+   Compiling der v0.7.10
+warning: visionclaw-server@0.1.0: webxr build.rs: GPU feature enabled — CUDA compilation delegated to visionclaw-gpu crate
+   Compiling tracing-subscriber v0.3.20
+   Compiling crypto-common v0.1.6
+   Compiling block-buffer v0.10.4
+   Compiling crypto-bigint v0.5.5
+   Compiling inout v0.1.4
+   Compiling digest v0.10.7
+   Compiling cipher v0.4.4
+   Compiling sha1 v0.10.6
+   Compiling sha2 v0.10.9
+   Compiling hmac v0.12.1
+   Compiling signature v2.2.0
+   Compiling md-5 v0.10.6
+   Compiling blake2 v0.10.6
+   Compiling blowfish v0.9.1
+   Compiling hkdf v0.12.4
+   Compiling rfc6979 v0.4.0
+   Compiling tungstenite v0.21.0
+   Compiling actix-http v3.11.0
+   Compiling tungstenite v0.24.0
+   Compiling fastwebsockets v0.8.0
+   Compiling bcrypt v0.15.1
+   Compiling simple_asn1 v0.6.4
+   Compiling argon2 v0.5.3
+   Compiling spki v0.7.3
+   Compiling spareval v0.1.4
+   Compiling rust-embed-utils v8.9.0
+   Compiling rust-embed v8.9.0
+   Compiling pkcs8 v0.10.2
+   Compiling darling_macro v0.23.0
+   Compiling sec1 v0.7.3
+   Compiling ed25519 v2.2.3
+   Compiling pkcs1 v0.7.5
+   Compiling tokio-tungstenite v0.24.0
+   Compiling rsa v0.9.10
+   Compiling elliptic-curve v0.13.8
+   Compiling visionclaw-domain v0.1.0 (/home/devuser/workspace/project/crates/visionclaw-domain)
+   Compiling tokio-tungstenite v0.21.0
+   Compiling darling v0.23.0
+   Compiling ed25519-dalek v2.2.0
+   Compiling serde_with_macros v3.20.0
+   Compiling toml v0.8.23
+   Compiling horned-functional v0.4.0
+   Compiling clap v4.5.49
+   Compiling ecdsa v0.16.9
+   Compiling primeorder v0.13.6
+   Compiling tracing-appender v0.2.3
+   Compiling p256 v0.13.2
+   Compiling p384 v0.13.1
+   Compiling k256 v0.13.4
+   Compiling serde_with v3.20.0
+   Compiling oxigraph v0.4.11
+   Compiling actix-web v4.11.0
+warning: use of deprecated field `models::protected_settings::NetworkSettings::enable_http2`: Not enforced by server - use reverse proxy
+   --> crates/visionclaw-domain/src/models/protected_settings.rs:114:17
+    |
+114 |                 enable_http2: true,
+    |                 ^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated field `models::protected_settings::NetworkSettings::min_tls_version`: Not enforced by server - use reverse proxy
+   --> crates/visionclaw-domain/src/models/protected_settings.rs:116:17
+    |
+116 |                 min_tls_version: "TLS1.2".to_string(),
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated field `models::protected_settings::SecuritySettings::cookie_httponly`: Not enforced by server
+   --> crates/visionclaw-domain/src/models/protected_settings.rs:126:17
+    |
+126 |                 cookie_httponly: true,
+    |                 ^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated field `models::protected_settings::SecuritySettings::cookie_samesite`: Not enforced by server
+   --> crates/visionclaw-domain/src/models/protected_settings.rs:127:17
+    |
+127 |                 cookie_samesite: "Lax".to_string(),
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated field `models::protected_settings::SecuritySettings::cookie_secure`: Not enforced by server
+   --> crates/visionclaw-domain/src/models/protected_settings.rs:128:17
+    |
+128 |                 cookie_secure: false,
+    |                 ^^^^^^^^^^^^^^^^^^^^
+
+   Compiling rustls v0.23.31
+   Compiling actix-files v0.6.6
+   Compiling actix-web-actors v4.3.1+deprecated
+   Compiling utoipa-swagger-ui v9.0.2
+   Compiling actix-cors v0.7.1
+   Compiling rustls-webpki v0.103.4
+   Compiling jsonwebtoken v9.3.1
+   Compiling visionclaw-protocol v0.1.0 (/home/devuser/workspace/project/crates/visionclaw-protocol)
+   Compiling visionclaw-actors v0.1.0 (/home/devuser/workspace/project/crates/visionclaw-actors)
+warning: unused variable: `old`
+   --> crates/visionclaw-protocol/src/protocols/binary_settings_protocol.rs:588:9
+    |
+588 |         old: &BinaryValue,
+    |         ^^^ help: if this is intentional, prefix it with an underscore: `_old`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: method `compute_value_delta` is never used
+   --> crates/visionclaw-protocol/src/protocols/binary_settings_protocol.rs:586:8
+    |
+130 | impl BinarySettingsProtocol {
+    | --------------------------- method in this implementation
+...
+586 |     fn compute_value_delta(
+    |        ^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+   Compiling tokio-rustls v0.26.2
+   Compiling tungstenite v0.26.2
+   Compiling ureq v2.12.1
+warning: `visionclaw-protocol` (lib) generated 2 warnings (run `cargo fix --lib -p visionclaw-protocol` to apply 1 suggestion)
+   Compiling hyper-rustls v0.27.7
+   Compiling reqwest v0.12.23
+   Compiling horned-owl v1.2.0
+   Compiling tokio-tungstenite v0.26.2
+   Compiling async-wsocket v0.13.1
+   Compiling nostr-relay-pool v0.43.0
+   Compiling oauth2 v5.0.0
+   Compiling openidconnect v4.0.1
+   Compiling nostr-sdk v0.43.0
+   Compiling whelk v0.1.0 (https://github.com/jjohare/whelk-rs?rev=79a1ee21789add5a66faa0ec1a830c32dba9b539#79a1ee21)
+   Compiling visionclaw-ontology v0.1.0 (/home/devuser/workspace/project/crates/visionclaw-ontology)
+   Compiling visionclaw-adapters v0.1.0 (/home/devuser/workspace/project/crates/visionclaw-adapters)
+warning: unused import: `std::collections::HashMap`
+ --> crates/visionclaw-ontology/src/inference/owl_parser.rs:8:5
+  |
+8 | use std::collections::HashMap;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unexpected `cfg` condition value: `nostr-verify`
+   --> crates/visionclaw-ontology/src/services/jsonld_validator/signature.rs:198:11
+    |
+198 |     #[cfg(feature = "nostr-verify")]
+    |           ^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: expected values for `feature` are: `default`
+    = help: consider adding `nostr-verify` as a feature in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+    = note: `#[warn(unexpected_cfgs)]` on by default
+
+warning: unexpected `cfg` condition value: `nostr-verify`
+   --> crates/visionclaw-ontology/src/services/jsonld_validator/signature.rs:212:15
+    |
+212 |     #[cfg(not(feature = "nostr-verify"))]
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: expected values for `feature` are: `default`
+    = help: consider adding `nostr-verify` as a feature in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition value: `gpu`
+   --> crates/visionclaw-ontology/src/validation/actor_validation.rs:136:23
+    |
+136 |         "gpu" => cfg!(feature = "gpu"),
+    |                       ^^^^^^^^^^^^^^^
+    |
+    = note: expected values for `feature` are: `default`
+    = help: consider adding `gpu` as a feature in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition value: `ontology`
+   --> crates/visionclaw-ontology/src/validation/actor_validation.rs:137:28
+    |
+137 |         "ontology" => cfg!(feature = "ontology"),
+    |                            ^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: expected values for `feature` are: `default`
+    = help: consider adding `ontology` as a feature in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+   Compiling solid-pod-rs v0.4.0-alpha.15
+warning: variable does not need to be mutable
+    --> crates/visionclaw-adapters/src/oxigraph_ontology_repository.rs:1360:13
+     |
+1360 |         let mut alloc_id = |iri: &str, table: &mut HashMap<String, u32>, nx: &mut u32| -> u32 {
+     |             ----^^^^^^^^
+     |             |
+     |             help: remove this `mut`
+     |
+     = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: constant `P_COMMENT` is never used
+   --> crates/visionclaw-adapters/src/oxigraph_ontology_repository.rs:497:7
+    |
+497 | const P_COMMENT: &str = "http://www.w3.org/2000/01/rdf-schema#comment";
+    |       ^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+   Compiling solid-pod-rs-idp v0.4.0-alpha.15
+   Compiling solid-pod-rs-nostr v0.4.0-alpha.15
+   Compiling solid-pod-rs-server v0.4.0-alpha.15
+warning: `visionclaw-domain` (lib) generated 5 warnings
+warning: `visionclaw-adapters` (lib) generated 2 warnings (run `cargo fix --lib -p visionclaw-adapters` to apply 1 suggestion)
+warning: `visionclaw-ontology` (lib) generated 5 warnings (run `cargo fix --lib -p visionclaw-ontology` to apply 1 suggestion)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Auto-detected GPU sm_86
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Building for sm_86
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Compiling 9 CUDA kernels to PTX
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: visionclaw_unified source=src/cuda_sources/visionclaw_unified.cu provenance=compiled isa=8.8 original=0f0c64913c302c51 rewritten=0f0c64913c302c51
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_clustering_kernels source=src/cuda_sources/gpu_clustering_kernels.cu provenance=compiled isa=8.8 original=3d61cff573e6643e rewritten=3d61cff573e6643e
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: dynamic_grid source=src/cuda_sources/dynamic_grid.cu provenance=compiled isa=8.8 original=3b5a8fca62e1e6b3 rewritten=3b5a8fca62e1e6b3
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_aabb_reduction source=src/cuda_sources/gpu_aabb_reduction.cu provenance=compiled isa=8.8 original=fbeb10b8613a4ecf rewritten=fbeb10b8613a4ecf
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_landmark_apsp source=src/cuda_sources/gpu_landmark_apsp.cu provenance=compiled isa=8.8 original=a8293ea28f5cf94d rewritten=a8293ea28f5cf94d
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: sssp_compact source=src/cuda_sources/sssp_compact.cu provenance=compiled isa=8.8 original=968bd5dd10ca37b8 rewritten=968bd5dd10ca37b8
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: semantic_forces source=src/cuda_sources/semantic_forces.cu provenance=compiled isa=8.8 original=e096eacd94289510 rewritten=e096eacd94289510
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: pagerank source=src/cuda_sources/pagerank.cu provenance=compiled isa=8.8 original=f0cc4ef336684beb rewritten=f0cc4ef336684beb
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_connected_components source=src/cuda_sources/gpu_connected_components.cu provenance=compiled isa=8.8 original=dfb1fad6f6696d4d rewritten=dfb1fad6f6696d4d
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: All PTX compilation done (9 modules)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Native CUDA linking complete
+warning: unused import: `ClusteringParams`
+  --> src/handlers/api_handler/analytics/clustering_handlers.rs:16:35
+   |
+16 |     Cluster, ClusterFocusRequest, ClusteringParams, ClusteringRequest, ClusteringResponse,
+   |                                   ^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `ClusteringParams`
+ --> src/handlers/api_handler/analytics/clustering.rs:3:22
+  |
+3 | use super::{Cluster, ClusteringParams, ClusteringRequest};
+  |                      ^^^^^^^^^^^^^^^^
+
+warning: unused import: `AccessMode`
+  --> src/handlers/solid_proxy_handler.rs:63:58
+   |
+63 | use solid_pod_rs::wac::{evaluate_access, method_to_mode, AccessMode};
+   |                                                          ^^^^^^^^^^
+
+warning: unnecessary parentheses around `if` condition
+   --> src/services/github/api.rs:146:23
+    |
+146 |             } else if (raw_path == raw_base || raw_path.starts_with(&format!("{raw_base}/"))) {
+    |                       ^                                                                     ^
+    |
+    = note: `#[warn(unused_parens)]` (part of `#[warn(unused)]`) on by default
+help: remove these parentheses
+    |
+146 -             } else if (raw_path == raw_base || raw_path.starts_with(&format!("{raw_base}/"))) {
+146 +             } else if raw_path == raw_base || raw_path.starts_with(&format!("{raw_base}/")) {
+    |
+
+warning: unused imports: `AxiomType`, `OntologyRepositoryError`, `PathfindingCacheEntry`, `PropertyType`, and `ValidationReport`
+  --> src/test_helpers.rs:15:5
+   |
+15 |     AxiomType, InferenceResults, OntologyMetrics, OntologyRepository, OntologyRepositoryError,
+   |     ^^^^^^^^^                                                         ^^^^^^^^^^^^^^^^^^^^^^^
+16 |     OwlAxiom, OwlClass, OwlProperty, PathfindingCacheEntry, PropertyType, Result as OntResult,
+   |                                      ^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^
+17 |     ValidationReport,
+   |     ^^^^^^^^^^^^^^^^
+   |
+help: if this is a test module, consider adding a `#[cfg(test)]` to the containing module
+  --> src/lib.rs:47:1
+   |
+47 | pub mod test_helpers;
+   | ^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated module `visionclaw_gpu::memory`: Use crate::gpu::memory_manager::GpuMemoryManager instead
+  --> src/utils/mod.rs:16:25
+   |
+16 | pub use visionclaw_gpu::memory as gpu_memory;
+   |                         ^^^^^^
+   |
+   = note: `#[warn(deprecated)]` on by default
+
+warning: unused import: `crate::ports::knowledge_graph_repository::KnowledgeGraphRepository`
+ --> src/services/file_service.rs:3:5
+  |
+3 | use crate::ports::knowledge_graph_repository::KnowledgeGraphRepository;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `ToSimParams`
+  --> src/models/force_channels.rs:47:83
+   |
+47 | use crate::models::simulation_params::{FeatureFlags, SimParams, SimulationParams, ToSimParams};
+   |                                                                                   ^^^^^^^^^^^
+
+warning: variable does not need to be mutable
+    --> src/actors/gpu/force_compute_actor.rs:1167:25
+     |
+1167 |                     let mut class_masses = vec![1.0f32; num_nodes];
+     |                         ----^^^^^^^^^^^^
+     |                         |
+     |                         help: remove this `mut`
+     |
+     = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `gpu_manager_addr`
+    --> src/actors/graph_service_supervisor.rs:1546:13
+     |
+1546 |         let gpu_manager_addr = self.gpu_manager.clone();
+     |             ^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_gpu_manager_addr`
+     |
+     = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `members`
+   --> src/services/github_sync_service.rs:880:17
+    |
+880 |             let members = match domain_members.get(slug) {
+    |                 ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_members`
+
+warning: type `AssignRoleRequest` is more private than the item `assign_role`
+   --> src/handlers/admin_rbac_handler.rs:123:1
+    |
+123 | / pub async fn assign_role(
+124 | |     req: HttpRequest,
+125 | |     path: web::Path<String>,
+126 | |     body: web::Json<AssignRoleRequest>,
+127 | |     nostr: web::Data<NostrService>,
+128 | | ) -> impl Responder {
+    | |___________________^ function `assign_role` is reachable at visibility `pub`
+    |
+note: but type `AssignRoleRequest` is only usable at visibility `pub(self)`
+   --> src/handlers/admin_rbac_handler.rs:59:1
+    |
+ 59 | struct AssignRoleRequest {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^
+    = note: `#[warn(private_interfaces)]` on by default
+
+warning: type `FileLockGuard` is more private than the item `FsPaymentStore::acquire_file_lock`
+   --> src/handlers/pay_handler.rs:251:5
+    |
+251 |     pub(crate) fn acquire_file_lock(&self) -> Result<FileLockGuard, PaymentError> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ method `FsPaymentStore::acquire_file_lock` is reachable at visibility `pub(crate)`
+    |
+note: but type `FileLockGuard` is only usable at visibility `pub(self)`
+   --> src/handlers/pay_handler.rs:206:1
+    |
+206 | struct FileLockGuard {
+    | ^^^^^^^^^^^^^^^^^^^^
+
+warning: associated items `apply_ontology_constraints` and `report_axioms_to_domain` are never used
+   --> src/actors/gpu/ontology_constraint_actor.rs:183:8
+    |
+154 | impl OntologyConstraintActor {
+    | ---------------------------- associated items in this implementation
+...
+183 |     fn apply_ontology_constraints(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+368 |     fn report_axioms_to_domain(report: &OntologyReasoningReport) -> Vec<DomainOwlAxiom> {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: method `has_node_changed_significantly` is never used
+   --> src/handlers/socket_flow_handler/types.rs:238:19
+    |
+145 | impl SocketFlowServer {
+    | --------------------- method in this implementation
+...
+238 |     pub(crate) fn has_node_changed_significantly(
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: field `dev_bypass_ok` is never read
+   --> src/handlers/speech_socket_handler.rs:106:5
+    |
+ 89 | pub struct SpeechSocket {
+    |            ------------ field in this struct
+...
+106 |     dev_bypass_ok: bool,
+    |     ^^^^^^^^^^^^^
+
+warning: field `params` is never read
+   --> src/handlers/pay_handler.rs:837:5
+    |
+834 | struct EstimateRequest {
+    |        --------------- field in this struct
+...
+837 |     params: Option<serde_json::Value>,
+    |     ^^^^^^
+    |
+    = note: `EstimateRequest` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: field `topology_cache` is never read
+   --> src/services/agent_visualization_protocol.rs:439:5
+    |
+434 | pub struct AgentVisualizationProtocol {
+    |            -------------------------- field in this struct
+...
+439 |     topology_cache: std::collections::HashMap<String, SwarmTopologyData>,
+    |     ^^^^^^^^^^^^^^
+
+warning: variant `NoOp` is never constructed
+   --> src/services/role_store.rs:773:5
+    |
+771 | enum TxOutcome {
+    |      --------- variant in this enum
+772 |     Ok,
+773 |     NoOp,
+    |     ^^^^
+
+warning: `visionclaw-server` (lib) generated 19 warnings (run `cargo fix --lib -p visionclaw-server` to apply 8 suggestions)
+    Finished `release` profile [optimized] target(s) in 12m 56s
+warning: the following packages contain code that will be rejected by a future version of Rust: quick-xml v0.21.0, quick-xml v0.22.0
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`

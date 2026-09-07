@@ -1,0 +1,185 @@
+EEEEEEEEEEEE
+======================================================================
+ERROR: test_audit_sql_failure_rolls_back_state (__main__.TrustTransactionTests.test_audit_sql_failure_rolls_back_state)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 56, in test_audit_sql_failure_rolls_back_state
+    with self.assertRaises(sqlite3.IntegrityError): self.commit()
+                                                    ^^^^^^^^^^^^^
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 29, in commit
+    changes = self.db.execute(statement('DEMOTION_UPDATE_SQL'),
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 11, in statement
+    return re.search(r'const ' + name + r': &str = r#"(.*?)"#;', text, re.S)[1]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+TypeError: 'NoneType' object is not subscriptable
+
+======================================================================
+ERROR: test_every_concurrent_policy_input_change_prevents_audit (__main__.TrustTransactionTests.test_every_concurrent_policy_input_change_prevents_audit) (field='trust_level')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 46, in test_every_concurrent_policy_input_change_prevents_audit
+    self.assertEqual(self.commit(), (0, 0))
+                     ^^^^^^^^^^^^^
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 29, in commit
+    changes = self.db.execute(statement('DEMOTION_UPDATE_SQL'),
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 11, in statement
+    return re.search(r'const ' + name + r': &str = r#"(.*?)"#;', text, re.S)[1]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+TypeError: 'NoneType' object is not subscriptable
+
+======================================================================
+ERROR: test_every_concurrent_policy_input_change_prevents_audit (__main__.TrustTransactionTests.test_every_concurrent_policy_input_change_prevents_audit) (field='is_admin')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 46, in test_every_concurrent_policy_input_change_prevents_audit
+    self.assertEqual(self.commit(), (0, 0))
+                     ^^^^^^^^^^^^^
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 29, in commit
+    changes = self.db.execute(statement('DEMOTION_UPDATE_SQL'),
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 11, in statement
+    return re.search(r'const ' + name + r': &str = r#"(.*?)"#;', text, re.S)[1]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+TypeError: 'NoneType' object is not subscriptable
+
+======================================================================
+ERROR: test_every_concurrent_policy_input_change_prevents_audit (__main__.TrustTransactionTests.test_every_concurrent_policy_input_change_prevents_audit) (field='last_active_at')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 46, in test_every_concurrent_policy_input_change_prevents_audit
+    self.assertEqual(self.commit(), (0, 0))
+                     ^^^^^^^^^^^^^
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 29, in commit
+    changes = self.db.execute(statement('DEMOTION_UPDATE_SQL'),
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 11, in statement
+    return re.search(r'const ' + name + r': &str = r#"(.*?)"#;', text, re.S)[1]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+TypeError: 'NoneType' object is not subscriptable
+
+======================================================================
+ERROR: test_every_concurrent_policy_input_change_prevents_audit (__main__.TrustTransactionTests.test_every_concurrent_policy_input_change_prevents_audit) (field='trust_level_updated_at')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 46, in test_every_concurrent_policy_input_change_prevents_audit
+    self.assertEqual(self.commit(), (0, 0))
+                     ^^^^^^^^^^^^^
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 29, in commit
+    changes = self.db.execute(statement('DEMOTION_UPDATE_SQL'),
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 11, in statement
+    return re.search(r'const ' + name + r': &str = r#"(.*?)"#;', text, re.S)[1]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+TypeError: 'NoneType' object is not subscriptable
+
+======================================================================
+ERROR: test_every_concurrent_policy_input_change_prevents_audit (__main__.TrustTransactionTests.test_every_concurrent_policy_input_change_prevents_audit) (field='days_active')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 46, in test_every_concurrent_policy_input_change_prevents_audit
+    self.assertEqual(self.commit(), (0, 0))
+                     ^^^^^^^^^^^^^
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 29, in commit
+    changes = self.db.execute(statement('DEMOTION_UPDATE_SQL'),
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 11, in statement
+    return re.search(r'const ' + name + r': &str = r#"(.*?)"#;', text, re.S)[1]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+TypeError: 'NoneType' object is not subscriptable
+
+======================================================================
+ERROR: test_every_concurrent_policy_input_change_prevents_audit (__main__.TrustTransactionTests.test_every_concurrent_policy_input_change_prevents_audit) (field='posts_read')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 46, in test_every_concurrent_policy_input_change_prevents_audit
+    self.assertEqual(self.commit(), (0, 0))
+                     ^^^^^^^^^^^^^
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 29, in commit
+    changes = self.db.execute(statement('DEMOTION_UPDATE_SQL'),
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 11, in statement
+    return re.search(r'const ' + name + r': &str = r#"(.*?)"#;', text, re.S)[1]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+TypeError: 'NoneType' object is not subscriptable
+
+======================================================================
+ERROR: test_every_concurrent_policy_input_change_prevents_audit (__main__.TrustTransactionTests.test_every_concurrent_policy_input_change_prevents_audit) (field='posts_created')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 46, in test_every_concurrent_policy_input_change_prevents_audit
+    self.assertEqual(self.commit(), (0, 0))
+                     ^^^^^^^^^^^^^
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 29, in commit
+    changes = self.db.execute(statement('DEMOTION_UPDATE_SQL'),
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 11, in statement
+    return re.search(r'const ' + name + r': &str = r#"(.*?)"#;', text, re.S)[1]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+TypeError: 'NoneType' object is not subscriptable
+
+======================================================================
+ERROR: test_every_concurrent_policy_input_change_prevents_audit (__main__.TrustTransactionTests.test_every_concurrent_policy_input_change_prevents_audit) (field='mod_actions_against')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 46, in test_every_concurrent_policy_input_change_prevents_audit
+    self.assertEqual(self.commit(), (0, 0))
+                     ^^^^^^^^^^^^^
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 29, in commit
+    changes = self.db.execute(statement('DEMOTION_UPDATE_SQL'),
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 11, in statement
+    return re.search(r'const ' + name + r': &str = r#"(.*?)"#;', text, re.S)[1]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+TypeError: 'NoneType' object is not subscriptable
+
+======================================================================
+ERROR: test_missing_row_does_not_create_audit (__main__.TrustTransactionTests.test_missing_row_does_not_create_audit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 53, in test_missing_row_does_not_create_audit
+    self.assertEqual(self.commit(), (0, 0))
+                     ^^^^^^^^^^^^^
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 29, in commit
+    changes = self.db.execute(statement('DEMOTION_UPDATE_SQL'),
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 11, in statement
+    return re.search(r'const ' + name + r': &str = r#"(.*?)"#;', text, re.S)[1]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+TypeError: 'NoneType' object is not subscriptable
+
+======================================================================
+ERROR: test_nullable_snapshot_uses_null_safe_comparison (__main__.TrustTransactionTests.test_nullable_snapshot_uses_null_safe_comparison)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 60, in test_nullable_snapshot_uses_null_safe_comparison
+    self.assertEqual(self.commit(), (0, 0))
+                     ^^^^^^^^^^^^^
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 29, in commit
+    changes = self.db.execute(statement('DEMOTION_UPDATE_SQL'),
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 11, in statement
+    return re.search(r'const ' + name + r': &str = r#"(.*?)"#;', text, re.S)[1]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+TypeError: 'NoneType' object is not subscriptable
+
+======================================================================
+ERROR: test_transition_and_audit_commit_once (__main__.TrustTransactionTests.test_transition_and_audit_commit_once)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 35, in test_transition_and_audit_commit_once
+    self.assertEqual(self.commit(), (1, 1))
+                     ^^^^^^^^^^^^^
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 29, in commit
+    changes = self.db.execute(statement('DEMOTION_UPDATE_SQL'),
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/devuser/workspace/VisionFlow/../nostr-rust-forum/scripts/tests/test_trust_transaction.py", line 11, in statement
+    return re.search(r'const ' + name + r': &str = r#"(.*?)"#;', text, re.S)[1]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+TypeError: 'NoneType' object is not subscriptable
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.009s
+
+FAILED (errors=12)

@@ -1,0 +1,692 @@
+parsed 130 topic files, 1401 mermaid diagrams
+cite-check: 344 warning(s)
+  ! agentbox/01-nix-flake-composition.md:AB-01.1 — ../project/agentbox/flake.nix:652 is blank
+  ! agentbox/01-nix-flake-composition.md:AB-01.6 — ../project/agentbox/flake.nix:1099 is punctuation only (']')
+  ! agentbox/01-nix-flake-composition.md:AB-01.7 — ../project/agentbox/flake.nix:1080 is punctuation only ('};')
+  ! agentbox/01-nix-flake-composition.md:AB-01.7 — ../project/agentbox/flake.nix:1092 is punctuation only ('};')
+  ! agentbox/01-nix-flake-composition.md:AB-01.7 — ../project/agentbox/flake.nix:1099 is punctuation only (']')
+  ! agentbox/01-nix-flake-composition.md:AB-01.7 — ../project/agentbox/flake.nix:1105 is punctuation only ('];')
+  ! agentbox/01-nix-flake-composition.md:AB-01.10 — ../project/agentbox/flake.nix:652 is blank
+  ! agentbox/02-boot-sequence-and-readiness.md:AB-02.4 — ../project/agentbox/flake.nix:2121 is blank
+  ! agentbox/02-boot-sequence-and-readiness.md:AB-02.4 — ../project/agentbox/flake.nix:2265 is blank
+  ! agentbox/02-boot-sequence-and-readiness.md:AB-02.6 — ../project/agentbox/flake.nix:1401 is blank
+  ! agentbox/02-boot-sequence-and-readiness.md:AB-02.7 — ../project/agentbox/flake.nix:2374 is blank
+  ! agentbox/02-boot-sequence-and-readiness.md:AB-02.8 — ../project/agentbox/flake.nix:2121 is blank
+  ! agentbox/02-boot-sequence-and-readiness.md:AB-02.8 — ../project/agentbox/flake.nix:2125 is blank
+  ! agentbox/07-daemons-reapers-cron-backups.md:AB-07.2 — ../project/agentbox/flake.nix:1827 is blank
+  ! agentbox/07-daemons-reapers-cron-backups.md:AB-07.7 — ../project/agentbox/flake.nix:2438 is blank
+  ! agentbox/07-daemons-reapers-cron-backups.md:AB-07.9 — ../project/agentbox/flake.nix:2265 is blank
+  ! agentbox/08-hooks-pipeline.md:AB-08.1 — ../project/agentbox/config/entrypoint-unified.sh:1197 is blank
+  ! agentbox/08-hooks-pipeline.md:AB-08.5 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:374 is blank
+  ! agentbox/08-hooks-pipeline.md:AB-08.6 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:374 is blank
+  ! agentbox/08-hooks-pipeline.md:AB-08.7 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:374 is blank
+  ! agentbox/08-hooks-pipeline.md:AB-08.9 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:374 is blank
+  ! agentbox/08-hooks-pipeline.md:AB-08.9 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:110 is blank
+  ! agentbox/08-hooks-pipeline.md:AB-08.9 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:388 is punctuation only ('});')
+  ! agentbox/08-hooks-pipeline.md:AB-08.9 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:395 is blank
+  ! agentbox/08-hooks-pipeline.md:AB-08.9 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:425 is punctuation only ('}')
+  ! agentbox/08-hooks-pipeline.md:AB-08.9 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:433 is blank
+  ! agentbox/08-hooks-pipeline.md:AB-08.9 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:450 is blank
+  ! agentbox/08-hooks-pipeline.md:AB-08.9 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:58 is blank
+  ! agentbox/08-hooks-pipeline.md:AB-08.9 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:466 is punctuation only ('};')
+  ! agentbox/08-hooks-pipeline.md:AB-08.9 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:505 is blank
+  ! dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :46 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :56 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :78 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :160 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :246 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :266 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :89 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :107 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :128 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :144 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :382 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :408 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :169 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :188 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :201 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :218 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :332 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :374 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :367 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :295 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :303 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :320 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :416 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :448 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/01-estate-topology.md:ES-01.1 — ../project/agentbox/docs/developer/native-pod-mesh.md:8484 past EOF (file has 393 lines)
+  ! estate/01-estate-topology.md:ES-01.1 — ../project/agentbox/lib/solid-pod-rs.nix:8484 past EOF (file has 182 lines)
+  ! estate/01-estate-topology.md:ES-01.2 — ../project/agentbox/docs/developer/hp-peer-node.md:8084 past EOF (file has 86 lines)
+  ! estate/01-estate-topology.md:ES-01.2 — ../project/agentbox/skills/email-search/SKILL.md:8085 past EOF (file has 240 lines)
+  ! estate/01-estate-topology.md:ES-01.2 — ../project/agentbox/docs/developer/hp-peer-node.md:8084 past EOF (file has 86 lines)
+  ! estate/01-estate-topology.md:ES-01.2 — ../project/agentbox/docs/developer/hp-peer-node.md:8085 past EOF (file has 86 lines)
+  ! estate/01-estate-topology.md:ES-01.2 — ../project/agentbox/skills/email-search/SKILL.md:9997 past EOF (file has 240 lines)
+  ! estate/01-estate-topology.md:ES-01.2 — ../project/agentbox/skills/email-search/SKILL.md:9997 past EOF (file has 240 lines)
+  ! estate/01-estate-topology.md:ES-01.2 — ../project/agentbox/skills/email-search/SKILL.md:9096 past EOF (file has 240 lines)
+  ! estate/01-estate-topology.md:ES-01.2 — ../project/agentbox/skills/email-search/SKILL.md:7777 past EOF (file has 240 lines)
+  ! estate/01-estate-topology.md:ES-01.3 — bare :165 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/01-estate-topology.md:ES-01.3 — bare :239 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/01-estate-topology.md:ES-01.3 — bare :350 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/01-estate-topology.md:ES-01.3 — bare :263 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/01-estate-topology.md:ES-01.3 — ../project/agentbox/docker-compose.yml:9096 past EOF (file has 201 lines)
+  ! estate/01-estate-topology.md:ES-01.3 — ../project/agentbox/docker-compose.browsercontainer.yml:8084 past EOF (file has 70 lines)
+  ! estate/01-estate-topology.md:ES-01.3 — ../project/agentbox/docker-compose.browsercontainer.yml:8085 past EOF (file has 70 lines)
+  ! estate/01-estate-topology.md:ES-01.3 — ../project/agentbox/docker-compose.browsercontainer.yml:9997 past EOF (file has 70 lines)
+  ! estate/01-estate-topology.md:ES-01.3 — ../project/agentbox/docker-compose.browsercontainer.yml:8765 past EOF (file has 70 lines)
+  ! estate/01-estate-topology.md:ES-01.4 — ../project/docker-compose.unified.yml:370 is blank
+  ! estate/01-estate-topology.md:ES-01.5 — bare :8443 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/03-cross-repo-federation-contract.md:ES-03.4 — ../project/src/uri/mod.rs:820 is punctuation only ('}')
+  ! estate/03-cross-repo-federation-contract.md:ES-03.4 — ../project/src/uri/mod.rs:820 is punctuation only ('}')
+  ! estate/03-cross-repo-federation-contract.md:ES-03.5 — ../project/agentbox/management-api/lib/bc20-provenance-bridge.js:254 is punctuation only ('}')
+  ! estate/03-cross-repo-federation-contract.md:ES-03.5 — ../project/agentbox/management-api/lib/bc20-provenance-bridge.js:255 is blank
+  ! estate/03-cross-repo-federation-contract.md:ES-03.7 — ../project/agentbox/management-api/lib/uris.js:165 is punctuation only ('}')
+  ! estate/03-cross-repo-federation-contract.md:ES-03.7 — ../project/agentbox/management-api/lib/uris.js:171 is punctuation only ('}')
+  ! estate/03-cross-repo-federation-contract.md:ES-03.7 — ../project/agentbox/management-api/lib/uris.js:179 is punctuation only ('}')
+  ! estate/03-cross-repo-federation-contract.md:ES-03.7 — ../project/agentbox/management-api/lib/uris.js:181 is punctuation only ('}')
+  ! estate/03-cross-repo-federation-contract.md:ES-03.8 — ../project/agentbox/management-api/routes/uri-resolver.js:60 is punctuation only ('}')
+  ! estate/03-cross-repo-federation-contract.md:ES-03.8 — ../project/agentbox/management-api/routes/uri-resolver.js:74 is punctuation only ('}')
+  ! estate/04-identity-mesh-did-nostr.md:ES-04.1 — ../project/agentbox/config/nip98-proxy/proxy.mjs:9096 past EOF (file has 1193 lines)
+  ! estate/04-identity-mesh-did-nostr.md:ES-04.1 — ../project/agentbox/management-api/lib/agent-event-auth.js:9095 past EOF (file has 182 lines)
+  ! estate/04-identity-mesh-did-nostr.md:ES-04.1 — ../project/client/src/services/nostrAuthService.ts:275 is blank
+  ! estate/04-identity-mesh-did-nostr.md:ES-04.6 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:58 is blank
+  ! estate/05-governance-loop-across-estate.md:ES-05.3 — ../project/agentbox/management-api/lib/authority.js:47 is blank
+  ! estate/05-governance-loop-across-estate.md:ES-05.5 — ../project/agentbox/management-api/routes/broker-bridge.js:291 is blank
+  ! estate/07-memory-and-embedding-estate.md:ES-07.2 — bare :9997 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/07-memory-and-embedding-estate.md:ES-07.2 — bare :5432 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/07-memory-and-embedding-estate.md:ES-07.3 — bare :9997 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/07-memory-and-embedding-estate.md:ES-07.6 — ../project/src/main.rs:1142 is blank
+  ! estate/07-memory-and-embedding-estate.md:ES-07.7 — bare :228 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/08-solid-pod-estate.md:ES-08.1 — ../project/agentbox/agentbox.toml:8484 past EOF (file has 1778 lines)
+  ! estate/08-solid-pod-estate.md:ES-08.1 — ../project/agentbox/flake.nix:8484 past EOF (file has 3837 lines)
+  ! estate/08-solid-pod-estate.md:ES-08.1 — ../project/agentbox/docker-compose.solid-pods.yml:3000 past EOF (file has 39 lines)
+  ! estate/08-solid-pod-estate.md:ES-08.4 — ../project/src/handlers/solid_proxy_handler.rs:881 is blank
+  ! estate/08-solid-pod-estate.md:ES-08.4 — ../project/src/handlers/solid_proxy_handler.rs:1651 is blank
+  ! estate/08-solid-pod-estate.md:ES-08.5 — ../project/src/handlers/solid_proxy_handler.rs:1311 is blank
+  ! estate/08-solid-pod-estate.md:ES-08.5 — ../project/src/handlers/solid_proxy_handler.rs:951 is blank
+  ! estate/08-solid-pod-estate.md:ES-08.6 — ../project/src/handlers/solid_proxy_handler.rs:742 is blank
+  ! estate/08-solid-pod-estate.md:ES-08.11 — ../project/src/main.rs:848 is blank
+  ! estate/08-solid-pod-estate.md:ES-08.11 — ../project/src/services/ontology_pull.rs:384 is blank
+  ! estate/08-solid-pod-estate.md:ES-08.11 — ../project/src/services/ontology_pull.rs:290 is punctuation only ('}')
+  ! estate/08-solid-pod-estate.md:ES-08.11 — ../project/src/services/ontology_pull.rs:304 is punctuation only ('}')
+  ! estate/08-solid-pod-estate.md:ES-08.11 — ../project/src/services/ontology_pull.rs:281 is punctuation only ('}')
+  ! estate/08-solid-pod-estate.md:ES-08.11 — ../project/src/services/ontology_pull.rs:315 is punctuation only ('});')
+  ! estate/08-solid-pod-estate.md:ES-08.11 — ../project/src/services/ontology_pull.rs:331 is punctuation only ('});')
+  ! estate/08-solid-pod-estate.md:ES-08.11 — ../project/src/services/ontology_pull.rs:375 is punctuation only ('));')
+  ! estate/09-build-deploy-and-ci-estate.md:ES-09.8 — bare :47 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/09-build-deploy-and-ci-estate.md:ES-09.8 — bare :165 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/09-build-deploy-and-ci-estate.md:ES-09.8 — bare :147 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/09-build-deploy-and-ci-estate.md:ES-09.8 — bare :121 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/09-build-deploy-and-ci-estate.md:ES-09.8 — bare :141 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/09-build-deploy-and-ci-estate.md:ES-09.8 — bare :171 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/09-build-deploy-and-ci-estate.md:ES-09.8 — bare :240 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/09-build-deploy-and-ci-estate.md:ES-09.8 — bare :215 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/09-build-deploy-and-ci-estate.md:ES-09.8 — bare :210 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/09-build-deploy-and-ci-estate.md:ES-09.8 — bare :245 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/09-build-deploy-and-ci-estate.md:ES-09.8 — bare :264 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/09-build-deploy-and-ci-estate.md:ES-09.8 — bare :288 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/09-build-deploy-and-ci-estate.md:ES-09.8 — bare :351 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/09-build-deploy-and-ci-estate.md:ES-09.8 — bare :335 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/09-build-deploy-and-ci-estate.md:ES-09.8 — bare :338 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/09-build-deploy-and-ci-estate.md:ES-09.9 — bare :55 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/09-build-deploy-and-ci-estate.md:ES-09.10 — bare :202 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/09-build-deploy-and-ci-estate.md:ES-09.10 — ../project/agentbox/management-api/lib/system-manifest.js:26 is blank
+  ! estate/09-build-deploy-and-ci-estate.md:ES-09.16 — ../project/agentbox/.github/workflows/contract-tests.yml:51 is blank
+  ! estate/10-deployment-and-security-profiles.md:ES-10.1 — ../project/src/config/security_profile.rs:55 is blank
+  ! estate/10-deployment-and-security-profiles.md:ES-10.2 — ../project/src/main.rs:713 is punctuation only (');')
+  ! estate/10-deployment-and-security-profiles.md:ES-10.2 — ../project/src/main.rs:749 is punctuation only ('};')
+  ! estate/10-deployment-and-security-profiles.md:ES-10.2 — ../project/src/main.rs:878 is blank
+  ! estate/10-deployment-and-security-profiles.md:ES-10.3 — ../project/src/main.rs:749 is punctuation only ('};')
+  ! estate/10-deployment-and-security-profiles.md:ES-10.4 — ../project/src/main.rs:749 is punctuation only ('};')
+  ! estate/10-deployment-and-security-profiles.md:ES-10.4 — ../project/src/middleware/rbac_gate.rs:422 past EOF (file has 391 lines)
+  ! estate/10-deployment-and-security-profiles.md:ES-10.5 — ../project/src/middleware/rbac_gate.rs:131 is punctuation only ('})')
+  ! estate/10-deployment-and-security-profiles.md:ES-10.7 — bare :79 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/10-deployment-and-security-profiles.md:ES-10.7 — bare :120 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/10-deployment-and-security-profiles.md:ES-10.7 — bare :422 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/10-deployment-and-security-profiles.md:ES-10.7 — ../project/src/main.rs:878 is blank
+  ! estate/10-deployment-and-security-profiles.md:ES-10.8 — bare :9096 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/10-deployment-and-security-profiles.md:ES-10.8 — bare :8443 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/10-deployment-and-security-profiles.md:ES-10.8 — bare :8444 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/10-deployment-and-security-profiles.md:ES-10.8 — bare :5903 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/10-deployment-and-security-profiles.md:ES-10.8 — bare :8931 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/10-deployment-and-security-profiles.md:ES-10.8 — bare :9222 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/10-deployment-and-security-profiles.md:ES-10.8 — bare :5905 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/10-deployment-and-security-profiles.md:ES-10.8 — bare :9876 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/10-deployment-and-security-profiles.md:ES-10.8 — bare :9877 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/10-deployment-and-security-profiles.md:ES-10.8 — bare :5904 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/10-deployment-and-security-profiles.md:ES-10.8 — ../project/agentbox/flake.nix:9095 past EOF (file has 3837 lines)
+  ! estate/10-deployment-and-security-profiles.md:ES-10.8 — ../project/agentbox/flake.nix:9096 past EOF (file has 3837 lines)
+  ! estate/10-deployment-and-security-profiles.md:ES-10.8 — ../project/agentbox/scripts/ci/check-ports-loopback.mjs:9096 past EOF (file has 1113 lines)
+  ! estate/10-deployment-and-security-profiles.md:ES-10.9 — bare :3001 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/10-deployment-and-security-profiles.md:ES-10.9 — bare :4000 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/10-deployment-and-security-profiles.md:ES-10.9 — bare :3001 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! estate/11-publishing-axis.md:ES-11.1 — ../visionGraph/.github/workflows/publish.yml:280 past EOF (file has 261 lines)
+  ! estate/11-publishing-axis.md:ES-11.1 — ../project/src/services/ontology_pull.rs:290 is punctuation only ('}')
+  ! estate/11-publishing-axis.md:ES-11.1 — ../visionGraph/.github/workflows/publish.yml:283 past EOF (file has 261 lines)
+  ! estate/11-publishing-axis.md:ES-11.1 — ../visionGraph/.github/workflows/publish.yml:284 past EOF (file has 261 lines)
+  ! estate/11-publishing-axis.md:ES-11.2 — ../visionGraph/.github/workflows/publish.yml:269 past EOF (file has 261 lines)
+  ! estate/11-publishing-axis.md:ES-11.2 — ../visionGraph/.github/workflows/publish.yml:270 past EOF (file has 261 lines)
+  ! estate/11-publishing-axis.md:ES-11.2 — ../visionGraph/.github/workflows/publish.yml:272 past EOF (file has 261 lines)
+  ! estate/11-publishing-axis.md:ES-11.2 — ../visionGraph/.github/workflows/publish.yml:275 past EOF (file has 261 lines)
+  ! estate/11-publishing-axis.md:ES-11.2 — ../visionGraph/.github/workflows/publish.yml:280 past EOF (file has 261 lines)
+  ! estate/11-publishing-axis.md:ES-11.2 — ../visionGraph/.github/workflows/publish.yml:283 past EOF (file has 261 lines)
+  ! estate/11-publishing-axis.md:ES-11.2 — ../visionGraph/.github/workflows/publish.yml:284 past EOF (file has 261 lines)
+  ! estate/11-publishing-axis.md:ES-11.2 — ../visionGraph/.github/workflows/publish.yml:282 past EOF (file has 261 lines)
+  ! knowledgegraph/04-explorer-and-site-build.md:KG-04.6 — ../visionGraph/.github/workflows/publish.yml:279 past EOF (file has 261 lines)
+  ! nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.4 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:466 is blank
+  ! nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.4 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:478 is blank
+  ! nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.4 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:736 is punctuation only ('}')
+  ! nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.4 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:749 is blank
+  ! nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.4 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:798 is punctuation only ('}')
+  ! nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.5 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:519 is blank
+  ! nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.6 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:593 is blank
+  ! nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.7 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:609 is blank
+  ! nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.7 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:624 is punctuation only ('}')
+  ! nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.7 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:639 is punctuation only (');')
+  ! nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.7 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:873 is punctuation only ('}')
+  ! nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.10 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:865 is blank
+  ! nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.10 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:868 is blank
+  ! nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.10 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:917 is punctuation only ('}')
+  ! nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.10 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:887 is blank
+  ! nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.11 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:955 is punctuation only ('}')
+  ! nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.11 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:960 is blank
+  ! nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.12 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:749 is blank
+  ! nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.12 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:798 is punctuation only ('}')
+  ! nostr-rust-forum/07-search-preview-and-shared-worker-utilities.md:NF-07.6 — ../nostr-rust-forum/crates/nostr-bbs-preview-worker/src/ssrf.rs:0 is blank
+  ! nostr-rust-forum/07-search-preview-and-shared-worker-utilities.md:NF-07.6 — ../nostr-rust-forum/crates/nostr-bbs-preview-worker/src/ssrf.rs:240 is blank
+  ! nostr-rust-forum/11-relay-durable-object-internals.md:NF-11.3 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1481 is punctuation only ('}')
+  ! nostr-rust-forum/11-relay-durable-object-internals.md:NF-11.9 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/receipts.rs:392 is punctuation only ('}')
+  ! nostr-rust-forum/11-relay-durable-object-internals.md:NF-11.11 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs:497 is punctuation only ('}')
+  ! nostr-rust-forum/11-relay-durable-object-internals.md:NF-11.14 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1481 is punctuation only ('}')
+  ! visionclaw/01-boot-and-app-state.md:VC-01.2 — ../project/src/main.rs:848 is blank
+  ! visionclaw/01-boot-and-app-state.md:VC-01.3 — ../project/src/main.rs:1186 is blank
+  ! visionclaw/01-boot-and-app-state.md:VC-01.4 — ../project/src/main.rs:988 is punctuation only ('}')
+  ! visionclaw/01-boot-and-app-state.md:VC-01.6 — ../project/src/main.rs:848 is blank
+  ! visionclaw/01-boot-and-app-state.md:VC-01.8 — ../project/src/main.rs:1197 is blank
+  ! visionclaw/01-boot-and-app-state.md:VC-01.9 — ../project/src/main.rs:1049 is blank
+  ! visionclaw/01-boot-and-app-state.md:VC-01.10 — ../project/src/main.rs:1081 is punctuation only (')')
+  ! visionclaw/01-boot-and-app-state.md:VC-01.15 — ../project/src/main.rs:848 is blank
+  ! visionclaw/01-boot-and-app-state.md:VC-01.15 — ../project/src/services/ontology_pull.rs:384 is blank
+  ! visionclaw/01-boot-and-app-state.md:VC-01.15 — ../project/src/services/ontology_pull.rs:290 is punctuation only ('}')
+  ! visionclaw/01-boot-and-app-state.md:VC-01.15 — ../project/src/services/ontology_pull.rs:73 is punctuation only ('}')
+  ! visionclaw/01-boot-and-app-state.md:VC-01.15 — ../project/src/services/ontology_pull.rs:411 is punctuation only ('});')
+  ! visionclaw/03-request-lifecycle-and-rbac.md:VC-03.2 — ../project/src/services/nostr_service.rs:574 is punctuation only ('}')
+  ! visionclaw/03-request-lifecycle-and-rbac.md:VC-03.2 — ../project/src/handlers/socket_flow_handler/http_handler.rs:117 is blank
+  ! visionclaw/03-request-lifecycle-and-rbac.md:VC-03.2 — ../project/src/handlers/socket_flow_handler/http_handler.rs:217 is punctuation only ('}')
+  ! visionclaw/03-request-lifecycle-and-rbac.md:VC-03.2 — ../project/src/services/nostr_service.rs:574 is punctuation only ('}')
+  ! visionclaw/03-request-lifecycle-and-rbac.md:VC-03.3 — ../project/src/services/nostr_service.rs:601 is punctuation only ('}')
+  ! visionclaw/03-request-lifecycle-and-rbac.md:VC-03.3 — ../project/src/settings/auth_extractor.rs:127 is punctuation only ('});')
+  ! visionclaw/03-request-lifecycle-and-rbac.md:VC-03.3 — ../project/src/settings/auth_extractor.rs:195 is blank
+  ! visionclaw/03-request-lifecycle-and-rbac.md:VC-03.4 — ../project/src/services/nostr_service.rs:601 is punctuation only ('}')
+  ! visionclaw/03-request-lifecycle-and-rbac.md:VC-03.5 — ../project/src/services/nostr_service.rs:416 is punctuation only ('}')
+  ! visionclaw/03-request-lifecycle-and-rbac.md:VC-03.15 — ../project/src/services/nostr_service.rs:601 is punctuation only ('}')
+  ! visionclaw/03-request-lifecycle-and-rbac.md:VC-03.15 — ../project/src/handlers/solid_proxy_handler.rs:1311 is blank
+  ! visionclaw/03-request-lifecycle-and-rbac.md:VC-03.15 — ../project/src/handlers/solid_proxy_handler.rs:1381 is blank
+  ! visionclaw/03-request-lifecycle-and-rbac.md:VC-03.15 — ../project/src/handlers/solid_proxy_handler.rs:1654 is blank
+  ! visionclaw/05-handlers-governance-and-identity.md:VC-05.8 — ../project/agentbox/management-api/routes/broker-bridge.js:290 is punctuation only ('}')
+  ! visionclaw/05-handlers-governance-and-identity.md:VC-05.15 — ../project/src/handlers/solid_proxy_handler.rs:1789 is blank
+  ! visionclaw/05-handlers-governance-and-identity.md:VC-05.15 — ../project/src/handlers/solid_proxy_handler.rs:381 is blank
+  ! visionclaw/05-handlers-governance-and-identity.md:VC-05.15 — ../project/src/handlers/solid_proxy_handler.rs:1609 is blank
+  ! visionclaw/05-handlers-governance-and-identity.md:VC-05.15 — ../project/src/handlers/solid_proxy_handler.rs:1369 is blank
+  ! visionclaw/05-handlers-governance-and-identity.md:VC-05.15 — ../project/src/handlers/solid_proxy_handler.rs:1348 is blank
+  ! visionclaw/05-handlers-governance-and-identity.md:VC-05.17 — ../project/src/services/acsp/client.rs:22 is blank
+  ! visionclaw/05-handlers-governance-and-identity.md:VC-05.17 — ../project/src/services/acsp/client.rs:67 is punctuation only ('}')
+  ! visionclaw/08-observability-health-and-dev-loop.md:VC-08.2 — ../project/src/main.rs:1197 is blank
+  ! visionclaw/08-observability-health-and-dev-loop.md:VC-08.12 — ../project/src/config/security_profile.rs:363 is punctuation only ('),')
+  ! visionclaw/09-config-and-env-flags.md:VC-09.1 — ../project/src/main.rs:800 is punctuation only ('}')
+  ! visionclaw/09-config-and-env-flags.md:VC-09.4 — ../project/src/main.rs:878 is blank
+  ! visionclaw/09-config-and-env-flags.md:VC-09.6 — ../project/src/config/security_profile.rs:55 is blank
+  ! visionclaw/09-config-and-env-flags.md:VC-09.6 — ../project/src/config/security_profile.rs:107 is punctuation only ('}')
+  ! visionclaw/09-config-and-env-flags.md:VC-09.7 — ../project/src/config/security_profile.rs:422 is punctuation only ('}')
+  ! visionclaw/09-config-and-env-flags.md:VC-09.7 — ../project/src/config/security_profile.rs:453 is punctuation only ('),')
+  ! visionclaw/09-config-and-env-flags.md:VC-09.8 — ../project/src/main.rs:800 is punctuation only ('}')
+  ! visionclaw/09-config-and-env-flags.md:VC-09.9 — ../project/src/config/security_profile.rs:55 is blank
+  ! visionclaw/09-config-and-env-flags.md:VC-09.12 — ../project/src/main.rs:688 is blank
+  ! visionclaw/09-config-and-env-flags.md:VC-09.13 — ../project/src/main.rs:1197 is blank
+  ! visionclaw/11-physics-step-and-force-channels.md:VC-11.1 — ../project/src/utils/unified_gpu_compute/execution.rs:968 is blank
+  ! visionclaw/11-physics-step-and-force-channels.md:VC-11.3 — ../project/src/utils/unified_gpu_compute/execution.rs:968 is blank
+  ! visionclaw/12-simparams-abi-and-ptx.md:VC-12.6 — ../project/src/utils/unified_gpu_compute/execution.rs:612 is blank
+  ! visionclaw/12-simparams-abi-and-ptx.md:VC-12.6 — ../project/src/utils/unified_gpu_compute/execution.rs:863 is punctuation only ('}')
+  ! visionclaw/13-broadcast-pipeline-and-websocket.md:VC-13.1 — ../project/src/handlers/socket_flow_handler/http_handler.rs:39 is blank
+  ! visionclaw/13-broadcast-pipeline-and-websocket.md:VC-13.1 — ../project/src/handlers/socket_flow_handler/http_handler.rs:145 is punctuation only (');')
+  ! visionclaw/13-broadcast-pipeline-and-websocket.md:VC-13.1 — ../project/src/handlers/socket_flow_handler/http_handler.rs:174 is punctuation only ('}')
+  ! visionclaw/13-broadcast-pipeline-and-websocket.md:VC-13.1 — ../project/src/handlers/socket_flow_handler/http_handler.rs:236 is punctuation only (');')
+  ! visionclaw/15-gpu-analytics.md:VC-15.10 — ../project/src/main.rs:1103 is punctuation only (')')
+  ! visionclaw/15-gpu-analytics.md:VC-15.13 — ../project/crates/visionclaw-gpu/src/cuda_sources/gpu_clustering_kernels.cu:1079 is blank
+  ! visionclaw/22-data-authority-provenance-erasure.md:VC-22.1 — ../project/src/services/nostr_service.rs:245 is blank
+  ! visionclaw/22-data-authority-provenance-erasure.md:VC-22.9 — ../project/src/main.rs:740 is blank
+  ! visionclaw/24-acsp-decision-elevation.md:VC-24.6 — ../project/src/actors/decision_elevation_actor.rs:459 is punctuation only ('}')
+  ! visionclaw/24-acsp-decision-elevation.md:VC-24.6 — ../project/src/actors/decision_elevation_actor.rs:583 is punctuation only ('};')
+  ! visionclaw/24-acsp-decision-elevation.md:VC-24.11 — ../project/src/services/acsp/client.rs:74 is blank
+  ! visionclaw/26-solid-pod-and-jss.md:VC-26.1 — ../project/src/main.rs:1016 is blank
+  ! visionclaw/26-solid-pod-and-jss.md:VC-26.1 — ../project/src/main.rs:1015 is blank
+  ! visionclaw/26-solid-pod-and-jss.md:VC-26.2 — ../project/src/handlers/solid_proxy_handler.rs:881 is blank
+  ! visionclaw/26-solid-pod-and-jss.md:VC-26.4 — ../project/src/utils/nip98.rs:524 is blank
+  ! visionclaw/26-solid-pod-and-jss.md:VC-26.7 — ../project/src/handlers/solid_proxy_handler.rs:881 is blank
+  ! visionclaw/26-solid-pod-and-jss.md:VC-26.7 — ../project/src/handlers/solid_proxy_handler.rs:896 is punctuation only ('};')
+  ! visionclaw/26-solid-pod-and-jss.md:VC-26.7 — ../project/src/handlers/solid_proxy_handler.rs:932 is punctuation only ('}')
+  ! visionclaw/26-solid-pod-and-jss.md:VC-26.13 — ../project/src/main.rs:848 is blank
+  ! visionclaw/26-solid-pod-and-jss.md:VC-26.13 — ../project/src/services/ontology_pull.rs:384 is blank
+  ! visionclaw/26-solid-pod-and-jss.md:VC-26.13 — ../project/src/services/ontology_pull.rs:290 is punctuation only ('}')
+  ! visionclaw/26-solid-pod-and-jss.md:VC-26.13 — ../project/src/services/ontology_pull.rs:39 is blank
+  ! visionclaw/26-solid-pod-and-jss.md:VC-26.13 — ../project/src/services/ontology_pull.rs:50 is blank
+  ! visionclaw/26-solid-pod-and-jss.md:VC-26.13 — ../project/src/services/ontology_pull.rs:411 is punctuation only ('});')
+  ! visionclaw/26-solid-pod-and-jss.md:VC-26.14 — ../project/src/services/ontology_pull.rs:291 is blank
+  ! visionclaw/27-agent-integration-mcp-relay.md:VC-27.12 — ../project/src/main.rs:1142 is blank
+  ! visionclaw/28-external-services.md:VC-28.5 — bare :825 on a message whose participant is declared without a path (bind the participant to a file, or qualify the ref)
+  ! visionclaw/28-external-services.md:VC-28.5 — bare :753 on a message whose participant is declared without a path (bind the participant to a file, or qualify the ref)
+  ! visionclaw/28-external-services.md:VC-28.5 — bare :755 on a message whose participant is declared without a path (bind the participant to a file, or qualify the ref)
+  ! visionclaw/28-external-services.md:VC-28.5 — bare :760 on a message whose participant is declared without a path (bind the participant to a file, or qualify the ref)
+  ! visionclaw/28-external-services.md:VC-28.5 — bare :766 on a message whose participant is declared without a path (bind the participant to a file, or qualify the ref)
+  ! visionclaw/28-external-services.md:VC-28.5 — bare :822 on a message whose participant is declared without a path (bind the participant to a file, or qualify the ref)
+  ! visionclaw/28-external-services.md:VC-28.5 — bare :791 on a message whose participant is declared without a path (bind the participant to a file, or qualify the ref)
+  ! visionclaw/28-external-services.md:VC-28.5 — bare :786 on a message whose participant is declared without a path (bind the participant to a file, or qualify the ref)
+  ! visionclaw/28-external-services.md:VC-28.5 — bare :796 on a message whose participant is declared without a path (bind the participant to a file, or qualify the ref)
+  ! visionclaw/28-external-services.md:VC-28.5 — bare :805 on a message whose participant is declared without a path (bind the participant to a file, or qualify the ref)
+  ! visionclaw/30-client-boot-and-state.md:VC-30.5 — ../project/client/src/store/websocket/index.ts:248 is blank
+  ! visionclaw/30-client-boot-and-state.md:VC-30.5 — ../project/client/src/store/websocket/index.ts:278 is blank
+  ! visionclaw/32-client-websocket-and-binary.md:VC-32.1 — ../project/client/src/store/websocket/index.ts:162 is punctuation only ('}')
+  ! visionclaw/32-client-websocket-and-binary.md:VC-32.1 — ../project/client/src/store/websocket/index.ts:182 is punctuation only ('}')
+  ! visionclaw/32-client-websocket-and-binary.md:VC-32.1 — ../project/client/src/store/websocket/index.ts:196 is punctuation only ('});')
+  ! visionclaw/32-client-websocket-and-binary.md:VC-32.1 — ../project/client/src/store/websocket/index.ts:197 is punctuation only ('}')
+  ! visionclaw/33-client-auth-and-identity.md:VC-33.1 — ../project/client/src/services/nostrAuthService.ts:341 is blank
+  ! visionclaw/33-client-auth-and-identity.md:VC-33.1 — ../project/client/src/services/nostrAuthService.ts:355 is blank
+  ! visionclaw/33-client-auth-and-identity.md:VC-33.1 — ../project/client/src/services/nostrAuthService.ts:477 is punctuation only ('}')
+  ! visionclaw/33-client-auth-and-identity.md:VC-33.1 — ../project/client/src/services/nostrAuthService.ts:388 is punctuation only ('}')
+  ! visionclaw/33-client-auth-and-identity.md:VC-33.1 — ../project/client/src/services/nostrAuthService.ts:398 is blank
+  ! visionclaw/33-client-auth-and-identity.md:VC-33.1 — ../project/client/src/services/nostrAuthService.ts:503 is punctuation only ('}')
+  ! visionclaw/33-client-auth-and-identity.md:VC-33.1 — ../project/client/src/services/nostrAuthService.ts:438 is punctuation only ('}')
+  ! visionclaw/33-client-auth-and-identity.md:VC-33.1 — ../project/client/src/services/nostrAuthService.ts:433 is punctuation only ('}')
+  ! visionclaw/33-client-auth-and-identity.md:VC-33.2 — ../project/client/src/services/nostrAuthService.ts:259 is blank
+  ! visionclaw/33-client-auth-and-identity.md:VC-33.2 — ../project/client/src/services/nostrAuthService.ts:268 is blank
+  ! visionclaw/33-client-auth-and-identity.md:VC-33.2 — ../project/client/src/services/nostrAuthService.ts:309 is punctuation only ('};')
+  ! visionclaw/33-client-auth-and-identity.md:VC-33.2 — ../project/client/src/services/nostrAuthService.ts:275 is blank
+  ! visionclaw/33-client-auth-and-identity.md:VC-33.3 — ../project/client/src/services/nostrAuthService.ts:433 is punctuation only ('}')
+  ! visionclaw/33-client-auth-and-identity.md:VC-33.5 — ../project/client/src/services/nostrAuthService.ts:427 is punctuation only ('}')
+  ! visionclaw/33-client-auth-and-identity.md:VC-33.5 — ../project/client/src/services/nostrAuthService.ts:427 is punctuation only ('}')
+  ! visionclaw/33-client-auth-and-identity.md:VC-33.5 — ../project/client/src/services/nostrAuthService.ts:446 is punctuation only ('}')
+  ! visionclaw/33-client-auth-and-identity.md:VC-33.5 — ../project/client/src/services/nostrAuthService.ts:452 is punctuation only ('}')
+  ! visionclaw/33-client-auth-and-identity.md:VC-33.5 — ../project/client/src/services/nostrAuthService.ts:456 is punctuation only ('}')
+  ! visionclaw/33-client-auth-and-identity.md:VC-33.9 — ../project/client/src/services/nostrAuthService.ts:602 is punctuation only ('}')
+  ! visionclaw/35-voice-end-to-end.md:VC-35.12 — ../project/voice-stack/README.md:13 is blank
+  ! visionclaw/36-godot-xr-client.md:VC-36.14 — bare :9 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! visionclaw/36-godot-xr-client.md:VC-36.14 — bare :15 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! visionclaw/36-godot-xr-client.md:VC-36.14 — bare :26 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! visionclaw/36-godot-xr-client.md:VC-36.14 — bare :32 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! visionclaw/36-godot-xr-client.md:VC-36.14 — bare :43 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! visionclaw/36-godot-xr-client.md:VC-36.14 — bare :49 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! visionclaw/36-godot-xr-client.md:VC-36.14 — bare :61 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! visionclaw/36-godot-xr-client.md:VC-36.14 — bare :67 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  ! visionflow/02-website-build-and-deploy.md:VF-02.2 — website/static/js/main.js:844 is blank
+  ! visionflow/02-website-build-and-deploy.md:VF-02.12 — website/static/js/main.js:844 is blank
+  ! visionflow/05-governance-gates.md:VF-05.12 — scripts/mesh-smoke-preflight.sh:7777 past EOF (file has 339 lines)
+  ! visiongraph/04-downstream-contracts.md:VG-04.2 — ../visionGraph/.github/workflows/publish.yml:279 past EOF (file has 261 lines)
+  ! visiongraph/04-downstream-contracts.md:VG-04.2 — ../visionGraph/.github/workflows/publish.yml:284 past EOF (file has 261 lines)
+  ! estate/04-identity-mesh-did-nostr.md — ../project/src/utils/nip98.rs:375 is labelled 'validate_nip98_token' but that function spans :428-441
+  ! estate/04-identity-mesh-did-nostr.md — ../project/src/utils/nip98.rs:234 is labelled 'claim_event_id' but that function spans :285-290
+  ! estate/08-solid-pod-estate.md — ../project/src/handlers/solid_proxy_handler.rs:881 is labelled 'load_acl_for_path' but that function spans :885-925
+  ! nostr-rust-forum/11-relay-durable-object-internals.md — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs:497 is labelled 'sweep_inactive_demotions' but that function spans :521-570
+  ! visionclaw/01-boot-and-app-state.md — ../project/src/config/security_profile.rs:604 is labelled 'assert_effective_profile_or_exit' but that function spans :624-663
+  ! visionclaw/03-request-lifecycle-and-rbac.md — ../project/src/services/nostr_service.rs:574 is labelled 'get_session' but that function spans :587-601
+  ! visionclaw/03-request-lifecycle-and-rbac.md — ../project/src/services/nostr_service.rs:601 is labelled 'verify_nip98_auth' but that function spans :624-658
+  ! visionclaw/03-request-lifecycle-and-rbac.md — ../project/src/services/nostr_service.rs:601 is labelled 'verify_nip98_auth' but that function spans :624-658
+  ! visionclaw/03-request-lifecycle-and-rbac.md — ../project/src/utils/nip98.rs:375 is labelled 'validate_nip98_token' but that function spans :428-441
+  ! visionclaw/03-request-lifecycle-and-rbac.md — ../project/src/services/nostr_service.rs:601 is labelled 'verify_nip98_auth' but that function spans :624-658
+  ! visionclaw/08-observability-health-and-dev-loop.md — ../project/src/config/security_profile.rs:604 is labelled 'assert_effective_profile_or_exit' but that function spans :624-663
+  ! visionclaw/09-config-and-env-flags.md — ../project/src/config/security_profile.rs:604 is labelled 'assert_effective_profile_or_exit' but that function spans :624-663
+  ! visionclaw/09-config-and-env-flags.md — ../project/src/config/security_profile.rs:604 is labelled 'assert_effective_profile_or_exit' but that function spans :624-663
+  ! visionclaw/09-config-and-env-flags.md — ../project/src/config/security_profile.rs:477 is labelled 'evaluate_effective_profile' but that function spans :485-614
+  ! visionclaw/09-config-and-env-flags.md — ../project/src/config/security_profile.rs:453 is labelled 'report_mode_requested' but that function spans :459-463
+  ! visionclaw/09-config-and-env-flags.md — ../project/src/config/security_profile.rs:460 is labelled 'report_mode_acknowledged' but that function spans :473-480
+  ! visionclaw/11-physics-step-and-force-channels.md — ../project/src/utils/unified_gpu_compute/execution.rs:131 is labelled 'execute' but that function spans :172-981
+  ! visionclaw/11-physics-step-and-force-channels.md — ../project/src/utils/unified_gpu_compute/execution.rs:131 is labelled 'execute' but that function spans :172-981
+  ! visionclaw/13-broadcast-pipeline-and-websocket.md — ../project/src/handlers/socket_flow_handler/http_handler.rs:39 is labelled 'socket_flow_handler' but that function spans :53-454
+  ! visionclaw/24-acsp-decision-elevation.md — ../project/src/services/acsp/client.rs:99 is labelled 'publish' but that function spans :117-155
+  ! visionclaw/26-solid-pod-and-jss.md — ../project/src/handlers/solid_proxy_handler.rs:881 is labelled 'load_acl_for_path' but that function spans :885-925
+  ! visionclaw/26-solid-pod-and-jss.md — ../project/src/utils/nip98.rs:375 is labelled 'validate_nip98_token' but that function spans :428-441
+  ! visionclaw/26-solid-pod-and-jss.md — ../project/src/handlers/solid_proxy_handler.rs:881 is labelled 'load_acl_for_path' but that function spans :885-925
+
+344 error(s):
+  - citation: agentbox/01-nix-flake-composition.md:AB-01.1 — ../project/agentbox/flake.nix:652 is blank
+  - citation: agentbox/01-nix-flake-composition.md:AB-01.6 — ../project/agentbox/flake.nix:1099 is punctuation only (']')
+  - citation: agentbox/01-nix-flake-composition.md:AB-01.7 — ../project/agentbox/flake.nix:1080 is punctuation only ('};')
+  - citation: agentbox/01-nix-flake-composition.md:AB-01.7 — ../project/agentbox/flake.nix:1092 is punctuation only ('};')
+  - citation: agentbox/01-nix-flake-composition.md:AB-01.7 — ../project/agentbox/flake.nix:1099 is punctuation only (']')
+  - citation: agentbox/01-nix-flake-composition.md:AB-01.7 — ../project/agentbox/flake.nix:1105 is punctuation only ('];')
+  - citation: agentbox/01-nix-flake-composition.md:AB-01.10 — ../project/agentbox/flake.nix:652 is blank
+  - citation: agentbox/02-boot-sequence-and-readiness.md:AB-02.4 — ../project/agentbox/flake.nix:2121 is blank
+  - citation: agentbox/02-boot-sequence-and-readiness.md:AB-02.4 — ../project/agentbox/flake.nix:2265 is blank
+  - citation: agentbox/02-boot-sequence-and-readiness.md:AB-02.6 — ../project/agentbox/flake.nix:1401 is blank
+  - citation: agentbox/02-boot-sequence-and-readiness.md:AB-02.7 — ../project/agentbox/flake.nix:2374 is blank
+  - citation: agentbox/02-boot-sequence-and-readiness.md:AB-02.8 — ../project/agentbox/flake.nix:2121 is blank
+  - citation: agentbox/02-boot-sequence-and-readiness.md:AB-02.8 — ../project/agentbox/flake.nix:2125 is blank
+  - citation: agentbox/07-daemons-reapers-cron-backups.md:AB-07.2 — ../project/agentbox/flake.nix:1827 is blank
+  - citation: agentbox/07-daemons-reapers-cron-backups.md:AB-07.7 — ../project/agentbox/flake.nix:2438 is blank
+  - citation: agentbox/07-daemons-reapers-cron-backups.md:AB-07.9 — ../project/agentbox/flake.nix:2265 is blank
+  - citation: agentbox/08-hooks-pipeline.md:AB-08.1 — ../project/agentbox/config/entrypoint-unified.sh:1197 is blank
+  - citation: agentbox/08-hooks-pipeline.md:AB-08.5 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:374 is blank
+  - citation: agentbox/08-hooks-pipeline.md:AB-08.6 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:374 is blank
+  - citation: agentbox/08-hooks-pipeline.md:AB-08.7 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:374 is blank
+  - citation: agentbox/08-hooks-pipeline.md:AB-08.9 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:374 is blank
+  - citation: agentbox/08-hooks-pipeline.md:AB-08.9 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:110 is blank
+  - citation: agentbox/08-hooks-pipeline.md:AB-08.9 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:388 is punctuation only ('});')
+  - citation: agentbox/08-hooks-pipeline.md:AB-08.9 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:395 is blank
+  - citation: agentbox/08-hooks-pipeline.md:AB-08.9 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:425 is punctuation only ('}')
+  - citation: agentbox/08-hooks-pipeline.md:AB-08.9 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:433 is blank
+  - citation: agentbox/08-hooks-pipeline.md:AB-08.9 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:450 is blank
+  - citation: agentbox/08-hooks-pipeline.md:AB-08.9 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:58 is blank
+  - citation: agentbox/08-hooks-pipeline.md:AB-08.9 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:466 is punctuation only ('};')
+  - citation: agentbox/08-hooks-pipeline.md:AB-08.9 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:505 is blank
+  - citation: dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :46 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :56 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :78 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :160 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :246 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :266 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :89 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :107 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :128 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :144 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :382 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :408 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :169 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :188 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :201 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :218 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :332 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :374 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :367 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :295 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :303 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :320 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :416 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md:DW-03.11 — bare :448 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/01-estate-topology.md:ES-01.1 — ../project/agentbox/docs/developer/native-pod-mesh.md:8484 past EOF (file has 393 lines)
+  - citation: estate/01-estate-topology.md:ES-01.1 — ../project/agentbox/lib/solid-pod-rs.nix:8484 past EOF (file has 182 lines)
+  - citation: estate/01-estate-topology.md:ES-01.2 — ../project/agentbox/docs/developer/hp-peer-node.md:8084 past EOF (file has 86 lines)
+  - citation: estate/01-estate-topology.md:ES-01.2 — ../project/agentbox/skills/email-search/SKILL.md:8085 past EOF (file has 240 lines)
+  - citation: estate/01-estate-topology.md:ES-01.2 — ../project/agentbox/docs/developer/hp-peer-node.md:8084 past EOF (file has 86 lines)
+  - citation: estate/01-estate-topology.md:ES-01.2 — ../project/agentbox/docs/developer/hp-peer-node.md:8085 past EOF (file has 86 lines)
+  - citation: estate/01-estate-topology.md:ES-01.2 — ../project/agentbox/skills/email-search/SKILL.md:9997 past EOF (file has 240 lines)
+  - citation: estate/01-estate-topology.md:ES-01.2 — ../project/agentbox/skills/email-search/SKILL.md:9997 past EOF (file has 240 lines)
+  - citation: estate/01-estate-topology.md:ES-01.2 — ../project/agentbox/skills/email-search/SKILL.md:9096 past EOF (file has 240 lines)
+  - citation: estate/01-estate-topology.md:ES-01.2 — ../project/agentbox/skills/email-search/SKILL.md:7777 past EOF (file has 240 lines)
+  - citation: estate/01-estate-topology.md:ES-01.3 — bare :165 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/01-estate-topology.md:ES-01.3 — bare :239 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/01-estate-topology.md:ES-01.3 — bare :350 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/01-estate-topology.md:ES-01.3 — bare :263 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/01-estate-topology.md:ES-01.3 — ../project/agentbox/docker-compose.yml:9096 past EOF (file has 201 lines)
+  - citation: estate/01-estate-topology.md:ES-01.3 — ../project/agentbox/docker-compose.browsercontainer.yml:8084 past EOF (file has 70 lines)
+  - citation: estate/01-estate-topology.md:ES-01.3 — ../project/agentbox/docker-compose.browsercontainer.yml:8085 past EOF (file has 70 lines)
+  - citation: estate/01-estate-topology.md:ES-01.3 — ../project/agentbox/docker-compose.browsercontainer.yml:9997 past EOF (file has 70 lines)
+  - citation: estate/01-estate-topology.md:ES-01.3 — ../project/agentbox/docker-compose.browsercontainer.yml:8765 past EOF (file has 70 lines)
+  - citation: estate/01-estate-topology.md:ES-01.4 — ../project/docker-compose.unified.yml:370 is blank
+  - citation: estate/01-estate-topology.md:ES-01.5 — bare :8443 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/03-cross-repo-federation-contract.md:ES-03.4 — ../project/src/uri/mod.rs:820 is punctuation only ('}')
+  - citation: estate/03-cross-repo-federation-contract.md:ES-03.4 — ../project/src/uri/mod.rs:820 is punctuation only ('}')
+  - citation: estate/03-cross-repo-federation-contract.md:ES-03.5 — ../project/agentbox/management-api/lib/bc20-provenance-bridge.js:254 is punctuation only ('}')
+  - citation: estate/03-cross-repo-federation-contract.md:ES-03.5 — ../project/agentbox/management-api/lib/bc20-provenance-bridge.js:255 is blank
+  - citation: estate/03-cross-repo-federation-contract.md:ES-03.7 — ../project/agentbox/management-api/lib/uris.js:165 is punctuation only ('}')
+  - citation: estate/03-cross-repo-federation-contract.md:ES-03.7 — ../project/agentbox/management-api/lib/uris.js:171 is punctuation only ('}')
+  - citation: estate/03-cross-repo-federation-contract.md:ES-03.7 — ../project/agentbox/management-api/lib/uris.js:179 is punctuation only ('}')
+  - citation: estate/03-cross-repo-federation-contract.md:ES-03.7 — ../project/agentbox/management-api/lib/uris.js:181 is punctuation only ('}')
+  - citation: estate/03-cross-repo-federation-contract.md:ES-03.8 — ../project/agentbox/management-api/routes/uri-resolver.js:60 is punctuation only ('}')
+  - citation: estate/03-cross-repo-federation-contract.md:ES-03.8 — ../project/agentbox/management-api/routes/uri-resolver.js:74 is punctuation only ('}')
+  - citation: estate/04-identity-mesh-did-nostr.md:ES-04.1 — ../project/agentbox/config/nip98-proxy/proxy.mjs:9096 past EOF (file has 1193 lines)
+  - citation: estate/04-identity-mesh-did-nostr.md:ES-04.1 — ../project/agentbox/management-api/lib/agent-event-auth.js:9095 past EOF (file has 182 lines)
+  - citation: estate/04-identity-mesh-did-nostr.md:ES-04.1 — ../project/client/src/services/nostrAuthService.ts:275 is blank
+  - citation: estate/04-identity-mesh-did-nostr.md:ES-04.6 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:58 is blank
+  - citation: estate/05-governance-loop-across-estate.md:ES-05.3 — ../project/agentbox/management-api/lib/authority.js:47 is blank
+  - citation: estate/05-governance-loop-across-estate.md:ES-05.5 — ../project/agentbox/management-api/routes/broker-bridge.js:291 is blank
+  - citation: estate/07-memory-and-embedding-estate.md:ES-07.2 — bare :9997 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/07-memory-and-embedding-estate.md:ES-07.2 — bare :5432 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/07-memory-and-embedding-estate.md:ES-07.3 — bare :9997 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/07-memory-and-embedding-estate.md:ES-07.6 — ../project/src/main.rs:1142 is blank
+  - citation: estate/07-memory-and-embedding-estate.md:ES-07.7 — bare :228 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/08-solid-pod-estate.md:ES-08.1 — ../project/agentbox/agentbox.toml:8484 past EOF (file has 1778 lines)
+  - citation: estate/08-solid-pod-estate.md:ES-08.1 — ../project/agentbox/flake.nix:8484 past EOF (file has 3837 lines)
+  - citation: estate/08-solid-pod-estate.md:ES-08.1 — ../project/agentbox/docker-compose.solid-pods.yml:3000 past EOF (file has 39 lines)
+  - citation: estate/08-solid-pod-estate.md:ES-08.4 — ../project/src/handlers/solid_proxy_handler.rs:881 is blank
+  - citation: estate/08-solid-pod-estate.md:ES-08.4 — ../project/src/handlers/solid_proxy_handler.rs:1651 is blank
+  - citation: estate/08-solid-pod-estate.md:ES-08.5 — ../project/src/handlers/solid_proxy_handler.rs:1311 is blank
+  - citation: estate/08-solid-pod-estate.md:ES-08.5 — ../project/src/handlers/solid_proxy_handler.rs:951 is blank
+  - citation: estate/08-solid-pod-estate.md:ES-08.6 — ../project/src/handlers/solid_proxy_handler.rs:742 is blank
+  - citation: estate/08-solid-pod-estate.md:ES-08.11 — ../project/src/main.rs:848 is blank
+  - citation: estate/08-solid-pod-estate.md:ES-08.11 — ../project/src/services/ontology_pull.rs:384 is blank
+  - citation: estate/08-solid-pod-estate.md:ES-08.11 — ../project/src/services/ontology_pull.rs:290 is punctuation only ('}')
+  - citation: estate/08-solid-pod-estate.md:ES-08.11 — ../project/src/services/ontology_pull.rs:304 is punctuation only ('}')
+  - citation: estate/08-solid-pod-estate.md:ES-08.11 — ../project/src/services/ontology_pull.rs:281 is punctuation only ('}')
+  - citation: estate/08-solid-pod-estate.md:ES-08.11 — ../project/src/services/ontology_pull.rs:315 is punctuation only ('});')
+  - citation: estate/08-solid-pod-estate.md:ES-08.11 — ../project/src/services/ontology_pull.rs:331 is punctuation only ('});')
+  - citation: estate/08-solid-pod-estate.md:ES-08.11 — ../project/src/services/ontology_pull.rs:375 is punctuation only ('));')
+  - citation: estate/09-build-deploy-and-ci-estate.md:ES-09.8 — bare :47 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/09-build-deploy-and-ci-estate.md:ES-09.8 — bare :165 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/09-build-deploy-and-ci-estate.md:ES-09.8 — bare :147 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/09-build-deploy-and-ci-estate.md:ES-09.8 — bare :121 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/09-build-deploy-and-ci-estate.md:ES-09.8 — bare :141 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/09-build-deploy-and-ci-estate.md:ES-09.8 — bare :171 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/09-build-deploy-and-ci-estate.md:ES-09.8 — bare :240 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/09-build-deploy-and-ci-estate.md:ES-09.8 — bare :215 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/09-build-deploy-and-ci-estate.md:ES-09.8 — bare :210 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/09-build-deploy-and-ci-estate.md:ES-09.8 — bare :245 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/09-build-deploy-and-ci-estate.md:ES-09.8 — bare :264 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/09-build-deploy-and-ci-estate.md:ES-09.8 — bare :288 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/09-build-deploy-and-ci-estate.md:ES-09.8 — bare :351 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/09-build-deploy-and-ci-estate.md:ES-09.8 — bare :335 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/09-build-deploy-and-ci-estate.md:ES-09.8 — bare :338 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/09-build-deploy-and-ci-estate.md:ES-09.9 — bare :55 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/09-build-deploy-and-ci-estate.md:ES-09.10 — bare :202 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/09-build-deploy-and-ci-estate.md:ES-09.10 — ../project/agentbox/management-api/lib/system-manifest.js:26 is blank
+  - citation: estate/09-build-deploy-and-ci-estate.md:ES-09.16 — ../project/agentbox/.github/workflows/contract-tests.yml:51 is blank
+  - citation: estate/10-deployment-and-security-profiles.md:ES-10.1 — ../project/src/config/security_profile.rs:55 is blank
+  - citation: estate/10-deployment-and-security-profiles.md:ES-10.2 — ../project/src/main.rs:713 is punctuation only (');')
+  - citation: estate/10-deployment-and-security-profiles.md:ES-10.2 — ../project/src/main.rs:749 is punctuation only ('};')
+  - citation: estate/10-deployment-and-security-profiles.md:ES-10.2 — ../project/src/main.rs:878 is blank
+  - citation: estate/10-deployment-and-security-profiles.md:ES-10.3 — ../project/src/main.rs:749 is punctuation only ('};')
+  - citation: estate/10-deployment-and-security-profiles.md:ES-10.4 — ../project/src/main.rs:749 is punctuation only ('};')
+  - citation: estate/10-deployment-and-security-profiles.md:ES-10.4 — ../project/src/middleware/rbac_gate.rs:422 past EOF (file has 391 lines)
+  - citation: estate/10-deployment-and-security-profiles.md:ES-10.5 — ../project/src/middleware/rbac_gate.rs:131 is punctuation only ('})')
+  - citation: estate/10-deployment-and-security-profiles.md:ES-10.7 — bare :79 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/10-deployment-and-security-profiles.md:ES-10.7 — bare :120 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/10-deployment-and-security-profiles.md:ES-10.7 — bare :422 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/10-deployment-and-security-profiles.md:ES-10.7 — ../project/src/main.rs:878 is blank
+  - citation: estate/10-deployment-and-security-profiles.md:ES-10.8 — bare :9096 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/10-deployment-and-security-profiles.md:ES-10.8 — bare :8443 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/10-deployment-and-security-profiles.md:ES-10.8 — bare :8444 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/10-deployment-and-security-profiles.md:ES-10.8 — bare :5903 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/10-deployment-and-security-profiles.md:ES-10.8 — bare :8931 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/10-deployment-and-security-profiles.md:ES-10.8 — bare :9222 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/10-deployment-and-security-profiles.md:ES-10.8 — bare :5905 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/10-deployment-and-security-profiles.md:ES-10.8 — bare :9876 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/10-deployment-and-security-profiles.md:ES-10.8 — bare :9877 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/10-deployment-and-security-profiles.md:ES-10.8 — bare :5904 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/10-deployment-and-security-profiles.md:ES-10.8 — ../project/agentbox/flake.nix:9095 past EOF (file has 3837 lines)
+  - citation: estate/10-deployment-and-security-profiles.md:ES-10.8 — ../project/agentbox/flake.nix:9096 past EOF (file has 3837 lines)
+  - citation: estate/10-deployment-and-security-profiles.md:ES-10.8 — ../project/agentbox/scripts/ci/check-ports-loopback.mjs:9096 past EOF (file has 1113 lines)
+  - citation: estate/10-deployment-and-security-profiles.md:ES-10.9 — bare :3001 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/10-deployment-and-security-profiles.md:ES-10.9 — bare :4000 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/10-deployment-and-security-profiles.md:ES-10.9 — bare :3001 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: estate/11-publishing-axis.md:ES-11.1 — ../visionGraph/.github/workflows/publish.yml:280 past EOF (file has 261 lines)
+  - citation: estate/11-publishing-axis.md:ES-11.1 — ../project/src/services/ontology_pull.rs:290 is punctuation only ('}')
+  - citation: estate/11-publishing-axis.md:ES-11.1 — ../visionGraph/.github/workflows/publish.yml:283 past EOF (file has 261 lines)
+  - citation: estate/11-publishing-axis.md:ES-11.1 — ../visionGraph/.github/workflows/publish.yml:284 past EOF (file has 261 lines)
+  - citation: estate/11-publishing-axis.md:ES-11.2 — ../visionGraph/.github/workflows/publish.yml:269 past EOF (file has 261 lines)
+  - citation: estate/11-publishing-axis.md:ES-11.2 — ../visionGraph/.github/workflows/publish.yml:270 past EOF (file has 261 lines)
+  - citation: estate/11-publishing-axis.md:ES-11.2 — ../visionGraph/.github/workflows/publish.yml:272 past EOF (file has 261 lines)
+  - citation: estate/11-publishing-axis.md:ES-11.2 — ../visionGraph/.github/workflows/publish.yml:275 past EOF (file has 261 lines)
+  - citation: estate/11-publishing-axis.md:ES-11.2 — ../visionGraph/.github/workflows/publish.yml:280 past EOF (file has 261 lines)
+  - citation: estate/11-publishing-axis.md:ES-11.2 — ../visionGraph/.github/workflows/publish.yml:283 past EOF (file has 261 lines)
+  - citation: estate/11-publishing-axis.md:ES-11.2 — ../visionGraph/.github/workflows/publish.yml:284 past EOF (file has 261 lines)
+  - citation: estate/11-publishing-axis.md:ES-11.2 — ../visionGraph/.github/workflows/publish.yml:282 past EOF (file has 261 lines)
+  - citation: knowledgegraph/04-explorer-and-site-build.md:KG-04.6 — ../visionGraph/.github/workflows/publish.yml:279 past EOF (file has 261 lines)
+  - citation: nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.4 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:466 is blank
+  - citation: nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.4 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:478 is blank
+  - citation: nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.4 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:736 is punctuation only ('}')
+  - citation: nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.4 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:749 is blank
+  - citation: nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.4 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:798 is punctuation only ('}')
+  - citation: nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.5 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:519 is blank
+  - citation: nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.6 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:593 is blank
+  - citation: nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.7 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:609 is blank
+  - citation: nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.7 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:624 is punctuation only ('}')
+  - citation: nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.7 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:639 is punctuation only (');')
+  - citation: nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.7 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:873 is punctuation only ('}')
+  - citation: nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.10 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:865 is blank
+  - citation: nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.10 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:868 is blank
+  - citation: nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.10 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:917 is punctuation only ('}')
+  - citation: nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.10 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:887 is blank
+  - citation: nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.11 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:955 is punctuation only ('}')
+  - citation: nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.11 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:960 is blank
+  - citation: nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.12 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:749 is blank
+  - citation: nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.12 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:798 is punctuation only ('}')
+  - citation: nostr-rust-forum/07-search-preview-and-shared-worker-utilities.md:NF-07.6 — ../nostr-rust-forum/crates/nostr-bbs-preview-worker/src/ssrf.rs:0 is blank
+  - citation: nostr-rust-forum/07-search-preview-and-shared-worker-utilities.md:NF-07.6 — ../nostr-rust-forum/crates/nostr-bbs-preview-worker/src/ssrf.rs:240 is blank
+  - citation: nostr-rust-forum/11-relay-durable-object-internals.md:NF-11.3 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1481 is punctuation only ('}')
+  - citation: nostr-rust-forum/11-relay-durable-object-internals.md:NF-11.9 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/receipts.rs:392 is punctuation only ('}')
+  - citation: nostr-rust-forum/11-relay-durable-object-internals.md:NF-11.11 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs:497 is punctuation only ('}')
+  - citation: nostr-rust-forum/11-relay-durable-object-internals.md:NF-11.14 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1481 is punctuation only ('}')
+  - citation: visionclaw/01-boot-and-app-state.md:VC-01.2 — ../project/src/main.rs:848 is blank
+  - citation: visionclaw/01-boot-and-app-state.md:VC-01.3 — ../project/src/main.rs:1186 is blank
+  - citation: visionclaw/01-boot-and-app-state.md:VC-01.4 — ../project/src/main.rs:988 is punctuation only ('}')
+  - citation: visionclaw/01-boot-and-app-state.md:VC-01.6 — ../project/src/main.rs:848 is blank
+  - citation: visionclaw/01-boot-and-app-state.md:VC-01.8 — ../project/src/main.rs:1197 is blank
+  - citation: visionclaw/01-boot-and-app-state.md:VC-01.9 — ../project/src/main.rs:1049 is blank
+  - citation: visionclaw/01-boot-and-app-state.md:VC-01.10 — ../project/src/main.rs:1081 is punctuation only (')')
+  - citation: visionclaw/01-boot-and-app-state.md:VC-01.15 — ../project/src/main.rs:848 is blank
+  - citation: visionclaw/01-boot-and-app-state.md:VC-01.15 — ../project/src/services/ontology_pull.rs:384 is blank
+  - citation: visionclaw/01-boot-and-app-state.md:VC-01.15 — ../project/src/services/ontology_pull.rs:290 is punctuation only ('}')
+  - citation: visionclaw/01-boot-and-app-state.md:VC-01.15 — ../project/src/services/ontology_pull.rs:73 is punctuation only ('}')
+  - citation: visionclaw/01-boot-and-app-state.md:VC-01.15 — ../project/src/services/ontology_pull.rs:411 is punctuation only ('});')
+  - citation: visionclaw/03-request-lifecycle-and-rbac.md:VC-03.2 — ../project/src/services/nostr_service.rs:574 is punctuation only ('}')
+  - citation: visionclaw/03-request-lifecycle-and-rbac.md:VC-03.2 — ../project/src/handlers/socket_flow_handler/http_handler.rs:117 is blank
+  - citation: visionclaw/03-request-lifecycle-and-rbac.md:VC-03.2 — ../project/src/handlers/socket_flow_handler/http_handler.rs:217 is punctuation only ('}')
+  - citation: visionclaw/03-request-lifecycle-and-rbac.md:VC-03.2 — ../project/src/services/nostr_service.rs:574 is punctuation only ('}')
+  - citation: visionclaw/03-request-lifecycle-and-rbac.md:VC-03.3 — ../project/src/services/nostr_service.rs:601 is punctuation only ('}')
+  - citation: visionclaw/03-request-lifecycle-and-rbac.md:VC-03.3 — ../project/src/settings/auth_extractor.rs:127 is punctuation only ('});')
+  - citation: visionclaw/03-request-lifecycle-and-rbac.md:VC-03.3 — ../project/src/settings/auth_extractor.rs:195 is blank
+  - citation: visionclaw/03-request-lifecycle-and-rbac.md:VC-03.4 — ../project/src/services/nostr_service.rs:601 is punctuation only ('}')
+  - citation: visionclaw/03-request-lifecycle-and-rbac.md:VC-03.5 — ../project/src/services/nostr_service.rs:416 is punctuation only ('}')
+  - citation: visionclaw/03-request-lifecycle-and-rbac.md:VC-03.15 — ../project/src/services/nostr_service.rs:601 is punctuation only ('}')
+  - citation: visionclaw/03-request-lifecycle-and-rbac.md:VC-03.15 — ../project/src/handlers/solid_proxy_handler.rs:1311 is blank
+  - citation: visionclaw/03-request-lifecycle-and-rbac.md:VC-03.15 — ../project/src/handlers/solid_proxy_handler.rs:1381 is blank
+  - citation: visionclaw/03-request-lifecycle-and-rbac.md:VC-03.15 — ../project/src/handlers/solid_proxy_handler.rs:1654 is blank
+  - citation: visionclaw/05-handlers-governance-and-identity.md:VC-05.8 — ../project/agentbox/management-api/routes/broker-bridge.js:290 is punctuation only ('}')
+  - citation: visionclaw/05-handlers-governance-and-identity.md:VC-05.15 — ../project/src/handlers/solid_proxy_handler.rs:1789 is blank
+  - citation: visionclaw/05-handlers-governance-and-identity.md:VC-05.15 — ../project/src/handlers/solid_proxy_handler.rs:381 is blank
+  - citation: visionclaw/05-handlers-governance-and-identity.md:VC-05.15 — ../project/src/handlers/solid_proxy_handler.rs:1609 is blank
+  - citation: visionclaw/05-handlers-governance-and-identity.md:VC-05.15 — ../project/src/handlers/solid_proxy_handler.rs:1369 is blank
+  - citation: visionclaw/05-handlers-governance-and-identity.md:VC-05.15 — ../project/src/handlers/solid_proxy_handler.rs:1348 is blank
+  - citation: visionclaw/05-handlers-governance-and-identity.md:VC-05.17 — ../project/src/services/acsp/client.rs:22 is blank
+  - citation: visionclaw/05-handlers-governance-and-identity.md:VC-05.17 — ../project/src/services/acsp/client.rs:67 is punctuation only ('}')
+  - citation: visionclaw/08-observability-health-and-dev-loop.md:VC-08.2 — ../project/src/main.rs:1197 is blank
+  - citation: visionclaw/08-observability-health-and-dev-loop.md:VC-08.12 — ../project/src/config/security_profile.rs:363 is punctuation only ('),')
+  - citation: visionclaw/09-config-and-env-flags.md:VC-09.1 — ../project/src/main.rs:800 is punctuation only ('}')
+  - citation: visionclaw/09-config-and-env-flags.md:VC-09.4 — ../project/src/main.rs:878 is blank
+  - citation: visionclaw/09-config-and-env-flags.md:VC-09.6 — ../project/src/config/security_profile.rs:55 is blank
+  - citation: visionclaw/09-config-and-env-flags.md:VC-09.6 — ../project/src/config/security_profile.rs:107 is punctuation only ('}')
+  - citation: visionclaw/09-config-and-env-flags.md:VC-09.7 — ../project/src/config/security_profile.rs:422 is punctuation only ('}')
+  - citation: visionclaw/09-config-and-env-flags.md:VC-09.7 — ../project/src/config/security_profile.rs:453 is punctuation only ('),')
+  - citation: visionclaw/09-config-and-env-flags.md:VC-09.8 — ../project/src/main.rs:800 is punctuation only ('}')
+  - citation: visionclaw/09-config-and-env-flags.md:VC-09.9 — ../project/src/config/security_profile.rs:55 is blank
+  - citation: visionclaw/09-config-and-env-flags.md:VC-09.12 — ../project/src/main.rs:688 is blank
+  - citation: visionclaw/09-config-and-env-flags.md:VC-09.13 — ../project/src/main.rs:1197 is blank
+  - citation: visionclaw/11-physics-step-and-force-channels.md:VC-11.1 — ../project/src/utils/unified_gpu_compute/execution.rs:968 is blank
+  - citation: visionclaw/11-physics-step-and-force-channels.md:VC-11.3 — ../project/src/utils/unified_gpu_compute/execution.rs:968 is blank
+  - citation: visionclaw/12-simparams-abi-and-ptx.md:VC-12.6 — ../project/src/utils/unified_gpu_compute/execution.rs:612 is blank
+  - citation: visionclaw/12-simparams-abi-and-ptx.md:VC-12.6 — ../project/src/utils/unified_gpu_compute/execution.rs:863 is punctuation only ('}')
+  - citation: visionclaw/13-broadcast-pipeline-and-websocket.md:VC-13.1 — ../project/src/handlers/socket_flow_handler/http_handler.rs:39 is blank
+  - citation: visionclaw/13-broadcast-pipeline-and-websocket.md:VC-13.1 — ../project/src/handlers/socket_flow_handler/http_handler.rs:145 is punctuation only (');')
+  - citation: visionclaw/13-broadcast-pipeline-and-websocket.md:VC-13.1 — ../project/src/handlers/socket_flow_handler/http_handler.rs:174 is punctuation only ('}')
+  - citation: visionclaw/13-broadcast-pipeline-and-websocket.md:VC-13.1 — ../project/src/handlers/socket_flow_handler/http_handler.rs:236 is punctuation only (');')
+  - citation: visionclaw/15-gpu-analytics.md:VC-15.10 — ../project/src/main.rs:1103 is punctuation only (')')
+  - citation: visionclaw/15-gpu-analytics.md:VC-15.13 — ../project/crates/visionclaw-gpu/src/cuda_sources/gpu_clustering_kernels.cu:1079 is blank
+  - citation: visionclaw/22-data-authority-provenance-erasure.md:VC-22.1 — ../project/src/services/nostr_service.rs:245 is blank
+  - citation: visionclaw/22-data-authority-provenance-erasure.md:VC-22.9 — ../project/src/main.rs:740 is blank
+  - citation: visionclaw/24-acsp-decision-elevation.md:VC-24.6 — ../project/src/actors/decision_elevation_actor.rs:459 is punctuation only ('}')
+  - citation: visionclaw/24-acsp-decision-elevation.md:VC-24.6 — ../project/src/actors/decision_elevation_actor.rs:583 is punctuation only ('};')
+  - citation: visionclaw/24-acsp-decision-elevation.md:VC-24.11 — ../project/src/services/acsp/client.rs:74 is blank
+  - citation: visionclaw/26-solid-pod-and-jss.md:VC-26.1 — ../project/src/main.rs:1016 is blank
+  - citation: visionclaw/26-solid-pod-and-jss.md:VC-26.1 — ../project/src/main.rs:1015 is blank
+  - citation: visionclaw/26-solid-pod-and-jss.md:VC-26.2 — ../project/src/handlers/solid_proxy_handler.rs:881 is blank
+  - citation: visionclaw/26-solid-pod-and-jss.md:VC-26.4 — ../project/src/utils/nip98.rs:524 is blank
+  - citation: visionclaw/26-solid-pod-and-jss.md:VC-26.7 — ../project/src/handlers/solid_proxy_handler.rs:881 is blank
+  - citation: visionclaw/26-solid-pod-and-jss.md:VC-26.7 — ../project/src/handlers/solid_proxy_handler.rs:896 is punctuation only ('};')
+  - citation: visionclaw/26-solid-pod-and-jss.md:VC-26.7 — ../project/src/handlers/solid_proxy_handler.rs:932 is punctuation only ('}')
+  - citation: visionclaw/26-solid-pod-and-jss.md:VC-26.13 — ../project/src/main.rs:848 is blank
+  - citation: visionclaw/26-solid-pod-and-jss.md:VC-26.13 — ../project/src/services/ontology_pull.rs:384 is blank
+  - citation: visionclaw/26-solid-pod-and-jss.md:VC-26.13 — ../project/src/services/ontology_pull.rs:290 is punctuation only ('}')
+  - citation: visionclaw/26-solid-pod-and-jss.md:VC-26.13 — ../project/src/services/ontology_pull.rs:39 is blank
+  - citation: visionclaw/26-solid-pod-and-jss.md:VC-26.13 — ../project/src/services/ontology_pull.rs:50 is blank
+  - citation: visionclaw/26-solid-pod-and-jss.md:VC-26.13 — ../project/src/services/ontology_pull.rs:411 is punctuation only ('});')
+  - citation: visionclaw/26-solid-pod-and-jss.md:VC-26.14 — ../project/src/services/ontology_pull.rs:291 is blank
+  - citation: visionclaw/27-agent-integration-mcp-relay.md:VC-27.12 — ../project/src/main.rs:1142 is blank
+  - citation: visionclaw/28-external-services.md:VC-28.5 — bare :825 on a message whose participant is declared without a path (bind the participant to a file, or qualify the ref)
+  - citation: visionclaw/28-external-services.md:VC-28.5 — bare :753 on a message whose participant is declared without a path (bind the participant to a file, or qualify the ref)
+  - citation: visionclaw/28-external-services.md:VC-28.5 — bare :755 on a message whose participant is declared without a path (bind the participant to a file, or qualify the ref)
+  - citation: visionclaw/28-external-services.md:VC-28.5 — bare :760 on a message whose participant is declared without a path (bind the participant to a file, or qualify the ref)
+  - citation: visionclaw/28-external-services.md:VC-28.5 — bare :766 on a message whose participant is declared without a path (bind the participant to a file, or qualify the ref)
+  - citation: visionclaw/28-external-services.md:VC-28.5 — bare :822 on a message whose participant is declared without a path (bind the participant to a file, or qualify the ref)
+  - citation: visionclaw/28-external-services.md:VC-28.5 — bare :791 on a message whose participant is declared without a path (bind the participant to a file, or qualify the ref)
+  - citation: visionclaw/28-external-services.md:VC-28.5 — bare :786 on a message whose participant is declared without a path (bind the participant to a file, or qualify the ref)
+  - citation: visionclaw/28-external-services.md:VC-28.5 — bare :796 on a message whose participant is declared without a path (bind the participant to a file, or qualify the ref)
+  - citation: visionclaw/28-external-services.md:VC-28.5 — bare :805 on a message whose participant is declared without a path (bind the participant to a file, or qualify the ref)
+  - citation: visionclaw/30-client-boot-and-state.md:VC-30.5 — ../project/client/src/store/websocket/index.ts:248 is blank
+  - citation: visionclaw/30-client-boot-and-state.md:VC-30.5 — ../project/client/src/store/websocket/index.ts:278 is blank
+  - citation: visionclaw/32-client-websocket-and-binary.md:VC-32.1 — ../project/client/src/store/websocket/index.ts:162 is punctuation only ('}')
+  - citation: visionclaw/32-client-websocket-and-binary.md:VC-32.1 — ../project/client/src/store/websocket/index.ts:182 is punctuation only ('}')
+  - citation: visionclaw/32-client-websocket-and-binary.md:VC-32.1 — ../project/client/src/store/websocket/index.ts:196 is punctuation only ('});')
+  - citation: visionclaw/32-client-websocket-and-binary.md:VC-32.1 — ../project/client/src/store/websocket/index.ts:197 is punctuation only ('}')
+  - citation: visionclaw/33-client-auth-and-identity.md:VC-33.1 — ../project/client/src/services/nostrAuthService.ts:341 is blank
+  - citation: visionclaw/33-client-auth-and-identity.md:VC-33.1 — ../project/client/src/services/nostrAuthService.ts:355 is blank
+  - citation: visionclaw/33-client-auth-and-identity.md:VC-33.1 — ../project/client/src/services/nostrAuthService.ts:477 is punctuation only ('}')
+  - citation: visionclaw/33-client-auth-and-identity.md:VC-33.1 — ../project/client/src/services/nostrAuthService.ts:388 is punctuation only ('}')
+  - citation: visionclaw/33-client-auth-and-identity.md:VC-33.1 — ../project/client/src/services/nostrAuthService.ts:398 is blank
+  - citation: visionclaw/33-client-auth-and-identity.md:VC-33.1 — ../project/client/src/services/nostrAuthService.ts:503 is punctuation only ('}')
+  - citation: visionclaw/33-client-auth-and-identity.md:VC-33.1 — ../project/client/src/services/nostrAuthService.ts:438 is punctuation only ('}')
+  - citation: visionclaw/33-client-auth-and-identity.md:VC-33.1 — ../project/client/src/services/nostrAuthService.ts:433 is punctuation only ('}')
+  - citation: visionclaw/33-client-auth-and-identity.md:VC-33.2 — ../project/client/src/services/nostrAuthService.ts:259 is blank
+  - citation: visionclaw/33-client-auth-and-identity.md:VC-33.2 — ../project/client/src/services/nostrAuthService.ts:268 is blank
+  - citation: visionclaw/33-client-auth-and-identity.md:VC-33.2 — ../project/client/src/services/nostrAuthService.ts:309 is punctuation only ('};')
+  - citation: visionclaw/33-client-auth-and-identity.md:VC-33.2 — ../project/client/src/services/nostrAuthService.ts:275 is blank
+  - citation: visionclaw/33-client-auth-and-identity.md:VC-33.3 — ../project/client/src/services/nostrAuthService.ts:433 is punctuation only ('}')
+  - citation: visionclaw/33-client-auth-and-identity.md:VC-33.5 — ../project/client/src/services/nostrAuthService.ts:427 is punctuation only ('}')
+  - citation: visionclaw/33-client-auth-and-identity.md:VC-33.5 — ../project/client/src/services/nostrAuthService.ts:427 is punctuation only ('}')
+  - citation: visionclaw/33-client-auth-and-identity.md:VC-33.5 — ../project/client/src/services/nostrAuthService.ts:446 is punctuation only ('}')
+  - citation: visionclaw/33-client-auth-and-identity.md:VC-33.5 — ../project/client/src/services/nostrAuthService.ts:452 is punctuation only ('}')
+  - citation: visionclaw/33-client-auth-and-identity.md:VC-33.5 — ../project/client/src/services/nostrAuthService.ts:456 is punctuation only ('}')
+  - citation: visionclaw/33-client-auth-and-identity.md:VC-33.9 — ../project/client/src/services/nostrAuthService.ts:602 is punctuation only ('}')
+  - citation: visionclaw/35-voice-end-to-end.md:VC-35.12 — ../project/voice-stack/README.md:13 is blank
+  - citation: visionclaw/36-godot-xr-client.md:VC-36.14 — bare :9 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: visionclaw/36-godot-xr-client.md:VC-36.14 — bare :15 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: visionclaw/36-godot-xr-client.md:VC-36.14 — bare :26 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: visionclaw/36-godot-xr-client.md:VC-36.14 — bare :32 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: visionclaw/36-godot-xr-client.md:VC-36.14 — bare :43 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: visionclaw/36-godot-xr-client.md:VC-36.14 — bare :49 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: visionclaw/36-godot-xr-client.md:VC-36.14 — bare :61 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: visionclaw/36-godot-xr-client.md:VC-36.14 — bare :67 has no path anywhere before it in the diagram (qualify it, or reword if it is a port)
+  - citation: visionflow/02-website-build-and-deploy.md:VF-02.2 — website/static/js/main.js:844 is blank
+  - citation: visionflow/02-website-build-and-deploy.md:VF-02.12 — website/static/js/main.js:844 is blank
+  - citation: visionflow/05-governance-gates.md:VF-05.12 — scripts/mesh-smoke-preflight.sh:7777 past EOF (file has 339 lines)
+  - citation: visiongraph/04-downstream-contracts.md:VG-04.2 — ../visionGraph/.github/workflows/publish.yml:279 past EOF (file has 261 lines)
+  - citation: visiongraph/04-downstream-contracts.md:VG-04.2 — ../visionGraph/.github/workflows/publish.yml:284 past EOF (file has 261 lines)
+  - citation: estate/04-identity-mesh-did-nostr.md — ../project/src/utils/nip98.rs:375 is labelled 'validate_nip98_token' but that function spans :428-441
+  - citation: estate/04-identity-mesh-did-nostr.md — ../project/src/utils/nip98.rs:234 is labelled 'claim_event_id' but that function spans :285-290
+  - citation: estate/08-solid-pod-estate.md — ../project/src/handlers/solid_proxy_handler.rs:881 is labelled 'load_acl_for_path' but that function spans :885-925
+  - citation: nostr-rust-forum/11-relay-durable-object-internals.md — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs:497 is labelled 'sweep_inactive_demotions' but that function spans :521-570
+  - citation: visionclaw/01-boot-and-app-state.md — ../project/src/config/security_profile.rs:604 is labelled 'assert_effective_profile_or_exit' but that function spans :624-663
+  - citation: visionclaw/03-request-lifecycle-and-rbac.md — ../project/src/services/nostr_service.rs:574 is labelled 'get_session' but that function spans :587-601
+  - citation: visionclaw/03-request-lifecycle-and-rbac.md — ../project/src/services/nostr_service.rs:601 is labelled 'verify_nip98_auth' but that function spans :624-658
+  - citation: visionclaw/03-request-lifecycle-and-rbac.md — ../project/src/services/nostr_service.rs:601 is labelled 'verify_nip98_auth' but that function spans :624-658
+  - citation: visionclaw/03-request-lifecycle-and-rbac.md — ../project/src/utils/nip98.rs:375 is labelled 'validate_nip98_token' but that function spans :428-441
+  - citation: visionclaw/03-request-lifecycle-and-rbac.md — ../project/src/services/nostr_service.rs:601 is labelled 'verify_nip98_auth' but that function spans :624-658
+  - citation: visionclaw/08-observability-health-and-dev-loop.md — ../project/src/config/security_profile.rs:604 is labelled 'assert_effective_profile_or_exit' but that function spans :624-663
+  - citation: visionclaw/09-config-and-env-flags.md — ../project/src/config/security_profile.rs:604 is labelled 'assert_effective_profile_or_exit' but that function spans :624-663
+  - citation: visionclaw/09-config-and-env-flags.md — ../project/src/config/security_profile.rs:604 is labelled 'assert_effective_profile_or_exit' but that function spans :624-663
+  - citation: visionclaw/09-config-and-env-flags.md — ../project/src/config/security_profile.rs:477 is labelled 'evaluate_effective_profile' but that function spans :485-614
+  - citation: visionclaw/09-config-and-env-flags.md — ../project/src/config/security_profile.rs:453 is labelled 'report_mode_requested' but that function spans :459-463
+  - citation: visionclaw/09-config-and-env-flags.md — ../project/src/config/security_profile.rs:460 is labelled 'report_mode_acknowledged' but that function spans :473-480
+  - citation: visionclaw/11-physics-step-and-force-channels.md — ../project/src/utils/unified_gpu_compute/execution.rs:131 is labelled 'execute' but that function spans :172-981
+  - citation: visionclaw/11-physics-step-and-force-channels.md — ../project/src/utils/unified_gpu_compute/execution.rs:131 is labelled 'execute' but that function spans :172-981
+  - citation: visionclaw/13-broadcast-pipeline-and-websocket.md — ../project/src/handlers/socket_flow_handler/http_handler.rs:39 is labelled 'socket_flow_handler' but that function spans :53-454
+  - citation: visionclaw/24-acsp-decision-elevation.md — ../project/src/services/acsp/client.rs:99 is labelled 'publish' but that function spans :117-155
+  - citation: visionclaw/26-solid-pod-and-jss.md — ../project/src/handlers/solid_proxy_handler.rs:881 is labelled 'load_acl_for_path' but that function spans :885-925
+  - citation: visionclaw/26-solid-pod-and-jss.md — ../project/src/utils/nip98.rs:375 is labelled 'validate_nip98_token' but that function spans :428-441
+  - citation: visionclaw/26-solid-pod-and-jss.md — ../project/src/handlers/solid_proxy_handler.rs:881 is labelled 'load_acl_for_path' but that function spans :885-925

@@ -7,6 +7,8 @@ type: explanation
 
 # VisionFlow estate audit — 2026-09-07
 
+**Execution follow-up:** [2026-09-07 source repairs, tests and runtime limits](2026-09-07-estate-closeout-execution.md) updates this dated audit view. The master register owns current task dispositions; earlier observations remain historical.
+
 **The estate has substantial implemented components, but component success does not establish a complete federated system.** The external review identifies real boundaries—shared-UID credentials, several persistence authorities, partial federation and target-specific XR—but overstates what diagram metadata proves and repeats defects that the current source has already repaired. The most useful closeout priorities are specific failures at publication, identity and acknowledgement boundaries.
 
 This audit updates the diagrams, reconciles current ADRs with source, preserves historical/imported decision scope, and extends the existing closeout programme and master TODO. It does not implement the production repairs in that roadmap or certify a deployed estate. The actual directory is `docs/diagrams`, not `docs/disgrams`.

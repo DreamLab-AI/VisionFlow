@@ -1,0 +1,627 @@
+{
+  "at": "2026-09-07T11:02:50.790Z",
+  "browser": "sidecar Chrome via CDP 9223",
+  "scope": "Read-only public/candidate journeys; no identity credentials, submissions or device acceptance",
+  "records": [
+    {
+      "name": "candidate",
+      "url": "http://agentbox:8108/",
+      "checks": [
+        {
+          "name": "content",
+          "ok": true,
+          "detail": 39038
+        },
+        {
+          "name": "images",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "all-sections-reveal",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "plain-reading-toggle",
+          "ok": true,
+          "detail": {
+            "plain": true,
+            "pressed": "true"
+          }
+        },
+        {
+          "name": "tall-section-regression",
+          "ok": true,
+          "detail": {
+            "height": 15000,
+            "visible": true
+          }
+        },
+        {
+          "name": "mobile-no-overflow",
+          "ok": true,
+          "detail": {
+            "viewport": 375,
+            "width": 375,
+            "bodyWidth": 375
+          }
+        },
+        {
+          "name": "no-uncaught-exceptions",
+          "ok": true,
+          "detail": []
+        }
+      ],
+      "page": {
+        "url": "http://agentbox:8108/",
+        "title": "VisionFlow: Coordination Engineering for Federated Human-AI Intelligence",
+        "text": 39038,
+        "headings": [
+          "Federated Human–AIIntelligence",
+          "Seven questions, answered once",
+          "What this is, on one screen",
+          "Hard problems share a common shape",
+          "More AI means more coordination, not less",
+          "From LLM to Coordination Harness",
+          "AI stopped answering and started acting",
+          "Six independent systems mesh through one cryptographic identity spine"
+        ],
+        "brokenImages": []
+      },
+      "reveals": [
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 844
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 543
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1046
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 2044
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 421
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1824
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 2565
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 2330
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1188
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 3379
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 839
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1165
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 405
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 669
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1418
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 3214
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 613
+        }
+      ],
+      "toggle": {
+        "plain": true,
+        "pressed": "true"
+      },
+      "tall": {
+        "height": 15000,
+        "visible": true
+      },
+      "mobile": {
+        "viewport": 375,
+        "width": 375,
+        "bodyWidth": 375
+      },
+      "screenshot": {
+        "path": "candidate-mobile.png",
+        "sha256": "f014f7c18143b08ec2fca0bf2c86e9915c118332ea50fb20e2bf0b46615b6e48"
+      },
+      "exceptions": [],
+      "httpStatuses": [
+        {
+          "url": "http://agentbox:8108/",
+          "status": 200
+        },
+        {
+          "url": "http://agentbox:8108/",
+          "status": 200
+        },
+        {
+          "url": "http://agentbox:8108/",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "name": "canon",
+      "url": "https://www.visionflow.info/",
+      "checks": [
+        {
+          "name": "content",
+          "ok": true,
+          "detail": 58103
+        },
+        {
+          "name": "images",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "all-sections-reveal",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "plain-reading-toggle",
+          "ok": true,
+          "detail": {
+            "plain": true,
+            "pressed": "true"
+          }
+        },
+        {
+          "name": "mobile-no-overflow",
+          "ok": true,
+          "detail": {
+            "viewport": 375,
+            "width": 375,
+            "bodyWidth": 375
+          }
+        },
+        {
+          "name": "no-uncaught-exceptions",
+          "ok": true,
+          "detail": []
+        }
+      ],
+      "page": {
+        "url": "https://www.visionflow.info/",
+        "title": "VisionFlow: Coordination Engineering for Federated Human-AI Intelligence",
+        "text": 58103,
+        "headings": [
+          "Federated Human–AIIntelligence",
+          "Seven questions, answered once",
+          "What this is, on one screen",
+          "Hard problems share a common shape",
+          "More AI means more coordination, not less",
+          "From LLM to Coordination Harness",
+          "AI stopped answering and started acting",
+          "Six independent systems mesh through one cryptographic identity spine"
+        ],
+        "brokenImages": []
+      },
+      "reveals": [
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 844
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 543
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1046
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 2044
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 421
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1824
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1915
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 2330
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1188
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 3379
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 839
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1165
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 405
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 669
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1418
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 3214
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 613
+        }
+      ],
+      "toggle": {
+        "plain": true,
+        "pressed": "true"
+      },
+      "mobile": {
+        "viewport": 375,
+        "width": 375,
+        "bodyWidth": 375
+      },
+      "screenshot": {
+        "path": "canon-mobile.png",
+        "sha256": "c8d3dfedde8366be79b293713ed7a8e95514acdd801d7810ae938c4e62b9d1fe"
+      },
+      "exceptions": [],
+      "httpStatuses": [
+        {
+          "url": "https://www.visionflow.info/",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "name": "explorer",
+      "url": "https://narrativegoldmine.com/",
+      "checks": [
+        {
+          "name": "content",
+          "ok": true,
+          "detail": 4677
+        },
+        {
+          "name": "images",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "mobile-no-overflow",
+          "ok": true,
+          "detail": {
+            "viewport": 502,
+            "width": 502,
+            "bodyWidth": 502
+          }
+        },
+        {
+          "name": "no-uncaught-exceptions",
+          "ok": true,
+          "detail": []
+        }
+      ],
+      "page": {
+        "url": "https://narrativegoldmine.com/",
+        "title": "Narrative Goldmine — the DreamLab knowledge mesh",
+        "text": 4677,
+        "headings": [
+          "A 6.8-million-word corpus of the Fourth Industrial Revolution, compiled into a reasoned formal ontology.",
+          "Three layers, read bottom-up",
+          "Six domains, one map",
+          "Honest by construction",
+          "One node in a sovereign mesh",
+          "The mesh",
+          "Read"
+        ],
+        "brokenImages": []
+      },
+      "mobile": {
+        "viewport": 502,
+        "width": 502,
+        "bodyWidth": 502
+      },
+      "screenshot": {
+        "path": "explorer-mobile.png",
+        "sha256": "efa363cca995bb04b83b0685e1623c069cd1ec4989466cc5693c7f804d25d4a4"
+      },
+      "exceptions": [],
+      "httpStatuses": [
+        {
+          "url": "https://narrativegoldmine.com/",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "name": "notes",
+      "url": "https://narrativegoldmine.com/notes/",
+      "checks": [
+        {
+          "name": "content",
+          "ok": false,
+          "detail": 0
+        },
+        {
+          "name": "images",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "mobile-no-overflow",
+          "ok": false,
+          "detail": {
+            "viewport": 375,
+            "width": 385,
+            "bodyWidth": 385
+          }
+        },
+        {
+          "name": "no-uncaught-exceptions",
+          "ok": true,
+          "detail": []
+        }
+      ],
+      "page": {
+        "url": "https://narrativegoldmine.com/notes/",
+        "title": "",
+        "text": 0,
+        "headings": [],
+        "brokenImages": []
+      },
+      "mobile": {
+        "viewport": 375,
+        "width": 385,
+        "bodyWidth": 385
+      },
+      "screenshot": {
+        "path": "notes-mobile.png",
+        "sha256": "997ffe75ba6a97d3089bd5c3667f04e31842235dde8b7ccfbb58741fbeb0dfc2"
+      },
+      "exceptions": [],
+      "httpStatuses": [
+        {
+          "url": "https://narrativegoldmine.com/notes/",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "name": "commercial",
+      "url": "https://www.dreamlab-ai.com/",
+      "checks": [
+        {
+          "name": "content",
+          "ok": true,
+          "detail": 4163
+        },
+        {
+          "name": "images",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "mobile-no-overflow",
+          "ok": true,
+          "detail": {
+            "viewport": 375,
+            "width": 375,
+            "bodyWidth": 375
+          }
+        },
+        {
+          "name": "no-uncaught-exceptions",
+          "ok": true,
+          "detail": []
+        }
+      ],
+      "page": {
+        "url": "https://dreamlab-ai.com/",
+        "title": "DreamLab AI — AI & Agents Residential Training in the Lake District",
+        "text": 4163,
+        "headings": [
+          "DREAMLAB AI",
+          "The Lab: Lake District Innovation Facility",
+          "Bespoke learning pathways",
+          "Embed in Our Lab",
+          "Multi-Disciplinary Expertise",
+          "Stay in the loop"
+        ],
+        "brokenImages": []
+      },
+      "mobile": {
+        "viewport": 375,
+        "width": 375,
+        "bodyWidth": 375
+      },
+      "screenshot": {
+        "path": "commercial-mobile.png",
+        "sha256": "03e56f2aff9a5450e8d39781fa11efbe9f8de0c50feb3491a6026db35abc15e8"
+      },
+      "exceptions": [],
+      "httpStatuses": [
+        {
+          "url": "https://dreamlab-ai.com/",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "name": "forum",
+      "url": "https://www.dreamlab-ai.com/community/",
+      "checks": [
+        {
+          "name": "content",
+          "ok": true,
+          "detail": 610
+        },
+        {
+          "name": "images",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "journey-completed",
+          "ok": false,
+          "detail": "Error: Uncaught"
+        }
+      ],
+      "page": {
+        "url": "https://dreamlab-ai.com/community/",
+        "title": "Community Forums",
+        "text": 610,
+        "headings": [
+          "Community Forums",
+          "Bookmarks"
+        ],
+        "brokenImages": []
+      },
+      "error": "Error: Uncaught"
+    },
+    {
+      "name": "dream",
+      "url": "https://dreamlab-ai.github.io/dream-engine/",
+      "checks": [
+        {
+          "name": "content",
+          "ok": true,
+          "detail": 10269
+        },
+        {
+          "name": "images",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "mobile-no-overflow",
+          "ok": true,
+          "detail": {
+            "viewport": 411,
+            "width": 411,
+            "bodyWidth": 411
+          }
+        },
+        {
+          "name": "no-uncaught-exceptions",
+          "ok": true,
+          "detail": []
+        }
+      ],
+      "page": {
+        "url": "https://dreamlab-ai.github.io/dream-engine/",
+        "title": "Dream Machine — evidence-gated nightly repository evolution",
+        "text": 10269,
+        "headings": [
+          "One honest cycle,\n          every single night.",
+          "An engine, extracted from two routines that already run.",
+          "Thirteen stages, one verdict.",
+          "Every night ends in exactly one. Never a fourth, never silence.",
+          "Optional backends, selected by config.",
+          "Six commands.",
+          "Go deeper.",
+          "Dream Machine"
+        ],
+        "brokenImages": []
+      },
+      "mobile": {
+        "viewport": 411,
+        "width": 411,
+        "bodyWidth": 411
+      },
+      "screenshot": {
+        "path": "dream-mobile.png",
+        "sha256": "1914a3ad1dae371957658a1be013342614f940604ad6de0db41f55f8c334b478"
+      },
+      "exceptions": [],
+      "httpStatuses": [
+        {
+          "url": "https://dreamlab-ai.github.io/dream-engine/",
+          "status": 200
+        }
+      ]
+    }
+  ]
+}

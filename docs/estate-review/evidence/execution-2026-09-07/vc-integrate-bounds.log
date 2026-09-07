@@ -1,0 +1,11 @@
+node-axis0 position=10 velocity=0
+node-axis1 position=-10 velocity=0
+node-axis2 position=20 velocity=0
+node-axis3 position=10 velocity=0
+node-axis4 position=-10 velocity=0
+node-axis5 position=20 velocity=0
+node-axis6 position=10 velocity=0
+node-axis7 position=-10 velocity=0
+node-axis8 position=20 velocity=0
+PASS: positive/negative free-node overshoot clamped; outward velocity stopped; pinned position preserved
+PASS: connected extent excludes isolated outlier; spatial extent retains it; empty population is invalid extent

@@ -1,0 +1,36 @@
+[1/8] Census of ontology/pages...
+       Census of ontology/pages: 8138 input files
+         parsed   : 8138 (8138 public, 0 non-public)
+         rejected : 0
+         excluded : 0
+         balanced : True
+       8138 pages (8138 entities, 8138 public); visibility: 0 private entities
+[2/8] Validating...
+       0 errors, 0 warnings, 1403 info
+[3/8] Generating Turtle...
+       265796 triples → /tmp/.publication-h6b_qfeb/data/ontology.ttl
+[4/8] Generating WebVOWL JSON + explorer projection...
+       8138 classes → /tmp/.publication-h6b_qfeb/data/ontology.json
+       8138 classes, 108242 properties (consumer shape) → /tmp/.publication-h6b_qfeb/data/ontology-explorer.json
+[5/8] Generating Page API...
+       8138 page files → /tmp/.publication-h6b_qfeb/api/pages
+[6/8] Generating Search Index...
+       8138 entries → /tmp/.publication-h6b_qfeb/api/search-index.json
+[7/8] Emitting graph tiers (NGG1)...
+       8138 nodes, 101321 edges → /tmp/.publication-h6b_qfeb/data/graph
+[8/8] Writing generation manifest...
+       generation aec46f26-22e7-46e6-b5b9-0891cc3c8e42 (19 artefact entries) → /tmp/.publication-h6b_qfeb/api/generation-manifest.json
+
+Pipeline complete in 30.3s
+  Output: /tmp/.publication-h6b_qfeb
+  input_files: 8138
+  parsed_pages: 8138
+  public_pages: 8138
+  classes: 8138
+  explorer_classes: 8138
+  explorer_properties: 108242
+  triples: 265796
+  page_api_files: 8138
+  search_entries: 8138
+  graph_nodes: 8138
+  graph_edges: 101321

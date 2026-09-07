@@ -1,0 +1,12 @@
+
+ RUN  v4.0.18 /home/devuser/workspace/project/client
+
+ ✓ src/services/__tests__/signedWebSocketProtocols.test.ts (3 tests) 8ms
+ ✓ src/features/ontology/services/jss/__tests__/schemaParser.generation.test.ts (2 tests) 8ms
+ ✓ src/services/__tests__/nostrAuthService.test.ts (44 tests) 160ms
+
+ Test Files  3 passed (3)
+      Tests  49 passed (49)
+   Start at  12:44:33
+   Duration  1.01s (transform 518ms, setup 318ms, import 421ms, tests 177ms, environment 1.40s)
+

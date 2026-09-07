@@ -1,5 +1,7 @@
 # Ecosystem Compatibility Matrix
 
+**Execution follow-up:** [2026-09-07 source repairs, tests and runtime limits](../estate-review/2026-09-07-estate-closeout-execution.md) updates this dated audit view. The master register owns current task dispositions; earlier observations remain historical.
+
 **Status:** Current source comparison; deployed compatibility not certified
 **Reviewed:** 2026-09-07. Earlier 2026-05/07 snapshots remain below as historical evidence.
 

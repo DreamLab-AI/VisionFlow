@@ -1,0 +1,25 @@
+these 2 derivations will be built:
+  /nix/store/2ky7z9amalj0ax38ssxva9x8yr1i4q69-mermaid-js-mermaid-cli-with-deps-11.16.0.drv
+  /nix/store/7fnksc1s78c1qrnnjb0s7lyzlyjifygv-agentic-qe-with-deps-3.13.12.drv
+building '/nix/store/7fnksc1s78c1qrnnjb0s7lyzlyjifygv-agentic-qe-with-deps-3.13.12.drv'...
+agentic-qe-with-deps> Running phase: unpackPhase
+agentic-qe-with-deps> unpacking source archive /nix/store/19asrhkb8lilm46rzf36r00knxiqjmq8-agentic-qe-3.13.12.tgz
+agentic-qe-with-deps> source root is package
+agentic-qe-with-deps> setting SOURCE_DATE_EPOCH to timestamp 499162500 of file "package/scripts/validator-lib.cjs"
+agentic-qe-with-deps> Running phase: patchPhase
+agentic-qe-with-deps> Running phase: updateAutotoolsGnuConfigScriptsPhase
+agentic-qe-with-deps> Running phase: configurePhase
+agentic-qe-with-deps> no configure script, doing nothing
+agentic-qe-with-deps> Running phase: installPhase
+agentic-qe-with-deps> npm warn config production Use `--omit=dev` instead.
+agentic-qe-with-deps> npm warn deprecated prebuild-install@7.1.3: No longer maintained. Please contact the author of the relevant native addon; alternatives are available.
+agentic-qe-with-deps> 
+agentic-qe-with-deps> added 134 packages in 4s
+agentic-qe-with-deps> npm notice
+agentic-qe-with-deps> npm notice New major version of npm available! 10.9.8 -> 12.0.2
+agentic-qe-with-deps> npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.0.2
+agentic-qe-with-deps> npm notice To update run: npm install -g npm@12.0.2
+agentic-qe-with-deps> npm notice
+error: hash mismatch in fixed-output derivation '/nix/store/7fnksc1s78c1qrnnjb0s7lyzlyjifygv-agentic-qe-with-deps-3.13.12.drv':
+         specified: sha256-P3+gOXR0UkiifJ5izmvSdPS+p1KtfhqxFSNGRePxY7A=
+            got:    sha256-di3k986pcOVtEr88BQ9ckHwQXSj6dCFStYj0GSAvfAU=

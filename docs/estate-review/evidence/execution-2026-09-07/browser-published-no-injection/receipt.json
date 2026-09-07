@@ -1,0 +1,302 @@
+{
+  "at": "2026-09-07T13:02:02.922Z",
+  "browser": "sidecar Chrome via CDP 9223",
+  "scope": "Read-only public/candidate journeys; no identity credentials, submissions or device acceptance",
+  "records": [
+    {
+      "name": "canon",
+      "url": "https://www.visionflow.info/",
+      "checks": [
+        {
+          "name": "content",
+          "ok": true,
+          "detail": 58103
+        },
+        {
+          "name": "images",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "all-sections-reveal",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "plain-reading-toggle",
+          "ok": true,
+          "detail": {
+            "plain": true,
+            "pressed": "true"
+          }
+        },
+        {
+          "name": "mobile-no-overflow",
+          "ok": true,
+          "detail": {
+            "viewport": 375,
+            "width": 375,
+            "bodyWidth": 375
+          }
+        },
+        {
+          "name": "no-uncaught-exceptions",
+          "ok": true,
+          "detail": []
+        }
+      ],
+      "page": {
+        "url": "https://www.visionflow.info/",
+        "title": "VisionFlow: Coordination Engineering for Federated Human-AI Intelligence",
+        "text": 58103,
+        "headings": [
+          "Federated Human–AIIntelligence",
+          "Seven questions, answered once",
+          "What this is, on one screen",
+          "Hard problems share a common shape",
+          "More AI means more coordination, not less",
+          "From LLM to Coordination Harness",
+          "AI stopped answering and started acting",
+          "Six independent systems mesh through one cryptographic identity spine"
+        ],
+        "brokenImages": []
+      },
+      "reveals": [
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 772
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 572
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1017
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1125
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 421
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1689
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1839
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1971
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 995
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 2455
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 786
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1053
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 388
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 698
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1390
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 3214
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 560
+        }
+      ],
+      "toggle": {
+        "plain": true,
+        "pressed": "true"
+      },
+      "mobile": {
+        "viewport": 375,
+        "width": 375,
+        "bodyWidth": 375
+      },
+      "screenshot": {
+        "path": "canon-mobile.png",
+        "sha256": "a9971af88065bbcf6e9636b5bc6ea50a271be5dc9424b7605c65e85a65508cfd"
+      },
+      "exceptions": [],
+      "httpStatuses": [
+        {
+          "url": "https://www.visionflow.info/",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "name": "explorer",
+      "url": "https://narrativegoldmine.com/",
+      "checks": [
+        {
+          "name": "content",
+          "ok": true,
+          "detail": 4677
+        },
+        {
+          "name": "images",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "search-journey",
+          "ok": true,
+          "detail": {
+            "url": "https://narrativegoldmine.com/",
+            "text": "Skip to content\nNarrative Goldmine\nHome\nGraph\nSearch\nData\nAbout\nResearch notes\n\nTHE DREAMLAB KNOWLEDGE MESH · READABLE TIER\n\nA 6.8-million-word corpus of the Fourth Industrial Revolution, compiled into a reasoned formal ontology.\n\nNot a wiki, and not a knowledge graph pretending to be one: this is pure ontology. Every page declares an OWL class with machine-readable semantics, most carry a traceable generation record, and there are zero individuals, by design. The whole corpus compiles losslessly to a formal artefact you can read, follow and cite, machine-checked at build so what you read has been verified, not merely asserted. Read it linearly, or open the explorer as a lens when reading runs out. Three layers do the work; here is what each one means.\n\nA mostly AI-generated synthetic corpus, built under human direction to exercise the VisionFlow toolchain at medium ontology scale. Every page says so.\n\nSearch\n\nMost pages carry a signed generation record,\nprov:wasAttributedTo\n, resolving to five\ndid:nostr\nidentities: agent swarms and human direction alike, enumerated in the data\n\nThree layers, read bottom-up\n\nThese words get used interchangeably elsewhere; here they name distinct things, and each layer consumes the one beneath it.\n\n1\nOntology\nThe formal vocabulary: the classes, typed properties and rules that fix what can be said. Every page declares a slice of it in its JSON-LD; this whole site is the ontology in readable form.\n2\nKnowledge graph\nThe ontology populated with live instances, at runtime: VisionClaw’s running graph, agents’ working graphs and pod-resident personal graphs assert individuals against these classes. What is said lives there; this site publishes the vocabulary it is said in.\n3\nReasoning\nThe machine check: the pipeline’s EL-profile reasoner gates this ontology at build, and a Whelk EL++ reasoner classifies the runtime graph, rejecting contradictions before they enter it. What follows, verified — never “an LLM thought hard”.\nSix domains, one map\n\nEach door opens the explorer at that domain’s subClassOf backbone: orientation first, structure on demand.\n\nArtificial Intelligence\n\nLearning systems, reasoning, agents and the models beneath them.\n\nOpen domain\nBlockchain\n\nDistributed ledgers, tokens, identity and cryptographic trust.\n\nOpen domain\nSpatial Computing\n\nImmersive interfaces, digital twins and the mixed-reality substrate.\n\nOpen domain\nRobotics\n\nEmbodied autonomy, sensing, actuation and human–robot interaction.\n\nOpen domain\nDistributed Collaboration\n\nSovereign coordination, protocols and the mesh of working peers.\n\nOpen domain\nInfrastructure\n\nCompute, networks, standards and the ground the rest stands on.\n\nOpen domain\nHonest by construction\n\nEvery number below is generated by the pipeline. If a build has not run you see no figure, never a guess. The dataset is a synthetic corpus: AI-generated, human-directed, not an authoritative encyclopedia.\n\n8,428\nPUBLIC PAGES\n8,432\nOWL CLASSES\n0\nINDIVIDUALS\n114,481\nRELATIONS · 102,244"
+          }
+        },
+        {
+          "name": "mobile-no-overflow",
+          "ok": true,
+          "detail": {
+            "viewport": 502,
+            "width": 502,
+            "bodyWidth": 502
+          }
+        },
+        {
+          "name": "no-uncaught-exceptions",
+          "ok": true,
+          "detail": []
+        }
+      ],
+      "page": {
+        "url": "https://narrativegoldmine.com/",
+        "title": "Narrative Goldmine — the DreamLab knowledge mesh",
+        "text": 4677,
+        "headings": [
+          "A 6.8-million-word corpus of the Fourth Industrial Revolution, compiled into a reasoned formal ontology.",
+          "Three layers, read bottom-up",
+          "Six domains, one map",
+          "Honest by construction",
+          "One node in a sovereign mesh",
+          "The mesh",
+          "Read"
+        ],
+        "brokenImages": []
+      },
+      "searchStarted": true,
+      "search": {
+        "url": "https://narrativegoldmine.com/",
+        "text": "Skip to content\nNarrative Goldmine\nHome\nGraph\nSearch\nData\nAbout\nResearch notes\n\nTHE DREAMLAB KNOWLEDGE MESH · READABLE TIER\n\nA 6.8-million-word corpus of the Fourth Industrial Revolution, compiled into a reasoned formal ontology.\n\nNot a wiki, and not a knowledge graph pretending to be one: this is pure ontology. Every page declares an OWL class with machine-readable semantics, most carry a traceable generation record, and there are zero individuals, by design. The whole corpus compiles losslessly to a formal artefact you can read, follow and cite, machine-checked at build so what you read has been verified, not merely asserted. Read it linearly, or open the explorer as a lens when reading runs out. Three layers do the work; here is what each one means.\n\nA mostly AI-generated synthetic corpus, built under human direction to exercise the VisionFlow toolchain at medium ontology scale. Every page says so.\n\nSearch\n\nMost pages carry a signed generation record,\nprov:wasAttributedTo\n, resolving to five\ndid:nostr\nidentities: agent swarms and human direction alike, enumerated in the data\n\nThree layers, read bottom-up\n\nThese words get used interchangeably elsewhere; here they name distinct things, and each layer consumes the one beneath it.\n\n1\nOntology\nThe formal vocabulary: the classes, typed properties and rules that fix what can be said. Every page declares a slice of it in its JSON-LD; this whole site is the ontology in readable form.\n2\nKnowledge graph\nThe ontology populated with live instances, at runtime: VisionClaw’s running graph, agents’ working graphs and pod-resident personal graphs assert individuals against these classes. What is said lives there; this site publishes the vocabulary it is said in.\n3\nReasoning\nThe machine check: the pipeline’s EL-profile reasoner gates this ontology at build, and a Whelk EL++ reasoner classifies the runtime graph, rejecting contradictions before they enter it. What follows, verified — never “an LLM thought hard”.\nSix domains, one map\n\nEach door opens the explorer at that domain’s subClassOf backbone: orientation first, structure on demand.\n\nArtificial Intelligence\n\nLearning systems, reasoning, agents and the models beneath them.\n\nOpen domain\nBlockchain\n\nDistributed ledgers, tokens, identity and cryptographic trust.\n\nOpen domain\nSpatial Computing\n\nImmersive interfaces, digital twins and the mixed-reality substrate.\n\nOpen domain\nRobotics\n\nEmbodied autonomy, sensing, actuation and human–robot interaction.\n\nOpen domain\nDistributed Collaboration\n\nSovereign coordination, protocols and the mesh of working peers.\n\nOpen domain\nInfrastructure\n\nCompute, networks, standards and the ground the rest stands on.\n\nOpen domain\nHonest by construction\n\nEvery number below is generated by the pipeline. If a build has not run you see no figure, never a guess. The dataset is a synthetic corpus: AI-generated, human-directed, not an authoritative encyclopedia.\n\n8,428\nPUBLIC PAGES\n8,432\nOWL CLASSES\n0\nINDIVIDUALS\n114,481\nRELATIONS · 102,244"
+      },
+      "mobile": {
+        "viewport": 502,
+        "width": 502,
+        "bodyWidth": 502
+      },
+      "screenshot": {
+        "path": "explorer-mobile.png",
+        "sha256": "793cbf5e8ede3f672bff83a714683dff52d1ee4a6a096bbdb88d395f69d1a750"
+      },
+      "exceptions": [],
+      "httpStatuses": [
+        {
+          "url": "https://narrativegoldmine.com/",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "name": "notes",
+      "url": "https://narrativegoldmine.com/notes/",
+      "checks": [
+        {
+          "name": "content",
+          "ok": true,
+          "detail": 2579
+        },
+        {
+          "name": "images",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "mobile-no-overflow",
+          "ok": true,
+          "detail": {
+            "viewport": 375,
+            "width": 375,
+            "bodyWidth": 375
+          }
+        },
+        {
+          "name": "no-uncaught-exceptions",
+          "ok": true,
+          "detail": []
+        }
+      ],
+      "page": {
+        "url": "https://narrativegoldmine.com/notes/#/all-pages",
+        "title": "All pages",
+        "text": 2579,
+        "headings": [
+          "All pages"
+        ],
+        "brokenImages": []
+      },
+      "mobile": {
+        "viewport": 375,
+        "width": 375,
+        "bodyWidth": 375
+      },
+      "screenshot": {
+        "path": "notes-mobile.png",
+        "sha256": "20deaa5be7056cf7b7cb662668902222b3938ac47e225f58ee0c976eaf952078"
+      },
+      "exceptions": [],
+      "httpStatuses": [
+        {
+          "url": "https://narrativegoldmine.com/notes/",
+          "status": 200
+        }
+      ]
+    }
+  ]
+}

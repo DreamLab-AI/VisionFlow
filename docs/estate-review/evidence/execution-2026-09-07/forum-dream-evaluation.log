@@ -1,0 +1,63 @@
+bench injected failure exit 1
+bench actual exit 0
+
+running 1 test
+test crates/nostr-bbs-mesh/src/jcs.rs - jcs::canonicalize (line 47) ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.38s
+
+   Doc-tests nostr_bbs_rate_limit
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests nostr_bbs_relay_worker
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests nostr_bbs_setup_skill
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests nostr_bbs_upstream_canary
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+thread-model injected failure exit 1
+thread-model actual exit 0
+warning: failed to auto-clean cache data
+
+failed to clean entries from the global cache
+
+Caused by:
+  failed to remove file `/home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/protobuf-2.28.0/regenerate.sh`
+
+Caused by:
+  Permission denied (os error 13)
+   Compiling nostr-bbs-core v1.0.0-beta.10 (/home/devuser/workspace/nostr-rust-forum/crates/nostr-bbs-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.14s
+     Running unittests src/lib.rs (target/debug/deps/nostr_bbs_core-7edc3aa69fde5886)
+
+running 10 tests
+test thread::tests::channel_message_tags_reply_adds_parent_and_author ... ok
+test thread::tests::channel_message_tags_top_level_anchors_to_root ... ok
+test thread::tests::post_root_channel_reads_first_e_tag ... ok
+test thread::tests::is_thread_root_distinguishes_roots_from_replies ... ok
+test thread::tests::reply_parent_reads_reply_marked_e_tag ... ok
+test thread::tests::group_threads_ignores_other_channels_and_promotes_orphans ... ok
+test thread::tests::group_threads_counts_replies_and_tracks_last_activity ... ok
+test thread::tests::thread_page_excludes_posts_from_other_channels ... ok
+test thread::tests::thread_messages_returns_root_plus_replies_chronological ... ok
+test thread::tests::thread_resolution_terminates_on_a_reply_cycle ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 345 filtered out; finished in 0.00s
+
+

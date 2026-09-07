@@ -2760,6 +2760,7 @@ Keys are repository-qualified. `estate-unresolved` preserves an unqualified cros
 | `../project/src/bin/sync_github.rs` | [VC-21](visionclaw/21-corpus-ingest-and-vault.md) |
 | `../project/src/bin/sync_local.rs` | [VC-21](visionclaw/21-corpus-ingest-and-vault.md), [VC-24](visionclaw/24-acsp-decision-elevation.md) |
 | `../project/src/bin/validate_md.rs` | [VC-21](visionclaw/21-corpus-ingest-and-vault.md) |
+| `../project/src/client/mcp_tcp_client.rs` | [VC-27](visionclaw/27-agent-integration-mcp-relay.md) |
 | `../project/src/client/mod.rs` | [VC-27](visionclaw/27-agent-integration-mcp-relay.md) |
 | `../project/src/config/dev_config.rs` | [VC-09](visionclaw/09-config-and-env-flags.md) |
 | `../project/src/config/feature_access.rs` | [VC-05](visionclaw/05-handlers-governance-and-identity.md), [VC-09](visionclaw/09-config-and-env-flags.md), [VC-28](visionclaw/28-external-services.md) |

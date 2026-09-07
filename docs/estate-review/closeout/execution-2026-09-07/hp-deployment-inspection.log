@@ -1,0 +1,13 @@
+/home/john
+loom-facade-a loom:rust
+agentbox agentbox:runtime-x86_64-linux
+ruvector-postgres ruvnet/ruvector-postgres:2.0.5
+loom-model loom-model:local
+openwebui ghcr.io/open-webui/open-webui:main
+/home/john/githubs/loom
+8555fb1f4aab316ed83d659f24d72dfb3c8bda9d
+?? data/.generation.json
+?? data/ontology-inferred.ttl
+?? data/ontology.ttl
+?? data/prose-index.json
+?? data/scaffold-index.json

@@ -1,0 +1,13 @@
+{
+  "observed_at": "2026-09-07T13:01:52.643118+00:00",
+  "command": [
+    "node",
+    "scripts/estate-browser-journeys.mjs",
+    "docs/estate-review/evidence/execution-2026-09-07/browser-published-no-injection",
+    "canon,explorer,notes"
+  ],
+  "script_sha256": "b8696234117ac2813d9a7f3b9eafcd2f5f07b6dcd5b4f9fb648366cb038a71b9",
+  "css_argument": null,
+  "candidate_surface_selected": false,
+  "scope": "Published surfaces only; script creates/closes its own tabs, no service configuration changes"
+}

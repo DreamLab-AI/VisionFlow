@@ -1,0 +1,14 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.52s
+     Running unittests src/lib.rs (services/dream-engine/target/debug/deps/dream_engine-cdaa46b6c59d3605)
+
+running 1 test
+test engine::tests::annexe_subpath_mirrors_real_depth_under_the_workspace ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 154 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (services/dream-engine/target/debug/deps/dream_engine-0d06a84bfabf4a4b)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

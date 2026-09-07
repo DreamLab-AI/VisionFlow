@@ -1,0 +1,15 @@
+From https://github.com/DreamLab-AI/agentbox
+ * branch                main       -> FETCH_HEAD
+   647aabb10..b5bfc03db  main       -> origin/main
+b5bfc03db14712734838c9b973443ce1e67a816a
+b5bfc03db docs(estate): qualify ADRs against source and closeout evidence
+; Code session. Reads /run/agentbox/mcp-hub.json, written by the entrypoint's
+; `agentbox-manifest mcp-hub-project` after every bespoke/projected .mcp.json
+[program:agentbox-mcp-hub]
+command=${agentboxMcpPkg}/bin/agentbox-mcp hub --config /run/agentbox/mcp-hub.json --bind ${mcpHubBind}
+stdout_logfile=/var/log/agentbox-mcp-hub.log
+stderr_logfile=/var/log/agentbox-mcp-hub.error.log
+disk-free
+Filesystem                                             Size  Used Avail Use% Mounted on
+/dev/mapper/luks-6888cc1c-0516-4e5e-b1ec-4fa35d4cb7f7  952G  724G  222G  77% /
+/dev/mapper/luks-6888cc1c-0516-4e5e-b1ec-4fa35d4cb7f7  952G  724G  222G  77% /home

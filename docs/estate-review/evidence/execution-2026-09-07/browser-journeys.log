@@ -1,0 +1,14 @@
+candidate []
+canon []
+explorer []
+notes [
+  { name: 'content', ok: false, detail: 0 },
+  {
+    name: 'mobile-no-overflow',
+    ok: false,
+    detail: { viewport: 375, width: 385, bodyWidth: 385 }
+  }
+]
+commercial []
+forum [ { name: 'journey-completed', ok: false, detail: 'Error: Uncaught' } ]
+dream []

@@ -1,0 +1,86 @@
+[
+  {
+    "repo": "prose-sanitiser",
+    "commit": "be8305ee826e389a63dd72ae4b6994a533aff610",
+    "paths": [
+      ".github/workflows/ci.yml",
+      ".github/workflows/release.yml"
+    ],
+    "result": "[main be8305e] ci: pin external workflow actions to reviewed commits\n 2 files changed, 7 insertions(+), 7 deletions(-)"
+  },
+  {
+    "repo": "diagram-ir",
+    "commit": "eed5ebde490830fc143a744e299c2ec0ed8b0028",
+    "paths": [
+      ".github/workflows/ci.yml",
+      ".github/workflows/release.yml"
+    ],
+    "result": "[main eed5ebd] ci: pin external workflow actions to reviewed commits\n 2 files changed, 7 insertions(+), 7 deletions(-)"
+  },
+  {
+    "repo": "solid-pod-rs",
+    "commit": "51426be8232a6ddf2d8134848b756de938ef70dd",
+    "paths": [
+      "crates/solid-pod-rs/docs/adr/ADR-2007-mempool-single-url-no-fallback.md"
+    ],
+    "result": "[main 51426be] docs: quote ADR lineage for valid YAML metadata\n 1 file changed, 1 insertion(+), 1 deletion(-)"
+  },
+  {
+    "repo": "dream-machine",
+    "commit": "83a7b9bf52c153e2b62fd3677a2fb6da95fc8ffb",
+    "paths": [
+      ".github/workflows/automerge.yml",
+      ".github/workflows/ci.yml",
+      ".github/workflows/codeql.yml",
+      ".github/workflows/dream-nightly.yml",
+      ".github/workflows/pages.yml",
+      ".github/workflows/release.yml",
+      "docs/adrs/ADR-0001-dream-machine-engine.md",
+      "docs/adrs/ADR-0002-dream-cycle-security-adversarial-entrypoint-liveness.md",
+      "docs/dream-engine/ADR-DL-001-meta-harness-optimisation.md",
+      "package-lock.json",
+      "packages/cli/package.json"
+    ]
+  },
+  {
+    "repo": "VisionFlow",
+    "commit": "0624b3270534e2efdf72294958a761bbd72f941c",
+    "paths": [
+      ".github/workflows/adr-index.yml",
+      ".github/workflows/copyright-guard.yml",
+      ".github/workflows/deploy.yml",
+      ".github/workflows/diagram-index.yml",
+      ".github/workflows/diagram-render.yml",
+      ".github/workflows/drift-counter.yml",
+      ".github/workflows/estate-health.yml",
+      ".github/workflows/fixture-drift.yml",
+      ".github/workflows/harness-fitness-gates.yml",
+      "scripts/diagram-index-gen.cjs",
+      "tests/gates/diagram-index.test.cjs",
+      "website/static/js/main.js",
+      "scripts/estate-adr-graph.cjs",
+      "scripts/estate-browser-journeys.mjs",
+      "docs/architecture/adr-reference-resolutions.json",
+      "docs/architecture/adr-status-contract.md",
+      "docs/architecture/action-pins.md",
+      "docs/adr/PREAMBLE.md",
+      "docs/adr/README.md",
+      "docs/diagrams/README.md",
+      "docs/diagrams/visionflow/06-diagram-tooling.md"
+    ]
+  },
+  {
+    "repo": "WasmVOWL",
+    "commit": "431792bbabbc369beb5e1bf3f317962788786151",
+    "paths": [
+      "README.md",
+      "docs/adr/ADR-001-explorer-consumer-contract-closeout.md"
+    ]
+  },
+  {
+    "repo": "WasmVOWL",
+    "commit": "51a1484",
+    "role": "normal merge of remote extraction and local closeout; pushed master",
+    "validation": "Merged frontend19pass60fail, build fails; installed v0.1.1 WASM schema probe retained. Held variant."
+  }
+]

@@ -1,0 +1,7 @@
+Release gate — repository DreamLab-AI/knowledgeGraph (alias narrativegoldmine)
+  identity set : 8138 class IRIs, digest f943cf6b8b6f…
+  counts       : OK
+  identity     : OK (exact set match)
+  schema       : OK (consumer-shaped class/property present)
+  visibility   : OK (census balanced, no private identifier in public artefacts)
+Release gate PASSED

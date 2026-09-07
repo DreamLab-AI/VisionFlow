@@ -5,10 +5,11 @@ const [census,out]=process.argv.slice(2);
 if(!census||!out){console.error('usage: estate-adr-graph.cjs <census.json> <output.json>');process.exit(2);}
 const workspace=path.resolve(__dirname,'../..');const inventory=JSON.parse(fs.readFileSync(census));
 const resolutions=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../docs/architecture/adr-reference-resolutions.json'))).references;
+const excluded=inventory.records.filter(r=>r.repo==='RuView'&&r.kind==='operative-candidate').map(r=>({key:r.key,reason:'Excluded from execution by user instruction; no current source read.'}));
 const nodes=[],edges=[],unresolved=[],readErrors=[];const candidates=inventory.records.filter(r=>['operative-candidate','historical'].includes(r.kind));
 const lookup=new Map();
 for(const r of candidates){const key=`${r.repo}:${r.id}`;const hits=lookup.get(key)||[];hits.push(r.key);lookup.set(key,hits);}
-for(const r of candidates.filter(r=>r.kind==='operative-candidate')){
+for(const r of candidates.filter(r=>r.kind==='operative-candidate'&&r.repo!=='RuView')){
  try{
  const source=fs.readFileSync(path.join(workspace,r.repo,r.path),'utf8');const match=source.match(/^---\r?\n([\s\S]*?)\r?\n---/);const fm=match?yaml.load(match[1])||{}:{};
  nodes.push({key:r.key,id:`${r.repo}:${fm.id||r.id}`,source_sha256:crypto.createHash('sha256').update(source).digest('hex'),status:{decision:fm.decision_status||null,implementation:fm.implementation_status||null,activation:fm.activation_status||null}});
@@ -21,4 +22,4 @@ for(const r of candidates.filter(r=>r.kind==='operative-candidate')){
  else if(hits.length===1)edges.push({...edge,to:hits[0]});else unresolved.push({...edge,reason:hits.length?'ambiguous':'not-in-census',candidates:hits});}
  }catch(error){readErrors.push({key:r.key,error:String(error)});}
 }
-const report={method:'Repository-qualified declared supersession and frontmatter lineage graph, read from current bytes. A lineage mention is not promoted to supersession or acceptance. Missing/ambiguous historical references require section-level disposition.',nodes,edges,unresolved,readErrors};fs.mkdirSync(path.dirname(out),{recursive:true});fs.writeFileSync(out,JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify({nodes:nodes.length,edges:edges.length,unresolved:unresolved.length,readErrors:readErrors.length}));process.exitCode=readErrors.length?1:0;
+const report={method:'Repository-qualified declared supersession and frontmatter lineage graph, read from current bytes. A lineage mention is not promoted to supersession or acceptance. Missing/ambiguous historical references require section-level disposition.',excluded,nodes,edges,unresolved,readErrors};fs.mkdirSync(path.dirname(out),{recursive:true});fs.writeFileSync(out,JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify({nodes:nodes.length,excluded:excluded.length,edges:edges.length,unresolved:unresolved.length,readErrors:readErrors.length}));process.exitCode=readErrors.length||unresolved.length?1:0;

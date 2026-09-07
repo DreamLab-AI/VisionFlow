@@ -1,0 +1,373 @@
+{
+  "date": "2026-09-07",
+  "scope": "61 distinct open master-register IDs at execution start; excludes historical resolved IDs and frozen optional programmes",
+  "final": false,
+  "items": [
+    {
+      "id": "EA-01",
+      "status": "closed",
+      "lane": "federation",
+      "result": "Public projection and safe Markdown implemented in both producers; 71/96 tests and real corpus/release gates pass. Deployment remains separate."
+    },
+    {
+      "id": "EA-02",
+      "status": "closed",
+      "lane": "visionclaw",
+      "result": "Five-file immutable generation publication and generation-pinned browser reads pass filesystem, ACL and pre-activation failure/restart tests. Post-rename fsync failure is explicitly durability-unknown; deployment is separate."
+    },
+    {
+      "id": "EA-03",
+      "status": "closed",
+      "lane": "federation",
+      "result": "Guarded state transition conditionally creates audit; exact-SQL concurrency/rollback tests pass. Live D1 acceptance remains separate."
+    },
+    {
+      "id": "EA-04",
+      "status": "blocked",
+      "lane": "federation",
+      "result": "Exact signed request/operation binding, legal-state transitions and durable received/dispatch/application receipts implemented across forum/AB/VC; 1369 Rust and focused 21+29 JS tests pass. Live external mutation journey and authority/recovery acceptance remain unobserved."
+    },
+    {
+      "id": "EA-05",
+      "status": "blocked",
+      "lane": "agentbox",
+      "result": "Strict generation/cache/response identity passes locally. Live server lacks required identity and serves mismatched graph/semantic generations; coordinated matching bundle/server rollout required."
+    },
+    {
+      "id": "EA-06",
+      "status": "blocked",
+      "lane": "visionclaw",
+      "result": "Effective membership and durable per-store reconciliation coordinator pass restart/idempotency tests. Concrete per-store subject/authority mappings and actual backend adapters are missing; no private data was erased or restored."
+    },
+    {
+      "id": "EA-07",
+      "status": "excluded",
+      "lane": "canon",
+      "result": "RuView explicitly skipped by user. Programmable sensing remains outside this closeout; no upstream defect claimed fixed."
+    },
+    {
+      "id": "G-1",
+      "status": "closed",
+      "lane": "visionclaw",
+      "result": "Actual release binary rejects insecure startup settings before binding; release SHA and negative probe receipt retained. Broader artefact matrix remains separate."
+    },
+    {
+      "id": "G-2",
+      "status": "closed",
+      "lane": "visionclaw",
+      "result": "Undeclared/unnamed effective profile now creates a finding and every non-debug artefact refuses findings; debug report-only behaviour is explicit."
+    },
+    {
+      "id": "G-4",
+      "status": "blocked",
+      "lane": "agentbox",
+      "result": "Mandatory recipient enumeration implemented with 25 negative/positive tests; activation needs the reviewed explicit public-recipient set."
+    },
+    {
+      "id": "G-5",
+      "status": "blocked",
+      "lane": "agentbox",
+      "result": "Shared publisher identity remains. Replacement identity, encrypted recovery custody and bilateral allowlist migration must be bound together before exposure."
+    },
+    {
+      "id": "G-6",
+      "status": "closed",
+      "lane": "agentbox",
+      "result": "Strict non-evaluating mint parser aborts failed/malformed/inconsistent identity before consumers; six shell cases pass."
+    },
+    {
+      "id": "G-7",
+      "status": "blocked",
+      "lane": "visionclaw",
+      "result": "Real open-writer Oxigraph checkpoint and source-loss restore fixture pass; deployment-specific backup policy and complete per-store authority-preserving recovery remain unverified."
+    },
+    {
+      "id": "G-8",
+      "status": "closed",
+      "lane": "visionclaw",
+      "result": "Authenticated per-pubkey admission precedes global replay saturation, retaining live replay IDs; fairness and expiry tests pass."
+    },
+    {
+      "id": "G-10",
+      "status": "closed",
+      "lane": "agentbox",
+      "result": "Cross-cutting LAN-door threat model records host, sibling-container and same-UID boundaries and explicit exceptions."
+    },
+    {
+      "id": "G-11",
+      "status": "closed",
+      "lane": "visionclaw",
+      "result": "Per-request browser signing and NIP-98 WebSocket upgrade carrier implemented; signer refusal, canonical URL, nonce uniqueness, no token echo and compatibility default tests pass. Running-image migration remains separate."
+    },
+    {
+      "id": "G-14",
+      "status": "closed",
+      "lane": "canon",
+      "result": "Repository-qualified graph resolves 224 in-scope operative nodes and 322 typed edges, with zero unresolved references; 45 RuView records excluded. Historical disposition annex routes VC-130, AB-037 and AB-057/072 sections to current authority and explicit feature acceptance triggers. ADR-2001 makes supersession opt-in; empty lists were not missing replacements. No invented whole-record retirement."
+    },
+    {
+      "id": "G-15",
+      "status": "closed",
+      "lane": "canon",
+      "result": "Independent decision/implementation/activation contract is explicit and linked in ledger preambles; enum gates validate it."
+    },
+    {
+      "id": "G-16",
+      "status": "closed",
+      "lane": "visionclaw",
+      "result": "Actual A6000 LOF oracle passes original 1e-3 tolerance after neighbour-distance and tie fixes; all four GPU oracles pass without skipping."
+    },
+    {
+      "id": "G-17",
+      "status": "closed",
+      "lane": "agentbox",
+      "result": "Locked secret-backup Nix derivation and runtime package inclusion implemented; seven Rust custody tests pass. New-image activation remains separate from source closure."
+    },
+    {
+      "id": "G-18",
+      "status": "blocked",
+      "lane": "canon",
+      "result": "Strict citation refusal and current-worktree mode have regression tests. Remaining ambiguous/misbound references and concurrent diagram changes prevent a whole-corpus current-source pass."
+    },
+    {
+      "id": "G-19",
+      "status": "closed",
+      "lane": "agentbox",
+      "result": "Loom exact-fork source guard, owned-workspace formatting and locked workspace/reload tests pass hosted Rust contracts run 34121825633 at 397b86c0124e2f4ece40b9db46352179730c2c46. Initial broader-format failure is retained. Source/CI closure does not imply EA-05 data/server activation."
+    },
+    {
+      "id": "G-21",
+      "status": "closed",
+      "lane": "canon",
+      "result": "All six named dependency PRs are already merged; dated GitHub receipt retained."
+    },
+    {
+      "id": "G-22",
+      "status": "closed",
+      "lane": "canon",
+      "result": "External workflow actions pinned to resolved full SHAs across the declared roster, with YAML validation and correction of nonexistent Trivy tag."
+    },
+    {
+      "id": "G-23",
+      "status": "blocked",
+      "lane": "canon",
+      "result": "ESTATE_READ_TOKEN is absent; owner must provision the specified scoped private-repository credential. Existing interactive credentials are not suitable substitutes."
+    },
+    {
+      "id": "G-24",
+      "status": "in-progress",
+      "lane": "visionclaw",
+      "result": "Local documentation validator and XR source/template fixes pass; hosted acceptance to be checked after landing."
+    },
+    {
+      "id": "G-25",
+      "status": "closed",
+      "lane": "agentbox",
+      "result": "Root npm-ci dependency fix passes hosted Contract tests run 34120897048 at 7bf2382c031d696b0b2f5eb466f7e6615c88cc2c; local selection: 29 suites, 580 passed, 34 TODOs. Later CI, Security Invariants and Secret Scan also pass at be0fc078a; documentation-anchor failure and repair remain recorded. No all-workflows-green claim."
+    },
+    {
+      "id": "G-26",
+      "status": "closed",
+      "lane": "canon",
+      "result": "Tall-section reveal threshold fixed; candidate browser regression and 26-check GPU/fallback suite pass. Published revision verified separately."
+    },
+    {
+      "id": "G-27",
+      "status": "closed",
+      "lane": "canon",
+      "result": "CLI and lockfile now declare Node >=20, matching current CI matrix; 94 ledger/CLI tests pass."
+    },
+    {
+      "id": "G-28",
+      "status": "closed",
+      "lane": "canon",
+      "result": "Stale ledger-failure premise corrected: current ledger/CLI contract passes 94 tests; historical failure retained."
+    },
+    {
+      "id": "G-29",
+      "status": "closed",
+      "lane": "agentbox",
+      "result": "Wire model alias and documented Heretic Q8_0 variant reconciled; documentation does not claim cryptographic weight attestation."
+    },
+    {
+      "id": "M-2",
+      "status": "closed",
+      "lane": "agentbox",
+      "result": "Selected supported profile retains relay exposure and mobile bridge disabled while custody migration is unresolved."
+    },
+    {
+      "id": "M-3",
+      "status": "in-progress",
+      "lane": "agentbox",
+      "result": "Actual HP Nix build running in separate worktree with opaque operator manifest copy and retained rollback source/config/image; no restart yet."
+    },
+    {
+      "id": "M-4",
+      "status": "blocked",
+      "lane": "agentbox",
+      "result": "Manifest fan-out wiring already exists; actual accepted/rejected multi-peer delivery needs the selected deployed peers and custody/exposure prerequisites."
+    },
+    {
+      "id": "M-5",
+      "status": "blocked",
+      "lane": "agentbox",
+      "result": "Concurrent source now implements annexeInclude and workspace-depth sibling cloning for the sovereign-mesh nightly evaluator. A pinned nightly-runtime and build receipt is still required; earlier standalone-excluded premise is superseded."
+    },
+    {
+      "id": "T-1",
+      "status": "closed",
+      "lane": "agentbox",
+      "result": "Exposure decision recorded: retain disabled supported profile; new rail profile must satisfy custody and admission acceptance."
+    },
+    {
+      "id": "T-4",
+      "status": "closed",
+      "lane": "agentbox",
+      "result": "Eight held surface families re-dated and retained disabled; optional adoption reopens their acceptance gates."
+    },
+    {
+      "id": "L-1",
+      "status": "blocked",
+      "lane": "agentbox",
+      "result": "Required envelope canaries need actual signed model/mobile sessions; selected mobile profile remains disabled."
+    },
+    {
+      "id": "L-2",
+      "status": "blocked",
+      "lane": "agentbox",
+      "result": "No second-model-family traffic canary observed; unit fixtures do not prove live diversity."
+    },
+    {
+      "id": "L-3",
+      "status": "blocked",
+      "lane": "visionclaw",
+      "result": "VisionClaw service cannot be reached from this container; no authenticated clamp fire receipt available."
+    },
+    {
+      "id": "L-4",
+      "status": "blocked",
+      "lane": "visionclaw",
+      "result": "Actual telemetry records show canary/cache activity; complete failure-path liveness acceptance remains unobserved."
+    },
+    {
+      "id": "L-5",
+      "status": "blocked",
+      "lane": "visionclaw",
+      "result": "No connected headset, Godot runtime or adb target; XR library tests do not prove on-headset operation."
+    },
+    {
+      "id": "L-6",
+      "status": "blocked",
+      "lane": "agentbox",
+      "result": "No connected Amethyst/Amber phone session; mobile exposure is retained disabled."
+    },
+    {
+      "id": "DR-1",
+      "status": "blocked",
+      "lane": "federation",
+      "result": "Required local evaluators run and pipe failure masking is repaired; complete nightly agent-runtime journey has not run and seven historical INCONCLUSIVE rows remain."
+    },
+    {
+      "id": "DR-2",
+      "status": "closed",
+      "lane": "federation",
+      "result": "Accepted Dream Engine ADR-0003 already classifies mock Darwin as smoke-only; nonexistent VisionFlow ADR-0057 premise removed."
+    },
+    {
+      "id": "LM-1",
+      "status": "closed",
+      "lane": "agentbox",
+      "result": "Loom confidence interface accepted with eleven contract cases; deployed binary identity remains a separate assertion."
+    },
+    {
+      "id": "D-1",
+      "status": "blocked",
+      "lane": "agentbox",
+      "result": "Seven complete UTC observation days and daily current-corpus recall receipts now specified; one historical passing measurement cannot satisfy elapsed window. Routing remains off."
+    },
+    {
+      "id": "E-1",
+      "status": "blocked",
+      "lane": "canon",
+      "result": "No intended ComfyUI container/service is present on the runtime network; integration acceptance needs that service/profile."
+    },
+    {
+      "id": "E-4",
+      "status": "excluded",
+      "lane": "agentbox",
+      "result": "Optional Nagual QE remains disabled in supported profile. Upstream compile repair is not claimed; enabling it requires a pinned build/probe."
+    },
+    {
+      "id": "E-5",
+      "status": "blocked",
+      "lane": "agentbox",
+      "result": "visionclaw-server fails DNS from this container; endpoint and authenticated publication path must be restored before direct axiom writes."
+    },
+    {
+      "id": "DOC-1",
+      "status": "closed",
+      "lane": "visionclaw",
+      "result": "Broker route phantom-count premise corrected against actual routes; workflow design status remains explicit."
+    },
+    {
+      "id": "DOC-2",
+      "status": "closed",
+      "lane": "visionclaw",
+      "result": "Kernel inventory and unsupported timing claim corrected against current source; no performance certification inferred."
+    },
+    {
+      "id": "DOC-3",
+      "status": "closed",
+      "lane": "visionclaw",
+      "result": "Installation instructions now use Docker Compose v2, matching launcher."
+    },
+    {
+      "id": "DOC-4",
+      "status": "closed",
+      "lane": "agentbox",
+      "result": "AoE token-auth process observed and unauthenticated sessions request returns 401; ADR activation updated with scoped receipt."
+    },
+    {
+      "id": "DOC-5",
+      "status": "closed",
+      "lane": "agentbox",
+      "result": "Config/comments/guide distinguish stable wire alias from documented deployed model variant and historical evidence."
+    },
+    {
+      "id": "C-11",
+      "status": "closed",
+      "lane": "canon",
+      "result": "All three valuable remote research branches retained for provenance; remote identities recorded, no destructive deletion required."
+    },
+    {
+      "id": "V-1",
+      "status": "blocked",
+      "lane": "federation",
+      "result": "Reload trigger and candidate notes mobile fix implemented. Frozen notes SPA has no current rebuild source; matching semantic bundle/server and publication acceptance remain prerequisites."
+    },
+    {
+      "id": "V-2",
+      "status": "closed",
+      "lane": "visionclaw",
+      "result": "Actual GPU hard clamp and separate connected-only extent reduction pass CUDA fixtures; isolated-shell consumer uses connected extent while spatial index keeps all-node bounds."
+    },
+    {
+      "id": "V-3",
+      "status": "closed",
+      "lane": "visionclaw",
+      "result": "Extractor reuses verified middleware identity within request; cross-request replay rejection remains enforced."
+    },
+    {
+      "id": "V-4",
+      "status": "closed",
+      "lane": "visionclaw",
+      "result": "GitHub path prefix now respects directory boundaries; hierarchy relation contract verified."
+    },
+    {
+      "id": "V-5",
+      "status": "closed",
+      "lane": "federation",
+      "result": "Four stale PNGs regenerated from current Mermaid sources and malformed title corrected; relevant renders pass."
+    }
+  ]
+}

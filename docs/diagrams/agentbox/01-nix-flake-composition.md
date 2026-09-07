@@ -22,7 +22,7 @@ sources:
   - ../project/agentbox/scripts/post-deploy-cleanup.sh
   - ../project/agentbox/docker-compose.yml
   - ../project/agentbox/config/model-router/artefacts.json
-verified_commit: 2c521c5bb
+verified_commit: be0fc078a3dc0eab32af57f1eaf170fa58157bf9
 ---
 
 ## AB-01.1 agentbox.toml gates to flake.nix conditionals to package set and supervisord text
@@ -34,23 +34,23 @@ flowchart TB
     CFG --> MEDIA["mediaCfg = skillsCfg.media or {}<br/>flake.nix:174"]
     CFG --> VAULT["vaultCfg = agentboxConfig.vault or {}<br/>flake.nix:661"]
 
-    DESK -->|"desktopCfg.enabled or false"| DESKOPT["lib.optionals<br/>flake.nix:1565 desktopPackages"]
-    MEDIA -->|"mediaCfg.comfyui_builtin or false"| COMFYOPT["lib.optionals<br/>flake.nix:1137 comfyuiPackages"]
-    MEDIA -->|"mediaCfg.ffmpeg or false"| FFOPT["lib.optionals<br/>flake.nix:1146 wrapGpuBin ffmpeg"]
-    VAULT -->|"vaultCfg.tui == rune"| RUNEOPT["runeActive<br/>flake.nix:654"]
+    DESK -->|"desktopCfg.enabled or false"| DESKOPT["lib.optionals<br/>flake.nix:1576 desktopPackages"]
+    MEDIA -->|"mediaCfg.comfyui_builtin or false"| COMFYOPT["lib.optionals<br/>flake.nix:1146 comfyuiPackages"]
+    MEDIA -->|"mediaCfg.ffmpeg or false"| FFOPT["lib.optionals<br/>flake.nix:1155 wrapGpuBin ffmpeg"]
+    VAULT -->|"vaultCfg.tui == rune"| RUNEOPT["runeActive<br/>flake.nix:663"]
 
     DESKOPT --> ALLPKG["allPackages closure"]
     COMFYOPT --> ALLPKG
     FFOPT --> ALLPKG
-    RUNEOPT -->|"lib.optionals runeActive"| RUNEPKG["runePackages<br/>flake.nix:656"]
+    RUNEOPT -->|"lib.optionals runeActive"| RUNEPKG["runePackages<br/>flake.nix:665"]
     RUNEPKG --> ALLPKG
 
-    DESK -->|"lib.optionalString (desktopCfg.enabled or false)"| DESKSUP["desktopBlocks text<br/>flake.nix:2012<br/>spliced flake.nix:2208"]
-    MEDIA -->|"lib.optionalString (mediaCfg.comfyui_builtin or false)"| COMFYSUP["program:comfyui-builtin block<br/>flake.nix:2302-2311"]
+    DESK -->|"lib.optionalString (desktopCfg.enabled or false)"| DESKSUP["desktopBlocks text<br/>flake.nix:2023<br/>spliced flake.nix:2219"]
+    MEDIA -->|"lib.optionalString (mediaCfg.comfyui_builtin or false)"| COMFYSUP["program:comfyui-builtin block<br/>flake.nix:2313-2322"]
 
-    DESKSUP --> SUPTEXT["supervisorText — AUTO-GENERATED supervisord.conf<br/>flake.nix:2104 supervisorText = header"]
+    DESKSUP --> SUPTEXT["supervisorText — AUTO-GENERATED supervisord.conf<br/>flake.nix:2115 supervisorText = header"]
     COMFYSUP --> SUPTEXT
-    ALLPKG --> MKIMAGE["mkImage layers<br/>flake.nix:3682"]
+    ALLPKG --> MKIMAGE["mkImage layers<br/>flake.nix:3693"]
 
     ALLPKG -.->|"see AB-01.7"| WRAPTGT["wrapped GPU targets"]
 
@@ -212,7 +212,7 @@ sequenceDiagram
     participant FETCH as pkgs.fetchurl stage 1<br/>lib/npm-cli.nix:184
     participant FOD as packageWithDeps FOD stage 2<br/>lib/npm-cli.nix:204
     participant WRAP as wrapper derivation stage 3
-    participant ALWAYS as npmCliAlwaysPackages<br/>flake.nix:492
+    participant ALWAYS as npmCliAlwaysPackages<br/>flake.nix:501
 
     FLAKE->>MK: mkNpmCli pkgName=ruvector version=0.3.0<br/>flake.nix:262-268
     MK->>FETCH: registryUrl ruvector 0.3.0<br/>lib/npm-cli.nix:102-115
@@ -225,7 +225,7 @@ sequenceDiagram
     FOD-->>MK: $out/lib/ruvector with populated node_modules
     MK->>WRAP: thin mkDerivation, no network, writes $out/bin/ruvector wrapper<br/>lib/npm-cli.nix Stage 3 rationale lines 39-41
     WRAP-->>FLAKE: ruvectorPkg derivation
-    FLAKE->>ALWAYS: npmCliAlwaysPackages = [ ruvectorPkg wranglerPkg ]<br/>flake.nix:492
+    FLAKE->>ALWAYS: npmCliAlwaysPackages = [ ruvectorPkg wranglerPkg ]<br/>flake.nix:501
     Note over FLAKE,ALWAYS: comment at flake.nix:261 says pin is ruvector-0.2.25,<br/>but the version field at flake.nix:264 is 0.3.0
     Note over FLAKE,ALWAYS: RESOLVED ADR-2039: BASELINE-container.md:45 now<br/>states 0.3.0. The nix-prefetch-url comment at flake.nix:261<br/>still names ruvector-0.2.25.tgz - stale code comment, left<br/>as-is deliberately, not a doc claim
 ```
@@ -246,7 +246,7 @@ sequenceDiagram
         FLAKE->>FLAKE: wrapGpuBin pkg bins = pkg, unwrapped passthrough<br/>flake.nix:235-241
         Note over FLAKE: alt gpu.backend=none - wrapping is inert without injected driver libs, gpu-wrap.nix comment lines 21-22
     else gpu.backend == local-cuda
-        FLAKE->>WRAP: wrapGpuBins pkg=pkgs.blender bins=[blender]<br/>flake.nix:1160
+        FLAKE->>WRAP: wrapGpuBins pkg=pkgs.blender bins=[blender]<br/>flake.nix:1169
         WRAP->>JOIN: paths=[pkg], nativeBuildInputs=[makeWrapper]<br/>lib/gpu-wrap.nix:77-80
         JOIN->>MAKEW: for each bin, wrapProgram target gpuEnvArgs<br/>lib/gpu-wrap.nix:81-89
         MAKEW->>MAKEW: --suffix LD_LIBRARY_PATH : /usr/lib:/usr/lib/x86_64-linux-gnu:/run/opengl-driver/lib<br/>lib/gpu-wrap.nix:46-51,56
@@ -270,15 +270,15 @@ sequenceDiagram
 flowchart TB
     GPUACT["gpuActive = gpu.backend == local-cuda<br/>flake.nix:234"]
 
-    subgraph MEDIA["mediaPackages - flake.nix:1141-1148"]
-        FF["wrapGpuBin ffmpeg bins ffmpeg ffprobe ffplay<br/>flake.nix:1146<br/>gate: mediaCfg.ffmpeg or false"]
+    subgraph MEDIA["mediaPackages - flake.nix:1150-1157"]
+        FF["wrapGpuBin ffmpeg bins ffmpeg ffprobe ffplay<br/>flake.nix:1155<br/>gate: mediaCfg.ffmpeg or false"]
     end
 
-    subgraph SPATIAL["spatialPackages - flake.nix:1150-1166"]
-        QGIS["wrapGpuBin pkgs.qgis bin qgis<br/>flake.nix:1153<br/>gate: spatialCfg.qgis or false"]
-        BLENDER["wrapGpuBin pkgs.blender bin blender<br/>flake.nix:1160<br/>gate: spatialCfg.blender or false"]
-        GAUSS["gauss3dPackages via lib/3dgs-stack.nix<br/>flake.nix:505-506<br/>gate: spatialCfg.gaussian_splatting or false"]
-        WRAPALL["map wrapGpuAll gauss3dPackages<br/>flake.nix:1166"]
+    subgraph SPATIAL["spatialPackages - flake.nix:1159-1175"]
+        QGIS["wrapGpuBin pkgs.qgis bin qgis<br/>flake.nix:1162<br/>gate: spatialCfg.qgis or false"]
+        BLENDER["wrapGpuBin pkgs.blender bin blender<br/>flake.nix:1169<br/>gate: spatialCfg.blender or false"]
+        GAUSS["gauss3dPackages via lib/3dgs-stack.nix<br/>flake.nix:514-515<br/>gate: spatialCfg.gaussian_splatting or false"]
+        WRAPALL["map wrapGpuAll gauss3dPackages<br/>flake.nix:1175"]
         GAUSS --> WRAPALL
     end
 
@@ -292,7 +292,7 @@ flowchart TB
     BLENDER --> SPATIALPKG
     WRAPALL --> SPATIALPKG
 
-    MEDIAPKG --> ALLPKG["allPackages flake.nix:1593 / mkImage layers flake.nix:3682"]
+    MEDIAPKG --> ALLPKG["allPackages flake.nix:1604 / mkImage layers flake.nix:3693"]
     SPATIALPKG --> ALLPKG
 
     NOTE1["INVARIANT - wrapGpuBin names exact bins, wrapGpuAll wraps every<br/>executable under out/bin for upstream-versioned bin sets like colmap/lichtfeld,<br/>flake.nix comment lines 1083-1087"]
@@ -378,17 +378,17 @@ flowchart LR
     SKILLS --> EVAL
     CODEX --> EVAL
 
-    EVAL --> PACKAGES["packages - flake.nix:3721<br/>lib.optionalAttrs pkgs.stdenv.isLinux"]
-    EVAL --> DEVSHELL["devShells.default<br/>flake.nix:3798"]
+    EVAL --> PACKAGES["packages - flake.nix:3732<br/>lib.optionalAttrs pkgs.stdenv.isLinux"]
+    EVAL --> DEVSHELL["devShells.default<br/>flake.nix:3809"]
 
-    PACKAGES --> RUNTIME["runtime = mkImage tag runtime-system<br/>flake.nix:3722"]
-    PACKAGES --> FULL["full = mkImage extraPackages allPackages<br/>flake.nix:3734"]
-    PACKAGES --> DESKTOP["desktop = mkImage extraPackages desktopPackages<br/>flake.nix:3728-3732"]
-    PACKAGES --> CUDART["cuda-runtime, requires gpu.backend local-cuda<br/>flake.nix:3750-3756"]
-    PACKAGES --> GSPLAT["gaussian-splatting = 3DGS stack over cuda-runtime<br/>flake.nix:3773-3779"]
-    PACKAGES --> COMPOSE["compose = docker-compose.yml text, cross-platform<br/>flake.nix:3792-3794"]
+    PACKAGES --> RUNTIME["runtime = mkImage tag runtime-system<br/>flake.nix:3733"]
+    PACKAGES --> FULL["full = mkImage extraPackages allPackages<br/>flake.nix:3734-3738"]
+    PACKAGES --> DESKTOP["desktop = mkImage extraPackages desktopPackages<br/>flake.nix:3739-3743"]
+    PACKAGES --> CUDART["cuda-runtime adds explicitly dispatched local-cuda packages<br/>flake.nix:3761-3771"]
+    PACKAGES --> GSPLAT["gaussian-splatting = 3DGS stack over cuda-runtime<br/>flake.nix:3784-3795"]
+    PACKAGES --> COMPOSE["compose = docker-compose.yml text, cross-platform<br/>flake.nix:3803-3805"]
 
-    RUNTIME --> MKIMG["mkImage - n2c.buildImage 4 layers<br/>flake.nix:3682-3700"]
+    RUNTIME --> MKIMG["mkImage - n2c.buildImage 4 layers<br/>flake.nix:3693-3711"]
     FULL --> MKIMG
     DESKTOP --> MKIMG
 
@@ -404,10 +404,10 @@ flowchart LR
 flowchart TB
     TOMLVAULT["[vault] in agentbox.toml<br/>agentbox.toml:706<br/>tui = rune"] --> VAULTCFG["vaultCfg = agentboxConfig.vault or {}<br/>flake.nix:661"]
 
-    VAULTCFG --> TUIVAL["vaultTui = vaultCfg.tui or none<br/>flake.nix:653"]
-    TUIVAL --> RUNEACTIVE["runeActive = vaultTui == rune<br/>flake.nix:654"]
-    RUNEACTIVE -->|"true"| RUNEPKGIMPORT["runePkg = import lib/rune.nix<br/>flake.nix:655, lazy import"]
-    RUNEACTIVE -->|"lib.optionals runeActive"| RUNEPACKAGES["runePackages<br/>flake.nix:656"]
+    VAULTCFG --> TUIVAL["vaultTui = vaultCfg.tui or none<br/>flake.nix:662"]
+    TUIVAL --> RUNEACTIVE["runeActive = vaultTui == rune<br/>flake.nix:663"]
+    RUNEACTIVE -->|"true"| RUNEPKGIMPORT["runePkg = import lib/rune.nix<br/>flake.nix:664, lazy import"]
+    RUNEACTIVE -->|"lib.optionals runeActive"| RUNEPACKAGES["runePackages<br/>flake.nix:665"]
     RUNEPKGIMPORT --> RUNEPACKAGES
     RUNEPACKAGES --> ALLPKG["allPackages closure - Nix image composition"]
 
@@ -441,11 +441,11 @@ flowchart TB
     ARTJSON["config/model-router/artefacts.json<br/>hash-pinned files[] list"] --> MRNFETCH["modelRouterArtefacts = builtins.fromJSON ...<br/>flake.nix:111"]
     MRNFETCH --> MRNASSETS["modelRouterAssets = pkgs.runCommand ...<br/>per-file pkgs.fetchurl url+sha256, copied to $out/dest<br/>flake.nix:112-119"]
 
-    MRNCFG -->|"modelRoutingNeuralCfg.enabled or false"| GATE{"lib.optionalString<br/>flake.nix:1731"}
+    MRNCFG -->|"modelRoutingNeuralCfg.enabled or false"| GATE{"lib.optionalString<br/>flake.nix:1742"}
     MRNASSETS --> GATE
-    GATE -->|true| BAKE["mkdir $out/opt/agentbox/model-router<br/>cp -r modelRouterAssets/. into it<br/>flake.nix:1734-1736"]
+    GATE -->|true| BAKE["mkdir $out/opt/agentbox/model-router<br/>cp -r modelRouterAssets/. into it<br/>flake.nix:1745-1747"]
     GATE -->|false| SKIP["byte-identical-when-off: nothing copied<br/>flake.nix comment line 1733"]
-    BAKE --> ALLPKG2["mkImage layers<br/>flake.nix:3682"]
+    BAKE --> ALLPKG2["mkImage layers<br/>flake.nix:3693"]
 
     subgraph MANIFEST2["system-manifest.js CATALOGUE"]
         MRNENTRY["id model-routing-neural<br/>gate model_routing.neural.enabled, apply_class rebuild<br/>system-manifest.js:109-111"]

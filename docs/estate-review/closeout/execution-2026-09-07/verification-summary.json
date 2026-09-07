@@ -1,0 +1,54 @@
+{
+  "observed_at": "2026-09-07T11:18:19.444136+00:00",
+  "heads": {
+    "agentbox": "b5bfc03db14712734838c9b973443ce1e67a816a",
+    "loom": "adb65e52597407eb3f01e8b6150b9d19bd6f1e86",
+    "ruvector": "677b2475409c50cb964be8a3b848da2952390535"
+  },
+  "loom_workspace": {
+    "passed": 280,
+    "failed": 0,
+    "ignored": 7
+  },
+  "verified_at": "2026-09-07T12:22:23.163969+00:00",
+  "source_commits": {
+    "agentbox": "a0ee1fe5740baa38e14c4ff3fe512dd557bcbb6e",
+    "loom": "65dc62c1a111443fb1a84617335f7f34d57f2452",
+    "agentbox_pushed": "be0fc078a3dc0eab32af57f1eaf170fa58157bf9",
+    "loom_pushed": "397b86c0124e2f4ece40b9db46352179730c2c46"
+  },
+  "npm_locked_closures": {
+    "count": 9,
+    "forced_rebuild": "pass",
+    "commit": "b0c963c663dc34e6547c8a6da112848bc44fb2bc",
+    "runtime_activation": "pending"
+  },
+  "custody_nix": {
+    "passed": 8,
+    "failed": 0,
+    "source_commit": "e7bfc158a45bf97061fd6e7202e9ee053aa1f765",
+    "runtime_activation": false
+  },
+  "hosted": {
+    "contract_tests": {
+      "run": 34120897048,
+      "conclusion": "success",
+      "commit": "7bf2382c031d696b0b2f5eb466f7e6615c88cc2c"
+    },
+    "security_invariants": {
+      "run": 34121401119,
+      "conclusion": "success",
+      "commit": "be0fc078a3dc0eab32af57f1eaf170fa58157bf9"
+    },
+    "agentbox_ci": {
+      "run": 34121400849,
+      "conclusion": "success",
+      "commit": "be0fc078a3dc0eab32af57f1eaf170fa58157bf9"
+    },
+    "loom_rust_contracts": {
+      "run": 34121825633,
+      "conclusion": "success",
+      "commit": "397b86c0124e2f4ece40b9db46352179730c2c46"
+    }
+  }
+}

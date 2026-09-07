@@ -11,7 +11,7 @@ sources:
   - ../visionGraph/README.md
   - ../project/.github/workflows/ontology-publish.yml
   - ../project/docs/adr/ADR-2106-ontology-pull-model-into-the-embedded-pod.md
-verified_commit: worktree-2026-09-07
+verified_commit: {visionclaw: dd82a07b0c54defc469a85e9d57fb15d29dc5e07, visiongraph: 482ba593bcffddca7d564d0b6c4b1fea225154fb}
 ---
 
 ## VG-04.1 VisionClaw's ontology-publish.yml — pulls FROM visionGraph, not from knowledgeGraph

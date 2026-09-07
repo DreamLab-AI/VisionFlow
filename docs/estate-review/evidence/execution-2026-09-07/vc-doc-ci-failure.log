@@ -1,0 +1,185 @@
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	﻿2026-09-06T17:06:47.3782139Z Current runner version: '2.337.0'
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3806180Z ##[group]Runner Image Provisioner
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3806955Z Hosted Compute Agent
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3807558Z Version: 20260828.587
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3808151Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3808824Z Build Date: 2026-08-28T16:44:25Z
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3809444Z Worker ID: {012a88a7-e9b5-4351-a434-88e70278a0a5}
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3810069Z Azure Region: westus3
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3810623Z ##[endgroup]
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3812259Z ##[group]Operating System
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3812847Z Ubuntu
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3813313Z 24.04.4
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3813820Z LTS
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3814307Z ##[endgroup]
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3814817Z ##[group]Runner Image
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3815321Z Image: ubuntu-24.04
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3815857Z Version: 20260831.293.1
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3816961Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260831.293/images/ubuntu/Ubuntu2404-Readme.md
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3818373Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260831.293
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3819211Z ##[endgroup]
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3822087Z ##[group]GITHUB_TOKEN Permissions
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3824706Z Actions: write
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3825271Z ArtifactMetadata: write
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3825787Z Attestations: write
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3826327Z Checks: write
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3826815Z CodeQuality: write
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3827328Z Contents: write
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3827887Z CopilotRequests: write
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3828386Z Deployments: write
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3828909Z Discussions: write
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3829391Z Drives: write
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3829867Z Issues: write
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3830373Z Metadata: read
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3830920Z Models: read
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3831431Z Packages: write
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3832078Z Pages: write
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3832610Z PullRequests: write
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3833183Z RepositoryProjects: write
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3833731Z SecurityEvents: write
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3834261Z Statuses: write
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3834765Z VulnerabilityAlerts: read
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3835274Z ##[endgroup]
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3837397Z Secret source: Actions
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.3838569Z Prepare workflow directory
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.4214185Z Prepare all required actions
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.4263538Z Getting action download info
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.7071165Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.8801002Z Complete job name: Validate ADR ledger (frontmatter, reciprocity, staleness)
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.9458828Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.9467387Z ##[group]Run actions/checkout@v4
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.9468152Z with:
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.9468671Z   fetch-depth: 0
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.9469177Z   repository: DreamLab-AI/VisionClaw
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.9472875Z   token: ***
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.9473359Z   ssh-strict: true
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.9473877Z   ssh-user: git
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.9474355Z   persist-credentials: true
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.9474877Z   clean: true
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.9475353Z   sparse-checkout-cone-mode: true
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.9475904Z   fetch-tags: false
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.9476371Z   show-progress: true
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.9476842Z   lfs: false
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.9477411Z   submodules: false
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.9477871Z   set-safe-directory: true
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.9478422Z   allow-unsafe-pr-checkout: false
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:47.9479225Z ##[endgroup]
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0455506Z Syncing repository: DreamLab-AI/VisionClaw
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0458660Z ##[group]Getting Git version info
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0459959Z Working directory is '/home/runner/work/VisionClaw/VisionClaw'
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0462851Z [command]/usr/bin/git version
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0526016Z git version 2.55.0
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0548196Z ##[endgroup]
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0563454Z Temporarily overriding HOME='/home/runner/work/_temp/11ab01d4-10e5-4896-a021-487567bb71c7' before making global git config changes
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0566205Z Adding repository directory to the temporary git global config as a safe directory
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0569379Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/VisionClaw/VisionClaw
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0617346Z Deleting the contents of '/home/runner/work/VisionClaw/VisionClaw'
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0620754Z ##[group]Initializing the repository
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0625661Z [command]/usr/bin/git init /home/runner/work/VisionClaw/VisionClaw
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0708891Z hint: Using 'master' as the name for the initial branch. This default branch name
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0711133Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0714216Z hint: to use in all of your new repositories, which will suppress this warning,
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0716024Z hint: call:
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0716922Z hint:
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0717937Z hint: 	git config --global init.defaultBranch <name>
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0718952Z hint:
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0720117Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0721993Z hint: 'development'. The just-created branch can be renamed via this command:
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0723297Z hint:
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0724023Z hint: 	git branch -m <name>
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0724890Z hint:
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0725758Z hint: Disable this message with "git config set advice.defaultBranchName false"
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0727280Z Initialized empty Git repository in /home/runner/work/VisionClaw/VisionClaw/.git/
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0731265Z [command]/usr/bin/git remote add origin https://github.com/DreamLab-AI/VisionClaw
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0766297Z ##[endgroup]
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0767942Z ##[group]Disabling automatic garbage collection
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0770076Z [command]/usr/bin/git config --local gc.auto 0
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0824230Z ##[endgroup]
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0825785Z ##[group]Setting up auth
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0827129Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.0847384Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.1139137Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.1175709Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.1382234Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.1417688Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.1596810Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.1626649Z ##[endgroup]
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.1628099Z ##[group]Fetching the repository
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:06:48.1636892Z [command]/usr/bin/git -c protocol.version=2 fetch --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8362279Z From https://github.com/DreamLab-AI/VisionClaw
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8363070Z  * [new branch]          archive/control-surface-spine -> origin/archive/control-surface-spine
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8363741Z  * [new branch]          chore/gitignore-hardening   -> origin/chore/gitignore-hardening
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8364883Z  * [new branch]          impl/khive-investigation    -> origin/impl/khive-investigation
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8366187Z  * [new branch]          logseq-archive              -> origin/logseq-archive
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8367151Z  * [new branch]          main                        -> origin/main
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8367685Z  * [new branch]          obsidian                    -> origin/obsidian
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8368239Z  * [new branch]          refactor/kg-node-rename     -> origin/refactor/kg-node-rename
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8368864Z  * [new branch]          refactor/remove-vircadia    -> origin/refactor/remove-vircadia
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8369682Z  * [new branch]          report/soundings-qe-audit   -> origin/report/soundings-qe-audit
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8370264Z  * [new branch]          xr-vive-runtime             -> origin/xr-vive-runtime
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8371166Z  * [new tag]             archive/claude-audit-stubs-disconnected-011CUpLF5w9noyxx5uQBepeV -> archive/claude-audit-stubs-disconnected-011CUpLF5w9noyxx5uQBepeV
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8372909Z  * [new tag]             archive/claude-debug-visionflow-main-011CUxmo2MBGhcgS4wtAjpCy -> archive/claude-debug-visionflow-main-011CUxmo2MBGhcgS4wtAjpCy
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8374556Z  * [new tag]             archive/claude-documentation-overhaul-011CUrGuhY8uenqdKrzSnsE8 -> archive/claude-documentation-overhaul-011CUrGuhY8uenqdKrzSnsE8
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8376721Z  * [new tag]             archive/claude-fix-neo4j-compilation-errors-011CUvuxUCrrsmh5KKrJyaSZ -> archive/claude-fix-neo4j-compilation-errors-011CUvuxUCrrsmh5KKrJyaSZ
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8378952Z  * [new tag]             archive/claude-rename-screaming-snake-files-011CUrGuhY8uenqdKrzSnsE8 -> archive/claude-rename-screaming-snake-files-011CUrGuhY8uenqdKrzSnsE8
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8380172Z  * [new tag]             archive/claude-setup-hive-mind-integration-01DQJdmGw3c1R1P7vKEBStA6 -> archive/claude-setup-hive-mind-integration-01DQJdmGw3c1R1P7vKEBStA6
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8381118Z  * [new tag]             archive/claude-update-dependencies-0haRE -> archive/claude-update-dependencies-0haRE
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8381930Z  * [new tag]             archive/closeout-2026-07-03 -> archive/closeout-2026-07-03
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8382418Z  * [new tag]             archive/crashbug            -> archive/crashbug
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8383027Z  * [new tag]             archive/deprecated-docs-2026-08-31 -> archive/deprecated-docs-2026-08-31
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8383675Z  * [new tag]             archive/docs-neo4j-schema-update -> archive/docs-neo4j-schema-update
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8384223Z  * [new tag]             archive/fashionTHG          -> archive/fashionTHG
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8384987Z  * [new tag]             archive/feature-high-perf-networking -> archive/feature-high-perf-networking
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8385728Z  * [new tag]             archive/gap-close-2026-07   -> archive/gap-close-2026-07
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8386659Z  * [new tag]             archive/kg-node-rename      -> archive/kg-node-rename
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8387410Z  * [new tag]             archive/new-docs            -> archive/new-docs
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8388201Z  * [new tag]             archive/radical-rollback    -> archive/radical-rollback
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8388986Z  * [new tag]             archive/ux-control-center-reimagine -> archive/ux-control-center-reimagine
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8389974Z  * [new tag]             archive/working-js          -> archive/working-js
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8391141Z  * [new tag]             archive/worktree-agent-a7c66ae9b4265894b -> archive/worktree-agent-a7c66ae9b4265894b
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8393547Z [command]/usr/bin/git branch --list --remote origin/main
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8408461Z   origin/main
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8433208Z [command]/usr/bin/git rev-parse refs/remotes/origin/main
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8452885Z cbf4097b1ea3d627f9cd62d97f8dab58999383e5
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8454917Z ##[endgroup]
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8455603Z ##[group]Determining the checkout info
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8456275Z ##[endgroup]
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8459501Z [command]/usr/bin/git sparse-checkout disable
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8490951Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8515141Z ##[group]Checking out the ref
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:16.8518965Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.4237732Z Switched to a new branch 'main'
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.4243053Z branch 'main' set up to track 'origin/main'.
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.4273213Z ##[endgroup]
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.4312443Z [command]/usr/bin/git log -1 --format=%H
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.4338011Z cbf4097b1ea3d627f9cd62d97f8dab58999383e5
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.4522030Z ##[group]Run node scripts/adr-index-gen.js docs/adr --check
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.4522651Z ^[[36;1mnode scripts/adr-index-gen.js docs/adr --check^[[0m
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.4548531Z shell: /usr/bin/bash -e {0}
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.4548860Z ##[endgroup]
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.6178341Z error: ADR-2106-ontology-pull-model-into-the-embedded-pod.md: 'verified_paths' must be a list of repo-relative paths
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.6591365Z error: ADR-2008-dev-image-recompiles.md: STALE — governed paths changed since verified_commit b00c28a0d766c8cf46cd00b100dab60ef2dd74a4: docker-compose.unified.yml (re-verify and bump verified_commit)
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.7039195Z error: ADR-2018-frozen-52-byte-v3-record-v5-envelope.md: STALE — governed paths changed since verified_commit b0bc275f6501aae7751b85a72ce15fe1e730e7e8: xr-client/rust/src/binary_protocol.rs (re-verify and bump verified_commit)
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.7107161Z error: ADR-2019-tag-byte-registry-governed-dispatch.md: STALE — governed paths changed since verified_commit b0bc275f6501aae7751b85a72ce15fe1e730e7e8: xr-client/rust/src/binary_protocol.rs (re-verify and bump verified_commit)
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.7237495Z error: ADR-2026-fail-closed-security-posture.md: STALE — governed paths changed since verified_commit b0bc275f6501aae7751b85a72ce15fe1e730e7e8: src/main.rs (re-verify and bump verified_commit)
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.7301992Z error: ADR-2027-three-deployment-profiles.md: STALE — governed paths changed since verified_commit b0bc275f6501aae7751b85a72ce15fe1e730e7e8: docker-compose.unified.yml, src/main.rs (re-verify and bump verified_commit)
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.7611761Z error: ADR-2038-boot-time-profile-assertion.md: STALE — governed paths changed since verified_commit b0bc275f6501aae7751b85a72ce15fe1e730e7e8: src/main.rs (re-verify and bump verified_commit)
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.7740068Z error: 7 validation error(s); README not generated
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.7784583Z ##[error]Process completed with exit code 1.
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.7921835Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.7923438Z Post job cleanup.
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.8754928Z [command]/usr/bin/git version
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.8792542Z git version 2.55.0
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.8844756Z Temporarily overriding HOME='/home/runner/work/_temp/990de674-d77c-4912-99df-36796283bf72' before making global git config changes
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.8846335Z Adding repository directory to the temporary git global config as a safe directory
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.8852632Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/VisionClaw/VisionClaw
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.8888701Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.8922507Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.9125438Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.9146001Z http.https://github.com/.extraheader
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.9157063Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.9188816Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.9397740Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.9453289Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:17.9824749Z Cleaning up orphan processes
+Validate ADR ledger (frontmatter, reciprocity, staleness)	UNKNOWN STEP	2026-09-06T17:07:18.0112459Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

@@ -1,0 +1,415 @@
+{
+  "receipt_version": 1,
+  "generated_at": "2026-09-07T11:00:03Z",
+  "purpose": "ADR-2002/ADR-2003 publication-candidate browser verification: page load, console hygiene, WebGL2 mesh render vs canvas fallback, prefers-reduced-motion behaviour, meta/OG tags.",
+  "url": "http://agentbox:8108/",
+  "served_from": "website/dist (local static server in the agentbox container)",
+  "browser": {
+    "endpoint": "cdp://172.20.0.6:9223",
+    "version": "Chrome/151.0.7922.47",
+    "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA NVIDIA RTX A6000 (0x00002230)), NVIDIA)"
+  },
+  "site_revision": "fd5a12e6b2143a44651d7433b52b13bebc44d401",
+  "build_receipt": "website/build-receipt.json",
+  "scenarios": {
+    "baseline": {
+      "scenario": "baseline",
+      "url": "http://agentbox:8108/",
+      "settle_ms": 3536,
+      "http_status": 200,
+      "probe": {
+        "title": "VisionFlow: Coordination Engineering for Federated Human-AI Intelligence",
+        "lang": "en",
+        "readyState": "complete",
+        "canonical": "https://www.visionflow.info/",
+        "metaDescription": "VisionFlow is a coordination harness for federated human-AI intelligence. Self-sovereign data, formal reasoning, cryptographic provenance, human-in-the-loop governance.",
+        "og": {
+          "og:title": "VisionFlow: Coordination Engineering",
+          "og:description": "Federated coordination, self-sovereign data, formal reasoning, cryptographic provenance, human-in-the-loop governance.",
+          "og:type": "website",
+          "og:url": "https://www.visionflow.info",
+          "og:image": "https://www.visionflow.info/img/og-card.png",
+          "og:image:alt": "VisionFlow coordination harness — live knowledge-graph visualisation."
+        },
+        "twitter": {
+          "twitter:card": "summary_large_image",
+          "twitter:title": "VisionFlow: Coordination Engineering",
+          "twitter:description": "Federated coordination, self-sovereign data, formal reasoning, cryptographic provenance, human-in-the-loop governance.",
+          "twitter:image": "https://www.visionflow.info/img/og-card.png"
+        },
+        "canvasPresent": true,
+        "webgl2Available": true,
+        "glRenderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA NVIDIA RTX A6000 (0x00002230)), NVIDIA)",
+        "reducedMotion": false,
+        "rafCount": 16,
+        "pageErrors": [],
+        "pageRejections": [],
+        "sections": 18,
+        "headings": 34,
+        "textLength": 43500,
+        "images": 5,
+        "brokenImages": [],
+        "videos": [
+          {
+            "id": "bg-video",
+            "readyState": 4,
+            "sources": [
+              "http://agentbox:8108/video/visionclaw.mp4"
+            ]
+          },
+          {
+            "id": null,
+            "readyState": 4,
+            "sources": [
+              "http://agentbox:8108/video/bottleneck.mp4"
+            ]
+          }
+        ],
+        "canvasRect": {
+          "x": 0,
+          "y": 0,
+          "w": 1440,
+          "h": 900
+        }
+      },
+      "raf_first": 16,
+      "raf_second": 39,
+      "raf_delta": 23,
+      "animation_loop_running": true,
+      "console_errors": [],
+      "console_warnings": [],
+      "exceptions": [],
+      "log_errors": [],
+      "failed_requests": [],
+      "screenshots": {
+        "viewport": {
+          "file": "docs/estate-review/evidence/execution-2026-09-07/visionflow-browser/screenshots/baseline-viewport.png",
+          "bytes": 271632,
+          "sha256": "c911f53ad69313b54530cb526c1b24674705dece13722f2d4f5db2bbb08be1ea"
+        },
+        "canvas": {
+          "file": "docs/estate-review/evidence/execution-2026-09-07/visionflow-browser/screenshots/baseline-canvas.png",
+          "bytes": 271677,
+          "sha256": "7377ec3a85b3e10a30c6edf1f1b3d83068fd2964f9da02d173bc2996cd9db901"
+        },
+        "scrolled": {
+          "file": "docs/estate-review/evidence/execution-2026-09-07/visionflow-browser/screenshots/baseline-scrolled.png",
+          "bytes": 412938,
+          "sha256": "d6116afa172a00d383dbfa6c5633182a2a0a66951f02e4778a16e53afe4b0c19"
+        }
+      }
+    },
+    "reduced-motion": {
+      "scenario": "reduced-motion",
+      "url": "http://agentbox:8108/",
+      "settle_ms": 3535,
+      "http_status": 200,
+      "probe": {
+        "title": "VisionFlow: Coordination Engineering for Federated Human-AI Intelligence",
+        "lang": "en",
+        "readyState": "complete",
+        "canonical": "https://www.visionflow.info/",
+        "metaDescription": "VisionFlow is a coordination harness for federated human-AI intelligence. Self-sovereign data, formal reasoning, cryptographic provenance, human-in-the-loop governance.",
+        "og": {
+          "og:title": "VisionFlow: Coordination Engineering",
+          "og:description": "Federated coordination, self-sovereign data, formal reasoning, cryptographic provenance, human-in-the-loop governance.",
+          "og:type": "website",
+          "og:url": "https://www.visionflow.info",
+          "og:image": "https://www.visionflow.info/img/og-card.png",
+          "og:image:alt": "VisionFlow coordination harness — live knowledge-graph visualisation."
+        },
+        "twitter": {
+          "twitter:card": "summary_large_image",
+          "twitter:title": "VisionFlow: Coordination Engineering",
+          "twitter:description": "Federated coordination, self-sovereign data, formal reasoning, cryptographic provenance, human-in-the-loop governance.",
+          "twitter:image": "https://www.visionflow.info/img/og-card.png"
+        },
+        "canvasPresent": true,
+        "webgl2Available": true,
+        "glRenderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA NVIDIA RTX A6000 (0x00002230)), NVIDIA)",
+        "reducedMotion": true,
+        "rafCount": 3,
+        "pageErrors": [],
+        "pageRejections": [],
+        "sections": 18,
+        "headings": 34,
+        "textLength": 43500,
+        "images": 5,
+        "brokenImages": [],
+        "videos": [
+          {
+            "id": "bg-video",
+            "readyState": 4,
+            "sources": [
+              "http://agentbox:8108/video/visionclaw.mp4"
+            ]
+          },
+          {
+            "id": null,
+            "readyState": 4,
+            "sources": [
+              "http://agentbox:8108/video/bottleneck.mp4"
+            ]
+          }
+        ],
+        "canvasRect": {
+          "x": 0,
+          "y": 0,
+          "w": 1440,
+          "h": 900
+        }
+      },
+      "raf_first": 3,
+      "raf_second": 3,
+      "raf_delta": 0,
+      "animation_loop_running": false,
+      "console_errors": [],
+      "console_warnings": [],
+      "exceptions": [],
+      "log_errors": [],
+      "failed_requests": [],
+      "screenshots": {
+        "viewport": {
+          "file": "docs/estate-review/evidence/execution-2026-09-07/visionflow-browser/screenshots/reduced-motion-viewport.png",
+          "bytes": 271324,
+          "sha256": "655be4a4842eb173f98803039755f6d6c9dfda6bb4b2dd7694ceebfc965859ab"
+        },
+        "canvas": {
+          "file": "docs/estate-review/evidence/execution-2026-09-07/visionflow-browser/screenshots/reduced-motion-canvas.png",
+          "bytes": 271324,
+          "sha256": "655be4a4842eb173f98803039755f6d6c9dfda6bb4b2dd7694ceebfc965859ab"
+        },
+        "scrolled": {
+          "file": "docs/estate-review/evidence/execution-2026-09-07/visionflow-browser/screenshots/reduced-motion-scrolled.png",
+          "bytes": 382534,
+          "sha256": "5256d433f120d169ccfb1f6ddf029fefebb0e460d3ecc72bd7024ad94f7ae03f"
+        }
+      }
+    },
+    "no-webgl": {
+      "scenario": "no-webgl",
+      "url": "http://agentbox:8108/",
+      "settle_ms": 3537,
+      "http_status": 200,
+      "probe": {
+        "title": "VisionFlow: Coordination Engineering for Federated Human-AI Intelligence",
+        "lang": "en",
+        "readyState": "complete",
+        "canonical": "https://www.visionflow.info/",
+        "metaDescription": "VisionFlow is a coordination harness for federated human-AI intelligence. Self-sovereign data, formal reasoning, cryptographic provenance, human-in-the-loop governance.",
+        "og": {
+          "og:title": "VisionFlow: Coordination Engineering",
+          "og:description": "Federated coordination, self-sovereign data, formal reasoning, cryptographic provenance, human-in-the-loop governance.",
+          "og:type": "website",
+          "og:url": "https://www.visionflow.info",
+          "og:image": "https://www.visionflow.info/img/og-card.png",
+          "og:image:alt": "VisionFlow coordination harness — live knowledge-graph visualisation."
+        },
+        "twitter": {
+          "twitter:card": "summary_large_image",
+          "twitter:title": "VisionFlow: Coordination Engineering",
+          "twitter:description": "Federated coordination, self-sovereign data, formal reasoning, cryptographic provenance, human-in-the-loop governance.",
+          "twitter:image": "https://www.visionflow.info/img/og-card.png"
+        },
+        "canvasPresent": true,
+        "webgl2Available": false,
+        "glRenderer": null,
+        "reducedMotion": false,
+        "rafCount": 2,
+        "pageErrors": [],
+        "pageRejections": [],
+        "sections": 18,
+        "headings": 34,
+        "textLength": 43304,
+        "images": 5,
+        "brokenImages": [],
+        "videos": [
+          {
+            "id": "bg-video",
+            "readyState": 4,
+            "sources": [
+              "http://agentbox:8108/video/visionclaw.mp4"
+            ]
+          },
+          {
+            "id": null,
+            "readyState": 4,
+            "sources": [
+              "http://agentbox:8108/video/bottleneck.mp4"
+            ]
+          }
+        ],
+        "canvasRect": {
+          "x": 0,
+          "y": 0,
+          "w": 1440,
+          "h": 900
+        }
+      },
+      "raf_first": 2,
+      "raf_second": 2,
+      "raf_delta": 0,
+      "animation_loop_running": false,
+      "console_errors": [],
+      "console_warnings": [],
+      "exceptions": [],
+      "log_errors": [],
+      "failed_requests": [],
+      "screenshots": {
+        "viewport": {
+          "file": "docs/estate-review/evidence/execution-2026-09-07/visionflow-browser/screenshots/no-webgl-viewport.png",
+          "bytes": 247672,
+          "sha256": "6f94a9e68896a406253fd8828d9abfcf783097734c827a8ce038259c3b12cafd"
+        },
+        "canvas": {
+          "file": "docs/estate-review/evidence/execution-2026-09-07/visionflow-browser/screenshots/no-webgl-canvas.png",
+          "bytes": 247728,
+          "sha256": "917280e3e99a7a5d1822a8293ed25a585f4a71f7bf8edefa6fcb3f886ef92d5e"
+        },
+        "scrolled": {
+          "file": "docs/estate-review/evidence/execution-2026-09-07/visionflow-browser/screenshots/no-webgl-scrolled.png",
+          "bytes": 359383,
+          "sha256": "bf227b5852b7ca896a15fec09fcec6ce7ede7f0e457808c0f18d6d10debade1a"
+        }
+      }
+    }
+  },
+  "checks": [
+    {
+      "id": "page-loads",
+      "ok": true,
+      "detail": "http 200, readyState complete"
+    },
+    {
+      "id": "title-present",
+      "ok": true,
+      "detail": "VisionFlow: Coordination Engineering for Federated Human-AI Intelligence"
+    },
+    {
+      "id": "content-rendered",
+      "ok": true,
+      "detail": "18 sections, 43500 chars of text"
+    },
+    {
+      "id": "no-console-errors:baseline",
+      "ok": true,
+      "detail": "none"
+    },
+    {
+      "id": "no-failed-requests:baseline",
+      "ok": true,
+      "detail": "none"
+    },
+    {
+      "id": "no-broken-images:baseline",
+      "ok": true,
+      "detail": "none"
+    },
+    {
+      "id": "no-console-errors:reduced-motion",
+      "ok": true,
+      "detail": "none"
+    },
+    {
+      "id": "no-failed-requests:reduced-motion",
+      "ok": true,
+      "detail": "none"
+    },
+    {
+      "id": "no-broken-images:reduced-motion",
+      "ok": true,
+      "detail": "none"
+    },
+    {
+      "id": "no-console-errors:no-webgl",
+      "ok": true,
+      "detail": "none"
+    },
+    {
+      "id": "no-failed-requests:no-webgl",
+      "ok": true,
+      "detail": "none"
+    },
+    {
+      "id": "no-broken-images:no-webgl",
+      "ok": true,
+      "detail": "none"
+    },
+    {
+      "id": "meta-description",
+      "ok": true,
+      "detail": "VisionFlow is a coordination harness for federated"
+    },
+    {
+      "id": "canonical",
+      "ok": true,
+      "detail": "https://www.visionflow.info/"
+    },
+    {
+      "id": "og-core-tags",
+      "ok": true,
+      "detail": "og:title, og:description, og:type, og:url, og:image, og:image:alt"
+    },
+    {
+      "id": "og-image",
+      "ok": true,
+      "detail": "https://www.visionflow.info/img/og-card.png"
+    },
+    {
+      "id": "twitter-card",
+      "ok": true,
+      "detail": "summary_large_image"
+    },
+    {
+      "id": "webgl2-available-baseline",
+      "ok": true,
+      "detail": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA NVIDIA RTX A6000 (0x00002230)), NVIDIA)"
+    },
+    {
+      "id": "mesh-animates-baseline",
+      "ok": true,
+      "detail": "rAF delta 23 over ~1.2s"
+    },
+    {
+      "id": "webgl2-absent-in-fallback",
+      "ok": true,
+      "detail": "webgl2Available=false"
+    },
+    {
+      "id": "fallback-still-renders-content",
+      "ok": true,
+      "detail": "18 sections, 43304 chars"
+    },
+    {
+      "id": "fallback-does-not-throw",
+      "ok": true,
+      "detail": "none"
+    },
+    {
+      "id": "mesh-paints-pixels",
+      "ok": true,
+      "detail": "baseline canvas sha 7377ec3a85b3 (271677B) vs fallback 917280e3e99a (247728B)"
+    },
+    {
+      "id": "reduced-motion-detected",
+      "ok": true,
+      "detail": "matchMedia=true"
+    },
+    {
+      "id": "reduced-motion-no-animation-loop",
+      "ok": true,
+      "detail": "rAF delta 0 over ~1.2s (baseline 23)"
+    },
+    {
+      "id": "reduced-motion-still-renders",
+      "ok": true,
+      "detail": "18 sections, 43500 chars"
+    }
+  ],
+  "summary": {
+    "total": 26,
+    "passed": 26,
+    "failed": 0
+  },
+  "ok": true
+}

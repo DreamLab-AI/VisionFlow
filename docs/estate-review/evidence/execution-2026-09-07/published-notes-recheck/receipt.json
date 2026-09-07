@@ -1,0 +1,41 @@
+{
+  "observed_at": "2026-09-07T12:58:49.481497+00:00",
+  "requests": [
+    {
+      "name": "notes",
+      "url": "https://narrativegoldmine.com/notes/?estate-check=20260907-final",
+      "status": 200,
+      "sha256": "d78403efb3c0f66101e55db6fb17d64e637e8be34c457c267b9d85c60e74e9c2",
+      "bytes": 18005463,
+      "content_type": "text/html; charset=utf-8",
+      "etag": "\"6a9ea8af-112bdd7\"",
+      "last_modified": "Mon, 07 Sep 2026 12:06:07 GMT"
+    },
+    {
+      "name": "css",
+      "url": "https://narrativegoldmine.com/notes/estate-mobile.css?estate-check=20260907-final",
+      "status": 200,
+      "sha256": "d4a7112c219e11554e18e8503b906cd6ca3b2e6afb60d34bad9a568b694f1f29",
+      "bytes": 765,
+      "content_type": "text/css; charset=utf-8",
+      "etag": "\"6a9ea8af-2fd\"",
+      "last_modified": "Mon, 07 Sep 2026 12:06:07 GMT"
+    },
+    {
+      "name": "home",
+      "url": "https://narrativegoldmine.com/?estate-check=20260907-final",
+      "status": 200,
+      "sha256": "d22521bc2383e2ce3f83d0937dafaaeda705ebc980dc2c2b298bcabf3fe65489",
+      "bytes": 2012,
+      "content_type": "text/html; charset=utf-8",
+      "etag": "\"6a9ea8af-7dc\"",
+      "last_modified": "Mon, 07 Sep 2026 12:06:07 GMT"
+    }
+  ],
+  "candidate_css_sha256": "d4a7112c219e11554e18e8503b906cd6ca3b2e6afb60d34bad9a568b694f1f29",
+  "served_css_matches_candidate": true,
+  "notes_html_links_override": true,
+  "scope": "read-only HTTP artifact fetch; not a new browser viewport journey",
+  "notes_override_link_excerpt": "me.js\"></script><link rel=\"stylesheet\" href=\"/notes/estate-mobile.css\">\n</head>\n <body><div id=\"root\"></div>\n <scr",
+  "body_retention": "CSS retained; large public HTML bodies hashed and discarded"
+}

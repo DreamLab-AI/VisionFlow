@@ -1,0 +1,49 @@
+{
+  "wrangler": {
+    "old_count": 46,
+    "new_count": 48,
+    "removed": [],
+    "added": [
+      "node_modules/@img/sharp-libvips-linuxmusl-x64/package.json",
+      "node_modules/@img/sharp-linuxmusl-x64/package.json"
+    ],
+    "changed": []
+  },
+  "mermaid-js-mermaid-cli": {
+    "old_count": 593,
+    "new_count": 594,
+    "removed": [],
+    "added": [
+      "node_modules/@napi-rs/canvas-linux-x64-musl/package.json"
+    ],
+    "changed": []
+  },
+  "ruflo": {
+    "old_count": 682,
+    "new_count": 691,
+    "removed": [],
+    "added": [
+      "node_modules/@img/sharp-libvips-linuxmusl-x64/package.json",
+      "node_modules/@img/sharp-linuxmusl-x64/package.json",
+      "node_modules/@napi-rs/keyring-linux-x64-musl/package.json",
+      "node_modules/@ruvector/gnn-linux-x64-musl/package.json",
+      "node_modules/@ruvector/graph-transformer-linux-x64-musl/package.json",
+      "node_modules/@ruvector/tiny-dancer-linux-x64-musl/package.json",
+      "node_modules/@ubjs/node-linux-x64-musl/package.json",
+      "node_modules/sharp/node_modules/@img/sharp-libvips-linuxmusl-x64/package.json",
+      "node_modules/sharp/node_modules/@img/sharp-linuxmusl-x64/package.json"
+    ],
+    "changed": []
+  },
+  "ruvector": {
+    "old_count": 191,
+    "new_count": 194,
+    "removed": [],
+    "added": [
+      "node_modules/@ruvector/gnn-linux-x64-musl/package.json",
+      "node_modules/@ruvector/sona-linux-x64-musl/package.json",
+      "node_modules/@ruvector/tiny-dancer-linux-x64-musl/package.json"
+    ],
+    "changed": []
+  }
+}

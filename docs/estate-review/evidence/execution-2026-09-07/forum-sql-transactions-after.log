@@ -1,0 +1,13 @@
+test_changed_case_request_state_or_receipt_is_noop (test_governance_transaction.ProjectionTransaction.test_changed_case_request_state_or_receipt_is_noop) ... ok
+test_first_commit_then_duplicate_is_noop (test_governance_transaction.ProjectionTransaction.test_first_commit_then_duplicate_is_noop) ... ok
+test_receipt_failure_rolls_back_case_and_decision (test_governance_transaction.ProjectionTransaction.test_receipt_failure_rolls_back_case_and_decision) ... ok
+test_audit_sql_failure_rolls_back_state (test_trust_transaction.TrustTransactionTests.test_audit_sql_failure_rolls_back_state) ... ok
+test_every_concurrent_policy_input_change_prevents_audit (test_trust_transaction.TrustTransactionTests.test_every_concurrent_policy_input_change_prevents_audit) ... ok
+test_missing_row_does_not_create_audit (test_trust_transaction.TrustTransactionTests.test_missing_row_does_not_create_audit) ... ok
+test_nullable_snapshot_uses_null_safe_comparison (test_trust_transaction.TrustTransactionTests.test_nullable_snapshot_uses_null_safe_comparison) ... ok
+test_transition_and_audit_commit_once (test_trust_transaction.TrustTransactionTests.test_transition_and_audit_commit_once) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.016s
+
+OK

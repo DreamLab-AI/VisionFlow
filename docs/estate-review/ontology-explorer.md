@@ -17,7 +17,7 @@ The store mutates Maps through Immer middleware, but no `enableMapSet` call was 
 
 ## React-to-Rust contract
 
-The [simulation hook](../../../WasmVOWL/modern/src/hooks/useWasmSimulation.ts) serialises `nodes` and `edges` and passes them to `loadOntology`. The [Rust binding](../../../WasmVOWL/rust-wasm/src/bindings/mod.rs) invokes StandardParser, whose [class parser](../../../WasmVOWL/rust-wasm/src/ontology/parser.rs) requires `class` or `classes`. This is a source-established schema mismatch. Rust's **47 passing native library tests** do not prove this JavaScript-to-WASM handoff works.
+The [simulation hook](../../../WasmVOWL/modern/src/hooks/useWasmSimulation.ts) serialises `nodes` and `edges` and passes them to `loadOntology`. The [Rust binding](https://github.com/DreamLab-AI/WasmVOWL/blob/36105cc3ad04a91415b889799e8608b08cf68b45/rust-wasm/src/bindings/mod.rs) invokes StandardParser, whose [class parser](https://github.com/DreamLab-AI/WasmVOWL/blob/36105cc3ad04a91415b889799e8608b08cf68b45/rust-wasm/src/ontology/parser.rs) requires `class` or `classes`. This is a source-established schema mismatch. Rust's **47 passing native library tests** do not prove this JavaScript-to-WASM handoff works.
 
 The hook also reloads the graph when the nodes Map changes, while each simulation frame calls `updateNodePosition` for individual nodes. That couples evolving position state to topology initialisation and warrants a convergence/reinitialisation test. It is not a measured frame-rate claim. Initialisation and load errors are logged to the console; no corresponding user-visible error is set by the hook.
 
@@ -30,3 +30,7 @@ The knowledgeGraph explorer no longer contains the same hook/store paths as stan
 CP-01/02/06/08 needs an explicit owner for the standalone and each publisher variant, a build/revision manifest, one accepted schema at the React/Rust boundary, and a real-browser test loading the actual exported corpus. Require successful and malformed file handling, labels/edges/datatypes, search/filter/selection/export, visible runtime errors and accessible non-pointer interaction. Measure startup, stable layout, memory and interaction latency against a named dataset/device before adopting performance claims.
 
 The new [proposed explorer ADR](../../../WasmVOWL/docs/adr/ADR-001-explorer-consumer-contract-closeout.md) records these acceptance conditions without declaring adoption or implementation completion. The [estate roadmap](closeout/README.md) retains publisher lineage and live-browser validation as open work.
+
+## Remote extraction and recheck — 2026-09-07
+
+The [execution report](closeout/2026-09-07-execution-canon.md#wasmvowl-remote-integration) records integration of remote engine extraction into local `master`. The removed vendored-source links above are pinned to their historical commit. A fresh probe of the installed v0.1.1 WASM archive confirms the input-schema mismatch; current frontend tests remain 19 passed / 60 failed and the TypeScript build fails. The added position accessors do not establish topology-lifetime or browser acceptance. The standalone variant remains held.

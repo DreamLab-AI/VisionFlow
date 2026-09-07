@@ -1,0 +1,10 @@
+   Compiling loom-facade v0.1.0 (/home/devuser/workspace/loom/crates/loom-facade)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.58s
+     Running tests/served_identity.rs (/home/devuser/workspace/loom/target/debug/deps/served_identity-ec2253c0e06ec53e)
+
+running 2 tests
+test disk_change_does_not_relabel_the_loaded_graph ... ok
+test graph_reads_report_the_same_loaded_identity_as_generation ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+

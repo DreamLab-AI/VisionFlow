@@ -1,0 +1,3 @@
+{"package":"@dreamlab-ai/vowl-wasm","version":"0.1.1","wasm_sha256":"5b45d3911c61e2906459b1d714661b9c74acc7622dbe0b745ef1962d77b0dad7"}
+{"shape":["nodes","edges"],"ok":false,"error":"Failed to parse ontology: Missing 'class' array"}
+{"shape":["class","property"],"ok":true,"nodes":1}

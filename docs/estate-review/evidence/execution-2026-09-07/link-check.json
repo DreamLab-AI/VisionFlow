@@ -1,0 +1,7 @@
+{
+  "method": "Local Markdown target existence; not anchors, HTTP links or semantic validation.",
+  "files": 224,
+  "checked": 9234,
+  "excluded_RuView_targets": 953,
+  "missing": []
+}

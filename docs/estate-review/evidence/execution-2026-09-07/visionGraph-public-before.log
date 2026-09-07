@@ -1,0 +1,386 @@
+FFFFFFF                                                                  [100%]
+=================================== FAILURES ===================================
+_______ test_all_build_exports_hide_private_ancestry_body_and_raw_fields _______
+
+tmp_path = PosixPath('/home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_all_build_exports_hide_pr0')
+
+    def test_all_build_exports_hide_private_ancestry_body_and_raw_fields(tmp_path):
+        pages=tmp_path/'pages';out=tmp_path/'out'
+        write(pages,'private-grandparent',False)
+        write(pages,'private-parent',False,parent='private-grandparent')
+        write(pages,'public-child',True,parent='private-parent',mention='private-grandparent')
+        build(pages,out)
+>       assert_no_marker(out,'private-parent');assert_no_marker(out,'private-grandparent')
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+pipeline/tests/test_public_build_boundary.py:29: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+out = PosixPath('/home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_all_build_exports_hide_pr0/out')
+marker = 'private-parent'
+
+    def assert_no_marker(out, marker):
+        for path in out.rglob('*'):
+            if path.is_file():
+                assert marker not in path.name
+>               assert marker.encode() not in path.read_bytes(), str(path)
+E               AssertionError: /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_all_build_exports_hide_pr0/out/api/search-index.json
+E               assert b'private-parent' not in b'[{"id": "public-child", "title": "public-child", "domain": "governance", "domain_name": "Governance", "definition": ...ri": "urn:ngm:class:public-child", "labels": ["public-child"], "is_subclass_of": ["private-parent"], "wikilinks": []}]'
+E                +  where b'private-parent' = <built-in method encode of str object at 0x7fcf6f038130>()
+E                +    where <built-in method encode of str object at 0x7fcf6f038130> = 'private-parent'.encode
+E                +  and   b'[{"id": "public-child", "title": "public-child", "domain": "governance", "domain_name": "Governance", "definition": ...ri": "urn:ngm:class:public-child", "labels": ["public-child"], "is_subclass_of": ["private-parent"], "wikilinks": []}]' = read_bytes()
+E                +    where read_bytes = PosixPath('/home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_all_build_exports_hide_pr0/out/api/search-index.json').read_bytes
+
+pipeline/tests/test_public_build_boundary.py:21: AssertionError
+----------------------------- Captured stdout call -----------------------------
+[1/9] Parsing /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_all_build_exports_hide_pr0/pages...
+       3 pages (3 OntologyClass, 1 public)
+[2/9] Validating...
+       0 errors, 0 warnings
+[3/9] Generating Turtle...
+       101 triples → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_all_build_exports_hide_pr0/out/data/ontology.ttl
+[4/9] Generating WebVOWL JSON...
+       1 classes → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_all_build_exports_hide_pr0/out/data/ontology.json
+[5/9] Computing reasoning closure...
+       3 classes, 1 inferred triples → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_all_build_exports_hide_pr0/out/data/ontology-inferred.ttl
+[6/9] Generating Page API...
+       1 page files → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_all_build_exports_hide_pr0/out/api/pages
+[7/9] Generating Search Index...
+       1 entries → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_all_build_exports_hide_pr0/out/api/search-index.json
+[8/9] Emitting graph tiers (NGG1)...
+       1 nodes, 0 edges → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_all_build_exports_hide_pr0/out/data/graph
+[9/10] Emitting scaffold index...
+       1 classes → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_all_build_exports_hide_pr0/out/data/scaffold-index.json
+[10/10] Emitting prose index...
+       0 pages (0 with landscape) → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_all_build_exports_hide_pr0/out/data/prose-index.json
+
+Pipeline complete in 0.1s
+  Output: /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_all_build_exports_hide_pr0/out
+  Classes: 1
+  Triples: 101
+  Pages: 1
+  Search: 1
+________ test_non_boolean_publication_is_rejected_before_outputs[false] ________
+
+tmp_path = PosixPath('/home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i0')
+flag = 'false'
+
+    @pytest.mark.parametrize('flag',['false',0,None])
+    def test_non_boolean_publication_is_rejected_before_outputs(tmp_path,flag):
+        pages=tmp_path/'pages';out=tmp_path/'out';write(pages,'test',flag)
+>       with pytest.raises(PublicationBlocked):build(pages,out)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE PublicationBlocked
+
+pipeline/tests/test_public_build_boundary.py:35: Failed
+----------------------------- Captured stdout call -----------------------------
+[1/9] Parsing /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i0/pages...
+       1 pages (1 OntologyClass, 1 public)
+[2/9] Validating...
+       0 errors, 0 warnings
+[3/9] Generating Turtle...
+       100 triples → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i0/out/data/ontology.ttl
+[4/9] Generating WebVOWL JSON...
+       1 classes → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i0/out/data/ontology.json
+[5/9] Computing reasoning closure...
+       1 classes, 0 inferred triples → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i0/out/data/ontology-inferred.ttl
+[6/9] Generating Page API...
+       1 page files → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i0/out/api/pages
+[7/9] Generating Search Index...
+       1 entries → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i0/out/api/search-index.json
+[8/9] Emitting graph tiers (NGG1)...
+       1 nodes, 0 edges → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i0/out/data/graph
+[9/10] Emitting scaffold index...
+       1 classes → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i0/out/data/scaffold-index.json
+[10/10] Emitting prose index...
+       0 pages (0 with landscape) → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i0/out/data/prose-index.json
+
+Pipeline complete in 0.1s
+  Output: /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i0/out
+  Classes: 1
+  Triples: 100
+  Pages: 1
+  Search: 1
+__________ test_non_boolean_publication_is_rejected_before_outputs[0] __________
+
+tmp_path = PosixPath('/home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i1')
+flag = 0
+
+    @pytest.mark.parametrize('flag',['false',0,None])
+    def test_non_boolean_publication_is_rejected_before_outputs(tmp_path,flag):
+        pages=tmp_path/'pages';out=tmp_path/'out';write(pages,'test',flag)
+>       with pytest.raises(PublicationBlocked):build(pages,out)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE PublicationBlocked
+
+pipeline/tests/test_public_build_boundary.py:35: Failed
+----------------------------- Captured stdout call -----------------------------
+[1/9] Parsing /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i1/pages...
+       1 pages (1 OntologyClass, 0 public)
+[2/9] Validating...
+       0 errors, 0 warnings
+[3/9] Generating Turtle...
+       93 triples → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i1/out/data/ontology.ttl
+[4/9] Generating WebVOWL JSON...
+       0 classes → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i1/out/data/ontology.json
+[5/9] Computing reasoning closure...
+       1 classes, 0 inferred triples → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i1/out/data/ontology-inferred.ttl
+[6/9] Generating Page API...
+       0 page files → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i1/out/api/pages
+[7/9] Generating Search Index...
+       0 entries → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i1/out/api/search-index.json
+[8/9] Emitting graph tiers (NGG1)...
+       0 nodes, 0 edges → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i1/out/data/graph
+[9/10] Emitting scaffold index...
+       0 classes → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i1/out/data/scaffold-index.json
+[10/10] Emitting prose index...
+       0 pages (0 with landscape) → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i1/out/data/prose-index.json
+
+Pipeline complete in 0.1s
+  Output: /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i1/out
+  Classes: 0
+  Triples: 93
+  Pages: 0
+  Search: 0
+________ test_non_boolean_publication_is_rejected_before_outputs[None] _________
+
+tmp_path = PosixPath('/home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i2')
+flag = None
+
+    @pytest.mark.parametrize('flag',['false',0,None])
+    def test_non_boolean_publication_is_rejected_before_outputs(tmp_path,flag):
+        pages=tmp_path/'pages';out=tmp_path/'out';write(pages,'test',flag)
+>       with pytest.raises(PublicationBlocked):build(pages,out)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE PublicationBlocked
+
+pipeline/tests/test_public_build_boundary.py:35: Failed
+----------------------------- Captured stdout call -----------------------------
+[1/9] Parsing /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i2/pages...
+       1 pages (1 OntologyClass, 0 public)
+[2/9] Validating...
+       0 errors, 0 warnings
+[3/9] Generating Turtle...
+       93 triples → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i2/out/data/ontology.ttl
+[4/9] Generating WebVOWL JSON...
+       0 classes → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i2/out/data/ontology.json
+[5/9] Computing reasoning closure...
+       1 classes, 0 inferred triples → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i2/out/data/ontology-inferred.ttl
+[6/9] Generating Page API...
+       0 page files → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i2/out/api/pages
+[7/9] Generating Search Index...
+       0 entries → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i2/out/api/search-index.json
+[8/9] Emitting graph tiers (NGG1)...
+       0 nodes, 0 edges → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i2/out/data/graph
+[9/10] Emitting scaffold index...
+       0 classes → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i2/out/data/scaffold-index.json
+[10/10] Emitting prose index...
+       0 pages (0 with landscape) → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i2/out/data/prose-index.json
+
+Pipeline complete in 0.1s
+  Output: /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_non_boolean_publication_i2/out
+  Classes: 0
+  Triples: 93
+  Pages: 0
+  Search: 0
+_____________ test_malformed_fence_is_accounted_and_build_blocked ______________
+
+tmp_path = PosixPath('/home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_malformed_fence_is_accoun0')
+
+    def test_malformed_fence_is_accounted_and_build_blocked(tmp_path):
+        pages=tmp_path/'pages';out=tmp_path/'out';write(pages,'public',True)
+        (pages/'private-secret-name.md').write_text('```json-ld\n{bad\n```')
+>       with pytest.raises(PublicationBlocked, match='invalid_input') as exc:build(pages,out)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE PublicationBlocked
+
+pipeline/tests/test_public_build_boundary.py:41: Failed
+----------------------------- Captured stdout call -----------------------------
+[1/9] Parsing /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_malformed_fence_is_accoun0/pages...
+       1 pages (1 OntologyClass, 1 public)
+[2/9] Validating...
+       0 errors, 0 warnings
+[3/9] Generating Turtle...
+       100 triples → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_malformed_fence_is_accoun0/out/data/ontology.ttl
+[4/9] Generating WebVOWL JSON...
+       1 classes → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_malformed_fence_is_accoun0/out/data/ontology.json
+[5/9] Computing reasoning closure...
+       1 classes, 0 inferred triples → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_malformed_fence_is_accoun0/out/data/ontology-inferred.ttl
+[6/9] Generating Page API...
+       1 page files → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_malformed_fence_is_accoun0/out/api/pages
+[7/9] Generating Search Index...
+       1 entries → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_malformed_fence_is_accoun0/out/api/search-index.json
+[8/9] Emitting graph tiers (NGG1)...
+       1 nodes, 0 edges → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_malformed_fence_is_accoun0/out/data/graph
+[9/10] Emitting scaffold index...
+       1 classes → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_malformed_fence_is_accoun0/out/data/scaffold-index.json
+[10/10] Emitting prose index...
+       0 pages (0 with landscape) → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_malformed_fence_is_accoun0/out/data/prose-index.json
+
+Pipeline complete in 0.1s
+  Output: /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_malformed_fence_is_accoun0/out
+  Classes: 1
+  Triples: 100
+  Pages: 1
+  Search: 1
+______________ test_successful_rebuild_removes_newly_private_page ______________
+
+tmp_path = PosixPath('/home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_successful_rebuild_remove0')
+
+    def test_successful_rebuild_removes_newly_private_page(tmp_path):
+        pages=tmp_path/'pages';out=tmp_path/'out'
+        write(pages,'public-remains',True);write(pages,'newly-private',True)
+        build(pages,out)
+        write(pages,'newly-private',False)
+        build(pages,out)
+>       assert_no_marker(out,'newly-private')
+
+pipeline/tests/test_public_build_boundary.py:51: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+out = PosixPath('/home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_successful_rebuild_remove0/out')
+marker = 'newly-private'
+
+    def assert_no_marker(out, marker):
+        for path in out.rglob('*'):
+            if path.is_file():
+>               assert marker not in path.name
+E               AssertionError: assert 'newly-private' not in 'newly-private.json'
+E                 
+E                 'newly-private' is contained here:
+E                   newly-private.json
+
+pipeline/tests/test_public_build_boundary.py:20: AssertionError
+----------------------------- Captured stdout call -----------------------------
+[1/9] Parsing /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_successful_rebuild_remove0/pages...
+       2 pages (2 OntologyClass, 2 public)
+[2/9] Validating...
+       0 errors, 0 warnings
+[3/9] Generating Turtle...
+       107 triples → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_successful_rebuild_remove0/out/data/ontology.ttl
+[4/9] Generating WebVOWL JSON...
+       2 classes → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_successful_rebuild_remove0/out/data/ontology.json
+[5/9] Computing reasoning closure...
+       2 classes, 0 inferred triples → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_successful_rebuild_remove0/out/data/ontology-inferred.ttl
+[6/9] Generating Page API...
+       2 page files → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_successful_rebuild_remove0/out/api/pages
+[7/9] Generating Search Index...
+       2 entries → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_successful_rebuild_remove0/out/api/search-index.json
+[8/9] Emitting graph tiers (NGG1)...
+       2 nodes, 0 edges → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_successful_rebuild_remove0/out/data/graph
+[9/10] Emitting scaffold index...
+       2 classes → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_successful_rebuild_remove0/out/data/scaffold-index.json
+[10/10] Emitting prose index...
+       0 pages (0 with landscape) → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_successful_rebuild_remove0/out/data/prose-index.json
+
+Pipeline complete in 0.1s
+  Output: /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_successful_rebuild_remove0/out
+  Classes: 2
+  Triples: 107
+  Pages: 2
+  Search: 2
+[1/9] Parsing /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_successful_rebuild_remove0/pages...
+       2 pages (2 OntologyClass, 1 public)
+[2/9] Validating...
+       0 errors, 0 warnings
+[3/9] Generating Turtle...
+       100 triples → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_successful_rebuild_remove0/out/data/ontology.ttl
+[4/9] Generating WebVOWL JSON...
+       1 classes → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_successful_rebuild_remove0/out/data/ontology.json
+[5/9] Computing reasoning closure...
+       2 classes, 0 inferred triples → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_successful_rebuild_remove0/out/data/ontology-inferred.ttl
+[6/9] Generating Page API...
+       1 page files → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_successful_rebuild_remove0/out/api/pages
+[7/9] Generating Search Index...
+       1 entries → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_successful_rebuild_remove0/out/api/search-index.json
+[8/9] Emitting graph tiers (NGG1)...
+       1 nodes, 0 edges → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_successful_rebuild_remove0/out/data/graph
+[9/10] Emitting scaffold index...
+       1 classes → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_successful_rebuild_remove0/out/data/scaffold-index.json
+[10/10] Emitting prose index...
+       0 pages (0 with landscape) → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_successful_rebuild_remove0/out/data/prose-index.json
+
+Pipeline complete in 0.1s
+  Output: /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_successful_rebuild_remove0/out
+  Classes: 1
+  Triples: 100
+  Pages: 1
+  Search: 1
+___________ test_failure_preserves_previous_bundle_and_public_assets ___________
+
+tmp_path = PosixPath('/home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_failure_preserves_previou0')
+
+    def test_failure_preserves_previous_bundle_and_public_assets(tmp_path):
+        pages=tmp_path/'pages';out=tmp_path/'out';write(pages,'valid',True)
+        build(pages,out);before=(out/'data/ontology.ttl').read_bytes()
+        (out/'index.html').write_text('static site')
+        write(pages,'bad','false')
+>       with pytest.raises(PublicationBlocked):build(pages,out)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE PublicationBlocked
+
+pipeline/tests/test_public_build_boundary.py:58: Failed
+----------------------------- Captured stdout call -----------------------------
+[1/9] Parsing /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_failure_preserves_previou0/pages...
+       1 pages (1 OntologyClass, 1 public)
+[2/9] Validating...
+       0 errors, 0 warnings
+[3/9] Generating Turtle...
+       100 triples → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_failure_preserves_previou0/out/data/ontology.ttl
+[4/9] Generating WebVOWL JSON...
+       1 classes → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_failure_preserves_previou0/out/data/ontology.json
+[5/9] Computing reasoning closure...
+       1 classes, 0 inferred triples → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_failure_preserves_previou0/out/data/ontology-inferred.ttl
+[6/9] Generating Page API...
+       1 page files → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_failure_preserves_previou0/out/api/pages
+[7/9] Generating Search Index...
+       1 entries → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_failure_preserves_previou0/out/api/search-index.json
+[8/9] Emitting graph tiers (NGG1)...
+       1 nodes, 0 edges → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_failure_preserves_previou0/out/data/graph
+[9/10] Emitting scaffold index...
+       1 classes → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_failure_preserves_previou0/out/data/scaffold-index.json
+[10/10] Emitting prose index...
+       0 pages (0 with landscape) → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_failure_preserves_previou0/out/data/prose-index.json
+
+Pipeline complete in 0.1s
+  Output: /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_failure_preserves_previou0/out
+  Classes: 1
+  Triples: 100
+  Pages: 1
+  Search: 1
+[1/9] Parsing /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_failure_preserves_previou0/pages...
+       2 pages (2 OntologyClass, 2 public)
+[2/9] Validating...
+       0 errors, 0 warnings
+[3/9] Generating Turtle...
+       107 triples → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_failure_preserves_previou0/out/data/ontology.ttl
+[4/9] Generating WebVOWL JSON...
+       2 classes → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_failure_preserves_previou0/out/data/ontology.json
+[5/9] Computing reasoning closure...
+       2 classes, 0 inferred triples → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_failure_preserves_previou0/out/data/ontology-inferred.ttl
+[6/9] Generating Page API...
+       2 page files → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_failure_preserves_previou0/out/api/pages
+[7/9] Generating Search Index...
+       2 entries → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_failure_preserves_previou0/out/api/search-index.json
+[8/9] Emitting graph tiers (NGG1)...
+       2 nodes, 0 edges → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_failure_preserves_previou0/out/data/graph
+[9/10] Emitting scaffold index...
+       2 classes → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_failure_preserves_previou0/out/data/scaffold-index.json
+[10/10] Emitting prose index...
+       0 pages (0 with landscape) → /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_failure_preserves_previou0/out/data/prose-index.json
+
+Pipeline complete in 0.1s
+  Output: /home/devuser/workspace/.tmp/pytest-of-devuser/pytest-120/test_failure_preserves_previou0/out
+  Classes: 2
+  Triples: 107
+  Pages: 2
+  Search: 2
+=========================== short test summary info ============================
+FAILED pipeline/tests/test_public_build_boundary.py::test_all_build_exports_hide_private_ancestry_body_and_raw_fields
+FAILED pipeline/tests/test_public_build_boundary.py::test_non_boolean_publication_is_rejected_before_outputs[false]
+FAILED pipeline/tests/test_public_build_boundary.py::test_non_boolean_publication_is_rejected_before_outputs[0]
+FAILED pipeline/tests/test_public_build_boundary.py::test_non_boolean_publication_is_rejected_before_outputs[None]
+FAILED pipeline/tests/test_public_build_boundary.py::test_malformed_fence_is_accounted_and_build_blocked
+FAILED pipeline/tests/test_public_build_boundary.py::test_successful_rebuild_removes_newly_private_page
+FAILED pipeline/tests/test_public_build_boundary.py::test_failure_preserves_previous_bundle_and_public_assets
+7 failed in 0.96s

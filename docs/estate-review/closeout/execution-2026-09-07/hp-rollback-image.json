@@ -1,0 +1,8 @@
+{
+  "observed_at": "2026-09-07T12:26:47.114691+00:00",
+  "host": "john@10.10.10.1",
+  "old_image": "sha256:c64e5acaf902cbda96cced5665f9bda7dd18f1a067545c3ea0dc41105a79bc55",
+  "rollback_tag": "agentbox:closeout-rollback-20260907-c64e5aca",
+  "tag_created": true,
+  "container_replaced": false
+}

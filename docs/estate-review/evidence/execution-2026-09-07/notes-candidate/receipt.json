@@ -1,0 +1,66 @@
+{
+  "at": "2026-09-07T11:14:48.826Z",
+  "browser": "sidecar Chrome via CDP 9223",
+  "scope": "Read-only public/candidate journeys; no identity credentials, submissions or device acceptance",
+  "records": [
+    {
+      "name": "notes",
+      "url": "https://narrativegoldmine.com/notes/",
+      "checks": [
+        {
+          "name": "content",
+          "ok": true,
+          "detail": 2579
+        },
+        {
+          "name": "images",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "mobile-no-overflow",
+          "ok": false,
+          "detail": {
+            "viewport": 375,
+            "width": 406,
+            "bodyWidth": 406
+          }
+        },
+        {
+          "name": "no-uncaught-exceptions",
+          "ok": true,
+          "detail": []
+        }
+      ],
+      "page": {
+        "url": "https://narrativegoldmine.com/notes/#/all-pages",
+        "title": "All pages",
+        "text": 2579,
+        "headings": [
+          "All pages"
+        ],
+        "brokenImages": []
+      },
+      "candidateStyle": {
+        "path": "../visionGraph/publishing-tools/notes-mobile.css",
+        "sha256": "1b5a87f927a8d7698d24689c5f2134c9c277704dd93a69ad3c9dee98f01c05a8"
+      },
+      "mobile": {
+        "viewport": 375,
+        "width": 406,
+        "bodyWidth": 406
+      },
+      "screenshot": {
+        "path": "notes-mobile.png",
+        "sha256": "2ea5ff850a1dae2dbc605777920a147962709d7392c149dc58f0b07414e569e9"
+      },
+      "exceptions": [],
+      "httpStatuses": [
+        {
+          "url": "https://narrativegoldmine.com/notes/",
+          "status": 200
+        }
+      ]
+    }
+  ]
+}

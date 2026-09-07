@@ -1,0 +1,14 @@
+
+> visionclaw-client@0.1.0 test
+> vitest run --run src/services/api/__tests__/authInterceptor.test.ts
+
+
+ RUN  v4.0.18 /home/devuser/workspace/project/client
+
+ ✓ src/services/api/__tests__/authInterceptor.test.ts (11 tests) 28ms
+
+ Test Files  1 passed (1)
+      Tests  11 passed (11)
+   Start at  12:08:21
+   Duration  1.09s (transform 202ms, setup 149ms, import 149ms, tests 28ms, environment 523ms)
+

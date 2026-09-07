@@ -1,0 +1,395 @@
+{
+  "method": "unique exact prior source line with neighbour-context disambiguation, warning anchors only",
+  "resolved": [
+    {
+      "path": "../project/client/src/services/nostrAuthService.ts",
+      "old": 268,
+      "new": 269
+    },
+    {
+      "path": "../project/client/src/services/nostrAuthService.ts",
+      "old": 275,
+      "new": 276
+    },
+    {
+      "path": "../project/client/src/services/nostrAuthService.ts",
+      "old": 309,
+      "new": 311
+    },
+    {
+      "path": "../project/client/src/services/nostrAuthService.ts",
+      "old": 341,
+      "new": 343
+    },
+    {
+      "path": "../project/client/src/services/nostrAuthService.ts",
+      "old": 355,
+      "new": 357
+    },
+    {
+      "path": "../project/client/src/services/nostrAuthService.ts",
+      "old": 388,
+      "new": 390
+    },
+    {
+      "path": "../project/client/src/services/nostrAuthService.ts",
+      "old": 398,
+      "new": 400
+    },
+    {
+      "path": "../project/client/src/services/nostrAuthService.ts",
+      "old": 427,
+      "new": 429
+    },
+    {
+      "path": "../project/client/src/services/nostrAuthService.ts",
+      "old": 433,
+      "new": 435
+    },
+    {
+      "path": "../project/client/src/services/nostrAuthService.ts",
+      "old": 438,
+      "new": 440
+    },
+    {
+      "path": "../project/client/src/services/nostrAuthService.ts",
+      "old": 446,
+      "new": 448
+    },
+    {
+      "path": "../project/client/src/services/nostrAuthService.ts",
+      "old": 456,
+      "new": 458
+    },
+    {
+      "path": "../project/client/src/services/nostrAuthService.ts",
+      "old": 477,
+      "new": 479
+    },
+    {
+      "path": "../project/client/src/services/nostrAuthService.ts",
+      "old": 503,
+      "new": 505
+    },
+    {
+      "path": "../project/client/src/services/nostrAuthService.ts",
+      "old": 602,
+      "new": 604
+    },
+    {
+      "path": "../project/client/src/store/websocket/index.ts",
+      "old": 182,
+      "new": 188
+    },
+    {
+      "path": "../project/client/src/store/websocket/index.ts",
+      "old": 196,
+      "new": 202
+    },
+    {
+      "path": "../project/client/src/store/websocket/index.ts",
+      "old": 197,
+      "new": 203
+    },
+    {
+      "path": "../project/client/src/store/websocket/index.ts",
+      "old": 248,
+      "new": 254
+    },
+    {
+      "path": "../project/src/actors/decision_elevation_actor.rs",
+      "old": 333,
+      "new": 348
+    },
+    {
+      "path": "../project/src/actors/decision_elevation_actor.rs",
+      "old": 693,
+      "new": 713
+    },
+    {
+      "path": "../project/src/adapters/decision_elevation_store.rs",
+      "old": 250,
+      "new": 259
+    },
+    {
+      "path": "../project/src/config/security_profile.rs",
+      "old": 107,
+      "new": 106
+    },
+    {
+      "path": "../project/src/handlers/socket_flow_handler/http_handler.rs",
+      "old": 39,
+      "new": 53
+    },
+    {
+      "path": "../project/src/handlers/socket_flow_handler/http_handler.rs",
+      "old": 117,
+      "new": 131
+    },
+    {
+      "path": "../project/src/handlers/socket_flow_handler/http_handler.rs",
+      "old": 145,
+      "new": 186
+    },
+    {
+      "path": "../project/src/handlers/socket_flow_handler/http_handler.rs",
+      "old": 174,
+      "new": 215
+    },
+    {
+      "path": "../project/src/handlers/socket_flow_handler/http_handler.rs",
+      "old": 217,
+      "new": 258
+    },
+    {
+      "path": "../project/src/handlers/socket_flow_handler/http_handler.rs",
+      "old": 236,
+      "new": 277
+    },
+    {
+      "path": "../project/src/handlers/solid_proxy_handler.rs",
+      "old": 381,
+      "new": 382
+    },
+    {
+      "path": "../project/src/handlers/solid_proxy_handler.rs",
+      "old": 881,
+      "new": 882
+    },
+    {
+      "path": "../project/src/handlers/solid_proxy_handler.rs",
+      "old": 896,
+      "new": 897
+    },
+    {
+      "path": "../project/src/handlers/solid_proxy_handler.rs",
+      "old": 932,
+      "new": 933
+    },
+    {
+      "path": "../project/src/handlers/solid_proxy_handler.rs",
+      "old": 1311,
+      "new": 1312
+    },
+    {
+      "path": "../project/src/handlers/solid_proxy_handler.rs",
+      "old": 1348,
+      "new": 1349
+    },
+    {
+      "path": "../project/src/handlers/solid_proxy_handler.rs",
+      "old": 1369,
+      "new": 1370
+    },
+    {
+      "path": "../project/src/handlers/solid_proxy_handler.rs",
+      "old": 1381,
+      "new": 1382
+    },
+    {
+      "path": "../project/src/handlers/solid_proxy_handler.rs",
+      "old": 1609,
+      "new": 1610
+    },
+    {
+      "path": "../project/src/handlers/solid_proxy_handler.rs",
+      "old": 1654,
+      "new": 1655
+    },
+    {
+      "path": "../project/src/handlers/solid_proxy_handler.rs",
+      "old": 1789,
+      "new": 1790
+    },
+    {
+      "path": "../project/src/main.rs",
+      "old": 740,
+      "new": 769
+    },
+    {
+      "path": "../project/src/main.rs",
+      "old": 800,
+      "new": 829
+    },
+    {
+      "path": "../project/src/main.rs",
+      "old": 878,
+      "new": 907
+    },
+    {
+      "path": "../project/src/main.rs",
+      "old": 988,
+      "new": 1017
+    },
+    {
+      "path": "../project/src/main.rs",
+      "old": 1015,
+      "new": 1044
+    },
+    {
+      "path": "../project/src/main.rs",
+      "old": 1016,
+      "new": 1045
+    },
+    {
+      "path": "../project/src/main.rs",
+      "old": 1049,
+      "new": 1078
+    },
+    {
+      "path": "../project/src/main.rs",
+      "old": 1081,
+      "new": 1110
+    },
+    {
+      "path": "../project/src/main.rs",
+      "old": 1103,
+      "new": 1132
+    },
+    {
+      "path": "../project/src/main.rs",
+      "old": 1142,
+      "new": 1171
+    },
+    {
+      "path": "../project/src/main.rs",
+      "old": 1197,
+      "new": 1226
+    },
+    {
+      "path": "../project/src/services/acsp/client.rs",
+      "old": 22,
+      "new": 25
+    },
+    {
+      "path": "../project/src/services/acsp/client.rs",
+      "old": 67,
+      "new": 70
+    },
+    {
+      "path": "../project/src/services/acsp/client.rs",
+      "old": 74,
+      "new": 78
+    },
+    {
+      "path": "../project/src/services/nostr_service.rs",
+      "old": 245,
+      "new": 255
+    },
+    {
+      "path": "../project/src/services/nostr_service.rs",
+      "old": 416,
+      "new": 426
+    },
+    {
+      "path": "../project/src/services/nostr_service.rs",
+      "old": 574,
+      "new": 587
+    },
+    {
+      "path": "../project/src/services/nostr_service.rs",
+      "old": 601,
+      "new": 614
+    },
+    {
+      "path": "../project/src/services/ontology_pull.rs",
+      "old": 39,
+      "new": 42
+    },
+    {
+      "path": "../project/src/services/ontology_pull.rs",
+      "old": 50,
+      "new": 53
+    },
+    {
+      "path": "../project/src/services/ontology_pull.rs",
+      "old": 73,
+      "new": 76
+    },
+    {
+      "path": "../project/src/services/ontology_pull.rs",
+      "old": 290,
+      "new": 293
+    },
+    {
+      "path": "../project/src/services/ontology_pull.rs",
+      "old": 291,
+      "new": 294
+    },
+    {
+      "path": "../project/src/services/ontology_pull.rs",
+      "old": 384,
+      "new": 387
+    },
+    {
+      "path": "../project/src/settings/auth_extractor.rs",
+      "old": 127,
+      "new": 143
+    },
+    {
+      "path": "../project/src/settings/auth_extractor.rs",
+      "old": 195,
+      "new": 211
+    },
+    {
+      "path": "../project/src/utils/unified_gpu_compute/execution.rs",
+      "old": 612,
+      "new": 653
+    },
+    {
+      "path": "../project/src/utils/unified_gpu_compute/execution.rs",
+      "old": 863,
+      "new": 912
+    },
+    {
+      "path": "../project/src/utils/unified_gpu_compute/execution.rs",
+      "old": 968,
+      "new": 1017
+    }
+  ],
+  "unresolved": [
+    [
+      "../project/src/adapters/sqlite_enrichment_repository.rs",
+      682,
+      "old anchor not substantive"
+    ],
+    [
+      "../project/client/src/store/websocket/index.ts",
+      162,
+      "ambiguous exact content"
+    ],
+    [
+      "../project/client/src/services/nostrAuthService.ts",
+      452,
+      "ambiguous exact content"
+    ],
+    [
+      "../project/client/src/store/websocket/index.ts",
+      278,
+      "ambiguous exact content"
+    ],
+    [
+      "../project/client/src/services/nostrAuthService.ts",
+      259,
+      "ambiguous exact content"
+    ]
+  ],
+  "changed": [
+    "visionclaw/27-agent-integration-mcp-relay.md",
+    "visionclaw/12-simparams-abi-and-ptx.md",
+    "visionclaw/08-observability-health-and-dev-loop.md",
+    "visionclaw/33-client-auth-and-identity.md",
+    "visionclaw/13-broadcast-pipeline-and-websocket.md",
+    "visionclaw/01-boot-and-app-state.md",
+    "visionclaw/24-acsp-decision-elevation.md",
+    "visionclaw/26-solid-pod-and-jss.md",
+    "visionclaw/05-handlers-governance-and-identity.md",
+    "visionclaw/22-data-authority-provenance-erasure.md",
+    "visionclaw/11-physics-step-and-force-channels.md",
+    "visionclaw/03-request-lifecycle-and-rbac.md",
+    "visionclaw/30-client-boot-and-state.md",
+    "visionclaw/15-gpu-analytics.md",
+    "visionclaw/09-config-and-env-flags.md",
+    "visionclaw/32-client-websocket-and-binary.md"
+  ]
+}

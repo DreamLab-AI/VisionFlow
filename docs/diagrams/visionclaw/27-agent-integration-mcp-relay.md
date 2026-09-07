@@ -11,6 +11,7 @@ sources:
   - ../project/src/actors/graph_service_supervisor.rs
   - ../project/src/utils/mcp_tcp_client.rs
   - ../project/src/client/mod.rs
+  - ../project/src/client/mcp_tcp_client.rs
   - ../project/src/services/mcp_relay_manager.rs
   - ../project/src/handlers/mcp_relay_handler.rs
   - ../project/src/services/multi_mcp_agent_discovery.rs
@@ -68,7 +69,7 @@ sequenceDiagram
     end
     Note over BC,MCP: RESOLVED ADR-2088 (estate) - get_status() misreported on THREE axes, not one: host<br/>"agentic-workstation", port 9090 and an unconditional connected=true. It now reports<br/>self.mcp_client.host/.port (:242-243, values resolved in BotsClient::new() :118-121) and a real<br/>AtomicBool connection state (:237,241) set from the actual test_connection() outcome (:236-244).<br/>Two tokio tests cover it.
     Note over Caller,MCP: agent_events/ingest.rs:14-19 marks this port-9500 snapshot path<br/>as untouched by design (not legacy/deprecated) - agent_action events use a separate /wss/agent-events ingest (see VC-27.13, RESOLVED ADR-2084)
-    Note over MCP: DOC-DRIFT (audit-rust.md correction): a SECOND file also named mcp_tcp_client.rs<br/>exists at src/client/mcp_tcp_client.rs, defining McpTelemetryClient. grep confirms it is dead -<br/>src/client/mod.rs:3 re-exports it but nothing else in src/ constructs or calls it. The live MCP-TCP<br/>hop is exclusively utils/mcp_tcp_client.rs::McpTcpClient shown above (used by bots_client.rs,<br/>ontology_class_index.rs, multi_mcp_agent_discovery.rs)
+    Note over MCP: DOC-DRIFT (audit-rust.md correction, gap #2): a SECOND file also named mcp_tcp_client.rs<br/>exists at src/client/mcp_tcp_client.rs, defining McpTelemetryClient (struct src/client/mcp_tcp_client.rs:10,<br/>impl :17). grep confirms it is dead - src/client/mod.rs:1,3 declares and re-exports it but nothing else in<br/>src/ constructs or calls it. The live MCP-TCP hop is exclusively utils/mcp_tcp_client.rs::McpTcpClient<br/>shown above (used by bots_client.rs, ontology_class_index.rs, multi_mcp_agent_discovery.rs)
 ```
 
 ## VC-27.2 McpRelayManager — multi-agent-container lifecycle via docker exec

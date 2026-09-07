@@ -1,0 +1,37 @@
+PASS ../tests/sovereign/egress-boundary.test.js
+  ADR-2026 — the policy document and both implementations agree
+    ✓ the policy document enumerates content, recipients, providers, encryption and retention per path (6 ms)
+    ✓ the JavaScript redactor satisfies the PAIRED cross-language fixture (4 ms)
+    ✓ redaction failure is fail-closed (null means do not send) (1 ms)
+  ADR-2026 — the off-switch matrix
+    ✓ the GLOBAL switch stops the live mirror even with a full identity (61 ms)
+    ✓ the per-path switch stops it too, with its own reason (78 ms)
+    ✓ disabling redaction REFUSES the egress rather than sending raw (71 ms)
+    ✓ ABSENT identity is a named skip, not a silent success (108 ms)
+    ✓ CHILD-KEY derivation supplies the identity when no explicit recipient is set (229 ms)
+    ✓ child derivation can be turned off, falling back to the explicit recipient (169 ms)
+    ✓ a MALFORMED recipient with no derivable child key is refused as absent identity (101 ms)
+  ADR-2026 — recipient allowlist (syntax was never sufficient)
+    ✓ a syntactically valid recipient OUTSIDE the allowlist is refused (2 ms)
+    ✓ a recipient INSIDE the allowlist is permitted
+    ✓ missing/empty/invalid allowlist undefined refuses egress (1 ms)
+    ✓ missing/empty/invalid allowlist  refuses egress (1 ms)
+    ✓ missing/empty/invalid allowlist     refuses egress (1 ms)
+    ✓ missing/empty/invalid allowlist invalid refuses egress
+    ✓ missing/empty/invalid allowlist bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb,invalid refuses egress
+    ✓ missing enumeration stops even dry-run before transcript content is composed (145 ms)
+    ✓ a malformed recipient is refused whatever the allowlist says
+  ADR-2026 — redaction happens BEFORE egress, not after encryption
+    ✓ the composed body carries NO sentinel — the reproduced leak is closed (180 ms)
+    ✓ the same holds on the explicit-recipient (legacy) configuration (140 ms)
+    ✓ diagnostics never retain more than the wire: the dry run prints the REDACTED body (221 ms)
+  ADR-2026 — network denial distinguishes skipped, attempted and accepted
+    ✓ a denied relay yields ATTEMPTED then FAILED, never ACCEPTED (269 ms)
+    ✓ a DISABLED path never reaches "attempted" — the three states are distinct (98 ms)
+    ✓ exit zero is not proof of delivery on any of these paths (406 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       25 passed, 25 total
+Snapshots:   0 total
+Time:        2.692 s
+Ran all test suites matching /..\/tests\/sovereign\/egress-boundary.test.js/i.

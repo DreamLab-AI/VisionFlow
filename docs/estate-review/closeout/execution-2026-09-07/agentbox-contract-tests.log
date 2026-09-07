@@ -1,0 +1,58 @@
+PASS ../tests/contract/adapter-lifecycle.contract.spec.js
+{"event":"MiddlewareOrderViolation","slot":"pods","payloadType":"object","ts":"2026-09-07T11:03:40.786Z","msg":"MiddlewareOrderViolation: JSON-LD encoder invoked for slot=\"pods\" with a payload that did not pass the privacy filter on this dispatch (per-dispatch L08 check). Canonical order: observability → privacy → encoder."}
+PASS ../tests/contract/memory-encoder-bypass.contract.spec.js
+{"event":"opf_fail_closed","slot":"memory","method":"store","error":"IdentifierPiiDetected[memory]: personal data found in field(s) 0.key, which the privacy filter must not rewrite because doing so would silently change how the record is addressed. Remove the personal data at the caller.","ts":"2026-09-07T11:03:40.969Z"}
+{"event":"opf_fail_open","slot":"events","method":"emit","error":"IdentifierPiiDetected[events]: personal data found in field(s) 0.key, which the privacy filter must not rewrite because doing so would silently change how the record is addressed. Remove the personal data at the caller.","ts":"2026-09-07T11:03:40.981Z"}
+{"event":"opf_fail_closed","slot":"memory","method":"store","error":"RedactionShapeError: redactor returned 1 field(s) for 3 sent — the field delimiter did not survive redaction, so no result can be safely applied","ts":"2026-09-07T11:03:40.985Z"}
+{"event":"opf_fail_closed","slot":"memory","method":"store","error":"fetch failed","ts":"2026-09-07T11:03:41.004Z"}
+{"event":"opf_fail_open","slot":"events","method":"emit","error":"fetch failed","ts":"2026-09-07T11:03:41.004Z"}
+{"event":"opf_fail_closed","slot":"memory","method":"store","error":"OPF returned HTTP 500","ts":"2026-09-07T11:03:41.006Z"}
+{"event":"opf_fail_open","slot":"events","method":"emit","error":"OPF returned HTTP 500","ts":"2026-09-07T11:03:41.008Z"}
+{"event":"opf_fail_closed","slot":"memory","method":"store","error":"RedactionShapeError: response body is not JSON: Unexpected token 'o', \"not json at all\" is not valid JSON","ts":"2026-09-07T11:03:41.010Z"}
+{"event":"opf_fail_open","slot":"events","method":"emit","error":"RedactionShapeError: response body is not JSON: Unexpected token 'o', \"not json at all\" is not valid JSON","ts":"2026-09-07T11:03:41.012Z"}
+{"event":"opf_fail_closed","slot":"memory","method":"store","error":"RedactionShapeError: response has no \"text\" string","ts":"2026-09-07T11:03:41.014Z"}
+{"event":"opf_fail_open","slot":"events","method":"emit","error":"RedactionShapeError: response has no \"text\" string","ts":"2026-09-07T11:03:41.016Z"}
+{"event":"opf_fail_closed","slot":"memory","method":"store","error":"RedactionShapeError: redactor returned 1 field(s) for 2 sent — the field delimiter did not survive redaction, so no result can be safely applied","ts":"2026-09-07T11:03:41.018Z"}
+{"event":"opf_fail_open","slot":"events","method":"emit","error":"RedactionShapeError: redactor returned 1 field(s) for 2 sent — the field delimiter did not survive redaction, so no result can be safely applied","ts":"2026-09-07T11:03:41.020Z"}
+{"event":"opf_fail_closed","slot":"memory","method":"store","error":"RedactionShapeError: redactor returned 1 field(s) for 3 sent — the field delimiter did not survive redaction, so no result can be safely applied","ts":"2026-09-07T11:03:41.023Z"}
+{"event":"opf_fail_closed","slot":"memory","method":"store","error":"payload could not be fully traversed (cycle or depth limit) — redaction cannot be guaranteed","ts":"2026-09-07T11:03:41.024Z"}
+PASS ../tests/contract/privacy-coverage.contract.spec.js
+{"event":"MiddlewareOrderViolation","slot":"pods","payloadType":"object","ts":"2026-09-07T11:03:41.075Z","msg":"MiddlewareOrderViolation: JSON-LD encoder invoked for slot=\"pods\" with a payload that did not pass the privacy filter on this dispatch (per-dispatch L08 check). Canonical order: observability → privacy → encoder."}
+{"event":"MiddlewareOrderViolation","slot":"memory","payloadType":"object","ts":"2026-09-07T11:03:41.076Z","msg":"MiddlewareOrderViolation: JSON-LD encoder invoked for slot=\"memory\" with a payload that did not pass the privacy filter on this dispatch (per-dispatch L08 check). Canonical order: observability → privacy → encoder."}
+{"event":"MiddlewareOrderViolation","slot":"events","payloadType":"object","ts":"2026-09-07T11:03:41.091Z","msg":"MiddlewareOrderViolation: JSON-LD encoder invoked for slot=\"events\" with a payload that did not pass the privacy filter on this dispatch (per-dispatch L08 check). Canonical order: observability → privacy → encoder."}
+PASS ../tests/contract/linked-data/privacy-handoff.contract.spec.js
+PASS ../tests/contract/ruvector-wc-consumers.contract.spec.js
+PASS ../tests/contract/execution-journal.contract.spec.js
+PASS ../tests/contract/beads.contract.spec.js
+PASS ../tests/contract/action-plane-denial.contract.spec.js
+{"event":"MiddlewareOrderViolation","slot":"pods","payloadType":"object","ts":"2026-09-07T11:03:41.666Z","msg":"MiddlewareOrderViolation: JSON-LD encoder invoked for slot=\"pods\" with a payload that did not pass the privacy filter on this dispatch (per-dispatch L08 check). Canonical order: observability → privacy → encoder."}
+PASS ../tests/contract/linked-data/invariants.contract.spec.js
+PASS ../tests/contract/federation-kind-parity.contract.spec.js
+{"event":"opf_fail_closed","slot":"memory","method":"store","error":"fetch failed","ts":"2026-09-07T11:03:41.806Z"}
+{"event":"opf_fail_open","slot":"events","method":"emit","error":"fetch failed","ts":"2026-09-07T11:03:41.826Z"}
+PASS ../tests/contract/privacy-filter.contract.spec.js
+{"event":"MiddlewareOrderViolation","payloadType":"object","ts":"2026-09-07T11:03:41.903Z","msg":"MiddlewareOrderViolation: JSON-LD encoder invoked for slot=\"undefined\" with a payload that did not pass the privacy filter on this dispatch (per-dispatch L08 check). Canonical order: observability → privacy → encoder."}
+PASS ../tests/contract/compression.contract.spec.js
+PASS ../tests/contract/pay402/pay402.contract.spec.js
+PASS ../tests/contract/agent-action-pipeline.contract.spec.js
+PASS ../tests/contract/decisions/decision-chain.contract.spec.js
+PASS ../tests/contract/linked-data/jcs.contract.spec.js
+PASS ../tests/contract/capability-scope.contract.spec.js
+PASS ../tests/contract/orchestrator.contract.spec.js
+PASS ../tests/contract/execution-coverage.contract.spec.js
+PASS ../tests/contract/linked-data/input-validator.contract.spec.js
+PASS ../tests/contract/events.contract.spec.js
+PASS ../tests/contract/linked-data/surfaces.contract.spec.js
+PASS ../tests/contract/ruvector-gates.contract.spec.js
+PASS ../tests/contract/memory.contract.spec.js
+PASS ../tests/contract/linked-data/viewer.contract.spec.js
+PASS ../tests/contract/events-audit-chain.test.js
+PASS ../tests/contract/pods.contract.spec.js
+PASS ../tests/contract/linked-data/uris.contract.spec.js
+PASS ../tests/contract/web-interfaces.contract.spec.js
+
+Test Suites: 29 passed, 29 total
+Tests:       34 todo, 580 passed, 614 total
+Snapshots:   0 total
+Time:        3.536 s, estimated 19 s
+Ran all test suites matching /..\/tests\/contract\/|\.contract\.spec\.js$/i.

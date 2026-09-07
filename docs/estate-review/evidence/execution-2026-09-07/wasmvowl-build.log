@@ -1,0 +1,17 @@
+
+> wasmvowl@2.0.0 build
+> tsc -b && vite build
+
+src/App.tsx(12,8): error TS2307: Cannot find module './App.css' or its corresponding type declarations.
+src/components/Canvas/Edges/PropertyEdge.tsx(5,19): error TS6133: 'useRef' is declared but its value is never read.
+src/components/Canvas/Edges/PropertyEdge.tsx(112,11): error TS2322: Type '{ children: string; position: Vector3; fontSize: number; color: string; anchorX: "center"; anchorY: "middle"; maxWidth: number; textAlign: "center"; backgroundColor: string; padding: number; }' is not assignable to type 'IntrinsicAttributes & Omit<Mutable<Overwrite<Partial<Overwrite<Mesh<BufferGeometry<NormalBufferAttributes, BufferGeometryEventMap>, Material | Material[], Object3DEventMap>, MathProps<...> & ... 1 more ... & Partial<...>>>, Omit<...>>>, "ref"> & { ...; } & RefAttributes<...>'.
+  Property 'backgroundColor' does not exist on type 'IntrinsicAttributes & Omit<Mutable<Overwrite<Partial<Overwrite<Mesh<BufferGeometry<NormalBufferAttributes, BufferGeometryEventMap>, Material | Material[], Object3DEventMap>, MathProps<...> & ... 1 more ... & Partial<...>>>, Omit<...>>>, "ref"> & { ...; } & RefAttributes<...>'.
+src/components/UI/FileDropZone.tsx(10,8): error TS2307: Cannot find module './FileDropZone.css' or its corresponding type declarations.
+src/components/UI/NotificationContainer.tsx(6,8): error TS2307: Cannot find module './NotificationContainer.css' or its corresponding type declarations.
+src/components/UI/Sidebar.tsx(7,8): error TS2307: Cannot find module './Sidebar.css' or its corresponding type declarations.
+src/components/UI/Sidebar.tsx(102,56): error TS7006: Parameter 'attr' implicitly has an 'any' type.
+src/components/UI/Sidebar.tsx(102,62): error TS7006: Parameter 'idx' implicitly has an 'any' type.
+src/components/UI/TopMenuBar.tsx(8,8): error TS2307: Cannot find module './TopMenuBar.css' or its corresponding type declarations.
+src/main.tsx(3,8): error TS2307: Cannot find module './index.css' or its corresponding type declarations.
+src/stores/useGraphStore.ts(7,27): error TS6196: 'GraphData' is declared but never used.
+src/stores/useGraphStore.ts(225,28): error TS6133: 'node' is declared but its value is never read.
