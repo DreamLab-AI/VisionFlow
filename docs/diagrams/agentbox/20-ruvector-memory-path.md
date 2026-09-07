@@ -35,36 +35,36 @@ sequenceDiagram
     participant MT as createMemoryTools<br/>agentbox/mcp/servers/ruvector-mcp.cjs:204
 
     SUP->>SRV: start
-    SRV->>PG: SELECT 1 (:154)
+    SRV->>PG: SELECT 1 (mcp/servers/ruvector-mcp.cjs:154)
     alt unreachable
         PG--xSRV: error
-        SRV-->>SUP: [FATAL] cannot reach ruvector-postgres then process.exit(1) (:158-159)
-        Note over SRV: INVARIANT ADR-2014: FAIL-CLOSED. There is NO sql.js fallback — the server replaces<br/>`claude-flow mcp start` precisely so memory routes to ruvector-postgres instead of the<br/>bundled sql.js store (:5-7)
+        SRV-->>SUP: [FATAL] cannot reach ruvector-postgres then process.exit(1) (mcp/servers/ruvector-mcp.cjs:158-159)
+        Note over SRV: INVARIANT ADR-2014: FAIL-CLOSED. There is NO sql.js fallback — the server replaces<br/>`claude-flow mcp start` precisely so memory routes to ruvector-postgres instead of the<br/>bundled sql.js store (mcp/servers/ruvector-mcp.cjs:5-7)
     else connected
         PG-->>SRV: ok
-        SRV->>XI: getEmbedding("startup probe") (:161)
+        SRV->>XI: getEmbedding("startup probe") (mcp/servers/ruvector-mcp.cjs:161)
         alt unavailable
             XI--xSRV: error
-            SRV->>SRV: log WARN — search will use ILIKE fallback, and ADR-2014 fail-closed will REJECT stores<br/>until it returns (:165)
+            SRV->>SRV: log WARN — search will use ILIKE fallback, and ADR-2014 fail-closed will REJECT stores<br/>until it returns (mcp/servers/ruvector-mcp.cjs:165)
             Note over SRV: set RUVECTOR_EMBED_REPAIR=true to accept repairable PENDING writes instead
         else connected
             XI-->>SRV: 384-dim vector
-            SRV->>EI: verifyEmbeddingIdentity(getEmbedding) (:177)
-            Note over EI: ADR-2019 closeout — DIMENSION AGREEMENT IS NOT COMPATIBILITY. Probe the live transport,<br/>compute the effective identity fingerprint, compare with the checked-in pin (:167-173)
+            SRV->>EI: verifyEmbeddingIdentity(getEmbedding) (mcp/servers/ruvector-mcp.cjs:177)
+            Note over EI: ADR-2019 closeout — DIMENSION AGREEMENT IS NOT COMPATIBILITY. Probe the live transport,<br/>compute the effective identity fingerprint, compare with the checked-in pin (mcp/servers/ruvector-mcp.cjs:168-173)
             alt verdict not ok
                 EI-->>SRV: incompatible same-dimension swap
-                SRV-->>SUP: [FATAL] then process.exit(1) (:178-179)
+                SRV-->>SUP: [FATAL] then process.exit(1) (mcp/servers/ruvector-mcp.cjs:178-179)
                 Note over EI: continuing would write vectors into a corpus whose GEOMETRY they do not share, producing<br/>confidently wrong recall with NO error anywhere
             else unpinned or override
-                EI-->>SRV: advisory WARN — we refuse a KNOWN-bad identity, we do not invent a pin (:180-181)
+                EI-->>SRV: advisory WARN — we refuse a KNOWN-bad identity, we do not invent a pin (mcp/servers/ruvector-mcp.cjs:180-181)
             else matches the pin
                 EI-->>SRV: INFO fingerprint matches
             end
         end
     end
-    SRV->>MT: createMemoryTools({backend: 'external-pg', deps: {pool, getEmbedding, xinfEnsure,<br/>vecToSql, entryId, ...}}) (:204-205)
-    Note over MT: the ADR-015 mandated external-pg path — this server injects its pool, embedding<br/>transport, notifier and helpers so the extracted logic behaves byte-for-byte as before<br/>(:201-203)
-    Note over SRV: serverInfo is name "claude-flow" (:643) — the server impersonates the claude-flow MCP<br/>identity so tool names stay byte-identical
+    SRV->>MT: createMemoryTools({backend: 'external-pg', deps: {pool, getEmbedding, xinfEnsure,<br/>vecToSql, entryId, ...}}) (mcp/servers/ruvector-mcp.cjs:204-205)
+    Note over MT: the ADR-015 mandated external-pg path — this server injects its pool, embedding<br/>transport, notifier and helpers so the extracted logic behaves byte-for-byte as before<br/>(mcp/servers/ruvector-mcp.cjs:201-203)
+    Note over SRV: serverInfo is name "claude-flow" (mcp/servers/ruvector-mcp.cjs:643) — the server impersonates the claude-flow MCP<br/>identity so tool names stay byte-identical
 ```
 
 ## AB-20.2 memory_store — the write path
@@ -128,28 +128,28 @@ sequenceDiagram
 
     AG->>SRV: memory_search(query, namespace, limit, sourceType)
     SRV->>MS: memSearch(query, namespace, limit, sourceType)
-    MS->>MS: sourceType "*" collapses to null — no filter (:382)
+    MS->>MS: sourceType "*" collapses to null — no filter (mcp/servers/lib/memory-tools.js:382)
     MS->>XI: embed the query
     alt embedding available
         XI-->>MS: 384-dim query vector
         alt namespace is "*"
-            MS->>PG: no namespace clause — GLOBAL CROSS-NAMESPACE search (:412)
+            MS->>PG: no namespace clause — GLOBAL CROSS-NAMESPACE search (mcp/servers/lib/memory-tools.js:412)
             Note over MS,PG: namespace "*" = global cross-namespace (verified, undocumented in the tool schema)
         else scoped
-            MS->>PG: AND namespace = $n (:412)
+            MS->>PG: AND namespace = $n (mcp/servers/lib/memory-tools.js:412)
         end
-        PG->>PG: ORDER BY embedding <=> $1::ruvector(384) (:432, :438)
-        Note over PG: score = 1.0 - (embedding <=> query) — cosine distance operator on the RuVector HNSW<br/>access method (:430, :435)
-        PG-->>MS: top-k rows, expired rows excluded by NOT_EXPIRED (:65)
+        PG->>PG: ORDER BY embedding <=> $1::ruvector(384) (mcp/servers/lib/memory-tools.js:432, mcp/servers/lib/memory-tools.js:438)
+        Note over PG: score = 1.0 - (embedding <=> query) — cosine distance operator on the RuVector HNSW<br/>access method (mcp/servers/lib/memory-tools.js:430, mcp/servers/lib/memory-tools.js:435)
+        PG-->>MS: top-k rows, expired rows excluded by NOT_EXPIRED (mcp/servers/lib/memory-tools.js:65)
         MS-->>AG: ranked results
     else vector search unavailable or failed
-        MS->>MS: log WARN "DEGRADED: falling back to ILIKE text search — xinference unavailable or vector<br/>search failed. Semantic search is disabled." (:548-549)
-        MS->>PG: WHERE (namespace = $1 OR $1 = '*') AND (key ILIKE $2 OR value::text ILIKE $2) (:552-556)
+        MS->>MS: log WARN "DEGRADED: falling back to ILIKE text search — xinference unavailable or vector<br/>search failed. Semantic search is disabled." (mcp/servers/lib/memory-tools.js:548-549)
+        MS->>PG: WHERE (namespace = $1 OR $1 = '*') AND (key ILIKE $2 OR value::text ILIKE $2) (mcp/servers/lib/memory-tools.js:552-556)
         PG-->>MS: literal matches only
         MS-->>AG: DEGRADED results
-        Note over MS: this is DEGRADED, NOT NORMAL (:548) — check the xinference container and<br/>XINFERENCE_ENDPOINT
+        Note over MS: this is DEGRADED, NOT NORMAL (mcp/servers/lib/memory-tools.js:548) — check the xinference container and<br/>XINFERENCE_ENDPOINT
     end
-    Note over MS,PG: every read path honours the `expires_at` guard — retrieve, list, vector search, the<br/>ILIKE fallback and the sweep all share NOT_EXPIRED (:65)
+    Note over MS,PG: every read path honours the `expires_at` guard — retrieve, list, vector search, the<br/>ILIKE fallback and the sweep all share NOT_EXPIRED (mcp/servers/lib/memory-tools.js:65)
 ```
 
 ## AB-20.4 memory_retrieve and memory_list
@@ -162,20 +162,20 @@ sequenceDiagram
     participant MT as memory-tools<br/>agentbox/mcp/servers/lib/memory-tools.js
     participant PG as memory_entries
 
-    alt memory_retrieve (declared :255)
+    alt memory_retrieve (declared mcp/servers/ruvector-mcp.cjs:255)
         AG->>SRV: memory_retrieve(key, namespace)
-        SRV->>MT: memRetrieve(key, namespace) (:355)
-        MT->>PG: SELECT key, value, source_type WHERE namespace = $1 AND key = $2 AND NOT_EXPIRED ORDER<br/>BY updated_at DESC LIMIT 1 (:358-360)
+        SRV->>MT: memRetrieve(key, namespace) (mcp/servers/lib/memory-tools.js:355)
+        MT->>PG: SELECT key, value, source_type WHERE namespace = $1 AND key = $2 AND NOT_EXPIRED ORDER<br/>BY updated_at DESC LIMIT 1 (mcp/servers/lib/memory-tools.js:358-360)
         PG-->>AG: the newest non-expired row for that exact key
         Note over MT: retrieve-by-key is EXACT, not semantic — it returns the WHOLE value, so the ~512-token<br/>embed cap does not apply on this path
-    else memory_list (declared :267)
+    else memory_list (declared mcp/servers/ruvector-mcp.cjs:267)
         AG->>SRV: memory_list(namespace, limit)
-        SRV->>MT: memList(namespace, limit) (:368)
-        MT->>PG: SELECT key, value, source_type WHERE namespace = $1 AND NOT_EXPIRED ORDER BY created_at<br/>DESC LIMIT $2 (:371-373)
+        SRV->>MT: memList(namespace, limit) (mcp/servers/lib/memory-tools.js:368)
+        MT->>PG: SELECT key, value, source_type WHERE namespace = $1 AND NOT_EXPIRED ORDER BY created_at<br/>DESC LIMIT $2 (mcp/servers/lib/memory-tools.js:371-373)
         PG-->>AG: newest-first page, default limit 100
         Note over MT: memList takes a LITERAL namespace — unlike memSearch it has no "*" global branch
     end
-    Note over SRV: the same server also registers the non-memory claude-flow surface — swarm_init :298,<br/>agent_spawn :303, task_orchestrate :308, swarm_status :313, neural_patterns :318,<br/>coordination_sync :337, load_balance :342, performance_report :347, bottleneck_analyze<br/>:352, github_repo_analyze :357, github_pr_manage :362, workflow_create :367,<br/>workflow_execute :372, parallel_execute :377, sparc_mode :382
+    Note over SRV: the same server also registers the non-memory claude-flow surface — swarm_init mcp/servers/ruvector-mcp.cjs:298,<br/>agent_spawn mcp/servers/ruvector-mcp.cjs:303, task_orchestrate mcp/servers/ruvector-mcp.cjs:308, swarm_status mcp/servers/ruvector-mcp.cjs:313, neural_patterns mcp/servers/ruvector-mcp.cjs:318,<br/>coordination_sync mcp/servers/ruvector-mcp.cjs:337, load_balance mcp/servers/ruvector-mcp.cjs:342, performance_report mcp/servers/ruvector-mcp.cjs:347, bottleneck_analyze<br/>mcp/servers/ruvector-mcp.cjs:352, github_repo_analyze mcp/servers/ruvector-mcp.cjs:357, github_pr_manage mcp/servers/ruvector-mcp.cjs:362, workflow_create mcp/servers/ruvector-mcp.cjs:367,<br/>workflow_execute mcp/servers/ruvector-mcp.cjs:372, parallel_execute mcp/servers/ruvector-mcp.cjs:377, sparc_mode mcp/servers/ruvector-mcp.cjs:382
 ```
 
 ## AB-20.5 memory_hybrid_search
@@ -223,12 +223,12 @@ sequenceDiagram
     participant AGG as memory-learning-aggregates
 
     AG->>SRV: memory_orient {task, namespace, semantic_limit, aggregate_limit, episodic_limit}
-    Note over SRV: defaults namespace "default", semantic_limit 8, aggregate_limit 10, episodic_limit 10<br/>(:450-453)
+    Note over SRV: defaults namespace "default", semantic_limit 8, aggregate_limit 10, episodic_limit 10<br/>(mcp/servers/ruvector-mcp.cjs:450-453)
     SRV->>G: gates.memoryOrient()
     alt gate off
-        G-->>AG: unknownTool — the tool is not merely disabled, it is INVISIBLE (:547)
+        G-->>AG: unknownTool — the tool is not merely disabled, it is INVISIBLE (mcp/servers/ruvector-mcp.cjs:547)
     else gate on
-        SRV->>OR: memOrient(task, namespace, {semanticLimit, aggregateLimit, episodicLimit}) (:548-550)
+        SRV->>OR: memOrient(task, namespace, {semanticLimit, aggregateLimit, episodicLimit}) (mcp/servers/ruvector-mcp.cjs:548-550)
         par
             OR->>PG: top-k SEMANTIC memories for the task
         and
@@ -238,7 +238,7 @@ sequenceDiagram
         end
         OR-->>AG: one cold-start bundle
     end
-    Note over OR: read-only and FAIL-OPEN (:445)
+    Note over OR: read-only and FAIL-OPEN (mcp/servers/ruvector-mcp.cjs:445)
     Note over G: every gated tool follows this shape — a gate-off tool returns unknownTool rather than an<br/>error, so a disabled feature leaves no runtime trace (byte-identical-when-off)
 ```
 
@@ -335,33 +335,33 @@ sequenceDiagram
     Note over SH: the lifecycle surface is ./agentbox.sh ruvector<br/><status|check|test|update|rollback|recall>
     SH->>H: run the frozen fixture
     H->>FIX: load the checked-in QuerySetFixture
-    loop 3 runs — median of 3 absorbs HNSW ef_search entry-point jitter (:30-31)
-        par self-recall@10 — 200 rows (:15-17)
+    loop 3 runs — median of 3 absorbs HNSW ef_search entry-point jitter (scripts/ruvector-recall-harness.mjs:30-31)
+        par self-recall@10 — 200 rows (scripts/ruvector-recall-harness.mjs:15-17)
             H->>PG: the row's OWN stored embedding is the query
             PG-->>H: pass iff the row's own id survives its own top-10
             Note over H: stratified across the >=50-row namespaces, ruvnet-kb capped at about 40 percent
-        and true-recall@10 — 120 rows (:18-22)
+        and true-recall@10 — 120 rows (scripts/ruvector-recall-harness.mjs:18-22)
             H->>EX: ground truth
             H->>PG: HNSW top-10
             PG-->>H: gated score counts queries whose own row survives the top-10 (the 119/120 framing)
             Note over H: the intersection recall |HNSW n exact| / min(10,|exact|) is SURFACED ALONGSIDE but is<br/>not the gated number. Restricted to >=20-row namespaces
-        and exact-token — about 20-30 literal tokens (:23-28)
+        and exact-token — about 20-30 literal tokens (scripts/ruvector-recall-harness.mjs:23-28)
             H->>PG: pure-vector then hybrid
             PG-->>H: literal tokens known verbatim in a bounded namespace — error codes, CUDA_ARCH, HNSW,<br/>filenames, function names
             Note over H: requirement hybrid recall >= pure-vector recall (delta >= 0) — hybrid must NEVER trade<br/>exact-token recall for semantic gains
         end
     end
     H->>H: take the MEDIAN of the 3 runs
-    alt median(self) >= 175/200 AND median(true) >= 102/120 AND median(exact-token hybrid delta) >= 0 (:32-33)
+    alt median(self) >= 175/200 AND median(true) >= 102/120 AND median(exact-token hybrid delta) >= 0 (scripts/ruvector-recall-harness.mjs:32-33)
         H-->>OP: PASS — the gate opens
     else
         H-->>OP: FAIL — the consumer may not flip its gate
     end
-    H->>ART: write the per-run evidence artifact <utc>.json (:40-42)
-    Note over H,PG: INVARIANT: the harness is READ-ONLY against the DB — no memory_store, no schema change.<br/>Classes 1 and 2 issue only kNN SELECTs, class 3 calls the governed memSearch /<br/>memHybridSearch read paths. It NEVER writes an aggregate or a fixture row (:37-39)
-    Note over H: INVARIANT I14 / ADR-2018: no consumer that ALTERS WHAT A QUERY RETURNS may flip its gate<br/>without a passing run here — SONA apply, attention re-rank, param tuning, feed_retrieval<br/>re-rank, an embedding-model cutover, a graph-augmented orient (:4-9)
-    Note over H: a per-namespace self-recall breakdown is surfaced but NOT gated — it catches a<br/>regression localised to one namespace that a corpus-wide average would hide (:34-35)
-    Note over OP: DOC-DRIFT D3: agentbox/CLAUDE.md quotes the frozen band as true >= 107/120 (live<br/>post-rebuild 109/120). The harness code gates at >= 102/120 (:32-33). CODE IS<br/>AUTHORITATIVE for the gate — the prose band is a tighter operational target. self >=<br/>175/200 agrees across both
+    H->>ART: write the per-run evidence artifact <utc>.json (scripts/ruvector-recall-harness.mjs:40-42)
+    Note over H,PG: INVARIANT: the harness is READ-ONLY against the DB — no memory_store, no schema change.<br/>Classes 1 and 2 issue only kNN SELECTs, class 3 calls the governed memSearch /<br/>memHybridSearch read paths. It NEVER writes an aggregate or a fixture row (scripts/ruvector-recall-harness.mjs:37-39)
+    Note over H: INVARIANT I14 / ADR-2018: no consumer that ALTERS WHAT A QUERY RETURNS may flip its gate<br/>without a passing run here — SONA apply, attention re-rank, param tuning, feed_retrieval<br/>re-rank, an embedding-model cutover, a graph-augmented orient (scripts/ruvector-recall-harness.mjs:4-9)
+    Note over H: a per-namespace self-recall breakdown is surfaced but NOT gated — it catches a<br/>regression localised to one namespace that a corpus-wide average would hide (scripts/ruvector-recall-harness.mjs:34-35)
+    Note over OP: DOC-DRIFT D3: agentbox/CLAUDE.md quotes the frozen band as true >= 107/120 (live<br/>post-rebuild 109/120). The harness code gates at >= 102/120 (scripts/ruvector-recall-harness.mjs:32-33). CODE IS<br/>AUTHORITATIVE for the gate — the prose band is a tighter operational target. self >=<br/>175/200 agrees across both
 ```
 
 ## AB-20.10 The index law

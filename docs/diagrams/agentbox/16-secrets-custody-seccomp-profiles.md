@@ -184,7 +184,7 @@ sequenceDiagram
     GW->>RELAY: auth and receive as getPublicKey(sk), reply to AGENTBOX_GATEWAY_REPLY_TO or adminPub
     end
     rect rgb(240,255,240)
-    Note over MIR,PHONE: mirror child key — nostr-live-mirror.cjs:193-214
+    Note over MIR,PHONE: mirror child key — nostr-live-mirror.cjs:209
     MIR->>MIR: cached in _childCache, computed once per process
     alt AGENTBOX_MIRROR_CHILD === '0'
         MIR-->>MIR: null — child mode off, LEGACY operator-self-DM path is used instead
@@ -210,7 +210,7 @@ sequenceDiagram
     participant UP as upstream (AoE or mgmt-api)
     participant ADR as ADR-2027 requirement<br/>agentbox/docs/adr/ADR-2027-secret-custody-rotation-break-glass.md
 
-    ATK->>PX: Authorization Bearer <token> on :9096 over the LAN
+    ATK->>PX: Authorization Bearer <token> on port 9096 over the LAN
     alt BREAK_GLASS unset (proxy.mjs:99 NIP98_PROXY_ALLOW_BEARER)
         PX-->>ATK: branch skipped entirely — break-glass disabled
     else configured
@@ -244,7 +244,7 @@ sequenceDiagram
     ADR-->>PX: fingerprinted acceptance/refusal logs exist — durable per-use receipt is unproven
     ADR-->>PX: full lifecycle needs configured bounds, custodians and tested revocation
     end
-    Note over ATK,PX: DIVERGENCE INGRESS-identity "Break-glass bearer over the LAN" — accepted on :9096 AND via ?access_token= / ?bearer= on WS upgrades.<br/>A single shared secret bypasses NIP-98 entirely. Documented opt-in, but a full identity bypass while enabled. see AB-10.9
+    Note over ATK,PX: DIVERGENCE INGRESS-identity "Break-glass bearer over the LAN" — accepted on port 9096 AND via ?access_token= / ?bearer= on WS upgrades.<br/>A single shared secret bypasses NIP-98 entirely. Documented opt-in, but a full identity bypass while enabled. see AB-10.9
     Note over ADR: ADR-2027 record status: decision proposed, implementation none, activation inactive.<br/>Policy status remains proposed for the complete lifecycle.<br/>Optional bounds and fingerprint logs ARE implemented — lifecycle completion and deployed configuration are not certified.
 ```
 
@@ -406,7 +406,7 @@ flowchart TB
 AB-16.2 corrects an upstream comment as well as the previous drawing: Docker explicitly selected seccomp profiles override the default; they are not automatically stacked ([Docker seccomp documentation](https://docs.docker.com/engine/security/seccomp/)). No running filter or credential contents were inspected. AB-16.3 passed `check-seccomp.sh` against the current source. The same-UID custody limitation remains. See [audit](../../estate-review/2026-09-07-agentbox-audit.md).
 
 
-## AB-16.12 agentbox-secret-backup — an age-encrypted archive tool with no wired invocation
+## AB-16.12 agentbox-secret-backup — an age-encrypted archive tool packaged for explicit invocation
 
 ```mermaid
 flowchart TB
@@ -426,7 +426,7 @@ flowchart TB
     subgraph notes["Invariants and drift"]
         direction TB
         N1["INVARIANT: the tool CANNOT write a plaintext archive — age encryption is<br/>mandatory on every Backup path, not optional (README.md)"]
-        N2["DIVERGENCE: no invocation path found from ./agentbox.sh, flake.nix, or any lib/*.nix<br/>#40;grep-verified#41; — this is an operator-run manual tool, not a supervised or scheduled<br/>process, unlike every other services/ crate covered elsewhere in this topic file"]
+        N2["G17 source closeout: lib/secret-backup.nix packages the locked Rust CLI with checks.<br/>flake.nix includes secretBackupPkg in knowledgeToolPackages.<br/>Explicit operator invocation remains required. No key rotation or restore is implied.<br/>The active container has not been rebuilt with this source change."]
         N3["ADR-2030: AGPL-3.0-only, publish#61;false, NOT dual-licensed like the sibling<br/>services/ crates #40;MIT OR Apache-2.0#41; — an operator-internal tool, never published"]
         N4["ADR-2027 acceptance gap: retention, off-host placement and the recovery-authority<br/>test remain the operator's responsibility — SelfTest proves restore works on<br/>synthetic data only, never on a real secret"]
         N1 ~~~ N2 ~~~ N3 ~~~ N4

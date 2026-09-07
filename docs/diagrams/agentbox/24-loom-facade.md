@@ -4,7 +4,7 @@ title: Ontology Loom facade and the model-swap seam
 area: agentbox
 governing:
   - ../project/agentbox/docs/GOVERNANCE-capabilities.md
-adrs: [ADR-2023, ADR-2053, ADR-2055]
+adrs: [ADR-2023, ADR-2053, ADR-2055, ADR-2075]
 sources:
   - ../project/agentbox/mcp/servers/lib/ontology-retrieval.js
   - ../project/agentbox/mcp/servers/lib/ontology-budget.js
@@ -14,7 +14,7 @@ sources:
   - ../project/agentbox/scripts/opf-router.py
   - ../project/agentbox/mcp/servers/lib/ontology-telemetry.js
   - ../project/agentbox/flake.nix
-verified_commit: 2c521c5bb
+verified_commit: a0ee1fe5740baa38e14c4ff3fe512dd557bcbb6e
 ---
 
 ## AB-24.1 Two deployments of one facade contract — topology
@@ -22,7 +22,7 @@ verified_commit: 2c521c5bb
 ```mermaid
 flowchart TB
     subgraph consumers["Consumers hold a DOOR, never a raw model port (ADR-2023)"]
-        RET["ontology-retrieval brain<br/>agentbox/mcp/servers/lib/ontology-retrieval.js:667"]
+        RET["ontology-retrieval brain<br/>agentbox/mcp/servers/lib/ontology-retrieval.js:734"]
         COND["ontology condense<br/>agentbox/agentbox.toml:675"]
         DREAM["dream-engine loom_url<br/>agentbox/agentbox.toml:1734"]
         SEED["AoE session seed slug=loom<br/>agentbox/agentbox.toml:1374"]
@@ -38,13 +38,13 @@ flowchart TB
         DATA["loom-data :ro generation<br/>docker-compose.unified.yml:338"]
     end
     subgraph model["The model — an operational detail BEHIND the door"]
-        M85["loom-model :8085 qwen3.8-27B<br/>DISTILL_BACKEND_URL"]
+        M85["loom-model port 8085 qwen3.8-27B<br/>DISTILL_BACKEND_URL"]
     end
     RET -->|"LOOM_FACADE_URL"| F84
     COND -->|"POST /v1/chat/completions"| F84
     DREAM -->|"llm_provider=loom only"| F84
     SEED -->|"model loom-lan/qwen3.8-27B"| F84
-    SEEDRAW -->|"raw :8085 — NOT the door"| M85
+    SEEDRAW -->|"raw port 8085 — explicit coding/benchmark path"| M85
     EMAIL -->|"http://loom:8080/v1"| SIDE
     F84 -->|"ml DNATs over the 25G rail 10.10.10.0/30"| M85
     SIDE -->|"DISTILL_BACKEND_URL blank = retrieval-only, /v1 returns 503"| M85
@@ -52,8 +52,8 @@ flowchart TB
     SIDE -->|"entrypoint copies .rvdb off :ro — opening redb mutates it"| TMPFS
     subgraph notes["Invariants and drift"]
         direction TB
-        N1["RESOLVED ADR-2070 #40;2026-09-05#41;: not a breach. ADR-045 one-front-door is an INGRESS rule<br/>#40;:9096, NIP-98, control surfaces reaching INTO the box#41; and says nothing about EGRESS to a LAN<br/>model host. The raw :8085 door is deliberate and named #40;flake.nix LOOM_RAW_BASE_URL, the loom-raw<br/>session seed#41; — agent-choice and benchmark-only for raw coding, never a fallback and never<br/>auto-routed when the facade errors. Knowledge-work consumers hold :8084. A third door needs an ADR"]
-        N2["RESOLVED ADR-2055: opf-router is the PRIVACY-FILTER redaction sidecar on OPF_PORT<br/>9092 (agentbox.toml [privacy_filter].port, scripts/opf-router.py:41, flake.nix<br/>[program:opf-router]). BASELINE-container previously described it as an<br/>OpenAI-compatible facade on :8084 — corrected. No agentbox program serves<br/>:8084 — that is the Loom facade on machinelearn"]
+        N1["RESOLVED ADR-2070 #40;2026-09-05#41;: not a breach. ADR-045 one-front-door is an INGRESS rule<br/>#40;port 9096, NIP-98, control surfaces reaching INTO the box#41; and says nothing about EGRESS to a LAN<br/>model host. The raw port 8085 door is deliberate and named #40;flake.nix LOOM_RAW_BASE_URL, the loom-raw<br/>session seed#41; — agent-choice and benchmark-only for raw coding, never a fallback and never<br/>auto-routed when the facade errors. Knowledge-work consumers hold port 8084. A third door needs an ADR"]
+        N2["RESOLVED ADR-2055: opf-router is the PRIVACY-FILTER redaction sidecar on OPF_PORT<br/>9092 (agentbox.toml [privacy_filter].port, scripts/opf-router.py:41, flake.nix<br/>[program:opf-router]). BASELINE-container previously described it as an<br/>OpenAI-compatible facade on port 8084 — corrected. No agentbox program serves<br/>port 8084 — that is the Loom facade on machinelearn"]
         N3["The loom-facade implementation lives OUTSIDE this repo at /home/devuser/workspace/loom.<br/>This repo holds the deployment contract only (loom/README.md:8-15)"]
         N1 ~~~ N2 ~~~ N3
     end
@@ -64,31 +64,31 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant CALL as createDefaultRetrieval<br/>agentbox/mcp/servers/lib/ontology-retrieval.js:667
-    participant SEL as selectBackend<br/>agentbox/mcp/servers/lib/ontology-retrieval.js:471
+    participant CALL as createDefaultRetrieval<br/>agentbox/mcp/servers/lib/ontology-retrieval.js:734
+    participant SEL as selectBackend<br/>agentbox/mcp/servers/lib/ontology-retrieval.js:491
     participant ENV as process.env
-    participant LF as makeLoomFetch<br/>agentbox/mcp/servers/lib/ontology-retrieval.js:596
-    participant VF as makeVcFetch<br/>agentbox/mcp/servers/lib/ontology-retrieval.js:496
+    participant LF as makeLoomFetch<br/>agentbox/mcp/servers/lib/ontology-retrieval.js:616
+    participant VF as makeVcFetch<br/>agentbox/mcp/servers/lib/ontology-retrieval.js:516
     participant TEL as createTelemetrySink<br/>agentbox/mcp/servers/lib/ontology-telemetry.js
 
     CALL->>SEL: selectBackend(opts, env)
     SEL->>ENV: read LOOM_FACADE_URL / VISIONCLAW_API_URL / LOOM_GENERATION
-    Note over SEL,ENV: generation falls back LOOM_GENERATION then ONTOLOGY_GENERATION then null (:474-476)
-    alt loomUrl set AND no injected vcFetch (:477)
+    Note over SEL,ENV: generation falls back LOOM_GENERATION then ONTOLOGY_GENERATION then null
+    alt loomUrl set AND no injected vcFetch
         SEL-->>CALL: name=loom url=loomUrl configured=true reason=LOOM_URL_SET
         CALL->>LF: makeLoomFetch(opts)
-        CALL->>TEL: canary() — startup liveness probe, loud on failure, fail-open (:672)
-    else vcUrl empty (:483)
+        CALL->>TEL: canary() — startup liveness probe, loud on failure, fail-open
+    else vcUrl empty
         SEL-->>CALL: name=none url=null configured=false reason=NOT_CONFIGURED
-    else loomUrl set BUT vcFetch injected (:491)
+    else loomUrl set BUT vcFetch injected
         SEL-->>CALL: name=visionclaw reason=VC_FETCH_INJECTED
         CALL->>VF: makeVcFetch(opts) — tests / deliberate pinning
-    else loomUrl unset (:491)
+    else loomUrl unset
         SEL-->>CALL: name=visionclaw reason=LOOM_URL_UNSET
-        CALL->>VF: makeVcFetch(opts) — DEFAULT_API http://visionclaw-server:4000 (:457)
+        CALL->>VF: makeVcFetch(opts) — DEFAULT_API http://visionclaw-server:4000
     end
-    Note over SEL: INVARIANT: an unset LOOM_FACADE_URL is the ordinary VisionClaw path and NOT a fault — a<br/>CONFIGURED Loom that is unreachable is an operational fault (:459-467)
-    Note over CALL: One brain = this module plus the shared backing stores, NOT one process (:2-6)
+    Note over SEL: INVARIANT: an unset LOOM_FACADE_URL is the ordinary VisionClaw path and NOT a fault — a<br/>CONFIGURED Loom that is unreachable is an operational fault
+    Note over CALL: One brain = this module plus the shared backing stores, NOT one process
 ```
 
 ## AB-24.3 Loom-backed retrieval — /loom/search seed then /loom/sparql expand
@@ -96,90 +96,65 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant AG as ontology_ask caller<br/>see AB-25
-    participant ASK as ask()<br/>agentbox/mcp/servers/lib/ontology-retrieval.js:279
-    participant SEED as loomSeedFn<br/>agentbox/mcp/servers/lib/ontology-retrieval.js:625
-    participant EXP as loomExpandFn<br/>agentbox/mcp/servers/lib/ontology-retrieval.js:635
-    participant LF as loomFetch<br/>agentbox/mcp/servers/lib/ontology-retrieval.js:600
-    participant LOOM as Loom facade<br/>LOOM_FACADE_URL
-    participant BUD as clampToBudget<br/>agentbox/mcp/servers/lib/ontology-budget.js
-
-    AG->>ASK: ask({query, mode, depth, domain, max_tokens, provenance})
-    ASK->>SEED: seedFn({query, limit: 8, domain})
-    SEED->>LF: POST /loom/search {q, limit}
-    LF->>LOOM: fetch, AbortController timeout ONTOLOGY_TIMEOUT_MS default 10000 (:598)
-    alt HTTP not ok (:607)
-        LOOM-->>LF: non-2xx
-        LF-->>SEED: {error: loom_http_<status>}
-        SEED-->>ASK: throw res (:628)
-        ASK->>ASK: classifyCause -> stages [seed] (+ backend-unavailable on availability/timeout)
-        Note over ASK: NOT cached — a transport fault must not pin an empty answer for the TTL (:371-372)
-        ASK-->>AG: empty, degraded=true, error=backend_configured_but_unavailable
-    else AbortError (:613)
-        LF-->>SEED: {error: ontology_timeout}
-        ASK-->>AG: empty, degraded=true, stages [seed, backend-unavailable]
-    else ok
-        LOOM-->>LF: {hits:[{iri,label}]}
-        SEED-->>ASK: rows mapped to {iri, label, score: 1 - i*0.01} (:630)
-        ASK->>ASK: maturity + domain gate (:376-383)
-        Note over ASK: unknown maturity is NOT gated out — only explicitly-low classes drop (:378-380)
-        alt no seeds survive (:385)
-            ASK->>ASK: cache.set(key, empty)
-            ASK-->>AG: empty result
-        else mode=expand AND depth>0 (:393)
-            ASK->>EXP: expandFn({seedIris, depth, provenance})
-            EXP->>LF: POST /loom/sparql childSparql LIMIT 60 (:643)
-            Note over EXP,LF: children FIRST so the downstream budget clamp never trims them (ADR-112, :650)
-            EXP->>LF: POST /loom/sparql outSparql LIMIT min(80*depth, 300) (:639-641)
-            Note over EXP: Loom store merges asserted+inferred into ONE graph — no GRAPH clause needed (:640)
-            alt sparql error
-                LF-->>EXP: {error}
-                EXP-->>ASK: throw Error with stage='sparql' (:647)
-                ASK->>ASK: degradedStages.push(expansion) then push(sparql) (:405-406)
-                Note over ASK: DOC-DRIFT closed 2026-09-05 — this path used to return degraded=false, making a<br/>menu-only answer indistinguishable from a full expansion (:403-404)
-            else ok
-                EXP-->>ASK: children then outgoing triples (:653-655)
+    participant CALL as ontology_ask
+    participant ASK as ask<br/>ontology-retrieval.js:280
+    participant VERIFY as loomGenerationVerifier<br/>ontology-retrieval.js:665
+    participant FETCH as makeLoomFetch<br/>ontology-retrieval.js:616
+    participant LOOM as selected Loom service
+    CALL->>ASK: query, constraints, optional generation pin
+    ASK->>VERIFY: verify before cache lookup
+    VERIFY->>LOOM: GET /loom/generation
+    alt missing, drifted or mismatched identity/model/corpus
+        VERIFY-->>ASK: refusal
+        ASK-->>CALL: empty labelled generation degradation, no fallback
+    else verified loaded bundle
+        VERIFY-->>ASK: digest plus generation and embedding contract
+        ASK->>ASK: cache lookup with verified discriminator
+        alt cache miss
+            ASK->>FETCH: POST /loom/search
+            FETCH->>LOOM: query
+            LOOM-->>FETCH: existing body plus loaded identity headers
+            FETCH-->>ASK: normalised hits, response identity
+            ASK->>ASK: require matching response bundle and maturity/domain gates
+            opt expansion requested
+                ASK->>FETCH: child then outgoing POST /loom/sparql
+                LOOM-->>FETCH: rows plus loaded identity headers
+                FETCH-->>ASK: require matching identity on each response
             end
+            ASK->>ASK: mismatch discards result otherwise serialise and budget clamp
         end
-        ASK->>BUD: clampToBudget(turtle, model_tier, max_tokens) (:417)
-        BUD-->>ASK: {text, tokens, truncated}
-        ASK-->>AG: {turtle, breadcrumb, seed_iris, tokens_used, truncated, degraded, degraded_stages,<br/>backend, generation}
+        ASK-->>CALL: scoped result with verified cache generation
     end
+    Note over ASK,LOOM: Source staged. The old live API and mixed graph/semantic generation are refused.<br/>Default-graph provenance limitation remains separate from identity verification.
 ```
 
 ## AB-24.4 Cache key completeness and cache-hit constraint revalidation
 
 ```mermaid
 sequenceDiagram
-    autonumber
-    participant ASK as ask()<br/>agentbox/mcp/servers/lib/ontology-retrieval.js:279
-    participant KEY as cacheKey<br/>agentbox/mcp/servers/lib/ontology-retrieval.js:74
-    participant CACHE as cache
-    participant SAT as cacheEntrySatisfies<br/>agentbox/mcp/servers/lib/ontology-retrieval.js:157
-    participant TEL as telemetry
-
-    ASK->>KEY: cacheKey(resolved req)
-    KEY->>KEY: FNV-1a over field=value for every CACHE_KEY_FIELDS entry in declaration order (:74-84)
-    Note over KEY: CACHE_KEY_FIELDS = query, model_tier, mode, depth, provenance, full, domain, max_tokens,<br/>budget, min_maturity, backend, generation (:46-59)
-    Note over KEY: absent/null/'' collapse to one sentinel so absence never aliases a value (:61-66)
-    Note over KEY: INVARIANT: an omitted field is a CORRECTNESS BUG, not a perf tweak (:32-33)
-    KEY-->>ASK: 'ont:'+hash
-    ASK->>CACHE: get(key)
+    participant ASK as ask<br/>ontology-retrieval.js:280
+    participant VERIFY as loomGenerationVerifier<br/>ontology-retrieval.js:665
+    participant KEY as cacheKey<br/>ontology-retrieval.js:75
+    participant CACHE as TTL cache
+    participant SAT as cacheEntrySatisfies<br/>ontology-retrieval.js:158
+    ASK->>VERIFY: verify selected Loom before reading cache
+    VERIFY-->>ASK: loaded graph/semantic identity plus embedding contract
+    Note over ASK,VERIFY: No valid identity means no cached answer.<br/>Configured generation is compared as a pin, never used to relabel bytes.
+    ASK->>KEY: all effective request constraints
+    Note over KEY: generation discriminator hashes loaded generation, content digest,<br/>embedding model and dimensions, key also includes domain, budget and scope
+    KEY-->>ASK: cache key
+    ASK->>CACHE: get key
     alt hit
-        CACHE-->>ASK: cached entry
-        ASK->>SAT: cacheEntrySatisfies(entry, constraints)
-        alt constraints satisfied (:336)
-            ASK->>TEL: record cache_hit
-            Note over ASK: a hit REPLAYS the degradation state it was stored with — a partial answer stays partial<br/>however often it is served (:338-343)
-            ASK-->>ASK: return entry.result with cache_hit=true
-        else violation (:348)
-            ASK->>TEL: record cache_constraint_miss with violations
-            Note over ASK: policy is MISS and re-retrieve, NEVER truncate — the stored Turtle was already clamped<br/>once and a second cut would slice a seed mid-triple and silently change what the<br/>grounding asserts (:331-334)
+        CACHE-->>ASK: stored result and constraints
+        ASK->>SAT: compare current constraints and budget
+        alt matching
+            ASK-->>ASK: replay result with preserved degradation state
+        else mismatch
+            ASK-->>ASK: re-retrieve, never truncate a previously clamped graph
         end
     else miss
-        ASK->>ASK: proceed to seed (see AB-24.3)
+        ASK-->>ASK: retrieve and verify response identity
     end
-    Note over ASK,CACHE: DIVERGENCE closed 2026-09-05 — domain and max_tokens were absent from the key, so an<br/>AI-domain 830-token body was served cache_hit=true to a robotics request capped at 50<br/>tokens (:36-39)
 ```
 
 ## AB-24.5 Backend, stage and outcome vocabularies
@@ -244,8 +219,8 @@ classDiagram
     AskResult --> DEGRADED_STAGES : degraded_stages drawn from
     AskResult --> BACKENDS : backend drawn from
     AskResult ..> DEGRADED_OUTCOMES : error drawn from
-    note for DEGRADED_OUTCOMES "BACKEND_CONFIGURED_UNAVAILABLE is deliberately distinct from BACKEND_NOT_CONFIGURED —<br/>collapsing the two hides a dead facade behind a normal fallback<br/>(ontology-retrieval.js:100-106)"
-    note for MATURITY_RANK "classifyCause splits availability/timeout from auth_or_validation so a 401 is never<br/>reported as unavailability (ontology-retrieval.js:700-702)"
+    note for DEGRADED_OUTCOMES "BACKEND_CONFIGURED_UNAVAILABLE is deliberately distinct from BACKEND_NOT_CONFIGURED —<br/>collapsing the two hides a dead facade behind a normal fallback<br/>(ontology-retrieval.js:108 DEGRADED_OUTCOMES)"
+    note for MATURITY_RANK "classifyCause splits availability/timeout from auth_or_validation so a 401 is never<br/>reported as unavailability (ontology-retrieval.js:768-702)"
 ```
 
 ## AB-24.6 POST /v1/chat/completions — scaffold injection then delegate
@@ -306,9 +281,9 @@ sequenceDiagram
     autonumber
     participant OP as Operator
     participant CFG as deployment config<br/>DISTILL_BACKEND_URL / agentbox.toml
-    participant FAC as Loom facade :8084 or loom:8080
+    participant FAC as Loom facade port 8084 or loom:8080
     participant OLD as outgoing model
-    participant NEW as incoming model :8085
+    participant NEW as incoming model port 8085
     participant CONS as every consumer<br/>see AB-24.1
 
     Note over CONS: consumers hold ONLY the door URL — none names a model port for scaffolded work
@@ -319,7 +294,7 @@ sequenceDiagram
     FAC--xOLD: no longer delegated to
     CONS->>FAC: unchanged calls
     FAC-->>CONS: unchanged contract
-    Note over OP,CONS: INVARIANT ADR-2023: swapping the deployed model must NOT touch any consumer — the model<br/>is an operational detail behind :8084
+    Note over OP,CONS: INVARIANT ADR-2023: swapping the deployed model must NOT touch any consumer — the model<br/>is an operational detail behind port 8084
     Note over CFG: history — Gemma then Muse then Qwen3.8-27B — agentbox.toml:1735 loom_model =<br/>qwen3.8-27B, :1739 loom_max_tokens = 32768
     Note over FAC: RESOLVED — GOVERNANCE-capabilities now cites agentbox.toml by [section].key rather than<br/>raw line (ADR-2052 changelog 0.1.1) and correctly states ".loom_max_tokens = 32768, raised<br/>from 16384" — the working tree has loom_url at agentbox.toml:1734 and loom_max_tokens at<br/>:1739 — the cap was raised after glm-5.3 burned ~16k reasoning tokens and hit the old 16384<br/>cap with empty content twice (agentbox.toml comment at :1736-1738)
     Note over FAC: RESOLVED — GOVERNANCE-capabilities now cites session seeds as `slug = "loom"` /<br/>`slug = "loom-raw"` under [[interaction_plane.session_seeds]] (no raw line number) — the<br/>working tree has slug=loom at agentbox.toml:1374 and slug=loom-raw at :1381
@@ -377,12 +352,12 @@ stateDiagram-v2
 ```mermaid
 flowchart LR
     subgraph doors["Doors"]
-        D84["LAN facade :8084/v1"]
+        D84["LAN facade port 8084/v1"]
         D80["sidecar loom:8080/v1"]
-        D85["raw model :8085 — NOT a door"]
+        D85["raw model port 8085 — named egress"]
     end
-    RET["ontology-retrieval brain<br/>LOOM_FACADE_URL<br/>agentbox/mcp/servers/lib/ontology-retrieval.js:472"] --> D84
-    COND["ontology condense endpoint<br/>agentbox/agentbox.toml:675<br/>model qwen3.8-27B style openai max_concurrency 2 (:676-678)"] --> D84
+    RET["ontology-retrieval brain<br/>LOOM_FACADE_URL<br/>agentbox/mcp/servers/lib/ontology-retrieval.js:491"] --> D84
+    COND["ontology condense endpoint<br/>agentbox/agentbox.toml:675<br/>model qwen3.8-27B style openai max_concurrency 2"] --> D84
     DREAM["dream_machine loom_url<br/>agentbox/agentbox.toml:1734"] --> D84
     SEEDL["session seed slug=loom<br/>agentbox/agentbox.toml:1374<br/>model loom-lan/qwen3.8-27B — scaffolded, knowledge work"] --> D84
     SEEDR["session seed slug=loom-raw<br/>agentbox/agentbox.toml:1381<br/>model loom-raw/qwen3.8-27B — no scaffold, coding"] --> D85
@@ -395,7 +370,7 @@ flowchart LR
         direction TB
         N1["RESOLVED ADR-2053: the dream engine's default provider is Z.AI by deliberate<br/>choice — GOVERNANCE-capabilities now states this and names the egress posture.<br/>loom_url/loom_model select the LAN-only path when llm_provider = loom. See AB-23"]
         N2["PROPOSED ADR-2074: the ADR-051 deferred-distillation tools become a discrete<br/>manifest-gated MCP server with a job URN kind and distill plus recombine beads<br/>ADR-2023 remaining is the ORIGIN of this gap, not its resolution (see AB-26)"]
-        N3["PROPOSED ADR-2075: the Loom exposes a generation descriptor and the client reports the<br/>ATTESTED generation - a configured value that disagrees fails labelled instead of being<br/>served or relabelled, and the cache keys on the attested id"]
+        N3["STAGED ADR-2075: GET generation before cache lookup<br/>bind loaded digest, semantic generation and bge 384 cosine<br/>response identity headers must match; old live server is rejected"]
         N4["PROPOSED ADR-2076: benchmark /loom/search plus /loom/sparql on its own terms with a<br/>frozen recall band in the shape of the RuVector recall gate - scaffold and chat numbers<br/>are never cited as evidence for this path"]
         N5["app/ontology-mcp is a standalone stdio MCP server left in place with no build or run<br/>path from this repo, pending a decision on where it should live (loom/README.md:108-115)"]
         N1 ~~~ N2 ~~~ N3 ~~~ N4 ~~~ N5
@@ -404,4 +379,4 @@ flowchart LR
 
 ## Audit qualification — 2026-09-07
 
-The local Rust Loom already exposes `GET /loom/generation` in `crates/loom-facade/src/routes/mod.rs`, backed by generation verification in `bundle.rs`. Agentbox `ontology-retrieval.js::selectBackend` still obtains its generation from options/environment and its Loom transport calls only search/SPARQL. ADR-2075 therefore needs **client consumption and mismatch enforcement**, not an assertion that every Loom implementation lacks an identity endpoint. Deployment identity was not probed. The Loom graph loader still loads Turtle into the shared default graph; the helper omits provenance graph clauses, so ADR-2073 remains open.
+The execution pass implements consumer verification in `ontology-retrieval.js::loomGenerationVerifier`: GET generation before every cache lookup, compare the configured pin and loaded digest/model/corpus, and validate identity headers on search/SPARQL responses. The local Loom route implementation preserves response bodies and adds those headers. This source is staged: the live façade was probed and still reports lexical generation 2026-08-22 versus semantic 2026-08-17, without loaded identity/embedding fields. A coordinated bundle/server rollout is required before activating the stricter client. See [execution evidence](../../estate-review/closeout/2026-09-07-execution-agentbox.md). The graph loader still uses the shared default graph, so ADR-2073 remains open. Generation reporting is not an automatic corpus reload.

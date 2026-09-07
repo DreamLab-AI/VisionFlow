@@ -10,6 +10,8 @@ sources:
   - ../project/agentbox/skills/email-search/SKILL.md
   - ../project/agentbox/docs/adr/ADR-2023-loom-facade.md
   - ../project/loom/README.md
+  - ../loom/scripts/reload-published-generation.py
+  - ../loom/deploy/loom-generation-reload.service
   - ../project/docker-compose.unified.yml
   - ../project/agentbox/flake.nix
   - ../project/agentbox/agentbox.toml
@@ -30,11 +32,11 @@ flowchart LR
         XI["xinference:9997/v1<br/>bge-small-en-v1.5 / 384"]
     end
     subgraph ml["machinelearn .132"]
-        DNAT["hp-nat.service DNAT :8084<br/>plus MSS clamp for the 9000 to 1500 step-down"]
+        DNAT["hp-nat.service DNAT port 8084<br/>plus MSS clamp for the 9000 to 1500 step-down"]
     end
     subgraph hp["HP-Desktop — downstream, NO LAN IP"]
-        LOOMA["Loom façade :8084 — Deployment A<br/>COLOCATED with the model"]
-        MODEL["loom-model container :8085<br/>Qwen3.8-27B, cutover 2026-08-14"]
+        LOOMA["Loom façade port 8084 — Deployment A<br/>COLOCATED with the model"]
+        MODEL["loom-model container port 8085<br/>Qwen3.8-27B, cutover 2026-08-14"]
     end
 
     AG -- "MCP tools ask_email / fetch_* / refresh_inbox" --> GW
@@ -47,10 +49,10 @@ flowchart LR
 
     INV1["INVARIANT — consumers hold the FAÇADE, never the model port.<br/>The deployed model is a URL behind DISTILL_BACKEND_URL;<br/>swapping Muse to Gemma to Qwen3.8 to next never touches a<br/>consumer. This is the no-technical-debt-on-upgrade guarantee."]
     INV2["INVARIANT — the Loom IS the email privacy system. It<br/>delegates ONLY to a LAN/local model, never to a cloud<br/>endpoint, so mail content never leaves the LAN."]
-    DIV0["DIVERGENCE — Deployment B is SPECIFIED, not running. The loom<br/>service is gated behind compose profile loom (docker-compose.unified.yml:360-361),<br/>so a default up never starts it, and its image is not built from this repo:<br/>the referenced loom/deploy/Dockerfile does not exist in this checkout<br/>(:292-296, loom/ holds README.md + app/ only). Deployment A (:8084 on HP)<br/>is the live path. see ES-01.6"]
+    DIV0["DIVERGENCE — Deployment B is SPECIFIED, not running. The loom<br/>service is gated behind compose profile loom (docker-compose.unified.yml:360-361),<br/>so a default up never starts it, and its image is not built from this repo:<br/>the referenced loom/deploy/Dockerfile does not exist in this checkout<br/>(:292-296, loom/ holds README.md + app/ only). Deployment A (port 8084 on HP)<br/>is the live path. see ES-01.6"]
     DIV1["DIVERGENCE — 192.168.2.48 (HP's old LAN IP) is DEAD.<br/>HP is off the Sodola with no LAN IP; ml routes and NATs it<br/>over the direct 25G rail. Never target .48. see ES-06.7"]
     DIV2["DIVERGENCE GOVERNANCE-capabilities — ADR-051 (Loom) is<br/>decision_status PROPOSED while the Loom is<br/>production-critical. Interim authority is the governing doc."]
-    DIV3["RESOLVED ADR-2070 — ingress and egress have different contracts.<br/>Loom facade :8084 and raw model :8085 are named egress doors.<br/>Task-specific raw calls do not bypass the AoE ingress proxy."]
+    DIV3["RESOLVED ADR-2070 — ingress and egress have different contracts.<br/>Loom facade port 8084 and raw model port 8085 are named egress doors.<br/>Task-specific raw calls do not bypass the AoE ingress proxy."]
 
     INV1 --- INV2
     LOOMA --> DIV1
@@ -202,7 +204,7 @@ flowchart TB
     GEN["A full generation = scaffold-index.json + prose-index.json<br/>+ the TTLs + ontology-corpus.rvdb with its .generation.json"]
     T1["TRAP the empty floor — with an empty or mis-pointed<br/>LOOM_DATA_SOURCE the façade STILL starts and /health STILL<br/>returns 200, but the log reads lexical index NOT loaded ...<br/>empty floor. That is a staging bug, not a dead container.<br/>Check the mount before you check the process."]
     T2["The .rvdb is mounted read-only, but OPENING it mutates the<br/>redb file even for reads (the HNSW index is repacked on open),<br/>so the entrypoint copies it to a writable tmpfs at /run/loom.<br/>The tmpfs uid/gid must stay 65532 to match the image's<br/>non-root user or that copy fails EACCES."]
-    D1["DIVERGENCE — the Rust image has NO mirror-on-start step.<br/>ONTOLOGY_SITE and LOOM_MIRROR_ON_START are GONE; the<br/>generation is staged by the operator and served immutably."]
+    D1["V1 P2 source closeout: scripts/reload-published-generation.py verifies<br/>all six published artefacts and semantic generation before restart.<br/>Pending receipt precedes reload, served receipt requires matching live identity.<br/>The opt-in timer remains uninstalled: live graph and semantic bundles disagree."]
     D2["DIVERGENCE — app/ontology-mcp/ (stdio MCP server, JavaScript)<br/>survived the Python deletion but now has NO build or run path<br/>from this repo. PRD-025/ADR-135 treat it as a thin client of<br/>the Loom index; placement is an open decision."]
 
     nomodel --> GEN
@@ -294,7 +296,7 @@ stateDiagram-v2
     end note
     note right of StopCurrent
         docker stop loom-model.
-        Only ONE container can hold :8085.
+        Only ONE container can hold port 8085.
         Alternates park as loom-model-NAMEbak (Exited).
     end note
     note right of PromoteNew
@@ -302,7 +304,7 @@ stateDiagram-v2
         then rename loom-model-NEWbak to loom-model.
     end note
     note right of Confirm
-        curl :8084/v1/models shows the new alias and
+        GET /v1/models on port 8084 shows the new alias and
         /health shows backend_reachable true, then
         smoke-test a real /v1/chat/completions.
         Reasoning models need max_tokens >= 2048
@@ -328,7 +330,7 @@ flowchart TB
     subgraph PRIV["Plane 1 — the Loom façade: PRIVATE work, LAN-only"]
         FAC["Loom façade, the stable door<br/>ADR-2023-loom-facade.md:23<br/>consumers hold this URL, never a model port"]
         MDL["deployed model behind DISTILL_BACKEND_URL<br/>Qwen3.8-27B in the loom-model container<br/>email-search/SKILL.md:94"]
-        MAIL["email-mcp-gateway :8765<br/>REASONER_BASE_URL points at the façade"]
+        MAIL["email-mcp-gateway port 8765<br/>REASONER_BASE_URL points at the façade"]
         FAC --> MDL
         MAIL --> FAC
     end

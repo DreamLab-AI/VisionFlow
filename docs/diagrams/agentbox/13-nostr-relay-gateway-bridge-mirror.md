@@ -43,13 +43,13 @@ verified_commit: 2c521c5bb
 flowchart TB
     subgraph lan["LAN / container boundary"]
         subgraph relayslot["relay slot [program:nostr-relay] flake.nix:2209-2239"]
-            PB["nostr-pod-bridge daemon<br/>services/nostr-pod-bridge/src/main.rs:109 run_daemon<br/>embedded relay :7777 loopback (podBridgeEnabled=true, default)"]
-            RS["nostr-rs-relay binary<br/>flake.nix:2230 else-branch (podBridgeEnabled=false only)"]
+            PB["nostr-pod-bridge daemon<br/>services/nostr-pod-bridge/src/main.rs:109 run_daemon<br/>embedded relay port 7777 loopback (podBridgeEnabled=true, default)"]
+            RS["nostr-rs-relay binary<br/>flake.nix:2231 else-branch (podBridgeEnabled=false only)"]
         end
         GW["nostr-gateway daemon<br/>config/nostr-gateway/gateway.cjs:743 connect()<br/>[program:nostr-gateway] flake.nix:1896"]
         MGMT["management-api RelayConsumer<br/>management-api/server.js:1324<br/>mcp/nostr-bridge/relay-consumer.js:85 (legacy JS consumer, still wired)"]
-        AOE["AoE interaction plane :9095<br/>gateway.cjs:115-146 aoeRequest()"]
-        TAB0["tab0-bridge :8971<br/>gateway.cjs:104,369 chatTab0()"]
+        AOE["AoE interaction plane port 9095<br/>gateway.cjs:115-146 aoeRequest()"]
+        TAB0["tab0-bridge port 8971<br/>gateway.cjs:104,369 chatTab0()"]
     end
     subgraph cloud["Cloud egress boundary (the ONE external Nostr hop for mirror+control)"]
         CLOUD["dreamlab cloud worker relay<br/>wss://dreamlab-nostr-relay.solitary-paper-764d.workers.dev<br/>agentbox.toml:175 forum_relay_url"]
@@ -57,7 +57,7 @@ flowchart TB
     subgraph phone["Operator phone"]
         AME["Amethyst + Amber signer<br/>reads/writes the operator self-DM thread"]
     end
-    MIRROR["nostr-live-mirror.cjs hook<br/>config/hooks/nostr-live-mirror.cjs:374 main()<br/>SessionStart/UserPromptSubmit/Stop/SessionEnd"]
+    MIRROR["nostr-live-mirror.cjs hook<br/>config/hooks/nostr-live-mirror.cjs:375 main()<br/>SessionStart/UserPromptSubmit/Stop/SessionEnd"]
     DIGEST["nostr-pod-bridge session-summary<br/>services/nostr-pod-bridge/src/session_summary.rs:362 run()"]
     ZAI["Z.AI / GLM summariser<br/>session_summary.rs:59 DEFAULT_ZAI_BASE"]
     FORUM["forum-backup-cron<br/>flake.nix:2455 [program:forum-backup-cron]<br/>supercronic + dreamlab-ai-website/scripts/backup/crontab (OUT OF TREE)"]
@@ -124,7 +124,7 @@ Note over ADM,REL: DIVERGENCE (ADR-2012 closeout 2026-09-04): this gate closes t
 ```mermaid
 sequenceDiagram
     autonumber
-    participant TOML as agentbox.toml<br/>[sovereign_mesh.relay] :131-181
+    participant TOML as agentbox.toml<br/>[sovereign_mesh.relay] agentbox.toml:131-181
     participant NIX as flake.nix evaluation<br/>flake.nix:1323-1351
     participant CSV as relayAllowedPubkeysCsv<br/>flake.nix:1461
     participant TOMLGEN as relayAllowedPubkeysToml<br/>flake.nix:1462-1473
@@ -134,7 +134,7 @@ sequenceDiagram
     NIX->>NIX: relayEnabled = relayCfg.enabled flake.nix:1323
     NIX->>NIX: relayLocal = relayEnabled and impl in {nostr-rs-relay, rnostr} flake.nix:1325
     NIX->>NIX: podBridgeEnabled = relayLocal and relayCfg.pod_bridge flake.nix:1351
-    TOML->>NIX: allowed_pubkeys[] :144-153, pod_bridge=true :160
+    TOML->>NIX: allowed_pubkeys[] agentbox.toml:144-153, pod_bridge=true agentbox.toml:160
     NIX->>CSV: relayAllowedPubkeysCsv = concatStringsSep "," allowed_pubkeys flake.nix:1461
     alt podBridgeEnabled == true (default: pod_bridge = true)
         NIX->>SUP: [program:nostr-relay] command=nostr-pod-bridge flake.nix:2217-2228
@@ -155,7 +155,7 @@ Note over TOML,PB: no runtime mutation path — no auto-add, no fallback (admiss
 classDiagram
     class Kind1059_GiftWrap {
         kind = 1059
-        producer nostr-live-mirror.cjs:408 nip59.wrapEvent
+        producer nostr-live-mirror.cjs:465 nip59.wrapEvent
         producer gateway.cjs:279 buildWrap
         consumer lib.rs:266 effective_message unwrap_gift
         consumer gateway.cjs:705 handleWrap
@@ -402,7 +402,7 @@ Note over BOOT,GDW: CORRECTION — despite the path mcp/servers/nostr-bridge.js,
     end
     NB-->>RC: onInbound(event, relayUrl) relay-consumer.js:228
     RC->>RC: _verifySig(event) I01 relay-consumer.js:281,427
-    RC->>RC: _passesIngressPolicy(event) I07 relay-consumer.js:288,444
+    RC->>RC: _passesIngressPolicy(event) I07 relay-consumer.js:288, definition :493
     RC->>RC: _findRecipientNpub(event) I10 relay-consumer.js:507
     alt kind in 38000-38099 (agent-intent) and intentSpec present
         RC->>SPEC: intentSpec(event, context) relay-consumer.js referencing default-intent-spec.js:71
@@ -440,39 +440,40 @@ Note over DISP: gate order enforced before dispatch is reached (AB-13.5) —<br/
 ```mermaid
 sequenceDiagram
     autonumber
-    participant HOOK as Claude Code hook event<br/>SessionStart/UserPromptSubmit/Stop/SessionEnd
-    participant MAIN as main<br/>config/hooks/nostr-live-mirror.cjs:374
-    participant POL as egress-policy.cjs<br/>config/hooks/lib/egress-policy.cjs:136
-    participant BODY as bodyForEvent<br/>nostr-live-mirror.cjs:271
-    participant URI as mintActivityUrn<br/>nostr-live-mirror.cjs:163
-    participant KEY as deriveChildKey<br/>nostr-live-mirror.cjs:208
-    participant WRAP as nip59.wrapEvent<br/>nostr-live-mirror.cjs:465
-
-    rect rgb(230, 245, 230)
-Note over HOOK,MAIN: LAN process boundary — the hook itself never touches the<br/>network except the final PUB step
-    HOOK->>MAIN: argv[2]=event, hook JSON on stdin nostr-live-mirror.cjs:376
-    MAIN->>KEY: deriveChildKey() nostr-live-mirror.cjs:383
-    MAIN->>POL: egressDecision('live-mirror', {identityPresent}) nostr-live-mirror.cjs:385-387
-    alt AGENTBOX_EGRESS or AGENTBOX_LIVE_MIRROR is 0, or no identity
-        POL-->>MAIN: allowed false, outcome skipped, reason egress-globally-disabled\|live-mirror-disabled\|no-sender-identity egress-policy.cjs:142-156
-        MAIN-->>HOOK: return 0 — logs the specific outcome+reason, not a bare exit nostr-live-mirror.cjs:388-392
-    else gated conditions pass
-        MAIN->>BODY: bodyForEvent(event, payload) nostr-live-mirror.cjs:401
-BODY-->>MAIN: session line text<br/>(SessionStart/UserPromptSubmit/Stop/SessionEnd) nostr-live-mirror.cjs:274-290
-        MAIN->>POL: redactForEgress(body) — RESOLVED ADR-2026, redaction BEFORE composition,<br/>before the wrap, before any transport nostr-live-mirror.cjs:409, egress-policy.cjs:115-124
-        alt redaction throws or input not a string
-            POL-->>MAIN: null — fail-closed, "nothing is sent" nostr-live-mirror.cjs:410-413
+    participant H as Hook event
+    participant M as main<br/>config/hooks/nostr-live-mirror.cjs:375
+    participant P as policy<br/>config/hooks/lib/egress-policy.cjs:139
+    participant R as recipientAllowed<br/>config/hooks/lib/egress-policy.cjs:59
+    participant B as bodyForEvent<br/>config/hooks/nostr-live-mirror.cjs:272
+    participant W as NIP-59 publisher
+    H->>M: event name and pending stdin
+    M->>P: global and live-mirror switches, sender identity
+    alt disabled or sender unavailable
+        P-->>M: skipped with reason
+    else global admission passes
+        M->>R: actual explicit recipient or derived child recipient
+        alt missing, empty, malformed enumeration or unlisted key
+            R-->>M: denied before stdin or body access
+            M-->>H: skipped with reason
+        else recipient enumerated
+            M->>M: read stdin
+            M->>B: compose event-specific text
+            B-->>M: body
+            M->>P: redactForEgress config/hooks/lib/egress-policy.cjs:118
+            alt redaction fails
+                P-->>M: null, skipped
+            else redaction succeeds
+                M->>M: bound composition and preserve activity URN
+                alt dry-run
+                    M-->>H: redacted local preview only
+                else live
+                    M->>W: gift-wrap and publish
+                    W-->>M: accepted or failed with reason
+                end
+            end
         end
-        MAIN->>URI: mintActivityUrn(uris, payload) nostr-live-mirror.cjs:419
-URI-->>MAIN: urn:agentbox:activity:PUBKEY:sha256-12-HASH or empty (fail-open)<br/>nostr-live-mirror.cjs:163-174
-MAIN->>MAIN: composeBody(redactedBody, urn) — urn NEVER truncated, cap<br/>MAX_BODY_CHARS=4000 nostr-live-mirror.cjs:420,181-196
-MAIN->>POL: egressDecision('live-mirror', {recipient, identityPresent:true}) — recipient<br/>allowlist check nostr-live-mirror.cjs:450, egress-policy.cjs:157-160
-MAIN->>WRAP: nip59.wrapEvent(rumor kind 14, sk, recipient)<br/>nostr-live-mirror.cjs:465
-Note over WRAP: RESOLVED ADR-2026 (config/hooks/lib/egress-policy.cjs) — the rumor content is<br/>REDACTED before composition and before wrapping (redactForEgress, regex rules cover<br/>Authorization/Bearer headers, KEY=value, --flag secrets, long hex/base64 runs). The same<br/>redaction contract is implemented for the Rust session-digest path in<br/>services/nostr-pod-bridge/src/egress_policy.rs and both are checked against one shared<br/>fixture, tests/fixtures/egress-redaction.v1.json — closing the historical DIVERGENCE
-        MAIN->>MAIN: hand the wrap to publishWrap — see AB-13.17
     end
-    end
-Note over KEY: child_sk = HMAC-SHA256(operator_sk,<br/>AGENTBOX_MIRROR_KEY_TAG default agentbox-mirror-v1)<br/>nostr-live-mirror.cjs:200-215 — keeps the ROOT<br/>operator key off the phone
+    Note over M,R: G4 source requires a non-empty valid recipient set, including dry-run.<br/>25 isolated tests pass. Deployment needs an explicit reviewed recipient set.<br/>No messages were sent by the closeout tests.
 ```
 
 ## AB-13.17 Session-mirror egress phase 2 — publish, deadline and fail-open
@@ -480,7 +481,7 @@ Note over KEY: child_sk = HMAC-SHA256(operator_sk,<br/>AGENTBOX_MIRROR_KEY_TAG d
 ```mermaid
 sequenceDiagram
     autonumber
-    participant MAIN as main<br/>config/hooks/nostr-live-mirror.cjs:374
+    participant MAIN as main<br/>config/hooks/nostr-live-mirror.cjs:375
     participant PUB as publishWrap<br/>nostr-live-mirror.cjs:312
     participant CLOUD as cloud worker relay<br/>dreamlab-nostr-relay workers.dev
     participant AME as Amethyst (operator phone)
@@ -499,8 +500,8 @@ PUB-->>MAIN: resolves anyway (never rejects)<br/>nostr-live-mirror.cjs:312-356
 Note over MAIN: fail-open — publish failure is logged as egress failed (a THIRD, distinct<br/>outcome from skipped/accepted, RESOLVED ADR-2026) and swallowed, hook still exits 0<br/>nostr-live-mirror.cjs:480-484
     end
     end
-Note over MAIN: hard kill-switch guard — setTimeout(process.exit(0),<br/>DEADLINE_MS+1500) unref'd, so the hook process can<br/>never outlive its budget nostr-live-mirror.cjs:505-506
-Note over MAIN,AME: RESOLVED ADR-2026 (config/hooks/lib/egress-policy.cjs +<br/>services/nostr-pod-bridge/src/egress_policy.rs) — the mirror and the kind-30840 digest<br/>(AB-13.10) now share ONE policy contract: a global AGENTBOX_EGRESS switch, per-path<br/>switches, mandatory redaction, a recipient allowlist and the skipped/attempted/accepted/failed<br/>outcome vocabulary, cross-checked by one fixture (tests/fixtures/egress-redaction.v1.json).<br/>The two implementations differ only in transport (WS gift-wrap here, Rust digest in AB-13.10)
+Note over MAIN: hard kill-switch guard — setTimeout(process.exit(0),<br/>DEADLINE_MS+1500) unref'd, so the hook process can<br/>never outlive its budget nostr-live-mirror.cjs:508
+Note over MAIN,AME: RESOLVED ADR-2026 (config/hooks/lib/egress-policy.cjs +<br/>services/nostr-pod-bridge/src/egress_policy.rs) — the mirror and the kind-30840 digest<br/>(AB-13.10) now share ONE policy contract: a global AGENTBOX_EGRESS switch, per-path<br/>switches, mandatory redaction, a recipient allowlist and the skipped/attempted/accepted/failed<br/>outcome vocabulary, cross-checked by one fixture (tests/fixtures/egress-redaction.v1.json).<br/>The digest is public kind-30840 visibility while this path requires a non-empty recipient enumeration.<br/>Shared redaction fixtures do not imply equal recipient semantics.
 ```
 
 ## AB-13.10 kind-30840 session-summary digest — Z.AI distil, sign, dual-write

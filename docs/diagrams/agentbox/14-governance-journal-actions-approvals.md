@@ -305,7 +305,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant CALLER as caller<br/>e.g. AgentActionPipeline._record :299
+    participant CALLER as caller<br/>e.g. AgentActionPipeline._record agent-action-pipeline.js:299
     participant EJ as ExecutionJournal<br/>execution-journal.js:85
     participant EVT as events adapter<br/>opts.eventsAdapter.dispatch, ADR-005 events slot
 
@@ -368,40 +368,42 @@ flowchart LR
 sequenceDiagram
     autonumber
     participant SPEND as spend attempt<br/>paid, denied, failed or pending-approval
-    participant RM as receipt-minter<br/>lib/receipt-minter.js
-    participant URIS as uris.mint<br/>lib/uris.js
-    participant BC20 as bc20-provenance-bridge<br/>crossActivityOutbound :105
+    participant RM as receipt-minter<br/>management-api/lib/receipt-minter.js:45
+    participant URIS as uris.mint<br/>management-api/lib/uris.js:157
+    participant BC20 as bc20-provenance-bridge<br/>management-api/lib/receipt-minter.js:105 crossActivityOutbound
     participant WRITER as events writer<br/>daily-rotated JSONL, ADR-039
-    participant AC as audit-chain<br/>lib/audit-chain.js
+    participant AC as audit-chain<br/>management-api/lib/audit-chain.js:89
 
-    SPEND->>RM: mintSpendReceipt({pubkey, origin, scheme, amountSats, outcome, idempotencyKey}) :45
-    RM->>URIS: mint({kind:'receipt', pubkey, payload}) :47-57
+    SPEND->>RM: mintSpendReceipt({pubkey, origin, scheme, amountSats, outcome, idempotencyKey})<br/>management-api/lib/receipt-minter.js:45
+    RM->>URIS: mint({kind:'receipt', pubkey, payload}) management-api/lib/receipt-minter.js:47-57
     URIS-->>RM: urn:agentbox:receipt:pubkey:sha256-12-hash, content-addressed
     alt mint throws
-        RM-->>SPEND: urn:agentbox:receipt:error:mint-failed :58-60, never throws
+        RM-->>SPEND: urn:agentbox:receipt:error:mint-failed management-api/lib/receipt-minter.js:58-60, never throws
     end
-    SPEND->>RM: mintSpendActivity({...}) :78
-    RM->>URIS: mint({kind:'activity', payload:{type:'pay-'+scheme, ...}}) :81-91
-    RM->>BC20: crossActivityOutbound(urn) :95,105
-    Note over RM,BC20: fail-open — a crossOutbound failure is logged to stderr and never blocks the caller :101-112
+    SPEND->>RM: mintSpendActivity({...}) management-api/lib/receipt-minter.js:78
+    RM->>URIS: mint({kind:'activity', payload:{type:'pay-'+scheme, ...}})<br/>management-api/lib/receipt-minter.js:81-91
+    RM->>BC20: crossActivityOutbound(urn) management-api/lib/receipt-minter.js:95,105
+    Note over RM,BC20: fail-open — a crossOutbound failure is logged to stderr and never blocks the caller<br/>management-api/lib/receipt-minter.js:101-112
 
-    Note over WRITER,AC: separately, each JSONL record written gets hash = SHA256(prev_hash || canonical_json(record minus prev_hash,hash)) :7,68-72
+    Note over WRITER,AC: separately, each JSONL record written gets hash = SHA256(prev_hash || canonical_json(record minus<br/>prev_hash,hash)) management-api/lib/audit-chain.js:7,68-72
     WRITER->>AC: verifyLines(lines, {expectedPrev}) audit-chain.js:89
-    loop each JSONL line :102-132
+    loop each JSONL line management-api/lib/audit-chain.js:102-132
         alt record has neither hash nor prev_hash and chain not yet started
-            AC->>AC: legacyPrefix += 1, tolerate as pre-ADR-039 prefix :113-118
+            AC->>AC: legacyPrefix += 1, tolerate as pre-ADR-039 prefix management-api/lib/audit-chain.js:113-118
         else record.prev_hash != prevHash
-            AC-->>WRITER: fail(i, 'prev_hash mismatch') :121, splice detected
+            AC-->>WRITER: fail(i, 'prev_hash mismatch') management-api/lib/audit-chain.js:121, splice detected
         else record.hash != hashRecord(prevHash, record)
-            AC-->>WRITER: fail(i, 'hash mismatch (record content altered)') :124-125, edit detected
+            AC-->>WRITER: fail(i, 'hash mismatch (record content altered)') management-api/lib/audit-chain.js:124-125, edit<br/>detected
         else ok
-            AC->>AC: prevHash = record.hash, chainStarted = true :128-129
+            AC->>AC: prevHash = record.hash, chainStarted = true management-api/lib/audit-chain.js:128-129
         end
     end
-    AC-->>WRITER: {ok, checked, legacy_prefix, broken_at, tail_hash, tail_seq} :134-137
-    Note over AC: reorder is equivalent to a splice at the first moved record — deletion at the tail is the ONE mode a bare chain cannot see :13-16
-    AC->>AC: readTail(dir) :195, walks newest file backward to resume prevHash and seq across restarts and daily rotation
+    AC-->>WRITER: {ok, checked, legacy_prefix, broken_at, tail_hash, tail_seq}<br/>management-api/lib/audit-chain.js:134-137
+    Note over AC: reorder is equivalent to a splice at the first moved record — deletion at the tail is the ONE mode a<br/>bare chain cannot see management-api/lib/audit-chain.js:13-16
+    AC->>AC: readTail(dir) management-api/lib/audit-chain.js:195, walks newest file backward to resume prevHash<br/>and seq across restarts and daily rotation
 ```
+
+
 
 ## AB-14.10 failure-taxonomy — the 14 MAST failure modes
 
@@ -441,7 +443,7 @@ classDiagram
     FailureTaxonomy --> SpecCategory : MODES lines 41-45
     FailureTaxonomy --> InterAgentCategory : MODES lines 47-52
     FailureTaxonomy --> VerificationCategory : MODES lines 54-56
-    note for FailureTaxonomy "classify() priority failure-taxonomy.js:126-159 — 1 context.mode passthrough :146, 2 REASON_TO_MODE symbolic reason :148-150, 3 two high-precision STDERR_HEURISTICS regexes :119-124, 4 else UNMAPPED :159. Attribution — Cemri et al. Why Do Multi-Agent LLM Systems Fail arXiv:2503.13657 2025, PRD-019/ADR-037 D1"
+    note for FailureTaxonomy "classify() priority failure-taxonomy.js:126-159 — context.mode passthrough failure-taxonomy.js:146 then REASON_TO_MODE symbolic reason failure-taxonomy.js:148-150 then two high-precision STDERR_HEURISTICS regexes failure-taxonomy.js:119-124 then UNMAPPED failure-taxonomy.js:159. Attribution — Cemri et al. Why Do Multi-Agent LLM Systems Fail arXiv identifier 2503.13657 2025, PRD-019/ADR-037 D1"
 ```
 
 ## AB-14.11 Precedent match, promote and retire — PrecedentService and the MCP bridge
@@ -474,7 +476,7 @@ sequenceDiagram
     PB-->>AGENT: JSON result
 
     AGENT->>PB: precedent_retire {case_id, reason} :170,233
-    PB->>PS: retirePrecedent({caseId, reason}) :311
+    PB->>PS: retirePrecedent({caseId, reason}) management-api/lib/precedent-service.js:311
     PS->>FS: retrieve(key, namespace) :317
     alt not found
         PS-->>PB: throw PrecedentError Precedent not found :319
@@ -494,7 +496,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SCHED as scan trigger<br/>startScheduler :604 or POST /v1/projects/scan
+    participant SCHED as scan trigger<br/>project-tracker.js:604 startScheduler or POST /v1/projects/scan
     participant PT as ProjectTracker<br/>lib/project-tracker.js:230
     participant GIT as git via execFileSync<br/>SAFE_ENV, no shell :121-134
     participant URIS as uris.mint<br/>lib/uris.js
@@ -502,11 +504,11 @@ sequenceDiagram
     participant HOOK as project-tracking-publish.cjs<br/>config/hooks/, spawned
 
     SCHED->>PT: scan({dirs, githubEnrichment}) :379
-    loop each repo under scanDirs :391-405
+    loop each repo under scanDirs project-tracker.js:391-405
         PT->>GIT: gitMetadata(repoPath) :193, branch/lastCommit/commits30d/commitDays/remote/language
         PT->>URIS: mint({kind:'thing', localId:'project-'+sha256_12}) :354, content-addressed on remote or path
         PT->>URIS: mint({kind:'dataset', localId:'commits-'+sha+'-30d'}) :363, requires pubkey scope
-        opt githubEnrichment and GITHUB_TOKEN set and remote is github :456
+        opt githubEnrichment and GITHUB_TOKEN set and remote is github project-tracker.js:456
             PT->>PT: _enrichFromGithub(remote) via gh api :329, openIssues/stars, fail-open on error :344-346
         end
         Note over PT: fail-open per repo — one bad repo is logged, scan continues :397-404

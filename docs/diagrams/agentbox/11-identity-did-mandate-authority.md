@@ -128,7 +128,7 @@ sequenceDiagram
     AI->>AI: xOnly = deriveXonly(privHex)
     alt xOnly falsy or not HEX64
         AI-->>CALLER: return null
-        Note over AI,CALLER: DIVERGENCE INGRESS-identity: caller then keeps did:nostr:local — a degraded boot yields a non-sovereign identity. see AB-11.3
+        Note over AI,CALLER: G-6 source closeout: entrypoint aborts failed or invalid mint before consumers start. See AB-11.3
     else derived
         critical persist so the DID survives a restart
             AI->>FS: mkdirSync(dirname, recursive) then writeFileSync(privHex, mode 0o600) then chmodSync 0o600 (agent-identity.js:158-160)
@@ -167,11 +167,12 @@ sequenceDiagram
             LM-->>CLI: {did, pubkey, multikey, persisted true, keyPath}
             CLI-->>EP: stdout export AGENTBOX_AGENT_DID / AGENTBOX_AGENT_PUBKEY / AGENTBOX_AGENT_DID_MULTIKEY<br/>agent-identity.js:225-229
             CLI-->>EP: stderr agent-identity: minted or loaded the did (persisted=true, keyfile=path)<br/>agent-identity.js:230-233
-            EP->>SHELL: eval the export lines
+            EP->>EP: require exact canonical DID, matching pubkey and multikey exports
+            EP->>SHELL: export parsed public values, never eval
             CLI-->>EP: exit 0 agent-identity.js:234
         end
     end
-    Note over EP,SHELL: RESOLVED ADR-2044 (2026-09-05, was DIVERGENCE) — the CLI's own fail-open<br/>path is GONE: a failed mint OR a mint that could not persist its key now exits<br/>non-zero with NO export lines, agent-identity.js:31-46. config/entrypoint-unified.sh's<br/>`${AGENTBOX_AGENT_DID:-did:nostr:local}` shell fallback is UNCHANGED and still<br/>runs unconditionally on that non-zero exit (`\|\| true`, out of scope for this module,<br/>agent-identity.js:41-46) — the boot-level placeholder-DID gap named in<br/>INGRESS-identity.md remains, only the library's OWN silent tolerance of it is closed.<br/>see AB-11.13
+    Note over EP,SHELL: G-6 STAGED: missing mint runtime, nonzero exit, malformed DID or inconsistent<br/>exports abort boot. Canonical operator DID is validated too.<br/>entrypoint-unified.sh:902 identity guard. Six isolated positive/negative tests pass.<br/>Local runtime was not rebuilt and key custody remains separate.
 ```
 
 ## AB-11.4 URN kind table — scope, content addressing and resolvable surface
@@ -636,7 +637,7 @@ Note over AEA,RT: RESOLVED ADR-2044 (was DIVERGENCE) — DEFAULT_POLICY flipped 
             alt header present and well-formed
                 PVP-->>AEA: pubkey
                 AEA-->>RT: {ok true, did "did:nostr:<pubkey>", pubkey} agent-event-auth.js:158-159
-                Note over AEA,PVP: this path trusts the SOLE identity ingress at :9096 (nip98-proxy) to have<br/>already verified the caller and stripped/re-injected the header — see AB-10.3.<br/>Documented residual risk: server.js binds 0.0.0.0, so a holder of MANAGEMENT_API_KEY<br/>on the docker network could also forge this header (agent-event-auth.js:31-39)
+                Note over AEA,PVP: this path trusts the SOLE identity ingress at port 9096 (nip98-proxy) to have<br/>already verified the caller and stripped/re-injected the header — see AB-10.3.<br/>Documented residual risk: server.js binds 0.0.0.0, so a holder of MANAGEMENT_API_KEY<br/>on the docker network could also forge this header (agent-event-auth.js:31-39)
             else header absent or malformed
                 PVP-->>AEA: null
                 AEA-->>RT: {ok false, status 401, error "NIP-98 Authorization header required"} agent-event-auth.js:162
