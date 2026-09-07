@@ -9,8 +9,6 @@ sources:
   - ../project/agentbox/docs/BASELINE-container.md
   - ../project/agentbox/management-api/server.js
   - ../project/agentbox/management-api/lib/system-manifest.js
-  - ../project/agentbox/scripts/start-agentbox.sh
-  - ../project/agentbox/setup/server/src/main.rs
   - ../project/agentbox/management-api/routes/system.js
   - ../project/agentbox/agentbox.sh
   - ../project/agentbox/scripts/ruvector-sidecar-update.sh
@@ -345,48 +343,10 @@ sequenceDiagram
     Note over AB: cmd_model_router itself is UNGATED — the CLI runs regardless of<br/>[model_routing.neural].enabled, fetch/status/console fail loud if the<br/>rebuild-baked or fetch-populated artefact dir is absent — see AB-01.11
 ```
 
-## AB-05.12 setup/agentbox-setup — the pre-boot Rust onboarding wizard (closes audit gap 3)
+## AB-05.12 setup/agentbox-setup — pre-boot wizard pointer (audit gap 3, full detail in AB-30)
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    participant OP as operator (host, pre-boot)
-    participant START as scripts/start-agentbox.sh
-    participant BIN as agentbox-setup binary<br/>setup/server/src/main.rs:187
-    participant FE as embedded frontend<br/>setup/server/src/main.rs:14-16
-    participant MGMT as management-api :9090 (if already running)
-
-    OP->>START: ./scripts/start-agentbox.sh
-    START->>START: not --tui (start-agentbox.sh:425)
-    START->>START: search setup/agentbox-setup, then the two cargo target/release<br/>candidates, first executable wins (start-agentbox.sh:429-435)
-    alt compiled binary present
-        START->>BIN: exec agentbox-setup CONFIG_FILE schema/agentbox.toml.schema.json (start-agentbox.sh:436-437)
-        BIN->>BIN: load_mgmt_key — /var/lib/agentbox/secrets/mgmt-key, then ~/.agentbox/mgmt-key,<br/>then MANAGEMENT_API_KEY env (main.rs:166-184)
-        BIN->>BIN: bind 127.0.0.1 port 0 — OS-assigned ephemeral port, loopback only (main.rs:229-232)
-        BIN-->>OP: print URL to stderr, best-effort open::that(url) (main.rs:234-248)
-        OP->>BIN: GET /api/config
-        BIN->>BIN: read config_path; if absent, seed FRESH from the shipped<br/>agentbox.default.toml (behaviour-preserving, all gates OFF) — never the<br/>live agentbox.toml, which may carry operator enablements (main.rs:39-45)
-        BIN-->>OP: {toml_content, schema} JSON (main.rs:54-57)
-        OP->>BIN: POST /api/config {toml_content}
-        BIN->>BIN: parse as toml_edit::DocumentMut — 400 on invalid TOML (main.rs:64-66)
-        BIN->>BIN: tokio::fs::write(config_path) — 500 on write failure (main.rs:68-75)
-        BIN-->>OP: 200 OK
-        OP->>BIN: any other path
-        BIN->>FE: serve_frontend — rust_embed lookup by path, index.html fallback,<br/>404 if neither exists (main.rs:144-164)
-        opt operator asks for a live management-api call
-            OP->>BIN: ANY /api/proxy/{*path}
-            BIN->>MGMT: forward method+query+body, inject Authorization Bearer if<br/>mgmt_api_key resolved, else unauthenticated (main.rs:85-113)
-            alt reachable
-                MGMT-->>BIN: status + body, content-type passed through (main.rs:115-133)
-            else connection refused
-                BIN-->>OP: 503 container_unreachable JSON (main.rs:135-140)
-            end
-        end
-        OP->>BIN: POST /api/shutdown (Save & Exit)
-        BIN->>BIN: shutdown.notify_one() (main.rs:80-83)
-        BIN-->>OP: process exits — tokio::select! races the server future,<br/>the shutdown Notify and ctrl_c (main.rs:250-263)
-    else no compiled binary
-        START->>FE: copy agentbox.toml + schema.json next to setup/frontend/dist,<br/>python3 -m http.server on an OS-assigned port, --bind 127.0.0.1 (start-agentbox.sh:440-472)
-        Note over START,FE: static fallback — no proxy, no shutdown endpoint;<br/>operator downloads the edited TOML and places it manually (start-agentbox.sh:475-478)
-    end
+flowchart LR
+    CAT["catalogue entry 'setup-wizard'<br/>system-manifest.js:47-49<br/>service 'setup', apply_class boot"] --> BIN["agentbox-setup Rust binary<br/>setup/server/src/main.rs"]
+    BIN -.-> DETAIL["full request flow (config round trip,<br/>management-API proxy, three-tier fallback<br/>to static browser mode) — see AB-30.2, AB-30.3"]
 ```

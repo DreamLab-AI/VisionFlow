@@ -55,6 +55,11 @@ more than one entry is an `ambiguous` warning — qualify it (`handlers/graph/mo
 shares a basename with a deeper one (`README.md`) is cited by its exact `sources:` path. A citation whose file
 is not in `sources:` is an `unresolvable` warning: it was never checked. Never use `...` inside a path.
 
+A bare `:NNN` (no path) is a continuation and is checked too: it means the last path cited earlier on the same
+line/label; in a sequence message `X->>Y: … (:NNN)` or `Note over X: … :NNN`, the file bound to participant X
+(`participant X as Label<br/>path:NN`); otherwise the most recent path earlier in the diagram. A bare ref with
+no path anywhere before it is a warning. Ports are never written as bare `:NNN` — write `port 8084`.
+
 Every mermaid block sits under an `## <file-id>.<n> <title>` heading; ids are unique tree-wide; at most
 three prose lines per diagram. Notes use the prefixes `INVARIANT:`, `DIVERGENCE:` (governing-doc open
 item), `DOC-DRIFT:` (doc says X, code does Y), `EXTERNAL:` (asserted by this repo about another repo),
@@ -113,7 +118,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_130 topic files, 1399 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_130 topic files, 1401 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -173,10 +178,10 @@ _130 topic files, 1399 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | ID | Topic | Diagrams | Kinds | Governing | ADRs |
 |----|-------|----------|-------|-----------|------|
 | AB-01 | [Nix flake composition and apply-class gates](agentbox/01-nix-flake-composition.md) | 11 | flowchart, stateDiagram-v2, sequenceDiagram, classDiagram | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2003, ADR-2006, ADR-2029, ADR-2039, ADR-2080 |
-| AB-02 | [Boot sequence, supervision tree and readiness](agentbox/02-boot-sequence-and-readiness.md) | 20 | sequenceDiagram, flowchart, stateDiagram-v2 | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2003, ADR-2007, ADR-2028, ADR-2029, ADR-2034, ADR-2063, ADR-2080 |
+| AB-02 | [Boot sequence, supervision tree and readiness](agentbox/02-boot-sequence-and-readiness.md) | 21 | sequenceDiagram, flowchart, stateDiagram-v2 | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2003, ADR-2007, ADR-2028, ADR-2029, ADR-2034, ADR-2063, ADR-2080 |
 | AB-03 | [Management API request lifecycle and route table](agentbox/03-management-api-request-lifecycle.md) | 17 | sequenceDiagram, flowchart | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md), [INGRESS-identity.md](../../../project/agentbox/docs/INGRESS-identity.md) | ADR-2005, ADR-2013, ADR-2003 |
 | AB-04 | [Five-slot adapter spine, dispatch middleware and connect lifecycle](agentbox/04-adapter-spine.md) | 16 | flowchart, classDiagram, sequenceDiagram, stateDiagram-v2 | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2004, ADR-2005, ADR-2035, ADR-2036, ADR-2037, ADR-2064 |
-| AB-05 | [Manifest gate catalogue, vault path authority and the agentbox.sh CLI](agentbox/05-manifest-gates-and-cli.md) | 11 | sequenceDiagram, flowchart, stateDiagram-v2 | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2003, ADR-2028, ADR-2029, ADR-2036, ADR-2037, ADR-2038, ADR-2039, ADR-2080 |
+| AB-05 | [Manifest gate catalogue, vault path authority and the agentbox.sh CLI](agentbox/05-manifest-gates-and-cli.md) | 12 | sequenceDiagram, flowchart, stateDiagram-v2 | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2003, ADR-2028, ADR-2029, ADR-2036, ADR-2037, ADR-2038, ADR-2039, ADR-2080 |
 | AB-06 | [Compose overlays, sidecar topology and the loopback-publish invariant](agentbox/06-sidecars-and-compose-overlays.md) | 9 | flowchart, sequenceDiagram | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2013, ADR-2003, ADR-2040 |
 | AB-07 | [Daemon classes, argv-boundary reaping, cron and backups](agentbox/07-daemons-reapers-cron-backups.md) | 9 | flowchart, stateDiagram-v2, sequenceDiagram | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2032, ADR-2003, ADR-2039, ADR-2040 |
 | AB-08 | [Claude Code hook pipeline and its handlers](agentbox/08-hooks-pipeline.md) | 14 | flowchart, sequenceDiagram | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2015, ADR-2026, ADR-2007 |

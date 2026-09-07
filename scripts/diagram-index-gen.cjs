@@ -255,19 +255,38 @@ function citeCheck(topics) {
       // A literal \n inside a classDiagram `note for` runs straight into the path
       // (`…\npath.rs:NN`) and CITE_RE would swallow the `n`; split on it first.
       const text = d.src.replace(/\\n/g, '\n');
+      // sequenceDiagram convention: `participant X as Label<br/>path:NN` binds a
+      // file to X; a message `X->>Y: … (:NNN)` or `Note over X,Y: … :NNN` with a
+      // bare line then means that line in the SENDER's (first named) file.
+      const partFile = new Map();
+      for (const pm of text.matchAll(/^[ \t]*(?:participant|actor)\s+(\w+)(?:\s+as\s+(.+))?$/gm)) {
+        const c = new RegExp(CITE_RE.source).exec(pm[2] || '');
+        if (c) partFile.set(pm[1], c[1]);
+      }
+      const lineContext = (line) => {
+        const msg = /^[ \t]*(\w+)\s*(?:-->>|->>|-->|->|--x|-x|--\)|-\))\s*[+-]?\s*(\w+)\s*:/.exec(line);
+        if (msg) return partFile.get(msg[1]) || partFile.get(msg[2]) || null;
+        const note = /^[ \t]*Note\s+(?:over|left of|right of)\s+(\w+)(?:\s*,\s*(\w+))?\s*:/.exec(line);
+        if (note) return partFile.get(note[1]) || (note[2] && partFile.get(note[2])) || null;
+        return null;
+      };
+      // Fallback for flowchart nodes and alt/loop/else lines: a bare :NNN continues
+      // the most recent path cited earlier in the diagram (document order).
+      let lastPath = null;
       for (const line of text.split('\n')) {
         const paths = [];
         const stripped = line.replace(CITE_RE, (m0, cited, a, b, off) => {
           paths.push({ cited, off });
+          lastPath = cited;
           check(cited, a, b);
           return ' '.repeat(m0.length);
         });
         for (const bm of stripped.matchAll(BARE_RE)) {
           const off = bm.index + bm[1].length;
           const before = paths.filter((p) => p.off < off);
-          const ctx = before.length ? before[before.length - 1] : null;
-          if (!ctx) { warnings.push(`${t.rel}:${d.id} — bare :${bm[2]} has no path earlier on its line (qualify it, or reword if it is a port)`); continue; }
-          check(ctx.cited, bm[2], bm[3]);
+          const ctx = before.length ? before[before.length - 1].cited : (lineContext(line) || lastPath);
+          if (!ctx) { warnings.push(`${t.rel}:${d.id} — bare :${bm[2]} has no path anywhere before it in the diagram (qualify it, or reword if it is a port)`); continue; }
+          check(ctx, bm[2], bm[3]);
         }
       }
     }

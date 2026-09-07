@@ -7,6 +7,7 @@ governing:
 adrs: [ADR-2003, ADR-2007, ADR-2028, ADR-2029, ADR-2034, ADR-2063, ADR-2080]
 sources:
   - ../project/agentbox/docs/BASELINE-container.md
+  - ../project/agentbox/https-bridge/https-proxy.js
   - ../project/agentbox/config/entrypoint-unified.sh
   - ../project/agentbox/flake.nix
   - ../project/agentbox/management-api/server.js
@@ -626,3 +627,43 @@ flowchart TB
 
 - `buildCoverage()` resolves each session_seed slug present in `WRAPPER_SLUGS` to `path.join(WRAPPER_DIR, WRAPPER_SLUGS[slug].file)` as its `customAgents` program, and sets `detectAs[slug]` only `if (WRAPPER_SLUGS[slug].detectAs)` (aoe-seed-sessions.mjs:265-276) — the `router` slug from `[[interaction_plane.session_seeds]]` (`agentbox.toml:1387-1391`, `tool = "custom:router"` at `:1389`) resolves through this table exactly like `openrouter`/`zai` did before ADR-2080, but with `detectAs` left unset.
 - see AB-01.11, AB-05.11 for the `[model_routing.neural]` gate that bakes `router.sh`'s artefact directory; see AB-29 for the console's own request/response flow.
+
+## AB-02.21 https-bridge — self-signed TLS termination in front of the host dev server (closes audit gap 4)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant SUP as supervisord<br/>flake.nix:2180 [program:https-bridge]
+    participant HB as https-proxy.js<br/>https-bridge/https-proxy.js:14
+    participant FS as CERT_DIR (server.key, server.crt)
+    participant CLIENT as browser client
+    participant HOST as HOST_IP:TARGET_PORT (host dev server)
+
+    SUP->>HB: node https-bridge/https-proxy.js (gate sovereign_mesh.enabled and https_bridge)
+    HB->>HB: HOST_IP = env HOST_IP or detectGatewayIP()<br/>ip route default gateway, fallback 192.168.0.51 (https-proxy.js:21-30)
+    HB->>HB: HTTPS_HOST 0.0.0.0 default, HTTPS_PORT/TARGET_PORT default 3001 (https-proxy.js:34-37)
+    HB->>FS: ensureCertificates() — if server.key and server.crt already exist, no-op (https-proxy.js:48-49)
+    alt certs absent
+        HB->>HB: crypto.generateKeyPairSync rsa 2048 (https-proxy.js:56-60)
+        HB->>HB: buildSelfSignedX509 — hand-rolled minimal ASN.1 DER encoder,<br/>CN=localhost, 365-day validity, self-signed SHA256-RSA (https-proxy.js:67,79-168)
+        Note over HB: comment states this replaces a prior openssl-req shell-out because<br/>devuser's PATH lacks openssl inside the container (https-proxy.js:42-47)
+        HB->>FS: writeFileSync server.key (0600), server.crt (0644) (https-proxy.js:69-70)
+    end
+    HB->>HB: https.createServer({key, cert}) (https-proxy.js:185-190)
+    CLIENT->>HB: HTTPS request to :HTTPS_PORT
+    alt OPTIONS preflight
+        HB-->>CLIENT: 204 with CORS headers, Allow-Origin *, Max-Age 86400 (https-proxy.js:240-249)
+    else forward
+        HB->>HOST: http.request — same path/method, host header rewritten to HOST_IP:TARGET_PORT,<br/>x-forwarded-proto https, x-forwarded-host localhost:HTTPS_PORT (https-proxy.js:193-204)
+        alt upstream reachable
+            HOST-->>HB: response
+            HB-->>CLIENT: status + headers (CORS re-added, non-CORS upstream headers copied) + piped body (https-proxy.js:206-227)
+        else upstream error
+            HB-->>CLIENT: 502 Bad Gateway JSON {error, message, target} (https-proxy.js:229-237)
+        end
+    end
+    HB->>HB: EADDRINUSE on listen — log and process.exit(1) (https-proxy.js:254-258)
+    HB->>HB: SIGTERM/SIGINT — server.close() then process.exit(0) (https-proxy.js:272-280)
+    Note over HB,FS: DIVERGENCE — buildSelfSignedX509 is a hand-rolled ASN.1/X.509 signer using<br/>Node's low-level crypto primitives (RSA keygen + raw sign), not a maintained<br/>cert library. Global CLAUDE.md's "never hand-roll cryptography" rule flags this<br/>class of code as highest-priority-to-replace when this repo is next touched
+```
+
