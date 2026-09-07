@@ -1,0 +1,58 @@
+{
+  "method": "Explicit source-file disambiguation of references whose owning ledger or historical/corpus role is stated in the cited records. These are not whole-record supersession declarations.",
+  "references": {
+    "VisionFlow:docs/adr/ADR-2004-diagram-baseline-vendored-render-gate.md|VisionFlow:ADR-005": {
+      "target": "VisionFlow:docs/archive/adr/ADR-005-gap-close-canon-decisions.md",
+      "scope": "Decision3 historical divergence, not engineering ADR005"
+    },
+    "VisionFlow:docs/adr/ADR-2005-drift-counter-allowlist-substrate-sourced.md|VisionFlow:ADR-005": {
+      "target": "VisionFlow:docs/archive/adr/ADR-005-gap-close-canon-decisions.md",
+      "scope": "Decision2 historical implementation lineage"
+    },
+    "VisionFlow:docs/adr/ADR-2006-canon-owns-crossrepo-view-not-implementation.md|VisionFlow:ADR-004": {
+      "target": "VisionFlow:docs/archive/adr/ADR-004-gap-close-sprint-governance.md",
+      "scope": "Historical evidenced-tier register, not engineering ADR004"
+    },
+    "knowledgeGraph:docs/adr/ADR-2002-corpus-is-the-ontology.md|knowledgeGraph:ADR-LCR-01": {
+      "target": "project4:mainKnowledgeGraph/ADR-LCR-01-swarm-refactor-strategy.md",
+      "scope": "Frozen corpus-generation rationale; 2003 citesD11 only"
+    },
+    "knowledgeGraph:docs/adr/ADR-2003-expected-classes-tripwire.md|knowledgeGraph:ADR-LCR-01": {
+      "target": "project4:mainKnowledgeGraph/ADR-LCR-01-swarm-refactor-strategy.md",
+      "scope": "Frozen corpus-generation rationale; 2003 citesD11 only"
+    },
+    "knowledgeGraph:docs/adr/ADR-2002-corpus-is-the-ontology.md|knowledgeGraph:ADR-NG-001": {
+      "target": "project4:docs/adr/ADR-NG-001-explorer-architecture.md",
+      "scope": "Archived Logseq explorer architecture lineage"
+    },
+    "knowledgeGraph:docs/adr/ADR-2002-corpus-is-the-ontology.md|knowledgeGraph:ADR-008": {
+      "target": "knowledgeGraph:ontology/pages/ADR-008.md",
+      "scope": "Corpus specimen expressly not an operative decision"
+    },
+    "knowledgeGraph:docs/adr/ADR-2002-corpus-is-the-ontology.md|knowledgeGraph:ADR-012": {
+      "target": "knowledgeGraph:ontology/pages/ADR-012.md",
+      "scope": "Corpus specimen expressly not an operative decision"
+    },
+    "knowledgeGraph:docs/adr/ADR-2004-corpus-page-identity-immutable.md|knowledgeGraph:ADR-008": {
+      "target": "knowledgeGraph:ontology/pages/ADR-008.md",
+      "scope": "Corpus specimen expressly not an operative decision"
+    },
+    "knowledgeGraph:docs/adr/ADR-2004-corpus-page-identity-immutable.md|knowledgeGraph:ADR-012": {
+      "target": "knowledgeGraph:ontology/pages/ADR-012.md",
+      "scope": "Corpus specimen expressly not an operative decision"
+    },
+    "nostr-rust-forum:docs/adr/ADR-2002-canary-first-upstream-nostr-absorption.md|nostr-rust-forum:ADR-076": {
+      "target": "project:docs/archive/adr/ADR-076-nostr-core-absorption-into-upstream.md",
+      "scope": "Upstream VisionClaw absorption decision; qualification applies toD5"
+    },
+    "project/agentbox:docs/adr/ADR-2028-vault-manifest-path-authority.md|project/agentbox:ADR-113": {
+      "target": "project:docs/archive/adr/ADR-113-ontology-condensation-mesh.md",
+      "scope": "Cross-repository condensation trigger rationale"
+    },
+    "project/agentbox:docs/adr/ADR-2080-metaharness-router-console-under-aoe.md|project/agentbox:ADR-148": {
+      "target": "https://github.com/ruvnet/ruflo/blob/277c7bc03ad192eef6d6f57e59ab7bab69a5728d/v3/docs/adr/ADR-148-fastgrnn-router-artifact-lifecycle.md",
+      "sha256": "5c420abee4755f479543aab6cf1826cc6cfd1d6eea900bc160419ddf9699ca68",
+      "scope": "Reference identity only; proposed upstream lifecycle decision, not estate activation evidence"
+    }
+  }
+}

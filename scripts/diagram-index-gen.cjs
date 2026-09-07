@@ -17,7 +17,9 @@
  *               warning — it was never checked), and assert the file is long
  *               enough; warns when the cited line is blank or a lone closing brace,
  *               and when a bare basename matches more than one sources: entry
- *               (ambiguous — qualify the path). Warnings only — it never fails the run.
+ *               (ambiguous — qualify the path). Advisory unless --strict-citations is set.
+ *   --strict-citations  run citation checks and fail on any diagnostic; requires source access.
+ *   --worktree-citations  read current source bytes instead of declared revisions.
  *   --render    additionally render every mermaid block through `mmdc` (the
  *               Mermaid CLI) into <dir>/rendered/<file>/<id>.svg; any parse
  *               error fails the run and is reported as file:block-id:line, and
@@ -80,11 +82,14 @@ for (let i = 1; i < argv.length; i++) {
   if (a === '--check') flags.check = true;
   else if (a === '--render') flags.render = true;
   else if (a === '--cite-check') flags.cite = true;
+  else if (a === '--strict-citations') { flags.cite = true; flags.strictCitations = true; }
+  else if (a === '--worktree-citations') { flags.cite = true; flags.worktreeCitations = true; }
   else if (a === '--jobs') flags.jobs = parseInt(argv[++i], 10) || 6;
   else if (a === '--only') flags.only = argv[++i];
   else if (a === '--no-source-paths') flags.noSourcePaths = true; // CI: sibling checkouts absent
   else usage(`unknown flag ${a}`);
 }
+if (flags.strictCitations && flags.noSourcePaths) usage('--strict-citations requires source paths; do not combine with --no-source-paths');
 if (!fs.existsSync(root) || !fs.statSync(root).isDirectory()) usage(`not a directory: ${root}`);
 const repoRoot = path.resolve(root, '..', '..');
 
@@ -211,22 +216,77 @@ function parseTopic(file, errors) {
 // participant, message or Note. The path is usually written short (a basename or
 // a trailing fragment), so resolve it against the file's own `sources:` list.
 const CITE_RE = /([A-Za-z0-9_./-]*[A-Za-z0-9_-]\.[A-Za-z0-9]{1,12}):(\d+)(?:\s*-\s*(\d+))?/g;
+
+// ── Revision-pinned reads ────────────────────────────────────────────────────
+// Citations are verified against the topic's DECLARED revision, not the working
+// tree: another session's uncommitted edits must not flag a correct anchor, and a
+// stamp must mean "true at that sha". Repo of a source path = longest matching
+// prefix below; sha = the topic's verified_commit (string → the area's own repo
+// only; {repo: sha} map → by key, case-insensitive). Unknown sha or non-git path
+// falls back to the working tree.
+const REPO_PREFIXES = [
+  { key: 'agentbox', prefix: '../project/agentbox/' },
+  { key: 'visionclaw', prefix: '../project/' },
+  { key: 'solid-pod-rs', prefix: '../solid-pod-rs/' },
+  { key: 'nostr-rust-forum', prefix: '../nostr-rust-forum/' },
+  { key: 'dreamlab-ai-website', prefix: '../dreamlab-ai-website/' },
+  { key: 'vowl-wasm', prefix: '../vowl-wasm/' },
+  { key: 'knowledgegraph', prefix: '../knowledgeGraph/' },
+  { key: 'visiongraph', prefix: '../visionGraph/' },
+  { key: 'ruview', prefix: '../RuView/' },
+  { key: 'wasmvowl', prefix: '../WasmVOWL/' },
+  { key: 'dream-engine', prefix: '../dream-engine/' },
+  { key: 'visionflow', prefix: '' },
+];
+const AREA_REPO = { visionflow: 'visionflow', visionclaw: 'visionclaw', agentbox: 'agentbox', 'solid-pod-rs': 'solid-pod-rs', 'nostr-rust-forum': 'nostr-rust-forum', 'dreamlab-ai-website': 'dreamlab-ai-website', 'vowl-wasm': 'vowl-wasm', knowledgegraph: 'knowledgegraph', visiongraph: 'visiongraph' };
+function repoOf(p) {
+  const clean = p.replace(/^\.\//, '');
+  for (const r of REPO_PREFIXES) if (r.prefix && clean.startsWith(r.prefix)) return { key: r.key, rel: clean.slice(r.prefix.length), abs: path.join(repoRoot, r.prefix) };
+  if (!clean.startsWith('../')) return { key: 'visionflow', rel: clean, abs: repoRoot };
+  return null;
+}
+function shaFor(t, repoKey) {
+  const v = t.fm.verified_commit;
+  if (!v) return null;
+  if (typeof v === 'string' && v.trim().startsWith('{')) {
+    for (const pair of v.trim().slice(1, -1).split(',')) {
+      const [k, sha] = pair.split(':').map((x) => x.trim());
+      if (k && sha && k.toLowerCase() === repoKey) return sha;
+    }
+    return null;
+  }
+  if (typeof v === 'object') { for (const [k, sha] of Object.entries(v)) if (k.toLowerCase() === repoKey) return sha; return null; }
+  return AREA_REPO[t.fm.area] === repoKey && /^[0-9a-f]{7,40}$/.test(String(v)) ? String(v) : null;
+}
+const revCache = new Map();
+let CURRENT_TOPIC = null;
+function revisionLines(t, p) {
+  const r = repoOf(p);
+  const sha = !flags.worktreeCitations && r ? shaFor(t, r.key) : null;
+  const key = `${sha || 'WT'}:${p}`;
+  if (revCache.has(key)) return revCache.get(key);
+  let lines = null;
+  if (sha) {
+    try {
+      const out = require('child_process').execFileSync('git', ['-C', r.abs, 'show', `${sha}:${r.rel}`], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 64 * 1024 * 1024 });
+      lines = out.split('\n');
+    } catch { lines = null; }
+  }
+  if (!lines) { try { lines = fs.readFileSync(path.join(repoRoot, p), 'utf8').split('\n'); } catch { lines = null; } }
+  revCache.set(key, lines);
+  return lines;
+}
+
 function citeCheck(topics) {
   const warnings = [];
-  const lineCache = new Map();
-  const linesOf = (p) => {
-    if (!lineCache.has(p)) {
-      try { lineCache.set(p, fs.readFileSync(path.join(repoRoot, p), 'utf8').split('\n')); }
-      catch { lineCache.set(p, null); }
-    }
-    return lineCache.get(p);
-  };
+  let linesOf = (p) => revisionLines(CURRENT_TOPIC, p); // bound per topic below
   // Bare `:NNN` (no path) is a continuation of the last path cited earlier on
   // the SAME line/label (`proxy.mjs:100<br/>verify :340`); with no path on the
   // line it is unresolvable (or a port) and is reported as such. Previously
   // bare cites were never resolved and never checked (23 % of all citations).
   const BARE_RE = /(^|[^A-Za-z0-9_./:-]):(\d+)(?:\s*-\s*(\d+))?(?![\d.])/g;
   for (const t of topics) {
+    CURRENT_TOPIC = t;
     for (const d of t.diagrams) {
       const check = (cited, a, b) => {
         if (/^\d+(\.\d+)+$/.test(cited)) return; // host:port such as 127.0.0.1:8080, not a citation
@@ -258,22 +318,28 @@ function citeCheck(topics) {
       // sequenceDiagram convention: `participant X as Label<br/>path:NN` binds a
       // file to X; a message `X->>Y: … (:NNN)` or `Note over X,Y: … :NNN` with a
       // bare line then means that line in the SENDER's (first named) file.
-      const partFile = new Map();
+      const partFile = new Map();   // participant id → bound file, or null when declared without a path
       for (const pm of text.matchAll(/^[ \t]*(?:participant|actor)\s+(\w+)(?:\s+as\s+(.+))?$/gm)) {
         const c = new RegExp(CITE_RE.source).exec(pm[2] || '');
-        if (c) partFile.set(pm[1], c[1]);
+        partFile.set(pm[1], c ? c[1] : null);
       }
+      // Returns a file, or the string 'UNBOUND' when the line's participant is
+      // declared WITHOUT a path — a bare ref there must not silently inherit the
+      // last path in the diagram (it lands on a real line of the wrong file).
       const lineContext = (line) => {
         const msg = /^[ \t]*(\w+)\s*(?:-->>|->>|-->|->|--x|-x|--\)|-\))\s*[+-]?\s*(\w+)\s*:/.exec(line);
-        if (msg) return partFile.get(msg[1]) || partFile.get(msg[2]) || null;
         const note = /^[ \t]*Note\s+(?:over|left of|right of)\s+(\w+)(?:\s*,\s*(\w+))?\s*:/.exec(line);
-        if (note) return partFile.get(note[1]) || (note[2] && partFile.get(note[2])) || null;
-        return null;
+        const ids = msg ? [msg[1], msg[2]] : note ? [note[1], note[2]].filter(Boolean) : [];
+        if (!ids.length) return null;
+        for (const id of ids) if (partFile.get(id)) return partFile.get(id);
+        return ids.some((id) => partFile.has(id)) ? 'UNBOUND' : null;
       };
       // Fallback for flowchart nodes and alt/loop/else lines: a bare :NNN continues
       // the most recent path cited earlier in the diagram (document order).
       let lastPath = null;
-      for (const line of text.split('\n')) {
+      for (const rawLine of text.split('\n')) {
+        // `:987,1053,1060` cites three lines; expand so every number is checked.
+        const line = rawLine.replace(/:(\d+)((?:,\s*\d+)+)/g, (m0, a, rest) => ':' + a + rest.replace(/,\s*(\d+)/g, ' :$1'));
         const paths = [];
         const stripped = line.replace(CITE_RE, (m0, cited, a, b, off) => {
           paths.push({ cited, off });
@@ -284,7 +350,9 @@ function citeCheck(topics) {
         for (const bm of stripped.matchAll(BARE_RE)) {
           const off = bm.index + bm[1].length;
           const before = paths.filter((p) => p.off < off);
-          const ctx = before.length ? before[before.length - 1].cited : (lineContext(line) || lastPath);
+          const lc = before.length ? null : lineContext(line);
+          if (lc === 'UNBOUND') { warnings.push(`${t.rel}:${d.id} — bare :${bm[2]} on a message whose participant is declared without a path (bind the participant to a file, or qualify the ref)`); continue; }
+          const ctx = before.length ? before[before.length - 1].cited : (lc || lastPath);
           if (!ctx) { warnings.push(`${t.rel}:${d.id} — bare :${bm[2]} has no path anywhere before it in the diagram (qualify it, or reword if it is a port)`); continue; }
           check(ctx, bm[2], bm[3]);
         }
@@ -302,15 +370,9 @@ const PART_RE = /^[ \t]*(?:participant|actor)\s+\w+\s+as\s+(.+)$/gm;
 const FN_RE = /\b([a-z_][a-z0-9_]{3,})\b/g;
 function symbolCheck(topics) {
   const warnings = [];
-  const lineCache = new Map();
-  const linesOf = (p) => {
-    if (!lineCache.has(p)) {
-      try { lineCache.set(p, fs.readFileSync(path.join(repoRoot, p), 'utf8').split('\n')); }
-      catch { lineCache.set(p, null); }
-    }
-    return lineCache.get(p);
-  };
+  let linesOf = (p) => revisionLines(CURRENT_TOPIC, p); // bound per topic below
   for (const t of topics) {
+    CURRENT_TOPIC = t;
     for (const m of t.diagrams.map((d) => d.src).join('\n').matchAll(PART_RE)) {
       const label = m[1];
       const c = new RegExp(CITE_RE.source).exec(label);
@@ -380,6 +442,7 @@ function renderOne(topic, d, outDir) {
 async function renderAll(topics) {
   const jobs = [];
   for (const t of topics) {
+    CURRENT_TOPIC = t;
     const outDir = path.join(root, 'rendered', t.rel.replace(/\.md$/, ''));
     fs.mkdirSync(outDir, { recursive: true });
     for (const d of t.diagrams) jobs.push(() => renderOne(t, d, outDir));
@@ -437,6 +500,7 @@ function writeIndexes(topics) {
   // COVERAGE.md — three inverted indexes
   const adrIdx = new Map(), govIdx = new Map(), srcIdx = new Map();
   for (const t of topics) {
+    CURRENT_TOPIC = t;
     for (const a of t.fm.adrs) {
       // ADR numbers are repository-local. Estate topics must supply an owner
       // explicitly; do not infer adoption from a coincidentally matching number.
@@ -455,6 +519,7 @@ function writeIndexes(topics) {
   // whose sources span repos); render both forms as `repo@sha` / `sha`.
   const vcs = new Set();
   for (const t of topics) {
+    CURRENT_TOPIC = t;
     const v = t.fm.verified_commit;
     if (v && typeof v === 'object') for (const [k, sha] of Object.entries(v)) vcs.add(`${k}@${sha}`);
     else if (typeof v === 'string' && v.trim().startsWith('{')) {
@@ -492,6 +557,7 @@ function writeIndexes(topics) {
   const topics = files.map((f) => parseTopic(f, errors)).filter(Boolean);
   const seenTopic = new Map(), seenDiag = new Map();
   for (const t of topics) {
+    CURRENT_TOPIC = t;
     if (seenTopic.has(t.fm.id)) errors.push(`${t.rel}: duplicate topic id ${t.fm.id} (also ${seenTopic.get(t.fm.id)})`);
     seenTopic.set(t.fm.id, t.rel);
     for (const d of t.diagrams) {
@@ -505,6 +571,7 @@ function writeIndexes(topics) {
     const w = citeCheck(topics).concat(symbolCheck(topics));
     console.log(`cite-check: ${w.length} warning(s)`);
     for (const x of w) console.warn(`  ! ${x}`);
+    if (flags.strictCitations) errors.push(...w.map(x => `citation: ${x}`));
   }
   if (flags.render) {
     const { errors: rerr, count } = await renderAll(topics);

@@ -19,3 +19,5 @@ precisely because it drifted from the code; see
 (next free number), fill the three-axis status honestly, update
 `BASELINE-visionflow.md` **in the same change**, and regenerate this index
 (`node scripts/adr-index-gen.cjs docs/adr` — it fails CI on invalid frontmatter).
+
+The [estate status/evidence contract](../architecture/adr-status-contract.md) defines the independent decision, implementation and activation axes and distinguishes lineage from supersession (2026-09-07).

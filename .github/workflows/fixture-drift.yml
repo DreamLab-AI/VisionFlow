@@ -71,7 +71,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout VisionFlow
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       # Attempt the canonical checkout. `continue-on-error` so that a missing
       # credential produces a reportable state rather than an opaque failure;
@@ -79,7 +79,7 @@ jobs:
       - name: Check out the canonical corpus
         id: canonical
         continue-on-error: true
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: ${{ env.CANONICAL_REPO }}
           path: _canonical

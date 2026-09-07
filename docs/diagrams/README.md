@@ -58,7 +58,12 @@ is not in `sources:` is an `unresolvable` warning: it was never checked. Never u
 A bare `:NNN` (no path) is a continuation and is checked too: it means the last path cited earlier on the same
 line/label; in a sequence message `X->>Y: … (:NNN)` or `Note over X: … :NNN`, the file bound to participant X
 (`participant X as Label<br/>path:NN`); otherwise the most recent path earlier in the diagram. A bare ref with
-no path anywhere before it is a warning. Ports are never written as bare `:NNN` — write `port 8084`.
+no path anywhere before it is a warning, and so is a bare ref on a message whose participant is declared
+without a path (it would otherwise bind to the wrong file and pass). Comma lists `:987,1053` check every number.
+Ports are never written as bare `:NNN` — write `port 8084`.
+`--cite-check` reads each cited file at the topic's declared `verified_commit` (`git show <sha>:<path>` in the
+owning repo; the `{repo: sha}` map form by key), so a stamp means "true at that sha" and a sibling checkout's
+uncommitted edits cannot flag a correct anchor; it falls back to the working tree only when the sha is unknown.
 
 Every mermaid block sits under an `## <file-id>.<n> <title>` heading; ids are unique tree-wide; at most
 three prose lines per diagram. Notes use the prefixes `INVARIANT:`, `DIVERGENCE:` (governing-doc open
@@ -300,3 +305,7 @@ _130 topic files, 1401 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | ES-11 | [Publishing axis — corpus, bundle and kit edges the other estate topics do not own](estate/11-publishing-axis.md) | 5 | flowchart, sequenceDiagram | [BASELINE-architecture.md](../../../project/docs/BASELINE-architecture.md), [repository-map.md](../../docs/architecture/repository-map.md) |  |
 | ES-90 | [Supporting repositories, evidence boundaries and closeout admission](estate/90-evidence-and-supporting-repositories.md) | 5 | flowchart, sequenceDiagram | [ADR-2007-estate-closeout-evidence-roadmap.md](../../docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md), [repository-map.md](../../docs/architecture/repository-map.md) | visionflow:ADR-2004, visionflow:ADR-2006, visionflow:ADR-2007, dream-engine:ADR-0003, WasmVOWL:ADR-001 |
 <!-- END GENERATED DIAGRAM INDEX -->
+
+For a source-accessible closeout checkout, run `node scripts/diagram-index-gen.cjs docs/diagrams --check --strict-citations --worktree-citations`. Unlike advisory `--cite-check`, this rejects every citation diagnostic and cannot be combined with `--no-source-paths`. Passing still establishes citation hygiene only; retain source hashes and claim-level review evidence.
+
+`--worktree-citations` explicitly checks current source bytes. The default citation reader prefers declared revisions and falls back to working files when that revision/path cannot be read; its success must not be labelled current-worktree verification.

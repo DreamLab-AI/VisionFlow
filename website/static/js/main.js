@@ -37,7 +37,8 @@ function initScrollReveal() {
         }
       });
     },
-    { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+    // A tall section may never occupy 10% of its own area in the viewport.
+    { threshold: 0, rootMargin: '0px 0px -50px 0px' }
   );
   document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
 }

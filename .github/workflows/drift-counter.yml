@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the canon (VisionFlow)
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       # The counter reads its count sources from agentbox: the skill manifest
       # (scripts/skill-count-check.js, invoked) and the ontology-bridge.js TOOLS
@@ -55,14 +55,14 @@ jobs:
       # .revision; the counter verifies this and fails on mismatch. Moving the
       # truth is therefore a reviewed two-line diff, not a silent Tuesday.
       - name: Check out agentbox (count sources, pinned)
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: DreamLab-AI/agentbox
           ref: eb7794b17892d9032b4f9ce0ed22ea0d9dac3497
           path: _agentbox
 
       - name: Install Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
 

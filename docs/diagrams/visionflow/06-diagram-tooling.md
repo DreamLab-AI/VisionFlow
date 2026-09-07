@@ -278,107 +278,97 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant CLI as main IIFE<br/>diagram-index-gen.cjs:449
-    participant W as walk<br/>diagram-index-gen.cjs:92
-    participant P as parseTopic<br/>diagram-index-gen.cjs:145
-    participant F as parseFrontmatter<br/>diagram-index-gen.cjs:121
-    CLI->>W: walk topic subdirectories, skip output, archives and hidden directories
-    W-->>CLI: Markdown paths filtered by optional only substring
+    participant CLI as main IIFE<br/>diagram-index-gen.cjs:553
+    participant W as walk<br/>diagram-index-gen.cjs:97
+    participant P as parseTopic<br/>diagram-index-gen.cjs:150
+    participant F as parseFrontmatter<br/>diagram-index-gen.cjs:126
+    CLI->>W: traverse topics excluding generated and archived trees
     loop each topic
-        CLI->>P: parse topic and accumulate errors
-        P->>F: parse scalar values, inline lists and continuation lists
+        CLI->>P: parse topic, collect errors
+        P->>F: parse flat metadata and lists
         F-->>P: frontmatter and body
-        P->>P: check required keys, area directory and topic id
-        P->>P: check source and governing paths unless no-source-paths
-        P->>P: collect Mermaid blocks, enforce headings and prose budget
-        P-->>CLI: topic with diagram records
+        P->>P: check metadata, source paths, headings and diagram structure
+        P-->>CLI: topic and diagrams
     end
-    CLI->>CLI: check topic and diagram ids for duplicates
-    Note over CLI,P: INVARIANT: structural acceptance does not check that a revision exists,<br/>that the working tree is clean, or that a behaviour is implemented
+    CLI->>CLI: reject duplicate topic and diagram identifiers
+    Note over CLI,P: Source paths may be skipped by hosted structural checks.<br/>Structure does not attest behaviour, clean source or activation.
 ```
 
-## VF-06.9 diagram-index-gen.cjs failure taxonomy — what errors, what warns
+## VF-06.9 Citation refusal and structural failures
 ```mermaid
 flowchart TB
-    I["Topic input"] --> P["parseTopic<br/>diagram-index-gen.cjs:145"]
-    P --> E["Hard errors: malformed metadata, missing source paths,<br/>duplicate ids, invalid headings, forbidden diagram kinds,<br/>dark sequence rectangles, unclosed fences or excess prose"]
-    I --> C["Optional citeCheck and symbolCheck<br/>diagram-index-gen.cjs:214<br/>diagram-index-gen.cjs:264"]
-    C --> W["Warnings: unresolved or ambiguous citation, unreadable file,<br/>past EOF, blank or punctuation anchor,<br/>function-labelled participant outside its body"]
-    I --> R["Optional renderAll<br/>gated diagram-index-gen.cjs:470, renderAll :341"]
-    R --> RE["Hard errors: failed mmdc render or width above 4500 pixels"]
-    E --> FAIL["Exit 1 after accumulated errors<br/>diagram-index-gen.cjs:475"]
-    RE --> FAIL
-    W --> OK["Warnings are printed, never pushed onto errors<br/>diagram-index-gen.cjs:466-468 — only render/check<br/>errors reach the failing branch at :475"]
-    Note["DIVERGENCE: a successful --check --cite-check may still report<br/>unverified references. A passing exit code is not a semantic audit."]
-    OK --> Note
+    I["Topic input"] --> P["Structural parse and duplicate checks<br/>diagram-index-gen.cjs:150"]
+    P --> ERR["Accumulated errors"]
+    I --> C["Citation and symbol diagnostics<br/>diagram-index-gen.cjs:280<br/>diagram-index-gen.cjs:371"]
+    C --> STRICT{"strict-citations?"}
+    STRICT -->|yes| ERR
+    STRICT -->|no| WARN["Advisory warnings remain visible"]
+    I --> R["Optional render and width checks<br/>diagram-index-gen.cjs:442"]
+    R --> ERR
+    ERR --> FAIL["Exit 1 when errors exist<br/>diagram-index-gen.cjs:581"]
+    MODE["Strict citations reject no-source-paths<br/>diagram-index-gen.cjs:92"] --> STRICT
+    LIMIT["A strict pass establishes citation hygiene;<br/>semantic and deployment evidence remain separate."]
+    WARN --> LIMIT
 ```
 
-## VF-06.10 --cite-check and the symbol check — suffix resolution and its blind spots
+## VF-06.10 Citation resolution and inference limits
 ```mermaid
 flowchart TB
-    A["Mermaid source"] --> RE["Scan dotted path plus line or range<br/>CITE_RE diagram-index-gen.cjs:213"]
-    RE --> MATCH["Resolve exact path first, otherwise suffix against sources<br/>diagram-index-gen.cjs:234"]
-    MATCH --> COUNT{"Exactly one source?"}
-    COUNT -->|no| WARN["Warn unresolved or ambiguous, then continue<br/>diagram-index-gen.cjs:236"]
-    COUNT -->|yes| READ["Read source with per-run cache<br/>diagram-index-gen.cjs:217"]
-    READ --> LINE["Check endpoints against EOF, then anchor content<br/>diagram-index-gen.cjs:243"]
-    A --> PART["Scan participant aliases and lowercase names<br/>PART_RE and FN_RE diagram-index-gen.cjs:262"]
-    PART --> FN["For a single named function, check nearby lines,<br/>then locate unique definition and count braces<br/>diagram-index-gen.cjs:285"]
-    FN --> SPAN["Warn if citation is outside body and preceding doc lines<br/>diagram-index-gen.cjs:304"]
-    WARN --> LIMIT["DIVERGENCE: warning only. No behaviour verification,<br/>no commit comparison and no deployment observation"]
-    LINE --> LIMIT
-    SPAN --> LIMIT
-    BLIND["Unmatched syntax remains invisible: extensionless paths,<br/>bare line continuations. Brace counting is not a language parser.<br/>Real nonblank lines can still support the wrong claim."] --> LIMIT
+    A["Mermaid source"] --> SCAN["Dotted path plus line/range scan<br/>diagram-index-gen.cjs:218"]
+    SCAN --> MATCH["Exact source entry wins; otherwise resolve unique suffix<br/>diagram-index-gen.cjs:296"]
+    MATCH --> MODE["Choose source bytes<br/>diagram-index-gen.cjs:263"]
+    MODE --> PIN["Default: declared revision via git show;<br/>unavailable revision falls back to working tree"]
+    MODE --> WT["worktree-citations: current working tree only"]
+    PIN --> READ["Check line bounds and anchors<br/>diagram-index-gen.cjs:301"]
+    WT --> READ
+    A --> BARE["Bare-line context from explicit citations and participant bindings<br/>diagram-index-gen.cjs:329"]
+    BARE --> READ
+    A --> SYMBOL["Function-labelled participant checked against a unique definition<br/>diagram-index-gen.cjs:371"]
+    READ --> DIAG["Diagnostic: ambiguous, missing, unreadable, out of bounds or empty anchor"]
+    SYMBOL --> DIAG
+    DIAG --> EXIT["Strict mode adds diagnostics to errors<br/>diagram-index-gen.cjs:574"]
+    LIMIT["Context inference and brace counting are heuristics.<br/>A real source line can still support the wrong claim."] --> EXIT
 ```
 
-## VF-06.11 --render — mmdc invocation, concurrency and the width cap
+## VF-06.11 Render invocation and width boundary
 ```mermaid
 sequenceDiagram
-    autonumber
-    participant G as renderAll<br/>diagram-index-gen.cjs:341
-    participant R as renderOne<br/>diagram-index-gen.cjs:316
+    participant G as renderAll<br/>diagram-index-gen.cjs:442
+    participant R as renderOne<br/>diagram-index-gen.cjs:417
     participant M as mmdc
     participant O as rendered topic directory
-    G->>O: create directory for each topic
-    G->>G: queue one job per block, use jobs workers with default six
-    loop each diagram
-        G->>R: render queued block
-        R->>O: write Mermaid source
-        R->>M: spawn with input, output and quiet flags
-        alt exit zero
-            M-->>R: SVG
-            R->>R: read viewBox width, reject above 4500 pixels
-        else nonzero
-            M-->>R: captured stdout and stderr
-            R->>R: extract parse context or short diagnostic
-        end
-        R-->>G: null or error
+    G->>G: queue blocks with bounded worker concurrency
+    G->>R: render current block
+    R->>O: write exact Mermaid input
+    R->>M: spawn renderer with input and SVG paths
+    alt successful process
+        M-->>R: SVG output
+        R->>R: reject viewBox width above 4500px
+    else render failure
+        M-->>R: captured failure details
     end
-    G-->>G: append render errors to structural errors
-    Note over G,O: INVARIANT: rendered output is excluded from input traversal<br/>SKIP_DIRS diagram-index-gen.cjs:63
-    Note over R,M: DIVERGENCE: mmdc is an external prerequisite, and the source has<br/>no child-process error handler for an unavailable executable
+    R-->>G: success or diagnostic
+    Note over G,O: Exact-source comparison and execution logs are distinct evidence.<br/>A cached SVG by itself is not proof of a fresh successful render.
 ```
 
-## VF-06.12 Index emission and the diagram-index.yml sync gate
+## VF-06.12 Index identity and hosted checks
 ```mermaid
 sequenceDiagram
-    autonumber
     participant CI as diagram-index.yml
-    participant G as writeIndexes<br/>diagram-index-gen.cjs:368
+    participant T as diagram-index.test.cjs
+    participant G as writeIndexes<br/>diagram-index-gen.cjs:470
     participant RM as README.md
     participant CV as COVERAGE.md
-    CI->>G: structural check with no-source-paths
-    Note over CI: Hosted checkout lacks siblings. The workflow skips their path checks<br/>and does not run semantic verification or the local cite check
-    CI->>CV: copy current index aside
-    CI->>G: regenerate with no-source-paths
-    G->>RM: replace generated topic tables, emit correct .cjs invocation
-    G->>CV: emit diagrams, source paths and governing documents
-    G->>CV: qualify ADR numbers by repository<br/>diagram-index-gen.cjs:404
-    Note over G,CV: Explicit repo:ADR keys remain explicit. Unqualified estate references<br/>are estate-unresolved, never merged with another repository's ADR
-    G->>CV: label verified_commit values as declared source revisions<br/>diagram-index-gen.cjs:426
-    Note over CV: INVARIANT: revision labels do not certify semantic correctness,<br/>working-tree bytes, deployment or system acceptance
-    CI->>CI: diff saved COVERAGE against regenerated file
-    Note over G,RM: check and only suppress index writes<br/>diagram-index-gen.cjs:480
+    CI->>T: exercise namespace collisions and strict citation refusal
+    CI->>G: structural check with sibling paths skipped
+    CI->>CV: retain pre-generation content
+    CI->>G: regenerate coverage from topic metadata
+    G->>RM: emit topic tables and regeneration command
+    G->>CV: qualify ADR identities by repository<br/>diagram-index-gen.cjs:507
+    G->>CV: label revisions as author declarations
+    CI->>CI: compare regenerated coverage with committed content
+    Note over G,RM: check and only suppress index writes<br/>diagram-index-gen.cjs:586
+    Note over CI,CV: Hosted structural success does not check sibling source behaviour.<br/>Run strict citations in a source-accessible checkout and preserve claim evidence.
 ```
 
 ## VF-06.13 Unwired diagram scripts — what they point at and why they are orphaned

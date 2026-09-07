@@ -49,10 +49,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - name: Install Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
 
@@ -62,7 +62,7 @@ jobs:
       - name: Check out agentbox (drift-counter count sources, pinned)
         id: agentbox
         continue-on-error: true
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: DreamLab-AI/agentbox
           ref: eb7794b17892d9032b4f9ce0ed22ea0d9dac3497
@@ -170,14 +170,14 @@ jobs:
           DRIFT_VERDICT: ${{ steps.drift.outputs.verdict }}
 
       - name: Upload build receipt
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: website-build-receipt
           path: website/build-receipt.json
 
       # Only reached when every blocking gate passed.
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa
         with:
           path: website/dist
 
@@ -190,4 +190,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e
