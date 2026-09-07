@@ -1,9 +1,9 @@
 {
   "schema": "visionflow.estate-health/1",
-  "generated_at": "2026-09-06T20:26:32.089Z",
+  "generated_at": "2026-09-07T07:25:37.949Z",
   "generator": {
-    "revision": "a169e2cc9b46d8725a4751847057d197687c970c",
-    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34057985914",
+    "revision": "81985af802b274ebed5e4204021418cb17f39616",
+    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34095386436",
     "collector": "scripts/estate-health.mjs"
   },
   "summary": {
@@ -13,7 +13,7 @@
     "amber": 0,
     "none": 2,
     "unreadable": 1,
-    "open_prs": 0,
+    "open_prs": 1,
     "surfaces_ok": 6,
     "surfaces_total": 6
   },
@@ -29,11 +29,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "a169e2cc9b46d8725a4751847057d197687c970c",
-        "short": "a169e2c",
-        "date": "2026-09-06T19:58:36Z",
-        "message": "fix(estate-health): exclude the collector's own run from its repository's CI state",
-        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/a169e2cc9b46d8725a4751847057d197687c970c"
+        "sha": "81985af802b274ebed5e4204021418cb17f39616",
+        "short": "81985af",
+        "date": "2026-09-06T20:26:32Z",
+        "message": "chore(estate-health): nightly snapshot 2026-09-06 — 8/14 green",
+        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/81985af802b274ebed5e4204021418cb17f39616"
       },
       "ci": {
         "state": "green",
@@ -49,8 +49,8 @@
             "workflow": "Deploy to GitHub Pages",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34056545956",
-            "updated_at": "2026-09-06T19:59:32Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34058000477",
+            "updated_at": "2026-09-06T20:27:12Z"
           },
           {
             "workflow": "Fixture Drift Check",
@@ -70,8 +70,8 @@
             "workflow": "Nightly estate health",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34055073094",
-            "updated_at": "2026-09-06T19:30:25Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34057985914",
+            "updated_at": "2026-09-06T20:26:37Z"
           }
         ]
       },
@@ -98,11 +98,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "cbf4097b1ea3d627f9cd62d97f8dab58999383e5",
-        "short": "cbf4097",
-        "date": "2026-09-06T17:06:40Z",
-        "message": "feat(pod): pull the published ontology into the embedded pod at boot (ADR-2106)",
-        "url": "https://github.com/DreamLab-AI/VisionClaw/commit/cbf4097b1ea3d627f9cd62d97f8dab58999383e5"
+        "sha": "4d1a698e70f60c19d8c83fa8c6caef193866978e",
+        "short": "4d1a698",
+        "date": "2026-09-06T22:04:13Z",
+        "message": "chore(agentbox): bump submodule to the rebuilt, tidied head (Nix fix, golden fixtures, seeder guard, docs repair)",
+        "url": "https://github.com/DreamLab-AI/VisionClaw/commit/4d1a698e70f60c19d8c83fa8c6caef193866978e"
       },
       "ci": {
         "state": "red",
@@ -111,15 +111,15 @@
             "workflow": "CI",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/34047570284",
-            "updated_at": "2026-09-06T17:09:33Z"
+            "url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/34066717587",
+            "updated_at": "2026-09-06T23:25:55Z"
           },
           {
             "workflow": "Documentation Quality CI",
             "conclusion": "failure",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/34047570303",
-            "updated_at": "2026-09-06T17:11:21Z"
+            "url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/34066717564",
+            "updated_at": "2026-09-06T23:28:16Z"
           },
           {
             "workflow": "Ontology Federation CI/CD",
@@ -132,8 +132,8 @@
             "workflow": "XR Godot CI",
             "conclusion": "cancelled",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/34029044722",
-            "updated_at": "2026-09-06T17:02:01Z"
+            "url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/34066717583",
+            "updated_at": "2026-09-07T05:23:05Z"
           }
         ]
       },
@@ -158,11 +158,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "7b28112727dd1d4e83a97c989bd544aab3c8a2d5",
-        "short": "7b28112",
-        "date": "2026-09-06T18:14:40Z",
-        "message": "chore: delete stale ontology-publish workflow",
-        "url": "https://github.com/DreamLab-AI/agentbox/commit/7b28112727dd1d4e83a97c989bd544aab3c8a2d5"
+        "sha": "1b43b70ff09b971b440c9964743402aec45ef515",
+        "short": "1b43b70",
+        "date": "2026-09-06T22:03:59Z",
+        "message": "fix(aoe-seed): compare real paths in the run-as-script guard so the baked seeder actually runs",
+        "url": "https://github.com/DreamLab-AI/agentbox/commit/1b43b70ff09b971b440c9964743402aec45ef515"
       },
       "ci": {
         "state": "red",
@@ -171,22 +171,22 @@
             "workflow": "CI",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/34051265432",
-            "updated_at": "2026-09-06T18:19:36Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/34066694295",
+            "updated_at": "2026-09-06T23:24:36Z"
           },
           {
             "workflow": "Contract tests",
             "conclusion": "failure",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/33997923773",
-            "updated_at": "2026-09-05T23:10:34Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/34066694200",
+            "updated_at": "2026-09-06T23:22:51Z"
           },
           {
             "workflow": "Manifest validate",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/33997923771",
-            "updated_at": "2026-09-05T23:12:10Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/34066694201",
+            "updated_at": "2026-09-06T23:24:23Z"
           },
           {
             "workflow": "Ontology Federation CI/CD",
@@ -199,29 +199,29 @@
             "workflow": "Secret Scan",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/34051265433",
-            "updated_at": "2026-09-06T18:19:30Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/34066694205",
+            "updated_at": "2026-09-06T23:23:08Z"
           },
           {
             "workflow": "Security Invariants",
-            "conclusion": "success",
+            "conclusion": "failure",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/34030291667",
-            "updated_at": "2026-09-06T11:27:57Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/34066694215",
+            "updated_at": "2026-09-06T23:22:56Z"
           },
           {
             "workflow": "ShellCheck",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/33997923788",
-            "updated_at": "2026-09-05T23:10:24Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/34066694197",
+            "updated_at": "2026-09-06T23:22:39Z"
           },
           {
             "workflow": "TUI helper tests",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/33990924207",
-            "updated_at": "2026-09-05T20:44:58Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/34066694199",
+            "updated_at": "2026-09-06T23:24:14Z"
           }
         ]
       },
@@ -284,21 +284,21 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "931898a3d82da5dbf573b6b6dccdc76513046875",
-        "short": "931898a",
-        "date": "2026-09-06T11:02:22Z",
-        "message": "release: 1.0.0-beta.10",
-        "url": "https://github.com/DreamLab-AI/nostr-rust-forum/commit/931898a3d82da5dbf573b6b6dccdc76513046875"
+        "sha": "d48a7a54612388a5c62b55d7ed87d425d205eedf",
+        "short": "d48a7a5",
+        "date": "2026-09-07T07:22:58Z",
+        "message": "fix(dream): mark the operator handoff row OPERATOR, not INCONCLUSIVE",
+        "url": "https://github.com/DreamLab-AI/nostr-rust-forum/commit/d48a7a54612388a5c62b55d7ed87d425d205eedf"
       },
       "ci": {
-        "state": "green",
+        "state": "red",
         "runs": [
           {
             "workflow": "CI",
-            "conclusion": "success",
+            "conclusion": "failure",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/nostr-rust-forum/actions/runs/34029607835",
-            "updated_at": "2026-09-06T11:15:17Z"
+            "url": "https://github.com/DreamLab-AI/nostr-rust-forum/actions/runs/34095081220",
+            "updated_at": "2026-09-07T07:23:59Z"
           },
           {
             "workflow": "Security Audit",
@@ -364,8 +364,8 @@
             "workflow": "Documentation Auto-Update",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/33344213876",
-            "updated_at": "2026-08-31T00:19:11Z"
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/34067494153",
+            "updated_at": "2026-09-06T23:39:33Z"
           },
           {
             "workflow": "kit-pin-guard",
@@ -418,11 +418,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "ba9f6bf9da003c407017288501ba3c7d35878626",
-        "short": "ba9f6bf",
-        "date": "2026-09-06T08:49:40Z",
-        "message": "style: rustfmt the c86f462 landing (19 files, whitespace only)",
-        "url": "https://github.com/DreamLab-AI/loom/commit/ba9f6bf9da003c407017288501ba3c7d35878626"
+        "sha": "adb65e52597407eb3f01e8b6150b9d19bd6f1e86",
+        "short": "adb65e5",
+        "date": "2026-09-07T07:19:19Z",
+        "message": "fix(dream-cycle): mark operator rows OPERATOR/n-a, not INCONCLUSIVE",
+        "url": "https://github.com/DreamLab-AI/loom/commit/adb65e52597407eb3f01e8b6150b9d19bd6f1e86"
       },
       "ci": {
         "state": "none",
@@ -651,39 +651,39 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "1ab31e873bf0b3fbf6b9c8606f7cb104282822c0",
-        "short": "1ab31e8",
-        "date": "2026-09-06T19:38:11Z",
-        "message": "fix(ci): repair main — TS7/typescript-eslint peer conflict, TS6 type resolution, Node 18 matrix, Pages enablement",
-        "url": "https://github.com/DreamLab-AI/dream-engine/commit/1ab31e873bf0b3fbf6b9c8606f7cb104282822c0"
+        "sha": "17a205866f369afbd5e498a93e91d4d58257114e",
+        "short": "17a2058",
+        "date": "2026-09-07T07:18:59Z",
+        "message": "fix(config): make the control-plane probe honest and pin the darwin entrypoint",
+        "url": "https://github.com/DreamLab-AI/dream-engine/commit/17a205866f369afbd5e498a93e91d4d58257114e"
       },
       "ci": {
-        "state": "red",
+        "state": "green",
         "runs": [
           {
             "workflow": "CI",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dream-engine/actions/runs/34056379217",
-            "updated_at": "2026-09-06T19:55:43Z"
+            "url": "https://github.com/DreamLab-AI/dream-engine/actions/runs/34095019273",
+            "updated_at": "2026-09-07T07:21:12Z"
           },
           {
             "workflow": "CodeQL",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dream-engine/actions/runs/34056379247",
-            "updated_at": "2026-09-06T19:56:16Z"
+            "url": "https://github.com/DreamLab-AI/dream-engine/actions/runs/34095019215",
+            "updated_at": "2026-09-07T07:21:44Z"
           },
           {
             "workflow": "Deploy Pages",
-            "conclusion": "failure",
+            "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dream-engine/actions/runs/34056379294",
-            "updated_at": "2026-09-06T19:55:31Z"
+            "url": "https://github.com/DreamLab-AI/dream-engine/actions/runs/34058001618",
+            "updated_at": "2026-09-06T20:26:51Z"
           }
         ]
       },
-      "open_prs": 0,
+      "open_prs": 1,
       "open_issues": 0,
       "release": null,
       "pages": {
@@ -701,7 +701,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 220,
+      "latency_ms": 212,
       "note": null
     },
     {
@@ -710,7 +710,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 198,
+      "latency_ms": 130,
       "note": null
     },
     {
@@ -719,7 +719,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/ld+json",
-      "latency_ms": 191,
+      "latency_ms": 136,
       "note": null
     },
     {
@@ -728,7 +728,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/json; charset=utf-8",
-      "latency_ms": 202,
+      "latency_ms": 133,
       "note": "classes=8432 pages=8428 nodes=8432"
     },
     {
@@ -737,7 +737,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 279,
+      "latency_ms": 258,
       "note": null
     },
     {
@@ -746,7 +746,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/octet-stream",
-      "latency_ms": 154,
+      "latency_ms": 221,
       "note": null
     }
   ],
