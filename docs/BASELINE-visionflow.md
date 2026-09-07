@@ -1,9 +1,9 @@
 ---
 title: VisionFlow Baseline — What This Repo Is and Runs Today
 doc_id: VF-BASELINE
-version: 0.2.0
+version: 0.3.0
 status: draft-for-ratification
-verified_commit: c205575
+verified_commit: 626636b
 sources:
   - website/build.sh
   - website/static/index.html
@@ -126,9 +126,9 @@ snapshot, `website/static/data/estate-health.json`, against schema id
   `website/static/index.html` renders `data/estate-health.json` from the deployed
   artefact and performs no live queries. The file is a required entry in
   `website/assets.manifest.json`, so a missing snapshot fails the asset gate.
-- **The dream cycle reads; it never collects.** `dream.config.json` carries a fifth
-  rotation slot — `{"deep": "estate-health", "scan": ["snapshot-freshness",
-  "persistent-reds"]}` — whose evaluator is `node scripts/estate-health.mjs check`. That
+- **The dream cycle reads; it never collects.** `dream.config.json` carries
+  `{"deep": "estate-health", "scan": ["snapshot-freshness", "persistent-reds"]}` as one
+  of its four rotation slots, whose evaluator is `node scripts/estate-health.mjs check`. That
   mode is offline: it reads the committed snapshot and prints one verdict line,
   `ESTATE-HEALTH-OK`, `ESTATE-HEALTH-STALE` when `generated_at` is older than 36 hours,
   or `ESTATE-HEALTH-RED`, exiting 0 on the first and 1 on the others. The HP annexe the
@@ -143,6 +143,14 @@ snapshot, `website/static/data/estate-health.json`, against schema id
 - **Estate health reports; it does not gate.** No publication gate in `deploy.yml`
   consults the snapshot, and the workflow does not fail on a `check` exit of 1 — a red
   snapshot still deploys.
+- **The rotation is four slots, and the mesh is not one of them.** `content-integrity`,
+  `build-pipeline`, `seo-and-meta` and `estate-health`. The `webgl-mesh` deep was removed
+  after four nights produced zero mesh observations: its subject is compiled and rendered
+  behaviour, the annexe has no browser sidecar, and no evaluator entrypoint reads
+  `website/static/js/mesh-webgl.js`. Mesh questions are `HANDOFF (browser):` notes for a
+  sidecar-equipped run, and the slot returns when a browser runner exists or CI collects
+  mesh artefacts into the evidence pack the way it already collects the estate snapshot
+  (ADR-2009).
 
 Decision of record:
 [ADR-2008](adr/ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md)

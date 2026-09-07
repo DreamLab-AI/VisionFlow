@@ -17,13 +17,6 @@
       ]
     },
     {
-      "deep": "webgl-mesh",
-      "scan": [
-        "shader-source",
-        "canvas-fallback"
-      ]
-    },
-    {
       "deep": "seo-and-meta",
       "scan": [
         "meta-tags",

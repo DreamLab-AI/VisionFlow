@@ -24,7 +24,7 @@ precisely because it drifted from the code; see
 `BASELINE-visionflow.md` **in the same change**, and regenerate this index
 (`node scripts/adr-index-gen.cjs docs/adr` — it fails CI on invalid frontmatter).
 
-_8 record(s). Regenerate with_ `node scripts/adr-index-gen.cjs docs/adr`.
+_9 record(s). Regenerate with_ `node scripts/adr-index-gen.cjs docs/adr`.
 
 | ID | Title | Date | Decision | Impl | Activation | Supersedes | Superseded by | Owner | Repo |
 |----|-------|------|----------|------|------------|------------|---------------|-------|------|
@@ -36,3 +36,4 @@ _8 record(s). Regenerate with_ `node scripts/adr-index-gen.cjs docs/adr`.
 | [ADR-2006](ADR-2006-canon-owns-crossrepo-view-not-implementation.md) | VisionFlow is canon-only — it owns the cross-repo view and evidence-bounded maturity, never substrate implementation truth | 2026-08-31 | accepted | complete | live | — | — | jjohare | visionflow |
 | [ADR-2007](ADR-2007-estate-closeout-evidence-roadmap.md) | Bind estate closeout to decision lineage and system evidence | 2026-09-04 | proposed | partial | staged | — | — | estate architecture maintainers | visionflow |
 | [ADR-2008](ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md) | Estate health is collected nightly by CI and read, not collected, by the dream cycle | 2026-09-06 | accepted | complete | live | — | — | jjohare | visionflow |
+| [ADR-2009](ADR-2009-webgl-mesh-deep-is-sidecar-only.md) | The webgl-mesh deep is sidecar-only and leaves the nightly rotation until a browser runner exists | 2026-09-07 | accepted | complete | live | — | — | jjohare | visionflow |
