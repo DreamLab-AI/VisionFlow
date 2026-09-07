@@ -142,7 +142,10 @@ snapshot, `website/static/data/estate-health.json`, against schema id
   the repository as unreadable.
 - **Estate health reports; it does not gate.** No publication gate in `deploy.yml`
   consults the snapshot, and the workflow does not fail on a `check` exit of 1 — a red
-  snapshot still deploys.
+  snapshot still deploys. The dream gate does not gate on it either: the
+  evaluator is declared `"required": false` in `dream.config.json`, so a red sibling
+  repository is evidence available to tonight's hypothesis, not a veto over its verdict
+  (ADR-2008).
 - **The rotation is four slots, and the mesh is not one of them.** `content-integrity`,
   `build-pipeline`, `seo-and-meta` and `estate-health`. The `webgl-mesh` deep was removed
   after four nights produced zero mesh observations: its subject is compiled and rendered
