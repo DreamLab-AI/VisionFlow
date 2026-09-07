@@ -5,7 +5,7 @@ area: estate
 governing:
   - ../project/docs/BASELINE-architecture.md
   - ../project/agentbox/docs/BASELINE-container.md
-adrs: [ADR-2008, ADR-2037, ADR-2013, ADR-2028]
+adrs: [visionclaw:ADR-2008, visionclaw:ADR-2037, agentbox:ADR-2013, agentbox:ADR-2028]
 sources:
   - ../project/Dockerfile.unified
   - ../project/Dockerfile.production
@@ -54,6 +54,7 @@ sources:
   - ../project/agentbox/docs/adr/ADR-2013-loopback-publish-except-9096.md
   - ../project/agentbox/docs/adr/ADR-2028-vault-manifest-path-authority.md
   - ../project/scripts/adr-index-gen.js
+  - ../project/scripts/ontology/pack-pod-resources.py
   - ../project/scripts/launch.sh
   - ../project/scripts/start.sh
 verified_commit: {visionclaw: 36bb64e1e, agentbox: 2c521c5bb}
@@ -152,7 +153,7 @@ flowchart LR
     NODEDEPS["node-deps<br/>Dockerfile.unified:222<br/>npm ci --prefer-offline --no-audit:234"]
     NODEBUILD["node-builder<br/>Dockerfile.unified:239<br/>npx vite build:248"]
     DEV["development target<br/>Dockerfile.unified:255<br/>FROM base — NO rust-builder/node-builder<br/>COPY src SOURCE (not binaries):289, COPY client:294<br/>ENTRYPOINT ./dev-entrypoint.sh at Dockerfile.unified:340"]
-    PROD["production target<br/>Dockerfile.unified:348<br/>FROM cachyos-v3 fresh, NOT from base<br/>COPY --from=rust-builder binary:407<br/>COPY --from=node-builder dist:410<br/>USER appuser:428, ENTRYPOINT ./prod-entrypoint.sh:438"]
+    PROD["production target<br/>Dockerfile.unified:348<br/>FROM cachyos-v3 fresh, NOT from base<br/>COPY --from=rust-builder binary:407<br/>COPY --from=node-builder dist:410<br/>USER appuser:428, ENTRYPOINT prod-entrypoint.sh at Dockerfile.unified:437"]
 
     BASE --> RUSTDEPS --> RUSTBUILD
     BASE --> NODEDEPS --> NODEBUILD
@@ -390,13 +391,13 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant GH as GitHubPush/PR<br/>ci.yml:41-46
-    participant FMT as rust-fmt job<br/>ci.yml:61 blocking
-    participant CPU as rust-cpu job<br/>ci.yml:75 blocking
-    participant CLI as client job<br/>ci.yml:121 blocking
-    participant GATE as dev-auth-release-gate job<br/>ci.yml:142 blocking
-    participant LINT as client-quality job<br/>ci.yml:218 advisory
-    participant PW as playwright job<br/>ci.yml:248 manual only
+    participant GH as GitHubPush/PR<br/>project/.github/workflows/ci.yml:41-46
+    participant FMT as rust-fmt job<br/>project/.github/workflows/ci.yml:61 blocking
+    participant CPU as rust-cpu job<br/>project/.github/workflows/ci.yml:75 blocking
+    participant CLI as client job<br/>project/.github/workflows/ci.yml:121 blocking
+    participant GATE as dev-auth-release-gate job<br/>project/.github/workflows/ci.yml:142 blocking
+    participant LINT as client-quality job<br/>project/.github/workflows/ci.yml:218 advisory
+    participant PW as playwright job<br/>project/.github/workflows/ci.yml:248 manual only
 
     GH->>FMT: cargo fmt --all --check :72-73
     GH->>CPU: cargo build CPU_CRATES :103-104
@@ -411,8 +412,8 @@ sequenceDiagram
     opt workflow_dispatch only :254
         GH->>PW: npx playwright install :269, npm run test:e2e :271
     end
-    Note over GATE: INVARIANT: ADR-2037 via ADR-2086 - a production/release<br/>image must never carry the dev-auth cargo feature (it compiles in<br/>the Bearer dev-session-token bypass and stubs<br/>enforce_release_env_hygiene to a no-op).<br/>Hermetic: no cargo, no docker, no network - ci.yml:143-150
-    Note over CPU: DIVERGENCE: visionclaw-gpu and root server crate link<br/>CUDA at runtime, removed from hosted CI 2026-07-24 (ci.yml:241-243)
+    Note over GATE: INVARIANT: ADR-2037 via ADR-2086 - a production/release<br/>image must never carry the dev-auth cargo feature (it compiles in<br/>the Bearer dev-session-token bypass and stubs<br/>enforce_release_env_hygiene to a no-op).<br/>Hermetic: no cargo, no docker, no network - project/.github/workflows/ci.yml:143-150
+    Note over CPU: DIVERGENCE: visionclaw-gpu and root server crate link<br/>CUDA at runtime, removed from hosted CI 2026-07-24 (project/.github/workflows/ci.yml:241-243)
     Note over CPU: GPU crates validated only on the developer CUDA<br/>host via scripts/launch.sh, not by any GitHub runner
 ```
 
@@ -488,7 +489,7 @@ sequenceDiagram
     GH->>PRP: pull_request only: comment with stats and SHAs :482-483
     Note over VAL,WS: RESOLVED ADR-2098 (2026-09-05): SOLID_POD_URL now<br/>defaults to the loopback /solid scope :31-38 — what the embedded<br/>solid-pod-rs serves in-process (ADR-032 M3). The POST to<br/>/.notifications is annotated a best-effort no-op there:<br/>that path is a GET WebSocket upgrade
     Note over BLD: RESOLVED 2026-09-06: the inline md_to_ttl.py + pyld<br/>converters read Logseq key:: lines, never the json-ld fence, and<br/>produced 0 owl:Class from 380 pages on run 34045488066 —<br/>replaced by the vault pipeline, 8,434 classes / 265k triples
-    Note over GH,BLD: EXTERNAL — the source is jjohare/visionGraph, NOT knowledgeGraph.<br/>The vault owns pipeline.build and pack-pod-resources.py — this workflow<br/>only checks it out and packages the result. visionGraph reaches<br/>VisionClaw by this pull path and knowledgeGraph by a separate deploy<br/>target, so one authored corpus has two distribution paths.<br/>see VG-04.1, VG-04.2 and KG-05 for the publisher side
+    Note over GH,BLD: CORRECTED — ownership splits ACROSS the two repos, not along one.<br/>EXTERNAL: the vault jjohare/visionGraph owns pipeline.build, run under<br/>working-directory logseq-source (ontology-publish.yml:169-171).<br/>scripts/ontology/pack-pod-resources.py is THIS repo's own script, run<br/>from the repo root with no working-directory (ontology-publish.yml:181).<br/>An earlier revision of this note credited the vault with both — VG-04.1<br/>had it right. see VG-04.1, VG-04.2 and KG-05 for the publisher side
     Note over SRV,MIS: RESOLVED ADR-2106 (2026-09-06): deploy-jss had never<br/>run and could not from a hosted runner — delivery inverted to a<br/>boot pull from the ontology-latest release. see ES-08.11
 ```
 

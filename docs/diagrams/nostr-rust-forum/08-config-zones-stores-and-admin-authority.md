@@ -26,6 +26,8 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/migrations/0005_governance_receipts.sql
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/migrations/002_mod_wot_invites_welcome.sql
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/migrations/0003_username_reservations.sql
+  - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/username.rs
 verified_commit: d48a7a546
 ---
 
@@ -157,7 +159,7 @@ flowchart TB
     subgraph relayd1["nostr-bbs-relay D1 - bootstrapped by nostr-bbs-relay-worker/src/lib.rs:593"]
         R1["channel_zones lib.rs:622<br/>admin_log lib.rs:627<br/>settings lib.rs:638<br/>reports lib.rs:644<br/>hidden_events lib.rs:659"]
         R2["profiles lib.rs:681<br/>agent_registry lib.rs:695<br/>broker_cases lib.rs:705<br/>broker_decisions lib.rs:727"]
-        R3["governance_receipts lib.rs:744<br/>broker_roles lib.rs:762<br/>pubkey_aliases lib.rs:775<br/>device_keys - created by the AUTH worker devices.rs:123"]
+        R3["governance_receipts lib.rs:744<br/>broker_roles lib.rs:762<br/>pubkey_aliases lib.rs:775<br/>device_keys - created by the AUTH worker nostr-bbs-auth-worker/src/devices.rs:123"]
     end
 
     N1["INVARIANT: both bootstraps are idempotent and run on EVERY cold start, so a newly added table exists<br/>before any handler touches it - CREATE TABLE IF NOT EXISTS throughout schema.rs:27 and lib.rs:622"]

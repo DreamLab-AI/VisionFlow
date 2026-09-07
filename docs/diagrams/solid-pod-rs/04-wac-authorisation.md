@@ -74,7 +74,7 @@ sequenceDiagram
     EV-->>ER: granted or denial
     ER->>EV: RE-evaluate the SAME document with web_id = None<br/>solid-pod-rs-server/src/lib.rs:1074
     EV-->>ER: anonymous_would_be_granted
-    ER-->>H: Public only when anonymous is granted AND no elevation happened<br/>solid-pod-rs-server/src/lib.rs:1081
+    ER-->>H: Public only when anonymous is granted AND no elevation happened<br/>solid-pod-rs-server/src/lib.rs:1083
     Note over ER: The second evaluation is pure — no extra storage I/O. A sidecar read<br/>and a payment-gated read both classify Private by construction.
     Note over H: HEAD routes to handle_get, so HEAD inherits this same gate — see SP-02.11.
 ```
@@ -88,7 +88,7 @@ stateDiagram-v2
     Probe --> Present: body read
     Probe --> Failed: any other backend error
 
-    Absent --> Ascend: PolicyStep.Ascend<br/>solid-pod-rs/src/wac/resolver.rs:250
+    Absent --> Ascend: PolicyStep.Ascend<br/>solid-pod-rs/src/wac/resolver.rs:249
     Ascend --> Probe: parent_container, inherited = true<br/>solid-pod-rs/src/wac/resolver.rs:344
     Ascend --> Missing: no parent left — root probed<br/>solid-pod-rs/src/wac/resolver.rs:401
 

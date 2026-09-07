@@ -1,0 +1,200 @@
+[
+  {
+    "file": "docs/diagrams/visionclaw/21-corpus-ingest-and-vault.md",
+    "command": [
+      "node",
+      "scripts/diagram-index-gen.cjs",
+      "docs/diagrams",
+      "--check",
+      "--only",
+      "visionclaw/21-",
+      "--render",
+      "--jobs",
+      "2"
+    ],
+    "exit_code": 0,
+    "log": "vc-citation-render-21.log",
+    "log_sha256": "4048523fe7fe589c0b5e9fe63e47583d7aff9260dba675ad47bbbcb58ff33abe",
+    "final_source_sha256": "e3ba5a5d6115d717d3df883d5dbbe55129b15ee7c731b827813b16303af91943"
+  },
+  {
+    "file": "docs/diagrams/visionclaw/22-data-authority-provenance-erasure.md",
+    "command": [
+      "node",
+      "scripts/diagram-index-gen.cjs",
+      "docs/diagrams",
+      "--check",
+      "--only",
+      "visionclaw/22-",
+      "--render",
+      "--jobs",
+      "2"
+    ],
+    "exit_code": 0,
+    "log": "vc-citation-render-22.log",
+    "log_sha256": "36c52ccf25d922b8f340adc85e8e7c5d083fc066617ae313fb99d455da51e8da",
+    "final_source_sha256": "75f76a75fa946a36caa5de81fa095edbf344202ed90ee2b65c11090704b2d5b1"
+  },
+  {
+    "file": "docs/diagrams/visionclaw/23-identifiers-urn-did-sha12.md",
+    "command": [
+      "node",
+      "scripts/diagram-index-gen.cjs",
+      "docs/diagrams",
+      "--check",
+      "--only",
+      "visionclaw/23-",
+      "--render",
+      "--jobs",
+      "2"
+    ],
+    "exit_code": 0,
+    "log": "vc-citation-render-23.log",
+    "log_sha256": "f13dbba92090cd15bb9928982d75415bee4f8dec37870299277b3e00d109f1dc",
+    "final_source_sha256": "169a34147afa74b2e50cfd880d3c61bd29fb0fcb3c6f34b251c9d23b53b1634a"
+  },
+  {
+    "file": "docs/diagrams/visionclaw/24-acsp-decision-elevation.md",
+    "command": [
+      "node",
+      "scripts/diagram-index-gen.cjs",
+      "docs/diagrams",
+      "--check",
+      "--only",
+      "visionclaw/24-",
+      "--render",
+      "--jobs",
+      "2"
+    ],
+    "exit_code": 0,
+    "log": "vc-citation-render-24.log",
+    "log_sha256": "36c52ccf25d922b8f340adc85e8e7c5d083fc066617ae313fb99d455da51e8da",
+    "final_source_sha256": "af6549954baa86a456bf95047440a66e7a63cce560e02d728340f988504f1708"
+  },
+  {
+    "file": "docs/diagrams/visionclaw/25-insight-kpi-nlq-semantics.md",
+    "command": [
+      "node",
+      "scripts/diagram-index-gen.cjs",
+      "docs/diagrams",
+      "--check",
+      "--only",
+      "visionclaw/25-",
+      "--render",
+      "--jobs",
+      "2"
+    ],
+    "exit_code": 0,
+    "log": "vc-citation-render-25.log",
+    "log_sha256": "fe437a5aff698284f682c6c185fdeaeb690c7e354f28d1c2157a7afbeaf1c92d",
+    "final_source_sha256": "56bf6c79889c1a3731f336033bedb6618aff4ac0201225bef2f94587ed1ddd27"
+  },
+  {
+    "file": "docs/diagrams/visionclaw/26-solid-pod-and-jss.md",
+    "command": [
+      "node",
+      "scripts/diagram-index-gen.cjs",
+      "docs/diagrams",
+      "--check",
+      "--only",
+      "visionclaw/26-",
+      "--render",
+      "--jobs",
+      "2"
+    ],
+    "exit_code": 0,
+    "log": "vc-citation-render-26.log",
+    "log_sha256": "213affaabf55e8737f65858aeacb6b860988ddd2f5ddd5c9a688be01d51c207a",
+    "final_source_sha256": "a05c9a405b97547d550822ec45db6f6ddeacc59f21100ebb59b0fcb4f93cadfb"
+  },
+  {
+    "file": "docs/diagrams/visionclaw/28-external-services.md",
+    "command": [
+      "node",
+      "scripts/diagram-index-gen.cjs",
+      "docs/diagrams",
+      "--check",
+      "--only",
+      "visionclaw/28-",
+      "--render",
+      "--jobs",
+      "2"
+    ],
+    "exit_code": 0,
+    "log": "vc-citation-render-28.log",
+    "log_sha256": "e02629d1fa0fb209a7bef094c05d70808a4209d1981e8cbc3fe7e48be8d597ca",
+    "final_source_sha256": "ff6eb86358c6f7e42edae227247164e112cf536e9a7f72955f0d31e766a8fa27"
+  },
+  {
+    "file": "docs/diagrams/visionclaw/31-client-graph-render-pipeline.md",
+    "command": [
+      "node",
+      "scripts/diagram-index-gen.cjs",
+      "docs/diagrams",
+      "--check",
+      "--only",
+      "visionclaw/31-",
+      "--render",
+      "--jobs",
+      "2"
+    ],
+    "exit_code": 0,
+    "log": "vc-citation-render-31.log",
+    "log_sha256": "f13dbba92090cd15bb9928982d75415bee4f8dec37870299277b3e00d109f1dc",
+    "final_source_sha256": "87b244acf2cd692aa3f4b1a2e2b411fb7ef5a240b5061fb1834c17cb54ed289f"
+  },
+  {
+    "file": "docs/diagrams/visionclaw/34-client-features.md",
+    "command": [
+      "node",
+      "scripts/diagram-index-gen.cjs",
+      "docs/diagrams",
+      "--check",
+      "--only",
+      "visionclaw/34-",
+      "--render",
+      "--jobs",
+      "2"
+    ],
+    "exit_code": 0,
+    "log": "vc-citation-render-34.log",
+    "log_sha256": "b0c0f18e536ba629fab6213fe4ee57398d5bfdbd56d816be0fed91bdfb5a72b6",
+    "final_source_sha256": "41a8cb85d4569d6ee14293f91086acb400ac65037a40de57fc87503267ec128b"
+  },
+  {
+    "file": "docs/diagrams/visionclaw/35-voice-end-to-end.md",
+    "command": [
+      "node",
+      "scripts/diagram-index-gen.cjs",
+      "docs/diagrams",
+      "--check",
+      "--only",
+      "visionclaw/35-",
+      "--render",
+      "--jobs",
+      "2"
+    ],
+    "exit_code": 0,
+    "log": "vc-citation-render-35.log",
+    "log_sha256": "4048523fe7fe589c0b5e9fe63e47583d7aff9260dba675ad47bbbcb58ff33abe",
+    "final_source_sha256": "f499d371c06ca8e89c4cb9f9bc26ceb163f0c947ac579854dad29f07c560bf37"
+  },
+  {
+    "file": "docs/diagrams/visionclaw/37-browser-xr-and-desktop-input.md",
+    "command": [
+      "node",
+      "scripts/diagram-index-gen.cjs",
+      "docs/diagrams",
+      "--check",
+      "--only",
+      "visionclaw/37-",
+      "--render",
+      "--jobs",
+      "2"
+    ],
+    "exit_code": 0,
+    "log": "vc-citation-render-37.log",
+    "log_sha256": "4dd4e51b4e152996ae2443ee430882e79720fd1a24fd0d921053e86630f75d9e",
+    "final_source_sha256": "5ccf1137e1fbe942da478429d54b619a16e6258974b0560e14cf0d6354a73120"
+  }
+]

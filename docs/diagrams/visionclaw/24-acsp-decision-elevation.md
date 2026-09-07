@@ -6,6 +6,7 @@ governing:
   - ../project/docs/BASELINE-architecture.md
 adrs: [ADR-2006, ADR-2101]
 sources:
+  - ../project/agentbox/management-api/routes/broker-bridge.js
   - ../project/src/actors/elevation_actor.rs
   - ../project/src/actors/decision_elevation_actor.rs
   - ../project/src/adapters/decision_elevation_store.rs
@@ -147,7 +148,7 @@ sequenceDiagram
     participant POLL as run_interval PR_POLL_INTERVAL 120s<br/>elevation_actor.rs:62,738
     CYCLE->>EA: RunCycle (frontier scan)
     EA->>ACSP: publish build_action_request kind 31402<br/>acsp/events.rs:307
-    Note over EA: pending case stored in-memory HashMap<br/>self.pending (elevation_actor.rs:123)
+    Note over EA: pending case stored in-memory HashMap<br/>self.pending (elevation_actor.rs:123), capped at<br/>MAX_OPEN_CASES=5 concurrent cases (elevation_actor.rs:57,841,852) -<br/>matches README's "one case queue, five concurrent cases"
     ACSP-->>EA: CaseDecision via run_decision_subscription<br/>acsp/client.rs:135 (kind 31403, since Timestamp::now)
     alt action approve
         EA->>EA: approve_with_gate runs GOV-7 EL++ consistency gate<br/>elevation_actor.rs:1020,656-660 WhelkInferenceEngine.check_axiom_set
@@ -278,7 +279,7 @@ sequenceDiagram
     CFG->>INBOX: power_user auth passed
     INBOX->>STORE: store::all() ALL_LIMIT=500<br/>enrichment_proposals_handler.rs:608,612
     STORE-->>INBOX: Vec EnrichmentProposal from durable repo (same store as decide route)
-    INBOX-->>BR: 200 cases[] total (broker-bridge.js:233 shape)
+    INBOX-->>BR: 200 cases[] total (broker-bridge.js:291 response shape)
     BR->>CFG: GET /api/broker/cases/:id
     CFG->>CASE: power_user auth passed
     CASE->>STORE: store::get(id)

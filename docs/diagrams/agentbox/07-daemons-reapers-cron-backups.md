@@ -6,6 +6,7 @@ governing:
   - ../project/agentbox/docs/BASELINE-container.md
 adrs: [ADR-2032, ADR-2003, ADR-2039, ADR-2040]
 sources:
+  - ../project/agentbox/docs/BASELINE-container.md
   - ../project/agentbox/services/agentbox-ops/src/procs.rs
   - ../project/agentbox/services/agentbox-ops/src/process_identity.rs
   - ../project/agentbox/services/agentbox-ops/src/bin/ruflo-daemon-gc.rs
@@ -274,7 +275,7 @@ sequenceDiagram
     Note over S: StopOutcome variants NotRunning, Exited, Signalled, RefusedUnverifiable, RefusedMismatch, RefusedInaccessible, SignalFailed — hermes/mod.rs:437-455
     Note over S,SIG: kill(2) returning Ok proves only that the signal was DELIVERED, not that the process<br/>exited — the two are reported as different outcomes (hermes/mod.rs:434-435)
     Note over C,V: DOC-DRIFT — BASELINE-container "Process lifecycle qualification 2026-09-04" says<br/>ADR-2032 is partial because Hermes Stop uses PID EXISTENCE ONLY. The code verifies<br/>the full recorded identity twice (hermes/mod.rs:575 and :596) and observes exit. The<br/>doc understates the implementation.
-    Note over C,V: RESOLVED ADR-2039: BASELINE-container.md:205 marks this qualification<br/>resolved with evidence — identity verified at :575 and :596, delivery<br/>reported separately from confirmed exit at :434-435.
+    Note over C,V: RESOLVED ADR-2039: BASELINE-container.md:231 marks this qualification<br/>resolved with evidence — identity verified at :575 and :596, delivery<br/>reported separately from confirmed exit at :434-435.
 ```
 
 ## AB-07.7 Cron runners — schedule outside the image
@@ -351,24 +352,22 @@ sequenceDiagram
 ## AB-07.9 Gated starts — networking, desktop and toolchain daemons
 ```mermaid
 flowchart TD
-    G["flake.nix lib.optionalString gates — see AB-01.1"] --> N["tailscaled flake.nix:2185<br/>tailscale-up flake.nix:2195"]
+    G["flake.nix lib.optionalString gates — see AB-01.1"] --> N["tailscaled flake.nix:2255<br/>tailscale-up flake.nix:2265"]
     G --> D["desktop stack gated on desktop.enabled"]
     G --> T["toolchain surfaces"]
-    D --> D1["xvnc flake.nix:2012"]
-    D --> D2["x11vnc flake.nix:2001"]
-    D --> D3["wayvnc flake.nix:1969"]
-    D --> D4["xorg-nvidia flake.nix:1980"]
-    D --> D5["hyprland flake.nix:1944"]
-    D --> D6["xwayland-session flake.nix:1958"]
-    D --> D7["i3wm flake.nix:1990 and :2005 — TWO blocks,<br/>mutually exclusive Nix branches, see AB-02.7"]
-    T --> T1["jupyter-lab flake.nix:1869<br/>gate skills.data_science.jupyter, binds 0.0.0.0:8888"]
-    T --> T2["code-server flake.nix:2208<br/>gate toolchains.code_server, priority 50"]
-    T --> T3["comfyui-builtin flake.nix:2232<br/>gate skills.media.comfyui_builtin"]
-    T --> T4["qgis-mcp flake.nix:1773, blender-mcp flake.nix:1798,<br/>imagemagick-mcp flake.nix:2124"]
-    T2 -.-> CSD["DIVERGENCE — code-server runs --bind-addr 0.0.0.0:8080 --auth none ([program:code-server]),<br/>unauthenticated to any sibling container on visionclaw_network.<br/>BASELINE flags this and cites flake.nix:1927, which is stale. See AB-06.7"]
-    T2 -.-> CSR["RESOLVED ADR-2040 (implementation_status: partial): code-server<br/>([program:code-server]) now runs --auth password with the credential minted<br/>at boot into /home/devuser/.local/share/code-server/config.yaml (0600).<br/>See AB-06.7."]
-    T1 -.-> JD["jupyter also binds 0.0.0.0 with an empty IdentityProvider.token ([program:jupyter-lab]),<br/>relying on the loopback-only host publish for its boundary"]
-    T1 -.-> JDR["RESOLVED ADR-2040: jupyter-lab's empty --IdentityProvider.token=<br/>(was [program:jupyter-lab]) was DELETED in favour of a minted JUPYTER_TOKEN<br/>(command now at [program:jupyter-lab]). See AB-06.7."]
-    N -.-> ND["nostr-gateway flake.nix:1826 is the INBOUND half of the session mirror —<br/>AGENTBOX_PRIVKEY_HEX is injected by the entrypoint launcher and inherited,<br/>never written into the generated supervisor text. Off switch AGENTBOX_NOSTR_GATEWAY=0<br/>(flake.nix:1820-1825). See AB-08 for the outbound mirror hook"]
+    D --> D1["xvnc flake.nix:2082"]
+    D --> D2["x11vnc flake.nix:2071"]
+    D --> D3["wayvnc flake.nix:2039"]
+    D --> D4["xorg-nvidia flake.nix:2050"]
+    D --> D5["hyprland flake.nix:2014"]
+    D --> D6["xwayland-session flake.nix:2028"]
+    D --> D7["i3wm flake.nix:2060 and :2092 — TWO blocks,<br/>mutually exclusive Nix branches, see AB-02.7"]
+    T --> T1["jupyter-lab flake.nix:1939<br/>gate skills.data_science.jupyter, binds 0.0.0.0:8888"]
+    T --> T2["code-server flake.nix:2278<br/>gate toolchains.code_server, priority 50"]
+    T --> T3["comfyui-builtin flake.nix:2302<br/>gate skills.media.comfyui_builtin"]
+    T --> T4["qgis-mcp flake.nix:1843, blender-mcp flake.nix:1868,<br/>imagemagick-mcp flake.nix:2194"]
+    T2 -.-> CSR["RESOLVED ADR-2040 (2026-09-05) — the old finding was that code-server ran<br/>--bind-addr 0.0.0.0:8080 --auth none ([program:code-server]), unauthenticated<br/>to any sibling container on visionclaw_network (BASELINE's flake.nix:1927<br/>citation for this was itself already stale). It now runs --auth password<br/>with the credential minted at boot into<br/>/home/devuser/.local/share/code-server/config.yaml (0600). See AB-06.7."]
+    T1 -.-> JR["RESOLVED ADR-2040 (2026-09-05) — the old finding was that jupyter also bound<br/>0.0.0.0 with an empty --IdentityProvider.token=, relying on the loopback-only<br/>host publish for its boundary. The flag is gone; JUPYTER_TOKEN is now minted<br/>at boot into a 0600 devuser file and exported into PID 1's environment before<br/>supervisord starts ([program:jupyter-lab]:1939). See AB-06.7."]
+    N -.-> ND["nostr-gateway flake.nix:1896 is the INBOUND half of the session mirror —<br/>AGENTBOX_PRIVKEY_HEX is injected by the entrypoint launcher and inherited,<br/>never written into the generated supervisor text. Off switch AGENTBOX_NOSTR_GATEWAY=0<br/>(flake.nix:1890-1895). See AB-08 for the outbound mirror hook"]
     G -.-> INV["INVARIANT — adding a gate means gating BOTH the Nix package set AND the<br/>supervisor block, plus a system-manifest catalogue entry with an honest<br/>apply class. See AB-05.9"]
 ```

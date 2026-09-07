@@ -36,13 +36,13 @@ sequenceDiagram
     AF->>AF: update velocity by force times alpha, apply damping, integrate position<br/>src/layout/simulation.rs:244-251
     FS->>FS: decay alpha, increment iteration counter<br/>src/layout/simulation.rs:287-288
 ```
-- `run(graph, iterations)` (src/layout/simulation.rs:318) calls `initialize` once then loops `tick` up to `iterations` times, breaking early on `is_finished()` (src/layout/simulation.rs:320-325).
+- `run(graph, iterations)` (src/layout/simulation.rs:318) calls `initialize` at src/layout/simulation.rs:319 once then loops `tick` up to `iterations` times, breaking early on `is_finished()` (src/layout/simulation.rs:322-323).
 - `is_finished()` is `alpha < config.alpha_min` (src/layout/simulation.rs:332) — a pure read, not a latched flag (contrast with `CsrSimulation`, VW-03.5).
 
 ## VW-03.2 `calculate_forces` — repulsion / attraction / centring
 ```mermaid
 flowchart TB
-    START["calculate_forces(graph)<br/>src/layout/simulation.rs:131"] --> BR{"n > 50 AND<br/>config.use_barnes_hut?<br/>src/layout/simulation.rs:149"}
+    START["calculate_forces(graph)<br/>src/layout/simulation.rs:131"] --> BR{"n > 50 AND<br/>config.use_barnes_hut?<br/>src/layout/simulation.rs:150"}
     BR -->|yes| QT["QuadTree::build(&nodes)<br/>then calculate_force() per node<br/>src/layout/simulation.rs:155-164"]
     BR -->|no| BATCH["calculate_batch_repulsion(positions, charge)<br/>SIMD/scalar batch, O(n²)<br/>src/layout/simulation.rs:172"]
     QT --> ATTR["attraction along edges:<br/>calculate_attraction(pos1,pos2,link_distance,link_strength) * alpha<br/>src/layout/simulation.rs:181-190"]
@@ -50,7 +50,7 @@ flowchart TB
     ATTR --> CENTER["calculate_batch_center_force(positions, center, center_strength)<br/>src/layout/simulation.rs:225-228"]
     CENTER --> SUM["forces: HashMap<node_id, Vector2<f64>><br/>summed per node"]
 ```
-- Barnes-Hut only engages above the `n > 50` threshold (src/layout/simulation.rs:149) — small graphs always take the O(n²) batch path.
+- Barnes-Hut only engages above the `n > 50` threshold (src/layout/simulation.rs:150) — small graphs always take the O(n²) batch path.
 
 ## VW-03.3 `QuadTree` — build, insert/subdivide, Barnes-Hut recursion
 ```mermaid
@@ -71,7 +71,7 @@ flowchart TB
     THETA -->|yes| APPROX["approximate via center_of_mass,<br/>strength*total_mass/distance²<br/>src/layout/quadtree.rs:301-303"]
     THETA -->|no| RECURSE["recurse into all 4 children,<br/>sum their forces<br/>src/layout/quadtree.rs:307-311"]
 ```
-- `theta` (typical 0.5–0.9, doc comment src/layout/quadtree.rs:263) trades layout accuracy for speed: smaller theta forces more recursion (exact), larger theta approximates more aggressively.
+- `theta` (typical 0.5–0.9, doc comment src/layout/quadtree.rs:261) trades layout accuracy for speed: smaller theta forces more recursion (exact), larger theta approximates more aggressively.
 
 ## VW-03.4 Leaf-force SIMD/scalar dispatch
 ```mermaid

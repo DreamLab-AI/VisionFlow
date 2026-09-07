@@ -30,6 +30,9 @@ sources:
   - ../project/agentbox/scripts/dream-inbox.mjs
 verified_commit: 2c521c5bb
 ---
+
+Source qualification (2026-09-07): AB-08.1–AB-08.7 preserve an earlier **runtime settings snapshot**, not a tracked settings file or a fresh inspection of this session. Group numbers, offsets and timeouts in those sections are historical observations and may have drifted. No private `~/.claude/settings.json` was read for this audit. Current reproducible registration is grounded in `services/agentbox-manifest/src/stacks.rs::learning_hooks` (per-profile hooks) and `config/entrypoint-unified.sh` (root mirror/fleet/ontology/trust/trajectory/dream registration, plus hook-shim reconciliation). The latter can rewrite prior CLI hooks; the historical table is not an attestation of its output. Tracked handler internals below remain separately source-cited.
+
 ## AB-08.1 Hook registration table part 1 — tool, prompt and session events
 ```mermaid
 flowchart TB
@@ -130,7 +133,7 @@ flowchart TB
     end
     subgraph DIVG["divergences"]
     direction TB
-    DIV1["DIVERGENCE: claude-flow-hook-adapter.cjs is never<br/>referenced by ~/.claude/settings.json #40;grep -n found 0 hits#41;.<br/>It is wired only into PER-PROFILE settings.json under<br/>workspace/profiles/#60;stack#62;/.claude/ by stacks.rs<br/>learning_hooks#40;#41; #40;stacks.rs:27-63#41;, default path<br/>stacks_env.rs:44-45. This tree's live session uses<br/>hook-handler.cjs instead #40;see AB-08.9#41;."]
+    DIV1["DIVERGENCE: claude-flow-hook-adapter.cjs is never<br/>referenced by ~/.claude/settings.json #40;grep -n found 0 hits#41;.<br/>It is wired only into PER-PROFILE settings.json under<br/>workspace/profiles/#60;stack#62;/.claude/ by stacks.rs<br/>learning_hooks#40;#41; #40;stacks.rs:27-63#41;, default path<br/>stacks_env.rs:44-45. The earlier runtime snapshot used<br/>hook-handler.cjs instead #40;see AB-08.9#41;."]
     DIV2["RESOLVED ADR-2068 #40;2026-09-05#41;: the root gap is closed.<br/>config/entrypoint-unified.sh now seeds the ontology-monitor<br/>SessionEnd hook AND its AGENTBOX_ONTOLOGY_MONITOR master<br/>switch into the root settings.json from #91;ontology_monitor#93;<br/>enabled, and RETRACTS both when the gate is off<br/>#40;ADR-2020 byte-identical-when-off#41;. Separately,<br/>project-tracking-publish.cjs is correctly wired nowhere — it is<br/>a CLI the management API spawns, not a Claude Code hook.<br/>Which files here are hooks vs CLIs: config/hooks/README.md"]
     DIV3["DIVERGENCE: baked-vs-live path split.<br/>#47;opt#47;agentbox#47;... #40;image copy#41;: ruvnet-brain-ground.cjs :107,<br/>trust-seed.cjs :181, trajectory-recorder.cjs :239/:308.<br/>#47;home#47;devuser#47;workspace#47;project#47;agentbox#47;... #40;live checkout#41;:<br/>nostr-live-mirror.cjs :98/158/205/221,<br/>dream-inbox-surface.cjs :125, fleet-session-start.sh :172."]
     DIV1 --> DIV2 --> DIV3
@@ -143,9 +146,9 @@ sequenceDiagram
     autonumber
     participant CC as Claude Code core
     participant HH as hook-handler.cjs<br/>~/.claude/helpers/hook-handler.cjs (out of tree)
-    participant AOE as aoe-hooks inline sh<br/>settings.json:49-54
+    participant AOE as aoe-hooks inline sh<br/>historical settings snapshot lines 49-54
 
-    CC->>HH: stdin JSON, matcher=Bash (settings.json:29)
+    CC->>HH: stdin JSON, matcher=Bash (historical settings snapshot lines 29)
     Note over HH: command node /home/devuser/.claude/helpers/hook-handler.cjs pre-bash #124;#124; true (:33)<br/>timeout 5000ms, fail-open via #124;#124; true
     HH-->>CC: exit 0 (adapter logic out of tree, not diagrammed here)
 
@@ -171,7 +174,7 @@ sequenceDiagram
     autonumber
     participant CC as Claude Code core
     participant HH as hook-handler.cjs<br/>~/.claude/helpers/hook-handler.cjs (out of tree)
-    participant AOE as aoe-hooks inline sh<br/>settings.json:82-86
+    participant AOE as aoe-hooks inline sh<br/>historical settings snapshot lines 82-86
 
     CC->>HH: stdin JSON, matcher=Write#124;Edit#124;MultiEdit (:59)
     Note over HH: post-edit action (:63) t=10000, fail-open #124;#124; true
@@ -182,7 +185,7 @@ sequenceDiagram
     HH-->>CC: exit 0
 
     CC->>AOE: stdin JSON, matcher=AskUserQuestion (:79-86)
-    Note over AOE: identical drwx------/owner guard chain as AB-08.3<br/>#40;settings.json:82-86 mirrors :49-54 verbatim#41;
+    Note over AOE: identical drwx------/owner guard chain as AB-08.3<br/>#40;historical settings snapshot lines 82-86 mirrors :49-54 verbatim#41;
     AOE->>AOE: printf running > $D/status unconditionally on this matcher
     Note over AOE: no waiting/idle branch here - PostToolUse#40;AskUserQuestion#41;<br/>always means the question tool RAN, session is running again
 ```
@@ -196,7 +199,7 @@ sequenceDiagram
     participant RBG as ruvnet-brain-ground.cjs<br/>agentbox/config/hooks/ruvnet-brain-ground.cjs:37
     participant TS as turn-sink.cjs<br/>tab0-bridge (out of tree)
     participant DI as dream-inbox-surface.cjs<br/>agentbox/config/hooks/dream-inbox-surface.cjs:24
-    participant AOE as aoe __extract-session-id + aoe-hooks<br/>settings.json:133-140
+    participant AOE as aoe __extract-session-id + aoe-hooks<br/>historical settings snapshot lines 133-140
     participant M as Model context
 
     U->>HH: stdin JSON group1 (:90-95)
@@ -240,10 +243,10 @@ sequenceDiagram
     participant FS as fleet-session-start.sh<br/>agentbox/config/hooks/fleet-session-start.sh:1
     participant FTN as fleet-tab-name.sh<br/>agentbox/config/hooks/fleet-tab-name.sh:1
     participant TSD as trust-seed.cjs<br/>agentbox/config/hooks/trust-seed.cjs:70
-    participant AOE as aoe __extract-session-id<br/>settings.json:189
+    participant AOE as aoe __extract-session-id<br/>historical settings snapshot lines 189
 
     CC->>HH: group1 step1 (:145-149) t=15000
-    Note over HH: session-restore, stdout INJECTED filtered by RESTORE_SIGNAL<br/>#40;mirrors adapter.cjs:47 allowlist pattern#41;
+    Note over HH: session-restore, stdout INJECTED filtered by RESTORE_SIGNAL<br/>#40;tracked counterpart: claude-flow-hook-adapter.cjs:47 RESTORE_SIGNAL#41;
     HH-->>CC: exit 0
     CC->>AM: group1 step2 (:152-154) t=8000
     Note over AM: resolves CLAUDE_PROJECT_DIR/.claude/helpers/auto-memory-hook.mjs<br/>else falls back to ~/.claude/helpers/, runs import subcmd
@@ -280,7 +283,7 @@ sequenceDiagram
     participant NM as nostr-live-mirror.cjs<br/>agentbox/config/hooks/nostr-live-mirror.cjs:349
     participant TS as turn-sink.cjs Stop<br/>tab0-bridge (out of tree)
     participant TR as trajectory-recorder.cjs<br/>agentbox/config/hooks/trajectory-recorder.cjs:507
-    participant AOE as aoe-hooks status=idle<br/>settings.json:245-249 / :343-348
+    participant AOE as aoe-hooks status=idle<br/>historical settings snapshot lines 245-249 / :343-348
 
     rect rgb(240,240,255)
     Note over CC,NM: SessionEnd (:195-209)
@@ -302,7 +305,7 @@ sequenceDiagram
     end
     CC->>AOE: group4 (:245-249) status=idle unconditionally on Stop
     end
-    Note over CC,AOE: StopFailure (settings.json:343-348) is the SAME aoe-hooks status=idle<br/>body as Stop group4, registered on the failure event instead
+    Note over CC,AOE: StopFailure (historical settings snapshot lines 343-348) is the SAME aoe-hooks status=idle<br/>body as Stop group4, registered on the failure event instead
 ```
 ## AB-08.8 claude-flow-hook-adapter.cjs — stdin-to-CLI translation (per-profile stacks only)
 ```mermaid
@@ -491,7 +494,7 @@ sequenceDiagram
     participant NPB as nostr-pod-bridge track<br/>spawnSync binary (:184-200)
     participant U as UserPromptSubmit
     participant DI as dream-inbox-surface.cjs<br/>agentbox/config/hooks/dream-inbox-surface.cjs:24
-    participant INBOX as dream-inbox.json<br/>~/workspace/.agentbox/dream-inbox.json:20
+    participant INBOX as dream-inbox.json<br/>runtime inbox path<br/>defined by dream-inbox-surface.cjs:20 INBOX
     participant M as Model context
 
     rect rgb(245,235,255)

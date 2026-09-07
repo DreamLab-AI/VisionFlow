@@ -6,7 +6,11 @@ governing:
   - ../project/agentbox/docs/BASELINE-container.md
 adrs: [ADR-2003, ADR-2028, ADR-2029, ADR-2036, ADR-2037, ADR-2038, ADR-2039, ADR-2080]
 sources:
+  - ../project/agentbox/docs/BASELINE-container.md
+  - ../project/agentbox/management-api/server.js
   - ../project/agentbox/management-api/lib/system-manifest.js
+  - ../project/agentbox/scripts/start-agentbox.sh
+  - ../project/agentbox/setup/server/src/main.rs
   - ../project/agentbox/management-api/routes/system.js
   - ../project/agentbox/agentbox.sh
   - ../project/agentbox/scripts/ruvector-sidecar-update.sh
@@ -145,8 +149,7 @@ flowchart LR
     G4 --> RV["cmd_ruvector agentbox.sh:999<br/>exec bash scripts/ruvector-sidecar-update.sh — see AB-05.6"]
     G5 --> HL["cmd_health agentbox.sh:1108 — see AB-05.7"]
     G5 --> SH["cmd_shell agentbox.sh:1091"]
-    SH -.-> DIV1["DIVERGENCE — cmd_shell agentbox.sh:1104 execs into<br/>cd /workspace/profiles/PROFILE. agentbox/CLAUDE.md 'Runtime model gotchas'<br/>states the literal path /workspace is retired and will break.<br/>Every other profile path in the same script uses SCRIPT_DIR/workspace/profiles<br/>agentbox.sh:348 and :511"]
-    SH -.-> RES1["RESOLVED ADR-2038: cmd_shell agentbox.sh:1104 now uses<br/>cd /home/devuser/workspace/profiles/${profile} && exec fish"]
+    SH -.-> RES1["RESOLVED ADR-2038: cmd_shell agentbox.sh:1105 now uses<br/>cd /home/devuser/workspace/profiles/${profile} && exec fish — the old<br/>finding was that it execed the retired literal /workspace/profiles/PROFILE<br/>path (agentbox/CLAUDE.md 'Runtime model gotchas'); every other profile<br/>path in the script already used SCRIPT_DIR/workspace/profiles (agentbox.sh:349, :513)"]
 ```
 
 ## AB-05.6 agentbox.sh ruvector — a dispatch table split across two files
@@ -214,8 +217,7 @@ sequenceDiagram
             SH-->>OP: exit 0
         end
     end
-    Note over SH,H: DIVERGENCE — /health emits status, uptime, image_hash, manifest_checksum, adapters, degraded_count, note (server.js:566-574). There is NO services key, so jq '.services // {}' at agentbox.sh:1133 is always empty and the exit-1 branch at :1180-1181 is unreachable
-    Note over SH,H: RESOLVED ADR-2037: cmd_health now derives failure from .adapters<br/>(a slot fails when neither "healthy" nor "off", agentbox.sh:1134-1139)<br/>plus .degraded_count (agentbox.sh:1140) — exit 1 at agentbox.sh:1180-1181<br/>is reachable. Same fix as AB-04.16
+    Note over SH,H: RESOLVED ADR-2037 — the old finding was that /health emits<br/>status, uptime, image_hash, manifest_checksum, adapters, degraded_count, note<br/>(server.js:566-574) with no services key, so a stale jq '.services // {}' read<br/>left the exit-1 branch unreachable. cmd_health now derives failure from<br/>.adapters (a slot fails when neither "healthy" nor "off", agentbox.sh:1134-1139)<br/>plus .degraded_count (agentbox.sh:1140) — exit 1 at agentbox.sh:1180-1181<br/>is reachable. Same fix as AB-04.16
     Note over SH: BASELINE-container Adapter spine stage 4 claims agentbox.sh health exits non-zero if any slot gauge is 0 — it never reads the agentbox_adapter_health gauge at all. See AB-04.16
     Note over H: /health self-describes as human-inspection-only and points orchestrators at /ready (server.js:573)
 ```
@@ -341,4 +343,50 @@ sequenceDiagram
 
     Note over AB,CONSOLE: EXTERNAL — console.mjs's own request/response flow to the OpenRouter<br/>provider and the KRR/k-NN router logic is AB-29 (model-routing-neural topic), not here
     Note over AB: cmd_model_router itself is UNGATED — the CLI runs regardless of<br/>[model_routing.neural].enabled, fetch/status/console fail loud if the<br/>rebuild-baked or fetch-populated artefact dir is absent — see AB-01.11
+```
+
+## AB-05.12 setup/agentbox-setup — the pre-boot Rust onboarding wizard (closes audit gap 3)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant OP as operator (host, pre-boot)
+    participant START as scripts/start-agentbox.sh
+    participant BIN as agentbox-setup binary<br/>setup/server/src/main.rs:187
+    participant FE as embedded frontend<br/>setup/server/src/main.rs:14-16
+    participant MGMT as management-api :9090 (if already running)
+
+    OP->>START: ./scripts/start-agentbox.sh
+    START->>START: not --tui (start-agentbox.sh:425)
+    START->>START: search setup/agentbox-setup, then the two cargo target/release<br/>candidates, first executable wins (start-agentbox.sh:429-435)
+    alt compiled binary present
+        START->>BIN: exec agentbox-setup CONFIG_FILE schema/agentbox.toml.schema.json (start-agentbox.sh:436-437)
+        BIN->>BIN: load_mgmt_key — /var/lib/agentbox/secrets/mgmt-key, then ~/.agentbox/mgmt-key,<br/>then MANAGEMENT_API_KEY env (main.rs:166-184)
+        BIN->>BIN: bind 127.0.0.1 port 0 — OS-assigned ephemeral port, loopback only (main.rs:229-232)
+        BIN-->>OP: print URL to stderr, best-effort open::that(url) (main.rs:234-248)
+        OP->>BIN: GET /api/config
+        BIN->>BIN: read config_path; if absent, seed FRESH from the shipped<br/>agentbox.default.toml (behaviour-preserving, all gates OFF) — never the<br/>live agentbox.toml, which may carry operator enablements (main.rs:39-45)
+        BIN-->>OP: {toml_content, schema} JSON (main.rs:54-57)
+        OP->>BIN: POST /api/config {toml_content}
+        BIN->>BIN: parse as toml_edit::DocumentMut — 400 on invalid TOML (main.rs:64-66)
+        BIN->>BIN: tokio::fs::write(config_path) — 500 on write failure (main.rs:68-75)
+        BIN-->>OP: 200 OK
+        OP->>BIN: any other path
+        BIN->>FE: serve_frontend — rust_embed lookup by path, index.html fallback,<br/>404 if neither exists (main.rs:144-164)
+        opt operator asks for a live management-api call
+            OP->>BIN: ANY /api/proxy/{*path}
+            BIN->>MGMT: forward method+query+body, inject Authorization Bearer if<br/>mgmt_api_key resolved, else unauthenticated (main.rs:85-113)
+            alt reachable
+                MGMT-->>BIN: status + body, content-type passed through (main.rs:115-133)
+            else connection refused
+                BIN-->>OP: 503 container_unreachable JSON (main.rs:135-140)
+            end
+        end
+        OP->>BIN: POST /api/shutdown (Save & Exit)
+        BIN->>BIN: shutdown.notify_one() (main.rs:80-83)
+        BIN-->>OP: process exits — tokio::select! races the server future,<br/>the shutdown Notify and ctrl_c (main.rs:250-263)
+    else no compiled binary
+        START->>FE: copy agentbox.toml + schema.json next to setup/frontend/dist,<br/>python3 -m http.server on an OS-assigned port, --bind 127.0.0.1 (start-agentbox.sh:440-472)
+        Note over START,FE: static fallback — no proxy, no shutdown endpoint;<br/>operator downloads the edited TOML and places it manually (start-agentbox.sh:475-478)
+    end
 ```

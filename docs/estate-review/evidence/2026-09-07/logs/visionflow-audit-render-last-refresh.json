@@ -1,0 +1,17 @@
+[
+  {
+    "id": "AB-07.9",
+    "topic": "agentbox/07-daemons-reapers-cron-backups.md",
+    "source_sha256": "4abc6f00b8088ce8311eb3ded9641e3af8ed6a9e76088d79c1557c62eca545d3",
+    "command": [
+      "mmdc",
+      "-i",
+      "/home/devuser/workspace/VisionFlow/docs/diagrams/rendered/agentbox/07-daemons-reapers-cron-backups/AB-07.9.mmd",
+      "-o",
+      "/home/devuser/workspace/VisionFlow/docs/diagrams/rendered/agentbox/07-daemons-reapers-cron-backups/AB-07.9.svg",
+      "-q"
+    ],
+    "exit_code": 0,
+    "output": ""
+  }
+]

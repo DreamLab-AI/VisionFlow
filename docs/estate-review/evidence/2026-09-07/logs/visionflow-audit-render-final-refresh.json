@@ -1,0 +1,47 @@
+[
+  {
+    "id": "AB-02.11",
+    "topic": "agentbox/02-boot-sequence-and-readiness.md",
+    "source_sha256": "3f826821319f7a566842810e0a8e14babf32b162e9159ede58908fbbee80c994",
+    "command": [
+      "mmdc",
+      "-i",
+      "/home/devuser/workspace/VisionFlow/docs/diagrams/rendered/agentbox/02-boot-sequence-and-readiness/AB-02.11.mmd",
+      "-o",
+      "/home/devuser/workspace/VisionFlow/docs/diagrams/rendered/agentbox/02-boot-sequence-and-readiness/AB-02.11.svg",
+      "-q"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "id": "AB-07.9",
+    "topic": "agentbox/07-daemons-reapers-cron-backups.md",
+    "source_sha256": "32cf42fcb54dbf2e8a15ad8a85ec06c949647dae3635c90a82290b3c1ffe89f0",
+    "command": [
+      "mmdc",
+      "-i",
+      "/home/devuser/workspace/VisionFlow/docs/diagrams/rendered/agentbox/07-daemons-reapers-cron-backups/AB-07.9.mmd",
+      "-o",
+      "/home/devuser/workspace/VisionFlow/docs/diagrams/rendered/agentbox/07-daemons-reapers-cron-backups/AB-07.9.svg",
+      "-q"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "id": "AB-10.12",
+    "topic": "agentbox/10-ingress-nip98-proxy-and-aoe.md",
+    "source_sha256": "8dc26444737de16c968bd3ecd6a58e7ac9c33aecded74a6dd33c769fa726bd68",
+    "command": [
+      "mmdc",
+      "-i",
+      "/home/devuser/workspace/VisionFlow/docs/diagrams/rendered/agentbox/10-ingress-nip98-proxy-and-aoe/AB-10.12.mmd",
+      "-o",
+      "/home/devuser/workspace/VisionFlow/docs/diagrams/rendered/agentbox/10-ingress-nip98-proxy-and-aoe/AB-10.12.svg",
+      "-q"
+    ],
+    "exit_code": 0,
+    "output": ""
+  }
+]

@@ -18,6 +18,8 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/mempool.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/trail_store.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/main.rs
+  - ../solid-pod-rs/crates/solid-pod-rs/src/wac/conditions.rs
+  - ../solid-pod-rs/crates/solid-pod-rs-git/src/api.rs
 verified_commit: 1d9da5270
 ---
 

@@ -52,6 +52,7 @@ sources:
   - ../project/src/handlers/api_handler/analytics/sssp_handlers.rs
   - ../project/src/utils/binary_protocol.rs
   - ../project/src/utils/validation/sanitization.rs
+  - ../project/src/handlers/fastwebsockets_handler.rs
 verified_commit: 36bb64e1e
 ---
 
@@ -62,8 +63,8 @@ sequenceDiagram
     participant C as Client
     participant H as get_graph_data<br/>src/handlers/api_handler/graph/mod.rs:189
     participant QH as graph_query_handlers<br/>AppState CQRS handler set
-    participant GPU as ForceComputeActor<br/>fetch_settlement, mod.rs:153
-    participant POP as PopulationFilter::parse<br/>mod.rs:121
+    participant GPU as ForceComputeActor<br/>fetch_settlement, graph/mod.rs:153
+    participant POP as PopulationFilter::parse<br/>graph/mod.rs:121
 
     C->>H: GET /api/graph/data?graph_type=&exclude_linked_pages=
     par CQRS queries via execute_in_thread
@@ -80,14 +81,14 @@ sequenceDiagram
             GPU-->>H: Some(SettlementSnapshot)
         end
     end
-    H->>POP: PopulationFilter::parse(graph_type) — Agent / Knowledge / Ontology bit-mirrors (mod.rs:107-147)
+    H->>POP: PopulationFilter::parse(graph_type) — Agent / Knowledge / Ontology bit-mirrors (graph/mod.rs:107-147)
     alt query.graph_type set
         H->>H: filter nodes by population.matches(node_type, metadata)
     else absent
         H->>H: no population filtering
     end
     opt exclude_linked_pages=true
-        H->>H: drop nodes whose origin resolves to linked_page (mod.rs:272-283)
+        H->>H: drop nodes whose origin resolves to linked_page (graph/mod.rs:272-283)
     end
     alt all three CQRS queries Ok
         H-->>C: 200 GraphResponseWithPositions{nodes,edges,metadata,settlement_state}
@@ -96,10 +97,10 @@ sequenceDiagram
     else any handler Err
         H-->>C: 500 Failed to retrieve graph data
     end
-    Note over H: GET /api/graph/data/paginated (mod.rs:332) is the SAME CQRS GetGraphData<br/>read plus offset/limit slicing — GraphQuery{page,page_size} — see mod.rs:335
-    Note over H: GET /api/graph/positions (mod.rs:601) skips CQRS entirely — reads<br/>ForceComputeActor.send(GetCurrentPositions) directly, 503 if gpu_addr is None
-    Note over H: GET /api/graph/fold -> fold::get_fold_plan (mod.rs:1501, module fold) —<br/>read-only Wave-3 fold-ladder plan, not expanded here (see governing doc fold section)
-    Note over H: GET /api/graph/auto-balance-notifications (mod.rs:566) — CQRS<br/>GetAutoBalanceNotifications{since_timestamp} via execute_in_thread, same Ok/Err split
+    Note over H: GET /api/graph/data/paginated (graph/mod.rs:332) is the SAME CQRS GetGraphData<br/>read plus offset/limit slicing — GraphQuery{page,page_size} — see graph/mod.rs:335
+    Note over H: GET /api/graph/positions (graph/mod.rs:601) skips CQRS entirely — reads<br/>ForceComputeActor.send(GetCurrentPositions) directly, 503 if gpu_addr is None
+    Note over H: GET /api/graph/fold -> fold::get_fold_plan (graph/mod.rs:1501, module fold) —<br/>read-only Wave-3 fold-ladder plan, not expanded here (see governing doc fold section)
+    Note over H: GET /api/graph/auto-balance-notifications (graph/mod.rs:566) — CQRS<br/>GetAutoBalanceNotifications{since_timestamp} via execute_in_thread, same Ok/Err split
 ```
 
 ## VC-04.2 api_handler graph — node/{id} relations, expand, pattern-query (RateLimit 120/min)
@@ -108,8 +109,8 @@ sequenceDiagram
     autonumber
     participant C as XR client (visual query builder)
     participant GR as get_node_relations<br/>src/handlers/api_handler/graph/mod.rs:991
-    participant EX as expand_node<br/>mod.rs:1022
-    participant QP as query_pattern<br/>mod.rs:1459
+    participant EX as expand_node<br/>graph/mod.rs:1022
+    participant QP as query_pattern<br/>graph/mod.rs:1459
     participant SNAP as fetch_graph_snapshot<br/>mod.rs (Arc~GraphData~ CQRS read)
 
     C->>GR: GET /api/graph/node/{id}/relations
@@ -134,9 +135,9 @@ sequenceDiagram
         EX-->>C: 200 neighbours, heaviest-weight first, capped
     end
     C->>QP: POST /api/graph/query/pattern {triples:[{src,edgeType,tgt}]}
-    Note over QP: pattern variables are JSON strings by convention #quot;?vN#quot —<br/>concrete ids are JSON numbers, masked with NODE_ID_MASK (mod.rs:1083-1089)
+    Note over QP: pattern variables are JSON strings by convention #quot;?vN#quot —<br/>concrete ids are JSON numbers, masked with NODE_ID_MASK (graph/mod.rs:1083-1089)
     QP->>SNAP: fetch_graph_snapshot(&state) — SAME in-memory typed graph as /relations and /expand
-    Note over QP: deliberately NOT translated to SPARQL/Oxigraph — that store holds only<br/>the OWL ontology, not graph node/edge instances (mod.rs:1078-1081)
+    Note over QP: deliberately NOT translated to SPARQL/Oxigraph — that store holds only<br/>the OWL ontology, not graph node/edge instances (graph/mod.rs:1078-1081)
     QP-->>C: 200 pattern bindings over the visible graph
     Note over GR,QP: all three sit UNDER RateLimit::per_minute(120) resource wraps<br/>(graph/mod.rs:1513-1529), stacked under the scope-wide 600/min limiter
 ```
@@ -147,16 +148,16 @@ sequenceDiagram
     autonumber
     participant C as Client
     participant RA as RequireAuth::power_user<br/>src/handlers/api_handler/graph/mod.rs:1539
-    participant UG as update_graph<br/>mod.rs:471
+    participant UG as update_graph<br/>graph/mod.rs:471
     participant FS as FileService<br/>src/services/file_service.rs
     participant MD as MetadataActor<br/>UpdateMetadata
     participant GS as GraphServiceSupervisor<br/>AddNodesFromMetadata
-    participant RG as RequireAuth::authenticated<br/>mod.rs:1546
-    participant RF as refresh_graph<br/>mod.rs:434
+    participant RG as RequireAuth::authenticated<br/>graph/mod.rs:1546
+    participant RF as refresh_graph<br/>graph/mod.rs:434
     participant QH as graph_query_handlers.get_graph_data
 
     rect rgb(240,225,225)
-    Note over RA,GS: S2 escalation — POST /api/graph/update triggers a FULL bulk reload<br/>(re-fetch, re-process, rebuild). Destructive and expensive -> power_user (Admin) only (mod.rs:1531-1543)
+    Note over RA,GS: S2 escalation — POST /api/graph/update triggers a FULL bulk reload<br/>(re-fetch, re-process, rebuild). Destructive and expensive -> power_user (Admin) only (graph/mod.rs:1531-1543)
     C->>RA: POST /api/graph/update
     alt caller is not power_user
         RA-->>C: 403 Forbidden
@@ -183,7 +184,7 @@ sequenceDiagram
     end
     end
     rect rgb(225,240,225)
-    Note over RG,QH: /refresh only reads back GetGraphData — any authenticated user may call it (mod.rs:1544-1547)
+    Note over RG,QH: /refresh only reads back GetGraphData — any authenticated user may call it (graph/mod.rs:1544-1547)
     C->>RG: POST /api/graph/refresh
     RG->>RF: call handler
     RF->>QH: execute_in_thread(get_graph_data.handle(GetGraphData))
@@ -207,7 +208,7 @@ sequenceDiagram
     participant MD as MetadataActor<br/>UpdateMetadata
     participant GS as GraphServiceSupervisor<br/>AddNodesFromMetadata
     participant GPU as GPU compute actor<br/>GetNodeData (feature gpu)
-    participant GC as get_file_content<br/>mod.rs:141
+    participant GC as get_file_content<br/>files/mod.rs:141
 
     C->>FP: POST /api/files/process
     FP->>FP: FileService::load_or_create_metadata()
@@ -246,12 +247,12 @@ sequenceDiagram
     alt file missing/unreadable
         GC-->>C: 404 File not found or unreadable
     else canonical path escapes MARKDOWN_DIR
-        GC-->>C: 400 Invalid file name (mod.rs:181-190, second traversal check post-canonicalize)
+        GC-->>C: 400 Invalid file name (files/mod.rs:181-190, second traversal check post-canonicalize)
     else
         GC-->>C: 200 body: file contents (plain text, not JSON)
     end
-    Note over C: POST /api/files/refresh_graph (mod.rs:204) and POST /api/files/update_graph (mod.rs:243)<br/>are a DIFFERENT pair from /api/graph/refresh and /api/graph/update (VC-04.3) — same names,<br/>same GraphServiceSupervisor messages (GetGraphData / AddNodesFromMetadata), no RequireAuth<br/>wrap here (only the scope-wide RbacGate mutating classification applies)
-    Note over GS: DOC-DRIFT — files::update_graph (mod.rs:243) calls AddNodesFromMetadata with metadata<br/>freshly loaded from disk via load_or_create_metadata, NOT the request body — the route accepts<br/>no JSON payload despite being a POST that #quot;updates#quot the graph
+    Note over C: POST /api/files/refresh_graph (files/mod.rs:204) and POST /api/files/update_graph (files/mod.rs:243)<br/>are a DIFFERENT pair from /api/graph/refresh and /api/graph/update (VC-04.3) — same names,<br/>same GraphServiceSupervisor messages (GetGraphData / AddNodesFromMetadata), no RequireAuth<br/>wrap here (only the scope-wide RbacGate mutating classification applies)
+    Note over GS: DOC-DRIFT — files::update_graph (files/mod.rs:243) calls AddNodesFromMetadata with metadata<br/>freshly loaded from disk via load_or_create_metadata, NOT the request body — the route accepts<br/>no JSON payload despite being a POST that #quot;updates#quot the graph
 ```
 
 ## VC-04.5 `bots` scope — data, initialize-swarm, spawn-agent-hybrid, submit/interrupt/status/remove task
@@ -274,7 +275,7 @@ sequenceDiagram
         GD-->>C: 200 {success, nodes, edges} — from live actor
     else actor empty or errored
         GD->>BG: BOTS_GRAPH.read()
-        GD-->>C: 200 {success, nodes, edges, metadata} — static fallback (mod.rs:236-247)
+        GD-->>C: 200 {success, nodes, edges, metadata} — static fallback (bots_handler.rs:236-247)
     end
     C->>UD: POST /api/bots/data or /api/bots/update (AuthenticatedUser required)
     UD->>UD: convert_agents_to_nodes(request.nodes) — edges hardcoded empty
@@ -318,12 +319,12 @@ sequenceDiagram
     participant C as Client (authenticated for POST)
     participant W as RequireAuth::authenticated().mutations_only()<br/>src/handlers/api_handler/analytics/mod.rs:170
     participant SS as compute_sssp<br/>sssp_handlers.rs:165
-    participant AN as run_anomaly_detection<br/>mod.rs:93
+    participant AN as run_anomaly_detection<br/>analytics/mod.rs:93
     participant GM as GPUManagerActor / ShortestPathActor<br/>see VC-10
     participant GT as analytics_telemetry<br/>src/actors/gpu/analytics_telemetry.rs
     participant PM as get_gpu_metrics<br/>performance_handlers.rs:149
 
-    Note over W: mutations_only() gates every state-mutating POST at authenticated() while<br/>public read-only metric GETs stay open — anonymous dashboard reads need no token (mod.rs:162-167)
+    Note over W: mutations_only() gates every state-mutating POST at authenticated() while<br/>public read-only metric GETs stay open — anonymous dashboard reads need no token (analytics/mod.rs:162-167)
     C->>W: POST /api/analytics/sssp/compute {sourceNode}
     W->>SS: call handler (mutation, requires auth)
     SS->>SS: source_node = body.sourceNode as u32, default 0
@@ -361,7 +362,7 @@ sequenceDiagram
     participant EN as enable_ontology_physics<br/>src/handlers/api_handler/ontology_physics/mod.rs:107
     participant OA as OntologyActor<br/>state.ontology_actor_addr, GetOntologyReport
     participant GMA as GPUManagerActor<br/>state.gpu_manager_addr, ApplyOntologyConstraints
-    participant TS as get_trust_status<br/>mod.rs:441
+    participant TS as get_trust_status<br/>ontology_physics/mod.rs:441
     participant DAG as configure_dag<br/>src/handlers/api_handler/semantic_forces.rs:55
 
     C->>EN: POST /api/ontology-physics/enable {ontologyId, mergeMode}
@@ -389,12 +390,12 @@ sequenceDiagram
     else Ok(Ok(None)) or Err
         EN-->>C: propagated error (no validation report for ontology_id)
     end
-    Note over EN: disable_ontology_physics (mod.rs:387) mirrors this with an empty/removed<br/>ConstraintSet via the SAME ApplyOntologyConstraints message
+    Note over EN: disable_ontology_physics (ontology_physics/mod.rs:387) mirrors this with an empty/removed<br/>ConstraintSet via the SAME ApplyOntologyConstraints message
     C->>TS: GET /api/ontology-physics/trust-status
     TS->>TS: provenance_emitter::count_shapes_loaded / count_provenance_triples (ontology_repository.store())
     TS->>TS: shacl_gate::global_gate_mode() — writePaths honours mode, readPaths always advisory
     TS-->>C: 200 {status, shacl{shapesLoaded,engine:shape-driven,gateModes,w3cEnforcement},<br/>provenance{triplesStored,appendOnly:true}, federation{status:deferred, PRD-022 WS-3}}
-    Note over TS: DIVERGENCE — federation.status is hardcoded #quot;deferred#quot — SPARQL federation is<br/>relay-mediated future work, not wired in this commit (mod.rs:492-495)
+    Note over TS: DIVERGENCE — federation.status is hardcoded #quot;deferred#quot — SPARQL federation is<br/>relay-mediated future work, not wired in this commit (ontology_physics/mod.rs:492-495)
     C->>DAG: POST /api/semantic-forces/dag/configure {mode, enabled, vertical_spacing, ...}
     DAG->>DAG: layout_mode = top-down|radial|left-right
     alt invalid mode string
@@ -471,7 +472,7 @@ sequenceDiagram
     alt Err or Ok(Err)
         DC-->>C: 503/500 Settings service unavailable
     end
-    DC->>DC: app_settings.merge_update({visualisation.graphs.{knowledge,visionclaw}.physics.computeMode:2})
+    DC->>DC: app_settings.merge_update({visualisation.graphs.{knowledge,visionclaw}.physics.computeMode = 2})
     DC->>SE: settings_addr.send(UpdateSettings{settings: app_settings})
     alt Ok(Ok(()))
         opt get_gpu_compute_addr().await is Some

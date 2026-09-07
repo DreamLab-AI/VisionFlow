@@ -1,0 +1,34 @@
+.........................................................F               [100%]
+=================================== FAILURES ===================================
+_________________ test_real_corpus_publishes_nothing_from_misc _________________
+
+    @pytest.mark.skipif(not _CORPUS.is_dir(), reason="corpus not checked out")
+    def test_real_corpus_publishes_nothing_from_misc() -> None:
+        """The owner decision, pinned against the corpus itself.
+    
+        `_misc/` is populated with public pages and stays that way — VisionClaw
+        still ingests them. What must never drift is that *publishing* skips them,
+        so this asserts both halves: the directory is non-empty and public, and it
+        contributes exactly zero pages to the published walk.
+    
+        Deliberately not pinning the absolute published total: that legitimately
+        moves whenever the owner writes a page, and a test that must be bumped on
+        every content commit is a test that gets bumped without being read. The
+        split-time value was 8,433.
+        """
+        published = list(iter_page_files(_CORPUS))
+        assert published, "corpus present but no pages discovered"
+        assert not any(p.relative_to(_CORPUS).parts[0] == "_misc"
+                       for p in published)
+    
+        # ...and _misc really does hold public pages that we are choosing not to
+        # publish, so the assertion above is a decision, not an empty directory.
+        misc = [p for p in (_CORPUS / "_misc").rglob("*.md")]
+>       assert len(misc) >= 14
+E       AssertionError: assert 8 >= 14
+E        +  where 8 = len([PosixPath('/home/devuser/workspace/visionGraph/knowledge/pages/_misc/ONTOLOGY_ANALYSIS_REPORT.md'), PosixPath('/home/...and jobs.md'), PosixPath('/home/devuser/workspace/visionGraph/knowledge/pages/_misc/HRI_SAFETY_TERMS_SUMMARY.md'), ...])
+
+pipeline/tests/test_vault_layout.py:165: AssertionError
+=========================== short test summary info ============================
+FAILED pipeline/tests/test_vault_layout.py::test_real_corpus_publishes_nothing_from_misc
+1 failed, 57 passed in 2.50s

@@ -7,7 +7,7 @@ governing:
   - ../project/agentbox/docs/SECURITY-profiles.md
   - ../project/agentbox/docs/INGRESS-identity.md
   - ../project/docs/IDENTITY-authority-chain.md
-adrs: [ADR-2003, ADR-2010, ADR-2012, ADR-2013, ADR-2026, ADR-2027, ADR-2037, ADR-2038, ADR-2039, ADR-2062, ADR-2086, ADR-2087]
+adrs: [visionclaw:ADR-2003, visionclaw:ADR-2010, visionclaw:ADR-2012, agentbox:ADR-2012, agentbox:ADR-2013, visionclaw:ADR-2026, visionclaw:ADR-2027, agentbox:ADR-2027, visionclaw:ADR-2037, visionclaw:ADR-2038, visionclaw:ADR-2039, agentbox:ADR-2062, visionclaw:ADR-2086, visionclaw:ADR-2087]
 sources:
   - ../project/src/middleware/rbac_gate.rs
   - ../project/src/main.rs
@@ -24,9 +24,14 @@ sources:
   - ../project/docs/adr/ADR-2039-visionclaw-dev-mode-lan-local-bypass.md
   - ../project/agentbox/docs/adr/ADR-2013-loopback-publish-except-9096.md
   - ../project/agentbox/scripts/ci/check-ports-loopback.mjs
+  - ../project/agentbox/flake.nix
+  - ../project/agentbox/docker-compose.yml
+  - ../project/agentbox/agentbox.toml
   - ../project/src/config/security_profile.rs
   - ../project/agentbox/.github/workflows/invariants.yml
   - ../project/scripts/backup-secrets.sh
+  - ../project/agentbox/config/nip98-proxy/proxy.mjs
+  - ../project/agentbox/services/secret-backup/src/main.rs
 verified_commit: {visionclaw: 36bb64e1e, agentbox: 2c521c5bb}
 ---
 ## ES-10.1 Three named profiles — exact flag set per profile vs the fail-closed code default
@@ -34,7 +39,7 @@ verified_commit: {visionclaw: 36bb64e1e, agentbox: 2c521c5bb}
 flowchart TB
     subgraph code["Code defaults — fail-closed (ADR-2026)"]
         CD1["RBAC_PUBLIC_READS<br/>unwrap_or(false) = OFF<br/>rbac_gate.rs:126-132"]
-        CD2["RBAC_ALLOW_OWNERLESS<br/>absent = refuse boot<br/>main.rs:735-755"]
+        CD2["RBAC_ALLOW_OWNERLESS<br/>absent = refuse boot<br/>project/src/main.rs:735-755"]
         CD3["PUBKEY_VISIBILITY_FILTER<br/>parse_visibility_flag = ON<br/>position_updates.rs:34-58"]
         CD4["RBAC_DEFAULT_ROLE<br/>RBAC_DEFAULT_ROLE_ENV role_store.rs:41<br/>parse_default_role :195 = Editor<br/>fails closed to viewer on an unknown value :204"]
         CD5["RBAC_GATE_MODE<br/>enforce<br/>rbac_gate.rs:82-102"]
@@ -62,7 +67,7 @@ flowchart TB
     end
     ALL["All three profiles pin<br/>APP_ENV=production<br/>RBAC_GATE_MODE=enforce<br/>SETTINGS_AUTH_BYPASS unset"]
     INV["INVARIANT ADR-2027 — a flag left unlisted takes its<br/>fail-closed code default. Any combination outside<br/>these three rows is UNSUPPORTED, a defect not a variant."]
-    DRIFT["ADR-2038 HAS LANDED — profiles are machine-selected by<br/>src/config/security_profile.rs via VISIONCLAW_SECURITY_PROFILE (:55),<br/>or classified from observed flags when unset. The file is now tracked<br/>and the call site is in HEAD (src/main.rs:883), so the record reads<br/>decision_status accepted / activation_status live. NOTE the table above<br/>is SIX flags, not four — PROFILE_FLAGS (security_profile.rs:73) adds RBAC_OWNER_PUBKEY<br/>and RBAC_GATE_MODE. ADR-2027 corrected. see ES-10.7"]
+    DRIFT["ADR-2038 HAS LANDED — profiles are machine-selected by<br/>src/config/security_profile.rs via VISIONCLAW_SECURITY_PROFILE (:55),<br/>or classified from observed flags when unset. The file is now tracked<br/>and the call site is in HEAD (project/src/main.rs:883), so the record reads<br/>decision_status accepted / activation_status live. NOTE the table above<br/>is SIX flags, not four — PROFILE_FLAGS (security_profile.rs:73) adds RBAC_OWNER_PUBKEY<br/>and RBAC_GATE_MODE. ADR-2027 corrected. see ES-10.7"]
 
     code --> demo
     code --> single
@@ -79,28 +84,28 @@ flowchart TB
 sequenceDiagram
     autonumber
     participant OS as docker entrypoint
-    participant M as main<br/>src/main.rs:195
-    participant EH as enforce_release_env_hygiene<br/>src/main.rs:118
-    participant EV as env validation<br/>src/main.rs:59-85
-    participant RS as RoleStore bootstrap<br/>src/main.rs:713-755
+    participant M as main<br/>project/src/main.rs:195
+    participant EH as enforce_release_env_hygiene<br/>project/src/main.rs:118
+    participant EV as env validation<br/>project/src/main.rs:59-85
+    participant RS as RoleStore bootstrap<br/>project/src/main.rs:713-755
     participant L as HTTP listener
 
     OS->>M: exec visionclaw binary
     rect rgb(240,230,230)
     M->>EH: enforce_release_env_hygiene()
-    Note over EH: Compiled ONLY when neither debug_assertions<br/>nor feature dev-auth holds. Dev builds get the<br/>no-op stub at src/main.rs:169 (ADR-2037)
+    Note over EH: Compiled ONLY when neither debug_assertions<br/>nor feature dev-auth holds. Dev builds get the<br/>no-op stub at project/src/main.rs:169 (ADR-2037)
     alt argv contains --allow-skip-auth
-        EH-->>M: FATAL exit — src/main.rs:120-122
+        EH-->>M: FATAL exit — project/src/main.rs:120-122
     else env has SETTINGS_AUTH_BYPASS or ALLOW_INSECURE_DEFAULTS or VISIONCLAW_DEV_MODE
-        EH-->>M: FATAL exit 2 — src/main.rs:130-132
+        EH-->>M: FATAL exit 2 — project/src/main.rs:130-132
     else NODE_ENV=development AND DOCKER_ENV both set
-        EH-->>M: FATAL exit — src/main.rs:140-146
+        EH-->>M: FATAL exit — project/src/main.rs:140-146
     else clean
         EH-->>M: ok
     end
     end
-    M->>EV: read APP_ENV — src/main.rs:85
-    Note over EV: DOC-DRIFT resolved in code — the case-sensitive<br/>APP_ENV=production runtime guard was REMOVED as a T2<br/>anti-pattern (APP_ENV=Production defeated it). The<br/>fence moved to the binary level (src/main.rs:76-79)
+    M->>EV: read APP_ENV — project/src/main.rs:85
+    Note over EV: DOC-DRIFT resolved in code — the case-sensitive<br/>APP_ENV=production runtime guard was REMOVED as a T2<br/>anti-pattern (APP_ENV=Production defeated it). The<br/>fence moved to the binary level (project/src/main.rs:76-79)
     alt is_production
         EV-->>M: missing required vars are a hard failure
     else non-production
@@ -110,12 +115,12 @@ sequenceDiagram
     alt an Owner is assigned
         RS-->>M: ok
     else no Owner and RBAC_ALLOW_OWNERLESS=1
-        RS-->>M: warn and continue — src/main.rs:742
+        RS-->>M: warn and continue — project/src/main.rs:742
     else no Owner and flag unset
-        RS-->>M: FATAL PermissionDenied — src/main.rs:749-755
+        RS-->>M: FATAL PermissionDenied — project/src/main.rs:749-755
     end
     M->>L: bind
-    Note over M,L: RESOLVED — ADR-2038 has LANDED. assert_effective_profile_or_exit is called<br/>at src/main.rs:883 (block :878-888) BEFORE HttpServer::new and .bind,<br/>exiting 2 on any finding in a production artefact — a development build<br/>logs and continues (src/main.rs:875-877). src/config/security_profile.rs<br/>is tracked and the call site is in HEAD, so the record now reads<br/>decision_status accepted / activation_status live. Boot receipt logged<br/>src/main.rs:889-891. see ES-10.7 and VC-09.4
+    Note over M,L: RESOLVED — ADR-2038 has LANDED. assert_effective_profile_or_exit is called<br/>at project/src/main.rs:883 (block :878-888) BEFORE HttpServer::new and .bind,<br/>exiting 2 on any finding in a production artefact — a development build<br/>logs and continues (project/src/main.rs:875-877). src/config/security_profile.rs<br/>is tracked and the call site is in HEAD, so the record now reads<br/>decision_status accepted / activation_status live. Boot receipt logged<br/>project/src/main.rs:889-891. see ES-10.7 and VC-09.4
 ```
 
 ## ES-10.3 Shipped compose inverts two fail-closed code defaults
@@ -123,7 +128,7 @@ sequenceDiagram
 flowchart LR
     subgraph codeside["src/ — fail-closed defaults"]
         A1["public_reads_enabled()<br/>.unwrap_or(false)<br/>rbac_gate.rs:132"]
-        A2["RBAC_ALLOW_OWNERLESS_ENV absent<br/>refuse to start<br/>main.rs:749-755"]
+        A2["RBAC_ALLOW_OWNERLESS_ENV absent<br/>refuse to start<br/>project/src/main.rs:749-755"]
         A3["parse_visibility_flag<br/>defaults ON<br/>position_updates.rs:34"]
     end
     subgraph composeside["docker-compose.unified.yml — shipped"]
@@ -154,13 +159,13 @@ flowchart LR
 flowchart TB
     subgraph hard["Machine-enforced — hard-fail at boot"]
         H1["SETTINGS_AUTH_BYPASS or VISIONCLAW_DEV_MODE or<br/>ALLOW_INSECURE_DEFAULTS set in a release build"]
-        H1E["exit 2 — src/main.rs:130-132"]
+        H1E["exit 2 — project/src/main.rs:130-132"]
         H2["--allow-skip-auth argv in release"]
-        H2E["FATAL — src/main.rs:120-122"]
+        H2E["FATAL — project/src/main.rs:120-122"]
         H3["NODE_ENV=development plus DOCKER_ENV"]
-        H3E["FATAL — src/main.rs:140-146"]
+        H3E["FATAL — project/src/main.rs:140-146"]
         H4["RBAC_ALLOW_OWNERLESS=0 with no RBAC_OWNER_PUBKEY<br/>and no prior Owner"]
-        H4E["PermissionDenied, refuses to start<br/>src/main.rs:749-755"]
+        H4E["PermissionDenied, refuses to start<br/>project/src/main.rs:749-755"]
     end
     subgraph soft["Refuses to activate — falls back to safe value"]
         S1["RBAC_GATE_MODE=report in release without<br/>RBAC_REPORT_MODE_ACK = today UTC"]
@@ -170,7 +175,7 @@ flowchart TB
         N1["RBAC_PUBLIC_READS=1 with PUBKEY_VISIBILITY_FILTER=0"]
         N1E["PARTIALLY RESOLVED ADR-2038 — the pair is caught only<br/>INDIRECTLY: it matches no named profile, so it raises ProfileDrift<br/>when a profile is DECLARED, but merely classifies as Unnamed when<br/>none is, and Unnamed is not by itself fatal. No rule is keyed on<br/>this pair. Keying one on it is a small addition to<br/>evaluate_effective_profile (:422) — offered by vc-core."]
         N2["APP_ENV unset in a public deployment"]
-        N2E["DIVERGENCE — skips strict env validation and CORS<br/>lockdown (main.rs:85). Profiles pin it, code does not."]
+        N2E["DIVERGENCE — skips strict env validation and CORS<br/>lockdown (project/src/main.rs:85). Profiles pin it, code does not."]
     end
 
     H1 --> H1E
@@ -295,9 +300,9 @@ stateDiagram-v2
         combination still binds.
     end note
     note right of LogAndBind
-        Call site src/main.rs:883 inside the block at
+        Call site project/src/main.rs:883 inside the block at
         :878-888, BEFORE HttpServer::new and .bind.
-        Boot receipt logged src/main.rs:889-891.
+        Boot receipt logged project/src/main.rs:889-891.
         LANDED: security_profile.rs is tracked and the
         call site is in HEAD. see VC-09.4, VC-09.5
     end note
@@ -321,12 +326,12 @@ flowchart TB
         P5[":5904 xr-runtime"]
     end
     FAIL["Anything else FAILS CI"]
-    INV["INVARIANT — :9095 AoE serve is NEVER published to the LAN. It runs<br/>aoe serve --auth token --behind-proxy --allowed-host 127.0.0.1<br/>--host 127.0.0.1 (flake.nix:2247) — it binds loopback EXPLICITLY,<br/>unlike code-server. :9096 is the one identity-gated door<br/>(flake.nix:2267, published 9096:9096 at docker-compose.yml:54)."]
-    D1["RESOLVED ADR-2013 — the estate has TEN sanctioned LAN publishes,<br/>not one front door and not two. the main compose publishes only :9096<br/>(docker-compose.yml:54) but the overlays add nine more, each with a<br/>cited rationale on the SANCTIONED list (check-ports-loopback.mjs:93-104)<br/>and CI-enforced. These are DECIDED exposures, not an admitted breach."]
+    INV["INVARIANT — :9095 AoE serve is NEVER published to the LAN. It runs<br/>aoe serve --auth token --behind-proxy --allowed-host 127.0.0.1<br/>--host 127.0.0.1 (agentbox/flake.nix:2353) — it binds loopback EXPLICITLY.<br/>:9096 is the one identity-gated door, proxy_port at agentbox/flake.nix:206,<br/>published 9096:9096 at agentbox/docker-compose.yml:54 (noted flake.nix:2373)."]
+    D1["RESOLVED ADR-2013 — the estate has TEN sanctioned LAN publishes,<br/>not one front door and not two. the main compose publishes only :9096<br/>(agentbox/docker-compose.yml:54) but the overlays add nine more, each with a<br/>cited rationale on the SANCTIONED list (check-ports-loopback.mjs:93-104)<br/>and CI-enforced. These are DECIDED exposures, not an admitted breach."]
     D2["RESOLVED ADR-2013 closeout 2026-09-05 — the scanner is now a<br/>strict YAML PARSER, not an awk line-walker<br/>(check-ports-loopback.mjs:8-24). It rejects the flow-mapping<br/>and JSON-flow bypasses that previously passed, plus IPv6<br/>binds and non-sequence ports values (:39-41)."]
-    D3["PROPOSED ADR-2062: code-server binds 0.0.0.0:8080 --auth none<br/>INSIDE the container (flake.nix:2180) while compose publishes<br/>127.0.0.1:8080:8080 (docker-compose.yml:61). A loopback PUBLISH<br/>constrains the HOST only — agentbox also joins visionclaw_network<br/>(docker-compose.yml:160-162), so any PEER CONTAINER reaches an<br/>unauthenticated editor. Fix is to bind 127.0.0.1."]
+    D3["RESOLVED ADR-2040 — code-server still binds 0.0.0.0:8080 inside the<br/>container while compose publishes 127.0.0.1:8080:8080<br/>(agentbox/docker-compose.yml:61), and a loopback PUBLISH constrains the<br/>HOST only: agentbox also joins visionclaw_network<br/>(agentbox/docker-compose.yml:162), so a PEER CONTAINER still reaches it.<br/>The hole was closed by AUTHENTICATION, not by rebinding — the flag is now<br/>--auth password, not --auth none (agentbox/flake.nix:2286), with the<br/>password minted 0600 at boot by entrypoint-unified.sh and never baked into<br/>the generated supervisor text (agentbox/flake.nix:2279-2285)."]
     D5["PROPOSED ADR-2062: the gate reasons about PUBLISHED ports and<br/>is structurally blind to a container-internal 0.0.0.0 bind on a<br/>shared bridge. The invariant is to be restated in terms of<br/>LISTENERS, with each supervised program declaring its bind address."]
-    D4["DOC-DRIFT — the surviving stale --auth none claim is at<br/>docker-compose.yml:52. The GENERATOR is already correct<br/>(flake.nix:2532-2534 reads --auth token); the committed ARTEFACT<br/>predates that fix and has not been regenerated. It self-heals on<br/>the next nix build .#compose. DECISION: left unpatched by hand —<br/>the file header says AUTO-GENERATED, do not edit by hand (:1-2),<br/>and hand-patching a generated file teaches the wrong habit."]
+    D4["DOC-DRIFT — the surviving stale --auth none claim is a COMMENT at<br/>agentbox/docker-compose.yml:52. The GENERATOR is already correct<br/>(agentbox/flake.nix:2286 emits --auth password); the committed ARTEFACT<br/>predates that fix and has not been regenerated. It self-heals on the next<br/>nix build .#compose. DECISION: left unpatched by hand — the file header<br/>says AUTO-GENERATED, do not edit by hand, and hand-patching a generated<br/>file teaches the wrong habit."]
 
     SC --> R1
     SC --> R2
@@ -378,19 +383,25 @@ flowchart TB
         C4["Proxy browser-session signing secret<br/>NIP98_PROXY_SESSION_SECRET or per-boot random"]
         C5["AoE daemon token<br/>state file read by proxy with last-good cache"]
         C6["Dream remote-execution identity<br/>ssh/scp uses AMBIENT ssh config, no explicit identity file"]
-        C7["Secret backup artefact<br/>scripts/backup-secrets.sh ZIP plus manifest"]
+        C7["VisionClaw legacy backup<br/>scripts/backup-secrets.sh: ZIP plus manifest"]
+        C8["Agentbox Rust backup source<br/>services/secret-backup: tar inside age, owner-only output"]
     end
     ST["STATUS — proposed governing surface. Every custodian,<br/>deployed location, rotation cadence and incident response<br/>time is UNCONFIRMED. No cadence is invented."]
-    D1["DIVERGENCE — the break-glass branch compares a configured<br/>token and returns a sentinel identity with NO expiry, NO<br/>request-scope check and NO durable per-use audit."]
-    D2["DIVERGENCE — backup-secrets.sh uses ordinary zip/unzip<br/>integrity testing with NO encryption flags and no explicit<br/>umask/chmod. Final permissions depend on the invoking<br/>environment. Integrity testing is not a recovery exercise."]
-    D3["DIVERGENCE ADR-040 D3 — agentbox.toml:148 marks the<br/>governance publisher key-split PENDING, so governance<br/>events and server identity still share a key."]
+    D1["PARTIAL — break-glass checks optional expiry and method/path scope.<br/>Unset bounds allow unbounded use. Acceptance/refusal logs include<br/>a fingerprint and counters, but durable per-use audit is unproven."]
+    D2["TWO SOURCE PATHS — VisionClaw backup-secrets.sh still writes<br/>ordinary ZIP with an integrity check, without explicit encryption<br/>or permission hardening. Agentbox Rust backup refuses missing<br/>encryption authority and hardens output to 0600. Its existence<br/>does not replace the legacy script or prove deployed adoption."]
+    D3["DIVERGENCE ADR-040 D3 — agentbox/agentbox.toml:148 marks the<br/>governance publisher key-split PENDING, so governance<br/>events and server identity still share a key."]
     D4["DIVERGENCE — deleting the AoE state file alone does NOT<br/>rotate the daemon token, because the proxy holds a<br/>last-good cache. Daemon and proxy must rotate coherently."]
     D5["DIVERGENCE SOPS never executed (legacy ADR-109, accepted<br/>2026-05-09) — VisionClaw .env is PLAINTEXT today, no SOPS<br/>artifacts in tree."]
 
     reg --> ST
     C3 --> D1
     C7 --> D2
+    C8 --> D2
     C2 --> D3
     C5 --> D4
     ST --> D5
 ```
+
+## Custody audit qualification — 2026-09-07
+
+ES-10.10 follows `proxy.mjs::verifyIdentity`, `breakGlassNotExpired` and `breakGlassScopeAllows`, the existing VisionClaw ZIP script, and Agentbox `services/secret-backup/src/main.rs::backup`. The encrypted implementation and legacy script coexist. No actual credential, backup, deployed configuration or restoration was inspected or exercised. Lifecycle acceptance remains open; see the [Agentbox audit](../../estate-review/2026-09-07-agentbox-audit.md).

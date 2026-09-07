@@ -1,6 +1,6 @@
 ---
 id: KG-02
-title: Corpus → ontology build pipeline — 8 stages, census to graph tiers
+title: Corpus → ontology build pipeline — census to graph tiers to manifest
 area: knowledgegraph
 governing:
   - ../knowledgeGraph/docs/BASELINE-narrativegoldmine.md
@@ -13,23 +13,31 @@ sources:
   - ../knowledgeGraph/pipeline/visibility.py
   - ../knowledgeGraph/pipeline/manifest.py
   - ../knowledgeGraph/pipeline/emit_graph_tiers.py
+  - ../knowledgeGraph/pipeline/jsonld_to_turtle.py
+  - ../knowledgeGraph/pipeline/jsonld_to_webvowl.py
+  - ../knowledgeGraph/pipeline/jsonld_to_page_api.py
+  - ../knowledgeGraph/pipeline/jsonld_to_search.py
+  - ../knowledgeGraph/pipeline/backlinks.py
   - ../knowledgeGraph/docs/architecture/pipeline.md
+  - ../knowledgeGraph/docs/BASELINE-narrativegoldmine.md
+  - ../knowledgeGraph/README.md
+  - ../knowledgeGraph/.github/workflows/build.yml
 verified_commit: 2791111fc
 ---
 
-## KG-02.1 build() — 8 stages plus manifest, in fixed order
+## KG-02.1 build() — the pipeline's OWN two stage counts disagree
 
 ```mermaid
 flowchart TD
     START["python -m pipeline.build ontology/pages dist<br/>build.py:68 def build"]
-    S1["1/8 Census<br/>census.take_census — build.py:78"]
-    S2["2/8 Validate<br/>validate_corpus — build.py:97"]
-    S3["Turtle<br/>jsonld_to_turtle.build_graph — dist/data/ontology.ttl"]
-    S4["WebVOWL JSON<br/>jsonld_to_webvowl.build_webvowl — dist/data/ontology.json"]
-    S5["Page API + backlinks<br/>jsonld_to_page_api + backlinks.py"]
-    S6["Search index<br/>jsonld_to_search.build_search_index"]
-    S7["Graph tiers NGG1<br/>emit_graph_tiers.emit_graph_tiers"]
-    S8["Generation manifest<br/>manifest.build_manifest + write_manifest"]
+    S1["#91;1/8#93; Census<br/>census.take_census — build.py:78"]
+    S2["#91;2/8#93; Validate<br/>validate_corpus — build.py:100"]
+    S3["#91;3/8#93; Turtle — code comment 'Stage 3a'<br/>jsonld_to_turtle.build_graph — build.py:126,128"]
+    S4["#91;4/8#93; WebVOWL — code comment 'Stage 3b'<br/>jsonld_to_webvowl.build_webvowl — build.py:136,138"]
+    S5["#91;5/8#93; Page API + backlinks — comment 'Stage 4'<br/>jsonld_to_page_api + backlinks.py — build.py:161,163"]
+    S6["#91;6/8#93; Search index — comment 'Stage 5'<br/>jsonld_to_search.build_search_index — build.py:169,171"]
+    S7["#91;7/8#93; Graph tiers NGG1 — comment 'Stage 6'<br/>emit_graph_tiers.emit_graph_tiers — build.py:179,181"]
+    S8["#91;8/8#93; Generation manifest — comment 'Stage 7'<br/>manifest.build_manifest + write_manifest — build.py:203,205"]
     START --> S1 --> S2
     S2 -->|"strict and errors: raise BuildBlocked<br/>before ANY artefact written — build.py:115-119"| BLOCK["BuildBlocked<br/>no artefact emitted"]
     S2 --> S3 --> S4
@@ -42,6 +50,7 @@ flowchart TD
     S6 --> S8
     S7 --> S8
     note1["INVARIANT: is_public re-checked independently in Turtle, WebVOWL, Page API,<br/>Search and Graph-tiers — no stage inherits a filtered list from another (KG-02.4)"]
+    note2["DOC-DRIFT: build.py's OWN two numbering schemes disagree. Its print#40;#41;<br/>progress markers count 8 STEPS #91;1/8#93;..#91;8/8#93; #40;splitting Turtle/WebVOWL and<br/>counting the manifest#41;, shown above; its '# Stage N' code COMMENTS instead<br/>collapse Turtle+WebVOWL into one 'Stage 3' #40;3a/3b#41; and count 7 top-level<br/>stages #40;1,2,3,4,5,6,7 — comment 'Stage 7' is the manifest#41;. README.md:173<br/>'pipeline/ — 7 stages', README.md:418 'the seven-stage build' and<br/>build.yml:14 'this same seven-stage pipeline' all follow the COMMENT<br/>count, not the PRINT count a reader running the build actually sees"]
 ```
 
 ## KG-02.2 Census — every input file accounted for, or the build refuses

@@ -8,6 +8,8 @@ governing:
 adrs: [ADR-2022, ADR-2027, ADR-2041]
 sources:
   - ../project/agentbox/management-api/lib/action-plane.js
+  - ../project/agentbox/docs/GOVERNANCE-capabilities.md
+  - ../project/agentbox/management-api/routes/system.js
   - ../project/agentbox/docs/adr/ADR-2041-wire-execution-journal-and-action-pipeline.md
   - ../project/agentbox/management-api/lib/execution-journal.js
   - ../project/agentbox/management-api/lib/execution-projections.js
@@ -46,7 +48,7 @@ verified_commit: 2c521c5bb
 
 ```mermaid
 flowchart TB
-    subgraph SURF["Agent-initiated side-effect surfaces GOVERNANCE-capabilities.md:39-63"]
+    subgraph SURF["Agent-initiated side-effect surfaces GOVERNANCE-capabilities.md:42-63"]
         DTC["Direct tool call<br/>MCP fleet mcp/mcp.json"]
         CMS["Code-mode sub-call<br/>codeact / code-interpreter agentbox.toml:557,572"]
         ACISHELL["ACI shell<br/>test allowlist agentbox.toml:603<br/>raw Bash still reachable outside it"]
@@ -54,7 +56,7 @@ flowchart TB
         DREAM["Background job dream-engine<br/>01:00-05:00 UTC unattended"]
         BEADS["Background job beads work-DAG<br/>spawn_child mcp/mcp.json:197"]
         ALTHARNESS["Alternate harness path<br/>non-Claude harness"]
-        TASKAPI["POST /v1/tasks<br/>routes/tasks.js:15 spawnTask"]
+        TASKAPI["POST /v1/tasks<br/>routes/tasks.js:16 spawnTask"]
     end
 
     PIPE{{"AgentActionPipeline.dispatch<br/>agent-action-pipeline.js:110<br/>9-stage legacy-ADR-059 pipeline"}}

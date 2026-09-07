@@ -114,3 +114,9 @@ certify that a diagram is semantically correct.
 Governed paths changed: `.github/workflows/deploy.yml` (adds the baseline guard
 as a blocking publication gate). No change to `scripts/diagram-render/`,
 `scripts/check-diagram-text.js` or the committed baseline.
+
+## Estate audit — 2026-09-07
+
+The topic-tree coverage index and report-image gate certify different things. `scripts/diagram-index-gen.cjs` validates structure and offers warning-only citation checks; it does not verify semantic claims or that `verified_commit` describes all working-tree bytes. The generator now calls these values declared source revisions and qualifies ADR lookup keys by repository. Unqualified estate references remain explicitly unresolved until their owners are identified. The regression test `node tests/gates/diagram-index.test.cjs` verifies that equal ADR numbers in different repositories remain distinct.
+
+Keep render visibility, source-path existence, semantic source review, target execution and deployed acceptance as separate evidence. The [dated audit](../estate-review/2026-09-07-estate-audit.md) records source hashes, initial failures and final validation. Existing live activation labels are not a fresh deployment attestation.

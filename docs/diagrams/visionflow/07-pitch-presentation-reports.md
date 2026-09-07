@@ -7,6 +7,7 @@ governing:
   - docs/architecture/compatibility-matrix.md
 adrs: [ADR-2006]
 sources:
+  - ./README.md
   - scripts/generate-release-manifest.sh
   - scripts/render-wardley.mjs
   - scripts/check-fixture-drift.sh
@@ -44,8 +45,8 @@ flowchart LR
         R1["presentation/report/main.tex<br/>XeLaTeX book, 28 chapters, 3 appendices<br/>ARXIV.md:5"]
         R2["presentation/report/wardley/*.html<br/>five self-contained maps with tool chrome"]
         R3["presentation/report/diagrams/*.mmd — see VF-06"]
-        P1["pitch/visionflow-onepager.tex<br/>onepager.tex:1"]
-        P2["pitch/visionflow-ecosystem-pitch.tex<br/>ecosystem-pitch.tex:1"]
+        P1["pitch/visionflow-onepager.tex<br/>visionflow-onepager.tex:1"]
+        P2["pitch/visionflow-ecosystem-pitch.tex<br/>visionflow-ecosystem-pitch.tex:1"]
         D1["presentation/pitch-deck-2026-07/prompt-files/*.prompt<br/>twenty self-contained image prompts<br/>pitch-deck-2026-07/README.md:5"]
         B1["the-bubble-is-the-architecture.md"]:::content
         B2["the-bubble-is-the-architecture-v3.md"]:::content
@@ -73,7 +74,7 @@ flowchart LR
 
     ORPH["texput.log at the repo root — evidence of a real XeTeX run on<br/>2026-07-08 that ABORTED because main.tex is not at the root.<br/>Same date as dist/arxiv-2026-07-08.tar.gz<br/>texput.log:1"]:::content
 
-    NOTE["DOC-DRIFT: pdf-reports/ holds byte-identical copies of the two pitch/ PDFs.<br/>No script produces them and no doc explains the duplication; README.md:15<br/>links the pdf-reports/ copies while README.md:232 points at pitch/"]
+    NOTE["DOC-DRIFT: pdf-reports/ holds byte-identical copies of the two pitch/ PDFs.<br/>No script produces them and no doc explains the duplication; ./README.md:15<br/>links the pdf-reports/ copies while ./README.md:232 points at pitch/"]
 ```
 
 ## VF-07.2 generate-release-manifest.sh — building the fourteen-repository roster
@@ -147,23 +148,23 @@ flowchart TB
 ```mermaid
 classDiagram
     class EcosystemReleaseManifest {
-        +integer manifest_version "const 2 — schema.json:9"
+        +integer manifest_version "const 2 — ecosystem-release.schema.json:9"
         +string generated_at "format date-time"
-        +string status "local-draft | candidate | released — schema.json:11"
-        +Repository[] repositories "minItems 14 — schema.json:15"
+        +string status "local-draft | candidate | released — ecosystem-release.schema.json:11"
+        +Repository[] repositories "minItems 14 — ecosystem-release.schema.json:15"
         +Fixtures fixtures
         +Compatibility compatibility
-        additionalProperties = false "schema.json:102"
+        additionalProperties = false "ecosystem-release.schema.json:102"
     }
 
     class Repository {
         +string name
         +string path
-        +string head "pattern — exactly 40 lowercase hex chars — schema.json:22"
+        +string head "pattern — exactly 40 lowercase hex chars — ecosystem-release.schema.json:22"
         +string branch
         +boolean dirty
-        +boolean present "absent repos are recorded, never omitted — schema.json:27"
-        +string provenance "first-party | imported | upstream — schema.json:31"
+        +boolean present "absent repos are recorded, never omitted — ecosystem-release.schema.json:27"
+        +string provenance "first-party | imported | upstream — ecosystem-release.schema.json:31"
         +string|null upstream
         +string role
         additionalProperties = false
@@ -171,7 +172,7 @@ classDiagram
 
     class Fixtures {
         +string status
-        oneOf NotCompared or Compared "schema.json:47"
+        oneOf NotCompared or Compared "ecosystem-release.schema.json:47"
     }
 
     class NotCompared {
@@ -184,15 +185,15 @@ classDiagram
     class Compared {
         +const status "compared"
         +Canonical canonical "REQUIRED"
-        +string verdict "match | drift | not-run — schema.json:79"
+        +string verdict "match | drift | not-run — ecosystem-release.schema.json:79"
         +object[] consumers
     }
 
     class Canonical {
         +string repo
-        +string revision "40 hex — HEAD resolved at generation time — schema.json:66"
+        +string revision "40 hex — HEAD resolved at generation time — ecosystem-release.schema.json:66"
         +string dir
-        +string corpus_sha256 "64 hex over the sorted digest lines — schema.json:70"
+        +string corpus_sha256 "64 hex over the sorted digest lines — ecosystem-release.schema.json:70"
         +integer fixture_count "minimum 1"
     }
 
@@ -211,8 +212,8 @@ classDiagram
     Fixtures <|-- Compared
     Compared o-- Canonical
 
-    note for EcosystemReleaseManifest "INVARIANT: minItems 14 equals the repo count in\nadr-inventory.json. A manifest listing fewer is a\ncoordinated view of PART of the estate, which is what\nversion 1 silently shipped. schema.json:14"
-    note for Repository "provenance decides qualification: first-party and imported\nare qualified for release; upstream repositories are PINNED,\nnot qualified. schema.json:32"
+    note for EcosystemReleaseManifest "INVARIANT: minItems 14 equals the repo count in\nadr-inventory.json. A manifest listing fewer is a\ncoordinated view of PART of the estate, which is what\nversion 1 silently shipped. ecosystem-release.schema.json:14"
+    note for Repository "provenance decides qualification: first-party and imported\nare qualified for release; upstream repositories are PINNED,\nnot qualified. ecosystem-release.schema.json:32"
 ```
 
 ## VF-07.5 candidate-2026-05-22.json against the committed schema — a v1 artefact under a v2 contract
@@ -225,10 +226,10 @@ flowchart TB
 
     V["validate against docs/releases/ecosystem-release.schema.json"]
 
-    V --> F1["manifest_version is 1; the schema pins const 2<br/>candidate-2026-05-22.json:2 vs schema.json:9"]:::fail
-    V --> F2["repositories has SIX entries; the schema requires<br/>minItems 14<br/>candidate-2026-05-22.json:5 vs schema.json:15"]:::fail
-    V --> F3["no repository declares provenance, which the schema<br/>lists as required for every item<br/>schema.json:18"]:::fail
-    V --> F4["no fixtures block at all, and fixtures is a top-level<br/>required key — so this candidate asserts nothing about<br/>fixture parity while being labelled a candidate<br/>schema.json:7"]:::fail
+    V --> F1["manifest_version is 1; the schema pins const 2<br/>candidate-2026-05-22.json:2 vs ecosystem-release.schema.json:9"]:::fail
+    V --> F2["repositories has SIX entries; the schema requires<br/>minItems 14<br/>candidate-2026-05-22.json:5 vs ecosystem-release.schema.json:15"]:::fail
+    V --> F3["no repository declares provenance, which the schema<br/>lists as required for every item<br/>ecosystem-release.schema.json:18"]:::fail
+    V --> F4["no fixtures block at all, and fixtures is a top-level<br/>required key — so this candidate asserts nothing about<br/>fixture parity while being labelled a candidate<br/>ecosystem-release.schema.json:7"]:::fail
     V --> F5["compatibility.verification claims parity through<br/>cargo test in named versions rather than a compared corpus<br/>candidate-2026-05-22.json:54"]:::fail
 
     F1 --> VERD["DOC-DRIFT: the committed release candidate cannot validate<br/>against the committed schema. The ADR-2006 closeout rewrote the<br/>generator and schema on 2026-09-05 and left the artefact at v1"]:::fail
@@ -334,7 +335,7 @@ flowchart TB
     end
 
     subgraph PITCH["pitch/ — two standalone documents"]
-        PT["onepager.tex and ecosystem-pitch.tex are article-class<br/>dark-palette documents with no shared preamble<br/>ecosystem-pitch.tex:1"]:::manual
+        PT["onepager.tex and ecosystem-pitch.tex are article-class<br/>dark-palette documents with no shared preamble<br/>visionflow-ecosystem-pitch.tex:1"]:::manual
         PO["each ships its .pdf, .aux, .log and .out beside the source"]:::manual
         PN["NO build script, NO Makefile, NO workflow —<br/>the PDFs are produced by hand and committed"]:::orphan
         PT --> PO --> PN

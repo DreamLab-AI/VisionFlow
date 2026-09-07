@@ -7,6 +7,9 @@ type: explanation
 
 # Complete-system closeout roadmap
 
+**2026-09-07 source-audit update:** See the [closeout sprint](2026-09-07-sprint.md) for dependency order and acceptance; the VisionClaw master TODO remains the row-level board. New source evidence corrects several historical premises without declaring complete-system acceptance.
+
+
 This roadmap extends the estate review into the ADR corpus at the user's request. Closeout means that the intended system has an explicit decision record, its implementation and activation agree with that record, and the critical journeys have reproducible evidence. A passing component test or an ADR marked complete is insufficient by itself.
 
 **Current state:** inventory and initial evidence-backed work packages are available. Evidence-backed extensions span multiple repository packs; the dated amendment entries below and generated inventory identify their current scope. Affected governing documents are updated alongside operative records. Record-by-record source verification, further amendments across the repository packs, accountable-owner confirmation and full-system evidence remain unfinished. [Every discovered ADR candidate](adr-inventory.md) is listed; the [machine-readable inventory](../evidence/adr-inventory.json) preserves source hashes and declared status. The inventory includes historical and support documents so they cannot disappear from scope by omission. Its provisional classifications need review, especially imported material and ontology pages named after ADRs.

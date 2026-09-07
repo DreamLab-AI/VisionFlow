@@ -1,0 +1,13 @@
+
+ RUN  v2.1.9 /home/devuser/workspace/dreamlab-ai-website
+
+ ✓ scripts/__tests__/pin-parity.test.mjs (19 tests) 82ms
+ ✓ scripts/__tests__/config-mirrors.test.mjs (22 tests) 75ms
+ ✓ scripts/__tests__/effective-endpoints.test.mjs (17 tests) 133ms
+ ✓ scripts/__tests__/dream-kit-pin-guard.test.mjs (10 tests) 873ms
+
+ Test Files  4 passed (4)
+      Tests  68 passed (68)
+   Start at  11:11:29
+   Duration  2.40s (transform 288ms, setup 1.05s, collect 254ms, tests 1.16s, environment 1.66s, prepare 294ms)
+

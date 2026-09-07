@@ -54,7 +54,7 @@ flowchart TB
 
     N1["The test job also validates the shipped configuration contract by running the kit's own validator<br/>over forum.example.toml .github/workflows/ci.yml:107"]
     N2["The security crates re-run is nostr-bbs-core, relay-worker, pod-worker, auth-worker, preview-worker<br/>and config .github/workflows/ci.yml:136 through .github/workflows/ci.yml:141"]
-    N3["The wasm32 job installs libc6-dev-i386 so the secp256k1-sys cross-compile succeeds<br/>.github/workflows/ci.yml:171 - which is why it can check the WHOLE workspace, not the two crates<br/>workspace.metadata.ci.wasm-check-packages names Cargo.toml:49. See NF-01.2."]
+    N3["The wasm32 job installs libc6-dev-i386 so the secp256k1-sys cross-compile succeeds<br/>.github/workflows/ci.yml:171 - which is why it can check the WHOLE workspace, not the two crates<br/>workspace.metadata.ci.wasm-check-packages names nostr-rust-forum/Cargo.toml:49. See NF-01.2."]
     N4["ci-pass iterates every job result and fails the aggregate unless all succeeded<br/>.github/workflows/ci.yml:277"]
 ```
 
@@ -191,7 +191,7 @@ flowchart LR
 ```mermaid
 flowchart TB
     CAN["nostr-bbs-upstream-canary<br/>not linked into any binary nostr-bbs-upstream-canary/src/lib.rs:13"]
-    SHAPE["PASS to Shape A full absorption lib.rs:17<br/>FAIL to Shape C patch-in-place lib.rs:19"]
+    SHAPE["PASS to Shape A full absorption nostr-bbs-upstream-canary/src/lib.rs:17<br/>FAIL to Shape C patch-in-place nostr-bbs-upstream-canary/src/lib.rs:19"]
     MESH["nostr-bbs-mesh"]
     TRAITS["MeshSocket nostr-bbs-mesh/src/transport.rs:237<br/>MeshTransport nostr-bbs-mesh/src/transport.rs:249<br/>RelayTransport generic over any socket nostr-bbs-mesh/src/transport.rs:323"]
     ONLYIMPL["The ONLY MeshSocket impl in the tree is the test-only MockSocket<br/>nostr-bbs-mesh/src/mock.rs:249"]
@@ -212,24 +212,24 @@ flowchart TB
 ```mermaid
 classDiagram
     class Provider {
-        tier : setup-skill/src/lib.rs:74
-        provision : setup-skill/src/lib.rs:77
-        render_wrangler : setup-skill/src/lib.rs:81
+        tier : nostr-bbs-setup-skill/src/lib.rs:74
+        provision : nostr-bbs-setup-skill/src/lib.rs:77
+        render_wrangler : nostr-bbs-setup-skill/src/lib.rs:81
     }
     class SelfHostProvider {
-        lib.rs:89 - the only provision with real logic
+        nostr-bbs-setup-skill/src/lib.rs:89 - only provision with real logic
     }
     class CloudflareWorkersProvider {
-        lib.rs:118
+        nostr-bbs-setup-skill/src/lib.rs:118
     }
     class FlyDotIoProvider {
-        lib.rs:148
+        nostr-bbs-setup-skill/src/lib.rs:148
     }
     class TurnkeyProvider {
-        lib.rs:176
+        nostr-bbs-setup-skill/src/lib.rs:176
     }
     class KubernetesProvider {
-        lib.rs:203
+        nostr-bbs-setup-skill/src/lib.rs:203
     }
     Provider <|.. SelfHostProvider
     Provider <|.. CloudflareWorkersProvider
@@ -237,7 +237,7 @@ classDiagram
     Provider <|.. TurnkeyProvider
     Provider <|.. KubernetesProvider
 
-    note for Provider "DIVERGENCE, self-declared: scaffold only - each impl returns SetupError::NotYetImplemented for unfinished methods nostr-bbs-setup-skill/src/lib.rs:11, e.g. lib.rs:110 and lib.rs:129"
+    note for Provider "DIVERGENCE, self-declared: scaffold only - each impl returns SetupError::NotYetImplemented for unfinished methods nostr-bbs-setup-skill/src/lib.rs:11, e.g. nostr-bbs-setup-skill/src/lib.rs:110 and nostr-bbs-setup-skill/src/lib.rs:129"
     note for TurnkeyProvider "TurnkeyProvider::render_wrangler returns Unsupported by DESIGN, not by omission - a custody-tier provider never writes a wrangler.toml (variant at nostr-bbs-setup-skill/src/lib.rs:48)"
     note for SelfHostProvider "The provider abstraction is a CUSTODY ladder, not a hosting menu - each tier is a different answer to who holds the keys. Tiers are named at nostr-bbs-setup-skill/src/lib.rs:93"
 ```

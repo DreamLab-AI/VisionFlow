@@ -1,9 +1,28 @@
 # Status Reconciliation
 
-**Status:** Cross-doc reconciliation note
-**Date:** 2026-05-22
+**Status:** Source-reconciled current view with dated historical notes
+**Reviewed:** 2026-09-07
 
-This note keeps older audit language from being mistaken for current runtime status. Updated 2026-05-22 with cross-repo runtime research findings.
+This note separates source-supported mechanisms from historical estimates and deployed acceptance. The [compatibility matrix](compatibility-matrix.md#current-compatibility--2026-09-07) is the current cross-repository view; the [estate audit](../estate-review/2026-09-07-estate-audit.md) and its source reports provide evidence and remaining work.
+
+## Current reconciliation — 2026-09-07
+
+| Earlier claim | Current source-supported reading |
+|---|---|
+| Replay protection exists only in forum/CF pod | False for current source: VisionClaw has a process-local single-use cache and native Solid has a replay-store seam. None establishes shared replay protection across every replica/restart. |
+| Canonical did:nostr is the Multikey string | Agentbox keeps `did:nostr:<64-hex>` canonical and offers the Multikey verification material alongside. Verify representation at each boundary. |
+| Forum mesh has no transport and is not a relay dependency | Core/transport types, dependency, admission and fan-out planning exist. Outbound connector/accept-path joins remain deferred, so complete runtime federation is not proven. |
+| Judgment Broker is 65% implemented and only on crashbug | Retire the percentage. The kernel, ACSP producer and REST case/decision surfaces are current source; BrokerActor/Neo4j was deliberately excluded. End-to-end applied decisions remain an acceptance obligation. |
+| Ontology bridge currently exposes 12 MCP tools | Current `ontology-bridge.js::TOOLS` advertises eleven entries; `ontology_propose` has a dispatcher branch but is absent from that list. Historical twelve-tool records do not describe the selected working tree. |
+| Ontology retrieval is only an Agentbox-to-VisionClaw proxy | Loom is also a configured backend. Its generation endpoint exists server-side, but Agentbox does not consume/verify it; provenance scope and route-specific recall remain open. |
+| Beam and gluon are both delivered | Beam path is source-wired; transient attractive-edge gluon remains deferred. Hardware/client liveness needs separate evidence. |
+| A complete ADR or passing source fixture proves deployment | Source, tests, configuration, image and loaded processes are different claims. Staged Agentbox corrections and pending-live register canaries retain their labels. |
+
+Source evidence: [VisionClaw](../estate-review/2026-09-07-visionclaw-audit.md), [Agentbox](../estate-review/2026-09-07-agentbox-audit.md), [federation](../estate-review/2026-09-07-federation-audit.md), and [imported dependency scope](../estate-review/2026-09-07-imported-adr-scope.md). The ontology count was checked directly against the tracked TOOLS array, not private session settings. No new live cross-system workflow was run for this reconciliation.
+
+## Historical notes — 2026-05-22 with May follow-ups
+
+Everything below preserves earlier observations and estimates. Headings saying “current”, completion percentages, version strings, tool counts and “integrated” labels describe that earlier record and must not override the current reconciliation above. Published registers remain immutable; new evidence chains forward.
 
 ## VisionFlow Website Docs
 
@@ -23,7 +42,7 @@ This note keeps older audit language from being mistaken for current runtime sta
 | PRD-014 Ecosystem Productionisation | Completion checklist marks the 60% -> 80% productionisation work complete, including zero critical gaps, substrate CI, runbooks, fixture sync, health aggregation, and security hardening. Remaining 80% -> 100% items are mesh/runtime/observability/accessibility/release-process work. |
 | PRD-015 Ecosystem Code Hygiene | Success criteria show many hygiene items completed. Cross-substrate NIP-98 convergence remains explicitly deferred pending WASM-compatible shared surfaces. |
 
-## Current High-Confidence Open Items
+### Historical high-confidence/open-item list
 
 | Item | Why it remains open |
 |---|---|

@@ -46,6 +46,15 @@ sources:
   - ../project/src/application/settings/directives.rs
   - ../project/src/application/settings/queries.rs
   - ../project/src/handlers/utils.rs
+  - ../project/src/handlers/api_handler/mod.rs
+  - ../project/crates/visionclaw-contracts/src/lib.rs
+  - ../project/crates/visionclaw-contracts/src/agent_action.rs
+  - ../project/crates/visionclaw-contracts/src/telemetry.rs
+  - ../project/crates/visionclaw-contracts/src/enterprise.rs
+  - ../project/crates/visionclaw-contracts/src/github_adapter.rs
+  - ../project/crates/visionclaw-contracts/src/version.rs
+  - ../project/src/agent_events/schema.rs
+  - ../project/sdk/visionflow-contracts/package.json
 verified_commit: 36bb64e1e
 ---
 
@@ -164,7 +173,7 @@ flowchart TB
     L --> DOMAINLOGIC
     L --> WIRE
     L --> CROSS
-    RE["re-exports at src/lib.rs:47-64 — ClientCoordinatorActor, MetadataActor,<br/>OptimizedSettingsActor, AppState, UserSettings; plus ADR-090 compatibility aliases<br/>MetadataStore, ProtectedSettings, SimulationParams from visionclaw_domain::models"]
+    RE["re-exports at project/src/lib.rs:47-64 — ClientCoordinatorActor, MetadataActor,<br/>OptimizedSettingsActor, AppState, UserSettings; plus ADR-090 compatibility aliases<br/>MetadataStore, ProtectedSettings, SimulationParams from visionclaw_domain::models"]
     L --- RE
     U["utils re-exports — from_json, to_json, safe_json_number, time, HandlerResponse"]
     CROSS --- U
@@ -302,7 +311,7 @@ sequenceDiagram
     participant AD as SqliteSettingsRepository<br/>src/adapters/sqlite_settings_repository.rs:378
 
     CL->>H: GET /api/config
-    H->>QH: LoadAllSettingsHandler::new(state.settings_repository.clone()) (src/handlers/api_handler/mod.rs:43)
+    H->>QH: LoadAllSettingsHandler::new(state.settings_repository.clone()) (src/handlers/api_handler/mod.rs:42)
     Note over H,QH: state.settings_repository is Arc<dyn SettingsRepository> — src/app_state.rs:314
     H->>EX: execute_in_thread(move || handler.handle(LoadAllSettings)) (:45)
     Note over EX: hexser QueryHandler trait — the direct dispatch path, no CQRS bus
@@ -415,4 +424,27 @@ flowchart TB
     NG --- D
     N9["GPU internals behind these adapter slots see VC-10<br/>the dev build feature set is gpu,ontology,dev-auth — see VC-08"]
     G --- N9
+```
+
+## VC-07.12 `visionclaw-contracts` — the cross-boundary DTO crate and its actual blast radius
+```mermaid
+flowchart TB
+    LIB["crates/visionclaw-contracts/src/lib.rs:1-33<br/>'single source of truth for every envelope that<br/>crosses a process boundary' — ADR-10"]
+    LIB --> M1["agent_action — AgentActionEnvelope, ActionKind<br/>outbound click -> agentbox, ADR-10 D3<br/>agent_action.rs:101 schema_version field"]
+    LIB --> M2["telemetry — AgentTelemetryEnvelope<br/>inbound agentbox -> VisionClaw, ADR-10 D1<br/>telemetry.rs:57"]
+    LIB --> M3["enterprise — EnterpriseEventEnvelope<br/>inbound forum -> VisionClaw, ADR-10 D5<br/>enterprise.rs:38"]
+    LIB --> M4["github_adapter — ParsedMarkdown<br/>GitHub transport <-> ontology domain boundary, ADR-10 D11 + DDD-08<br/>github_adapter.rs:63"]
+    LIB --> VER["version — SCHEMA_VERSION = 1, SCHEMA_VERSION_STRING = 'v1'<br/>version.rs:19,23 — single source of the version literal"]
+    LIB --> TS["typescript-export feature -> cargo test emits .d.ts to bindings/<br/>published as npm @visionclaw/contracts, sdk/visionflow-contracts/package.json"]
+
+    N1["DIVERGENCE — verified zero current consumers on either side this crate names.<br/>Rust: visionclaw-server does NOT list visionclaw-contracts under [dependencies]<br/>(only [workspace] members, Cargo.toml:2-4) — grep of AgentActionEnvelope /<br/>AgentTelemetryEnvelope / EnterpriseEventEnvelope / ParsedMarkdown across src/<br/>finds no import from this crate anywhere"]
+    LIB --- N1
+    N2["src/agent_events/schema.rs:61 defines its OWN, INDEPENDENT<br/>AgentActionEnvelope struct — same name, not the crate's type,<br/>no shared definition. A field added to the crate's envelope<br/>changes nothing this struct emits, and vice versa"]
+    M1 --- N2
+    N3["TS: no client/ or agentbox/ package.json references<br/>@visionclaw/contracts — the generated bindings/ and npm package<br/>exist and pass their own tests (schema_stability.rs, ts_export.rs)<br/>but are not wired into a consumer's build in this checkout"]
+    TS --- N3
+    N4["Practical blast radius today: editing this crate breaks only its<br/>own tests. It is a real, tested, independently-buildable contract<br/>layer staged ahead of the cross-repo wiring ADR-10 describes —<br/>not yet the thing anything downstream actually depends on."]
+    N1 --- N4
+    N2 --- N4
+    N3 --- N4
 ```

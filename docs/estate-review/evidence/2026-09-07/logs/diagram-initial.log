@@ -1,0 +1,209 @@
+parsed 123 topic files, 1333 mermaid diagrams
+cite-check: 204 warning(s)
+  ! agentbox/02-boot-sequence-and-readiness.md:AB-02.13 — agentbox/docs/BASELINE-container.md:186 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.1 — middleware/auth.js:220 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.1 — middleware/auth.js:221 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.3 — middleware/auth.js:167 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.3 — middleware/auth.js:169 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.3 — middleware/auth.js:180 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.3 — middleware/auth.js:198 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.3 — routes/comfyui.js:74 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.4 — middleware/auth.js:198 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.6 — routes/system.js:33 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.6 — routes/system.js:37 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.6 — routes/system.js:47 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.6 — routes/system.js:56 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.6 — routes/well-known.js:64 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.6 — routes/well-known.js:34 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.6 — lib/uris.js:244 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.6 — routes/uri-resolver.js:49 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.6 — routes/uri-resolver.js:12 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.6 — routes/uri-resolver.js:161 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.8 — middleware/privacy-filter.js:28 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.10 — llm-marketplace.js:84 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.10 — llm-marketplace.js:145 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.10 — llm-marketplace.js:164 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.10 — llm-marketplace.js:205 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.10 — llm-marketplace.js:259 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.10 — llm-marketplace.js:325 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.10 — llm-marketplace.js:362 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.10 — llm-marketplace.js:422 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.10 — llm-marketplace.js:512 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.10 — llm-marketplace.js:534 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.10 — comfyui.js:23 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.10 — comfyui.js:74 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.10 — comfyui.js:112 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.10 — comfyui.js:163 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.10 — comfyui.js:207 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.10 — comfyui.js:251 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.10 — comfyui.js:319 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.11 — voice-intent.js:82 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.12 — routes/system.js:47 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.12 — routes/system.js:67 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.12 — routes/system.js:69 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.13 — utils/agent-event-publisher.js:125 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.13 — utils/agent-event-publisher.js:125 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.15 — middleware/auth.js:167 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.15 — middleware/auth.js:221 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.15 — middleware/auth.js:67 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.15 — middleware/auth.js:192 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.15 — middleware/auth.js:92 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.16 — routes/comfyui.js:10 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.17 — middleware/auth.js:220 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.17 — middleware/auth.js:221 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/03-management-api-request-lifecycle.md:AB-03.17 — middleware/auth.js:76 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/04-adapter-spine.md:AB-04.6 — BASELINE-container.md:83 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/05-manifest-gates-and-cli.md:AB-05.2 — BASELINE-container.md:109 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/05-manifest-gates-and-cli.md:AB-05.7 — server.js:564 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/05-manifest-gates-and-cli.md:AB-05.7 — server.js:566 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/05-manifest-gates-and-cli.md:AB-05.7 — server.js:573 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/06-sidecars-and-compose-overlays.md:AB-06.3 — override.yml:199 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/06-sidecars-and-compose-overlays.md:AB-06.3 — browsercontainer.yml:69 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/06-sidecars-and-compose-overlays.md:AB-06.3 — gui-tools.yml:66 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/06-sidecars-and-compose-overlays.md:AB-06.4 — browsercontainer.yml:48 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/06-sidecars-and-compose-overlays.md:AB-06.4 — browsercontainer.yml:33 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/06-sidecars-and-compose-overlays.md:AB-06.4 — browsercontainer.yml:57 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/06-sidecars-and-compose-overlays.md:AB-06.5 — gui-tools.yml:18 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/06-sidecars-and-compose-overlays.md:AB-06.5 — gui-tools.yml:25 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/06-sidecars-and-compose-overlays.md:AB-06.5 — gui-tools.yml:26 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/06-sidecars-and-compose-overlays.md:AB-06.7 — browsercontainer.yml:48 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/06-sidecars-and-compose-overlays.md:AB-06.7 — gui-tools.yml:45 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/06-sidecars-and-compose-overlays.md:AB-06.7 — xr-runtime.yml:64 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/06-sidecars-and-compose-overlays.md:AB-06.7 — openmed.yml:28 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/06-sidecars-and-compose-overlays.md:AB-06.7 — android.yml:40 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/06-sidecars-and-compose-overlays.md:AB-06.7 — solid-pods.yml:25 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/06-sidecars-and-compose-overlays.md:AB-06.7 — android.yml:38 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/06-sidecars-and-compose-overlays.md:AB-06.7 — openmed.yml:17 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/07-daemons-reapers-cron-backups.md:AB-07.6 — BASELINE-container.md:205 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/08-hooks-pipeline.md:AB-08.3 — settings.json:49 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/08-hooks-pipeline.md:AB-08.3 — settings.json:29 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/08-hooks-pipeline.md:AB-08.4 — settings.json:82 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/08-hooks-pipeline.md:AB-08.4 — settings.json:82 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/08-hooks-pipeline.md:AB-08.5 — settings.json:133 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/08-hooks-pipeline.md:AB-08.6 — settings.json:189 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/08-hooks-pipeline.md:AB-08.6 — adapter.cjs:47 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/08-hooks-pipeline.md:AB-08.7 — settings.json:245 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/08-hooks-pipeline.md:AB-08.7 — settings.json:343 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/08-hooks-pipeline.md:AB-08.12 — /workspace/.agentbox/dream-inbox.json:20 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/09-mcp-servers-catalogue.md:AB-09.1 — BASELINE-container.md:8 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/09-mcp-servers-catalogue.md:AB-09.3 — BASELINE-container.md:193 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/09-mcp-servers-catalogue.md:AB-09.7 — server.js:146 is ambiguous: matches 2 sources: entries
+  ! agentbox/09-mcp-servers-catalogue.md:AB-09.7 — server.js:185 is ambiguous: matches 2 sources: entries
+  ! agentbox/10-ingress-nip98-proxy-and-aoe.md:AB-10.1 — INGRESS-identity.md:118 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/10-ingress-nip98-proxy-and-aoe.md:AB-10.1 — INGRESS-identity.md:121 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/10-ingress-nip98-proxy-and-aoe.md:AB-10.13 — agentbox.toml:1387 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/11-identity-did-mandate-authority.md:AB-11.1 — mandate.js:99 is ambiguous: matches 2 sources: entries
+  ! agentbox/11-identity-did-mandate-authority.md:AB-11.7 — mandate.js:39 is ambiguous: matches 2 sources: entries
+  ! agentbox/11-identity-did-mandate-authority.md:AB-11.7 — mandate.js:40 is ambiguous: matches 2 sources: entries
+  ! agentbox/11-identity-did-mandate-authority.md:AB-11.7 — mandate.js:36 is ambiguous: matches 2 sources: entries
+  ! agentbox/11-identity-did-mandate-authority.md:AB-11.7 — mandate.js:137 is ambiguous: matches 2 sources: entries
+  ! agentbox/11-identity-did-mandate-authority.md:AB-11.9 — mandate.js:99 is ambiguous: matches 2 sources: entries
+  ! agentbox/11-identity-did-mandate-authority.md:AB-11.9 — mandate.js:163 is ambiguous: matches 2 sources: entries
+  ! agentbox/11-identity-did-mandate-authority.md:AB-11.9 — mandate.js:191 is ambiguous: matches 2 sources: entries
+  ! agentbox/11-identity-did-mandate-authority.md:AB-11.9 — mandate.js:191 is ambiguous: matches 2 sources: entries
+  ! agentbox/11-identity-did-mandate-authority.md:AB-11.9 — mandate.js:209 is ambiguous: matches 2 sources: entries
+  ! agentbox/11-identity-did-mandate-authority.md:AB-11.16 — proxy.mjs:632 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/11-identity-did-mandate-authority.md:AB-11.16 — proxy.mjs:212 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/13-nostr-relay-gateway-bridge-mirror.md:AB-13.1 — //127.0.0.1:7777 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/14-governance-journal-actions-approvals.md:AB-14.1 — ../project/agentbox/docs/GOVERNANCE-capabilities.md:39 is blank
+  ! agentbox/22-skills-and-routing.md:AB-22.4 — ../project/agentbox/docs/GOVERNANCE-capabilities.md:91 is blank
+  ! agentbox/22-skills-and-routing.md:AB-22.4 — ../project/agentbox/CLAUDE.md:30 is blank
+  ! visionclaw/11-physics-step-and-force-channels.md:VC-11.3 — src/models/simulation_params.rs:558 is ambiguous: matches 2 sources: entries
+  ! visionclaw/11-physics-step-and-force-channels.md:VC-11.3 — src/models/simulation_params.rs:641 is ambiguous: matches 2 sources: entries
+  ! visionclaw/11-physics-step-and-force-channels.md:VC-11.7 — src/models/simulation_params.rs:77 is ambiguous: matches 2 sources: entries
+  ! visionclaw/12-simparams-abi-and-ptx.md:VC-12.2 — simulation_params.rs:111 is ambiguous: matches 2 sources: entries
+  ! visionclaw/12-simparams-abi-and-ptx.md:VC-12.3 — buffers.rs:1 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/14-wire-frames-and-tag-registry.md:VC-14.3 — binary_protocol.rs:12 is ambiguous: matches 2 sources: entries
+  ! visionclaw/14-wire-frames-and-tag-registry.md:VC-14.3 — binary_protocol.rs:592 is ambiguous: matches 2 sources: entries
+  ! visionclaw/14-wire-frames-and-tag-registry.md:VC-14.4 — binary_protocol.rs:588 is ambiguous: matches 2 sources: entries
+  ! visionclaw/14-wire-frames-and-tag-registry.md:VC-14.4 — binary_protocol.rs:610 is ambiguous: matches 2 sources: entries
+  ! visionclaw/14-wire-frames-and-tag-registry.md:VC-14.6 — binary_protocol.rs:590 is ambiguous: matches 2 sources: entries
+  ! visionclaw/14-wire-frames-and-tag-registry.md:VC-14.6 — store/websocket/binaryProtocol.ts:476 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/14-wire-frames-and-tag-registry.md:VC-14.6 — binary_protocol.rs:941 is ambiguous: matches 2 sources: entries
+  ! visionclaw/15-gpu-analytics.md:VC-15.1 — mod.rs:176 is ambiguous: matches 3 sources: entries
+  ! visionclaw/15-gpu-analytics.md:VC-15.2 — mod.rs:179 is ambiguous: matches 3 sources: entries
+  ! visionclaw/15-gpu-analytics.md:VC-15.3 — mod.rs:180 is ambiguous: matches 3 sources: entries
+  ! visionclaw/15-gpu-analytics.md:VC-15.3 — mod.rs:69 is ambiguous: matches 3 sources: entries
+  ! visionclaw/15-gpu-analytics.md:VC-15.3 — mod.rs:78 is ambiguous: matches 3 sources: entries
+  ! visionclaw/15-gpu-analytics.md:VC-15.4 — mod.rs:182 is ambiguous: matches 3 sources: entries
+  ! visionclaw/15-gpu-analytics.md:VC-15.4 — mod.rs:93 is ambiguous: matches 3 sources: entries
+  ! visionclaw/15-gpu-analytics.md:VC-15.4 — mod.rs:119 is ambiguous: matches 3 sources: entries
+  ! visionclaw/15-gpu-analytics.md:VC-15.5 — mod.rs:206 is ambiguous: matches 3 sources: entries
+  ! visionclaw/15-gpu-analytics.md:VC-15.5 — mod.rs:266 is ambiguous: matches 3 sources: entries
+  ! visionclaw/15-gpu-analytics.md:VC-15.5 — mod.rs:210 is ambiguous: matches 3 sources: entries
+  ! visionclaw/15-gpu-analytics.md:VC-15.6 — mod.rs:214 is ambiguous: matches 3 sources: entries
+  ! visionclaw/15-gpu-analytics.md:VC-15.6 — mod.rs:218 is ambiguous: matches 3 sources: entries
+  ! visionclaw/15-gpu-analytics.md:VC-15.7 — mod.rs:186 is ambiguous: matches 3 sources: entries
+  ! visionclaw/15-gpu-analytics.md:VC-15.8 — mod.rs:226 is ambiguous: matches 3 sources: entries
+  ! visionclaw/15-gpu-analytics.md:VC-15.9 — mod.rs:222 is ambiguous: matches 3 sources: entries
+  ! visionclaw/15-gpu-analytics.md:VC-15.10 — main.rs:1103 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/15-gpu-analytics.md:VC-15.12 — src/handlers/api_handler/analytics/params_handlers.rs:347 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/15-gpu-analytics.md:VC-15.12 — src/handlers/api_handler/analytics/types.rs:4 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/18-analytics-support-handlers.md:VC-18.1 — mod.rs:169 is ambiguous: matches 2 sources: entries
+  ! visionclaw/18-analytics-support-handlers.md:VC-18.1 — mod.rs:170 is ambiguous: matches 2 sources: entries
+  ! visionclaw/18-analytics-support-handlers.md:VC-18.1 — mod.rs:269 is ambiguous: matches 2 sources: entries
+  ! visionclaw/18-analytics-support-handlers.md:VC-18.5 — simulation_params.rs:77 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/18-analytics-support-handlers.md:VC-18.6 — mod.rs:182 is ambiguous: matches 2 sources: entries
+  ! visionclaw/18-analytics-support-handlers.md:VC-18.7 — mod.rs:270 is ambiguous: matches 2 sources: entries
+  ! visionclaw/20-ontology-pipeline-oxigraph-whelk.md:VC-20.7 — mod.rs:1631 is ambiguous: matches 3 sources: entries
+  ! visionclaw/20-ontology-pipeline-oxigraph-whelk.md:VC-20.7 — class_count_handler.rs:24 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/20-ontology-pipeline-oxigraph-whelk.md:VC-20.11 — src/handlers/api_handler/ontology_physics/mod.rs:107 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/20-ontology-pipeline-oxigraph-whelk.md:VC-20.11 — src/handlers/api_handler/ontology_physics/mod.rs:387 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/20-ontology-pipeline-oxigraph-whelk.md:VC-20.11 — pipeline_service.rs:59 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/21-corpus-ingest-and-vault.md:VC-21.6 — crates/visionclaw-ontology/src/services/jsonld_validator/mod.rs:236 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/21-corpus-ingest-and-vault.md:VC-21.6 — crates/visionclaw-ontology/src/services/jsonld_validator/mod.rs:249 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/22-data-authority-provenance-erasure.md:VC-22.1 — docs/DATA-authority-erasure.md:96 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/22-data-authority-provenance-erasure.md:VC-22.1 — docs/DATA-authority-erasure.md:106 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/22-data-authority-provenance-erasure.md:VC-22.6 — docs/DATA-authority-erasure.md:86 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/22-data-authority-provenance-erasure.md:VC-22.8 — docs/DATA-authority-erasure.md:61 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/23-identifiers-urn-did-sha12.md:VC-23.9 — crates/visionclaw-domain/src/uri.rs:31 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/23-identifiers-urn-did-sha12.md:VC-23.9 — crates/visionclaw-domain/src/uri.rs:15 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/23-identifiers-urn-did-sha12.md:VC-23.9 — oxigraph_ontology_repository.rs:174 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/24-acsp-decision-elevation.md:VC-24.7 — broker-bridge.js:233 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/25-insight-kpi-nlq-semantics.md:VC-25.11 — src/services/ontology_content_analyzer.rs:2 is ambiguous: matches 2 sources: entries
+  ! visionclaw/25-insight-kpi-nlq-semantics.md:VC-25.11 — src/services/ontology_content_analyzer.rs:1 is ambiguous: matches 2 sources: entries
+  ! visionclaw/26-solid-pod-and-jss.md:VC-26.3 — authInterceptor.ts:52 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/27-agent-integration-mcp-relay.md:VC-27.1 — actors/graph_service_supervisor.rs:422 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/27-agent-integration-mcp-relay.md:VC-27.3 — main.rs:1043 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/27-agent-integration-mcp-relay.md:VC-27.11 — protocol.rs:972 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/27-agent-integration-mcp-relay.md:VC-27.11 — protocol.rs:978 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/27-agent-integration-mcp-relay.md:VC-27.12 — main.rs:1142 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/28-external-services.md:VC-28.3 — configuration.md:220 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/28-external-services.md:VC-28.3 — how-to/agent-orchestration.md:449 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/28-external-services.md:VC-28.7 — speech.rs:65 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/28-external-services.md:VC-28.7 — speech.rs:71 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/28-external-services.md:VC-28.9 — //127.0.0.1:4001 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/31-client-graph-render-pipeline.md:VC-31.1 — visualisation/WasmSceneEffects.tsx:628 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/31-client-graph-render-pipeline.md:VC-31.1 — visualisation/EmbeddingCloudLayer.tsx:92 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/31-client-graph-render-pipeline.md:VC-31.1 — visualisation/TransientBeamsLayer.tsx:69 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/32-client-websocket-and-binary.md:VC-32.3 — src/utils/binary_protocol.rs:590 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/34-client-features.md:VC-34.2 — control-center.md:88 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/34-client-features.md:VC-34.20 — /embedding-cloud.json:132 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/35-voice-end-to-end.md:VC-35.4 — socket_flow_handler/http_handler.rs:357 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/35-voice-end-to-end.md:VC-35.12 — docker-compose.unified.yml:312 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/35-voice-end-to-end.md:VC-35.12 — agentbox/docker-compose.yml:89 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/36-godot-xr-client.md:VC-36.2 — docs/BASELINE-architecture.md:189 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/36-godot-xr-client.md:VC-36.3 — docs/BASELINE-architecture.md:217 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/36-godot-xr-client.md:VC-36.9 — docs/XR-client.md:236 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/36-godot-xr-client.md:VC-36.15 — src/main.rs:132 is ambiguous: matches 2 sources: entries
+  ! visionclaw/36-godot-xr-client.md:VC-36.15 — src/main.rs:109 is ambiguous: matches 2 sources: entries
+  ! visionclaw/36-godot-xr-client.md:VC-36.15 — src/main.rs:282 is ambiguous: matches 2 sources: entries
+  ! visionclaw/36-godot-xr-client.md:VC-36.15 — main.rs:283 is ambiguous: matches 2 sources: entries
+  ! visionclaw/36-godot-xr-client.md:VC-36.16 — //192.168.2.132:4000 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/36-godot-xr-client.md:VC-36.17 — docs/BASELINE-architecture.md:189 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/37-browser-xr-and-desktop-input.md:VC-37.8 — docs/BASELINE-architecture.md:195 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionflow/02-website-build-and-deploy.md:VF-02.10 — //127.0.0.1:4173 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionflow/06-diagram-tooling.md:VF-06.1 — scripts/diagram-index-gen.cjs:337 is punctuation only ('}')
+  ! visionflow/06-diagram-tooling.md:VF-06.1 — scripts/diagram-index-gen.cjs:361 is punctuation only ('}')
+  ! visionflow/06-diagram-tooling.md:VF-06.8 — scripts/diagram-index-gen.cjs:90 is blank
+  ! visionflow/06-diagram-tooling.md:VF-06.8 — scripts/diagram-index-gen.cjs:87 is punctuation only ('}')
+  ! visionflow/06-diagram-tooling.md:VF-06.8 — scripts/diagram-index-gen.cjs:61 is blank
+  ! visionflow/06-diagram-tooling.md:VF-06.8 — scripts/diagram-index-gen.cjs:120 is punctuation only ('}')
+  ! visionflow/06-diagram-tooling.md:VF-06.9 — scripts/diagram-index-gen.cjs:242 is punctuation only ('}')
+  ! visionflow/06-diagram-tooling.md:VF-06.10 — scripts/diagram-index-gen.cjs:242 is punctuation only ('}')
+  ! visionflow/06-diagram-tooling.md:VF-06.11 — scripts/diagram-index-gen.cjs:337 is punctuation only ('}')
+  ! visionflow/06-diagram-tooling.md:VF-06.11 — scripts/diagram-index-gen.cjs:61 is blank
+  ! visionflow/06-diagram-tooling.md:VF-06.12 — scripts/diagram-index-gen.cjs:384 is punctuation only ('}')
+
+1 error(s):
+  - dreamlab-ai-website/06-content-pipeline-and-invariants-register.md: source path does not exist: ../dreamlab-ai-website/scripts/seed/seed-forum.mjs

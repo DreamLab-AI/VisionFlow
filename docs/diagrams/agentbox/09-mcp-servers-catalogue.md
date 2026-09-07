@@ -6,6 +6,7 @@ governing:
   - ../project/agentbox/docs/BASELINE-container.md
 adrs: [ADR-2008, ADR-2003, ADR-2039]
 sources:
+  - ../project/agentbox/docs/BASELINE-container.md
   - ../project/agentbox/skills/mcp.json
   - ../project/agentbox/mcp/mcp.json
   - ../project/agentbox/scripts/project-mcp-servers.mjs
@@ -20,7 +21,7 @@ sources:
   - ../project/agentbox/mcp/servers/substrate-tools.js
   - ../project/agentbox/mcp/servers/ontology-propose.js
   - ../project/agentbox/mcp/servers/ruvector-mcp.cjs
-verified_commit: 7a20db228
+verified_commit: 2c521c5bb
 ---
 
 ## AB-09.1 Registry ownership classes — what the projector may touch
@@ -34,7 +35,7 @@ flowchart TD
     BS --> NEVER["hand-written entrypoint blocks with health probes,<br/>secret handling and warmup — NEVER touched here, so the<br/>live set stays byte-identical (project-mcp-servers.mjs:22-24)"]
     RF --> DOC["GPU-sidecar skill wrappers whose mcp-server lives under a skill dir,<br/>or npx/uvx network-installer servers that cannot run on the<br/>read-only rootfs — documented, not auto-projected (:25-27)"]
     REG -.-> D1["DOC-DRIFT — BASELINE-container says skills/mcp.json is a 30-server registry.<br/>The file holds 28 (9 projector + 3 bespoke + 16 reference).<br/>The 9/3/16 split the doc gives is correct"]
-    REG -.-> D1R["RESOLVED ADR-2039: BASELINE-container.md:8 and :227 now say<br/>skills/mcp.json holds 28 servers, not 30"]
+    REG -.-> D1R["RESOLVED ADR-2039: BASELINE-container.md:10 now says<br/>skills/mcp.json holds 28 servers, not 30"]
     REG -.-> D2["separate file agentbox/mcp/mcp.json is a DIFFERENT 17-entry map<br/>and is not the projection source"]
 ```
 
@@ -123,7 +124,7 @@ sequenceDiagram
     Note over LED: the ledger is deliberately NOT stored inside .mcp.json — that file is read by the Claude Code harness and must carry no agentbox-private keys (:59-61)
     Note over EP,P: boot is NOT blocked — a non-zero exit surfaces as a loud [mcp] FAIL line in the boot log without aborting the entrypoint (:76-79)
     Note over P: DOC-DRIFT — BASELINE "Configuration projection qualification 2026-09-04" says<br/>ADR-2008 is partial because the reconciliation loop cannot remove deleted registry<br/>definitions and unreadable input leaves stale state with exit zero. The ADR-2008<br/>closeout dated 2026-09-05 fixes both as D1 and D3 (project-mcp-servers.mjs:30-49)
-    Note over P: RESOLVED ADR-2039: BASELINE-container.md:193 marks this qualification<br/>resolved with the D1/D3 evidence — ownership-ledger removal (:33-39)<br/>and non-zero exit on malformed input (:46-49, exit codes :71-74)
+    Note over P: RESOLVED ADR-2039: BASELINE-container.md:219 marks this qualification<br/>resolved with the D1/D3 evidence — ownership-ledger removal (:33-39)<br/>and non-zero exit on malformed input (:46-49, exit codes :71-74)
 ```
 
 ## AB-09.4 The four ADR-2008 closeout defects and their fixes
@@ -153,7 +154,7 @@ flowchart LR
 ```mermaid
 flowchart TB
     subgraph CODE["code-as-harness"]
-        A["aci-shell mcp/aci-shell/server.js:561<br/>server name aci-shell v0.1.0"]
+        A["aci-shell mcp/aci-shell/server.js:560<br/>server name aci-shell v0.1.0"]
         A --> AT["aci.view_file :495 — bounded window, hard cap 150 lines<br/>aci.edit_file :508 — atomic tmp/fsync/rename, compact unified diff<br/>aci.search_repo :522 — rg preferred, grep fallback, reports total_found<br/>aci.run_tests, aci.submit — TOOL_LIST :493"]
     end
     subgraph ONT["ontology and knowledge graph"]
@@ -215,12 +216,12 @@ sequenceDiagram
     S-->>H: tools TOOL_LIST (mcp/aci-shell/server.js:493)
     H-->>M: tool names surfaced as mcp__<server>__<tool>
     M->>H: call mcp__aci-shell__aci_view_file with path and start_line
-    H->>S: CallToolRequestSchema (mcp/aci-shell/server.js:32)
-    S->>S: validate path is under ACI_WORKSPACE_ROOT (server.js:496)
+    H->>S: CallToolRequestSchema handler (mcp/aci-shell/server.js:567)
+    S->>S: _safeResolvePath(inputPath) rejects .. segments and paths outside<br/>ACI_WORKSPACE_ROOT (aci-shell/server.js:146-163)
     alt path escapes the workspace root
         S-->>H: error, refused
     else path accepted
-        S->>B: read a bounded window, hard cap 150 lines (server.js:502)
+        S->>B: read a bounded window, max_lines capped at 150 (aci-shell/server.js:185-191)
         B-->>S: content
         S-->>H: content, total line count, truncation flag
     end

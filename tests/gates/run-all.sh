@@ -20,12 +20,15 @@ SUITES=(
   "drift-counter.test.sh"
   "release-manifest.test.sh"
   "website-assets.test.sh"
+  "diagram-index.test.cjs"
 )
 
 FAILED=()
 for suite in "${SUITES[@]}"; do
   printf '\n\n########## %s ##########\n' "$suite"
-  if ! bash "$HERE/$suite"; then FAILED+=("$suite"); fi
+  runner=bash
+  [[ "$suite" == *.cjs ]] && runner=node
+  if ! "$runner" "$HERE/$suite"; then FAILED+=("$suite"); fi
 done
 
 printf '\n\n==================================================\n'

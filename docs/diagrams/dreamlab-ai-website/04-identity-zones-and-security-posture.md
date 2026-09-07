@@ -12,6 +12,7 @@ sources:
   - ../dreamlab-ai-website/src/lib/nostr.ts
   - ../dreamlab-ai-website/src/components/AIChatFab.tsx
   - ../dreamlab-ai-website/index.html
+  - ../dreamlab-ai-website/forum-config/deploy/search-worker.wrangler.toml
 verified_commit: 9a3dd8830
 ---
 
@@ -85,9 +86,9 @@ sequenceDiagram
 ## DW-04.5 Anonymous website ingress — threat register
 ```mermaid
 flowchart TB
-    SURFACE["kind-1059 admission:<br/>anonymous ephemeral authors, recipient-gated only<br/>SECURITY_OVERVIEW.md Anonymous Website Ingress"] --> T1["Spam/DoS<br/>mitigation: 10 events/s/IP relay limit only —<br/>no PoW/CAPTCHA/per-recipient throttle;<br/>kind 1059 bypasses content moderation"]
-    SURFACE --> T2["PII in DM content<br/>mitigation: NIP-44 E2E encryption;<br/>erasure is operator-side D1 purge only —<br/>self-service NIP-09 deletion is cryptographically<br/>impossible (author key is a discarded throwaway)"]
-    SURFACE --> T3["LLM-cost abuse via junkiejarvis<br/>mitigation: serialised sends (one in-flight/session),<br/>client-side throttle, ops kill-switch JUNKIEJARVIS_ENABLED=0"]
+    SURFACE["kind-1059 admission:<br/>anonymous ephemeral authors, recipient-gated only<br/>SECURITY_OVERVIEW.md:276,278"] --> T1["Spam/DoS<br/>mitigation: 10 events/s/IP relay limit only —<br/>no PoW/CAPTCHA/per-recipient throttle;<br/>kind 1059 bypasses content moderation<br/>SECURITY_OVERVIEW.md:282"]
+    SURFACE --> T2["PII in DM content<br/>mitigation: NIP-44 E2E encryption;<br/>erasure is operator-side D1 purge only —<br/>self-service NIP-09 deletion is cryptographically<br/>impossible (author key is a discarded throwaway)<br/>SECURITY_OVERVIEW.md:283"]
+    SURFACE --> T3["LLM-cost abuse via junkiejarvis<br/>mitigation: serialised sends (one in-flight/session),<br/>client-side throttle, ops kill-switch JUNKIEJARVIS_ENABLED=0<br/>SECURITY_OVERVIEW.md:284"]
 ```
 - Admission rule: the first `["p", ...]` tag pubkey must be whitelisted while the ephemeral author is deliberately unchecked; publishing an EVENT requires no NIP-42 AUTH, but reading kind-1059 DOES require it, with the filter's `#p` force-rewritten to the authed pubkey — a session can only ever read its own inbox (`SECURITY_OVERVIEW.md` Anonymous Website Ingress section).
 - Federation posture: single relay today; kind 1059 is already in `dreamlab.toml [mesh].federated_kinds` (see DW-03), so this surface is "federation-ready by construction" though the mesh transport itself is designed, not shipped.
@@ -95,12 +96,12 @@ flowchart TB
 ## DW-04.6 Admin identity resolution — three layers
 ```mermaid
 flowchart TB
-    L1["1. Static set: ADMIN_PUBKEYS env<br/>mirrors dreamlab.toml [admin].static_pubkeys<br/>deploy-gated, checked first"] --> RESOLVE["admin status =<br/>static ∪ D1<br/>nostr-bbs-auth-worker/src/admin.rs::is_admin"]
-    L2["2. D1 path: whitelist.is_admin (relay D1)<br/>then members.is_admin (auth D1)"] --> RESOLVE
-    L3["3. Promotion: /api/whitelist/set-admin<br/>last-admin demotion is blocked"] --> RESOLVE
-    RESOLVE --> BOOT["first-user-is-admin bootstrap<br/>GET /api/setup-status reports needsSetup<br/>when no is_admin=1 row exists"]
+    L1["1. Static set: ADMIN_PUBKEYS env<br/>mirrors dreamlab.toml [admin].static_pubkeys<br/>deploy-gated, checked first<br/>SECURITY_OVERVIEW.md:268"] --> RESOLVE["admin status =<br/>static ∪ D1<br/>nostr-bbs-auth-worker/src/admin.rs::is_admin<br/>SECURITY_OVERVIEW.md:259"]
+    L2["2. D1 path: whitelist.is_admin (relay D1)<br/>then members.is_admin (auth D1)<br/>SECURITY_OVERVIEW.md:269"] --> RESOLVE
+    L3["3. Promotion: /api/whitelist/set-admin<br/>last-admin demotion is blocked<br/>SECURITY_OVERVIEW.md:270"] --> RESOLVE
+    RESOLVE --> BOOT["first-user-is-admin bootstrap<br/>GET /api/setup-status reports needsSetup<br/>when no is_admin=1 row exists<br/>SECURITY_OVERVIEW.md:259"]
 ```
-- Known gap: the search-worker honours only its own `ADMIN_PUBKEYS` `[vars]` value — D1-promoted admins are not visible to it (`SECURITY_OVERVIEW.md` Admin Identity, "see the forum-flow cartography Gap 2").
+- Known gap: the search-worker honours only its own `ADMIN_PUBKEYS` `[vars]` value — D1-promoted admins are not visible to it (`SECURITY_OVERVIEW.md:272`, "see the forum-flow cartography Gap 2"); its own separate copy is `search-worker.wrangler.toml:38` (see DW-03.10).
 - `workers-deploy.yml` blocks the auth-worker deploy if the `ADMIN_PUBKEYS` secret is unset (cross-reference DW-03.7's `validate_required_secrets` gate).
 
 ## DW-04.7 Zone visibility and encryption — the security-relevant subset
@@ -120,9 +121,9 @@ flowchart LR
 ## DW-04.8 Rate/size limits relevant to the identity surface
 ```mermaid
 flowchart TB
-    RELAY["Relay: 64KB content (8KB registration),<br/>2000 tags, 1024B/tag, 7-day drift,<br/>10 events/s/IP, 20 conns/IP, 20 subs/socket"]
-    AUTHW["Auth worker: display name 1-64 chars,<br/>pubkey exactly 64 hex, challenge TTL 5min,<br/>NIP-98 token max 64KB, drift 60s"]
-    POD["Pod worker: 50MB upload, path depth 10,<br/>charset [A-Za-z0-9-_./]"]
-    SSRF["Preview-worker SSRF guard: http/https only,<br/>RFC1918/loopback/link-local/169.254.169.254 blocked,<br/>hex/int IP obfuscation blocked, 3-hop redirect cap,<br/>1MB response cap, 5s timeout"]
+    RELAY["Relay: 64KB content (8KB registration),<br/>2000 tags, 1024B/tag, 7-day drift,<br/>10 events/s/IP, 20 conns/IP, 20 subs/socket<br/>SECURITY_OVERVIEW.md:201,209"]
+    AUTHW["Auth worker: display name 1-64 chars,<br/>pubkey exactly 64 hex, challenge TTL 5min,<br/>NIP-98 token max 64KB, drift 60s<br/>SECURITY_OVERVIEW.md:213,219"]
+    POD["Pod worker: 50MB upload, path depth 10,<br/>charset [A-Za-z0-9-_./]<br/>SECURITY_OVERVIEW.md:223,227"]
+    SSRF["Preview-worker SSRF guard: http/https only,<br/>RFC1918/loopback/link-local/169.254.169.254 blocked,<br/>hex/int IP obfuscation blocked, 3-hop redirect cap,<br/>1MB response cap, 5s timeout<br/>SECURITY_OVERVIEW.md:233"]
 ```
-- Source: `docs/security/SECURITY_OVERVIEW.md` Relay/Auth-worker/Pod-worker Limits tables and SSRF Protection section — these limits are enforced in the upstream kit's worker source (cloned at `KIT_REF`, not vendored in this repo), so this diagram documents the operator-visible contract rather than code this repo owns.
+- Source: `docs/security/SECURITY_OVERVIEW.md` Relay/Auth-worker/Pod-worker Limits tables (`:197-231`) and SSRF Protection section (`:233`) — these limits are enforced in the upstream kit's worker source (cloned at `KIT_REF`, not vendored in this repo), so this diagram documents the operator-visible contract rather than code this repo owns.

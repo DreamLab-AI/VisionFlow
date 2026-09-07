@@ -7,6 +7,9 @@ governing:
   - ../project/docs/IDENTITY-authority-chain.md
 adrs: [ADR-2002, ADR-2039, ADR-2075]
 sources:
+  - ../project/agentbox/docker-compose.yml
+  - ../project/docker-compose.unified.yml
+  - ../project/src/handlers/socket_flow_handler/http_handler.rs
   - ../project/client/src/services/PushToTalkService.ts
   - ../project/client/src/features/voice/pttAgentBinding.ts
   - ../project/client/src/features/voice/usePushToTalkAgentBinding.ts
@@ -191,7 +194,7 @@ sequenceDiagram
     VW->>SV: WebSocket upgrade (no header, no query token)
     rect rgb(238, 244, 252)
         SV->>SV: derive connection_url from scheme, host and path_and_query
-        Note over SV: speech_socket_handler.rs:982-995. This is the HTTP-equivalent<br/>URL the client must sign as the NIP-98 u tag - same derivation the<br/>graph socket uses at socket_flow_handler/http_handler.rs:357-366
+        Note over SV: speech_socket_handler.rs:982-995. This is the HTTP-equivalent<br/>URL the client must sign as the NIP-98 u tag - same derivation the<br/>graph socket uses at socket_flow_handler/http_handler.rs:364
         SV->>SS: SpeechSocket::new(id, app_state, None, connection_url, dev_bypass_ok)
         Note over SV,SS: speech_socket_handler.rs:1005. dev_bypass_ok is<br/>dev_bypass_permitted(&req) behind cfg(debug_assertions or dev-auth),<br/>false in release. pubkey starts None
         SV-->>VW: 101 Switching Protocols
@@ -605,5 +608,5 @@ flowchart TB
     box --> SEP
     SEP["SEPARATE SUBSYSTEM: this is the agentbox tmux voice plane<br/>(Track A), not the VisionClaw graph voice loop. Its LLM is the<br/>tab0-bridge, its STT/TTS are Kyutai models, and its grammar is<br/>'tell tab zero to ...' / 'what's tab zero doing?'.<br/>voice-stack/README.md:53-56. The kokoros container serving the<br/>VisionClaw visualiser is explicitly untouched by it<br/>voice-stack/README.md:20 - see AB-06 for the console boundary."]
     compose --> DIV
-    DIV["Kokoros, Whisper-WebUI and xinference are UNTRACKED symlinks at the repo root,<br/>gitignored at .gitignore:227-229 and absent from .gitmodules - NOT submodules.<br/>All three dangle in this container (targets /mnt/nvme/githubs/Kokoros,<br/>/mnt/mldata/githubs/Whisper-WebUI, /mnt/nvme/githubs/xinference). git ls-files<br/>returns nothing for any of them. Kokoros and Whisper-WebUI have no tracked<br/>.yml/.toml/.rs/.sh reference and are pure developer convenience; xinference is<br/>DIFFERENT - it has live compose consumers (docker-compose.unified.yml:312,<br/>agentbox/docker-compose.yml:89), so its dangling link is a broken dependency,<br/>not an unused stub. The container contracts are knowable only from the<br/>consuming Rust: kokoro-tts-container:8880 /v1/audio/speech and<br/>whisper-webui-backend:8000 /v1/audio/transcriptions - see VC-35.6 and<br/>VC-35.9. No port or protocol here was read from their own sources. see ES-01.6"]
+    DIV["Kokoros, Whisper-WebUI and xinference are UNTRACKED symlinks at the repo root,<br/>gitignored at .gitignore:227-229 and absent from .gitmodules - NOT submodules.<br/>All three dangle in this container (targets /mnt/nvme/githubs/Kokoros,<br/>/mnt/mldata/githubs/Whisper-WebUI, /mnt/nvme/githubs/xinference). git ls-files<br/>returns nothing for any of them. Kokoros and Whisper-WebUI have no tracked<br/>.yml/.toml/.rs/.sh reference and are pure developer convenience; xinference is<br/>DIFFERENT - it has live compose consumers (docker-compose.unified.yml:312,<br/>agentbox/docker-compose.yml:89), so Xinference is a runtime endpoint dependency.<br/>These URL consumers do not prove the dangling checkout link is used. The container contracts are knowable only from the<br/>consuming Rust: kokoro-tts-container:8880 /v1/audio/speech and<br/>whisper-webui-backend:8000 /v1/audio/transcriptions - see VC-35.6 and<br/>VC-35.9. No port or protocol here was read from their own sources. see ES-01.6"]
 ```

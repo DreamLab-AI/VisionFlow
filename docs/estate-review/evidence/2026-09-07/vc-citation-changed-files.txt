@@ -1,0 +1,11 @@
+docs/diagrams/visionclaw/21-corpus-ingest-and-vault.md
+docs/diagrams/visionclaw/22-data-authority-provenance-erasure.md
+docs/diagrams/visionclaw/23-identifiers-urn-did-sha12.md
+docs/diagrams/visionclaw/24-acsp-decision-elevation.md
+docs/diagrams/visionclaw/25-insight-kpi-nlq-semantics.md
+docs/diagrams/visionclaw/26-solid-pod-and-jss.md
+docs/diagrams/visionclaw/28-external-services.md
+docs/diagrams/visionclaw/31-client-graph-render-pipeline.md
+docs/diagrams/visionclaw/34-client-features.md
+docs/diagrams/visionclaw/35-voice-end-to-end.md
+docs/diagrams/visionclaw/37-browser-xr-and-desktop-input.md

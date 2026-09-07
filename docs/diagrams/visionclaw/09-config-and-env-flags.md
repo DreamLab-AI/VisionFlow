@@ -63,6 +63,8 @@ sources:
   - ../project/src/utils/advanced_logging.rs
   - ../project/src/utils/gpu_diagnostics.rs
   - ../project/src/utils/unified_gpu_compute/execution.rs
+  - ../project/src/handlers/api_handler/analytics/anomaly_handlers.rs
+  - ../project/src/handlers/api_handler/analytics/clustering_handlers.rs
 verified_commit: 36bb64e1e
 ---
 

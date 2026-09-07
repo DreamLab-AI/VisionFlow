@@ -6,6 +6,7 @@ governing:
   - ../project/docs/BASELINE-architecture.md
 adrs: [ADR-2066]
 sources:
+  - ../project/crates/visionclaw-domain/src/types/speech.rs
   - ../project/src/services/ragflow_service.rs
   - ../project/src/handlers/ragflow_handler.rs
   - ../project/src/services/perplexity_service.rs
@@ -18,6 +19,8 @@ sources:
   - ../project/src/config/feature_access.rs
   - ../project/src/handlers/fastwebsockets_handler.rs
   - ../project/src/handlers/mod.rs
+  - ../project/docs/reference/configuration.md
+  - ../project/docs/how-to/agent-orchestration.md
 verified_commit: 36bb64e1e
 ---
 ## VC-28.1 ragflow_service — outbound RAGFlow agent API
@@ -337,7 +340,7 @@ sequenceDiagram
     participant WHI as Whisper STT<br/>settings.whisper.api_url
     participant MCP as MCP swarm TCP<br/>MCP_HOST:MCP_TCP_PORT
 
-    Note over SS: TTSProvider::OpenAI/Kokoro - speech.rs:65-69<br/>STTProvider::Whisper/TurboWhisper/OpenAI - speech.rs:71-76
+    Note over SS: TTSProvider::OpenAI/Kokoro - visionclaw-domain/src/types/speech.rs:66-70<br/>STTProvider::Whisper/TurboWhisper/OpenAI - visionclaw-domain/src/types/speech.rs:72-77
 
     rect rgb(225,230,250)
     alt TTSProvider::OpenAI - :280
@@ -415,7 +418,7 @@ flowchart LR
     PX["Perplexity API<br/>settings.perplexity.api_url - no env default"]
     CFU["ComfyUI native<br/>env COMFYUI_URL default http://comfyui:8188"]
     CFS["ComfyUI Salad<br/>env COMFYUI_SALAD_URL default http://comfyui:3000"]
-    SOL["Solid proxy<br/>env SOLID_INTERNAL_URL default http://127.0.0.1:4001/api/solid"]
+    SOL["Solid proxy<br/>env SOLID_INTERNAL_URL default http://127.0.0.1 port 4001, path /api/solid"]
     GHA["api.github.com<br/>env PRIVATE_REPO_GITHUB_PAT / GITHUB_OWNER / GITHUB_REPO"]
     OAI["OpenAI TTS/STT<br/>settings.openai.api_key - no env default, hardcoded URL"]
     KOK["Kokoro TTS<br/>settings.kokoro.api_url default http://kokoro-tts-container:8880"]

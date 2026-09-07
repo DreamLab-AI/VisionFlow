@@ -6,6 +6,7 @@ governing:
   - ../project/agentbox/docs/BASELINE-container.md
 adrs: [ADR-2003, ADR-2006, ADR-2029, ADR-2039, ADR-2080]
 sources:
+  - ../project/agentbox/docs/BASELINE-container.md
   - ../project/agentbox/flake.nix
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/lib/gpu-wrap.nix
@@ -226,7 +227,7 @@ sequenceDiagram
     WRAP-->>FLAKE: ruvectorPkg derivation
     FLAKE->>ALWAYS: npmCliAlwaysPackages = [ ruvectorPkg wranglerPkg ]<br/>flake.nix:421
     Note over FLAKE,ALWAYS: comment at flake.nix:200 says pin is ruvector-0.2.25,<br/>but the version field at flake.nix:203 is 0.3.0
-    Note over FLAKE,ALWAYS: RESOLVED ADR-2039: BASELINE-container.md:43 now<br/>states 0.3.0. The nix-prefetch-url comment at flake.nix:200<br/>still names ruvector-0.2.25.tgz - stale code comment, left<br/>as-is deliberately, not a doc claim
+    Note over FLAKE,ALWAYS: RESOLVED ADR-2039: BASELINE-container.md:45 now<br/>states 0.3.0. The nix-prefetch-url comment at flake.nix:261<br/>still names ruvector-0.2.25.tgz - stale code comment, left<br/>as-is deliberately, not a doc claim
 ```
 
 ## AB-01.6 gpu-wrap.nix wrapGpuBins - LD_LIBRARY_PATH suffix and vendor ICDs
@@ -452,7 +453,7 @@ flowchart TB
     TOML2 -.->|"enabled read at rebuild"| MRNENTRY
 
     subgraph SCHEMA2["schema/agentbox.toml.schema.json"]
-        NEURALSCHEMA["model_routing.properties.neural<br/>additionalProperties false<br/>schema.json:1246-1298"]
+        NEURALSCHEMA["model_routing.properties.neural<br/>additionalProperties false<br/>agentbox.toml.schema.json:1246-1298"]
     end
     TOML2 -.-> NEURALSCHEMA
 

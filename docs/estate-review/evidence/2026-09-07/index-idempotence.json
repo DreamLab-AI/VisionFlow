@@ -1,0 +1,9 @@
+{
+  "command": "node scripts/diagram-index-gen.cjs docs/diagrams",
+  "exit_code": 0,
+  "identical": true,
+  "sha256": {
+    "docs/diagrams/README.md": "83cd5b7ca7daaca1b577a0c3c3ae3006fc516831222522166f7b7f0d5e149ceb",
+    "docs/diagrams/COVERAGE.md": "89bdb94e63cdda90c7901b9d37845145aa21dc84d4b8764e9ee240104e406a08"
+  }
+}

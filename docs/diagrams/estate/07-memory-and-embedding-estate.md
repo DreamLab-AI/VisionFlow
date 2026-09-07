@@ -5,7 +5,7 @@ area: estate
 governing:
   - ../project/agentbox/docs/LEARNING-memory.md
   - ../project/docs/DATA-authority-erasure.md
-adrs: [ADR-2014, ADR-2015, ADR-2016]
+adrs: [agentbox:ADR-2014, agentbox:ADR-2015, agentbox:ADR-2016]
 sources:
   - ../project/agentbox/mcp/servers/ruvector-mcp.cjs
   - ../project/agentbox/scripts/ruvector-recall-harness.mjs
@@ -53,7 +53,7 @@ flowchart TB
     MCP -- "client-side embed before write" --> XI
     XI --> MODEL
 
-    INV1["INVARIANT — access is mcp__claude-flow__memory_* ONLY.<br/>The claude-flow CLI and raw SQL INSERT bypass the embedding<br/>pipeline, so rows written that way are INVISIBLE to HNSW search."]
+    INV1["INVARIANT — agent access is the governed memory MCP ONLY.<br/>This container exposes agentbox-memory; server aliases differ.<br/>The claude-flow CLI and raw SQL INSERT bypass the embedding<br/>pipeline, so rows written that way are INVISIBLE to HNSW search."]
     INV2["INVARIANT — ruvector-mcp.cjs FAILS CLOSED with no sql.js<br/>fallback: cannot reach ruvector-postgres is FATAL<br/>(ruvector-mcp.cjs:157)"]
     DIV1["DIVERGENCE — VisionClaw has NO RuVector write client. Despite<br/>agent-facing narration, the only Rust touchpoint is the<br/>memory-flash WS broadcast (see ES-07.6). There is no<br/>RuVectorAdapter type in src/ or crates/ (verified by grep)."]
 
@@ -238,12 +238,14 @@ stateDiagram-v2
         Any bulk ingest or delete.
     end note
     note right of Degraded
-        HNSW degrades SILENTLY under bulk churn.
-        Recall drops with no error surfaced.
+        Recall can degrade without a query error.
+        Latest recorded incident was a parallel-build defect —
+        bulk-delete causality is not established by this audit.
     end note
     note right of RebuildNonConcurrent
-        REQUIRED — non-concurrent rebuild,
-        m=16, ef_construction=128, ~5 min.
+        Operational remedy recorded for deployed ruvector 0.3.0:
+        serial AND non-concurrent rebuild, ~8 min.
+        max_parallel_maintenance_workers=0.
         Then re-run the ES-07.7 recall gate.
     end note
     note right of ForbiddenPath
@@ -280,3 +282,7 @@ flowchart TB
     G4 --> D5
     G5 --> D5
 ```
+
+## Audit qualification — 2026-09-07
+
+The 2026-09-05 Agentbox recall closeout records self 189/200 and true 115/120 after a **serial** rebuild, versus self 151/200 after parallel rebuilding. These are historical receipts, not a fresh benchmark. The local RuVector source contains `hnsw_bulkdelete` and deleted-node flags; neither proves a deployed bulk-delete recall regression. Keep cross-store reverse tombstones (ADR-2060) distinct from index tombstones. No database mutation or reindex was performed. See [audit](../../estate-review/2026-09-07-agentbox-audit.md).

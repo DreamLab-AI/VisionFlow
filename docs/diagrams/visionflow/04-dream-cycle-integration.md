@@ -26,7 +26,7 @@ sources:
   - docs/adr/README.md
   - docs/adr/ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md
   - docs/adr/ADR-2009-webgl-mesh-deep-is-sidecar-only.md
-  - README.md
+  - ./README.md
   - package.json
 verified_commit: bec06dc3a
 ---
@@ -48,7 +48,7 @@ flowchart LR
     C --> OUT["ledgerPath docs/dream-cycle/LEDGER.md,<br/>branchPrefix dream/, labels dream-cycle and marketing-site,<br/>autoMerge FALSE<br/>dream.config.json:75 and dream.config.json:81"]:::cfg
     C --> MISC["competitors empty, adrConvention 4-digit<br/>dream.config.json:66 and dream.config.json:67"]:::cfg
 
-    ENG["EXTERNAL: the dream ENGINE is not in this repo. DreamLab's<br/>dream-engine, a tracking fork of ruvnet/dream-machine, runs the<br/>night and consumes this file — see AB-23 for the engine, its<br/>gates and its acceptance path. README.md:128"]
+    ENG["EXTERNAL: the dream ENGINE is not in this repo. DreamLab's<br/>dream-engine, a tracking fork of ruvnet/dream-machine, runs the<br/>night and consumes this file — see AB-23 for the engine, its<br/>gates and its acceptance path. ./README.md:128"]
     C -.->|"read by"| ENG
 ```
 
@@ -176,7 +176,7 @@ sequenceDiagram
     alt a change is proposed
         ENG->>BR: "branch named with prefix dream/ — dream.config.json:76"
         ENG->>H: "open a DRAFT pull request, labels dream-cycle and marketing-site<br/>dream.config.json:77"
-        Note over ENG,H: "INVARIANT: autoMerge is false — dream.config.json:81<br/>evaluation is not promotion — an agent proposes, a human signs<br/>README.md:128"
+        Note over ENG,H: "INVARIANT: autoMerge is false — dream.config.json:81<br/>evaluation is not promotion — an agent proposes, a human signs<br/>./README.md:128"
         H-->>BR: "merge, or refuse"
     else no change earned
         ENG->>LED: "the row stands alone, no branch, no PR"
@@ -271,8 +271,8 @@ stateDiagram-v2
     state "a human reads the receipts and merges, or refuses — autoMerge false at dream.config.json:81" as Human
     Human --> Merged
     Human --> Refused
-    state "merged to main; deploy.yml then runs every blocking gate like any other push — see VF-02.6" as Merged
-    state "refused; the finding stays in the ledger as evidence" as Refused
+    state "merged to main — deploy.yml then runs every blocking gate like any other push — see VF-02.6" as Merged
+    state "refused — the finding stays in the ledger as evidence" as Refused
     Inconclusive --> LedgerOnly
     state "a ledger row only" as LedgerOnly
     Merged --> [*]
@@ -280,10 +280,10 @@ stateDiagram-v2
     LedgerOnly --> [*]
     note right of Draft
       The judgment-broker boundary wired into development:
-      evaluation is not promotion. README.md:128
+      evaluation is not promotion. ./README.md:128
       DIVERGENCE: nothing in this repo enforces the draft-PR
       shape — the branch prefix, the labels and autoMerge
-      false are declarations the external engine honours;
+      false are declarations the external engine honours —
       no workflow here rejects a dream/ branch that skipped
       the gate. The 2026-09-07 operator audit found reports
       claiming candidate branches that never existed.

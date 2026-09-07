@@ -21,6 +21,9 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-ascii/src/lib.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/admin_shared.rs
   - ../nostr-rust-forum/README.md
+  - ../nostr-rust-forum/Cargo.toml
+  - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/lib.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/ascii_img.rs
 verified_commit: d48a7a546
 ---
 
@@ -100,7 +103,7 @@ sequenceDiagram
 
 ```mermaid
 flowchart TB
-    RVF["RVF object in R2<br/>bucket VECTORS nostr-bbs-search-worker/wrangler.toml:15<br/>key RVF_STORE_KEY nostr-bbs-search-worker/wrangler.toml:32 read at lib.rs:181"]
+    RVF["RVF object in R2<br/>bucket VECTORS nostr-bbs-search-worker/wrangler.toml:15<br/>key RVF_STORE_KEY nostr-bbs-search-worker/wrangler.toml:32 read at nostr-bbs-search-worker/src/lib.rs:181"]
     SEGV["Segment 0 Vec - packed label + vector<br/>nostr-bbs-search-worker/src/store.rs:7"]
     SEGM["Segment 1 Meta - JSON format/dim/count/metric<br/>nostr-bbs-search-worker/src/store.rs:8 written store.rs:88"]
     SER["to_rvf_bytes nostr-bbs-search-worker/src/store.rs:79"]
@@ -129,14 +132,14 @@ flowchart TB
     H["GET /health nostr-bbs-preview-worker/src/lib.rs:535"]
     ST["GET /stats - static, points at CF Analytics nostr-bbs-preview-worker/src/lib.rs:536"]
     CACHE["Cloudflare Cache API keyed on a synthetic internal URL<br/>nostr-bbs-preview-worker/src/lib.rs:149 nostr-bbs-preview-worker/src/lib.rs:157"]
-    TTL["TTLs: OpenGraph 10 days lib.rs:32, Twitter 1 day lib.rs:33,<br/>ASCII 7 days because the render is deterministic lib.rs:34"]
+    TTL["TTLs: OpenGraph 10 days nostr-bbs-preview-worker/src/lib.rs:32,<br/>Twitter 1 day nostr-bbs-preview-worker/src/lib.rs:33,<br/>ASCII 7 days because the render is deterministic<br/>nostr-bbs-preview-worker/src/lib.rs:34"]
 
     F --> AL --> RL --> P & A & H & ST
     P --> CACHE --> TTL
     A --> CACHE
 
-    N1["CORS origin comes from ALLOWED_ORIGIN nostr-bbs-preview-worker/src/lib.rs:95, applied at lib.rs:102"]
-    N2["The preview handler runs the SSRF check BEFORE consulting the cache<br/>nostr-bbs-preview-worker/src/lib.rs:274 then lib.rs:284"]
+    N1["CORS origin comes from ALLOWED_ORIGIN nostr-bbs-preview-worker/src/lib.rs:95, applied at nostr-bbs-preview-worker/src/lib.rs:102"]
+    N2["The preview handler runs the SSRF check BEFORE consulting the cache<br/>nostr-bbs-preview-worker/src/lib.rs:274 then nostr-bbs-preview-worker/src/lib.rs:284"]
     N3["Twitter/X URLs branch to oEmbed rather than OpenGraph parsing<br/>nostr-bbs-preview-worker/src/lib.rs:284"]
 ```
 
@@ -214,7 +217,7 @@ classDiagram
     RateLimit --> SearchWorker
     RateLimit --> PreviewWorker
 
-    note for RateLimit "Each worker calls check_rate_limit with its OWN<br/>KV binding and its own budget - auth 20/60s on<br/>SESSIONS auth-worker/src/lib.rs:174, search<br/>100/60s on SEARCH_CONFIG search-worker/src/lib.rs:629,<br/>preview 30/60s on RATE_LIMIT preview-worker/src/lib.rs:519"
-    note for Replay "INVARIANT one shared replay database - the search<br/>worker binds REPLAY_DB search-worker/src/auth.rs:31<br/>and delegates to the shared verifier<br/>search-worker/src/auth.rs:40 exactly as the auth<br/>worker does. See NF-02.5 and NF-08.4"
-    note for Ascii "The image feature pulls PURE-Rust decoders only,<br/>default-features off, so the wasm32 build stays<br/>lean Cargo.toml:168. The BBS client never converts<br/>client-side - it fetches a pre-rendered fragment<br/>from the preview worker bbs-client/src/ascii_img.rs:203"
+    note for RateLimit "Each worker calls check_rate_limit with its OWN<br/>KV binding and its own budget - auth 20/60s on<br/>SESSIONS nostr-bbs-auth-worker/src/lib.rs:174, search<br/>100/60s on SEARCH_CONFIG nostr-bbs-search-worker/src/lib.rs:629,<br/>preview 30/60s on RATE_LIMIT nostr-bbs-preview-worker/src/lib.rs:519"
+    note for Replay "INVARIANT one shared replay database - the search<br/>worker binds REPLAY_DB nostr-bbs-search-worker/src/auth.rs:31<br/>and delegates to the shared verifier<br/>nostr-bbs-search-worker/src/auth.rs:40 exactly as the auth<br/>worker does. See NF-02.5 and NF-08.4"
+    note for Ascii "The image feature pulls PURE-Rust decoders only,<br/>default-features off, so the wasm32 build stays<br/>lean nostr-rust-forum/Cargo.toml:168. The BBS client never converts<br/>client-side - it fetches a pre-rendered fragment<br/>from the preview worker nostr-bbs-bbs-client/src/ascii_img.rs:203"
 ```

@@ -24,6 +24,7 @@ sources:
   - ../project/src/handlers/ontology_class_count_handler.rs
   - ../project/src/handlers/ontology_agent_handler.rs
   - ../project/src/handlers/api_handler/ontology/mod.rs
+  - ../project/src/handlers/api_handler/ontology_physics/mod.rs
   - ../project/src/actors/ontology_actor.rs
   - ../project/src/actors/messages/ontology_messages.rs
   - ../project/src/services/ontology_file_cache.rs
@@ -284,7 +285,7 @@ sequenceDiagram
 
     Client->>Rbac: any /api/* request
     rect rgb(230,255,230)
-    Note over OntScope: registration order matters (mod.rs:1631-1642) - derived and class-count scopes register before this broader /ontology scope
+    Note over OntScope: registration order matters (ontology/mod.rs:1631-1642) - derived and class-count scopes register before this broader /ontology scope
     OntScope->>OntScope: POST graph classes properties axioms inference query sparql load load-axioms validate mapping apply, DELETE cache axioms iri classes iri (lines 1659-1679)
     OntScope->>OntScope: GET graph inferred classes properties axioms inference validate metrics inferences hierarchy state-at provenance reports id report health ws (lines 1681-1706)
     Note over OntScope: power_user().mutations_only() gate line 1657 - POST PUT DELETE gated, all GET public
@@ -295,7 +296,7 @@ sequenceDiagram
     end
     rect rgb(230,230,255)
     CountScope->>CountScope: GET class-count (line 77)
-    Note over CountScope: unauthenticated by design (class_count_handler.rs:24)
+    Note over CountScope: unauthenticated by design (ontology_class_count_handler.rs:24)
     end
     rect rgb(255,245,230)
     AgentScope->>AgentScope: POST discover read query traverse validate, GET status (lines 435-440)
@@ -414,7 +415,7 @@ flowchart TD
     Enable --> OntoActor
     OntoActor -->|"GetOntologyReport"| ConstraintActor
     ConstraintActor --> SimParams
-    PipelineCfg -->|"constraint_strength, use_gpu_constraints, materialise_inferred_edges defaults (pipeline_service.rs:59-67)"| ConstraintActor
+    PipelineCfg -->|"constraint_strength, use_gpu_constraints, materialise_inferred_edges defaults (ontology_pipeline_service.rs:59-67)"| ConstraintActor
 ```
 
 ## VC-20.12 Oxigraph named-graph layout — fenced-derived, cache and migration graphs

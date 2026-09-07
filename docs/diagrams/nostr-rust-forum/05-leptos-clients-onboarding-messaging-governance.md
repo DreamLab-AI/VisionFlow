@@ -47,6 +47,9 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/upload.rs
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/passkey.rs
   - ../nostr-rust-forum/docs/diagrams/00-anomaly-register.md
+  - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/screens.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/theme.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/category.rs
 verified_commit: d48a7a546
 ---
 
@@ -67,13 +70,14 @@ sequenceDiagram
     M->>SW: sw url and scope built from FORUM_BASE main.rs:53 main.rs:54
     M->>SW: update_via_cache = None, so sw.js is always revalidated main.rs:61
     M->>DB: evict cached messages older than 30 days main.rs:146
-    A->>A: provide_auth app.rs:302, provide_zone_access app.rs:303, provide_profile_cache app.rs:312
-    A->>A: start_admin_alerts app.rs:322, provide_agent_disclosure app.rs:406
-    A->>A: one app-wide RelayConnection app.rs:414
+    A->>A: provide_auth nostr-bbs-forum-client/src/app.rs:302, provide_zone_access nostr-bbs-forum-client/src/app.rs:303, provide_profile_cache nostr-bbs-forum-client/src/app.rs:312
+    A->>A: start_admin_alerts nostr-bbs-forum-client/src/app.rs:322, provide_agent_disclosure nostr-bbs-forum-client/src/app.rs:406
+    A->>A: one app-wide RelayConnection nostr-bbs-forum-client/src/app.rs:414
 
-    Note over A: INVARIANT ADR-090: FORUM_BASE is applied in exactly TWO places - the const consumed by Router base= (app.rs:41, app.rs:817) and base_href() for every link (app.rs:50, e.g. app.rs:1050). A third re-introduces the double-prefix / deep-route-404 class of bug.
+    Note over A: INVARIANT ADR-090 - FORUM_BASE is applied in exactly TWO places: the const consumed by Router base= at nostr-bbs-forum-client/src/app.rs:41 and :817
+    Note over A: and base_href() for every link at nostr-bbs-forum-client/src/app.rs:50, used e.g. at :1050. A third application re-introduces the double-prefix / deep-route-404 bug class.
     Note over M: main.rs:52 re-reads the same option_env! for the service-worker SCOPE - a deliberate, documented mirror of app::FORUM_BASE, not a third application of the prefix
-    Note over A: current_app_path strips the prefix back off a browser path so the router sees an unprefixed route app.rs:79
+    Note over A: current_app_path strips the prefix back off a browser path so the router sees an unprefixed route nostr-bbs-forum-client/src/app.rs:79
 ```
 
 ## NF-05.2 Route table
@@ -81,30 +85,30 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     subgraph pubroutes["Public"]
-        R1["/ HomeOrForums app.rs:835"]
-        R2["/about app.rs:836 | /login app.rs:837 | /signup app.rs:842"]
-        R3["/connect magic link - must NOT be auth-gated app.rs:841"]
-        R4["/glossary app.rs:846 | /join/:code app.rs:852"]
+        R1["/ HomeOrForums nostr-bbs-forum-client/src/app.rs:835"]
+        R2["/about nostr-bbs-forum-client/src/app.rs:836 | /login nostr-bbs-forum-client/src/app.rs:837 | /signup nostr-bbs-forum-client/src/app.rs:842"]
+        R3["/connect magic link - must NOT be auth-gated nostr-bbs-forum-client/src/app.rs:841"]
+        R4["/glossary nostr-bbs-forum-client/src/app.rs:846 | /join/:code nostr-bbs-forum-client/src/app.rs:852"]
     end
     subgraph authed["Auth-gated"]
-        R5["/setup app.rs:854 | /forums app.rs:863 | /settings app.rs:873"]
-        R6["/chat/:channel_id app.rs:860 | /dm app.rs:861 | /dm/:pubkey app.rs:862"]
-        R7["/forums/:category/board app.rs:868 | /:section app.rs:869 | /:topic app.rs:870"]
-        R8["/events app.rs:871 | /profile/:pubkey app.rs:872 | /pod app.rs:882"]
+        R5["/setup nostr-bbs-forum-client/src/app.rs:854 | /forums nostr-bbs-forum-client/src/app.rs:863 | /settings nostr-bbs-forum-client/src/app.rs:873"]
+        R6["/chat/:channel_id nostr-bbs-forum-client/src/app.rs:860 | /dm nostr-bbs-forum-client/src/app.rs:861 | /dm/:pubkey nostr-bbs-forum-client/src/app.rs:862"]
+        R7["/forums/:category/board nostr-bbs-forum-client/src/app.rs:868 | /:section nostr-bbs-forum-client/src/app.rs:869 | /:topic nostr-bbs-forum-client/src/app.rs:870"]
+        R8["/events nostr-bbs-forum-client/src/app.rs:871 | /profile/:pubkey nostr-bbs-forum-client/src/app.rs:872 | /pod nostr-bbs-forum-client/src/app.rs:882"]
     end
     subgraph gov["Governance"]
-        R9["/governance member read-only app.rs:880"]
-        R10["/governance/admin admin write app.rs:881"]
-        R11["/admin - its own internal gate app.rs:874"]
+        R9["/governance member read-only nostr-bbs-forum-client/src/app.rs:880"]
+        R10["/governance/admin admin write nostr-bbs-forum-client/src/app.rs:881"]
+        R11["/admin - its own internal gate nostr-bbs-forum-client/src/app.rs:874"]
     end
     subgraph zonealias["Zone-slug aliases, declared LAST"]
-        R12["/:category app.rs:898 | /:category/board app.rs:900"]
-        R13["/:category/:section app.rs:901 | /:category/:section/:topic app.rs:902"]
+        R12["/:category nostr-bbs-forum-client/src/app.rs:898 | /:category/board nostr-bbs-forum-client/src/app.rs:900"]
+        R13["/:category/:section nostr-bbs-forum-client/src/app.rs:901 | /:category/:section/:topic nostr-bbs-forum-client/src/app.rs:902"]
     end
 
-    ROUTER["Router base=FORUM_BASE app.rs:817"] --> pubroutes & authed & gov & zonealias
+    ROUTER["Router base=FORUM_BASE nostr-bbs-forum-client/src/app.rs:817"] --> pubroutes & authed & gov & zonealias
 
-    N1["/chat with no channel redirects to /forums - a legacy path kept alive app.rs:859"]
+    N1["/chat with no channel redirects to /forums - a legacy path kept alive nostr-bbs-forum-client/src/app.rs:859"]
     N2["The zone-slug aliases are declared last so the static routes out-score them; a slug is only valid<br/>if it resolves in the live ZONE_CONFIG nostr-bbs-forum-client/src/pages/category.rs:102"]
     N3["The member and admin governance views are separate ROUTES bound to separate components -<br/>see NF-06.10"]
 ```
@@ -326,7 +330,7 @@ stateDiagram-v2
         Zone-bound one-shot PWA: bake_local binds the baked key to a zone
         nostr-bbs-bbs-client/src/pwa.rs:185 and persists a BootProfile
         nostr-bbs-bbs-client/src/pwa.rs:219 nostr-bbs-bbs-client/src/pwa.rs:466
-        The app.rs:132 guard is what makes it ONE-SHOT
+        The nostr-bbs-forum-client/src/app.rs:132 guard is what makes it ONE-SHOT
     end note
     note right of MainMenu
         ADR-2008 divergence, re-verified and REFINED: BbsSigner does not hold a bare
@@ -363,5 +367,5 @@ flowchart TB
 
     N1["Theme cycling is in-memory only - no persistence chrome.rs:97, palette parse<br/>nostr-bbs-bbs-client/src/theme.rs:23"]
     N2["Config is read from window.__ENV__ exactly as the forum client does<br/>nostr-bbs-bbs-client/src/config.rs:265, relay URL config.rs:144, pwa_mode from ?pwa=1 config.rs:180"]
-    N3["The BBS derives its passkey key through the SAME core helper as the forum client<br/>nostr-bbs-bbs-client/src/passkey.rs:179, with the PRF buffer zeroized after use passkey.rs:181"]
+    N3["The BBS derives its passkey key through the SAME core helper as the forum client<br/>nostr-bbs-bbs-client/src/passkey.rs:179, with the PRF buffer zeroized after use nostr-bbs-bbs-client/src/passkey.rs:181"]
 ```

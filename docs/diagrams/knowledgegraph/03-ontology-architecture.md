@@ -13,6 +13,8 @@ sources:
   - ../knowledgeGraph/static/ns/v2.jsonld
   - ../knowledgeGraph/docs/reference/jsonld-schema.md
   - ../knowledgeGraph/docs/architecture/pipeline.md
+  - ../knowledgeGraph/docs/ecosystem.md
+  - ../knowledgeGraph/docs/BASELINE-narrativegoldmine.md
 verified_commit: 2791111fc
 ---
 
@@ -59,7 +61,7 @@ flowchart TB
     CLS["per Class: rdf:type owl:Class, rdfs:label, rdfs:comment,<br/>vc:sourceDomain, vc:qualityScore, vc:slug, vc:hasMaturity,<br/>rdfs:subClassOf per parent — jsonld_to_turtle.py:94 build_graph"]
     SKOS["1 · SKOS taxonomy marking<br/>TAXONOMIC_SLUGS #40;6 domain + 34 category#41; get skos:Concept;<br/>a subClassOf edge into one ALSO emits skos:broader<br/>jsonld_to_turtle.py:50,279-284 — 3,458 triples"]
     EXIST["2 · Existential restrictions<br/>every requires/hasPart edge → owl:Restriction BNode<br/>#40;onProperty + someValuesFrom#41; as extra subClassOf<br/>19,751 restrictions, jsonld_to_turtle.py:359"]
-    DISJ["3 · Domain-root disjointness<br/>owl:AllDisjointClasses over the 6 domain roots<br/>jsonld_to_turtle.py:403-412"]
+    DISJ["3 · Domain-root disjointness<br/>owl:AllDisjointClasses over the 6 domain roots<br/>jsonld_to_turtle.py:404"]
     STUB["4 · Dangling-target stubs<br/>class/ IRI referenced but never declared → skos:Concept<br/>+ slug-derived label; 4,383 stubs<br/>jsonld_to_turtle.py:380-387"]
     CLS --> SKOS
     CLS --> EXIST

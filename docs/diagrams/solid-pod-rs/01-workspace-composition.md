@@ -17,6 +17,14 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/storage/mod.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/wac/resolver.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/auth/nip98.rs
+  - ../solid-pod-rs/crates/solid-pod-rs/docs/examples-index.md
+  - ../solid-pod-rs/crates/solid-pod-rs/examples/embed_in_actix.rs
+  - ../solid-pod-rs/crates/solid-pod-rs/examples/custom_storage.rs
+  - ../solid-pod-rs/crates/solid-pod-rs/examples/nip98_client.rs
+  - ../solid-pod-rs/crates/solid-pod-rs/examples/notifications_consumer.rs
+  - ../solid-pod-rs/crates/solid-pod-rs/examples/webhook_receiver.rs
+  - ../solid-pod-rs/crates/solid-pod-rs/examples/wac_admin.rs
+  - ../solid-pod-rs/crates/solid-pod-rs/examples/oidc_client.rs
 verified_commit: 1d9da5270
 ---
 
@@ -313,4 +321,61 @@ flowchart LR
 
     N["INVARIANT: allow-git is empty — every dependency resolves from the crates.io<br/>index, so a git-patched dependency cannot enter a release build."]
     GITS -.-> N
+```
+
+## SP-01.12 The `examples/` integration surface — the library-first contract
+
+```mermaid
+flowchart TD
+    subgraph SERVER["Server-side — embed the pod"]
+        E1["embed_in_actix — mount the pod as a sub-scope of a larger app<br/>crates/solid-pod-rs/examples/embed_in_actix.rs:1"]
+        E2["custom_storage — implement Storage over a BTreeMap<br/>crates/solid-pod-rs/examples/custom_storage.rs:1"]
+        E3["webhook_receiver — an Axum sink for WebhookChannel2023 POSTs<br/>crates/solid-pod-rs/examples/webhook_receiver.rs:1"]
+    end
+    subgraph CLIENT["Client-side — talk to a pod"]
+        E4["nip98_client — sign, PUT a Turtle resource, read it back<br/>crates/solid-pod-rs/examples/nip98_client.rs:1"]
+        E5["notifications_consumer — subscribe over WebSocketChannel2023<br/>crates/solid-pod-rs/examples/notifications_consumer.rs:1"]
+        E6["oidc_client — discovery, registration, DPoP, token verify<br/>crates/solid-pod-rs/examples/oidc_client.rs:1"]
+    end
+    subgraph ADMIN["Administration"]
+        E7["wac_admin — grant / show / check against an FsBackend root<br/>crates/solid-pod-rs/examples/wac_admin.rs:1"]
+    end
+    IDX["docs/examples-index.md — the documented map<br/>crates/solid-pod-rs/docs/examples-index.md:1"]
+
+    IDX --> SERVER
+    IDX --> CLIENT
+    IDX --> ADMIN
+
+    N["These seven ARE the integration contract. README leads with 'As a library',<br/>and each example maps to one boundary in SP-01.10 and SP-08.16: Storage (E2),<br/>LDP+NIP-98 (E1, E4), notifications (E3, E5), OIDC (E6), WAC (E7)."]
+    IDX -.-> N
+```
+
+## SP-01.13 Example registration and the compilation gate
+
+```mermaid
+flowchart LR
+    D1["[[example]] embed_in_actix<br/>crates/solid-pod-rs/Cargo.toml:310"]
+    D2["custom_storage<br/>crates/solid-pod-rs/Cargo.toml:314"]
+    D3["nip98_client<br/>crates/solid-pod-rs/Cargo.toml:318"]
+    D4["notifications_consumer<br/>crates/solid-pod-rs/Cargo.toml:322"]
+    D5["webhook_receiver<br/>crates/solid-pod-rs/Cargo.toml:326"]
+    D6["wac_admin<br/>crates/solid-pod-rs/Cargo.toml:330"]
+    D7["oidc_client, required-features = oidc<br/>crates/solid-pod-rs/Cargo.toml:336"]
+    C1["cargo check -p solid-pod-rs --examples<br/>crates/solid-pod-rs/docs/examples-index.md:34"]
+    C2["cargo check --examples --features oidc<br/>crates/solid-pod-rs/docs/examples-index.md:35"]
+
+    D1 --> C1
+    D2 --> C1
+    D3 --> C1
+    D4 --> C1
+    D5 --> C1
+    D6 --> C1
+    D7 --> C2
+
+    N["Without the oidc feature, oidc_client compiles to a stub that prints a hint and<br/>exits — it stays registered so the NAME remains discoverable.<br/>crates/solid-pod-rs/docs/examples-index.md:38"]
+    D7 -.-> N
+    N2["DOC-DRIFT: examples-index.md documents an eighth example, 'standalone', as<br/>'the quickest way to see a working pod'<br/>(crates/solid-pod-rs/docs/examples-index.md:12). No standalone.rs exists and no<br/>[[example]] declares it — the Cargo manifest has exactly the seven above. A<br/>reader following the index hits cargo error: no example target named standalone."]
+    C1 -.-> N2
+    N3["DIVERGENCE: neither cargo check line is a CI job — SP-09.10 shows the matrix<br/>never builds --examples, so this gate is documentation an author must run by<br/>hand. That is how the missing standalone.rs survived."]
+    C1 -.-> N3
 ```

@@ -1,0 +1,18 @@
+{
+  "date": "2026-09-07",
+  "scope": "Exact source SQL in fresh in-memory SQLite and synthetic ontology pages in temporary storage; no live account, private corpus, external database or publication used. Exit zero means probes ran, not that products conform.",
+  "trust_conflict": {
+    "update_changes": 0,
+    "stored_level": 3,
+    "audit_rows": 1
+  },
+  "public_inference": {
+    "inferred_triples": 1,
+    "private_grandparent_present": true
+  },
+  "sources": {
+    "nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs": "537bbc92dba6657ff93546afb103daddf5c7abeb6a109f25906bd818f7d25753",
+    "visionGraph/pipeline/jsonld_parser.py": "709a54466616727909af665c4eebd05fad478a5b4ee03a77b4abfd20d1fc8a3c",
+    "visionGraph/pipeline/reason.py": "f82cb9ee9f7d21c79532bb42446bd16fc8f080fbd953f357279c35132f20bfeb"
+  }
+}

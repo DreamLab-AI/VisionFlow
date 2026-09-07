@@ -54,6 +54,7 @@ sources:
   - ../project/src/middleware/rbac_gate.rs
   - ../project/src/services/management_api_client.rs
   - ../project/src/services/nostr_bead_publisher.rs
+  - ../project/src/handlers/ontology_handler.rs
 verified_commit: 36bb64e1e
 ---
 
@@ -440,6 +441,7 @@ sequenceDiagram
     participant ST as enrichment_proposals_handler::store<br/>same durable store as WS-9, no second store
 
     Note over SC: doc comment :157-161 — "Mounted as a dedicated web::scope(broker) so the<br/>privileged RequireAuth::power_user() middleware wraps exactly these read routes<br/>and nothing else, mirroring the isolated privileged scope at ontology_handler.rs:913-918"
+    Note over SC: DOC-DRIFT — that cross-reference is itself stale: WS-0 removed ontology_handler.rs<br/>own web::scope entirely (ontology_handler.rs:1024-1034), re-using its handlers from the single<br/>canonical scope in api_handler::ontology::config instead, see VC-20. No isolated privileged<br/>scope exists there any more — /broker is the odd one out now, not a mirror of it.
     C->>SC: GET /api/broker/inbox (X-Agent-Key or power-user session)
     SC->>SC: RequireAuth::power_user()
     alt not power user

@@ -1,9 +1,24 @@
 # Ecosystem Compatibility Matrix
 
-**Status:** Docs, metadata, code spot-check, and runtime research synthesis
-**Date:** 2026-05-22, reconciled against code 2026-07-03
+**Status:** Current source comparison; deployed compatibility not certified
+**Reviewed:** 2026-09-07. Earlier 2026-05/07 snapshots remain below as historical evidence.
 
-This matrix records the current compatibility posture verified by cross-repo runtime research, not only sibling documentation. The 2026-07-03 pass corrected the mesh, governance, identity and ontology-bridge rows against merged code; the full closeout analysis is in [`docs/closeout/final-design.md`](../closeout/final-design.md).
+The current view follows the [estate audit](../estate-review/2026-09-07-estate-audit.md), [VisionClaw audit](../estate-review/2026-09-07-visionclaw-audit.md), [Agentbox audit](../estate-review/2026-09-07-agentbox-audit.md) and [federation audit](../estate-review/2026-09-07-federation-audit.md). Working-tree source, declared configuration and a running deployment are separate evidence states. No earlier completion percentage, fixture result or tool count becomes a current result merely by appearing in this file.
+
+## Current compatibility — 2026-09-07
+
+| Area | Source-supported implementation | Remaining compatibility evidence |
+|---|---|---|
+| Identity and replay | VisionClaw has a single-use process-local NIP-98 cache (`src/utils/nip98.rs`); native Solid has a ReplayStore seam; forum/edge and Agentbox have their own authentication boundaries. Agentbox canonical identity is `did:nostr:<64-hex>` with Multikey material offered alongside, not a replacement DID string. | Replay behaviour must be measured per consumer, restart and replica. Shared key material is not one shared verifier. VisionClaw NIP-26 user delegation remains deferred; forum mesh delegation types/verification do not establish its outbound integration. |
+| Mesh | Forum `nostr-bbs-mesh` supplies transport/core types and is a relay-worker dependency; `mesh.rs` provides configuration and fan-out planning plus inbound admission gates. Agentbox/VisionClaw share an explicit versioned federation kind map. | Relay accept-path/outbound connector joins remain deferred. Do not call the estate either fully federated or wholly scaffold-only. Deployment mode and enabled peers require a current instance receipt. |
+| Pod | VisionClaw embeds a library, Agentbox selects a supervised native server, and the forum uses a separate Worker tier. Consumer versions/features differ from the standalone source. | Storage policy, cache, WAC, OIDC and replay guarantees require exact consumer wiring and tests. Library capabilities do not imply parity across all tiers. |
+| Governance | VisionClaw includes the broker domain kernel, ACSP integration and inbox/decide REST surfaces; the legacy BrokerActor/Neo4j transport was deliberately left behind. Agentbox task spawn has a journalled local fast path. Forum decision projection has stronger transactional receipts. | Signed, accepted, projected, received and applied are separate stages. Request/case/operation correlation, guarded transitions and external application still need end-to-end proof. A task-spawn journal is not universal tool or nightly-loop confinement. |
+| Ontology bridge | The current `ontology-bridge.js` TOOLS array has eleven advertised entries. `ontology_propose` has a dispatch branch but is not in that advertised array. Governed writes and bounded retrieval exist; the configured retrieval backend can be VisionClaw or Loom. | Count the advertised registry at the selected revision, not a historic twelve-tool description. Loom client generation attestation, asserted/inferred scope and its own search/SPARQL recall measurement remain open. |
+| Deployment and evidence | Nix/compose/CI gates and release manifests exist. Agentbox source fixes may be staged pending image rebuild. Current audit reports name tested boundaries and limitations. | Bind source/lock/features, image, projected config and loaded process. A green structural gate or historical fixture result does not certify the deployed estate. |
+
+## Historical compatibility snapshot — reconciled 2026-07-03
+
+The following table is retained as a dated record, **not current status**. Its replay-only-in-edge, Multikey-canonical-DID, scaffold-only mesh, BrokerActor and twelve-tool claims are superseded by the current table above. Other old counts and verdicts require revalidation before reuse.
 
 | Area | VisionClaw | agentbox | nostr-rust-forum | solid-pod-rs | dreamlab-ai-website | Compatibility status |
 |---|---|---|---|---|---|---|
@@ -39,9 +54,9 @@ scripts/generate-release-manifest.sh > docs/releases/ecosystem-release.local.jso
 
 See [Release Manifests](../releases/README.md) for the schema and promotion rules.
 
-## Harness Coverage
+## Historical Harness Coverage — run 2026-07-03
 
-Per ADR-004, each substrate's guide-sensor pairing status is tracked here. **This table is generated from `scripts/harness-audit.sh`** (run 2026-07-03) — do not hand-edit; re-run the script and paste its output. See `docs/engineering/templates/` for full template definitions.
+Historical output, not rerun in this pass. Per ADR-004, each substrate's guide-sensor pairing status is tracked here. **This table is generated from `scripts/harness-audit.sh`** (run 2026-07-03) — do not hand-edit; re-run the script and paste its output. See `docs/engineering/templates/` for full template definitions.
 
 Two distinct metrics are reported, and they are not the same thing. **Paired** counts declared guide→sensor cross-references inside a template (a coverage-of-intent measure). **Source-backed** counts the controls whose `source` field resolves to a real artifact in the named substrate today; the remainder carry `source_status: planned` (declared but not yet implemented). A template can be 100% paired while some controls are still planned, so both columns are published to keep the metric honest.
 
@@ -70,7 +85,7 @@ Fitness-gate ADR citations are repo-qualified to avoid ADR-number collisions: ag
 
 Run `scripts/harness-audit.sh` for current status.
 
-## Gap-Close Sprint — P0 Item Tiers
+## Historical Gap-Close Sprint — P0 Item Tiers
 
 The area rows above record per-area compatibility posture. Per ADR-002 and the
 Gap-Close Canon PRD, each gap-close item is also reflected here at its **evidenced
@@ -96,7 +111,7 @@ The forward-chained corrections behind REC-1a/1b, PATCH, NIP-42, D1 and D5 are
 recorded in `gap-register-v1.1.md` §"Forward-chained corrections", not edited into
 the v1.0 inventory in place (register immutability, DDD Gap-Close Invariant 5).
 
-## Gap-Close Sprint — P1/P2 Item Tiers
+## Historical Gap-Close Sprint — P1/P2 Item Tiers
 
 The P1 and P2 waves closed the remaining 41 line items. This table reflects them
 at their evidenced tiers and is authoritative to

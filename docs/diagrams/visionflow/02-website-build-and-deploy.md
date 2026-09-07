@@ -296,7 +296,7 @@ sequenceDiagram
     participant CH as "EXTERNAL browsercontainer Chrome — see ES-01"
     participant P as "the built page"
 
-    C->>WS: "webServer command, url http://127.0.0.1:4173<br/>playwright.config.js:36"
+    C->>WS: "webServer command, url is loopback port 4173<br/>playwright.config.js:36"
     Note over C: "baseURL is SITE_BASE_URL, else the container's own<br/>172.20.x address when running inside Docker<br/>playwright.config.js:23 and playwright.config.js:20"
     T->>FX: "the page fixture is overridden — fixtures/cdp.js:74"
     FX->>CH: "resolve browsercontainer to an IP, GET /json/version,<br/>then chromium.connectOverCDP — fixtures/cdp.js:76"
@@ -351,7 +351,7 @@ stateDiagram-v2
     state "initMeshBackdrop" as Mesh
     Mesh --> WebGL2Yes : getContext webgl2 succeeded
     Mesh --> WebGL2No : getContext returned null
-    state "initMesh returns null; the page renders every section regardless — mesh-webgl.js:15" as WebGL2No
+    state "initMesh returns null — the page renders every section regardless — mesh-webgl.js:15" as WebGL2No
     state "hero star-field plus scroll-driven ontology figures" as WebGL2Yes
     WebGL2Yes --> Reduced : prefers-reduced-motion reduce
     state "one settled frame, no rAF, no bounce — mesh-webgl.js:16" as Reduced

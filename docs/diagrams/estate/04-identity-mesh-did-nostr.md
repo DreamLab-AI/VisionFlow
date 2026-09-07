@@ -7,7 +7,7 @@ governing:
   - ../project/agentbox/docs/INGRESS-identity.md
   - ../project/agentbox/docs/BASELINE-container.md
   - ../project/docs/SECURITY-profiles.md
-adrs: [ADR-2002, ADR-2009, ADR-2010, ADR-2011, ADR-2013, ADR-2026]
+adrs: [agentbox:ADR-2002, agentbox:ADR-2009, agentbox:ADR-2010, agentbox:ADR-2011, agentbox:ADR-2013, agentbox:ADR-2026]
 sources:
   - ../project/agentbox/config/nip98-proxy/proxy.mjs
   - ../project/agentbox/config/nip98-proxy/selftest.mjs
@@ -233,7 +233,7 @@ flowchart TB
         F1["test-data-idp-accounts/ at the repo root<br/>FIXTURES ONLY — test IdP accounts, never live custody"]
     end
     subgraph boundary["Egress boundary"]
-        REL["cloud Nostr relay worker<br/>dreamlab-nostr-relay.solitary-paper-764d.workers.dev"]
+        REL["cloud Nostr relay worker<br/>dreamlab-nostr-relay.solitary-paper-764d.workers.dev<br/>EXTERNAL — this worker is dreamlab-ai-website's<br/>relay-worker, not an agentbox service. see DW-01, DW-04"]
     end
 
     K5 -->|"NIP-59 gift wrap, kind 1059"| REL

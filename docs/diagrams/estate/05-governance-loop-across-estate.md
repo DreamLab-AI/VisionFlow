@@ -5,7 +5,7 @@ area: estate
 governing:
   - ../project/agentbox/docs/GOVERNANCE-capabilities.md
   - ../project/docs/BASELINE-architecture.md
-adrs: [ADR-2006]
+adrs: [visionclaw:ADR-2006, agentbox:ADR-2041, agentbox:ADR-2071]
 sources:
   - ../project/src/services/acsp/mod.rs
   - ../project/src/services/acsp/events.rs
@@ -393,3 +393,18 @@ flowchart TB
     TOP --> D8
     G3 --> INV
 ```
+
+## ES-05.11 Journal coverage is route-specific
+
+```mermaid
+flowchart LR
+    TASK["POST /v1/tasks"] --> PLANE["action-plane.dispatchTaskSpawn"]
+    PLANE --> READY{"Events adapter and pipeline ready?"}
+    READY -->|no| REFUSE["503: no unjournalled spawn"]
+    READY -->|yes| LOCAL["local side-effect classification"]
+    LOCAL --> SPAWN["Journalled task spawn; no extra approval receipt"]
+    NIGHT["Nightly SSH, model calls, push and publication"] -.-> GAP["ADR-2071 proposed: no universal journal/approval claim"]
+    PEER["Same-UID process"] -.-> LIMIT["Application gate does not establish OS isolation"]
+```
+
+Grounded in Agentbox `management-api/lib/action-plane.js` and `routes/tasks.js`; broader governance routes retain their individual contracts. A working task-spawn journal does not establish complete mediation of shell commands or nightly egress. See [audit](../../estate-review/2026-09-07-agentbox-audit.md).

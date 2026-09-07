@@ -18,13 +18,25 @@ sources:
   - ../vowl-wasm/src/layout/mod.rs
   - ../vowl-wasm/src/ngg1.rs
   - ../vowl-wasm/src/interaction/mod.rs
+  - ../vowl-wasm/src/graph/builder.rs
+  - ../vowl-wasm/src/graph/pinning.rs
+  - ../vowl-wasm/src/graph/statistics.rs
+  - ../vowl-wasm/src/layout/simulation.rs
+  - ../vowl-wasm/src/layout/quadtree.rs
+  - ../vowl-wasm/src/layout/force.rs
+  - ../vowl-wasm/src/layout/csr_sim.rs
+  - ../vowl-wasm/src/ontology/parser.rs
+  - ../vowl-wasm/src/ontology/owl2_validator.rs
+  - ../vowl-wasm/src/ontology/loader.rs
+  - ../vowl-wasm/src/ontology/markdown_parser.rs
+  - ../vowl-wasm/README.md
 verified_commit: 65e2d1e78
 ---
 
 ## VW-01.1 Top-level module tree
 ```mermaid
 flowchart TB
-    LIB["lib.rs<br/>src/lib.rs:145 #!deny(missing_docs, unsafe_code)"]
+    LIB["lib.rs<br/>src/lib.rs:141-142 #!deny(missing_docs, unsafe_code)"]
     LIB --> BIND["bindings/<br/>src/bindings/mod.rs, explorer.rs"]
     LIB --> DEBUG["debug<br/>src/debug.rs"]
     LIB --> GRAPH["graph/<br/>src/graph/mod.rs:6"]
@@ -35,7 +47,7 @@ flowchart TB
     LIB -. "feature: interaction" .-> INTER["interaction<br/>src/interaction/mod.rs"]
     LIB --> ERR["error, private<br/>src/error.rs:6"]
 ```
-- `error` is not re-exported as `pub mod`; only `Result`/`VowlError` are re-exported at the crate root (`src/lib.rs:154`).
+- `error` is not re-exported as `pub mod`; only `Result`/`VowlError` are re-exported at the crate root (`src/lib.rs:162`).
 - `render::SvgRenderer` (src/render/mod.rs:20) exists but is not wired to any `#[wasm_bindgen]` binding — a native-only diagnostic path.
 
 ## VW-01.2 Submodule breakdown — graph and layout
@@ -179,3 +191,5 @@ sequenceDiagram
     R-->>C: SVG string
 ```
 - `SvgRenderer` has no `#[wasm_bindgen]` surface — it is reachable only from Rust callers (tests, benches, native embedding), not from the published JS API (see VW-04).
+
+Audit qualification — 2026-09-07: this repository contains no local active ADR ledger. Its `Cargo.toml` and code are the implementation evidence; WasmVOWL and embedded explorer copies have separate governance and source identities. `cargo test --locked --offline --lib` passes 136 default-feature tests. That run covers native logic, not optional `ngg1`, `markdown-ontology`, `interaction`, browser loading or a deployed consumer.

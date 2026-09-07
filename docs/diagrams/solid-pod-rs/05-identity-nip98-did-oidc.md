@@ -36,6 +36,9 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs-idp/src/user_store.rs
   - ../solid-pod-rs/crates/solid-pod-rs-idp/src/account_delete.rs
   - ../solid-pod-rs/crates/solid-pod-rs-idp/src/invites.rs
+  - ../solid-pod-rs/crates/solid-pod-rs-git/src/auth.rs
+  - ../solid-pod-rs/crates/solid-pod-rs-idp/src/password_change.rs
+  - ../solid-pod-rs/crates/solid-pod-rs/src/security/rate_limit.rs
 verified_commit: 1d9da5270
 ---
 
@@ -562,4 +565,35 @@ flowchart TD
     N05H -.-> N
     N2["Both did-nostr endpoints are feature-gated; a default build serves neither.<br/>See SP-02.9."]
     DN -.-> N2
+```
+
+## SP-05.21 Password change — the one credential-MUTATION path
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as authenticated user
+    participant P as change_password<br/>solid-pod-rs-idp/src/password_change.rs:75
+    participant L as RateLimiter<br/>solid-pod-rs/src/security/rate_limit.rs:112
+    participant U as UserStore<br/>solid-pod-rs-idp/src/user_store.rs:70
+    participant A as Argon2
+
+    C->>P: PasswordChangeRequest — current plus new<br/>solid-pod-rs-idp/src/password_change.rs:56
+    P->>L: check RateLimitKey keyed by route and source IP<br/>solid-pod-rs-idp/src/password_change.rs:83
+    alt Deny
+        L-->>P: retry_after_secs
+        P-->>C: PasswordChangeError::RateLimited<br/>solid-pod-rs-idp/src/password_change.rs:91
+    end
+    P->>P: both fields must be non-empty<br/>solid-pod-rs-idp/src/password_change.rs:95
+    P->>P: validate_password_length against MIN_PASSWORD_LENGTH<br/>solid-pod-rs-idp/src/password_change.rs:101
+    P->>U: find_by_id<br/>solid-pod-rs-idp/src/password_change.rs:108
+    U-->>P: the user, or InvalidRequest 'user not found'<br/>solid-pod-rs-idp/src/password_change.rs:112
+    P->>U: verify_password against the CURRENT password<br/>solid-pod-rs-idp/src/password_change.rs:116
+    P->>A: hash the NEW password with a fresh SaltString<br/>solid-pod-rs-idp/src/password_change.rs:126
+    P->>U: update_password<br/>solid-pod-rs-idp/src/password_change.rs:132
+    P-->>C: PasswordChangeResponse<br/>solid-pod-rs-idp/src/password_change.rs:63
+
+    Note over P: INVARIANT: the rate-limit gate runs FIRST, before any validation, lookup or<br/>hash. Argon2 verification is deliberately expensive, so checking credentials<br/>before rate-limiting would turn this endpoint into a CPU-amplification oracle.<br/>Its own route key keeps that budget separate from login<br/>(solid-pod-rs-idp/src/password_change.rs:24 vs credentials.rs:36).
+    Note over U: The current password is re-verified even though the caller is already<br/>authenticated — a stolen session must not be enough to change the password.
+    Note over P: The server exposes POST /account/password/change (SP-02.9) — this is the IdP<br/>library function behind it.
 ```

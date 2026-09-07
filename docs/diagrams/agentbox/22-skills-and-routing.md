@@ -7,6 +7,8 @@ governing:
 adrs: [ADR-2020, ADR-2021, ADR-2028, ADR-2056, ADR-2057]
 sources:
   - ../project/agentbox/skills/lint-skills.sh
+  - ../project/agentbox/docs/GOVERNANCE-capabilities.md
+  - ../project/agentbox/CLAUDE.md
   - ../project/agentbox/skills/lint-skills.mjs
   - ../project/agentbox/skills/SKILL-DIRECTORY.md
   - ../project/agentbox/skills/skill-router/SKILL.md
@@ -83,7 +85,7 @@ sequenceDiagram
 
     U->>RT: /route describe what you need
     RT->>TBL: load generated routing table (derived from every skill description)
-    Note right of TBL: INVARIANT: table is regenerated after any skill description change — not hand-edited to<br/>diverge (SKILL.md:87-90)
+    Note right of TBL: INVARIANT: table is regenerated after any skill description change — not hand-edited to<br/>diverge (skill-router/SKILL.md:87-90)
     alt clear match (Rule 1)
         RT-->>U: state which skill handles it, in one sentence
         RT->>TGT: invoke immediately
@@ -154,8 +156,8 @@ sequenceDiagram
     else claim diverges from truth count
         CNT-->>AUTHOR: E-SKILL1 skill-count drift, exit 1 (agentbox/scripts/skill-count-check.js:154-161)
     end
-    Note over AUTHOR,DISK: DOC-DRIFT: agentbox/docs/GOVERNANCE-capabilities.md:91 says "SKILL-DIRECTORY.md (912<br/>lines)" — the working tree's SKILL-DIRECTORY.md is 915 lines (wc -l)
-    Note over AUTHOR,DISK: DOC-DRIFT: agentbox/CLAUDE.md:30 says "The image bakes /opt/agentbox/skills (118<br/>skills)" — skill-count-check.js and SKILL-DIRECTORY.md:3 both agree the tree holds 126
+    Note over AUTHOR,DISK: RESOLVED — GOVERNANCE-capabilities.md no longer states a SKILL-DIRECTORY.md line<br/>count anywhere #40;grep for 912 or the string 'lines' returns nothing#41; — the working tree's SKILL-DIRECTORY.md<br/>is 915 lines #40;wc -l#41;, and SKILL-DIRECTORY.md:3,34 self-report 126 active skills — no line-count claim to drift
+    Note over AUTHOR,DISK: RESOLVED — agentbox/CLAUDE.md:31 now says "The image bakes /opt/agentbox/skills (126<br/>skills)", matching skill-count-check.js and SKILL-DIRECTORY.md:3 (was 118, corrected)
 ```
 
 ## AB-22.5 harness-bridge MCP — list/inspect/validate

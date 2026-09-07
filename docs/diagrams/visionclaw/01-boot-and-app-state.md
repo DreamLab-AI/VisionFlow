@@ -65,6 +65,8 @@ sources:
   - ../project/src/utils/auth.rs
   - ../project/tests/resd_class_count_route.rs
   - ../project/src/services/ontology_pull.rs
+  - ../project/Cargo.toml
+  - ../project/src/adapters/mod.rs
 verified_commit: 36bb64e1e
 ---
 

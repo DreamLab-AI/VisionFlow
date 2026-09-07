@@ -5,8 +5,9 @@ area: visionclaw
 governing:
   - ../project/docs/DATA-authority-erasure.md
   - ../project/docs/IDENTITY-authority-chain.md
-adrs: [ADR-2067, ADR-2068, ADR-2070, ADR-2106]
+adrs: [ADR-2067, ADR-2068, ADR-2070, ADR-2098, ADR-2106]
 sources:
+  - ../project/client/src/services/api/authInterceptor.ts
   - ../project/Cargo.toml
   - ../project/src/main.rs
   - ../project/src/services/ontology_pull.rs
@@ -71,6 +72,9 @@ flowchart TB
     Legacy["/JavaScriptSolidServer (repo root)"]
     Note2["RESOLVED ADR-2068: the vendored JavaScriptSolidServer/ tree (63 MB) has been deleted. It was a third-party upstream project superseded by the embedded Rust solid-pod-rs, with no import, path or compose reference anywhere; its only mention was a doc-comment URL at src/utils/nip98.rs:5, left intact. Removed rather than archived - docs/archive/ is for our own superseded documents, and the upstream is recoverable from its own public repo."]
     Legacy -.-> Note2
+
+    Note3["RESOLVED ADR-2098 (2026-09-05): SOLID_POD_URL's default in ontology-publish.yml and env.example<br/>was http://jss:3030 / http://visionclaw-jss:3030 - both DNS-dead JSS-sidecar names, a leftover<br/>from before ADR-032 M3 embedded solid-pod-rs. Both now default to http://localhost:4000/solid,<br/>the SYSTEM_NETWORK_PORT (default 4000, main.rs:801) this diagram's own INIT/APPDATA/CFG path<br/>actually serves. The /.notifications POST the workflow still sends is a documented no-op there -<br/>the embedded pod's /.notifications is a GET WebSocket upgrade (see VC-26.9), not a POST trigger."]
+    ON -.-> Note3
 ```
 
 ## VC-26.2 solid_proxy_handler — route dispatch, auth, WAC
@@ -524,7 +528,7 @@ sequenceDiagram
                     PO->>ST: create /public/, /public/ontology/ containers if absent
                     PO->>ST: PUT /public/ontology/.acl (public-read WAC)<br/>ONLY IF ABSENT - operator edits survive<br/>ontology_pull.rs:354-361
                     PO->>ST: PUT each content file<br/>ontology_pull.rs:362-366
-                    PO->>ST: PUT index.jsonld LAST<br/>ontology_pull.rs:367-373 - a partial pull never advertises a build it does not hold
+                    PO->>ST: PUT index.jsonld LAST<br/>ontology_pull.rs:367-373 - advertises new build only after all content PUTs succeed
                     PO-->>SB: "PullOutcome::Updated(build_sha, classes, triples)"
                 end
             end
@@ -532,5 +536,25 @@ sequenceDiagram
         end
     end
     Note over PO,ST: INVARIANT fail-open (module doc ontology_pull.rs:12-17): any network or<br/>verification failure is logged and the pod keeps whatever it already held -<br/>see VC-26.10/26.13 for the client read side and EXTERNAL ES-09.13 for the<br/>GitHub-hosted publish job this inverts (a hosted runner cannot reach the<br/>in-process pod, ADR-2098).
-    Note over SB: Ten unit tests run the sequence against MemoryBackend + a map-backed<br/>fetcher: first pull, no-op on same build, operator ACL preserved, digest<br/>mismatch / missing sum / unreachable release write nothing, disabled<br/>short-circuit, sums/manifest parsing, env (ontology_pull.rs, mod tests)
+    Note over PO,ST: DIVERGENCE (2026-09-07 audit): verified bytes are PUT sequentially, not<br/>published atomically. A storage failure at :362-373 leaves earlier writes visible<br/>with the old manifest, no rollback restores the prior generation.<br/>Manifest-last enables retry, not a consistent snapshot for concurrent readers.<br/>The ACL exists probe at :355 treats read errors as absence and may overwrite<br/>an operator ACL on a later successful PUT. ADR-2106 needs qualified guarantees.
+    Note over SB: Ten unit tests in source cover the sequence against MemoryBackend + a map-backed<br/>fetcher: first pull, no-op on same build, operator ACL preserved, digest<br/>mismatch / missing sum / unreachable release write nothing, disabled<br/>short-circuit, sums/manifest parsing, env (ontology_pull.rs, mod tests)
+```
+
+## VC-26.14 Ontology publication failure boundaries — verified bytes versus atomic visibility
+
+```mermaid
+flowchart TD
+    Fetch["Fetch manifest, sums and four resources<br/>ontology_pull.rs:304-342"] --> Verify{"All hashes verified?"}
+    Verify -->|no| Unchanged["Return error before mutations<br/>Previous content remains"]
+    Verify -->|yes| Probe{"ACL exists probe<br/>ontology_pull.rs:355"}
+    Probe -->|true| Preserve["Keep operator ACL"]
+    Probe -->|false or read error| ACL["Write public-read ACL<br/>Read error is treated as absent"]
+    Preserve --> Writes["PUT content resources sequentially<br/>ontology_pull.rs:362-366"]
+    ACL --> Writes
+    Writes -->|all succeed| Manifest["PUT index.jsonld last<br/>ontology_pull.rs:367-373"]
+    Writes -->|one fails| Mixed["Earlier PUTs remain visible<br/>Old manifest remains; no rollback"]
+    Manifest -->|fails| Mixed
+    Manifest -->|succeeds| Complete["Return Updated<br/>New build marker visible"]
+    Mixed --> Retry["Next scheduled pull retries<br/>Concurrent readers may see mixed generations"]
+    Risk["Closeout: stage a generation and switch atomically,<br/>or make readers verify a generation manifest;<br/>inject storage and ACL-probe failures before acceptance"] -.-> Writes
 ```

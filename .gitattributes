@@ -1,0 +1,3 @@
+
+# Preserve byte-exact audit command output, including diagnostic whitespace.
+docs/estate-review/evidence/**/*.log -whitespace

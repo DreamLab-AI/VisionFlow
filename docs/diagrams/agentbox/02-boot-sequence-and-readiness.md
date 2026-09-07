@@ -6,6 +6,7 @@ governing:
   - ../project/agentbox/docs/BASELINE-container.md
 adrs: [ADR-2003, ADR-2007, ADR-2028, ADR-2029, ADR-2034, ADR-2063, ADR-2080]
 sources:
+  - ../project/agentbox/docs/BASELINE-container.md
   - ../project/agentbox/config/entrypoint-unified.sh
   - ../project/agentbox/flake.nix
   - ../project/agentbox/management-api/server.js
@@ -382,7 +383,7 @@ stateDiagram-v2
 ## AB-02.11 tmux-autostart window layout
 ```mermaid
 flowchart TB
-    START["program:tmux-autostart<br/>flake.nix:2328, priority=95<br/>runs config/tmux-autostart.sh"]
+    START["program:tmux-autostart<br/>flake.nix:2417, priority=95<br/>runs config/tmux-autostart.sh"]
     W0["window 0 Claude<br/>tmux-autostart.sh:237<br/>tab0-bridge injection target<br/>CLAUDE_CONFIG_DIR=/home/devuser/.claude"]
     W1["window 1 Agent<br/>tmux-autostart.sh:260<br/>agent execution workspace"]
     W2["window 2 Services<br/>tmux-autostart.sh:267<br/>supervisorctl status"]
@@ -459,7 +460,7 @@ sequenceDiagram
     alt BASE_URL or AUTH_TOKEN empty
         W-->>AOE: _die fatal — redirect not provisioned (zai.sh:106-112)
     end
-    W->>PV: provider_url_validate BASE_URL EXPECT_HOST PROVIDER_URL_ALLOWED_PORTS=443 (zai.sh:120, _provider-url.sh:64)
+    W->>PV: provider_url_validate BASE_URL EXPECT_HOST PROVIDER_URL_ALLOWED_PORTS=443 (zai.sh:120, _provider-url.sh:72)
     Note over PV: ADR-2007 closeout 2026-09-05 — full authority parse:<br/>scheme must be https, user-info rejected, host must equal<br/>EXPECT_HOST or a dot-suffixed subdomain, port in allow-list (443)
     alt validation fails (wrong host, http scheme, userinfo spoof, bad port)
         PV-->>W: PROVIDER_URL_DIAG diagnostic, return 1 (_provider-url.sh:83-84)
@@ -471,7 +472,7 @@ sequenceDiagram
         W-->>AOE: echo credential-free confirmation line (zai.sh:142)
         W->>C: exec claude "$@" (zai.sh:143)
     end
-    Note over W: DOC-DRIFT — agentbox/docs/BASELINE-container.md:186 (2026-09-04)<br/>says the wrapper host assertion is substring-based — code (zai.sh:114-128,<br/>_provider-url.sh) has since implemented full URL parsing, closed by ADR-2007
+    Note over W: DOC-DRIFT (confirmed still open) — agentbox/docs/BASELINE-container.md:213<br/>still says ADR-2007 is partial and the wrapper host assertion is substring-based —<br/>code (zai.sh:114-128, _provider-url.sh) has since implemented full URL parsing,<br/>closed 2026-09-05 per the code's own ADR-2007 closeout comments
 ```
 
 ## AB-02.14 VAULT env propagation — resolve to PID1 to supervised programs

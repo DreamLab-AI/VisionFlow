@@ -11,6 +11,7 @@ sources:
   - ../knowledgeGraph/docs/ecosystem.md
   - ../knowledgeGraph/pipeline/release_gate.py
   - ../knowledgeGraph/pipeline/jsonld_to_page_api.py
+  - ../knowledgeGraph/docs/BASELINE-narrativegoldmine.md
 verified_commit: 2791111fc
 ---
 
@@ -76,3 +77,5 @@ flowchart TB
     note1["INVARIANT #40;the general lesson#41;: a filter that under-publishes emits NO<br/>error signal — a contract gate must assert a count against an<br/>INDEPENDENTLY COMPUTED expectation over the same population<br/>the emitter writes (build-and-gates.md 'lesson generalises')"]
     note2["Runnable form: md_count#61;ls dist/api/markdown/*.md | wc -l vs<br/>parse_corpus#40;#41; count of #40;is_public and body#41; — both read 7,823<br/>#40;7,874 public minus 51 empty-body pages, jsonld_to_page_api.py:33#41;"]
 ```
+
+Audit qualification — 2026-09-07: the strengthened strict build, input census, visibility filtering, identity-set gate and generation manifest are present in this checkout's pre-existing dirty working tree. The 85 pipeline tests pass against those bytes. HEAD `2791111fc4ae301fdc5843ed2ad88b2e67d643fb` alone does not identify that implementation, and the evidence does not establish deployment or propagation into visionGraph. See the [federation audit](../../estate-review/2026-09-07-federation-audit.md).

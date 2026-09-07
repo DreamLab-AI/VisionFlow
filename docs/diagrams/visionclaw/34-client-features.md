@@ -6,6 +6,7 @@ governing:
   - ../project/docs/BASELINE-architecture.md
 adrs: [ADR-2041, ADR-2006, ADR-2074, ADR-2077]
 sources:
+  - ../project/docs/explanation/control-center.md
   - ../project/client/src/features/settings/config/settings.ts
   - ../project/client/src/features/control-center/registry/settingsRegistry.ts
   - ../project/client/src/features/control-center/registry/manifest.ts
@@ -646,7 +647,7 @@ sequenceDiagram
     participant TBL as TransientBeamsLayer<br/>client/src/features/visualisation/components/TransientBeamsLayer.tsx:72
 
     ECL->>ECL: enabled flag check - lazy, JSON never bundled
-    ECL->>ECL: fetch VITE_EMBEDDING_CLOUD_URL or default /embedding-cloud.json:132
+    ECL->>ECL: fetch VITE_EMBEDDING_CLOUD_URL or default /embedding-cloud.json<br/>EmbeddingCloudLayer.tsx:132
     Note right of ECL: about 8MB file lives in public/, AbortController on unmount
     ECL->>ECL: slice to maxPoints, build keyIndexMap and nsIndexMap
     WSStore->>ECL: on('memoryFlash', event) - key/namespace lookup into index maps

@@ -9,9 +9,9 @@ type: explanation
 
 This review examines the VisionFlow estate as an organisational proposition, a set of software implementations, and a system whose promises depend on connections between repositories. It asks where the vision is supported by source and execution evidence, where the implementation has moved beyond the written account, and what still prevents the intended experience.
 
-**This is a developing assessment, not a completed estate audit.** Source and local execution evidence now cover knowledge production, grounding, governance, storage, ingress, commercial surfaces, XR rendering, sensing and shared memory. End-to-end journeys, several component internals, historical lineage and much of the ADR corpus remain open. The coverage ledger below separates those limits from completed investigation.
+**Latest review: [2026-09-07 source audit and reconciliation](2026-09-07-estate-audit.md).** It provides current ADR/source dispositions, diagram corrections, a workspace census, validation receipts and a dependency-ordered [closeout sprint](closeout/2026-09-07-sprint.md). Local source/testing, historical evidence and deployed acceptance are explicitly separated. The older chapters below preserve the investigation history; later dated findings supersede conflicting current-state claims.
 
-The user has extended this work to upgrading and extending ADRs across the estate. The [complete-system closeout roadmap](closeout/README.md) now coordinates that work; its inventory and per-record amendments remain in progress.
+The source audit does not declare all optional features, upstream research or six end-to-end system journeys complete. Those implementation and acceptance obligations remain on the [master TODO](../../../project/docs/TODO-unified.md).
 
 ## Reading order
 

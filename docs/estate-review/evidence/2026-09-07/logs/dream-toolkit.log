@@ -1,0 +1,13 @@
+
+> dream-machine-workspace@0.0.0 test
+> vitest run --run packages/cli/src/darwinBounds.test.ts packages/cli/src/entrypoint.test.ts packages/cli/src/index.test.ts packages/compile
+
+
+ RUN  v4.1.11 /home/devuser/workspace/dream-machine
+
+
+ Test Files  4 passed (4)
+      Tests  81 passed (81)
+   Start at  11:14:49
+   Duration  548ms (transform 520ms, setup 0ms, import 814ms, tests 77ms, environment 1ms)
+

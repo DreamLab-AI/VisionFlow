@@ -6,14 +6,13 @@ governing:
   - ../project/agentbox/docs/BASELINE-container.md
   - ../project/docs/DATA-authority-erasure.md
   - ../project/agentbox/docs/INGRESS-identity.md
-adrs: [ADR-2015, ADR-2016, ADR-2017, ADR-2064, ADR-2068, ADR-2106]
+adrs: [visionclaw:ADR-2015, visionclaw:ADR-2016, visionclaw:ADR-2017, visionclaw:ADR-2064, visionclaw:ADR-2068, visionclaw:ADR-2106, agentbox:ADR-2064]
 sources:
   - ../project/Cargo.toml
   - ../project/src/handlers/solid_proxy_handler.rs
   - ../project/src/services/ontology_pull.rs
   - ../project/src/main.rs
   - ../project/src/handlers/mod.rs
-  - ../project/src/main.rs
   - ../project/agentbox/flake.nix
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/docker-compose.solid-pods.yml
@@ -64,7 +63,7 @@ flowchart TB
         JSS["was bin/jss.js :3000 at the repo root —<br/>a vendored third-party copy, now removed.<br/>see ES-08.10"]
     end
 
-    MGMT["management-api adapters/pods/local-solid-rs.js<br/>DEFAULT_BASE=http://127.0.0.1:8484"] -->|"HTTP LDP"| SRV
+    MGMT["management-api adapters/pods/local-solid-rs.js<br/>DEFAULT_BASE is loopback port 8484"] -->|"HTTP LDP"| SRV
     CLIENTB["client SolidPodService.ts<br/>SOLID_POD_BASE_URL=/solid"] -->|"proxied #quot;/solid/*#quot;"| EMB
 
     NOTE1["DIVERGENCE: docker-compose.solid-pods.yml is only the Cloudflare<br/>Tunnel sidecar for THIS SAME port 8484 server (deployment 2) - solid-pod.md:253-255.<br/>It is not a separate multi-user pods deployment. Multi-user pods<br/>(agentbox/docs/user/multi-user-pods.md) is a design scaffold, defaults<br/>off, targets this same server via admin-users.js - see ES-08.5"]
@@ -419,7 +418,7 @@ sequenceDiagram
     AM-->>UI: true
 
     Note over AM,RV: DIVERGENCE, deleteAgentMemory tombstone gap - this call graph<br/>never reaches RuVector. agentMemory.ts:196-204 has no reverse-tombstone<br/>dispatch to mcp claude-flow memory_delete or equivalent
-    Note over RV: The embedding row for this key persists in RuVector and<br/>remains semantically searchable after the pod-side delete completes.<br/>Called the single largest erasure hole in<br/>docs/DATA-authority-erasure.md Known divergences and open items
+    Note over RV: IF a corresponding embedding row exists and no independent erasure runs,<br/>this deletion path leaves that row untouched. No joined key-to-row lookup<br/>or live post-delete search was performed in this audit.<br/>The historical governing document calls this an erasure hole in<br/>docs/DATA-authority-erasure.md Known divergences and open items
     Note over UI,RV: see ES-07.9 for the RuVector embedding-pipeline side of<br/>this gap in the memory-and-embedding-estate topic
     Note over UI,RV: Invariant 6 of docs/DATA-authority-erasure.md requires<br/>a dropped secondary write to be logged, not swallowed - this call<br/>path does not even attempt the secondary write, let alone log its absence
 ```
@@ -476,6 +475,8 @@ sequenceDiagram
     P1->>ST: put .acl = public_read_acl, foaf:Agent acl:Read :254-278
     P1->>ST: put the 4 verified content files, then index.jsonld
     P1-->>SP: PullOutcome::Updated { build_sha, classes, triples } :375-379
-    Note over M,REL: INVARIANT ADR-2106 — the pull NEVER blocks start-up and never<br/>fails the server — every outcome is logged by log_outcome :411.<br/>Fail-open: an unreachable release leaves the pod exactly as it was.
+    Note over M,REL: INVARIANT ADR-2106 — the pull NEVER blocks start-up and never<br/>fails the server — every outcome is logged by log_outcome :411.<br/>A fetch or checksum failure before storage writes leaves the pod unchanged.<br/>A storage failure during sequential writes may leave mixed content — the<br/>manifest-last marker enables retry, not atomic activation or reader isolation.
     Note over REL: EXTERNAL — the release is produced by the VisionClaw<br/>ontology-publish workflow from the jjohare/visionGraph vault.<br/>Delivery was INVERTED from a CI push to this boot pull because<br/>deploy-jss could never reach an in-process pod from a hosted<br/>runner. see ES-09.13, and VG-04.1 / VG-04.2 for the vault side.
 ```
+
+The 2026-09-07 audit distinguishes ES-08.9's missing cross-store erasure dispatch from HNSW index degradation. This source path demonstrates neither bulk vector deletion nor degraded recall. ES-08.11 similarly distinguishes verified downloads from atomic multi-file activation: readers can observe partially replaced content before the manifest changes. See the [federation audit](../../estate-review/2026-09-07-federation-audit.md).

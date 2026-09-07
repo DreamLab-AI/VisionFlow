@@ -50,9 +50,9 @@ flowchart TB
     subgraph B["Pipeline B — this diagrams-as-code tree"]
         direction TB
         BS["docs/diagrams/AREA/NN-*.md<br/>frontmatter plus fenced mermaid blocks"]:::pipeB
-        BGEN["diagram-index-gen.cjs — walk, parse,<br/>validate, optionally render and index<br/>diagram-index-gen.cjs:431"]:::pipeB
-        BREND["docs/diagrams/rendered/ via mmdc,<br/>gitignored and regenerable<br/>diagram-index-gen.cjs:337"]:::pipeB
-        BIDX["docs/diagrams/README.md index block<br/>plus COVERAGE.md inverted indexes<br/>diagram-index-gen.cjs:361"]:::pipeB
+        BGEN["diagram-index-gen.cjs — walk, parse,<br/>validate, optionally render and index<br/>diagram-index-gen.cjs:451"]:::pipeB
+        BREND["docs/diagrams/rendered/ via mmdc,<br/>gitignored and regenerable<br/>outDir at diagram-index-gen.cjs:341"]:::pipeB
+        BIDX["docs/diagrams/README.md index block<br/>plus COVERAGE.md inverted indexes<br/>writeIndexes at diagram-index-gen.cjs:368, COVERAGE.md written :445"]:::pipeB
         BS --> BGEN
         BGEN -->|"--render"| BREND
         BGEN -->|"no --check, no --only"| BIDX
@@ -68,7 +68,7 @@ flowchart TB
     end
 
     NOTE1["INVARIANT: the COMMITTED baseline is the authority, not a CI render.<br/>A green build never depends on a browser matching byte for byte<br/>ADR-2004-diagram-baseline-vendored-render-gate.md:30"]
-    NOTE2["INVARIANT: this very file was validated by pipeline B —<br/>diagram-index-gen.cjs docs/diagrams --check --cite-check --only visionflow/<br/>diagrams/README.md:64"]
+    NOTE2["INVARIANT: this very file was validated by pipeline B —<br/>diagram-index-gen.cjs docs/diagrams --check --cite-check --only visionflow/<br/>diagrams/README.md:68"]
     NOTE3["DIVERGENCE: the two pipelines share no code. Pipeline A vendors mermaid 11.16.0<br/>and drives Chrome; pipeline B shells out to the Nix-installed mmdc"]
 ```
 
@@ -278,214 +278,107 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant CLI as "diagram-index-gen.cjs with a dir and flags"
-    participant W as "walk<br/>diagram-index-gen.cjs:90"
-    participant PT as "parseTopic"
-    participant FM as "parseFrontmatter"
-    participant FS as "repo filesystem"
-
-    CLI->>CLI: parse check, render, cite-check, jobs, only and<br/>no-source-paths — anything else is a usage error, exit 2<br/>diagram-index-gen.cjs:76
-    CLI->>CLI: repoRoot is the diagrams root two levels up —<br/>every source path resolves from there<br/>diagram-index-gen.cjs:87
-
-    CLI->>W: recurse the diagrams root
-    W->>W: skip hero, archive, rendered, src, upgraded, node_modules<br/>and any dot-directory<br/>diagram-index-gen.cjs:61
-    W->>W: skip README.md and COVERAGE.md, and skip the root entirely —<br/>topic files live in area subdirectories only<br/>diagram-index-gen.cjs:97
-    W-->>CLI: candidate .md files, then filtered by the only substring<br/>diagram-index-gen.cjs:434
-
-    loop each topic file
-        CLI->>PT: parse it, accumulating errors
-        PT->>FM: frontmatter must open with a fence line and terminate<br/>diagram-index-gen.cjs:120
-        FM->>FM: minimal YAML — key colon value, inline bracket lists,<br/>and dash continuation lines under the last key<br/>diagram-index-gen.cjs:132
-        FM-->>PT: the frontmatter object plus the body after it
-        PT->>PT: assert all seven required keys are present<br/>diagram-index-gen.cjs:149
-        PT->>PT: area must be a known area AND equal the directory name<br/>diagram-index-gen.cjs:153
-        PT->>PT: id must match the two-or-three-letter, two-or-three-digit shape<br/>diagram-index-gen.cjs:154
-        PT->>FS: every sources path must exist under repoRoot,<br/>unless no-source-paths is set<br/>diagram-index-gen.cjs:157
-        PT->>FS: every governing doc must exist, anchor stripped<br/>diagram-index-gen.cjs:161
-        PT->>PT: scan the body line by line, tracking fences and H2 headings<br/>diagram-index-gen.cjs:173
-        PT->>PT: count prose — any non-blank line outside a fence that is<br/>neither a heading nor an HTML comment<br/>diagram-index-gen.cjs:178
-        PT-->>CLI: diagram records carrying id, title, source, md line and kind
+    participant CLI as main IIFE<br/>diagram-index-gen.cjs:449
+    participant W as walk<br/>diagram-index-gen.cjs:92
+    participant P as parseTopic<br/>diagram-index-gen.cjs:145
+    participant F as parseFrontmatter<br/>diagram-index-gen.cjs:121
+    CLI->>W: walk topic subdirectories, skip output, archives and hidden directories
+    W-->>CLI: Markdown paths filtered by optional only substring
+    loop each topic
+        CLI->>P: parse topic and accumulate errors
+        P->>F: parse scalar values, inline lists and continuation lists
+        F-->>P: frontmatter and body
+        P->>P: check required keys, area directory and topic id
+        P->>P: check source and governing paths unless no-source-paths
+        P->>P: collect Mermaid blocks, enforce headings and prose budget
+        P-->>CLI: topic with diagram records
     end
-
-    CLI->>CLI: topic ids unique tree-wide, diagram ids unique tree-wide<br/>diagram-index-gen.cjs:438
-    CLI-->>CLI: report the topic-file and diagram totals<br/>diagram-index-gen.cjs:446
-
-    Note over CLI,FS: INVARIANT: this very file passed that pipeline before it was committed.<br/>diagrams/README.md:62 records the four invocations authors run
+    CLI->>CLI: check topic and diagram ids for duplicates
+    Note over CLI,P: INVARIANT: structural acceptance does not check that a revision exists,<br/>that the working tree is clean, or that a behaviour is implemented
 ```
 
 ## VF-06.9 diagram-index-gen.cjs failure taxonomy — what errors, what warns
 ```mermaid
-stateDiagram-v2
-    [*] --> Parsing
-
-    state "HARD ERRORS — collected, then exit 1" as Errors {
-        [*] --> Frontmatter
-        Frontmatter --> Frontmatter : "missing frontmatter — no opening fence"
-        Frontmatter --> Frontmatter : "unterminated — no closing fence"
-        Frontmatter --> Frontmatter : "unparseable line — neither key-value nor list item"
-        Frontmatter --> Frontmatter : "missing field — any of the seven required keys"
-        Frontmatter --> Frontmatter : "bad area — not one of the ten known areas"
-        Frontmatter --> Frontmatter : "area does not equal the directory name"
-        Frontmatter --> Frontmatter : "bad id — fails the AREA-NN shape"
-        Frontmatter --> Frontmatter : "a sources path does not exist"
-        Frontmatter --> Frontmatter : "a governing doc does not exist"
-
-        Frontmatter --> Structure
-        Structure --> Structure : "orphan block — a mermaid fence with no H2 above it"
-        Structure --> Structure : "H2 id is not file-id dot n"
-        Structure --> Structure : "dark rect — rgb fill luminance below 140"
-        Structure --> Structure : "forbidden kind — mindmap, pie, quadrantChart, timeline, journey"
-        Structure --> Structure : "a code fence never closes"
-        Structure --> Structure : "a topic file with zero mermaid blocks"
-        Structure --> Structure : "prose lines exceed three per diagram"
-
-        Structure --> Identity
-        Identity --> Identity : "two files claim one topic id"
-        Identity --> Identity : "two blocks claim one diagram id"
-
-        Identity --> Render
-        Render --> Render : "render only — mmdc rejected the block"
-        Render --> Render : "render only — viewBox wider than 4500px"
-    }
-
-    state "WARNINGS — printed, never fatal" as Warnings {
-        [*] --> Cite
-        Cite --> Cite : "cited line number exceeds the file length"
-        Cite --> Cite : "the anchor line is empty"
-        Cite --> Cite : "the anchor line is punctuation only"
-        Cite --> Symbol
-        Symbol --> Symbol : "a function-labelled participant cites outside its span"
-    }
-
-    Parsing --> Errors
-    Parsing --> Warnings
-    Errors --> [*] : "exit 1 after listing every error"
-    Warnings --> [*] : "exit 0 — cite-check never fails the run"
-
-    note right of Errors
-        Ordering: parse and identity errors are collected first,
-        render errors are appended, then one exit.
-        diagram-index-gen.cjs:457
-    end note
-
-    note right of Warnings
-        A blank or punctuation-only anchor is a REAL defect for an
-        author even though the tool only warns — re-cite a meaningful
-        line. diagram-index-gen.cjs:242
-    end note
-
-    note right of Render
-        MAX_WIDTH is 4500px because wider renders are illegible at any
-        zoom. The remedy is line-break wrapping, Notes capped near 90
-        characters, or a split. diagram-index-gen.cjs:63
-    end note
+flowchart TB
+    I["Topic input"] --> P["parseTopic<br/>diagram-index-gen.cjs:145"]
+    P --> E["Hard errors: malformed metadata, missing source paths,<br/>duplicate ids, invalid headings, forbidden diagram kinds,<br/>dark sequence rectangles, unclosed fences or excess prose"]
+    I --> C["Optional citeCheck and symbolCheck<br/>diagram-index-gen.cjs:214<br/>diagram-index-gen.cjs:264"]
+    C --> W["Warnings: unresolved or ambiguous citation, unreadable file,<br/>past EOF, blank or punctuation anchor,<br/>function-labelled participant outside its body"]
+    I --> R["Optional renderAll<br/>gated diagram-index-gen.cjs:470, renderAll :341"]
+    R --> RE["Hard errors: failed mmdc render or width above 4500 pixels"]
+    E --> FAIL["Exit 1 after accumulated errors<br/>diagram-index-gen.cjs:475"]
+    RE --> FAIL
+    W --> OK["Warnings are printed, never pushed onto errors<br/>diagram-index-gen.cjs:466-468 — only render/check<br/>errors reach the failing branch at :475"]
+    Note["DIVERGENCE: a successful --check --cite-check may still report<br/>unverified references. A passing exit code is not a semantic audit."]
+    OK --> Note
 ```
 
 ## VF-06.10 --cite-check and the symbol check — suffix resolution and its blind spots
 ```mermaid
 flowchart TB
-    classDef warn fill:#fff4d6,stroke:#aa8833,color:#222
-    classDef blind fill:#f0f0f0,stroke:#888,color:#222
-
-    SRC["every mermaid block's source text"] --> RE["the citation regex scans for a dotted path,<br/>a colon, a line number and an optional range end<br/>diagram-index-gen.cjs:211"]
-    RE --> RES["resolve the cited path against THIS file's sources —<br/>exact equality, or a source ending with slash plus the citation<br/>diagram-index-gen.cjs:226"]
-    RES --> HITS{"exactly one source matched?"}
-    HITS -->|"zero or many"| SKIP["silently skipped — an ambiguous basename shared by two<br/>sources is unchecked, not an error<br/>diagram-index-gen.cjs:230"]:::blind
-    HITS -->|one| READ["read the file, cached per run<br/>diagram-index-gen.cjs:217"]
-
-    READ --> C1{"either endpoint past EOF?"}
-    C1 -->|yes| W1["warn: past EOF, with the real line count<br/>diagram-index-gen.cjs:237"]:::warn
-    READ --> C2["judge ONLY the anchor line's content —<br/>a range legitimately ends on a closing brace<br/>diagram-index-gen.cjs:235"]
-    C2 --> C3{"anchor line blank?"}
-    C3 -->|yes| W2["warn: the line is blank<br/>diagram-index-gen.cjs:242"]:::warn
-    C2 --> C4{"anchor line only punctuation?"}
-    C4 -->|yes| W3["warn: the line is punctuation only<br/>diagram-index-gen.cjs:243"]:::warn
-
-    SRC --> PART["the participant regex finds every participant-as line<br/>diagram-index-gen.cjs:255"]
-    PART --> FN["the function regex pulls lowercase identifiers of four or<br/>more characters from the label text BEFORE the citation<br/>diagram-index-gen.cjs:256"]
-    FN --> ESC["escape hatches: a label carrying two names, or a<br/>path with a comma-separated line list, is left alone<br/>diagram-index-gen.cjs:285"]
-    FN --> NEAR{"name appears within four lines above<br/>or three below the cited line?"}
-    NEAR -->|yes| OKS["accepted"]
-    NEAR -->|no| DEF["look for exactly one fn or function definition of that name<br/>diagram-index-gen.cjs:288"]
-    DEF --> SPAN["walk braces from the definition to its close to get the body span<br/>diagram-index-gen.cjs:295"]
-    SPAN --> JUDGE{"cited line inside the body, or in<br/>the three doc-comment lines above?"}
-    JUDGE -->|no| W4["warn: labelled with a name whose function spans elsewhere<br/>diagram-index-gen.cjs:300"]:::warn
-
-    WHY["WHY the symbol check exists: relocating a citation by diff preserves<br/>whatever the citation MEANT, including one already pointing at the wrong<br/>line. Re-derive from the SYMBOL, never from a computed offset<br/>diagrams/README.md:73"]
-
-    BLIND["Documented blind spots: a bare line-number continuation, an extensionless<br/>path, a basename two sources share, a governing doc that is not also a<br/>source, and a citation resolving to a real, non-blank line whose behaviour<br/>has since been deleted<br/>diagrams/README.md:78"]:::blind
+    A["Mermaid source"] --> RE["Scan dotted path plus line or range<br/>CITE_RE diagram-index-gen.cjs:213"]
+    RE --> MATCH["Resolve exact path first, otherwise suffix against sources<br/>diagram-index-gen.cjs:234"]
+    MATCH --> COUNT{"Exactly one source?"}
+    COUNT -->|no| WARN["Warn unresolved or ambiguous, then continue<br/>diagram-index-gen.cjs:236"]
+    COUNT -->|yes| READ["Read source with per-run cache<br/>diagram-index-gen.cjs:217"]
+    READ --> LINE["Check endpoints against EOF, then anchor content<br/>diagram-index-gen.cjs:243"]
+    A --> PART["Scan participant aliases and lowercase names<br/>PART_RE and FN_RE diagram-index-gen.cjs:262"]
+    PART --> FN["For a single named function, check nearby lines,<br/>then locate unique definition and count braces<br/>diagram-index-gen.cjs:285"]
+    FN --> SPAN["Warn if citation is outside body and preceding doc lines<br/>diagram-index-gen.cjs:304"]
+    WARN --> LIMIT["DIVERGENCE: warning only. No behaviour verification,<br/>no commit comparison and no deployment observation"]
+    LINE --> LIMIT
+    SPAN --> LIMIT
+    BLIND["Unmatched syntax remains invisible: extensionless paths,<br/>bare line continuations. Brace counting is not a language parser.<br/>Real nonblank lines can still support the wrong claim."] --> LIMIT
 ```
 
 ## VF-06.11 --render — mmdc invocation, concurrency and the width cap
 ```mermaid
 sequenceDiagram
     autonumber
-    participant G as "renderAll<br/>diagram-index-gen.cjs:334"
-    participant Q as "job queue"
-    participant R as "renderOne"
-    participant MM as "mmdc — Nix-installed Mermaid CLI 11.16"
-    participant OUT as "docs/diagrams/rendered/TOPIC/"
-
-    G->>OUT: create rendered/ plus the topic path with the .md suffix dropped<br/>diagram-index-gen.cjs:337
-    G->>Q: one job per diagram across every topic file
-    G->>G: spawn the smaller of the jobs flag and the queue length,<br/>defaulting to six workers<br/>diagram-index-gen.cjs:350
-
-    loop each queued diagram
-        R->>OUT: write the block source to an .mmd file named by diagram id
-        R->>MM: spawn mmdc with -i, -o and -q<br/>diagram-index-gen.cjs:314
-        alt exit code 0
-            MM-->>R: SVG written
-            R->>R: read the viewBox width from the output<br/>diagram-index-gen.cjs:322
-            alt width above MAX_WIDTH
-                R-->>G: error naming the measured width and the remedies —<br/>wrap long Notes, cap them near 90 chars, or split<br/>diagram-index-gen.cjs:324
-            else within budget
-                R-->>G: no error
-            end
-        else non-zero
-            MM-->>R: stderr and stdout are both accumulated
-            R->>R: extract the mermaid parse-error line and its context,<br/>else the first three non-stack lines<br/>diagram-index-gen.cjs:328
-            R-->>G: error reported as file, block id and the markdown line<br/>diagram-index-gen.cjs:330
+    participant G as renderAll<br/>diagram-index-gen.cjs:341
+    participant R as renderOne<br/>diagram-index-gen.cjs:316
+    participant M as mmdc
+    participant O as rendered topic directory
+    G->>O: create directory for each topic
+    G->>G: queue one job per block, use jobs workers with default six
+    loop each diagram
+        G->>R: render queued block
+        R->>O: write Mermaid source
+        R->>M: spawn with input, output and quiet flags
+        alt exit zero
+            M-->>R: SVG
+            R->>R: read viewBox width, reject above 4500 pixels
+        else nonzero
+            M-->>R: captured stdout and stderr
+            R->>R: extract parse context or short diagnostic
         end
+        R-->>G: null or error
     end
-
-    G-->>G: report how many of the queued diagrams rendered<br/>diagram-index-gen.cjs:454
-    G-->>G: render errors join the same error list and exit 1<br/>diagram-index-gen.cjs:455
-
-    Note over OUT: rendered/ is gitignored and regenerable, and is also one of the<br/>directories the walk skips, so output can never become input<br/>diagram-index-gen.cjs:61
-    Note over G,MM: DIVERGENCE: mmdc must be on PATH. Nothing installs it and nothing<br/>checks for it — a missing binary surfaces as a spawn failure per diagram
+    G-->>G: append render errors to structural errors
+    Note over G,O: INVARIANT: rendered output is excluded from input traversal<br/>SKIP_DIRS diagram-index-gen.cjs:63
+    Note over R,M: DIVERGENCE: mmdc is an external prerequisite, and the source has<br/>no child-process error handler for an unavailable executable
 ```
 
 ## VF-06.12 Index emission and the diagram-index.yml sync gate
 ```mermaid
 sequenceDiagram
     autonumber
-    participant CI as "diagram-index.yml"
-    participant GEN as "diagram-index-gen.cjs"
-    participant RM as "docs/diagrams/README.md"
-    participant CV as "docs/diagrams/COVERAGE.md"
-
-    Note over CI: triggers on push to main and on pull_request touching<br/>docs/diagrams/**, the generator, or this workflow<br/>diagram-index.yml:7
-
-    rect rgb(232, 238, 250)
-    Note over CI,GEN: STEP 1 — structural check, sibling paths tolerated
-    CI->>GEN: run with check and no-source-paths<br/>diagram-index.yml:34
-    Note over CI: sources reach sibling checkouts a hosted runner does not have,<br/>so path existence AND cite-check are LOCAL gates only<br/>diagram-index.yml:28
-    GEN-->>CI: frontmatter shape, unique ids, block structure, prose limits
-    end
-
-    rect rgb(228, 240, 232)
-    Note over CI,CV: STEP 2 — the index must already be in sync
-    CI->>CV: copy COVERAGE.md aside
-    CI->>GEN: regenerate with no-source-paths and without check<br/>diagram-index.yml:39
-    GEN->>RM: rewrite between the generated-index markers, appending a<br/>Diagram index section if they are absent<br/>diagram-index-gen.cjs:384
-    GEN->>CV: emit three inverted indexes — by ADR, by governing document<br/>and by source path — plus the full diagram table<br/>diagram-index-gen.cjs:415
-    Note over CV: verified_commit renders as a bare sha, or as repo-at-sha for an<br/>estate topic whose sources span repositories<br/>diagram-index-gen.cjs:407
-    CI->>CI: diff the copy against the regenerated file<br/>diagram-index.yml:40
-    CI-->>CI: a stale COVERAGE.md is an error, exit 1
-    end
-
-    Note over GEN,RM: INVARIANT: check and only both SUPPRESS index writing, so a scoped<br/>author run can never rewrite the tree README<br/>diagram-index-gen.cjs:462
-    Note over GEN: DOC-DRIFT: the generated README line and the file's own usage banner<br/>both tell readers to run diagram-index-gen.js — the committed file<br/>has a .cjs extension<br/>diagram-index-gen.cjs:383
+    participant CI as diagram-index.yml
+    participant G as writeIndexes<br/>diagram-index-gen.cjs:368
+    participant RM as README.md
+    participant CV as COVERAGE.md
+    CI->>G: structural check with no-source-paths
+    Note over CI: Hosted checkout lacks siblings. The workflow skips their path checks<br/>and does not run semantic verification or the local cite check
+    CI->>CV: copy current index aside
+    CI->>G: regenerate with no-source-paths
+    G->>RM: replace generated topic tables, emit correct .cjs invocation
+    G->>CV: emit diagrams, source paths and governing documents
+    G->>CV: qualify ADR numbers by repository<br/>diagram-index-gen.cjs:404
+    Note over G,CV: Explicit repo:ADR keys remain explicit. Unqualified estate references<br/>are estate-unresolved, never merged with another repository's ADR
+    G->>CV: label verified_commit values as declared source revisions<br/>diagram-index-gen.cjs:426
+    Note over CV: INVARIANT: revision labels do not certify semantic correctness,<br/>working-tree bytes, deployment or system acceptance
+    CI->>CI: diff saved COVERAGE against regenerated file
+    Note over G,RM: check and only suppress index writes<br/>diagram-index-gen.cjs:480
 ```
 
 ## VF-06.13 Unwired diagram scripts — what they point at and why they are orphaned

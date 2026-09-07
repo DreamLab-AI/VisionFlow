@@ -5,7 +5,7 @@ area: estate
 governing:
   - ../project/agentbox/docs/GOVERNANCE-capabilities.md
   - ../project/agentbox/docs/BASELINE-container.md
-adrs: [ADR-2023, ADR-2079, ADR-2080]
+adrs: [agentbox:ADR-2023, agentbox:ADR-2079, agentbox:ADR-2080]
 sources:
   - ../project/agentbox/skills/email-search/SKILL.md
   - ../project/agentbox/docs/adr/ADR-2023-loom-facade.md
@@ -50,7 +50,7 @@ flowchart LR
     DIV0["DIVERGENCE — Deployment B is SPECIFIED, not running. The loom<br/>service is gated behind compose profile loom (docker-compose.unified.yml:360-361),<br/>so a default up never starts it, and its image is not built from this repo:<br/>the referenced loom/deploy/Dockerfile does not exist in this checkout<br/>(:292-296, loom/ holds README.md + app/ only). Deployment A (:8084 on HP)<br/>is the live path. see ES-01.6"]
     DIV1["DIVERGENCE — 192.168.2.48 (HP's old LAN IP) is DEAD.<br/>HP is off the Sodola with no LAN IP; ml routes and NATs it<br/>over the direct 25G rail. Never target .48. see ES-06.7"]
     DIV2["DIVERGENCE GOVERNANCE-capabilities — ADR-051 (Loom) is<br/>decision_status PROPOSED while the Loom is<br/>production-critical. Interim authority is the governing doc."]
-    DIV3["DIVERGENCE ADR-045 one front door publishes TWO LAN doors —<br/>the scaffolded façade (:8084) and the raw model (:8085) are<br/>both reachable; consumers must pick correctly per task."]
+    DIV3["RESOLVED ADR-2070 — ingress and egress have different contracts.<br/>Loom facade :8084 and raw model :8085 are named egress doors.<br/>Task-specific raw calls do not bypass the AoE ingress proxy."]
 
     INV1 --- INV2
     LOOMA --> DIV1

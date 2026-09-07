@@ -18,6 +18,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/moderation_events.rs
   - ../nostr-rust-forum/README.md
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/Cargo.toml
 verified_commit: d48a7a546
 ---
 
@@ -217,7 +218,7 @@ stateDiagram-v2
     note right of TL0
         Guard order is deliberate: TL3, the TL0 floor and admin/exempt rows are excluded
         BEFORE any activity arithmetic, so an exempt row is never even measured against
-        the band nostr-bbs-relay-worker/src/trust.rs:322-325
+        the band nostr-bbs-relay-worker/src/trust.rs:323-325
         Floor hold nostr-bbs-relay-worker/src/trust.rs:339, admin hold nostr-bbs-relay-worker/src/trust.rs:344
     end note
     note right of TL2
@@ -252,8 +253,8 @@ classDiagram
     DemotionDecision --> HoldReason
 
     note for HoldReason "ADR-2006 acceptance: every hold is an EXPLICIT NAMED policy outcome rather than a silent nothing-happened, so a sweep can report WHY a candidate survived nostr-bbs-relay-worker/src/trust.rs:278-282"
-    note for decide_demotion "INVARIANT single authority: the per-pubkey check_demotion path and the paged sweep in trust_sweep both route through this one function, so they cannot drift apart nostr-bbs-relay-worker/src/trust.rs:318-321"
-    note for DemotionDecision "DIVERGENCE IDENTITY-keys-and-trust closeout: the sweep ignores UPDATE and audit-INSERT errors before returning the planned level, and OFFSET paging over a shrinking eligible set can skip rows - ADR-2006 is therefore partial. See NF-10."
+    note for decide_demotion "CURRENT SOURCE: decide_demotion is pure policy. The per-pubkey check_demotion entry point was removed; only the scheduled trust_sweep path commits demotions. trust.rs:406-417 corrects the stale comments above the policy function."
+    note for DemotionDecision "2026-09-07: OFFSET and ignored-write findings are historical. trust_sweep now uses a stable keyset, D1 batch and explicit outcomes. Remaining: its unconditional audit INSERT can commit when the optimistic UPDATE changes zero rows; the conflict is detected after the batch. See NF-11.12 for the mechanism and NF-10.10 for the residual case."
 ```
 
 ## NF-03.10 Post-save effects — activity, moderation mirror, governance projection

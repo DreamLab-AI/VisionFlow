@@ -13,6 +13,7 @@ sources:
   - ../knowledgeGraph/CNAME
   - ../knowledgeGraph/docs/ecosystem.md
   - ../knowledgeGraph/docs/ci-cd/build-and-gates.md
+  - ../knowledgeGraph/docs/architecture/explorer.md
   - ../knowledgeGraph/.github/workflows/build.yml
 verified_commit: 2791111fc
 ---
@@ -57,7 +58,7 @@ flowchart LR
     COMM["COMMERCIAL.md — dual-licensing offer<br/>DreamLab AI Consulting Ltd holds rights in<br/>pipeline/static/docs/examples/ontology/dist<br/>COMMERCIAL.md:7-8"]
     AGPL -.->|"proprietary licence negotiable<br/>removes §13 network-copyleft"| COMM
     ODBL -.->|"negotiable data licence<br/>COMMERCIAL.md track 2"| COMM
-    note1["INVARIANT: MIT for explorer/ is deliberate, not oversight — the<br/>identical code is MIT one repo away at DreamLab-AI/WasmVOWL<br/>(architecture/explorer.md:301-308); AGPL-ing a WebVOWL fork here<br/>would be hollow"]
+    note1["INVARIANT: MIT for explorer/ is deliberate, not oversight — the<br/>identical code is MIT one repo away at DreamLab-AI/WasmVOWL<br/>(architecture/explorer.md:302-308); AGPL-ing a WebVOWL fork here<br/>would be hollow"]
 ```
 
 ## KG-01.3 Publication topology — this repo is the deploy TARGET, not the publisher

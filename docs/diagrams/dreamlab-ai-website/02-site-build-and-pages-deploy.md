@@ -11,6 +11,7 @@ sources:
   - ../dreamlab-ai-website/package.json
   - ../dreamlab-ai-website/CLAUDE.md
   - ../dreamlab-ai-website/index.html
+  - ../dreamlab-ai-website/src/lib/og-meta.ts
 verified_commit: 9a3dd8830
 ---
 
@@ -49,11 +50,11 @@ flowchart LR
 ## DW-02.3 Build & test commands
 ```mermaid
 flowchart TB
-    DEV["npm run dev"] --> PRE1["pre-step: generate-workshop-list.mjs<br/>+ generate-testimonials.mjs"]
-    BUILD["npm run build"] --> PRE1
-    PRE1 --> VITE["Vite 5.4, SWC plugin, production build"]
-    LINT["npm run lint"] --> ESLINT["ESLint 9 flat config<br/>eslint.config.js, ignores dist/"]
-    TEST["npm run test"] --> VITEST["Vitest + Testing Library, jsdom<br/>src/**/__tests__"]
+    DEV["npm run dev<br/>package.json:22"] --> PRE1["pre-step: generate-workshop-list.mjs<br/>+ generate-testimonials.mjs<br/>package.json:21 predev"]
+    BUILD["npm run build<br/>package.json:24"] --> PRE1B["package.json:23 prebuild, same pre-step"]
+    PRE1B --> VITE["Vite 5.4, SWC plugin, production build"]
+    LINT["npm run lint<br/>package.json:26"] --> ESLINT["ESLint 9 flat config<br/>eslint.config.js, ignores dist/"]
+    TEST["npm run test<br/>package.json:28"] --> VITEST["Vitest + Testing Library, jsdom<br/>src/**/__tests__"]
     RUSTT["cd forum-config && cargo test"] --> RUSTOVERLAY["operator-overlay tests:<br/>config parsing, branding, deploy manifests"]
 ```
 - CLAUDE.md's Behavioral Rules require `npm run build` and `npm run lint` before committing.
@@ -78,9 +79,9 @@ sequenceDiagram
 ```mermaid
 flowchart LR
     HTML["index.html"] --> CSP["script-src 'self', no 'unsafe-inline'<br/>referenced by deploy.yml comment on the pickup script"]
-    HTML --> DATE["__BUILD_DATE__ placeholder"]
-    PLUGIN["inject-build-date plugin<br/>vite.config.ts transformIndexHtml"] --> DATE
-    DATE --> REPLACED["replaced with new Date().toISOString().slice(0,10)<br/>vite.config.ts"]
+    HTML --> DATE["__BUILD_DATE__ placeholder<br/>index.html:176,187,269"]
+    PLUGIN["inject-build-date plugin, ADR-043 W4<br/>vite.config.ts:22-23 transformIndexHtml"] --> DATE
+    DATE --> REPLACED["replaced with new Date().toISOString().slice(0,10)<br/>vite.config.ts:24"]
 ```
 - The CSP is why the React `__p` deep-link pickup lives in the external `public/spa-redirect.js` rather than an inline script injected at deploy time (see DW-01.7); an inline script would be blocked.
 
@@ -91,7 +92,7 @@ flowchart TB
     FORMS["Forms<br/>React Hook Form + Zod schemas at form boundaries"]
     DATA["Data fetching<br/>TanStack React Query"]
     CONTENT["Content<br/>team bios / workshops: markdown under public/data/, fetched at runtime<br/>testimonials: content/site-content.yaml via pre-build script"]
-    OG["OG/social meta<br/>src/lib/og-meta.ts — image URLs must point at files<br/>that actually exist under public/, no generation pipeline"]
+    OG["OG/social meta<br/>src/lib/og-meta.ts:40 — image URLs must point at files<br/>that actually exist under public/, no generation pipeline"]
     SPLIT["Code splitting<br/>Vite manual chunks (vendor, ui) + route-level lazy loading"]
 ```
 - TypeScript: strict mode is **partial** — `noImplicitAny: false`, `strictNullChecks: true`; target ES2020, module ESNext, JSX react-jsx (CLAUDE.md TypeScript Configuration section).

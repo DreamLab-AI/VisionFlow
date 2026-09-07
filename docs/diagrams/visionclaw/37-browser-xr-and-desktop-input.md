@@ -7,6 +7,7 @@ governing:
   - ../project/docs/XR-client.md
 adrs: [ADR-2032, ADR-2081]
 sources:
+  - ../project/docs/BASELINE-architecture.md
   - ../project/client/src/services/platformManager.ts
   - ../project/client/src/contexts/ApplicationModeContext.tsx
   - ../project/client/src/services/SpaceDriverService.ts
@@ -340,5 +341,5 @@ flowchart TB
     G5 --- SHARED
     B2 --> DIV
     G2 --> DIV
-    DIV["RESOLVED ADR-2081: docs/BASELINE-architecture.md:195-196 describes the<br/>React client as 'consuming the binary WebSocket position stream and the<br/>/api REST surface' - which is now exactly what the code is. The XR-mode<br/>shell and the unimported @react-three/xr dependency are deleted, so no<br/>reader can mistake the browser client for an immersive one. The immersive<br/>client is the Godot app alone. Babylon.js was already removed<br/>(client/vite.config.ts:47)."]
+    DIV["RESOLVED ADR-2081: docs/BASELINE-architecture.md:213 describes the<br/>React client as 'consuming the binary WebSocket position stream and the<br/>/api REST surface' - which is now exactly what the code is. The XR-mode<br/>shell and the unimported @react-three/xr dependency are deleted, so no<br/>reader can mistake the browser client for an immersive one. The immersive<br/>client is the Godot app alone. Babylon.js was already removed<br/>(client/vite.config.ts:47)."]
 ```

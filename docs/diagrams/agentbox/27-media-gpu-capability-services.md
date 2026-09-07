@@ -36,6 +36,12 @@ sources:
   - ../project/agentbox/agentbox.sh
   - ../project/agentbox/scripts/agentbox-config-validate.js
   - ../project/agentbox/gui-tools-sidecar/qgis-mcp-headless.py
+  - ../project/agentbox/xr-runtime/launch-godot.sh
+  - ../project/agentbox/xr-runtime/launch-monado.sh
+  - ../project/agentbox/xr-runtime/supervisord.conf
+  - ../project/agentbox/xr-runtime/build-gdext.sh
+  - ../project/agentbox/xr-runtime/healthcheck.sh
+  - ../project/agentbox/xr-runtime/README.md
   - ../project/agentbox/voice/unmute-override.yml
   - ../project/agentbox/docker-compose.voice.yml
   - ../project/agentbox/scripts/qgis_mcp_standalone.py
@@ -55,7 +61,7 @@ sequenceDiagram
     participant Ext as comfyui:8188<br/>visionclaw_network sidecar
 
     Agent->>Skill: generate_image(prompt) via stdio MCP<br/>agentbox/mcp/mcp.json:118
-    Note over Skill: default target http://localhost:8188<br/>server.js:11,339, override via COMFYUI_URL
+    Note over Skill: default target localhost, port 8188<br/>mcp-server/server.js:11,339, override via COMFYUI_URL
 
     alt skills.media.comfyui_builtin = true (agentbox.toml:326)
         Skill->>Builtin: POST /prompt (loopback 127.0.0.1:8188)
@@ -294,9 +300,9 @@ sequenceDiagram
     else gaussian_splatting = false (documented default, agentbox.toml:524)
         Note over Flake: gauss3dPackages = [] (flake.nix:504 lib.optionals)<br/>apply_class rebuild (system-manifest.js:244, id gaussian-splatting)
     end
-    Note over Bridge,LFS: DIVERGENCE — the actually-used lichtfeld-studio skill is<br/>completely independent of this gate: Claude spawns lichtfeld_mcp_bridge.py<br/>(stdio) which HTTP-POSTs JSON-RPC to a manually built<br/>/home/devuser/workspace/gaussians/LichtFeld-Studio/build/LichtFeld-Studio<br/>at 127.0.0.1:45677 — never baked by lib/3dgs-stack.nix, never gated by this toml key
+    Note over Bridge,LFS: DIVERGENCE — the actually-used lichtfeld-studio skill is<br/>completely independent of this gate: Claude spawns lichtfeld_mcp_bridge.py<br/>(stdio) which HTTP-POSTs JSON-RPC to a manually built<br/>/home/devuser/workspace/gaussians/LichtFeld-Studio/build/LichtFeld-Studio<br/>at localhost port 45677 — never baked by lib/3dgs-stack.nix, never gated by this toml key
     Op->>Bridge: tools/lfs-mcp.sh call training.get_state
-    Bridge->>LFS: POST http://127.0.0.1:45677/mcp (JSON-RPC 2.0)
+    Bridge->>LFS: POST to localhost port 45677, path /mcp (JSON-RPC 2.0)
     LFS-->>Bridge: result
     Bridge-->>Op: tool response
 ```
@@ -470,7 +476,7 @@ sequenceDiagram
     Note over Wrap: DIVERGENCE — these two nixGL-wrapped derivations exist in the<br/>main image's package set but are NEVER what serves blender-mcp/qgis-mcp:<br/>both MCP servers proxy to the separate gui-tools-service sidecar instead<br/>(flake.nix:1836-1839 comment: 'nix-built QGIS in agentbox-main cannot reach<br/>the nvidia driver libs ... the same constraint as Blender')
 
     BlenderProxy->>Sidecar: TCP 9876 (gui-tools-service, own Xvfb :2 + FHS rootfs)
-    Sidecar->>BLaunch: [program:blender] supervisord.conf:35
+    Sidecar->>BLaunch: [program:blender] gui-tools-sidecar/supervisord.conf:35
     alt vglrun found on PATH (launch-blender.sh:18)
         BLaunch->>Sidecar: vglrun -d egl blender ... — VirtualGL intercepts GLX,<br/>renders on the real GPU via DRM render node, composites back to Xvfb :2
     else vglrun missing
@@ -478,7 +484,40 @@ sequenceDiagram
     end
 
     QgisProxy->>Sidecar: TCP 9877
-    Sidecar->>QLaunch: [program:qgis] supervisord.conf:47
+    Sidecar->>QLaunch: [program:qgis] gui-tools-sidecar/supervisord.conf:47
     QLaunch->>Sidecar: python3 qgis-mcp-headless.py, QT_QPA_PLATFORM=offscreen<br/>NO vglrun invocation (launch-qgis.sh has no vglrun reference)
     Note over QLaunch: INVARIANT violation risk if assumed shared — only Blender's<br/>GUI viewport actually runs under VirtualGL in this sidecar —<br/>QGIS's headless QgsApplication has no GL/window surface to accelerate
+```
+
+
+## AB-27.13 xr-runtime sidecar — Monado OpenXR plus Godot, behind Xvfb/VNC
+
+```mermaid
+flowchart TB
+    subgraph boot["xr-runtime supervisord — priority order"]
+        INIT["init-perms #40;priority 5#41;<br/>chown cargo registry + gdext target volumes to devuser<br/>xr-runtime/supervisord.conf:19-27, one-shot, exitcodes=0"]
+        XVFB["xvfb #40;priority 10#41;<br/>Xvfb :3 1920x1080x24<br/>xr-runtime/supervisord.conf:30-38"]
+        VNC["x11vnc #40;priority 20#41;<br/>mirrors :3 on VNC 5904, -nopw<br/>xr-runtime/supervisord.conf:41-49"]
+        MONADO["monado #40;priority 25#41;<br/>launch-monado.sh<br/>xr-runtime/supervisord.conf:52-60"]
+        GODOT["godot #40;priority 30, startsecs=10, startretries=10#41;<br/>launch-godot.sh<br/>xr-runtime/supervisord.conf:63-72"]
+    end
+    INIT --> XVFB --> VNC --> MONADO --> GODOT
+    MONADO --> SOCK["monado_comp_ipc socket<br/>XDG_RUNTIME_DIR/monado_comp_ipc<br/>launch-godot.sh:32-38 — godot polls up to 60s"]
+    SOCK --> GODOT
+    GODOT --> GDEXT["build-gdext.sh #40;first boot only, ~5-10 min cold#41;<br/>launch-godot.sh:28 — cached in the target volume after"]
+    GODOT --> IMPORT["godot --headless --import #40;one-shot resource import#41;<br/>launch-godot.sh:47"]
+    GODOT --> SCENE["godot --verbose XRBoot.tscn against Monado<br/>launch-godot.sh:57-58"]
+    subgraph driver["Monado input driver — XR_INPUT_DRIVER"]
+        SIM["simulated #40;default#41;<br/>static stereo HMD, view count 2<br/>launch-monado.sh:17-24 — the reliable path"]
+        QWERTY["qwerty #40;EXPERIMENTAL#41;<br/>WASD + click-drag 6DoF via keyboard/mouse<br/>launch-monado.sh:15-16,19-20 — produces NO head device<br/>and segfaults the compositor in this Monado build"]
+    end
+    MONADO -.-> SIM
+    MONADO -.->|"opt-in only"| QWERTY
+    subgraph notes["Invariants and drift"]
+        direction TB
+        N1["INVARIANT: stdin must be a pollable pipe that never EOFs — Monado's IPC mainloop epoll#40;#41;s<br/>stdin, and supervisord's closed/non-pollable stdin fd would fail XRT_ERROR_IPC_MAINLOOP_FAILED_TO_INIT<br/>#40;launch-monado.sh:50-52#41; — fixed by exec monado-service reading a pipe that never EOFs #40;launch-monado.sh:55#41;"]
+        N2["DIVERGENCE: this sidecar has its OWN supervisord.conf and Dockerfile #40;xr-runtime/#41;, unlike<br/>gui-tools-sidecar/openmed-sidecar which share one FHS pattern with the main image's flake.nix<br/>#40;see AB-27.10#41; — it is a genuinely separate container, not a variant of the same compose overlay"]
+        N3["Godot 4.3's mobile renderer #40;required to match Quest#41; logs a benign tonemapper shader-missing<br/>warning every frame #40;~2k/min unbounded#41; against Monado's multiview swapchain — launch-godot.sh:53-63<br/>filters ONLY that exact signature out of stderr with a targeted grep -vE, so a genuinely<br/>different shader failure #40;distinct at: line#41; still surfaces"]
+        N1 ~~~ N2 ~~~ N3
+    end
 ```

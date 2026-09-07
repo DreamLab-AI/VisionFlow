@@ -43,6 +43,9 @@ sources:
   - ../project/crates/visionclaw-gpu/src/cuda_sources/gpu_landmark_apsp.cu
   - ../project/docs/GPU-wire-abi.md
   - ../project/crates/visionclaw-gpu/tests/analytics_oracle_conformance.rs
+  - ../project/src/main.rs
+  - ../project/src/handlers/api_handler/analytics/params_handlers.rs
+  - ../project/src/handlers/api_handler/analytics/types.rs
 verified_commit: 36bb64e1e
 ---
 
@@ -52,7 +55,7 @@ verified_commit: 36bb64e1e
 sequenceDiagram
     autonumber
     participant C as Client
-    participant RT as Route<br/>mod.rs:176
+    participant RT as Route<br/>analytics/mod.rs:176
     participant RC as run_clustering<br/>clustering_handlers.rs:20
     participant PC as perform_clustering<br/>clustering_handlers.rs:332
     participant RG as real_gpu_functions<br/>real_gpu_functions.rs:100-269
@@ -114,7 +117,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant RT as Route<br/>mod.rs:179
+    participant RT as Route<br/>analytics/mod.rs:179
     participant RD as run_dbscan_clustering<br/>clustering_handlers.rs:211
     participant GM as GPUManagerActor<br/>gpu_manager_actor.rs:392
     participant AS as AnalyticsSupervisor<br/>analytics_supervisor.rs:538
@@ -162,8 +165,8 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant RT as Route<br/>mod.rs:180
-    participant RCD as run_community_detection<br/>mod.rs:69
+    participant RT as Route<br/>analytics/mod.rs:180
+    participant RCD as run_community_detection<br/>analytics/mod.rs:69
     participant GC as run_gpu_community_detection<br/>community.rs:51
     participant GM as GPUManagerActor<br/>gpu_manager_actor.rs:369
     participant AS as AnalyticsSupervisor<br/>analytics_supervisor.rs:514
@@ -207,7 +210,7 @@ sequenceDiagram
     alt Ok
         RCD-->>C: 200 CommunityDetectionResponse
     else Err(e)
-        RCD-->>C: 500 success=false communities=[] modularity=0.0 (mod.rs:78-88)
+        RCD-->>C: 500 success=false communities=[] modularity=0.0 (analytics/mod.rs:78-88)
     end
 ```
 
@@ -217,8 +220,8 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant RT as Route<br/>mod.rs:182
-    participant RAD as run_anomaly_detection<br/>mod.rs:93
+    participant RT as Route<br/>analytics/mod.rs:182
+    participant RAD as run_anomaly_detection<br/>analytics/mod.rs:93
     participant GA as run_gpu_anomaly_detection<br/>anomaly.rs:25
     participant GM as GPUManagerActor (gpu_manager_addr)
     participant AS as AnalyticsSupervisor<br/>analytics_supervisor.rs:568
@@ -266,7 +269,7 @@ sequenceDiagram
     alt Ok
         RAD-->>C: 200 success=true anomalies, total, method
     else Err(e)
-        RAD-->>C: 500 success=false anomalies=[] total=0 (mod.rs:119-129)
+        RAD-->>C: 500 success=false anomalies=[] total=0 (analytics/mod.rs:119-129)
     end
 ```
 
@@ -276,9 +279,9 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant RTc as Route POST /pagerank/compute<br/>mod.rs:206
-    participant RTr as Route GET /pagerank/result<br/>mod.rs:266
-    participant RTx as Route POST /pagerank/clear<br/>mod.rs:210
+    participant RTc as Route POST /pagerank/compute<br/>analytics/mod.rs:206
+    participant RTr as Route GET /pagerank/result<br/>analytics/mod.rs:266
+    participant RTx as Route POST /pagerank/clear<br/>analytics/mod.rs:210
     participant CP as compute_pagerank<br/>pagerank_handlers.rs:112
     participant GP as get_pagerank_result<br/>pagerank_handlers.rs:181
     participant CL as clear_pagerank_cache<br/>pagerank_handlers.rs:236
@@ -323,8 +326,8 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant RTs as Route POST /pathfinding/sssp<br/>mod.rs:214
-    participant RTa as Route POST /pathfinding/apsp<br/>mod.rs:218
+    participant RTs as Route POST /pathfinding/sssp<br/>analytics/mod.rs:214
+    participant RTa as Route POST /pathfinding/apsp<br/>analytics/mod.rs:218
     participant CS as compute_sssp<br/>pathfinding.rs:135
     participant CAp as compute_apsp<br/>pathfinding.rs:190-204
     participant SPA as ShortestPathActor (data.shortest_path_actor)<br/>shortest_path_actor.rs:214
@@ -360,7 +363,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant RT as Route<br/>mod.rs:186
+    participant RT as Route<br/>analytics/mod.rs:186
     participant CS as compute_sssp<br/>sssp_handlers.rs:165
     participant GSS as GraphServiceSupervisor (graph_service_addr)<br/>graph_service_supervisor.rs:1638
     participant GSA as GraphStateActor<br/>graph_state_actor.rs:1273
@@ -392,7 +395,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant RT as Route<br/>mod.rs:226
+    participant RT as Route<br/>analytics/mod.rs:226
     participant CC as compute_connected_components<br/>pathfinding.rs:258-271
     participant CCA as ConnectedComponentsActor (data.connected_components_actor)<br/>connected_components_actor.rs:179
 
@@ -426,7 +429,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant RT as Route<br/>mod.rs:222
+    participant RT as Route<br/>analytics/mod.rs:222
     participant PTP as compute_point_to_point<br/>pathfinding.rs:414-415
     participant GR as graph_repository<br/>pathfinding.rs:425
     participant AS as AStarPathfinder<br/>services/pathfinding.rs

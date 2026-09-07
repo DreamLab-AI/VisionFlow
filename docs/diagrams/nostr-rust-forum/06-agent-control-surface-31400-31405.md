@@ -6,6 +6,7 @@ governing:
   - ../nostr-rust-forum/docs/BASELINE-architecture.md
 adrs: [ADR-2010]
 sources:
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/receipts.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/kanban.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/lib.rs
@@ -30,27 +31,27 @@ verified_commit: d48a7a546
 ```mermaid
 classDiagram
     class ACSKinds {
-        KIND_PANEL_DEFINITION 31400 : governance.rs:27
-        KIND_PANEL_STATE 31401 : governance.rs:28
-        KIND_ACTION_REQUEST 31402 : governance.rs:29
-        KIND_ACTION_RESPONSE 31403 : governance.rs:30
-        KIND_PANEL_UPDATE 31404 : governance.rs:31
-        KIND_PANEL_RETIRED 31405 : governance.rs:32
-        GOVERNANCE_KIND_RANGE 31400..=31405 : governance.rs:34
+        KIND_PANEL_DEFINITION 31400 : nostr-bbs-core/src/governance.rs:27
+        KIND_PANEL_STATE 31401 : nostr-bbs-core/src/governance.rs:28
+        KIND_ACTION_REQUEST 31402 : nostr-bbs-core/src/governance.rs:29
+        KIND_ACTION_RESPONSE 31403 : nostr-bbs-core/src/governance.rs:30
+        KIND_PANEL_UPDATE 31404 : nostr-bbs-core/src/governance.rs:31
+        KIND_PANEL_RETIRED 31405 : nostr-bbs-core/src/governance.rs:32
+        GOVERNANCE_KIND_RANGE 31400..=31405 : nostr-bbs-core/src/governance.rs:34
     }
     class TypedPayloads {
-        PanelDefinition : governance.rs:102
-        ActionRequest : governance.rs:188
-        ActionResponse : governance.rs:204
+        PanelDefinition : nostr-bbs-core/src/governance.rs:102
+        ActionRequest : nostr-bbs-core/src/governance.rs:188
+        ActionResponse : nostr-bbs-core/src/governance.rs:204
     }
     class RegisteredAgent {
-        agent registry record : governance.rs:332
+        agent registry record : nostr-bbs-core/src/governance.rs:332
     }
     ACSKinds --> TypedPayloads
     ACSKinds --> RegisteredAgent
 
     note for ACSKinds "This repo OWNS the 31400-31405 schema for the estate. Every kind constant is re-exported at crate level so no consumer hardcodes a number nostr-bbs-core/src/lib.rs:133"
-    note for TypedPayloads "DOC-DRIFT: the README table (README.md:222-229) and this module's own doc table (governance.rs:9-14) name six types, but only THREE have a Rust struct - PanelDefinition, ActionRequest and ActionResponse. PanelState, PanelUpdate and PanelRetired exist as kind constants and doc rows only."
+    note for TypedPayloads "DOC-DRIFT: the README table (README.md:222-229) and this module's own doc table (nostr-bbs-core/src/governance.rs:9-14) name six types, but only THREE have a Rust struct - PanelDefinition, ActionRequest and ActionResponse. PanelState, PanelUpdate and PanelRetired exist as kind constants and doc rows only."
     note for RegisteredAgent "INVARIANT: only kinds 31400, 31401, 31402, 31404 and 31405 are agent-published. 31403 is the HUMAN half - see NF-06.3"
 ```
 
@@ -59,16 +60,16 @@ classDiagram
 ```mermaid
 flowchart TB
     V["validate_governance_event<br/>nostr-bbs-core/src/governance.rs:304"]
-    K["(a) kind must be in the governance range<br/>governance.rs:315 via is_governance_kind governance.rs:211"]
-    D["non-empty d tag required - all six kinds are<br/>NIP-33 parameterised-replaceable governance.rs:322"]
-    AUD["31405 audit entries are APPEND-ONLY: a repeated d tag<br/>is rejected as a duplicate governance.rs:329"]
-    HELP["Tag helpers<br/>extract_d_tag governance.rs:215<br/>extract_tag governance.rs:222<br/>extract_e_tag_with_marker governance.rs:239<br/>extract_supersedes_target governance.rs:251<br/>extract_appeal_target governance.rs:257"]
+    K["(a) kind must be in the governance range<br/>nostr-bbs-core/src/governance.rs:315 via is_governance_kind nostr-bbs-core/src/governance.rs:211"]
+    D["non-empty d tag required - all six kinds are<br/>NIP-33 parameterised-replaceable nostr-bbs-core/src/governance.rs:322"]
+    AUD["31405 audit entries are APPEND-ONLY: a repeated d tag<br/>is rejected as a duplicate nostr-bbs-core/src/governance.rs:329"]
+    HELP["Tag helpers<br/>extract_d_tag nostr-bbs-core/src/governance.rs:215<br/>extract_tag nostr-bbs-core/src/governance.rs:222<br/>extract_e_tag_with_marker nostr-bbs-core/src/governance.rs:239<br/>extract_supersedes_target nostr-bbs-core/src/governance.rs:251<br/>extract_appeal_target nostr-bbs-core/src/governance.rs:257"]
 
     V --> K --> D --> AUD
     V --> HELP
 
     N1["INVARIANT: d-tag addressability is what makes a panel replaceable - publish the same d again and<br/>the panel updates in place rather than duplicating nostr-bbs-core/src/governance.rs:320-322"]
-    N2["KIND_GOVERNANCE_AUDIT_LOG is numerically the SAME kind as KIND_PANEL_RETIRED - both 31405<br/>governance.rs:295 and governance.rs:32. The two roles are distinguished only by whether the caller<br/>supplies a seen_audit_ids set, so a PanelRetired and an audit entry are indistinguishable on the wire."]
+    N2["KIND_GOVERNANCE_AUDIT_LOG is numerically the SAME kind as KIND_PANEL_RETIRED - both 31405<br/>nostr-bbs-core/src/governance.rs:295 and nostr-bbs-core/src/governance.rs:32. The two roles are distinguished only by whether the caller<br/>supplies a seen_audit_ids set, so a PanelRetired and an audit entry are indistinguishable on the wire."]
     N3["The append-only rule exists because a same-d replay would otherwise OVERWRITE the prior audit<br/>entry, which is exactly what an audit log must not permit nostr-bbs-core/src/governance.rs:293-295"]
 ```
 
@@ -85,20 +86,20 @@ sequenceDiagram
 
     AG->>R: kind 31400 PanelDefinition
     R->>REG: is_registered_agent gate nip_handlers.rs:703
-    R-->>FC: subscription on 31400-31405 forum-client/src/app.rs:767
+    R-->>FC: subscription on 31400-31405 nostr-bbs-forum-client/src/app.rs:767
     AG->>R: kind 31402 ActionRequest
     R->>R: project_action_request into broker_cases nip_handlers.rs:904
-    FC->>FC: ingest_event into the panel registry forum-client/src/app.rs:773
+    FC->>FC: ingest_event into the panel registry nostr-bbs-forum-client/src/app.rs:773
     FC-->>HU: render the decision card
     HU->>FC: approve / reject
-    FC->>R: kind 31403 ActionResponse forum-client/src/pages/governance.rs:473
+    FC->>R: kind 31403 ActionResponse nostr-bbs-forum-client/src/pages/governance.rs:473
     R->>R: admin-only gate nip_handlers.rs:719 via governance_response_blocked nip_handlers.rs:130
     R->>R: project_action_response nip_handlers.rs:917
     R-->>AG: subscription on 31403
 
     Note over R: INVARIANT P1-6: a Decision is a PRIVILEGED act, not a generic member action - kind 31403 from a non-admin is blocked outright nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:694-696
     Note over R: 31403 is EXEMPT from the agent-registry gate - it is the human half of the protocol nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:704
-    Note over FC: The published response carries an e-tag naming the request it answers forum-client/src/pages/governance.rs:476
+    Note over FC: The published response carries an e-tag naming the request it answers nostr-bbs-forum-client/src/pages/governance.rs:476
 ```
 
 ## NF-06.4 The two gates a governance event must pass at ingress
@@ -195,8 +196,8 @@ stateDiagram-v2
 flowchart LR
     SIGNED["signed"] --> ACCEPTED["relay-accepted<br/>= the OK on the wire"]
     ACCEPTED --> PROJ["projection-committed"]
-    PROJ --> RECV["consumer-received"]
-    RECV --> APPLIED["applied / rejected"]
+    PROJ -. "cross-repo contract still proposed" .-> RECV["consumer-received"]
+    RECV -. "requires mutation-owner receipt" .-> APPLIED["applied / rejected"]
 
     OKNOW["Today the relay OK certifies STORAGE ONLY<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:856"]
     WARN["If the receipt is not applied the relay logs<br/>accepted but not applied rather than letting its OK stand<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:926"]
@@ -278,18 +279,33 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     RELAY["relay-worker - schema owner and gate"]
-    FCADMIN["forum-client /governance/admin<br/>publishes 31403 forum-client/src/pages/governance.rs:473"]
-    FCMEM["forum-client /governance member view<br/>read-only, no 31403 publish path compiles<br/>forum-client/src/pages/governance.rs:41"]
-    BOARD["forum-client kanban board<br/>subscribes to 31402 and 31403 only<br/>forum-client/src/pages/board.rs:392"]
-    REG["PanelRegistry store<br/>forum-client/src/stores/panel_registry.rs:242"]
-    BBS["bbs-client governance bucket<br/>bbs-client/src/relay.rs:583"]
+    FCADMIN["forum-client /governance/admin<br/>publishes 31403 nostr-bbs-forum-client/src/pages/governance.rs:473"]
+    FCMEM["forum-client /governance member view<br/>read-only, no 31403 publish path compiles<br/>nostr-bbs-forum-client/src/pages/governance.rs:41"]
+    BOARD["forum-client kanban board<br/>subscribes to 31402 and 31403 only<br/>nostr-bbs-forum-client/src/pages/board.rs:392"]
+    REG["PanelRegistry store<br/>nostr-bbs-forum-client/src/stores/panel_registry.rs:242"]
+    BBS["bbs-client governance bucket<br/>nostr-bbs-bbs-client/src/relay.rs:583"]
     KAN["kanban approval decisions are parsed FROM 31403<br/>nostr-bbs-core/src/kanban.rs:739 nostr-bbs-core/src/kanban.rs:741"]
 
     RELAY --> FCADMIN & FCMEM & BOARD & BBS
     FCADMIN --> REG
     BOARD --> KAN
 
-    N1["The member view is enforced by COMPOSITION, not by a runtime flag - it mounts components that do<br/>not compile a 31403 publish path forum-client/src/pages/governance.rs:30"]
-    N2["The registry resolves a decision chain to the most recent AUTHORISED 31403; superseded events<br/>remain in the store rather than being deleted forum-client/src/stores/panel_registry.rs:242"]
+    N1["The member view is enforced by COMPOSITION, not by a runtime flag - it mounts components that do<br/>not compile a 31403 publish path nostr-bbs-forum-client/src/pages/governance.rs:30"]
+    N2["The registry resolves a decision chain to the most recent AUTHORISED 31403; superseded events<br/>remain in the store rather than being deleted nostr-bbs-forum-client/src/stores/panel_registry.rs:242"]
     N3["EXTERNAL: exactly ONE live consumer today - ontology-concept elevation in VisionClaw, a case queue<br/>capped at five concurrent README.md:255. Treat universal human-in-the-loop surface as the design<br/>target, not a claim of many production consumers. See VC-24."]
 ```
+
+## NF-06.11 Implemented receipt transaction and unresolved correlation
+
+```mermaid
+flowchart TB
+    EVENT["Stored signed response; relay already sent OK"] --> CORR["correlate: requires non-empty d tag<br/>request_event_id remains optional, receipts.rs:164-180"]
+    CORR --> PLAN["Load case and plan typed outcome<br/>missing case still has a default snapshot,<br/>nip_handlers.rs:205-221"]
+    PLAN --> ACCEPT["Persist relay-accepted receipt by full event ID"]
+    ACCEPT --> BATCH["D1 batch: decision INSERT, case UPDATE,<br/>receipt to projection-committed; receipts.rs:489-552"]
+    BATCH --> OK["Checks statement success; no prior-state<br/>predicate or affected-row assertion on case UPDATE"]
+    BATCH -. "SQL or foreign-key failure" .-> FAIL["ProjectionFailed; retryable receipt where recorded"]
+    OK --> LIMIT["Certifies relay projection only.<br/>No consumer-received or external mutation receipt."]
+```
+
+The decision table declares a case foreign key (`lib.rs:727`), so an enforced foreign key can reject an absent case: the default snapshot alone does not prove an orphan can commit. Remaining acceptance cases are required request/case correlation, zero-row updates, concurrent terminal decisions, failure before receipt creation, replay after projection failure and authority changes. See the [dated audit](../../estate-review/2026-09-07-federation-audit.md); no live D1 exploit is asserted.

@@ -1,0 +1,37 @@
+{
+  "command": "node scripts/adr-index-gen.js docs/adr --check",
+  "cwd": "/home/devuser/workspace/project/agentbox",
+  "exit_code": 1,
+  "stdout": "",
+  "stderr": "error: ADR-2081-annexe-depth-law-and-honest-evaluator-receipts.md: STALE \u2014 governed paths changed since verified_commit 1b43b70ff09b971b440c9964743402aec45ef515: services/dream-engine/src/engine.rs, services/dream-engine/src/gate.rs, services/dream-engine/src/runner.rs, services/dream-engine/src/verdict.rs (re-verify and bump verified_commit)\nerror: 1 validation error(s); README not generated\n",
+  "verified_commit": "1b43b70ff09b971b440c9964743402aec45ef515",
+  "head": "b48847316f559c9fcb5d4ef4cc56c826ef440e7e",
+  "reason": "Declared verification predates implementation changes; guard correctly refuses. No verification hash modified.",
+  "implementation_commit": "2c521c5bb364944547a31192268a7e68b0953c20",
+  "files": [
+    {
+      "path": "services/dream-engine/src/engine.rs",
+      "verified_blob": "b4eb5dda16ffec0e3573d7c4f00ce3b6760d91bc",
+      "head_blob": "ae94da1bd005aef89fd078cf2487eed862fafe36",
+      "working_sha256": "c0d1de4a5f609ce006fa7e7cdf914b0dccc45d1e5b15255009a7d49804ebf820"
+    },
+    {
+      "path": "services/dream-engine/src/runner.rs",
+      "verified_blob": "19bed5cd5cc2dcc306b7fe05ff6299dc70df7f4f",
+      "head_blob": "2e4875fa587383d7a6df3cb46fd1d61e2c3fb068",
+      "working_sha256": "2dcc4b9e58149d45702e98af14329d21e5e236c5ddce7256e70dcf90ed1221f8"
+    },
+    {
+      "path": "services/dream-engine/src/gate.rs",
+      "verified_blob": "624bbcbaf0f739f5118ad3fdee13b5ae1b435496",
+      "head_blob": "8e3bdc292281a9a926abacb850898f88d4f76aa8",
+      "working_sha256": "92ff0c917402cdcee2be9a2a62237350a2570c0edc23aacfd454dee76b2664ee"
+    },
+    {
+      "path": "services/dream-engine/src/verdict.rs",
+      "verified_blob": "65fe298852dd91b5a33e41d3832eb7b7a657394f",
+      "head_blob": "fc1fca8690b1abee99f96ce38713e9419c027ea3",
+      "working_sha256": "c7b2ee3b374ab5cf6cb9deacb264a4939e15d2c742c9d9fb0e11954969c84905"
+    }
+  ]
+}

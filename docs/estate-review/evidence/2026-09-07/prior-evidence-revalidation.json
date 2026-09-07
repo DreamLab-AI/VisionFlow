@@ -1,0 +1,2130 @@
+{
+  "date": "2026-09-07",
+  "method": "Explicit receipt-relative roots; unchanged source hashes preserve earlier source evidence scope, not runtime test freshness. ADR annex changes are separate from implementation changes.",
+  "counts": {
+    "unchanged": 255,
+    "changed": 10
+  },
+  "records": [
+    {
+      "receipt": "explorer-snapshot.json",
+      "path": "/home/devuser/workspace/WasmVOWL/modern/package.json",
+      "resolution": "WasmVOWL",
+      "recorded": "b950207d9a06d09691700f10f7bffd0ffa290592d4c836a962da069d4f9bfacb",
+      "actual": "b950207d9a06d09691700f10f7bffd0ffa290592d4c836a962da069d4f9bfacb",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "explorer-snapshot.json",
+      "path": "/home/devuser/workspace/WasmVOWL/modern/src/hooks/useWasmSimulation.ts",
+      "resolution": "WasmVOWL",
+      "recorded": "ced7083e36a389badbcfd953374ce912c08505bb2ecdaeaa85c247fe8b2f6863",
+      "actual": "ced7083e36a389badbcfd953374ce912c08505bb2ecdaeaa85c247fe8b2f6863",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "explorer-snapshot.json",
+      "path": "/home/devuser/workspace/WasmVOWL/modern/src/stores/useGraphStore.ts",
+      "resolution": "WasmVOWL",
+      "recorded": "b9196d949623081ba2d4d5b6d642a9562aea37d232fbc63121a138a2f1ae5645",
+      "actual": "b9196d949623081ba2d4d5b6d642a9562aea37d232fbc63121a138a2f1ae5645",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "explorer-snapshot.json",
+      "path": "/home/devuser/workspace/WasmVOWL/modern/src/main.tsx",
+      "resolution": "WasmVOWL",
+      "recorded": "6e9e5807fcbd48b75a96db5cbef36c996262196be42e6d4760dc86babbe61ad2",
+      "actual": "6e9e5807fcbd48b75a96db5cbef36c996262196be42e6d4760dc86babbe61ad2",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "explorer-snapshot.json",
+      "path": "/home/devuser/workspace/WasmVOWL/modern/src/components/UI/FileDropZone.tsx",
+      "resolution": "WasmVOWL",
+      "recorded": "2f5e9cfa97d4bfcf1ff31a62c509b25d145472268b11c777f8e5ee5875cec87d",
+      "actual": "2f5e9cfa97d4bfcf1ff31a62c509b25d145472268b11c777f8e5ee5875cec87d",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "explorer-snapshot.json",
+      "path": "/home/devuser/workspace/WasmVOWL/rust-wasm/src/ontology/parser.rs",
+      "resolution": "WasmVOWL",
+      "recorded": "9a2ee2a32f776c6e1d907b807fcf0fc5df9d06b225fe35ce6b00fad66933fd5a",
+      "actual": "9a2ee2a32f776c6e1d907b807fcf0fc5df9d06b225fe35ce6b00fad66933fd5a",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "explorer-snapshot.json",
+      "path": "/home/devuser/workspace/WasmVOWL/rust-wasm/src/bindings/mod.rs",
+      "resolution": "WasmVOWL",
+      "recorded": "0c3ba5e81d8492004ee4a0a0bd10accfa093283aa34e668466e86c3ba83b1862",
+      "actual": "0c3ba5e81d8492004ee4a0a0bd10accfa093283aa34e668466e86c3ba83b1862",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-adaptation-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-train/src/rapid_adapt.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "caf53c22c08ef003dc00ae5bbf802ee00f5d3167893153a9d4070768bce91e22",
+      "actual": "caf53c22c08ef003dc00ae5bbf802ee00f5d3167893153a9d4070768bce91e22",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-adaptation-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-train/src/domain.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "64a145dacfdd37014c3642b29909691665826b32b93f3f8a698caf6a6c351376",
+      "actual": "64a145dacfdd37014c3642b29909691665826b32b93f3f8a698caf6a6c351376",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-adaptation-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-train/src/geometry.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "26c09f523c9b35bc124c6f553da27bc4e850177bea6987dfb768c14891575ca9",
+      "actual": "26c09f523c9b35bc124c6f553da27bc4e850177bea6987dfb768c14891575ca9",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-adaptation-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-train/src/virtual_aug.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "2566ab01b12f2b4bbcd5abbca2dbf500b7d56e5a3bead818597bbaf599fea82c",
+      "actual": "2566ab01b12f2b4bbcd5abbca2dbf500b7d56e5a3bead818597bbaf599fea82c",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-adaptation-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-train/src/eval.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "268264cba81f7de509657e8a2e000984314e51e6dd86e056b37f305fb233a52b",
+      "actual": "268264cba81f7de509657e8a2e000984314e51e6dd86e056b37f305fb233a52b",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-adaptation-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-train/src/trainer.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "2fc9f62bf1fedc61df2fc027162677bcf999d96a95c8449f6c87f7466a50db2f",
+      "actual": "2fc9f62bf1fedc61df2fc027162677bcf999d96a95c8449f6c87f7466a50db2f",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-adaptation-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-train/src/dataset.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "a02adc02b26f873369ecc780712439f753a545c475093a831caabc57d0bb425e",
+      "actual": "a02adc02b26f873369ecc780712439f753a545c475093a831caabc57d0bb425e",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-adaptation-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-train/src/model.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "61f72c9b658f9466e30213d1504796268579476e9a14bb0a39af203a83fea814",
+      "actual": "61f72c9b658f9466e30213d1504796268579476e9a14bb0a39af203a83fea814",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-aether-closeout.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/embedding.rs",
+      "resolution": "RuView",
+      "recorded": "9d3565d9c4c7d06c92ec9324193b91a1a95c3c618873499306ef8f2b6f4d1305",
+      "actual": "9d3565d9c4c7d06c92ec9324193b91a1a95c3c618873499306ef8f2b6f4d1305",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-aether-closeout.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/trainer.rs",
+      "resolution": "RuView",
+      "recorded": "0ce56df389c71bd17d4fb2de294c63723ee2726deed5379d730dd3d92ec5e2d4",
+      "actual": "0ce56df389c71bd17d4fb2de294c63723ee2726deed5379d730dd3d92ec5e2d4",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-aether-closeout.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/main.rs",
+      "resolution": "RuView",
+      "recorded": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+      "actual": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-aether-closeout.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/sona.rs",
+      "resolution": "RuView",
+      "recorded": "3a979445a47e1a340616b56c2a254e52839eb793d4b8e5442920c88885050f85",
+      "actual": "3a979445a47e1a340616b56c2a254e52839eb793d4b8e5442920c88885050f85",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-aether-closeout.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/rvf_container.rs",
+      "resolution": "RuView",
+      "recorded": "37092b456f28054f5e8a13dd0e9f302c7f1d21e63eb4785f3c7117ec8ac1a3d9",
+      "actual": "37092b456f28054f5e8a13dd0e9f302c7f1d21e63eb4785f3c7117ec8ac1a3d9",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-aether-closeout.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/lib.rs",
+      "resolution": "RuView",
+      "recorded": "929c93cea8a966747ef2baeebf77ce0d89dc2b4c9bf59bde6211ca195148fe18",
+      "actual": "929c93cea8a966747ef2baeebf77ce0d89dc2b4c9bf59bde6211ca195148fe18",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-commodity-probe.json",
+      "path": "/home/devuser/workspace/RuView/v1/src/sensing/backend.py",
+      "resolution": "RuView",
+      "recorded": "47f9416c984416cb979cda922549e0f896c11fde35c5caf06f0e34e12307fa66",
+      "actual": "47f9416c984416cb979cda922549e0f896c11fde35c5caf06f0e34e12307fa66",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-commodity-probe.json",
+      "path": "/home/devuser/workspace/RuView/v1/src/sensing/classifier.py",
+      "resolution": "RuView",
+      "recorded": "24f82fd4779d08461c976838c8819bb07816690f630ca2a65358f6d75c58b43b",
+      "actual": "24f82fd4779d08461c976838c8819bb07816690f630ca2a65358f6d75c58b43b",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-commodity-probe.json",
+      "path": "/home/devuser/workspace/RuView/v1/src/sensing/feature_extractor.py",
+      "resolution": "RuView",
+      "recorded": "6e3ed9e5ffe56c4c7429780c54cd287e3f77312d8d77691a49f840bb60ca2d8e",
+      "actual": "6e3ed9e5ffe56c4c7429780c54cd287e3f77312d8d77691a49f840bb60ca2d8e",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-commodity-probe.json",
+      "path": "/home/devuser/workspace/RuView/v1/src/sensing/rssi_collector.py",
+      "resolution": "RuView",
+      "recorded": "491aa9a89582b8d9c2e87c997177919eb7e1f4c656704a6be5bbf086d5e458ec",
+      "actual": "491aa9a89582b8d9c2e87c997177919eb7e1f4c656704a6be5bbf086d5e458ec",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-commodity-probe.json",
+      "path": "/home/devuser/workspace/RuView/v1/src/sensing/ws_server.py",
+      "resolution": "RuView",
+      "recorded": "48e92603591e21bd742a7cee9ffffce7bb0cdcd069667de8116b7659a129c219",
+      "actual": "48e92603591e21bd742a7cee9ffffce7bb0cdcd069667de8116b7659a129c219",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-commodity-probe.json",
+      "path": "/home/devuser/workspace/RuView/v1/src/cli.py",
+      "resolution": "RuView",
+      "recorded": "7206b6b0574d26a295d6b22d21820995275a403b7968790397ff2470ca21b342",
+      "actual": "7206b6b0574d26a295d6b22d21820995275a403b7968790397ff2470ca21b342",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-commodity-probe.json",
+      "path": "/home/devuser/workspace/RuView/v1/setup.py",
+      "resolution": "RuView",
+      "recorded": "34f8ef48c46cae8113f9bb8b281f00b7d0a0798de646255583016b474b1bc939",
+      "actual": "34f8ef48c46cae8113f9bb8b281f00b7d0a0798de646255583016b474b1bc939",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-commodity-probe.json",
+      "path": "/home/devuser/workspace/RuView/v1/tests/unit/test_sensing.py",
+      "resolution": "RuView",
+      "recorded": "9f6afb6eeab4a399039f7ca10a4e161681f1ee8eb6bbd329c4d83b57ca8e1811",
+      "actual": "9f6afb6eeab4a399039f7ca10a4e161681f1ee8eb6bbd329c4d83b57ca8e1811",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-consensus-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/docs/adr/ADR-008-distributed-consensus-multi-ap.md",
+      "resolution": "absolute receipt path",
+      "recorded": "9cbfef4df4aee240a3fd9d7f12e2d8b331608be7426e56ad03fb95bff155c201",
+      "actual": "18e8c802fc41a0ab78f60a891401dc4fea3bb19c3f511cdc0a22d805e165fe96",
+      "state": "changed"
+    },
+    {
+      "receipt": "ruview-consensus-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/ruvsense/multistatic.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "6055ee010888c3e999f7888d51fcbebf9d2ddb41babf8b8684d73b9d9ac3d51e",
+      "actual": "6055ee010888c3e999f7888d51fcbebf9d2ddb41babf8b8684d73b9d9ac3d51e",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-consensus-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/ruvsense/multiband.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "2fa5c4ff5482fc735e3fd2062bba2fecfae130ca9d0eacd0d43d8030a3df0e3f",
+      "actual": "2fa5c4ff5482fc735e3fd2062bba2fecfae130ca9d0eacd0d43d8030a3df0e3f",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-container-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/docs/adr/ADR-003-rvf-cognitive-containers-csi.md",
+      "resolution": "RuView",
+      "recorded": "d18204715f264b5c6965e89824f43e96b1cfc476e89126b728e53a0971218bd2",
+      "actual": "d18204715f264b5c6965e89824f43e96b1cfc476e89126b728e53a0971218bd2",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-container-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/rvf_container.rs",
+      "resolution": "RuView",
+      "recorded": "37092b456f28054f5e8a13dd0e9f302c7f1d21e63eb4785f3c7117ec8ac1a3d9",
+      "actual": "37092b456f28054f5e8a13dd0e9f302c7f1d21e63eb4785f3c7117ec8ac1a3d9",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-container-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/rvf_pipeline.rs",
+      "resolution": "RuView",
+      "recorded": "1da194405b039b641c27d1ccde030895d74061ab7b52489d8a20173db8934db1",
+      "actual": "1da194405b039b641c27d1ccde030895d74061ab7b52489d8a20173db8934db1",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-container-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/recording.rs",
+      "resolution": "RuView",
+      "recorded": "e521f1132d93eb742c0ba01ef22cfa4145907dffcf8de09eecb377f5bfa42529",
+      "actual": "e521f1132d93eb742c0ba01ef22cfa4145907dffcf8de09eecb377f5bfa42529",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-container-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/main.rs",
+      "resolution": "RuView",
+      "recorded": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+      "actual": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-container-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-wasm-edge/src/rvf.rs",
+      "resolution": "RuView",
+      "recorded": "42808d90af8165b75c6da22ff5d5797eb7e9ea6d2a94423ecc6cfa22886d365b",
+      "actual": "42808d90af8165b75c6da22ff5d5797eb7e9ea6d2a94423ecc6cfa22886d365b",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-contrastive-objective-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/embedding.rs",
+      "resolution": "RuView",
+      "recorded": "9d3565d9c4c7d06c92ec9324193b91a1a95c3c618873499306ef8f2b6f4d1305",
+      "actual": "9d3565d9c4c7d06c92ec9324193b91a1a95c3c618873499306ef8f2b6f4d1305",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-contrastive-objective-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/trainer.rs",
+      "resolution": "RuView",
+      "recorded": "0ce56df389c71bd17d4fb2de294c63723ee2726deed5379d730dd3d92ec5e2d4",
+      "actual": "0ce56df389c71bd17d4fb2de294c63723ee2726deed5379d730dd3d92ec5e2d4",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-contrastive-objective-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/main.rs",
+      "resolution": "RuView",
+      "recorded": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+      "actual": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-contrastive-objective-probe.json",
+      "path": "/home/devuser/workspace/RuView/docs/adr/ADR-024-contrastive-csi-embedding-model.md",
+      "resolution": "RuView",
+      "recorded": "eaeab1d5a1490b7b74e6e28644706f9e3fce915c8b4c7b77b6a101a6e758b469",
+      "actual": "1a840f056df08796352c9bfead5170ddf8e9ab7133eeda30565a6b8e96b08914",
+      "state": "changed"
+    },
+    {
+      "receipt": "ruview-crv-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-ruvector/src/crv/mod.rs",
+      "resolution": "RuView",
+      "recorded": "5e7ca30afac4e1ba1f6bf07d53abf348da19aecdd36f09e9baf2c7a80ba149a3",
+      "actual": "5e7ca30afac4e1ba1f6bf07d53abf348da19aecdd36f09e9baf2c7a80ba149a3",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-crv-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-ruvector/src/lib.rs",
+      "resolution": "RuView",
+      "recorded": "d52c7b6ea18183ac068bb16cd470a0edcd12a2f957e3cdf827a3a794ffaa5702",
+      "actual": "d52c7b6ea18183ac068bb16cd470a0edcd12a2f957e3cdf827a3a794ffaa5702",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-crv-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-ruvector/Cargo.toml",
+      "resolution": "RuView",
+      "recorded": "1fd549292bfb56b588964042b0f4ef86b0e0fd0dc7e9b09306a570f8964766a7",
+      "actual": "1fd549292bfb56b588964042b0f4ef86b0e0fd0dc7e9b09306a570f8964766a7",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-crv-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-ruvector/benches/crv_bench.rs",
+      "resolution": "RuView",
+      "recorded": "d5c3c212d81c202d62fefe421ff13e0b224844c0713172cdac4e6609a6ba3c47",
+      "actual": "d5c3c212d81c202d62fefe421ff13e0b224844c0713172cdac4e6609a6ba3c47",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-edge-runtime-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/docs/adr/ADR-009-rvf-wasm-runtime-edge-deployment.md",
+      "resolution": "absolute receipt path",
+      "recorded": "7d38a37b6c9b585d8a7e375ca613a6005876a0687823c580869c35ad7c848f3e",
+      "actual": "e7c023e7fe32b4a4fc873b472cf1c68c7ee22563f8a3e01b6f42cf66ce1e48d6",
+      "state": "changed"
+    },
+    {
+      "receipt": "ruview-edge-runtime-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/firmware/esp32-csi-node/main/wasm_runtime.c",
+      "resolution": "absolute receipt path",
+      "recorded": "a0bc6536b3231376c9d4b5e5489f96fcc4f35287a93ab470c0252e2c217d827d",
+      "actual": "a0bc6536b3231376c9d4b5e5489f96fcc4f35287a93ab470c0252e2c217d827d",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-edge-runtime-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/firmware/esp32-csi-node/main/wasm_upload.c",
+      "resolution": "absolute receipt path",
+      "recorded": "b5172adbeffd43d1684d91dcb2289ff2103a03ef5b8a065ef0396d18e0980f06",
+      "actual": "b5172adbeffd43d1684d91dcb2289ff2103a03ef5b8a065ef0396d18e0980f06",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-edge-runtime-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-wasm-edge/src/lib.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "e8c5f7f8787848f3ff7f07122df4c8fce9874dc410b8a357ffa291484d2b28ea",
+      "actual": "e8c5f7f8787848f3ff7f07122df4c8fce9874dc410b8a357ffa291484d2b28ea",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-embedding-mining-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/embedding.rs",
+      "resolution": "RuView",
+      "recorded": "9d3565d9c4c7d06c92ec9324193b91a1a95c3c618873499306ef8f2b6f4d1305",
+      "actual": "9d3565d9c4c7d06c92ec9324193b91a1a95c3c618873499306ef8f2b6f4d1305",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-embedding-mining-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/graph_transformer.rs",
+      "resolution": "RuView",
+      "recorded": "7a1e328a78a9eda1ddbf32d5a164ee7e929f1e97a47f867a858f67ff52cbb8fd",
+      "actual": "7a1e328a78a9eda1ddbf32d5a164ee7e929f1e97a47f867a858f67ff52cbb8fd",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-embedding-mining-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/sona.rs",
+      "resolution": "RuView",
+      "recorded": "3a979445a47e1a340616b56c2a254e52839eb793d4b8e5442920c88885050f85",
+      "actual": "3a979445a47e1a340616b56c2a254e52839eb793d4b8e5442920c88885050f85",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-embedding-mining-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/trainer.rs",
+      "resolution": "RuView",
+      "recorded": "0ce56df389c71bd17d4fb2de294c63723ee2726deed5379d730dd3d92ec5e2d4",
+      "actual": "0ce56df389c71bd17d4fb2de294c63723ee2726deed5379d730dd3d92ec5e2d4",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-embedding-mining-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/main.rs",
+      "resolution": "RuView",
+      "recorded": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+      "actual": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-embedding-mining-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/rvf_container.rs",
+      "resolution": "RuView",
+      "recorded": "37092b456f28054f5e8a13dd0e9f302c7f1d21e63eb4785f3c7117ec8ac1a3d9",
+      "actual": "37092b456f28054f5e8a13dd0e9f302c7f1d21e63eb4785f3c7117ec8ac1a3d9",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-embedding-mining-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/sparse_inference.rs",
+      "resolution": "RuView",
+      "recorded": "7be93abe27bae154bbc81827148ee88214060914ff72c0070e2849c76097ad05",
+      "actual": "7be93abe27bae154bbc81827148ee88214060914ff72c0070e2849c76097ad05",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-embedding-quant-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/embedding.rs",
+      "resolution": "RuView",
+      "recorded": "9d3565d9c4c7d06c92ec9324193b91a1a95c3c618873499306ef8f2b6f4d1305",
+      "actual": "9d3565d9c4c7d06c92ec9324193b91a1a95c3c618873499306ef8f2b6f4d1305",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-embedding-quant-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/graph_transformer.rs",
+      "resolution": "RuView",
+      "recorded": "7a1e328a78a9eda1ddbf32d5a164ee7e929f1e97a47f867a858f67ff52cbb8fd",
+      "actual": "7a1e328a78a9eda1ddbf32d5a164ee7e929f1e97a47f867a858f67ff52cbb8fd",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-embedding-quant-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/sona.rs",
+      "resolution": "RuView",
+      "recorded": "3a979445a47e1a340616b56c2a254e52839eb793d4b8e5442920c88885050f85",
+      "actual": "3a979445a47e1a340616b56c2a254e52839eb793d4b8e5442920c88885050f85",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-embedding-quant-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/trainer.rs",
+      "resolution": "RuView",
+      "recorded": "0ce56df389c71bd17d4fb2de294c63723ee2726deed5379d730dd3d92ec5e2d4",
+      "actual": "0ce56df389c71bd17d4fb2de294c63723ee2726deed5379d730dd3d92ec5e2d4",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-embedding-quant-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/main.rs",
+      "resolution": "RuView",
+      "recorded": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+      "actual": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-embedding-quant-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/rvf_container.rs",
+      "resolution": "RuView",
+      "recorded": "37092b456f28054f5e8a13dd0e9f302c7f1d21e63eb4785f3c7117ec8ac1a3d9",
+      "actual": "37092b456f28054f5e8a13dd0e9f302c7f1d21e63eb4785f3c7117ec8ac1a3d9",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-embedding-quant-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/sparse_inference.rs",
+      "resolution": "RuView",
+      "recorded": "7be93abe27bae154bbc81827148ee88214060914ff72c0070e2849c76097ad05",
+      "actual": "7be93abe27bae154bbc81827148ee88214060914ff72c0070e2849c76097ad05",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-embedding-state-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/embedding.rs",
+      "resolution": "RuView",
+      "recorded": "9d3565d9c4c7d06c92ec9324193b91a1a95c3c618873499306ef8f2b6f4d1305",
+      "actual": "9d3565d9c4c7d06c92ec9324193b91a1a95c3c618873499306ef8f2b6f4d1305",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-embedding-state-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/graph_transformer.rs",
+      "resolution": "RuView",
+      "recorded": "7a1e328a78a9eda1ddbf32d5a164ee7e929f1e97a47f867a858f67ff52cbb8fd",
+      "actual": "7a1e328a78a9eda1ddbf32d5a164ee7e929f1e97a47f867a858f67ff52cbb8fd",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-embedding-state-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/sona.rs",
+      "resolution": "RuView",
+      "recorded": "3a979445a47e1a340616b56c2a254e52839eb793d4b8e5442920c88885050f85",
+      "actual": "3a979445a47e1a340616b56c2a254e52839eb793d4b8e5442920c88885050f85",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-embedding-state-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/trainer.rs",
+      "resolution": "RuView",
+      "recorded": "0ce56df389c71bd17d4fb2de294c63723ee2726deed5379d730dd3d92ec5e2d4",
+      "actual": "0ce56df389c71bd17d4fb2de294c63723ee2726deed5379d730dd3d92ec5e2d4",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-embedding-state-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/main.rs",
+      "resolution": "RuView",
+      "recorded": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+      "actual": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-embedding-state-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/rvf_container.rs",
+      "resolution": "RuView",
+      "recorded": "37092b456f28054f5e8a13dd0e9f302c7f1d21e63eb4785f3c7117ec8ac1a3d9",
+      "actual": "37092b456f28054f5e8a13dd0e9f302c7f1d21e63eb4785f3c7117ec8ac1a3d9",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-embedding-state-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/sparse_inference.rs",
+      "resolution": "RuView",
+      "recorded": "7be93abe27bae154bbc81827148ee88214060914ff72c0070e2849c76097ad05",
+      "actual": "7be93abe27bae154bbc81827148ee88214060914ff72c0070e2849c76097ad05",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-evaluation-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-train/src/eval.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "268264cba81f7de509657e8a2e000984314e51e6dd86e056b37f305fb233a52b",
+      "actual": "268264cba81f7de509657e8a2e000984314e51e6dd86e056b37f305fb233a52b",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-evaluation-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-train/src/bin/train.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "042cf1df147d2b697927dcaf64a04b62e7ef9116a22d7b39f5f2beb1a308c922",
+      "actual": "042cf1df147d2b697927dcaf64a04b62e7ef9116a22d7b39f5f2beb1a308c922",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-evaluation-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-train/src/dataset.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "a02adc02b26f873369ecc780712439f753a545c475093a831caabc57d0bb425e",
+      "actual": "a02adc02b26f873369ecc780712439f753a545c475093a831caabc57d0bb425e",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-evaluation-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-train/src/trainer.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "2fc9f62bf1fedc61df2fc027162677bcf999d96a95c8449f6c87f7466a50db2f",
+      "actual": "2fc9f62bf1fedc61df2fc027162677bcf999d96a95c8449f6c87f7466a50db2f",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-evaluation-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-train/src/proof.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "2a4bd6548bb9b79c21f2181a116c57c20738880ceb0213476cecf84799a451b1",
+      "actual": "2a4bd6548bb9b79c21f2181a116c57c20738880ceb0213476cecf84799a451b1",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-fingerprint-probe.json",
+      "path": "/home/devuser/workspace/RuView/docs/adr/ADR-004-hnsw-vector-search-fingerprinting.md",
+      "resolution": "absolute receipt path",
+      "recorded": "e9c10c3f0504870e96cb605e73235b38674df23d518a41c9f15e3812c0995020",
+      "actual": "2aa276bf5a9b385a2716920275bed0423e39c525b464eba6c02defb31f2f59c3",
+      "state": "changed"
+    },
+    {
+      "receipt": "ruview-fingerprint-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/main.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+      "actual": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-fingerprint-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-wifiscan/src/pipeline/fingerprint_matcher.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "bc366b0eb41dc917f3f4b51eccd640b1a8844b1ecf1e68bbfaa76b018cd057c7",
+      "actual": "bc366b0eb41dc917f3f4b51eccd640b1a8844b1ecf1e68bbfaa76b018cd057c7",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-fingerprint-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-wasm-edge/src/spt_micro_hnsw.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "59b0714c7b6c2b64da45feb493206e912af998c51a5afd635ef432f65c6e2e77",
+      "actual": "59b0714c7b6c2b64da45feb493206e912af998c51a5afd635ef432f65c6e2e77",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-gnn-probe.json",
+      "path": "/home/devuser/workspace/RuView/docs/adr/ADR-006-gnn-enhanced-csi-pattern-recognition.md",
+      "resolution": "absolute receipt path",
+      "recorded": "af6dc286155fe26b4fc307095ee05b43177e4567bb393c7d5ba6c06cc5a08674",
+      "actual": "639878783a9139ca0ece1584620bfb51ea57c9410967968e83423c4b3c091f88",
+      "state": "changed"
+    },
+    {
+      "receipt": "ruview-gnn-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/main.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+      "actual": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-gnn-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/embedding.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "9d3565d9c4c7d06c92ec9324193b91a1a95c3c618873499306ef8f2b6f4d1305",
+      "actual": "9d3565d9c4c7d06c92ec9324193b91a1a95c3c618873499306ef8f2b6f4d1305",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-goap-design-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/docs/adr/ADR-038-sublinear-goal-oriented-action-planning.md",
+      "resolution": "RuView",
+      "recorded": "985d4ded7315cf75ae0bcfc736cde7e5e48a569c61365f53d164aaddbb96d942",
+      "actual": "59bd748aa81524f352e80f46d15ffdf1861dfae5d932aeecc94b715b55836586",
+      "state": "changed"
+    },
+    {
+      "receipt": "ruview-macos-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-wifiscan/src/adapter/macos_scanner.rs",
+      "resolution": "RuView",
+      "recorded": "923cde784f2bfe2e88e1b45b570ca022c6938e6c6c8cf4fde9d814102dd19077",
+      "actual": "923cde784f2bfe2e88e1b45b570ca022c6938e6c6c8cf4fde9d814102dd19077",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-macos-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-wifiscan/src/adapter/mod.rs",
+      "resolution": "RuView",
+      "recorded": "aaaba8c2553ca04935d160e136510cc1a82629ddfb0edc00bdfaae7df6a17da2",
+      "actual": "aaaba8c2553ca04935d160e136510cc1a82629ddfb0edc00bdfaae7df6a17da2",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-macos-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-wifiscan/src/domain/bssid.rs",
+      "resolution": "RuView",
+      "recorded": "3587d5901cd882a851ffe1da99adbe74f7651d94260a5fcbf16b962fd0214ef1",
+      "actual": "3587d5901cd882a851ffe1da99adbe74f7651d94260a5fcbf16b962fd0214ef1",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-macos-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-wifiscan/src/adapter/linux_scanner.rs",
+      "resolution": "RuView",
+      "recorded": "1827cffed25f4f55d200a575dea8b881b45b70a4f3d38ff4866dbb1e43f389ec",
+      "actual": "1827cffed25f4f55d200a575dea8b881b45b70a4f3d38ff4866dbb1e43f389ec",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-macos-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/main.rs",
+      "resolution": "RuView",
+      "recorded": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+      "actual": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-macos-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/v1/src/sensing/mac_wifi.swift",
+      "resolution": "RuView",
+      "recorded": "65e609b01e14939c6377980d25682ebebb9198bc1f9010d7ef85a54d6d82de03",
+      "actual": "65e609b01e14939c6377980d25682ebebb9198bc1f9010d7ef85a54d6d82de03",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-macos-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/v1/src/sensing/rssi_collector.py",
+      "resolution": "RuView",
+      "recorded": "491aa9a89582b8d9c2e87c997177919eb7e1f4c656704a6be5bbf086d5e458ec",
+      "actual": "491aa9a89582b8d9c2e87c997177919eb7e1f4c656704a6be5bbf086d5e458ec",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-macos-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/v1/src/sensing/ws_server.py",
+      "resolution": "RuView",
+      "recorded": "48e92603591e21bd742a7cee9ffffce7bb0cdcd069667de8116b7659a129c219",
+      "actual": "48e92603591e21bd742a7cee9ffffce7bb0cdcd069667de8116b7659a129c219",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-migration-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/Cargo.toml",
+      "resolution": "RuView/rust-port/wifi-densepose-rs",
+      "recorded": "6c9d77466bfaeb8b377fb0063b8befa2c6b4d0e02383038c31c015c79ee9b298",
+      "actual": "6c9d77466bfaeb8b377fb0063b8befa2c6b4d0e02383038c31c015c79ee9b298",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-migration-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-mat/Cargo.toml",
+      "resolution": "RuView/rust-port/wifi-densepose-rs",
+      "recorded": "830e4cf9764eb8924bb2a5d87dee5ca58c0ba15182f20ffe913c8d847e6181b0",
+      "actual": "830e4cf9764eb8924bb2a5d87dee5ca58c0ba15182f20ffe913c8d847e6181b0",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-migration-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/Cargo.toml",
+      "resolution": "RuView/rust-port/wifi-densepose-rs",
+      "recorded": "bc4e97ce997ca8d74eea799c533e186aa75f588172c63063b29e0f3a36372ae0",
+      "actual": "bc4e97ce997ca8d74eea799c533e186aa75f588172c63063b29e0f3a36372ae0",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-migration-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-nn/Cargo.toml",
+      "resolution": "RuView/rust-port/wifi-densepose-rs",
+      "recorded": "aefeea6dbca690562d6f98d34cddb50005915d20073538086f91627c706140ba",
+      "actual": "aefeea6dbca690562d6f98d34cddb50005915d20073538086f91627c706140ba",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-migration-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-nn/src/lib.rs",
+      "resolution": "RuView/rust-port/wifi-densepose-rs",
+      "recorded": "114d2cd90ff8932187bc7e9a70fffed04f853fc70cb21e2e3731926ad60d66dc",
+      "actual": "114d2cd90ff8932187bc7e9a70fffed04f853fc70cb21e2e3731926ad60d66dc",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-migration-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-mat/src/api/mod.rs",
+      "resolution": "RuView/rust-port/wifi-densepose-rs",
+      "recorded": "f23e1972620fb0bf3c58de1745f08fa84aed894573a9265bf731e696e3ea32a0",
+      "actual": "f23e1972620fb0bf3c58de1745f08fa84aed894573a9265bf731e696e3ea32a0",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-migration-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/main.rs",
+      "resolution": "RuView/rust-port/wifi-densepose-rs",
+      "recorded": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+      "actual": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/package.json",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "4c1f9d9a05a1cae9d124c641e55a5679b7704fdecb8675d5dbd79dd938fdb0ac",
+      "actual": "4c1f9d9a05a1cae9d124c641e55a5679b7704fdecb8675d5dbd79dd938fdb0ac",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/services/ws.service.ts",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "6d48f0e5139fc86e09bd5df62b7a25c4a24701222fef5e7547ba5e83233b0ca0",
+      "actual": "6d48f0e5139fc86e09bd5df62b7a25c4a24701222fef5e7547ba5e83233b0ca0",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/constants/websocket.ts",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "4ba94519ab4f7c76603ed2bb0ef23d52fdde27debe050fd4d733b1accd93bd1b",
+      "actual": "4ba94519ab4f7c76603ed2bb0ef23d52fdde27debe050fd4d733b1accd93bd1b",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/constants/simulation.ts",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "efd7742044bc3e449e930ead369490f1cf1ca9dffbb8fd6ad1db1187aa35eb36",
+      "actual": "efd7742044bc3e449e930ead369490f1cf1ca9dffbb8fd6ad1db1187aa35eb36",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/stores/poseStore.ts",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "b97f8b8a5ebc1bd322e7bce7b2bf84632f0c8811e91b410553ceccad64e05db5",
+      "actual": "b97f8b8a5ebc1bd322e7bce7b2bf84632f0c8811e91b410553ceccad64e05db5",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/stores/settingsStore.ts",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "7deede6710b2d0730d4800b6d6bd990efa611dc1cdf0819721a8f8a9b60c1b17",
+      "actual": "7deede6710b2d0730d4800b6d6bd990efa611dc1cdf0819721a8f8a9b60c1b17",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/stores/matStore.ts",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "d8068bd83e1e43fe9370f2296003f93e3536dcb1d281d9d16438d2688e1e70ab",
+      "actual": "d8068bd83e1e43fe9370f2296003f93e3536dcb1d281d9d16438d2688e1e70ab",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/hooks/usePoseStream.ts",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "784f5c070941937920a776df9a10f594f2685466d1ab506e6a314fc5901c79ae",
+      "actual": "784f5c070941937920a776df9a10f594f2685466d1ab506e6a314fc5901c79ae",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/screens/MATScreen/index.tsx",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "8fb9677c884646d027ae278d777a8686a6d30e186c64af752ed8ba5f2907851c",
+      "actual": "8fb9677c884646d027ae278d777a8686a6d30e186c64af752ed8ba5f2907851c",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/assets/webview/mat-dashboard.html",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "6fc619cd566eb130aa82175982bb829357bfae0faf9201dee6485e59bed43f30",
+      "actual": "6fc619cd566eb130aa82175982bb829357bfae0faf9201dee6485e59bed43f30",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/screens/LiveScreen/GaussianSplatWebView.web.tsx",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "14fa6ba350c154db330682052f64ca5b4ca60aef25627ae4c4783d59ba48dea6",
+      "actual": "14fa6ba350c154db330682052f64ca5b4ca60aef25627ae4c4783d59ba48dea6",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/screens/LiveScreen/GaussianSplatWebView.tsx",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "c963374026bb11ff3aebe8f52386b20aba7799c88e3a488cfc6cb1ad21f3bd6b",
+      "actual": "c963374026bb11ff3aebe8f52386b20aba7799c88e3a488cfc6cb1ad21f3bd6b",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/screens/VitalsScreen/BreathingGauge.tsx",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "6e3a86acb7d936d80a9fe9d238247e91be4aca578005602875d64f810339bb4f",
+      "actual": "6e3a86acb7d936d80a9fe9d238247e91be4aca578005602875d64f810339bb4f",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/screens/VitalsScreen/HeartRateGauge.tsx",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "6502718b3fc98bf8a8ae9b6d3f44b48d33dcbc63e9fe7f1f15cd54e4ef9578df",
+      "actual": "6502718b3fc98bf8a8ae9b6d3f44b48d33dcbc63e9fe7f1f15cd54e4ef9578df",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/screens/ZonesScreen/useOccupancyGrid.ts",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "5904e21c4bb152e01c20ec0fb11bdd5a5dcbbf331c7439a3c551847d960fcf4c",
+      "actual": "5904e21c4bb152e01c20ec0fb11bdd5a5dcbbf331c7439a3c551847d960fcf4c",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/services/rssi.service.ios.ts",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "abd72e64f092a12979a7d1538c6e7727270afcc5a6ae9e7f98c07296b308b3e9",
+      "actual": "abd72e64f092a12979a7d1538c6e7727270afcc5a6ae9e7f98c07296b308b3e9",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/services/rssi.service.android.ts",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "5465a31bbdb8f7cb6bcfd150a4434617438a888951e0b7e1017240ba7a6283e3",
+      "actual": "5465a31bbdb8f7cb6bcfd150a4434617438a888951e0b7e1017240ba7a6283e3",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/services/api.service.ts",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "78555d4000881e557cdbe2133458b78b56058a45f4e327916bd090157ae1c126",
+      "actual": "78555d4000881e557cdbe2133458b78b56058a45f4e327916bd090157ae1c126",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/screens/SettingsScreen/index.tsx",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "5137ef4a74d8a1869c2201dc0352d46ee1ba10a347356a306d86c008e885d1fd",
+      "actual": "5137ef4a74d8a1869c2201dc0352d46ee1ba10a347356a306d86c008e885d1fd",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/navigation/MainTabs.tsx",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "ddf30d4476623428d4779a2a59ec980336622a64f99bf9dd18c7d6b25cc28b55",
+      "actual": "ddf30d4476623428d4779a2a59ec980336622a64f99bf9dd18c7d6b25cc28b55",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/__tests__/components/ConnectionBanner.test.tsx",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "actual": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/__tests__/components/GaugeArc.test.tsx",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "actual": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/__tests__/components/HudOverlay.test.tsx",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "actual": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/__tests__/components/OccupancyGrid.test.tsx",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "actual": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/__tests__/components/SignalBar.test.tsx",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "actual": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/__tests__/components/SparklineChart.test.tsx",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "actual": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/__tests__/components/StatusDot.test.tsx",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "actual": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/__tests__/hooks/usePoseStream.test.ts",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "actual": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/__tests__/hooks/useRssiScanner.test.ts",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "actual": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/__tests__/hooks/useServerReachability.test.ts",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "actual": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/__tests__/screens/LiveScreen.test.tsx",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "actual": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/__tests__/screens/MATScreen.test.tsx",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "actual": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/__tests__/screens/SettingsScreen.test.tsx",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "actual": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/__tests__/screens/VitalsScreen.test.tsx",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "actual": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/__tests__/screens/ZonesScreen.test.tsx",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "actual": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/__tests__/services/api.service.test.ts",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "actual": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/__tests__/services/rssi.service.test.ts",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "actual": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/__tests__/services/simulation.service.test.ts",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "actual": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/__tests__/services/ws.service.test.ts",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "actual": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/__tests__/stores/matStore.test.ts",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "actual": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/__tests__/stores/poseStore.test.ts",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "actual": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/__tests__/stores/settingsStore.test.ts",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "actual": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/__tests__/utils/colorMap.test.ts",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "actual": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/__tests__/utils/ringBuffer.test.ts",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "actual": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-mobile-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/mobile/src/__tests__/utils/urlValidator.test.ts",
+      "resolution": "RuView/ui/mobile",
+      "recorded": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "actual": "a73d3614d2981027f6cb2ca3072a219087b5cda02d56436cce8111bb7b8c7959",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-proof-reality-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/v1/src/core/csi_processor.py",
+      "resolution": "RuView",
+      "recorded": "776fe66a93f520c0dd30f670fa63db6817d8839f70627bf3af05bf1236f27af1",
+      "actual": "776fe66a93f520c0dd30f670fa63db6817d8839f70627bf3af05bf1236f27af1",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-proof-reality-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/v1/src/hardware/csi_extractor.py",
+      "resolution": "RuView",
+      "recorded": "ce8c95f568df60e3e662e33331234a87239cb6e245477958b832bde3afcc2c8b",
+      "actual": "ce8c95f568df60e3e662e33331234a87239cb6e245477958b832bde3afcc2c8b",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-proof-reality-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/v1/src/hardware/router_interface.py",
+      "resolution": "RuView",
+      "recorded": "a1a87dd505ef04ad4b612a703e9f9f699f9782090801ee95c990a2dc61296d1f",
+      "actual": "a1a87dd505ef04ad4b612a703e9f9f699f9782090801ee95c990a2dc61296d1f",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-proof-reality-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/v1/src/core/router_interface.py",
+      "resolution": "RuView",
+      "recorded": "aca33f0e0d65d96c3c317bf155d2a898d0ccb3042d8c06a8900efca4fc5488aa",
+      "actual": "aca33f0e0d65d96c3c317bf155d2a898d0ccb3042d8c06a8900efca4fc5488aa",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-proof-reality-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/v1/src/services/pose_service.py",
+      "resolution": "RuView",
+      "recorded": "e12c896305090b54ec2593356bb6d9f6ac3e9d4f8b3cf802b4ec729917114e3f",
+      "actual": "e12c896305090b54ec2593356bb6d9f6ac3e9d4f8b3cf802b4ec729917114e3f",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-proof-reality-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/v1/src/api/dependencies.py",
+      "resolution": "RuView",
+      "recorded": "74db6e61b7276089700fb504b27a0bac8a864c78aed8ddd93548629191ae2e15",
+      "actual": "74db6e61b7276089700fb504b27a0bac8a864c78aed8ddd93548629191ae2e15",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-proof-reality-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/v1/src/config/settings.py",
+      "resolution": "RuView",
+      "recorded": "ea5bc795f1246e4f0f6b9cb97dcfa817d71da99e29d6aefd59ecea1f950828f3",
+      "actual": "ea5bc795f1246e4f0f6b9cb97dcfa817d71da99e29d6aefd59ecea1f950828f3",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-proof-reality-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/v1/src/testing/__init__.py",
+      "resolution": "RuView",
+      "recorded": "ff79dcd158c872da9179b9fdbc674141ea27f7632a29cddb5f504080d1467fba",
+      "actual": "ff79dcd158c872da9179b9fdbc674141ea27f7632a29cddb5f504080d1467fba",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-proof-reality-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/v1/src/api/routers/health.py",
+      "resolution": "RuView",
+      "recorded": "01aaf7facda1b1092e373209f978f02a94a8d8db895d3a8a251a6920497af4fc",
+      "actual": "01aaf7facda1b1092e373209f978f02a94a8d8db895d3a8a251a6920497af4fc",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-proof-reality-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/v1/data/proof/verify.py",
+      "resolution": "RuView",
+      "recorded": "764dea46f3fbbedda33b7b7472d82f1fac41dcc2a51154db9a2d9836bfda87a5",
+      "actual": "764dea46f3fbbedda33b7b7472d82f1fac41dcc2a51154db9a2d9836bfda87a5",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-proof-reality-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/v1/data/proof/generate_reference_signal.py",
+      "resolution": "RuView",
+      "recorded": "800113e738f419659c8f72444056dff815b39a4359078e9f569019c5a5cee6b2",
+      "actual": "800113e738f419659c8f72444056dff815b39a4359078e9f569019c5a5cee6b2",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-proof-reality-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/v1/data/proof/sample_csi_meta.json",
+      "resolution": "RuView",
+      "recorded": "ef8ef49fe83e9e453dc86eec5d63eed1ca1c7802b029f8a428c5aa4167555342",
+      "actual": "ef8ef49fe83e9e453dc86eec5d63eed1ca1c7802b029f8a428c5aa4167555342",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-proof-reality-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/v1/data/proof/expected_features.sha256",
+      "resolution": "RuView",
+      "recorded": "d313cfe09d6ba6ce3d0fcc91808113b48f7b08911cd1a51b27667b15375ecadb",
+      "actual": "d313cfe09d6ba6ce3d0fcc91808113b48f7b08911cd1a51b27667b15375ecadb",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-proof-reality-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/v1/requirements-lock.txt",
+      "resolution": "RuView",
+      "recorded": "1c3409d519315be8c9a1ececd618df2050eb57607ac2641d317f4d1d25c7bba7",
+      "actual": "1c3409d519315be8c9a1ececd618df2050eb57607ac2641d317f4d1d25c7bba7",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-proof-reality-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/.github/workflows/verify-pipeline.yml",
+      "resolution": "RuView",
+      "recorded": "7297ef666fb370b776fcf18d77ecbac6d94bac9ee8709da89a3e6b16b82340b5",
+      "actual": "7297ef666fb370b776fcf18d77ecbac6d94bac9ee8709da89a3e6b16b82340b5",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-proof-reality-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/docker/Dockerfile.python",
+      "resolution": "RuView",
+      "recorded": "618dea409602e5d9ed6f9cd16904bc622cb235b58f5564a86eeb30c2b764280e",
+      "actual": "618dea409602e5d9ed6f9cd16904bc622cb235b58f5564a86eeb30c2b764280e",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-proof-reality-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/config/api.config.js",
+      "resolution": "RuView",
+      "recorded": "a3a71a52fa39fb6bcf7d223036168e9e9b8d2251e1dff362184dbaedd9eb192e",
+      "actual": "a3a71a52fa39fb6bcf7d223036168e9e9b8d2251e1dff362184dbaedd9eb192e",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-secure-sensing-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/docs/adr/ADR-007-post-quantum-cryptography-secure-sensing.md",
+      "resolution": "absolute receipt path",
+      "recorded": "5a5c68f72572e54c9d157e396dabac18a336f5e1b9494e269918c1a2a749954c",
+      "actual": "5a5c670d8b95e2f238b464780ce9f0733d6219ef80997da92599f1def6f5619b",
+      "state": "changed"
+    },
+    {
+      "receipt": "ruview-secure-sensing-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/rvf_container.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "37092b456f28054f5e8a13dd0e9f302c7f1d21e63eb4785f3c7117ec8ac1a3d9",
+      "actual": "37092b456f28054f5e8a13dd0e9f302c7f1d21e63eb4785f3c7117ec8ac1a3d9",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-secure-sensing-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/rvf_pipeline.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "1da194405b039b641c27d1ccde030895d74061ab7b52489d8a20173db8934db1",
+      "actual": "1da194405b039b641c27d1ccde030895d74061ab7b52489d8a20173db8934db1",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-secure-sensing-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/Cargo.toml",
+      "resolution": "absolute receipt path",
+      "recorded": "2c33565d5d7e13b0950cf96c88d486b97ed21e72efccb1b0b4405f30d0b3ad1e",
+      "actual": "2c33565d5d7e13b0950cf96c88d486b97ed21e72efccb1b0b4405f30d0b3ad1e",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-secure-sensing-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/firmware/esp32-csi-node/main/rvf_parser.c",
+      "resolution": "absolute receipt path",
+      "recorded": "b2f9a3467f1ebd8e679ff81ee8ebff98bc7963d6359873c5afb433d252502f30",
+      "actual": "b2f9a3467f1ebd8e679ff81ee8ebff98bc7963d6359873c5afb433d252502f30",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-secure-sensing-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/firmware/esp32-csi-node/main/wasm_upload.c",
+      "resolution": "absolute receipt path",
+      "recorded": "b5172adbeffd43d1684d91dcb2289ff2103a03ef5b8a065ef0396d18e0980f06",
+      "actual": "b5172adbeffd43d1684d91dcb2289ff2103a03ef5b8a065ef0396d18e0980f06",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-secure-sensing-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/firmware/esp32-csi-node/main/nvs_config.c",
+      "resolution": "absolute receipt path",
+      "recorded": "e5c395f1bee0894a29a0da2e96d222807708ed8383875f6eae9508393250fa41",
+      "actual": "e5c395f1bee0894a29a0da2e96d222807708ed8383875f6eae9508393250fa41",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-sensing-ui-probe.json",
+      "path": "/home/devuser/workspace/RuView/ui/services/sensing.service.js",
+      "resolution": "RuView",
+      "recorded": "44722ec346ae6ee8ba62f8cd2bfde9be1d93a20b7d8c6cd72f60689b95384f27",
+      "actual": "44722ec346ae6ee8ba62f8cd2bfde9be1d93a20b7d8c6cd72f60689b95384f27",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-sensing-ui-probe.json",
+      "path": "/home/devuser/workspace/RuView/ui/components/SensingTab.js",
+      "resolution": "RuView",
+      "recorded": "0f741a877b728540cdc35042ba8fcd5ec5a5fd4e3a01b77d8c9841befd99f04d",
+      "actual": "0f741a877b728540cdc35042ba8fcd5ec5a5fd4e3a01b77d8c9841befd99f04d",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-sensing-ui-probe.json",
+      "path": "/home/devuser/workspace/RuView/ui/components/gaussian-splats.js",
+      "resolution": "RuView",
+      "recorded": "b663350d6e0877f641e5bd5f616c0a7ce9461cece4873eda5838d8794113c896",
+      "actual": "b663350d6e0877f641e5bd5f616c0a7ce9461cece4873eda5838d8794113c896",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-sensing-ui-probe.json",
+      "path": "/home/devuser/workspace/RuView/ui/utils/backend-detector.js",
+      "resolution": "RuView",
+      "recorded": "b251384143bc7de59b18e8454e10a505be31cef81f72ba159c91db4874df004b",
+      "actual": "b251384143bc7de59b18e8454e10a505be31cef81f72ba159c91db4874df004b",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-sensing-ui-probe.json",
+      "path": "/home/devuser/workspace/RuView/ui/services/api.service.js",
+      "resolution": "RuView",
+      "recorded": "0e38d5d4ef14dba2cbd475e0374e6ab66bbbf8f67ed04ae145c915691eeda9d3",
+      "actual": "0e38d5d4ef14dba2cbd475e0374e6ab66bbbf8f67ed04ae145c915691eeda9d3",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-sensing-ui-probe.json",
+      "path": "/home/devuser/workspace/RuView/ui/services/health.service.js",
+      "resolution": "RuView",
+      "recorded": "b6db9edf7276b3737bb17dc916cf81f3be2470ff2c82665e11b5dbed28139e86",
+      "actual": "b6db9edf7276b3737bb17dc916cf81f3be2470ff2c82665e11b5dbed28139e86",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-sensing-ui-probe.json",
+      "path": "/home/devuser/workspace/RuView/ui/app.js",
+      "resolution": "RuView",
+      "recorded": "b2bf1cc38ad4b592da255cf06e23b231d8cdc0a9ef704b87097ab6b669949cdf",
+      "actual": "b2bf1cc38ad4b592da255cf06e23b231d8cdc0a9ef704b87097ab6b669949cdf",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-signal-algorithms-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/csi_ratio.rs",
+      "resolution": "RuView",
+      "recorded": "dd4b6b88a75f36e5bf74d5100a0f47c7ba1157aef7426b05dd7a94dc2d97d8f6",
+      "actual": "dd4b6b88a75f36e5bf74d5100a0f47c7ba1157aef7426b05dd7a94dc2d97d8f6",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-signal-algorithms-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/hampel.rs",
+      "resolution": "RuView",
+      "recorded": "9cde358d5c9470247d489d0d48339b493fdafed3dd1702eb745ebb618611b2ab",
+      "actual": "9cde358d5c9470247d489d0d48339b493fdafed3dd1702eb745ebb618611b2ab",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-signal-algorithms-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/fresnel.rs",
+      "resolution": "RuView",
+      "recorded": "a9b4a8bb4c5ae97c65227496db78e08bd4a68e7527d3ad7286cbd64e5c4d54b0",
+      "actual": "a9b4a8bb4c5ae97c65227496db78e08bd4a68e7527d3ad7286cbd64e5c4d54b0",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-signal-algorithms-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/spectrogram.rs",
+      "resolution": "RuView",
+      "recorded": "7e928b77bd3a8db6e046903f844f7306cd8e937f9b703bdd33e52897ee1135f2",
+      "actual": "7e928b77bd3a8db6e046903f844f7306cd8e937f9b703bdd33e52897ee1135f2",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-signal-algorithms-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/subcarrier_selection.rs",
+      "resolution": "RuView",
+      "recorded": "f807be52f2efe0307616a6656c60754b88784c3b0af1f4af2a0d14bac625668d",
+      "actual": "f807be52f2efe0307616a6656c60754b88784c3b0af1f4af2a0d14bac625668d",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-signal-algorithms-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/bvp.rs",
+      "resolution": "RuView",
+      "recorded": "892963df28e55ef0f5e00811318877d8743f41e32a17c8c9ce5b09d78b27fb90",
+      "actual": "892963df28e55ef0f5e00811318877d8743f41e32a17c8c9ce5b09d78b27fb90",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-signal-algorithms-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/lib.rs",
+      "resolution": "RuView",
+      "recorded": "288a5f441a45487856b8a89f26848e126da588b79abda5a6ca36705e97091796",
+      "actual": "288a5f441a45487856b8a89f26848e126da588b79abda5a6ca36705e97091796",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-signal-integration.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/subcarrier_selection.rs",
+      "resolution": "RuView",
+      "recorded": "f807be52f2efe0307616a6656c60754b88784c3b0af1f4af2a0d14bac625668d",
+      "actual": "f807be52f2efe0307616a6656c60754b88784c3b0af1f4af2a0d14bac625668d",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-signal-integration.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/spectrogram.rs",
+      "resolution": "RuView",
+      "recorded": "7e928b77bd3a8db6e046903f844f7306cd8e937f9b703bdd33e52897ee1135f2",
+      "actual": "7e928b77bd3a8db6e046903f844f7306cd8e937f9b703bdd33e52897ee1135f2",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-signal-integration.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/bvp.rs",
+      "resolution": "RuView",
+      "recorded": "892963df28e55ef0f5e00811318877d8743f41e32a17c8c9ce5b09d78b27fb90",
+      "actual": "892963df28e55ef0f5e00811318877d8743f41e32a17c8c9ce5b09d78b27fb90",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-signal-integration.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/fresnel.rs",
+      "resolution": "RuView",
+      "recorded": "a9b4a8bb4c5ae97c65227496db78e08bd4a68e7527d3ad7286cbd64e5c4d54b0",
+      "actual": "a9b4a8bb4c5ae97c65227496db78e08bd4a68e7527d3ad7286cbd64e5c4d54b0",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-signal-integration.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-mat/src/localization/triangulation.rs",
+      "resolution": "RuView",
+      "recorded": "967536ca7d3aa47b156fc3a053c04ad384cd04a81beb4a7853139928b110ac63",
+      "actual": "967536ca7d3aa47b156fc3a053c04ad384cd04a81beb4a7853139928b110ac63",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-signal-integration.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-mat/src/detection/breathing.rs",
+      "resolution": "RuView",
+      "recorded": "b231a82b418ff8f3b30f033dc6e04dccebb125f6ce3a2729edd913827e319fab",
+      "actual": "b231a82b418ff8f3b30f033dc6e04dccebb125f6ce3a2729edd913827e319fab",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-signal-integration.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-mat/src/detection/heartbeat.rs",
+      "resolution": "RuView",
+      "recorded": "770934eddbad7d5dd9fe123c5b79ac7f5b64dd6d521b1a0a92a50121ab2ddd99",
+      "actual": "770934eddbad7d5dd9fe123c5b79ac7f5b64dd6d521b1a0a92a50121ab2ddd99",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-signal-integration.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-ruvector/src/signal/bvp.rs",
+      "resolution": "RuView",
+      "recorded": "be8d683d5918769663c169616103417d9c338c69632dd92449e8cf089b90e526",
+      "actual": "be8d683d5918769663c169616103417d9c338c69632dd92449e8cf089b90e526",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-signal-integration.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-ruvector/src/signal/subcarrier.rs",
+      "resolution": "RuView",
+      "recorded": "7d6ebb6d119490b4bf977a61f83ee30d4186d0168514c411bf1947a82d4e2587",
+      "actual": "7d6ebb6d119490b4bf977a61f83ee30d4186d0168514c411bf1947a82d4e2587",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-signal-integration.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-ruvector/src/signal/mod.rs",
+      "resolution": "RuView",
+      "recorded": "a3686ae43d283084fbff11cf4faf96740a04ad3f0b3819469ab9405dca84be62",
+      "actual": "a3686ae43d283084fbff11cf4faf96740a04ad3f0b3819469ab9405dca84be62",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-signal-integration.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-ruvector/src/signal/fresnel.rs",
+      "resolution": "RuView",
+      "recorded": "3411d346bb758114a6c2b005bd65ef725f13d937752090ac679b758e56c3575f",
+      "actual": "3411d346bb758114a6c2b005bd65ef725f13d937752090ac679b758e56c3575f",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-signal-integration.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-ruvector/src/signal/spectrogram.rs",
+      "resolution": "RuView",
+      "recorded": "0c651930c3f97b017c805b8cedf8eb70f9d67cebcf0ecd9e2013366dd1bb0e2c",
+      "actual": "0c651930c3f97b017c805b8cedf8eb70f9d67cebcf0ecd9e2013366dd1bb0e2c",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-signal-integration.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-ruvector/src/mat/breathing.rs",
+      "resolution": "RuView",
+      "recorded": "b930408a442082b9d0e73a3b14ffe5d05db7fd98d1d47cb5a5886d2b171760ae",
+      "actual": "b930408a442082b9d0e73a3b14ffe5d05db7fd98d1d47cb5a5886d2b171760ae",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-signal-integration.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-ruvector/src/mat/triangulation.rs",
+      "resolution": "RuView",
+      "recorded": "bc97119c472285f6305a52264d8fd95440c77289f95b842866a470938de250f3",
+      "actual": "bc97119c472285f6305a52264d8fd95440c77289f95b842866a470938de250f3",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-signal-integration.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-ruvector/src/mat/mod.rs",
+      "resolution": "RuView",
+      "recorded": "4679494a5dadd1e0c876c30d5a11b14de25f0e40af529ae0b2281ce8d3c78c69",
+      "actual": "4679494a5dadd1e0c876c30d5a11b14de25f0e40af529ae0b2281ce8d3c78c69",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-signal-integration.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-ruvector/src/mat/heartbeat.rs",
+      "resolution": "RuView",
+      "recorded": "57ef8a107d67b40d37b165645eaef2cdb0d255e8f8d5b151de7883adb0af0ad1",
+      "actual": "57ef8a107d67b40d37b165645eaef2cdb0d255e8f8d5b151de7883adb0af0ad1",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/main.rs",
+      "resolution": "RuView",
+      "recorded": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+      "actual": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-hardware/src/esp32_parser.rs",
+      "resolution": "RuView",
+      "recorded": "da9ebc660fbed213b4d5d9f6319fc461ac9b48117b035747263245f02966f974",
+      "actual": "da9ebc660fbed213b4d5d9f6319fc461ac9b48117b035747263245f02966f974",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-mat/src/integration/hardware_adapter.rs",
+      "resolution": "RuView",
+      "recorded": "3e1518eb06f18d1db9707e9565c1e55bd9cae1d97b62509a3cac251dc13c158c",
+      "actual": "3e1518eb06f18d1db9707e9565c1e55bd9cae1d97b62509a3cac251dc13c158c",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-mat/src/integration/neural_adapter.rs",
+      "resolution": "RuView",
+      "recorded": "55c8c8ce6cf50b36ae060b61940aff2e4ac07773adf57b56269fc0632c6cb61a",
+      "actual": "55c8c8ce6cf50b36ae060b61940aff2e4ac07773adf57b56269fc0632c6cb61a",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/rvf_container.rs",
+      "resolution": "RuView",
+      "recorded": "37092b456f28054f5e8a13dd0e9f302c7f1d21e63eb4785f3c7117ec8ac1a3d9",
+      "actual": "37092b456f28054f5e8a13dd0e9f302c7f1d21e63eb4785f3c7117ec8ac1a3d9",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/firmware/esp32-csi-node/main/csi_collector.c",
+      "resolution": "RuView",
+      "recorded": "6ad22fbe047f789dce3f25dd7ceb44be31c48dcb62564224d3367bcb5bf8fbbf",
+      "actual": "6ad22fbe047f789dce3f25dd7ceb44be31c48dcb62564224d3367bcb5bf8fbbf",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-sona-probe.json",
+      "path": "/home/devuser/workspace/RuView/docs/adr/ADR-005-sona-self-learning-pose-estimation.md",
+      "resolution": "absolute receipt path",
+      "recorded": "009c2bb5202b4c03009ecc47efe7f4badeef2c5fd9649d0eba4831fbc78cf367",
+      "actual": "667f5bc7b79522986e88899c01456ca4f750577f878361eff7b7b9f763995193",
+      "state": "changed"
+    },
+    {
+      "receipt": "ruview-sona-probe.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/rvf_pipeline.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "1da194405b039b641c27d1ccde030895d74061ab7b52489d8a20173db8934db1",
+      "actual": "1da194405b039b641c27d1ccde030895d74061ab7b52489d8a20173db8934db1",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-strategy-lineage.json",
+      "path": "/home/devuser/workspace/RuView/docs/adr/ADR-002-ruvector-rvf-integration-strategy.md",
+      "resolution": "RuView",
+      "recorded": "566f4b2ab8a493f75fc1da32e4a866ac47f070dd7c16b791860ee794b6dcfdac",
+      "actual": "72823d90d909e56e78c69dfc4b898678b9444ef7790e35c2d2efba5f51b58bd2",
+      "state": "changed"
+    },
+    {
+      "receipt": "ruview-strategy-lineage.json",
+      "path": "/home/devuser/workspace/RuView/docs/adr/ADR-016-ruvector-integration.md",
+      "resolution": "RuView",
+      "recorded": "8dbf185883289ffb8895b600fe1b62260127522b99d22e0ff3507c31833a9f5f",
+      "actual": "8dbf185883289ffb8895b600fe1b62260127522b99d22e0ff3507c31833a9f5f",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-strategy-lineage.json",
+      "path": "/home/devuser/workspace/RuView/docs/adr/ADR-017-ruvector-signal-mat-integration.md",
+      "resolution": "RuView",
+      "recorded": "90a97c7b1516486acf09deaebd314b3357b472b8fb99d4c9d1cfc405ad854bea",
+      "actual": "90a97c7b1516486acf09deaebd314b3357b472b8fb99d4c9d1cfc405ad854bea",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-strategy-lineage.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-ruvector/src/lib.rs",
+      "resolution": "RuView",
+      "recorded": "d52c7b6ea18183ac068bb16cd470a0edcd12a2f957e3cdf827a3a794ffaa5702",
+      "actual": "d52c7b6ea18183ac068bb16cd470a0edcd12a2f957e3cdf827a3a794ffaa5702",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-strategy-lineage.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-ruvector/Cargo.toml",
+      "resolution": "RuView",
+      "recorded": "1fd549292bfb56b588964042b0f4ef86b0e0fd0dc7e9b09306a570f8964766a7",
+      "actual": "1fd549292bfb56b588964042b0f4ef86b0e0fd0dc7e9b09306a570f8964766a7",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-strategy-lineage.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/Cargo.toml",
+      "resolution": "RuView",
+      "recorded": "6c9d77466bfaeb8b377fb0063b8befa2c6b4d0e02383038c31c015c79ee9b298",
+      "actual": "6c9d77466bfaeb8b377fb0063b8befa2c6b4d0e02383038c31c015c79ee9b298",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-tracking-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-mat/src/tracking/lifecycle.rs",
+      "resolution": "RuView",
+      "recorded": "217bf87a31c1e2db29db2c5907d0c3f3e3c0306bc93214ea9b4597679413dd5d",
+      "actual": "217bf87a31c1e2db29db2c5907d0c3f3e3c0306bc93214ea9b4597679413dd5d",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-tracking-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-mat/src/tracking/kalman.rs",
+      "resolution": "RuView",
+      "recorded": "f6f6b5924b71bda29c9478df42c4e1efe1cd2631ff685c07dd6c52ee1f0b4184",
+      "actual": "f6f6b5924b71bda29c9478df42c4e1efe1cd2631ff685c07dd6c52ee1f0b4184",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-tracking-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-mat/src/tracking/fingerprint.rs",
+      "resolution": "RuView",
+      "recorded": "a93c87fc3ff59a8d333bf08e896a77e77d53cbd068f9a57daab5655b869b1277",
+      "actual": "a93c87fc3ff59a8d333bf08e896a77e77d53cbd068f9a57daab5655b869b1277",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-tracking-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-mat/src/tracking/tracker.rs",
+      "resolution": "RuView",
+      "recorded": "8d176b382674ae095cdbe0a778f07de9bdba820dca23c1c8361b0a7034a5b325",
+      "actual": "8d176b382674ae095cdbe0a778f07de9bdba820dca23c1c8361b0a7034a5b325",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-tracking-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-mat/src/lib.rs",
+      "resolution": "RuView",
+      "recorded": "2314edcc9db209295830e581b6372cb7436635bd8a4a1201fcb1d2376499607a",
+      "actual": "2314edcc9db209295830e581b6372cb7436635bd8a4a1201fcb1d2376499607a",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-tracking-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-mat/src/domain/events.rs",
+      "resolution": "RuView",
+      "recorded": "4a73fe42259d0f9e28d78d22c2647fe9764f38684f93ac2856dfc6c3a117d4aa",
+      "actual": "4a73fe42259d0f9e28d78d22c2647fe9764f38684f93ac2856dfc6c3a117d4aa",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-training-integration.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-train/src/model.rs",
+      "resolution": "RuView",
+      "recorded": "61f72c9b658f9466e30213d1504796268579476e9a14bb0a39af203a83fea814",
+      "actual": "61f72c9b658f9466e30213d1504796268579476e9a14bb0a39af203a83fea814",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-training-integration.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-train/src/dataset.rs",
+      "resolution": "RuView",
+      "recorded": "a02adc02b26f873369ecc780712439f753a545c475093a831caabc57d0bb425e",
+      "actual": "a02adc02b26f873369ecc780712439f753a545c475093a831caabc57d0bb425e",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-training-integration.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-train/src/metrics.rs",
+      "resolution": "RuView",
+      "recorded": "e3c403ad1d26686f7c3ae599419ef0d20940f164aa3915b01790b0a5c53abe5a",
+      "actual": "e3c403ad1d26686f7c3ae599419ef0d20940f164aa3915b01790b0a5c53abe5a",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-training-integration.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-train/src/subcarrier.rs",
+      "resolution": "RuView",
+      "recorded": "bb33e4e3d2b43b27b262b7ad8de59d2ef4d78699406710ca25f364c7c601d460",
+      "actual": "bb33e4e3d2b43b27b262b7ad8de59d2ef4d78699406710ca25f364c7c601d460",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-training-integration.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-train/src/eval.rs",
+      "resolution": "RuView",
+      "recorded": "268264cba81f7de509657e8a2e000984314e51e6dd86e056b37f305fb233a52b",
+      "actual": "268264cba81f7de509657e8a2e000984314e51e6dd86e056b37f305fb233a52b",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-training-integration.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-train/src/trainer.rs",
+      "resolution": "RuView",
+      "recorded": "2fc9f62bf1fedc61df2fc027162677bcf999d96a95c8449f6c87f7466a50db2f",
+      "actual": "2fc9f62bf1fedc61df2fc027162677bcf999d96a95c8449f6c87f7466a50db2f",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-training-ui-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/Cargo.toml",
+      "resolution": "RuView",
+      "recorded": "2c33565d5d7e13b0950cf96c88d486b97ed21e72efccb1b0b4405f30d0b3ad1e",
+      "actual": "2c33565d5d7e13b0950cf96c88d486b97ed21e72efccb1b0b4405f30d0b3ad1e",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-training-ui-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/main.rs",
+      "resolution": "RuView",
+      "recorded": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+      "actual": "871e47cbcee87c40f8bef6350e5b6afe23e496080933306aaaa17fa5964620d3",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-training-ui-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/lib.rs",
+      "resolution": "RuView",
+      "recorded": "929c93cea8a966747ef2baeebf77ce0d89dc2b4c9bf59bde6211ca195148fe18",
+      "actual": "929c93cea8a966747ef2baeebf77ce0d89dc2b4c9bf59bde6211ca195148fe18",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-training-ui-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/training_api.rs",
+      "resolution": "RuView",
+      "recorded": "0298272248edb7f0f54eb21abb56e7862867bc00ea9f1c21942439060600eeb5",
+      "actual": "0298272248edb7f0f54eb21abb56e7862867bc00ea9f1c21942439060600eeb5",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-training-ui-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/recording.rs",
+      "resolution": "RuView",
+      "recorded": "e521f1132d93eb742c0ba01ef22cfa4145907dffcf8de09eecb377f5bfa42529",
+      "actual": "e521f1132d93eb742c0ba01ef22cfa4145907dffcf8de09eecb377f5bfa42529",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-training-ui-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/model_manager.rs",
+      "resolution": "RuView",
+      "recorded": "6a4079d75be7be6b7d09da361f27075f145529b162484521277229f64b038120",
+      "actual": "6a4079d75be7be6b7d09da361f27075f145529b162484521277229f64b038120",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-training-ui-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/app.js",
+      "resolution": "RuView",
+      "recorded": "b2bf1cc38ad4b592da255cf06e23b231d8cdc0a9ef704b87097ab6b669949cdf",
+      "actual": "b2bf1cc38ad4b592da255cf06e23b231d8cdc0a9ef704b87097ab6b669949cdf",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-training-ui-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/components/TrainingPanel.js",
+      "resolution": "RuView",
+      "recorded": "96b3285d3a6020e30059e3f617b5737fa5fa00ce6d2a189ff1efb9858c5b087b",
+      "actual": "96b3285d3a6020e30059e3f617b5737fa5fa00ce6d2a189ff1efb9858c5b087b",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-training-ui-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/components/ModelPanel.js",
+      "resolution": "RuView",
+      "recorded": "41060024f2555d26bf7205cd54dc8e9d4d6b345420bcdb68ddce44525e045b9d",
+      "actual": "41060024f2555d26bf7205cd54dc8e9d4d6b345420bcdb68ddce44525e045b9d",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-training-ui-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/components/SettingsPanel.js",
+      "resolution": "RuView",
+      "recorded": "0c393d3111022daf5c3d723fa60ef3101a9d8fb783a8a21f76e57ddee60f8e1f",
+      "actual": "0c393d3111022daf5c3d723fa60ef3101a9d8fb783a8a21f76e57ddee60f8e1f",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-training-ui-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/components/LiveDemoTab.js",
+      "resolution": "RuView",
+      "recorded": "70eeef57f8f00240874e2b818b4cede2697c4afbb49bda5cd54ca3da934d293e",
+      "actual": "70eeef57f8f00240874e2b818b4cede2697c4afbb49bda5cd54ca3da934d293e",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-training-ui-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/services/model.service.js",
+      "resolution": "RuView",
+      "recorded": "b71bcabd010aa59f48a7bc7a8c94d66150fec5d55a5af5e4672a9d66b0c60292",
+      "actual": "b71bcabd010aa59f48a7bc7a8c94d66150fec5d55a5af5e4672a9d66b0c60292",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-training-ui-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/ui/services/training.service.js",
+      "resolution": "RuView",
+      "recorded": "1c0c7cc4d53e4127d2f826a92095b9b0fbaa4322f763eaffae9e9a6946b2ce99",
+      "actual": "1c0c7cc4d53e4127d2f826a92095b9b0fbaa4322f763eaffae9e9a6946b2ce99",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-witness-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/docs/adr/ADR-010-witness-chains-audit-trail-integrity.md",
+      "resolution": "absolute receipt path",
+      "recorded": "f1d33899297ef3b65d87d8dcae0209678b5fd07dcb7aa4bdb41e1a4a3b201398",
+      "actual": "aba3d65134f906259c5ad43ea899ee23337ca0ceddd6dc6a9102a764f2c362eb",
+      "state": "changed"
+    },
+    {
+      "receipt": "ruview-witness-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/rvf_container.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "37092b456f28054f5e8a13dd0e9f302c7f1d21e63eb4785f3c7117ec8ac1a3d9",
+      "actual": "37092b456f28054f5e8a13dd0e9f302c7f1d21e63eb4785f3c7117ec8ac1a3d9",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-witness-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/training_api.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "0298272248edb7f0f54eb21abb56e7862867bc00ea9f1c21942439060600eeb5",
+      "actual": "0298272248edb7f0f54eb21abb56e7862867bc00ea9f1c21942439060600eeb5",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-witness-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/rvf_pipeline.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "1da194405b039b641c27d1ccde030895d74061ab7b52489d8a20173db8934db1",
+      "actual": "1da194405b039b641c27d1ccde030895d74061ab7b52489d8a20173db8934db1",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-witness-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/tests/rvf_container_test.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "7c30d2d1bb9d57879a0d44f019f71907f5e5d48345747c90b6d517677c5268bd",
+      "actual": "7c30d2d1bb9d57879a0d44f019f71907f5e5d48345747c90b6d517677c5268bd",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-workspace-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-core/Cargo.toml",
+      "resolution": "RuView/rust-port/wifi-densepose-rs; workspace member hash is Cargo.toml",
+      "recorded": "b7e607ceeeb7ad242d60e7bb7cb4eaf795eea6e02e9661c5d0b47e37c46f2e72",
+      "actual": "b7e607ceeeb7ad242d60e7bb7cb4eaf795eea6e02e9661c5d0b47e37c46f2e72",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-workspace-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/Cargo.toml",
+      "resolution": "RuView/rust-port/wifi-densepose-rs; workspace member hash is Cargo.toml",
+      "recorded": "bc4e97ce997ca8d74eea799c533e186aa75f588172c63063b29e0f3a36372ae0",
+      "actual": "bc4e97ce997ca8d74eea799c533e186aa75f588172c63063b29e0f3a36372ae0",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-workspace-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-nn/Cargo.toml",
+      "resolution": "RuView/rust-port/wifi-densepose-rs; workspace member hash is Cargo.toml",
+      "recorded": "aefeea6dbca690562d6f98d34cddb50005915d20073538086f91627c706140ba",
+      "actual": "aefeea6dbca690562d6f98d34cddb50005915d20073538086f91627c706140ba",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-workspace-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-api/Cargo.toml",
+      "resolution": "RuView/rust-port/wifi-densepose-rs; workspace member hash is Cargo.toml",
+      "recorded": "209ce181006954b93f0a12d9c4f6382ea8879854ba581e0e612d6096343fb7b8",
+      "actual": "209ce181006954b93f0a12d9c4f6382ea8879854ba581e0e612d6096343fb7b8",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-workspace-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-db/Cargo.toml",
+      "resolution": "RuView/rust-port/wifi-densepose-rs; workspace member hash is Cargo.toml",
+      "recorded": "0873b49149f0201fc789e246c87e5dbee71c92617d4229d55eaeac75164493b9",
+      "actual": "0873b49149f0201fc789e246c87e5dbee71c92617d4229d55eaeac75164493b9",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-workspace-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-config/Cargo.toml",
+      "resolution": "RuView/rust-port/wifi-densepose-rs; workspace member hash is Cargo.toml",
+      "recorded": "2602cb07d54503bd57685c1eaab395cb956a2c424853f576254ea06350378403",
+      "actual": "2602cb07d54503bd57685c1eaab395cb956a2c424853f576254ea06350378403",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-workspace-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-hardware/Cargo.toml",
+      "resolution": "RuView/rust-port/wifi-densepose-rs; workspace member hash is Cargo.toml",
+      "recorded": "1555842c2a9f21cf2bd49a64b7a32df7a41dbef2823922483c8ae96f6c1d526f",
+      "actual": "1555842c2a9f21cf2bd49a64b7a32df7a41dbef2823922483c8ae96f6c1d526f",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-workspace-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-wasm/Cargo.toml",
+      "resolution": "RuView/rust-port/wifi-densepose-rs; workspace member hash is Cargo.toml",
+      "recorded": "6fc7c44b01998c381932d84c6fdb93ed7be6add6eebb63b8424370c6aba40fc5",
+      "actual": "6fc7c44b01998c381932d84c6fdb93ed7be6add6eebb63b8424370c6aba40fc5",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-workspace-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-cli/Cargo.toml",
+      "resolution": "RuView/rust-port/wifi-densepose-rs; workspace member hash is Cargo.toml",
+      "recorded": "0d73eeb699cd957c67b8559b3b1f3503901d6add7ae855e0ec3fa7e2aa4d7875",
+      "actual": "0d73eeb699cd957c67b8559b3b1f3503901d6add7ae855e0ec3fa7e2aa4d7875",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-workspace-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-mat/Cargo.toml",
+      "resolution": "RuView/rust-port/wifi-densepose-rs; workspace member hash is Cargo.toml",
+      "recorded": "830e4cf9764eb8924bb2a5d87dee5ca58c0ba15182f20ffe913c8d847e6181b0",
+      "actual": "830e4cf9764eb8924bb2a5d87dee5ca58c0ba15182f20ffe913c8d847e6181b0",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-workspace-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-train/Cargo.toml",
+      "resolution": "RuView/rust-port/wifi-densepose-rs; workspace member hash is Cargo.toml",
+      "recorded": "4c579a9860df80b5089c2dbcbf4a91d97f6b046ad2d1d2bb1f72565e20b43dc0",
+      "actual": "4c579a9860df80b5089c2dbcbf4a91d97f6b046ad2d1d2bb1f72565e20b43dc0",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-workspace-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/Cargo.toml",
+      "resolution": "RuView/rust-port/wifi-densepose-rs; workspace member hash is Cargo.toml",
+      "recorded": "2c33565d5d7e13b0950cf96c88d486b97ed21e72efccb1b0b4405f30d0b3ad1e",
+      "actual": "2c33565d5d7e13b0950cf96c88d486b97ed21e72efccb1b0b4405f30d0b3ad1e",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-workspace-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-wifiscan/Cargo.toml",
+      "resolution": "RuView/rust-port/wifi-densepose-rs; workspace member hash is Cargo.toml",
+      "recorded": "a2e256567ce79a6c7ee115f6e65502909fd2fd9ea3053058cd5b3209d8273739",
+      "actual": "a2e256567ce79a6c7ee115f6e65502909fd2fd9ea3053058cd5b3209d8273739",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-workspace-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-vitals/Cargo.toml",
+      "resolution": "RuView/rust-port/wifi-densepose-rs; workspace member hash is Cargo.toml",
+      "recorded": "a097061a158262411dfb2915bb6ed1228e11a7d440b572fb52ea658762243b5c",
+      "actual": "a097061a158262411dfb2915bb6ed1228e11a7d440b572fb52ea658762243b5c",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-workspace-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-ruvector/Cargo.toml",
+      "resolution": "RuView/rust-port/wifi-densepose-rs; workspace member hash is Cargo.toml",
+      "recorded": "1fd549292bfb56b588964042b0f4ef86b0e0fd0dc7e9b09306a570f8964766a7",
+      "actual": "1fd549292bfb56b588964042b0f4ef86b0e0fd0dc7e9b09306a570f8964766a7",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-workspace-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/Cargo.toml",
+      "resolution": "absolute receipt path",
+      "recorded": "6c9d77466bfaeb8b377fb0063b8befa2c6b4d0e02383038c31c015c79ee9b298",
+      "actual": "6c9d77466bfaeb8b377fb0063b8befa2c6b4d0e02383038c31c015c79ee9b298",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-workspace-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-nn/src/onnx.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "7780a07499e864dc247d2f76fe65bb2ad89cedbf6f890e89805bfa383fc85917",
+      "actual": "7780a07499e864dc247d2f76fe65bb2ad89cedbf6f890e89805bfa383fc85917",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-workspace-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-nn/src/inference.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "b11876291b5dbdb1e389fab1e936e0f69e9f267154f8024577a1bc366de8136a",
+      "actual": "b11876291b5dbdb1e389fab1e936e0f69e9f267154f8024577a1bc366de8136a",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-workspace-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-nn/src/lib.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "114d2cd90ff8932187bc7e9a70fffed04f853fc70cb21e2e3731926ad60d66dc",
+      "actual": "114d2cd90ff8932187bc7e9a70fffed04f853fc70cb21e2e3731926ad60d66dc",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-workspace-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/phase_sanitizer.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "4f7eb5931885349f5996b99c57e6280aaa853972bd0d01822a897c748f514fa8",
+      "actual": "4f7eb5931885349f5996b99c57e6280aaa853972bd0d01822a897c748f514fa8",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-workspace-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/csi_processor.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "64f374aaeab3e03ebf4b09c158ab644cb76c106146dca386c8257a446eb788eb",
+      "actual": "64f374aaeab3e03ebf4b09c158ab644cb76c106146dca386c8257a446eb788eb",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-workspace-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/motion.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "944453b493d1b19945805f24e9bd99751195d846b009257ae3896fa47491e90d",
+      "actual": "944453b493d1b19945805f24e9bd99751195d846b009257ae3896fa47491e90d",
+      "state": "unchanged"
+    },
+    {
+      "receipt": "ruview-workspace-snapshot.json",
+      "path": "/home/devuser/workspace/RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-signal/src/features.rs",
+      "resolution": "absolute receipt path",
+      "recorded": "b5fbb59c53a2a77ca9da35fce8683e2a8a986dcc44e9c3b97537b7f02cd074ce",
+      "actual": "b5fbb59c53a2a77ca9da35fce8683e2a8a986dcc44e9c3b97537b7f02cd074ce",
+      "state": "unchanged"
+    }
+  ]
+}

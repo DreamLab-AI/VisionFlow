@@ -6,6 +6,7 @@ governing:
   - ../visionGraph/docs/PUBLICATION-contract.md
 adrs: [ADR-VG-002]
 sources:
+  - ../visionGraph/pipeline/jsonld_parser.py
   - ../visionGraph/pipeline/build.py
   - ../visionGraph/pipeline/conflicts.py
   - ../visionGraph/pipeline/iri_integrity.py
@@ -37,7 +38,8 @@ flowchart TD
     S2 --> S7
     S4 --> S8
     S4 --> S9
-    note1["DIVERGENCE from knowledgeGraph#39;s 8-stage build #40;KG-02.1#41;: VG adds<br/>Stage 4 EL-closure reasoning #40;pipeline.reason#41; feeding BOTH the<br/>closure-enriched Page API #40;5#41; and two NEW agent-consumer indexes<br/>#40;8, 9#41; that knowledgeGraph does not emit"]
+    note1["DIVERGENCE from knowledgeGraph#39;s 7-stage build #40;by the SAME '# Stage N'<br/>code-comment count — see KG-02.1#41;: VG adds Stage 4 EL-closure reasoning<br/>#40;pipeline.reason#41; feeding BOTH the closure-enriched Page API #40;5#41; and two<br/>NEW agent-consumer indexes #40;8, 9#41; that knowledgeGraph does not emit"]
+    note2["DOC-DRIFT #40;this repo's OWN build.py#41;: its print#40;#41; progress markers run<br/>#91;1/9#93; through #91;8/9#93; for stages 1-7, then flip denominator to<br/>#91;9/10#93; and #91;10/10#93; for stages 8-9 #40;build.py:92,100#41; — the scaffold/prose<br/>indexes were added without updating the earlier steps' /9 to /10. A reader<br/>watching stdout sees an inconsistent total; the comment count above #40;9#41;<br/>is the only self-consistent one"]
 ```
 
 ## VG-02.2 pipeline.conflicts — semantica-style pre-merge conflict detection for swarm authoring
@@ -135,3 +137,18 @@ classDiagram
     note for ScaffoldEntry "emit_scaffold_index — scaffold_index.py:55<br/>schema contract version 1 — www/data/scaffold-index.json"
     note for ProseEntry "emit_prose_index — prose_index.py:64<br/>pages contributing NEITHER field are omitted, keeping the file small.<br/>Consumers treat absence of a slug as 'no prose beyond structural'"
 ```
+
+## VG-02.7 Authoring publisher and extracted publisher have different validation contracts
+
+```mermaid
+flowchart TB
+    VAULT["visionGraph authoring tree<br/>pipeline/build.py:28-68"] --> VP["parse_corpus; validation errors are logged<br/>and build continues, build.py:40-46"]
+    VP --> VI["compute_closure over all parsed pages<br/>emit_inferred_ttl iterates closure without a public filter"]
+    VI --> RISK["Private ancestor identities can enter inferred RDF;<br/>asserted and inferred identifier forms also differ"]
+    EXTRACT["knowledgeGraph extracted publisher<br/>separate, dirty working tree"] --> KP["strict build + typed publication flags<br/>visibility filter + committed identity-set release gate"]
+    KP --> PASS["85 local tests pass on 2026-09-07;<br/>does not change visionGraph or prove deployment"]
+    RISK --> ADR["ADR-VG-001 and ADR-VG-002 stay proposed,<br/>partial and inactive pending producer/consumer acceptance"]
+    PASS -. "candidate mechanisms to adapt and verify" .-> ADR
+```
+
+The publisher's `is_public` field receives `page_block.get("vc:public", False)` without boolean coercion (`pipeline/jsonld_parser.py:205`). A string `"false"` therefore remains truthy. `pipeline/reason.py:171-208` emits the computed closure without a public-page check. The 2026-09-07 synthetic probe confirms a private grandparent identifier in inferred Turtle. These are source/probe findings; this audit does not publish or inspect live private content.

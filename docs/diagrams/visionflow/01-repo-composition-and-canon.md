@@ -8,7 +8,7 @@ governing:
   - docs/architecture/repository-map.md
 adrs: [ADR-2001, ADR-2002, ADR-2005, ADR-2006, ADR-2007]
 sources:
-  - README.md
+  - ./README.md
   - docs/README.md
   - docs/BASELINE-visionflow.md
   - docs/adr/README.md
@@ -70,7 +70,7 @@ flowchart TB
     ABSENT["INVARIANT: no server runtime, no database, no Rust code<br/>BASELINE-visionflow.md:52<br/>ADR-2006-canon-owns-crossrepo-view-not-implementation.md:30"]:::absent
     ROOT -.->|"the canon ships words and is graded on their accuracy"| ABSENT
 
-    QUICK["README.md:192 — 'VisionFlow has no application runtime of its own'<br/>two honest local actions: build the site; run the siblings from their own repos"]:::doc
+    QUICK["./README.md:192 — 'VisionFlow has no application runtime of its own'<br/>two honest local actions: build the site; run the siblings from their own repos"]:::doc
     ROOT -.-> QUICK
 ```
 
@@ -97,14 +97,14 @@ flowchart LR
 
     subgraph EVID["REGISTERS, RELEASES AND EVIDENCE"]
         REG["docs/registers/ — gap-register v1.1 / v1.2 / v1.3<br/>plus the F9 fork record<br/>gap-register-v1.3.md:3 forward-chains, never edits in place"]:::reg
-        REL["docs/releases/ — README.md:8 generator invocation,<br/>ecosystem-release.schema.json, candidate-2026-05-22.json<br/>manifest machinery — see VF-07"]:::reg
+        REL["docs/releases/ — ./README.md:8 generator invocation,<br/>ecosystem-release.schema.json, candidate-2026-05-22.json<br/>manifest machinery — see VF-07"]:::reg
         CLOSE["docs/closeout/final-design.md:5 and docs/estate-closeout/<br/>dated audits — evidence of a day, not the living view"]:::reg
         REVIEW["docs/estate-review/README.md:2<br/>in-progress estate assessment + closeout programme CP-01..CP-09"]:::reg
     end
 
     subgraph WORDS["VOCABULARY AND DIRECTION"]
         TERM["docs/terminology.md:19<br/>canon for ontology / knowledge graph / reasoning / grounding"]:::other
-        ROAD["docs/roadmap.md:4<br/>a pointer, not a second plan — ADR-2007 owns sequencing"]:::other
+        ROAD["docs/roadmap.md:7<br/>a pointer, not a second plan — ADR-2007 owns sequencing"]:::other
         MAP["docs/ecosystem-map.md:3<br/>sibling synthesis + gap register"]:::other
     end
 
@@ -368,7 +368,7 @@ flowchart TB
 
     SRC["Ground truth: website/build.sh is copy-only<br/>ADR-2002-static-copy-only-website.md:30"]:::settled
 
-    D1["DOC-DRIFT: README.md:194 still says<br/>'The site is a Rust/WASM build under website/'<br/>and README.md:198 'wasm-pack builds both WASM crates'<br/>recorded open at BASELINE-visionflow.md:166"]:::drift
+    D1["DOC-DRIFT: ./README.md:194 still says<br/>'The site is a Rust/WASM build under website/'<br/>and ./README.md:198 'wasm-pack builds both WASM crates'<br/>recorded open at BASELINE-visionflow.md:166"]:::drift
     D2["DOC-DRIFT: site-verification.md:10 'builds both WASM crates'<br/>and site-verification.md:17 'wasm-pack release builds complete'"]:::drift
     D3["DOC-DRIFT: PRD-website.md:120 still specifies two required<br/>WASM modules, mesh-hero and particle-field,<br/>with PRD-website.md:128 a 300 KB gzip WASM budget"]:::drift
     SRC -.->|"contradicted by"| D1

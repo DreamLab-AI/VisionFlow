@@ -1,0 +1,24 @@
+{
+  "verified_commit": "b48847316f559c9fcb5d4ef4cc56c826ef440e7e",
+  "implementation_commit": "2c521c5bb364944547a31192268a7e68b0953c20",
+  "command": "cargo test --locked --offline --lib",
+  "cwd": "/home/devuser/workspace/project/agentbox/services/dream-engine",
+  "exit_code": 0,
+  "passed": 155,
+  "failed": 0,
+  "log": "adr2081-dream-engine-tests.log",
+  "log_sha256": "8b303ad243d82f93c9809aea840b880502da19d8bc72c6ce4c081f7d2cbc8668",
+  "working_tree_clean_for_governed_paths": true,
+  "source_hashes": {
+    "services/dream-engine/src/engine.rs": "c0d1de4a5f609ce006fa7e7cdf914b0dccc45d1e5b15255009a7d49804ebf820",
+    "services/dream-engine/src/runner.rs": "2dcc4b9e58149d45702e98af14329d21e5e236c5ddce7256e70dcf90ed1221f8",
+    "services/dream-engine/src/gate.rs": "92ff0c917402cdcee2be9a2a62237350a2570c0edc23aacfd454dee76b2664ee",
+    "services/dream-engine/src/verdict.rs": "c7b2ee3b374ab5cf6cb9deacb264a4939e15d2c742c9d9fb0e11954969c84905"
+  },
+  "limits": [
+    "No SSH/HP annexe execution",
+    "No image rebuild or supervised process identity check",
+    "Staged activation retained"
+  ],
+  "original_failed_receipt": "adr2081-provenance-failure.json"
+}

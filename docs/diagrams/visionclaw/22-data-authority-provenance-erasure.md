@@ -7,6 +7,10 @@ governing:
   - ../project/docs/BASELINE-architecture.md
 adrs: [ADR-2004, ADR-2015, ADR-2016, ADR-2017, ADR-2069, ADR-2070]
 sources:
+  - ../project/docs/DATA-authority-erasure.md
+  - ../project/Cargo.toml
+  - ../project/src/services/nostr_service.rs
+  - ../project/src/handlers/nostr_handler.rs
   - ../project/src/adapters/sqlite_settings_repository.rs
   - ../project/src/adapters/sqlite_canary_repository.rs
   - ../project/src/adapters/sqlite_kpi_repository.rs
@@ -57,16 +61,22 @@ flowchart LR
 
     AuditRBAC["Audit evidence RBAC/auth"] --> RoleTable["user_roles table in settings.sqlite3<br/>role_store.rs:46-52"]
 
+    Sessions["Session cache<br/>NostrService users map"] --> RedisGate{"redis feature AND REDIS_URL?<br/>Cargo.toml:253, nostr_service.rs:149"}
+    RedisGate -->|yes| Redis["Optional Redis session persistence<br/>SETEX with token-expiry TTL<br/>nostr_service.rs:245-299"]
+    RedisGate -->|no| Memory["In-memory sessions only<br/>nostr_service.rs:114"]
+    Redis -.->|"restore at initialisation"| Sessions
+    RedisScope["Not enabled by default; deployment not verified<br/>ADR-2004 all-non-triple-state wording needs scope"] -.-> Redis
+
     Credentials["Credentials"] --> DotEnv[".env plaintext filesystem"]
 
     DerivedWB["Derived write-back only<br/>append_derived_quads:728"] --> SummaryGraph["GRAPH_ONTOLOGY_SUMMARY<br/>oxigraph_ontology_repository.rs:63"]
     DerivedWB --> ObservedGraph["GRAPH_ONTOLOGY_OBSERVED<br/>oxigraph_ontology_repository.rs:64"]
 
-    DivLegacy["DIVERGENCE: legacy ADRs assign primacy to Oxigraph 132 / Pod 050-052 / GitHub 051 / RuVector 030 / provenance 033-034-124-128<br/>code resolves as this matrix, legacy prose not reconciled<br/>docs/DATA-authority-erasure.md:96-100"]
+    DivLegacy["DIVERGENCE: legacy ADRs assign primacy to Oxigraph 132 / Pod 050-052 / GitHub 051 / RuVector 030 / provenance 033-034-124-128<br/>code resolves as this matrix, legacy prose not reconciled<br/>docs/DATA-authority-erasure.md:97"]
     AssertGraph -.-> DivLegacy
     RuVector -.-> DivLegacy
 
-    DivCreds["PROPOSED ADR-2104: execute the SOPS rollout or formally withdraw ADR-109 - plaintext .env is documented as the interim state either way<br/>a 43MB scripts/sops binary dated 2026-05-09 is present and gitignored, but no .sops.yaml, secrets.enc.yaml or sops-env.sh exists<br/>docs/DATA-authority-erasure.md:106-107"]
+    DivCreds["PROPOSED ADR-2104: execute the SOPS rollout or formally withdraw ADR-109 - plaintext .env is documented as the interim state either way<br/>a 43MB scripts/sops binary dated 2026-05-09 is present and gitignored, but no .sops.yaml, secrets.enc.yaml or sops-env.sh exists<br/>docs/DATA-authority-erasure.md:112"]
     DotEnv -.-> DivCreds
 ```
 
@@ -290,7 +300,7 @@ sequenceDiagram
     end
     MEM-->>UI: boolean deleted-or-absent
     rect rgb(255, 230, 230)
-        Note over MEM,POD: DIVERGENCE: no reverse tombstone to RuVector - embedding row persists and stays searchable (docs/DATA-authority-erasure.md:86-90)
+        Note over MEM,POD: DIVERGENCE: no reverse tombstone to RuVector - embedding row persists and stays searchable (docs/DATA-authority-erasure.md:87)
         Note over MEM: this Pod-side delete never calls mcp__claude-flow__memory_delete or any RuVector endpoint - RuVector is<br/>external Postgres reached only via MCP, no delete-propagation hook exists in this path
     end
 ```
@@ -350,7 +360,7 @@ sequenceDiagram
         SYNC->>KG: load_graph, ingest KG nodes (github_sync_service.rs:994-996)
         SYNC->>AG: save_ontology_graph atomic CLEAR GRAPH assert then INSERT DATA (github_sync_service.rs:1034-1043)
     end
-    Note over SYNC,AG: authoritative store (GitHub) commits first via sync run - the Oxigraph projection is regenerated, never hand-edited (docs/DATA-authority-erasure.md:61-63)
+    Note over SYNC,AG: authoritative store (GitHub) commits first via sync run - the Oxigraph projection is regenerated, never hand-edited (docs/DATA-authority-erasure.md:62)
 
     critical decision fan-out (enrichment_proposals_handler.rs:412-471)
         APD->>SQ: record_decision INSERT+UPDATE one transaction (sqlite_enrichment_repository.rs:528-607)

@@ -372,11 +372,11 @@ stateDiagram-v2
     Healthy --> Degraded : bulk ingest
     Healthy --> Degraded : bulk deletion, e.g. memory_sweep_episodic
     note right of Degraded
-        HNSW graphs degrade SILENTLY under write churn. Recall drops with
+        HNSW recall can fall after maintenance. Latest incident was parallel build, not proven churn. Recall drops with
         no error anywhere — nothing in the query path reports it, which is
         why the harness is the only detector.
     end note
-    Degraded --> Rebuilding : NON-CONCURRENT rebuild, m=16, ef_construction=128
+    Degraded --> Rebuilding : SERIAL, non-concurrent rebuild; max_parallel_maintenance_workers=0
     note right of Rebuilding
         Takes about 5 minutes. This is the ONLY sanctioned recovery.
     end note
@@ -466,3 +466,7 @@ erDiagram
     trajectory_steps ||--o{ patterns : "distilled into"
     trajectory_steps ||--o{ memory_entries : "aggregated into ns memory-learning-aggregates"
 ```
+
+## Audit qualification — 2026-09-07
+
+The 2026-09-05 Agentbox recall closeout records self 189/200 and true 115/120 after a **serial** rebuild, versus self 151/200 after parallel rebuilding. These are historical receipts, not a fresh benchmark. The local RuVector source contains `hnsw_bulkdelete` and deleted-node flags; neither proves a deployed bulk-delete recall regression. Keep cross-store reverse tombstones (ADR-2060) distinct from index tombstones. No database mutation or reindex was performed. See [audit](../../estate-review/2026-09-07-agentbox-audit.md).

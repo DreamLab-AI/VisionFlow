@@ -6,6 +6,8 @@ governing:
   - ../project/docs/IDENTIFIER-taxonomy.md
 adrs: [ADR-2021, ADR-2022, ADR-2023, ADR-2024, ADR-2025, ADR-2070, ADR-2072]
 sources:
+  - ../project/crates/visionclaw-adapters/src/oxigraph_ontology_repository.rs
+  - ../project/crates/visionclaw-domain/src/uri.rs
   - ../project/src/uri/mod.rs
   - ../project/src/utils/binary_protocol.rs
   - ../project/src/types/user_context.rs

@@ -46,10 +46,10 @@ sequenceDiagram
     autonumber
     participant NG as nginx :3001
     participant AC as actix HttpServer<br/>src/main.rs:978-1033
-    participant LG as Logger<br/>wrap #1 src/main.rs:972
+    participant LG as Logger<br/>wrap #1 src/main.rs:979
     participant CO as cors<br/>wrap #2 src/main.rs:980
-    participant CP as Compress<br/>wrap #3 src/main.rs:974
-    participant TO as TimeoutMiddleware<br/>wrap #4 src/main.rs:975-978
+    participant CP as Compress<br/>wrap #3 src/main.rs:981
+    participant TO as TimeoutMiddleware<br/>wrap #4 src/main.rs:982-985
     participant SC as scope /api<br/>src/main.rs:1054
     participant PD as PublicDemoGuard::from_env<br/>src/main.rs:1058
     participant RG as RbacGate::from_env<br/>src/main.rs:1065
@@ -93,7 +93,7 @@ sequenceDiagram
 
     Note over WS: routes registered src/main.rs:1037-1047 — /wss, /wss/agent-events,<br/>/ws/speech, /ws/mcp-relay, /ws/client-messages, /ws/presence
     C->>WS: GET /wss (Upgrade: websocket)
-    WS->>WS: require Upgrade header (http_handler.rs:100)
+    WS->>WS: require Upgrade header (http_handler.rs:318)
     alt Origin header present
         WS->>WS: check against allowed_origins / is_same_host
         alt origin not allowed
@@ -106,23 +106,24 @@ sequenceDiagram
             WS-->>C: 400 BadRequest "Origin header required" (http_handler.rs:124-130)
         end
     end
-    WS->>WS: token = Authorization Bearer OR query "?token=" (http_handler.rs:139-150)
-    Note over WS: DEPRECATED ADR-2044 — query-param token accepted on the upgrade routes (one release):<br/>http_handler.rs:155 — fastwebsockets_handler.rs:238 — client_messages_handler.rs:127 —<br/>mcp_relay_handler.rs:461 — multi_mcp_websocket_handler.rs:843 — filter_auth.rs:138 (WS message body).<br/>Kept for XR and native clients that cannot set headers on an upgrade — the header path is<br/>preferred and the query path leaks into proxy and access logs. CORRECTION — speech_socket_handler<br/>has NO query path and does full NIP-98 verification (verify_nip98_auth, :230) — it was wrongly<br/>listed here in the Phase 1 pass.
+    WS->>WS: token = Authorization Bearer header (release) — dev/dev-auth builds ALSO accept query token= (http_handler.rs:143-166)
+    Note over WS: DOC-DRIFT (was "DEPRECATED ADR-2044, kept for XR/native clients") — that premise is gone.<br/>ADR-2058 confined ?token= to dev/dev-auth builds only (http_handler.rs:151,<br/>fastwebsockets_handler.rs:243, client_messages_handler.rs:145, mcp_relay_handler.rs:486,<br/>multi_mcp_websocket_handler.rs:867) — a RELEASE build actively REJECTS it with a 401 and a<br/>SECURITY warning (http_handler.rs:170-175, fastwebsockets_handler.rs:261-263,<br/>mcp_relay_handler.rs:502-504, multi_mcp_websocket_handler.rs:883-885). The code's own<br/>rationale for the old "XR/native clients cannot set headers" claim is that it was WRONG —<br/>neither xr-client/rust/src/ nor client/src/services/ ever used a token= query<br/>(client_messages_handler.rs:120-126) — the Godot client authenticates post-connect via the<br/>NIP-98 authenticate envelope instead. filter_auth.rs:138 is unrelated to this — that is a<br/>WS MESSAGE BODY legacy fallback, not an upgrade query param. speech_socket_handler.rs has<br/>NO query path and does full NIP-98 verification (verify_nip98_auth, :230).
     alt token present
-        WS->>NS: get_session(token)
+        WS->>NS: get_session(token) (http_handler.rs:186)
         alt session found
             NS-->>WS: NostrUser { pubkey, is_power_user }
-            WS->>WS: ws_server.pubkey = Some(pubkey) (http_handler.rs:341-346)
+            WS->>WS: log validated, upgrade proceeds (http_handler.rs:217-221) — does NOT store<br/>the returned identity on ws_server, see DIVERGENCE below
         else session not found
             alt debug/dev-auth build AND insecure_allowed
-                WS->>WS: warn, allow anyway (http_handler.rs:303-312)
+                WS->>WS: warn, allow anyway (http_handler.rs:191-195)
             else release build
-                WS-->>C: 401 Unauthorized "Invalid or expired authentication token"
+                WS-->>C: 401 Unauthorized "Invalid or expired authentication token" (http_handler.rs:202-203)
             end
         end
     else token absent
         WS->>WS: continue unauthenticated (anonymous session — visibility filter drops private nodes, see VC-03.9)
     end
+    Note over WS: DIVERGENCE — ws_server.pubkey/.is_power_user are set ONLY by a SEPARATE,<br/>redundant re-extraction of the query string (token_from_qs, http_handler.rs:328-341,<br/>dev/dev-auth builds only — hardcoded None in release, :341) feeding a SECOND independent<br/>get_session call (http_handler.rs:376-380). The header-token check just above (which gates<br/>the 401/allow decision) never writes its NostrUser into ws_server. Net effect: in a<br/>RELEASE build, ws_server.pubkey is NEVER set on this handler, even after a client<br/>successfully authenticates via the Authorization header — not yet confirmed whether<br/>downstream identity/visibility depends on this field or is sourced elsewhere.
     Note over NS: RESOLVED ADR-2044 — get_session (nostr_service.rs:574) now enforces the SAME<br/>AUTH_TOKEN_EXPIRY window as validate_session (:478) through one shared rule<br/>session_is_fresh(last_seen, now, token_expiry) (:597). It previously had NO expiry check,<br/>so a WS token outlived its REST equivalent indefinitely. Empty tokens are rejected before<br/>lookup and a future last_seen (clock stepped back) is stale, not an unbounded lease.
     WS-->>C: 101 Switching Protocols
     C->>WS: WS frames (binary positions / control JSON)
@@ -194,7 +195,7 @@ sequenceDiagram
     participant H as caller<br/>auth.rs:142 / auth_extractor.rs:93
     participant NS as NostrService::verify_nip98_auth<br/>src/services/nostr_service.rs:601-611
     participant V as validate_nip98_token<br/>src/utils/nip98.rs:375
-    participant RC as REPLAY_CACHE<br/>src/utils/nip98.rs:187 Mutex~HashMap~
+    participant RC as REPLAY_CACHE<br/>src/utils/nip98.rs:215 Mutex~HashMap~
 
     Note over V,RC: INVARIANT (IDENTITY-authority-chain.md #1) — order is fixed:<br/>freshness -> tag match (host-checked) -> signature -> replay claim LAST.<br/>The claim must never precede signature verification.
     H->>NS: verify_nip98_auth(auth_header, url, method, body)
@@ -352,7 +353,7 @@ flowchart TB
     VIE -.->|"to_access_level"| ACC3
     PREC["effective_role precedence — role_store.rs:359<br/>1. explicit row (RoleStore::get)<br/>2. Admin if POWER_USER_PUBKEYS match, no row<br/>3. else configured_default (RBAC_DEFAULT_ROLE_ENV)"]
     DEF["parse_default_role — role_store.rs:195<br/>unset or #quot;#quot; -> Editor (ADR-2010 compat default)<br/>#quot;editor#quot; -> Editor, #quot;viewer#quot; -> Viewer (case-insensitive, trimmed)<br/>anything else incl. #quot;admin#quot;/#quot;owner#quot; -> FAILS CLOSED to Viewer, error! logged"]
-    ERR["any lookup/parse error (RoleStoreError)<br/>-> FAILS CLOSED to Viewer, role_store.rs:381"]
+    ERR["any lookup/parse error (RoleStoreError)<br/>-> FAILS CLOSED to Viewer, role_store.rs:369-371"]
     PREC --> DEF
     PREC --> ERR
     N1["INVARIANT — RBAC_DEFAULT_ROLE can only NARROW (editor/viewer), never widen<br/>to admin/owner; an env typo cannot mass-grant elevated access"]
@@ -520,7 +521,7 @@ sequenceDiagram
     participant SVC as inner service chain
 
     TO->>TO: timeout_duration = config.get_timeout(path) (:37-41)
-    Note over TO: TimeoutConfig::new(Duration::from_secs(30)).with_override("/api/admin/sync", 600s)<br/>constructed at src/main.rs:975-978 — endpoint_overrides is an exact-path HashMap match
+    Note over TO: TimeoutConfig::new(Duration::from_secs(30)).with_override("/api/admin/sync", 600s)<br/>constructed at src/main.rs:982-985 — endpoint_overrides is an exact-path HashMap match
     TO->>SVC: tokio::time::timeout(timeout_duration, service.call(req))
     alt completes within timeout_duration
         SVC-->>TO: Ok(result)
@@ -557,7 +558,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant K as secp256k1 keypair (client-held)
-    participant U as uri::did_nostr<br/>src/uri/mod.rs:219
+    participant U as uri::did_nostr<br/>src/uri/mod.rs:220
     participant NS as NostrService::verify_nip98_auth<br/>src/services/nostr_service.rs:601-611
     participant SP as init_pod_nip98<br/>src/handlers/solid_proxy_handler.rs:1311-1313
     participant RS as RoleStore::effective_role<br/>src/services/role_store.rs:359
@@ -574,7 +575,7 @@ sequenceDiagram
         SP->>SP: PublicKey::from_hex(pubkey).to_bech32() -> npub
         SP->>SP: ensure_pod_exists(npub, pubkey, pod_base_url)
         SP-->>K: { pod_url, webid: structure.profile, npub } (:1381-1387)
-        Note over SP: GET /did/nostr:{pubkey} resolves a did+ld+json document via<br/>solid_pod_rs::interop::did_nostr::did_nostr_document (solid_proxy_handler.rs:1723-1730,<br/>route registered :1855). Full pod/LDP detail: see VC-26.
+        Note over SP: GET /did/nostr:{pubkey} resolves a did+ld+json document via<br/>solid_pod_rs::interop::did_nostr::did_nostr_document (solid_proxy_handler.rs:1654-1670,<br/>route registered :1786). Full pod/LDP detail: see VC-26.
     end
     K->>RS: canonicalise_pubkey(pubkey) (role_store.rs:154) then effective_role(pubkey, is_power_user)
     RS-->>K: UserRole (explicit row / power-user Admin / configured_default / fail-closed Viewer)
@@ -588,7 +589,7 @@ flowchart TB
     U["user's own Nostr keypair<br/>signs NIP-98 directly (VC-03.4)"]
     SS["Service-signed — nostr_bridge.rs<br/>struct field keys: Keys :29<br/>Keys::new(secret_key) :65<br/>event.sign_with_keys(&self.keys) :169"]
     DA["Delegated-agent-signed (NIP-26)<br/>agent signs ON BEHALF OF a user with a<br/>verifiable delegation tag"]
-    HOOK["would-hook point: validate_nip98_token<br/>src/utils/nip98.rs:270 — tag extraction loop (:293-303)<br/>a #quot;delegation#quot; tag is never read; no NIP-26 verifier exists in this crate"]
+    HOOK["would-hook point: validate_nip98_token<br/>src/utils/nip98.rs:375 — tag extraction loop (:438-447, u/method/payload only)<br/>a #quot;delegation#quot; tag is never read; no NIP-26 verifier exists in this crate"]
     U -->|"authority IS the user's own key"| REAL["real, implemented (auth.rs, nip98.rs)"]
     SS -->|"re-signs under the BRIDGE's key,<br/>not the user's — original authority NOT carried"| BRIDGE_REAL["real, implemented, but NOT delegation"]
     DA -.->|"DIVERGENCE — NOT WIRED"| HOOK

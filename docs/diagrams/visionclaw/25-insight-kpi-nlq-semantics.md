@@ -451,9 +451,9 @@ sequenceDiagram
     autonumber
     participant LFS as LocalFileSyncService::process_file_content<br/>src/services/local_file_sync_service.rs:414
     participant OCA as OntologyContentAnalyzer::analyze_content<br/>crates/visionclaw-ontology/src/services/ontology_content_analyzer.rs:80
-    participant Shim as src/services/ontology_content_analyzer.rs<br/>src/services/ontology_content_analyzer.rs:2
+    participant Shim as src/services/ontology_content_analyzer.rs<br/>../project/src/services/ontology_content_analyzer.rs:2
 
-    Note over Shim: shim re-exports visionclaw_ontology::services::ontology_content_analyzer::* (ADR-090 Phase A4, not in docs/adr/)<br/>src/services/ontology_content_analyzer.rs:1-2
+    Note over Shim: shim re-exports visionclaw_ontology::services::ontology_content_analyzer::* (ADR-090 Phase A4, not in docs/adr/)<br/>../project/src/services/ontology_content_analyzer.rs:1-2
     alt ontology_cache hit for (file_name, content_sha)
         LFS->>LFS: use cached analysis + metadata - stats.cache_hits+=1<br/>src/services/local_file_sync_service.rs:423-434
     else cache miss

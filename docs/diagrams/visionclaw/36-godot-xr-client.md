@@ -7,6 +7,8 @@ governing:
   - ../project/docs/BASELINE-architecture.md
 adrs: [ADR-2032, ADR-2033, ADR-2034, ADR-2035, ADR-2036, ADR-2039, ADR-2076, ADR-2079]
 sources:
+  - ../project/docs/XR-client.md
+  - ../project/docs/BASELINE-architecture.md
   - ../project/xr-client/project.godot
   - ../project/xr-client/scripts/xr_boot.gd
   - ../project/xr-client/scripts/graph_scene.gd
@@ -142,7 +144,7 @@ flowchart TB
     A -. "DOC-DRIFT" .-> D1
     D1["OPEN by design: project.godot:12 declares Godot 4.3 / Forward Mobile.<br/>The only build that has ever rendered on a headset is 4.6.1-stable on<br/>Compatibility. config/features is EDITOR-MANAGED metadata and Godot is<br/>not installed here, so a hand edit cannot be verified - the editor<br/>rewrites the array on save. Re-pinning needs the 4.6.1 editor, it is not<br/>a text change. README:15-18 already says to read 4.3 as the pinned editor<br/>of the day. Assessed 2026-09-05, ADR-2079 scope review"]
     RM -. "unexercised" .-> D2
-    D2["DIVERGENCE: the .mobile override targets the Quest 3 APK,<br/>which is UNBUILT - no Android NDK is provisioned.<br/>90fps was measured only on VIVE Pro + dual RTX 6000.<br/>docs/BASELINE-architecture.md:189-192"]
+    D2["DIVERGENCE: the .mobile override targets the Quest 3 APK,<br/>which is UNBUILT - no Android NDK is provisioned.<br/>90fps was measured only on VIVE Pro + dual RTX 6000.<br/>docs/BASELINE-architecture.md:209-210"]
 ```
 
 ## VC-36.3 Transport — /wss graph socket connect, subscribe, NIP-98 authenticate
@@ -160,7 +162,7 @@ sequenceDiagram
     Note over GS: XR_BACKEND_WS default ws://localhost:4000<br/>GRAPH_STREAM_PATH="/wss" graph_scene.gd:68<br/>PRESENCE_PATH="/ws/presence" graph_scene.gd:69
     GS->>GS: _env_or("XR_BACKEND_WS", DEFAULT_BACKEND_WS).rstrip("/")
     GS->>CT: connect_to_server(base+"/wss", base+"/ws/presence", XR_ROOM_URN, XR_DISPLAY_NAME, XR_NOSTR_SECRET)
-    Note over GS,CT: RESOLVED ADR-2076: no token argument. with_token, the token<br/>parameters of spawn_graph_stream / graph_pump / connect_to_url,<br/>and XR_GRAPH_TOKEN are deleted. Query-token auth is gone from<br/>this client - NIP-98 is the only graph-socket credential.<br/>The SERVER still accepts the query form for other clients, which<br/>remains open (docs/BASELINE-architecture.md:217).
+    Note over GS,CT: RESOLVED ADR-2076: no token argument. with_token, the token<br/>parameters of spawn_graph_stream / graph_pump / connect_to_url,<br/>and XR_GRAPH_TOKEN are deleted. Query-token auth is gone from<br/>this client - NIP-98 is the only graph-socket credential. Also RESOLVED<br/>ADR-2058 (2026-09-05, see VC-32.1): the server's own ?token= query fallback is<br/>now compiled out of release entirely and survives only dev-auth-gated with a<br/>SECURITY: warning - BASELINE-architecture.md's "Known divergences" bullet<br/>(:237) recording it as still-open was not updated when ADR-2058 landed.
     CT->>BP: connect_to_url(url, nostr_secret_hex) binary_protocol.rs:948
     BP->>TR: spawn_graph_stream(url, nostr_secret_hex, inbox)
     TR->>SV: connect_async_with_config(url, ws_config(), false)
@@ -692,7 +694,7 @@ sequenceDiagram
     autonumber
     participant HP as HP-Desktop headset client<br/>godot --path xr-client
     participant CO as docker-compose.unified.yml<br/>docker-compose.unified.yml:85
-    participant MN as main.rs boot guard<br/>src/main.rs:132
+    participant MN as main.rs boot guard<br/>project/src/main.rs:132
     participant DM as dev_mode_enabled<br/>src/utils/auth.rs:100
     participant AU as auth resolve<br/>src/utils/auth.rs:154
     participant SV as VisionClaw handlers
@@ -703,13 +705,13 @@ sequenceDiagram
     CO->>MN: process env
     alt release build and the var is merely PRESENT
         MN-->>MN: REFUSE TO BOOT (ADR-06 D11)
-        Note right of MN: src/main.rs:109 - a release binary physically cannot<br/>honour SETTINGS_AUTH_BYPASS / VISIONCLAW_DEV_MODE.<br/>Caveat: both services load env_file .env, so the var must<br/>never sit in a .env shared with prod.<br/>docker-compose.unified.yml:85-86
+        Note right of MN: project/src/main.rs:109 - a release binary physically cannot<br/>honour SETTINGS_AUTH_BYPASS / VISIONCLAW_DEV_MODE.<br/>Caveat: both services load env_file .env, so the var must<br/>never sit in a .env shared with prod.<br/>docker-compose.unified.yml:85-86
     else dev / dev-auth build
         MN->>DM: dev_mode_enabled()
         alt value in {1, true, TRUE with surrounding space}
             DM-->>MN: true
-            MN-->>MN: warn banner "VISIONCLAW_DEV_MODE=1 - LAN-LOCAL AUTH BYPASS ACTIVE"<br/>src/main.rs:282
-            Note over MN: Every request granted as DEV_MODE_PUBKEY<br/>= "dev-mode-local-admin" src/utils/auth.rs:79, main.rs:283
+            MN-->>MN: warn banner "VISIONCLAW_DEV_MODE=1 - LAN-LOCAL AUTH BYPASS ACTIVE"<br/>project/src/main.rs:282
+            Note over MN: Every request granted as DEV_MODE_PUBKEY<br/>= "dev-mode-local-admin" src/utils/auth.rs:79, project/src/main.rs:283
         else 0, yes, unset
             DM-->>MN: false
         end
@@ -748,7 +750,7 @@ sequenceDiagram
     Note over OP,HP: SEPARATE kill then launch over TWO ssh calls -<br/>a single chained call races the compositor.
     OP->>HP: launch call carrying XAUTHORITY
     Note right of HP: The process has no inherited session, so without<br/>XAUTHORITY Godot cannot open the X11 display for<br/>the SteamVR compositor.
-    HP->>GD: XR_BACKEND_WS=ws://192.168.2.132:4000 XR_NOSTR_SECRET=<hex><br/>godot --path xr-client --rendering-driver opengl3<br/>--display-driver x11 res://scenes/XRBoot.tscn
+    HP->>GD: XR_BACKEND_WS=ws://192.168.2.132 (port 4000) XR_NOSTR_SECRET=<hex><br/>godot --path xr-client --rendering-driver opengl3<br/>--display-driver x11 res://scenes/XRBoot.tscn
     GD->>SVR: stereo submission via Compatibility (OpenGL 3)
     Note over GD,SVR: ADR-2032 INVARIANT: only OpenGL3 Compat submits BOTH eyes on<br/>SteamVR + Linux + NVIDIA. Vulkan/Forward+ renders one eye or<br/>fails to composite. Re-test before any renderer change.
     par change process
@@ -782,7 +784,7 @@ flowchart TB
     CP --> PD
     RM --> EP
     EP --> D1
-    D1["DIVERGENCE: the APK is UNBUILT and the cross-build is FROZEN -<br/>no Android NDK is provisioned in this environment.<br/>Quest 3 is the sole ship target (project.godot:2) yet no Quest<br/>performance number exists; 90fps at 13,164 nodes / 145,692 edges<br/>was measured only on VIVE Pro + dual RTX 6000 desktop OpenXR.<br/>docs/XR-client.md 'Known divergences' bullet 2<br/>docs/BASELINE-architecture.md:189-192"]
+    D1["DIVERGENCE: the APK is UNBUILT and the cross-build is FROZEN -<br/>no Android NDK is provisioned in this environment.<br/>Quest 3 is the sole ship target (project.godot:2) yet no Quest<br/>performance number exists; 90fps at 13,164 nodes / 145,692 edges<br/>was measured only on VIVE Pro + dual RTX 6000 desktop OpenXR.<br/>docs/XR-client.md 'Known divergences' bullet 2<br/>docs/BASELINE-architecture.md:209-210"]
     PD --> D2
     D2["DIVERGENCE: RECORD_AUDIO / MODIFY_AUDIO_SETTINGS exist for a<br/>LiveKit media transport that is NOT wired on any built target.<br/>SpatialVoiceRouter (webrtc_audio.rs:140) owns only the routing<br/>maths and the per-avatar position map - voice is design-complete,<br/>transport-absent. docs/XR-client.md 'Known divergences' bullet 3<br/>see VC-35 for the browser voice path"]
 ```

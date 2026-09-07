@@ -98,8 +98,8 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    A["Path A converter<br/>src/models/simulation_params.rs:558-569"]
-    B["Path B converter<br/>src/models/simulation_params.rs:641-652"]
+    A["Path A converter<br/>project/src/models/simulation_params.rs:558-569"]
+    B["Path B converter<br/>project/src/models/simulation_params.rs:641-652"]
     C["Registry mutator ForceChannel::apply<br/>src/models/force_channels.rs:183-198"]
     D["derive_dispatch_feature_flags<br/>src/models/force_channels.rs:486"]
     E["execution.rs:954 calls the helper"]
@@ -252,7 +252,7 @@ sequenceDiagram
         FCA->>FCA: GetStressMajorizationStats :3736, ResetStressMajorizationSafety :3752
     end
     Note over SMA,FCA: DIVERGENCE bit5 ENABLE_STRESS_MAJORIZATION is declared but never set by derive_dispatch_feature_flags - stress majorization is not a GPU force channel
-    Note over SMA,FCA: Stress majorization params live on CPU in SemanticProcessorActor and are absent from GPU SimParams - src/models/simulation_params.rs:77
+    Note over SMA,FCA: Stress majorization params live on CPU in SemanticProcessorActor and are absent from GPU SimParams - project/src/models/simulation_params.rs:77
     Note over SMA,FCA: DIVERGENCE bit3 ENABLE_TEMPORAL_COHERENCE is likewise declared but never set - both are reserved bits, not wired force terms
 ```
 

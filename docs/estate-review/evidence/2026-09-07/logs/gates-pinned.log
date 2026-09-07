@@ -1,0 +1,214 @@
+
+
+########## harness-audit.test.sh ##########
+harness-audit.sh regression tests
+=================================
+
+[1] duplicate pairing edges are de-duplicated
+  ok   coverage is 100%, not 200%
+  ok   no 200% anywhere
+  ok   duplicate edge is reported
+  ok   exit 0 (coverage genuinely complete)
+
+[2] nonexistent source path is not source-backed
+  ok   unresolved count is 2
+  ok   resolved count is 0
+  ok   backing is 0%
+  ok   unresolved sources are listed
+  ok   exit 0 without --strict-sources (reported, not enforced)
+
+[2b] --strict-sources turns unresolved sources into a failure
+  ok   strict verdict present
+  ok   exit 1 under --strict-sources
+
+[3] an existing source path resolves and is source-backed
+  ok   both sources resolved
+  ok   backing is 100%
+  ok   exit 0 under --strict-sources
+
+[4] two controls sharing one source count as one distinct source
+  ok   one distinct source across two controls
+  ok   per-control figure still reported
+
+[5] a substrate with no checkout is unverifiable, not source-backed
+  ok   counted unverifiable
+  ok   not counted as backed
+  ok   listed explicitly
+  ok   exit 0 (partial-source failure mode: reported, not enforced)
+
+[6] a pairing referencing a non-existent control is not counted
+  ok   dangling edge reported
+  ok   coverage is 0%
+  ok   exit 1 (coverage below target)
+
+[7] the committed templates pass with zero unresolved sources
+  ok   zero unresolved
+  ok   coverage 100%
+  ok   exit 0
+
+=================================
+passed: 26   failed: 0
+HARNESS-AUDIT-TESTS-OK
+
+
+########## drift-counter.test.sh ##########
+drift-counter.mjs regression tests
+==================================
+
+[1] a policed figure that agrees with the source passes
+  ok   reports PASS
+  ok   site reported ok
+  ok   exit 0
+
+[2] an intentional mismatch at a policed site is detected
+  ok   reports FAIL
+  ok   names the drift
+  ok   shows stated vs truth
+  ok   exit 1 on drift
+
+[2b] the mismatch is machine-readable for CI
+  ok   ok:false in JSON
+  ok   finding is ok:false
+  ok   denominator is published
+
+[3] a policed site whose file has moved fails the gate
+  ok   reports file-missing
+  ok   reports FAIL
+  ok   exit 1 on unreadable policed site
+
+[4] a policed site whose pattern no longer matches fails
+  ok   reports site-missing
+  ok   exit 1 on vanished figure
+
+[5] a sibling checkout off the pinned revision fails the gate
+  ok   pin failure reported
+  ok   names the pinned revision
+  ok   exit 1 on pin mismatch
+
+[5b] --allow-pin-drift downgrades the pin mismatch to a warning
+  ok   warned, not failed
+  ok   gate still passes
+  ok   exit 0 with explicit override
+
+[6] the committed allowlist passes with no unreadable policed site
+  ok   reports PASS
+  ok   no file-missing
+  ok   no site-missing
+  ok   pin verified
+  ok   archived ADR-002 site is read
+  ok   unavailable axis states its exit condition
+  ok   exit 0
+
+==================================
+passed: 28   failed: 0
+DRIFT-COUNTER-TESTS-OK
+
+
+########## release-manifest.test.sh ##########
+generate-release-manifest.sh regression tests
+=============================================
+
+[1] the roster covers all inventoried repositories
+  ok   generator exits 0 for a local draft
+  ok   roster size matches the ADR inventory
+  ok   manifest_version is 2
+  ok   every inventoried path is present
+
+[2] every repository declares its provenance
+  ok   no repository lacks a valid provenance flag
+  ok   imported repositories are flagged
+  ok   upstream repositories are flagged
+  ok   every upstream repository names its upstream
+
+[3] a local draft with no canonical revision set says so
+  ok   fixtures.status is not-compared
+  ok   no canonical block is fabricated
+  ok   the gap is stated in the artefact
+
+[4] a candidate without a canonical revision set is refused
+  ok   exit code is 3
+  ok   the refusal names the missing input
+
+[4b] --require-fixtures refuses even a local draft
+  ok   exit code is 3
+
+[4c] a released manifest without a canonical revision set is refused
+  ok   exit code is 3
+
+[5] a canonical revision set that does not resolve is refused
+  ok   unknown revision exits 3
+  ok   unknown repository exits 3
+  ok   missing corpus directory exits 3
+  ok   malformed spec exits 3
+
+[6] a valid canonical revision set produces a comparison record
+  ok   generator exits 0
+  ok   fixtures.status is compared
+  ok   HEAD is resolved to a concrete commit
+  ok   a corpus digest is recorded
+  ok   the fixture count is non-zero
+  ok   verdict is one of match/drift/not-run (drift)
+
+[7] the generated manifest validates against the committed schema
+  ok   roster meets schema minItems (14)
+  ok   schema pins manifest_version 2
+  ok   schema requires the fixtures block
+  ok   every head is a 40-char sha
+
+=============================================
+passed: 29   failed: 0
+RELEASE-MANIFEST-TESTS-OK
+
+
+########## website-assets.test.sh ##########
+website asset-inventory regression tests
+========================================
+
+[0] the site builds
+  ok   build exits 0
+  ok   build asserts the asset inventory
+  ok   completion sentinel still emitted
+
+[1] the inventory declares required assets
+  ok   manifest declares 14 required assets
+  ok   manifest declares 4 optional groups explicitly
+
+[2] every required asset exists in dist/ after a build
+  ok   all required assets present
+
+[3] a missing required asset fails verification
+  ok   verify exits 1 when a required asset is absent
+  ok   the failure names the missing asset (img/showcase/cave-knowledge-graph.webp)
+  ok   the failure says the candidate is not publishable
+
+[4] a zero-byte required asset fails verification
+  ok   verify exits 1 on an empty required asset
+
+[5] the build receipt records bytes, counts and hashes
+  ok   receipt written
+  ok   records a file count
+  ok   records a byte total
+  ok   records a dist tree digest
+  ok   every required asset carries a sha256
+  ok   records the published revision
+  ok   records the manifest hash it enforced
+
+[6] optional asset groups are recorded, not silently swallowed
+  ok   every optional group appears in the receipt
+  ok   each optional group has an explicit status
+
+[7] a clean rebuild verifies
+  ok   rebuild exits 0
+
+========================================
+passed: 20   failed: 0
+WEBSITE-ASSET-TESTS-OK
+
+
+########## diagram-index.test.cjs ##########
+DIAGRAM-INDEX-TEST-OK
+
+
+==================================================
+ALL GATE SUITES PASSED (5)
+GATE-TESTS-OK

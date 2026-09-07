@@ -18,6 +18,15 @@ sources:
   - ../solid-pod-rs/scripts/sync-fixtures.sh
   - ../solid-pod-rs/crates/solid-pod-rs/Cargo.toml
   - ../solid-pod-rs/crates/solid-pod-rs-server/Cargo.toml
+  - ../solid-pod-rs/crates/solid-pod-rs-git/Cargo.toml
+  - ../solid-pod-rs/crates/solid-pod-rs/fuzz/fuzz_targets/sparql_update.rs
+  - ../solid-pod-rs/crates/solid-pod-rs/benches/storage_backend_bench.rs
+  - ../solid-pod-rs/crates/solid-pod-rs/benches/wac_eval_bench.rs
+  - ../solid-pod-rs/crates/solid-pod-rs/benches/ldp_content_negotiation_bench.rs
+  - ../solid-pod-rs/crates/solid-pod-rs/benches/nip98_verify_bench.rs
+  - ../solid-pod-rs/crates/solid-pod-rs/benches/dpop_replay_bench.rs
+  - ../solid-pod-rs/crates/solid-pod-rs/docs/benchmarks.md
+  - ../solid-pod-rs/crates/solid-pod-rs/src/ldp.rs
 verified_commit: 1d9da5270
 ---
 
@@ -199,7 +208,7 @@ flowchart TD
 
     AB["EXTERNAL: agentbox builds a PINNED solid-pod-rs-server binary through Nix for<br/>the native pod tier — the estate pin is v0.5.0-alpha.9. See AB-08, AB-06 and ES-08."]
     VC["EXTERNAL: VisionClaw consumes solid-pod-rs at the current alpha line with the<br/>feature set its embedded pod needs (LDP, WAC, NIP-98, WebID, did:nostr). See VC-26."]
-    NF["EXTERNAL: nostr-rust-forum pins solid-pod-rs =0.5.0-alpha.7,<br/>default-features = false, features = core — an EXACT pin, one line behind.<br/>See the nostr-rust-forum area."]
+    NF["EXTERNAL: nostr-rust-forum pins solid-pod-rs =0.5.0-alpha.7,<br/>default-features = false, features = core — an EXACT pin, behind the alpha.9 source line.<br/>See the nostr-rust-forum area."]
     DW["EXTERNAL: dreamlab-ai-website has no direct dependency; it inherits whatever<br/>the forum kit pins. See the dreamlab-ai-website area."]
 
     REL --> AB
@@ -207,7 +216,7 @@ flowchart TD
     REL --> NF
     NF --> DW
 
-    N["DIVERGENCE (baseline, 2026-09-05): because no crate version was bumped for the<br/>ADR-2002 / 2005 / 2006 work, the forum's alpha.7 pin means that consumer is<br/>unaffected by it AND cannot yet adopt it. Every type intended for the edge tier<br/>compiles under core, so adoption is a version pin rather than a port."]
+    N["DOC-DRIFT: the 2026-09-05 no-version-bump note predates alpha.9.<br/>CHANGELOG.md:7-19 records the closeout release. The forum still resolves<br/>alpha.7, so local upstream fixes do not reach that consumer. Every type intended for the edge tier<br/>compiles under core. Adoption still requires publishing and resolving the<br/>new version, wiring the edge ACL/audience/replay seams and testing them;<br/>a dependency bump alone does not change caller behaviour."]
     NF -.-> N
     N2["The one source-compatibility note across alpha.8 to alpha.9 is ReplayError,<br/>which gained CapacityExhausted and is now non_exhaustive. nip98-replay is not in<br/>core, so no in-estate consumer is affected. See SP-05.5."]
     REL -.-> N2
@@ -280,4 +289,56 @@ flowchart TD
     NG4 -.-> N
     N2["all-features DOES compile forge, git and tls into the core-crate matrix rows,<br/>so a compile break is caught — what is not covered is their runtime behaviour."]
     NG1 -.-> N2
+```
+
+## SP-09.11 Benches and the fuzz target — the surfaces CI never runs
+
+```mermaid
+flowchart TD
+    subgraph BENCH["5 criterion benches, harness = false"]
+        B1["storage_backend_bench — sequential PUT, random GET, list 10k<br/>crates/solid-pod-rs/benches/storage_backend_bench.rs:48"]
+        B2["wac_eval_bench — simple, inherited, group membership<br/>crates/solid-pod-rs/benches/wac_eval_bench.rs:77"]
+        B3["ldp_content_negotiation_bench — negotiate, parse, transcode<br/>crates/solid-pod-rs/benches/ldp_content_negotiation_bench.rs:33"]
+        B4["nip98_verify_bench — valid and tampered tokens<br/>crates/solid-pod-rs/benches/nip98_verify_bench.rs:100"]
+        B5["dpop_replay_bench — single-threaded and concurrent<br/>crates/solid-pod-rs/benches/dpop_replay_bench.rs:49"]
+    end
+    DECL["[[bench]] declarations<br/>crates/solid-pod-rs/Cargo.toml:342"]
+    FUZZ["fuzz_target over apply_sparql_patch<br/>crates/solid-pod-rs/fuzz/fuzz_targets/sparql_update.rs:6"]
+    CI["ci-required — see SP-09.2"]
+
+    DECL --> BENCH
+    BENCH -. "no CI job runs cargo bench" .-> CI
+    FUZZ -. "no CI job runs cargo fuzz" .-> CI
+
+    N["Each bench guards a hot path a diagram elsewhere describes: B1 the Storage seam<br/>(SP-06.1), B2 the WAC evaluator (SP-04.7), B3 conneg (SP-03.10), B4 the NIP-98<br/>verifier (SP-05.2), B5 the DPoP replay cache (SP-05.7). dpop_replay_bench states<br/>the contract it defends — under 1 microsecond at 10k steady-state entries<br/>(crates/solid-pod-rs/benches/dpop_replay_bench.rs:4)."]
+    BENCH -.-> N
+    N2["DIVERGENCE: SP-09.10 lists what CI does not gate; these are the concrete<br/>artifacts. A performance regression in any of the five, or a panic the fuzzer<br/>would find, reaches main unchallenged — the suites exist and nothing runs them."]
+    CI -.-> N2
+```
+
+## SP-09.12 The SPARQL-Update fuzz contract
+
+```mermaid
+flowchart TD
+    IN["fuzz_target!(|data: &[u8]|)<br/>crates/solid-pod-rs/fuzz/fuzz_targets/sparql_update.rs:6"]
+    UTF{"valid UTF-8?<br/>crates/solid-pod-rs/fuzz/fuzz_targets/sparql_update.rs:11"}
+    SKIP["return — not an interesting input"]
+    CAP{"len > SPARQL_UPDATE_MAX_BYTES?<br/>crates/solid-pod-rs/fuzz/fuzz_targets/sparql_update.rs:16"}
+    ASSERT["ASSERT the library returns Err, never panics<br/>crates/solid-pod-rs/fuzz/fuzz_targets/sparql_update.rs:20"]
+    PARSE["exercise the spargebra parser below the cap<br/>crates/solid-pod-rs/fuzz/fuzz_targets/sparql_update.rs:26"]
+    LIM["SPARQL_UPDATE_MAX_BYTES = 1 MiB<br/>solid-pod-rs/src/ldp.rs:1246"]
+
+    IN --> UTF
+    UTF -- no --> SKIP
+    UTF -- yes --> CAP
+    CAP -- yes --> ASSERT
+    CAP -- no --> PARSE
+    LIM --> CAP
+
+    N["The target encodes TWO properties, not one: oversized input must be REJECTED<br/>(a positive assertion), and in-cap input must either succeed or error — never<br/>panic. A panic in a PATCH parser is reachable from an authenticated write<br/>(SP-03.5), so this is a security surface rather than a robustness nicety."]
+    ASSERT -.-> N
+    N2["The size cap is the first line of defence and the fuzzer deliberately spends<br/>most of its budget BELOW it<br/>(crates/solid-pod-rs/fuzz/fuzz_targets/sparql_update.rs:9) — fuzzing above the<br/>cap would only re-test the guard."]
+    PARSE -.-> N2
+    N3["DOC-DRIFT: docs/benchmarks.md opens 'Four criterion-based benches'<br/>(crates/solid-pod-rs/docs/benchmarks.md:3) and its Running section lists four<br/>(:11 to :14). There are FIVE bench files and five [[bench]] declarations —<br/>dpop_replay_bench (crates/solid-pod-rs/Cargo.toml:358) is in neither."]
+    IN -.-> N3
 ```

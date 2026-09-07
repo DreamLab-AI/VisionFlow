@@ -7,6 +7,7 @@ governing:
   - docs/architecture/compatibility-matrix.md
 adrs: [ADR-2005, ADR-2006]
 sources:
+  - ./README.md
   - scripts/drift-counter/drift-counter.mjs
   - scripts/drift-counter/allowlist.json
   - scripts/drift-counter/README.md
@@ -79,7 +80,7 @@ flowchart TB
 
     NOTE1["INVARIANT: every count claimed in canon prose has one queryable source;<br/>a second distinct figure for one axis is a failure, not a footnote<br/>BASELINE-visionflow.md:232"]
     NOTE2["DIVERGENCE: mesh-smoke-preflight.sh is wired to NO workflow.<br/>Its output is pasted by hand into mesh-smoke-test.md:71"]
-    NOTE3["DOC-DRIFT: compatibility-matrix.md:58 records the audit verdict as<br/>PASS (target 80%) — CI actually runs --target 50"]
+    NOTE3["HISTORICAL SNAPSHOT: compatibility-matrix.md:73 records the July<br/>harness PASS at target 80%. Current CI passes --target 50.<br/>These are different run configurations, not a fresh 80% CI result"]
 ```
 
 ## VF-05.2 drift-counter — axis truth query and the sibling source pin
@@ -157,7 +158,7 @@ flowchart TB
     HOLE["The archived-ADR-002 hole: two sites pointed at a path moved<br/>into docs/archive/, reported file-missing on every run, and that<br/>looked like coverage. Repointed 2026-09-05<br/>allowlist.json:50"]:::fail
     HOLE -.-> FMISS
 
-    DIV["DIVERGENCE: README.md:150 renders '7 Ontology MCP Tools' beside<br/>README.md:157 '12 MCP Ontology Tools'. The sites regex matches only<br/>the second word order, so the adjacency escapes the gate<br/>BASELINE-visionflow.md:182"]
+    DIV["DIVERGENCE: ./README.md:150 renders '7 Ontology MCP Tools' beside<br/>./README.md:157 '12 MCP Ontology Tools'. The sites regex matches only<br/>the second word order, so the adjacency escapes the gate<br/>BASELINE-visionflow.md:182"]
 ```
 
 ## VF-05.4 drift-counter verdict — per-axis states and the fail-open rule
@@ -199,14 +200,14 @@ stateDiagram-v2
 
     note right of PerAxis
         INVARIANT: partial-source failure mode. A source being
-        down blocks THAT axis, never the whole gate; a figure
+        down blocks THAT axis, never the whole gate — a figure
         disagreeing with an AVAILABLE source is a hard failure.
         drift-counter.mjs:266 and drift-counter/README.md:57
     end note
 
     note right of Unavailable
         ontology-classes stays unavailable until VisionClaw
-        publishes a script-queryable count; the allowlist records
+        publishes a script-queryable count — the allowlist records
         the exact switch that turns it on with no code change.
         allowlist.json:74
     end note
@@ -272,7 +273,7 @@ flowchart TB
     ARGS --> RESOLVE{"--canonical supplied?"}
 
     RESOLVE -->|no| PROBE["probe well-known locations, first of which is<br/>project/docs/specs/fixtures<br/>check-fixture-drift.sh:82"]:::bad
-    PROBE --> STALE["DOC-DRIFT: that path was REMOVED. The corpus moved to<br/>VisionClaw tests/fixtures/ on 2026-06-29, which<br/>compatibility-matrix.md:16 records and the script header<br/>at check-fixture-drift.sh:5 still contradicts.<br/>Unqualified runs therefore exit 2, never 0"]:::bad
+    PROBE --> STALE["DOC-DRIFT: that path was REMOVED. The corpus moved to<br/>VisionClaw tests/fixtures/ on 2026-06-29, which<br/>the historical Tests/Ops row at compatibility-matrix.md:31 records,<br/>while the script header<br/>at check-fixture-drift.sh:5 still contradicts.<br/>Unqualified runs therefore exit 2, never 0"]:::bad
     STALE --> EXIT2["ERROR: Canonical fixture directory not found, exit 2<br/>check-fixture-drift.sh:93"]:::bad
 
     RESOLVE -->|yes| DEFREPOS{"any REPO_PATH given?"}
@@ -326,7 +327,7 @@ flowchart LR
 
     C --> C1["tests/gates/release-manifest.test.sh only —<br/>the generator itself is not run in CI<br/>harness-fitness-gates.yml:166"]:::block
 
-    NOTE1["DOC-DRIFT: harness-audit.sh's own default target is 80<br/>(harness-audit.sh:57) and compatibility-matrix.md:58 reports<br/>'PASS (target 80%)', but CI enforces --target 50"]
+    NOTE1["TARGET SCOPE: the script default is 80 (harness-audit.sh:57).<br/>Historical Harness Coverage totals at compatibility-matrix.md:73<br/>record July's PASS at target 80%, while this workflow passes --target 50"]
     NOTE2["INVARIANT: the missing template directory is a skip, not a failure —<br/>job B exits 0 when docs/engineering/templates does not exist"]
 ```
 

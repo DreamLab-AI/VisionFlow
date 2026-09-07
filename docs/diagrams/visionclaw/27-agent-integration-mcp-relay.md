@@ -8,6 +8,9 @@ governing:
 adrs: [ADR-2025]
 sources:
   - ../project/src/services/bots_client.rs
+  - ../project/src/actors/graph_service_supervisor.rs
+  - ../project/src/utils/mcp_tcp_client.rs
+  - ../project/src/client/mod.rs
   - ../project/src/services/mcp_relay_manager.rs
   - ../project/src/handlers/mcp_relay_handler.rs
   - ../project/src/services/multi_mcp_agent_discovery.rs
@@ -26,6 +29,7 @@ sources:
   - ../project/src/agent_events/schema.rs
   - ../project/src/agent_events/provenance.rs
   - ../project/src/services/acsp/client.rs
+  - ../project/src/main.rs
 verified_commit: 36bb64e1e
 ---
 
@@ -36,8 +40,8 @@ sequenceDiagram
     autonumber
     participant Caller as caller<br/>src/services/bots_client.rs:138
     participant BC as BotsClient<br/>src/services/bots_client.rs:113
-    participant MCP as McpTcpClient<br/>utils/mcp_tcp_client.rs
-    participant GSS as GraphServiceSupervisor<br/>actors/graph_service_supervisor.rs:422
+    participant MCP as McpTcpClient<br/>utils/mcp_tcp_client.rs:24, test_connection() :772,<br/>initialize_session() :785, query_agent_list() :291
+    participant GSS as GraphServiceSupervisor<br/>actors/graph_service_supervisor.rs:421
 
     Caller->>BC: connect(_bots_url) - bots_client.rs:138
     BC->>MCP: test_connection() - :144
@@ -64,6 +68,7 @@ sequenceDiagram
     end
     Note over BC,MCP: RESOLVED ADR-2088 (estate) - get_status() misreported on THREE axes, not one: host<br/>"agentic-workstation", port 9090 and an unconditional connected=true (:228,233-234). It now reports<br/>self.mcp_client.host/.port (the values resolved at :115-121) and a real AtomicBool connection state<br/>set from the actual test_connection() outcome. Two tokio tests cover it.
     Note over Caller,MCP: DIVERGENCE: agent_events/ingest.rs:12-15 marks this :9500 snapshot path<br/>as untouched/legacy - agent_action events use a separate /wss/agent-events ingest (see VC-27.13)
+    Note over MCP: DOC-DRIFT (audit-rust.md correction): a SECOND file also named mcp_tcp_client.rs<br/>exists at src/client/mcp_tcp_client.rs, defining McpTelemetryClient. grep confirms it is dead -<br/>src/client/mod.rs:3 re-exports it but nothing else in src/ constructs or calls it. The live MCP-TCP<br/>hop is exclusively utils/mcp_tcp_client.rs::McpTcpClient shown above (used by bots_client.rs,<br/>ontology_class_index.rs, multi_mcp_agent_discovery.rs)
 ```
 
 ## VC-27.2 McpRelayManager — multi-agent-container lifecycle via docker exec
@@ -506,11 +511,11 @@ sequenceDiagram
     Ws->>Ws: started() - do_send(InitConnection), start_heartbeat, start_position_updates - :81-89
     Ws->>Ws: handle(InitConnection) -> send_init_state(ctx) - :114-119
     Ws->>Proto: create_init_message("swarm-001","hierarchical", agents=Vec::new()) - :46-47
-    Proto->>Proc: create_visualization_packet(agents, swarm_id, topology) - protocol.rs:972
+    Proto->>Proc: create_visualization_packet(agents, swarm_id, topology) - agent_visualization_protocol.rs:543 calling agent_visualization_processor.rs:308
     Proc->>Proc: process_agents() - color/shape/animation, spherical fallback position, glow_intensity - :211-293
     Proc->>Proc: create_connections(), create_clusters() - :455-479
     Proc-->>Proto: AgentVisualizationData{swarm,agents,connections,physics_config,...}
-    Proto-->>Ws: init_json (AgentInit list mapped from VisualizedAgent) - protocol.rs:978-989
+    Proto-->>Ws: init_json (AgentInit list mapped from VisualizedAgent) - agent_visualization_protocol.rs:549-573
     Ws-->>Client: ctx.text(init_json) - :50
     loop position updates every 16ms (:57-63)
         Ws->>Proto: create_position_update() - :1106

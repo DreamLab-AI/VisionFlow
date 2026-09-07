@@ -7,6 +7,7 @@ governing:
   - ../project/docs/BASELINE-architecture.md
 adrs: [ADR-2014, ADR-2040, ADR-2041, ADR-2042, ADR-2070]
 sources:
+  - ../project/crates/visionclaw-ontology/src/services/jsonld_validator/mod.rs
   - ../project/src/services/github_sync_service.rs
   - ../project/src/services/github/content_enhanced.rs
   - ../project/src/services/parsers/knowledge_graph_parser.rs
@@ -106,7 +107,7 @@ sequenceDiagram
     autonumber
     participant Plain as process_plain_vault_file<br/>src/services/github_sync_service.rs:1873
     participant Parser as KnowledgeGraphParser::parse_with_index<br/>src/services/parsers/knowledge_graph_parser.rs:83
-    participant Vault as vault::parse<br/>crates/visionclaw-domain/src/vault/mod.rs:149
+    participant Vault as vault::parse<br/>crates/visionclaw-domain/src/vault/mod.rs:218
     participant Gate as page_is_kg_included<br/>src/services/github_sync_service.rs:2398
 
     Plain->>Parser: parse_with_index(content, vault_path, vault_index)
@@ -249,7 +250,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant Main as validate_md.rs::main<br/>src/bin/validate_md.rs:27
-    participant V as Validator::new<br/>crates/visionclaw-ontology/src/services/jsonld_validator/mod.rs:236
+    participant V as Validator::new<br/>crates/visionclaw-ontology/src/services/jsonld_validator/mod.rs:239
     participant VF as Validator::validate_markdown_file<br/>crates/visionclaw-ontology/src/services/jsonld_validator/mod.rs:249
 
     Main->>Main: args = env::args().skip(1)
@@ -490,22 +491,22 @@ sequenceDiagram
     participant CM as is_class_marker<br/>crates/visionclaw-domain/src/vault/mod.rs:419
     participant PM as PageMeta<br/>crates/visionclaw-domain/src/vault/mod.rs:64
     participant G as is_kg_included<br/>crates/visionclaw-domain/src/vault/mod.rs:129
-    Y->>CM: candidate value for owl-class or owl:class (mod.rs:378-381)
-    CM->>CM: trim, reject any whitespace or control character (mod.rs:419)
+    Y->>CM: candidate value for owl-class or owl:class (vault/mod.rs:378-381)
+    CM->>CM: trim, reject any whitespace or control character (vault/mod.rs:419)
     alt absolute IRI beginning http:// https:// or urn:
-        CM-->>PM: accepted, meta.owl_class = Some(v) (mod.rs:380,552)
+        CM-->>PM: accepted, meta.owl_class = Some(v) (vault/mod.rs:380,552)
     else CURIE prefix:local - prefix starts with a letter then letters digits _ - . and local non-empty
-        CM-->>PM: accepted, meta.owl_class = Some(v) (mod.rs:380,552)
+        CM-->>PM: accepted, meta.owl_class = Some(v) (vault/mod.rs:380,552)
     else bare word with no colon, or a coerced YAML boolean or number
-        CM-->>PM: rejected, meta.owl_class_rejected = Some(v) retained verbatim (mod.rs:381,553)
+        CM-->>PM: rejected, meta.owl_class_rejected = Some(v) retained verbatim (vault/mod.rs:381,553)
     end
     PM->>G: is_kg_included()
     alt public true or owl_class is Some
-        G-->>PM: true - page becomes a KG node (mod.rs:129-130)
+        G-->>PM: true - page becomes a KG node (vault/mod.rs:129-130)
     else public false or absent and owl_class None
-        G-->>PM: false - fail-closed, a rejected marker does NOT open the gate (mod.rs:71-74)
+        G-->>PM: false - fail-closed, a rejected marker does NOT open the gate (vault/mod.rs:71-74)
     end
-    Note over CM,G: INVARIANT the class marker is a policy, not any scalar that renders to a non-empty string -<br/>owl_class_rejected keeps the offending value so an author can be told why (mod.rs:68-75)
-    Note over CM: RESOLVED ADR-2070 the VAULT Inclusion closeout qualification now records this as closed -<br/>is_class_marker (mod.rs:419) enforces an absolute IRI or prefix:local CURIE grammar and rejects into<br/>owl_class_rejected (mod.rs:68-75), so owl-class true and owl-class 42 shut the gate
-    Note over G: DIVERGENCE that same closeout also records that an explicit public false plus a class marker<br/>remains included by policy - is_kg_included is an OR, so a valid owl-class overrides public false (mod.rs:129-130)
+    Note over CM,G: INVARIANT the class marker is a policy, not any scalar that renders to a non-empty string -<br/>owl_class_rejected keeps the offending value so an author can be told why (vault/mod.rs:68-75)
+    Note over CM: RESOLVED ADR-2070 the VAULT Inclusion closeout qualification now records this as closed -<br/>is_class_marker (vault/mod.rs:419) enforces an absolute IRI or prefix:local CURIE grammar and rejects into<br/>owl_class_rejected (vault/mod.rs:68-75), so owl-class true and owl-class 42 shut the gate
+    Note over G: DIVERGENCE that same closeout also records that an explicit public false plus a class marker<br/>remains included by policy - is_kg_included is an OR, so a valid owl-class overrides public false (vault/mod.rs:129-130)
 ```

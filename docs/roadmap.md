@@ -1,5 +1,8 @@
 # Roadmap
 
+**2026-09-07 source-audit update:** See the [closeout sprint](estate-review/closeout/2026-09-07-sprint.md) for dependency order and acceptance; the VisionClaw master TODO remains the row-level board. New source evidence corrects several historical premises without declaring complete-system acceptance.
+
+
 **Status:** Rewritten 2026-09-06. The 2026-05-22 four-phase plan is superseded; the prior text is at `git show 3db4785:docs/roadmap.md`.
 **Governed by:** [ADR-2007 Estate Closeout Evidence Roadmap](adr/ADR-2007-estate-closeout-evidence-roadmap.md) and the [closeout programme](estate-review/closeout/README.md), which now own estate-wide sequencing. This file is the short VisionFlow-side pointer, not a second plan.
 

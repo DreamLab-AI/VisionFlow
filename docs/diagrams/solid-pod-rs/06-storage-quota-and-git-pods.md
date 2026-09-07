@@ -25,6 +25,8 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs-git/src/error.rs
   - ../solid-pod-rs/crates/solid-pod-rs-git/src/auth.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs
+  - ../solid-pod-rs/crates/solid-pod-rs/src/metrics.rs
+  - ../solid-pod-rs/crates/solid-pod-rs/src/webid.rs
 verified_commit: 1d9da5270
 ---
 

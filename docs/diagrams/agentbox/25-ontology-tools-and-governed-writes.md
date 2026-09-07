@@ -25,6 +25,12 @@ sources:
   - ../project/agentbox/config/entrypoint-unified.sh
   - ../project/agentbox/flake.nix
   - ../project/agentbox/scripts/ci/check-no-logseq-paths.sh
+  - ../project/agentbox/ontology/decision-layer.ttl
+  - ../project/agentbox/ontology/decision-layer.ofn
+  - ../project/agentbox/ontology/test_decision_layer.py
+  - ../project/agentbox/services/agentbox-ops/src/bin/voyager-gate.rs
+  - ../project/agentbox/services/agentbox-ops/src/voyager/mod.rs
+  - ../project/agentbox/management-api/lib/uris.js
 verified_commit: 2c521c5bb
 ---
 
@@ -441,4 +447,69 @@ sequenceDiagram
     CI->>CI: gate the tree against literal corpus paths
     Note over FM: INVARIANT ADR-2028: emitting a key-colon-colon-value line is a VIOLATION<br/>(VAULT-corpus-format Invariant 1). format "obsidian" is the one format writers emit —<br/>"logseq-legacy" is READ-tolerance only for an unconverted graph
     Note over SK: see AB-22 for the full skills-side vault contract
+```
+
+
+## AB-25.11 The Decision Layer OWL vocabulary — a formal schema with no runtime consumer
+
+```mermaid
+classDiagram
+    class DecisionRecord {
+        <<owl:Class, subClassOf prov:Activity>>
+        decision-layer.ttl:43-44
+    }
+    class RelationalProperties {
+        <<owl:ObjectProperty, domain+range DecisionRecord>>
+        +caused ttl:60-63
+        +precedentFor ttl:71-74
+        +influenced ttl:85-88
+    }
+    class ExternalLinks {
+        <<owl:ObjectProperty, range prov:Entity>>
+        +consideredInput ttl:96-99
+        +governedBy ttl:108-111
+    }
+    class TemporalWindow {
+        <<owl:DatatypeProperty, xsd:dateTime>>
+        +validFrom ttl:124-127
+        +validTo ttl:136-139
+    }
+    class ProvEntity {
+        <<prov:Entity>>
+    }
+    DecisionRecord --> DecisionRecord : RelationalProperties
+    DecisionRecord --> ProvEntity : ExternalLinks
+    DecisionRecord --> TemporalWindow : has
+    note for DecisionRecord "INVARIANT (ADR-047 EL-safety, ttl:5-12): the vocabulary MUST stay in the OWL 2 EL<br/>profile so Whelk can classify it in polynomial time — no owl:inverseOf,<br/>owl:FunctionalProperty or owl:InverseFunctionalProperty anywhere in the file"
+    note for RelationalProperties "caused and precedentFor are deliberately NOT transitive: reachability must stay<br/>query-derived, distinguishable from directly-asserted evidence"
+    note for ExternalLinks "decision-layer.ofn:8-19 is a hand-kept functional-syntax PROJECTION of the same<br/>TTL for the horned-owl/Whelk loader — ofn:2 says 'keep in sync with the TTL'.<br/>No generator ties the two files together"
+```
+
+## AB-25.12 Where this vocabulary is actually exercised — and where it is not
+
+```mermaid
+flowchart TB
+    subgraph schema["ontology/decision-layer.{ttl,ofn}"]
+        TTL["decision-layer.ttl<br/>149 lines, OWL 2 EL, PROV-O aligned"]
+        OFN["decision-layer.ofn<br/>39 lines, functional-syntax projection"]
+    end
+    subgraph tested["The only automated consumer found"]
+        PYTEST["test_decision_layer.py<br/>rdflib.Graph#40;#41;.parse#40;TTL#41;<br/>ontology/test_decision_layer.py:23"]
+        ELGUARD["EL-SAFETY GUARD: asserts NO triple in the graph uses<br/>owl:inverseOf / owl:FunctionalProperty / owl:InverseFunctionalProperty<br/>ontology/test_decision_layer.py:9-11"]
+    end
+    subgraph runtime["Runtime governance-write path (AB-25.1-25.10)"]
+        BRIDGE["ontology-bridge.js dispatch — see AB-25.1"]
+        AUTHORITY["ontology-authoring-authority.js gate — see AB-25.3"]
+        URIS["management-api/lib/uris.js — the ONE URN minter for<br/>all 19 kinds (agentbox/CLAUDE.md URI/URN scheme)"]
+    end
+    TTL --> PYTEST
+    PYTEST --> ELGUARD
+    TTL -.->|"documents the SAME 'decision' concept CLAUDE.md/ADR-048 name"| BRIDGE
+    OFN -.->|"no loader found in mcp/servers, services/ontology-tools,<br/>or services/agentbox-ops — grep-verified"| AUTHORITY
+    subgraph notes["Invariants and drift"]
+        direction TB
+        N1["DIVERGENCE: decision-layer.ttl/.ofn are a formal, EL-profile-safe OWL vocabulary for<br/>agent decisions (ADR-047/048/049) with ONE automated consumer — a standalone Python<br/>structural test. No Rust or JS code under services/ or mcp/ parses, loads or reasons<br/>against either file (grep-verified across the whole repo). The 'governed ontology writes<br/>checked against formal OWL semantics' framing describes an aspiration this repo documents<br/>but does not itself execute — reasoning happens estate-side (VisionClaw Oxigraph/Whelk,<br/>see VC-20), not inside agentbox at write time"]
+        N2["EXTERNAL: code-harness.ttl #40;the sibling OWL file in the same directory#41; IS referenced<br/>from Rust doc-comments at services/agentbox-ops/src/voyager/mod.rs:3 and<br/>services/agentbox-ops/src/bin/voyager-gate.rs:3 as the<br/>CONCEPTUAL SPEC the ported voyager-gate logic implements — see AB-28.5 (M9) for the<br/>voyager skill-library gate module. That reference is documentation, not a runtime TTL load"]
+        N1 ~~~ N2
+    end
 ```

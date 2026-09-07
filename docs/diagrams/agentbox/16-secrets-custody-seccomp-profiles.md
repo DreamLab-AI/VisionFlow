@@ -5,7 +5,7 @@ area: agentbox
 governing:
   - ../project/agentbox/docs/SECURITY-profiles.md
   - ../project/agentbox/docs/INGRESS-identity.md
-adrs: [ADR-2007, ADR-2026, ADR-2027, ADR-2033]
+adrs: [ADR-2007, ADR-2026, ADR-2027, ADR-2033, ADR-2046]
 sources:
   - ../project/agentbox/config/seccomp-agentbox.json
   - ../project/agentbox/docker-compose.yml
@@ -19,6 +19,8 @@ sources:
   - ../project/agentbox/skills/email-search/SKILL.md
   - ../project/agentbox/docs/adr/ADR-2027-secret-custody-rotation-break-glass.md
   - ../project/scripts/backup-secrets.sh
+  - ../project/agentbox/services/secret-backup/src/main.rs
+  - ../project/agentbox/services/secret-backup/README.md
 verified_commit: 2c521c5bb
 ---
 
@@ -70,16 +72,16 @@ classDiagram
         +args empty
     }
     class DockerDefault {
-        <<the layer underneath>>
-        +the real allowlist
+        <<overridden by explicit profile selection>>
+        +not implicitly stacked
     }
     SeccompProfile --> RuleAfAlg
     SeccompProfile --> RuleHighRisk
-    SeccompProfile ..> DockerDefault : layered ON TOP OF, never replaces
-    note for SeccompProfile "defaultAction = SCMP_ACT_ALLOW. This is INTENTIONALLY allow-by-default.<br/>The file's own comment: it is NOT a replacement allowlist and is NOT a complete sandbox on its own.<br/>An allowlist was REJECTED deliberately — the workload surface (Chromium, CUDA, Godot) is too wide to enumerate safely without breakage.<br/>architectures: SCMP_ARCH_X86_64, X86, AARCH64, ARM."
+    SeccompProfile ..> DockerDefault : explicit security_opt overrides default
+    note for SeccompProfile "defaultAction = SCMP_ACT_ALLOW. This is INTENTIONALLY allow-by-default.<br/>The file calls itself supplemental, but explicit Docker security_opt selects it IN PLACE OF the default profile.<br/>An allowlist was REJECTED deliberately — the workload surface (Chromium, CUDA, Godot) is too wide to enumerate safely without breakage.<br/>architectures: SCMP_ARCH_X86_64, X86, AARCH64, ARM."
     note for RuleAfAlg "CVE-2026-31431 'Copy Fail' — blocks AF_ALG (family 38) socket creation,<br/>the algif_aead local privesc via splice(). Arg-indexed, so other socket families are unaffected."
     note for RuleHighRisk "add_key bpf clock_adjtime clock_settime create_module delete_module finit_module get_kernel_syms get_mempolicy<br/>init_module ioperm iopl kcmp kexec_file_load kexec_load keyctl lookup_dcookie mbind mount move_pages nfsservctl<br/>perf_event_open pivot_root process_vm_readv process_vm_writev ptrace query_module quotactl reboot request_key<br/>set_mempolicy setns settimeofday stime swapon swapoff sysfs _sysctl umount umount2 unshare uselib userfaultfd ustat vm86 vm86old"
-    note for DockerDefault "DIVERGENCE — reading this file as the confinement boundary is wrong.<br/>Confinement comes from the COMBINATION: cap_drop ALL, read_only root, uid 1000, no-new-privileges,<br/>plus Docker's own default profile. This denylist only narrows what remains. see AB-16.1"
+    note for DockerDefault "DIVERGENCE — reading this file as the confinement boundary is wrong.<br/>Confinement comes from the COMBINATION: cap_drop ALL, read_only root, uid 1000, no-new-privileges,<br/>plus the selected custom seccomp profile and any independently configured host controls. Docker's default is not automatically stacked. see AB-16.1"
 ```
 
 ## AB-16.3 check-seccomp.sh — the invariant gate
@@ -97,7 +99,7 @@ sequenceDiagram
     alt file missing
         SH-->>CI: fail "missing $FILE" then exit 1
     end
-    SH->>NODE: node - "$FILE" "ptrace bpf mount kexec_load unshare setns"
+    SH->>NODE: node - FILE BASELINE (all 46 syscall names)
     NODE->>F: JSON.parse(readFileSync)
     alt parse throws
         NODE-->>CI: FAIL — the profile no longer parses
@@ -111,7 +113,7 @@ sequenceDiagram
         end
     end
     NODE-->>CI: exit 0
-    Note over SH,NODE: INVARIANT — the six named syscalls (ptrace bpf mount kexec_load unshare setns) are the hardening-sprint floor.<br/>The other 39 names in the rule are NOT gate-protected and could be removed without failing CI. DIVERGENCE against the file's own intent.
+    Note over SH,NODE: RESOLVED ADR-2046 — all 46 unconditional syscall denials are gate-protected.<br/>The gate separately verifies socket / argument index 0 / AF_ALG 38 / SCMP_CMP_EQ.<br/>This is a structural source gate, not an attestation of a running container filter.
 ```
 
 ## AB-16.4 Boot privilege drop and the trust-seed hook
@@ -236,14 +238,14 @@ sequenceDiagram
         end
     end
     rect rgb(255,240,240)
-    Note over ADR,PX: ADR-2027 REQUIRES and the code does NOT do
-    ADR-->>PX: MUST be short-lived — no expiry is checked in this branch
-    ADR-->>PX: MUST be single-scoped — no request-scope check exists in this branch
-    ADR-->>PX: MUST be audit-logged on every use — no durable per-use receipt is written
-    ADR-->>PX: MUST NOT function as a standing master credential — while set it IS one
+    Note over ADR,PX: ADR-2027 lifecycle acceptance remains open
+    ADR-->>PX: expiry check exists — unset expiry permits unbounded lifetime
+    ADR-->>PX: method and path scope checks exist — unset scope is unrestricted
+    ADR-->>PX: fingerprinted acceptance/refusal logs exist — durable per-use receipt is unproven
+    ADR-->>PX: full lifecycle needs configured bounds, custodians and tested revocation
     end
     Note over ATK,PX: DIVERGENCE INGRESS-identity "Break-glass bearer over the LAN" — accepted on :9096 AND via ?access_token= / ?bearer= on WS upgrades.<br/>A single shared secret bypasses NIP-98 entirely. Documented opt-in, but a full identity bypass while enabled. see AB-10.9
-    Note over ADR: ADR-2027 status is decision_status proposed / implementation_status none / activation_status inactive.<br/>Nothing in this diagram's red block is built. It is recorded here so the gap is legible, not to imply a control exists.
+    Note over ADR: ADR-2027 record status: decision proposed, implementation none, activation inactive.<br/>Policy status remains proposed for the complete lifecycle.<br/>Optional bounds and fingerprint logs ARE implemented — lifecycle completion and deployed configuration are not certified.
 ```
 
 ## AB-16.7 Key files at 0600 — what that boundary is and is not
@@ -397,4 +399,36 @@ flowchart TB
     OFF2 --> X
     X --> Y["Consequence: there is no single answer to 'is session content leaving this box, and redacted how'.<br/>Two paths, two gates, two encryption postures, one of them unredacted before wrapping."]
     M3 -.-> Z["TRUST BOUNDARY — this is the only agentbox egress to a NON-LAN destination in this domain.<br/>The email gateway, the Loom and the relay are all LAN or loopback. see AB-13.9"]
+```
+
+## Audit qualification — 2026-09-07
+
+AB-16.2 corrects an upstream comment as well as the previous drawing: Docker explicitly selected seccomp profiles override the default; they are not automatically stacked ([Docker seccomp documentation](https://docs.docker.com/engine/security/seccomp/)). No running filter or credential contents were inspected. AB-16.3 passed `check-seccomp.sh` against the current source. The same-UID custody limitation remains. See [audit](../../estate-review/2026-09-07-agentbox-audit.md).
+
+
+## AB-16.12 agentbox-secret-backup — an age-encrypted archive tool with no wired invocation
+
+```mermaid
+flowchart TB
+    subgraph cli["agentbox-secret-backup — standalone Cargo bin, services/secret-backup"]
+        BACKUP["Backup #123;root, out, recipients, manifest#125;<br/>src/main.rs:96-110"]
+        RESTORE["Restore #123;archive, dest, identity#125;<br/>src/main.rs:112-121"]
+        PLAN["Plan #123;root#125;<br/>src/main.rs:123-126 — list only, reads no content"]
+        SELFTEST["SelfTest<br/>src/main.rs:128-132 — round trip on SYNTHETIC data"]
+    end
+    BACKUP --> COLLECT["collect#40;root#41; — walks the tree, is_pruned#40;#41; skips<br/>src/main.rs:135,143"]
+    COLLECT --> ENCRYPTOR["encryptor#40;recipients, passphrase#41;<br/>src/main.rs:174 — age::x25519 recipients OR scrypt passphrase, never both silently"]
+    ENCRYPTOR --> ARCHIVE["tar stream, age-encrypted<br/>src/main.rs:204 backup#40;#41;"]
+    ARCHIVE --> MANIFEST["optional manifest: file NAMES + sizes + SHA-256 only<br/>src/main.rs:245-247 — NEVER file contents"]
+    RESTORE --> DECRYPT["age::Decryptor::new_buffered<br/>src/main.rs:300 — branches on is_scrypt#40;#41; vs identity file"]
+    DECRYPT --> UNSAFE["is_unsafe_entry_path#40;#41; guard<br/>src/main.rs:279-284 — rejects absolute paths and .. components<br/>a hand-crafted hostile archive could still carry"]
+    UNSAFE --> HARDEN["harden#40;path#41; — chmod 0600 on every extracted file<br/>src/main.rs:264-273"]
+    subgraph notes["Invariants and drift"]
+        direction TB
+        N1["INVARIANT: the tool CANNOT write a plaintext archive — age encryption is<br/>mandatory on every Backup path, not optional (README.md)"]
+        N2["DIVERGENCE: no invocation path found from ./agentbox.sh, flake.nix, or any lib/*.nix<br/>#40;grep-verified#41; — this is an operator-run manual tool, not a supervised or scheduled<br/>process, unlike every other services/ crate covered elsewhere in this topic file"]
+        N3["ADR-2030: AGPL-3.0-only, publish#61;false, NOT dual-licensed like the sibling<br/>services/ crates #40;MIT OR Apache-2.0#41; — an operator-internal tool, never published"]
+        N4["ADR-2027 acceptance gap: retention, off-host placement and the recovery-authority<br/>test remain the operator's responsibility — SelfTest proves restore works on<br/>synthetic data only, never on a real secret"]
+        N1 ~~~ N2 ~~~ N3 ~~~ N4
+    end
 ```

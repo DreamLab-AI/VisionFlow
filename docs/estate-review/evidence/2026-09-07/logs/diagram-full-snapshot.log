@@ -1,0 +1,59 @@
+parsed 129 topic files, 1390 mermaid diagrams
+cite-check: 51 warning(s)
+  ! agentbox/08-hooks-pipeline.md:AB-08.3 — settings.json:49 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/08-hooks-pipeline.md:AB-08.3 — settings.json:29 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/08-hooks-pipeline.md:AB-08.4 — settings.json:82 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/08-hooks-pipeline.md:AB-08.4 — settings.json:82 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/08-hooks-pipeline.md:AB-08.5 — settings.json:133 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/08-hooks-pipeline.md:AB-08.6 — settings.json:189 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/08-hooks-pipeline.md:AB-08.6 — adapter.cjs:47 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/08-hooks-pipeline.md:AB-08.7 — settings.json:245 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/08-hooks-pipeline.md:AB-08.7 — settings.json:343 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/08-hooks-pipeline.md:AB-08.12 — /workspace/.agentbox/dream-inbox.json:20 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/25-ontology-tools-and-governed-writes.md:AB-25.12 — ../project/agentbox/ontology/test_decision_layer.py:22 is blank
+  ! agentbox/25-ontology-tools-and-governed-writes.md:AB-25.12 — services/agentbox-ops/src/voyager/mod.rs:4 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! agentbox/25-ontology-tools-and-governed-writes.md:AB-25.12 — src/bin/voyager-gate.rs:4 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/21-corpus-ingest-and-vault.md:VC-21.6 — crates/visionclaw-ontology/src/services/jsonld_validator/mod.rs:236 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/21-corpus-ingest-and-vault.md:VC-21.6 — crates/visionclaw-ontology/src/services/jsonld_validator/mod.rs:249 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/22-data-authority-provenance-erasure.md:VC-22.1 — ../project/src/services/nostr_service.rs:121 is punctuation only ('}')
+  ! visionclaw/22-data-authority-provenance-erasure.md:VC-22.1 — docs/DATA-authority-erasure.md:96 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/22-data-authority-provenance-erasure.md:VC-22.1 — docs/DATA-authority-erasure.md:106 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/22-data-authority-provenance-erasure.md:VC-22.6 — docs/DATA-authority-erasure.md:86 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/22-data-authority-provenance-erasure.md:VC-22.8 — docs/DATA-authority-erasure.md:61 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/23-identifiers-urn-did-sha12.md:VC-23.9 — crates/visionclaw-domain/src/uri.rs:31 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/23-identifiers-urn-did-sha12.md:VC-23.9 — crates/visionclaw-domain/src/uri.rs:15 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/23-identifiers-urn-did-sha12.md:VC-23.9 — oxigraph_ontology_repository.rs:174 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/24-acsp-decision-elevation.md:VC-24.7 — broker-bridge.js:233 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/25-insight-kpi-nlq-semantics.md:VC-25.11 — src/services/ontology_content_analyzer.rs:2 is ambiguous: matches 2 sources: entries
+  ! visionclaw/25-insight-kpi-nlq-semantics.md:VC-25.11 — src/services/ontology_content_analyzer.rs:1 is ambiguous: matches 2 sources: entries
+  ! visionclaw/26-solid-pod-and-jss.md:VC-26.3 — authInterceptor.ts:52 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/27-agent-integration-mcp-relay.md:VC-27.11 — protocol.rs:972 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/27-agent-integration-mcp-relay.md:VC-27.11 — protocol.rs:978 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/28-external-services.md:VC-28.3 — configuration.md:220 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/28-external-services.md:VC-28.3 — how-to/agent-orchestration.md:449 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/28-external-services.md:VC-28.7 — speech.rs:65 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/28-external-services.md:VC-28.7 — speech.rs:71 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/28-external-services.md:VC-28.9 — //127.0.0.1:4001 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/31-client-graph-render-pipeline.md:VC-31.1 — visualisation/WasmSceneEffects.tsx:628 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/31-client-graph-render-pipeline.md:VC-31.1 — visualisation/EmbeddingCloudLayer.tsx:92 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/31-client-graph-render-pipeline.md:VC-31.1 — visualisation/TransientBeamsLayer.tsx:69 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/34-client-features.md:VC-34.2 — control-center.md:88 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/34-client-features.md:VC-34.20 — /embedding-cloud.json:132 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/35-voice-end-to-end.md:VC-35.4 — socket_flow_handler/http_handler.rs:357 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/35-voice-end-to-end.md:VC-35.12 — docker-compose.unified.yml:312 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/35-voice-end-to-end.md:VC-35.12 — agentbox/docker-compose.yml:89 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionclaw/37-browser-xr-and-desktop-input.md:VC-37.8 — docs/BASELINE-architecture.md:195 cites a file that is not in this topic's sources: (unresolvable, never checked)
+  ! visionflow/01-repo-composition-and-canon.md:VF-01.2 — docs/roadmap.md:4 is blank
+  ! visionflow/06-diagram-tooling.md:VF-06.1 — docs/diagrams/README.md:64 is blank
+  ! visionflow/06-diagram-tooling.md:VF-06.8 — scripts/diagram-index-gen.cjs:447 is blank
+  ! visionflow/06-diagram-tooling.md:VF-06.9 — scripts/diagram-index-gen.cjs:340 is punctuation only ('}')
+  ! visionflow/06-diagram-tooling.md:VF-06.9 — scripts/diagram-index-gen.cjs:462 is punctuation only ('}')
+  ! visionflow/06-diagram-tooling.md:VF-06.11 — scripts/diagram-index-gen.cjs:340 is punctuation only ('}')
+  ! visionflow/08-compatibility-and-dependency-direction.md:VF-08.1 — docs/architecture/repository-map.md:34 is blank
+  ! visionflow/08-compatibility-and-dependency-direction.md:VF-08.10 — docs/architecture/repository-map.md:57 is blank
+rendered 1387/1390 diagrams via mmdc
+
+3 error(s):
+  - agentbox/11-identity-did-mandate-authority.md:AB-11.3 (md line 115) — mermaid line 18: ...L "minted &lt;did&gt; but could NOT pers | -----------------------^ | Expecting '()', 'SOLID_OPEN_ARROW', 'DOTTED_OPEN_ARROW', 'SOLID_ARROW', 'SOLID_ARROW_TOP', 'SOLID_ARROW_BOTTOM', 'STICK_ARROW_TOP', 'STICK_ARROW_BOTTOM', 'SOLID_ARROW_TOP_DOTTED', 'SOLID_ARROW_BOTTOM_DOTTED', 'STICK_ARROW_TOP_DOTTED', 'STICK_ARROW_BOTTOM_DOTTED', 'SOLID_ARROW_TOP_REVERSE', 'SOLID_ARROW_BOTTOM_REVERSE', 'STICK_ARROW_TOP_REVERSE', 'STICK_ARROW_BOTTOM_REVERSE', 'SOLID_ARROW_TOP_REVERSE_DOTTED', 'SOLID_ARROW_BOTTOM_REVERSE_DOTTED', 'STICK_ARROW_TOP_REVERSE_DOTTED', 'STICK_ARROW_BOTTOM_REVERSE_DOTTED', 'BIDIRECTIONAL_SOLID_ARROW', 'DOTTED_ARROW', 'BIDIRECTIONAL_DOTTED_ARROW', 'SOLID_CROSS', 'DOTTED_CROSS', 'SOLID_POINT', 'DOTTED_POINT', got 'NEWLINE'
+  - agentbox/11-identity-did-mandate-authority.md:AB-11.14 (md line 567) — mermaid line 16: ...y opt-in via the env<br/>var, not the sh | -----------------------^ | Expecting 'NEWLINE', ',', '()', 'SOLID_OPEN_ARROW', 'DOTTED_OPEN_ARROW', 'SOLID_ARROW', 'SOLID_ARROW_TOP', 'SOLID_ARROW_BOTTOM', 'STICK_ARROW_TOP', 'STICK_ARROW_BOTTOM', 'SOLID_ARROW_TOP_DOTTED', 'SOLID_ARROW_BOTTOM_DOTTED', 'STICK_ARROW_TOP_DOTTED', 'STICK_ARROW_BOTTOM_DOTTED', 'SOLID_ARROW_TOP_REVERSE', 'SOLID_ARROW_BOTTOM_REVERSE', 'STICK_ARROW_TOP_REVERSE', 'STICK_ARROW_BOTTOM_REVERSE', 'SOLID_ARROW_TOP_REVERSE_DOTTED', 'SOLID_ARROW_BOTTOM_REVERSE_DOTTED', 'STICK_ARROW_TOP_REVERSE_DOTTED', 'STICK_ARROW_BOTTOM_REVERSE_DOTTED', 'BIDIRECTIONAL_SOLID_ARROW', 'DOTTED_ARROW', 'BIDIRECTIONAL_DOTTED_ARROW', 'SOLID_CROSS', 'DOTTED_CROSS', 'SOLID_POINT', 'DOTTED_POINT', 'TXT', got 'INVALID'
+  - agentbox/25-ontology-tools-and-governed-writes.md:AB-25.11 (md line 421) — rendered 4953px wide (max 4500); wrap long Notes with <br/>, cap them at ~90 chars, or split the diagram

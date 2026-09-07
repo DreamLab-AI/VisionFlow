@@ -153,7 +153,7 @@ classDiagram
     ServerConfig *-- ServerSection
     ServerConfig *-- AuthConfig
     ServerConfig *-- SecurityConfig
-    note for ServerConfig "validate() rejects oidc_enabled = true with no oidc_issuer\nsolid-pod-rs/src/config/schema.rs:327 — a pod cannot claim OIDC with no issuer."
+    note for ServerConfig "validate() rejects oidc_enabled = true with no oidc_issuer\n  solid-pod-rs/src/config/schema.rs:327 — a pod cannot claim OIDC with no issuer."
 ```
 
 ## SP-02.6 Storage backend selection — only two survive

@@ -13,7 +13,10 @@ sources:
   - ../dreamlab-ai-website/.github/workflows/set-worker-secrets.yml
   - ../dreamlab-ai-website/.github/workflows/deploy.yml
   - ../dreamlab-ai-website/.github/workflows/workers-deploy.yml
+  - ../dreamlab-ai-website/.github/workflows/docs-update.yml
   - ../dreamlab-ai-website/playwright.config.ts
+  - ../dreamlab-ai-website/tests/forum-smoke.spec.ts
+  - ../dreamlab-ai-website/docs/BASELINE-architecture.md
 verified_commit: 9a3dd8830
 ---
 
@@ -106,3 +109,17 @@ flowchart TB
     API -.->|validated at deploy time by| GATE["workers-deploy.yml 'Validate required auth-worker secrets are set'<br/>see DW-03.7"]
 ```
 - `set-worker-secrets.yml:1-9` states the pipeline never generates these four values — they are read from GitHub repo secrets and pushed as-is; `PUT` on the CF secrets endpoint is idempotent, so the workflow is safe to re-run.
+
+## DW-05.7 `docs-update.yml` — the one workflow that writes to the repo on a timer
+```mermaid
+flowchart TB
+    CRON["schedule: cron 0 22 * * 0 Sundays 22:00 UTC<br/>+ workflow_dispatch, docs-update.yml:6-7"] --> J1["update-timestamps<br/>permissions: contents write, pull-requests write<br/>docs-update.yml:14,19-20"]
+    J1 --> SCAN1["walk docs/**/*.md excluding */working/*<br/>read each file's last git-commit date"]
+    SCAN1 --> PR["opens PR on branch docs/auto-update-timestamps<br/>peter-evans/create-pull-request, docs-update.yml:70"]
+    CRON --> J2["check-outdated<br/>permissions: contents read, issues write<br/>docs-update.yml:74"]
+    J2 --> SCAN2["flag docs with last_updated older than<br/>THRESHOLD_DAYS=90"]
+    SCAN2 --> ISSUE["find-or-create rolling issue<br/>'Documentation review needed: outdated files detected'<br/>labels documentation,maintenance,review-needed"]
+```
+- INVARIANT: `update-timestamps` never commits directly to `main` — it always goes through a PR (`docs-update.yml:59-72`), so the elevated `contents: write` permission this job holds is scoped by GitHub's own PR-review gate, not exercised as a direct push.
+- The rolling-issue step deliberately searches for an existing open issue with the same title before creating a new one, to avoid duplicate issue spam on repeated stale-doc runs (`docs-update.yml:126-128` comment names prior duplicate issues #35/#37/#39/#40 as the reason).
+- This workflow is unrelated to `node scripts/adr-index-gen.js` (project `CLAUDE.md`'s ADR regeneration step) — it is a pure `last_updated` freshness checker/PR bot, not an ADR index generator.

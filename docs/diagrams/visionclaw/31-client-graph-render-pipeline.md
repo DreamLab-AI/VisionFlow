@@ -65,15 +65,15 @@ flowchart LR
     CANVAS --> EEC["EnsureEventsConnected<br/>GraphCanvas.tsx:203"]
     CANVAS --> PP["PerfProbe (DEV only, lazy)<br/>components/PerfProbe.tsx:385"]
     CANVAS --> ENV["Environment plus Lightformer, auto policy skips on software renderer"]
-    CANVAS --> WSE["WasmSceneEffects<br/>visualisation/WasmSceneEffects.tsx:628"]
-    CANVAS --> ECL["EmbeddingCloudLayer<br/>visualisation/EmbeddingCloudLayer.tsx:92"]
+    CANVAS --> WSE["WasmSceneEffects<br/>visualisation/components/WasmSceneEffects.tsx:628"]
+    CANVAS --> ECL["EmbeddingCloudLayer<br/>visualisation/components/EmbeddingCloudLayer.tsx:92"]
     CANVAS -->|"canvasReady and nodeCount above 0"| GM["GraphManager<br/>components/GraphManager.tsx:40"]
     GM --> GN["GemNodes x3 populations<br/>components/GemNodes.tsx:150"]
     GM --> GE["GlassEdges x2 (main + highlight)<br/>components/GlassEdges.tsx:180"]
     GM --> IE["InferredEdges<br/>components/InferredEdges.tsx:36"]
     GM --> KR["KnowledgeRings<br/>components/KnowledgeRings.tsx:32"]
     GM --> CH["ClusterHulls<br/>components/ClusterHulls.tsx:223"]
-    GM --> TBL["TransientBeamsLayer<br/>visualisation/TransientBeamsLayer.tsx:69"]
+    GM --> TBL["TransientBeamsLayer<br/>visualisation/components/TransientBeamsLayer.tsx:69"]
     GM --> IL["InstancedLabels<br/>components/InstancedLabels.tsx:294"]
     CANVAS --> OC["OrbitControls (makeDefault)"]
     CANVAS --> GPP["GemPostProcessing<br/>client/src/rendering/GemPostProcessing.tsx"]
@@ -527,14 +527,14 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant WS as handleAgentActionTagged<br/>binaryProtocol.ts:438
+    participant WS as handleAgentActionTagged<br/>store/websocket/binaryProtocol.ts:437
     participant STORE as transientBeamStore.pushBeams<br/>transientBeamStore.ts:67
     participant LAYER as TransientBeamsLayer<br/>TransientBeamsLayer.tsx:69
     participant HOOK as useTransientBeams<br/>useTransientBeams.ts:24
     participant MESH as TransientBeamMesh.updateBeam useFrame<br/>TransientBeamsLayer.tsx:166
     participant ENC as semanticEncoding agentActionColorHex/Shape<br/>semanticEncoding.ts:126,131
 
-    Note over WS: 0x23 wire frame is a bare type tag, not a V4 header colon separated fields<br/>count:u16 then repeated len:u16 plus event bytes (binaryProtocol.ts:422-427, decoded at :437-442). See VC-30<br/>for the surrounding websocket store and worker plumbing.
+    Note over WS: 0x23 wire frame is a bare type tag, not a V4 header colon separated fields<br/>count:u16 then repeated len:u16 plus event bytes (store/websocket/binaryProtocol.ts:422-436, decoded at :437-441). See VC-30<br/>for the surrounding websocket store and worker plumbing.
     WS->>STORE: pushTransientBeams(actions) exported non-React entry point<br/>(transientBeamStore.ts:115)
     STORE->>STORE: pushBeams -- clampDuration(durationMs) floor MIN_BEAM_DURATION_MS=400,<br/>default DEFAULT_BEAM_DURATION_MS=1500
     STORE->>STORE: beams.concat(incoming), FIFO trim to MAX_TRANSIENT_BEAMS=256 (oldest<br/>evicted first)

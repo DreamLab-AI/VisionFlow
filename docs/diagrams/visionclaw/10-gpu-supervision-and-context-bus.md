@@ -543,6 +543,6 @@ sequenceDiagram
     GRA->>GRA: APSP PTX load fails
     Note over GRA: warn "Failed to load APSP PTX (will use CPU fallback)" :142
     Note over CCA: SemanticForcesActor carries CPU fallback implementations :221 in semantic_forces_actor.rs
-    Note over CCA: DIVERGENCE: ShortestPathActor's CPU fallback was REMOVED - shortest_path_actor.rs:356 refers to "the former CPU fallback", so SSSP has no degraded path
-    Note over PO,GRA: DIVERGENCE: coverage is uneven - ConnectedComponents and SemanticForces degrade, StressMajorization and ForceFullBroadcast hard-fail or drop, SSSP lost its fallback
+    Note over CCA: POLICY: ComputeSSP returns Err without a GPU context or on GPU failure<br/>shortest_path_actor.rs:224-249, there is no SSSP CPU fallback.<br/>ComputeAPSP separately refuses all dense all-pairs requests under NFR-7<br/>shortest_path_actor.rs:349-366, the removed fallback at :356 was APSP.
+    Note over PO,GRA: DIVERGENCE: coverage is uneven - ConnectedComponents and SemanticForces degrade, StressMajorization and ForceFullBroadcast hard-fail or drop, SSSP refuses without GPU, dense APSP is deliberately disabled
 ```

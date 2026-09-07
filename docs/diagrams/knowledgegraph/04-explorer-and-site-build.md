@@ -14,6 +14,10 @@ sources:
   - ../knowledgeGraph/explorer/FORMAT-NGG1.md
   - ../knowledgeGraph/explorer/license.txt
   - ../knowledgeGraph/docs/architecture/explorer.md
+  - ../knowledgeGraph/docs/BASELINE-narrativegoldmine.md
+  - ../knowledgeGraph/docs/ecosystem.md
+  - ../visionGraph/publishing-tools/WasmVOWL/modern/package.json
+  - ../visionGraph/.github/workflows/publish.yml
 verified_commit: 2791111fc
 ---
 
@@ -26,11 +30,11 @@ flowchart TB
         GP["GraphPage — the ONLY route that pulls<br/>WASM + worker + renderer chunks<br/>router.tsx:9,37"]
         WORKER["physics.worker.ts — drives NggExplorer"]
     end
-    subgraph WASM["@dreamlab-ai/vowl-wasm — EXTERNAL package<br/>package.json:20"]
+    subgraph WASM["@dreamlab-ai/vowl-wasm — EXTERNAL package<br/>explorer/modern/package.json:20"]
         NGGEXP["NggExplorer wasm_bindgen class<br/>loadCsr/tick/isFinished/positionsPtr — see VW-*"]
     end
     ROUTER --> GP --> WORKER --> NGGEXP
-    note1["DOC-DRIFT: BASELINE-narrativegoldmine.md:14 and architecture/explorer.md:10<br/>both cite explorer/rust-wasm/src/ngg1.rs as an IN-TREE crate. At this commit<br/>there is no rust-wasm/ directory in explorer/ at all — modern/package.json:20<br/>fetches '@dreamlab-ai/vowl-wasm' as a GitHub release tarball<br/>(v0.1.1-pkg.tgz). The reader now lives in the sibling vowl-wasm repo —<br/>EXTERNAL: see VW-* for the crate itself"]
+    note1["DOC-DRIFT: BASELINE-narrativegoldmine.md:14 and architecture/explorer.md:10<br/>both cite explorer/rust-wasm/src/ngg1.rs as an IN-TREE crate. At this commit<br/>there is no rust-wasm/ directory in explorer/ at all — explorer/modern/package.json:20<br/>fetches '@dreamlab-ai/vowl-wasm' as a GitHub release TARBALL v0.1.1<br/>#40;GitHub release, not npm#41;. The reader now lives in the sibling vowl-wasm repo —<br/>EXTERNAL: see VW-* for the crate itself. DIVERGENCE: the copy that actually SHIPS<br/>to narrativegoldmine.com is a DIFFERENT tree — visionGraph's publishing-tools/<br/>WasmVOWL/modern/package.json:20 pins the SAME package as npm '0.1.2', not this<br/>tarball's v0.1.1 — see KG-04.6 and VG-06"]
 ```
 
 ## KG-04.2 NGG1 tier data flow — fetch → parse → worker tick → instanced render
@@ -104,4 +108,22 @@ flowchart TB
     UPSTREAM --> WASMVOWL --> HERE
     WASMVOWL -.->|"same MIT-derivative lineage"| VW
     note1["INVARIANT: explorer/ stays MIT deliberately — AGPL-ing it would be<br/>hollow while the identical WebVOWL-derived code is MIT one repo away<br/>(architecture/explorer.md:302-308)"]
+```
+
+## KG-04.6 This copy never ships — the deployed explorer is a DIFFERENT, diverged tree
+
+```mermaid
+flowchart TB
+    subgraph HERE["knowledgeGraph/explorer/modern — THIS diagram's subject"]
+        HPKG["explorer/modern/package.json:20<br/>@dreamlab-ai/vowl-wasm — GitHub RELEASE TARBALL<br/>v0.1.1-pkg.tgz"]
+    end
+    subgraph SHIP["visionGraph/publishing-tools/WasmVOWL/modern — the SHIPPING tree<br/>EXTERNAL: see VG-06"]
+        SPKG["WasmVOWL/modern/package.json:20<br/>@dreamlab-ai/vowl-wasm — npm registry<br/>'0.1.2'"]
+    end
+    BUILDYML["this repo's build.yml<br/>builds pipeline/ only — NO wasm-pack, NO vite,<br/>NO deploy step (KG-05.1)"]
+    PUBYML["visionGraph publish.yml:151<br/>builds THIS SPA — EXTERNAL VG-03.3"]
+    SITE["narrativegoldmine.com<br/>external_repository DreamLab-AI/knowledgeGraph gh-pages<br/>EXTERNAL publish.yml:279"]
+    HERE -.->|"built by NOTHING in this repo"| BUILDYML
+    SHIP --> PUBYML --> SITE
+    note1["DOC-DRIFT: KG-04.1 through KG-04.5 document explorer/modern as THE explorer —<br/>accurate for what the source code says, but this copy is never built or<br/>deployed by anything in this repository. The tree that actually ships is<br/>visionGraph's publishing-tools/WasmVOWL/modern #40;180 files#41; — see VG-06 for<br/>its own topic. The two trees have DIVERGED on the one dependency both pin:<br/>HPKG v0.1.1 #40;tarball#41; vs SPKG '0.1.2' #40;npm#41;"]
 ```

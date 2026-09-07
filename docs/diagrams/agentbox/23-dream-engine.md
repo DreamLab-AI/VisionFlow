@@ -673,3 +673,7 @@ flowchart TB
         N1 ~~~ N2
     end
 ```
+
+## Audit qualification — 2026-09-07
+
+ADR-2081 source corrections above remain **staged** for the supervised nightly loop. Its loaded Nix-store binary requires an image rebuild and process-identity receipt before these source fixes can be called live. This audit did not rebuild or activate it.

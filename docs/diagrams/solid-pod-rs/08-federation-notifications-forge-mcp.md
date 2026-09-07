@@ -38,6 +38,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/mcp/tools.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/mcp/skills.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs
+  - ../solid-pod-rs/crates/solid-pod-rs/src/handlers/legacy_notifications.rs
 verified_commit: 1d9da5270
 ---
 
@@ -512,4 +513,31 @@ flowchart TD
     POD -.-> N
     N2["Three integration patterns: full server embedding (VisionClaw, agentbox),<br/>core-only wasm embedding (the forum worker) and transitive consumption<br/>(the website). Pin matrix in SP-09.7."]
     POD -.-> N2
+```
+
+## SP-08.17 The legacy `solid-0.1` driver — the crate mounts nothing
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant T as the CONSUMER's transport<br/>actix-ws, axum ws, tungstenite
+    participant D as LegacyWsDriver<br/>solid-pod-rs/src/handlers/legacy_notifications.rs:91
+    participant R as run_loop<br/>solid-pod-rs/src/handlers/legacy_notifications.rs:167
+    participant H as handle_line<br/>solid-pod-rs/src/handlers/legacy_notifications.rs:241
+    participant CH as LegacyNotificationChannel — see SP-08.4
+
+    T->>T: perform the HTTP to WebSocket upgrade ITSELF<br/>solid-pod-rs/src/handlers/legacy_notifications.rs:9
+    T->>D: new(storage event Receiver)<br/>solid-pod-rs/src/handlers/legacy_notifications.rs:99
+    D->>R: drive three inputs — storage events, inbound text, heartbeat
+    R-->>T: OutboundFrame::Text with the protocol greeting, FIRST<br/>solid-pod-rs/src/handlers/legacy_notifications.rs:174
+    T->>R: an inbound text frame
+    R->>H: parse the line
+    H->>CH: sub / unsub, WAC-checked
+    CH-->>H: ack, err or pub
+    H-->>R: Vec of OutboundFrame<br/>solid-pod-rs/src/handlers/legacy_notifications.rs:78
+    R-->>T: frames on an mpsc channel the transport writes
+
+    Note over D: INVARIANT: this crate does NOT mount itself at /ws/solid-0.1<br/>(solid-pod-rs/src/handlers/legacy_notifications.rs:6). The consumer owns the<br/>upgrade and the route — the recommended path is only a recommendation<br/>(solid-pod-rs/src/handlers/legacy_notifications.rs:18). That is the same<br/>ownership line the ecosystem doc draws — this crate owns protocol, not routing.
+    Note over R: The outbound mpsc is capacity-bounded (default 256,<br/>solid-pod-rs/src/handlers/legacy_notifications.rs:102) and overridable<br/>(:108). Lower caps drop frames earlier under back-pressure — lossy by design,<br/>matching JSS, so a slow client degrades its own stream and not the pod.
+    Note over CH: This is the DRIVER half — notifications/legacy.rs is the protocol half<br/>(SP-08.4). Neither is reachable without the default-off legacy-notifications<br/>feature — see SP-01.6.
 ```

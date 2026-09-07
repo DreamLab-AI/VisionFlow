@@ -32,14 +32,14 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    subgraph VG001["ADR-VG-001 — publication inclusion + inferred visibility<br/>decision_status: proposed · activation_status: inactive"]
+    subgraph VG001["ADR-VG-001 — publication inclusion + inferred visibility<br/>decision_status: proposed · activation_status: inactive<br/>ADR-VG-001-publication-policy-boundaries.md:24, one dense paragraph"]
         A1["every input: explicit included/excluded/invalid<br/>disposition under a NAMED policy"]
         A2["require BOOLEAN publication metadata"]
         A3["expose conflicting inclusion fields"]
         A4["prevent malformed input disappearing<br/>before validation"]
         A5["deliberate, TESTED private-ancestor<br/>disclosure policy across API/scaffold/Turtle"]
     end
-    subgraph VG002["ADR-VG-002 — generation and consumer identity<br/>decision_status: proposed · activation_status: inactive"]
+    subgraph VG002["ADR-VG-002 — generation and consumer identity<br/>decision_status: proposed · activation_status: inactive<br/>ADR-VG-002-generation-and-consumer-identity.md:24, one dense paragraph"]
         B1["ONE release manifest: source/corpus/pipeline/<br/>explorer/dependency/policy identity + output hashes"]
         B2["demonstrate deletion, equal-count substitution,<br/>namespace moves, interrupted activation, rollback"]
         B3["verify embedded explorer schema + browser<br/>behaviour INDEPENDENTLY"]

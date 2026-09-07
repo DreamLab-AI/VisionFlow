@@ -6,6 +6,12 @@ governing:
   - ../project/agentbox/docs/BASELINE-container.md
 adrs: [ADR-2013, ADR-2003, ADR-2040]
 sources:
+  - ../project/agentbox/agentbox.sh
+  - ../project/agentbox/xr-runtime/Dockerfile
+  - ../project/agentbox/xr-runtime/supervisord.conf
+  - ../project/agentbox/xr-runtime/launch-monado.sh
+  - ../project/agentbox/xr-runtime/launch-godot.sh
+  - ../project/agentbox/xr-runtime/healthcheck.sh
   - ../project/agentbox/docker-compose.yml
   - ../project/agentbox/docker-compose.override.yml
   - ../project/agentbox/docker-compose.browsercontainer.yml
@@ -19,7 +25,6 @@ sources:
   - ../project/agentbox/scripts/ci/check-ports-loopback.mjs
   - ../project/agentbox/scripts/ci/check-ports-loopback.sh
   - ../project/agentbox/browsercontainer/server.js
-  - ../project/agentbox/agentbox.sh
   - ../project/agentbox/flake.nix
   - ../project/agentbox/.github/workflows/invariants.yml
   - ../project/agentbox/scripts/ci/check-seccomp.sh
@@ -110,7 +115,7 @@ flowchart LR
     BC -->|"screenshot or render result back into the volume"| V
     V -->|"agent reads ~/gui-tools/result"| AB
     AB -.-> NOTE["INVARIANT — the SAME volume has DIFFERENT mount paths per container.<br/>An agent writing ~/gui-tools/foo.svg must address it as<br/>file:///home/devuser/exchange/foo.svg from the browser sidecar"]
-    V -.-> DECL["declared in all three overlays —<br/>override.yml:199, browsercontainer.yml:69, gui-tools.yml:66"]
+    V -.-> DECL["declared in all three overlays —<br/>docker-compose.override.yml:187, docker-compose.browsercontainer.yml:69, docker-compose.gui-tools.yml:66"]
 ```
 
 ## AB-06.4 browsercontainer — HTTP surface and MCP transport
@@ -147,9 +152,9 @@ sequenceDiagram
         S-->>A: tool result
     end
     Note over S,CH: raw CDP is also reachable — published 9222 on the host mapping to container 9223 (docker-compose.browsercontainer.yml:53, SANCTIONED at check-ports-loopback.mjs:99)
-    Note over S: VNC :5903 for eyes-on debugging (browsercontainer.yml:48)
-    Note over A,S: GPU reservation and NVIDIA device request in the deploy block (browsercontainer.yml:33-45)
-    Note over A,V: extra_hosts host.docker.internal maps to host-gateway (browsercontainer.yml:57-58)
+    Note over S: VNC :5903 for eyes-on debugging (docker-compose.browsercontainer.yml:48)
+    Note over A,S: GPU reservation and NVIDIA device request in the deploy block (docker-compose.browsercontainer.yml:33-45)
+    Note over A,V: extra_hosts host.docker.internal maps to host-gateway (docker-compose.browsercontainer.yml:57-58)
 ```
 
 ## AB-06.5 gui-tools-service — the FHS GPU presentation sidecar
@@ -164,9 +169,9 @@ sequenceDiagram
 
     OP->>SH: ./agentbox.sh gui-tools up
     SH->>DC: docker compose --project-name agentbox -f docker-compose.gui-tools.yml up -d --build (agentbox.sh:1785)
-    DC->>GT: start with DISPLAY=:2, NVIDIA_DRIVER_CAPABILITIES compute,utility,graphics (gui-tools.yml:18-22)
-    Note over GT: __GLX_VENDOR_LIBRARY_NAME=nvidia (gui-tools.yml:25) — the presentation path the Nix wrappers cannot provide, see AB-01.6
-    GT->>GT: BlenderMCP binds 0.0.0.0:9876, QGIS MCP binds 0.0.0.0:9877 (gui-tools.yml:26-29)
+    DC->>GT: start with DISPLAY=:2, NVIDIA_DRIVER_CAPABILITIES compute,utility,graphics (docker-compose.gui-tools.yml:18-22)
+    Note over GT: __GLX_VENDOR_LIBRARY_NAME=nvidia (docker-compose.gui-tools.yml:25) — the presentation path the Nix wrappers cannot provide, see AB-01.6
+    GT->>GT: BlenderMCP binds 0.0.0.0:9876, QGIS MCP binds 0.0.0.0:9877 (docker-compose.gui-tools.yml:26-29)
     loop poll until deadline now plus 120 s, sleep 3 (agentbox.sh:1787-1791)
         SH->>HC: docker exec gui-tools-service bash /opt/gui-tools/healthcheck.sh
         alt healthy
@@ -211,21 +216,21 @@ flowchart TB
     subgraph LANP["LAN-reachable — every one on the ADR-2013 SANCTIONED list"]
         P1["agentbox 9096:9096 — NIP-98 sovereign ingress<br/>docker-compose.yml:54"]
         P2["voice-console 0.0.0.0:8443 and 0.0.0.0:8444 Caddy origin<br/>docker-compose.voice.yml:39-40"]
-        P3["browsercontainer 0.0.0.0:5903 VNC, 0.0.0.0:8931 MCP SSE,<br/>0.0.0.0:9222 to 9223 CDP — browsercontainer.yml:48-53"]
-        P4["gui-tools-service 0.0.0.0:5905 VNC, 0.0.0.0:9876 Blender,<br/>0.0.0.0:9877 QGIS — gui-tools.yml:45-49"]
-        P5["xr-runtime 0.0.0.0:5904 VNC — xr-runtime.yml:64"]
+        P3["browsercontainer 0.0.0.0:5903 VNC, 0.0.0.0:8931 MCP SSE,<br/>0.0.0.0:9222 to 9223 CDP — docker-compose.browsercontainer.yml:48-53"]
+        P4["gui-tools-service 0.0.0.0:5905 VNC, 0.0.0.0:9876 Blender,<br/>0.0.0.0:9877 QGIS — docker-compose.gui-tools.yml:45-49"]
+        P5["xr-runtime 0.0.0.0:5904 VNC — docker-compose.xr-runtime.yml:64"]
     end
     subgraph LOOP["host-loopback only"]
         Q1["agentbox 9090 mgmt, 9700, 9091 metrics, 8484 pod,<br/>8888 jupyter, 5901 vnc, 8080 code-server<br/>docker-compose.yml:55-61"]
-        Q2["openmed 127.0.0.1:9093 — openmed.yml:28"]
-        Q3["android 127.0.0.1:5555 adb — android.yml:40"]
+        Q2["openmed 127.0.0.1:9093 — docker-compose.openmed.yml:28"]
+        Q3["android 127.0.0.1:5555 adb — docker-compose.android.yml:40"]
     end
     subgraph NONE["no published port"]
         R1["ruvector-postgres — network-internal only, docker-compose.yml:10-28"]
-        R2["cloudflared-pod — outbound tunnel only, solid-pods.yml:25-33"]
+        R2["cloudflared-pod — outbound tunnel only, docker-compose.solid-pods.yml:25-33"]
     end
-    Q3 -.-> AND["android comment: this is an authenticated Google session,<br/>never expose it on 0.0.0.0, prefer docker exec (android.yml:38-39)"]
-    Q2 -.-> OM["openmed refuses to serve until the operator sets<br/>OPENMED_LICENSE_ACKNOWLEDGED, _ONNX_RUNTIME_PRESENT and<br/>_GOVERNANCE_ACKNOWLEDGED — all default false (openmed.yml:17-21)"]
+    Q3 -.-> AND["android comment: this is an authenticated Google session,<br/>never expose it on 0.0.0.0, prefer docker exec (docker-compose.android.yml:38-39)"]
+    Q2 -.-> OM["openmed refuses to serve until the operator sets<br/>OPENMED_LICENSE_ACKNOWLEDGED, _ONNX_RUNTIME_PRESENT and<br/>_GOVERNANCE_ACKNOWLEDGED — all default false (docker-compose.openmed.yml:17-21)"]
     Q1 -.-> CS["DIVERGENCE — the HOST publish for code-server is loopback, but the CONTAINER bind is not:<br/>[program:code-server] runs code-server --bind-addr 0.0.0.0:8080 --auth none, so it is reachable unauthenticated<br/>from any sibling container on visionclaw_network. BASELINE flags this and cites flake.nix:1927, which is stale"]
     Q1 -.-> CSR["RESOLVED ADR-2040 (implementation_status: partial): code-server<br/>([program:code-server]) now runs --auth password, credential minted at boot<br/>into /home/devuser/.local/share/code-server/config.yaml (0600).<br/>jupyter-lab's empty --IdentityProvider.token= ([program:jupyter-lab])<br/>was DELETED in favour of a minted JUPYTER_TOKEN. Listener-side<br/>CI gate is still open work."]
     R1 -.-> PGN["ADR-015 — mandatory memory sidecar, health-gated;<br/>ruvector-mcp.cjs fails closed with no sql.js fallback"]
@@ -248,4 +253,54 @@ flowchart TD
     DEP --> ORD["memory sidecar must pass pg_isready before agentbox starts,<br/>which is what lets the memory adapter boot probe expect a live store — see AB-04.6"]
     AB -.-> GEN["INVARIANT — docker-compose.yml is AUTO-GENERATED from agentbox.toml<br/>via flake.nix (:1-2). Editing it by hand is overwritten by nix build .#compose"]
     CD -.-> SIB["sibling CI invariants in scripts/ci/ — check-db-password.sh,<br/>check-secret-not-in-env.sh, check-nnp.sh, check-seccomp.sh,<br/>check-no-npx-latest.sh, check-manifest-catalogue.js, check-single-metrics.js"]
+```
+
+## AB-06.9 xr-runtime — Monado plus Godot behind the compose publish (closes audit gap 5)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant OP as operator
+    participant SH as cmd_xr_runtime<br/>agentbox.sh:1418
+    participant DC as docker compose<br/>XR_RUNTIME_COMPOSE_ARGS
+    participant SUP as supervisord<br/>xr-runtime/supervisord.conf
+    participant MON as launch-monado.sh<br/>xr-runtime/launch-monado.sh
+    participant GOD as launch-godot.sh<br/>xr-runtime/launch-godot.sh
+    participant HC as healthcheck.sh<br/>xr-runtime/healthcheck.sh
+
+    OP->>SH: ./agentbox.sh xr-runtime up
+    SH->>DC: docker compose ... up -d --build (agentbox.sh:1426)
+    DC->>SUP: exec supervisord -n -c /etc/supervisord.conf (Dockerfile:117)
+    SUP->>SUP: init-perms — chown devuser:devuser .cargo + rust/target, one-shot (supervisord.conf:19-20)
+    SUP->>SUP: xvfb — Xvfb :3 1920x1080x24 (supervisord.conf:32-33)
+    SUP->>SUP: x11vnc — mirror :3 to VNC :5904, -nopw (supervisord.conf:43-44)
+    SUP->>MON: exec launch-monado.sh, priority 25 (supervisord.conf:55-56)
+    MON->>MON: DRIVER = XR_INPUT_DRIVER default simulated — stereo HMD,<br/>always registers a head device (launch-monado.sh:20,26-28)
+    Note over MON: qwerty (keyboard/mouse 6DoF) is EXPERIMENTAL here — this Monado<br/>build produces no head device and segfaults the compositor (launch-monado.sh:17-19,21-24)
+    MON->>MON: wait for /tmp/.X11-unix/X3, up to 30s (launch-monado.sh:45-48)
+    Note over MON: stdin fed a pollable pipe that never EOFs — supervisord's stdin is<br/>closed/non-pollable and Monado's IPC epoll_ctl(stdin) fails fatally otherwise (launch-monado.sh:50-55)
+    MON-->>SUP: monado-service running, IPC socket at $XDG_RUNTIME_DIR/monado_comp_ipc
+    SUP->>GOD: exec launch-godot.sh, priority 30, startsecs 10 startretries 10 (supervisord.conf:68-69)
+    alt gdext cdylib not cached
+        GOD->>GOD: build-gdext.sh — first boot ~5-10 min cold (launch-godot.sh:26-29)
+    end
+    GOD->>GOD: wait for monado_comp_ipc socket, up to 60s — WARN only, not fatal (launch-godot.sh:36-43)
+    GOD->>GOD: godot --headless --import, one-shot resource import (launch-godot.sh:46-47)
+    GOD->>GOD: exec godot --path PROJECT_DIR --verbose SCENE, tonemapper log-spam filtered (launch-godot.sh:62-65)
+    loop poll until 720s deadline (agentbox.sh:1428-1436)
+        SH->>HC: docker inspect .State.Health.Status
+        HC->>HC: Xvfb pgrep, x11vnc :5904 listen, monado-service pgrep + IPC socket<br/>(FAIL if Xvfb/x11vnc/monado absent; godot and nvidia-smi are WARN-only) (healthcheck.sh:7-37)
+        alt healthy
+            HC-->>SH: break
+        else missing container
+            HC-->>SH: exit 1 immediately (agentbox.sh:1434)
+        end
+    end
+    alt not healthy within 12 min
+        SH-->>OP: exit 1, check logs (agentbox.sh:1437-1441)
+    else healthy
+        SH-->>OP: VNC vnc://localhost:5904, Monado simulated stereo HMD, scene XRBoot→GraphScene (agentbox.sh:1442-1445)
+    end
+    Note over SH,DC: sibling subcommands down/logs/health/status/rebuild all reuse<br/>XR_RUNTIME_COMPOSE_ARGS (agentbox.sh:1447-1477)
+    Note over MON,GOD: no physical headset — qwerty or simulated input is synthesised;<br/>focus the Monado window over VNC :5904, WASD to translate, click-drag to look (launch-monado.sh:2-7)
 ```

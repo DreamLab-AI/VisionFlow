@@ -20,6 +20,7 @@ sources:
   - ../project/client/src/types/__tests__/wireFixtures.test.ts
   - ../project/client/src/types/binaryProtocol.ts
   - ../project/src/actors/presence_actor.rs
+  - ../project/client/src/store/websocket/binaryProtocol.ts
 verified_commit: 36bb64e1e
 ---
 
@@ -101,8 +102,8 @@ classDiagram
 ```mermaid
 flowchart TD
     subgraph GRAPH["/wss graph socket - tag space A"]
-        T03["0x03 Graph position frame V3<br/>52 B per node<br/>binary_protocol.rs:12 PROTOCOL_V3, dispatch :568"]
-        T05["0x05 V5 broadcast envelope wrapping V3<br/>PROTOCOL_V5 branch binary_protocol.rs:592"]
+        T03["0x03 Graph position frame V3<br/>52 B per node<br/>utils/binary_protocol.rs:12 PROTOCOL_V3, dispatch :568"]
+        T05["0x05 V5 broadcast envelope wrapping V3<br/>PROTOCOL_V5 branch utils/binary_protocol.rs:592"]
         T23["0x23 AGENT_ACTION beam event<br/>MessageType::AgentAction :1721"]
         T34["0x34 BroadcastAck client to server<br/>MessageType::BroadcastAck :1717"]
         T02["0x02 VoiceData :1711"]
@@ -138,8 +139,8 @@ sequenceDiagram
     autonumber
     participant SRV as Server encoder<br/>src/utils/binary_protocol.rs
     participant SOCK as WebSocket /wss
-    participant DEC as decode dispatch<br/>binary_protocol.rs:588 match protocol_version
-    participant V3 as decode_node_data_v3<br/>binary_protocol.rs:610
+    participant DEC as decode dispatch<br/>utils/binary_protocol.rs:588 match protocol_version
+    participant V3 as decode_node_data_v3<br/>utils/binary_protocol.rs:610
 
     SRV->>SOCK: frame bytes
     SOCK->>DEC: data[0] read as protocol_version :585, payload = data[1..] :586
@@ -231,17 +232,17 @@ sequenceDiagram
         TS->>TS: parseBinaryNodeData dispatch on lead byte :185-215
         alt lead byte == PROTOCOL_V5 (0x05) :198-201
             TS->>TS: parseV5Nodes :410 - reject if byteLength < 9 :412, read u64 seq LE :417-419, decode body from offset 9 :422
-            TS->>TS: surface lastBroadcastSequence :459 - store uses it as the ack sequence binaryProtocol.ts:416
+            TS->>TS: surface lastBroadcastSequence :459 - store uses it as the ack sequence store/websocket/binaryProtocol.ts:416
         else lead byte == 0x02 (V2)
-            TS->>TS: DECLINED with a diagnostic - the server rejects V2 at binary_protocol.rs:590
+            TS->>TS: DECLINED with a diagnostic - the server rejects V2 at utils/binary_protocol.rs:590
         else unrecognised version
             TS->>TS: DECLINED - no size autodetection
         end
         Note over TS: CORRECTED ADR-2078. ADR-2057 Finding 1 was WRONG: the live TS path always<br/>had V5, including the short-payload guard that mirrors the server at :594.<br/>client/src/services/binaryProtocol/ is NOT the live position path - it has no<br/>52-byte decoding at all, so a V5 branch there would have been a SECOND decoder.<br/>The real defect was Finding 2 and it was worse than reported - see the next note
-        Note over TS: RESOLVED ADR-2078. V2 was DECODED, not merely advertised (36-byte records at<br/>types/binaryProtocol.ts:186-189, routed in at store/websocket/binaryProtocol.ts:476),<br/>and the default arm re-read any unknown frame from offset 0 as 36-byte records<br/>whenever its length divided by 36 - fabricating nodes from arbitrary payloads.<br/>Both now decline. BINARY_NODE_SIZE_V2 and the size-swap heuristic are deleted
+        Note over TS: RESOLVED ADR-2078. V2 was DECODED, not merely advertised (36-byte records at<br/>client/src/types/binaryProtocol.ts:186-189, routed in at<br/>client/src/store/websocket/binaryProtocol.ts:472-474),<br/>and the default arm re-read any unknown frame from offset 0 as 36-byte records<br/>whenever its length divided by 36 - fabricating nodes from arbitrary payloads.<br/>Both now decline. BINARY_NODE_SIZE_V2 and the size-swap heuristic are deleted
         Note over TS: RESOLVED ADR-2078. The TS decoder now has the fixture cross-check the two Rust<br/>decoders always had - client/src/types/__tests__/wireFixtures.test.ts, 12 tests<br/>pinning the same constants as wire_fixtures.rs plus a synthetic V5 round-trip
     end
-    Note over ENC,TS: Shared fixtures crates/visionclaw-protocol/src/wire_fixtures.rs pin the format for both decoders - binary_protocol.rs:941-943 asserts fx::NODE_RECORD_BYTES == WIRE_V3_ITEM_SIZE and fx::NODE_ID_MASK == NODE_ID_MASK, and :948 guards the shared 0x23 fixture against encoder drift
+    Note over ENC,TS: Shared fixtures crates/visionclaw-protocol/src/wire_fixtures.rs pin the format for both decoders - utils/binary_protocol.rs:941-943 asserts fx::NODE_RECORD_BYTES == WIRE_V3_ITEM_SIZE and fx::NODE_ID_MASK == NODE_ID_MASK, and :948 guards the shared 0x23 fixture against encoder drift
 ```
 
 ## VC-14.7 The coexisting binary codecs

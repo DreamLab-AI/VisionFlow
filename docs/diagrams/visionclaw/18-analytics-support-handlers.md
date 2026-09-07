@@ -21,6 +21,7 @@ sources:
   - ../project/src/actors/gpu/analytics_telemetry.rs
   - ../project/src/actors/gpu/force_compute_actor.rs
   - ../project/src/actors/gpu/stress_majorization_actor.rs
+  - ../project/src/models/simulation_params.rs
 verified_commit: 36bb64e1e
 ---
 
@@ -28,9 +29,9 @@ verified_commit: 36bb64e1e
 
 ```mermaid
 flowchart TD
-    SCOPE["web::scope(/analytics)<br/>mod.rs:169"]
-    W1["wrap RequireAuth::authenticated().mutations_only()<br/>mod.rs:170"]
-    WS["web::resource(/ws) wrap RequireAuth::authenticated()<br/>mod.rs:269-273"]
+    SCOPE["web::scope(/analytics)<br/>analytics/mod.rs:169"]
+    W1["wrap RequireAuth::authenticated().mutations_only()<br/>analytics/mod.rs:170"]
+    WS["web::resource(/ws) wrap RequireAuth::authenticated()<br/>analytics/mod.rs:269-273"]
 
     subgraph POSTS["Authenticated mutations - POST"]
         P1["/params :172 update_analytics_params"]
@@ -215,7 +216,7 @@ sequenceDiagram
     SH->>GPU: send(GetStressMajorizationConfig) :158
     GPU->>SMA: GetStressMajorizationConfig :475
     Note over SH,SMA: All six handlers guard on get_gpu_compute_addr() being Some and return an error response otherwise
-    Note over SMA: ADR-2060 bit5 ENABLE_STRESS_MAJORIZATION is RESERVED, declared but never set - stress majorization is CPU-side per simulation_params.rs:77 and is not a GPU force channel
+    Note over SMA: ADR-2060 bit5 ENABLE_STRESS_MAJORIZATION is RESERVED, declared but never set - stress majorization is CPU-side per project/src/models/simulation_params.rs:77 and is not a GPU force channel
 ```
 
 ## VC-18.6 Insights handlers
@@ -244,7 +245,7 @@ sequenceDiagram
     IH->>ST: CLUSTERING_TASKS.lock() :233 and ANOMALY_STATE.lock() :234
     C->>IH: GET /analytics/health-check :292
     IH-->>C: health summary
-    Note over ST: ANOMALY_STATE is the AGENT-HEALTH heuristic fed by MCP telemetry via /anomaly/toggle - it is NOT node_analytics.anomaly, which comes from the GPU LOF kernel (mod.rs:182-184)
+    Note over ST: ANOMALY_STATE is the AGENT-HEALTH heuristic fed by MCP telemetry via /anomaly/toggle - it is NOT node_analytics.anomaly, which comes from the GPU LOF kernel (analytics/mod.rs:182-184)
     Note over IH,ST: All four insights endpoints are pure reads over graph data plus process-global state - none dispatch a GPU kernel
 ```
 
@@ -254,7 +255,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant RT as RequireAuth::authenticated()<br/>mod.rs:270
+    participant RT as RequireAuth::authenticated()<br/>analytics/mod.rs:270
     participant WSH as gpu_analytics_websocket<br/>analytics/websocket_integration.rs:503
     participant A as GpuAnalyticsWebSocket actor<br/>websocket_integration.rs:95
 

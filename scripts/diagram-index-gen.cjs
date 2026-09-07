@@ -2,7 +2,7 @@
 'use strict';
 
 /*
- * diagram-index-gen.js — walk the diagrams-as-code tree (docs/diagrams), parse
+ * diagram-index-gen.cjs — walk the diagrams-as-code tree (docs/diagrams), parse
  * per-file YAML frontmatter, validate every fenced ```mermaid block, and
  * (re)generate the machine-readable coverage indexes.
  *
@@ -13,9 +13,11 @@
  *   --check     validate frontmatter, heading ids and block structure only; do
  *               not write the indexes (still exits 1 on error).
  *   --cite-check resolve every `path:line` citation inside a diagram against the
- *               file's `sources:` list and assert the file is long enough; warns
- *               when the cited line is blank or a lone closing brace. Warnings
- *               only \u2014 it never fails the run.
+ *               file's `sources:` list (a citation whose file is NOT listed is a
+ *               warning — it was never checked), and assert the file is long
+ *               enough; warns when the cited line is blank or a lone closing brace,
+ *               and when a bare basename matches more than one sources: entry
+ *               (ambiguous — qualify the path). Warnings only — it never fails the run.
  *   --render    additionally render every mermaid block through `mmdc` (the
  *               Mermaid CLI) into <dir>/rendered/<file>/<id>.svg; any parse
  *               error fails the run and is reported as file:block-id:line, and
@@ -219,18 +221,25 @@ function citeCheck(topics) {
     }
     return lineCache.get(p);
   };
+  // Bare `:NNN` (no path) is a continuation of the last path cited earlier on
+  // the SAME line/label (`proxy.mjs:100<br/>verify :340`); with no path on the
+  // line it is unresolvable (or a port) and is reported as such. Previously
+  // bare cites were never resolved and never checked (23 % of all citations).
+  const BARE_RE = /(^|[^A-Za-z0-9_./:-]):(\d+)(?:\s*-\s*(\d+))?(?![\d.])/g;
   for (const t of topics) {
     for (const d of t.diagrams) {
-      for (const m of d.src.matchAll(CITE_RE)) {
-        const [, cited, a, b] = m;
-        const hits = (t.fm.sources || []).filter((s) => {
-          const sp = s.split(':')[0];
-          return sp === cited || sp.endsWith('/' + cited);
-        });
-        if (hits.length !== 1) continue; // ambiguous or not a source of this file
-        const src = hits[0].split(':')[0];
+      const check = (cited, a, b) => {
+        if (/^\d+(\.\d+)+$/.test(cited)) return; // host:port such as 127.0.0.1:8080, not a citation
+        // Exact match wins over suffix match: a repo-root file (README.md) is a
+        // suffix of every deeper twin, so `README.md:12` must resolve to it alone.
+        const srcPaths = (t.fm.sources || []).map((s) => s.split(':')[0]);
+        const exact = srcPaths.filter((sp) => sp === cited || sp === './' + cited);
+        const hits = exact.length ? exact : srcPaths.filter((sp) => sp.endsWith('/' + cited));
+        if (hits.length === 0) { warnings.push(`${t.rel}:${d.id} — ${cited}:${a} cites a file that is not in this topic's sources: (unresolvable, never checked)`); return; }
+        if (hits.length > 1) { warnings.push(`${t.rel}:${d.id} — ${cited}:${a} is ambiguous: matches ${hits.length} sources: entries`); return; }
+        const src = hits[0];
         const lines = linesOf(src);
-        if (!lines) continue;
+        if (!lines) { warnings.push(`${t.rel}:${d.id} — ${src} could not be read`); return; }
         // Both endpoints must exist; only the anchor line's CONTENT is judged —
         // a range legitimately ends on a closing brace.
         for (const n of [a, b].filter(Boolean).map(Number)) {
@@ -241,6 +250,24 @@ function citeCheck(topics) {
           const txt = (lines[n - 1] || '').trim();
           if (!txt) warnings.push(`${t.rel}:${d.id} — ${src}:${n} is blank`);
           else if (/^[)\]}>;,]+$/.test(txt)) warnings.push(`${t.rel}:${d.id} — ${src}:${n} is punctuation only ('${txt}')`);
+        }
+      };
+      // A literal \n inside a classDiagram `note for` runs straight into the path
+      // (`…\npath.rs:NN`) and CITE_RE would swallow the `n`; split on it first.
+      const text = d.src.replace(/\\n/g, '\n');
+      for (const line of text.split('\n')) {
+        const paths = [];
+        const stripped = line.replace(CITE_RE, (m0, cited, a, b, off) => {
+          paths.push({ cited, off });
+          check(cited, a, b);
+          return ' '.repeat(m0.length);
+        });
+        for (const bm of stripped.matchAll(BARE_RE)) {
+          const off = bm.index + bm[1].length;
+          const before = paths.filter((p) => p.off < off);
+          const ctx = before.length ? before[before.length - 1] : null;
+          if (!ctx) { warnings.push(`${t.rel}:${d.id} — bare :${bm[2]} has no path earlier on its line (qualify it, or reword if it is a port)`); continue; }
+          check(ctx.cited, bm[2], bm[3]);
         }
       }
     }
@@ -380,7 +407,7 @@ function writeIndexes(topics) {
     }
   }
   const total = topics.reduce((n, t) => n + t.diagrams.length, 0);
-  const gen = `${START}\n_${topics.length} topic files, ${total} diagrams. Regenerate with_ \`node scripts/diagram-index-gen.js docs/diagrams\`.\n${rows.join('\n')}\n${END}`;
+  const gen = `${START}\n_${topics.length} topic files, ${total} diagrams. Regenerate with_ \`node scripts/diagram-index-gen.cjs docs/diagrams\`.\n${rows.join('\n')}\n${END}`;
   if (text.includes(START) && text.includes(END)) {
     text = text.slice(0, text.indexOf(START)) + gen + text.slice(text.indexOf(END) + END.length);
   } else {
@@ -391,7 +418,13 @@ function writeIndexes(topics) {
   // COVERAGE.md — three inverted indexes
   const adrIdx = new Map(), govIdx = new Map(), srcIdx = new Map();
   for (const t of topics) {
-    for (const a of t.fm.adrs) { if (!adrIdx.has(a)) adrIdx.set(a, []); adrIdx.get(a).push(t); }
+    for (const a of t.fm.adrs) {
+      // ADR numbers are repository-local. Estate topics must supply an owner
+      // explicitly; do not infer adoption from a coincidentally matching number.
+      const key = a.includes(':') ? a : `${t.fm.area === 'estate' ? 'estate-unresolved' : t.fm.area}:${a}`;
+      if (!adrIdx.has(key)) adrIdx.set(key, []);
+      adrIdx.get(key).push(t);
+    }
     for (const g of t.fm.governing) { const k = g.split('#')[0]; if (!govIdx.has(k)) govIdx.set(k, []); govIdx.get(k).push(t); }
     for (const s of t.fm.sources) { const k = s.split(':')[0]; if (!srcIdx.has(k)) srcIdx.set(k, []); srcIdx.get(k).push(t); }
   }
@@ -410,12 +443,14 @@ function writeIndexes(topics) {
       for (const pair of v.trim().slice(1, -1).split(',')) { const [k, sha] = pair.split(':').map((x) => x.trim()); if (k && sha) vcs.add(`${k}@${sha}`); }
     } else vcs.add(String(v));
   }
-  out.push(`${topics.length} topic files · ${total} diagrams · verified against commits: ${[...vcs].sort().join(', ')}\n`);
+  out.push(`${topics.length} topic files · ${total} diagrams · declared source revisions: ${[...vcs].sort().join(', ')}\n`);
+  out.push('Revision labels are author declarations. This index checks structure and references, not semantic accuracy, clean working trees, deployment or system acceptance. See the [dated estate audit](../estate-review/2026-09-07-estate-audit.md) for evidence and limits.\n');
   out.push('## Diagrams\n');
   out.push('| Diagram | Kind | Topic file |');
   out.push('|---------|------|------------|');
   for (const area of AREAS) for (const t of byArea[area] || []) for (const d of t.diagrams) out.push(`| [${d.id} ${d.title}](${t.rel}#${slug(d.id, d.title)}) | ${d.kind} | ${t.fm.id} |`);
   out.push('\n## By ADR\n');
+  out.push('Keys are repository-qualified. `estate-unresolved` preserves an unqualified cross-repository reference pending owner resolution; it must not be read as one shared decision.\n');
   out.push('| ADR | Topic files |');
   out.push('|-----|-------------|');
   for (const k of sortKeys(adrIdx)) out.push(`| ${k} | ${adrIdx.get(k).map((t) => `[${t.fm.id}](${t.rel})`).join(', ')} |`);

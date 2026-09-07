@@ -68,7 +68,7 @@ flowchart TB
     CLOUD <-->|"gift-wrapped DMs"| AME
     DIGEST -->|"kind 30840 sign+publish"| PB
     DIGEST -->|"POST transcript"| ZAI
-    PB <-->|"ws://127.0.0.1:7777"| MGMT
+    PB <-->|"ws to 127.0.0.1 port 7777"| MGMT
     PB -->|"pods/&lt;npub&gt;/events/inbox/&lt;id&gt;.json"| MGMT
     GW -->|"Bearer token from serve.url"| AOE
     GW -->|"POST /tab0/send"| TAB0

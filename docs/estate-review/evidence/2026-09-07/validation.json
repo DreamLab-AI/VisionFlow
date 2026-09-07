@@ -1,0 +1,193 @@
+{
+  "date": "2026-09-07",
+  "scope": "Source and local verification only; no deployment, GPU kernel/headset/hardware or live erasure/restore acceptance. Source snapshots and changed-topic rerenders are reconciled separately.",
+  "checks": [
+    {
+      "name": "diagram-initial",
+      "command": "node scripts/diagram-index-gen.cjs docs/diagrams --check --cite-check",
+      "exit_code": 1,
+      "log": "logs/diagram-initial.log",
+      "sha256": "99bea4a145a8945bc849687c5c630c9aaebd548f0045018cf270b4232627fea4",
+      "scope": "Initial source-path failure, preserved"
+    },
+    {
+      "name": "diagram-full-snapshot",
+      "command": "node scripts/diagram-index-gen.cjs docs/diagrams --check --cite-check --render --jobs 6",
+      "exit_code": 1,
+      "log": "logs/diagram-full-snapshot.log",
+      "sha256": "a62e862bf53824c68c14522f8266b003f2940e974c663c3dc10d8362aedd34f9",
+      "scope": "1387/1390 snapshot renders; three failures repaired/re-rendered, later source changes re-rendered separately"
+    },
+    {
+      "name": "gates-current-sibling",
+      "command": "bash tests/gates/run-all.sh",
+      "exit_code": 1,
+      "log": "logs/gates-current-sibling.log",
+      "sha256": "03dead66c98e35f60b6c11fd9d274705801e51fd6cdbe8f33c983c6a80e0d209",
+      "scope": "Before adding index regression suite; matching-pin case failed because current sibling differs from reviewed pin"
+    },
+    {
+      "name": "gates-pinned",
+      "command": "DRIFT_AGENTBOX_DIR=<isolated local clone at eb7794b17892d9032b4f9ce0ed22ea0d9dac3497> bash tests/gates/run-all.sh",
+      "exit_code": 0,
+      "log": "logs/gates-pinned.log",
+      "sha256": "02c9be93f0b18a79d7f6a0d0e54fab2bea98992f5a1a20d4691d44f9179d7a36",
+      "scope": "Five suites pass including index namespace regression"
+    },
+    {
+      "name": "dream-toolkit",
+      "command": "npm test -- --run packages/cli/src/darwinBounds.test.ts packages/cli/src/entrypoint.test.ts packages/cli/src/index.test.ts packages/compile",
+      "exit_code": 0,
+      "log": "logs/dream-toolkit.log",
+      "sha256": "f43e176d57a2247ccbd04a390cdae31b681ec92746d2f328f2d2ed8f28020afa",
+      "scope": "81 tests, compiler and CLI only"
+    },
+    {
+      "name": "forum",
+      "command": "cargo test --locked --offline -p nostr-bbs-relay-worker --lib",
+      "exit_code": 0,
+      "log": "logs/forum.log",
+      "sha256": "951c4da0917821a9e025cfa0ab872157f731319008c64681e7e6f80bf0f86f96",
+      "scope": "239 native tests"
+    },
+    {
+      "name": "pod-oidc",
+      "command": "cargo test --locked --offline -p solid-pod-rs --test oidc_compat_matrix --features oidc,dpop-replay-cache",
+      "exit_code": 0,
+      "log": "logs/pod-oidc.log",
+      "sha256": "a5e46dd3512cb3122d5761caf8a904fd6fa399c6c1db36227a5dbf73c62bf262",
+      "scope": "28 selected tests"
+    },
+    {
+      "name": "vowl",
+      "command": "cargo test --locked --offline --lib",
+      "exit_code": 0,
+      "log": "logs/vowl.log",
+      "sha256": "da04ce86e88ab61b9f88108bf57149d37ddde0bb6991b673a5acc1ac9a057b74",
+      "scope": "136 default native tests"
+    },
+    {
+      "name": "website",
+      "command": "./node_modules/.bin/vitest run scripts/__tests__",
+      "exit_code": 0,
+      "log": "logs/website.log",
+      "sha256": "82bf36c349af3492f3a54fbec62fcf0c31b49aa270b47df7220ff981b7314068",
+      "scope": "68 source guard tests"
+    },
+    {
+      "name": "knowledgegraph",
+      "command": ".venv/bin/python -m pytest pipeline/tests -q",
+      "exit_code": 0,
+      "log": "logs/knowledgegraph.log",
+      "sha256": "6085086f16547c532469ad2ac00840cca4cc55e55e25449dcdf9f316a7a91179",
+      "scope": "85 tests against pre-existing working-tree changes"
+    },
+    {
+      "name": "visiongraph",
+      "command": "../knowledgeGraph/.venv/bin/python -m pytest pipeline/tests -q",
+      "exit_code": 1,
+      "log": "logs/visiongraph.log",
+      "sha256": "8c3bcf65096a996fb7bb56381019d65775fae96501ff85f9ff0b8a9623ff6d46",
+      "scope": "57 passed, 1 corpus-layout failure; authored _misc deletions preserved"
+    }
+  ],
+  "additional_evidence": [
+    "adr2081-reverification.json",
+    "adr2081-provenance-failure.json",
+    "vc-citation-renders.json",
+    "prior-evidence-revalidation.json",
+    "boundary-probes.json",
+    "render-source-snapshot.json",
+    "index-idempotence.json",
+    "link-check.json"
+  ],
+  "lane_reported_checks": [
+    {
+      "name": "PTX policy",
+      "passed": 17,
+      "report": "../../2026-09-07-visionclaw-audit.md",
+      "scope": "No CUDA execution; no raw log newly claimed here"
+    },
+    {
+      "name": "Agentbox learning/admission",
+      "passed": 57,
+      "report": "../../2026-09-07-agentbox-audit.md",
+      "scope": "Three selected Jest suites; no live learning loop"
+    },
+    {
+      "name": "Agentbox seccomp source gate",
+      "result": "pass",
+      "report": "../../2026-09-07-agentbox-audit.md",
+      "scope": "Static source-policy test; no runtime isolation attestation"
+    }
+  ],
+  "final_snapshot": {
+    "recorded_at_utc": "2026-09-07T10:46:36.389976+00:00",
+    "topics": 130,
+    "diagrams": 1398,
+    "matching_rendered_sources": 1398,
+    "render_source_failures": 0,
+    "citation_warnings": 0,
+    "citation_command": "node scripts/diagram-index-gen.cjs docs/diagrams --check --cite-check",
+    "citation_exit_code": 0,
+    "index_regeneration_idempotent": true,
+    "links_checked": 10232,
+    "missing_links": 0,
+    "whitespace_exit_code": 0,
+    "concurrent_edits": "Source and rendered input hashes define this finite snapshot; later shared-workspace edits require revalidation."
+  },
+  "final_logs": [
+    {
+      "file": "logs/visionflow-audit-rerender-agentbox-14.log",
+      "sha256": "213affaabf55e8737f65858aeacb6b860988ddd2f5ddd5c9a688be01d51c207a"
+    },
+    {
+      "file": "logs/visionflow-audit-rerender-estate-90.log",
+      "sha256": "5c5feb57d21b6e6841dfe1d00b918ba3e0c4418704857f7f4a8bf77aecdd8311"
+    },
+    {
+      "file": "logs/visionflow-audit-rerender-visionclaw-03.log",
+      "sha256": "2b842f03a7c3ebd71263a8e2aad9aa8218ce5cc06531028957f5b39d62d48977"
+    },
+    {
+      "file": "logs/visionflow-audit-rerender-visionclaw-12.log",
+      "sha256": "5f960d5b4ffc4237a7a6dcef8c7daadbeb286644a6bd6d08098245df4ff1cc3a"
+    },
+    {
+      "file": "logs/visionflow-audit-rerender-visionclaw-27.log",
+      "sha256": "fe437a5aff698284f682c6c185fdeaeb690c7e354f28d1c2157a7afbeaf1c92d"
+    },
+    {
+      "file": "logs/visionflow-audit-rerender-visionflow-01.log",
+      "sha256": "4048523fe7fe589c0b5e9fe63e47583d7aff9260dba675ad47bbbcb58ff33abe"
+    },
+    {
+      "file": "logs/visionflow-audit-rerender-visionflow-06.log",
+      "sha256": "fe437a5aff698284f682c6c185fdeaeb690c7e354f28d1c2157a7afbeaf1c92d"
+    },
+    {
+      "file": "logs/visionflow-audit-rerender-visionflow-08.log",
+      "sha256": "f13dbba92090cd15bb9928982d75415bee4f8dec37870299277b3e00d109f1dc"
+    },
+    {
+      "file": "logs/visionflow-audit-render-drift-refresh.json",
+      "sha256": "270fb7a8c62e57de8d310a7ea6972d890d504110bacb93cef0da7b45c0e3249b"
+    },
+    {
+      "file": "logs/visionflow-audit-render-final-refresh.json",
+      "sha256": "4153d51ca417797f9bf8e1148adceaea1fee4a7cbfdf44d50c7c7b07ce77e841"
+    },
+    {
+      "file": "logs/visionflow-audit-render-last-refresh.json",
+      "sha256": "9757f232681b87a66e1ae3e784e4fe0a7b9d1779783872e489e5c090845362a9"
+    },
+    {
+      "file": "logs/visionflow-audit-citations-final.log",
+      "sha256": "cef002a29c4f568dafd5ddadf21013546a23abf6dc9d84a858545efc4c77bf93"
+    },
+    {
+      "file": "logs/visionflow-audit-index-final.log",
+      "sha256": "7333e6462200fc830b77b993d9539b1a69de362c5168d5ff03229c40b444613d"
+    }
+  ]
+}

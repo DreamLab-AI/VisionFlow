@@ -20,6 +20,8 @@ sources:
   - ../project/src/gpu/dynamic_buffer_manager.rs
   - ../project/src/gpu/memory_manager.rs
   - ../project/src/utils/gpu_diagnostics.rs
+  - ../project/src/gpu/mod.rs
+  - ../project/src/physics/mod.rs
 verified_commit: 36bb64e1e
 ---
 ## VC-12.1 SimParams full 212-byte repr(C) layout
@@ -136,8 +138,8 @@ classDiagram
     }
     FeatureFlags_Rust ..> FeatureFlags_CUDA
     FeatureFlags_CUDA --> KernelGateSites
-    note for FeatureFlags_Rust "crates/visionclaw-domain/src/models/<br/>simulation_params.rs:111-119"
-    note for FeatureFlags_CUDA "crates/visionclaw-gpu/src/cuda_sources/<br/>visionclaw_unified.cu:123-129"
+    note for FeatureFlags_Rust "crates/visionclaw-domain/src/models/simulation_params.rs:111-119"
+    note for FeatureFlags_CUDA "crates/visionclaw-gpu/src/cuda_sources/visionclaw_unified.cu:123-129"
     note for FeatureFlags_Rust "ADR-2060: bit3/bit5 are RESERVED Rust-side<br/>zero hits in CUDA, not a defect"
     note for FeatureFlags_Rust "KEYSTONE: ENABLE_CONSTRAINTS is<br/>residency-owned (execution.rs:954)"
 ```
@@ -212,8 +214,8 @@ classDiagram
         production struct construction.rs:31-241
     }
     class PhysicsV2Gated {
-        +buffers_rs_ADR_01_PhysicsGpuBuffers
-        +feature_physics_v2_only
+        +REMOVED_ADR_2055_PhysicsGpuBuffers
+        +never_shipped_in_a_build
     }
     class DeprecatedManager {
         +dynamic_buffer_manager_rs_deprecated
@@ -226,7 +228,6 @@ classDiagram
     UnifiedGPUCompute *-- PerNodeBuffers
     UnifiedGPUCompute *-- PerEdgeBuffers
     UnifiedGPUCompute *-- PerGridCellBuffers
-    UnifiedGPUCompute ..> PhysicsV2Gated
     PhysicsV2Gated ..> DeprecatedManager
     DeprecatedManager ..> MemoryBudgetTracker
 
@@ -234,7 +235,7 @@ classDiagram
     note for PerEdgeBuffers "row_offsets=num_nodes+1<br/>col/weights=num_edges (L373-375)"
     note for PerGridCellBuffers "max_grid_cells = 32768 fixed<br/>(construction.rs:369-371)"
     note for UnifiedGPUCompute "production per-node buffer owner<br/>(construction.rs:31-241)"
-    note for PhysicsV2Gated "buffers.rs:1-25, gated feature=physics-v2<br/>not live yet"
+    note for PhysicsV2Gated "DOC-DRIFT — no buffers.rs exists. REMOVED under ADR-2055 (src/gpu/mod.rs:10-15):<br/>PhysicsGpuBuffers was gated behind the physics-v2 feature, itself retired<br/>(src/physics/mod.rs:69-73). Never shipped in a build; UnifiedGPUCompute was<br/>always the sole per-node GPU buffer owner"
     note for DeprecatedManager "dynamic_buffer_manager.rs:1-16<br/>use memory_manager.rs"
     note for MemoryBudgetTracker "memory_manager.rs:127-152<br/>force_compute_actor.rs:880-910"
 ```
@@ -317,7 +318,7 @@ sequenceDiagram
         alt found version <= 9.0 (VersionRewrite::Unchanged, ptx_policy.rs:242-243)
             Policy-->>BR: Unchanged version - content untouched, no downgrade warning emitted (build.rs:208-211)
         else found version > 9.0, e.g. CUDA 13.x emits 9.2 (VersionRewrite::Rewritten, ptx_policy.rs:245-253)
-            Policy-->>BR: Rewritten from,to,text - splice by parsed token span, not fixed width (ptx_policy.rs:179-195)
+            Policy-->>BR: Rewritten from,to,text - splice by parsed token span, not fixed width (ptx_policy.rs:245-253)
             BR->>FS: fs::write(ptx_output, downgraded text) (build.rs:214)
             BR->>BR: cargo:warning declared ISA rewritten to 9.0 (build.rs:215-219)
         else no .version token or unparseable token (VersionRewrite::Defective, ptx_policy.rs:234-241)
@@ -337,6 +338,7 @@ sequenceDiagram
     BR->>Cargo: cargo:rustc-env=VISIONCLAW_PTX_MANIFEST=OUT/ptx-build-manifest.txt (build.rs:268-271)
     Note right of BR: INVARIANT - PTX downgraded to .version 9.0 before load<br/>fallback-PTX path exists for nvcc-less builds<br/>GPU-wire-abi.md Invariant 5, ADR-2030
     Note right of Policy: DIVERGENCE - the rewrite is a declared-ISA text splice only<br/>it does not prove every instruction is supported by that ISA<br/>only a real driver load settles that (ADR-2030 Consequences)
+    Note over BR,FS: README's "82 CUDA kernels" (root README.md) is the __global__ function count across<br/>these 9 .cu files (visionclaw_unified.cu 25, gpu_clustering_kernels.cu 24, semantic_forces.cu 15,<br/>pagerank.cu 7, gpu_connected_components.cu 3, gpu_landmark_apsp.cu 2, sssp_compact.cu 2,<br/>gpu_aabb_reduction.cu 1, dynamic_grid.cu 0 — verified by count, matches)
 ```
 
 ## VC-12.6 runtime PTX load, module init and kernel handle lookup
@@ -354,15 +356,15 @@ sequenceDiagram
     Loader-->>Loader: raw PTX string
     Loader->>Downgrade: downgrade_ptx_isa_if_needed(raw) (ptx_loader.rs:370)
     Downgrade->>Downgrade: detect_max_ptx_isa() via nvidia-smi driver_version<br/>(ptx_loader.rs:91-121)
-    alt nvidia-smi succeeds and CUDA Version parses
+    alt driver query succeeds, CUDA header probe or approximate driver mapping resolves
         Downgrade-->>Downgrade: RUNTIME_MAX_PTX_ISA OnceLock get_or_init caches the result (ptx_loader.rs:23 static, :92 get_or_init)
-    else nvidia-smi fails or output unparseable
+    else driver query fails or mapping is unavailable
         Downgrade-->>Downgrade: fallback (9,0) (ptx_loader.rs:103-118)
     end
     Downgrade->>Downgrade: build target PtxVersion, call ptx_policy::rewrite_ptx_version(&ptx, target)<br/>(ptx_loader.rs:332-336)
     alt VersionRewrite::Rewritten { from, to, text }
         Downgrade->>Downgrade: info! ISA downgrade log, return the rewritten text (ptx_loader.rs:337-343)
-        Note right of Downgrade: RESOLVED ADR-2056 - no longer a second impl<br/>downgrade_ptx_isa_if_needed now delegates the actual span-parsed splice<br/>to ptx_policy::rewrite_ptx_version (ptx_policy.rs:179-195, :245-253) -<br/>it retains only the runtime driver-ISA probe
+        Note right of Downgrade: RESOLVED ADR-2056 - no longer a second impl<br/>downgrade_ptx_isa_if_needed now delegates the actual span-parsed splice<br/>to ptx_policy::rewrite_ptx_version (ptx_policy.rs:233-243, :245-253) -<br/>it retains only the runtime driver-ISA probe
     else VersionRewrite::Unchanged | VersionRewrite::Defective
         Downgrade-->>Loader: ptx text unchanged (ptx_loader.rs:347-348)
     end
@@ -376,11 +378,11 @@ sequenceDiagram
         end
     end
     opt APSP PTX (PTXModule::GpuLandmarkApsp)
-        GRA->>Loader: load_ptx_module_sync(GpuLandmarkApsp) (gpu_resource_actor.rs:131-133)
+        GRA->>Loader: load_ptx_module_sync(GpuLandmarkApsp) (gpu_resource_actor.rs:136-138)
         alt load fails
-            Loader-->>GRA: Err, warn! will use CPU fallback, apsp_ptx=None (gpu_resource_actor.rs:141-144)
+            Loader-->>GRA: Err, warn! apsp_ptx=None — NO CPU fallback exists for this path<br/>(gpu_resource_actor.rs:146-149, comment :131-135)
         else load succeeds
-            Loader-->>GRA: Some(content) (gpu_resource_actor.rs:134-139)
+            Loader-->>GRA: Some(content) (gpu_resource_actor.rs:139-145)
         end
     end
     GRA->>UGC: new_with_modules(num_nodes, num_edges, ptx, clustering_ptx, apsp_ptx)<br/>(gpu_resource_actor.rs:153) delegates to new_with_all_modules (construction.rs:247-254, :261-267)

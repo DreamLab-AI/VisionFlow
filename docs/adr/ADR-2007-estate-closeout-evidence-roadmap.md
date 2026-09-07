@@ -81,3 +81,9 @@ Governed paths changed: none in this record; `docs/estate-closeout/2026-09-05/`
 added as dated evidence.
 
 [Canon assessment](../estate-review/canon-and-verification.md), [source hashes and local check receipt](../estate-review/evidence/canon-operative-closeout.json), [execution sequence](../estate-review/closeout/execution-sequence.md). Historical verification above is preserved; this annex assesses the current working tree.
+
+## Estate audit — 2026-09-07
+
+The [2026-09-07 estate audit](../estate-review/2026-09-07-estate-audit.md), [workspace/ADR census](../estate-review/evidence/2026-09-07/estate-inventory.md) and [closeout sprint](../estate-review/closeout/2026-09-07-sprint.md) extend this programme. The row-level board remains VisionClaw `docs/TODO-unified.md`; this canon owns cross-repository dependencies and acceptance evidence, not a duplicate completion counter.
+
+Every claim must name its repository, record/path, source revision plus dirty-tree source hashes, evidence class, and acceptance boundary. Bare ADR numbers and a green index are insufficient. Historic/imported records retain lineage and consumer scope; unadopted decisions do not become estate implementation promises through inventory membership. The sprint prioritises public-data exclusion, generation publication, truthful transactional receipts, custody, consumer identity and runtime verification. No proposal is ratified, no feature is declared deployed and no implementation gap is closed merely by this audit. Retain proposed/partial/staged.

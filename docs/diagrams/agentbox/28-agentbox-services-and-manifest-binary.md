@@ -21,6 +21,7 @@ sources:
   - ../project/agentbox/services/agentbox-ops/src/cost_cap/mod.rs
   - ../project/agentbox/services/agentbox-ops/src/voyager/gate.rs
   - ../project/agentbox/services/agentbox-mcp/src/main.rs
+  - ../project/agentbox/services/agentbox-mcp/src/hub/mod.rs
   - ../project/agentbox/services/skill-tools/src/lib.rs
   - ../project/agentbox/services/ontology-tools/src/lib.rs
   - ../project/agentbox/services/podcast-ingest/src/lib.rs
@@ -74,43 +75,43 @@ verified_commit: 2c521c5bb
 
 ```mermaid
 flowchart TB
-    subgraph cli["agentbox-manifest — one clap binary, Boot-time TOML/JSON projection for agentbox<br/>(main.rs:43-51)"]
+    subgraph cli["agentbox-manifest — one clap binary, Boot-time TOML/JSON projection for agentbox<br/>(agentbox-manifest/src/main.rs:43-51)"]
         direction TB
         subgraph mcpg["MCP projection — src/mcp.rs"]
-            C1["mcp-set-server --file --name<br/>main.rs:56-63"]
-            C2["mcp-reconcile-aqe --file --provider<br/>main.rs:64-72"]
-            C3["mcp-protect-namespace --file --server --namespace<br/>main.rs:73-82"]
-            C4["mcp-deregister-fork --file<br/>main.rs:83-87"]
+            C1["mcp-set-server --file --name<br/>agentbox-manifest/src/main.rs:56-63"]
+            C2["mcp-reconcile-aqe --file --provider<br/>agentbox-manifest/src/main.rs:64-72"]
+            C3["mcp-protect-namespace --file --server --namespace<br/>agentbox-manifest/src/main.rs:73-82"]
+            C4["mcp-deregister-fork --file<br/>agentbox-manifest/src/main.rs:83-87"]
         end
         subgraph plug["Plugins — src/plugins.rs"]
-            C5["plugin-register --file --key --install-path --message<br/>main.rs:88-104"]
-            C6["plugin-list --manifest<br/>main.rs:105-109"]
+            C5["plugin-register --file --key --install-path --message<br/>agentbox-manifest/src/main.rs:88-104"]
+            C6["plugin-list --manifest<br/>agentbox-manifest/src/main.rs:105-109"]
         end
         subgraph proj["Config projection"]
-            C7["nip98-config --manifest --out<br/>main.rs:110-116 · src/proxy.rs"]
-            C8["model-routing-project --manifest --workspace --dry-run<br/>main.rs:117-126 · src/routing.rs"]
-            C9["provision-stacks<br/>main.rs:127-128 · src/stacks.rs"]
+            C7["nip98-config --manifest --out<br/>agentbox-manifest/src/main.rs:110-116 · src/proxy.rs"]
+            C8["model-routing-project --manifest --workspace --dry-run<br/>agentbox-manifest/src/main.rs:117-126 · src/routing.rs"]
+            C9["provision-stacks<br/>agentbox-manifest/src/main.rs:144-145 · src/stacks.rs"]
         end
         subgraph tui["TUI round-trip"]
-            C10["tui-read config state<br/>main.rs:129-130 · src/tui_read.rs"]
-            C11["tui-write state output existing<br/>main.rs:131-136 · src/tui_write.rs"]
-            C12["state-get file key<br/>main.rs:148"]
-            C13["state-set file key value<br/>main.rs:149-154"]
-            C14["state-set-bool file key value<br/>main.rs:155-160"]
+            C10["tui-read config state<br/>agentbox-manifest/src/main.rs:129-130 · src/tui_read.rs"]
+            C11["tui-write state output existing<br/>agentbox-manifest/src/main.rs:131-136 · src/tui_write.rs"]
+            C12["state-get file key<br/>agentbox-manifest/src/main.rs:148"]
+            C13["state-set file key value<br/>agentbox-manifest/src/main.rs:149-154"]
+            C14["state-set-bool file key value<br/>agentbox-manifest/src/main.rs:155-160"]
         end
         subgraph read["Manifest readers — src/tomlval.rs"]
-            C15["toml-bool --manifest --path<br/>main.rs:137-143 · prints 1 or 0, ALWAYS exits 0"]
-            C16["toml-string --manifest --path<br/>main.rs:144-147 · prints a string or empty, ALWAYS exits 0"]
-            C17["embedding-dim<br/>main.rs:146-147 · reads an OpenAI-shaped response on stdin"]
+            C15["toml-bool --manifest --path<br/>agentbox-manifest/src/main.rs:137-143 · prints 1 or 0, ALWAYS exits 0"]
+            C16["toml-string --manifest --path<br/>agentbox-manifest/src/main.rs:144-147 · prints a string or empty, ALWAYS exits 0"]
+            C17["embedding-dim<br/>agentbox-manifest/src/main.rs:146-147 · reads an OpenAI-shaped response on stdin"]
         end
     end
     EP["config/entrypoint-unified.sh"] --> cli
     subgraph notes["Invariants and drift"]
         direction TB
         N1["INVARIANT: this ONE binary owns every manifest read and config projection at boot. It<br/>replaced about 377 lines of inline python3 in the entrypoint plus four scripts, so<br/>PYTHON3 IS NO LONGER A BOOT DEPENDENCY — python3 stays in the image only for the<br/>supervised Python services opf-router and code-interpreter"]
-        N2["SECURITY: mcp-set-server reads the spec JSON from STDIN specifically so bearer tokens<br/>and passwords never appear in the process list (main.rs:56-57)"]
+        N2["SECURITY: mcp-set-server reads the spec JSON from STDIN specifically so bearer tokens<br/>and passwords never appear in the process list (agentbox-manifest/src/main.rs:56-57)"]
         N3["toml-bool and toml-string ALWAYS EXIT 0 — a missing key is an empty answer, not a boot<br/>failure, so the entrypoint can read an absent gate without set -e killing the boot"]
-        N4["mcp-protect-namespace is APPEND-ONLY on the governed server's protected list<br/>(main.rs:73) — see AB-20.2 for the protected-namespace write guard it feeds"]
+        N4["mcp-protect-namespace is APPEND-ONLY on the governed server's protected list<br/>(agentbox-manifest/src/main.rs:73) — see AB-20.2 for the protected-namespace write guard it feeds"]
         N1 ~~~ N2 ~~~ N3 ~~~ N4
     end
 ```
@@ -128,8 +129,8 @@ sequenceDiagram
     participant AQE as .agentic-qe/llm-config.json
     participant PROF as WORKSPACE/profiles
 
-    Note over BIN: main() calls restore_default_sigpipe() FIRST (main.rs:206-207)
-    Note over BIN: Rust installs SIG_IGN for SIGPIPE at startup, which turns a closed downstream pipe into<br/>a PANIC-WITH-BACKTRACE on the next println!. The entrypoint pipes this binary into sed<br/>and consumes plugin-list through command substitution, and a backtrace in the boot log<br/>would be both alarming and useless (main.rs:165-172)
+    Note over BIN: main() calls restore_default_sigpipe() FIRST (agentbox-manifest/src/main.rs:206-207)
+    Note over BIN: Rust installs SIG_IGN for SIGPIPE at startup, which turns a closed downstream pipe into<br/>a PANIC-WITH-BACKTRACE on the next println!. The entrypoint pipes this binary into sed<br/>and consumes plugin-list through command substitution, and a backtrace in the boot log<br/>would be both alarming and useless (agentbox-manifest/src/main.rs:165-172)
     EP->>BIN: toml-bool --manifest /etc/agentbox.toml --path <dotted.gate>
     BIN->>TOML: read
     BIN-->>EP: "1" or "0", exit 0 always
@@ -138,24 +139,24 @@ sequenceDiagram
         BIN->>MCPJ: upsert
     end
     EP->>BIN: mcp-deregister-fork --file .mcp.json
-    BIN->>MCPJ: de-register any ruvector-mcp OUTSIDE /opt/agentbox (ADR-036 D2, main.rs:83)
+    BIN->>MCPJ: de-register any ruvector-mcp OUTSIDE /opt/agentbox (ADR-036 D2, agentbox-manifest/src/main.rs:83)
     Note over BIN,MCPJ: this is what keeps a stray forked memory server from shadowing the governed one — see<br/>AB-20
     EP->>BIN: mcp-reconcile-aqe --file .mcp.json --provider <p>
-    Note over BIN: an EMPTY or omitted provider REMOVES AQE_LLM_PROVIDER rather than blanking it<br/>(main.rs:67-68)
+    Note over BIN: an EMPTY or omitted provider REMOVES AQE_LLM_PROVIDER rather than blanking it<br/>(agentbox-manifest/src/main.rs:67-68)
     EP->>BIN: mcp-protect-namespace --file .mcp.json --server claude-flow --namespace <ns>
     EP->>BIN: nip98-config --manifest --out
-    BIN->>PROXY: project [interaction_plane.proxy] (ADR-069, main.rs:110) — see AB-10
+    BIN->>PROXY: project [interaction_plane.proxy] (ADR-069, agentbox-manifest/src/main.rs:110) — see AB-10
     EP->>BIN: model-routing-project --manifest --workspace --dry-run?
-    BIN->>AQE: project [model_routing] into EVERY .agentic-qe/llm-config.json (ADR-041, main.rs:117)
+    BIN->>AQE: project [model_routing] into EVERY .agentic-qe/llm-config.json (ADR-041, agentbox-manifest/src/main.rs:117)
     EP->>BIN: provision-stacks
     BIN->>PROF: provision the per-stack profile tree under WORKSPACE/profiles
     EP->>BIN: plugin-list --manifest
-    BIN-->>EP: name<TAB>source for enabled, VALIDATED [[plugins.packages]] (main.rs:105)
+    BIN-->>EP: name<TAB>source for enabled, VALIDATED [[plugins.packages]] (agentbox-manifest/src/main.rs:105)
     loop each plugin to install
         EP->>BIN: plugin-register --file installed_plugins.json --key --install-path --message
-        Note over BIN: --message is printed ONLY when the plugin was actually added (main.rs:97-99). --now<br/>freezes the installedAt/lastUpdated stamp and is TEST-ONLY and hidden — without it the<br/>value is the wall clock, which no golden could pin (main.rs:100-103)
+        Note over BIN: --message is printed ONLY when the plugin was actually added (agentbox-manifest/src/main.rs:97-99). --now<br/>freezes the installedAt/lastUpdated stamp and is TEST-ONLY and hidden — without it the<br/>value is the wall clock, which no golden could pin (agentbox-manifest/src/main.rs:100-103)
     end
-    Note over EP,BIN: every failure path prints to stderr and returns ExitCode::FAILURE (main.rs:186-189)
+    Note over EP,BIN: every failure path prints to stderr and returns ExitCode::FAILURE (agentbox-manifest/src/main.rs:186-189)
 ```
 
 ## AB-28.3 Consultant model projection (ADR-2031)
@@ -255,7 +256,7 @@ flowchart TB
     M9 --> B11
     subgraph notes["Invariants and drift"]
         direction TB
-        N1["Each binary REPLACES a Python script retired by the 2026-09-02 estate legacy audit. The<br/>modules hold the behaviour worth unit-testing independently of the CLI shell around it<br/>(lib.rs:1-5)"]
+        N1["Each binary REPLACES a Python script retired by the 2026-09-02 estate legacy audit. The<br/>modules hold the behaviour worth unit-testing independently of the CLI shell around it<br/>(agentbox-ops/src/lib.rs:1-5)"]
         N2["ADR-2032 daemon identification argv boundaries — process_identity.rs plus<br/>process_identity_tests.rs. ruflo-daemon-gc must identify its targets by ARGV shape,<br/>never by a name substring that could match an unrelated process"]
         N3["agentbox/services/agentbox-ops/tests/reaper_default_is_read_only.rs pins the safety<br/>default: the reaper is READ-ONLY unless explicitly told otherwise"]
         N4["ADR-2030 permissive licensing for publishable service crates — these crates carry<br/>LICENSE-APACHE and LICENSE-MIT, see agentbox/services/LICENSING-NOTICE.md"]
@@ -263,36 +264,46 @@ flowchart TB
     end
 ```
 
-## AB-28.6 agentbox-mcp — one binary, three stdio MCP servers
+## AB-28.6 agentbox-mcp — one binary, three stdio MCP servers plus the streamable-HTTP hub
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant SUP as supervisord<br/>agentbox/flake.nix:2112
-    participant BIN as agentbox-mcp<br/>agentbox/services/agentbox-mcp/src/main.rs:40
+    participant BIN as agentbox-mcp<br/>agentbox/services/agentbox-mcp/src/main.rs:61
     participant LOG as tracing_subscriber
     participant T as rmcp stdio transport
     participant SRV as the selected server
     participant HOST as MCP host
+    participant HUB as hub::serve<br/>agentbox/services/agentbox-mcp/src/hub/mod.rs:275
 
     SUP->>BIN: agentbox-mcp <subcommand>
-    Note over BIN: "Unified agentbox MCP server (imagemagick, web-summary, gemini-url-context)"<br/>(main.rs:20)
+    Note over BIN: "Unified agentbox MCP server (imagemagick, web-summary, gemini-url-context, hub)"<br/>(agentbox-mcp/src/main.rs:28)
     BIN->>LOG: fmt().with_writer(std::io::stderr)
-    Note over BIN,LOG: INVARIANT: logging MUST go to STDERR — stdout is the JSON-RPC stdio transport channel<br/>and ANY STRAY BYTE ON IT CORRUPTS THE PROTOCOL STREAM (main.rs:41-42)
-    Note over LOG: EnvFilter from the environment, defaulting to "info" (main.rs:45-47)
-    BIN->>T: rmcp::transport::stdio() (main.rs:51)
-    alt Imagemagick (main.rs:29-30)
-        BIN->>SRV: ImageMagickServer::new().serve(transport) (main.rs:54-58)
+    Note over BIN,LOG: INVARIANT: logging MUST go to STDERR — stdout is the JSON-RPC stdio transport channel<br/>and ANY STRAY BYTE ON IT CORRUPTS THE PROTOCOL STREAM (agentbox-mcp/src/main.rs:64-65)
+    Note over LOG: EnvFilter from the environment, defaulting to "info" (agentbox-mcp/src/main.rs:66-67)
+    BIN->>BIN: let cli = Cli::parse() (agentbox-mcp/src/main.rs:71)
+    alt Imagemagick (agentbox-mcp/src/main.rs:38)
+        BIN->>T: rmcp::transport::stdio()
+        BIN->>SRV: ImageMagickServer::new().serve(transport) (agentbox-mcp/src/main.rs:74-77)
         Note over SRV: image processing with format conversion, resizing, cropping and batch operations.<br/>Modules args.rs / exec.rs / types.rs — see AB-27
-    else web-summary (main.rs:31-33)
+    else web-summary (agentbox-mcp/src/main.rs:41)
+        BIN->>T: rmcp::transport::stdio()
         BIN->>SRV: WebSummary server
         Note over SRV: URL summarization with YouTube transcripts and topic generation. Modules fetch.rs /<br/>youtube.rs / llm.rs / types.rs
-    else gemini-url-context (main.rs:34-36)
+    else gemini-url-context (agentbox-mcp/src/main.rs:44)
+        BIN->>T: rmcp::transport::stdio()
         BIN->>SRV: GeminiUrlContext server
         Note over SRV: URL expansion and analysis using Gemini's URL Context API. Modules api.rs / types.rs
+    else hub {config, bind, wait_config_secs} (agentbox-mcp/src/main.rs:46-56)
+        BIN->>HUB: hub::serve(&config, bind, wait_config_secs) (agentbox-mcp/src/main.rs:97-101)
+        Note over HUB: ADR-2034 — shared streamable-HTTP front for stateless stdio MCP servers, loopback<br/>only, config written at boot by agentbox-manifest mcp-hub-project — see AB-09
+        HUB-->>HOST: HTTP, not stdio — this branch never reaches SRV/T below
     end
-    SRV->>HOST: JSON-RPC over stdio
-    SRV->>SRV: service.waiting().await
+    opt not the hub branch
+        SRV->>HOST: JSON-RPC over stdio
+        SRV->>SRV: service.waiting().await
+    end
 ```
 
 ## AB-28.7 skill-tools — Rust ports backing three skills
@@ -335,7 +346,7 @@ flowchart LR
     D --> dmods
     subgraph notes["Invariants and drift"]
         direction TB
-        N1["Each module is SELF-CONTAINED and backs one or more [[bin]] targets declared in<br/>Cargo.toml (lib.rs:9-10)"]
+        N1["Each module is SELF-CONTAINED and backs one or more [[bin]] targets declared in<br/>Cargo.toml (skill-tools/src/lib.rs:9-10)"]
         N2["docs_check_mermaid is the skill-side mermaid validator. This diagrams tree is validated<br/>instead by VisionFlow's scripts/diagram-index-gen.cjs (the tree moved to the estate canon on 2026-09-07) --render, which renders every block through mmdc<br/>— a different and stricter gate"]
         N3["skill invocation and the manifest gates that enable these skills are AB-22"]
         N1 ~~~ N2 ~~~ N3

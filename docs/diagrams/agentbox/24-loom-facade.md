@@ -30,7 +30,7 @@ flowchart TB
         EMAIL["email gateway REASONER_BASE_URL<br/>see AB-27"]
     end
     subgraph depA["Deployment A — LAN facade on machinelearn .132"]
-        F84["Loom facade<br/>http://192.168.2.132:8084/v1"]
+        F84["Loom facade<br/>machinelearn .132, port 8084, path /v1"]
     end
     subgraph depB["Deployment B — sidecar on visionclaw_network (compose profile loom)"]
         SIDE["loom-facade (Rust)<br/>docker-compose.unified.yml:298"]
@@ -401,3 +401,7 @@ flowchart LR
         N1 ~~~ N2 ~~~ N3 ~~~ N4 ~~~ N5
     end
 ```
+
+## Audit qualification — 2026-09-07
+
+The local Rust Loom already exposes `GET /loom/generation` in `crates/loom-facade/src/routes/mod.rs`, backed by generation verification in `bundle.rs`. Agentbox `ontology-retrieval.js::selectBackend` still obtains its generation from options/environment and its Loom transport calls only search/SPARQL. ADR-2075 therefore needs **client consumption and mismatch enforcement**, not an assertion that every Loom implementation lacks an identity endpoint. Deployment identity was not probed. The Loom graph loader still loads Turtle into the shared default graph; the helper omits provenance graph clauses, so ADR-2073 remains open.

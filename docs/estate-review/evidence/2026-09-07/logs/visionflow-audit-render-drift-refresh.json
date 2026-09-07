@@ -1,0 +1,47 @@
+[
+  {
+    "id": "AB-04.16",
+    "topic": "agentbox/04-adapter-spine.md",
+    "source_sha256": "82cfcf8d44ba9b5defd3bd038702a0a99323cdd53fe5a864e59505d2ab73f5d5",
+    "command": [
+      "mmdc",
+      "-i",
+      "/home/devuser/workspace/VisionFlow/docs/diagrams/rendered/agentbox/04-adapter-spine/AB-04.16.mmd",
+      "-o",
+      "/home/devuser/workspace/VisionFlow/docs/diagrams/rendered/agentbox/04-adapter-spine/AB-04.16.svg",
+      "-q"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "id": "AB-05.5",
+    "topic": "agentbox/05-manifest-gates-and-cli.md",
+    "source_sha256": "06af58218fb6bd49e24e841eb1ab5dc58ef3948e4e24ca6f67faaeaccdaab471",
+    "command": [
+      "mmdc",
+      "-i",
+      "/home/devuser/workspace/VisionFlow/docs/diagrams/rendered/agentbox/05-manifest-gates-and-cli/AB-05.5.mmd",
+      "-o",
+      "/home/devuser/workspace/VisionFlow/docs/diagrams/rendered/agentbox/05-manifest-gates-and-cli/AB-05.5.svg",
+      "-q"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "id": "VC-26.1",
+    "topic": "visionclaw/26-solid-pod-and-jss.md",
+    "source_sha256": "fe8cbbf65e829fb3b270b534ede9045b8cd57820892ba819c3d3adefbf68caaf",
+    "command": [
+      "mmdc",
+      "-i",
+      "/home/devuser/workspace/VisionFlow/docs/diagrams/rendered/visionclaw/26-solid-pod-and-jss/VC-26.1.mmd",
+      "-o",
+      "/home/devuser/workspace/VisionFlow/docs/diagrams/rendered/visionclaw/26-solid-pod-and-jss/VC-26.1.svg",
+      "-q"
+    ],
+    "exit_code": 0,
+    "output": ""
+  }
+]

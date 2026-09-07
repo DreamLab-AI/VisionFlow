@@ -455,3 +455,7 @@ sequenceDiagram
     Note over CONS: the sweep and the recall harness are NOT MCP tools — they run OUT-OF-PROCESS, and the<br/>MCP server registers no tool for them so tool registration stays byte-identical<br/>(ruvector-mcp.cjs:12-18). See AB-20
     Note over OP: privacy note — redaction happens BEFORE persistence in the producer (see AB-21.1). The<br/>adapters observability then privacy-filter then JSON-LD middleware chain is AB-04
 ```
+
+## Audit qualification — 2026-09-07
+
+ADR-2015 is transcript-driven but uses the **structured `tool_result.is_error` flag**, not an LLM's error prose. Unknown or interrupted outcomes are skipped. Current source keeps the watermark unchanged when pg is unavailable and records `usage_id`, turn-level scope and queue overflow metadata. The 57 selected Jest assertions in the [audit](../../estate-review/2026-09-07-agentbox-audit.md) passed. They do not establish a complete failure denominator or live recorder-to-dashboard delivery: non-Bash work, skipped outcomes, crash-before-Stop, HTTP status handling and downstream usage deduplication remain separate obligations.

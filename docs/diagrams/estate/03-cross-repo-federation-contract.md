@@ -9,7 +9,7 @@ governing:
   - ../project/docs/DATA-authority-erasure.md
   - ../project/docs/BASELINE-architecture.md
   - ../project/agentbox/docs/BASELINE-container.md
-adrs: [ADR-2023, ADR-2025, ADR-2061]
+adrs: [visionclaw:ADR-2023, visionclaw:ADR-2025, agentbox:ADR-2061]
 sources:
   - ../project/src/uri/mod.rs
   - ../project/src/services/provenance_writer.rs
@@ -21,6 +21,9 @@ sources:
   - ../project/agentbox/management-api/observability/metrics.js
   - ../project/agentbox/management-api/middleware/privacy-filter.js
   - ../project/agentbox/management-api/middleware/linked-data/encoder.js
+  - ../project/agentbox/management-api/server.js
+  - ../project/agentbox/management-api/adapters/lifecycle.js
+  - ../project/agentbox/docs/BASELINE-container.md
   - ../project/agentbox/management-api/routes/uri-resolver.js
   - ../project/agentbox/management-api/utils/agent-event-publisher.js
   - ../project/agentbox/schema/federation-kinds.json
@@ -374,7 +377,7 @@ sequenceDiagram
     participant AA as assertPrivacyFilterApplied<br/>privacy-filter.js:595
     participant Ad as Adapter impl call
     rect rgb(240,240,255)
-    Note over Rt,Ad: Layer 1 - observability (ADR-005), Layer 2 - privacy filter (ADR-008), Layer 3 - JSON-LD<br/>encoder (ADR-012)<br/>agentbox/docs/BASELINE-container.md:170
+    Note over Rt,Ad: DOC-DRIFT RESOLVED BY CORRECTION (ADR-2036) - the governing doc's own<br/>THREE-LAYER dispatch claim was the error, retracted at BASELINE-container.md:223.<br/>Observability and privacy wrap the dispatch (metrics.js:125, privacy-filter.js:649),<br/>JSON-LD encoding is a SEPARATE caller action, deliberately, not a third wrapper layer.
     Rt->>WD: instrumentedDispatch(...args)
     WD->>WD: executionId = uris.mint kind event,pubkey,payload
     WD->>PF: privacyWrapped(...args)
@@ -416,9 +419,9 @@ sequenceDiagram
     end
     Note over LD: INVARIANT DDD-004 par L08 - privacy redaction completes before the encoder runs, verified<br/>per-dispatch not per-module-load
     Note over Ad: DIVERGENCE agentbox/docs/BASELINE-container.md - adapter contract versions are STALE<br/>PLACEHOLDERS. pods, memory, events and orchestrator all still declare 1.0.0 despite live<br/>churn, so a breaking change would need a MAJOR bump that has NOT happened. A consumer<br/>cannot tell from the version whether the contract it compiled against still holds.
-    Note over Ad: INVARIANT agentbox/docs/BASELINE-container.md - orchestrator boot-probe failure is FATAL<br/>(server.js:1219). Every OTHER slot degrades to status degraded and swaps its live impl<br/>to off (server.js:1223), so a failed slot never silently keeps serving.
+    Note over Ad: CORRECTED (ADR-2035) - there is NO orchestrator-specific fatal probe. connectAdapters<br/>races EVERY slot against its OWN deadline (lifecycle.js:31), failure and timeout are<br/>equally fatal and both quarantine the adapter (lifecycle.js:256,274). If the off-replacement<br/>cannot be built the slot is left unavailable and dispatch throws AdapterQuarantined rather<br/>than reach a degraded adapter (lifecycle.js:292-299). toLegacyHealth maps all five slots<br/>uniformly into adapterHealth (server.js:1272), and /ready blocks on ANY manifest slot that<br/>is not healthy (server.js:485-486) - no slot is privileged.
 ```
-## ES-03.10 DATA-authority-erasure divergence: identifier grammars unreconciled across the federation
+## ES-03.10 Partial convergence: typed operational crossings and remaining RDF identity seams
 ```mermaid
 flowchart TD
     subgraph VC["VisionClaw grammars in live code"]
@@ -434,9 +437,9 @@ flowchart TD
     end
     G1 -. "cross_from_agentbox, ADR-2025 closed map" .-> G6
     G3 -. "structural round-trip, already converged" .-> G7
-    NOTE1["DIVERGENCE docs/DATA-authority-erasure.md par119-122 - vc colon domain slug, urn:visionclaw, visionclaw:owner npub kg, agentbox hex-npub-display and minted-URNs-may-return-null all coexist, code mints urn:ngm IRIs, no single grammar is agreed, cross-class joins rely on convention"]
+    NOTE1["PARTIAL CONVERGENCE: the shared federation-kinds.json governs operational URN crossings<br/>and both translators have typed refusal paths. RDF urn:ngm and semantic display<br/>identities remain separate seams; the historical visionclaw:owner form is not emitted.<br/>Distinct grammars alone are not evidence of a broken join; test each boundary."]
     NOTE2["DIVERGENCE docs/BASELINE-architecture.md par235 - identifier grammars unreconciled, DID doc ADR-074-D2prime vs ADR-125 conflict"]
-    NOTE3["DIVERGENCE docs/IDENTIFIER-taxonomy.md Known divergences - minted URNs may return null (legacy ADR-063), cross_from_agentbox returns None for memory and unknown kinds, callers must record raw string plus unmapped marker rather than a synthetic id"]
+    NOTE3["DELIBERATE REFUSAL: memory needs an explicit ontology elevation target;<br/>unknown kinds are refused. Preserve the raw identifier and refusal reason.<br/>This is a bounded translation contract, not proof that every identifier resolves."]
     G4 -.-> NOTE1
     G2 -.-> NOTE1
     G5 -.-> NOTE2

@@ -9,6 +9,16 @@ adrs: [ADR-2005, ADR-2013, ADR-2003]
 sources:
   - ../project/agentbox/management-api/server.js
   - ../project/agentbox/management-api/lib/authz.js
+  - ../project/agentbox/management-api/middleware/auth.js
+  - ../project/agentbox/management-api/middleware/privacy-filter.js
+  - ../project/agentbox/management-api/routes/comfyui.js
+  - ../project/agentbox/management-api/routes/system.js
+  - ../project/agentbox/management-api/routes/well-known.js
+  - ../project/agentbox/management-api/routes/uri-resolver.js
+  - ../project/agentbox/management-api/routes/llm-marketplace.js
+  - ../project/agentbox/management-api/routes/voice-intent.js
+  - ../project/agentbox/management-api/lib/uris.js
+  - ../project/agentbox/management-api/utils/agent-event-publisher.js
   - ../project/agentbox/management-api/lib/audit-chain.js
   - ../project/agentbox/management-api/lib/failure-taxonomy.js
   - ../project/agentbox/management-api/lib/execution-journal.js

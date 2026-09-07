@@ -5,7 +5,7 @@ area: estate
 governing:
   - ../project/docs/BASELINE-architecture.md
   - ../project/agentbox/docs/BASELINE-container.md
-adrs: [ADR-2023, ADR-2013, ADR-2027, ADR-2025, ADR-2009, ADR-2012, ADR-2062]
+adrs: [agentbox:ADR-2023, agentbox:ADR-2013, visionclaw:ADR-2027, visionclaw:ADR-2025, agentbox:ADR-2009, agentbox:ADR-2012, agentbox:ADR-2062]
 sources:
   - ../project/.gitmodules
   - ../project/Cargo.toml
@@ -38,9 +38,10 @@ sources:
   - ../project/docs/adr/ADR-2027-three-deployment-profiles.md
   - ../project/docs/adr/ADR-2025-cross-from-agentbox-closed-map.md
   - ../project/agentbox/lib/solid-pod-rs.nix
+  - scripts/estate-health/roster.json
 verified_commit: {visionclaw: 36bb64e1e, agentbox: 2c521c5bb}
 ---
-## ES-01.1 Substrate map — six repositories, five-participant identity mesh
+## ES-01.1 Substrate map — the VisionClaw checkout's neighbourhood, not the whole estate
 ```mermaid
 flowchart TB
     subgraph ONDISK["On disk in this checkout"]
@@ -72,8 +73,10 @@ flowchart TB
     VF -.->|"documentation/positioning only<br/>agentbox/docs/developer/ecosystem.md table"| VC
     VF -.-> AB
 
-    NOTE1["Note: 6 repos total, 5 did:nostr identity-mesh<br/>signing participants (VisionFlow signs nothing)<br/>source: agentbox/docs/developer/ecosystem.md"]
+    NOTE1["SCOPE — this map draws the SIX repositories agentbox's own<br/>ecosystem doc enumerates, of which 5 sign on the did:nostr<br/>identity mesh (VisionFlow is pure canon and signs nothing):<br/>agentbox/docs/developer/ecosystem.md."]
+    NOTE2["DIVERGENCE — six is NOT the estate. The enumeration the tree<br/>treats as canonical is scripts/estate-health/roster.json, which<br/>carries FOURTEEN rows and is the only one walked row by row<br/>(roster.json:3). This map omits knowledgeGraph, visionGraph,<br/>vowl-wasm, loom, WasmVOWL, prose-sanitiser, diagram-ir and<br/>dream-engine. Those edges are drawn in ES-11; the full<br/>enumeration conflict is catalogued in VF-08.3. Kept at six here<br/>because this diagram answers what is ON DISK in the VisionClaw<br/>checkout, which is a different question from what the estate is."]
     NOTE1 -.-> VF
+    NOTE2 -.-> VF
 ```
 
 ## ES-01.2 Network / compute fabric — machinelearn, HP-Desktop rail, dead trap

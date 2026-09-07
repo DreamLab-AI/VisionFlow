@@ -10,6 +10,7 @@ sources:
   - ../knowledgeGraph/docs/integrations/ontocast.md
   - ../knowledgeGraph/pipeline/ontocast_import.py
   - ../knowledgeGraph/README.md
+  - docs/architecture/licensing.md
 verified_commit: 2791111fc
 ---
 

@@ -27,6 +27,13 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs-server/Cargo.toml
   - ../solid-pod-rs/crates/solid-pod-rs/Cargo.toml
   - ../solid-pod-rs/Cargo.toml
+  - ../solid-pod-rs/crates/solid-pod-rs/src/config/schema.rs
+  - ../solid-pod-rs/crates/solid-pod-rs-server/src/handlers/prov.rs
+  - ../solid-pod-rs/crates/solid-pod-rs/src/notifications/mod.rs
+  - ../solid-pod-rs/crates/solid-pod-rs/src/metrics.rs
+  - ../solid-pod-rs/crates/solid-pod-rs/src/security/ssrf.rs
+  - ../solid-pod-rs/.github/workflows/ci.yml
+  - ../solid-pod-rs/scripts/parity-check.sh
 verified_commit: 1d9da5270
 ---
 
@@ -325,4 +332,49 @@ flowchart TD
     BL -.-> N
     N2["A new decision is a thin ADR in the repo's docs/adr, citing the baseline.<br/>Archived ADRs are frozen evidence and are never authority."]
     BL -.-> N2
+```
+
+## SP-10.12 Observability — everything the pod emits
+
+```mermaid
+flowchart TD
+    subgraph COUNT["Counters — SecurityMetrics"]
+        SM["SecurityMetrics, a cheap-to-clone Arc bundle<br/>solid-pod-rs/src/metrics.rs:26"]
+        SS["record_ssrf_block, labelled by IpClass<br/>solid-pod-rs/src/metrics.rs:63"]
+        ST["ssrf_blocked_total<br/>solid-pod-rs/src/metrics.rs:76"]
+        DF["record_dotfile_deny<br/>solid-pod-rs/src/metrics.rs:88"]
+        DT["dotfile_denied_total<br/>solid-pod-rs/src/metrics.rs:93"]
+    end
+    subgraph WIRE["Wired in via with_metrics builders"]
+        W1["SsrfPolicy::with_metrics<br/>solid-pod-rs/src/security/ssrf.rs:150"]
+        W2["DotfileAllowlist::with_metrics<br/>solid-pod-rs/src/security/dotfile.rs:87"]
+    end
+    subgraph HDR["Per-response signals a client can read"]
+        H1["X-Provenance and X-Provenance-Commit<br/>solid-pod-rs-server/src/lib.rs:1162"]
+        H2["WAC-Allow, advisory on grant AND denial<br/>solid-pod-rs-server/src/lib.rs:1134"]
+        H3["Updates-via — the notification endpoint<br/>solid-pod-rs-server/src/lib.rs:1141"]
+    end
+    subgraph LOG["Structured tracing"]
+        L1["log_5xx and format_error_chain<br/>solid-pod-rs-server/src/lib.rs:3297"]
+        L2["mempool selection recorded once at startup<br/>solid-pod-rs-server/src/mempool.rs:325"]
+        L3["a denied ACL logs the policy path and reason<br/>solid-pod-rs-server/src/lib.rs:1957"]
+    end
+
+    SM --> SS
+    SM --> ST
+    SM --> DF
+    SM --> DT
+    SM --> WIRE
+    HDR --> OP["what an operator or client can actually see"]
+    LOG --> OP
+    COUNT --> OP
+
+    N["DIVERGENCE: Prometheus export is explicitly OUT OF SCOPE<br/>(solid-pod-rs/src/metrics.rs:4). The crate ships raw atomics and expects the<br/>binder to lift them into gauges — so a bare solid-pod-rs-server exposes NO<br/>metrics endpoint at all. There is no /metrics route in SP-02.9 to SP-02.11."]
+    COUNT -.-> N
+    N2["EXTERNAL: the doc names the upstream binder that owns the Prometheus registry<br/>(solid-pod-rs/src/metrics.rs:5) — that is VisionClaw's webxr server, which<br/>embeds the pod. See VC-26 and VC-08."]
+    WIRE -.-> N2
+    N3["Only TWO subsystems are counted — SSRF blocks and dotfile denials. WAC<br/>denials, replay rejections, quota refusals and provenance failures are logged<br/>but never counted, so their rates are not observable without log scraping."]
+    SM -.-> N3
+    N4["The counters are also OPT-IN: without a with_metrics call the policies hold a<br/>default bundle nobody reads, so a deployment that never wires one records<br/>nothing."]
+    WIRE -.-> N4
 ```

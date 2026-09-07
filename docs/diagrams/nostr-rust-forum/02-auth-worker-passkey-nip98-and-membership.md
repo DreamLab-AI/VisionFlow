@@ -44,20 +44,20 @@ sequenceDiagram
 
     C->>F: HTTP request
     F->>H: handle_request (all errors caught by the wrapper)
-    H->>S: idempotent D1 bootstrap on every cold start lib.rs:162
-    H->>RL: ensure_replay_schema then check_rate_limit 20 req / 60 s per IP lib.rs:174
+    H->>S: idempotent D1 bootstrap on every cold start nostr-bbs-auth-worker/src/lib.rs:162
+    H->>RL: ensure_replay_schema then check_rate_limit 20 req / 60 s per IP nostr-bbs-auth-worker/src/lib.rs:174
     alt over budget
-        RL-->>C: 429 Too many requests lib.rs:175
+        RL-->>C: 429 Too many requests nostr-bbs-auth-worker/src/lib.rs:175
     end
-    H->>H: Options preflight returns 204 + CORS lib.rs:169
-    H->>H: origin = the ACTUAL request URL, not EXPECTED_ORIGIN lib.rs:190
-    H->>H: body bytes read BEFORE routing for NIP-98 payload hashing lib.rs:194
+    H->>H: Options preflight returns 204 + CORS nostr-bbs-auth-worker/src/lib.rs:169
+    H->>H: origin = the ACTUAL request URL, not EXPECTED_ORIGIN nostr-bbs-auth-worker/src/lib.rs:190
+    H->>H: body bytes read BEFORE routing for NIP-98 payload hashing nostr-bbs-auth-worker/src/lib.rs:194
     H->>R: route(path, method, body_bytes, origin)
     R-->>H: Response
     H-->>C: with_cors(resp)
 
-    Note over F: INVARIANT: no error ever leaks to the workers-rs framework - a leaked Debug string is not valid JSON. Unhandled errors become a 500 JSON body lib.rs:151
-    Note over H: The origin is THREADED through the route functions rather than stored in a thread_local (P2-06) lib.rs:190
+    Note over F: INVARIANT: no error ever leaks to the workers-rs framework - a leaked Debug string is not valid JSON. Unhandled errors become a 500 JSON body nostr-bbs-auth-worker/src/lib.rs:151
+    Note over H: The origin is THREADED through the route functions rather than stored in a thread_local (P2-06) nostr-bbs-auth-worker/src/lib.rs:190
 ```
 
 ## NF-02.2 Route table — public, sprint-API and legacy tiers
@@ -65,40 +65,40 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     subgraph pub["Public - no auth"]
-        DID["GET /.well-known/did/nostr/{pk}.json<br/>lib.rs:233 to did::handle_did_document nostr-bbs-auth-worker/src/did.rs:20"]
-        HEALTH["GET /health lib.rs:240"]
-        REGO["POST /auth/register/options lib.rs:253"]
-        REGV["POST /auth/register/verify lib.rs:258"]
-        LOGO["POST /auth/login/options lib.rs:264"]
-        LOGV["POST /auth/login/verify lib.rs:269"]
-        LOOKUP["POST /auth/lookup lib.rs:274"]
-        UCHECK["GET /api/username/check lib.rs:584"]
-        URESOLVE["GET /api/username/resolve lib.rs:589"]
-        IPREV["GET /api/invites/{code} preview lib.rs:442"]
+        DID["GET /.well-known/did/nostr/{pk}.json<br/>nostr-bbs-auth-worker/src/lib.rs:233 to did::handle_did_document nostr-bbs-auth-worker/src/did.rs:20"]
+        HEALTH["GET /health nostr-bbs-auth-worker/src/lib.rs:240"]
+        REGO["POST /auth/register/options nostr-bbs-auth-worker/src/lib.rs:253"]
+        REGV["POST /auth/register/verify nostr-bbs-auth-worker/src/lib.rs:258"]
+        LOGO["POST /auth/login/options nostr-bbs-auth-worker/src/lib.rs:264"]
+        LOGV["POST /auth/login/verify nostr-bbs-auth-worker/src/lib.rs:269"]
+        LOOKUP["POST /auth/lookup nostr-bbs-auth-worker/src/lib.rs:274"]
+        UCHECK["GET /api/username/check nostr-bbs-auth-worker/src/lib.rs:584"]
+        URESOLVE["GET /api/username/resolve nostr-bbs-auth-worker/src/lib.rs:589"]
+        IPREV["GET /api/invites/{code} preview nostr-bbs-auth-worker/src/lib.rs:442"]
     end
     subgraph sprint["route_sprint_api - each handler does its own NIP-98 + gate"]
-        MOD["mod: ban mute warn unban unmute lib.rs:375 | report lib.rs:383 | actions lib.rs:387 | reports lib.rs:391 | reports/{id}/action lib.rs:396"]
-        WOT["wot: status lib.rs:413 | set-referente lib.rs:417 | refresh lib.rs:421 | override add/remove lib.rs:425"]
-        INV["invites: create lib.rs:433 | mine lib.rs:437 | revoke + redeem lib.rs:442"]
-        WEL["welcome: config lib.rs:471 | configure lib.rs:475 | set-bot-key lib.rs:479 | test lib.rs:483"]
-        ADM["admins: list lib.rs:489 | add lib.rs:493 | remove lib.rs:497 | delete-member lib.rs:503"]
-        GOV["governance: agents lib.rs:509 register lib.rs:513 provision lib.rs:518 revoke lib.rs:523 | cases lib.rs:528 :532 | decisions lib.rs:538 | roles grant lib.rs:542 revoke lib.rs:546 list lib.rs:550"]
-        DEV["devices: list lib.rs:558 | register lib.rs:562 | revoke lib.rs:566"]
-        NAME["username: claim lib.rs:593 | release lib.rs:597 | profile/real-name lib.rs:604 :608 | admin/registrations lib.rs:613 :618"]
-        NIP1984["GET /api/moderation/reports lib.rs:572"]
-        NPOD["POST /api/native-pod/provision lib.rs:578"]
+        MOD["mod: ban mute warn unban unmute nostr-bbs-auth-worker/src/lib.rs:375 | report nostr-bbs-auth-worker/src/lib.rs:383 | actions nostr-bbs-auth-worker/src/lib.rs:387 | reports nostr-bbs-auth-worker/src/lib.rs:391 | reports/{id}/action nostr-bbs-auth-worker/src/lib.rs:396"]
+        WOT["wot: status nostr-bbs-auth-worker/src/lib.rs:413 | set-referente nostr-bbs-auth-worker/src/lib.rs:417 | refresh nostr-bbs-auth-worker/src/lib.rs:421 | override add/remove nostr-bbs-auth-worker/src/lib.rs:425"]
+        INV["invites: create nostr-bbs-auth-worker/src/lib.rs:433 | mine nostr-bbs-auth-worker/src/lib.rs:437 | revoke + redeem nostr-bbs-auth-worker/src/lib.rs:442"]
+        WEL["welcome: config nostr-bbs-auth-worker/src/lib.rs:471 | configure nostr-bbs-auth-worker/src/lib.rs:475 | set-bot-key nostr-bbs-auth-worker/src/lib.rs:479 | test nostr-bbs-auth-worker/src/lib.rs:483"]
+        ADM["admins: list nostr-bbs-auth-worker/src/lib.rs:489 | add nostr-bbs-auth-worker/src/lib.rs:493 | remove nostr-bbs-auth-worker/src/lib.rs:497 | delete-member nostr-bbs-auth-worker/src/lib.rs:503"]
+        GOV["governance: agents nostr-bbs-auth-worker/src/lib.rs:509 register nostr-bbs-auth-worker/src/lib.rs:513 provision nostr-bbs-auth-worker/src/lib.rs:518 revoke nostr-bbs-auth-worker/src/lib.rs:523 | cases nostr-bbs-auth-worker/src/lib.rs:528 :532 | decisions nostr-bbs-auth-worker/src/lib.rs:538 | roles grant nostr-bbs-auth-worker/src/lib.rs:542 revoke nostr-bbs-auth-worker/src/lib.rs:546 list nostr-bbs-auth-worker/src/lib.rs:550"]
+        DEV["devices: list nostr-bbs-auth-worker/src/lib.rs:558 | register nostr-bbs-auth-worker/src/lib.rs:562 | revoke nostr-bbs-auth-worker/src/lib.rs:566"]
+        NAME["username: claim nostr-bbs-auth-worker/src/lib.rs:593 | release nostr-bbs-auth-worker/src/lib.rs:597 | profile/real-name nostr-bbs-auth-worker/src/lib.rs:604 :608 | admin/registrations nostr-bbs-auth-worker/src/lib.rs:613 :618"]
+        NIP1984["GET /api/moderation/reports nostr-bbs-auth-worker/src/lib.rs:572"]
+        NPOD["POST /api/native-pod/provision nostr-bbs-auth-worker/src/lib.rs:578"]
     end
     subgraph legacy["Legacy /api/ tier - central NIP-98 verify"]
-        PROF["GET /api/profile lib.rs:333 to pod::handle_profile nostr-bbs-auth-worker/src/pod.rs:9"]
+        PROF["GET /api/profile nostr-bbs-auth-worker/src/lib.rs:333 to pod::handle_profile nostr-bbs-auth-worker/src/pod.rs:9"]
     end
 
-    ENTRY["route lib.rs:355"] --> pub
+    ENTRY["route nostr-bbs-auth-worker/src/lib.rs:355"] --> pub
     ENTRY --> sprint
-    ENTRY -->|"falls through when route_sprint_api returns None lib.rs:287"| legacy
-    legacy -->|"no match"| NF["404 Not found lib.rs:346"]
+    ENTRY -->|"falls through when route_sprint_api returns None nostr-bbs-auth-worker/src/lib.rs:287"| legacy
+    legacy -->|"no match"| NF["404 Not found nostr-bbs-auth-worker/src/lib.rs:348"]
 
-    N1["Sprint handlers are dispatched BEFORE the legacy verify branch because they run their own<br/>require_admin / require_authed gates lib.rs:279-287"]
-    N2["ANOMALY O11 confirmed live: /api/native-pod/provision lib.rs:578 requires NATIVE_POD_URL and the<br/>NATIVE_POD_ADMIN_KEY secret; both are placeholders in the template nostr-bbs-auth-worker/wrangler.toml:52"]
+    N1["Sprint handlers are dispatched BEFORE the legacy verify branch because they run their own<br/>require_admin / require_authed gates nostr-bbs-auth-worker/src/lib.rs:279-287"]
+    N2["ANOMALY O11 confirmed live: /api/native-pod/provision nostr-bbs-auth-worker/src/lib.rs:578 requires NATIVE_POD_URL and the<br/>NATIVE_POD_ADMIN_KEY secret; both are placeholders in the template nostr-bbs-auth-worker/wrangler.toml:52"]
 ```
 
 ## NF-02.3 Passkey registration — the full verify chain

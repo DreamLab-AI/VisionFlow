@@ -22,7 +22,7 @@ flowchart TB
     subgraph REPO["visionGraph — the authored corpus, NOT a distribution mirror"]
         KV["knowledge/ — the PUBLISHED vault<br/>pages/ journals/ assets#40;symlink#41; .obsidian/<br/>8,671 markdown pages under pages/"]
         WV["working/ — the RESEARCH vault<br/>574 pages — same shape, not published"]
-        PIPE["pipeline/ — JSON-LD → Turtle/WebVOWL/NGG1<br/>17 modules — README.md:19-21"]
+        PIPE["pipeline/ — JSON-LD → Turtle/WebVOWL/NGG1<br/>17 modules — visionGraph/README.md:19-21"]
         PUBTOOLS["publishing-tools/WasmVOWL/<br/>vendored explorer checkout — its OWN copy,<br/>distinct from knowledgeGraph's explorer/"]
         STATIC["static/ns/v2.jsonld"]
         LIC["licensing/ — LICENSE-AGPL-3.0.txt<br/>LICENSE-ODbL-1.0.txt, NOTICE"]

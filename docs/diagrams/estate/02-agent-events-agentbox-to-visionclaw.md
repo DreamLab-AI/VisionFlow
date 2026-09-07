@@ -6,7 +6,7 @@ governing:
   - ../project/docs/PROTOCOL-registry.md
   - ../project/docs/GPU-wire-abi.md
   - ../project/agentbox/docs/PROTOCOL-registry.md
-adrs: [ADR-2020, ADR-2015, ADR-2083, ADR-2084, ADR-2085, ADR-2088, ADR-2089, ADR-2090, ADR-2091]
+adrs: [visionclaw:ADR-2020, visionclaw:ADR-2083, visionclaw:ADR-2084, visionclaw:ADR-2085, visionclaw:ADR-2088, visionclaw:ADR-2089, visionclaw:ADR-2090, visionclaw:ADR-2091]
 sources:
   - ../project/agentbox/management-api/utils/agent-event-publisher.js
   - ../project/agentbox/management-api/lib/agent-event-auth.js
