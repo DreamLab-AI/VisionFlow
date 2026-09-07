@@ -66,13 +66,13 @@ stateDiagram-v2
         from PID 1 - flake.nix:1853-1854
     end note
     note right of ExitFast
-        exits fast when off, so autostart=true costs
-        nothing when the feature is gated off
+        exits fast when off, so no feature work is performed.
+        Autorestart still relaunches the process; it is not zero overhead.
         flake.nix:1853-1855
     end note
     note left of Spawned
         startsecs=0 on every CLASS A loop
-        flake.nix:1815, 1827, 1845
+        flake.nix:1896,1925,1943
         so supervisord does not wait to call it up
     end note
     note right of Restarted
@@ -291,7 +291,7 @@ sequenceDiagram
     SUP->>SC: start podcast-cron priority 250, autostart, autorestart (flake.nix:2439-2442)
     SC->>CT: read skills/podcast-knowledge-ingest/crontab (flake.nix:2436)
     loop on each cron expression match
-        SC->>J: run with PATH podcastIngestPkg, pythonRuntimeEnv, coreutils, nodejs_22, /usr/local/bin, /bin, /usr/bin (flake.nix:2438)
+        SC->>J: run with PATH podcastIngestPkg, pythonRuntimeEnv, coreutils, nodejs_22, /usr/local/bin, /bin, /usr/bin (flake.nix:2449)
         J-->>SC: exit code
         SC->>L: -split-logs writes stdout and stderr separately
     end
@@ -352,7 +352,7 @@ sequenceDiagram
 ## AB-07.9 Gated starts — networking, desktop and toolchain daemons
 ```mermaid
 flowchart TD
-    G["flake.nix lib.optionalString gates — see AB-01.1"] --> N["tailscaled flake.nix:2255<br/>tailscale-up flake.nix:2265"]
+    G["flake.nix lib.optionalString gates — see AB-01.1"] --> N["tailscaled flake.nix:2255<br/>tailscale-up flake.nix:2276"]
     G --> D["desktop stack gated on desktop.enabled"]
     G --> T["toolchain surfaces"]
     D --> D1["xvnc flake.nix:2082"]

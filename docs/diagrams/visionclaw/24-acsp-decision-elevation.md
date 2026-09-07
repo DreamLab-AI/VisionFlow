@@ -33,7 +33,7 @@ sources:
   - ../project/src/bin/sync_local.rs
   - ../project/src/services/ontology_mutation_service.rs
   - ../project/src/services/voice_intent_client.rs
-verified_commit: 36bb64e1e
+verified_commit: dd82a07b0
 ---
 
 ## VC-24.1 Enrichment-proposal lifecycle (real status values)
@@ -67,7 +67,7 @@ stateDiagram-v2
 sequenceDiagram
     autonumber
     participant EA as ElevationActor.run_cycle<br/>elevation_actor.rs:840
-    participant ACSP as AcspClient.publish<br/>services/acsp/client.rs:99
+    participant ACSP as AcspClient.publish<br/>services/acsp/client.rs:117
     participant REPO as SqliteEnrichmentRepository<br/>adapters/sqlite_enrichment_repository.rs:266
     Note over EA: RunCycle scans owl_class frontier stubs<br/>ranked by voice demand then graph degree
     EA->>EA: case_for + pending_proposal build<br/>elevation_actor.rs:350,792-794
@@ -227,10 +227,10 @@ sequenceDiagram
     autonumber
     participant DS as DecisionService.record_decision<br/>services/decision_service.rs:542-546 maybe_elevate
     participant SIG as is_significant<br/>services/decision_elevation.rs:69
-    participant SINK as ActorElevationSink.elevate<br/>actors/decision_elevation_actor.rs:982
+    participant SINK as ActorElevationSink.elevate<br/>actors/decision_elevation_actor.rs:1006
     participant DEA as DecisionElevationActor<br/>actors/decision_elevation_actor.rs:8,459,510
     participant ACSP as AcspClient
-    participant GH as GitHubPRService.create_ontology_pr<br/>decision_elevation_actor.rs:333
+    participant GH as GitHubPRService.create_ontology_pr<br/>decision_elevation_actor.rs:348
     Note over DS: governed write door already committed the DecisionRecord<br/>quads via proposal_spine::governed_commit (decision_service.rs:677)<br/>BEFORE maybe_elevate runs - elevation is fire-and-forget, fail-open
     DS->>SIG: is_significant(input, acsp_approved=false)<br/>decision_service.rs:525
     alt not significant (routine/edgeless)
@@ -244,10 +244,10 @@ sequenceDiagram
         DEA->>ACSP: publish build_action_request kind 31402 PANEL_ID vc-decision-elevation
         ACSP-->>DEA: CaseDecision kind 31403
         alt action approve
-            DEA->>GH: create_ontology_pr decision page (NO consistency gate), inside the<br/>spawn_decision_outcome future<br/>decision_elevation_actor.rs:279,333
+            DEA->>GH: create_ontology_pr decision page (NO consistency gate), inside the<br/>spawn_decision_outcome future<br/>decision_elevation_actor.rs:279,348
             Note right of DEA: Deliberately leaner than ElevationActor (module doc :12-14):<br/>decisions are ABox prov:Activity individuals adding no TBox<br/>axioms, so there is NO EL++ Whelk gate here (contrast VC-24.4<br/>approve_with_gate GOV-7)
             GH-->>DEA: pr_url
-            DEA->>DEA: mark_elevating persists the PR url BEFORE elevating.insert case_id TrackedPr<br/>decision_elevation_actor.rs:340, decision_elevation_store.rs:250
+            DEA->>DEA: mark_elevating persists the PR url BEFORE elevating.insert case_id TrackedPr<br/>decision_elevation_actor.rs:340, decision_elevation_store.rs:259
         else reject/amend/delegate
             DEA->>DEA: rejected_count+=1, publish_state
         end
@@ -353,7 +353,7 @@ flowchart LR
     B31405["build_panel_retired<br/>acsp/events.rs:265"] -->|producer| K31405
     K31403 -->|consumer| C31403A["AcspClient.run_decision_subscription<br/>acsp/client.rs:135,142 filters since Timestamp::now"]
     C31403A -->|consumer| C31403B["ElevationActor.Decision handler<br/>elevation_actor.rs (Decision message)"]
-    C31403A -->|consumer| C31403C["DecisionElevationActor.Decision handler<br/>decision_elevation_actor.rs:693-823"]
+    C31403A -->|consumer| C31403C["DecisionElevationActor.Decision handler<br/>decision_elevation_actor.rs:713"]
     K31402 -->|consumer| C31402["forum relay agent_registry gate<br/>acsp/client.rs:9-13 (relay-side, not this repo)"]
     Note1["Note: relay only accepts kinds 31400-31402 from<br/>registered pubkeys (acsp/client.rs:9) - 31403/31404/31405<br/>are consumer/admin-only, enforced relay-side"]
 ```
@@ -401,7 +401,7 @@ sequenceDiagram
     autonumber
     participant BOOT as AppState::new<br/>app_state.rs:1356-1379
     participant ENV as env FORUM_RELAY_URL + ACSP_PANEL_NOSTR_PRIVKEY|VISIONCLAW_NOSTR_PRIVKEY
-    participant ACSP as AcspClient::connect<br/>acsp/client.rs:74
+    participant ACSP as AcspClient::connect<br/>acsp/client.rs:78
     participant RELAY as forum relay (nostr_sdk Client, auto-reconnect)
     BOOT->>ENV: read FORUM_RELAY_URL, ACSP_PANEL_NOSTR_PRIVKEY.or(VISIONCLAW_NOSTR_PRIVKEY)<br/>app_state.rs:1357-1360
     alt both configured

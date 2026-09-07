@@ -56,7 +56,7 @@ sources:
   - ../project/src/services/nostr_bead_publisher.rs
   - ../project/src/handlers/ontology_handler.rs
   - ../project/docs/BASELINE-architecture.md
-verified_commit: 36bb64e1e
+verified_commit: dd82a07b0
 ---
 
 ## VC-05.1 `admin_rbac_handler` — whoami / list / assign / revoke (ADR-2010)
@@ -118,7 +118,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as caller
-    participant TO as TimeoutMiddleware<br/>src/main.rs:982-985, with_override("/api/admin/sync", 600s) :984
+    participant TO as TimeoutMiddleware<br/>src/main.rs:1011, with_override("/api/admin/sync", 600s) :984
     participant RG as RbacGate<br/>Admin required (any /api/admin/* method, see VC-03.6)
     participant H as admin_sync_handler::trigger_sync<br/>src/handlers/admin_sync_handler.rs:66 (route :115)
 
@@ -452,7 +452,7 @@ sequenceDiagram
         H->>ST: store::all()
         ST-->>H: Vec~EnrichmentProposal~
         H->>H: project each into BrokerCase{id,category:"knowledge_enrichment",status,metadata}
-        H-->>C: 200 {cases:[BrokerCase], total} (bridge shape, broker-bridge.js:290)
+        H-->>C: 200 {cases:[BrokerCase], total} (bridge shape, broker-bridge.js:322)
     end
     C->>SC: GET /api/broker/cases/{id} :167
     SC->>H: case_by_id(id) :144
@@ -757,7 +757,7 @@ sequenceDiagram
     participant SD as SolidPodState::extract_user_identity<br/>solid_proxy_handler.rs:188 own NIP-98 verification
 
     Note over SC: env SOLID_DATA_ROOT :130, SOLID_PROXY_SECRET_KEY :133, SOLID_ALLOW_ANONYMOUS :137
-    Note over SC: ADR-2067 — WITHOUT solid-pod-embed the twin configure_routes :1800 registers<br/>NOTHING (doc :1789-1798): /solid/*, /.well-known/did.json and /did/* all 404. The<br/>503-stub route tree this diagram used to show is gone, and so are the individual<br/>stub twins (handle_solid_proxy :381-385, solid_health_check :1609-1610,<br/>init_pod_nip98 :1369-1370, SolidPodState::new :180-184)
+    Note over SC: ADR-2067 — WITHOUT solid-pod-embed the twin configure_routes :1800 registers<br/>NOTHING (doc :1790): /solid/*, /.well-known/did.json and /did/* all 404. The<br/>503-stub route tree this diagram used to show is gone, and so are the individual<br/>stub twins (handle_solid_proxy :382, solid_health_check :1610,<br/>init_pod_nip98 :1370, SolidPodState::new :180-184)
     C->>SC: GET /health :1762 -> solid_health_check :1593
     SC-->>C: 200 {status:healthy, backend:solid-pod-rs, data_root}
     C->>SC: GET /.notifications :1764-1767 -> handle_solid_notifications_ws :1567 (solid-0.1 WS protocol)
@@ -765,7 +765,7 @@ sequenceDiagram
     C->>SC: GET /pods/check :1770 -> check_pod_exists :1226
     C->>SC: POST /pods/init :1771 -> init_pod :1267
     rect rgb(255,235,235)
-    Note over C,SD: DIVERGENCE — /api/solid/pods/init-nip98 sits inside the /api scope<br/>(main.rs:1133 under scope :1054), so it is DOUBLE-authenticated (see VC-03.15)
+    Note over C,SD: DIVERGENCE — /api/solid/pods/init-nip98 sits inside the /api scope<br/>(main.rs:1162 under scope :1054), so it is DOUBLE-authenticated (see VC-03.15)
     C->>RG: POST /api/solid/pods/init-nip98 solid_proxy_handler.rs:1772 (Authorization: Nostr event)
     RG->>RG: RbacGate verify_access(WriteGraph) — mutating method under /api
     alt RbacGate denies
@@ -777,7 +777,7 @@ sequenceDiagram
             SD-->>C: 401 {error:"NIP-98 authentication required"} :1316-1321
         else Some(identity)
             H->>H: PublicKey::from_hex(identity.pubkey).to_bech32() -> npub :1325-1337
-            H->>H: ensure_pod_exists(state, npub, pubkey, pod_base_url) :1130 (call :1348)
+            H->>H: ensure_pod_exists(state, npub, pubkey, pod_base_url) :1130 (call :1349)
             H-->>C: 200 {pod_url, webid:structure.profile, created, structure, npub} :1351-1357
         end
     end
@@ -841,7 +841,7 @@ sequenceDiagram
     autonumber
     participant V as voice/RunCycle trigger<br/>src/actors/elevation_actor.rs:832 Handler~RunCycle~ (VC-02 internals)
     participant EA as ElevationActor/DecisionElevationActor<br/>src/actors/elevation_actor.rs:98, decision_elevation_actor.rs:128 (VC-02)
-    participant FR as forum kind-31403<br/>src/services/acsp/client.rs:22 CaseDecision{event_id,created_at}
+    participant FR as forum kind-31403<br/>src/services/acsp/client.rs:25 CaseDecision{event_id,created_at}
     participant DB as SqliteEnrichmentRepository::record_decision<br/>StoredDecision table — SHARED sink
     participant D as decide/decide_as_operator -> apply_decision<br/>src/handlers/enrichment_proposals_handler.rs:321 decide, :351 decide_as_operator, :370 apply_decision
     participant BI as broker_inbox_handler::inbox<br/>src/handlers/broker_inbox_handler.rs:133
@@ -849,7 +849,7 @@ sequenceDiagram
     Note over V,FR: no HTTP handler in this file (decision_handler, enrichment_proposals_handler,<br/>broker_inbox_handler) ever sends a message to ElevationActor or DecisionElevationActor —<br/>grep across src/handlers finds zero references to either actor type
     V->>EA: RunCycle / VoiceTranscript (actor-internal, see VC-02)
     EA->>FR: publish ActionRequest kind-31402, poll PollPrs for the signed kind-31403 reply
-    Note over FR: ADR-2013 — AcspClient signs with its OWN Keys (field acsp/client.rs:67,<br/>let keys = Keys::new(secret_key) :77, publish :99 — mirrors nostr_bridge.rs:65<br/>sign_with_keys) — the panel event carries the PANEL's authority, never the admin's key
+    Note over FR: ADR-2013 — AcspClient signs with its OWN Keys (field acsp/client.rs:70,<br/>let keys = Keys::new(secret_key) :77, publish :99 — mirrors nostr_bridge.rs:65<br/>sign_with_keys) — the panel event carries the PANEL's authority, never the admin's key
     FR-->>EA: CaseDecision{case_id,action,responder_pubkey,event_id,created_at}
     EA->>EA: decision_record(&CaseDecision) :1227 — correlation on event_id when present
     EA->>DB: repo.record_decision(StoredDecision{decision_event_id:Some(event_id), decision_created_at_s:Some(...)}) :987, :1053, :1060

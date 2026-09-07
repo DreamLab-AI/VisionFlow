@@ -37,7 +37,7 @@ sources:
   - ../project/client/src/utils/validation.ts
   - ../project/src/handlers/socket_flow_handler/http_handler.rs
   - ../project/src/settings/api/settings_routes.rs
-verified_commit: 36bb64e1e
+verified_commit: dd82a07b0
 ---
 ## VC-32.1 Connect + NIP-98 WS authenticate handshake
 ```mermaid
@@ -49,7 +49,7 @@ sequenceDiagram
     participant NA as nostrAuth<br/>services/nostrAuthService.ts:244
     participant S as Server /wss<br/>http_handler.rs:139-150
 
-    C->>WS: new WebSocket(state.url) index.ts:162
+    C->>WS: new WebSocket(state.url) index.ts:168
     WS->>S: HTTP Upgrade /wss (NIP-98 Bearer or query token)
     S-->>WS: 101 Switching Protocols
     WS->>C: onopen index.ts:165
@@ -66,13 +66,13 @@ sequenceDiagram
     end
     Note over S: RESOLVED ADR-2058 (2026-09-05, PROTOCOL-registry.md:224-226): the Authorization<br/>header is the ONLY accepted carrier in a release build - the ?token= query fallback is<br/>compiled out of release entirely (http_handler.rs:136-166) and survives only behind the<br/>dev-auth gate with a SECURITY: warning. DOC-DRIFT: BASELINE-architecture.md:237 still lists<br/>this as an open "Known divergence" - it was not updated when ADR-2058 landed. Client code<br/>above only ever sends the header-equivalent authenticate event, never a query form.
     opt currentFilter present index.ts:180
-        C->>C: sendMessage(filter_update, ...) index.ts:182-190
+        C->>C: sendMessage(filter_update, ...) index.ts:188
     end
     C->>C: initializeBatchQueue(get) index.ts:193
     C->>C: setupFilterSubscription(get) index.ts:194
     C->>C: notifyConnectionStatusHandlers(true) index.ts:195
-    C->>C: startHeartbeat(get) index.ts:196
-    C->>C: processMessageQueue(get,set) index.ts:197
+    C->>C: startHeartbeat(get) index.ts:202
+    C->>C: processMessageQueue(get,set) index.ts:203
 ```
 ## VC-32.2 Reconnect backoff and heartbeat / binary-silence watchdog
 ```mermaid

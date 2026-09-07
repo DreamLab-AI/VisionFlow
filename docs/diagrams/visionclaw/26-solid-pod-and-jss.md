@@ -33,7 +33,7 @@ sources:
   - ../project/client/src/features/solid/components/PodSettings.tsx
   - ../project/client/src/features/solid/components/ResourceEditor.tsx
   - ../project/src/handlers/image_gen_handler.rs
-verified_commit: 36bb64e1e
+verified_commit: dd82a07b0
 ---
 
 ## VC-26.1 Deployment topology — embedded pod vs feature-off stub
@@ -49,7 +49,7 @@ flowchart TB
 
     subgraph onpath["main.rs — feature ON"]
         INIT["init_solid_state().await<br/>main.rs:841"]
-        APPDATA["app.app_data(solid_state.clone())<br/>main.rs:1016"]
+        APPDATA["app.app_data(solid_state.clone())<br/>main.rs:1045"]
         CFG["configure_solid_routes<br/>main.rs:1126"]
         FS["FsBackend::new(SOLID_DATA_ROOT)<br/>solid_proxy_handler.rs:120,133"]
         ROUTES["Full /solid scope: health, .notifications,<br/>pods*, LDP CRUD, DID<br/>solid_proxy_handler.rs:1752-1787"]
@@ -58,7 +58,7 @@ flowchart TB
     end
 
     subgraph offpath["main.rs — feature OFF"]
-        NOINIT["solid_state app_data block compiled out<br/>main.rs:840-841 and :1015-1016"]
+        NOINIT["solid_state app_data block compiled out<br/>main.rs:869 and :1051"]
         STUBCFG["configure_routes (feature-off twin)<br/>solid_proxy_handler.rs:1799-1803"]
         STUBROUTES["RESOLVED ADR-2067 — registers nothing at all<br/>/solid/*, /.well-known/did.json and /did/* all 404<br/>in a feature-off build (was: a full table of 503 stubs)"]
         NOINIT --> STUBCFG --> STUBROUTES
@@ -85,7 +85,7 @@ sequenceDiagram
     participant C as Client
     participant H as handle_solid_proxy<br/>solid_proxy_handler.rs:304-311
     participant AUTH as authenticate_request<br/>solid_proxy_handler.rs:244-246
-    participant ACL as load_acl_for_path<br/>solid_proxy_handler.rs:881-884
+    participant ACL as load_acl_for_path<br/>solid_proxy_handler.rs:882
     participant WAC as evaluate_access<br/>solid_pod_rs::wac (imported :55)
     participant FS as FsBackend<br/>solid_pod_rs::storage::fs (imported :53)
 
@@ -170,7 +170,7 @@ sequenceDiagram
 
     participant ldp as fetchWithAuth<br/>ldpClient.ts:91
     participant AUTH as extract_user_identity<br/>solid_proxy_handler.rs:186-188
-    participant VAL as validate_nip98_token<br/>nip98.rs:375
+    participant VAL as validate_nip98_token<br/>nip98.rs:428
     participant CACHE as REPLAY_CACHE<br/>nip98.rs:215 (Mutex<HashMap>)
 
     ldp->>AUTH: HTTP request, Authorization: Nostr <token>
@@ -185,7 +185,7 @@ sequenceDiagram
     else age < -TOKEN_MAX_AGE_SECONDS
         VAL-->>AUTH: Err(TokenFromFuture)
     else within window
-        VAL->>VAL: extract u/method tags, urls_match(expected, actual)<br/>nip98.rs:524
+        VAL->>VAL: extract u/method tags, urls_match(expected, actual)<br/>nip98.rs:510
         alt url or method mismatch
             VAL-->>AUTH: Err(UrlMismatch)
         else match
@@ -317,7 +317,7 @@ sequenceDiagram
     participant B as buildAclTurtle<br/>wacManager.ts:30
     participant F as fetchWithAuth (PUT .acl)<br/>ldpClient.ts:91
     participant H as handle_solid_proxy<br/>solid_proxy_handler.rs:304-311
-    participant R as load_acl_for_path<br/>solid_proxy_handler.rs:881-884
+    participant R as load_acl_for_path<br/>solid_proxy_handler.rs:882
 
     Caller->>WAC: writeContainerAcl(containerPath, ownerWebId, agentEntry)
     WAC->>B: buildAclTurtle(containerUrl, ownerWebId, agentEntry)<br/>emits acl:Authorization owner + agent (wacManager.ts:37-55)
@@ -333,8 +333,8 @@ sequenceDiagram
 
     Note over H,R: A later GET/PUT/DELETE on any resource under this<br/>container re-triggers server-side ACL resolution (VC-26.2)
     H->>R: load_acl_for_path(storage, resource_path)
-    R->>R: try {resource}.acl then walk parents to /.acl<br/>(solid_proxy_handler.rs:896-927)
-    R-->>H: AclDocument (parsed via parse_acl_body, JSON-LD then Turtle)<br/>solid_proxy_handler.rs:932-944
+    R->>R: try {resource}.acl then walk parents to /.acl<br/>(solid_proxy_handler.rs:897)
+    R-->>H: AclDocument (parsed via parse_acl_body, JSON-LD then Turtle)<br/>solid_proxy_handler.rs:933
 ```
 
 ## VC-26.8 typeIndex — registration and discovery
@@ -431,7 +431,7 @@ sequenceDiagram
         SP->>F: fetchWithAuth(url, Accept ld+json, signal)
         alt response.ok
             F-->>SP: JSON body
-            SP->>SP: cache.jsonLd = data - cache.timestamp = now()<br/>schemaParser.ts:93-95
+            SP->>SP: cache.jsonLd = data - cache.timestamp = now()<br/>schemaParser.ts:132
             SP-->>Caller: JsonLdOntology
         else !response.ok
             SP-->>Caller: throw Error(status) (schemaParser.ts:89-90)
@@ -501,10 +501,10 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant M as main.rs (solid-pod-embed)<br/>main.rs:848
-    participant SB as spawn_boot_pull<br/>ontology_pull.rs:384
-    participant PO as pull_once<br/>ontology_pull.rs:290
-    participant GH as GitHub release<br/>ontology-latest (DEFAULT_RELEASE_URL, ontology_pull.rs:39)
+    participant M as main.rs (solid-pod-embed)<br/>main.rs:877
+    participant SB as spawn_boot_pull<br/>ontology_pull.rs:387
+    participant PO as pull_once<br/>ontology_pull.rs:293
+    participant GH as GitHub release<br/>ontology-latest (DEFAULT_RELEASE_URL, ontology_pull.rs:42)
     participant ST as Storage (FsBackend)<br/>solid_pod_rs::Storage
 
     M->>SB: spawn_boot_pull(Arc::clone(&solid_state.storage))
@@ -513,27 +513,27 @@ sequenceDiagram
     alt cfg.enabled == false
         SB-->>M: return - "ontology pull disabled" (ontology_pull.rs:389-391)
     else enabled
-        SB->>SB: tokio::spawn(async move loop)<br/>ontology_pull.rs:393-408 - never blocks start-up
+        SB->>SB: tokio::spawn(async move loop)<br/>ontology_pull.rs:396 - never blocks start-up
         loop every cfg.interval (re-check - None means boot-only)
             SB->>PO: pull_once(&fetch, storage, &cfg)
             PO->>GH: GET index.jsonld
-            PO->>PO: pod_build_sha(storage) vs manifest.build_sha<br/>ontology_pull.rs:307-311
+            PO->>PO: pod_build_sha(storage) vs manifest.build_sha<br/>ontology_pull.rs:307
             alt build_sha unchanged
                 PO-->>SB: PullOutcome::UpToDate - one small GET, nothing written
             else build moved
-                PO->>GH: GET SHA256SUMS + each of visionflow.ttl, context.jsonld,<br/>ontology.jsonld, visionflow.stats.json (ontology_pull.rs:50-55)
-                PO->>PO: sha256_hex(body) == expected for every file + the manifest itself<br/>ontology_pull.rs:313-342
+                PO->>GH: GET SHA256SUMS + each of visionflow.ttl, context.jsonld,<br/>ontology.jsonld, visionflow.stats.json (ontology_pull.rs:53)
+                PO->>PO: sha256_hex(body) == expected for every file + the manifest itself<br/>ontology_pull.rs:318
                 alt any digest missing or mismatched, or fetch fails
                     PO-->>SB: Err(PullError) - pod untouched, fail-open
                 else all verified
                     PO->>ST: create /public/, /public/ontology/ containers if absent
-                    PO->>ST: PUT /public/ontology/.acl (public-read WAC)<br/>ONLY IF ABSENT - operator edits survive<br/>ontology_pull.rs:354-361
+                    PO->>ST: PUT /public/ontology/.acl (public-read WAC)<br/>ONLY IF ABSENT - operator edits survive<br/>ontology_pull.rs:359
                     PO->>ST: publish_ontology: stage all five resources and sidecars<br/>ontology_generation.rs:127
                     ST->>ST: fsync staged generation and atomically replace active pointer<br/>ontology_generation.rs:127
                     PO-->>SB: "PullOutcome::Updated(build_sha, classes, triples)"
                 end
             end
-            SB->>SB: log_outcome(result, cfg) - info! or warn!, never panics<br/>ontology_pull.rs:411-419
+            SB->>SB: log_outcome(result, cfg) - info! or warn!, never panics<br/>ontology_pull.rs:414
         end
     end
     Note over PO,ST: INVARIANT fail-open (module doc ontology_pull.rs:12-17): any network or<br/>verification failure is logged and the pod keeps whatever it already held -<br/>see VC-26.10/26.13 for the client read side and EXTERNAL ES-09.13 for the<br/>GitHub-hosted publish job this inverts (a hosted runner cannot reach the<br/>in-process pod, ADR-2098).
@@ -545,7 +545,7 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    Fetch["Fetch and verify all release hashes<br/>ontology_pull.rs:291"] --> Probe{"ACL existence succeeds?"}
+    Fetch["Fetch and verify all release hashes<br/>ontology_pull.rs:294"] --> Probe{"ACL existence succeeds?"}
     Probe -->|error| Abort["Abort without changing ACL"]
     Probe -->|yes| ACL["Preserve existing ACL; initialise only when absent"]
     ACL --> Stage["Stage immutable files plus manifest generation<br/>ontology_generation.rs:127"]

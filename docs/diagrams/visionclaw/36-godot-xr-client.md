@@ -44,7 +44,7 @@ sources:
   - ../project/xr-client/tests/run_gut.gd
   - ../project/xr-client/scenes/GraphScene.tscn
   - ../project/xr-client/materials/node_halo.gdshader
-verified_commit: 36bb64e1e
+verified_commit: dd82a07b0
 ---
 
 ## VC-36.1 Boot — OpenXR init, capability probe, deferred scene swap (ADR-2036)
@@ -657,27 +657,27 @@ classDiagram
 ```mermaid
 flowchart LR
     subgraph acts["Actions - openxr_action_map.tres"]
-        A1["trigger / trigger_click / trigger_touch<br/>tres:4,9,15 - /user/hand/left + right"]
-        A2["grip / grip_click / grip_force<br/>tres:21,26,32"]
-        A3["primary + primary_click + primary_touch<br/>tres:37,43,49"]
-        A4["secondary + secondary_click + secondary_touch<br/>tres:55,61,67"]
-        A5["menu_button tres:73 - select_button tres:79"]
+        A1["trigger / trigger_click / trigger_touch<br/>openxr_action_map.tres:4,9,15 - /user/hand/left + right"]
+        A2["grip / grip_click / grip_force<br/>openxr_action_map.tres:21,26,32"]
+        A3["primary + primary_click + primary_touch<br/>openxr_action_map.tres:37,43,49"]
+        A4["secondary + secondary_click + secondary_touch<br/>openxr_action_map.tres:55,61,67"]
+        A5["menu_button openxr_action_map.tres:73 - select_button openxr_action_map.tres:79"]
     end
     subgraph prof["Interaction profiles bound in the map"]
-        P1["khr/simple_controller tres:200"]
-        P2["htc/vive_controller tres:316 - the validated device"]
-        P3["microsoft/motion_controller tres:440"]
-        P4["oculus/touch_controller tres:588"]
-        P5["bytedance/pico4_controller tres:740"]
-        P6["valve/index_controller tres:920"]
-        P7["hp/mixed_reality_controller tres:1036"]
-        P8["samsung/odyssey_controller tres:1160"]
-        P9["htc/vive_cosmos_controller tres:1284"]
-        P10["htc/vive_focus3_controller tres:1424"]
-        P11["huawei/controller tres:1516"]
-        P12["htc/vive_tracker_htcx tres:1648"]
-        P13["ext/eye_gaze_interaction tres:1656"]
-        P14["ext/hand_interaction_ext tres:1740"]
+        P1["khr/simple_controller openxr_action_map.tres:200"]
+        P2["htc/vive_controller openxr_action_map.tres:316 - the validated device"]
+        P3["microsoft/motion_controller openxr_action_map.tres:440"]
+        P4["oculus/touch_controller openxr_action_map.tres:588"]
+        P5["bytedance/pico4_controller openxr_action_map.tres:740"]
+        P6["valve/index_controller openxr_action_map.tres:920"]
+        P7["hp/mixed_reality_controller openxr_action_map.tres:1036"]
+        P8["samsung/odyssey_controller openxr_action_map.tres:1160"]
+        P9["htc/vive_cosmos_controller openxr_action_map.tres:1284"]
+        P10["htc/vive_focus3_controller openxr_action_map.tres:1424"]
+        P11["huawei/controller openxr_action_map.tres:1516"]
+        P12["htc/vive_tracker_htcx openxr_action_map.tres:1648"]
+        P13["ext/eye_gaze_interaction openxr_action_map.tres:1656"]
+        P14["ext/hand_interaction_ext openxr_action_map.tres:1740"]
     end
     acts --> prof
     prof --> XI["project.godot:57<br/>openxr/default_action_map"]

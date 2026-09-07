@@ -31,7 +31,7 @@ sources:
   - ../project/src/handlers/socket_flow_handler/http_handler.rs
   - ../project/client/src/services/nostrAuthService.ts
   - ../project/client/src/types/nip07.d.ts
-verified_commit: {visionclaw: 36bb64e1e, agentbox: 2c521c5bb}
+verified_commit: {visionclaw: dd82a07b0, agentbox: 2c521c5bb}
 ---
 ## ES-04.1 verification mesh — who signs, who verifies whom
 ```mermaid
@@ -48,13 +48,13 @@ flowchart LR
         MAC["ManagementApiClient<br/>src/services/management_api_client.rs:179"]
     end
     subgraph agentbox["agentbox host processes"]
-        PROXY["nip98-proxy :9096<br/>agentbox/config/nip98-proxy/proxy.mjs:96"]
+        PROXY["nip98-proxy  port 9096<br/>agentbox/config/nip98-proxy/proxy.mjs:96"]
         NBB["NostrBridge.verifyNip98<br/>agentbox/mcp/servers/nostr-bridge.js:459"]
         PS["pod-signer buildPodNip98<br/>agentbox/management-api/lib/pod-signer.js:42"]
         AGID["agent-identity loadOrMint<br/>agentbox/management-api/lib/agent-identity.js:107"]
         AEA["agent-event-auth verifyAgentEventRequest<br/>agentbox/management-api/lib/agent-event-auth.js:46"]
     end
-    subgraph aoe["AoE daemon :9095<br/>loopback only"]
+    subgraph aoe["AoE daemon  port 9095<br/>loopback only"]
         AOE["aoe serve --auth token --behind-proxy<br/>agentbox/flake.nix:2353"]
     end
     subgraph solid["EXTERNAL: solid-pod-rs<br/>default-deny pod"]
@@ -64,9 +64,9 @@ flowchart LR
         VF["VisionFlow canon<br/>read-only KG consumer"]
     end
 
-    BX -- "NIP-07 signEvent()<br/>nostrAuthService.ts:275" --> AE
+    BX -- "NIP-07 signEvent()<br/>nostrAuthService.ts:276" --> AE
     AE -- "NIP-98 kind-27235" --> NS --> N98
-    NS -- "Bearer + X-Nostr-Pubkey<br/>legacy fallback" --> AE
+    NS -- "Bearer + X-Nostr-Pubkey<br/>explicit migration flag; default off" --> AE
     NIV -. "XR presence Schnorr(nonce||ts)<br/>NOT NIP-98" .-> NB
     MAC -- "Authorization: Bearer api_key<br/>management_api_client.rs:286" --> PROXY
     PROXY -- "NIP-98 kind-27235<br/>proxy-verified" --> NBB
@@ -134,8 +134,8 @@ classDiagram
 sequenceDiagram
     autonumber
     participant C as caller
-    participant V as validate_nip98_token<br/>src/utils/nip98.rs:375
-    participant R as claim_event_id<br/>src/utils/nip98.rs:234
+    participant V as validate_nip98_token<br/>src/utils/nip98.rs:428
+    participant R as claim_signed_id<br/>src/utils/nip98.rs:227
     participant CACHE as REPLAY_CACHE<br/>Mutex-guarded, src/utils/nip98.rs:200
 
     C->>V: base64 token, expected url, expected method, body
@@ -164,7 +164,7 @@ sequenceDiagram
                     alt signature invalid
                         V-->>C: Err InvalidSignature / VerificationFailed
                     else signature valid
-                        V->>R: claim_event_id(event.id, Instant::now())
+                        V->>R: claim_signed_id(event.id, pubkey, Instant::now())
                         Note over R,CACHE: Check-and-insert is ATOMIC under the Mutex —<br/>no TOCTOU (nip98.rs:200-203). Instant is MONOTONIC, so a<br/>backward wall-clock step cannot un-spend an id (nip98.rs:205-208).
                         alt a still-live entry exists
                             R-->>V: Err TokenReplayed — nip98.rs:256
@@ -272,7 +272,7 @@ sequenceDiagram
         HK->>MK: load derived mirror child key
         HK->>HK: build kind-14 DM rumor
         Note over HK: A urn:agentbox:activity reference is placed INSIDE the<br/>already gift-wrap-sealed rumor (mintActivityUrn, nostr-live-mirror.cjs:163),<br/>so the URN never appears in cleartext on the wire.
-        HK->>W: seal sender identity, wrap as KIND_GIFT_WRAP 1059<br/>nostr-live-mirror.cjs:58, rumor kind 14 at :59
+        HK->>W: seal sender identity, wrap as KIND_GIFT_WRAP 1059<br/>nostr-live-mirror.cjs:59, rumor kind 14 at :60
         W-->>HK: signed gift wrap
         HK->>REL: publish ONE pre-signed gift wrap, await the relay OK<br/>publishWrap nostr-live-mirror.cjs:312
         alt relay accepts
@@ -287,3 +287,12 @@ sequenceDiagram
     Note over T,AM: Digest sibling — ONE curated kind-30840 summary at SessionEnd<br/>(nostr-live-mirror.cjs:8), via [sovereign_mesh.mobile_bridge].
     Note over HK: DIVERGENCE agentbox/docs/SECURITY-profiles.md — the live hook<br/>composes UNREDACTED selected text before wrapping, while the<br/>digest path sends flattened input to its summarisation<br/>provider. Their gates and encryption DIFFER. A shared<br/>off/redaction/recipient/retention contract remains OPEN.
 ```
+
+
+The 2026-09-07 source closeout makes opaque session issuance, lookup and refresh
+conditional on `VISIONCLAW_LEGACY_SESSIONS=1/true`, default off. Browser REST signs
+per request; graph WebSocket upgrades now carry a fresh signed NIP-98 event in a
+base64url subprotocol and negotiate only a public protocol. Missing/declined signers
+fail before connection. These changes do not prove remaining MCP clients or the
+actual proxy/reconnect deployment have migrated. See VC-03.17 and the
+[execution report](../../estate-review/closeout/2026-09-07-execution-visionclaw.md).

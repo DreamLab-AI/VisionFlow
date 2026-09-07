@@ -55,7 +55,7 @@ flowchart TB
     subgraph OVR["docker-compose.override.yml — operator layer, auto-loaded when present"]
         OV1["agentbox service overrides :9<br/>env_file :13, environment :21-71<br/>volumes :72-149, deploy/GPU :150-164<br/>group_add 965 docker socket gid :177-178"]
     end
-    OVR -.->|"-f base -f override (agentbox.sh:564-567)"| BASE
+    OVR -.->|"-f base -f override (agentbox.sh:562-568)"| BASE
     subgraph SIDE["sidecar overlays — own lifecycle, joined via visionclaw_network"]
         BC["browsercontainer<br/>5903 VNC, 8931 MCP SSE, 9222 to 9223 CDP"]
         GT["gui-tools-service<br/>5905 VNC, 9876 BlenderMCP, 9877 QGIS MCP"]
@@ -165,7 +165,7 @@ sequenceDiagram
 
     OP->>SH: ./agentbox.sh gui-tools up
     SH->>DC: docker compose --project-name agentbox -f docker-compose.gui-tools.yml up -d --build (agentbox.sh:1785)
-    DC->>GT: start with DISPLAY=:2, NVIDIA_DRIVER_CAPABILITIES compute,utility,graphics (docker-compose.gui-tools.yml:18-22)
+    DC->>GT: start with DISPLAY set to display 2, NVIDIA_DRIVER_CAPABILITIES compute,utility,graphics (docker-compose.gui-tools.yml:18-22)
     Note over GT: __GLX_VENDOR_LIBRARY_NAME=nvidia (docker-compose.gui-tools.yml:25) — the presentation path the Nix wrappers cannot provide, see AB-01.6
     GT->>GT: BlenderMCP binds 0.0.0.0:9876, QGIS MCP binds 0.0.0.0:9877 (docker-compose.gui-tools.yml:26-29)
     loop poll until deadline now plus 120 s, sleep 3 (agentbox.sh:1787-1791)
@@ -227,7 +227,7 @@ flowchart TB
     end
     Q3 -.-> AND["android comment: this is an authenticated Google session,<br/>never expose it on 0.0.0.0, prefer docker exec (docker-compose.android.yml:38-39)"]
     Q2 -.-> OM["openmed refuses to serve until the operator sets<br/>OPENMED_LICENSE_ACKNOWLEDGED, _ONNX_RUNTIME_PRESENT and<br/>_GOVERNANCE_ACKNOWLEDGED — all default false (docker-compose.openmed.yml:17-21)"]
-    Q1 -.-> CS["DIVERGENCE — the HOST publish for code-server is loopback, but the CONTAINER bind is not:<br/>[program:code-server] runs code-server --bind-addr 0.0.0.0:8080 --auth none, so it is reachable unauthenticated<br/>from any sibling container on visionclaw_network. BASELINE flags this and cites flake.nix:1927, which is stale"]
+    Q1 -.-> CS["DIVERGENCE — the HOST publish for code-server is loopback, but the CONTAINER bind is not:<br/>[program:code-server] runs code-server --bind-addr 0.0.0.0:8080 --auth none, so it is reachable unauthenticated<br/>from any sibling container on visionclaw_network. BASELINE flags this and cites flake.nix:2278 command with --bind-addr on all interfaces, flake.nix:2286, which is stale"]
     Q1 -.-> CSR["RESOLVED ADR-2040 (implementation_status: partial): code-server<br/>([program:code-server]) now runs --auth password, credential minted at boot<br/>into /home/devuser/.local/share/code-server/config.yaml (0600).<br/>jupyter-lab's empty --IdentityProvider.token= ([program:jupyter-lab])<br/>was DELETED in favour of a minted JUPYTER_TOKEN. Listener-side<br/>CI gate is still open work."]
     R1 -.-> PGN["ADR-015 — mandatory memory sidecar, health-gated;<br/>ruvector-mcp.cjs fails closed with no sql.js fallback"]
 ```
@@ -238,9 +238,9 @@ flowchart TD
     AB["agentbox service<br/>docker-compose.yml:30"] --> CD["cap_drop :102"]
     AB --> CA2["cap_add :104"]
     AB --> TM["tmpfs :114"]
-    AB --> SO["security_opt :140"]
-    AB --> VOL["volumes :143"]
-    AB --> NET["networks :160"]
+    AB --> SO["security_opt :141"]
+    AB --> VOL["volumes :144"]
+    AB --> NET["networks :162"]
     SO --> SCC["seccomp and no-new-privileges declarations<br/>gated by scripts/ci/check-seccomp.sh and check-nnp.sh"]
     VOL --> NV["named volumes declared :164-169 —<br/>ruvector-pg-data, ruvector-data, solid-data"]
     AB --> HC["healthcheck curl -f http://localhost:9090/ready<br/>interval 30s, timeout 10s, retries 5, start_period 60s — :39-44"]

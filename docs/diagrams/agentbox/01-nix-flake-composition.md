@@ -32,7 +32,7 @@ flowchart TB
     TOML["agentbox.toml<br/>flake.nix:102 builtins.fromTOML"] --> CFG["agentboxConfig"]
     CFG --> DESK["desktopCfg = agentboxConfig.desktop or {}<br/>flake.nix:124"]
     CFG --> MEDIA["mediaCfg = skillsCfg.media or {}<br/>flake.nix:174"]
-    CFG --> VAULT["vaultCfg = agentboxConfig.vault or {}<br/>flake.nix:652"]
+    CFG --> VAULT["vaultCfg = agentboxConfig.vault or {}<br/>flake.nix:661"]
 
     DESK -->|"desktopCfg.enabled or false"| DESKOPT["lib.optionals<br/>flake.nix:1565 desktopPackages"]
     MEDIA -->|"mediaCfg.comfyui_builtin or false"| COMFYOPT["lib.optionals<br/>flake.nix:1137 comfyuiPackages"]
@@ -178,7 +178,7 @@ sequenceDiagram
         WRAP->>WRAP: npm ci bootstrap or exit 2 if AGENTBOX_VALIDATOR_NO_BOOTSTRAP=1
     end
     WRAP->>JS: exec node agentbox-config-validate.js agentbox.toml
-    JS->>JS: TOML.parse(raw)<br/>agentbox-config-validate.js:106
+    JS->>JS: TOML.parse(raw)<br/>agentbox-config-validate.js:108
     alt TOML parse error
         JS-->>OP: emit E000, exit 1<br/>agentbox-config-validate.js:110-111
     end
@@ -207,26 +207,26 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant FLAKE as flake.nix eval<br/>flake.nix:196
+    participant FLAKE as flake.nix eval<br/>flake.nix:257
     participant MK as makeNpmCli<br/>lib/npm-cli.nix:120
     participant FETCH as pkgs.fetchurl stage 1<br/>lib/npm-cli.nix:184
-    participant FOD as packageWithDeps FOD stage 2<br/>lib/npm-cli.nix:202
+    participant FOD as packageWithDeps FOD stage 2<br/>lib/npm-cli.nix:204
     participant WRAP as wrapper derivation stage 3
-    participant ALWAYS as npmCliAlwaysPackages<br/>flake.nix:421
+    participant ALWAYS as npmCliAlwaysPackages<br/>flake.nix:492
 
-    FLAKE->>MK: mkNpmCli pkgName=ruvector version=0.3.0<br/>flake.nix:201-206
+    FLAKE->>MK: mkNpmCli pkgName=ruvector version=0.3.0<br/>flake.nix:262-268
     MK->>FETCH: registryUrl ruvector 0.3.0<br/>lib/npm-cli.nix:102-115
     FETCH->>FETCH: sha256 = SRI hash of the .tgz<br/>lib/npm-cli.nix:186-187
     alt sha256 is lib.fakeHash placeholder
         FETCH-->>MK: eval-time hint, realisation-time hash mismatch<br/>lib/npm-cli.nix:161-173
     end
-    MK->>FOD: npm install --production --ignore-scripts --legacy-peer-deps<br/>lib/npm-cli.nix:264
+    MK->>FOD: npm ci from checked-in packageLock when supplied<br/>lib/npm-cli.nix:266-273, scripts disabled<br/>legacy-peer flags remain package-specific
     FOD->>FOD: outputHash = nodeModulesHash, network allowed inside sandbox<br/>lib/npm-cli.nix header Stage 2 rationale lines 29-37
     FOD-->>MK: $out/lib/ruvector with populated node_modules
     MK->>WRAP: thin mkDerivation, no network, writes $out/bin/ruvector wrapper<br/>lib/npm-cli.nix Stage 3 rationale lines 39-41
     WRAP-->>FLAKE: ruvectorPkg derivation
-    FLAKE->>ALWAYS: npmCliAlwaysPackages = [ ruvectorPkg wranglerPkg ]<br/>flake.nix:421
-    Note over FLAKE,ALWAYS: comment at flake.nix:200 says pin is ruvector-0.2.25,<br/>but the version field at flake.nix:203 is 0.3.0
+    FLAKE->>ALWAYS: npmCliAlwaysPackages = [ ruvectorPkg wranglerPkg ]<br/>flake.nix:492
+    Note over FLAKE,ALWAYS: comment at flake.nix:261 says pin is ruvector-0.2.25,<br/>but the version field at flake.nix:264 is 0.3.0
     Note over FLAKE,ALWAYS: RESOLVED ADR-2039: BASELINE-container.md:45 now<br/>states 0.3.0. The nix-prefetch-url comment at flake.nix:261<br/>still names ruvector-0.2.25.tgz - stale code comment, left<br/>as-is deliberately, not a doc claim
 ```
 
@@ -235,18 +235,18 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant FLAKE as flake.nix eval<br/>flake.nix:173-176
+    participant FLAKE as flake.nix eval<br/>flake.nix:234-235
     participant WRAP as gpuWrap.wrapGpuBins<br/>lib/gpu-wrap.nix:76
     participant JOIN as pkgs.symlinkJoin<br/>lib/gpu-wrap.nix:77
     participant MAKEW as makeWrapper wrapProgram<br/>lib/gpu-wrap.nix:87
     participant BIN as wrapped binary at runtime
 
-    FLAKE->>FLAKE: gpuActive = agentbox.toml gpu.backend == local-cuda<br/>flake.nix:173
+    FLAKE->>FLAKE: gpuActive = agentbox.toml gpu.backend == local-cuda<br/>flake.nix:234
     alt gpu.backend == none
-        FLAKE->>FLAKE: wrapGpuBin pkg bins = pkg, unwrapped passthrough<br/>flake.nix:174-175
+        FLAKE->>FLAKE: wrapGpuBin pkg bins = pkg, unwrapped passthrough<br/>flake.nix:235-241
         Note over FLAKE: alt gpu.backend=none - wrapping is inert without injected driver libs, gpu-wrap.nix comment lines 21-22
     else gpu.backend == local-cuda
-        FLAKE->>WRAP: wrapGpuBins pkg=pkgs.blender bins=[blender]<br/>flake.nix:1099
+        FLAKE->>WRAP: wrapGpuBins pkg=pkgs.blender bins=[blender]<br/>flake.nix:1160
         WRAP->>JOIN: paths=[pkg], nativeBuildInputs=[makeWrapper]<br/>lib/gpu-wrap.nix:77-80
         JOIN->>MAKEW: for each bin, wrapProgram target gpuEnvArgs<br/>lib/gpu-wrap.nix:81-89
         MAKEW->>MAKEW: --suffix LD_LIBRARY_PATH : /usr/lib:/usr/lib/x86_64-linux-gnu:/run/opengl-driver/lib<br/>lib/gpu-wrap.nix:46-51,56
@@ -268,17 +268,17 @@ sequenceDiagram
 
 ```mermaid
 flowchart TB
-    GPUACT["gpuActive = gpu.backend == local-cuda<br/>flake.nix:173"]
+    GPUACT["gpuActive = gpu.backend == local-cuda<br/>flake.nix:234"]
 
-    subgraph MEDIA["mediaPackages - flake.nix:1080-1087"]
-        FF["wrapGpuBin ffmpeg bins ffmpeg ffprobe ffplay<br/>flake.nix:1085<br/>gate: mediaCfg.ffmpeg or false"]
+    subgraph MEDIA["mediaPackages - flake.nix:1141-1148"]
+        FF["wrapGpuBin ffmpeg bins ffmpeg ffprobe ffplay<br/>flake.nix:1146<br/>gate: mediaCfg.ffmpeg or false"]
     end
 
-    subgraph SPATIAL["spatialPackages - flake.nix:1089-1105"]
-        QGIS["wrapGpuBin pkgs.qgis bin qgis<br/>flake.nix:1092<br/>gate: spatialCfg.qgis or false"]
-        BLENDER["wrapGpuBin pkgs.blender bin blender<br/>flake.nix:1099<br/>gate: spatialCfg.blender or false"]
-        GAUSS["gauss3dPackages via lib/3dgs-stack.nix<br/>flake.nix:434-435<br/>gate: spatialCfg.gaussian_splatting or false"]
-        WRAPALL["map wrapGpuAll gauss3dPackages<br/>flake.nix:1105"]
+    subgraph SPATIAL["spatialPackages - flake.nix:1150-1166"]
+        QGIS["wrapGpuBin pkgs.qgis bin qgis<br/>flake.nix:1153<br/>gate: spatialCfg.qgis or false"]
+        BLENDER["wrapGpuBin pkgs.blender bin blender<br/>flake.nix:1160<br/>gate: spatialCfg.blender or false"]
+        GAUSS["gauss3dPackages via lib/3dgs-stack.nix<br/>flake.nix:505-506<br/>gate: spatialCfg.gaussian_splatting or false"]
+        WRAPALL["map wrapGpuAll gauss3dPackages<br/>flake.nix:1166"]
         GAUSS --> WRAPALL
     end
 
@@ -292,7 +292,7 @@ flowchart TB
     BLENDER --> SPATIALPKG
     WRAPALL --> SPATIALPKG
 
-    MEDIAPKG --> ALLPKG["allPackages / mkImage layers<br/>flake.nix:3490-3497"]
+    MEDIAPKG --> ALLPKG["allPackages flake.nix:1593 / mkImage layers flake.nix:3682"]
     SPATIALPKG --> ALLPKG
 
     NOTE1["INVARIANT - wrapGpuBin names exact bins, wrapGpuAll wraps every<br/>executable under out/bin for upstream-versioned bin sets like colmap/lichtfeld,<br/>flake.nix comment lines 1083-1087"]
@@ -378,21 +378,21 @@ flowchart LR
     SKILLS --> EVAL
     CODEX --> EVAL
 
-    EVAL --> PACKAGES["packages - flake.nix:3529<br/>lib.optionalAttrs pkgs.stdenv.isLinux"]
-    EVAL --> DEVSHELL["devShells.default<br/>flake.nix:3616"]
+    EVAL --> PACKAGES["packages - flake.nix:3721<br/>lib.optionalAttrs pkgs.stdenv.isLinux"]
+    EVAL --> DEVSHELL["devShells.default<br/>flake.nix:3798"]
 
-    PACKAGES --> RUNTIME["runtime = mkImage tag runtime-system<br/>flake.nix:3530"]
-    PACKAGES --> FULL["full = mkImage extraPackages allPackages<br/>flake.nix:3531-3535"]
-    PACKAGES --> DESKTOP["desktop = mkImage extraPackages desktopPackages<br/>flake.nix:3536-3540"]
-    PACKAGES --> CUDART["cuda-runtime, requires gpu.backend local-cuda<br/>flake.nix:3558-3572"]
-    PACKAGES --> GSPLAT["gaussian-splatting = 3DGS stack over cuda-runtime<br/>flake.nix:3581-3598"]
-    PACKAGES --> COMPOSE["compose = docker-compose.yml text, cross-platform<br/>flake.nix:3610-3614"]
+    PACKAGES --> RUNTIME["runtime = mkImage tag runtime-system<br/>flake.nix:3722"]
+    PACKAGES --> FULL["full = mkImage extraPackages allPackages<br/>flake.nix:3734"]
+    PACKAGES --> DESKTOP["desktop = mkImage extraPackages desktopPackages<br/>flake.nix:3728-3732"]
+    PACKAGES --> CUDART["cuda-runtime, requires gpu.backend local-cuda<br/>flake.nix:3750-3756"]
+    PACKAGES --> GSPLAT["gaussian-splatting = 3DGS stack over cuda-runtime<br/>flake.nix:3773-3779"]
+    PACKAGES --> COMPOSE["compose = docker-compose.yml text, cross-platform<br/>flake.nix:3792-3794"]
 
-    RUNTIME --> MKIMG["mkImage - n2c.buildImage 4 layers<br/>flake.nix:3490-3517"]
+    RUNTIME --> MKIMG["mkImage - n2c.buildImage 4 layers<br/>flake.nix:3682-3700"]
     FULL --> MKIMG
     DESKTOP --> MKIMG
 
-    MKIMG --> ENTRYPOINT["config = Entrypoint entrypoint/bin/entrypoint<br/>flake.nix:3507"]
+    MKIMG --> ENTRYPOINT["config = Entrypoint entrypoint/bin/entrypoint<br/>flake.nix:3713"]
 
     NOTE1["INVARIANT - container-image outputs are Linux-only,<br/>darwin exposes only compose and devShells, flake.nix comment lines 3489-3492"]
     PACKAGES --- NOTE1
@@ -402,7 +402,7 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    TOMLVAULT["[vault] in agentbox.toml<br/>agentbox.toml:706<br/>tui = rune"] --> VAULTCFG["vaultCfg = agentboxConfig.vault or {}<br/>flake.nix:652"]
+    TOMLVAULT["[vault] in agentbox.toml<br/>agentbox.toml:706<br/>tui = rune"] --> VAULTCFG["vaultCfg = agentboxConfig.vault or {}<br/>flake.nix:661"]
 
     VAULTCFG --> TUIVAL["vaultTui = vaultCfg.tui or none<br/>flake.nix:653"]
     TUIVAL --> RUNEACTIVE["runeActive = vaultTui == rune<br/>flake.nix:654"]
@@ -445,7 +445,7 @@ flowchart TB
     MRNASSETS --> GATE
     GATE -->|true| BAKE["mkdir $out/opt/agentbox/model-router<br/>cp -r modelRouterAssets/. into it<br/>flake.nix:1734-1736"]
     GATE -->|false| SKIP["byte-identical-when-off: nothing copied<br/>flake.nix comment line 1733"]
-    BAKE --> ALLPKG2["mkImage layers<br/>flake.nix:3490"]
+    BAKE --> ALLPKG2["mkImage layers<br/>flake.nix:3682"]
 
     subgraph MANIFEST2["system-manifest.js CATALOGUE"]
         MRNENTRY["id model-routing-neural<br/>gate model_routing.neural.enabled, apply_class rebuild<br/>system-manifest.js:109-111"]

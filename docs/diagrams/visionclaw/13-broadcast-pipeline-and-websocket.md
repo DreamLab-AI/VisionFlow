@@ -34,7 +34,7 @@ sources:
   - ../project/client/src/features/graph/workers/graph.worker.ts
   - ../project/client/src/services/BinaryWebSocketProtocol.ts
   - ../project/src/handlers/socket_flow_handler/actor_messages.rs
-verified_commit: 36bb64e1e
+verified_commit: dd82a07b0
 ---
 
 ## VC-13.3 GPU broadcast frame end to end
@@ -100,7 +100,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant HH as socket_flow_handler<br/>src/handlers/socket_flow_handler/http_handler.rs:39
+    participant HH as socket_flow_handler<br/>src/handlers/socket_flow_handler/http_handler.rs:53
     participant NS as NostrService<br/>src/handlers/socket_flow_handler/http_handler.rs:155
     participant N98 as nip98::validate_nip98_token<br/>src/utils/nip98.rs:375
     participant WSS as SocketFlowServer actor<br/>src/handlers/socket_flow_handler/types.rs:616
@@ -120,7 +120,7 @@ sequenceDiagram
             HH-->>C: 400 Origin header required<br/>src/handlers/socket_flow_handler/http_handler.rs:129-131
         else Origin OK
             HH->>HH: extract token from Authorization header<br/>OR ?token= query string (fallback)<br/>src/handlers/socket_flow_handler/http_handler.rs:139-150
-            Note right of HH: RESOLVED ADR-2058 ?token= query-string auth is a live<br/>fallback alongside the Authorization header<br/>(not header-only) — tokens can land in access<br/>logs/referrers — http_handler.rs:145-150 — now header-only in release builds, query path compiled out behind the dev-auth gate
+            Note right of HH: RESOLVED ADR-2058 ?token= query-string auth is a live<br/>fallback alongside the Authorization header<br/>(not header-only) — tokens can land in access<br/>logs/referrers — http_handler.rs:186 — now header-only in release builds, query path compiled out behind the dev-auth gate
             alt token present
                 HH->>NS: nostr_service.get_session(token)<br/>src/handlers/socket_flow_handler/http_handler.rs:158
                 alt session valid
@@ -128,14 +128,14 @@ sequenceDiagram
                 else session invalid or NostrService absent
                     NS-->>HH: None
                     alt release build (or dev without ALLOW_INSECURE_DEFAULTS)
-                        HH-->>C: 401 Invalid or expired authentication token<br/>src/handlers/socket_flow_handler/http_handler.rs:174-187
+                        HH-->>C: 401 Invalid or expired authentication token<br/>src/handlers/socket_flow_handler/http_handler.rs:215
                     else dev build with ALLOW_INSECURE_DEFAULTS=1
                         Note right of HH: dev-only bypass, compile-gated out of release<br/>src/handlers/socket_flow_handler/http_handler.rs:19-29
                     end
                 end
             else no token at all
                 alt release build
-                    HH-->>C: 401 Authentication required<br/>src/handlers/socket_flow_handler/http_handler.rs:236-254
+                    HH-->>C: 401 Authentication required<br/>src/handlers/socket_flow_handler/http_handler.rs:277
                 else dev build with ALLOW_INSECURE_DEFAULTS=1
                     Note right of HH: unauthenticated WS permitted, dev only
                 end

@@ -19,7 +19,7 @@ sources:
   - .github/workflows/drift-counter.yml
   - ../project/.github/workflows/ontology-publish.yml
   - ../project/src/services/ontology_pull.rs
-verified_commit: {visionclaw: 36bb64e1e, visiongraph: 9e308164c, knowledgegraph: 2791111fc, vowl-wasm: 65e2d1e78, dreamlab-ai-website: 9a3dd8830, visionflow: bec06dc3a}
+verified_commit: worktree-2026-09-07
 ---
 ## ES-11.1 The publishing axis — five cross-repo edges, each previously drawn from one side only
 ```mermaid
@@ -28,12 +28,12 @@ flowchart TB
         VG["EXTERNAL: visionGraph — the vault<br/>private, jjohare/visionGraph. see VG-01"]
     end
     subgraph PUB["Publication"]
-        PUBYML["visionGraph publish.yml<br/>publish.yml:280 peaceiris/actions-gh-pages@v3"]
+        PUBYML["visionGraph publish.yml<br/>publish.yml:241 peaceiris/actions-gh-pages pinned SHA"]
         KG["EXTERNAL: knowledgeGraph — Pages host<br/>CNAME:1 narrativegoldmine.com. see KG-01"]
         REL["VisionClaw ontology-latest release<br/>ontology-publish.yml:181. see ES-09.13"]
     end
     subgraph CONSUME["Consumption"]
-        POD["VisionClaw embedded pod<br/>ontology_pull.rs:290. see ES-08.11"]
+        POD["VisionClaw embedded pod<br/>ontology_pull.rs:293. see ES-08.11"]
         EXPL["EXTERNAL: two VOWL explorers<br/>see KG-04, VG-03"]
         LOOM["Ontology Loom grounding<br/>see ES-06.1"]
     end
@@ -44,7 +44,7 @@ flowchart TB
     end
 
     VG -->|"edge 11 — cross-ORG deploy"| PUBYML
-    PUBYML -->|"external_repository DreamLab-AI/knowledgeGraph<br/>publish_branch gh-pages, publish.yml:283-284"| KG
+    PUBYML -->|"external_repository DreamLab-AI/knowledgeGraph<br/>publish_branch gh-pages, publish.yml:244-245"| KG
     VG -->|"edge 9 — the SAME corpus, a second path"| REL
     REL --> POD
     KG -->|"edge 16 — /ns/v2.jsonld is the contract<br/>consumers dereference, roster.json:32-36"| LOOM
@@ -69,12 +69,16 @@ sequenceDiagram
     participant KG as "EXTERNAL: DreamLab-AI/knowledgeGraph"<br/>see KG-05
 
     VG->>WWW: write the CNAME into the artefact, publish.yml:203
-    VG->>KG: clone --branch gh-pages --depth 1, publish.yml:269-270
+    VG->>KG: clone --branch gh-pages --depth 1, publish.yml:229-230
     KG-->>EX: the currently published tree
-    VG->>WWW: preserve existing /notes SPA if present, publish.yml:272-275
-    VG->>KG: actions-gh-pages@v3 publish.yml:280<br/>external_repository :283, publish_branch gh-pages :284
-    Note over VG,KG: INVARIANT — this is a CROSS-ORG, CROSS-REPO deploy:<br/>the workflow lives in jjohare/visionGraph and writes into<br/>DreamLab-AI/knowledgeGraph, authenticated by a personal_token<br/>secret (publish.yml:282). knowledgeGraph does not build the<br/>site it serves — it is a publication TARGET.
-    Note over EX: The /notes preservation step is why the deploy is not a<br/>clean replace — a directory the publisher never builds is<br/>carried across from the previous publication, so gh-pages<br/>content has two authors.
+    VG->>WWW: public projection builds graph and title Markdown, publish.yml:95
+    VG->>WWW: preserve existing /notes SPA if present, publish.yml:232-235
+    VG->>WWW: apply tested responsive notes override, publish.yml:235
+    VG->>KG: actions-gh-pages pinned SHA publish.yml:241<br/>external_repository :244, publish_branch gh-pages :245
+    Note over VG,KG: INVARIANT — this is a CROSS-ORG, CROSS-REPO deploy:<br/>the workflow lives in jjohare/visionGraph and writes into<br/>DreamLab-AI/knowledgeGraph, authenticated by a personal_token<br/>secret (publish.yml:243). knowledgeGraph does not build the<br/>site it serves — it is a publication TARGET.
+    Note over EX: The /notes preservation step is why the deploy is not a<br/>clean replace — a directory the publisher never builds is<br/>carried across from the previous publication, so gh-pages<br/>content includes a separately preserved historical export.
+    Note over WWW: Public graph and Markdown share the known-private projection.
+    Note over WWW: Notes CSS repair does not rebuild the historical SPA source.
     Note over KG: knowledgeGraph/CNAME:1 is narrativegoldmine.com — the same<br/>domain publish.yml:203 writes, so the CNAME exists on both<br/>sides of the deploy. see KG-01
 ```
 

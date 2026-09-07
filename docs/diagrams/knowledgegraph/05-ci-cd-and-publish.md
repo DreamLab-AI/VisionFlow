@@ -27,8 +27,9 @@ flowchart TD
     G4["GATE 4 · Validate<br/>python -m pipeline.validate — 0 errors required<br/>build.yml:225-226"]
     G5["GATE 5 · Release contracts<br/>release_gate.py — identity set, schema, visibility<br/>build.yml:239-244"]
     G6["GATE 6 · Manifest verify<br/>pipeline.manifest re-hashes the tree<br/>build.yml:252-253"]
-    ART["Upload dist-ci artefact<br/>if: always#40;#41;, retention 14 days — build.yml:263-270"]
-    CO --> G1 --> G2 --> BUILD --> G3 --> G4 --> G5 --> G6 --> ART
+    PACK["Archive dist-ci as dist-ci.tar.gz<br/>preserve colons and case-sensitive title paths — build.yml:266-271"]
+    ART["Upload archive as dist-ci artefact<br/>if: always#40;#41;, retention 14 days — build.yml:274-281"]
+    CO --> G1 --> G2 --> BUILD --> G3 --> G4 --> G5 --> G6 --> PACK --> ART
     note1["INVARIANT: permissions: contents: read at workflow AND job level —<br/>this workflow cannot write to the repository even if a step tried<br/>(build.yml:65-66,89-90)"]
 ```
 

@@ -156,37 +156,28 @@ flowchart TD
     RE -.-> NOTE_KIND
     CA -.-> NOTE_R1
 ```
-## ES-03.4 cross_from_agentbox: closed kind-map, VisionClaw inbound (agentbox source wins)
+## ES-03.4 cross_from_agentbox: shared kind policy and typed inbound targets
 ```mermaid
 flowchart TD
-    IN["cross_from_agentbox agentbox_urn<br/>src/uri/mod.rs:797"]
-    DIDCHECK{"strip_prefix did:nostr: and is_pubkey_hex<br/>:799-800"}
-    IN --> DIDCHECK
-    DIDCHECK -- "yes" --> PASSTHRU["UrnCrossing visionclaw_id equals agentbox_urn unchanged<br/>already converged, passes through :801-805"]
-    DIDCHECK -- "no, bad pubkey" --> NONE0["return None<br/>:807"]
-    DIDCHECK -- "no did prefix" --> STRIP["strip_prefix urn:agentbox: then split_once<br/>:810-811"]
-    STRIP -- "fails" --> NONE1["return None, question-mark operator"]
-    STRIP --> SCOPE["scope is first tail token if is_pubkey_hex<br/>:813-814"]
-    SCOPE --> LOOKUP["federation_kind kind - row from the SHARED artefact<br/>:820 agentbox/schema/federation-kinds.json via include_str! :651<br/>the kind list is DERIVED here, never transcribed"]
-    LOOKUP -- "no row, or row says crosses false" --> NONE2["return None<br/>:820-823 refusal is read from the artefact, not hard-coded"]
-    LOOKUP -- "row says crosses true" --> MATCH{"match spec.target_kind<br/>:830 target kind to typed constructor"}
-    MATCH -- "did:nostr" --> AGENTARM["did_nostr scope<br/>:831<br/>result did:nostr plus pk"]
-    MATCH -- "execution" --> ACTARM["execution agentbox_urn<br/>:832<br/>result urn:visionclaw:execution plus sha256-12, UNSCOPED"]
-    MATCH -- "kg" --> THINGARM["kg scope, agentbox_urn<br/>:833<br/>result urn:visionclaw:kg plus pk plus sha256-12, OWNER-SCOPED"]
-    MATCH -- "bead" --> BEADARM["bead_with_address pk, local<br/>:834-843 structural pass-through, existing sha256-12 preserved not re-hashed<br/>result urn:visionclaw:bead plus pk plus sha256-12, OWNER-SCOPED"]
-    MATCH -- "target with no arm on this side" --> NONE4["return None<br/>:844 and federation_targets_all_have_an_arm FAILS<br/>a one-sided artefact addition cannot ship as a silent drop"]
-    AGENTARM --> RESULT["Some UrnCrossing agentbox_urn, visionclaw_id, owner_did<br/>:846-850"]
-    ACTARM --> RESULT
-    THINGARM --> RESULT
-    BEADARM --> RESULT
-    NOTE_ADR["ADR-2025: closed kind-map returns None, never a synthetic id, for unmapped urns"]
-    NOTE_DIV["RESOLVED ADR-2061 (2026-09-05): the kind list is ONE versioned artefact both translators derive from<br/>agentbox/schema/federation-kinds.json v1.0.0 - 19 kinds, 4 crossing. JS reads it at load, Rust embeds it with include_str!<br/>bead resolved in favour of crossing. A paired fixture asserts crossed-vs-refused and target grammar per kind<br/>50 jest cases here plus 7 cargo test cases - a one-sided change fails both suites"]
-    NOTE_MEM["DELIBERATE, not unimplemented (ADR-2061): memory refusal is RECORDED in the artefact<br/>refusal_class deliberate, target_kind concept, elevation.required_args domain and slug<br/>The hot path carries no elevation target, so mapping it would fabricate a shared ontology class from a private lesson<br/>Supplying domain and slug DOES cross it - the tests assert that, which is what separates policy from a missing arm"]
-    BEADARM -.-> NOTE_DIV
-    NONE2 -.-> NOTE_MEM
-    NONE2 -.-> NOTE_ADR
+    IN["cross_from_agentbox<br/>src/uri/mod.rs:809"] --> DID{"Valid did:nostr hex identity?<br/>src/uri/mod.rs:811-819"}
+    DID -->|yes| SAME["Return identity unchanged with owner DID<br/>src/uri/mod.rs:813-816"]
+    DID -->|malformed DID| NO["Refuse without inventing an identifier"]
+    DID -->|URN| PARSE["Parse agentbox kind and optional hex scope<br/>src/uri/mod.rs:822-826"]
+    PARSE --> ROW["Look up shared federation-kinds.json policy<br/>src/uri/mod.rs:832-834"]
+    ROW -->|unknown or crossing disabled| NO
+    ROW -->|crossing enabled| TARGET{"Typed target constructor<br/>src/uri/mod.rs:842"}
+    TARGET --> ID["did:nostr: scoped identity<br/>src/uri/mod.rs:843"]
+    TARGET --> EXEC["execution: hash original URN, unscoped<br/>src/uri/mod.rs:844"]
+    TARGET --> KG["kg: hash original URN with owner scope<br/>src/uri/mod.rs:845"]
+    TARGET --> BEAD["bead: preserve valid scoped content address<br/>src/uri/mod.rs:853-855"]
+    TARGET -->|unsupported target| NO
+    ID --> OUT["Return crossing with original identifier<br/>src/uri/mod.rs:860-863"]
+    EXEC --> OUT
+    KG --> OUT
+    BEAD --> OUT
+    NOTE["INVARIANT: policy comes from the shared artefact; constructors enforce target grammar.<br/>Memory elevation requires explicit domain and slug outside this hot path.<br/>Refusal and translation are narrower than resolved cross-service data."] --> ROW
 ```
-## ES-03.5 bc20-provenance-bridge.js: AGENTBOX_TO_VISIONCLAW / VISIONCLAW_TO_AGENTBOX (JS side, wider than Rust)
+## ES-03.5 bc20-provenance-bridge.js: forward policy and reversible identity recovery
 ```mermaid
 flowchart TD
     FWD["toVisionclaw agentboxUrn, opts<br/>bc20-provenance-bridge.js:158"]
@@ -215,18 +206,17 @@ flowchart TD
     VCCONCEPT --> RESULT
     NOTE_DIFF["RESOLVED ADR-2061 (2026-09-05): both translators now derive this map from one versioned artefact<br/>schema/federation-kinds.json v1.0.0 is read here at load and embedded in Rust with include_str!<br/>A paired fixture asserts per-kind agreement on crossed versus refused and on the target grammar<br/>Flipping one artefact row failed 3 of 50 jest cases and 4 of 7 cargo test cases - asymmetry is a test failure"]
     VCBEAD -.-> NOTE_DIFF
-    subgraph REV["toAgentbox visionclawId, opts - mirror direction, :239-290"]
-        REVDID{"did:nostr scheme?<br/>:243-244"}
-        REVDID -- "yes" --> REVSTORE{"store.getByVisionclaw hit?"}
-        REVSTORE -- "yes" --> REVHIT["return hit.agentbox_urn"]
-        REVSTORE -- "no" --> REVFALLBACK["return urn:agentbox:agent plus pubkey plus underscore<br/>:229"]
-        REVDID -- "no" --> REVRE{"VC_URN_RE matches?<br/>:232"}
-        REVRE -- "no" --> REVDROP0["_countDrop unknown non-canonical<br/>return null :233-236"]
-        REVRE -- "yes, unmapped vcKind" --> REVDROP1["_countDrop vcKind unmapped-kind<br/>return null :239-242"]
-        REVRE -- "yes, bead, no store hit" --> REVBEAD{"local matches pubkey colon sha256-12 pattern<br/>:254"}
-        REVBEAD -- "yes" --> REVBEADOK["structural recovery: urn:agentbox:bead plus pubkey plus local<br/>:255-258"]
-        REVBEAD -- "no" --> REVDROP2["_countDrop bead malformed-local<br/>return null :259-261"]
-        REVRE -- "yes, execution or kg or concept, no store hit" --> REVSTOREMISS["_countDrop vcKind store-miss<br/>return null :263-264 needs UrnMapping store"]
+    subgraph REV["toAgentbox: source recovery, bc20-provenance-bridge.js:239"]
+        REVDID{"Parsed did:nostr?<br/>bc20-provenance-bridge.js:243-244"}
+        REVDID -->|yes| DIDSTORE["Return stored source if available;<br/>otherwise stable agent URI from pubkey<br/>bc20-provenance-bridge.js:249-253"]
+        REVDID -->|no| VALID{"Known VisionClaw URN kind?<br/>bc20-provenance-bridge.js:256-266"}
+        VALID -->|no| DROP["Count drop and return null"]
+        VALID -->|yes| STORE{"Mapping store hit?<br/>bc20-provenance-bridge.js:268-272"}
+        STORE -->|yes| HIT["Return original agentbox URN"]
+        STORE -->|no| BEAD{"Valid scoped bead?<br/>bc20-provenance-bridge.js:275-285"}
+        BEAD -->|yes| RECOVER["Preserve pubkey and existing content address<br/>bc20-provenance-bridge.js:281"]
+        BEAD -->|no| DROP
+        STORE -->|other kind without hit| MISS["Count store miss and return null<br/>bc20-provenance-bridge.js:287-289"]
     end
 ```
 ## ES-03.6 Content address byte-identity: sha256-12, first 6 bytes, lowercase hex (ADR-2023)
@@ -272,7 +262,7 @@ sequenceDiagram
     M->>M: spec = KINDS[kind]
     alt spec.contentAddressed true
         alt payload is undefined
-            M-->>C: throw MalformedUri content-addressed kind requires payload<br/>:165
+            M-->>C: throw MalformedUri content-addressed kind requires payload<br/>uris.js:164
         else payload present
             M->>CA: _contentAddress(payload)
             CA->>CA: canon = _stableStringify(payload)
@@ -283,15 +273,15 @@ sequenceDiagram
             M->>SL: _slug(localId)
             SL-->>M: local, alnum plus dot underscore dash, max 96 chars
         else localId missing
-            M-->>C: throw MalformedUri kind requires localId<br/>:171
+            M-->>C: throw MalformedUri kind requires localId<br/>uris.js:170
         end
     end
     alt spec.ownerScope true
         alt no pubkey and no npub supplied
             alt spec.scopeRequired false
-                M-->>C: return urn:agentbox: + kind + : + local, unscoped form<br/>:179
+                M-->>C: return urn:agentbox: + kind + : + local, unscoped form<br/>uris.js:178
             else scopeRequired true (default)
-                M-->>C: throw MalformedUri kind requires pubkey scope<br/>:181
+                M-->>C: throw MalformedUri kind requires pubkey scope<br/>uris.js:180
             end
         else pubkey or npub supplied
             M->>NP: _normalisePubkey(supplied)
@@ -320,50 +310,39 @@ sequenceDiagram
     end
     Note over M: INVARIANT - fail-closed minting, a malformed input yields an error rather than a<br/>structurally-invalid identifier
 ```
-## ES-03.8 /v1/uri/<urn> resolver: resolvable, unresolvable, retracted (best-effort)
+## ES-03.8 URI resolver: redirect routing does not attest target availability
 ```mermaid
 sequenceDiagram
-    autonumber
-    participant Cl as Client
-    participant R as GET /v1/uri/:urn<br/>agentbox/management-api/routes/uri-resolver.js:49
-    participant U as uris.isCanonical / uris.parse<br/>uris.js:277,261
-    Cl->>R: GET /v1/uri/urn:agentbox:kg:pk:sha256-12-...
-    R->>U: isCanonical(urn)
-    alt not canonical
-        R-->>Cl: 400 malformed-uri<br/>uri-resolver.js:46-52
-    end
-    R->>U: parse(urn)
-    alt scheme did, method nostr
-        alt linked_data.did_documents is off
-            R-->>Cl: 404 not-resolvable, did:nostr requires did_documents enabled<br/>:60-66
+    participant C as Client
+    participant R as GET URI resolver<br/>uri-resolver.js:49
+    participant U as URI grammar<br/>uris.js:261
+    C->>R: request a canonical identifier
+    R->>U: isCanonical then parse
+    alt malformed
+        R-->>C: 400 malformed-uri<br/>uri-resolver.js:53-58
+    else did:nostr
+        alt DID documents disabled
+            R-->>C: 404 not-resolvable<br/>uri-resolver.js:66-74
         else enabled
-            R-->>Cl: 307 redirect to podBase/.well-known/did.json<br/>:68
+            R-->>C: 307 pod well-known DID document<br/>uri-resolver.js:75
         end
-    else scheme urn
-        R->>R: spec = KINDS[kind]
-        alt kind unknown
-            R-->>Cl: 404 unknown-kind<br/>:74-76
-        else kind known
-            R->>R: switch(kind) dispatch by resolvableSurface
-            alt kind in pod,envelope,credential,mandate,receipt
-                alt parsed.pubkey present
-                    R-->>Cl: 307 redirect podBase/agents/pubkey/kind/local<br/>:84-93
-                else no pubkey
-                    R-->>Cl: 404 not-resolvable, kind requires owner scope<br/>:95
-                end
-            else kind activity or event
-                R-->>Cl: 307 redirect /v1/agent-events?id=urn<br/>:99-101
-            else kind mcp or thing
-                R-->>Cl: 307 redirect /v1/things/local<br/>:104-106
-            else kind bead
-                R-->>Cl: 307 redirect /v1/beads/local-or-pubkey<br/>:138-139
-            else kind has no resolver mapping
-                R-->>Cl: 404 not-resolvable, no resolver mapping for kind<br/>:142-148
-            end
+    else operational URN
+        R->>R: select known kind or return 404<br/>uri-resolver.js:80-84
+        alt pod or envelope or credential or mandate or receipt
+            R-->>C: scoped pod redirect, else 404<br/>uri-resolver.js:92-102
+        else activity or event
+            R-->>C: 307 agent-events query<br/>uri-resolver.js:108
+        else mcp or thing
+            R-->>C: 307 things path<br/>uri-resolver.js:113
+        else memory or dataset
+            R-->>C: 307 memory path and optional namespace<br/>uri-resolver.js:116-126
+        else skill or document or meta or bead
+            R-->>C: 307 kind-specific route<br/>uri-resolver.js:131-146
+        else no mapped resolver
+            R-->>C: 404 not-resolvable<br/>uri-resolver.js:149-155
         end
     end
-    Note over R: DIVERGENCE - doc comment (uri-resolver.js:16,168) advertises 410 Gone for a deliberately<br/>retracted resource, but no reply.code(410) exists anywhere in this handler - the state is<br/>documented, not implemented
-    Note over R: INVARIANT - URIs are always unique but not always resolvable, consumers may rely on<br/>resolvability only on 200 or 307
+    Note over R,C: DIVERGENCE: historical 410 language has no implemented 410 response.<br/>A 307 proves a route was selected, and the target may still be missing or refuse access.<br/>Deterministic naming does not guarantee collision-free or available data.
 ```
 ## ES-03.9 Adapter dispatch: observability -> privacy filter -> JSON-LD encoder, in that order
 ```mermaid

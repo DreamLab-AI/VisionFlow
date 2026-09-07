@@ -68,8 +68,8 @@ sequenceDiagram
     autonumber
     participant A as agent
     participant M as ruvector-mcp.cjs<br/>memory_store:241
-    participant X as xinference :9997<br/>bge-small-en-v1.5
-    participant P as ruvector-postgres :5432
+    participant X as xinference port 9997<br/>bge-small-en-v1.5
+    participant P as ruvector-postgres port 5432
     participant H as HNSW index
 
     A->>M: memory_store{namespace, key, value, ttl}
@@ -102,7 +102,7 @@ sequenceDiagram
     autonumber
     participant A as agent
     participant M as ruvector-mcp.cjs<br/>memory_search:278
-    participant X as xinference :9997
+    participant X as xinference port 9997
     participant P as ruvector-postgres
     participant H as HNSW index
 
@@ -189,7 +189,7 @@ sequenceDiagram
     participant R as route table<br/>configure_routes:133
     participant WS as all WebSocket clients
 
-    Note over R: POST /api/memory-flash and the batch sibling are wired<br/>at src/main.rs:1142 via configure_memory_flash_routes
+    Note over R: POST /api/memory-flash and the batch sibling are wired<br/>at src/main.rs:1171 via configure_memory_flash_routes
     AG->>H: POST /api/memory-flash {key, namespace, action}
     H->>H: namespace = body.namespace.unwrap_or_default()<br/>memory_flash_handler.rs:45
     H->>WS: broadcast MemoryFlashEvent{key, namespace, action}
@@ -208,11 +208,11 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     RUN["./agentbox.sh ruvector recall<br/>ruvector-recall-harness.mjs"]
-    SELF["self-recall@10 — 200 rows<br/>the row's OWN stored embedding is the query<br/>SELF_NS_MIN_ROWS = 50 eligible rows per namespace<br/>harness:15-17,80"]
-    TRUE["true-recall@10 — 120 rows vs a forced exact<br/>brute-force scan as ground truth<br/>TRUE_TOTAL = 120, TRUE_NS_MIN_ROWS = 20<br/>harness:18-20,82-83"]
-    GATE["PASS iff median(self) >= 175/200<br/>AND median(true) >= 102/120 AND exactOk<br/>harness:32, evaluated at :228-236"]
-    NSB["Per-namespace self-recall breakdown is surfaced<br/>but NOT gated — harness:34"]
-    D3["DIVERGENCE D3 (LEARNING-memory.md) — the harness gates<br/>true at >= 102/120 (harness:32) while agentbox/CLAUDE.md<br/>and the reference doc quote >= 107/120.<br/>CODE IS AUTHORITATIVE for the gate; the prose band is a<br/>tighter operational target. self >= 175/200 agrees in both."]
+    SELF["self-recall@10 — 200 rows<br/>the row's OWN stored embedding is the query<br/>SELF_NS_MIN_ROWS = 50 eligible rows per namespace<br/>agentbox/scripts/ruvector-recall-harness.mjs:15-17,80"]
+    TRUE["true-recall@10 — 120 rows vs a forced exact<br/>brute-force scan as ground truth<br/>TRUE_TOTAL = 120, TRUE_NS_MIN_ROWS = 20<br/>agentbox/scripts/ruvector-recall-harness.mjs:18-20,82-83"]
+    GATE["PASS iff median(self) >= 175/200<br/>AND median(true) >= 102/120 AND exactOk<br/>agentbox/scripts/ruvector-recall-harness.mjs:32, evaluated at agentbox/scripts/ruvector-recall-harness.mjs:228-236"]
+    NSB["Per-namespace self-recall breakdown is surfaced<br/>but NOT gated — agentbox/scripts/ruvector-recall-harness.mjs:34"]
+    D3["DIVERGENCE D3 (LEARNING-memory.md) — the harness gates<br/>true at >= 102/120 (agentbox/scripts/ruvector-recall-harness.mjs:32) while agentbox/CLAUDE.md<br/>and the reference doc quote >= 107/120.<br/>CODE IS AUTHORITATIVE for the gate; the prose band is a<br/>tighter operational target. self >= 175/200 agrees in both."]
 
     RUN --> SELF
     RUN --> TRUE

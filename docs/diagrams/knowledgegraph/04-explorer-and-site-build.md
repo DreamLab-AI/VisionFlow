@@ -18,7 +18,7 @@ sources:
   - ../knowledgeGraph/docs/ecosystem.md
   - ../visionGraph/publishing-tools/WasmVOWL/modern/package.json
   - ../visionGraph/.github/workflows/publish.yml
-verified_commit: 2791111fc
+verified_commit: worktree-2026-09-07
 ---
 
 ## KG-04.1 Explorer topology — MIT viewer over AGPL-built, ODbL-licensed data
@@ -122,7 +122,7 @@ flowchart TB
     end
     BUILDYML["this repo's build.yml<br/>builds pipeline/ only — NO wasm-pack, NO vite,<br/>NO deploy step (KG-05.1)"]
     PUBYML["visionGraph publish.yml:151<br/>builds THIS SPA — EXTERNAL VG-03.3"]
-    SITE["narrativegoldmine.com<br/>external_repository DreamLab-AI/knowledgeGraph gh-pages<br/>EXTERNAL publish.yml:279"]
+    SITE["narrativegoldmine.com<br/>external_repository DreamLab-AI/knowledgeGraph gh-pages<br/>EXTERNAL publish.yml:244"]
     HERE -.->|"built by NOTHING in this repo"| BUILDYML
     SHIP --> PUBYML --> SITE
     note1["DOC-DRIFT: KG-04.1 through KG-04.5 document explorer/modern as THE explorer —<br/>accurate for what the source code says, but this copy is never built or<br/>deployed by anything in this repository. The tree that actually ships is<br/>visionGraph's publishing-tools/WasmVOWL/modern #40;180 files#41; — see VG-06 for<br/>its own topic. The two trees have DIVERGED on the one dependency both pin:<br/>HPKG v0.1.1 #40;tarball#41; vs SPKG '0.1.2' #40;npm#41;"]

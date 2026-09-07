@@ -11,7 +11,7 @@ sources:
   - ../visionGraph/README.md
   - ../project/.github/workflows/ontology-publish.yml
   - ../project/docs/adr/ADR-2106-ontology-pull-model-into-the-embedded-pod.md
-verified_commit: {visiongraph: 9e308164c, visionclaw: 4d1a698e7}
+verified_commit: worktree-2026-09-07
 ---
 
 ## VG-04.1 VisionClaw's ontology-publish.yml — pulls FROM visionGraph, not from knowledgeGraph
@@ -41,7 +41,7 @@ flowchart TB
     VG["visionGraph knowledge/pages<br/>authored pages — THIS repo"]
     PATH1["Path 1: publish.yml build-and-deploy job<br/>publish.yml:23-24 — see VG-03.1"]
     PATH2["Path 2: VisionClaw ontology-publish.yml<br/>ontology-publish.yml:1,30 ONTOLOGY_SOURCE_REPO<br/>EXTERNAL — VC-20, ADR-2106"]
-    SITE["narrativegoldmine.com<br/>external_repository DreamLab-AI/knowledgeGraph<br/>publish.yml:279-284"]
+    SITE["narrativegoldmine.com<br/>external_repository DreamLab-AI/knowledgeGraph<br/>publish.yml:240-246"]
     POD["embedded solid pod<br/>JSS_PUBLIC_PATH=/public/ontology — ontology-publish.yml:39<br/>default SOLID_POD_URL — ontology-publish.yml:38"]
     VG --> PATH1 --> SITE
     VG --> PATH2 --> POD

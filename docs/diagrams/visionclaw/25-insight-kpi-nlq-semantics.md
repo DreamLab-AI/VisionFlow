@@ -41,7 +41,7 @@ sources:
   - ../project/src/services/nostr_bead_publisher.rs
   - ../project/src/services/ontology_enrichment_service.rs
   - ../project/src/services/schema_service.rs
-verified_commit: 36bb64e1e
+verified_commit: dd82a07b0
 ---
 
 ## VC-25.1 Insight loop trace assembly (REC-10, compute-on-read)
@@ -95,14 +95,14 @@ sequenceDiagram
     participant Cfg as configure_routes<br/>src/handlers/insight_loop_handler.rs:89
     participant T as traces<br/>src/handlers/insight_loop_handler.rs:53
     participant TC as trace_by_case<br/>src/handlers/insight_loop_handler.rs:68
-    participant R as SqliteEnrichmentRepository<br/>src/adapters/sqlite_enrichment_repository.rs:682
+    participant R as SqliteEnrichmentRepository<br/>src/adapters/sqlite_enrichment_repository.rs:766
 
     Note over Cfg: scope /insight-loop mounted under /api - src/handlers/insight_loop_handler.rs:89-94
     C->>T: GET /insight-loop/trace?limit=N
     Note right of T: limit.clamp(1, MAX_LIMIT=1000), default DEFAULT_LIMIT=100<br/>src/handlers/insight_loop_handler.rs:25-26,54
     T-->>C: 200 InsightLoopSummary
     C->>TC: GET /insight-loop/trace/{case_id}
-    TC->>R: loop_trace_for(case_id)<br/>src/adapters/sqlite_enrichment_repository.rs:682
+    TC->>R: loop_trace_for(case_id)<br/>src/adapters/sqlite_enrichment_repository.rs:766
     alt Ok(Some(row))
         R-->>TC: LoopTraceRow
         TC-->>C: 200 InsightLoopTrace

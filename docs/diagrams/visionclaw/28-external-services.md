@@ -21,7 +21,7 @@ sources:
   - ../project/src/handlers/mod.rs
   - ../project/docs/reference/configuration.md
   - ../project/docs/how-to/agent-orchestration.md
-verified_commit: 36bb64e1e
+verified_commit: dd82a07b0
 ---
 ## VC-28.1 ragflow_service — outbound RAGFlow agent API
 ```mermaid
@@ -249,7 +249,7 @@ sequenceDiagram
 
     Note over AS: DIVERGENCE: try_store_in_pod is a no-op returning None when<br/>the solid-pod-embed feature is disabled - :738-747
 
-    participant GJ as get_job_status<br/>:750
+    participant GJ as get_job_status<br/>src/handlers/image_gen_handler.rs:750
     A->>GJ: GET /image-gen/status/{job_id} - configure_routes :825
     GJ->>SAL: GET {comfyui_base}/history/{job_id} - :753,755
     alt request errors - :777
@@ -260,7 +260,7 @@ sequenceDiagram
         GJ-->>A: 200 status pending or unknown by HTTP status - :766-774
     end
 
-    participant HL as health<br/>:785
+    participant HL as health<br/>src/handlers/image_gen_handler.rs:785
     A->>HL: GET /image-gen/health - configure_routes :822
     HL->>SAL: GET {comfyui_base}/system_stats - :791-792 (timeout 5s :786-789)
     alt 2xx - :796

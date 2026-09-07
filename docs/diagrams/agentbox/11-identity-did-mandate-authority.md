@@ -88,7 +88,7 @@ classDiagram
     MandateRecord --> AgentIdentity : issuer and agent are did nostr
     AuthorityGate --> CapabilityScope : narrows what a granted action may touch
     note for MULTIKEY "MULTIKEY_PREFIX = fe70102 -> f base16-lower + e701 varint multicodec + 02 compressed-point tag<br/>Fixed 71-char publicKeyMultibase. agent-identity.js:60 notes the derivation always yields even-y so 02 is invariant."
-    note for AgentIdentity "INVARIANT ADR-2011 hex-canonical: lowercase 64-hex BIP-340 x-only pubkey is the single storage and URL identity<br/>did is did:nostr:hex. npub bech32 is display or symlink form only. privHex NEVER leaves agent-identity.js (agent-identity.js:180-186)."
+    note for AgentIdentity "INVARIANT ADR-2011 hex-canonical: lowercase 64-hex BIP-340 x-only pubkey is the single storage and URL identity<br/>did is did:nostr:hex. npub bech32 is display or symlink form only. privHex NEVER leaves agent-identity.js (agent-identity.js:67-69)."
     note for UrnKindSpec "19 kinds at uris.js:87 — pod envelope credential mandate receipt activity event decision mcp memory skill adr prd ddd thing dataset bead agent meta<br/>decision IS-A prov:Activity (legacy ADR-048) and mirrors activity plumbing. bead is content-addressed to match urn:visionclaw:bead so BC20 can cross it (audit 2026-06-09 A3)."
 ```
 
@@ -409,10 +409,10 @@ stateDiagram-v2
 ```mermaid
 sequenceDiagram
     participant Caller
-    participant Gate as authority.js buildAuthorityGate
+    participant Gate as authority.js:136 buildAuthorityGate
     participant Forum as Verified allowlisted consumer
     participant Owner as broker-bridge.js mutation owner
-    participant Journal as governance-application-receipts.js
+    participant Journal as governance-application-receipts.js:11 ApplicationReceiptStore
     Caller->>Gate: action class and concrete operation
     alt recoverable action
         Gate-->>Caller: allow under existing recoverable policy
@@ -442,8 +442,8 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    Event["31403 from relay"] --> Verify["authority-consumer.js<br/>signature verification and responder allowlist"]
-    Verify --> Reference["governance-correlation.js<br/>one unambiguous e reference to signed request"]
+    Event["31403 from relay"] --> Verify["authority-consumer.js:268 handleInboundDecision<br/>signature verification and responder allowlist"]
+    Verify --> Reference["governance-correlation.js:21 responseMatchesRequest<br/>one unambiguous e reference to signed request"]
     Reference --> Match{"Known request and optional case/panel agree?"}
     Match -->|yes| Resolve["Resolve only matching waiters<br/>cache verified response under request ID"]
     Match -->|no| Drop["No approval and no fallback by case or panel"]

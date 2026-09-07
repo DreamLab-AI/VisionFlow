@@ -32,7 +32,7 @@ sources:
   - ../project/scripts/backup-secrets.sh
   - ../project/agentbox/config/nip98-proxy/proxy.mjs
   - ../project/agentbox/services/secret-backup/src/main.rs
-verified_commit: {visionclaw: 36bb64e1e, agentbox: 2c521c5bb}
+verified_commit: {visionclaw: dd82a07b0, agentbox: 2c521c5bb}
 ---
 ## ES-10.1 Three named profiles — exact flag set per profile vs the fail-closed code default
 ```mermaid
@@ -67,7 +67,7 @@ flowchart TB
     end
     ALL["All three profiles pin<br/>APP_ENV=production<br/>RBAC_GATE_MODE=enforce<br/>SETTINGS_AUTH_BYPASS unset"]
     INV["INVARIANT ADR-2027 — a flag left unlisted takes its<br/>fail-closed code default. Any combination outside<br/>these three rows is UNSUPPORTED, a defect not a variant."]
-    DRIFT["ADR-2038 HAS LANDED — profiles are machine-selected by<br/>src/config/security_profile.rs via VISIONCLAW_SECURITY_PROFILE (:55),<br/>or classified from observed flags when unset. The file is now tracked<br/>and the call site is in HEAD (project/src/main.rs:883), so the record reads<br/>decision_status accepted / activation_status live. NOTE the table above<br/>is SIX flags, not four — PROFILE_FLAGS (security_profile.rs:73) adds RBAC_OWNER_PUBKEY<br/>and RBAC_GATE_MODE. ADR-2027 corrected. see ES-10.7"]
+    DRIFT["ADR-2038 HAS LANDED — profiles are machine-selected by<br/>src/config/security_profile.rs via VISIONCLAW_SECURITY_PROFILE (security_profile.rs:54),<br/>missing intent now refuses non-debug startup. The file is now tracked<br/>and the call site is in HEAD (project/src/main.rs:883), so the record reads<br/>decision_status accepted / activation_status live. NOTE the table above<br/>is SIX flags, not four — PROFILE_FLAGS (security_profile.rs:73) adds RBAC_OWNER_PUBKEY<br/>and RBAC_GATE_MODE. ADR-2027 corrected. see ES-10.7"]
 
     code --> demo
     code --> single
@@ -87,7 +87,7 @@ sequenceDiagram
     participant M as main<br/>project/src/main.rs:195
     participant EH as enforce_release_env_hygiene<br/>project/src/main.rs:118
     participant EV as env validation<br/>project/src/main.rs:59-85
-    participant RS as RoleStore bootstrap<br/>project/src/main.rs:713-755
+    participant RS as RoleStore bootstrap<br/>project/src/main.rs:754
     participant L as HTTP listener
 
     OS->>M: exec visionclaw binary
@@ -117,10 +117,10 @@ sequenceDiagram
     else no Owner and RBAC_ALLOW_OWNERLESS=1
         RS-->>M: warn and continue — project/src/main.rs:742
     else no Owner and flag unset
-        RS-->>M: FATAL PermissionDenied — project/src/main.rs:749-755
+        RS-->>M: FATAL PermissionDenied — project/src/main.rs:783
     end
     M->>L: bind
-    Note over M,L: RESOLVED — ADR-2038 has LANDED. assert_effective_profile_or_exit is called<br/>at project/src/main.rs:883 (block :878-888) BEFORE HttpServer::new and .bind,<br/>exiting 2 on any finding in a production artefact — a development build<br/>logs and continues (project/src/main.rs:875-877). src/config/security_profile.rs<br/>is tracked and the call site is in HEAD, so the record now reads<br/>decision_status accepted / activation_status live. Boot receipt logged<br/>project/src/main.rs:889-891. see ES-10.7 and VC-09.4
+    Note over M,L: RESOLVED — ADR-2038 has LANDED. assert_effective_profile_or_exit is called<br/>at project/src/main.rs:912 BEFORE HttpServer::new and .bind,<br/>exiting 2 on any finding in a non-debug artefact, including release/dev-auth.<br/>Only a debug build<br/>logs and continues (project/src/main.rs:875-877). src/config/security_profile.rs<br/>is tracked and the call site is in HEAD, so the record now reads<br/>decision_status accepted / activation_status live. Boot receipt logged<br/>project/src/main.rs:889-891. see ES-10.7 and VC-09.4
 ```
 
 ## ES-10.3 Shipped compose inverts two fail-closed code defaults
@@ -128,7 +128,7 @@ sequenceDiagram
 flowchart LR
     subgraph codeside["src/ — fail-closed defaults"]
         A1["public_reads_enabled()<br/>.unwrap_or(false)<br/>rbac_gate.rs:132"]
-        A2["RBAC_ALLOW_OWNERLESS_ENV absent<br/>refuse to start<br/>project/src/main.rs:749-755"]
+        A2["RBAC_ALLOW_OWNERLESS_ENV absent<br/>refuse to start<br/>project/src/main.rs:783"]
         A3["parse_visibility_flag<br/>defaults ON<br/>position_updates.rs:34"]
     end
     subgraph composeside["docker-compose.unified.yml — shipped"]
@@ -139,7 +139,7 @@ flowchart LR
         B5["VISIONCLAW_DEV_MODE: ${VISIONCLAW_DEV_MODE:-0}<br/>line 85"]
     end
     NET["Net shipped posture = demo-open<br/>anonymous /api reads ON, owner-less boot permitted"]
-    DRIFT1["DIVERGENCE — the image boots owner-less with anonymous<br/>reads unless an operator overrides .env. Deliberate<br/>legacy-compatibility trade-off (ADR-2027)"]
+    DRIFT1["Compose defaults describe demo-open flags, but release now<br/>requires explicit VISIONCLAW_SECURITY_PROFILE intent.<br/>Missing intent or unnamed flags refuse listener bind (ADR-2038)"]
     DRIFT2["RESOLVED ADR-2087: docs/SECURITY-profiles.md now cites the<br/>code default and the compose default as two SEPARATE facts —<br/>fail-closed at rbac_gate.rs:126-132 (unwrap_or(false)) vs the<br/>demo-open override at docker-compose.unified.yml:93-94.<br/>docs/DATA-authority-erasure.md still says default ON at<br/>rbac_gate.rs:123-126 — routed to vc-knowledge, open until applied."]
 
     A1 -- "inverted by" --> B1
@@ -165,17 +165,17 @@ flowchart TB
         H3["NODE_ENV=development plus DOCKER_ENV"]
         H3E["FATAL — project/src/main.rs:140-146"]
         H4["RBAC_ALLOW_OWNERLESS=0 with no RBAC_OWNER_PUBKEY<br/>and no prior Owner"]
-        H4E["PermissionDenied, refuses to start<br/>project/src/main.rs:749-755"]
+        H4E["PermissionDenied, refuses to start<br/>project/src/main.rs:783"]
     end
     subgraph soft["Refuses to activate — falls back to safe value"]
         S1["RBAC_GATE_MODE=report in release without<br/>RBAC_REPORT_MODE_ACK = today UTC"]
         S1E["refuses to disable auth, stays enforce<br/>rbac_gate.rs:96-102 — see ES-10.5"]
     end
-    subgraph none["NOT machine-enforced — operator discipline only"]
+    subgraph none["Effective-profile enforcement before bind"]
         N1["RBAC_PUBLIC_READS=1 with PUBKEY_VISIBILITY_FILTER=0"]
-        N1E["PARTIALLY RESOLVED ADR-2038 — the pair is caught only<br/>INDIRECTLY: it matches no named profile, so it raises ProfileDrift<br/>when a profile is DECLARED, but merely classifies as Unnamed when<br/>none is, and Unnamed is not by itself fatal. No rule is keyed on<br/>this pair. Keying one on it is a small addition to<br/>evaluate_effective_profile (:422) — offered by vc-core."]
-        N2["APP_ENV unset in a public deployment"]
-        N2E["DIVERGENCE — skips strict env validation and CORS<br/>lockdown (project/src/main.rs:85). Profiles pin it, code does not."]
+        N1E["Illegal pair has an explicit finding<br/>evaluate_effective_profile security_profile.rs:485<br/>Non-debug builds refuse binding"]
+        N2["VISIONCLAW_SECURITY_PROFILE unset"]
+        N2E["MissingDeclaredProfile finding<br/>Non-debug builds refuse binding"]
     end
 
     H1 --> H1E
@@ -219,14 +219,14 @@ sequenceDiagram
     end
     REQ->>RG: method + path
     RG->>RG: required_level(method, path, public_reads) — rbac_gate.rs:138
-    Note over RG: INVARIANT — absence of a security flag must never<br/>widen access. RBAC_PUBLIC_READS may only widen reads<br/>when EXPLICITLY set (public_reads_enabled rbac_gate.rs:125-131,<br/>unwrap_or(false) at :131)
+    Note over RG: INVARIANT — absence of a security flag must never<br/>widen access. RBAC_PUBLIC_READS may only widen reads<br/>when EXPLICITLY set (public_reads_enabled rbac_gate.rs:125-131,<br/>unwrap_or(false) at rbac_gate.rs:132)
 ```
 
 ## ES-10.6 VISIONCLAW_DEV_MODE — peer-agnostic LAN-local full bypass (ADR-2039)
 ```mermaid
 sequenceDiagram
     autonumber
-    participant HP as Godot client on HP-Desktop<br/>ws to 192.168.2.132:4000
+    participant HP as Godot client on HP-Desktop<br/>ws to 192.168.2.132 port 4000
     participant DK as Docker bridge SNAT
     participant AX as AuthenticatedUser extractor<br/>src/settings/auth_extractor.rs
     participant DB as dev_full_bypass_active<br/>src/utils/auth.rs:99
@@ -253,58 +253,35 @@ sequenceDiagram
     Note over HP,WS: DIVERGENCE ADR-2039 is decision_status proposed but<br/>implementation_status COMPLETE and activation inactive.<br/>Root cause it works around — the client's NIP-98 signing<br/>has a standing u-tag URL-mismatch bug, so every<br/>server-write HUD action returns 403.
 ```
 
-## ES-10.7 ADR-2038 boot-time profile assertion — implemented, with two residual gaps
+## ES-10.7 Boot-time profile assertion and remaining decision divergence
+
 ```mermaid
 stateDiagram-v2
-    [*] --> ReadEnv
-    ReadEnv --> ResolveProfile
-    ResolveProfile --> DemoOpen
-    ResolveProfile --> SingleTenant
-    ResolveProfile --> MultiUserLocked
-    ResolveProfile --> Unsupported
-    DemoOpen --> LogAndBind
-    SingleTenant --> LogAndBind
-    MultiUserLocked --> LogAndBind
-    Unsupported --> AbortNonZero
-    ReadEnv --> IllegalFullDisclosure
-    IllegalFullDisclosure --> AbortNonZero
-    LogAndBind --> [*]
-    AbortNonZero --> [*]
-
-    note right of ResolveProfile
-        ADR-2038 IMPLEMENTED IN THE WORKING TREE but
-        UNCOMMITTED — src/config/security_profile.rs is
-        untracked and the call site is absent from HEAD,
-        so the record stays proposed until it lands.
-        1038 lines.
-        DeploymentProfile :79, expected_flags :120-136,
-        selector VISIONCLAW_SECURITY_PROFILE :55.
-        evaluate_effective_profile :422 is PURE over
-        (snapshot, BuildIdentity, today).
+    [*] --> Evaluate
+    Evaluate --> Named: declared supported flags
+    Evaluate --> Findings: missing intent or unnamed flags
+    Evaluate --> Findings: forbidden build or environment
+    Named --> Bind: no findings
+    Findings --> Abort: non-debug build
+    Findings --> Report: debug build only
+    Report --> Bind
+    Abort --> [*]
+    Bind --> [*]
+    note right of Evaluate
+        evaluate_effective_profile security_profile.rs:485
+        validates explicit intent and effective flags.
+        The illegal disclosure pair is explicitly checked.
     end note
-    note right of IllegalFullDisclosure
-        RESIDUAL GAP — caught only INDIRECTLY.
-        The pair matches no named profile, so it
-        raises ProfileDrift when a profile is
-        DECLARED, but classifies as Unnamed when
-        none is. No rule is keyed on the pair.
+    note right of Abort
+        assert_effective_profile_or_exit security_profile.rs:624
+        refuses before listener binding, including release/dev-auth.
+        Actual release negative probes return exit 2.
     end note
-    note right of AbortNonZero
-        assert_effective_profile_or_exit security_profile.rs:612 exits 2
-        on any finding in a production artefact, and
-        warns-and-continues in a dev build
-        (may_bind_listener security_profile.rs:383).
-        RESIDUAL GAP — ADR-2038 says a production
-        selector defaults to multi-user-locked. There
-        is NO implicit profile, so an Unnamed
-        combination still binds.
-    end note
-    note right of LogAndBind
-        Call site project/src/main.rs:883 inside the block at
-        :878-888, BEFORE HttpServer::new and .bind.
-        Boot receipt logged project/src/main.rs:889-891.
-        LANDED: security_profile.rs is tracked and the
-        call site is in HEAD. see VC-09.4, VC-09.5
+    note right of Named
+        ADR-2038 still proposes an implicit locked selector.
+        Implementation requires explicit intent instead.
+        Partial status retains that decision divergence;
+        deployment activation is separately evidenced.
     end note
 ```
 
@@ -319,15 +296,15 @@ flowchart TB
         R2["Long-syntax published: / host_ip: mappings<br/>are FORBIDDEN in every file"]
     end
     subgraph sanctioned["SANCTIONED LAN doors — each cites its rationale"]
-        P1[":9096 nip98-proxy — sovereign ingress (ADR-045)"]
-        P2[":8443 and :8444 voice cockpit TLS door"]
-        P3[":5903 / :8931 / :9222 browsercontainer<br/>VNC / MCP SSE / raw CDP"]
-        P4[":5905 / :9876 / :9877 gui-tools"]
-        P5[":5904 xr-runtime"]
+        P1[" port 9096 nip98-proxy — sovereign ingress (ADR-045)"]
+        P2[" port 8443 and  port 8444 voice cockpit TLS door"]
+        P3[" port 5903 /  port 8931 /  port 9222 browsercontainer<br/>VNC / MCP SSE / raw CDP"]
+        P4[" port 5905 /  port 9876 /  port 9877 gui-tools"]
+        P5[" port 5904 xr-runtime"]
     end
     FAIL["Anything else FAILS CI"]
-    INV["INVARIANT — :9095 AoE serve is NEVER published to the LAN. It runs<br/>aoe serve --auth token --behind-proxy --allowed-host 127.0.0.1<br/>--host 127.0.0.1 (agentbox/flake.nix:2353) — it binds loopback EXPLICITLY.<br/>:9096 is the one identity-gated door, proxy_port at agentbox/flake.nix:206,<br/>published 9096:9096 at agentbox/docker-compose.yml:54 (noted flake.nix:2373)."]
-    D1["RESOLVED ADR-2013 — the estate has TEN sanctioned LAN publishes,<br/>not one front door and not two. the main compose publishes only :9096<br/>(agentbox/docker-compose.yml:54) but the overlays add nine more, each with a<br/>cited rationale on the SANCTIONED list (check-ports-loopback.mjs:93-104)<br/>and CI-enforced. These are DECIDED exposures, not an admitted breach."]
+    INV["INVARIANT —  port 9095 AoE serve is NEVER published to the LAN. It runs<br/>aoe serve --auth token --behind-proxy --allowed-host 127.0.0.1<br/>--host 127.0.0.1 (agentbox/flake.nix:2353) — it binds loopback EXPLICITLY.<br/> port 9096 is the one identity-gated door, proxy_port at agentbox/flake.nix:206,<br/>published 9096 port 9096 at agentbox/docker-compose.yml:54 (noted flake.nix:2373)."]
+    D1["RESOLVED ADR-2013 — the estate has TEN sanctioned LAN publishes,<br/>not one front door and not two. the main compose publishes only  port 9096<br/>(agentbox/docker-compose.yml:54) but the overlays add nine more, each with a<br/>cited rationale on the SANCTIONED list (check-ports-loopback.mjs:93-104)<br/>and CI-enforced. These are DECIDED exposures, not an admitted breach."]
     D2["RESOLVED ADR-2013 closeout 2026-09-05 — the scanner is now a<br/>strict YAML PARSER, not an awk line-walker<br/>(check-ports-loopback.mjs:8-24). It rejects the flow-mapping<br/>and JSON-flow bypasses that previously passed, plus IPv6<br/>binds and non-sequence ports values (:39-41)."]
     D3["RESOLVED ADR-2040 — code-server still binds 0.0.0.0:8080 inside the<br/>container while compose publishes 127.0.0.1:8080:8080<br/>(agentbox/docker-compose.yml:61), and a loopback PUBLISH constrains the<br/>HOST only: agentbox also joins visionclaw_network<br/>(agentbox/docker-compose.yml:162), so a PEER CONTAINER still reaches it.<br/>The hole was closed by AUTHENTICATION, not by rebinding — the flag is now<br/>--auth password, not --auth none (agentbox/flake.nix:2286), with the<br/>password minted 0600 at boot by entrypoint-unified.sh and never baked into<br/>the generated supervisor text (agentbox/flake.nix:2279-2285)."]
     D5["PROPOSED ADR-2062: the gate reasons about PUBLISHED ports and<br/>is structurally blind to a container-internal 0.0.0.0 bind on a<br/>shared bridge. The invariant is to be restated in terms of<br/>LISTENERS, with each supervised program declaring its bind address."]
@@ -359,12 +336,12 @@ flowchart LR
     end
     U -- "https junkiejarvis.com" --> CF
     CF -- "outbound-initiated tunnel<br/>no inbound port opened on the host" --> CFD
-    CFD -- ":3001 http" --> NG
-    NG -- ":4000" --> BE
+    CFD -- " port 3001 http" --> NG
+    NG -- " port 4000" --> BE
 
     T1["TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN} — compose FAILS<br/>fast if unset (:? guard). Image pinned by sha256 digest."]
     T2["INVARIANT — no local config.yml. The ingress mapping is<br/>configured in the Cloudflare dashboard, so the exposed<br/>route is NOT reviewable from this repo."]
-    T3["DIVERGENCE — the tunnel bypasses the loopback-publish<br/>posture entirely: it needs no published port, so a<br/>compose port audit cannot see this exposure.<br/>It reaches nginx :3001 as an ordinary network peer."]
+    T3["DIVERGENCE — the tunnel bypasses the loopback-publish<br/>posture entirely: it needs no published port, so a<br/>compose port audit cannot see this exposure.<br/>It reaches nginx  port 3001 as an ordinary network peer."]
     T4["DIVERGENCE — cloudflared fronts whatever RBAC profile the<br/>backend booted. With the shipped demo-open compose<br/>(see ES-10.3) that is anonymous /api reads on the<br/>public internet."]
 
     CFD --> T1
@@ -405,3 +382,11 @@ flowchart TB
 ## Custody audit qualification — 2026-09-07
 
 ES-10.10 follows `proxy.mjs::verifyIdentity`, `breakGlassNotExpired` and `breakGlassScopeAllows`, the existing VisionClaw ZIP script, and Agentbox `services/secret-backup/src/main.rs::backup`. The encrypted implementation and legacy script coexist. No actual credential, backup, deployed configuration or restoration was inspected or exercised. Lifecycle acceptance remains open; see the [Agentbox audit](../../estate-review/2026-09-07-agentbox-audit.md).
+
+
+The source closeout adds findings for missing profile intent and unnamed effective
+flags, and refuses every finding in non-debug builds. Explicit intent is required;
+no implicit locked profile is selected. That differs from ADR-2038's original
+production-selector proposal, so the record remains partial pending owner decision.
+Actual default release artefact probes rejected forbidden variables even when set
+to zero; the receipt identifies that artefact and does not certify every image.

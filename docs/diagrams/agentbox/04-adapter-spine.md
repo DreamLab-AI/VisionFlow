@@ -287,7 +287,7 @@ sequenceDiagram
     SV->>SV: app.decorate('adapterReadiness', readiness) (server.js:1273)
     Note over LC,T: DEFAULT_CONNECT_TIMEOUT_MS = 10000 — lifecycle.js:70
     Note over LC: Manifest override [adapters] connect_timeout_ms scalar or per-slot map — lifecycle.js:106-107, non-positive values ignored (lifecycle.js:124)
-    Note over SV,LC: DOC-DRIFT — BASELINE-container says server.js:1222 connects all five slots under a 10<br/>s TOTAL budget. The code races ONE deadline PER SLOT in adapters/lifecycle.js:217,<br/>wired from server.js:1257-1258. Aggregate wall-clock is bounded by the slowest single<br/>slot (lifecycle.js:31-35).
+    Note over SV,LC: INVARIANT: ONE deadline PER SLOT, never one aggregate budget —<br/>adapters/lifecycle.js:217, wired from server.js:1257-1258. Aggregate wall-clock is<br/>bounded by the slowest single slot, not by a race that abandons work in flight<br/>(lifecycle.js:31-35). The old "10 s TOTAL budget" DOC-DRIFT is gone from<br/>BASELINE-container.md — grep finds no server.js line-1222 reference at this commit.<br/>DOC-DRIFT remaining: BASELINE-container.md:85 wires it from server.js line 1241,<br/>but connectAdapters is actually called at server.js:1257-1258.
     Note over SV,LC: RESOLVED ADR-2035: BASELINE-container.md:85 now documents the<br/>per-slot deadline (lifecycle.js:217, :70, :106-107). The code was<br/>already correct — only the doc changed.
     Note over CO,T: Timeout is a CONNECT FAILURE identical in consequence to an explicit rejection — lifecycle.js:32-33
 ```

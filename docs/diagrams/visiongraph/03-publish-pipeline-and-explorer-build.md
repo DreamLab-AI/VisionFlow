@@ -11,7 +11,7 @@ sources:
   - ../visionGraph/pipeline/patch_notes_export.py
   - ../visionGraph/pipeline/build.py
   - ../visionGraph/pipeline/jsonld_parser.py
-verified_commit: worktree-2026-09-07
+verified_commit: 482ba593bcffddca7d564d0b6c4b1fea225154fb
 ---
 
 ## VG-03.1 publish.yml — checkout to deploy, one job, no separate release gate

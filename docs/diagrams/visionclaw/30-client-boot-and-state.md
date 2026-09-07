@@ -72,7 +72,7 @@ sources:
   - ../project/client/src/features/control-center/primitives/NostrAuthControl.tsx
   - ../project/client/src/features/control-center/status/StatusFlyout.tsx
   - ../project/client/src/services/nostrAuthService.ts
-verified_commit: 36bb64e1e
+verified_commit: dd82a07b0
 ---
 ## VC-30.1 Provider nesting and top-level render states
 ```mermaid
@@ -389,10 +389,10 @@ sequenceDiagram
 
     alt connection error (any socket)
         Voice->>Bus: emit("connection:error",{name,error})<br/>VoiceWebSocketService.ts:113
-        Graph->>Bus: emit("connection:error",{name:"graph",error:errorMessage})<br/>websocket/index.ts:248
+        Graph->>Bus: emit("connection:error",{name:"graph",error:errorMessage})<br/>websocket/index.ts:254
     end
     alt connection close (any socket)
-        Graph->>Reg: unregister("graph")<br/>websocket/index.ts:219,278
+        Graph->>Reg: unregister("graph")<br/>websocket/index.ts:219,284
         Reg->>Reg: removeEventListener for each tracked listener, delete from connections<br/>WebSocketRegistry.ts:74-79
         Reg->>Bus: emit("registry:unregistered",{name})<br/>WebSocketRegistry.ts:81
         Graph->>Bus: emit("connection:close",{name,code,reason})<br/>websocket/index.ts:220

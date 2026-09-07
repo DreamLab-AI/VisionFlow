@@ -29,7 +29,7 @@ sources:
   - ../project/crates/visionclaw-gpu/build.rs
   - ../project/src/middleware/rbac_gate.rs
   - ../project/src/utils/advanced_logging.rs
-verified_commit: 36bb64e1e
+verified_commit: dd82a07b0
 ---
 
 ## VC-08.1 Health and readiness — what each probe actually asserts
@@ -72,7 +72,7 @@ sequenceDiagram
     participant H as LivenessHarness::record_kg_state<br/>src/services/liveness_harness.rs:422
 
     M->>W: tokio::spawn(run_kg_watchdog(harness, self_url, period))
-    Note over M,W: VISIONCLAW_SELF_URL default http 127.0.0.1 port (src/main.rs:1195)<br/>VISIONCLAW_KG_WATCHDOG_SECS default 30 (src/main.rs:1197)
+    Note over M,W: VISIONCLAW_SELF_URL default http 127.0.0.1 port (src/main.rs:1224)<br/>VISIONCLAW_KG_WATCHDOG_SECS default 30 (src/main.rs:1226)
     loop every period (default 30s)
         W->>P: GET {self_url}/api/health
         Note over P: this server IS the KG backend — the watchdog polls itself
@@ -368,14 +368,14 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant B as boot
-    participant P as assert_effective_profile_or_exit<br/>src/config/security_profile.rs:604-612
+    participant P as assert_effective_profile_or_exit<br/>src/config/security_profile.rs:624
     participant L as log
     participant R as readiness_probe<br/>src/handlers/consolidated_health_handler.rs
     participant O as operator
 
     B->>P: evaluate the effective security profile
     P->>L: info "security profile OK — build=X declared=Y classified=Z findings=N"
-    Note over P,L: EffectiveProfile::summary() src/config/security_profile.rs:363<br/>main logs it with observed_flags at src/main.rs:889-893 — the boot receipt
+    Note over P,L: EffectiveProfile::summary() src/config/security_profile.rs:368<br/>main logs it with observed_flags at src/main.rs:889-893 — the boot receipt
     alt production artefact with findings
         P->>O: eprintln FATAL per finding then "refusing to bind a listener (ADR-2038)" then exit(2)
         Note over P,O: the remediation line names the three options — remove the offending variables,<br/>rebuild without --features dev-auth, or set VISIONCLAW_SECURITY_PROFILE to what this really is

@@ -15,6 +15,10 @@ sources:
   - ../project/src/domain/broker/broker_case.rs
   - ../project/src/domain/broker/precedent_registry.rs
   - ../project/docs/adr/ADR-2006-acsp-human-approval.md
+  - ../project/agentbox/management-api/lib/governance-correlation.js
+  - ../project/agentbox/management-api/lib/governance-application-receipts.js
+  - ../project/src/actors/decision_elevation_actor.rs
+  - ../project/src/adapters/decision_elevation_store.rs
   - ../project/agentbox/management-api/lib/authority.js
   - ../project/agentbox/management-api/lib/governance-decision-waiter.js
   - ../project/agentbox/management-api/lib/elevation-publisher.js
@@ -24,228 +28,143 @@ sources:
   - ../project/agentbox/management-api/routes/broker-bridge.js
   - ../project/agentbox/management-api/routes/kg-elevation.js
   - ../project/agentbox/mcp/nostr-bridge/relay-consumer.js
-verified_commit: {visionclaw: 36bb64e1e, agentbox: 2c521c5bb}
+verified_commit: worktree-2026-09-07
 ---
-## ES-05.1 The loop — one case crossing four systems
+## ES-05.1 Approval crosses independently durable systems
 ```mermaid
 flowchart LR
-    subgraph ab["agentbox"]
-        ACT["agent action needing approval"]
-        GATE["buildAuthorityGate.guard<br/>lib/authority.js:207"]
-        ELEV["elevation-publisher<br/>lib/elevation-publisher.js"]
-        WAIT["GovernanceDecisionWaiter<br/>lib/governance-decision-waiter.js:45"]
-        RC["relay-consumer governance branch<br/>mcp/nostr-bridge/relay-consumer.js:363-374"]
-        BB["broker-bridge routes<br/>routes/broker-bridge.js:252,371"]
-    end
-    subgraph forum["ACSP forum relay — stateless surface"]
-        K2["kind 31402 ActionRequest<br/>outbound"]
-        K3["kind 31403 ActionResponse<br/>inbound, human-signed"]
-    end
-    subgraph vc["VisionClaw"]
-        ACSP["src/services/acsp producer<br/>kinds 31400-31405"]
-        INBOX["GET /api/broker/inbox<br/>src/handlers/broker_inbox_handler.rs:126"]
-        KERNEL["domain kernel — BrokerCase,<br/>DecisionOrchestrator, PrecedentRegistry<br/>src/domain/broker/"]
-        DEC["POST /api/enrichment-proposals/:id/decide"]
-        OX["Oxigraph"]
-    end
-    HUM["human admin in the forum UI"]
-
-    ACT --> GATE
-    GATE -- "publish 31402" --> K2
-    ELEV -- "publish 31402" --> K2
-    K2 --> HUM
-    HUM -- "signs 31403" --> K3
-    K3 --> RC
-    RC -- "notify(event)" --> WAIT
-    WAIT -- "resolve awaiting gate" --> GATE
-    BB -- "_vcFetch /api/broker/inbox" --> INBOX
-    INBOX --> KERNEL
-    BB -- "proxy decide" --> DEC
-    DEC --> OX
-    ACSP --> K2
-
-    INV["INVARIANT ADR-2006 — the stateful BrokerActor and its Neo4j<br/>transport are SUPERSEDED and DELETED. Only the<br/>storage-agnostic domain kernel is retained. Callers must<br/>not resurrect the old actor transport."]
-    D1["DIVERGENCE ADR-2006 implementation_status partial — ACSP<br/>gives a forum-native signed-event surface, but its consumers<br/>STILL own pending state and durable reconciliation. Removing<br/>BrokerActor did NOT make the whole workflow stateless."]
-    D2["EXTERNAL — the VisionFlow Judgment Broker<br/>handleGovernanceDecision is not on disk in this repo.<br/>relay-consumer.js:365-367 hands the 31403 to the<br/>orchestrator adapter, which writes it as JSON to the pod<br/>governance decisions directory for VisionClaw to collect."]
-
-    KERNEL --> INV
-    ACSP --> D1
-    RC --> D2
+    Request["Concrete operation"] --> Gate["Agentbox authority.js:137 buildAuthorityGate"]
+    Gate --> Signed["Signed 31402 request commits to operation and digest"]
+    Signed --> Forum["Forum relay stores event and guarded D1 projection"]
+    Forum --> Human["Human signed 31403 references exact request"]
+    Human --> AB["Agentbox verified allowlisted consumer<br/>request match, then local received/outcome ledger"]
+    Human --> VC["VisionClaw client.rs:265 response_matches_request<br/>own signed request journal and one dispatch claim"]
+    AB --> Mutation["Upstream committed acknowledgement is separate evidence"]
+    VC --> PR["Decision-elevation approved-to-applying claim<br/>PR URL, merge and activation are separate stages"]
+    Limits["No distributed transaction<br/>uncertain outcomes require reconciliation<br/>source tests are not live deployment receipts"] -.-> Mutation
+    Limits -.-> PR
 ```
 
-## ES-05.2 ACSP event kinds — the whole 31400-31405 block
+## ES-05.2 Wire fields and exact response binding
 ```mermaid
 classDiagram
-    class AcspKinds {
-        <<enumeration>>
-        KIND_PANEL_DEFINITION = 31400
-        KIND_PANEL_STATE = 31401
-        KIND_ACTION_REQUEST = 31402
-        KIND_ACTION_RESPONSE = 31403
-        KIND_PANEL_UPDATE = 31404
-        KIND_PANEL_RETIRED = 31405
+    class ActionRequest {
+        +JSON fields
+        +OptionString reasoning
+        +OptionString context_url
     }
-    class ActionRequestContent {
-        +String case_id
+    class ActionResponse {
         +String action
-        +Option~String~ reasoning
-        +Option~String~ context_url
-    }
-    class ActionResponseContent {
-        +String case_id
-        +String decision
-        +String responder_pubkey
+        +String reasoning
     }
     class CaseDecision {
         +String case_id
-        +String admin_pubkey
+        +String action
+        +String reasoning
+        +String responder_pubkey
+        +String event_id
+        +u64 created_at
     }
-    AcspKinds --> ActionRequestContent : 31402 content
-    AcspKinds --> ActionResponseContent : 31403 content
-    ActionResponseContent --> CaseDecision : from_event when d-tag in range
-
-    note for AcspKinds "All six defined at src/services/acsp/events.rs:18-23.<br/>Builders: kind-31400 PanelDefinition events.rs:210,<br/>kind-31401 full PanelState snapshot events.rs:219."
-    note for ActionRequestContent "events.rs:127 — reasoning and context_url serialise<br/>as EXPLICIT null rather than being omitted."
-    note for ActionResponseContent "events.rs:136 — published ONLY by human admins via the<br/>forum UI. The relay ENFORCES admin-only 31403<br/>(client.rs:28)."
-    note for CaseDecision "client.rs:23 — case_id is the 31402 d-tag this response<br/>answers. decision_from_event client.rs:175 yields a CaseDecision only when<br/>the kind is 31403 (:176) and the d-tag starts with case_prefix (:185)."
+    ActionRequest --> ActionResponse : signed request e reference
+    ActionResponse --> CaseDecision : validated consumer dispatch
+    note for ActionRequest "events.rs:130. Agentbox embeds canonical operation and digest; decision-elevation embeds exact corpus draft/path."
+    note for ActionResponse "events.rs:140. SDK signature verification plus own journalled request and d agreement at client.rs:265. Relay still owns admin admission."
+    note for CaseDecision "A durable dispatch claim precedes delivery. It does not certify actor execution or external application."
 ```
 
-## ES-05.3 Authority gate — zero-tolerance blocks on a signed approval, else DENY
+## ES-05.3 Authority gate binds the signed operation
 ```mermaid
 sequenceDiagram
-    autonumber
-    participant A as agent action
-    participant G as buildAuthorityGate.guard<br/>lib/authority.js:207
-    participant C as classifyAction<br/>lib/authority.js:101
-    participant P as ACSP publish
-    participant W as awaitDecision<br/>deps.awaitDecision
-    participant R as readOutcome<br/>lib/authority.js:172
-
-    A->>G: guard{action, params}
-    G->>C: classifyAction(actionClass, opts)
-    Note over C: AUTHORITY_CLASSES = ['recoverable', 'zero-tolerance']<br/>frozen at lib/authority.js:47. classifyAction returns one of<br/>recoverable | zero-tolerance | escalation-required.<br/>authority_class is a NEW axis, ORTHOGONAL to the old one.
-    alt recoverable
-        C-->>G: recoverable
-        G-->>A: released without a human decision
-    else zero-tolerance or escalation-required
-        C-->>G: blocking class
-        alt no decision consumer wired
-            G-->>A: DENIED fail-closed — "no decision consumer wired"<br/>lib/authority.js:217-219
-        else awaitDecision present
-            G->>P: publish signed kind-31402 ActionRequest
-            Note over G,P: priority = critical for zero-tolerance,<br/>else high — lib/authority.js:230
-            P-->>G: signedRequest
-            G->>W: awaitDecision(signedRequest, {timeoutMs})
-            alt a matching signed 31403 arrives
-                W-->>G: signedResponse
-                G->>R: readOutcome(responseEvent, requestEvent)
-                alt approving
-                    R-->>G: approve
-                    G-->>A: RELEASED
-                else denying
-                    R-->>G: deny
-                    G-->>A: DENIED
-                end
-            else timeout or unavailable
-                W-->>G: null
-                G-->>A: DENY — lib/authority.js:265
+    participant Caller
+    participant Gate as authority.js:136 buildAuthorityGate
+    participant Forum as Verified allowlisted consumer
+    participant Owner as broker-bridge.js mutation owner
+    participant Journal as governance-application-receipts.js:11 ApplicationReceiptStore
+    Caller->>Gate: action class and concrete operation
+    alt recoverable action
+        Gate-->>Caller: allow under existing recoverable policy
+    else escalation required
+        Gate->>Gate: canonicalise operation and SHA256 digest
+        Gate->>Forum: sign 31402 fields containing operation and digest
+        Gate->>Gate: reject producer if signed content changed
+        Forum-->>Gate: verified 31403 with exact request e reference
+        Gate->>Gate: require optional case and panel agreement
+        alt approval bound to this request
+            Gate-->>Owner: released plus request ID, response ID, operation digest
+            Owner->>Journal: durable immutable consumer-received claim
+            alt fresh claim
+                Owner->>Owner: send exact approved payload to upstream
+                Owner->>Journal: applied only on writeback_committed acknowledgement
+            else prior claim or unavailable storage
+                Owner-->>Caller: refuse replay or require reconciliation
             end
+        else mismatch, refusal or timeout
+            Gate-->>Caller: deny
         end
     end
-    Note over A,R: INVARIANT lib/authority.js:21-32 — a zero-tolerance action<br/>is DENIED, never released. Only a VERIFIED, signed,<br/>approving response releases it. No response is ever<br/>fabricated.
+    Note over Owner,Journal: Timeout or crash is unknown, never proof of application. Local receipt is unsigned and does not prove deployment.
 ```
 
-## ES-05.4 Decision waiter — one relay subscription, a registry of awaiters
+## ES-05.4 Decision waiter requires the exact request
 ```mermaid
 sequenceDiagram
-    autonumber
-    participant G as authority gate
-    participant W as GovernanceDecisionWaiter<br/>lib/governance-decision-waiter.js:45
-    participant RC as relay-consumer<br/>mcp/nostr-bridge/relay-consumer.js:374
-    participant O as orchestrator.handleGovernanceDecision
-
-    G->>W: register awaiter for signedRequest
-    W->>W: _keysForRequest(signedRequest)
-    Note over W: Correlation keys, governance-decision-waiter.js:56-60 —<br/>e-REQUEST_EVENT_ID, case-CONTENT_CASE_ID and<br/>d-PANEL_D_TAG (NIP-33) as a fallback. Matching mirrors<br/>lib/authority.js readOutcome EXACTLY.
-    W->>W: _pending Map key to Set of entries
-    rect rgb(230,240,230)
-    Note over RC,O: The SINGLE already-running relay subscription
-    RC->>RC: inbound kind-31403 from a forum human
-    RC->>O: handleGovernanceDecision(event)
-    RC->>W: notify(event)
+    participant Gate as authority.js
+    participant Waiter as governance-decision-waiter.js:87 awaitDecision
+    participant Relay as Existing relay consumer
+    Gate->>Waiter: awaitDecision signed request, timeout
+    Waiter->>Waiter: register by request event ID only
+    par exact response arrives
+        Relay->>Waiter: notify 31403
+        Waiter->>Waiter: governance-correlation.js checks unambiguous e reference
+        Waiter->>Waiter: optional case and panel must agree with request
+        Waiter-->>Gate: resolve matching waiter and cancel timer
+        Gate->>Gate: verify signature and outcome before release
+    and timeout fires
+        Waiter->>Waiter: remove pending entry
+        Waiter-->>Gate: null, gate denies
     end
-    W->>W: match on e: / case: / d:
-    alt a pending awaiter matches
-        W-->>G: resolve with the signed response
-    else no match
-        W-->>W: drop
-    end
-    alt no response within DEFAULT_TIMEOUT_MS
-        W-->>G: null
-        Note over W,G: FAIL-CLOSED — DEFAULT_TIMEOUT_MS = 120000<br/>(governance-decision-waiter.js:31). A request whose<br/>response never arrives times out to null, which the<br/>gate treats as a DENY.
-    end
-    Note over W,RC: INVARIANT — there is NO second relay client. The value<br/>here is the wait registry, and the transport stays the one<br/>connected consumer (governance-decision-waiter.js:13-16).
+    Note over Gate,Waiter: Case-only or panel-only responses never release a wait. No extra relay subscription.
 ```
 
-## ES-05.5 Broker inbox — agentbox reads VisionClaw's case list
+## ES-05.5 Broker inbox reads the current case state
 ```mermaid
 sequenceDiagram
-    autonumber
-    participant U as reviewer
-    participant BB as fastify GET /api/broker/bridge/inbox<br/>routes/broker-bridge.js:252
-    participant VF as _vcFetch<br/>routes/broker-bridge.js:281
-    participant VC as GET /api/broker/inbox<br/>src/handlers/broker_inbox_handler.rs:126
-
-    U->>BB: GET /api/broker/bridge/inbox?status=pending
-    Note over BB: status enum is pending | claimed | decided | all,<br/>default pending — routes/broker-bridge.js:261
-    BB->>VF: fetch /api/broker/inbox
-    VF->>VC: HTTP
-    alt VisionClaw reachable
-        VC-->>VF: {cases: [..], total: N}
-        Note over VC: broker_inbox_handler.rs:42-43 emits EXACTLY the shape<br/>broker-bridge.js destructures — cases plus total
-        VF-->>BB: inbox
-        BB->>BB: cases = inbox.cases || inbox.items || []<br/>routes/broker-bridge.js:291
-        BB-->>U: filtered and enriched inbox
-    else fetch fails
-        VF--xBB: error
-        BB-->>U: error "Failed to fetch broker inbox"<br/>routes/broker-bridge.js:283-286
+    participant Reviewer
+    participant Bridge as broker-bridge.js:254 inbox route
+    participant VC as broker_inbox_handler.rs:126
+    Reviewer->>Bridge: authenticated inbox request with status filter
+    Bridge->>VC: fetch current broker inbox
+    alt upstream available
+        VC-->>Bridge: cases and total
+        Bridge-->>Reviewer: filtered/enriched inbox
+    else upstream unavailable
+        Bridge-->>Reviewer: explicit error
     end
-    Note over U,VC: GATING — the broker inbox is a privileged review surface.<br/>The agentbox bridge presents the same credential the<br/>decide route requires (broker_inbox_handler.rs:27-29).
-    Note over BB,VC: DOC-DRIFT — broker_inbox_handler.rs:7 cites<br/>broker-bridge.js:224 for the inbox route, but the<br/>fastify registration is at broker-bridge.js:252 and the<br/>_vcFetch call at :281. Line refs in the Rust doc comment<br/>have drifted from the JS file.
+    Note over Reviewer,VC: An inbox read is not an approval or application receipt.
 ```
 
-## ES-05.6 Decide and write back — the gated mutation
+## ES-05.6 Mutation-owner acknowledgement and replay refusal
 ```mermaid
 sequenceDiagram
-    autonumber
-    participant U as human reviewer
-    participant BB as POST /api/broker/bridge/cases/:id/decide<br/>routes/broker-bridge.js:371
-    participant AG as authorityGate.guard<br/>routes/broker-bridge.js:428
-    participant VC as POST /api/enrichment-proposals/:id/decide<br/>routes/broker-bridge.js:472
-    participant OX as Oxigraph
-
-    U->>BB: decide{decision, rationale}
-    BB->>BB: resolve authorityGate — options.authorityGate<br/>|| fastify.authorityGate || buildAuthorityGate(manifest)<br/>routes/broker-bridge.js:236
-    alt authorityEnabled — table.enabled !== false (:243)
-        BB->>AG: guard(...)
-        Note over AG: guard() publishes a kind-31402 ActionRequest and BLOCKS<br/>until a verified signed response arrives<br/>(routes/broker-bridge.js:222) — see ES-05.3
-        alt gate approves
-            AG-->>BB: released
-            BB->>VC: proxy the decision to VisionClaw
-            VC->>OX: governed writeback
-            OX-->>VC: committed
-            VC-->>BB: decisionResult
-            BB-->>U: decided
-        else gate denies or times out
-            AG-->>BB: DENY
-            BB-->>U: refused — no writeback occurs
+    participant Bridge as broker-bridge.js:373 decide route
+    participant Gate as authority.js:137
+    participant Ledger as governance-application-receipts.js:11
+    participant VC as VisionClaw mutation owner
+    Bridge->>Gate: concrete case, outcome, actor and reasoning operation
+    Gate-->>Bridge: verified approval and operation digest, or refusal
+    alt approval released
+        Bridge->>Ledger: immutable consumer-received claim before external call
+        alt fresh claim
+            Bridge->>VC: exact approved operation payload
+            VC-->>Bridge: committed acknowledgement or failure
+            Bridge->>Ledger: applied only when writeback_committed is true
+        else existing claim or storage unavailable
+            Bridge-->>Bridge: refuse repeat execution, reconcile uncertain state
         end
-    else authority table disabled
-        BB->>VC: proxy without a gate
-        VC-->>BB: decisionResult
-        BB-->>U: decided
-        Note over BB,VC: DIVERGENCE — authorityEnabled is derived from<br/>authorityGate.table.enabled !== false<br/>(routes/broker-bridge.js:243), so an absent or disabled<br/>classification table silently removes the human gate.
+    else refusal or timeout
+        Bridge-->>Bridge: no governed writeback
     end
+    Note over Gate,VC: Recoverable actions and an explicitly disabled authority table retain their existing policy. Live responder policy and remote state need their own evidence.
 ```
 
 ## ES-05.7 Governed ontology elevation — personal to shared, federated over Nostr
@@ -285,48 +204,24 @@ sequenceDiagram
     Note over KE,NB: INVARIANT — this is the SANCTIONED governed path.<br/>The ungoverned /api/ontology/load backdoor is never used<br/>(elevation-publisher.js:16-17).
 ```
 
-## ES-05.8 One case, end to end, as a state machine
+## ES-05.8 Approval, dispatch and application remain distinct
 ```mermaid
 stateDiagram-v2
-    [*] --> Proposed
-    Proposed --> Classified
-    Classified --> Released
-    Classified --> AwaitingHuman
-    AwaitingHuman --> Approved
-    AwaitingHuman --> Denied
-    AwaitingHuman --> TimedOut
-    TimedOut --> Denied
-    Approved --> WrittenBack
-    Denied --> Closed
-    WrittenBack --> Receipted
-    Receipted --> Closed
-    Closed --> [*]
-
-    note right of Classified
-        classifyAction returns recoverable,
-        zero-tolerance or escalation-required
-        (authority.js:101).
-    end note
-    note right of Released
-        recoverable — no human decision needed.
-    end note
-    note right of AwaitingHuman
-        kind-31402 published. The gate blocks.
-        Correlated by e: / case: / d:.
-    end note
-    note right of TimedOut
-        DEFAULT_TIMEOUT_MS 120000 then null,
-        which the gate reads as DENY.
-        Fail-closed, never fabricated.
-    end note
-    note right of WrittenBack
-        Proxied to VisionClaw
-        /api/enrichment-proposals/:id/decide
-        then into Oxigraph.
-    end note
-    note right of Receipted
-        mintSpendReceipt / mintSpendActivity
-        (receipt-minter.js:45,78).
+    [*] --> Requested
+    Requested --> Approved: exact signed request response
+    Requested --> Refused: mismatch, denial or timeout
+    Approved --> Received: durable local claim
+    Received --> Applied: committed mutation acknowledgement
+    Received --> NotApplied: explicit upstream refusal
+    Received --> Unknown: timeout, crash or incomplete outcome
+    Unknown --> Reconciliation: never blindly replay
+    Applied --> [*]
+    NotApplied --> [*]
+    Refused --> [*]
+    note right of Received
+        Agentbox local ledger is unsigned.
+        VisionClaw dispatch journal is not an applied receipt.
+        PR creation and merge/activation are separate observations.
     end note
 ```
 
@@ -367,31 +262,20 @@ sequenceDiagram
     Note over I,RM: idempotencyKey makes receipt minting replay-safe, so a<br/>retried decision cannot double-spend.
 ```
 
-## ES-05.10 Governance divergences — the gap the governing doc names first
+## ES-05.10 Remaining governance boundaries after execution closeout
 ```mermaid
 flowchart TB
-    TOP["TOP OPEN RISK — the governance gap.<br/>Autonomy (recursive spawn, code execution, nightly<br/>unattended dream cycles, background jobs) is LIVE while<br/>the two governors that would make it safe are UNBUILT<br/>PROPOSALS: execution journal ADR-057 and monotonic policy<br/>pipeline ADR-059."]
-    G1["No single policy decision point"]
-    G2["No canonical replayable record"]
-    G3["Every side-effect path is guarded DIFFERENTLY"]
-    G4["A post-hook can REWRITE an approval"]
-    D2["DIVERGENCE — ADR-051 (Loom) is Proposed but the Loom is<br/>production-critical. The load-bearing external-LLM subunit<br/>runs on a decision record that has not ratified.<br/>see ES-06.1"]
-    D4["DIVERGENCE — deferred-distillation MCP tools are NOT built.<br/>ADR-051 names them; only beads substrate primitives exist."]
-    D6["DIVERGENCE — the dream governance band (056/058/061/<br/>062-072) is PAPER. The engine runs ahead of its<br/>decision-surface, self-GC and telemetry-contract designs."]
-    D7["DIVERGENCE — skill lint is ADVISORY. lint-skills.sh gates<br/>estate hygiene but is NOT a runtime capability gate; an<br/>enabled skill with clean frontmatter is TRUSTED."]
-    D8["DIVERGENCE BASELINE-architecture — BrokerActor was never<br/>merged. main uses a stateless ACSP producer plus a<br/>cherry-picked storage-agnostic domain broker kernel<br/>(~936 LOC)."]
-    INV["INVARIANT — byte-identical-when-off. A disabled<br/>[skills.*] / [dream_machine] gate leaves NO runtime trace."]
-
-    TOP --> G1
-    TOP --> G2
-    TOP --> G3
-    TOP --> G4
-    TOP --> D2
-    D2 --> D4
-    TOP --> D6
-    TOP --> D7
-    TOP --> D8
-    G3 --> INV
+    Local["Implemented local guards and receipts"] --> AB["Agentbox operation/request binding<br/>durable broker received/outcome records"]
+    Local --> VC["VisionClaw signed-request journal<br/>conditional PR claim and uncertain-outcome reconciliation"]
+    Local --> Forum["Forum ordinary-response guarded D1 projection"]
+    Local --> Tasks["Task-spawn action plane journal<br/>see ES-05.11"]
+    AB --> Runtime["Still requires live responder provisioning and deployed consumer evidence"]
+    VC --> Runtime
+    Forum --> Runtime
+    Tasks --> Scope["Route-specific coverage does not prove mediation of every shell or nightly operation"]
+    Scope --> UID["Same-UID agents are not isolated by application-level policy"]
+    Runtime --> External["External applied, merged and activated states need their own witnessed receipts"]
+    Note["ADR decision status is separate from source availability. No blanket governance closure follows from these changes."] -.-> Local
 ```
 
 ## ES-05.11 Journal coverage is route-specific

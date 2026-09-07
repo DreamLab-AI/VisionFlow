@@ -478,7 +478,7 @@ flowchart TB
     RUN --> P1["VisionClaw — repo present, ADR-075 IS-Envelope contract present,<br/>did:nostr IRI parser found in src/<br/>mesh-smoke-preflight.sh:82"]:::ext
     RUN --> P2["nostr-rust-forum — governance.rs found and carries ALL of<br/>kinds 31400 to 31405; NIP-42 relay gate references; NIP-05 mode<br/>mesh-smoke-preflight.sh:118"]:::ext
     RUN --> P3["dreamlab-ai-website — forum-config/dreamlab.toml references<br/>governance kinds; standalone vs federated inferred from peer_relays<br/>mesh-smoke-preflight.sh:171"]:::ext
-    RUN --> P4["agentbox — agentbox.toml federation mode, embedded relay :7777,<br/>nostr-bridge/relay-consumer.js carrying governance kinds<br/>mesh-smoke-preflight.sh:253"]:::ext
+    RUN --> P4["agentbox — agentbox.toml federation mode, embedded relay port 7777,<br/>nostr-bridge/relay-consumer.js carrying governance kinds<br/>mesh-smoke-preflight.sh:253"]:::ext
     RUN --> P5["solid-pod-rs — a NIP-98 auth module or verify_schnorr reference;<br/>CORS support; defaults recorded as standalone<br/>mesh-smoke-preflight.sh:283"]:::ext
 
     P1 --> TAB["summary table: substrate, mounted, mesh-ready, default-mode<br/>mesh-smoke-preflight.sh:321"]

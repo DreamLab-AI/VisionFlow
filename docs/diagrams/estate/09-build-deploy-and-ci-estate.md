@@ -285,15 +285,15 @@ stateDiagram-v2
 ```mermaid
 flowchart TB
     subgraph PROFILES["docker-compose.unified.yml services block"]
-        DEVSVC["visionclaw<br/>:47 target development<br/>profiles: development, dev :165-167<br/>ports 3001,4000 :147-148<br/>source-bind volumes :121-144, docker.sock ro :141"]
-        PRODSVC["visionclaw-production<br/>:171 target production<br/>profiles: production, prod :240-241<br/>ports 3001 only :215<br/>NO source mounts, NO docker.sock :210-212"]
-        CLOUDFLARED["cloudflared<br/>:245 image cloudflare/cloudflared pinned digest<br/>profiles: production, prod :264<br/>depends_on visionclaw OR visionclaw-production (optional)"]
-        LOOM["loom<br/>:288 image loom:rust (built outside this repo)<br/>profiles: loom :351<br/>port 8090->8080 :335<br/>hostname loom, alias ontology-loom :338-340"]
+        DEVSVC["visionclaw<br/>docker-compose.unified.yml:54 target development<br/>profiles: development, dev docker-compose.unified.yml:178-180<br/>ports 3001,4000 docker-compose.unified.yml:160-161<br/>source-bind volumes docker-compose.unified.yml:117-157, docker.sock ro docker-compose.unified.yml:154"]
+        PRODSVC["visionclaw-production<br/>docker-compose.unified.yml:187 Dockerfile.production<br/>profiles: production, prod docker-compose.unified.yml:252-254<br/>ports 3001 only docker-compose.unified.yml:228<br/>NO source mounts, NO docker.sock docker-compose.unified.yml:222-225"]
+        CLOUDFLARED["cloudflared<br/>docker-compose.unified.yml:257 image cloudflare/cloudflared pinned digest<br/>profiles: production, prod docker-compose.unified.yml:276<br/>depends_on visionclaw OR visionclaw-production (optional)"]
+        LOOM["loom<br/>docker-compose.unified.yml:303 image loom:rust (built outside this repo)<br/>profiles: loom docker-compose.unified.yml:363<br/>port 8090->8080 docker-compose.unified.yml:348<br/>hostname loom, alias ontology-loom docker-compose.unified.yml:349-353"]
     end
     subgraph EXTFILE["docker-compose.cloudflared.yml (standalone)"]
         CFSTANDALONE["cloudflared<br/>joins external visionclaw_network<br/>alias visionclaw-server:3001"]
     end
-    NET["visionclaw_network (external, pre-created)<br/>docker-compose.unified.yml:363-366"]
+    NET["visionclaw_network (external, pre-created)<br/>docker-compose.unified.yml:366-369"]
 
     DEVSVC --> NET
     PRODSVC --> NET
@@ -301,7 +301,7 @@ flowchart TB
     LOOM --> NET
     CFSTANDALONE --> NET
 
-    GATE["invariant: dev and production profiles<br/>are mutually exclusive activations of the<br/>SAME service family, never both up at once<br/>on the same container_name"]
+    GATE["Deployment constraint: default dev and production<br/>both publish host port 3001, so concurrent activation collides.<br/>Compose profiles do not enforce mutual exclusion."]
     DEVSVC -.-> GATE
     PRODSVC -.-> GATE
 ```
@@ -309,7 +309,7 @@ flowchart TB
 ## ES-09.9 nginx route tables — dev vs production upstreams
 ```mermaid
 flowchart LR
-    subgraph DEVNGINX["nginx.dev.conf — listen 3001 :55"]
+    subgraph DEVNGINX["nginx.dev.conf — listen 3001 nginx.dev.conf:55"]
         DUPRUST["upstream rust_backend<br/>127.0.0.1:4000 :43-46"]
         DUPVITE["upstream vite_frontend<br/>127.0.0.1:5173 :48-51"]
         DAPI["/api/ -> rust_backend :66-67"]
@@ -346,17 +346,17 @@ flowchart LR
 ## ES-09.10 agentbox flake rebuild gate, and the submodule pointer-bump flow
 ```mermaid
 flowchart TB
-    subgraph FLAKE["agentbox/flake.nix — image composition (3602 lines)"]
-        NIXPKG["Nix package set<br/>e.g. toolchains.ruflo gate :202-219"]
-        SUPTEXT["supervisorText string<br/>flake.nix:2019-2079<br/>program blocks e.g. management-api, bootstrap-seal"]
-        SUPWRITE["writeText supervisord.conf<br/>flake.nix:2968-2973"]
+    subgraph FLAKE["agentbox/flake.nix — image composition"]
+        NIXPKG["Nix package set<br/>e.g. toolchains.ruflo gate agentbox/flake.nix:505"]
+        SUPTEXT["supervisorText string<br/>agentbox/flake.nix:2115-2147<br/>program blocks e.g. management-api, bootstrap-seal"]
+        SUPWRITE["writeText supervisord.conf<br/>agentbox/flake.nix:3158-3163"]
     end
     subgraph TOML["agentbox/agentbox.toml — RUNNING config, not a template"]
         GATEKEY["gate key e.g. interaction_plane.enabled"]
     end
     subgraph MANIFEST["agentbox/management-api/lib/system-manifest.js"]
         CATALOGUE["CATALOGUE entry<br/>system-manifest.js:42<br/>gate, service, apply_class"]
-        APPLYCLASS["APPLY_CLASSES:<br/>live :26, boot :27, rebuild :28<br/>ADR-039 apply-class taxonomy"]
+        APPLYCLASS["APPLY_CLASSES:<br/>live system-manifest.js:28, boot system-manifest.js:29,<br/>rebuild system-manifest.js:30<br/>ADR-039 apply-class taxonomy"]
     end
 
     GATEKEY -->|"read at eval time"| NIXPKG
@@ -551,9 +551,9 @@ sequenceDiagram
     participant C as contract job<br/>contract-tests.yml:34
 
     GH->>C: setup Node 22 (matches runtime image) :41-46
-    C->>C: npm ci in management-api/ :51
-    C->>C: npx jest tests/contract/*.contract.spec.js :55
-    C->>C: upload contract-test-results artifact :57-60
+    C->>C: npm ci in management-api/ contract-tests.yml:50<br/>and repo-root npm ci --ignore-scripts contract-tests.yml:57
+    C->>C: npx jest ../tests/contract/ with contract filename filter<br/>contract-tests.yml:61
+    C->>C: upload contract-test-results artifact contract-tests.yml:65-70
     Note over C: every durable-state integration rides one of five<br/>adapter slots (beads, pods, memory, events, orchestrator)<br/>and must pass tests/contract/ for all implementation classes
 ```
 

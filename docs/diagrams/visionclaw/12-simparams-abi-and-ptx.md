@@ -22,7 +22,7 @@ sources:
   - ../project/src/utils/gpu_diagnostics.rs
   - ../project/src/gpu/mod.rs
   - ../project/src/physics/mod.rs
-verified_commit: 36bb64e1e
+verified_commit: dd82a07b0
 ---
 ## VC-12.1 SimParams full 212-byte repr(C) layout
 ```mermaid
@@ -410,7 +410,7 @@ sequenceDiagram
         end
     end
     Note over UGC: DOC-DRIFT (predates this window, commit da2f5cac7) - apsp_ptx is NO LONGER loaded<br/>into a module. REMOVED under ADR-2054: apsp_module had zero read sites (nothing ever<br/>resolved a kernel from it), so the load cost a startup PTX parse and logged a false<br/>"GPU APSP is DISABLED" about a capability NFR-7 forbids permanently. The parameter is<br/>retained and ignored (let _ = apsp_ptx, construction.rs:316-322) so callers need not<br/>change shape. See VC-15 for ShortestPathActor::ComputeAPSP, which never used this module.
-    Note over UGC,Cust: get_function(name) resolves a kernel by string<br/>e.g. force_pass/integrate_pass_kernel (execution.rs:612,863)<br/>a Rust ? propagates the error if absent
+    Note over UGC,Cust: get_function(name) resolves a kernel by string<br/>e.g. force_pass/integrate_pass_kernel (execution.rs:653,912)<br/>a Rust ? propagates the error if absent
     Note right of UGC: INVARIANT - fallback-PTX for nvcc-less builds<br/>secondary-module failures DEGRADE, not crash<br/>GPU-wire-abi.md Invariant 5, L283-286
     Note right of UGC: DIVERGENCE - get_function by name, ONLY symbol check<br/>unguarded if build-time symbol gate bypassed<br/>e.g. a cached OUT_DIR artefact
 ```

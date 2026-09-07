@@ -185,7 +185,7 @@ sequenceDiagram
 ## AB-02.4 supervision tree — core and identity programs
 ```mermaid
 flowchart TB
-    BOOT["program:bootstrap<br/>flake.nix:2121<br/>no user= line -&gt; runs as root<br/>priority=5 autorestart=false one-shot"]
+    BOOT["program:bootstrap<br/>flake.nix:2132<br/>no user= line -&gt; runs as root<br/>priority=5 autorestart=false one-shot"]
     MGMT["program:management-api<br/>flake.nix:2135<br/>user=devuser bind 0.0.0.0:ENV_MANAGEMENT_API_PORT default 9090<br/>priority=20 REQUIRED_FOR_READINESS=true"]
     SEAL["program:bootstrap-seal<br/>flake.nix:2151<br/>user=devuser priority=99 autorestart=false one-shot<br/>writes /run/agentbox/bootstrap.done, timeout 120s"]
     SOLID["program:solid-pod<br/>flake.nix:2163<br/>gate sovereign_mesh.enabled and local-solid-rs active<br/>user=devuser priority=30 REQUIRED_FOR_READINESS=true"]
@@ -195,7 +195,7 @@ flowchart TB
     NRELAY2["program:nostr-relay nostr-rs-relay<br/>flake.nix:2229<br/>config /etc/agentbox/nostr-relay.toml<br/>user=devuser priority=35 REQUIRED_FOR_READINESS=false"]
     NGW["program:nostr-gateway<br/>flake.nix:1896<br/>user=devuser priority=234<br/>off switch AGENTBOX_NOSTR_GATEWAY=0"]
     TSD["program:tailscaled<br/>flake.nix:2255<br/>gate networking.tailscale, no user= -&gt; root<br/>socket /var/run/tailscale priority=15"]
-    TSU["program:tailscale-up<br/>flake.nix:2265<br/>gate networking.tailscale, no user= -&gt; root<br/>priority=16 autorestart=false one-shot"]
+    TSU["program:tailscale-up<br/>flake.nix:2276<br/>gate networking.tailscale, no user= -&gt; root<br/>priority=16 autorestart=false one-shot"]
 
     BOOT -->|"priority 5, runs before 20"| MGMT
     MGMT -->|"REQUIRED_FOR_READINESS=true"| SEAL
@@ -230,7 +230,7 @@ flowchart TB
     IMGM["program:imagemagick-mcp<br/>flake.nix:2194<br/>gate media.imagemagick<br/>user=devuser priority=210"]
     COMFY["program:comfyui-builtin<br/>flake.nix:2302<br/>gate media.comfyui_builtin, bind 127.0.0.1:8188<br/>user=devuser priority=220"]
     OPF["program:opf-router<br/>flake.nix:2242<br/>gate privacyFilterEnabled (:2240), OPF_PORT default 9092<br/>user=devuser priority=240"]
-    DREAM["program:dream-engine<br/>flake.nix:2324<br/>gate dreamEngineEnabled (:1401), LOOM_URL default 192.168.2.132:8084/v1<br/>user=devuser priority=230"]
+    DREAM["program:dream-engine<br/>flake.nix:2324<br/>gate dreamEngineEnabled (:1410), LOOM_URL default 192.168.2.132:8084/v1<br/>user=devuser priority=230"]
     CODES["program:code-server<br/>flake.nix:2278<br/>gate toolchains.code_server, bind 0.0.0.0:8080 — RESOLVED ADR-2040,<br/>auth password with a boot-minted credential (see AB-07.9), not auth none<br/>user=devuser priority=50"]
 
     OPF -.->|"privacy filter mode gate"| DREAM
@@ -250,7 +250,7 @@ flowchart TB
     XVNC["program:xvnc<br/>flake.nix:2082<br/>bind 0.0.0.0:5901 no user= -&gt; root priority=40"]
     I3B["program:i3wm i3-x11 default branch<br/>flake.nix:2092<br/>user=devuser priority=41"]
     AOE["program:aoe-serve<br/>flake.nix:2352<br/>gate interaction_plane.enabled (:204), bind 127.0.0.1:9095<br/>--auth token --behind-proxy user=devuser priority=45"]
-    NIP98["program:nip98-proxy<br/>flake.nix:2374<br/>bind 0.0.0.0:9096, published 9096:9096 in compose<br/>user=devuser priority=46"]
+    NIP98["program:nip98-proxy<br/>flake.nix:2385<br/>bind 0.0.0.0:9096, published 9096:9096 in compose<br/>user=devuser priority=46"]
     TAB0["program:tab0-bridge<br/>flake.nix:2404<br/>gate sovereign_mesh.enabled<br/>user=devuser priority=236"]
     TMUX["program:tmux-autostart<br/>flake.nix:2417<br/>user=devuser priority=95 autorestart=false one-shot"]
 
@@ -267,16 +267,16 @@ flowchart TB
 sequenceDiagram
     autonumber
     participant SV as supervisord PID1<br/>flake.nix:2105-2106 supervisord section nodaemon=true
-    participant BOOT as program:bootstrap<br/>flake.nix:2121 no user= line means root
+    participant BOOT as program:bootstrap<br/>flake.nix:2132 no user= line means root
     participant MGMT as program:management-api<br/>flake.nix:2135 user=devuser :2138 priority=20 :2142
     participant SOLID as program:solid-pod<br/>flake.nix:2163 user=devuser :2166 priority=30 :2170
     participant SEAL as program:bootstrap-seal<br/>agentbox/config/seal-bootstrap.sh priority=99
     participant SC as supervisorctl status<br/>seal-bootstrap.sh:88
 
     Note over SV: supervisord itself inherits root from the exec'd<br/>entrypoint-unified.sh Stage A (entrypoint-unified.sh:787)
-    SV->>BOOT: spawn priority=5, environment AGENTBOX_BOOTSTRAP_STAGE=B (:2125)
+    SV->>BOOT: spawn priority=5 :2127, environment AGENTBOX_BOOTSTRAP_STAGE=B (:2123)
     Note right of BOOT: no user= line — Stage B (phases 6-8) runs as ROOT,<br/>needed for chown/mkdir under devuser volumes
-    SV->>MGMT: spawn priority=20, user=devuser (:2137)
+    SV->>MGMT: spawn priority=20 :2142, user=devuser (:2138)
     SV->>SOLID: spawn priority=30, user=devuser, gated sovereign_mesh.enabled (:2165)
     Note over SV: every program below priority=99 launches in ascending<br/>priority order but does not block on prior RUNNING state
     Note over SV,BOOT: RESOLVED ADR-2063 (2026-09-05) - a program that needs a file Stage B writes later<br/>waits for it with a bounded timeout instead of crashing into FATAL (see AB-02.17)

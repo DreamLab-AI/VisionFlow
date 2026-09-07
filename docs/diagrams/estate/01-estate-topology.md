@@ -56,9 +56,9 @@ flowchart TB
         SPRN["solid-pod-rs v0.5.0-alpha.9<br/>agentbox Nix pin, solid-pod-rs.nix:53<br/>rev 1d9da527, solid-pod-rs.nix:56"]
     end
     VC -->|"Cargo dep: fs-backend, nip98-schnorr,<br/>did-nostr, quota, rate-limit"| SPR
-    AB -->|"lib/solid-pod-rs.nix pin<br/>supervised solid-pod program on :8484<br/>native-pod-mesh.md:3"| SPRN
+    AB -->|"lib/solid-pod-rs.nix pin<br/>supervised solid-pod program on port 8484<br/>native-pod-mesh.md:3"| SPRN
 
-    DIVSP["DIVERGENCE — the estate holds TWO solid-pod-rs versions at once.<br/>VisionClaw compiles crates.io 0.4.0-alpha.15 in-process<br/>(Cargo.toml:219); agentbox builds v0.5.0-alpha.9 from a tagged<br/>fetchFromGitHub rev (solid-pod-rs.nix:53,56) for the supervised<br/>:8484 pod. native-pod-mesh.md:3 records the alpha.9 bump as live;<br/>the same doc's topology figure still labels the server<br/>v0.4.0-alpha.17 (native-pod-mesh.md:30) — DOC-DRIFT inside it.<br/>see ES-08.1"]
+    DIVSP["DIVERGENCE — the estate holds TWO solid-pod-rs versions at once.<br/>VisionClaw compiles crates.io 0.4.0-alpha.15 in-process<br/>(Cargo.toml:219); agentbox builds v0.5.0-alpha.9 from a tagged<br/>fetchFromGitHub rev (solid-pod-rs.nix:53,56) for the supervised<br/>port 8484 pod. native-pod-mesh.md:3 records the alpha.9 bump as live;<br/>the same doc's topology figure still labels the server<br/>v0.4.0-alpha.17 (native-pod-mesh.md:30) — DOC-DRIFT inside it.<br/>see ES-08.1"]
     SPRN --> DIVSP
     SPR --> DIVSP
 
@@ -87,21 +87,21 @@ flowchart LR
     end
     subgraph HP["HP-Desktop (downstream, no LAN IP)"]
         HPHOST["HP-Desktop<br/>john@10.10.10.1<br/>agentbox/docs/developer/hp-peer-node.md:3"]
-        LOOMFACADE["Loom façade :8084<br/>~/githubs/loom docker container<br/>agentbox/docs/adr/ADR-2023-loom-facade.md"]
-        LOOMMODEL["loom-model container :8085<br/>Qwen3.8-27B (cutover 2026-08-14)<br/>agentbox/skills/email-search/SKILL.md:94"]
+        LOOMFACADE["Loom façade port 8084<br/>~/githubs/loom docker container<br/>agentbox/docs/adr/ADR-2023-loom-facade.md"]
+        LOOMMODEL["loom-model container port 8085<br/>Qwen3.8-27B (cutover 2026-08-14)<br/>agentbox/skills/email-search/SKILL.md:94"]
     end
-    MLHOST -->|"25G rail 10.10.10.0/30<br/>hp-nat.service DNAT :8084<br/>agentbox/docs/developer/hp-peer-node.md:3"| HPHOST
+    MLHOST -->|"25G rail 10.10.10.0/30<br/>hp-nat.service DNAT port 8084<br/>agentbox/docs/developer/hp-peer-node.md:3"| HPHOST
     HPHOST --> LOOMFACADE
-    LOOMFACADE -->|":8085 HTTP delegates to model"| LOOMMODEL
-    MLHOST -->|"embeddings :9997<br/>bge-small-en-v1.5<br/>agentbox/skills/email-search/SKILL.md:109"| XINF["xinference :9997"]
+    LOOMFACADE -->|"port 8085 HTTP delegates to model"| LOOMMODEL
+    MLHOST -->|"embeddings port 9997<br/>bge-small-en-v1.5<br/>agentbox/skills/email-search/SKILL.md:109"| XINF["xinference port 9997"]
 
     DEAD[".48 DEAD trap<br/>old 192.168.2.48 model host<br/>agentbox/docs/adr/ADR-2023-loom-facade.md:23<br/>agentbox/skills/email-search/SKILL.md:97,210"]
     DEAD -.->|"never target — black-holes reasoning,<br/>GET /health still 200s"| LOOMFACADE
 
     MESHNODE["agentbox-hp<br/>2nd full agentbox, own did:nostr<br/>docker compose -f docker-compose.yml<br/>-f docker-compose.hp.yml up -d"]
     HPHOST --- MESHNODE
-    MLHOST -->|":9096 NIP-98 door, signed by ml key -> 200<br/>unsigned -> 401 (hp-peer-node.md probe table)"| MESHNODE
-    MESHNODE -->|":7777 embedded relay, allowlisted signer -> OK true<br/>non-allowlisted -> rejected pubkey"| MLHOST
+    MLHOST -->|"port 9096 NIP-98 door, signed by ml key -> 200<br/>unsigned -> 401 (hp-peer-node.md probe table)"| MESHNODE
+    MESHNODE -->|"port 7777 embedded relay, allowlisted signer -> OK true<br/>non-allowlisted -> rejected pubkey"| MLHOST
 
     NOTEENV["Note (environment fact, not repo-sourced,<br/>cited per workspace CLAUDE.md Compute and LLM endpoints):<br/>machinelearn LAN is .132 on Mellanox p1 (ens1f1np1) to Sodola TE5;<br/>eno1 is 1G DHCP fallback .160 metric 700;<br/>HP rail is ens1f0np0 to enp65s0f0np0, MTU 9000, never-default;<br/>MSS clamp for the 9000 to 1500 step-down;<br/>Sodola VLANs 20/40/50/100; 192.168.2.0/24 trusted server segment"]
     NOTEENV -.-> MLHOST
@@ -111,10 +111,10 @@ flowchart LR
 ```mermaid
 flowchart TB
     subgraph vcstack["VisionClaw stack — docker-compose.unified.yml"]
-        VCD["visionclaw_container<br/>profiles development, dev<br/>compose:46,165-167"]
-        VCP["visionclaw_prod_container<br/>profiles production, prod<br/>compose:170,239-241"]
-        LOOMB["loom-sidecar<br/>profile loom, compose:288,350-351"]
-        CFT["cloudflared-tunnel<br/>profiles production, prod<br/>compose:244,263-265"]
+        VCD["visionclaw_container<br/>profiles development, dev<br/>docker-compose.unified.yml:46,165-167"]
+        VCP["visionclaw_prod_container<br/>profiles production, prod<br/>docker-compose.unified.yml:170,239-241"]
+        LOOMB["loom-sidecar<br/>profile loom, docker-compose.unified.yml:288,350-351"]
+        CFT["cloudflared-tunnel<br/>profiles production, prod<br/>docker-compose.unified.yml:244,263-265"]
     end
     subgraph abstack["agentbox stack — agentbox/docker-compose.yml"]
         ABC["agentbox container<br/>agentbox/docker-compose.yml:30"]
@@ -129,10 +129,10 @@ flowchart TB
         OM["openmed"]
     end
 
-    VCD -->|"3001 nginx<br/>compose:147"| EXT1["host"]
-    VCD -->|"4000 Rust backend<br/>compose:148"| EXT1
-    VCP -->|"3001 only<br/>compose:215"| EXT1
-    LOOMB -->|"host 8090 to container 8080<br/>compose:335"| EXT1
+    VCD -->|"3001 nginx<br/>docker-compose.unified.yml:147"| EXT1["host"]
+    VCD -->|"4000 Rust backend<br/>docker-compose.unified.yml:148"| EXT1
+    VCP -->|"3001 only<br/>docker-compose.unified.yml:215"| EXT1
+    LOOMB -->|"host 8090 to container 8080<br/>docker-compose.unified.yml:335"| EXT1
     ABC -->|"9096 LAN — the ONLY 0.0.0.0 publish<br/>agentbox/docker-compose.yml:54"| EXT1
     ABC -->|"127.0.0.1 9090 9700 9091 8484 8888 5901 8080<br/>agentbox/docker-compose.yml:55-61"| LOOPBACK["loopback only"]
     RPG -->|"5432 internal"| ABC
@@ -143,9 +143,9 @@ flowchart TB
     AND -->|"127.0.0.1 5555"| LOOPBACK
     OM -->|"127.0.0.1 9093"| LOOPBACK
 
-    INV["INVARIANT ADR-2013 — every compose publish binds 127.0.0.1<br/>unless it is on the SANCTIONED list. In the main agentbox<br/>compose only :9096 is a LAN door. see ES-10.8"]
+    INV["INVARIANT ADR-2013 — every compose publish binds 127.0.0.1<br/>unless it is on the SANCTIONED list. In the main agentbox<br/>compose only port 9096 is a LAN door. see ES-10.8"]
     D1["NOT A DEFECT — browsercontainer maps host 9222 to container 9223<br/>by design (docker-compose.browsercontainer.yml:51-53, CDP proxy<br/>host:9222 to socat:9223 to Chrome:9222). The ADR-2013 sanctioned<br/>entry names 9222 (host side) and agentbox/CLAUDE.md names 9223<br/>(container side) — both correct, easy to misread as a conflict."]
-    D2["EXTERNAL — Loom :8084 façade and loom-model :8085 run on<br/>HP-Desktop, NOT in either compose file. xinference :9997 and<br/>email-mcp-gateway :8765 are likewise separate services on<br/>visionclaw_network. see ES-01.2 and ES-06.1"]
+    D2["EXTERNAL — Loom port 8084 façade and loom-model port 8085 run on<br/>HP-Desktop, NOT in either compose file. xinference port 9997 and<br/>email-mcp-gateway port 8765 are likewise separate services on<br/>visionclaw_network. see ES-01.2 and ES-06.1"]
 
     LOOPBACK --> INV
     BC --> D1
@@ -159,7 +159,7 @@ flowchart TB
         N1["docker-compose.unified.yml:363-366<br/>external true, name ${EXTERNAL_NETWORK:-visionclaw_network}"]
         N2["agentbox/docker-compose.override.yml:181-183<br/>alias visionclaw, external true"]
     end
-    subgraph vcvol["VisionClaw volumes — docker-compose.unified.yml:370-390"]
+    subgraph vcvol["VisionClaw volumes — docker-compose.unified.yml:371-393"]
         V1["loom-data — mirrored corpus generation"]
         V2["visionclaw-data / visionclaw-logs"]
         V3["npm-cache / cargo-cache / cargo-git-cache / cargo-target-cache"]
@@ -214,7 +214,7 @@ flowchart LR
 
     N1["Every overlay declares the same external network under the<br/>local alias visionclaw, so all sidecars share one bridge."]
     N2["group_add 965 is the docker socket gid — the container drives<br/>docker WITHOUT sudo, which no-new-privileges blocks."]
-    D1["RESOLVED ADR-2013 — the voice overlay publishes :8443/:8444 on<br/>0.0.0.0 while the main compose publishes only :9096. Across all<br/>overlays there are TEN sanctioned publishes, each cited on the<br/>SANCTIONED list and CI-enforced — decided exposures, not a<br/>breach. see ES-10.8"]
+    D1["RESOLVED ADR-2013 — the voice overlay publishes port 8443/:8444 on<br/>0.0.0.0 while the main compose publishes only port 9096. Across all<br/>overlays there are TEN sanctioned publishes, each cited on the<br/>SANCTIONED list and CI-enforced — decided exposures, not a<br/>breach. see ES-10.8"]
     D2["TRAP — a build launched from INSIDE this container resolves bind<br/>paths against the HOST filesystem and silently bakes stale code.<br/>Build only from the host shell. see ES-09"]
 
     OV --> N1

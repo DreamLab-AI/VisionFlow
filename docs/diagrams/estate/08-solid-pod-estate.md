@@ -10,6 +10,8 @@ adrs: [visionclaw:ADR-2015, visionclaw:ADR-2016, visionclaw:ADR-2017, visionclaw
 sources:
   - ../project/Cargo.toml
   - ../project/src/handlers/solid_proxy_handler.rs
+  - ../project/src/services/ontology_generation.rs
+  - ../project/src/services/data_reconciliation.rs
   - ../project/src/services/ontology_pull.rs
   - ../project/src/main.rs
   - ../project/src/handlers/mod.rs
@@ -32,7 +34,7 @@ sources:
   - ../project/client/src/services/solidPod/typeIndex.ts
   - ../project/bin/jss.js
   - ../project/scripts/backup-sqlite.sh
-verified_commit: {visionclaw: 36bb64e1e, agentbox: 2c521c5bb}
+verified_commit: {visionclaw: dd82a07b0, agentbox: 2c521c5bb}
 ---
 ## ES-08.1 Four coexisting Solid-pod deployments — topology contrast
 
@@ -48,19 +50,19 @@ flowchart TB
 
     subgraph AB["agentbox container — supervised service"]
         SUP["supervisord [program:solid-pod]<br/>agentbox/flake.nix:2163-2172"]
-        SRV["solid-pod-rs-server :8484<br/>agentbox/agentbox.toml:459-467"]
+        SRV["solid-pod-rs-server  port 8484<br/>agentbox/agentbox.toml:459-467"]
         HTTPS["[program:https-bridge]<br/>agentbox/flake.nix:2180"]
         SUP -->|"exec solidPodRsLauncher"| SRV
-        HTTPS -->|"TLS terminate to :8484"| SRV
+        HTTPS -->|"TLS terminate to  port 8484"| SRV
     end
 
     subgraph CF["Cloudflare Tunnel overlay"]
         CFD["cloudflared-pod<br/>agentbox/docker-compose.solid-pods.yml:26-33"]
     end
-    CFD -->|"pods-native.dreamlab-ai.com to agentbox:8484"| SRV
+    CFD -->|"pods-native.dreamlab-ai.com to agentbox port 8484"| SRV
 
     subgraph LEGACY["JavaScriptSolidServer — DELETED by ADR-2068"]
-        JSS["was bin/jss.js :3000 at the repo root —<br/>a vendored third-party copy, now removed.<br/>see ES-08.10"]
+        JSS["was bin/jss.js  port 3000 at the repo root —<br/>a vendored third-party copy, now removed.<br/>see ES-08.10"]
     end
 
     MGMT["management-api adapters/pods/local-solid-rs.js<br/>DEFAULT_BASE is loopback port 8484"] -->|"HTTP LDP"| SRV
@@ -165,7 +167,7 @@ sequenceDiagram
     participant C as Caller
     participant H as handle_solid_proxy<br/>solid_proxy_handler.rs:304-311
     participant AUTH as authenticate_request<br/>solid_proxy_handler.rs:244-246
-    participant ACL as load_acl_for_path<br/>solid_proxy_handler.rs:881-884
+    participant ACL as load_acl_for_path<br/>solid_proxy_handler.rs:882
     participant WAC as evaluate_access<br/>solid_pod_rs::wac (imported line 55)
     participant FS as FsBackend storage
 
@@ -200,7 +202,7 @@ sequenceDiagram
         H-->>C: 403 WAC denies access_mode access to path lines 353-360
     end
 
-    Note over H: RESOLVED ADR-2067 — the cfg(not(solid-pod-embed)) 503 stub twins are GONE<br/>(solid_proxy_handler.rs:1651-1654, 1694-1697). With the feature off,<br/>configure_routes registers NO /solid routes at all (:1800-1802), so an<br/>unfeatured build 404s at the router rather than 503ing in a handler. see ES-08.1
+    Note over H: RESOLVED ADR-2067 — the cfg(not(solid-pod-embed)) 503 stub twins are GONE<br/>(solid_proxy_handler.rs:1801). With the feature off,<br/>configure_routes registers NO /solid routes at all (:1800-1802), so an<br/>unfeatured build 404s at the router rather than 503ing in a handler. see ES-08.1
     Note over ACL,FS: WAC resource-specific ACL, containers use dir slash dot acl,<br/>non-containers use resource dot acl WAC spec section 4.1, falls back to<br/>parent-container acl then root acl, solid_proxy_handler.rs:894-926
 ```
 
@@ -210,9 +212,9 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant CL as Client
-    participant R as init_pod_nip98<br/>solid_proxy_handler.rs:1311-1313
+    participant R as init_pod_nip98<br/>solid_proxy_handler.rs:1312
     participant PE as pod_exists<br/>solid_proxy_handler.rs:946
-    participant CS as create_pod_with_structure<br/>solid_proxy_handler.rs:951-953
+    participant CS as create_pod_with_structure<br/>solid_proxy_handler.rs:952
     participant PP as provision_pod<br/>solid_pod_rs::provision (imported line 51)
     participant FS as FsBackend storage
     participant AU as admin-users.js<br/>POST /admin/users/provision:137
@@ -253,7 +255,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Caller
-    participant H as handle_patch<br/>solid_proxy_handler.rs:742-743
+    participant H as handle_patch<br/>solid_proxy_handler.rs:744
     participant D as patch_dialect_from_mime<br/>solid_pod_rs::ldp (imported line 47)
     participant G as Graph::parse_ntriples<br/>solid_pod_rs::ldp
     participant FS as FsBackend storage
@@ -448,10 +450,10 @@ flowchart LR
 ```mermaid
 sequenceDiagram
     autonumber
-    participant M as "server boot (solid-pod-embed)"<br/>src/main.rs:848
-    participant SP as spawn_boot_pull<br/>src/services/ontology_pull.rs:384
+    participant M as "server boot (solid-pod-embed)"<br/>src/main.rs:877
+    participant SP as spawn_boot_pull<br/>src/services/ontology_pull.rs:387
     participant CFG as OntologyPullConfig::from_env<br/>src/services/ontology_pull.rs:77
-    participant P1 as pull_once<br/>src/services/ontology_pull.rs:290
+    participant P1 as pull_once<br/>src/services/ontology_pull.rs:293
     participant REL as "GitHub release ontology-latest"<br/>src/services/ontology_pull.rs:38
     participant ST as "pod Storage (FsBackend)"
 
@@ -461,22 +463,21 @@ sequenceDiagram
         SP-->>M: log "ontology pull disabled" and return<br/>ontology_pull.rs:390-391
     end
     SP->>P1: loop { pull_once — sleep(interval) } — break when interval None<br/>ontology_pull.rs:401-407
-    P1->>REL: GET index.jsonld :304
-    P1->>P1: parse_manifest :202
-    P1->>ST: pod_build_sha reads /public/ontology/index.jsonld :281-285
-    alt visionflow:buildSha unchanged
-        P1-->>SP: PullOutcome::UpToDate — no writes at all :307-310
+    P1->>REL: GET index.jsonld<br/>ontology_pull.rs:307
+    P1->>ST: pod_build_sha plus active-generation check<br/>ontology_pull.rs:310
+    alt buildSha unchanged AND active atomic generation exists
+        P1-->>SP: UpToDate, no mutation
     end
-    P1->>REL: GET SHA256SUMS :313, then each of the 4 CONTENT_FILES :315-319
-    P1->>P1: sha256_hex compared to the expected sum — mismatch aborts :320-327
-    P1->>P1: the MANIFEST itself must also carry a sum, else MissingSum :331-342
-    Note over P1,ST: WRITE ORDER IS THE CONTRACT — containers first (:346-353),<br/>then /public/ontology/.acl ONLY IF ABSENT so an operator edit<br/>survives (:354-362), then content (:363-367), MANIFEST LAST (:368-374).<br/>The manifest is the build-sha marker, so writing it last makes a<br/>half-applied pull re-run rather than look up to date.
-    P1->>ST: create_container /public/ and /public/ontology/ :346
-    P1->>ST: put .acl = public_read_acl, foaf:Agent acl:Read :254-278
-    P1->>ST: put the 4 verified content files, then index.jsonld
-    P1-->>SP: PullOutcome::Updated { build_sha, classes, triples } :375-379
-    Note over M,REL: INVARIANT ADR-2106 — the pull NEVER blocks start-up and never<br/>fails the server — every outcome is logged by log_outcome :411.<br/>A fetch or checksum failure before storage writes leaves the pod unchanged.<br/>A storage failure during sequential writes may leave mixed content — the<br/>manifest-last marker enables retry, not atomic activation or reader isolation.
+    P1->>REL: GET SHA256SUMS and four content resources<br/>ontology_pull.rs:318
+    P1->>P1: Verify content hashes and manifest hash<br/>ontology_pull.rs:322
+    Note over P1,ST: Preserve existing ACL, an existence-probe error aborts.<br/>Verified resources are staged as an immutable generation,<br/>then fsynced before atomic pointer activation.
+    P1->>ST: publish_ontology five resources<br/>ontology_generation.rs:216
+    ST->>ST: Sync content/sidecars, generation directory and pending pointer<br/>ontology_generation.rs:127
+    ST->>ST: Rename pointer, then sync root
+    P1-->>SP: Updated only after publication returns success
+    Note over P1,ST: Pre-activation failures retain the old generation after restart.<br/>Post-rename root-sync failure means durability unknown,<br/>but visible resources still belong to a complete generation.
+    Note over M,REL: Pull remains asynchronous and logs failures.<br/>Canonical manifest exposes visionflow:generation, browser pins<br/>JSON-LD/Turtle reads to immutable @generation paths.<br/>Pinned paths reuse canonical ACLs. Unpinned requests may straddle activation.
     Note over REL: EXTERNAL — the release is produced by the VisionClaw<br/>ontology-publish workflow from the jjohare/visionGraph vault.<br/>Delivery was INVERTED from a CI push to this boot pull because<br/>deploy-jss could never reach an in-process pod from a hosted<br/>runner. see ES-09.13, and VG-04.1 / VG-04.2 for the vault side.
 ```
 
-The 2026-09-07 audit distinguishes ES-08.9's missing cross-store erasure dispatch from HNSW index degradation. This source path demonstrates neither bulk vector deletion nor degraded recall. ES-08.11 similarly distinguishes verified downloads from atomic multi-file activation: readers can observe partially replaced content before the manifest changes. See the [federation audit](../../estate-review/2026-09-07-federation-audit.md).
+The 2026-09-07 audit distinguishes ES-08.9's missing cross-store erasure dispatch from HNSW index degradation. This source path demonstrates neither bulk vector deletion nor degraded recall. ES-08.11 now documents the implemented generation boundary and pinned browser reads. Old unpinned consumers can still straddle activation; post-rename fsync failure does not imply the old pointer survived. The durable reconciliation journal has no production destructive adapters: subject/authority mappings and live erasure acceptance remain outstanding. See the [federation audit](../../estate-review/2026-09-07-federation-audit.md).

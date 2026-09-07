@@ -65,7 +65,7 @@ sources:
   - ../project/src/utils/unified_gpu_compute/execution.rs
   - ../project/src/handlers/api_handler/analytics/anomaly_handlers.rs
   - ../project/src/handlers/api_handler/analytics/clustering_handlers.rs
-verified_commit: 36bb64e1e
+verified_commit: dd82a07b0
 ---
 
 ## VC-09.1 Config load precedence — main() boot order
@@ -77,7 +77,7 @@ sequenceDiagram
     participant H as enforce_release_env_hygiene<br/>src/main.rs:118 real / :169 stub
     participant T as telemetry logger<br/>src/main.rs:266
     participant S as AppFullSettings::new<br/>src/main.rs:292
-    participant P as assert_effective_profile_or_exit<br/>src/config/security_profile.rs:604-612
+    participant P as assert_effective_profile_or_exit<br/>src/config/security_profile.rs:624
     participant B as HttpServer::new/bind<br/>src/main.rs:903
 
     Note over M,B: INVARIANT ordering — every refusal runs BEFORE the listener binds
@@ -101,7 +101,7 @@ sequenceDiagram
         S-->>M: Err — boot aborts
     end
     M->>M: DATA_DIR (src/main.rs:356, src/app_state.rs:453)
-    M->>M: BIND_ADDRESS (src/main.rs:800), SYSTEM_NETWORK_PORT (src/main.rs:801)
+    M->>M: BIND_ADDRESS (src/main.rs:829), SYSTEM_NETWORK_PORT (src/main.rs:801)
     M->>P: assert_effective_profile_or_exit(EnvSnapshot::from_process(), BuildIdentity::current(), today) (src/main.rs:883)
     Note over P: ADR-2038 — see VC-09.4. Pure fn over a snapshot plus the UTC date.
     P-->>M: EffectiveProfile — logged as summary + observed_flags (src/main.rs:889-893)
@@ -184,11 +184,11 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant M as main<br/>src/main.rs:878-888
+    participant M as main<br/>src/main.rs:907
     participant E as EnvSnapshot::from_process<br/>src/config/security_profile.rs:173-174
     participant BI as BuildIdentity::current<br/>src/config/security_profile.rs:241
-    participant A as assert_effective_profile_or_exit<br/>src/config/security_profile.rs:604-612
-    participant V as evaluate_effective_profile<br/>src/config/security_profile.rs:477-480
+    participant A as assert_effective_profile_or_exit<br/>src/config/security_profile.rs:624
+    participant V as evaluate_effective_profile<br/>src/config/security_profile.rs:485
 
     Note over M,V: ADR-2038 closes ADR-2012 / ADR-2026 / ADR-2027 / ADR-2037<br/>runs BEFORE HttpServer::bind at src/main.rs:903
     M->>E: from_process() — vars + argv snapshot taken once
@@ -330,7 +330,7 @@ flowchart TB
         ML4["RBAC_DEFAULT_ROLE = Exactly viewer"]
     end
     COMMON["required by ALL three — src/config/security_profile.rs:133-134<br/>PUBKEY_VISIBILITY_FILTER = Exactly 1<br/>RBAC_GATE_MODE = Exactly enforce (unset also satisfies enforce, the code default)"]
-    SEL["VISIONCLAW_SECURITY_PROFILE<br/>src/config/security_profile.rs:55<br/>parse tolerates case and _ vs - (:107)"]
+    SEL["VISIONCLAW_SECURITY_PROFILE<br/>src/config/security_profile.rs:54<br/>parse tolerates case and _ vs - (:111)"]
     SEL --> DO
     SEL --> ST
     SEL --> ML
@@ -347,9 +347,9 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant C as caller<br/>src/config/security_profile.rs:422
-    participant R as report_mode_requested<br/>src/config/security_profile.rs:453-454
-    participant K as report_mode_acknowledged<br/>src/config/security_profile.rs:460-468
+    participant C as caller<br/>src/config/security_profile.rs:427
+    participant R as report_mode_requested<br/>src/config/security_profile.rs:459
+    participant K as report_mode_acknowledged<br/>src/config/security_profile.rs:473
     participant G as RbacGate::from_env<br/>src/middleware/rbac_gate.rs:185-200
 
     Note over C,G: single implementation shared with the gate so the two cannot drift
@@ -390,7 +390,7 @@ flowchart TB
         E9["DATA_DIR<br/>src/main.rs:356 · src/app_state.rs:453"] --> E10["SETTINGS_FILE_PATH<br/>default /app/settings.yaml<br/>src/main.rs:296"] --> E11["EVENT_STORE_PATH<br/>src/app_state.rs:897"] --> E12["LOG_DIR<br/>src/utils/advanced_logging.rs:570"] --> E13["TELEMETRY_LOG_DIR<br/>src/main.rs:266"] --> E14["DEBUG_ENABLED<br/>src/utils/advanced_logging.rs:643"]
     end
     subgraph BIND["listener"]
-        E15["BIND_ADDRESS<br/>src/main.rs:800"] --> E16["ALLOWED_WS_ORIGINS<br/>src/handlers/fastwebsockets_handler.rs:185"]
+        E15["BIND_ADDRESS<br/>src/main.rs:829"] --> E16["ALLOWED_WS_ORIGINS<br/>src/handlers/fastwebsockets_handler.rs:185"]
     end
     REQ --> RECO --> IDENT --> PATHS --> BIND
     N["branch effects — APP_ENV=production makes a missing required var fatal<br/>src/main.rs:85-97. NODE_ENV=development plus DOCKER_ENV is a<br/>release-build boot refusal, src/main.rs:141-148"]
@@ -402,13 +402,13 @@ flowchart TB
 ```mermaid
 flowchart TB
     subgraph RBAC["RBAC lattice — request-time behaviour see VC-03"]
-        S1["RBAC_PUBLIC_READS<br/>default OFF, fail-closed unwrap_or(false)<br/>src/middleware/rbac_gate.rs:126-133, doc :121-125"] --> S2["RBAC_ALLOW_OWNERLESS<br/>const src/services/role_store.rs:33<br/>read src/main.rs:735 — absence refuses boot"] --> S3["RBAC_OWNER_PUBKEY<br/>const src/services/role_store.rs:27, read :642"] --> S4["RBAC_DEFAULT_ROLE<br/>const src/services/role_store.rs:41, read :218<br/>default Editor, fail-closed to viewer"] --> S5["RBAC_GATE_MODE<br/>default enforce<br/>src/middleware/rbac_gate.rs:80-113"] --> S6["RBAC_REPORT_MODE_ACK<br/>must equal today exactly<br/>src/config/security_profile.rs:473"] --> S7["POWER_USER_PUBKEYS<br/>src/services/nostr_service.rs:125<br/>maps to Admin when unassigned"]
+        S1["RBAC_PUBLIC_READS<br/>default OFF, fail-closed unwrap_or(false)<br/>src/middleware/rbac_gate.rs:126-133, doc :121-125"] --> S2["RBAC_ALLOW_OWNERLESS<br/>const src/services/role_store.rs:33<br/>read src/main.rs:764 — absence refuses boot"] --> S3["RBAC_OWNER_PUBKEY<br/>const src/services/role_store.rs:27, read :642"] --> S4["RBAC_DEFAULT_ROLE<br/>const src/services/role_store.rs:41, read :218<br/>default Editor, fail-closed to viewer"] --> S5["RBAC_GATE_MODE<br/>default enforce<br/>src/middleware/rbac_gate.rs:80-113"] --> S6["RBAC_REPORT_MODE_ACK<br/>must equal today exactly<br/>src/config/security_profile.rs:473"] --> S7["POWER_USER_PUBKEYS<br/>src/services/nostr_service.rs:125<br/>maps to Admin when unassigned"]
     end
     subgraph BYPASS["dev bypass — presence refused in release"]
         S8["VISIONCLAW_DEV_MODE<br/>src/utils/auth.rs:100 dev_full_bypass_active"] --> S9["DEV_AUTH_LOOPBACK<br/>src/utils/auth.rs:123"] --> S10["SETTINGS_AUTH_BYPASS<br/>presence only — src/main.rs:130-134"] --> S11["ALLOW_INSECURE_DEFAULTS<br/>src/main.rs:909 · src/agent_events/ingest.rs:61<br/>src/handlers/socket_flow_handler/http_handler.rs:21"]
     end
     subgraph POSTURE["posture selectors"]
-        S12["VISIONCLAW_SECURITY_PROFILE<br/>src/config/security_profile.rs:55"] --> S13["PUBLIC_DEMO<br/>const src/middleware/public_demo.rs:24, read :28"] --> S14["PUBKEY_VISIBILITY_FILTER<br/>default ON, read ONCE and cached<br/>position_updates.rs:26 :34-43 :50-58"]
+        S12["VISIONCLAW_SECURITY_PROFILE<br/>src/config/security_profile.rs:54"] --> S13["PUBLIC_DEMO<br/>const src/middleware/public_demo.rs:24, read :28"] --> S14["PUBKEY_VISIBILITY_FILTER<br/>default ON, read ONCE and cached<br/>position_updates.rs:26 :34-43 :50-58"]
     end
     subgraph SESS["session realm"]
         S15["AUTH_TOKEN_EXPIRY<br/>src/handlers/nostr_handler.rs:134 :234<br/>src/services/nostr_service.rs:131"] --> S16["REDIS_URL<br/>src/services/nostr_service.rs:140<br/>src/actors/optimized_settings_actor.rs:146"]
@@ -466,7 +466,7 @@ flowchart TB
         M1["MCP_HOST<br/>src/app_state.rs:1171 · src/services/bots_client.rs:121<br/>src/services/speech_service.rs:1145<br/>src/services/ontology_class_index.rs:88<br/>analytics/anomaly_handlers.rs:101<br/>analytics/clustering_handlers.rs:346"] --> M2["MCP_TCP_PORT<br/>src/app_state.rs:1172 · src/services/bots_client.rs:123<br/>src/services/multi_mcp_agent_discovery.rs:92<br/>src/services/speech_service.rs:1146<br/>src/services/ontology_class_index.rs:89<br/>plus the two analytics handlers above"] --> M3["CLAUDE_FLOW_HOST<br/>src/services/bots_client.rs:120<br/>src/services/multi_mcp_agent_discovery.rs:91"]
     end
     subgraph MGMT["management API"]
-        G1["MANAGEMENT_API_HOST<br/>src/main.rs:687 · src/app_state.rs:1253<br/>src/actors/agent_monitor_actor.rs:253"] --> G2["MANAGEMENT_API_PORT<br/>src/main.rs:688 · src/app_state.rs:1255<br/>src/actors/agent_monitor_actor.rs:255"] --> G3["MANAGEMENT_API_KEY<br/>src/main.rs:692 · src/app_state.rs:87<br/>decide_management_api_credential() src/actors/agent_monitor_actor.rs:235-244<br/>called at :264-267, fail-closed panic at :287-290 (ADR-2094)"]
+        G1["MANAGEMENT_API_HOST<br/>src/main.rs:687 · src/app_state.rs:1253<br/>src/actors/agent_monitor_actor.rs:253"] --> G2["MANAGEMENT_API_PORT<br/>src/main.rs:694 · src/app_state.rs:1255<br/>src/actors/agent_monitor_actor.rs:255"] --> G3["MANAGEMENT_API_KEY<br/>src/main.rs:692 · src/app_state.rs:87<br/>decide_management_api_credential() src/actors/agent_monitor_actor.rs:235-244<br/>called at :264-267, fail-closed panic at :287-290 (ADR-2094)"]
     end
     subgraph DISC["swarm discovery"]
         D1["DAA_HOST multi_mcp_agent_discovery.rs:163 · DAA_PORT multi_mcp_agent_discovery.rs:164"] --> D2["RUV_SWARM_HOST multi_mcp_agent_discovery.rs:146 · RUV_SWARM_PORT multi_mcp_agent_discovery.rs:147"] --> D3["ORCHESTRATOR_WS_URL<br/>src/handlers/mcp_relay_handler.rs:78"]
@@ -493,7 +493,7 @@ flowchart TB
         O1["SOLID_DATA_ROOT :130 · SOLID_PROXY_SECRET_KEY :133<br/>SOLID_ALLOW_ANONYMOUS :137<br/>all in src/handlers/solid_proxy_handler.rs"] --> O2["SOLID_INTERNAL_URL<br/>src/handlers/image_gen_handler.rs:41"]
     end
     subgraph SELF["self-reference and liveness"]
-        F1["VISIONCLAW_SELF_URL<br/>default http 127.0.0.1 port<br/>src/main.rs:1195"] --> F2["VISIONCLAW_KG_WATCHDOG_SECS<br/>default 30 · src/main.rs:1197"] --> F3["VISIONCLAW_INTERNAL_URL<br/>src/actors/voice_interface_actor.rs:159<br/>src/handlers/bots_handler.rs:522"]
+        F1["VISIONCLAW_SELF_URL<br/>default http 127.0.0.1 port<br/>src/main.rs:1224"] --> F2["VISIONCLAW_KG_WATCHDOG_SECS<br/>default 30 · src/main.rs:1226"] --> F3["VISIONCLAW_INTERNAL_URL<br/>src/actors/voice_interface_actor.rs:159<br/>src/handlers/bots_handler.rs:522"]
     end
     EXT --> PAY --> SOLID --> SELF
     N5["PAY routes are mounted UNCONDITIONALLY under feature solid-pod-embed<br/>at src/main.rs:1025-1033 and stay inert until PAY_ENABLED=true —<br/>.info reports disabled, gated routes 403. See VC-04."]

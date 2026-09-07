@@ -214,7 +214,7 @@ flowchart TB
 ## DW-03.11 The forum's only D1 DDL — `migrations/001_init.sql`
 ```mermaid
 flowchart TB
-    MIG["migrations/001_init.sql<br/>476 lines, forum-config/deploy/migrations/001_init.sql"] --> IDENTITY["Identity/auth:<br/>challenges :46, webauthn_credentials :56,<br/>nip98_replay :78, members :160,<br/>username_reservations :246, whitelist :266"]
+    MIG["migrations/001_init.sql:1<br/>476 lines, forum-config/deploy/migrations/001_init.sql"] --> IDENTITY["Identity/auth:<br/>challenges :46, webauthn_credentials :56,<br/>nip98_replay :78, members :160,<br/>username_reservations :246, whitelist :266"]
     MIG --> MOD["Moderation/trust:<br/>moderation_actions :89, mod_reports :107,<br/>nip1984_reports :128, wot_entries :144,<br/>reports :382, hidden_events :408"]
     MIG --> INVITE["Invites/onboarding:<br/>invitations :169, invitation_redemptions :188,<br/>welcome_messages :201"]
     MIG --> ADMIN["Admin/settings:<br/>instance_settings :218, admin_log :332,<br/>settings :374, channel_zones :367"]

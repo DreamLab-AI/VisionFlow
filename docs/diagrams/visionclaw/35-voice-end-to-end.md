@@ -35,7 +35,7 @@ sources:
   - ../project/xr-client/rust/src/webrtc_audio.rs
   - ../project/client/src/services/WebSocketEventBus.ts
   - ../project/src/actors/elevation_actor.rs
-verified_commit: 36bb64e1e
+verified_commit: dd82a07b0
 ---
 
 ## VC-35.1 Push-to-talk state machine and the agent DID binding
@@ -584,13 +584,13 @@ flowchart TB
         S2["Kyutai TTS 1.6B - streaming<br/>voice-stack/README.md:11"]
     end
     subgraph compose["voice-stack/unmute/docker-compose.yml"]
-        C1["traefik v3.3.1 port 80<br/>compose:4, :13-14"]
-        C2["frontend unmute-frontend:latest<br/>compose:19"]
-        C3["backend unmute-backend:latest<br/>compose:33"]
-        C4["stt moshi-server worker --config configs/stt.toml<br/>compose:79-80"]
-        C5["tts moshi-server worker --config configs/tts.toml<br/>compose:56-57"]
-        C6["llm vllm/vllm-openai:v0.11.0<br/>compose:102"]
-        C7["backend env KYUTAI_STT_URL=ws://stt:8080<br/>KYUTAI_TTS_URL=ws://tts:8080<br/>KYUTAI_LLM_URL=http://llm:8000<br/>compose:40-42"]
+        C1["traefik v3.3.1 port 80<br/>unmute/docker-compose.yml:4, :13-14"]
+        C2["frontend unmute-frontend:latest<br/>unmute/docker-compose.yml:19"]
+        C3["backend unmute-backend:latest<br/>unmute/docker-compose.yml:33"]
+        C4["stt moshi-server worker --config configs/stt.toml<br/>unmute/docker-compose.yml:79-80"]
+        C5["tts moshi-server worker --config configs/tts.toml<br/>unmute/docker-compose.yml:56-57"]
+        C6["llm vllm/vllm-openai:v0.11.0<br/>unmute/docker-compose.yml:102"]
+        C7["backend env KYUTAI_STT_URL=ws://stt:8080<br/>KYUTAI_TTS_URL=ws://tts:8080<br/>KYUTAI_LLM_URL=http://llm:8000<br/>unmute/docker-compose.yml:40-42"]
     end
     subgraph box["agentbox container"]
         B1["tab0-bridge port 8971 - OpenAI-compatible<br/>brain headless claude -p, tools tmux send-keys<br/>window 0 only, feed WS /feed<br/>voice-stack/README.md:14-17"]
@@ -608,5 +608,5 @@ flowchart TB
     box --> SEP
     SEP["SEPARATE SUBSYSTEM: this is the agentbox tmux voice plane<br/>(Track A), not the VisionClaw graph voice loop. Its LLM is the<br/>tab0-bridge, its STT/TTS are Kyutai models, and its grammar is<br/>'tell tab zero to ...' / 'what's tab zero doing?'.<br/>voice-stack/README.md:53-56. The kokoros container serving the<br/>VisionClaw visualiser is explicitly untouched by it<br/>voice-stack/README.md:20 - see AB-06 for the console boundary."]
     compose --> DIV
-    DIV["Kokoros, Whisper-WebUI and xinference are UNTRACKED symlinks at the repo root,<br/>gitignored at .gitignore:227-229 and absent from .gitmodules - NOT submodules.<br/>All three dangle in this container (targets /mnt/nvme/githubs/Kokoros,<br/>/mnt/mldata/githubs/Whisper-WebUI, /mnt/nvme/githubs/xinference). git ls-files<br/>returns nothing for any of them. Kokoros and Whisper-WebUI have no tracked<br/>.yml/.toml/.rs/.sh reference and are pure developer convenience; xinference is<br/>DIFFERENT - it has live compose consumers (docker-compose.unified.yml:312,<br/>agentbox/docker-compose.yml:89), so Xinference is a runtime endpoint dependency.<br/>These URL consumers do not prove the dangling checkout link is used. The container contracts are knowable only from the<br/>consuming Rust: kokoro-tts-container:8880 /v1/audio/speech and<br/>whisper-webui-backend:8000 /v1/audio/transcriptions - see VC-35.6 and<br/>VC-35.9. No port or protocol here was read from their own sources. see ES-01.6"]
+    DIV["Kokoros, Whisper-WebUI and xinference are UNTRACKED symlinks at the repo root,<br/>gitignored at .gitignore:227-229 and absent from .gitmodules - NOT submodules.<br/>All three dangle in this container (targets /mnt/nvme/githubs/Kokoros,<br/>/mnt/mldata/githubs/Whisper-WebUI, /mnt/nvme/githubs/xinference). git ls-files<br/>returns nothing for any of them. Kokoros and Whisper-WebUI have no tracked<br/>.yml/.toml/.rs/.sh reference and are pure developer convenience; xinference is<br/>DIFFERENT - it has live compose consumers (docker-compose.unified.yml:315,<br/>agentbox/docker-compose.yml:89), so Xinference is a runtime endpoint dependency.<br/>These URL consumers do not prove the dangling checkout link is used. The container contracts are knowable only from the<br/>consuming Rust: kokoro-tts-container:8880 /v1/audio/speech and<br/>whisper-webui-backend:8000 /v1/audio/transcriptions - see VC-35.6 and<br/>VC-35.9. No port or protocol here was read from their own sources. see ES-01.6"]
 ```

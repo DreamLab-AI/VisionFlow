@@ -37,7 +37,7 @@ sources:
   - ../project/docker-compose.unified.yml
   - ../project/src/app_state.rs
   - ../project/src/services/ontology_mutation_service.rs
-verified_commit: 36bb64e1e
+verified_commit: dd82a07b0
 ---
 
 ## VC-22.1 Write-master per data class
@@ -62,7 +62,7 @@ flowchart LR
     AuditRBAC["Audit evidence RBAC/auth"] --> RoleTable["user_roles table in settings.sqlite3<br/>role_store.rs:46-52"]
 
     Sessions["Session cache<br/>NostrService users map"] --> RedisGate{"redis feature AND REDIS_URL?<br/>Cargo.toml:253, nostr_service.rs:149"}
-    RedisGate -->|yes| Redis["Optional Redis session persistence<br/>SETEX with token-expiry TTL<br/>nostr_service.rs:245-299"]
+    RedisGate -->|yes| Redis["Optional Redis session persistence<br/>SETEX with token-expiry TTL<br/>nostr_service.rs:255"]
     RedisGate -->|no| Memory["In-memory sessions only<br/>nostr_service.rs:114"]
     Redis -.->|"restore at initialisation"| Sessions
     RedisScope["Not enabled by default; deployment not verified<br/>ADR-2004 all-non-triple-state wording needs scope"] -.-> Redis
@@ -382,8 +382,8 @@ sequenceDiagram
     participant RS as RoleStore.effective_role<br/>src/services/role_store.rs:359
 
     Note over BOOT: RBAC_PUBLIC_READS is fail-closed in code - .unwrap_or(false) (rbac_gate.rs:126-133) - and set on only by compose (docker-compose.unified.yml:93)
-    BOOT->>BOOT: RBAC_ALLOW_OWNERLESS env check (main.rs:735-737, const at role_store.rs:33)
-    alt no Owner assigned AND RBAC_ALLOW_OWNERLESS=1 (main.rs:740-746)
+    BOOT->>BOOT: RBAC_ALLOW_OWNERLESS env check (main.rs:764, const at role_store.rs:33)
+    alt no Owner assigned AND RBAC_ALLOW_OWNERLESS=1 (main.rs:769)
         BOOT->>BOOT: warn, run owner-less, only POWER_USER_PUBKEYS to Admin fallback applies
     else no Owner assigned and flag unset
         BOOT--xBOOT: FATAL refuse to start, fail-closed (main.rs:747-756)

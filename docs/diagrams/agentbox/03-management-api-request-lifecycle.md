@@ -331,7 +331,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     subgraph memory["routes/memory.js — 503 when adapters.pods off, guard privacy-filter"]
-        M1["POST /v1/memory<br/>memory.js:109<br/>guard middleware/privacy-filter.js:28"] --> MH1["write to Solid pod memory"]
+        M1["POST /v1/memory<br/>memory.js:109<br/>guard middleware/privacy-filter.js:649 wrapWithPrivacyFilter"] --> MH1["write to Solid pod memory"]
         M2["GET /v1/memory/:key<br/>memory.js:196"] --> MH2["read memory entry"]
         M3["POST /v1/memory/search<br/>memory.js:229"] --> MH3["search memory"]
         M4["GET /v1/memory<br/>memory.js:267"] --> MH4["list memory keys"]
@@ -428,10 +428,10 @@ flowchart TD
         VI1["POST /v1/voice-intent<br/>voice-intent.js:82"] --> VIH1["transcript to agent intent<br/>dispatch signed 31402 or 503 when signer unavailable (server.js:966-968)"]
     end
     subgraph bb["routes/broker-bridge.js — G6"]
-        BB1["GET /api/broker/bridge/inbox<br/>broker-bridge.js:252"] --> BBH1["enrichment review inbox"]
-        BB2["GET /api/broker/bridge/cases/:id<br/>broker-bridge.js:330"] --> BBH2["case detail"]
-        BB3["POST /api/broker/bridge/cases/:id/decide<br/>broker-bridge.js:371<br/>guard signed-31403 broker-bridge.js:443-445"] --> BBH3["zero-tolerance decision — DENY unless verified approve"]
-        BB4["GET /api/broker/bridge/events<br/>broker-bridge.js:703"] --> BBH4["event feed"]
+        BB1["GET /api/broker/bridge/inbox<br/>broker-bridge.js:254"] --> BBH1["enrichment review inbox"]
+        BB2["GET /api/broker/bridge/cases/:id<br/>broker-bridge.js:332"] --> BBH2["case detail"]
+        BB3["POST /api/broker/bridge/cases/:id/decide<br/>broker-bridge.js:373<br/>guard signed-31403 broker-bridge.js:439"] --> BBH3["operation-bound signed approval<br/>durable received claim before mutation<br/>applied receipt requires committed upstream acknowledgement"]
+        BB4["GET /api/broker/bridge/events<br/>broker-bridge.js:739"] --> BBH4["event feed"]
         BB5["GET /api/broker/bridge/cases/:id/history<br/>broker-bridge.js:812"] --> BBH5["case history"]
     end
     subgraph gb["routes/git-bridge.js — G5, BC20"]
@@ -459,7 +459,7 @@ sequenceDiagram
     participant Disk as YYYY-MM-DD.jsonl<br/>adapters/events/local-jsonl.js:114
     participant Sys as GET /v1/system/audit-chain<br/>routes/system.js:47
 
-    Note over Adapter,Chain: hash = SHA256(prev_hash || canonical_json(record minus prev_hash,hash))<br/>lib/audit-chain.js:5,68-72
+    Note over Adapter,Chain: hash = SHA256(prev_hash || canonical_json(record minus prev_hash,hash))<br/>lib/audit-chain.js:6 and :68-72
     Adapter->>Chain: _initChain — readTail(dir) on first dispatch<br/>local-jsonl.js:122-127, audit-chain.js:195-229
     Chain->>Disk: scan newest YYYY-MM-DD.jsonl, walk lines backward<br/>audit-chain.js:198-213
     alt a chained tail record found
@@ -499,7 +499,7 @@ sequenceDiagram
     participant V as verifyAgentEventRequest / reconcileSourceUrn<br/>agent-events.js:365,374
     participant T as taxonomy.tagFailure<br/>lib/failure-taxonomy.js:171
     participant C as taxonomy.classify<br/>lib/failure-taxonomy.js:143
-    participant Pub as agentEventPublisher.emitAgentAction<br/>utils/agent-event-publisher.js:125
+    participant Pub as agentEventPublisher.emitAgentAction<br/>utils/agent-event-publisher.js:50
 
     R->>V: verifyAgentEventRequest(request)<br/>agent-events.js:365
     alt auth.ok is false
@@ -521,7 +521,7 @@ sequenceDiagram
         else reconciled
             R->>Pub: emitAgentAction(emitPayload)<br/>agent-events.js:420
             opt caller forwarded failure_mode
-                Pub->>C: classify(ctx) — pass-through when ctx.mode is a known FM-x.y<br/>utils/agent-event-publisher.js:125, lib/failure-taxonomy.js:146
+                Pub->>C: classify(ctx) — pass-through when ctx.mode is a known FM-x.y<br/>utils/agent-event-publisher.js:50, lib/failure-taxonomy.js:146
             end
         end
     end

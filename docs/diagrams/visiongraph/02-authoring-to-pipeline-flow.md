@@ -16,7 +16,7 @@ sources:
   - ../visionGraph/pipeline/scaffold_index.py
   - ../visionGraph/pipeline/prose_index.py
   - ../visionGraph/pipeline/validate.py
-verified_commit: worktree-2026-09-07
+verified_commit: 482ba593bcffddca7d564d0b6c4b1fea225154fb
 ---
 
 ## VG-02.1 build() — 9 stages, two more than knowledgeGraph's pipeline

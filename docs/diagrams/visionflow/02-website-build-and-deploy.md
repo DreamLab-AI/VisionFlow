@@ -73,7 +73,7 @@ flowchart LR
     subgraph STATIC["website/static/ — hand-written source"]
         IDX["index.html — one page, ~97 KB<br/>one module entry at index.html:1157<br/>one local stylesheet at index.html:23"]:::src
         CSS["css/styles.css — the sole stylesheet"]:::src
-        MAIN["js/main.js — sole ES module entrypoint<br/>DOMContentLoaded wiring at main.js:844"]:::src
+        MAIN["js/main.js — sole ES module entrypoint<br/>DOMContentLoaded wiring at main.js:845"]:::src
         MESH["js/mesh-webgl.js — hand-written WebGL2 ES module<br/>initMesh returns null without WebGL2<br/>mesh-webgl.js:15"]:::src
         DATA["data/estate-health.json — committed nightly snapshot<br/>estate-health.json:2 schema visionflow.estate-health/1<br/>see VF-03"]:::src
         MEDIA["img/showcase/*.webp and video/*.mp4"]:::src
@@ -340,7 +340,7 @@ stateDiagram-v2
     [*] --> Parse
     state "browser parses index.html — one stylesheet, one module" as Parse
     Parse --> DOMReady
-    state "DOMContentLoaded handler — main.js:844" as DOMReady
+    state "DOMContentLoaded handler — main.js:845" as DOMReady
     DOMReady --> Nav
     DOMReady --> Sections
     DOMReady --> Estate

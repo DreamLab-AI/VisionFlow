@@ -35,7 +35,7 @@ sources:
   - ../project/src/services/nostr_service.rs
   - ../project/src/utils/auth.rs
   - ../project/src/utils/nip98.rs
-verified_commit: 36bb64e1e
+verified_commit: dd82a07b0
 ---
 ## VC-33.1 NIP-07 extension login (client-asserted, no server verify round-trip)
 ```mermaid
@@ -53,9 +53,9 @@ sequenceDiagram
         NA->>NA: ephemeral pubkey sessionStorage ephemeral_session_pubkey nostrAuthService.ts:323-333
         Note over NA: auto-authenticated as isPowerUser true. no extension needed
     else normal mode
-        NA->>LS: getItem nostr_user nostrAuthService.ts:341
+        NA->>LS: getItem nostr_user nostrAuthService.ts:343
         LS-->>NA: cached SimpleNostrUser or null
-        NA->>NA: restorePasskeySession() nostrAuthService.ts:355,581
+        NA->>NA: restorePasskeySession() nostrAuthService.ts:357,581
         opt user cached but no signer available
             NA->>NA: waitForNip07Provider 5000ms nostrAuthService.ts:227,365
             NA->>EXT: poll and Object.defineProperty hook waitForNip07 nostrAuthService.ts:70-144
@@ -68,29 +68,29 @@ sequenceDiagram
             end
         end
     end
-    NA-->>H: notifyListeners AuthState nostrAuthService.ts:477-485
+    NA-->>H: notifyListeners AuthState nostrAuthService.ts:479
 
     U->>H: login() useNostrAuth.ts:66
-    H->>NA: login() nostrAuthService.ts:388
+    H->>NA: login() nostrAuthService.ts:390
     NA->>NA: hasNip07Provider() nostrAuthService.ts:213-215
     alt no NIP-07 provider installed
         NA-->>H: throw Nostr NIP-07 provider not found nostrAuthService.ts:391-395
     else provider present
-        NA->>EXT: getPublicKey() nostrAuthService.ts:398
+        NA->>EXT: getPublicKey() nostrAuthService.ts:400
         alt user rejects in extension popup
             EXT-->>NA: reject User rejected
             NA-->>H: errorMessage Login request rejected in Nostr extension nostrAuthService.ts:416-417
         else success
             EXT-->>NA: pubkey hex
-            NA->>NA: hexToNpub(pubkey) nip19.npubEncode nostrAuthService.ts:406,503-511
+            NA->>NA: hexToNpub(pubkey) nip19.npubEncode nostrAuthService.ts:406,505
             NA->>NA: currentUser = pubkey npub isPowerUser false nostrAuthService.ts:404-408
             Note over NA: isPowerUser is a client-side placeholder. server determines it per-request from<br/>POWER_USER_PUBKEYS. no verify endpoint exists in this file
-            NA->>LS: setItem nostr_user JSON nostrAuthService.ts:438-444
+            NA->>LS: setItem nostr_user JSON nostrAuthService.ts:440
             NA-->>H: AuthState authenticated true user
         end
     end
     H-->>U: authState re-render
-    Note over NA: getSessionToken() is deprecated. always returns null nostrAuthService.ts:433-436.<br/>NIP-98 is per-request, no bearer token is minted here
+    Note over NA: getSessionToken() is deprecated. always returns null nostrAuthService.ts:435.<br/>NIP-98 is per-request, no bearer token is minted here
 ```
 
 ## VC-33.2 NIP-98 per-request signing — two independent signing sites (DIVERGENCE)
@@ -135,13 +135,13 @@ sequenceDiagram
     NA->>NA: build kind 27235 tags u=fullUrl method=METHOD nostrAuthService.ts:254-257,288-291
     Note over NA: INVARIANT. the u tag must be the exact request URL including query string. constructed via new URL(url, origin).href in both sites
     opt body present
-        NA->>NA: sha256 digest hex append payload tag nostrAuthService.ts:259-266,293-300
+        NA->>NA: sha256 digest hex append payload tag nostrAuthService.ts:260,295-302
     end
-    NA->>NA: unsignedEvent kind 27235 created_at tags content empty nostrAuthService.ts:268-273,302-307
+    NA->>NA: unsignedEvent kind 27235 created_at tags content empty nostrAuthService.ts:269,304
     alt localPrivateKey set (passkey-derived)
-        NA->>NA: finalizeEvent(eventTemplate, localPrivateKey) nostrAuthService.ts:309
+        NA->>NA: finalizeEvent(eventTemplate, localPrivateKey) nostrAuthService.ts:311
     else NIP-07 extension
-        NA->>EXT: window.nostr.signEvent(unsignedEvent) nostrAuthService.ts:275
+        NA->>EXT: window.nostr.signEvent(unsignedEvent) nostrAuthService.ts:276
         alt no signer available
             NA-->>AI: throw No signing method available nostrAuthService.ts:250-251
         end
@@ -183,7 +183,7 @@ sequenceDiagram
         Note over AI: one-shot console.warn. skipAuth is informational only client-side. the<br/>server alone decides ADR-06 section D1 comment authInterceptor.ts:12-25
     end
 
-    Note over NA,S: NON-DEV realm. ADR-2009 legacy session-bearer fallback (UUID minted at<br/>login, plain-equality check against token_expiry) is a SERVER-side acceptance path in<br/>src/utils/auth.rs and src/services/nostr_service.rs:478. No client code in this tree<br/>ever constructs an X-Nostr-Token session header — nostrAuthService.getSessionToken()<br/>always returns null nostrAuthService.ts:433-436. The browser client's only two realms<br/>actually exercised are NIP-98 (VC-33.2) and the dev-session-token bearer above
+    Note over NA,S: NON-DEV realm. ADR-2009 legacy session-bearer fallback (UUID minted at<br/>login, plain-equality check against token_expiry) is a SERVER-side acceptance path in<br/>src/utils/auth.rs and src/services/nostr_service.rs:478. No client code in this tree<br/>ever constructs an X-Nostr-Token session header — nostrAuthService.getSessionToken()<br/>always returns null nostrAuthService.ts:435. The browser client's only two realms<br/>actually exercised are NIP-98 (VC-33.2) and the dev-session-token bearer above
 ```
 
 ## VC-33.4 Passkey / WebAuthn registration and authentication ceremonies
@@ -255,20 +255,20 @@ sequenceDiagram
     autonumber
     participant U as User
     participant H as useNostrAuth<br/>useNostrAuth.ts:81
-    participant NA as NostrAuthService<br/>nostrAuthService.ts:427
+    participant NA as NostrAuthService<br/>nostrAuthService.ts:429
     participant SPS as SolidPodService<br/>client/src/services/SolidPodService.ts:426
     participant LS as localStorage
     participant SS as sessionStorage
 
     U->>H: logout()
-    H->>NA: logout() nostrAuthService.ts:427
-    NA->>NA: clearSession() nostrAuthService.ts:446-465
+    H->>NA: logout() nostrAuthService.ts:429
+    NA->>NA: clearSession() nostrAuthService.ts:448
     NA->>NA: currentUser = null
     critical wipe key material
         NA->>NA: localPrivateKey.fill(0) then null nostrAuthService.ts:448-451
-        NA->>NA: module-scoped _localKeyHex cleared nostrAuthService.ts:452-455
+        NA->>NA: module-scoped _localKeyHex cleared nostrAuthService.ts:454
     end
-    NA->>LS: removeItem nostr_user nostrAuthService.ts:456
+    NA->>LS: removeItem nostr_user nostrAuthService.ts:458
     NA->>LS: removeItem nostr_session_token legacy nostrAuthService.ts:458
     NA->>SS: removeItem nostr_privkey, nostr_passkey_pubkey, nostr_prf nostrAuthService.ts:460-464
     NA-->>H: notifyListeners authenticated false nostrAuthService.ts:430
@@ -380,7 +380,7 @@ classDiagram
         +string pubkey hex
         storage sessionStorage key nostr_passkey_pubkey
         lifetime tab session, verified against derived pubkey on restore
-        definedAt nostrAuthService.ts:549,602
+        definedAt nostrAuthService.ts:549,604
     }
     class DevSessionToken {
         +string literal Bearer dev-session-token

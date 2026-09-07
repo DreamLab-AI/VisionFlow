@@ -23,7 +23,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/relay.rs
   - ../nostr-rust-forum/README.md
   - ../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md
-verified_commit: worktree-2026-09-07
+verified_commit: 380a595f150dd96bfe27ff278fff9ded1be7fbd0
 ---
 
 ## NF-06.1 The six kinds and their publishers
@@ -294,7 +294,7 @@ flowchart TB
     N3["EXTERNAL: exactly ONE live consumer today - ontology-concept elevation in VisionClaw, a case queue<br/>capped at five concurrent README.md:255. Treat universal human-in-the-loop surface as the design<br/>target, not a claim of many production consumers. See VC-24."]
 ```
 
-## NF-06.11 Guarded relay projection and remaining external receipt gap
+## NF-06.11 Guarded relay projection and separate consumer receipts
 
 ```mermaid
 flowchart TB
@@ -306,7 +306,7 @@ flowchart TB
     SQL --> CASE["Case UPDATE only if decision changed one row"]
     CASE --> RECEIPT["Receipt UPDATE only if case changed one row"]
     RECEIPT --> CHECK["All three affected-row counts must equal one"]
-    CHECK --> LIMIT["Relay projection only: operation binding and consumer/applied receipts remain incomplete"]
+    CHECK --> LIMIT["Relay projection receipt is not external application proof<br/>Agentbox and VisionClaw now retain separate bound consumer records"]
 ```
 
-Execution update, 2026-09-07: request redelivery uses INSERT OR IGNORE and cannot reset an already-decided case. D1 statements execute serially in one transaction, and each dependent write requires its predecessor to change one row. Three exact-SQL projection tests cover wrong/missing request/case/receipt, prior decision/state races, duplicate commits and rollback on receipt failure; native relay tests cover correlation mismatch and unknown-state rejection. The earlier default-case and unconditional-update findings remain in the [audit](../../estate-review/2026-09-07-federation-audit.md). Live D1, operation-bound authority and external application are not certified by these tests.
+Execution update, 2026-09-07: request redelivery uses INSERT OR IGNORE and cannot reset an already-decided case. D1 statements execute serially in one transaction, and each dependent write requires its predecessor to change one row. Three exact-SQL projection tests cover wrong/missing request/case/receipt, prior decision/state races, duplicate commits and rollback on receipt failure; native relay tests cover correlation mismatch and unknown-state rejection. The earlier default-case and unconditional-update findings remain in the [audit](../../estate-review/2026-09-07-federation-audit.md). Agentbox now signs operation/digest and records received/outcome receipts; VisionClaw journals exact requests and claims PR application. Live D1 and external application are not certified by local tests.

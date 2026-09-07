@@ -16,13 +16,15 @@ sources:
   - ../project/src/actors/physics_orchestrator_actor.rs
   - ../project/src/models/force_channels.rs
   - ../project/src/models/simulation_params.rs
+  - ../project/crates/visionclaw-gpu/src/cuda_sources/visionclaw_unified.cu
+  - ../project/tests/gpu/integrate_bounds.cu
   - ../project/src/utils/unified_gpu_compute/execution.rs
   - ../project/src/handlers/layout_handler.rs
   - ../project/crates/visionclaw-domain/src/models/simulation_params.rs
   - ../project/Cargo.toml
   - ../project/src/handlers/constraints_handler.rs
   - ../project/src/utils/visionflow_unified.ptx
-verified_commit: 36bb64e1e
+verified_commit: dd82a07b0
 ---
 
 ## VC-11.1 Physics tick — phase 1, params and flag word
@@ -33,7 +35,7 @@ sequenceDiagram
     participant PO as PhysicsOrchestratorActor<br/>src/actors/physics_orchestrator_actor.rs
     participant PS as PhysicsSupervisor<br/>physics_supervisor.rs:628
     participant FCA as ForceComputeActor<br/>force_compute_actor.rs:1867
-    participant EX as UnifiedGPUCompute::execute<br/>src/utils/unified_gpu_compute/execution.rs:131
+    participant EX as UnifiedGPUCompute::execute<br/>src/utils/unified_gpu_compute/execution.rs:172
     participant FC as derive_dispatch_feature_flags<br/>src/models/force_channels.rs:486
 
     PO->>PS: ComputeForces
@@ -47,7 +49,7 @@ sequenceDiagram
         FCA->>EX: execute(sim_params) with num_constraints
         EX->>FC: derive_dispatch_feature_flags(ForceDispatchInputs) :954
         FC-->>EX: flags word
-        EX->>EX: sim_params.feature_flags = feature_flags :968
+        EX->>EX: sim_params.feature_flags = feature_flags :1017
         Note over EX: OVERWRITE - the converter's own flag word is discarded before every execute, so only this word reaches the device
     end
     Note over FC: repel_k > 0.0 sets ENABLE_REPULSION :488-490
@@ -63,7 +65,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant EX as UnifiedGPUCompute::execute<br/>execution.rs:131
+    participant EX as UnifiedGPUCompute::execute<br/>execution.rs:172
     participant K1 as force_pass_kernel<br/>src/utils/visionflow_unified.ptx
     participant K2 as integrate_pass_kernel<br/>visionflow_unified.ptx
     participant EV as cust Event<br/>execution.rs completion poll
@@ -103,7 +105,7 @@ flowchart TD
     C["Registry mutator ForceChannel::apply<br/>src/models/force_channels.rs:183-198"]
     D["derive_dispatch_feature_flags<br/>src/models/force_channels.rs:486"]
     E["execution.rs:954 calls the helper"]
-    F["execution.rs:968 sim_params.feature_flags = flags"]
+    F["execution.rs:1017 sim_params.feature_flags = flags"]
     G["Device SimParams word actually read by the kernels"]
 
     A -->|"builds its own flag word"| X["OVERWRITTEN before execute"]
@@ -327,4 +329,18 @@ stateDiagram-v2
         gate on iteration_count % 300 line 2204
         skipped frames logged every 300th line 1892,1934
     end note
+```
+
+
+## VC-11.10 Hard bounds and connected extent
+
+```mermaid
+flowchart TD
+    All["All-node AABB reduction<br/>visionclaw_unified.cu:2533"] --> Grid["Spatial index retains isolated nodes"]
+    Connected["Connected-only reduction excludes zero degree<br/>visionclaw_unified.cu:2596"] --> Extent["connected_extent<br/>execution.rs:134"]
+    Extent --> Shell["Unbounded shell radius uses connected extent<br/>Configured bounds retain fixed-radius shell"]
+    Force["Integration advances free nodes"] --> Clamp["Clamp each axis to viewport bounds<br/>Zero only outward velocity"]
+    Pin["Pinned nodes retain host position"] -.-> Clamp
+    Test["Actual CUDA fixture tests all axes and both AABBs<br/>integrate_bounds.cu:7"] -.-> Clamp
+    Test -.-> Connected
 ```

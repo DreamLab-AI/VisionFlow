@@ -157,7 +157,7 @@ flowchart TB
     P6["pure-integer and pure-hex IP obfuscation blocked ssrf.rs:338 ssrf.rs:342"]
     P7["localhost and *.localhost blocked ssrf.rs:347"]
     P8["cloud metadata 169.254.169.254 and metadata.google.internal ssrf.rs:352 ssrf.rs:353"]
-    P9["IPv4 private ranges 10/8 :448, 127/8 :451, 172.16/12 :454,<br/>192.168/16 :457, 169.254/16 :460, 0/8 :463, 240/4 :466"]
+    P9["IPv4 private ranges 10/8 :448, 127/8 :451, 172.16/12 :454,<br/>192.168/16 at ssrf.rs:457, 169.254/16 at ssrf.rs:460,<br/>zero-net at ssrf.rs:463, reserved high range at ssrf.rs:466"]
     P10["IPv6 loopback and unspecified ssrf.rs:377; ULA fc00::/7,<br/>link-local fe80::/10, site-local fec0::/10 ssrf.rs:384"]
     P11["embedded-IPv4 forms: 6to4 2002::/16 ssrf.rs:400,<br/>NAT64 64:ff9b::/96 ssrf.rs:404, v4-mapped ssrf.rs:409"]
 

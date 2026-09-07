@@ -8,6 +8,8 @@ governing:
   - ../project/docs/BASELINE-architecture.md
 adrs: [ADR-2002, ADR-2003, ADR-2009, ADR-2010, ADR-2011, ADR-2012, ADR-2013, ADR-2026, ADR-2039, ADR-2043, ADR-2044]
 sources:
+  - ../project/client/src/services/signedWebSocketProtocols.ts
+  - ../project/client/src/services/nostrAuthService.ts
   - ../project/src/main.rs
   - ../project/src/middleware/mod.rs
   - ../project/src/middleware/rbac_gate.rs
@@ -37,7 +39,7 @@ sources:
   - ../project/src/uri/mod.rs
   - ../project/src/config/security_profile.rs
   - ../project/crates/visionclaw-domain/src/utils/visibility_filter.rs
-verified_commit: 36bb64e1e
+verified_commit: dd82a07b0
 ---
 
 ## VC-03.1 REST request end-to-end — nginx to handler, real middleware order
@@ -46,12 +48,12 @@ sequenceDiagram
     autonumber
     participant NG as nginx (port 3001)
     participant AC as actix HttpServer<br/>src/main.rs:978-1033
-    participant LG as Logger<br/>wrap #1 src/main.rs:979
+    participant LG as Logger<br/>wrap #1 src/main.rs:1008
     participant CO as cors<br/>wrap #2 src/main.rs:980
     participant CP as Compress<br/>wrap #3 src/main.rs:981
-    participant TO as TimeoutMiddleware<br/>wrap #4 src/main.rs:982-985
+    participant TO as TimeoutMiddleware<br/>wrap #4 src/main.rs:1011
     participant SC as scope /api<br/>src/main.rs:1054
-    participant PD as PublicDemoGuard::from_env<br/>src/main.rs:1058
+    participant PD as PublicDemoGuard::from_env<br/>src/main.rs:1087
     participant RG as RbacGate::from_env<br/>src/main.rs:1065
     participant RL as RateLimit::per_minute 60<br/>src/main.rs:1072 (scope /api/settings only)
     participant H as route handler
@@ -60,7 +62,7 @@ sequenceDiagram
     Note over LG,TO: registration order in main.rs is Logger,cors,Compress,TimeoutMiddleware (969-972)<br/>so the REAL request-time order is TimeoutMiddleware,Compress,cors,Logger,then routing
     NG->>AC: HTTP request
     AC->>TO: enter (outermost of the four)
-    TO->>TO: get_timeout(path) — default 30s, override 600s for "/api/admin/sync" (src/main.rs:983-984)
+    TO->>TO: get_timeout(path) — default 30s, override 600s for "/api/admin/sync" (src/main.rs:1012)
     TO->>CP: enter
     CP->>CO: enter
     CO->>LG: enter
@@ -89,7 +91,7 @@ sequenceDiagram
     autonumber
     participant C as Client
     participant WS as socket_flow_handler<br/>src/handlers/socket_flow_handler/http_handler.rs
-    participant NS as NostrService::get_session<br/>src/services/nostr_service.rs:574
+    participant NS as NostrService::get_session<br/>src/services/nostr_service.rs:587
 
     Note over WS: routes registered src/main.rs:1037-1047 — /wss, /wss/agent-events,<br/>/ws/speech, /ws/mcp-relay, /ws/client-messages, /ws/presence
     C->>WS: GET /wss (Upgrade: websocket)
@@ -101,7 +103,7 @@ sequenceDiagram
         end
     else Origin missing
         alt debug/dev-auth build AND ALLOW_INSECURE_DEFAULTS
-            WS->>WS: allow_missing_origin = true (http_handler.rs:117-121)
+            WS->>WS: allow_missing_origin = true (http_handler.rs:131)
         else release build
             WS-->>C: 400 BadRequest "Origin header required" (http_handler.rs:124-130)
         end
@@ -112,7 +114,7 @@ sequenceDiagram
         WS->>NS: get_session(token) (http_handler.rs:186)
         alt session found
             NS-->>WS: NostrUser { pubkey, is_power_user }
-            WS->>WS: log validated, upgrade proceeds (http_handler.rs:217-221) — does NOT store<br/>the returned identity on ws_server, see DIVERGENCE below
+            WS->>WS: log validated, upgrade proceeds (http_handler.rs:258) — does NOT store<br/>the returned identity on ws_server, see DIVERGENCE below
         else session not found
             alt debug/dev-auth build AND insecure_allowed
                 WS->>WS: warn, allow anyway (http_handler.rs:191-195)
@@ -124,7 +126,7 @@ sequenceDiagram
         WS->>WS: continue unauthenticated (anonymous session — visibility filter drops private nodes, see VC-03.9)
     end
     Note over WS: DIVERGENCE — ws_server.pubkey/.is_power_user are set ONLY by a SEPARATE,<br/>redundant re-extraction of the query string (token_from_qs, http_handler.rs:328-341,<br/>dev/dev-auth builds only — hardcoded None in release, :341) feeding a SECOND independent<br/>get_session call (http_handler.rs:376-380). The header-token check just above (which gates<br/>the 401/allow decision) never writes its NostrUser into ws_server. Net effect: in a<br/>RELEASE build, ws_server.pubkey is NEVER set on this handler, even after a client<br/>successfully authenticates via the Authorization header — not yet confirmed whether<br/>downstream identity/visibility depends on this field or is sourced elsewhere.
-    Note over NS: RESOLVED ADR-2044 — get_session (nostr_service.rs:574) now enforces the SAME<br/>AUTH_TOKEN_EXPIRY window as validate_session (:478) through one shared rule<br/>session_is_fresh(last_seen, now, token_expiry) (:597). It previously had NO expiry check,<br/>so a WS token outlived its REST equivalent indefinitely. Empty tokens are rejected before<br/>lookup and a future last_seen (clock stepped back) is stale, not an unbounded lease.
+    Note over NS: RESOLVED ADR-2044 — get_session (nostr_service.rs:587) now enforces the SAME<br/>AUTH_TOKEN_EXPIRY window as validate_session (:478) through one shared rule<br/>session_is_fresh(last_seen, now, token_expiry) (:597). It previously had NO expiry check,<br/>so a WS token outlived its REST equivalent indefinitely. Empty tokens are rejected before<br/>lookup and a future last_seen (clock stepped back) is stale, not an unbounded lease.
     WS-->>C: 101 Switching Protocols
     C->>WS: WS frames (binary positions / control JSON)
 ```
@@ -136,7 +138,7 @@ sequenceDiagram
     participant R as request
     participant FR as AuthenticatedUser::from_request<br/>src/settings/auth_extractor.rs:93
     participant DB as try_dev_bypass<br/>src/settings/auth_extractor.rs:20 dev / :64 release stub
-    participant NS as NostrService::verify_nip98_auth<br/>src/services/nostr_service.rs:601-611
+    participant NS as NostrService::verify_nip98_auth<br/>src/services/nostr_service.rs:624
 
     R->>FR: from_request(req)
     FR->>DB: try_dev_bypass(req)
@@ -164,7 +166,7 @@ sequenceDiagram
     end
     FR->>FR: Authorization header present and str-decodable?
     alt header absent
-        FR-->>R: 401 "Missing authorization token" (:127)
+        FR-->>R: 401 "Missing authorization token" (:143)
     else header not valid UTF-8
         FR-->>R: 401 "Invalid authorization header" (:121)
     end
@@ -180,9 +182,9 @@ sequenceDiagram
         alt X-Nostr-Pubkey missing
             FR-->>R: 401 "Missing pubkey" (:200)
         else header not UTF-8
-            FR-->>R: 401 "Invalid pubkey header" (:195)
+            FR-->>R: 401 "Invalid pubkey header" (:211)
         end
-        Note over FR: legacy Bearer fallback does NOT call validate_session here —<br/>it trusts the caller-supplied pubkey outright (settings API dual-auth path)
+        Note over FR: legacy Bearer requires validate_session(pubkey, token)<br/>auth_extractor.rs:252 - default-off migration flag applies
     else unrecognised prefix
         FR-->>R: 401 "Invalid authorization format" (:185)
     end
@@ -193,8 +195,8 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant H as caller<br/>auth.rs:142 / auth_extractor.rs:93
-    participant NS as NostrService::verify_nip98_auth<br/>src/services/nostr_service.rs:601-611
-    participant V as validate_nip98_token<br/>src/utils/nip98.rs:375
+    participant NS as NostrService::verify_nip98_auth<br/>src/services/nostr_service.rs:624
+    participant V as validate_nip98_token<br/>src/utils/nip98.rs:428
     participant RC as REPLAY_CACHE<br/>src/utils/nip98.rs:215 Mutex~HashMap~
 
     Note over V,RC: INVARIANT (IDENTITY-authority-chain.md #1) — order is fixed:<br/>freshness -> tag match (host-checked) -> signature -> replay claim LAST.<br/>The claim must never precede signature verification.
@@ -263,7 +265,7 @@ sequenceDiagram
     participant WSy as WS upgrade routes<br/>src/handlers/socket_flow_handler/http_handler.rs
     participant NS as NostrService<br/>src/services/nostr_service.rs
 
-    Note over API,WSy: two realms coexist by design (ADR-2009) — request-signing (NIP-98, re-verified<br/>every call) and session-bearer (opaque token minted after a NIP-98 login)
+    Note over API,WSy: NIP-98 is default, legacy sessions exist only with explicit<br/>VISIONCLAW_LEGACY_SESSIONS=1 or true (nostr_service.rs:113)
     rect rgb(225,245,225)
     Note over C,API: REALM 1 — request-signing, re-verified on EVERY call
     C->>API: Authorization: Nostr <base64 kind-27235 event>
@@ -272,15 +274,15 @@ sequenceDiagram
     end
     rect rgb(225,225,245)
     Note over C,WSy: REALM 2 — session-bearer, minted once, presented as an opaque token
-    C->>NS: POST /api/auth/nostr (login) — verify_auth_event, issue Uuid::new_v4 (nostr_service.rs:416)
+    C->>NS: POST /api/auth/nostr (login) — verify_auth_event, issue Uuid::new_v4 (nostr_service.rs:426)
     NS-->>C: session token, TTL = AUTH_TOKEN_EXPIRY (default 3600s, nostr_service.rs:131)
-    C->>WSy: Authorization Bearer <token> or ?token=<token>
+    C->>WSy: Legacy Authorization Bearer token, release rejects query carrier
     WSy->>NS: get_session(token) — enforces AUTH_TOKEN_EXPIRY since ADR-2044 (see VC-03.2)
     C->>API: legacy X-Nostr-Pubkey + X-Nostr-Token headers (auth.rs:266-283)
     API->>NS: validate_session(pubkey, token) — DOES check now - last_seen <= token_expiry (nostr_service.rs:478-483)
     end
-    Note over SET: /api/settings ALSO accepts legacy "Bearer <token>" + X-Nostr-Pubkey (auth_extractor.rs:181-201)<br/>WITHOUT calling validate_session — the settings extractor trusts the header pubkey outright
-    Note over API,SET: /api re-verifies NIP-98 on each call rather than trusting the session token<br/>(IDENTITY-authority-chain.md line 67-68) — session tokens are the WS credential
+    Note over SET: Settings Bearer fallback validates the session before user lookup<br/>auth_extractor.rs:252 - caller pubkey alone is insufficient
+    Note over API,SET: Graph browser signs the HTTP GET upgrade via NIP-98 subprotocol.<br/>Server verifies before upgrade and never echoes the credential.<br/>Legacy compatibility remains explicit for other consumers.
 ```
 
 ## VC-03.6 `RbacGate` decision sequence — env flags, allowlist, method classification
@@ -523,7 +525,7 @@ sequenceDiagram
     participant SVC as inner service chain
 
     TO->>TO: timeout_duration = config.get_timeout(path) (:37-41)
-    Note over TO: TimeoutConfig::new(Duration::from_secs(30)).with_override("/api/admin/sync", 600s)<br/>constructed at src/main.rs:982-985 — endpoint_overrides is an exact-path HashMap match
+    Note over TO: TimeoutConfig::new(Duration::from_secs(30)).with_override("/api/admin/sync", 600s)<br/>constructed at src/main.rs:1011 — endpoint_overrides is an exact-path HashMap match
     TO->>SVC: tokio::time::timeout(timeout_duration, service.call(req))
     alt completes within timeout_duration
         SVC-->>TO: Ok(result)
@@ -561,8 +563,8 @@ sequenceDiagram
     autonumber
     participant K as secp256k1 keypair (client-held)
     participant U as uri::did_nostr<br/>src/uri/mod.rs:220
-    participant NS as NostrService::verify_nip98_auth<br/>src/services/nostr_service.rs:601-611
-    participant SP as init_pod_nip98<br/>src/handlers/solid_proxy_handler.rs:1311-1313
+    participant NS as NostrService::verify_nip98_auth<br/>src/services/nostr_service.rs:624
+    participant SP as init_pod_nip98<br/>src/handlers/solid_proxy_handler.rs:1312
     participant RS as RoleStore::effective_role<br/>src/services/role_store.rs:359
     participant AL as AccessLevel<br/>src/utils/auth.rs:16
 
@@ -576,8 +578,8 @@ sequenceDiagram
         SP->>SP: extract_user_identity(req) — re-verifies NIP-98 (this route sits under /api,<br/>so RbacGate ALSO requires WriteGraph via verify_access before the handler runs)
         SP->>SP: PublicKey::from_hex(pubkey).to_bech32() -> npub
         SP->>SP: ensure_pod_exists(npub, pubkey, pod_base_url)
-        SP-->>K: { pod_url, webid: structure.profile, npub } (:1381-1387)
-        Note over SP: GET /did/nostr:{pubkey} resolves a did+ld+json document via<br/>solid_pod_rs::interop::did_nostr::did_nostr_document (solid_proxy_handler.rs:1654-1670,<br/>route registered :1786). Full pod/LDP detail: see VC-26.
+        SP-->>K: { pod_url, webid: structure.profile, npub } (:1352)
+        Note over SP: GET /did/nostr:{pubkey} resolves a did+ld+json document via<br/>solid_pod_rs::interop::did_nostr::did_nostr_document (solid_proxy_handler.rs:1655,<br/>route registered :1786). Full pod/LDP detail: see VC-26.
     end
     K->>RS: canonicalise_pubkey(pubkey) (role_store.rs:154) then effective_role(pubkey, is_power_user)
     RS-->>K: UserRole (explicit row / power-user Admin / configured_default / fail-closed Viewer)
@@ -591,7 +593,7 @@ flowchart TB
     U["user's own Nostr keypair<br/>signs NIP-98 directly (VC-03.4)"]
     SS["Service-signed — nostr_bridge.rs<br/>struct field keys: Keys (nostr_bridge.rs:29)<br/>Keys::new(secret_key) (nostr_bridge.rs:65)<br/>event.sign_with_keys(&self.keys) (nostr_bridge.rs:169)"]
     DA["Delegated-agent-signed (NIP-26)<br/>agent signs ON BEHALF OF a user with a<br/>verifiable delegation tag"]
-    HOOK["would-hook point: validate_nip98_token<br/>src/utils/nip98.rs:375 — tag extraction loop (:438-447, u/method/payload only)<br/>a #quot;delegation#quot; tag is never read; no NIP-26 verifier exists in this crate"]
+    HOOK["would-hook point: validate_nip98_token<br/>src/utils/nip98.rs:428 — tag extraction loop (:438-447, u/method/payload only)<br/>a #quot;delegation#quot; tag is never read; no NIP-26 verifier exists in this crate"]
     U -->|"authority IS the user's own key"| REAL["real, implemented (auth.rs, nip98.rs)"]
     SS -->|"re-signs under the BRIDGE's key,<br/>not the user's — original authority NOT carried"| BRIDGE_REAL["real, implemented, but NOT delegation"]
     DA -.->|"DIVERGENCE — NOT WIRED"| HOOK
@@ -605,3 +607,27 @@ flowchart TB
 middleware identity extension. The NIP-98 token is consumed once within the
 request; a new request presenting the same token still fails. The regression
 test checks both outcomes and preserves the authenticated user's privilege bit.
+
+
+## VC-03.17 Signed browser upgrade and legacy-session sunset
+
+```mermaid
+sequenceDiagram
+    participant C as signedWebSocketProtocols<br/>signedWebSocketProtocols.ts:7
+    participant Sign as signRequest<br/>nostrAuthService.ts:244
+    participant H as socket_flow_handler<br/>http_handler.rs:53
+    participant V as validate_nip98_token<br/>nip98.rs:428
+    C->>Sign: Public HTTP(S) upgrade URL, GET, fresh nonce
+    alt Signer absent or declines
+        Sign-->>C: Fail before WebSocket construction
+    else Signed event
+        C->>H: visionclaw plus nostr.base64url event protocols
+        H->>V: Verify URL, method, signature, signer quota, replay
+        alt Invalid or reused
+            H-->>C: 401 before upgrade
+        else Valid
+            H-->>C: Upgrade and negotiate visionclaw only
+        end
+    end
+    Note over H: Legacy sessions default off. Explicit compatibility<br/>does not reopen dev-token or query-token release bypasses.
+```

@@ -31,7 +31,7 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md
   - ../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md
   - ../nostr-rust-forum/README.md
-verified_commit: d48a7a546
+verified_commit: 380a595f150dd96bfe27ff278fff9ded1be7fbd0
 ---
 
 ## NF-11.1 The Durable Object and its in-memory state
@@ -97,10 +97,10 @@ flowchart TB
     SESS["find_session_id else recover_session<br/>relay_do/mod.rs:199"]
     JSON["parse as a JSON array of length >= 2<br/>relay_do/mod.rs:211 relay_do/mod.rs:219"]
     EV["EVENT to handle_event<br/>relay_do/mod.rs:236 - see NF-03.4"]
-    RQ["REQ to handle_req<br/>relay_do/mod.rs:246, handler relay_do/nip_handlers.rs:981"]
+    RQ["REQ to handle_req<br/>relay_do/mod.rs:246, handler relay_do/nip_handlers.rs:1002"]
     CL["CLOSE relay_do/mod.rs:264"]
     AU["AUTH relay_do/mod.rs:269 - see NF-03.2"]
-    CO["COUNT relay_do/mod.rs:279, handler relay_do/nip_handlers.rs:1481"]
+    CO["COUNT relay_do/mod.rs:279, handler relay_do/nip_handlers.rs:1502"]
     UN["unknown frame relay_do/mod.rs:299"]
     WC["websocket_close relay_do/mod.rs:306"]
 
@@ -108,7 +108,7 @@ flowchart TB
     JSON --> EV & RQ & CL & AU & CO & UN
 
     N1["A malformed frame is answered with a NOTICE rather than a socket close - the relay never drops a<br/>connection for one bad message relay_do/mod.rs:211-219"]
-    N2["Subscriptions are capped at MAX_SUBSCRIPTIONS = 20 per session, enforced on REQ<br/>relay_do/nip_handlers.rs:44 relay_do/nip_handlers.rs:1007"]
+    N2["Subscriptions are capped at MAX_SUBSCRIPTIONS = 20 per session, enforced on REQ<br/>relay_do/nip_handlers.rs:44 relay_do/nip_handlers.rs:1028"]
 ```
 
 ## NF-11.4 Storage — NIP-16 treatment decides what a save deletes
@@ -159,7 +159,7 @@ sequenceDiagram
 
     Note over B: INVARIANT NIP-59: a sealed DM is delivered ONLY to the session whose AUTHENTICATED pubkey matches the p tag - subscribing to kind 1059 is not enough relay_do/broadcast.rs:49-51
     Note over B: This is the read-side twin of the write-side recipient gate in NF-03.5. Admission bounds who may PUBLISH a wrap, this bounds who may RECEIVE one.
-    Note over B: A separate filter-level gate rewrites kind-1059 REQ filters to a mandatory #p in BOTH auth modes relay_do/nip_handlers.rs:1314 - so DM privacy never depends on AUTH_MODE relay_do/nip42.rs:183-186
+    Note over B: A separate filter-level gate rewrites kind-1059 REQ filters to a mandatory #p in BOTH auth modes relay_do/nip_handlers.rs:1335 - so DM privacy never depends on AUTH_MODE relay_do/nip42.rs:183-186
 ```
 
 ## NF-11.6 Subscription matching — the REQ filter predicate
@@ -269,9 +269,9 @@ stateDiagram-v2
     end note
     note right of ProjectionCommitted
         correlate maps an event to its case relay_do/receipts.rs:164
-        apply_with_receipt drives the transition relay_do/receipts.rs:316
-        ReceiptStore is the seam relay_do/receipts.rs:284, D1ReceiptStore the
-        implementation relay_do/receipts.rs:392, table from migration
+        apply_with_receipt drives the transition relay_do/receipts.rs:334
+        ReceiptStore is the seam relay_do/receipts.rs:302, D1ReceiptStore the
+        implementation relay_do/receipts.rs:420, table from migration
         0005_governance_receipts.sql:12
     end note
 ```
@@ -281,14 +281,14 @@ stateDiagram-v2
 ```mermaid
 flowchart LR
     IMPL["IMPLEMENTED in-relay<br/>signed, relay-accepted, projection-committed, projection-failed<br/>relay_do/receipts.rs:76"]
-    OPEN["NOT implemented - the cross-repo half<br/>consumer-received and applied/rejected"]
+    OPEN["SEPARATE consumer implementations<br/>Agentbox durable received/outcome ledger<br/>VisionClaw dispatch journal and conditional PR claim"]
     LEDGER["ADR-2010 ledger row: proposed / partial / inactive<br/>docs/adr/ADR-2010-durable-governance-outcome-receipts.md:1"]
 
     IMPL --> OPEN
     LEDGER -.-> IMPL
 
-    N1["DOC-DRIFT: BASELINE-architecture's closing section calls the receipt contract 'proposed and inactive'<br/>and says 'current relay OK establishes acceptance only'. The relay-side stage machine is REAL and wired -<br/>relay_do/receipts.rs:76 defines the stages, relay_do/receipts.rs:316 applies them, and NF-03.10 shows<br/>handle_event logging 'accepted but not applied' from the returned receipt. What is genuinely absent is the<br/>CONSUMER half, which no code in this repo can provide."]
-    N2["This refines NF-06.7 and NF-10.8: the gap is a cross-repo contract, not missing relay code.<br/>EXTERNAL: consumer-received and applied belong to VC-24 and AB-14, estate loop ES-05"]
+    N1["DOC-DRIFT: BASELINE-architecture's closing section calls the receipt contract 'proposed and inactive'<br/>and says 'current relay OK establishes acceptance only'. The relay-side stage machine is REAL and wired -<br/>relay_do/receipts.rs:76 defines the stages, relay_do/receipts.rs:334 applies them, and NF-03.10 shows<br/>handle_event logging 'accepted but not applied' from the returned receipt. Consumer stages now exist in Agentbox and VisionClaw, with explicit uncertain-outcome<br/>reconciliation. A relay receipt still cannot prove external application."]
+    N2["This refines NF-06.7 and NF-10.8: the remaining acceptance needs deployed correlation and witnessed external outcomes.<br/>EXTERNAL: consumer-received and applied belong to VC-24 and AB-14, estate loop ES-05"]
     N3["INVARIANT: the projection commit is ATOMIC - decision row, case state and receipt in one batch<br/>relay_do/receipts.rs:84-85. A receipt that says committed cannot outlive a decision that did not land."]
 ```
 
@@ -298,27 +298,27 @@ flowchart LR
 sequenceDiagram
     autonumber
     participant CR as cron trigger every 5 min
-    participant SW as sweep_inactive_demotions<br/>trust_sweep.rs:497
-    participant RUN as run_demotion_sweep<br/>trust_sweep.rs:238
+    participant SW as sweep_inactive_demotions<br/>trust_sweep.rs:521
+    participant RUN as run_demotion_sweep<br/>trust_sweep.rs:239
     participant POL as trust::decide_demotion<br/>trust.rs:326
     participant D1 as whitelist + admin_log
 
     CR->>SW: scheduled entry, see NF-03.1
     SW->>RUN: page candidates by keyset cursor
-    RUN->>D1: page query ordered by (last_active_at, pubkey) trust_sweep.rs:362
+    RUN->>D1: page query ordered by (last_active_at, pubkey) trust_sweep.rs:363
     loop each row
         RUN->>POL: decide Hold or Demote - the SHARED pure policy
         alt Demote
             RUN->>D1: trust UPDATE and audit INSERT in ONE batch trust_sweep.rs:207
-            RUN->>RUN: counters move only on a CONFIRMED commit trust_sweep.rs:286
+            RUN->>RUN: counters move only on a CONFIRMED commit trust_sweep.rs:287
         end
-        RUN->>RUN: advance the cursor for EVERY consumed row trust_sweep.rs:234
+        RUN->>RUN: advance the cursor for EVERY consumed row trust_sweep.rs:235
     end
     RUN-->>SW: DemotionSweepResult trust_sweep.rs:142
 
     Note over RUN: INVARIANT auditable: scanned == demoted + held + failed always holds, checked by is_balanced trust_sweep.rs:167-168 - no row is silently unaccounted for
     Note over RUN: A failed page query stops the sweep early and is reported DISTINCTLY from a failed row commit trust_sweep.rs:117-121 trust_sweep.rs:154
-    Note over POL: The cursor advances for held AND failed rows too, so a permanently failing row cannot wedge the sweep trust_sweep.rs:234
+    Note over POL: The cursor advances for held AND failed rows too, so a permanently failing row cannot wedge the sweep trust_sweep.rs:235
 ```
 
 ## NF-11.12 Why the sweep is keyset — and why the closeout qualification is now stale
@@ -336,7 +336,7 @@ flowchart TB
     PROB --> OUT
 
     N1["DOC-DRIFT: the IDENTITY-keys-and-trust closeout says the sweep can skip rows because OFFSET pages over<br/>a shrinking set, and that UPDATE and audit-INSERT errors are ignored before returning the planned level -<br/>concluding ADR-2006 is PARTIAL. BOTH defects are fixed in code: keyset paging trust_sweep.rs:22 and<br/>confirmed-commit-only counters trust_sweep.rs:36. The qualification is stale; ADR-2006's remaining ask -<br/>committed outcome reporting, stable pagination, recoverable audit/state consistency - is MET."]
-    N2["The one closeout clause that still holds: TL2 CAN land directly on TL0 - but that is DELIBERATE,<br/>ADR-2006 permits one committed transition per sweep rather than one rung per sweep trust_sweep.rs:229-231"]
+    N2["The one closeout clause that still holds: TL2 CAN land directly on TL0 - but that is DELIBERATE,<br/>ADR-2006 permits one committed transition per sweep rather than one rung per sweep trust_sweep.rs:230-232"]
     N3["This supersedes the note in NF-03.9 and the ADR-2006 row in NF-10.8"]
 ```
 
@@ -377,7 +377,7 @@ flowchart TB
 
     N1["INVARIANT: the advertised auth_required must reflect the mode the handlers ACTUALLY enforce - it is<br/>sourced from the same parser, so the NIP-11 claim can never drift from behaviour<br/>nostr-bbs-relay-worker/src/nip11.rs:155-157. This is the strongest possible refutation of the stale<br/>README status row in NF-03.3."]
     N2["The escalation block is explicitly a SCAFFOLD whose authoritative schema is owned by agentbox -<br/>said in the served document itself nostr-bbs-relay-worker/src/nip11.rs:55.<br/>EXTERNAL: see AB-15, and NF-06.5"]
-    N3["NIP-45 COUNT and NIP-50 SEARCH are advertised - handlers at relay_do/nip_handlers.rs:1481 and<br/>nostr-bbs-relay-worker/src/profiles.rs:249"]
+    N3["NIP-45 COUNT and NIP-50 SEARCH are advertised - handlers at relay_do/nip_handlers.rs:1502 and<br/>nostr-bbs-relay-worker/src/profiles.rs:249"]
 ```
 
 ## NF-11.15 Admin and moderation surfaces on the worker

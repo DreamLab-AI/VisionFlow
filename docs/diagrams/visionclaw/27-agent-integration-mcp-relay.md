@@ -30,7 +30,7 @@ sources:
   - ../project/src/agent_events/provenance.rs
   - ../project/src/services/acsp/client.rs
   - ../project/src/main.rs
-verified_commit: 36bb64e1e
+verified_commit: dd82a07b0
 ---
 
 ## VC-27.1 BotsClient — legacy `:9500` MCP-TCP poller (superseded path)
@@ -571,7 +571,7 @@ sequenceDiagram
         HB->>CC: do_send(BroadcastMessage{message: json}) - :124
     end
     HB-->>Caller: 200 {ok:true, count} - :130
-    Note over H,CC: routes mounted at /api/memory-flash and /api/memory-flash/batch via<br/>configure_routes (:133-139), configured inside the /api scope (main.rs:1142)
+    Note over H,CC: routes mounted at /api/memory-flash and /api/memory-flash/batch via<br/>configure_routes (:133-139), configured inside the /api scope (main.rs:1171)
 ```
 
 ## VC-27.13 `/wss/agent-events` ingest — schema validation, hub fan-out, provenance

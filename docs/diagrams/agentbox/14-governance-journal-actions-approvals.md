@@ -64,7 +64,7 @@ flowchart TB
     JOURNAL[["ExecutionJournal.append<br/>execution-journal.js:133"]]
     ACTPLANE(["action-plane.js getActionPlane<br/>lazy singleton, ADR-2041, see AB-14.14"])
     COSTGATE["costGate middleware<br/>middleware/cost-gate.js, see AB-15.x"]
-    ACSPGATE["ACSP authority gate<br/>authority.js buildAuthorityGate.guard, see AB-11.10"]
+    ACSPGATE["ACSP authority gate<br/>authority.js:137 buildAuthorityGate.guard, see AB-11.10"]
     AXIOMGUARD["direct_axiom_load=false guard<br/>ADR-2022, see AB-25"]
     EXEC(["side effect executes"])
 
@@ -276,7 +276,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant Gate as authority.js
-    participant Waiter as governance-decision-waiter.js
+    participant Waiter as governance-decision-waiter.js:87 awaitDecision
     participant Relay as Existing relay consumer
     Gate->>Waiter: awaitDecision signed request, timeout
     Waiter->>Waiter: register by request event ID only

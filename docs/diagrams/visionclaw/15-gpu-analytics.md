@@ -46,7 +46,7 @@ sources:
   - ../project/src/main.rs
   - ../project/src/handlers/api_handler/analytics/params_handlers.rs
   - ../project/src/handlers/api_handler/analytics/types.rs
-verified_commit: 36bb64e1e
+verified_commit: dd82a07b0
 ---
 
 ## VC-15.1 POST /analytics/clustering/run — spectral/kmeans/louvain/default dispatch with CPU fallback
@@ -479,7 +479,7 @@ sequenceDiagram
     participant GSA as GraphStateActor<br/>graph_state_actor.rs
     participant SVC as SemanticPathfindingService<br/>semantic_pathfinding_service.rs:86
 
-    Note over CFG: mounted at web-scope pathfinding by main.rs:1103, distinct from the analytics-scope path family in VC-15.6 to VC-15.9
+    Note over CFG: mounted at web-scope pathfinding by main.rs:1132, distinct from the analytics-scope path family in VC-15.6 to VC-15.9
 
     C->>CFG: POST /pathfinding/semantic-path {startId,endId,query}
     CFG->>FSP: find_semantic_path(request)
@@ -654,7 +654,7 @@ flowchart TD
     subgraph LIVE["Live GPU kernels (crates/visionclaw-gpu/src/cuda_sources)"]
         LOUV["Louvain community detection TRUSTED<br/>gpu_clustering_kernels.cu:581 D1 fix marker, output-verified by ADR-2061"]
         PR["PageRank TRUSTED<br/>pagerank.cu:263 D8 fix marker, global two-kernel dangling-mass path, output-verified by ADR-2061"]
-        DBS["DBSCAN TRUSTED<br/>gpu_clustering_kernels.cu:1079 border handling in propagate/finalise, output-verified by ADR-2061"]
+        DBS["DBSCAN TRUSTED<br/>gpu_clustering_kernels.cu:1104 border handling in propagate/finalise, output-verified by ADR-2061"]
         LOF["LOF local outlier factor<br/>lof_lrd_from_neighbors uses neighbour k-distance<br/>lof_gather_neighbors includes kth-distance ties; bounded32 neighbourhood - ADR-2061"]
         ONT["Ontology constraints<br/>fixed and live, keystone wiring"]
     end
