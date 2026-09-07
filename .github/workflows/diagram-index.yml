@@ -1,0 +1,40 @@
+name: Diagrams-as-code index gate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/diagrams/**'
+      - 'scripts/diagram-index-gen.cjs'
+      - '.github/workflows/diagram-index.yml'
+  pull_request:
+    paths:
+      - 'docs/diagrams/**'
+      - 'scripts/diagram-index-gen.cjs'
+      - '.github/workflows/diagram-index.yml'
+
+jobs:
+  index:
+    name: Validate frontmatter, ids, block structure and the generated index
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # `sources:` reach sibling checkouts (../project, ../solid-pod-rs, …) that a
+      # hosted runner does not have, so path existence and --cite-check are LOCAL
+      # gates (see docs/diagrams/README.md § Tooling). Here we validate everything
+      # that is self-contained: frontmatter shape, unique ids, heading/block
+      # structure, prose limits, and that README/COVERAGE match the tree.
+      - name: Structural check (sibling paths tolerated)
+        run: node scripts/diagram-index-gen.cjs docs/diagrams --check --no-source-paths
+
+      - name: Index in sync
+        run: |
+          cp docs/diagrams/COVERAGE.md /tmp/COVERAGE.before
+          node scripts/diagram-index-gen.cjs docs/diagrams --no-source-paths
+          diff -q /tmp/COVERAGE.before docs/diagrams/COVERAGE.md || { echo "::error::COVERAGE.md is stale — run: node scripts/diagram-index-gen.cjs docs/diagrams"; exit 1; }

@@ -15,6 +15,7 @@ Back to the [top-level README](../README.md) for the ecosystem overview, quickst
 | [Ecosystem Alignment ADR-002](archive/adr/ADR-002-ecosystem-alignment-governance.md) _(archived)_ | Decision record for cross-repo alignment governance and maturity vocabulary |
 | [Ecosystem Alignment DDD](DDD-ecosystem-alignment-context.md) | Bounded context, aggregates, invariants, and language for ecosystem alignment |
 | [Ecosystem Map](ecosystem-map.md) | Docs and spot-check synthesis of the sibling repositories, system flows, and gap register |
+| [Diagrams as code](diagrams/README.md) | Estate-wide, citation-verified Mermaid coverage of all nine repositories (VF/VC/AB/SP/NF/DW/VW/KG/VG/ES areas), with a generated coverage index |
 | [Repository Map](architecture/repository-map.md) | Local path and role map for the federated repositories |
 | [Compatibility Matrix](architecture/compatibility-matrix.md) | Current identity, mesh, pod, governance, deployment, and tests/ops posture |
 | [Status Reconciliation](architecture/status-reconciliation.md) | Current reading of older PRD/ADR claims versus implementation status |

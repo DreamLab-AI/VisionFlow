@@ -58,3 +58,6 @@ doctorow.txt
 
 # agent-tooling session state (settings.local.json is ignored globally; the rest is per-session)
 .claude/
+
+# diagrams-as-code: mmdc output is regenerable
+docs/diagrams/rendered/
